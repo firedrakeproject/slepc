@@ -140,8 +140,7 @@ PetscErrorCode SlepcDenseMatProdTriang(
   if ((sA == 0) && (sB == 0)) {
     if (At) tmp = rA, rA = cA, cA = tmp;
     if (Bt) tmp = rB, rB = cB, cB = tmp;
-    ierr = SlepcDenseMatProd(C, ldC, 0.0, 1.0, A, ldA, rA, cA, At, B, ldB, rB,
-                             cB, Bt); CHKERRQ(ierr);
+    ierr = SlepcDenseMatProd(C, ldC, 0.0, 1.0, A, ldA, rA, cA, At, B, ldB, rB, cB, Bt);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
 
@@ -153,7 +152,7 @@ PetscErrorCode SlepcDenseMatProdTriang(
     rC = rA; cC = cB;
     BLASsymm_("L", DVD_ISNOT(sA,DVD_MAT_LTRIANG)?"U":"L", &rC, &cC, &one,
               (PetscScalar*)A, &_ldA, (PetscScalar*)B, &_ldB, &zero, C, &_ldC);
-    ierr = PetscLogFlops(rA*cB*cA); CHKERRQ(ierr);
+    ierr = PetscLogFlops(rA*cB*cA);CHKERRQ(ierr);
     ierr = PetscLogEventEnd(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
@@ -166,7 +165,7 @@ PetscErrorCode SlepcDenseMatProdTriang(
     rC = rA; cC = cB;
     BLASsymm_("R", DVD_ISNOT(sB,DVD_MAT_LTRIANG)?"U":"L", &rC, &cC, &one,
               (PetscScalar*)B, &_ldB, (PetscScalar*)A, &_ldA, &zero, C, &_ldC);
-    ierr = PetscLogFlops(rA*cB*cA); CHKERRQ(ierr);
+    ierr = PetscLogFlops(rA*cB*cA);CHKERRQ(ierr);
     ierr = PetscLogEventEnd(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
@@ -244,8 +243,7 @@ PetscErrorCode SlepcDenseCopy(PetscScalar *Y, PetscInt ldY, PetscScalar *X,
 
   ierr = PetscLogEventBegin(SLEPC_SlepcDenseCopy,0,0,0,0);CHKERRQ(ierr);
   for (i=0;i<cX;i++) {
-    ierr = PetscMemcpy(&Y[ldY*i], &X[ldX*i], sizeof(PetscScalar)*rX);
-    CHKERRQ(ierr);
+    ierr = PetscMemcpy(&Y[ldY*i], &X[ldX*i], sizeof(PetscScalar)*rX);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(SLEPC_SlepcDenseCopy,0,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -307,8 +305,7 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
   switch (c) {
   case 0: /* copy */
     for (i=0;i<cX;i++) {
-      ierr = PetscMemcpy(&Y[ldY*i], &X[ldX*i], sizeof(PetscScalar)*rX);
-      CHKERRQ(ierr);
+      ierr = PetscMemcpy(&Y[ldY*i],&X[ldX*i],sizeof(PetscScalar)*rX);CHKERRQ(ierr);
     }
     break;
 
@@ -381,8 +378,8 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
     /* If Y[0..cM-1] and X[0..cX-1] are not overlapped... */
 
     /* Get the dense matrices and dimensions associated to Y and X */
-    ierr = VecGetLocalSize(X[0], &rX); CHKERRQ(ierr);
-    ierr = VecGetLocalSize(Y[0], &rY); CHKERRQ(ierr);
+    ierr = VecGetLocalSize(X[0], &rX);CHKERRQ(ierr);
+    ierr = VecGetLocalSize(Y[0], &rY);CHKERRQ(ierr);
     if (rX != rY) SETERRQ(((PetscObject)*Y)->comm,1, "The multivectors do not have the same dimension");
     ierr = VecGetArrayRead(X[0], &px);CHKERRQ(ierr);
     ierr = VecGetArray(Y[0], &py);CHKERRQ(ierr);
@@ -392,21 +389,21 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
 
     /* Do operation */ 
     ierr = SlepcDenseMatProd(py, ldY, beta, alpha, px, ldX, rX, rcX,
-                    PETSC_FALSE, M, ldM, rM, cM, PETSC_FALSE); CHKERRQ(ierr);
+                    PETSC_FALSE, M, ldM, rM, cM, PETSC_FALSE);CHKERRQ(ierr);
   
     ierr = VecRestoreArrayRead(X[0], &px);CHKERRQ(ierr);
     ierr = VecRestoreArray(Y[0], &py);CHKERRQ(ierr);
     for (i=1;i<cM;i++) {
-      ierr = PetscObjectStateIncrease((PetscObject)Y[dY*i]); CHKERRQ(ierr);
+      ierr = PetscObjectStateIncrease((PetscObject)Y[dY*i]);CHKERRQ(ierr);
     }
 
   } else if ((Y >= X) && (beta == 0.0) && (dY == dX)) {
     /* If not, call to SlepcUpdateVectors */
     ierr = SlepcUpdateStrideVectors(cX, X, Y-X, dX, Y-X+cM*dX, M-ldM*(Y-X),
-                                    ldM, PETSC_FALSE); CHKERRQ(ierr);
+                                    ldM, PETSC_FALSE);CHKERRQ(ierr);
     if (alpha != 1.0)
-      for (i=0; i<cM; i++) {
-        ierr = VecScale(Y[i], alpha); CHKERRQ(ierr);
+      for (i=0;i<cM;i++) {
+        ierr = VecScale(Y[i],alpha);CHKERRQ(ierr);
       }
   } else SETERRQ(((PetscObject)*Y)->comm,1, "Unsupported case");
   PetscFunctionReturn(0);
@@ -440,37 +437,34 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
   if ((cX == 0) || (rM == 0) || (cM == 0)) PetscFunctionReturn(0);
 
   /* Get the dense vectors associated to the columns of X */
-  ierr = PetscMalloc(sizeof(Vec)*cX, &px); CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(Vec)*cX,&px);CHKERRQ(ierr);
   for (i=0;i<cX;i++) {
-    ierr = VecGetArray(X[i], &px[i]); CHKERRQ(ierr);
+    ierr = VecGetArray(X[i],&px[i]);CHKERRQ(ierr);
   }
-  ierr = VecGetLocalSize(X[0], &rX); CHKERRQ(ierr);
+  ierr = VecGetLocalSize(X[0],&rX);CHKERRQ(ierr);
 
   for (i=0,rY0=0;i<rX;i+=rY0) {
     rY0 = PetscMin(rY, rX-i);
 
     /* Y <- X[i0:i1,:] */
     for (j=0;j<cX;j++) {
-      ierr = SlepcDenseCopy(&Y[ldY*j], ldY, px[j]+i, rX, rY0, 1);
-      CHKERRQ(ierr);
+      ierr = SlepcDenseCopy(&Y[ldY*j], ldY, px[j]+i, rX, rY0, 1);CHKERRQ(ierr);
     }
 
     /* Z <- Y * M */
     ierr = SlepcDenseMatProd(Z, ldY, 0.0, alpha, Y, ldY, rY0, cX, PETSC_FALSE,
-                                                 M, ldM, rM, cM, PETSC_FALSE);
-    CHKERRQ(ierr);
+                                                 M, ldM, rM, cM, PETSC_FALSE);CHKERRQ(ierr);
 
     /* X <- Z */
     for (j=0;j<cM;j++) {
-      ierr = SlepcDenseCopy(px[j]+i, rX, &Z[j*ldY], ldY, rY0, 1);
-      CHKERRQ(ierr);
+      ierr = SlepcDenseCopy(px[j]+i, rX, &Z[j*ldY], ldY, rY0, 1);CHKERRQ(ierr);
     }
   }
 
   for (i=0;i<cX;i++) {
-    ierr = VecRestoreArray(X[i], &px[i]); CHKERRQ(ierr);
+    ierr = VecRestoreArray(X[i],&px[i]);CHKERRQ(ierr);
   }
-  ierr = PetscFree(px); CHKERRQ(ierr);
+  ierr = PetscFree(px);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -502,8 +496,8 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   PetscValidScalarPointer(M,1);
     
   /* Get the dense matrices and dimensions associated to U and V */
-  ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
-  ierr = VecGetLocalSize(V[0], &ldV); CHKERRQ(ierr);
+  ierr = VecGetLocalSize(U[0], &ldU);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(V[0], &ldV);CHKERRQ(ierr);
   if (ldU != ldV) SETERRQ(((PetscObject)*U)->comm,1, "Matrix dimensions do not match");
   ierr = VecGetArrayRead(U[0], &pu);CHKERRQ(ierr);
   ierr = VecGetArrayRead(V[0], &pv);CHKERRQ(ierr);
@@ -512,8 +506,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
     PetscValidScalarPointer(workS0,10);
     W = workS0;
   } else {
-    ierr = PetscMalloc(sizeof(PetscScalar)*ms, &W);
-    CHKERRQ(ierr);
+    ierr = PetscMalloc(sizeof(PetscScalar)*ms,&W);CHKERRQ(ierr);
   }
 
   ierr = PetscLogEventBegin(SLEPC_VecsMult,0,0,0,0);CHKERRQ(ierr);
@@ -524,12 +517,11 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
     /* W <- U' * V */
     ierr = SlepcDenseMatProdTriang(W, sM, eU,
                                    pu, 0, ldU, ldU, eU, PETSC_TRUE,
-                                   pv, 0, ldV, ldV, eV, PETSC_FALSE);
-    CHKERRQ(ierr);
+                                   pv, 0, ldV, ldV, eV, PETSC_FALSE);CHKERRQ(ierr);
  
     /* ReduceAll(W, SUM) */
     ierr = MPI_Allreduce(W, M, eU*eV, MPIU_SCALAR, MPIU_SUM,
-                         ((PetscObject)U[0])->comm); CHKERRQ(ierr);
+                         ((PetscObject)U[0])->comm);CHKERRQ(ierr);
   /* Full M matrix */
   } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) && 
              DVD_ISNOT(sM,DVD_MAT_LTRIANG)) {
@@ -538,27 +530,24 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
       Wr = workS1;
       if (PetscAbs(PetscMin(W-workS1, workS1-W)) < ms) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
     } else {
-      ierr = PetscMalloc(sizeof(PetscScalar)*ms, &Wr);
-      CHKERRQ(ierr);
+      ierr = PetscMalloc(sizeof(PetscScalar)*ms,&Wr);CHKERRQ(ierr);
     }
  
     /* W(0:(eU-sU)*sV-1) <- U(sU:eU-1)' * V(0:sV-1) */
     if (sU > 0) {
       ierr = SlepcDenseMatProd(W, eU-sU, 0.0, 1.0,
                                pu+ldU*sU, ldU, ldU, eU-sU, PETSC_TRUE,
-                               pv       , ldV, ldV, sV,    PETSC_FALSE);
-      CHKERRQ(ierr);
+                               pv       , ldV, ldV, sV,    PETSC_FALSE);CHKERRQ(ierr);
     }
   
     /* W((eU-sU)*sV:(eU-sU)*sV+(eV-sV)*eU-1) <- U(0:eU-1)' * V(sV:eV-1) */
     ierr = SlepcDenseMatProd(W+(eU-sU)*sV*(sU > 0?1:0), eU, 0.0, 1.0,
                              pu,        ldU, ldU, eU,    PETSC_TRUE,
-                             pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);
-    CHKERRQ(ierr);
+                             pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);CHKERRQ(ierr);
   
     /* ReduceAll(W, SUM) */
     ierr = MPI_Allreduce(W, Wr, ms, MPIU_SCALAR,
-                      MPIU_SUM, ((PetscObject)U[0])->comm); CHKERRQ(ierr);
+                      MPIU_SUM, ((PetscObject)U[0])->comm);CHKERRQ(ierr);
   
     /* M(...,...) <- W */
     k = 0;
@@ -568,7 +557,7 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
       for (j=ldM*i; j<ldM*i+eU; j++,k++) M[j] = Wr[k];
   
     if (!workS1) {
-      ierr = PetscFree(Wr); CHKERRQ(ierr);
+      ierr = PetscFree(Wr);CHKERRQ(ierr);
     }
 
   /* Upper triangular M matrix */
@@ -579,26 +568,24 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
       Wr = workS1;
       if (PetscAbs(PetscMin(W-workS1,workS1-W)) < (eV-sV)*eU) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
     } else {
-      ierr = PetscMalloc(sizeof(PetscScalar)*(eV-sV)*eU, &Wr);
-      CHKERRQ(ierr);
+      ierr = PetscMalloc(sizeof(PetscScalar)*(eV-sV)*eU,&Wr);CHKERRQ(ierr);
     }
  
     /* W(0:(eV-sV)*eU-1) <- U(0:eU-1)' * V(sV:eV-1) */
     ierr = SlepcDenseMatProd(W,         eU,  0.0, 1.0,
                              pu,        ldU, ldU, eU,    PETSC_TRUE,
-                             pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);
-    CHKERRQ(ierr);
+                             pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);CHKERRQ(ierr);
   
     /* ReduceAll(W, SUM) */
     ierr = MPI_Allreduce(W, Wr, (eV-sV)*eU, MPIU_SCALAR, MPIU_SUM,
-                         ((PetscObject)U[0])->comm); CHKERRQ(ierr);
+                         ((PetscObject)U[0])->comm);CHKERRQ(ierr);
   
     /* M(...,...) <- W */
     for (i=sV,k=0; i<eV; i++)
         for (j=ldM*i; j<ldM*i+eU; j++,k++) M[j] = Wr[k];
 
     if (!workS1) {
-      ierr = PetscFree(Wr); CHKERRQ(ierr);
+      ierr = PetscFree(Wr);CHKERRQ(ierr);
     }
 
   /* Lower triangular M matrix */
@@ -615,30 +602,29 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
     /* W(0:(eU-sU)*eV-1) <- U(sU:eU-1)' * V(0:eV-1) */
     ierr = SlepcDenseMatProd(W, eU-sU, 0.0, 1.0,
                              pu+ldU*sU, ldU, ldU, eU-sU, PETSC_TRUE,
-                             pv       , ldV, ldV, eV,    PETSC_FALSE);
-    CHKERRQ(ierr);
+                             pv       , ldV, ldV, eV,    PETSC_FALSE);CHKERRQ(ierr);
   
     /* ReduceAll(W, SUM) */
     ierr = MPI_Allreduce(W, Wr, (eU-sU)*eV, MPIU_SCALAR, MPIU_SUM,
-                         ((PetscObject)U[0])->comm); CHKERRQ(ierr);
+                         ((PetscObject)U[0])->comm);CHKERRQ(ierr);
   
     /* M(...,...) <- W */
     for (i=0,k=0; i<eV; i++)
       for (j=ldM*i+sU; j<ldM*i+eU; j++,k++) M[j] = Wr[k];
   
     if (!workS1) {
-      ierr = PetscFree(Wr); CHKERRQ(ierr);
+      ierr = PetscFree(Wr);CHKERRQ(ierr);
     }
   }
 
   ierr = PetscLogEventEnd(SLEPC_VecsMult,0,0,0,0);CHKERRQ(ierr);
 
   if (!workS0) {
-    ierr = PetscFree(W); CHKERRQ(ierr);
+    ierr = PetscFree(W);CHKERRQ(ierr);
   }
 
-  ierr = VecRestoreArrayRead(U[0], &pu); CHKERRQ(ierr);
-  ierr = VecRestoreArrayRead(V[0], &pv); CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(U[0],&pu);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(V[0],&pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -668,18 +654,17 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
   PetscValidScalarPointer(M,1);
 
   /* Get the dense matrices and dimensions associated to U and V */
-  ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
-  ierr = VecGetLocalSize(V[0], &ldV); CHKERRQ(ierr);
+  ierr = VecGetLocalSize(U[0],&ldU);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(V[0],&ldV);CHKERRQ(ierr);
   if (ldU != ldV) SETERRQ(((PetscObject)*U)->comm,1, "Matrix dimensions do not match");
-  ierr = VecGetArray(U[0], &pu);CHKERRQ(ierr);
-  ierr = VecGetArray(V[0], &pv);CHKERRQ(ierr);
+  ierr = VecGetArray(U[0],&pu);CHKERRQ(ierr);
+  ierr = VecGetArray(V[0],&pv);CHKERRQ(ierr);
 
   if ((sU == 0) && (sV == 0) && (eU == ldM)) {
     /* M <- local_U' * local_V */
     ierr = SlepcDenseMatProdTriang(M, sM, eU,
                                    pu, 0, ldU, ldU, eU, PETSC_TRUE,
-                                   pv, 0, ldV, ldV, eV, PETSC_FALSE);
-    CHKERRQ(ierr);
+                                   pv, 0, ldV, ldV, eV, PETSC_FALSE);CHKERRQ(ierr);
  
   /* Full M matrix */
   } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) && 
@@ -687,22 +672,20 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
     /* M(sU:eU-1,0:sV-1) <- U(sU:eU-1)' * V(0:sV-1) */
     ierr = SlepcDenseMatProd(&M[sU], ldM, 0.0, 1.0,
                              pu+ldU*sU, ldU, ldU, eU-sU, PETSC_TRUE,
-                             pv       , ldV, ldV, sV,    PETSC_FALSE);
-    CHKERRQ(ierr);
+                             pv       , ldV, ldV, sV,    PETSC_FALSE);CHKERRQ(ierr);
   
     /* M(0:eU-1,sV:eV-1) <- U(0:eU-1)' * V(sV:eV-1) */
     ierr = SlepcDenseMatProd(&M[ldM*sV], ldM, 0.0, 1.0,
                              pu,        ldU, ldU, eU,    PETSC_TRUE,
-                             pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);
-    CHKERRQ(ierr);
+                             pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);CHKERRQ(ierr);
   
   /* Other structures */
   } else SETERRQ(((PetscObject)*U)->comm,1, "Matrix structure not supported");
 
-  ierr = VecRestoreArray(U[0], &pu); CHKERRQ(ierr);
-  ierr = PetscObjectStateDecrease((PetscObject)U[0]); CHKERRQ(ierr);
-  ierr = VecRestoreArray(V[0], &pv); CHKERRQ(ierr);
-  ierr = PetscObjectStateDecrease((PetscObject)V[0]); CHKERRQ(ierr);
+  ierr = VecRestoreArray(U[0],&pu);CHKERRQ(ierr);
+  ierr = PetscObjectStateDecrease((PetscObject)U[0]);CHKERRQ(ierr);
+  ierr = VecRestoreArray(V[0],&pv);CHKERRQ(ierr);
+  ierr = PetscObjectStateDecrease((PetscObject)V[0]);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -756,8 +739,7 @@ PetscErrorCode VecsMultIb(PetscScalar *M, MatType_t sM, PetscInt ldM,
     PetscValidScalarPointer(auxS,6);
     W = auxS;
   } else {
-    ierr = PetscMalloc(sizeof(PetscScalar)*rM*cM*2, &W);
-    CHKERRQ(ierr);
+    ierr = PetscMalloc(sizeof(PetscScalar)*rM*cM*2,&W);CHKERRQ(ierr);
   }
   Wr = W + rM*cM;
 
@@ -765,14 +747,14 @@ PetscErrorCode VecsMultIb(PetscScalar *M, MatType_t sM, PetscInt ldM,
 
   if (sM == 0) {
     /* W <- M */
-    ierr = SlepcDenseCopy(W, rM, M, ldM, rM, cM); CHKERRQ(ierr);
+    ierr = SlepcDenseCopy(W, rM, M, ldM, rM, cM);CHKERRQ(ierr);
 
     /* Wr <- ReduceAll(W, SUM) */
     ierr = MPI_Allreduce(W, Wr, rM*cM, MPIU_SCALAR, MPIU_SUM,
-                         ((PetscObject)V)->comm); CHKERRQ(ierr);
+                         ((PetscObject)V)->comm);CHKERRQ(ierr);
 
     /* M <- Wr */
-    ierr = SlepcDenseCopy(M, ldM, Wr, rM, rM, cM); CHKERRQ(ierr);
+    ierr = SlepcDenseCopy(M, ldM, Wr, rM, rM, cM);CHKERRQ(ierr);
 
   /* Other structures */
   } else SETERRQ(((PetscObject)V)->comm,1, "Matrix structure not supported");
@@ -780,7 +762,7 @@ PetscErrorCode VecsMultIb(PetscScalar *M, MatType_t sM, PetscInt ldM,
   ierr = PetscLogEventEnd(SLEPC_VecsMult,0,0,0,0);CHKERRQ(ierr);
 
   if (!auxS) {
-    ierr = PetscFree(W); CHKERRQ(ierr);
+    ierr = PetscFree(W);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -812,11 +794,11 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
   PetscValidScalarPointer(M,1);
 
   /* Get the dense matrices and dimensions associated to U and V */
-  ierr = VecGetLocalSize(U[0], &ldU); CHKERRQ(ierr);
-  ierr = VecGetLocalSize(V[0], &ldV); CHKERRQ(ierr);
+  ierr = VecGetLocalSize(U[0],&ldU);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(V[0],&ldV);CHKERRQ(ierr);
   if (ldU != ldV) SETERRQ(((PetscObject)*U)->comm,1, "Matrix dimensions do not match");
-  ierr = VecGetArrayRead(U[0], &pu);CHKERRQ(ierr);
-  ierr = VecGetArrayRead(V[0], &pv);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(U[0],&pu);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(V[0],&pv);CHKERRQ(ierr);
 
   ierr = PetscLogEventBegin(SLEPC_VecsMult,0,0,0,0);CHKERRQ(ierr);
 
@@ -824,14 +806,12 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
     /* Use the smart memory usage version */
 
     /* Add the reduction to r */
-    ierr = SlepcAllReduceSum(r, eU*eV, VecsMultS_copy_func, sr, &W);
-    CHKERRQ(ierr);
+    ierr = SlepcAllReduceSum(r, eU*eV, VecsMultS_copy_func, sr, &W);CHKERRQ(ierr);
 
     /* W <- U' * V */
     ierr = SlepcDenseMatProdTriang(W, sM, eU,
                                    pu, 0, ldU, ldU, eU, PETSC_TRUE,
-                                   pv, 0, ldV, ldV, eV, PETSC_FALSE);
-    CHKERRQ(ierr);
+                                   pv, 0, ldV, ldV, eV, PETSC_FALSE);CHKERRQ(ierr);
  
     /* M <- ReduceAll(W, SUM) */
     sr->M = M;    sr->ld = ldM;
@@ -842,20 +822,17 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
   } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) && 
              DVD_ISNOT(sM,DVD_MAT_LTRIANG)) {
     /* Add the reduction to r */
-    ierr = SlepcAllReduceSum(r, ms, VecsMultS_copy_func, sr, &W);
-    CHKERRQ(ierr);
+    ierr = SlepcAllReduceSum(r, ms, VecsMultS_copy_func, sr, &W);CHKERRQ(ierr);
 
     /* W(0:(eU-sU)*sV-1) <- U(sU:eU-1)' * V(0:sV-1) */
     ierr = SlepcDenseMatProd(W, eU-sU, 0.0, 1.0,
                              pu+ldU*sU, ldU, ldU, eU-sU, PETSC_TRUE,
-                             pv       , ldV, ldV, sV,    PETSC_FALSE);
-    CHKERRQ(ierr);
+                             pv       , ldV, ldV, sV,    PETSC_FALSE);CHKERRQ(ierr);
   
     /* W((eU-sU)*sV:(eU-sU)*sV+(eV-sV)*eU-1) <- U(0:eU-1)' * V(sV:eV-1) */
     ierr = SlepcDenseMatProd(W+(eU-sU)*sV*(sU > 0?1:0), eU, 0.0, 1.0,
                              pu,        ldU, ldU, eU,    PETSC_TRUE,
-                             pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);
-    CHKERRQ(ierr);
+                             pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);CHKERRQ(ierr);
   
     /* M <- ReduceAll(W, SUM) */
     sr->M = M;            sr->ld = ldM;
@@ -866,14 +843,12 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
   } else if (DVD_IS(sM,DVD_MAT_UTRIANG) &&
              DVD_ISNOT(sM,DVD_MAT_LTRIANG)) {
     /* Add the reduction to r */
-    ierr = SlepcAllReduceSum(r, (eV-sV)*eU, VecsMultS_copy_func, sr, &W);
-    CHKERRQ(ierr);
+    ierr = SlepcAllReduceSum(r, (eV-sV)*eU, VecsMultS_copy_func, sr, &W);CHKERRQ(ierr);
  
     /* W(0:(eV-sV)*eU-1) <- U(0:eU-1)' * V(sV:eV-1) */
     ierr = SlepcDenseMatProd(W,         eU,  0.0, 1.0,
                              pu,        ldU, ldU, eU,    PETSC_TRUE,
-                             pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);
-    CHKERRQ(ierr);
+                             pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);CHKERRQ(ierr);
   
     /* M <- ReduceAll(W, SUM) */
     sr->M = M;    sr->ld = ldM;
@@ -884,14 +859,12 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
   } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) &&
              DVD_IS(sM,DVD_MAT_LTRIANG)) {
     /* Add the reduction to r */
-    ierr = SlepcAllReduceSum(r, (eU-sU)*eV, VecsMultS_copy_func, sr, &W);
-    CHKERRQ(ierr);
+    ierr = SlepcAllReduceSum(r, (eU-sU)*eV, VecsMultS_copy_func, sr, &W);CHKERRQ(ierr);
  
     /* W(0:(eU-sU)*eV-1) <- U(sU:eU-1)' * V(0:eV-1) */
     ierr = SlepcDenseMatProd(W, eU-sU, 0.0, 1.0,
                              pu+ldU*sU, ldU, ldU, eU-sU, PETSC_TRUE,
-                             pv       , ldV, ldV, eV,    PETSC_FALSE);
-    CHKERRQ(ierr);
+                             pv       , ldV, ldV, eV,    PETSC_FALSE);CHKERRQ(ierr);
   
     /* ReduceAll(W, SUM) */
     sr->M = M;    sr->ld = ldM;
@@ -901,8 +874,8 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
 
   ierr = PetscLogEventEnd(SLEPC_VecsMult,0,0,0,0);CHKERRQ(ierr);
 
-  ierr = VecRestoreArrayRead(U[0], &pu); CHKERRQ(ierr);
-  ierr = VecRestoreArrayRead(V[0], &pv); CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(U[0],&pu);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(V[0],&pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -946,20 +919,20 @@ PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
   
   PetscFunctionBegin;
   if (!wS0) {
-    ierr = PetscMalloc(sizeof(PetscScalar)*n*n, &H); CHKERRQ(ierr);
+    ierr = PetscMalloc(sizeof(PetscScalar)*n*n,&H);CHKERRQ(ierr);
   } else {
     PetscValidScalarPointer(wS0,3);
     H = wS0;
   }
   if (!wS1) {
-    ierr = PetscMalloc(sizeof(PetscScalar)*n*n, &T); CHKERRQ(ierr);
+    ierr = PetscMalloc(sizeof(PetscScalar)*n*n,&T);CHKERRQ(ierr);
   } else {
     PetscValidScalarPointer(wS1,4);
     T = wS1;
   }
 
   /* H <- V' * V */
-  ierr = VecsMult(H, 0, n, V, 0, n, V, 0, n, T, PETSC_NULL); CHKERRQ(ierr);
+  ierr = VecsMult(H, 0, n, V, 0, n, V, 0, n, T, PETSC_NULL);CHKERRQ(ierr);
 
   /* H <- chol(H) */
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
@@ -968,20 +941,20 @@ PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
   if (info) SETERRQ1(((PetscObject)*V)->comm,PETSC_ERR_LIB, "Error in Lapack PBTRF %d", info);
 
   /* V <- V * inv(H) */
-  ierr = VecGetLocalSize(V[0], &ldV); CHKERRQ(ierr);
-  ierr = VecGetArray(V[0], &pv);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(V[0],&ldV);CHKERRQ(ierr);
+  ierr = VecGetArray(V[0],&pv);CHKERRQ(ierr);
   ld = ldV;
   BLAStrsm_("R", "U", "N", "N", &ld, &nn, &one, H, &nn, pv, &ld);
-  ierr = VecRestoreArray(V[0], &pv);CHKERRQ(ierr);
+  ierr = VecRestoreArray(V[0],&pv);CHKERRQ(ierr);
   for (i=1;i<n;i++) {
-    ierr = PetscObjectStateIncrease((PetscObject)V[i]); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease((PetscObject)V[i]);CHKERRQ(ierr);
   }
 
   if (!wS0) {
-    ierr = PetscFree(H); CHKERRQ(ierr);
+    ierr = PetscFree(H);CHKERRQ(ierr);
   }
   if (!wS1) {
-    ierr = PetscFree(T); CHKERRQ(ierr);
+    ierr = PetscFree(T);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 #endif
@@ -1043,12 +1016,11 @@ PetscErrorCode SlepcAllReduceSumEnd(DvdReduction *r)
 
   /* Call the MPIAllReduce routine */
   ierr = MPI_Allreduce(r->in, r->out, r->size_in, MPIU_SCALAR, MPIU_SUM,
-                       r->comm); CHKERRQ(ierr);
+                       r->comm);CHKERRQ(ierr);
 
   /* Call the postponed routines */
   for (i=0;i<r->size_ops;i++) {
-    ierr = r->ops[i].f(r->ops[i].out, r->ops[i].size_out, r->ops[i].ptr);
-    CHKERRQ(ierr);
+    ierr = r->ops[i].f(r->ops[i].out, r->ops[i].size_out, r->ops[i].ptr);CHKERRQ(ierr);
   }
 
   /* Tag the operation as done */
@@ -1074,29 +1046,29 @@ PetscErrorCode dvd_orthV(IP ip, Vec *defl, PetscInt size_DS, Vec *cX,
   /* Orthonormalize V with IP */
   for (i=V_new_s;i<V_new_e;i++) {
     for (j=0;j<3;j++) {
-      if (j>0) { ierr = SlepcVecSetRandom(V[i], rand); CHKERRQ(ierr); }
+      if (j>0) { ierr = SlepcVecSetRandom(V[i], rand);CHKERRQ(ierr); }
       if (cX + size_cX == V) {
         /* If cX and V are contiguous, orthogonalize in one step */
         ierr = IPOrthogonalize(ip, size_DS, defl, size_cX+i, PETSC_NULL, cX,
-                               V[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
+                               V[i], auxS0, &norm, &lindep);CHKERRQ(ierr);
       } else if (defl) {
         /* Else orthogonalize first against defl, and then against cX and V */
         ierr = IPOrthogonalize(ip, size_DS, defl, size_cX, PETSC_NULL, cX,
-                               V[i], auxS0, PETSC_NULL, &lindep); CHKERRQ(ierr);
+                               V[i], auxS0, PETSC_NULL, &lindep);CHKERRQ(ierr);
         if (!lindep) {
           ierr = IPOrthogonalize(ip, 0, PETSC_NULL, i, PETSC_NULL, V,
-                                 V[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
+                                 V[i], auxS0, &norm, &lindep);CHKERRQ(ierr);
         }
       } else {
         /* Else orthogonalize first against cX and then against V */
         ierr = IPOrthogonalize(ip, size_cX, cX, i, PETSC_NULL, V,
-                               V[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
+                               V[i], auxS0, &norm, &lindep);CHKERRQ(ierr);
       }
       if (!lindep && (norm > PETSC_SQRT_MACHINE_EPSILON)) break;
       ierr = PetscInfo1(ip,"Orthonormalization problems adding the vector %D to the searching subspace\n",i);CHKERRQ(ierr);
     }
     if (lindep || (norm < PETSC_SQRT_MACHINE_EPSILON)) SETERRQ(((PetscObject)ip)->comm,1, "Error during orthonormalization of eigenvectors");
-    ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
+    ierr = VecScale(V[i],1.0/norm);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -1119,35 +1091,34 @@ PetscErrorCode dvd_BorthV_faster(IP ip, Vec *defl, Vec *BDS,PetscReal *BDSn, Pet
   /* Orthonormalize V with IP */
   for (i=V_new_s;i<V_new_e;i++) {
     for (j=0;j<3;j++) {
-      if (j>0) { ierr = SlepcVecSetRandom(V[i], rand); CHKERRQ(ierr); }
+      if (j>0) { ierr = SlepcVecSetRandom(V[i],rand);CHKERRQ(ierr); }
       if (cX + size_cX == V && BcX + size_cX == BV) {
         /* If cX and V are contiguous, orthogonalize in one step */
         ierr = IPBOrthogonalize(ip, size_DS, defl, BDS, BDSn, size_cX+i, PETSC_NULL, cX, BcX, BcXn,
-                               V[i], BV[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
+                               V[i], BV[i], auxS0, &norm, &lindep);CHKERRQ(ierr);
       } else if (defl) {
         /* Else orthogonalize first against defl, and then against cX and V */
         ierr = IPBOrthogonalize(ip, size_DS, defl, BDS, BDSn, size_cX, PETSC_NULL, cX, BcX, BcXn,
-                               V[i], BV[i], auxS0, PETSC_NULL, &lindep); CHKERRQ(ierr);
+                               V[i], BV[i], auxS0, PETSC_NULL, &lindep);CHKERRQ(ierr);
         if (!lindep) {
           ierr = IPBOrthogonalize(ip, 0, PETSC_NULL, PETSC_NULL, PETSC_NULL, i, PETSC_NULL, V, BV, BVn,
-                                  V[i], BV[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
+                                  V[i], BV[i], auxS0, &norm, &lindep);CHKERRQ(ierr);
         }
       } else {
         /* Else orthogonalize first against cX and then against V */
         ierr = IPBOrthogonalize(ip, size_cX, cX, BcX, BcXn, i, PETSC_NULL, V, BV, BVn,
-                                V[i], BV[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
+                                V[i], BV[i], auxS0, &norm, &lindep);CHKERRQ(ierr);
       }
       if (!lindep && (PetscAbs(norm) > PETSC_SQRT_MACHINE_EPSILON)) break;
-      ierr = PetscInfo1(ip, "Orthonormalization problems adding the vector %d to the searching subspace\n", i);
-      CHKERRQ(ierr);
+      ierr = PetscInfo1(ip, "Orthonormalization problems adding the vector %d to the searching subspace\n", i);CHKERRQ(ierr);
     }
     if (lindep || (PetscAbs(norm) < PETSC_SQRT_MACHINE_EPSILON)) {
         SETERRQ(((PetscObject)ip)->comm,1, "Error during the orthonormalization of the eigenvectors");
     }
     if (BVn) BVn[i] = norm > 0.0 ? 1.0 : -1.0;
     norm = PetscAbs(norm);
-    ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
-    ierr = VecScale(BV[i], 1.0/norm); CHKERRQ(ierr);
+    ierr = VecScale(V[i],1.0/norm);CHKERRQ(ierr);
+    ierr = VecScale(BV[i],1.0/norm);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -1192,7 +1163,7 @@ PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_D
     }
     if (BVn) BVn[i] = norm > 0.0 ? 1.0 : -1.0;
     norm = PetscAbs(norm);
-    ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
+    ierr = VecScale(V[i],1.0/norm);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

@@ -301,7 +301,7 @@ typedef struct _dvdDashboard {
 #define DVD_FL_ADD_BEGIN(list, fun) { \
   dvdFunctionList *fl=(list); \
   PetscErrorCode ierr; \
-  ierr = PetscMalloc(sizeof(dvdFunctionList), &(list)); CHKERRQ(ierr); \
+  ierr = PetscMalloc(sizeof(dvdFunctionList), &(list));CHKERRQ(ierr); \
   (list)->f = (PetscErrorCode(*)(void*))(fun); \
   (list)->next = fl; }
 
@@ -314,7 +314,7 @@ typedef struct _dvdDashboard {
   dvdFunctionList *fl=(list); \
   PetscErrorCode ierr; \
   for (;fl->next; fl = fl->next); \
-  ierr = PetscMalloc(sizeof(dvdFunctionList), &fl->next); CHKERRQ(ierr); \
+  ierr = PetscMalloc(sizeof(dvdFunctionList), &fl->next);CHKERRQ(ierr); \
   fl->next->f = (PetscErrorCode(*)(void*))(fun); \
   fl->next->next = PETSC_NULL; }
 
@@ -329,7 +329,7 @@ typedef struct _dvdDashboard {
   dvdFunctionList *fl=(list), *oldfl; \
   PetscErrorCode ierr; \
   while (fl) { \
-    oldfl = fl; fl = fl->next; ierr = PetscFree(oldfl); CHKERRQ(ierr); } \
+    oldfl = fl; fl = fl->next; ierr = PetscFree(oldfl);CHKERRQ(ierr); } \
   (list) = PETSC_NULL;}
 
 /*

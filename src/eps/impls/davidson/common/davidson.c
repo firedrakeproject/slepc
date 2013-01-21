@@ -277,8 +277,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
                                 plusk,harm,
                                 ksp,init,eps->trackall,
                                 data->ipB,cX_in_proj,cX_in_impr,
-                                data->scheme);
-  CHKERRQ(ierr);
+                                data->scheme);CHKERRQ(ierr);
 
   /* Allocate memory */
   nvecs = b.max_size_auxV + b.own_vecs;
@@ -305,8 +304,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
                              target,ksp,
                              fix,init,eps->trackall,
                              data->ipB,cX_in_proj,cX_in_impr,dynamic,
-                             data->scheme);
-  CHKERRQ(ierr);
+                             data->scheme);CHKERRQ(ierr);
 
   /* Associate the eigenvalues to the EPS */
   eps->eigr = dvd->real_eigr;

@@ -41,7 +41,7 @@ PetscErrorCode dvd_testconv_basic(dvdDashboard *d, dvdBlackboard *b)
   PetscFunctionBegin;
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscFree(d->testConv_data); CHKERRQ(ierr);
+    ierr = PetscFree(d->testConv_data);CHKERRQ(ierr);
     d->testConv = dvd_testconv_basic_0;
   }
   PetscFunctionReturn(0);
@@ -73,7 +73,7 @@ PetscErrorCode dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b)
   PetscFunctionBegin;
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscFree(d->testConv_data); CHKERRQ(ierr);
+    ierr = PetscFree(d->testConv_data);CHKERRQ(ierr);
     d->testConv = dvd_testconv_slepc_0;
   }
   PetscFunctionReturn(0);

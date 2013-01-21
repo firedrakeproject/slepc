@@ -109,7 +109,7 @@ PETSC_DestroyVector(void *vvector)
    PetscErrorCode ierr;
    Vec v=(Vec)vvector;
 
-   ierr=VecDestroy(&v); CHKERRQ(ierr);
+   ierr = VecDestroy(&v);CHKERRQ(ierr);
    return(0);
 }
 
@@ -128,7 +128,7 @@ PETSC_CopyVector(void *x, void *y)
 {
     PetscErrorCode  ierr;
 
-    ierr = VecCopy((Vec)x, (Vec)y); CHKERRQ(ierr);
+    ierr = VecCopy((Vec)x,(Vec)y);CHKERRQ(ierr);
     return(0);
 }
 
@@ -137,7 +137,7 @@ PETSC_ClearVector(void *x)
 {
     PetscErrorCode  ierr;
 
-    ierr = VecSet((Vec)x, 0.0); CHKERRQ(ierr);
+    ierr = VecSet((Vec)x,0.0);CHKERRQ(ierr);
     return(0);
 }
 
@@ -149,8 +149,7 @@ PETSC_SetRandomValues(void* v, BlopexInt seed)
 /* note: without previous call to LOBPCG_InitRandomContext LOBPCG_RandomContext will be null,
     and VecSetRandom will use internal petsc random context */
 
-        ierr = VecSetRandom((Vec)v, LOBPCG_RandomContext); CHKERRQ(ierr);
-
+    ierr = VecSetRandom((Vec)v,LOBPCG_RandomContext);CHKERRQ(ierr);
     return(0);
 }
 
@@ -159,7 +158,7 @@ PETSC_ScaleVector(double alpha, void *x)
 {
     PetscErrorCode ierr;
 
-    ierr = VecScale ((Vec)x, alpha); CHKERRQ(ierr);
+    ierr = VecScale((Vec)x,alpha);CHKERRQ(ierr);
     return(0);
 }
 
@@ -170,7 +169,7 @@ PETSC_Axpy(void *alpha,
 {
     PetscErrorCode ierr;
 
-    ierr = VecAXPY((Vec)y, *(PetscScalar *)alpha, (Vec)x); CHKERRQ(ierr);
+    ierr = VecAXPY((Vec)y,*(PetscScalar *)alpha,(Vec)x);CHKERRQ(ierr);
     return(0);
 }
 BlopexInt
@@ -205,23 +204,20 @@ LOBPCG_SetFromOptionsRandomContext(void)
   ierr = PetscRandomSetFromOptions(LOBPCG_RandomContext);CHKERRQ(ierr);
 
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0-1.0*PETSC_i,(PetscScalar)1.0+1.0*PETSC_i);
+  ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0-1.0*PETSC_i,(PetscScalar)1.0+1.0*PETSC_i);CHKERRQ(ierr);
 #else
-  ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0,(PetscScalar)1.0);
+  ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0,(PetscScalar)1.0);CHKERRQ(ierr);
 #endif
-    CHKERRQ(ierr);
-
-    return 0;
+  return 0;
 }
 
 int
 LOBPCG_DestroyRandomContext(void)
 {
-    PetscErrorCode ierr;
+  PetscErrorCode ierr;
 
-    ierr = PetscRandomDestroy(&LOBPCG_RandomContext);
-    CHKERRQ(ierr);
-    return 0;
+  ierr = PetscRandomDestroy(&LOBPCG_RandomContext);CHKERRQ(ierr);
+  return 0;
 }
 
 int

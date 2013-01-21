@@ -41,18 +41,22 @@ PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscR
 
   PetscFunctionBegin;
   /* h = [defl V]^* Bv ; alpha = (Bv , v) */
-  ierr = VecsMultIa(H,0,nds,defl,0,nds,&Bv,0,1);CHKERRQ(ierr); j = nds;
+  ierr = VecsMultIa(H,0,nds,defl,0,nds,&Bv,0,1);CHKERRQ(ierr);
+  j = nds;
   if (!which) {
-    ierr = VecsMultIa(H+j,0,n,V,0,n,&Bv,0,1);CHKERRQ(ierr); j+= n;
+    ierr = VecsMultIa(H+j,0,n,V,0,n,&Bv,0,1);CHKERRQ(ierr);
+    j+= n;
   } else {
     for (i=0; i<n; i++) {
       if (which[i]) {
-        ierr = VecsMultIa(H+j,0,1,V+i,0,1,&Bv,0,1);CHKERRQ(ierr); j++;
+        ierr = VecsMultIa(H+j,0,1,V+i,0,1,&Bv,0,1);CHKERRQ(ierr);
+        j++;
       }
     }
   }
   if (onorm || norm) {
-    ierr = VecsMultIa(H+j,0,1,&v,0,1,&Bv,0,1);CHKERRQ(ierr); j++;
+    ierr = VecsMultIa(H+j,0,1,&v,0,1,&Bv,0,1);CHKERRQ(ierr);
+    j++;
   }
   ierr = VecsMultIb(H,0,j,j,1,PETSC_NULL,v);CHKERRQ(ierr);
   if (onorm || norm) alpha = H[j-1]; 
@@ -92,7 +96,7 @@ PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscR
 
   /* compute |v'| */
   if (norm) {
-    ierr = VecDot(Bv, v, &alpha); CHKERRQ(ierr);
+    ierr = VecDot(Bv,v,&alpha);CHKERRQ(ierr);
     *norm = MyPetscSqrtReal(alpha);
   }
   PetscFunctionReturn(0);
@@ -135,7 +139,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
     ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     /* compute |v| */
     if (norm) {
-      ierr = VecDot(Bv,v,&alpha); CHKERRQ(ierr);
+      ierr = VecDot(Bv,v,&alpha);CHKERRQ(ierr);
       *norm = MyPetscSqrtReal(alpha);
     }
     /* linear dependence check does not work without refinement */
@@ -250,12 +254,12 @@ PetscErrorCode IPBOrthogonalize(IP ip,PetscInt nds,Vec *defl, Vec *BDS,PetscReal
  
   /* Bv <- B * v */
   ierr = PetscLogEventBegin(IP_ApplyMatrix,ip,0,0,0);CHKERRQ(ierr);
-  ierr = MatMult(ip->matrix, v, Bv); CHKERRQ(ierr);
+  ierr = MatMult(ip->matrix,v,Bv);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(IP_ApplyMatrix,ip,0,0,0);CHKERRQ(ierr);
    
   if (nds==0 && n==0) {
     if (norm) {
-      ierr = VecDot(Bv, v, &alpha); CHKERRQ(ierr);
+      ierr = VecDot(Bv,v,&alpha);CHKERRQ(ierr);
       *norm = MyPetscSqrtReal(alpha);
     }
     if (lindep) *lindep = PETSC_FALSE;

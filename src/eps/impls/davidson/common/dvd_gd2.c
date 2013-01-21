@@ -90,7 +90,7 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscMalloc(sizeof(dvdImprovex_gd2),&data); CHKERRQ(ierr);
+    ierr = PetscMalloc(sizeof(dvdImprovex_gd2),&data);CHKERRQ(ierr);
     data->old_improveX_data = d->improveX_data;
     d->improveX_data = data;
     data->old_improveX = d->improveX;
@@ -114,20 +114,20 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
   d->improveX_data = data->old_improveX_data;
 
   /* Free local data and objects */
-  ierr = PetscFree(data); CHKERRQ(ierr);
+  ierr = PetscFree(data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #define DVD_COMPLEX_RAYLEIGH_QUOTIENT(ur,ui,Axr,Axi,Bxr,Bxi,eigr,eigi,b,ierr)\
 { \
-  ierr = VecDot((Axr), (ur), &(b)[0]); CHKERRQ(ierr); /* r*A*r */ \
-  ierr = VecDot((Axr), (ui), &(b)[1]); CHKERRQ(ierr); /* i*A*r */ \
-  ierr = VecDot((Axi), (ur), &(b)[2]); CHKERRQ(ierr); /* r*A*i */ \
-  ierr = VecDot((Axi), (ui), &(b)[3]); CHKERRQ(ierr); /* i*A*i */ \
-  ierr = VecDot((Bxr), (ur), &(b)[4]); CHKERRQ(ierr); /* r*B*r */ \
-  ierr = VecDot((Bxr), (ui), &(b)[5]); CHKERRQ(ierr); /* i*B*r */ \
-  ierr = VecDot((Bxi), (ur), &(b)[6]); CHKERRQ(ierr); /* r*B*i */ \
-  ierr = VecDot((Bxi), (ui), &(b)[7]); CHKERRQ(ierr); /* i*B*i */ \
+  ierr = VecDot((Axr), (ur), &(b)[0]);CHKERRQ(ierr); /* r*A*r */ \
+  ierr = VecDot((Axr), (ui), &(b)[1]);CHKERRQ(ierr); /* i*A*r */ \
+  ierr = VecDot((Axi), (ur), &(b)[2]);CHKERRQ(ierr); /* r*A*i */ \
+  ierr = VecDot((Axi), (ui), &(b)[3]);CHKERRQ(ierr); /* i*A*i */ \
+  ierr = VecDot((Bxr), (ur), &(b)[4]);CHKERRQ(ierr); /* r*B*r */ \
+  ierr = VecDot((Bxr), (ui), &(b)[5]);CHKERRQ(ierr); /* i*B*r */ \
+  ierr = VecDot((Bxi), (ur), &(b)[6]);CHKERRQ(ierr); /* r*B*i */ \
+  ierr = VecDot((Bxi), (ui), &(b)[7]);CHKERRQ(ierr); /* i*B*i */ \
   (b)[0]  = (b)[0]+(b)[3]; /* rAr+iAi */ \
   (b)[2] =  (b)[2]-(b)[1]; /* rAi-iAr */ \
   (b)[4] = (b)[4]+(b)[7]; /* rBr+iBi */ \
@@ -157,8 +157,8 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
       } \
       (i)++; \
     } else { \
-      (ierr) = VecDot((Ax)[(i)], (u)[(i)], &(b)[0]); CHKERRQ(ierr); \
-      (ierr) = VecDot((Bx)[(i)], (u)[(i)], &(b)[1]); CHKERRQ(ierr); \
+      (ierr) = VecDot((Ax)[(i)], (u)[(i)], &(b)[0]);CHKERRQ(ierr); \
+      (ierr) = VecDot((Bx)[(i)], (u)[(i)], &(b)[1]);CHKERRQ(ierr); \
       (b)[0] = (b)[0]/(b)[1]; \
       if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[0])/ \
             PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10) { \
@@ -172,8 +172,8 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
 #else
 #define DVD_COMPUTE_N_RR(eps,i,i_s,n,eigr,eigi,u,Ax,Bx,b,ierr) \
   for ((i)=0; (i)<(n); (i)++) { \
-      (ierr) = VecDot((Ax)[(i)], (u)[(i)], &(b)[0]); CHKERRQ(ierr); \
-      (ierr) = VecDot((Bx)[(i)], (u)[(i)], &(b)[1]); CHKERRQ(ierr); \
+      (ierr) = VecDot((Ax)[(i)], (u)[(i)], &(b)[0]);CHKERRQ(ierr); \
+      (ierr) = VecDot((Bx)[(i)], (u)[(i)], &(b)[1]);CHKERRQ(ierr); \
       (b)[0] = (b)[0]/(b)[1]; \
       if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[0])/ \
             PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10) { \
@@ -261,7 +261,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
 
   /* Ax <- A*X(i) */
   Ax = D;
-  ierr = SlepcUpdateVectorsZ(Ax,0.0,1.0,d->AV-d->cX_in_H,d->size_AV+d->cX_in_H,&pX[ld*r_s],ld,d->size_H,n); CHKERRQ(ierr);
+  ierr = SlepcUpdateVectorsZ(Ax,0.0,1.0,d->AV-d->cX_in_H,d->size_AV+d->cX_in_H,&pX[ld*r_s],ld,d->size_H,n);CHKERRQ(ierr);
 
 #if !defined(PETSC_USE_COMPLEX)
   s = d->eigi[r_s] == 0.0 ? 1 : 2;
