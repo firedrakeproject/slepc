@@ -61,7 +61,6 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
   EPS_DAVIDSON   *data;
 
   PetscFunctionBegin;
-
   eps->st->ops->getbilinearform  = STGetBilinearForm_Default;
   eps->ops->solve                = EPSSolve_Davidson;
   eps->ops->setup                = EPSSetUp_Davidson;
@@ -318,8 +317,6 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   eps->eigi = dvd->real_eigi;
   eps->errest = dvd->real_errest;
   eps->V = dvd->real_V;
-
-  
   PetscFunctionReturn(0);
 }
 
@@ -358,7 +355,6 @@ PetscErrorCode EPSSolve_Davidson(EPS eps)
 
   if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
-
   PetscFunctionReturn(0);
 }
 
@@ -602,7 +598,6 @@ PetscErrorCode EPSDavidsonGetConstantCorrectionTolerance_Davidson(EPS eps,PetscB
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "EPSDavidsonSetWindowSizes_Davidson"
 PetscErrorCode EPSDavidsonSetWindowSizes_Davidson(EPS eps,PetscInt pwindow,PetscInt qwindow)
@@ -675,7 +670,6 @@ PetscErrorCode EPSComputeVectors_Davidson(EPS eps)
   PetscInt       ld;
 
   PetscFunctionBegin;
-
   if (d->cS) {
     /* Compute the eigenvectors associated to (cS, cT) */
     ierr = DSSetDimensions(d->conv_ps,d->size_cS,PETSC_IGNORE,0,0);CHKERRQ(ierr);

@@ -82,7 +82,6 @@ static PetscErrorCode ScanJ(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *gl,P
   rad = b0;
   *gr = PetscMax(*gr,a[n-1]+rad);
   *gl = PetscMin(*gl,a[n-1]-rad);
-
   PetscFunctionReturn(0);
 }
 

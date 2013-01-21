@@ -87,7 +87,6 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   }
- 
   PetscFunctionReturn(0);
 }  
 EXTERN_C_END

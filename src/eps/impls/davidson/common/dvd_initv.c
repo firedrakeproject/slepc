@@ -44,7 +44,6 @@ PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,
   dvdInitV        *data;
 
   PetscFunctionBegin;
-
   /* Setting configuration constrains */
   b->max_size_V = PetscMax(b->max_size_V, k);
   if (krylov)
@@ -64,10 +63,8 @@ PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,
     }
     DVD_FL_ADD(d->destroyList, dvd_initV_d);
   }
-
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_initV_classic_0"
@@ -79,7 +76,6 @@ PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
                   k = PetscMin(data->k, d->max_size_V);
 
   PetscFunctionBegin;
-
   /* Generate a set of random initial vectors and orthonormalize them */
   for (i=user; i<k; i++) {
     ierr = SlepcVecSetRandom(d->V[i], d->eps->rand); CHKERRQ(ierr);
@@ -89,7 +85,6 @@ PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
 
   /* After that the user vectors will be destroyed */
   data->user = 0;
- 
   PetscFunctionReturn(0);
 }
 
@@ -104,7 +99,6 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
   Vec             *cX = d->BcX? d->BcX : ( (d->cY && !d->W)? d->cY : d->cX );
 
   PetscFunctionBegin;
-
   /* If needed, generate a random vector for starting the arnoldi method */
   if (user == 0) {
     ierr = SlepcVecSetRandom(d->V[0], d->eps->rand); CHKERRQ(ierr);
@@ -136,7 +130,6 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
 
   /* After that the user vectors will be destroyed */
   data->user = 0;
-
   PetscFunctionReturn(0);
 }
 
@@ -148,12 +141,10 @@ PetscErrorCode dvd_initV_d(dvdDashboard *d)
   dvdInitV        *data = (dvdInitV*)d->initV_data;
 
   PetscFunctionBegin;
-
   /* Restore changes in dvdDashboard */
   d->initV_data = data->old_initV_data;
 
   /* Free local data */
   ierr = PetscFree(data); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }

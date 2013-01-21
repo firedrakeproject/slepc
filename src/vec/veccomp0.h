@@ -123,7 +123,6 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ __SUF_C__(VecTDot_Comp)
 PetscErrorCode __SUF__(VecTDot_Comp)(Vec a,Vec b,PetscScalar *z)
@@ -216,7 +215,6 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
   PetscFunctionReturn(0);
 }
 
-
 #ifndef __VEC_NORM2_FUNCS_
 #define __VEC_NORM2_FUNCS_
 PETSC_STATIC_INLINE void SumNorm2(PetscReal *ssq0,PetscReal *scale0,PetscReal *ssq1,PetscReal *scale1)
@@ -274,12 +272,11 @@ void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datat
 PetscErrorCode VecNormCompEnd(void)
 {
   PetscErrorCode ierr;
-  PetscFunctionBegin;
 
+  PetscFunctionBegin;
   ierr = MPI_Type_free(&MPIU_NORM2);CHKERRQ(ierr);
   ierr = MPI_Type_free(&MPIU_NORM1_AND_2);CHKERRQ(ierr);
   ierr = MPI_Op_free(&MPIU_NORM2_SUM);CHKERRQ(ierr);
-  
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -289,15 +286,14 @@ EXTERN_C_END
 PetscErrorCode VecNormCompInit()
 {
   PetscErrorCode ierr;
-  PetscFunctionBegin;
 
+  PetscFunctionBegin;
   ierr = MPI_Type_contiguous(sizeof(PetscReal)*2,MPI_BYTE,&MPIU_NORM2);CHKERRQ(ierr);
   ierr = MPI_Type_commit(&MPIU_NORM2);
   ierr = MPI_Type_contiguous(sizeof(PetscReal)*3,MPI_BYTE,&MPIU_NORM1_AND_2);CHKERRQ(ierr);
   ierr = MPI_Type_commit(&MPIU_NORM1_AND_2);
   ierr = MPI_Op_create(SlepcSumNorm2_Local,1,&MPIU_NORM2_SUM);CHKERRQ(ierr);
   ierr = PetscRegisterFinalize(VecNormCompEnd);
-  
   PetscFunctionReturn(0);
 }
 #endif
@@ -369,7 +365,6 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
   default: ;
   }
 #endif
-
   PetscFunctionReturn(0);
 }
 

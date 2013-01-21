@@ -54,8 +54,7 @@ PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
   const char      *N = "N", *T = "C", *qA = N, *qB = N;
 
   PetscFunctionBegin;
-
-  if ((rA == 0) || (cB == 0)) { PetscFunctionReturn(0); }
+  if ((rA == 0) || (cB == 0)) PetscFunctionReturn(0);
   PetscValidScalarPointer(C,1);
   PetscValidScalarPointer(A,5);
   PetscValidScalarPointer(B,10);
@@ -84,7 +83,6 @@ PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b,
 
   ierr = PetscLogFlops(m*n*2*k);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -116,8 +114,7 @@ PetscErrorCode SlepcDenseMatProdTriang(
   PetscBLASInt    rC, cC, _ldA = ldA, _ldB = ldB, _ldC = ldC;
 
   PetscFunctionBegin;
-
-  if ((rA == 0) || (cB == 0)) { PetscFunctionReturn(0); }
+  if ((rA == 0) || (cB == 0)) PetscFunctionReturn(0);
   PetscValidScalarPointer(C,1);
   PetscValidScalarPointer(A,4);
   PetscValidScalarPointer(B,10);
@@ -145,7 +142,7 @@ PetscErrorCode SlepcDenseMatProdTriang(
     if (Bt) tmp = rB, rB = cB, cB = tmp;
     ierr = SlepcDenseMatProd(C, ldC, 0.0, 1.0, A, ldA, rA, cA, At, B, ldB, rB,
                              cB, Bt); CHKERRQ(ierr);
-    PetscFunctionReturn(ierr);
+    PetscFunctionReturn(0);
   }
 
   /* Optimized versions: A hermitian && (B not triang) */
@@ -216,7 +213,6 @@ PetscErrorCode SlepcDenseNorm(PetscScalar *A, PetscInt ldA, PetscInt _rA,
   }
 
   ierr = PetscLogEventEnd(SLEPC_SlepcDenseNorm,0,0,0,0);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -252,7 +248,6 @@ PetscErrorCode SlepcDenseCopy(PetscScalar *Y, PetscInt ldY, PetscScalar *X,
     CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(SLEPC_SlepcDenseCopy,0,0,0,0);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -336,10 +331,8 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
     break;
   }
   ierr = PetscLogEventEnd(SLEPC_SlepcDenseCopy,0,0,0,0);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcUpdateVectorsZ"
@@ -354,13 +347,9 @@ PetscErrorCode SlepcUpdateVectorsZ(Vec *Y, PetscScalar beta, PetscScalar alpha,
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
-  ierr = SlepcUpdateVectorsS(Y, 1, beta, alpha, X, cX, 1, M, ldM, rM, cM);
-  CHKERRQ(ierr);
-
+  ierr = SlepcUpdateVectorsS(Y, 1, beta, alpha, X, cX, 1, M, ldM, rM, cM);CHKERRQ(ierr); 
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcUpdateVectorsS"
@@ -386,9 +375,8 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
   rcX = cX/dX;
   if (rcX != rM) SETERRQ(((PetscObject)*Y)->comm,1, "Matrix dimensions do not match");
 
-  if ((rcX == 0) || (rM == 0) || (cM == 0)) {
-    PetscFunctionReturn(0);
-  } else if ((Y + cM <= X) || (X + cX <= Y) ||
+  if ((rcX == 0) || (rM == 0) || (cM == 0)) PetscFunctionReturn(0);
+  else if ((Y + cM <= X) || (X + cX <= Y) ||
              ((X != Y) && ((PetscMax(dX,dY))%(PetscMin(dX,dY))!=0))) {
     /* If Y[0..cM-1] and X[0..cX-1] are not overlapped... */
 
@@ -449,9 +437,7 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
   if (rY <= 0) SETERRQ(((PetscObject)*X)->comm,1, "Insufficient work space given");
   Y = work; Z = &Y[cX*rY]; ldY = rY;
 
-  if ((cX == 0) || (rM == 0) || (cM == 0)) {
-    PetscFunctionReturn(0);
-  }
+  if ((cX == 0) || (rM == 0) || (cM == 0)) PetscFunctionReturn(0);
 
   /* Get the dense vectors associated to the columns of X */
   ierr = PetscMalloc(sizeof(Vec)*cX, &px); CHKERRQ(ierr);
@@ -485,11 +471,8 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
     ierr = VecRestoreArray(X[i], &px[i]); CHKERRQ(ierr);
   }
   ierr = PetscFree(px); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
-
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecsMult"
@@ -511,10 +494,8 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   PetscScalar       *W, *Wr;
 
   PetscFunctionBegin;
-
   /* Check if quick exit */
-  if ((eU-sU == 0) || (eV-sV == 0))
-    PetscFunctionReturn(0);
+  if ((eU-sU == 0) || (eV-sV == 0)) PetscFunctionReturn(0);
 
   SlepcValidVecsContiguous(U,eU,4);
   SlepcValidVecsContiguous(V,eV,7);
@@ -661,7 +642,6 @@ PetscErrorCode VecsMult(PetscScalar *M, MatType_t sM, PetscInt ldM,
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "VecsMultIa"
 /* Computes M <- [ M(0:sU-1,  0:sV-1) W(0:sU-1,  sV:eV-1) ]
@@ -680,10 +660,8 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
   PetscScalar     *pu, *pv;
 
   PetscFunctionBegin;
-
   /* Check if quick exit */
-  if ((eU-sU == 0) || (eV-sV == 0))
-    PetscFunctionReturn(0);
+  if ((eU-sU == 0) || (eV-sV == 0)) PetscFunctionReturn(0);
     
   SlepcValidVecsContiguous(U,eU,4);
   SlepcValidVecsContiguous(V,eV,7);
@@ -725,10 +703,8 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
   ierr = PetscObjectStateDecrease((PetscObject)U[0]); CHKERRQ(ierr);
   ierr = VecRestoreArray(V[0], &pv); CHKERRQ(ierr);
   ierr = PetscObjectStateDecrease((PetscObject)V[0]); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecsMultIc"
@@ -741,10 +717,8 @@ PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
   int        i,j,n;
 
   PetscFunctionBegin;
-
   /* Check if quick exit */
-  if ((rM == 0) || (cM == 0))
-    PetscFunctionReturn(0);
+  if ((rM == 0) || (cM == 0)) PetscFunctionReturn(0);
   PetscValidScalarPointer(M,1);
     
   if (sM != 0) SETERRQ(((PetscObject)V)->comm,1, "Matrix structure not supported");
@@ -754,10 +728,8 @@ PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
   for(i=0; i<cM; i++)
     for(j=0; j<rM; j++)
       M[ldM*i+j]/= (PetscScalar)n;
-
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecsMultIb"
@@ -776,10 +748,8 @@ PetscErrorCode VecsMultIb(PetscScalar *M, MatType_t sM, PetscInt ldM,
   PetscScalar     *W, *Wr;
 
   PetscFunctionBegin;
-
   /* Check if quick exit */
-  if ((rM == 0) || (cM == 0))
-    PetscFunctionReturn(0);
+  if ((rM == 0) || (cM == 0)) PetscFunctionReturn(0);
   PetscValidScalarPointer(M,1);
     
   if (auxS) {
@@ -812,10 +782,8 @@ PetscErrorCode VecsMultIb(PetscScalar *M, MatType_t sM, PetscInt ldM,
   if (!auxS) {
     ierr = PetscFree(W); CHKERRQ(ierr);
   }
-
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "VecsMultS"
@@ -836,10 +804,8 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
   PetscScalar       *W;
 
   PetscFunctionBegin;
-
   /* Check if quick exit */
-  if ((eU-sU == 0) || (eV-sV == 0))
-    PetscFunctionReturn(0);
+  if ((eU-sU == 0) || (eV-sV == 0)) PetscFunctionReturn(0);
     
   SlepcValidVecsContiguous(U,eU,4);
   SlepcValidVecsContiguous(V,eV,7);
@@ -958,7 +924,6 @@ PetscErrorCode VecsMultS_copy_func(PetscScalar *out, PetscInt size_out,
     for (j=sr->ld*i+sr->s1; j<sr->ld*i+sr->e1; j++,k++) sr->M[j] = out[k];
 
   if (k != size_out) SETERRQ(PETSC_COMM_SELF,1, "Wrong size");
-
   PetscFunctionReturn(0);
 }
 
@@ -980,7 +945,6 @@ PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
   PetscScalar     *H, *T, one=1.0, *pv;
   
   PetscFunctionBegin;
-
   if (!wS0) {
     ierr = PetscMalloc(sizeof(PetscScalar)*n*n, &H); CHKERRQ(ierr);
   } else {
@@ -1019,7 +983,6 @@ PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
   if (!wS1) {
     ierr = PetscFree(T); CHKERRQ(ierr);
   }
-  
   PetscFunctionReturn(0);
 #endif
 }
@@ -1047,7 +1010,6 @@ PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk *ops,
   r->size_ops = 0;
   r->max_size_ops = max_size_ops;
   r->comm = comm;
-
   PetscFunctionReturn(0);
 }
 
@@ -1068,7 +1030,6 @@ PetscErrorCode SlepcAllReduceSum(DvdReduction *r, PetscInt size_in,
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "SlepcAllReduceSumEnd"
 PetscErrorCode SlepcAllReduceSumEnd(DvdReduction *r)
@@ -1077,10 +1038,8 @@ PetscErrorCode SlepcAllReduceSumEnd(DvdReduction *r)
   PetscInt        i;
 
   PetscFunctionBegin;
-
   /* Check if quick exit */
-  if (r->size_ops == 0)
-    PetscFunctionReturn(0);
+  if (r->size_ops == 0) PetscFunctionReturn(0);
 
   /* Call the MPIAllReduce routine */
   ierr = MPI_Allreduce(r->in, r->out, r->size_in, MPIU_SCALAR, MPIU_SUM,
@@ -1094,10 +1053,8 @@ PetscErrorCode SlepcAllReduceSumEnd(DvdReduction *r)
 
   /* Tag the operation as done */
   r->size_ops = 0;
-
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_orthV"
@@ -1114,7 +1071,6 @@ PetscErrorCode dvd_orthV(IP ip, Vec *defl, PetscInt size_DS, Vec *cX,
   PetscScalar     *auxS0 = auxS;
  
   PetscFunctionBegin;
- 
   /* Orthonormalize V with IP */
   for (i=V_new_s; i<V_new_e; i++) {
     for(j=0; j<3; j++) {
@@ -1142,10 +1098,8 @@ PetscErrorCode dvd_orthV(IP ip, Vec *defl, PetscInt size_DS, Vec *cX,
     if(lindep || (norm < PETSC_SQRT_MACHINE_EPSILON)) SETERRQ(((PetscObject)ip)->comm,1, "Error during orthonormalization of eigenvectors");
     ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
   }
- 
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_BorthV_faster"
@@ -1162,7 +1116,6 @@ PetscErrorCode dvd_BorthV_faster(IP ip, Vec *defl, Vec *BDS,PetscReal *BDSn, Pet
   PetscScalar     *auxS0 = auxS;
  
   PetscFunctionBegin;
- 
   /* Orthonormalize V with IP */
   for (i=V_new_s; i<V_new_e; i++) {
     for(j=0; j<3; j++) {
@@ -1196,7 +1149,6 @@ PetscErrorCode dvd_BorthV_faster(IP ip, Vec *defl, Vec *BDS,PetscReal *BDSn, Pet
     ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
     ierr = VecScale(BV[i], 1.0/norm); CHKERRQ(ierr);
   }
- 
   PetscFunctionReturn(0);
 }
 
@@ -1212,7 +1164,6 @@ PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_D
   PetscScalar     *auxS0 = auxS;
  
   PetscFunctionBegin;
- 
   /* Orthonormalize V with IP */
   for (i=V_new_s; i<V_new_e; i++) {
     for(j=0; j<3; j++) {
@@ -1243,6 +1194,5 @@ PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_D
     norm = PetscAbs(norm);
     ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
   }
- 
   PetscFunctionReturn(0);
 }

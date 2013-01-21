@@ -37,7 +37,6 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
   PetscInt       check_sum0, check_sum1;
 
   PetscFunctionBegin;
-
   ierr = PetscMemzero(b, sizeof(dvdBlackboard)); CHKERRQ(ierr);
   b->state = DVD_STATE_PRECONF;
 
@@ -78,10 +77,8 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
       break;
     }
   }
-
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_schm_basic_conf"
@@ -99,7 +96,6 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
   b->state = DVD_STATE_CONF;
   check_sum0 = DVD_CHECKSUM(b);
   b->own_vecs = 0; b->own_scalars = 0;
@@ -146,6 +142,5 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
       (b->free_vecs - fv > b->own_vecs) ||
       (b->free_scalars - fs > b->own_scalars))
     SETERRQ(PETSC_COMM_SELF,1, "Something awful happened");
-   
   PetscFunctionReturn(0);
 }

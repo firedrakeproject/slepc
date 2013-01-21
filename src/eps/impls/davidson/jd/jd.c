@@ -95,7 +95,6 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
     ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
     ierr = KSPSetTolerances(ksp,1e-4,PETSC_DEFAULT,PETSC_DEFAULT,90);CHKERRQ(ierr);
   }
-  
   PetscFunctionReturn(0);
 }  
 EXTERN_C_END
@@ -109,7 +108,6 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
   KSP            ksp;
 
   PetscFunctionBegin;
-
   /* Setup common for all davidson solvers */
   ierr = EPSSetUp_Davidson(eps);CHKERRQ(ierr);
 

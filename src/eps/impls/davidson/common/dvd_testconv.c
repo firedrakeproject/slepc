@@ -39,13 +39,11 @@ PetscErrorCode dvd_testconv_basic(dvdDashboard *d, dvdBlackboard *b)
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
     ierr = PetscFree(d->testConv_data); CHKERRQ(ierr);
     d->testConv = dvd_testconv_basic_0;
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -59,12 +57,10 @@ PetscBool dvd_testconv_basic_0(dvdDashboard *d, PetscScalar eigvr,
   PetscReal       eig_norm, errest;
 
   PetscFunctionBegin;
-
   eig_norm = SlepcAbsEigenvalue(eigvr, eigvi);
   errest = r/eig_norm;
   conv = (errest <= d->tol) ? PETSC_TRUE : PETSC_FALSE;
   if (err) *err = errest;
-
   PetscFunctionReturn(conv);
 }
 
@@ -75,13 +71,11 @@ PetscErrorCode dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b)
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
     ierr = PetscFree(d->testConv_data); CHKERRQ(ierr);
     d->testConv = dvd_testconv_slepc_0;
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -94,11 +88,9 @@ PetscBool dvd_testconv_slepc_0(dvdDashboard *d, PetscScalar eigvr,
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
   ierr = (*d->eps->conv_func)(d->eps, eigvr, eigvi, r, err,
                               d->eps->conv_ctx);
   CHKERRABORT(((PetscObject)d->eps)->comm, ierr);
-
   PetscFunctionReturn(*err<d->eps->tol ? PETSC_TRUE : PETSC_FALSE);
 }
 

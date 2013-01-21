@@ -146,7 +146,6 @@ PetscErrorCode dvd_updateV_start(dvdDashboard *d)
   PetscInt        i;
 
   PetscFunctionBegin;
-
   d->size_cX = 0;
   d->eigr = d->ceigr = d->real_eigr;
   d->eigi = d->ceigi = d->real_eigi;
@@ -165,10 +164,8 @@ PetscErrorCode dvd_updateV_start(dvdDashboard *d)
   d->npreconv = 0;
   d->V_tra_s = d->V_tra_e = d->V_new_s = d->V_new_e = 0;
   d->size_D = 0;
-
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_isrestarting_fullV"
@@ -178,14 +175,12 @@ PetscBool dvd_isrestarting_fullV(dvdDashboard *d)
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
 
   PetscFunctionBegin;
-
   restart = (d->size_V + d->max_size_X > PetscMin(data->mpd,d->max_size_V))?
                 PETSC_TRUE:PETSC_FALSE;
 
   /* Check old isRestarting function */
   if (!restart && data->old_isRestarting)
     restart = data->old_isRestarting(d);
-
   PetscFunctionReturn(restart);
 }
 
@@ -197,13 +192,11 @@ PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d)
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
 
   PetscFunctionBegin;
-
   /* Restore changes in dvdDashboard */
   d->updateV_data = data->old_updateV_data;
   
   /* Free local data */
   ierr = PetscFree(data); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -216,7 +209,6 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
   ierr = d->calcpairs_selectPairs(d, data->min_size_V); CHKERRQ(ierr);
 
   /* If the subspaces doesn't need restart, add new vector */
@@ -225,7 +217,7 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
     ierr = dvd_updateV_update_gen(d); CHKERRQ(ierr);
 
     /* If some vector were add, exit */
-    if (d->size_D > 0) { PetscFunctionReturn(0); }
+    if (d->size_D > 0) PetscFunctionReturn(0);
   }
 
   /* If some eigenpairs were converged, lock them  */
@@ -234,12 +226,11 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
     ierr = dvd_updateV_conv_gen(d); CHKERRQ(ierr);
 
     /* If some eigenpair was locked, exit */
-    if (i > d->npreconv) { PetscFunctionReturn(0); }
+    if (i > d->npreconv) PetscFunctionReturn(0);
   }
 
   /* Else, a restarting is performed */
   ierr = dvd_updateV_restart_gen(d); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -256,7 +247,6 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 #endif
 
   PetscFunctionBegin;
-
   npreconv = d->npreconv;
   /* Constrains the converged pairs to nev */
 #if !defined(PETSC_USE_COMPLEX)
@@ -267,7 +257,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   npreconv = PetscMax(PetscMin(d->nev - d->nconv, npreconv), 0);
 #endif
   /* Quick exit */
-  if (npreconv == 0) { PetscFunctionReturn(0); }
+  if (npreconv == 0) PetscFunctionReturn(0);
 
   npreconv+= d->cX_in_H;
   ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
@@ -324,7 +314,6 @@ PetscErrorCode dvd_updateV_conv_finish(dvdDashboard *d)
 #endif  
 
   PetscFunctionBegin;
-
   /* Some functions need the diagonal elements in cT be real */
 #if defined(PETSC_USE_COMPLEX)
   if (d->cT) for(i=0; i<d->nconv; i++) {
@@ -336,7 +325,6 @@ PetscErrorCode dvd_updateV_conv_finish(dvdDashboard *d)
   }
 #endif
   ierr = d->calcpairs_selectPairs(d, data->min_size_V); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
  
@@ -350,7 +338,6 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
   /* Select size_X desired pairs from V */
   size_X = PetscMin(PetscMin(data->min_size_V,
                              d->size_V ),
@@ -413,10 +400,8 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 
   /* Remove npreconv */
   d->npreconv = 0;
-    
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_updateV_update_gen"
@@ -428,7 +413,6 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-
   /* Select the desired pairs */
   size_D = PetscMin(PetscMin(PetscMin(d->bs,
                                       d->size_V ),
@@ -445,7 +429,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 
   /* If D is empty, exit */
   d->size_D = size_D;
-  if (size_D == 0) { PetscFunctionReturn(0); }
+  if (size_D == 0) PetscFunctionReturn(0);
 
   /* Get the residual of all pairs */
 #if !defined(PETSC_USE_COMPLEX)
@@ -472,10 +456,8 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
       ierr = DSRestoreArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
     }
   }
-
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_updateV_testConv"
@@ -491,7 +473,6 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
 
   PetscFunctionBegin;
-  
   if (nConv) *nConv = s;
   for(i=s, conv=PETSC_TRUE;
       (conv || data->allResiduals) && (i < e);
@@ -531,6 +512,5 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
   }
 #endif
   for(i=pre; i<e; i++) d->errest[i] = d->nR[i] = PETSC_MAX_REAL;
-  
   PetscFunctionReturn(0);
 }

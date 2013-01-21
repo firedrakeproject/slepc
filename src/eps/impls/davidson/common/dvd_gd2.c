@@ -102,7 +102,6 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_gd2_d"
 PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
@@ -111,13 +110,11 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
   dvdImprovex_gd2 *data = (dvdImprovex_gd2*)d->improveX_data;
 
   PetscFunctionBegin;
-   
   /* Restore changes in dvdDashboard */
   d->improveX_data = data->old_improveX_data;
 
   /* Free local data and objects */
   ierr = PetscFree(data); CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -189,8 +186,6 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
     }
 #endif
 
-
-
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_improvex_gd2_gen"
 PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
@@ -202,7 +197,6 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   Vec             *Ax,*Bx,X[4];
 
   PetscFunctionBegin;
-
   /* Compute the number of pairs to improve */
   n = PetscMin(PetscMin(PetscMin(data->size_X*2,max_size_D),(r_e-r_s)*2),d->max_size_proj-d->size_H)/2;
 #if !defined(PETSC_USE_COMPLEX)
@@ -357,6 +351,5 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
     ierr = data->old_improveX(d,PETSC_NULL,0,0,0,PETSC_NULL);CHKERRQ(ierr);
     d->improveX_data = data;
   }
-
   PetscFunctionReturn(0);
 }
