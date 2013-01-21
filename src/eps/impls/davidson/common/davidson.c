@@ -191,7 +191,6 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
     case EPS_LARGEST_REAL:
     case EPS_LARGEST_MAGNITUDE:
     case EPS_LARGEST_IMAGINARY: /* TODO: think about this case */
-    default:
       dvd->target[0] = 1.0; dvd->target[1] = target = 0.0;
       break;
     case EPS_SMALLEST_MAGNITUDE:
@@ -206,6 +205,8 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
     case EPS_ALL:
       SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported option: which == EPS_ALL");
       break;
+    default:
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported value of option 'which'");
   }
   dvd->tol = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
   dvd->eps = eps;
