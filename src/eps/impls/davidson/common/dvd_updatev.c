@@ -150,13 +150,13 @@ PetscErrorCode dvd_updateV_start(dvdDashboard *d)
   d->eigr = d->ceigr = d->real_eigr;
   d->eigi = d->ceigi = d->real_eigi;
 #if defined(PETSC_USE_COMPLEX)
-  for(i=0; i<d->size_real_V; i++) d->eigi[i] = 0.0;
+  for (i=0;i<d->size_real_V;i++) d->eigi[i] = 0.0;
 #endif
   d->nR = d->real_nR;
-  for(i=0; i<d->size_real_V; i++) d->nR[i] = PETSC_MAX_REAL;
+  for (i=0;i<d->size_real_V;i++) d->nR[i] = PETSC_MAX_REAL;
   d->nX = d->real_nX;
   d->errest = d->real_errest;
-  for(i=0; i<d->size_real_V; i++) d->errest[i] = PETSC_MAX_REAL;
+  for (i=0;i<d->size_real_V;i++) d->errest[i] = PETSC_MAX_REAL;
   data->ldoldU = 0;
   data->oldV = PETSC_NULL;
   data->size_oldU = 0;
@@ -251,7 +251,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   /* Constrains the converged pairs to nev */
 #if !defined(PETSC_USE_COMPLEX)
   /* Tries to maintain together conjugate eigenpairs */
-  for(i = 0; (i + (d->eigi[i]!=0.0?1:0) < npreconv) && (d->nconv + i < d->nev); i+= (d->eigi[i]!=0.0?2:1));
+  for (i=0; (i + (d->eigi[i]!=0.0?1:0) < npreconv) && (d->nconv + i < d->nev); i+= (d->eigi[i]!=0.0?2:1));
   npreconv = i;
 #else
   npreconv = PetscMax(PetscMin(d->nev - d->nconv, npreconv), 0);
@@ -316,9 +316,9 @@ PetscErrorCode dvd_updateV_conv_finish(dvdDashboard *d)
   PetscFunctionBegin;
   /* Some functions need the diagonal elements in cT be real */
 #if defined(PETSC_USE_COMPLEX)
-  if (d->cT) for(i=0; i<d->nconv; i++) {
+  if (d->cT) for (i=0;i<d->nconv;i++) {
     s = PetscConj(d->cT[d->ldcT*i+i])/PetscAbsScalar(d->cT[d->ldcT*i+i]);
-    for(j=0; j<=i; j++)
+    for (j=0;j<=i;j++)
       d->cT[d->ldcT*i+j] = PetscRealPart(d->cT[d->ldcT*i+j]*s),
       d->cS[d->ldcS*i+j]*= s;
     ierr = VecScale(d->cX[i], s); CHKERRQ(ierr);
@@ -362,8 +362,8 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   if (size_plusk > 0 && DVD_IS(d->sEP,DVD_EP_INDEFINITE)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported plusk>0 in indefinite eigenvalue problems"); 
   if (size_plusk > 0) {
     ierr = SlepcDenseCopy(&pQ[ld*size_X],ld,data->oldU,data->ldoldU,data->size_oldU,size_plusk);CHKERRQ(ierr);
-    for(i=size_X; i<size_X+size_plusk; i++) {
-      for(j=data->size_oldU; j<d->size_H; j++) {
+    for (i=size_X;i<size_X+size_plusk;i++) {
+      for (j=data->size_oldU;j<d->size_H;j++) {
         pQ[j*ld+i] = 0.0;
       }
     }
@@ -380,8 +380,8 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
     if (size_plusk > 0) {
       ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
       ierr = SlepcDenseCopy(&pZ[ld*size_X],ld,data->oldV,data->ldoldU,data->size_oldU,size_plusk);CHKERRQ(ierr);
-      for(i=size_X; i<size_X+size_plusk; i++) {
-        for(j=data->size_oldU; j<d->size_H; j++) {
+      for (i=size_X;i<size_X+size_plusk;i++) {
+        for (j=data->size_oldU;j<d->size_H;j++) {
           pZ[j*ld+i] = 0.0;
         }
       }
@@ -474,7 +474,7 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
 
   PetscFunctionBegin;
   if (nConv) *nConv = s;
-  for(i=s, conv=PETSC_TRUE;
+  for (i=s, conv=PETSC_TRUE;
       (conv || data->allResiduals) && (i < e);
       i+=b) {
 #if !defined(PETSC_USE_COMPLEX)
@@ -507,10 +507,10 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
 #if !defined(PETSC_USE_COMPLEX)
   /* Enforce converged conjugate complex eigenpairs */
   if (nConv) {
-    for(j=0; j<*nConv; j++) if(d->eigi[j] != 0.0) j++;
-    if(j > *nConv) (*nConv)--;
+    for (j=0;j<*nConv;j++) if (d->eigi[j] != 0.0) j++;
+    if (j>*nConv) (*nConv)--;
   }
 #endif
-  for(i=pre; i<e; i++) d->errest[i] = d->nR[i] = PETSC_MAX_REAL;
+  for (i=pre;i<e;i++) d->errest[i] = d->nR[i] = PETSC_MAX_REAL;
   PetscFunctionReturn(0);
 }

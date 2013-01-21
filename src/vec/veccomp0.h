@@ -53,7 +53,7 @@ PetscErrorCode __SUF__(VecDot_Comp)(Vec a,Vec b,PetscScalar *z)
     ierr = MPI_Allreduce(&work,&sum,1,MPIU_SCALAR,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
 #endif
   } else {
-    for(i=0,sum=0.0; i<as->n->n; i++) {
+    for (i=0,sum=0.0;i<as->n->n;i++) {
       ierr = VecDot(as->x[i],bs->x[i],&work);CHKERRQ(ierr);
       sum += work;
     }
@@ -145,7 +145,7 @@ PetscErrorCode __SUF__(VecTDot_Comp)(Vec a,Vec b,PetscScalar *z)
     ierr = MPI_Allreduce(&work,&sum,1,MPIU_SCALAR,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
 #endif
   } else {
-    for(i=0,sum=0.0; i<as->n->n; i++) {
+    for (i=0,sum=0.0;i<as->n->n;i++) {
       ierr = VecTDot(as->x[i],bs->x[i],&work);CHKERRQ(ierr);
       sum += work;
     }
@@ -310,10 +310,10 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
   PetscFunctionBegin;
   PetscValidVecComp(a);
   /* Initialize norm */
-  switch(t) {
-  case NORM_1: case NORM_INFINITY: *norm = 0.0; break;
-  case NORM_2: case NORM_FROBENIUS: *norm = 1.0; s = 0.0; break;
-  case NORM_1_AND_2: norm[0] = 0.0; norm[1] = 1.0; s = 0.0; break;
+  switch (t) {
+    case NORM_1: case NORM_INFINITY: *norm = 0.0; break;
+    case NORM_2: case NORM_FROBENIUS: *norm = 1.0; s = 0.0; break;
+    case NORM_1_AND_2: norm[0] = 0.0; norm[1] = 1.0; s = 0.0; break;
   }
   for (i=0;i<as->n->n;i++) {
     if (as->x[0]->ops->norm_local) {
@@ -322,11 +322,11 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
       ierr = VecNorm(as->x[i],t,work);CHKERRQ(ierr);
     }
     /* norm+= work */
-    switch(t) {
-    case NORM_1: *norm+= *work; break;
-    case NORM_2: case NORM_FROBENIUS: AddNorm2(norm,&s,*work); break;
-    case NORM_1_AND_2: norm[0]+= work[0]; AddNorm2(&norm[1],&s,work[1]); break;
-    case NORM_INFINITY: *norm = PetscMax(*norm,*work); break;
+    switch (t) {
+      case NORM_1: *norm+= *work; break;
+      case NORM_2: case NORM_FROBENIUS: AddNorm2(norm,&s,*work); break;
+      case NORM_1_AND_2: norm[0]+= work[0]; AddNorm2(&norm[1],&s,work[1]); break;
+      case NORM_INFINITY: *norm = PetscMax(*norm,*work); break;
     }
   }
 
@@ -335,7 +335,7 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
   if (as->x[0]->ops->norm_local) {
     PetscReal work0[3];
     /* norm <- Allreduce(work) */
-    switch(t) {
+    switch (t) {
     case NORM_1:
       work[0] = *norm;
       ierr = MPI_Allreduce(work,norm,1,MPIU_REAL,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
@@ -359,10 +359,10 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
   }
 #else
   /* Norm correction */
-  switch(t) {
-  case NORM_2: case NORM_FROBENIUS: *norm = GetNorm2(*norm,s); break;
-  case NORM_1_AND_2: norm[1] = GetNorm2(norm[1],s); break;
-  default: ;
+  switch (t) {
+    case NORM_2: case NORM_FROBENIUS: *norm = GetNorm2(*norm,s); break;
+    case NORM_1_AND_2: norm[1] = GetNorm2(norm[1],s); break;
+    default: ;
   }
 #endif
   PetscFunctionReturn(0);

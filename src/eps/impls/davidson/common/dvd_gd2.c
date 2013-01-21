@@ -139,7 +139,7 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
 
 #if !defined(PETSC_USE_COMPLEX)
 #define DVD_COMPUTE_N_RR(eps,i,i_s,n,eigr,eigi,u,Ax,Bx,b,ierr) \
-  for((i)=0; (i)<(n); (i)++) { \
+  for ((i)=0; (i)<(n); (i)++) { \
     if ((eigi)[(i_s)+(i)] != 0.0) { \
       /* eig_r = [(rAr+iAi)*(rBr+iBi) + (rAi-iAr)*(rBi-iBr)]/k \
          eig_i = [(rAi-iAr)*(rBr+iBi) - (rAr+iAi)*(rBi-iBr)]/k \
@@ -171,7 +171,7 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
   }
 #else
 #define DVD_COMPUTE_N_RR(eps,i,i_s,n,eigr,eigi,u,Ax,Bx,b,ierr) \
-  for((i)=0; (i)<(n); (i)++) { \
+  for ((i)=0; (i)<(n); (i)++) { \
       (ierr) = VecDot((Ax)[(i)], (u)[(i)], &(b)[0]); CHKERRQ(ierr); \
       (ierr) = VecDot((Bx)[(i)], (u)[(i)], &(b)[1]); CHKERRQ(ierr); \
       (b)[0] = (b)[0]/(b)[1]; \
@@ -248,7 +248,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
     }
     ierr = SlepcUpdateVectorsZ(Bx,0.0,1.0,d->BV-d->cX_in_H,d->size_BV+d->cX_in_H,&pX[ld*r_s],ld,d->size_H,n);CHKERRQ(ierr);
   } else if (d->B) {
-    for(i=0; i<n; i++) {
+    for (i=0;i<n;i++) {
       /* auxV(0) <- X(i) */
       ierr = dvd_improvex_compute_X(d,r_s+i,r_s+i+1,d->auxV,pX,ld);CHKERRQ(ierr);
       /* Bx(i) <- B*auxV(0) */
@@ -282,7 +282,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   ierr = DSRestoreArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
   ierr = DSRestoreArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
 
-  for(i=0,s=0; i<n; i+=s) {
+  for (i=0,s=0;i<n;i+=s) {
 #if !defined(PETSC_USE_COMPLEX)
     if (d->eigi[r_s+i] != 0.0) {
        /* [Ax_i Ax_i+1 Bx_i Bx_i+1]*= [   1        0 
@@ -324,7 +324,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   /* D <- K*[Ax Bx] */
   if (d->npreconv == 0) {
     ierr = VecCopy(D[0],d->auxV[0]);CHKERRQ(ierr);
-    for(i=0; i<2*n-1; i++) {
+    for (i=0;i<2*n-1;i++) {
       ierr = d->improvex_precond(d,r_s+(i+1)%n,D[i+1],D[i]);CHKERRQ(ierr);
     }
     ierr = d->improvex_precond(d,r_s,d->auxV[0],D[2*n-1]);CHKERRQ(ierr);

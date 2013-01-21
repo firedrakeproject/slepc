@@ -154,7 +154,7 @@ PetscErrorCode QEPSolve(QEP qep)
     ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
     ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
     ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
-    for(i=0;i<qep->nconv;i++) {
+    for (i=0;i<qep->nconv;i++) {
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(qep->eigr[i]);
       im = PetscImaginaryPart(qep->eigi[i]);

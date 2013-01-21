@@ -141,7 +141,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   /* Transfer the initial space from svd to eps */
   if (svd->nini < 0) {
     ierr = EPSSetInitialSpace(cross->eps,-svd->nini,svd->IS);CHKERRQ(ierr);
-    for(i=0; i<-svd->nini; i++) {
+    for (i=0;i<-svd->nini;i++) {
       ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(svd->IS);CHKERRQ(ierr);

@@ -262,7 +262,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",eps->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",eps->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
-    switch(eps->conv) {
+    switch (eps->conv) {
     case EPS_CONV_ABS: 
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
     case EPS_CONV_EIG: 

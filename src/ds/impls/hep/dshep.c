@@ -758,18 +758,18 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
   /* Copy R from Q */
   for (j=0;j<k;j++)
-    for(i=0;i<=j;i++)
+    for (i=0;i<=j;i++)
       R[i+j*ld] = Q[i+j*ld];
   /* Compute orthogonal matrix in Q */
   LAPACKorgqr_(&n1,&n1,&n0,Q,&ld,tau,work,&lwork,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
   /* Compute the updated matrix of projected problem */
-  for(j=0;j<k;j++)
-    for(i=0;i<k+1;i++)
+  for (j=0;j<k;j++)
+    for (i=0;i<k+1;i++)
       A[j*ld+i] = Q[i*ld+j];
   alpha = -1.0/alpha;
   BLAStrsm_("R","U","N","N",&n1,&n0,&alpha,R,&ld,A,&ld);
-  for(i=0;i<k;i++)
+  for (i=0;i<k;i++)
     A[ld*i+i]-=alpha;
   PetscFunctionReturn(0);
 #endif

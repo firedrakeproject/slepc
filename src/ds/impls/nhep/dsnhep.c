@@ -318,14 +318,14 @@ PetscErrorCode DSNormalize_NHEP(DS ds,DSMatType mat,PetscInt col)
   ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
   if (col < 0) {
     i0 = 0; i1 = ds->n;
-  } else if(col>0 && A[ds->ld*(col-1)+col] != 0.0) {
+  } else if (col>0 && A[ds->ld*(col-1)+col] != 0.0) {
     i0 = col-1; i1 = col+1;
   } else {
     i0 = col; i1 = col+1;
   }
-  for(i=i0; i<i1; i++) {
+  for (i=i0;i<i1;i++) {
 #if !defined(PETSC_USE_COMPLEX)
-    if(i<n-1 && A[ds->ld*i+i+1] != 0.0) {
+    if (i<n-1 && A[ds->ld*i+i+1] != 0.0) {
       norm = BLASnrm2_(&n,&x[ld*i],&one);
       norm0 = BLASnrm2_(&n,&x[ld*(i+1)],&one);
       norm = 1.0/SlepcAbsEigenvalue(norm,norm0);

@@ -417,7 +417,7 @@ PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
   ierr = PetscDrawLGAddPoint(lg,x,y);CHKERRQ(ierr);
   if (eps->ishermitian) {
     ierr = PetscMalloc(sizeof(PetscReal)*n,&myeigr);CHKERRQ(ierr);
-    for(i=0;i<n;i++) {
+    for (i=0;i<n;i++) {
       er = eigr[i]; ei = eigi[i];
       ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);
       if (i < nest) myeigr[i] = PetscRealPart(er);

@@ -227,7 +227,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         if (t!=0.0) { a /= t; b /= t; c /= t; }
         disc = PetscSqrtReal(PetscAbsReal(b*b-4.0*a*c));
         if (b>=0.0 && a!=0.0) alpha = (b+disc)/(2.0*a);
-        else if(b!=disc) alpha = 2.0*c/(b-disc);
+        else if (b!=disc) alpha = 2.0*c/(b-disc);
         else alpha = 0;
         /* Next iterate */
         if (alpha!=0.0) {

@@ -350,7 +350,7 @@ PetscErrorCode dvd_profiler_d(dvdDashboard *d)
 
 /*
   Configure the harmonics.
-  switch(mode) {
+  switch (mode) {
   DVD_HARM_RR:    harmonic RR
   DVD_HARM_RRR:   relative harmonic RR
   DVD_HARM_REIGS: rightmost eigenvalues
@@ -426,7 +426,7 @@ PetscErrorCode dvd_harm_d(dvdDashboard *d)
 PetscErrorCode dvd_harm_transf(dvdHarmonic *dvdh, PetscScalar t)
 {
   PetscFunctionBegin;
-  switch(dvdh->mode) {
+  switch (dvdh->mode) {
   case DVD_HARM_RR:    /* harmonic RR */
     dvdh->Wa = 1.0; dvdh->Wb = t;   dvdh->Pa = 0.0; dvdh->Pb = -1.0; break;
   case DVD_HARM_RRR:   /* relative harmonic RR */
@@ -463,7 +463,7 @@ PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
     ierr = dvd_harm_transf(data,d->eigr[0]);CHKERRQ(ierr);
   }
 
-  for(i=d->V_new_s; i<d->V_new_e; i++) {
+  for (i=d->V_new_s;i<d->V_new_e;i++) {
     /* W(i) <- Wa*AV(i) - Wb*BV(i) */
     ierr = VecAXPBYPCZ(d->W[i],data->Wa,-data->Wb,0.0,d->AV[i],(d->BV?d->BV:d->V)[i]);CHKERRQ(ierr);
   }
@@ -482,15 +482,15 @@ PetscErrorCode dvd_harm_proj(dvdDashboard *d)
 
   /* [H G] <- [Pa*H - Pb*G, Wa*H - Wb*G] */
   if (DVD_ISNOT(d->sH,DVD_MAT_LTRIANG))     /* Upper triangular part */
-    for(i=d->V_new_s+d->cX_in_H; i<d->V_new_e+d->cX_in_H; i++)
-      for(j=0; j<=i; j++) {
+    for (i=d->V_new_s+d->cX_in_H;i<d->V_new_e+d->cX_in_H;i++)
+      for (j=0;j<=i;j++) {
         PetscScalar h = d->H[d->ldH*i+j], g = d->G[d->ldH*i+j];
         d->H[d->ldH*i+j] = data->Pa*h - data->Pb*g;
         d->G[d->ldH*i+j] = data->Wa*h - data->Wb*g;
       }
   if (DVD_ISNOT(d->sH,DVD_MAT_UTRIANG))     /* Lower triangular part */
-    for(i=0; i<d->V_new_e+d->cX_in_H; i++)
-      for(j=PetscMax(d->V_new_s+d->cX_in_H,i+(DVD_ISNOT(d->sH,DVD_MAT_LTRIANG)?1:0));
+    for (i=0;i<d->V_new_e+d->cX_in_H;i++)
+      for (j=PetscMax(d->V_new_s+d->cX_in_H,i+(DVD_ISNOT(d->sH,DVD_MAT_LTRIANG)?1:0));
           j<d->V_new_e+d->cX_in_H; j++) {
         PetscScalar h = d->H[d->ldH*i+j], g = d->G[d->ldH*i+j];
         d->H[d->ldH*i+j] = data->Pa*h - data->Pb*g;
@@ -551,7 +551,7 @@ PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-  for(i=0; i<d->size_H; i++) {
+  for (i=0;i<d->size_H;i++) {
     ierr = dvd_harm_backtrans(data, &d->eigr[i-d->cX_in_H], &d->eigi[i-d->cX_in_H]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

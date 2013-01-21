@@ -204,7 +204,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     /* purge previously converged eigenvectors */
     if (select) {
       for (i=0;i<eps->nconv;i++) {
-        if(PetscAbsScalar(rho-eps->eigr[i])>eps->its*anorm/1000) select[i] = PETSC_TRUE;
+        if (PetscAbsScalar(rho-eps->eigr[i])>eps->its*anorm/1000) select[i] = PETSC_TRUE;
         else select[i] = PETSC_FALSE;
       }
       ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,eps->nconv,select,eps->V,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);

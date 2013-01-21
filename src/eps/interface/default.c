@@ -165,7 +165,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   
   PetscFunctionBegin;
   if (eps->ishermitian) {
-    if(eps->isgeneralized && !eps->ispositive) {
+    if (eps->isgeneralized && !eps->ispositive) {
       ierr =  EPSComputeVectors_Indefinite(eps);CHKERRQ(ierr);
     } else {
       ierr = EPSComputeVectors_Hermitian(eps);CHKERRQ(ierr);

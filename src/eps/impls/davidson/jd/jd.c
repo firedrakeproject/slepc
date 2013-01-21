@@ -45,26 +45,26 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
 
   ierr = EPSJDGetKrylovStart(eps,&op);CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_jd_krylov_start","Start the searching subspace with a krylov basis","EPSJDSetKrylovStart",op,&op,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetKrylovStart(eps,op);CHKERRQ(ierr); }
+  if (flg) { ierr = EPSJDSetKrylovStart(eps,op);CHKERRQ(ierr); }
  
   ierr = EPSJDGetBlockSize(eps,&opi);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_jd_blocksize","Number vectors add to the searching subspace","EPSJDSetBlockSize",opi,&opi,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetBlockSize(eps,opi);CHKERRQ(ierr); }
+  if (flg) { ierr = EPSJDSetBlockSize(eps,opi);CHKERRQ(ierr); }
 
   ierr = EPSJDGetRestart(eps,&opi,&opi0);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_jd_minv","Set the size of the searching subspace after restarting","EPSJDSetRestart",opi,&opi,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetRestart(eps,opi,opi0);CHKERRQ(ierr); }
+  if (flg) { ierr = EPSJDSetRestart(eps,opi,opi0);CHKERRQ(ierr); }
 
   ierr = PetscOptionsInt("-eps_jd_plusk","Set the number of saved eigenvectors from the previous iteration when restarting","EPSJDSetRestart",opi0,&opi0,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetRestart(eps,opi,opi0);CHKERRQ(ierr); }
+  if (flg) { ierr = EPSJDSetRestart(eps,opi,opi0);CHKERRQ(ierr); }
 
   ierr = EPSJDGetInitialSize(eps,&opi);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_jd_initial_size","Set the initial size of the searching subspace","EPSJDSetInitialSize",opi,&opi,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetInitialSize(eps,opi);CHKERRQ(ierr); }
+  if (flg) { ierr = EPSJDSetInitialSize(eps,opi);CHKERRQ(ierr); }
 
   ierr = EPSJDGetFix(eps,&opf);CHKERRQ(ierr);
   ierr = PetscOptionsReal("-eps_jd_fix","Set the tolerance for changing the target in the correction equation","EPSJDSetFix",opf,&opf,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetFix(eps,opf);CHKERRQ(ierr); }
+  if (flg) { ierr = EPSJDSetFix(eps,opf);CHKERRQ(ierr); }
 
    ierr = EPSJDGetBOrth(eps,&orth);CHKERRQ(ierr);
   ierr = PetscOptionsEList("-eps_jd_borth","orthogonalization used in the search subspace","EPSJDSetBOrth",orth_list,3,orth_list[orth-1],&opi,&flg);CHKERRQ(ierr);
@@ -72,14 +72,14 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
  
   ierr = EPSJDGetConstantCorrectionTolerance(eps,&op);CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_jd_constant_correction_tolerance","Disable the dynamic stopping criterion when solving the correction equation","EPSJDSetConstantCorrectionTolerance",op,&op,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetConstantCorrectionTolerance(eps,op);CHKERRQ(ierr); }
+  if (flg) { ierr = EPSJDSetConstantCorrectionTolerance(eps,op);CHKERRQ(ierr); }
 
   ierr = EPSJDGetWindowSizes(eps,&opi,&opi0);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_jd_pwindow","(Experimental!) Set the number of converged vectors in the projector","EPSJDSetWindowSizes",opi,&opi,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
+  if (flg) { ierr = EPSJDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
 
   ierr = PetscOptionsInt("-eps_jd_qwindow","(Experimental!) Set the number of converged vectors in the projected problem","EPSJDSetWindowSizes",opi0,&opi0,&flg);CHKERRQ(ierr);
-  if(flg) { ierr = EPSJDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
+  if (flg) { ierr = EPSJDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 

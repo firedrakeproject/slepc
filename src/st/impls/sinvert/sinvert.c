@@ -121,7 +121,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
-  if(st->nmat<3) {
+  if (st->nmat<3) {
     /* T[0] = B */
     if (st->nmat>1) { ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr); }
     st->T[0] = st->A[1];

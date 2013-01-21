@@ -155,7 +155,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
  
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->ishermitian) {
-      switch(eps->which) {
+      switch (eps->which) {
         case EPS_TARGET_MAGNITUDE:
         case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
         case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
@@ -166,7 +166,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
       }
     } else {
 #endif
-      switch(eps->which) {
+      switch (eps->which) {
         case EPS_TARGET_MAGNITUDE:
         case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
         case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;

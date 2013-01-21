@@ -119,7 +119,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->correctionParams.precondition = 1;
 
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
-  switch(eps->which) {
+  switch (eps->which) {
     case EPS_LARGEST_REAL:
       primme->target = primme_largest;
       break;
@@ -205,7 +205,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 #endif
   ierr = VecRestoreArray(eps->V[0],&a);CHKERRQ(ierr);
   
-  switch(ierr) {
+  switch (ierr) {
     case 0: /* Successful */
       break;
 

@@ -109,7 +109,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   /* Setup EPS options and get the problem specification */
   ierr = EPSDavidsonGetBlockSize_Davidson(eps,&bs);CHKERRQ(ierr);
   if (bs <= 0) bs = 1;
-  if(eps->ncv) {
+  if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The value of ncv must be at least nev"); 
   } else if (eps->mpd) eps->ncv = eps->mpd + eps->nev + bs;
   else if (eps->nev<500)
@@ -117,24 +117,18 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   else
     eps->ncv = PetscMin(eps->n-bs,eps->nev+500)+bs;
   if (!eps->mpd) eps->mpd = eps->ncv;
-  if (eps->mpd > eps->ncv)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The mpd has to be less or equal than ncv");
-  if (eps->mpd < 2)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The mpd has to be greater than 2");
+  if (eps->mpd > eps->ncv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The mpd has to be less or equal than ncv");
+  if (eps->mpd < 2) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The mpd has to be greater than 2");
   if (!eps->max_it) eps->max_it = PetscMax(100*eps->ncv,2*eps->n);
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
-  if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY))
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Wrong value of eps->which");
-  if (!(eps->nev + bs <= eps->ncv))
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize");
+  if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Wrong value of eps->which");
+  if (!(eps->nev + bs <= eps->ncv)) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize");
 
   ierr = EPSDavidsonGetRestart_Davidson(eps,&min_size_V,&plusk);CHKERRQ(ierr);
   if (!min_size_V) min_size_V = PetscMin(PetscMax(bs,5),eps->mpd/2);
-  if (!(min_size_V+bs <= eps->mpd))
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The value of minv must be less than mpd minus blocksize");
+  if (!(min_size_V+bs <= eps->mpd)) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The value of minv must be less than mpd minus blocksize");
   ierr = EPSDavidsonGetInitialSize_Davidson(eps,&initv);CHKERRQ(ierr);
-  if (eps->mpd < initv)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The initv has to be less or equal than mpd");
+  if (eps->mpd < initv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The initv has to be less or equal than mpd");
 
   /* Davidson solvers do not support left eigenvectors */
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
@@ -186,37 +180,32 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   dvd->nev = eps->nev;
   dvd->which = eps->which;
   dvd->withTarget = PETSC_TRUE;
-  switch(eps->which) {
-  case EPS_TARGET_MAGNITUDE:
-  case EPS_TARGET_IMAGINARY:
-    dvd->target[0] = target = eps->target; dvd->target[1] = 1.0;
-    break;
-
-  case EPS_TARGET_REAL:
-    dvd->target[0] = PetscRealPart(target = eps->target); dvd->target[1] = 1.0;
-    break;
-
-  case EPS_LARGEST_REAL:
-  case EPS_LARGEST_MAGNITUDE:
-  case EPS_LARGEST_IMAGINARY: /* TODO: think about this case */
-  default:
-    dvd->target[0] = 1.0; dvd->target[1] = target = 0.0;
-    break;
- 
-  case EPS_SMALLEST_MAGNITUDE:
-  case EPS_SMALLEST_REAL:
-  case EPS_SMALLEST_IMAGINARY: /* TODO: think about this case */
-    dvd->target[0] = target = 0.0; dvd->target[1] = 1.0;
-    break;
-
-  case EPS_WHICH_USER:
-    ierr = STGetShift(eps->st,&target);CHKERRQ(ierr);
-    dvd->target[0] = target; dvd->target[1] = 1.0;
-    break;
-
-  case EPS_ALL:
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported option: which == EPS_ALL");
-    break;
+  switch (eps->which) {
+    case EPS_TARGET_MAGNITUDE:
+    case EPS_TARGET_IMAGINARY:
+      dvd->target[0] = target = eps->target; dvd->target[1] = 1.0;
+      break;
+    case EPS_TARGET_REAL:
+      dvd->target[0] = PetscRealPart(target = eps->target); dvd->target[1] = 1.0;
+      break;
+    case EPS_LARGEST_REAL:
+    case EPS_LARGEST_MAGNITUDE:
+    case EPS_LARGEST_IMAGINARY: /* TODO: think about this case */
+    default:
+      dvd->target[0] = 1.0; dvd->target[1] = target = 0.0;
+      break;
+    case EPS_SMALLEST_MAGNITUDE:
+    case EPS_SMALLEST_REAL:
+    case EPS_SMALLEST_IMAGINARY: /* TODO: think about this case */
+      dvd->target[0] = target = 0.0; dvd->target[1] = 1.0;
+      break;
+    case EPS_WHICH_USER:
+      ierr = STGetShift(eps->st,&target);CHKERRQ(ierr);
+      dvd->target[0] = target; dvd->target[1] = 1.0;
+      break;
+    case EPS_ALL:
+      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported option: which == EPS_ALL");
+      break;
   }
   dvd->tol = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
   dvd->eps = eps;
@@ -225,26 +214,32 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   if (!eps->extraction) {
     if (ipB || ispositive) eps->extraction = EPS_RITZ;
     else {
-      switch(eps->which) {
-      case EPS_TARGET_REAL: case EPS_TARGET_MAGNITUDE: case EPS_TARGET_IMAGINARY:
-      case EPS_SMALLEST_MAGNITUDE: case EPS_SMALLEST_REAL: case EPS_SMALLEST_IMAGINARY:
-      eps->extraction = EPS_HARMONIC;
-      break;
-      case EPS_LARGEST_REAL: case EPS_LARGEST_MAGNITUDE: case EPS_LARGEST_IMAGINARY:
-      eps->extraction = EPS_HARMONIC_LARGEST;
-      break;
-      default:
-      eps->extraction = EPS_RITZ;
+      switch (eps->which) {
+        case EPS_TARGET_REAL:
+        case EPS_TARGET_MAGNITUDE:
+        case EPS_TARGET_IMAGINARY:
+        case EPS_SMALLEST_MAGNITUDE:
+        case EPS_SMALLEST_REAL:
+        case EPS_SMALLEST_IMAGINARY:
+          eps->extraction = EPS_HARMONIC;
+          break;
+        case EPS_LARGEST_REAL:
+        case EPS_LARGEST_MAGNITUDE:
+        case EPS_LARGEST_IMAGINARY:
+          eps->extraction = EPS_HARMONIC_LARGEST;
+          break;
+        default:
+          eps->extraction = EPS_RITZ;
       }
     }
   }
-  switch(eps->extraction) {
-  case EPS_RITZ:              harm = DVD_HARM_NONE; break;
-  case EPS_HARMONIC:          harm = DVD_HARM_RR; break;
-  case EPS_HARMONIC_RELATIVE: harm = DVD_HARM_RRR; break;
-  case EPS_HARMONIC_RIGHT:    harm = DVD_HARM_REIGS; break;
-  case EPS_HARMONIC_LARGEST:  harm = DVD_HARM_LEIGS; break;
-  default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
+  switch (eps->extraction) {
+    case EPS_RITZ:              harm = DVD_HARM_NONE; break;
+    case EPS_HARMONIC:          harm = DVD_HARM_RR; break;
+    case EPS_HARMONIC_RELATIVE: harm = DVD_HARM_RRR; break;
+    case EPS_HARMONIC_RIGHT:    harm = DVD_HARM_REIGS; break;
+    case EPS_HARMONIC_LARGEST:  harm = DVD_HARM_LEIGS; break;
+    default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
   }
 
   /* Setup the type of starting subspace */
@@ -299,7 +294,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
 
   eps->errest_left = PETSC_NULL;
   ierr = PetscMalloc(eps->ncv*sizeof(PetscInt),&eps->perm);CHKERRQ(ierr);
-  for(i=0; i<eps->ncv; i++) eps->perm[i] = i;
+  for (i=0;i<eps->ncv;i++) eps->perm[i] = i;
 
   /* Configure dvd for a basic GD */
   ierr = dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,
@@ -332,7 +327,7 @@ PetscErrorCode EPSSolve_Davidson(EPS eps)
   /* Call the starting routines */
   DVD_FL_CALL(d->startList,d);
 
-  for(eps->its=0; eps->its < eps->max_it; eps->its++) {
+  for (eps->its=0;eps->its<eps->max_it;eps->its++) {
     /* Initialize V, if it is needed */
     if (d->size_V == 0) { ierr = d->initV(d);CHKERRQ(ierr); }
 
@@ -456,9 +451,8 @@ PetscErrorCode EPSDavidsonSetBlockSize_Davidson(EPS eps,PetscInt blocksize)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  if(blocksize == PETSC_DEFAULT || blocksize == PETSC_DECIDE) blocksize = 1;
-  if(blocksize <= 0)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid blocksize value");
+  if (blocksize == PETSC_DEFAULT || blocksize == PETSC_DECIDE) blocksize = 1;
+  if (blocksize <= 0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid blocksize value");
   data->blocksize = blocksize;
   PetscFunctionReturn(0);
 }
@@ -481,12 +475,10 @@ PetscErrorCode EPSDavidsonSetRestart_Davidson(EPS eps,PetscInt minv,PetscInt plu
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  if(minv == PETSC_DEFAULT || minv == PETSC_DECIDE) minv = 5;
-  if(minv <= 0)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid minv value");
-  if(plusk == PETSC_DEFAULT || plusk == PETSC_DECIDE) plusk = 5;
-  if(plusk < 0)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid plusk value");
+  if (minv == PETSC_DEFAULT || minv == PETSC_DECIDE) minv = 5;
+  if (minv <= 0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid minv value");
+  if (plusk == PETSC_DEFAULT || plusk == PETSC_DECIDE) plusk = 5;
+  if (plusk < 0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid plusk value");
   data->minv = minv;
   data->plusk = plusk;
   PetscFunctionReturn(0);
@@ -522,9 +514,8 @@ PetscErrorCode EPSDavidsonSetInitialSize_Davidson(EPS eps,PetscInt initialsize)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  if(initialsize == PETSC_DEFAULT || initialsize == PETSC_DECIDE) initialsize = 5;
-  if(initialsize <= 0)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial size value");
+  if (initialsize == PETSC_DEFAULT || initialsize == PETSC_DECIDE) initialsize = 5;
+  if (initialsize <= 0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial size value");
   data->initialsize = initialsize;
   PetscFunctionReturn(0);
 }
@@ -547,9 +538,8 @@ PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  if(fix == PETSC_DEFAULT || fix == PETSC_DECIDE) fix = 0.01;
-  if(fix < 0.0)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value");
+  if (fix == PETSC_DEFAULT || fix == PETSC_DECIDE) fix = 0.01;
+  if (fix < 0.0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value");
   data->fix = fix;
   PetscFunctionReturn(0);
 }
@@ -605,12 +595,10 @@ PetscErrorCode EPSDavidsonSetWindowSizes_Davidson(EPS eps,PetscInt pwindow,Petsc
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  if(pwindow == PETSC_DEFAULT || pwindow == PETSC_DECIDE) pwindow = 0;
-  if(pwindow < 0)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid pwindow value");
-  if(qwindow == PETSC_DEFAULT || qwindow == PETSC_DECIDE) qwindow = 0;
-  if(qwindow < 0)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid qwindow value");
+  if (pwindow == PETSC_DEFAULT || pwindow == PETSC_DECIDE) pwindow = 0;
+  if (pwindow < 0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid pwindow value");
+  if (qwindow == PETSC_DEFAULT || qwindow == PETSC_DECIDE) qwindow = 0;
+  if (qwindow < 0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid qwindow value");
   data->cX_in_proj = qwindow;
   data->cX_in_impr = pwindow;
   PetscFunctionReturn(0);

@@ -891,7 +891,7 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,conv,2);
-  switch(conv) {
+  switch (conv) {
     case EPS_CONV_EIG: eps->conv_func = EPSConvergedEigRelative; break;
     case EPS_CONV_NORM: eps->conv_func = EPSConvergedNormRelative; break; 
     case EPS_CONV_ABS: eps->conv_func = EPSConvergedAbsolute; break;

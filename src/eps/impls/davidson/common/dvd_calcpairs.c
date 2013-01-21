@@ -609,7 +609,7 @@ PetscErrorCode dvd_calcpairs_updateBV0(dvdDashboard *d)
       ierr = IPOrthogonalize(d->ipI, 0, PETSC_NULL, d->size_BcX+i, PETSC_NULL,
                              d->BcX, d->BcX[d->size_BcX+i], PETSC_NULL,
                              &norm, &lindep); CHKERRQ(ierr);
-      if(lindep) SETERRQ(PETSC_COMM_SELF,1, "Error during orth(BcX, B*cX(new))");
+      if (lindep) SETERRQ(PETSC_COMM_SELF,1, "Error during orth(BcX, B*cX(new))");
       ierr = VecScale(d->BcX[d->size_BcX+i], 1.0/norm); CHKERRQ(ierr);
     }
     d->size_BcX+= d->V_tra_s;
@@ -879,15 +879,15 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d, PetscInt r_s,
         ierr = IPOrthogonalize(d->ipI,0,PETSC_NULL,d->size_cX,PETSC_NULL,cX,R[i],PETSC_NULL,&d->nR[r_s+i],&lindep);CHKERRQ(ierr);
       }
     }
-    if(lindep || (PetscAbs(d->nR[r_s+i]) < PETSC_MACHINE_EPSILON)) {
+    if (lindep || (PetscAbs(d->nR[r_s+i]) < PETSC_MACHINE_EPSILON)) {
       ierr = PetscInfo2(d->eps,"The computed eigenvector residual %D is too low, %G!\n",r_s+i,d->nR[r_s+i]);CHKERRQ(ierr);
     }
   }
   if (!cX || (cX && d->orthoV_type == EPS_ORTH_BOPT)) {
-    for(i=0; i<r_e-r_s; i++) {
+    for (i=0;i<r_e-r_s;i++) {
       ierr = VecNormBegin(R[i],NORM_2,&d->nR[r_s+i]); CHKERRQ(ierr);
     }
-    for(i=0; i<r_e-r_s; i++) {
+    for (i=0;i<r_e-r_s;i++) {
       ierr = VecNormEnd(R[i],NORM_2,&d->nR[r_s+i]); CHKERRQ(ierr);
     }
   }
@@ -985,7 +985,7 @@ PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e
     Bx = d->auxV;
   }
   /* R <- (A - eig*B)*V*pX */
-  for(i=0; i<r_e-r_s; i++) {
+  for (i=0;i<r_e-r_s;i++) {
 #if !defined(PETSC_USE_COMPLEX)
     if (d->eigi[r_s+i] != 0.0) {
       /* [Ax_i Ax_i+1 Bx_i Bx_i+1]*= [   1        0 
@@ -1007,10 +1007,10 @@ PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e
     }
   }
   /* nR <- ||R|| */
-  for(i=0; i<r_e-r_s; i++) {
+  for (i=0;i<r_e-r_s;i++) {
     ierr = VecNormBegin(R[i],NORM_2,&d->nR[r_s+i]);CHKERRQ(ierr);
   }
-  for(i=0; i<r_e-r_s; i++) {
+  for (i=0;i<r_e-r_s;i++) {
     ierr = VecNormEnd(R[i],NORM_2,&d->nR[r_s+i]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

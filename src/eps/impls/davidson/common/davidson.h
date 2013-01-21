@@ -313,7 +313,7 @@ typedef struct _dvdDashboard {
 #define DVD_FL_ADD_END0(list, fun) { \
   dvdFunctionList *fl=(list); \
   PetscErrorCode ierr; \
-  for(;fl->next; fl = fl->next); \
+  for (;fl->next; fl = fl->next); \
   ierr = PetscMalloc(sizeof(dvdFunctionList), &fl->next); CHKERRQ(ierr); \
   fl->next->f = (PetscErrorCode(*)(void*))(fun); \
   fl->next->next = PETSC_NULL; }
@@ -322,13 +322,13 @@ typedef struct _dvdDashboard {
 
 #define DVD_FL_CALL(list, arg0) { \
   dvdFunctionList *fl; \
-  for(fl=(list); fl; fl=fl->next) \
-    if(*(dvdCallback)fl->f) (*(dvdCallback)fl->f)((arg0)); }
+  for (fl=(list); fl; fl=fl->next) \
+    if (*(dvdCallback)fl->f) (*(dvdCallback)fl->f)((arg0)); }
 
 #define DVD_FL_DEL(list) { \
   dvdFunctionList *fl=(list), *oldfl; \
   PetscErrorCode ierr; \
-  while(fl) { \
+  while (fl) { \
     oldfl = fl; fl = fl->next; ierr = PetscFree(oldfl); CHKERRQ(ierr); } \
   (list) = PETSC_NULL;}
 
@@ -580,8 +580,8 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscI
       ierr = VecNormEnd(u[i],NORM_2,&d->nX[i_s+i]);CHKERRQ(ierr);
     }
 #if !defined(PETSC_USE_COMPLEX)
-    for(i=0; i<n; i++) {
-      if(d->eigi[i_s+i] != 0.0) {
+    for (i=0;i<n;i++) {
+      if (d->eigi[i_s+i] != 0.0) {
         d->nX[i_s+i] = d->nX[i_s+i+1] = PetscSqrtScalar(d->nX[i_s+i]*d->nX[i_s+i]+d->nX[i_s+i+1]*d->nX[i_s+i+1]);
         i++;
       }

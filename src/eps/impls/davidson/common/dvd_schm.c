@@ -40,8 +40,8 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
   ierr = PetscMemzero(b, sizeof(dvdBlackboard)); CHKERRQ(ierr);
   b->state = DVD_STATE_PRECONF;
 
-  for(check_sum0=-1,check_sum1=DVD_CHECKSUM(b); check_sum0 != check_sum1;
-      check_sum0 = check_sum1, check_sum1 = DVD_CHECKSUM(b)) {
+  for (check_sum0=-1,check_sum1=DVD_CHECKSUM(b); check_sum0 != check_sum1;
+       check_sum0 = check_sum1, check_sum1 = DVD_CHECKSUM(b)) {
     b->own_vecs = b->own_scalars = 0;
 
     /* Setup basic management of V */
@@ -65,7 +65,7 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d, dvdBlackboard *b,
     }
   
     /* Setup the method for improving the eigenvectors */
-    switch(method) {
+    switch (method) {
       case DVD_METH_GD:
       case DVD_METH_JD:
       ierr = dvd_improvex_jd(d, b, ksp, bs, cX_impr, PETSC_FALSE); CHKERRQ(ierr);
@@ -122,7 +122,7 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d, dvdBlackboard *b,
   }
 
   /* Setup the method for improving the eigenvectors */
-  switch(method) {
+  switch (method) {
     case DVD_METH_GD:
     case DVD_METH_JD:
     ierr = dvd_improvex_jd(d, b, ksp, bs, cX_impr, dynamic); CHKERRQ(ierr);

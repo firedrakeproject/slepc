@@ -197,8 +197,8 @@ PetscErrorCode SlepcDenseNorm(PetscScalar *A, PetscInt ldA, PetscInt _rA,
 
   ierr = PetscLogEventBegin(SLEPC_SlepcDenseNorm,0,0,0,0);CHKERRQ(ierr);
 
-  for(i=0; i<cA; i++) {
-    if(eigi && eigi[i] != 0.0) {
+  for (i=0;i<cA;i++) {
+    if (eigi && eigi[i] != 0.0) {
       norm = BLASnrm2_(&rA, &A[i*ldA], &one);
       norm0 = BLASnrm2_(&rA, &A[(i+1)*ldA], &one);
       norm = 1.0/PetscSqrtScalar(norm*norm + norm0*norm0);
@@ -243,7 +243,7 @@ PetscErrorCode SlepcDenseCopy(PetscScalar *Y, PetscInt ldY, PetscScalar *X,
   }
 
   ierr = PetscLogEventBegin(SLEPC_SlepcDenseCopy,0,0,0,0);CHKERRQ(ierr);
-  for(i=0; i<cX; i++) {
+  for (i=0;i<cX;i++) {
     ierr = PetscMemcpy(&Y[ldY*i], &X[ldX*i], sizeof(PetscScalar)*rX);
     CHKERRQ(ierr);
   }
@@ -284,8 +284,8 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
     if (DVD_IS(sY,DVD_MAT_UTRIANG) &&
         DVD_ISNOT(sY,DVD_MAT_LTRIANG))        /* ... UpTr, */
       c = 0;                                      /*     so copy */
-    else if(DVD_ISNOT(sY,DVD_MAT_UTRIANG) &&
-            DVD_IS(sY,DVD_MAT_LTRIANG))       /* ... LoTr, */
+    else if (DVD_ISNOT(sY,DVD_MAT_UTRIANG) &&
+             DVD_IS(sY,DVD_MAT_LTRIANG))       /* ... LoTr, */
       c = 1;                                      /*     so transpose */
     else                                          /* ... Full, */
       c = 2;                                      /*     so reflect from up */
@@ -294,8 +294,8 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
     if (DVD_IS(sY,DVD_MAT_UTRIANG) &&
         DVD_ISNOT(sY,DVD_MAT_LTRIANG))        /* ... UpTr, */
       c = 1;                                      /*     so transpose */
-    else if(DVD_ISNOT(sY,DVD_MAT_UTRIANG) &&
-            DVD_IS(sY,DVD_MAT_LTRIANG))       /* ... LoTr, */
+    else if (DVD_ISNOT(sY,DVD_MAT_UTRIANG) &&
+             DVD_IS(sY,DVD_MAT_LTRIANG))       /* ... LoTr, */
       c = 0;                                      /*     so copy */
     else                                          /* ... Full, */
       c = 3;                                      /*     so reflect fr. down */
@@ -304,29 +304,29 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y, MatType_t sY, PetscInt ldY,
  
   ierr = PetscLogEventBegin(SLEPC_SlepcDenseCopy,0,0,0,0);CHKERRQ(ierr);
 
-  switch(c) {
+  switch (c) {
   case 0: /* copy */
-    for(i=0; i<cX; i++) {
+    for (i=0;i<cX;i++) {
       ierr = PetscMemcpy(&Y[ldY*i], &X[ldX*i], sizeof(PetscScalar)*rX);
       CHKERRQ(ierr);
     }
     break;
 
   case 1: /* transpose */
-    for(i=0; i<cX; i++)
-      for(j=0; j<rX; j++)
+    for (i=0;i<cX;i++)
+      for (j=0;j<rX;j++)
         Y[ldY*j+i] = PetscConj(X[ldX*i+j]);
     break;
 
   case 2: /* reflection from up */
-    for(i=0; i<cX; i++)
-      for(j=0; j<PetscMin(i+1,rX); j++)
+    for (i=0;i<cX;i++)
+      for (j=0;j<PetscMin(i+1,rX);j++)
         Y[ldY*j+i] = PetscConj(Y[ldY*i+j] = X[ldX*i+j]);
     break;
 
   case 3: /* reflection from down */
-    for(i=0; i<cX; i++)
-      for(j=i; j<rX; j++)
+    for (i=0;i<cX;i++)
+      for (j=i;j<rX;j++)
         Y[ldY*j+i] = PetscConj(Y[ldY*i+j] = X[ldX*i+j]);
     break;
   }
@@ -396,7 +396,7 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y, PetscInt dY, PetscScalar beta,
   
     ierr = VecRestoreArrayRead(X[0], &px);CHKERRQ(ierr);
     ierr = VecRestoreArray(Y[0], &py);CHKERRQ(ierr);
-    for(i=1; i<cM; i++) {
+    for (i=1;i<cM;i++) {
       ierr = PetscObjectStateIncrease((PetscObject)Y[dY*i]); CHKERRQ(ierr);
     }
 
@@ -441,16 +441,16 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
 
   /* Get the dense vectors associated to the columns of X */
   ierr = PetscMalloc(sizeof(Vec)*cX, &px); CHKERRQ(ierr);
-  for(i=0; i<cX; i++) {
+  for (i=0;i<cX;i++) {
     ierr = VecGetArray(X[i], &px[i]); CHKERRQ(ierr);
   }
   ierr = VecGetLocalSize(X[0], &rX); CHKERRQ(ierr);
 
-  for(i=0, rY0=0; i<rX; i+=rY0) {
+  for (i=0,rY0=0;i<rX;i+=rY0) {
     rY0 = PetscMin(rY, rX-i);
 
     /* Y <- X[i0:i1,:] */
-    for(j=0; j<cX; j++) {
+    for (j=0;j<cX;j++) {
       ierr = SlepcDenseCopy(&Y[ldY*j], ldY, px[j]+i, rX, rY0, 1);
       CHKERRQ(ierr);
     }
@@ -461,13 +461,13 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X, PetscInt cX, PetscScalar alpha,
     CHKERRQ(ierr);
 
     /* X <- Z */
-    for(j=0; j<cM; j++) {
+    for (j=0;j<cM;j++) {
       ierr = SlepcDenseCopy(px[j]+i, rX, &Z[j*ldY], ldY, rY0, 1);
       CHKERRQ(ierr);
     }
   }
 
-  for(i=0; i<cX; i++) {
+  for (i=0;i<cX;i++) {
     ierr = VecRestoreArray(X[i], &px[i]); CHKERRQ(ierr);
   }
   ierr = PetscFree(px); CHKERRQ(ierr);
@@ -725,8 +725,8 @@ PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
 
   MPI_Comm_size(((PetscObject)V)->comm, &n);
 
-  for(i=0; i<cM; i++)
-    for(j=0; j<rM; j++)
+  for (i=0;i<cM;i++)
+    for (j=0;j<rM;j++)
       M[ldM*i+j]/= (PetscScalar)n;
   PetscFunctionReturn(0);
 }
@@ -973,7 +973,7 @@ PetscErrorCode VecsOrthonormalize(Vec *V, PetscInt n, PetscScalar *wS0,
   ld = ldV;
   BLAStrsm_("R", "U", "N", "N", &ld, &nn, &one, H, &nn, pv, &ld);
   ierr = VecRestoreArray(V[0], &pv);CHKERRQ(ierr);
-  for(i=1; i<n; i++) {
+  for (i=1;i<n;i++) {
     ierr = PetscObjectStateIncrease((PetscObject)V[i]); CHKERRQ(ierr);
   }
 
@@ -1046,7 +1046,7 @@ PetscErrorCode SlepcAllReduceSumEnd(DvdReduction *r)
                        r->comm); CHKERRQ(ierr);
 
   /* Call the postponed routines */
-  for(i=0; i<r->size_ops; i++) {
+  for (i=0;i<r->size_ops;i++) {
     ierr = r->ops[i].f(r->ops[i].out, r->ops[i].size_out, r->ops[i].ptr);
     CHKERRQ(ierr);
   }
@@ -1072,8 +1072,8 @@ PetscErrorCode dvd_orthV(IP ip, Vec *defl, PetscInt size_DS, Vec *cX,
  
   PetscFunctionBegin;
   /* Orthonormalize V with IP */
-  for (i=V_new_s; i<V_new_e; i++) {
-    for(j=0; j<3; j++) {
+  for (i=V_new_s;i<V_new_e;i++) {
+    for (j=0;j<3;j++) {
       if (j>0) { ierr = SlepcVecSetRandom(V[i], rand); CHKERRQ(ierr); }
       if (cX + size_cX == V) {
         /* If cX and V are contiguous, orthogonalize in one step */
@@ -1083,7 +1083,7 @@ PetscErrorCode dvd_orthV(IP ip, Vec *defl, PetscInt size_DS, Vec *cX,
         /* Else orthogonalize first against defl, and then against cX and V */
         ierr = IPOrthogonalize(ip, size_DS, defl, size_cX, PETSC_NULL, cX,
                                V[i], auxS0, PETSC_NULL, &lindep); CHKERRQ(ierr);
-        if(!lindep) {
+        if (!lindep) {
           ierr = IPOrthogonalize(ip, 0, PETSC_NULL, i, PETSC_NULL, V,
                                  V[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
         }
@@ -1092,10 +1092,10 @@ PetscErrorCode dvd_orthV(IP ip, Vec *defl, PetscInt size_DS, Vec *cX,
         ierr = IPOrthogonalize(ip, size_cX, cX, i, PETSC_NULL, V,
                                V[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
       }
-      if(!lindep && (norm > PETSC_SQRT_MACHINE_EPSILON)) break;
+      if (!lindep && (norm > PETSC_SQRT_MACHINE_EPSILON)) break;
       ierr = PetscInfo1(ip,"Orthonormalization problems adding the vector %D to the searching subspace\n",i);CHKERRQ(ierr);
     }
-    if(lindep || (norm < PETSC_SQRT_MACHINE_EPSILON)) SETERRQ(((PetscObject)ip)->comm,1, "Error during orthonormalization of eigenvectors");
+    if (lindep || (norm < PETSC_SQRT_MACHINE_EPSILON)) SETERRQ(((PetscObject)ip)->comm,1, "Error during orthonormalization of eigenvectors");
     ierr = VecScale(V[i], 1.0/norm); CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -1117,8 +1117,8 @@ PetscErrorCode dvd_BorthV_faster(IP ip, Vec *defl, Vec *BDS,PetscReal *BDSn, Pet
  
   PetscFunctionBegin;
   /* Orthonormalize V with IP */
-  for (i=V_new_s; i<V_new_e; i++) {
-    for(j=0; j<3; j++) {
+  for (i=V_new_s;i<V_new_e;i++) {
+    for (j=0;j<3;j++) {
       if (j>0) { ierr = SlepcVecSetRandom(V[i], rand); CHKERRQ(ierr); }
       if (cX + size_cX == V && BcX + size_cX == BV) {
         /* If cX and V are contiguous, orthogonalize in one step */
@@ -1128,7 +1128,7 @@ PetscErrorCode dvd_BorthV_faster(IP ip, Vec *defl, Vec *BDS,PetscReal *BDSn, Pet
         /* Else orthogonalize first against defl, and then against cX and V */
         ierr = IPBOrthogonalize(ip, size_DS, defl, BDS, BDSn, size_cX, PETSC_NULL, cX, BcX, BcXn,
                                V[i], BV[i], auxS0, PETSC_NULL, &lindep); CHKERRQ(ierr);
-        if(!lindep) {
+        if (!lindep) {
           ierr = IPBOrthogonalize(ip, 0, PETSC_NULL, PETSC_NULL, PETSC_NULL, i, PETSC_NULL, V, BV, BVn,
                                   V[i], BV[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
         }
@@ -1137,11 +1137,11 @@ PetscErrorCode dvd_BorthV_faster(IP ip, Vec *defl, Vec *BDS,PetscReal *BDSn, Pet
         ierr = IPBOrthogonalize(ip, size_cX, cX, BcX, BcXn, i, PETSC_NULL, V, BV, BVn,
                                 V[i], BV[i], auxS0, &norm, &lindep); CHKERRQ(ierr);
       }
-      if(!lindep && (PetscAbs(norm) > PETSC_SQRT_MACHINE_EPSILON)) break;
+      if (!lindep && (PetscAbs(norm) > PETSC_SQRT_MACHINE_EPSILON)) break;
       ierr = PetscInfo1(ip, "Orthonormalization problems adding the vector %d to the searching subspace\n", i);
       CHKERRQ(ierr);
     }
-    if(lindep || (PetscAbs(norm) < PETSC_SQRT_MACHINE_EPSILON)) {
+    if (lindep || (PetscAbs(norm) < PETSC_SQRT_MACHINE_EPSILON)) {
         SETERRQ(((PetscObject)ip)->comm,1, "Error during the orthonormalization of the eigenvectors");
     }
     if (BVn) BVn[i] = norm > 0.0 ? 1.0 : -1.0;
@@ -1165,8 +1165,8 @@ PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_D
  
   PetscFunctionBegin;
   /* Orthonormalize V with IP */
-  for (i=V_new_s; i<V_new_e; i++) {
-    for(j=0; j<3; j++) {
+  for (i=V_new_s;i<V_new_e;i++) {
+    for (j=0;j<3;j++) {
       if (j>0) {
         ierr = SlepcVecSetRandom(V[i],rand);CHKERRQ(ierr); 
         ierr = PetscInfo1(ip,"Orthonormalization problems adding the vector %d to the searching subspace\n",i);CHKERRQ(ierr);
@@ -1185,9 +1185,9 @@ PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_D
         if (lindep) continue;
         ierr = IPPseudoOrthogonalize(ip,i,V,BVn,V[i],auxS0,&norm,&lindep);CHKERRQ(ierr);
       }
-      if(!lindep && (PetscAbs(norm) > PETSC_MACHINE_EPSILON)) break;
+      if (!lindep && (PetscAbs(norm) > PETSC_MACHINE_EPSILON)) break;
     }
-    if(lindep || (PetscAbs(norm) < PETSC_MACHINE_EPSILON)) {
+    if (lindep || (PetscAbs(norm) < PETSC_MACHINE_EPSILON)) {
         SETERRQ(((PetscObject)ip)->comm,1, "Error during the orthonormalization of the eigenvectors");
     }
     if (BVn) BVn[i] = norm > 0.0 ? 1.0 : -1.0;

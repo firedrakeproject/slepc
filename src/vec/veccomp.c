@@ -41,10 +41,10 @@ PetscErrorCode VecDestroy_Comp(Vec v)
 #if defined(PETSC_USE_LOG)
   PetscLogObjectState((PetscObject)v,"Length=%D",v->map->n);
 #endif
-  for(i=0; i<vs->nx; i++) {
+  for (i=0;i<vs->nx;i++) {
     ierr = VecDestroy(&vs->x[i]);CHKERRQ(ierr);
   }
-  if(--vs->n->friends <= 0) {
+  if (--vs->n->friends <= 0) {
     ierr = PetscFree(vs->n);CHKERRQ(ierr);
   }
   ierr = PetscFree(vs->x);CHKERRQ(ierr);
@@ -224,7 +224,7 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec
   PetscFunctionBegin;
   ierr = VecCreate(comm,V);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(Vec)*n,&x);CHKERRQ(ierr);
-  for(i=0;i<n;i++) {
+  for (i=0;i<n;i++) {
     ierr = VecCreate(comm,&x[i]);CHKERRQ(ierr);
     ierr = VecSetSizes(x[i],PETSC_DECIDE,Nx[i]);CHKERRQ(ierr);
     ierr = VecSetType(x[i],t);CHKERRQ(ierr);
@@ -261,7 +261,7 @@ PetscErrorCode VecCreateCompWithVecs(Vec *x,PetscInt n,Vec Vparent,Vec *V)
 
   PetscFunctionBegin;
   ierr = VecCreate(((PetscObject)x[0])->comm,V);CHKERRQ(ierr);
-  for(i=0;i<n;i++) {
+  for (i=0;i<n;i++) {
     ierr = PetscObjectReference((PetscObject)x[i]);CHKERRQ(ierr);
   }
   ierr = VecCreate_Comp_Private(*V,x,n,PETSC_FALSE,
@@ -313,8 +313,8 @@ PetscErrorCode VecCompGetSubVecs(Vec win,PetscInt *n,const Vec **x)
 
   PetscFunctionBegin;
   PetscValidVecComp(win);
-  if(x) *x = s->x;
-  if(n) *n = s->nx;
+  if (x) *x = s->x;
+  if (n) *n = s->nx;
   PetscFunctionReturn(0);
 }
 
@@ -342,7 +342,7 @@ PetscErrorCode VecCompSetSubVecs(Vec win,PetscInt n,Vec *x)
 
   PetscFunctionBegin;
   PetscValidVecComp(win);
-  if(x) {
+  if (x) {
     if (n > s->nx) {
       ierr = PetscFree(s->x);CHKERRQ(ierr);
       ierr = PetscMalloc(sizeof(Vec)*n,&s->x);CHKERRQ(ierr);
@@ -542,8 +542,8 @@ PetscErrorCode VecMin_Comp(Vec v,PetscInt *idx,PetscReal *z)
     ierr = VecGetSize(vs->x[i-1],&s0);CHKERRQ(ierr);
     s+= s0;
     ierr = VecMin(vs->x[i],idx?&idxp:PETSC_NULL,&z0);CHKERRQ(ierr);
-    if(zp > z0) {
-      if(idx) *idx = s+idxp;
+    if (zp > z0) {
+      if (idx) *idx = s+idxp;
       zp = z0;
     }
   }

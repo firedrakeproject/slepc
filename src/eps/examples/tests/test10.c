@@ -44,7 +44,7 @@ int main (int argc,char **argv)
 
   ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(PETSC_NULL,"-m",&m,&flag);CHKERRQ(ierr);
-  if(!flag) m=n;
+  if (!flag) m=n;
   N = n*m;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nFiedler vector of a 2-D regular mesh, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
 
@@ -63,10 +63,10 @@ int main (int argc,char **argv)
   for (II=Istart;II<Iend;II++) { 
     i = II/n; j = II-i*n;
     w = 0.0;
-    if(i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); w=w+1.0; }
-    if(i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); w=w+1.0; }
-    if(j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); w=w+1.0; }
-    if(j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); w=w+1.0; }
+    if (i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); w=w+1.0; }
+    if (i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); w=w+1.0; }
+    if (j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); w=w+1.0; }
+    if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); w=w+1.0; }
     ierr = MatSetValue(A,II,II,w,INSERT_VALUES);CHKERRQ(ierr);
   }
 

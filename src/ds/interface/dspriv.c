@@ -199,7 +199,7 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
      }
     }
     perm[j+1] = tmp1;
-    if(d==2) perm[j+2] = tmp2;
+    if (d==2) perm[j+2] = tmp2;
   }
   PetscFunctionReturn(0);
 }
