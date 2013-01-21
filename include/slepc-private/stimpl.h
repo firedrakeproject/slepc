@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#ifndef _STIMPL
+#if !defined(_STIMPL)
 #define _STIMPL
 
 #include <slepcst.h>

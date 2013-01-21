@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#ifndef _IPIMPL
+#if !defined(_IPIMPL)
 #define _IPIMPL
 
 #include <slepcip.h>

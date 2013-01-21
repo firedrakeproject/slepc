@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#ifndef _EPSIMPL
+#if !defined(_EPSIMPL)
 #define _EPSIMPL
 
 #include <slepceps.h>

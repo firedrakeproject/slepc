@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#ifndef _QEPIMPL
+#if !defined(_QEPIMPL)
 #define _QEPIMPL
 
 #include <slepcqep.h>

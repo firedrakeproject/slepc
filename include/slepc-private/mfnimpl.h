@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#ifndef _MFNIMPL
+#if !defined(_MFNIMPL)
 #define _MFNIMPL
 
 #include <slepcmfn.h>

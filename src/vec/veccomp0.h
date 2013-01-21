@@ -21,7 +21,7 @@
 
 #include <petsc-private/vecimpl.h>     /*I  "petsvec.h"  I*/
 
-#ifdef __WITH_MPI__
+#if defined(__WITH_MPI__)
 #define __SUF__(A) A##_MPI
 #else
 #define __SUF__(A) A##_Seq
@@ -48,7 +48,7 @@ PetscErrorCode __SUF__(VecDot_Comp)(Vec a,Vec b,PetscScalar *z)
       ierr = as->x[i]->ops->dot_local(as->x[i],bs->x[i],&work);CHKERRQ(ierr);
       sum += work;
     }
-#ifdef __WITH_MPI__
+#if defined(__WITH_MPI__)
     work = sum;
     ierr = MPI_Allreduce(&work,&sum,1,MPIU_SCALAR,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
 #endif
@@ -84,7 +84,7 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
   ierr = PetscMalloc(sizeof(PetscScalar)*n,&work0);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(Vec)*n,&bx);CHKERRQ(ierr);
 
-#ifdef __WITH_MPI__
+#if defined(__WITH_MPI__)
   if (as->x[0]->ops->mdot_local) {
     r = work0; work = z;
   } else
@@ -111,7 +111,7 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
   }
 
   /* If def(__WITH_MPI__) and exists mdot_local */
-#ifdef __WITH_MPI__
+#if defined(__WITH_MPI__)
   if (as->x[0]->ops->mdot_local) {
     /* z[i] <- Allreduce(work[i]) */
     ierr = MPI_Allreduce(r,z,n,MPIU_SCALAR,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
@@ -140,7 +140,7 @@ PetscErrorCode __SUF__(VecTDot_Comp)(Vec a,Vec b,PetscScalar *z)
       ierr = as->x[i]->ops->tdot_local(as->x[i],bs->x[i],&work);CHKERRQ(ierr);
       sum += work;
     }
-#ifdef __WITH_MPI__
+#if defined(__WITH_MPI__)
     work = sum;
     ierr = MPI_Allreduce(&work,&sum,1,MPIU_SCALAR,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
 #endif
@@ -176,7 +176,7 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
   ierr = PetscMalloc(sizeof(PetscScalar)*n,&work0);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(Vec)*n,&bx);CHKERRQ(ierr);
 
-#ifdef __WITH_MPI__
+#if defined(__WITH_MPI__)
   if (as->x[0]->ops->mtdot_local) {
     r = work0; work = z;
   } else
@@ -203,7 +203,7 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
   }
 
   /* If def(__WITH_MPI__) and exists mtdot_local */
-#ifdef __WITH_MPI__
+#if defined(__WITH_MPI__)
   if (as->x[0]->ops->mtdot_local) {
     /* z[i] <- Allreduce(work[i]) */
     ierr = MPI_Allreduce(r,z,n,MPIU_SCALAR,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
@@ -215,7 +215,7 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
   PetscFunctionReturn(0);
 }
 
-#ifndef __VEC_NORM2_FUNCS_
+#if !defined(__VEC_NORM2_FUNCS_)
 #define __VEC_NORM2_FUNCS_
 PETSC_STATIC_INLINE void SumNorm2(PetscReal *ssq0,PetscReal *scale0,PetscReal *ssq1,PetscReal *scale1)
 {
@@ -331,7 +331,7 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
   }
 
   /* If def(__WITH_MPI__) and exists norm_local */
-#ifdef __WITH_MPI__
+#if defined(__WITH_MPI__)
   if (as->x[0]->ops->norm_local) {
     PetscReal work0[3];
     /* norm <- Allreduce(work) */
@@ -377,7 +377,7 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar
   Vec_Comp       *vs = (Vec_Comp*)v->data,*ws = (Vec_Comp*)w->data;
   PetscInt       i,n;
   PetscBool      t0,t1;
-#ifdef __WITH_MPI__
+#if defined(__WITH_MPI__)
   PetscScalar    work[4];
 #endif
 
@@ -407,7 +407,7 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar
   } else
     SETERRQ(((PetscObject)v)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible vector types");
 
-#ifdef __WITH_MPI__
+#if defined(__WITH_MPI__)
     /* [dp, nm] <- Allreduce([dp0, nm0]) */
     work[0] = dp0; work[1] = nm0;
     ierr = MPI_Allreduce(&work,&work[2],2,MPIU_SCALAR,MPIU_SUM,((PetscObject)v)->comm);CHKERRQ(ierr);

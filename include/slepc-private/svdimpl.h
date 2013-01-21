@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#ifndef _SVDIMPL
+#if !defined(_SVDIMPL)
 #define _SVDIMPL
 
 #include <slepcsvd.h>

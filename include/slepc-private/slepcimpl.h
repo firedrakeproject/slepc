@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#ifndef _SLEPCIMPL
+#if !defined(_SLEPCIMPL)
 #define _SLEPCIMPL
 
 #include <slepcsys.h>

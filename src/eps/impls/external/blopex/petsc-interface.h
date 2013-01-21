@@ -3,7 +3,7 @@
 /* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
 /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 
-#ifndef PETSC_INTERFACE_HEADER
+#if !defined(PETSC_INTERFACE_HEADER)
 #define PETSC_INTERFACE_HEADER
 
 #include "blopex_interpreter.h"

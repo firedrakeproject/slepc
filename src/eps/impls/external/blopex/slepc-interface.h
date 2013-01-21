@@ -23,7 +23,7 @@
 */
 
 
-#ifndef SLEPC_INTERFACE_HEADER
+#if !defined(SLEPC_INTERFACE_HEADER)
 #define SLEPC_INTERFACE_HEADER
 
 #include <blopex_lobpcg.h>

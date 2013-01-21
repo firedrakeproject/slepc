@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#ifndef _DSIMPL
+#if !defined(_DSIMPL)
 #define _DSIMPL
 
 #include <slepcds.h>
