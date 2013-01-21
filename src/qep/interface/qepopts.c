@@ -65,11 +65,11 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     }
 
     ierr = PetscOptionsBoolGroupBegin("-qep_general","general quadratic eigenvalue problem","QEPSetProblemType",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetProblemType(qep,QEP_GENERAL);CHKERRQ(ierr);}
+    if (flg) { ierr = QEPSetProblemType(qep,QEP_GENERAL);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-qep_hermitian","hermitian quadratic eigenvalue problem","QEPSetProblemType",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetProblemType(qep,QEP_HERMITIAN);CHKERRQ(ierr);}
+    if (flg) { ierr = QEPSetProblemType(qep,QEP_HERMITIAN);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-qep_gyroscopic","gyroscopic quadratic eigenvalue problem","QEPSetProblemType",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetProblemType(qep,QEP_GYROSCOPIC);CHKERRQ(ierr);}
+    if (flg) { ierr = QEPSetProblemType(qep,QEP_GYROSCOPIC);CHKERRQ(ierr); }
 
     r = PETSC_IGNORE;
     ierr = PetscOptionsReal("-qep_scale","Scale factor","QEPSetScaleFactor",qep->sfactor,&r,PETSC_NULL);CHKERRQ(ierr);
@@ -80,9 +80,9 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     ierr = PetscOptionsReal("-qep_tol","Tolerance","QEPSetTolerances",qep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:qep->tol,&r,PETSC_NULL);CHKERRQ(ierr);
     ierr = QEPSetTolerances(qep,r,i);CHKERRQ(ierr);
     ierr = PetscOptionsBoolGroupBegin("-qep_convergence_default","Default (relative error) convergence test","QEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetConvergenceTest(qep,QEPConvergedDefault,PETSC_NULL);CHKERRQ(ierr);}
+    if (flg) { ierr = QEPSetConvergenceTest(qep,QEPConvergedDefault,PETSC_NULL);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-qep_convergence_absolute","Absolute error convergence test","QEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetConvergenceTest(qep,QEPConvergedAbsolute,PETSC_NULL);CHKERRQ(ierr);}
+    if (flg) { ierr = QEPSetConvergenceTest(qep,QEPConvergedAbsolute,PETSC_NULL);CHKERRQ(ierr); }
 
     i = j = k = PETSC_IGNORE;
     ierr = PetscOptionsInt("-qep_nev","Number of eigenvalues to compute","QEPSetDimensions",qep->nev,&i,PETSC_NULL);CHKERRQ(ierr);
@@ -139,23 +139,23 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
   /* -----------------------------------------------------------------------*/
 
     ierr = PetscOptionsBoolGroupBegin("-qep_largest_magnitude","compute largest eigenvalues in magnitude","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_LARGEST_MAGNITUDE);CHKERRQ(ierr);}
+    if (flg) { ierr = QEPSetWhichEigenpairs(qep,QEP_LARGEST_MAGNITUDE);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-qep_smallest_magnitude","compute smallest eigenvalues in magnitude","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_SMALLEST_MAGNITUDE);CHKERRQ(ierr);}
+    if (flg) { ierr = QEPSetWhichEigenpairs(qep,QEP_SMALLEST_MAGNITUDE);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-qep_largest_real","compute largest real parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_LARGEST_REAL);CHKERRQ(ierr);}
+    if (flg) { ierr = QEPSetWhichEigenpairs(qep,QEP_LARGEST_REAL);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-qep_smallest_real","compute smallest real parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_SMALLEST_REAL);CHKERRQ(ierr);}
+    if (flg) { ierr = QEPSetWhichEigenpairs(qep,QEP_SMALLEST_REAL);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-qep_largest_imaginary","compute largest imaginary parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_LARGEST_IMAGINARY);CHKERRQ(ierr);}
+    if (flg) { ierr = QEPSetWhichEigenpairs(qep,QEP_LARGEST_IMAGINARY);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-qep_smallest_imaginary","compute smallest imaginary parts","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_SMALLEST_IMAGINARY);CHKERRQ(ierr);}
+    if (flg) { ierr = QEPSetWhichEigenpairs(qep,QEP_SMALLEST_IMAGINARY);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-qep_target_magnitude","compute nearest eigenvalues to target","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_MAGNITUDE);CHKERRQ(ierr);}
+    if (flg) { ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_MAGNITUDE);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-qep_target_real","compute eigenvalues with real parts close to target","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_REAL);CHKERRQ(ierr);}
+    if (flg) { ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_REAL);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-qep_target_imaginary","compute eigenvalues with imaginary parts close to target","QEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) {ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_IMAGINARY);CHKERRQ(ierr);}
+    if (flg) { ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
 
     ierr = PetscOptionsBool("-qep_left_vectors","Compute left eigenvectors also","QEPSetLeftVectorsWanted",qep->leftvecs,&val,&flg);CHKERRQ(ierr);
     if (flg) {

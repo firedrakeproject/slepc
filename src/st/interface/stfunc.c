@@ -250,7 +250,10 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
     st->A[i] = A[i];
     st->Astate[i] = ((PetscObject)A[i])->state;
   }
-  if (n==1) { st->A[1] = PETSC_NULL; st->Astate[1] = 0; }
+  if (n==1) {
+    st->A[1] = PETSC_NULL;
+    st->Astate[1] = 0;
+  }
   st->nmat = n;
   PetscFunctionReturn(0);
 }
@@ -636,7 +639,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   } else if (isstring) {
     ierr = STGetType(st,&cstr);CHKERRQ(ierr);
     ierr = PetscViewerStringSPrintf(viewer," %-7.7s",cstr);CHKERRQ(ierr);
-    if (st->ops->view) {ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr);}
+    if (st->ops->view) { ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr); }
   } else SETERRQ1(((PetscObject)st)->comm,1,"Viewer type %s not supported by ST",((PetscObject)viewer)->type_name);
   ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STSHIFT,STFOLD,"");CHKERRQ(ierr);
   if (st->nmat>1 || !flg) {

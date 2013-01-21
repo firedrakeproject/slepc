@@ -52,30 +52,30 @@ void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErro
 {
   PetscBool flg;
   *ierr = 1;
-  if (SlepcInitializeCalled) {*ierr = 0; return;}
+  if (SlepcInitializeCalled) { *ierr = 0; return; }
 
   *ierr = PetscInitialized(&flg);
-  if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:PetscInitialized failed");return;}
+  if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:PetscInitialized failed");return; }
   if (!flg) {
 #if defined(PETSC_HAVE_FORTRAN_MIXED_STR_ARG)
     petscinitialize_(filename,len,ierr);
 #else
     petscinitialize_(filename,ierr,len);
 #endif
-    if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:PetscInitialize failed");return;}
+    if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:PetscInitialize failed");return; }
     SlepcBeganPetsc = PETSC_TRUE;
   }
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
   *ierr = SlepcInitialize_DynamicLibraries(); 
-  if (*ierr) {(*PetscErrorPrintf)("SlepcInitialize:Initializing dynamic libraries\n");return;}
+  if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing dynamic libraries\n");return; }
 #else
   *ierr = SlepcInitialize_Packages(); 
-  if (*ierr) {(*PetscErrorPrintf)("SlepcInitialize:Initializing packages\n");return;}
+  if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing packages\n");return; }
 #endif
 
   *ierr = SlepcInitialize_LogEvents(); 
-  if (*ierr) {(*PetscErrorPrintf)("SlepcInitialize:Initializing log events\n");return;}
+  if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing log events\n");return; }
 
 #if defined(PETSC_HAVE_DRAND48)
   /* work-around for Cygwin drand48() initialization bug */
@@ -84,7 +84,7 @@ void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErro
 
   SlepcInitializeCalled = PETSC_TRUE;
   *ierr = PetscInfo(0,"SLEPc successfully started from Fortran\n");
-  if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Calling PetscInfo()");return;}
+  if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Calling PetscInfo()");return; }
 
 }  
 

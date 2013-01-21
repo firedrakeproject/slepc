@@ -217,7 +217,10 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
     ierr = VecDot(w_,w,&s);CHKERRQ(ierr);
     t = PetscAbsScalar(r+s);
     qep->sfactor = 1.0;
-    while (t > 1.0) {qep->sfactor *=10.0; t /= 10.0;}
+    while (t > 1.0) {
+      qep->sfactor *=10.0;
+      t /= 10.0;
+    }
   }
   /* Restart loop */
   l = 0;

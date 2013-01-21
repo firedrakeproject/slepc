@@ -149,7 +149,7 @@ PetscErrorCode STSetFromOptions(ST st)
     if (flg) { ierr = STSetShift(st,s);CHKERRQ(ierr); }
 
     ierr = PetscOptionsEList("-st_matmode","Shift matrix mode","STSetMatMode",mode_list,3,mode_list[st->shift_matrix],&i,&flg);CHKERRQ(ierr);
-    if (flg) { st->shift_matrix = (STMatMode)i; }
+    if (flg) st->shift_matrix = (STMatMode)i;
 
     ierr = PetscOptionsEList("-st_matstructure","Shift nonzero pattern","STSetMatStructure",structure_list,3,structure_list[st->str],&i,&flg);CHKERRQ(ierr);
     if (flg) { 

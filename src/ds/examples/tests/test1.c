@@ -65,7 +65,7 @@ int main(int argc,char **argv)
   for (j=0;j<4;j++) {
     for (i=0;i<n-j;i++) A[i+(i+j)*ld]=1.0;
   }
-  if (extrarow) { A[n+(n-1)*ld]=-1.0; }
+  if (extrarow) A[n+(n-1)*ld]=-1.0;
   ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
   ierr = DSSetState(ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
   if (verbose) { 

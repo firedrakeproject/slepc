@@ -479,7 +479,7 @@ static PetscErrorCode sortRealEigenvalues(PetscScalar *r,PetscInt *perm,PetscInt
   PetscInt       i,j,tmp;
   
   PetscFunctionBegin; 
-  if (!prev) for (i=0; i < nr; i++) { perm[i] = i; }
+  if (!prev) for (i=0;i<nr;i++) perm[i] = i;
   /* Insertion sort */
   for (i=1;i<nr;i++) {
     re = PetscRealPart(r[perm[i]]);
@@ -586,8 +586,8 @@ PetscErrorCode EPSLookForDeflation(EPS eps)
   idx0 = ini;
   idx1 = ini+count0+count1;
   k=0;
-  for (i=idx0;i<idx1;i++)sr->idxDef[k++]=sr->perm[i];
-  for (i=0;i<k;i++)sr->VDef[i]=sr->V[sr->idxDef[i]];
+  for (i=idx0;i<idx1;i++) sr->idxDef[k++]=sr->perm[i];
+  for (i=0;i<k;i++) sr->VDef[i]=sr->V[sr->idxDef[i]];
   eps->defl = sr->VDef;
   eps->nds = k;
   PetscFunctionReturn(0); 
@@ -670,14 +670,21 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   ierr = PetscMalloc((sr->numEigs+eps->ncv)*sizeof(PetscReal),&errest_left);CHKERRQ(ierr);
   ierr = PetscMalloc((sr->numEigs+eps->ncv)*sizeof(PetscScalar),&sr->monit);CHKERRQ(ierr);
   ierr = PetscMalloc((eps->ncv)*sizeof(PetscScalar),&sr->back);CHKERRQ(ierr);
-  for (i=0;i<sr->numEigs;i++) {sr->eigi[i]=0;sr->eig[i] = 0;}
-  for (i=0;i<sr->numEigs+eps->ncv;i++) {errest_left[i]=0;sr->errest[i]=0;sr->monit[i]=0;}
+  for (i=0;i<sr->numEigs;i++) {
+    sr->eig[i]  = 0.0;
+    sr->eigi[i] = 0.0;
+  }
+  for (i=0;i<sr->numEigs+eps->ncv;i++) {
+    errest_left[i] = 0.0;
+    sr->errest[i]  = 0.0;
+    sr->monit[i]   = 0.0;
+  }
   ierr = VecCreateMPI(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,&t);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(t,sr->numEigs,&sr->V);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   /* Vector for maintaining order of eigenvalues */
   ierr = PetscMalloc((sr->numEigs)*sizeof(PetscInt),&sr->perm);CHKERRQ(ierr);
-  for (i=0;i< sr->numEigs;i++)sr->perm[i]=i;
+  for (i=0;i< sr->numEigs;i++) sr->perm[i]=i;
   /* Vectors for deflation */
   ierr = PetscMalloc((sr->numEigs)*sizeof(PetscInt),&sr->idxDef);CHKERRQ(ierr);
   ierr = PetscMalloc((sr->numEigs)*sizeof(Vec),&sr->VDef);CHKERRQ(ierr);

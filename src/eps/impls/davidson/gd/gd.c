@@ -48,7 +48,7 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
 
   ierr = EPSGDGetBOrth(eps,&orth);CHKERRQ(ierr);
   ierr = PetscOptionsEList("-eps_gd_borth","orthogonalization used in the search subspace","EPSGDSetBOrth",orth_list,3,orth_list[orth-1],&opi,&flg);CHKERRQ(ierr);
-  if (flg) {ierr = EPSGDSetBOrth(eps,(EPSOrthType)(opi+1));CHKERRQ(ierr);}
+  if (flg) { ierr = EPSGDSetBOrth(eps,(EPSOrthType)(opi+1));CHKERRQ(ierr); }
  
   ierr = EPSGDGetBlockSize(eps,&opi);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_gd_blocksize","Number vectors add to the searching subspace","EPSGDSetBlockSize",opi,&opi,&flg);CHKERRQ(ierr);

@@ -139,7 +139,10 @@ PetscErrorCode QEPKrylovConvergence(QEP qep,PetscBool getall,PetscInt kini,Petsc
     /* error estimate */
     ierr = (*qep->conv_func)(qep,re,im,resnorm,&qep->errest[k],qep->conv_ctx);CHKERRQ(ierr);
     if (marker==-1 && qep->errest[k] >= qep->tol) marker = k;
-    if (newk==k+1) { qep->errest[k+1] = qep->errest[k]; k++; }
+    if (newk==k+1) {
+      qep->errest[k+1] = qep->errest[k];
+      k++;
+    }
     if (marker!=-1 && !getall) break;
   }
   if (marker!=-1) k = marker;

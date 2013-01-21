@@ -163,7 +163,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
 
-  if (!ctx->nu_set) { ctx->nu = st->sigma; }
+  if (!ctx->nu_set) ctx->nu = st->sigma;
   if (ctx->nu == 0.0 && st->sigma == 0.0) SETERRQ(((PetscObject)st)->comm,1,"Values of shift and antishift cannot be zero simultaneously");
 
   /* T[0] = A+nu*B */

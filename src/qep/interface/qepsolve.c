@@ -622,7 +622,7 @@ PetscErrorCode QEPSortEigenvalues(QEP qep,PetscInt n,PetscScalar *eigr,PetscScal
   PetscValidScalarPointer(eigr,3);
   PetscValidScalarPointer(eigi,4);
   PetscValidIntPointer(perm,5);
-  for (i=0; i<n; i++) { perm[i] = i; }
+  for (i=0;i<n;i++) perm[i] = i;
   /* insertion sort */
   for (i=n-1; i>=0; i--) {
     re = eigr[perm[i]];

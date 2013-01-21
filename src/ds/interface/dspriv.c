@@ -395,7 +395,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   n = n - l;
   if (cols > n) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
-  if (n == 0 || cols == 0) { PetscFunctionReturn(0); }
+  if (n == 0 || cols == 0) PetscFunctionReturn(0);
   ierr = DSGetArray(ds,mat,&A);CHKERRQ(ierr);
   ltau = PetscBLASIntCast(PetscMin(cols,n));
   ld_ = PetscBLASIntCast(ld);
@@ -457,7 +457,7 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   n = n - l;
   if (cols > n) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
-  if (n == 0 || cols == 0) { PetscFunctionReturn(0); }
+  if (n == 0 || cols == 0) PetscFunctionReturn(0);
   rA_ = PetscBLASIntCast(n);
   ierr = DSGetArray(ds,mat,&A_);CHKERRQ(ierr);
   A = &A_[ld*l+l];

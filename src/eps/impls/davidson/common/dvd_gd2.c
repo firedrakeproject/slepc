@@ -41,10 +41,8 @@ PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d, PetscScalar *pX,
 
 typedef struct {
   PetscInt size_X;
-  void
-    *old_improveX_data;   /* old improveX_data */
-  improveX_type
-    old_improveX;         /* old improveX */
+  void         *old_improveX_data;   /* old improveX_data */
+  improveX_type old_improveX;        /* old improveX */
 } dvdImprovex_gd2;
 
 #undef __FUNCT__  

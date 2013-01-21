@@ -334,7 +334,7 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds, PetscInt n0, PetscInt n1, PetscScalar *
   for (k=n0;k<n1;k++) {
     if (k < n1-1) {
       e = (ds->compact)?T[ld+k]:PetscRealPart(A[(k+1)+ld*k]);
-    }else e = 0.0;
+    } else e = 0.0;
     if (e==0.0) { 
       /* real eigenvalue */
       wr[k] = (ds->compact)?T[k]/D[k]:A[k+k*ld]/B[k+k*ld];
@@ -412,7 +412,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
     ri = wi;
   }
   ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_TRUE);CHKERRQ(ierr);
-  if (!ds->compact) {ierr = DSSwitchFormat_GHIEP(ds,PETSC_TRUE);CHKERRQ(ierr);}
+  if (!ds->compact) { ierr = DSSwitchFormat_GHIEP(ds,PETSC_TRUE);CHKERRQ(ierr); }
   ierr = PetscMemcpy(ds->work,wr,n*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=ds->l;i<n;i++) {
     wr[i] = *(ds->work + perm[i]);
@@ -436,7 +436,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   for (i=ds->l;i<n-1;i++) {
     if (perm[i]<n-1) e[i] = *(ds->rwork + perm[i]);
   }
-  if (!ds->compact) { ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr);}
+  if (!ds->compact) { ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr); }
   ierr = DSPermuteColumns_Private(ds,ds->l,n,DS_MAT_Q,perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -553,8 +553,8 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
   
   PetscFunctionBegin;
   if (n<3) {
-    if (n==1)Q[0]=1;
-    if (n==2) {Q[0] = Q[1+ldq] = 1; Q[1] = Q[ldq] = 0;}
+    if (n==1) Q[0]=1;
+    if (n==2) { Q[0] = Q[1+ldq] = 1; Q[1] = Q[ldq] = 0; }
     PetscFunctionReturn(0);
   }
   lda_ = PetscBLASIntCast(lda);
@@ -722,14 +722,14 @@ static PetscErrorCode IndefOrthog(PetscReal *s, PetscScalar *y, PetscReal ss, Pe
   PetscFunctionBegin;
   if (y) {
     h_ = 0.0; /* h_=(y^Tdiag(s)*y)^{-1}*y^T*diag(s)*x*/
-    for (i=0;i<n;i++) { h_+=y[i]*s[i]*x[i];}
+    for (i=0;i<n;i++) h_ += y[i]*s[i]*x[i];
     h_ /= ss;
-    for (i=0;i<n;i++) {x[i] -= h_*y[i];} /* x = x-h_*y */
+    for (i=0;i<n;i++) x[i] -= h_*y[i]; /* x = x-h_*y */
     /* repeat */
     r = 0.0;
-    for (i=0;i<n;i++) { r+=y[i]*s[i]*x[i];}
+    for (i=0;i<n;i++) r += y[i]*s[i]*x[i];
     r /= ss;
-    for (i=0;i<n;i++) {x[i] -= r*y[i];}
+    for (i=0;i<n;i++) x[i] -= r*y[i];
     h_ += r;
   }else h_ = 0.0;
   if (h) *h = h_;
@@ -749,8 +749,8 @@ static PetscErrorCode IndefNorm(PetscReal *s,PetscScalar *x, PetscReal *norm,Pet
   PetscFunctionBegin;
   /* s-normalization */
   norm_ = 0.0;
-  for (i=0;i<n;i++) {norm_ += PetscRealPart(x[i]*s[i]*x[i]);}
-  if (norm_<0) {norm_ = -PetscSqrtReal(-norm_);}
+  for (i=0;i<n;i++) norm_ += PetscRealPart(x[i]*s[i]*x[i]);
+  if (norm_<0) norm_ = -PetscSqrtReal(-norm_);
   else {norm_ = PetscSqrtReal(norm_);}
   for (i=0;i<n;i++)x[i] /= norm_;
   if (norm) *norm = norm_;
@@ -879,7 +879,7 @@ static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds, DSMatType mat, PetscScal
     ierr = DSCopyMatrix_Private(ds,DS_MAT_W,DS_MAT_Q);CHKERRQ(ierr);
     BLASgemm_("N","N",&n1,&n1,&n1,&oneS,W+off,&ld,ds->mat[DS_MAT_X]+off,&ld,&zeroS,ds->mat[DS_MAT_Q]+off,&ld);
   }
-  if (!ds->compact) {ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr);}
+  if (!ds->compact) { ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -1069,20 +1069,30 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
           isreal = PETSC_TRUE;
           if (scal1<ep||scal2<ep) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
           wr1 /= scal1; wr2 /= scal2;
-          if (PetscAbsReal(s1*d1-wr1)<PetscAbsReal(s2*d2-wr1)) { Y[0] = wr1-s2*d2; Y[1] =s2*e;}
-          else{ Y[0] = s1*e; Y[1] = wr1-s1*d1; }
+          if (PetscAbsReal(s1*d1-wr1)<PetscAbsReal(s2*d2-wr1)) {
+            Y[0] = wr1-s2*d2;
+            Y[1] = s2*e;
+          } else {
+            Y[0] = s1*e;
+            Y[1] = wr1-s1*d1;
+          }
           /* normalize with a signature*/
           maxy = PetscMax(PetscAbsScalar(Y[0]),PetscAbsScalar(Y[1]));
           scal1 = PetscRealPart(Y[0])/maxy; scal2 = PetscRealPart(Y[1])/maxy;
           snorm = scal1*scal1*s1 + scal2*scal2*s2;
-          if (snorm<0) {ss1 = -1.0; snorm = -snorm;}
+          if (snorm<0) { ss1 = -1.0; snorm = -snorm; }
           snorm = maxy*PetscSqrtReal(snorm); Y[0] = Y[0]/snorm; Y[1] = Y[1]/snorm;
-          if (PetscAbsReal(s1*d1-wr2)<PetscAbsReal(s2*d2-wr2)) { Y[2] = wr2-s2*d2; Y[3] =s2*e;}
-          else{ Y[2] = s1*e; Y[3] = wr2-s1*d1; }
+          if (PetscAbsReal(s1*d1-wr2)<PetscAbsReal(s2*d2-wr2)) {
+            Y[2] = wr2-s2*d2;
+            Y[3] = s2*e;
+          } else {
+            Y[2] = s1*e;
+            Y[3] = wr2-s1*d1;
+          }
           maxy = PetscMax(PetscAbsScalar(Y[2]),PetscAbsScalar(Y[3]));
           scal1 = PetscRealPart(Y[2])/maxy; scal2 = PetscRealPart(Y[3])/maxy;
           snorm = scal1*scal1*s1 + scal2*scal2*s2;
-          if (snorm<0) {ss2 = -1.0; snorm = -snorm;}
+          if (snorm<0) { ss2 = -1.0; snorm = -snorm; }
           snorm = maxy*PetscSqrtReal(snorm);Y[2] = Y[2]/snorm; Y[3] = Y[3]/snorm;
         }
         wr1 *= ss1; wr2 *= ss2;
