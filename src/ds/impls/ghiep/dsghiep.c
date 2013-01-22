@@ -460,7 +460,7 @@ static PetscErrorCode HRGen(PetscReal x1,PetscReal x2,PetscInt *type,PetscReal *
   PetscInt  type_;
 
   PetscFunctionBegin;
-  if (x2==0) {
+  if (x2==0.0) {
     *r = PetscAbsReal(x1);
     *c = (x1>=0)?1.0:-1.0;
     *s = 0.0;

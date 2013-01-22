@@ -99,7 +99,7 @@ static PetscErrorCode ourmonitor(SVD svd,PetscInt i,PetscInt nc,PetscReal *sigma
 {
   PetscErrorCode ierr = 0;
   void           *mctx = (void*) ((PetscObject)svd)->fortran_func_pointers[1];
-  (*(void (PETSC_STDCALL *)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*))
+  (*(void (PETSC_STDCALL*)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*))
     (((PetscObject)svd)->fortran_func_pointers[0]))(&svd,&i,&nc,sigma,d,&l,mctx,&ierr);CHKERRQ(ierr);
   return 0;
 }
@@ -109,7 +109,7 @@ static PetscErrorCode ourdestroy(void** ctx)
   PetscErrorCode ierr = 0;
   SVD            svd = *(SVD*)ctx;
   void           *mctx = (void*) ((PetscObject)svd)->fortran_func_pointers[1];
-  (*(void (PETSC_STDCALL *)(void*,PetscErrorCode*))(((PetscObject)svd)->fortran_func_pointers[2]))(mctx,&ierr);CHKERRQ(ierr);
+  (*(void (PETSC_STDCALL*)(void*,PetscErrorCode*))(((PetscObject)svd)->fortran_func_pointers[2]))(mctx,&ierr);CHKERRQ(ierr);
   return 0;
 }
 
@@ -155,7 +155,7 @@ void PETSC_STDCALL svdgetip_(SVD *svd,IP *ip,PetscErrorCode *ierr)
   *ierr = SVDGetIP(*svd,ip);
 }
 
-void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode *),PetscErrorCode *ierr)
+void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   SlepcConvMonitor ctx;
   CHKFORTRANNULLFUNCTION(monitordestroy);

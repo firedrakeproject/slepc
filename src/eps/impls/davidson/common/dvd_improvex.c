@@ -799,15 +799,13 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d, PetscInt i_s,
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF - Lapack routine is unavailable");
 #else
-  PetscErrorCode  ierr;
-  PetscInt        n = i_e - i_s, size_KZ, V_new, rm, i, size_in;
-  dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
-  PetscBLASInt    s, ldXKZ, info;
-  DvdReduction    r;
-  DvdReductionChunk
-                  ops[2];
-  DvdMult_copy_func
-                  sr[2];
+  PetscErrorCode    ierr;
+  PetscInt          n = i_e - i_s, size_KZ, V_new, rm, i, size_in;
+  dvdImprovex_jd    *data = (dvdImprovex_jd*)d->improveX_data;
+  PetscBLASInt      s, ldXKZ, info;
+  DvdReduction      r;
+  DvdReductionChunk ops[2];
+  DvdMult_copy_func sr[2];
 
   PetscFunctionBegin;
   /* Check consistency */
@@ -1196,16 +1194,14 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d, Vec *V, PetscInt cV, Pet
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable");
 #else
-  PetscErrorCode  ierr;
-  dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
-  PetscInt        size_in = data->size_iXKZ*cV, i, ldh;
-  PetscScalar     *h, *in, *out;
-  PetscBLASInt    cV_, n, info, ld;
-  DvdReduction    r;
-  DvdReductionChunk
-                  ops[4];
-  DvdMult_copy_func
-                  sr[4];
+  PetscErrorCode    ierr;
+  dvdImprovex_jd    *data = (dvdImprovex_jd*)d->improveX_data;
+  PetscInt          size_in = data->size_iXKZ*cV, i, ldh;
+  PetscScalar       *h, *in, *out;
+  PetscBLASInt      cV_, n, info, ld;
+  DvdReduction      r;
+  DvdReductionChunk ops[4];
+  DvdMult_copy_func sr[4];
   
   PetscFunctionBegin;
   if (cV > 2) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
@@ -1251,16 +1247,14 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d, Vec *V, PetscInt cV
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable");
 #else
-  PetscErrorCode  ierr;
-  dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
-  PetscInt        size_in = data->size_iXKZ*cV, i, ldh;
-  PetscScalar     *h, *in, *out;
-  PetscBLASInt    cV_, n, info, ld;
-  DvdReduction    r;
-  DvdReductionChunk
-                  ops[2];
-  DvdMult_copy_func
-                  sr[2];
+  PetscErrorCode    ierr;
+  dvdImprovex_jd    *data = (dvdImprovex_jd*)d->improveX_data;
+  PetscInt          size_in = data->size_iXKZ*cV, i, ldh;
+  PetscScalar       *h, *in, *out;
+  PetscBLASInt      cV_, n, info, ld;
+  DvdReduction      r;
+  DvdReductionChunk ops[2];
+  DvdMult_copy_func sr[2];
   
   PetscFunctionBegin;
   if (cV > 2) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");

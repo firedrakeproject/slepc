@@ -694,7 +694,7 @@ PetscErrorCode QEPCreate_Linear(QEP qep)
 
   PetscFunctionBegin;
   ierr = PetscNewLog(qep,QEP_LINEAR,&ctx);CHKERRQ(ierr);
-  qep->data                      = (void *)ctx;
+  qep->data                      = (void*)ctx;
   qep->ops->solve                = QEPSolve_Linear;
   qep->ops->setup                = QEPSetUp_Linear;
   qep->ops->setfromoptions       = QEPSetFromOptions_Linear;

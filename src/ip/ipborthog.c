@@ -257,7 +257,7 @@ PetscErrorCode IPBOrthogonalize(IP ip,PetscInt nds,Vec *defl, Vec *BDS,PetscReal
   ierr = MatMult(ip->matrix,v,Bv);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(IP_ApplyMatrix,ip,0,0,0);CHKERRQ(ierr);
    
-  if (nds==0 && n==0) {
+  if (!nds && !n) {
     if (norm) {
       ierr = VecDot(Bv,v,&alpha);CHKERRQ(ierr);
       *norm = MyPetscSqrtReal(alpha);

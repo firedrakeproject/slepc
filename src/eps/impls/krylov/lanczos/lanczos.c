@@ -51,7 +51,7 @@ typedef struct {
 #define __FUNCT__ "EPSSetUp_Lanczos"
 PetscErrorCode EPSSetUp_Lanczos(EPS eps)
 {
-  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
+  EPS_LANCZOS    *lanczos = (EPS_LANCZOS*)eps->data;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -241,7 +241,7 @@ static PetscErrorCode DenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,Pet
 static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscBool *breakdown,PetscReal anorm)
 {
   PetscErrorCode ierr;
-  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
+  EPS_LANCZOS    *lanczos = (EPS_LANCZOS*)eps->data;
   PetscInt       i,j,m = *M,n,nritz=0,nritzo;
   PetscReal      *d,*e,*ritz,norm;
   PetscScalar    *Y,*hwork,lhwork[100];
@@ -416,7 +416,7 @@ static void compute_int(PetscBool *which,PetscReal *mu,PetscInt j,PetscReal delt
 */
 static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscBool *breakdown,PetscReal anorm)
 {
-  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
+  EPS_LANCZOS    *lanczos = (EPS_LANCZOS*)eps->data;
   PetscErrorCode ierr;
   PetscInt       i,j,m = *M;
   PetscReal      norm,*omega,lomega[100],*omega_old,lomega_old[100],eps1,delta,eta;
@@ -552,7 +552,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
 */
 static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,PetscInt k,PetscInt *m,Vec f,PetscBool *breakdown,PetscReal anorm)
 {
-  EPS_LANCZOS        *lanczos = (EPS_LANCZOS *)eps->data;
+  EPS_LANCZOS        *lanczos = (EPS_LANCZOS*)eps->data;
   PetscScalar        *T;
   PetscInt           i,n=*m;
   PetscReal          betam;
@@ -597,7 +597,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
 #define __FUNCT__ "EPSSolve_Lanczos"
 PetscErrorCode EPSSolve_Lanczos(EPS eps)
 {
-  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
+  EPS_LANCZOS    *lanczos = (EPS_LANCZOS*)eps->data;
   PetscErrorCode ierr;
   PetscInt       nconv,i,j,k,l,x,n,*perm,restart,ncv=eps->ncv,r,ld;
   Vec            w=eps->work[1],f=eps->work[0];
@@ -784,7 +784,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 PetscErrorCode EPSSetFromOptions_Lanczos(EPS eps)
 {
   PetscErrorCode         ierr;
-  EPS_LANCZOS            *lanczos = (EPS_LANCZOS *)eps->data;
+  EPS_LANCZOS            *lanczos = (EPS_LANCZOS*)eps->data;
   PetscBool              flg;
   EPSLanczosReorthogType reorthog;
 
@@ -801,7 +801,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSLanczosSetReorthog_Lanczos"
 PetscErrorCode EPSLanczosSetReorthog_Lanczos(EPS eps,EPSLanczosReorthogType reorthog)
 {
-  EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
+  EPS_LANCZOS *lanczos = (EPS_LANCZOS*)eps->data;
 
   PetscFunctionBegin;
   switch (reorthog) {
@@ -856,7 +856,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSLanczosGetReorthog_Lanczos"
 PetscErrorCode EPSLanczosGetReorthog_Lanczos(EPS eps,EPSLanczosReorthogType *reorthog)
 {
-  EPS_LANCZOS *lanczos = (EPS_LANCZOS *)eps->data;
+  EPS_LANCZOS *lanczos = (EPS_LANCZOS*)eps->data;
 
   PetscFunctionBegin;
   *reorthog = lanczos->reorthog;
@@ -898,7 +898,7 @@ PetscErrorCode EPSLanczosGetReorthog(EPS eps,EPSLanczosReorthogType *reorthog)
 PetscErrorCode EPSReset_Lanczos(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
+  EPS_LANCZOS    *lanczos = (EPS_LANCZOS*)eps->data;
 
   PetscFunctionBegin;
   ierr = VecDestroyVecs(eps->ncv,&lanczos->AV);CHKERRQ(ierr);
@@ -924,7 +924,7 @@ PetscErrorCode EPSDestroy_Lanczos(EPS eps)
 PetscErrorCode EPSView_Lanczos(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  EPS_LANCZOS    *lanczos = (EPS_LANCZOS *)eps->data;
+  EPS_LANCZOS    *lanczos = (EPS_LANCZOS*)eps->data;
   PetscBool      isascii;
 
   PetscFunctionBegin;

@@ -139,7 +139,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 #else
   PetscErrorCode ierr;
   PetscInt       i;
-  EPS_BLOPEX     *blopex = (EPS_BLOPEX *)eps->data;
+  EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
   PetscBool      isPrecond;
 
   PetscFunctionBegin;
@@ -208,7 +208,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 #define __FUNCT__ "EPSSolve_BLOPEX"
 PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 {
-  EPS_BLOPEX     *blopex = (EPS_BLOPEX *)eps->data;
+  EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
   PetscScalar    sigma;
   int            i,j,info,its,nconv;
   double         *residhist=PETSC_NULL;
@@ -275,7 +275,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 PetscErrorCode EPSReset_BLOPEX(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_BLOPEX     *blopex = (EPS_BLOPEX *)eps->data;
+  EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
 
   PetscFunctionBegin;
   mv_MultiVectorDestroy(blopex->eigenvectors);

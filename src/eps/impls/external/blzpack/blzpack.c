@@ -69,7 +69,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       listor,lrstor,ncuv,k1,k2,k3,k4;
-  EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
   PetscBool      issinv;
 
   PetscFunctionBegin;
@@ -144,7 +144,7 @@ lrstor*=10;
 PetscErrorCode EPSSolve_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
   PetscInt       nn;
   PetscBLASInt   i,nneig,lflag,nvopu;      
   Vec            x,y;                           
@@ -272,7 +272,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
 PetscErrorCode EPSBackTransform_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
 
   PetscFunctionBegin;
   if (!blz->slice && !eps->isgeneralized) {
@@ -286,7 +286,7 @@ PetscErrorCode EPSBackTransform_BLZPACK(EPS eps)
 PetscErrorCode EPSReset_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
 
   PetscFunctionBegin;
   ierr = PetscFree(blz->istor);CHKERRQ(ierr);
@@ -335,7 +335,7 @@ PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
 PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_BLZPACK    *blz = (EPS_BLZPACK *)eps->data;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
   PetscInt       bs,n;
   PetscBool      flg;
 

@@ -304,7 +304,7 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n,Vec *V,PetscInt s,PetscInt e,const 
 
   PetscFunctionBegin;
   if (n<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",n);
-  if (n==0 || s>=e) PetscFunctionReturn(0);
+  if (!n || s>=e) PetscFunctionReturn(0);
   PetscValidPointer(V,2);
   PetscValidHeaderSpecific(*V,VEC_CLASSID,2);
   PetscValidType(*V,2);
@@ -370,7 +370,7 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
   n = PetscBLASIntCast(n_/d);
   ldq = PetscBLASIntCast(ldq_);
   m = (e-s)/d;
-  if (m==0) PetscFunctionReturn(0);
+  if (!m) PetscFunctionReturn(0);
   PetscValidIntPointer(Q,5);
   if (m<0 || n<0 || s<0 || m>n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Index argument out of range");
   ierr = PetscLogEventBegin(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);

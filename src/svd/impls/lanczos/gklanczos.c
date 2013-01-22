@@ -39,7 +39,7 @@ typedef struct {
 PetscErrorCode SVDSetUp_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
-  SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
+  SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
   PetscInt       N;
 
   PetscFunctionBegin;
@@ -146,7 +146,7 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
 PetscErrorCode SVDSolve_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
-  SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
+  SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
   PetscReal      *alpha,*beta,lastbeta;
   PetscScalar    *swork,*w,*Q,*PT;
   PetscInt       i,k,j,nv,ld,off;
@@ -166,7 +166,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   }
   
   /* normalize start vector */
-  if (svd->nini==0) {
+  if (!svd->nini) {
     ierr = SlepcVecSetRandom(svd->V[0],svd->rand);CHKERRQ(ierr);
   }
   ierr = VecNormalize(svd->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -250,7 +250,7 @@ PetscErrorCode SVDSetFromOptions_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
-  SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
+  SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("SVD Lanczos Options");CHKERRQ(ierr);
@@ -267,7 +267,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "SVDLanczosSetOneSide_Lanczos"
 PetscErrorCode SVDLanczosSetOneSide_Lanczos(SVD svd,PetscBool oneside)
 {
-  SVD_LANCZOS *lanczos = (SVD_LANCZOS *)svd->data;
+  SVD_LANCZOS *lanczos = (SVD_LANCZOS*)svd->data;
 
   PetscFunctionBegin;
   if (lanczos->oneside != oneside) {
@@ -348,7 +348,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "SVDLanczosGetOneSide_Lanczos"
 PetscErrorCode SVDLanczosGetOneSide_Lanczos(SVD svd,PetscBool *oneside)
 {
-  SVD_LANCZOS *lanczos = (SVD_LANCZOS *)svd->data;
+  SVD_LANCZOS *lanczos = (SVD_LANCZOS*)svd->data;
 
   PetscFunctionBegin;
   *oneside = lanczos->oneside;
@@ -385,7 +385,7 @@ PetscErrorCode SVDDestroy_Lanczos(SVD svd)
 PetscErrorCode SVDView_Lanczos(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  SVD_LANCZOS    *lanczos = (SVD_LANCZOS *)svd->data;
+  SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
 
   PetscFunctionBegin;
   ierr = PetscViewerASCIIPrintf(viewer,"  Lanczos: %s-sided reorthogonalization\n",lanczos->oneside? "one": "two");CHKERRQ(ierr);

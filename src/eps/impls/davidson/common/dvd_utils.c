@@ -471,8 +471,8 @@ PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
 #define __FUNCT__ "dvd_harm_proj"
 PetscErrorCode dvd_harm_proj(dvdDashboard *d)
 {
-  dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
-  PetscInt        i,j;
+  dvdHarmonic *data = (dvdHarmonic*)d->calcpairs_W_data;
+  PetscInt    i,j;
 
   PetscFunctionBegin;
   if (d->sH != d->sG) SETERRQ(PETSC_COMM_SELF,1,"Projected matrices H and G must have the same structure");

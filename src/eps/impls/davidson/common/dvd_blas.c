@@ -697,7 +697,7 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
 PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
                           PetscInt rM, PetscInt cM, Vec V)
 {
-  int        i,j,n;
+  PetscInt i,j,n;
 
   PetscFunctionBegin;
   /* Check if quick exit */
@@ -727,8 +727,8 @@ PetscErrorCode VecsMultIb(PetscScalar *M, MatType_t sM, PetscInt ldM,
                           PetscInt rM, PetscInt cM, PetscScalar *auxS,
                           Vec V)
 {
-  PetscErrorCode  ierr;
-  PetscScalar     *W, *Wr;
+  PetscErrorCode ierr;
+  PetscScalar    *W, *Wr;
 
   PetscFunctionBegin;
   /* Check if quick exit */
@@ -884,9 +884,8 @@ PetscErrorCode VecsMultS(PetscScalar *M, MatType_t sM, PetscInt ldM,
 PetscErrorCode VecsMultS_copy_func(PetscScalar *out, PetscInt size_out,
                                    void *ptr)
 {
-  PetscInt        i, j, k;
-  DvdMult_copy_func
-                  *sr = (DvdMult_copy_func*)ptr;
+  PetscInt          i, j, k;
+  DvdMult_copy_func *sr = (DvdMult_copy_func*)ptr;
 
   PetscFunctionBegin;
   PetscValidScalarPointer(out,1);

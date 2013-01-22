@@ -62,7 +62,7 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,PetscInt n,Petsc
 
   PetscFunctionBegin;
   /* h = W^* v ; alpha = (v , v) */
-  if (nds==0 && !which && !onorm && !norm) { 
+  if (!nds && !which && !onorm && !norm) { 
     /* use simpler function */ 
     ierr = IPMInnerProduct(ip,v,n,V,H);CHKERRQ(ierr);
   } else {  
@@ -335,7 +335,7 @@ PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *defl,PetscInt n,PetscBool
   PetscValidLogicalCollectiveInt(ip,nds,2);
   PetscValidLogicalCollectiveInt(ip,n,4);
   ierr = PetscLogEventBegin(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
-  if (nds==0 && n==0) {
+  if (!nds && !n) {
     if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
     if (lindep) *lindep = PETSC_FALSE;
   } else {

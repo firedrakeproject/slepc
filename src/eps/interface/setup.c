@@ -86,7 +86,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   
   /* Set problem dimensions */
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  if (nmat==0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first"); 
+  if (!nmat) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first"); 
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   ierr = MatGetSize(A,&eps->n,PETSC_NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(A,&eps->nloc,PETSC_NULL);CHKERRQ(ierr);

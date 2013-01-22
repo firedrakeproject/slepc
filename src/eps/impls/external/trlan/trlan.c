@@ -34,7 +34,7 @@ static EPS globaleps;
 PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;
+  EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;
 
   PetscFunctionBegin;
   tr->maxlan = PetscBLASIntCast(PetscMax(7,eps->nev+PetscMin(eps->nev,6)));
@@ -99,7 +99,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   ipar[32],n,lohi,stat,ncv; 
-  EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;   
+  EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;   
   PetscScalar    *pV;
   
   PetscFunctionBegin;
@@ -150,7 +150,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
 PetscErrorCode EPSReset_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_TRLAN      *tr = (EPS_TRLAN *)eps->data;
+  EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;
 
   PetscFunctionBegin;
   ierr = PetscFree(tr->work);CHKERRQ(ierr);

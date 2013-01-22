@@ -100,7 +100,7 @@ PETSC_MimicVector(void *vvector)
 
     ierr=VecDuplicate((Vec) vvector, &temp);
         assert (ierr==0);
-    return ((void *)temp);
+    return ((void*)temp);
 }
 
 BlopexInt
@@ -118,7 +118,7 @@ PETSC_InnerProd(void *x, void *y, void *result)
 {
     PetscErrorCode     ierr;
 
-    ierr=VecDot((Vec)x, (Vec)y, (PetscScalar *) result);
+    ierr=VecDot((Vec)x, (Vec)y, (PetscScalar*) result);
         assert(ierr==0);
     return (0);
 }
@@ -169,7 +169,7 @@ PETSC_Axpy(void *alpha,
 {
     PetscErrorCode ierr;
 
-    ierr = VecAXPY((Vec)y,*(PetscScalar *)alpha,(Vec)x);CHKERRQ(ierr);
+    ierr = VecAXPY((Vec)y,*(PetscScalar*)alpha,(Vec)x);CHKERRQ(ierr);
     return(0);
 }
 BlopexInt

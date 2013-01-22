@@ -38,21 +38,21 @@
 static PetscErrorCode ourshellapply(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr = 0;
-  (*(void (PETSC_STDCALL *)(ST*,Vec*,Vec*,PetscErrorCode*))(((PetscObject)st)->fortran_func_pointers[0]))(&st,&x,&y,&ierr);CHKERRQ(ierr);
+  (*(void (PETSC_STDCALL*)(ST*,Vec*,Vec*,PetscErrorCode*))(((PetscObject)st)->fortran_func_pointers[0]))(&st,&x,&y,&ierr);CHKERRQ(ierr);
   return 0;
 }
 
 static PetscErrorCode ourshellapplytranspose(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr = 0;
-  (*(void (PETSC_STDCALL *)(ST*,Vec*,Vec*,PetscErrorCode*))(((PetscObject)st)->fortran_func_pointers[1]))(&st,&x,&y,&ierr);CHKERRQ(ierr);
+  (*(void (PETSC_STDCALL*)(ST*,Vec*,Vec*,PetscErrorCode*))(((PetscObject)st)->fortran_func_pointers[1]))(&st,&x,&y,&ierr);CHKERRQ(ierr);
   return 0;
 }
 
 static PetscErrorCode ourshellbacktransform(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscErrorCode ierr = 0;
-  (*(void (PETSC_STDCALL *)(ST*,PetscInt*,PetscScalar*,PetscScalar*,PetscErrorCode*))(((PetscObject)st)->fortran_func_pointers[2]))(&st,&n,eigr,eigi,&ierr);CHKERRQ(ierr);
+  (*(void (PETSC_STDCALL*)(ST*,PetscInt*,PetscScalar*,PetscScalar*,PetscErrorCode*))(((PetscObject)st)->fortran_func_pointers[2]))(&st,&n,eigr,eigi,&ierr);CHKERRQ(ierr);
   return 0;
 }
 

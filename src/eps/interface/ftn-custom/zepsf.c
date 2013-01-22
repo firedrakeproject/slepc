@@ -124,7 +124,7 @@ static PetscErrorCode ourmonitor(EPS eps,PetscInt i,PetscInt nc,PetscScalar *er,
 {
   PetscErrorCode ierr = 0;
   void           *mctx = (void*) ((PetscObject)eps)->fortran_func_pointers[1];
-  (*(void (PETSC_STDCALL *)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*))
+  (*(void (PETSC_STDCALL*)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*))
     (((PetscObject)eps)->fortran_func_pointers[0]))(&eps,&i,&nc,er,ei,d,&l,mctx,&ierr);CHKERRQ(ierr);
   return 0;
 }
@@ -134,7 +134,7 @@ static PetscErrorCode ourdestroy(void** ctx)
   PetscErrorCode ierr = 0;
   EPS            eps = *(EPS*)ctx;
   void           *mctx = (void*) ((PetscObject)eps)->fortran_func_pointers[1];
-  (*(void (PETSC_STDCALL *)(void*,PetscErrorCode*))(((PetscObject)eps)->fortran_func_pointers[2]))(mctx,&ierr);CHKERRQ(ierr);
+  (*(void (PETSC_STDCALL*)(void*,PetscErrorCode*))(((PetscObject)eps)->fortran_func_pointers[2]))(mctx,&ierr);CHKERRQ(ierr);
   return 0;
 }
 
@@ -201,7 +201,7 @@ void PETSC_STDCALL epscreate_(MPI_Fint *comm,EPS *eps,PetscErrorCode *ierr)
 }
 
 void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),
-                                  void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode *),PetscErrorCode *ierr)
+                                  void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   SlepcConvMonitor ctx;
   CHKFORTRANNULLFUNCTION(monitordestroy);
@@ -307,7 +307,7 @@ static PetscErrorCode ourconvergence(EPS eps,PetscScalar eigr,PetscScalar eigi,P
 {
   PetscErrorCode ierr = 0;
   void           *mctx = (void*) ((PetscObject)eps)->fortran_func_pointers[4];
-  (*(void (PETSC_STDCALL *)(EPS*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*))
+  (*(void (PETSC_STDCALL*)(EPS*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*))
    (((PetscObject)eps)->fortran_func_pointers[3]))(&eps,&eigr,&eigi,&res,errest,mctx,&ierr);CHKERRQ(ierr);
   return 0;
 }
@@ -338,7 +338,7 @@ static PetscErrorCode oureigenvaluecomparison(PetscScalar ar,PetscScalar ai,Pets
   EPS            eps = *(EPS*)ctx;
   PetscErrorCode ierr = 0;
   void           *mctx = (void*) ((PetscObject)eps)->fortran_func_pointers[6];
-  (*(void (PETSC_STDCALL *)(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*))
+  (*(void (PETSC_STDCALL*)(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*))
    (((PetscObject)eps)->fortran_func_pointers[5]))(&ar,&ai,&br,&bi,r,mctx,&ierr);CHKERRQ(ierr);
   return 0;
 }
@@ -361,7 +361,7 @@ static PetscErrorCode ourarbitraryfunc(PetscScalar er,PetscScalar ei,Vec xr,Vec 
   PetscErrorCode ierr = 0;
   EPS            eps = (EPS)eps_;
   void           *ctx = (void*) ((PetscObject)eps)->fortran_func_pointers[8];
-  (*(void (PETSC_STDCALL *)(PetscScalar*,PetscScalar*,Vec*,Vec*,PetscScalar*,PetscScalar*,void*,PetscErrorCode*))
+  (*(void (PETSC_STDCALL*)(PetscScalar*,PetscScalar*,Vec*,Vec*,PetscScalar*,PetscScalar*,void*,PetscErrorCode*))
     (((PetscObject)eps)->fortran_func_pointers[7]))(&er,&ei,&xr,&xi,rr,ri,ctx,&ierr);CHKERRQ(ierr);
   return 0;
 }

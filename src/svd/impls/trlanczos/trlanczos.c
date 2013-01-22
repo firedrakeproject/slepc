@@ -216,7 +216,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
 PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
-  SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS *)svd->data;
+  SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscReal      *alpha,*beta,lastbeta,norm;
   PetscScalar    *Q,*PT,*swork,*w;
   PetscInt       i,k,l,nv,ld,off;
@@ -233,7 +233,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   ierr = IPGetOrthogonalization(svd->ip,&orthog,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
   
   /* normalize start vector */
-  if (svd->nini==0) {
+  if (!svd->nini) {
     ierr = SlepcVecSetRandom(svd->V[0],svd->rand);CHKERRQ(ierr);
   }
   ierr = VecNormalize(svd->V[0],&norm);CHKERRQ(ierr);
@@ -331,7 +331,7 @@ PetscErrorCode SVDSetFromOptions_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
-  SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS *)svd->data;
+  SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("SVD TRLanczos Options");CHKERRQ(ierr);
@@ -348,7 +348,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "SVDTRLanczosSetOneSide_TRLanczos"
 PetscErrorCode SVDTRLanczosSetOneSide_TRLanczos(SVD svd,PetscBool oneside)
 {
-  SVD_TRLANCZOS *lanczos = (SVD_TRLANCZOS *)svd->data;
+  SVD_TRLANCZOS *lanczos = (SVD_TRLANCZOS*)svd->data;
 
   PetscFunctionBegin;
   lanczos->oneside = oneside;
@@ -425,7 +425,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "SVDTRLanczosGetOneSide_TRLanczos"
 PetscErrorCode SVDTRLanczosGetOneSide_TRLanczos(SVD svd,PetscBool *oneside)
 {
-  SVD_TRLANCZOS    *lanczos = (SVD_TRLANCZOS *)svd->data;
+  SVD_TRLANCZOS    *lanczos = (SVD_TRLANCZOS*)svd->data;
 
   PetscFunctionBegin;
   *oneside = lanczos->oneside;
@@ -462,7 +462,7 @@ PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
 PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS *)svd->data;
+  SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
 
   PetscFunctionBegin;
   ierr = PetscViewerASCIIPrintf(viewer,"  TRLanczos: %s-sided reorthogonalization\n",lanczos->oneside? "one": "two");CHKERRQ(ierr);

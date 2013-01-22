@@ -178,7 +178,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 PetscErrorCode EPSSolve_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
+  EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
   PetscScalar    *a;
 #if defined(PETSC_USE_COMPLEX)
   PetscInt       i;
@@ -239,7 +239,7 @@ static void multMatvec_PRIMME(void *in,void *out,int *blockSize,primme_params *p
 {
   PetscErrorCode ierr;
   PetscInt       i,N = primme->n;
-  EPS_PRIMME     *ops = (EPS_PRIMME *)primme->matrix; 
+  EPS_PRIMME     *ops = (EPS_PRIMME*)primme->matrix; 
   Vec            x = ops->x,y = ops->y;
   Mat            A = ops->A;
 
@@ -263,7 +263,7 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
 {
   PetscErrorCode ierr;
   PetscInt       i,N = primme->n,lits;
-  EPS_PRIMME     *ops = (EPS_PRIMME *)primme->matrix; 
+  EPS_PRIMME     *ops = (EPS_PRIMME*)primme->matrix; 
   Vec            x = ops->x,y = ops->y;
  
   PetscFunctionBegin;
@@ -287,7 +287,7 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
 PetscErrorCode EPSReset_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_PRIMME     *ops = (EPS_PRIMME *)eps->data;
+  EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
 
   PetscFunctionBegin;
   primme_Free(&ops->primme);
@@ -318,7 +318,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode  ierr;
   PetscBool       isascii;
-  primme_params   *primme = &((EPS_PRIMME *)eps->data)->primme;
+  primme_params   *primme = &((EPS_PRIMME*)eps->data)->primme;
   EPSPRIMMEMethod methodn;
   PetscMPIInt     rank;
 
@@ -341,7 +341,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
 {
   PetscErrorCode  ierr;
-  EPS_PRIMME      *ctx = (EPS_PRIMME *)eps->data;
+  EPS_PRIMME      *ctx = (EPS_PRIMME*)eps->data;
   PetscInt        bs;
   EPSPRIMMEMethod meth;
   PetscBool       flg;

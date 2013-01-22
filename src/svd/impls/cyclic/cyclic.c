@@ -509,7 +509,7 @@ PetscErrorCode SVDCreate_Cyclic(SVD svd)
   
   PetscFunctionBegin;
   ierr = PetscNewLog(svd,SVD_CYCLIC,&cyclic);CHKERRQ(ierr);
-  svd->data                      = (void *)cyclic;
+  svd->data                      = (void*)cyclic;
   svd->ops->solve                = SVDSolve_Cyclic;
   svd->ops->setup                = SVDSetUp_Cyclic;
   svd->ops->setfromoptions       = SVDSetFromOptions_Cyclic;

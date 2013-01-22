@@ -55,7 +55,7 @@ typedef struct {
 PetscErrorCode EPSSetUp_Power(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_POWER      *power = (EPS_POWER *)eps->data;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
   PetscBool      flg;
   STMatMode      mode;
 
@@ -99,7 +99,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable");
 #else 
   PetscErrorCode ierr;
-  EPS_POWER      *power = (EPS_POWER *)eps->data;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
   PetscInt       i;
   Vec            v,y,e;
   Mat            A;
@@ -245,7 +245,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable");
 #else 
   PetscErrorCode ierr;
-  EPS_POWER      *power = (EPS_POWER *)eps->data;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
   Vec            v,w,y,z,e;
   Mat            A;
   PetscReal      relerr,norm,rt1,rt2,cs1;
@@ -385,7 +385,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
 PetscErrorCode EPSBackTransform_Power(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_POWER      *power = (EPS_POWER *)eps->data;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
 
   PetscFunctionBegin;
   if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) {
@@ -399,7 +399,7 @@ PetscErrorCode EPSBackTransform_Power(EPS eps)
 PetscErrorCode EPSSetFromOptions_Power(EPS eps)
 {
   PetscErrorCode    ierr;
-  EPS_POWER         *power = (EPS_POWER *)eps->data;
+  EPS_POWER         *power = (EPS_POWER*)eps->data;
   PetscBool         flg;
   EPSPowerShiftType shift;
 
@@ -419,7 +419,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSPowerSetShiftType_Power"
 PetscErrorCode EPSPowerSetShiftType_Power(EPS eps,EPSPowerShiftType shift)
 {
-  EPS_POWER *power = (EPS_POWER *)eps->data;
+  EPS_POWER *power = (EPS_POWER*)eps->data;
 
   PetscFunctionBegin;
   switch (shift) {
@@ -481,7 +481,7 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "EPSPowerGetShiftType_Power"
 PetscErrorCode EPSPowerGetShiftType_Power(EPS eps,EPSPowerShiftType *shift)
 {
-  EPS_POWER  *power = (EPS_POWER *)eps->data;
+  EPS_POWER  *power = (EPS_POWER*)eps->data;
 
   PetscFunctionBegin;
   *shift = power->shift_type;
@@ -536,7 +536,7 @@ PetscErrorCode EPSDestroy_Power(EPS eps)
 PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  EPS_POWER      *power = (EPS_POWER *)eps->data;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
   PetscBool      isascii;
 
   PetscFunctionBegin;

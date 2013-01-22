@@ -33,7 +33,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       ncv;
-  EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
+  EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
 
   PetscFunctionBegin;
   if (eps->ncv) {
@@ -86,7 +86,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 PetscErrorCode EPSSolve_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
+  EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
   char           bmat[1],howmny[] = "A";
   const char     *which;
   PetscBLASInt   n,iparam[11],ipntr[14],ido,info,nev,ncv;
@@ -316,7 +316,7 @@ PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
 PetscErrorCode EPSReset_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_ARPACK     *ar = (EPS_ARPACK *)eps->data;
+  EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
 
   PetscFunctionBegin;
   ierr = PetscFree(ar->workev);CHKERRQ(ierr); 

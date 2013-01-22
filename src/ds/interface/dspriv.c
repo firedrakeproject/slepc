@@ -288,7 +288,7 @@ PetscErrorCode DSPermuteRows_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat,P
   PetscScalar *Q,rtmp;
 
   PetscFunctionBegin;
-  if (m==0) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"m was not set");
+  if (!m) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"m was not set");
   ld = ds->ld;
   Q  = ds->mat[mat];
   for (i=l;i<n;i++) {
@@ -314,7 +314,7 @@ PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat1,
   PetscScalar *U,*VT,rtmp;
 
   PetscFunctionBegin;
-  if (m==0) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"m was not set");
+  if (!m) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"m was not set");
   ld = ds->ld;
   U  = ds->mat[mat1];
   VT = ds->mat[mat2];

@@ -123,7 +123,7 @@ PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScala
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   PetscValidLogicalCollectiveInt(ip,n,2);
-  if (n==0) {
+  if (!n) {
     if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
   } else {
     ierr = PetscLogEventBegin(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
