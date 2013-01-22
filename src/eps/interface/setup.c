@@ -115,7 +115,9 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = STGetBilinearForm(eps->st,&B);CHKERRQ(ierr);
     ierr = IPSetMatrix(eps->ip,B);CHKERRQ(ierr);
     ierr = MatDestroy(&B);CHKERRQ(ierr);
-    if (!eps->ispositive) { ierr = IPSetType(eps->ip,IPINDEFINITE);CHKERRQ(ierr); }
+    if (!eps->ispositive) {
+      ierr = IPSetType(eps->ip,IPINDEFINITE);CHKERRQ(ierr);
+    }
   } else {
     ierr = IPSetMatrix(eps->ip,PETSC_NULL);CHKERRQ(ierr);
   }
@@ -126,14 +128,16 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* initialization of matrix norms */
   if (eps->nrma == PETSC_DETERMINE) {
     ierr = MatHasOperation(A,MATOP_NORM,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = MatNorm(A,NORM_INFINITY,&eps->nrma);CHKERRQ(ierr); }
-    else eps->nrma = 1.0;
+    if (flg) {
+      ierr = MatNorm(A,NORM_INFINITY,&eps->nrma);CHKERRQ(ierr);
+    } else eps->nrma = 1.0;
   }
   if (eps->nrmb == PETSC_DETERMINE) {
     if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
     ierr = MatHasOperation(B,MATOP_NORM,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = MatNorm(B,NORM_INFINITY,&eps->nrmb);CHKERRQ(ierr); }
-    else eps->nrmb = 1.0;
+    if (flg) {
+      ierr = MatNorm(B,NORM_INFINITY,&eps->nrmb);CHKERRQ(ierr);
+    } else eps->nrmb = 1.0;
   }
 
   if (!eps->balance) eps->balance = EPS_BALANCE_NONE;

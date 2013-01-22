@@ -112,10 +112,8 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The value of ncv must be at least nev"); 
   } else if (eps->mpd) eps->ncv = eps->mpd + eps->nev + bs;
-  else if (eps->nev<500)
-    eps->ncv = PetscMin(eps->n-bs,PetscMax(2*eps->nev,eps->nev+15))+bs;
-  else
-    eps->ncv = PetscMin(eps->n-bs,eps->nev+500)+bs;
+  else if (eps->nev<500) eps->ncv = PetscMin(eps->n-bs,PetscMax(2*eps->nev,eps->nev+15))+bs;
+  else eps->ncv = PetscMin(eps->n-bs,eps->nev+500)+bs;
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (eps->mpd > eps->ncv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The mpd has to be less or equal than ncv");
   if (eps->mpd < 2) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"The mpd has to be greater than 2");
@@ -164,13 +162,8 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
             ((ispositive && !eps->isgeneralized) ? DVD_MAT_POS_DEF : 0);
   /* Asume -eps_hermitian means hermitian-definite in generalized problems */
   if (!ispositive && !eps->isgeneralized && eps->ishermitian) ispositive = PETSC_TRUE;
-  if (!eps->isgeneralized)
-    dvd->sB = DVD_MAT_IMPLICIT | DVD_MAT_HERMITIAN | DVD_MAT_IDENTITY |
-              DVD_MAT_UNITARY | DVD_MAT_POS_DEF;
-  else 
-    dvd->sB = DVD_MAT_IMPLICIT |
-              (eps->ishermitian? DVD_MAT_HERMITIAN : 0) |
-              (ispositive? DVD_MAT_POS_DEF : 0);
+  if (!eps->isgeneralized) dvd->sB = DVD_MAT_IMPLICIT | DVD_MAT_HERMITIAN | DVD_MAT_IDENTITY | DVD_MAT_UNITARY | DVD_MAT_POS_DEF;
+  else dvd->sB = DVD_MAT_IMPLICIT | (eps->ishermitian? DVD_MAT_HERMITIAN : 0) | (ispositive? DVD_MAT_POS_DEF : 0);
   ipB = (dvd->B && data->ipB != EPS_ORTH_I && DVD_IS(dvd->sB,DVD_MAT_HERMITIAN))?PETSC_TRUE:PETSC_FALSE;
   if (data->ipB != EPS_ORTH_I && !ipB) data->ipB = EPS_ORTH_I;
   dvd->correctXnorm = ipB;

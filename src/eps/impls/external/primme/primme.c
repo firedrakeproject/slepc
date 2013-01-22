@@ -350,9 +350,13 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS PRIMME Options");CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_primme_block_size","Maximum block size","EPSPRIMMESetBlockSize",ctx->primme.maxBlockSize,&bs,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = EPSPRIMMESetBlockSize(eps,bs);CHKERRQ(ierr); }
+  if (flg) {
+    ierr = EPSPRIMMESetBlockSize(eps,bs);CHKERRQ(ierr);
+  }
   ierr = PetscOptionsEnum("-eps_primme_method","Method for solving the eigenproblem","EPSPRIMMESetMethod",EPSPRIMMEMethods,(PetscEnum)ctx->method,(PetscEnum*)&meth,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = EPSPRIMMESetMethod(eps,meth);CHKERRQ(ierr); }
+  if (flg) {
+    ierr = EPSPRIMMESetMethod(eps,meth);CHKERRQ(ierr);
+  }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
   /* Set STPrecond as the default ST */

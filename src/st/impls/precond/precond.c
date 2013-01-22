@@ -50,9 +50,7 @@ PetscErrorCode STSetFromOptions_Precond(ST st)
       ierr = MatHasOperation(st->A[0],MATOP_DUPLICATE,&t0);CHKERRQ(ierr);
       if (st->nmat>1) {
         ierr = MatHasOperation(st->A[0],MATOP_AXPY,&t1);CHKERRQ(ierr);
-      } else {
-        t1 = PETSC_TRUE;
-      }
+      } else t1 = PETSC_TRUE;
       ierr = PCSetType(pc,(t0 && t1)?PCJACOBI:PCNONE);CHKERRQ(ierr);
     }
   }
@@ -112,8 +110,7 @@ PetscErrorCode STSetUp_Precond(ST st)
       }
       /* TODO: in case of ST_MATMODE_INPLACE should keep the Hermitian flag of st->A and restore at the end */
       ierr = STMatSetHermitian(st,P);CHKERRQ(ierr);
-    } else 
-      builtP = PETSC_FALSE;
+    } else builtP = PETSC_FALSE;
   }
 
   /* If P was not possible to obtain, set pc to PCNONE */
@@ -228,8 +225,7 @@ PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   if (flag) {
     ierr = PCGetOperators(pc,&A,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
-  } else
-    A = PETSC_NULL;
+  } else A = PETSC_NULL;
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
   ierr = PCSetOperators(pc,A,mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);

@@ -39,9 +39,7 @@ static PetscErrorCode EPSFullLanczosIndef(EPS eps,PetscReal *alpha,PetscReal *be
   PetscFunctionBegin;
   if (m > 100) {
     ierr = PetscMalloc((eps->nds+m)*sizeof(PetscScalar),&hwork);CHKERRQ(ierr);
-  } else {
-    hwork = lhwork;
-  }
+  } else hwork = lhwork;
 
   for (j=k;j<m-1;j++) {
     ierr = STApply(eps->st,V[j],V[j+1]);CHKERRQ(ierr);

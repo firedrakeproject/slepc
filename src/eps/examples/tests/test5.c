@@ -78,8 +78,11 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
   ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
-  if (symm) { ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr); }
-  else      { ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr); }
+  if (symm) {
+    ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
+  } else {
+    ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
+  }
   ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 

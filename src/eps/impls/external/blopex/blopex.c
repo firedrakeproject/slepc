@@ -84,8 +84,11 @@ static void OperatorASingleVector(void *data,void *x,void *y)
   ierr = MatMult(A,(Vec)x,(Vec)y);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   ierr = STGetShift(eps->st,&sigma);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   if (sigma != 0.0) {
-    if (nmat>1) { ierr = MatMult(B,(Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr); }
-    else { ierr = VecCopy((Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr); }
+    if (nmat>1) {
+      ierr = MatMult(B,(Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+    } else {
+      ierr = VecCopy((Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+    }
     ierr = VecAXPY((Vec)y,-sigma,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr);
   }
   PetscFunctionReturnVoid();
@@ -184,8 +187,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (eps->nds > 0) {
     blopex->Y = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->nds,eps->defl);
     for (i=0;i<eps->nds;i++) { ierr = PetscObjectReference((PetscObject)eps->defl[i]);CHKERRQ(ierr); }
-  } else
-    blopex->Y = PETSC_NULL;
+  } else blopex->Y = PETSC_NULL;
 
 #if defined(PETSC_USE_COMPLEX)
   blopex->blap_fn.zpotrf = PETSC_zpotrf_interface;
@@ -252,7 +254,10 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   if (eps->numbermonitors>0) {
     for (i=0;i<its;i++) {
       nconv = 0;
-      for (j=0;j<eps->ncv;j++) { if (residhist[j+i*eps->ncv]>eps->tol) break; else nconv++; }
+      for (j=0;j<eps->ncv;j++) {
+        if (residhist[j+i*eps->ncv]>eps->tol) break;
+        else nconv++;
+      }
       ierr = EPSMonitor(eps,i,nconv,(PetscScalar*)lambdahist+i*eps->ncv,eps->eigi,residhist+i*eps->ncv,eps->ncv);CHKERRQ(ierr);
     }
     ierr = PetscFree(lambdahist);CHKERRQ(ierr); 

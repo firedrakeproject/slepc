@@ -65,14 +65,12 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d, dvdBlackboard *b, PC pc)
         ierr = PetscObjectReference((PetscObject)P);CHKERRQ(ierr);
         ierr = PCSetOperators(pc, P, P, str);CHKERRQ(ierr);
         ierr = MatDestroy(&P);CHKERRQ(ierr);
-      } else
-        d->improvex_precond = dvd_precond_none;
+      } else d->improvex_precond = dvd_precond_none;
 
       DVD_FL_ADD(d->destroyList, dvd_improvex_precond_d);
 
     /* Else, use no preconditioner */
-    } else
-      d->improvex_precond = dvd_precond_none;
+    } else d->improvex_precond = dvd_precond_none;
   }
   PetscFunctionReturn(0);
 }
@@ -140,16 +138,14 @@ PetscErrorCode dvd_jacobi_precond(dvdDashboard *d, dvdBlackboard *b)
         dvdjp->diagB = *b->free_vecs;
         b->free_vecs++;
         ierr = MatGetDiagonal(d->B, dvdjp->diagB);CHKERRQ(ierr);
-      } else
-        dvdjp->diagB = 0;
+      } else dvdjp->diagB = 0;
       d->improvex_precond_data = dvdjp;
       d->improvex_precond = dvd_jacobi_precond_0;
 
       DVD_FL_ADD(d->destroyList, dvd_improvex_precond_d);
 
     /* Else, use no preconditioner */
-    } else
-      d->improvex_precond = dvd_precond_none;
+    } else d->improvex_precond = dvd_precond_none;
   } 
   PetscFunctionReturn(0);
 }

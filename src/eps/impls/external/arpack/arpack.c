@@ -38,8 +38,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   PetscFunctionBegin;
   if (eps->ncv) {
     if (eps->ncv<eps->nev+2) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2"); 
-  } else /* set default value of ncv */
-    eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n);
+  } else eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n); /* set default value of ncv */
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(300,(PetscInt)(2*eps->n/eps->ncv));
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
@@ -52,9 +51,8 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = PetscFree(ar->workev);CHKERRQ(ierr); 
   ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&ar->workev);CHKERRQ(ierr);
 #else
-  if (eps->ishermitian) {
-    ar->lworkl = PetscBLASIntCast(ncv*(ncv+8));
-  } else {
+  if (eps->ishermitian) ar->lworkl = PetscBLASIntCast(ncv*(ncv+8));
+  else {
     ar->lworkl = PetscBLASIntCast(3*ncv*ncv+6*ncv);
     ierr = PetscFree(ar->workev);CHKERRQ(ierr); 
     ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&ar->workev);CHKERRQ(ierr);
@@ -189,8 +187,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
       ARsaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,
                resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
                ar->workl,&ar->lworkl,&info);
-    }
-    else {
+    } else {
       ARnaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,
                resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
                ar->workl,&ar->lworkl,&info);
@@ -230,7 +227,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
           }
           ierr = VecCopy(y,x);CHKERRQ(ierr);
           ierr = STMatSolve(eps->st,1,x,y);CHKERRQ(ierr);
-        } else  {
+        } else {
           /* Y = OP * X */
           ierr = STApply(eps->st,x,y);CHKERRQ(ierr);        
         }
@@ -260,8 +257,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
                 bmat,&n,which,&nev,&eps->tol,
                 resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
                 ar->workl,&ar->lworkl,&info);
-    }
-    else {
+    } else {
       ierr = EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);
       ARneupd_ (&fcomm,&rvec,howmny,ar->select,eps->eigr,eps->eigi,
                 pV,&n,&sigmar,&sigmai,ar->workev,

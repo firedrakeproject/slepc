@@ -99,8 +99,9 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
       if (eps->inta <= PETSC_MIN_REAL) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
       ierr = STSetDefaultShift(eps->st,eps->inta);CHKERRQ(ierr);
+    } else {
+      ierr = STSetDefaultShift(eps->st,eps->intb);CHKERRQ(ierr);
     }
-    else { ierr = STSetDefaultShift(eps->st,eps->intb);CHKERRQ(ierr); }
 
     if (eps->nev==1) eps->nev = 40;  /* nev not set, use default value */
     if (eps->nev<10) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs"); 
@@ -116,7 +117,10 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
   } else { /* neither set: defaults depend on nev being small or large */
     if (eps->nev<500) eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15));
-    else { eps->mpd = 500; eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd); }
+    else {
+      eps->mpd = 500;
+      eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
+    }
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
@@ -135,15 +139,17 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   if (!ctx->keep) ctx->keep = 0.5;
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  if (eps->arbit_func) { ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr); }
-  else { ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr); }
+  if (eps->arbit_func) {
+    ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
+  } else {
+    ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+  }
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
   if (eps->ishermitian) {
     if (eps->which==EPS_ALL) {
       if (eps->isgeneralized && !eps->ispositive) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Spectrum slicing not implemented for indefinite problems");
-
       else variant = EPS_KS_SLICE;
     } else if (eps->isgeneralized && !eps->ispositive) {
       variant = EPS_KS_INDEF;
@@ -204,7 +210,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
   if (harmonic) { ierr = PetscMalloc(ld*sizeof(PetscScalar),&g);CHKERRQ(ierr); }
-  if (eps->arbit_func) pj = &j; else pj = PETSC_NULL;
+  if (eps->arbit_func) pj = &j;
+  else pj = PETSC_NULL;
 
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
@@ -234,7 +241,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 
     /* Solve projected problem */ 
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    if (eps->arbit_func) { ierr = EPSGetArbitraryValues(eps,eps->rr,eps->ri);CHKERRQ(ierr); j=1; }
+    if (eps->arbit_func) {
+      ierr = EPSGetArbitraryValues(eps,eps->rr,eps->ri);CHKERRQ(ierr);
+      j=1;
+    }
     ierr = DSSort(eps->ds,eps->eigr,eps->eigi,eps->rr,eps->ri,pj);CHKERRQ(ierr);
 
     /* Check convergence */ 
@@ -408,7 +418,9 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps)
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS Krylov-Schur Options");CHKERRQ(ierr);
   ierr = PetscOptionsReal("-eps_krylovschur_restart","Proportion of vectors kept after restart","EPSKrylovSchurSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = EPSKrylovSchurSetRestart(eps,keep);CHKERRQ(ierr); }
+  if (flg) {
+    ierr = EPSKrylovSchurSetRestart(eps,keep);CHKERRQ(ierr);
+  }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

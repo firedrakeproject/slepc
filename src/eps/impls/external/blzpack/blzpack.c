@@ -75,8 +75,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   PetscFunctionBegin;
   if (eps->ncv) {
     if (eps->ncv < PetscMin(eps->nev+10,eps->nev*2)) SETERRQ(((PetscObject)eps)->comm,0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
-  }
-  else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
+  } else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
 
@@ -93,8 +92,9 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
     if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
       if (eps->inta <= PETSC_MIN_REAL) SETERRQ(((PetscObject)eps)->comm,1,"The defined computational interval should have at least one of their sides bounded");
       ierr = STSetDefaultShift(eps->st,eps->inta);CHKERRQ(ierr);
+    } else {
+      ierr = STSetDefaultShift(eps->st,eps->intb);CHKERRQ(ierr);
     }
-    else { ierr = STSetDefaultShift(eps->st,eps->intb);CHKERRQ(ierr); }
   }
   if (!eps->which) {
     if (issinv) eps->which = EPS_TARGET_REAL;
@@ -344,11 +344,15 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
 
   bs = blz->block_size;
   ierr = PetscOptionsInt("-eps_blzpack_block_size","Block size","EPSBlzpackSetBlockSize",bs,&bs,&flg);CHKERRQ(ierr);
-  if (flg) {ierr = EPSBlzpackSetBlockSize(eps,bs);CHKERRQ(ierr);}
+  if (flg) {
+    ierr = EPSBlzpackSetBlockSize(eps,bs);CHKERRQ(ierr);
+  }
 
   n = blz->nsteps;
   ierr = PetscOptionsInt("-eps_blzpack_nsteps","Number of steps","EPSBlzpackSetNSteps",n,&n,&flg);CHKERRQ(ierr);
-  if (flg) {ierr = EPSBlzpackSetNSteps(eps,n);CHKERRQ(ierr);}
+  if (flg) {
+    ierr = EPSBlzpackSetNSteps(eps,n);CHKERRQ(ierr);
+  }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -405,7 +409,7 @@ PetscErrorCode EPSBlzpackSetNSteps_BLZPACK(EPS eps,PetscInt nsteps)
 
   PetscFunctionBegin;
   if (nsteps == PETSC_DEFAULT) blz->nsteps = 0;
-  else { blz->nsteps = PetscBLASIntCast(nsteps); }
+  else blz->nsteps = PetscBLASIntCast(nsteps);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

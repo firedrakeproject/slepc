@@ -109,8 +109,7 @@ PetscErrorCode QEPSetUp(QEP qep)
       ierr = MatNorm(qep->K,NORM_INFINITY,&knorm);CHKERRQ(ierr);
       ierr = MatNorm(qep->M,NORM_INFINITY,&mnorm);CHKERRQ(ierr);
       qep->sfactor = PetscSqrtReal(knorm/mnorm);
-    }
-    else qep->sfactor = 1.0;
+    } else qep->sfactor = 1.0;
   }
 
   /* Call specific solver setup */

@@ -329,7 +329,7 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
   PetscScalar    er,ei;
 
   PetscFunctionBegin;
-  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(((PetscObject)eps)->comm); }
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)eps)->comm);
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   if (!its) {
@@ -383,7 +383,7 @@ PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
   PetscScalar    er,ei;
 
   PetscFunctionBegin;
-  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(((PetscObject)eps)->comm); }
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)eps)->comm);
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   if (!its) {

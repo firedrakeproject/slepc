@@ -198,8 +198,7 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
       ierr = VecResetArray(wi);CHKERRQ(ierr);
       ierr = VecRestoreArray(xr,&px);CHKERRQ(ierr);
       ierr = VecRestoreArray(xi,&py);CHKERRQ(ierr);
-    }
-    else if (qep->eigi[i]==0.0)   /* real eigenvalue */
+    } else if (qep->eigi[i]==0.0)   /* real eigenvalue */
 #endif
     {
       ierr = VecGetArray(xr,&px);CHKERRQ(ierr);
@@ -268,8 +267,7 @@ PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
       ierr = VecResetArray(w);CHKERRQ(ierr);
       ierr = VecRestoreArray(xi,&px);CHKERRQ(ierr);
       ierr = SlepcVecNormalize(qep->V[i],qep->V[i+1],PETSC_TRUE,PETSC_NULL);CHKERRQ(ierr);
-    }
-    else if (qep->eigi[i]==0.0)   /* real eigenvalue */
+    } else if (qep->eigi[i]==0.0)   /* real eigenvalue */
 #endif
     {
       ierr = VecGetArray(xr,&px);CHKERRQ(ierr);

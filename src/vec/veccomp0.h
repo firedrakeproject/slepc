@@ -220,8 +220,14 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
 PETSC_STATIC_INLINE void SumNorm2(PetscReal *ssq0,PetscReal *scale0,PetscReal *ssq1,PetscReal *scale1)
 {
   PetscReal q;
-  if (*scale0 > *scale1) { q = *scale1/(*scale0); *ssq1 = *ssq0 + q*q*(*ssq1); *scale1 = *scale0; }
-  else                   { q = *scale0/(*scale1); *ssq1+=         q*q*(*ssq0); }
+  if (*scale0 > *scale1) {
+    q = *scale1/(*scale0);
+    *ssq1 = *ssq0 + q*q*(*ssq1);
+    *scale1 = *scale0;
+  } else {
+    q = *scale0/(*scale1);
+    *ssq1 += q*q*(*ssq0);
+  }
 }
 
 PETSC_STATIC_INLINE PetscReal GetNorm2(PetscReal ssq,PetscReal scale)
@@ -231,10 +237,17 @@ PETSC_STATIC_INLINE PetscReal GetNorm2(PetscReal ssq,PetscReal scale)
 
 PETSC_STATIC_INLINE void AddNorm2(PetscReal *ssq,PetscReal *scale,PetscReal x)
 {
+  PetscReal absx,q;
   if (x != 0.0) {
-    PetscReal absx = PetscAbs(x), q;
-    if (*scale < absx) { q = *scale/absx; *ssq = 1.0 + *ssq*q*q; *scale = absx; }
-    else               { q = absx/(*scale); *ssq+= q*q; } 
+    absx = PetscAbs(x);
+    if (*scale < absx) {
+      q = *scale/absx;
+      *ssq = 1.0 + *ssq*q*q;
+      *scale = absx;
+    } else {
+      q = absx/(*scale);
+      *ssq += q*q;
+    } 
   }
 }
 
@@ -404,8 +417,7 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar
     }
     ierr = VecRestoreArray(v,&vx);CHKERRQ(ierr);
     ierr = VecRestoreArray(w,&wx);CHKERRQ(ierr);
-  } else
-    SETERRQ(((PetscObject)v)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible vector types");
+  } else SETERRQ(((PetscObject)v)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible vector types");
 
 #if defined(__WITH_MPI__)
     /* [dp, nm] <- Allreduce([dp0, nm0]) */

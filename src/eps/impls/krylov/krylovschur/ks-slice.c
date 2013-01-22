@@ -135,7 +135,7 @@ static PetscErrorCode EPSExtractShift(EPS eps)
       ierr = VecAXPBY(eps->V[sr->nS],1.0/sr->beta,0.0,eps->work[0]);CHKERRQ(ierr);
     }
     eps->nconv = 0;
-  }else sr->sPres = PETSC_NULL;
+  } else sr->sPres = PETSC_NULL;
   PetscFunctionReturn(0);
 }
 
@@ -233,7 +233,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
       ierr = DSSolve(eps->ds,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
       ierr = DSSort(eps->ds,eps->eigr,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);
-    } else {/* Restart */
+    } else { /* Restart */
       ierr = DSSolve(eps->ds,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
       ierr = DSSort(eps->ds,eps->eigr,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     }
@@ -418,7 +418,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
         sr->nleap++;
         /* Stops when the interval is open and no values are found in the last 5 shifts (there might be infinite eigenvalues) */
         if (!sr->hasEnd && sr->nleap > 5) SETERRQ(((PetscObject)eps)->comm,1,"Unable to compute the wanted eigenvalues with open interval");           
-      } else {/* First shift */
+      } else { /* First shift */
         if (eps->nconv != 0) {
           /* Unaccepted values give information for next shift */
           idxP=0;/* Number of values left from shift */
@@ -434,11 +434,11 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
             d_prev = PetscAbsReal(sPres->value - PetscRealPart(eps->eigr[eps->nconv-1]))/(eps->nconv+0.3);
           }
           *newS = sPres->value + ((sr->dir)*d_prev*eps->nev)/2;
-        } else {/* No values found, no information for next shift */
+        } else { /* No values found, no information for next shift */
           SETERRQ(((PetscObject)eps)->comm,1,"First shift renders no information"); 
         }
       }
-    } else {/* Accepted values found */
+    } else { /* Accepted values found */
       sr->nleap = 0;
       /* Average distance of values in previous subinterval */
       s = sPres->neighb[0];
@@ -447,7 +447,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
       }
       if (s) {
         d_prev = PetscAbsReal((sPres->value - s->value)/(sPres->inertia - s->inertia));
-      } else {/* First shift. Average distance obtained with values in this shift */
+      } else { /* First shift. Average distance obtained with values in this shift */
         /* first shift might be too far from first wanted eigenvalue (no values found outside the interval)*/
         if ((sr->dir)*(PetscRealPart(sr->eig[0])-sPres->value)>0 && PetscAbsReal((PetscRealPart(sr->eig[sr->indexEig-1]) - PetscRealPart(sr->eig[0]))/PetscRealPart(sr->eig[0])) > PetscSqrtReal(eps->tol)) {
           d_prev =  PetscAbsReal((PetscRealPart(sr->eig[sr->indexEig-1]) - PetscRealPart(sr->eig[0])))/(sPres->neigs+0.3);
@@ -458,7 +458,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
       /* Average distance is used for next shift by adding it to value on the right or to shift */
       if ((sr->dir)*(PetscRealPart(sr->eig[sPres->index + sPres->neigs -1]) - sPres->value)>0) {
         *newS = PetscRealPart(sr->eig[sPres->index + sPres->neigs -1])+ ((sr->dir)*d_prev*(eps->nev))/2;   
-      } else {/* Last accepted value is on the left of shift. Adding to shift */
+      } else { /* Last accepted value is on the left of shift. Adding to shift */
         *newS = sPres->value + ((sr->dir)*d_prev*(eps->nev))/2;
       }
     }
@@ -569,18 +569,18 @@ PetscErrorCode EPSLookForDeflation(EPS eps)
     if ((sr->dir)*(val - sPres->ext[1]) < 0) {
       if ((sr->dir)*(val - sPres->value) < 0) count0++;
       else count1++;
-    }else break;
+    } else break;
   }
   /* The number of values on each side are found */
   if (sPres->neighb[0]) {
      sPres->nsch[0] = (sr->dir)*(sPres->inertia - sPres->neighb[0]->inertia)-count0;
      if (sPres->nsch[0]<0)SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error in Spectrum Slicing!\nMismatch between number of values found and information from inertia");
-  }else sPres->nsch[0] = 0;
+  } else sPres->nsch[0] = 0;
 
   if (sPres->neighb[1]) {
     sPres->nsch[1] = (sr->dir)*(sPres->neighb[1]->inertia - sPres->inertia) - count1;
     if (sPres->nsch[1]<0)SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error in Spectrum Slicing!\nMismatch between number of values found and information from inertia");
-  }else sPres->nsch[1] = (sr->dir)*(sr->inertia1 - sPres->inertia);
+  } else sPres->nsch[1] = (sr->dir)*(sr->inertia1 - sPres->inertia);
 
   /* Completing vector of indexes for deflation */
   idx0 = ini;

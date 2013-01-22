@@ -60,7 +60,9 @@ int main(int argc, char **argv)
   ierr = VecDuplicateVecs(t,k,&V);CHKERRQ(ierr);
 
   /* check orthogonality of QR of random vectors */
-  for (i=0;i<k;i++) { ierr = VecSetRandom(V[i],rctx);CHKERRQ(ierr); }
+  for (i=0;i<k;i++) {
+    ierr = VecSetRandom(V[i],rctx);CHKERRQ(ierr);
+  }
   ierr = IPQRDecomposition(ip,V,0,k,PETSC_NULL,k);CHKERRQ(ierr);
   ierr = SlepcCheckOrthogonality(V,k,PETSC_NULL,k,PETSC_NULL,&lev);CHKERRQ(ierr);
   if (lev<100*PETSC_MACHINE_EPSILON) {

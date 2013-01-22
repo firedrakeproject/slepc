@@ -39,13 +39,14 @@ PetscErrorCode QEPSetUp_QLanczos(QEP qep)
   PetscFunctionBegin;
   if (qep->ncv) { /* ncv set */
     if (qep->ncv<qep->nev) SETERRQ(((PetscObject)qep)->comm,1,"The value of ncv must be at least nev"); 
-  }
-  else if (qep->mpd) { /* mpd set */
+  } else if (qep->mpd) { /* mpd set */
     qep->ncv = PetscMin(qep->n,qep->nev+qep->mpd);
-  }
-  else { /* neither set: defaults depend on nev being small or large */
+  } else { /* neither set: defaults depend on nev being small or large */
     if (qep->nev<500) qep->ncv = PetscMin(qep->n,PetscMax(2*qep->nev,qep->nev+15));
-    else { qep->mpd = 500; qep->ncv = PetscMin(qep->n,qep->nev+qep->mpd); }
+    else {
+      qep->mpd = 500;
+      qep->ncv = PetscMin(qep->n,qep->nev+qep->mpd);
+    }
   }
   if (!qep->mpd) qep->mpd = qep->ncv;
   if (qep->ncv>qep->nev+qep->mpd) SETERRQ(((PetscObject)qep)->comm,1,"The value of ncv must not be larger than nev+mpd"); 

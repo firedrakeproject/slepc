@@ -213,7 +213,11 @@ void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,Pe
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorlgall_) {
     *ierr = EPSMonitorSet(*eps,EPSMonitorLGAll,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorconverged_) {
-    if (!FORTRANNULLOBJECT(mctx)) { PetscError(((PetscObject)*eps)->comm,__LINE__,"epsmonitorset_",__FILE__,__SDIR__,PETSC_ERR_ARG_WRONG,PETSC_ERROR_INITIAL,"Must provide PETSC_NULL_OBJECT as a context in the Fortran interface to EPSMonitorSet"); *ierr = 1; return; }
+    if (!FORTRANNULLOBJECT(mctx)) {
+      PetscError(((PetscObject)*eps)->comm,__LINE__,"epsmonitorset_",__FILE__,__SDIR__,PETSC_ERR_ARG_WRONG,PETSC_ERROR_INITIAL,"Must provide PETSC_NULL_OBJECT as a context in the Fortran interface to EPSMonitorSet");
+      *ierr = 1;
+      return;
+    }
     *ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);
     if (*ierr) return;
     ctx->viewer = PETSC_NULL;

@@ -37,8 +37,11 @@ PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
   if (m==DS_MAT_T) sz = 3*ds->ld*sizeof(PetscScalar);
   else if (m==DS_MAT_D) sz = ds->ld*sizeof(PetscScalar);
   else sz = ds->ld*ds->ld*sizeof(PetscScalar);
-  if (ds->mat[m]) { ierr = PetscFree(ds->mat[m]);CHKERRQ(ierr); }
-  else { ierr = PetscLogObjectMemory(ds,sz);CHKERRQ(ierr); }
+  if (ds->mat[m]) {
+    ierr = PetscFree(ds->mat[m]);CHKERRQ(ierr);
+  } else {
+    ierr = PetscLogObjectMemory(ds,sz);CHKERRQ(ierr);
+  }
   ierr = PetscMalloc(sz,&ds->mat[m]);CHKERRQ(ierr); 
   ierr = PetscMemzero(ds->mat[m],sz);CHKERRQ(ierr); 
   PetscFunctionReturn(0);

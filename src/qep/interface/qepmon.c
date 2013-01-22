@@ -319,7 +319,7 @@ PetscErrorCode QEPMonitorLG(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eig
   PetscReal      x,y;
 
   PetscFunctionBegin;
-  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(((PetscObject)qep)->comm); }
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)qep)->comm);
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   if (!its) {
@@ -350,7 +350,7 @@ PetscErrorCode QEPMonitorLGAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *
   PetscInt       i,n = PetscMin(qep->nev,255);
 
   PetscFunctionBegin;
-  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(((PetscObject)qep)->comm); }
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)qep)->comm);
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   if (!its) {

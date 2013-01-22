@@ -104,7 +104,9 @@ PetscErrorCode QEPSolve(QEP qep)
   ierr = DSSetEigenvalueComparison(qep->ds,qep->which_func,qep->which_ctx);CHKERRQ(ierr);
 
   ierr = (*qep->ops->solve)(qep);CHKERRQ(ierr);
-  if (!islinear) { ierr = STPostSolve(qep->st);CHKERRQ(ierr); }
+  if (!islinear) {
+    ierr = STPostSolve(qep->st);CHKERRQ(ierr);
+  }
 
   if (!qep->reason) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 

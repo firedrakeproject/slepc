@@ -48,8 +48,11 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
 
   PetscFunctionBegin;
   for (j=k;j<m-1;j++) {
-    if (trans) { ierr = STApplyTranspose(eps->st,V[j],V[j+1]);CHKERRQ(ierr); }
-    else { ierr = STApply(eps->st,V[j],V[j+1]);CHKERRQ(ierr); }
+    if (trans) {
+      ierr = STApplyTranspose(eps->st,V[j],V[j+1]);CHKERRQ(ierr);
+    } else {
+      ierr = STApply(eps->st,V[j],V[j+1]);CHKERRQ(ierr);
+    }
     ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,PETSC_NULL,V,V[j+1],H+ldh*j,&norm,breakdown);CHKERRQ(ierr);
     H[j+1+ldh*j] = norm;
     if (*breakdown) {
@@ -60,8 +63,11 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
       ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
     }
   }
-  if (trans) { ierr = STApplyTranspose(eps->st,V[m-1],f);CHKERRQ(ierr); }
-  else { ierr = STApply(eps->st,V[m-1],f);CHKERRQ(ierr); }
+  if (trans) {
+    ierr = STApplyTranspose(eps->st,V[m-1],f);CHKERRQ(ierr);
+  } else {
+    ierr = STApply(eps->st,V[m-1],f);CHKERRQ(ierr);
+  }
   ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,PETSC_NULL,V,f,H+ldh*(m-1),beta,PETSC_NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -174,9 +180,7 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,Pe
   PetscFunctionBegin;
   if (m > 100) {
     ierr = PetscMalloc((eps->nds+m)*sizeof(PetscScalar),&hwork);CHKERRQ(ierr);
-  } else {
-    hwork = lhwork;
-  }
+  } else hwork = lhwork;
 
   for (j=k;j<m-1;j++) {
     ierr = STApply(eps->st,V[j],V[j+1]);CHKERRQ(ierr);

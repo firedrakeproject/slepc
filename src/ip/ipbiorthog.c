@@ -43,7 +43,9 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   PetscFunctionBegin;
   /* Don't allocate small arrays */
   if (n<=100) lhh = shh;
-  else { ierr = PetscMalloc(n*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
+  else {
+    ierr = PetscMalloc(n*sizeof(PetscScalar),&lhh);CHKERRQ(ierr);
+  }
   ierr = PetscMalloc(n*n*sizeof(PetscScalar),&vw);CHKERRQ(ierr);
   
   for (j=0;j<n;j++) {

@@ -196,7 +196,7 @@ PetscErrorCode MFNMonitorLG(MFN mfn,PetscInt its,PetscReal errest,void *monctx)
   PetscReal      x,y;
 
   PetscFunctionBegin;
-  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(((PetscObject)mfn)->comm); }
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)mfn)->comm);
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   if (!its) {

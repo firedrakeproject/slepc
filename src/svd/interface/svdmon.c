@@ -294,7 +294,7 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
   PetscReal      x,y,p;
 
   PetscFunctionBegin;
-  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(((PetscObject)svd)->comm); }
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)svd)->comm);
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDraw(viewer,1,&draw1);CHKERRQ(ierr);
@@ -340,7 +340,7 @@ PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
   PetscInt       i,n = PetscMin(svd->nsv,255);
 
   PetscFunctionBegin;
-  if (!viewer) { viewer = PETSC_VIEWER_DRAW_(((PetscObject)svd)->comm); }
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)svd)->comm);
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDraw(viewer,1,&draw1);CHKERRQ(ierr);

@@ -62,8 +62,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   PetscFunctionBegin;
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
-  }
-  else eps->ncv = eps->nev;
+  } else eps->ncv = eps->nev;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(2000,100*eps->n);
   if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
@@ -406,7 +405,9 @@ PetscErrorCode EPSSetFromOptions_Power(EPS eps)
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS Power Options");CHKERRQ(ierr);
   ierr = PetscOptionsEnum("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",EPSPowerShiftTypes,(PetscEnum)power->shift_type,(PetscEnum*)&shift,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = EPSPowerSetShiftType(eps,shift);CHKERRQ(ierr); }
+  if (flg) {
+    ierr = EPSPowerSetShiftType(eps,shift);CHKERRQ(ierr);
+  }
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
     ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
   }

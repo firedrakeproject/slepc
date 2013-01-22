@@ -43,8 +43,11 @@ int main(int argc, char **argv)
   ierr = PetscOptionsGetInt(PETSC_NULL,"-e",&e,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(PETSC_NULL,"-qtrans",&qtrans);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"V(:,%D:%D) = V*",s,e-1);CHKERRQ(ierr); 
-  if (qtrans) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Q(%D:%D,:)'",s,e-1);CHKERRQ(ierr); }
-  else { ierr = PetscPrintf(PETSC_COMM_WORLD,"Q(:,%D:%D)",s,e-1);CHKERRQ(ierr); }
+  if (qtrans) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Q(%D:%D,:)'",s,e-1);CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Q(:,%D:%D)",s,e-1);CHKERRQ(ierr);
+  }
   ierr = PetscPrintf(PETSC_COMM_WORLD," for random vectors of length %D (V has %D columns).\n",n,k);CHKERRQ(ierr); 
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
@@ -64,8 +67,12 @@ int main(int argc, char **argv)
   ierr = VecDuplicateVecs(t,k,&V);CHKERRQ(ierr);
 
   /* fill with random values */
-  for (i=0;i<k;i++) { ierr = VecSetRandom(V[i],rctx);CHKERRQ(ierr); }
-  for (i=0;i<k*k;i++) { ierr = PetscRandomGetValue(rctx,&Q[i]);CHKERRQ(ierr); }
+  for (i=0;i<k;i++) {
+    ierr = VecSetRandom(V[i],rctx);CHKERRQ(ierr);
+  }
+  for (i=0;i<k*k;i++) {
+    ierr = PetscRandomGetValue(rctx,&Q[i]);CHKERRQ(ierr);
+  }
 
   /* save a copy into Mat objects */
   ierr = MatCreateSeqDense(PETSC_COMM_WORLD,n,k,PETSC_NULL,&A);CHKERRQ(ierr);

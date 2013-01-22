@@ -45,13 +45,14 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
   if (svd->ncv) { /* ncv set */
     if (svd->ncv<svd->nsv) SETERRQ(((PetscObject)svd)->comm,1,"The value of ncv must be at least nsv"); 
-  }
-  else if (svd->mpd) { /* mpd set */
+  } else if (svd->mpd) { /* mpd set */
     svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
-  }
-  else { /* neither set: defaults depend on nsv being small or large */
+  } else { /* neither set: defaults depend on nsv being small or large */
     if (svd->nsv<500) svd->ncv = PetscMin(N,PetscMax(2*svd->nsv,10));
-    else { svd->mpd = 500; svd->ncv = PetscMin(N,svd->nsv+svd->mpd); }
+    else {
+      svd->mpd = 500;
+      svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
+    }
   }
   if (!svd->mpd) svd->mpd = svd->ncv;
   if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(((PetscObject)svd)->comm,1,"The value of ncv must not be larger than nev+mpd"); 

@@ -53,13 +53,14 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   PetscFunctionBegin;
   if (eps->ncv) { /* ncv set */
     if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
-  }
-  else if (eps->mpd) { /* mpd set */
+  } else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
-  }
-  else { /* neither set: defaults depend on nev being small or large */
+  } else { /* neither set: defaults depend on nev being small or large */
     if (eps->nev<500) eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15));
-    else { eps->mpd = 500; eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd); }
+    else {
+      eps->mpd = 500;
+      eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
+    }
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
@@ -105,7 +106,9 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
 
   PetscFunctionBegin;
   if (m<=100) lhh = shh;
-  else { ierr = PetscMalloc(m*sizeof(PetscScalar),&lhh);CHKERRQ(ierr); }
+  else {
+    ierr = PetscMalloc(m*sizeof(PetscScalar),&lhh);CHKERRQ(ierr);
+  }
   ierr = VecDuplicate(f,&u);CHKERRQ(ierr);
   ierr = VecDuplicate(f,&t);CHKERRQ(ierr);
 

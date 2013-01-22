@@ -208,7 +208,7 @@ PetscErrorCode SlepcDenseNorm(PetscScalar *A, PetscInt ldA, PetscInt _rA,
       norm = BLASnrm2_(&rA, &A[i*ldA], &one);
       norm = 1.0 / norm;
       BLASscal_(&rA, &norm, &A[i*ldA], &one);
-     }
+    }
   }
 
   ierr = PetscLogEventEnd(SLEPC_SlepcDenseNorm,0,0,0,0);CHKERRQ(ierr);

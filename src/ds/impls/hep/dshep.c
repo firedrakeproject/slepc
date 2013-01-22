@@ -790,7 +790,9 @@ PetscErrorCode DSFunction_EXP_HEP_DIAG(DS ds)
   n  = PetscBLASIntCast(ds->n);
   ierr = PetscMalloc(n*sizeof(PetscScalar),&eig);CHKERRQ(ierr);
   ierr = DSSolve(ds,eig,PETSC_NULL);CHKERRQ(ierr);
-  if (!ds->mat[DS_MAT_W]) { ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr); }
+  if (!ds->mat[DS_MAT_W]) {
+    ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
+  }
   W  = ds->mat[DS_MAT_W];
   Q  = ds->mat[DS_MAT_Q];
   F  = ds->mat[DS_MAT_F];

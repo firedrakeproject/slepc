@@ -432,8 +432,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec *v)
       ierr = VecPointwiseDivide(v[i],eps->V[i],eps->D);CHKERRQ(ierr);
       ierr = VecNormalize(v[i],PETSC_NULL);CHKERRQ(ierr);
     }
-  }
-  else {
+  } else {
     for (i=0;i<eps->nconv;i++) {
       ierr = VecCopy(eps->V[i],v[i]);CHKERRQ(ierr);
     }
@@ -647,7 +646,9 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
 #else
   if (eps->eigi[k] > 0) { /* first value of conjugate pair */
     ierr = VecCopy(eps->V[k],Vr);CHKERRQ(ierr);
-    if (Vi) { ierr = VecCopy(eps->V[k+1],Vi);CHKERRQ(ierr); }
+    if (Vi) {
+      ierr = VecCopy(eps->V[k+1],Vi);CHKERRQ(ierr);
+    }
   } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
     ierr = VecCopy(eps->V[k-1],Vr);CHKERRQ(ierr);
     if (Vi) { 
@@ -717,7 +718,9 @@ PetscErrorCode EPSGetEigenvectorLeft(EPS eps,PetscInt i,Vec Wr,Vec Wi)
 #else
   if (eps->eigi[k] > 0) { /* first value of conjugate pair */
     ierr = VecCopy(eps->W[k],Wr);CHKERRQ(ierr);
-    if (Wi) { ierr = VecCopy(eps->W[k+1],Wi);CHKERRQ(ierr); }
+    if (Wi) {
+      ierr = VecCopy(eps->W[k+1],Wi);CHKERRQ(ierr);
+    }
   } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
     ierr = VecCopy(eps->W[k-1],Wr);CHKERRQ(ierr);
     if (Wi) { 
@@ -1124,11 +1127,8 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps,PetscInt i,PetscReal *error)
     PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
     ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
-    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
-      *error =  norm / (PetscAbsScalar(kr) * er);
-    } else {
-      *error = norm / er;
-    }
+    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) *error = norm/(PetscAbsScalar(kr)*er);
+    else *error = norm / er;
 #if !defined(PETSC_USE_COMPLEX)
   } else {
     ierr = VecDuplicate(xi,&u);CHKERRQ(ierr);  

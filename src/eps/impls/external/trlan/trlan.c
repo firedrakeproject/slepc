@@ -40,8 +40,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   tr->maxlan = PetscBLASIntCast(PetscMax(7,eps->nev+PetscMin(eps->nev,6)));
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
-  }
-  else eps->ncv = tr->maxlan;
+  } else eps->ncv = tr->maxlan;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
   
@@ -54,8 +53,8 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   tr->restart = 0;
-  if (tr->maxlan+1-eps->ncv<=0) { tr->lwork = PetscBLASIntCast(tr->maxlan*(tr->maxlan+10)); }
-  else { tr->lwork = PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10)); }
+  if (tr->maxlan+1-eps->ncv<=0) tr->lwork = PetscBLASIntCast(tr->maxlan*(tr->maxlan+10));
+  else tr->lwork = PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10));
   ierr = PetscMalloc(tr->lwork*sizeof(PetscReal),&tr->work);CHKERRQ(ierr);
 
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }

@@ -131,8 +131,10 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   if (a!=0.0) {
     for (i=0;i<M1;i++) {
       ierr = MatGetRow(A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-      if (a!=1.0) { svals=buf; for (j=0;j<ncols;j++) svals[j] = vals[j]*a; }
-      else svals=(PetscScalar*)vals;
+      if (a!=1.0) {
+        svals=buf;
+        for (j=0;j<ncols;j++) svals[j] = vals[j]*a;
+      } else svals=(PetscScalar*)vals;
       ierr = MatSetValues(G,1,&i,ncols,cols,svals,INSERT_VALUES);CHKERRQ(ierr);
       ierr = MatRestoreRow(A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
     }
@@ -141,8 +143,10 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   if (b!=0.0) {
     for (i=0;i<M1;i++) {
       ierr = MatGetRow(B,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-      if (b!=1.0) { svals=buf; for (j=0;j<ncols;j++) svals[j] = vals[j]*b; }
-      else svals=(PetscScalar*)vals;
+      if (b!=1.0) {
+        svals=buf;
+        for (j=0;j<ncols;j++) svals[j] = vals[j]*b;
+      } else svals=(PetscScalar*)vals;
       for (j=0;j<ncols;j++) scols[j] = cols[j]+N1;
       ierr = MatSetValues(G,1,&i,ncols,scols,svals,INSERT_VALUES);CHKERRQ(ierr);
       ierr = MatRestoreRow(B,i,&ncols,&cols,&vals);CHKERRQ(ierr);
@@ -152,8 +156,10 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   if (c!=0.0) {
     for (i=0;i<M2;i++) {
       ierr = MatGetRow(C,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-      if (c!=1.0) { svals=buf; for (j=0;j<ncols;j++) svals[j] = vals[j]*c; }
-      else svals=(PetscScalar*)vals;
+      if (c!=1.0) {
+        svals=buf;
+        for (j=0;j<ncols;j++) svals[j] = vals[j]*c;
+      } else svals=(PetscScalar*)vals;
       j = i+M1;
       ierr = MatSetValues(G,1,&j,ncols,cols,svals,INSERT_VALUES);CHKERRQ(ierr);
       ierr = MatRestoreRow(C,i,&ncols,&cols,&vals);CHKERRQ(ierr);
@@ -163,8 +169,10 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   if (d!=0.0) {
     for (i=0;i<M2;i++) {
       ierr = MatGetRow(D,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-      if (d!=1.0) { svals=buf; for (j=0;j<ncols;j++) svals[j] = vals[j]*d; }
-      else svals=(PetscScalar*)vals;
+      if (d!=1.0) {
+        svals=buf;
+        for (j=0;j<ncols;j++) svals[j] = vals[j]*d;
+      } else svals=(PetscScalar*)vals;
       for (j=0;j<ncols;j++) scols[j] = cols[j]+N1;
       j = i+M1;
       ierr = MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES);CHKERRQ(ierr);
@@ -260,8 +268,10 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
     ierr = MatGetOwnershipRange(A,&start,PETSC_NULL);CHKERRQ(ierr);
     for (i=0;i<m1;i++) {
       ierr = MatGetRow(A,i+start,&ncols,&cols,&vals);CHKERRQ(ierr);
-      if (a!=1.0) { svals=buf; for (j=0;j<ncols;j++) svals[j] = vals[j]*a; }
-      else svals=(PetscScalar*)vals;
+      if (a!=1.0) {
+        svals=buf;
+        for (j=0;j<ncols;j++) svals[j] = vals[j]*a;
+      } else svals=(PetscScalar*)vals;
       for (j=0;j<ncols;j++) scols[j] = map1[cols[j]];
       j = gstart+i;
       ierr = MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES);CHKERRQ(ierr);
@@ -273,8 +283,10 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
     ierr = MatGetOwnershipRange(B,&start,PETSC_NULL);CHKERRQ(ierr);
     for (i=0;i<m1;i++) {
       ierr = MatGetRow(B,i+start,&ncols,&cols,&vals);CHKERRQ(ierr);
-      if (b!=1.0) { svals=buf; for (j=0;j<ncols;j++) svals[j] = vals[j]*b; }
-      else svals=(PetscScalar*)vals;
+      if (b!=1.0) {
+        svals=buf;
+        for (j=0;j<ncols;j++) svals[j] = vals[j]*b;
+      } else svals=(PetscScalar*)vals;
       for (j=0;j<ncols;j++) scols[j] = map2[cols[j]];
       j = gstart+i;
       ierr = MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES);CHKERRQ(ierr);
@@ -286,8 +298,10 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
     ierr = MatGetOwnershipRange(C,&start,PETSC_NULL);CHKERRQ(ierr);
     for (i=0;i<m2;i++) {
       ierr = MatGetRow(C,i+start,&ncols,&cols,&vals);CHKERRQ(ierr);
-      if (c!=1.0) { svals=buf; for (j=0;j<ncols;j++) svals[j] = vals[j]*c; }
-      else svals=(PetscScalar*)vals;
+      if (c!=1.0) {
+        svals=buf;
+        for (j=0;j<ncols;j++) svals[j] = vals[j]*c;
+      } else svals=(PetscScalar*)vals;
       for (j=0;j<ncols;j++) scols[j] = map1[cols[j]];
       j = gstart+m1+i;
       ierr = MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES);CHKERRQ(ierr);
@@ -299,8 +313,10 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
     ierr = MatGetOwnershipRange(D,&start,PETSC_NULL);CHKERRQ(ierr);
     for (i=0;i<m2;i++) {
       ierr = MatGetRow(D,i+start,&ncols,&cols,&vals);CHKERRQ(ierr);
-      if (d!=1.0) { svals=buf; for (j=0;j<ncols;j++) svals[j] = vals[j]*d; }
-      else svals=(PetscScalar*)vals;
+      if (d!=1.0) {
+        svals=buf;
+        for (j=0;j<ncols;j++) svals[j] = vals[j]*d;
+      } else svals=(PetscScalar*)vals;
       for (j=0;j<ncols;j++) scols[j] = map2[cols[j]];
       j = gstart+m1+i;
       ierr = MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES);CHKERRQ(ierr);
@@ -393,14 +409,12 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
   ierr = PetscObjectTypeCompare((PetscObject)A,MATMPIAIJ,&flg2);CHKERRQ(ierr);
   if (flg1 && flg2) {
     ierr = SlepcMatTile_MPIAIJ(a,A,b,B,c,C,d,D,*G);CHKERRQ(ierr);
-  }
-  else {
+  } else {
     ierr = PetscObjectTypeCompare((PetscObject)*G,MATSEQAIJ,&flg1);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)A,MATSEQAIJ,&flg2);CHKERRQ(ierr);
     if (flg1 && flg2) {
       ierr = SlepcMatTile_SeqAIJ(a,A,b,B,c,C,d,D,*G);CHKERRQ(ierr);
-    }
-    else SETERRQ(((PetscObject)A)->comm,PETSC_ERR_SUP,"Not implemented for this matrix type");
+    } else SETERRQ(((PetscObject)A)->comm,PETSC_ERR_SUP,"Not implemented for this matrix type");
   }
   ierr = MatAssemblyBegin(*G,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(*G,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
@@ -449,14 +463,18 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
   if (nv<=0 || nw<=0) PetscFunctionReturn(0);
   ierr = PetscObjectGetComm((PetscObject)V[0],&comm);CHKERRQ(ierr);
   ierr = PetscMalloc(nv*sizeof(PetscScalar),&vals);CHKERRQ(ierr);
-  if (B) { ierr = VecDuplicate(V[0],&w);CHKERRQ(ierr); }
+  if (B) {
+    ierr = VecDuplicate(V[0],&w);CHKERRQ(ierr);
+  }
   if (lev) *lev = 0.0;
   for (i=0;i<nw;i++) {
     if (B) {
-      if (W) { ierr = MatMultTranspose(B,W[i],w);CHKERRQ(ierr); }
-      else { ierr = MatMultTranspose(B,V[i],w);CHKERRQ(ierr); }
-    }
-    else {
+      if (W) {
+        ierr = MatMultTranspose(B,W[i],w);CHKERRQ(ierr);
+      } else {
+        ierr = MatMultTranspose(B,V[i],w);CHKERRQ(ierr);
+      }
+    } else {
       if (W) w = W[i];
       else w = V[i];
     }
@@ -474,7 +492,9 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
     if (!lev) { ierr = PetscPrintf(comm,"\n");CHKERRQ(ierr); }
   }
   ierr = PetscFree(vals);CHKERRQ(ierr);
-  if (B) { ierr = VecDestroy(&w);CHKERRQ(ierr); }
+  if (B) {
+    ierr = VecDestroy(&w);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -674,10 +694,8 @@ PetscErrorCode SlepcCompareSmallestPositiveReal(PetscScalar ar,PetscScalar ai,Pe
     if (a>b) *result = 1;
     else if (a<b) *result = -1;
     else *result = 0;
-  } else if (aisright && !bisright)
-    *result = -1; /* 'a' is on the right */
-  else
-    *result = 1;  /* 'b' is on the right */
+  } else if (aisright && !bisright) *result = -1; /* 'a' is on the right */
+  else *result = 1;  /* 'b' is on the right */
   PetscFunctionReturn(0);
 }
 

@@ -66,7 +66,9 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     }
 
     ierr = PetscOptionsBoolGroupBegin("-mfn_exp","matrix exponential","MFNSetFunction",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = MFNSetFunction(mfn,SLEPC_FUNCTION_EXP);CHKERRQ(ierr); }
+    if (flg) {
+      ierr = MFNSetFunction(mfn,SLEPC_FUNCTION_EXP);CHKERRQ(ierr);
+    }
 
     r = i = PETSC_IGNORE;
     ierr = PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,PETSC_NULL);CHKERRQ(ierr);

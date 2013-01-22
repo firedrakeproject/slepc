@@ -329,7 +329,8 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
     /* If the selected eigenvalue is complex, but the arithmetic is real... */
 #if !defined(PETSC_USE_COMPLEX)
     if (d->eigi[i] != 0.0) { 
-      if (i+2 <= max_size_D) s=2; else break;
+      if (i+2 <= max_size_D) s=2;
+      else break;
     } else
 #endif
       s=1;
@@ -451,9 +452,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Ve
         ierr = MatMult(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
         ierr = MatMult(data->d->B,x[i+1],auxV[1]);CHKERRQ(ierr);
         Bx = auxV;
-      } else {
-        Bx = &x[i];
-      }
+      } else Bx = &x[i];
 
       /* y_i   <- [ t_2i+1*A*x_i   - t_2i*Bx_i + ti_i*Bx_i+1;
          y_i+1      t_2i+1*A*x_i+1 - ti_i*Bx_i - t_2i*Bx_i+1  ] */
@@ -466,9 +465,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Ve
       if (data->d->B) {
         ierr = MatMult(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
         Bx = auxV;
-      } else {
-        Bx = &x[i];
-      }
+      } else Bx = &x[i];
       ierr = VecAXPBY(y[i],-data->theta[i*2],data->theta[i*2+1],Bx[0]);CHKERRQ(ierr);
     }
   }
@@ -498,9 +495,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,con
         ierr = MatMultTranspose(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
         ierr = MatMultTranspose(data->d->B,x[i+1],auxV[1]);CHKERRQ(ierr);
         Bx = auxV;
-      } else {
-        Bx = &x[i];
-      }
+      } else Bx = &x[i];
 
       /* y_i   <- [ t_2i+1*A*x_i   - t_2i*Bx_i - ti_i*Bx_i+1;
          y_i+1      t_2i+1*A*x_i+1 + ti_i*Bx_i - t_2i*Bx_i+1  ] */
@@ -513,9 +508,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,con
       if (data->d->B) {
         ierr = MatMultTranspose(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
         Bx = auxV;
-      } else {
-        Bx = &x[i];
-      }
+      } else Bx = &x[i];
       ierr = VecAXPBY(y[i],PetscConj(-data->theta[i*2]),PetscConj(data->theta[i*2+1]),Bx[0]);CHKERRQ(ierr);
     }
   }
@@ -1042,8 +1035,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d, PetscInt i_s,
       for (i=0;i<n;i++) {
         ierr = MatMult(d->B, v[i], Bx[i]);CHKERRQ(ierr);
       }
-    } else
-      Bx = v;
+    } else Bx = v;
   }
 
   /* Ax <- A*X(i) */

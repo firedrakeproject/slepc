@@ -333,7 +333,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
     *(Q+off) = 1;
     if (ds->compact) {
       wr[ds->l] = d[ds->l]/s[ds->l]; wi[ds->l] = 0.0;
-    }else{
+    } else {
       d[ds->l] = PetscRealPart(A[off]); s[ds->l] = PetscRealPart(B[off]);
       wr[ds->l] = d[ds->l]/s[ds->l]; wi[ds->l] = 0.0;  
     }

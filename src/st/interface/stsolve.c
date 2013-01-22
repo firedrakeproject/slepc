@@ -62,8 +62,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
     ierr = VecPointwiseDivide(st->wb,x,st->D);CHKERRQ(ierr);
     ierr = (*st->ops->apply)(st,st->wb,y);CHKERRQ(ierr);
     ierr = VecPointwiseMult(y,y,st->D);CHKERRQ(ierr);
-  }
-  else {
+  } else {
     ierr = (*st->ops->apply)(st,x,y);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(ST_Apply,st,x,y,0);CHKERRQ(ierr);
@@ -156,8 +155,7 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
     ierr = VecPointwiseMult(st->wb,x,st->D);CHKERRQ(ierr);
     ierr = (*st->ops->applytrans)(st,st->wb,y);CHKERRQ(ierr);
     ierr = VecPointwiseDivide(y,y,st->D);CHKERRQ(ierr);
-  }
-  else {
+  } else {
     ierr = (*st->ops->applytrans)(st,x,y);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
@@ -342,7 +340,9 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
     break;
   default:
     if (alpha == 0.0) {
-      if (!initial) { ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr); }
+      if (!initial) {
+        ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
+      }
       ierr = PetscObjectReference((PetscObject)st->A[t]);CHKERRQ(ierr);
       st->T[k] = st->A[t];
     } else {

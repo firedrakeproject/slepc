@@ -509,7 +509,12 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
           n_i_2 = n_i - 2;
           i_2 = PetscBLASIntCast(i+2);
           i_ = PetscBLASIntCast(i);
-          if (b11 < 0.0) { cr=-cr; sr=-sr; b11=-b11; b22=-b22; }
+          if (b11 < 0.0) {
+            cr  = -cr;
+            sr  = -sr;
+            b11 = -b11;
+            b22 = -b22;
+          }
           BLASrot_(&n_i,&S[ldS*i+i],&ldS_,&S[ldS*i+i+1],&ldS_,&cl,&sl);
           BLASrot_(&i_2,&S[ldS*i],&one,&S[ldS*(i+1)],&one,&cr,&sr);
           BLASrot_(&n_i_2,&T[ldT*(i+2)+i],&ldT_,&T[ldT*(i+2)+i+1],&ldT_,&cl,&sl);

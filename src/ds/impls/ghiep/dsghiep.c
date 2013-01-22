@@ -66,7 +66,7 @@ PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
     T[n-1] = PetscRealPart(A[n-1+(n-1)*ld]);
     S[n-1] = PetscRealPart(B[n-1+(n-1)*ld]);
     for (i=ds->l;i< ds->k;i++) T[2*ld+i] = PetscRealPart(A[ds->k+i*ld]); 
-  }else { /* switch from compact (arrow) to dense storage */
+  } else { /* switch from compact (arrow) to dense storage */
     ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = PetscMemzero(B,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<n-1;i++) {
@@ -554,7 +554,10 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
   PetscFunctionBegin;
   if (n<3) {
     if (n==1) Q[0]=1;
-    if (n==2) { Q[0] = Q[1+ldq] = 1; Q[1] = Q[ldq] = 0; }
+    if (n==2) {
+      Q[0] = Q[1+ldq] = 1;
+      Q[1] = Q[ldq] = 0;
+    }
     PetscFunctionReturn(0);
   }
   lda_ = PetscBLASIntCast(lda);
@@ -564,7 +567,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
   nwu = 0;
   if (!w || lw < nwall) {
     ierr = PetscMalloc(nwall*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  }else work = w;
+  } else work = w;
   ierr = PetscMalloc(n*sizeof(PetscReal),&ss);CHKERRQ(ierr); 
   ierr = PetscMalloc(n*sizeof(PetscInt),&perm);CHKERRQ(ierr);
   AA = work;
@@ -603,7 +606,13 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
     for (i=0;i<n;i++) {
       ss[i] = s[perm[i]];
     }
-    if (flip) { ii = &j; jj = &i;} else { ii = &i; jj = &j;}
+    if (flip) {
+      ii = &j;
+      jj = &i;
+    } else {
+      ii = &i;
+      jj = &j;
+    }
     for (i=0;i<n;i++)
       for (j=0;j<n;j++)
         A[i+j*lda] = AA[perm[*ii]+perm[*jj]*n];
@@ -673,7 +682,8 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
           n0++;ni++;n1--;
         }
       }
-      if (n0>0) n0--;else n1--;
+      if (n0>0) n0--;
+      else n1--;
     }
   }
 
@@ -731,7 +741,7 @@ static PetscErrorCode IndefOrthog(PetscReal *s, PetscScalar *y, PetscReal ss, Pe
     r /= ss;
     for (i=0;i<n;i++) x[i] -= r*y[i];
     h_ += r;
-  }else h_ = 0.0;
+  } else h_ = 0.0;
   if (h) *h = h_;
   PetscFunctionReturn(0);
 }
@@ -751,7 +761,7 @@ static PetscErrorCode IndefNorm(PetscReal *s,PetscScalar *x, PetscReal *norm,Pet
   norm_ = 0.0;
   for (i=0;i<n;i++) norm_ += PetscRealPart(x[i]*s[i]*x[i]);
   if (norm_<0) norm_ = -PetscSqrtReal(-norm_);
-  else {norm_ = PetscSqrtReal(norm_);}
+  else norm_ = PetscSqrtReal(norm_);
   for (i=0;i<n;i++)x[i] /= norm_;
   if (norm) *norm = norm_;
   PetscFunctionReturn(0);
@@ -818,7 +828,7 @@ static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds, DSMatType mat, PetscScal
           if (PetscAbsScalar(wr[j]-wr[i])<toldeg) {
             ierr = IndefOrthog(s+ds->l, X+j*ld+ds->l, ss[j],X+i*ld+ds->l, PETSC_NULL,n1);CHKERRQ(ierr);
           }
-        }else j++;
+        } else j++;
       }
       ierr = IndefNorm(s+ds->l,X+i*ld+ds->l,&d1,n1);CHKERRQ(ierr);
       ss[i] = (d1<0.0)?-1:1;
@@ -1104,7 +1114,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
           D[i+1] = ss2;
           T[i+1] = wr2;
           T[ld+i] = 0.0;
-        }else {
+        } else {
           B[i*ld+i] = ss1;
           A[i*ld+i] = wr1;
           B[(i+1)*ld+i+1] = ss2;

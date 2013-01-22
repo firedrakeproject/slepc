@@ -78,8 +78,7 @@ PetscErrorCode STBilinearMatMult_Cayley(Mat B,Vec x,Vec y)
     ierr = MatMult(st->A[0],x,y);CHKERRQ(ierr);
     ierr = MatMult(st->A[1],x,ctx->w2);CHKERRQ(ierr);
     ierr = VecAXPY(y,nu,ctx->w2);CHKERRQ(ierr);    
-  }
-  else {
+  } else {
     /* standard eigenproblem: y = (A + tI)x */
     ierr = MatMult(st->A[0],x,y);CHKERRQ(ierr);
     ierr = VecAXPY(y,nu,x);CHKERRQ(ierr);

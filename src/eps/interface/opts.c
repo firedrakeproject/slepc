@@ -98,7 +98,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
     if (!eps->balance) eps->balance = EPS_BALANCE_NONE;
     ierr = PetscOptionsEList("-eps_balance","Balancing method","EPSSetBalance",bal_list,4,bal_list[eps->balance-EPS_BALANCE_NONE],&i,&flg);CHKERRQ(ierr);
-    if (flg) { eps->balance = (EPSBalance)(i+EPS_BALANCE_NONE); }
+    if (flg) eps->balance = (EPSBalance)(i+EPS_BALANCE_NONE);
     r = j = PETSC_IGNORE;
     ierr = PetscOptionsInt("-eps_balance_its","Number of iterations in balancing","EPSSetBalance",eps->balance_its,&j,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-eps_balance_cutoff","Cutoff value in balancing","EPSSetBalance",eps->balance_cutoff,&r,PETSC_NULL);CHKERRQ(ierr);

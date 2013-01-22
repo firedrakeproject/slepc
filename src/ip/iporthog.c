@@ -69,8 +69,10 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,PetscInt n,Petsc
     /* merge comunications */
     ierr = IPMInnerProductBegin(ip,v,nds,defl,H);CHKERRQ(ierr); 
     if (which) { /* use select array */
-      for (j=0; j<n; j++) 
-        if (which[j]) { ierr = IPInnerProductBegin(ip,v,V[j],H+nds+j);CHKERRQ(ierr); }
+      for (j=0;j<n;j++) 
+        if (which[j]) {
+          ierr = IPInnerProductBegin(ip,v,V[j],H+nds+j);CHKERRQ(ierr);
+        }
     } else {
       ierr = IPMInnerProductBegin(ip,v,n,V,H+nds);CHKERRQ(ierr);
     }
@@ -80,8 +82,10 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,PetscInt n,Petsc
 
     ierr = IPMInnerProductEnd(ip,v,nds,defl,H);CHKERRQ(ierr); 
     if (which) { /* use select array */
-      for (j=0; j<n; j++) 
-        if (which[j]) { ierr = IPInnerProductEnd(ip,v,V[j],H+nds+j);CHKERRQ(ierr); }
+      for (j=0;j<n;j++) 
+        if (which[j]) {
+          ierr = IPInnerProductEnd(ip,v,V[j],H+nds+j);CHKERRQ(ierr);
+        }
     } else {
       ierr = IPMInnerProductEnd(ip,v,n,V,H+nds);CHKERRQ(ierr);
     }
@@ -93,8 +97,10 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,PetscInt n,Petsc
   /* q = v - V h */
   ierr = SlepcVecMAXPBY(v,1.0,-1.0,nds,H,defl);CHKERRQ(ierr);
   if (which) {
-    for (j=0; j<n; j++) 
-      if (which[j]) { ierr = VecAXPBY(v,-H[nds+j],1.0,V[j]);CHKERRQ(ierr); }
+    for (j=0;j<n;j++) 
+      if (which[j]) {
+        ierr = VecAXPBY(v,-H[nds+j],1.0,V[j]);CHKERRQ(ierr);
+      }
   } else {
     ierr = SlepcVecMAXPBY(v,1.0,-1.0,n,H+nds,V);CHKERRQ(ierr);
   }
@@ -136,8 +142,7 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
 
   PetscFunctionBegin;
   if (H) { 
-    for (i=0;i<n;i++) 
-      H[i] = 0; 
+    for (i=0;i<n;i++) H[i] = 0; 
   }
   
   switch (ip->orthog_ref) {
@@ -398,8 +403,11 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
   for (k=m; k<n; k++) {
 
     /* orthogonalize v_k with respect to v_0, ..., v_{k-1} */
-    if (R) { ierr = IPOrthogonalize(ip,0,PETSC_NULL,k,PETSC_NULL,V,V[k],&R[0+ldr*k],&norm,&lindep);CHKERRQ(ierr); }
-    else   { ierr = IPOrthogonalize(ip,0,PETSC_NULL,k,PETSC_NULL,V,V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); }
+    if (R) {
+      ierr = IPOrthogonalize(ip,0,PETSC_NULL,k,PETSC_NULL,V,V[k],&R[0+ldr*k],&norm,&lindep);CHKERRQ(ierr);
+    } else {
+      ierr = IPOrthogonalize(ip,0,PETSC_NULL,k,PETSC_NULL,V,V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);
+    }
 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
     if (norm==0.0 || lindep) { 

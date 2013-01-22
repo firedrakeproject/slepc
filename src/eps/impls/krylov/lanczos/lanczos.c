@@ -57,13 +57,14 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   PetscFunctionBegin;
   if (eps->ncv) { /* ncv set */
     if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
-  }
-  else if (eps->mpd) { /* mpd set */
+  } else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
-  }
-  else { /* neither set: defaults depend on nev being small or large */
+  } else { /* neither set: defaults depend on nev being small or large */
     if (eps->nev<500) eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15));
-    else { eps->mpd = 500; eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd); }
+    else {
+      eps->mpd = 500;
+      eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
+    }
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
@@ -277,7 +278,10 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
 
     /* Compute eigenvalues and eigenvectors Y of the tridiagonal block */
     n = j-k+1;
-    for (i=0;i<n;i++) { d[i] = alpha[i+k]; e[i] = beta[i+k]; }
+    for (i=0;i<n;i++) {
+      d[i] = alpha[i+k];
+      e[i] = beta[i+k];
+    }
     ierr = DenseTridiagonal(n,d,e,ritz,Y);CHKERRQ(ierr);
     
     /* Estimate ||A|| */
@@ -343,19 +347,15 @@ static void update_omega(PetscReal *omega,PetscReal *omega_old,PetscInt j,PetscR
   /* Update omega(1) using omega(0)==0. */
   omega_old[0]= beta[1]*omega[1] + (alpha[0]-alpha[j])*omega[0] - 
                 beta[j]*omega_old[0];
-  if (omega_old[0] > 0) 
-    omega_old[0] = binv*(omega_old[0] + T);
-  else
-    omega_old[0] = binv*(omega_old[0] - T);  
+  if (omega_old[0] > 0) omega_old[0] = binv*(omega_old[0] + T);
+  else omega_old[0] = binv*(omega_old[0] - T);  
   
   /* Update remaining components. */
   for (k=1;k<j-1;k++) {
     omega_old[k] = beta[k+1]*omega[k+1] + (alpha[k]-alpha[j])*omega[k] +
                    beta[k]*omega[k-1] - beta[j]*omega_old[k];
-    if (omega_old[k] > 0) 
-      omega_old[k] = binv*(omega_old[k] + T);       
-    else
-      omega_old[k] = binv*(omega_old[k] - T);       
+    if (omega_old[k] > 0) omega_old[k] = binv*(omega_old[k] + T);       
+    else omega_old[k] = binv*(omega_old[k] - T);       
   }
   omega_old[j-1] = binv*T;
   
@@ -582,7 +582,10 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
       } else {
         ierr = EPSDelayedArnoldi(eps,T,n,V,k,m,f,&betam,breakdown);CHKERRQ(ierr);
       }
-      for (i=k;i<n-1;i++) { alpha[i] = PetscRealPart(T[n*i+i]); beta[i] = PetscRealPart(T[n*i+i+1]); }
+      for (i=k;i<n-1;i++) {
+        alpha[i] = PetscRealPart(T[n*i+i]);
+        beta[i] = PetscRealPart(T[n*i+i+1]);
+      }
       alpha[n-1] = PetscRealPart(T[n*(n-1)+n-1]);
       beta[n-1] = betam;
       ierr = PetscFree(T);CHKERRQ(ierr);
@@ -646,11 +649,8 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     for (i=nconv;i<n;i++) {
       resnorm = beta*PetscAbsScalar(Y[n-1+i*ld]) + PETSC_MACHINE_EPSILON*anorm;
       ierr = (*eps->conv_func)(eps,ritz[i],eps->eigi[i],resnorm,&bnd[i],eps->conv_ctx);CHKERRQ(ierr);
-      if (bnd[i]<eps->tol) {
-        conv[i] = 'C';
-      } else {
-        conv[i] = 'N';
-      }
+      if (bnd[i]<eps->tol) conv[i] = 'C';
+      else conv[i] = 'N';
     }
     ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Y);CHKERRQ(ierr);
 
@@ -791,7 +791,9 @@ PetscErrorCode EPSSetFromOptions_Lanczos(EPS eps)
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS Lanczos Options");CHKERRQ(ierr);
   ierr = PetscOptionsEnum("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",EPSLanczosReorthogTypes,(PetscEnum)lanczos->reorthog,(PetscEnum*)&reorthog,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = EPSLanczosSetReorthog(eps,reorthog);CHKERRQ(ierr); }
+  if (flg) {
+    ierr = EPSLanczosSetReorthog(eps,reorthog);CHKERRQ(ierr);
+  }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

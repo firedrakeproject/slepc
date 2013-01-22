@@ -189,8 +189,8 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
-  if (nini>0) { ierr = VecDestroyVecs(nini,&I);CHKERRQ(ierr); }
-  if (ncon>0) { ierr = VecDestroyVecs(ncon,&C);CHKERRQ(ierr); }
+  ierr = VecDestroyVecs(nini,&I);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(ncon,&C);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }

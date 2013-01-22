@@ -60,7 +60,9 @@ int main(int argc, char **argv)
   ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
   ierr = MatGetVecs(B,PETSC_NULL,&t);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(t,k,&V);CHKERRQ(ierr);
-  for (i=0;i<k;i++) { ierr = VecSetRandom(V[i],rctx);CHKERRQ(ierr); }
+  for (i=0;i<k;i++) {
+    ierr = VecSetRandom(V[i],rctx);CHKERRQ(ierr);
+  }
 
   /* Create IP object */
   ierr = IPCreate(PETSC_COMM_WORLD,&ip);CHKERRQ(ierr);

@@ -167,7 +167,11 @@ void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,Pe
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)svdmonitorlgall_) {
     *ierr = SVDMonitorSet(*svd,SVDMonitorLGAll,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)svdmonitorconverged_) {
-    if (!FORTRANNULLOBJECT(mctx)) { PetscError(((PetscObject)*svd)->comm,__LINE__,"svdmonitorset_",__FILE__,__SDIR__,PETSC_ERR_ARG_WRONG,PETSC_ERROR_INITIAL,"Must provide PETSC_NULL_OBJECT as a context in the Fortran interface to SVDMonitorSet"); *ierr = 1; return; }
+    if (!FORTRANNULLOBJECT(mctx)) {
+      PetscError(((PetscObject)*svd)->comm,__LINE__,"svdmonitorset_",__FILE__,__SDIR__,PETSC_ERR_ARG_WRONG,PETSC_ERROR_INITIAL,"Must provide PETSC_NULL_OBJECT as a context in the Fortran interface to SVDMonitorSet");
+      *ierr = 1;
+      return;
+    }
     *ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);
     if (*ierr) return;
     ctx->viewer = PETSC_NULL;
