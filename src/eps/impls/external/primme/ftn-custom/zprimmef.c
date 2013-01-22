@@ -30,7 +30,7 @@
 
 EXTERN_C_BEGIN
 
-void PETSC_STDCALL epsprimmegetmethod_(EPS *eps,EPSPRIMMEMethod *method, PetscErrorCode *ierr)
+void PETSC_STDCALL epsprimmegetmethod_(EPS *eps,EPSPRIMMEMethod *method,PetscErrorCode *ierr)
 {
   *ierr = EPSPRIMMEGetMethod(*eps,method);
 }

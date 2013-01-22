@@ -61,7 +61,7 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,PetscInt n,Petsc
   PetscReal      sum;
 
   PetscFunctionBegin;
-  /* h = W^* v ; alpha = (v , v) */
+  /* h = W^* v ; alpha = (v, v) */
   if (!nds && !which && !onorm && !norm) { 
     /* use simpler function */ 
     ierr = IPMInnerProduct(ip,v,n,V,H);CHKERRQ(ierr);

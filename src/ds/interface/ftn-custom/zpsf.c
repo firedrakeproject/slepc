@@ -45,7 +45,7 @@ void PETSC_STDCALL dscreate_(MPI_Fint *comm,DS *newds,PetscErrorCode *ierr)
   *ierr = DSCreate(MPI_Comm_f2c(*(comm)),newds);
 }
 
-void PETSC_STDCALL dsdestroy_(DS *ds, PetscErrorCode *ierr)
+void PETSC_STDCALL dsdestroy_(DS *ds,PetscErrorCode *ierr)
 {
   *ierr = DSDestroy(ds);
 }
@@ -78,7 +78,7 @@ void PETSC_STDCALL dsgetoptionsprefix_(DS *ds,CHAR prefix PETSC_MIXED_LEN(len),P
   *ierr = PetscStrncpy(prefix,tname,len);
 }
 
-void PETSC_STDCALL dsview_(DS *ds,PetscViewer *viewer, PetscErrorCode *ierr)
+void PETSC_STDCALL dsview_(DS *ds,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);

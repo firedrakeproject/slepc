@@ -40,7 +40,7 @@ PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscR
   PetscScalar    alpha;
 
   PetscFunctionBegin;
-  /* h = [defl V]^* Bv ; alpha = (Bv , v) */
+  /* h = [defl V]^* Bv ; alpha = (Bv, v) */
   ierr = VecsMultIa(H,0,nds,defl,0,nds,&Bv,0,1);CHKERRQ(ierr);
   j = nds;
   if (!which) {
@@ -241,7 +241,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
 
 .seealso: IPSetOrthogonalization(), IPBiOrthogonalize()
 @*/
-PetscErrorCode IPBOrthogonalize(IP ip,PetscInt nds,Vec *defl, Vec *BDS,PetscReal *BDSnorms,PetscInt n,PetscBool *which,Vec *V,Vec *BV,PetscReal *BVnorms,Vec v,Vec Bv,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
+PetscErrorCode IPBOrthogonalize(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscReal *BDSnorms,PetscInt n,PetscBool *which,Vec *V,Vec *BV,PetscReal *BVnorms,Vec v,Vec Bv,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
   PetscErrorCode ierr;
   PetscScalar    alpha;

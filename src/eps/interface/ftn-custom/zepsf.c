@@ -140,12 +140,12 @@ static PetscErrorCode ourdestroy(void** ctx)
 
 EXTERN_C_BEGIN
 
-void PETSC_STDCALL epsdestroy_(EPS *eps, PetscErrorCode *ierr)
+void PETSC_STDCALL epsdestroy_(EPS *eps,PetscErrorCode *ierr)
 {
   *ierr = EPSDestroy(eps);
 }
 
-void PETSC_STDCALL epsview_(EPS *eps,PetscViewer *viewer, PetscErrorCode *ierr)
+void PETSC_STDCALL epsview_(EPS *eps,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);

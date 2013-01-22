@@ -25,7 +25,7 @@ static char help[] = "Test IPPseudoOrthogonalize.\n\n";
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
-int main(int argc, char **argv)
+int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   Mat            B;  
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
     ierr = MatMultTranspose(B,V[i],t);CHKERRQ(ierr);
     ierr = VecMDot(t,k,V,vals);CHKERRQ(ierr);
     for (j=0;j<k;j++) {
-      lev = PetscMax(lev, PetscAbsScalar((j==i)? (vals[j]-omega[j]): vals[j]));
+      lev = PetscMax(lev,PetscAbsScalar((j==i)? (vals[j]-omega[j]): vals[j]));
     }
   }
   ierr = PetscFree(vals);CHKERRQ(ierr);

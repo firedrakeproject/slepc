@@ -51,7 +51,7 @@ int main(int argc,char **argv)
   PetscInt       N=30,Istart,Iend,i,col[5],nconv1,nconv2;
   PetscScalar    value[] = { -1, 1, 1, 1, 1 };
   PetscReal      sigma_1,sigma_n;
-  char           svdtype[30] = "cross", epstype[30] = "";
+  char           svdtype[30] = "cross",epstype[30] = "";
   PetscBool      flg;
   EPS            eps;
   PetscErrorCode ierr;

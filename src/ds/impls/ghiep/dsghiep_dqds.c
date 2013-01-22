@@ -471,7 +471,7 @@ static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscRe
 
 #undef __FUNCT__
 #define __FUNCT__ "DSGHIEP_Eigen3DQDS"
-static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *c, PetscScalar *wr, PetscScalar *wi,PetscReal *w,PetscInt nw)
+static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *c,PetscScalar *wr,PetscScalar *wi,PetscReal *w,PetscInt nw)
 {
   PetscInt       totalIt=0;       /* Total Number of Iterations  */
   PetscInt       totalFail=0;     /* Total number of failures */
@@ -858,7 +858,7 @@ PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = DSGHIEPPseudoOrthogInverseIteration(ds,wr,wi);CHKERRQ(ierr);
   
   /* Recover eigenvalues from diagonal */
-  ierr = DSGHIEPComplexEigs(ds, 0, ds->l, wr, wi);CHKERRQ(ierr);
+  ierr = DSGHIEPComplexEigs(ds,0,ds->l,wr,wi);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   if (wi) {
     for (i=ds->l;i<ds->n;i++) wi[i] = 0.0;

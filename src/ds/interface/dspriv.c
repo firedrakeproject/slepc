@@ -24,7 +24,7 @@
 #include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode SlepcDenseMatProd(PetscScalar *C, PetscInt _ldC, PetscScalar b, PetscScalar a, const PetscScalar *A, PetscInt _ldA, PetscInt rA, PetscInt cA, PetscBool At, const PetscScalar *B, PetscInt _ldB, PetscInt rB, PetscInt cB, PetscBool Bt);
+PetscErrorCode SlepcDenseMatProd(PetscScalar *C,PetscInt _ldC,PetscScalar b,PetscScalar a,const PetscScalar *A,PetscInt _ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,PetscInt _ldB,PetscInt rB,PetscInt cB,PetscBool Bt);
 
 #undef __FUNCT__  
 #define __FUNCT__ "DSAllocateMat_Private"
@@ -487,7 +487,7 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
       /* nr_o <- mynorm(A[i]'*m) */
       ierr = SlepcDenseMatProd(&nr0,1,0.0,1.0,&A[ld*i],ld,n,1,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
       nr = PetscSign(PetscRealPart(nr0))*PetscSqrtReal(PetscAbsScalar(nr0));
-      if (PetscAbs(nr) < PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1, "Linear dependency detected");
+      if (PetscAbs(nr) < PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1,"Linear dependency detected");
       if (PetscAbs(nr) > 0.7*PetscAbs(nr_o)) break;
       nr_o = nr;
     }

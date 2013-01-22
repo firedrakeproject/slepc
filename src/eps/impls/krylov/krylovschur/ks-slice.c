@@ -44,7 +44,7 @@
 */
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreateShift"
-static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val, shift neighb0,shift neighb1)
+static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,shift neighb0,shift neighb1)
 {
   PetscErrorCode   ierr;
   shift            s,*pending2;
@@ -98,9 +98,9 @@ static PetscErrorCode EPSExtractShift(EPS eps)
   if (sr->nPend > 0) {
     sr->sPrev = sr->sPres;
     sr->sPres = sr->pending[--sr->nPend];
-    ierr = STSetShift(eps->st, sr->sPres->value);CHKERRQ(ierr);
-    ierr = STGetKSP(eps->st, &ksp);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp, &pc);CHKERRQ(ierr);
+    ierr = STSetShift(eps->st,sr->sPres->value);CHKERRQ(ierr);
+    ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     ierr = MatGetInertia(F,&iner,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
     sr->sPres->inertia = iner;
@@ -639,8 +639,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   sr->maxPend = 100;/* Initial size */
   ierr = PetscMalloc((sr->maxPend)*sizeof(shift),&sr->pending);CHKERRQ(ierr);
   if (sr->hasEnd) {
-    ierr = STGetKSP(eps->st, &ksp);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp, &pc);CHKERRQ(ierr);
+    ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     /* Not looking for values in b (just inertia).*/
     ierr = MatGetInertia(F,&sr->inertia1,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);

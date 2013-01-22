@@ -115,12 +115,12 @@ static PetscErrorCode ourdestroy(void** ctx)
 
 EXTERN_C_BEGIN
 
-void PETSC_STDCALL svddestroy_(SVD *svd, PetscErrorCode *ierr)
+void PETSC_STDCALL svddestroy_(SVD *svd,PetscErrorCode *ierr)
 {
   *ierr = SVDDestroy(svd);
 }
 
-void PETSC_STDCALL svdview_(SVD *svd,PetscViewer *viewer, PetscErrorCode *ierr)
+void PETSC_STDCALL svdview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
@@ -190,12 +190,12 @@ void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,Pe
   }
 }
 
-void PETSC_STDCALL svdgettransposemode_(SVD *svd,SVDTransposeMode *mode, PetscErrorCode *ierr)
+void PETSC_STDCALL svdgettransposemode_(SVD *svd,SVDTransposeMode *mode,PetscErrorCode *ierr)
 {
   *ierr = SVDGetTransposeMode(*svd,mode);
 }
 
-void PETSC_STDCALL svdgetwhichsingulartriplets_(SVD *svd,SVDWhich *which, PetscErrorCode *ierr)
+void PETSC_STDCALL svdgetwhichsingulartriplets_(SVD *svd,SVDWhich *which,PetscErrorCode *ierr)
 {
   *ierr = SVDGetWhichSingularTriplets(*svd,which);
 }

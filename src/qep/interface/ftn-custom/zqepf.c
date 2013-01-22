@@ -116,12 +116,12 @@ static PetscErrorCode ourdestroy(void** ctx)
 
 EXTERN_C_BEGIN
 
-void PETSC_STDCALL qepdestroy_(QEP *qep, PetscErrorCode *ierr)
+void PETSC_STDCALL qepdestroy_(QEP *qep,PetscErrorCode *ierr)
 {
   *ierr = QEPDestroy(qep);
 }
 
-void PETSC_STDCALL qepview_(QEP *qep,PetscViewer *viewer, PetscErrorCode *ierr)
+void PETSC_STDCALL qepview_(QEP *qep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);

@@ -552,7 +552,7 @@ EXTERN_C_END
 
 .seealso: EPSPRIMMESetMethod(), EPSPRIMMEMethod
 @*/
-PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method)
+PetscErrorCode EPSPRIMMEGetMethod(EPS eps,EPSPRIMMEMethod *method)
 {
   PetscErrorCode ierr;
 

@@ -50,7 +50,7 @@ static PetscErrorCode MyShellMatCreate(Mat *A,Mat *M)
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Mat            A, S;        /* problem matrix */
+  Mat            A,S;         /* problem matrix */
   EPS            eps;         /* eigenproblem solver context */
   EPSType        type;
   PetscScalar    value[3];

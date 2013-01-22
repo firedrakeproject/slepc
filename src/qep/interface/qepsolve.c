@@ -24,7 +24,7 @@
 #include <slepc-private/qepimpl.h>       /*I "slepcqep.h" I*/
 
 typedef struct {
-  PetscErrorCode (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar, PetscInt*,void*);
+  PetscErrorCode (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   void *which_ctx;
   ST st;
 } QEPSortForSTData;

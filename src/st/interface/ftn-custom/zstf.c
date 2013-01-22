@@ -69,7 +69,7 @@ void PETSC_STDCALL stcreate_(MPI_Fint *comm,ST *newst,PetscErrorCode *ierr)
   *ierr = STCreate(MPI_Comm_f2c(*(comm)),newst);
 }
 
-void PETSC_STDCALL stdestroy_(ST *st, PetscErrorCode *ierr)
+void PETSC_STDCALL stdestroy_(ST *st,PetscErrorCode *ierr)
 {
   *ierr = STDestroy(st);
 }
@@ -103,7 +103,7 @@ void PETSC_STDCALL stgetoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),
   *ierr = PetscStrncpy(prefix,tname,len);
 }
 
-void PETSC_STDCALL stview_(ST *st,PetscViewer *viewer, PetscErrorCode *ierr)
+void PETSC_STDCALL stview_(ST *st,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);

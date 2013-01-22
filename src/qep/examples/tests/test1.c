@@ -37,7 +37,7 @@ int main(int argc,char **argv)
   QEPType        type;
   PetscInt       N,n=10,m,Istart,Iend,II,nev,maxit,i,j;
   PetscBool      flag,isgd2;
-  char           qeptype[30] = "linear", epstype[30] = "";
+  char           qeptype[30] = "linear",epstype[30] = "";
   EPS            eps;
   ST             st;
   KSP            ksp;

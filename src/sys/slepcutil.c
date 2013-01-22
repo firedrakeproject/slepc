@@ -480,7 +480,7 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
     }
     ierr = VecMDot(w,nv,V,vals);CHKERRQ(ierr);
     for (j=0;j<nv;j++) {
-      if (lev) *lev = PetscMax(*lev, PetscAbsScalar((j==i)? (vals[j]-1.0): vals[j]));
+      if (lev) *lev = PetscMax(*lev,PetscAbsScalar((j==i)? (vals[j]-1.0): vals[j]));
       else { 
 #if !defined(PETSC_USE_COMPLEX)
         ierr = PetscPrintf(comm," %12G  ",vals[j]);CHKERRQ(ierr); 

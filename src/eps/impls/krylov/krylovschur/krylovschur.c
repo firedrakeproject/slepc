@@ -80,7 +80,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   PetscErrorCode  ierr;
   PetscBool       issinv;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  enum { EPS_KS_DEFAULT, EPS_KS_SYMM, EPS_KS_SLICE, EPS_KS_INDEF } variant;
+  enum { EPS_KS_DEFAULT,EPS_KS_SYMM,EPS_KS_SLICE,EPS_KS_INDEF } variant;
 
   PetscFunctionBegin;
   /* spectrum slicing requires special treatment of default values */

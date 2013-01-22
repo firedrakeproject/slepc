@@ -223,7 +223,7 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
     b[0] = s1; b[1] = 0.0; b[2] = 0.0; b[3] = s2;
     ep = LAPACKlamch_("S");
     /* Compute eigenvalues of the block */
-    LAPACKlag2_(M, &two, b, &two, &ep, &scal1, &scal2, &wr1, &wr2, &wi);
+    LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi);
     if (wi==0.0) { /* Real eigenvalues */
       SETERRQ(PETSC_COMM_SELF,1,"Real block in DSVectors_GHIEP");
     } else { /* Complex eigenvalues */
@@ -316,7 +316,7 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
   Extract the eigenvalues contained in the block-diagonal of the indefinite problem.
   Only the index range n0..n1 is processed.
 */
-PetscErrorCode DSGHIEPComplexEigs(DS ds, PetscInt n0, PetscInt n1, PetscScalar *wr, PetscScalar *wi)
+PetscErrorCode DSGHIEPComplexEigs(DS ds,PetscInt n0,PetscInt n1,PetscScalar *wr,PetscScalar *wi)
 {
   PetscInt     k,ld;
   PetscBLASInt two=2;
@@ -358,7 +358,7 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds, PetscInt n0, PetscInt n1, PetscScalar *
       b[0] = s1; b[1] = 0.0; b[2] = 0.0; b[3] = s2;
       ep = LAPACKlamch_("S");
       /* Compute eigenvalues of the block */
-      LAPACKlag2_(M, &two, b, &two, &ep, &scal1, &scal2, &wr1, &wr2, &wi1);
+      LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi1);
       if (scal1<ep) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
       wr[k] = wr1/scal1;
       if (wi1==0.0) { /* Real eigenvalues */
@@ -501,7 +501,7 @@ static PetscErrorCode HRGen(PetscReal x1,PetscReal x2,PetscInt *type,PetscReal *
            |c  s|
     [x1 x2]|s  c| 
 */
-PetscErrorCode HRApply(PetscInt n, PetscScalar *x1,PetscInt inc1, PetscScalar *x2, PetscInt inc2,PetscReal c, PetscReal s)
+PetscErrorCode HRApply(PetscInt n,PetscScalar *x1,PetscInt inc1,PetscScalar *x2,PetscInt inc2,PetscReal c,PetscReal s)
 {
   PetscInt    i;
   PetscReal   t;
@@ -627,7 +627,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
       m = PetscBLASIntCast(n-j-1);
       /* Forming and applying reflectors */
       if (n0 > 1) {
-        LAPACKlarfg_(&n0, A+ni-n0+j*lda, A+ni-n0+j*lda+1,&inc,&tau);
+        LAPACKlarfg_(&n0,A+ni-n0+j*lda,A+ni-n0+j*lda+1,&inc,&tau);
         /* Apply reflector */
         if (PetscAbsScalar(tau) != 0.0) {
           t=*(A+ni-n0+j*lda);  *(A+ni-n0+j*lda)=1.0;
@@ -643,7 +643,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
         }
       }
       if (n1 > 1) {
-        LAPACKlarfg_(&n1, A+n-n1+j*lda, A+n-n1+j*lda+1,&inc,&tau);
+        LAPACKlarfg_(&n1,A+n-n1+j*lda,A+n-n1+j*lda+1,&inc,&tau);
         /* Apply reflector */
         if (PetscAbsScalar(tau) != 0.0) {
           t=*(A+n-n1+j*lda);  *(A+n-n1+j*lda)=1.0;
@@ -672,11 +672,11 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
         A[ni-n0+j*lda] = r; A[n-n1+j*lda] = 0.0;
         A[j+(ni-n0)*lda] = r; A[j+(n-n1)*lda] = 0.0;
         /* Apply to A */
-        ierr = HRApply(m, A+j+1+(ni-n0)*lda,1, A+j+1+(n-n1)*lda,1, cs, -sn);CHKERRQ(ierr);
-        ierr = HRApply(m, A+ni-n0+(j+1)*lda,lda, A+n-n1+(j+1)*lda,lda, cs, -sn);CHKERRQ(ierr);
+        ierr = HRApply(m,A+j+1+(ni-n0)*lda,1,A+j+1+(n-n1)*lda,1,cs,-sn);CHKERRQ(ierr);
+        ierr = HRApply(m,A+ni-n0+(j+1)*lda,lda,A+n-n1+(j+1)*lda,lda,cs,-sn);CHKERRQ(ierr);
         
         /* Update Q */
-        ierr = HRApply(n, Q+(ni-n0)*ldq,1, Q+(n-n1)*ldq,1, cs, -sn);CHKERRQ(ierr);
+        ierr = HRApply(n,Q+(ni-n0)*ldq,1,Q+(n-n1)*ldq,1,cs,-sn);CHKERRQ(ierr);
         if (type==2) {
           ss[ni-n0] = -ss[ni-n0]; ss[n-n1] = -ss[n-n1];
           n0++;ni++;n1--;
@@ -724,7 +724,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
   compute x = x - y*ss^{-1}*y^T*s*x where ss=y^T*s*y
   s diagonal (signature matrix)
 */
-static PetscErrorCode IndefOrthog(PetscReal *s, PetscScalar *y, PetscReal ss, PetscScalar *x, PetscScalar *h,PetscInt n)
+static PetscErrorCode IndefOrthog(PetscReal *s,PetscScalar *y,PetscReal ss,PetscScalar *x,PetscScalar *h,PetscInt n)
 {
   PetscInt    i;
   PetscScalar h_,r;
@@ -751,7 +751,7 @@ static PetscErrorCode IndefOrthog(PetscReal *s, PetscScalar *y, PetscReal ss, Pe
 /* 
    normalization with a indefinite norm
 */
-static PetscErrorCode IndefNorm(PetscReal *s,PetscScalar *x, PetscReal *norm,PetscInt n)
+static PetscErrorCode IndefNorm(PetscReal *s,PetscScalar *x,PetscReal *norm,PetscInt n)
 {
   PetscInt  i;
   PetscReal norm_;
@@ -769,7 +769,7 @@ static PetscErrorCode IndefNorm(PetscReal *s,PetscScalar *x, PetscReal *norm,Pet
 
 #undef __FUNCT__
 #define __FUNCT__ "DSEigenVectorsPseudoOrthog"
-static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds, DSMatType mat, PetscScalar *wr, PetscScalar *wi,PetscBool accum)
+static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds,DSMatType mat,PetscScalar *wr,PetscScalar *wi,PetscBool accum)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,k,off;
@@ -826,7 +826,7 @@ static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds, DSMatType mat, PetscScal
          /* s-orthogonalization with close eigenvalues */
         if (vj==0.0) {
           if (PetscAbsScalar(wr[j]-wr[i])<toldeg) {
-            ierr = IndefOrthog(s+ds->l, X+j*ld+ds->l, ss[j],X+i*ld+ds->l, PETSC_NULL,n1);CHKERRQ(ierr);
+            ierr = IndefOrthog(s+ds->l,X+j*ld+ds->l,ss[j],X+i*ld+ds->l,PETSC_NULL,n1);CHKERRQ(ierr);
           }
         } else j++;
       }
@@ -872,7 +872,7 @@ static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds, DSMatType mat, PetscScal
       }
       ierr = IndefNorm(s+ds->l,X+i*ld+ds->l,&d1,n1);CHKERRQ(ierr);
       ss[i] = (d1<0)?-1:1;
-      ierr = IndefOrthog(s+ds->l, X+i*ld+ds->l, ss[i],X+(i+1)*ld+ds->l, &h,n1);CHKERRQ(ierr);
+      ierr = IndefOrthog(s+ds->l,X+i*ld+ds->l,ss[i],X+(i+1)*ld+ds->l,&h,n1);CHKERRQ(ierr);
       ierr = IndefNorm(s+ds->l,X+(i+1)*ld+ds->l,&d2,n1);CHKERRQ(ierr);
       ss[i+1] = (d2<0)?-1:1;
       d[i] = (PetscRealPart(wr[i]-vi*h/d1))*ss[i];
@@ -962,7 +962,7 @@ PetscErrorCode DSGHIEPPseudoOrthogInverseIteration(DS ds,PetscScalar *wr,PetscSc
     SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Convergence error in hsein routine %d",i);
   }
 
-  ierr = DSEigenVectorsPseudoOrthog(ds, DS_MAT_X, wr, wi,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = DSEigenVectorsPseudoOrthog(ds,DS_MAT_X,wr,wi,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -1074,7 +1074,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
         b[0] = s1; b[1] = 0.0; b[2] = 0.0; b[3] = s2;
         ep = LAPACKlamch_("S");
         /* Compute eigenvalues of the block */
-        LAPACKlag2_(M, &two, b, &two,&ep , &scal1, &scal2, &wr1, &wr2, &wi);
+        LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi);
         if (wi==0.0) { /* Real eigenvalues */
           isreal = PETSC_TRUE;
           if (scal1<ep||scal2<ep) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
@@ -1217,7 +1217,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = DSGHIEPPseudoOrthogInverseIteration(ds,wr,wi);CHKERRQ(ierr);
 
   /* Recover eigenvalues from diagonal */
-  ierr = DSGHIEPComplexEigs(ds, 0, ds->l, wr, wi);CHKERRQ(ierr);
+  ierr = DSGHIEPComplexEigs(ds,0,ds->l,wr,wi);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   if (wi) {
     for (i=ds->l;i<ds->n;i++) wi[i] = 0.0;
@@ -1328,13 +1328,13 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",&info);
 
   /* Compute real s-orthonormal basis */
-  ierr = DSEigenVectorsPseudoOrthog(ds, DS_MAT_Q, wr, wi,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = DSEigenVectorsPseudoOrthog(ds,DS_MAT_Q,wr,wi,PETSC_FALSE);CHKERRQ(ierr);
 
   /* Undo from diagonal the blocks whith real eigenvalues*/
   ierr = DSGHIEPRealBlocks(ds);CHKERRQ(ierr);
 
   /* Recover eigenvalues from diagonal */
-  ierr = DSGHIEPComplexEigs(ds, 0, ds->l, wr, wi);CHKERRQ(ierr);
+  ierr = DSGHIEPComplexEigs(ds,0,ds->l,wr,wi);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   if (wi) {
     for (i=ds->l;i<ds->n;i++) wi[i] = 0.0;

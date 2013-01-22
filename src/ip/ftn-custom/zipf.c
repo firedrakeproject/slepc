@@ -49,7 +49,7 @@ void PETSC_STDCALL ipcreate_(MPI_Fint *comm,IP *newip,PetscErrorCode *ierr)
   *ierr = IPCreate(MPI_Comm_f2c(*(comm)),newip);
 }
 
-void PETSC_STDCALL ipdestroy_(IP *ip, PetscErrorCode *ierr)
+void PETSC_STDCALL ipdestroy_(IP *ip,PetscErrorCode *ierr)
 {
   *ierr = IPDestroy(ip);
 }
@@ -87,7 +87,7 @@ void PETSC_STDCALL ipgetorthogonalization_(IP *ip,IPOrthogType *type,IPOrthogRef
   *ierr = IPGetOrthogonalization(*ip,type,refinement,eta);
 }
 
-void PETSC_STDCALL ipview_(IP *ip,PetscViewer *viewer, PetscErrorCode *ierr)
+void PETSC_STDCALL ipview_(IP *ip,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);

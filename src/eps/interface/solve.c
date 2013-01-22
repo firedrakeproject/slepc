@@ -24,7 +24,7 @@
 #include <slepc-private/epsimpl.h>   /*I "slepceps.h" I*/
 
 typedef struct {
-  PetscErrorCode (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar, PetscInt*,void*);
+  PetscErrorCode (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   void *which_ctx;
   ST st;
 } EPSSortForSTData;

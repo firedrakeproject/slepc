@@ -349,7 +349,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
    ierr = DSGHIEPRealBlocks(ds);CHKERRQ(ierr);
 
   /* Recover eigenvalues from diagonal */
-  ierr = DSGHIEPComplexEigs(ds, 0, ds->n, wr, wi);CHKERRQ(ierr);
+  ierr = DSGHIEPComplexEigs(ds,0,ds->n,wr,wi);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   if (wi) {
     for (i=ds->l;i<ds->n;i++) wi[i] = 0.0;
