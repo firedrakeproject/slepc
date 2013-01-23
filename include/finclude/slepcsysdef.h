@@ -21,32 +21,10 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 
-#include "petscconf.h"
-#include "finclude/petscdef.h"
-#include "slepcversion.h"
-#include "finclude/slepcsysdef.h"
+#if !defined(__SLEPCSYS_H)
+#define __SLEPCSYS_H
 
-! Default tolerance for the different solvers, depending on the precision
+#define SlepcFunction PetscEnum
 
-      PetscReal SLEPC_DEFAULT_TOL
-#if defined(PETSC_USE_REAL_SINGLE)
-      parameter(SLEPC_DEFAULT_TOL     =  1e-6)
-#elif defined(PETSC_USE_REAL_DOUBLE)
-      parameter(SLEPC_DEFAULT_TOL     =  1e-8)
-#elif defined(PETSC_USE_REAL___FLOAT128)
-      parameter(SLEPC_DEFAULT_TOL     = 1e-16)
-#else
-      parameter(SLEPC_DEFAULT_TOL     =  1e-7)
 #endif
-
-!  SlepcFunction - Used to specify a mathematical function
-
-      PetscEnum SLEPC_FUNCTION_NONE
-      PetscEnum SLEPC_FUNCTION_EXP
-      PetscEnum SLEPC_FUNCTION_LAST
-
-      parameter (SLEPC_FUNCTION_NONE  = 0)
-      parameter (SLEPC_FUNCTION_EXP   = 1)
-      parameter (SLEPC_FUNCTION_LAST  = 2)
-
 

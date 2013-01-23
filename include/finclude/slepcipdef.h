@@ -1,7 +1,6 @@
 !
 !  Include file for Fortran use of the IP object in SLEPc
 !
-!
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
 !  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain

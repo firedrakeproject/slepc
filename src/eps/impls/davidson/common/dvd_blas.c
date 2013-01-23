@@ -697,7 +697,8 @@ PetscErrorCode VecsMultIa(PetscScalar *M, MatType_t sM, PetscInt ldM,
 PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
                           PetscInt rM, PetscInt cM, Vec V)
 {
-  PetscInt i,j,n;
+  PetscInt    i,j;
+  PetscMPIInt n;
 
   PetscFunctionBegin;
   /* Check if quick exit */
@@ -710,7 +711,7 @@ PetscErrorCode VecsMultIc(PetscScalar *M, MatType_t sM, PetscInt ldM,
 
   for (i=0;i<cM;i++)
     for (j=0;j<rM;j++)
-      M[ldM*i+j]/= (PetscScalar)n;
+      M[ldM*i+j] /= (PetscScalar)n;
   PetscFunctionReturn(0);
 }
 

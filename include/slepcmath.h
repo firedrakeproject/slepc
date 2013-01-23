@@ -65,6 +65,9 @@ typedef enum { SLEPC_FUNCTION_NONE=0,
    Output parameter:
 .  return - the result
 
+   Note: 
+   This function is not available from Fortran.
+
    Level: developer
 @*/
 PETSC_STATIC_INLINE PetscReal SlepcAbs(PetscReal x,PetscReal y)
@@ -94,6 +97,8 @@ PETSC_STATIC_INLINE PetscReal SlepcAbs(PetscReal x,PetscReal y)
    Notes: 
    This function computes sqrt(x**2+y**2), taking care not to cause unnecessary
    overflow. It is based on LAPACK's DLAPY2.
+
+   This function is not available from Fortran.
 
    Level: developer
 M*/
