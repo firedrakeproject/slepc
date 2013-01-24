@@ -20,6 +20,7 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
+#include "finclude/slepcsysdef.h"
 #include "finclude/slepcepsdef.h"
 #include "finclude/slepcipdef.h"
 #include "finclude/slepcstdef.h"
