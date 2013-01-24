@@ -51,8 +51,6 @@ typedef enum { SLEPC_FUNCTION_NONE=0,
                SLEPC_FUNCTION_EXP,
                SLEPC_FUNCTION_LAST } SlepcFunction;
 
-#undef __FUNCT__ 
-#define __FUNCT__ "SlepcAbs"
 /*@C
    SlepcAbs - Returns sqrt(x**2+y**2), taking care not to cause unnecessary
    overflow. It is based on LAPACK's DLAPY2.
