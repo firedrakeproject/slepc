@@ -175,7 +175,7 @@
       endif
  200  format (' Convergence test =',I2)
 
-      call EPSMonitorSet(eps,EPSMONITORfIRST,PETSC_NULL_OBJECT,         &
+      call EPSMonitorSet(eps,EPSMONITORFIRST,PETSC_NULL_OBJECT,         &
      &                   PETSC_NULL_FUNCTION,ierr)
       call EPSMonitorCancel(eps,ierr)
 

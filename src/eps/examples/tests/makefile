@@ -27,10 +27,10 @@ LOCDIR     = src/eps/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c \
              test8.c test9.c test10.c test11.c test12.c test13.c \
              test14.c
-EXAMPLESF  = test7f.F test14f.F
+EXAMPLESF  = test7f.F test14f.F test15f.F
 MANSEC     = EPS
 TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
-             test11 test12 test13 test14 test14f
+             test11 test12 test13 test14 test14f test15f
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test2.PETSc runtest2_1 test2.rm \
@@ -47,7 +47,8 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
 TESTEXAMPLES_C_NOCOMPLEX = test1.PETSc runtest1_2 test1.rm \
 TESTEXAMPLES_C_NOF128    = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN     = test7f.PETSc runtest7f_1 test7f.rm \
-                           test14f.PETSc runtest14f_1 test14f.rm
+                           test14f.PETSc runtest14f_1 test14f.rm \
+                           test15f.PETSc runtest15f_1 test15f.rm
 TESTEXAMPLES_BLOPEX      = test5.PETSc runtest5_blopex test5.rm 
 
 include ${SLEPC_DIR}/conf/slepc_common
@@ -111,6 +112,10 @@ test14: test14.o chkopts
 test14f: test14f.o chkopts
 	-${FLINKER} -o test14f test14f.o ${SLEPC_LIB}
 	${RM} test14f.o
+
+test15f: test15f.o chkopts
+	-${FLINKER} -o test15f test15f.o ${SLEPC_LIB}
+	${RM} test15f.o
 
 #------------------------------------------------------------------------------------
 EPSALL = krylovschur arnoldi lanczos gd jd gd2
@@ -333,5 +338,10 @@ runtest14_1:
 runtest14f_1:
 	-@test=test14f_1; \
 	${MPIEXEC} -np 1 ./test14f -eps_terse 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest15f_1:
+	-@test=test15f_1; \
+	${MPIEXEC} -np 1 ./test15f -my_eps_monitor -eps_terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
