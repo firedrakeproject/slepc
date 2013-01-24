@@ -352,8 +352,7 @@ static void update_omega(PetscReal *omega,PetscReal *omega_old,PetscInt j,PetscR
   
   /* Update remaining components. */
   for (k=1;k<j-1;k++) {
-    omega_old[k] = beta[k+1]*omega[k+1] + (alpha[k]-alpha[j])*omega[k] +
-                   beta[k]*omega[k-1] - beta[j]*omega_old[k];
+    omega_old[k] = beta[k+1]*omega[k+1] + (alpha[k]-alpha[j])*omega[k] + beta[k]*omega[k-1] - beta[j]*omega_old[k];
     if (omega_old[k] > 0) omega_old[k] = binv*(omega_old[k] + T);       
     else omega_old[k] = binv*(omega_old[k] - T);       
   }
@@ -420,9 +419,9 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
   PetscErrorCode ierr;
   PetscInt       i,j,m = *M;
   PetscReal      norm,*omega,lomega[100],*omega_old,lomega_old[100],eps1,delta,eta;
-  PetscBool      *which,lwhich[100],*which2,lwhich2[100],
-                 reorth = PETSC_FALSE,force_reorth = PETSC_FALSE,
-                 fro = PETSC_FALSE,estimate_anorm = PETSC_FALSE;
+  PetscBool      *which,lwhich[100],*which2,lwhich2[100];
+  PetscBool      reorth = PETSC_FALSE,force_reorth = PETSC_FALSE;
+  PetscBool      fro = PETSC_FALSE,estimate_anorm = PETSC_FALSE;
   PetscScalar    *hwork,lhwork[100];
 
   PetscFunctionBegin;

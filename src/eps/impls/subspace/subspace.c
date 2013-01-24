@@ -181,18 +181,18 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_SUBSPACE   *ctx = (EPS_SUBSPACE*)eps->data;
-  PetscInt       i,k,ld,ngrp,nogrp,*itrsd,*itrsdold,
-                 nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
+  PetscInt       i,k,ld,ngrp,nogrp,*itrsd,*itrsdold;
+  PetscInt       nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
   PetscScalar    *T,*U;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,norm,tcond=1.0;
   PetscBool      breakdown;
   /* Parameters */
   PetscInt       init = 5;        /* Number of initial iterations */
-  PetscReal      stpfac = 1.5,    /* Max num of iter before next SRR step */
-                 alpha = 1.0,     /* Used to predict convergence of next residual */
-                 beta = 1.1,      /* Used to predict convergence of next residual */
-                 grptol = 1e-8,   /* Tolerance for EPSSubspaceFindGroup */
-                 cnvtol = 1e-6;   /* Convergence criterion for cnv */
+  PetscReal      stpfac = 1.5;    /* Max num of iter before next SRR step */
+  PetscReal      alpha = 1.0;     /* Used to predict convergence of next residual */
+  PetscReal      beta = 1.1;      /* Used to predict convergence of next residual */
+  PetscReal      grptol = 1e-8;   /* Tolerance for EPSSubspaceFindGroup */
+  PetscReal      cnvtol = 1e-6;   /* Convergence criterion for cnv */
   PetscInt       orttol = 2;      /* Number of decimal digits whose loss
                                      can be tolerated in orthogonalization */
 

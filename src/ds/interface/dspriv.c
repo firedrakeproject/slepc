@@ -195,11 +195,11 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
 #endif
         { perm[j+d] = perm[j]; j--; }
 
-     if (j>=ds->l) {
-       if (wi) wi0 = wi[perm[j]];
-       else wi0 = 0.0;
-       ierr = (*ds->comp_fun)(re,im,wr[perm[j]],wi0,&result,ds->comp_ctx);CHKERRQ(ierr);
-     }
+      if (j>=ds->l) {
+        if (wi) wi0 = wi[perm[j]];
+        else wi0 = 0.0;
+        ierr = (*ds->comp_fun)(re,im,wr[perm[j]],wi0,&result,ds->comp_ctx);CHKERRQ(ierr);
+      }
     }
     perm[j+1] = tmp1;
     if (d==2) perm[j+2] = tmp2;

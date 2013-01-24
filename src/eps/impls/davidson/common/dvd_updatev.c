@@ -34,9 +34,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d);
 PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d);
 PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d);
 PetscErrorCode dvd_updateV_conv_finish(dvdDashboard *d);
-PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
-                                    PetscInt e, Vec *auxV, PetscScalar *auxS,
-                                    PetscInt *nConv);
+PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,PetscInt e,Vec *auxV,PetscScalar *auxS,PetscInt *nConv);
 
 typedef struct {
   PetscInt
@@ -62,11 +60,7 @@ typedef struct {
 
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_managementV_basic"
-PetscErrorCode dvd_managementV_basic(dvdDashboard *d, dvdBlackboard *b,
-                                     PetscInt bs, PetscInt mpd,
-                                     PetscInt min_size_V,
-                                     PetscInt plusk, PetscBool harm,
-                                     PetscBool allResiduals)
+PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt bs,PetscInt mpd,PetscInt min_size_V,PetscInt plusk,PetscBool harm,PetscBool allResiduals)
 {
   PetscErrorCode  ierr;
   dvdManagV_basic *data;
@@ -462,9 +456,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 #undef __FUNCT__  
 #define __FUNCT__ "dvd_updateV_testConv"
 /* auxV: (by calcpairs_residual_eig) */
-PetscErrorCode dvd_updateV_testConv(dvdDashboard *d, PetscInt s, PetscInt pre,
-                                    PetscInt e, Vec *auxV, PetscScalar *auxS,
-                                    PetscInt *nConv)
+PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,PetscInt e,Vec *auxV,PetscScalar *auxS,PetscInt *nConv)
 {
   PetscInt        i,j,b;
   PetscReal       norm;

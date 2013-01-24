@@ -74,8 +74,7 @@ void PETSC_STDCALL stdestroy_(ST *st,PetscErrorCode *ierr)
   *ierr = STDestroy(st);
 }
 
-void PETSC_STDCALL stsetoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),
-                                       PetscErrorCode *ierr PETSC_END_LEN(len))
+void PETSC_STDCALL stsetoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -84,8 +83,7 @@ void PETSC_STDCALL stsetoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),
   FREECHAR(prefix,t);
 }
 
-void PETSC_STDCALL stappendoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),
-                                          PetscErrorCode *ierr PETSC_END_LEN(len))
+void PETSC_STDCALL stappendoptionsprefix_(ST *st,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 

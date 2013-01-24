@@ -636,8 +636,8 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
         for (k=n-4;k>=begin+1;k--) {
           if (PetscAbsReal(L[k])<tolDef*PetscAbsReal(U[k])
            && PetscAbsReal(L[k]*U[k+1]*(U[k+2]+L[k+2])*(U[k-1]+L[k-1]))<tolDef*PetscAbsReal((U[k-1]*(U[k]+L[k])+L[k-1]*L[k])*(U[k+1]*(U[k+2]+L[k+2])+L[k+1]*L[k+2]))) {
-             ind=k;
-             break;
+            ind=k;
+            break;
           }
         }
         if (ind>begin || PetscAbsReal(L[begin]) <tolDef*PetscAbsReal(U[begin])) {

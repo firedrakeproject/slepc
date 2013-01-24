@@ -312,7 +312,7 @@ PetscErrorCode QEPMonitorConverged(QEP qep,PetscInt its,PetscInt nconv,PetscScal
 #define __FUNCT__ "QEPMonitorLG"
 PetscErrorCode QEPMonitorLG(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
-  PetscViewer    viewer = (PetscViewer) monctx;
+  PetscViewer    viewer = (PetscViewer)monctx;
   PetscDraw      draw;
   PetscDrawLG    lg;
   PetscErrorCode ierr;
@@ -330,7 +330,7 @@ PetscErrorCode QEPMonitorLG(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eig
     ierr = PetscDrawLGSetLimits(lg,0,1.0,log10(qep->tol)-2,0.0);CHKERRQ(ierr);
   }
 
-  x = (PetscReal) its;
+  x = (PetscReal)its;
   if (errest[nconv] > 0.0) y = log10(errest[nconv]); else y = 0.0;
   ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
 
@@ -342,7 +342,7 @@ PetscErrorCode QEPMonitorLG(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eig
 #define __FUNCT__ "QEPMonitorLGAll"
 PetscErrorCode QEPMonitorLGAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
-  PetscViewer    viewer = (PetscViewer) monctx;
+  PetscViewer    viewer = (PetscViewer)monctx;
   PetscDraw      draw;
   PetscDrawLG    lg;
   PetscErrorCode ierr;
@@ -364,7 +364,7 @@ PetscErrorCode QEPMonitorLGAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *
   ierr = PetscMalloc(sizeof(PetscReal)*n,&x);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*n,&y);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
-    x[i] = (PetscReal) its;
+    x[i] = (PetscReal)its;
     if (i < nest && errest[i] > 0.0) y[i] = log10(errest[i]);
     else y[i] = 0.0;
   }

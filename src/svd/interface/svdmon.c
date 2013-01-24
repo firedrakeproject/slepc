@@ -264,7 +264,7 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
   PetscErrorCode   ierr;
   PetscInt         i;
   PetscViewer      viewer;
-  SlepcConvMonitor ctx = (SlepcConvMonitor) monctx;
+  SlepcConvMonitor ctx = (SlepcConvMonitor)monctx;
 
   PetscFunctionBegin;
   if (!monctx) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONG,"Must provide a context for SVDMonitorConverged");
@@ -287,7 +287,7 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
 #define __FUNCT__ "SVDMonitorLG"
 PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
 {
-  PetscViewer    viewer = (PetscViewer) monctx;
+  PetscViewer    viewer = (PetscViewer)monctx;
   PetscDraw      draw,draw1;
   PetscDrawLG    lg,lg1;
   PetscErrorCode ierr;
@@ -314,7 +314,7 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
     ierr = PetscDrawLGSetLimits(lg1,0,1.0,1.e20,-1.e20);CHKERRQ(ierr);
   }
 
-  x = (PetscReal) its;
+  x = (PetscReal)its;
   if (errest[nconv] > 0.0) y = log10(errest[nconv]); else y = 0.0;
   ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
 
@@ -332,7 +332,7 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
 #define __FUNCT__ "SVDMonitorLGAll"
 PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
 {
-  PetscViewer    viewer = (PetscViewer) monctx;
+  PetscViewer    viewer = (PetscViewer)monctx;
   PetscDraw      draw,draw1;
   PetscDrawLG    lg,lg1;
   PetscErrorCode ierr;
@@ -363,7 +363,7 @@ PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
   ierr = PetscMalloc(sizeof(PetscReal)*n,&x);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*n,&y);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
-    x[i] = (PetscReal) its;
+    x[i] = (PetscReal)its;
     if (i < nest && errest[i] > 0.0) y[i] = log10(errest[i]);
     else y[i] = 0.0;
   }

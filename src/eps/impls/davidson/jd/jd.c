@@ -66,7 +66,7 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   ierr = PetscOptionsReal("-eps_jd_fix","Set the tolerance for changing the target in the correction equation","EPSJDSetFix",opf,&opf,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSJDSetFix(eps,opf);CHKERRQ(ierr); }
 
-   ierr = EPSJDGetBOrth(eps,&orth);CHKERRQ(ierr);
+  ierr = EPSJDGetBOrth(eps,&orth);CHKERRQ(ierr);
   ierr = PetscOptionsEList("-eps_jd_borth","orthogonalization used in the search subspace","EPSJDSetBOrth",orth_list,3,orth_list[orth-1],&opi,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSJDSetBOrth(eps,(EPSOrthType)(opi+1));CHKERRQ(ierr); }
  

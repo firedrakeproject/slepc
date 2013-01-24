@@ -399,7 +399,7 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar
   dp0 = nm0 = 0.0;
   ierr = PetscObjectTypeCompare((PetscObject)v,VECCOMP,&t0);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)w,VECCOMP,&t1);CHKERRQ(ierr);
-  if (t0 == PETSC_TRUE && t1 == PETSC_TRUE) {
+  if (t0 && t1) {
     PetscValidVecComp(v);
     PetscValidVecComp(w);
     for (i=0;i<vs->n->n;i++) {
@@ -407,7 +407,7 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar
       dp0 += dp1;
       nm0 += nm1;
     }
-  } else if (t0 == PETSC_FALSE && t1 == PETSC_FALSE) {
+  } else if (!t0 && !t1) {
     ierr = VecGetLocalSize(v,&n);CHKERRQ(ierr);
     ierr = VecGetArray(v,&vx);CHKERRQ(ierr);
     ierr = VecGetArray(w,&wx);CHKERRQ(ierr);

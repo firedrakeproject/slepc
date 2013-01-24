@@ -79,8 +79,7 @@ void PETSC_STDCALL stshellsetapplytranspose_(ST *st,void (PETSC_STDCALL *applytr
   *ierr = STShellSetApplyTranspose(*st,ourshellapplytranspose);
 }
 
-void PETSC_STDCALL stshellsetbacktransform_(ST *st,void (PETSC_STDCALL *backtransform)(void*,PetscScalar*,PetscScalar*,PetscErrorCode*),
-                                    PetscErrorCode *ierr)
+void PETSC_STDCALL stshellsetbacktransform_(ST *st,void (PETSC_STDCALL *backtransform)(void*,PetscScalar*,PetscScalar*,PetscErrorCode*),PetscErrorCode *ierr)
 {
   PetscObjectAllocateFortranPointers(*st,3);
   ((PetscObject)*st)->fortran_func_pointers[2] = (PetscVoidFunction)backtransform;

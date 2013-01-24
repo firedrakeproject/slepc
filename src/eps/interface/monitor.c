@@ -321,7 +321,7 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
 #define __FUNCT__ "EPSMonitorLG"
 PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
-  PetscViewer    viewer = (PetscViewer) monctx;
+  PetscViewer    viewer = (PetscViewer)monctx;
   PetscDraw      draw,draw1;
   PetscDrawLG    lg,lg1;
   PetscErrorCode ierr;
@@ -353,7 +353,7 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
     }
   }
 
-  x = (PetscReal) its;
+  x = (PetscReal)its;
   if (errest[nconv] > 0.0) y = log10(errest[nconv]); else y = 0.0;
   ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
   if (eps->ishermitian) {
@@ -374,7 +374,7 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
 #define __FUNCT__ "EPSMonitorLGAll"
 PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
-  PetscViewer    viewer = (PetscViewer) monctx;
+  PetscViewer    viewer = (PetscViewer)monctx;
   PetscDraw      draw,draw1;
   PetscDrawLG    lg,lg1;
   PetscErrorCode ierr;
@@ -410,7 +410,7 @@ PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
   ierr = PetscMalloc(sizeof(PetscReal)*n,&x);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscReal)*n,&y);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
-    x[i] = (PetscReal) its;
+    x[i] = (PetscReal)its;
     if (i < nest && errest[i] > 0.0) y[i] = log10(errest[i]);
     else y[i] = 0.0;
   }

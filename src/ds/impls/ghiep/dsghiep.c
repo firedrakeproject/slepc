@@ -195,18 +195,18 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
   n_ = PetscBLASIntCast(ds->n);
   ld = PetscBLASIntCast(ds->ld);
   if (k < ds->n-1) {
-   e = (ds->compact)?*(ds->rmat[DS_MAT_T]+ld+k):PetscRealPart(*(ds->mat[DS_MAT_A]+(k+1)+ld*k));
+    e = (ds->compact)?*(ds->rmat[DS_MAT_T]+ld+k):PetscRealPart(*(ds->mat[DS_MAT_A]+(k+1)+ld*k));
   } else e = 0.0;
   if (e == 0.0) {/* Real */
-     if (ds->state>=DS_STATE_CONDENSED) {
-       ierr = PetscMemcpy(X+k*ld,Q+k*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
-     } else {
-       ierr = PetscMemzero(X+k*ds->ld,ds->ld*sizeof(PetscScalar));
-       X[k+k*ds->ld] = 1.0;
-     }
-     if (rnorm) {
-       *rnorm = PetscAbsScalar(X[ds->n-1+k*ld]);
-     }
+    if (ds->state>=DS_STATE_CONDENSED) {
+      ierr = PetscMemcpy(X+k*ld,Q+k*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    } else {
+      ierr = PetscMemzero(X+k*ds->ld,ds->ld*sizeof(PetscScalar));
+      X[k+k*ds->ld] = 1.0;
+    }
+    if (rnorm) {
+      *rnorm = PetscAbsScalar(X[ds->n-1+k*ld]);
+    }
   } else { /* 2x2 block */
     if (ds->compact) {
       s1 = *(ds->rmat[DS_MAT_D]+k);
@@ -688,29 +688,29 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
   }
 
 /* flip matrices */
-    if (flip) {
-      for (i=0;i<n-1;i++) {
-        d[i] = PetscRealPart(A[n-i-1+(n-i-1)*lda]);
-        e[i] = PetscRealPart(A[n-i-1+(n-i-2)*lda]);
-        s[i] = ss[n-i-1];
-      }
-      s[n-1] = ss[0];
-      d[n-1] = PetscRealPart(A[0]);
-      for (i=0;i<n;i++) {
-        ierr=PetscMemcpy(work+i*n,Q+i*ldq,n*sizeof(PetscScalar));CHKERRQ(ierr);
-      }
-      for (i=0;i<n;i++)
-        for (j=0;j<n;j++)
-          Q[i+j*ldq] = work[i+(n-j-1)*n];
-    } else {
-      for (i=0;i<n-1;i++) {
-        d[i] = PetscRealPart(A[i+i*lda]);
-        e[i] = PetscRealPart(A[i+1+i*lda]);
-        s[i] = ss[i];
-      }
-      s[n-1] = ss[n-1];
-      d[n-1] = PetscRealPart(A[n-1 + (n-1)*lda]);
+  if (flip) {
+    for (i=0;i<n-1;i++) {
+      d[i] = PetscRealPart(A[n-i-1+(n-i-1)*lda]);
+      e[i] = PetscRealPart(A[n-i-1+(n-i-2)*lda]);
+      s[i] = ss[n-i-1];
     }
+    s[n-1] = ss[0];
+    d[n-1] = PetscRealPart(A[0]);
+    for (i=0;i<n;i++) {
+      ierr=PetscMemcpy(work+i*n,Q+i*ldq,n*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    for (i=0;i<n;i++)
+      for (j=0;j<n;j++)
+        Q[i+j*ldq] = work[i+(n-j-1)*n];
+  } else {
+    for (i=0;i<n-1;i++) {
+      d[i] = PetscRealPart(A[i+i*lda]);
+      e[i] = PetscRealPart(A[i+1+i*lda]);
+      s[i] = ss[i];
+    }
+    s[n-1] = ss[n-1];
+    d[n-1] = PetscRealPart(A[n-1 + (n-1)*lda]);
+  }
 
   ierr = PetscFree(ss);CHKERRQ(ierr);
   ierr = PetscFree(perm);CHKERRQ(ierr);

@@ -184,18 +184,12 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->ishermitian) {
-      ARsaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,
-               resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
-               ar->workl,&ar->lworkl,&info);
+      ARsaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,resid,&ncv,pV,&n,iparam,ipntr,ar->workd,ar->workl,&ar->lworkl,&info);
     } else {
-      ARnaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,
-               resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
-               ar->workl,&ar->lworkl,&info);
+      ARnaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,resid,&ncv,pV,&n,iparam,ipntr,ar->workd,ar->workl,&ar->lworkl,&info);
     }
 #else
-    ARnaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,
-             resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
-             ar->workl,&ar->lworkl,ar->rwork,&info);
+    ARnaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,resid,&ncv,pV,&n,iparam,ipntr,ar->workd,ar->workl,&ar->lworkl,ar->rwork,&info);
 #endif
     
     if (ido == -1 || ido == 1 || ido == 2) {
@@ -252,26 +246,14 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->ishermitian) {
       ierr = EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,&ar->workl[ipntr[6]-1],eps->ncv);CHKERRQ(ierr);
-      ARseupd_ (&fcomm,&rvec,howmny,ar->select,eps->eigr,
-                pV,&n,&sigmar,
-                bmat,&n,which,&nev,&eps->tol,
-                resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
-                ar->workl,&ar->lworkl,&info);
+      ARseupd_ (&fcomm,&rvec,howmny,ar->select,eps->eigr,pV,&n,&sigmar,bmat,&n,which,&nev,&eps->tol,resid,&ncv,pV,&n,iparam,ipntr,ar->workd,ar->workl,&ar->lworkl,&info);
     } else {
       ierr = EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);
-      ARneupd_ (&fcomm,&rvec,howmny,ar->select,eps->eigr,eps->eigi,
-                pV,&n,&sigmar,&sigmai,ar->workev,
-                bmat,&n,which,&nev,&eps->tol,
-                resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
-                ar->workl,&ar->lworkl,&info);
+      ARneupd_ (&fcomm,&rvec,howmny,ar->select,eps->eigr,eps->eigi,pV,&n,&sigmar,&sigmai,ar->workev,bmat,&n,which,&nev,&eps->tol,resid,&ncv,pV,&n,iparam,ipntr,ar->workd,ar->workl,&ar->lworkl,&info);
     }
 #else
     ierr = EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);
-    ARneupd_ (&fcomm,&rvec,howmny,ar->select,eps->eigr,
-              pV,&n,&sigmar,ar->workev,
-              bmat,&n,which,&nev,&eps->tol,
-              resid,&ncv,pV,&n,iparam,ipntr,ar->workd,
-              ar->workl,&ar->lworkl,ar->rwork,&info);
+    ARneupd_ (&fcomm,&rvec,howmny,ar->select,eps->eigr,pV,&n,&sigmar,ar->workev,bmat,&n,which,&nev,&eps->tol,resid,&ncv,pV,&n,iparam,ipntr,ar->workd,ar->workl,&ar->lworkl,ar->rwork,&info);
 #endif
     if (info!=0) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info);
   }

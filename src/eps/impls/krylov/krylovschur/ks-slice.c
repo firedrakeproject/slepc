@@ -573,8 +573,8 @@ PetscErrorCode EPSLookForDeflation(EPS eps)
   }
   /* The number of values on each side are found */
   if (sPres->neighb[0]) {
-     sPres->nsch[0] = (sr->dir)*(sPres->inertia - sPres->neighb[0]->inertia)-count0;
-     if (sPres->nsch[0]<0)SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error in Spectrum Slicing!\nMismatch between number of values found and information from inertia");
+    sPres->nsch[0] = (sr->dir)*(sPres->inertia - sPres->neighb[0]->inertia)-count0;
+    if (sPres->nsch[0]<0)SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error in Spectrum Slicing!\nMismatch between number of values found and information from inertia");
   } else sPres->nsch[0] = 0;
 
   if (sPres->neighb[1]) {

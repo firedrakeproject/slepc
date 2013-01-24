@@ -189,7 +189,7 @@ PetscErrorCode MFNMonitorDefault(MFN mfn,PetscInt its,PetscReal errest,void *mon
 #define __FUNCT__ "MFNMonitorLG"
 PetscErrorCode MFNMonitorLG(MFN mfn,PetscInt its,PetscReal errest,void *monctx)
 {
-  PetscViewer    viewer = (PetscViewer) monctx;
+  PetscViewer    viewer = (PetscViewer)monctx;
   PetscDraw      draw;
   PetscDrawLG    lg;
   PetscErrorCode ierr;

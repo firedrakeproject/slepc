@@ -262,7 +262,7 @@ PetscErrorCode DSNormalize_GNHEP(DS ds,DSMatType mat,PetscInt col)
       norm = BLASnrm2_(&n,&x[ld*i],&one);
       norm = 1.0/norm;
       BLASscal_(&n,&norm,&x[ld*i],&one);
-     }
+    }
   }
   PetscFunctionReturn(0);
 }

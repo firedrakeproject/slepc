@@ -98,7 +98,7 @@ EXTERN_C_END
 static PetscErrorCode ourmonitor(SVD svd,PetscInt i,PetscInt nc,PetscReal *sigma,PetscReal *d,PetscInt l,void* ctx)
 {
   PetscErrorCode ierr = 0;
-  void           *mctx = (void*) ((PetscObject)svd)->fortran_func_pointers[1];
+  void           *mctx = (void*)((PetscObject)svd)->fortran_func_pointers[1];
   (*(void (PETSC_STDCALL*)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*))
     (((PetscObject)svd)->fortran_func_pointers[0]))(&svd,&i,&nc,sigma,d,&l,mctx,&ierr);CHKERRQ(ierr);
   return 0;
@@ -108,7 +108,7 @@ static PetscErrorCode ourdestroy(void** ctx)
 {
   PetscErrorCode ierr = 0;
   SVD            svd = *(SVD*)ctx;
-  void           *mctx = (void*) ((PetscObject)svd)->fortran_func_pointers[1];
+  void           *mctx = (void*)((PetscObject)svd)->fortran_func_pointers[1];
   (*(void (PETSC_STDCALL*)(void*,PetscErrorCode*))(((PetscObject)svd)->fortran_func_pointers[2]))(mctx,&ierr);CHKERRQ(ierr);
   return 0;
 }

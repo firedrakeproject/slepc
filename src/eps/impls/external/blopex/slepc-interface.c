@@ -39,13 +39,13 @@ static void* mv_TempMultiVectorCreateFromPETScVector(void* ii_,BlopexInt n,void*
   mv_InterfaceInterpreter* ii = (mv_InterfaceInterpreter*)ii_;
 
   x = (mv_TempMultiVector*)malloc(sizeof(mv_TempMultiVector));
-  assert(x!=NULL);
+  assert(x);
   
   x->interpreter = ii;
   x->numVectors = n;
   
   x->vector = (void**)calloc(n,sizeof(void*));
-  assert(x->vector!=NULL);
+  assert(x->vector);
 
   x->ownsVectors = 1;
   x->mask = NULL;
@@ -61,10 +61,9 @@ static void mv_TempMultiPETSCVectorDestroy(void* x_)
 {
   mv_TempMultiVector* x = (mv_TempMultiVector*)x_;
 
-  if (x==NULL)
-    return;
+  if (!x) return;
 
-  if (x->ownsVectors && x->vector!=NULL) free(x->vector);
+  if (x->ownsVectors && x->vector) free(x->vector);
   if (x->mask && x->ownsMask) free(x->mask);
   free(x);
 }

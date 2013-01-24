@@ -28,12 +28,8 @@
 #include <slepcblaslapack.h>
 
 PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d);
-PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d, Vec *D,
-                                   PetscInt max_size_D, PetscInt r_s,
-                                   PetscInt r_e, PetscInt *size_D);
-PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d, PetscScalar *pX,
-  PetscScalar *pY, PetscInt ld_,
-  PetscScalar *auxS, PetscInt size_auxS);
+PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
+PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d,PetscScalar *pX,PetscScalar *pY,PetscInt ld_,PetscScalar *auxS,PetscInt size_auxS);
 
 #define size_Z (64*4)
 
