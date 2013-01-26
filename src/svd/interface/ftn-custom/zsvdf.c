@@ -34,6 +34,7 @@
 #define svdsettype_                  SVDSETTYPE
 #define svdgettype_                  SVDGETTYPE
 #define svdgetip_                    SVDGETIP
+#define svdgetds_                    SVDGETDS
 #define svdmonitorset_               SVDMONITORSET
 #define svdgettransposemode_         SVDGETTRANSPOSEMODE
 #define svdgetwhichsingulartriplets_ SVDGETWHICHSINGULARTRIPLETS
@@ -52,6 +53,7 @@
 #define svdsettype_                  svdsettype
 #define svdgettype_                  svdgettype
 #define svdgetip_                    svdgetip
+#define svdgetds_                    svdgetds
 #define svdmonitorset_               svdmonitorset
 #define svdgettransposemode_         svdgettransposemode
 #define svdgetwhichsingulartriplets_ svdgetwhichsingulartriplets
@@ -153,6 +155,11 @@ void PETSC_STDCALL svdgettype_(SVD *svd,CHAR name PETSC_MIXED_LEN(len),PetscErro
 void PETSC_STDCALL svdgetip_(SVD *svd,IP *ip,PetscErrorCode *ierr)
 {
   *ierr = SVDGetIP(*svd,ip);
+}
+
+void PETSC_STDCALL svdgetds_(SVD *svd,DS *ds,PetscErrorCode *ierr)
+{
+  *ierr = SVDGetDS(*svd,ds);
 }
 
 void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

@@ -38,6 +38,7 @@
 #define qepmonitorconverged_        QEPMONITORCONVERGED
 #define qepmonitorfirst_            QEPMONITORFIRST
 #define qepgetip_                   QEPGETIP
+#define qepgetds_                   QEPGETDS
 #define qepgetwhicheigenpairs_      QEPGETWHICHEIGENPAIRS
 #define qepgetproblemtype_          QEPGETPROBLEMTYPE
 #define qepgetconvergedreason_      QEPGETCONVERGEDREASON
@@ -57,6 +58,7 @@
 #define qepmonitorconverged_        qepmonitorconverged
 #define qepmonitorfirst_            qepmonitorfirst
 #define qepgetip_                   qepgetip
+#define qepgetds_                   qepgetds
 #define qepgetwhicheigenpairs_      qepgetwhicheigenpairs
 #define qepgetproblemtype_          qepgetproblemtype
 #define qepgetconvergedreason_      qepgetconvergedreason
@@ -169,6 +171,14 @@ void PETSC_STDCALL qepcreate_(MPI_Fint *comm,QEP *qep,PetscErrorCode *ierr)
   *ierr = QEPCreate(MPI_Comm_f2c(*(comm)),qep);
 }
 
+void PETSC_STDCALL qepgetoptionsprefix_(QEP *qep,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  const char *tname;
+
+  *ierr = QEPGetOptionsPrefix(*qep,&tname); if (*ierr) return;
+  *ierr = PetscStrncpy(prefix,tname,len);
+}
+
 void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *monitor)(QEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   SlepcConvMonitor ctx;
@@ -204,17 +214,14 @@ void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *monitor)(QEP*,Pe
   }
 }
 
-void PETSC_STDCALL qepgetoptionsprefix_(QEP *qep,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
-{
-  const char *tname;
-
-  *ierr = QEPGetOptionsPrefix(*qep,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);
-}
-
 void PETSC_STDCALL qepgetip_(QEP *qep,IP *ip,PetscErrorCode *ierr)
 {
   *ierr = QEPGetIP(*qep,ip);
+}
+
+void PETSC_STDCALL qepgetds_(QEP *qep,DS *ds,PetscErrorCode *ierr)
+{
+  *ierr = QEPGetDS(*qep,ds);
 }
 
 void PETSC_STDCALL qepgetwhicheigenpairs_(QEP *qep,QEPWhich *which,PetscErrorCode *ierr)
