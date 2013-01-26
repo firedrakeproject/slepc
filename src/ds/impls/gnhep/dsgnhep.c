@@ -96,8 +96,8 @@ PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscBool left)
   const char     *side;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   if (left) {
     X = PETSC_NULL;
     Y = &ds->mat[DS_MAT_Y][ld*(*k)];
@@ -154,8 +154,8 @@ PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
   const char     *side,*back;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   if (left) {
     X = PETSC_NULL;
     Y = ds->mat[DS_MAT_Y];
@@ -237,8 +237,8 @@ PetscErrorCode DSNormalize_GNHEP(DS ds,DSMatType mat,PetscInt col)
       SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
   }
 
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
   if (col < 0) {
     i0 = 0; i1 = ds->n;
@@ -282,8 +282,8 @@ PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Pets
 
   PetscFunctionBegin;
   if (!ds->comp_fun) PetscFunctionReturn(0);
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   lwork = 4*n+16;
 #else
@@ -340,8 +340,8 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   PetscFunctionBegin;
   if (!ds->comp_fun) PetscFunctionReturn(0);
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   lwork = -1;
   LAPACKtgexc_(&one,&one,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,&one,&one,&a,&lwork,&info);
@@ -381,8 +381,8 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
     if (pos) {
       /* interchange blocks */
-      ifst = PetscBLASIntCast(pos+1);
-      ilst = PetscBLASIntCast(i+1);
+      ierr = PetscBLASIntCast(pos+1,&ifst);CHKERRQ(ierr);
+      ierr = PetscBLASIntCast(i+1,&ilst);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
       LAPACKtgexc_(&one,&one,&n,S,&ld,T,&ld,Z,&ld,Q,&ld,&ifst,&ilst,work,&lwork,&info);
 #else
@@ -447,6 +447,7 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LASV2 - Lapack routine is unavailable");
 #else
+  PetscErrorCode ierr;
   PetscInt       i,j;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    s;
@@ -484,9 +485,9 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
     }
   }
 #else
-  ldS_ = PetscBLASIntCast(ldS);
-  ldT_ = PetscBLASIntCast(ldT);
-  n_   = PetscBLASIntCast(n);
+  ierr = PetscBLASIntCast(ldS,&ldS_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ldT,&ldT_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   for (i=k;i<n-1;i++) {
     if (S[ldS*i+i+1] != 0.0) {
       /* Check if T(i+1,i) and T(i,i+1) are zero */
@@ -505,10 +506,10 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
           } else {
             SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported format. Call DSSolve before this function");
           }
-          n_i = PetscBLASIntCast(n-i);
+          ierr = PetscBLASIntCast(n-i,&n_i);CHKERRQ(ierr);
           n_i_2 = n_i - 2;
-          i_2 = PetscBLASIntCast(i+2);
-          i_ = PetscBLASIntCast(i);
+          ierr = PetscBLASIntCast(i+2,&i_2);CHKERRQ(ierr);
+          ierr = PetscBLASIntCast(i,&i_);CHKERRQ(ierr);
           if (b11 < 0.0) {
             cr  = -cr;
             sr  = -sr;
@@ -553,8 +554,8 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
   PetscValidPointer(wi,3);
 #endif
-  n   = PetscBLASIntCast(ds->n);
-  ld  = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   lwork = -1;
 #if !defined(PETSC_USE_COMPLEX)
   LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,PETSC_NULL,Z,&ld,Q,&ld,&a,&lwork,PETSC_NULL,&info);
@@ -562,7 +563,7 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = DSAllocateWork_Private(ds,lwork+ld,0,0);CHKERRQ(ierr); 
   beta = ds->work;
   work = beta+ds->n;
-  lwork = PetscBLASIntCast(ds->lwork-ds->n);
+  ierr = PetscBLASIntCast(ds->lwork-ds->n,&lwork);CHKERRQ(ierr);
   LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,PETSC_NULL,&info);
 #else
   LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,PETSC_NULL,Z,&ld,Q,&ld,&a,&lwork,PETSC_NULL,PETSC_NULL,&info);
@@ -570,7 +571,7 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = DSAllocateWork_Private(ds,lwork+ld,8*ld,0);CHKERRQ(ierr); 
   beta = ds->work;
   work = beta+ds->n;
-  lwork = PetscBLASIntCast(ds->lwork-ds->n);
+  ierr = PetscBLASIntCast(ds->lwork-ds->n,&lwork);CHKERRQ(ierr);
   LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ds->rwork,PETSC_NULL,&info);
 #endif
   if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xGGES %i",info);

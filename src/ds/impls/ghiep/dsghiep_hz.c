@@ -99,7 +99,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
 
   PetscFunctionBegin;
   worstcond = 1.0;
-  n_ = PetscBLASIntCast(n);
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
 
   /* Build initial bulge that sets step in motion */
   bulge10 = dd[ntop+1]*(aa[ntop]*(aa[ntop] - dd[ntop]*tr) + dt*dd[ntop]*dd[ntop]) + dd[ntop]*bb[ntop]*bb[ntop]; 
@@ -319,15 +319,15 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
   PetscValidPointer(wi,3);
 #endif
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   n1  = ds->n - ds->l;
-  ld = PetscBLASIntCast(ds->ld);
   off = ds->l + ds->l*ld;
-  A  = ds->mat[DS_MAT_A];
-  B  = ds->mat[DS_MAT_B];
-  Q = ds->mat[DS_MAT_Q];
-  d = ds->rmat[DS_MAT_T];
-  e = ds->rmat[DS_MAT_T] + ld;
-  s  = ds->rmat[DS_MAT_D];
+  A   = ds->mat[DS_MAT_A];
+  B   = ds->mat[DS_MAT_B];
+  Q   = ds->mat[DS_MAT_Q];
+  d   = ds->rmat[DS_MAT_T];
+  e   = ds->rmat[DS_MAT_T] + ld;
+  s   = ds->rmat[DS_MAT_D];
   /* Quick return */
   if (n1 == 1) {
     *(Q+off) = 1;

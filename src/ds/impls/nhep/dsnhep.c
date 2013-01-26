@@ -78,8 +78,8 @@ PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pe
 
   PetscFunctionBegin;
   if (left) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for left vectors");
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   n1 = n+1;
   if ((*k)<n-1 && A[(*k)+1+(*k)*ld]!=0.0) iscomplex = PETSC_TRUE;
   if (iscomplex) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for complex eigenvalues yet");
@@ -149,8 +149,8 @@ PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pets
   PetscScalar    *Y;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = DSAllocateWork_Private(ds,0,0,ld);CHKERRQ(ierr); 
   select = ds->iwork;
   for (i=0;i<n;i++) select[i] = (PetscBLASInt)PETSC_FALSE;
@@ -216,8 +216,8 @@ PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
   const char     *side,*back;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   if (left) {
     X = PETSC_NULL;
     Y = ds->mat[DS_MAT_Y];
@@ -313,8 +313,8 @@ PetscErrorCode DSNormalize_NHEP(DS ds,DSMatType mat,PetscInt col)
       SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
   }
 
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
   if (col < 0) {
     i0 = 0; i1 = ds->n;
@@ -361,8 +361,8 @@ PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Petsc
 
   PetscFunctionBegin;
   if (!k) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Must supply argument k");
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   lwork = n;
   liwork = 1;
@@ -412,8 +412,8 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   ierr = DSAllocateWork_Private(ds,ld,0,0);CHKERRQ(ierr); 
   work = ds->work;
@@ -449,8 +449,8 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
     if (pos) {
       /* interchange blocks */
-      ifst = PetscBLASIntCast(pos+1);
-      ilst = PetscBLASIntCast(i+1);
+      ierr = PetscBLASIntCast(pos+1,&ifst);CHKERRQ(ierr);
+      ierr = PetscBLASIntCast(i+1,&ilst);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
       LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,work,&info);
 #else
@@ -507,8 +507,8 @@ PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
   PetscScalar    *A,*Q,*x,*y,one=1.0,zero=0.0;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   A  = ds->mat[DS_MAT_A];
   Q  = ds->mat[DS_MAT_Q];
   ierr = DSAllocateWork_Private(ds,2*ld,0,0);CHKERRQ(ierr);
@@ -540,9 +540,9 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
   PetscValidPointer(wi,3);
 #endif
-  n   = PetscBLASIntCast(ds->n);
-  ld  = PetscBLASIntCast(ds->ld);
-  ilo = PetscBLASIntCast(ds->l+1);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->l+1,&ilo);CHKERRQ(ierr);
   ierr = DSAllocateWork_Private(ds,ld+ld*ld,0,0);CHKERRQ(ierr); 
   tau  = ds->work;
   work = ds->work+ld;
@@ -638,8 +638,8 @@ PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
   PetscScalar    *A;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   lwork = 8*ld;
   ierr = DSAllocateWork_Private(ds,lwork,ld,ld);CHKERRQ(ierr); 
   work  = ds->work;
@@ -683,8 +683,8 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
   PetscReal      gnorm;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   A  = ds->mat[DS_MAT_A];
 
   if (!recover) {
@@ -727,7 +727,7 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
     Q    = ds->mat[DS_MAT_Q];
 
     /* g^ = -Q(:,idx)'*g */
-    ncol = PetscBLASIntCast(ds->l+ds->k);
+    ierr = PetscBLASIntCast(ds->l+ds->k,&ncol);CHKERRQ(ierr);
     BLASgemv_("C",&n,&ncol,&dmone,Q,&ld,g,&one,&dzero,ghat,&one);
 
     /* A = A + g^*b' */

@@ -192,8 +192,8 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
   X = ds->mat[DS_MAT_X];
   Q = ds->mat[DS_MAT_Q];
   k = *idx;
-  n_ = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   if (k < ds->n-1) {
     e = (ds->compact)?*(ds->rmat[DS_MAT_T]+ld+k):PetscRealPart(*(ds->mat[DS_MAT_A]+(k+1)+ld*k));
   } else e = 0.0;
@@ -560,9 +560,9 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
     }
     PetscFunctionReturn(0);
   }
-  lda_ = PetscBLASIntCast(lda);
-  n_   = PetscBLASIntCast(n);
-  ldq_ = PetscBLASIntCast(ldq);
+  ierr = PetscBLASIntCast(lda,&lda_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ldq,&ldq_);CHKERRQ(ierr);
   nwall = n*n+n;
   nwu = 0;
   if (!w || lw < nwall) {
@@ -622,9 +622,10 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
       Q[perm[i]+i*ldq] = 1.0;
     }
     for (ni=1;ni<n && ss[ni]==ss[0]; ni++);
-    n0 = ni-1; n1 = PetscBLASIntCast(n)-ni;
+    n0 = ni-1;
+    n1 = n_-ni;
     for (j=0;j<n-2;j++) {
-      m = PetscBLASIntCast(n-j-1);
+      ierr = PetscBLASIntCast(n-j-1,&m);CHKERRQ(ierr);
       /* Forming and applying reflectors */
       if (n0 > 1) {
         LAPACKlarfg_(&n0,A+ni-n0+j*lda,A+ni-n0+j*lda+1,&inc,&tau);
@@ -778,8 +779,8 @@ static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds,DSMatType mat,PetscScalar
   PetscReal      *ss,*s,*d,*e,d1,d2,toldeg=PETSC_SQRT_MACHINE_EPSILON*100,vi,vj;
 
   PetscFunctionBegin;
-  ld = PetscBLASIntCast(ds->ld);
-  n1 = PetscBLASIntCast(ds->n - ds->l);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->n-ds->l,&n1);CHKERRQ(ierr);
   ierr = DSAllocateWork_Private(ds,ld*ld+2*ld,ld,2*ld);CHKERRQ(ierr);
   s = ds->rmat[DS_MAT_D];
   d = ds->rmat[DS_MAT_T];
@@ -912,8 +913,8 @@ PetscErrorCode DSGHIEPPseudoOrthogInverseIteration(DS ds,PetscScalar *wr,PetscSc
   PetscReal      *s,*d,*e;
 
   PetscFunctionBegin;
-  ld = PetscBLASIntCast(ds->ld);
-  n1 = PetscBLASIntCast(ds->n - ds->l);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->n-ds->l,&n1);CHKERRQ(ierr);
   ierr = DSAllocateWork_Private(ds,ld*ld+2*ld,ld,2*ld);CHKERRQ(ierr);
   ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
   A = ds->mat[DS_MAT_A];
@@ -1030,8 +1031,8 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
   PetscBool      isreal;
 
   PetscFunctionBegin;
-  ld = PetscBLASIntCast(ds->ld);
-  m = PetscBLASIntCast(ds->n-ds->l);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->n-ds->l,&m);CHKERRQ(ierr);
   A = ds->mat[DS_MAT_A];
   B = ds->mat[DS_MAT_B];
   T = ds->rmat[DS_MAT_T];
@@ -1151,8 +1152,8 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscValidPointer(wi,3);
 #endif
   one = 1;
-  n1 = PetscBLASIntCast(ds->n - ds->l);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n-ds->l,&n1);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   off = ds->l + ds->l*ld;
   A = ds->mat[DS_MAT_A];
   B = ds->mat[DS_MAT_B];
@@ -1245,8 +1246,8 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
   PetscValidPointer(wi,3);
 #endif
-  n1 = PetscBLASIntCast(ds->n - ds->l);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n-ds->l,&n1);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   off = ds->l + ds->l*ld;
   A = ds->mat[DS_MAT_A];
   B = ds->mat[DS_MAT_B];
@@ -1371,8 +1372,8 @@ PetscErrorCode DSNormalize_GHIEP(DS ds,DSMatType mat,PetscInt col)
       SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
   }
 
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
   if (col < 0) {
     i0 = 0; i1 = ds->n;

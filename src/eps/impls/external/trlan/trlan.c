@@ -37,7 +37,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;
 
   PetscFunctionBegin;
-  tr->maxlan = PetscBLASIntCast(PetscMax(7,eps->nev+PetscMin(eps->nev,6)));
+  ierr = PetscBLASIntCast(PetscMax(7,eps->nev+PetscMin(eps->nev,6)),&tr->maxlan);CHKERRQ(ierr);
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
   } else eps->ncv = tr->maxlan;
@@ -53,8 +53,11 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   tr->restart = 0;
-  if (tr->maxlan+1-eps->ncv<=0) tr->lwork = PetscBLASIntCast(tr->maxlan*(tr->maxlan+10));
-  else tr->lwork = PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10));
+  if (tr->maxlan+1-eps->ncv<=0) {
+    ierr = PetscBLASIntCast(tr->maxlan*(tr->maxlan+10),&tr->lwork);CHKERRQ(ierr);
+  } else {
+    ierr = PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10),&tr->lwork);CHKERRQ(ierr);
+  }
   ierr = PetscMalloc(tr->lwork*sizeof(PetscReal),&tr->work);CHKERRQ(ierr);
 
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
@@ -102,8 +105,8 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   PetscScalar    *pV;
   
   PetscFunctionBegin;
-  ncv = PetscBLASIntCast(eps->ncv);
-  n = PetscBLASIntCast(eps->nloc);
+  ierr = PetscBLASIntCast(eps->ncv,&ncv);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(eps->nloc,&n);CHKERRQ(ierr);
   
   if (eps->which==EPS_LARGEST_REAL || eps->which==EPS_TARGET_REAL) lohi = 1;
   else if (eps->which==EPS_SMALLEST_REAL) lohi = -1;
@@ -113,12 +116,12 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
 
   ipar[0]  = 0;            /* stat: error flag */
   ipar[1]  = lohi;         /* smallest (lohi<0) or largest eigenvalues (lohi>0) */
-  ipar[2]  = PetscBLASIntCast(eps->nev); /* number of desired eigenpairs */
+  ierr = PetscBLASIntCast(eps->nev,&ipar[2]);CHKERRQ(ierr); /* number of desired eigenpairs */
   ipar[3]  = 0;            /* number of eigenpairs already converged */
   ipar[4]  = tr->maxlan;   /* maximum Lanczos basis size */
   ipar[5]  = tr->restart;  /* restarting scheme */
-  ipar[6]  = PetscBLASIntCast(eps->max_it); /* maximum number of MATVECs */
-  ipar[7]  = PetscBLASIntCast(MPI_Comm_c2f(((PetscObject)eps)->comm)); /* communicator */
+  ierr = PetscBLASIntCast(eps->max_it,&ipar[6]);CHKERRQ(ierr); /* maximum number of MATVECs */
+  ierr = PetscBLASIntCast(MPI_Comm_c2f(((PetscObject)eps)->comm),&ipar[7]);CHKERRQ(ierr);
   ipar[8]  = 0;            /* verboseness */
   ipar[9]  = 99;           /* Fortran IO unit number used to write log messages */
   ipar[10] = 1;            /* use supplied starting vector */

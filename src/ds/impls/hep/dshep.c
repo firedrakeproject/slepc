@@ -347,11 +347,11 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
   PetscReal      *d,*e;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ds->n);
-  l  = PetscBLASIntCast(ds->l);
-  ld = PetscBLASIntCast(ds->ld);
-  n1 = PetscBLASIntCast(ds->k-l+1);  /* size of leading block, excluding locked */
-  n2 = PetscBLASIntCast(n-ds->k-1);  /* size of trailing block */
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->k-l+1,&n1);CHKERRQ(ierr); /* size of leading block, excl. locked */
+  ierr = PetscBLASIntCast(n-ds->k-1,&n2);CHKERRQ(ierr); /* size of trailing block */
   n3 = n1+n2;
   off = l+l*ld;
   A  = ds->mat[DS_MAT_A];
@@ -430,8 +430,8 @@ PetscErrorCode DSUpdateExtraRow_HEP(DS ds)
   PetscReal      *e,beta;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   A  = ds->mat[DS_MAT_A];
   Q  = ds->mat[DS_MAT_Q];
   e  = ds->rmat[DS_MAT_T]+ld;
@@ -467,11 +467,11 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscReal      *d,*e;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ds->n);
-  l  = PetscBLASIntCast(ds->l);
-  ld = PetscBLASIntCast(ds->ld);
-  n1 = PetscBLASIntCast(ds->k-l+1);  /* size of leading block, excluding locked */
-  n2 = PetscBLASIntCast(n-ds->k-1);  /* size of trailing block */
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->k-l+1,&n1);CHKERRQ(ierr); /* size of leading block, excl. locked */
+  ierr = PetscBLASIntCast(n-ds->k-1,&n2);CHKERRQ(ierr); /* size of trailing block */
   n3 = n1+n2;
   off = l+l*ld;
   Q  = ds->mat[DS_MAT_Q];
@@ -525,11 +525,11 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ds->n);
-  l  = PetscBLASIntCast(ds->l);
-  ld = PetscBLASIntCast(ds->ld);
-  n1 = PetscBLASIntCast(ds->k-l+1);  /* size of leading block, excluding locked */
-  n2 = PetscBLASIntCast(n-ds->k-1);  /* size of trailing block */
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->k-l+1,&n1);CHKERRQ(ierr); /* size of leading block, excl. locked */
+  ierr = PetscBLASIntCast(n-ds->k-1,&n2);CHKERRQ(ierr); /* size of trailing block */
   n3 = n1+n2;
   off = l+l*ld;
   A  = ds->mat[DS_MAT_A];
@@ -609,9 +609,9 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
  
   PetscFunctionBegin;
-  ld = PetscBLASIntCast(ds->ld);
-  l = PetscBLASIntCast(ds->l);
-  n1 = PetscBLASIntCast(ds->n-ds->l);
+  ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->n-ds->l,&n1);CHKERRQ(ierr);
   off = l+l*ld;
   Q  = ds->mat[DS_MAT_Q];
   A  = ds->mat[DS_MAT_A];
@@ -692,8 +692,8 @@ PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
   PetscScalar    *A;
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   lwork = 8*ld;
   ierr = DSAllocateWork_Private(ds,lwork,ld,ld);CHKERRQ(ierr); 
   work  = ds->work;
@@ -735,11 +735,11 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
   PetscBLASInt   ld,n1,n0,lwork,info;
 
   PetscFunctionBegin;
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = DSAllocateWork_Private(ds,ld*ld,0,0);CHKERRQ(ierr);
   tau = ds->work;
   work = ds->work+ld;
-  lwork = PetscBLASIntCast(ld*(ld-1));
+  ierr = PetscBLASIntCast(ld*(ld-1),&lwork);CHKERRQ(ierr);
   ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
   A  = ds->mat[DS_MAT_A];
   Q  = ds->mat[DS_MAT_Q];
@@ -752,8 +752,8 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
     Q[k+i*ld] = alpha*A[k+i*ld];
   }
   /* Compute qr */
-  n1 = PetscBLASIntCast(k+1);
-  n0 = PetscBLASIntCast(k);
+  ierr = PetscBLASIntCast(k+1,&n1);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(k,&n0);CHKERRQ(ierr);
   LAPACKgeqrf_(&n1,&n0,Q,&ld,tau,work,&lwork,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
   /* Copy R from Q */
@@ -786,8 +786,8 @@ PetscErrorCode DSFunction_EXP_HEP_DIAG(DS ds)
   PetscScalar    *F,*Q,*W;
 
   PetscFunctionBegin;
-  ld = PetscBLASIntCast(ds->ld);
-  n  = PetscBLASIntCast(ds->n);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc(n*sizeof(PetscScalar),&eig);CHKERRQ(ierr);
   ierr = DSSolve(ds,eig,PETSC_NULL);CHKERRQ(ierr);
   if (!ds->mat[DS_MAT_W]) {

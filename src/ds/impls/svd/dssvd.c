@@ -218,14 +218,14 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
-  n  = PetscBLASIntCast(ds->n);
-  m  = PetscBLASIntCast(ds->m);
-  l  = PetscBLASIntCast(ds->l);
-  ld = PetscBLASIntCast(ds->ld);
-  n1 = PetscBLASIntCast(ds->k-l+1);  /* size of leading block, excluding locked */
-  n2 = PetscBLASIntCast(n-ds->k-1);  /* size of trailing block */
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->m,&m);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->k-l+1,&n1);CHKERRQ(ierr); /* size of leading block, excl. locked */
+  ierr = PetscBLASIntCast(n-ds->k-1,&n2);CHKERRQ(ierr); /* size of trailing block */
+  ierr = PetscBLASIntCast(m-ds->k-1,&m2);CHKERRQ(ierr);
   n3 = n1+n2;
-  m2 = PetscBLASIntCast(m-ds->k-1);
   m3 = n1+m2;
   off = l+l*ld;
   A  = ds->mat[DS_MAT_A];

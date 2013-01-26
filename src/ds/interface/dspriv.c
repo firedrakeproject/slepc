@@ -400,10 +400,10 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   if (cols > n) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
   if (n == 0 || cols == 0) PetscFunctionReturn(0);
   ierr = DSGetArray(ds,mat,&A);CHKERRQ(ierr);
-  ltau = PetscBLASIntCast(PetscMin(cols,n));
-  ld_ = PetscBLASIntCast(ld);
-  rA = PetscBLASIntCast(n);
-  cA = PetscBLASIntCast(cols);
+  ierr = PetscBLASIntCast(PetscMin(cols,n),&ltau);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ld,&ld_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n,&rA);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(cols,&cA);CHKERRQ(ierr);
   lw = -1;
   LAPACKgeqrf_(&rA,&cA,A,&ld_,PETSC_NULL,&saux,&lw,&info);
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
@@ -461,7 +461,7 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
   n = n - l;
   if (cols > n) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
   if (n == 0 || cols == 0) PetscFunctionReturn(0);
-  rA_ = PetscBLASIntCast(n);
+  ierr = PetscBLASIntCast(n,&rA_);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&A_);CHKERRQ(ierr);
   A = &A_[ld*l+l];
   ierr = DSAllocateWork_Private(ds,n+cols,ns?0:cols,0);CHKERRQ(ierr);

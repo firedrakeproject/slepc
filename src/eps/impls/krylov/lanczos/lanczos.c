@@ -199,9 +199,9 @@ static PetscErrorCode DenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,Pet
 #endif
   
   PetscFunctionBegin;
-  n = PetscBLASIntCast(n_);
-  lwork = PetscBLASIntCast(20*n_);
-  liwork = PetscBLASIntCast(10*n_);
+  ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(20*n_,&lwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(10*n_,&liwork);CHKERRQ(ierr);
   if (V) {
     jobz = "V";
 #if defined(PETSC_USE_COMPLEX)

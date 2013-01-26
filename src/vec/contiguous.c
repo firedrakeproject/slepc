@@ -171,9 +171,9 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous_Inplace(PetscInt m_,Vec *
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0],&l);CHKERRQ(ierr);
-  ls = PetscBLASIntCast(l);  
-  m = PetscBLASIntCast(m_);
-  ldq = PetscBLASIntCast(ldq_);
+  ierr = PetscBLASIntCast(l,&ls);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ldq_,&ldq);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscScalar)*2*bs*m,&work);CHKERRQ(ierr);
   out = work+m*bs;
   k = ls % bs;
@@ -367,16 +367,16 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
   const char     *qt;
 
   PetscFunctionBegin;
-  n = PetscBLASIntCast(n_/d);
-  ldq = PetscBLASIntCast(ldq_);
+  ierr = PetscBLASIntCast(n_/d,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ldq_,&ldq);CHKERRQ(ierr);
   m = (e-s)/d;
   if (!m) PetscFunctionReturn(0);
   PetscValidIntPointer(Q,5);
   if (m<0 || n<0 || s<0 || m>n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Index argument out of range");
   ierr = PetscLogEventBegin(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0],&l);CHKERRQ(ierr);
-  ls = PetscBLASIntCast(l);
-  ld = ls*PetscBLASIntCast(d);
+  ierr = PetscBLASIntCast(l,&ls);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ls*d,&ld);CHKERRQ(ierr);
   ierr = VecGetArray(V[0],&pv);CHKERRQ(ierr);
   if (qtrans) {
     pq = (PetscScalar*)Q+s;
@@ -470,8 +470,8 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
     ierr = PetscLogEventBegin(SLEPC_VecMAXPBY,*x,y,0,0);CHKERRQ(ierr);
     ierr = VecGetArray(y,&py);CHKERRQ(ierr);
     ierr = VecGetArrayRead(*x,&px);CHKERRQ(ierr);
-    n = PetscBLASIntCast(nv);
-    m = PetscBLASIntCast((y)->map->n);
+    ierr = PetscBLASIntCast(nv,&n);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast((y)->map->n,&m);CHKERRQ(ierr);
     BLASgemv_("N",&m,&n,&alpha,px,&m,a,&one,&beta,py,&one);
     ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(*x,&px);CHKERRQ(ierr);

@@ -117,8 +117,8 @@ PetscErrorCode DSNormalize_GHEP(DS ds,DSMatType mat,PetscInt col)
   }
   /* All the matrices resulting from DSVectors and DSSolve are B-normalized,
      but function returns 2-normalized vectors. */
-  n  = PetscBLASIntCast(ds->n);
-  ld = PetscBLASIntCast(ds->ld);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
   if (col < 0) {
     i0 = 0; i1 = ds->n;
@@ -176,14 +176,14 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif 
 
   PetscFunctionBegin;
-  n1 = PetscBLASIntCast(ds->n-ds->l);
-  ld = PetscBLASIntCast(ds->ld);
-  liwork = PetscBLASIntCast(5*ds->n+3);
+  ierr = PetscBLASIntCast(ds->n-ds->l,&n1);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(5*ds->n+3,&liwork);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-  lwork  = PetscBLASIntCast(ds->n*ds->n+2*ds->n);
-  lrwork = PetscBLASIntCast(2*ds->n*ds->n+5*ds->n+1+n1);
+  ierr = PetscBLASIntCast(ds->n*ds->n+2*ds->n,&lwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(2*ds->n*ds->n+5*ds->n+1+n1,&lrwork);CHKERRQ(ierr);
 #else
-  lwork  = PetscBLASIntCast(2*ds->n*ds->n+6*ds->n+1);
+  ierr = PetscBLASIntCast(2*ds->n*ds->n+6*ds->n+1,&lwork);CHKERRQ(ierr);
 #endif
   ierr = DSAllocateWork_Private(ds,lwork,lrwork,liwork);CHKERRQ(ierr);
   work = ds->work;

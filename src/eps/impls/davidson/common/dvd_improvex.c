@@ -817,13 +817,13 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
   ierr = SlepcAllReduceSumEnd(&r);CHKERRQ(ierr);
 
   /* iXKZ <- inv(XKZ) */
-  s = PetscBLASIntCast(size_KZ);
+  ierr = PetscBLASIntCast(size_KZ,&s);CHKERRQ(ierr);
   data->ldiXKZ = data->size_iXKZ = size_KZ;
   data->iXKZ = *auxS; *auxS+= size_KZ*size_KZ;
   data->iXKZPivots = (PetscBLASInt*)*auxS;
   *auxS += FromIntToScalar(size_KZ);
   ierr = SlepcDenseCopy(data->iXKZ,data->ldiXKZ,data->XKZ,data->ldXKZ,size_KZ,size_KZ);CHKERRQ(ierr);
-  ldXKZ = PetscBLASIntCast(data->ldiXKZ);
+  ierr = PetscBLASIntCast(data->ldiXKZ,&ldXKZ);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   LAPACKgetrf_(&s, &s, data->iXKZ, &ldXKZ, data->iXKZPivots, &info);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
@@ -1182,9 +1182,9 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV,PetscS
   ierr = SlepcAllReduceSumEnd(&r);CHKERRQ(ierr);
 
   /* h <- iXKZ\h */
-  cV_ = PetscBLASIntCast(cV);
-  n = PetscBLASIntCast(data->size_iXKZ);
-  ld = PetscBLASIntCast(data->ldiXKZ);
+  ierr = PetscBLASIntCast(cV,&cV_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(data->size_iXKZ,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(data->ldiXKZ,&ld);CHKERRQ(ierr);
   PetscValidScalarPointer(data->iXKZ,0);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   LAPACKgetrs_("N", &n, &cV_, data->iXKZ, &ld, data->iXKZPivots, h, &n, &info); 
@@ -1234,9 +1234,9 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV,P
   ierr = SlepcAllReduceSumEnd(&r);CHKERRQ(ierr);
 
   /* h <- iXKZ\h */
-  cV_ = PetscBLASIntCast(cV);
-  n = PetscBLASIntCast(data->size_iXKZ);
-  ld = PetscBLASIntCast(data->ldiXKZ);
+  ierr = PetscBLASIntCast(cV,&cV_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(data->size_iXKZ,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(data->ldiXKZ,&ld);CHKERRQ(ierr);
   PetscValidScalarPointer(data->iXKZ,0);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   LAPACKgetrs_("C", &n, &cV_, data->iXKZ, &ld, data->iXKZPivots, h, &n, &info); 
