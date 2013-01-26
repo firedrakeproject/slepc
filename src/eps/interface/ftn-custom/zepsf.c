@@ -119,22 +119,25 @@ void epsmonitorfirst_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,Pe
 
 EXTERN_C_END
  
+static struct {
+  PetscFortranCallbackId monitor;
+  PetscFortranCallbackId monitordestroy;
+  PetscFortranCallbackId convergence;
+  PetscFortranCallbackId comparison;
+  PetscFortranCallbackId arbitrary;
+} _cb;
+
 /* These are not extern C because they are passed into non-extern C user level functions */
 static PetscErrorCode ourmonitor(EPS eps,PetscInt i,PetscInt nc,PetscScalar *er,PetscScalar *ei,PetscReal *d,PetscInt l,void* ctx)
 {
-  PetscErrorCode ierr = 0;
-  void           *mctx = (void*)((PetscObject)eps)->fortran_func_pointers[1];
-  (*(void (PETSC_STDCALL*)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*))
-    (((PetscObject)eps)->fortran_func_pointers[0]))(&eps,&i,&nc,er,ei,d,&l,mctx,&ierr);CHKERRQ(ierr);
+  PetscObjectUseFortranCallback(eps,_cb.monitor,(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),(&eps,&i,&nc,er,ei,d,&l,_ctx,&ierr));
   return 0;
 }
 
 static PetscErrorCode ourdestroy(void** ctx)
 {
-  PetscErrorCode ierr = 0;
-  EPS            eps = *(EPS*)ctx;
-  void           *mctx = (void*)((PetscObject)eps)->fortran_func_pointers[1];
-  (*(void (PETSC_STDCALL*)(void*,PetscErrorCode*))(((PetscObject)eps)->fortran_func_pointers[2]))(mctx,&ierr);CHKERRQ(ierr);
+  EPS eps = (EPS)*ctx;
+  PetscObjectUseFortranCallback(eps,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
   return 0;
 }
 
@@ -200,12 +203,12 @@ void PETSC_STDCALL epscreate_(MPI_Fint *comm,EPS *eps,PetscErrorCode *ierr)
   *ierr = EPSCreate(MPI_Comm_f2c(*(comm)),eps);
 }
 
-void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),
-                                  void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
+void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   SlepcConvMonitor ctx;
+
+  CHKFORTRANNULLOBJECT(mctx);
   CHKFORTRANNULLFUNCTION(monitordestroy);
-  PetscObjectAllocateFortranPointers(*eps,3);
   if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorall_) {
     *ierr = EPSMonitorSet(*eps,EPSMonitorAll,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorlg_) {
@@ -225,12 +228,11 @@ void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,Pe
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorfirst_) {
     *ierr = EPSMonitorSet(*eps,EPSMonitorFirst,0,0);
   } else {
-    ((PetscObject)*eps)->fortran_func_pointers[0] = (PetscVoidFunction)monitor;
-    ((PetscObject)*eps)->fortran_func_pointers[1] = (PetscVoidFunction)mctx;
+    *ierr = PetscObjectSetFortranCallback((PetscObject)*eps,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitor,(PetscVoidFunction)monitor,mctx); if (*ierr) return;
     if (!monitordestroy) {
       *ierr = EPSMonitorSet(*eps,ourmonitor,*eps,0);
     } else {
-      ((PetscObject)*eps)->fortran_func_pointers[2] = (PetscVoidFunction)monitordestroy;
+      *ierr = PetscObjectSetFortranCallback((PetscObject)*eps,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;
       *ierr = EPSMonitorSet(*eps,ourmonitor,*eps,ourdestroy);
     }
   }
@@ -309,10 +311,7 @@ EXTERN_C_END
 /* These are not extern C because they are passed into non-extern C user level functions */
 static PetscErrorCode ourconvergence(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
-  PetscErrorCode ierr = 0;
-  void           *mctx = (void*)((PetscObject)eps)->fortran_func_pointers[4];
-  (*(void (PETSC_STDCALL*)(EPS*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*))
-   (((PetscObject)eps)->fortran_func_pointers[3]))(&eps,&eigr,&eigi,&res,errest,mctx,&ierr);CHKERRQ(ierr);
+  PetscObjectUseFortranCallback(eps,_cb.convergence,(EPS*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),(&eps,&eigr,&eigi,&res,errest,_ctx,&ierr));
   return 0;
 }
 
@@ -320,7 +319,7 @@ EXTERN_C_BEGIN
 
 void PETSC_STDCALL epssetconvergencetestfunction_(EPS *eps,void (PETSC_STDCALL *func)(EPS*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,PetscErrorCode *ierr)
 {
-  PetscObjectAllocateFortranPointers(*eps,5);
+  CHKFORTRANNULLOBJECT(ctx);
   if ((PetscVoidFunction)func == (PetscVoidFunction)epsconvergedabsolute_) {
     *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_ABS);
   } else if ((PetscVoidFunction)func == (PetscVoidFunction)epsconvergedeigrelative_) {
@@ -328,8 +327,7 @@ void PETSC_STDCALL epssetconvergencetestfunction_(EPS *eps,void (PETSC_STDCALL *
   } else if ((PetscVoidFunction)func == (PetscVoidFunction)epsconvergednormrelative_) {
     *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_NORM);
   } else {
-    ((PetscObject)*eps)->fortran_func_pointers[3] = (PetscVoidFunction)func;
-    ((PetscObject)*eps)->fortran_func_pointers[4] = (PetscVoidFunction)ctx;
+    *ierr = PetscObjectSetFortranCallback((PetscObject)*eps,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convergence,(PetscVoidFunction)func,ctx); if (*ierr) return;
     *ierr = EPSSetConvergenceTestFunction(*eps,ourconvergence,PETSC_NULL);
   }
 }
@@ -339,11 +337,8 @@ EXTERN_C_END
 /* These are not extern C because they are passed into non-extern C user level functions */
 static PetscErrorCode oureigenvaluecomparison(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
 {
-  EPS            eps = *(EPS*)ctx;
-  PetscErrorCode ierr = 0;
-  void           *mctx = (void*)((PetscObject)eps)->fortran_func_pointers[6];
-  (*(void (PETSC_STDCALL*)(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*))
-   (((PetscObject)eps)->fortran_func_pointers[5]))(&ar,&ai,&br,&bi,r,mctx,&ierr);CHKERRQ(ierr);
+  EPS eps = (EPS)ctx;
+  PetscObjectUseFortranCallback(eps,_cb.comparison,(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*),(&ar,&ai,&br,&bi,r,_ctx,&ierr));
   return 0;
 }
 
@@ -351,22 +346,18 @@ EXTERN_C_BEGIN
 
 void PETSC_STDCALL epsseteigenvaluecomparison_(EPS *eps,void (PETSC_STDCALL *func)(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*),void* ctx,PetscErrorCode *ierr)
 {
-  PetscObjectAllocateFortranPointers(*eps,7);
-  ((PetscObject)*eps)->fortran_func_pointers[5] = (PetscVoidFunction)func;
-  ((PetscObject)*eps)->fortran_func_pointers[6] = (PetscVoidFunction)ctx;
+  CHKFORTRANNULLOBJECT(ctx);
+  *ierr = PetscObjectSetFortranCallback((PetscObject)*eps,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.comparison,(PetscVoidFunction)func,ctx); if (*ierr) return;
   *ierr = EPSSetEigenvalueComparison(*eps,oureigenvaluecomparison,eps);
 }
 
 EXTERN_C_END
 
 /* These are not extern C because they are passed into non-extern C user level functions */
-static PetscErrorCode ourarbitraryfunc(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar *ri,void *eps_)
+static PetscErrorCode ourarbitraryfunc(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar *ri,void *ctx)
 {
-  PetscErrorCode ierr = 0;
-  EPS            eps = (EPS)eps_;
-  void           *ctx = (void*)((PetscObject)eps)->fortran_func_pointers[8];
-  (*(void (PETSC_STDCALL*)(PetscScalar*,PetscScalar*,Vec*,Vec*,PetscScalar*,PetscScalar*,void*,PetscErrorCode*))
-    (((PetscObject)eps)->fortran_func_pointers[7]))(&er,&ei,&xr,&xi,rr,ri,ctx,&ierr);CHKERRQ(ierr);
+  EPS eps = (EPS)ctx;
+  PetscObjectUseFortranCallback(eps,_cb.arbitrary,(PetscScalar*,PetscScalar*,Vec*,Vec*,PetscScalar*,PetscScalar*,void*,PetscErrorCode*),(&er,&ei,&xr,&xi,rr,ri,_ctx,&ierr));
   return 0;
 }
 
@@ -374,9 +365,8 @@ EXTERN_C_BEGIN
 
 void PETSC_STDCALL epssetarbitraryselection_(EPS *eps,void (PETSC_STDCALL *func)(PetscScalar*,PetscScalar*,Vec*,Vec*,PetscScalar*,PetscScalar*,void*,PetscErrorCode*),void *ctx,PetscErrorCode *ierr)
 {
-  PetscObjectAllocateFortranPointers(*eps,9);
-  ((PetscObject)*eps)->fortran_func_pointers[7] = (PetscVoidFunction)func;
-  ((PetscObject)*eps)->fortran_func_pointers[8] = (PetscVoidFunction)ctx;
+  CHKFORTRANNULLOBJECT(ctx);
+  *ierr = PetscObjectSetFortranCallback((PetscObject)*eps,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.arbitrary,(PetscVoidFunction)func,ctx); if (*ierr) return;
   *ierr = EPSSetArbitrarySelection(*eps,ourarbitraryfunc,*eps);
 }
 

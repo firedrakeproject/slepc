@@ -95,22 +95,22 @@ void qepmonitorfirst_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,Pe
 
 EXTERN_C_END
  
+static struct {
+  PetscFortranCallbackId monitor;
+  PetscFortranCallbackId monitordestroy;
+} _cb;
+
 /* These are not extern C because they are passed into non-extern C user level functions */
 static PetscErrorCode ourmonitor(QEP qep,PetscInt i,PetscInt nc,PetscScalar *er,PetscScalar *ei,PetscReal *d,PetscInt l,void* ctx)
 {
-  PetscErrorCode ierr = 0;
-  void           *mctx = (void*)((PetscObject)qep)->fortran_func_pointers[1];
-  (*(void (PETSC_STDCALL*)(QEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*))
-    (((PetscObject)qep)->fortran_func_pointers[0]))(&qep,&i,&nc,er,ei,d,&l,mctx,&ierr);CHKERRQ(ierr);
+  PetscObjectUseFortranCallback(qep,_cb.monitor,(QEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),(&qep,&i,&nc,er,ei,d,&l,_ctx,&ierr));
   return 0;
 }
 
 static PetscErrorCode ourdestroy(void** ctx)
 {
-  PetscErrorCode ierr = 0;
-  QEP            qep = *(QEP*)ctx;
-  void           *mctx = (void*)((PetscObject)qep)->fortran_func_pointers[1];
-  (*(void (PETSC_STDCALL*)(void*,PetscErrorCode*))(((PetscObject)qep)->fortran_func_pointers[2]))(mctx,&ierr);CHKERRQ(ierr);
+  QEP qep = (QEP)*ctx;
+  PetscObjectUseFortranCallback(qep,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
   return 0;
 }
 
@@ -169,12 +169,12 @@ void PETSC_STDCALL qepcreate_(MPI_Fint *comm,QEP *qep,PetscErrorCode *ierr)
   *ierr = QEPCreate(MPI_Comm_f2c(*(comm)),qep);
 }
 
-void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *monitor)(QEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),
-                                  void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
+void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *monitor)(QEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   SlepcConvMonitor ctx;
+
+  CHKFORTRANNULLOBJECT(mctx);
   CHKFORTRANNULLFUNCTION(monitordestroy);
-  PetscObjectAllocateFortranPointers(*qep,3);
   if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorall_) {
     *ierr = QEPMonitorSet(*qep,QEPMonitorAll,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorlg_) {
@@ -194,12 +194,11 @@ void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *monitor)(QEP*,Pe
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorfirst_) {
     *ierr = QEPMonitorSet(*qep,QEPMonitorFirst,0,0);
   } else {
-    ((PetscObject)*qep)->fortran_func_pointers[0] = (PetscVoidFunction)monitor;
-    ((PetscObject)*qep)->fortran_func_pointers[1] = (PetscVoidFunction)mctx;
+    *ierr = PetscObjectSetFortranCallback((PetscObject)*qep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitor,(PetscVoidFunction)monitor,mctx); if (*ierr) return;
     if (!monitordestroy) {
       *ierr = QEPMonitorSet(*qep,ourmonitor,*qep,0);
     } else {
-      ((PetscObject)*qep)->fortran_func_pointers[2] = (PetscVoidFunction)monitordestroy;
+      *ierr = PetscObjectSetFortranCallback((PetscObject)*qep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;
       *ierr = QEPMonitorSet(*qep,ourmonitor,*qep,ourdestroy);
     }
   }
