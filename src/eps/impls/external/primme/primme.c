@@ -324,15 +324,15 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (!isascii) SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSPRIMME",((PetscObject)viewer)->type_name);
-  
-  ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: block size=%d\n",primme->maxBlockSize);CHKERRQ(ierr);
-  ierr = EPSPRIMMEGetMethod(eps,&methodn);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: solver method: %s\n",EPSPRIMMEMethods[methodn]);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: block size=%d\n",primme->maxBlockSize);CHKERRQ(ierr);
+    ierr = EPSPRIMMEGetMethod(eps,&methodn);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: solver method: %s\n",EPSPRIMMEMethods[methodn]);CHKERRQ(ierr);
 
-  /* Display PRIMME params */
-  ierr = MPI_Comm_rank(((PetscObject)eps)->comm,&rank);CHKERRQ(ierr);
-  if (!rank) primme_display_params(*primme);
+    /* Display PRIMME params */
+    ierr = MPI_Comm_rank(((PetscObject)eps)->comm,&rank);CHKERRQ(ierr);
+    if (!rank) primme_display_params(*primme);
+  }
   PetscFunctionReturn(0);
 }
 

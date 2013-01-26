@@ -397,8 +397,9 @@ PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (!isascii) SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPS RQCG",((PetscObject)viewer)->type_name);
-  ierr = PetscViewerASCIIPrintf(viewer,"  RQCG: reset every %d iterations\n",ctx->nrest);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  RQCG: reset every %d iterations\n",ctx->nrest);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

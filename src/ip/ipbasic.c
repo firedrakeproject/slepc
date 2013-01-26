@@ -540,7 +540,7 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
       ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     }
-  } else SETERRQ1(((PetscObject)ip)->comm,1,"Viewer type %s not supported for IP",((PetscObject)viewer)->type_name);
+  }
   PetscFunctionReturn(0);
 }
 

@@ -382,35 +382,35 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   name = ((PetscObject)eps)->type_name;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (!isascii) SETERRQ2(((PetscObject)eps)->comm,1,"Viewer type %s not supported for %s",((PetscObject)viewer)->type_name,name);
-  
-  ierr = EPSDavidsonGetMethod_Davidson(eps,&meth);CHKERRQ(ierr);
-  if (meth==DVD_METH_GD2) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: using double expansion variant (GD2)\n");CHKERRQ(ierr);
+  if (isascii) {
+    ierr = EPSDavidsonGetMethod_Davidson(eps,&meth);CHKERRQ(ierr);
+    if (meth==DVD_METH_GD2) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: using double expansion variant (GD2)\n");CHKERRQ(ierr);
+    }
+    ierr = EPSDavidsonGetBOrth_Davidson(eps,&borth);CHKERRQ(ierr);
+    switch (borth) {
+    case EPS_ORTH_I:
+      ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is orthogonalized\n");CHKERRQ(ierr);
+      break;
+    case EPS_ORTH_B:
+      ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is B-orthogonalized\n");CHKERRQ(ierr);
+      break;
+    case EPS_ORTH_BOPT:
+      ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is B-orthogonalized with an optimized method\n");CHKERRQ(ierr);
+      break;
+    }
+    ierr = EPSDavidsonGetBlockSize_Davidson(eps,&opi);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: block size=%D\n",opi);CHKERRQ(ierr);
+    ierr = EPSDavidsonGetKrylovStart_Davidson(eps,&opb);CHKERRQ(ierr);
+    if (!opb) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: type of the initial subspace: non-Krylov\n");CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: type of the initial subspace: Krylov\n");CHKERRQ(ierr);
+    }
+    ierr = EPSDavidsonGetRestart_Davidson(eps,&opi,&opi0);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: size of the subspace after restarting: %D\n",opi);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: number of vectors after restarting from the previous iteration: %D\n",opi0);CHKERRQ(ierr);
   }
-  ierr = EPSDavidsonGetBOrth_Davidson(eps,&borth);CHKERRQ(ierr);
-  switch (borth) {
-  case EPS_ORTH_I:
-    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is orthogonalized\n");CHKERRQ(ierr);
-    break;
-  case EPS_ORTH_B:
-    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is B-orthogonalized\n");CHKERRQ(ierr);
-    break;
-  case EPS_ORTH_BOPT:
-    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is B-orthogonalized with an optimized method\n");CHKERRQ(ierr);
-    break;
-  }
-  ierr = EPSDavidsonGetBlockSize_Davidson(eps,&opi);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: block size=%D\n",opi);CHKERRQ(ierr);
-  ierr = EPSDavidsonGetKrylovStart_Davidson(eps,&opb);CHKERRQ(ierr);
-  if (!opb) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: type of the initial subspace: non-Krylov\n");CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: type of the initial subspace: Krylov\n");CHKERRQ(ierr);
-  }
-  ierr = EPSDavidsonGetRestart_Davidson(eps,&opi,&opi0);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: size of the subspace after restarting: %D\n",opi);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: number of vectors after restarting from the previous iteration: %D\n",opi0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

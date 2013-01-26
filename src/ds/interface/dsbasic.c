@@ -793,7 +793,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
       ierr = (*ds->ops->view)(ds,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-  } else SETERRQ1(((PetscObject)ds)->comm,1,"Viewer type %s not supported for DS",((PetscObject)viewer)->type_name);
+  }
   PetscFunctionReturn(0);
 }
 

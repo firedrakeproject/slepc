@@ -321,11 +321,12 @@ PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (!isascii) SETERRQ1(((PetscObject)eps)->comm,1,"Viewer type %s not supported for EPSBLZPACK",((PetscObject)viewer)->type_name);
-  ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: block size=%d\n",blz->block_size);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: maximum number of steps per run=%d\n",blz->nsteps);CHKERRQ(ierr);
-  if (blz->slice) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: computational interval [%f,%f]\n",eps->inta,eps->intb);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: block size=%d\n",blz->block_size);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: maximum number of steps per run=%d\n",blz->nsteps);CHKERRQ(ierr);
+    if (blz->slice) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  BLZPACK: computational interval [%f,%f]\n",eps->inta,eps->intb);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
