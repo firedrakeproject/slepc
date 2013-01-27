@@ -78,9 +78,9 @@ static struct {
 } _cb;
 
 /* These are not extern C because they are passed into non-extern C user level functions */
-static PetscErrorCode ourmonitor(MFN mfn,PetscInt i,PetscReal *d,void* ctx)
+static PetscErrorCode ourmonitor(MFN mfn,PetscInt i,PetscReal d,void* ctx)
 {
-  PetscObjectUseFortranCallback(mfn,_cb.monitor,(MFN*,PetscInt*,PetscReal*,void*,PetscErrorCode*),(&mfn,&i,d,_ctx,&ierr));
+  PetscObjectUseFortranCallback(mfn,_cb.monitor,(MFN*,PetscInt*,PetscReal*,void*,PetscErrorCode*),(&mfn,&i,&d,_ctx,&ierr));
   return 0;
 }
 

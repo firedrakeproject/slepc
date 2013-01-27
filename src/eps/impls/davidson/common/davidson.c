@@ -375,12 +375,10 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
   PetscErrorCode ierr;
   PetscBool      isascii,opb;
   PetscInt       opi,opi0;
-  const char*    name;
   Method_t       meth;
   EPSOrthType    borth;
 
   PetscFunctionBegin;
-  name = ((PetscObject)eps)->type_name;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = EPSDavidsonGetMethod_Davidson(eps,&meth);CHKERRQ(ierr);
