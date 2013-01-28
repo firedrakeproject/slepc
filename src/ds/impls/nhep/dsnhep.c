@@ -754,23 +754,22 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
 #define __FUNCT__ "DSFunction_EXP_NHEP_PADE"
 PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
 {
-#if defined(PETSC_MISSING_LAPACK_GESV)
+#if defined(PETSC_MISSING_LAPACK_GESV) || defined(SLEPC_MISSING_LAPACK_LANGE)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routine is unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV/LANGE - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,ld2,*ipiv,info,inc=1;
   PetscInt       j,k,p=6,odd;
-  PetscScalar	 c[p+1],s,scale,*work;
-  PetscScalar    mone=-1.0,one=1.0,two=2.0,zero=0.0; 
+  PetscReal  	 c[p+1],s;
+  PetscScalar    scale,mone=-1.0,one=1.0,two=2.0,zero=0.0; 
   PetscScalar    *A,*A2,*Q,*P,*W,*aux;
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ld2 = ld*ld;
-  ierr = DSAllocateWork_Private(ds,ld,0,ld);CHKERRQ(ierr); 
-  work = ds->work;
+  ierr = DSAllocateWork_Private(ds,0,ld,ld);CHKERRQ(ierr); 
   ipiv = ds->iwork;
   if (!ds->mat[DS_MAT_W]) { ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr); }
   if (!ds->mat[DS_MAT_Z]) { ierr = DSAllocateMat_Private(ds,DS_MAT_Z);CHKERRQ(ierr); }
@@ -787,9 +786,9 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
   }
 
   /* Scaling */
-  s = LAPACKlange_("I",&n,&n,A,&ld,work);
+  s = LAPACKlange_("I",&n,&n,A,&ld,ds->rwork);
   if (s>0.5) {
-    s = PetscMax(0,(int)(PetscLogScalar(s)/PetscLogReal(2.0)) + 2);
+    s = PetscMax(0,(int)(PetscLogReal(s)/PetscLogReal(2.0)) + 2);
     scale = PetscPowScalar(2,(-1)*s);
     BLASscal_(&ld2,&scale,A,&inc);
   }
