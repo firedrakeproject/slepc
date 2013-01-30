@@ -288,6 +288,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
   PetscScalar     *pX,*pY,*auxS = d->auxS,*auxS0;
   PetscReal       tol,tol0;
   Vec             *u,*v,*kr,kr_comp,D_comp;
+  PetscBool       odd_situation = PETSC_FALSE;
 
   PetscFunctionBegin;
   /* Quick exit */
@@ -363,8 +364,14 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
       if (d->npreconv > 0) break;
     }
 
+    /* Test the odd situation of solving Ax=b with A=I */
+#if !defined(PETSC_USE_COMPLEX)
+    odd_situation = (data->ksp && data->theta[0] == 1. && data->theta[1] == 0. && data->thetai[0] == 0. && d->B == PETSC_NULL)?PETSC_TRUE:PETSC_FALSE;
+#else
+    odd_situation = (data->ksp && data->theta[0] == 1. && data->theta[1] == 0. && d->B == PETSC_NULL)?PETSC_TRUE:PETSC_FALSE;
+#endif
     /* If JD */
-    if (data->ksp) {
+    if (data->ksp && !odd_situation) {
       data->auxS = auxS;
 
       /* kr <- -kr */
