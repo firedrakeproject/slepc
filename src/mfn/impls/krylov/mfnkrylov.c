@@ -52,6 +52,7 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
   ierr = PetscLogObjectParents(mfn,mfn->ncv+1,mfn->V);CHKERRQ(ierr);
   mfn->allocated_ncv = mfn->ncv+1;
   ierr = DSAllocate(mfn->ds,mfn->ncv+2);CHKERRQ(ierr);
+  ierr = DSSetType(mfn->ds,DSNHEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -86,9 +87,9 @@ PetscErrorCode MFNBasicArnoldi(MFN mfn,PetscScalar *H,PetscInt ldh,Vec *V,PetscI
 PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 {
   PetscErrorCode ierr;
-  PetscInt       mxrej,m,mb,ld,i,j,ireject,mx,k1;
+  PetscInt       mxstep,mxrej,m,mb,ld,i,j,ireject,mx,k1;
   Vec            r;
-  PetscScalar    *H,*F,*betaF;
+  PetscScalar    *H,*B,*F,*betaF;
   PetscReal      anorm,normb,avnorm,tol,err_loc,rndoff;
   PetscReal      t,t_out,t_new,t_now,t_step;
   PetscReal      xm,fact,s,sgn,p1,p2;
@@ -98,6 +99,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscFunctionBegin;
   m   = mfn->ncv;
   tol = mfn->tol;
+  mxstep = mfn->max_it;
   mxrej = 10;
   gamma = 0.9;
   delta = 1.2;
@@ -120,16 +122,18 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   sgn = PetscSign(t);
 
   ierr = PetscMalloc((m+1)*sizeof(PetscScalar),&betaF);CHKERRQ(ierr);
-  ierr = VecDuplicate(mfn->t,&r);CHKERRQ(ierr);
+  ierr = VecDuplicate(mfn->V[0],&r);CHKERRQ(ierr);
   ierr = VecCopy(b,x);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(mfn->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-  while (t_now < t_out) {
+  ierr = PetscMalloc(ld*ld*sizeof(PetscScalar),&B);CHKERRQ(ierr);
+
+  while (t_now<t_out && mfn->its<mxstep) {
     mfn->its = mfn->its + 1;
     t_step = PetscMin(t_out-t_now,t_new);
 
     ierr = VecCopy(x,mfn->V[0]);CHKERRQ(ierr);
     ierr = VecScale(mfn->V[0],1.0/beta);CHKERRQ(ierr);
+    ierr = DSGetArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = MFNBasicArnoldi(mfn,H,ld,mfn->V,0,&mb,r,&beta2,&breakdown);CHKERRQ(ierr);
     H[mb+(mb-1)*ld] = beta2;
     ierr = VecScale(r,1.0/beta2);CHKERRQ(ierr);
@@ -143,24 +147,26 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
       ierr = MatMult(mfn->A,mfn->V[m],r);CHKERRQ(ierr);
       ierr = VecNorm(r,NORM_2,&avnorm);CHKERRQ(ierr);
     }
+    ierr = PetscMemcpy(B,H,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = DSRestoreArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);  
 
+    mx = mb + k1;
+    ierr = DSSetDimensions(mfn->ds,mx,PETSC_IGNORE,0,0);CHKERRQ(ierr);
     ireject = 0;
     while (ireject <= mxrej) {
-      mx = mb + k1;
+      ierr = DSGetArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
       for (i=0;i<mx;i++) {
         for (j=0;j<mx;j++) {
-          H[i+j*ld] = sgn*H[i+j*ld]*t_step;
+          H[i+j*ld] = sgn*B[i+j*ld]*t_step;
         }
       }
-      ierr = DSSetDimensions(mfn->ds,mx,PETSC_IGNORE,0,0);CHKERRQ(ierr);
-      ierr = DSSetState(mfn->ds,DS_STATE_RAW);CHKERRQ(ierr);
+      ierr = DSRestoreArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
       ierr = DSComputeFunction(mfn->ds,mfn->function);CHKERRQ(ierr);
 
       if (k1==0) {
         err_loc = tol; 
         break;
-      }
-      else {
+      } else {
         ierr = DSGetArray(mfn->ds,DS_MAT_F,&F);CHKERRQ(ierr);
         p1 = PetscAbsScalar(beta*F[m]);
         p2 = PetscAbsScalar(beta*F[m+1]*avnorm);
@@ -168,18 +174,15 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
         if (p1 > 10*p2) {
           err_loc = p2;
           xm = 1.0/(PetscReal)m;
-        }
-        else if (p1 > p2) {
+        } else if (p1 > p2) {
           err_loc = (p1*p2)/(p1-p2);
           xm = 1.0/(PetscReal)m;
-        }
-        else {
+        } else {
           err_loc = p1;
           xm = 1.0/(PetscReal)(m-1);
         }
       }
-      if (err_loc <= delta*t_step*tol)
-        break;
+      if (err_loc <= delta*t_step*tol) break;
       else {
         t_step = gamma*t_step*pow(t_step*tol/err_loc,xm);
         s = pow(10,floor(log10(t_step))-1);
@@ -190,9 +193,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 
     mx = mb + PetscMax(0,k1-1);
     ierr = DSGetArray(mfn->ds,DS_MAT_F,&F);CHKERRQ(ierr);
-    for (j=0;j<mx;j++) {
-      betaF[j] = beta*F[j];
-    }
+    for (j=0;j<mx;j++) betaF[j] = beta*F[j];
     ierr = DSRestoreArray(mfn->ds,DS_MAT_F,&F);CHKERRQ(ierr);
     ierr = VecSet(x,0.0);CHKERRQ(ierr);
     ierr = VecMAXPY(x,mx,betaF,mfn->V);CHKERRQ(ierr);
@@ -205,11 +206,12 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 
     err_loc = PetscMax(err_loc,rndoff);
   } 
-  ierr = DSRestoreArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr); 
 
-  mfn->reason = MFN_CONVERGED_TOL;
+  if (mfn->its==mxstep) mfn->reason = MFN_DIVERGED_ITS;
+  else mfn->reason = MFN_CONVERGED_TOL;
   ierr = VecDestroy(&r);CHKERRQ(ierr);
   ierr = PetscFree(betaF);CHKERRQ(ierr);
+  ierr = PetscFree(B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
