@@ -29,5 +29,6 @@
 #include "slepcsys.h"
 #include "slepcsvd.h"
 #include "slepcqep.h"
+#include "slepcnep.h"
 #include "slepcmfn.h"
 

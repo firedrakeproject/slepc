@@ -153,7 +153,8 @@ def main(slepcdir,petscdir,petscarch):
                  ('st'             , 'ip sys'),
                  ('eps'            , 'ip ds st vec sys'),
                  ('svd'            , 'eps ip ds sys'),
-                 ('qep'            , 'eps ip ds sys'),
+                 ('qep'            , 'eps st ip ds sys'),
+                 ('nep'            , 'eps ip ds sys'),
                  ('mfn'            , 'ip ds sys')]
       for pkg,deps in pkglist:
         writePackage(f,pkg,deps.split())

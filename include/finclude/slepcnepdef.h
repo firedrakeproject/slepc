@@ -1,5 +1,5 @@
 !
-!  Single Fortran include file for all of SLEPc
+!  Include file for Fortran use of the NEP object in SLEPc
 !
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -20,11 +20,22 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#include "finclude/slepcsysdef.h"
-#include "finclude/slepcepsdef.h"
+#if !defined(__SLEPCNEP_H)
+#define __SLEPCNEP_H
+
 #include "finclude/slepcipdef.h"
-#include "finclude/slepcstdef.h"
-#include "finclude/slepcsvddef.h"
-#include "finclude/slepcqepdef.h"
-#include "finclude/slepcnepdef.h"
-#include "finclude/slepcmfndef.h"
+#include "finclude/slepcdsdef.h"
+#include "finclude/slepcepsdef.h"
+
+#if !defined(PETSC_USE_FORTRAN_DATATYPES)
+#define NEP                PetscFortranAddr
+#endif
+
+#define NEPType            character*(80)
+#define NEPWhich           PetscEnum
+#define NEPConvergedReason PetscEnum
+
+#define NEPRII       'rii'
+#define NEPNARNOLDI  'narnoldi'
+
+#endif
