@@ -108,7 +108,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol,&r,PETSC_NULL);CHKERRQ(ierr);
     ierr = EPSSetTolerances(eps,r,i);CHKERRQ(ierr);
-    ierr = PetscOptionsBoolGroupBegin("-eps_conv_eig","relative error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupBegin("-eps_conv_eig","Relative error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetConvergenceTest(eps,EPS_CONV_EIG);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-eps_conv_norm","Convergence test relative to the eigenvalue and the matrix norms","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetConvergenceTest(eps,EPS_CONV_NORM);CHKERRQ(ierr); }

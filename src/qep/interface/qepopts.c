@@ -388,7 +388,10 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     QEP_LARGEST_REAL - largest real parts
 .     QEP_SMALLEST_REAL - smallest real parts
 .     QEP_LARGEST_IMAGINARY - largest imaginary parts
--     QEP_SMALLEST_IMAGINARY - smallest imaginary parts
+.     QEP_SMALLEST_IMAGINARY - smallest imaginary parts
+.     QEP_TARGET_MAGNITUDE - eigenvalues closest to the target (in magnitude)
+.     QEP_TARGET_REAL - eigenvalues with real part closest to target
+-     QEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
 
     Options Database Keys:
 +   -qep_largest_magnitude - Sets largest eigenvalues in magnitude
@@ -396,7 +399,10 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .   -qep_largest_real - Sets largest real parts
 .   -qep_smallest_real - Sets smallest real parts
 .   -qep_largest_imaginary - Sets largest imaginary parts
--   -qep_smallest_imaginary - Sets smallest imaginary parts
+.   -qep_smallest_imaginary - Sets smallest imaginary parts
+.   -qep_target_magnitude - Sets eigenvalues closest to target
+.   -qep_target_real - Sets real parts closest to target
+-   -qep_target_imaginary - Sets imaginary parts closest to target
 
     Notes:
     Not all eigensolvers implemented in QEP account for all the possible values

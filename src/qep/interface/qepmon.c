@@ -76,7 +76,7 @@ $     monitor (QEP qep, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 .    -qep_monitor_draw     - sets line graph monitor for the first unconverged
       approximate eigenvalue
 .    -qep_monitor_draw_all - sets line graph monitor for all unconverged
-      approximate eigenvalue
+      approximate eigenvalues
 -    -qep_monitor_cancel   - cancels all monitors that have been hardwired into
       a code by calls to QEPMonitorSet(), but does not cancel those set via
       the options database.
@@ -158,7 +158,7 @@ PetscErrorCode QEPGetMonitorContext(QEP qep,void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  *ctx =      (qep->monitorcontext[0]);
+  *ctx = qep->monitorcontext[0];
   PetscFunctionReturn(0);
 }
 

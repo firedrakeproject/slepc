@@ -73,7 +73,7 @@ PetscErrorCode QEPInitializePackage(const char *path)
   if (QEPPackageInitialized) PetscFunctionReturn(0);
   QEPPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Quadratic Eigenproblem Solver",&QEP_CLASSID);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("Quadratic Eigenvalue Problem solver",&QEP_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = QEPRegisterAll(path);CHKERRQ(ierr);
   /* Register Events */

@@ -76,7 +76,7 @@ $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 .    -eps_monitor_draw     - sets line graph monitor for the first unconverged
       approximate eigenvalue
 .    -eps_monitor_draw_all - sets line graph monitor for all unconverged
-      approximate eigenvalue
+      approximate eigenvalues
 -    -eps_monitor_cancel   - cancels all monitors that have been hardwired into
       a code by calls to EPSMonitorSet(), but does not cancel those set via
       the options database.

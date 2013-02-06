@@ -73,7 +73,7 @@ $     monitor (SVD svd, PetscInt its, PetscInt nconv, PetscReal *sigma, PetscRea
 .    -svd_monitor_draw     - sets line graph monitor for the first unconverged
       approximate singular value
 .    -svd_monitor_draw_all - sets line graph monitor for all unconverged
-      approximate singular value
+      approximate singular values
 -    -svd_monitor_cancel   - cancels all monitors that have been hardwired into
       a code by calls to SVDMonitorSet(), but does not cancel those set via
       the options database.
@@ -155,7 +155,7 @@ PetscErrorCode SVDGetMonitorContext(SVD svd,void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  *ctx = (svd->monitorcontext[0]);
+  *ctx = svd->monitorcontext[0];
   PetscFunctionReturn(0);
 }
 
