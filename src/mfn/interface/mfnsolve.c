@@ -27,7 +27,7 @@
 #define __FUNCT__ "MFNSolve"
 /*@
    MFNSolve - Solves the matrix function problem. Given a vector b, the
-   vector x = f(A)*b is returned.
+   vector x = f(alpha*A)*b is returned.
 
    Collective on MFN
 
@@ -47,11 +47,12 @@
    Notes:
    The matrix A is specified with MFMSetOperator().
    The function f is specified with MFMSetFunction().
+   The scalar alpha is specified with MFMSetScaleFactor().
 
    Level: beginner
 
 .seealso: MFNCreate(), MFNSetUp(), MFNDestroy(), MFNSetTolerances(),
-          MFMSetOperator(), MFMSetFunction()
+          MFMSetOperator(), MFMSetFunction(), MFMSetScaleFactor()
 @*/
 PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x) 
 {

@@ -14,9 +14,6 @@
        [1] R. Sidje, "Expokit: a software package for computing matrix
            exponentials", ACM Trans. Math. Softw., 24(1):130–156, 1998.
 
-       [2] G.W. Stewart, "A Krylov-Schur Algorithm for Large Eigenproblems",
-           SIAM J. Matrix Anal. Appl., 23(3):601-614, 2001. 
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
@@ -104,7 +101,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   gamma = 0.9;
   delta = 1.2;
   mb    = m;
-  t     = 10.0;
+  t     = mfn->sfactor;
   t_out = PetscAbsReal(t);
   t_new = 0.0;
   t_now = 0.0;

@@ -73,6 +73,8 @@ PETSC_EXTERN PetscErrorCode MFNSetTolerances(MFN,PetscReal,PetscInt);
 PETSC_EXTERN PetscErrorCode MFNGetTolerances(MFN,PetscReal*,PetscInt*);
 PETSC_EXTERN PetscErrorCode MFNSetDimensions(MFN,PetscInt);
 PETSC_EXTERN PetscErrorCode MFNGetDimensions(MFN,PetscInt*);
+PETSC_EXTERN PetscErrorCode MFNSetScaleFactor(MFN,PetscReal);
+PETSC_EXTERN PetscErrorCode MFNGetScaleFactor(MFN,PetscReal*);
 
 PETSC_EXTERN PetscErrorCode MFNMonitorSet(MFN,PetscErrorCode (*)(MFN,PetscInt,PetscReal,void*),void*,PetscErrorCode (*)(void**));
 PETSC_EXTERN PetscErrorCode MFNMonitorCancel(MFN);

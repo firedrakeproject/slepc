@@ -70,6 +70,10 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
       ierr = MFNSetFunction(mfn,SLEPC_FUNCTION_EXP);CHKERRQ(ierr);
     }
 
+    r = PETSC_IGNORE;
+    ierr = PetscOptionsReal("-mfn_scale","Scale factor","MFNSetScaleFactor",mfn->sfactor,&r,PETSC_NULL);CHKERRQ(ierr);
+    ierr = MFNSetScaleFactor(mfn,r);CHKERRQ(ierr);
+
     r = i = PETSC_IGNORE;
     ierr = PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-mfn_tol","Tolerance","MFNSetTolerances",mfn->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:mfn->tol,&r,PETSC_NULL);CHKERRQ(ierr);
@@ -324,6 +328,63 @@ PetscErrorCode MFNGetFunction(MFN mfn,SlepcFunction *fun)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidPointer(fun,2);
   *fun = mfn->function;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "MFNSetScaleFactor"
+/*@
+   MFNSetScaleFactor - Sets the scale factor to multiply the matrix (the
+   argument of the function).
+
+   Logically Collective on MFN
+
+   Input Parameters:
++  mfn   - the matrix function context
+-  alpha - the scaling factor
+
+   Options Database Keys:
+.  -mfn_scale <alpha> - Sets the scaling factor
+
+   Notes:
+   The computed result is f(alpha*A)*b. The default is alpha=1.0.
+
+   Level: intermediate
+
+.seealso: MFNGetScaleFactor(), MFNSolve()
+@*/
+PetscErrorCode MFNSetScaleFactor(MFN mfn,PetscReal alpha)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
+  PetscValidLogicalCollectiveReal(mfn,alpha,2);
+  mfn->sfactor = alpha;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "MFNGetScaleFactor"
+/*@
+   MFNGetScaleFactor - Gets the factor used for scaling the matrix.
+
+   Not Collective
+
+   Input Parameter:
+.  mfn - the matrix function context
+  
+   Output Parameters:
+.  alpha - the scaling factor
+
+   Level: intermediate
+
+.seealso: MFNSetScaleFactor(), MFNSolve()
+@*/
+PetscErrorCode MFNGetScaleFactor(MFN mfn,PetscReal *alpha)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
+  PetscValidPointer(alpha,2);
+  *alpha = mfn->sfactor;
   PetscFunctionReturn(0);
 }
 

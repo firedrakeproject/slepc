@@ -158,6 +158,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",mfn->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",mfn->max_it);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",mfn->tol);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %G\n",mfn->sfactor);CHKERRQ(ierr);
   } else {
     if (mfn->ops->view) {
       ierr = (*mfn->ops->view)(mfn,viewer);CHKERRQ(ierr);
@@ -208,6 +209,7 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   mfn->allocated_ncv   = 0;
   mfn->tol             = PETSC_DEFAULT;
   mfn->function        = (SlepcFunction)0;
+  mfn->sfactor         = 1.0;
 
   mfn->A               = 0;
   mfn->V               = 0;
