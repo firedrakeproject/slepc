@@ -50,6 +50,9 @@
       PetscEnum QEP_SMALLEST_REAL
       PetscEnum QEP_LARGEST_IMAGINARY
       PetscEnum QEP_SMALLEST_IMAGINARY
+      PetscEnum QEP_TARGET_MAGNITUDE
+      PetscEnum QEP_TARGET_REAL
+      PetscEnum QEP_TARGET_IMAGINARY
 
       parameter (QEP_LARGEST_MAGNITUDE      =  1)
       parameter (QEP_SMALLEST_MAGNITUDE     =  2)
@@ -57,6 +60,9 @@
       parameter (QEP_SMALLEST_REAL          =  4)
       parameter (QEP_LARGEST_IMAGINARY      =  5)
       parameter (QEP_SMALLEST_IMAGINARY     =  6)
+      parameter (QEP_TARGET_MAGNITUDE       =  7)
+      parameter (QEP_TARGET_REAL            =  8)
+      parameter (QEP_TARGET_IMAGINARY       =  9)
        
 !
 !   Possible arguments to QEPMonitorSet()
