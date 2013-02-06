@@ -19,8 +19,18 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep nep mfn ip ds sys vec
+CFLAGS     = 
+FFLAGS     =
+CPPFLAGS   = 
+FPPFLAGS   =
+LOCDIR     = src/nep/examples/tests/
+EXAMPLESC  = 
+EXAMPLESF  = 
+MANSEC     = NEP
+TESTS      = 
 
-LOCDIR   = src/
+TESTEXAMPLES_C       = 
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+#------------------------------------------------------------------------------------

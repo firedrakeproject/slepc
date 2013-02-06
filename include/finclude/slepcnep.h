@@ -33,6 +33,7 @@
       PetscEnum NEP_DIVERGED_FUNCTION_COUNT
       PetscEnum NEP_DIVERGED_MAX_IT
       PetscEnum NEP_DIVERGED_BREAKDOWN
+      PetscEnum NEP_DIVERGED_FNORM_NAN
       PetscEnum NEP_CONVERGED_ITERATING
 
       parameter (NEP_CONVERGED_FNORM_ABS      =  2)
@@ -42,6 +43,7 @@
       parameter (NEP_DIVERGED_FUNCTION_COUNT  = -2)
       parameter (NEP_DIVERGED_MAX_IT          = -3)
       parameter (NEP_DIVERGED_BREAKDOWN       = -4)
+      parameter (NEP_DIVERGED_FNORM_NAN       = -5)
       parameter (NEP_CONVERGED_ITERATING      =  0)
 
       PetscEnum NEP_LARGEST_MAGNITUDE

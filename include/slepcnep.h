@@ -1,5 +1,5 @@
 /*
-   User interface for SLEPc's non-linear eigenvalue solvers. 
+   User interface for SLEPc's nonlinear eigenvalue solvers. 
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -30,7 +30,7 @@ PETSC_EXTERN PetscErrorCode NEPInitializePackage(const char[]);
 
 /*S
      NEP - Abstract SLEPc object that manages all solvers for
-     non-linear eigenvalue problems.
+     nonlinear eigenvalue problems.
 
    Level: beginner
 
@@ -39,7 +39,7 @@ S*/
 typedef struct _p_NEP* NEP;
 
 /*J
-    NEPType - String with the name of a non-linear eigensolver
+    NEPType - String with the name of a nonlinear eigensolver
 
    Level: beginner
 
@@ -69,6 +69,26 @@ typedef enum { NEP_LARGEST_MAGNITUDE=1,
                NEP_TARGET_REAL,
                NEP_TARGET_IMAGINARY} NEPWhich;
 
+/*E
+    NEPConvergedReason - Reason a nonlinear eigensolver was said to 
+         have converged or diverged
+
+    Level: beginner
+
+.seealso: NEPSolve(), NEPGetConvergedReason(), NEPSetTolerances()
+E*/
+typedef enum {/* converged */
+              NEP_CONVERGED_FNORM_ABS          =  2,
+              NEP_CONVERGED_FNORM_RELATIVE     =  3,
+              NEP_CONVERGED_SNORM_RELATIVE     =  4,
+              /* diverged */
+              NEP_DIVERGED_LINEAR_SOLVE        = -1,
+              NEP_DIVERGED_FUNCTION_COUNT      = -2,
+              NEP_DIVERGED_MAX_IT              = -3,
+              NEP_DIVERGED_BREAKDOWN           = -4,
+              NEP_DIVERGED_FNORM_NAN           = -5,
+              NEP_CONVERGED_ITERATING          =  0} NEPConvergedReason;
+
 PETSC_EXTERN PetscErrorCode NEPCreate(MPI_Comm,NEP*);
 PETSC_EXTERN PetscErrorCode NEPDestroy(NEP*);
 PETSC_EXTERN PetscErrorCode NEPReset(NEP);
@@ -82,12 +102,11 @@ PETSC_EXTERN PetscErrorCode NEPSetFromOptions(NEP);
 PETSC_EXTERN PetscErrorCode NEPSetUp(NEP);
 PETSC_EXTERN PetscErrorCode NEPSolve(NEP);
 PETSC_EXTERN PetscErrorCode NEPView(NEP,PetscViewer);
-PETSC_EXTERN PetscErrorCode NEPPrintSolution(NEP,PetscViewer);
 
 PETSC_EXTERN PetscErrorCode NEPSetFunction(NEP,Vec,PetscErrorCode (*)(NEP,Vec,Vec,void*),void*);
-PETSC_EXTERN PetscErrorCode NEPGetFunction(NEP,Vec*,PetscErrorCode (**)(NEP,Vec,Vec,void*),void*);
+PETSC_EXTERN PetscErrorCode NEPGetFunction(NEP,Vec*,PetscErrorCode (**)(NEP,Vec,Vec,void*),void**);
 PETSC_EXTERN PetscErrorCode NEPSetJacobian(NEP,Mat,Mat,PetscErrorCode (*)(NEP,Vec,Mat*,Mat*,MatStructure*,void*),void*);
-PETSC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,Vec,Mat*,Mat*,MatStructure*,void*),void*);
+PETSC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,Vec,Mat*,Mat*,MatStructure*,void*),void**);
 
 
 PETSC_EXTERN PetscErrorCode NEPSetIP(NEP,IP);
@@ -127,25 +146,6 @@ PETSC_EXTERN PetscErrorCode NEPGetTrackAll(NEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode NEPSetOptionsPrefix(NEP,const char*);
 PETSC_EXTERN PetscErrorCode NEPAppendOptionsPrefix(NEP,const char*);
 PETSC_EXTERN PetscErrorCode NEPGetOptionsPrefix(NEP,const char*[]);
-
-/*E
-    NEPConvergedReason - Reason a non-linear eigensolver was said to 
-         have converged or diverged
-
-    Level: beginner
-
-.seealso: NEPSolve(), NEPGetConvergedReason(), NEPSetTolerances()
-E*/
-typedef enum {/* converged */
-              NEP_CONVERGED_FNORM_ABS          =  2,
-              NEP_CONVERGED_FNORM_RELATIVE     =  3,
-              NEP_CONVERGED_SNORM_RELATIVE     =  4,
-              /* diverged */
-              NEP_DIVERGED_LINEAR_SOLVE        = -1,
-              NEP_DIVERGED_FUNCTION_COUNT      = -2,
-              NEP_DIVERGED_MAX_IT              = -3,
-              NEP_DIVERGED_BREAKDOWN           = -4,
-              NEP_CONVERGED_ITERATING          =  0} NEPConvergedReason;
 
 PETSC_EXTERN PetscErrorCode NEPGetConvergedReason(NEP,NEPConvergedReason *);
 

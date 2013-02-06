@@ -19,8 +19,13 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep nep mfn ip ds sys vec
+ALL: lib
 
-LOCDIR   = src/
+SOURCEH  = ../../include/slepc-private/nepimpl.h ../../include/slepcnep.h
+DIRS     = interface impls examples
+LOCDIR   = src/nep/
+MANSEC   = NEP
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+

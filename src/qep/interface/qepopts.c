@@ -736,7 +736,7 @@ extern PetscErrorCode QEPSetConvergenceTest(QEP qep,PetscErrorCode (*func)(QEP,P
    usually an expensive operation and solvers commonly compute the associated
    residual to the first unconverged eigenpair.
    The options '-qep_monitor_all' and '-qep_monitor_draw_all' automatically
-   activates this option.
+   activate this option.
 
    Level: intermediate
 

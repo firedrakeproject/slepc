@@ -24,6 +24,7 @@
 #include <slepc-private/stimpl.h>
 #include <slepc-private/svdimpl.h>
 #include <slepc-private/qepimpl.h>
+#include <slepc-private/nepimpl.h>
 #include <slepc-private/mfnimpl.h>
 #include <slepc-private/ipimpl.h>
 #include <slepc-private/dsimpl.h>
@@ -147,6 +148,7 @@ PetscErrorCode SlepcInitialize_Packages(void)
   ierr = EPSInitializePackage(PETSC_NULL);CHKERRQ(ierr);
   ierr = SVDInitializePackage(PETSC_NULL);CHKERRQ(ierr);
   ierr = QEPInitializePackage(PETSC_NULL);CHKERRQ(ierr);
+  ierr = NEPInitializePackage(PETSC_NULL);CHKERRQ(ierr);
   ierr = MFNInitializePackage(PETSC_NULL);CHKERRQ(ierr);
   ierr = STInitializePackage(PETSC_NULL);CHKERRQ(ierr);
   ierr = IPInitializePackage(PETSC_NULL);CHKERRQ(ierr);

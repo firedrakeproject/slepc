@@ -92,6 +92,18 @@
 #include "finclude/slepcqep.h90"
         end module
 
+        module slepcnepdef
+        use slepcip
+        use slepceps
+#include "finclude/slepcnep.h"
+#include "finclude/ftn-custom/slepcnepdef.h90"
+        end module
+
+        module slepcnep
+        use slepcnepdef
+#include "finclude/slepcnep.h90"
+        end module
+
         module slepcmfndef
         use slepcip
         use slepcds

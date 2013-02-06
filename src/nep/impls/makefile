@@ -19,8 +19,13 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep nep mfn ip ds sys vec
+ALL: lib
 
-LOCDIR   = src/
+LIBBASE  = libslepc
+DIRS     = rii
+LOCDIR   = src/nep/impls/
+MANSEC   = NEP
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+

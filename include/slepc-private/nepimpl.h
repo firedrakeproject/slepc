@@ -51,19 +51,26 @@ struct _p_NEP {
   PETSCHEADER(struct _NEPOps);
   /*------------------------- User parameters --------------------------*/
   PetscInt       max_it,           /* maximum number of iterations */
+                 max_funcs,        /* maximum number of function evaluations */
                  nev,              /* number of eigenvalues to compute */
                  ncv,              /* number of basis vectors */
                  mpd,              /* maximum dimension of projected problem */
                  nini,             /* number of initial vectors (negative means not copied yet) */
                  allocated_ncv;    /* number of basis vectors allocated */
   PetscScalar    target;           /* target value */
-  PetscReal      atol,rtol,stol;   /* tolerances */
+  PetscReal      abstol,rtol,stol; /* user tolerances */
+  PetscReal      ttol;             /* tolerance used in the convergence criterion */
   PetscErrorCode (*conv_func)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
   void           *conv_ctx;
+  PetscErrorCode (*conv_dest)(void*);
   NEPWhich       which;            /* which part of the spectrum to be sought */
   PetscErrorCode (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   void           *which_ctx;
   PetscBool      trackall;         /* whether all the residuals must be computed */
+
+  Vec            vec_func;
+  PetscErrorCode (*comp_func)(NEP,Vec,Vec,void*);
+  void           *func_ctx;
 
   /*------------------------- Working data --------------------------*/
   Vec         *V,               /* set of basis vectors and computed eigenvectors */
@@ -78,7 +85,7 @@ struct _p_NEP {
   PetscInt    nconv,            /* number of converged eigenvalues */
               its,              /* number of iterations so far computed */
               *perm,            /* permutation for eigenvalue ordering */
-              matvecs, linits,  /* operation counters */
+              nfuncs, linits,   /* operation counters */
               n, nloc;          /* problem dimensions (global, local) */
   PetscRandom rand;             /* random number generator */
   Vec         t;                /* template vector */

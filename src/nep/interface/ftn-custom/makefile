@@ -19,8 +19,14 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep nep mfn ip ds sys vec
-
-LOCDIR   = src/
-
-include ${SLEPC_DIR}/conf/slepc_common
+#requiresdefine   'PETSC_HAVE_FORTRAN'
+ALL: lib
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = znepf.c
+SOURCEF  =
+SOURCEH  =
+DIRS     =
+LIBBASE  = libslepc
+LOCDIR   = src/nep/interface/ftn-custom/
+include ${SLEPC_DIR}/conf/slepc_common  

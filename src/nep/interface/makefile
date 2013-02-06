@@ -19,8 +19,18 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep nep mfn ip ds sys vec
+ALL: lib
 
-LOCDIR   = src/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = nepmon.c nepbasic.c nepdefault.c nepregis.c nepopts.c nepsetup.c nepsolve.c
+SOURCEF  = 
+SOURCEH  = 
+LIBBASE  = libslepc
+DIRS     =
+MANSEC   = NEP
+LOCDIR   = src/nep/interface/
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+
