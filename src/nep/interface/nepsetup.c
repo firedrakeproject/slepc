@@ -50,7 +50,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   PetscInt       i,k;
   PetscBool      lindep;
   PetscReal      norm;
-  Vec            vec_func;
+  Vec            residual;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -78,11 +78,11 @@ PetscErrorCode NEPSetUp(NEP nep)
   }
 
   /* Set problem dimensions */
-  ierr = NEPGetFunction(nep,&vec_func,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  ierr = VecGetSize(vec_func,&nep->n);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(vec_func,&nep->nloc);CHKERRQ(ierr);
+  ierr = NEPGetFunction(nep,&residual,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecGetSize(residual,&nep->n);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(residual,&nep->nloc);CHKERRQ(ierr);
   ierr = VecDestroy(&nep->t);CHKERRQ(ierr);
-  ierr = VecDuplicate(vec_func,&nep->t);CHKERRQ(ierr);
+  ierr = VecDuplicate(residual,&nep->t);CHKERRQ(ierr);
 
   /* Call specific solver setup */
   ierr = (*nep->ops->setup)(nep);CHKERRQ(ierr);
