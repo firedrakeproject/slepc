@@ -251,7 +251,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     Ur  = U;
     VTr = VT;
 #endif
-    LAPACKbdsdc_("U","I",&n3,d+l,e+l,Ur+off,&ld,VTr+off,&ld,PETSC_NULL,PETSC_NULL,ds->rwork,ds->iwork,&info);
+    PetscStackCall("LAPACKbdsdc",LAPACKbdsdc_("U","I",&n3,d+l,e+l,Ur+off,&ld,VTr+off,&ld,PETSC_NULL,PETSC_NULL,ds->rwork,ds->iwork,&info));
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xBDSDC %d",info);
 #if defined(PETSC_USE_COMPLEX)
     for (i=l;i<n;i++) {
@@ -270,17 +270,17 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
     ierr = DSAllocateWork_Private(ds,0,5*nm*nm+7*nm,0);CHKERRQ(ierr); 
-    LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,&qwork,&lwork,ds->rwork,ds->iwork,&info);
+    PetscStackCall("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,&qwork,&lwork,ds->rwork,ds->iwork,&info));
 #else
-    LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,&qwork,&lwork,ds->iwork,&info);
+    PetscStackCall("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,&qwork,&lwork,ds->iwork,&info));
 #endif 
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
     lwork = (PetscBLASInt)PetscRealPart(qwork);
     ierr = DSAllocateWork_Private(ds,lwork,0,0);CHKERRQ(ierr); 
 #if defined(PETSC_USE_COMPLEX)
-    LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,ds->work,&lwork,ds->rwork,ds->iwork,&info);
+    PetscStackCall("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,ds->work,&lwork,ds->rwork,ds->iwork,&info));
 #else
-    LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,ds->work,&lwork,ds->iwork,&info);
+    PetscStackCall("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,ds->work,&lwork,ds->iwork,&info));
 #endif
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
   }

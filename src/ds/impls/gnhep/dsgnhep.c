@@ -122,18 +122,18 @@ PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscBool left)
 #if defined(PETSC_USE_COMPLEX)
   mm = 1;
   ierr = DSAllocateWork_Private(ds,2*ld,2*ld,0);CHKERRQ(ierr); 
-  LAPACKtgevc_(side,"S",select,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&mm,&mout,ds->work,ds->rwork,&info);
+  PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,"S",select,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&mm,&mout,ds->work,ds->rwork,&info));
 #else
   if ((*k)<n-1 && (A[ld*(*k)+(*k)+1] != 0.0 || B[ld*(*k)+(*k)+1] != 0.0)) iscomplex = PETSC_TRUE;
   mm = iscomplex ? 2 : 1;
   ierr = DSAllocateWork_Private(ds,6*ld,0,0);CHKERRQ(ierr); 
-  LAPACKtgevc_(side,"S",select,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&mm,&mout,ds->work,&info);
+  PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,"S",select,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&mm,&mout,ds->work,&info));
 #endif
   if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   if (select[(*k)] == 0 || mout != mm) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_SUP,"Unsupported the computation of the second vector in a complex pair");
   /* Backtransform: (X/Y) <- (Q/Z) * (X/Y) */
   ierr = PetscMemcpy(ds->work,left?Y:X,mm*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  BLASgemm_("N","N",&n,&mm,&n,&fone,ds->mat[left?DS_MAT_Z:DS_MAT_Q],&ld,ds->work,&ld,&fzero,left?Y:X,&ld);
+  PetscStackCall("BLASgemm",BLASgemm_("N","N",&n,&mm,&n,&fone,ds->mat[left?DS_MAT_Z:DS_MAT_Q],&ld,ds->work,&ld,&fzero,left?Y:X,&ld));
   /* Update k to the last vector index in the conjugate pair */
   if (iscomplex) (*k)++;
   PetscFunctionReturn(0);
@@ -176,10 +176,10 @@ PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
   }
 #if defined(PETSC_USE_COMPLEX)
   ierr = DSAllocateWork_Private(ds,2*ld,2*ld,0);CHKERRQ(ierr); 
-  LAPACKtgevc_(side,back,PETSC_NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,ds->rwork,&info);
+  PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,back,PETSC_NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,ds->rwork,&info));
 #else
   ierr = DSAllocateWork_Private(ds,6*ld,0,0);CHKERRQ(ierr); 
-  LAPACKtgevc_(side,back,PETSC_NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,&info);
+  PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,back,PETSC_NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,&info));
 #endif
   if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   PetscFunctionReturn(0);
@@ -253,15 +253,15 @@ PetscErrorCode DSNormalize_GNHEP(DS ds,DSMatType mat,PetscInt col)
       norm = BLASnrm2_(&n,&x[ld*i],&one);
       norm0 = BLASnrm2_(&n,&x[ld*(i+1)],&one);
       norm = 1.0/SlepcAbsEigenvalue(norm,norm0);
-      BLASscal_(&n,&norm,&x[ld*i],&one);
-      BLASscal_(&n,&norm,&x[ld*(i+1)],&one);
+      PetscStackCall("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
+      PetscStackCall("BLASscal",BLASscal_(&n,&norm,&x[ld*(i+1)],&one));
       i++;
     } else
 #endif
     {
       norm = BLASnrm2_(&n,&x[ld*i],&one);
       norm = 1.0/norm;
-      BLASscal_(&n,&norm,&x[ld*i],&one);
+      PetscStackCall("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
     }
   }
   PetscFunctionReturn(0);
@@ -302,9 +302,9 @@ PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Pets
   ierr = PetscMemzero(selection,n*sizeof(PetscBLASInt));CHKERRQ(ierr);
   for (i=0; i<*k; i++) selection[ds->perm[i]] = 1;
 #if !defined(PETSC_USE_COMPLEX)
-  LAPACKtgsen_(&zero_,&true_,&true_,selection,&n,S,&ld,T,&ld,wr,wi,beta,Z,&ld,Q,&ld,&mout,PETSC_NULL,PETSC_NULL,PETSC_NULL,work,&lwork,iwork,&liwork,&info);
+  PetscStackCall("LAPACKtgsen",LAPACKtgsen_(&zero_,&true_,&true_,selection,&n,S,&ld,T,&ld,wr,wi,beta,Z,&ld,Q,&ld,&mout,PETSC_NULL,PETSC_NULL,PETSC_NULL,work,&lwork,iwork,&liwork,&info));
 #else
-  LAPACKtgsen_(&zero_,&true_,&true_,selection,&n,S,&ld,T,&ld,wr,beta,Z,&ld,Q,&ld,&mout,PETSC_NULL,PETSC_NULL,PETSC_NULL,work,&lwork,iwork,&liwork,&info);
+  PetscStackCall("LAPACKtgsen",LAPACKtgsen_(&zero_,&true_,&true_,selection,&n,S,&ld,T,&ld,wr,beta,Z,&ld,Q,&ld,&mout,PETSC_NULL,PETSC_NULL,PETSC_NULL,work,&lwork,iwork,&liwork,&info));
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTGSEN %d",info);
   *k = mout;
@@ -344,7 +344,7 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   lwork = -1;
-  LAPACKtgexc_(&one,&one,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,&one,&one,&a,&lwork,&info);
+  PetscStackCall("LAPACKtgexc",LAPACKtgexc_(&one,&one,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,&one,&one,&a,&lwork,&info));
   safmin = LAPACKlamch_("S");
   lwork = a;
   ierr = DSAllocateWork_Private(ds,lwork,0,0);CHKERRQ(ierr); 
@@ -384,9 +384,9 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
       ierr = PetscBLASIntCast(pos+1,&ifst);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(i+1,&ilst);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-      LAPACKtgexc_(&one,&one,&n,S,&ld,T,&ld,Z,&ld,Q,&ld,&ifst,&ilst,work,&lwork,&info);
+      PetscStackCall("LAPACKtgexc",LAPACKtgexc_(&one,&one,&n,S,&ld,T,&ld,Z,&ld,Q,&ld,&ifst,&ilst,work,&lwork,&info));
 #else
-      LAPACKtgexc_(&one,&one,&n,S,&ld,T,&ld,Z,&ld,Q,&ld,&ifst,&ilst,&info);
+      PetscStackCall("LAPACKtgexc",LAPACKtgexc_(&one,&one,&n,S,&ld,T,&ld,Z,&ld,Q,&ld,&ifst,&ilst,&info));
 #endif
       if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xTGEXC %i",info);
       /* recover original eigenvalues from T and S matrices */
@@ -394,7 +394,7 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
         if (j<n-1 && S[j*ld+j+1] != 0.0) {
           /* complex conjugate eigenvalue */
-          LAPACKlag2_(S+j*ld+j,&ld,T+j*ld+j,&ld,&safmin,&scale1,&scale2,&re,&a,&im);
+          PetscStackCall("LAPACKlag2",LAPACKlag2_(S+j*ld+j,&ld,T+j*ld+j,&ld,&safmin,&scale1,&scale2,&re,&a,&im));
           wr[j] = re / scale1;
           wi[j] = im / scale1;
           wr[j+1] = a / scale2;
@@ -500,9 +500,9 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
         } else {
           /* If one of T(i+1,i) or T(i,i+1) is negligible, we make zero the other element */
           if (PetscAbs(T[ldT*i+i+1]) < (PetscAbs(T[ldT*i+i])+PetscAbs(T[ldT*(i+1)+i+1])+PetscAbs(T[ldT*(i+1)+i]))*PETSC_MACHINE_EPSILON) {
-            LAPACKlasv2_(&T[ldT*i+i],&T[ldT*(i+1)+i],&T[ldT*(i+1)+i+1],&b22,&b11,&sl,&cl,&sr,&cr);
+            PetscStackCall("LAPACKlasv2",LAPACKlasv2_(&T[ldT*i+i],&T[ldT*(i+1)+i],&T[ldT*(i+1)+i+1],&b22,&b11,&sl,&cl,&sr,&cr));
           } else if (PetscAbs(T[ldT*(i+1)+i]) < (PetscAbs(T[ldT*i+i])+PetscAbs(T[ldT*(i+1)+i+1])+PetscAbs(T[ldT*i+i+1]))*PETSC_MACHINE_EPSILON) {
-            LAPACKlasv2_(&T[ldT*i+i],&T[ldT*i+i+1],&T[ldT*(i+1)+i+1],&b22,&b11,&sr,&cr,&sl,&cl);
+            PetscStackCall("LAPACKlasv2",LAPACKlasv2_(&T[ldT*i+i],&T[ldT*i+i+1],&T[ldT*(i+1)+i+1],&b22,&b11,&sr,&cr,&sl,&cl));
           } else {
             SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported format. Call DSSolve before this function");
           }
@@ -516,12 +516,12 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
             b11 = -b11;
             b22 = -b22;
           }
-          BLASrot_(&n_i,&S[ldS*i+i],&ldS_,&S[ldS*i+i+1],&ldS_,&cl,&sl);
-          BLASrot_(&i_2,&S[ldS*i],&one,&S[ldS*(i+1)],&one,&cr,&sr);
-          BLASrot_(&n_i_2,&T[ldT*(i+2)+i],&ldT_,&T[ldT*(i+2)+i+1],&ldT_,&cl,&sl);
-          BLASrot_(&i_,&T[ldT*i],&one,&T[ldT*(i+1)],&one,&cr,&sr);
-          if (X) BLASrot_(&n_,&X[ldX*i],&one,&X[ldX*(i+1)],&one,&cr,&sr);
-          if (Y) BLASrot_(&n_,&Y[ldY*i],&one,&X[ldY*(i+1)],&one,&cl,&sl);
+          PetscStackCall("BLASrot",BLASrot_(&n_i,&S[ldS*i+i],&ldS_,&S[ldS*i+i+1],&ldS_,&cl,&sl));
+          PetscStackCall("BLASrot",BLASrot_(&i_2,&S[ldS*i],&one,&S[ldS*(i+1)],&one,&cr,&sr));
+          PetscStackCall("BLASrot",BLASrot_(&n_i_2,&T[ldT*(i+2)+i],&ldT_,&T[ldT*(i+2)+i+1],&ldT_,&cl,&sl));
+          PetscStackCall("BLASrot",BLASrot_(&i_,&T[ldT*i],&one,&T[ldT*(i+1)],&one,&cr,&sr));
+          if (X) PetscStackCall("BLASrot",BLASrot_(&n_,&X[ldX*i],&one,&X[ldX*(i+1)],&one,&cr,&sr));
+          if (Y) PetscStackCall("BLASrot",BLASrot_(&n_,&Y[ldY*i],&one,&X[ldY*(i+1)],&one,&cl,&sl));
           T[ldT*i+i] = b11;
           T[ldT*i+i+1] = 0.0;
           T[ldT*(i+1)+i] = 0.0;
@@ -558,21 +558,21 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   lwork = -1;
 #if !defined(PETSC_USE_COMPLEX)
-  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,PETSC_NULL,Z,&ld,Q,&ld,&a,&lwork,PETSC_NULL,&info);
+  PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,PETSC_NULL,Z,&ld,Q,&ld,&a,&lwork,PETSC_NULL,&info));
   lwork = (PetscBLASInt)a;
   ierr = DSAllocateWork_Private(ds,lwork+ld,0,0);CHKERRQ(ierr); 
   beta = ds->work;
   work = beta+ds->n;
   ierr = PetscBLASIntCast(ds->lwork-ds->n,&lwork);CHKERRQ(ierr);
-  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,PETSC_NULL,&info);
+  PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,PETSC_NULL,&info));
 #else
-  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,PETSC_NULL,Z,&ld,Q,&ld,&a,&lwork,PETSC_NULL,PETSC_NULL,&info);
+  PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,PETSC_NULL,Z,&ld,Q,&ld,&a,&lwork,PETSC_NULL,PETSC_NULL,&info));
   lwork = (PetscBLASInt)PetscRealPart(a);
   ierr = DSAllocateWork_Private(ds,lwork+ld,8*ld,0);CHKERRQ(ierr); 
   beta = ds->work;
   work = beta+ds->n;
   ierr = PetscBLASIntCast(ds->lwork-ds->n,&lwork);CHKERRQ(ierr);
-  LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ds->rwork,PETSC_NULL,&info);
+  PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ds->rwork,PETSC_NULL,&info));
 #endif
   if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xGGES %i",info);
   for (i=0;i<n;i++) {

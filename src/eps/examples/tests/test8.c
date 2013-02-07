@@ -162,18 +162,18 @@ PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y)
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
 
   tv(nx,&px[0],&py[0]);
-  BLASaxpy_(&nx,&dmone,&px[nx],&one,&py[0],&one);
+  PetscStackCall("BLASaxpy",BLASaxpy_(&nx,&dmone,&px[nx],&one,&py[0],&one));
 
   for (j=2;j<nx;j++) {
     lo = (j-1)*nx;
     tv(nx,&px[lo],&py[lo]);
-    BLASaxpy_(&nx,&dmone,&px[lo-nx],&one,&py[lo],&one);
-    BLASaxpy_(&nx,&dmone,&px[lo+nx],&one,&py[lo],&one);
+    PetscStackCall("BLASaxpy",BLASaxpy_(&nx,&dmone,&px[lo-nx],&one,&py[lo],&one));
+    PetscStackCall("BLASaxpy",BLASaxpy_(&nx,&dmone,&px[lo+nx],&one,&py[lo],&one));
   }
 
   lo = (nx-1)*nx;
   tv(nx,&px[lo],&py[lo]);
-  BLASaxpy_(&nx,&dmone,&px[lo-nx],&one,&py[lo],&one);
+  PetscStackCall("BLASaxpy",BLASaxpy_(&nx,&dmone,&px[lo-nx],&one,&py[lo],&one));
 
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);

@@ -183,7 +183,7 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous_Inplace(PetscInt m_,Vec *
       ierr = PetscMemcpy(work+j*bs,pv,k*sizeof(PetscScalar));CHKERRQ(ierr);
       ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);    
     }
-    BLASgemm_("N",qtrans?"C":"N",&k,&m,&m,&one,work,&bs,pq,&ldq,&zero,out,&bs);
+    PetscStackCall("BLASgemm",BLASgemm_("N",qtrans?"C":"N",&k,&m,&m,&one,work,&bs,pq,&ldq,&zero,out,&bs));
     for (j=0;j<m;j++) {
       ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
       ierr = PetscMemcpy(pv,out+j*bs,k*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -196,7 +196,7 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous_Inplace(PetscInt m_,Vec *
       ierr = PetscMemcpy(work+j*bs,pv+k,bs*sizeof(PetscScalar));CHKERRQ(ierr);
       ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);    
     }
-    BLASgemm_("N",qtrans?"C":"N",&bs,&m,&m,&one,work,&bs,pq,&ldq,&zero,out,&bs);
+    PetscStackCall("BLASgemm",BLASgemm_("N",qtrans?"C":"N",&bs,&m,&m,&one,work,&bs,pq,&ldq,&zero,out,&bs));
     for (j=0;j<m;j++) {
       ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
       ierr = PetscMemcpy(pv+k,out+j*bs,bs*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -388,7 +388,7 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
   ierr = PetscMalloc(sizeof(PetscScalar)*bs*m,&work);CHKERRQ(ierr);
   k = ls % bs;
   if (k) {
-    BLASgemm_("N",qt,&k,&m,&n,&one,pv,&ld,pq,&ldq,&zero,work,&k);
+    PetscStackCall("BLASgemm",BLASgemm_("N",qt,&k,&m,&n,&one,pv,&ld,pq,&ldq,&zero,work,&k));
     for (j=0;j<m;j++) {
       pw = pv+(s+j)*ld;
       pwork = work+j*k;
@@ -398,7 +398,7 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
     }        
   }
   for (;k<ls;k+=bs) {
-    BLASgemm_("N",qt,&bs,&m,&n,&one,pv+k,&ld,pq,&ldq,&zero,work,&bs);
+    PetscStackCall("BLASgemm",BLASgemm_("N",qt,&bs,&m,&n,&one,pv+k,&ld,pq,&ldq,&zero,work,&bs));
     for (j=0;j<m;j++) {
       pw = pv+(s+j)*ld+k;
       pwork = work+j*bs;
@@ -472,7 +472,7 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
     ierr = VecGetArrayRead(*x,&px);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(nv,&n);CHKERRQ(ierr);
     ierr = PetscBLASIntCast((y)->map->n,&m);CHKERRQ(ierr);
-    BLASgemv_("N",&m,&n,&alpha,px,&m,a,&one,&beta,py,&one);
+    PetscStackCall("BLASgemv",BLASgemv_("N",&m,&n,&alpha,px,&m,a,&one,&beta,py,&one));
     ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(*x,&px);CHKERRQ(ierr);
     ierr = PetscLogFlops(nv*2*(y)->map->n);CHKERRQ(ierr);

@@ -405,7 +405,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   ierr = PetscBLASIntCast(n,&rA);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(cols,&cA);CHKERRQ(ierr);
   lw = -1;
-  LAPACKgeqrf_(&rA,&cA,A,&ld_,PETSC_NULL,&saux,&lw,&info);
+  PetscStackCall("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,A,&ld_,PETSC_NULL,&saux,&lw,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
   lw = (PetscBLASInt)PetscRealPart(saux);
   ierr = DSAllocateWork_Private(ds,lw+ltau,0,0);CHKERRQ(ierr);
@@ -413,9 +413,9 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   w = &tau[ltau];
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  LAPACKgeqrf_(&rA,&cA,&A[ld*l+l],&ld_,tau,w,&lw,&info);
+  PetscStackCall("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,&A[ld*l+l],&ld_,tau,w,&lw,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
-  LAPACKorgqr_(&rA,&ltau,&ltau,&A[ld*l+l],&ld_,tau,w,&lw,&info);
+  PetscStackCall("LAPACKorgqr",LAPACKorgqr_(&rA,&ltau,&ltau,&A[ld*l+l],&ld_,tau,w,&lw,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
@@ -494,7 +494,7 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
     ns_[i] = PetscSign(nr);
     /* A[i] <- A[i]/|nr| */
     alpha = 1.0/PetscAbs(nr);
-    BLASscal_(&rA_,&alpha,&A[i*ld],&one);
+    PetscStackCall("BLASscal",BLASscal_(&rA_,&alpha,&A[i*ld],&one));
   }
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = DSRestoreArray(ds,mat,&A_);CHKERRQ(ierr);

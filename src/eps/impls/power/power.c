@@ -179,7 +179,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 
           /* choose the eigenvalue of [rho beta1; beta1 alpha2] closest to rho */
           ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-          LAPACKlaev2_(&rho,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1);
+          PetscStackCall("LAPACKlaev2",LAPACKlaev2_(&rho,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1));
           ierr = PetscFPTrapPop();CHKERRQ(ierr);
           if (PetscAbsScalar(rt1-rho) < PetscAbsScalar(rt2-rho)) rho = rt1;
           else rho = rt2;
@@ -326,7 +326,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
 
           /* choose the eigenvalue of [rho beta1; beta1 alpha2] closest to rho */
           ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-          LAPACKlaev2_(&rho,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1);
+          PetscStackCall("LAPACKlaev2",LAPACKlaev2_(&rho,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1));
           ierr = PetscFPTrapPop();CHKERRQ(ierr);
           if (PetscAbsScalar(rt1-rho) < PetscAbsScalar(rt2-rho)) rho = rt1;
           else rho = rt2;
