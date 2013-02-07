@@ -41,18 +41,24 @@ static struct {
 } _cb;
 
 /* These are not extern C because they are passed into non-extern C user level functions */
+#undef __FUNCT__
+#define __FUNCT__ "ourshellapply"
 static PetscErrorCode ourshellapply(ST st,Vec x,Vec y)
 {
   PetscObjectUseFortranCallback(st,_cb.apply,(ST*,Vec*,Vec*,PetscErrorCode*),(&st,&x,&y,&ierr));
   return 0;
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "ourshellapplytranspose"
 static PetscErrorCode ourshellapplytranspose(ST st,Vec x,Vec y)
 {
   PetscObjectUseFortranCallback(st,_cb.applytranspose,(ST*,Vec*,Vec*,PetscErrorCode*),(&st,&x,&y,&ierr));
   return 0;
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "ourshellbacktransform"
 static PetscErrorCode ourshellbacktransform(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscObjectUseFortranCallback(st,_cb.backtransform,(ST*,PetscInt*,PetscScalar*,PetscScalar*,PetscErrorCode*),(&st,&n,eigr,eigi,&ierr));
