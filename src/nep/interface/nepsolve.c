@@ -470,3 +470,51 @@ PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,P
   if (lits) *lits = nep->linits; 
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPComputeFunction"
+/*@
+   NEPComputeFunction - Calls the function that has been set with NEPSetFunction().
+
+   Collective on NEP
+
+   Input Parameters:
++  nep - the NEP context
+-  x   - input vector
+
+   Output Parameter:
+.  y   - function vector, as set by NEPSetFunction()
+
+   Notes:
+   NEPComputeFunction() is typically used within nonlinear eigensolvers
+   implementations, so most users would not generally call this routine
+   themselves.
+
+   Level: developer
+
+.seealso: NEPSetFunction(), NEPGetFunction()
+@*/
+PetscErrorCode NEPComputeFunction(NEP nep,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,2);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,3);
+  PetscCheckSameComm(nep,1,x,2);
+  PetscCheckSameComm(nep,1,y,3);
+  VecValidValues(x,2,PETSC_TRUE);
+
+  if (nep->res_func) {
+    ierr = PetscLogEventBegin(NEP_FunctionEval,nep,x,y,0);CHKERRQ(ierr);
+    PetscStackPush("NEP user function");
+    ierr = (*nep->res_func)(nep,x,y,nep->res_ctx);CHKERRQ(ierr);
+    PetscStackPop;
+    ierr = PetscLogEventEnd(NEP_FunctionEval,nep,x,y,0);CHKERRQ(ierr);
+  } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE, "Must call NEPSetFunction() before NEPComputeFunction()");
+  nep->nfuncs++;
+  VecValidValues(y,3,PETSC_FALSE);
+  PetscFunctionReturn(0);
+}
+

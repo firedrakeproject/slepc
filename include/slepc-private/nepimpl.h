@@ -25,7 +25,7 @@
 #include <slepcnep.h>
 
 PETSC_EXTERN PetscFunctionList NEPList;
-PETSC_EXTERN PetscLogEvent     NEP_SetUp,NEP_Solve,NEP_Dense;
+PETSC_EXTERN PetscLogEvent     NEP_SetUp,NEP_Solve,NEP_Dense,NEP_FunctionEval,NEP_JacobianEval;
 
 typedef struct _NEPOps *NEPOps;
 
@@ -68,9 +68,13 @@ struct _p_NEP {
   void           *which_ctx;
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
-  Vec            vec_func;
-  PetscErrorCode (*comp_func)(NEP,Vec,Vec,void*);
-  void           *func_ctx;
+  Vec            residual;
+  PetscErrorCode (*res_func)(NEP,Vec,Vec,void*);
+  void           *res_ctx;
+
+  Mat            jacobian,jacobian_pre;
+  PetscErrorCode (*jac_func)(NEP,Vec,Mat*,Mat*,MatStructure*,void*);
+  void           *jac_ctx;
 
   /*------------------------- Working data --------------------------*/
   Vec         *V,               /* set of basis vectors and computed eigenvectors */
