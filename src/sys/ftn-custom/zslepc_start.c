@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "petsc-private/fortranimpl.h" 
+#include <petsc-private/fortranimpl.h>
 
 extern PetscBool SlepcBeganPetsc;
 extern PetscBool SlepcInitializeCalled;

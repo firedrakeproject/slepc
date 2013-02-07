@@ -22,9 +22,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include "slepc-private/ipimpl.h"      /*I "slepcip.h" I*/
-#include "slepcblaslapack.h"
-#include "../src/eps/impls/davidson/common/davidson.h"
+#include <slepc-private/ipimpl.h>      /*I "slepcip.h" I*/
+#include <slepcblaslapack.h>
+#include <../src/eps/impls/davidson/common/davidson.h>
 
 #define MyPetscSqrtReal(alpha) (PetscSign(PetscRealPart(alpha))*PetscSqrtReal(PetscAbs(PetscRealPart(alpha))))
 
