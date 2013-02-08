@@ -49,8 +49,9 @@ PetscErrorCode NEPSetUp(NEP nep)
   PetscErrorCode ierr;
   PetscInt       i,k;
   PetscBool      lindep;
-  PetscReal      norm;
+  PetscReal      sigma,norm;
   Mat            T;
+  MatStructure   mats;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -77,19 +78,46 @@ PetscErrorCode NEPSetUp(NEP nep)
     ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr);
   }
 
-  /* Set problem dimensions */
+  /* by default, compute eigenvalues close to target */
+  /* nep->target should contain the initial guess for the eigenvalue */
+  if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
+  switch (nep->which) {
+    case NEP_LARGEST_MAGNITUDE:
+    case NEP_LARGEST_IMAGINARY:
+      sigma = 1.0;   /* arbitrary value */
+      break;
+    case NEP_SMALLEST_MAGNITUDE:
+    case NEP_SMALLEST_IMAGINARY:
+      sigma = 0.0;
+      break;
+    case NEP_LARGEST_REAL:
+      sigma = PETSC_MAX_REAL;
+      break;
+    case NEP_SMALLEST_REAL:
+      sigma = PETSC_MIN_REAL;
+      break;
+    case NEP_TARGET_MAGNITUDE:
+    case NEP_TARGET_REAL:
+    case NEP_TARGET_IMAGINARY:
+      sigma = nep->target;
+      break;
+  }
+
+  /* set problem dimensions */
   ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,sigma,0.0,&T,&T,&mats);CHKERRQ(ierr);
+  ierr = KSPSetOperators(nep->ksp,T,T,mats);CHKERRQ(ierr);
   ierr = VecDestroy(&nep->t);CHKERRQ(ierr);
   ierr = MatGetVecs(T,&nep->t,NULL);CHKERRQ(ierr);
   ierr = VecGetSize(nep->t,&nep->n);CHKERRQ(ierr);
   ierr = VecGetLocalSize(nep->t,&nep->nloc);CHKERRQ(ierr);
 
-  /* Call specific solver setup */
+  /* call specific solver setup */
   ierr = (*nep->ops->setup)(nep);CHKERRQ(ierr);
 
   /* set tolerances if not yet set */
-  if (nep->abstol==PETSC_DEFAULT) nep->abstol = SLEPC_DEFAULT_TOL;
-  if (nep->rtol==PETSC_DEFAULT) nep->rtol = SLEPC_DEFAULT_TOL;
+  if (nep->abstol==PETSC_DEFAULT) nep->abstol = 1e-50;
+  if (nep->rtol==PETSC_DEFAULT) nep->rtol = 100*SLEPC_DEFAULT_TOL;
   if (nep->stol==PETSC_DEFAULT) nep->stol = SLEPC_DEFAULT_TOL;
 
   /* set eigenvalue comparison */

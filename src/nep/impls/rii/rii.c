@@ -44,14 +44,12 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
   }
   if (!nep->mpd) nep->mpd = nep->ncv;
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(((PetscObject)nep)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
-  if (!nep->max_it) nep->max_it = PetscMax(100,2*nep->n/nep->ncv);
-  if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
+  if (nep->nev>1) { ierr = PetscInfo(nep,"Warning: requested more than one eigenpair but RII can only compute one\n");CHKERRQ(ierr); }
+  if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
+  if (!nep->max_funcs) nep->max_funcs = nep->max_it;
 
   ierr = NEPAllocateSolution(nep);CHKERRQ(ierr);
-  ierr = NEPDefaultGetWork(nep,1);CHKERRQ(ierr);
-
-  ierr = DSSetType(nep->ds,DSNHEP);CHKERRQ(ierr);
-  ierr = DSAllocate(nep->ds,nep->ncv+1);CHKERRQ(ierr);
+  ierr = NEPDefaultGetWork(nep,3);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -60,31 +58,80 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
 PetscErrorCode NEPSolve_RII(NEP nep)
 {
   PetscErrorCode ierr;
-  PetscInt       lwork,ld,nv;
-  Vec            v=nep->work[0];
-  PetscScalar    *work;
+  Mat            T=nep->function,Tp=nep->jacobian,Tsigma;
+  Vec            u=nep->work[0],r=nep->work[1],delta=nep->work[2];
+  PetscScalar    sigma,lambda,a1,a2;
+  PetscReal      relerr,norm1,norm2;
+  MatStructure   mats;
 
   PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
-  lwork = 7*nep->ncv;
-  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-
-  /* Get the starting Arnoldi vector */
+  /* Get the starting vector */
   if (nep->nini>0) {
-    ierr = VecCopy(nep->V[0],v);CHKERRQ(ierr);
+    ierr = VecCopy(nep->V[0],u);CHKERRQ(ierr);
   } else {
-    ierr = SlepcVecSetRandom(v,nep->rand);CHKERRQ(ierr);
+    ierr = SlepcVecSetRandom(u,nep->rand);CHKERRQ(ierr);
   }
   
+  /* correct eigenvalue approximation: lambda = sigma - (u'*T*u)/(u'*Tp*u) */
+  sigma = nep->target;
+// consider cases other than target
+  ierr = NEPComputeFunction(nep,sigma,0,&T,&T,&mats);CHKERRQ(ierr);
+// reuse T
+  ierr = NEPComputeJacobian(nep,sigma,0,&Tp,&Tp,&mats);CHKERRQ(ierr);
+  ierr = MatMult(T,u,r);CHKERRQ(ierr);
+  ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
+  ierr = MatMult(Tp,u,r);CHKERRQ(ierr);
+  ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
+  lambda = sigma - a1/a2;
+  
+  /* prepare linear solver */
+  ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
+  ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
     nep->its++;
 
-    nv = ld;
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nv);CHKERRQ(ierr);
-  } 
+    /* evaluate T(lambda) and T'(lambda) */
+    ierr = NEPComputeFunction(nep,lambda,0,&T,&T,&mats);CHKERRQ(ierr);
+    ierr = NEPComputeJacobian(nep,lambda,0,&Tp,&Tp,&mats);CHKERRQ(ierr);
 
-  ierr = PetscFree(work);CHKERRQ(ierr);
+    /* form residual,  r = T(lambda)*u */
+    ierr = MatMult(T,u,r);CHKERRQ(ierr);
+
+    /* convergence test */
+    ierr = VecNorm(r,NORM_2,&norm1);CHKERRQ(ierr);
+    ierr = VecNorm(u,NORM_2,&norm2);CHKERRQ(ierr);
+    relerr = norm1/norm2;
+    nep->errest[nep->nconv] = relerr;
+    nep->eigr[nep->nconv] = lambda;
+    if (relerr<=nep->rtol) {
+      nep->nconv = nep->nconv + 1;
+      nep->reason = NEP_CONVERGED_FNORM_RELATIVE;
+    } 
+    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,1);CHKERRQ(ierr);
+
+    if (!nep->nconv) {
+      /* eigenvector correction: delta = T(sigma)\r */
+      ierr = KSPSolve(nep->ksp,r,delta);CHKERRQ(ierr);
+
+      /* update eigenvector: u = u - delta */
+      ierr = VecAXPY(u,-1.0,delta);CHKERRQ(ierr);
+
+      /* normalize eigenvector: u = u / max(abs(u)) */
+      ierr = VecNorm(u,NORM_INFINITY,&norm1);CHKERRQ(ierr);
+      ierr = VecScale(u,1.0/norm1);CHKERRQ(ierr);
+
+      /* correct eigenvalue: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
+      ierr = MatMult(T,u,r);CHKERRQ(ierr);
+      ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
+      ierr = MatMult(Tp,u,r);CHKERRQ(ierr);
+      ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
+      lambda = lambda - a1/a2;
+    }
+    if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
+  } 
+  ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

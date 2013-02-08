@@ -24,14 +24,25 @@ FFLAGS     =
 CPPFLAGS   = 
 FPPFLAGS   =
 LOCDIR     = src/nep/examples/tutorials/
-EXAMPLESC  = 
+EXAMPLESC  = ex20.c
 EXAMPLESF  = 
 MANSEC     = NEP
 
-TESTEXAMPLES_C           = 
+TESTEXAMPLES_C           = ex20.PETSc runex20_1 ex20.rm
 TESTEXAMPLES_C_NOCOMPLEX = 
 TESTEXAMPLES_F90         = 
 
 include ${SLEPC_DIR}/conf/slepc_common
 
+ex20: ex20.o chkopts
+	-${CLINKER} -o ex20 ex20.o ${SLEPC_LIB}
+	${RM} ex20.o
+
 #------------------------------------------------------------------------------------
+
+runex20_1:
+	-@${MPIEXEC} -np 1 ./ex20 > ex20_1.tmp 2>&1; \
+	   if (${DIFF} output/ex20_1.out ex20_1.tmp) then true; \
+	   else echo "Possible problem with ex20_1, diffs above"; fi; \
+	   ${RM} -f ex20_1.tmp
+
