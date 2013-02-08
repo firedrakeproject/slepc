@@ -120,12 +120,10 @@ int main(int argc,char **argv)
   ierr = DMDACreate3d(PETSC_COMM_WORLD,DMDA_BOUNDARY_NONE,DMDA_BOUNDARY_NONE,
                       DMDA_BOUNDARY_NONE,DMDA_STENCIL_STAR,-10,-10,-10,
                       PETSC_DECIDE,PETSC_DECIDE,PETSC_DECIDE,
-                      1,1,PETSC_NULL,PETSC_NULL,PETSC_NULL,&da);CHKERRQ(ierr);
+                      1,1,NULL,NULL,NULL,&da);CHKERRQ(ierr);
 
   /* print DM information */
-  ierr = DMDAGetInfo(da,PETSC_NULL,&M,&N,&P,&m,&n,&p,
-                     PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL,
-                     PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DMDAGetInfo(da,NULL,&M,&N,&P,&m,&n,&p,NULL,NULL,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Grid partitioning: %D %D %D\n",m,n,p);CHKERRQ(ierr);
 
   /* create and fill the matrix */
@@ -134,9 +132,9 @@ int main(int argc,char **argv)
 
   /* create random initial vector */
   seed = 1;
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-seed",&seed,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-seed",&seed,NULL);CHKERRQ(ierr);
   if (seed<0) SETERRQ(PETSC_COMM_WORLD,1,"Seed must be >=0");
-  ierr = MatGetVecs(A,&v0,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,&v0,NULL);CHKERRQ(ierr);
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
   for (i=0;i<seed;i++) {   /* simulate different seeds in the random generator */
@@ -155,7 +153,7 @@ int main(int argc,char **argv)
   /* 
      Set operators. In this case, it is a standard eigenvalue problem
   */
-  ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
 
   /*
@@ -187,7 +185,7 @@ int main(int argc,char **argv)
   */
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
   ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
@@ -217,7 +215,7 @@ int main(int argc,char **argv)
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
       */
-      ierr = EPSGetEigenpair(eps,i,&kr,&ki,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSGetEigenpair(eps,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
       /*
          Compute the relative error associated to each eigenpair
       */
@@ -242,7 +240,7 @@ int main(int argc,char **argv)
   /* 
      Show computing times
   */
-  ierr = PetscOptionsHasName(PETSC_NULL,"-showtimes",&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,"-showtimes",&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscPrintf(PETSC_COMM_WORLD," Elapsed time: %G (setup), %G (solve)\n",t2-t1,t3-t2);CHKERRQ(ierr);
   }

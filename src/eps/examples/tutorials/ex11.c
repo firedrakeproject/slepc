@@ -42,8 +42,8 @@ int main (int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-m",&m,&flag);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if (!flag) m=n;
   N = n*m;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nFiedler vector of a 2-D regular mesh, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
@@ -85,7 +85,7 @@ int main (int argc,char **argv)
   /* 
      Set operators. In this case, it is a standard eigenvalue problem
   */
-  ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
   
   /*
@@ -102,7 +102,7 @@ int main (int argc,char **argv)
      Attach deflation space: in this case, the matrix has a constant 
      nullspace, [1 1 ... 1]^T is the eigenvector of the zero eigenvalue
   */
-  ierr = MatGetVecs(A,&x,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,&x,NULL);CHKERRQ(ierr);
   ierr = VecSet(x,1.0);CHKERRQ(ierr);
   ierr = EPSSetDeflationSpace(eps,1,&x);CHKERRQ(ierr);
   ierr = VecDestroy(&x);
@@ -118,14 +118,14 @@ int main (int argc,char **argv)
   */
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);

@@ -154,8 +154,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   PC             pc;                             
   
   PetscFunctionBegin;
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   
   if (eps->isgeneralized && !blz->slice) { 
@@ -202,7 +202,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
         } else {
           ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
         }
-        ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->defl,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(eps->ip,0,NULL,eps->nds,NULL,eps->defl,y,NULL,NULL,NULL);CHKERRQ(ierr);
         ierr = VecResetArray(x);CHKERRQ(ierr);
         ierr = VecResetArray(y);CHKERRQ(ierr);
       }
@@ -233,13 +233,13 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
       ierr = PCFactorGetMatrix(pc,&A);CHKERRQ(ierr);
-      ierr = MatGetInertia(A,&nn,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = MatGetInertia(A,&nn,NULL,NULL);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(nn,&nneig);CHKERRQ(ierr);
       break;
     case 4:  
       /* copy the initial vector */
       ierr = VecPlaceArray(x,blz->v);CHKERRQ(ierr);
-      ierr = EPSGetStartVector(eps,0,x,PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSGetStartVector(eps,0,x,NULL);CHKERRQ(ierr);
       ierr = VecResetArray(x);CHKERRQ(ierr);
       break;
     }
@@ -306,8 +306,8 @@ PetscErrorCode EPSDestroy_BLZPACK(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetNSteps_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetBlockSize_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSBlzpackSetNSteps_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -39,7 +39,7 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with random diagonal, n=%D\n\n",n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -74,7 +74,7 @@ int main(int argc,char **argv)
        Create two matrices by filling the diagonal with rand values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = MatDuplicate(A1,MAT_COPY_VALUES,&A2);CHKERRQ(ierr);
-  ierr = MatGetVecs(A1,PETSC_NULL,&d);CHKERRQ(ierr);
+  ierr = MatGetVecs(A1,NULL,&d);CHKERRQ(ierr);
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&myrand);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(myrand);CHKERRQ(ierr);
   ierr = PetscRandomSetInterval(myrand,0.0,1.0);CHKERRQ(ierr);
@@ -101,7 +101,7 @@ int main(int argc,char **argv)
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetTolerances(eps,tol,PETSC_DECIDE);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A1,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSSetOperators(eps,A1,NULL);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -109,15 +109,15 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," - - - First matrix - - -\n");CHKERRQ(ierr);
-  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                         Solve second eigenproblem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSSetOperators(eps,A2,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSSetOperators(eps,A2,NULL);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Second matrix - - -\n");CHKERRQ(ierr);
-  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
   
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A1);CHKERRQ(ierr);

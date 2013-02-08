@@ -58,9 +58,9 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&N,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetString(PETSC_NULL,"-type",svdtype,30,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetString(PETSC_NULL,"-epstype",epstype,30,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-n",&N,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-type",svdtype,30,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-epstype",epstype,30,&flg);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%D",N);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSVD type: %s",svdtype);CHKERRQ(ierr);
   if (flg) {
@@ -121,7 +121,7 @@ int main(int argc,char **argv)
       ierr = EPSSetType(eps,epstype);CHKERRQ(ierr);
     }
   }
-  ierr = SVDSetDimensions(svd,1,PETSC_IGNORE,PETSC_IGNORE);CHKERRQ(ierr);
+  ierr = SVDSetDimensions(svd,1,0,0);CHKERRQ(ierr);
   ierr = SVDSetTolerances(svd,1e-6,1000);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -142,7 +142,7 @@ int main(int argc,char **argv)
      In this example, we are not interested in the singular vectors
   */
   if (nconv1 > 0) {
-    ierr = SVDGetSingularTriplet(svd,0,&sigma_1,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SVDGetSingularTriplet(svd,0,&sigma_1,NULL,NULL);CHKERRQ(ierr);
   } else {
     ierr = PetscPrintf(PETSC_COMM_WORLD," Unable to compute large singular value!\n\n");CHKERRQ(ierr);
   } 
@@ -161,7 +161,7 @@ int main(int argc,char **argv)
      As before, we are not interested in the singular vectors
   */
   if (nconv2 > 0) {
-    ierr = SVDGetSingularTriplet(svd,0,&sigma_n,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SVDGetSingularTriplet(svd,0,&sigma_n,NULL,NULL);CHKERRQ(ierr);
   } else {
     ierr = PetscPrintf(PETSC_COMM_WORLD," Unable to compute small singular value!\n\n");CHKERRQ(ierr);
   } 

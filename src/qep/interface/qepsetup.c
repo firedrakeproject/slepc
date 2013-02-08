@@ -91,10 +91,10 @@ PetscErrorCode QEPSetUp(QEP qep)
   }
   
   /* Set problem dimensions */
-  ierr = MatGetSize(qep->M,&qep->n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(qep->M,&qep->nloc,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetSize(qep->M,&qep->n,NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(qep->M,&qep->nloc,NULL);CHKERRQ(ierr);
   ierr = VecDestroy(&qep->t);CHKERRQ(ierr);
-  ierr = SlepcMatGetVecsTemplate(qep->M,&qep->t,PETSC_NULL);CHKERRQ(ierr);
+  ierr = SlepcMatGetVecsTemplate(qep->M,&qep->t,NULL);CHKERRQ(ierr);
 
   /* Set default problem type */
   if (!qep->problem_type) {
@@ -122,27 +122,27 @@ PetscErrorCode QEPSetUp(QEP qep)
   switch (qep->which) {
     case QEP_LARGEST_MAGNITUDE:
       qep->which_func = SlepcCompareLargestMagnitude;
-      qep->which_ctx  = PETSC_NULL;
+      qep->which_ctx  = NULL;
       break;
     case QEP_SMALLEST_MAGNITUDE:
       qep->which_func = SlepcCompareSmallestMagnitude;
-      qep->which_ctx  = PETSC_NULL;
+      qep->which_ctx  = NULL;
       break;
     case QEP_LARGEST_REAL:
       qep->which_func = SlepcCompareLargestReal;
-      qep->which_ctx  = PETSC_NULL;
+      qep->which_ctx  = NULL;
       break;
     case QEP_SMALLEST_REAL:
       qep->which_func = SlepcCompareSmallestReal;
-      qep->which_ctx  = PETSC_NULL;
+      qep->which_ctx  = NULL;
       break;
     case QEP_LARGEST_IMAGINARY:
       qep->which_func = SlepcCompareLargestImaginary;
-      qep->which_ctx  = PETSC_NULL;
+      qep->which_ctx  = NULL;
       break;
     case QEP_SMALLEST_IMAGINARY:
       qep->which_func = SlepcCompareSmallestImaginary;
-      qep->which_ctx  = PETSC_NULL;
+      qep->which_ctx  = NULL;
       break;
     case QEP_TARGET_MAGNITUDE:
       qep->which_func = SlepcCompareTargetMagnitude;
@@ -176,7 +176,7 @@ PetscErrorCode QEPSetUp(QEP qep)
     for (i=0;i<qep->nini;i++) {
       ierr = VecCopy(qep->IS[i],qep->V[k]);CHKERRQ(ierr);
       ierr = VecDestroy(&qep->IS[i]);CHKERRQ(ierr);
-      ierr = IPOrthogonalize(qep->ip,0,PETSC_NULL,k,PETSC_NULL,qep->V,qep->V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
+      ierr = IPOrthogonalize(qep->ip,0,NULL,k,NULL,qep->V,qep->V[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
       if (norm==0.0 || lindep) { ierr = PetscInfo(qep,"Linearly dependent initial vector found, removing...\n");CHKERRQ(ierr); }
       else {
         ierr = VecScale(qep->V[k],1.0/norm);CHKERRQ(ierr);
@@ -195,7 +195,7 @@ PetscErrorCode QEPSetUp(QEP qep)
       for (i=0;i<qep->ninil;i++) {
         ierr = VecCopy(qep->ISL[i],qep->W[k]);CHKERRQ(ierr);
         ierr = VecDestroy(&qep->ISL[i]);CHKERRQ(ierr);
-        ierr = IPOrthogonalize(qep->ip,0,PETSC_NULL,k,PETSC_NULL,qep->W,qep->W[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
+        ierr = IPOrthogonalize(qep->ip,0,NULL,k,NULL,qep->W,qep->W[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
         if (norm==0.0 || lindep) { ierr = PetscInfo(qep,"Linearly dependent initial left vector found, removing...\n");CHKERRQ(ierr); }
         else {
           ierr = VecScale(qep->W[k],1.0/norm);CHKERRQ(ierr);

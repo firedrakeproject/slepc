@@ -127,7 +127,7 @@ PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
   PetscScalar        *c = work + m;
 
   PetscFunctionBegin;
-  ierr = IPGetOrthogonalization(qep->ip,PETSC_NULL,&refinement,&eta);CHKERRQ(ierr);
+  ierr = IPGetOrthogonalization(qep->ip,NULL,&refinement,&eta);CHKERRQ(ierr);
   ierr = VecCopy(v,qep->V[k]);CHKERRQ(ierr);
   
   for (j=k;j<m;j++) {
@@ -143,11 +143,11 @@ PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
     /* orthogonalize */
     switch (refinement) {
       case IP_ORTHOG_REFINE_NEVER:
-        ierr = QEPQLanczosCGS(qep,H,ldh,H+ldh*j,j,V,t,v,w,PETSC_NULL,&norm,work);CHKERRQ(ierr);
+        ierr = QEPQLanczosCGS(qep,H,ldh,H+ldh*j,j,V,t,v,w,NULL,&norm,work);CHKERRQ(ierr);
         *breakdown = PETSC_FALSE;
         break;
       case IP_ORTHOG_REFINE_ALWAYS:
-        ierr = QEPQLanczosCGS(qep,H,ldh,H+ldh*j,j,V,t,v,w,PETSC_NULL,PETSC_NULL,work);CHKERRQ(ierr);
+        ierr = QEPQLanczosCGS(qep,H,ldh,H+ldh*j,j,V,t,v,w,NULL,NULL,work);CHKERRQ(ierr);
         ierr = QEPQLanczosCGS(qep,H,ldh,c,j,V,t,v,w,&onorm,&norm,work);CHKERRQ(ierr);
         for (i=0;i<=j;i++) H[ldh*j+i] += c[i];
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
@@ -160,7 +160,7 @@ PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
         while (l<3 && norm < eta * onorm) {
           l++;
           onorm = norm;
-          ierr = QEPQLanczosCGS(qep,H,ldh,c,j,V,t,v,w,PETSC_NULL,&norm,work);CHKERRQ(ierr);
+          ierr = QEPQLanczosCGS(qep,H,ldh,c,j,V,t,v,w,NULL,&norm,work);CHKERRQ(ierr);
           for (i=0;i<=j;i++) H[ldh*j+i] += c[i];
         }
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
@@ -220,7 +220,7 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
     ierr = DSGetArray(qep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
     ierr = QEPQLanczos(qep,S,ld,qep->V,qep->nconv+l,&nv,v,w,&beta,&breakdown,work);CHKERRQ(ierr);
     ierr = DSRestoreArray(qep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = DSSetDimensions(qep->ds,nv,PETSC_IGNORE,qep->nconv,qep->nconv+l);CHKERRQ(ierr);
+    ierr = DSSetDimensions(qep->ds,nv,0,qep->nconv,qep->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(qep->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
@@ -229,7 +229,7 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
 
     /* Solve projected problem */ 
     ierr = DSSolve(qep->ds,qep->eigr,qep->eigi);CHKERRQ(ierr);
-    ierr = DSSort(qep->ds,qep->eigr,qep->eigi,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSort(qep->ds,qep->eigr,qep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(qep->ds);CHKERRQ(ierr);
 
     /* Check convergence */ 
@@ -249,7 +249,7 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
       } else {
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSTruncate(qep->ds,k+l);CHKERRQ(ierr);
-        ierr = DSGetDimensions(qep->ds,&newn,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = DSGetDimensions(qep->ds,&newn,NULL,NULL,NULL);CHKERRQ(ierr);
         l = newn-k;
       }
     }
@@ -269,7 +269,7 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
 
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */
-  ierr = DSSetDimensions(qep->ds,qep->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(qep->ds,qep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(qep->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
   /* Compute eigenvectors */

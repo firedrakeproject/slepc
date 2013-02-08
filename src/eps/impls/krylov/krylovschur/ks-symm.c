@@ -44,7 +44,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
-  ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,eps->V[0],NULL);CHKERRQ(ierr);
   l = 0;
   
   /* Restart loop */
@@ -58,7 +58,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     ierr = EPSFullLanczos(eps,a,b,eps->V,eps->nconv+l,&nv,u,&breakdown);CHKERRQ(ierr);
     beta = b[nv-1];
     ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-    ierr = DSSetDimensions(eps->ds,nv,PETSC_IGNORE,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
@@ -66,9 +66,9 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     }
 
     /* Solve projected problem */ 
-    ierr = DSSolve(eps->ds,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
     if (eps->arbit_func) { ierr = EPSGetArbitraryValues(eps,eps->rr,eps->ri);CHKERRQ(ierr); }
-    ierr = DSSort(eps->ds,eps->eigr,PETSC_NULL,eps->rr,eps->ri,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSort(eps->ds,eps->eigr,NULL,eps->rr,eps->ri,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(eps->ds);CHKERRQ(ierr);
 
     /* Check convergence */

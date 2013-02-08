@@ -251,7 +251,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     Ur  = U;
     VTr = VT;
 #endif
-    PetscStackCall("LAPACKbdsdc",LAPACKbdsdc_("U","I",&n3,d+l,e+l,Ur+off,&ld,VTr+off,&ld,PETSC_NULL,PETSC_NULL,ds->rwork,ds->iwork,&info));
+    PetscStackCall("LAPACKbdsdc",LAPACKbdsdc_("U","I",&n3,d+l,e+l,Ur+off,&ld,VTr+off,&ld,NULL,NULL,ds->rwork,ds->iwork,&info));
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xBDSDC %d",info);
 #if defined(PETSC_USE_COMPLEX)
     for (i=l;i<n;i++) {

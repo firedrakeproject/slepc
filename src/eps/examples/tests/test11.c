@@ -50,10 +50,10 @@ int main(int argc,char **argv)
   
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-m",&m,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-m",&m,NULL);CHKERRQ(ierr);
   N = m*(m+1)/2;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%D (m=%D)\n",N,m);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(PETSC_NULL,"-target",&target,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,"-target",&target,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Searching closest eigenvalues to the right of %G.\n\n",target);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -78,7 +78,7 @@ int main(int argc,char **argv)
   /* 
      Set operators. In this case, it is a standard eigenvalue problem
   */
-  ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
   ierr = EPSSetTolerances(eps,tol,PETSC_DECIDE);CHKERRQ(ierr);
 
@@ -103,7 +103,7 @@ int main(int argc,char **argv)
      Set the initial vector. This is optional, if not done the initial
      vector is set to random values
   */
-  ierr = MatGetVecs(A,&v0,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,&v0,NULL);CHKERRQ(ierr);
   ierr = VecSet(v0,1.0);CHKERRQ(ierr);
   ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
 
@@ -118,14 +118,14 @@ int main(int argc,char **argv)
   */
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = VecDestroy(&v0);CHKERRQ(ierr);

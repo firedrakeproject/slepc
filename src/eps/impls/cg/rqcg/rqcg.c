@@ -124,18 +124,18 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
-  else B = PETSC_NULL;
+  else B = NULL;
   ierr = PetscMalloc(eps->mpd*sizeof(PetscScalar),&gamma);CHKERRQ(ierr);
 
   kini = eps->nini;
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
-    ierr = DSSetDimensions(eps->ds,nv,PETSC_IGNORE,eps->nconv,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,0);CHKERRQ(ierr);
     /* Generate more initial vectors if necessary */
     while (kini<nv) {
       ierr = SlepcVecSetRandom(eps->V[kini],eps->rand);CHKERRQ(ierr);
-      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,kini,PETSC_NULL,eps->V,eps->V[kini],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr); 
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,kini,NULL,eps->V,eps->V[kini],NULL,&norm,&breakdown);CHKERRQ(ierr); 
       if (norm>0.0 && !breakdown) {
         ierr = VecScale(eps->V[kini],1.0/norm);CHKERRQ(ierr);
         kini++;
@@ -156,7 +156,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
 
       /* Solve projected problem */
       ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-      ierr = DSSort(eps->ds,eps->eigr,eps->eigi,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
     
       /* Update vectors V(:,idx) = V * Y(:,idx) */
       ierr = DSGetArray(eps->ds,DS_MAT_Q,&Y);CHKERRQ(ierr);
@@ -204,7 +204,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         beta = (!reset && eps->its>1)? g/gamma[i]: 0.0;
         gamma[i] = g;
         ierr = VecAXPBY(ctx->P[i],1.0,beta,w);CHKERRQ(ierr);
-        ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i+eps->nconv,PETSC_NULL,eps->V,ctx->P[i],PETSC_NULL,&resnorm,&breakdown);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i+eps->nconv,NULL,eps->V,ctx->P[i],NULL,&resnorm,&breakdown);CHKERRQ(ierr);
       }
 
       /* Minimization problem */
@@ -236,7 +236,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         if (alpha!=0.0) {
           ierr = VecAXPY(eps->V[i],alpha,ctx->P[i-eps->nconv]);CHKERRQ(ierr);
         }
-        ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i,PETSC_NULL,eps->V,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i,NULL,eps->V,eps->V[i],NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (!breakdown && norm!=0.0) {
           ierr = VecScale(eps->V[i],1.0/norm);CHKERRQ(ierr);
         }
@@ -250,7 +250,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   ierr = PetscFree(gamma);CHKERRQ(ierr);
   /* truncate Schur decomposition and change the state to raw so that
      PSVectors() computes eigenvectors from scratch */
-  ierr = DSSetDimensions(eps->ds,eps->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -382,8 +382,8 @@ PetscErrorCode EPSDestroy_RQCG(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGSetReset_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGGetReset_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGSetReset_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGGetReset_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

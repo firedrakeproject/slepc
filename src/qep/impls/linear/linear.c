@@ -85,14 +85,14 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   i += ctx->cform-1;
 
   if (ctx->explicitmatrix) {
-    ctx->x1 = ctx->x2 = ctx->y1 = ctx->y2 = PETSC_NULL;
+    ctx->x1 = ctx->x2 = ctx->y1 = ctx->y2 = NULL;
     ierr = (*fcreate[i][0])(((PetscObject)qep)->comm,ctx,&ctx->A);CHKERRQ(ierr);
     ierr = (*fcreate[i][1])(((PetscObject)qep)->comm,ctx,&ctx->B);CHKERRQ(ierr);
   } else {
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,PETSC_NULL,&ctx->x1);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,PETSC_NULL,&ctx->x2);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,PETSC_NULL,&ctx->y1);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,PETSC_NULL,&ctx->y2);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,NULL,&ctx->x1);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,NULL,&ctx->x2);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,NULL,&ctx->y1);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,NULL,&ctx->y2);CHKERRQ(ierr);
     ierr = MatCreateShell(((PetscObject)qep)->comm,2*qep->nloc,2*qep->nloc,2*qep->n,2*qep->n,ctx,&ctx->A);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))fmult[i][0]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->A,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[i][0]);CHKERRQ(ierr);
@@ -133,8 +133,8 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
     ierr = EPSSetTarget(ctx->eps,sigma/qep->sfactor);CHKERRQ(ierr);
   }
   ierr = EPSSetUp(ctx->eps);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(ctx->eps,PETSC_NULL,&qep->ncv,&qep->mpd);CHKERRQ(ierr);
-  ierr = EPSGetTolerances(ctx->eps,PETSC_NULL,&qep->max_it);CHKERRQ(ierr);
+  ierr = EPSGetDimensions(ctx->eps,NULL,&qep->ncv,&qep->mpd);CHKERRQ(ierr);
+  ierr = EPSGetTolerances(ctx->eps,NULL,&qep->max_it);CHKERRQ(ierr);
   if (qep->nini>0 || qep->ninil>0) { ierr = PetscInfo(qep,"Ignoring initial vectors\n");CHKERRQ(ierr); }
   ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -165,11 +165,11 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
 #endif
   
   PetscFunctionBegin;
-  ierr = EPSGetOperators(eps,&A,PETSC_NULL);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,&xr,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,&xr,NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,PETSC_NULL,&wr);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,PETSC_NULL,&wi);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,NULL,&wr);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,NULL,&wi);CHKERRQ(ierr);
   for (i=0;i<qep->nconv;i++) {
     ierr = EPSGetEigenpair(eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);
     qep->eigr[i] *= qep->sfactor;
@@ -180,7 +180,7 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
       ierr = VecGetArray(xi,&py);CHKERRQ(ierr);
       ierr = VecPlaceArray(wr,px);CHKERRQ(ierr);
       ierr = VecPlaceArray(wi,py);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,PETSC_NULL);CHKERRQ(ierr);
+      ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,NULL);CHKERRQ(ierr);
       ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,wi,&rn1);CHKERRQ(ierr);
       ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
       ierr = VecCopy(wi,qep->V[i+1]);CHKERRQ(ierr);
@@ -188,7 +188,7 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
       ierr = VecResetArray(wi);CHKERRQ(ierr);
       ierr = VecPlaceArray(wr,px+qep->nloc);CHKERRQ(ierr);
       ierr = VecPlaceArray(wi,py+qep->nloc);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,PETSC_NULL);CHKERRQ(ierr);
+      ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,NULL);CHKERRQ(ierr);
       ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,wi,&rn2);CHKERRQ(ierr);
       if (rn1>rn2) {
         ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
@@ -203,13 +203,13 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
     {
       ierr = VecGetArray(xr,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(wr,px);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(wr,PETSC_NULL,PETSC_FALSE,PETSC_NULL);CHKERRQ(ierr);
-      ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,PETSC_NULL,&rn1);CHKERRQ(ierr);
+      ierr = SlepcVecNormalize(wr,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
+      ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,NULL,&rn1);CHKERRQ(ierr);
       ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
       ierr = VecResetArray(wr);CHKERRQ(ierr);
       ierr = VecPlaceArray(wr,px+qep->nloc);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(wr,PETSC_NULL,PETSC_FALSE,PETSC_NULL);CHKERRQ(ierr);
-      ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,PETSC_NULL,&rn2);CHKERRQ(ierr);
+      ierr = SlepcVecNormalize(wr,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
+      ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,NULL,&rn2);CHKERRQ(ierr);
       if (rn1>rn2) {
         ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
       }
@@ -244,10 +244,10 @@ PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
   Mat            A;
   
   PetscFunctionBegin;
-  ierr = EPSGetOperators(eps,&A,PETSC_NULL);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,&xr,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,&xr,NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,PETSC_NULL,&w);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,NULL,&w);CHKERRQ(ierr);
   for (i=0;i<qep->nconv;i++) {
     ierr = EPSGetEigenpair(eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);
     qep->eigr[i] *= qep->sfactor;
@@ -266,7 +266,7 @@ PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
       ierr = VecCopy(w,qep->V[i+1]);CHKERRQ(ierr);
       ierr = VecResetArray(w);CHKERRQ(ierr);
       ierr = VecRestoreArray(xi,&px);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(qep->V[i],qep->V[i+1],PETSC_TRUE,PETSC_NULL);CHKERRQ(ierr);
+      ierr = SlepcVecNormalize(qep->V[i],qep->V[i+1],PETSC_TRUE,NULL);CHKERRQ(ierr);
     } else if (qep->eigi[i]==0.0)   /* real eigenvalue */
 #endif
     {
@@ -275,7 +275,7 @@ PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
       ierr = VecCopy(w,qep->V[i]);CHKERRQ(ierr);
       ierr = VecResetArray(w);CHKERRQ(ierr);
       ierr = VecRestoreArray(xr,&px);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(qep->V[i],PETSC_NULL,PETSC_FALSE,PETSC_NULL);CHKERRQ(ierr);
+      ierr = SlepcVecNormalize(qep->V[i],NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
     }
   }
   ierr = VecDestroy(&w);CHKERRQ(ierr);
@@ -298,13 +298,13 @@ PetscErrorCode QEPSolve_Linear(QEP qep)
   ierr = EPSGetConverged(ctx->eps,&qep->nconv);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(ctx->eps,&qep->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(ctx->eps,(EPSConvergedReason*)&qep->reason);CHKERRQ(ierr);
-  ierr = EPSGetOperationCounters(ctx->eps,&qep->matvecs,PETSC_NULL,&qep->linits);CHKERRQ(ierr);
+  ierr = EPSGetOperationCounters(ctx->eps,&qep->matvecs,NULL,&qep->linits);CHKERRQ(ierr);
   /* restore target */
   ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
   ierr = EPSSetTarget(ctx->eps,sigma*qep->sfactor);CHKERRQ(ierr);
   
   qep->matvecs *= 2;  /* convention: count one matvec for each non-trivial block in A */
-  ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_linear_select_simple",&flg,PETSC_NULL);CHKERRQ(ierr); 
+  ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_linear_select_simple",&flg,NULL);CHKERRQ(ierr); 
   if (flg) { 
     ierr = QEPLinearSelect_Simple(qep,ctx->eps);CHKERRQ(ierr);
   } else {
@@ -372,7 +372,7 @@ PetscErrorCode QEPLinearSetCompanionForm_Linear(QEP qep,PetscInt cform)
   QEP_LINEAR *ctx = (QEP_LINEAR*)qep->data;
 
   PetscFunctionBegin;
-  if (cform==PETSC_IGNORE) PetscFunctionReturn(0);
+  if (!cform) PetscFunctionReturn(0);
   if (cform==PETSC_DECIDE || cform==PETSC_DEFAULT) ctx->cform = 1;
   else {
     if (cform!=1 && cform!=2) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'cform'");
@@ -673,12 +673,12 @@ PetscErrorCode QEPDestroy_Linear(QEP qep)
   PetscFunctionBegin;
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   ierr = PetscFree(qep->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetCompanionForm_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetCompanionForm_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetExplicitMatrix_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetExplicitMatrix_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetCompanionForm_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetCompanionForm_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetEPS_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetEPS_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetExplicitMatrix_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetExplicitMatrix_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -714,15 +714,15 @@ PetscErrorCode QEPCreate_Linear(QEP qep)
   ierr = PetscLogObjectParent(qep,ctx->eps);CHKERRQ(ierr);
   if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
   ierr = EPSSetIP(ctx->eps,qep->ip);CHKERRQ(ierr);
-  ierr = EPSMonitorSet(ctx->eps,EPSMonitor_Linear,qep,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSMonitorSet(ctx->eps,EPSMonitor_Linear,qep,NULL);CHKERRQ(ierr);
   ctx->explicitmatrix = PETSC_FALSE;
   ctx->cform = 1;
-  ctx->A = PETSC_NULL;
-  ctx->B = PETSC_NULL;
-  ctx->x1 = PETSC_NULL;
-  ctx->x2 = PETSC_NULL;
-  ctx->y1 = PETSC_NULL;
-  ctx->y2 = PETSC_NULL;
+  ctx->A = NULL;
+  ctx->B = NULL;
+  ctx->x1 = NULL;
+  ctx->x2 = NULL;
+  ctx->y1 = NULL;
+  ctx->y2 = NULL;
   ctx->setfromoptionscalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }

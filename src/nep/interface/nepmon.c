@@ -50,11 +50,11 @@ PetscErrorCode NEPMonitor(NEP nep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
 
    Input Parameters:
 +  nep     - eigensolver context obtained from NEPCreate()
-.  monitor - pointer to function (if this is PETSC_NULL, it turns off monitoring)
+.  monitor - pointer to function (if this is NULL, it turns off monitoring)
 .  mctx    - [optional] context for private data for the
-             monitor routine (use PETSC_NULL if no context is desired)
+             monitor routine (use NULL if no context is desired)
 -  monitordestroy - [optional] routine that frees monitor context
-          (may be PETSC_NULL)
+             (may be NULL)
 
    Calling Sequence of monitor:
 $     monitor (NEP nep, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi, PetscReal* errest, int nest, void *mctx)
@@ -178,7 +178,7 @@ PetscErrorCode NEPGetMonitorContext(NEP nep,void **ctx)
 .  eigi   - imaginary part of the eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  monctx - monitor context (contains viewer, can be PETSC_NULL)
+-  monctx - monitor context (contains viewer, can be NULL)
 
    Level: intermediate
 
@@ -225,7 +225,7 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
 .  eigi   - imaginary part of the eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  monctx - monitor context (contains viewer, can be PETSC_NULL)
+-  monctx - monitor context (contains viewer, can be NULL)
 
    Level: intermediate
 

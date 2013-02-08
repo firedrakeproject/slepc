@@ -56,7 +56,7 @@ PetscErrorCode NEPFinalizePackage(void)
    when using static libraries.
 
    Input Parameter:
-.  path - The dynamic library path, or PETSC_NULL
+.  path - The dynamic library path, or NULL
 
    Level: developer
 
@@ -83,7 +83,7 @@ PetscErrorCode NEPInitializePackage(const char *path)
   ierr = PetscLogEventRegister("NEPFunctionEval",NEP_CLASSID,&NEP_FunctionEval);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPJacobianEval",NEP_CLASSID,&NEP_JacobianEval);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"nep",&className);CHKERRQ(ierr);
     if (className) {
@@ -91,7 +91,7 @@ PetscErrorCode NEPInitializePackage(const char *path)
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"nep",&className);CHKERRQ(ierr);
     if (className) {
@@ -263,29 +263,29 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->stol            = PETSC_DEFAULT;
   nep->ttol            = 0.0;
   nep->conv_func       = NEPConvergedDefault;
-  nep->conv_ctx        = PETSC_NULL;
-  nep->conv_dest       = PETSC_NULL;
+  nep->conv_ctx        = NULL;
+  nep->conv_dest       = NULL;
   nep->which           = (NEPWhich)0;
-  nep->which_func      = PETSC_NULL;
-  nep->which_ctx       = PETSC_NULL;
-  nep->fun_func        = PETSC_NULL;
-  nep->fun_ctx         = PETSC_NULL;
-  nep->jac_func        = PETSC_NULL;
-  nep->jac_ctx         = PETSC_NULL;
-  nep->V               = PETSC_NULL;
-  nep->IS              = PETSC_NULL;
-  nep->eigr            = PETSC_NULL;
-  nep->eigi            = PETSC_NULL;
-  nep->errest          = PETSC_NULL;
-  nep->data            = PETSC_NULL;
-  nep->t               = PETSC_NULL;
+  nep->which_func      = NULL;
+  nep->which_ctx       = NULL;
+  nep->fun_func        = NULL;
+  nep->fun_ctx         = NULL;
+  nep->jac_func        = NULL;
+  nep->jac_ctx         = NULL;
+  nep->V               = NULL;
+  nep->IS              = NULL;
+  nep->eigr            = NULL;
+  nep->eigi            = NULL;
+  nep->errest          = NULL;
+  nep->data            = NULL;
+  nep->t               = NULL;
   nep->nconv           = 0;
   nep->its             = 0;
-  nep->perm            = PETSC_NULL;
+  nep->perm            = NULL;
   nep->nfuncs          = 0;
   nep->linits          = 0;
   nep->nwork           = 0;
-  nep->work            = PETSC_NULL;
+  nep->work            = NULL;
   nep->setupcalled     = 0;
   nep->reason          = NEP_CONVERGED_ITERATING;
   nep->numbermonitors  = 0;
@@ -759,11 +759,11 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
 +  nep - the NEP context
 .  A   - Function matrix
 .  B   - preconditioner matrix (usually same as the Function)
-.  fun - Function evaluation routine (if PETSC_NULL then NEP retains any
+.  fun - Function evaluation routine (if NULL then NEP retains any
          previously set value)
 -  ctx - [optional] user-defined context for private data for the Function
-         evaluation routine (may be PETSC_NULL) (if PETSC_NULL then NEP
-         retains any previously set value)
+         evaluation routine (may be NULL) (if NULL then NEP retains any
+         previously set value)
 
    Notes:
    The routine fun() takes Mat* as the matrix arguments rather than Mat.
@@ -813,10 +813,10 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,Pets
 .  nep - the nonlinear eigensolver context
 
    Output Parameters:
-+  A   - location to stash Function matrix (or PETSC_NULL)
-.  B   - location to stash preconditioner matrix (or PETSC_NULL)
-.  fun - location to put Function function (or PETSC_NULL)
--  ctx - location to stash Function context (or PETSC_NULL)
++  A   - location to stash Function matrix (or NULL)
+.  B   - location to stash preconditioner matrix (or NULL)
+.  fun - location to put Function function (or NULL)
+-  ctx - location to stash Function context (or NULL)
 
    Level: advanced
 
@@ -845,11 +845,11 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
 +  nep - the NEP context
 .  A   - Jacobian matrix
 .  B   - preconditioner matrix (usually same as the Jacobian)
-.  jac - Jacobian evaluation routine (if PETSC_NULL then NEP retains any
+.  jac - Jacobian evaluation routine (if NULL then NEP retains any
          previously set value)
 -  ctx - [optional] user-defined context for private data for the Jacobian
-         evaluation routine (may be PETSC_NULL) (if PETSC_NULL then NEP
-         retains any previously set value)
+         evaluation routine (may be NULL) (if NULL then NEP retains any
+         previously set value)
 
    Notes:
    The routine jac() takes Mat* as the matrix arguments rather than Mat.
@@ -899,10 +899,10 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,Mat B,PetscErrorCode (*jac)(NEP,Pets
 .  nep - the nonlinear eigensolver context
 
    Output Parameters:
-+  A   - location to stash Jacobian matrix (or PETSC_NULL)
-.  B   - location to stash preconditioner matrix (or PETSC_NULL)
-.  jac - location to put Jacobian function (or PETSC_NULL)
--  ctx - location to stash Jacobian context (or PETSC_NULL)
++  A   - location to stash Jacobian matrix (or NULL)
+.  B   - location to stash preconditioner matrix (or NULL)
+.  jac - location to put Jacobian function (or NULL)
+-  ctx - location to stash Jacobian context (or NULL)
 
    Level: advanced
 

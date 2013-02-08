@@ -81,7 +81,7 @@ PetscInt    j, nconv;
 PetscReal   error;
 
 EPSCreate( PETSC_COMM_WORLD, &eps );
-EPSSetOperators( eps, A, PETSC_NULL );
+EPSSetOperators( eps, A, NULL );
 EPSSetProblemType( eps, EPS_NHEP );
 EPSSetFromOptions( eps );
 EPSSolve( eps );

@@ -59,7 +59,7 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d,dvdBlackboard *b,PC pc)
 
       /* PC saves the matrix associated with the linear system, and it has to
          be initialize to a valid matrix */
-      ierr = PCGetOperators(pc, PETSC_NULL, &P, &str);CHKERRQ(ierr);
+      ierr = PCGetOperators(pc, NULL, &P, &str);CHKERRQ(ierr);
       if (P) {
         ierr = PetscObjectReference((PetscObject)P);CHKERRQ(ierr);
         ierr = PCSetOperators(pc, P, P, str);CHKERRQ(ierr);

@@ -136,8 +136,7 @@ PetscErrorCode DSGetState(DS ds,DSStateType *state)
    Notes:
    The internal arrays are not reallocated.
 
-   The value m is not used except in the case of DSSVD, pass PETSC_IGNORE
-   otherwise.
+   The value m is not used except in the case of DSSVD, pass 0 otherwise.
 
    Level: intermediate
 
@@ -152,7 +151,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
   PetscValidLogicalCollectiveInt(ds,l,4);
   PetscValidLogicalCollectiveInt(ds,k,5);
   if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
-  if (n!=PETSC_IGNORE) {
+  if (n) {
     if (n==PETSC_DECIDE || n==PETSC_DEFAULT) {
       ds->n = ds->ld;
     } else {
@@ -161,7 +160,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
       ds->n = n;
     }
   }
-  if (m!=PETSC_IGNORE) {
+  if (m) {
     if (m==PETSC_DECIDE || m==PETSC_DEFAULT) {
       ds->m = ds->ld;
     } else {
@@ -538,7 +537,7 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
    compute right or left eigenvectors, or left or right singular vectors,
    respectively.
 
-   If PETSC_NULL is passed in argument j then all vectors are computed,
+   If NULL is passed in argument j then all vectors are computed,
    otherwise j indicates which vector must be computed. In real non-symmetric
    problems, on exit the index j will be incremented when a complex conjugate
    pair is found.

@@ -56,7 +56,7 @@ PetscErrorCode QEPFinalizePackage(void)
    when using static libraries.
 
    Input Parameter:
-.  path - The dynamic library path, or PETSC_NULL
+.  path - The dynamic library path, or NULL
 
    Level: developer
 
@@ -81,7 +81,7 @@ PetscErrorCode QEPInitializePackage(const char *path)
   ierr = PetscLogEventRegister("QEPSolve",QEP_CLASSID,&QEP_Solve);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("QEPDense",QEP_CLASSID,&QEP_Dense);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"qep",&className);CHKERRQ(ierr);
     if (className) {
@@ -89,7 +89,7 @@ PetscErrorCode QEPInitializePackage(const char *path)
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"qep",&className);CHKERRQ(ierr);
     if (className) {
@@ -279,7 +279,7 @@ PetscErrorCode QEPPrintSolution(QEP qep,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
-  ierr = PetscOptionsHasName(PETSC_NULL,"-qep_terse",&terse);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,"-qep_terse",&terse);CHKERRQ(ierr);
   if (terse) {
     if (qep->nconv<qep->nev) {
       ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D eigenvalues converged\n\n",qep->nev);CHKERRQ(ierr);
@@ -294,7 +294,7 @@ PetscErrorCode QEPPrintSolution(QEP qep,PetscViewer viewer)
         for (i=0;i<=(qep->nev-1)/8;i++) {
           ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
           for (j=0;j<PetscMin(8,qep->nev-8*i);j++) {
-            ierr = QEPGetEigenpair(qep,8*i+j,&kr,&ki,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+            ierr = QEPGetEigenpair(qep,8*i+j,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
             re = PetscRealPart(kr);
             im = PetscImaginaryPart(kr);
@@ -324,7 +324,7 @@ PetscErrorCode QEPPrintSolution(QEP qep,PetscViewer viewer)
            "           k          ||(k^2M+Ck+K)x||/||kx||\n"
            "   ----------------- -------------------------\n");CHKERRQ(ierr);
       for (i=0;i<qep->nconv;i++) {
-        ierr = QEPGetEigenpair(qep,i,&kr,&ki,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = QEPGetEigenpair(qep,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
         ierr = QEPComputeRelativeError(qep,i,&error);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
         re = PetscRealPart(kr);
@@ -391,28 +391,28 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->sfactor         = 0.0;
   qep->sfactor_set     = PETSC_FALSE;
   qep->conv_func       = QEPConvergedDefault;
-  qep->conv_ctx        = PETSC_NULL;
+  qep->conv_ctx        = NULL;
   qep->which           = (QEPWhich)0;
-  qep->which_func      = PETSC_NULL;
-  qep->which_ctx       = PETSC_NULL;
+  qep->which_func      = NULL;
+  qep->which_ctx       = NULL;
   qep->leftvecs        = PETSC_FALSE;
   qep->problem_type    = (QEPProblemType)0;
-  qep->V               = PETSC_NULL;
-  qep->W               = PETSC_NULL;
-  qep->IS              = PETSC_NULL;
-  qep->ISL             = PETSC_NULL;
-  qep->eigr            = PETSC_NULL;
-  qep->eigi            = PETSC_NULL;
-  qep->errest          = PETSC_NULL;
-  qep->data            = PETSC_NULL;
-  qep->t               = PETSC_NULL;
+  qep->V               = NULL;
+  qep->W               = NULL;
+  qep->IS              = NULL;
+  qep->ISL             = NULL;
+  qep->eigr            = NULL;
+  qep->eigi            = NULL;
+  qep->errest          = NULL;
+  qep->data            = NULL;
+  qep->t               = NULL;
   qep->nconv           = 0;
   qep->its             = 0;
-  qep->perm            = PETSC_NULL;
+  qep->perm            = NULL;
   qep->matvecs         = 0;
   qep->linits          = 0;
   qep->nwork           = 0;
-  qep->work            = PETSC_NULL;
+  qep->work            = NULL;
   qep->setupcalled     = 0;
   qep->reason          = QEP_CONVERGED_ITERATING;
   qep->numbermonitors  = 0;

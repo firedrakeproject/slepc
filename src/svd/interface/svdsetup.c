@@ -159,9 +159,9 @@ PetscErrorCode SVDSetUp(SVD svd)
     case SVD_TRANSPOSE_IMPLICIT:
       if (M>=N) {
         svd->A = svd->OP;
-        svd->AT = PETSC_NULL;    
+        svd->AT = NULL;    
       } else {
-        svd->A = PETSC_NULL;
+        svd->A = NULL;
         svd->AT = svd->OP;
       }
       break;
@@ -212,7 +212,7 @@ PetscErrorCode SVDSetUp(SVD svd)
     for (i=0;i<svd->nini;i++) {
       ierr = VecCopy(svd->IS[i],svd->V[k]);CHKERRQ(ierr);
       ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
-      ierr = IPOrthogonalize(svd->ip,0,PETSC_NULL,k,PETSC_NULL,svd->V,svd->V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
+      ierr = IPOrthogonalize(svd->ip,0,NULL,k,NULL,svd->V,svd->V[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
       if (norm==0.0 || lindep) { ierr = PetscInfo(svd,"Linearly dependent initial vector found, removing...\n");CHKERRQ(ierr); }
       else {
         ierr = VecScale(svd->V[k],1.0/norm);CHKERRQ(ierr);

@@ -159,13 +159,13 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
     ierr = STGetKSP(eps->st,&ops->ksp);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)ops->ksp,KSPPREONLY,&t);CHKERRQ(ierr);
     if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only works with KSPPREONLY");
-    primme->preconditioner = PETSC_NULL;
+    primme->preconditioner = NULL;
     primme->applyPreconditioner = applyPreconditioner_PRIMME;
   }
 
   /* Prepare auxiliary vectors */ 
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,eps->n,PETSC_NULL,&ops->x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,eps->n,PETSC_NULL,&ops->y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,eps->n,NULL,&ops->x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,eps->n,NULL,&ops->y);CHKERRQ(ierr);
  
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
@@ -305,10 +305,10 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetBlockSize_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetMethod_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetBlockSize_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMESetMethod_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetBlockSize_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPRIMMEGetMethod_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

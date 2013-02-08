@@ -343,7 +343,7 @@ where \Verb!slepceps.h! is the include file for the \ident{EPS} component. Each 
 
 \subsubsection*{The Options Database}
 
-All the \petsc functionality related to the options database is available in \slepc. This allows the user to input control data at run time very easily. In this example the command \Verb!PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);! checks whether the user has provided a command line option to set the value of \Verb!n!, the problem dimension.  If so, the variable \Verb!n! is set accordingly; otherwise, \Verb!n! remains unchanged.
+All the \petsc functionality related to the options database is available in \slepc. This allows the user to input control data at run time very easily. In this example the command \Verb!PetscOptionsGetInt(NULL,"-n",&n,NULL);! checks whether the user has provided a command line option to set the value of \Verb!n!, the problem dimension.  If so, the variable \Verb!n! is set accordingly; otherwise, \Verb!n! remains unchanged.
 
 \subsubsection*{Vectors and Matrices}
 

@@ -53,7 +53,7 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt 
     ierr = dvd_testconv_slepc(d, b);CHKERRQ(ierr);
   
     /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
-    ierr = dvd_calcpairs_qz(d, b, orth, PETSC_NULL, cX_proj,
+    ierr = dvd_calcpairs_qz(d, b, orth, NULL, cX_proj,
                 harmMode==DVD_HARM_NONE?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr);
     if (harmMode != DVD_HARM_NONE) {
       ierr = dvd_harm_conf(d, b, harmMode, PETSC_FALSE, 0.0);CHKERRQ(ierr);
@@ -116,7 +116,7 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd
     case DVD_METH_JD:
       ierr = dvd_improvex_jd(d, b, ksp, bs, cX_impr, dynamic);CHKERRQ(ierr);
       ierr = dvd_improvex_jd_proj_uv(d, b, DVD_PROJ_KZX);CHKERRQ(ierr);
-      ierr = KSPGetTolerances(ksp, &tol, PETSC_NULL, PETSC_NULL, &maxits);CHKERRQ(ierr);
+      ierr = KSPGetTolerances(ksp, &tol, NULL, NULL, &maxits);CHKERRQ(ierr);
       ierr = dvd_improvex_jd_lit_const(d, b, maxits, tol, fix);CHKERRQ(ierr);
       break;
     case DVD_METH_GD2:

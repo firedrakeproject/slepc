@@ -57,7 +57,7 @@ PetscErrorCode DSFinalizePackage(void)
   on the first call to DSCreate() when using static libraries.
 
   Input Parameter:
-  path - The dynamic library path, or PETSC_NULL
+  path - The dynamic library path, or NULL
 
   Level: developer
 
@@ -83,7 +83,7 @@ PetscErrorCode DSInitializePackage(const char *path)
   ierr = PetscLogEventRegister("DSVectors",DS_CLASSID,&DS_Vectors);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("DSOther",DS_CLASSID,&DS_Other);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"ds",&className);CHKERRQ(ierr);
     if (className) {
@@ -91,7 +91,7 @@ PetscErrorCode DSInitializePackage(const char *path)
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"ds",&className);CHKERRQ(ierr);
     if (className) {
@@ -146,18 +146,18 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   ds->k         = 0;
   ds->t         = 0;
   for (i=0;i<DS_NUM_MAT;i++) {
-    ds->mat[i]  = PETSC_NULL;
-    ds->rmat[i] = PETSC_NULL;
+    ds->mat[i]  = NULL;
+    ds->rmat[i] = NULL;
   }
-  ds->perm     = PETSC_NULL;
-  ds->work     = PETSC_NULL;
-  ds->rwork    = PETSC_NULL;
-  ds->iwork    = PETSC_NULL;
+  ds->perm     = NULL;
+  ds->work     = NULL;
+  ds->rwork    = NULL;
+  ds->iwork    = NULL;
   ds->lwork    = 0;
   ds->lrwork   = 0;
   ds->liwork   = 0;
-  ds->comp_fun = PETSC_NULL;
-  ds->comp_ctx = PETSC_NULL;
+  ds->comp_fun = NULL;
+  ds->comp_ctx = NULL;
   PetscFunctionReturn(0);
 }
 
@@ -709,7 +709,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (!DSRegisterAllCalled) { ierr = DSRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
+  if (!DSRegisterAllCalled) { ierr = DSRegisterAll(NULL);CHKERRQ(ierr); }
   /* Set default type (we do not allow changing it with -ds_type) */
   if (!((PetscObject)ds)->type_name) {
     ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);
@@ -867,8 +867,8 @@ PetscErrorCode DSReset(DS ds)
   ds->lwork    = 0;
   ds->lrwork   = 0;
   ds->liwork   = 0;
-  ds->comp_fun = PETSC_NULL;
-  ds->comp_ctx = PETSC_NULL;
+  ds->comp_fun = NULL;
+  ds->comp_ctx = NULL;
   PetscFunctionReturn(0);
 }
 

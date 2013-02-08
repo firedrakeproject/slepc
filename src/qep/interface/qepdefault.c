@@ -94,10 +94,10 @@ PetscErrorCode QEPComputeVectors_Schur(QEP qep)
   
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetDimensions(qep->ds,&n,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(qep->ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
 
   /* right eigenvectors */
-  ierr = DSVectors(qep->ds,DS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSVectors(qep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
 
   /* AV = V * Z */
   ierr = DSGetArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);

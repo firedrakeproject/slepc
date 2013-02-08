@@ -161,7 +161,7 @@ PetscErrorCode STSetUp_Fold(ST st)
     ierr = KSPSetOperators(st->ksp,st->A[1],st->A[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
-    ierr = MatGetVecs(st->A[1],&ctx->w2,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = MatGetVecs(st->A[1],&ctx->w2,NULL);CHKERRQ(ierr); 
   } 
   PetscFunctionReturn(0);
 }

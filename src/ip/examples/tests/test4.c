@@ -38,8 +38,8 @@ int main(int argc,char **argv)
   PetscBool      lindep;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-k",&k,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Pseudo-orthogonalization of %D random vectors of length %D.\n",k,n);CHKERRQ(ierr); 
 
   /* Create sip matrix (standard involutionary permutation) */
@@ -58,7 +58,7 @@ int main(int argc,char **argv)
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
   ierr = PetscRandomSetInterval(rctx,-1.0,1.0);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
-  ierr = MatGetVecs(B,PETSC_NULL,&t);CHKERRQ(ierr);
+  ierr = MatGetVecs(B,NULL,&t);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(t,k,&V);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
     ierr = VecSetRandom(V[i],rctx);CHKERRQ(ierr);
@@ -69,12 +69,12 @@ int main(int argc,char **argv)
   ierr = IPSetType(ip,IPINDEFINITE);CHKERRQ(ierr);
   ierr = IPSetMatrix(ip,B);CHKERRQ(ierr);
   ierr = IPSetFromOptions(ip);CHKERRQ(ierr);
-  ierr = IPView(ip,PETSC_NULL);CHKERRQ(ierr);
+  ierr = IPView(ip,NULL);CHKERRQ(ierr);
 
   /* Orthogonalize random vectors */
   ierr = PetscMalloc(sizeof(PetscReal)*k,&omega);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
-    ierr = IPPseudoOrthogonalize(ip,i,V,omega,V[i],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);
+    ierr = IPPseudoOrthogonalize(ip,i,V,omega,V[i],NULL,&norm,&lindep);CHKERRQ(ierr);
     if (norm==0.0 || lindep) SETERRQ(((PetscObject)ip)->comm,1,"Linearly dependent vector found");
     ierr = VecScale(V[i],1.0/norm);CHKERRQ(ierr);
     omega[i] = norm/PetscAbs(norm);

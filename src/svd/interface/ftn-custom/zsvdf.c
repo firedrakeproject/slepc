@@ -186,7 +186,7 @@ void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,Pe
     }
     *ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);
     if (*ierr) return;
-    ctx->viewer = PETSC_NULL;
+    ctx->viewer = NULL;
     *ierr = SVDMonitorSet(*svd,SVDMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)svdmonitorfirst_) {
     *ierr = SVDMonitorSet(*svd,SVDMonitorFirst,0,0);

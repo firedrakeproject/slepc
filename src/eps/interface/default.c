@@ -109,8 +109,8 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetDimensions(eps->ds,&n,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  ierr = DSVectors(eps->ds,DS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
   ierr = SlepcUpdateVectors(n,eps->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
   ierr = DSRestoreArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
@@ -134,7 +134,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
     } else
 #endif
     {
-      ierr = VecNormalize(eps->V[i],PETSC_NULL);CHKERRQ(ierr);
+      ierr = VecNormalize(eps->V[i],NULL);CHKERRQ(ierr);
     }
   }
   eps->evecsavailable = PETSC_TRUE;
@@ -173,10 +173,10 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     PetscFunctionReturn(0);
   }
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetDimensions(eps->ds,&n,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
 
   /* right eigenvectors */
-  ierr = DSVectors(eps->ds,DS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
 
   /* V = V * Z */
   ierr = DSGetArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
@@ -214,14 +214,14 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
       } else
 #endif
       {
-        ierr = VecNormalize(eps->V[i],PETSC_NULL);CHKERRQ(ierr);
+        ierr = VecNormalize(eps->V[i],NULL);CHKERRQ(ierr);
       }
     }
   }
    
   /* left eigenvectors */
   if (eps->leftvecs) {
-    ierr = DSVectors(eps->ds,DS_MAT_Y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSVectors(eps->ds,DS_MAT_Y,NULL,NULL);CHKERRQ(ierr);
     /* W = W * Z */
     ierr = DSGetArray(eps->ds,DS_MAT_Y,&Z);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(n,eps->W,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
@@ -425,7 +425,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
     if (j==0) {
       /* Estimate the matrix inf-norm */
       ierr = VecAbs(p);CHKERRQ(ierr);
-      ierr = VecMax(p,PETSC_NULL,&norma);CHKERRQ(ierr);
+      ierr = VecMax(p,NULL,&norma);CHKERRQ(ierr);
     }
     if (eps->balance == EPS_BALANCE_TWOSIDE) {
       /* Compute r=D\(A'Dz) */

@@ -63,9 +63,9 @@ int main(int argc,char **argv)
              Create eigensolver and test interface functions
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSGetOperators(eps,&B,PETSC_NULL);CHKERRQ(ierr);
-  ierr = MatView(B,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
+  ierr = EPSGetOperators(eps,&B,NULL);CHKERRQ(ierr);
+  ierr = MatView(B,NULL);CHKERRQ(ierr);
 
   ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
@@ -103,8 +103,8 @@ int main(int argc,char **argv)
   ierr = EPSGetDimensions(eps,&nev,&ncv,&mpd);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Dimensions: nev=%d, ncv=%d, mpd=%d\n",nev,ncv,mpd);CHKERRQ(ierr);
 
-  ierr = EPSSetTolerances(eps,PETSC_IGNORE,200);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,2.2e-4,PETSC_IGNORE);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,0,200);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,2.2e-4,0);CHKERRQ(ierr);
   ierr = EPSGetTolerances(eps,&tol,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance = %.5f, max_its = %d\n",(double)tol,its);CHKERRQ(ierr);
 
@@ -112,15 +112,15 @@ int main(int argc,char **argv)
   ierr = EPSGetConvergenceTest(eps,&conv);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Convergence test = %d\n",conv);CHKERRQ(ierr);
 
-  ierr = EPSMonitorSet(eps,EPSMonitorFirst,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSMonitorSet(eps,EPSMonitorFirst,NULL,NULL);CHKERRQ(ierr);
   ierr = EPSMonitorCancel(eps);CHKERRQ(ierr);
 
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STView(st,PETSC_NULL);CHKERRQ(ierr);
+  ierr = STView(st,NULL);CHKERRQ(ierr);
   ierr = EPSGetIP(eps,&ip);CHKERRQ(ierr);
-  ierr = IPView(ip,PETSC_NULL);CHKERRQ(ierr);
+  ierr = IPView(ip,NULL);CHKERRQ(ierr);
   ierr = EPSGetDS(eps,&ds);CHKERRQ(ierr);
-  ierr = DSView(ds,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSView(ds,NULL);CHKERRQ(ierr);
 
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
@@ -131,7 +131,7 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);

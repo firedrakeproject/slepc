@@ -64,7 +64,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
   if (!((PetscObject)mfn->ip)->type_name) {
     ierr = IPSetDefaultType_Private(mfn->ip);CHKERRQ(ierr);
   }
-  ierr = IPSetMatrix(mfn->ip,PETSC_NULL);CHKERRQ(ierr);
+  ierr = IPSetMatrix(mfn->ip,NULL);CHKERRQ(ierr);
   if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = DSReset(mfn->ds);CHKERRQ(ierr);
   if (!((PetscObject)mfn->rand)->type_name) {
@@ -73,10 +73,10 @@ PetscErrorCode MFNSetUp(MFN mfn)
   
   /* Set problem dimensions */
   if (!mfn->A) SETERRQ(((PetscObject)mfn)->comm,PETSC_ERR_ARG_WRONGSTATE,"MFNSetOperator must be called first"); 
-  ierr = MatGetSize(mfn->A,&mfn->n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(mfn->A,&mfn->nloc,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetSize(mfn->A,&mfn->n,NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(mfn->A,&mfn->nloc,NULL);CHKERRQ(ierr);
   ierr = VecDestroy(&mfn->t);CHKERRQ(ierr);
-  ierr = SlepcMatGetVecsTemplate(mfn->A,&mfn->t,PETSC_NULL);CHKERRQ(ierr);
+  ierr = SlepcMatGetVecsTemplate(mfn->A,&mfn->t,NULL);CHKERRQ(ierr);
 
   /* Set default function */
   if (!mfn->function) {

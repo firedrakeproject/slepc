@@ -147,7 +147,7 @@ PetscErrorCode SlepcMatGetVecsTemplate(Mat mat,Vec *right,Vec *left)
   v = right? *right: *left;
   ierr = PetscObjectTypeCompareAny((PetscObject)v,&flg,VECSEQ,VECMPI,"");CHKERRQ(ierr);
   if (!flg) PetscFunctionReturn(0);
-  ierr = PetscOptionsHasName(PETSC_NULL,"-slepc_non_contiguous",&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,"-slepc_non_contiguous",&flg);CHKERRQ(ierr);
   if (!flg) {
     if (right) { ierr = SlepcVecSetTemplate(*right);CHKERRQ(ierr); }
     if (left) { ierr = SlepcVecSetTemplate(*left);CHKERRQ(ierr); }

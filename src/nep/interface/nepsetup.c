@@ -78,9 +78,9 @@ PetscErrorCode NEPSetUp(NEP nep)
   }
 
   /* Set problem dimensions */
-  ierr = NEPGetFunction(nep,&T,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = VecDestroy(&nep->t);CHKERRQ(ierr);
-  ierr = MatGetVecs(T,&nep->t,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetVecs(T,&nep->t,NULL);CHKERRQ(ierr);
   ierr = VecGetSize(nep->t,&nep->n);CHKERRQ(ierr);
   ierr = VecGetLocalSize(nep->t,&nep->nloc);CHKERRQ(ierr);
 
@@ -96,27 +96,27 @@ PetscErrorCode NEPSetUp(NEP nep)
   switch (nep->which) {
     case NEP_LARGEST_MAGNITUDE:
       nep->which_func = SlepcCompareLargestMagnitude;
-      nep->which_ctx  = PETSC_NULL;
+      nep->which_ctx  = NULL;
       break;
     case NEP_SMALLEST_MAGNITUDE:
       nep->which_func = SlepcCompareSmallestMagnitude;
-      nep->which_ctx  = PETSC_NULL;
+      nep->which_ctx  = NULL;
       break;
     case NEP_LARGEST_REAL:
       nep->which_func = SlepcCompareLargestReal;
-      nep->which_ctx  = PETSC_NULL;
+      nep->which_ctx  = NULL;
       break;
     case NEP_SMALLEST_REAL:
       nep->which_func = SlepcCompareSmallestReal;
-      nep->which_ctx  = PETSC_NULL;
+      nep->which_ctx  = NULL;
       break;
     case NEP_LARGEST_IMAGINARY:
       nep->which_func = SlepcCompareLargestImaginary;
-      nep->which_ctx  = PETSC_NULL;
+      nep->which_ctx  = NULL;
       break;
     case NEP_SMALLEST_IMAGINARY:
       nep->which_func = SlepcCompareSmallestImaginary;
-      nep->which_ctx  = PETSC_NULL;
+      nep->which_ctx  = NULL;
       break;
     case NEP_TARGET_MAGNITUDE:
       nep->which_func = SlepcCompareTargetMagnitude;
@@ -146,7 +146,7 @@ PetscErrorCode NEPSetUp(NEP nep)
     for (i=0;i<nep->nini;i++) {
       ierr = VecCopy(nep->IS[i],nep->V[k]);CHKERRQ(ierr);
       ierr = VecDestroy(&nep->IS[i]);CHKERRQ(ierr);
-      ierr = IPOrthogonalize(nep->ip,0,PETSC_NULL,k,PETSC_NULL,nep->V,nep->V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
+      ierr = IPOrthogonalize(nep->ip,0,NULL,k,NULL,nep->V,nep->V[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
       if (norm==0.0 || lindep) { ierr = PetscInfo(nep,"Linearly dependent initial vector found, removing...\n");CHKERRQ(ierr); }
       else {
         ierr = VecScale(nep->V[k],1.0/norm);CHKERRQ(ierr);

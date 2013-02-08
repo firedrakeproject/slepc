@@ -48,7 +48,7 @@ int main (int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-m",&m,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-m",&m,NULL);CHKERRQ(ierr);
   N = m*(m+1)/2;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%D (m=%D)\n\n",N,m);CHKERRQ(ierr);
 
@@ -75,7 +75,7 @@ int main (int argc,char **argv)
      Set operators. In this case, it is a standard eigenvalue problem.
      Request also left eigenvectors 
   */
-  ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
   ierr = EPSSetLeftVectorsWanted(eps,PETSC_TRUE);CHKERRQ(ierr);
 
@@ -107,7 +107,7 @@ int main (int argc,char **argv)
   */
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
   ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
@@ -160,14 +160,14 @@ int main (int argc,char **argv)
     ierr = VecDuplicateVecs(v0,nconv,&X);
     ierr = VecDuplicateVecs(w0,nconv,&Y);
     for (i=0;i<nconv;i++) {
-      ierr = EPSGetEigenvector(eps,i,X[i],PETSC_NULL);CHKERRQ(ierr);
-      ierr = EPSGetEigenvectorLeft(eps,i,Y[i],PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSGetEigenvector(eps,i,X[i],NULL);CHKERRQ(ierr);
+      ierr = EPSGetEigenvectorLeft(eps,i,Y[i],NULL);CHKERRQ(ierr);
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,
          "                   Bi-orthogonality <x,y>                   \n"
          "   ---------------------------------------------------------\n");CHKERRQ(ierr);
 
-    ierr = SlepcCheckOrthogonality(X,nconv,Y,nconv,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SlepcCheckOrthogonality(X,nconv,Y,nconv,NULL,NULL);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
     ierr = VecDestroyVecs(nconv,&X);CHKERRQ(ierr);
     ierr = VecDestroyVecs(nconv,&Y);CHKERRQ(ierr);

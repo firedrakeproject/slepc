@@ -58,7 +58,7 @@ PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscR
     ierr = VecsMultIa(H+j,0,1,&v,0,1,&Bv,0,1);CHKERRQ(ierr);
     j++;
   }
-  ierr = VecsMultIb(H,0,j,j,1,PETSC_NULL,v);CHKERRQ(ierr);
+  ierr = VecsMultIb(H,0,j,j,1,NULL,v);CHKERRQ(ierr);
   if (onorm || norm) alpha = H[j-1]; 
 
   /* h = J * h */
@@ -136,7 +136,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
   switch (ip->orthog_ref) {
   
   case IP_ORTHOG_REFINE_NEVER:
-    ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,NULL,NULL);CHKERRQ(ierr);
     /* compute |v| */
     if (norm) {
       ierr = VecDot(Bv,v,&alpha);CHKERRQ(ierr);
@@ -147,14 +147,14 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
     break;
     
   case IP_ORTHOG_REFINE_ALWAYS:
-    ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,NULL,NULL);CHKERRQ(ierr);
     if (lindep) {
       ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,&onrm,&nrm);CHKERRQ(ierr);
       if (norm) *norm = nrm;
       if (PetscAbs(nrm) < ip->orthog_eta * PetscAbs(onrm)) *lindep = PETSC_TRUE;
       else *lindep = PETSC_FALSE;
     } else {
-      ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,PETSC_NULL,norm);CHKERRQ(ierr);
+      ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,NULL,norm);CHKERRQ(ierr);
     }
     for (j=0;j<n;j++) 
       if (!which || which[j]) h[nds+j] += c[nds+j];
@@ -170,7 +170,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
         ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,&onrm,&nrm);CHKERRQ(ierr); 
       } else {
         onrm = nrm;
-        ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,PETSC_NULL,&nrm);CHKERRQ(ierr); 
+        ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,NULL,&nrm);CHKERRQ(ierr); 
       }
       for (j=0;j<n;j++) 
         if (!which || which[j]) h[nds+j] += c[nds+j];
@@ -224,7 +224,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
 
    Output Parameter:
 +  H      - coefficients computed during orthogonalization with V, of size nds+n
-            if norm == PETSC_NULL, and nds+n+1 otherwise.
+            if norm == NULL, and nds+n+1 otherwise.
 .  norm   - norm of the vector after being orthogonalized
 -  lindep - flag indicating that refinement did not improve the quality
             of orthogonalization

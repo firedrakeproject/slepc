@@ -32,10 +32,10 @@
 
    Input Parameters:
 +  ip    - the inner product context
--  mat   - the matrix (may be PETSC_NULL)
+-  mat   - the matrix (may be NULL)
 
    Notes:
-   A PETSC_NULL has the same effect as if the identity matrix was passed.
+   A NULL has the same effect as if the identity matrix was passed.
 
    This function is called by EPSSetProblemType() and usually need not be
    called by the user.
@@ -57,7 +57,7 @@ PetscErrorCode IPSetMatrix(IP ip,Mat mat)
   ierr = IPReset(ip);CHKERRQ(ierr);
   ip->matrix = mat;
   if (mat) {
-    ierr = MatGetVecs(mat,&ip->Bx,PETSC_NULL);CHKERRQ(ierr);
+    ierr = MatGetVecs(mat,&ip->Bx,NULL);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -73,7 +73,7 @@ PetscErrorCode IPSetMatrix(IP ip,Mat mat)
 .  ip    - the inner product context
 
    Output Parameter:
-.  mat   - the matrix of the inner product (may be PETSC_NULL)
+.  mat   - the matrix of the inner product (may be NULL)
 
    Level: developer
 

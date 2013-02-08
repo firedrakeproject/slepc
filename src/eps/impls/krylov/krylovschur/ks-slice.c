@@ -102,7 +102,7 @@ static PetscErrorCode EPSExtractShift(EPS eps)
     ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
-    ierr = MatGetInertia(F,&iner,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = MatGetInertia(F,&iner,NULL,NULL);CHKERRQ(ierr);
     sr->sPres->inertia = iner;
     eps->target = sr->sPres->value;
     eps->reason = EPS_CONVERGED_ITERATING;
@@ -130,12 +130,12 @@ static PetscErrorCode EPSExtractShift(EPS eps)
       }
       sr->nS = k;
       ierr = DSRestoreArray(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-      ierr = DSSetDimensions(eps->ds,PETSC_IGNORE,PETSC_IGNORE,0,k);CHKERRQ(ierr);
+      ierr = DSSetDimensions(eps->ds,0,0,0,k);CHKERRQ(ierr);
       /* Normalize u and append it to V */      
       ierr = VecAXPBY(eps->V[sr->nS],1.0/sr->beta,0.0,eps->work[0]);CHKERRQ(ierr);
     }
     eps->nconv = 0;
-  } else sr->sPres = PETSC_NULL;
+  } else sr->sPres = NULL;
   PetscFunctionReturn(0);
 }
 
@@ -190,12 +190,12 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     /* Rational Krylov */
     ierr = DSTranslateRKS(eps->ds,sr->sPrev->value-sPres->value);CHKERRQ(ierr);
     ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = DSGetDimensions(eps->ds,PETSC_NULL,PETSC_NULL,PETSC_NULL,&l);CHKERRQ(ierr);
+    ierr = DSGetDimensions(eps->ds,NULL,NULL,NULL,&l);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(l+1,eps->V,0,l+1,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   } else {
     /* Get the starting Lanczos vector */
-    ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSGetStartVector(eps,0,eps->V[0],NULL);CHKERRQ(ierr);
     l = 0;
   }
   /* Restart loop */
@@ -208,7 +208,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     ierr = EPSFullLanczos(eps,a,b,eps->V,eps->nconv+l,&nv,u,&breakdown);CHKERRQ(ierr);
     beta = b[nv-1];
     ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-    ierr = DSSetDimensions(eps->ds,nv,PETSC_IGNORE,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
@@ -230,12 +230,12 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
       }
       ierr = DSRestoreArray(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
       ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-      ierr = DSSolve(eps->ds,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
-      ierr = DSSort(eps->ds,eps->eigr,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
+      ierr = DSSort(eps->ds,eps->eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);
     } else { /* Restart */
-      ierr = DSSolve(eps->ds,eps->eigr,PETSC_NULL);CHKERRQ(ierr);
-      ierr = DSSort(eps->ds,eps->eigr,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
+      ierr = DSSort(eps->ds,eps->eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     }
     /* Residual */
     ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,1.0,&k);CHKERRQ(ierr);
@@ -616,7 +616,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   sr->nleap = 0;
   sr->nMAXCompl = eps->nev/4;
   sr->iterCompl = eps->max_it/4;
-  sr->sPres = PETSC_NULL;
+  sr->sPres = NULL;
   sr->nS = 0;
   lds = PetscMin(eps->mpd,eps->ncv);
   /* Checking presence of ends and finding direction */
@@ -643,11 +643,11 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     /* Not looking for values in b (just inertia).*/
-    ierr = MatGetInertia(F,&sr->inertia1,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = MatGetInertia(F,&sr->inertia1,NULL,NULL);CHKERRQ(ierr);
     ierr = PCReset(pc);CHKERRQ(ierr); /* avoiding memory leak */
   }
   sr->nPend = 0;
-  ierr = EPSCreateShift(eps,sr->int0,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSCreateShift(eps,sr->int0,NULL,NULL);CHKERRQ(ierr);
   ierr = EPSExtractShift(eps);
   sr->s0 = sr->sPres;
   sr->inertia0 = sr->s0->inertia;
@@ -730,7 +730,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   eps->reason = EPS_CONVERGED_TOL;
   eps->its = sr->itsKs;
   eps->nds = 0;
-  eps->defl = PETSC_NULL;
+  eps->defl = NULL;
   eps->evecsavailable = PETSC_TRUE; 
   ierr = PetscFree(sr->VDef);CHKERRQ(ierr);
   ierr = PetscFree(sr->idxDef);CHKERRQ(ierr);

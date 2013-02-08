@@ -37,11 +37,11 @@ int main(int argc,char **argv)
   PetscReal      nrm;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-k",&k,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-s",&s,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-e",&e,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(PETSC_NULL,"-qtrans",&qtrans);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-k",&k,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-s",&s,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-e",&e,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,"-qtrans",&qtrans);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"V(:,%D:%D) = V*",s,e-1);CHKERRQ(ierr); 
   if (qtrans) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Q(%D:%D,:)'",s,e-1);CHKERRQ(ierr);
@@ -55,7 +55,7 @@ int main(int argc,char **argv)
   ierr = VecSetSizes(t,n,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = VecSetFromOptions(t);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscScalar)*k*k,&Q);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(PETSC_NULL,"-contiguous",&cont);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,"-contiguous",&cont);CHKERRQ(ierr);
 
   /* with/without contiguous storage */
   if (cont) {
@@ -75,7 +75,7 @@ int main(int argc,char **argv)
   }
 
   /* save a copy into Mat objects */
-  ierr = MatCreateSeqDense(PETSC_COMM_WORLD,n,k,PETSC_NULL,&A);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_WORLD,n,k,NULL,&A);CHKERRQ(ierr);
   ierr = MatDenseGetArray(A,&pa);CHKERRQ(ierr);
   for (i=0;i<k;i++) { 
     ierr = VecGetArray(V[i],&pv);CHKERRQ(ierr);
@@ -86,7 +86,7 @@ int main(int argc,char **argv)
   }
   ierr = MatDenseRestoreArray(A,&pa);CHKERRQ(ierr);
   if (qtrans) {
-    ierr = MatCreateSeqDense(PETSC_COMM_WORLD,k,e-s,PETSC_NULL,&B);CHKERRQ(ierr);
+    ierr = MatCreateSeqDense(PETSC_COMM_WORLD,k,e-s,NULL,&B);CHKERRQ(ierr);
     ierr = MatDenseGetArray(B,&pa);CHKERRQ(ierr);
     for (i=s;i<e;i++) { 
       for (j=0;j<k;j++) { 
@@ -103,7 +103,7 @@ int main(int argc,char **argv)
 
   /* check result */
   ierr = MatMatMult(A,B,MAT_INITIAL_MATRIX,1.0,&C);CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_WORLD,n,e-s,PETSC_NULL,&M);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_WORLD,n,e-s,NULL,&M);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&pa);CHKERRQ(ierr);
   for (i=0;i<e-s;i++) { 
     ierr = VecGetArray(V[i+s],&pv);CHKERRQ(ierr);

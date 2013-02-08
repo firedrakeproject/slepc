@@ -12,7 +12,7 @@
 #include "blopex_interpreter.h"
 #include "blopex_temp_multivector.h"
 
-static PetscRandom LOBPCG_RandomContext = PETSC_NULL;
+static PetscRandom LOBPCG_RandomContext = NULL;
 
 typedef struct {
   double real,imag;

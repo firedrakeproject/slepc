@@ -71,8 +71,8 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
 
   ierr = PetscMalloc(sizeof(EPS_DAVIDSON),&data);CHKERRQ(ierr);
   eps->data = data;
-  data->wS = PETSC_NULL;
-  data->wV = PETSC_NULL;
+  data->wS = NULL;
+  data->wV = NULL;
   data->size_wV = 0;
   ierr = PetscMemzero(&data->ddb,sizeof(dvdDashboard));CHKERRQ(ierr);
 
@@ -155,7 +155,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
   ierr = EPSReset_Davidson(eps);CHKERRQ(ierr);
   ierr = PetscMemzero(dvd,sizeof(dvdDashboard));CHKERRQ(ierr);
-  dvd->A = A; dvd->B = eps->isgeneralized? B : PETSC_NULL;
+  dvd->A = A; dvd->B = eps->isgeneralized? B : NULL;
   ispositive = eps->ispositive;
   dvd->sA = DVD_MAT_IMPLICIT |
             (eps->ishermitian? DVD_MAT_HERMITIAN : 0) |
@@ -249,7 +249,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   if (ipB && dvd->B) {
     ierr = IPSetMatrix(eps->ip,dvd->B);CHKERRQ(ierr);
   } else {
-    ierr = IPSetMatrix(eps->ip,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPSetMatrix(eps->ip,NULL);CHKERRQ(ierr);
   }
 
   /* Get the fix parameter */
@@ -259,8 +259,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   ierr = EPSDavidsonGetConstantCorrectionTolerance_Davidson(eps,&dynamic);CHKERRQ(ierr);
 
   /* Orthonormalize the deflation space */
-  ierr = dvd_orthV(eps->ip,PETSC_NULL,0,PETSC_NULL,0,eps->defl,0,
-                   PetscAbs(eps->nds),PETSC_NULL,eps->rand);CHKERRQ(ierr);
+  ierr = dvd_orthV(eps->ip,NULL,0,NULL,0,eps->defl,0,PetscAbs(eps->nds),NULL,eps->rand);CHKERRQ(ierr);
 
   /* Preconfigure dvd */
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
@@ -285,7 +284,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   dvd->size_auxV = b.max_size_auxV;
   dvd->size_auxS = b.max_size_auxS;
 
-  eps->errest_left = PETSC_NULL;
+  eps->errest_left = NULL;
   ierr = PetscMalloc(eps->ncv*sizeof(PetscInt),&eps->perm);CHKERRQ(ierr);
   for (i=0;i<eps->ncv;i++) eps->perm[i] = i;
 
@@ -650,7 +649,7 @@ PetscErrorCode EPSComputeVectors_Davidson(EPS eps)
   PetscFunctionBegin;
   if (d->cS) {
     /* Compute the eigenvectors associated to (cS, cT) */
-    ierr = DSSetDimensions(d->conv_ps,d->size_cS,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(d->conv_ps,d->size_cS,0,0,0);CHKERRQ(ierr);
     ierr = DSGetLeadingDimension(d->conv_ps,&ld);CHKERRQ(ierr);
     ierr = DSGetArray(d->conv_ps,DS_MAT_A,&cS);CHKERRQ(ierr);
     ierr = SlepcDenseCopyTriang(cS,0,ld,d->cS,0,d->ldcS,d->size_cS,d->size_cS);CHKERRQ(ierr);
@@ -662,7 +661,7 @@ PetscErrorCode EPSComputeVectors_Davidson(EPS eps)
     }
     ierr = DSSetState(d->conv_ps,DS_STATE_RAW);CHKERRQ(ierr);
     ierr = DSSolve(d->conv_ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = DSVectors(d->conv_ps,DS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSVectors(d->conv_ps,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
     ierr = DSNormalize(d->conv_ps,DS_MAT_X,-1);CHKERRQ(ierr);
 
     /* V <- cX * pX */ 

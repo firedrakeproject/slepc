@@ -43,7 +43,7 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
   PetscInt       N;
 
   PetscFunctionBegin;
-  ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
+  ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
   if (svd->ncv) { /* ncv set */
     if (svd->ncv<svd->nsv) SETERRQ(((PetscObject)svd)->comm,1,"The value of ncv must be at least nsv"); 
   } else if (svd->mpd) { /* mpd set */
@@ -77,19 +77,19 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V
   
   PetscFunctionBegin;
   ierr = SVDMatMult(svd,PETSC_FALSE,V[k],U[k]);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(svd->ip,0,PETSC_NULL,k,PETSC_NULL,U,U[k],work,alpha+k,PETSC_NULL);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(svd->ip,0,NULL,k,NULL,U,U[k],work,alpha+k,NULL);CHKERRQ(ierr);
   ierr = VecScale(U[k],1.0/alpha[k]);CHKERRQ(ierr);
   for (i=k+1;i<n;i++) {
     ierr = SVDMatMult(svd,PETSC_TRUE,U[i-1],V[i]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(svd->ip,0,PETSC_NULL,i,PETSC_NULL,V,V[i],work,beta+i-1,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(svd->ip,0,NULL,i,NULL,V,V[i],work,beta+i-1,NULL);CHKERRQ(ierr);
     ierr = VecScale(V[i],1.0/beta[i-1]);CHKERRQ(ierr);
 
     ierr = SVDMatMult(svd,PETSC_FALSE,V[i],U[i]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(svd->ip,0,PETSC_NULL,i,PETSC_NULL,U,U[i],work,alpha+i,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(svd->ip,0,NULL,i,NULL,U,U[i],work,alpha+i,NULL);CHKERRQ(ierr);
     ierr = VecScale(U[i],1.0/alpha[i]);CHKERRQ(ierr);
   }
   ierr = SVDMatMult(svd,PETSC_TRUE,U[n-1],v);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(svd->ip,0,PETSC_NULL,n,PETSC_NULL,V,v,work,beta+n-1,PETSC_NULL);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(svd->ip,0,NULL,n,NULL,V,v,work,beta+n-1,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -114,7 +114,7 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
     ierr = VecScale(u,1.0/a);CHKERRQ(ierr);
     ierr = SlepcVecMAXPBY(V[i],1.0/a,-1.0/a,i,work,V);CHKERRQ(ierr);
 
-    ierr = IPOrthogonalizeCGS1(svd->ip,0,PETSC_NULL,i,PETSC_NULL,V,V[i],work,PETSC_NULL,&b);CHKERRQ(ierr);
+    ierr = IPOrthogonalizeCGS1(svd->ip,0,NULL,i,NULL,V,V[i],work,NULL,&b);CHKERRQ(ierr);
     ierr = VecScale(V[i],1.0/b);CHKERRQ(ierr);
   
     ierr = SVDMatMult(svd,PETSC_FALSE,V[i],u_1);CHKERRQ(ierr);
@@ -135,7 +135,7 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
   ierr = VecScale(u,1.0/a);CHKERRQ(ierr);
   ierr = SlepcVecMAXPBY(v,1.0/a,-1.0/a,n,work,V);CHKERRQ(ierr);
 
-  ierr = IPOrthogonalizeCGS1(svd->ip,0,PETSC_NULL,n,PETSC_NULL,V,v,work,PETSC_NULL,&b);CHKERRQ(ierr);
+  ierr = IPOrthogonalizeCGS1(svd->ip,0,NULL,n,NULL,V,v,work,NULL,&b);CHKERRQ(ierr);
   
   alpha[n-1] = a;
   beta[n-1] = b;
@@ -162,15 +162,15 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
 
   ierr = VecDuplicate(svd->V[0],&v);CHKERRQ(ierr);
   if (lanczos->oneside) {
-    ierr = SVDMatGetVecs(svd,PETSC_NULL,&u);CHKERRQ(ierr);
-    ierr = SVDMatGetVecs(svd,PETSC_NULL,&u_1);CHKERRQ(ierr);
+    ierr = SVDMatGetVecs(svd,NULL,&u);CHKERRQ(ierr);
+    ierr = SVDMatGetVecs(svd,NULL,&u_1);CHKERRQ(ierr);
   }
   
   /* normalize start vector */
   if (!svd->nini) {
     ierr = SlepcVecSetRandom(svd->V[0],svd->rand);CHKERRQ(ierr);
   }
-  ierr = VecNormalize(svd->V[0],PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecNormalize(svd->V[0],NULL);CHKERRQ(ierr);
   
   while (svd->reason == SVD_CONVERGED_ITERATING) {
     svd->its++;
@@ -190,8 +190,8 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     /* compute SVD of bidiagonal matrix */
     ierr = DSSetDimensions(svd->ds,nv,nv,svd->nconv,0);CHKERRQ(ierr);
     ierr = DSSetState(svd->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-    ierr = DSSolve(svd->ds,w,PETSC_NULL);CHKERRQ(ierr);
-    ierr = DSSort(svd->ds,w,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
+    ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
 
     /* compute error estimates */
     k = 0;
@@ -376,8 +376,8 @@ PetscErrorCode SVDDestroy_Lanczos(SVD svd)
 
   PetscFunctionBegin;
   ierr = PetscFree(svd->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosSetOneSide_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosGetOneSide_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosSetOneSide_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDLanczosGetOneSide_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

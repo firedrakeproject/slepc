@@ -123,7 +123,7 @@ PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
 
   PetscFunctionBegin;
   for (i=0;i<ds->n;i++) {
-    ierr = DSVectors_NHEP_Refined_Some(ds,&i,PETSC_NULL,left);CHKERRQ(ierr);
+    ierr = DSVectors_NHEP_Refined_Some(ds,&i,NULL,left);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -219,12 +219,12 @@ PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   if (left) {
-    X = PETSC_NULL;
+    X = NULL;
     Y = ds->mat[DS_MAT_Y];
     side = "L";
   } else {
     X = ds->mat[DS_MAT_X];
-    Y = PETSC_NULL;
+    Y = NULL;
     side = "R";
   }
   if (ds->state>=DS_STATE_CONDENSED) {
@@ -234,10 +234,10 @@ PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
   } else back = "A";
 #if !defined(PETSC_USE_COMPLEX)
   ierr = DSAllocateWork_Private(ds,3*ld,0,0);CHKERRQ(ierr); 
-  PetscStackCall("LAPACKtrevc",LAPACKtrevc_(side,back,PETSC_NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,&info));
+  PetscStackCall("LAPACKtrevc",LAPACKtrevc_(side,back,NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,&info));
 #else
   ierr = DSAllocateWork_Private(ds,2*ld,ld,0);CHKERRQ(ierr); 
-  PetscStackCall("LAPACKtrevc",LAPACKtrevc_(side,back,PETSC_NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,ds->rwork,&info));
+  PetscStackCall("LAPACKtrevc",LAPACKtrevc_(side,back,NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,ds->rwork,&info));
 #endif
   if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   PetscFunctionReturn(0);
@@ -383,9 +383,9 @@ PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Petsc
   ierr = PetscMemzero(selection,n*sizeof(PetscBLASInt));CHKERRQ(ierr);
   for (i=0;i<*k;i++) selection[ds->perm[i]] = 1;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCall("LAPACKtrsen",LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,wi,&mout,PETSC_NULL,PETSC_NULL,work,&lwork,iwork,&liwork,&info));
+  PetscStackCall("LAPACKtrsen",LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,wi,&mout,NULL,NULL,work,&lwork,iwork,&liwork,&info));
 #else
-  PetscStackCall("LAPACKtrsen",LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,&mout,PETSC_NULL,PETSC_NULL,work,&lwork,&info));
+  PetscStackCall("LAPACKtrsen",LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,&mout,NULL,NULL,work,&lwork,&info));
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTRSEN %d",info);
   *k = mout;

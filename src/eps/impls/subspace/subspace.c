@@ -212,7 +212,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   k = eps->nini;
   while (k<ncv) {
     ierr = SlepcVecSetRandom(eps->V[k],eps->rand);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,k,PETSC_NULL,eps->V,eps->V[k],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr); 
+    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,k,NULL,eps->V,eps->V[k],NULL,&norm,&breakdown);CHKERRQ(ierr); 
     if (norm>0.0 && !breakdown) {
       ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
       k++;
@@ -222,7 +222,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   while (eps->its<eps->max_it) {
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
-    ierr = DSSetDimensions(eps->ds,nv,PETSC_IGNORE,eps->nconv,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,0);CHKERRQ(ierr);
     
     /* Find group in previously computed eigenvalues */
     ierr = EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
@@ -242,7 +242,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
     /* Solve projected problem */
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = DSSort(eps->ds,eps->eigr,eps->eigi,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
     
     /* Update vectors V(:,idx) = V * U(:,idx) */
     ierr = DSGetArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
@@ -316,10 +316,10 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
       }
       /* Orthonormalize vectors */
       for (i=eps->nconv;i<nv;i++) {
-        ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i,PETSC_NULL,eps->V,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i,NULL,eps->V,eps->V[i],NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (breakdown) {
           ierr = SlepcVecSetRandom(eps->V[i],eps->rand);CHKERRQ(ierr);
-          ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i,PETSC_NULL,eps->V,eps->V[i],PETSC_NULL,&norm,&breakdown);CHKERRQ(ierr);
+          ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i,NULL,eps->V,eps->V[i],NULL,&norm,&breakdown);CHKERRQ(ierr);
         }
         ierr = VecScale(eps->V[i],1/norm);CHKERRQ(ierr);
       }
@@ -335,7 +335,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   else eps->reason = EPS_DIVERGED_ITS;
   /* truncate Schur decomposition and change the state to raw so that
      PSVectors() computes eigenvectors from scratch */
-  ierr = DSSetDimensions(eps->ds,eps->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

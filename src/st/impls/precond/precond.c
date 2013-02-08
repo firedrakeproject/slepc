@@ -119,13 +119,13 @@ PetscErrorCode STSetUp_Precond(ST st)
 
     /* If some matrix has to be set to ksp, a shell matrix is created */
     if (setmat) {
-      ierr = STMatShellCreate(st,-st->sigma,0,PETSC_NULL,&P);CHKERRQ(ierr);
+      ierr = STMatShellCreate(st,-st->sigma,0,NULL,&P);CHKERRQ(ierr);
       ierr = STMatSetHermitian(st,P);CHKERRQ(ierr);
       destroyP = PETSC_TRUE;
     }
   }
 
-  ierr = KSPSetOperators(st->ksp,setmat?P:PETSC_NULL,P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = KSPSetOperators(st->ksp,setmat?P:NULL,P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
 
   if (destroyP) {
     ierr = MatDestroy(&P);CHKERRQ(ierr);
@@ -169,10 +169,10 @@ PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
   PetscFunctionBegin;
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
-  ierr = PCGetOperatorsSet(pc,PETSC_NULL,&flag);CHKERRQ(ierr);
+  ierr = PCGetOperatorsSet(pc,NULL,&flag);CHKERRQ(ierr);
   if (flag) {
-    ierr = PCGetOperators(pc,PETSC_NULL,mat,PETSC_NULL);CHKERRQ(ierr);
-  } else *mat = PETSC_NULL;
+    ierr = PCGetOperators(pc,NULL,mat,NULL);CHKERRQ(ierr);
+  } else *mat = NULL;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -189,7 +189,7 @@ EXTERN_C_END
 
    Output Parameter:
 .  mat - the matrix that will be used in constructing the preconditioner or
-   PETSC_NULL if no matrix was set by STPrecondSetMatForPC().
+   NULL if no matrix was set by STPrecondSetMatForPC().
 
    Level: advanced
 
@@ -221,11 +221,11 @@ PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   /* Yes, all these lines are needed to safely set mat as the preconditioner
      matrix in pc */
-  ierr = PCGetOperatorsSet(pc,&flag,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PCGetOperatorsSet(pc,&flag,NULL);CHKERRQ(ierr);
   if (flag) {
-    ierr = PCGetOperators(pc,&A,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PCGetOperators(pc,&A,NULL,NULL);CHKERRQ(ierr);
     ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
-  } else A = PETSC_NULL;
+  } else A = NULL;
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
   ierr = PCSetOperators(pc,A,mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
@@ -251,7 +251,7 @@ EXTERN_C_END
    Notes:
    This matrix will be passed to the KSP object (via KSPSetOperators) as
    the matrix to be used when constructing the preconditioner.
-   If no matrix is set or mat is set to PETSC_NULL, A - sigma*B will
+   If no matrix is set or mat is set to NULL, A - sigma*B will
    be used to build the preconditioner, being sigma the value set by STSetShift().
 
 .seealso: STPrecondSetMatForPC(), STSetShift()
@@ -365,10 +365,10 @@ PetscErrorCode STDestroy_Precond(ST st)
 
   PetscFunctionBegin;
   ierr = PetscFree(st->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForPC_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForPC_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetKSPHasMat_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetKSPHasMat_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetMatForPC_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetMatForPC_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondGetKSPHasMat_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STPrecondSetKSPHasMat_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

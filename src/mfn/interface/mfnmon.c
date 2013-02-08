@@ -50,11 +50,10 @@ PetscErrorCode MFNMonitor(MFN mfn,PetscInt it,PetscReal errest)
 
    Input Parameters:
 +  mfn     - matrix function context obtained from MFNCreate()
-.  monitor - pointer to function (if this is PETSC_NULL, it turns off monitoring)
+.  monitor - pointer to function (if this is NULL, it turns off monitoring)
 .  mctx    - [optional] context for private data for the
-             monitor routine (use PETSC_NULL if no context is desired)
--  monitordestroy - [optional] routine that frees monitor context
-          (may be PETSC_NULL)
+             monitor routine (use NULL if no context is desired)
+-  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
    Calling Sequence of monitor:
 $     monitor (MFN mfn, int its, PetscReal errest, void *mctx)
@@ -164,7 +163,7 @@ PetscErrorCode MFNGetMonitorContext(MFN mfn,void **ctx)
 +  mfn    - matrix function context
 .  its    - iteration number
 .  errest - error estimate
--  monctx - monitor context (contains viewer, can be PETSC_NULL)
+-  monctx - monitor context (contains viewer, can be NULL)
 
    Level: intermediate
 

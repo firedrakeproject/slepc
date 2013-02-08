@@ -56,7 +56,7 @@ PetscErrorCode SVDFinalizePackage(void)
    when using static libraries.
 
    Input Parameter:
-.  path - The dynamic library path, or PETSC_NULL
+.  path - The dynamic library path, or NULL
 
    Level: developer
 
@@ -80,7 +80,7 @@ PetscErrorCode SVDInitializePackage(const char *path)
   ierr = PetscLogEventRegister("SVDSetUp",SVD_CLASSID,&SVD_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("SVDSolve",SVD_CLASSID,&SVD_Solve);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"svd",&className);CHKERRQ(ierr);
     if (className) {
@@ -88,7 +88,7 @@ PetscErrorCode SVDInitializePackage(const char *path)
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"svd",&className);CHKERRQ(ierr);
     if (className) {
@@ -225,7 +225,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
-  ierr = PetscOptionsHasName(PETSC_NULL,"-svd_terse",&terse);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,"-svd_terse",&terse);CHKERRQ(ierr);
   if (terse) {
     if (svd->nconv<svd->nsv) {
       ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D singular values converged\n\n",svd->nsv);CHKERRQ(ierr);
@@ -240,7 +240,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
         for (i=0;i<=(svd->nsv-1)/8;i++) {
           ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
           for (j=0;j<PetscMin(8,svd->nsv-8*i);j++) {
-            ierr = SVDGetSingularTriplet(svd,8*i+j,&sigma,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+            ierr = SVDGetSingularTriplet(svd,8*i+j,&sigma,NULL,NULL);CHKERRQ(ierr);
             ierr = PetscViewerASCIIPrintf(viewer,"%.5F",sigma);CHKERRQ(ierr); 
             if (8*i+j+1<svd->nsv) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
           }
@@ -257,7 +257,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
            "          sigma            relative error\n"
            "   --------------------- ------------------\n");CHKERRQ(ierr);
       for (i=0;i<svd->nconv;i++) {
-        ierr = SVDGetSingularTriplet(svd,i,&sigma,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,NULL);CHKERRQ(ierr);
         ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"       % 6F          %12G\n",sigma,error);CHKERRQ(ierr); 
       }
@@ -297,20 +297,20 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   *outsvd = 0;
   ierr = SlepcHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_CLASSID,-1,"SVD","Singular Value Decomposition","SVD",comm,SVDDestroy,SVDView);CHKERRQ(ierr);
 
-  svd->OP             = PETSC_NULL;
-  svd->ip             = PETSC_NULL;
-  svd->ds             = PETSC_NULL;
-  svd->A              = PETSC_NULL;
-  svd->AT             = PETSC_NULL;
+  svd->OP             = NULL;
+  svd->ip             = NULL;
+  svd->ds             = NULL;
+  svd->A              = NULL;
+  svd->AT             = NULL;
   svd->transmode      = (SVDTransposeMode)PETSC_DECIDE;
-  svd->sigma          = PETSC_NULL;
-  svd->perm           = PETSC_NULL;
-  svd->U              = PETSC_NULL;
-  svd->V              = PETSC_NULL;
-  svd->IS             = PETSC_NULL;
-  svd->tl             = PETSC_NULL;
-  svd->tr             = PETSC_NULL;
-  svd->rand           = PETSC_NULL;
+  svd->sigma          = NULL;
+  svd->perm           = NULL;
+  svd->U              = NULL;
+  svd->V              = NULL;
+  svd->IS             = NULL;
+  svd->tl             = NULL;
+  svd->tr             = NULL;
+  svd->rand           = NULL;
   svd->which          = SVD_LARGEST;
   svd->n              = 0;
   svd->nconv          = 0;
@@ -321,8 +321,8 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->its            = 0;
   svd->max_it         = 0;  
   svd->tol            = PETSC_DEFAULT;    
-  svd->errest         = PETSC_NULL;
-  svd->data           = PETSC_NULL;
+  svd->errest         = NULL;
+  svd->data           = NULL;
   svd->setupcalled    = 0;
   svd->reason         = SVD_CONVERGED_ITERATING;
   svd->numbermonitors = 0;

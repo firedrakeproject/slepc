@@ -36,13 +36,13 @@ int main(int argc,char **argv)
   PetscBool      verbose,extrarow;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type HEP with compact storage - dimension %D.\n",n);CHKERRQ(ierr); 
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-l",&l,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-k",&k,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-l",&l,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-k",&k,NULL);CHKERRQ(ierr);
   if (l>n || k>n || l>k) SETERRQ(PETSC_COMM_WORLD,1,"Wrong value of dimensions");
-  ierr = PetscOptionsHasName(PETSC_NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(PETSC_NULL,"-extrarow",&extrarow);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,"-extrarow",&extrarow);CHKERRQ(ierr);
 
   /* Create DS object */
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
@@ -50,7 +50,7 @@ int main(int argc,char **argv)
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
   ld = n+2;  /* test leading dimension larger than n */
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,PETSC_IGNORE,l,k);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,n,0,l,k);CHKERRQ(ierr);
   ierr = DSSetCompact(ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSSetExtraRow(ds,extrarow);CHKERRQ(ierr);
 
@@ -81,9 +81,9 @@ int main(int argc,char **argv)
 
   /* Solve */
   ierr = PetscMalloc(n*sizeof(PetscScalar),&eig);CHKERRQ(ierr);
-  ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestMagnitude,PETSC_NULL);CHKERRQ(ierr);
-  ierr = DSSolve(ds,eig,PETSC_NULL);CHKERRQ(ierr);
-  ierr = DSSort(ds,eig,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestMagnitude,NULL);CHKERRQ(ierr);
+  ierr = DSSolve(ds,eig,NULL);CHKERRQ(ierr);
+  ierr = DSSort(ds,eig,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   if (extrarow) { ierr = DSUpdateExtraRow(ds);CHKERRQ(ierr); }
   if (verbose) { 
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);

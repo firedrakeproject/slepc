@@ -55,17 +55,17 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetDimensions(eps->ds,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,&n,NULL,&l,NULL);CHKERRQ(ierr);
   for (i=l;i<n;i++) {
     re = eps->eigr[i];
     im = eps->eigi[i];
     ierr = STBackTransform(eps->st,1,&re,&im);CHKERRQ(ierr);
     newi = i;
-    ierr = DSVectors(eps->ds,DS_MAT_X,&newi,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSVectors(eps->ds,DS_MAT_X,&newi,NULL);CHKERRQ(ierr);
     ierr = DSGetArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
     Zr = X+i*ld;
     if (newi==i+1) Zi = X+newi*ld;
-    else Zi = PETSC_NULL;
+    else Zi = NULL;
     ierr = EPSComputeRitzVector(eps,Zr,Zi,eps->V,n,xr,xi);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
     ierr = (*eps->arbit_func)(re,im,xr,xi,rr+i,ri+i,eps->arbit_ctx);CHKERRQ(ierr);    
@@ -105,7 +105,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 
     if (eps->nev==1) eps->nev = 40;  /* nev not set, use default value */
     if (eps->nev<10) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs"); 
-    eps->ops->backtransform = PETSC_NULL;
+    eps->ops->backtransform = NULL;
   }
 
   if (eps->isgeneralized && eps->ishermitian && !eps->ispositive && eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not implemented for indefinite problems");
@@ -211,10 +211,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
   if (harmonic) { ierr = PetscMalloc(ld*sizeof(PetscScalar),&g);CHKERRQ(ierr); }
   if (eps->arbit_func) pj = &j;
-  else pj = PETSC_NULL;
+  else pj = NULL;
 
   /* Get the starting Arnoldi vector */
-  ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,eps->V[0],NULL);CHKERRQ(ierr);
   l = 0;
   
   /* Restart loop */
@@ -227,7 +227,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,ld,eps->V,eps->nconv+l,&nv,u,&beta,&breakdown);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = DSSetDimensions(eps->ds,nv,PETSC_IGNORE,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
@@ -278,7 +278,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       } else {
         /* Undo translation of Krylov decomposition */ 
         if (harmonic) {
-          ierr = DSSetDimensions(eps->ds,nv,PETSC_IGNORE,k,l);CHKERRQ(ierr);
+          ierr = DSSetDimensions(eps->ds,nv,0,k,l);CHKERRQ(ierr);
           ierr = DSTranslateHarmonic(eps->ds,0.0,beta,PETSC_TRUE,g,&gamma);CHKERRQ(ierr);
           /* gamma u^ = u - U*g~ */
           ierr = SlepcVecMAXPBY(u,1.0,-1.0,nv,g,eps->V);CHKERRQ(ierr);        
@@ -309,7 +309,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   if (harmonic) { ierr = PetscFree(g);CHKERRQ(ierr); }
   /* truncate Schur decomposition and change the state to raw so that
      PSVectors() computes eigenvectors from scratch */
-  ierr = DSSetDimensions(eps->ds,eps->nconv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -462,8 +462,8 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSKrylovSchurSetRestart_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSKrylovSchurGetRestart_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSKrylovSchurSetRestart_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSKrylovSchurGetRestart_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

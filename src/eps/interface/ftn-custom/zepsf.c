@@ -253,7 +253,7 @@ void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,Pe
     }
     *ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);
     if (*ierr) return;
-    ctx->viewer = PETSC_NULL;
+    ctx->viewer = NULL;
     *ierr = EPSMonitorSet(*eps,EPSMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorfirst_) {
     *ierr = EPSMonitorSet(*eps,EPSMonitorFirst,0,0);
@@ -347,7 +347,7 @@ void PETSC_STDCALL epssetconvergencetestfunction_(EPS *eps,void (PETSC_STDCALL *
     *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_NORM);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*eps,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convergence,(PetscVoidFunction)func,ctx); if (*ierr) return;
-    *ierr = EPSSetConvergenceTestFunction(*eps,ourconvergence,PETSC_NULL);
+    *ierr = EPSSetConvergenceTestFunction(*eps,ourconvergence,NULL);
   }
 }
 

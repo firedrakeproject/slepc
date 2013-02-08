@@ -37,7 +37,7 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian, n=%D\n\n",n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -89,7 +89,7 @@ int main(int argc,char **argv)
   ierr = STGetType(st,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
 
   /* shift, sigma=0.1 */
   sigma = 0.1;
@@ -97,7 +97,7 @@ int main(int argc,char **argv)
   ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",PetscRealPart(sigma));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
 
   /* sinvert, sigma=0.1 */
   ierr = STPostSolve(st);CHKERRQ(ierr);   /* undo changes if inplace */
@@ -107,7 +107,7 @@ int main(int argc,char **argv)
   ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",PetscRealPart(sigma));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
 
   /* sinvert, sigma=-0.5 */
   sigma = -0.5;
@@ -115,7 +115,7 @@ int main(int argc,char **argv)
   ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",PetscRealPart(sigma));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
 
   /* cayley, sigma=-0.5, tau=-0.5 (equal to sigma by default) */
   ierr = STPostSolve(st);CHKERRQ(ierr);   /* undo changes if inplace */
@@ -127,7 +127,7 @@ int main(int argc,char **argv)
   ierr = STCayleyGetAntishift(st,&tau);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g, antishift=%g\n",PetscRealPart(sigma),PetscRealPart(tau));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
 
   /* cayley, sigma=1.1, tau=1.1 (still equal to sigma) */
   sigma = 1.1;
@@ -136,7 +136,7 @@ int main(int argc,char **argv)
   ierr = STCayleyGetAntishift(st,&tau);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g, antishift=%g\n",PetscRealPart(sigma),PetscRealPart(tau));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
 
   /* cayley, sigma=1.1, tau=-1.0 */
   tau = -1.0;
@@ -145,14 +145,14 @@ int main(int argc,char **argv)
   ierr = STCayleyGetAntishift(st,&tau);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g, antishift=%g\n",PetscRealPart(sigma),PetscRealPart(tau));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                   Check inner product matrix in Cayley
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = STGetBilinearForm(st,&B);CHKERRQ(ierr);
   ierr = MatMult(B,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
 
   ierr = STDestroy(&st);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);

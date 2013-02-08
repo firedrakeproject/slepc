@@ -104,7 +104,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   Mat            A;
   PetscReal      relerr,norm,rt1,rt2,cs1,anorm;
   PetscScalar    theta,rho,delta,sigma,alpha2,beta1,sn1;
-  PetscBool      breakdown,*select = PETSC_NULL,hasnorm;
+  PetscBool      breakdown,*select = NULL,hasnorm;
 
   PetscFunctionBegin;
   v = eps->V[0];
@@ -121,7 +121,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     }
   }
 
-  ierr = EPSGetStartVector(eps,0,v,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,v,NULL);CHKERRQ(ierr);
   ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);    /* original shift */
   rho = sigma;
 
@@ -185,7 +185,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
           else rho = rt2;
         }
         /* update operator according to new shift */
-        PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
+        PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
         ierr = STSetShift(eps->st,rho);
         PetscPopErrorHandler();
         if (ierr) {
@@ -206,9 +206,9 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         if (PetscAbsScalar(rho-eps->eigr[i])>eps->its*anorm/1000) select[i] = PETSC_TRUE;
         else select[i] = PETSC_FALSE;
       }
-      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,eps->nconv,select,eps->V,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,eps->nconv,select,eps->V,y,NULL,&norm,NULL);CHKERRQ(ierr);
     } else {
-      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,eps->nconv,PETSC_NULL,eps->V,y,PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,eps->nconv,NULL,eps->V,y,NULL,&norm,NULL);CHKERRQ(ierr);
     }
 
     /* v = y/||y||_B */
@@ -257,8 +257,8 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
   w = eps->W[0];
   z = eps->work[2];
 
-  ierr = EPSGetStartVector(eps,0,v,PETSC_NULL);CHKERRQ(ierr);
-  ierr = EPSGetStartVectorLeft(eps,0,w,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,v,NULL);CHKERRQ(ierr);
+  ierr = EPSGetStartVectorLeft(eps,0,w,NULL);CHKERRQ(ierr);
   ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);    /* original shift */
   rho = sigma;
 
@@ -332,7 +332,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
           else rho = rt2;
         }
         /* update operator according to new shift */
-        PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
+        PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
         ierr = STSetShift(eps->st,rho);
         PetscPopErrorHandler();
         if (ierr) {
@@ -349,8 +349,8 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest_left,eps->nconv+1);CHKERRQ(ierr);
 
     /* purge previously converged eigenvectors */
-    ierr = IPBiOrthogonalize(eps->ip,eps->nconv,eps->V,eps->W,z,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-    ierr = IPBiOrthogonalize(eps->ip,eps->nconv,eps->W,eps->V,y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPBiOrthogonalize(eps->ip,eps->nconv,eps->V,eps->W,z,NULL,NULL);CHKERRQ(ierr);
+    ierr = IPBiOrthogonalize(eps->ip,eps->nconv,eps->W,eps->V,y,NULL,NULL);CHKERRQ(ierr);
 
     /* normalize so that (y,z)_B=1  */
     ierr = VecCopy(y,v);CHKERRQ(ierr);
@@ -368,9 +368,9 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
       eps->nconv = eps->nconv + 1;
       if (eps->nconv==eps->nev) break;
       v = eps->V[eps->nconv];
-      ierr = EPSGetStartVector(eps,eps->nconv,v,PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSGetStartVector(eps,eps->nconv,v,NULL);CHKERRQ(ierr);
       w = eps->W[eps->nconv];
-      ierr = EPSGetStartVectorLeft(eps,eps->nconv,w,PETSC_NULL);CHKERRQ(ierr);
+      ierr = EPSGetStartVectorLeft(eps,eps->nconv,w,NULL);CHKERRQ(ierr);
     }
   }
   if (eps->nconv == eps->nev) eps->reason = EPS_CONVERGED_TOL;
@@ -527,8 +527,8 @@ PetscErrorCode EPSDestroy_Power(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerSetShiftType_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerGetShiftType_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerSetShiftType_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSPowerGetShiftType_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

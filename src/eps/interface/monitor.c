@@ -50,11 +50,10 @@ PetscErrorCode EPSMonitor(EPS eps,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
 
    Input Parameters:
 +  eps     - eigensolver context obtained from EPSCreate()
-.  monitor - pointer to function (if this is PETSC_NULL, it turns off monitoring)
+.  monitor - pointer to function (if this is NULL, it turns off monitoring)
 .  mctx    - [optional] context for private data for the
-             monitor routine (use PETSC_NULL if no context is desired)
--  monitordestroy - [optional] routine that frees monitor context
-          (may be PETSC_NULL)
+             monitor routine (use NULL if no context is desired)
+-  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
    Calling Sequence of monitor:
 $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi, PetscReal* errest, int nest, void *mctx)
@@ -178,7 +177,7 @@ PetscErrorCode EPSGetMonitorContext(EPS eps,void **ctx)
 .  eigi   - imaginary part of the eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  monctx - monitor context (contains viewer, can be PETSC_NULL)
+-  monctx - monitor context (contains viewer, can be NULL)
 
    Level: intermediate
 
@@ -228,7 +227,7 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
 .  eigi   - imaginary part of the eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  monctx - monitor context (contains viewer, can be PETSC_NULL)
+-  monctx - monitor context (contains viewer, can be NULL)
 
    Level: intermediate
 

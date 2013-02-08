@@ -353,7 +353,7 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
   PetscInt       i,ld,n,l;
 
   PetscFunctionBegin;
-  ierr = DSGetDimensions(ds,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(ds,&n,NULL,&l,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
@@ -377,7 +377,7 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
 -  cols - number of columns to orthogonalize (starting from the column zero)
 
    Output Parameter:
-.  lindcols - number of linearly independent columns of the matrix (can be PETSC_NULL) 
+.  lindcols - number of linearly independent columns of the matrix (can be NULL) 
 */
 PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindcols)
 {
@@ -394,7 +394,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,cols,3);
-  ierr = DSGetDimensions(ds,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(ds,&n,NULL,&l,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   n = n - l;
   if (cols > n) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
@@ -405,7 +405,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   ierr = PetscBLASIntCast(n,&rA);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(cols,&cA);CHKERRQ(ierr);
   lw = -1;
-  PetscStackCall("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,A,&ld_,PETSC_NULL,&saux,&lw,&info));
+  PetscStackCall("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,A,&ld_,NULL,&saux,&lw,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
   lw = (PetscBLASInt)PetscRealPart(saux);
   ierr = DSAllocateWork_Private(ds,lw+ltau,0,0);CHKERRQ(ierr);
@@ -439,8 +439,8 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
 -  s    - the signature that defines the inner product
 
    Output Parameter:
-+  lindcols - linear independent columns of the matrix (can be PETSC_NULL) 
--  ns - the new norm of the vectors (can be PETSC_NULL)
++  lindcols - linear independent columns of the matrix (can be NULL) 
+-  ns - the new norm of the vectors (can be NULL)
 */
 PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal *s,PetscInt *lindcols,PetscReal *ns)
 {
@@ -456,7 +456,7 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
   PetscValidLogicalCollectiveInt(ds,cols,3);
   PetscValidScalarPointer(s,4);
   if (ns) PetscValidPointer(ns,6);
-  ierr = DSGetDimensions(ds,&n,PETSC_NULL,&l,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(ds,&n,NULL,&l,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   n = n - l;
   if (cols > n) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid number of columns");

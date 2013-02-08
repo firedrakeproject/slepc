@@ -64,7 +64,7 @@ PetscErrorCode MFNBasicArnoldi(MFN mfn,PetscScalar *H,PetscInt ldh,Vec *V,PetscI
   PetscFunctionBegin;
   for (j=k;j<m-1;j++) {
     ierr = MatMult(mfn->A,V[j],V[j+1]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(mfn->ip,0,PETSC_NULL,j+1,PETSC_NULL,V,V[j+1],H+ldh*j,&norm,breakdown);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(mfn->ip,0,NULL,j+1,NULL,V,V[j+1],H+ldh*j,&norm,breakdown);CHKERRQ(ierr);
     H[j+1+ldh*j] = norm;
     if (*breakdown) {
       *M = j+1;
@@ -75,7 +75,7 @@ PetscErrorCode MFNBasicArnoldi(MFN mfn,PetscScalar *H,PetscInt ldh,Vec *V,PetscI
     }
   }
   ierr = MatMult(mfn->A,V[m-1],f);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(mfn->ip,0,PETSC_NULL,m,PETSC_NULL,V,f,H+ldh*(m-1),beta,PETSC_NULL);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(mfn->ip,0,NULL,m,NULL,V,f,H+ldh*(m-1),beta,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -148,7 +148,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     ierr = DSRestoreArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);  
 
     mx = mb + k1;
-    ierr = DSSetDimensions(mfn->ds,mx,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(mfn->ds,mx,0,0,0);CHKERRQ(ierr);
     ireject = 0;
     while (ireject <= mxrej) {
       ierr = DSGetArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);

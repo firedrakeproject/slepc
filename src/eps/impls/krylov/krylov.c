@@ -53,7 +53,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
     } else {
       ierr = STApply(eps->st,V[j],V[j+1]);CHKERRQ(ierr);
     }
-    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,PETSC_NULL,V,V[j+1],H+ldh*j,&norm,breakdown);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,NULL,V,V[j+1],H+ldh*j,&norm,breakdown);CHKERRQ(ierr);
     H[j+1+ldh*j] = norm;
     if (*breakdown) {
       *M = j+1;
@@ -68,7 +68,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
   } else {
     ierr = STApply(eps->st,V[m-1],f);CHKERRQ(ierr);
   }
-  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,PETSC_NULL,V,f,H+ldh*(m-1),beta,PETSC_NULL);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,NULL,V,f,H+ldh*(m-1),beta,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -123,7 +123,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
       ierr = DSGetArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
       Zr = X+k*ld;
       if (newk==k+1) Zi = X+newk*ld;
-      else Zi = PETSC_NULL;
+      else Zi = NULL;
       ierr = EPSComputeRitzVector(eps,Zr,Zi,V,nv,x,y);CHKERRQ(ierr);
       ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
       ierr = EPSComputeResidualNorm_Private(eps,re,im,x,y,&resnorm);
@@ -184,7 +184,7 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,Pe
 
   for (j=k;j<m-1;j++) {
     ierr = STApply(eps->st,V[j],V[j+1]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,PETSC_NULL,V,V[j+1],hwork,&norm,breakdown);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,NULL,V,V[j+1],hwork,&norm,breakdown);CHKERRQ(ierr);
     alpha[j] = PetscRealPart(hwork[j]);
     beta[j] = norm;
     if (*breakdown) {
@@ -198,7 +198,7 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,Pe
     }
   }
   ierr = STApply(eps->st,V[m-1],f);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,PETSC_NULL,V,f,hwork,&norm,PETSC_NULL);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,NULL,V,f,hwork,&norm,NULL);CHKERRQ(ierr);
   alpha[m-1] = PetscRealPart(hwork[m-1]); 
   beta[m-1] = norm;
   

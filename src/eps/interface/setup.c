@@ -88,10 +88,10 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   if (!nmat) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first"); 
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&eps->n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(A,&eps->nloc,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&eps->n,NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&eps->nloc,NULL);CHKERRQ(ierr);
   ierr = VecDestroy(&eps->t);CHKERRQ(ierr);
-  ierr = SlepcMatGetVecsTemplate(A,&eps->t,PETSC_NULL);CHKERRQ(ierr);
+  ierr = SlepcMatGetVecsTemplate(A,&eps->t,NULL);CHKERRQ(ierr);
 
   /* Set default problem type */
   if (!eps->problem_type) {
@@ -119,7 +119,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       ierr = IPSetType(eps->ip,IPINDEFINITE);CHKERRQ(ierr);
     }
   } else {
-    ierr = IPSetMatrix(eps->ip,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPSetMatrix(eps->ip,NULL);CHKERRQ(ierr);
   }
   
   if (eps->nev > eps->n) eps->nev = eps->n;
@@ -156,27 +156,27 @@ PetscErrorCode EPSSetUp(EPS eps)
   switch (eps->which) {
     case EPS_LARGEST_MAGNITUDE:
       eps->which_func = SlepcCompareLargestMagnitude;
-      eps->which_ctx  = PETSC_NULL;
+      eps->which_ctx  = NULL;
       break;
     case EPS_SMALLEST_MAGNITUDE:
       eps->which_func = SlepcCompareSmallestMagnitude;
-      eps->which_ctx  = PETSC_NULL;
+      eps->which_ctx  = NULL;
       break;
     case EPS_LARGEST_REAL:
       eps->which_func = SlepcCompareLargestReal;
-      eps->which_ctx  = PETSC_NULL;
+      eps->which_ctx  = NULL;
       break;
     case EPS_SMALLEST_REAL:
       eps->which_func = SlepcCompareSmallestReal;
-      eps->which_ctx  = PETSC_NULL;
+      eps->which_ctx  = NULL;
       break;
     case EPS_LARGEST_IMAGINARY:
       eps->which_func = SlepcCompareLargestImaginary;
-      eps->which_ctx  = PETSC_NULL;
+      eps->which_ctx  = NULL;
       break;
     case EPS_SMALLEST_IMAGINARY:
       eps->which_func = SlepcCompareSmallestImaginary;
-      eps->which_ctx  = PETSC_NULL;
+      eps->which_ctx  = NULL;
       break;
     case EPS_TARGET_MAGNITUDE:
       eps->which_func = SlepcCompareTargetMagnitude;
@@ -192,7 +192,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       break;
     case EPS_ALL:
       eps->which_func = SlepcCompareSmallestReal;
-      eps->which_ctx  = PETSC_NULL;
+      eps->which_ctx  = NULL;
       break;
     case EPS_WHICH_USER:
       break;
@@ -231,7 +231,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       /* orthonormalize vectors in defl */
       k = 0;
       for (i=0;i<eps->nds;i++) {
-        ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,k,PETSC_NULL,eps->defl,eps->defl[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
+        ierr = IPOrthogonalize(eps->ip,0,NULL,k,NULL,eps->defl,eps->defl[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
         if (norm==0.0 || lindep) {
           ierr = PetscInfo(eps,"Linearly dependent deflation vector found, removing...\n");CHKERRQ(ierr);
         } else {
@@ -254,7 +254,7 @@ PetscErrorCode EPSSetUp(EPS eps)
     for (i=0;i<eps->nini;i++) {
       ierr = VecCopy(eps->IS[i],eps->V[k]);CHKERRQ(ierr);
       ierr = VecDestroy(&eps->IS[i]);CHKERRQ(ierr);
-      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,k,PETSC_NULL,eps->V,eps->V[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,k,NULL,eps->V,eps->V[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
       if (norm==0.0 || lindep) {
         ierr = PetscInfo(eps,"Linearly dependent initial vector found, removing...\n");CHKERRQ(ierr);
       } else {
@@ -275,7 +275,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       for (i=0;i<eps->ninil;i++) {
         ierr = VecCopy(eps->ISL[i],eps->W[k]);CHKERRQ(ierr);
         ierr = VecDestroy(&eps->ISL[i]);CHKERRQ(ierr);
-        ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,k,PETSC_NULL,eps->W,eps->W[k],PETSC_NULL,&norm,&lindep);CHKERRQ(ierr); 
+        ierr = IPOrthogonalize(eps->ip,0,NULL,k,NULL,eps->W,eps->W[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
         if (norm==0.0 || lindep) {
           ierr = PetscInfo(eps,"Linearly dependent initial left vector found, removing...\n");CHKERRQ(ierr);
         } else {
@@ -306,7 +306,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 -  B  - the second matrix in the case of generalized eigenproblems
 
    Notes: 
-   To specify a standard eigenproblem, use PETSC_NULL for parameter B.
+   To specify a standard eigenproblem, use NULL for parameter B.
 
    It must be called after EPSSetUp(). If it is called again after EPSSetUp() then
    the EPS object is reset.

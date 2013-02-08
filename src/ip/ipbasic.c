@@ -56,7 +56,7 @@ PetscErrorCode IPFinalizePackage(void)
   when using static libraries.
 
   Input Parameter:
-  path - The dynamic library path, or PETSC_NULL
+  path - The dynamic library path, or NULL
 
   Level: developer
 
@@ -81,7 +81,7 @@ PetscErrorCode IPInitializePackage(const char *path)
   ierr = PetscLogEventRegister("IPInnerProduct",IP_CLASSID,&IP_InnerProduct);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("IPApplyMatrix",IP_CLASSID,&IP_ApplyMatrix);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"ip",&className);CHKERRQ(ierr);
     if (className) {
@@ -89,7 +89,7 @@ PetscErrorCode IPInitializePackage(const char *path)
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"ip",&className);CHKERRQ(ierr);
     if (className) {
@@ -134,8 +134,8 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   ip->orthog_ref    = IP_ORTHOG_REFINE_IFNEEDED;
   ip->orthog_eta    = 0.7071;
   ip->innerproducts = 0;
-  ip->matrix        = PETSC_NULL;
-  ip->Bx            = PETSC_NULL;
+  ip->matrix        = NULL;
+  ip->Bx            = NULL;
   ip->xid           = 0;
   ip->xstate        = 0;
   PetscFunctionReturn(0);
@@ -356,18 +356,18 @@ PetscErrorCode IPSetFromOptions(IP ip)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
-  if (!IPRegisterAllCalled) { ierr = IPRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
+  if (!IPRegisterAllCalled) { ierr = IPRegisterAll(NULL);CHKERRQ(ierr); }
   /* Set default type (we do not allow changing it with -ip_type) */
   if (!((PetscObject)ip)->type_name) {
     ierr = IPSetDefaultType_Private(ip);CHKERRQ(ierr);
   }
   ierr = PetscObjectOptionsBegin((PetscObject)ip);CHKERRQ(ierr);
     i = ip->orthog_type;
-    ierr = PetscOptionsEList("-ip_orthog_type","Orthogonalization method","IPSetOrthogonalization",orth_list,2,orth_list[i],&i,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsEList("-ip_orthog_type","Orthogonalization method","IPSetOrthogonalization",orth_list,2,orth_list[i],&i,NULL);CHKERRQ(ierr);
     j = ip->orthog_ref;
-    ierr = PetscOptionsEList("-ip_orthog_refine","Iterative refinement mode during orthogonalization","IPSetOrthogonalization",ref_list,3,ref_list[j],&j,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsEList("-ip_orthog_refine","Iterative refinement mode during orthogonalization","IPSetOrthogonalization",ref_list,3,ref_list[j],&j,NULL);CHKERRQ(ierr);
     r = ip->orthog_eta;
-    ierr = PetscOptionsReal("-ip_orthog_eta","Parameter of iterative refinement during orthogonalization","IPSetOrthogonalization",r,&r,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-ip_orthog_eta","Parameter of iterative refinement during orthogonalization","IPSetOrthogonalization",r,&r,NULL);CHKERRQ(ierr);
     ierr = IPSetOrthogonalization(ip,(IPOrthogType)i,(IPOrthogRefineType)j,r);CHKERRQ(ierr);
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)ip);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);

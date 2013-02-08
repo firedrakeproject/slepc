@@ -84,7 +84,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
 .  B - output matrix
 
    Notes:
-   The output matrix B must be destroyed after use. It will be PETSC_NULL in
+   The output matrix B must be destroyed after use. It will be NULL in
    case of standard eigenproblems.
    
    Level: developer
@@ -108,7 +108,7 @@ PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (st->nmat==1) *B = PETSC_NULL;
+  if (st->nmat==1) *B = NULL;
   else {
     *B = st->A[1];
     ierr = PetscObjectReference((PetscObject)*B);CHKERRQ(ierr);
@@ -215,10 +215,10 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   ierr = MatSetSizes(*mat,m,m,M,M);CHKERRQ(ierr);
   if (size == 1) {
     ierr = MatSetType(*mat,MATSEQDENSE);CHKERRQ(ierr);
-    ierr = MatSeqDenseSetPreallocation(*mat,PETSC_NULL);CHKERRQ(ierr);
+    ierr = MatSeqDenseSetPreallocation(*mat,NULL);CHKERRQ(ierr);
   } else {
     ierr = MatSetType(*mat,MATMPIAIJ);CHKERRQ(ierr);
-    ierr = MatMPIAIJSetPreallocation(*mat,m,PETSC_NULL,M-m,PETSC_NULL);CHKERRQ(ierr);
+    ierr = MatMPIAIJSetPreallocation(*mat,m,NULL,M-m,NULL);CHKERRQ(ierr);
   }
 
   for (i=0;i<M;i++) {
@@ -271,10 +271,10 @@ PetscErrorCode STSetUp(ST st)
   }
   ierr = STReset(st);CHKERRQ(ierr);
   ierr = PetscMalloc(PetscMax(2,st->nmat)*sizeof(Mat),&st->T);CHKERRQ(ierr);
-  for (i=0;i<PetscMax(2,st->nmat);i++) st->T[i] = PETSC_NULL;
-  ierr = MatGetVecs(st->A[0],&st->w,PETSC_NULL);CHKERRQ(ierr);
+  for (i=0;i<PetscMax(2,st->nmat);i++) st->T[i] = NULL;
+  ierr = MatGetVecs(st->A[0],&st->w,NULL);CHKERRQ(ierr);
   if (st->D) {
-    ierr = MatGetLocalSize(st->A[0],PETSC_NULL,&n);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(st->A[0],NULL,&n);CHKERRQ(ierr);
     ierr = VecGetLocalSize(st->D,&k);CHKERRQ(ierr);
     if (n != k) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Balance matrix has wrong dimension %D (should be %D)",k,n);
     ierr = VecDuplicate(st->D,&st->wb);CHKERRQ(ierr);
@@ -332,7 +332,7 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
         }
         ierr = STMatShellCreate(st,alpha,deg+1,matIdx,&st->T[k]);CHKERRQ(ierr);
       } else {
-        ierr = STMatShellCreate(st,alpha,deg,PETSC_NULL,&st->T[k]);CHKERRQ(ierr);
+        ierr = STMatShellCreate(st,alpha,deg,NULL,&st->T[k]);CHKERRQ(ierr);
       }
     } else {
       ierr = STMatShellShift(st->T[k],alpha);CHKERRQ(ierr);

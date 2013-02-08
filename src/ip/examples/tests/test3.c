@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   PetscReal      norm;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Indefinite norm of a random vector of length %D.\n",n);CHKERRQ(ierr); 
 
   /* Create sip matrix (standard involutionary permutation) */
@@ -55,7 +55,7 @@ int main(int argc,char **argv)
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
   ierr = PetscRandomSetInterval(rctx,-1.0,1.0);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,PETSC_NULL,&v);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,NULL,&v);CHKERRQ(ierr);
   ierr = VecSetRandom(v,rctx);CHKERRQ(ierr);
 
   /* Create IP object */
@@ -63,7 +63,7 @@ int main(int argc,char **argv)
   ierr = IPSetType(ip,IPINDEFINITE);CHKERRQ(ierr);
   ierr = IPSetMatrix(ip,A);CHKERRQ(ierr);
   ierr = IPSetFromOptions(ip);CHKERRQ(ierr);
-  ierr = IPView(ip,PETSC_NULL);CHKERRQ(ierr);
+  ierr = IPView(ip,NULL);CHKERRQ(ierr);
 
   /* Check indefinite norm */
   ierr = IPNorm(ip,v,&norm);CHKERRQ(ierr);

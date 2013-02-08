@@ -145,16 +145,16 @@ PetscErrorCode SlepcInitialize_Packages(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = EPSInitializePackage(PETSC_NULL);CHKERRQ(ierr);
-  ierr = SVDInitializePackage(PETSC_NULL);CHKERRQ(ierr);
-  ierr = QEPInitializePackage(PETSC_NULL);CHKERRQ(ierr);
-  ierr = NEPInitializePackage(PETSC_NULL);CHKERRQ(ierr);
-  ierr = MFNInitializePackage(PETSC_NULL);CHKERRQ(ierr);
-  ierr = STInitializePackage(PETSC_NULL);CHKERRQ(ierr);
-  ierr = IPInitializePackage(PETSC_NULL);CHKERRQ(ierr);
-  ierr = DSInitializePackage(PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSInitializePackage(NULL);CHKERRQ(ierr);
+  ierr = SVDInitializePackage(NULL);CHKERRQ(ierr);
+  ierr = QEPInitializePackage(NULL);CHKERRQ(ierr);
+  ierr = NEPInitializePackage(NULL);CHKERRQ(ierr);
+  ierr = MFNInitializePackage(NULL);CHKERRQ(ierr);
+  ierr = STInitializePackage(NULL);CHKERRQ(ierr);
+  ierr = IPInitializePackage(NULL);CHKERRQ(ierr);
+  ierr = DSInitializePackage(NULL);CHKERRQ(ierr);
   /* New special type of Vec, implemented in SLEPc */
-  ierr = VecRegister_Comp(PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecRegister_Comp(NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -190,8 +190,8 @@ PetscErrorCode SlepcInitialize_LogEvents(void)
 +  argc - count of number of command line arguments
 .  args - the command line arguments
 .  file - [optional] PETSc database file, defaults to ~username/.petscrc
-          (use PETSC_NULL for default)
--  help - [optional] Help message to print, use PETSC_NULL for no message
+          (use NULL for default)
+-  help - [optional] Help message to print, use NULL for no message
 
    Fortran Note:
    Fortran syntax is very similar to that of PetscInitialize()
@@ -277,7 +277,7 @@ PetscErrorCode SlepcInitializeNoArguments(void)
   char           **args = 0;
 
   PetscFunctionBegin;
-  ierr = SlepcInitialize(&argc,&args,PETSC_NULL,PETSC_NULL);
+  ierr = SlepcInitialize(&argc,&args,NULL,NULL);
   PetscFunctionReturn(ierr);
 }
 

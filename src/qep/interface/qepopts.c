@@ -54,7 +54,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  if (!QEPRegisterAllCalled) { ierr = QEPRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
+  if (!QEPRegisterAllCalled) { ierr = QEPRegisterAll(NULL);CHKERRQ(ierr); }
   if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
   ierr = PetscObjectOptionsBegin((PetscObject)qep);CHKERRQ(ierr);
     ierr = PetscOptionsList("-qep_type","Quadratic Eigenvalue Problem method","QEPSetType",QEPList,(char*)(((PetscObject)qep)->type_name?((PetscObject)qep)->type_name:QEPLINEAR),type,256,&flg);CHKERRQ(ierr);
@@ -71,23 +71,23 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     ierr = PetscOptionsBoolGroupEnd("-qep_gyroscopic","gyroscopic quadratic eigenvalue problem","QEPSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = QEPSetProblemType(qep,QEP_GYROSCOPIC);CHKERRQ(ierr); }
 
-    r = PETSC_IGNORE;
-    ierr = PetscOptionsReal("-qep_scale","Scale factor","QEPSetScaleFactor",qep->sfactor,&r,PETSC_NULL);CHKERRQ(ierr);
+    r = 0;
+    ierr = PetscOptionsReal("-qep_scale","Scale factor","QEPSetScaleFactor",qep->sfactor,&r,NULL);CHKERRQ(ierr);
     ierr = QEPSetScaleFactor(qep,r);CHKERRQ(ierr);
 
-    r = i = PETSC_IGNORE;
-    ierr = PetscOptionsInt("-qep_max_it","Maximum number of iterations","QEPSetTolerances",qep->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-qep_tol","Tolerance","QEPSetTolerances",qep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:qep->tol,&r,PETSC_NULL);CHKERRQ(ierr);
+    r = i = 0;
+    ierr = PetscOptionsInt("-qep_max_it","Maximum number of iterations","QEPSetTolerances",qep->max_it,&i,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-qep_tol","Tolerance","QEPSetTolerances",qep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:qep->tol,&r,NULL);CHKERRQ(ierr);
     ierr = QEPSetTolerances(qep,r,i);CHKERRQ(ierr);
     ierr = PetscOptionsBoolGroupBegin("-qep_convergence_default","Default (relative error) convergence test","QEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = QEPSetConvergenceTest(qep,QEPConvergedDefault,PETSC_NULL);CHKERRQ(ierr); }
+    if (flg) { ierr = QEPSetConvergenceTest(qep,QEPConvergedDefault,NULL);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-qep_convergence_absolute","Absolute error convergence test","QEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = QEPSetConvergenceTest(qep,QEPConvergedAbsolute,PETSC_NULL);CHKERRQ(ierr); }
+    if (flg) { ierr = QEPSetConvergenceTest(qep,QEPConvergedAbsolute,NULL);CHKERRQ(ierr); }
 
-    i = j = k = PETSC_IGNORE;
-    ierr = PetscOptionsInt("-qep_nev","Number of eigenvalues to compute","QEPSetDimensions",qep->nev,&i,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-qep_ncv","Number of basis vectors","QEPSetDimensions",qep->ncv,&j,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-qep_mpd","Maximum dimension of projected problem","QEPSetDimensions",qep->mpd,&k,PETSC_NULL);CHKERRQ(ierr);
+    i = j = k = 0;
+    ierr = PetscOptionsInt("-qep_nev","Number of eigenvalues to compute","QEPSetDimensions",qep->nev,&i,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-qep_ncv","Number of basis vectors","QEPSetDimensions",qep->ncv,&j,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-qep_mpd","Maximum dimension of projected problem","QEPSetDimensions",qep->mpd,&k,NULL);CHKERRQ(ierr);
     ierr = QEPSetDimensions(qep,i,j,k);CHKERRQ(ierr);
 
     ierr = PetscOptionsScalar("-qep_target","Value of the target","QEPSetTarget",qep->target,&s,&flg);CHKERRQ(ierr);
@@ -101,7 +101,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
       Cancels all monitors hardwired into code before call to QEPSetFromOptions()
     */
     flg  = PETSC_FALSE;
-    ierr = PetscOptionsBool("-qep_monitor_cancel","Remove any hardwired monitor routines","QEPMonitorCancel",flg,&flg,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-qep_monitor_cancel","Remove any hardwired monitor routines","QEPMonitorCancel",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = QEPMonitorCancel(qep);CHKERRQ(ierr);
     }
@@ -126,14 +126,14 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
       ierr = QEPSetTrackAll(qep,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-qep_monitor_draw","Monitor first unconverged approximate error estimate graphically","QEPMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsBool("-qep_monitor_draw","Monitor first unconverged approximate error estimate graphically","QEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
     if (flg) {
-      ierr = QEPMonitorSet(qep,QEPMonitorLG,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = QEPMonitorSet(qep,QEPMonitorLG,NULL,NULL);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-qep_monitor_draw_all","Monitor error estimates graphically","QEPMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsBool("-qep_monitor_draw_all","Monitor error estimates graphically","QEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
     if (flg) {
-      ierr = QEPMonitorSet(qep,QEPMonitorLGAll,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = QEPMonitorSet(qep,QEPMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
       ierr = QEPSetTrackAll(qep,PETSC_TRUE);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
@@ -197,7 +197,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
 -  maxits - maximum number of iterations
 
    Notes:
-   The user can specify PETSC_NULL for any parameter that is not needed.
+   The user can specify NULL for any parameter that is not needed.
 
    Level: intermediate
 
@@ -230,7 +230,7 @@ PetscErrorCode QEPGetTolerances(QEP qep,PetscReal *tol,PetscInt *maxits)
 -  -qep_max_it <maxits> - Sets the maximum number of iterations allowed
 
    Notes:
-   Use PETSC_IGNORE for an argument that need not be changed.
+   Pass 0 for an argument that need not be changed.
 
    Use PETSC_DECIDE for maxits to assign a reasonably good value, which is 
    dependent on the solution method.
@@ -245,7 +245,7 @@ PetscErrorCode QEPSetTolerances(QEP qep,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(qep,tol,2);
   PetscValidLogicalCollectiveInt(qep,maxits,3);
-  if (tol != PETSC_IGNORE) {
+  if (tol) {
     if (tol == PETSC_DEFAULT) {
       qep->tol = PETSC_DEFAULT;
     } else {
@@ -253,7 +253,7 @@ PetscErrorCode QEPSetTolerances(QEP qep,PetscReal tol,PetscInt maxits)
       qep->tol = tol;
     }
   }
-  if (maxits != PETSC_IGNORE) {
+  if (maxits) {
     if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
       qep->max_it = 0;
       qep->setupcalled = 0;
@@ -282,7 +282,7 @@ PetscErrorCode QEPSetTolerances(QEP qep,PetscReal tol,PetscInt maxits)
 -  mpd - the maximum dimension allowed for the projected problem
 
    Notes:
-   The user can specify PETSC_NULL for any parameter that is not needed.
+   The user can specify NULL for any parameter that is not needed.
 
    Level: intermediate
 
@@ -318,7 +318,7 @@ PetscErrorCode QEPGetDimensions(QEP qep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
 -  -qep_mpd <mpd> - Sets the maximum projected dimension
 
    Notes:
-   Use PETSC_IGNORE to retain the previous value of any parameter.
+   Pass 0 to retain the previous value of any parameter.
 
    Use PETSC_DECIDE for ncv and mpd to assign a reasonably good value, which is
    dependent on the solution method.
@@ -343,12 +343,12 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(qep,nev,2);
   PetscValidLogicalCollectiveInt(qep,ncv,3);
   PetscValidLogicalCollectiveInt(qep,mpd,4);
-  if (nev != PETSC_IGNORE) {
+  if (nev) {
     if (nev<1) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
     qep->nev = nev;
     qep->setupcalled = 0;
   }
-  if (ncv != PETSC_IGNORE) {
+  if (ncv) {
     if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
       qep->ncv = 0;
     } else {
@@ -357,7 +357,7 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     }
     qep->setupcalled = 0;
   }
-  if (mpd != PETSC_IGNORE) {
+  if (mpd) {
     if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
       qep->mpd = 0;
     } else {
@@ -419,7 +419,7 @@ PetscErrorCode QEPSetWhichEigenpairs(QEP qep,QEPWhich which)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(qep,which,2);
-  if (which!=PETSC_IGNORE) {
+  if (which) {
     if (which==PETSC_DECIDE || which==PETSC_DEFAULT) qep->which = (QEPWhich)0;
     else switch (which) {
       case QEP_LARGEST_MAGNITUDE:
@@ -597,7 +597,7 @@ PetscErrorCode QEPSetScaleFactor(QEP qep,PetscReal alpha)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(qep,alpha,2);
-  if (alpha != PETSC_IGNORE) {
+  if (alpha) {
     if (alpha == PETSC_DEFAULT || alpha == PETSC_DECIDE) {
       qep->sfactor = 0.0;
       qep->sfactor_set = PETSC_FALSE;

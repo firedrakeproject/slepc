@@ -54,7 +54,7 @@ PetscErrorCode STFinalizePackage(void)
    when using static libraries.
 
    Input Parameter:
-.  path - The dynamic library path, or PETSC_NULL
+.  path - The dynamic library path, or NULL
 
    Level: developer
 
@@ -79,7 +79,7 @@ PetscErrorCode STInitializePackage(const char *path)
   ierr = PetscLogEventRegister("STApply",ST_CLASSID,&ST_Apply);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STApplyTranspose",ST_CLASSID,&ST_ApplyTranspose);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"st",&className);CHKERRQ(ierr);
     if (className) {
@@ -87,7 +87,7 @@ PetscErrorCode STInitializePackage(const char *path)
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"st",&className);CHKERRQ(ierr);
     if (className) {
@@ -251,7 +251,7 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
     st->Astate[i] = ((PetscObject)A[i])->state;
   }
   if (n==1) {
-    st->A[1] = PETSC_NULL;
+    st->A[1] = NULL;
     st->Astate[1] = 0;
   }
   st->nmat = n;
@@ -648,7 +648,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&flg);
     if (flg) {
-      ierr = PCSetOperators(pc,PETSC_NULL,PETSC_NULL,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+      ierr = PCSetOperators(pc,NULL,NULL,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);

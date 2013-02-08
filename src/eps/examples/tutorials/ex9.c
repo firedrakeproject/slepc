@@ -72,7 +72,7 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&N,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-n",&N,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%D\n\n",N);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -92,11 +92,11 @@ int main(int argc,char **argv)
   /* 
      Look the command line for user-provided parameters
   */
-  ierr = PetscOptionsGetScalar(PETSC_NULL,"-L",&L,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(PETSC_NULL,"-alpha",&ctx->alpha,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(PETSC_NULL,"-beta",&ctx->beta,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(PETSC_NULL,"-delta1",&delta1,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(PETSC_NULL,"-delta2",&delta2,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,"-L",&L,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,"-alpha",&ctx->alpha,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,"-beta",&ctx->beta,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,"-delta1",&delta1,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,"-delta2",&delta2,NULL);CHKERRQ(ierr);
 
   /* 
      Create matrix T
@@ -125,7 +125,7 @@ int main(int argc,char **argv)
 
   ierr = MatAssemblyBegin(ctx->T,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(ctx->T,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->T,&n,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(ctx->T,&n,NULL);CHKERRQ(ierr);
 
   /* 
      Fill the remaining information in the shell matrix context
@@ -135,10 +135,10 @@ int main(int argc,char **argv)
   ctx->tau1 = delta1 / ((h*L)*(h*L));
   ctx->tau2 = delta2 / ((h*L)*(h*L));
   ctx->sigma = 0.0;
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,PETSC_NULL,&ctx->x1);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,PETSC_NULL,&ctx->x2);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,PETSC_NULL,&ctx->y1);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,PETSC_NULL,&ctx->y2);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,NULL,&ctx->x1);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,NULL,&ctx->x2);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,NULL,&ctx->y1);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,NULL,&ctx->y2);CHKERRQ(ierr);
 
   /* 
      Create the shell matrix
@@ -160,7 +160,7 @@ int main(int argc,char **argv)
   /* 
      Set operators. In this case, it is a standard eigenvalue problem
   */
-  ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
 
   /*
@@ -184,14 +184,14 @@ int main(int argc,char **argv)
   */
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&ctx->T);CHKERRQ(ierr);
@@ -216,7 +216,7 @@ PetscErrorCode MatBrussel_Mult(Mat A,Vec x,Vec y)
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->T,&n,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(ctx->T,&n,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
@@ -270,7 +270,7 @@ PetscErrorCode MatBrussel_GetDiagonal(Mat A,Vec diag)
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->T,&n,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(ctx->T,&n,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(comm,1,n,PETSC_DECIDE,pd,&d1);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(comm,1,n,PETSC_DECIDE,pd+n,&d2);CHKERRQ(ierr);

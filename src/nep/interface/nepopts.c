@@ -54,7 +54,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!NEPRegisterAllCalled) { ierr = NEPRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
+  if (!NEPRegisterAllCalled) { ierr = NEPRegisterAll(NULL);CHKERRQ(ierr); }
   if (!nep->ip) { ierr = NEPGetIP(nep,&nep->ip);CHKERRQ(ierr); }
   ierr = PetscObjectOptionsBegin((PetscObject)nep);CHKERRQ(ierr);
     ierr = PetscOptionsList("-nep_type","Nonlinear Eigenvalue Problem method","NEPSetType",NEPList,(char*)(((PetscObject)nep)->type_name?((PetscObject)nep)->type_name:NEPRII),type,256,&flg);CHKERRQ(ierr);
@@ -64,21 +64,21 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
     }
 
-    r1 = r2 = r3 = i = j = PETSC_IGNORE;
-    ierr = PetscOptionsInt("-nep_max_it","Maximum number of iterations","NEPSetTolerances",nep->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-nep_max_funcs","Maximum number of function evaluations","NEPSetTolerances",nep->max_funcs,&j,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-nep_atol","Absolute tolerance for residual norm","NEPSetTolerances",nep->abstol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->abstol,&r1,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-nep_rtol","Relative tolerance for residual norm","NEPSetTolerances",nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->rtol,&r2,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-nep_stol","Relative tolerance for step length","NEPSetTolerances",nep->stol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->stol,&r3,PETSC_NULL);CHKERRQ(ierr);
+    r1 = r2 = r3 = i = j = 0;
+    ierr = PetscOptionsInt("-nep_max_it","Maximum number of iterations","NEPSetTolerances",nep->max_it,&i,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_max_funcs","Maximum number of function evaluations","NEPSetTolerances",nep->max_funcs,&j,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-nep_atol","Absolute tolerance for residual norm","NEPSetTolerances",nep->abstol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->abstol,&r1,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-nep_rtol","Relative tolerance for residual norm","NEPSetTolerances",nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->rtol,&r2,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-nep_stol","Relative tolerance for step length","NEPSetTolerances",nep->stol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->stol,&r3,NULL);CHKERRQ(ierr);
     ierr = NEPSetTolerances(nep,r1,r2,r3,i,j);CHKERRQ(ierr);
     flg  = PETSC_FALSE;
-    ierr = PetscOptionsBool("-nep_convergence_default","Default (relative error) convergence test","NEPSetConvergenceTest",flg,&flg,PETSC_NULL);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetConvergenceTest(nep,NEPConvergedDefault,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBool("-nep_convergence_default","Default (relative error) convergence test","NEPSetConvergenceTest",flg,&flg,NULL);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetConvergenceTest(nep,NEPConvergedDefault,NULL,NULL);CHKERRQ(ierr); }
 
-    i = j = k = PETSC_IGNORE;
-    ierr = PetscOptionsInt("-nep_nev","Number of eigenvalues to compute","NEPSetDimensions",nep->nev,&i,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-nep_ncv","Number of basis vectors","NEPSetDimensions",nep->ncv,&j,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-nep_mpd","Maximum dimension of projected problem","NEPSetDimensions",nep->mpd,&k,PETSC_NULL);CHKERRQ(ierr);
+    i = j = k = 0;
+    ierr = PetscOptionsInt("-nep_nev","Number of eigenvalues to compute","NEPSetDimensions",nep->nev,&i,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ncv","Number of basis vectors","NEPSetDimensions",nep->ncv,&j,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_mpd","Maximum dimension of projected problem","NEPSetDimensions",nep->mpd,&k,NULL);CHKERRQ(ierr);
     ierr = NEPSetDimensions(nep,i,j,k);CHKERRQ(ierr);
 
     ierr = PetscOptionsScalar("-nep_target","Value of the target","NEPSetTarget",nep->target,&s,&flg);CHKERRQ(ierr);
@@ -92,7 +92,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       Cancels all monitors hardwired into code before call to NEPSetFromOptions()
     */
     flg  = PETSC_FALSE;
-    ierr = PetscOptionsBool("-nep_monitor_cancel","Remove any hardwired monitor routines","NEPMonitorCancel",flg,&flg,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-nep_monitor_cancel","Remove any hardwired monitor routines","NEPMonitorCancel",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = NEPMonitorCancel(nep);CHKERRQ(ierr);
     }
@@ -117,14 +117,14 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-nep_monitor_draw","Monitor first unconverged approximate error estimate graphically","NEPMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsBool("-nep_monitor_draw","Monitor first unconverged approximate error estimate graphically","NEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
     if (flg) {
-      ierr = NEPMonitorSet(nep,NEPMonitorLG,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = NEPMonitorSet(nep,NEPMonitorLG,NULL,NULL);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-nep_monitor_draw_all","Monitor error estimates graphically","NEPMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsBool("-nep_monitor_draw_all","Monitor error estimates graphically","NEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
     if (flg) {
-      ierr = NEPMonitorSet(nep,NEPMonitorLGAll,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = NEPMonitorSet(nep,NEPMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
       ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
@@ -187,7 +187,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 -  maxf   - maximum number of function evaluations
 
    Notes:
-   The user can specify PETSC_NULL for any parameter that is not needed.
+   The user can specify NULL for any parameter that is not needed.
 
    Level: intermediate
 
@@ -229,7 +229,7 @@ PetscErrorCode NEPGetTolerances(NEP nep,PetscReal *abstol,PetscReal *rtol,PetscR
 -    -nep_max_funcs <maxf> - Sets maxf
 
    Notes:
-   Use PETSC_IGNORE for an argument that need not be changed.
+   Pass 0 for an argument that need not be changed.
 
    Use PETSC_DECIDE for maxits to assign a reasonably good value, which is 
    dependent on the solution method.
@@ -247,7 +247,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
   PetscValidLogicalCollectiveReal(nep,stol,4);
   PetscValidLogicalCollectiveInt(nep,maxit,5);
   PetscValidLogicalCollectiveInt(nep,maxf,6);
-  if (abstol != PETSC_IGNORE) {
+  if (abstol) {
     if (abstol == PETSC_DEFAULT) {
       nep->abstol = PETSC_DEFAULT;
     } else {
@@ -255,7 +255,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
       nep->abstol = abstol;
     }
   }
-  if (rtol != PETSC_IGNORE) {
+  if (rtol) {
     if (rtol == PETSC_DEFAULT) {
       nep->rtol = PETSC_DEFAULT;
     } else {
@@ -263,7 +263,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
       nep->rtol = rtol;
     }
   }
-  if (stol != PETSC_IGNORE) {
+  if (stol) {
     if (stol == PETSC_DEFAULT) {
       nep->stol = PETSC_DEFAULT;
     } else {
@@ -271,7 +271,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
       nep->stol = stol;
     }
   }
-  if (maxit != PETSC_IGNORE) {
+  if (maxit) {
     if (maxit == PETSC_DEFAULT || maxit == PETSC_DECIDE) {
       nep->max_it = 0;
       nep->setupcalled = 0;
@@ -280,7 +280,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
       nep->max_it = maxit;
     }
   }
-  if (maxf != PETSC_IGNORE) {
+  if (maxf) {
     if (maxf == PETSC_DEFAULT || maxf == PETSC_DECIDE) {
       nep->max_it = 0;
       nep->setupcalled = 0;
@@ -309,7 +309,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
 -  mpd - the maximum dimension allowed for the projected problem
 
    Notes:
-   The user can specify PETSC_NULL for any parameter that is not needed.
+   The user can specify NULL for any parameter that is not needed.
 
    Level: intermediate
 
@@ -345,7 +345,7 @@ PetscErrorCode NEPGetDimensions(NEP nep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
 -  -nep_mpd <mpd> - Sets the maximum projected dimension
 
    Notes:
-   Use PETSC_IGNORE to retain the previous value of any parameter.
+   Pass 0 to retain the previous value of any parameter.
 
    Use PETSC_DECIDE for ncv and mpd to assign a reasonably good value, which is
    dependent on the solution method.
@@ -370,12 +370,12 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(nep,nev,2);
   PetscValidLogicalCollectiveInt(nep,ncv,3);
   PetscValidLogicalCollectiveInt(nep,mpd,4);
-  if (nev != PETSC_IGNORE) {
+  if (nev) {
     if (nev<1) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
     nep->nev = nev;
     nep->setupcalled = 0;
   }
-  if (ncv != PETSC_IGNORE) {
+  if (ncv) {
     if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
       nep->ncv = 0;
     } else {
@@ -384,7 +384,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     }
     nep->setupcalled = 0;
   }
-  if (mpd != PETSC_IGNORE) {
+  if (mpd) {
     if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
       nep->mpd = 0;
     } else {
@@ -446,7 +446,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(nep,which,2);
-  if (which!=PETSC_IGNORE) {
+  if (which) {
     if (which==PETSC_DECIDE || which==PETSC_DEFAULT) nep->which = (NEPWhich)0;
     else switch (which) {
       case NEP_LARGEST_MAGNITUDE:
@@ -513,8 +513,10 @@ PetscErrorCode NEPGetWhichEigenpairs(NEP nep,NEPWhich *which)
     Input Parameters:
 +   nep     - the NEP context
 .   func    - a pointer to the convergence test function
-.   ctx     - [optional] context for private data for the convergence routine (may be PETSC_NULL)
--   destroy - [optional] destructor for the context (may be PETSC_NULL; PETSC_NULL_FUNCTION in Fortran)
+.   ctx     - [optional] context for private data for the convergence routine
+              (may be NULL)
+-   destroy - [optional] destructor for the context (may be NULL;
+              PETSC_NULL_FUNCTION in Fortran)
 
     Calling Sequence of func:
 $   func(NEP nep,PetscInt it,PetscReal xnorm,PetscReal snorm,PetscReal fnorm,NEPConvergedReason reason*,void *fctx)

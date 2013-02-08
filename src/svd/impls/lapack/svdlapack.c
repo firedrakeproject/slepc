@@ -69,8 +69,8 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
       
   n = PetscMin(M,N);
   ierr = PetscMalloc(sizeof(PetscScalar)*n,&w);CHKERRQ(ierr);
-  ierr = DSSolve(svd->ds,w,PETSC_NULL);CHKERRQ(ierr);
-  ierr = DSSort(svd->ds,w,PETSC_NULL,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
+  ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   
   /* copy singular vectors */
   ierr = DSGetArray(svd->ds,DS_MAT_U,&pU);CHKERRQ(ierr);

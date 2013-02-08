@@ -52,7 +52,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (!MFNRegisterAllCalled) { ierr = MFNRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
+  if (!MFNRegisterAllCalled) { ierr = MFNRegisterAll(NULL);CHKERRQ(ierr); }
   ierr = PetscObjectOptionsBegin((PetscObject)mfn);CHKERRQ(ierr);
     ierr = PetscOptionsList("-mfn_type","Matrix Function method","MFNSetType",MFNList,(char*)(((PetscObject)mfn)->type_name?((PetscObject)mfn)->type_name:MFNKRYLOV),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -70,17 +70,17 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
       ierr = MFNSetFunction(mfn,SLEPC_FUNCTION_EXP);CHKERRQ(ierr);
     }
 
-    r = PETSC_IGNORE;
-    ierr = PetscOptionsReal("-mfn_scale","Scale factor","MFNSetScaleFactor",mfn->sfactor,&r,PETSC_NULL);CHKERRQ(ierr);
+    r = 0;
+    ierr = PetscOptionsReal("-mfn_scale","Scale factor","MFNSetScaleFactor",mfn->sfactor,&r,NULL);CHKERRQ(ierr);
     ierr = MFNSetScaleFactor(mfn,r);CHKERRQ(ierr);
 
-    r = i = PETSC_IGNORE;
-    ierr = PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-mfn_tol","Tolerance","MFNSetTolerances",mfn->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:mfn->tol,&r,PETSC_NULL);CHKERRQ(ierr);
+    r = i = 0;
+    ierr = PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-mfn_tol","Tolerance","MFNSetTolerances",mfn->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:mfn->tol,&r,NULL);CHKERRQ(ierr);
     ierr = MFNSetTolerances(mfn,r,i);CHKERRQ(ierr);
 
-    i = PETSC_IGNORE;
-    ierr = PetscOptionsInt("-mfn_ncv","Number of basis vectors","MFNSetDimensions",mfn->ncv,&i,PETSC_NULL);CHKERRQ(ierr);
+    i = 0;
+    ierr = PetscOptionsInt("-mfn_ncv","Number of basis vectors","MFNSetDimensions",mfn->ncv,&i,NULL);CHKERRQ(ierr);
     ierr = MFNSetDimensions(mfn,i);CHKERRQ(ierr);
     
     /* -----------------------------------------------------------------------*/
@@ -88,7 +88,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
       Cancels all monitors hardwired into code before call to MFNSetFromOptions()
     */
     flg  = PETSC_FALSE;
-    ierr = PetscOptionsBool("-mfn_monitor_cancel","Remove any hardwired monitor routines","MFNMonitorCancel",flg,&flg,PETSC_NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-mfn_monitor_cancel","Remove any hardwired monitor routines","MFNMonitorCancel",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = MFNMonitorCancel(mfn);CHKERRQ(ierr);
     }
@@ -101,9 +101,9 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
       ierr = MFNMonitorSet(mfn,MFNMonitorDefault,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-mfn_monitor_draw","Monitor error estimate graphically","MFNMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsBool("-mfn_monitor_draw","Monitor error estimate graphically","MFNMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
     if (flg) {
-      ierr = MFNMonitorSet(mfn,MFNMonitorLG,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+      ierr = MFNMonitorSet(mfn,MFNMonitorLG,NULL,NULL);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
 
@@ -139,7 +139,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
 -  maxits - maximum number of iterations
 
    Notes:
-   The user can specify PETSC_NULL for any parameter that is not needed.
+   The user can specify NULL for any parameter that is not needed.
 
    Level: intermediate
 
@@ -172,7 +172,7 @@ PetscErrorCode MFNGetTolerances(MFN mfn,PetscReal *tol,PetscInt *maxits)
 -  -mfn_max_it <maxits> - Sets the maximum number of iterations allowed
 
    Notes:
-   Use PETSC_IGNORE for an argument that need not be changed.
+   Pass 0 for an argument that need not be changed.
 
    Use PETSC_DECIDE for maxits to assign a reasonably good value, which is 
    dependent on the solution method.
@@ -187,7 +187,7 @@ PetscErrorCode MFNSetTolerances(MFN mfn,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidLogicalCollectiveReal(mfn,tol,2);
   PetscValidLogicalCollectiveInt(mfn,maxits,3);
-  if (tol != PETSC_IGNORE) {
+  if (tol) {
     if (tol == PETSC_DEFAULT) {
       mfn->tol = PETSC_DEFAULT;
     } else {
@@ -195,7 +195,7 @@ PetscErrorCode MFNSetTolerances(MFN mfn,PetscReal tol,PetscInt maxits)
       mfn->tol = tol;
     }
   }
-  if (maxits != PETSC_IGNORE) {
+  if (maxits) {
     if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
       mfn->max_it = 0;
       mfn->setupcalled = 0;
@@ -260,7 +260,7 @@ PetscErrorCode MFNSetDimensions(MFN mfn,PetscInt ncv)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidLogicalCollectiveInt(mfn,ncv,2);
-  if (ncv != PETSC_IGNORE) {
+  if (ncv) {
     if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
       mfn->ncv = 0;
     } else {

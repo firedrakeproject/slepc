@@ -187,7 +187,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (eps->nds > 0) {
     blopex->Y = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->nds,eps->defl);
     for (i=0;i<eps->nds;i++) { ierr = PetscObjectReference((PetscObject)eps->defl[i]);CHKERRQ(ierr); }
-  } else blopex->Y = PETSC_NULL;
+  } else blopex->Y = NULL;
 
 #if defined(PETSC_USE_COMPLEX)
   blopex->blap_fn.zpotrf = PETSC_zpotrf_interface;
@@ -213,12 +213,12 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
   PetscScalar    sigma;
   int            i,j,info,its,nconv;
-  double         *residhist=PETSC_NULL;
+  double         *residhist=NULL;
   PetscErrorCode ierr;
 #if defined(PETSC_USE_COMPLEX)
-  komplex        *lambdahist=PETSC_NULL;
+  komplex        *lambdahist=NULL;
 #else
-  double         *lambdahist=PETSC_NULL;
+  double         *lambdahist=NULL;
 #endif
   
   PetscFunctionBegin;
@@ -238,13 +238,13 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 
 #if defined(PETSC_USE_COMPLEX)
   info = lobpcg_solve_complex(blopex->eigenvectors,eps,OperatorAMultiVector,
-        eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
+        eps->isgeneralized?eps:NULL,eps->isgeneralized?OperatorBMultiVector:NULL,
         eps,Precond_FnMultiVector,blopex->Y,
         blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
         (komplex*)eps->eigr,lambdahist,eps->ncv,eps->errest,residhist,eps->ncv);
 #else
   info = lobpcg_solve_double(blopex->eigenvectors,eps,OperatorAMultiVector,
-        eps->isgeneralized?eps:PETSC_NULL,eps->isgeneralized?OperatorBMultiVector:PETSC_NULL,
+        eps->isgeneralized?eps:NULL,eps->isgeneralized?OperatorBMultiVector:NULL,
         eps,Precond_FnMultiVector,blopex->Y,
         blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
         eps->eigr,lambdahist,eps->ncv,eps->errest,residhist,eps->ncv);

@@ -116,7 +116,7 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
         data->oldV = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
       }
     } else {
-      data->oldV = PETSC_NULL;
+      data->oldV = NULL;
     }
 
     data->old_updateV_data = d->updateV_data;
@@ -152,7 +152,7 @@ PetscErrorCode dvd_updateV_start(dvdDashboard *d)
   d->errest = d->real_errest;
   for (i=0;i<d->size_real_V;i++) d->errest[i] = PETSC_MAX_REAL;
   data->ldoldU = 0;
-  data->oldV = PETSC_NULL;
+  data->oldV = NULL;
   data->size_oldU = 0;
   d->nconv = 0;
   d->npreconv = 0;
@@ -431,7 +431,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 #else
   s = 1;
 #endif
-  ierr = dvd_updateV_testConv(d,s,s,data->allResiduals?d->size_V:size_D,d->auxV,d->auxS,PETSC_NULL);CHKERRQ(ierr);
+  ierr = dvd_updateV_testConv(d,s,s,data->allResiduals?d->size_V:size_D,d->auxV,d->auxS,NULL);CHKERRQ(ierr);
 
   /* Notify the changes in V */
   d->V_tra_s = 0;                 d->V_tra_e = 0;

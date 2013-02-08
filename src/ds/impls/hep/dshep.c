@@ -517,7 +517,7 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   n1,n2,n3,lwork,liwork,info,l,n,m,ld,off,il,iu,*isuppz;
-  PetscScalar    *A,*Q,*W=PETSC_NULL,one=1.0,zero=0.0;
+  PetscScalar    *A,*Q,*W=NULL,one=1.0,zero=0.0;
   PetscReal      *d,*e,abstol=0.0,vl,vu;
 #if defined(PETSC_USE_COMPLEX)
   PetscInt       j;
@@ -789,7 +789,7 @@ PetscErrorCode DSFunction_EXP_HEP_DIAG(DS ds)
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc(n*sizeof(PetscScalar),&eig);CHKERRQ(ierr);
-  ierr = DSSolve(ds,eig,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSolve(ds,eig,NULL);CHKERRQ(ierr);
   if (!ds->mat[DS_MAT_W]) {
     ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
   }

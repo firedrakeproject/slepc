@@ -827,7 +827,7 @@ static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds,DSMatType mat,PetscScalar
          /* s-orthogonalization with close eigenvalues */
         if (vj==0.0) {
           if (PetscAbsScalar(wr[j]-wr[i])<toldeg) {
-            ierr = IndefOrthog(s+ds->l,X+j*ld+ds->l,ss[j],X+i*ld+ds->l,PETSC_NULL,n1);CHKERRQ(ierr);
+            ierr = IndefOrthog(s+ds->l,X+j*ld+ds->l,ss[j],X+i*ld+ds->l,NULL,n1);CHKERRQ(ierr);
           }
         } else j++;
       }
@@ -954,9 +954,9 @@ PetscErrorCode DSGHIEPPseudoOrthogInverseIteration(DS ds,PetscScalar *wr,PetscSc
   X = ds->mat[DS_MAT_X];
   for (i=0;i<n1;i++)select[i]=1;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCall("LAPACKhsein",LAPACKhsein_("R","N","N",select,&n1,H+off,&ld,wr+ds->l,wi+ds->l,PETSC_NULL,&ld,X+off,&ld,&n1,&mout,ds->work,PETSC_NULL,infoC,&info));
+  PetscStackCall("LAPACKhsein",LAPACKhsein_("R","N","N",select,&n1,H+off,&ld,wr+ds->l,wi+ds->l,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,NULL,infoC,&info));
 #else
-  PetscStackCall("LAPACKhsein",LAPACKhsein_("R","N","N",select,&n1,H+off,&ld,wr+ds->l,PETSC_NULL,&ld,X+off,&ld,&n1,&mout,ds->work,ds->rwork,PETSC_NULL,infoC,&info));
+  PetscStackCall("LAPACKhsein",LAPACKhsein_("R","N","N",select,&n1,H+off,&ld,wr+ds->l,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,ds->rwork,NULL,infoC,&info));
 #endif
   if (info<0)SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in hsein routine %d",-i);
   if (info>0) {
@@ -1208,9 +1208,9 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
 
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCall("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,wi+ds->l,PETSC_NULL,&ld,work,&lwork,&info));
+  PetscStackCall("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,wi+ds->l,NULL,&ld,work,&lwork,&info));
 #else
-  PetscStackCall("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,PETSC_NULL,&ld,work,&lwork,&info));
+  PetscStackCall("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,NULL,&ld,work,&lwork,&info));
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",&info);
 
@@ -1322,9 +1322,9 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   
   /* Compute eigenvectors */
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCall("LAPACKtrevc",LAPACKtrevc_("R","B",PETSC_NULL,&n1,H+off,&ld,PETSC_NULL,&ld,Q+off,&ld,&n1,&mout,ds->work,&info));
+  PetscStackCall("LAPACKtrevc",LAPACKtrevc_("R","B",NULL,&n1,H+off,&ld,NULL,&ld,Q+off,&ld,&n1,&mout,ds->work,&info));
 #else
-  PetscStackCall("LAPACKtrevc",LAPACKtrevc_("R","B",PETSC_NULL,&n1,H+off,&ld,PETSC_NULL,&ld,Q+off,&ld,&n1,&mout,work,ds->rwork,&info));
+  PetscStackCall("LAPACKtrevc",LAPACKtrevc_("R","B",NULL,&n1,H+off,&ld,NULL,&ld,Q+off,&ld,&n1,&mout,work,ds->rwork,&info));
 #endif
   if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",&info);
 

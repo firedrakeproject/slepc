@@ -107,7 +107,7 @@ PetscErrorCode EPSSolve(EPS eps)
     data.which_ctx = eps->which_ctx;
     data.st = eps->st;
     eps->which_func = (eps->which==EPS_ALL)? SlepcCompareLargestMagnitude: EPSSortForSTFunc;
-    eps->which_ctx = (eps->which==EPS_ALL)? PETSC_NULL: &data;
+    eps->which_ctx = (eps->which==EPS_ALL)? NULL: &data;
   }
   ierr = DSSetEigenvalueComparison(eps->ds,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
 
@@ -140,7 +140,7 @@ PetscErrorCode EPSSolve(EPS eps)
     ierr = KSPCreate(((PetscObject)eps)->comm,&ksp);CHKERRQ(ierr);
     ierr = KSPSetOperators(ksp,B,B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
-    ierr = MatGetVecs(B,PETSC_NULL,&w);CHKERRQ(ierr);
+    ierr = MatGetVecs(B,NULL,&w);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
       ierr = VecCopy(eps->W[i],w);CHKERRQ(ierr);
       ierr = KSPSolveTranspose(ksp,w,eps->W[i]);CHKERRQ(ierr);
@@ -170,7 +170,7 @@ PetscErrorCode EPSSolve(EPS eps)
   /* quick and dirty solution for FOLD: recompute eigenvalues as Rayleigh quotients */
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFOLD,&isfold);CHKERRQ(ierr);
   if (isfold) {
-    ierr = MatGetVecs(A,&w,PETSC_NULL);CHKERRQ(ierr);
+    ierr = MatGetVecs(A,&w,NULL);CHKERRQ(ierr);
     if (!eps->evecsavailable) { ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr); }
     for (i=0;i<eps->nconv;i++) {
       x = eps->V[i];
@@ -188,7 +188,7 @@ PetscErrorCode EPSSolve(EPS eps)
   /* In the case of Cayley transform, eigenvectors need to be B-normalized */
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
   if (iscayley && eps->isgeneralized && eps->ishermitian) {
-    ierr = MatGetVecs(B,PETSC_NULL,&w);CHKERRQ(ierr);
+    ierr = MatGetVecs(B,NULL,&w);CHKERRQ(ierr);
     if (!eps->evecsavailable) { ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr); }
     for (i=0;i<eps->nconv;i++) {
       x = eps->V[i];
@@ -217,7 +217,7 @@ PetscErrorCode EPSSolve(EPS eps)
   }
 
   flg = PETSC_FALSE;
-  ierr = PetscOptionsGetBool(((PetscObject)eps)->prefix,"-eps_plot_eigs",&flg,PETSC_NULL);CHKERRQ(ierr); 
+  ierr = PetscOptionsGetBool(((PetscObject)eps)->prefix,"-eps_plot_eigs",&flg,NULL);CHKERRQ(ierr); 
   if (flg) { 
     ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
     ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
@@ -430,7 +430,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec *v)
   if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
     for (i=0;i<eps->nconv;i++) {
       ierr = VecPointwiseDivide(v[i],eps->V[i],eps->D);CHKERRQ(ierr);
-      ierr = VecNormalize(v[i],PETSC_NULL);CHKERRQ(ierr);
+      ierr = VecNormalize(v[i],NULL);CHKERRQ(ierr);
     }
   } else {
     for (i=0;i<eps->nconv;i++) {
@@ -1337,7 +1337,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscBool *breakdown
   }
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i,PETSC_NULL,eps->V,vec,PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,i,NULL,eps->V,vec,NULL,&norm,&lindep);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
     if (i==0) SETERRQ(((PetscObject)eps)->comm,1,"Initial vector is zero or belongs to the deflation space"); 
@@ -1409,7 +1409,7 @@ PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,Vec vec,PetscBool *break
   ierr = STApplyTranspose(eps->st,w,vec);CHKERRQ(ierr);
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,i,PETSC_NULL,eps->W,vec,PETSC_NULL,&norm,&lindep);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,0,NULL,i,NULL,eps->W,vec,NULL,&norm,&lindep);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
     if (i==0) SETERRQ(((PetscObject)eps)->comm,1,"Left initial vector is zero");

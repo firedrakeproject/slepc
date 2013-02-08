@@ -60,7 +60,7 @@ PetscErrorCode EPSFinalizePackage(void)
   on the first call to EPSCreate() when using static libraries.
 
   Input Parameter:
-  path - The dynamic library path, or PETSC_NULL
+  path - The dynamic library path, or NULL
 
   Level: developer
 
@@ -84,7 +84,7 @@ PetscErrorCode EPSInitializePackage(const char *path)
   ierr = PetscLogEventRegister("EPSSetUp",EPS_CLASSID,&EPS_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("EPSSolve",EPS_CLASSID,&EPS_Solve);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"eps",&className);CHKERRQ(ierr);
     if (className) {
@@ -92,7 +92,7 @@ PetscErrorCode EPSInitializePackage(const char *path)
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"eps",&className);CHKERRQ(ierr);
     if (className) {
@@ -347,7 +347,7 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
-  ierr = PetscOptionsHasName(PETSC_NULL,"-eps_terse",&terse);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,"-eps_terse",&terse);CHKERRQ(ierr);
   if (terse) {
     if (eps->nconv<eps->nev) {
       ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D eigenvalues converged\n\n",eps->nev);CHKERRQ(ierr);
@@ -362,7 +362,7 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
         for (i=0;i<=(eps->nev-1)/8;i++) {
           ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
           for (j=0;j<PetscMin(8,eps->nev-8*i);j++) {
-            ierr = EPSGetEigenpair(eps,8*i+j,&kr,&ki,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+            ierr = EPSGetEigenpair(eps,8*i+j,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
             re = PetscRealPart(kr);
             im = PetscImaginaryPart(kr);
@@ -392,7 +392,7 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
            "           k          ||Ax-k%sx||/||kx||\n"
            "   ----------------- ------------------\n",eps->isgeneralized?"B":"");CHKERRQ(ierr);
       for (i=0;i<eps->nconv;i++) {
-        ierr = EPSGetEigenpair(eps,i,&kr,&ki,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = EPSGetEigenpair(eps,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
         ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
         re = PetscRealPart(kr);
@@ -455,12 +455,12 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->tol             = PETSC_DEFAULT;
   eps->conv            = EPS_CONV_EIG;
   eps->conv_func       = EPSConvergedEigRelative;
-  eps->conv_ctx        = PETSC_NULL;
+  eps->conv_ctx        = NULL;
   eps->which           = (EPSWhich)0;
-  eps->which_func      = PETSC_NULL;
-  eps->which_ctx       = PETSC_NULL;
-  eps->arbit_func      = PETSC_NULL;
-  eps->arbit_ctx       = PETSC_NULL;
+  eps->which_func      = NULL;
+  eps->which_ctx       = NULL;
+  eps->arbit_func      = NULL;
+  eps->arbit_ctx       = NULL;
   eps->leftvecs        = PETSC_FALSE;
   eps->trueres         = PETSC_FALSE;
   eps->trackall        = PETSC_FALSE;
@@ -496,7 +496,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->data            = 0;
   eps->nconv           = 0;
   eps->its             = 0;
-  eps->perm            = PETSC_NULL;
+  eps->perm            = NULL;
 
   eps->nwork           = 0;
   eps->work            = 0;

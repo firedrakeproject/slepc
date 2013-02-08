@@ -45,7 +45,7 @@ PetscErrorCode MatMult_Linear_S2A(Mat A,Vec x,Vec y)
   
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->M,&m,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
@@ -79,7 +79,7 @@ PetscErrorCode MatMult_Linear_S2B(Mat B,Vec x,Vec y)
   
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->M,&m,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
@@ -114,7 +114,7 @@ PetscErrorCode MatGetDiagonal_Linear_S2A(Mat A,Vec diag)
   
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->M,&m,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
   ierr = VecPlaceArray(ctx->x1,pd);CHKERRQ(ierr);
   ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
@@ -139,7 +139,7 @@ PetscErrorCode MatGetDiagonal_Linear_S2B(Mat B,Vec diag)
   
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->M,&m,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
   ierr = VecPlaceArray(ctx->x1,pd);CHKERRQ(ierr);
   ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);

@@ -54,7 +54,7 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
   if (!st->T[k]) {
-    /* T[k]=PETSC_NULL means identity matrix */
+    /* T[k]=NULL means identity matrix */
     ierr = VecCopy(x,y);CHKERRQ(ierr);
   } else {
     ierr = MatMult(st->T[k],x,y);CHKERRQ(ierr);
@@ -91,7 +91,7 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
   if (!st->T[k]) {
-    /* T[k]=PETSC_NULL means identity matrix */
+    /* T[k]=NULL means identity matrix */
     ierr = VecCopy(x,y);CHKERRQ(ierr);
   } else {
     ierr = MatMultTranspose(st->T[k],x,y);CHKERRQ(ierr);
@@ -132,7 +132,7 @@ PetscErrorCode STMatSolve(ST st,PetscInt k,Vec b,Vec x)
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STFOLD,STPRECOND,STSHELL,"");CHKERRQ(ierr);
   if (!flg && !st->T[k]) {
-    /* T[k]=PETSC_NULL means identity matrix */
+    /* T[k]=NULL means identity matrix */
     ierr = VecCopy(b,x);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
@@ -185,7 +185,7 @@ PetscErrorCode STMatSolveTranspose(ST st,PetscInt k,Vec b,Vec x)
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
   if (!flg && !st->T[k]) {
-    /* T[k]=PETSC_NULL means identity matrix */
+    /* T[k]=NULL means identity matrix */
     ierr = VecCopy(b,x);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
@@ -282,7 +282,7 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
 .  ksp  - the linear system context
 
    Notes:
-   On output, the value of ksp can be PETSC_NULL if the combination of 
+   On output, the value of ksp can be NULL if the combination of 
    eigenproblem type and selected transformation does not require to 
    solve a linear system of equations.
    
@@ -324,7 +324,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 -  lits - number of linear solver iterations
 
    Notes:
-   Any output parameter may be PETSC_NULL on input if not needed. 
+   Any output parameter may be NULL on input if not needed. 
    
    Level: intermediate
 
@@ -380,8 +380,8 @@ PetscErrorCode STCheckNullSpace_Default(ST st,PetscInt n,const Vec V[])
   ierr = PetscMalloc(n*sizeof(Vec),&T);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
-  ierr = PCGetOperators(pc,&A,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,PETSC_NULL,&w);CHKERRQ(ierr);
+  ierr = PCGetOperators(pc,&A,NULL,NULL);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,NULL,&w);CHKERRQ(ierr);
   c = 0;
   for (i=0;i<n;i++) {
     ierr = MatMult(A,V[i],w);CHKERRQ(ierr);

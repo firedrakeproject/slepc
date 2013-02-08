@@ -897,7 +897,7 @@ PetscErrorCode VecsOrthonormalize(Vec *V,PetscInt n,PetscScalar *wS0,PetscScalar
   }
 
   /* H <- V' * V */
-  ierr = VecsMult(H, 0, n, V, 0, n, V, 0, n, T, PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecsMult(H, 0, n, V, 0, n, V, 0, n, T, NULL);CHKERRQ(ierr);
 
   /* H <- chol(H) */
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
@@ -1005,19 +1005,19 @@ PetscErrorCode dvd_orthV(IP ip,Vec *defl,PetscInt size_DS,Vec *cX,PetscInt size_
       if (j>0) { ierr = SlepcVecSetRandom(V[i], rand);CHKERRQ(ierr); }
       if (cX + size_cX == V) {
         /* If cX and V are contiguous, orthogonalize in one step */
-        ierr = IPOrthogonalize(ip, size_DS, defl, size_cX+i, PETSC_NULL, cX,
+        ierr = IPOrthogonalize(ip, size_DS, defl, size_cX+i, NULL, cX,
                                V[i], auxS0, &norm, &lindep);CHKERRQ(ierr);
       } else if (defl) {
         /* Else orthogonalize first against defl, and then against cX and V */
-        ierr = IPOrthogonalize(ip, size_DS, defl, size_cX, PETSC_NULL, cX,
-                               V[i], auxS0, PETSC_NULL, &lindep);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(ip, size_DS, defl, size_cX, NULL, cX,
+                               V[i], auxS0, NULL, &lindep);CHKERRQ(ierr);
         if (!lindep) {
-          ierr = IPOrthogonalize(ip, 0, PETSC_NULL, i, PETSC_NULL, V,
+          ierr = IPOrthogonalize(ip, 0, NULL, i, NULL, V,
                                  V[i], auxS0, &norm, &lindep);CHKERRQ(ierr);
         }
       } else {
         /* Else orthogonalize first against cX and then against V */
-        ierr = IPOrthogonalize(ip, size_cX, cX, i, PETSC_NULL, V,
+        ierr = IPOrthogonalize(ip, size_cX, cX, i, NULL, V,
                                V[i], auxS0, &norm, &lindep);CHKERRQ(ierr);
       }
       if (!lindep && (norm > PETSC_SQRT_MACHINE_EPSILON)) break;
@@ -1047,19 +1047,19 @@ PetscErrorCode dvd_BorthV_faster(IP ip,Vec *defl,Vec *BDS,PetscReal *BDSn,PetscI
       if (j>0) { ierr = SlepcVecSetRandom(V[i],rand);CHKERRQ(ierr); }
       if (cX + size_cX == V && BcX + size_cX == BV) {
         /* If cX and V are contiguous, orthogonalize in one step */
-        ierr = IPBOrthogonalize(ip, size_DS, defl, BDS, BDSn, size_cX+i, PETSC_NULL, cX, BcX, BcXn,
+        ierr = IPBOrthogonalize(ip, size_DS, defl, BDS, BDSn, size_cX+i, NULL, cX, BcX, BcXn,
                                V[i], BV[i], auxS0, &norm, &lindep);CHKERRQ(ierr);
       } else if (defl) {
         /* Else orthogonalize first against defl, and then against cX and V */
-        ierr = IPBOrthogonalize(ip, size_DS, defl, BDS, BDSn, size_cX, PETSC_NULL, cX, BcX, BcXn,
-                               V[i], BV[i], auxS0, PETSC_NULL, &lindep);CHKERRQ(ierr);
+        ierr = IPBOrthogonalize(ip, size_DS, defl, BDS, BDSn, size_cX, NULL, cX, BcX, BcXn,
+                               V[i], BV[i], auxS0, NULL, &lindep);CHKERRQ(ierr);
         if (!lindep) {
-          ierr = IPBOrthogonalize(ip, 0, PETSC_NULL, PETSC_NULL, PETSC_NULL, i, PETSC_NULL, V, BV, BVn,
+          ierr = IPBOrthogonalize(ip, 0, NULL, NULL, NULL, i, NULL, V, BV, BVn,
                                   V[i], BV[i], auxS0, &norm, &lindep);CHKERRQ(ierr);
         }
       } else {
         /* Else orthogonalize first against cX and then against V */
-        ierr = IPBOrthogonalize(ip, size_cX, cX, BcX, BcXn, i, PETSC_NULL, V, BV, BVn,
+        ierr = IPBOrthogonalize(ip, size_cX, cX, BcX, BcXn, i, NULL, V, BV, BVn,
                                 V[i], BV[i], auxS0, &norm, &lindep);CHKERRQ(ierr);
       }
       if (!lindep && (PetscAbs(norm) > PETSC_SQRT_MACHINE_EPSILON)) break;
@@ -1097,7 +1097,7 @@ PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_D
       }
       /* Orthogonalize against the deflation, if needed */
       if (defl) {
-        ierr = IPPseudoOrthogonalize(ip,size_DS,defl,BDSn,V[i],auxS0,PETSC_NULL,&lindep);CHKERRQ(ierr);
+        ierr = IPPseudoOrthogonalize(ip,size_DS,defl,BDSn,V[i],auxS0,NULL,&lindep);CHKERRQ(ierr);
         if (lindep) continue;
       }
       /* If cX and V are contiguous, orthogonalize in one step */
@@ -1105,7 +1105,7 @@ PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_D
         ierr = IPPseudoOrthogonalize(ip,size_cX+i,cX,BcXn,V[i],auxS0,&norm,&lindep);CHKERRQ(ierr);
       /* Else orthogonalize first against cX and then against V */
       } else {
-        ierr = IPPseudoOrthogonalize(ip,size_cX,cX,BcXn,V[i],auxS0,PETSC_NULL,&lindep);CHKERRQ(ierr);
+        ierr = IPPseudoOrthogonalize(ip,size_cX,cX,BcXn,V[i],auxS0,NULL,&lindep);CHKERRQ(ierr);
         if (lindep) continue;
         ierr = IPPseudoOrthogonalize(ip,i,V,BVn,V[i],auxS0,&norm,&lindep);CHKERRQ(ierr);
       }

@@ -52,7 +52,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
     ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
     if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
-    PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);
+    PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
     ierra = SlepcMatConvertSeqDense(A,&Adense);CHKERRQ(ierr);
     if (eps->isgeneralized) {
       ierrb = SlepcMatConvertSeqDense(B,&Bdense);CHKERRQ(ierr);
@@ -61,7 +61,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     }
     PetscPopErrorHandler();
     denseok = (ierra == 0 && ierrb == 0)? PETSC_TRUE: PETSC_FALSE;
-  } else Adense = PETSC_NULL;
+  } else Adense = NULL;
 
   /* setup DS */
   if (denseok) {
@@ -87,7 +87,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = DSSetDimensions(eps->ds,eps->ncv,PETSC_IGNORE,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(eps->ds,eps->ncv,0,0,0);CHKERRQ(ierr);
 
   if (denseok) {
     ierr = STGetShift(eps->st,&shift);CHKERRQ(ierr);
@@ -107,7 +107,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   }
 
   /* fill DS matrices */
-  ierr = VecCreateSeqWithArray(PETSC_COMM_SELF,1,ld,PETSC_NULL,&v);CHKERRQ(ierr);
+  ierr = VecCreateSeqWithArray(PETSC_COMM_SELF,1,ld,NULL,&v);CHKERRQ(ierr);
   ierr = DSGetArray(eps->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
   for (i=0;i<ld;i++) {
     ierr = VecPlaceArray(v,Ap+i*ld);CHKERRQ(ierr);
@@ -141,10 +141,10 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   
   PetscFunctionBegin;
   ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-  ierr = DSSort(eps->ds,eps->eigr,eps->eigi,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
 
   /* right eigenvectors */
-  ierr = DSVectors(eps->ds,DS_MAT_X,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
   for (i=0;i<eps->ncv;i++) {
     ierr = VecGetOwnershipRange(eps->V[i],&low,&high);CHKERRQ(ierr);
@@ -156,7 +156,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
 
   /* left eigenvectors */
   if (eps->leftvecs) {
-    ierr = DSVectors(eps->ds,DS_MAT_Y,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSVectors(eps->ds,DS_MAT_Y,NULL,NULL);CHKERRQ(ierr);
     ierr = DSGetArray(eps->ds,DS_MAT_Y,&pY);CHKERRQ(ierr);
     for (i=0;i<eps->ncv;i++) {
       ierr = VecGetOwnershipRange(eps->W[i],&low,&high);CHKERRQ(ierr);

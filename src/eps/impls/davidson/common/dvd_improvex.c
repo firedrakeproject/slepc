@@ -160,7 +160,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
     data->old_improveX_data = d->improveX_data;
     d->improveX_data = data;
     data->old_improveX = d->improveX;
-    data->ksp = useGD?PETSC_NULL:ksp;
+    data->ksp = useGD?NULL:ksp;
     data->d = d;
     d->improveX = dvd_improvex_jd_gen;
     data->ksp_max_size = max_bs;
@@ -191,7 +191,7 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
   /* Setup the ksp */
   if (data->ksp) {
     /* Create the reference vector */
-    ierr = VecCreateCompWithVecs(d->V, data->ksp_max_size, PETSC_NULL,
+    ierr = VecCreateCompWithVecs(d->V, data->ksp_max_size, NULL,
                                  &data->friends);CHKERRQ(ierr);
 
     /* Save the current pc and set a PCNONE */
@@ -226,12 +226,12 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
                                 (void(*)(void))dvd_matgetvecs_jd);CHKERRQ(ierr);
 
     /* Try to avoid KSPReset */
-    ierr = KSPGetOperatorsSet(data->ksp,&t,PETSC_NULL);CHKERRQ(ierr);
+    ierr = KSPGetOperatorsSet(data->ksp,&t,NULL);CHKERRQ(ierr);
     if (t) {
       Mat M;
       PetscInt rM;
-      ierr = KSPGetOperators(data->ksp,&M,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
-      ierr = MatGetSize(M,&rM,PETSC_NULL);CHKERRQ(ierr);
+      ierr = KSPGetOperators(data->ksp,&M,NULL,NULL);CHKERRQ(ierr);
+      ierr = MatGetSize(M,&rM,NULL);CHKERRQ(ierr);
       if (rM != rA*data->ksp_max_size) { ierr = KSPReset(data->ksp);CHKERRQ(ierr); }
     }
     ierr = KSPSetOperators(data->ksp, A, A, SAME_PRECONDITIONER);CHKERRQ(ierr);
@@ -239,7 +239,7 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
     ierr = MatDestroy(&A);CHKERRQ(ierr);
   } else {
     data->old_pc = 0;
-    data->friends = PETSC_NULL;
+    data->friends = NULL;
   }
   PetscFunctionReturn(0);
 }
@@ -297,7 +297,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
    /* Callback old improveX */
     if (data->old_improveX) {
       d->improveX_data = data->old_improveX_data;
-      data->old_improveX(d, PETSC_NULL, 0, 0, 0, PETSC_NULL);
+      data->old_improveX(d, NULL, 0, 0, 0, NULL);
       d->improveX_data = data;
     }
     PetscFunctionReturn(0);
@@ -341,10 +341,10 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
 
     /* Compute u, v and kr */
     k = r_s+i+d->cX_in_H;
-    ierr = DSVectors(d->ps,DS_MAT_X,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSVectors(d->ps,DS_MAT_X,&k,NULL);CHKERRQ(ierr);
     ierr = DSNormalize(d->ps,DS_MAT_X,r_s+i+d->cX_in_H);CHKERRQ(ierr);
     k = r_s+i+d->cX_in_H;
-    ierr = DSVectors(d->ps,DS_MAT_Y,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSVectors(d->ps,DS_MAT_Y,&k,NULL);CHKERRQ(ierr);
     ierr = DSNormalize(d->ps,DS_MAT_Y,r_s+i+d->cX_in_H);CHKERRQ(ierr);
     ierr = DSGetArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
     ierr = DSGetArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
@@ -358,7 +358,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
       PetscInt n_auxV = data->auxV-d->auxV+s, n_auxS = auxS - d->auxS;
       d->auxV+= n_auxV; d->size_auxV-= n_auxV;
       d->auxS+= n_auxS; d->size_auxS-= n_auxS;
-      ierr = d->preTestConv(d,0,s,s,d->auxV-s,PETSC_NULL,&d->npreconv);CHKERRQ(ierr);
+      ierr = d->preTestConv(d,0,s,s,d->auxV-s,NULL,&d->npreconv);CHKERRQ(ierr);
       d->auxV-= n_auxV; d->size_auxV+= n_auxV;
       d->auxS-= n_auxS; d->size_auxS+= n_auxS;
       if (d->npreconv > 0) break;
@@ -366,9 +366,9 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
 
     /* Test the odd situation of solving Ax=b with A=I */
 #if !defined(PETSC_USE_COMPLEX)
-    odd_situation = (data->ksp && data->theta[0] == 1. && data->theta[1] == 0. && data->thetai[0] == 0. && d->B == PETSC_NULL)?PETSC_TRUE:PETSC_FALSE;
+    odd_situation = (data->ksp && data->theta[0] == 1. && data->theta[1] == 0. && data->thetai[0] == 0. && d->B == NULL)?PETSC_TRUE:PETSC_FALSE;
 #else
-    odd_situation = (data->ksp && data->theta[0] == 1. && data->theta[1] == 0. && d->B == PETSC_NULL)?PETSC_TRUE:PETSC_FALSE;
+    odd_situation = (data->ksp && data->theta[0] == 1. && data->theta[1] == 0. && d->B == NULL)?PETSC_TRUE:PETSC_FALSE;
 #endif
     /* If JD */
     if (data->ksp && !odd_situation) {
@@ -384,7 +384,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
                                    &kr_comp);CHKERRQ(ierr);
       ierr = VecCreateCompWithVecs(&D[i], data->ksp_max_size, data->friends,
                                    &D_comp);CHKERRQ(ierr);
-      ierr = VecCompSetSubVecs(data->friends,s,PETSC_NULL);CHKERRQ(ierr);
+      ierr = VecCompSetSubVecs(data->friends,s,NULL);CHKERRQ(ierr);
   
       /* Solve the correction equation */
       ierr = KSPSetTolerances(data->ksp, tol, PETSC_DEFAULT, PETSC_DEFAULT,
@@ -417,7 +417,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
   /* Callback old improveX */
   if (data->old_improveX) {
     d->improveX_data = data->old_improveX_data;
-    data->old_improveX(d, PETSC_NULL, 0, 0, 0, PETSC_NULL);
+    data->old_improveX(d, NULL, 0, 0, 0, NULL);
     d->improveX_data = data;
   }
   PetscFunctionReturn(0);
@@ -520,11 +520,11 @@ PetscErrorCode dvd_pcapplyba(PC pc,PCSide side,Vec in,Vec out,Vec w)
   Mat             A;
 
   PetscFunctionBegin;
-  ierr = PCGetOperators(pc,&A,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PCGetOperators(pc,&A,NULL,NULL);CHKERRQ(ierr);
   ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(in,PETSC_NULL,&inx);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(out,PETSC_NULL,&outx);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(w,PETSC_NULL,&wx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(w,NULL,&wx);CHKERRQ(ierr);
   n = data->r_e - data->r_s;
 
   /* Check auxiliary vectors */
@@ -583,10 +583,10 @@ PetscErrorCode dvd_pcapply(PC pc,Vec in,Vec out)
   Mat             A;
 
   PetscFunctionBegin;
-  ierr = PCGetOperators(pc,&A,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PCGetOperators(pc,&A,NULL,NULL);CHKERRQ(ierr);
   ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(in,PETSC_NULL,&inx);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(out,PETSC_NULL,&outx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
   n = data->r_e - data->r_s;
 
   /* out <- K * in */
@@ -610,10 +610,10 @@ PetscErrorCode dvd_pcapplytrans(PC pc,Vec in,Vec out)
   Mat             A;
 
   PetscFunctionBegin;
-  ierr = PCGetOperators(pc,&A,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PCGetOperators(pc,&A,NULL,NULL);CHKERRQ(ierr);
   ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(in,PETSC_NULL,&inx);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(out,PETSC_NULL,&outx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
   n = data->r_e - data->r_s;
 
   /* Check auxiliary vectors */
@@ -646,8 +646,8 @@ PetscErrorCode dvd_matmult_jd(Mat A,Vec in,Vec out)
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(in,PETSC_NULL,&inx);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(out,PETSC_NULL,&outx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
   n = data->r_e - data->r_s;
 
   /* Check auxiliary vectors */
@@ -676,8 +676,8 @@ PetscErrorCode dvd_matmulttrans_jd(Mat A,Vec in,Vec out)
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(in,PETSC_NULL,&inx);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(out,PETSC_NULL,&outx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
   n = data->r_e - data->r_s;
 
   /* Check auxiliary vectors */
@@ -723,8 +723,7 @@ PetscErrorCode dvd_matgetvecs_jd(Mat A,Vec *right,Vec *left)
     ierr = PetscMalloc(sizeof(Vec)*n, &l);CHKERRQ(ierr);
   }
   for (i=0; i<n; i++) {
-    ierr = MatGetVecs(data->d->A, right?&r[i]:PETSC_NULL,
-                      left?&l[i]:PETSC_NULL);CHKERRQ(ierr);
+    ierr = MatGetVecs(data->d->A, right?&r[i]:NULL,left?&l[i]:NULL);CHKERRQ(ierr);
   }
   if (right) {
     ierr = VecCreateCompWithVecs(r, n, data->friends, right);CHKERRQ(ierr);

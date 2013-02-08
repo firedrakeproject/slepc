@@ -126,7 +126,7 @@ PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
    (use PETSC_DECIDE to compute an educated guess based on basis and matrix sizes)
 
    Notes:
-   Use PETSC_IGNORE to retain the previous value of any parameter. 
+   Pass 0 to retain the previous value of any parameter. 
 
    Level: intermediate
 
@@ -138,7 +138,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveReal(svd,tol,2);
   PetscValidLogicalCollectiveInt(svd,maxits,3);
-  if (tol != PETSC_IGNORE) {
+  if (tol) {
     if (tol == PETSC_DEFAULT) {
       tol = PETSC_DEFAULT;
     } else {
@@ -146,7 +146,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
       svd->tol = tol;
     }
   }
-  if (maxits != PETSC_IGNORE) {
+  if (maxits) {
     if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
       svd->max_it = 0;
       svd->setupcalled = 0;
@@ -174,7 +174,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
 -  maxits - maximum number of iterations
 
    Notes:
-   The user can specify PETSC_NULL for any parameter that is not needed.
+   The user can specify NULL for any parameter that is not needed.
 
    Level: intermediate
 
@@ -209,7 +209,7 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,PetscInt *maxits)
 -  -svd_mpd <mpd> - Sets the maximum projected dimension
 
    Notes:
-   Use PETSC_IGNORE to retain the previous value of any parameter.
+   Pass 0 to retain the previous value of any parameter.
 
    Use PETSC_DECIDE for ncv and mpd to assign a reasonably good value, which is 
    dependent on the solution method and the number of singular values required.
@@ -234,11 +234,11 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(svd,nsv,2);
   PetscValidLogicalCollectiveInt(svd,ncv,3);
   PetscValidLogicalCollectiveInt(svd,mpd,4);
-  if (nsv != PETSC_IGNORE) {
+  if (nsv) {
     if (nsv<1) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nsv. Must be > 0");
     svd->nsv = nsv;
   }
-  if (ncv != PETSC_IGNORE) {
+  if (ncv) {
     if (ncv == PETSC_DEFAULT || ncv == PETSC_DECIDE) {
       svd->ncv = 0;
     } else {
@@ -247,7 +247,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
     }
     svd->setupcalled = 0;
   }
-  if (mpd != PETSC_IGNORE) {
+  if (mpd) {
     if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
       svd->mpd = 0;
     } else {
@@ -275,7 +275,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
 -  mpd - the maximum dimension allowed for the projected problem
 
    Notes:
-   The user can specify PETSC_NULL for any parameter that is not needed.
+   The user can specify NULL for any parameter that is not needed.
 
    Level: intermediate
 
@@ -401,7 +401,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   svd->setupcalled = 0;
-  if (!SVDRegisterAllCalled) { ierr = SVDRegisterAll(PETSC_NULL);CHKERRQ(ierr); }
+  if (!SVDRegisterAllCalled) { ierr = SVDRegisterAll(NULL);CHKERRQ(ierr); }
   ierr = PetscObjectOptionsBegin((PetscObject)svd);CHKERRQ(ierr);
 
   ierr = PetscOptionsList("-svd_type","Singular Value Solver method","SVDSetType",SVDList,(char*)(((PetscObject)svd)->type_name?((PetscObject)svd)->type_name:SVDCROSS),type,256,&flg);CHKERRQ(ierr);
@@ -418,15 +418,15 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = SVDSetTransposeMode(svd,(SVDTransposeMode)i);CHKERRQ(ierr);
   }   
 
-  r = i = PETSC_IGNORE;
-  ierr = PetscOptionsInt("-svd_max_it","Maximum number of iterations","SVDSetTolerances",svd->max_it,&i,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-svd_tol","Tolerance","SVDSetTolerances",svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:svd->tol,&r,PETSC_NULL);CHKERRQ(ierr);
+  r = i = 0;
+  ierr = PetscOptionsInt("-svd_max_it","Maximum number of iterations","SVDSetTolerances",svd->max_it,&i,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-svd_tol","Tolerance","SVDSetTolerances",svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:svd->tol,&r,NULL);CHKERRQ(ierr);
   ierr = SVDSetTolerances(svd,r,i);CHKERRQ(ierr);
 
-  i = j = k = PETSC_IGNORE;
-  ierr = PetscOptionsInt("-svd_nsv","Number of singular values to compute","SVDSetDimensions",svd->nsv,&i,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-svd_ncv","Number of basis vectors","SVDSetDimensions",svd->ncv,&j,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-svd_mpd","Maximum dimension of projected problem","SVDSetDimensions",svd->mpd,&k,PETSC_NULL);CHKERRQ(ierr);
+  i = j = k = 0;
+  ierr = PetscOptionsInt("-svd_nsv","Number of singular values to compute","SVDSetDimensions",svd->nsv,&i,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-svd_ncv","Number of basis vectors","SVDSetDimensions",svd->ncv,&j,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-svd_mpd","Maximum dimension of projected problem","SVDSetDimensions",svd->mpd,&k,NULL);CHKERRQ(ierr);
   ierr = SVDSetDimensions(svd,i,j,k);CHKERRQ(ierr);
 
   ierr = PetscOptionsBoolGroupBegin("-svd_largest","compute largest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
@@ -435,7 +435,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr); }
 
   flg = PETSC_FALSE;
-  ierr = PetscOptionsBool("-svd_monitor_cancel","Remove any hardwired monitor routines","SVDMonitorCancel",flg,&flg,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-svd_monitor_cancel","Remove any hardwired monitor routines","SVDMonitorCancel",flg,&flg,NULL);CHKERRQ(ierr);
   if (flg) {
     ierr = SVDMonitorCancel(svd);CHKERRQ(ierr); 
   }
@@ -458,14 +458,14 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = SVDMonitorSet(svd,SVDMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
   }
   flg = PETSC_FALSE;
-  ierr = PetscOptionsBool("-svd_monitor_draw","Monitor first unconverged approximate singular value and error estimate graphically","SVDMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+  ierr = PetscOptionsBool("-svd_monitor_draw","Monitor first unconverged approximate singular value and error estimate graphically","SVDMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
   if (flg) {
-    ierr = SVDMonitorSet(svd,SVDMonitorLG,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SVDMonitorSet(svd,SVDMonitorLG,NULL,NULL);CHKERRQ(ierr);
   }
   flg = PETSC_FALSE;
-  ierr = PetscOptionsBool("-svd_monitor_draw_all","Monitor error estimates graphically","SVDMonitorSet",flg,&flg,PETSC_NULL);CHKERRQ(ierr); 
+  ierr = PetscOptionsBool("-svd_monitor_draw_all","Monitor error estimates graphically","SVDMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
   if (flg) {
-    ierr = SVDMonitorSet(svd,SVDMonitorLGAll,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = SVDMonitorSet(svd,SVDMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
     ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
   }
   if (svd->ops->setfromoptions) {

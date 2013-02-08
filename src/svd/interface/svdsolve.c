@@ -65,7 +65,7 @@ PetscErrorCode SVDSolve(SVD svd)
   ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);CHKERRQ(ierr);
 
   which_func = (svd->which==SVD_LARGEST)? SlepcCompareLargestReal: SlepcCompareSmallestReal;
-  ierr = DSSetEigenvalueComparison(svd->ds,which_func,PETSC_NULL);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(svd->ds,which_func,NULL);CHKERRQ(ierr);
 
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
 
@@ -216,7 +216,7 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
 
    Note:
    The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
-   Both U or V can be PETSC_NULL if singular vectors are not required. 
+   Both U or V can be NULL if singular vectors are not required. 
 
    Level: beginner
 
@@ -243,7 +243,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
       ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
       for (j=0;j<svd->nconv;j++) {
         ierr = SVDMatMult(svd,PETSC_FALSE,svd->V[j],svd->U[j]);CHKERRQ(ierr);
-        ierr = IPOrthogonalize(svd->ip,0,PETSC_NULL,j,PETSC_NULL,svd->U,svd->U[j],PETSC_NULL,&norm,PETSC_NULL);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(svd->ip,0,NULL,j,NULL,svd->U,svd->U[j],NULL,&norm,NULL);CHKERRQ(ierr);
         ierr = VecScale(svd->U[j],1.0/norm);CHKERRQ(ierr);
       }
     }
@@ -274,7 +274,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
 
    Note:
    The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
-   Both output parameters can be PETSC_NULL on input if not needed.
+   Both output parameters can be NULL on input if not needed.
 
    Level: beginner
 
@@ -283,7 +283,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
 PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,PetscReal *norm2)
 {
   PetscErrorCode ierr;
-  Vec            u,v,x = PETSC_NULL,y = PETSC_NULL;
+  Vec            u,v,x = NULL,y = NULL;
   PetscReal      sigma;
   PetscInt       M,N;
 
@@ -359,7 +359,7 @@ PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,i,2);
   PetscValidPointer(error,3);
-  ierr = SVDGetSingularTriplet(svd,i,&sigma,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,NULL);CHKERRQ(ierr);
   ierr = SVDComputeResidualNorms(svd,i,&norm1,&norm2);CHKERRQ(ierr);
   *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
   if (sigma>*error) *error /= sigma;

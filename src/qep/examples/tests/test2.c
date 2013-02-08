@@ -51,10 +51,10 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(PETSC_NULL,"-mu",&mu,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(PETSC_NULL,"-tau",&tau,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(PETSC_NULL,"-kappa",&kappa,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,"-mu",&mu,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,"-kappa",&kappa,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
@@ -140,16 +140,16 @@ int main(int argc,char **argv)
   */
   ierr = QEPGetType(qep,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = QEPGetDimensions(qep,&nev,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+  ierr = QEPGetDimensions(qep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
-  ierr = QEPGetTolerances(qep,PETSC_NULL,&maxit);CHKERRQ(ierr);
+  ierr = QEPGetTolerances(qep,NULL,&maxit);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: maxit=%D\n",maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = QEPPrintSolution(qep,PETSC_NULL);CHKERRQ(ierr);
+  ierr = QEPPrintSolution(qep,NULL);CHKERRQ(ierr);
   
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
      Free work space

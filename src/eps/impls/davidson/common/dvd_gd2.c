@@ -210,7 +210,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
    /* Callback old improveX */
     if (data->old_improveX) {
       d->improveX_data = data->old_improveX_data;
-      ierr = data->old_improveX(d,PETSC_NULL,0,0,0,PETSC_NULL);CHKERRQ(ierr);
+      ierr = data->old_improveX(d,NULL,0,0,0,NULL);CHKERRQ(ierr);
       d->improveX_data = data;
     }
     PetscFunctionReturn(0);
@@ -219,10 +219,10 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   /* Compute the eigenvectors of the selected pairs */
   for (i=0;i<n;) {
     k = r_s+i+d->cX_in_H;
-    ierr = DSVectors(d->ps,DS_MAT_X,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSVectors(d->ps,DS_MAT_X,&k,NULL);CHKERRQ(ierr);
     ierr = DSNormalize(d->ps,DS_MAT_X,r_s+i+d->cX_in_H);CHKERRQ(ierr);
     k = r_s+i+d->cX_in_H;
-    ierr = DSVectors(d->ps,DS_MAT_Y,&k,PETSC_NULL);CHKERRQ(ierr);
+    ierr = DSVectors(d->ps,DS_MAT_Y,&k,NULL);CHKERRQ(ierr);
     ierr = DSNormalize(d->ps,DS_MAT_Y,r_s+i+d->cX_in_H);CHKERRQ(ierr);
     /* Jump complex conjugate pairs */
     i = k+1;
@@ -310,7 +310,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
 
     /* Check if the first eigenpairs are converged */
     if (i == 0) {
-      ierr = d->preTestConv(d,0,s,s,Ax,PETSC_NULL,&d->npreconv);CHKERRQ(ierr);
+      ierr = d->preTestConv(d,0,s,s,Ax,NULL,&d->npreconv);CHKERRQ(ierr);
       if (d->npreconv > 0) break;
     }
   }
@@ -342,7 +342,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   /* Callback old improveX */
   if (data->old_improveX) {
     d->improveX_data = data->old_improveX_data;
-    ierr = data->old_improveX(d,PETSC_NULL,0,0,0,PETSC_NULL);CHKERRQ(ierr);
+    ierr = data->old_improveX(d,NULL,0,0,0,NULL);CHKERRQ(ierr);
     d->improveX_data = data;
   }
   PetscFunctionReturn(0);

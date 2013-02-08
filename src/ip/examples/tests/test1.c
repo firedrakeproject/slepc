@@ -37,8 +37,8 @@ int main(int argc,char **argv)
   PetscBool      cont;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-n",&n,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(PETSC_NULL,"-k",&k,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"QR decomposition of %D random vectors of length %D.\n",k,n);CHKERRQ(ierr); 
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
@@ -47,8 +47,8 @@ int main(int argc,char **argv)
   ierr = VecSetFromOptions(t);CHKERRQ(ierr);
   ierr = IPCreate(PETSC_COMM_WORLD,&ip);CHKERRQ(ierr);
   ierr = IPSetFromOptions(ip);CHKERRQ(ierr);
-  ierr = IPView(ip,PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(PETSC_NULL,"-contiguous",&cont);CHKERRQ(ierr);
+  ierr = IPView(ip,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,"-contiguous",&cont);CHKERRQ(ierr);
 
   /* with/without contiguous storage */
   if (cont) {
@@ -63,8 +63,8 @@ int main(int argc,char **argv)
   for (i=0;i<k;i++) {
     ierr = VecSetRandom(V[i],rctx);CHKERRQ(ierr);
   }
-  ierr = IPQRDecomposition(ip,V,0,k,PETSC_NULL,k);CHKERRQ(ierr);
-  ierr = SlepcCheckOrthogonality(V,k,PETSC_NULL,k,PETSC_NULL,&lev);CHKERRQ(ierr);
+  ierr = IPQRDecomposition(ip,V,0,k,NULL,k);CHKERRQ(ierr);
+  ierr = SlepcCheckOrthogonality(V,k,NULL,k,NULL,&lev);CHKERRQ(ierr);
   if (lev<100*PETSC_MACHINE_EPSILON) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below 100*eps\n");CHKERRQ(ierr); 
   } else {

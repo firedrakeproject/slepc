@@ -51,7 +51,7 @@ static PetscErrorCode ShellMatMult_Cyclic(Mat B,Vec x,Vec y)
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   cyclic = (SVD_CYCLIC*)svd->data;
-  ierr = SVDMatGetLocalSize(svd,&m,PETSC_NULL);CHKERRQ(ierr);
+  ierr = SVDMatGetLocalSize(svd,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   ierr = VecPlaceArray(cyclic->x1,px);CHKERRQ(ierr);
@@ -115,22 +115,22 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = MatDestroy(&Zm);CHKERRQ(ierr);
       ierr = MatDestroy(&Zn);CHKERRQ(ierr);
     } else {
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,m,M,PETSC_NULL,&cyclic->x1);CHKERRQ(ierr);
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,n,N,PETSC_NULL,&cyclic->x2);CHKERRQ(ierr);
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,m,M,PETSC_NULL,&cyclic->y1);CHKERRQ(ierr);
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,n,N,PETSC_NULL,&cyclic->y2);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,m,M,NULL,&cyclic->x1);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,n,N,NULL,&cyclic->x2);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,m,M,NULL,&cyclic->y1);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,n,N,NULL,&cyclic->y2);CHKERRQ(ierr);
       ierr = MatCreateShell(((PetscObject)svd)->comm,m+n,m+n,M+N,M+N,svd,&cyclic->mat);CHKERRQ(ierr);
       ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))ShellMatMult_Cyclic);CHKERRQ(ierr);  
       ierr = MatShellSetOperation(cyclic->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_Cyclic);CHKERRQ(ierr);  
     }
   }
 
-  ierr = EPSSetOperators(cyclic->eps,cyclic->mat,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSSetOperators(cyclic->eps,cyclic->mat,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(cyclic->eps,EPS_HEP);CHKERRQ(ierr);
   if (svd->which == SVD_LARGEST) {
     ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   } else {
-    ierr = EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPositiveReal,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPositiveReal,NULL);CHKERRQ(ierr);
     ierr = EPSSetTarget(cyclic->eps,0.0);CHKERRQ(ierr);
   }
   ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
@@ -141,7 +141,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   /* Transfer the initial subspace from svd to eps */
   if (svd->nini < 0) {
     for (i=0; i<-svd->nini; i++) {
-      ierr = MatGetVecs(cyclic->mat,&v,PETSC_NULL);CHKERRQ(ierr);
+      ierr = MatGetVecs(cyclic->mat,&v,NULL);CHKERRQ(ierr);
       ierr = VecGetArray(v,&va);CHKERRQ(ierr);
       ierr = VecGetArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);
       ierr = VecGetSize(svd->IS[i],&isl);CHKERRQ(ierr);
@@ -169,7 +169,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     cyclic->setfromoptionscalled = PETSC_FALSE;
   }
   ierr = EPSSetUp(cyclic->eps);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(cyclic->eps,PETSC_NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
+  ierr = EPSGetDimensions(cyclic->eps,NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
   svd->ncv = PetscMin(svd->ncv,PetscMin(M,N));
   ierr = EPSGetTolerances(cyclic->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
 
@@ -197,13 +197,13 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
   ierr = EPSGetIterationNumber(cyclic->eps,&svd->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(cyclic->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
 
-  ierr = MatGetVecs(cyclic->mat,&x,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetVecs(cyclic->mat,&x,NULL);CHKERRQ(ierr);
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,m,M,PETSC_NULL,&x1);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,n,N,PETSC_NULL,&x2);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,m,M,NULL,&x1);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,n,N,NULL,&x2);CHKERRQ(ierr);
   for (i=0,j=0;i<svd->nconv;i++) {
-    ierr = EPSGetEigenpair(cyclic->eps,i,&sigma,PETSC_NULL,x,PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSGetEigenpair(cyclic->eps,i,&sigma,NULL,x,NULL);CHKERRQ(ierr);
     if (PetscRealPart(sigma) > 0.0) {
       svd->sigma[j] = PetscRealPart(sigma);
       ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
@@ -492,10 +492,10 @@ PetscErrorCode SVDDestroy_Cyclic(SVD svd)
   PetscFunctionBegin;
   ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);
   ierr = PetscFree(svd->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetExplicitMatrix_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetExplicitMatrix_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetEPS_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetEPS_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetExplicitMatrix_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetExplicitMatrix_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -529,13 +529,13 @@ PetscErrorCode SVDCreate_Cyclic(SVD svd)
   if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   ierr = EPSSetIP(cyclic->eps,svd->ip);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSMonitorSet(cyclic->eps,SVDMonitor_Cyclic,svd,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSMonitorSet(cyclic->eps,SVDMonitor_Cyclic,svd,NULL);CHKERRQ(ierr);
   cyclic->explicitmatrix = PETSC_FALSE;
-  cyclic->mat = PETSC_NULL;
-  cyclic->x1 = PETSC_NULL;
-  cyclic->x2 = PETSC_NULL;
-  cyclic->y1 = PETSC_NULL;
-  cyclic->y2 = PETSC_NULL;
+  cyclic->mat = NULL;
+  cyclic->x1 = NULL;
+  cyclic->x2 = NULL;
+  cyclic->y1 = NULL;
+  cyclic->y2 = NULL;
   cyclic->setfromoptionscalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }

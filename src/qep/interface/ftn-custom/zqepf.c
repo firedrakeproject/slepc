@@ -203,7 +203,7 @@ void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *monitor)(QEP*,Pe
     }
     *ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);
     if (*ierr) return;
-    ctx->viewer = PETSC_NULL;
+    ctx->viewer = NULL;
     *ierr = QEPMonitorSet(*qep,QEPMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorfirst_) {
     *ierr = QEPMonitorSet(*qep,QEPMonitorFirst,0,0);

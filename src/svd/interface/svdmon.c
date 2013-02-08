@@ -50,9 +50,9 @@ PetscErrorCode SVDMonitor(SVD svd,PetscInt it,PetscInt nconv,PetscReal *sigma,Pe
 
    Input Parameters:
 +  svd     - singular value solver context obtained from SVDCreate()
-.  monitor - pointer to function (if this is PETSC_NULL, it turns off monitoring)
+.  monitor - pointer to function (if this is NULL, it turns off monitoring)
 -  mctx    - [optional] context for private data for the
-             monitor routine (use PETSC_NULL if no context is desired)
+             monitor routine (use NULL if no context is desired)
 
    Calling Sequence of monitor:
 $     monitor (SVD svd, PetscInt its, PetscInt nconv, PetscReal *sigma, PetscReal* errest, PetscInt nest, void *mctx)
@@ -174,7 +174,7 @@ PetscErrorCode SVDGetMonitorContext(SVD svd,void **ctx)
 .  sigma  - singular values
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  monctx - monitor context (contains viewer, can be PETSC_NULL)
+-  monctx - monitor context (contains viewer, can be NULL)
 
    Level: intermediate
 
@@ -214,7 +214,7 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
 .  sigma  - singular values
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  monctx - monitor context (contains viewer, can be PETSC_NULL)
+-  monctx - monitor context (contains viewer, can be NULL)
 
    Level: intermediate
 

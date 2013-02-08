@@ -79,13 +79,13 @@ static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin
   PetscBLASInt   i;
 
   PetscFunctionBegin;
-  ierr = VecCreateMPIWithArray(((PetscObject)globaleps)->comm,1,*n,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)globaleps)->comm,1,*n,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)globaleps)->comm,1,*n,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)globaleps)->comm,1,*n,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
   for (i=0;i<*m;i++) {
     ierr = VecPlaceArray(x,(PetscScalar*)xin+i*(*ldx));CHKERRQ(ierr);
     ierr = VecPlaceArray(y,(PetscScalar*)yout+i*(*ldy));CHKERRQ(ierr);
     ierr = STApply(globaleps->st,x,y);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(globaleps->ip,0,PETSC_NULL,globaleps->nds,PETSC_NULL,globaleps->defl,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(globaleps->ip,0,NULL,globaleps->nds,NULL,globaleps->defl,y,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = VecResetArray(x);CHKERRQ(ierr);
     ierr = VecResetArray(y);CHKERRQ(ierr);
   }
@@ -131,7 +131,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   tr->work[0] = eps->tol;  /* relative tolerance on residual norms */
 
   for (i=0;i<eps->ncv;i++) eps->eigr[i]=0.0;
-  ierr = EPSGetStartVector(eps,0,eps->V[0],PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,eps->V[0],NULL);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
 
   TRLan_(MatMult_TRLAN,ipar,&n,&ncv,eps->eigr,pV,&n,tr->work,&tr->lwork);

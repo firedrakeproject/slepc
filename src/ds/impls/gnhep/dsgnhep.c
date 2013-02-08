@@ -99,12 +99,12 @@ PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscBool left)
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   if (left) {
-    X = PETSC_NULL;
+    X = NULL;
     Y = &ds->mat[DS_MAT_Y][ld*(*k)];
     side = "L";
   } else {
     X = &ds->mat[DS_MAT_X][ld*(*k)];
-    Y = PETSC_NULL;
+    Y = NULL;
     side = "R";
   }
   ierr = DSAllocateWork_Private(ds,0,0,ld);CHKERRQ(ierr); 
@@ -157,12 +157,12 @@ PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   if (left) {
-    X = PETSC_NULL;
+    X = NULL;
     Y = ds->mat[DS_MAT_Y];
     side = "L";
   } else {
     X = ds->mat[DS_MAT_X];
-    Y = PETSC_NULL;
+    Y = NULL;
     side = "R";
   }
   ierr = CleanDenseSchur(n,0,A,ld,B,ld,ds->mat[DS_MAT_Q],ld,ds->mat[DS_MAT_Z],ld,PETSC_TRUE);CHKERRQ(ierr);
@@ -176,10 +176,10 @@ PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
   }
 #if defined(PETSC_USE_COMPLEX)
   ierr = DSAllocateWork_Private(ds,2*ld,2*ld,0);CHKERRQ(ierr); 
-  PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,back,PETSC_NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,ds->rwork,&info));
+  PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,back,NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,ds->rwork,&info));
 #else
   ierr = DSAllocateWork_Private(ds,6*ld,0,0);CHKERRQ(ierr); 
-  PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,back,PETSC_NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,&info));
+  PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,back,NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,&info));
 #endif
   if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   PetscFunctionReturn(0);
@@ -302,9 +302,9 @@ PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Pets
   ierr = PetscMemzero(selection,n*sizeof(PetscBLASInt));CHKERRQ(ierr);
   for (i=0; i<*k; i++) selection[ds->perm[i]] = 1;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCall("LAPACKtgsen",LAPACKtgsen_(&zero_,&true_,&true_,selection,&n,S,&ld,T,&ld,wr,wi,beta,Z,&ld,Q,&ld,&mout,PETSC_NULL,PETSC_NULL,PETSC_NULL,work,&lwork,iwork,&liwork,&info));
+  PetscStackCall("LAPACKtgsen",LAPACKtgsen_(&zero_,&true_,&true_,selection,&n,S,&ld,T,&ld,wr,wi,beta,Z,&ld,Q,&ld,&mout,NULL,NULL,NULL,work,&lwork,iwork,&liwork,&info));
 #else
-  PetscStackCall("LAPACKtgsen",LAPACKtgsen_(&zero_,&true_,&true_,selection,&n,S,&ld,T,&ld,wr,beta,Z,&ld,Q,&ld,&mout,PETSC_NULL,PETSC_NULL,PETSC_NULL,work,&lwork,iwork,&liwork,&info));
+  PetscStackCall("LAPACKtgsen",LAPACKtgsen_(&zero_,&true_,&true_,selection,&n,S,&ld,T,&ld,wr,beta,Z,&ld,Q,&ld,&mout,NULL,NULL,NULL,work,&lwork,iwork,&liwork,&info));
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTGSEN %d",info);
   *k = mout;
@@ -344,7 +344,7 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   lwork = -1;
-  PetscStackCall("LAPACKtgexc",LAPACKtgexc_(&one,&one,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,PETSC_NULL,&ld,&one,&one,&a,&lwork,&info));
+  PetscStackCall("LAPACKtgexc",LAPACKtgexc_(&one,&one,&ld,NULL,&ld,NULL,&ld,NULL,&ld,NULL,&ld,&one,&one,&a,&lwork,&info));
   safmin = LAPACKlamch_("S");
   lwork = a;
   ierr = DSAllocateWork_Private(ds,lwork,0,0);CHKERRQ(ierr); 
@@ -558,21 +558,21 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   lwork = -1;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,PETSC_NULL,Z,&ld,Q,&ld,&a,&lwork,PETSC_NULL,&info));
+  PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,&info));
   lwork = (PetscBLASInt)a;
   ierr = DSAllocateWork_Private(ds,lwork+ld,0,0);CHKERRQ(ierr); 
   beta = ds->work;
   work = beta+ds->n;
   ierr = PetscBLASIntCast(ds->lwork-ds->n,&lwork);CHKERRQ(ierr);
-  PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,PETSC_NULL,&info));
+  PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,NULL,&info));
 #else
-  PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,PETSC_NULL,Z,&ld,Q,&ld,&a,&lwork,PETSC_NULL,PETSC_NULL,&info));
+  PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,NULL,&info));
   lwork = (PetscBLASInt)PetscRealPart(a);
   ierr = DSAllocateWork_Private(ds,lwork+ld,8*ld,0);CHKERRQ(ierr); 
   beta = ds->work;
   work = beta+ds->n;
   ierr = PetscBLASIntCast(ds->lwork-ds->n,&lwork);CHKERRQ(ierr);
-  PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",PETSC_NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ds->rwork,PETSC_NULL,&info));
+  PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ds->rwork,NULL,&info));
 #endif
   if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xGGES %i",info);
   for (i=0;i<n;i++) {

@@ -44,8 +44,8 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         Load the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = PetscOptionsHasName(PETSC_NULL,"-symm",&symm);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(PETSC_NULL,"-herm",&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,"-symm",&symm);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,"-herm",&flg);CHKERRQ(ierr);
   if (flg) symm=PETSC_TRUE;
 #if defined(PETSC_USE_COMPLEX)
   prefix = symm? "hpd": "nh";
@@ -77,7 +77,7 @@ int main(int argc,char **argv)
                      Create the eigensolver
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
   if (symm) {
     ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
   } else {
@@ -90,7 +90,7 @@ int main(int argc,char **argv)
                 Solve the eigensystem and display solution 
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSPrintSolution(eps,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);

@@ -171,7 +171,7 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
     ctx->matIdx[0] = 0;
     if (ctx->nmat>1) ctx->matIdx[1] = 1;
   }
-  ierr = MatGetVecs(st->A[0],&ctx->z,PETSC_NULL);CHKERRQ(ierr);
+  ierr = MatGetVecs(st->A[0],&ctx->z,NULL);CHKERRQ(ierr);
   ierr = MatCreateShell(((PetscObject)st)->comm,m,n,M,N,(void*)ctx,mat);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*mat,MATOP_MULT,(void(*)(void))STMatShellMult);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*mat,MATOP_MULT_TRANSPOSE,(void(*)(void))STMatShellMultTranspose);CHKERRQ(ierr);

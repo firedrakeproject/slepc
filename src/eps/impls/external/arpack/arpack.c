@@ -107,10 +107,10 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ierr = PetscBLASIntCast(MPI_Comm_c2f(((PetscObject)eps)->comm),&fcomm);CHKERRQ(ierr);
 #endif
   ierr = PetscBLASIntCast(eps->nloc,&n);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,PETSC_NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,PETSC_NULL,&y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
-  ierr = EPSGetStartVector(eps,0,eps->work[1],PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,eps->work[1],NULL);CHKERRQ(ierr);
   ierr = VecGetArray(eps->work[1],&resid);CHKERRQ(ierr);
   
   ido  = 0;            /* first call to reverse communication interface */
@@ -226,7 +226,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
           /* Y = OP * X */
           ierr = STApply(eps->st,x,y);CHKERRQ(ierr);        
         }
-        ierr = IPOrthogonalize(eps->ip,0,PETSC_NULL,eps->nds,PETSC_NULL,eps->defl,y,PETSC_NULL,PETSC_NULL,PETSC_NULL);CHKERRQ(ierr);
+        ierr = IPOrthogonalize(eps->ip,0,NULL,eps->nds,NULL,eps->defl,y,NULL,NULL,NULL);CHKERRQ(ierr);
       }
             
       ierr = VecResetArray(x);CHKERRQ(ierr);

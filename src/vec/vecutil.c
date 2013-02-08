@@ -35,7 +35,7 @@
 .  x  - the vector
 
    Input Parameter:
--  rctx - the random number context, formed by PetscRandomCreate(), or PETSC_NULL and
+-  rctx - the random number context, formed by PetscRandomCreate(), or NULL and
           it will create one internally.
 
    Note:
@@ -49,7 +49,7 @@
 PetscErrorCode SlepcVecSetRandom(Vec x,PetscRandom rctx)
 {
   PetscErrorCode ierr;
-  PetscRandom    randObj = PETSC_NULL;
+  PetscRandom    randObj = NULL;
   PetscInt       i,n,low,high;
   PetscScalar    *px,t;
   MPI_Comm       comm;
@@ -91,7 +91,7 @@ PetscErrorCode SlepcVecSetRandom(Vec x,PetscRandom rctx)
 -  iscomplex - a flag that indicating if the vector is complex
 
    Output parameter:
-.  norm      - the vector norm before normalization (can be set to PETSC_NULL)
+.  norm      - the vector norm before normalization (can be set to NULL)
 
    Level: developer
 

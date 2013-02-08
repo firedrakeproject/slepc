@@ -70,18 +70,18 @@ PetscErrorCode ShellMatGetDiagonal_Cross(Mat B,Vec d)
   if (!cross->diag) {
     /* compute diagonal from rows and store in cross->diag */
     ierr = VecDuplicate(d,&cross->diag);CHKERRQ(ierr);
-    ierr = SVDMatGetSize(svd,PETSC_NULL,&N);CHKERRQ(ierr);
-    ierr = SVDMatGetLocalSize(svd,PETSC_NULL,&n);CHKERRQ(ierr);
+    ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
+    ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
     ierr = PetscMalloc(sizeof(PetscScalar)*N,&work1);CHKERRQ(ierr);
     ierr = PetscMalloc(sizeof(PetscScalar)*N,&work2);CHKERRQ(ierr);
     for (i=0;i<n;i++) work1[i] = work2[i] = 0.0;
     if (svd->AT) {
       ierr = MatGetOwnershipRange(svd->AT,&start,&end);CHKERRQ(ierr);
       for (i=start;i<end;i++) {
-        ierr = MatGetRow(svd->AT,i,&ncols,PETSC_NULL,&vals);CHKERRQ(ierr);
+        ierr = MatGetRow(svd->AT,i,&ncols,NULL,&vals);CHKERRQ(ierr);
         for (j=0;j<ncols;j++)
           work1[i] += vals[j]*vals[j];
-        ierr = MatRestoreRow(svd->AT,i,&ncols,PETSC_NULL,&vals);CHKERRQ(ierr);
+        ierr = MatRestoreRow(svd->AT,i,&ncols,NULL,&vals);CHKERRQ(ierr);
       }
     } else {
       ierr = MatGetOwnershipRange(svd->A,&start,&end);CHKERRQ(ierr);
@@ -116,14 +116,14 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
 
   PetscFunctionBegin;
   if (!cross->mat) {
-    ierr = SVDMatGetLocalSize(svd,PETSC_NULL,&n);CHKERRQ(ierr);
+    ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
     ierr = MatCreateShell(((PetscObject)svd)->comm,n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
     ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))ShellMatMult_Cross);CHKERRQ(ierr);  
     ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_Cross);CHKERRQ(ierr);  
-    ierr = SVDMatGetVecs(svd,PETSC_NULL,&cross->w);CHKERRQ(ierr);
+    ierr = SVDMatGetVecs(svd,NULL,&cross->w);CHKERRQ(ierr);
   }
 
-  ierr = EPSSetOperators(cross->eps,cross->mat,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSSetOperators(cross->eps,cross->mat,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(cross->eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cross->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_REAL);CHKERRQ(ierr);
   ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
@@ -136,7 +136,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
     cross->setfromoptionscalled = PETSC_FALSE;
   }
   ierr = EPSSetUp(cross->eps);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(cross->eps,PETSC_NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
+  ierr = EPSGetDimensions(cross->eps,NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(cross->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
   /* Transfer the initial space from svd to eps */
   if (svd->nini < 0) {
@@ -165,7 +165,7 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   ierr = EPSGetIterationNumber(cross->eps,&svd->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(cross->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
-    ierr = EPSGetEigenpair(cross->eps,i,&sigma,PETSC_NULL,svd->V[i],PETSC_NULL);CHKERRQ(ierr);
+    ierr = EPSGetEigenpair(cross->eps,i,&sigma,NULL,svd->V[i],NULL);CHKERRQ(ierr);
     if (PetscRealPart(sigma)<0.0) SETERRQ(((PetscObject)svd)->comm,1,"Negative eigenvalue computed by EPS");
     svd->sigma[i] = PetscSqrtReal(PetscRealPart(sigma));
   }
@@ -330,8 +330,8 @@ PetscErrorCode SVDDestroy_Cross(SVD svd)
   PetscFunctionBegin;
   ierr = EPSDestroy(&cross->eps);CHKERRQ(ierr);
   ierr = PetscFree(svd->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossSetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossGetEPS_C","",PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossSetEPS_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossGetEPS_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -364,12 +364,12 @@ PetscErrorCode SVDCreate_Cross(SVD svd)
   if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   ierr = EPSSetIP(cross->eps,svd->ip);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSMonitorSet(cross->eps,SVDMonitor_Cross,svd,PETSC_NULL);CHKERRQ(ierr);
+  ierr = EPSMonitorSet(cross->eps,SVDMonitor_Cross,svd,NULL);CHKERRQ(ierr);
   ierr = EPSGetST(cross->eps,&st);CHKERRQ(ierr);
   ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
-  cross->mat = PETSC_NULL;
-  cross->w = PETSC_NULL;
-  cross->diag = PETSC_NULL;
+  cross->mat  = NULL;
+  cross->w    = NULL;
+  cross->diag = NULL;
   cross->setfromoptionscalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }

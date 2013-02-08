@@ -173,7 +173,7 @@ PetscErrorCode VecCreate_Comp(Vec V)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = VecCreate_Comp_Private(V,PETSC_NULL,0,PETSC_FALSE,PETSC_NULL);CHKERRQ(ierr);
+  ierr = VecCreate_Comp_Private(V,NULL,0,PETSC_FALSE,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -230,7 +230,7 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec
     ierr = VecSetType(x[i],t);CHKERRQ(ierr);
   }
   ierr = VecCreate_Comp_Private(*V,x,n,PETSC_TRUE,
-                           Vparent?((Vec_Comp*)Vparent->data)->n:PETSC_NULL);CHKERRQ(ierr);
+                           Vparent?((Vec_Comp*)Vparent->data)->n:NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -265,7 +265,7 @@ PetscErrorCode VecCreateCompWithVecs(Vec *x,PetscInt n,Vec Vparent,Vec *V)
     ierr = PetscObjectReference((PetscObject)x[i]);CHKERRQ(ierr);
   }
   ierr = VecCreate_Comp_Private(*V,x,n,PETSC_FALSE,
-                           Vparent?((Vec_Comp*)Vparent->data)->n:PETSC_NULL);CHKERRQ(ierr);
+                           Vparent?((Vec_Comp*)Vparent->data)->n:NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -506,12 +506,12 @@ PetscErrorCode VecMax_Comp(Vec v,PetscInt *idx,PetscReal *z)
   if (!idx && !z) PetscFunctionReturn(0);
 
   if (vs->n->n > 0) {
-    ierr = VecMax(vs->x[0],idx?&idxp:PETSC_NULL,&zp);CHKERRQ(ierr);
+    ierr = VecMax(vs->x[0],idx?&idxp:NULL,&zp);CHKERRQ(ierr);
   }
   for (i=1;i<vs->n->n;i++) {
     ierr = VecGetSize(vs->x[i-1],&s0);CHKERRQ(ierr);
     s+= s0;
-    ierr = VecMax(vs->x[i],idx?&idxp:PETSC_NULL,&z0);CHKERRQ(ierr);
+    ierr = VecMax(vs->x[i],idx?&idxp:NULL,&z0);CHKERRQ(ierr);
     if (zp < z0) {
       if (idx) *idx = s+idxp;
       zp = z0;
@@ -536,12 +536,12 @@ PetscErrorCode VecMin_Comp(Vec v,PetscInt *idx,PetscReal *z)
   if (!idx && !z) PetscFunctionReturn(0);
 
   if (vs->n->n > 0) {
-    ierr = VecMin(vs->x[0],idx?&idxp:PETSC_NULL,&zp);CHKERRQ(ierr);
+    ierr = VecMin(vs->x[0],idx?&idxp:NULL,&zp);CHKERRQ(ierr);
   }
   for (i=1;i<vs->n->n;i++) {
     ierr = VecGetSize(vs->x[i-1],&s0);CHKERRQ(ierr);
     s+= s0;
-    ierr = VecMin(vs->x[i],idx?&idxp:PETSC_NULL,&z0);CHKERRQ(ierr);
+    ierr = VecMin(vs->x[i],idx?&idxp:NULL,&z0);CHKERRQ(ierr);
     if (zp > z0) {
       if (idx) *idx = s+idxp;
       zp = z0;
