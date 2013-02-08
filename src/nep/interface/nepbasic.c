@@ -254,7 +254,8 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->allocated_ncv   = 0;
   nep->ip              = 0;
   nep->ds              = 0;
-  nep->residual        = 0;
+  nep->function        = 0;
+  nep->function_pre    = 0;
   nep->jacobian        = 0;
   nep->jacobian_pre    = 0;
   nep->abstol          = PETSC_DEFAULT;
@@ -267,8 +268,8 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->which           = (NEPWhich)0;
   nep->which_func      = PETSC_NULL;
   nep->which_ctx       = PETSC_NULL;
-  nep->res_func        = PETSC_NULL;
-  nep->res_ctx         = PETSC_NULL;
+  nep->fun_func        = PETSC_NULL;
+  nep->fun_ctx         = PETSC_NULL;
   nep->jac_func        = PETSC_NULL;
   nep->jac_ctx         = PETSC_NULL;
   nep->V               = PETSC_NULL;
@@ -478,7 +479,8 @@ PetscErrorCode NEPDestroy(NEP *nep)
   ierr = KSPDestroy(&(*nep)->ksp);CHKERRQ(ierr);
   ierr = IPDestroy(&(*nep)->ip);CHKERRQ(ierr);
   ierr = DSDestroy(&(*nep)->ds);CHKERRQ(ierr);
-  ierr = VecDestroy(&(*nep)->residual);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*nep)->function);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*nep)->function_pre);CHKERRQ(ierr);
   ierr = MatDestroy(&(*nep)->jacobian);CHKERRQ(ierr);
   ierr = MatDestroy(&(*nep)->jacobian_pre);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*nep)->rand);CHKERRQ(ierr);
@@ -748,77 +750,94 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetFunction"
 /*@C
-   NEPSetFunction - Sets the function evaluation routine and function
-   vector for use by the NEP routines in solving nonlinear eigenproblems.
+   NEPSetFunction - Sets the function to compute the nonlinear Function T(lambda)
+   as well as the location to store the matrix.
 
-   Logically Collective on NEP
+   Logically Collective on NEP and Mat
 
    Input Parameters:
-+  nep  - the NEP context
-.  r    - vector to store function value
-.  func - function evaluation routine
--  ctx  - [optional] user-defined context for private data for the
-          function evaluation routine (may be PETSC_NULL)
++  nep - the NEP context
+.  A   - Function matrix
+.  B   - preconditioner matrix (usually same as the Function)
+.  fun - Function evaluation routine (if PETSC_NULL then NEP retains any
+         previously set value)
+-  ctx - [optional] user-defined context for private data for the Function
+         evaluation routine (may be PETSC_NULL) (if PETSC_NULL then NEP
+         retains any previously set value)
+
+   Notes:
+   The routine fun() takes Mat* as the matrix arguments rather than Mat.
+   This allows the Function evaluation routine to replace A and/or B with a
+   completely new matrix structure (not just different matrix elements)
+   when appropriate, for instance, if the nonzero structure is changing
+   throughout the global iterations.
 
    Level: beginner
 
-.seealso: NEPGetFunction(), NEPComputeFunction(), NEPSetJacobian(), NEPSetPicard()
+.seealso: NEPGetFunction(), NEPSetJacobian()
 @*/
-PetscErrorCode NEPSetFunction(NEP nep,Vec r,PetscErrorCode (*func)(NEP,Vec,Vec,void*),void *ctx)
+PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void *ctx)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (r) {
-    PetscValidHeaderSpecific(r,VEC_CLASSID,2);
-    PetscCheckSameComm(nep,1,r,2);
-    ierr = PetscObjectReference((PetscObject)r);CHKERRQ(ierr);
-    ierr = VecDestroy(&nep->residual);CHKERRQ(ierr);
-    nep->residual = r;
+  if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,3);
+  if (A) PetscCheckSameComm(nep,1,A,2);
+  if (B) PetscCheckSameComm(nep,1,B,3);
+  if (fun) nep->fun_func = fun;
+  if (ctx) nep->fun_ctx  = ctx;
+  if (A) {
+    ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
+    ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
+    nep->function = A;
   }
-  if (func) nep->res_func = func;
-  if (ctx)  nep->res_ctx  = ctx;
+  if (B) {
+    ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr);
+    ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
+    nep->function_pre = B;
+  }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetFunction"
 /*@C
-   NEPGetFunction - Returns the vector where the function is stored.
+   NEPGetFunction - Returns the Function matrix and optionally the user
+   provided context for evaluating the Function.
 
-   Not Collective, but Vec is parallel if NEP is parallel
+   Not Collective, but Mat object will be parallel if NEP object is
 
    Input Parameter:
-.  nep - the NEP context
+.  nep - the nonlinear eigensolver context
 
-   Output Parameter:
-+  r - the vector that is used to store residuals (or PETSC_NULL if you don't want it)
-.  func- the function (or PETSC_NULL if you don't want it)
--  ctx - the function context (or PETSC_NULL if you don't want it)
+   Output Parameters:
++  A   - location to stash Function matrix (or PETSC_NULL)
+.  B   - location to stash preconditioner matrix (or PETSC_NULL)
+.  fun - location to put Function function (or PETSC_NULL)
+-  ctx - location to stash Function context (or PETSC_NULL)
 
    Level: advanced
 
 .seealso: NEPSetFunction()
 @*/
-PetscErrorCode NEPGetFunction(NEP nep,Vec *r,PetscErrorCode (**func)(NEP,Vec,Vec,void*),void **ctx)
+PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (r) {
-    if (!nep->residual) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_ARG_WRONGSTATE,"No function vector has been provided");
-    *r = nep->residual;
-  }
-  if (func) *func = nep->res_func;
-  if (ctx)  *ctx  = nep->res_ctx;
+  if (A)   *A   = nep->function;
+  if (B)   *B   = nep->function_pre;
+  if (fun) *fun = nep->fun_func;
+  if (ctx) *ctx = nep->fun_ctx;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetJacobian"
 /*@C
-   NEPSetJacobian - Sets the function to compute Jacobian as well as the
-   location to store the matrix.
+   NEPSetJacobian - Sets the function to compute Jacobian T'(lambda) as well
+   as the location to store the matrix.
 
    Logically Collective on NEP and Mat
 
@@ -843,7 +862,7 @@ PetscErrorCode NEPGetFunction(NEP nep,Vec *r,PetscErrorCode (**func)(NEP,Vec,Vec
 
 .seealso: NEPSetFunction(), NEPGetJacobian()
 @*/
-PetscErrorCode  NEPSetJacobian(NEP nep,Mat A,Mat B,PetscErrorCode (*jac)(NEP,Vec,Mat*,Mat*,MatStructure*,void*),void *ctx)
+PetscErrorCode NEPSetJacobian(NEP nep,Mat A,Mat B,PetscErrorCode (*jac)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void *ctx)
 {
   PetscErrorCode ierr;
 
@@ -889,7 +908,7 @@ PetscErrorCode  NEPSetJacobian(NEP nep,Mat A,Mat B,PetscErrorCode (*jac)(NEP,Vec
 
 .seealso: NEPSetJacobian()
 @*/
-PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,Mat *B,PetscErrorCode (**jac)(NEP,Vec,Mat*,Mat*,MatStructure*,void*),void **ctx)
+PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,Mat *B,PetscErrorCode (**jac)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);

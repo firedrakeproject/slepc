@@ -68,12 +68,12 @@ struct _p_NEP {
   void           *which_ctx;
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
-  Vec            residual;
-  PetscErrorCode (*res_func)(NEP,Vec,Vec,void*);
-  void           *res_ctx;
+  Mat            function,function_pre;
+  PetscErrorCode (*fun_func)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
+  void           *fun_ctx;
 
   Mat            jacobian,jacobian_pre;
-  PetscErrorCode (*jac_func)(NEP,Vec,Mat*,Mat*,MatStructure*,void*);
+  PetscErrorCode (*jac_func)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
   void           *jac_ctx;
 
   /*------------------------- Working data --------------------------*/

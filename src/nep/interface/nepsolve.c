@@ -474,16 +474,20 @@ PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,P
 #undef __FUNCT__
 #define __FUNCT__ "NEPComputeFunction"
 /*@
-   NEPComputeFunction - Calls the function that has been set with NEPSetFunction().
+   NEPComputeFunction - Computes the function matrix T(lambda) that has been
+   set with NEPSetFunction().
 
-   Collective on NEP
+   Collective on NEP and Mat
 
    Input Parameters:
 +  nep - the NEP context
--  x   - input vector
+.  wr  - real part of the scalar argument
+-  wi  - imaginary part of the scalar argument
 
-   Output Parameter:
-.  y   - function vector, as set by NEPSetFunction()
+   Output Parameters:
++  A   - Function matrix
+.  B   - optional preconditioning matrix
+-  flg - flag indicating matrix structure (see MatStructure enum)
 
    Notes:
    NEPComputeFunction() is typically used within nonlinear eigensolvers
@@ -494,27 +498,71 @@ PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,P
 
 .seealso: NEPSetFunction(), NEPGetFunction()
 @*/
-PetscErrorCode NEPComputeFunction(NEP nep,Vec x,Vec y)
+PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,Mat *B,MatStructure *flg)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidHeaderSpecific(x,VEC_CLASSID,2);
-  PetscValidHeaderSpecific(y,VEC_CLASSID,3);
-  PetscCheckSameComm(nep,1,x,2);
-  PetscCheckSameComm(nep,1,y,3);
-  VecValidValues(x,2,PETSC_TRUE);
+  PetscValidPointer(flg,6);
 
-  if (nep->res_func) {
-    ierr = PetscLogEventBegin(NEP_FunctionEval,nep,x,y,0);CHKERRQ(ierr);
-    PetscStackPush("NEP user function");
-    ierr = (*nep->res_func)(nep,x,y,nep->res_ctx);CHKERRQ(ierr);
-    PetscStackPop;
-    ierr = PetscLogEventEnd(NEP_FunctionEval,nep,x,y,0);CHKERRQ(ierr);
-  } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE, "Must call NEPSetFunction() before NEPComputeFunction()");
-  nep->nfuncs++;
-  VecValidValues(y,3,PETSC_FALSE);
+  if (!nep->fun_func) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_USER,"Must call NEPSetFunction() first");
+
+  *flg = DIFFERENT_NONZERO_PATTERN;
+  ierr = PetscLogEventBegin(NEP_FunctionEval,nep,*A,*B,0);CHKERRQ(ierr);
+
+  PetscStackPush("NEP user Function function");
+  ierr = (*nep->fun_func)(nep,wr,wi,A,B,flg,nep->fun_ctx);CHKERRQ(ierr);
+  PetscStackPop;
+
+  ierr = PetscLogEventEnd(NEP_FunctionEval,nep,*A,*B,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPComputeJacobian"
+/*@
+   NEPComputeJacobian - Computes the Jacobian matrix T'(lambda) that has been
+   set with NEPSetJacobian().
+
+   Collective on NEP and Mat
+
+   Input Parameters:
++  nep - the NEP context
+.  wr  - real part of the scalar argument
+-  wi  - imaginary part of the scalar argument
+
+   Output Parameters:
++  A   - Jacobian matrix
+.  B   - optional preconditioning matrix
+-  flg - flag indicating matrix structure (see MatStructure enum)
+
+   Notes:
+   Most users should not need to explicitly call this routine, as it
+   is used internally within the nonlinear eigensolvers.
+
+   Level: developer
+
+.seealso: NEPSetJacobian(), NEPGetJacobian()
+@*/
+PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,Mat *B,MatStructure *flg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(flg,6);
+
+  if (!nep->jac_func) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_USER,"Must call NEPSetJacobian() first");
+
+  *flg = DIFFERENT_NONZERO_PATTERN;
+  ierr = PetscLogEventBegin(NEP_JacobianEval,nep,*A,*B,0);CHKERRQ(ierr);
+
+  PetscStackPush("NEP user Jacobian function");
+  ierr = (*nep->jac_func)(nep,wr,wi,A,B,flg,nep->jac_ctx);CHKERRQ(ierr);
+  PetscStackPop;
+
+  ierr = PetscLogEventEnd(NEP_JacobianEval,nep,*A,*B,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
