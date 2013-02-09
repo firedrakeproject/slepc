@@ -134,7 +134,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   ierr = EPSGetStartVector(eps,0,eps->V[0],NULL);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
 
-  TRLan_(MatMult_TRLAN,ipar,&n,&ncv,eps->eigr,pV,&n,tr->work,&tr->lwork);
+  PetscStackCall("TRLan",TRLan_(MatMult_TRLAN,ipar,&n,&ncv,eps->eigr,pV,&n,tr->work,&tr->lwork));
 
   ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
 

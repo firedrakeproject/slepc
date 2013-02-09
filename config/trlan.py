@@ -28,9 +28,6 @@ import check
 
 def Check(conf,vars,cmake,tmpdir,directory,libs):
 
-  log.write('='*80)
-  log.Println('Checking TRLAN library...')
-
   if petscconf.SCALAR == 'complex':
     log.Exit('ERROR: TRLAN is not available for complex scalars.') 
 

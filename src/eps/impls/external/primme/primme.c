@@ -62,7 +62,7 @@ EPSPRIMMEMethod methodN[] = {
 static void multMatvec_PRIMME(void *in,void *out,int *blockSize,primme_params *primme);
 static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct primme_params *primme);
 
-void par_GlobalSumDouble(void *sendBuf,void *recvBuf,int *count,primme_params *primme)
+static void par_GlobalSumDouble(void *sendBuf,void *recvBuf,int *count,primme_params *primme)
 {
   PetscErrorCode ierr;
   ierr = MPI_Allreduce((double*)sendBuf,(double*)recvBuf,*count,MPI_DOUBLE,MPI_SUM,((PetscObject)(primme->commInfo))->comm);CHKERRABORT(((PetscObject)(primme->commInfo))->comm,ierr);
@@ -93,8 +93,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (eps->conv_func != EPSConvergedAbsolute) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only supports absolute convergence test"); 
 
   /* Change the default sigma to inf if necessary */
-  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
-      eps->which == EPS_LARGEST_IMAGINARY) {
+  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) {
     ierr = STSetDefaultShift(eps->st,3e300);CHKERRQ(ierr);
   }
 
@@ -106,15 +105,15 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only works with STPRECOND");
 
   /* Transfer SLEPc options to PRIMME options */
-  primme->n = eps->n;
-  primme->nLocal = eps->nloc;
-  primme->numEvals = eps->nev; 
-  primme->matrix = ops;
-  primme->commInfo = eps;
+  primme->n          = eps->n;
+  primme->nLocal     = eps->nloc;
+  primme->numEvals   = eps->nev; 
+  primme->matrix     = ops;
+  primme->commInfo   = eps;
   primme->maxMatvecs = eps->max_it; 
-  primme->eps = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol; 
-  primme->numProcs = numProcs; 
-  primme->procID = procID;
+  primme->eps        = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol; 
+  primme->numProcs   = numProcs; 
+  primme->procID     = procID;
   primme->printLevel = 0;
   primme->correctionParams.precondition = 1;
 
@@ -138,14 +137,12 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
       break;   
   }
   
-  if (primme_set_method(ops->method,primme) < 0)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME method not valid");
+  if (primme_set_method(ops->method,primme) < 0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME method not valid");
   
   /* If user sets ncv, maxBasisSize is modified. If not, ncv is set as maxBasisSize */
   if (eps->ncv) primme->maxBasisSize = eps->ncv;
   else eps->ncv = primme->maxBasisSize;
-  if (eps->ncv < eps->nev+primme->maxBlockSize)  
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME needs ncv >= nev+maxBlockSize");
+  if (eps->ncv < eps->nev+primme->maxBlockSize)  SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME needs ncv >= nev+maxBlockSize");
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
 
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
@@ -208,27 +205,23 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   switch (ierr) {
     case 0: /* Successful */
       break;
-
     case -1:
       SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME: Failed to open output file");
       break;
-
     case -2:
       SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME: Insufficient integer or real workspace allocated");
       break;
-
     case -3:
       SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME: main_iter encountered a problem");
       break;
-
     default:
       SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME: some parameters wrong configured");
       break;
   }
 
-  eps->nconv = ops->primme.initSize >= 0 ? ops->primme.initSize : 0;
-  eps->reason = eps->ncv >= eps->nev ? EPS_CONVERGED_TOL : EPS_DIVERGED_ITS;
-  eps->its = ops->primme.stats.numOuterIterations;
+  eps->nconv      = ops->primme.initSize >= 0 ? ops->primme.initSize : 0;
+  eps->reason     = eps->ncv >= eps->nev ? EPS_CONVERGED_TOL: EPS_DIVERGED_ITS;
+  eps->its        = ops->primme.stats.numOuterIterations;
   eps->st->applys = ops->primme.stats.numMatvecs;
   PetscFunctionReturn(0);
 }

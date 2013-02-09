@@ -149,15 +149,15 @@ typedef struct {
 
 #if !defined(PETSC_USE_COMPLEX)
 
-#define ARnaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SLEPC_ARPACK(naupd,NAUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),1,2)
-#define ARneupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y) SLEPC_ARPACK(neupd,NEUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),(t),(u),(v),(w),(x),(y),1,1,2)
-#define ARsaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SLEPC_ARPACK(saupd,SAUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),1,2)
-#define ARseupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,o,p,q,r,s,t,u,v,w) SLEPC_ARPACK(seupd,SEUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(o),(p),(q),(r),(s),(t),(u),(v),(w),1,1,2)
+#define ARPACKnaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SLEPC_ARPACK(naupd,NAUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),1,2)
+#define ARPACKneupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y) SLEPC_ARPACK(neupd,NEUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),(t),(u),(v),(w),(x),(y),1,1,2)
+#define ARPACKsaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SLEPC_ARPACK(saupd,SAUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),1,2)
+#define ARPACKseupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,o,p,q,r,s,t,u,v,w) SLEPC_ARPACK(seupd,SEUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(o),(p),(q),(r),(s),(t),(u),(v),(w),1,1,2)
 
 #else
 
-#define ARnaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) SLEPC_ARPACK(naupd,NAUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),1,2)
-#define ARneupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x) SLEPC_ARPACK(neupd,NEUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),(t),(u),(v),(w),(x),1,1,2)
+#define ARPACKnaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) SLEPC_ARPACK(naupd,NAUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),1,2)
+#define ARPACKneupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x) SLEPC_ARPACK(neupd,NEUPD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),(t),(u),(v),(w),(x),1,1,2)
 
 #endif
 
@@ -167,15 +167,15 @@ typedef struct {
 
 #if !defined(PETSC_USE_COMPLEX)
 
-#define ARnaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SLEPC_ARPACK(naupd,NAUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),1,2)
-#define ARneupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y) SLEPC_ARPACK(neupd,NEUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),(t),(u),(v),(w),(x),(y),1,1,2)
-#define ARsaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SLEPC_ARPACK(saupd,SAUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),1,2)
-#define ARseupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,o,p,q,r,s,t,u,v,w) SLEPC_ARPACK(seupd,SEUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(o),(p),(q),(r),(s),(t),(u),(v),(w),1,1,2)
+#define ARPACKnaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SLEPC_ARPACK(naupd,NAUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),1,2)
+#define ARPACKneupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y) SLEPC_ARPACK(neupd,NEUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),(t),(u),(v),(w),(x),(y),1,1,2)
+#define ARPACKsaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) SLEPC_ARPACK(saupd,SAUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),1,2)
+#define ARPACKseupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,o,p,q,r,s,t,u,v,w) SLEPC_ARPACK(seupd,SEUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(o),(p),(q),(r),(s),(t),(u),(v),(w),1,1,2)
 
 #else
 
-#define ARnaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) SLEPC_ARPACK(naupd,NAUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),1,2)
-#define ARneupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x) SLEPC_ARPACK(neupd,NEUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),(t),(u),(v),(w),(x),1,1,2)
+#define ARPACKnaupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) SLEPC_ARPACK(naupd,NAUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),1,2)
+#define ARPACKneupd_(comm,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x) SLEPC_ARPACK(neupd,NEUPD) ((comm),(a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),(t),(u),(v),(w),(x),1,1,2)
 
 #endif
 
