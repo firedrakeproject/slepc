@@ -486,6 +486,8 @@ PetscErrorCode EPSGDGetDoubleExpansion_GD(EPS,PetscBool*);
 PetscErrorCode EPSGDSetDoubleExpansion_GD(EPS,PetscBool);
 
 /* Common inline function */
+#undef __FUNCT__
+#define __FUNCT__ "dvd_improvex_compute_X"
 PETSC_STATIC_INLINE PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,PetscScalar *pX,PetscInt ld)
 {
   PetscErrorCode  ierr;

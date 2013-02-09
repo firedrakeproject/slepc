@@ -447,11 +447,11 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LASV2 - Lapack routine is unavailable");
 #else
-  PetscErrorCode ierr;
   PetscInt       i,j;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    s;
 #else
+  PetscErrorCode ierr;
   PetscBLASInt   ldS_,ldT_,n_i,n_i_2,one=1,n_,i_2,i_;
   PetscScalar    b11,b22,sr,cr,sl,cl;
 #endif

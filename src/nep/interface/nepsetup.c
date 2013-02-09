@@ -49,7 +49,8 @@ PetscErrorCode NEPSetUp(NEP nep)
   PetscErrorCode ierr;
   PetscInt       i,k;
   PetscBool      lindep;
-  PetscReal      sigma,norm;
+  PetscScalar    sigma;
+  PetscReal      norm;
   Mat            T;
   MatStructure   mats;
   
