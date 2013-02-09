@@ -119,6 +119,6 @@ int main(int argc,char **argv)
   
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();CHKERRQ(ierr);
+  ierr = SlepcFinalize();
   return 0;
 }

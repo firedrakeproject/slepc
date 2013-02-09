@@ -191,7 +191,7 @@ int main(int argc,char **argv)
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
   ierr = VecDestroyVecs(nini,&I);CHKERRQ(ierr);
   ierr = VecDestroyVecs(ncon,&C);CHKERRQ(ierr);
-  ierr = SlepcFinalize();CHKERRQ(ierr);
+  ierr = SlepcFinalize();
   return 0;
 }
 

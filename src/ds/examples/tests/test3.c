@@ -98,6 +98,6 @@ int main(int argc,char **argv)
 
   ierr = PetscFree(eig);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
-  ierr = SlepcFinalize();CHKERRQ(ierr);
+  ierr = SlepcFinalize();
   return 0;
 }

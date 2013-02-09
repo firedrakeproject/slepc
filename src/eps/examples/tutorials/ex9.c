@@ -200,7 +200,7 @@ int main(int argc,char **argv)
   ierr = VecDestroy(&ctx->y1);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->y2);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
-  ierr = SlepcFinalize();CHKERRQ(ierr);
+  ierr = SlepcFinalize();
   return 0;
 }
 

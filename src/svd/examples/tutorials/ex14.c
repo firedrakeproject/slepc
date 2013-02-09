@@ -105,6 +105,6 @@ int main(int argc,char **argv)
   ierr = SVDPrintSolution(svd,NULL);CHKERRQ(ierr);
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();CHKERRQ(ierr);
+  ierr = SlepcFinalize();
   return 0;
 }
