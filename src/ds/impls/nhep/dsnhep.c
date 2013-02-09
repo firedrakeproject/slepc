@@ -760,7 +760,8 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
 #else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,ld2,*ipiv,info,inc=1;
-  PetscInt       j,k,p=6,odd;
+  PetscInt       j,k,odd;
+  const PetscInt p=6;
   PetscReal  	 c[p+1],s;
   PetscScalar    scale,mone=-1.0,one=1.0,two=2.0,zero=0.0; 
   PetscScalar    *A,*A2,*Q,*P,*W,*aux;
@@ -811,8 +812,7 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
       W = aux;
       for (j=0;j<n;j++)
         Q[j+j*ld] = Q[j+j*ld] + c[k-1];
-    }
-    else {
+    } else {
       PetscStackCall("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,A2,&ld,&zero,W,&ld));
       aux = P;
       P = W;
@@ -833,8 +833,7 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
     for (j=0;j<n;j++)
       P[j+j*ld] = P[j+j*ld] + 1.0;
     PetscStackCall("BLASscal",BLASscal_(&ld2,&mone,P,&inc));
-  }
-  else {
+  } else {
     PetscStackCall("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,A,&ld,&zero,W,&ld));
     aux = P;
     P = W;
@@ -849,7 +848,10 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
   for (k=1;k<=s;k++) {
     PetscStackCall("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,P,&ld,&zero,W,&ld));
     ierr = PetscMemcpy(P,W,ld2*sizeof(PetscScalar));CHKERRQ(ierr);
-  }  
+  }
+  if (P!=ds->mat[DS_MAT_F]) {
+    ierr = PetscMemcpy(ds->mat[DS_MAT_F],P,ld2*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 #endif
 }

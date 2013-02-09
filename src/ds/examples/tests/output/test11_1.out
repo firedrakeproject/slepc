@@ -1,0 +1,6 @@
+Compute non-symmetric matrix exponential - dimension 10.
+DS Object: 1 MPI processes
+  type: nhep
+  current state: raw
+  dimensions: ld=12, n=10, l=0, k=0
+  flags:
