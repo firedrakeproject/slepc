@@ -683,6 +683,7 @@ PetscErrorCode EPSReset(EPS eps)
 PetscErrorCode EPSDestroy(EPS *eps)
 {
   PetscErrorCode ierr;
+  PetscInt       i;
 
   PetscFunctionBegin;
   if (!*eps) PetscFunctionReturn(0);
@@ -695,6 +696,19 @@ PetscErrorCode EPSDestroy(EPS *eps)
   ierr = IPDestroy(&(*eps)->ip);CHKERRQ(ierr);
   ierr = DSDestroy(&(*eps)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*eps)->rand);CHKERRQ(ierr);
+  /* just in case the initial vectors have not been used */
+  if ((*eps)->nini<0) {
+    for (i=0;i<-(*eps)->nini;i++) {
+      ierr = VecDestroy(&(*eps)->IS[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree((*eps)->IS);CHKERRQ(ierr);
+  }
+  if ((*eps)->ninil<0) {
+    for (i=0;i<-(*eps)->ninil;i++) {
+      ierr = VecDestroy(&(*eps)->ISL[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree((*eps)->ISL);CHKERRQ(ierr);
+  }
   ierr = EPSRemoveDeflationSpace(*eps);CHKERRQ(ierr);
   ierr = EPSMonitorCancel(*eps);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(eps);CHKERRQ(ierr);

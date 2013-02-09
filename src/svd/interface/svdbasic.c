@@ -395,7 +395,8 @@ PetscErrorCode SVDReset(SVD svd)
 PetscErrorCode SVDDestroy(SVD *svd)
 {
   PetscErrorCode ierr;
-  
+  PetscInt       i;
+ 
   PetscFunctionBegin;
   if (!*svd) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*svd,SVD_CLASSID,1);
@@ -405,6 +406,13 @@ PetscErrorCode SVDDestroy(SVD *svd)
   if ((*svd)->ops->destroy) { ierr = (*(*svd)->ops->destroy)(*svd);CHKERRQ(ierr); }
   ierr = IPDestroy(&(*svd)->ip);CHKERRQ(ierr);
   ierr = DSDestroy(&(*svd)->ds);CHKERRQ(ierr);
+  /* just in case the initial vectors have not been used */
+  if ((*svd)->nini<0) {
+    for (i=0;i<-(*svd)->nini;i++) {
+      ierr = VecDestroy(&(*svd)->IS[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree((*svd)->IS);CHKERRQ(ierr);
+  }
   ierr = PetscRandomDestroy(&(*svd)->rand);CHKERRQ(ierr);
   ierr = SVDMonitorCancel(*svd);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(svd);CHKERRQ(ierr);
