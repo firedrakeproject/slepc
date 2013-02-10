@@ -7,7 +7,6 @@
 #include <petscsys.h>
 #include <petscvec.h>
 #include <petscmat.h>
-#include <assert.h>
 #include <petscblaslapack.h>
 #include "blopex_interpreter.h"
 #include "blopex_temp_multivector.h"
@@ -91,8 +90,7 @@ void *PETSC_MimicVector(void *vvector)
   PetscErrorCode  ierr;
   Vec temp;
 
-  ierr = VecDuplicate((Vec)vvector,&temp);
-  assert (ierr==0);
+  ierr = VecDuplicate((Vec)vvector,&temp);CHKERRQ(ierr);
   return (void*)temp;
 }
 
@@ -109,8 +107,7 @@ BlopexInt PETSC_InnerProd(void *x,void *y,void *result)
 {
   PetscErrorCode ierr;
 
-  ierr = VecDot((Vec)x,(Vec)y,(PetscScalar*)result);
-  assert(ierr==0);
+  ierr = VecDot((Vec)x,(Vec)y,(PetscScalar*)result);CHKERRQ(ierr);
   return 0;
 }
 
