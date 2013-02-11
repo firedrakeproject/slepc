@@ -833,8 +833,7 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
   ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
   
 #if !defined(PETSC_USE_COMPLEX)
-  if (ki == 0 || 
-    PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
+  if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
     ierr = MatMult(A,xr,u);CHKERRQ(ierr);                             /* u=A*x */
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
@@ -1063,8 +1062,8 @@ PetscErrorCode EPSComputeRelativeError_Private(EPS eps,PetscScalar kr,PetscScala
 PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *error)
 {
   PetscErrorCode ierr;
-  Vec            xr,xi;  
-  PetscScalar    kr,ki;  
+  Vec            xr,xi;
+  PetscScalar    kr,ki;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);  
@@ -1123,8 +1122,7 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps,PetscInt i,PetscReal *error)
   ierr = EPSGetEigenvectorLeft(eps,i,xr,xi);CHKERRQ(ierr);
 
 #if !defined(PETSC_USE_COMPLEX)
-  if (ki == 0 || 
-    PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
+  if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
     ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) *error = norm/(PetscAbsScalar(kr)*er);

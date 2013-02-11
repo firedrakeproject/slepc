@@ -412,8 +412,7 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep,PetscScalar kr,PetscScalar
   ierr = VecDuplicate(u,&w);CHKERRQ(ierr);
   
 #if !defined(PETSC_USE_COMPLEX)
-  if (ki == 0 || 
-    PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
+  if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
     ierr = MatMult(K,xr,u);CHKERRQ(ierr);                 /* u=K*x */
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
@@ -524,8 +523,7 @@ PetscErrorCode QEPComputeRelativeError_Private(QEP qep,PetscScalar kr,PetscScala
   PetscFunctionBegin;
   ierr = QEPComputeResidualNorm_Private(qep,kr,ki,xr,xi,&norm);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  if (ki == 0 || 
-    PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
+  if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
     ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
     if (PetscAbsScalar(kr) > norm) {
@@ -571,8 +569,8 @@ PetscErrorCode QEPComputeRelativeError_Private(QEP qep,PetscScalar kr,PetscScala
 PetscErrorCode QEPComputeRelativeError(QEP qep,PetscInt i,PetscReal *error)
 {
   PetscErrorCode ierr;
-  Vec            xr,xi;  
-  PetscScalar    kr,ki;  
+  Vec            xr,xi;
+  PetscScalar    kr,ki;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);  

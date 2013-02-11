@@ -122,6 +122,10 @@ PETSC_EXTERN PetscErrorCode NEPGetDimensions(NEP,PetscInt*,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPGetConverged(NEP,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPGetEigenpair(NEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
 
+PETSC_EXTERN PetscErrorCode NEPComputeRelativeError(NEP,PetscInt,PetscReal*);
+PETSC_EXTERN PetscErrorCode NEPComputeResidualNorm(NEP,PetscInt,PetscReal*);
+PETSC_EXTERN PetscErrorCode NEPGetErrorEstimate(NEP,PetscInt,PetscReal*);
+
 PETSC_EXTERN PetscErrorCode NEPComputeFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*);
 PETSC_EXTERN PetscErrorCode NEPComputeJacobian(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*);
 

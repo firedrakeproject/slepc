@@ -21,7 +21,15 @@
 
 static char help[] = "Simple 1-D nonlinear eigenproblem, sequential.\n\n"
   "The command line options are:\n"
-  "  -n <n>, where <n> = number of grid subdivisions.\n\n";
+  "  -n <n>, where <n> = number of grid subdivisions.\n"
+  "  -draw_sol, to draw the computed solution.\n\n";
+
+/*
+   Solve 1-D PDE
+            -u'' = lambda*u
+   on [0,1] subject to
+            u(0)=0, u'(1)=u(1)*lambda*kappa/(kappa-lambda)
+*/
 
 #include <slepcnep.h>
 
@@ -31,6 +39,7 @@ static char help[] = "Simple 1-D nonlinear eigenproblem, sequential.\n\n"
 extern PetscErrorCode FormInitialGuess(Vec);
 extern PetscErrorCode FormFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
 extern PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
+extern PetscErrorCode CheckSolution(PetscScalar,PetscScalar,Vec,Vec,PetscReal*,void*);
 
 /*
    User-defined application context
@@ -45,17 +54,16 @@ typedef struct {
 int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */
-  Vec            x,r,u;           /* vectors */
+  Vec            x;               /* eigenvector */
+  PetscScalar    lambda;          /* eigenvalue */
   Mat            F,J;             /* Function and Jacobian matrices */
   ApplicationCtx ctx;             /* user-defined context */
   NEPType        type;
   PetscInt       n=128,nev,i,its,maxit,maxf,nconv;
   PetscMPIInt    size;
-  PetscScalar    kr;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    ki;
-#endif
-  PetscReal      re,im,abstol,rtol,stol,norm;
+  PetscReal      re,im,abstol,rtol,stol,norm,error;
+  PetscDraw      draw;
+  PetscBool      draw_sol;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -65,6 +73,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
   ctx.h = 1.0/(PetscReal)n;
   ctx.kappa = 1.0;
+  ierr = PetscOptionsHasName(NULL,"-draw_sol",&draw_sol);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create nonlinear eigensolver context
@@ -106,6 +115,9 @@ int main(int argc,char **argv)
      Customize nonlinear solver; set runtime options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+  ierr = NEPSetTolerances(nep,0,1e-9,0,0,0);CHKERRQ(ierr);
+  ierr = NEPSetDimensions(nep,1,0,0);CHKERRQ(ierr);
+
   /*
      Set solver parameters at runtime
   */
@@ -116,14 +128,9 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /*
-     Compute analytic solution
-  */
-
-  /*
      Evaluate initial guess
   */
-  ierr = MatGetVecs(F,&x,&r);CHKERRQ(ierr);
-  ierr = VecDuplicate(x,&u);CHKERRQ(ierr);
+  ierr = MatGetVecs(F,&x,NULL);CHKERRQ(ierr);
   ierr = FormInitialGuess(x);CHKERRQ(ierr);
   ierr = NEPSetInitialSpace(nep,1,&x);CHKERRQ(ierr);
 
@@ -160,51 +167,44 @@ int main(int argc,char **argv)
        Display eigenvalues and relative errors
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k              ||T(k)x|| \n"
-         "   ----------------- ------------------\n");CHKERRQ(ierr);
+         "           k              ||T(k)x||           error\n"
+         "   ----------------- ------------------ ------------------\n");CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
       /* 
-        Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
-        ki (imaginary part)
+        Get converged eigenpairs (in this example they are always real)
       */
-      //ierr = NEPGetEigenpairs(nep,i,&kr,,NULL,NULL);CHKERRQ(ierr);
-      kr=0.0;
-#if !defined(PETSC_USE_COMPLEX)
-      ki=0.0;
-#endif
+      ierr = NEPGetEigenpair(nep,i,&lambda,NULL,x,NULL);CHKERRQ(ierr);
       /*
-         Compute the relative errors associated to both right and left eigenvectors
+         Compute residual norm and error
       */
-      //ierr = EPSComputeRelativeError(eps,i,&norm);CHKERRQ(ierr);
-      norm=0.0;
+      ierr = NEPComputeRelativeError(nep,i,&norm);CHKERRQ(ierr);
+      ierr = CheckSolution(lambda,0,x,NULL,&error,&ctx);CHKERRQ(ierr);
 
 #if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-      im = PetscImaginaryPart(kr);
+      re = PetscRealPart(lambda);
+      im = PetscImaginaryPart(lambda);
 #else
-      re = kr;
-      im = ki;
+      re = lambda;
+      im = 0.0;
 #endif 
       if (im!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9F%+9F j %12G\n",re,im,norm);CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD," %9F%+9F j %12G     %12G\n",re,im,norm,error);CHKERRQ(ierr);
       } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12F       %12G\n",re,norm);CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12F         %12G     %12G\n",re,norm,error);CHKERRQ(ierr);
+      }
+      if (draw_sol) {
+        ierr = PetscViewerDrawGetDraw(PETSC_VIEWER_DRAW_WORLD,0,&draw);CHKERRQ(ierr);
+        ierr = PetscDrawSetPause(draw,-1);CHKERRQ(ierr);
+        ierr = VecView(x,PETSC_VIEWER_DRAW_WORLD);CHKERRQ(ierr);
       }
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
 
-  /*
-     Check the error
-  */
-
-
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
   ierr = MatDestroy(&F);CHKERRQ(ierr);
   ierr = MatDestroy(&J);CHKERRQ(ierr);
   ierr = VecDestroy(&x);CHKERRQ(ierr);
-  ierr = VecDestroy(&r);CHKERRQ(ierr);
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return 0;
 }
@@ -379,6 +379,50 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *jac,Mat *
     ierr = MatAssemblyBegin(*jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = MatAssemblyEnd(*jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+/* ------------------------------------------------------------------- */
+#undef __FUNCT__
+#define __FUNCT__ "CheckSolution"
+/*
+   CheckSolution - Given a computed solution (lambda,x) check if it
+   satisfies the analytic solution.
+
+   Input Parameters:
++  kr - the computed eigenvalue (real part)
+.  ki - the computed eigenvalue (imaginary part)
+.  xr - the computed eigenvector (real part)
+-  xi - the computed eigenvector (imaginary part)
+
+   Output Parameter:
+.  error - norm of difference between the computed and exact eigenvector
+*/
+PetscErrorCode CheckSolution(PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *error,void *ctx)
+{
+  PetscErrorCode ierr;
+  PetscScalar    nu,*uu;
+  PetscInt       i,n;
+  PetscReal      x;
+  Vec            u;
+  ApplicationCtx *user = (ApplicationCtx*)ctx;
+
+  PetscFunctionBeginUser;
+  nu = PetscSqrtScalar(kr);
+#if !defined(PETSC_USE_COMPLEX)
+  if (ki) SETERRQ(PETSC_COMM_SELF,1,"ki must not be used in this example");
+#endif
+  ierr = VecDuplicate(xr,&u);CHKERRQ(ierr);
+  ierr = VecGetSize(u,&n);CHKERRQ(ierr);
+  ierr = VecGetArray(u,&uu);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    x = (i+1)*user->h;
+    uu[i] = sin(nu*x);
+  }
+  ierr = VecRestoreArray(u,&uu);CHKERRQ(ierr);
+  ierr = VecAXPY(u,-1.0,xr);CHKERRQ(ierr);
+  ierr = VecNorm(u,NORM_2,error);CHKERRQ(ierr);
+  ierr = VecDestroy(&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

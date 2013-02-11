@@ -49,7 +49,7 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
   if (!nep->max_funcs) nep->max_funcs = nep->max_it;
 
   ierr = NEPAllocateSolution(nep);CHKERRQ(ierr);
-  ierr = NEPDefaultGetWork(nep,3);CHKERRQ(ierr);
+  ierr = NEPDefaultGetWork(nep,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -59,16 +59,14 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 {
   PetscErrorCode ierr;
   Mat            T=nep->function,Tp=nep->jacobian,Tsigma;
-  Vec            u=nep->work[0],r=nep->work[1],delta=nep->work[2];
+  Vec            u=nep->V[0],r=nep->work[0],delta=nep->work[1];
   PetscScalar    sigma,lambda,a1,a2;
   PetscReal      relerr,norm1,norm2;
   MatStructure   mats;
 
   PetscFunctionBegin;
-  /* Get the starting vector */
-  if (nep->nini>0) {
-    ierr = VecCopy(nep->V[0],u);CHKERRQ(ierr);
-  } else {
+  /* Random start vector if not provided by user */
+  if (!nep->nini) {
     ierr = SlepcVecSetRandom(u,nep->rand);CHKERRQ(ierr);
   }
   

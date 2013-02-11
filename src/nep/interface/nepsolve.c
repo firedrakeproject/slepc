@@ -311,6 +311,194 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "NEPGetErrorEstimate" 
+/*@
+   NEPGetErrorEstimate - Returns the error estimate associated to the i-th 
+   computed eigenpair.
+
+   Not Collective
+
+   Input Parameter:
++  nep - nonlinear eigensolver context 
+-  i   - index of eigenpair
+
+   Output Parameter:
+.  errest - the error estimate
+
+   Notes:
+   This is the error estimate used internally by the eigensolver. The actual
+   error bound can be computed with NEPComputeRelativeError().
+
+   Level: advanced
+
+.seealso: NEPComputeRelativeError()
+@*/
+PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(errest,3);
+  if (!nep->eigr || !nep->eigi) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first"); 
+  if (i<0 || i>=nep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
+  if (nep->perm) i = nep->perm[i];  
+  if (errest) *errest = nep->errest[i];
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "NEPComputeResidualNorm_Private"
+/*
+   NEPComputeResidualNorm_Private - Computes the norm of the residual vector 
+   associated with an eigenpair.
+*/
+PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  Vec            u;
+  Mat            T=nep->function;
+  MatStructure   mats;
+  
+  PetscFunctionBegin;
+  ierr = VecDuplicate(nep->V[0],&u);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,kr,ki,&T,&T,&mats);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
+#endif
+    ierr = MatMult(T,xr,u);CHKERRQ(ierr);
+    ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);  
+#if !defined(PETSC_USE_COMPLEX)
+  } else {
+    SETERRQ(PETSC_COMM_SELF,1,"Not implemented");
+  }
+#endif
+  ierr = VecDestroy(&u);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "NEPComputeResidualNorm"
+/*@
+   NEPComputeResidualNorm - Computes the norm of the residual vector associated with 
+   the i-th computed eigenpair.
+
+   Collective on NEP
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+.  i   - the solution index
+
+   Output Parameter:
+.  norm - the residual norm, computed as ||T(lambda)x||_2 where lambda is the 
+   eigenvalue and x is the eigenvector. 
+
+   Notes:
+   The index i should be a value between 0 and nconv-1 (see NEPGetConverged()).
+   Eigenpairs are indexed according to the ordering criterion established 
+   with NEPSetWhichEigenpairs().
+
+   Level: beginner
+
+.seealso: NEPSolve(), NEPGetConverged(), NEPSetWhichEigenpairs()
+@*/
+PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  Vec            xr,xi;
+  PetscScalar    kr,ki;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(nep,i,2);
+  PetscValidPointer(norm,3);
+  ierr = VecDuplicate(nep->V[0],&xr);CHKERRQ(ierr);
+  ierr = VecDuplicate(nep->V[0],&xi);CHKERRQ(ierr);
+  ierr = NEPGetEigenpair(nep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
+  ierr = NEPComputeResidualNorm_Private(nep,kr,ki,xr,xi,norm);CHKERRQ(ierr);
+  ierr = VecDestroy(&xr);CHKERRQ(ierr);
+  ierr = VecDestroy(&xi);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "NEPComputeRelativeError_Private"
+/*
+   NEPComputeRelativeError_Private - Computes the relative error bound 
+   associated with an eigenpair.
+*/
+PetscErrorCode NEPComputeRelativeError_Private(NEP nep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *error)
+{
+  PetscErrorCode ierr;
+  PetscReal      norm,er;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscReal      ei;
+#endif
+  
+  PetscFunctionBegin;
+  ierr = NEPComputeResidualNorm_Private(nep,kr,ki,xr,xi,&norm);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
+#endif
+    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
+    if (PetscAbsScalar(kr) > norm) {
+      *error = norm/(PetscAbsScalar(kr)*er);
+    } else {
+      *error = norm/er;
+    }
+#if !defined(PETSC_USE_COMPLEX)
+  } else {
+    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);  
+    ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);  
+    if (SlepcAbsEigenvalue(kr,ki) > norm) {
+      *error = norm/(SlepcAbsEigenvalue(kr,ki)*SlepcAbsEigenvalue(er,ei));
+    } else {
+      *error = norm/SlepcAbsEigenvalue(er,ei);
+    }
+  }
+#endif    
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "NEPComputeRelativeError"
+/*@
+   NEPComputeRelativeError - Computes the relative error bound associated 
+   with the i-th computed eigenpair.
+
+   Collective on NEP
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+.  i   - the solution index
+
+   Output Parameter:
+.  error - the relative error bound, computed as ||T(lambda)x||_2/||lambda*x||_2
+   where lambda is the eigenvalue and x is the eigenvector. 
+   If lambda=0 the relative error is computed as ||T(lambda)x||_2/||x||_2.
+
+   Level: beginner
+
+.seealso: NEPSolve(), NEPComputeResidualNorm(), NEPGetErrorEstimate()
+@*/
+PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
+{
+  PetscErrorCode ierr;
+  Vec            xr,xi;
+  PetscScalar    kr,ki;
+  
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);  
+  PetscValidLogicalCollectiveInt(nep,i,2);
+  PetscValidPointer(error,3);
+  ierr = VecDuplicate(nep->V[0],&xr);CHKERRQ(ierr);
+  ierr = VecDuplicate(nep->V[0],&xi);CHKERRQ(ierr);
+  ierr = NEPGetEigenpair(nep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
+  ierr = NEPComputeRelativeError_Private(nep,kr,ki,xr,xi,error);CHKERRQ(ierr);  
+  ierr = VecDestroy(&xr);CHKERRQ(ierr);
+  ierr = VecDestroy(&xi);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "NEPSortEigenvalues"
 /*@
    NEPSortEigenvalues - Sorts a list of eigenvalues according to the criterion 
