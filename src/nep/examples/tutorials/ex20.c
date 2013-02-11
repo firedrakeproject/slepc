@@ -51,7 +51,10 @@ int main(int argc,char **argv)
   NEPType        type;
   PetscInt       n=128,nev,i,its,maxit,maxf,nconv;
   PetscMPIInt    size;
-  PetscScalar    kr,ki;
+  PetscScalar    kr;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    ki;
+#endif
   PetscReal      re,im,abstol,rtol,stol,norm;
   PetscErrorCode ierr;
 
@@ -164,8 +167,11 @@ int main(int argc,char **argv)
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
       */
-      //ierr = NEPGetEigenpairs(nep,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-      kr=0.0;ki=0.0;
+      //ierr = NEPGetEigenpairs(nep,i,&kr,,NULL,NULL);CHKERRQ(ierr);
+      kr=0.0;
+#if !defined(PETSC_USE_COMPLEX)
+      ki=0.0;
+#endif
       /*
          Compute the relative errors associated to both right and left eigenvectors
       */
@@ -246,14 +252,16 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *fun,Mat *
 {
   PetscErrorCode ierr;
   ApplicationCtx *user = (ApplicationCtx*)ctx;
-  PetscScalar    lambda,A[3];
-  PetscReal      h,c;
+  PetscScalar    lambda,A[3],c,d;
+  PetscReal      h;
   PetscInt       i,n,j[3];
 
   PetscFunctionBeginUser;
   /* in this example the eigenvalue is always real */
   lambda = wr;
-  if (wi!=0.0) SETERRQ(PETSC_COMM_SELF,1,"Non-real scalar parameter generated!");
+#if !defined(PETSC_USE_COMPLEX)
+  if (wi) SETERRQ(PETSC_COMM_SELF,1,"Non-real scalar parameter generated!");
+#endif
 
   /*
      Compute Function entries and insert into matrix
@@ -261,13 +269,14 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *fun,Mat *
   ierr = MatGetSize(*fun,&n,NULL);CHKERRQ(ierr);
   h = user->h;
   c = user->kappa/(lambda-user->kappa);
+  d = n;
 
   /*
      Interior grid points
   */
   for (i=1;i<n-1;i++) {
     j[0] = i-1; j[1] = i; j[2] = i+1;
-    A[0] = A[2] = -n-lambda*h/6.0; A[1] = 2.0*(n-lambda*h/3.0);
+    A[0] = A[2] = -d-lambda*h/6.0; A[1] = 2.0*(d-lambda*h/3.0);
     ierr = MatSetValues(*fun,1,&i,3,j,A,INSERT_VALUES);CHKERRQ(ierr);
   }
 
@@ -276,12 +285,12 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *fun,Mat *
   */
   i = 0;
   j[0] = 0; j[1] = 1;
-  A[0] = 2.0*(n-lambda*h/3.0); A[1] = -n-lambda*h/6.0;
+  A[0] = 2.0*(d-lambda*h/3.0); A[1] = -d-lambda*h/6.0;
   ierr = MatSetValues(*fun,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
 
   i = n-1;
   j[0] = n-2; j[1] = n-1;
-  A[0] = -n-lambda*h/6.0; A[1] = n-lambda*h/3.0+lambda*c;
+  A[0] = -d-lambda*h/6.0; A[1] = d-lambda*h/3.0+lambda*c;
   ierr = MatSetValues(*fun,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
 
   /*
@@ -321,14 +330,16 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *jac,Mat *
 {
   PetscErrorCode ierr;
   ApplicationCtx *user = (ApplicationCtx*)ctx;
-  PetscScalar    lambda,A[3];
-  PetscReal      h,c;
+  PetscScalar    lambda,A[3],c;
+  PetscReal      h;
   PetscInt       i,n,j[3];
 
   PetscFunctionBeginUser;
   /* in this example the eigenvalue is always real */
   lambda = wr;
-  if (wi!=0.0) SETERRQ(PETSC_COMM_SELF,1,"Non-real scalar parameter generated!");
+#if !defined(PETSC_USE_COMPLEX)
+  if (wi) SETERRQ(PETSC_COMM_SELF,1,"Non-real scalar parameter generated!");
+#endif
 
   /*
      Compute Jacobian entries and insert into matrix

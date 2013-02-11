@@ -145,7 +145,7 @@
       call EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE,ierr)
       call EPSGetWhichEigenpairs(eps,which,ierr)
       if (rank .eq. 0) then
-        write(*,170) which,tget
+        write(*,170) which,PetscRealPart(tget)
       endif
  170  format (' Which = ',I2,', target = ',F3.1)
 

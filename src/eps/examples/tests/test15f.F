@@ -202,12 +202,13 @@
       PetscErrorCode ierr
       PetscInt       its,nconv,nest,dummy
       PetscScalar    eigr(*),eigi(*)
-      PetscReal      errest(*)
+      PetscReal      re,errest(*)
       PetscMPIInt    rank
 
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       if (its .gt. 0 .and. rank .eq. 0) then
-        write(6,140) its,nconv,eigr(nconv+1),errest(nconv+1)
+        re = PetscRealPart(eigr(nconv+1))
+        write(6,140) its,nconv,re,errest(nconv+1)
       endif
 
  140  format(i3,' EPS nconv=',i2,' first unconverged value (error) ',   &
