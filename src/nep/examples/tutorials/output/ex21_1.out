@@ -1,0 +1,13 @@
+
+1-D Nonlinear Eigenproblem, n=128
+
+ Number of NEP iterations = 15
+
+ Solution method: rii
+ Number of requested eigenvalues: 1
+ Number of converged approximate eigenpairs: 1
+
+           k              ||T(k)x||
+   ----------------- ------------------
+       4.482117          1.41188e-07
+

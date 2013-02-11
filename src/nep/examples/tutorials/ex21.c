@@ -19,10 +19,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Simple 1-D nonlinear eigenproblem.\n\n"
+static char help[] = "Simple 1-D nonlinear eigenproblem (matrix-free version, sequential).\n\n"
   "The command line options are:\n"
-  "  -n <n>, where <n> = number of grid subdivisions.\n"
-  "  -draw_sol, to draw the computed solution.\n\n";
+  "  -n <n>, where <n> = number of grid subdivisions\n\n";
 
 /*
    Solve 1-D PDE
@@ -39,7 +38,21 @@ static char help[] = "Simple 1-D nonlinear eigenproblem.\n\n"
 extern PetscErrorCode FormInitialGuess(Vec);
 extern PetscErrorCode FormFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
 extern PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
-extern PetscErrorCode CheckSolution(PetscScalar,PetscScalar,Vec,Vec,PetscReal*,void*);
+
+/* 
+   Matrix operations and context
+*/
+extern PetscErrorCode MatFun_Mult(Mat,Vec,Vec);
+extern PetscErrorCode MatFun_GetDiagonal(Mat,Vec);
+extern PetscErrorCode MatFun_Destroy(Mat);
+extern PetscErrorCode MatFun_Duplicate(Mat,MatDuplicateOption,Mat*);
+extern PetscErrorCode MatJac_Mult(Mat,Vec,Vec);
+extern PetscErrorCode MatJac_Destroy(Mat);
+
+typedef struct {
+  PetscScalar lambda,kappa;
+  PetscReal   h;
+} MatCtx;
 
 /*
    User-defined application context
@@ -58,19 +71,22 @@ int main(int argc,char **argv)
   PetscScalar    lambda;          /* eigenvalue */
   Mat            F,J;             /* Function and Jacobian matrices */
   ApplicationCtx ctx;             /* user-defined context */
+  MatCtx         *ctxF,*ctxJ;     /* contexts for shell matrices */
   NEPType        type;
-  PetscInt       n=128,nev,i,its,maxit,maxf,nconv;
-  PetscReal      re,im,abstol,rtol,stol,norm,error;
-  PetscDraw      draw;
-  PetscBool      draw_sol;
+  PetscInt       n=128,nev,i,its,nconv;
+  KSP            ksp;
+  PC             pc;
+  PetscMPIInt    size;
+  PetscReal      re,im,norm;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRQ(ierr);
+  if (size != 1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This is a uniprocessor example only!");
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
   ctx.h = 1.0/(PetscReal)n;
   ctx.kappa = 1.0;
-  ierr = PetscOptionsHasName(NULL,"-draw_sol",&draw_sol);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create nonlinear eigensolver context
@@ -82,58 +98,53 @@ int main(int argc,char **argv)
      Create matrix data structure; set Function evaluation routine
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&F);CHKERRQ(ierr);
-  ierr = MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(F);CHKERRQ(ierr);
-  ierr = MatSeqAIJSetPreallocation(F,3,NULL);CHKERRQ(ierr);
-  ierr = MatMPIAIJSetPreallocation(F,3,NULL,1,NULL);CHKERRQ(ierr);
-  ierr = MatSetUp(F);CHKERRQ(ierr);
+  ierr = PetscNew(MatCtx,&ctxF);CHKERRQ(ierr);
+  ctxF->h = ctx.h;
+  ctxF->kappa = ctx.kappa;
+
+  ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,(void*)ctxF,&F);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(F,MATOP_MULT,(void(*)())MatFun_Mult);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)())MatFun_GetDiagonal);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(F,MATOP_DESTROY,(void(*)())MatFun_Destroy);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(F,MATOP_DUPLICATE,(void(*)())MatFun_Duplicate);CHKERRQ(ierr);
+  ierr = MatGetVecs(F,&x,NULL);CHKERRQ(ierr);
 
   /*
      Set Function matrix data structure and default Function evaluation
      routine
   */
-  ierr = NEPSetFunction(nep,F,F,FormFunction,&ctx);CHKERRQ(ierr);
+  ierr = NEPSetFunction(nep,F,F,FormFunction,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create matrix data structure; set Jacobian evaluation routine
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&J);CHKERRQ(ierr);
-  ierr = MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(J);CHKERRQ(ierr);
-  ierr = MatSeqAIJSetPreallocation(J,3,NULL);CHKERRQ(ierr);
-  ierr = MatMPIAIJSetPreallocation(F,3,NULL,1,NULL);CHKERRQ(ierr);
-  ierr = MatSetUp(J);CHKERRQ(ierr);
+  ierr = PetscNew(MatCtx,&ctxJ);CHKERRQ(ierr);
+  ctxJ->h = ctx.h;
+  ctxJ->kappa = ctx.kappa;
+
+  ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,(void*)ctxJ,&J);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(J,MATOP_MULT,(void(*)())MatJac_Mult);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(J,MATOP_DESTROY,(void(*)())MatJac_Destroy);CHKERRQ(ierr);
 
   /*
      Set Jacobian matrix data structure and default Jacobian evaluation
      routine
   */
-  ierr = NEPSetJacobian(nep,J,J,FormJacobian,&ctx);CHKERRQ(ierr);
+  ierr = NEPSetJacobian(nep,J,J,FormJacobian,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
      Customize nonlinear solver; set runtime options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = NEPSetTolerances(nep,0,1e-9,0,0,0);CHKERRQ(ierr);
-  ierr = NEPSetDimensions(nep,1,0,0);CHKERRQ(ierr);
+  ierr = NEPGetKSP(nep,&ksp);CHKERRQ(ierr);
+  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+  ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
   */
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
-
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                      Initialize application
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  /*
-     Evaluate initial guess
-  */
-  ierr = MatGetVecs(F,&x,NULL);CHKERRQ(ierr);
-  ierr = FormInitialGuess(x);CHKERRQ(ierr);
-  ierr = NEPSetInitialSpace(nep,1,&x);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the eigensystem
@@ -150,8 +161,6 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n",type);CHKERRQ(ierr);
   ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
-  ierr = NEPGetTolerances(nep,&abstol,&rtol,&stol,&maxit,&maxf);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: atol=%G, rtol=%G, stol=%G, maxit=%D, maxf=%D\n",abstol,rtol,stol,maxit,maxf);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
@@ -168,18 +177,17 @@ int main(int argc,char **argv)
        Display eigenvalues and relative errors
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k              ||T(k)x||           error\n"
-         "   ----------------- ------------------ ------------------\n");CHKERRQ(ierr);
+         "           k              ||T(k)x||\n"
+         "   ----------------- ------------------\n");CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
       /* 
         Get converged eigenpairs (in this example they are always real)
       */
       ierr = NEPGetEigenpair(nep,i,&lambda,NULL,x,NULL);CHKERRQ(ierr);
       /*
-         Compute residual norm and error
+         Compute residual norm
       */
       ierr = NEPComputeRelativeError(nep,i,&norm);CHKERRQ(ierr);
-      ierr = CheckSolution(lambda,0,x,NULL,&error,&ctx);CHKERRQ(ierr);
 
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(lambda);
@@ -189,14 +197,9 @@ int main(int argc,char **argv)
       im = 0.0;
 #endif 
       if (im!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9F%+9F j %12G     %12G\n",re,im,norm,error);CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD," %9F%+9F j %12G\n",re,im,norm);CHKERRQ(ierr);
       } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12F         %12G     %12G\n",re,norm,error);CHKERRQ(ierr);
-      }
-      if (draw_sol) {
-        ierr = PetscViewerDrawGetDraw(PETSC_VIEWER_DRAW_WORLD,0,&draw);CHKERRQ(ierr);
-        ierr = PetscDrawSetPause(draw,-1);CHKERRQ(ierr);
-        ierr = VecView(x,PETSC_VIEWER_DRAW_WORLD);CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12F         %12G\n",re,norm);CHKERRQ(ierr);
       }
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
@@ -252,65 +255,11 @@ PetscErrorCode FormInitialGuess(Vec x)
 PetscErrorCode FormFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *fun,Mat *B,MatStructure *flg,void *ctx)
 {
   PetscErrorCode ierr;
-  ApplicationCtx *user = (ApplicationCtx*)ctx;
-  PetscScalar    lambda,A[3],c,d;
-  PetscReal      h;
-  PetscInt       i,n,j[3],Istart,Iend;
-  PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
+  MatCtx         *ctxF;
 
   PetscFunctionBeginUser;
-  /* in this example the eigenvalue is always real */
-  lambda = wr;
-#if !defined(PETSC_USE_COMPLEX)
-  if (wi) SETERRQ(PETSC_COMM_SELF,1,"Non-real scalar parameter generated!");
-#endif
-
-  /*
-     Compute Function entries and insert into matrix
-  */
-  ierr = MatGetSize(*fun,&n,NULL);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(*fun,&Istart,&Iend);CHKERRQ(ierr);
-  if (Istart==0) FirstBlock=PETSC_TRUE;
-  if (Iend==n) LastBlock=PETSC_TRUE;
-  h = user->h;
-  c = user->kappa/(lambda-user->kappa);
-  d = n;
-
-  /*
-     Interior grid points
-  */
-  for (i=(FirstBlock? Istart+1: Istart);i<(LastBlock? Iend-1: Iend);i++) {
-    j[0] = i-1; j[1] = i; j[2] = i+1;
-    A[0] = A[2] = -d-lambda*h/6.0; A[1] = 2.0*(d-lambda*h/3.0);
-    ierr = MatSetValues(*fun,1,&i,3,j,A,INSERT_VALUES);CHKERRQ(ierr);
-  }
-
-  /*
-     Boundary points
-  */
-  if (FirstBlock) {
-    i = 0;
-    j[0] = 0; j[1] = 1;
-    A[0] = 2.0*(d-lambda*h/3.0); A[1] = -d-lambda*h/6.0;
-    ierr = MatSetValues(*fun,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
-  }
-
-  if (LastBlock) {
-    i = n-1;
-    j[0] = n-2; j[1] = n-1;
-    A[0] = -d-lambda*h/6.0; A[1] = d-lambda*h/3.0+lambda*c;
-    ierr = MatSetValues(*fun,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
-  }
-
-  /*
-     Assemble matrix
-  */
-  ierr = MatAssemblyBegin(*B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(*B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  if (*fun != *B) {
-    ierr = MatAssemblyBegin(*fun,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(*fun,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  }
+  ierr = MatShellGetContext(*fun,(void**)&ctxF);CHKERRQ(ierr);
+  ctxF->lambda = wr;
   PetscFunctionReturn(0);
 }
 
@@ -338,109 +287,154 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *fun,Mat *
 PetscErrorCode FormJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *jac,Mat *B,MatStructure *flg,void *ctx)
 {
   PetscErrorCode ierr;
-  ApplicationCtx *user = (ApplicationCtx*)ctx;
-  PetscScalar    lambda,A[3],c;
-  PetscReal      h;
-  PetscInt       i,n,j[3],Istart,Iend;
-  PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
+  MatCtx         *ctxJ;
 
   PetscFunctionBeginUser;
-  /* in this example the eigenvalue is always real */
-  lambda = wr;
-#if !defined(PETSC_USE_COMPLEX)
-  if (wi) SETERRQ(PETSC_COMM_SELF,1,"Non-real scalar parameter generated!");
-#endif
-
-  /*
-     Compute Jacobian entries and insert into matrix
-  */
-  ierr = MatGetSize(*jac,&n,NULL);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(*jac,&Istart,&Iend);CHKERRQ(ierr);
-  if (Istart==0) FirstBlock=PETSC_TRUE;
-  if (Iend==n) LastBlock=PETSC_TRUE;
-  h = user->h;
-  c = user->kappa/(lambda-user->kappa);
-
-  /*
-     Interior grid points
-  */
-  for (i=(FirstBlock? Istart+1: Istart);i<(LastBlock? Iend-1: Iend);i++) {
-    j[0] = i-1; j[1] = i; j[2] = i+1;
-    A[0] = A[2] = -h/6.0; A[1] = -2.0*h/3.0;
-    ierr = MatSetValues(*jac,1,&i,3,j,A,INSERT_VALUES);CHKERRQ(ierr);
-  }
-
-  /*
-     Boundary points
-  */
-  if (FirstBlock) {
-    i = 0;
-    j[0] = 0; j[1] = 1;
-    A[0] = -2.0*h/3.0; A[1] = -h/6.0;
-    ierr = MatSetValues(*jac,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
-  }
-
-  if (LastBlock) {
-    i = n-1;
-    j[0] = n-2; j[1] = n-1;
-    A[0] = -h/6.0; A[1] = -h/3.0-c*c;
-    ierr = MatSetValues(*jac,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
-  }
-
-  /*
-     Assemble matrix
-  */
-  ierr = MatAssemblyBegin(*B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(*B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  if (*jac != *B) {
-    ierr = MatAssemblyBegin(*jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(*jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  }
+  ierr = MatShellGetContext(*jac,(void**)&ctxJ);CHKERRQ(ierr);
+  ctxJ->lambda = wr;
   PetscFunctionReturn(0);
 }
 
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__
-#define __FUNCT__ "CheckSolution"
-/*
-   CheckSolution - Given a computed solution (lambda,x) check if it
-   satisfies the analytic solution.
-
-   Input Parameters:
-+  kr - the computed eigenvalue (real part)
-.  ki - the computed eigenvalue (imaginary part)
-.  xr - the computed eigenvector (real part)
--  xi - the computed eigenvector (imaginary part)
-
-   Output Parameter:
-.  error - norm of difference between the computed and exact eigenvector
-*/
-PetscErrorCode CheckSolution(PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *error,void *ctx)
+#define __FUNCT__ "MatFun_Mult"
+PetscErrorCode MatFun_Mult(Mat A,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
-  PetscScalar    nu,*uu;
-  PetscInt       i,n,Istart,Iend;
-  PetscReal      x;
-  Vec            u;
-  ApplicationCtx *user = (ApplicationCtx*)ctx;
+  PetscErrorCode    ierr;
+  MatCtx            *ctx;
+  PetscInt          i,n;
+  const PetscScalar *px;
+  PetscScalar       *py,c,d;
+  PetscReal         h,de,oe;
 
   PetscFunctionBeginUser;
-  nu = PetscSqrtScalar(kr);
-#if !defined(PETSC_USE_COMPLEX)
-  if (ki) SETERRQ(PETSC_COMM_SELF,1,"ki must not be used in this example");
-#endif
-  ierr = VecDuplicate(xr,&u);CHKERRQ(ierr);
-  ierr = VecGetSize(u,&n);CHKERRQ(ierr);
-  ierr = VecGetOwnershipRange(xr,&Istart,&Iend);CHKERRQ(ierr);
-  ierr = VecGetArray(u,&uu);CHKERRQ(ierr);
-  for (i=Istart;i<Iend;i++) {
-    x = (i+1)*user->h;
-    uu[i-Istart] = sin(nu*x);
-  }
-  ierr = VecRestoreArray(u,&uu);CHKERRQ(ierr);
-  ierr = VecAXPY(u,-1.0,xr);CHKERRQ(ierr);
-  ierr = VecNorm(u,NORM_2,error);CHKERRQ(ierr);
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
+  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+
+  ierr = VecGetSize(x,&n);CHKERRQ(ierr);
+  h = ctx->h;
+  c = ctx->kappa/(ctx->lambda-ctx->kappa);
+  d = n;
+  de = 2.0*(d-ctx->lambda*h/3.0);   /* diagonal entry */
+  oe = -d-ctx->lambda*h/6.0;        /* offdiagonal entry */
+  py[0] = de*px[0] + oe*px[1];
+  for (i=1;i<n-1;i++) py[i] = oe*px[i-1] +de*px[i] + oe*px[i+1];
+  de = d-ctx->lambda*h/3.0+ctx->lambda*c;   /* diagonal entry of last row */
+  py[n-1] = oe*px[n-2] + de*px[n-1];
+
+  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/* ------------------------------------------------------------------- */
+#undef __FUNCT__
+#define __FUNCT__ "MatFun_GetDiagonal"
+PetscErrorCode MatFun_GetDiagonal(Mat A,Vec diag)
+{
+  PetscErrorCode    ierr;
+  MatCtx            *ctx;
+  PetscInt          n;
+  PetscScalar       *pd,c,d;
+  PetscReal         h;
+
+  PetscFunctionBeginUser;
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  h = ctx->h;
+  c = ctx->kappa/(ctx->lambda-ctx->kappa);
+  d = n;
+  ierr = VecSet(diag,2.0*(d-ctx->lambda*h/3.0));CHKERRQ(ierr);
+  ierr = VecGetSize(diag,&n);CHKERRQ(ierr);
+  ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
+  pd[n-1] = d-ctx->lambda*h/3.0+ctx->lambda*c;
+  ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/* ------------------------------------------------------------------- */
+#undef __FUNCT__
+#define __FUNCT__ "MatFun_Destroy"
+PetscErrorCode MatFun_Destroy(Mat A)
+{
+  MatCtx         *ctx;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = PetscFree(ctx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/* ------------------------------------------------------------------- */
+#undef __FUNCT__
+#define __FUNCT__ "MatFun_Duplicate"
+PetscErrorCode MatFun_Duplicate(Mat A,MatDuplicateOption op,Mat *B)
+{
+  MatCtx         *actx,*bctx;
+  PetscInt       n;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(A,(void**)&actx);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
+
+  ierr = PetscNew(MatCtx,&bctx);CHKERRQ(ierr);
+  bctx->h      = actx->h;
+  bctx->kappa  = actx->kappa;
+  bctx->lambda = actx->lambda;
+
+  ierr = MatCreateShell(((PetscObject)A)->comm,n,n,n,n,(void*)bctx,B);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)())MatFun_Mult);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)())MatFun_GetDiagonal);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_DESTROY,(void(*)())MatFun_Destroy);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)())MatFun_Duplicate);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/* ------------------------------------------------------------------- */
+#undef __FUNCT__
+#define __FUNCT__ "MatJac_Mult"
+PetscErrorCode MatJac_Mult(Mat A,Vec x,Vec y)
+{
+  PetscErrorCode    ierr;
+  MatCtx            *ctx;
+  PetscInt          i,n;
+  const PetscScalar *px;
+  PetscScalar       *py,c;
+  PetscReal         h,de,oe;
+
+  PetscFunctionBeginUser;
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
+  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+
+  ierr = VecGetSize(x,&n);CHKERRQ(ierr);
+  h = ctx->h;
+  c = ctx->kappa/(ctx->lambda-ctx->kappa);
+  de = -2.0*h/3.0;    /* diagonal entry */
+  oe = -h/6.0;        /* offdiagonal entry */
+  py[0] = de*px[0] + oe*px[1];
+  for (i=1;i<n-1;i++) py[i] = oe*px[i-1] +de*px[i] + oe*px[i+1];
+  de = -h/3.0-c*c;    /* diagonal entry of last row */
+  py[n-1] = oe*px[n-2] + de*px[n-1];
+
+  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/* ------------------------------------------------------------------- */
+#undef __FUNCT__
+#define __FUNCT__ "MatJac_Destroy"
+PetscErrorCode MatJac_Destroy(Mat A)
+{
+  MatCtx         *ctx;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
