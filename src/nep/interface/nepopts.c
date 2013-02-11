@@ -641,6 +641,9 @@ PetscErrorCode NEPSetOptionsPrefix(NEP nep,const char *prefix)
   ierr = IPSetOptionsPrefix(nep->ip,prefix);CHKERRQ(ierr);
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(nep->ds,prefix);CHKERRQ(ierr);
+  if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
+  ierr = KSPSetOptionsPrefix(nep->ksp,prefix);CHKERRQ(ierr);
+  ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)nep,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);  
 }
@@ -675,6 +678,9 @@ PetscErrorCode NEPAppendOptionsPrefix(NEP nep,const char *prefix)
   ierr = IPSetOptionsPrefix(nep->ip,prefix);CHKERRQ(ierr);
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(nep->ds,prefix);CHKERRQ(ierr);
+  if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
+  ierr = KSPSetOptionsPrefix(nep->ksp,prefix);CHKERRQ(ierr);
+  ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)nep,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -692,6 +692,9 @@ PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
   PetscValidPointer(ksp,2);
   if (!nep->ksp) {
     ierr = KSPCreate(((PetscObject)nep)->comm,&nep->ksp);CHKERRQ(ierr);
+    ierr = KSPSetOptionsPrefix(nep->ksp,((PetscObject)nep)->prefix);CHKERRQ(ierr);
+    ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)nep->ksp,(PetscObject)nep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(nep,nep->ksp);CHKERRQ(ierr);
   }
   *ksp = nep->ksp;
