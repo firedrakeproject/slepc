@@ -61,7 +61,6 @@ int main(int argc,char **argv)
   NEPType        type;
   PetscInt       n=128,nev,i,its,maxit,maxf,nconv;
   PetscReal      re,im,abstol,rtol,stol,norm,error;
-  PetscDraw      draw;
   PetscBool      draw_sol;
   PetscErrorCode ierr;
 
@@ -194,8 +193,7 @@ int main(int argc,char **argv)
         ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12F         %12G     %12G\n",re,norm,error);CHKERRQ(ierr);
       }
       if (draw_sol) {
-        ierr = PetscViewerDrawGetDraw(PETSC_VIEWER_DRAW_WORLD,0,&draw);CHKERRQ(ierr);
-        ierr = PetscDrawSetPause(draw,-1);CHKERRQ(ierr);
+        ierr = PetscViewerDrawSetPause(PETSC_VIEWER_DRAW_WORLD,-1);CHKERRQ(ierr);
         ierr = VecView(x,PETSC_VIEWER_DRAW_WORLD);CHKERRQ(ierr);
       }
     }
