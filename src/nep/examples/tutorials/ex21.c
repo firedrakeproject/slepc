@@ -373,6 +373,7 @@ PetscErrorCode MatFun_Duplicate(Mat A,MatDuplicateOption op,Mat *B)
 {
   MatCtx         *actx,*bctx;
   PetscInt       n;
+  MPI_Comm       comm;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -384,7 +385,8 @@ PetscErrorCode MatFun_Duplicate(Mat A,MatDuplicateOption op,Mat *B)
   bctx->kappa  = actx->kappa;
   bctx->lambda = actx->lambda;
 
-  ierr = MatCreateShell(((PetscObject)A)->comm,n,n,n,n,(void*)bctx,B);CHKERRQ(ierr);
+  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
+  ierr = MatCreateShell(comm,n,n,n,n,(void*)bctx,B);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)())MatFun_Mult);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)())MatFun_GetDiagonal);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_DESTROY,(void(*)())MatFun_Destroy);CHKERRQ(ierr);
