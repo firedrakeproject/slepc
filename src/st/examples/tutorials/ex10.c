@@ -240,7 +240,7 @@ PetscErrorCode SampleShellSTApply(ST st,Vec x,Vec y)
   PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = STShellGetContext(st,(void**)&shell);
+  ierr = STShellGetContext(st,(void**)&shell);CHKERRQ(ierr);
   ierr = KSPSolve(shell->ksp,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -274,7 +274,7 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
 
   /* Compute eigenvectors */
   if (qep->nconv > 0) {
-    ierr = QEPComputeVectors_Schur(qep);
+    ierr = QEPComputeVectors_Schur(qep);CHKERRQ(ierr);
   }
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);

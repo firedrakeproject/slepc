@@ -212,7 +212,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",qep->nev);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",qep->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",qep->mpd);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",qep->max_it);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",qep->max_it);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",qep->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %G\n",qep->sfactor);CHKERRQ(ierr);
     if (qep->nini!=0) {

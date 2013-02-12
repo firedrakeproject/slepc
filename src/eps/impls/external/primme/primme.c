@@ -83,7 +83,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   
   /* Check some constraints and set some default values */ 
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
-  ierr = STGetOperators(eps->st,0,&ops->A);
+  ierr = STGetOperators(eps->st,0,&ops->A);CHKERRQ(ierr);
   if (!ops->A) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
   if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
   if (eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
@@ -190,11 +190,11 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   /* Call PRIMME solver */
   ierr = VecGetArray(eps->V[0],&a);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = dprimme(eps->eigr,a,eps->errest,&ops->primme);
+  ierr = dprimme(eps->eigr,a,eps->errest,&ops->primme);CHKERRQ(ierr);
 #else
   /* PRIMME returns real eigenvalues, but SLEPc works with complex ones */
   ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&evals);CHKERRQ(ierr);
-  ierr = zprimme(evals,(Complex_Z*)a,eps->errest,&ops->primme);
+  ierr = zprimme(evals,(Complex_Z*)a,eps->errest,&ops->primme);CHKERRQ(ierr);
   for (i=0;i<eps->ncv;i++)
     eps->eigr[i] = evals[i];
   ierr = PetscFree(evals);CHKERRQ(ierr);

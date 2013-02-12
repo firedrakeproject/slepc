@@ -125,7 +125,7 @@ int main(int argc,char **argv)
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(eps,&reason);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps,&its);
+  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d, its=%d\n",reason,its);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

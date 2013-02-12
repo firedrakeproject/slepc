@@ -302,11 +302,11 @@ PetscErrorCode VecNormCompInit()
 
   PetscFunctionBegin;
   ierr = MPI_Type_contiguous(sizeof(PetscReal)*2,MPI_BYTE,&MPIU_NORM2);CHKERRQ(ierr);
-  ierr = MPI_Type_commit(&MPIU_NORM2);
+  ierr = MPI_Type_commit(&MPIU_NORM2);CHKERRQ(ierr);
   ierr = MPI_Type_contiguous(sizeof(PetscReal)*3,MPI_BYTE,&MPIU_NORM1_AND_2);CHKERRQ(ierr);
-  ierr = MPI_Type_commit(&MPIU_NORM1_AND_2);
+  ierr = MPI_Type_commit(&MPIU_NORM1_AND_2);CHKERRQ(ierr);
   ierr = MPI_Op_create(SlepcSumNorm2_Local,1,&MPIU_NORM2_SUM);CHKERRQ(ierr);
-  ierr = PetscRegisterFinalize(VecNormCompEnd);
+  ierr = PetscRegisterFinalize(VecNormCompEnd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 #endif

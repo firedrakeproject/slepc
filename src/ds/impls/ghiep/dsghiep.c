@@ -201,7 +201,7 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
     if (ds->state>=DS_STATE_CONDENSED) {
       ierr = PetscMemcpy(X+k*ld,Q+k*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
     } else {
-      ierr = PetscMemzero(X+k*ds->ld,ds->ld*sizeof(PetscScalar));
+      ierr = PetscMemzero(X+k*ds->ld,ds->ld*sizeof(PetscScalar));CHKERRQ(ierr);
       X[k+k*ds->ld] = 1.0;
     }
     if (rnorm) {
@@ -618,7 +618,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
         A[i+j*lda] = AA[perm[*ii]+perm[*jj]*n];
     /* Initialize Q */
     for (i=0;i<n;i++) {
-      ierr = PetscMemzero(Q+i*ldq,n*sizeof(PetscScalar));
+      ierr = PetscMemzero(Q+i*ldq,n*sizeof(PetscScalar));CHKERRQ(ierr);
       Q[perm[i]+i*ldq] = 1.0;
     }
     for (ni=1;ni<n && ss[ni]==ss[0]; ni++);

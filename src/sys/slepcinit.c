@@ -206,9 +206,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
   PetscBool      flg;
 
   PetscFunctionBegin;
-  if (SlepcInitializeCalled) {
-    PetscFunctionReturn(0); 
-  }
+  if (SlepcInitializeCalled) PetscFunctionReturn(0); 
   ierr = PetscSetHelpVersionFunctions(SlepcPrintHelpIntro,SlepcPrintVersion);CHKERRQ(ierr);
   ierr = PetscInitialized(&flg);CHKERRQ(ierr);
   if (!flg) {
@@ -319,7 +317,7 @@ PetscErrorCode SlepcInitializeNoPointers(int argc,char **args,const char *filena
   char           **myargs = args;
 
   PetscFunctionBegin;
-  ierr = SlepcInitialize(&myargc,&myargs,filename,help);
+  ierr = SlepcInitialize(&myargc,&myargs,filename,help);CHKERRQ(ierr);
   ierr = PetscPopSignalHandler();CHKERRQ(ierr);
   PetscBeganMPI = PETSC_FALSE;
   PetscFunctionReturn(ierr);

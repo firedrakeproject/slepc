@@ -646,7 +646,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     /* Trick for PCView when an unused PC is showed */
     ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
-    ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&flg);
+    ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = PCSetOperators(pc,NULL,NULL,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     }

@@ -852,7 +852,7 @@ PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
     a[ds->n-1] = PetscRealPart(A[ds->n-1+(ds->n-1)*ld]*B[ds->n-1+(ds->n-1)*ld]);
   }
   vi = (wi)?wi+ds->l:NULL;
-  ierr = DSGHIEP_Eigen3DQDS(ds->n-ds->l,a+ds->l,b+ds->l,c+ds->l,wr+ds->l,vi,ds->rwork+nwu,nwall-nwu);
+  ierr = DSGHIEP_Eigen3DQDS(ds->n-ds->l,a+ds->l,b+ds->l,c+ds->l,wr+ds->l,vi,ds->rwork+nwu,nwall-nwu);CHKERRQ(ierr);
 
   /* Compute Eigenvectors with Inverse Iteration */
   ierr = DSGHIEPPseudoOrthogInverseIteration(ds,wr,wi);CHKERRQ(ierr);

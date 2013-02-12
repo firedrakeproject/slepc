@@ -123,7 +123,7 @@ static PetscErrorCode EPSExtractShift(EPS eps)
       }
       /* Copy to DS */
       ierr = DSGetArray(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-      ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));
+      ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
       for (i=0;i<k;i++) {
         A[i*(1+ld)] = sr->S[i];
         A[k+i*ld] = sr->S[sr->nS+i];
@@ -232,7 +232,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
       ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
       ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
       ierr = DSSort(eps->ds,eps->eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-      ierr = DSSetCompact(eps->ds,PETSC_TRUE);
+      ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
     } else { /* Restart */
       ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
       ierr = DSSort(eps->ds,eps->eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
@@ -513,7 +513,7 @@ PetscErrorCode EPSStoreEigenpairs(EPS eps)
   ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
   /* Sort eigenvalues */
-  ierr = sortRealEigenvalues(eps->eigr,eps->perm,eps->nconv,PETSC_FALSE,sr->dir);
+  ierr = sortRealEigenvalues(eps->eigr,eps->perm,eps->nconv,PETSC_FALSE,sr->dir);CHKERRQ(ierr);
   /* Values stored in global array */
   for (i=0;i<eps->nconv;i++) {
     lambda = PetscRealPart(eps->eigr[eps->perm[i]]);
@@ -648,7 +648,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   }
   sr->nPend = 0;
   ierr = EPSCreateShift(eps,sr->int0,NULL,NULL);CHKERRQ(ierr);
-  ierr = EPSExtractShift(eps);
+  ierr = EPSExtractShift(eps);CHKERRQ(ierr);
   sr->s0 = sr->sPres;
   sr->inertia0 = sr->s0->inertia;
   sr->numEigs = (sr->dir)*(sr->inertia1 - sr->inertia0);
@@ -700,12 +700,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     /* Select new shift */
     if (!sr->sPres->comp[1]) {
       ierr = EPSGetNewShiftValue(eps,1,&newS);CHKERRQ(ierr);
-      ierr = EPSCreateShift(eps,newS,sr->sPres,sr->sPres->neighb[1]);
+      ierr = EPSCreateShift(eps,newS,sr->sPres,sr->sPres->neighb[1]);CHKERRQ(ierr);
     }
     if (!sr->sPres->comp[0]) {
       /* Completing earlier interval */
       ierr = EPSGetNewShiftValue(eps,0,&newS);CHKERRQ(ierr);
-      ierr = EPSCreateShift(eps,newS,sr->sPres->neighb[0],sr->sPres);
+      ierr = EPSCreateShift(eps,newS,sr->sPres->neighb[0],sr->sPres);CHKERRQ(ierr);
     }
     /* Preparing for a new search of values */
     ierr = EPSExtractShift(eps);CHKERRQ(ierr);

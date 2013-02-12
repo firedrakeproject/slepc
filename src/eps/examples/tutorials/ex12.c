@@ -157,8 +157,8 @@ int main (int argc,char **argv)
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
 
-    ierr = VecDuplicateVecs(v0,nconv,&X);
-    ierr = VecDuplicateVecs(w0,nconv,&Y);
+    ierr = VecDuplicateVecs(v0,nconv,&X);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(w0,nconv,&Y);CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
       ierr = EPSGetEigenvector(eps,i,X[i],NULL);CHKERRQ(ierr);
       ierr = EPSGetEigenvectorLeft(eps,i,Y[i],NULL);CHKERRQ(ierr);

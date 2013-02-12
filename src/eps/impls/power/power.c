@@ -186,7 +186,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         }
         /* update operator according to new shift */
         PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
-        ierr = STSetShift(eps->st,rho);
+        ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
         PetscPopErrorHandler();
         if (ierr) {
           eps->eigr[eps->nconv] = rho;
@@ -333,7 +333,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
         }
         /* update operator according to new shift */
         PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
-        ierr = STSetShift(eps->st,rho);
+        ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
         PetscPopErrorHandler();
         if (ierr) {
           eps->eigr[eps->nconv] = rho;

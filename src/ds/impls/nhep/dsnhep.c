@@ -762,7 +762,7 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
   PetscBLASInt   n,ld,ld2,*ipiv,info,inc=1;
   PetscInt       j,k,odd;
   const PetscInt p=6;
-  PetscReal  	 c[p+1],s;
+  PetscReal      c[p+1],s;
   PetscScalar    scale,mone=-1.0,one=1.0,two=2.0,zero=0.0; 
   PetscScalar    *A,*A2,*Q,*P,*W,*aux;
 

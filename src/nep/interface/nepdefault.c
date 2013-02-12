@@ -38,7 +38,7 @@ PetscErrorCode NEPDefaultGetWork(NEP nep,PetscInt nw)
     ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
     nep->nwork = nw;
     ierr = VecDuplicateVecs(nep->t,nw,&nep->work);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(nep,nw,nep->work);
+    ierr = PetscLogObjectParents(nep,nw,nep->work);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

@@ -156,7 +156,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
     } else fun = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  function: %s\n",fun);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",mfn->ncv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",mfn->max_it);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",mfn->max_it);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",mfn->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %G\n",mfn->sfactor);CHKERRQ(ierr);
   } else {

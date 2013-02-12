@@ -40,7 +40,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   
   PetscFunctionBegin;
   eps->ncv = eps->n;
-  if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n"); }
+  if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
   if (eps->balance!=EPS_BALANCE_NONE) { ierr = PetscInfo(eps,"Warning: balancing ignored\n");CHKERRQ(ierr); }
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
@@ -149,7 +149,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   for (i=0;i<eps->ncv;i++) {
     ierr = VecGetOwnershipRange(eps->V[i],&low,&high);CHKERRQ(ierr);
     ierr = VecGetArray(eps->V[i],&array);CHKERRQ(ierr);
-    ierr = PetscMemcpy(array,pX+i*n+low,(high-low)*sizeof(PetscScalar));
+    ierr = PetscMemcpy(array,pX+i*n+low,(high-low)*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = VecRestoreArray(eps->V[i],&array);CHKERRQ(ierr);
   }
   ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
@@ -161,7 +161,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
     for (i=0;i<eps->ncv;i++) {
       ierr = VecGetOwnershipRange(eps->W[i],&low,&high);CHKERRQ(ierr);
       ierr = VecGetArray(eps->W[i],&array);CHKERRQ(ierr);
-      ierr = PetscMemcpy(array,pY+i*n+low,(high-low)*sizeof(PetscScalar));
+      ierr = PetscMemcpy(array,pY+i*n+low,(high-low)*sizeof(PetscScalar));CHKERRQ(ierr);
       ierr = VecRestoreArray(eps->W[i],&array);CHKERRQ(ierr);
     }
     ierr = DSRestoreArray(eps->ds,DS_MAT_Y,&pY);CHKERRQ(ierr);

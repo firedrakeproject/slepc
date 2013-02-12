@@ -85,12 +85,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   /* Get the starting Lanczos vector */
   ierr = SlepcVecSetRandom(eps->V[0],eps->rand);CHKERRQ(ierr);
-  ierr = IPNorm(eps->ip,eps->V[0],&norm);
+  ierr = IPNorm(eps->ip,eps->V[0],&norm);CHKERRQ(ierr);
   if (norm==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Initial vector is zero or belongs to the deflation space"); 
   ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
   omega[0] = (norm > 0)?1.0:-1.0;
   beta = PetscAbsReal(norm);
-  ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);
+  ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
   ierr = VecScale(eps->V[0],1.0/norm);CHKERRQ(ierr);
   l = 0;
   
@@ -106,7 +106,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     ierr = EPSFullLanczosIndef(eps,a,b,omega,eps->V,eps->nconv+l,&nv,u,NULL);CHKERRQ(ierr);
     beta = b[nv-1];
     ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-    ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);
+    ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
