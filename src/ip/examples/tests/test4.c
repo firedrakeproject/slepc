@@ -75,7 +75,7 @@ int main(int argc,char **argv)
   ierr = PetscMalloc(sizeof(PetscReal)*k,&omega);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
     ierr = IPPseudoOrthogonalize(ip,i,V,omega,V[i],NULL,&norm,&lindep);CHKERRQ(ierr);
-    if (norm==0.0 || lindep) SETERRQ(((PetscObject)ip)->comm,1,"Linearly dependent vector found");
+    if (norm==0.0 || lindep) SETERRQ(PETSC_COMM_SELF,1,"Linearly dependent vector found");
     ierr = VecScale(V[i],1.0/norm);CHKERRQ(ierr);
     omega[i] = norm/PetscAbs(norm);
   }

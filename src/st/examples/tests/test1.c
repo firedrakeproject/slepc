@@ -33,11 +33,13 @@ static PetscErrorCode MatDuplicate_Shell(Mat S,MatDuplicateOption op,Mat *M);
 static PetscErrorCode MyShellMatCreate(Mat *A,Mat *M)
 {
   PetscErrorCode ierr;
+  MPI_Comm       comm;
   PetscInt       n;
   
   PetscFunctionBeginUser;
   ierr = MatGetSize(*A,&n,NULL);CHKERRQ(ierr);
-  ierr = MatCreateShell(((PetscObject)*A)->comm,PETSC_DECIDE,PETSC_DECIDE,n,n,A,M);CHKERRQ(ierr);
+  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
+  ierr = MatCreateShell(comm,PETSC_DECIDE,PETSC_DECIDE,n,n,A,M);CHKERRQ(ierr);
   ierr = MatSetFromOptions(*M);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*M,MATOP_MULT,(void(*)())MatMult_Shell);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*M,MATOP_MULT_TRANSPOSE,(void(*)())MatMultTranspose_Shell);CHKERRQ(ierr);
