@@ -21,7 +21,7 @@
 
 #if !defined(__SLEPCDS_H)
 #define __SLEPCDS_H
-#include "slepcsys.h"
+#include <slepcsys.h>
 
 #define DS_MAX_SOLVE 6
 #define DS_MAX_FUN   6

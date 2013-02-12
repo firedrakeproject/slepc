@@ -20,6 +20,7 @@
 */
 
 #include <petsc-private/fortranimpl.h>
+#include <slepc-private/slepcimpl.h>
 #include <slepc-private/epsimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)

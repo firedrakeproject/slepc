@@ -23,6 +23,7 @@
 #define _STIMPL
 
 #include <slepcst.h>
+#include <slepc-private/slepcimpl.h>
 
 PETSC_EXTERN PetscFunctionList STList;
 PETSC_EXTERN PetscLogEvent     ST_SetUp,ST_Apply,ST_ApplyTranspose;

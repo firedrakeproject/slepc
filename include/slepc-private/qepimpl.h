@@ -23,6 +23,7 @@
 #define _QEPIMPL
 
 #include <slepcqep.h>
+#include <slepc-private/slepcimpl.h>
 
 PETSC_EXTERN PetscFunctionList QEPList;
 PETSC_EXTERN PetscLogEvent     QEP_SetUp, QEP_Solve, QEP_Dense;

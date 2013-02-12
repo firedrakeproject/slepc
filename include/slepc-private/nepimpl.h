@@ -23,6 +23,7 @@
 #define _NEPIMPL
 
 #include <slepcnep.h>
+#include <slepc-private/slepcimpl.h>
 
 PETSC_EXTERN PetscFunctionList NEPList;
 PETSC_EXTERN PetscLogEvent     NEP_SetUp,NEP_Solve,NEP_Dense,NEP_FunctionEval,NEP_JacobianEval;

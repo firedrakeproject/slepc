@@ -23,6 +23,7 @@
 #define _IPIMPL
 
 #include <slepcip.h>
+#include <slepc-private/slepcimpl.h>
 
 PETSC_EXTERN PetscLogEvent IP_InnerProduct,IP_Orthogonalize,IP_ApplyMatrix;
 

@@ -23,6 +23,7 @@
 #define _SLEPCIMPL
 
 #include <slepcsys.h>
+#include <petsc-private/petscimpl.h>
 
 /*@C
     SlepcHeaderCreate - Creates a SLEPc object

@@ -4,9 +4,7 @@
 /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
 
-#include <petscsys.h>
 #include <petscvec.h>
-#include <petscmat.h>
 #include <petscblaslapack.h>
 #include "blopex_interpreter.h"
 #include "blopex_temp_multivector.h"
@@ -32,14 +30,13 @@ BlopexInt PETSC_dpotrf_interface (char *uplo,BlopexInt *n,double *a,BlopexInt * 
   return 0;
 }
 
-BlopexInt PETSC_zpotrf_interface (char *uplo,BlopexInt *n,komplex *a,BlopexInt * lda,BlopexInt *info)
+BlopexInt PETSC_zpotrf_interface (char *uplo,BlopexInt *n,komplex *a,BlopexInt* lda,BlopexInt *info)
 {
   PetscBLASInt n_,lda_,info_;
 
   /* type conversion */
   n_ = *n;
-  lda_ = *lda;
-  info_ = *info;
+  lda_ = (PetscBLASInt)*lda;
 
   LAPACKpotrf_(uplo,&n_,(PetscScalar*)a,&lda_,&info_);
 
@@ -90,7 +87,7 @@ void *PETSC_MimicVector(void *vvector)
   PetscErrorCode  ierr;
   Vec temp;
 
-  ierr = VecDuplicate((Vec)vvector,&temp);CHKERRQ(ierr);
+  ierr = VecDuplicate((Vec)vvector,&temp);CHKERRABORT(PETSC_COMM_SELF,ierr);
   return (void*)temp;
 }
 

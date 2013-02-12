@@ -23,6 +23,7 @@
 #define _EPSIMPL
 
 #include <slepceps.h>
+#include <slepc-private/slepcimpl.h>
 
 PETSC_EXTERN PetscFunctionList EPSList;
 PETSC_EXTERN PetscLogEvent     EPS_SetUp, EPS_Solve;

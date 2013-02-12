@@ -23,7 +23,7 @@
 
 #if !defined(__SLEPCBLASLAPACK_H)
 #define __SLEPCBLASLAPACK_H
-#include "petscblaslapack.h"
+#include <petscblaslapack.h>
 
 /* Macros for building LAPACK names */
 #if defined(PETSC_BLASLAPACK_UNDERSCORE)

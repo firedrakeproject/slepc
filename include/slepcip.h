@@ -21,7 +21,7 @@
 
 #if !defined(__SLEPCIP_H)
 #define __SLEPCIP_H
-#include "slepcsys.h"
+#include <slepcsys.h>
 
 PETSC_EXTERN PetscErrorCode IPInitializePackage(const char[]);
 /*S

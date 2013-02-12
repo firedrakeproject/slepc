@@ -23,8 +23,8 @@
 
 #if !defined(__SLEPCSVD_H)
 #define __SLEPCSVD_H
-#include "slepcsys.h"
-#include "slepceps.h"
+#include <slepcsys.h>
+#include <slepceps.h>
 
 PETSC_EXTERN PetscErrorCode SVDInitializePackage(const char[]);
 

@@ -23,6 +23,7 @@
 #define _MFNIMPL
 
 #include <slepcmfn.h>
+#include <slepc-private/slepcimpl.h>
 
 PETSC_EXTERN PetscFunctionList MFNList;
 PETSC_EXTERN PetscLogEvent     MFN_SetUp, MFN_Solve;

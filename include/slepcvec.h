@@ -23,8 +23,8 @@
 
 #if !defined(__SLEPCVEC_H)
 #define __SLEPCVEC_H
-#include "petscmat.h"
-#include "petscvec.h"
+#include <petscmat.h>
+#include <petscvec.h>
 
 /* VecComp: Vec composed of several smaller Vecs */
 #define VECCOMP  "comp"

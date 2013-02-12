@@ -21,7 +21,6 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <petscsys.h>
 #include <slepc-private/epsimpl.h>    /*I "slepceps.h" I*/
 #include <slepc-private/stimpl.h>
 

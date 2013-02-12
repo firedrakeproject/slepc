@@ -23,8 +23,8 @@
 
 #if !defined(__SLEPCST_H)
 #define __SLEPCST_H
-#include "slepcsys.h"
-#include "petscksp.h"
+#include <slepcsys.h>
+#include <petscksp.h>
 
 PETSC_EXTERN PetscErrorCode STInitializePackage(const char[]);
 

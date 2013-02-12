@@ -22,7 +22,6 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <petscsys.h>
 #include <petscvec.h>
 #include <stdlib.h>
 #include <blopex_interpreter.h>
@@ -38,13 +37,13 @@ static void* mv_TempMultiVectorCreateFromPETScVector(void* ii_,BlopexInt n,void*
   mv_InterfaceInterpreter* ii = (mv_InterfaceInterpreter*)ii_;
 
   x = (mv_TempMultiVector*)malloc(sizeof(mv_TempMultiVector));
-  if (!x) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Allocation for x failed");
+  if (!x) SETERRABORT(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Allocation for x failed");
   
   x->interpreter = ii;
   x->numVectors = n;
   
   x->vector = (void**)calloc(n,sizeof(void*));
-  if (!x->vector) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Allocation for x->vector failed");
+  if (!x->vector) SETERRABORT(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Allocation for x->vector failed");
 
   x->ownsVectors = 1;
   x->mask = NULL;

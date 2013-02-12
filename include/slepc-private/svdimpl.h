@@ -23,7 +23,7 @@
 #define _SVDIMPL
 
 #include <slepcsvd.h>
-#include <slepcip.h>
+#include <slepc-private/slepcimpl.h>
 
 PETSC_EXTERN PetscFunctionList SVDList;
 PETSC_EXTERN PetscLogEvent     SVD_SetUp,SVD_Solve;

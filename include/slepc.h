@@ -26,9 +26,9 @@
 /* 
    Include all top-level SLEPc functionality
 */
-#include "slepcsys.h"
-#include "slepcsvd.h"
-#include "slepcqep.h"
-#include "slepcnep.h"
-#include "slepcmfn.h"
+#include <slepcsys.h>
+#include <slepcsvd.h>
+#include <slepcqep.h>
+#include <slepcnep.h>
+#include <slepcmfn.h>
 

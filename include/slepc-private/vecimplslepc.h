@@ -23,6 +23,7 @@
 #define _VECIMPLSLEPC
 
 #include <slepcvec.h>
+#include <slepc-private/slepcimpl.h>
 
 PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors, SLEPC_VecMAXPBY;
 

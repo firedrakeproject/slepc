@@ -23,10 +23,10 @@
 
 #if !defined(__SLEPCEPS_H)
 #define __SLEPCEPS_H
-#include "slepcsys.h"
-#include "slepcst.h"
-#include "slepcip.h"
-#include "slepcds.h"
+#include <slepcsys.h>
+#include <slepcst.h>
+#include <slepcip.h>
+#include <slepcds.h>
 
 PETSC_EXTERN PetscErrorCode EPSInitializePackage(const char[]);
 

@@ -23,6 +23,7 @@
 #define _DSIMPL
 
 #include <slepcds.h>
+#include <slepc-private/slepcimpl.h>
 
 PETSC_EXTERN PetscLogEvent DS_Solve,DS_Function,DS_Vectors,DS_Other;
 PETSC_EXTERN const char *DSMatName[];
