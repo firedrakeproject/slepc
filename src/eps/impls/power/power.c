@@ -61,21 +61,21 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) {
-    if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev"); 
   } else eps->ncv = eps->nev;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(2000,100*eps->n);
   if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
-  if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which !=EPS_TARGET_MAGNITUDE) SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
+  if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which !=EPS_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
     ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
-    if (!flg) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert or Cayley ST");
+    if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert or Cayley ST");
     ierr = STGetMatMode(eps->st,&mode);CHKERRQ(ierr); 
-    if (mode == ST_MATMODE_INPLACE) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
+    if (mode == ST_MATMODE_INPLACE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
   }
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
-  if (eps->balance!=EPS_BALANCE_NONE) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Balancing not supported in this solver");
-  if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  if (eps->balance!=EPS_BALANCE_NONE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Balancing not supported in this solver");
+  if (eps->arbit_func) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->leftvecs) {
     ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
@@ -293,7 +293,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
 
       /* delta = sqrt(y,z)_B */
       ierr = IPInnerProduct(eps->ip,y,z,&alpha);CHKERRQ(ierr);
-      if (alpha==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Breakdown in two-sided Power/RQI");
+      if (alpha==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Breakdown in two-sided Power/RQI");
       delta = PetscSqrtScalar(alpha);
 
       /* compute relative error */
@@ -356,7 +356,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
     ierr = VecCopy(y,v);CHKERRQ(ierr);
     ierr = VecCopy(z,w);CHKERRQ(ierr);
     ierr = IPInnerProduct(eps->ip,y,z,&alpha);CHKERRQ(ierr);
-    if (alpha==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Breakdown in two-sided Power/RQI");
+    if (alpha==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Breakdown in two-sided Power/RQI");
     delta = PetscSqrtScalar(PetscAbsScalar(alpha));
     beta = 1.0/PetscConj(alpha/delta);
     delta = 1.0/delta;
@@ -430,7 +430,7 @@ PetscErrorCode EPSPowerSetShiftType_Power(EPS eps,EPSPowerShiftType shift)
       power->shift_type = shift;
       break;
     default:
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid shift type");
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid shift type");
   }
   PetscFunctionReturn(0);
 }

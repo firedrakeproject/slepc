@@ -43,7 +43,7 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
     ierr = MatMult(st->A[0],x,st->w);CHKERRQ(ierr);
     ierr = KSPSolve(st->ksp,st->w,ctx->w2);CHKERRQ(ierr);
     ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
-    if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
+    if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
     ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
     st->lineariterations += its;
     if (st->sigma != 0.0) {
@@ -52,7 +52,7 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
     ierr = MatMult(st->A[0],ctx->w2,st->w);CHKERRQ(ierr);
     ierr = KSPSolve(st->ksp,st->w,y);CHKERRQ(ierr);
     ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
-    if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
+    if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
     ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
     st->lineariterations += its;
     if (st->sigma != 0.0) {
@@ -86,7 +86,7 @@ PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
     /* generalized eigenproblem: y = (A^T B^-T + sI)^2 x */
     ierr = KSPSolveTranspose(st->ksp,x,st->w);CHKERRQ(ierr);
     ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
-    if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
+    if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
     ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
     st->lineariterations += its;
     ierr = MatMult(st->A[0],st->w,ctx->w2);CHKERRQ(ierr);
@@ -95,7 +95,7 @@ PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
     }
     ierr = KSPSolveTranspose(st->ksp,ctx->w2,st->w);CHKERRQ(ierr);
     ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
-    if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
+    if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
     ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
     st->lineariterations += its;
     ierr = MatMult(st->A[0],st->w,y);CHKERRQ(ierr);

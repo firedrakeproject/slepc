@@ -92,7 +92,7 @@ PetscErrorCode ShellMatGetDiagonal_Cross(Mat B,Vec d)
         ierr = MatRestoreRow(svd->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
       }
     }
-    ierr = MPI_Allreduce(work1,work2,N,MPIU_SCALAR,MPI_SUM,((PetscObject)svd)->comm);CHKERRQ(ierr);
+    ierr = MPI_Allreduce(work1,work2,N,MPIU_SCALAR,MPI_SUM,PetscObjectComm((PetscObject)svd));CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(cross->diag,&start,&end);CHKERRQ(ierr);
     ierr = VecGetArray(cross->diag,&diag);CHKERRQ(ierr);
     for (i=start;i<end;i++)
@@ -117,7 +117,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   PetscFunctionBegin;
   if (!cross->mat) {
     ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
-    ierr = MatCreateShell(((PetscObject)svd)->comm,n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
     ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))ShellMatMult_Cross);CHKERRQ(ierr);  
     ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_Cross);CHKERRQ(ierr);  
     ierr = SVDMatGetVecs(svd,NULL,&cross->w);CHKERRQ(ierr);
@@ -166,7 +166,7 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   ierr = EPSGetConvergedReason(cross->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
     ierr = EPSGetEigenpair(cross->eps,i,&sigma,NULL,svd->V[i],NULL);CHKERRQ(ierr);
-    if (PetscRealPart(sigma)<0.0) SETERRQ(((PetscObject)svd)->comm,1,"Negative eigenvalue computed by EPS");
+    if (PetscRealPart(sigma)<0.0) SETERRQ(PetscObjectComm((PetscObject)svd),1,"Negative eigenvalue computed by EPS");
     svd->sigma[i] = PetscSqrtReal(PetscRealPart(sigma));
   }
   PetscFunctionReturn(0);
@@ -356,7 +356,7 @@ PetscErrorCode SVDCreate_Cross(SVD svd)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossSetEPS_C","SVDCrossSetEPS_Cross",SVDCrossSetEPS_Cross);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossGetEPS_C","SVDCrossGetEPS_Cross",SVDCrossGetEPS_Cross);CHKERRQ(ierr);
 
-  ierr = EPSCreate(((PetscObject)svd)->comm,&cross->eps);CHKERRQ(ierr);
+  ierr = EPSCreate(PetscObjectComm((PetscObject)svd),&cross->eps);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(cross->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(cross->eps,"svd_");CHKERRQ(ierr);
   ierr = PetscObjectIncrementTabLevel((PetscObject)cross->eps,(PetscObject)svd,1);CHKERRQ(ierr);  

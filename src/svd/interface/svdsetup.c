@@ -130,7 +130,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
 
   /* check matrix */
-  if (!svd->OP) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperator must be called first"); 
+  if (!svd->OP) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperator must be called first"); 
   
   /* determine how to build the transpose */
   if (svd->transmode == PETSC_DECIDE) {
@@ -166,7 +166,7 @@ PetscErrorCode SVDSetUp(SVD svd)
       }
       break;
     default:
-      SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
   }
 
   ierr = VecDestroy(&svd->tr);CHKERRQ(ierr);
@@ -183,8 +183,8 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* set tolerance if not yet set */
   if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
 
-  if (svd->ncv > M || svd->ncv > N) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"ncv bigger than matrix dimensions");
-  if (svd->nsv > svd->ncv) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
+  if (svd->ncv > M || svd->ncv > N) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"ncv bigger than matrix dimensions");
+  if (svd->nsv > svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
 
   if (svd->ncv != svd->n) {
     /* free memory for previous solution  */
@@ -207,7 +207,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* process initial vectors */
   if (svd->nini<0) {
     svd->nini = -svd->nini;
-    if (svd->nini>svd->ncv) SETERRQ(((PetscObject)svd)->comm,1,"The number of initial vectors is larger than ncv");
+    if (svd->nini>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of initial vectors is larger than ncv");
     k = 0;
     for (i=0;i<svd->nini;i++) {
       ierr = VecCopy(svd->IS[i],svd->V[k]);CHKERRQ(ierr);
@@ -264,7 +264,7 @@ PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,n,2);
-  if (n<0) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
+  if (n<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
 
   /* free previous non-processed vectors */
   if (svd->nini<0) {

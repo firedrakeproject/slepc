@@ -74,7 +74,7 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds,PetscBool tocompact)
   PetscInt       i,m=ds->m,k=ds->k,ld=ds->ld;
 
   PetscFunctionBegin;
-  if (!m) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"m was not set");
+  if (!m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"m was not set");
   if (tocompact) { /* switch from dense (arrow) to compact storage */
     ierr = PetscMemzero(T,3*ld*sizeof(PetscReal));CHKERRQ(ierr);
     for (i=0;i<k;i++) {
@@ -116,7 +116,7 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
     PetscFunctionReturn(0);
   }
   if (ds->compact) {
-    if (!ds->m) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"m was not set");
+    if (!ds->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"m was not set");
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
       ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",ds->n,ds->m);CHKERRQ(ierr);
@@ -165,7 +165,7 @@ PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     case DS_MAT_VT:
       break;
     default:
-      SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
   }
   PetscFunctionReturn(0);
 }

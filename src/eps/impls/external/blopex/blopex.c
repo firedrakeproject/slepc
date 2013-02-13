@@ -50,7 +50,7 @@ static void Precond_FnSingleVector(void *data,void *x,void *y)
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
       
   PetscFunctionBegin;
-  ierr = KSPSolve(blopex->st->ksp,(Vec)x,(Vec)y);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  ierr = KSPSolve(blopex->st->ksp,(Vec)x,(Vec)y);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
   PetscFunctionReturnVoid();
 }
 
@@ -78,18 +78,18 @@ static void OperatorASingleVector(void *data,void *x,void *y)
   PetscInt       nmat;
  
   PetscFunctionBegin;
-  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRABORT(((PetscObject)eps)->comm,ierr);
-  ierr = STGetOperators(eps->st,0,&A);CHKERRABORT(((PetscObject)eps)->comm,ierr);
-  if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRABORT(((PetscObject)eps)->comm,ierr); }
-  ierr = MatMult(A,(Vec)x,(Vec)y);CHKERRABORT(((PetscObject)eps)->comm,ierr);
-  ierr = STGetShift(eps->st,&sigma);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+  ierr = STGetOperators(eps->st,0,&A);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+  if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr); }
+  ierr = MatMult(A,(Vec)x,(Vec)y);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+  ierr = STGetShift(eps->st,&sigma);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
   if (sigma != 0.0) {
     if (nmat>1) {
-      ierr = MatMult(B,(Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+      ierr = MatMult(B,(Vec)x,blopex->w);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
     } else {
-      ierr = VecCopy((Vec)x,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+      ierr = VecCopy((Vec)x,blopex->w);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
     }
-    ierr = VecAXPY((Vec)y,-sigma,blopex->w);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+    ierr = VecAXPY((Vec)y,-sigma,blopex->w);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
   }
   PetscFunctionReturnVoid();
 }
@@ -115,8 +115,8 @@ static void OperatorBSingleVector(void *data,void *x,void *y)
   Mat            B;
   
   PetscFunctionBegin;
-  ierr = STGetOperators(eps->st,1,&B);CHKERRABORT(((PetscObject)eps)->comm,ierr);
-  ierr = MatMult(B,(Vec)x,(Vec)y);CHKERRABORT(((PetscObject)eps)->comm,ierr);
+  ierr = STGetOperators(eps->st,1,&B);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+  ierr = MatMult(B,(Vec)x,(Vec)y);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
   PetscFunctionReturnVoid();
 }
 
@@ -146,9 +146,9 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   PetscBool      isPrecond;
 
   PetscFunctionBegin;
-  if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"blopex only works for hermitian problems"); 
+  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works for hermitian problems"); 
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
-  if (eps->which!=EPS_SMALLEST_REAL) SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
+  if (eps->which!=EPS_SMALLEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
@@ -158,13 +158,13 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&isPrecond);CHKERRQ(ierr);
-  if (!isPrecond) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"blopex only works with STPRECOND");
+  if (!isPrecond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works with STPRECOND");
   blopex->st = eps->st;
 
   eps->ncv = eps->nev = PetscMin(eps->nev,eps->n);
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
-  if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  if (eps->arbit_func) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
@@ -176,7 +176,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
     blopex->tol.absolute = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
     blopex->tol.relative = 0.0;
   } else {
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Convergence test not supported in this solver");
+    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Convergence test not supported in this solver");
   }
   
   SLEPCSetupInterpreter(&blopex->ii);
@@ -200,7 +200,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_BLOPEX;
   PetscFunctionReturn(0);
 #endif
@@ -249,7 +249,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
         blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
         eps->eigr,lambdahist,eps->ncv,eps->errest,residhist,eps->ncv);
 #endif
-  if (info>0) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in blopex (code=%d)",info); 
+  if (info>0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in blopex (code=%d)",info); 
 
   if (eps->numbermonitors>0) {
     for (i=0;i<its;i++) {
@@ -343,7 +343,7 @@ PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   eps->ops->reset                = EPSReset_BLOPEX;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;
-  LOBPCG_InitRandomContext(((PetscObject)eps)->comm,eps->rand);
+  LOBPCG_InitRandomContext(PetscObjectComm((PetscObject)eps),eps->rand);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

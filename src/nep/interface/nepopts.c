@@ -101,18 +101,18 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     */
     ierr = PetscOptionsString("-nep_monitor","Monitor first unconverged approximate eigenvalue and error estimate","NEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = PetscViewerASCIIOpen(((PetscObject)nep)->comm,monfilename,&monviewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)nep),monfilename,&monviewer);CHKERRQ(ierr);
       ierr = NEPMonitorSet(nep,NEPMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsString("-nep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","NEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
       ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIOpen(((PetscObject)nep)->comm,monfilename,&ctx->viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)nep),monfilename,&ctx->viewer);CHKERRQ(ierr);
       ierr = NEPMonitorSet(nep,NEPMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsString("-nep_monitor_all","Monitor approximate eigenvalues and error estimates","NEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = PetscViewerASCIIOpen(((PetscObject)nep)->comm,monfilename,&monviewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)nep),monfilename,&monviewer);CHKERRQ(ierr);
       ierr = NEPMonitorSet(nep,NEPMonitorAll,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
       ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
     }
@@ -251,7 +251,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
     if (abstol == PETSC_DEFAULT) {
       nep->abstol = PETSC_DEFAULT;
     } else {
-      if (abstol < 0.0) SETERRQ1(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Absolute tolerance %G must be non-negative",abstol);
+      if (abstol < 0.0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Absolute tolerance %G must be non-negative",abstol);
       nep->abstol = abstol;
     }
   }
@@ -259,7 +259,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
     if (rtol == PETSC_DEFAULT) {
       nep->rtol = PETSC_DEFAULT;
     } else {
-      if (rtol < 0.0 || 1.0 <= rtol) SETERRQ1(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Relative tolerance %G must be non-negative and less than 1.0",rtol);
+      if (rtol < 0.0 || 1.0 <= rtol) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Relative tolerance %G must be non-negative and less than 1.0",rtol);
       nep->rtol = rtol;
     }
   }
@@ -267,7 +267,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
     if (stol == PETSC_DEFAULT) {
       nep->stol = PETSC_DEFAULT;
     } else {
-      if (stol < 0.0) SETERRQ1(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Step tolerance %G must be non-negative",stol);
+      if (stol < 0.0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Step tolerance %G must be non-negative",stol);
       nep->stol = stol;
     }
   }
@@ -276,7 +276,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
       nep->max_it = 0;
       nep->setupcalled = 0;
     } else {
-      if (maxit < 0) SETERRQ1(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Maximum number of iterations %D must be non-negative",maxit);
+      if (maxit < 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Maximum number of iterations %D must be non-negative",maxit);
       nep->max_it = maxit;
     }
   }
@@ -285,7 +285,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
       nep->max_it = 0;
       nep->setupcalled = 0;
     } else {
-      if (maxf < 0) SETERRQ1(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Maximum number of function evaluations %D must be non-negative",maxf);
+      if (maxf < 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Maximum number of function evaluations %D must be non-negative",maxf);
       nep->max_funcs = maxf;
     }
   }
@@ -371,7 +371,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(nep,ncv,3);
   PetscValidLogicalCollectiveInt(nep,mpd,4);
   if (nev) {
-    if (nev<1) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+    if (nev<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
     nep->nev = nev;
     nep->setupcalled = 0;
   }
@@ -379,7 +379,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
       nep->ncv = 0;
     } else {
-      if (ncv<1) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+      if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
       nep->ncv = ncv;
     }
     nep->setupcalled = 0;
@@ -388,7 +388,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
       nep->mpd = 0;
     } else {
-      if (mpd<1) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
+      if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
       nep->mpd = mpd;
     }
   }
@@ -466,7 +466,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
         }
         break;
       default:
-        SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
+        SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
     }
   }
   PetscFunctionReturn(0);

@@ -80,23 +80,23 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
     case QEP_GENERAL:    i = 0; break;
     case QEP_HERMITIAN:  i = 2; break;
     case QEP_GYROSCOPIC: i = 4; break;
-    default: SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of qep->problem_type");
+    default: SETERRQ(PetscObjectComm((PetscObject)qep),1,"Wrong value of qep->problem_type");
   }
   i += ctx->cform-1;
 
   if (ctx->explicitmatrix) {
     ctx->x1 = ctx->x2 = ctx->y1 = ctx->y2 = NULL;
-    ierr = (*fcreate[i][0])(((PetscObject)qep)->comm,ctx,&ctx->A);CHKERRQ(ierr);
-    ierr = (*fcreate[i][1])(((PetscObject)qep)->comm,ctx,&ctx->B);CHKERRQ(ierr);
+    ierr = (*fcreate[i][0])(PetscObjectComm((PetscObject)qep),ctx,&ctx->A);CHKERRQ(ierr);
+    ierr = (*fcreate[i][1])(PetscObjectComm((PetscObject)qep),ctx,&ctx->B);CHKERRQ(ierr);
   } else {
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,NULL,&ctx->x1);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,NULL,&ctx->x2);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,NULL,&ctx->y1);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,NULL,&ctx->y2);CHKERRQ(ierr);
-    ierr = MatCreateShell(((PetscObject)qep)->comm,2*qep->nloc,2*qep->nloc,2*qep->n,2*qep->n,ctx,&ctx->A);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)qep),1,qep->nloc,qep->n,NULL,&ctx->x1);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)qep),1,qep->nloc,qep->n,NULL,&ctx->x2);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)qep),1,qep->nloc,qep->n,NULL,&ctx->y1);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)qep),1,qep->nloc,qep->n,NULL,&ctx->y2);CHKERRQ(ierr);
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)qep),2*qep->nloc,2*qep->nloc,2*qep->n,2*qep->n,ctx,&ctx->A);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))fmult[i][0]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->A,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[i][0]);CHKERRQ(ierr);
-    ierr = MatCreateShell(((PetscObject)qep)->comm,2*qep->nloc,2*qep->nloc,2*qep->n,2*qep->n,ctx,&ctx->B);CHKERRQ(ierr);
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)qep),2*qep->nloc,2*qep->nloc,2*qep->n,2*qep->n,ctx,&ctx->B);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->B,MATOP_MULT,(void(*)(void))fmult[i][1]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->B,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[i][1]);CHKERRQ(ierr);
   }
@@ -114,7 +114,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
       case QEP_SMALLEST_REAL:      which = EPS_SMALLEST_REAL; break;
       case QEP_LARGEST_IMAGINARY:  which = EPS_LARGEST_IMAGINARY; break;
       case QEP_SMALLEST_IMAGINARY: which = EPS_SMALLEST_IMAGINARY; break;
-      default: SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of which");
+      default: SETERRQ(PetscObjectComm((PetscObject)qep),1,"Wrong value of which");
   }
   ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
   ierr = EPSSetLeftVectorsWanted(ctx->eps,qep->leftvecs);CHKERRQ(ierr);
@@ -168,8 +168,8 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
   ierr = MatGetVecs(A,&xr,NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,NULL,&wr);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,NULL,&wi);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)qep),1,qep->nloc,qep->n,NULL,&wr);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)qep),1,qep->nloc,qep->n,NULL,&wi);CHKERRQ(ierr);
   for (i=0;i<qep->nconv;i++) {
     ierr = EPSGetEigenpair(eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);
     qep->eigr[i] *= qep->sfactor;
@@ -247,7 +247,7 @@ PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
   ierr = MatGetVecs(A,&xr,NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)qep)->comm,1,qep->nloc,qep->n,NULL,&w);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)qep),1,qep->nloc,qep->n,NULL,&w);CHKERRQ(ierr);
   for (i=0;i<qep->nconv;i++) {
     ierr = EPSGetEigenpair(eps,i,&qep->eigr[i],&qep->eigi[i],xr,xi);CHKERRQ(ierr);
     qep->eigr[i] *= qep->sfactor;
@@ -375,7 +375,7 @@ PetscErrorCode QEPLinearSetCompanionForm_Linear(QEP qep,PetscInt cform)
   if (!cform) PetscFunctionReturn(0);
   if (cform==PETSC_DECIDE || cform==PETSC_DEFAULT) ctx->cform = 1;
   else {
-    if (cform!=1 && cform!=2) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'cform'");
+    if (cform!=1 && cform!=2) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'cform'");
     ctx->cform = cform;
   }
   PetscFunctionReturn(0);
@@ -706,7 +706,7 @@ PetscErrorCode QEPCreate_Linear(QEP qep)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetExplicitMatrix_C","QEPLinearSetExplicitMatrix_Linear",QEPLinearSetExplicitMatrix_Linear);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetExplicitMatrix_C","QEPLinearGetExplicitMatrix_Linear",QEPLinearGetExplicitMatrix_Linear);CHKERRQ(ierr);
 
-  ierr = EPSCreate(((PetscObject)qep)->comm,&ctx->eps);CHKERRQ(ierr);
+  ierr = EPSCreate(PetscObjectComm((PetscObject)qep),&ctx->eps);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)qep)->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(ctx->eps,"qep_");CHKERRQ(ierr);
   ierr = STSetOptionsPrefix(ctx->eps->st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);

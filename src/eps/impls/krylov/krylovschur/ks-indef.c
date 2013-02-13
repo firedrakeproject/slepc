@@ -86,7 +86,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
   /* Get the starting Lanczos vector */
   ierr = SlepcVecSetRandom(eps->V[0],eps->rand);CHKERRQ(ierr);
   ierr = IPNorm(eps->ip,eps->V[0],&norm);CHKERRQ(ierr);
-  if (norm==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Initial vector is zero or belongs to the deflation space"); 
+  if (norm==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Initial vector is zero or belongs to the deflation space"); 
   ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
   omega[0] = (norm > 0)?1.0:-1.0;
   beta = PetscAbsReal(norm);
@@ -137,7 +137,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
-        SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",beta);
+        SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",beta);
       } else {
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);

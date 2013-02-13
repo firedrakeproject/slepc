@@ -72,7 +72,7 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   /* call solver */
   ierr = (*mfn->ops->solve)(mfn,b,x);CHKERRQ(ierr);
 
-  if (!mfn->reason) SETERRQ(((PetscObject)mfn)->comm,PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
+  if (!mfn->reason) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   ierr = PetscLogEventEnd(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
 
@@ -81,7 +81,7 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   ierr = VecViewFromOptions(b,"-mfn_view_rhs");CHKERRQ(ierr);
   ierr = VecViewFromOptions(x,"-mfn_view_solution");CHKERRQ(ierr);
 
-  ierr = PetscOptionsGetViewer(((PetscObject)mfn)->comm,((PetscObject)mfn)->prefix,"-mfn_view",&viewer,&format,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->prefix,"-mfn_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
     ierr = MFNView(mfn,viewer);CHKERRQ(ierr); 

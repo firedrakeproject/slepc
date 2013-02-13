@@ -135,7 +135,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)svd)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
 
@@ -218,10 +218,10 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)svd)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
-  if (!svd->sigma) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
+  if (!svd->sigma) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
@@ -462,8 +462,8 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
   ierr = PetscObjectTypeCompare((PetscObject)svd,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFunctionListFind(((PetscObject)svd)->comm,SVDList,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(((PetscObject)svd)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown SVD type given: %s",type);
+  ierr = PetscFunctionListFind(PetscObjectComm((PetscObject)svd),SVDList,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
+  if (!r) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown SVD type given: %s",type);
 
   if (svd->ops->destroy) { ierr = (*svd->ops->destroy)(svd);CHKERRQ(ierr); }
   ierr = PetscMemzero(svd->ops,sizeof(struct _SVDOps));CHKERRQ(ierr);
@@ -601,7 +601,7 @@ PetscErrorCode SVDGetIP(SVD svd,IP *ip)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(ip,2);
   if (!svd->ip) {
-    ierr = IPCreate(((PetscObject)svd)->comm,&svd->ip);CHKERRQ(ierr);
+    ierr = IPCreate(PetscObjectComm((PetscObject)svd),&svd->ip);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(svd,svd->ip);CHKERRQ(ierr);
   }
   *ip = svd->ip;
@@ -668,7 +668,7 @@ PetscErrorCode SVDGetDS(SVD svd,DS *ds)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(ds,2);
   if (!svd->ds) {
-    ierr = DSCreate(((PetscObject)svd)->comm,&svd->ds);CHKERRQ(ierr);
+    ierr = DSCreate(PetscObjectComm((PetscObject)svd),&svd->ds);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(svd,svd->ds);CHKERRQ(ierr);
   }
   *ds = svd->ds;

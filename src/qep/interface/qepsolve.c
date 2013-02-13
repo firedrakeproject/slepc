@@ -108,7 +108,7 @@ PetscErrorCode QEPSolve(QEP qep)
     ierr = STPostSolve(qep->st);CHKERRQ(ierr);
   }
 
-  if (!qep->reason) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
+  if (!qep->reason) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   if (!islinear) {
     /* restore comparison function */
@@ -142,7 +142,7 @@ PetscErrorCode QEPSolve(QEP qep)
   ierr = MatViewFromOptions(qep->C,"-qep_view_mat1");CHKERRQ(ierr);
   ierr = MatViewFromOptions(qep->K,"-qep_view_mat2");CHKERRQ(ierr);
 
-  ierr = PetscOptionsGetViewer(((PetscObject)qep)->comm,((PetscObject)qep)->prefix,"-qep_view",&viewer,&format,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)qep),((PetscObject)qep)->prefix,"-qep_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
     ierr = QEPView(qep,viewer);CHKERRQ(ierr); 
@@ -317,8 +317,8 @@ PetscErrorCode QEPGetEigenpair(QEP qep,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscValidLogicalCollectiveInt(qep,i,2);
   if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,6); PetscCheckSameComm(qep,1,Vr,6); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,7); PetscCheckSameComm(qep,1,Vi,7); }
-  if (!qep->eigr || !qep->eigi || !qep->V) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
-  if (i<0 || i>=qep->nconv) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
+  if (!qep->eigr || !qep->eigi || !qep->V) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
+  if (i<0 || i>=qep->nconv) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
 
   if (!qep->perm) k = i;
   else k = qep->perm[i];

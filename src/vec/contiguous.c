@@ -64,13 +64,13 @@ static PetscErrorCode VecDuplicateVecs_Contiguous(Vec v,PetscInt m,Vec *V[])
   ierr = PetscNew(Vecs_Contiguous,&vc);CHKERRQ(ierr);
   vc->nvecs = m;
   vc->array = pV;
-  ierr = PetscContainerCreate(((PetscObject)v)->comm,&container);CHKERRQ(ierr);
+  ierr = PetscContainerCreate(PetscObjectComm((PetscObject)v),&container);CHKERRQ(ierr);
   ierr = PetscContainerSetPointer(container,vc);CHKERRQ(ierr);
   ierr = PetscContainerSetUserDestroy(container,Vecs_ContiguousDestroy);CHKERRQ(ierr);
   /* Create vectors */
   ierr = PetscMalloc(m*sizeof(Vec),V);CHKERRQ(ierr);
   for (i=0;i<m;i++) {
-    ierr = VecCreateMPIWithArray(((PetscObject)v)->comm,1,nloc,PETSC_DECIDE,pV+i*nloc,*V+i);CHKERRQ(ierr);
+    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)v),1,nloc,PETSC_DECIDE,pV+i*nloc,*V+i);CHKERRQ(ierr);
     ierr = PetscObjectCompose((PetscObject)*(*V+i),"contiguous",(PetscObject)container);CHKERRQ(ierr);
   }
   ierr = PetscContainerDestroy(&container);CHKERRQ(ierr);
@@ -103,7 +103,7 @@ PetscErrorCode SlepcVecSetTemplate(Vec v)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(v,VEC_CLASSID,1);
   ierr = PetscObjectTypeCompareAny((PetscObject)v,&flg,VECSEQ,VECMPI,"");CHKERRQ(ierr);
-  if (!flg) SETERRQ(((PetscObject)v)->comm,PETSC_ERR_SUP,"Only available for standard vectors (VECSEQ or VECMPI)");
+  if (!flg) SETERRQ(PetscObjectComm((PetscObject)v),PETSC_ERR_SUP,"Only available for standard vectors (VECSEQ or VECMPI)");
   v->ops->duplicatevecs = VecDuplicateVecs_Contiguous;
   PetscFunctionReturn(0);
 }
@@ -452,7 +452,7 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(y,VEC_CLASSID,1);
   if (!nv || !(y)->map->n) PetscFunctionReturn(0);
-  if (nv < 0) SETERRQ1(((PetscObject)y)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",nv);
+  if (nv < 0) SETERRQ1(PetscObjectComm((PetscObject)y),PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",nv);
   PetscValidLogicalCollectiveScalar(y,alpha,2);
   PetscValidLogicalCollectiveScalar(y,beta,3);
   PetscValidLogicalCollectiveInt(y,nv,4);
@@ -462,8 +462,8 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
   PetscValidType(y,1);
   PetscValidType(*x,6);
   PetscCheckSameTypeAndComm(y,1,*x,6);
-  if ((*x)->map->N != (y)->map->N) SETERRQ(((PetscObject)y)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible vector global lengths");
-  if ((*x)->map->n != (y)->map->n) SETERRQ(((PetscObject)y)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible vector local lengths");
+  if ((*x)->map->N != (y)->map->N) SETERRQ(PetscObjectComm((PetscObject)y),PETSC_ERR_ARG_INCOMP,"Incompatible vector global lengths");
+  if ((*x)->map->n != (y)->map->n) SETERRQ(PetscObjectComm((PetscObject)y),PETSC_ERR_ARG_INCOMP,"Incompatible vector local lengths");
 
   ierr = PetscObjectQuery((PetscObject)(x[0]),"contiguous",(PetscObject*)&container);CHKERRQ(ierr);
   if (container) {

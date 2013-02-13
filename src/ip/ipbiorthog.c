@@ -57,7 +57,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCall("LAPACKgelqf",LAPACKgelqf_(&n,&n,vw,&n,tau,work,&lwork,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  if (info) SETERRQ1(((PetscObject)ip)->comm,PETSC_ERR_LIB,"Error in Lapack xGELQF %d",info);
+  if (info) SETERRQ1(PetscObjectComm((PetscObject)ip),PETSC_ERR_LIB,"Error in Lapack xGELQF %d",info);
   
   /*** First orthogonalization ***/
 
@@ -68,7 +68,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   PetscStackCall("BLAStrsm",BLAStrsm_("L","L","N","N",&n,&ione,&one,vw,&n,H,&n));
   PetscStackCall("LAPACKormlq",LAPACKormlq_("L","N",&n,&ione,&n,vw,&n,tau,H,&n,work,&lwork,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  if (info) SETERRQ1(((PetscObject)ip)->comm,PETSC_ERR_LIB,"Error in Lapack xORMLQ %d",info);
+  if (info) SETERRQ1(PetscObjectComm((PetscObject)ip),PETSC_ERR_LIB,"Error in Lapack xORMLQ %d",info);
   ierr = SlepcVecMAXPBY(v,1.0,-1.0,n,H,V);CHKERRQ(ierr);
 
   /* compute norm of v */
@@ -153,7 +153,7 @@ PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScala
         ierr = IPCGSBiOrthogonalization(ip,n,V,W,v,h,hnrm,nrm);CHKERRQ(ierr);
         break;
       default:
-        SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
+        SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
     
     if (allocated) { ierr = PetscFree(h);CHKERRQ(ierr); }
@@ -299,7 +299,7 @@ static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal
     break;
 
   default:
-    SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
+    SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
   }
 
   /* recover H from workspace */
@@ -371,10 +371,10 @@ PetscErrorCode IPPseudoOrthogonalize(IP ip,PetscInt n,Vec *V,PetscReal *omega,Ve
       ierr = IPPseudoOrthogonalizeCGS(ip,n,V,omega,v,H,norm,lindep);CHKERRQ(ierr); 
       break;
     case IP_ORTHOG_MGS:
-      SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_SUP,"Modified Gram-Schmidt not implemented for indefinite case");
+      SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_SUP,"Modified Gram-Schmidt not implemented for indefinite case");
       break;
     default:
-      SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
+      SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
   }
   ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);  

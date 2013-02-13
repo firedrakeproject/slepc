@@ -137,7 +137,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)qep)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)qep));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(qep,1,viewer,2);
 
@@ -159,7 +159,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
         case QEP_GENERAL:    type = "general quadratic eigenvalue problem"; break;
         case QEP_HERMITIAN:  type = HERM " quadratic eigenvalue problem"; break;
         case QEP_GYROSCOPIC: type = "gyroscopic quadratic eigenvalue problem"; break;
-        default: SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of qep->problem_type");
+        default: SETERRQ(PetscObjectComm((PetscObject)qep),1,"Wrong value of qep->problem_type");
       }
     } else type = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
@@ -204,7 +204,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
       case QEP_SMALLEST_IMAGINARY:
         ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
         break;
-      default: SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of qep->which");
+      default: SETERRQ(PetscObjectComm((PetscObject)qep),1,"Wrong value of qep->which");
     }    
     if (qep->leftvecs) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing left eigenvectors also\n");CHKERRQ(ierr);
@@ -272,10 +272,10 @@ PetscErrorCode QEPPrintSolution(QEP qep,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)qep)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)qep));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(qep,1,viewer,2);
-  if (!qep->eigr || !qep->eigi || !qep->V) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
+  if (!qep->eigr || !qep->eigi || !qep->V) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
@@ -469,8 +469,8 @@ PetscErrorCode QEPSetType(QEP qep,QEPType type)
   ierr = PetscObjectTypeCompare((PetscObject)qep,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFunctionListFind(((PetscObject)qep)->comm,QEPList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(((PetscObject)qep)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown QEP type given: %s",type);
+  ierr = PetscFunctionListFind(PetscObjectComm((PetscObject)qep),QEPList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  if (!r) SETERRQ1(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown QEP type given: %s",type);
 
   if (qep->ops->destroy) { ierr = (*qep->ops->destroy)(qep);CHKERRQ(ierr); }
   ierr = PetscMemzero(qep->ops,sizeof(struct _QEPOps));CHKERRQ(ierr);
@@ -690,7 +690,7 @@ PetscErrorCode QEPGetIP(QEP qep,IP *ip)
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(ip,2);
   if (!qep->ip) {
-    ierr = IPCreate(((PetscObject)qep)->comm,&qep->ip);CHKERRQ(ierr);
+    ierr = IPCreate(PetscObjectComm((PetscObject)qep),&qep->ip);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(qep,qep->ip);CHKERRQ(ierr);
   }
   *ip = qep->ip;
@@ -757,7 +757,7 @@ PetscErrorCode QEPGetDS(QEP qep,DS *ds)
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(ds,2);
   if (!qep->ds) {
-    ierr = DSCreate(((PetscObject)qep)->comm,&qep->ds);CHKERRQ(ierr);
+    ierr = DSCreate(PetscObjectComm((PetscObject)qep),&qep->ds);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(qep,qep->ds);CHKERRQ(ierr);
   }
   *ds = qep->ds;
@@ -824,7 +824,7 @@ PetscErrorCode QEPGetST(QEP qep,ST *st)
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(st,2);
   if (!qep->st) {
-    ierr = STCreate(((PetscObject)qep)->comm,&qep->st);CHKERRQ(ierr);
+    ierr = STCreate(PetscObjectComm((PetscObject)qep),&qep->st);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(qep,qep->st);CHKERRQ(ierr);
   }
   *st = qep->st;

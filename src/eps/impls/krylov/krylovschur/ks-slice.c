@@ -383,7 +383,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   }
   sPres->comp[0] = (count0 >= sPres->nsch[0])?PETSC_TRUE:PETSC_FALSE;
   sPres->comp[1] = (count1 >= sPres->nsch[1])?PETSC_TRUE:PETSC_FALSE;
-  if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1])SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error in Spectrum Slicing!\nMismatch between number of values found and information from inertia");
+  if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1])SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error in Spectrum Slicing!\nMismatch between number of values found and information from inertia");
   ierr = PetscFree(iwork);CHKERRQ(ierr);  
   PetscFunctionReturn(0);
 }
@@ -417,7 +417,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
         *newS = sPres->value + 10*(sr->dir)*PetscAbsReal(sPres->value - sPres->neighb[0]->value);
         sr->nleap++;
         /* Stops when the interval is open and no values are found in the last 5 shifts (there might be infinite eigenvalues) */
-        if (!sr->hasEnd && sr->nleap > 5) SETERRQ(((PetscObject)eps)->comm,1,"Unable to compute the wanted eigenvalues with open interval");           
+        if (!sr->hasEnd && sr->nleap > 5) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unable to compute the wanted eigenvalues with open interval");           
       } else { /* First shift */
         if (eps->nconv != 0) {
           /* Unaccepted values give information for next shift */
@@ -435,7 +435,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
           }
           *newS = sPres->value + ((sr->dir)*d_prev*eps->nev)/2;
         } else { /* No values found, no information for next shift */
-          SETERRQ(((PetscObject)eps)->comm,1,"First shift renders no information"); 
+          SETERRQ(PetscObjectComm((PetscObject)eps),1,"First shift renders no information"); 
         }
       }
     } else { /* Accepted values found */
@@ -520,7 +520,7 @@ PetscErrorCode EPSStoreEigenpairs(EPS eps)
     err = eps->errest[eps->perm[i]];
 
     if ((sr->dir)*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0) {/* Valid value */
-      if (count>=sr->numEigs) SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error in Spectrum Slicing");
+      if (count>=sr->numEigs) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error in Spectrum Slicing");
       sr->eig[count] = lambda;
       sr->errest[count] = err;
       /* Explicit purification */
@@ -574,12 +574,12 @@ PetscErrorCode EPSLookForDeflation(EPS eps)
   /* The number of values on each side are found */
   if (sPres->neighb[0]) {
     sPres->nsch[0] = (sr->dir)*(sPres->inertia - sPres->neighb[0]->inertia)-count0;
-    if (sPres->nsch[0]<0)SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error in Spectrum Slicing!\nMismatch between number of values found and information from inertia");
+    if (sPres->nsch[0]<0)SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error in Spectrum Slicing!\nMismatch between number of values found and information from inertia");
   } else sPres->nsch[0] = 0;
 
   if (sPres->neighb[1]) {
     sPres->nsch[1] = (sr->dir)*(sPres->neighb[1]->inertia - sPres->inertia) - count1;
-    if (sPres->nsch[1]<0)SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error in Spectrum Slicing!\nMismatch between number of values found and information from inertia");
+    if (sPres->nsch[1]<0)SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error in Spectrum Slicing!\nMismatch between number of values found and information from inertia");
   } else sPres->nsch[1] = (sr->dir)*(sr->inertia1 - sPres->inertia);
 
   /* Completing vector of indexes for deflation */
@@ -679,7 +679,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     sr->errest[i]  = 0.0;
     sr->monit[i]   = 0.0;
   }
-  ierr = VecCreateMPI(((PetscObject)eps)->comm,eps->nloc,PETSC_DECIDE,&t);CHKERRQ(ierr);
+  ierr = VecCreateMPI(PetscObjectComm((PetscObject)eps),eps->nloc,PETSC_DECIDE,&t);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(t,sr->numEigs,&sr->V);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   /* Vector for maintaining order of eigenvalues */

@@ -291,7 +291,7 @@ PetscErrorCode DSPermuteRows_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat,P
   PetscScalar *Q,rtmp;
 
   PetscFunctionBegin;
-  if (!m) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"m was not set");
+  if (!m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"m was not set");
   ld = ds->ld;
   Q  = ds->mat[mat];
   for (i=l;i<n;i++) {
@@ -317,7 +317,7 @@ PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat1,
   PetscScalar *U,*VT,rtmp;
 
   PetscFunctionBegin;
-  if (!m) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"m was not set");
+  if (!m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"m was not set");
   ld = ds->ld;
   U  = ds->mat[mat1];
   VT = ds->mat[mat2];
@@ -397,7 +397,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   ierr = DSGetDimensions(ds,&n,NULL,&l,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   n = n - l;
-  if (cols > n) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
+  if (cols > n) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid number of columns");
   if (n == 0 || cols == 0) PetscFunctionReturn(0);
   ierr = DSGetArray(ds,mat,&A);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(PetscMin(cols,n),&ltau);CHKERRQ(ierr);
@@ -459,7 +459,7 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
   ierr = DSGetDimensions(ds,&n,NULL,&l,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   n = n - l;
-  if (cols > n) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
+  if (cols > n) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid number of columns");
   if (n == 0 || cols == 0) PetscFunctionReturn(0);
   ierr = PetscBLASIntCast(n,&rA_);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&A_);CHKERRQ(ierr);

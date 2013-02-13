@@ -39,18 +39,18 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(PetscMax(7,eps->nev+PetscMin(eps->nev,6)),&tr->maxlan);CHKERRQ(ierr);
   if (eps->ncv) {
-    if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev"); 
   } else eps->ncv = tr->maxlan;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
   
-  if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
+  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
 
-  if (eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is not available for generalized problems");
+  if (eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method is not available for generalized problems");
 
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
-  if (eps->which!=EPS_LARGEST_REAL && eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_TARGET_REAL) SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
-  if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  if (eps->which!=EPS_LARGEST_REAL && eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_TARGET_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
+  if (eps->arbit_func) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   tr->restart = 0;
   if (tr->maxlan+1-eps->ncv<=0) {
@@ -65,7 +65,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_TRLAN;
   PetscFunctionReturn(0);
 }
@@ -79,8 +79,8 @@ static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin
   PetscBLASInt   i;
 
   PetscFunctionBegin;
-  ierr = VecCreateMPIWithArray(((PetscObject)globaleps)->comm,1,*n,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)globaleps)->comm,1,*n,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)globaleps),1,*n,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)globaleps),1,*n,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
   for (i=0;i<*m;i++) {
     ierr = VecPlaceArray(x,(PetscScalar*)xin+i*(*ldx));CHKERRQ(ierr);
     ierr = VecPlaceArray(y,(PetscScalar*)yout+i*(*ldy));CHKERRQ(ierr);
@@ -110,7 +110,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   
   if (eps->which==EPS_LARGEST_REAL || eps->which==EPS_TARGET_REAL) lohi = 1;
   else if (eps->which==EPS_SMALLEST_REAL) lohi = -1;
-  else SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
+  else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
   globaleps = eps;
 
@@ -121,7 +121,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   ipar[4]  = tr->maxlan;   /* maximum Lanczos basis size */
   ipar[5]  = tr->restart;  /* restarting scheme */
   ierr = PetscBLASIntCast(eps->max_it,&ipar[6]);CHKERRQ(ierr); /* maximum number of MATVECs */
-  ierr = PetscBLASIntCast(MPI_Comm_c2f(((PetscObject)eps)->comm),&ipar[7]);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&ipar[7]);CHKERRQ(ierr);
   ipar[8]  = 0;            /* verboseness */
   ipar[9]  = 99;           /* Fortran IO unit number used to write log messages */
   ipar[10] = 1;            /* use supplied starting vector */
@@ -143,7 +143,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   eps->its    = ipar[25];
   eps->reason = EPS_CONVERGED_TOL;
   
-  if (stat!=0) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in TRLAN (code=%d)",stat);
+  if (stat!=0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in TRLAN (code=%d)",stat);
   PetscFunctionReturn(0);
 }
 

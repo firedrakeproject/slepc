@@ -163,12 +163,12 @@ PetscErrorCode STSetUp_Cayley(ST st)
   if (!st->sigma_set) st->sigma = st->defsigma;
 
   if (!ctx->nu_set) ctx->nu = st->sigma;
-  if (ctx->nu == 0.0 && st->sigma == 0.0) SETERRQ(((PetscObject)st)->comm,1,"Values of shift and antishift cannot be zero simultaneously");
+  if (ctx->nu == 0.0 && st->sigma == 0.0) SETERRQ(PetscObjectComm((PetscObject)st),1,"Values of shift and antishift cannot be zero simultaneously");
 
   /* T[0] = A+nu*B */
   if (st->shift_matrix==ST_MATMODE_INPLACE) {
     ierr = MatGetLocalSize(st->A[0],&n,&m);CHKERRQ(ierr);
-    ierr = MatCreateShell(((PetscObject)st)->comm,n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,&st->T[0]);CHKERRQ(ierr);
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)st),n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,&st->T[0]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(st->T[0],MATOP_MULT,(void(*)(void))STBilinearMatMult_Cayley);CHKERRQ(ierr);
   } else {
     ierr = STMatGAXPY_Private(st,ctx->nu,0.0,1,0,PETSC_TRUE);CHKERRQ(ierr);
@@ -197,7 +197,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   MatStructure   flg;
 
   PetscFunctionBegin;
-  if (newshift==0.0 && (!ctx->nu_set || (ctx->nu_set && ctx->nu==0.0))) SETERRQ(((PetscObject)st)->comm,1,"Values of shift and antishift cannot be zero simultaneously");
+  if (newshift==0.0 && (!ctx->nu_set || (ctx->nu_set && ctx->nu==0.0))) SETERRQ(PetscObjectComm((PetscObject)st),1,"Values of shift and antishift cannot be zero simultaneously");
 
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->setupcalled) PetscFunctionReturn(0);

@@ -195,7 +195,7 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     break;
     
   default:
-    SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
+    SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
   }
   PetscFunctionReturn(0);
 }
@@ -278,7 +278,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     break;
 
   default:
-    SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
+    SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
   }
 
   /* recover H from workspace */
@@ -352,7 +352,7 @@ PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *defl,PetscInt n,PetscBool
       ierr = IPOrthogonalizeMGS(ip,nds,defl,n,which,V,v,H,norm,lindep);CHKERRQ(ierr); 
       break;
     default:
-      SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
+      SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
   }
   ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);  
@@ -413,7 +413,7 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
     if (norm==0.0 || lindep) { 
       ierr = PetscInfo(ip,"Linearly dependent vector found, generating a new random vector\n");CHKERRQ(ierr);
       if (!rctx) {
-        ierr = PetscRandomCreate(((PetscObject)ip)->comm,&rctx);CHKERRQ(ierr);
+        ierr = PetscRandomCreate(PetscObjectComm((PetscObject)ip),&rctx);CHKERRQ(ierr);
         ierr = PetscRandomSetSeed(rctx,0x12345678);CHKERRQ(ierr);
         ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
       }

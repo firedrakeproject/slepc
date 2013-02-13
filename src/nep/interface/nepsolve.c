@@ -71,7 +71,7 @@ PetscErrorCode NEPSolve(NEP nep)
 
   ierr = (*nep->ops->solve)(nep);CHKERRQ(ierr);
 
-  if (!nep->reason) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
+  if (!nep->reason) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
 #if !defined(PETSC_USE_COMPLEX)
   /* reorder conjugate eigenvalues (positive imaginary first) */
@@ -93,7 +93,7 @@ PetscErrorCode NEPSolve(NEP nep)
   ierr = PetscLogEventEnd(NEP_Solve,nep,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
-  ierr = PetscOptionsGetViewer(((PetscObject)nep)->comm,((PetscObject)nep)->prefix,"-nep_view",&viewer,&format,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->prefix,"-nep_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
     ierr = NEPView(nep,viewer);CHKERRQ(ierr); 
@@ -273,8 +273,8 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscValidLogicalCollectiveInt(nep,i,2);
   if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,6); PetscCheckSameComm(nep,1,Vr,6); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,7); PetscCheckSameComm(nep,1,Vi,7); }
-  if (!nep->eigr || !nep->eigi || !nep->V) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first"); 
-  if (i<0 || i>=nep->nconv) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
+  if (!nep->eigr || !nep->eigi || !nep->V) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first"); 
+  if (i<0 || i>=nep->nconv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
 
   if (!nep->perm) k = i;
   else k = nep->perm[i];
@@ -694,7 +694,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(flg,6);
 
-  if (!nep->fun_func) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_USER,"Must call NEPSetFunction() first");
+  if (!nep->fun_func) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetFunction() first");
 
   *flg = DIFFERENT_NONZERO_PATTERN;
   ierr = PetscLogEventBegin(NEP_FunctionEval,nep,*A,*B,0);CHKERRQ(ierr);
@@ -741,7 +741,7 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(flg,6);
 
-  if (!nep->jac_func) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_USER,"Must call NEPSetJacobian() first");
+  if (!nep->jac_func) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetJacobian() first");
 
   *flg = DIFFERENT_NONZERO_PATTERN;
   ierr = PetscLogEventBegin(NEP_JacobianEval,nep,*A,*B,0);CHKERRQ(ierr);

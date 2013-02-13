@@ -64,7 +64,7 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
 static void par_GlobalSumDouble(void *sendBuf,void *recvBuf,int *count,primme_params *primme)
 {
   PetscErrorCode ierr;
-  ierr = MPI_Allreduce((double*)sendBuf,(double*)recvBuf,*count,MPI_DOUBLE,MPI_SUM,((PetscObject)(primme->commInfo))->comm);CHKERRABORT(((PetscObject)(primme->commInfo))->comm,ierr);
+  ierr = MPI_Allreduce((double*)sendBuf,(double*)recvBuf,*count,MPI_DOUBLE,MPI_SUM,PetscObjectComm((PetscObject)(primme->commInfo))->comm);CHKERRABORT(((PetscObject)(primme->commInfo)),ierr);
 }
 
 #undef __FUNCT__  
@@ -78,18 +78,18 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   PetscBool      t;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_size(((PetscObject)eps)->comm,&numProcs);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(((PetscObject)eps)->comm,&procID);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&numProcs);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&procID);CHKERRQ(ierr);
   
   /* Check some constraints and set some default values */ 
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
   ierr = STGetOperators(eps->st,0,&ops->A);CHKERRQ(ierr);
-  if (!ops->A) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
-  if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
-  if (eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
-  if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  if (!ops->A) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
+  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
+  if (eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
+  if (eps->arbit_func) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
-  if (eps->conv_func != EPSConvergedAbsolute) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only supports absolute convergence test"); 
+  if (eps->conv_func != EPSConvergedAbsolute) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only supports absolute convergence test"); 
 
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) {
@@ -101,7 +101,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&t);CHKERRQ(ierr);
-  if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only works with STPRECOND");
+  if (!t) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only works with STPRECOND");
 
   /* Transfer SLEPc options to PRIMME options */
   primme->n          = eps->n;
@@ -132,16 +132,16 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
       primme->targetShifts = &ops->target;
       break;
     default:
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"'which' value does not supported by PRIMME");
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"'which' value does not supported by PRIMME");
       break;   
   }
   
-  if (primme_set_method(ops->method,primme) < 0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME method not valid");
+  if (primme_set_method(ops->method,primme) < 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME method not valid");
   
   /* If user sets ncv, maxBasisSize is modified. If not, ncv is set as maxBasisSize */
   if (eps->ncv) primme->maxBasisSize = eps->ncv;
   else eps->ncv = primme->maxBasisSize;
-  if (eps->ncv < eps->nev+primme->maxBlockSize)  SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME needs ncv >= nev+maxBlockSize");
+  if (eps->ncv < eps->nev+primme->maxBlockSize)  SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME needs ncv >= nev+maxBlockSize");
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
 
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
@@ -154,17 +154,17 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (primme->correctionParams.precondition) {
     ierr = STGetKSP(eps->st,&ops->ksp);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)ops->ksp,KSPPREONLY,&t);CHKERRQ(ierr);
-    if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME only works with KSPPREONLY");
+    if (!t) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only works with KSPPREONLY");
     primme->preconditioner = NULL;
     primme->applyPreconditioner = applyPreconditioner_PRIMME;
   }
 
   /* Prepare auxiliary vectors */ 
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,eps->n,NULL,&ops->x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,eps->n,NULL,&ops->y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,eps->n,NULL,&ops->x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,eps->n,NULL,&ops->y);CHKERRQ(ierr);
  
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_PRIMME;
   PetscFunctionReturn(0);
 }
@@ -205,16 +205,16 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
     case 0: /* Successful */
       break;
     case -1:
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME: Failed to open output file");
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME: Failed to open output file");
       break;
     case -2:
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME: Insufficient integer or real workspace allocated");
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME: Insufficient integer or real workspace allocated");
       break;
     case -3:
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME: main_iter encountered a problem");
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME: main_iter encountered a problem");
       break;
     default:
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"PRIMME: some parameters wrong configured");
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME: some parameters wrong configured");
       break;
   }
 
@@ -238,13 +238,13 @@ static void multMatvec_PRIMME(void *in,void *out,int *blockSize,primme_params *p
   PetscFunctionBegin;
   for (i=0;i<*blockSize;i++) {
     /* build vectors using 'in' an 'out' workspace */
-    ierr = VecPlaceArray(x,(PetscScalar*)in+N*i);CHKERRABORT(((PetscObject)A)->comm,ierr);
-    ierr = VecPlaceArray(y,(PetscScalar*)out+N*i);CHKERRABORT(((PetscObject)A)->comm,ierr);
+    ierr = VecPlaceArray(x,(PetscScalar*)in+N*i);CHKERRABORT(PetscObjectComm((PetscObject)A),ierr);
+    ierr = VecPlaceArray(y,(PetscScalar*)out+N*i);CHKERRABORT(PetscObjectComm((PetscObject)A),ierr);
 
-    ierr = MatMult(A,x,y);CHKERRABORT(((PetscObject)A)->comm,ierr);
+    ierr = MatMult(A,x,y);CHKERRABORT(PetscObjectComm((PetscObject)A),ierr);
     
-    ierr = VecResetArray(x);CHKERRABORT(((PetscObject)A)->comm,ierr);
-    ierr = VecResetArray(y);CHKERRABORT(((PetscObject)A)->comm,ierr);
+    ierr = VecResetArray(x);CHKERRABORT(PetscObjectComm((PetscObject)A),ierr);
+    ierr = VecResetArray(y);CHKERRABORT(PetscObjectComm((PetscObject)A),ierr);
   }
   PetscFunctionReturnVoid();
 }
@@ -261,15 +261,15 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
   PetscFunctionBegin;
   for (i=0;i<*blockSize;i++) {
     /* build vectors using 'in' an 'out' workspace */
-    ierr = VecPlaceArray(x,(PetscScalar*)in+N*i);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
-    ierr = VecPlaceArray(y,(PetscScalar*)out+N*i);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
+    ierr = VecPlaceArray(x,(PetscScalar*)in+N*i);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
+    ierr = VecPlaceArray(y,(PetscScalar*)out+N*i);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
 
-    ierr = KSPSolve(ops->ksp,x,y);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
-    ierr = KSPGetIterationNumber(ops->ksp,&lits);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
+    ierr = KSPSolve(ops->ksp,x,y);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
+    ierr = KSPGetIterationNumber(ops->ksp,&lits);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
     ops->eps->st->lineariterations+= lits;
     
-    ierr = VecResetArray(x);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
-    ierr = VecResetArray(y);CHKERRABORT(((PetscObject)ops->ksp)->comm,ierr);
+    ierr = VecResetArray(x);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
+    ierr = VecResetArray(y);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
   }
   PetscFunctionReturnVoid();
 } 
@@ -322,7 +322,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: solver method: %s\n",EPSPRIMMEMethods[methodn]);CHKERRQ(ierr);
 
     /* Display PRIMME params */
-    ierr = MPI_Comm_rank(((PetscObject)eps)->comm,&rank);CHKERRQ(ierr);
+    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank);CHKERRQ(ierr);
     if (!rank) primme_display_params(*primme);
   }
   PetscFunctionReturn(0);
@@ -374,7 +374,7 @@ PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) ops->primme.maxBlockSize = 1;
-  else if (bs <= 0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive"); 
+  else if (bs <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive"); 
   else ops->primme.maxBlockSize = bs;
   PetscFunctionReturn(0);
 }

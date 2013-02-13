@@ -135,18 +135,18 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     */
     ierr = PetscOptionsString("-eps_monitor","Monitor first unconverged approximate eigenvalue and error estimate","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,monfilename,&monviewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)eps),monfilename,&monviewer);CHKERRQ(ierr);
       ierr = EPSMonitorSet(eps,EPSMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsString("-eps_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
       ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,monfilename,&ctx->viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)eps),monfilename,&ctx->viewer);CHKERRQ(ierr);
       ierr = EPSMonitorSet(eps,EPSMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsString("-eps_monitor_all","Monitor approximate eigenvalues and error estimates","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = PetscViewerASCIIOpen(((PetscObject)eps)->comm,monfilename,&monviewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)eps),monfilename,&monviewer);CHKERRQ(ierr);
       ierr = EPSMonitorSet(eps,EPSMonitorAll,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
       ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
     }
@@ -170,7 +170,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     k = 2;
     ierr = PetscOptionsRealArray("-eps_interval","Computational interval (two real values separated with a comma without spaces)","EPSSetInterval",array,&k,&flg);CHKERRQ(ierr);
     if (flg) {
-      if (k<2) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_SIZ,"Must pass two values in -eps_interval (comma-separated without spaces)");
+      if (k<2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_SIZ,"Must pass two values in -eps_interval (comma-separated without spaces)");
       ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr);
       ierr = EPSSetInterval(eps,array[0],array[1]);CHKERRQ(ierr);
     }
@@ -300,7 +300,7 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
     if (tol == PETSC_DEFAULT) {
       eps->tol = PETSC_DEFAULT;
     } else {
-      if (tol < 0.0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+      if (tol < 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       eps->tol = tol;
     }
   }
@@ -309,7 +309,7 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
       eps->max_it = 0;
       eps->setupcalled = 0;
     } else {
-      if (maxits < 0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+      if (maxits < 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
       eps->max_it = maxits;
     }
   }
@@ -402,7 +402,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(eps,ncv,3);
   PetscValidLogicalCollectiveInt(eps,mpd,4);
   if (nev) {
-    if (nev<1) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+    if (nev<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
     eps->nev = nev;
     eps->setupcalled = 0;
   }
@@ -410,7 +410,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
     if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
       eps->ncv = 0;
     } else {
-      if (ncv<1) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+      if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
       eps->ncv = ncv;
     }
     eps->setupcalled = 0;
@@ -419,7 +419,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
     if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
       eps->mpd = 0;
     } else {
-      if (mpd<1) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
+      if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
       eps->mpd = mpd;
     }
   }
@@ -515,7 +515,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
         }
         break;
       default:
-        SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
+        SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
     }
   }
   PetscFunctionReturn(0);
@@ -662,25 +662,25 @@ PetscErrorCode EPSSetMatrixNorms(EPS eps,PetscReal nrma,PetscReal nrmb,PetscBool
       eps->nrma = nrma;
       eps->setupcalled = 0;
     } else {
-      if (nrma < 0.0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nrma. Must be > 0");
+      if (nrma < 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nrma. Must be > 0");
       eps->nrma = nrma;
     }
   }
   if (nrmb) {
-    if (!eps->isgeneralized) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Norm of B only allowed in generalized problems");
+    if (!eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Norm of B only allowed in generalized problems");
     if (nrmb == PETSC_DEFAULT) eps->nrmb = 1.0;
     else if (nrmb == PETSC_DETERMINE) {
       eps->nrmb = nrmb;
       eps->setupcalled = 0;
     } else {
-      if (nrmb < 0.0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nrmb. Must be > 0");
+      if (nrmb < 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nrmb. Must be > 0");
       eps->nrmb = nrmb;
     }
   }
   if (eps->adaptive != adaptive) {
     eps->adaptive = adaptive;
     eps->setupcalled = 0;
-    if (adaptive) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Sorry, adaptive norms are not implemented in this release");
+    if (adaptive) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Sorry, adaptive norms are not implemented in this release");
   }
   PetscFunctionReturn(0);
 }
@@ -897,7 +897,7 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
     case EPS_CONV_ABS: eps->conv_func = EPSConvergedAbsolute; break;
     case EPS_CONV_USER: break;
     default:
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value"); 
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value"); 
   }
   eps->conv = conv;
   PetscFunctionReturn(0);
@@ -1003,7 +1003,7 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
       eps->ispositive = PETSC_FALSE;
       break;
     default:
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
   }
   eps->problem_type = type;
   PetscFunctionReturn(0);
@@ -1166,7 +1166,7 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
         eps->balance = bal;
         break;
       default:
-        SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'bal'"); 
+        SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'bal'"); 
     }
   }
   if (its) {

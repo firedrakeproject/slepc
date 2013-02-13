@@ -47,9 +47,9 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mat,MAT_CLASSID,1);
   PetscValidPointer(newmat,2);
-  ierr = MPI_Comm_size(((PetscObject)mat)->comm,&size);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)mat),&size);CHKERRQ(ierr);
   if (size > 1) {
-    if (!mat->ops->getsubmatrices) SETERRQ1(((PetscObject)mat)->comm,PETSC_ERR_SUP,"Mat type %s",((PetscObject)mat)->type_name);
+    if (!mat->ops->getsubmatrices) SETERRQ1(PetscObjectComm((PetscObject)mat),PETSC_ERR_SUP,"Mat type %s",((PetscObject)mat)->type_name);
 
     /* assemble full matrix on every processor */
     ierr = MatGetSize(mat,&m,&n);CHKERRQ(ierr);
@@ -203,7 +203,7 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   ierr = MatGetLocalSize(D,&m2,&n2);CHKERRQ(ierr);
 
   /* Create mappings */
-  MPI_Comm_size(((PetscObject)G)->comm,&np);
+  MPI_Comm_size(PetscObjectComm((PetscObject)G),&np);
   ierr = MatGetOwnershipRangesColumn(A,&mapptr1);CHKERRQ(ierr);
   ierr = MatGetOwnershipRangesColumn(B,&mapptr2);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*N1,&map1);CHKERRQ(ierr);
@@ -218,7 +218,7 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   ierr = PetscMalloc(sizeof(PetscScalar)*PetscMax(N1,N2),&buf);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*PetscMax(N1,N2),&scols);CHKERRQ(ierr);
 
-  ierr = MatPreallocateInitialize(((PetscObject)G)->comm,m1+m2,n1+n2,dnz,onz);CHKERRQ(ierr);
+  ierr = MatPreallocateInitialize(PetscObjectComm((PetscObject)G),m1+m2,n1+n2,dnz,onz);CHKERRQ(ierr);
   ierr = MatGetOwnershipRange(G,&gstart,NULL);CHKERRQ(ierr);
   /* Preallocate for A */
   if (a!=0.0) {
@@ -380,27 +380,27 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
   ierr = MatGetLocalSize(A,&m1,NULL);CHKERRQ(ierr);
   ierr = MatGetSize(B,&M,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(B,&m,NULL);CHKERRQ(ierr);
-  if (M!=M1 || m!=m1) SETERRQ(((PetscObject)A)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
+  if (M!=M1 || m!=m1) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
   /* check row 2 */
   ierr = MatGetSize(C,&M2,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(C,&m2,NULL);CHKERRQ(ierr);
   ierr = MatGetSize(D,&M,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(D,&m,NULL);CHKERRQ(ierr);
-  if (M!=M2 || m!=m2) SETERRQ(((PetscObject)A)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
+  if (M!=M2 || m!=m2) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
   /* check column 1 */
   ierr = MatGetSize(A,NULL,&N1);CHKERRQ(ierr);
   ierr = MatGetLocalSize(A,NULL,&n1);CHKERRQ(ierr);
   ierr = MatGetSize(C,NULL,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(C,NULL,&n);CHKERRQ(ierr);
-  if (N!=N1 || n!=n1) SETERRQ(((PetscObject)A)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
+  if (N!=N1 || n!=n1) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
   /* check column 2 */
   ierr = MatGetSize(B,NULL,&N2);CHKERRQ(ierr);
   ierr = MatGetLocalSize(B,NULL,&n2);CHKERRQ(ierr);
   ierr = MatGetSize(D,NULL,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(D,NULL,&n);CHKERRQ(ierr);
-  if (N!=N2 || n!=n2) SETERRQ(((PetscObject)A)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
+  if (N!=N2 || n!=n2) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
 
-  ierr = MatCreate(((PetscObject)A)->comm,G);CHKERRQ(ierr);
+  ierr = MatCreate(PetscObjectComm((PetscObject)A),G);CHKERRQ(ierr);
   ierr = MatSetSizes(*G,m1+m2,n1+n2,M1+M2,N1+N2);CHKERRQ(ierr);
   ierr = MatSetFromOptions(*G);CHKERRQ(ierr);
   ierr = MatSetUp(*G);CHKERRQ(ierr);
@@ -414,7 +414,7 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
     ierr = PetscObjectTypeCompare((PetscObject)A,MATSEQAIJ,&flg2);CHKERRQ(ierr);
     if (flg1 && flg2) {
       ierr = SlepcMatTile_SeqAIJ(a,A,b,B,c,C,d,D,*G);CHKERRQ(ierr);
-    } else SETERRQ(((PetscObject)A)->comm,PETSC_ERR_SUP,"Not implemented for this matrix type");
+    } else SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_SUP,"Not implemented for this matrix type");
   }
   ierr = MatAssemblyBegin(*G,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(*G,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);

@@ -274,8 +274,8 @@ PetscErrorCode IPSetType(IP ip,IPType type)
   ierr = PetscObjectTypeCompare((PetscObject)ip,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr =  PetscFunctionListFind(((PetscObject)ip)->comm,IPList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(((PetscObject)ip)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested IP type %s",type);
+  ierr =  PetscFunctionListFind(PetscObjectComm((PetscObject)ip),IPList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  if (!r) SETERRQ1(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested IP type %s",type);
 
   ierr = PetscMemzero(ip->ops,sizeof(struct _IPOps));CHKERRQ(ierr);
 
@@ -420,7 +420,7 @@ PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogType type,IPOrthogRefineType
       ip->orthog_type = type;
       break;
     default:
-      SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
+      SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
   }
   switch (refine) {
     case IP_ORTHOG_REFINE_NEVER:
@@ -429,12 +429,12 @@ PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogType type,IPOrthogRefineType
       ip->orthog_ref = refine;
       break;
     default:
-      SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown refinement type");
+      SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown refinement type");
   }
   if (eta == PETSC_DEFAULT) {
     ip->orthog_eta = 0.7071;
   } else {
-    if (eta <= 0.0 || eta > 1.0) SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid eta value");    
+    if (eta <= 0.0 || eta > 1.0) SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_OUTOFRANGE,"Invalid eta value");    
     ip->orthog_eta = eta;
   }
   PetscFunctionReturn(0);
@@ -504,7 +504,7 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)ip)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)ip));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(ip,1,viewer,2);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -518,7 +518,7 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
       case IP_ORTHOG_CGS:
         ierr = PetscViewerASCIIPrintf(viewer,"classical Gram-Schmidt\n");CHKERRQ(ierr);
         break;
-      default: SETERRQ(((PetscObject)ip)->comm,1,"Wrong value of ip->orth_type");
+      default: SETERRQ(PetscObjectComm((PetscObject)ip),1,"Wrong value of ip->orth_type");
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization refinement: ");CHKERRQ(ierr);
     switch (ip->orthog_ref) {
@@ -531,7 +531,7 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
       case IP_ORTHOG_REFINE_ALWAYS:
         ierr = PetscViewerASCIIPrintf(viewer,"always\n");CHKERRQ(ierr);
         break;
-      default: SETERRQ(((PetscObject)ip)->comm,1,"Wrong value of ip->orth_ref");
+      default: SETERRQ(PetscObjectComm((PetscObject)ip),1,"Wrong value of ip->orth_ref");
     }
     if (ip->matrix) {
       ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);

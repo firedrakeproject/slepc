@@ -32,7 +32,7 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
   
   PetscFunctionBegin;
   if (nep->ncv) { /* ncv set */
-    if (nep->ncv<nep->nev) SETERRQ(((PetscObject)nep)->comm,1,"The value of ncv must be at least nev"); 
+    if (nep->ncv<nep->nev) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must be at least nev"); 
   } else if (nep->mpd) { /* mpd set */
     nep->ncv = PetscMin(nep->n,nep->nev+nep->mpd);
   } else { /* neither set: defaults depend on nev being small or large */
@@ -43,7 +43,7 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
     }
   }
   if (!nep->mpd) nep->mpd = nep->ncv;
-  if (nep->ncv>nep->nev+nep->mpd) SETERRQ(((PetscObject)nep)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
+  if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd"); 
   if (nep->nev>1) { ierr = PetscInfo(nep,"Warning: requested more than one eigenpair but RII can only compute one\n");CHKERRQ(ierr); }
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->max_funcs) nep->max_funcs = nep->max_it;

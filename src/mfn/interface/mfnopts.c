@@ -97,7 +97,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     */
     ierr = PetscOptionsString("-mfn_monitor","Monitor error estimate","MFNMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
     if (flg) {
-      ierr = PetscViewerASCIIOpen(((PetscObject)mfn)->comm,monfilename,&monviewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)mfn),monfilename,&monviewer);CHKERRQ(ierr);
       ierr = MFNMonitorSet(mfn,MFNMonitorDefault,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
@@ -191,7 +191,7 @@ PetscErrorCode MFNSetTolerances(MFN mfn,PetscReal tol,PetscInt maxits)
     if (tol == PETSC_DEFAULT) {
       mfn->tol = PETSC_DEFAULT;
     } else {
-      if (tol < 0.0) SETERRQ(((PetscObject)mfn)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+      if (tol < 0.0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       mfn->tol = tol;
     }
   }
@@ -200,7 +200,7 @@ PetscErrorCode MFNSetTolerances(MFN mfn,PetscReal tol,PetscInt maxits)
       mfn->max_it = 0;
       mfn->setupcalled = 0;
     } else {
-      if (maxits < 0) SETERRQ(((PetscObject)mfn)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+      if (maxits < 0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
       mfn->max_it = maxits;
     }
   }
@@ -264,7 +264,7 @@ PetscErrorCode MFNSetDimensions(MFN mfn,PetscInt ncv)
     if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
       mfn->ncv = 0;
     } else {
-      if (ncv<1) SETERRQ(((PetscObject)mfn)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+      if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
       mfn->ncv = ncv;
     }
     mfn->setupcalled = 0;
@@ -299,7 +299,7 @@ PetscErrorCode MFNSetFunction(MFN mfn,SlepcFunction fun)
     case SLEPC_FUNCTION_EXP:
       break;      
     default:
-      SETERRQ(((PetscObject)mfn)->comm,PETSC_ERR_ARG_WRONG,"Unknown function");
+      SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONG,"Unknown function");
   }
   mfn->function = fun;
   PetscFunctionReturn(0);

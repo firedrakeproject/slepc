@@ -129,8 +129,8 @@ PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscBool left)
   ierr = DSAllocateWork_Private(ds,6*ld,0,0);CHKERRQ(ierr); 
   PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,"S",select,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&mm,&mout,ds->work,&info));
 #endif
-  if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
-  if (select[(*k)] == 0 || mout != mm) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_SUP,"Unsupported the computation of the second vector in a complex pair");
+  if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+  if (select[(*k)] == 0 || mout != mm) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Unsupported the computation of the second vector in a complex pair");
   /* Backtransform: (X/Y) <- (Q/Z) * (X/Y) */
   ierr = PetscMemcpy(ds->work,left?Y:X,mm*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   PetscStackCall("BLASgemm",BLASgemm_("N","N",&n,&mm,&n,&fone,ds->mat[left?DS_MAT_Z:DS_MAT_Q],&ld,ds->work,&ld,&fzero,left?Y:X,&ld));
@@ -181,7 +181,7 @@ PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
   ierr = DSAllocateWork_Private(ds,6*ld,0,0);CHKERRQ(ierr); 
   PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,back,NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,&info));
 #endif
-  if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+  if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   PetscFunctionReturn(0);
 #endif
 }
@@ -204,7 +204,7 @@ PetscErrorCode DSVectors_GNHEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
       }
       break;
     default:
-      SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
   }
   PetscFunctionReturn(0);
 }
@@ -234,7 +234,7 @@ PetscErrorCode DSNormalize_GNHEP(DS ds,DSMatType mat,PetscInt col)
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
       break;
     default:
-      SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
   }
 
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
@@ -388,7 +388,7 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #else
       PetscStackCall("LAPACKtgexc",LAPACKtgexc_(&one,&one,&n,S,&ld,T,&ld,Z,&ld,Q,&ld,&ifst,&ilst,&info));
 #endif
-      if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xTGEXC %i",info);
+      if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTGEXC %i",info);
       /* recover original eigenvalues from T and S matrices */
       for (j=i;j<n;j++) {
 #if !defined(PETSC_USE_COMPLEX)
@@ -574,7 +574,7 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscBLASIntCast(ds->lwork-ds->n,&lwork);CHKERRQ(ierr);
   PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,beta,Z,&ld,Q,&ld,work,&lwork,ds->rwork,NULL,&info));
 #endif
-  if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xGGES %i",info);
+  if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xGGES %i",info);
   for (i=0;i<n;i++) {
     if (beta[i]==0.0) wr[i] = (PetscRealPart(wr[i])>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
     else wr[i] /= beta[i];

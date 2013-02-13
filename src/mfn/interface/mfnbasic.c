@@ -136,7 +136,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)mfn)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)mfn));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(mfn,1,viewer,2);
 
@@ -151,7 +151,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
     if (mfn->function) {
       switch (mfn->function) {
         case SLEPC_FUNCTION_EXP: fun = "exponential"; break;
-        default: SETERRQ(((PetscObject)mfn)->comm,1,"Wrong value of mfn->function");
+        default: SETERRQ(PetscObjectComm((PetscObject)mfn),1,"Wrong value of mfn->function");
       }
     } else fun = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  function: %s\n",fun);CHKERRQ(ierr);
@@ -277,8 +277,8 @@ PetscErrorCode MFNSetType(MFN mfn,MFNType type)
   ierr = PetscObjectTypeCompare((PetscObject)mfn,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFunctionListFind(((PetscObject)mfn)->comm,MFNList,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(((PetscObject)mfn)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown MFN type given: %s",type);
+  ierr = PetscFunctionListFind(PetscObjectComm((PetscObject)mfn),MFNList,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
+  if (!r) SETERRQ1(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown MFN type given: %s",type);
 
   if (mfn->ops->destroy) { ierr = (*mfn->ops->destroy)(mfn);CHKERRQ(ierr); }
   ierr = PetscMemzero(mfn->ops,sizeof(struct _MFNOps));CHKERRQ(ierr);
@@ -477,7 +477,7 @@ PetscErrorCode MFNGetIP(MFN mfn,IP *ip)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidPointer(ip,2);
   if (!mfn->ip) {
-    ierr = IPCreate(((PetscObject)mfn)->comm,&mfn->ip);CHKERRQ(ierr);
+    ierr = IPCreate(PetscObjectComm((PetscObject)mfn),&mfn->ip);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(mfn,mfn->ip);CHKERRQ(ierr);
   }
   *ip = mfn->ip;
@@ -543,7 +543,7 @@ PetscErrorCode MFNGetDS(MFN mfn,DS *ds)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidPointer(ds,2);
   if (!mfn->ds) {
-    ierr = DSCreate(((PetscObject)mfn)->comm,&mfn->ds);CHKERRQ(ierr);
+    ierr = DSCreate(PetscObjectComm((PetscObject)mfn),&mfn->ds);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(mfn,mfn->ds);CHKERRQ(ierr);
   }
   *ds = mfn->ds;

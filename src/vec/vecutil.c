@@ -52,14 +52,12 @@ PetscErrorCode SlepcVecSetRandom(Vec x,PetscRandom rctx)
   PetscRandom    randObj = NULL;
   PetscInt       i,n,low,high;
   PetscScalar    *px,t;
-  MPI_Comm       comm;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(x,VEC_CLASSID,1);
   if (rctx) PetscValidHeaderSpecific(rctx,PETSC_RANDOM_CLASSID,2);
   else {
-    ierr = PetscObjectGetComm((PetscObject)x,&comm);CHKERRQ(ierr);
-    ierr = PetscRandomCreate(comm,&randObj);CHKERRQ(ierr);
+    ierr = PetscRandomCreate(PetscObjectComm((PetscObject)x),&randObj);CHKERRQ(ierr);
     ierr = PetscRandomSetSeed(randObj,0x12345678);CHKERRQ(ierr);
     ierr = PetscRandomSetFromOptions(randObj);CHKERRQ(ierr);
     rctx = randObj;

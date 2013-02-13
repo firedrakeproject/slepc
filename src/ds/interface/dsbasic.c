@@ -281,8 +281,8 @@ PetscErrorCode DSSetType(DS ds,DSType type)
   ierr = PetscObjectTypeCompare((PetscObject)ds,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr =  PetscFunctionListFind(((PetscObject)ds)->comm,DSList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
+  ierr =  PetscFunctionListFind(PetscObjectComm((PetscObject)ds),DSList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  if (!r) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
 
   ierr = PetscMemzero(ds->ops,sizeof(struct _DSOps));CHKERRQ(ierr);
 
@@ -337,8 +337,8 @@ PetscErrorCode DSSetMethod(DS ds,PetscInt meth)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,meth,2);
-  if (meth<0) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
-  if (meth>DS_MAX_SOLVE) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
+  if (meth<0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
+  if (meth>DS_MAX_SOLVE) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
   ds->method = meth;
   PetscFunctionReturn(0);
 }
@@ -389,8 +389,8 @@ PetscErrorCode DSSetFunctionMethod(DS ds,PetscInt meth)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,meth,2);
-  if (meth<0) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
-  if (meth>DS_MAX_FUN) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
+  if (meth<0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
+  if (meth>DS_MAX_FUN) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
   ds->funmethod = meth;
   PetscFunctionReturn(0);
 }
@@ -508,7 +508,7 @@ PetscErrorCode DSSetExtraRow(DS ds,PetscBool ext)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveBool(ds,ext,2);
-  if (ds->n>0 && ds->n==ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Cannot set extra row after setting n=ld");
+  if (ds->n>0 && ds->n==ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Cannot set extra row after setting n=ld");
   ds->extrarow = ext;
   PetscFunctionReturn(0);
 }
@@ -759,7 +759,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)ds)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)ds));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(ds,1,viewer,2);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -772,7 +772,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
         case DS_STATE_INTERMEDIATE: state = "intermediate"; break;
         case DS_STATE_CONDENSED:    state = "condensed"; break;
         case DS_STATE_TRUNCATED:    state = "truncated"; break;
-        default: SETERRQ(((PetscObject)ds)->comm,1,"Wrong value of ds->state");
+        default: SETERRQ(PetscObjectComm((PetscObject)ds),1,"Wrong value of ds->state");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",state);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)ds,DSSVD,&issvd);CHKERRQ(ierr);
@@ -820,7 +820,7 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,ld,2);
-  if (ld<1) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
+  if (ld<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
   ds->ld = ld;
   ierr = (*ds->ops->allocate)(ds,ld);CHKERRQ(ierr);
   PetscFunctionReturn(0);

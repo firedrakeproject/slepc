@@ -85,34 +85,34 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   PetscFunctionBegin;
   /* spectrum slicing requires special treatment of default values */
   if (eps->which==EPS_ALL) {
-    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Must define a computational interval when using EPS_ALL"); 
-    if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems"); 
-    if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
+    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Must define a computational interval when using EPS_ALL"); 
+    if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems"); 
+    if (eps->arbit_func) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
     if (!((PetscObject)(eps->st))->type_name) { /* default to shift-and-invert */
       ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
     }
     ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&issinv,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
-    if (!issinv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for spectrum slicing");
+    if (!issinv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for spectrum slicing");
 #if defined(PETSC_USE_REAL_DOUBLE)
     if (eps->tol==PETSC_DEFAULT) eps->tol = 1e-10;  /* use tighter tolerance */
 #endif
     if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
-      if (eps->inta <= PETSC_MIN_REAL) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
+      if (eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
       ierr = STSetDefaultShift(eps->st,eps->inta);CHKERRQ(ierr);
     } else {
       ierr = STSetDefaultShift(eps->st,eps->intb);CHKERRQ(ierr);
     }
 
     if (eps->nev==1) eps->nev = 40;  /* nev not set, use default value */
-    if (eps->nev<10) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs"); 
+    if (eps->nev<10) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs"); 
     eps->ops->backtransform = NULL;
   }
 
-  if (eps->isgeneralized && eps->ishermitian && !eps->ispositive && eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not implemented for indefinite problems");
+  if (eps->isgeneralized && eps->ishermitian && !eps->ispositive && eps->arbit_func) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not implemented for indefinite problems");
 
   /* proceed with the general case */
   if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev"); 
   } else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
   } else { /* neither set: defaults depend on nev being small or large */
@@ -123,18 +123,18 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     }
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
-  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(((PetscObject)eps)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
+  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd"); 
   if (!eps->max_it) {
     if (eps->which==EPS_ALL) eps->max_it = 100;  /* special case for spectrum slicing */
     else eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   }
   if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
-  if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
+  if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ && eps->extraction!=EPS_HARMONIC)
-    SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
+    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
 
   if (!ctx->keep) ctx->keep = 0.5;
 
@@ -146,10 +146,10 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   }
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   if (eps->ishermitian) {
     if (eps->which==EPS_ALL) {
-      if (eps->isgeneralized && !eps->ispositive) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Spectrum slicing not implemented for indefinite problems");
+      if (eps->isgeneralized && !eps->ispositive) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing not implemented for indefinite problems");
       else variant = EPS_KS_SLICE;
     } else if (eps->isgeneralized && !eps->ispositive) {
       variant = EPS_KS_INDEF;
@@ -157,14 +157,14 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       switch (eps->extraction) {
         case EPS_RITZ:     variant = EPS_KS_SYMM; break;
         case EPS_HARMONIC: variant = EPS_KS_DEFAULT; break;
-        default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
+        default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
       }
     }
   } else {
     switch (eps->extraction) {
       case EPS_RITZ:     variant = EPS_KS_DEFAULT; break;
       case EPS_HARMONIC: variant = EPS_KS_DEFAULT; break;
-      default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Unsupported extraction type");
+      default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
     }
   }
   switch (variant) {
@@ -188,7 +188,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       ierr = DSSetType(eps->ds,DSGHIEP);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       break;
-    default: SETERRQ(((PetscObject)eps)->comm,1,"Unexpected error");
+    default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error");
   }
   ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -324,7 +324,7 @@ PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal keep)
   PetscFunctionBegin;
   if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
   else {
-    if (keep<0.1 || keep>0.9) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
+    if (keep<0.1 || keep>0.9) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
     ctx->keep = keep;
   }
   PetscFunctionReturn(0);

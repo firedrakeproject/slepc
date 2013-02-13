@@ -98,14 +98,14 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
   if (!cyclic->mat) {
     if (cyclic->explicitmatrix) {
-      if (!svd->AT) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
-      ierr = MatCreate(((PetscObject)svd)->comm,&Zm);CHKERRQ(ierr);
+      if (!svd->AT) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
+      ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Zm);CHKERRQ(ierr);
       ierr = MatSetSizes(Zm,m,m,M,M);CHKERRQ(ierr);
       ierr = MatSetFromOptions(Zm);CHKERRQ(ierr);
       ierr = MatSetUp(Zm);CHKERRQ(ierr);
       ierr = MatAssemblyBegin(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatAssemblyEnd(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-      ierr = MatCreate(((PetscObject)svd)->comm,&Zn);CHKERRQ(ierr);
+      ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Zn);CHKERRQ(ierr);
       ierr = MatSetSizes(Zn,n,n,N,N);CHKERRQ(ierr);
       ierr = MatSetFromOptions(Zn);CHKERRQ(ierr);
       ierr = MatSetUp(Zn);CHKERRQ(ierr);
@@ -115,11 +115,11 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = MatDestroy(&Zm);CHKERRQ(ierr);
       ierr = MatDestroy(&Zn);CHKERRQ(ierr);
     } else {
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,m,M,NULL,&cyclic->x1);CHKERRQ(ierr);
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,n,N,NULL,&cyclic->x2);CHKERRQ(ierr);
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,m,M,NULL,&cyclic->y1);CHKERRQ(ierr);
-      ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,n,N,NULL,&cyclic->y2);CHKERRQ(ierr);
-      ierr = MatCreateShell(((PetscObject)svd)->comm,m+n,m+n,M+N,M+N,svd,&cyclic->mat);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,m,M,NULL,&cyclic->x1);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,n,N,NULL,&cyclic->x2);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,m,M,NULL,&cyclic->y1);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,n,N,NULL,&cyclic->y2);CHKERRQ(ierr);
+      ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),m+n,m+n,M+N,M+N,svd,&cyclic->mat);CHKERRQ(ierr);
       ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))ShellMatMult_Cyclic);CHKERRQ(ierr);  
       ierr = MatShellSetOperation(cyclic->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_Cyclic);CHKERRQ(ierr);  
     }
@@ -151,7 +151,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       } else if (isl == n) {
         ierr = PetscMemzero(va,sizeof(PetscScalar)*m);CHKERRQ(ierr);
         ierr = PetscMemcpy(&va[m],isa,sizeof(PetscScalar)*n);CHKERRQ(ierr);
-      } else SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_SUP,"Size of the initial subspace vectors should match to some dimension of A");
+      } else SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size of the initial subspace vectors should match to some dimension of A");
       ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);
       ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
@@ -200,8 +200,8 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
   ierr = MatGetVecs(cyclic->mat,&x,NULL);CHKERRQ(ierr);
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,m,M,NULL,&x1);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)svd)->comm,1,n,N,NULL,&x2);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,m,M,NULL,&x1);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,n,N,NULL,&x2);CHKERRQ(ierr);
   for (i=0,j=0;i<svd->nconv;i++) {
     ierr = EPSGetEigenpair(cyclic->eps,i,&sigma,NULL,x,NULL);CHKERRQ(ierr);
     if (PetscRealPart(sigma) > 0.0) {
@@ -521,7 +521,7 @@ PetscErrorCode SVDCreate_Cyclic(SVD svd)
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetExplicitMatrix_C","SVDCyclicSetExplicitMatrix_Cyclic",SVDCyclicSetExplicitMatrix_Cyclic);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetExplicitMatrix_C","SVDCyclicGetExplicitMatrix_Cyclic",SVDCyclicGetExplicitMatrix_Cyclic);CHKERRQ(ierr);
 
-  ierr = EPSCreate(((PetscObject)svd)->comm,&cyclic->eps);CHKERRQ(ierr);
+  ierr = EPSCreate(PetscObjectComm((PetscObject)svd),&cyclic->eps);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(cyclic->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(cyclic->eps,"svd_");CHKERRQ(ierr);
   ierr = PetscObjectIncrementTabLevel((PetscObject)cyclic->eps,(PetscObject)svd,1);CHKERRQ(ierr);  

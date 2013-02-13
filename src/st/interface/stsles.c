@@ -50,7 +50,7 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
 
   PetscFunctionBegin;
   if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
-  if (x == y) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
   if (!st->T[k]) {
@@ -87,7 +87,7 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
 
   PetscFunctionBegin;
   if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
-  if (x == y) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
   if (!st->T[k]) {
@@ -127,7 +127,7 @@ PetscErrorCode STMatSolve(ST st,PetscInt k,Vec b,Vec x)
 
   PetscFunctionBegin;
   if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
-  if (x == b) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_IDN,"x and b must be different vectors");
+  if (x == b) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STFOLD,STPRECOND,STSHELL,"");CHKERRQ(ierr);
@@ -145,7 +145,7 @@ PetscErrorCode STMatSolve(ST st,PetscInt k,Vec b,Vec x)
   }
   ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
-  if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
+  if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
   st->lineariterations += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
@@ -181,7 +181,7 @@ PetscErrorCode STMatSolveTranspose(ST st,PetscInt k,Vec b,Vec x)
   PetscFunctionBegin;
   if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
   ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STFOLD,STPRECOND,STSHELL,"");CHKERRQ(ierr);
-  if (x == b) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_IDN,"x and b must be different vectors");
+  if (x == b) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
   if (!flg && !st->T[k]) {
@@ -198,7 +198,7 @@ PetscErrorCode STMatSolveTranspose(ST st,PetscInt k,Vec b,Vec x)
   }
   ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
-  if (reason<0) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
+  if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
   st->lineariterations += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
@@ -297,7 +297,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(ksp,2);
   if (!st->ksp) {
-    ierr = KSPCreate(((PetscObject)st)->comm,&st->ksp);CHKERRQ(ierr);
+    ierr = KSPCreate(PetscObjectComm((PetscObject)st),&st->ksp);CHKERRQ(ierr);
     ierr = KSPSetOptionsPrefix(st->ksp,((PetscObject)st)->prefix);CHKERRQ(ierr);
     ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1);CHKERRQ(ierr);
@@ -394,7 +394,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,PetscInt n,const Vec V[])
   }
   ierr = VecDestroy(&w);CHKERRQ(ierr);
   if (c>0) {
-    ierr = MatNullSpaceCreate(((PetscObject)st)->comm,PETSC_FALSE,c,T,&nullsp);CHKERRQ(ierr);
+    ierr = MatNullSpaceCreate(PetscObjectComm((PetscObject)st),PETSC_FALSE,c,T,&nullsp);CHKERRQ(ierr);
     ierr = KSPSetNullSpace(st->ksp,nullsp);CHKERRQ(ierr);
     ierr = MatNullSpaceDestroy(&nullsp);CHKERRQ(ierr);
   }

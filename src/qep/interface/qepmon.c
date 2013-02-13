@@ -93,7 +93,7 @@ PetscErrorCode QEPMonitorSet(QEP qep,PetscErrorCode (*monitor)(QEP,PetscInt,Pets
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  if (qep->numbermonitors >= MAXQEPMONITORS) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Too many QEP monitors set");
+  if (qep->numbermonitors >= MAXQEPMONITORS) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Too many QEP monitors set");
   qep->monitor[qep->numbermonitors]           = monitor;
   qep->monitorcontext[qep->numbermonitors]    = (void*)mctx;
   qep->monitordestroy[qep->numbermonitors++]  = monitordestroy;
@@ -187,7 +187,7 @@ PetscErrorCode QEPMonitorAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *ei
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(((PetscObject)qep)->comm);
+  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)qep));
 
   PetscFunctionBegin;
   if (its) {
@@ -233,7 +233,7 @@ PetscErrorCode QEPMonitorAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *ei
 PetscErrorCode QEPMonitorFirst(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscErrorCode ierr;
-  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(((PetscObject)qep)->comm);
+  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)qep));
 
   PetscFunctionBegin;
   if (its && nconv<nest) {
@@ -285,11 +285,11 @@ PetscErrorCode QEPMonitorConverged(QEP qep,PetscInt its,PetscInt nconv,PetscScal
   SlepcConvMonitor ctx = (SlepcConvMonitor)monctx;
 
   PetscFunctionBegin;
-  if (!monctx) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_ARG_WRONG,"Must provide a context for QEPMonitorConverged");
+  if (!monctx) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_WRONG,"Must provide a context for QEPMonitorConverged");
   if (!its) {
     ctx->oldnconv = 0;
   } else {
-    viewer = ctx->viewer? ctx->viewer: PETSC_VIEWER_STDOUT_(((PetscObject)qep)->comm);
+    viewer = ctx->viewer? ctx->viewer: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)qep));
     for (i=ctx->oldnconv;i<nconv;i++) {
       ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)qep)->tablevel);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%3D QEP converged value (error) #%D",its,i);CHKERRQ(ierr);
@@ -318,7 +318,7 @@ PetscErrorCode QEPMonitorLG(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eig
   PetscReal      x,y;
 
   PetscFunctionBegin;
-  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)qep)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(PetscObjectComm((PetscObject)qep));
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   if (!its) {
@@ -349,7 +349,7 @@ PetscErrorCode QEPMonitorLGAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *
   PetscInt       i,n = PetscMin(qep->nev,255);
 
   PetscFunctionBegin;
-  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)qep)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(PetscObjectComm((PetscObject)qep));
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   if (!its) {

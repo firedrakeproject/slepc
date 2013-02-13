@@ -94,7 +94,7 @@ PetscErrorCode NEPMonitorSet(NEP nep,PetscErrorCode (*monitor)(NEP,PetscInt,Pets
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (nep->numbermonitors >= MAXNEPMONITORS) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Too many NEP monitors set");
+  if (nep->numbermonitors >= MAXNEPMONITORS) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Too many NEP monitors set");
   nep->monitor[nep->numbermonitors]           = monitor;
   nep->monitorcontext[nep->numbermonitors]    = (void*)mctx;
   nep->monitordestroy[nep->numbermonitors++]  = monitordestroy;
@@ -188,7 +188,7 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(((PetscObject)nep)->comm);
+  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep));
 
   PetscFunctionBegin;
   if (its) {
@@ -234,7 +234,7 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
 PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscErrorCode ierr;
-  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(((PetscObject)nep)->comm);
+  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep));
 
   PetscFunctionBegin;
   if (its && nconv<nest) {
@@ -286,11 +286,11 @@ PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScal
   SlepcConvMonitor ctx = (SlepcConvMonitor)monctx;
 
   PetscFunctionBegin;
-  if (!monctx) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_ARG_WRONG,"Must provide a context for NEPMonitorConverged");
+  if (!monctx) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"Must provide a context for NEPMonitorConverged");
   if (!its) {
     ctx->oldnconv = 0;
   } else {
-    viewer = ctx->viewer? ctx->viewer: PETSC_VIEWER_STDOUT_(((PetscObject)nep)->comm);
+    viewer = ctx->viewer? ctx->viewer: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep));
     for (i=ctx->oldnconv;i<nconv;i++) {
       ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP converged value (error) #%D",its,i);CHKERRQ(ierr);
@@ -319,7 +319,7 @@ PetscErrorCode NEPMonitorLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig
   PetscReal      x,y;
 
   PetscFunctionBegin;
-  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)nep)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(PetscObjectComm((PetscObject)nep));
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   if (!its) {
@@ -350,7 +350,7 @@ PetscErrorCode NEPMonitorLGAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
   PetscInt       i,n = PetscMin(nep->nev,255);
 
   PetscFunctionBegin;
-  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)nep)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(PetscObjectComm((PetscObject)nep));
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   if (!its) {

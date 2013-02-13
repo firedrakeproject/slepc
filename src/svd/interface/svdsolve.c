@@ -86,7 +86,7 @@ PetscErrorCode SVDSolve(SVD svd)
   /* various viewers */
   ierr = MatViewFromOptions(svd->OP,"-svd_view_mat");CHKERRQ(ierr);
 
-  ierr = PetscOptionsGetViewer(((PetscObject)svd)->comm,((PetscObject)svd)->prefix,"-svd_view",&viewer,&format,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->prefix,"-svd_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
     ierr = SVDView(svd,viewer);CHKERRQ(ierr); 
@@ -233,8 +233,8 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (u) { PetscValidHeaderSpecific(u,VEC_CLASSID,4); PetscCheckSameComm(svd,1,u,4); }
   if (v) { PetscValidHeaderSpecific(v,VEC_CLASSID,5); PetscCheckSameComm(svd,1,v,5); }
-  if (svd->reason == SVD_CONVERGED_ITERATING) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
-  if (i<0 || i>=svd->nconv) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
+  if (svd->reason == SVD_CONVERGED_ITERATING) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
+  if (i<0 || i>=svd->nconv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   *sigma = svd->sigma[svd->perm[i]];
   ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   if (M<N) { w = u; u = v; v = w; }
@@ -290,8 +290,8 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,Petsc
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,i,2);
-  if (svd->reason == SVD_CONVERGED_ITERATING) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
-  if (i<0 || i>=svd->nconv) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
+  if (svd->reason == SVD_CONVERGED_ITERATING) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
+  if (i<0 || i>=svd->nconv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
   
   ierr = MatGetVecs(svd->OP,&v,&u);CHKERRQ(ierr);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);

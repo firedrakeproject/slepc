@@ -168,10 +168,10 @@ PetscErrorCode IPNormEnd_Bilinear(IP ip,Vec x,PetscReal *norm)
     ierr = PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
-    SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
+    SETERRQ(PetscObjectComm((PetscObject)ip),1,"IPNorm: The inner product is not well defined");
   *norm = PetscSqrtScalar(PetscRealPart(p));
 #else
-  if (p<0.0) SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
+  if (p<0.0) SETERRQ(PetscObjectComm((PetscObject)ip),1,"IPNorm: The inner product is not well defined");
   *norm = PetscSqrtScalar(p);
 #endif
   PetscFunctionReturn(0);
@@ -192,7 +192,7 @@ PetscErrorCode IPNormEnd_Sesquilinear(IP ip,Vec x,PetscReal *norm)
     if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
       ierr = PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
     if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) 
-      SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
+      SETERRQ(PetscObjectComm((PetscObject)ip),1,"IPNorm: The inner product is not well defined");
     *norm = PetscSqrtScalar(PetscRealPart(p));
   }
   PetscFunctionReturn(0);
@@ -213,7 +213,7 @@ PetscErrorCode IPNormEnd_Indefinite(IP ip,Vec x,PetscReal *norm)
     if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
       ierr = PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
     if (PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) 
-      SETERRQ(((PetscObject)ip)->comm,1,"IPNorm: The inner product is not well defined");
+      SETERRQ(PetscObjectComm((PetscObject)ip),1,"IPNorm: The inner product is not well defined");
     if (PetscRealPart(p)<0.0) *norm = -PetscSqrtScalar(-PetscRealPart(p));
     else *norm = PetscSqrtScalar(PetscRealPart(p));
   }

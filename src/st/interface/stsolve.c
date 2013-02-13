@@ -51,11 +51,11 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidHeaderSpecific(x,VEC_CLASSID,2);
   PetscValidHeaderSpecific(y,VEC_CLASSID,3);
-  if (x == y) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
 
-  if (!st->ops->apply) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST does not have apply");
+  if (!st->ops->apply) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have apply");
   ierr = PetscLogEventBegin(ST_Apply,st,x,y,0);CHKERRQ(ierr);
   st->applys++;
   if (st->D) { /* with balancing */
@@ -96,7 +96,7 @@ PetscErrorCode STGetBilinearForm(ST st,Mat *B)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(B,2);
-  if (!st->A) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
+  if (!st->A) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
   ierr = (*st->ops->getbilinearform)(st,B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -144,11 +144,11 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidHeaderSpecific(x,VEC_CLASSID,2);
   PetscValidHeaderSpecific(y,VEC_CLASSID,3);
-  if (x == y) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
 
-  if (!st->ops->applytrans) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_SUP,"ST does not have applytrans");
+  if (!st->ops->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
   ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
   st->applys++;
   if (st->D) { /* with balancing */
@@ -200,8 +200,8 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(mat,2);
-  if (!st->A) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
-  ierr = MPI_Comm_size(((PetscObject)st)->comm,&size);CHKERRQ(ierr);
+  if (!st->A) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)st),&size);CHKERRQ(ierr);
 
   ierr = MatGetVecs(st->A[0],&in,&out);CHKERRQ(ierr);
   ierr = VecGetSize(out,&M);CHKERRQ(ierr);
@@ -211,7 +211,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   ierr = PetscMalloc(m*sizeof(PetscInt),&rows);CHKERRQ(ierr);
   for (i=0;i<m;i++) rows[i] = start + i;
 
-  ierr = MatCreate(((PetscObject)st)->comm,mat);CHKERRQ(ierr);
+  ierr = MatCreate(PetscObjectComm((PetscObject)st),mat);CHKERRQ(ierr);
   ierr = MatSetSizes(*mat,m,m,M,M);CHKERRQ(ierr);
   if (size == 1) {
     ierr = MatSetType(*mat,MATSEQDENSE);CHKERRQ(ierr);
@@ -262,7 +262,7 @@ PetscErrorCode STSetUp(ST st)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (!st->A) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
+  if (!st->A) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
   if (st->setupcalled) PetscFunctionReturn(0);
   ierr = PetscInfo(st,"Setting up new ST\n");CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);

@@ -109,7 +109,7 @@ PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
   ST_Shell       *shell = (ST_Shell*)st->data;
 
   PetscFunctionBegin;
-  if (!shell->apply) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_USER,"No apply() routine provided to Shell ST");
+  if (!shell->apply) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No apply() routine provided to Shell ST");
   PetscStackPush("STSHELL apply() user function");
   CHKMEMQ;
   ierr = (*shell->apply)(st,x,y);CHKERRQ(ierr);
@@ -126,7 +126,7 @@ PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
   ST_Shell       *shell = (ST_Shell*)st->data;
 
   PetscFunctionBegin;
-  if (!shell->applytrans) SETERRQ(((PetscObject)st)->comm,PETSC_ERR_USER,"No applytranspose() routine provided to Shell ST");
+  if (!shell->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No applytranspose() routine provided to Shell ST");
   PetscStackPush("STSHELL applytranspose() user function");
   CHKMEMQ;
   ierr = (*shell->applytrans)(st,x,y);CHKERRQ(ierr);

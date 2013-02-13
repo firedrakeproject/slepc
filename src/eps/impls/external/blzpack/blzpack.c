@@ -74,23 +74,23 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) {
-    if (eps->ncv < PetscMin(eps->nev+10,eps->nev*2)) SETERRQ(((PetscObject)eps)->comm,0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
+    if (eps->ncv < PetscMin(eps->nev+10,eps->nev*2)) SETERRQ(PetscObjectComm((PetscObject)eps),0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
   } else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
 
-  if (!eps->ishermitian) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
+  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   if (eps->which==EPS_ALL) {
-    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(((PetscObject)eps)->comm,1,"Must define a computational interval when using EPS_ALL"); 
+    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Must define a computational interval when using EPS_ALL"); 
     blz->slice = 1;
   }
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&issinv);CHKERRQ(ierr);
   if (blz->slice || eps->isgeneralized) {
-    if (!issinv) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Shift-and-invert ST is needed for generalized problems or spectrum slicing");
+    if (!issinv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Shift-and-invert ST is needed for generalized problems or spectrum slicing");
   }
   if (blz->slice) {
     if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
-      if (eps->inta <= PETSC_MIN_REAL) SETERRQ(((PetscObject)eps)->comm,1,"The defined computational interval should have at least one of their sides bounded");
+      if (eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The defined computational interval should have at least one of their sides bounded");
       ierr = STSetDefaultShift(eps->st,eps->inta);CHKERRQ(ierr);
     } else {
       ierr = STSetDefaultShift(eps->st,eps->intb);CHKERRQ(ierr);
@@ -100,8 +100,8 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
     if (issinv) eps->which = EPS_TARGET_REAL;
     else eps->which = EPS_SMALLEST_REAL;
   }
-  if ((issinv && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_ALL) || (!issinv && eps->which!=EPS_SMALLEST_REAL)) SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
-  if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  if ((issinv && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_ALL) || (!issinv && eps->which!=EPS_SMALLEST_REAL)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
+  if (eps->arbit_func) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   k1 = PetscMin(eps->n,180);
   k2 = blz->block_size;
@@ -134,7 +134,7 @@ lrstor*=10;
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_BLZPACK;
   PetscFunctionReturn(0);
 }
@@ -154,8 +154,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   PC             pc;                             
   
   PetscFunctionBegin;
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   
   if (eps->isgeneralized && !blz->slice) { 
@@ -182,7 +182,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   blz->istor[10] = eps->isgeneralized ? 1 : 0;   /* solutions refinement (purify) */
   blz->istor[11] = 0;                  /* level of printing */
   blz->istor[12] = 6;                  /* file unit for output */
-  ierr = PetscBLASIntCast(MPI_Comm_c2f(((PetscObject)eps)->comm),&blz->istor[13]);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&blz->istor[13]);CHKERRQ(ierr);
 
   blz->rstor[2]  = eps->tol;           /* threshold for convergence */
 
@@ -260,7 +260,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
     for (i = 0; i < 33; i++) {
       if (blz->istor[15] & (1 << i)) PetscStrcat(msg,blzpack_error[i]);
     }
-    SETERRQ2(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error in BLZPACK (code=%d): '%s'",blz->istor[15],msg); 
+    SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in BLZPACK (code=%d): '%s'",blz->istor[15],msg); 
   }
   ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = VecDestroy(&y);CHKERRQ(ierr);
@@ -368,7 +368,7 @@ PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) blz->block_size = 3;
-  else if (bs <= 0) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Block size must be positive"); 
+  else if (bs <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Block size must be positive"); 
   else {
     ierr = PetscBLASIntCast(bs,&blz->block_size);CHKERRQ(ierr);
   }

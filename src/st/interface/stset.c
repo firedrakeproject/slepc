@@ -67,8 +67,8 @@ PetscErrorCode STSetType(ST st,STType type)
   ierr = PetscObjectTypeCompare((PetscObject)st,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr =  PetscFunctionListFind(((PetscObject)st)->comm,STList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(((PetscObject)st)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested ST type %s",type);
+  ierr =  PetscFunctionListFind(PetscObjectComm((PetscObject)st),STList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  if (!r) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested ST type %s",type);
 
   if (st->ops->destroy) { ierr = (*st->ops->destroy)(st);CHKERRQ(ierr); }
   ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);
@@ -214,7 +214,7 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
       st->str = str;
       break;
     default:
-      SETERRQ(((PetscObject)st)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid matrix structure flag");
+      SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Invalid matrix structure flag");
   }
   PetscFunctionReturn(0);
 }

@@ -93,7 +93,7 @@ PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,PetscInt,Pets
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (eps->numbermonitors >= MAXEPSMONITORS) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Too many EPS monitors set");
+  if (eps->numbermonitors >= MAXEPSMONITORS) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Too many EPS monitors set");
   eps->monitor[eps->numbermonitors]           = monitor;
   eps->monitorcontext[eps->numbermonitors]    = (void*)mctx;
   eps->monitordestroy[eps->numbermonitors++]  = monitordestroy;
@@ -188,7 +188,7 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
   PetscErrorCode ierr;
   PetscInt       i;
   PetscScalar    er,ei;
-  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
+  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps));
 
   PetscFunctionBegin;
   if (its) {
@@ -237,7 +237,7 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
 {
   PetscErrorCode ierr;
   PetscScalar    er,ei;
-  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
+  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps));
 
   PetscFunctionBegin;
   if (its && nconv<nest) {
@@ -292,11 +292,11 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
   SlepcConvMonitor ctx = (SlepcConvMonitor)monctx;
 
   PetscFunctionBegin;
-  if (!monctx) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Must provide a context for EPSMonitorConverged");
+  if (!monctx) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Must provide a context for EPSMonitorConverged");
   if (!its) {
     ctx->oldnconv = 0;
   } else {
-    viewer = ctx->viewer? ctx->viewer: PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
+    viewer = ctx->viewer? ctx->viewer: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps));
     for (i=ctx->oldnconv;i<nconv;i++) {
       ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%3D EPS converged value (error) #%D",its,i);CHKERRQ(ierr);
@@ -328,7 +328,7 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
   PetscScalar    er,ei;
 
   PetscFunctionBegin;
-  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)eps)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(PetscObjectComm((PetscObject)eps));
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   if (!its) {
@@ -382,7 +382,7 @@ PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
   PetscScalar    er,ei;
 
   PetscFunctionBegin;
-  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)eps)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(PetscObjectComm((PetscObject)eps));
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   if (!its) {

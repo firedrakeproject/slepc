@@ -83,7 +83,7 @@ PetscErrorCode MFNMonitorSet(MFN mfn,PetscErrorCode (*monitor)(MFN,PetscInt,Pets
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (mfn->numbermonitors >= MAXMFNMONITORS) SETERRQ(((PetscObject)mfn)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Too many MFN monitors set");
+  if (mfn->numbermonitors >= MAXMFNMONITORS) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Too many MFN monitors set");
   mfn->monitor[mfn->numbermonitors]           = monitor;
   mfn->monitorcontext[mfn->numbermonitors]    = (void*)mctx;
   mfn->monitordestroy[mfn->numbermonitors++]  = monitordestroy;
@@ -172,7 +172,7 @@ PetscErrorCode MFNGetMonitorContext(MFN mfn,void **ctx)
 PetscErrorCode MFNMonitorDefault(MFN mfn,PetscInt its,PetscReal errest,void *monctx)
 {
   PetscErrorCode ierr;
-  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(((PetscObject)mfn)->comm);
+  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)mfn));
 
   PetscFunctionBegin;
   ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
@@ -195,7 +195,7 @@ PetscErrorCode MFNMonitorLG(MFN mfn,PetscInt its,PetscReal errest,void *monctx)
   PetscReal      x,y;
 
   PetscFunctionBegin;
-  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)mfn)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(PetscObjectComm((PetscObject)mfn));
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   if (!its) {

@@ -260,7 +260,7 @@ PetscErrorCode VecCreateCompWithVecs(Vec *x,PetscInt n,Vec Vparent,Vec *V)
   PetscInt       i;
 
   PetscFunctionBegin;
-  ierr = VecCreate(((PetscObject)x[0])->comm,V);CHKERRQ(ierr);
+  ierr = VecCreate(PetscObjectComm((PetscObject)x[0]),V);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     ierr = PetscObjectReference((PetscObject)x[i]);CHKERRQ(ierr);
   }
@@ -280,7 +280,7 @@ PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V)
 
   PetscFunctionBegin;
   PetscValidVecComp(win);
-  ierr = VecCreate(((PetscObject)win)->comm,V);CHKERRQ(ierr);
+  ierr = VecCreate(PetscObjectComm((PetscObject)win),V);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(Vec)*s->nx,&x);CHKERRQ(ierr);
   for (i=0;i<s->nx;i++) {
     ierr = VecDuplicate(s->x[i],&x[i]);CHKERRQ(ierr);

@@ -45,7 +45,7 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
   if (svd->ncv) { /* ncv set */
-    if (svd->ncv<svd->nsv) SETERRQ(((PetscObject)svd)->comm,1,"The value of ncv must be at least nsv"); 
+    if (svd->ncv<svd->nsv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must be at least nsv"); 
   } else if (svd->mpd) { /* mpd set */
     svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
   } else { /* neither set: defaults depend on nsv being small or large */
@@ -56,7 +56,7 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
     }
   }
   if (!svd->mpd) svd->mpd = svd->ncv;
-  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(((PetscObject)svd)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
+  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must not be larger than nev+mpd"); 
   if (!svd->max_it) svd->max_it = PetscMax(N/svd->ncv,100);
   if (!lanczos->oneside && svd->ncv != svd->n) {
     ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);

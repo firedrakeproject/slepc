@@ -305,7 +305,7 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
       break;
     default:
-      SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
   }
   PetscFunctionReturn(0);
 }
@@ -1326,7 +1326,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #else
   PetscStackCall("LAPACKtrevc",LAPACKtrevc_("R","B",NULL,&n1,H+off,&ld,NULL,&ld,Q+off,&ld,&n1,&mout,work,ds->rwork,&info));
 #endif
-  if (info) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_LIB,"Error in Lapack xTREVC %i",&info);
+  if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTREVC %i",&info);
 
   /* Compute real s-orthonormal basis */
   ierr = DSEigenVectorsPseudoOrthog(ds,DS_MAT_Q,wr,wi,PETSC_FALSE);CHKERRQ(ierr);
@@ -1369,7 +1369,7 @@ PetscErrorCode DSNormalize_GHIEP(DS ds,DSMatType mat,PetscInt col)
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
       break;
     default:
-      SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
   }
 
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);

@@ -202,7 +202,7 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
       data->old_pc = 0;
     } else {
       ierr = PetscObjectReference((PetscObject)data->old_pc);CHKERRQ(ierr);
-      ierr = PCCreate(((PetscObject)d->eps)->comm,&pc);CHKERRQ(ierr);
+      ierr = PCCreate(PetscObjectComm((PetscObject)d->eps),&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCSHELL);CHKERRQ(ierr);
       ierr = PCSetOperators(pc, d->A, d->A, SAME_PRECONDITIONER);CHKERRQ(ierr);
       ierr = PCShellSetApply(pc,dvd_pcapply);CHKERRQ(ierr);
@@ -215,7 +215,7 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
     /* Create the (I-v*u')*K*(A-s*B) matrix */
     ierr = MatGetSize(d->A, &rA, &cA);CHKERRQ(ierr);
     ierr = MatGetLocalSize(d->A, &rlA, &clA);CHKERRQ(ierr);
-    ierr = MatCreateShell(((PetscObject)d->A)->comm, rlA*data->ksp_max_size,
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)d->A), rlA*data->ksp_max_size,
                           clA*data->ksp_max_size, rA*data->ksp_max_size,
                           cA*data->ksp_max_size, data, &A);CHKERRQ(ierr);
     ierr = MatShellSetOperation(A, MATOP_MULT,
@@ -817,7 +817,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
   /* XKZ <- X'*KZ */
   size_KZ = data->size_KZ+n;
   size_in = 2*n*data->size_KZ+n*n;
-  ierr = SlepcAllReduceSumBegin(ops,2,*auxS,*auxS+size_in,size_in,&r,((PetscObject)d->V[0])->comm);CHKERRQ(ierr);
+  ierr = SlepcAllReduceSumBegin(ops,2,*auxS,*auxS+size_in,size_in,&r,PetscObjectComm((PetscObject)d->V[0]));CHKERRQ(ierr);
   ierr = VecsMultS(data->XKZ,0,data->ldXKZ,d->V-data->size_KZ,0,data->size_KZ,data->KZ,data->size_KZ,size_KZ,&r,&sr[0]);CHKERRQ(ierr);
   ierr = VecsMultS(&data->XKZ[data->size_KZ],0,data->ldXKZ,*u,0,n,data->KZ,0,size_KZ,&r,&sr[1]);CHKERRQ(ierr);
   ierr = SlepcAllReduceSumEnd(&r);CHKERRQ(ierr);
@@ -1180,7 +1180,7 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV,PetscS
   /* h <- X'*V */
   h = auxS; in = h+size_in; out = in+size_in; ldh = data->size_iXKZ;
   ierr = SlepcAllReduceSumBegin(ops, 4, in, out, size_in, &r,
-                                ((PetscObject)d->V[0])->comm);CHKERRQ(ierr);
+                                PetscObjectComm((PetscObject)d->V[0]));CHKERRQ(ierr);
   for (i=0; i<cV; i++) {
     ierr = VecsMultS(&h[i*ldh],0,ldh,d->V-data->size_KZ,0,data->size_KZ,V+i,0,1,&r,&sr[i*2]);CHKERRQ(ierr);
     ierr = VecsMultS(&h[i*ldh+data->size_KZ],0,ldh,data->u,0,data->size_iXKZ-data->size_KZ,V+i,0,1,&r,&sr[i*2+1]);CHKERRQ(ierr);
@@ -1233,7 +1233,7 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV,P
   /* h <- KZ'*V */
   h = auxS; in = h+size_in; out = in+size_in; ldh = data->size_iXKZ;
   ierr = SlepcAllReduceSumBegin(ops, 2, in, out, size_in, &r,
-                                ((PetscObject)d->V[0])->comm);CHKERRQ(ierr);
+                                PetscObjectComm((PetscObject)d->V[0]));CHKERRQ(ierr);
   for (i=0; i<cV; i++) {
     ierr = VecsMultS(&h[i*ldh],0,ldh,data->KZ,0,data->size_KZ,V+i,0,1,&r,&sr[i]);CHKERRQ(ierr);
   }

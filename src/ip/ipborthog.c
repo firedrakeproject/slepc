@@ -183,7 +183,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
     break;
 
   default:
-    SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
+    SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
   }
 
   /* recover H from workspace */
@@ -269,10 +269,10 @@ PetscErrorCode IPBOrthogonalize(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscReal 
       ierr = IPBOrthogonalizeCGS(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,H,norm,lindep);CHKERRQ(ierr); 
       break;
     case IP_ORTHOG_MGS:
-      SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unsupported orthogonalization type");
+      SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unsupported orthogonalization type");
       break;
     default:
-      SETERRQ(((PetscObject)ip)->comm,PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
+      SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
   }
   ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);  

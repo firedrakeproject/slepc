@@ -161,8 +161,8 @@ PetscErrorCode NEPSetUp(NEP nep)
       break;
   }
 
-  if (nep->ncv > 2*nep->n) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
-  if (nep->nev > nep->ncv) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
+  if (nep->ncv > 2*nep->n) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
+  if (nep->nev > nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
 
   /* Setup KSP */
   ierr = KSPSetUp(nep->ksp);CHKERRQ(ierr);
@@ -170,7 +170,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   /* process initial vectors */
   if (nep->nini<0) {
     nep->nini = -nep->nini;
-    if (nep->nini>nep->ncv) SETERRQ(((PetscObject)nep)->comm,1,"The number of initial vectors is larger than ncv");
+    if (nep->nini>nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The number of initial vectors is larger than ncv");
     k = 0;
     for (i=0;i<nep->nini;i++) {
       ierr = VecCopy(nep->IS[i],nep->V[k]);CHKERRQ(ierr);
@@ -226,7 +226,7 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec *is)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,n,2);
-  if (n<0) SETERRQ(((PetscObject)nep)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
+  if (n<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
 
   /* free previous non-processed vectors */
   if (nep->nini<0) {

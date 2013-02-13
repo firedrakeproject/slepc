@@ -37,7 +37,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) {
-    if (eps->ncv<eps->nev+2) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2"); 
+    if (eps->ncv<eps->nev+2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2"); 
   } else eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n); /* set default value of ncv */
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(300,(PetscInt)(2*eps->n/eps->ncv));
@@ -68,14 +68,14 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
 
-  if (eps->balance!=EPS_BALANCE_NONE) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Balancing not supported in the Arpack interface");
-  if (eps->arbit_func) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  if (eps->balance!=EPS_BALANCE_NONE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Balancing not supported in the Arpack interface");
+  if (eps->arbit_func) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Left vectors not supported in this solver");
+  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_ARPACK;
   PetscFunctionReturn(0);
 }
@@ -104,11 +104,11 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ierr = PetscBLASIntCast(eps->nev,&nev);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(eps->ncv,&ncv);CHKERRQ(ierr);
 #if !defined(PETSC_HAVE_MPIUNI)
-  ierr = PetscBLASIntCast(MPI_Comm_c2f(((PetscObject)eps)->comm),&fcomm);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&fcomm);CHKERRQ(ierr);
 #endif
   ierr = PetscBLASIntCast(eps->nloc,&n);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(((PetscObject)eps)->comm,1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   ierr = EPSGetStartVector(eps,0,eps->work[1],NULL);CHKERRQ(ierr);
   ierr = VecGetArray(eps->work[1],&resid);CHKERRQ(ierr);
@@ -147,7 +147,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   } else { 
     /* regular mode */
     if (eps->ishermitian && eps->isgeneralized)
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"Spectral transformation not supported by ARPACK hermitian solver");
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectral transformation not supported by ARPACK hermitian solver");
     iparam[6] = 1;
     bmat[0] = 'I';
   }
@@ -161,7 +161,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         case EPS_TARGET_REAL:
         case EPS_LARGEST_REAL:       which = "LA"; break;
         case EPS_SMALLEST_REAL:      which = "SA"; break;
-        default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Wrong value of eps->which");
+        default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Wrong value of eps->which");
       }
     } else {
 #endif
@@ -175,7 +175,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         case EPS_TARGET_IMAGINARY:
         case EPS_LARGEST_IMAGINARY:  which = "LI"; break;
         case EPS_SMALLEST_IMAGINARY: which = "SI"; break;
-        default: SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Wrong value of eps->which");
+        default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Wrong value of eps->which");
       }
 #if !defined(PETSC_USE_COMPLEX)
     }
@@ -231,15 +231,15 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
             
       ierr = VecResetArray(x);CHKERRQ(ierr);
       ierr = VecResetArray(y);CHKERRQ(ierr);
-    } else if (ido != 99) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Internal error in ARPACK reverse comunication interface (ido=%d)",ido);
+    } else if (ido != 99) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in ARPACK reverse comunication interface (ido=%d)",ido);
     
   } while (ido != 99);
 
   eps->nconv = iparam[4];
   eps->its = iparam[2];
   
-  if (info==3) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_LIB,"No shift could be applied in xxAUPD.\nTry increasing the size of NCV relative to NEV");
-  else if (info!=0 && info!=1) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%d)",info);
+  if (info==3) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"No shift could be applied in xxAUPD.\nTry increasing the size of NCV relative to NEV");
+  else if (info!=0 && info!=1) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%d)",info);
 
   rvec = PETSC_TRUE;
 
@@ -256,7 +256,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
     ierr = EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);
     PetscStackCall("ARPACKneupd",ARPACKneupd_(&fcomm,&rvec,howmny,ar->select,eps->eigr,pV,&n,&sigmar,ar->workev,bmat,&n,which,&nev,&eps->tol,resid,&ncv,pV,&n,iparam,ipntr,ar->workd,ar->workl,&ar->lworkl,ar->rwork,&info));
 #endif
-    if (info!=0) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info);
+    if (info!=0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info);
   }
 
   ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);

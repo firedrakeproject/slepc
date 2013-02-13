@@ -89,7 +89,7 @@ PetscErrorCode DSSetState(DS ds,DSStateType state)
       ds->state = state;
       break;
     default:
-      SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Wrong state");
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Wrong state");
   }
   PetscFunctionReturn(0);
 }
@@ -150,13 +150,13 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
   PetscValidLogicalCollectiveInt(ds,m,3);
   PetscValidLogicalCollectiveInt(ds,l,4);
   PetscValidLogicalCollectiveInt(ds,k,5);
-  if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
+  if (!ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSAllocate() first");
   if (n) {
     if (n==PETSC_DECIDE || n==PETSC_DEFAULT) {
       ds->n = ds->ld;
     } else {
-      if (n<1 || n>ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between 1 and ld");
-      if (ds->extrarow && n+1>ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"A value of n equal to ld leaves no room for extra row");
+      if (n<1 || n>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between 1 and ld");
+      if (ds->extrarow && n+1>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"A value of n equal to ld leaves no room for extra row");
       ds->n = n;
     }
   }
@@ -164,20 +164,20 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
     if (m==PETSC_DECIDE || m==PETSC_DEFAULT) {
       ds->m = ds->ld;
     } else {
-      if (m<1 || m>ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 1 and ld");
+      if (m<1 || m>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 1 and ld");
       ds->m = m;
     }
   }
   if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
     ds->l = 0;
   } else {
-    if (l<0 || l>ds->n) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and n");
+    if (l<0 || l>ds->n) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and n");
     ds->l = l;
   }
   if (k==PETSC_DECIDE || k==PETSC_DEFAULT) {
     ds->k = ds->n/2;
   } else {
-    if (k<0 || k>ds->n) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and n");
+    if (k<0 || k>ds->n) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and n");
     ds->k = k;
   }
   PetscFunctionReturn(0);
@@ -240,9 +240,9 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
-  if (!ds->ops->truncate) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  if (ds->state<DS_STATE_CONDENSED) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSSolve() first");
-  if (n<ds->l || n>ds->n) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between l and n");
+  if (!ds->ops->truncate) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
+  if (ds->state<DS_STATE_CONDENSED) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSSolve() first");
+  if (n<ds->l || n>ds->n) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between l and n");
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->truncate)(ds,n);CHKERRQ(ierr);
@@ -278,9 +278,9 @@ PetscErrorCode DSGetArray(DS ds,DSMatType m,PetscScalar *a[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(a,2);
-  if (m<0 || m>=DS_NUM_MAT) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid matrix");
-  if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
-  if (!ds->mat[m]) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
+  if (m<0 || m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (!ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSAllocate() first");
+  if (!ds->mat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
   *a = ds->mat[m];
   CHKMEMQ;
   PetscFunctionReturn(0);
@@ -309,7 +309,7 @@ PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(a,2);
-  if (m<0 || m>=DS_NUM_MAT) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (m<0 || m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   CHKMEMQ;
   *a = 0;
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
@@ -341,9 +341,9 @@ PetscErrorCode DSGetArrayReal(DS ds,DSMatType m,PetscReal *a[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(a,2);
-  if (m<0 || m>=DS_NUM_MAT) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid matrix");
-  if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
-  if (!ds->rmat[m]) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
+  if (m<0 || m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (!ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSAllocate() first");
+  if (!ds->rmat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
   *a = ds->rmat[m];
   CHKMEMQ;
   PetscFunctionReturn(0);
@@ -372,7 +372,7 @@ PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(a,2);
-  if (m<0 || m>=DS_NUM_MAT) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (m<0 || m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   CHKMEMQ;
   *a = 0;
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
@@ -406,9 +406,9 @@ PetscErrorCode DSSolve(DS ds,PetscScalar *eigr,PetscScalar *eigi)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(eigr,2);
-  if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
+  if (!ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSAllocate() first");
   if (ds->state>=DS_STATE_CONDENSED) PetscFunctionReturn(0);
-  if (!ds->ops->solve[ds->method]) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this DS");
+  if (!ds->ops->solve[ds->method]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this DS");
   ierr = PetscLogEventBegin(DS_Solve,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->solve[ds->method])(ds,eigr,eigi);CHKERRQ(ierr);
@@ -445,8 +445,8 @@ PetscErrorCode DSComputeFunction(DS ds,SlepcFunction f)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(ds,f,2);
-  if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
-  if (!ds->ops->computefun[f][ds->funmethod]) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"The specified function method number does not exist for this DS");
+  if (!ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSAllocate() first");
+  if (!ds->ops->computefun[f][ds->funmethod]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The specified function method number does not exist for this DS");
   if (!ds->mat[DS_MAT_F]) { ierr = DSAllocateMat_Private(ds,DS_MAT_F);CHKERRQ(ierr); }
   ierr = PetscLogEventBegin(DS_Function,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
@@ -500,11 +500,11 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(eigr,2);
   if (rr) PetscValidPointer(rr,4);
-  if (ds->state<DS_STATE_CONDENSED) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSSolve() first");
-  if (ds->state==DS_STATE_TRUNCATED) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Cannot sort a truncated DS");
-  if (!ds->ops->sort) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  if (!ds->comp_fun) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must provide a sorting criterion with DSSetEigenvalueComparison() first");
-  if (k && !rr) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONG,"Argument k can only be used together with rr");
+  if (ds->state<DS_STATE_CONDENSED) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSSolve() first");
+  if (ds->state==DS_STATE_TRUNCATED) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Cannot sort a truncated DS");
+  if (!ds->ops->sort) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
+  if (!ds->comp_fun) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must provide a sorting criterion with DSSetEigenvalueComparison() first");
+  if (k && !rr) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Argument k can only be used together with rr");
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->sort)(ds,eigr,eigi,rr,ri,k);CHKERRQ(ierr);
@@ -560,9 +560,9 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(ds,mat,2);
-  if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
-  if (!ds->ops->vectors) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  if (rnorm && !j) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must give a value of j");
+  if (!ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSAllocate() first");
+  if (!ds->ops->vectors) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
+  if (rnorm && !j) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must give a value of j");
   if (!ds->mat[mat]) { ierr = DSAllocateMat_Private(ds,mat);CHKERRQ(ierr); }
   ierr = PetscLogEventBegin(DS_Vectors,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
@@ -604,9 +604,9 @@ PetscErrorCode DSNormalize(DS ds,DSMatType mat,PetscInt col)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,col,3);
-  if (ds->state<DS_STATE_CONDENSED) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSSolve() first");
-  if (!ds->ops->normalize) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  if (col<-1) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_OUTOFRANGE,"col should be at least minus one");
+  if (ds->state<DS_STATE_CONDENSED) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSSolve() first");
+  if (!ds->ops->normalize) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
+  if (col<-1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"col should be at least minus one");
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->normalize)(ds,mat,col);CHKERRQ(ierr);
@@ -636,9 +636,9 @@ PetscErrorCode DSUpdateExtraRow(DS ds)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (!ds->ops->update) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  if (!ds->extrarow) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ARG_WRONGSTATE,"Should have called DSSetExtraRow");
-  if (!ds->ld) SETERRQ(((PetscObject)ds)->comm,PETSC_ERR_ORDER,"Must call DSAllocate() first");
+  if (!ds->ops->update) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
+  if (!ds->extrarow) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Should have called DSSetExtraRow");
+  if (!ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSAllocate() first");
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->update)(ds);CHKERRQ(ierr);
@@ -670,7 +670,7 @@ PetscErrorCode DSCond(DS ds,PetscReal *cond)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(cond,2);
-  if (!ds->ops->cond) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
+  if (!ds->ops->cond) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->cond)(ds,cond);CHKERRQ(ierr);
@@ -717,7 +717,7 @@ PetscErrorCode DSTranslateHarmonic(DS ds,PetscScalar tau,PetscReal beta,PetscBoo
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (!ds->ops->transharm) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
+  if (!ds->ops->transharm) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->transharm)(ds,tau,beta,recover,g,gamma);CHKERRQ(ierr);
@@ -760,7 +760,7 @@ PetscErrorCode DSTranslateRKS(DS ds,PetscScalar alpha)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (!ds->ops->transrks) SETERRQ1(((PetscObject)ds)->comm,PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
+  if (!ds->ops->transrks) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->transrks)(ds,alpha);CHKERRQ(ierr);

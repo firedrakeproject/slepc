@@ -598,7 +598,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)st)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)st));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2); 
   PetscCheckSameComm(st,1,viewer,2);
 
@@ -632,7 +632,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
         case SAME_NONZERO_PATTERN:      str = "same nonzero pattern";break;
         case DIFFERENT_NONZERO_PATTERN: str = "different nonzero pattern";break;
         case SUBSET_NONZERO_PATTERN:    str = "subset nonzero pattern";break;
-        default: SETERRQ(((PetscObject)st)->comm,1,"Wrong structure flag");
+        default: SETERRQ(PetscObjectComm((PetscObject)st),1,"Wrong structure flag");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  all matrices have %s\n",str);CHKERRQ(ierr);
     }

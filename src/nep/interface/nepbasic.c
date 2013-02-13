@@ -138,7 +138,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)nep)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(nep,1,viewer,2);
 
@@ -191,7 +191,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       case NEP_SMALLEST_IMAGINARY:
         ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
         break;
-      default: SETERRQ(((PetscObject)nep)->comm,1,"Wrong value of nep->which");
+      default: SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of nep->which");
     }    
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",nep->nev);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",nep->ncv);CHKERRQ(ierr);
@@ -341,8 +341,8 @@ PetscErrorCode NEPSetType(NEP nep,NEPType type)
   ierr = PetscObjectTypeCompare((PetscObject)nep,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFunctionListFind(((PetscObject)nep)->comm,NEPList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(((PetscObject)nep)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown NEP type given: %s",type);
+  ierr = PetscFunctionListFind(PetscObjectComm((PetscObject)nep),NEPList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  if (!r) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown NEP type given: %s",type);
 
   if (nep->ops->destroy) { ierr = (*nep->ops->destroy)(nep);CHKERRQ(ierr); }
   ierr = PetscMemzero(nep->ops,sizeof(struct _NEPOps));CHKERRQ(ierr);
@@ -557,7 +557,7 @@ PetscErrorCode NEPGetIP(NEP nep,IP *ip)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(ip,2);
   if (!nep->ip) {
-    ierr = IPCreate(((PetscObject)nep)->comm,&nep->ip);CHKERRQ(ierr);
+    ierr = IPCreate(PetscObjectComm((PetscObject)nep),&nep->ip);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(nep,nep->ip);CHKERRQ(ierr);
   }
   *ip = nep->ip;
@@ -624,7 +624,7 @@ PetscErrorCode NEPGetDS(NEP nep,DS *ds)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(ds,2);
   if (!nep->ds) {
-    ierr = DSCreate(((PetscObject)nep)->comm,&nep->ds);CHKERRQ(ierr);
+    ierr = DSCreate(PetscObjectComm((PetscObject)nep),&nep->ds);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(nep,nep->ds);CHKERRQ(ierr);
   }
   *ds = nep->ds;
@@ -691,7 +691,7 @@ PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(ksp,2);
   if (!nep->ksp) {
-    ierr = KSPCreate(((PetscObject)nep)->comm,&nep->ksp);CHKERRQ(ierr);
+    ierr = KSPCreate(PetscObjectComm((PetscObject)nep),&nep->ksp);CHKERRQ(ierr);
     ierr = KSPSetOptionsPrefix(nep->ksp,((PetscObject)nep)->prefix);CHKERRQ(ierr);
     ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)nep->ksp,(PetscObject)nep,1);CHKERRQ(ierr);

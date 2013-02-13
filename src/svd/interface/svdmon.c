@@ -91,7 +91,7 @@ PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,Pets
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (svd->numbermonitors >= MAXSVDMONITORS) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_OUTOFRANGE,"Too many SVD monitors set");
+  if (svd->numbermonitors >= MAXSVDMONITORS) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Too many SVD monitors set");
   svd->monitor[svd->numbermonitors]           = monitor;
   svd->monitorcontext[svd->numbermonitors]    = (void*)mctx;
   svd->monitordestroy[svd->numbermonitors++]  = monitordestroy;
@@ -184,7 +184,7 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(((PetscObject)svd)->comm);
+  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
 
   PetscFunctionBegin;
   if (its) {
@@ -223,7 +223,7 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
 PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscErrorCode ierr;
-  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(((PetscObject)svd)->comm);
+  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
 
   PetscFunctionBegin;
   if (its && nconv<nest) {
@@ -267,11 +267,11 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
   SlepcConvMonitor ctx = (SlepcConvMonitor)monctx;
 
   PetscFunctionBegin;
-  if (!monctx) SETERRQ(((PetscObject)svd)->comm,PETSC_ERR_ARG_WRONG,"Must provide a context for SVDMonitorConverged");
+  if (!monctx) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Must provide a context for SVDMonitorConverged");
   if (!its) {
     ctx->oldnconv = 0;
   } else {
-    viewer = ctx->viewer? ctx->viewer: PETSC_VIEWER_STDOUT_(((PetscObject)svd)->comm);
+    viewer = ctx->viewer? ctx->viewer: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
     for (i=ctx->oldnconv;i<nconv;i++) {
       ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%3D SVD converged value (error) #%D",its,i);CHKERRQ(ierr);
@@ -294,7 +294,7 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
   PetscReal      x,y,p;
 
   PetscFunctionBegin;
-  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)svd)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(PetscObjectComm((PetscObject)svd));
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDraw(viewer,1,&draw1);CHKERRQ(ierr);
@@ -340,7 +340,7 @@ PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
   PetscInt       i,n = PetscMin(svd->nsv,255);
 
   PetscFunctionBegin;
-  if (!viewer) viewer = PETSC_VIEWER_DRAW_(((PetscObject)svd)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_DRAW_(PetscObjectComm((PetscObject)svd));
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDraw(viewer,1,&draw1);CHKERRQ(ierr);

@@ -33,7 +33,7 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
   
   PetscFunctionBegin;
   if (qep->ncv) { /* ncv set */
-    if (qep->ncv<qep->nev) SETERRQ(((PetscObject)qep)->comm,1,"The value of ncv must be at least nev"); 
+    if (qep->ncv<qep->nev) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The value of ncv must be at least nev"); 
   } else if (qep->mpd) { /* mpd set */
     qep->ncv = PetscMin(qep->n,qep->nev+qep->mpd);
   } else { /* neither set: defaults depend on nev being small or large */
@@ -44,7 +44,7 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
     }
   }
   if (!qep->mpd) qep->mpd = qep->ncv;
-  if (qep->ncv>qep->nev+qep->mpd) SETERRQ(((PetscObject)qep)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
+  if (qep->ncv>qep->nev+qep->mpd) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The value of ncv must not be larger than nev+mpd"); 
   if (!qep->max_it) qep->max_it = PetscMax(100,2*qep->n/qep->ncv);
   if (!qep->which) {
     ierr = PetscObjectTypeCompare((PetscObject)qep->st,STSINVERT,&sinv);CHKERRQ(ierr);
@@ -160,7 +160,7 @@ PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
         else *breakdown = PETSC_FALSE;
         break;
-      default: SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of ip->orth_ref");
+      default: SETERRQ(PetscObjectComm((PetscObject)qep),1,"Wrong value of ip->orth_ref");
     }
     ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
     ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);

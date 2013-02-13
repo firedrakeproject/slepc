@@ -38,7 +38,7 @@ PetscErrorCode QEPSetUp_QLanczos(QEP qep)
   
   PetscFunctionBegin;
   if (qep->ncv) { /* ncv set */
-    if (qep->ncv<qep->nev) SETERRQ(((PetscObject)qep)->comm,1,"The value of ncv must be at least nev"); 
+    if (qep->ncv<qep->nev) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The value of ncv must be at least nev"); 
   } else if (qep->mpd) { /* mpd set */
     qep->ncv = PetscMin(qep->n,qep->nev+qep->mpd);
   } else { /* neither set: defaults depend on nev being small or large */
@@ -49,10 +49,10 @@ PetscErrorCode QEPSetUp_QLanczos(QEP qep)
     }
   }
   if (!qep->mpd) qep->mpd = qep->ncv;
-  if (qep->ncv>qep->nev+qep->mpd) SETERRQ(((PetscObject)qep)->comm,1,"The value of ncv must not be larger than nev+mpd"); 
+  if (qep->ncv>qep->nev+qep->mpd) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The value of ncv must not be larger than nev+mpd"); 
   if (!qep->max_it) qep->max_it = PetscMax(100,2*qep->n/qep->ncv);
   if (!qep->which) qep->which = QEP_LARGEST_MAGNITUDE;
-  if (qep->problem_type!=QEP_HERMITIAN) SETERRQ(((PetscObject)qep)->comm,PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
+  if (qep->problem_type!=QEP_HERMITIAN) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
 
   ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
   ierr = QEPDefaultGetWork(qep,4);CHKERRQ(ierr);
@@ -166,7 +166,7 @@ PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
         else *breakdown = PETSC_FALSE;
         break;
-      default: SETERRQ(((PetscObject)qep)->comm,1,"Wrong value of ip->orth_ref");
+      default: SETERRQ(PetscObjectComm((PetscObject)qep),1,"Wrong value of ip->orth_ref");
     }
     ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
     ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
@@ -350,7 +350,7 @@ PetscErrorCode QEPCreate_QLanczos(QEP qep)
   qep->ops->destroy              = QEPDestroy_QLanczos;
   qep->ops->reset                = QEPReset_QLanczos;
   qep->ops->view                 = QEPView_QLanczos;
-  ierr = KSPCreate(((PetscObject)qep)->comm,&ctx->ksp);CHKERRQ(ierr);
+  ierr = KSPCreate(PetscObjectComm((PetscObject)qep),&ctx->ksp);CHKERRQ(ierr);
   ierr = KSPSetOptionsPrefix(ctx->ksp,((PetscObject)qep)->prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(ctx->ksp,"qep_");CHKERRQ(ierr);
   ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp,(PetscObject)qep,1);CHKERRQ(ierr);  

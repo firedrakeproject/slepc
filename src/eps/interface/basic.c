@@ -140,7 +140,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(eps,1,viewer,2);
 
@@ -165,7 +165,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         case EPS_GNHEP: type = "generalized non-" HERM " eigenvalue problem"; break;
         case EPS_PGNHEP: type = "generalized non-" HERM " eigenvalue problem with " HERM " positive definite B"; break;
         case EPS_GHIEP: type = "generalized " HERM "-indefinite eigenvalue problem"; break;
-        default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->problem_type");
+        default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->problem_type");
       }
     } else type = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
@@ -178,7 +178,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         case EPS_HARMONIC_LARGEST: extr = "largest harmonic Ritz"; break;
         case EPS_REFINED:          extr = "refined Ritz"; break;
         case EPS_REFINED_HARMONIC: extr = "refined harmonic Ritz"; break;
-        default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->extraction");
+        default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->extraction");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",extr);CHKERRQ(ierr);
     }
@@ -187,7 +187,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         case EPS_BALANCE_ONESIDE:   bal = "one-sided Krylov"; break;
         case EPS_BALANCE_TWOSIDE:   bal = "two-sided Krylov"; break;
         case EPS_BALANCE_USER:      bal = "user-defined matrix"; break;
-        default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->balance");
+        default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->balance");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled: %s",bal);CHKERRQ(ierr);
       if (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE) {
@@ -245,7 +245,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       case EPS_ALL:
         ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in interval [%G,%G]\n",eps->inta,eps->intb);CHKERRQ(ierr);
         break;
-      default: SETERRQ(((PetscObject)eps)->comm,1,"Wrong value of eps->which");
+      default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
     }    
     if (eps->leftvecs) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing left eigenvectors also\n");CHKERRQ(ierr);
@@ -340,10 +340,10 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(((PetscObject)eps)->comm);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(eps,1,viewer,2);
-  if (!eps->eigr || !eps->eigi || !eps->V) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
+  if (!eps->eigr || !eps->eigi || !eps->V) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
@@ -557,8 +557,8 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
   ierr = PetscObjectTypeCompare((PetscObject)eps,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFunctionListFind(((PetscObject)eps)->comm,EPSList,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown EPS type given: %s",type);
+  ierr = PetscFunctionListFind(PetscObjectComm((PetscObject)eps),EPSList,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
+  if (!r) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown EPS type given: %s",type);
 
   if (eps->ops->destroy) { ierr = (*eps->ops->destroy)(eps);CHKERRQ(ierr); }
   ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
@@ -812,7 +812,7 @@ PetscErrorCode EPSSetInterval(EPS eps,PetscReal inta,PetscReal intb)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveReal(eps,inta,2);
   PetscValidLogicalCollectiveReal(eps,intb,3);
-  if (inta>=intb) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
+  if (inta>=intb) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
   eps->inta = inta;
   eps->intb = intb;
   PetscFunctionReturn(0);
@@ -910,7 +910,7 @@ PetscErrorCode EPSGetST(EPS eps,ST *st)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(st,2);
   if (!eps->st) {
-    ierr = STCreate(((PetscObject)eps)->comm,&eps->st);CHKERRQ(ierr);
+    ierr = STCreate(PetscObjectComm((PetscObject)eps),&eps->st);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(eps,eps->st);CHKERRQ(ierr);
   }
   *st = eps->st;
@@ -976,7 +976,7 @@ PetscErrorCode EPSGetIP(EPS eps,IP *ip)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(ip,2);
   if (!eps->ip) {
-    ierr = IPCreate(((PetscObject)eps)->comm,&eps->ip);CHKERRQ(ierr);
+    ierr = IPCreate(PetscObjectComm((PetscObject)eps),&eps->ip);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(eps,eps->ip);CHKERRQ(ierr);
   }
   *ip = eps->ip;
@@ -1042,7 +1042,7 @@ PetscErrorCode EPSGetDS(EPS eps,DS *ds)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(ds,2);
   if (!eps->ds) {
-    ierr = DSCreate(((PetscObject)eps)->comm,&eps->ds);CHKERRQ(ierr);
+    ierr = DSCreate(PetscObjectComm((PetscObject)eps),&eps->ds);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(eps,eps->ds);CHKERRQ(ierr);
   }
   *ds = eps->ds;

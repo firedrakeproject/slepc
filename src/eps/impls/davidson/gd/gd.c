@@ -111,7 +111,7 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
 
   /* Check some constraints */ 
   ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&t);CHKERRQ(ierr);
-  if (!t) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_SUP,"EPSGD only works with KSPPREONLY");
+  if (!t) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSGD only works with KSPPREONLY");
   PetscFunctionReturn(0);
 }
 

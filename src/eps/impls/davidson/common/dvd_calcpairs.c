@@ -189,7 +189,7 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
     }
     /* Create a DS if the method works with Schur decompositions */
     if (d->cS) {
-      ierr = DSCreate(((PetscObject)d->eps->ds)->comm,&d->conv_ps);CHKERRQ(ierr);
+      ierr = DSCreate(PetscObjectComm((PetscObject)d->eps->ds),&d->conv_ps);CHKERRQ(ierr);
       ierr = DSSetType(d->conv_ps,d->cT ? DSGNHEP : DSNHEP);CHKERRQ(ierr);
       /* Transfer as much as possible options from eps->ds to conv_ps */
       ierr = DSGetOptionsPrefix(d->eps->ds,&prefix);CHKERRQ(ierr);
@@ -310,7 +310,7 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
 
   /* Prepare reductions */
   ierr = SlepcAllReduceSumBegin(ops, MAX_OPS, in, out, size_in, &r,
-                                ((PetscObject)d->V[0])->comm);CHKERRQ(ierr);
+                                PetscObjectComm((PetscObject)d->V[0]));CHKERRQ(ierr);
   /* Allocate size_in */
   d->auxS+= size_in;
   d->size_auxS-= size_in;
@@ -911,7 +911,7 @@ PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e
   ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
   ierr = DSGetArray(d->ps,DS_MAT_Q,&pX);CHKERRQ(ierr);
   /* Prepare reductions */
-  ierr = SlepcAllReduceSumBegin(ops,2,d->auxS,d->auxS+size_in,size_in,&r,((PetscObject)d->V[0])->comm);CHKERRQ(ierr);
+  ierr = SlepcAllReduceSumBegin(ops,2,d->auxS,d->auxS+size_in,size_in,&r,PetscObjectComm((PetscObject)d->V[0]));CHKERRQ(ierr);
   /* auxV <- AV * pX(0:r_e+cX_in_H) */
   ierr = SlepcUpdateVectorsZ(d->auxV,0.0,1.0,d->AV-d->cX_in_AV,d->size_AV+d->cX_in_AV,pX,ld,d->size_H,d->cX_in_AV+r_e);CHKERRQ(ierr);
   /* cS(:, size_cS:) <- cX' * auxV */
