@@ -131,7 +131,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
 
   PetscFunctionBegin;
   PetscValidPointer(newds,2);
-  ierr = SlepcHeaderCreate(ds,_p_DS,struct _DSOps,DS_CLASSID,-1,"DS","Direct Solver (or Dense System)","DS",comm,DSDestroy,DSView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(ds,_p_DS,struct _DSOps,DS_CLASSID,"DS","Direct Solver (or Dense System)","DS",comm,DSDestroy,DSView);CHKERRQ(ierr);
   *newds        = ds;
   ds->state     = DS_STATE_RAW;
   ds->method    = 0;

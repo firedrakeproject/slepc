@@ -187,7 +187,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   PetscFunctionBegin;
   PetscValidPointer(newst,2);
   *newst = 0;
-  ierr = SlepcHeaderCreate(st,_p_ST,struct _STOps,ST_CLASSID,-1,"ST","Spectral Transformation","ST",comm,STDestroy,STView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(st,_p_ST,struct _STOps,ST_CLASSID,"ST","Spectral Transformation","ST",comm,STDestroy,STView);CHKERRQ(ierr);
   st->A                   = 0;
   st->Astate              = 0;
   st->T                   = 0;

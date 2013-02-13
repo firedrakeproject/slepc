@@ -243,7 +243,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   PetscFunctionBegin;
   PetscValidPointer(outnep,2);
   *outnep = 0;
-  ierr = SlepcHeaderCreate(nep,_p_NEP,struct _NEPOps,NEP_CLASSID,-1,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(nep,_p_NEP,struct _NEPOps,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView);CHKERRQ(ierr);
 
   nep->max_it          = 0;
   nep->max_funcs       = 0;

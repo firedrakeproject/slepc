@@ -373,7 +373,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   PetscFunctionBegin;
   PetscValidPointer(outqep,2);
   *outqep = 0;
-  ierr = SlepcHeaderCreate(qep,_p_QEP,struct _QEPOps,QEP_CLASSID,-1,"QEP","Quadratic Eigenvalue Problem","QEP",comm,QEPDestroy,QEPView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(qep,_p_QEP,struct _QEPOps,QEP_CLASSID,"QEP","Quadratic Eigenvalue Problem","QEP",comm,QEPDestroy,QEPView);CHKERRQ(ierr);
 
   qep->M               = 0;
   qep->C               = 0;

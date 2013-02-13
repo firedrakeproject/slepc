@@ -31,8 +31,7 @@
     Input Parameters:
 +   tp - the data structure type of the object
 .   pops - the data structure type of the objects operations (for example VecOps)
-.   cook - the classid associated with this object
-.   t - type (no longer should be used)
+.   classid - the classid associated with this object
 .   class_name - string name of class; should be static
 .   com - the MPI Communicator
 .   des - the destroy routine for this object
@@ -47,11 +46,11 @@
 
     Level: developer
 @*/ 
-#define SlepcHeaderCreate(h,tp,pops,cook,t,class_name,descr,mansec,com,des,vie) \
+#define SlepcHeaderCreate(h,tp,pops,classid,class_name,descr,mansec,com,des,vie) \
     ((!SlepcInitializeCalled && \
     PetscError(comm,__LINE__,PETSC_FUNCTION_NAME,__FILE__,__SDIR__,1,PETSC_ERROR_INITIAL, \
     "Must call SlepcInitialize instead of PetscInitialize to use SLEPc classes")) ||  \
-    PetscHeaderCreate(h,tp,pops,cook,t,class_name,descr,mansec,com,des,vie))
+    PetscHeaderCreate(h,tp,pops,classid,class_name,descr,mansec,com,des,vie))
 
 /* context for monitors of type XXXMonitorConverged */
 struct _n_SlepcConvMonitor {

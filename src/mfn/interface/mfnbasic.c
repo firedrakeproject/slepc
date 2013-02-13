@@ -202,7 +202,7 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   PetscValidPointer(outmfn,2);
   *outmfn = 0;
 
-  ierr = SlepcHeaderCreate(mfn,_p_MFN,struct _MFNOps,MFN_CLASSID,-1,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(mfn,_p_MFN,struct _MFNOps,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView);CHKERRQ(ierr);
 
   mfn->max_it          = 0;
   mfn->ncv             = 0;
