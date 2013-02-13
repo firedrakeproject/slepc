@@ -38,7 +38,7 @@ static PetscErrorCode MyShellMatCreate(Mat *A,Mat *M)
   
   PetscFunctionBeginUser;
   ierr = MatGetSize(*A,&n,NULL);CHKERRQ(ierr);
-  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
+  ierr = PetscObjectGetComm((PetscObject)*A,&comm);CHKERRQ(ierr);
   ierr = MatCreateShell(comm,PETSC_DECIDE,PETSC_DECIDE,n,n,A,M);CHKERRQ(ierr);
   ierr = MatSetFromOptions(*M);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*M,MATOP_MULT,(void(*)())MatMult_Shell);CHKERRQ(ierr);

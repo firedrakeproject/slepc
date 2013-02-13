@@ -304,8 +304,8 @@ PetscErrorCode MatFun_Mult(Mat A,Vec x,Vec y)
   MatCtx            *ctx;
   PetscInt          i,n;
   const PetscScalar *px;
-  PetscScalar       *py,c,d;
-  PetscReal         h,de,oe;
+  PetscScalar       *py,c,d,de,oe;
+  PetscReal         h;
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
@@ -403,8 +403,8 @@ PetscErrorCode MatJac_Mult(Mat A,Vec x,Vec y)
   MatCtx            *ctx;
   PetscInt          i,n;
   const PetscScalar *px;
-  PetscScalar       *py,c;
-  PetscReal         h,de,oe;
+  PetscScalar       *py,c,de,oe;
+  PetscReal         h;
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
