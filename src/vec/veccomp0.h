@@ -50,7 +50,7 @@ PetscErrorCode __SUF__(VecDot_Comp)(Vec a,Vec b,PetscScalar *z)
     }
 #if defined(__WITH_MPI__)
     work = sum;
-    ierr = MPI_Allreduce(&work,&sum,1,MPIU_SCALAR,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
+    ierr = MPI_Allreduce(&work,&sum,1,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)a));CHKERRQ(ierr);
 #endif
   } else {
     for (i=0,sum=0.0;i<as->n->n;i++) {
@@ -114,7 +114,7 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
 #if defined(__WITH_MPI__)
   if (as->x[0]->ops->mdot_local) {
     /* z[i] <- Allreduce(work[i]) */
-    ierr = MPI_Allreduce(r,z,n,MPIU_SCALAR,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
+    ierr = MPI_Allreduce(r,z,n,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)a));CHKERRQ(ierr);
   }
 #endif
 
@@ -142,7 +142,7 @@ PetscErrorCode __SUF__(VecTDot_Comp)(Vec a,Vec b,PetscScalar *z)
     }
 #if defined(__WITH_MPI__)
     work = sum;
-    ierr = MPI_Allreduce(&work,&sum,1,MPIU_SCALAR,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
+    ierr = MPI_Allreduce(&work,&sum,1,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)a));CHKERRQ(ierr);
 #endif
   } else {
     for (i=0,sum=0.0;i<as->n->n;i++) {
@@ -206,7 +206,7 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
 #if defined(__WITH_MPI__)
   if (as->x[0]->ops->mtdot_local) {
     /* z[i] <- Allreduce(work[i]) */
-    ierr = MPI_Allreduce(r,z,n,MPIU_SCALAR,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
+    ierr = MPI_Allreduce(r,z,n,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)a));CHKERRQ(ierr);
   }
 #endif
 
@@ -351,22 +351,22 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
     switch (t) {
     case NORM_1:
       work[0] = *norm;
-      ierr = MPI_Allreduce(work,norm,1,MPIU_REAL,MPIU_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
+      ierr = MPI_Allreduce(work,norm,1,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)a));CHKERRQ(ierr);
       break;
     case NORM_2: case NORM_FROBENIUS:
       work[0] = *norm; work[1] = s;
-      ierr = MPI_Allreduce(work,work0,1,MPIU_NORM2,MPIU_NORM2_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
+      ierr = MPI_Allreduce(work,work0,1,MPIU_NORM2,MPIU_NORM2_SUM,PetscObjectComm((PetscObject)a));CHKERRQ(ierr);
       *norm = GetNorm2(work0[0],work0[1]);
       break;
     case NORM_1_AND_2:
       work[0] = norm[0]; work[1] = norm[1]; work[2] = s;
-      ierr = MPI_Allreduce(work,work0,1,MPIU_NORM1_AND_2,MPIU_NORM2_SUM,((PetscObject)a)->comm);CHKERRQ(ierr);
+      ierr = MPI_Allreduce(work,work0,1,MPIU_NORM1_AND_2,MPIU_NORM2_SUM,PetscObjectComm((PetscObject)a));CHKERRQ(ierr);
       norm[0] = work0[0];
       norm[1] = GetNorm2(work0[1],work0[2]);
       break;
     case NORM_INFINITY:
       work[0] = *norm;
-      ierr = MPI_Allreduce(work,norm,1,MPIU_REAL,MPIU_MAX,((PetscObject)a)->comm);CHKERRQ(ierr);
+      ierr = MPI_Allreduce(work,norm,1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)a));CHKERRQ(ierr);
       break;
     }
   }
@@ -417,12 +417,12 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar
     }
     ierr = VecRestoreArray(v,&vx);CHKERRQ(ierr);
     ierr = VecRestoreArray(w,&wx);CHKERRQ(ierr);
-  } else SETERRQ(((PetscObject)v)->comm,PETSC_ERR_ARG_INCOMP,"Incompatible vector types");
+  } else SETERRQ(PetscObjectComm((PetscObject)v),PETSC_ERR_ARG_INCOMP,"Incompatible vector types");
 
 #if defined(__WITH_MPI__)
     /* [dp, nm] <- Allreduce([dp0, nm0]) */
     work[0] = dp0; work[1] = nm0;
-    ierr = MPI_Allreduce(&work,&work[2],2,MPIU_SCALAR,MPIU_SUM,((PetscObject)v)->comm);CHKERRQ(ierr);
+    ierr = MPI_Allreduce(&work,&work[2],2,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)v));CHKERRQ(ierr);
     *dp = work[2]; *nm = work[3];
 #else
     *dp = dp0; *nm = nm0;
