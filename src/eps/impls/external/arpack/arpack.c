@@ -1,5 +1,5 @@
 /*
-       This file implements a wrapper to the ARPACK package
+   This file implements a wrapper to the ARPACK package
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

@@ -1,5 +1,24 @@
 /*
-  SLEPc eigensolver: "gd"
+
+   SLEPc eigensolver: "gd"
+
+   Method: Generalized Davidson
+
+   Algorithm:
+
+       Generalized Davidson with various subspace extraction and
+       restart techniques.
+
+   References:
+
+       [1] E.R. Davidson, "Super-matrix methods", Comput. Phys. Commun.
+           53(2):49-60, 1989.
+
+       [2] E. Romero and J.E. Roman, "A parallel implementation of
+           Davidson methods for large-scale eigenvalue problems in
+           SLEPc", submitted, 2013.
+
+   Last update: Jul 2012
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

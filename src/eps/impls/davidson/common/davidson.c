@@ -1,9 +1,5 @@
 /*
-  Method: General Davidson Method (includes GD and JD)
-
-  References:
-    - Ernest R. Davidson. Super-matrix methods. Computer Physics Communications,
-      53:49–60, May 1989.
+   Skeleton of Davidson solver. Actual solvers are GD and JD.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

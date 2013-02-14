@@ -1,5 +1,20 @@
 /*                       
-   Q-Arnoldi method for quadratic eigenproblems.
+
+   SLEPc quadratic eigensolver: "qarnoldi"
+
+   Method: Q-Arnoldi
+
+   Algorithm:
+
+       Quadratic Arnoldi with Krylov-Schur type restart.
+
+   References:
+
+       [1] K. Meerbergen, "The Quadratic Arnoldi method for the solution
+           of the quadratic eigenvalue problem", SIAM J. Matrix Anal.
+           Appl. 30(4):1462-1482, 2008.
+
+   Last update: Nov 2012
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

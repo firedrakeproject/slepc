@@ -6,13 +6,13 @@
 
    References:
 
-       [1] R.G. Grimes et al., "A shifted block Lanczos algorithm for solving
-           sparse symmetric generalized eigenproblems", SIAM J. Matrix Analysis
-           and App., 15(1), pp. 228–272, 1994.
+       [1] R.G. Grimes et al., "A shifted block Lanczos algorithm for
+           solving sparse symmetric generalized eigenproblems", SIAM J.
+           Matrix Anal. Appl. 15(1):228-272, 1994.
 
-       [2] C. Campos and J. E. Roman, "Spectrum slicing strategies based on
-           restarted Lanczos methods", Numer. Algor., 2012.
-           DOI: 10.1007/s11075-012-9564-z
+       [2] C. Campos and J.E. Roman, "Spectrum slicing strategies based
+           on restarted Lanczos methods", Numer. Algor. 60(2):279-295,
+           2012.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

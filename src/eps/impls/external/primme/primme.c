@@ -1,5 +1,5 @@
 /*
-       This file implements a wrapper to the PRIMME library
+   This file implements a wrapper to the PRIMME package
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

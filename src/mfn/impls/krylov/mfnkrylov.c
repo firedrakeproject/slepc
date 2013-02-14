@@ -2,17 +2,19 @@
 
    SLEPc matrix function solver: "krylov"
 
-   Method: Krylov
+   Method: Arnoldi
 
    Algorithm:
 
-       Single-vector Krylov-Schur method to build a Krylov subspace, then
+       Single-vector Arnoldi method to build a Krylov subspace, then
        compute f(B) on the projected matrix B.
 
    References:
 
        [1] R. Sidje, "Expokit: a software package for computing matrix
-           exponentials", ACM Trans. Math. Softw., 24(1):130–156, 1998.
+           exponentials", ACM Trans. Math. Softw. 24(1):130-156, 1998.
+
+   Last update: Feb 2013
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

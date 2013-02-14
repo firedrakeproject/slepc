@@ -1,6 +1,20 @@
 /*                       
 
-   Q-Lanczos method for quadratic eigenproblems.
+   SLEPc quadratic eigensolver: "qlanczos"
+
+   Method: Q-Lanczos
+
+   Algorithm:
+
+       Quadratic Lanczos with indefinite B-orthogonalization and
+       thick restart.
+
+   References:
+
+       [1] C. Campos and J.E. Roman, "A thick-restart Q-Lanczos method
+           for quadratic eigenvalue problems", in preparation, 2013.
+
+   Last update: Mar 2013
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

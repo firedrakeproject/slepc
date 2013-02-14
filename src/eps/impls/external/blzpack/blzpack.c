@@ -1,5 +1,5 @@
 /*
-       This file implements a wrapper to the BLZPACK package
+   This file implements a wrapper to the BLZPACK package
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

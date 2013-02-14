@@ -2,7 +2,22 @@
 
    SLEPc singular value solver: "lanczos"
 
-   Method: Golub-Kahan-Lanczos bidiagonalization
+   Method: Explicitly restarted Lanczos
+
+   Algorithm:
+
+       Golub-Kahan-Lanczos bidiagonalization with explicit restart.
+
+   References:
+
+       [1] G.H. Golub and W. Kahan, "Calculating the singular values
+           and pseudo-inverse of a matrix", SIAM J. Numer. Anal. Ser.
+           B 2:205-224, 1965.
+
+       [2] V. Hernandez, J.E. Roman, and A. Tomas, "A robust and
+           efficient parallel SVD solver based on restarted Lanczos
+           bidiagonalization", Elec. Trans. Numer. Anal. 31:68-85,
+           2008.
 
    Last update: Jun 2007
 

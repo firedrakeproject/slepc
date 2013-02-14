@@ -15,7 +15,7 @@
            available at http://www.grycap.upv.es/slepc.
 
        [2] G.W. Stewart, "A Krylov-Schur Algorithm for Large Eigenproblems",
-           SIAM J. Matrix Analysis and App., 23(3), pp. 601-614, 2001. 
+           SIAM J. Matrix Anal. App. 23(3):601-614, 2001. 
 
        [3] "Practical Implementation of Harmonic Krylov-Schur", SLEPc Technical
             Report STR-9, available at http://www.grycap.upv.es/slepc.

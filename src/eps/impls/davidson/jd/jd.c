@@ -1,5 +1,25 @@
 /*
-  SLEPc eigensolver: "jd"
+
+   SLEPc eigensolver: "jd"
+
+   Method: Jacobi-Davidson
+
+   Algorithm:
+
+       Jacobi-Davidson with various subspace extraction and
+       restart techniques.
+
+   References:
+
+       [1] G.L.G. Sleijpen and H.A. van der Vorst, "A Jacobi-Davidson
+           iteration method for linear eigenvalue problems", SIAM J.
+           Matrix Anal. Appl. 17(2):401-425, 1996.
+
+       [2] E. Romero and J.E. Roman, "A parallel implementation of
+           Davidson methods for large-scale eigenvalue problems in
+           SLEPc", submitted, 2013.
+
+   Last update: Jul 2012
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

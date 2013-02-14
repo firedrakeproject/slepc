@@ -15,8 +15,8 @@
 
    References:
 
-       [1] "Single Vector Iteration Methods in SLEPc", SLEPc Technical Report STR-2, 
-           available at http://www.grycap.upv.es/slepc.
+       [1] "Single Vector Iteration Methods in SLEPc", SLEPc Technical Report
+           STR-2, available at http://www.grycap.upv.es/slepc.
 
    Last update: Feb 2009
 

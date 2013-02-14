@@ -1,5 +1,5 @@
 /*
-       This file implements a wrapper to the TRLAN package
+   This file implements a wrapper to the TRLAN package
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

@@ -1,5 +1,19 @@
 /*                       
-   Residual inverse iteration (RII) method for nonlinear eigenproblems.
+
+   SLEPc nonlinear eigensolver: "rii"
+
+   Method: Residual inverse iteration
+
+   Algorithm:
+
+       Simple residual inverse iteration with varying shift.
+
+   References:
+
+       [1] A. Neumaier, "Residual inverse iteration for the nonlinear
+           eigenvalue problem", SIAM J. Numer. Anal. 22(5):914-923, 1985.
+
+   Last update: Feb 2013
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -89,6 +103,10 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
     nep->its++;
+
+    //if (nep->its>10) 
+    if (nep->its>2 && relerr<1e-2) 
+    ierr = KSPSetOperators(nep->ksp,T,T,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
 
     /* evaluate T(lambda) and T'(lambda) */
     ierr = NEPComputeFunction(nep,lambda,0,&T,&T,&mats);CHKERRQ(ierr);

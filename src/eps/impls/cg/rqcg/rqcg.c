@@ -11,9 +11,9 @@
 
    References:
 
-       [1] "Parallel preconditioned conjugate gradient optimization of the
-           Rayleigh quotient for the solution of sparse eigenproblems",
-           Appl. Math. Comput. 175, pp. 1694-1715 (2006).
+       [1] L. Bergamaschi et al., "Parallel preconditioned conjugate gradient
+           optimization of the Rayleigh quotient for the solution of sparse
+           eigenproblems", Appl. Math. Comput. 175(2):1694-1715, 2006.
 
    Last update: Jul 2012
 

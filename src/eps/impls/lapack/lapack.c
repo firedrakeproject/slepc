@@ -1,6 +1,6 @@
 /*
-       This file implements a wrapper to the LAPACK eigenvalue subroutines.
-       Generalized problems are transformed to standard ones only if necessary.
+   This file implements a wrapper to the LAPACK eigenvalue subroutines.
+   Generalized problems are transformed to standard ones only if necessary.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

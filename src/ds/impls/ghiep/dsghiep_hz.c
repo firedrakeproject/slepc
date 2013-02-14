@@ -9,7 +9,7 @@
 
        [2] M.A. Brebner, J. Grad, "Eigenvalues of Ax = lambda Bx for real
            symmetric matrices A and B computed by reduction to pseudosymmetric
-           form and the HR process", Linear Alg. Appl. 43, pp. 99-118, 1982.
+           form and the HR process", Linear Alg. Appl. 43:99-118, 1982.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

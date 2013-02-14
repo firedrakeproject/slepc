@@ -1,5 +1,5 @@
 /*
-       This file implements a wrapper to the BLOPEX solver
+   This file implements a wrapper to the BLOPEX package
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
