@@ -51,13 +51,13 @@ struct _NEPOps {
 struct _p_NEP {
   PETSCHEADER(struct _NEPOps);
   /*------------------------- User parameters --------------------------*/
-  PetscInt       max_it,           /* maximum number of iterations */
-                 max_funcs,        /* maximum number of function evaluations */
-                 nev,              /* number of eigenvalues to compute */
-                 ncv,              /* number of basis vectors */
-                 mpd,              /* maximum dimension of projected problem */
-                 nini,             /* number of initial vectors (negative means not copied yet) */
-                 allocated_ncv;    /* number of basis vectors allocated */
+  PetscInt       max_it;           /* maximum number of iterations */
+  PetscInt       max_funcs;        /* maximum number of function evaluations */
+  PetscInt       nev;              /* number of eigenvalues to compute */
+  PetscInt       ncv;              /* number of basis vectors */
+  PetscInt       mpd;              /* maximum dimension of projected problem */
+  PetscInt       lag;              /* interval to rebuild preconditioner */
+  PetscInt       nini;             /* number of initial vectors (negative means not copied yet) */
   PetscScalar    target;           /* target value */
   PetscReal      abstol,rtol,stol; /* user tolerances */
   PetscReal      ttol;             /* tolerance used in the convergence criterion */
@@ -78,34 +78,35 @@ struct _p_NEP {
   void           *jac_ctx;
 
   /*------------------------- Working data --------------------------*/
-  Vec         *V,               /* set of basis vectors and computed eigenvectors */
-              *IS;              /* placeholder for references to user-provided initial space */
-  PetscScalar *eigr, *eigi;     /* real and imaginary parts of eigenvalues */
-  PetscReal   *errest;          /* error estimates */
-  IP          ip;               /* innerproduct object */
-  DS          ds;               /* direct solver object */
-  KSP         ksp;              /* linear solver object */
-  void        *data;            /* placeholder for misc stuff associated 
-                                   with a particular solver */
-  PetscInt    nconv,            /* number of converged eigenvalues */
-              its,              /* number of iterations so far computed */
-              *perm,            /* permutation for eigenvalue ordering */
-              nfuncs, linits,   /* operation counters */
-              n, nloc;          /* problem dimensions (global, local) */
-  PetscRandom rand;             /* random number generator */
-  Vec         t;                /* template vector */
+  Vec            *V;               /* set of basis vectors and computed eigenvectors */
+  Vec            *IS;              /* placeholder for references to user-provided initial space */
+  PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
+  PetscReal      *errest;          /* error estimates */
+  IP             ip;               /* innerproduct object */
+  DS             ds;               /* direct solver object */
+  KSP            ksp;              /* linear solver object */
+  void           *data;            /* placeholder for misc stuff associated 
+                                      with a particular solver */
+  PetscInt       nconv;            /* number of converged eigenvalues */
+  PetscInt       its;              /* number of iterations so far computed */
+  PetscInt       *perm;            /* permutation for eigenvalue ordering */
+  PetscInt       nfuncs,linits;    /* operation counters */
+  PetscInt       n,nloc;           /* problem dimensions (global, local) */
+  PetscRandom    rand;             /* random number generator */
+  Vec            t;                /* template vector */
+  PetscInt       allocated_ncv;    /* number of basis vectors allocated */
 
   /* ---------------- Default work-area and status vars -------------------- */
-  PetscInt   nwork;
-  Vec        *work;
+  PetscInt       nwork;
+  Vec            *work;
 
-  PetscInt   setupcalled;
+  PetscInt       setupcalled;
   NEPConvergedReason reason;     
 
   PetscErrorCode (*monitor[MAXNEPMONITORS])(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*); 
   PetscErrorCode (*monitordestroy[MAXNEPMONITORS])(void**);
-  void       *monitorcontext[MAXNEPMONITORS];
-  PetscInt    numbermonitors; 
+  void           *monitorcontext[MAXNEPMONITORS];
+  PetscInt       numbermonitors; 
 };
 
 PETSC_EXTERN PetscErrorCode NEPMonitor(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);

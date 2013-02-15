@@ -81,6 +81,10 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     ierr = PetscOptionsInt("-nep_mpd","Maximum dimension of projected problem","NEPSetDimensions",nep->mpd,&k,NULL);CHKERRQ(ierr);
     ierr = NEPSetDimensions(nep,i,j,k);CHKERRQ(ierr);
 
+    i = 0;
+    ierr = PetscOptionsInt("-nep_lag_preconditioner","Interval to rebuild preconditioner","NEPSetLagPreconditioner",nep->lag,&i,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetLagPreconditioner(nep,i);CHKERRQ(ierr); }
+
     ierr = PetscOptionsScalar("-nep_target","Value of the target","NEPSetTarget",nep->target,&s,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
@@ -499,6 +503,67 @@ PetscErrorCode NEPGetWhichEigenpairs(NEP nep,NEPWhich *which)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(which,2);
   *which = nep->which;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetLagPreconditioner"
+/*@
+    NEPSetLagPreconditioner - Determines when the preconditioner is rebuilt in the
+    nonlinear solve.
+
+    Logically Collective on NEP
+
+    Input Parameters:
++   nep - the NEP context
+-   lag - 0 indicates NEVER rebuild, 1 means rebuild every time the Jacobian is
+          computed within the nonlinear iteration, 2 means every second time
+          the Jacobian is built, etc.
+
+    Options Database Keys:
+.   -nep_lag_preconditioner <lag>
+
+    Notes:
+    The default is 1.
+    The preconditioner is ALWAYS built in the first iteration of a nonlinear solve.
+
+    Level: intermediate
+
+.seealso: NEPGetLagPreconditioner()
+@*/
+PetscErrorCode NEPSetLagPreconditioner(NEP nep,PetscInt lag)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(nep,lag,2);
+  if (lag<0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Lag must be non-negative");
+  nep->lag = lag;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPGetLagPreconditioner"
+/*@
+    NEPGetLagPreconditioner - Indicates how often the preconditioner is rebuilt.
+
+    Not Collective
+
+    Input Parameter:
+.   nep - the NEP context
+
+    Output Parameter:
+.   lag - the lag parameter
+
+    Level: intermediate
+
+.seealso: NEPSetLagPreconditioner()
+@*/
+PetscErrorCode NEPGetLagPreconditioner(NEP nep,PetscInt *lag)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(lag,2);
+  *lag = nep->lag;
   PetscFunctionReturn(0);
 }
 

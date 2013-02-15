@@ -272,10 +272,10 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     default:
       ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
     }
-    if (eps->nini!=0) {
+    if (eps->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(eps->nini));CHKERRQ(ierr);
     }
-    if (eps->ninil!=0) {
+    if (eps->ninil) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %D\n",PetscAbs(eps->ninil));CHKERRQ(ierr);
     }
     if (eps->nds>0) {

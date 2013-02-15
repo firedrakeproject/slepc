@@ -199,7 +199,10 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",nep->max_it);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of function evaluations: %D\n",nep->max_funcs);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerances: relative=%G, absolute=%G, solution=%G\n",nep->rtol,nep->abstol,nep->stol);CHKERRQ(ierr);
-    if (nep->nini!=0) {
+    if (nep->lag) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %D iterations\n",nep->lag);CHKERRQ(ierr);
+    }
+    if (nep->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(nep->nini));CHKERRQ(ierr);
     }
   } else {
@@ -250,6 +253,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->nev             = 1;
   nep->ncv             = 0;
   nep->mpd             = 0;
+  nep->lag             = 1;
   nep->nini            = 0;
   nep->allocated_ncv   = 0;
   nep->ip              = 0;

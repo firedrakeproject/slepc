@@ -117,6 +117,7 @@ int main(int argc,char **argv)
 
   ierr = NEPSetTolerances(nep,0,1e-9,0,0,0);CHKERRQ(ierr);
   ierr = NEPSetDimensions(nep,1,0,0);CHKERRQ(ierr);
+  ierr = NEPSetLagPreconditioner(nep,0);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
