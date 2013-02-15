@@ -21,7 +21,7 @@
 
 static char help[] = "Test indefinite IP.\n\n";
 
-#include "slepcip.h"
+#include <slepcip.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

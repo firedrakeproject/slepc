@@ -21,8 +21,8 @@
 
 static char help[] = "Test IPQRDecomposition.\n\n";
 
-#include "slepcip.h"
-#include "slepcvec.h"
+#include <slepcip.h>
+#include <slepcvec.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

@@ -21,7 +21,7 @@
 
 static char help[] = "Test DSSVD.\n\n";
 
-#include "slepcds.h"
+#include <slepcds.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

@@ -36,7 +36,7 @@ static char help[] = "Test the solution of a QEP from a finite element model of 
   "  -tau <tau>, where <tau> = tau parameter.\n"
   "  -kappa <kappa>, where <kappa> = kappa paramter.\n\n";
 
-#include "slepcqep.h"
+#include <slepcqep.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

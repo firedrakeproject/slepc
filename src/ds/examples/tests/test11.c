@@ -21,8 +21,8 @@
 
 static char help[] = "Test matrix exponential in DSNHEP.\n\n";
 
-#include "slepcds.h"
-#include "slepc-private/dsimpl.h"
+#include <slepcds.h>
+#include <slepc-private/dsimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

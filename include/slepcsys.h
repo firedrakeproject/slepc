@@ -41,16 +41,11 @@
 /* 
    The PETSc include files. 
 */
-#include <petscvec.h>
 #include <petscmat.h>
 /*
     slepcmath.h contains definition of basic math functions
 */
 #include <slepcmath.h>
-/*
-    slepcvec.h contains extensions to PETSc Vec's
-*/
-#include <slepcvec.h>
 
 /*
     Initialization of SLEPc and other system routines

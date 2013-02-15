@@ -24,8 +24,7 @@
 */
 
 #include "davidson.h"
-#include <slepcvec.h>
-#include <slepcblaslapack.h>
+#include <slepc-private/vecimplslepc.h>         /*I "slepcvec.h" I*/
 
 PetscErrorCode dvd_improvex_PfuncV(dvdDashboard *d,void *funcV,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,Vec *auxV,PetscScalar *auxS);
 PetscErrorCode dvd_pcapplyba(PC pc,PCSide side,Vec in,Vec out,Vec w);
