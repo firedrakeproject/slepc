@@ -60,6 +60,8 @@ struct _p_NEP {
   PetscInt       nini;             /* number of initial vectors (negative means not copied yet) */
   PetscScalar    target;           /* target value */
   PetscReal      abstol,rtol,stol; /* user tolerances */
+  PetscReal      ktol;             /* tolerance for linear solver */
+  PetscBool      cctol;            /* constant correction tolerance */
   PetscReal      ttol;             /* tolerance used in the convergence criterion */
   PetscErrorCode (*conv_func)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
   void           *conv_ctx;

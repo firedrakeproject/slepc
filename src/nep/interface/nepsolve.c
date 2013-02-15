@@ -65,6 +65,7 @@ PetscErrorCode NEPSolve(NEP nep)
     nep->eigi[i]   = 0.0;
     nep->errest[i] = 0.0;
   }
+  nep->ktol = 0.1;
   ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nep->ncv);CHKERRQ(ierr);
 
   ierr = DSSetEigenvalueComparison(nep->ds,nep->which_func,nep->which_ctx);CHKERRQ(ierr);

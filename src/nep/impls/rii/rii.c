@@ -104,9 +104,13 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   while (nep->reason == NEP_CONVERGED_ITERATING) {
     nep->its++;
 
-    /* update preconditioner */
+    /* update preconditioner and set adaptive tolerance */
     if (nep->lag && !(nep->its%nep->lag) && nep->its>2*nep->lag && relerr<1e-2) {
       ierr = KSPSetOperators(nep->ksp,T,T,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    }
+    if (!nep->cctol) {
+      nep->ktol = PetscMax(nep->ktol/2.0,PETSC_MACHINE_EPSILON*10.0);
+      ierr = KSPSetTolerances(nep->ksp,nep->ktol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
     }
 
     /* evaluate T(lambda) and T'(lambda) */

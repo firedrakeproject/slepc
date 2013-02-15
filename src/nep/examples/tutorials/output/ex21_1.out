@@ -1,7 +1,7 @@
 
 1-D Nonlinear Eigenproblem, n=128
 
- Number of NEP iterations = 8
+ Number of NEP iterations = 7
 
  Solution method: rii
  Number of requested eigenvalues: 1
@@ -9,5 +9,5 @@
 
            k              ||T(k)x||
    ----------------- ------------------
-       4.482117          7.91335e-08
+       4.482117            4.411e-09
 

@@ -202,6 +202,9 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     if (nep->lag) {
       ierr = PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %D iterations\n",nep->lag);CHKERRQ(ierr);
     }
+    if (nep->cctol) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  using a constant tolerance for the linear solver\n");CHKERRQ(ierr);
+    }
     if (nep->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(nep->nini));CHKERRQ(ierr);
     }
@@ -265,6 +268,8 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->abstol          = PETSC_DEFAULT;
   nep->rtol            = PETSC_DEFAULT;
   nep->stol            = PETSC_DEFAULT;
+  nep->ktol            = 0.1;
+  nep->cctol           = PETSC_FALSE;
   nep->ttol            = 0.0;
   nep->conv_func       = NEPConvergedDefault;
   nep->conv_ctx        = NULL;
