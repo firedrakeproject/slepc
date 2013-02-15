@@ -22,6 +22,7 @@
 static char help[] = "Test DSSVD.\n\n";
 
 #include <slepcds.h>
+#include <slepc-private/dsimpl.h>    /* for the definition of SlepcCompare* */
 
 #undef __FUNCT__
 #define __FUNCT__ "main"

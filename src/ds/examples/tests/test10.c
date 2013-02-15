@@ -22,7 +22,7 @@
 static char help[] = "Test matrix exponential in DSHEP.\n\n";
 
 #include <slepcds.h>
-#include <slepc-private/dsimpl.h>
+#include <slepc-private/dsimpl.h>    /* for DSViewMat_Private() */
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
