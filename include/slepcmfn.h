@@ -23,7 +23,6 @@
 
 #if !defined(__SLEPCMFN_H)
 #define __SLEPCMFN_H
-#include <slepcsys.h>
 #include <slepcip.h>
 #include <slepcds.h>
 

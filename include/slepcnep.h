@@ -23,7 +23,6 @@
 
 #if !defined(__SLEPCNEP_H)
 #define __SLEPCNEP_H
-#include <slepcsys.h>
 #include <slepceps.h>
 
 PETSC_EXTERN PetscErrorCode NEPInitializePackage(const char[]);

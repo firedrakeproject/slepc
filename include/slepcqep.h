@@ -23,7 +23,6 @@
 
 #if !defined(__SLEPCQEP_H)
 #define __SLEPCQEP_H
-#include <slepcsys.h>
 #include <slepceps.h>
 
 PETSC_EXTERN PetscErrorCode QEPInitializePackage(const char[]);
