@@ -104,10 +104,6 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   while (nep->reason == NEP_CONVERGED_ITERATING) {
     nep->its++;
 
-    //if (nep->its>10) 
-    if (nep->its>2 && relerr<1e-2) 
-    ierr = KSPSetOperators(nep->ksp,T,T,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-
     /* evaluate T(lambda) and T'(lambda) */
     ierr = NEPComputeFunction(nep,lambda,0,&T,&T,&mats);CHKERRQ(ierr);
     ierr = NEPComputeJacobian(nep,lambda,0,&Tp,&Tp,&mats);CHKERRQ(ierr);
