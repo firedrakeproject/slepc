@@ -22,6 +22,7 @@
 */
 
 #include <slepc-private/qepimpl.h>      /*I "slepcqep.h" I*/
+#include <petscdraw.h>
 
 #undef __FUNCT__  
 #define __FUNCT__ "QEPMonitor"

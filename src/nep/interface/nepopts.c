@@ -606,7 +606,7 @@ PetscErrorCode NEPSetConstantCorrectionTolerance(NEP nep,PetscBool cct)
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetConstantCorrectionTolerance"
 /*@
-    NEPGetLagConstantCorrectionTolerance - Returns the constant tolerance flag.
+    NEPGetConstantCorrectionTolerance - Returns the constant tolerance flag.
 
     Not Collective
 

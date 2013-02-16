@@ -22,6 +22,7 @@
 */
 
 #include <slepc-private/mfnimpl.h>   /*I "slepcmfn.h" I*/
+#include <petscdraw.h>
 
 #undef __FUNCT__  
 #define __FUNCT__ "MFNMonitor"

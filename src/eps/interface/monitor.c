@@ -22,6 +22,7 @@
 */
 
 #include <slepc-private/epsimpl.h>   /*I "slepceps.h" I*/
+#include <petscdraw.h>
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSMonitor"

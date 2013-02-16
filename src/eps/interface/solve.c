@@ -22,6 +22,7 @@
 */
 
 #include <slepc-private/epsimpl.h>   /*I "slepceps.h" I*/
+#include <petscdraw.h>
 
 typedef struct {
   PetscErrorCode (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
