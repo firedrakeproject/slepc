@@ -437,6 +437,7 @@ PetscErrorCode CheckSolution(PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscRe
     uu[i-Istart] = sin(nu*x);
   }
   ierr = VecRestoreArray(u,&uu);CHKERRQ(ierr);
+  ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
   ierr = VecAXPY(u,-1.0,xr);CHKERRQ(ierr);
   ierr = VecNorm(u,NORM_2,error);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);

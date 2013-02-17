@@ -75,7 +75,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   Mat            T=nep->function,Tp=nep->jacobian,Tsigma;
   Vec            u=nep->V[0],r=nep->work[0],delta=nep->work[1];
   PetscScalar    sigma,lambda,a1,a2;
-  PetscReal      relerr,norm1,norm2;
+  PetscReal      relerr;
   MatStructure   mats;
 
   PetscFunctionBegin;
@@ -121,9 +121,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     ierr = MatMult(T,u,r);CHKERRQ(ierr);
 
     /* convergence test */
-    ierr = VecNorm(r,NORM_2,&norm1);CHKERRQ(ierr);
-    ierr = VecNorm(u,NORM_2,&norm2);CHKERRQ(ierr);
-    relerr = norm1/norm2;
+    ierr = VecNorm(r,NORM_2,&relerr);CHKERRQ(ierr);
     nep->errest[nep->nconv] = relerr;
     nep->eigr[nep->nconv] = lambda;
     if (relerr<=nep->rtol) {
@@ -140,8 +138,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       ierr = VecAXPY(u,-1.0,delta);CHKERRQ(ierr);
 
       /* normalize eigenvector: u = u / max(abs(u)) */
-      ierr = VecNorm(u,NORM_INFINITY,&norm1);CHKERRQ(ierr);
-      ierr = VecScale(u,1.0/norm1);CHKERRQ(ierr);
+      ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
 
       /* correct eigenvalue: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
       ierr = MatMult(T,u,r);CHKERRQ(ierr);
