@@ -138,6 +138,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = NEPGetKSP(nep,&ksp);CHKERRQ(ierr);
+  ierr = KSPSetType(ksp,KSPBCGS);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
 
