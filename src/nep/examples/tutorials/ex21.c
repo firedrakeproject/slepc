@@ -37,7 +37,7 @@ static char help[] = "Simple 1-D nonlinear eigenproblem (matrix-free version, se
 */
 extern PetscErrorCode FormInitialGuess(Vec);
 extern PetscErrorCode FormFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
-extern PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
+extern PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*);
 
 /* 
    Matrix operations and context
@@ -131,7 +131,7 @@ int main(int argc,char **argv)
      Set Jacobian matrix data structure and default Jacobian evaluation
      routine
   */
-  ierr = NEPSetJacobian(nep,J,J,FormJacobian,NULL);CHKERRQ(ierr);
+  ierr = NEPSetJacobian(nep,J,FormJacobian,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
      Customize nonlinear solver; set runtime options
@@ -284,7 +284,7 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *fun,Mat *
    lambda can be represented as wr+wi*PETSC_i or as wr (in case of a configuration
    with complex scalars). See NEPGetEigenvalues() for details.
 */
-PetscErrorCode FormJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *jac,Mat *B,MatStructure *flg,void *ctx)
+PetscErrorCode FormJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *jac,MatStructure *flg,void *ctx)
 {
   PetscErrorCode ierr;
   MatCtx         *ctxJ;

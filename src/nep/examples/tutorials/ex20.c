@@ -38,7 +38,7 @@ static char help[] = "Simple 1-D nonlinear eigenproblem.\n\n"
 */
 extern PetscErrorCode FormInitialGuess(Vec);
 extern PetscErrorCode FormFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
-extern PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
+extern PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*);
 extern PetscErrorCode CheckSolution(PetscScalar,PetscScalar,Vec,Vec,PetscReal*,void*);
 
 /*
@@ -109,7 +109,7 @@ int main(int argc,char **argv)
      Set Jacobian matrix data structure and default Jacobian evaluation
      routine
   */
-  ierr = NEPSetJacobian(nep,J,J,FormJacobian,&ctx);CHKERRQ(ierr);
+  ierr = NEPSetJacobian(nep,J,FormJacobian,&ctx);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
      Customize nonlinear solver; set runtime options
@@ -334,7 +334,7 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *fun,Mat *
    lambda can be represented as wr+wi*PETSC_i or as wr (in case of a configuration
    with complex scalars). See NEPGetEigenvalues() for details.
 */
-PetscErrorCode FormJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *jac,Mat *B,MatStructure *flg,void *ctx)
+PetscErrorCode FormJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *jac,MatStructure *flg,void *ctx)
 {
   PetscErrorCode ierr;
   ApplicationCtx *user = (ApplicationCtx*)ctx;
@@ -389,12 +389,8 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *jac,Mat *
   /*
      Assemble matrix
   */
-  ierr = MatAssemblyBegin(*B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(*B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  if (*jac != *B) {
-    ierr = MatAssemblyBegin(*jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(*jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  }
+  ierr = MatAssemblyBegin(*jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(*jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

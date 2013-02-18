@@ -89,7 +89,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 // consider cases other than target
   ierr = NEPComputeFunction(nep,sigma,0,&T,&T,&mats);CHKERRQ(ierr);
 // reuse T
-  ierr = NEPComputeJacobian(nep,sigma,0,&Tp,&Tp,&mats);CHKERRQ(ierr);
+  ierr = NEPComputeJacobian(nep,sigma,0,&Tp,&mats);CHKERRQ(ierr);
   ierr = MatMult(T,u,r);CHKERRQ(ierr);
   ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
   ierr = MatMult(Tp,u,r);CHKERRQ(ierr);
@@ -115,7 +115,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 
     /* evaluate T(lambda) and T'(lambda) */
     ierr = NEPComputeFunction(nep,lambda,0,&T,&T,&mats);CHKERRQ(ierr);
-    ierr = NEPComputeJacobian(nep,lambda,0,&Tp,&Tp,&mats);CHKERRQ(ierr);
+    ierr = NEPComputeJacobian(nep,lambda,0,&Tp,&mats);CHKERRQ(ierr);
 
     /* form residual,  r = T(lambda)*u */
     ierr = MatMult(T,u,r);CHKERRQ(ierr);

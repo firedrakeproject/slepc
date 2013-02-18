@@ -76,7 +76,7 @@ struct _p_NEP {
   void           *fun_ctx;
 
   Mat            jacobian,jacobian_pre;
-  PetscErrorCode (*jac_func)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
+  PetscErrorCode (*jac_func)(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*);
   void           *jac_ctx;
 
   /*------------------------- Working data --------------------------*/

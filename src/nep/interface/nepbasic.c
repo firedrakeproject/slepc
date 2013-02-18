@@ -264,7 +264,6 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->function        = 0;
   nep->function_pre    = 0;
   nep->jacobian        = 0;
-  nep->jacobian_pre    = 0;
   nep->abstol          = PETSC_DEFAULT;
   nep->rtol            = PETSC_DEFAULT;
   nep->stol            = PETSC_DEFAULT;
@@ -492,7 +491,6 @@ PetscErrorCode NEPDestroy(NEP *nep)
   ierr = MatDestroy(&(*nep)->function);CHKERRQ(ierr);
   ierr = MatDestroy(&(*nep)->function_pre);CHKERRQ(ierr);
   ierr = MatDestroy(&(*nep)->jacobian);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*nep)->jacobian_pre);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*nep)->rand);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   if ((*nep)->nini<0) {
@@ -864,7 +862,6 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
    Input Parameters:
 +  nep - the NEP context
 .  A   - Jacobian matrix
-.  B   - preconditioner matrix (usually same as the Jacobian)
 .  jac - Jacobian evaluation routine (if NULL then NEP retains any
          previously set value)
 -  ctx - [optional] user-defined context for private data for the Jacobian
@@ -873,7 +870,7 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
 
    Notes:
    The routine jac() takes Mat* as the matrix arguments rather than Mat.
-   This allows the Jacobian evaluation routine to replace A and/or B with a
+   This allows the Jacobian evaluation routine to replace A with a
    completely new matrix structure (not just different matrix elements)
    when appropriate, for instance, if the nonzero structure is changing
    throughout the global iterations.
@@ -882,27 +879,20 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
 
 .seealso: NEPSetFunction(), NEPGetJacobian()
 @*/
-PetscErrorCode NEPSetJacobian(NEP nep,Mat A,Mat B,PetscErrorCode (*jac)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void *ctx)
+PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*),void *ctx)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,2);
-  if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,3);
   if (A) PetscCheckSameComm(nep,1,A,2);
-  if (B) PetscCheckSameComm(nep,1,B,3);
   if (jac) nep->jac_func = jac;
   if (ctx) nep->jac_ctx  = ctx;
   if (A) {
     ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
     ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
     nep->jacobian = A;
-  }
-  if (B) {
-    ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr);
-    ierr = MatDestroy(&nep->jacobian_pre);CHKERRQ(ierr);
-    nep->jacobian_pre = B;
   }
   PetscFunctionReturn(0);
 }
@@ -920,7 +910,6 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,Mat B,PetscErrorCode (*jac)(NEP,Pets
 
    Output Parameters:
 +  A   - location to stash Jacobian matrix (or NULL)
-.  B   - location to stash preconditioner matrix (or NULL)
 .  jac - location to put Jacobian function (or NULL)
 -  ctx - location to stash Jacobian context (or NULL)
 
@@ -928,12 +917,11 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,Mat B,PetscErrorCode (*jac)(NEP,Pets
 
 .seealso: NEPSetJacobian()
 @*/
-PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,Mat *B,PetscErrorCode (**jac)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void **ctx)
+PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*),void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (A)   *A   = nep->jacobian;
-  if (B)   *B   = nep->jacobian_pre;
   if (jac) *jac = nep->jac_func;
   if (ctx) *ctx = nep->jac_ctx;
   PetscFunctionReturn(0);

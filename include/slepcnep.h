@@ -106,8 +106,8 @@ PETSC_EXTERN PetscErrorCode NEPView(NEP,PetscViewer);
 
 PETSC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,PetscErrorCode (*)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void*);
 PETSC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void**);
-PETSC_EXTERN PetscErrorCode NEPSetJacobian(NEP,Mat,Mat,PetscErrorCode (*)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void*);
-PETSC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void**);
+PETSC_EXTERN PetscErrorCode NEPSetJacobian(NEP,Mat,PetscErrorCode (*)(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*),void*);
+PETSC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,PetscErrorCode (**)(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*),void**);
 
 PETSC_EXTERN PetscErrorCode NEPSetIP(NEP,IP);
 PETSC_EXTERN PetscErrorCode NEPGetIP(NEP,IP*);
@@ -132,7 +132,7 @@ PETSC_EXTERN PetscErrorCode NEPComputeResidualNorm(NEP,PetscInt,PetscReal*);
 PETSC_EXTERN PetscErrorCode NEPGetErrorEstimate(NEP,PetscInt,PetscReal*);
 
 PETSC_EXTERN PetscErrorCode NEPComputeFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*);
-PETSC_EXTERN PetscErrorCode NEPComputeJacobian(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*);
+PETSC_EXTERN PetscErrorCode NEPComputeJacobian(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*);
 
 PETSC_EXTERN PetscErrorCode NEPMonitorSet(NEP,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
 PETSC_EXTERN PetscErrorCode NEPMonitorCancel(NEP);

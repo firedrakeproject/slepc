@@ -724,7 +724,6 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
 
    Output Parameters:
 +  A   - Jacobian matrix
-.  B   - optional preconditioning matrix
 -  flg - flag indicating matrix structure (see MatStructure enum)
 
    Notes:
@@ -735,24 +734,24 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
 
 .seealso: NEPSetJacobian(), NEPGetJacobian()
 @*/
-PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,Mat *B,MatStructure *flg)
+PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,MatStructure *flg)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(flg,6);
+  PetscValidPointer(flg,5);
 
   if (!nep->jac_func) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetJacobian() first");
 
   *flg = DIFFERENT_NONZERO_PATTERN;
-  ierr = PetscLogEventBegin(NEP_JacobianEval,nep,*A,*B,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(NEP_JacobianEval,nep,*A,0,0);CHKERRQ(ierr);
 
   PetscStackPush("NEP user Jacobian function");
-  ierr = (*nep->jac_func)(nep,wr,wi,A,B,flg,nep->jac_ctx);CHKERRQ(ierr);
+  ierr = (*nep->jac_func)(nep,wr,wi,A,flg,nep->jac_ctx);CHKERRQ(ierr);
   PetscStackPop;
 
-  ierr = PetscLogEventEnd(NEP_JacobianEval,nep,*A,*B,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(NEP_JacobianEval,nep,*A,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
