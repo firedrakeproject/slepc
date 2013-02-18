@@ -67,7 +67,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
 
     /* Solve projected problem */ 
     ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
-    if (eps->arbit_func) { ierr = EPSGetArbitraryValues(eps,eps->rr,eps->ri);CHKERRQ(ierr); }
+    if (eps->arbitrary) { ierr = EPSGetArbitraryValues(eps,eps->rr,eps->ri);CHKERRQ(ierr); }
     ierr = DSSort(eps->ds,eps->eigr,NULL,eps->rr,eps->ri,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(eps->ds);CHKERRQ(ierr);
 

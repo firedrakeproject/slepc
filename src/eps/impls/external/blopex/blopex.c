@@ -164,15 +164,15 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   eps->ncv = eps->nev = PetscMin(eps->nev,eps->n);
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
-  if (eps->arbit_func) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
   
-  if (eps->conv_func == EPSConvergedEigRelative) {
+  if (eps->converged == EPSConvergedEigRelative) {
     blopex->tol.absolute = 0.0;
     blopex->tol.relative = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
-  } else if (eps->conv_func == EPSConvergedAbsolute) {
+  } else if (eps->converged == EPSConvergedAbsolute) {
     blopex->tol.absolute = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
     blopex->tol.relative = 0.0;
   } else {

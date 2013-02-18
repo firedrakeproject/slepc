@@ -390,11 +390,11 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->tol             = PETSC_DEFAULT;
   qep->sfactor         = 0.0;
   qep->sfactor_set     = PETSC_FALSE;
-  qep->conv_func       = QEPConvergedDefault;
-  qep->conv_ctx        = NULL;
+  qep->converged       = QEPConvergedDefault;
+  qep->convergedctx    = NULL;
   qep->which           = (QEPWhich)0;
-  qep->which_func      = NULL;
-  qep->which_ctx       = NULL;
+  qep->comparison      = NULL;
+  qep->comparisonctx   = NULL;
   qep->leftvecs        = PETSC_FALSE;
   qep->problem_type    = (QEPProblemType)0;
   qep->V               = NULL;

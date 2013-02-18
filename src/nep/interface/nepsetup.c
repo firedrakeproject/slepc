@@ -124,40 +124,40 @@ PetscErrorCode NEPSetUp(NEP nep)
   /* set eigenvalue comparison */
   switch (nep->which) {
     case NEP_LARGEST_MAGNITUDE:
-      nep->which_func = SlepcCompareLargestMagnitude;
-      nep->which_ctx  = NULL;
+      nep->comparison    = SlepcCompareLargestMagnitude;
+      nep->comparisonctx = NULL;
       break;
     case NEP_SMALLEST_MAGNITUDE:
-      nep->which_func = SlepcCompareSmallestMagnitude;
-      nep->which_ctx  = NULL;
+      nep->comparison    = SlepcCompareSmallestMagnitude;
+      nep->comparisonctx = NULL;
       break;
     case NEP_LARGEST_REAL:
-      nep->which_func = SlepcCompareLargestReal;
-      nep->which_ctx  = NULL;
+      nep->comparison    = SlepcCompareLargestReal;
+      nep->comparisonctx = NULL;
       break;
     case NEP_SMALLEST_REAL:
-      nep->which_func = SlepcCompareSmallestReal;
-      nep->which_ctx  = NULL;
+      nep->comparison    = SlepcCompareSmallestReal;
+      nep->comparisonctx = NULL;
       break;
     case NEP_LARGEST_IMAGINARY:
-      nep->which_func = SlepcCompareLargestImaginary;
-      nep->which_ctx  = NULL;
+      nep->comparison    = SlepcCompareLargestImaginary;
+      nep->comparisonctx = NULL;
       break;
     case NEP_SMALLEST_IMAGINARY:
-      nep->which_func = SlepcCompareSmallestImaginary;
-      nep->which_ctx  = NULL;
+      nep->comparison    = SlepcCompareSmallestImaginary;
+      nep->comparisonctx = NULL;
       break;
     case NEP_TARGET_MAGNITUDE:
-      nep->which_func = SlepcCompareTargetMagnitude;
-      nep->which_ctx  = &nep->target;
+      nep->comparison    = SlepcCompareTargetMagnitude;
+      nep->comparisonctx = &nep->target;
       break;
     case NEP_TARGET_REAL:
-      nep->which_func = SlepcCompareTargetReal;
-      nep->which_ctx  = &nep->target;
+      nep->comparison    = SlepcCompareTargetReal;
+      nep->comparisonctx = &nep->target;
       break;
     case NEP_TARGET_IMAGINARY:
-      nep->which_func = SlepcCompareTargetImaginary;
-      nep->which_ctx  = &nep->target;
+      nep->comparison    = SlepcCompareTargetImaginary;
+      nep->comparisonctx = &nep->target;
       break;
   }
 

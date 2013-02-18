@@ -66,8 +66,9 @@ struct _p_DS {
   PetscReal      *rwork;
   PetscBLASInt   *iwork;
   PetscInt       lwork,lrwork,liwork;
-  PetscErrorCode (*comp_fun)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-  void           *comp_ctx;
+  /*-------------- User-provided functions and contexts -----------------*/
+  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+  void           *comparisonctx;
 };
 
 PETSC_EXTERN PetscErrorCode DSAllocateMat_Private(DS,DSMatType);

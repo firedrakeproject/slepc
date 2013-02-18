@@ -211,7 +211,7 @@ PetscErrorCode STCreate_Sinvert(ST st)
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->applytrans      = STApplyTranspose_Sinvert;
   st->ops->postsolve       = STPostSolve_Sinvert;
-  st->ops->backtr          = STBackTransform_Sinvert;
+  st->ops->backtransform   = STBackTransform_Sinvert;
   st->ops->setup           = STSetUp_Sinvert;
   st->ops->setshift        = STSetShift_Sinvert;
   st->ops->setfromoptions  = STSetFromOptions_Sinvert;

@@ -31,13 +31,13 @@ PETSC_EXTERN PetscLogEvent     SVD_SetUp,SVD_Solve;
 typedef struct _SVDOps *SVDOps;
 
 struct _SVDOps {
-  PetscErrorCode  (*solve)(SVD);
-  PetscErrorCode  (*setup)(SVD);
-  PetscErrorCode  (*setfromoptions)(SVD);
-  PetscErrorCode  (*publishoptions)(SVD);
-  PetscErrorCode  (*destroy)(SVD);
-  PetscErrorCode  (*reset)(SVD);
-  PetscErrorCode  (*view)(SVD,PetscViewer);
+  PetscErrorCode (*solve)(SVD);
+  PetscErrorCode (*setup)(SVD);
+  PetscErrorCode (*setfromoptions)(SVD);
+  PetscErrorCode (*publishoptions)(SVD);
+  PetscErrorCode (*destroy)(SVD);
+  PetscErrorCode (*reset)(SVD);
+  PetscErrorCode (*view)(SVD,PetscViewer);
 };
 
 /*
@@ -78,13 +78,12 @@ struct _p_SVD {
   IP               ip;          /* innerproduct object */
   DS               ds;          /* direct solver object */
   PetscBool        trackall;
+  PetscInt         matvecs;
   
-  PetscErrorCode  (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
-  PetscErrorCode  (*monitordestroy[MAXSVDMONITORS])(void**);
-  void            *monitorcontext[MAXSVDMONITORS];
-  PetscInt        numbermonitors;
-  
-  PetscInt        matvecs;
+  PetscErrorCode   (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+  PetscErrorCode   (*monitordestroy[MAXSVDMONITORS])(void**);
+  void             *monitorcontext[MAXSVDMONITORS];
+  PetscInt         numbermonitors;
 };
 
 PETSC_EXTERN PetscErrorCode SVDMonitor(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt);

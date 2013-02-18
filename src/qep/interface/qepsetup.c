@@ -121,40 +121,40 @@ PetscErrorCode QEPSetUp(QEP qep)
   /* set eigenvalue comparison */
   switch (qep->which) {
     case QEP_LARGEST_MAGNITUDE:
-      qep->which_func = SlepcCompareLargestMagnitude;
-      qep->which_ctx  = NULL;
+      qep->comparison    = SlepcCompareLargestMagnitude;
+      qep->comparisonctx = NULL;
       break;
     case QEP_SMALLEST_MAGNITUDE:
-      qep->which_func = SlepcCompareSmallestMagnitude;
-      qep->which_ctx  = NULL;
+      qep->comparison    = SlepcCompareSmallestMagnitude;
+      qep->comparisonctx = NULL;
       break;
     case QEP_LARGEST_REAL:
-      qep->which_func = SlepcCompareLargestReal;
-      qep->which_ctx  = NULL;
+      qep->comparison    = SlepcCompareLargestReal;
+      qep->comparisonctx = NULL;
       break;
     case QEP_SMALLEST_REAL:
-      qep->which_func = SlepcCompareSmallestReal;
-      qep->which_ctx  = NULL;
+      qep->comparison    = SlepcCompareSmallestReal;
+      qep->comparisonctx = NULL;
       break;
     case QEP_LARGEST_IMAGINARY:
-      qep->which_func = SlepcCompareLargestImaginary;
-      qep->which_ctx  = NULL;
+      qep->comparison    = SlepcCompareLargestImaginary;
+      qep->comparisonctx = NULL;
       break;
     case QEP_SMALLEST_IMAGINARY:
-      qep->which_func = SlepcCompareSmallestImaginary;
-      qep->which_ctx  = NULL;
+      qep->comparison    = SlepcCompareSmallestImaginary;
+      qep->comparisonctx = NULL;
       break;
     case QEP_TARGET_MAGNITUDE:
-      qep->which_func = SlepcCompareTargetMagnitude;
-      qep->which_ctx  = &qep->target;
+      qep->comparison    = SlepcCompareTargetMagnitude;
+      qep->comparisonctx = &qep->target;
       break;
     case QEP_TARGET_REAL:
-      qep->which_func = SlepcCompareTargetReal;
-      qep->which_ctx  = &qep->target;
+      qep->comparison    = SlepcCompareTargetReal;
+      qep->comparisonctx = &qep->target;
       break;
     case QEP_TARGET_IMAGINARY:
-      qep->which_func = SlepcCompareTargetImaginary;
-      qep->which_ctx  = &qep->target;
+      qep->comparison    = SlepcCompareTargetImaginary;
+      qep->comparisonctx = &qep->target;
       break;
   }
 

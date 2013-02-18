@@ -137,7 +137,7 @@ PetscErrorCode QEPKrylovConvergence(QEP qep,PetscBool getall,PetscInt kini,Petsc
     ierr = DSVectors(qep->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
     resnorm *= beta;
     /* error estimate */
-    ierr = (*qep->conv_func)(qep,re,im,resnorm,&qep->errest[k],qep->conv_ctx);CHKERRQ(ierr);
+    ierr = (*qep->converged)(qep,re,im,resnorm,&qep->errest[k],qep->convergedctx);CHKERRQ(ierr);
     if (marker==-1 && qep->errest[k] >= qep->tol) marker = k;
     if (newk==k+1) {
       qep->errest[k+1] = qep->errest[k];

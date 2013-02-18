@@ -101,7 +101,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
     else eps->which = EPS_SMALLEST_REAL;
   }
   if ((issinv && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_ALL) || (!issinv && eps->which!=EPS_SMALLEST_REAL)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
-  if (eps->arbit_func) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   k1 = PetscMin(eps->n,180);
   k2 = blz->block_size;

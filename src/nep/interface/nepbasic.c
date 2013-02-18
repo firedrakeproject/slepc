@@ -270,16 +270,16 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->ktol            = 0.1;
   nep->cctol           = PETSC_FALSE;
   nep->ttol            = 0.0;
-  nep->conv_func       = NEPConvergedDefault;
-  nep->conv_ctx        = NULL;
-  nep->conv_dest       = NULL;
   nep->which           = (NEPWhich)0;
-  nep->which_func      = NULL;
-  nep->which_ctx       = NULL;
-  nep->fun_func        = NULL;
-  nep->fun_ctx         = NULL;
-  nep->jac_func        = NULL;
-  nep->jac_ctx         = NULL;
+  nep->computefunction = NULL;
+  nep->computejacobian = NULL;
+  nep->comparison      = NULL;
+  nep->converged       = NEPConvergedDefault;
+  nep->convergeddestroy= NULL;
+  nep->comparisonctx   = NULL;
+  nep->convergedctx    = NULL;
+  nep->functionctx     = NULL;
+  nep->jacobianctx     = NULL;
   nep->V               = NULL;
   nep->IS              = NULL;
   nep->eigr            = NULL;
@@ -804,8 +804,8 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,Pets
   if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,3);
   if (A) PetscCheckSameComm(nep,1,A,2);
   if (B) PetscCheckSameComm(nep,1,B,3);
-  if (fun) nep->fun_func = fun;
-  if (ctx) nep->fun_ctx  = ctx;
+  if (fun) nep->computefunction = fun;
+  if (ctx) nep->functionctx     = ctx;
   if (A) {
     ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
     ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
@@ -846,8 +846,8 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (A)   *A   = nep->function;
   if (B)   *B   = nep->function_pre;
-  if (fun) *fun = nep->fun_func;
-  if (ctx) *ctx = nep->fun_ctx;
+  if (fun) *fun = nep->computefunction;
+  if (ctx) *ctx = nep->functionctx;
   PetscFunctionReturn(0);
 }
 
@@ -887,8 +887,8 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScala
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,2);
   if (A) PetscCheckSameComm(nep,1,A,2);
-  if (jac) nep->jac_func = jac;
-  if (ctx) nep->jac_ctx  = ctx;
+  if (jac) nep->computejacobian = jac;
+  if (ctx) nep->jacobianctx     = ctx;
   if (A) {
     ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
     ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
@@ -922,8 +922,8 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (A)   *A   = nep->jacobian;
-  if (jac) *jac = nep->jac_func;
-  if (ctx) *ctx = nep->jac_ctx;
+  if (jac) *jac = nep->computejacobian;
+  if (ctx) *ctx = nep->jacobianctx;
   PetscFunctionReturn(0);
 }
 

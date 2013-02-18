@@ -132,32 +132,32 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   PetscFunctionBegin;
   PetscValidPointer(newds,2);
   ierr = SlepcHeaderCreate(ds,_p_DS,struct _DSOps,DS_CLASSID,"DS","Direct Solver (or Dense System)","DS",comm,DSDestroy,DSView);CHKERRQ(ierr);
-  *newds        = ds;
-  ds->state     = DS_STATE_RAW;
-  ds->method    = 0;
-  ds->funmethod = 0;
-  ds->compact   = PETSC_FALSE;
-  ds->refined   = PETSC_FALSE;
-  ds->extrarow  = PETSC_FALSE;
-  ds->ld        = 0;
-  ds->l         = 0;
-  ds->n         = 0;
-  ds->m         = 0;
-  ds->k         = 0;
-  ds->t         = 0;
+  *newds            = ds;
+  ds->state         = DS_STATE_RAW;
+  ds->method        = 0;
+  ds->funmethod     = 0;
+  ds->compact       = PETSC_FALSE;
+  ds->refined       = PETSC_FALSE;
+  ds->extrarow      = PETSC_FALSE;
+  ds->ld            = 0;
+  ds->l             = 0;
+  ds->n             = 0;
+  ds->m             = 0;
+  ds->k             = 0;
+  ds->t             = 0;
   for (i=0;i<DS_NUM_MAT;i++) {
-    ds->mat[i]  = NULL;
-    ds->rmat[i] = NULL;
+    ds->mat[i]      = NULL;
+    ds->rmat[i]     = NULL;
   }
-  ds->perm     = NULL;
-  ds->work     = NULL;
-  ds->rwork    = NULL;
-  ds->iwork    = NULL;
-  ds->lwork    = 0;
-  ds->lrwork   = 0;
-  ds->liwork   = 0;
-  ds->comp_fun = NULL;
-  ds->comp_ctx = NULL;
+  ds->perm          = NULL;
+  ds->work          = NULL;
+  ds->rwork         = NULL;
+  ds->iwork         = NULL;
+  ds->lwork         = 0;
+  ds->lrwork        = 0;
+  ds->liwork        = 0;
+  ds->comparison    = NULL;
+  ds->comparisonctx = NULL;
   PetscFunctionReturn(0);
 }
 
@@ -637,8 +637,8 @@ PetscErrorCode DSSetEigenvalueComparison(DS ds,PetscErrorCode (*fun)(PetscScalar
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  ds->comp_fun = fun;
-  ds->comp_ctx = ctx;
+  ds->comparison    = fun;
+  ds->comparisonctx = ctx;
   PetscFunctionReturn(0);
 }
 
@@ -681,8 +681,8 @@ PetscErrorCode DSGetEigenvalueComparison(DS ds,PetscErrorCode (**fun)(PetscScala
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (fun) *fun = ds->comp_fun;
-  if (ctx) *ctx = ds->comp_ctx;
+  if (fun) *fun = ds->comparison;
+  if (ctx) *ctx = ds->comparisonctx;
   PetscFunctionReturn(0);
 }
 
@@ -864,11 +864,11 @@ PetscErrorCode DSReset(DS ds)
   ierr = PetscFree(ds->work);CHKERRQ(ierr);
   ierr = PetscFree(ds->rwork);CHKERRQ(ierr);
   ierr = PetscFree(ds->iwork);CHKERRQ(ierr);
-  ds->lwork    = 0;
-  ds->lrwork   = 0;
-  ds->liwork   = 0;
-  ds->comp_fun = NULL;
-  ds->comp_ctx = NULL;
+  ds->lwork         = 0;
+  ds->lrwork        = 0;
+  ds->liwork        = 0;
+  ds->comparison    = NULL;
+  ds->comparisonctx = NULL;
   PetscFunctionReturn(0);
 }
 

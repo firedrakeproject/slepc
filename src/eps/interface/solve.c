@@ -25,8 +25,8 @@
 #include <petscdraw.h>
 
 typedef struct {
-  PetscErrorCode (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-  void *which_ctx;
+  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+  void *comparisonctx;
   ST st;
 } EPSSortForSTData;
 
@@ -41,7 +41,7 @@ PetscErrorCode EPSSortForSTFunc(PetscScalar ar,PetscScalar ai,
   PetscFunctionBegin;
   ierr = STBackTransform(data->st,1,&ar,&ai);CHKERRQ(ierr);
   ierr = STBackTransform(data->st,1,&br,&bi);CHKERRQ(ierr);
-  ierr = (*data->which_func)(ar,ai,br,bi,r,data->which_ctx);CHKERRQ(ierr);
+  ierr = (*data->comparison)(ar,ai,br,bi,r,data->comparisonctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -93,7 +93,7 @@ PetscErrorCode EPSSolve(EPS eps)
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
   eps->evecsavailable = PETSC_FALSE;
   eps->nconv = 0;
-  eps->its = 0;
+  eps->its   = 0;
   for (i=0;i<eps->ncv;i++) {
     eps->eigr[i]   = 0.0;
     eps->eigi[i]   = 0.0;
@@ -104,21 +104,21 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flg,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
   if (!flg) {
     /* temporarily change eigenvalue comparison function */
-    data.which_func = eps->which_func;
-    data.which_ctx = eps->which_ctx;
-    data.st = eps->st;
-    eps->which_func = (eps->which==EPS_ALL)? SlepcCompareLargestMagnitude: EPSSortForSTFunc;
-    eps->which_ctx = (eps->which==EPS_ALL)? NULL: &data;
+    data.comparison    = eps->comparison;
+    data.comparisonctx = eps->comparisonctx;
+    data.st            = eps->st;
+    eps->comparison    = (eps->which==EPS_ALL)? SlepcCompareLargestMagnitude: EPSSortForSTFunc;
+    eps->comparisonctx = (eps->which==EPS_ALL)? NULL: &data;
   }
-  ierr = DSSetEigenvalueComparison(eps->ds,eps->which_func,eps->which_ctx);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(eps->ds,eps->comparison,eps->comparisonctx);CHKERRQ(ierr);
 
   /* call solver */
   ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);
 
   if (!flg) {
     /* restore comparison function */
-    eps->which_func = data.which_func;
-    eps->which_ctx = data.which_ctx;
+    eps->comparison    = data.comparison;
+    eps->comparisonctx = data.comparisonctx;
   }
 
   ierr = STGetMatMode(eps->st,&matmode);CHKERRQ(ierr);
@@ -1035,7 +1035,7 @@ PetscErrorCode EPSComputeRelativeError_Private(EPS eps,PetscScalar kr,PetscScala
     er = SlepcAbsEigenvalue(er,ei); 
   }
 #endif    
-  ierr = (*eps->conv_func)(eps,kr,ki,norm/er,error,eps->conv_ctx);CHKERRQ(ierr);
+  ierr = (*eps->converged)(eps,kr,ki,norm/er,error,eps->convergedctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1267,8 +1267,8 @@ PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,Petsc
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);  
   PetscValidIntPointer(result,6);
-  if (!eps->which_func) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
-  ierr = (*eps->which_func)(ar,ai,br,bi,result,eps->which_ctx);CHKERRQ(ierr);
+  if (!eps->comparison) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
+  ierr = (*eps->comparison)(ar,ai,br,bi,result,eps->comparisonctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

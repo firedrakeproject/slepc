@@ -31,13 +31,13 @@ PETSC_EXTERN PetscLogEvent     MFN_SetUp, MFN_Solve;
 typedef struct _MFNOps *MFNOps;
 
 struct _MFNOps {
-  PetscErrorCode  (*solve)(MFN,Vec,Vec);
-  PetscErrorCode  (*setup)(MFN);
-  PetscErrorCode  (*setfromoptions)(MFN);
-  PetscErrorCode  (*publishoptions)(MFN);
-  PetscErrorCode  (*destroy)(MFN);
-  PetscErrorCode  (*reset)(MFN);
-  PetscErrorCode  (*view)(MFN,PetscViewer);
+  PetscErrorCode (*solve)(MFN,Vec,Vec);
+  PetscErrorCode (*setup)(MFN);
+  PetscErrorCode (*setfromoptions)(MFN);
+  PetscErrorCode (*publishoptions)(MFN);
+  PetscErrorCode (*destroy)(MFN);
+  PetscErrorCode (*reset)(MFN);
+  PetscErrorCode (*view)(MFN,PetscViewer);
 };
 
 /*
@@ -51,32 +51,32 @@ struct _MFNOps {
 struct _p_MFN {
   PETSCHEADER(struct _MFNOps);
   /*------------------------- User parameters --------------------------*/
-  PetscInt       max_it;        /* maximum number of iterations */
-  PetscInt       ncv;           /* number of basis vectors */
-  PetscReal      tol;           /* tolerance */
-  SlepcFunction  function;      /* which function to compute */
+  PetscInt        max_it;         /* maximum number of iterations */
+  PetscInt        ncv;            /* number of basis vectors */
+  PetscReal       tol;            /* tolerance */
+  SlepcFunction   function;       /* which function to compute */
 
   /*------------------------- Working data --------------------------*/
-  Mat         A;                /* the problem matrix */
-  Vec         *V;               /* set of basis vectors */
-  PetscReal   errest;           /* error estimate */
-  IP          ip;               /* innerproduct object */
-  DS          ds;               /* direct solver object */
-  void        *data;            /* placeholder for misc stuff associated 
-                                   with a particular solver */
-  PetscInt    its;              /* number of iterations so far computed */
-  PetscInt    nv;               /* size of current Schur decomposition */
-  PetscInt    n, nloc;          /* problem dimensions (global, local) */
-  PetscInt    allocated_ncv;    /* number of basis vectors allocated */
-  PetscReal   sfactor;          /* scaling factor */
-  PetscRandom rand;             /* random number generator */
-  Vec         t;                /* template vector */
+  Mat             A;              /* the problem matrix */
+  Vec             *V;             /* set of basis vectors */
+  PetscReal       errest;         /* error estimate */
+  IP              ip;             /* innerproduct object */
+  DS              ds;             /* direct solver object */
+  void            *data;          /* placeholder for misc stuff associated 
+                                     with a particular solver */
+  PetscInt        its;            /* number of iterations so far computed */
+  PetscInt        nv;             /* size of current Schur decomposition */
+  PetscInt        n,nloc;         /* problem dimensions (global, local) */
+  PetscInt        allocated_ncv;  /* number of basis vectors allocated */
+  PetscReal       sfactor;        /* scaling factor */
+  PetscRandom     rand;           /* random number generator */
+  Vec             t;              /* template vector */
 
   /* ---------------- Default work-area and status vars -------------------- */
-  PetscInt   nwork;
-  Vec        *work;
+  PetscInt       nwork;
+  Vec            *work;
 
-  PetscInt   setupcalled;
+  PetscInt       setupcalled;
   MFNConvergedReason reason;     
 
   PetscErrorCode (*monitor[MAXMFNMONITORS])(MFN,PetscInt,PetscReal,void*); 

@@ -753,9 +753,9 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(PetscSc
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  eps->which_func = func;
-  eps->which_ctx  = ctx;
-  eps->which      = EPS_WHICH_USER;
+  eps->comparison    = func;
+  eps->comparisonctx = ctx;
+  eps->which         = EPS_WHICH_USER;
   PetscFunctionReturn(0);
 }
 
@@ -808,9 +808,9 @@ PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScal
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  eps->arbit_func = func;
-  eps->arbit_ctx  = ctx;
-  eps->setupcalled = 0;
+  eps->arbitrary    = func;
+  eps->arbitraryctx = ctx;
+  eps->setupcalled  = 0;
   PetscFunctionReturn(0);
 }
 
@@ -849,8 +849,8 @@ extern PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*fun
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  eps->conv_func = func;
-  eps->conv_ctx = ctx;
+  eps->converged    = func;
+  eps->convergedctx = ctx;
   if (func == EPSConvergedEigRelative) eps->conv = EPS_CONV_EIG;
   else if (func == EPSConvergedNormRelative) eps->conv = EPS_CONV_NORM;
   else if (func == EPSConvergedAbsolute) eps->conv = EPS_CONV_ABS;
@@ -892,9 +892,9 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,conv,2);
   switch (conv) {
-    case EPS_CONV_EIG: eps->conv_func = EPSConvergedEigRelative; break;
-    case EPS_CONV_NORM: eps->conv_func = EPSConvergedNormRelative; break; 
-    case EPS_CONV_ABS: eps->conv_func = EPSConvergedAbsolute; break;
+    case EPS_CONV_EIG:  eps->converged = EPSConvergedEigRelative; break;
+    case EPS_CONV_NORM: eps->converged = EPSConvergedNormRelative; break; 
+    case EPS_CONV_ABS:  eps->converged = EPSConvergedAbsolute; break;
     case EPS_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value"); 

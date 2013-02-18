@@ -662,11 +662,16 @@ $   func(NEP nep,PetscInt it,PetscReal xnorm,PetscReal snorm,PetscReal fnorm,NEP
 @*/
 extern PetscErrorCode NEPSetConvergenceTest(NEP nep,PetscErrorCode (*func)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  nep->conv_func = func;
-  nep->conv_ctx  = ctx;
-  nep->conv_dest = destroy;
+  if (nep->convergeddestroy) {
+    ierr = (*nep->convergeddestroy)(nep->convergedctx);CHKERRQ(ierr);
+  }
+  nep->converged        = func;
+  nep->convergeddestroy = destroy;
+  nep->convergedctx     = ctx;
   PetscFunctionReturn(0);
 }
 

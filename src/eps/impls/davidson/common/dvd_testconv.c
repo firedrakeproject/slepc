@@ -88,8 +88,7 @@ PetscBool dvd_testconv_slepc_0(dvdDashboard *d, PetscScalar eigvr,
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-  ierr = (*d->eps->conv_func)(d->eps, eigvr, eigvi, r, err,
-                              d->eps->conv_ctx);
+  ierr = (*d->eps->converged)(d->eps, eigvr, eigvi, r, err, d->eps->convergedctx);
   CHKERRABORT(PetscObjectComm((PetscObject)d->eps), ierr);
   PetscFunctionReturn(*err<d->eps->tol ? PETSC_TRUE : PETSC_FALSE);
 }

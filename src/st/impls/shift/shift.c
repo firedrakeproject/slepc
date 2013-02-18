@@ -195,7 +195,7 @@ PetscErrorCode STCreate_Shift(ST st)
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->applytrans      = STApplyTranspose_Shift;
   st->ops->postsolve       = STPostSolve_Shift;
-  st->ops->backtr          = STBackTransform_Shift;
+  st->ops->backtransform   = STBackTransform_Shift;
   st->ops->setfromoptions  = STSetFromOptions_Shift;
   st->ops->setup           = STSetUp_Shift;
   st->ops->setshift        = STSetShift_Shift;

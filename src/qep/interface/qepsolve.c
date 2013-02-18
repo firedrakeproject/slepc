@@ -25,8 +25,8 @@
 #include <petscdraw.h>
 
 typedef struct {
-  PetscErrorCode (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-  void *which_ctx;
+  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+  void *comparisonctx;
   ST st;
 } QEPSortForSTData;
 
@@ -41,7 +41,7 @@ PetscErrorCode QEPSortForSTFunc(PetscScalar ar,PetscScalar ai,
   PetscFunctionBegin;
   ierr = STBackTransform(data->st,1,&ar,&ai);CHKERRQ(ierr);
   ierr = STBackTransform(data->st,1,&br,&bi);CHKERRQ(ierr);
-  ierr = (*data->which_func)(ar,ai,br,bi,r,data->which_ctx);CHKERRQ(ierr);
+  ierr = (*data->comparison)(ar,ai,br,bi,r,data->comparisonctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -85,7 +85,7 @@ PetscErrorCode QEPSolve(QEP qep)
   /* call setup */
   ierr = QEPSetUp(qep);CHKERRQ(ierr);
   qep->nconv = 0;
-  qep->its = 0;
+  qep->its   = 0;
   for (i=0;i<qep->ncv;i++) {
     qep->eigr[i]   = 0.0;
     qep->eigi[i]   = 0.0;
@@ -96,13 +96,13 @@ PetscErrorCode QEPSolve(QEP qep)
   ierr = PetscObjectTypeCompare((PetscObject)qep,QEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
     /* temporarily change eigenvalue comparison function */
-    data.which_func = qep->which_func;
-    data.which_ctx = qep->which_ctx;
-    data.st = qep->st;
-    qep->which_func = QEPSortForSTFunc;
-    qep->which_ctx = &data;
+    data.comparison    = qep->comparison;
+    data.comparisonctx = qep->comparisonctx;
+    data.st            = qep->st;
+    qep->comparison    = QEPSortForSTFunc;
+    qep->comparisonctx = &data;
   }
-  ierr = DSSetEigenvalueComparison(qep->ds,qep->which_func,qep->which_ctx);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(qep->ds,qep->comparison,qep->comparisonctx);CHKERRQ(ierr);
 
   ierr = (*qep->ops->solve)(qep);CHKERRQ(ierr);
   if (!islinear) {
@@ -113,8 +113,8 @@ PetscErrorCode QEPSolve(QEP qep)
 
   if (!islinear) {
     /* restore comparison function */
-    qep->which_func = data.which_func;
-    qep->which_ctx = data.which_ctx;
+    qep->comparison    = data.comparison;
+    qep->comparisonctx = data.comparisonctx;
     /* Map eigenvalues back to the original problem */
     ierr = STBackTransform(qep->st,qep->nconv,qep->eigr,qep->eigi);CHKERRQ(ierr);
   }
@@ -704,8 +704,8 @@ PetscErrorCode QEPCompareEigenvalues(QEP qep,PetscScalar ar,PetscScalar ai,Petsc
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);  
   PetscValidIntPointer(result,6);
-  if (!qep->which_func) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
-  ierr = (*qep->which_func)(ar,ai,br,bi,result,qep->which_ctx);CHKERRQ(ierr);
+  if (!qep->comparison) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
+  ierr = (*qep->comparison)(ar,ai,br,bi,result,qep->comparisonctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

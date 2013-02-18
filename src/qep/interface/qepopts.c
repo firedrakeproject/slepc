@@ -713,8 +713,8 @@ extern PetscErrorCode QEPSetConvergenceTest(QEP qep,PetscErrorCode (*func)(QEP,P
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  qep->conv_func = func;
-  qep->conv_ctx = ctx;
+  qep->converged    = func;
+  qep->convergedctx = ctx;
   PetscFunctionReturn(0);
 }
 

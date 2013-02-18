@@ -78,7 +78,7 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
-  if (eps->arbit_func) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   /* Set STPrecond as the default ST */
   if (!((PetscObject)eps->st)->type_name) {
     ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
@@ -183,7 +183,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         ierr = VecWAXPY(ctx->G[i-eps->nconv],-eps->eigr[i],eps->V[i],ctx->AV[i-eps->nconv]);CHKERRQ(ierr);
       }
       ierr = VecNorm(ctx->G[i-eps->nconv],NORM_2,&resnorm);CHKERRQ(ierr);
-      ierr = (*eps->conv_func)(eps,eps->eigr[i],0.0,resnorm,&eps->errest[i],eps->conv_ctx);CHKERRQ(ierr);
+      ierr = (*eps->converged)(eps,eps->eigr[i],0.0,resnorm,&eps->errest[i],eps->convergedctx);CHKERRQ(ierr);
       if (k==-1 && eps->errest[i] >= eps->tol) k = i;
     }
     if (k==-1) k = nv;

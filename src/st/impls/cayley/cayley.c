@@ -406,7 +406,7 @@ PetscErrorCode STCreate_Cayley(ST st)
   st->ops->getbilinearform = STGetBilinearForm_Cayley;
   st->ops->applytrans      = STApplyTranspose_Cayley;
   st->ops->postsolve       = STPostSolve_Cayley;
-  st->ops->backtr          = STBackTransform_Cayley;
+  st->ops->backtransform   = STBackTransform_Cayley;
   st->ops->setfromoptions  = STSetFromOptions_Cayley;
   st->ops->setup           = STSetUp_Cayley;
   st->ops->setshift        = STSetShift_Cayley;

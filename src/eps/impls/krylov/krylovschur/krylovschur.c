@@ -68,7 +68,7 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
     else Zi = NULL;
     ierr = EPSComputeRitzVector(eps,Zr,Zi,eps->V,n,xr,xi);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-    ierr = (*eps->arbit_func)(re,im,xr,xi,rr+i,ri+i,eps->arbit_ctx);CHKERRQ(ierr);    
+    ierr = (*eps->arbitrary)(re,im,xr,xi,rr+i,ri+i,eps->arbitraryctx);CHKERRQ(ierr);    
   }
   PetscFunctionReturn(0);
 }
@@ -87,7 +87,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   if (eps->which==EPS_ALL) {
     if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Must define a computational interval when using EPS_ALL"); 
     if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems"); 
-    if (eps->arbit_func) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
+    if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
     if (!((PetscObject)(eps->st))->type_name) { /* default to shift-and-invert */
       ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
     }
@@ -108,7 +108,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     eps->ops->backtransform = NULL;
   }
 
-  if (eps->isgeneralized && eps->ishermitian && !eps->ispositive && eps->arbit_func) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not implemented for indefinite problems");
+  if (eps->isgeneralized && eps->ishermitian && !eps->ispositive && eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not implemented for indefinite problems");
 
   /* proceed with the general case */
   if (eps->ncv) { /* ncv set */
@@ -139,7 +139,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   if (!ctx->keep) ctx->keep = 0.5;
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  if (eps->arbit_func) {
+  if (eps->arbitrary) {
     ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
   } else {
     ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
@@ -210,7 +210,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
   if (harmonic) { ierr = PetscMalloc(ld*sizeof(PetscScalar),&g);CHKERRQ(ierr); }
-  if (eps->arbit_func) pj = &j;
+  if (eps->arbitrary) pj = &j;
   else pj = NULL;
 
   /* Get the starting Arnoldi vector */
@@ -241,7 +241,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 
     /* Solve projected problem */ 
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    if (eps->arbit_func) {
+    if (eps->arbitrary) {
       ierr = EPSGetArbitraryValues(eps,eps->rr,eps->ri);CHKERRQ(ierr);
       j=1;
     }

@@ -399,7 +399,7 @@ PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscReal      *d;
 
   PetscFunctionBegin;
-  if (!ds->comp_fun) PetscFunctionReturn(0);
+  if (!ds->comparison) PetscFunctionReturn(0);
   n = ds->n;
   l = ds->l;
   A  = ds->mat[DS_MAT_A];

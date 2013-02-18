@@ -31,13 +31,13 @@ PETSC_EXTERN PetscLogEvent     NEP_SetUp,NEP_Solve,NEP_Dense,NEP_FunctionEval,NE
 typedef struct _NEPOps *NEPOps;
 
 struct _NEPOps {
-  PetscErrorCode  (*solve)(NEP);
-  PetscErrorCode  (*setup)(NEP);
-  PetscErrorCode  (*setfromoptions)(NEP);
-  PetscErrorCode  (*publishoptions)(NEP);
-  PetscErrorCode  (*destroy)(NEP);
-  PetscErrorCode  (*reset)(NEP);
-  PetscErrorCode  (*view)(NEP,PetscViewer);
+  PetscErrorCode (*solve)(NEP);
+  PetscErrorCode (*setup)(NEP);
+  PetscErrorCode (*setfromoptions)(NEP);
+  PetscErrorCode (*publishoptions)(NEP);
+  PetscErrorCode (*destroy)(NEP);
+  PetscErrorCode (*reset)(NEP);
+  PetscErrorCode (*view)(NEP,PetscViewer);
 };
 
 /*
@@ -63,21 +63,21 @@ struct _p_NEP {
   PetscReal      ktol;             /* tolerance for linear solver */
   PetscBool      cctol;            /* constant correction tolerance */
   PetscReal      ttol;             /* tolerance used in the convergence criterion */
-  PetscErrorCode (*conv_func)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
-  void           *conv_ctx;
-  PetscErrorCode (*conv_dest)(void*);
-  NEPWhich       which;            /* which part of the spectrum to be sought */
-  PetscErrorCode (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-  void           *which_ctx;
   PetscBool      trackall;         /* whether all the residuals must be computed */
+  NEPWhich       which;            /* which part of the spectrum to be sought */
 
+  /*-------------- User-provided functions and contexts -----------------*/
+  PetscErrorCode (*computefunction)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
+  PetscErrorCode (*computejacobian)(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*);
+  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+  PetscErrorCode (*converged)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
+  PetscErrorCode (*convergeddestroy)(void*);
+  void           *comparisonctx;
+  void           *convergedctx;
   Mat            function,function_pre;
-  PetscErrorCode (*fun_func)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
-  void           *fun_ctx;
-
-  Mat            jacobian,jacobian_pre;
-  PetscErrorCode (*jac_func)(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*);
-  void           *jac_ctx;
+  void           *functionctx;
+  Mat            jacobian;
+  void           *jacobianctx;
 
   /*------------------------- Working data --------------------------*/
   Vec            *V;               /* set of basis vectors and computed eigenvectors */

@@ -22,7 +22,6 @@
 #include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
-
 #undef __FUNCT__  
 #define __FUNCT__ "DSAllocate_GHEP"
 PetscErrorCode DSAllocate_GHEP(DS ds,PetscInt ld)
@@ -142,7 +141,7 @@ PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscScalar    *A;
   
   PetscFunctionBegin;
-  if (!ds->comp_fun) PetscFunctionReturn(0);
+  if (!ds->comparison) PetscFunctionReturn(0);
   n = ds->n;
   l = ds->l;
   A  = ds->mat[DS_MAT_A];

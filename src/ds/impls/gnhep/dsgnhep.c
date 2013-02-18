@@ -281,7 +281,7 @@ PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Pets
   PetscScalar    *S = ds->mat[DS_MAT_A],*T = ds->mat[DS_MAT_B],*Q = ds->mat[DS_MAT_Q],*Z = ds->mat[DS_MAT_Z],*work,*beta;
 
   PetscFunctionBegin;
-  if (!ds->comp_fun) PetscFunctionReturn(0);
+  if (!ds->comparison) PetscFunctionReturn(0);
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
@@ -339,7 +339,7 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
-  if (!ds->comp_fun) PetscFunctionReturn(0);
+  if (!ds->comparison) PetscFunctionReturn(0);
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
@@ -364,9 +364,9 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
     /* find minimum eigenvalue */
     for (;j<n;j++) { 
 #if !defined(PETSC_USE_COMPLEX)
-      ierr = (*ds->comp_fun)(re,im,wr[j],wi[j],&result,ds->comp_ctx);CHKERRQ(ierr);
+      ierr = (*ds->comparison)(re,im,wr[j],wi[j],&result,ds->comparisonctx);CHKERRQ(ierr);
 #else
-      ierr = (*ds->comp_fun)(re,0.0,wr[j],0.0,&result,ds->comp_ctx);CHKERRQ(ierr);
+      ierr = (*ds->comparison)(re,0.0,wr[j],0.0,&result,ds->comparisonctx);CHKERRQ(ierr);
 #endif
       if (result > 0) {
         re = wr[j];

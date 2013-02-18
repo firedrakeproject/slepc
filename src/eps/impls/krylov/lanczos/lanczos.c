@@ -82,7 +82,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
-  if (eps->arbit_func) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_SELECTIVE) {
@@ -647,7 +647,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     ierr = DSGetArray(eps->ds,DS_MAT_Q,&Y);CHKERRQ(ierr);
     for (i=nconv;i<n;i++) {
       resnorm = beta*PetscAbsScalar(Y[n-1+i*ld]) + PETSC_MACHINE_EPSILON*anorm;
-      ierr = (*eps->conv_func)(eps,ritz[i],eps->eigi[i],resnorm,&bnd[i],eps->conv_ctx);CHKERRQ(ierr);
+      ierr = (*eps->converged)(eps,ritz[i],eps->eigi[i],resnorm,&bnd[i],eps->convergedctx);CHKERRQ(ierr);
       if (bnd[i]<eps->tol) conv[i] = 'C';
       else conv[i] = 'N';
     }
@@ -671,7 +671,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
       } else {
         for (i=restart+1;i<n;i++)
           if (conv[i] == 'N') {
-            ierr = (*eps->which_func)(ritz[restart],0.0,ritz[i],0.0,&r,eps->which_ctx);CHKERRQ(ierr);
+            ierr = (*eps->comparison)(ritz[restart],0.0,ritz[i],0.0,&r,eps->comparisonctx);CHKERRQ(ierr);
             if (r>0) restart = i;
           }
         ierr = DSGetArray(eps->ds,DS_MAT_Q,&Y);CHKERRQ(ierr);
@@ -721,7 +721,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
         ierr = STApply(eps->st,eps->V[i],w);CHKERRQ(ierr);
         ierr = VecAXPY(w,-ritz[i],eps->V[i]);CHKERRQ(ierr);
         ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
-        ierr = (*eps->conv_func)(eps,ritz[i],eps->eigi[i],norm,&bnd[i],eps->conv_ctx);CHKERRQ(ierr);
+        ierr = (*eps->converged)(eps,ritz[i],eps->eigi[i],norm,&bnd[i],eps->convergedctx);CHKERRQ(ierr);
         if (bnd[i]>=eps->tol) conv[i] = 'S';
       }
       for (i=nconv;i<k;i++)

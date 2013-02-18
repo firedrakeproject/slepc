@@ -69,7 +69,7 @@ PetscErrorCode NEPSolve(NEP nep)
   nep->ktol = 0.1;
   ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nep->ncv);CHKERRQ(ierr);
 
-  ierr = DSSetEigenvalueComparison(nep->ds,nep->which_func,nep->which_ctx);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(nep->ds,nep->comparison,nep->comparisonctx);CHKERRQ(ierr);
 
   ierr = (*nep->ops->solve)(nep);CHKERRQ(ierr);
 
@@ -618,8 +618,8 @@ PetscErrorCode NEPCompareEigenvalues(NEP nep,PetscScalar ar,PetscScalar ai,Petsc
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);  
   PetscValidIntPointer(result,6);
-  if (!nep->which_func) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
-  ierr = (*nep->which_func)(ar,ai,br,bi,result,nep->which_ctx);CHKERRQ(ierr);
+  if (!nep->comparison) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
+  ierr = (*nep->comparison)(ar,ai,br,bi,result,nep->comparisonctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -696,13 +696,13 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(flg,6);
 
-  if (!nep->fun_func) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetFunction() first");
+  if (!nep->computefunction) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetFunction() first");
 
   *flg = DIFFERENT_NONZERO_PATTERN;
   ierr = PetscLogEventBegin(NEP_FunctionEval,nep,*A,*B,0);CHKERRQ(ierr);
 
   PetscStackPush("NEP user Function function");
-  ierr = (*nep->fun_func)(nep,wr,wi,A,B,flg,nep->fun_ctx);CHKERRQ(ierr);
+  ierr = (*nep->computefunction)(nep,wr,wi,A,B,flg,nep->functionctx);CHKERRQ(ierr);
   PetscStackPop;
 
   ierr = PetscLogEventEnd(NEP_FunctionEval,nep,*A,*B,0);CHKERRQ(ierr);
@@ -742,13 +742,13 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(flg,5);
 
-  if (!nep->jac_func) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetJacobian() first");
+  if (!nep->computejacobian) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetJacobian() first");
 
   *flg = DIFFERENT_NONZERO_PATTERN;
   ierr = PetscLogEventBegin(NEP_JacobianEval,nep,*A,0,0);CHKERRQ(ierr);
 
   PetscStackPush("NEP user Jacobian function");
-  ierr = (*nep->jac_func)(nep,wr,wi,A,flg,nep->jac_ctx);CHKERRQ(ierr);
+  ierr = (*nep->computejacobian)(nep,wr,wi,A,flg,nep->jacobianctx);CHKERRQ(ierr);
   PetscStackPop;
 
   ierr = PetscLogEventEnd(NEP_JacobianEval,nep,*A,0,0);CHKERRQ(ierr);

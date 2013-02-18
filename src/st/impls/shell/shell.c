@@ -30,7 +30,7 @@ typedef struct {
   void           *ctx;                       /* user provided context */
   PetscErrorCode (*apply)(ST,Vec,Vec);
   PetscErrorCode (*applytrans)(ST,Vec,Vec);
-  PetscErrorCode (*backtr)(ST,PetscInt n,PetscScalar*,PetscScalar*);
+  PetscErrorCode (*backtransform)(ST,PetscInt n,PetscScalar*,PetscScalar*);
 } ST_Shell;
 EXTERN_C_END
 
@@ -143,10 +143,10 @@ PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscSca
   ST_Shell       *shell = (ST_Shell*)st->data;
 
   PetscFunctionBegin;
-  if (shell->backtr) {
+  if (shell->backtransform) {
     PetscStackPush("STSHELL backtransform() user function");
     CHKMEMQ;
-    ierr = (*shell->backtr)(st,n,eigr,eigi);CHKERRQ(ierr);
+    ierr = (*shell->backtransform)(st,n,eigr,eigi);CHKERRQ(ierr);
     CHKMEMQ;
     PetscStackPop;
   }
@@ -201,7 +201,7 @@ PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backtr)(ST,P
   ST_Shell *shell = (ST_Shell*)st->data;
 
   PetscFunctionBegin;
-  shell->backtr = backtr;
+  shell->backtransform = backtr;
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
@@ -291,7 +291,7 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Ve
 
    Calling sequence of backtr:
 .vb
-   PetscErrorCode backtr (ST st,PetscScalar *eigr,PetscScalar *eigi)
+   PetscErrorCode backtr(ST st,PetscScalar *eigr,PetscScalar *eigi)
 .ve
 
 +  st   - the spectral transformation context
@@ -370,7 +370,7 @@ PetscErrorCode STCreate_Shell(ST st)
   ierr = PetscNewLog(st,ST_Shell,&st->data);CHKERRQ(ierr);
   st->ops->apply          = STApply_Shell;
   st->ops->applytrans     = STApplyTranspose_Shell;
-  st->ops->backtr         = STBackTransform_Shell;
+  st->ops->backtransform  = STBackTransform_Shell;
   st->ops->setfromoptions = STSetFromOptions_Shell;
   st->ops->destroy        = STDestroy_Shell;
   ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STShellSetApply_C","STShellSetApply_Shell",STShellSetApply_Shell);CHKERRQ(ierr);

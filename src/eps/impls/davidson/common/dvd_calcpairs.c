@@ -102,7 +102,7 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
                                                 /* cS?, cT? */
                    FromRealToScalar(d->size_real_V)*(ind_probl?1:0) + /* nBV */
                    FromRealToScalar(b->max_size_proj)*(ind_probl?1:0) + /* nBpX */
-                   (d->eps->arbit_func? b->size_V*2 : 0); /* rr, ri */
+                   (d->eps->arbitrary? b->size_V*2 : 0); /* rr, ri */
   b->max_size_auxV = PetscMax(b->max_size_auxV, b->max_size_X);
                                                 /* updateV0 */
   max_cS = PetscMax(b->max_size_X,cX_proj);
@@ -180,7 +180,7 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
       d->cT = NULL;
       d->ldcT = 0;
     }
-    if (d->eps->arbit_func) {
+    if (d->eps->arbitrary) {
       d->eps->rr = b->free_scalars; b->free_scalars+= b->size_V;
       d->eps->ri = b->free_scalars; b->free_scalars+= b->size_V;
     } else {
@@ -686,14 +686,14 @@ PetscErrorCode dvd_calcpairs_apply_arbitrary_func(dvdDashboard *d,PetscInt r_s,P
   
   PetscFunctionBegin;
   /* Quick exit without neither arbitrary selection nor harmonic extraction */
-  if (!d->eps->arbit_func && !d->calcpairs_eig_backtrans) {
+  if (!d->eps->arbitrary && !d->calcpairs_eig_backtrans) {
     *rr_ = d->eigr-d->cX_in_H;
     *ri_ = d->eigi-d->cX_in_H;
     PetscFunctionReturn(0);
   }
 
   /* Quick exit without arbitrary selection, but with harmonic extraction */
-  if (!d->eps->arbit_func && d->calcpairs_eig_backtrans) {
+  if (!d->eps->arbitrary && d->calcpairs_eig_backtrans) {
     *rr_ = rr = d->auxS;
     *ri_ = ri = d->auxS+r_e-r_s;
     for (i=r_s; i<r_e; i++) {
@@ -736,7 +736,7 @@ PetscErrorCode dvd_calcpairs_apply_arbitrary_func(dvdDashboard *d,PetscInt r_s,P
       ar = d->eigr[i];
       ai = d->eigi[i];
     }
-    ierr = (d->eps->arbit_func)(ar,ai,xr,xi,&rr[i-r_s],&ri[i-r_s],d->eps->arbit_ctx);CHKERRQ(ierr);
+    ierr = (d->eps->arbitrary)(ar,ai,xr,xi,&rr[i-r_s],&ri[i-r_s],d->eps->arbitraryctx);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
     if (i != k) {
       rr[i+1-r_s] = rr[i-r_s];

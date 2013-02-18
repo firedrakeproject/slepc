@@ -419,8 +419,8 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (st->ops->backtr) {
-    ierr = (*st->ops->backtr)(st,n,eigr,eigi);CHKERRQ(ierr);
+  if (st->ops->backtransform) {
+    ierr = (*st->ops->backtransform)(st,n,eigr,eigi);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
