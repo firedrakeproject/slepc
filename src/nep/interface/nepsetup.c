@@ -107,7 +107,6 @@ PetscErrorCode NEPSetUp(NEP nep)
   /* set problem dimensions */
   ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = NEPComputeFunction(nep,sigma,0.0,&T,&T,&mats);CHKERRQ(ierr);
-  ierr = KSPSetOperators(nep->ksp,T,T,mats);CHKERRQ(ierr);
   ierr = VecDestroy(&nep->t);CHKERRQ(ierr);
   ierr = MatGetVecs(T,&nep->t,NULL);CHKERRQ(ierr);
   ierr = VecGetSize(nep->t,&nep->n);CHKERRQ(ierr);

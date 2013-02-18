@@ -51,6 +51,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   PetscInt         i,j,k;
   PetscViewer      monviewer;
   SlepcConvMonitor ctx;
+  MatStructure     matflag;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -167,6 +168,8 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(nep->ds);CHKERRQ(ierr);
   if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
+  ierr = KSPGetOperators(nep->ksp,NULL,NULL,&matflag);CHKERRQ(ierr);
+  ierr = KSPSetOperators(nep->ksp,nep->function,nep->function_pre,matflag);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(nep->ksp);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(nep->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);

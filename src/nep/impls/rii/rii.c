@@ -106,7 +106,9 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 
     /* update preconditioner and set adaptive tolerance */
     if (nep->lag && !(nep->its%nep->lag) && nep->its>2*nep->lag && relerr<1e-2) {
-      ierr = KSPSetOperators(nep->ksp,T,T,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+      ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
+      ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
+      ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
     }
     if (!nep->cctol) {
       nep->ktol = PetscMax(nep->ktol/2.0,PETSC_MACHINE_EPSILON*10.0);
