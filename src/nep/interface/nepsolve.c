@@ -130,6 +130,21 @@ PetscErrorCode NEPSolve(NEP nep)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "NEP_KSPSolve"
+PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
+{
+  PetscErrorCode ierr;
+  PetscInt       lits;
+
+  PetscFunctionBegin;
+  ierr = KSPSolve(nep->ksp,b,x);CHKERRQ(ierr);
+  ierr = KSPGetIterationNumber(nep->ksp,&lits);CHKERRQ(ierr);
+  nep->linits += lits;
+  ierr = PetscInfo2(nep,"iter=%D, linear solve iterations=%D\n",nep->its,lits);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "NEPGetIterationNumber"
 /*@
    NEPGetIterationNumber - Gets the current iteration number. If the 
@@ -706,6 +721,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
   PetscStackPop;
 
   ierr = PetscLogEventEnd(NEP_FunctionEval,nep,*A,*B,0);CHKERRQ(ierr);
+  nep->nfuncs++;
   PetscFunctionReturn(0);
 }
 

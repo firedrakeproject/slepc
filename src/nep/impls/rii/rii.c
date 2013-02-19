@@ -138,7 +138,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 
     if (!nep->nconv) {
       /* eigenvector correction: delta = T(sigma)\r */
-      ierr = KSPSolve(nep->ksp,r,delta);CHKERRQ(ierr);
+      ierr = NEP_KSPSolve(nep,r,delta);CHKERRQ(ierr);
 
       /* update eigenvector: u = u - delta */
       ierr = VecAXPY(u,-1.0,delta);CHKERRQ(ierr);

@@ -95,7 +95,9 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (nep->abstol==PETSC_DEFAULT) nep->abstol = 1e-50;
   if (nep->rtol==PETSC_DEFAULT) nep->rtol = 100*SLEPC_DEFAULT_TOL;
   if (nep->stol==PETSC_DEFAULT) nep->stol = SLEPC_DEFAULT_TOL;
-  nep->ktol = 0.1;
+  nep->ktol   = 0.1;
+  nep->nfuncs = 0;
+  nep->linits = 0;
 
   /* set eigenvalue comparison */
   switch (nep->which) {
