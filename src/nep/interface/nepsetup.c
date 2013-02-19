@@ -49,10 +49,8 @@ PetscErrorCode NEPSetUp(NEP nep)
   PetscErrorCode ierr;
   PetscInt       i,k;
   PetscBool      lindep;
-  PetscScalar    sigma=0.0;
   PetscReal      norm;
   Mat            T;
-  MatStructure   mats;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -82,31 +80,9 @@ PetscErrorCode NEPSetUp(NEP nep)
   /* by default, compute eigenvalues close to target */
   /* nep->target should contain the initial guess for the eigenvalue */
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
-  switch (nep->which) {
-    case NEP_LARGEST_MAGNITUDE:
-    case NEP_LARGEST_IMAGINARY:
-      sigma = 1.0;   /* arbitrary value */
-      break;
-    case NEP_SMALLEST_MAGNITUDE:
-    case NEP_SMALLEST_IMAGINARY:
-      sigma = 0.0;
-      break;
-    case NEP_LARGEST_REAL:
-      sigma = PETSC_MAX_REAL;
-      break;
-    case NEP_SMALLEST_REAL:
-      sigma = PETSC_MIN_REAL;
-      break;
-    case NEP_TARGET_MAGNITUDE:
-    case NEP_TARGET_REAL:
-    case NEP_TARGET_IMAGINARY:
-      sigma = nep->target;
-      break;
-  }
 
   /* set problem dimensions */
   ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = NEPComputeFunction(nep,sigma,0.0,&T,&T,&mats);CHKERRQ(ierr);
   ierr = VecDestroy(&nep->t);CHKERRQ(ierr);
   ierr = MatGetVecs(T,&nep->t,NULL);CHKERRQ(ierr);
   ierr = VecGetSize(nep->t,&nep->n);CHKERRQ(ierr);
@@ -119,6 +95,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (nep->abstol==PETSC_DEFAULT) nep->abstol = 1e-50;
   if (nep->rtol==PETSC_DEFAULT) nep->rtol = 100*SLEPC_DEFAULT_TOL;
   if (nep->stol==PETSC_DEFAULT) nep->stol = SLEPC_DEFAULT_TOL;
+  nep->ktol = 0.1;
 
   /* set eigenvalue comparison */
   switch (nep->which) {
@@ -162,9 +139,6 @@ PetscErrorCode NEPSetUp(NEP nep)
 
   if (nep->ncv > 2*nep->n) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
   if (nep->nev > nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
-
-  /* Setup KSP */
-  ierr = KSPSetUp(nep->ksp);CHKERRQ(ierr);
 
   /* process initial vectors */
   if (nep->nini<0) {

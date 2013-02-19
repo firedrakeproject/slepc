@@ -58,6 +58,39 @@ PetscErrorCode NEPDefaultFreeWork(NEP nep)
 }
 
 #undef __FUNCT__  
+#define __FUNCT__ "NEPGetDefaultShift"
+/*
+  NEPGetDefaultShift - Return the value of sigma to start the nonlinear iteration.
+ */
+PetscErrorCode NEPGetDefaultShift(NEP nep,PetscScalar *sigma)
+{
+  PetscFunctionBegin;
+  PetscValidPointer(sigma,2);
+  switch (nep->which) {
+    case NEP_LARGEST_MAGNITUDE:
+    case NEP_LARGEST_IMAGINARY:
+      *sigma = 1.0;   /* arbitrary value */
+      break;
+    case NEP_SMALLEST_MAGNITUDE:
+    case NEP_SMALLEST_IMAGINARY:
+      *sigma = 0.0;
+      break;
+    case NEP_LARGEST_REAL:
+      *sigma = PETSC_MAX_REAL;
+      break;
+    case NEP_SMALLEST_REAL:
+      *sigma = PETSC_MIN_REAL;
+      break;
+    case NEP_TARGET_MAGNITUDE:
+    case NEP_TARGET_REAL:
+    case NEP_TARGET_IMAGINARY:
+      *sigma = nep->target;
+      break;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
 #define __FUNCT__ "NEPConvergedDefault"
 /*
   NEPConvergedDefault - Checks convergence of the nonlinear eigensolver.

@@ -115,6 +115,7 @@ PETSC_EXTERN PetscErrorCode NEPMonitor(NEP,PetscInt,PetscInt,PetscScalar*,PetscS
 
 PETSC_EXTERN PetscErrorCode NEPDefaultGetWork(NEP,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPDefaultFreeWork(NEP);
+PETSC_EXTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
 PETSC_EXTERN PetscErrorCode NEPAllocateSolution(NEP);
 PETSC_EXTERN PetscErrorCode NEPFreeSolution(NEP);
 PETSC_EXTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);

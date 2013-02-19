@@ -74,31 +74,30 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   PetscErrorCode ierr;
   Mat            T=nep->function,Tp=nep->jacobian,Tsigma;
   Vec            u=nep->V[0],r=nep->work[0],delta=nep->work[1];
-  PetscScalar    sigma,lambda,a1,a2;
+  PetscScalar    lambda,a1,a2;
   PetscReal      relerr;
+  PetscBool      hascopy;
   MatStructure   mats;
 
   PetscFunctionBegin;
-  /* Random start vector if not provided by user */
+  /* get initial approximation of eigenvalue and eigenvector */
+  ierr = NEPGetDefaultShift(nep,&lambda);CHKERRQ(ierr);
   if (!nep->nini) {
     ierr = SlepcVecSetRandom(u,nep->rand);CHKERRQ(ierr);
   }
   
-  /* correct eigenvalue approximation: lambda = sigma - (u'*T*u)/(u'*Tp*u) */
-  sigma = nep->target;
-// consider cases other than target
-  ierr = NEPComputeFunction(nep,sigma,0,&T,&T,&mats);CHKERRQ(ierr);
-// reuse T
-  ierr = NEPComputeJacobian(nep,sigma,0,&Tp,&mats);CHKERRQ(ierr);
+  /* correct eigenvalue approximation: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
+  ierr = NEPComputeFunction(nep,lambda,0,&T,&T,&mats);CHKERRQ(ierr);
+  ierr = NEPComputeJacobian(nep,lambda,0,&Tp,&mats);CHKERRQ(ierr);
   ierr = MatMult(T,u,r);CHKERRQ(ierr);
   ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
   ierr = MatMult(Tp,u,r);CHKERRQ(ierr);
   ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
-  lambda = sigma - a1/a2;
+  lambda = lambda - a1/a2;
   
   /* prepare linear solver */
   ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
-  ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
 
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
@@ -106,9 +105,14 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 
     /* update preconditioner and set adaptive tolerance */
     if (nep->lag && !(nep->its%nep->lag) && nep->its>2*nep->lag && relerr<1e-2) {
-      ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
-      ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
-      ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+      ierr = MatHasOperation(T,MATOP_COPY,&hascopy);CHKERRQ(ierr);
+      if (hascopy) {
+        ierr = MatCopy(T,Tsigma,mats);CHKERRQ(ierr);
+      } else {
+        ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
+        ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
+      }
+      ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma,mats);CHKERRQ(ierr);
     }
     if (!nep->cctol) {
       nep->ktol = PetscMax(nep->ktol/2.0,PETSC_MACHINE_EPSILON*10.0);
@@ -139,7 +143,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       /* update eigenvector: u = u - delta */
       ierr = VecAXPY(u,-1.0,delta);CHKERRQ(ierr);
 
-      /* normalize eigenvector: u = u / max(abs(u)) */
+      /* normalize eigenvector */
       ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
 
       /* correct eigenvalue: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
