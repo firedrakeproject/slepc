@@ -53,6 +53,7 @@
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscBool      flg
+      PetscScalar    one
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -80,10 +81,11 @@
       call MatSetUp(A,ierr)
 
       call MatGetOwnershipRange(A,Istart,Iend,ierr)
+      one = 1.0
       do i=Istart,Iend-1
         if (i .eq. 0) then
           do j=0,n-1
-            call MatSetValue(A,i,j,1.d0,INSERT_VALUES,ierr)
+            call MatSetValue(A,i,j,one,INSERT_VALUES,ierr)
           end do
         else
           call MatSetValue(A,i,i-1,mu,INSERT_VALUES,ierr)

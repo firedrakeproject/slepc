@@ -63,6 +63,7 @@
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscBool      flg
+      PetscScalar    one, mone, four
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -92,22 +93,24 @@
       call MatSetFromOptions(K,ierr)
       call MatSetUp(K,ierr)
       call MatGetOwnershipRange(K,Istart,Iend,ierr)
+      mone = -1.0
+      four = 4.0
       do II=Istart,Iend-1
         i = II/nx
         j = II-i*nx
         if (i .gt. 0) then 
-          call MatSetValue(K,II,II-nx,-1.D0,INSERT_VALUES,ierr)
+          call MatSetValue(K,II,II-nx,mone,INSERT_VALUES,ierr)
         endif
         if (i .lt. ny-1) then 
-          call MatSetValue(K,II,II+nx,-1.D0,INSERT_VALUES,ierr)
+          call MatSetValue(K,II,II+nx,mone,INSERT_VALUES,ierr)
         endif
         if (j .gt. 0) then 
-          call MatSetValue(K,II,II-1,-1.D0,INSERT_VALUES,ierr)
+          call MatSetValue(K,II,II-1,mone,INSERT_VALUES,ierr)
         endif
         if (j .lt. nx-1) then 
-          call MatSetValue(K,II,II+1,-1.D0,INSERT_VALUES,ierr)
+          call MatSetValue(K,II,II+1,mone,INSERT_VALUES,ierr)
         endif
-        call MatSetValue(K,II,II,4.D0,INSERT_VALUES,ierr)
+        call MatSetValue(K,II,II,four,INSERT_VALUES,ierr)
       end do
       call MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY,ierr)
@@ -127,7 +130,8 @@
       call MatSetUp(M,ierr)
       call MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY,ierr)
-      call MatShift(M,1.D0,ierr)
+      one = 1.0
+      call MatShift(M,one,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Create the eigensolver and set various options
