@@ -1,0 +1,35 @@
+svd type cross
+
+SVD of a rectangular Grcar matrix, 35x30
+
+ All requested singular values computed up to the required tolerance:
+     3.22175, 3.21797, 3.16825, 3.15128
+
+svd type cyclic
+
+SVD of a rectangular Grcar matrix, 35x30
+
+ All requested singular values computed up to the required tolerance:
+     3.22175, 3.21797, 3.16825, 3.15128
+
+svd type lanczos
+
+SVD of a rectangular Grcar matrix, 35x30
+
+ All requested singular values computed up to the required tolerance:
+     3.22175, 3.21797, 3.16825, 3.15128
+
+svd type lapack
+
+SVD of a rectangular Grcar matrix, 35x30
+
+ All requested singular values computed up to the required tolerance:
+     3.22175, 3.21797, 3.16825, 3.15128
+
+svd type trlanczos
+
+SVD of a rectangular Grcar matrix, 35x30
+
+ All requested singular values computed up to the required tolerance:
+     3.22175, 3.21797, 3.16825, 3.15128
+

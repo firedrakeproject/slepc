@@ -139,30 +139,36 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   ierr = SVDGetTrackAll(svd,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(cyclic->eps,trackall);CHKERRQ(ierr);
   /* Transfer the initial subspace from svd to eps */
-  if (svd->nini < 0) {
-    for (i=0; i<-svd->nini; i++) {
+  if (svd->nini<0 || svd->ninil<0) {
+    for (i=0;i<-PetscMin(svd->nini,svd->ninil);i++) {
       ierr = MatGetVecs(cyclic->mat,&v,NULL);CHKERRQ(ierr);
       ierr = VecGetArray(v,&va);CHKERRQ(ierr);
-      ierr = VecGetArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);
-      ierr = VecGetSize(svd->IS[i],&isl);CHKERRQ(ierr);
-      if (isl == m) {
+      if (i<-svd->ninil) {
+        ierr = VecGetSize(svd->ISL[i],&isl);CHKERRQ(ierr);
+        if (isl!=m) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size mismatch for left initial vector");
+        ierr = VecGetArrayRead(svd->ISL[i],&isa);CHKERRQ(ierr);
         ierr = PetscMemcpy(va,isa,sizeof(PetscScalar)*m);CHKERRQ(ierr);
-        ierr = PetscMemzero(&va[m],sizeof(PetscScalar)*n);CHKERRQ(ierr);
-      } else if (isl == n) {
-        ierr = PetscMemzero(va,sizeof(PetscScalar)*m);CHKERRQ(ierr);
-        ierr = PetscMemcpy(&va[m],isa,sizeof(PetscScalar)*n);CHKERRQ(ierr);
-      } else SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size of the initial subspace vectors should match to some dimension of A");
+        ierr = VecRestoreArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);
+      } else {
+        ierr = PetscMemzero(&va,sizeof(PetscScalar)*m);CHKERRQ(ierr);
+      }
+      if (i<-svd->nini) {
+        ierr = VecGetSize(svd->IS[i],&isl);CHKERRQ(ierr);
+        if (isl!=n) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size mismatch for right initial vector");
+        ierr = VecGetArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);
+        ierr = PetscMemcpy(va+m,isa,sizeof(PetscScalar)*n);CHKERRQ(ierr);
+        ierr = VecRestoreArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);
+      } else {
+        ierr = PetscMemzero(va+m,sizeof(PetscScalar)*n);CHKERRQ(ierr);
+      }
       ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
-      ierr = VecRestoreArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);
       ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
       svd->IS[i] = v;
+      svd->nini = PetscMin(svd->nini,svd->ninil);
     }
     ierr = EPSSetInitialSpace(cyclic->eps,-svd->nini,svd->IS);CHKERRQ(ierr);
-    for (i=0; i<-svd->nini; i++) {
-      ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(svd->IS);CHKERRQ(ierr);
-    svd->nini = 0;
+    ierr = SlepcBasisDestroy_Private(&svd->nini,&svd->IS);CHKERRQ(ierr);
+    ierr = SlepcBasisDestroy_Private(&svd->ninil,&svd->ISL);CHKERRQ(ierr);
   }
   if (cyclic->setfromoptionscalled) {
     ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);

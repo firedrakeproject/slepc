@@ -100,6 +100,7 @@ PETSC_EXTERN PetscErrorCode SVDGetType(SVD,SVDType*);
 PETSC_EXTERN PetscErrorCode SVDSetOperator(SVD,Mat);
 PETSC_EXTERN PetscErrorCode SVDGetOperator(SVD,Mat*);
 PETSC_EXTERN PetscErrorCode SVDSetInitialSpace(SVD,PetscInt,Vec*);
+PETSC_EXTERN PetscErrorCode SVDSetInitialSpaceLeft(SVD,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode SVDSetTransposeMode(SVD,SVDTransposeMode);
 PETSC_EXTERN PetscErrorCode SVDGetTransposeMode(SVD,SVDTransposeMode*);
 PETSC_EXTERN PetscErrorCode SVDSetDimensions(SVD,PetscInt,PetscInt,PetscInt);

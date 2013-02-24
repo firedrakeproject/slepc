@@ -170,6 +170,9 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     if (svd->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(svd->nini));CHKERRQ(ierr);
     }
+    if (svd->ninil) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %D\n",PetscAbs(svd->ninil));CHKERRQ(ierr);
+    }
   } else {
     if (svd->ops->view) {
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
@@ -308,6 +311,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->U              = NULL;
   svd->V              = NULL;
   svd->IS             = NULL;
+  svd->ISL            = NULL;
   svd->tl             = NULL;
   svd->tr             = NULL;
   svd->rand           = NULL;
@@ -318,6 +322,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->ncv            = 0;    
   svd->mpd            = 0;    
   svd->nini           = 0;
+  svd->ninil          = 0;
   svd->its            = 0;
   svd->max_it         = 0;  
   svd->tol            = PETSC_DEFAULT;    
@@ -407,6 +412,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
   ierr = DSDestroy(&(*svd)->ds);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*svd)->nini,&(*svd)->IS);CHKERRQ(ierr);
+  ierr = SlepcBasisDestroy_Private(&(*svd)->ninil,&(*svd)->ISL);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*svd)->rand);CHKERRQ(ierr);
   ierr = SVDMonitorCancel(*svd);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(svd);CHKERRQ(ierr);
