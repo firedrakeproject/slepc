@@ -47,9 +47,8 @@
 PetscErrorCode QEPSetUp(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k;
-  PetscBool      khas,mhas,lindep,islinear,flg;
-  PetscReal      knorm,mnorm,norm;
+  PetscBool      khas,mhas,islinear,flg;
+  PetscReal      knorm,mnorm;
   Mat            mat[3];
   
   PetscFunctionBegin;
@@ -172,38 +171,14 @@ PetscErrorCode QEPSetUp(QEP qep)
   if (qep->nini<0) {
     qep->nini = -qep->nini;
     if (qep->nini>qep->ncv) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The number of initial vectors is larger than ncv");
-    k = 0;
-    for (i=0;i<qep->nini;i++) {
-      ierr = VecCopy(qep->IS[i],qep->V[k]);CHKERRQ(ierr);
-      ierr = VecDestroy(&qep->IS[i]);CHKERRQ(ierr);
-      ierr = IPOrthogonalize(qep->ip,0,NULL,k,NULL,qep->V,qep->V[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
-      if (norm==0.0 || lindep) { ierr = PetscInfo(qep,"Linearly dependent initial vector found, removing...\n");CHKERRQ(ierr); }
-      else {
-        ierr = VecScale(qep->V[k],1.0/norm);CHKERRQ(ierr);
-        k++;
-      }
-    }
-    qep->nini = k;
-    ierr = PetscFree(qep->IS);CHKERRQ(ierr);
+    ierr = IPOrthonormalizeBasis_Private(qep->ip,&qep->nini,&qep->IS,qep->V);CHKERRQ(ierr);
   }
   if (qep->ninil<0) {
     if (!qep->leftvecs) { ierr = PetscInfo(qep,"Ignoring initial left vectors\n");CHKERRQ(ierr); }
     else {
       qep->ninil = -qep->ninil;
       if (qep->ninil>qep->ncv) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The number of initial left vectors is larger than ncv");
-      k = 0;
-      for (i=0;i<qep->ninil;i++) {
-        ierr = VecCopy(qep->ISL[i],qep->W[k]);CHKERRQ(ierr);
-        ierr = VecDestroy(&qep->ISL[i]);CHKERRQ(ierr);
-        ierr = IPOrthogonalize(qep->ip,0,NULL,k,NULL,qep->W,qep->W[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
-        if (norm==0.0 || lindep) { ierr = PetscInfo(qep,"Linearly dependent initial left vector found, removing...\n");CHKERRQ(ierr); }
-        else {
-          ierr = VecScale(qep->W[k],1.0/norm);CHKERRQ(ierr);
-          k++;
-        }
-      }
-      qep->ninil = k;
-      ierr = PetscFree(qep->ISL);CHKERRQ(ierr);
+      ierr = IPOrthonormalizeBasis_Private(qep->ip,&qep->ninil,&qep->ISL,qep->W);CHKERRQ(ierr);
     }
   }
   ierr = PetscLogEventEnd(QEP_SetUp,qep,0,0,0);CHKERRQ(ierr);
@@ -333,30 +308,13 @@ PetscErrorCode QEPGetOperators(QEP qep,Mat *M,Mat *C,Mat *K)
 PetscErrorCode QEPSetInitialSpace(QEP qep,PetscInt n,Vec *is)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(qep,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
-
-  /* free previous non-processed vectors */
-  if (qep->nini<0) {
-    for (i=0;i<-qep->nini;i++) {
-      ierr = VecDestroy(&qep->IS[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(qep->IS);CHKERRQ(ierr);
-  }
-
-  /* get references of passed vectors */
-  ierr = PetscMalloc(n*sizeof(Vec),&qep->IS);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-    ierr = PetscObjectReference((PetscObject)is[i]);CHKERRQ(ierr);
-    qep->IS[i] = is[i];
-  }
-
-  qep->nini = -n;
-  qep->setupcalled = 0;
+  ierr = SlepcBasisReference_Private(n,is,&qep->nini,&qep->IS);CHKERRQ(ierr);
+  if (n>0) qep->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 
@@ -394,30 +352,13 @@ PetscErrorCode QEPSetInitialSpace(QEP qep,PetscInt n,Vec *is)
 PetscErrorCode QEPSetInitialSpaceLeft(QEP qep,PetscInt n,Vec *is)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(qep,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
-
-  /* free previous non-processed vectors */
-  if (qep->ninil<0) {
-    for (i=0;i<-qep->ninil;i++) {
-      ierr = VecDestroy(&qep->ISL[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(qep->ISL);CHKERRQ(ierr);
-  }
-
-  /* get references of passed vectors */
-  ierr = PetscMalloc(n*sizeof(Vec),&qep->ISL);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-    ierr = PetscObjectReference((PetscObject)is[i]);CHKERRQ(ierr);
-    qep->ISL[i] = is[i];
-  }
-
-  qep->ninil = -n;
-  qep->setupcalled = 0;
+  ierr = SlepcBasisReference_Private(n,is,&qep->ninil,&qep->ISL);CHKERRQ(ierr);
+  if (n>0) qep->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 

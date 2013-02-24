@@ -428,3 +428,34 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "IPOrthonormalizeBasis_Private"
+/*
+   Given m vectors in W, this function transfers them to V while
+   orthonormalizing them with respect to ip.
+   The original vectors in W are destroyed.
+ */
+PetscErrorCode IPOrthonormalizeBasis_Private(IP ip,PetscInt *m,Vec **W,Vec *V)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,k;
+  PetscBool      lindep;
+  PetscReal      norm;
+  
+  PetscFunctionBegin;
+  k = 0;
+  for (i=0;i<*m;i++) {
+    ierr = VecCopy((*W)[i],V[k]);CHKERRQ(ierr);
+    ierr = VecDestroy(&(*W)[i]);CHKERRQ(ierr);
+    ierr = IPOrthogonalize(ip,0,NULL,k,NULL,V,V[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
+    if (norm==0.0 || lindep) { ierr = PetscInfo(ip,"Linearly dependent vector found, removing...\n");CHKERRQ(ierr); }
+    else {
+      ierr = VecScale(V[k],1.0/norm);CHKERRQ(ierr);
+      k++;
+    }
+  }
+  *m = k;
+  ierr = PetscFree(*W);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

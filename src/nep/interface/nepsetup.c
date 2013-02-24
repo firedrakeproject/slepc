@@ -47,9 +47,6 @@
 PetscErrorCode NEPSetUp(NEP nep)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k;
-  PetscBool      lindep;
-  PetscReal      norm;
   Mat            T;
   
   PetscFunctionBegin;
@@ -146,19 +143,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (nep->nini<0) {
     nep->nini = -nep->nini;
     if (nep->nini>nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The number of initial vectors is larger than ncv");
-    k = 0;
-    for (i=0;i<nep->nini;i++) {
-      ierr = VecCopy(nep->IS[i],nep->V[k]);CHKERRQ(ierr);
-      ierr = VecDestroy(&nep->IS[i]);CHKERRQ(ierr);
-      ierr = IPOrthogonalize(nep->ip,0,NULL,k,NULL,nep->V,nep->V[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
-      if (norm==0.0 || lindep) { ierr = PetscInfo(nep,"Linearly dependent initial vector found, removing...\n");CHKERRQ(ierr); }
-      else {
-        ierr = VecScale(nep->V[k],1.0/norm);CHKERRQ(ierr);
-        k++;
-      }
-    }
-    nep->nini = k;
-    ierr = PetscFree(nep->IS);CHKERRQ(ierr);
+    ierr = IPOrthonormalizeBasis_Private(nep->ip,&nep->nini,&nep->IS,nep->V);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(NEP_SetUp,nep,0,0,0);CHKERRQ(ierr);
   nep->setupcalled = 1;
@@ -196,30 +181,13 @@ PetscErrorCode NEPSetUp(NEP nep)
 PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec *is)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
-
-  /* free previous non-processed vectors */
-  if (nep->nini<0) {
-    for (i=0;i<-nep->nini;i++) {
-      ierr = VecDestroy(&nep->IS[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(nep->IS);CHKERRQ(ierr);
-  }
-
-  /* get references of passed vectors */
-  ierr = PetscMalloc(n*sizeof(Vec),&nep->IS);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-    ierr = PetscObjectReference((PetscObject)is[i]);CHKERRQ(ierr);
-    nep->IS[i] = is[i];
-  }
-
-  nep->nini = -n;
-  nep->setupcalled = 0;
+  ierr = SlepcBasisReference_Private(n,is,&nep->nini,&nep->IS);CHKERRQ(ierr);
+  if (n>0) nep->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 

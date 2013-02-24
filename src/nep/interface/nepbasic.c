@@ -476,7 +476,6 @@ PetscErrorCode NEPReset(NEP nep)
 PetscErrorCode NEPDestroy(NEP *nep)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
 
   PetscFunctionBegin;
   if (!*nep) PetscFunctionReturn(0);
@@ -493,12 +492,7 @@ PetscErrorCode NEPDestroy(NEP *nep)
   ierr = MatDestroy(&(*nep)->jacobian);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*nep)->rand);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
-  if ((*nep)->nini<0) {
-    for (i=0;i<-(*nep)->nini;i++) {
-      ierr = VecDestroy(&(*nep)->IS[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree((*nep)->IS);CHKERRQ(ierr);
-  }
+  ierr = SlepcBasisDestroy_Private(&(*nep)->nini,&(*nep)->IS);CHKERRQ(ierr);
   ierr = NEPMonitorCancel(*nep);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(nep);CHKERRQ(ierr);
   PetscFunctionReturn(0);

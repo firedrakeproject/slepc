@@ -599,7 +599,6 @@ PetscErrorCode QEPReset(QEP qep)
 PetscErrorCode QEPDestroy(QEP *qep)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
 
   PetscFunctionBegin;
   if (!*qep) PetscFunctionReturn(0);
@@ -613,18 +612,8 @@ PetscErrorCode QEPDestroy(QEP *qep)
   ierr = DSDestroy(&(*qep)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*qep)->rand);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
-  if ((*qep)->nini<0) {
-    for (i=0;i<-(*qep)->nini;i++) {
-      ierr = VecDestroy(&(*qep)->IS[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree((*qep)->IS);CHKERRQ(ierr);
-  }
-  if ((*qep)->ninil<0) {
-    for (i=0;i<-(*qep)->ninil;i++) {
-      ierr = VecDestroy(&(*qep)->ISL[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree((*qep)->ISL);CHKERRQ(ierr);
-  }
+  ierr = SlepcBasisDestroy_Private(&(*qep)->nini,&(*qep)->IS);CHKERRQ(ierr);
+  ierr = SlepcBasisDestroy_Private(&(*qep)->ninil,&(*qep)->ISL);CHKERRQ(ierr);
   ierr = QEPMonitorCancel(*qep);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);

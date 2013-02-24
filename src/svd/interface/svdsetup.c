@@ -103,9 +103,8 @@ PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
 PetscErrorCode SVDSetUp(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscBool      flg,lindep;
-  PetscInt       i,k,M,N;
-  PetscReal      norm;
+  PetscBool      flg;
+  PetscInt       M,N;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -208,19 +207,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (svd->nini<0) {
     svd->nini = -svd->nini;
     if (svd->nini>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of initial vectors is larger than ncv");
-    k = 0;
-    for (i=0;i<svd->nini;i++) {
-      ierr = VecCopy(svd->IS[i],svd->V[k]);CHKERRQ(ierr);
-      ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
-      ierr = IPOrthogonalize(svd->ip,0,NULL,k,NULL,svd->V,svd->V[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
-      if (norm==0.0 || lindep) { ierr = PetscInfo(svd,"Linearly dependent initial vector found, removing...\n");CHKERRQ(ierr); }
-      else {
-        ierr = VecScale(svd->V[k],1.0/norm);CHKERRQ(ierr);
-        k++;
-      }
-    }
-    svd->nini = k;
-    ierr = PetscFree(svd->IS);CHKERRQ(ierr);
+    ierr = IPOrthonormalizeBasis_Private(svd->ip,&svd->nini,&svd->IS,svd->V);CHKERRQ(ierr);
   }
 
   ierr = PetscLogEventEnd(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
@@ -259,30 +246,13 @@ PetscErrorCode SVDSetUp(SVD svd)
 PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
-
-  /* free previous non-processed vectors */
-  if (svd->nini<0) {
-    for (i=0;i<-svd->nini;i++) {
-      ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(svd->IS);CHKERRQ(ierr);
-  }
-
-  /* get references of passed vectors */
-  ierr = PetscMalloc(n*sizeof(Vec),&svd->IS);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-    ierr = PetscObjectReference((PetscObject)is[i]);CHKERRQ(ierr);
-    svd->IS[i] = is[i];
-  }
-
-  svd->nini = -n;
-  svd->setupcalled = 0;
+  ierr = SlepcBasisReference_Private(n,is,&svd->nini,&svd->IS);CHKERRQ(ierr);
+  if (n>0) svd->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 

@@ -699,3 +699,49 @@ PetscErrorCode SlepcCompareSmallestPositiveReal(PetscScalar ar,PetscScalar ai,Pe
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcBasisReference_Private"
+/*
+   Given n vectors in V, this function gets references of them into W.
+   If m<0 then some previous non-processed vectors remain in W and must be freed.
+ */
+PetscErrorCode SlepcBasisReference_Private(PetscInt n,Vec *V,PetscInt *m,Vec **W)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  
+  PetscFunctionBegin;
+  ierr = SlepcBasisDestroy_Private(m,W);CHKERRQ(ierr);
+  if (n>0) {
+    ierr = PetscMalloc(n*sizeof(Vec),W);CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
+      ierr = PetscObjectReference((PetscObject)V[i]);CHKERRQ(ierr);
+      (*W)[i] = V[i];
+    }
+    *m = -n;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__  
+#define __FUNCT__ "SlepcBasisDestroy_Private"
+/*
+   Destroys a set of vectors.
+   A negative value of m indicates that W contains vectors to be destroyed.
+ */
+PetscErrorCode SlepcBasisDestroy_Private(PetscInt *m,Vec **W)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  
+  PetscFunctionBegin;
+  if (*m<0) {
+    for (i=0;i<-(*m);i++) {
+      ierr = VecDestroy(&(*W)[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(*W);CHKERRQ(ierr);
+  }
+  *m = 0;
+  PetscFunctionReturn(0);
+}
+

@@ -250,20 +250,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->nini<0) {
     eps->nini = -eps->nini;
     if (eps->nini>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The number of initial vectors is larger than ncv");
-    k = 0;
-    for (i=0;i<eps->nini;i++) {
-      ierr = VecCopy(eps->IS[i],eps->V[k]);CHKERRQ(ierr);
-      ierr = VecDestroy(&eps->IS[i]);CHKERRQ(ierr);
-      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,k,NULL,eps->V,eps->V[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
-      if (norm==0.0 || lindep) {
-        ierr = PetscInfo(eps,"Linearly dependent initial vector found, removing...\n");CHKERRQ(ierr);
-      } else {
-        ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
-        k++;
-      }
-    }
-    eps->nini = k;
-    ierr = PetscFree(eps->IS);CHKERRQ(ierr);
+    ierr = IPOrthonormalizeBasis_Private(eps->ip,&eps->nini,&eps->IS,eps->V);CHKERRQ(ierr);
   }
   if (eps->ninil<0) {
     if (!eps->leftvecs) {
@@ -271,20 +258,7 @@ PetscErrorCode EPSSetUp(EPS eps)
     } else {
       eps->ninil = -eps->ninil;
       if (eps->ninil>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The number of initial left vectors is larger than ncv");
-      k = 0;
-      for (i=0;i<eps->ninil;i++) {
-        ierr = VecCopy(eps->ISL[i],eps->W[k]);CHKERRQ(ierr);
-        ierr = VecDestroy(&eps->ISL[i]);CHKERRQ(ierr);
-        ierr = IPOrthogonalize(eps->ip,0,NULL,k,NULL,eps->W,eps->W[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
-        if (norm==0.0 || lindep) {
-          ierr = PetscInfo(eps,"Linearly dependent initial left vector found, removing...\n");CHKERRQ(ierr);
-        } else {
-          ierr = VecScale(eps->W[k],1.0/norm);CHKERRQ(ierr);
-          k++;
-        }
-      }
-      eps->ninil = k;
-      ierr = PetscFree(eps->ISL);CHKERRQ(ierr);
+      ierr = IPOrthonormalizeBasis_Private(eps->ip,&eps->ninil,&eps->ISL,eps->W);CHKERRQ(ierr);
     }
   }
 
@@ -499,32 +473,13 @@ PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
 PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
-
-  /* free previous non-processed vectors */
-  if (eps->nini<0) {
-    for (i=0;i<-eps->nini;i++) {
-      ierr = VecDestroy(&eps->IS[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(eps->IS);CHKERRQ(ierr);
-  }
-
-  /* get references of passed vectors */
-  if (n>0) {
-    ierr = PetscMalloc(n*sizeof(Vec),&eps->IS);CHKERRQ(ierr);
-    for (i=0;i<n;i++) {
-      ierr = PetscObjectReference((PetscObject)is[i]);CHKERRQ(ierr);
-      eps->IS[i] = is[i];
-    }
-    eps->setupcalled = 0;
-  }
-
-  eps->nini = -n;
+  ierr = SlepcBasisReference_Private(n,is,&eps->nini,&eps->IS);CHKERRQ(ierr);
+  if (n>0) eps->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 
@@ -562,32 +517,13 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
 PetscErrorCode EPSSetInitialSpaceLeft(EPS eps,PetscInt n,Vec *is)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
   
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
-
-  /* free previous non-processed vectors */
-  if (eps->ninil<0) {
-    for (i=0;i<-eps->ninil;i++) {
-      ierr = VecDestroy(&eps->ISL[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(eps->ISL);CHKERRQ(ierr);
-  }
-
-  /* get references of passed vectors */
-  if (n>0) {
-    ierr = PetscMalloc(n*sizeof(Vec),&eps->ISL);CHKERRQ(ierr);
-    for (i=0;i<n;i++) {
-      ierr = PetscObjectReference((PetscObject)is[i]);CHKERRQ(ierr);
-      eps->ISL[i] = is[i];
-    }
-    eps->setupcalled = 0;
-  }
-
-  eps->ninil = -n;
+  ierr = SlepcBasisReference_Private(n,is,&eps->ninil,&eps->ISL);CHKERRQ(ierr);
+  if (n>0) eps->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 

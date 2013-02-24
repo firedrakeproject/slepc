@@ -73,4 +73,7 @@ PETSC_EXTERN PetscErrorCode SlepcCompareTargetReal(PetscScalar,PetscScalar,Petsc
 PETSC_EXTERN PetscErrorCode SlepcCompareTargetImaginary(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
 PETSC_EXTERN PetscErrorCode SlepcCompareSmallestPositiveReal(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
 
+PETSC_EXTERN PetscErrorCode SlepcBasisReference_Private(PetscInt,Vec*,PetscInt*,Vec**);
+PETSC_EXTERN PetscErrorCode SlepcBasisDestroy_Private(PetscInt*,Vec**);
+
 #endif
