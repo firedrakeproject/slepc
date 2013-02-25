@@ -175,6 +175,7 @@ int main(int argc,char **argv)
         Get converged eigenpairs (in this example they are always real)
       */
       ierr = NEPGetEigenpair(nep,i,&lambda,NULL,x,NULL);CHKERRQ(ierr);
+      ierr = VecAbs(x);CHKERRQ(ierr);   /* force eigenvector to be real in this example */
       /*
          Compute residual norm and error
       */

@@ -67,7 +67,6 @@ typedef struct {
 int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */
-  Vec            x;               /* eigenvector */
   PetscScalar    lambda;          /* eigenvalue */
   Mat            F,J;             /* Function and Jacobian matrices */
   ApplicationCtx ctx;             /* user-defined context */
@@ -107,7 +106,6 @@ int main(int argc,char **argv)
   ierr = MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)())MatFun_GetDiagonal);CHKERRQ(ierr);
   ierr = MatShellSetOperation(F,MATOP_DESTROY,(void(*)())MatFun_Destroy);CHKERRQ(ierr);
   ierr = MatShellSetOperation(F,MATOP_DUPLICATE,(void(*)())MatFun_Duplicate);CHKERRQ(ierr);
-  ierr = MatGetVecs(F,&x,NULL);CHKERRQ(ierr);
 
   /*
      Set Function matrix data structure and default Function evaluation
@@ -184,7 +182,7 @@ int main(int argc,char **argv)
       /* 
         Get converged eigenpairs (in this example they are always real)
       */
-      ierr = NEPGetEigenpair(nep,i,&lambda,NULL,x,NULL);CHKERRQ(ierr);
+      ierr = NEPGetEigenpair(nep,i,&lambda,NULL,NULL,NULL);CHKERRQ(ierr);
       /*
          Compute residual norm
       */
@@ -209,7 +207,6 @@ int main(int argc,char **argv)
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
   ierr = MatDestroy(&F);CHKERRQ(ierr);
   ierr = MatDestroy(&J);CHKERRQ(ierr);
-  ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return 0;
 }
