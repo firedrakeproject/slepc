@@ -36,7 +36,6 @@
 */
 
 #include <slepc-private/nepimpl.h>         /*I "slepcnep.h" I*/
-#include <petscblaslapack.h>
 
 #undef __FUNCT__  
 #define __FUNCT__ "NEPSetUp_RII"
@@ -71,13 +70,14 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
 #define __FUNCT__ "NEPSolve_RII"
 PetscErrorCode NEPSolve_RII(NEP nep)
 {
-  PetscErrorCode ierr;
-  Mat            T=nep->function,Tp=nep->jacobian,Tsigma;
-  Vec            u=nep->V[0],r=nep->work[0],delta=nep->work[1];
-  PetscScalar    lambda,a1,a2;
-  PetscReal      relerr;
-  PetscBool      hascopy;
-  MatStructure   mats;
+  PetscErrorCode     ierr;
+  Mat                T=nep->function,Tp=nep->jacobian,Tsigma;
+  Vec                u=nep->V[0],r=nep->work[0],delta=nep->work[1];
+  PetscScalar        lambda,a1,a2;
+  PetscReal          relerr;
+  PetscBool          hascopy;
+  MatStructure       mats;
+  KSPConvergedReason kspreason;
 
   PetscFunctionBegin;
   /* get initial approximation of eigenvalue and eigenvector */
@@ -139,6 +139,12 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     if (!nep->nconv) {
       /* eigenvector correction: delta = T(sigma)\r */
       ierr = NEP_KSPSolve(nep,r,delta);CHKERRQ(ierr);
+      ierr = KSPGetConvergedReason(nep->ksp,&kspreason);CHKERRQ(ierr);
+      if (kspreason<0) {
+        ierr = PetscInfo1(nep,"iter=%D, linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+        nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
+        break;
+      }
 
       /* update eigenvector: u = u - delta */
       ierr = VecAXPY(u,-1.0,delta);CHKERRQ(ierr);

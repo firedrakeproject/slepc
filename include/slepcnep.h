@@ -48,6 +48,7 @@ typedef struct _p_NEP* NEP;
 J*/
 typedef const char* NEPType;
 #define NEPRII       "rii"
+#define NEPSLP       "slp"
 #define NEPNARNOLDI  "narnoldi"
 
 /* Logging support */

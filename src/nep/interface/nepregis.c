@@ -23,6 +23,7 @@
 
 EXTERN_C_BEGIN
 extern PetscErrorCode NEPCreate_RII(NEP);
+extern PetscErrorCode NEPCreate_SLP(NEP);
 EXTERN_C_END
   
 #undef __FUNCT__  
@@ -43,5 +44,6 @@ PetscErrorCode NEPRegisterAll(const char *path)
   PetscFunctionBegin;
   NEPRegisterAllCalled = PETSC_TRUE;
   ierr = NEPRegisterDynamic(NEPRII,path,"NEPCreate_RII",NEPCreate_RII);CHKERRQ(ierr);
+  ierr = NEPRegisterDynamic(NEPSLP,path,"NEPCreate_SLP",NEPCreate_SLP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

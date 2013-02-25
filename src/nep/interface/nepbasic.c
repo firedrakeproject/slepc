@@ -134,7 +134,7 @@ PetscErrorCode NEPInitializePackage(const char *path)
 PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  PetscBool      isascii;
+  PetscBool      isascii,isslp;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -219,8 +219,11 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
   ierr = DSView(nep->ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-  if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
-  ierr = KSPView(nep->ksp,viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)nep,NEPSLP,&isslp);CHKERRQ(ierr);
+  if (!isslp) {
+    if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
+    ierr = KSPView(nep->ksp,viewer);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

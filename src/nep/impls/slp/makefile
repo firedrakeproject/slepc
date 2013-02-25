@@ -21,10 +21,15 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = slp.c
+SOURCEF  = 
+SOURCEH  =
 LIBBASE  = libslepc
-DIRS     = rii slp
-LOCDIR   = src/nep/impls/
+DIRS     =
 MANSEC   = NEP
+LOCDIR   = src/nep/impls/slp/
 
 include ${SLEPC_DIR}/conf/slepc_common
 

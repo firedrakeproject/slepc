@@ -36,6 +36,7 @@
 #define NEPConvergedReason PetscEnum
 
 #define NEPRII       'rii'
+#define NEPSLP       'slp'
 #define NEPNARNOLDI  'narnoldi'
 
 #endif
