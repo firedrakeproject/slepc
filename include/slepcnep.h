@@ -23,9 +23,7 @@
 
 #if !defined(__SLEPCNEP_H)
 #define __SLEPCNEP_H
-#include <slepcds.h>
-#include <slepcip.h>
-#include <petscksp.h>
+#include <slepceps.h>
 
 PETSC_EXTERN PetscErrorCode NEPInitializePackage(const char[]);
 
@@ -213,6 +211,8 @@ M*/
 
 /* --------- options specific to particular eigensolvers -------- */
 
+PETSC_EXTERN PetscErrorCode NEPSLPSetEPS(NEP,EPS);
+PETSC_EXTERN PetscErrorCode NEPSLPGetEPS(NEP,EPS*);
 
 #endif
 
