@@ -40,6 +40,7 @@ extern PetscErrorCode FormInitialGuess(Vec);
 extern PetscErrorCode FormFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
 extern PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*);
 extern PetscErrorCode CheckSolution(PetscScalar,PetscScalar,Vec,Vec,PetscReal*,void*);
+extern PetscErrorCode FixSign(Vec);
 
 /*
    User-defined application context
@@ -175,7 +176,7 @@ int main(int argc,char **argv)
         Get converged eigenpairs (in this example they are always real)
       */
       ierr = NEPGetEigenpair(nep,i,&lambda,NULL,x,NULL);CHKERRQ(ierr);
-      ierr = VecAbs(x);CHKERRQ(ierr);   /* force eigenvector to be real in this example */
+      ierr = FixSign(x);CHKERRQ(ierr);
       /*
          Compute residual norm and error
       */
@@ -438,6 +439,35 @@ PetscErrorCode CheckSolution(PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscRe
   ierr = VecAXPY(u,-1.0,xr);CHKERRQ(ierr);
   ierr = VecNorm(u,NORM_2,error);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/* ------------------------------------------------------------------- */
+#undef __FUNCT__
+#define __FUNCT__ "FixSign"
+/*
+   FixSign - Force the eigenfunction to be real and positive, since
+   some eigensolvers may return the eigenvector multiplied by a
+   complex number of modulus one.
+
+   Input/Output Parameter:
+.  x - the computed vector
+*/
+PetscErrorCode FixSign(Vec x)
+{
+  PetscErrorCode ierr;
+  PetscMPIInt    rank;
+  PetscScalar    sign,*xx;
+
+  PetscFunctionBeginUser;
+  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
+  if (!rank) {
+    ierr = VecGetArray(x,&xx);CHKERRQ(ierr);
+    sign = *xx/PetscAbsScalar(*xx);
+    ierr = VecRestoreArray(x,&xx);CHKERRQ(ierr);
+  }
+  ierr = MPI_Bcast(&sign,1,MPIU_SCALAR,0,PETSC_COMM_WORLD);CHKERRQ(ierr);
+  ierr = VecScale(x,1.0/sign);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
