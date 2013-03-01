@@ -444,7 +444,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
 
   eps1 = PetscSqrtReal((PetscReal)eps->n)*PETSC_MACHINE_EPSILON/2;
   delta = PETSC_SQRT_MACHINE_EPSILON/PetscSqrtReal((PetscReal)eps->ncv);
-  eta = pow(PETSC_MACHINE_EPSILON,3.0/4.0)/PetscSqrtReal((PetscReal)eps->ncv);
+  eta = PetscPowReal(PETSC_MACHINE_EPSILON,3.0/4.0)/PetscSqrtReal((PetscReal)eps->ncv);
   if (anorm < 0.0) {
     anorm = 1.0;
     estimate_anorm = PETSC_TRUE;

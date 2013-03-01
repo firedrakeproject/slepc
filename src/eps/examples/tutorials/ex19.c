@@ -38,7 +38,7 @@ PetscErrorCode GetExactEigenvalues(PetscInt M,PetscInt N,PetscInt P,PetscInt nco
   ax = PETSC_PI/2/(M+1);
   ay = PETSC_PI/2/(N+1);
   az = PETSC_PI/2/(P+1);
-  n = ceil(pow(nconv,0.33333)+1);
+  n = ceil(PetscPowReal(nconv,0.33333)+1);
   ierr = PetscMalloc(n*n*n*sizeof(PetscReal),&evals);CHKERRQ(ierr);
   l = 0;
   for (i=1;i<=n;i++) {

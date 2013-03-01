@@ -115,8 +115,8 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   ierr = VecNorm(b,NORM_2,&normb);CHKERRQ(ierr);
   beta = normb;
   fact = PetscPowRealInt((m+1)/2.72,m+1)*PetscSqrtReal(2*PETSC_PI*(m+1));
-  t_new = (1.0/anorm)*pow((fact*tol)/(4.0*beta*anorm),xm);
-  s = pow(10,floor(log10(t_new))-1);
+  t_new = (1.0/anorm)*PetscPowReal((fact*tol)/(4.0*beta*anorm),xm);
+  s = PetscPowReal(10,floor(log10(t_new))-1);
   t_new = ceil(t_new/s)*s;
   sgn = PetscSign(t);
 
@@ -183,8 +183,8 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
       }
       if (err_loc <= delta*t_step*tol) break;
       else {
-        t_step = gamma*t_step*pow(t_step*tol/err_loc,xm);
-        s = pow(10,floor(log10(t_step))-1);
+        t_step = gamma*t_step*PetscPowReal(t_step*tol/err_loc,xm);
+        s = PetscPowReal(10,floor(log10(t_step))-1);
         t_step = ceil(t_step/s)*s;
         ireject = ireject+1;
       }
@@ -199,8 +199,8 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     ierr = VecNorm(x,NORM_2,&beta);CHKERRQ(ierr);
 
     t_now = t_now+t_step;
-    t_new = gamma*t_step*pow((t_step*tol)/err_loc,xm);
-    s = pow(10,floor(log10(t_new))-1);
+    t_new = gamma*t_step*PetscPowReal((t_step*tol)/err_loc,xm);
+    s = PetscPowReal(10,floor(log10(t_new))-1);
     t_new = ceil(t_new/s)*s;
 
     err_loc = PetscMax(err_loc,rndoff);
