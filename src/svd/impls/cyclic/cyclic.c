@@ -284,10 +284,9 @@ PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCyclicSetExplicitMatrix_Cyclic"
-PetscErrorCode SVDCyclicSetExplicitMatrix_Cyclic(SVD svd,PetscBool explicitmatrix)
+static PetscErrorCode SVDCyclicSetExplicitMatrix_Cyclic(SVD svd,PetscBool explicitmatrix)
 {
   SVD_CYCLIC *cyclic = (SVD_CYCLIC*)svd->data;
 
@@ -295,7 +294,6 @@ PetscErrorCode SVDCyclicSetExplicitMatrix_Cyclic(SVD svd,PetscBool explicitmatri
   cyclic->explicitmatrix = explicitmatrix;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDCyclicSetExplicitMatrix"
@@ -327,10 +325,9 @@ PetscErrorCode SVDCyclicSetExplicitMatrix(SVD svd,PetscBool explicitmatrix)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCyclicGetExplicitMatrix_Cyclic"
-PetscErrorCode SVDCyclicGetExplicitMatrix_Cyclic(SVD svd,PetscBool *explicitmatrix)
+static PetscErrorCode SVDCyclicGetExplicitMatrix_Cyclic(SVD svd,PetscBool *explicitmatrix)
 {
   SVD_CYCLIC *cyclic = (SVD_CYCLIC*)svd->data;
 
@@ -338,7 +335,6 @@ PetscErrorCode SVDCyclicGetExplicitMatrix_Cyclic(SVD svd,PetscBool *explicitmatr
   *explicitmatrix = cyclic->explicitmatrix;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDCyclicGetExplicitMatrix"
@@ -368,10 +364,9 @@ PetscErrorCode SVDCyclicGetExplicitMatrix(SVD svd,PetscBool *explicitmatrix)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCyclicSetEPS_Cyclic"
-PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
+static PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
 {
   PetscErrorCode  ierr;
   SVD_CYCLIC      *cyclic = (SVD_CYCLIC*)svd->data;
@@ -384,7 +379,6 @@ PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
   svd->setupcalled = 0;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCyclicSetEPS"
@@ -414,10 +408,9 @@ PetscErrorCode SVDCyclicSetEPS(SVD svd,EPS eps)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCyclicGetEPS_Cyclic"
-PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
+static PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
 {
   SVD_CYCLIC *cyclic = (SVD_CYCLIC*)svd->data;
 
@@ -425,7 +418,6 @@ PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
   *eps = cyclic->eps;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCyclicGetEPS"
@@ -498,10 +490,10 @@ PetscErrorCode SVDDestroy_Cyclic(SVD svd)
   PetscFunctionBegin;
   ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);
   ierr = PetscFree(svd->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetEPS_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetEPS_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetExplicitMatrix_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetExplicitMatrix_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCyclicSetEPS_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCyclicGetEPS_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCyclicSetExplicitMatrix_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCyclicGetExplicitMatrix_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -522,10 +514,10 @@ PetscErrorCode SVDCreate_Cyclic(SVD svd)
   svd->ops->destroy              = SVDDestroy_Cyclic;
   svd->ops->reset                = SVDReset_Cyclic;
   svd->ops->view                 = SVDView_Cyclic;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetEPS_C","SVDCyclicSetEPS_Cyclic",SVDCyclicSetEPS_Cyclic);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetEPS_C","SVDCyclicGetEPS_Cyclic",SVDCyclicGetEPS_Cyclic);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicSetExplicitMatrix_C","SVDCyclicSetExplicitMatrix_Cyclic",SVDCyclicSetExplicitMatrix_Cyclic);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCyclicGetExplicitMatrix_C","SVDCyclicGetExplicitMatrix_Cyclic",SVDCyclicGetExplicitMatrix_Cyclic);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCyclicSetEPS_C","SVDCyclicSetEPS_Cyclic",SVDCyclicSetEPS_Cyclic);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCyclicGetEPS_C","SVDCyclicGetEPS_Cyclic",SVDCyclicGetEPS_Cyclic);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCyclicSetExplicitMatrix_C","SVDCyclicSetExplicitMatrix_Cyclic",SVDCyclicSetExplicitMatrix_Cyclic);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCyclicGetExplicitMatrix_C","SVDCyclicGetExplicitMatrix_Cyclic",SVDCyclicGetExplicitMatrix_Cyclic);CHKERRQ(ierr);
 
   ierr = EPSCreate(PetscObjectComm((PetscObject)svd),&cyclic->eps);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(cyclic->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);

@@ -314,10 +314,9 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSKrylovSchurSetRestart_KrylovSchur"
-PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal keep)
+static PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal keep)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
@@ -329,7 +328,6 @@ PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal keep)
   }
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSKrylovSchurSetRestart"
@@ -365,10 +363,9 @@ PetscErrorCode EPSKrylovSchurSetRestart(EPS eps,PetscReal keep)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSKrylovSchurGetRestart_KrylovSchur"
-PetscErrorCode EPSKrylovSchurGetRestart_KrylovSchur(EPS eps,PetscReal *keep)
+static PetscErrorCode EPSKrylovSchurGetRestart_KrylovSchur(EPS eps,PetscReal *keep)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
@@ -376,7 +373,6 @@ PetscErrorCode EPSKrylovSchurGetRestart_KrylovSchur(EPS eps,PetscReal *keep)
   *keep = ctx->keep;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSKrylovSchurGetRestart"
@@ -462,8 +458,8 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSKrylovSchurSetRestart_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSKrylovSchurGetRestart_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetRestart_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetRestart_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -483,8 +479,8 @@ PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   eps->ops->view           = EPSView_KrylovSchur;
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->computevectors = EPSComputeVectors_Schur;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSKrylovSchurSetRestart_C","EPSKrylovSchurSetRestart_KrylovSchur",EPSKrylovSchurSetRestart_KrylovSchur);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSKrylovSchurGetRestart_C","EPSKrylovSchurGetRestart_KrylovSchur",EPSKrylovSchurGetRestart_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetRestart_C","EPSKrylovSchurSetRestart_KrylovSchur",EPSKrylovSchurSetRestart_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetRestart_C","EPSKrylovSchurGetRestart_KrylovSchur",EPSKrylovSchurGetRestart_KrylovSchur);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

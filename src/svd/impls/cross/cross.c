@@ -203,10 +203,9 @@ PetscErrorCode SVDSetFromOptions_Cross(SVD svd)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCrossSetEPS_Cross"
-PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
+static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
@@ -219,7 +218,6 @@ PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
   svd->setupcalled = 0;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCrossSetEPS"
@@ -249,10 +247,9 @@ PetscErrorCode SVDCrossSetEPS(SVD svd,EPS eps)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCrossGetEPS_Cross"
-PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
+static PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
 {
   SVD_CROSS *cross = (SVD_CROSS*)svd->data;
 
@@ -260,7 +257,6 @@ PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
   *eps = cross->eps;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "SVDCrossGetEPS"
@@ -330,8 +326,8 @@ PetscErrorCode SVDDestroy_Cross(SVD svd)
   PetscFunctionBegin;
   ierr = EPSDestroy(&cross->eps);CHKERRQ(ierr);
   ierr = PetscFree(svd->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossSetEPS_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossGetEPS_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetEPS_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetEPS_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -353,8 +349,8 @@ PetscErrorCode SVDCreate_Cross(SVD svd)
   svd->ops->destroy        = SVDDestroy_Cross;
   svd->ops->reset          = SVDReset_Cross;
   svd->ops->view           = SVDView_Cross;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossSetEPS_C","SVDCrossSetEPS_Cross",SVDCrossSetEPS_Cross);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)svd,"SVDCrossGetEPS_C","SVDCrossGetEPS_Cross",SVDCrossGetEPS_Cross);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetEPS_C","SVDCrossSetEPS_Cross",SVDCrossSetEPS_Cross);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetEPS_C","SVDCrossGetEPS_Cross",SVDCrossGetEPS_Cross);CHKERRQ(ierr);
 
   ierr = EPSCreate(PetscObjectComm((PetscObject)svd),&cross->eps);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(cross->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);

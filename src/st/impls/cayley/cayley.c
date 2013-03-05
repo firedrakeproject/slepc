@@ -258,10 +258,9 @@ PetscErrorCode STSetFromOptions_Cayley(ST st)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STCayleySetAntishift_Cayley"
-PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
+static PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
   ST_CAYLEY *ctx = (ST_CAYLEY*)st->data;
@@ -274,7 +273,6 @@ PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
   ctx->nu_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "STCayleySetAntishift"
@@ -310,10 +308,9 @@ PetscErrorCode STCayleySetAntishift(ST st,PetscScalar nu)
   ierr = PetscTryMethod(st,"STCayleySetAntishift_C",(ST,PetscScalar),(st,nu));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "STCayleyGetAntishift_Cayley"
-PetscErrorCode STCayleyGetAntishift_Cayley(ST st,PetscScalar *nu)
+static PetscErrorCode STCayleyGetAntishift_Cayley(ST st,PetscScalar *nu)
 {
   ST_CAYLEY *ctx = (ST_CAYLEY*)st->data;
 
@@ -321,7 +318,6 @@ PetscErrorCode STCayleyGetAntishift_Cayley(ST st,PetscScalar *nu)
   *nu = ctx->nu;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "STCayleyGetAntishift"
@@ -388,8 +384,8 @@ PetscErrorCode STDestroy_Cayley(ST st)
 
   PetscFunctionBegin;
   ierr = PetscFree(st->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleyGetAntishift_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STCayleySetAntishift_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STCayleyGetAntishift_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -414,8 +410,8 @@ PetscErrorCode STCreate_Cayley(ST st)
   st->ops->reset           = STReset_Cayley;
   st->ops->view            = STView_Cayley;
   st->ops->checknullspace  = STCheckNullSpace_Default;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleySetAntishift_C","STCayleySetAntishift_Cayley",STCayleySetAntishift_Cayley);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)st,"STCayleyGetAntishift_C","STCayleyGetAntishift_Cayley",STCayleyGetAntishift_Cayley);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STCayleySetAntishift_C","STCayleySetAntishift_Cayley",STCayleySetAntishift_Cayley);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STCayleyGetAntishift_C","STCayleyGetAntishift_Cayley",STCayleyGetAntishift_Cayley);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END

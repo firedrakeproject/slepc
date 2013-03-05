@@ -364,10 +364,9 @@ PetscErrorCode QEPSetFromOptions_Linear(QEP qep)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "QEPLinearSetCompanionForm_Linear"
-PetscErrorCode QEPLinearSetCompanionForm_Linear(QEP qep,PetscInt cform)
+static PetscErrorCode QEPLinearSetCompanionForm_Linear(QEP qep,PetscInt cform)
 {
   QEP_LINEAR *ctx = (QEP_LINEAR*)qep->data;
 
@@ -380,7 +379,6 @@ PetscErrorCode QEPLinearSetCompanionForm_Linear(QEP qep,PetscInt cform)
   }
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPLinearSetCompanionForm"
@@ -412,10 +410,9 @@ PetscErrorCode QEPLinearSetCompanionForm(QEP qep,PetscInt cform)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "QEPLinearGetCompanionForm_Linear"
-PetscErrorCode QEPLinearGetCompanionForm_Linear(QEP qep,PetscInt *cform)
+static PetscErrorCode QEPLinearGetCompanionForm_Linear(QEP qep,PetscInt *cform)
 {
   QEP_LINEAR *ctx = (QEP_LINEAR*)qep->data;
 
@@ -423,7 +420,6 @@ PetscErrorCode QEPLinearGetCompanionForm_Linear(QEP qep,PetscInt *cform)
   *cform = ctx->cform;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPLinearGetCompanionForm"
@@ -454,10 +450,9 @@ PetscErrorCode QEPLinearGetCompanionForm(QEP qep,PetscInt *cform)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "QEPLinearSetExplicitMatrix_Linear"
-PetscErrorCode QEPLinearSetExplicitMatrix_Linear(QEP qep,PetscBool explicitmatrix)
+static PetscErrorCode QEPLinearSetExplicitMatrix_Linear(QEP qep,PetscBool explicitmatrix)
 {
   QEP_LINEAR *ctx = (QEP_LINEAR*)qep->data;
 
@@ -465,7 +460,6 @@ PetscErrorCode QEPLinearSetExplicitMatrix_Linear(QEP qep,PetscBool explicitmatri
   ctx->explicitmatrix = explicitmatrix;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPLinearSetExplicitMatrix"
@@ -497,10 +491,9 @@ PetscErrorCode QEPLinearSetExplicitMatrix(QEP qep,PetscBool explicitmatrix)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "QEPLinearGetExplicitMatrix_Linear"
-PetscErrorCode QEPLinearGetExplicitMatrix_Linear(QEP qep,PetscBool *explicitmatrix)
+static PetscErrorCode QEPLinearGetExplicitMatrix_Linear(QEP qep,PetscBool *explicitmatrix)
 {
   QEP_LINEAR *ctx = (QEP_LINEAR*)qep->data;
 
@@ -508,7 +501,6 @@ PetscErrorCode QEPLinearGetExplicitMatrix_Linear(QEP qep,PetscBool *explicitmatr
   *explicitmatrix = ctx->explicitmatrix;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPLinearGetExplicitMatrix"
@@ -539,10 +531,9 @@ PetscErrorCode QEPLinearGetExplicitMatrix(QEP qep,PetscBool *explicitmatrix)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "QEPLinearSetEPS_Linear"
-PetscErrorCode QEPLinearSetEPS_Linear(QEP qep,EPS eps)
+static PetscErrorCode QEPLinearSetEPS_Linear(QEP qep,EPS eps)
 {
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx = (QEP_LINEAR*)qep->data;
@@ -555,7 +546,6 @@ PetscErrorCode QEPLinearSetEPS_Linear(QEP qep,EPS eps)
   qep->setupcalled = 0;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "QEPLinearSetEPS"
@@ -585,10 +575,9 @@ PetscErrorCode QEPLinearSetEPS(QEP qep,EPS eps)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "QEPLinearGetEPS_Linear"
-PetscErrorCode QEPLinearGetEPS_Linear(QEP qep,EPS *eps)
+static PetscErrorCode QEPLinearGetEPS_Linear(QEP qep,EPS *eps)
 {
   QEP_LINEAR *ctx = (QEP_LINEAR*)qep->data;
 
@@ -596,7 +585,6 @@ PetscErrorCode QEPLinearGetEPS_Linear(QEP qep,EPS *eps)
   *eps = ctx->eps;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "QEPLinearGetEPS"
@@ -673,12 +661,12 @@ PetscErrorCode QEPDestroy_Linear(QEP qep)
   PetscFunctionBegin;
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   ierr = PetscFree(qep->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetCompanionForm_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetCompanionForm_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetEPS_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetEPS_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetExplicitMatrix_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetExplicitMatrix_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearSetCompanionForm_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearGetCompanionForm_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearSetEPS_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearGetEPS_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearSetExplicitMatrix_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearGetExplicitMatrix_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -699,12 +687,12 @@ PetscErrorCode QEPCreate_Linear(QEP qep)
   qep->ops->destroy              = QEPDestroy_Linear;
   qep->ops->reset                = QEPReset_Linear;
   qep->ops->view                 = QEPView_Linear;
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetCompanionForm_C","QEPLinearSetCompanionForm_Linear",QEPLinearSetCompanionForm_Linear);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetCompanionForm_C","QEPLinearGetCompanionForm_Linear",QEPLinearGetCompanionForm_Linear);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetEPS_C","QEPLinearSetEPS_Linear",QEPLinearSetEPS_Linear);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetEPS_C","QEPLinearGetEPS_Linear",QEPLinearGetEPS_Linear);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearSetExplicitMatrix_C","QEPLinearSetExplicitMatrix_Linear",QEPLinearSetExplicitMatrix_Linear);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)qep,"QEPLinearGetExplicitMatrix_C","QEPLinearGetExplicitMatrix_Linear",QEPLinearGetExplicitMatrix_Linear);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearSetCompanionForm_C","QEPLinearSetCompanionForm_Linear",QEPLinearSetCompanionForm_Linear);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearGetCompanionForm_C","QEPLinearGetCompanionForm_Linear",QEPLinearGetCompanionForm_Linear);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearSetEPS_C","QEPLinearSetEPS_Linear",QEPLinearSetEPS_Linear);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearGetEPS_C","QEPLinearGetEPS_Linear",QEPLinearGetEPS_Linear);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearSetExplicitMatrix_C","QEPLinearSetExplicitMatrix_Linear",QEPLinearSetExplicitMatrix_Linear);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearGetExplicitMatrix_C","QEPLinearGetExplicitMatrix_Linear",QEPLinearGetExplicitMatrix_Linear);CHKERRQ(ierr);
 
   ierr = EPSCreate(PetscObjectComm((PetscObject)qep),&ctx->eps);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)qep)->prefix);CHKERRQ(ierr);

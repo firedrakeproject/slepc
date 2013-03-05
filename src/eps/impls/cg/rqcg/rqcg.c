@@ -255,10 +255,9 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSRQCGSetReset_RQCG"
-PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
+static PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
 {
   EPS_RQCG *ctx = (EPS_RQCG*)eps->data;
 
@@ -266,7 +265,6 @@ PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
   ctx->nrest = nrest;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSRQCGSetReset"
@@ -298,10 +296,9 @@ PetscErrorCode EPSRQCGSetReset(EPS eps,PetscInt nrest)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__  
 #define __FUNCT__ "EPSRQCGGetReset_RQCG"
-PetscErrorCode EPSRQCGGetReset_RQCG(EPS eps,PetscInt *nrest)
+static PetscErrorCode EPSRQCGGetReset_RQCG(EPS eps,PetscInt *nrest)
 {
   EPS_RQCG *ctx = (EPS_RQCG*)eps->data;
 
@@ -309,7 +306,6 @@ PetscErrorCode EPSRQCGGetReset_RQCG(EPS eps,PetscInt *nrest)
   *nrest = ctx->nrest;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__  
 #define __FUNCT__ "EPSRQCGGetReset"
@@ -382,8 +378,8 @@ PetscErrorCode EPSDestroy_RQCG(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGSetReset_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGGetReset_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGSetReset_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGGetReset_C","",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -421,8 +417,8 @@ PetscErrorCode EPSCreate_RQCG(EPS eps)
   eps->ops->computevectors = EPSComputeVectors_Default;
   ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
   ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGSetReset_C","EPSRQCGSetReset_RQCG",EPSRQCGSetReset_RQCG);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunctionDynamic((PetscObject)eps,"EPSRQCGGetReset_C","EPSRQCGGetReset_RQCG",EPSRQCGGetReset_RQCG);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGSetReset_C","EPSRQCGSetReset_RQCG",EPSRQCGSetReset_RQCG);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGGetReset_C","EPSRQCGGetReset_RQCG",EPSRQCGGetReset_RQCG);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
