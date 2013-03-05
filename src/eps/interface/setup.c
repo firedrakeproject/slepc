@@ -24,7 +24,7 @@
 #include <slepc-private/epsimpl.h>       /*I "slepceps.h" I*/
 #include <slepc-private/ipimpl.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp"
 /*@
    EPSSetUp - Sets up all the internal data structures necessary for the
@@ -267,7 +267,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetOperators"
 /*@
    EPSSetOperators - Sets the matrices associated with the eigenvalue problem.
@@ -353,7 +353,7 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetDeflationSpace"
 /*@
    EPSSetDeflationSpace - Specify a basis of vectors that constitute
@@ -413,7 +413,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSRemoveDeflationSpace"
 /*@
    EPSRemoveDeflationSpace - Removes the deflation space.
@@ -440,7 +440,7 @@ PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetInitialSpace"
 /*@
    EPSSetInitialSpace - Specify a basis of vectors that constitute the initial
@@ -483,7 +483,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetInitialSpaceLeft"
 /*@
    EPSSetInitialSpaceLeft - Specify a basis of vectors that constitute the initial

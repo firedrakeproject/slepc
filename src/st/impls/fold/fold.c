@@ -28,7 +28,7 @@ typedef struct {
   Vec         w2;
 } ST_FOLD;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STApply_Fold"
 PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
 {
@@ -72,7 +72,7 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STApplyTranspose_Fold"
 PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
 {
@@ -116,7 +116,7 @@ PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STBackTransform_Fold"
 PetscErrorCode STBackTransform_Fold(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
@@ -145,7 +145,7 @@ PetscErrorCode STBackTransform_Fold(ST st,PetscInt n,PetscScalar *eigr,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STSetUp_Fold"
 PetscErrorCode STSetUp_Fold(ST st)
 {
@@ -166,7 +166,7 @@ PetscErrorCode STSetUp_Fold(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Fold"
 PetscErrorCode STSetFromOptions_Fold(ST st) 
 {
@@ -194,7 +194,7 @@ PetscErrorCode STSetFromOptions_Fold(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STReset_Fold"
 PetscErrorCode STReset_Fold(ST st)
 {
@@ -206,7 +206,7 @@ PetscErrorCode STReset_Fold(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STDestroy_Fold"
 PetscErrorCode STDestroy_Fold(ST st)
 {
@@ -218,7 +218,7 @@ PetscErrorCode STDestroy_Fold(ST st)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STCreate_Fold"
 PetscErrorCode STCreate_Fold(ST st)
 {

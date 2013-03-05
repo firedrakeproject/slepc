@@ -37,7 +37,7 @@ typedef struct {
   Vec       x1,x2,y1,y2;
 } SVD_CYCLIC;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "ShellMatMult_Cyclic"
 static PetscErrorCode ShellMatMult_Cyclic(Mat B,Vec x,Vec y)
 {
@@ -69,7 +69,7 @@ static PetscErrorCode ShellMatMult_Cyclic(Mat B,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "ShellMatGetDiagonal_Cyclic"
 static PetscErrorCode ShellMatGetDiagonal_Cyclic(Mat B,Vec diag)
 {
@@ -80,7 +80,7 @@ static PetscErrorCode ShellMatGetDiagonal_Cyclic(Mat B,Vec diag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetUp_Cyclic"
 PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 {
@@ -186,7 +186,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSolve_Cyclic"
 PetscErrorCode SVDSolve_Cyclic(SVD svd)
 {
@@ -233,7 +233,7 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDMonitor_Cyclic"
 static PetscErrorCode SVDMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
@@ -259,7 +259,7 @@ static PetscErrorCode SVDMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions_Cyclic"
 PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
 {
@@ -284,7 +284,7 @@ PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDCyclicSetExplicitMatrix_Cyclic"
 static PetscErrorCode SVDCyclicSetExplicitMatrix_Cyclic(SVD svd,PetscBool explicitmatrix)
 {
@@ -325,7 +325,7 @@ PetscErrorCode SVDCyclicSetExplicitMatrix(SVD svd,PetscBool explicitmatrix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDCyclicGetExplicitMatrix_Cyclic"
 static PetscErrorCode SVDCyclicGetExplicitMatrix_Cyclic(SVD svd,PetscBool *explicitmatrix)
 {
@@ -364,7 +364,7 @@ PetscErrorCode SVDCyclicGetExplicitMatrix(SVD svd,PetscBool *explicitmatrix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDCyclicSetEPS_Cyclic"
 static PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
 {
@@ -380,7 +380,7 @@ static PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDCyclicSetEPS"
 /*@
    SVDCyclicSetEPS - Associate an eigensolver object (EPS) to the
@@ -408,7 +408,7 @@ PetscErrorCode SVDCyclicSetEPS(SVD svd,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDCyclicGetEPS_Cyclic"
 static PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
 {
@@ -419,7 +419,7 @@ static PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDCyclicGetEPS"
 /*@
    SVDCyclicGetEPS - Retrieve the eigensolver object (EPS) associated
@@ -448,7 +448,7 @@ PetscErrorCode SVDCyclicGetEPS(SVD svd,EPS *eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDView_Cyclic"
 PetscErrorCode SVDView_Cyclic(SVD svd,PetscViewer viewer)
 {
@@ -463,7 +463,7 @@ PetscErrorCode SVDView_Cyclic(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDReset_Cyclic"
 PetscErrorCode SVDReset_Cyclic(SVD svd)
 {
@@ -480,7 +480,7 @@ PetscErrorCode SVDReset_Cyclic(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDDestroy_Cyclic"
 PetscErrorCode SVDDestroy_Cyclic(SVD svd)
 {
@@ -498,7 +498,7 @@ PetscErrorCode SVDDestroy_Cyclic(SVD svd)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDCreate_Cyclic"
 PetscErrorCode SVDCreate_Cyclic(SVD svd)
 {

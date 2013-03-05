@@ -24,7 +24,7 @@
 #include <slepc-private/qepimpl.h>       /*I "slepcqep.h" I*/
 #include <slepc-private/ipimpl.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetUp"
 /*@
    QEPSetUp - Sets up all the internal data structures necessary for the
@@ -186,7 +186,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetOperators"
 /*@
    QEPSetOperators - Sets the matrices associated with the quadratic eigenvalue problem.
@@ -275,7 +275,7 @@ PetscErrorCode QEPGetOperators(QEP qep,Mat *M,Mat *C,Mat *K)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetInitialSpace"
 /*@
    QEPSetInitialSpace - Specify a basis of vectors that constitute the initial
@@ -318,7 +318,7 @@ PetscErrorCode QEPSetInitialSpace(QEP qep,PetscInt n,Vec *is)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetInitialSpaceLeft"
 /*@
    QEPSetInitialSpaceLeft - Specify a basis of vectors that constitute the initial
@@ -362,7 +362,7 @@ PetscErrorCode QEPSetInitialSpaceLeft(QEP qep,PetscInt n,Vec *is)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPAllocateSolution"
 /*
   QEPAllocateSolution - Allocate memory storage for common variables such
@@ -393,7 +393,7 @@ PetscErrorCode QEPAllocateSolution(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPFreeSolution"
 /*
   QEPFreeSolution - Free memory storage. This routine is related to 

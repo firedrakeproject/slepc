@@ -792,7 +792,8 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   }
   PetscFunctionReturn(0);
 }
-#undef __FUNCT__  
+
+#undef __FUNCT__
 #define __FUNCT__ "DSSolve_GHIEP_DQDS_II"
 PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 {

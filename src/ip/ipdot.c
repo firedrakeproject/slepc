@@ -37,7 +37,7 @@
 #define VecMXDotEnd   VecMDotEnd  
 #endif
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPNorm"
 /*@
    IPNorm - Computes the norm of a vector as the square root of the inner 
@@ -79,7 +79,7 @@ PetscErrorCode IPNorm(IP ip,Vec x,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPNormBegin_Bilinear"
 PetscErrorCode IPNormBegin_Bilinear(IP ip,Vec x,PetscReal *norm)
 {
@@ -91,7 +91,7 @@ PetscErrorCode IPNormBegin_Bilinear(IP ip,Vec x,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPNormBegin_Sesquilinear"
 PetscErrorCode IPNormBegin_Sesquilinear(IP ip,Vec x,PetscReal *norm)
 {
@@ -107,7 +107,7 @@ PetscErrorCode IPNormBegin_Sesquilinear(IP ip,Vec x,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPNormBegin_Indefinite"
 PetscErrorCode IPNormBegin_Indefinite(IP ip,Vec x,PetscReal *norm)
 {
@@ -123,7 +123,7 @@ PetscErrorCode IPNormBegin_Indefinite(IP ip,Vec x,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPNormBegin"
 /*@
    IPNormBegin - Starts a split phase norm computation.
@@ -155,7 +155,7 @@ PetscErrorCode IPNormBegin(IP ip,Vec x,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPNormEnd_Bilinear"
 PetscErrorCode IPNormEnd_Bilinear(IP ip,Vec x,PetscReal *norm)
 {
@@ -177,7 +177,7 @@ PetscErrorCode IPNormEnd_Bilinear(IP ip,Vec x,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPNormEnd_Sesquilinear"
 PetscErrorCode IPNormEnd_Sesquilinear(IP ip,Vec x,PetscReal *norm)
 {
@@ -198,7 +198,7 @@ PetscErrorCode IPNormEnd_Sesquilinear(IP ip,Vec x,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPNormEnd_Indefinite"
 PetscErrorCode IPNormEnd_Indefinite(IP ip,Vec x,PetscReal *norm)
 {
@@ -220,7 +220,7 @@ PetscErrorCode IPNormEnd_Indefinite(IP ip,Vec x,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPNormEnd"
 /*@
    IPNormEnd - Ends a split phase norm computation.
@@ -254,7 +254,7 @@ PetscErrorCode IPNormEnd(IP ip,Vec x,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPInnerProduct"
 /*@
    IPInnerProduct - Computes the inner product of two vectors.
@@ -297,7 +297,7 @@ PetscErrorCode IPInnerProduct(IP ip,Vec x,Vec y,PetscScalar *p)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPInnerProductBegin_Bilinear"
 PetscErrorCode IPInnerProductBegin_Bilinear(IP ip,Vec x,Vec y,PetscScalar *p)
 {
@@ -313,7 +313,7 @@ PetscErrorCode IPInnerProductBegin_Bilinear(IP ip,Vec x,Vec y,PetscScalar *p)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPInnerProductBegin_Sesquilinear"
 PetscErrorCode IPInnerProductBegin_Sesquilinear(IP ip,Vec x,Vec y,PetscScalar *p)
 {
@@ -329,7 +329,7 @@ PetscErrorCode IPInnerProductBegin_Sesquilinear(IP ip,Vec x,Vec y,PetscScalar *p
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPInnerProductBegin"
 /*@
    IPInnerProductBegin - Starts a split phase inner product computation.
@@ -366,7 +366,7 @@ PetscErrorCode IPInnerProductBegin(IP ip,Vec x,Vec y,PetscScalar *p)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPInnerProductEnd_Bilinear"
 PetscErrorCode IPInnerProductEnd_Bilinear(IP ip,Vec x,Vec y,PetscScalar *p)
 {
@@ -381,7 +381,7 @@ PetscErrorCode IPInnerProductEnd_Bilinear(IP ip,Vec x,Vec y,PetscScalar *p)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPInnerProductEnd_Sesquilinear"
 PetscErrorCode IPInnerProductEnd_Sesquilinear(IP ip,Vec x,Vec y,PetscScalar *p)
 {
@@ -396,7 +396,7 @@ PetscErrorCode IPInnerProductEnd_Sesquilinear(IP ip,Vec x,Vec y,PetscScalar *p)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPInnerProductEnd"
 /*@
    IPInnerProductEnd - Ends a split phase inner product computation.
@@ -434,7 +434,7 @@ PetscErrorCode IPInnerProductEnd(IP ip,Vec x,Vec y,PetscScalar *p)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPMInnerProduct"
 /*@
    IPMInnerProduct - Computes the inner products a vector x with a set of
@@ -480,7 +480,7 @@ PetscErrorCode IPMInnerProduct(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPMInnerProductBegin_Bilinear"
 PetscErrorCode IPMInnerProductBegin_Bilinear(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {
@@ -496,7 +496,7 @@ PetscErrorCode IPMInnerProductBegin_Bilinear(IP ip,Vec x,PetscInt n,const Vec y[
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPMInnerProductBegin_Sesquilinear"
 PetscErrorCode IPMInnerProductBegin_Sesquilinear(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {
@@ -512,7 +512,7 @@ PetscErrorCode IPMInnerProductBegin_Sesquilinear(IP ip,Vec x,PetscInt n,const Ve
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPMInnerProductBegin"
 /*@
    IPMInnerProductBegin - Starts a split phase multiple inner product computation.
@@ -552,7 +552,7 @@ PetscErrorCode IPMInnerProductBegin(IP ip,Vec x,PetscInt n,const Vec y[],PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPMInnerProductEnd_Bilinear"
 PetscErrorCode IPMInnerProductEnd_Bilinear(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {
@@ -567,7 +567,7 @@ PetscErrorCode IPMInnerProductEnd_Bilinear(IP ip,Vec x,PetscInt n,const Vec y[],
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPMInnerProductEnd_Sesquilinear"
 PetscErrorCode IPMInnerProductEnd_Sesquilinear(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {
@@ -582,7 +582,7 @@ PetscErrorCode IPMInnerProductEnd_Sesquilinear(IP ip,Vec x,PetscInt n,const Vec 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPMInnerProductEnd"
 /*@
    IPMInnerProductEnd - Ends a split phase multiple inner product computation.
@@ -624,7 +624,7 @@ PetscErrorCode IPMInnerProductEnd(IP ip,Vec x,PetscInt n,const Vec y[],PetscScal
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPCreate_Bilinear"
 PetscErrorCode IPCreate_Bilinear(IP ip)
 {
@@ -639,7 +639,7 @@ PetscErrorCode IPCreate_Bilinear(IP ip)
 }
 
 #if defined(PETSC_USE_COMPLEX)
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPCreate_Sesquilinear"
 PetscErrorCode IPCreate_Sesquilinear(IP ip)
 {
@@ -654,7 +654,7 @@ PetscErrorCode IPCreate_Sesquilinear(IP ip)
 }
 #endif
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPCreate_Indefinite"
 PetscErrorCode IPCreate_Indefinite(IP ip)
 {

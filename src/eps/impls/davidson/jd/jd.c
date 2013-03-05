@@ -44,7 +44,7 @@
 #include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <../src/eps/impls/davidson/common/davidson.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_JD"
 PetscErrorCode EPSSetFromOptions_JD(EPS eps)
 {
@@ -114,7 +114,7 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   PetscFunctionReturn(0);
 }  
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_JD"
 PetscErrorCode EPSSetUp_JD(EPS eps)
 {
@@ -139,7 +139,7 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDestroy_JD"
 PetscErrorCode EPSDestroy_JD(EPS eps)
 {
@@ -166,7 +166,7 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDSetKrylovStart"
 /*@
    EPSJDSetKrylovStart - Activates or deactivates starting the searching
@@ -197,7 +197,7 @@ PetscErrorCode EPSJDSetKrylovStart(EPS eps,PetscBool krylovstart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDGetKrylovStart"
 /*@
    EPSJDGetKrylovStart - Returns a flag indicating if the searching subspace is started with a
@@ -227,7 +227,7 @@ PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDSetBlockSize"
 /*@
    EPSJDSetBlockSize - Sets the number of vectors to be added to the searching space
@@ -257,7 +257,7 @@ PetscErrorCode EPSJDSetBlockSize(EPS eps,PetscInt blocksize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDGetBlockSize"
 /*@
    EPSJDGetBlockSize - Returns the number of vectors to be added to the searching space
@@ -286,7 +286,7 @@ PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDGetRestart"
 /*@
    EPSJDGetRestart - Gets the number of vectors of the searching space after
@@ -315,7 +315,7 @@ PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDSetRestart"
 /*@
    EPSJDSetRestart - Sets the number of vectors of the searching space after
@@ -348,7 +348,7 @@ PetscErrorCode EPSJDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDGetInitialSize"
 /*@
    EPSJDGetInitialSize - Returns the initial size of the searching space.
@@ -384,7 +384,7 @@ PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDSetInitialSize"
 /*@
    EPSJDSetInitialSize - Sets the initial size of the searching space.
@@ -421,7 +421,7 @@ PetscErrorCode EPSJDSetInitialSize(EPS eps,PetscInt initialsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDGetFix"
 /*@
    EPSJDGetFix - Returns the threshold for changing the target in the correction
@@ -455,7 +455,7 @@ PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDSetFix"
 /*@
    EPSJDSetFix - Sets the threshold for changing the target in the correction
@@ -490,7 +490,7 @@ PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDSetConstantCorrectionTolerance"
 /*@
    EPSJDSetConstantCorrectionTolerance - If true, deactivates the dynamic stopping criterion
@@ -521,7 +521,7 @@ PetscErrorCode EPSJDSetConstantCorrectionTolerance(EPS eps,PetscBool constant)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDGetConstantCorrectionTolerance"
 /*@
    EPSJDGetConstantCorrectionTolerance - Returns a flag indicating if the dynamic stopping is being used for
@@ -551,7 +551,7 @@ PetscErrorCode EPSJDGetConstantCorrectionTolerance(EPS eps,PetscBool *constant)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDGetWindowSizes"
 /*@
    EPSJDGetWindowSizes - Gets the number of converged vectors in the projected
@@ -581,7 +581,7 @@ PetscErrorCode EPSJDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDSetWindowSizes"
 /*@
    EPSJDSetWindowSizes - Sets the number of converged vectors in the projected
@@ -615,7 +615,7 @@ PetscErrorCode EPSJDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDSetBOrth"
 /*@
    EPSJDSetBOrth - Selects the orthogonalization that will be used in the search
@@ -658,7 +658,7 @@ PetscErrorCode EPSJDSetBOrth(EPS eps,EPSOrthType borth)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDGetBOrth"
 /*@
    EPSJDGetBOrth - Returns the orthogonalization used in the search
@@ -691,7 +691,7 @@ PetscErrorCode EPSJDGetBOrth(EPS eps,EPSOrthType *borth)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSCreate_JD"
 PetscErrorCode EPSCreate_JD(EPS eps)
 {

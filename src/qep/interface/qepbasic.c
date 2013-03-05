@@ -29,7 +29,7 @@ PetscClassId      QEP_CLASSID = 0;
 PetscLogEvent     QEP_SetUp = 0,QEP_Solve = 0,QEP_Dense = 0;
 static PetscBool  QEPPackageInitialized = PETSC_FALSE;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPFinalizePackage"
 /*@C
    QEPFinalizePackage - This function destroys everything in the Slepc interface
@@ -48,7 +48,7 @@ PetscErrorCode QEPFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPInitializePackage"
 /*@C
    QEPInitializePackage - This function initializes everything in the QEP package. It is called
@@ -100,7 +100,7 @@ PetscErrorCode QEPInitializePackage(const char *path)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPView"
 /*@C
    QEPView - Prints the QEP data structure.
@@ -345,7 +345,7 @@ PetscErrorCode QEPPrintSolution(QEP qep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPCreate"
 /*@C
    QEPCreate - Creates the default QEP context.
@@ -426,7 +426,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   PetscFunctionReturn(0);
 }
  
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetType"
 /*@C
    QEPSetType - Selects the particular solver to be used in the QEP object. 
@@ -481,7 +481,7 @@ PetscErrorCode QEPSetType(QEP qep,QEPType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetType"
 /*@C
    QEPGetType - Gets the QEP type as a string from the QEP object.
@@ -507,7 +507,7 @@ PetscErrorCode QEPGetType(QEP qep,QEPType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPRegister"
 /*@C
   QEPRegister - See QEPRegisterDynamic()
@@ -525,7 +525,7 @@ PetscErrorCode QEPRegister(const char *sname,const char *path,const char *name,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPRegisterDestroy"
 /*@
    QEPRegisterDestroy - Frees the list of QEP methods that were
@@ -547,7 +547,7 @@ PetscErrorCode QEPRegisterDestroy(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPReset"
 /*@
    QEPReset - Resets the QEP context to the setupcalled=0 state and removes any
@@ -582,7 +582,7 @@ PetscErrorCode QEPReset(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPDestroy"
 /*@C
    QEPDestroy - Destroys the QEP context.
@@ -619,7 +619,7 @@ PetscErrorCode QEPDestroy(QEP *qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetIP"
 /*@
    QEPSetIP - Associates an inner product object to the quadratic eigensolver. 
@@ -653,7 +653,7 @@ PetscErrorCode QEPSetIP(QEP qep,IP ip)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetIP"
 /*@C
    QEPGetIP - Obtain the inner product object associated

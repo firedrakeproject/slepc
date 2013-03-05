@@ -24,7 +24,7 @@
 #include <slepc-private/svdimpl.h>      /*I "slepcsvd.h" I*/
 #include <slepc-private/ipimpl.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetOperator"
 /*@
    SVDSetOperator - Set the matrix associated with the singular value problem.
@@ -54,7 +54,7 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetOperator"
 /*@
    SVDGetOperator - Get the matrix associated with the singular value problem.
@@ -80,7 +80,7 @@ PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetUp"
 /*@
    SVDSetUp - Sets up all the internal data structures necessary for the
@@ -227,7 +227,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetInitialSpace"
 /*@
    SVDSetInitialSpace - Specify a basis of vectors that constitute the initial
@@ -269,7 +269,7 @@ PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetInitialSpaceLeft"
 /*@
    SVDSetInitialSpaceLeft - Specify a basis of vectors that constitute the initial

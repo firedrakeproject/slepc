@@ -163,7 +163,7 @@ int main (int argc,char **argv)
 /*     Routines for a user-defined shell spectral transformation       */
 /***********************************************************************/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SampleShellSTCreate"
 /*
    SampleShellSTCreate - This routine creates a user-defined
@@ -185,7 +185,7 @@ PetscErrorCode SampleShellSTCreate(SampleShellST **shell)
   PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SampleShellSTSetUp"
 /*
    SampleShellSTSetUp - This routine sets up a user-defined
@@ -216,7 +216,7 @@ PetscErrorCode SampleShellSTSetUp(SampleShellST *shell,ST st)
   PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SampleShellSTApply"
 /*
    SampleShellSTApply - This routine demonstrates the use of a
@@ -245,7 +245,7 @@ PetscErrorCode SampleShellSTApply(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SampleShellSTBackTransform"
 /*
    SampleShellSTBackTransform - This routine demonstrates the use of a
@@ -276,7 +276,7 @@ PetscErrorCode SampleShellSTBackTransform(ST st,PetscInt n,PetscScalar *eigr,Pet
   PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SampleShellSTDestroy"
 /*
    SampleShellSTDestroy - This routine destroys a user-defined

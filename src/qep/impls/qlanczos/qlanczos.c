@@ -43,7 +43,7 @@ typedef struct {
   KSP ksp;
 } QEP_QLANCZOS;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetUp_QLanczos"
 PetscErrorCode QEPSetUp_QLanczos(QEP qep)
 {
@@ -80,7 +80,7 @@ PetscErrorCode QEPSetUp_QLanczos(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPQLanczosCGS"
 /*
   Compute a step of Classical Gram-Schmidt orthogonalization 
@@ -125,7 +125,7 @@ PetscErrorCode QEPQLanczosCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScala
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPQLanczos"
 /*
   Compute a run of Q-Arnoldi iterations
@@ -194,7 +194,7 @@ PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSolve_QLanczos"
 PetscErrorCode QEPSolve_QLanczos(QEP qep)
 {
@@ -294,7 +294,7 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetFromOptions_QLanczos"
 PetscErrorCode QEPSetFromOptions_QLanczos(QEP qep)
 {
@@ -306,7 +306,7 @@ PetscErrorCode QEPSetFromOptions_QLanczos(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPView_QLanczos"
 PetscErrorCode QEPView_QLanczos(QEP qep,PetscViewer viewer)
 {
@@ -320,7 +320,7 @@ PetscErrorCode QEPView_QLanczos(QEP qep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPReset_QLanczos"
 PetscErrorCode QEPReset_QLanczos(QEP qep)
 {
@@ -334,7 +334,7 @@ PetscErrorCode QEPReset_QLanczos(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPDestroy_QLanczos"
 PetscErrorCode QEPDestroy_QLanczos(QEP qep)
 {
@@ -348,7 +348,7 @@ PetscErrorCode QEPDestroy_QLanczos(QEP qep)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPCreate_QLanczos"
 PetscErrorCode QEPCreate_QLanczos(QEP qep)
 {

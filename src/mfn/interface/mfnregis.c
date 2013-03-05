@@ -25,7 +25,7 @@ EXTERN_C_BEGIN
 extern PetscErrorCode MFNCreate_Krylov(MFN);
 EXTERN_C_END
   
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNRegisterAll"
 /*@C
   MFNRegisterAll - Registers all the matrix functions in the MFN package.

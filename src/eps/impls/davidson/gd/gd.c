@@ -43,7 +43,7 @@
 #include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <../src/eps/impls/davidson/common/davidson.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_GD"
 PetscErrorCode EPSSetFromOptions_GD(EPS eps)
 {
@@ -105,7 +105,7 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   PetscFunctionReturn(0);
 }  
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_GD"
 PetscErrorCode EPSSetUp_GD(EPS eps)
 {
@@ -129,7 +129,7 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDestroy_GD"
 PetscErrorCode EPSDestroy_GD(EPS eps)
 {
@@ -154,7 +154,7 @@ PetscErrorCode EPSDestroy_GD(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDSetKrylovStart"
 /*@
    EPSGDSetKrylovStart - Activates or deactivates starting the searching
@@ -185,7 +185,7 @@ PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscBool krylovstart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDGetKrylovStart"
 /*@
    EPSGDGetKrylovStart - Returns a flag indicating if the search subspace is started with a
@@ -215,7 +215,7 @@ PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscBool *krylovstart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDSetBlockSize"
 /*@
    EPSGDSetBlockSize - Sets the number of vectors to be added to the searching space
@@ -245,7 +245,7 @@ PetscErrorCode EPSGDSetBlockSize(EPS eps,PetscInt blocksize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDGetBlockSize"
 /*@
    EPSGDGetBlockSize - Returns the number of vectors to be added to the searching space
@@ -274,7 +274,7 @@ PetscErrorCode EPSGDGetBlockSize(EPS eps,PetscInt *blocksize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDGetRestart"
 /*@
    EPSGDGetRestart - Gets the number of vectors of the searching space after
@@ -303,7 +303,7 @@ PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDSetRestart"
 /*@
    EPSGDSetRestart - Sets the number of vectors of the searching space after
@@ -336,7 +336,7 @@ PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDGetInitialSize"
 /*@
    EPSGDGetInitialSize - Returns the initial size of the searching space.
@@ -372,7 +372,7 @@ PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDSetInitialSize"
 /*@
    EPSGDSetInitialSize - Sets the initial size of the searching space.
@@ -409,7 +409,7 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDSetBOrth"
 /*@
    EPSGDSetBOrth - Selects the orthogonalization that will be used in the search
@@ -452,7 +452,7 @@ PetscErrorCode EPSGDSetBOrth(EPS eps,EPSOrthType borth)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDGetBOrth"
 /*@
    EPSGDGetBOrth - Returns the orthogonalization used in the search
@@ -484,7 +484,7 @@ PetscErrorCode EPSGDGetBOrth(EPS eps,EPSOrthType *borth)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDGetWindowSizes"
 /*@
    EPSGDGetWindowSizes - Gets the number of converged vectors in the projected
@@ -514,7 +514,7 @@ PetscErrorCode EPSGDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDSetWindowSizes"
 /*@
    EPSGDSetWindowSizes - Sets the number of converged vectors in the projected
@@ -548,7 +548,7 @@ PetscErrorCode EPSGDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDSetDoubleExpansion_GD"
 static PetscErrorCode EPSGDSetDoubleExpansion_GD(EPS eps,PetscBool use_gd2)
 {
@@ -559,7 +559,7 @@ static PetscErrorCode EPSGDSetDoubleExpansion_GD(EPS eps,PetscBool use_gd2)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDGetDoubleExpansion_GD"
 static PetscErrorCode EPSGDGetDoubleExpansion_GD(EPS eps,PetscBool *flg)
 {
@@ -573,7 +573,7 @@ static PetscErrorCode EPSGDGetDoubleExpansion_GD(EPS eps,PetscBool *flg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDGetDoubleExpansion"
 /*@
    EPSGDGetDoubleExpansion - Gets a flag indicating whether the double 
@@ -602,7 +602,7 @@ PetscErrorCode EPSGDGetDoubleExpansion(EPS eps,PetscBool *flg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGDSetDoubleExpansion"
 /*@
    EPSGDSetDoubleExpansion - Activate a variant where the search subspace is
@@ -633,7 +633,7 @@ PetscErrorCode EPSGDSetDoubleExpansion(EPS eps,PetscBool use_gd2)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSCreate_GD"
 PetscErrorCode EPSCreate_GD(EPS eps)
 {

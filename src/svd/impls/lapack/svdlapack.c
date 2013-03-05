@@ -24,7 +24,7 @@
 #include <slepc-private/svdimpl.h>      /*I "slepcsvd.h" I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetUp_LAPACK"
 PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 {
@@ -44,7 +44,7 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSolve_LAPACK"
 PetscErrorCode SVDSolve_LAPACK(SVD svd)
 {
@@ -102,7 +102,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDReset_LAPACK"
 PetscErrorCode SVDReset_LAPACK(SVD svd)
 {
@@ -113,7 +113,7 @@ PetscErrorCode SVDReset_LAPACK(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDDestroy_LAPACK"
 PetscErrorCode SVDDestroy_LAPACK(SVD svd)
 {
@@ -125,7 +125,7 @@ PetscErrorCode SVDDestroy_LAPACK(SVD svd)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDCreate_LAPACK"
 PetscErrorCode SVDCreate_LAPACK(SVD svd)
 {

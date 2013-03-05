@@ -49,7 +49,7 @@ typedef struct {
   PetscBool oneside;
 } SVD_LANCZOS;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetUp_Lanczos"
 PetscErrorCode SVDSetUp_Lanczos(SVD svd)
 {
@@ -83,7 +83,7 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDTwoSideLanczos"
 PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V,Vec v,Vec *U,PetscInt k,PetscInt n,PetscScalar* work)
 {
@@ -108,7 +108,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDOneSideLanczos"
 static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V,Vec v,Vec u,Vec u_1,PetscInt k,PetscInt n,PetscScalar* work)
 {
@@ -157,7 +157,7 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSolve_Lanczos"
 PetscErrorCode SVDSolve_Lanczos(SVD svd)
 {
@@ -260,7 +260,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions_Lanczos"
 PetscErrorCode SVDSetFromOptions_Lanczos(SVD svd)
 {
@@ -278,7 +278,7 @@ PetscErrorCode SVDSetFromOptions_Lanczos(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDLanczosSetOneSide_Lanczos"
 static PetscErrorCode SVDLanczosSetOneSide_Lanczos(SVD svd,PetscBool oneside)
 {
@@ -357,7 +357,7 @@ PetscErrorCode SVDLanczosGetOneSide(SVD svd,PetscBool *oneside)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDLanczosGetOneSide_Lanczos"
 static PetscErrorCode SVDLanczosGetOneSide_Lanczos(SVD svd,PetscBool *oneside)
 {
@@ -368,7 +368,7 @@ static PetscErrorCode SVDLanczosGetOneSide_Lanczos(SVD svd,PetscBool *oneside)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDReset_Lanczos"
 PetscErrorCode SVDReset_Lanczos(SVD svd)
 {
@@ -379,7 +379,7 @@ PetscErrorCode SVDReset_Lanczos(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDDestroy_Lanczos"
 PetscErrorCode SVDDestroy_Lanczos(SVD svd)
 {
@@ -392,7 +392,7 @@ PetscErrorCode SVDDestroy_Lanczos(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDView_Lanczos"
 PetscErrorCode SVDView_Lanczos(SVD svd,PetscViewer viewer)
 {
@@ -405,7 +405,7 @@ PetscErrorCode SVDView_Lanczos(SVD svd,PetscViewer viewer)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDCreate_Lanczos"
 PetscErrorCode SVDCreate_Lanczos(SVD svd)
 {

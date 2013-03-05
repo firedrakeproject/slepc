@@ -24,7 +24,7 @@
 #include <slepc-private/qepimpl.h>      /*I "slepcqep.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPMonitor"
 /*
    Runs the user provided monitor routines, if any.
@@ -41,7 +41,7 @@ PetscErrorCode QEPMonitor(QEP qep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPMonitorSet"
 /*@C
    QEPMonitorSet - Sets an ADDITIONAL function to be called at every 
@@ -101,7 +101,7 @@ PetscErrorCode QEPMonitorSet(QEP qep,PetscErrorCode (*monitor)(QEP,PetscInt,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPMonitorCancel"
 /*@
    QEPMonitorCancel - Clears all monitors for a QEP object.
@@ -136,7 +136,7 @@ PetscErrorCode QEPMonitorCancel(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetMonitorContext"
 /*@C
    QEPGetMonitorContext - Gets the monitor context, as set by 
@@ -162,7 +162,7 @@ PetscErrorCode QEPGetMonitorContext(QEP qep,void **ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPMonitorAll"
 /*@C
    QEPMonitorAll - Print the current approximate values and 
@@ -209,7 +209,7 @@ PetscErrorCode QEPMonitorAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *ei
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPMonitorFirst"
 /*@C
    QEPMonitorFirst - Print the first unconverged approximate value and 
@@ -252,7 +252,7 @@ PetscErrorCode QEPMonitorFirst(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPMonitorConverged"
 /*@C
    QEPMonitorConverged - Print the approximate values and 
@@ -308,7 +308,7 @@ PetscErrorCode QEPMonitorConverged(QEP qep,PetscInt its,PetscInt nconv,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPMonitorLG"
 PetscErrorCode QEPMonitorLG(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
@@ -338,7 +338,7 @@ PetscErrorCode QEPMonitorLG(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eig
   PetscFunctionReturn(0);
 } 
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPMonitorLGAll"
 PetscErrorCode QEPMonitorLGAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {

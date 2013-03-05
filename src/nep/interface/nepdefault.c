@@ -24,7 +24,7 @@
 #include <slepc-private/nepimpl.h>     /*I "slepcnep.h" I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPDefaultGetWork"
 /*
   NEPDefaultGetWork - Gets a number of work vectors.
@@ -43,7 +43,7 @@ PetscErrorCode NEPDefaultGetWork(NEP nep,PetscInt nw)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPDefaultFreeWork"
 /*
   NEPDefaultFreeWork - Free work vectors.
@@ -57,7 +57,7 @@ PetscErrorCode NEPDefaultFreeWork(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetDefaultShift"
 /*
   NEPGetDefaultShift - Return the value of sigma to start the nonlinear iteration.
@@ -90,7 +90,7 @@ PetscErrorCode NEPGetDefaultShift(NEP nep,PetscScalar *sigma)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPConvergedDefault"
 /*
   NEPConvergedDefault - Checks convergence of the nonlinear eigensolver.

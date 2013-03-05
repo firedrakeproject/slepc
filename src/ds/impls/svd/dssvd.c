@@ -22,7 +22,7 @@
 #include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSAllocate_SVD"
 PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
 {
@@ -64,7 +64,7 @@ PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
     -----------------------------------------
 */
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSwitchFormat_SVD"
 static PetscErrorCode DSSwitchFormat_SVD(DS ds,PetscBool tocompact)
 {
@@ -101,7 +101,7 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds,PetscBool tocompact)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSView_SVD"
 PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
 {
@@ -155,7 +155,7 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSVectors_SVD"
 PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
@@ -170,7 +170,7 @@ PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSort_SVD"
 PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
@@ -200,7 +200,7 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSolve_SVD_DC"
 PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
@@ -299,7 +299,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSCreate_SVD"
 PetscErrorCode DSCreate_SVD(DS ds)
 {

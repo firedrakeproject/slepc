@@ -26,7 +26,7 @@ extern PetscErrorCode NEPCreate_RII(NEP);
 extern PetscErrorCode NEPCreate_SLP(NEP);
 EXTERN_C_END
   
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPRegisterAll"
 /*@C
    NEPRegisterAll - Registers all the solvers in the NEP package.

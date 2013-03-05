@@ -24,7 +24,7 @@
 
 #include <slepc-private/mfnimpl.h>   /*I "slepcmfn.h" I*/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNSetFromOptions"
 /*@
    MFNSetFromOptions - Sets MFN options from the options database.
@@ -123,7 +123,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNGetTolerances"
 /*@
    MFNGetTolerances - Gets the tolerance and maximum iteration count used
@@ -154,7 +154,7 @@ PetscErrorCode MFNGetTolerances(MFN mfn,PetscReal *tol,PetscInt *maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNSetTolerances"
 /*@
    MFNSetTolerances - Sets the tolerance and maximum iteration count used
@@ -207,7 +207,7 @@ PetscErrorCode MFNSetTolerances(MFN mfn,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNGetDimensions"
 /*@
    MFNGetDimensions - Gets the dimension of the subspace used by the solver.
@@ -233,7 +233,7 @@ PetscErrorCode MFNGetDimensions(MFN mfn,PetscInt *ncv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNSetDimensions"
 /*@
    MFNSetDimensions - Sets the dimension of the subspace to be used by the solver.
@@ -272,7 +272,7 @@ PetscErrorCode MFNSetDimensions(MFN mfn,PetscInt ncv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNSetFunction"
 /*@
    MFNSetFunction - Specifies the function to be computed.
@@ -305,7 +305,7 @@ PetscErrorCode MFNSetFunction(MFN mfn,SlepcFunction fun)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNGetFunction"
 /*@C
    MFNGetFunction - Gets the function from the MFN object.
@@ -331,7 +331,7 @@ PetscErrorCode MFNGetFunction(MFN mfn,SlepcFunction *fun)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNSetScaleFactor"
 /*@
    MFNSetScaleFactor - Sets the scale factor to multiply the matrix (the
@@ -362,7 +362,7 @@ PetscErrorCode MFNSetScaleFactor(MFN mfn,PetscReal alpha)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNGetScaleFactor"
 /*@
    MFNGetScaleFactor - Gets the factor used for scaling the matrix.
@@ -388,7 +388,7 @@ PetscErrorCode MFNGetScaleFactor(MFN mfn,PetscReal *alpha)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNSetOptionsPrefix"
 /*@C
    MFNSetOptionsPrefix - Sets the prefix used for searching for all 
@@ -430,7 +430,7 @@ PetscErrorCode MFNSetOptionsPrefix(MFN mfn,const char *prefix)
   PetscFunctionReturn(0);  
 }
  
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNAppendOptionsPrefix"
 /*@C
    MFNAppendOptionsPrefix - Appends to the prefix used for searching for all 
@@ -464,7 +464,7 @@ PetscErrorCode MFNAppendOptionsPrefix(MFN mfn,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNGetOptionsPrefix"
 /*@C
    MFNGetOptionsPrefix - Gets the prefix used for searching for all 

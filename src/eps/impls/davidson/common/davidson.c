@@ -49,7 +49,7 @@ typedef struct {
   PetscInt    size_wV;
 } EPS_DAVIDSON;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSCreate_Davidson"
 PetscErrorCode EPSCreate_Davidson(EPS eps)
 {
@@ -84,7 +84,7 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_Davidson"
 PetscErrorCode EPSSetUp_Davidson(EPS eps)
 {
@@ -302,7 +302,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSolve_Davidson"
 PetscErrorCode EPSSolve_Davidson(EPS eps)
 {
@@ -340,7 +340,7 @@ PetscErrorCode EPSSolve_Davidson(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSReset_Davidson"
 PetscErrorCode EPSReset_Davidson(EPS eps)
 {
@@ -363,7 +363,7 @@ PetscErrorCode EPSReset_Davidson(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSView_Davidson"
 PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
 {
@@ -407,7 +407,7 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonSetKrylovStart_Davidson"
 PetscErrorCode EPSDavidsonSetKrylovStart_Davidson(EPS eps,PetscBool krylovstart)
 {
@@ -418,7 +418,7 @@ PetscErrorCode EPSDavidsonSetKrylovStart_Davidson(EPS eps,PetscBool krylovstart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonGetKrylovStart_Davidson"
 PetscErrorCode EPSDavidsonGetKrylovStart_Davidson(EPS eps,PetscBool *krylovstart)
 {
@@ -429,7 +429,7 @@ PetscErrorCode EPSDavidsonGetKrylovStart_Davidson(EPS eps,PetscBool *krylovstart
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonSetBlockSize_Davidson"
 PetscErrorCode EPSDavidsonSetBlockSize_Davidson(EPS eps,PetscInt blocksize)
 {
@@ -442,7 +442,7 @@ PetscErrorCode EPSDavidsonSetBlockSize_Davidson(EPS eps,PetscInt blocksize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonGetBlockSize_Davidson"
 PetscErrorCode EPSDavidsonGetBlockSize_Davidson(EPS eps,PetscInt *blocksize)
 {
@@ -453,7 +453,7 @@ PetscErrorCode EPSDavidsonGetBlockSize_Davidson(EPS eps,PetscInt *blocksize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonSetRestart_Davidson"
 PetscErrorCode EPSDavidsonSetRestart_Davidson(EPS eps,PetscInt minv,PetscInt plusk)
 {
@@ -469,7 +469,7 @@ PetscErrorCode EPSDavidsonSetRestart_Davidson(EPS eps,PetscInt minv,PetscInt plu
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonGetRestart_Davidson"
 PetscErrorCode EPSDavidsonGetRestart_Davidson(EPS eps,PetscInt *minv,PetscInt *plusk)
 {
@@ -481,7 +481,7 @@ PetscErrorCode EPSDavidsonGetRestart_Davidson(EPS eps,PetscInt *minv,PetscInt *p
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonGetInitialSize_Davidson"
 PetscErrorCode EPSDavidsonGetInitialSize_Davidson(EPS eps,PetscInt *initialsize)
 {
@@ -492,7 +492,7 @@ PetscErrorCode EPSDavidsonGetInitialSize_Davidson(EPS eps,PetscInt *initialsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonSetInitialSize_Davidson"
 PetscErrorCode EPSDavidsonSetInitialSize_Davidson(EPS eps,PetscInt initialsize)
 {
@@ -505,7 +505,7 @@ PetscErrorCode EPSDavidsonSetInitialSize_Davidson(EPS eps,PetscInt initialsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonGetFix_Davidson"
 PetscErrorCode EPSDavidsonGetFix_Davidson(EPS eps,PetscReal *fix)
 {
@@ -516,7 +516,7 @@ PetscErrorCode EPSDavidsonGetFix_Davidson(EPS eps,PetscReal *fix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonSetFix_Davidson"
 PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix)
 {
@@ -529,7 +529,7 @@ PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonSetBOrth_Davidson"
 PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,EPSOrthType borth)
 {
@@ -540,7 +540,7 @@ PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,EPSOrthType borth)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonGetBOrth_Davidson"
 PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,EPSOrthType *borth)
 {
@@ -551,7 +551,7 @@ PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,EPSOrthType *borth)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonSetConstantCorrectionTolerance_Davidson"
 PetscErrorCode EPSDavidsonSetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool constant)
 {
@@ -562,7 +562,7 @@ PetscErrorCode EPSDavidsonSetConstantCorrectionTolerance_Davidson(EPS eps,PetscB
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonGetConstantCorrectionTolerance_Davidson"
 PetscErrorCode EPSDavidsonGetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool *constant)
 {
@@ -573,7 +573,7 @@ PetscErrorCode EPSDavidsonGetConstantCorrectionTolerance_Davidson(EPS eps,PetscB
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonSetWindowSizes_Davidson"
 PetscErrorCode EPSDavidsonSetWindowSizes_Davidson(EPS eps,PetscInt pwindow,PetscInt qwindow)
 {
@@ -589,7 +589,7 @@ PetscErrorCode EPSDavidsonSetWindowSizes_Davidson(EPS eps,PetscInt pwindow,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonGetWindowSizes_Davidson"
 PetscErrorCode EPSDavidsonGetWindowSizes_Davidson(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
 {
@@ -601,7 +601,7 @@ PetscErrorCode EPSDavidsonGetWindowSizes_Davidson(EPS eps,PetscInt *pwindow,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonSetMethod_Davidson"
 PetscErrorCode EPSDavidsonSetMethod_Davidson(EPS eps,Method_t method)
 {
@@ -612,7 +612,7 @@ PetscErrorCode EPSDavidsonSetMethod_Davidson(EPS eps,Method_t method)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDavidsonGetMethod_Davidson"
 PetscErrorCode EPSDavidsonGetMethod_Davidson(EPS eps,Method_t *method)
 {
@@ -623,7 +623,7 @@ PetscErrorCode EPSDavidsonGetMethod_Davidson(EPS eps,Method_t *method)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSComputeVectors_Davidson"
 /*
   EPSComputeVectors_Davidson - Compute eigenvectors from the vectors

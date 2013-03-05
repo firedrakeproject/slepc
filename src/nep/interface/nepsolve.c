@@ -24,7 +24,7 @@
 #include <slepc-private/nepimpl.h>       /*I "slepcnep.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSolve"
 /*@
    NEPSolve - Solves the nonlinear eigensystem.
@@ -129,7 +129,7 @@ PetscErrorCode NEPSolve(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEP_KSPSolve"
 PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
 {
@@ -144,7 +144,7 @@ PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetIterationNumber"
 /*@
    NEPGetIterationNumber - Gets the current iteration number. If the 
@@ -179,7 +179,7 @@ PetscErrorCode NEPGetIterationNumber(NEP nep,PetscInt *its)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetConverged"
 /*@
    NEPGetConverged - Gets the number of converged eigenpairs.
@@ -208,7 +208,7 @@ PetscErrorCode NEPGetConverged(NEP nep,PetscInt *nconv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetConvergedReason"
 /*@C
    NEPGetConvergedReason - Gets the reason why the NEPSolve() iteration was 
@@ -248,7 +248,7 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetEigenpair" 
 /*@
    NEPGetEigenpair - Gets the i-th solution of the eigenproblem as computed by 
@@ -327,7 +327,7 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetErrorEstimate" 
 /*@
    NEPGetErrorEstimate - Returns the error estimate associated to the i-th 
@@ -362,7 +362,7 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPComputeResidualNorm_Private"
 /*
    NEPComputeResidualNorm_Private - Computes the norm of the residual vector 
@@ -392,7 +392,7 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar kr,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPComputeResidualNorm"
 /*@
    NEPComputeResidualNorm - Computes the norm of the residual vector associated with 
@@ -436,7 +436,7 @@ PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPComputeRelativeError_Private"
 /*
    NEPComputeRelativeError_Private - Computes the relative error bound 
@@ -475,7 +475,7 @@ PetscErrorCode NEPComputeRelativeError_Private(NEP nep,PetscScalar kr,PetscScala
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPComputeRelativeError"
 /*@
    NEPComputeRelativeError - Computes the relative error bound associated 
@@ -515,7 +515,7 @@ PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSortEigenvalues"
 /*@
    NEPSortEigenvalues - Sorts a list of eigenvalues according to the criterion 
@@ -596,7 +596,7 @@ PetscErrorCode NEPSortEigenvalues(NEP nep,PetscInt n,PetscScalar *eigr,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPCompareEigenvalues"
 /*@
    NEPCompareEigenvalues - Compares two (possibly complex) eigenvalues according
@@ -638,7 +638,7 @@ PetscErrorCode NEPCompareEigenvalues(NEP nep,PetscScalar ar,PetscScalar ai,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetOperationCounters"
 /*@
    NEPGetOperationCounters - Gets the total number of function evaluations, dot 

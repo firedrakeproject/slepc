@@ -24,7 +24,7 @@
 #include <slepc-private/epsimpl.h>   /*I "slepceps.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSMonitor"
 /*
    Runs the user provided monitor routines, if any.
@@ -41,7 +41,7 @@ PetscErrorCode EPSMonitor(EPS eps,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSMonitorSet"
 /*@C
    EPSMonitorSet - Sets an ADDITIONAL function to be called at every 
@@ -101,7 +101,7 @@ PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,PetscInt,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSMonitorCancel"
 /*@
    EPSMonitorCancel - Clears all monitors for an EPS object.
@@ -136,7 +136,7 @@ PetscErrorCode EPSMonitorCancel(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetMonitorContext"
 /*@C
    EPSGetMonitorContext - Gets the monitor context, as set by 
@@ -162,7 +162,7 @@ PetscErrorCode EPSGetMonitorContext(EPS eps,void **ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSMonitorAll"
 /*@C
    EPSMonitorAll - Print the current approximate values and 
@@ -212,7 +212,7 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSMonitorFirst"
 /*@C
    EPSMonitorFirst - Print the first approximate value and 
@@ -258,7 +258,7 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSMonitorConverged"
 /*@C
    EPSMonitorConverged - Print the approximate values and 
@@ -317,7 +317,7 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSMonitorLG"
 PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
@@ -370,7 +370,7 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
   PetscFunctionReturn(0);
 } 
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSMonitorLGAll"
 PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {

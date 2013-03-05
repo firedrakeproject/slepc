@@ -77,7 +77,7 @@ static PetscErrorCode VecDuplicateVecs_Contiguous(Vec v,PetscInt m,Vec *V[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcVecSetTemplate"
 /*@
    SlepcVecSetTemplate - Sets a vector as a template for contiguous storage.
@@ -108,7 +108,7 @@ PetscErrorCode SlepcVecSetTemplate(Vec v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcMatGetVecsTemplate"
 /*@
    SlepcMatGetVecsTemplate - Get vectors compatible with a matrix,
@@ -156,7 +156,7 @@ PetscErrorCode SlepcMatGetVecsTemplate(Mat mat,Vec *right,Vec *left)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcUpdateVectors_Noncontiguous_Inplace"
 /*
    SlepcUpdateVectors_Noncontiguous_Inplace - V = V*Q for regular vectors
@@ -210,7 +210,7 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous_Inplace(PetscInt m_,Vec *
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcUpdateVectors_Noncontiguous"
 /*
    SlepcUpdateVectors_Noncontiguous - V(:,s:e-1) = V*Q(:,s:e-1) for 
@@ -262,7 +262,7 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous(PetscInt n,Vec *V,PetscIn
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcUpdateVectors"
 /*@
    SlepcUpdateVectors - Update a set of vectors V as V(:,s:e-1) = V*Q(:,s:e-1).
@@ -321,7 +321,7 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n,Vec *V,PetscInt s,PetscInt e,const 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcUpdateStrideVectors"
 /*@
    SlepcUpdateStrideVectors - Update a set of vectors V as
@@ -415,7 +415,7 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcVecMAXPBY"
 /*@
    SlepcVecMAXPBY - Computes y = beta*y + sum alpha*a[j]*x[j]

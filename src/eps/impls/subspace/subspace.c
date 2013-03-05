@@ -45,7 +45,7 @@ typedef struct {
   Vec *AV;
 } EPS_SUBSPACE;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_Subspace"
 PetscErrorCode EPSSetUp_Subspace(EPS eps)
 {
@@ -89,7 +89,7 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSubspaceFindGroup"
 /*
    EPSSubspaceFindGroup - Find a group of nearly equimodular eigenvalues, provided 
@@ -138,7 +138,7 @@ static PetscErrorCode EPSSubspaceFindGroup(PetscInt l,PetscInt m,PetscScalar *wr
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSubspaceResidualNorms"
 /*
    EPSSubspaceResidualNorms - Computes the column norms of residual vectors
@@ -175,7 +175,7 @@ static PetscErrorCode EPSSubspaceResidualNorms(Vec *V,Vec *AV,PetscScalar *T,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSolve_Subspace"
 PetscErrorCode EPSSolve_Subspace(EPS eps)
 {
@@ -340,7 +340,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSReset_Subspace"
 PetscErrorCode EPSReset_Subspace(EPS eps)
 {
@@ -353,7 +353,7 @@ PetscErrorCode EPSReset_Subspace(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDestroy_Subspace"
 PetscErrorCode EPSDestroy_Subspace(EPS eps)
 {
@@ -365,7 +365,7 @@ PetscErrorCode EPSDestroy_Subspace(EPS eps)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSCreate_Subspace"
 PetscErrorCode EPSCreate_Subspace(EPS eps)
 {

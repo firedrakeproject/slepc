@@ -49,7 +49,7 @@ typedef struct {
   PetscBool oneside;
 } SVD_TRLANCZOS;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetUp_TRLanczos"
 PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
 {
@@ -81,7 +81,7 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDOneSideTRLanczosMGS"
 static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V,Vec v,Vec* U,PetscInt nconv,PetscInt l,PetscInt n,PetscScalar* work)
 {
@@ -116,7 +116,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDOneSideTRLanczosCGS"
 static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V,Vec v,Vec* U,PetscInt nconv,PetscInt l,PetscInt n,PetscScalar* work)
 {
@@ -227,7 +227,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSolve_TRLanczos"
 PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 {
@@ -341,7 +341,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions_TRLanczos"
 PetscErrorCode SVDSetFromOptions_TRLanczos(SVD svd)
 {
@@ -359,7 +359,7 @@ PetscErrorCode SVDSetFromOptions_TRLanczos(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDTRLanczosSetOneSide_TRLanczos"
 static PetscErrorCode SVDTRLanczosSetOneSide_TRLanczos(SVD svd,PetscBool oneside)
 {
@@ -434,7 +434,7 @@ PetscErrorCode SVDTRLanczosGetOneSide(SVD svd,PetscBool *oneside)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDTRLanczosGetOneSide_TRLanczos"
 static PetscErrorCode SVDTRLanczosGetOneSide_TRLanczos(SVD svd,PetscBool *oneside)
 {
@@ -445,7 +445,7 @@ static PetscErrorCode SVDTRLanczosGetOneSide_TRLanczos(SVD svd,PetscBool *onesid
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDReset_TRLanczos"
 PetscErrorCode SVDReset_TRLanczos(SVD svd)
 {
@@ -456,7 +456,7 @@ PetscErrorCode SVDReset_TRLanczos(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDDestroy_TRLanczos"
 PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
 {
@@ -469,7 +469,7 @@ PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDView_TRLanczos"
 PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
 {
@@ -482,7 +482,7 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDCreate_TRLanczos"
 PetscErrorCode SVDCreate_TRLanczos(SVD svd)
 {

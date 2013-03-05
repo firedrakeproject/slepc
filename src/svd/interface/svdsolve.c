@@ -23,7 +23,7 @@
 
 #include <slepc-private/svdimpl.h>   /*I "slepcsvd.h" I*/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSolve"
 /*@
    SVDSolve - Solves the singular value problem.
@@ -99,7 +99,7 @@ PetscErrorCode SVDSolve(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetIterationNumber"
 /*@
    SVDGetIterationNumber - Gets the current iteration number. If the 
@@ -133,7 +133,7 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetConvergedReason"
 /*@C
    SVDGetConvergedReason - Gets the reason why the SVDSolve() iteration was 
@@ -168,7 +168,7 @@ PetscErrorCode SVDGetConvergedReason(SVD svd,SVDConvergedReason *reason)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetConverged"
 /*@
    SVDGetConverged - Gets the number of converged singular values.
@@ -196,7 +196,7 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetSingularTriplet" 
 /*@
    SVDGetSingularTriplet - Gets the i-th triplet of the singular value decomposition
@@ -255,7 +255,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDComputeResidualNorms"
 /*@
    SVDComputeResidualNorms - Computes the norms of the residual vectors associated with 
@@ -328,7 +328,7 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDComputeRelativeError"
 /*@
    SVDComputeRelativeError - Computes the relative error bound associated 
@@ -366,7 +366,7 @@ PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetOperationCounters"
 /*@
    SVDGetOperationCounters - Gets the total number of matrix vector and dot 

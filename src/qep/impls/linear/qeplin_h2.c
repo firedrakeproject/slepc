@@ -33,7 +33,7 @@
                                 [  M   0 ]         [ 0  M ]         [ l*x ]
  */
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MatMult_Linear_H2A"
 PetscErrorCode MatMult_Linear_H2A(Mat A,Vec x,Vec y)
 {
@@ -67,7 +67,7 @@ PetscErrorCode MatMult_Linear_H2A(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MatMult_Linear_H2B"
 PetscErrorCode MatMult_Linear_H2B(Mat B,Vec x,Vec y)
 {
@@ -103,7 +103,7 @@ PetscErrorCode MatMult_Linear_H2B(Mat B,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MatGetDiagonal_Linear_H2A"
 PetscErrorCode MatGetDiagonal_Linear_H2A(Mat A,Vec diag)
 {
@@ -114,7 +114,7 @@ PetscErrorCode MatGetDiagonal_Linear_H2A(Mat A,Vec diag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MatGetDiagonal_Linear_H2B"
 PetscErrorCode MatGetDiagonal_Linear_H2B(Mat B,Vec diag)
 {
@@ -138,7 +138,7 @@ PetscErrorCode MatGetDiagonal_Linear_H2B(Mat B,Vec diag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MatCreateExplicit_Linear_H2A"
 PetscErrorCode MatCreateExplicit_Linear_H2A(MPI_Comm comm,QEP_LINEAR *ctx,Mat *A)
 {
@@ -149,7 +149,7 @@ PetscErrorCode MatCreateExplicit_Linear_H2A(MPI_Comm comm,QEP_LINEAR *ctx,Mat *A
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MatCreateExplicit_Linear_H2B"
 PetscErrorCode MatCreateExplicit_Linear_H2B(MPI_Comm comm,QEP_LINEAR *ctx,Mat *B)
 {

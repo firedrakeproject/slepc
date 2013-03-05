@@ -27,7 +27,7 @@
 
 PetscErrorCode EPSSolve_ARPACK(EPS);
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_ARPACK"
 PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 {
@@ -80,7 +80,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSolve_ARPACK"
 PetscErrorCode EPSSolve_ARPACK(EPS eps)
 {
@@ -275,7 +275,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSBackTransform_ARPACK"
 PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
 {
@@ -290,7 +290,7 @@ PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSReset_ARPACK"
 PetscErrorCode EPSReset_ARPACK(EPS eps)
 {
@@ -310,7 +310,7 @@ PetscErrorCode EPSReset_ARPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDestroy_ARPACK"
 PetscErrorCode EPSDestroy_ARPACK(EPS eps)
 {
@@ -322,7 +322,7 @@ PetscErrorCode EPSDestroy_ARPACK(EPS eps)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSCreate_ARPACK"
 PetscErrorCode EPSCreate_ARPACK(EPS eps)
 {

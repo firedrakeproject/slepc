@@ -28,7 +28,7 @@
 /* 
    IPOrthogonalizeMGS1 - Compute one step of Modified Gram-Schmidt 
 */
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPOrthogonalizeMGS1"
 static PetscErrorCode IPOrthogonalizeMGS1(IP ip,PetscInt n,PetscBool *which,Vec *V,Vec v,PetscScalar *H)
 {
@@ -51,7 +51,7 @@ static PetscErrorCode IPOrthogonalizeMGS1(IP ip,PetscInt n,PetscBool *which,Vec 
 /* 
    IPOrthogonalizeCGS1 - Compute |v'| (estimated), |v| and one step of CGS with only one global synchronization
 */
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPOrthogonalizeCGS1"
 PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,PetscInt n,PetscBool *which,Vec *V,Vec v,PetscScalar *H,PetscReal *onorm,PetscReal *norm)
 {
@@ -132,7 +132,7 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,PetscInt n,Petsc
 /* 
   IPOrthogonalizeMGS - Orthogonalize with modified Gram-Schmidt
 */
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPOrthogonalizeMGS"
 static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *defl,PetscInt n,PetscBool *which,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
@@ -203,7 +203,7 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
 /*
   IPOrthogonalizeCGS - Orthogonalize with classical Gram-Schmidt
 */
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPOrthogonalizeCGS"
 static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n,PetscBool *which,Vec *V,Vec v,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
@@ -293,7 +293,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
   PetscFunctionReturn(0);
 }        
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPOrthogonalize"
 /*@
    IPOrthogonalize - Orthogonalize a vector with respect to a set of vectors.
@@ -359,7 +359,7 @@ PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *defl,PetscInt n,PetscBool
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPQRDecomposition"
 /*@
    IPQRDecomposition - Compute the QR factorization of a set of vectors.
@@ -428,7 +428,7 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPOrthonormalizeBasis_Private"
 /*
    Given m vectors in W, this function transfers them to V while

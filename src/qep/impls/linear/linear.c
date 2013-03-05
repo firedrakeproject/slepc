@@ -26,7 +26,7 @@
 #include <slepc-private/epsimpl.h>         /*I "slepceps.h" I*/
 #include "linearp.h"
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetUp_Linear"
 PetscErrorCode QEPSetUp_Linear(QEP qep)
 {
@@ -140,7 +140,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPLinearSelect_Norm"
 /*
    QEPLinearSelect_Norm - Auxiliary routine that copies the solution of the
@@ -224,7 +224,7 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPLinearSelect_Simple"
 /*
    QEPLinearSelect_Simple - Auxiliary routine that copies the solution of the
@@ -284,7 +284,7 @@ PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSolve_Linear"
 PetscErrorCode QEPSolve_Linear(QEP qep)
 {
@@ -313,7 +313,7 @@ PetscErrorCode QEPSolve_Linear(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSMonitor_Linear"
 static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
@@ -334,7 +334,7 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetFromOptions_Linear"
 PetscErrorCode QEPSetFromOptions_Linear(QEP qep)
 {
@@ -364,7 +364,7 @@ PetscErrorCode QEPSetFromOptions_Linear(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPLinearSetCompanionForm_Linear"
 static PetscErrorCode QEPLinearSetCompanionForm_Linear(QEP qep,PetscInt cform)
 {
@@ -410,7 +410,7 @@ PetscErrorCode QEPLinearSetCompanionForm(QEP qep,PetscInt cform)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPLinearGetCompanionForm_Linear"
 static PetscErrorCode QEPLinearGetCompanionForm_Linear(QEP qep,PetscInt *cform)
 {
@@ -450,7 +450,7 @@ PetscErrorCode QEPLinearGetCompanionForm(QEP qep,PetscInt *cform)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPLinearSetExplicitMatrix_Linear"
 static PetscErrorCode QEPLinearSetExplicitMatrix_Linear(QEP qep,PetscBool explicitmatrix)
 {
@@ -491,7 +491,7 @@ PetscErrorCode QEPLinearSetExplicitMatrix(QEP qep,PetscBool explicitmatrix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPLinearGetExplicitMatrix_Linear"
 static PetscErrorCode QEPLinearGetExplicitMatrix_Linear(QEP qep,PetscBool *explicitmatrix)
 {
@@ -531,7 +531,7 @@ PetscErrorCode QEPLinearGetExplicitMatrix(QEP qep,PetscBool *explicitmatrix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPLinearSetEPS_Linear"
 static PetscErrorCode QEPLinearSetEPS_Linear(QEP qep,EPS eps)
 {
@@ -547,7 +547,7 @@ static PetscErrorCode QEPLinearSetEPS_Linear(QEP qep,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPLinearSetEPS"
 /*@
    QEPLinearSetEPS - Associate an eigensolver object (EPS) to the
@@ -575,7 +575,7 @@ PetscErrorCode QEPLinearSetEPS(QEP qep,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPLinearGetEPS_Linear"
 static PetscErrorCode QEPLinearGetEPS_Linear(QEP qep,EPS *eps)
 {
@@ -586,7 +586,7 @@ static PetscErrorCode QEPLinearGetEPS_Linear(QEP qep,EPS *eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPLinearGetEPS"
 /*@
    QEPLinearGetEPS - Retrieve the eigensolver object (EPS) associated
@@ -615,7 +615,7 @@ PetscErrorCode QEPLinearGetEPS(QEP qep,EPS *eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPView_Linear"
 PetscErrorCode QEPView_Linear(QEP qep,PetscViewer viewer)
 {
@@ -631,7 +631,7 @@ PetscErrorCode QEPView_Linear(QEP qep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPReset_Linear"
 PetscErrorCode QEPReset_Linear(QEP qep)
 {
@@ -651,7 +651,7 @@ PetscErrorCode QEPReset_Linear(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPDestroy_Linear"
 PetscErrorCode QEPDestroy_Linear(QEP qep)
 {
@@ -671,7 +671,7 @@ PetscErrorCode QEPDestroy_Linear(QEP qep)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPCreate_Linear"
 PetscErrorCode QEPCreate_Linear(QEP qep)
 {

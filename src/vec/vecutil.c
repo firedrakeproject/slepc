@@ -24,7 +24,7 @@
 #include <slepc-private/vecimplslepc.h>            /*I "slepcvec.h" I*/
 #include <slepcsys.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcVecSetRandom"
 /*@
    SlepcVecSetRandom - Sets all components of a vector to random numbers.
@@ -76,7 +76,7 @@ PetscErrorCode SlepcVecSetRandom(Vec x,PetscRandom rctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcVecNormalize"
 /*@C
    SlepcVecNormalize - Normalizes a possibly complex vector by the 2-norm.

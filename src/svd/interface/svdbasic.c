@@ -29,7 +29,7 @@ PetscClassId      SVD_CLASSID = 0;
 PetscLogEvent     SVD_SetUp = 0,SVD_Solve = 0;
 static PetscBool  SVDPackageInitialized = PETSC_FALSE;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDFinalizePackage"
 /*@C
    SVDFinalizePackage - This function destroys everything in the Slepc interface
@@ -48,7 +48,7 @@ PetscErrorCode SVDFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDInitializePackage"
 /*@C
    SVDInitializePackage - This function initializes everything in the SVD package. It is called
@@ -99,7 +99,7 @@ PetscErrorCode SVDInitializePackage(const char *path)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDView"
 /*@C
    SVDView - Prints the SVD data structure.
@@ -270,7 +270,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDCreate"
 /*@C
    SVDCreate - Creates the default SVD context.
@@ -341,7 +341,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   PetscFunctionReturn(0);
 }
  
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDReset"
 /*@
    SVDReset - Resets the SVD context to the setupcalled=0 state and removes any
@@ -383,7 +383,7 @@ PetscErrorCode SVDReset(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDDestroy"
 /*@C
    SVDDestroy - Destroys the SVD context.
@@ -419,7 +419,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetType"
 /*@C
    SVDSetType - Selects the particular solver to be used in the SVD object. 
@@ -474,7 +474,7 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetType"
 /*@C
    SVDGetType - Gets the SVD type as a string from the SVD object.
@@ -500,7 +500,7 @@ PetscErrorCode SVDGetType(SVD svd,SVDType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDRegister"
 /*@C
    SVDRegister - See SVDRegisterDynamic()
@@ -518,7 +518,7 @@ PetscErrorCode SVDRegister(const char *sname,const char *path,const char *name,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDRegisterDestroy"
 /*@
    SVDRegisterDestroy - Frees the list of SVD methods that were
@@ -540,7 +540,7 @@ PetscErrorCode SVDRegisterDestroy(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetIP"
 /*@
    SVDSetIP - Associates an inner product object to the
@@ -575,7 +575,7 @@ PetscErrorCode SVDSetIP(SVD svd,IP ip)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetIP"
 /*@C
    SVDGetIP - Obtain the inner product object associated

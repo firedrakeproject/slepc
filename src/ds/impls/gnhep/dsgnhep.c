@@ -41,7 +41,7 @@
 
 static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *X,PetscInt ldX,PetscScalar *Y,PetscInt ldY,PetscBool doProd);
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSAllocate_GNHEP"
 PetscErrorCode DSAllocate_GNHEP(DS ds,PetscInt ld)
 {
@@ -58,7 +58,7 @@ PetscErrorCode DSAllocate_GNHEP(DS ds,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSView_GNHEP"
 PetscErrorCode DSView_GNHEP(DS ds,PetscViewer viewer)
 {
@@ -80,7 +80,7 @@ PetscErrorCode DSView_GNHEP(DS ds,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSVectors_GNHEP_Eigen_Some"
 PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscBool left)
 {
@@ -140,7 +140,7 @@ PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscBool left)
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSVectors_GNHEP_Eigen_All"
 PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
 {
@@ -186,7 +186,7 @@ PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSVectors_GNHEP"
 PetscErrorCode DSVectors_GNHEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
 {
@@ -209,7 +209,7 @@ PetscErrorCode DSVectors_GNHEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSNormalize_GNHEP"
 PetscErrorCode DSNormalize_GNHEP(DS ds,DSMatType mat,PetscInt col)
 {
@@ -267,7 +267,7 @@ PetscErrorCode DSNormalize_GNHEP(DS ds,DSMatType mat,PetscInt col)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSort_GNHEP_Arbitrary"
 PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
@@ -320,7 +320,7 @@ PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Pets
 #endif 
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSort_GNHEP_Total"
 PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
@@ -419,7 +419,7 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif 
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSort_GNHEP"
 PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
@@ -536,7 +536,7 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSolve_GNHEP"
 PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
@@ -590,7 +590,7 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSCreate_GNHEP"
 PetscErrorCode DSCreate_GNHEP(DS ds)
 {

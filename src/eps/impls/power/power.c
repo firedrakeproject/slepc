@@ -50,7 +50,7 @@ typedef struct {
   EPSPowerShiftType shift_type;
 } EPS_POWER;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_Power"
 PetscErrorCode EPSSetUp_Power(EPS eps)
 {
@@ -89,7 +89,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSolve_Power"
 PetscErrorCode EPSSolve_Power(EPS eps)
 {
@@ -235,7 +235,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 #endif 
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSolve_TS_Power"
 PetscErrorCode EPSSolve_TS_Power(EPS eps)
 {
@@ -379,7 +379,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
 #endif 
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSBackTransform_Power"
 PetscErrorCode EPSBackTransform_Power(EPS eps)
 {
@@ -393,7 +393,7 @@ PetscErrorCode EPSBackTransform_Power(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_Power"
 PetscErrorCode EPSSetFromOptions_Power(EPS eps)
 {
@@ -415,7 +415,7 @@ PetscErrorCode EPSSetFromOptions_Power(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSPowerSetShiftType_Power"
 static PetscErrorCode EPSPowerSetShiftType_Power(EPS eps,EPSPowerShiftType shift)
 {
@@ -434,7 +434,7 @@ static PetscErrorCode EPSPowerSetShiftType_Power(EPS eps,EPSPowerShiftType shift
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSPowerSetShiftType"
 /*@
    EPSPowerSetShiftType - Sets the type of shifts used during the power
@@ -475,7 +475,7 @@ PetscErrorCode EPSPowerSetShiftType(EPS eps,EPSPowerShiftType shift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSPowerGetShiftType_Power"
 static PetscErrorCode EPSPowerGetShiftType_Power(EPS eps,EPSPowerShiftType *shift)
 {
@@ -486,7 +486,7 @@ static PetscErrorCode EPSPowerGetShiftType_Power(EPS eps,EPSPowerShiftType *shif
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSPowerGetShiftType"
 /*@C
    EPSPowerGetShiftType - Gets the type of shifts used during the power
@@ -515,7 +515,7 @@ PetscErrorCode EPSPowerGetShiftType(EPS eps,EPSPowerShiftType *shift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDestroy_Power"
 PetscErrorCode EPSDestroy_Power(EPS eps)
 {
@@ -528,7 +528,7 @@ PetscErrorCode EPSDestroy_Power(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSView_Power"
 PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
 {
@@ -545,7 +545,7 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSCreate_Power"
 PetscErrorCode EPSCreate_Power(EPS eps)
 {

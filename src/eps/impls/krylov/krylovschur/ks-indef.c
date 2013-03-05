@@ -27,7 +27,7 @@
 #include <slepcblaslapack.h>
 #include "krylovschur.h"
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSFullLanczosIndef"
 static PetscErrorCode EPSFullLanczosIndef(EPS eps,PetscReal *alpha,PetscReal *beta,PetscReal *omega,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscBool *breakdown)
 {
@@ -69,7 +69,7 @@ static PetscErrorCode EPSFullLanczosIndef(EPS eps,PetscReal *alpha,PetscReal *be
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSolve_KrylovSchur_Indefinite"
 PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
 {

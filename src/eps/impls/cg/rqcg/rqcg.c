@@ -47,7 +47,7 @@ typedef struct {
   Vec      *AV,*BV,*P,*G;
 } EPS_RQCG;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_RQCG"
 PetscErrorCode EPSSetUp_RQCG(EPS eps)
 {
@@ -106,7 +106,7 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSolve_RQCG"
 PetscErrorCode EPSSolve_RQCG(EPS eps)
 {
@@ -255,7 +255,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSRQCGSetReset_RQCG"
 static PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
 {
@@ -266,7 +266,7 @@ static PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSRQCGSetReset"
 /*@
    EPSRQCGSetReset - Sets the reset parameter of the RQCG iteration. Every
@@ -296,7 +296,7 @@ PetscErrorCode EPSRQCGSetReset(EPS eps,PetscInt nrest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSRQCGGetReset_RQCG"
 static PetscErrorCode EPSRQCGGetReset_RQCG(EPS eps,PetscInt *nrest)
 {
@@ -307,7 +307,7 @@ static PetscErrorCode EPSRQCGGetReset_RQCG(EPS eps,PetscInt *nrest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSRQCGGetReset"
 /*@
    EPSRQCGGetReset - Gets the reset parameter used in the RQCG method. 
@@ -335,7 +335,7 @@ PetscErrorCode EPSRQCGGetReset(EPS eps,PetscInt *nrest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSReset_RQCG"
 PetscErrorCode EPSReset_RQCG(EPS eps)
 {
@@ -352,7 +352,7 @@ PetscErrorCode EPSReset_RQCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_RQCG"
 PetscErrorCode EPSSetFromOptions_RQCG(EPS eps)
 {
@@ -370,7 +370,7 @@ PetscErrorCode EPSSetFromOptions_RQCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDestroy_RQCG"
 PetscErrorCode EPSDestroy_RQCG(EPS eps)
 {
@@ -383,7 +383,7 @@ PetscErrorCode EPSDestroy_RQCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSView_RQCG"
 PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
 {
@@ -400,7 +400,7 @@ PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSCreate_RQCG"
 PetscErrorCode EPSCreate_RQCG(EPS eps)
 {

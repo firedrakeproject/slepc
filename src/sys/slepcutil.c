@@ -22,7 +22,7 @@
 #include <slepc-private/slepcimpl.h>            /*I "slepcsys.h" I*/
 #include <petsc-private/matimpl.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcMatConvertSeqDense"
 /*@C
    SlepcMatConvertSeqDense - Converts a parallel matrix to another one in sequential 
@@ -74,7 +74,7 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
   PetscFunctionReturn(0);  
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcMatTile_SeqAIJ"
 static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
@@ -184,7 +184,7 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   PetscFunctionReturn(0);  
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcMatTile_MPIAIJ"
 static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
@@ -330,7 +330,7 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   PetscFunctionReturn(0);  
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcMatTile"
 /*@
    SlepcMatTile - Explicitly build a matrix from four blocks, G = [ a*A b*B; c*C d*D ].
@@ -421,7 +421,7 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
   PetscFunctionReturn(0);  
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcCheckOrthogonality"
 /*@
    SlepcCheckOrthogonality - Checks (or prints) the level of orthogonality
@@ -498,7 +498,7 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcConvMonitorDestroy"
 /*
   Clean up context used in monitors of type XXXMonitorConverged.
@@ -515,7 +515,7 @@ PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcCompareLargestMagnitude"
 PetscErrorCode SlepcCompareLargestMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
@@ -530,7 +530,7 @@ PetscErrorCode SlepcCompareLargestMagnitude(PetscScalar ar,PetscScalar ai,PetscS
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcCompareSmallestMagnitude"
 PetscErrorCode SlepcCompareSmallestMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
@@ -545,7 +545,7 @@ PetscErrorCode SlepcCompareSmallestMagnitude(PetscScalar ar,PetscScalar ai,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcCompareLargestReal"
 PetscErrorCode SlepcCompareLargestReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
@@ -560,7 +560,7 @@ PetscErrorCode SlepcCompareLargestReal(PetscScalar ar,PetscScalar ai,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcCompareSmallestReal"
 PetscErrorCode SlepcCompareSmallestReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
@@ -575,7 +575,7 @@ PetscErrorCode SlepcCompareSmallestReal(PetscScalar ar,PetscScalar ai,PetscScala
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcCompareLargestImaginary"
 PetscErrorCode SlepcCompareLargestImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
@@ -595,7 +595,7 @@ PetscErrorCode SlepcCompareLargestImaginary(PetscScalar ar,PetscScalar ai,PetscS
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcCompareSmallestImaginary"
 PetscErrorCode SlepcCompareSmallestImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
@@ -615,7 +615,7 @@ PetscErrorCode SlepcCompareSmallestImaginary(PetscScalar ar,PetscScalar ai,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcCompareTargetMagnitude"
 PetscErrorCode SlepcCompareTargetMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
@@ -632,7 +632,7 @@ PetscErrorCode SlepcCompareTargetMagnitude(PetscScalar ar,PetscScalar ai,PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcCompareTargetReal"
 PetscErrorCode SlepcCompareTargetReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
@@ -648,7 +648,7 @@ PetscErrorCode SlepcCompareTargetReal(PetscScalar ar,PetscScalar ai,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcCompareTargetImaginary"
 PetscErrorCode SlepcCompareTargetImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
@@ -672,7 +672,7 @@ PetscErrorCode SlepcCompareTargetImaginary(PetscScalar ar,PetscScalar ai,PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcCompareSmallestPositiveReal"
 /*
    Used in the SVD for computing smallest singular values
@@ -699,7 +699,7 @@ PetscErrorCode SlepcCompareSmallestPositiveReal(PetscScalar ar,PetscScalar ai,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcBasisReference_Private"
 /*
    Given n vectors in V, this function gets references of them into W.
@@ -723,7 +723,7 @@ PetscErrorCode SlepcBasisReference_Private(PetscInt n,Vec *V,PetscInt *m,Vec **W
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SlepcBasisDestroy_Private"
 /*
    Destroys a set of vectors.

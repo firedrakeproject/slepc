@@ -40,7 +40,7 @@ typedef struct {
   improveX_type old_improveX;        /* old improveX */
 } dvdImprovex_gd2;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_gd2"
 PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs)
 {
@@ -95,7 +95,7 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_gd2_d"
 PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
 {
@@ -179,7 +179,7 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
     }
 #endif
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_gd2_gen"
 PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
 {

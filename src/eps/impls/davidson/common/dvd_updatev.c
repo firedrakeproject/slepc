@@ -58,7 +58,7 @@ typedef struct {
 } dvdManagV_basic;
 
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_managementV_basic"
 PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt bs,PetscInt mpd,PetscInt min_size_V,PetscInt plusk,PetscBool harm,PetscBool allResiduals)
 {
@@ -132,7 +132,7 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_start"
 PetscErrorCode dvd_updateV_start(dvdDashboard *d)
 {
@@ -161,7 +161,7 @@ PetscErrorCode dvd_updateV_start(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_isrestarting_fullV"
 PetscBool dvd_isrestarting_fullV(dvdDashboard *d)
 {
@@ -178,7 +178,7 @@ PetscBool dvd_isrestarting_fullV(dvdDashboard *d)
   PetscFunctionReturn(restart);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_managementV_basic_d"
 PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d)
 {
@@ -194,7 +194,7 @@ PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_extrapol"
 PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
 {
@@ -228,7 +228,7 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_conv_gen"
 PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 {
@@ -296,7 +296,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_conv_finish"
 PetscErrorCode dvd_updateV_conv_finish(dvdDashboard *d)
 {
@@ -322,7 +322,7 @@ PetscErrorCode dvd_updateV_conv_finish(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
  
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_restart_gen"
 PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 {
@@ -397,7 +397,7 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_update_gen"
 PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 {
@@ -453,7 +453,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_testConv"
 /* auxV: (by calcpairs_residual_eig) */
 PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,PetscInt e,Vec *auxV,PetscScalar *auxS,PetscInt *nConv)

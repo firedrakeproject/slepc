@@ -28,7 +28,7 @@
 /*
     Biorthogonalization routine using classical Gram-Schmidt with refinement.
  */
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPCGSBiOrthogonalization"
 static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,Vec v,PetscScalar *H,PetscReal *hnorm,PetscReal *norm)
 {
@@ -82,7 +82,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPBiOrthogonalize"
 /*@
    IPBiOrthogonalize - Bi-orthogonalize a vector with respect to a set of vectors.
@@ -165,7 +165,7 @@ PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScala
 /* 
    IPPseudoOrthogonalizeCGS1 - Compute |v'| (estimated), |v| and one step of CGS with only one global synchronization (indefinite)
 */
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPPseudoOrthogonalizeCGS1"
 PetscErrorCode IPPseudoOrthogonalizeCGS1(IP ip,PetscInt n,Vec *V,PetscReal* omega,Vec v,PetscScalar *H,PetscReal *onorm,PetscReal *norm)
 {
@@ -224,7 +224,7 @@ PetscErrorCode IPPseudoOrthogonalizeCGS1(IP ip,PetscInt n,Vec *V,PetscReal* omeg
 /*
   IPPseudoOrthogonalizeCGS - Orthogonalize with classical Gram-Schmidt (indefinite)
 */
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPPseudoOrthogonalizeCGS"
 static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal *omega,Vec v,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
@@ -314,7 +314,7 @@ static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal
   PetscFunctionReturn(0);
 }        
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPPseudoOrthogonalize"
 /*@
    IPPseudoOrthogonalize - Orthogonalize a vector with respect to two set of vectors

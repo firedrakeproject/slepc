@@ -48,7 +48,7 @@ extern PetscErrorCode EPSCreate_JD(EPS eps);
 extern PetscErrorCode EPSCreate_RQCG(EPS eps);
 EXTERN_C_END
   
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSRegisterAll"
 /*@C
   EPSRegisterAll - Registers all the eigenvalue solvers in the EPS package.

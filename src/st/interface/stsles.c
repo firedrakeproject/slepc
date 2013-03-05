@@ -25,7 +25,7 @@
 #include <slepc-private/stimpl.h>            /*I "slepcst.h" I*/
 #include <slepcsys.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STMatMult"
 /*@
    STMatMult - Computes the matrix-vector product y = T[k] x, where T[k] is
@@ -62,7 +62,7 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STMatMultTranspose"
 /*@
    STMatMultTranspose - Computes the matrix-vector product y = T[k]' x, where T[k] is
@@ -99,7 +99,7 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STMatSolve"
 /*@
    STMatSolve - Solves T[k] x = b, where T[k] is the k-th matrix of
@@ -152,7 +152,7 @@ PetscErrorCode STMatSolve(ST st,PetscInt k,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STMatSolveTranspose"
 /*@
    STMatSolveTranspose - Solves T[k]' x = b, where T[k] is the k-th matrix of
@@ -205,7 +205,7 @@ PetscErrorCode STMatSolveTranspose(ST st,PetscInt k,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STMatSetHermitian"
 /*
    STMatSetHermitian - Sets the Hermitian flag to the ST matrix.
@@ -237,7 +237,7 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STSetKSP"
 /*@
    STSetKSP - Sets the KSP object associated with the spectral 
@@ -267,7 +267,7 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STGetKSP"
 /*@
    STGetKSP - Gets the KSP object associated with the spectral
@@ -308,7 +308,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STGetOperationCounters"
 /*@
    STGetOperationCounters - Gets the total number of operator applications
@@ -339,7 +339,7 @@ PetscErrorCode STGetOperationCounters(ST st,PetscInt* ops,PetscInt* lits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STResetOperationCounters"
 /*@
    STResetOperationCounters - Resets the counters for operator applications,

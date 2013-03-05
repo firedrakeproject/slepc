@@ -22,7 +22,7 @@
 #include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSAllocate_HEP"
 PetscErrorCode DSAllocate_HEP(DS ds,PetscInt ld)
 {
@@ -63,7 +63,7 @@ PetscErrorCode DSAllocate_HEP(DS ds,PetscInt ld)
     -----------------------------------------
 */
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSwitchFormat_HEP"
 static PetscErrorCode DSSwitchFormat_HEP(DS ds,PetscBool tocompact)
 {
@@ -103,7 +103,7 @@ static PetscErrorCode DSSwitchFormat_HEP(DS ds,PetscBool tocompact)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSView_HEP"
 PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
 {
@@ -171,7 +171,7 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSVectors_HEP"
 PetscErrorCode DSVectors_HEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
@@ -210,7 +210,7 @@ PetscErrorCode DSVectors_HEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSNormalize_HEP"
 PetscErrorCode DSNormalize_HEP(DS ds,DSMatType mat,PetscInt col)
 {
@@ -231,7 +231,7 @@ PetscErrorCode DSNormalize_HEP(DS ds,DSMatType mat,PetscInt col)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "ArrowTridiag"
 /*
   ARROWTRIDIAG reduces a symmetric arrowhead matrix of the form
@@ -329,7 +329,7 @@ static PetscErrorCode ArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,Pets
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSIntermediate_HEP"
 /*
    Reduce to tridiagonal form by means of ArrowTridiag.
@@ -389,7 +389,7 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSort_HEP"
 PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
@@ -419,7 +419,7 @@ PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSUpdateExtraRow_HEP"
 PetscErrorCode DSUpdateExtraRow_HEP(DS ds)
 {
@@ -452,7 +452,7 @@ PetscErrorCode DSUpdateExtraRow_HEP(DS ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSolve_HEP_QR"
 PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
@@ -506,7 +506,7 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSolve_HEP_MRRR"
 PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
@@ -656,7 +656,7 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSTruncate_HEP"
 PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n)
 {
@@ -675,7 +675,7 @@ PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSCond_HEP"
 PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
 {
@@ -721,7 +721,7 @@ PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSTranslateRKS_HEP"
 PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
 {
@@ -810,7 +810,7 @@ PetscErrorCode DSFunction_EXP_HEP_DIAG(DS ds)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSCreate_HEP"
 PetscErrorCode DSCreate_HEP(DS ds)
 {

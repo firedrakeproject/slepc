@@ -24,7 +24,7 @@
 
 #include <slepc-private/epsimpl.h>   /*I "slepceps.h" I*/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions"
 /*@
    EPSSetFromOptions - Sets EPS options from the options database.
@@ -232,7 +232,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetTolerances"
 /*@
    EPSGetTolerances - Gets the tolerance and maximum iteration count used
@@ -263,7 +263,7 @@ PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,PetscInt *maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetTolerances"
 /*@
    EPSSetTolerances - Sets the tolerance and maximum iteration count used
@@ -316,7 +316,7 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetDimensions"
 /*@
    EPSGetDimensions - Gets the number of eigenvalues to compute
@@ -349,7 +349,7 @@ PetscErrorCode EPSGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,PetscInt *mp
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetDimensions"
 /*@
    EPSSetDimensions - Sets the number of eigenvalues to compute
@@ -426,7 +426,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetWhichEigenpairs"
 /*@
    EPSSetWhichEigenpairs - Specifies which portion of the spectrum is 
@@ -521,7 +521,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetWhichEigenpairs"
 /*@C
    EPSGetWhichEigenpairs - Returns which portion of the spectrum is to be 
@@ -551,7 +551,7 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetLeftVectorsWanted"
 /*@
    EPSSetLeftVectorsWanted - Specifies which eigenvectors are required.
@@ -586,7 +586,7 @@ PetscErrorCode EPSSetLeftVectorsWanted(EPS eps,PetscBool leftvecs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetLeftVectorsWanted"
 /*@
    EPSGetLeftVectorsWanted - Returns the flag indicating whether left 
@@ -613,7 +613,7 @@ PetscErrorCode EPSGetLeftVectorsWanted(EPS eps,PetscBool *leftvecs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetMatrixNorms"
 /*@
    EPSSetMatrixNorms - Gives the reference values of the matrix norms
@@ -685,7 +685,7 @@ PetscErrorCode EPSSetMatrixNorms(EPS eps,PetscReal nrma,PetscReal nrmb,PetscBool
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetMatrixNorms"
 /*@
    EPSGetMatrixNorms - Returns the value of the matrix norms (either set
@@ -716,7 +716,7 @@ PetscErrorCode EPSGetMatrixNorms(EPS eps,PetscReal *nrma,PetscReal *nrmb,PetscBo
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetEigenvalueComparison"
 /*@C
    EPSSetEigenvalueComparison - Specifies the eigenvalue comparison function
@@ -759,7 +759,7 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetArbitrarySelection"
 /*@C
    EPSSetArbitrarySelection - Specifies a function intended to look for
@@ -814,7 +814,7 @@ PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetConvergenceTestFunction"
 /*@C
    EPSSetConvergenceTestFunction - Sets a function to compute the error estimate
@@ -858,7 +858,7 @@ extern PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*fun
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetConvergenceTest"
 /*@
    EPSSetConvergenceTest - Specifies how to compute the error estimate
@@ -903,7 +903,7 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetConvergenceTest"
 /*@
    EPSGetConvergenceTest - Gets the method used to compute the error estimate
@@ -930,7 +930,7 @@ PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetProblemType"
 /*@
    EPSSetProblemType - Specifies the type of the eigenvalue problem.
@@ -1009,7 +1009,7 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetProblemType"
 /*@C
    EPSGetProblemType - Gets the problem type from the EPS object.
@@ -1035,7 +1035,7 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetExtraction"
 /*@
    EPSSetExtraction - Specifies the type of extraction technique to be employed 
@@ -1079,7 +1079,7 @@ PetscErrorCode EPSSetExtraction(EPS eps,EPSExtraction extr)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetExtraction"
 /*@C
    EPSGetExtraction - Gets the extraction type used by the EPS object.
@@ -1105,7 +1105,7 @@ PetscErrorCode EPSGetExtraction(EPS eps,EPSExtraction *extr)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetBalance"
 /*@
    EPSSetBalance - Specifies the balancing technique to be employed by the
@@ -1180,7 +1180,7 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetBalance"
 /*@
    EPSGetBalance - Gets the balancing type used by the EPS object, and the associated
@@ -1213,7 +1213,7 @@ PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cu
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetTrueResidual"
 /*@
    EPSSetTrueResidual - Specifies if the solver must compute the true residual
@@ -1251,7 +1251,7 @@ PetscErrorCode EPSSetTrueResidual(EPS eps,PetscBool trueres)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetTrueResidual"
 /*@C
    EPSGetTrueResidual - Returns the flag indicating whether true
@@ -1278,7 +1278,7 @@ PetscErrorCode EPSGetTrueResidual(EPS eps,PetscBool *trueres)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetTrackAll"
 /*@
    EPSSetTrackAll - Specifies if the solver must compute the residual norm of all
@@ -1312,7 +1312,7 @@ PetscErrorCode EPSSetTrackAll(EPS eps,PetscBool trackall)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetTrackAll"
 /*@
    EPSGetTrackAll - Returns the flag indicating whether all residual norms must
@@ -1339,7 +1339,7 @@ PetscErrorCode EPSGetTrackAll(EPS eps,PetscBool *trackall)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetOptionsPrefix"
 /*@C
    EPSSetOptionsPrefix - Sets the prefix used for searching for all 
@@ -1383,7 +1383,7 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
   PetscFunctionReturn(0);  
 }
  
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSAppendOptionsPrefix"
 /*@C
    EPSAppendOptionsPrefix - Appends to the prefix used for searching for all 
@@ -1419,7 +1419,7 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetOptionsPrefix"
 /*@C
    EPSGetOptionsPrefix - Gets the prefix used for searching for all 

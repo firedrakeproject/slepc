@@ -24,7 +24,7 @@
 #include <slepc-private/mfnimpl.h>   /*I "slepcmfn.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNMonitor"
 /*
    Runs the user provided monitor routines, if any.
@@ -41,7 +41,7 @@ PetscErrorCode MFNMonitor(MFN mfn,PetscInt it,PetscReal errest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNMonitorSet"
 /*@C
    MFNMonitorSet - Sets an ADDITIONAL function to be called at every 
@@ -91,7 +91,7 @@ PetscErrorCode MFNMonitorSet(MFN mfn,PetscErrorCode (*monitor)(MFN,PetscInt,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNMonitorCancel"
 /*@
    MFNMonitorCancel - Clears all monitors for an MFN object.
@@ -126,7 +126,7 @@ PetscErrorCode MFNMonitorCancel(MFN mfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNGetMonitorContext"
 /*@C
    MFNGetMonitorContext - Gets the monitor context, as set by 
@@ -152,7 +152,7 @@ PetscErrorCode MFNGetMonitorContext(MFN mfn,void **ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNMonitorDefault"
 /*@C
    MFNMonitorDefault - Print the error estimate of the current approximation at each
@@ -185,7 +185,7 @@ PetscErrorCode MFNMonitorDefault(MFN mfn,PetscInt its,PetscReal errest,void *mon
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNMonitorLG"
 PetscErrorCode MFNMonitorLG(MFN mfn,PetscInt its,PetscReal errest,void *monctx)
 {

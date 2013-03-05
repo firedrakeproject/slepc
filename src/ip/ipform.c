@@ -23,7 +23,7 @@
 
 #include <slepc-private/ipimpl.h>      /*I "slepcip.h" I*/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPSetMatrix"
 /*@
    IPSetMatrix - Specifies the matrix representation of the inner product.
@@ -62,7 +62,7 @@ PetscErrorCode IPSetMatrix(IP ip,Mat mat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPGetMatrix"
 /*@C
    IPGetMatrix - Retrieves the matrix representation of the inner product.
@@ -88,7 +88,7 @@ PetscErrorCode IPGetMatrix(IP ip,Mat* mat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPApplyMatrix_Private"
 PetscErrorCode IPApplyMatrix_Private(IP ip,Vec x)
 {
@@ -105,7 +105,7 @@ PetscErrorCode IPApplyMatrix_Private(IP ip,Vec x)
   PetscFunctionReturn(0);  
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPApplyMatrix"
 /*@
    IPApplyMatrix - Multiplies a vector by the matrix representing the IP.

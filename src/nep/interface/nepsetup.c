@@ -24,7 +24,7 @@
 #include <slepc-private/nepimpl.h>       /*I "slepcnep.h" I*/
 #include <slepc-private/ipimpl.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetUp"
 /*@
    NEPSetUp - Sets up all the internal data structures necessary for the
@@ -150,7 +150,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetInitialSpace"
 /*@
    NEPSetInitialSpace - Specify a basis of vectors that constitute the initial
@@ -191,7 +191,7 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec *is)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPAllocateSolution"
 /*
   NEPAllocateSolution - Allocate memory storage for common variables such
@@ -222,7 +222,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPFreeSolution"
 /*
   NEPFreeSolution - Free memory storage. This routine is related to 

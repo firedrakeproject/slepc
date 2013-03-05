@@ -30,7 +30,7 @@ typedef struct {
   ST st;
 } EPSSortForSTData;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSortForSTFunc"
 PetscErrorCode EPSSortForSTFunc(PetscScalar ar,PetscScalar ai,
                                 PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
@@ -45,7 +45,7 @@ PetscErrorCode EPSSortForSTFunc(PetscScalar ar,PetscScalar ai,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSolve"
 /*@
    EPSSolve - Solves the eigensystem.
@@ -244,7 +244,7 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetIterationNumber"
 /*@
    EPSGetIterationNumber - Gets the current iteration number. If the 
@@ -279,7 +279,7 @@ PetscErrorCode EPSGetIterationNumber(EPS eps,PetscInt *its)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetOperationCounters"
 /*@
    EPSGetOperationCounters - Gets the total number of operator applications,
@@ -322,7 +322,7 @@ PetscErrorCode EPSGetOperationCounters(EPS eps,PetscInt* ops,PetscInt* dots,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetConverged"
 /*@
    EPSGetConverged - Gets the number of converged eigenpairs.
@@ -351,7 +351,7 @@ PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetConvergedReason"
 /*@C
    EPSGetConvergedReason - Gets the reason why the EPSSolve() iteration was 
@@ -386,7 +386,7 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetInvariantSubspace" 
 /*@
    EPSGetInvariantSubspace - Gets an orthonormal basis of the computed invariant 
@@ -441,7 +441,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec *v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetInvariantSubspaceLeft" 
 /*@
    EPSGetInvariantSubspaceLeft - Gets an orthonormal basis of the computed left
@@ -490,7 +490,7 @@ PetscErrorCode EPSGetInvariantSubspaceLeft(EPS eps,Vec *v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetEigenpair" 
 /*@
    EPSGetEigenpair - Gets the i-th solution of the eigenproblem as computed by 
@@ -541,7 +541,7 @@ PetscErrorCode EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetEigenvalue" 
 /*@
    EPSGetEigenvalue - Gets the i-th eigenvalue as computed by EPSSolve(). 
@@ -590,7 +590,7 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetEigenvector" 
 /*@
    EPSGetEigenvector - Gets the i-th right eigenvector as computed by EPSSolve(). 
@@ -664,7 +664,7 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetEigenvectorLeft" 
 /*@
    EPSGetEigenvectorLeft - Gets the i-th left eigenvector as computed by EPSSolve() 
@@ -736,7 +736,7 @@ PetscErrorCode EPSGetEigenvectorLeft(EPS eps,PetscInt i,Vec Wr,Vec Wi)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetErrorEstimate" 
 /*@
    EPSGetErrorEstimate - Returns the error estimate associated to the i-th 
@@ -772,7 +772,7 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetErrorEstimateLeft" 
 /*@
    EPSGetErrorEstimateLeft - Returns the left error estimate associated to the i-th 
@@ -809,7 +809,7 @@ PetscErrorCode EPSGetErrorEstimateLeft(EPS eps,PetscInt i,PetscReal *errest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSComputeResidualNorm_Private"
 /*
    EPSComputeResidualNorm_Private - Computes the norm of the residual vector 
@@ -872,7 +872,7 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSComputeResidualNorm"
 /*@
    EPSComputeResidualNorm - Computes the norm of the residual vector associated with 
@@ -917,7 +917,7 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps,PetscInt i,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSComputeResidualNormLeft"
 /*@
    EPSComputeResidualNormLeft - Computes the norm of the residual vector associated with 
@@ -1007,7 +1007,7 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps,PetscInt i,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSComputeRelativeError_Private"
 /*
    EPSComputeRelativeError_Private - Computes the relative error bound 
@@ -1039,7 +1039,7 @@ PetscErrorCode EPSComputeRelativeError_Private(EPS eps,PetscScalar kr,PetscScala
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSComputeRelativeError"
 /*@
    EPSComputeRelativeError - Computes the relative error bound associated 
@@ -1079,7 +1079,7 @@ PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *error)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSComputeRelativeErrorLeft"
 /*@
    EPSComputeRelativeErrorLeft - Computes the relative error bound associated 
@@ -1148,7 +1148,7 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps,PetscInt i,PetscReal *error)
 
 #define SWAP(a,b,t) {t=a;a=b;b=t;}
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSortEigenvalues"
 /*@
    EPSSortEigenvalues - Sorts a list of eigenvalues according to the criterion 
@@ -1229,7 +1229,7 @@ PetscErrorCode EPSSortEigenvalues(EPS eps,PetscInt n,PetscScalar *eigr,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSCompareEigenvalues"
 /*@
    EPSCompareEigenvalues - Compares two (possibly complex) eigenvalues according
@@ -1272,7 +1272,7 @@ PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetStartVector"
 /*@
    EPSGetStartVector - Gets a suitable vector to be used as the starting vector
@@ -1348,7 +1348,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscBool *breakdown
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetStartVectorLeft"
 /*@
    EPSGetStartVectorLeft - Gets a suitable vector to be used as the starting vector

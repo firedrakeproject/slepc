@@ -47,7 +47,7 @@ typedef struct {
   Vec *AV;
 } EPS_LANCZOS;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_Lanczos"
 PetscErrorCode EPSSetUp_Lanczos(EPS eps)
 {
@@ -103,7 +103,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSLocalLanczos"
 /*
    EPSLocalLanczos - Local reorthogonalization.
@@ -163,7 +163,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DenseTridiagonal"
 /*
    DenseTridiagonal - Solves a real tridiagonal Hermitian Eigenvalue Problem.
@@ -234,7 +234,7 @@ static PetscErrorCode DenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,Pet
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSelectiveLanczos"
 /*
    EPSSelectiveLanczos - Selective reorthogonalization.
@@ -329,7 +329,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "update_omega"
 static void update_omega(PetscReal *omega,PetscReal *omega_old,PetscInt j,PetscReal *alpha,PetscReal *beta,PetscReal eps1,PetscReal anorm)
 {
@@ -367,7 +367,7 @@ static void update_omega(PetscReal *omega,PetscReal *omega_old,PetscInt j,PetscR
   PetscFunctionReturnVoid();
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "compute_int"
 static void compute_int(PetscBool *which,PetscReal *mu,PetscInt j,PetscReal delta,PetscReal eta)
 {
@@ -408,7 +408,7 @@ static void compute_int(PetscBool *which,PetscReal *mu,PetscInt j,PetscReal delt
   PetscFunctionReturnVoid();
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSPartialLanczos"
 /*
    EPSPartialLanczos - Partial reorthogonalization.
@@ -530,7 +530,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSBasicLanczos"
 /*
    EPSBasicLanczos - Computes an m-step Lanczos factorization. The first k
@@ -595,7 +595,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSolve_Lanczos"
 PetscErrorCode EPSSolve_Lanczos(EPS eps)
 {
@@ -778,7 +778,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_Lanczos"
 PetscErrorCode EPSSetFromOptions_Lanczos(EPS eps)
 {
@@ -797,7 +797,7 @@ PetscErrorCode EPSSetFromOptions_Lanczos(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSLanczosSetReorthog_Lanczos"
 static PetscErrorCode EPSLanczosSetReorthog_Lanczos(EPS eps,EPSLanczosReorthogType reorthog)
 {
@@ -819,7 +819,7 @@ static PetscErrorCode EPSLanczosSetReorthog_Lanczos(EPS eps,EPSLanczosReorthogTy
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSLanczosSetReorthog"
 /*@
    EPSLanczosSetReorthog - Sets the type of reorthogonalization used during the Lanczos
@@ -850,7 +850,7 @@ PetscErrorCode EPSLanczosSetReorthog(EPS eps,EPSLanczosReorthogType reorthog)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSLanczosGetReorthog_Lanczos"
 static PetscErrorCode EPSLanczosGetReorthog_Lanczos(EPS eps,EPSLanczosReorthogType *reorthog)
 {
@@ -861,7 +861,7 @@ static PetscErrorCode EPSLanczosGetReorthog_Lanczos(EPS eps,EPSLanczosReorthogTy
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSLanczosGetReorthog"
 /*@C
    EPSLanczosGetReorthog - Gets the type of reorthogonalization used during the Lanczos
@@ -890,7 +890,7 @@ PetscErrorCode EPSLanczosGetReorthog(EPS eps,EPSLanczosReorthogType *reorthog)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSReset_Lanczos"
 PetscErrorCode EPSReset_Lanczos(EPS eps)
 {
@@ -903,7 +903,7 @@ PetscErrorCode EPSReset_Lanczos(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDestroy_Lanczos"
 PetscErrorCode EPSDestroy_Lanczos(EPS eps)
 {
@@ -916,7 +916,7 @@ PetscErrorCode EPSDestroy_Lanczos(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSView_Lanczos"
 PetscErrorCode EPSView_Lanczos(EPS eps,PetscViewer viewer)
 {
@@ -933,7 +933,7 @@ PetscErrorCode EPSView_Lanczos(EPS eps,PetscViewer viewer)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSCreate_Lanczos"
 PetscErrorCode EPSCreate_Lanczos(EPS eps)
 {

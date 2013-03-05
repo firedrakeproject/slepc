@@ -39,7 +39,7 @@
 #include <slepc-private/qepimpl.h>         /*I "slepcqep.h" I*/
 #include <petscblaslapack.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetUp_QArnoldi"
 PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
 {
@@ -76,7 +76,7 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPQArnoldiCGS"
 /*
   Compute a step of Classical Gram-Schmidt orthogonalization 
@@ -121,7 +121,7 @@ PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScala
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPQArnoldi"
 /*
   Compute a run of Q-Arnoldi iterations
@@ -189,7 +189,7 @@ PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSolve_QArnoldi"
 PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 {
@@ -307,7 +307,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPReset_QArnoldi"
 PetscErrorCode QEPReset_QArnoldi(QEP qep)
 {
@@ -320,7 +320,7 @@ PetscErrorCode QEPReset_QArnoldi(QEP qep)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPCreate_QArnoldi"
 PetscErrorCode QEPCreate_QArnoldi(QEP qep)
 {

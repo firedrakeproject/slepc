@@ -23,7 +23,7 @@
 
 #include <slepc-private/mfnimpl.h>   /*I "slepcmfn.h" I*/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNSolve"
 /*@
    MFNSolve - Solves the matrix function problem. Given a vector b, the
@@ -91,7 +91,7 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNGetIterationNumber"
 /*@
    MFNGetIterationNumber - Gets the current iteration number. If the 
@@ -126,7 +126,7 @@ PetscErrorCode MFNGetIterationNumber(MFN mfn,PetscInt *its)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNGetConvergedReason"
 /*@C
    MFNGetConvergedReason - Gets the reason why the MFNSolve() iteration was 

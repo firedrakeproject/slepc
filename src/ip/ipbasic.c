@@ -29,7 +29,7 @@ PetscClassId      IP_CLASSID = 0;
 PetscLogEvent     IP_InnerProduct = 0,IP_Orthogonalize = 0,IP_ApplyMatrix = 0;
 static PetscBool  IPPackageInitialized = PETSC_FALSE;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPFinalizePackage"
 /*@C
    IPFinalizePackage - This function destroys everything in the Slepc interface 
@@ -48,7 +48,7 @@ PetscErrorCode IPFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPInitializePackage"
 /*@C
   IPInitializePackage - This function initializes everything in the IP package. It is called
@@ -100,7 +100,7 @@ PetscErrorCode IPInitializePackage(const char *path)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPCreate"
 /*@C
    IPCreate - Creates an IP context.
@@ -141,7 +141,7 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPSetOptionsPrefix"
 /*@C
    IPSetOptionsPrefix - Sets the prefix used for searching for all 
@@ -172,7 +172,7 @@ PetscErrorCode IPSetOptionsPrefix(IP ip,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPAppendOptionsPrefix"
 /*@C
    IPAppendOptionsPrefix - Appends to the prefix used for searching for all 
@@ -234,7 +234,7 @@ PetscErrorCode IPGetOptionsPrefix(IP ip,const char *prefix[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPSetType"
 /*@C
    IPSetType - Selects the type for the IP object.
@@ -284,7 +284,7 @@ PetscErrorCode IPSetType(IP ip,IPType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPGetType"
 /*@C
    IPGetType - Gets the IP type name (as a string) from the IP context.
@@ -311,7 +311,7 @@ PetscErrorCode IPGetType(IP ip,IPType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPSetDefaultType_Private"
 /*
   Sets the default IP type, depending on whether complex arithmetic
@@ -331,7 +331,7 @@ PetscErrorCode IPSetDefaultType_Private(IP ip)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPSetFromOptions"
 /*@
    IPSetFromOptions - Sets IP options from the options database.
@@ -374,7 +374,7 @@ PetscErrorCode IPSetFromOptions(IP ip)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPSetOrthogonalization"
 /*@
    IPSetOrthogonalization - Specifies the type of orthogonalization technique
@@ -440,7 +440,7 @@ PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogType type,IPOrthogRefineType
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPGetOrthogonalization"
 /*@C
    IPGetOrthogonalization - Gets the orthogonalization settings from the 
@@ -471,7 +471,7 @@ PetscErrorCode IPGetOrthogonalization(IP ip,IPOrthogType *type,IPOrthogRefineTyp
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPView"
 /*@C
    IPView - Prints the IP data structure.
@@ -544,7 +544,7 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPReset"
 /*@
    IPReset - Resets the IP context to the initial state.
@@ -572,7 +572,7 @@ PetscErrorCode IPReset(IP ip)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPDestroy"
 /*@C
    IPDestroy - Destroys IP context that was created with IPCreate().
@@ -599,7 +599,7 @@ PetscErrorCode IPDestroy(IP *ip)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPGetOperationCounters"
 /*@
    IPGetOperationCounters - Gets the total number of inner product operations 
@@ -626,7 +626,7 @@ PetscErrorCode IPGetOperationCounters(IP ip,PetscInt *dots)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPResetOperationCounters"
 /*@
    IPResetOperationCounters - Resets the counters for inner product operations 
@@ -649,7 +649,7 @@ PetscErrorCode IPResetOperationCounters(IP ip)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPRegister"
 /*@C
    IPRegister - See IPRegisterDynamic()
@@ -667,7 +667,7 @@ PetscErrorCode IPRegister(const char *sname,const char *path,const char *name,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPRegisterDestroy"
 /*@
    IPRegisterDestroy - Frees the list of IP methods that were
@@ -697,7 +697,7 @@ extern PetscErrorCode IPCreate_Sesquilinear(IP);
 extern PetscErrorCode IPCreate_Indefinite(IP);
 EXTERN_C_END
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPRegisterAll"
 /*@C
    IPRegisterAll - Registers all of the inner products in the IP package.

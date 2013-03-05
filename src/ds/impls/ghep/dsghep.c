@@ -22,7 +22,7 @@
 #include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSAllocate_GHEP"
 PetscErrorCode DSAllocate_GHEP(DS ds,PetscInt ld)
 {
@@ -38,7 +38,7 @@ PetscErrorCode DSAllocate_GHEP(DS ds,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSView_GHEP"
 PetscErrorCode DSView_GHEP(DS ds,PetscViewer viewer)
 {
@@ -53,7 +53,7 @@ PetscErrorCode DSView_GHEP(DS ds,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSVectors_GHEP"
 PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
@@ -92,7 +92,7 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSNormalize_GHEP"
 PetscErrorCode DSNormalize_GHEP(DS ds,DSMatType mat,PetscInt col)
 {
@@ -132,7 +132,7 @@ PetscErrorCode DSNormalize_GHEP(DS ds,DSMatType mat,PetscInt col)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSort_GHEP"
 PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
@@ -158,7 +158,7 @@ PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSolve_GHEP"
 PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
@@ -218,7 +218,7 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSCreate_GHEP"
 PetscErrorCode DSCreate_GHEP(DS ds)
 {

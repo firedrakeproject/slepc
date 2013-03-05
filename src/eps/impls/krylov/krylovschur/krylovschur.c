@@ -44,7 +44,7 @@
 #include <slepcblaslapack.h>
 #include "krylovschur.h"
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSGetArbitraryValues"
 PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
 {
@@ -73,7 +73,7 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_KrylovSchur"
 PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
@@ -194,7 +194,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSolve_KrylovSchur_Default"
 PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 {
@@ -314,7 +314,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSKrylovSchurSetRestart_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal keep)
 {
@@ -329,7 +329,7 @@ static PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal kee
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSKrylovSchurSetRestart"
 /*@
    EPSKrylovSchurSetRestart - Sets the restart parameter for the Krylov-Schur
@@ -363,7 +363,7 @@ PetscErrorCode EPSKrylovSchurSetRestart(EPS eps,PetscReal keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSKrylovSchurGetRestart_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurGetRestart_KrylovSchur(EPS eps,PetscReal *keep)
 {
@@ -374,7 +374,7 @@ static PetscErrorCode EPSKrylovSchurGetRestart_KrylovSchur(EPS eps,PetscReal *ke
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSKrylovSchurGetRestart"
 /*@
    EPSKrylovSchurGetRestart - Gets the restart parameter used in the
@@ -403,7 +403,7 @@ PetscErrorCode EPSKrylovSchurGetRestart(EPS eps,PetscReal *keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_KrylovSchur"
 PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps)
 {
@@ -421,7 +421,7 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSView_KrylovSchur"
 PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
 {
@@ -437,7 +437,7 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSReset_KrylovSchur"
 PetscErrorCode EPSReset_KrylovSchur(EPS eps)
 {
@@ -450,7 +450,7 @@ PetscErrorCode EPSReset_KrylovSchur(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDestroy_KrylovSchur"
 PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
 {
@@ -464,7 +464,7 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSCreate_KrylovSchur"
 PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
 {

@@ -38,7 +38,7 @@
 
 #include <slepc-private/mfnimpl.h>                /*I "slepcmfn.h" I*/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNSetUp_Krylov"
 PetscErrorCode MFNSetUp_Krylov(MFN mfn)
 {
@@ -55,7 +55,7 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNBasicArnoldi"
 PetscErrorCode MFNBasicArnoldi(MFN mfn,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscBool *breakdown)
 {
@@ -81,7 +81,7 @@ PetscErrorCode MFNBasicArnoldi(MFN mfn,PetscScalar *H,PetscInt ldh,Vec *V,PetscI
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNSolve_Krylov"
 PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 {
@@ -214,7 +214,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNReset_Krylov"
 PetscErrorCode MFNReset_Krylov(MFN mfn)
 {
@@ -229,7 +229,7 @@ PetscErrorCode MFNReset_Krylov(MFN mfn)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNCreate_Krylov"
 PetscErrorCode MFNCreate_Krylov(MFN mfn)
 {

@@ -25,7 +25,7 @@
 #include <slepc-private/slepcimpl.h>
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSBasicArnoldi"
 /*
    EPSBasicArnoldi - Computes an m-step Arnoldi factorization. The first k
@@ -72,7 +72,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSKrylovConvergence"
 /*
    EPSKrylovConvergence - Implements the loop that checks for convergence
@@ -147,7 +147,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSFullLanczos"
 /*
    EPSFullLanczos - Computes an m-step Lanczos factorization with full

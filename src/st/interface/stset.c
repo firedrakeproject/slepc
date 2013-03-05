@@ -26,7 +26,7 @@
 PetscBool         STRegisterAllCalled = PETSC_FALSE;
 PetscFunctionList STList = 0;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STSetType"
 /*@C
    STSetType - Builds ST for a particular spectral transformation.
@@ -79,7 +79,7 @@ PetscErrorCode STSetType(ST st,STType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STGetType"
 /*@C
    STGetType - Gets the ST type name (as a string) from the ST context.
@@ -106,7 +106,7 @@ PetscErrorCode STGetType(ST st,STType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions"
 /*@
    STSetFromOptions - Sets ST options from the options database.
@@ -172,7 +172,7 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STSetMatStructure"
 /*@
    STSetMatStructure - Sets an internal MatStructure attribute to 
@@ -220,7 +220,7 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STGetMatStructure"
 /*@
    STGetMatStructure - Gets the internal MatStructure attribute to 
@@ -252,7 +252,7 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STSetMatMode"
 /*@
    STSetMatMode - Sets a flag to indicate how the matrix is
@@ -303,7 +303,7 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STGetMatMode"
 /*@C
    STGetMatMode - Gets a flag that indicates how the matrix is being 

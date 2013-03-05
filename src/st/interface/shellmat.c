@@ -148,7 +148,7 @@ static PetscErrorCode STMatShellDestroy(Mat A)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STMatShellCreate"
 PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *matIdx,Mat *mat)
 {

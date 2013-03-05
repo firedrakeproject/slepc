@@ -29,7 +29,7 @@ extern PetscErrorCode SVDCreate_Lanczos(SVD);
 extern PetscErrorCode SVDCreate_TRLanczos(SVD);
 EXTERN_C_END
   
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDRegisterAll"
 /*@C
    SVDRegisterAll - Registers all the singular value solvers in the SVD package.

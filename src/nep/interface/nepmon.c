@@ -24,7 +24,7 @@
 #include <slepc-private/nepimpl.h>      /*I "slepcnep.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPMonitor"
 /*
    Runs the user provided monitor routines, if any.
@@ -41,7 +41,7 @@ PetscErrorCode NEPMonitor(NEP nep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPMonitorSet"
 /*@C
    NEPMonitorSet - Sets an ADDITIONAL function to be called at every 
@@ -102,7 +102,7 @@ PetscErrorCode NEPMonitorSet(NEP nep,PetscErrorCode (*monitor)(NEP,PetscInt,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPMonitorCancel"
 /*@
    NEPMonitorCancel - Clears all monitors for a NEP object.
@@ -137,7 +137,7 @@ PetscErrorCode NEPMonitorCancel(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetMonitorContext"
 /*@C
    NEPGetMonitorContext - Gets the monitor context, as set by 
@@ -163,7 +163,7 @@ PetscErrorCode NEPGetMonitorContext(NEP nep,void **ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPMonitorAll"
 /*@C
    NEPMonitorAll - Print the current approximate values and 
@@ -210,7 +210,7 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPMonitorFirst"
 /*@C
    NEPMonitorFirst - Print the first unconverged approximate value and 
@@ -253,7 +253,7 @@ PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPMonitorConverged"
 /*@C
    NEPMonitorConverged - Print the approximate values and 
@@ -309,7 +309,7 @@ PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPMonitorLG"
 PetscErrorCode NEPMonitorLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
@@ -339,7 +339,7 @@ PetscErrorCode NEPMonitorLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig
   PetscFunctionReturn(0);
 } 
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPMonitorLGAll"
 PetscErrorCode NEPMonitorLGAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {

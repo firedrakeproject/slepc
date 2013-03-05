@@ -24,7 +24,7 @@
 
 #include <slepc-private/nepimpl.h>       /*I "slepcnep.h" I*/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetFromOptions"
 /*@
    NEPSetFromOptions - Sets NEP options from the options database.
@@ -175,7 +175,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetTolerances"
 /*@
    NEPGetTolerances - Gets the tolerance and maximum iteration count used
@@ -213,7 +213,7 @@ PetscErrorCode NEPGetTolerances(NEP nep,PetscReal *abstol,PetscReal *rtol,PetscR
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetTolerances"
 /*@
    NEPSetTolerances - Sets various parameters used in convergence tests.
@@ -300,7 +300,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetDimensions"
 /*@
    NEPGetDimensions - Gets the number of eigenvalues to compute
@@ -333,7 +333,7 @@ PetscErrorCode NEPGetDimensions(NEP nep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetDimensions"
 /*@
    NEPSetDimensions - Sets the number of eigenvalues to compute
@@ -403,7 +403,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetWhichEigenpairs"
 /*@
     NEPSetWhichEigenpairs - Specifies which portion of the spectrum is 
@@ -480,7 +480,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetWhichEigenpairs"
 /*@C
     NEPGetWhichEigenpairs - Returns which portion of the spectrum is to be 
@@ -631,7 +631,7 @@ PetscErrorCode NEPGetConstantCorrectionTolerance(NEP nep,PetscBool *cct)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetConvergenceTest"
 /*@C
     NEPSetConvergenceTest - Sets the function to be used to test convergence
@@ -677,7 +677,7 @@ extern PetscErrorCode NEPSetConvergenceTest(NEP nep,PetscErrorCode (*func)(NEP,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetTrackAll"
 /*@
    NEPSetTrackAll - Specifies if the solver must compute the residual of all
@@ -710,7 +710,7 @@ PetscErrorCode NEPSetTrackAll(NEP nep,PetscBool trackall)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetTrackAll"
 /*@
    NEPGetTrackAll - Returns the flag indicating whether all residual norms must
@@ -737,7 +737,7 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetOptionsPrefix"
 /*@C
    NEPSetOptionsPrefix - Sets the prefix used for searching for all 
@@ -782,7 +782,7 @@ PetscErrorCode NEPSetOptionsPrefix(NEP nep,const char *prefix)
   PetscFunctionReturn(0);  
 }
  
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPAppendOptionsPrefix"
 /*@C
    NEPAppendOptionsPrefix - Appends to the prefix used for searching for all 
@@ -819,7 +819,7 @@ PetscErrorCode NEPAppendOptionsPrefix(NEP nep,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetOptionsPrefix"
 /*@C
    NEPGetOptionsPrefix - Gets the prefix used for searching for all 

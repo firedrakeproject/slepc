@@ -29,7 +29,7 @@ PetscClassId      NEP_CLASSID = 0;
 PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_Dense = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0;
 static PetscBool  NEPPackageInitialized = PETSC_FALSE;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPFinalizePackage"
 /*@C
    NEPFinalizePackage - This function destroys everything in the Slepc interface
@@ -48,7 +48,7 @@ PetscErrorCode NEPFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPInitializePackage"
 /*@C
    NEPInitializePackage - This function initializes everything in the NEP package. It is called
@@ -102,7 +102,7 @@ PetscErrorCode NEPInitializePackage(const char *path)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPView"
 /*@C
    NEPView - Prints the NEP data structure.
@@ -227,7 +227,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPCreate"
 /*@C
    NEPCreate - Creates the default NEP context.
@@ -310,7 +310,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   PetscFunctionReturn(0);
 }
  
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetType"
 /*@C
    NEPSetType - Selects the particular solver to be used in the NEP object. 
@@ -364,7 +364,7 @@ PetscErrorCode NEPSetType(NEP nep,NEPType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetType"
 /*@C
    NEPGetType - Gets the NEP type as a string from the NEP object.
@@ -390,7 +390,7 @@ PetscErrorCode NEPGetType(NEP nep,NEPType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPRegister"
 /*@C
   NEPRegister - See NEPRegisterDynamic()
@@ -408,7 +408,7 @@ PetscErrorCode NEPRegister(const char *sname,const char *path,const char *name,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPRegisterDestroy"
 /*@
    NEPRegisterDestroy - Frees the list of NEP methods that were
@@ -430,7 +430,7 @@ PetscErrorCode NEPRegisterDestroy(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPReset"
 /*@
    NEPReset - Resets the NEP context to the setupcalled=0 state and removes any
@@ -462,7 +462,7 @@ PetscErrorCode NEPReset(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPDestroy"
 /*@C
    NEPDestroy - Destroys the NEP context.
@@ -501,7 +501,7 @@ PetscErrorCode NEPDestroy(NEP *nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetIP"
 /*@
    NEPSetIP - Associates an inner product object to the nonlinear eigensolver. 
@@ -535,7 +535,7 @@ PetscErrorCode NEPSetIP(NEP nep,IP ip)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetIP"
 /*@C
    NEPGetIP - Obtain the inner product object associated

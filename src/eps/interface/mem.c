@@ -23,7 +23,7 @@
 
 #include <slepc-private/epsimpl.h>   /*I "slepceps.h" I*/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSAllocateSolution"
 /*
   EPSAllocateSolution - Allocate memory storage for common variables such
@@ -68,7 +68,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSFreeSolution"
 /*
   EPSFreeSolution - Free memory storage. This routine is related to 

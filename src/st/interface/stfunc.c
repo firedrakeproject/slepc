@@ -27,7 +27,7 @@ PetscClassId     ST_CLASSID = 0;
 PetscLogEvent    ST_SetUp = 0,ST_Apply = 0,ST_ApplyTranspose = 0;
 static PetscBool STPackageInitialized = PETSC_FALSE;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STFinalizePackage"
 /*@C
    STFinalizePackage - This function destroys everything in the Slepc interface 
@@ -46,7 +46,7 @@ PetscErrorCode STFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STInitializePackage"
 /*@C
    STInitializePackage - This function initializes everything in the ST package. It is called
@@ -98,7 +98,7 @@ PetscErrorCode STInitializePackage(const char *path)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STReset"
 /*@
    STReset - Resets the ST context and removes any allocated objects.
@@ -129,7 +129,7 @@ PetscErrorCode STReset(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STDestroy"
 /*@C
    STDestroy - Destroys ST context that was created with STCreate().
@@ -162,7 +162,7 @@ PetscErrorCode STDestroy(ST *st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STCreate"
 /*@C
    STCreate - Creates a spectral transformation context.
@@ -208,7 +208,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STSetOperators"
 /*@
    STSetOperators - Sets the matrices associated with the eigenvalue problem. 
@@ -258,7 +258,7 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STGetOperators"
 /*@
    STGetOperators - Gets the matrices associated with the original eigensystem.
@@ -287,7 +287,7 @@ PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *mat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STGetNumMatrices"
 /*@
    STGetNumMatrices - Returns the number of matrices stored in the ST.
@@ -313,7 +313,7 @@ PetscErrorCode STGetNumMatrices(ST st,PetscInt *n)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STSetShift"
 /*@
    STSetShift - Sets the shift associated with the spectral transformation.
@@ -348,7 +348,7 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STGetShift"
 /*@
    STGetShift - Gets the shift associated with the spectral transformation.
@@ -373,7 +373,7 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STSetDefaultShift"
 /*@
    STSetDefaultShift - Sets the value of the shift that should be employed if
@@ -397,7 +397,7 @@ PetscErrorCode STSetDefaultShift(ST st,PetscScalar defaultshift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STSetBalanceMatrix"
 /*@
    STSetBalanceMatrix - Sets the diagonal matrix to be used for balancing.
@@ -433,7 +433,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STGetBalanceMatrix"
 /*@
    STGetBalanceMatrix - Gets the balance matrix used by the spectral transformation.
@@ -462,7 +462,7 @@ PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STSetOptionsPrefix"
 /*@C
    STSetOptionsPrefix - Sets the prefix used for searching for all 
@@ -496,7 +496,7 @@ PetscErrorCode STSetOptionsPrefix(ST st,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STAppendOptionsPrefix"
 /*@C
    STAppendOptionsPrefix - Appends to the prefix used for searching for all 
@@ -530,7 +530,7 @@ PetscErrorCode STAppendOptionsPrefix(ST st,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STGetOptionsPrefix"
 /*@C
    STGetOptionsPrefix - Gets the prefix used for searching for all 
@@ -562,7 +562,7 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STView"
 /*@C
    STView - Prints the ST data structure.
@@ -657,7 +657,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STRegister"
 /*@C
    STRegister - See STRegisterDynamic()
@@ -675,7 +675,7 @@ PetscErrorCode STRegister(const char *sname,const char *path,const char *name,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STRegisterDestroy"
 /*@
    STRegisterDestroy - Frees the list of ST methods that were

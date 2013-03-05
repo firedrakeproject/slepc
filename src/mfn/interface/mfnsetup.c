@@ -24,7 +24,7 @@
 #include <slepc-private/mfnimpl.h>       /*I "slepcmfn.h" I*/
 #include <slepc-private/ipimpl.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNSetUp"
 /*@
    MFNSetUp - Sets up all the internal data structures necessary for the
@@ -96,7 +96,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "MFNSetOperator"
 /*@
    MFNSetOperator - Sets the matrix for which the matrix function is to be computed.

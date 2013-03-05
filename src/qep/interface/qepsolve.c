@@ -30,7 +30,7 @@ typedef struct {
   ST st;
 } QEPSortForSTData;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSortForSTFunc"
 PetscErrorCode QEPSortForSTFunc(PetscScalar ar,PetscScalar ai,
                                 PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
@@ -45,7 +45,7 @@ PetscErrorCode QEPSortForSTFunc(PetscScalar ar,PetscScalar ai,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSolve"
 /*@
    QEPSolve - Solves the quadratic eigensystem.
@@ -177,7 +177,7 @@ PetscErrorCode QEPSolve(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetIterationNumber"
 /*@
    QEPGetIterationNumber - Gets the current iteration number. If the 
@@ -212,7 +212,7 @@ PetscErrorCode QEPGetIterationNumber(QEP qep,PetscInt *its)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetConverged"
 /*@
    QEPGetConverged - Gets the number of converged eigenpairs.
@@ -241,7 +241,7 @@ PetscErrorCode QEPGetConverged(QEP qep,PetscInt *nconv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetConvergedReason"
 /*@C
    QEPGetConvergedReason - Gets the reason why the QEPSolve() iteration was 
@@ -276,7 +276,7 @@ PetscErrorCode QEPGetConvergedReason(QEP qep,QEPConvergedReason *reason)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetEigenpair" 
 /*@
    QEPGetEigenpair - Gets the i-th solution of the eigenproblem as computed by 
@@ -355,7 +355,7 @@ PetscErrorCode QEPGetEigenpair(QEP qep,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetErrorEstimate" 
 /*@
    QEPGetErrorEstimate - Returns the error estimate associated to the i-th 
@@ -391,7 +391,7 @@ PetscErrorCode QEPGetErrorEstimate(QEP qep,PetscInt i,PetscReal *errest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPComputeResidualNorm_Private"
 /*
    QEPComputeResidualNorm_Private - Computes the norm of the residual vector 
@@ -462,7 +462,7 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep,PetscScalar kr,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPComputeResidualNorm"
 /*@
    QEPComputeResidualNorm - Computes the norm of the residual vector associated with 
@@ -507,7 +507,7 @@ PetscErrorCode QEPComputeResidualNorm(QEP qep,PetscInt i,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPComputeRelativeError_Private"
 /*
    QEPComputeRelativeError_Private - Computes the relative error bound 
@@ -546,7 +546,7 @@ PetscErrorCode QEPComputeRelativeError_Private(QEP qep,PetscScalar kr,PetscScala
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPComputeRelativeError"
 /*@
    QEPComputeRelativeError - Computes the relative error bound associated 
@@ -586,7 +586,7 @@ PetscErrorCode QEPComputeRelativeError(QEP qep,PetscInt i,PetscReal *error)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSortEigenvalues"
 /*@
    QEPSortEigenvalues - Sorts a list of eigenvalues according to the criterion 
@@ -667,7 +667,7 @@ PetscErrorCode QEPSortEigenvalues(QEP qep,PetscInt n,PetscScalar *eigr,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPCompareEigenvalues"
 /*@
    QEPCompareEigenvalues - Compares two (possibly complex) eigenvalues according
@@ -709,7 +709,7 @@ PetscErrorCode QEPCompareEigenvalues(QEP qep,PetscScalar ar,PetscScalar ai,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetOperationCounters"
 /*@
    QEPGetOperationCounters - Gets the total number of matrix-vector products, dot 

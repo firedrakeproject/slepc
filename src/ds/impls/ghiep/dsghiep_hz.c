@@ -39,7 +39,7 @@ extern PetscErrorCode HRApply(PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscI
 extern PetscErrorCode DSIntermediate_GHIEP(DS);
 extern PetscErrorCode DSGHIEPRealBlocks(DS);
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "UnifiedRotation"
 /*
    Sets up a 2-by-2 matrix to eliminate y in the vector [x y]'.
@@ -84,7 +84,7 @@ static PetscErrorCode UnifiedRotation(PetscReal x,PetscReal y,PetscReal sygn,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "HZStep"
 static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,PetscReal dt,PetscReal *aa,PetscReal *bb,PetscReal *dd,PetscScalar *uu,PetscInt n,PetscInt ld,PetscBool *flag)
 {
@@ -230,7 +230,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "HZIteration"
 static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa,PetscReal *bb,PetscReal *dd,PetscScalar *uu,PetscBLASInt ld)
 {
@@ -302,7 +302,7 @@ static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSolve_GHIEP_HZ"
 PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 {

@@ -24,7 +24,7 @@
 #include <slepc-private/svdimpl.h>   /*I "slepcsvd.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDMonitor"
 /*
    Runs the user provided monitor routines, if any.
@@ -41,7 +41,7 @@ PetscErrorCode SVDMonitor(SVD svd,PetscInt it,PetscInt nconv,PetscReal *sigma,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDMonitorSet"
 /*@C
    SVDMonitorSet - Sets an ADDITIONAL function to be called at every 
@@ -99,7 +99,7 @@ PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDMonitorCancel"
 /*@
    SVDMonitorCancel - Clears all monitors for an SVD object.
@@ -134,7 +134,7 @@ PetscErrorCode SVDMonitorCancel(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetMonitorContext"
 /*@C
    SVDGetMonitorContext - Gets the monitor context, as set by 
@@ -160,7 +160,7 @@ PetscErrorCode SVDGetMonitorContext(SVD svd,void **ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDMonitorAll"
 /*@C
    SVDMonitorAll - Print the current approximate values and 
@@ -200,7 +200,7 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDMonitorFirst"
 /*@C
    SVDMonitorFirst - Print the first unconverged approximate values and 
@@ -236,7 +236,7 @@ PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDMonitorConverged"
 /*@C
    SVDMonitorConverged - Print the approximate values and error estimates as they converge.
@@ -284,7 +284,7 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDMonitorLG"
 PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
 {
@@ -329,7 +329,7 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
   PetscFunctionReturn(0);
 } 
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDMonitorLGAll"
 PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
 {

@@ -24,7 +24,7 @@
 #include <slepc-private/qepimpl.h>     /*I "slepcqep.h" I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPDefaultGetWork"
 /*
   QEPDefaultGetWork - Gets a number of work vectors.
@@ -43,7 +43,7 @@ PetscErrorCode QEPDefaultGetWork(QEP qep,PetscInt nw)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPDefaultFreeWork"
 /*
   QEPDefaultFreeWork - Free work vectors.
@@ -57,7 +57,7 @@ PetscErrorCode QEPDefaultFreeWork(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPConvergedDefault"
 /*
   QEPConvergedDefault - Checks convergence relative to the eigenvalue.
@@ -72,7 +72,7 @@ PetscErrorCode QEPConvergedDefault(QEP qep,PetscScalar eigr,PetscScalar eigi,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPConvergedAbsolute"
 /*
   QEPConvergedAbsolute - Checks convergence absolutely.
@@ -84,7 +84,7 @@ PetscErrorCode QEPConvergedAbsolute(QEP qep,PetscScalar eigr,PetscScalar eigi,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPComputeVectors_Schur"
 PetscErrorCode QEPComputeVectors_Schur(QEP qep)
 {
@@ -106,7 +106,7 @@ PetscErrorCode QEPComputeVectors_Schur(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPKrylovConvergence"
 /*
    QEPKrylovConvergence - This is the analogue to EPSKrylovConvergence, but

@@ -23,7 +23,7 @@
 
 #include <slepc-private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetTransposeMode"
 /*@
    SVDSetTransposeMode - Sets how to handle the transpose of the matrix 
@@ -78,7 +78,7 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetTransposeMode"
 /*@C
    SVDGetTransposeMode - Gets the mode used to compute the transpose 
@@ -107,7 +107,7 @@ PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetTolerances"
 /*@
    SVDSetTolerances - Sets the tolerance and maximum
@@ -158,7 +158,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetTolerances"
 /*@
    SVDGetTolerances - Gets the tolerance and maximum
@@ -189,7 +189,7 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,PetscInt *maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetDimensions"
 /*@
    SVDSetDimensions - Sets the number of singular values to compute
@@ -258,7 +258,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetDimensions"
 /*@
    SVDGetDimensions - Gets the number of singular values to compute
@@ -291,7 +291,7 @@ PetscErrorCode SVDGetDimensions(SVD svd,PetscInt *nsv,PetscInt *ncv,PetscInt *mp
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetWhichSingularTriplets"
 /*@
     SVDSetWhichSingularTriplets - Specifies which singular triplets are 
@@ -338,7 +338,7 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetWhichSingularTriplets"
 /*@C
     SVDGetWhichSingularTriplets - Returns which singular triplets are
@@ -368,7 +368,7 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions"
 /*@
    SVDSetFromOptions - Sets SVD options from the options database.
@@ -483,7 +483,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetTrackAll"
 /*@
    SVDSetTrackAll - Specifies if the solver must compute the residual norm of all
@@ -517,7 +517,7 @@ PetscErrorCode SVDSetTrackAll(SVD svd,PetscBool trackall)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetTrackAll"
 /*@
    SVDGetTrackAll - Returns the flag indicating whether all residual norms must
@@ -545,7 +545,7 @@ PetscErrorCode SVDGetTrackAll(SVD svd,PetscBool *trackall)
 }
 
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetOptionsPrefix"
 /*@C
    SVDSetOptionsPrefix - Sets the prefix used for searching for all 
@@ -600,7 +600,7 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
   PetscFunctionReturn(0);  
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDAppendOptionsPrefix"
 /*@C
    SVDAppendOptionsPrefix - Appends to the prefix used for searching for all 
@@ -647,7 +647,7 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "SVDGetOptionsPrefix"
 /*@C
    SVDGetOptionsPrefix - Gets the prefix used for searching for all 

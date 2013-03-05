@@ -27,7 +27,7 @@ extern PetscErrorCode QEPCreate_QArnoldi(QEP);
 extern PetscErrorCode QEPCreate_QLanczos(QEP);
 EXTERN_C_END
   
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPRegisterAll"
 /*@C
    QEPRegisterAll - Registers all the solvers in the QEP package.

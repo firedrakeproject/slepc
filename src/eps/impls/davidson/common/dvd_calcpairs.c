@@ -54,7 +54,7 @@ PetscErrorCode dvd_calcpairs_updateBV1(dvdDashboard *d,DvdReduction *r,DvdMult_c
 PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,Vec *real_BV,PetscInt *size_cX,Vec **BV,PetscInt *size_BV,PetscInt *max_size_BV,PetscBool BV_shift,PetscInt *cX_in_proj,DSMatType MT);
 
 /**** Control routines ********************************************************/
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_qz"
 PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType orth,IP ipI,PetscInt cX_proj,PetscBool harm)
 {
@@ -229,7 +229,7 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_qz_start"
 PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d)
 {
@@ -270,7 +270,7 @@ PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_qz_d"
 PetscErrorCode dvd_calcpairs_qz_d(dvdDashboard *d)
 {
@@ -281,7 +281,7 @@ PetscErrorCode dvd_calcpairs_qz_d(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_proj"
 PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
 {
@@ -380,7 +380,7 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
 
 /**** Basic routines **********************************************************/
 
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_updateV0"
 /* auxV: V_tra_s, DvdMult_copy_func: 1 */
 PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d,DvdReduction *r,DvdMult_copy_func **sr)
@@ -421,7 +421,7 @@ PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d,DvdReduction *r,DvdMult_co
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_updateV1"
 /* auxS: size_cX+V_new_e+1 */
 PetscErrorCode dvd_calcpairs_updateV1(dvdDashboard *d)
@@ -448,7 +448,7 @@ PetscErrorCode dvd_calcpairs_updateV1(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_updateW0"
 /* auxV: V_tra_s, DvdMult_copy_func: 2 */
 PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d,DvdReduction *r,DvdMult_copy_func **sr)
@@ -490,7 +490,7 @@ PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d,DvdReduction *r,DvdMult_co
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_updateW1"
 /* auxS: size_cX+V_new_e+1 */
 PetscErrorCode dvd_calcpairs_updateW1(dvdDashboard *d)
@@ -513,7 +513,7 @@ PetscErrorCode dvd_calcpairs_updateW1(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_updateAV0"
 /* auxS: size_H*(V_tra_e-V_tra_s) */
 PetscErrorCode dvd_calcpairs_updateAV0(dvdDashboard *d)
@@ -547,7 +547,7 @@ PetscErrorCode dvd_calcpairs_updateAV0(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_updateAV1"
 /* DvdMult_copy_func: 2 */
 PetscErrorCode dvd_calcpairs_updateAV1(dvdDashboard *d,DvdReduction *r,DvdMult_copy_func **sr)
@@ -569,7 +569,7 @@ PetscErrorCode dvd_calcpairs_updateAV1(dvdDashboard *d,DvdReduction *r,DvdMult_c
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_updateBV0"
 /* auxS: max(BcX*(size_cX+V_new_e+1), size_G*(V_tra_e-V_tra_s)) */
 PetscErrorCode dvd_calcpairs_updateBV0(dvdDashboard *d)
@@ -619,7 +619,7 @@ PetscErrorCode dvd_calcpairs_updateBV0(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_updateBV1"
 /* DvdMult_copy_func: 2 */
 PetscErrorCode dvd_calcpairs_updateBV1(dvdDashboard *d,DvdReduction *r,DvdMult_copy_func **sr)
@@ -639,7 +639,7 @@ PetscErrorCode dvd_calcpairs_updateBV1(dvdDashboard *d,DvdReduction *r,DvdMult_c
 }
 
 /* in complex, d->size_H real auxiliar values are needed */
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_projeig_solve"
 PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
 {
@@ -672,7 +672,7 @@ PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_apply_arbitrary_func"
 PetscErrorCode dvd_calcpairs_apply_arbitrary_func(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscScalar **rr_,PetscScalar **ri_)
 {
@@ -748,7 +748,7 @@ PetscErrorCode dvd_calcpairs_apply_arbitrary_func(dvdDashboard *d,PetscInt r_s,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_selectPairs"
 PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n)
 {
@@ -780,7 +780,7 @@ PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_res_0"
 /* Compute the residual vectors R(i) <- (AV - BV*eigr(i))*pX(i), and also
    the norm associated to the Schur pair, where i = r_s..r_e
@@ -812,7 +812,7 @@ PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_proj_res"
 PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *R)
 {
@@ -867,7 +867,7 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_eig_res_0"
 /* Compute the residual vectors R(i) <- (AV - BV*eigr(i))*pX(i), and also
    the norm associated to the eigenpair, where i = r_s..r_e
@@ -991,7 +991,7 @@ PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e
 /**** Pattern routines ********************************************************/
 
 /* BV <- BV*MT */
-#undef __FUNCT__ 
+#undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_updateBV0_gen"
 PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,Vec *real_BV,PetscInt *size_cBV,Vec **BV,PetscInt *size_BV,PetscInt *max_size_BV,PetscBool BV_shift,PetscInt *cX_in_proj,DSMatType mat)
 {

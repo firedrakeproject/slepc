@@ -28,7 +28,7 @@
 #include <slepcblaslapack.h>
 #include "krylovschur.h"
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSolve_KrylovSchur_Symm"
 PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
 {

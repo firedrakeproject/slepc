@@ -23,7 +23,7 @@
 
 #include <slepc-private/stimpl.h>            /*I "slepcst.h" I*/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STApply"
 /*@
    STApply - Applies the spectral transformation operator to a vector, for
@@ -69,7 +69,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STGetBilinearForm"
 /*@
    STGetBilinearForm - Returns the matrix used in the bilinear form with a 
@@ -101,7 +101,7 @@ PetscErrorCode STGetBilinearForm(ST st,Mat *B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STGetBilinearForm_Default"
 PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
 {
@@ -116,7 +116,7 @@ PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STApplyTranspose"
 /*@
    STApplyTranspose - Applies the transpose of the operator to a vector, for
@@ -162,7 +162,7 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STComputeExplicitOperator"
 /*@
    STComputeExplicitOperator - Computes the explicit operator associated
@@ -241,7 +241,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STSetUp"
 /*@
    STSetUp - Prepares for the use of a spectral transformation.
@@ -285,7 +285,7 @@ PetscErrorCode STSetUp(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STMatGAXPY_Private"
 /*
    Computes a generalized AXPY operation on the A[:] matrices provided by the user,
@@ -370,7 +370,7 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STPostSolve"
 /*@
    STPostSolve - Optional post-solve phase, intended for any actions that must 
@@ -397,7 +397,7 @@ PetscErrorCode STPostSolve(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STBackTransform"
 /*@
    STBackTransform - Back-transformation phase, intended for 

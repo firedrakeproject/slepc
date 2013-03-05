@@ -24,7 +24,7 @@
 #include <slepc-private/epsimpl.h>   /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSReset_Default"
 PetscErrorCode EPSReset_Default(EPS eps)
 {
@@ -36,7 +36,7 @@ PetscErrorCode EPSReset_Default(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSBackTransform_Default"
 PetscErrorCode EPSBackTransform_Default(EPS eps)
 {
@@ -47,7 +47,7 @@ PetscErrorCode EPSBackTransform_Default(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSComputeVectors_Default"
 /*
   EPSComputeVectors_Default - Compute eigenvectors from the vectors
@@ -61,7 +61,7 @@ PetscErrorCode EPSComputeVectors_Default(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSComputeVectors_Hermitian"
 /*
   EPSComputeVectors_Hermitian - Copies the Lanczos vectors as eigenvectors
@@ -90,7 +90,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSComputeVectors_Indefinite"
 /*
   EPSComputeVectors_Indefinite - similar to the Schur version but
@@ -141,7 +141,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSComputeVectors_Schur"
 /*
   EPSComputeVectors_Schur - Compute eigenvectors from the vectors
@@ -231,7 +231,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDefaultGetWork"
 /*
   EPSDefaultGetWork - Gets a number of work vectors.
@@ -250,7 +250,7 @@ PetscErrorCode EPSDefaultGetWork(EPS eps,PetscInt nw)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDefaultFreeWork"
 /*
   EPSDefaultFreeWork - Free work vectors.
@@ -265,7 +265,7 @@ PetscErrorCode EPSDefaultFreeWork(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDefaultSetWhich"
 /*
   EPSDefaultSetWhich - Sets the default value for which, depending on the ST.
@@ -282,7 +282,7 @@ PetscErrorCode EPSDefaultSetWhich(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSConvergedEigRelative"
 /*
   EPSConvergedEigRelative - Checks convergence relative to the eigenvalue.
@@ -297,7 +297,7 @@ PetscErrorCode EPSConvergedEigRelative(EPS eps,PetscScalar eigr,PetscScalar eigi
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSConvergedAbsolute"
 /*
   EPSConvergedAbsolute - Checks convergence absolutely.
@@ -309,7 +309,7 @@ PetscErrorCode EPSConvergedAbsolute(EPS eps,PetscScalar eigr,PetscScalar eigi,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSConvergedNormRelative"
 /*
   EPSConvergedNormRelative - Checks convergence relative to the eigenvalue and 
@@ -325,7 +325,7 @@ PetscErrorCode EPSConvergedNormRelative(EPS eps,PetscScalar eigr,PetscScalar eig
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSComputeRitzVector"
 /*
   EPSComputeRitzVector - Computes the current Ritz vector.
@@ -386,7 +386,7 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,Vec 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSBuildBalance_Krylov"
 /*
   EPSBuildBalance_Krylov - uses a Krylov subspace method to compute the

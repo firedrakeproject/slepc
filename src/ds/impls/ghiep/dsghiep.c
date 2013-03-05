@@ -21,7 +21,7 @@
 #include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSAllocate_GHIEP"
 PetscErrorCode DSAllocate_GHIEP(DS ds,PetscInt ld)
 {
@@ -39,7 +39,7 @@ PetscErrorCode DSAllocate_GHIEP(DS ds,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSwitchFormat_GHIEP"
 PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
 {
@@ -85,7 +85,7 @@ PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSView_GHIEP"
 PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
 {
@@ -174,7 +174,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSVectors_GHIEP_Eigen_Some"
 static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
 {
@@ -270,7 +270,7 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSVectors_GHIEP"
 PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
 {
@@ -968,7 +968,7 @@ PetscErrorCode DSGHIEPPseudoOrthogInverseIteration(DS ds,PetscScalar *wr,PetscSc
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSIntermediate_GHIEP"
 /*
    Reduce to tridiagonal-diagonal pair by means of TridiagDiag_HHR.
@@ -1133,7 +1133,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSolve_GHIEP_QR_II"
 PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
@@ -1228,7 +1228,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSolve_GHIEP_QR"
 PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
@@ -1345,7 +1345,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSNormalize_GHIEP"
 PetscErrorCode DSNormalize_GHIEP(DS ds,DSMatType mat,PetscInt col)
 {
@@ -1406,7 +1406,7 @@ extern PetscErrorCode DSSolve_GHIEP_HZ(DS,PetscScalar*,PetscScalar*);
 extern PetscErrorCode DSSolve_GHIEP_DQDS_II(DS,PetscScalar*,PetscScalar*);
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSCreate_GHIEP"
 PetscErrorCode DSCreate_GHIEP(DS ds)
 {

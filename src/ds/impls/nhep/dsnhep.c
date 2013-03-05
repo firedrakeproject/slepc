@@ -22,7 +22,7 @@
 #include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSAllocate_NHEP"
 PetscErrorCode DSAllocate_NHEP(DS ds,PetscInt ld)
 {
@@ -37,7 +37,7 @@ PetscErrorCode DSAllocate_NHEP(DS ds,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSView_NHEP"
 PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
 {
@@ -57,7 +57,7 @@ PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSVectors_NHEP_Refined_Some"
 PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
@@ -114,7 +114,7 @@ PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pe
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSVectors_NHEP_Refined_All"
 PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
 {
@@ -128,7 +128,7 @@ PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSVectors_NHEP_Eigen_Some"
 PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
@@ -202,7 +202,7 @@ PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pets
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSVectors_NHEP_Eigen_All"
 PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
 {
@@ -244,7 +244,7 @@ PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSVectors_NHEP"
 PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
@@ -286,7 +286,7 @@ PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSNormalize_NHEP"
 PetscErrorCode DSNormalize_NHEP(DS ds,DSMatType mat,PetscInt col)
 {
@@ -343,7 +343,7 @@ PetscErrorCode DSNormalize_NHEP(DS ds,DSMatType mat,PetscInt col)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSort_NHEP_Arbitrary"
 PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
@@ -393,7 +393,7 @@ PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Petsc
 #endif 
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSort_NHEP_Total"
 PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
@@ -482,7 +482,7 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif 
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSort_NHEP"
 PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
@@ -497,7 +497,7 @@ PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSUpdateExtraRow_NHEP"
 PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
 {
@@ -521,7 +521,7 @@ PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSolve_NHEP"
 PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
@@ -595,7 +595,7 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSTruncate_NHEP"
 PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n)
 {
@@ -621,7 +621,7 @@ PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSCond_NHEP"
 PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
 {
@@ -667,7 +667,7 @@ PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSTranslateHarmonic_NHEP"
 PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *gin,PetscReal *gamma)
 {
@@ -857,7 +857,7 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSCreate_NHEP"
 PetscErrorCode DSCreate_NHEP(DS ds)
 {

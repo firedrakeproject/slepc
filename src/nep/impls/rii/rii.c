@@ -37,7 +37,7 @@
 
 #include <slepc-private/nepimpl.h>         /*I "slepcnep.h" I*/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetUp_RII"
 PetscErrorCode NEPSetUp_RII(NEP nep)
 {
@@ -66,7 +66,7 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPSolve_RII"
 PetscErrorCode NEPSolve_RII(NEP nep)
 {
@@ -165,7 +165,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPReset_RII"
 PetscErrorCode NEPReset_RII(NEP nep)
 {
@@ -178,7 +178,7 @@ PetscErrorCode NEPReset_RII(NEP nep)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "NEPCreate_RII"
 PetscErrorCode NEPCreate_RII(NEP nep)
 {

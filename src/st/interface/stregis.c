@@ -30,7 +30,7 @@ extern PetscErrorCode STCreate_Fold(ST);
 extern PetscErrorCode STCreate_Precond(ST);
 EXTERN_C_END
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "STRegisterAll"
 /*@C
    STRegisterAll - Registers all of the spectral transformations in the ST package.

@@ -23,7 +23,7 @@
 
 #include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSGetLeadingDimension"
 /*@
    DSGetLeadingDimension - Returns the leading dimension of the allocated
@@ -49,7 +49,7 @@ PetscErrorCode DSGetLeadingDimension(DS ds,PetscInt *ld)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSetState"
 /*@
    DSSetState - Change the state of the DS object.
@@ -94,7 +94,7 @@ PetscErrorCode DSSetState(DS ds,DSStateType state)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSGetState"
 /*@
    DSGetState - Returns the current state.
@@ -119,7 +119,7 @@ PetscErrorCode DSGetState(DS ds,DSStateType *state)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSetDimensions"
 /*@
    DSSetDimensions - Resize the matrices in the DS object.
@@ -183,7 +183,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSGetDimensions"
 /*@
    DSGetDimensions - Returns the current dimensions.
@@ -214,7 +214,7 @@ PetscErrorCode DSGetDimensions(DS ds,PetscInt *n,PetscInt *m,PetscInt *l,PetscIn
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSTruncate"
 /*@
    DSTruncate - Truncates the system represented in the DS object.
@@ -253,7 +253,7 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSGetArray"
 /*@C
    DSGetArray - Returns a pointer to one of the internal arrays used to
@@ -286,7 +286,7 @@ PetscErrorCode DSGetArray(DS ds,DSMatType m,PetscScalar *a[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSRestoreArray"
 /*@C
    DSRestoreArray - Restores the matrix after DSGetArray() was called.
@@ -316,7 +316,7 @@ PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSGetArrayReal"
 /*@C
    DSGetArrayReal - Returns a pointer to one of the internal arrays used to
@@ -349,7 +349,7 @@ PetscErrorCode DSGetArrayReal(DS ds,DSMatType m,PetscReal *a[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSRestoreArrayReal"
 /*@C
    DSRestoreArrayReal - Restores the matrix after DSGetArrayReal() was called.
@@ -379,7 +379,7 @@ PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSolve"
 /*@
    DSSolve - Solves the problem.
@@ -419,7 +419,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar *eigr,PetscScalar *eigi)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSComputeFunction"
 /*@
    DSComputeFunction - Computes a matrix function.
@@ -457,7 +457,7 @@ PetscErrorCode DSComputeFunction(DS ds,SlepcFunction f)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSSort"
 /*@
    DSSort - Sorts the result of DSSolve() according to a given sorting
@@ -514,7 +514,7 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSVectors"
 /*@
    DSVectors - Compute vectors associated to the dense system such
@@ -573,7 +573,7 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSNormalize"
 /*@
    DSNormalize - Normalize a column or all the columns of a matrix. Considers
@@ -615,7 +615,7 @@ PetscErrorCode DSNormalize(DS ds,DSMatType mat,PetscInt col)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSUpdateExtraRow"
 /*@C
    DSUpdateExtraRow - Performs all necessary operations so that the extra
@@ -647,7 +647,7 @@ PetscErrorCode DSUpdateExtraRow(DS ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSCond"
 /*@C
    DSCond - Compute the inf-norm condition number of the first matrix
@@ -679,7 +679,7 @@ PetscErrorCode DSCond(DS ds,PetscReal *cond)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSTranslateHarmonic"
 /*@C
    DSTranslateHarmonic - Computes a translation of the dense system.
@@ -728,7 +728,7 @@ PetscErrorCode DSTranslateHarmonic(DS ds,PetscScalar tau,PetscReal beta,PetscBoo
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "DSTranslateRKS"
 /*@C
    DSTranslateRKS - Computes a modification of the dense system corresponding

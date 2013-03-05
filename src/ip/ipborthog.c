@@ -31,7 +31,7 @@
 /* 
    IPOrthogonalizeCGS1 - Compute |v'| (estimated), |v| and one step of CGS with only one global synchronization
 */
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPBOrthogonalizeCGS1"
 PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscReal *BDSnorms,PetscInt n,PetscBool *which,Vec *V,Vec *BV,PetscReal *BVnorms,Vec v,Vec Bv,PetscScalar *H,PetscReal *onorm,PetscReal *norm)
 {
@@ -105,7 +105,7 @@ PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscR
 /*
   IPOrthogonalizeCGS - Orthogonalize with classical Gram-Schmidt
 */
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPBOrthogonalizeCGS"
 static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscReal *BDSnorms,PetscInt n,PetscBool *which,Vec *V,Vec *BV,PetscReal *BVnorms,Vec v,Vec Bv,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
@@ -198,7 +198,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
   PetscFunctionReturn(0);
 }        
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "IPBOrthogonalize"
 /*@
    IPBOrthogonalize - B-Orthogonalize a vector with respect to two set of vectors.

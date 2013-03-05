@@ -41,7 +41,7 @@ typedef struct {
   Vec                        w;
 } EPS_BLOPEX;
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "Precond_FnSingleVector"
 static void Precond_FnSingleVector(void *data,void *x,void *y)
 {
@@ -54,7 +54,7 @@ static void Precond_FnSingleVector(void *data,void *x,void *y)
   PetscFunctionReturnVoid();
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "Precond_FnMultiVector"
 static void Precond_FnMultiVector(void *data,void *x,void *y)
 {
@@ -66,7 +66,7 @@ static void Precond_FnMultiVector(void *data,void *x,void *y)
   PetscFunctionReturnVoid();
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "OperatorASingleVector"
 static void OperatorASingleVector(void *data,void *x,void *y)
 {
@@ -94,7 +94,7 @@ static void OperatorASingleVector(void *data,void *x,void *y)
   PetscFunctionReturnVoid();
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "OperatorAMultiVector"
 static void OperatorAMultiVector(void *data,void *x,void *y)
 {
@@ -106,7 +106,7 @@ static void OperatorAMultiVector(void *data,void *x,void *y)
   PetscFunctionReturnVoid();
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "OperatorBSingleVector"
 static void OperatorBSingleVector(void *data,void *x,void *y)
 {
@@ -120,7 +120,7 @@ static void OperatorBSingleVector(void *data,void *x,void *y)
   PetscFunctionReturnVoid();
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "OperatorBMultiVector"
 static void OperatorBMultiVector(void *data,void *x,void *y)
 {
@@ -132,7 +132,7 @@ static void OperatorBMultiVector(void *data,void *x,void *y)
   PetscFunctionReturnVoid();
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_BLOPEX"
 PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 {
@@ -206,7 +206,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 #endif
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSolve_BLOPEX"
 PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 {
@@ -275,7 +275,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSReset_BLOPEX"
 PetscErrorCode EPSReset_BLOPEX(EPS eps)
 {
@@ -290,7 +290,7 @@ PetscErrorCode EPSReset_BLOPEX(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSDestroy_BLOPEX"
 PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
 {
@@ -302,7 +302,7 @@ PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_BLOPEX"
 PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps)
 {
@@ -329,7 +329,7 @@ PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps)
 }
 
 EXTERN_C_BEGIN
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "EPSCreate_BLOPEX"
 PetscErrorCode EPSCreate_BLOPEX(EPS eps)
 {

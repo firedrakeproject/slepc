@@ -24,7 +24,7 @@
 
 #include <slepc-private/qepimpl.h>       /*I "slepcqep.h" I*/
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetFromOptions"
 /*@
    QEPSetFromOptions - Sets QEP options from the options database.
@@ -180,7 +180,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetTolerances"
 /*@
    QEPGetTolerances - Gets the tolerance and maximum iteration count used
@@ -211,7 +211,7 @@ PetscErrorCode QEPGetTolerances(QEP qep,PetscReal *tol,PetscInt *maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetTolerances"
 /*@
    QEPSetTolerances - Sets the tolerance and maximum iteration count used
@@ -264,7 +264,7 @@ PetscErrorCode QEPSetTolerances(QEP qep,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetDimensions"
 /*@
    QEPGetDimensions - Gets the number of eigenvalues to compute
@@ -297,7 +297,7 @@ PetscErrorCode QEPGetDimensions(QEP qep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetDimensions"
 /*@
    QEPSetDimensions - Sets the number of eigenvalues to compute
@@ -367,7 +367,7 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetWhichEigenpairs"
 /*@
     QEPSetWhichEigenpairs - Specifies which portion of the spectrum is 
@@ -444,7 +444,7 @@ PetscErrorCode QEPSetWhichEigenpairs(QEP qep,QEPWhich which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetWhichEigenpairs"
 /*@C
     QEPGetWhichEigenpairs - Returns which portion of the spectrum is to be 
@@ -474,7 +474,7 @@ PetscErrorCode QEPGetWhichEigenpairs(QEP qep,QEPWhich *which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetLeftVectorsWanted"
 /*@
     QEPSetLeftVectorsWanted - Specifies which eigenvectors are required.
@@ -509,7 +509,7 @@ PetscErrorCode QEPSetLeftVectorsWanted(QEP qep,PetscBool leftvecs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetLeftVectorsWanted"
 /*@C
     QEPGetLeftVectorsWanted - Returns the flag indicating whether left 
@@ -536,7 +536,7 @@ PetscErrorCode QEPGetLeftVectorsWanted(QEP qep,PetscBool *leftvecs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetScaleFactor"
 /*@
    QEPGetScaleFactor - Gets the factor used for scaling the quadratic eigenproblem.
@@ -566,7 +566,7 @@ PetscErrorCode QEPGetScaleFactor(QEP qep,PetscReal *alpha)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetScaleFactor"
 /*@
    QEPSetScaleFactor - Sets the scaling factor to be used for scaling the
@@ -609,7 +609,7 @@ PetscErrorCode QEPSetScaleFactor(QEP qep,PetscReal alpha)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetProblemType"
 /*@
    QEPSetProblemType - Specifies the type of the quadratic eigenvalue problem.
@@ -651,7 +651,7 @@ PetscErrorCode QEPSetProblemType(QEP qep,QEPProblemType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetProblemType"
 /*@C
    QEPGetProblemType - Gets the problem type from the QEP object.
@@ -677,7 +677,7 @@ PetscErrorCode QEPGetProblemType(QEP qep,QEPProblemType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetConvergenceTest"
 /*@C
     QEPSetConvergenceTest - Sets a function to compute the error estimate used in 
@@ -717,7 +717,7 @@ extern PetscErrorCode QEPSetConvergenceTest(QEP qep,PetscErrorCode (*func)(QEP,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetTrackAll"
 /*@
    QEPSetTrackAll - Specifies if the solver must compute the residual of all
@@ -750,7 +750,7 @@ PetscErrorCode QEPSetTrackAll(QEP qep,PetscBool trackall)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetTrackAll"
 /*@
    QEPGetTrackAll - Returns the flag indicating whether all residual norms must
@@ -777,7 +777,7 @@ PetscErrorCode QEPGetTrackAll(QEP qep,PetscBool *trackall)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPSetOptionsPrefix"
 /*@C
    QEPSetOptionsPrefix - Sets the prefix used for searching for all 
@@ -819,7 +819,7 @@ PetscErrorCode QEPSetOptionsPrefix(QEP qep,const char *prefix)
   PetscFunctionReturn(0);  
 }
  
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPAppendOptionsPrefix"
 /*@C
    QEPAppendOptionsPrefix - Appends to the prefix used for searching for all 
@@ -861,7 +861,7 @@ PetscErrorCode QEPAppendOptionsPrefix(QEP qep,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__  
+#undef __FUNCT__
 #define __FUNCT__ "QEPGetOptionsPrefix"
 /*@C
    QEPGetOptionsPrefix - Gets the prefix used for searching for all 
