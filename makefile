@@ -32,7 +32,7 @@ include ${SLEPC_DIR}/conf/slepc_common
 #
 # Basic targets to build SLEPc library
 all: chk_makej
-	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chkpetsc_dir chkslepc_dir | tee ${PETSC_ARCH}/conf/make.log
+	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ${PETSC_ARCH}/conf/make.log
 	@if [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
 	   if [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
 	     ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} cmakegen; \
@@ -44,10 +44,10 @@ all: chk_makej
 	 fi
 	@egrep -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/conf/make.log | tee ${PETSC_ARCH}/conf/error.log > /dev/null
 	@if test -s ${PETSC_ARCH}/conf/error.log; then \
-           echo "********************************************************************"; \
-           echo "  Error during compile, check ${PETSC_ARCH}/conf/make.log"; \
-           echo "  Send all contents of ${PETSC_ARCH}/conf to slepc-maint@grycap.upv.es";\
-           echo "********************************************************************"; \
+           echo ${PETSC_TEXT_RED}"*******************************ERROR************************************"; \
+           echo "  Error during compile, check ${PETSC_ARCH}/conf/make.log               "; \
+           echo "  Send all contents of ${PETSC_ARCH}/conf to slepc-maint@grycap.upv.es  ";\
+           echo "************************************************************************"${PETSC_TEXT_BLACK}; \
 	 elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
            echo "Now to check if the library is working do: make test";\
            echo "=========================================";\
@@ -196,18 +196,22 @@ allclean: deletelibs deletemods
 #
 chk_petsc_dir:
 	@if [ ! -f ${PETSC_DIR}/include/petscversion.h ]; then \
-	  echo "Incorrect PETSC_DIR specified: ${PETSC_DIR}!"; \
-	  echo "You need to use / to separate directories, not \\!"; \
-	  echo "Aborting build"; \
+          echo ${PETSC_TEXT_RED}"*************************ERROR**************************************"; \
+	  echo "Incorrect PETSC_DIR specified: ${PETSC_DIR}!                             "; \
+	  echo "You need to use / to separate directories, not \\!                       "; \
+	  echo "Aborting build                                                           "; \
+          echo "********************************************************************"${PETSC_TEXT_BLACK}; \
 	  false; fi
 #
 # Check if SLEPC_DIR variable specified is valid
 #
 chk_slepc_dir:
 	@if [ ! -f ${SLEPC_DIR}/include/slepcversion.h ]; then \
-	  echo "Incorrect SLEPC_DIR specified: ${SLEPC_DIR}!"; \
-	  echo "You need to use / to separate directories, not \\!"; \
-	  echo "Aborting build"; \
+          echo ${PETSC_TEXT_RED}"*************************ERROR**************************************"; \
+	  echo "Incorrect SLEPC_DIR specified: ${SLEPC_DIR}!                             "; \
+	  echo "You need to use / to separate directories, not \\!                       "; \
+	  echo "Aborting build                                                           "; \
+          echo "********************************************************************"${PETSC_TEXT_BLACK}; \
 	  false; fi
 #
 # Install relevant files in the prefix directory
