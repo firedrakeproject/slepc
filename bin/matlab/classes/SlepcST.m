@@ -51,13 +51,6 @@ classdef SlepcST < PetscObject
     function err = SetUp(obj)
       err = calllib('libslepc', 'STSetUp', obj.pobj);PetscCHKERRQ(err);
     end
-    function err = SetOperators(obj,A,B)
-      if (nargin == 2) 
-        err = calllib('libslepc', 'STSetOperators', obj.pobj,A.pobj,0);PetscCHKERRQ(err);
-      else
-        err = calllib('libslepc', 'STSetOperators', obj.pobj,A.pobj,B.pobj);PetscCHKERRQ(err);
-      end
-    end
     function err = View(obj,viewer)
       if (nargin == 1)
         err = calllib('libslepc', 'STView', obj.pobj,0);PetscCHKERRQ(err);

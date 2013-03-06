@@ -40,7 +40,6 @@ typedef PetscPointer ST;
 int STCreate(MPI_Comm,ST *);
 int STSetType(ST,const char*);
 int STSetFromOptions(ST);
-int STSetOperators(ST,Mat,Mat);
 int STSetUp(ST);
 int STView(ST,PetscViewer);
 int STGetKSP(ST,KSP*);

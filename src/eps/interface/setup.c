@@ -344,12 +344,19 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
 {
   PetscErrorCode ierr;
   ST             st;
+  PetscInt       k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   if (A) { ierr = STGetOperators(st,0,A);CHKERRQ(ierr); }
-  if (B) { ierr = STGetOperators(st,1,B);CHKERRQ(ierr); }
+  if (B) {
+    ierr = STGetNumMatrices(st,&k);CHKERRQ(ierr);
+    if (k==1) B = NULL;
+    else {
+      ierr = STGetOperators(st,1,B);CHKERRQ(ierr);
+    }
+  }
   PetscFunctionReturn(0);
 }
 
