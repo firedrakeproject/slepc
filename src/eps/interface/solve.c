@@ -1146,8 +1146,6 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps,PetscInt i,PetscReal *error)
   PetscFunctionReturn(0);
 }
 
-#define SWAP(a,b,t) {t=a;a=b;b=t;}
-
 #undef __FUNCT__
 #define __FUNCT__ "EPSSortEigenvalues"
 /*@

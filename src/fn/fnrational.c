@@ -92,7 +92,9 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     if (!fn->nb) {
-      if (fn->na==1) {
+      if (!fn->na) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  Constant: 1.0\n");CHKERRQ(ierr);
+      } else if (fn->na==1) {
         ierr = PetscViewerASCIIPrintf(viewer,"  Constant: %3.1F\n",fn->alpha[0]);CHKERRQ(ierr);
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"  Polynomial: ");CHKERRQ(ierr);

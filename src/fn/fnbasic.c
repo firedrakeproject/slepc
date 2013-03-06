@@ -402,7 +402,6 @@ PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveScalar(fn,x,2);
   PetscValidPointer(y,3);
-  if (!fn->na && !fn->nb) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ORDER,"Must call FNSetParameters() first");
   if (!((PetscObject)fn)->type_name) {
     ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
   }
@@ -436,7 +435,6 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveScalar(fn,x,2);
   PetscValidPointer(y,3);
-  if (!fn->na && !fn->nb) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ORDER,"Must call FNSetParameters() first");
   if (!((PetscObject)fn)->type_name) {
     ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
   }
@@ -592,6 +590,7 @@ PetscErrorCode FNRegisterDestroy(void)
 
 EXTERN_C_BEGIN
 extern PetscErrorCode FNCreate_Rational(FN);
+extern PetscErrorCode FNCreate_Exp(FN);
 EXTERN_C_END
 
 #undef __FUNCT__
@@ -613,6 +612,7 @@ PetscErrorCode FNRegisterAll(const char *path)
   PetscFunctionBegin;
   FNRegisterAllCalled = PETSC_TRUE;
   ierr = FNRegisterDynamic(FNRATIONAL,path,"FNCreate_Rational",FNCreate_Rational);CHKERRQ(ierr);
+  ierr = FNRegisterDynamic(FNEXP,path,"FNCreate_Exp",FNCreate_Exp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

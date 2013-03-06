@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = fnbasic.c fnrational.c
+SOURCEC  = fnbasic.c fnrational.c fnexp.c
 SOURCEF  = 
 SOURCEH  = ../../include/slepc-private/fnimpl.h ../../include/slepcfn.h
 LIBBASE  = libslepc
