@@ -19,16 +19,29 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS   =
-FFLAGS   =
-SOURCEC  =
-SOURCEF  =
-SOURCEH  = slepc.h slepcsys.h slepcmath.h slepcversion.h slepcblaslapack.h \
-           slepceps.h slepcqep.h slepcnep.h slepcmfn.h slepcsvd.h \
-           slepcst.h slepcip.h slepcds.h slepcfn.h slepcvec.h
-LIBBASE  = libslepc
-DIRS     = finclude slepc-private
-LOCDIR   = include/
-MANSEC   = 
+CFLAGS     = 
+FFLAGS     =
+CPPFLAGS   = 
+FPPFLAGS   =
+LOCDIR     = src/fn/examples/tests/
+EXAMPLESC  = test1.c
+EXAMPLESF  = 
+MANSEC     = FN
+TESTS      = test1
+
+TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+test1: test1.o chkopts
+	-${CLINKER} -o test1 test1.o ${SLEPC_LIB}
+	${RM} test1.o
+
+#------------------------------------------------------------------------------------
+
+runtest1_1:
+	-@${MPIEXEC} -np 1 ./test1 > test1_1.tmp 2>&1; \
+	  if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
+	  else echo "Possible problem with test1_1, diffs above"; fi; \
+	  ${RM} -f test1_1.tmp
+

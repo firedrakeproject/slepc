@@ -28,6 +28,7 @@
 #include <slepc-private/mfnimpl.h>
 #include <slepc-private/ipimpl.h>
 #include <slepc-private/dsimpl.h>
+#include <slepc-private/fnimpl.h>
 #include <slepc-private/vecimplslepc.h>
 #include <stdlib.h>
 
@@ -153,6 +154,7 @@ PetscErrorCode SlepcInitialize_Packages(void)
   ierr = STInitializePackage(NULL);CHKERRQ(ierr);
   ierr = IPInitializePackage(NULL);CHKERRQ(ierr);
   ierr = DSInitializePackage(NULL);CHKERRQ(ierr);
+  ierr = FNInitializePackage(NULL);CHKERRQ(ierr);
   /* New special type of Vec, implemented in SLEPc */
   ierr = VecRegister_Comp(NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -19,16 +19,16 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+ALL: lib
+
 CFLAGS   =
 FFLAGS   =
-SOURCEC  =
-SOURCEF  =
-SOURCEH  = slepc.h slepcsys.h slepcmath.h slepcversion.h slepcblaslapack.h \
-           slepceps.h slepcqep.h slepcnep.h slepcmfn.h slepcsvd.h \
-           slepcst.h slepcip.h slepcds.h slepcfn.h slepcvec.h
+SOURCEC  = fnbasic.c fnrational.c
+SOURCEF  = 
+SOURCEH  = ../../include/slepc-private/fnimpl.h ../../include/slepcfn.h
 LIBBASE  = libslepc
-DIRS     = finclude slepc-private
-LOCDIR   = include/
-MANSEC   = 
+DIRS     =
+MANSEC   = FN
+LOCDIR   = src/fn/
 
 include ${SLEPC_DIR}/conf/slepc_common

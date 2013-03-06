@@ -150,7 +150,7 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
    Logically Collective on IP
 
    Input Parameters:
-+  ip - the innerproduct context
++  ip - the inner product context
 -  prefix - the prefix string to prepend to all IP option requests
 
    Notes:
@@ -181,7 +181,7 @@ PetscErrorCode IPSetOptionsPrefix(IP ip,const char *prefix)
    Logically Collective on IP
 
    Input Parameters:
-+  ip - the innerproduct context
++  ip - the inner product context
 -  prefix - the prefix string to prepend to all IP option requests
 
    Notes:
@@ -211,7 +211,7 @@ PetscErrorCode IPAppendOptionsPrefix(IP ip,const char *prefix)
    Not Collective
 
    Input Parameters:
-.  ip - the innerproduct context
+.  ip - the inner product context
 
    Output Parameters:
 .  prefix - pointer to the prefix string used is returned
@@ -242,7 +242,7 @@ PetscErrorCode IPGetOptionsPrefix(IP ip,const char *prefix[])
    Logically Collective on IP
 
    Input Parameter:
-+  ip   - the inner product context.
++  ip   - the inner product context
 -  type - a known type
 
    Notes:
@@ -260,7 +260,6 @@ PetscErrorCode IPGetOptionsPrefix(IP ip,const char *prefix[])
    Level: advanced
 
 .seealso: IPGetType()
-
 @*/
 PetscErrorCode IPSetType(IP ip,IPType type)
 {
@@ -300,7 +299,6 @@ PetscErrorCode IPSetType(IP ip,IPType type)
    Level: advanced
 
 .seealso: IPSetType()
-
 @*/
 PetscErrorCode IPGetType(IP ip,IPType *type)
 {
@@ -339,9 +337,9 @@ PetscErrorCode IPSetDefaultType_Private(IP ip)
    Collective on IP
 
    Input Parameters:
-.  ip - the innerproduct context
+.  ip - the inner product context
 
-   Notes:  
+   Notes:
    To see all options, run your program with the -help option.
 
    Level: beginner
@@ -383,7 +381,7 @@ PetscErrorCode IPSetFromOptions(IP ip)
    Logically Collective on IP
 
    Input Parameters:
-+  ip     - the innerproduct context
++  ip     - the inner product context
 .  type   - the type of orthogonalization technique
 .  refine - type of refinement
 -  eta    - parameter for selective refinement
@@ -479,7 +477,7 @@ PetscErrorCode IPGetOrthogonalization(IP ip,IPOrthogType *type,IPOrthogRefineTyp
    Collective on IP
 
    Input Parameters:
-+  ip - the innerproduct context
++  ip - the inner product context
 -  viewer - optional visualization context
 
    Note:

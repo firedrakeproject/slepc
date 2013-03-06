@@ -23,7 +23,8 @@ CFLAGS   =
 FFLAGS   =
 SOURCEC  =
 SOURCEF  =
-SOURCEH  = epsimpl.h stimpl.h svdimpl.h ipimpl.h qepimpl.h nepimpl.h mfnimpl.h dsimpl.h slepcimpl.h
+SOURCEH  = epsimpl.h stimpl.h svdimpl.h ipimpl.h qepimpl.h nepimpl.h \
+           mfnimpl.h dsimpl.h fnimpl.h slepcimpl.h
 LIBBASE  = libslepc
 DIRS     = 
 LOCDIR   = include/

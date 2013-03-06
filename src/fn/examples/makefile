@@ -19,16 +19,10 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS   =
-FFLAGS   =
-SOURCEC  =
-SOURCEF  =
-SOURCEH  = slepc.h slepcsys.h slepcmath.h slepcversion.h slepcblaslapack.h \
-           slepceps.h slepcqep.h slepcnep.h slepcmfn.h slepcsvd.h \
-           slepcst.h slepcip.h slepcds.h slepcfn.h slepcvec.h
-LIBBASE  = libslepc
-DIRS     = finclude slepc-private
-LOCDIR   = include/
-MANSEC   = 
+ALL:
+
+LOCDIR   = src/fn/examples/
+DIRS     = tests
 
 include ${SLEPC_DIR}/conf/slepc_common
+

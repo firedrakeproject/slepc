@@ -31,7 +31,7 @@ PETSC_EXTERN PetscErrorCode IPInitializePackage(const char[]);
 
     Level: beginner
 
-.seealso:  IPCreate()
+.seealso: IPCreate()
 S*/
 typedef struct _p_IP* IP;
 
@@ -100,15 +100,15 @@ PETSC_EXTERN PetscErrorCode IPSetMatrix(IP,Mat);
 PETSC_EXTERN PetscErrorCode IPGetMatrix(IP,Mat*);
 PETSC_EXTERN PetscErrorCode IPApplyMatrix(IP,Vec,Vec);
 
-PETSC_EXTERN PetscErrorCode IPInnerProduct(IP ip,Vec,Vec,PetscScalar*);
-PETSC_EXTERN PetscErrorCode IPInnerProductBegin(IP ip,Vec,Vec,PetscScalar*);
-PETSC_EXTERN PetscErrorCode IPInnerProductEnd(IP ip,Vec,Vec,PetscScalar*);
-PETSC_EXTERN PetscErrorCode IPMInnerProduct(IP ip,Vec,PetscInt,const Vec[],PetscScalar*);
-PETSC_EXTERN PetscErrorCode IPMInnerProductBegin(IP ip,Vec,PetscInt,const Vec[],PetscScalar*);
-PETSC_EXTERN PetscErrorCode IPMInnerProductEnd(IP ip,Vec,PetscInt,const Vec[],PetscScalar*);
-PETSC_EXTERN PetscErrorCode IPNorm(IP ip,Vec,PetscReal*);
-PETSC_EXTERN PetscErrorCode IPNormBegin(IP ip,Vec,PetscReal*);
-PETSC_EXTERN PetscErrorCode IPNormEnd(IP ip,Vec,PetscReal*);
+PETSC_EXTERN PetscErrorCode IPInnerProduct(IP,Vec,Vec,PetscScalar*);
+PETSC_EXTERN PetscErrorCode IPInnerProductBegin(IP,Vec,Vec,PetscScalar*);
+PETSC_EXTERN PetscErrorCode IPInnerProductEnd(IP,Vec,Vec,PetscScalar*);
+PETSC_EXTERN PetscErrorCode IPMInnerProduct(IP,Vec,PetscInt,const Vec[],PetscScalar*);
+PETSC_EXTERN PetscErrorCode IPMInnerProductBegin(IP,Vec,PetscInt,const Vec[],PetscScalar*);
+PETSC_EXTERN PetscErrorCode IPMInnerProductEnd(IP,Vec,PetscInt,const Vec[],PetscScalar*);
+PETSC_EXTERN PetscErrorCode IPNorm(IP,Vec,PetscReal*);
+PETSC_EXTERN PetscErrorCode IPNormBegin(IP,Vec,PetscReal*);
+PETSC_EXTERN PetscErrorCode IPNormEnd(IP,Vec,PetscReal*);
 
 PETSC_EXTERN PetscFunctionList IPList;
 PETSC_EXTERN PetscBool         IPRegisterAllCalled;
