@@ -42,19 +42,17 @@
 #define ipgetmatrix_              ipgetmatrix
 #endif
 
-EXTERN_C_BEGIN
-
-void PETSC_STDCALL ipcreate_(MPI_Fint *comm,IP *newip,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL ipcreate_(MPI_Fint *comm,IP *newip,PetscErrorCode *ierr)
 {
   *ierr = IPCreate(MPI_Comm_f2c(*(comm)),newip);
 }
 
-void PETSC_STDCALL ipdestroy_(IP *ip,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL ipdestroy_(IP *ip,PetscErrorCode *ierr)
 {
   *ierr = IPDestroy(ip);
 }
 
-void PETSC_STDCALL ipsetoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL ipsetoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -63,7 +61,7 @@ void PETSC_STDCALL ipsetoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len),P
   FREECHAR(prefix,t);
 }
 
-void PETSC_STDCALL ipappendoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL ipappendoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -72,7 +70,7 @@ void PETSC_STDCALL ipappendoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len
   FREECHAR(prefix,t);
 }
 
-void PETSC_STDCALL ipgetoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL ipgetoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   const char *tname;
 
@@ -80,21 +78,20 @@ void PETSC_STDCALL ipgetoptionsprefix_(IP *ip,CHAR prefix PETSC_MIXED_LEN(len),P
   *ierr = PetscStrncpy(prefix,tname,len);
 }
 
-void PETSC_STDCALL ipgetorthogonalization_(IP *ip,IPOrthogType *type,IPOrthogRefineType *refinement,PetscReal *eta,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL ipgetorthogonalization_(IP *ip,IPOrthogType *type,IPOrthogRefineType *refinement,PetscReal *eta,PetscErrorCode *ierr)
 {
   *ierr = IPGetOrthogonalization(*ip,type,refinement,eta);
 }
 
-void PETSC_STDCALL ipview_(IP *ip,PetscViewer *viewer,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL ipview_(IP *ip,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = IPView(*ip,v);
 }
 
-void PETSC_STDCALL ipgetmatrix_(IP *ip,Mat *mat,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL ipgetmatrix_(IP *ip,Mat *mat,PetscErrorCode *ierr)
 {
   *ierr = IPGetMatrix(*ip,mat);
 }
 
-EXTERN_C_END

@@ -64,8 +64,6 @@
 #define svdgetconvergedreason_       svdgetconvergedreason
 #endif
 
-EXTERN_C_BEGIN
-
 /*
    These are not usually called from Fortran but allow Fortran users 
    to transparently set these monitors from .F code, hence no STDCALL
@@ -95,8 +93,6 @@ void svdmonitorfirst_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,Pet
   *ierr = SVDMonitorFirst(*svd,*it,*nconv,sigma,errest,*nest,ctx);
 }
 
-EXTERN_C_END
-
 static struct {
   PetscFortranCallbackId monitor;
   PetscFortranCallbackId monitordestroy;
@@ -120,26 +116,24 @@ static PetscErrorCode ourdestroy(void** ctx)
   return 0;
 }
 
-EXTERN_C_BEGIN
-
-void PETSC_STDCALL svddestroy_(SVD *svd,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL svddestroy_(SVD *svd,PetscErrorCode *ierr)
 {
   *ierr = SVDDestroy(svd);
 }
 
-void PETSC_STDCALL svdview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL svdview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = SVDView(*svd,v);
 }
 
-void PETSC_STDCALL svdcreate_(MPI_Fint *comm,SVD *svd,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL svdcreate_(MPI_Fint *comm,SVD *svd,PetscErrorCode *ierr)
 {
   *ierr = SVDCreate(MPI_Comm_f2c(*(comm)),svd);
 }
 
-void PETSC_STDCALL svdsettype_(SVD *svd,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL svdsettype_(SVD *svd,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -148,7 +142,7 @@ void PETSC_STDCALL svdsettype_(SVD *svd,CHAR type PETSC_MIXED_LEN(len),PetscErro
   FREECHAR(type,t);
 }
 
-void PETSC_STDCALL svdgettype_(SVD *svd,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL svdgettype_(SVD *svd,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   SVDType tname;
 
@@ -157,17 +151,17 @@ void PETSC_STDCALL svdgettype_(SVD *svd,CHAR name PETSC_MIXED_LEN(len),PetscErro
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-void PETSC_STDCALL svdgetip_(SVD *svd,IP *ip,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL svdgetip_(SVD *svd,IP *ip,PetscErrorCode *ierr)
 {
   *ierr = SVDGetIP(*svd,ip);
 }
 
-void PETSC_STDCALL svdgetds_(SVD *svd,DS *ds,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL svdgetds_(SVD *svd,DS *ds,PetscErrorCode *ierr)
 {
   *ierr = SVDGetDS(*svd,ds);
 }
 
-void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   SlepcConvMonitor ctx;
 
@@ -202,17 +196,17 @@ void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,Pe
   }
 }
 
-void PETSC_STDCALL svdgettransposemode_(SVD *svd,SVDTransposeMode *mode,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL svdgettransposemode_(SVD *svd,SVDTransposeMode *mode,PetscErrorCode *ierr)
 {
   *ierr = SVDGetTransposeMode(*svd,mode);
 }
 
-void PETSC_STDCALL svdgetwhichsingulartriplets_(SVD *svd,SVDWhich *which,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL svdgetwhichsingulartriplets_(SVD *svd,SVDWhich *which,PetscErrorCode *ierr)
 {
   *ierr = SVDGetWhichSingularTriplets(*svd,which);
 }
 
-void PETSC_STDCALL svdsetoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL svdsetoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -221,7 +215,7 @@ void PETSC_STDCALL svdsetoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len
   FREECHAR(prefix,t);
 }
 
-void PETSC_STDCALL svdappendoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL svdappendoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -230,7 +224,7 @@ void PETSC_STDCALL svdappendoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(
   FREECHAR(prefix,t);
 }
 
-void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   const char *tname;
 
@@ -238,9 +232,8 @@ void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len
   *ierr = PetscStrncpy(prefix,tname,len);
 }
 
-void PETSC_STDCALL svdgetconvergedreason_(SVD *svd,SVDConvergedReason *reason,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL svdgetconvergedreason_(SVD *svd,SVDConvergedReason *reason,PetscErrorCode *ierr)
 {
   *ierr = SVDGetConvergedReason(*svd,reason);
 }
 
-EXTERN_C_END

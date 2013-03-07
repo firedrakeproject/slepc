@@ -37,18 +37,15 @@ extern PetscErrorCode SlepcInitialize_LogEvents(void);
 #define slepcinitialize_              slepcinitialize
 #endif
 
-EXTERN_C_BEGIN
-extern void PETSC_STDCALL petscinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len));
-EXTERN_C_END
+PETSC_EXTERN void PETSC_STDCALL petscinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len));
 
-EXTERN_C_BEGIN
 /*
     SlepcInitialize - Version called from Fortran.
 
     Notes:
     Since this routine is called from Fortran it does not return error codes.
 */
-void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   PetscBool flg;
   *ierr = 1;
@@ -85,7 +82,5 @@ void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErro
   SlepcInitializeCalled = PETSC_TRUE;
   *ierr = PetscInfo(0,"SLEPc successfully started from Fortran\n");
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Calling PetscInfo()");return; }
-
 }  
 
-EXTERN_C_END

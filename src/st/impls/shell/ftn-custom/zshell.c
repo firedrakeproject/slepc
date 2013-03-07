@@ -65,30 +65,26 @@ static PetscErrorCode ourshellbacktransform(ST st,PetscInt n,PetscScalar *eigr,P
   return 0;
 }
 
-EXTERN_C_BEGIN
-
-void PETSC_STDCALL stshellgetcontext_(ST *st,void **ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL stshellgetcontext_(ST *st,void **ctx,PetscErrorCode *ierr)
 {
   *ierr = STShellGetContext(*st,ctx);
 }
 
-void PETSC_STDCALL stshellsetapply_(ST *st,void (PETSC_STDCALL *apply)(void*,Vec*,Vec*,PetscErrorCode*),PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL stshellsetapply_(ST *st,void (PETSC_STDCALL *apply)(void*,Vec*,Vec*,PetscErrorCode*),PetscErrorCode *ierr)
 {
   *ierr = PetscObjectSetFortranCallback((PetscObject)*st,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.apply,(PetscVoidFunction)apply,NULL); if (*ierr) return;
   *ierr = STShellSetApply(*st,ourshellapply);
 }
 
-void PETSC_STDCALL stshellsetapplytranspose_(ST *st,void (PETSC_STDCALL *applytranspose)(void*,Vec*,Vec*,PetscErrorCode*),PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL stshellsetapplytranspose_(ST *st,void (PETSC_STDCALL *applytranspose)(void*,Vec*,Vec*,PetscErrorCode*),PetscErrorCode *ierr)
 {
   *ierr = PetscObjectSetFortranCallback((PetscObject)*st,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.applytranspose,(PetscVoidFunction)applytranspose,NULL); if (*ierr) return;
   *ierr = STShellSetApplyTranspose(*st,ourshellapplytranspose);
 }
 
-void PETSC_STDCALL stshellsetbacktransform_(ST *st,void (PETSC_STDCALL *backtransform)(void*,PetscScalar*,PetscScalar*,PetscErrorCode*),PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL stshellsetbacktransform_(ST *st,void (PETSC_STDCALL *backtransform)(void*,PetscScalar*,PetscScalar*,PetscErrorCode*),PetscErrorCode *ierr)
 {
   *ierr = PetscObjectSetFortranCallback((PetscObject)*st,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.backtransform,(PetscVoidFunction)backtransform,NULL); if (*ierr) return;
   *ierr = STShellSetBackTransform(*st,ourshellbacktransform);
 }
-
-EXTERN_C_END
 

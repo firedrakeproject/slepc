@@ -26,9 +26,7 @@
 
 PetscErrorCode EPSSolve_PRIMME(EPS);
 
-EXTERN_C_BEGIN
 #include <primme.h>
-EXTERN_C_END
 
 typedef struct {
   primme_params primme;           /* param struc */

@@ -54,8 +54,6 @@
 #define mfngetconvergedreason_      mfngetconvergedreason
 #endif
 
-EXTERN_C_BEGIN
-
 /*
    These are not usually called from Fortran but allow Fortran users 
    to transparently set these monitors from .F code, hence no STDCALL
@@ -70,8 +68,6 @@ void mfnmonitorlg_(MFN *mfn,PetscInt *it,PetscReal *errest,void *ctx,PetscErrorC
   *ierr = MFNMonitorLG(*mfn,*it,*errest,ctx);
 }
 
-EXTERN_C_END
- 
 static struct {
   PetscFortranCallbackId monitor;
   PetscFortranCallbackId monitordestroy;
@@ -95,21 +91,19 @@ static PetscErrorCode ourdestroy(void** ctx)
   return 0;
 }
 
-EXTERN_C_BEGIN
-
-void PETSC_STDCALL mfndestroy_(MFN *mfn,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL mfndestroy_(MFN *mfn,PetscErrorCode *ierr)
 {
   *ierr = MFNDestroy(mfn);
 }
 
-void PETSC_STDCALL mfnview_(MFN *mfn,PetscViewer *viewer,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL mfnview_(MFN *mfn,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = MFNView(*mfn,v);
 }
 
-void PETSC_STDCALL mfnsettype_(MFN *mfn,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL mfnsettype_(MFN *mfn,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -118,7 +112,7 @@ void PETSC_STDCALL mfnsettype_(MFN *mfn,CHAR type PETSC_MIXED_LEN(len),PetscErro
   FREECHAR(type,t);
 }
 
-void PETSC_STDCALL mfngettype_(MFN *mfn,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL mfngettype_(MFN *mfn,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   MFNType tname;
 
@@ -127,7 +121,7 @@ void PETSC_STDCALL mfngettype_(MFN *mfn,CHAR name PETSC_MIXED_LEN(len),PetscErro
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-void PETSC_STDCALL mfnsetoptionsprefix_(MFN *mfn,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL mfnsetoptionsprefix_(MFN *mfn,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -136,7 +130,7 @@ void PETSC_STDCALL mfnsetoptionsprefix_(MFN *mfn,CHAR prefix PETSC_MIXED_LEN(len
   FREECHAR(prefix,t);
 }
 
-void PETSC_STDCALL mfnappendoptionsprefix_(MFN *mfn,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL mfnappendoptionsprefix_(MFN *mfn,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -145,7 +139,7 @@ void PETSC_STDCALL mfnappendoptionsprefix_(MFN *mfn,CHAR prefix PETSC_MIXED_LEN(
   FREECHAR(prefix,t);
 }
 
-void PETSC_STDCALL mfngetoptionsprefix_(MFN *mfn,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL mfngetoptionsprefix_(MFN *mfn,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   const char *tname;
 
@@ -153,12 +147,12 @@ void PETSC_STDCALL mfngetoptionsprefix_(MFN *mfn,CHAR prefix PETSC_MIXED_LEN(len
   *ierr = PetscStrncpy(prefix,tname,len);
 }
 
-void PETSC_STDCALL mfncreate_(MPI_Fint *comm,MFN *mfn,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL mfncreate_(MPI_Fint *comm,MFN *mfn,PetscErrorCode *ierr)
 {
   *ierr = MFNCreate(MPI_Comm_f2c(*(comm)),mfn);
 }
 
-void PETSC_STDCALL mfnmonitorset_(MFN *mfn,void (PETSC_STDCALL *monitor)(MFN*,PetscInt*,PetscReal*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL mfnmonitorset_(MFN *mfn,void (PETSC_STDCALL *monitor)(MFN*,PetscInt*,PetscReal*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(mctx);
   CHKFORTRANNULLFUNCTION(monitordestroy);
@@ -177,20 +171,18 @@ void PETSC_STDCALL mfnmonitorset_(MFN *mfn,void (PETSC_STDCALL *monitor)(MFN*,Pe
   }
 }
 
-void PETSC_STDCALL mfngetip_(MFN *mfn,IP *ip,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL mfngetip_(MFN *mfn,IP *ip,PetscErrorCode *ierr)
 {
   *ierr = MFNGetIP(*mfn,ip);
 }
 
-void PETSC_STDCALL mfngetds_(MFN *mfn,DS *ds,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL mfngetds_(MFN *mfn,DS *ds,PetscErrorCode *ierr)
 {
   *ierr = MFNGetDS(*mfn,ds);
 }
 
-void PETSC_STDCALL mfngetconvergedreason_(MFN *mfn,MFNConvergedReason *reason,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL mfngetconvergedreason_(MFN *mfn,MFNConvergedReason *reason,PetscErrorCode *ierr)
 {
   *ierr = MFNGetConvergedReason(*mfn,reason);
 }
-
-EXTERN_C_END
 

@@ -28,12 +28,8 @@
 #define epsprimmegetmethod_  epsprimmegetmethod
 #endif
 
-EXTERN_C_BEGIN
-
-void PETSC_STDCALL epsprimmegetmethod_(EPS *eps,EPSPRIMMEMethod *method,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL epsprimmegetmethod_(EPS *eps,EPSPRIMMEMethod *method,PetscErrorCode *ierr)
 {
   *ierr = EPSPRIMMEGetMethod(*eps,method);
 }
-
-EXTERN_C_END
 

@@ -25,14 +25,12 @@
 
 #include <slepc-private/stimpl.h>        /*I "slepcst.h" I*/
 
-EXTERN_C_BEGIN 
 typedef struct {
   void           *ctx;                       /* user provided context */
   PetscErrorCode (*apply)(ST,Vec,Vec);
   PetscErrorCode (*applytrans)(ST,Vec,Vec);
   PetscErrorCode (*backtransform)(ST,PetscInt n,PetscScalar*,PetscScalar*);
 } ST_Shell;
-EXTERN_C_END
 
 #undef __FUNCT__
 #define __FUNCT__ "STShellGetContext"

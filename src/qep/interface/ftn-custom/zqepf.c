@@ -65,8 +65,6 @@
 #define qepgetconvergedreason_      qepgetconvergedreason
 #endif
 
-EXTERN_C_BEGIN
-
 /*
    These are not usually called from Fortran but allow Fortran users 
    to transparently set these monitors from .F code, hence no STDCALL
@@ -96,8 +94,6 @@ void qepmonitorfirst_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,Pe
   *ierr = QEPMonitorFirst(*qep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 
-EXTERN_C_END
- 
 static struct {
   PetscFortranCallbackId monitor;
   PetscFortranCallbackId monitordestroy;
@@ -121,21 +117,19 @@ static PetscErrorCode ourdestroy(void** ctx)
   return 0;
 }
 
-EXTERN_C_BEGIN
-
-void PETSC_STDCALL qepdestroy_(QEP *qep,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL qepdestroy_(QEP *qep,PetscErrorCode *ierr)
 {
   *ierr = QEPDestroy(qep);
 }
 
-void PETSC_STDCALL qepview_(QEP *qep,PetscViewer *viewer,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL qepview_(QEP *qep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = QEPView(*qep,v);
 }
 
-void PETSC_STDCALL qepsettype_(QEP *qep,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL qepsettype_(QEP *qep,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -144,7 +138,7 @@ void PETSC_STDCALL qepsettype_(QEP *qep,CHAR type PETSC_MIXED_LEN(len),PetscErro
   FREECHAR(type,t);
 }
 
-void PETSC_STDCALL qepgettype_(QEP *qep,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL qepgettype_(QEP *qep,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   QEPType tname;
 
@@ -153,7 +147,7 @@ void PETSC_STDCALL qepgettype_(QEP *qep,CHAR name PETSC_MIXED_LEN(len),PetscErro
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-void PETSC_STDCALL qepsetoptionsprefix_(QEP *qep,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL qepsetoptionsprefix_(QEP *qep,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -162,7 +156,7 @@ void PETSC_STDCALL qepsetoptionsprefix_(QEP *qep,CHAR prefix PETSC_MIXED_LEN(len
   FREECHAR(prefix,t);
 }
 
-void PETSC_STDCALL qepappendoptionsprefix_(QEP *qep,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL qepappendoptionsprefix_(QEP *qep,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -171,12 +165,12 @@ void PETSC_STDCALL qepappendoptionsprefix_(QEP *qep,CHAR prefix PETSC_MIXED_LEN(
   FREECHAR(prefix,t);
 }
 
-void PETSC_STDCALL qepcreate_(MPI_Fint *comm,QEP *qep,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL qepcreate_(MPI_Fint *comm,QEP *qep,PetscErrorCode *ierr)
 {
   *ierr = QEPCreate(MPI_Comm_f2c(*(comm)),qep);
 }
 
-void PETSC_STDCALL qepgetoptionsprefix_(QEP *qep,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL qepgetoptionsprefix_(QEP *qep,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   const char *tname;
 
@@ -184,7 +178,7 @@ void PETSC_STDCALL qepgetoptionsprefix_(QEP *qep,CHAR prefix PETSC_MIXED_LEN(len
   *ierr = PetscStrncpy(prefix,tname,len);
 }
 
-void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *monitor)(QEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *monitor)(QEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   SlepcConvMonitor ctx;
 
@@ -219,30 +213,28 @@ void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *monitor)(QEP*,Pe
   }
 }
 
-void PETSC_STDCALL qepgetip_(QEP *qep,IP *ip,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL qepgetip_(QEP *qep,IP *ip,PetscErrorCode *ierr)
 {
   *ierr = QEPGetIP(*qep,ip);
 }
 
-void PETSC_STDCALL qepgetds_(QEP *qep,DS *ds,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL qepgetds_(QEP *qep,DS *ds,PetscErrorCode *ierr)
 {
   *ierr = QEPGetDS(*qep,ds);
 }
 
-void PETSC_STDCALL qepgetwhicheigenpairs_(QEP *qep,QEPWhich *which,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL qepgetwhicheigenpairs_(QEP *qep,QEPWhich *which,PetscErrorCode *ierr)
 {
   *ierr = QEPGetWhichEigenpairs(*qep,which);
 }
 
-void PETSC_STDCALL qepgetproblemtype_(QEP *qep,QEPProblemType *type,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL qepgetproblemtype_(QEP *qep,QEPProblemType *type,PetscErrorCode *ierr)
 {
   *ierr = QEPGetProblemType(*qep,type);
 }
 
-void PETSC_STDCALL qepgetconvergedreason_(QEP *qep,QEPConvergedReason *reason,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL qepgetconvergedreason_(QEP *qep,QEPConvergedReason *reason,PetscErrorCode *ierr)
 {
   *ierr = QEPGetConvergedReason(*qep,reason);
 }
-
-EXTERN_C_END
 
