@@ -52,7 +52,7 @@ struct _p_IP {
   Vec                Bx;
 };
 
-PETSC_INTERN PetscErrorCode IPSetDefaultType_Private(IP);
+PETSC_INTERN PetscErrorCode IPSetType_Default(IP);
 PETSC_INTERN PetscErrorCode IPApplyMatrix_Private(IP,Vec);
 PETSC_INTERN PetscErrorCode IPOrthogonalizeCGS1(IP,PetscInt,Vec*,PetscInt,PetscBool*,Vec*,Vec,PetscScalar*,PetscReal*,PetscReal*);
 

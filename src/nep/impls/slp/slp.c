@@ -78,7 +78,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   }
 
   ierr = NEPAllocateSolution(nep);CHKERRQ(ierr);
-  ierr = NEPDefaultGetWork(nep,1);CHKERRQ(ierr);
+  ierr = NEPSetWorkVecs_Private(nep,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -263,7 +263,7 @@ PetscErrorCode NEPReset_SLP(NEP nep)
 
   PetscFunctionBegin;
   ierr = EPSReset(ctx->eps);CHKERRQ(ierr);
-  ierr = NEPDefaultFreeWork(nep);CHKERRQ(ierr);
+  ierr = NEPFreeWorkVecs_Private(nep);CHKERRQ(ierr);
   ierr = NEPFreeSolution(nep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -66,7 +66,7 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
-  if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
+  if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which!=EPS_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
@@ -81,7 +81,7 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
     ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
   }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+  ierr = EPSSetWorkVecs_Private(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");

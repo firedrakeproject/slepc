@@ -41,7 +41,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   PetscFunctionBegin;
   eps->ncv = eps->n;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
-  if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
+  if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->balance!=EPS_BALANCE_NONE) { ierr = PetscInfo(eps,"Warning: balancing ignored\n");CHKERRQ(ierr); }
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);

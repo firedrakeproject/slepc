@@ -70,7 +70,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd"); 
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
 
-  if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
+  if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   switch (eps->which) {
     case EPS_LARGEST_IMAGINARY:
     case EPS_SMALLEST_IMAGINARY:
@@ -92,9 +92,9 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
-    ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
+    ierr = EPSSetWorkVecs_Private(eps,2);CHKERRQ(ierr);
   } else {
-    ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+    ierr = EPSSetWorkVecs_Private(eps,1);CHKERRQ(ierr);
   }
 
   /* dispatch solve method */

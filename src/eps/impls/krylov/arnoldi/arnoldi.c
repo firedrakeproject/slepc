@@ -65,7 +65,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd"); 
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
-  if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
+  if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
   if (!eps->extraction) {
@@ -80,7 +80,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   }
   ierr = DSSetExtraRow(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+  ierr = EPSSetWorkVecs_Private(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");

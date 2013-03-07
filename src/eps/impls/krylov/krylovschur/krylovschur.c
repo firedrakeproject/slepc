@@ -128,7 +128,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     if (eps->which==EPS_ALL) eps->max_it = 100;  /* special case for spectrum slicing */
     else eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   }
-  if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
+  if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
   if (!eps->extraction) {
@@ -140,9 +140,9 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->arbitrary) {
-    ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
+    ierr = EPSSetWorkVecs_Private(eps,3);CHKERRQ(ierr);
   } else {
-    ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+    ierr = EPSSetWorkVecs_Private(eps,1);CHKERRQ(ierr);
   }
 
   /* dispatch solve method */

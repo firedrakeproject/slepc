@@ -72,7 +72,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   }
   if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
   if (!((PetscObject)qep->ip)->type_name) {
-    ierr = IPSetDefaultType_Private(qep->ip);CHKERRQ(ierr);
+    ierr = IPSetType_Default(qep->ip);CHKERRQ(ierr);
   }
   if (!qep->ds) { ierr = QEPGetDS(qep,&qep->ds);CHKERRQ(ierr); }
   ierr = DSReset(qep->ds);CHKERRQ(ierr);

@@ -110,8 +110,8 @@ struct _p_NEP {
   PetscInt       numbermonitors; 
 };
 
-PETSC_INTERN PetscErrorCode NEPDefaultGetWork(NEP,PetscInt);
-PETSC_INTERN PetscErrorCode NEPDefaultFreeWork(NEP);
+PETSC_INTERN PetscErrorCode NEPSetWorkVecs_Private(NEP,PetscInt);
+PETSC_INTERN PetscErrorCode NEPFreeWorkVecs_Private(NEP);
 PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
 PETSC_INTERN PetscErrorCode NEPAllocateSolution(NEP);
 PETSC_INTERN PetscErrorCode NEPFreeSolution(NEP);

@@ -25,11 +25,11 @@
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPDefaultGetWork"
+#define __FUNCT__ "NEPSetWorkVecs_Private"
 /*
-  NEPDefaultGetWork - Gets a number of work vectors.
+  NEPSetWorkVecs_Private - Allocate a number of work vectors.
  */
-PetscErrorCode NEPDefaultGetWork(NEP nep,PetscInt nw)
+PetscErrorCode NEPSetWorkVecs_Private(NEP nep,PetscInt nw)
 {
   PetscErrorCode ierr;
 
@@ -44,11 +44,11 @@ PetscErrorCode NEPDefaultGetWork(NEP nep,PetscInt nw)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPDefaultFreeWork"
+#define __FUNCT__ "NEPFreeWorkVecs_Private"
 /*
-  NEPDefaultFreeWork - Free work vectors.
+  NEPFreeWorkVecs_Private - Free work vectors.
  */
-PetscErrorCode NEPDefaultFreeWork(NEP nep)
+PetscErrorCode NEPFreeWorkVecs_Private(NEP nep)
 {
   PetscErrorCode ierr;
 

@@ -31,7 +31,7 @@ PetscErrorCode EPSReset_Default(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = EPSDefaultFreeWork(eps);CHKERRQ(ierr);
+  ierr = EPSFreeWorkVecs_Private(eps);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -232,11 +232,11 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDefaultGetWork"
+#define __FUNCT__ "EPSSetWorkVecs_Private"
 /*
-  EPSDefaultGetWork - Gets a number of work vectors.
+  EPSSetWorkVecs_Private - Allocates a number of work vectors.
  */
-PetscErrorCode EPSDefaultGetWork(EPS eps,PetscInt nw)
+PetscErrorCode EPSSetWorkVecs_Private(EPS eps,PetscInt nw)
 {
   PetscErrorCode ierr;
 
@@ -251,11 +251,11 @@ PetscErrorCode EPSDefaultGetWork(EPS eps,PetscInt nw)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDefaultFreeWork"
+#define __FUNCT__ "EPSFreeWorkVecs_Private"
 /*
-  EPSDefaultFreeWork - Free work vectors.
+  EPSFreeWorkVecs_Private - Free work vectors.
  */
-PetscErrorCode EPSDefaultFreeWork(EPS eps)
+PetscErrorCode EPSFreeWorkVecs_Private(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -266,11 +266,12 @@ PetscErrorCode EPSDefaultFreeWork(EPS eps)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDefaultSetWhich"
+#define __FUNCT__ "EPSSetWhichEigenpairs_Default"
 /*
-  EPSDefaultSetWhich - Sets the default value for which, depending on the ST.
+  EPSSetWhichEigenpairs_Default - Sets the default value for which,
+  depending on the ST.
  */
-PetscErrorCode EPSDefaultSetWhich(EPS eps)
+PetscErrorCode EPSSetWhichEigenpairs_Default(EPS eps)
 {
   PetscBool      target;
   PetscErrorCode ierr;

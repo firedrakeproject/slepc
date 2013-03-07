@@ -63,7 +63,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   }
   if (!nep->ip) { ierr = NEPGetIP(nep,&nep->ip);CHKERRQ(ierr); }
   if (!((PetscObject)nep->ip)->type_name) {
-    ierr = IPSetDefaultType_Private(nep->ip);CHKERRQ(ierr);
+    ierr = IPSetType_Default(nep->ip);CHKERRQ(ierr);
   }
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSReset(nep->ds);CHKERRQ(ierr);

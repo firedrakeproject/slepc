@@ -310,12 +310,12 @@ PetscErrorCode IPGetType(IP ip,IPType *type)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "IPSetDefaultType_Private"
+#define __FUNCT__ "IPSetType_Default"
 /*
   Sets the default IP type, depending on whether complex arithmetic
   is used or not.
 */
-PetscErrorCode IPSetDefaultType_Private(IP ip)
+PetscErrorCode IPSetType_Default(IP ip)
 {
   PetscErrorCode ierr;
 
@@ -357,7 +357,7 @@ PetscErrorCode IPSetFromOptions(IP ip)
   if (!IPRegisterAllCalled) { ierr = IPRegisterAll(NULL);CHKERRQ(ierr); }
   /* Set default type (we do not allow changing it with -ip_type) */
   if (!((PetscObject)ip)->type_name) {
-    ierr = IPSetDefaultType_Private(ip);CHKERRQ(ierr);
+    ierr = IPSetType_Default(ip);CHKERRQ(ierr);
   }
   ierr = PetscObjectOptionsBegin((PetscObject)ip);CHKERRQ(ierr);
     i = ip->orthog_type;

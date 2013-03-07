@@ -167,7 +167,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = EPSDefaultGetWork(eps,1);CHKERRQ(ierr);
+  ierr = EPSSetWorkVecs_Private(eps,1);CHKERRQ(ierr);
   
   if (eps->converged == EPSConvergedEigRelative) {
     blopex->tol.absolute = 0.0;

@@ -25,11 +25,11 @@
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
-#define __FUNCT__ "QEPDefaultGetWork"
+#define __FUNCT__ "QEPSetWorkVecs_Private"
 /*
-  QEPDefaultGetWork - Gets a number of work vectors.
+  QEPSetWorkVecs_Private - Allocate a number of work vectors.
  */
-PetscErrorCode QEPDefaultGetWork(QEP qep,PetscInt nw)
+PetscErrorCode QEPSetWorkVecs_Private(QEP qep,PetscInt nw)
 {
   PetscErrorCode ierr;
 
@@ -44,11 +44,11 @@ PetscErrorCode QEPDefaultGetWork(QEP qep,PetscInt nw)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "QEPDefaultFreeWork"
+#define __FUNCT__ "QEPFreeWorkVecs_Private"
 /*
-  QEPDefaultFreeWork - Free work vectors.
+  QEPFreeWorkVecs_Private - Free work vectors.
  */
-PetscErrorCode QEPDefaultFreeWork(QEP qep)
+PetscErrorCode QEPFreeWorkVecs_Private(QEP qep)
 {
   PetscErrorCode ierr;
 

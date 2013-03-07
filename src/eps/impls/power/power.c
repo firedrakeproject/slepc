@@ -65,7 +65,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   } else eps->ncv = eps->nev;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(2000,100*eps->n);
-  if (!eps->which) { ierr = EPSDefaultSetWhich(eps);CHKERRQ(ierr); }
+  if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which !=EPS_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
     ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
@@ -78,9 +78,9 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->leftvecs) {
-    ierr = EPSDefaultGetWork(eps,3);CHKERRQ(ierr);
+    ierr = EPSSetWorkVecs_Private(eps,3);CHKERRQ(ierr);
   } else {
-    ierr = EPSDefaultGetWork(eps,2);CHKERRQ(ierr);
+    ierr = EPSSetWorkVecs_Private(eps,2);CHKERRQ(ierr);
   }
 
   /* dispatch solve method */

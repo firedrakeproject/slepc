@@ -121,7 +121,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
   if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   if (!((PetscObject)svd->ip)->type_name) {
-    ierr = IPSetDefaultType_Private(svd->ip);CHKERRQ(ierr);
+    ierr = IPSetType_Default(svd->ip);CHKERRQ(ierr);
   }
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
   ierr = DSReset(svd->ds);CHKERRQ(ierr);

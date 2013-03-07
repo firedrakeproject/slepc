@@ -62,7 +62,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
   }
   if (!mfn->ip) { ierr = MFNGetIP(mfn,&mfn->ip);CHKERRQ(ierr); }
   if (!((PetscObject)mfn->ip)->type_name) {
-    ierr = IPSetDefaultType_Private(mfn->ip);CHKERRQ(ierr);
+    ierr = IPSetType_Default(mfn->ip);CHKERRQ(ierr);
   }
   ierr = IPSetMatrix(mfn->ip,NULL);CHKERRQ(ierr);
   if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
