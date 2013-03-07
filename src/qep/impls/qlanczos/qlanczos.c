@@ -39,16 +39,12 @@
 #include <slepc-private/qepimpl.h>         /*I "slepcqep.h" I*/
 #include <petscblaslapack.h>
 
-typedef struct {
-  KSP ksp;
-} QEP_QLANCZOS;
-
 #undef __FUNCT__
 #define __FUNCT__ "QEPSetUp_QLanczos"
 PetscErrorCode QEPSetUp_QLanczos(QEP qep)
 {
   PetscErrorCode ierr;
-  QEP_QLANCZOS   *ctx = (QEP_QLANCZOS*)qep->data;
+  PetscBool      sinv;
   
   PetscFunctionBegin;
   if (qep->ncv) { /* ncv set */
@@ -65,7 +61,11 @@ PetscErrorCode QEPSetUp_QLanczos(QEP qep)
   if (!qep->mpd) qep->mpd = qep->ncv;
   if (qep->ncv>qep->nev+qep->mpd) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The value of ncv must not be larger than nev+mpd"); 
   if (!qep->max_it) qep->max_it = PetscMax(100,2*qep->n/qep->ncv);
-  if (!qep->which) qep->which = QEP_LARGEST_MAGNITUDE;
+  if (!qep->which) {
+    ierr = PetscObjectTypeCompare((PetscObject)qep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+    if (sinv) qep->which = QEP_TARGET_MAGNITUDE;
+    else qep->which = QEP_LARGEST_MAGNITUDE;
+  }
   if (qep->problem_type!=QEP_HERMITIAN) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
 
   ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
@@ -74,9 +74,6 @@ PetscErrorCode QEPSetUp_QLanczos(QEP qep)
   ierr = DSSetType(qep->ds,DSNHEP);CHKERRQ(ierr);
   ierr = DSSetExtraRow(qep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(qep->ds,qep->ncv+1);CHKERRQ(ierr);
-
-  ierr = KSPSetOperators(ctx->ksp,qep->M,qep->M,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-  ierr = KSPSetUp(ctx->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -128,13 +125,12 @@ PetscErrorCode QEPQLanczosCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScala
 #undef __FUNCT__
 #define __FUNCT__ "QEPQLanczos"
 /*
-  Compute a run of Q-Arnoldi iterations
+  Compute a run of Q-Lanczos iterations
 */
 PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec v,Vec w,PetscReal *beta,PetscBool *breakdown,PetscScalar *work)
 {
   PetscErrorCode     ierr;
   PetscInt           i,j,l,m = *M;
-  QEP_QLANCZOS       *ctx = (QEP_QLANCZOS*)qep->data;
   Vec                t = qep->work[2],u = qep->work[3];
   IPOrthogRefineType refinement;
   PetscReal          norm,onorm,eta;
@@ -147,10 +143,10 @@ PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k
   for (j=k;j<m;j++) {
     /* apply operator */
     ierr = VecCopy(w,t);CHKERRQ(ierr);
-    ierr = MatMult(qep->K,v,u);CHKERRQ(ierr);
-    ierr = MatMult(qep->C,t,w);CHKERRQ(ierr);
+    ierr = STMatMult(qep->st,0,v,u);CHKERRQ(ierr);
+    ierr = STMatMult(qep->st,1,t,w);CHKERRQ(ierr);
     ierr = VecAXPY(u,qep->sfactor,w);CHKERRQ(ierr);
-    ierr = KSPSolve(ctx->ksp,u,w);CHKERRQ(ierr);
+    ierr = STMatSolve(qep->st,2,u,w);CHKERRQ(ierr);
     ierr = VecScale(w,-1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
     ierr = VecCopy(t,v);CHKERRQ(ierr);
 
@@ -200,17 +196,17 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
 {
   PetscErrorCode ierr;
   PetscInt       j,k,l,lwork,nv,ld,newn;
-  Vec            v=qep->work[0],w=qep->work[1];
-  PetscScalar    *S,*Q,*work;
-  PetscReal      beta,norm,x,y;
-  PetscBool      breakdown;
+  Vec            v=qep->work[0],w=qep->work[1],v_=qep->work[2],w_=qep->work[3];
+  PetscScalar    *S,*Q,*work,r,s;
+  PetscReal      beta,norm,x,y,t;
+  PetscBool      breakdown,issinv;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
   lwork = 7*qep->ncv;
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 
-  /* Get the starting Arnoldi vector */
+  /* Get the starting Lanczos vector */
   if (qep->nini>0) {
     ierr = VecCopy(qep->V[0],v);CHKERRQ(ierr);
   } else {
@@ -224,12 +220,30 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
   ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
   ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
   
+  /* Compute scaling factor if not set by user */
+  ierr = PetscObjectTypeCompare((PetscObject)qep->st,STSINVERT,&issinv);CHKERRQ(ierr);
+  if (issinv && !qep->sfactor_set) {
+    ierr = STMatMult(qep->st,1,w,w_);CHKERRQ(ierr);
+    ierr = STMatMult(qep->st,0,v,v_);CHKERRQ(ierr);
+    ierr = VecAXPY(v_,1.0,w_);CHKERRQ(ierr);
+    ierr = STMatSolve(qep->st,2,v_,w_);CHKERRQ(ierr);
+    ierr = VecScale(w_,-1.0);CHKERRQ(ierr);
+    ierr = VecCopy(w,v_);CHKERRQ(ierr);
+    ierr = VecDot(v_,v,&r);CHKERRQ(ierr);
+    ierr = VecDot(w_,w,&s);CHKERRQ(ierr);
+    t = PetscAbsScalar(r+s);
+    qep->sfactor = 1.0;
+    while (t > 1.0) {
+      qep->sfactor *=10.0;
+      t /= 10.0;
+    }
+  }
   /* Restart loop */
   l = 0;
   while (qep->reason == QEP_CONVERGED_ITERATING) {
     qep->its++;
 
-    /* Compute an nv-step Arnoldi factorization */
+    /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(qep->nconv+qep->mpd,qep->ncv);
     ierr = DSGetArray(qep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
     ierr = QEPQLanczos(qep,S,ld,qep->V,qep->nconv+l,&nv,v,w,&beta,&breakdown,work);CHKERRQ(ierr);
@@ -258,7 +272,7 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
     if (qep->reason == QEP_CONVERGED_ITERATING) {
       if (breakdown) {
         /* Stop if breakdown */
-        ierr = PetscInfo2(qep,"Breakdown Quadratic Arnoldi method (it=%D norm=%G)\n",qep->its,beta);CHKERRQ(ierr);
+        ierr = PetscInfo2(qep,"Breakdown Quadratic Lanczos method (it=%D norm=%G)\n",qep->its,beta);CHKERRQ(ierr);
         qep->reason = QEP_DIVERGED_BREAKDOWN;
       } else {
         /* Prepare the Rayleigh quotient for restart */
@@ -295,55 +309,14 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "QEPSetFromOptions_QLanczos"
-PetscErrorCode QEPSetFromOptions_QLanczos(QEP qep)
-{
-  PetscErrorCode ierr;
-  QEP_QLANCZOS   *ctx = (QEP_QLANCZOS*)qep->data;
- 
-  PetscFunctionBegin;
-  ierr = KSPSetFromOptions(ctx->ksp);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "QEPView_QLanczos"
-PetscErrorCode QEPView_QLanczos(QEP qep,PetscViewer viewer)
-{
-  PetscErrorCode ierr;
-  QEP_QLANCZOS   *ctx = (QEP_QLANCZOS*)qep->data;
-
-  PetscFunctionBegin;
-  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-  ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "QEPReset_QLanczos"
 PetscErrorCode QEPReset_QLanczos(QEP qep)
 {
   PetscErrorCode ierr;
-  QEP_QLANCZOS   *ctx = (QEP_QLANCZOS*)qep->data;
 
   PetscFunctionBegin;
-  ierr = KSPReset(ctx->ksp);CHKERRQ(ierr);
   ierr = QEPDefaultFreeWork(qep);CHKERRQ(ierr);
   ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "QEPDestroy_QLanczos"
-PetscErrorCode QEPDestroy_QLanczos(QEP qep)
-{
-  PetscErrorCode ierr;
-  QEP_QLANCZOS   *ctx = (QEP_QLANCZOS*)qep->data;
-
-  PetscFunctionBegin;
-  ierr = KSPDestroy(&ctx->ksp);CHKERRQ(ierr);
-  ierr = PetscFree(qep->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -352,23 +325,10 @@ EXTERN_C_BEGIN
 #define __FUNCT__ "QEPCreate_QLanczos"
 PetscErrorCode QEPCreate_QLanczos(QEP qep)
 {
-  PetscErrorCode ierr;
-  QEP_QLANCZOS   *ctx;
-
   PetscFunctionBegin;
-  ierr = PetscNewLog(qep,QEP_QLANCZOS,&ctx);CHKERRQ(ierr);
-  qep->data                      = ctx;
   qep->ops->solve                = QEPSolve_QLanczos;
   qep->ops->setup                = QEPSetUp_QLanczos;
-  qep->ops->setfromoptions       = QEPSetFromOptions_QLanczos;
-  qep->ops->destroy              = QEPDestroy_QLanczos;
   qep->ops->reset                = QEPReset_QLanczos;
-  qep->ops->view                 = QEPView_QLanczos;
-  ierr = KSPCreate(PetscObjectComm((PetscObject)qep),&ctx->ksp);CHKERRQ(ierr);
-  ierr = KSPSetOptionsPrefix(ctx->ksp,((PetscObject)qep)->prefix);CHKERRQ(ierr);
-  ierr = KSPAppendOptionsPrefix(ctx->ksp,"qep_");CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp,(PetscObject)qep,1);CHKERRQ(ierr);  
-  ierr = PetscLogObjectParent(qep,ctx->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 EXTERN_C_END
