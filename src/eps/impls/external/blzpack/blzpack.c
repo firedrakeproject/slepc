@@ -444,10 +444,9 @@ PetscErrorCode EPSBlzpackSetNSteps(EPS eps,PetscInt nsteps)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate_BLZPACK"
-PetscErrorCode EPSCreate_BLZPACK(EPS eps)
+PETSC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_BLZPACK    *blzpack;
@@ -471,4 +470,4 @@ PetscErrorCode EPSCreate_BLZPACK(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetNSteps_C","EPSBlzpackSetNSteps_BLZPACK",EPSBlzpackSetNSteps_BLZPACK);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
+

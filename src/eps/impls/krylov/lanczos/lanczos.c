@@ -932,10 +932,9 @@ PetscErrorCode EPSView_Lanczos(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate_Lanczos"
-PetscErrorCode EPSCreate_Lanczos(EPS eps)
+PETSC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -952,5 +951,4 @@ PetscErrorCode EPSCreate_Lanczos(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosGetReorthog_C","EPSLanczosGetReorthog_Lanczos",EPSLanczosGetReorthog_Lanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

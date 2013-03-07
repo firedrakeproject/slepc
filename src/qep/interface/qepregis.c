@@ -21,12 +21,10 @@
 
 #include <slepc-private/qepimpl.h>      /*I "slepcqep.h" I*/
 
-EXTERN_C_BEGIN
-extern PetscErrorCode QEPCreate_Linear(QEP);
-extern PetscErrorCode QEPCreate_QArnoldi(QEP);
-extern PetscErrorCode QEPCreate_QLanczos(QEP);
-EXTERN_C_END
-  
+PETSC_EXTERN PetscErrorCode QEPCreate_Linear(QEP);
+PETSC_EXTERN PetscErrorCode QEPCreate_QArnoldi(QEP);
+PETSC_EXTERN PetscErrorCode QEPCreate_QLanczos(QEP);
+ 
 #undef __FUNCT__
 #define __FUNCT__ "QEPRegisterAll"
 /*@C

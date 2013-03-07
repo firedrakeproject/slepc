@@ -939,14 +939,12 @@ PetscErrorCode DSRegisterDestroy(void)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
-extern PetscErrorCode DSCreate_HEP(DS);
-extern PetscErrorCode DSCreate_NHEP(DS);
-extern PetscErrorCode DSCreate_GHEP(DS);
-extern PetscErrorCode DSCreate_GHIEP(DS);
-extern PetscErrorCode DSCreate_GNHEP(DS);
-extern PetscErrorCode DSCreate_SVD(DS);
-EXTERN_C_END
+PETSC_EXTERN PetscErrorCode DSCreate_HEP(DS);
+PETSC_EXTERN PetscErrorCode DSCreate_NHEP(DS);
+PETSC_EXTERN PetscErrorCode DSCreate_GHEP(DS);
+PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS);
+PETSC_EXTERN PetscErrorCode DSCreate_GNHEP(DS);
+PETSC_EXTERN PetscErrorCode DSCreate_SVD(DS);
 
 #undef __FUNCT__
 #define __FUNCT__ "DSRegisterAll"

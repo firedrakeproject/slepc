@@ -298,10 +298,9 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "DSCreate_SVD"
-PetscErrorCode DSCreate_SVD(DS ds)
+PETSC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
 {
   PetscFunctionBegin;
   ds->ops->allocate      = DSAllocate_SVD;
@@ -311,5 +310,4 @@ PetscErrorCode DSCreate_SVD(DS ds)
   ds->ops->sort          = DSSort_SVD;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

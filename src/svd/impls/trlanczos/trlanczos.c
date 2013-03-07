@@ -481,10 +481,9 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "SVDCreate_TRLanczos"
-PetscErrorCode SVDCreate_TRLanczos(SVD svd)
+PETSC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
 
@@ -500,4 +499,4 @@ PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetOneSide_C","SVDTRLanczosGetOneSide_TRLanczos",SVDTRLanczosGetOneSide_TRLanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
+

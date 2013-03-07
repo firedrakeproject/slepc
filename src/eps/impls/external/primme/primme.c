@@ -546,10 +546,9 @@ PetscErrorCode EPSPRIMMEGetMethod(EPS eps,EPSPRIMMEMethod *method)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate_PRIMME"
-PetscErrorCode EPSCreate_PRIMME(EPS eps)
+PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_PRIMME     *primme;
@@ -576,4 +575,4 @@ PetscErrorCode EPSCreate_PRIMME(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPRIMMEGetMethod_C","EPSPRIMMEGetMethod_PRIMME",EPSPRIMMEGetMethod_PRIMME);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
+

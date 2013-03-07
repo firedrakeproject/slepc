@@ -331,10 +331,9 @@ PetscErrorCode SVDDestroy_Cross(SVD svd)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "SVDCreate_Cross"
-PetscErrorCode SVDCreate_Cross(SVD svd)
+PETSC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross;
@@ -369,4 +368,4 @@ PetscErrorCode SVDCreate_Cross(SVD svd)
   cross->setfromoptionscalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
+

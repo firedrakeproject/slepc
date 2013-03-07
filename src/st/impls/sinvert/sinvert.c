@@ -201,10 +201,9 @@ PetscErrorCode STSetFromOptions_Sinvert(ST st)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "STCreate_Sinvert"
-PetscErrorCode STCreate_Sinvert(ST st)
+PETSC_EXTERN PetscErrorCode STCreate_Sinvert(ST st)
 {
   PetscFunctionBegin;
   st->ops->apply           = STApply_Sinvert;
@@ -218,5 +217,4 @@ PetscErrorCode STCreate_Sinvert(ST st)
   st->ops->checknullspace  = STCheckNullSpace_Default;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

@@ -497,10 +497,9 @@ PetscErrorCode SVDDestroy_Cyclic(SVD svd)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "SVDCreate_Cyclic"
-PetscErrorCode SVDCreate_Cyclic(SVD svd)
+PETSC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CYCLIC     *cyclic;
@@ -537,4 +536,4 @@ PetscErrorCode SVDCreate_Cyclic(SVD svd)
   cyclic->setfromoptionscalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
+

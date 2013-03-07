@@ -364,10 +364,9 @@ PetscErrorCode EPSDestroy_Subspace(EPS eps)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate_Subspace"
-PetscErrorCode EPSCreate_Subspace(EPS eps)
+PETSC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -380,5 +379,4 @@ PetscErrorCode EPSCreate_Subspace(EPS eps)
   eps->ops->computevectors       = EPSComputeVectors_Schur;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

@@ -21,11 +21,9 @@
 
 #include <slepc-private/nepimpl.h>      /*I "slepcnep.h" I*/
 
-EXTERN_C_BEGIN
-extern PetscErrorCode NEPCreate_RII(NEP);
-extern PetscErrorCode NEPCreate_SLP(NEP);
-EXTERN_C_END
-  
+PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP);
+PETSC_EXTERN PetscErrorCode NEPCreate_SLP(NEP);
+
 #undef __FUNCT__
 #define __FUNCT__ "NEPRegisterAll"
 /*@C

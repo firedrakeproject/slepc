@@ -124,10 +124,9 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "FNCreate_Rational"
-PetscErrorCode FNCreate_Rational(FN fn)
+PETSC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
 {
   PetscFunctionBegin;
   fn->ops->evaluatefunction   = FNEvaluateFunction_Rational;
@@ -135,5 +134,4 @@ PetscErrorCode FNCreate_Rational(FN fn)
   fn->ops->view               = FNView_Rational;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

@@ -21,14 +21,12 @@
 
 #include <slepc-private/stimpl.h>          /*I   "slepcst.h"   I*/
 
-EXTERN_C_BEGIN
-extern PetscErrorCode STCreate_Shell(ST);
-extern PetscErrorCode STCreate_Shift(ST);
-extern PetscErrorCode STCreate_Sinvert(ST);
-extern PetscErrorCode STCreate_Cayley(ST);
-extern PetscErrorCode STCreate_Fold(ST);
-extern PetscErrorCode STCreate_Precond(ST);
-EXTERN_C_END
+PETSC_EXTERN PetscErrorCode STCreate_Shell(ST);
+PETSC_EXTERN PetscErrorCode STCreate_Shift(ST);
+PETSC_EXTERN PetscErrorCode STCreate_Sinvert(ST);
+PETSC_EXTERN PetscErrorCode STCreate_Cayley(ST);
+PETSC_EXTERN PetscErrorCode STCreate_Fold(ST);
+PETSC_EXTERN PetscErrorCode STCreate_Precond(ST);
 
 #undef __FUNCT__
 #define __FUNCT__ "STRegisterAll"

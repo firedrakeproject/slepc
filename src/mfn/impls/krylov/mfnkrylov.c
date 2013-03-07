@@ -228,10 +228,9 @@ PetscErrorCode MFNReset_Krylov(MFN mfn)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "MFNCreate_Krylov"
-PetscErrorCode MFNCreate_Krylov(MFN mfn)
+PETSC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN mfn)
 {
   PetscFunctionBegin;
   mfn->ops->solve          = MFNSolve_Krylov;
@@ -239,4 +238,3 @@ PetscErrorCode MFNCreate_Krylov(MFN mfn)
   mfn->ops->reset          = MFNReset_Krylov;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END

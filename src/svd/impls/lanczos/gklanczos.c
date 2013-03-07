@@ -404,10 +404,9 @@ PetscErrorCode SVDView_Lanczos(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "SVDCreate_Lanczos"
-PetscErrorCode SVDCreate_Lanczos(SVD svd)
+PETSC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
 
@@ -423,4 +422,4 @@ PetscErrorCode SVDCreate_Lanczos(SVD svd)
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosGetOneSide_C","SVDLanczosGetOneSide_Lanczos",SVDLanczosGetOneSide_Lanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
+

@@ -670,10 +670,9 @@ PetscErrorCode QEPDestroy_Linear(QEP qep)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "QEPCreate_Linear"
-PetscErrorCode QEPCreate_Linear(QEP qep)
+PETSC_EXTERN PetscErrorCode QEPCreate_Linear(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx;
@@ -714,5 +713,4 @@ PetscErrorCode QEPCreate_Linear(QEP qep)
   ctx->setfromoptionscalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

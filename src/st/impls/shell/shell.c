@@ -353,10 +353,9 @@ $             STShellSetBackTransform(st,backtr);    (optional)
 
 M*/
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "STCreate_Shell"
-PetscErrorCode STCreate_Shell(ST st)
+PETSC_EXTERN PetscErrorCode STCreate_Shell(ST st)
 {
   PetscErrorCode ierr;
 
@@ -372,5 +371,4 @@ PetscErrorCode STCreate_Shell(ST st)
   ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C","STShellSetBackTransform_Shell",STShellSetBackTransform_Shell);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

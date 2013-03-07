@@ -364,10 +364,9 @@ PetscErrorCode STDestroy_Precond(ST st)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "STCreate_Precond"
-PetscErrorCode STCreate_Precond(ST st)
+PETSC_EXTERN PetscErrorCode STCreate_Precond(ST st)
 {
   PetscErrorCode ierr;
 
@@ -387,5 +386,4 @@ PetscErrorCode STCreate_Precond(ST st)
   ierr = STPrecondSetKSPHasMat_Precond(st,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

@@ -389,10 +389,9 @@ PetscErrorCode STDestroy_Cayley(ST st)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "STCreate_Cayley"
-PetscErrorCode STCreate_Cayley(ST st)
+PETSC_EXTERN PetscErrorCode STCreate_Cayley(ST st)
 {
   PetscErrorCode ierr;
 
@@ -414,5 +413,4 @@ PetscErrorCode STCreate_Cayley(ST st)
   ierr = PetscObjectComposeFunction((PetscObject)st,"STCayleyGetAntishift_C","STCayleyGetAntishift_Cayley",STCayleyGetAntishift_Cayley);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

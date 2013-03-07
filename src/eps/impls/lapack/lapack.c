@@ -183,10 +183,9 @@ PetscErrorCode EPSReset_LAPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate_LAPACK"
-PetscErrorCode EPSCreate_LAPACK(EPS eps)
+PETSC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
 {
   PetscFunctionBegin;
   eps->ops->solve                = EPSSolve_LAPACK;
@@ -196,4 +195,4 @@ PetscErrorCode EPSCreate_LAPACK(EPS eps)
   eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
+

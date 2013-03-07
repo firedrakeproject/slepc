@@ -321,10 +321,9 @@ PetscErrorCode EPSDestroy_ARPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate_ARPACK"
-PetscErrorCode EPSCreate_ARPACK(EPS eps)
+PETSC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -337,4 +336,4 @@ PetscErrorCode EPSCreate_ARPACK(EPS eps)
   eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
+

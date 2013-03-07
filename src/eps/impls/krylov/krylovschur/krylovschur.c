@@ -463,10 +463,9 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate_KrylovSchur"
-PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
+PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -483,5 +482,4 @@ PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetRestart_C","EPSKrylovSchurGetRestart_KrylovSchur",EPSKrylovSchurGetRestart_KrylovSchur);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

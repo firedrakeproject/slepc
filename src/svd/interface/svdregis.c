@@ -21,14 +21,12 @@
 
 #include <slepc-private/svdimpl.h>       /*I "slepcsvd.h" I*/
 
-EXTERN_C_BEGIN
-extern PetscErrorCode SVDCreate_Cross(SVD);
-extern PetscErrorCode SVDCreate_Cyclic(SVD);
-extern PetscErrorCode SVDCreate_LAPACK(SVD);
-extern PetscErrorCode SVDCreate_Lanczos(SVD);
-extern PetscErrorCode SVDCreate_TRLanczos(SVD);
-EXTERN_C_END
-  
+PETSC_EXTERN PetscErrorCode SVDCreate_Cross(SVD);
+PETSC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD);
+PETSC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD);
+PETSC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD);
+PETSC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD);
+
 #undef __FUNCT__
 #define __FUNCT__ "SVDRegisterAll"
 /*@C

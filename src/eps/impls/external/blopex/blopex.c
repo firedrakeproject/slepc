@@ -328,10 +328,9 @@ PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate_BLOPEX"
-PetscErrorCode EPSCreate_BLOPEX(EPS eps)
+PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -346,4 +345,4 @@ PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   LOBPCG_InitRandomContext(PetscObjectComm((PetscObject)eps),eps->rand);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
+

@@ -623,10 +623,9 @@ PetscErrorCode IPMInnerProductEnd(IP ip,Vec x,PetscInt n,const Vec y[],PetscScal
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "IPCreate_Bilinear"
-PetscErrorCode IPCreate_Bilinear(IP ip)
+PETSC_EXTERN PetscErrorCode IPCreate_Bilinear(IP ip)
 {
   PetscFunctionBegin;
   ip->ops->normbegin          = IPNormBegin_Bilinear;
@@ -641,7 +640,7 @@ PetscErrorCode IPCreate_Bilinear(IP ip)
 #if defined(PETSC_USE_COMPLEX)
 #undef __FUNCT__
 #define __FUNCT__ "IPCreate_Sesquilinear"
-PetscErrorCode IPCreate_Sesquilinear(IP ip)
+PETSC_EXTERN PetscErrorCode IPCreate_Sesquilinear(IP ip)
 {
   PetscFunctionBegin;
   ip->ops->normbegin          = IPNormBegin_Sesquilinear;
@@ -656,7 +655,7 @@ PetscErrorCode IPCreate_Sesquilinear(IP ip)
 
 #undef __FUNCT__
 #define __FUNCT__ "IPCreate_Indefinite"
-PetscErrorCode IPCreate_Indefinite(IP ip)
+PETSC_EXTERN PetscErrorCode IPCreate_Indefinite(IP ip)
 {
   PetscFunctionBegin;
   ip->ops->normbegin          = IPNormBegin_Indefinite;
@@ -674,5 +673,4 @@ PetscErrorCode IPCreate_Indefinite(IP ip)
 #endif
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

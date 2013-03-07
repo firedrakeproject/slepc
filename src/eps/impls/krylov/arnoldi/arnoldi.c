@@ -473,10 +473,9 @@ PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate_Arnoldi"
-PetscErrorCode EPSCreate_Arnoldi(EPS eps)
+PETSC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
 {
   PetscErrorCode ierr;
   
@@ -493,5 +492,4 @@ PetscErrorCode EPSCreate_Arnoldi(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiGetDelayed_C","EPSArnoldiGetDelayed_Arnoldi",EPSArnoldiGetDelayed_Arnoldi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

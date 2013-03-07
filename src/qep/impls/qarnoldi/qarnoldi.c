@@ -319,10 +319,9 @@ PetscErrorCode QEPReset_QArnoldi(QEP qep)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "QEPCreate_QArnoldi"
-PetscErrorCode QEPCreate_QArnoldi(QEP qep)
+PETSC_EXTERN PetscErrorCode QEPCreate_QArnoldi(QEP qep)
 {
   PetscFunctionBegin;
   qep->ops->solve                = QEPSolve_QArnoldi;
@@ -330,5 +329,4 @@ PetscErrorCode QEPCreate_QArnoldi(QEP qep)
   qep->ops->reset                = QEPReset_QArnoldi;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

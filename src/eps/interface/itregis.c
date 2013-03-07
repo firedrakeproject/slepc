@@ -21,32 +21,30 @@
 
 #include <slepc-private/epsimpl.h>  /*I "slepceps.h" I*/
 
-EXTERN_C_BEGIN
-extern PetscErrorCode EPSCreate_Power(EPS);
-extern PetscErrorCode EPSCreate_Subspace(EPS);
-extern PetscErrorCode EPSCreate_Arnoldi(EPS);
-extern PetscErrorCode EPSCreate_Lanczos(EPS);
-extern PetscErrorCode EPSCreate_KrylovSchur(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS);
 #if defined(SLEPC_HAVE_ARPACK)
-extern PetscErrorCode EPSCreate_ARPACK(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS);
 #endif
-extern PetscErrorCode EPSCreate_LAPACK(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS);
 #if defined(SLEPC_HAVE_BLZPACK) && !defined(PETSC_USE_COMPLEX)
-extern PetscErrorCode EPSCreate_BLZPACK(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS);
 #endif
 #if defined(SLEPC_HAVE_TRLAN) && !defined(PETSC_USE_COMPLEX)
-extern PetscErrorCode EPSCreate_TRLAN(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS);
 #endif
 #if defined(SLEPC_HAVE_BLOPEX)
-extern PetscErrorCode EPSCreate_BLOPEX(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS);
 #endif
 #if defined(SLEPC_HAVE_PRIMME)
-extern PetscErrorCode EPSCreate_PRIMME(EPS eps);
+PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps);
 #endif
-extern PetscErrorCode EPSCreate_GD(EPS eps);
-extern PetscErrorCode EPSCreate_JD(EPS eps);
-extern PetscErrorCode EPSCreate_RQCG(EPS eps);
-EXTERN_C_END
+PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps);
+PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps);
+PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps);
   
 #undef __FUNCT__
 #define __FUNCT__ "EPSRegisterAll"

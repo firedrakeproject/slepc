@@ -217,10 +217,9 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif 
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "DSCreate_GHEP"
-PetscErrorCode DSCreate_GHEP(DS ds)
+PETSC_EXTERN PetscErrorCode DSCreate_GHEP(DS ds)
 {
   PetscFunctionBegin;
   ds->ops->allocate      = DSAllocate_GHEP;
@@ -231,5 +230,4 @@ PetscErrorCode DSCreate_GHEP(DS ds)
   ds->ops->normalize     = DSNormalize_GHEP;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

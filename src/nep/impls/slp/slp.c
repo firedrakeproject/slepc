@@ -283,10 +283,9 @@ PetscErrorCode NEPDestroy_SLP(NEP nep)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "NEPCreate_SLP"
-PetscErrorCode NEPCreate_SLP(NEP nep)
+PETSC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_SLP        *ctx;
@@ -314,5 +313,4 @@ PetscErrorCode NEPCreate_SLP(NEP nep)
   ctx->setfromoptionscalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

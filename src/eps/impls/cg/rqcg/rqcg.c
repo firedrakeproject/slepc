@@ -399,10 +399,9 @@ PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate_RQCG"
-PetscErrorCode EPSCreate_RQCG(EPS eps)
+PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -421,5 +420,4 @@ PetscErrorCode EPSCreate_RQCG(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGGetReset_C","EPSRQCGGetReset_RQCG",EPSRQCGGetReset_RQCG);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

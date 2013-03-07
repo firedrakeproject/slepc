@@ -21,9 +21,7 @@
 
 #include <slepc-private/mfnimpl.h>  /*I "slepcmfn.h" I*/
 
-EXTERN_C_BEGIN
-extern PetscErrorCode MFNCreate_Krylov(MFN);
-EXTERN_C_END
+PETSC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN);
   
 #undef __FUNCT__
 #define __FUNCT__ "MFNRegisterAll"

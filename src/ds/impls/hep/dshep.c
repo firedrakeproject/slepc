@@ -809,10 +809,9 @@ PetscErrorCode DSFunction_EXP_HEP_DIAG(DS ds)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "DSCreate_HEP"
-PetscErrorCode DSCreate_HEP(DS ds)
+PETSC_EXTERN PetscErrorCode DSCreate_HEP(DS ds)
 {
   PetscFunctionBegin;
   ds->ops->allocate      = DSAllocate_HEP;
@@ -831,5 +830,4 @@ PetscErrorCode DSCreate_HEP(DS ds)
   ds->ops->computefun[SLEPC_FUNCTION_EXP][0] = DSFunction_EXP_HEP_DIAG;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

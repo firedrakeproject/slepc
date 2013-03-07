@@ -196,10 +196,9 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "VecCreate_Comp"
-PetscErrorCode VecCreate_Comp(Vec V)
+PETSC_EXTERN PetscErrorCode VecCreate_Comp(Vec V)
 {
   PetscErrorCode ierr;
 
@@ -207,7 +206,6 @@ PetscErrorCode VecCreate_Comp(Vec V)
   ierr = VecCreate_Comp_Private(V,NULL,0,PETSC_FALSE,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__
 #define __FUNCT__ "VecRegister_Comp"

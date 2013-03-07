@@ -171,10 +171,9 @@ PetscErrorCode EPSDestroy_TRLAN(EPS eps)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate_TRLAN"
-PetscErrorCode EPSCreate_TRLAN(EPS eps)
+PETSC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -187,4 +186,4 @@ PetscErrorCode EPSCreate_TRLAN(EPS eps)
   eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
+

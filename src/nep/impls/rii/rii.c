@@ -177,10 +177,9 @@ PetscErrorCode NEPReset_RII(NEP nep)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "NEPCreate_RII"
-PetscErrorCode NEPCreate_RII(NEP nep)
+PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
 {
   PetscFunctionBegin;
   nep->ops->solve        = NEPSolve_RII;
@@ -188,5 +187,4 @@ PetscErrorCode NEPCreate_RII(NEP nep)
   nep->ops->reset        = NEPReset_RII;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

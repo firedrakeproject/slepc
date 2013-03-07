@@ -588,10 +588,8 @@ PetscErrorCode FNRegisterDestroy(void)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
-extern PetscErrorCode FNCreate_Rational(FN);
-extern PetscErrorCode FNCreate_Exp(FN);
-EXTERN_C_END
+PETSC_EXTERN PetscErrorCode FNCreate_Rational(FN);
+PETSC_EXTERN PetscErrorCode FNCreate_Exp(FN);
 
 #undef __FUNCT__
 #define __FUNCT__ "FNRegisterAll"

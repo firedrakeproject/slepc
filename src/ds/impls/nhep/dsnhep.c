@@ -856,10 +856,9 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
 #endif
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "DSCreate_NHEP"
-PetscErrorCode DSCreate_NHEP(DS ds)
+PETSC_EXTERN PetscErrorCode DSCreate_NHEP(DS ds)
 {
   PetscFunctionBegin;
   ds->ops->allocate      = DSAllocate_NHEP;
@@ -876,5 +875,4 @@ PetscErrorCode DSCreate_NHEP(DS ds)
   ds->ops->computefun[SLEPC_FUNCTION_EXP][0] = DSFunction_EXP_NHEP_PADE;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

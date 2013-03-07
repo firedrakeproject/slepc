@@ -124,10 +124,9 @@ PetscErrorCode SVDDestroy_LAPACK(SVD svd)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "SVDCreate_LAPACK"
-PetscErrorCode SVDCreate_LAPACK(SVD svd)
+PETSC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD svd)
 {
   PetscFunctionBegin;
   svd->ops->setup   = SVDSetUp_LAPACK;
@@ -138,4 +137,4 @@ PetscErrorCode SVDCreate_LAPACK(SVD svd)
     svd->transmode = SVD_TRANSPOSE_IMPLICIT; /* don't build the transpose */
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
+

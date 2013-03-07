@@ -1405,10 +1405,9 @@ PetscErrorCode DSNormalize_GHIEP(DS ds,DSMatType mat,PetscInt col)
 extern PetscErrorCode DSSolve_GHIEP_HZ(DS,PetscScalar*,PetscScalar*);
 extern PetscErrorCode DSSolve_GHIEP_DQDS_II(DS,PetscScalar*,PetscScalar*);
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "DSCreate_GHIEP"
-PetscErrorCode DSCreate_GHIEP(DS ds)
+PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
 {
   PetscFunctionBegin;
   ds->ops->allocate      = DSAllocate_GHIEP;
@@ -1422,4 +1421,4 @@ PetscErrorCode DSCreate_GHIEP(DS ds)
   ds->ops->normalize     = DSNormalize_GHIEP;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
+

@@ -320,10 +320,9 @@ PetscErrorCode QEPReset_QLanczos(QEP qep)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "QEPCreate_QLanczos"
-PetscErrorCode QEPCreate_QLanczos(QEP qep)
+PETSC_EXTERN PetscErrorCode QEPCreate_QLanczos(QEP qep)
 {
   PetscFunctionBegin;
   qep->ops->solve                = QEPSolve_QLanczos;
@@ -331,5 +330,4 @@ PetscErrorCode QEPCreate_QLanczos(QEP qep)
   qep->ops->reset                = QEPReset_QLanczos;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

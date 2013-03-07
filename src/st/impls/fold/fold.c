@@ -217,10 +217,9 @@ PetscErrorCode STDestroy_Fold(ST st)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "STCreate_Fold"
-PetscErrorCode STCreate_Fold(ST st)
+PETSC_EXTERN PetscErrorCode STCreate_Fold(ST st)
 {
   PetscErrorCode ierr;
 
@@ -236,5 +235,4 @@ PetscErrorCode STCreate_Fold(ST st)
   st->ops->reset           = STReset_Fold;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

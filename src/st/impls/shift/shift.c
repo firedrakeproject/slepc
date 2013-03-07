@@ -185,10 +185,9 @@ PetscErrorCode STSetFromOptions_Shift(ST st)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "STCreate_Shift"
-PetscErrorCode STCreate_Shift(ST st)
+PETSC_EXTERN PetscErrorCode STCreate_Shift(ST st)
 {
   PetscFunctionBegin;
   st->ops->apply           = STApply_Shift;
@@ -201,5 +200,4 @@ PetscErrorCode STCreate_Shift(ST st)
   st->ops->setshift        = STSetShift_Shift;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

@@ -632,10 +632,9 @@ PetscErrorCode EPSGDSetDoubleExpansion(EPS eps,PetscBool use_gd2)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate_GD"
-PetscErrorCode EPSCreate_GD(EPS eps)
+PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps)
 {
   PetscErrorCode  ierr;
 
@@ -666,5 +665,4 @@ PetscErrorCode EPSCreate_GD(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetDoubleExpansion_C","EPSGDGetDoubleExpansion_GD",EPSGDGetDoubleExpansion_GD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

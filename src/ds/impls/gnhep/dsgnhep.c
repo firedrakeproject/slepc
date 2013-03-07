@@ -589,10 +589,9 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "DSCreate_GNHEP"
-PetscErrorCode DSCreate_GNHEP(DS ds)
+PETSC_EXTERN PetscErrorCode DSCreate_GNHEP(DS ds)
 {
   PetscFunctionBegin;
   ds->ops->allocate      = DSAllocate_GNHEP;
@@ -603,5 +602,4 @@ PetscErrorCode DSCreate_GNHEP(DS ds)
   ds->ops->normalize     = DSNormalize_GNHEP;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

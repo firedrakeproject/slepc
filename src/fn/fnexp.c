@@ -83,10 +83,9 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "FNCreate_Exp"
-PetscErrorCode FNCreate_Exp(FN fn)
+PETSC_EXTERN PetscErrorCode FNCreate_Exp(FN fn)
 {
   PetscFunctionBegin;
   fn->ops->evaluatefunction   = FNEvaluateFunction_Exp;
@@ -94,5 +93,4 @@ PetscErrorCode FNCreate_Exp(FN fn)
   fn->ops->view               = FNView_Exp;
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

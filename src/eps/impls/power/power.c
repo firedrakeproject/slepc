@@ -544,10 +544,9 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate_Power"
-PetscErrorCode EPSCreate_Power(EPS eps)
+PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -564,5 +563,4 @@ PetscErrorCode EPSCreate_Power(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C","EPSPowerGetShiftType_Power",EPSPowerGetShiftType_Power);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 

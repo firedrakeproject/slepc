@@ -690,10 +690,9 @@ PetscErrorCode EPSJDGetBOrth(EPS eps,EPSOrthType *borth)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate_JD"
-PetscErrorCode EPSCreate_JD(EPS eps)
+PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -725,6 +724,4 @@ PetscErrorCode EPSCreate_JD(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C","EPSDavidsonGetBOrth_Davidson",EPSDavidsonGetBOrth_Davidson);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
-
 

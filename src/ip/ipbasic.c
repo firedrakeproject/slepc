@@ -687,13 +687,11 @@ PetscErrorCode IPRegisterDestroy(void)
   PetscFunctionReturn(0);
 }
 
-EXTERN_C_BEGIN
-extern PetscErrorCode IPCreate_Bilinear(IP);
+PETSC_EXTERN PetscErrorCode IPCreate_Bilinear(IP);
 #if defined(PETSC_USE_COMPLEX)
-extern PetscErrorCode IPCreate_Sesquilinear(IP);
+PETSC_EXTERN PetscErrorCode IPCreate_Sesquilinear(IP);
 #endif
-extern PetscErrorCode IPCreate_Indefinite(IP);
-EXTERN_C_END
+PETSC_EXTERN PetscErrorCode IPCreate_Indefinite(IP);
 
 #undef __FUNCT__
 #define __FUNCT__ "IPRegisterAll"
