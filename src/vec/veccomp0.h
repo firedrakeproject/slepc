@@ -254,10 +254,9 @@ PETSC_STATIC_INLINE void AddNorm2(PetscReal *ssq,PetscReal *scale,PetscReal x)
 MPI_Datatype MPIU_NORM2=0, MPIU_NORM1_AND_2=0;
 MPI_Op MPIU_NORM2_SUM=0;
 
-EXTERN_C_BEGIN
 #undef __FUNCT__
 #define __FUNCT__ "SlepcSumNorm2_Local"
-void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
+PETSC_EXTERN void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
 {
   PetscInt       i,count = *cnt;
 
@@ -282,7 +281,7 @@ void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datat
 
 #undef __FUNCT__
 #define __FUNCT__ "VecNormCompEnd"
-PetscErrorCode VecNormCompEnd(void)
+PETSC_EXTERN PetscErrorCode VecNormCompEnd(void)
 {
   PetscErrorCode ierr;
 
@@ -292,7 +291,6 @@ PetscErrorCode VecNormCompEnd(void)
   ierr = MPI_Op_free(&MPIU_NORM2_SUM);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-EXTERN_C_END
 
 #undef __FUNCT__
 #define __FUNCT__ "VecNormCompInit"

@@ -406,82 +406,82 @@ typedef struct {
 } DvdMult_copy_func;
 
 /* Routines for initV step */
-PetscErrorCode dvd_initV(dvdDashboard *d,dvdBlackboard *b,PetscInt k,PetscInt user,PetscBool krylov);
+PETSC_INTERN PetscErrorCode dvd_initV(dvdDashboard *d,dvdBlackboard *b,PetscInt k,PetscInt user,PetscBool krylov);
 
 /* Routines for calcPairs step */
-PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType orth,IP ipI,PetscInt cX_proj,PetscBool harm);
+PETSC_INTERN PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType orth,IP ipI,PetscInt cX_proj,PetscBool harm);
 
 /* Routines for improveX step */
-PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs,PetscInt cX_impr,PetscBool dynamic);
-PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d,dvdBlackboard *b,ProjType_t p);
-PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d,dvdBlackboard *b,PetscInt maxits,PetscReal tol,PetscReal fix);
-PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs);
-PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d,PetscScalar *pX,
+PETSC_INTERN PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs,PetscInt cX_impr,PetscBool dynamic);
+PETSC_INTERN PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d,dvdBlackboard *b,ProjType_t p);
+PETSC_INTERN PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d,dvdBlackboard *b,PetscInt maxits,PetscReal tol,PetscReal fix);
+PETSC_INTERN PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs);
+PETSC_INTERN PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d,PetscScalar *pX,
   PetscScalar *pY,PetscInt ld,PetscScalar *auxS,PetscInt size_auxS);
 
 /* Routines for testConv step */
-PetscErrorCode dvd_testconv_basic(dvdDashboard *d,dvdBlackboard *b);
-PetscErrorCode dvd_testconv_slepc(dvdDashboard *d,dvdBlackboard *b);
+PETSC_INTERN PetscErrorCode dvd_testconv_basic(dvdDashboard *d,dvdBlackboard *b);
+PETSC_INTERN PetscErrorCode dvd_testconv_slepc(dvdDashboard *d,dvdBlackboard *b);
 
 /* Routines for management of V */
-PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt bs,PetscInt mpd,PetscInt min_size_V,PetscInt plusk,PetscBool harm,PetscBool allResiduals);
+PETSC_INTERN PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt bs,PetscInt mpd,PetscInt min_size_V,PetscInt plusk,PetscBool harm,PetscBool allResiduals);
 
 /* Some utilities */
-PetscErrorCode dvd_static_precond_PC(dvdDashboard *d,dvdBlackboard *b,PC pc);
-PetscErrorCode dvd_jacobi_precond(dvdDashboard *d,dvdBlackboard *b);
-PetscErrorCode dvd_profiler(dvdDashboard *d,dvdBlackboard *b);
-PetscErrorCode dvd_prof_init();
-PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmType_t mode,PetscBool fixedTarget,PetscScalar t);
+PETSC_INTERN PetscErrorCode dvd_static_precond_PC(dvdDashboard *d,dvdBlackboard *b,PC pc);
+PETSC_INTERN PetscErrorCode dvd_jacobi_precond(dvdDashboard *d,dvdBlackboard *b);
+PETSC_INTERN PetscErrorCode dvd_profiler(dvdDashboard *d,dvdBlackboard *b);
+PETSC_INTERN PetscErrorCode dvd_prof_init();
+PETSC_INTERN PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmType_t mode,PetscBool fixedTarget,PetscScalar t);
 
 /* Methods */
-PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,KSP ksp,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,Method_t method);
-PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,IP ip,HarmType_t harmMode,PetscBool fixedTarget,PetscScalar t,KSP ksp,PetscReal fix,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,PetscBool dynamic,Method_t method);
+PETSC_INTERN PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,KSP ksp,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,Method_t method);
+PETSC_INTERN PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,IP ip,HarmType_t harmMode,PetscBool fixedTarget,PetscScalar t,KSP ksp,PetscReal fix,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,PetscBool dynamic,Method_t method);
 
 /* BLAS routines */
-PetscErrorCode SlepcDenseMatProd(PetscScalar *C,PetscInt _ldC,PetscScalar b,PetscScalar a,const PetscScalar *A,PetscInt _ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,PetscInt _ldB,PetscInt rB,PetscInt cB,PetscBool Bt);
-PetscErrorCode SlepcDenseMatProdTriang(PetscScalar *C,MatType_t sC,PetscInt ldC,const PetscScalar *A,MatType_t sA,PetscInt ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,MatType_t sB,PetscInt ldB,PetscInt rB,PetscInt cB,PetscBool Bt);
-PetscErrorCode SlepcDenseNorm(PetscScalar *A,PetscInt ldA,PetscInt _rA,PetscInt cA,PetscScalar *eigi);
-PetscErrorCode SlepcDenseCopy(PetscScalar *Y,PetscInt ldY,PetscScalar *X,PetscInt ldX,PetscInt rX,PetscInt cX);
-PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y,MatType_t sY,PetscInt ldY,PetscScalar *X,MatType_t sX,PetscInt ldX,PetscInt rX,PetscInt cX);
-PetscErrorCode SlepcUpdateVectorsZ(Vec *Y,PetscScalar beta,PetscScalar alpha,Vec *X,PetscInt cX,const PetscScalar *M,PetscInt ldM,PetscInt rM,PetscInt cM);
-PetscErrorCode SlepcUpdateVectorsS(Vec *Y,PetscInt dY,PetscScalar beta,PetscScalar alpha,Vec *X,PetscInt cX,PetscInt dX,const PetscScalar *M,PetscInt ldM,PetscInt rM,PetscInt cM);
-PetscErrorCode SlepcUpdateVectorsD(Vec *X,PetscInt cX,PetscScalar alpha,const PetscScalar *M,PetscInt ldM,PetscInt rM,PetscInt cM,PetscScalar *work,PetscInt lwork);
-PetscErrorCode VecsMult(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt sU,PetscInt eU,Vec *V,PetscInt sV,PetscInt eV,PetscScalar *workS0,PetscScalar *workS1);
-PetscErrorCode VecsMultS(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt sU,PetscInt eU,Vec *V,PetscInt sV,PetscInt eV,DvdReduction *r,DvdMult_copy_func *sr);
-PetscErrorCode VecsMultIb(PetscScalar *M,MatType_t sM,PetscInt ldM,PetscInt rM,PetscInt cM,PetscScalar *auxS,Vec V);
-PetscErrorCode VecsMultIa(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt sU,PetscInt eU,Vec *V,PetscInt sV,PetscInt eV);
-PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk *ops,PetscInt max_size_ops,PetscScalar *in,PetscScalar *out,PetscInt max_size_in,DvdReduction *r,MPI_Comm comm);
-PetscErrorCode SlepcAllReduceSum(DvdReduction *r,PetscInt size_in,DvdReductionPostF f,void *ptr,PetscScalar **in);
-PetscErrorCode SlepcAllReduceSumEnd(DvdReduction *r);
-PetscErrorCode dvd_orthV(IP ip,Vec *DS,PetscInt size_DS,Vec *cX,PetscInt size_cX,Vec *V,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
-PetscErrorCode dvd_BorthV_faster(IP ip,Vec *DS,Vec *BDS,PetscReal *BDSn,PetscInt size_DS,Vec *cX,Vec *BcX,PetscReal *BcXn,PetscInt size_cX,Vec *V,Vec *BV,PetscReal *BVn,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
-PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_DS,Vec *cX,PetscReal *BcXn,PetscInt size_cX,Vec *V,PetscReal *BVn,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
+PETSC_INTERN PetscErrorCode SlepcDenseMatProd(PetscScalar *C,PetscInt _ldC,PetscScalar b,PetscScalar a,const PetscScalar *A,PetscInt _ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,PetscInt _ldB,PetscInt rB,PetscInt cB,PetscBool Bt);
+PETSC_INTERN PetscErrorCode SlepcDenseMatProdTriang(PetscScalar *C,MatType_t sC,PetscInt ldC,const PetscScalar *A,MatType_t sA,PetscInt ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,MatType_t sB,PetscInt ldB,PetscInt rB,PetscInt cB,PetscBool Bt);
+PETSC_INTERN PetscErrorCode SlepcDenseNorm(PetscScalar *A,PetscInt ldA,PetscInt _rA,PetscInt cA,PetscScalar *eigi);
+PETSC_INTERN PetscErrorCode SlepcDenseCopy(PetscScalar *Y,PetscInt ldY,PetscScalar *X,PetscInt ldX,PetscInt rX,PetscInt cX);
+PETSC_INTERN PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y,MatType_t sY,PetscInt ldY,PetscScalar *X,MatType_t sX,PetscInt ldX,PetscInt rX,PetscInt cX);
+PETSC_INTERN PetscErrorCode SlepcUpdateVectorsZ(Vec *Y,PetscScalar beta,PetscScalar alpha,Vec *X,PetscInt cX,const PetscScalar *M,PetscInt ldM,PetscInt rM,PetscInt cM);
+PETSC_INTERN PetscErrorCode SlepcUpdateVectorsS(Vec *Y,PetscInt dY,PetscScalar beta,PetscScalar alpha,Vec *X,PetscInt cX,PetscInt dX,const PetscScalar *M,PetscInt ldM,PetscInt rM,PetscInt cM);
+PETSC_INTERN PetscErrorCode SlepcUpdateVectorsD(Vec *X,PetscInt cX,PetscScalar alpha,const PetscScalar *M,PetscInt ldM,PetscInt rM,PetscInt cM,PetscScalar *work,PetscInt lwork);
+PETSC_INTERN PetscErrorCode VecsMult(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt sU,PetscInt eU,Vec *V,PetscInt sV,PetscInt eV,PetscScalar *workS0,PetscScalar *workS1);
+PETSC_INTERN PetscErrorCode VecsMultS(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt sU,PetscInt eU,Vec *V,PetscInt sV,PetscInt eV,DvdReduction *r,DvdMult_copy_func *sr);
+PETSC_INTERN PetscErrorCode VecsMultIb(PetscScalar *M,MatType_t sM,PetscInt ldM,PetscInt rM,PetscInt cM,PetscScalar *auxS,Vec V);
+PETSC_INTERN PetscErrorCode VecsMultIa(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt sU,PetscInt eU,Vec *V,PetscInt sV,PetscInt eV);
+PETSC_INTERN PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk *ops,PetscInt max_size_ops,PetscScalar *in,PetscScalar *out,PetscInt max_size_in,DvdReduction *r,MPI_Comm comm);
+PETSC_INTERN PetscErrorCode SlepcAllReduceSum(DvdReduction *r,PetscInt size_in,DvdReductionPostF f,void *ptr,PetscScalar **in);
+PETSC_INTERN PetscErrorCode SlepcAllReduceSumEnd(DvdReduction *r);
+PETSC_INTERN PetscErrorCode dvd_orthV(IP ip,Vec *DS,PetscInt size_DS,Vec *cX,PetscInt size_cX,Vec *V,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
+PETSC_INTERN PetscErrorCode dvd_BorthV_faster(IP ip,Vec *DS,Vec *BDS,PetscReal *BDSn,PetscInt size_DS,Vec *cX,Vec *BcX,PetscReal *BcXn,PetscInt size_cX,Vec *V,Vec *BV,PetscReal *BVn,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
+PETSC_INTERN PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_DS,Vec *cX,PetscReal *BcXn,PetscInt size_cX,Vec *V,PetscReal *BVn,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
 
 /* SLEPc interface routines */
-PetscErrorCode SLEPcNotImplemented();
-PetscErrorCode EPSCreate_Davidson(EPS eps);
-PetscErrorCode EPSReset_Davidson(EPS eps);
-PetscErrorCode EPSSetUp_Davidson(EPS eps);
-PetscErrorCode EPSSolve_Davidson(EPS eps);
-PetscErrorCode EPSComputeVectors_Davidson(EPS eps);
-PetscErrorCode EPSDavidsonSetKrylovStart_Davidson(EPS eps,PetscBool krylovstart);
-PetscErrorCode EPSDavidsonGetKrylovStart_Davidson(EPS eps,PetscBool *krylovstart);
-PetscErrorCode EPSDavidsonSetBlockSize_Davidson(EPS eps,PetscInt blocksize);
-PetscErrorCode EPSDavidsonGetBlockSize_Davidson(EPS eps,PetscInt *blocksize);
-PetscErrorCode EPSDavidsonSetRestart_Davidson(EPS eps,PetscInt minv,PetscInt plusk);
-PetscErrorCode EPSDavidsonGetRestart_Davidson(EPS eps,PetscInt *minv,PetscInt *plusk);
-PetscErrorCode EPSDavidsonGetInitialSize_Davidson(EPS eps,PetscInt *initialsize);
-PetscErrorCode EPSDavidsonSetInitialSize_Davidson(EPS eps,PetscInt initialsize);
-PetscErrorCode EPSDavidsonGetFix_Davidson(EPS eps,PetscReal *fix);
-PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix);
-PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,EPSOrthType borth);
-PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,EPSOrthType *borth);
-PetscErrorCode EPSDavidsonSetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool constant);
-PetscErrorCode EPSDavidsonGetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool *constant);
-PetscErrorCode EPSDavidsonSetWindowSizes_Davidson(EPS eps,PetscInt pwindow,PetscInt qwindow);
-PetscErrorCode EPSDavidsonGetWindowSizes_Davidson(EPS eps,PetscInt *pwindow,PetscInt *qwindow);
-PetscErrorCode EPSDavidsonSetMethod_Davidson(EPS eps,Method_t method);
-PetscErrorCode EPSDavidsonGetMethod_Davidson(EPS eps,Method_t *method);
+PETSC_INTERN PetscErrorCode SLEPcNotImplemented();
+PETSC_INTERN PetscErrorCode EPSCreate_Davidson(EPS eps);
+PETSC_INTERN PetscErrorCode EPSReset_Davidson(EPS eps);
+PETSC_INTERN PetscErrorCode EPSSetUp_Davidson(EPS eps);
+PETSC_INTERN PetscErrorCode EPSSolve_Davidson(EPS eps);
+PETSC_INTERN PetscErrorCode EPSComputeVectors_Davidson(EPS eps);
+PETSC_INTERN PetscErrorCode EPSDavidsonSetKrylovStart_Davidson(EPS eps,PetscBool krylovstart);
+PETSC_INTERN PetscErrorCode EPSDavidsonGetKrylovStart_Davidson(EPS eps,PetscBool *krylovstart);
+PETSC_INTERN PetscErrorCode EPSDavidsonSetBlockSize_Davidson(EPS eps,PetscInt blocksize);
+PETSC_INTERN PetscErrorCode EPSDavidsonGetBlockSize_Davidson(EPS eps,PetscInt *blocksize);
+PETSC_INTERN PetscErrorCode EPSDavidsonSetRestart_Davidson(EPS eps,PetscInt minv,PetscInt plusk);
+PETSC_INTERN PetscErrorCode EPSDavidsonGetRestart_Davidson(EPS eps,PetscInt *minv,PetscInt *plusk);
+PETSC_INTERN PetscErrorCode EPSDavidsonGetInitialSize_Davidson(EPS eps,PetscInt *initialsize);
+PETSC_INTERN PetscErrorCode EPSDavidsonSetInitialSize_Davidson(EPS eps,PetscInt initialsize);
+PETSC_INTERN PetscErrorCode EPSDavidsonGetFix_Davidson(EPS eps,PetscReal *fix);
+PETSC_INTERN PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix);
+PETSC_INTERN PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,EPSOrthType borth);
+PETSC_INTERN PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,EPSOrthType *borth);
+PETSC_INTERN PetscErrorCode EPSDavidsonSetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool constant);
+PETSC_INTERN PetscErrorCode EPSDavidsonGetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool *constant);
+PETSC_INTERN PetscErrorCode EPSDavidsonSetWindowSizes_Davidson(EPS eps,PetscInt pwindow,PetscInt qwindow);
+PETSC_INTERN PetscErrorCode EPSDavidsonGetWindowSizes_Davidson(EPS eps,PetscInt *pwindow,PetscInt *qwindow);
+PETSC_INTERN PetscErrorCode EPSDavidsonSetMethod_Davidson(EPS eps,Method_t method);
+PETSC_INTERN PetscErrorCode EPSDavidsonGetMethod_Davidson(EPS eps,Method_t *method);
 
 /* Common inline function */
 #undef __FUNCT__

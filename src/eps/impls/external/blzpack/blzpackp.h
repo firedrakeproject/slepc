@@ -64,14 +64,10 @@ typedef struct {
 #define BLZistorr_ SLEPC_BLZPACK(istorr,ISTORR)
 #define BLZrstorr_ SLEPC_BLZPACK(rstorr,RSTORR)
 
-EXTERN_C_BEGIN
+PETSC_EXTERN void BLZpack_(PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*);
 
-extern void BLZpack_(PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*);
-
-extern PetscBLASInt BLZistorr_(PetscBLASInt*,const char*,int);
-extern PetscReal BLZrstorr_(PetscReal*,char*,int);
-
-EXTERN_C_END
+PETSC_EXTERN PetscBLASInt BLZistorr_(PetscBLASInt*,const char*,int);
+PETSC_EXTERN PetscReal BLZrstorr_(PetscReal*,char*,int);
 
 #endif
 
