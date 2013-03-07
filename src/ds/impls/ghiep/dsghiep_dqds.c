@@ -481,7 +481,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   PetscInt       i,k,nwu=0,nwall,begin,ind,flag,dim,m;
   PetscReal      norm,gr,gl,sigma,delta,meanEig,*work,*U,*L,*U1,*L1,*split;              
   PetscReal      acShift,initialShift,shift=0.0,sum,det,disc,prod,x1,x2;
-  PetscInt       realSteps,complexSteps,earlyDef,lastSplit,splitCount;
+  PetscInt       earlyDef,lastSplit,splitCount;
   PetscBool      test1,test2;
 
   PetscFunctionBegin;
@@ -652,7 +652,6 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
           sum = 0; /* Needed in case of failure */
           prod = 0;
           ierr = realDQDS(n-begin,L+begin,U+begin,0,tolGrowth,norm,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
-          realSteps++;
           if (flag) {  /* Failure */
             ierr = tridqdsZhuang(n-begin,L+begin,U+begin,0.0,0.0,tolGrowth,norm,tolDef,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
             shift = 0.0;
@@ -671,7 +670,6 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
             sum = U[n-2]+L[n-2]+U[n-1];
             prod = U[n-2]*U[n-1];
             ierr = tridqdsZhuang(n-begin,L+begin,U+begin,sum,prod,tolGrowth,norm,tolDef,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
-            complexSteps++;
             shift = 0.0; /* Restoring transformation */
             while (flag==1 && nFail<maxFail) { /* In case of failure */
               shift = shift+U[n-1];  /* first time shift=0 */
@@ -694,7 +692,6 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
               shift = x2;
             }
             ierr = realDQDS(n-begin,L+begin,U+begin,shift,tolGrowth,norm,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
-            realSteps++;
             /* In case of failure */
             while (flag==1 && nFail<maxFail) {
               sum = 2*shift;

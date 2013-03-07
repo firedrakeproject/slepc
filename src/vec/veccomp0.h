@@ -420,7 +420,7 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar
 #if defined(__WITH_MPI__)
     /* [dp, nm] <- Allreduce([dp0, nm0]) */
     work[0] = dp0; work[1] = nm0;
-    ierr = MPI_Allreduce(&work,&work[2],2,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)v));CHKERRQ(ierr);
+    ierr = MPI_Allreduce(work,&work[2],2,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)v));CHKERRQ(ierr);
     *dp = work[2]; *nm = work[3];
 #else
     *dp = dp0; *nm = nm0;
