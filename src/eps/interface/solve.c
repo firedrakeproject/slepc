@@ -32,7 +32,7 @@ typedef struct {
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSortForSTFunc"
-PetscErrorCode EPSSortForSTFunc(PetscScalar ar,PetscScalar ai,
+static PetscErrorCode EPSSortForSTFunc(PetscScalar ar,PetscScalar ai,
                                 PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
 {
   EPSSortForSTData *data = (EPSSortForSTData*)ctx;

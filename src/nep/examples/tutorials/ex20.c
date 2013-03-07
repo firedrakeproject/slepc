@@ -36,11 +36,11 @@ static char help[] = "Simple 1-D nonlinear eigenproblem.\n\n"
 /*
    User-defined routines
 */
-extern PetscErrorCode FormInitialGuess(Vec);
-extern PetscErrorCode FormFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
-extern PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*);
-extern PetscErrorCode CheckSolution(PetscScalar,PetscScalar,Vec,Vec,PetscReal*,void*);
-extern PetscErrorCode FixSign(Vec);
+PetscErrorCode FormInitialGuess(Vec);
+PetscErrorCode FormFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
+PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*);
+PetscErrorCode CheckSolution(PetscScalar,PetscScalar,Vec,Vec,PetscReal*,void*);
+PetscErrorCode FixSign(Vec);
 
 /*
    User-defined application context

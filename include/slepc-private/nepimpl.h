@@ -25,8 +25,7 @@
 #include <slepcnep.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscFunctionList NEPList;
-PETSC_EXTERN PetscLogEvent     NEP_SetUp,NEP_Solve,NEP_Dense,NEP_FunctionEval,NEP_JacobianEval;
+PETSC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Dense,NEP_FunctionEval,NEP_JacobianEval;
 
 typedef struct _NEPOps *NEPOps;
 
@@ -111,15 +110,13 @@ struct _p_NEP {
   PetscInt       numbermonitors; 
 };
 
-PETSC_EXTERN PetscErrorCode NEPMonitor(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
-
-PETSC_EXTERN PetscErrorCode NEPDefaultGetWork(NEP,PetscInt);
-PETSC_EXTERN PetscErrorCode NEPDefaultFreeWork(NEP);
-PETSC_EXTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
-PETSC_EXTERN PetscErrorCode NEPAllocateSolution(NEP);
-PETSC_EXTERN PetscErrorCode NEPFreeSolution(NEP);
-PETSC_EXTERN PetscErrorCode NEP_KSPSolve(NEP,Vec,Vec);
-PETSC_EXTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-PETSC_EXTERN PetscErrorCode NEPComputeRelativeError_Private(NEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
+PETSC_INTERN PetscErrorCode NEPDefaultGetWork(NEP,PetscInt);
+PETSC_INTERN PetscErrorCode NEPDefaultFreeWork(NEP);
+PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
+PETSC_INTERN PetscErrorCode NEPAllocateSolution(NEP);
+PETSC_INTERN PetscErrorCode NEPFreeSolution(NEP);
+PETSC_INTERN PetscErrorCode NEP_KSPSolve(NEP,Vec,Vec);
+PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
+PETSC_INTERN PetscErrorCode NEPComputeRelativeError_Private(NEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 
 #endif

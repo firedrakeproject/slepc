@@ -256,7 +256,7 @@ MPI_Op MPIU_NORM2_SUM=0;
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcSumNorm2_Local"
-PETSC_EXTERN void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
+void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
 {
   PetscInt       i,count = *cnt;
 
@@ -281,7 +281,7 @@ PETSC_EXTERN void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Da
 
 #undef __FUNCT__
 #define __FUNCT__ "VecNormCompEnd"
-PETSC_EXTERN PetscErrorCode VecNormCompEnd(void)
+PetscErrorCode VecNormCompEnd(void)
 {
   PetscErrorCode ierr;
 

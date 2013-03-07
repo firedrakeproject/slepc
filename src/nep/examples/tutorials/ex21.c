@@ -35,19 +35,19 @@ static char help[] = "Simple 1-D nonlinear eigenproblem (matrix-free version, se
 /*
    User-defined routines
 */
-extern PetscErrorCode FormInitialGuess(Vec);
-extern PetscErrorCode FormFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
-extern PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*);
+PetscErrorCode FormInitialGuess(Vec);
+PetscErrorCode FormFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
+PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*);
 
 /* 
    Matrix operations and context
 */
-extern PetscErrorCode MatFun_Mult(Mat,Vec,Vec);
-extern PetscErrorCode MatFun_GetDiagonal(Mat,Vec);
-extern PetscErrorCode MatFun_Destroy(Mat);
-extern PetscErrorCode MatFun_Duplicate(Mat,MatDuplicateOption,Mat*);
-extern PetscErrorCode MatJac_Mult(Mat,Vec,Vec);
-extern PetscErrorCode MatJac_Destroy(Mat);
+PetscErrorCode MatFun_Mult(Mat,Vec,Vec);
+PetscErrorCode MatFun_GetDiagonal(Mat,Vec);
+PetscErrorCode MatFun_Destroy(Mat);
+PetscErrorCode MatFun_Duplicate(Mat,MatDuplicateOption,Mat*);
+PetscErrorCode MatJac_Mult(Mat,Vec,Vec);
+PetscErrorCode MatJac_Destroy(Mat);
 
 typedef struct {
   PetscScalar lambda,kappa;

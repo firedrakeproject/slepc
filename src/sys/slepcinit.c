@@ -108,10 +108,8 @@ PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 */
 PetscBool SlepcBeganPetsc = PETSC_FALSE; 
 PetscBool SlepcInitializeCalled = PETSC_FALSE;
-extern PetscLogEvent SLEPC_UpdateVectors,SLEPC_VecMAXPBY,SLEPC_SlepcDenseMatProd,SLEPC_SlepcDenseOrth,SLEPC_SlepcDenseMatInvProd,SLEPC_SlepcDenseNorm,SLEPC_SlepcDenseCopy,SLEPC_VecsMult;
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-extern PetscDLLibrary PetscDLLibrariesLoaded;
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcInitialize_DynamicLibraries"
@@ -298,7 +296,7 @@ PetscErrorCode SlepcInitialized(PetscBool *isInitialized)
   PetscFunctionReturn(0);
 }
 
-extern PetscBool PetscBeganMPI;
+PETSC_EXTERN PetscBool PetscBeganMPI;
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcInitializeNoPointers"

@@ -59,7 +59,7 @@ PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
 
 #undef __FUNCT__
 #define __FUNCT__ "STBilinearMatMult_Cayley"
-PetscErrorCode STBilinearMatMult_Cayley(Mat B,Vec x,Vec y)
+static PetscErrorCode STBilinearMatMult_Cayley(Mat B,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   ST             st;

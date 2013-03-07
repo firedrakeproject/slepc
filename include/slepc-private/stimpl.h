@@ -25,8 +25,7 @@
 #include <slepcst.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscFunctionList STList;
-PETSC_EXTERN PetscLogEvent     ST_SetUp,ST_Apply,ST_ApplyTranspose;
+PETSC_EXTERN PetscLogEvent ST_SetUp,ST_Apply,ST_ApplyTranspose;
 
 typedef struct _STOps *STOps;
 
@@ -70,12 +69,12 @@ struct _p_ST {
   PetscInt     applys;
 };
 
-PETSC_EXTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
-PETSC_EXTERN PetscErrorCode STCheckNullSpace_Default(ST,PetscInt,const Vec[]);
-PETSC_EXTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,Mat*);
-PETSC_EXTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
-PETSC_EXTERN PetscErrorCode STMatSetHermitian(ST,Mat);
-PETSC_EXTERN PetscErrorCode STMatGAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscInt,PetscBool);
+PETSC_INTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
+PETSC_INTERN PetscErrorCode STCheckNullSpace_Default(ST,PetscInt,const Vec[]);
+PETSC_INTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,Mat*);
+PETSC_INTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
+PETSC_INTERN PetscErrorCode STMatSetHermitian(ST,Mat);
+PETSC_INTERN PetscErrorCode STMatGAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscInt,PetscBool);
 
 #endif
 

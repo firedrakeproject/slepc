@@ -176,7 +176,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors_GHIEP_Eigen_Some"
-static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
+PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
 {
   PetscErrorCode ierr;
   PetscReal      b[4],M[4],d1,d2,s1,s2,e;
@@ -442,7 +442,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "HRGen"
+#define __FUNCT__ "DSGHIEPHRGen"
 /*
   Generates a hyperbolic rotation
     if x1*x1 - x2*x2 != 0 
@@ -454,7 +454,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
       where d = 1 for type==1 and -1 for type==2
   Returns the condition number of the reduction
 */
-static PetscErrorCode HRGen(PetscReal x1,PetscReal x2,PetscInt *type,PetscReal *c,PetscReal *s,PetscReal *r,PetscReal *cond)
+static PetscErrorCode DSGHIEPHRGen(PetscReal x1,PetscReal x2,PetscInt *type,PetscReal *c,PetscReal *s,PetscReal *r,PetscReal *cond)
 {
   PetscReal t,n2,xa,xb;
   PetscInt  type_;
@@ -494,14 +494,14 @@ static PetscErrorCode HRGen(PetscReal x1,PetscReal x2,PetscInt *type,PetscReal *
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "HRApply"
+#define __FUNCT__ "DSGHIEPHRApply"
 /*
                                 |c  s|
   Applies an hyperbolic rotator |s  c|
            |c  s|
     [x1 x2]|s  c| 
 */
-PetscErrorCode HRApply(PetscInt n,PetscScalar *x1,PetscInt inc1,PetscScalar *x2,PetscInt inc2,PetscReal c,PetscReal s)
+PetscErrorCode DSGHIEPHRApply(PetscInt n,PetscScalar *x1,PetscInt inc1,PetscScalar *x2,PetscInt inc2,PetscReal c,PetscReal s)
 {
   PetscInt    i;
   PetscReal   t;
@@ -661,7 +661,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
       }
       /* Hyperbolic rotation */
       if (n0 > 0 && n1 > 0) {
-        ierr = HRGen(PetscRealPart(A[ni-n0+j*lda]),PetscRealPart(A[n-n1+j*lda]),&type,&cs,&sn,&r,&cond);CHKERRQ(ierr);
+        ierr = DSGHIEPHRGen(PetscRealPart(A[ni-n0+j*lda]),PetscRealPart(A[n-n1+j*lda]),&type,&cs,&sn,&r,&cond);CHKERRQ(ierr);
         /* Check condition number */
         if (cond > 1.0/(10*PETSC_SQRT_MACHINE_EPSILON)) {
           breakdown = PETSC_TRUE;
@@ -673,11 +673,11 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
         A[ni-n0+j*lda] = r; A[n-n1+j*lda] = 0.0;
         A[j+(ni-n0)*lda] = r; A[j+(n-n1)*lda] = 0.0;
         /* Apply to A */
-        ierr = HRApply(m,A+j+1+(ni-n0)*lda,1,A+j+1+(n-n1)*lda,1,cs,-sn);CHKERRQ(ierr);
-        ierr = HRApply(m,A+ni-n0+(j+1)*lda,lda,A+n-n1+(j+1)*lda,lda,cs,-sn);CHKERRQ(ierr);
+        ierr = DSGHIEPHRApply(m,A+j+1+(ni-n0)*lda,1,A+j+1+(n-n1)*lda,1,cs,-sn);CHKERRQ(ierr);
+        ierr = DSGHIEPHRApply(m,A+ni-n0+(j+1)*lda,lda,A+n-n1+(j+1)*lda,lda,cs,-sn);CHKERRQ(ierr);
         
         /* Update Q */
-        ierr = HRApply(n,Q+(ni-n0)*ldq,1,Q+(n-n1)*ldq,1,cs,-sn);CHKERRQ(ierr);
+        ierr = DSGHIEPHRApply(n,Q+(ni-n0)*ldq,1,Q+(n-n1)*ldq,1,cs,-sn);CHKERRQ(ierr);
         if (type==2) {
           ss[ni-n0] = -ss[ni-n0]; ss[n-n1] = -ss[n-n1];
           n0++;ni++;n1--;
@@ -1402,8 +1402,8 @@ PetscErrorCode DSNormalize_GHIEP(DS ds,DSMatType mat,PetscInt col)
   PetscFunctionReturn(0);
 }
 
-extern PetscErrorCode DSSolve_GHIEP_HZ(DS,PetscScalar*,PetscScalar*);
-extern PetscErrorCode DSSolve_GHIEP_DQDS_II(DS,PetscScalar*,PetscScalar*);
+PETSC_EXTERN PetscErrorCode DSSolve_GHIEP_HZ(DS,PetscScalar*,PetscScalar*);
+PETSC_EXTERN PetscErrorCode DSSolve_GHIEP_DQDS_II(DS,PetscScalar*,PetscScalar*);
 
 #undef __FUNCT__
 #define __FUNCT__ "DSCreate_GHIEP"

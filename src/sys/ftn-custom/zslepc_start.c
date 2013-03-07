@@ -21,13 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
+#include <slepc-private/slepcimpl.h>
 #include <petsc-private/fortranimpl.h>
-
-extern PetscBool SlepcBeganPetsc;
-extern PetscBool SlepcInitializeCalled;
-extern PetscErrorCode SlepcInitialize_DynamicLibraries(void);
-extern PetscErrorCode SlepcInitialize_Packages(void);
-extern PetscErrorCode SlepcInitialize_LogEvents(void);
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define petscinitialize_              PETSCINITIALIZE

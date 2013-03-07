@@ -32,7 +32,7 @@ typedef struct {
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPSortForSTFunc"
-PetscErrorCode QEPSortForSTFunc(PetscScalar ar,PetscScalar ai,
+static PetscErrorCode QEPSortForSTFunc(PetscScalar ar,PetscScalar ai,
                                 PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
 {
   QEPSortForSTData *data = (QEPSortForSTData*)ctx;

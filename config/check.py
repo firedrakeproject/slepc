@@ -28,10 +28,8 @@ import log
 
 def LinkWithOutput(tmpdir,functions,callbacks,flags):
   code = '#include "petscksp.h"\n'
-  code += 'EXTERN_C_BEGIN\n'
   for f in functions:
-    code += 'extern int\n' + f + '();\n'
-  code += 'EXTERN_C_END\n'
+    code += 'PETSC_EXTERN int\n' + f + '();\n'
   
   for c in callbacks:
     code += 'int '+ c + '() { return 0; } \n'

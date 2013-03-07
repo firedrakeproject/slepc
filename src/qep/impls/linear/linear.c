@@ -152,7 +152,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
    computed residual norm.
    Finally, x is normalized so that ||x||_2 = 1.
 */
-PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
+static PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -235,7 +235,7 @@ PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
    If |l|<1.0, the eigenvector is taken from z(1:n), otherwise from z(n+1:2*n).
    Finally, x is normalized so that ||x||_2 = 1.
 */
-PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
+static PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,offset;

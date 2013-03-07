@@ -26,7 +26,7 @@
 #include <slepc-private/slepcimpl.h>
 
 PETSC_EXTERN PetscLogEvent DS_Solve,DS_Function,DS_Vectors,DS_Other;
-PETSC_EXTERN const char *DSMatName[];
+PETSC_INTERN const char *DSMatName[];
 
 typedef struct _DSOps *DSOps;
 
@@ -71,18 +71,25 @@ struct _p_DS {
   void           *comparisonctx;
 };
 
-PETSC_EXTERN PetscErrorCode DSAllocateMat_Private(DS,DSMatType);
-PETSC_EXTERN PetscErrorCode DSAllocateMatReal_Private(DS,DSMatType);
-PETSC_EXTERN PetscErrorCode DSAllocateWork_Private(DS,PetscInt,PetscInt,PetscInt);
-PETSC_EXTERN PetscErrorCode DSViewMat_Private(DS,PetscViewer,DSMatType);
-PETSC_EXTERN PetscErrorCode DSSortEigenvalues_Private(DS,PetscScalar*,PetscScalar*,PetscInt*,PetscBool);
-PETSC_EXTERN PetscErrorCode DSSortEigenvaluesReal_Private(DS,PetscReal*,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSPermuteColumns_Private(DS,PetscInt,PetscInt,DSMatType,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSPermuteRows_Private(DS,PetscInt,PetscInt,DSMatType,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSPermuteBoth_Private(DS,PetscInt,PetscInt,DSMatType,DSMatType,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSCopyMatrix_Private(DS,DSMatType,DSMatType);
-PETSC_EXTERN PetscErrorCode DSSetIdentity(DS,DSMatType);
-PETSC_EXTERN PetscErrorCode DSOrthogonalize(DS,DSMatType,PetscInt,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSPseudoOrthogonalize(DS,DSMatType,PetscInt,PetscReal*,PetscInt*,PetscReal*);
+PETSC_INTERN PetscErrorCode DSAllocateMat_Private(DS,DSMatType);
+PETSC_INTERN PetscErrorCode DSAllocateMatReal_Private(DS,DSMatType);
+PETSC_INTERN PetscErrorCode DSAllocateWork_Private(DS,PetscInt,PetscInt,PetscInt);
+PETSC_INTERN PetscErrorCode DSViewMat_Private(DS,PetscViewer,DSMatType);
+PETSC_INTERN PetscErrorCode DSSortEigenvalues_Private(DS,PetscScalar*,PetscScalar*,PetscInt*,PetscBool);
+PETSC_INTERN PetscErrorCode DSSortEigenvaluesReal_Private(DS,PetscReal*,PetscInt*);
+PETSC_INTERN PetscErrorCode DSPermuteColumns_Private(DS,PetscInt,PetscInt,DSMatType,PetscInt*);
+PETSC_INTERN PetscErrorCode DSPermuteRows_Private(DS,PetscInt,PetscInt,DSMatType,PetscInt*);
+PETSC_INTERN PetscErrorCode DSPermuteBoth_Private(DS,PetscInt,PetscInt,DSMatType,DSMatType,PetscInt*);
+PETSC_INTERN PetscErrorCode DSCopyMatrix_Private(DS,DSMatType,DSMatType);
+PETSC_INTERN PetscErrorCode DSSetIdentity(DS,DSMatType);
+PETSC_INTERN PetscErrorCode DSOrthogonalize(DS,DSMatType,PetscInt,PetscInt*);
+PETSC_INTERN PetscErrorCode DSPseudoOrthogonalize(DS,DSMatType,PetscInt,PetscReal*,PetscInt*,PetscReal*);
+
+PETSC_INTERN PetscErrorCode DSGHIEPComplexEigs(DS,PetscInt,PetscInt,PetscScalar*,PetscScalar*);
+PETSC_INTERN PetscErrorCode DSGHIEPPseudoOrthogInverseIteration(DS,PetscScalar*,PetscScalar*);
+PETSC_INTERN PetscErrorCode DSIntermediate_GHIEP(DS);
+PETSC_INTERN PetscErrorCode DSSwitchFormat_GHIEP(DS,PetscBool);
+PETSC_INTERN PetscErrorCode DSGHIEPHRApply(PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscReal,PetscReal);
+PETSC_INTERN PetscErrorCode DSGHIEPRealBlocks(DS);
 
 #endif

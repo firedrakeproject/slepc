@@ -494,7 +494,7 @@ static PetscErrorCode sortRealEigenvalues(PetscScalar *r,PetscInt *perm,PetscInt
 /* Stores the pairs obtained since the last shift in the global arrays */
 #undef __FUNCT__
 #define __FUNCT__ "EPSStoreEigenpairs"
-PetscErrorCode EPSStoreEigenpairs(EPS eps)
+static PetscErrorCode EPSStoreEigenpairs(EPS eps)
 {
   PetscErrorCode  ierr;
   PetscReal       lambda,err,norm;
@@ -539,7 +539,7 @@ PetscErrorCode EPSStoreEigenpairs(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSLookForDeflation"
-PetscErrorCode EPSLookForDeflation(EPS eps)
+static PetscErrorCode EPSLookForDeflation(EPS eps)
 {
   PetscReal       val;
   PetscInt        i,count0=0,count1=0;

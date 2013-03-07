@@ -25,8 +25,7 @@
 #include <slepcqep.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscFunctionList QEPList;
-PETSC_EXTERN PetscLogEvent     QEP_SetUp, QEP_Solve, QEP_Dense;
+PETSC_EXTERN PetscLogEvent QEP_SetUp, QEP_Solve, QEP_Dense;
 
 typedef struct _QEPOps *QEPOps;
 
@@ -105,15 +104,13 @@ struct _p_QEP {
   PetscInt        numbermonitors; 
 };
 
-PETSC_EXTERN PetscErrorCode QEPMonitor(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
-
-PETSC_EXTERN PetscErrorCode QEPDefaultGetWork(QEP,PetscInt);
-PETSC_EXTERN PetscErrorCode QEPDefaultFreeWork(QEP);
-PETSC_EXTERN PetscErrorCode QEPAllocateSolution(QEP);
-PETSC_EXTERN PetscErrorCode QEPFreeSolution(QEP);
-PETSC_EXTERN PetscErrorCode QEPComputeVectors_Schur(QEP);
-PETSC_EXTERN PetscErrorCode QEPComputeResidualNorm_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-PETSC_EXTERN PetscErrorCode QEPComputeRelativeError_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-PETSC_EXTERN PetscErrorCode QEPKrylovConvergence(QEP,PetscBool,PetscInt,PetscInt,PetscInt,PetscReal,PetscInt*);
+PETSC_INTERN PetscErrorCode QEPDefaultGetWork(QEP,PetscInt);
+PETSC_INTERN PetscErrorCode QEPDefaultFreeWork(QEP);
+PETSC_INTERN PetscErrorCode QEPAllocateSolution(QEP);
+PETSC_INTERN PetscErrorCode QEPFreeSolution(QEP);
+PETSC_INTERN PetscErrorCode QEPComputeVectors_Schur(QEP);
+PETSC_INTERN PetscErrorCode QEPComputeResidualNorm_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
+PETSC_INTERN PetscErrorCode QEPComputeRelativeError_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
+PETSC_INTERN PetscErrorCode QEPKrylovConvergence(QEP,PetscBool,PetscInt,PetscInt,PetscInt,PetscReal,PetscInt*);
 
 #endif

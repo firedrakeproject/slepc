@@ -32,10 +32,6 @@
 #include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
-extern PetscErrorCode DSGHIEPComplexEigs(DS,PetscInt,PetscInt,PetscScalar*,PetscScalar*);
-extern PetscErrorCode DSGHIEPPseudoOrthogInverseIteration(DS,PetscScalar*,PetscScalar*);
-extern PetscErrorCode DSIntermediate_GHIEP(DS);
-
 #undef __FUNCT__
 #define __FUNCT__ "ScanJ"
 /*

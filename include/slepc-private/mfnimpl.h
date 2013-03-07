@@ -25,8 +25,7 @@
 #include <slepcmfn.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscFunctionList MFNList;
-PETSC_EXTERN PetscLogEvent     MFN_SetUp, MFN_Solve;
+PETSC_EXTERN PetscLogEvent MFN_SetUp, MFN_Solve;
 
 typedef struct _MFNOps *MFNOps;
 
@@ -85,12 +84,10 @@ struct _p_MFN {
   PetscInt       numbermonitors; 
 };
 
-PETSC_EXTERN PetscErrorCode MFNMonitor(MFN,PetscInt,PetscReal);
-
-PETSC_EXTERN PetscErrorCode MFNReset_Default(MFN);
-PETSC_EXTERN PetscErrorCode MFNDefaultGetWork(MFN,PetscInt);
-PETSC_EXTERN PetscErrorCode MFNDefaultFreeWork(MFN);
-PETSC_EXTERN PetscErrorCode MFNAllocateSolution(MFN);
-PETSC_EXTERN PetscErrorCode MFNFreeSolution(MFN);
+PETSC_INTERN PetscErrorCode MFNReset_Default(MFN);
+PETSC_INTERN PetscErrorCode MFNDefaultGetWork(MFN,PetscInt);
+PETSC_INTERN PetscErrorCode MFNDefaultFreeWork(MFN);
+PETSC_INTERN PetscErrorCode MFNAllocateSolution(MFN);
+PETSC_INTERN PetscErrorCode MFNFreeSolution(MFN);
 
 #endif

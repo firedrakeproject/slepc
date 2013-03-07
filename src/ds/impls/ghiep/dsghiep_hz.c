@@ -33,12 +33,6 @@
 #include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
-extern PetscErrorCode DSSwitchFormat_GHIEP(DS,PetscBool);
-extern PetscErrorCode DSGHIEPComplexEigs(DS,PetscInt,PetscInt,PetscScalar*,PetscScalar*);
-extern PetscErrorCode HRApply(PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscReal,PetscReal);
-extern PetscErrorCode DSIntermediate_GHIEP(DS);
-extern PetscErrorCode DSGHIEPRealBlocks(DS);
-
 #undef __FUNCT__
 #define __FUNCT__ "UnifiedRotation"
 /*
@@ -214,7 +208,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
         if (sygn==1) {
           PetscStackCall("BLASrot",BLASrot_(&n_,uu+jj*ld,&one,uu+(jj+1)*ld,&one,&rot[0],&rot[2]));
         } else {
-          ierr = HRApply(n,uu+jj*ld,1,uu+(jj+1)*ld,1,rot[0],rot[1]);CHKERRQ(ierr);
+          ierr = DSGHIEPHRApply(n,uu+jj*ld,1,uu+(jj+1)*ld,1,rot[0],rot[1]);CHKERRQ(ierr);
         }
       }
     }

@@ -38,7 +38,7 @@ typedef struct {
 
 #undef __FUNCT__
 #define __FUNCT__ "ShellMatMult_Cross"
-PetscErrorCode ShellMatMult_Cross(Mat B,Vec x,Vec y)
+static PetscErrorCode ShellMatMult_Cross(Mat B,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   SVD            svd;
@@ -54,7 +54,7 @@ PetscErrorCode ShellMatMult_Cross(Mat B,Vec x,Vec y)
 
 #undef __FUNCT__
 #define __FUNCT__ "ShellMatGetDiagonal_Cross"
-PetscErrorCode ShellMatGetDiagonal_Cross(Mat B,Vec d)
+static PetscErrorCode ShellMatGetDiagonal_Cross(Mat B,Vec d)
 {
   PetscErrorCode    ierr;
   SVD               svd;

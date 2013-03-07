@@ -75,6 +75,7 @@ PETSC_EXTERN PetscErrorCode MFNGetDimensions(MFN,PetscInt*);
 PETSC_EXTERN PetscErrorCode MFNSetScaleFactor(MFN,PetscReal);
 PETSC_EXTERN PetscErrorCode MFNGetScaleFactor(MFN,PetscReal*);
 
+PETSC_EXTERN PetscErrorCode MFNMonitor(MFN,PetscInt,PetscReal);
 PETSC_EXTERN PetscErrorCode MFNMonitorSet(MFN,PetscErrorCode (*)(MFN,PetscInt,PetscReal,void*),void*,PetscErrorCode (*)(void**));
 PETSC_EXTERN PetscErrorCode MFNMonitorCancel(MFN);
 PETSC_EXTERN PetscErrorCode MFNGetMonitorContext(MFN,void **);

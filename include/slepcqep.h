@@ -120,6 +120,7 @@ PETSC_EXTERN PetscErrorCode QEPComputeRelativeError(QEP,PetscInt,PetscReal*);
 PETSC_EXTERN PetscErrorCode QEPComputeResidualNorm(QEP,PetscInt,PetscReal*);
 PETSC_EXTERN PetscErrorCode QEPGetErrorEstimate(QEP,PetscInt,PetscReal*);
 
+PETSC_EXTERN PetscErrorCode QEPMonitor(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
 PETSC_EXTERN PetscErrorCode QEPMonitorSet(QEP,PetscErrorCode (*)(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
 PETSC_EXTERN PetscErrorCode QEPMonitorCancel(QEP);
 PETSC_EXTERN PetscErrorCode QEPGetMonitorContext(QEP,void **);

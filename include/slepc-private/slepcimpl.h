@@ -25,6 +25,9 @@
 #include <slepcsys.h>
 #include <petsc-private/petscimpl.h>
 
+PETSC_INTERN PetscBool SlepcBeganPetsc;
+PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors,SLEPC_VecMAXPBY,SLEPC_SlepcDenseMatProd,SLEPC_SlepcDenseOrth,SLEPC_SlepcDenseMatInvProd,SLEPC_SlepcDenseNorm,SLEPC_SlepcDenseCopy,SLEPC_VecsMult;
+
 /*@C
     SlepcHeaderCreate - Creates a SLEPc object
 
@@ -60,20 +63,24 @@ struct _n_SlepcConvMonitor {
 typedef struct _n_SlepcConvMonitor* SlepcConvMonitor;
 
 /* Private functions that are shared by several classes */
-PETSC_EXTERN PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx);
+PETSC_INTERN PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx);
 
-PETSC_EXTERN PetscErrorCode SlepcCompareLargestMagnitude(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-PETSC_EXTERN PetscErrorCode SlepcCompareSmallestMagnitude(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-PETSC_EXTERN PetscErrorCode SlepcCompareLargestReal(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-PETSC_EXTERN PetscErrorCode SlepcCompareSmallestReal(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-PETSC_EXTERN PetscErrorCode SlepcCompareLargestImaginary(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-PETSC_EXTERN PetscErrorCode SlepcCompareSmallestImaginary(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-PETSC_EXTERN PetscErrorCode SlepcCompareTargetMagnitude(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-PETSC_EXTERN PetscErrorCode SlepcCompareTargetReal(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-PETSC_EXTERN PetscErrorCode SlepcCompareTargetImaginary(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-PETSC_EXTERN PetscErrorCode SlepcCompareSmallestPositiveReal(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+PETSC_INTERN PetscErrorCode SlepcCompareLargestMagnitude(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+PETSC_INTERN PetscErrorCode SlepcCompareSmallestMagnitude(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+PETSC_INTERN PetscErrorCode SlepcCompareLargestReal(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+PETSC_INTERN PetscErrorCode SlepcCompareSmallestReal(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+PETSC_INTERN PetscErrorCode SlepcCompareLargestImaginary(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+PETSC_INTERN PetscErrorCode SlepcCompareSmallestImaginary(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+PETSC_INTERN PetscErrorCode SlepcCompareTargetMagnitude(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+PETSC_INTERN PetscErrorCode SlepcCompareTargetReal(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+PETSC_INTERN PetscErrorCode SlepcCompareTargetImaginary(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+PETSC_INTERN PetscErrorCode SlepcCompareSmallestPositiveReal(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
 
-PETSC_EXTERN PetscErrorCode SlepcBasisReference_Private(PetscInt,Vec*,PetscInt*,Vec**);
-PETSC_EXTERN PetscErrorCode SlepcBasisDestroy_Private(PetscInt*,Vec**);
+PETSC_INTERN PetscErrorCode SlepcBasisReference_Private(PetscInt,Vec*,PetscInt*,Vec**);
+PETSC_INTERN PetscErrorCode SlepcBasisDestroy_Private(PetscInt*,Vec**);
+
+PETSC_INTERN PetscErrorCode SlepcInitialize_DynamicLibraries(void);
+PETSC_INTERN PetscErrorCode SlepcInitialize_Packages(void);
+PETSC_INTERN PetscErrorCode SlepcInitialize_LogEvents(void);
 
 #endif
