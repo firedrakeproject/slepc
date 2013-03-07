@@ -25,7 +25,7 @@
 #include <slepcvec.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors, SLEPC_VecMAXPBY;
+PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors,SLEPC_VecMAXPBY;
 
 /* context for the storage of contiguous Vecs */
 typedef struct {
@@ -36,7 +36,7 @@ typedef struct {
 #if !defined(PETSC_USE_DEBUG)
 
 #define SlepcValidVecsContiguous(V,m,arg) do {} while (0)
-#define PetscValidVecComp(y) do {} while (0)
+#define SlepcValidVecComp(y) do {} while (0)
 
 #else
 
@@ -52,7 +52,7 @@ typedef struct {
     } \
   } while (0)
 
-#define PetscValidVecComp(y) \
+#define SlepcValidVecComp(y) \
   do { \
     if (((Vec_Comp*)(y)->data)->nx < ((Vec_Comp*)(y)->data)->n->n) \
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of subvectors required!"); \
@@ -62,10 +62,10 @@ typedef struct {
 
 /* Contexts for VecComp */
 typedef struct {
-  PetscInt      n,        /* number of active subvectors */
-                N,        /* virtual global size */
-                lN,       /* virtual local size */
-                friends;  /* number of vectors sharing this structure */
+  PetscInt      n;        /* number of active subvectors */
+  PetscInt      N;        /* virtual global size */
+  PetscInt      lN;       /* virtual local size */
+  PetscInt      friends;  /* number of vectors sharing this structure */
 } Vec_Comp_N;
 
 typedef struct {
@@ -75,38 +75,40 @@ typedef struct {
 } Vec_Comp;
 
 /* Operations implemented in VecComp */
-PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V);
-PetscErrorCode VecDestroy_Comp(Vec v);
-PetscErrorCode VecSet_Comp(Vec v,PetscScalar alpha);
-PetscErrorCode VecView_Comp(Vec v,PetscViewer viewer);
-PetscErrorCode VecScale_Comp(Vec v,PetscScalar alpha);
-PetscErrorCode VecCopy_Comp(Vec v,Vec w);
-PetscErrorCode VecSwap_Comp(Vec v,Vec w);
-PetscErrorCode VecAXPY_Comp(Vec v,PetscScalar alpha,Vec w);
-PetscErrorCode VecAYPX_Comp(Vec v,PetscScalar alpha,Vec w);
-PetscErrorCode VecAXPBY_Comp(Vec v,PetscScalar alpha,PetscScalar beta,Vec w);
-PetscErrorCode VecMAXPY_Comp(Vec v,PetscInt n,const PetscScalar *alpha,Vec *w);
-PetscErrorCode VecWAXPY_Comp(Vec v,PetscScalar alpha,Vec w,Vec z);
-PetscErrorCode VecAXPBYPCZ_Comp(Vec v,PetscScalar alpha,PetscScalar beta,PetscScalar gamma,Vec w,Vec z);
-PetscErrorCode VecPointwiseMult_Comp(Vec v,Vec w,Vec z);
-PetscErrorCode VecPointwiseDivide_Comp(Vec v,Vec w,Vec z);
-PetscErrorCode VecGetSize_Comp(Vec v,PetscInt *size);
-PetscErrorCode VecGetLocalSize_Comp(Vec v,PetscInt *size);
-PetscErrorCode VecMax_Comp(Vec v,PetscInt *idx,PetscReal *z);
-PetscErrorCode VecMin_Comp(Vec v,PetscInt *idx,PetscReal *z);
-PetscErrorCode VecSetRandom_Comp(Vec v,PetscRandom r);
-PetscErrorCode VecConjugate_Comp(Vec v);
-PetscErrorCode VecReciprocal_Comp(Vec v);
-PetscErrorCode VecMaxPointwiseDivide_Comp(Vec v,Vec w,PetscReal *m);
-PetscErrorCode VecPointwiseMax_Comp(Vec v,Vec w,Vec z);
-PetscErrorCode VecPointwiseMaxAbs_Comp(Vec v,Vec w,Vec z);
-PetscErrorCode VecPointwiseMin_Comp(Vec v,Vec w,Vec z);
-PetscErrorCode VecDotNorm2_Comp_Seq(Vec v,Vec w,PetscScalar *dp,PetscScalar *nm);
-PetscErrorCode VecDotNorm2_Comp_MPI(Vec v,Vec w,PetscScalar *dp,PetscScalar *nm);
-PetscErrorCode VecSqrtAbs_Comp(Vec v);
-PetscErrorCode VecAbs_Comp(Vec v);
-PetscErrorCode VecExp_Comp(Vec v);
-PetscErrorCode VecLog_Comp(Vec v);
-PetscErrorCode VecShift_Comp(Vec v,PetscScalar alpha);
+PetscErrorCode VecDuplicateVecs_Comp(Vec,PetscInt,Vec*[]);
+PetscErrorCode VecDestroyVecs_Comp(PetscInt,Vec[]);
+PetscErrorCode VecDuplicate_Comp(Vec,Vec*);
+PetscErrorCode VecDestroy_Comp(Vec);
+PetscErrorCode VecSet_Comp(Vec,PetscScalar);
+PetscErrorCode VecView_Comp(Vec,PetscViewer);
+PetscErrorCode VecScale_Comp(Vec,PetscScalar);
+PetscErrorCode VecCopy_Comp(Vec,Vec);
+PetscErrorCode VecSwap_Comp(Vec,Vec);
+PetscErrorCode VecAXPY_Comp(Vec,PetscScalar,Vec);
+PetscErrorCode VecAYPX_Comp(Vec,PetscScalar,Vec);
+PetscErrorCode VecAXPBY_Comp(Vec,PetscScalar,PetscScalar,Vec);
+PetscErrorCode VecMAXPY_Comp(Vec,PetscInt,const PetscScalar*,Vec*);
+PetscErrorCode VecWAXPY_Comp(Vec,PetscScalar,Vec,Vec);
+PetscErrorCode VecAXPBYPCZ_Comp(Vec,PetscScalar,PetscScalar,PetscScalar,Vec,Vec);
+PetscErrorCode VecPointwiseMult_Comp(Vec,Vec,Vec);
+PetscErrorCode VecPointwiseDivide_Comp(Vec,Vec,Vec);
+PetscErrorCode VecGetSize_Comp(Vec,PetscInt*);
+PetscErrorCode VecGetLocalSize_Comp(Vec,PetscInt*);
+PetscErrorCode VecMax_Comp(Vec,PetscInt*,PetscReal*);
+PetscErrorCode VecMin_Comp(Vec,PetscInt*,PetscReal*);
+PetscErrorCode VecSetRandom_Comp(Vec,PetscRandom);
+PetscErrorCode VecConjugate_Comp(Vec);
+PetscErrorCode VecReciprocal_Comp(Vec);
+PetscErrorCode VecMaxPointwiseDivide_Comp(Vec,Vec,PetscReal*);
+PetscErrorCode VecPointwiseMax_Comp(Vec,Vec,Vec);
+PetscErrorCode VecPointwiseMaxAbs_Comp(Vec,Vec,Vec);
+PetscErrorCode VecPointwiseMin_Comp(Vec,Vec,Vec);
+PetscErrorCode VecDotNorm2_Comp_Seq(Vec,Vec,PetscScalar*,PetscScalar*);
+PetscErrorCode VecDotNorm2_Comp_MPI(Vec,Vec,PetscScalar*,PetscScalar*);
+PetscErrorCode VecSqrtAbs_Comp(Vec);
+PetscErrorCode VecAbs_Comp(Vec);
+PetscErrorCode VecExp_Comp(Vec);
+PetscErrorCode VecLog_Comp(Vec);
+PetscErrorCode VecShift_Comp(Vec,PetscScalar);
 
 #endif
