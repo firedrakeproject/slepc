@@ -592,7 +592,8 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   STType         cstr;
-  const char*    str;
+  const char*    pat;
+  char           str[50];
   PetscBool      isascii,isstring,flg;
   PC             pc;
 
@@ -611,11 +612,8 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
       ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-#if !defined(PETSC_USE_COMPLEX)
-    ierr = PetscViewerASCIIPrintf(viewer,"  shift: %G\n",st->sigma);CHKERRQ(ierr);
-#else
-    ierr = PetscViewerASCIIPrintf(viewer,"  shift: %G+%G i\n",PetscRealPart(st->sigma),PetscImaginaryPart(st->sigma));CHKERRQ(ierr);
-#endif
+    ierr = SlepcSNPrintfScalar(str,50,st->sigma,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  shift: %s\n",str);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of matrices: %D\n",st->nmat);CHKERRQ(ierr);
     switch (st->shift_matrix) {
     case ST_MATMODE_COPY:
@@ -629,12 +627,12 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     }
     if (st->nmat>1 && st->shift_matrix != ST_MATMODE_SHELL) { 
       switch (st->str) {
-        case SAME_NONZERO_PATTERN:      str = "same nonzero pattern";break;
-        case DIFFERENT_NONZERO_PATTERN: str = "different nonzero pattern";break;
-        case SUBSET_NONZERO_PATTERN:    str = "subset nonzero pattern";break;
+        case SAME_NONZERO_PATTERN:      pat = "same nonzero pattern";break;
+        case DIFFERENT_NONZERO_PATTERN: pat = "different nonzero pattern";break;
+        case SUBSET_NONZERO_PATTERN:    pat = "subset nonzero pattern";break;
         default: SETERRQ(PetscObjectComm((PetscObject)st),1,"Wrong structure flag");
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"  all matrices have %s\n",str);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  all matrices have %s\n",pat);CHKERRQ(ierr);
     }
   } else if (isstring) {
     ierr = STGetType(st,&cstr);CHKERRQ(ierr);

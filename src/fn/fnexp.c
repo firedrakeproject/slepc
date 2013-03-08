@@ -62,6 +62,7 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscBool      isascii;
+  char           str[50];
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -70,13 +71,17 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
       if (!fn->na) {
         ierr = PetscViewerASCIIPrintf(viewer,"  Exponential: exp(x)\n");CHKERRQ(ierr);
       } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"  Exponential: exp(%3.1F*x)\n",fn->alpha[0]);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->alpha[0],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  Exponential: exp(%s*x)\n",str);CHKERRQ(ierr);
       }
     } else {
+      ierr = SlepcSNPrintfScalar(str,50,fn->beta[0],PETSC_TRUE);CHKERRQ(ierr);
       if (!fn->na) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  Exponential: %3.1F*exp(x)\n",fn->beta[0]);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  Exponential: %s*exp(x)\n",str);CHKERRQ(ierr);
       } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"  Exponential: %3.1F*exp(%3.1F*x)\n",fn->beta[0],fn->alpha[0]);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  Exponential: %s",str);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->alpha[0],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"*exp(%s*x)\n",str);CHKERRQ(ierr);
       }
     }
   }  

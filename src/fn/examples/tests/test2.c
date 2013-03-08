@@ -29,7 +29,8 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   FN             fn;
-  PetscScalar    x,y,yp,tau=-0.2,eta=1.3;
+  PetscScalar    x,y,yp,tau,eta;
+  char           str[50];
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
@@ -40,18 +41,24 @@ int main(int argc,char **argv)
   x = 2.2;
   ierr = FNEvaluateFunction(fn,x,&y);CHKERRQ(ierr);
   ierr = FNEvaluateDerivative(fn,x,&yp);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%3.1F)=%G\n",x,y);CHKERRQ(ierr); 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%3.1F)=%G\n",x,yp);CHKERRQ(ierr); 
+  ierr = SlepcSNPrintfScalar(str,50,y,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%3.1F)=%s\n",x,str);CHKERRQ(ierr); 
+  ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%3.1F)=%s\n",x,str);CHKERRQ(ierr); 
 
   /* exponential with scaling factors eta*exp(tau*x) */
   ierr = FNSetType(fn,FNEXP);CHKERRQ(ierr);
+  tau = -0.2;
+  eta = 1.3;
   ierr = FNSetParameters(fn,1,&tau,1,&eta);CHKERRQ(ierr);
   ierr = FNView(fn,NULL);CHKERRQ(ierr);
   x = 2.2;
   ierr = FNEvaluateFunction(fn,x,&y);CHKERRQ(ierr);
   ierr = FNEvaluateDerivative(fn,x,&yp);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%3.1F)=%G\n",x,y);CHKERRQ(ierr); 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%3.1F)=%G\n",x,yp);CHKERRQ(ierr); 
+  ierr = SlepcSNPrintfScalar(str,50,y,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%3.1F)=%s\n",x,str);CHKERRQ(ierr); 
+  ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%3.1F)=%s\n",x,str);CHKERRQ(ierr); 
 
   ierr = FNDestroy(&fn);CHKERRQ(ierr);
   ierr = SlepcFinalize();

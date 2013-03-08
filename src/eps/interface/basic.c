@@ -136,6 +136,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   const char     *type,*extr,*bal;
+  char           str[50];
   PetscBool      isascii,ispower,isexternal;
 
   PetscFunctionBegin;
@@ -199,6 +200,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
+    ierr = SlepcSNPrintfScalar(str,50,eps->target,PETSC_FALSE);CHKERRQ(ierr);
     if (!eps->which) {
       ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
     } else switch (eps->which) {
@@ -206,24 +208,14 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"user defined\n");CHKERRQ(ierr);
         break;
       case EPS_TARGET_MAGNITUDE:
-#if !defined(PETSC_USE_COMPLEX)
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G (in magnitude)\n",eps->target);CHKERRQ(ierr);
-#else
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G+%G i (in magnitude)\n",PetscRealPart(eps->target),PetscImaginaryPart(eps->target));CHKERRQ(ierr);
-#endif
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (in magnitude)\n",str);CHKERRQ(ierr);
         break;
       case EPS_TARGET_REAL:
-#if !defined(PETSC_USE_COMPLEX)
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G (along the real axis)\n",eps->target);CHKERRQ(ierr);
-#else
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G+%G i (along the real axis)\n",PetscRealPart(eps->target),PetscImaginaryPart(eps->target));CHKERRQ(ierr);
-#endif
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the real axis)\n",str);CHKERRQ(ierr);
         break;
-#if defined(PETSC_USE_COMPLEX)
       case EPS_TARGET_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G+%G i (along the imaginary axis)\n",PetscRealPart(eps->target),PetscImaginaryPart(eps->target));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the imaginary axis)\n",str);CHKERRQ(ierr);
         break;
-#endif
       case EPS_LARGEST_MAGNITUDE:
         ierr = PetscViewerASCIIPrintf(viewer,"largest eigenvalues in magnitude\n");CHKERRQ(ierr);
         break;

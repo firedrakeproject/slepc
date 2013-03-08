@@ -353,14 +353,12 @@ PetscErrorCode STCayleyGetAntishift(ST st,PetscScalar *nu)
 PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
 {
   PetscErrorCode ierr;
+  char           str[50];
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
-#if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscViewerASCIIPrintf(viewer,"  Cayley: antishift: %G\n",ctx->nu);CHKERRQ(ierr);
-#else
-  ierr = PetscViewerASCIIPrintf(viewer,"  Cayley: antishift: %G+%G i\n",PetscRealPart(ctx->nu),PetscImaginaryPart(ctx->nu));CHKERRQ(ierr);
-#endif
+  ierr = SlepcSNPrintfScalar(str,50,ctx->nu,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  Cayley: antishift: %s\n",str);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

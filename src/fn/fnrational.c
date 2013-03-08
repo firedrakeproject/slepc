@@ -87,6 +87,7 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
   PetscErrorCode ierr;
   PetscBool      isascii;
   PetscInt       i;
+  char           str[50];
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -95,30 +96,39 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
       if (!fn->na) {
         ierr = PetscViewerASCIIPrintf(viewer,"  Constant: 1.0\n");CHKERRQ(ierr);
       } else if (fn->na==1) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  Constant: %3.1F\n",fn->alpha[0]);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->alpha[0],PETSC_FALSE);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  Constant: %s\n",str);CHKERRQ(ierr);
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"  Polynomial: ");CHKERRQ(ierr);
         for (i=0;i<fn->na-1;i++) {
-          ierr = PetscViewerASCIIPrintf(viewer,"%+3.1F*x^%1D",fn->alpha[i],fn->na-i-1);CHKERRQ(ierr);
+          ierr = SlepcSNPrintfScalar(str,50,fn->alpha[i],PETSC_TRUE);CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,fn->na-i-1);CHKERRQ(ierr);
         }
-        ierr = PetscViewerASCIIPrintf(viewer,"%+3.1F\n",fn->alpha[fn->na-1]);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->alpha[fn->na-1],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%s\n",str);CHKERRQ(ierr);
       }
     } else if (!fn->na) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Inverse polinomial: 1 / (");CHKERRQ(ierr);
       for (i=0;i<fn->nb-1;i++) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%+3.1F*x^%1D",fn->beta[i],fn->nb-i-1);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->beta[i],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,fn->nb-i-1);CHKERRQ(ierr);
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"%+3.1F)\n",fn->beta[fn->nb-1]);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,50,fn->beta[fn->nb-1],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s)\n",str);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  Rational function: (");CHKERRQ(ierr);
       for (i=0;i<fn->na-1;i++) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%+3.1F*x^%1D",fn->alpha[i],fn->na-i-1);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->alpha[i],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,fn->na-i-1);CHKERRQ(ierr);
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"%+3.1F) / (",fn->alpha[fn->na-1]);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->alpha[fn->na-1],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s) / (",str);CHKERRQ(ierr);
       for (i=0;i<fn->nb-1;i++) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%+3.1F*x^%1D",fn->beta[i],fn->nb-i-1);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->beta[i],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,fn->nb-i-1);CHKERRQ(ierr);
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"%+3.1F)\n",fn->beta[fn->nb-1]);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,50,fn->beta[fn->nb-1],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s)\n",str);CHKERRQ(ierr);
     }
   }  
   PetscFunctionReturn(0);

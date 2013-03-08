@@ -745,3 +745,54 @@ PetscErrorCode SlepcBasisDestroy_Private(PetscInt *m,Vec **W)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "SlepcSNPrintfScalar"
+/*@C
+   SlepcSNPrintfScalar - Prints a PetscScalar variable to a string of
+   given length.
+ 
+   Not Collective
+
+   Input Parameters:
++  str - the string to print to
+.  len - the length of str
+.  val - scalar value to be printed
+-  exp - to be used within an expression, print leading sign and parentheses
+         in case of nonzero imaginary part
+
+   Level: developer
+@*/
+PetscErrorCode SlepcSNPrintfScalar(char *str,size_t len,PetscScalar val,PetscBool exp)
+{
+  PetscErrorCode ierr;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      re,im;
+#endif
+
+  PetscFunctionBegin;
+#if !defined(PETSC_USE_COMPLEX)
+  if (exp) {
+    ierr = PetscSNPrintf(str,len,"%+G",val);CHKERRQ(ierr);
+  } else {
+    ierr = PetscSNPrintf(str,len,"%G",val);CHKERRQ(ierr);
+  }
+#else
+  re = PetscRealPart(val);
+  im = PetscImaginaryPart(val);
+  if (im!=0.0) {
+    if (exp) {
+      ierr = PetscSNPrintf(str,len,"+(%G%+G i)",re,im);CHKERRQ(ierr);
+    } else {
+      ierr = PetscSNPrintf(str,len,"%G%+G i",re,im);CHKERRQ(ierr);
+    }
+  } else {
+    if (exp) {
+      ierr = PetscSNPrintf(str,len,"%+G",re,im);CHKERRQ(ierr);
+    } else {
+      ierr = PetscSNPrintf(str,len,"%G",re,im);CHKERRQ(ierr);
+    }
+  }
+#endif
+  PetscFunctionReturn(0);
+}
+

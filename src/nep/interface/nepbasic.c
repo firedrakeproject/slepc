@@ -134,6 +134,7 @@ PetscErrorCode NEPInitializePackage(const char *path)
 PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
+  char           str[50];
   PetscBool      isascii,isslp;
 
   PetscFunctionBegin;
@@ -151,28 +152,19 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
+    ierr = SlepcSNPrintfScalar(str,50,nep->target,PETSC_FALSE);CHKERRQ(ierr);
     if (!nep->which) {
       ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
     } else switch (nep->which) {
       case NEP_TARGET_MAGNITUDE:
-#if !defined(PETSC_USE_COMPLEX)
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G (in magnitude)\n",nep->target);CHKERRQ(ierr);
-#else
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G+%G i (in magnitude)\n",PetscRealPart(nep->target),PetscImaginaryPart(nep->target));CHKERRQ(ierr);
-#endif
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (in magnitude)\n",str);CHKERRQ(ierr);
         break;
       case NEP_TARGET_REAL:
-#if !defined(PETSC_USE_COMPLEX)
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G (along the real axis)\n",nep->target);CHKERRQ(ierr);
-#else
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G+%G i (along the real axis)\n",PetscRealPart(nep->target),PetscImaginaryPart(nep->target));CHKERRQ(ierr);
-#endif
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the real axis)\n",str);CHKERRQ(ierr);
         break;
-#if defined(PETSC_USE_COMPLEX)
       case NEP_TARGET_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %G+%G i (along the imaginary axis)\n",PetscRealPart(nep->target),PetscImaginaryPart(nep->target));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the imaginary axis)\n",str);CHKERRQ(ierr);
         break;
-#endif
       case NEP_LARGEST_MAGNITUDE:
         ierr = PetscViewerASCIIPrintf(viewer,"largest eigenvalues in magnitude\n");CHKERRQ(ierr);
         break;
