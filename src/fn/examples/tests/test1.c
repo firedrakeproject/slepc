@@ -38,7 +38,7 @@ int main(int argc,char **argv)
 
   /* polynomial p(x) */
   na = 5;
-  p[0] = -3.1-0.1*PETSC_i; p[1] = 1.1; p[2] = 1.0+0.1*PETSC_i; p[3] = -2.0; p[4] = 3.5;
+  p[0] = -3.1; p[1] = 1.1; p[2] = 1.0; p[3] = -2.0; p[4] = 3.5;
   ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
   ierr = FNSetParameters(fn,na,p,0,NULL);CHKERRQ(ierr);
   ierr = FNView(fn,NULL);CHKERRQ(ierr);
