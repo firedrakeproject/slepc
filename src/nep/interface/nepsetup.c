@@ -79,9 +79,13 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
 
   /* set problem dimensions */
-  ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = VecDestroy(&nep->t);CHKERRQ(ierr);
-  ierr = MatGetVecs(T,&nep->t,NULL);CHKERRQ(ierr);
+  if (nep->split) {
+    ierr = MatGetVecs(nep->A[0],&nep->t,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = MatGetVecs(T,&nep->t,NULL);CHKERRQ(ierr);
+  }
   ierr = VecGetSize(nep->t,&nep->n);CHKERRQ(ierr);
   ierr = VecGetLocalSize(nep->t,&nep->nloc);CHKERRQ(ierr);
 

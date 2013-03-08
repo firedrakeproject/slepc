@@ -64,6 +64,8 @@ struct _p_NEP {
   PetscReal      ttol;             /* tolerance used in the convergence criterion */
   PetscBool      trackall;         /* whether all the residuals must be computed */
   NEPWhich       which;            /* which part of the spectrum to be sought */
+  PetscBool      split;            /* the nonlinear operator has been set in
+                                      split form, otherwise user callbacks are used */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*computefunction)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
@@ -77,6 +79,9 @@ struct _p_NEP {
   void           *functionctx;
   Mat            jacobian;
   void           *jacobianctx;
+  PetscInt       nt;               /* number of terms in split form */
+  Mat            *A;               /* matrix coefficients of split form */
+  FN             *f;               /* matrix functions of split form */
 
   /*------------------------- Working data --------------------------*/
   Vec            *V;               /* set of basis vectors and computed eigenvectors */

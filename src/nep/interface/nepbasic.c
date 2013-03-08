@@ -151,6 +151,11 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       ierr = (*nep->ops->view)(nep,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
+    if (nep->split) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator in split form\n");CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator from user callbacks\n");CHKERRQ(ierr);
+    }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = SlepcSNPrintfScalar(str,50,nep->target,PETSC_FALSE);CHKERRQ(ierr);
     if (!nep->which) {
@@ -282,6 +287,10 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->errest          = NULL;
   nep->data            = NULL;
   nep->t               = NULL;
+  nep->split           = PETSC_FALSE;
+  nep->nt              = 0;
+  nep->A               = NULL;
+  nep->f               = NULL;
   nep->nconv           = 0;
   nep->its             = 0;
   nep->perm            = NULL;
@@ -471,6 +480,7 @@ PetscErrorCode NEPReset(NEP nep)
 PetscErrorCode NEPDestroy(NEP *nep)
 {
   PetscErrorCode ierr;
+  PetscInt       i;
 
   PetscFunctionBegin;
   if (!*nep) PetscFunctionReturn(0);
@@ -485,6 +495,13 @@ PetscErrorCode NEPDestroy(NEP *nep)
   ierr = MatDestroy(&(*nep)->function);CHKERRQ(ierr);
   ierr = MatDestroy(&(*nep)->function_pre);CHKERRQ(ierr);
   ierr = MatDestroy(&(*nep)->jacobian);CHKERRQ(ierr);
+  if ((*nep)->split) {
+    ierr = MatDestroyMatrices((*nep)->nt,&(*nep)->A);CHKERRQ(ierr);
+    for (i=0;i<(*nep)->nt;i++) {
+      ierr = FNDestroy(&(*nep)->f[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree((*nep)->f);CHKERRQ(ierr);
+  }
   ierr = PetscRandomDestroy(&(*nep)->rand);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*nep)->nini,&(*nep)->IS);CHKERRQ(ierr);
@@ -805,6 +822,7 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,Pets
     ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
     nep->function_pre = B;
   }
+  nep->split = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -883,6 +901,7 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScala
     ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
     nep->jacobian = A;
   }
+  nep->split = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -913,6 +932,132 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
   if (A)   *A   = nep->jacobian;
   if (jac) *jac = nep->computejacobian;
   if (ctx) *ctx = nep->jacobianctx;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetSplitOperator"
+/*@
+   NEPSetSplitOperator - Sets the operator of the nonlinear eigenvalue problem
+   in split form. 
+
+   Collective on NEP, Mat and FN
+
+   Input Parameters:
++  nep - the nonlinear eigensolver context
+.  n   - number of terms in the split form
+.  A   - array of matrices
+-  f   - array of functions
+
+   Notes:
+   The nonlinear operator is written as T(lambda) = sum_i A_i*f_i(lambda),
+   for i=1,...,n. The derivative T'(lambda) can be obtained using the
+   derivatives of f_i.
+
+   This function must be called before NEPSetUp(). If it is called again
+   after NEPSetUp() then the NEP object is reset.
+
+   Level: intermediate
+
+.seealso: NEPGetSplitOperator(), NEPGetNumSplitTerms()
+ @*/
+PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[])
+{
+  PetscInt       i;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(nep,n,2);
+  if (n <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more terms, you have %D",n);
+  PetscValidPointer(A,3);
+  PetscCheckSameComm(nep,1,*A,3);
+  PetscValidPointer(f,4);
+  PetscCheckSameComm(nep,1,*f,4);
+  if (nep->setupcalled) { ierr = NEPReset(nep);CHKERRQ(ierr); }
+  /* clean previously stored information */
+  ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
+  ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
+  ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
+  if (nep->split) {
+    ierr = MatDestroyMatrices(nep->nt,&nep->A);CHKERRQ(ierr);
+    for (i=0;i<nep->nt;i++) {
+      ierr = FNDestroy(&nep->f[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(nep->f);CHKERRQ(ierr);
+  }
+  /* allocate space and copy matrices and functions */
+  ierr = PetscMalloc(n*sizeof(Mat),&nep->A);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
+    ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
+    nep->A[i] = A[i];
+  }
+  ierr = PetscMalloc(n*sizeof(FN),&nep->f);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    PetscValidHeaderSpecific(f[i],FN_CLASSID,3);
+    ierr = PetscObjectReference((PetscObject)f[i]);CHKERRQ(ierr);
+    nep->f[i] = f[i];
+  }
+  nep->nt    = n;
+  nep->split = PETSC_TRUE;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPGetSplitOperator"
+/*@
+   NEPGetSplitOperator - Gets the matrices and functions associated with
+   the nonlinear operator in split form.
+
+   Not collective, though parallel Mats and FNs are returned if the NEP is parallel
+
+   Input Parameter:
++  nep - the nonlinear eigensolver context
+-  k   - the index of the requested term (starting in 0)
+
+   Output Parameters:
++  A - the matrix of the requested term
+-  f - the function of the requested term
+
+   Level: intermediate
+
+.seealso: NEPSetSplitOperator()
+@*/
+PetscErrorCode NEPGetSplitOperator(NEP nep,PetscInt k,Mat *A,FN *f)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  if (k<0 || k>=nep->nt) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",nep->nt-1);
+  if (A) *A = nep->A[k];
+  if (f) *f = nep->f[k];
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPGetNumSplitTerms"
+/*@
+   NEPGetNumSplitTerms - Returns the number of terms of the split form of
+   the nonlinear operator.
+
+   Not collective
+
+   Input Parameter:
++  nep - the nonlinear eigensolver context
+
+   Output Parameters:
+.  n - the number of terms passed in NEPSetSplitOperator()
+
+   Level: intermediate
+
+.seealso: NEPSetSplitOperator()
+@*/
+PetscErrorCode NEPGetNumSplitTerms(NEP nep,PetscInt *n)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(n,2);
+  *n = nep->nt;
   PetscFunctionReturn(0);
 }
 
