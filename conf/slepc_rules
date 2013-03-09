@@ -24,10 +24,10 @@ chk_slepcdir:
         newpwd=`echo $${mypwd} | sed "s+$${true_SLEPC_DIR}+DUMMY+g"`;\
         hasslepc=`echo $${mypwd} | sed "s+slepc-+DUMMY+g"`;\
         if [ $${mypwd} = $${newpwd} -a $${hasslepc} != $${mypwd} ]; then \
-          echo ${PETSC_TEXT_RED}"*********************Warning*************************" ; \
+          printf ${PETSC_TEXT_RED}"*********************Warning*************************\n" ; \
           echo "Your SLEPC_DIR may not match the directory you are in";\
           echo "SLEPC_DIR " $${true_SLEPC_DIR} "Current directory" $${mypwd};\
-          echo "******************************************************"${PETSC_TEXT_BLACK} ; \
+          printf "******************************************************"${PETSC_TEXT_BLACK}"\n" ; \
         fi
 
 slepc_manualpages:
