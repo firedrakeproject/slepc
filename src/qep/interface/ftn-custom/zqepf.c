@@ -69,27 +69,27 @@
    These are not usually called from Fortran but allow Fortran users 
    to transparently set these monitors from .F code, hence no STDCALL
 */
-void qepmonitorall_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void qepmonitorall_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = QEPMonitorAll(*qep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 
-void qepmonitorlg_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void qepmonitorlg_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = QEPMonitorLG(*qep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 
-void qepmonitorlgall_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void qepmonitorlgall_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = QEPMonitorLGAll(*qep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 
-void qepmonitorconverged_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void qepmonitorconverged_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = QEPMonitorConverged(*qep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 
-void qepmonitorfirst_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void qepmonitorfirst_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = QEPMonitorFirst(*qep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }

@@ -58,12 +58,12 @@
    These are not usually called from Fortran but allow Fortran users 
    to transparently set these monitors from .F code, hence no STDCALL
 */
-void mfnmonitordefault_(MFN *mfn,PetscInt *it,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void mfnmonitordefault_(MFN *mfn,PetscInt *it,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = MFNMonitorDefault(*mfn,*it,*errest,ctx);
 }
 
-void mfnmonitorlg_(MFN *mfn,PetscInt *it,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void mfnmonitorlg_(MFN *mfn,PetscInt *it,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = MFNMonitorLG(*mfn,*it,*errest,ctx);
 }

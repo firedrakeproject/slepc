@@ -69,27 +69,27 @@
    These are not usually called from Fortran but allow Fortran users 
    to transparently set these monitors from .F code, hence no STDCALL
 */
-void nepmonitorall_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void nepmonitorall_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = NEPMonitorAll(*nep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 
-void nepmonitorlg_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void nepmonitorlg_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = NEPMonitorLG(*nep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 
-void nepmonitorlgall_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void nepmonitorlgall_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = NEPMonitorLGAll(*nep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 
-void nepmonitorconverged_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void nepmonitorconverged_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = NEPMonitorConverged(*nep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
 
-void nepmonitorfirst_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void nepmonitorfirst_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = NEPMonitorFirst(*nep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
 }
