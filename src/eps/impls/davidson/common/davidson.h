@@ -438,7 +438,6 @@ PETSC_INTERN PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard
 PETSC_INTERN PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,IP ip,HarmType_t harmMode,PetscBool fixedTarget,PetscScalar t,KSP ksp,PetscReal fix,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,PetscBool dynamic,Method_t method);
 
 /* BLAS routines */
-PETSC_INTERN PetscErrorCode SlepcDenseMatProd(PetscScalar *C,PetscInt _ldC,PetscScalar b,PetscScalar a,const PetscScalar *A,PetscInt _ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,PetscInt _ldB,PetscInt rB,PetscInt cB,PetscBool Bt);
 PETSC_INTERN PetscErrorCode SlepcDenseMatProdTriang(PetscScalar *C,MatType_t sC,PetscInt ldC,const PetscScalar *A,MatType_t sA,PetscInt ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,MatType_t sB,PetscInt ldB,PetscInt rB,PetscInt cB,PetscBool Bt);
 PETSC_INTERN PetscErrorCode SlepcDenseNorm(PetscScalar *A,PetscInt ldA,PetscInt _rA,PetscInt cA,PetscScalar *eigi);
 PETSC_INTERN PetscErrorCode SlepcDenseCopy(PetscScalar *Y,PetscInt ldY,PetscScalar *X,PetscInt ldX,PetscInt rX,PetscInt cX);

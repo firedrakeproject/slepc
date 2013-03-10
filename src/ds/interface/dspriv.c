@@ -24,8 +24,6 @@
 #include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode SlepcDenseMatProd(PetscScalar *C,PetscInt _ldC,PetscScalar b,PetscScalar a,const PetscScalar *A,PetscInt _ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,PetscInt _ldB,PetscInt rB,PetscInt cB,PetscBool Bt);
-
 #undef __FUNCT__
 #define __FUNCT__ "DSAllocateMat_Private"
 PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)

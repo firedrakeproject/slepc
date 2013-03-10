@@ -25,6 +25,7 @@
 
 #include "finclude/slepcipdef.h"
 #include "finclude/slepcdsdef.h"
+#include "finclude/slepcfndef.h"
 #include "finclude/slepcepsdef.h"
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
