@@ -54,9 +54,9 @@ int main(int argc,char **argv)
   Mat            mats[3];
   FN             funs[3];
   NEPType        type;
-  PetscScalar    value[3],coeffs[2];
+  PetscScalar    value[3],coeffs[2],b;
   PetscInt       n=128,nev,Istart,Iend,col[3],i,its,nconv;
-  PetscReal      tau=0.001,h,a=20,b,xi,re,im,norm;
+  PetscReal      tau=0.001,h,a=20,xi,re,im,norm;
   PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
   PetscErrorCode ierr;
 
@@ -122,7 +122,7 @@ int main(int argc,char **argv)
   ierr = MatSetUp(B);CHKERRQ(ierr);
   ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
   for (i=Istart;i<Iend;i++) {
-    xi = (i+1)*PETSC_PI/(PetscReal)(n+1);
+    xi = (i+1)*h;
     b = -4.1+xi*(1.0-PetscExpReal(xi-PETSC_PI));
     ierr = MatSetValues(B,1,&i,1,&i,&b,INSERT_VALUES);CHKERRQ(ierr);
   }

@@ -49,6 +49,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
+  ST             st;
   
   PetscFunctionBegin;
   if (nep->ncv) { /* ncv set */
@@ -70,6 +71,8 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
 
   ierr = EPSSetWhichEigenpairs(ctx->eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSetTarget(ctx->eps,0.0);CHKERRQ(ierr);
+  ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
+  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = EPSSetDimensions(ctx->eps,1,nep->ncv,nep->mpd);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->rtol/10.0,nep->max_it);CHKERRQ(ierr);
   if (ctx->setfromoptionscalled) {
