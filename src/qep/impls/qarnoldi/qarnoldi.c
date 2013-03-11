@@ -68,7 +68,7 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
   }
 
   ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
-  ierr = QEPSetWorkVecs_Private(qep,4);CHKERRQ(ierr);
+  ierr = QEPSetWorkVecs(qep,4);CHKERRQ(ierr);
 
   ierr = DSSetType(qep->ds,DSNHEP);CHKERRQ(ierr);
   ierr = DSSetExtraRow(qep->ds,PETSC_TRUE);CHKERRQ(ierr);
@@ -308,25 +308,13 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "QEPReset_QArnoldi"
-PetscErrorCode QEPReset_QArnoldi(QEP qep)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = QEPFreeWorkVecs_Private(qep);CHKERRQ(ierr);
-  ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "QEPCreate_QArnoldi"
 PETSC_EXTERN PetscErrorCode QEPCreate_QArnoldi(QEP qep)
 {
   PetscFunctionBegin;
   qep->ops->solve                = QEPSolve_QArnoldi;
   qep->ops->setup                = QEPSetUp_QArnoldi;
-  qep->ops->reset                = QEPReset_QArnoldi;
+  qep->ops->reset                = QEPReset_Default;
   PetscFunctionReturn(0);
 }
 

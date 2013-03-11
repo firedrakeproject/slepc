@@ -25,11 +25,36 @@
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
-#define __FUNCT__ "QEPSetWorkVecs_Private"
-/*
-  QEPSetWorkVecs_Private - Allocate a number of work vectors.
- */
-PetscErrorCode QEPSetWorkVecs_Private(QEP qep,PetscInt nw)
+#define __FUNCT__ "QEPReset_Default"
+PetscErrorCode QEPReset_Default(QEP qep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = VecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
+  qep->nwork = 0;
+  ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPSetWorkVecs"
+/*@
+   QEPSetWorkVecs - Sets a number of work vectors into a QEP object
+
+   Collective on QEP
+
+   Input Parameters:
++  qep - quadratic eigensolver context
+-  nw  - number of work vectors to allocate
+
+   Developers Note:
+   This is PETSC_EXTERN because it may be required by user plugin QEP
+   implementations.
+
+   Level: developer
+@*/
+PetscErrorCode QEPSetWorkVecs(QEP qep,PetscInt nw)
 {
   PetscErrorCode ierr;
 
@@ -40,20 +65,6 @@ PetscErrorCode QEPSetWorkVecs_Private(QEP qep,PetscInt nw)
     ierr = VecDuplicateVecs(qep->t,nw,&qep->work);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(qep,nw,qep->work);CHKERRQ(ierr);
   }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "QEPFreeWorkVecs_Private"
-/*
-  QEPFreeWorkVecs_Private - Free work vectors.
- */
-PetscErrorCode QEPFreeWorkVecs_Private(QEP qep)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = VecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

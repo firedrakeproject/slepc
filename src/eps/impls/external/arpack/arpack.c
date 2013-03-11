@@ -72,7 +72,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-  ierr = EPSSetWorkVecs_Private(eps,2);CHKERRQ(ierr);
+  ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
@@ -305,8 +305,7 @@ PetscErrorCode EPSReset_ARPACK(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(ar->rwork);CHKERRQ(ierr); 
 #endif
-  ierr = EPSFreeWorkVecs_Private(eps);CHKERRQ(ierr);
-  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
+  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

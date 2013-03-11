@@ -140,9 +140,9 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->arbitrary) {
-    ierr = EPSSetWorkVecs_Private(eps,3);CHKERRQ(ierr);
+    ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
   } else {
-    ierr = EPSSetWorkVecs_Private(eps,1);CHKERRQ(ierr);
+    ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
   }
 
   /* dispatch solve method */

@@ -92,9 +92,9 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
-    ierr = EPSSetWorkVecs_Private(eps,2);CHKERRQ(ierr);
+    ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
   } else {
-    ierr = EPSSetWorkVecs_Private(eps,1);CHKERRQ(ierr);
+    ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
   }
 
   /* dispatch solve method */

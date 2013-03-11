@@ -471,8 +471,8 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep,PetscScalar kr,PetscScalar
    Collective on QEP
 
    Input Parameter:
-.  qep - the quadratic eigensolver context
-.  i   - the solution index
++  qep - the quadratic eigensolver context
+-  i   - the solution index
 
    Output Parameter:
 .  norm - the residual norm, computed as ||(l^2*M+l*C+K)x||_2 where l is the 
@@ -555,8 +555,8 @@ PetscErrorCode QEPComputeRelativeError_Private(QEP qep,PetscScalar kr,PetscScala
    Collective on QEP
 
    Input Parameter:
-.  qep - the quadratic eigensolver context
-.  i   - the solution index
++  qep - the quadratic eigensolver context
+-  i   - the solution index
 
    Output Parameter:
 .  error - the relative error bound, computed as ||(l^2*M+l*C+K)x||_2/||lx||_2 where 

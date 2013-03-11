@@ -301,6 +301,8 @@ M*/
 #define EPSRegisterDynamic(a,b,c,d) EPSRegister(a,b,c,d)
 #endif
 
+PETSC_EXTERN PetscErrorCode EPSSetWorkVecs(EPS,PetscInt);
+
 /* --------- options specific to particular eigensolvers -------- */
 
 /*E

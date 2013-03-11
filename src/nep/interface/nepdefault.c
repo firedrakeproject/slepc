@@ -25,11 +25,36 @@
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPSetWorkVecs_Private"
-/*
-  NEPSetWorkVecs_Private - Allocate a number of work vectors.
- */
-PetscErrorCode NEPSetWorkVecs_Private(NEP nep,PetscInt nw)
+#define __FUNCT__ "NEPReset_Default"
+PetscErrorCode NEPReset_Default(NEP nep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
+  nep->nwork = 0;
+  ierr = NEPFreeSolution(nep);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetWorkVecs"
+/*@
+   NEPSetWorkVecs - Sets a number of work vectors into a NEP object
+
+   Collective on NEP
+
+   Input Parameters:
++  nep - nonlinear eigensolver context
+-  nw  - number of work vectors to allocate
+
+   Developers Note:
+   This is PETSC_EXTERN because it may be required by user plugin NEP
+   implementations.
+
+   Level: developer
+@*/
+PetscErrorCode NEPSetWorkVecs(NEP nep,PetscInt nw)
 {
   PetscErrorCode ierr;
 
@@ -40,20 +65,6 @@ PetscErrorCode NEPSetWorkVecs_Private(NEP nep,PetscInt nw)
     ierr = VecDuplicateVecs(nep->t,nw,&nep->work);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(nep,nw,nep->work);CHKERRQ(ierr);
   }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPFreeWorkVecs_Private"
-/*
-  NEPFreeWorkVecs_Private - Free work vectors.
- */
-PetscErrorCode NEPFreeWorkVecs_Private(NEP nep)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

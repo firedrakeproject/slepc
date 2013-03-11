@@ -646,8 +646,7 @@ PetscErrorCode QEPReset_Linear(QEP qep)
   ierr = VecDestroy(&ctx->x2);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->y1);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->y2);CHKERRQ(ierr);
-  ierr = QEPFreeWorkVecs_Private(qep);CHKERRQ(ierr);
-  ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
+  ierr = QEPReset_Default(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

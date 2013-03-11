@@ -881,8 +881,8 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
    Collective on EPS
 
    Input Parameter:
-.  eps - the eigensolver context
-.  i   - the solution index
++  eps - the eigensolver context
+-  i   - the solution index
 
    Output Parameter:
 .  norm - the residual norm, computed as ||Ax-kBx||_2 where k is the 
@@ -926,8 +926,8 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps,PetscInt i,PetscReal *norm)
    Collective on EPS
 
    Input Parameter:
-.  eps - the eigensolver context
-.  i   - the solution index
++  eps - the eigensolver context
+-  i   - the solution index
 
    Output Parameter:
 .  norm - the residual norm, computed as ||y'A-ky'B||_2 where k is the 
@@ -1048,8 +1048,8 @@ PetscErrorCode EPSComputeRelativeError_Private(EPS eps,PetscScalar kr,PetscScala
    Collective on EPS
 
    Input Parameter:
-.  eps - the eigensolver context
-.  i   - the solution index
++  eps - the eigensolver context
+-  i   - the solution index
 
    Output Parameter:
 .  error - the relative error bound, computed as ||Ax-kBx||_2/||kx||_2 where 
@@ -1089,8 +1089,8 @@ PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *error)
    Collective on EPS
 
    Input Parameter:
-.  eps - the eigensolver context
-.  i   - the solution index
++  eps - the eigensolver context
+-  i   - the solution index
 
    Output Parameter:
 .  error - the relative error bound, computed as ||y'A-ky'B||_2/||ky||_2 where 
@@ -1378,7 +1378,6 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscBool *breakdown
    Level: developer
 
 .seealso: EPSSetInitialSpaceLeft()
-
 @*/
 PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,Vec vec,PetscBool *breakdown)
 {

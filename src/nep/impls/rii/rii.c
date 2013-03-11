@@ -62,7 +62,7 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
   if (!nep->max_funcs) nep->max_funcs = nep->max_it;
 
   ierr = NEPAllocateSolution(nep);CHKERRQ(ierr);
-  ierr = NEPSetWorkVecs_Private(nep,2);CHKERRQ(ierr);
+  ierr = NEPSetWorkVecs(nep,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -166,25 +166,13 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPReset_RII"
-PetscErrorCode NEPReset_RII(NEP nep)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = NEPFreeWorkVecs_Private(nep);CHKERRQ(ierr);
-  ierr = NEPFreeSolution(nep);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "NEPCreate_RII"
 PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
 {
   PetscFunctionBegin;
   nep->ops->solve        = NEPSolve_RII;
   nep->ops->setup        = NEPSetUp_RII;
-  nep->ops->reset        = NEPReset_RII;
+  nep->ops->reset        = NEPReset_Default;
   PetscFunctionReturn(0);
 }
 

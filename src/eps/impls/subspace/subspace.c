@@ -81,7 +81,7 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
     ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
   }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
-  ierr = EPSSetWorkVecs_Private(eps,1);CHKERRQ(ierr);
+  ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");

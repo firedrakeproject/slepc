@@ -401,8 +401,8 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar kr,PetscScalar
    Collective on NEP
 
    Input Parameter:
-.  nep - the nonlinear eigensolver context
-.  i   - the solution index
++  nep - the nonlinear eigensolver context
+-  i   - the solution index
 
    Output Parameter:
 .  norm - the residual norm, computed as ||T(lambda)x||_2 where lambda is the 
@@ -484,8 +484,8 @@ PetscErrorCode NEPComputeRelativeError_Private(NEP nep,PetscScalar kr,PetscScala
    Collective on NEP
 
    Input Parameter:
-.  nep - the nonlinear eigensolver context
-.  i   - the solution index
++  nep - the nonlinear eigensolver context
+-  i   - the solution index
 
    Output Parameter:
 .  error - the relative error bound, computed as ||T(lambda)x||_2/||lambda*x||_2

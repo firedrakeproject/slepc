@@ -125,8 +125,6 @@ struct _p_EPS {
 };
 
 PETSC_INTERN PetscErrorCode EPSReset_Default(EPS);
-PETSC_INTERN PetscErrorCode EPSSetWorkVecs_Private(EPS,PetscInt);
-PETSC_INTERN PetscErrorCode EPSFreeWorkVecs_Private(EPS);
 PETSC_INTERN PetscErrorCode EPSSetWhichEigenpairs_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSAllocateSolution(EPS);
 PETSC_INTERN PetscErrorCode EPSFreeSolution(EPS);

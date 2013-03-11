@@ -214,6 +214,8 @@ M*/
 #define NEPRegisterDynamic(a,b,c,d) NEPRegister(a,b,c,d)
 #endif
 
+PETSC_EXTERN PetscErrorCode NEPSetWorkVecs(NEP,PetscInt);
+
 /* --------- options specific to particular eigensolvers -------- */
 
 PETSC_EXTERN PetscErrorCode NEPSLPSetEPS(NEP,EPS);

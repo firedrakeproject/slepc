@@ -31,7 +31,8 @@ PetscErrorCode EPSReset_Default(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = EPSFreeWorkVecs_Private(eps);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
+  eps->nwork = 0;
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -232,11 +233,23 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSSetWorkVecs_Private"
-/*
-  EPSSetWorkVecs_Private - Allocates a number of work vectors.
- */
-PetscErrorCode EPSSetWorkVecs_Private(EPS eps,PetscInt nw)
+#define __FUNCT__ "EPSSetWorkVecs"
+/*@
+   EPSSetWorkVecs - Sets a number of work vectors into a EPS object
+
+   Collective on EPS
+
+   Input Parameters:
++  eps - eigensolver context
+-  nw  - number of work vectors to allocate
+
+   Developers Note:
+   This is PETSC_EXTERN because it may be required by user plugin EPS
+   implementations.
+
+   Level: developer
+@*/
+PetscErrorCode EPSSetWorkVecs(EPS eps,PetscInt nw)
 {
   PetscErrorCode ierr;
 
@@ -247,21 +260,6 @@ PetscErrorCode EPSSetWorkVecs_Private(EPS eps,PetscInt nw)
     ierr = VecDuplicateVecs(eps->t,nw,&eps->work);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(eps,nw,eps->work);CHKERRQ(ierr);
   }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSFreeWorkVecs_Private"
-/*
-  EPSFreeWorkVecs_Private - Free work vectors.
- */
-PetscErrorCode EPSFreeWorkVecs_Private(EPS eps)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
-  eps->nwork = 0;
   PetscFunctionReturn(0);
 }
 

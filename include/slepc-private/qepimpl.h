@@ -104,8 +104,7 @@ struct _p_QEP {
   PetscInt        numbermonitors; 
 };
 
-PETSC_INTERN PetscErrorCode QEPSetWorkVecs_Private(QEP,PetscInt);
-PETSC_INTERN PetscErrorCode QEPFreeWorkVecs_Private(QEP);
+PETSC_INTERN PetscErrorCode QEPReset_Default(QEP);
 PETSC_INTERN PetscErrorCode QEPAllocateSolution(QEP);
 PETSC_INTERN PetscErrorCode QEPFreeSolution(QEP);
 PETSC_INTERN PetscErrorCode QEPComputeVectors_Schur(QEP);

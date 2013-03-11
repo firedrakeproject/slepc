@@ -215,6 +215,8 @@ M*/
 #define QEPRegisterDynamic(a,b,c,d) QEPRegister(a,b,c,d)
 #endif
 
+PETSC_EXTERN PetscErrorCode QEPSetWorkVecs(QEP,PetscInt);
+
 /* --------- options specific to particular eigensolvers -------- */
 
 PETSC_EXTERN PetscErrorCode QEPLinearSetCompanionForm(QEP,PetscInt);

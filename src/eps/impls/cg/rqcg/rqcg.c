@@ -98,7 +98,7 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->G);CHKERRQ(ierr);
   ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
-  ierr = EPSSetWorkVecs_Private(eps,1);CHKERRQ(ierr);
+  ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
