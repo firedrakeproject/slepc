@@ -995,7 +995,7 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[])
   }
   ierr = PetscMalloc(n*sizeof(FN),&nep->f);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
-    PetscValidHeaderSpecific(f[i],FN_CLASSID,3);
+    PetscValidHeaderSpecific(f[i],FN_CLASSID,4);
     ierr = PetscObjectReference((PetscObject)f[i]);CHKERRQ(ierr);
     nep->f[i] = f[i];
   }
@@ -1043,7 +1043,7 @@ PetscErrorCode NEPGetSplitOperator(NEP nep,PetscInt k,Mat *A,FN *f)
    Not collective
 
    Input Parameter:
-+  nep - the nonlinear eigensolver context
+.  nep - the nonlinear eigensolver context
 
    Output Parameters:
 .  n - the number of terms passed in NEPSetSplitOperator()

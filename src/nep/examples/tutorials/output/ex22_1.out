@@ -1,0 +1,13 @@
+
+1-D Delay Eigenproblem, n=128, tau=0.001
+
+ Number of NEP iterations = 12
+
+ Solution method: rii
+ Number of requested eigenvalues: 1
+ Number of converged approximate eigenpairs: 1
+
+           k              ||T(k)x||
+   ----------------- ------------------
+       0.808885          8.87425e-10
+

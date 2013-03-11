@@ -81,6 +81,8 @@ PetscErrorCode NEPSetUp(NEP nep)
   /* set problem dimensions */
   ierr = VecDestroy(&nep->t);CHKERRQ(ierr);
   if (nep->split) {
+    ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->function);CHKERRQ(ierr);
+    ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->jacobian);CHKERRQ(ierr);
     ierr = MatGetVecs(nep->A[0],&nep->t,NULL);CHKERRQ(ierr);
   } else {
     ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);

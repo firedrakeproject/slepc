@@ -43,11 +43,6 @@ static char help[] = "Delay differential equation.\n\n"
 
 #include <slepcnep.h>
 
-/*
-   User-defined routines
-*/
-PetscErrorCode FixSign(Vec);
-
 #undef __FUNCT__
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
@@ -61,7 +56,7 @@ int main(int argc,char **argv)
   NEPType        type;
   PetscScalar    value[3],coeffs[2];
   PetscInt       n=128,nev,Istart,Iend,col[3],i,its,nconv;
-  PetscReal      tau=0.01,h,a=20,b,xi,re,im,norm;
+  PetscReal      tau=0.001,h,a=20,b,xi,re,im,norm;
   PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
   PetscErrorCode ierr;
 
@@ -161,7 +156,7 @@ int main(int argc,char **argv)
   ierr = NEPSetSplitOperator(nep,3,mats,funs);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-     Customize nonlinear solver; set runtime options
+             Customize nonlinear solver; set runtime options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = NEPSetTolerances(nep,0,1e-9,0,0,0);CHKERRQ(ierr);
@@ -207,15 +202,8 @@ int main(int argc,char **argv)
          "           k              ||T(k)x||\n"
          "   ----------------- ------------------\n");CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
-      /* 
-        Get converged eigenpairs (in this example they are always real)
-      */
       ierr = NEPGetEigenpair(nep,i,&lambda,NULL,NULL,NULL);CHKERRQ(ierr);
-      /*
-         Compute residual norm
-      */
       ierr = NEPComputeRelativeError(nep,i,&norm);CHKERRQ(ierr);
-
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(lambda);
       im = PetscImaginaryPart(lambda);

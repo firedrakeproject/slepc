@@ -715,14 +715,8 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
 
   if (nep->split) {
 
-    if (!*A) {
-      ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,A);CHKERRQ(ierr);
-    } else {
-      ierr = MatCopy(nep->A[0],*A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    }
-    ierr = FNEvaluateFunction(nep->f[0],wr,&alpha);CHKERRQ(ierr);
-    ierr = MatScale(*A,alpha);CHKERRQ(ierr);
-    for (i=1;i<nep->nt;i++) {
+    ierr = MatZeroEntries(*A);CHKERRQ(ierr);
+    for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateFunction(nep->f[i],wr,&alpha);CHKERRQ(ierr);
       ierr = MatAXPY(*A,alpha,nep->A[i],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     }
@@ -783,14 +777,8 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
 
   if (nep->split) {
 
-    if (!*A) {
-      ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,A);CHKERRQ(ierr);
-    } else {
-      ierr = MatCopy(nep->A[0],*A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    }
-    ierr = FNEvaluateDerivative(nep->f[0],wr,&alpha);CHKERRQ(ierr);
-    ierr = MatScale(*A,alpha);CHKERRQ(ierr);
-    for (i=1;i<nep->nt;i++) {
+    ierr = MatZeroEntries(*A);CHKERRQ(ierr);
+    for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateDerivative(nep->f[i],wr,&alpha);CHKERRQ(ierr);
       ierr = MatAXPY(*A,alpha,nep->A[i],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     }
