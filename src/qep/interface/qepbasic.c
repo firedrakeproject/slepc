@@ -597,7 +597,7 @@ PetscErrorCode QEPDestroy(QEP *qep)
   PetscValidHeaderSpecific(*qep,QEP_CLASSID,1);
   if (--((PetscObject)(*qep))->refct > 0) { *qep = 0; PetscFunctionReturn(0); }
   ierr = QEPReset(*qep);CHKERRQ(ierr);
-  ierr = PetscObjectAMSUnPublish(*qep);CHKERRQ(ierr);
+  ierr = PetscObjectAMSUnPublish((PetscObject)*qep);CHKERRQ(ierr);
   if ((*qep)->ops->destroy) { ierr = (*(*qep)->ops->destroy)(*qep);CHKERRQ(ierr); }
   ierr = STDestroy(&(*qep)->st);CHKERRQ(ierr);
   ierr = IPDestroy(&(*qep)->ip);CHKERRQ(ierr);

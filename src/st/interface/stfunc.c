@@ -154,7 +154,7 @@ PetscErrorCode STDestroy(ST *st)
   ierr = STReset(*st);CHKERRQ(ierr);
   ierr = MatDestroyMatrices(PetscMax(2,(*st)->nmat),&(*st)->A);CHKERRQ(ierr);
   ierr = PetscFree((*st)->Astate);CHKERRQ(ierr);
-  ierr = PetscObjectAMSUnPublish(*st);CHKERRQ(ierr);
+  ierr = PetscObjectAMSUnPublish((PetscObject)*st);CHKERRQ(ierr);
   if ((*st)->ops->destroy) { ierr = (*(*st)->ops->destroy)(*st);CHKERRQ(ierr); }
   ierr = VecDestroy(&(*st)->D);CHKERRQ(ierr);
   ierr = KSPDestroy(&(*st)->ksp);CHKERRQ(ierr);
