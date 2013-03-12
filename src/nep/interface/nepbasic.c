@@ -487,7 +487,7 @@ PetscErrorCode NEPDestroy(NEP *nep)
   PetscValidHeaderSpecific(*nep,NEP_CLASSID,1);
   if (--((PetscObject)(*nep))->refct > 0) { *nep = 0; PetscFunctionReturn(0); }
   ierr = NEPReset(*nep);CHKERRQ(ierr);
-  ierr = PetscObjectDepublish(*nep);CHKERRQ(ierr);
+  ierr = PetscObjectAMSUnPublish(*nep);CHKERRQ(ierr);
   if ((*nep)->ops->destroy) { ierr = (*(*nep)->ops->destroy)(*nep);CHKERRQ(ierr); }
   ierr = KSPDestroy(&(*nep)->ksp);CHKERRQ(ierr);
   ierr = IPDestroy(&(*nep)->ip);CHKERRQ(ierr);

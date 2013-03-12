@@ -406,7 +406,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
   PetscValidHeaderSpecific(*svd,SVD_CLASSID,1);
   if (--((PetscObject)(*svd))->refct > 0) { *svd = 0; PetscFunctionReturn(0); }
   ierr = SVDReset(*svd);CHKERRQ(ierr);
-  ierr = PetscObjectDepublish(*svd);CHKERRQ(ierr);
+  ierr = PetscObjectAMSUnPublish(*svd);CHKERRQ(ierr);
   if ((*svd)->ops->destroy) { ierr = (*(*svd)->ops->destroy)(*svd);CHKERRQ(ierr); }
   ierr = IPDestroy(&(*svd)->ip);CHKERRQ(ierr);
   ierr = DSDestroy(&(*svd)->ds);CHKERRQ(ierr);
