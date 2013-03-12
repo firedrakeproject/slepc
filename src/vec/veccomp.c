@@ -35,9 +35,6 @@ PetscErrorCode VecDestroy_Comp(Vec v)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  /* if memory was published with AMS then destroy it */
-  ierr = PetscObjectAMSUnPublish((PetscObject)v);CHKERRQ(ierr);
-
 #if defined(PETSC_USE_LOG)
   PetscLogObjectState((PetscObject)v,"Length=%D",v->map->n);
 #endif

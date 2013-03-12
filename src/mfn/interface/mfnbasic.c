@@ -407,7 +407,6 @@ PetscErrorCode MFNDestroy(MFN *mfn)
   PetscValidHeaderSpecific(*mfn,MFN_CLASSID,1);
   if (--((PetscObject)(*mfn))->refct > 0) { *mfn = 0; PetscFunctionReturn(0); }
   ierr = MFNReset(*mfn);CHKERRQ(ierr);
-  ierr = PetscObjectAMSUnPublish((PetscObject)*mfn);CHKERRQ(ierr);
   if ((*mfn)->ops->destroy) { ierr = (*(*mfn)->ops->destroy)(*mfn);CHKERRQ(ierr); }
   ierr = MatDestroy(&(*mfn)->A);CHKERRQ(ierr);
   ierr = IPDestroy(&(*mfn)->ip);CHKERRQ(ierr);

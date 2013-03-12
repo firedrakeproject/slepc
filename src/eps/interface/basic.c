@@ -681,7 +681,6 @@ PetscErrorCode EPSDestroy(EPS *eps)
   PetscValidHeaderSpecific(*eps,EPS_CLASSID,1);
   if (--((PetscObject)(*eps))->refct > 0) { *eps = 0; PetscFunctionReturn(0); }
   ierr = EPSReset(*eps);CHKERRQ(ierr);
-  ierr = PetscObjectAMSUnPublish((PetscObject)*eps);CHKERRQ(ierr);
   if ((*eps)->ops->destroy) { ierr = (*(*eps)->ops->destroy)(*eps);CHKERRQ(ierr); }
   ierr = STDestroy(&(*eps)->st);CHKERRQ(ierr);
   ierr = IPDestroy(&(*eps)->ip);CHKERRQ(ierr);
