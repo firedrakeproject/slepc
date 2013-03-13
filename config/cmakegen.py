@@ -1,5 +1,19 @@
 #!/usr/bin/env python
 
+# This file generates $SLEPC_DIR/CMakeLists.txt by parsing the makefiles
+# throughout the source tree, reading their constraints and included
+# sources, and encoding the rules through CMake conditionals. When CMake
+# runs, it will use the conditionals written to
+#
+#     $SLEPC_DIR/$PETSC_ARCH/conf/SLEPcConfig.cmake
+#
+# after a successful configure.
+#
+# The generated CMakeLists.txt is independent of PETSC_ARCH.
+#
+# This script supports one option:
+#   --verbose : Show mismatches between makefiles and the filesystem
+
 from __future__ import with_statement  # For python-2.5
 
 import os
@@ -7,6 +21,11 @@ from collections import defaultdict, deque
 
 # Run with --verbose
 VERBOSE = False
+MISTAKES = []
+
+class StdoutLogger(object):
+  def write(self,str):
+    print(str)
 
 def cmakeconditional(key,val):
   def unexpected():
@@ -42,9 +61,11 @@ def pkgsources(pkg):
   autodirs = set('ftn-auto ftn-custom f90-custom'.split()) # Automatically recurse into these, if they exist
   skipdirs = set('examples benchmarks'.split())            # Skip these during the build
   def compareDirLists(mdirs,dirs):
-    if not VERBOSE: return
     smdirs = set(mdirs)
     sdirs  = set(dirs).difference(autodirs)
+    if not smdirs.issubset(sdirs):
+      MISTAKES.append('Makefile contains directory not on filesystem: %s: %r' % (root, sorted(smdirs - sdirs)))
+    if not VERBOSE: return
     if smdirs != sdirs:
       from sys import stderr
       print >>stderr, ('Directory mismatch at %s:\n\t%s: %r\n\t%s: %r\n\t%s: %r'
@@ -53,9 +74,11 @@ def pkgsources(pkg):
                           'on filesystem ',sorted(sdirs),
                           'symmetric diff',sorted(smdirs.symmetric_difference(sdirs))))
   def compareSourceLists(msources, files):
-    if not VERBOSE: return
     smsources = set(msources)
     ssources  = set(f for f in files if os.path.splitext(f)[1] in ['.c', '.cxx', '.cc', '.cpp', '.F'])
+    if not smsources.issubset(ssources):
+      MISTAKES.append('Makefile contains file not on filesystem: %s: %r' % (root, sorted(smsources - ssources)))
+    if not VERBOSE: return
     if smsources != ssources:
       from sys import stderr
       print >>stderr, ('Source mismatch at %s:\n\t%s: %r\n\t%s: %r\n\t%s: %r'
@@ -138,7 +161,7 @@ def writePackage(f,pkg,pkgdeps):
     else:
       f.write(body(0))
 
-def main(slepcdir,petscdir,petscarch):
+def main(slepcdir,petscdir,petscarch,log=StdoutLogger()):
   import tempfile, shutil
   written = False               # We delete the temporary file if it wasn't finished, otherwise rename (atomic)
   fd,tmplists = tempfile.mkstemp(prefix='CMakeLists.txt.',dir=slepcdir,text=True)
@@ -181,6 +204,10 @@ endif()''' % ('\n  '.join([r'SLEPC' + pkg.upper() + r'_SRCS' for (pkg,_) in pkgl
       shutil.move(tmplists,os.path.join(slepcdir,'CMakeLists.txt'))
     else:
       os.remove(tmplists)
+  if MISTAKES:
+    for m in MISTAKES:
+      log.write(m + '\n')
+    raise RuntimeError('PETSc makefiles contain mistakes or files are missing on filesystem.\n%s\nPossible reasons:\n\t1. Files were deleted locally, try "hg update".\n\t2. Files were deleted from mercurial, but were not removed from makefile. Send mail to petsc-maint@mcs.anl.gov.\n\t3. Someone forgot "hg add" new files. Send mail to petsc-maint@mcs.anl.gov.' % ('\n'.join(MISTAKES)))
 
 if __name__ == "__main__":
   import optparse

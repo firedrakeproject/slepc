@@ -333,7 +333,7 @@ missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
 if subversion and hasattr(petscconf,'FC'):
   try:
     import generatefortranstubs
-    generatefortranstubs.main(petscconf.BFORT)
+    generatefortranstubs.main(slepcdir,petscconf.BFORT,os.getcwd(),0)
   except AttributeError:
     sys.exit('ERROR: cannot generate Fortran stubs; try configuring PETSc with --download-sowing or use a mercurial version of PETSc')
 

@@ -1,9 +1,22 @@
 #!/usr/bin/env python
 
+# This file initializes a CMake build in $SLEPC_DIR/$PETSC_ARCH using
+# the compilers and flags determined by BuildSystem. It is imported and
+# called by configure.py during configures in which CMake was detected,
+# but it can also be run as a stand-alone program. The library paths and
+# flags should have been written to
+#
+#     $PETSC_DIR/$PETSC_ARCH/conf/PETScConfig.cmake
+#     $SLEPC_DIR/$PETSC_ARCH/conf/SLEPcConfig.cmake
+#
+# by configure before running this script.
+
+from __future__ import with_statement  # For python-2.5
+
 import os,sys,string
 from collections import deque
-sys.path.insert(0, os.path.join(os.environ['PETSC_DIR'], 'config'))
-sys.path.insert(0, os.path.join(os.environ['PETSC_DIR'], 'config', 'BuildSystem'))
+sys.path.insert(0, os.path.join(os.environ['PETSC_DIR'],'config'))
+sys.path.insert(0, os.path.join(os.environ['PETSC_DIR'],'config','BuildSystem'))
 import script
 
 def noCheck(command, status, output, error):
@@ -39,13 +52,13 @@ class PETScMaker(script.Script):
  def setupModules(self):
    self.mpi           = self.framework.require('config.packages.MPI',         None)
    self.base          = self.framework.require('config.base',                 None)
-   self.setCompilers  = self.framework.require('config.setCompilers',         None)   
+   self.setCompilers  = self.framework.require('config.setCompilers',         None)
    self.arch          = self.framework.require('PETSc.utilities.arch',        None)
    self.petscdir      = self.framework.require('PETSc.utilities.petscdir',    None)
    self.languages     = self.framework.require('PETSc.utilities.languages',   None)
    self.debugging     = self.framework.require('PETSc.utilities.debugging',   None)
    self.make          = self.framework.require('config.programs',        None)
-   self.cmake         = self.framework.require('PETSc.packages.cmake',        None)
+   self.cmake         = self.framework.require('PETSc.packages.cmake',       None)
    self.CHUD          = self.framework.require('PETSc.utilities.CHUD',        None)
    self.compilers     = self.framework.require('config.compilers',            None)
    self.types         = self.framework.require('config.types',                None)
@@ -54,7 +67,7 @@ class PETScMaker(script.Script):
    self.libraries     = self.framework.require('config.libraries',            None)
    self.scalarType    = self.framework.require('PETSc.utilities.scalarTypes', None)
    self.memAlign      = self.framework.require('PETSc.utilities.memAlign',    None)
-   self.libraryOptions= self.framework.require('PETSc.utilities.libraryOptions', None)      
+   self.libraryOptions= self.framework.require('PETSc.utilities.libraryOptions', None)
    self.compilerFlags = self.framework.require('config.compilerFlags', self)
    return
 
@@ -67,8 +80,23 @@ class PETScMaker(script.Script):
  def cmakeboot(self, args, log):
    import shlex
    self.setup()
-   if not hasattr(self.cmake,'cmake'): return
    options = deque()
+
+   output,error,retcode = self.executeShellCommand([self.cmake.cmake, '--version'], checkCommand=noCheck, log=log)
+   import re
+   m = re.match(r'cmake version (.+)$', output)
+   if not m:
+       self.logPrintBox('Could not parse CMake version: %s, falling back to legacy build' % output)
+       return False
+   from distutils.version import LooseVersion
+   version = LooseVersion(m.groups()[0])
+   if version < LooseVersion('2.6.2'):
+       self.logPrintBox('CMake version %s < 2.6.2, falling back to legacy build' % version.vstring)
+       return False
+   if self.languages.clanguage == 'Cxx' and version < LooseVersion('2.8'):
+       self.logPrintBox('Cannot use --with-clanguage=C++ with CMake version %s < 2.8, falling back to legacy build' % version.vstring)
+       return False # no support for: set_source_files_properties(${file} PROPERTIES LANGUAGE CXX)
+
    langlist = [('C','C')]
    if hasattr(self.compilers,'FC'):
      langlist.append(('FC','Fortran'))
@@ -101,16 +129,25 @@ class PETScMaker(script.Script):
    try:
      # Try to remove the old cache because some versions of CMake lose CMAKE_C_FLAGS when reconfiguring this way
      os.remove(os.path.join(archdir, 'CMakeCache.txt'))
-     # Try to remove all the old CMake files to avoid infinite loop (CMake-2.8.10.2, maybe other versions)
-     # http://www.mail-archive.com/cmake@cmake.org/msg44765.html
-     import shutil
-     shutil.rmtree(os.path.join(archdir, 'CMakeFiles'))
    except OSError:
      pass
+   import shutil
+   # Try to remove all the old CMake files to avoid infinite loop (CMake-2.8.10.2, maybe other versions)
+   # http://www.mail-archive.com/cmake@cmake.org/msg44765.html
+   self.logPrint('Removing: %s' % os.path.join(archdir, 'CMakeFiles', version.vstring))
+   shutil.rmtree(os.path.join(archdir, 'CMakeFiles', version.vstring), ignore_errors=True)
    log.write('Invoking: %s\n' % cmd)
    output,error,retcode = self.executeShellCommand(cmd, checkCommand = noCheck, log=log, cwd=archdir, timeout=30)
    if retcode:
-     self.logPrintBox('CMake process failed with status %d, falling back to legacy build' % (retcode,))
+     self.logPrintBox('CMake setup incomplete (status %d), falling back to legacy build' % (retcode,))
+     self.logPrint('Output: '+output+'\nError: '+error)
+     cachetxt = os.path.join(archdir, 'CMakeCache.txt')
+     try:
+       with open(cachetxt, 'r') as f:
+         log.write('Contents of %s:\n' % cachetxt)
+         log.write(f.read())
+     except IOError, e:
+       log.write('Could not read file %s: %r\n' % (cachetxt, e))
      return False
    else:
      return True # Configure successful
