@@ -1021,7 +1021,7 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[])
 
    Level: intermediate
 
-.seealso: NEPSetSplitOperator()
+.seealso: NEPSetSplitOperator(), NEPGetNumSplitTerms()
 @*/
 PetscErrorCode NEPGetSplitOperator(NEP nep,PetscInt k,Mat *A,FN *f)
 {

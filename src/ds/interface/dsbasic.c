@@ -28,7 +28,7 @@ PetscBool         DSRegisterAllCalled = PETSC_FALSE;
 PetscClassId      DS_CLASSID = 0;
 PetscLogEvent     DS_Solve = 0,DS_Function = 0,DS_Vectors = 0,DS_Other = 0;
 static PetscBool  DSPackageInitialized = PETSC_FALSE;
-const char       *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","F","Q","Z","X","Y","U","VT","W"};
+const char       *DSMatName[DS_MAT_EXTRA] = {"A","B","C","T","D","F","Q","Z","X","Y","U","VT","W"};
 
 #undef __FUNCT__
 #define __FUNCT__ "DSFinalizePackage"
@@ -149,6 +149,8 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
     ds->mat[i]      = NULL;
     ds->rmat[i]     = NULL;
   }
+  ds->nf            = 0;
+  for (i=0;i<DS_NUM_EXTRA;i++) ds->f[i] = NULL;
   ds->perm          = NULL;
   ds->work          = NULL;
   ds->rwork         = NULL;
@@ -687,6 +689,111 @@ PetscErrorCode DSGetEigenvalueComparison(DS ds,PetscErrorCode (**fun)(PetscScala
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "DSSetFN"
+/*@
+   DSSetFN - Sets a number of functions to be used internally by DS.
+
+   Collective on DS and FN
+
+   Input Parameters:
++  ds - the direct solver context
+.  n  - number of functions
+-  f  - array of functions
+
+   Notes:
+   In the basic usage, only one function is used, for instance to
+   evaluate a function of the projected matrix. In the context of nonlinear
+   eigensolvers, there are as many functions as terms in the split
+   nonlinear operator T(lambda) = sum_i A_i*f_i(lambda).
+
+   This function must be called before DSAllocate(). Then DSAllocate()
+   will allocate an extra matrix per each function.
+
+   Level: developer
+
+.seealso: DSGetFN(), DSGetFN(), DSAllocate()
+ @*/
+PetscErrorCode DSSetFN(DS ds,PetscInt n,FN f[])
+{
+  PetscInt       i;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ds,n,2);
+  if (n<=0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more functions, you have %D",n);
+  if (n>DS_NUM_EXTRA) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Too many functions, you specified %D but the limit is",n,DS_NUM_EXTRA);
+  if (ds->ld) { ierr = PetscInfo(ds,"DSSetFN() called after DSAllocate()\n");CHKERRQ(ierr); }
+  PetscValidPointer(f,3);
+  PetscCheckSameComm(ds,1,*f,3);
+  for (i=0;i<ds->nf;i++) {
+    ierr = FNDestroy(&ds->f[i]);CHKERRQ(ierr);
+  }
+  for (i=0;i<n;i++) {
+    PetscValidHeaderSpecific(f[i],FN_CLASSID,4);
+    ierr = PetscObjectReference((PetscObject)f[i]);CHKERRQ(ierr);
+    ds->f[i] = f[i];
+  }
+  ds->nf = n;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSGetFN"
+/*@
+   DSGetFN - Gets the functions associated with this DS.
+
+   Not collective, though parallel FNs are returned if the DS is parallel
+
+   Input Parameter:
++  ds - the direct olver context
+-  k  - the index of the requested function (starting in 0)
+
+   Output Parameter:
+.  f - the function
+
+   Level: developer
+
+.seealso: DSSetFN()
+@*/
+PetscErrorCode DSGetFN(DS ds,PetscInt k,FN *f)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  if (k<0 || k>=ds->nf) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",ds->nf-1);
+  PetscValidPointer(f,3);
+  *f = ds->f[k];
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSGetNumFN"
+/*@
+   DSGetNumFN - Returns the number of functions stored internally by
+   the DS.
+
+   Not collective
+
+   Input Parameter:
+.  ds - the direct solver context
+
+   Output Parameters:
+.  n - the number of functions passed in DSSetFN()
+
+   Level: developer
+
+.seealso: DSSetFN()
+@*/
+PetscErrorCode DSGetNumFN(DS ds,PetscInt *n)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidPointer(n,2);
+  *n = ds->nf;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "DSSetFromOptions"
 /*@
    DSSetFromOptions - Sets DS options from the options database.
@@ -816,6 +923,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
 PetscErrorCode DSAllocate(DS ds,PetscInt ld)
 {
   PetscErrorCode ierr;
+  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
@@ -823,6 +931,9 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
   if (ld<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
   ds->ld = ld;
   ierr = (*ds->ops->allocate)(ds,ld);CHKERRQ(ierr);
+  for (i=0;i<ds->nf;i++) {
+    ierr = DSAllocateMat_Private(ds,DS_MAT_EXTRA+i);CHKERRQ(ierr); 
+  }
   PetscFunctionReturn(0);
 }
 
@@ -860,6 +971,10 @@ PetscErrorCode DSReset(DS ds)
     ierr = PetscFree(ds->mat[i]);CHKERRQ(ierr);
     ierr = PetscFree(ds->rmat[i]);CHKERRQ(ierr);
   }
+  for (i=0;i<ds->nf;i++) {
+    ierr = FNDestroy(&ds->f[i]);CHKERRQ(ierr);
+  }
+  ds->nf            = 0;
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
   ierr = PetscFree(ds->work);CHKERRQ(ierr);
   ierr = PetscFree(ds->rwork);CHKERRQ(ierr);

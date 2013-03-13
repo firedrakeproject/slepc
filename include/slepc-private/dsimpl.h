@@ -62,6 +62,8 @@ struct _p_DS {
   PetscScalar    *mat[DS_NUM_MAT];   /* the matrices */
   PetscReal      *rmat[DS_NUM_MAT];  /* the matrices (real) */
   PetscInt       *perm;              /* permutation */
+  PetscInt       nf;                 /* number of functions in f[] */
+  FN             f[DS_NUM_EXTRA];    /* functions provided via DSSetFN() */
   PetscScalar    *work;
   PetscReal      *rwork;
   PetscBLASInt   *iwork;

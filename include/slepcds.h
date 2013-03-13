@@ -21,7 +21,7 @@
 
 #if !defined(__SLEPCDS_H)
 #define __SLEPCDS_H
-#include <slepcsys.h>
+#include <slepcfn.h>
 
 #define DS_MAX_SOLVE 6
 #define DS_MAX_FUN   6
@@ -93,6 +93,9 @@ typedef enum { DS_STATE_RAW,
     DS_MAT_T that has space for 3 x ld elements (ld = leading dimension)
     and DS_MAT_D that has space for just ld elements.
 
+    Apart from the predefined matrices above, some extra matrices are available,
+    which can be indexed with DS_MAT_EXTRA+i, with i=0,1,...
+
     Level: advanced
 
 .seealso: DSAllocate(), DSGetArray(), DSGetArrayReal(), DSVectors()
@@ -110,7 +113,10 @@ typedef enum { DS_MAT_A,
                DS_MAT_U,
                DS_MAT_VT,
                DS_MAT_W,
-               DS_NUM_MAT } DSMatType;
+               DS_MAT_EXTRA } DSMatType;
+
+#define DS_NUM_EXTRA  10
+#define DS_NUM_MAT    (DS_MAT_EXTRA+DS_NUM_EXTRA)
 
 PETSC_EXTERN PetscErrorCode DSCreate(MPI_Comm,DS*);
 PETSC_EXTERN PetscErrorCode DSSetType(DS,DSType);
@@ -155,6 +161,10 @@ PETSC_EXTERN PetscErrorCode DSCond(DS,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSTranslateHarmonic(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSTranslateRKS(DS,PetscScalar);
 PETSC_EXTERN PetscErrorCode DSNormalize(DS,DSMatType,PetscInt);
+
+PETSC_EXTERN PetscErrorCode DSSetFN(DS,PetscInt,FN*);
+PETSC_EXTERN PetscErrorCode DSGetFN(DS,PetscInt,FN*);
+PETSC_EXTERN PetscErrorCode DSGetNumFN(DS,PetscInt*);
 
 PETSC_EXTERN PetscFunctionList DSList;
 PETSC_EXTERN PetscBool         DSRegisterAllCalled;
