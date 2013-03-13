@@ -100,6 +100,8 @@ PetscErrorCode DSViewMat_Private(DS ds,PetscViewer viewer,DSMatType m)
   PetscInt          i,j,rows,cols;
   PetscScalar       *v;
   PetscViewerFormat format;
+  const char        *matname;
+  char              extra[4];
 #if defined(PETSC_USE_COMPLEX)
   PetscBool         allreal = PETSC_TRUE;
 #endif
@@ -118,11 +120,16 @@ PetscErrorCode DSViewMat_Private(DS ds,PetscViewer viewer,DSMatType m)
     for (j=0;j<cols;j++)
       if (PetscImaginaryPart(v[i+j*ds->ld])) { allreal = PETSC_FALSE; break; }
 #endif
+  if (m<DS_MAT_EXTRA) matname = DSMatName[m];
+  else {
+    ierr = PetscSNPrintf(extra,4,"E_%d",m-DS_MAT_EXTRA);CHKERRQ(ierr);
+    matname = extra;
+  }
   if (format == PETSC_VIEWER_ASCII_MATLAB) {
     ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",rows,cols);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%s = [\n",DSMatName[m]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%s = [\n",matname);CHKERRQ(ierr);
   } else {
-    ierr = PetscViewerASCIIPrintf(viewer,"Matrix %s =\n",DSMatName[m]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"Matrix %s =\n",matname);CHKERRQ(ierr);
   }
 
   for (i=0;i<rows;i++) {
