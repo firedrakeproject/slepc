@@ -38,5 +38,6 @@
 #define DSGNHEP     'gnhep'
 #define DSSVD       'svd'
 #define DSQEP       'qep'
+#define DSNEP       'nep'
 
 #endif

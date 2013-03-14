@@ -21,9 +21,14 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = dsnep.c
+SOURCEF  = 
+SOURCEH  = 
 LIBBASE  = libslepc
-DIRS     = hep nhep ghep ghiep gnhep svd nep
-LOCDIR   = src/ds/impls/
+DIRS     = 
 MANSEC   = DS
+LOCDIR   = src/ds/impls/nep/
 
 include ${SLEPC_DIR}/conf/slepc_common

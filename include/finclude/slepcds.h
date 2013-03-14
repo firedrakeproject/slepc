@@ -45,6 +45,16 @@
       PetscEnum DS_MAT_U
       PetscEnum DS_MAT_VT
       PetscEnum DS_MAT_W
+      PetscEnum DS_MAT_E0
+      PetscEnum DS_MAT_E1
+      PetscEnum DS_MAT_E2
+      PetscEnum DS_MAT_E3
+      PetscEnum DS_MAT_E4
+      PetscEnum DS_MAT_E5
+      PetscEnum DS_MAT_E6
+      PetscEnum DS_MAT_E7
+      PetscEnum DS_MAT_E8
+      PetscEnum DS_MAT_E9
       PetscEnum DS_NUM_MAT
 
       parameter (DS_MAT_A         =  0)  
@@ -59,7 +69,17 @@
       parameter (DS_MAT_U         =  9)  
       parameter (DS_MAT_VT        = 10)  
       parameter (DS_MAT_W         = 11)  
-      parameter (DS_NUM_MAT       = 12)  
+      parameter (DS_MAT_E0        = 12)  
+      parameter (DS_MAT_E1        = 13)  
+      parameter (DS_MAT_E2        = 14)  
+      parameter (DS_MAT_E3        = 15)  
+      parameter (DS_MAT_E4        = 16)  
+      parameter (DS_MAT_E5        = 17)  
+      parameter (DS_MAT_E6        = 18)  
+      parameter (DS_MAT_E7        = 19)  
+      parameter (DS_MAT_E8        = 20)  
+      parameter (DS_MAT_E9        = 21)  
+      parameter (DS_NUM_MAT       = 22)  
 
 !
 !  End of Fortran include file for the DS package in SLEPc

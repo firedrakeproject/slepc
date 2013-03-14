@@ -54,6 +54,7 @@ typedef const char* DSType;
 #define DSGNHEP           "gnhep"
 #define DSSVD             "svd"
 #define DSQEP             "qep"
+#define DSNEP             "nep"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId DS_CLASSID;

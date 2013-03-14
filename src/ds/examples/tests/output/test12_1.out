@@ -1,0 +1,9 @@
+Solve a Dense System of type NEP - dimension 10, tau=0.001.
+DS Object: 1 MPI processes
+  type: nep
+  current state: raw
+  dimensions: ld=12, n=10, l=0, k=0
+  flags:
+  number of functions: 3
+Computed eigenvalue =
+  2.47136

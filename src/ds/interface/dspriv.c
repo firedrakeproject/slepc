@@ -353,13 +353,48 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
   PetscFunctionBegin;
   ierr = DSGetDimensions(ds,&n,NULL,&l,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
   ierr = PetscMemzero(&x[ld*l],ld*(n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=l;i<n;i++) {
     x[ld*i+i] = 1.0;
   }
   ierr = DSRestoreArray(ds,mat,&x);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSComputeMatrix"
+/*
+   DSComputeMatrix - Build the matrix associated to a nonlinear operator
+   T(lambda) or its derivative T'(lambda), given the parameter lambda, where
+   T(lambda) = sum_i E_i*f_i(lambda). The result is written in mat.
+*/
+PetscErrorCode DSComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *T,*E,alpha;
+  PetscInt       i,ld,n;
+  PetscBLASInt   k,inc=1;
+
+  PetscFunctionBegin;
+  ierr = DSGetDimensions(ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ld*n,&k);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  ierr = DSGetArray(ds,mat,&T);CHKERRQ(ierr);
+  ierr = PetscMemzero(T,k*sizeof(PetscScalar));CHKERRQ(ierr); 
+  for (i=0;i<ds->nf;i++) {
+    if (deriv) {
+      ierr = FNEvaluateDerivative(ds->f[i],lambda,&alpha);CHKERRQ(ierr);
+    } else {
+      ierr = FNEvaluateFunction(ds->f[i],lambda,&alpha);CHKERRQ(ierr);
+    }
+    E = ds->mat[DSMatExtra[i]];
+    PetscStackCall("BLASaxpy",BLASaxpy_(&k,&alpha,E,&inc,T,&inc));
+  }
+  ierr = DSRestoreArray(ds,mat,&T);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

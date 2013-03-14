@@ -1064,6 +1064,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_GHEP(DS);
 PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS);
 PETSC_EXTERN PetscErrorCode DSCreate_GNHEP(DS);
 PETSC_EXTERN PetscErrorCode DSCreate_SVD(DS);
+PETSC_EXTERN PetscErrorCode DSCreate_NEP(DS);
 
 #undef __FUNCT__
 #define __FUNCT__ "DSRegisterAll"
@@ -1089,6 +1090,7 @@ PetscErrorCode DSRegisterAll(const char *path)
   ierr = DSRegisterDynamic(DSGHIEP,path,"DSCreate_GHIEP",DSCreate_GHIEP);CHKERRQ(ierr);
   ierr = DSRegisterDynamic(DSGNHEP,path,"DSCreate_GNHEP",DSCreate_GNHEP);CHKERRQ(ierr);
   ierr = DSRegisterDynamic(DSSVD,path,"DSCreate_SVD",DSCreate_SVD);CHKERRQ(ierr);
+  ierr = DSRegisterDynamic(DSNEP,path,"DSCreate_NEP",DSCreate_NEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
