@@ -87,14 +87,12 @@ typedef enum { DS_STATE_RAW,
 .   DS_MAT_Y  - left eigenvectors
 .   DS_MAT_U  - left singular vectors
 .   DS_MAT_VT - right singular vectors
--   DS_MAT_W  - workspace matrix
+.   DS_MAT_W  - workspace matrix
+-   DS_MAT_Ex - extra matrices (x=0,..,9)
 
     All matrices can have space to hold ld x ld elements, except for
     DS_MAT_T that has space for 3 x ld elements (ld = leading dimension)
     and DS_MAT_D that has space for just ld elements.
-
-    Apart from the predefined matrices above, some extra matrices are available,
-    which can be indexed with DS_MAT_EXTRA+i, with i=0,1,...
 
     Level: advanced
 
@@ -113,10 +111,19 @@ typedef enum { DS_MAT_A,
                DS_MAT_U,
                DS_MAT_VT,
                DS_MAT_W,
-               DS_MAT_EXTRA } DSMatType;
+               DS_MAT_E0,
+               DS_MAT_E1,
+               DS_MAT_E2,
+               DS_MAT_E3,
+               DS_MAT_E4,
+               DS_MAT_E5,
+               DS_MAT_E6,
+               DS_MAT_E7,
+               DS_MAT_E8,
+               DS_MAT_E9,
+               DS_NUM_MAT } DSMatType;
 
 #define DS_NUM_EXTRA  10
-#define DS_NUM_MAT    (DS_MAT_EXTRA+DS_NUM_EXTRA)
 
 PETSC_EXTERN PetscErrorCode DSCreate(MPI_Comm,DS*);
 PETSC_EXTERN PetscErrorCode DSSetType(DS,DSType);

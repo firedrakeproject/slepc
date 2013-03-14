@@ -27,6 +27,7 @@
 
 PETSC_EXTERN PetscLogEvent DS_Solve,DS_Function,DS_Vectors,DS_Other;
 PETSC_INTERN const char *DSMatName[];
+PETSC_INTERN DSMatType DSMatExtra[];
 
 typedef struct _DSOps *DSOps;
 

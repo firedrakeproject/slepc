@@ -28,7 +28,8 @@ PetscBool         DSRegisterAllCalled = PETSC_FALSE;
 PetscClassId      DS_CLASSID = 0;
 PetscLogEvent     DS_Solve = 0,DS_Function = 0,DS_Vectors = 0,DS_Other = 0;
 static PetscBool  DSPackageInitialized = PETSC_FALSE;
-const char       *DSMatName[DS_MAT_EXTRA] = {"A","B","C","T","D","F","Q","Z","X","Y","U","VT","W"};
+const char        *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","F","Q","Z","X","Y","U","VT","W","E0","E1","E2","E3","E4","E5","E6","E7","E8","E9"};
+DSMatType         DSMatExtra[DS_NUM_EXTRA] = {DS_MAT_E0,DS_MAT_E1,DS_MAT_E2,DS_MAT_E3,DS_MAT_E4,DS_MAT_E5,DS_MAT_E6,DS_MAT_E7,DS_MAT_E8,DS_MAT_E9}; 
 
 #undef __FUNCT__
 #define __FUNCT__ "DSFinalizePackage"
@@ -935,7 +936,7 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
   ds->ld = ld;
   ierr = (*ds->ops->allocate)(ds,ld);CHKERRQ(ierr);
   for (i=0;i<ds->nf;i++) {
-    ierr = DSAllocateMat_Private(ds,DS_MAT_EXTRA+i);CHKERRQ(ierr); 
+    ierr = DSAllocateMat_Private(ds,DSMatExtra[i]);CHKERRQ(ierr); 
   }
   PetscFunctionReturn(0);
 }
