@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -183,7 +183,7 @@ PetscErrorCode QEPSolve(QEP qep)
    QEPGetIterationNumber - Gets the current iteration number. If the 
    call to QEPSolve() is complete, then it returns the number of iterations 
    carried out by the solution method.
- 
+
    Not Collective
 
    Input Parameter:
@@ -221,7 +221,7 @@ PetscErrorCode QEPGetIterationNumber(QEP qep,PetscInt *its)
 
    Input Parameter:
 .  qep - the quadratic eigensolver context
-  
+
    Output Parameter:
 .  nconv - number of converged eigenpairs 
 
@@ -332,7 +332,7 @@ PetscErrorCode QEPGetEigenpair(QEP qep,PetscInt i,PetscScalar *eigr,PetscScalar 
   if (eigr) *eigr = qep->eigr[k];
   if (eigi) *eigi = qep->eigi[k];
 #endif
-  
+
   /* eigenvector */
 #if defined(PETSC_USE_COMPLEX)
   if (Vr) { ierr = VecCopy(qep->V[k],Vr);CHKERRQ(ierr); }
@@ -407,11 +407,11 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep,PetscScalar kr,PetscScalar
   PetscReal      ni,nr;
   PetscScalar    a1,a2;
 #endif
-  
+
   PetscFunctionBegin;
   ierr = VecDuplicate(qep->V[0],&u);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&w);CHKERRQ(ierr);
-  
+
 #if !defined(PETSC_USE_COMPLEX)
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
@@ -493,7 +493,7 @@ PetscErrorCode QEPComputeResidualNorm(QEP qep,PetscInt i,PetscReal *norm)
   PetscErrorCode ierr;
   Vec            xr,xi;
   PetscScalar    kr,ki;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(qep,i,2);
@@ -520,7 +520,7 @@ PetscErrorCode QEPComputeRelativeError_Private(QEP qep,PetscScalar kr,PetscScala
 #if !defined(PETSC_USE_COMPLEX)
   PetscReal      ei;
 #endif
-  
+
   PetscFunctionBegin;
   ierr = QEPComputeResidualNorm_Private(qep,kr,ki,xr,xi,&norm);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
@@ -572,7 +572,7 @@ PetscErrorCode QEPComputeRelativeError(QEP qep,PetscInt i,PetscReal *error)
   PetscErrorCode ierr;
   Vec            xr,xi;
   PetscScalar    kr,ki;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);  
   PetscValidLogicalCollectiveInt(qep,i,2);
@@ -735,7 +735,7 @@ PetscErrorCode QEPCompareEigenvalues(QEP qep,PetscScalar ar,PetscScalar ai,Petsc
 PetscErrorCode QEPGetOperationCounters(QEP qep,PetscInt* matvecs,PetscInt* dots,PetscInt* lits)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (matvecs) *matvecs = qep->matvecs; 

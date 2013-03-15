@@ -7,7 +7,7 @@ classdef SlepcSVD < PetscObject
 %     svd.SetType('cross');
 %     svd.SetOperator(A);
 %     svd.SetFromOptions;
- 
+
 %  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 %  SLEPc - Scalable Library for Eigenvalue Problem Computations
 %  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
@@ -150,4 +150,3 @@ classdef SlepcSVD < PetscObject
   end
 end
 
- 

@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -97,7 +97,7 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
    MFNGetIterationNumber - Gets the current iteration number. If the 
    call to MFNSolve() is complete, then it returns the number of iterations 
    carried out by the solution method.
- 
+
    Not Collective
 
    Input Parameter:

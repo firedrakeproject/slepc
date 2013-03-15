@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -100,7 +100,7 @@ PetscErrorCode DSNormalize_GHEP(DS ds,DSMatType mat,PetscInt col)
   PetscInt       i,i0,i1;
   PetscBLASInt   ld,n,one = 1;
   PetscScalar    norm,*x;
- 
+
   PetscFunctionBegin;
   switch (mat) {
     case DS_MAT_X:
@@ -139,7 +139,7 @@ PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscErrorCode ierr;
   PetscInt       n,l,i,*perm,ld=ds->ld;
   PetscScalar    *A;
-  
+
   PetscFunctionBegin;
   if (!ds->comparison) PetscFunctionReturn(0);
   n = ds->n;

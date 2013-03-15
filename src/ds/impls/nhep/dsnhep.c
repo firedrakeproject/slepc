@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -703,7 +703,7 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
     /* Vector g initialy stores b = beta*e_n^T */
     ierr = PetscMemzero(g,n*sizeof(PetscScalar));CHKERRQ(ierr);
     g[n-1] = beta;
- 
+
     /* g = (A-tau*eye(n))'\b */
     for (i=0;i<n;i++) 
       B[i+i*ld] -= tau;
@@ -779,7 +779,7 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
   Q  = ds->mat[DS_MAT_Q];
   P  = ds->mat[DS_MAT_F];
   W  = ds->mat[DS_MAT_W]; 
-  
+
   /* Pade' coefficients */
   c[0] = 1.0;
   for (k=1;k<=p;k++) {
@@ -802,7 +802,7 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
     Q[j+j*ld] = c[p];
     P[j+j*ld] = c[p-1];
   }  
-  
+
   odd = 1;
   for (k=p-1;k>0;k--) {
     if (odd==1) {

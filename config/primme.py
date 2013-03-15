@@ -27,13 +27,13 @@ import log
 import check
 
 def Check(conf,vars,cmake,tmpdir,directory,libs):
-  
+
   log.write('='*80)
   log.Println('Checking PRIMME library...')
 
   if petscconf.PRECISION != 'double':
     log.Exit('ERROR: PRIMME is supported only in double precision.')
- 
+
   functions_base = ['primme_set_method','primme_Free','primme_initialize']
   if directory:
     dirs = [directory]

@@ -65,7 +65,7 @@
       parameter (NEP_TARGET_MAGNITUDE       =  7)
       parameter (NEP_TARGET_REAL            =  8)
       parameter (NEP_TARGET_IMAGINARY       =  9)
-       
+
 !
 !   Possible arguments to NEPMonitorSet()
 !

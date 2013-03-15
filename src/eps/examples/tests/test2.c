@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -49,7 +49,7 @@ int main(int argc,char **argv)
   ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
   ierr = MatSetUp(A);CHKERRQ(ierr);
-  
+
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
   if (Istart==0) FirstBlock=PETSC_TRUE;
   if (Iend==n) LastBlock=PETSC_TRUE;
@@ -94,7 +94,7 @@ int main(int argc,char **argv)
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Smallest eigenvalues - - -\n");CHKERRQ(ierr);
   ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
-  
+
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Solve for interior eigenvalues (target=2.1)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -116,7 +116,7 @@ int main(int argc,char **argv)
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Interior eigenvalues - - -\n");CHKERRQ(ierr);
   ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
-  
+
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();

@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -163,7 +163,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   PetscReal      norm,normi;
 #endif
   Vec            w;
-  
+
   PetscFunctionBegin;
   if (eps->ishermitian) {
     if (eps->isgeneralized && !eps->ispositive) {
@@ -219,7 +219,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
       }
     }
   }
-   
+
   /* left eigenvectors */
   if (eps->leftvecs) {
     ierr = DSVectors(eps->ds,DS_MAT_Y,NULL,NULL);CHKERRQ(ierr);
@@ -342,7 +342,7 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,Vec 
 #if !defined(PETSC_USE_COMPLEX)
   Vec            z;
 #endif
-  
+
   PetscFunctionBegin;
   /* compute eigenvector */
   ierr = SlepcVecMAXPBY(x,0.0,1.0,nv,Zr,V);CHKERRQ(ierr);
@@ -432,7 +432,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
       ierr = STApplyTranspose(eps->st,z,r);CHKERRQ(ierr);
       ierr = VecPointwiseDivide(r,r,eps->D);CHKERRQ(ierr);
     }
-    
+
     /* Adjust values of D */
     ierr = VecGetArrayRead(r,&pr);CHKERRQ(ierr);
     ierr = VecGetArrayRead(p,&pp);CHKERRQ(ierr);

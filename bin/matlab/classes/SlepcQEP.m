@@ -8,7 +8,7 @@ classdef SlepcQEP < PetscObject
 %     QEP.SetOperators(M,C,K);
 %     (optional) QEP.SetProblemType(...);
 %     QEP.SetFromOptions();
- 
+
 %  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 %  SLEPc - Scalable Library for Eigenvalue Problem Computations
 %  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
@@ -160,4 +160,3 @@ classdef SlepcQEP < PetscObject
   end
 end
 
- 

@@ -15,7 +15,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -302,7 +302,7 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
     (d->size_cX+d->V_tra_s-d->cX_in_H)*d->V_tra_s*(d->cT?2:(d->cS?1:0)) + /* updateV0,W0 */
     (d->size_H*(d->V_new_e-d->V_new_s)*2+
       (d->V_new_e-d->V_new_s)*(d->V_new_e-d->V_new_s))*(!stdp?2:1); /* updateAV1,BV1 */
-    
+
   out = in+size_in;
 
   /* Check consistency */
@@ -483,7 +483,7 @@ PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d,DvdReduction *r,DvdMult_co
 
     /* cT(:, size_cS:) <- cY' * auxV */
     ierr = VecsMultS(&d->cT[d->ldcS*d->size_cS], 0, d->ldcS, d->cY?d->cY:d->cX, 0, d->size_cX-rm, d->auxV, 0, d->V_tra_s-rm, r, (*sr)++);CHKERRQ(ierr);
-    
+
     d->size_cS+= d->V_tra_s-rm;
     d->size_cT+= d->V_tra_s-rm;
   }
@@ -683,7 +683,7 @@ PetscErrorCode dvd_calcpairs_apply_arbitrary_func(dvdDashboard *d,PetscInt r_s,P
 #if !defined(PETSC_USE_COMPLEX)
   PetscInt        j;
 #endif
-  
+
   PetscFunctionBegin;
   /* Quick exit without neither arbitrary selection nor harmonic extraction */
   if (!d->eps->arbitrary && !d->calcpairs_eig_backtrans) {

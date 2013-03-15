@@ -15,7 +15,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -206,7 +206,7 @@ static PetscErrorCode LUfac(PetscInt n,PetscReal *a,PetscReal *b,PetscReal shift
     if (PetscAbsReal(U[i])>tol*norm) *fail = 1;
   }
   if (!*fail && PetscAbsReal(U[n-1])>tol*norm) *fail = 1;
-  
+
   if (work != w) {
     ierr = PetscFree(work);CHKERRQ(ierr);
   }
@@ -413,7 +413,7 @@ static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscRe
     /* the effect of Yn-2 */
     xr = 1.0-xr;
     yr = e1[n-2]-yr;
-   
+
     /* STEP n-1           yl and yr are no longer needed */
     /* Testing for EARLY DEFLATION */
 
@@ -431,7 +431,7 @@ static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscRe
       e1[n-2] = xl+xr*q1[n-1];
       /*the effects of Yn-1 */
       xr = 1.0-xr;
-   
+
       /* STEP n;     xl no longer needed */
       /* the effect of Zn */
       xr = xr*q1[n-1];
@@ -458,7 +458,7 @@ static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscRe
       if (PetscAbsReal(q1[i])>tol*norm) *fail = 1;
     }
     if (!*fail && PetscAbsReal(q1[n-1])>tol*norm) *fail = 1;
-  
+
   } else {  /* The case n=3 */
     ierr = tridqdsZhuang3(n,e1,q1,sum,prod,tol,norm,tolDef,fail);CHKERRQ(ierr);
   }
@@ -610,7 +610,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
           x1 = U[n-1]+acShift;
           wr[--n] = x1;
         }
-        
+
         if (n<=begin+2) {
           break;
         } else {
@@ -644,7 +644,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
           splitCount = splitCount+1;
         }
       }
-    
+
       if (n>begin+2) {
         disc = (L[n-2]*(L[n-2]+2*(U[n-2]+U[n-1]))+(U[n-2]-U[n-1])*(U[n-2]-U[n-1]))/4;
         if ((PetscAbsReal(L[n-2])>tolZero) && (PetscAbsReal(L[n-3])>tolZero)) { /* L's are big */
@@ -823,7 +823,7 @@ PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = DSAllocateWork_Private(ds,0,nwall,0);CHKERRQ(ierr); 
   /* Reduce to pseudotriadiagonal form */
   ierr = DSIntermediate_GHIEP(ds);CHKERRQ(ierr);
-  
+
   /* Compute Eigenvalues (DQDS)*/
   /* Form pseudosymmetric tridiagonal */
   a = ds->rwork;
@@ -850,7 +850,7 @@ PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* Compute Eigenvectors with Inverse Iteration */
   ierr = DSGHIEPPseudoOrthogInverseIteration(ds,wr,wi);CHKERRQ(ierr);
-  
+
   /* Recover eigenvalues from diagonal */
   ierr = DSGHIEPComplexEigs(ds,0,ds->l,wr,wi);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)

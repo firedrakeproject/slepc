@@ -7,7 +7,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -38,10 +38,10 @@ static void* mv_TempMultiVectorCreateFromPETScVector(void* ii_,BlopexInt n,void*
 
   x = (mv_TempMultiVector*)malloc(sizeof(mv_TempMultiVector));
   if (!x) SETERRABORT(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Allocation for x failed");
-  
+
   x->interpreter = ii;
   x->numVectors = n;
-  
+
   x->vector = (void**)calloc(n,sizeof(void*));
   if (!x->vector) SETERRABORT(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Allocation for x->vector failed");
 

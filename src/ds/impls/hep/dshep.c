@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -607,7 +607,7 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscBLASInt   lwork;
   PetscInt       j;
 #endif
- 
+
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
@@ -623,7 +623,7 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* Solve the tridiagonal eigenproblem */
   for (i=0;i<l;i++) wr[i] = d[i];
- 
+
   lrwork = 5*n1*n1+3*n1+1;
   liwork = 5*n1*n1+6*n1+6;
 #if !defined(PETSC_USE_COMPLEX)

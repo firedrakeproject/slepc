@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -33,7 +33,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       newc,cnt;
-  
+
   PetscFunctionBegin;
   if (eps->allocated_ncv != eps->ncv) {
     newc = PetscMax(0,eps->ncv-eps->allocated_ncv);
@@ -77,7 +77,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
 PetscErrorCode EPSFreeSolution(EPS eps)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   if (eps->allocated_ncv > 0) {
     ierr = PetscFree(eps->eigr);CHKERRQ(ierr);

@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -46,7 +46,7 @@ PetscErrorCode SVDMonitor(SVD svd,PetscInt it,PetscInt nconv,PetscReal *sigma,Pe
 /*@C
    SVDMonitorSet - Sets an ADDITIONAL function to be called at every 
    iteration to monitor the error estimates for each requested singular triplet.
-      
+
    Collective on SVD
 
    Input Parameters:
@@ -324,7 +324,7 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
   ierr = PetscDrawSetPause(draw1,0);CHKERRQ(ierr);
   ierr = PetscDrawLGDraw(lg1);CHKERRQ(ierr);
   ierr = PetscDrawSetPause(draw1,p);CHKERRQ(ierr);
-    
+
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 } 
@@ -375,7 +375,7 @@ PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
   ierr = PetscDrawSetPause(draw1,0);CHKERRQ(ierr);
   ierr = PetscDrawLGDraw(lg1);CHKERRQ(ierr);
   ierr = PetscDrawSetPause(draw1,p);CHKERRQ(ierr);
-    
+
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
   ierr = PetscFree(x);CHKERRQ(ierr);
   ierr = PetscFree(y);CHKERRQ(ierr);

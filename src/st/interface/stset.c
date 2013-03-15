@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -161,7 +161,7 @@ PetscErrorCode STSetFromOptions(ST st)
         case 2: ierr = STSetMatStructure(st,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr); break;
       }
     }
-    
+
     if (st->ops->setfromoptions) {
       ierr = (*st->ops->setfromoptions)(st);CHKERRQ(ierr);
     }
@@ -198,7 +198,7 @@ PetscErrorCode STSetFromOptions(ST st)
    for efficiency reasons (in particular, for internal MatAXPY() operations).
 
    This function has no effect in the case of standard eigenproblems.
-   
+
    Level: advanced
 
 .seealso: STSetOperators(), MatAXPY()
@@ -284,7 +284,7 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
    in creating the shifted matrix but it places serious limitations to the 
    linear solves performed in each iteration of the eigensolver (typically,
    only interative solvers with Jacobi preconditioning can be used).
-   
+
    In the case of generalized problems, in the two first modes the matrix
    A - s B has to be computed explicitly. The efficiency of this computation 
    can be controlled with STSetMatStructure().

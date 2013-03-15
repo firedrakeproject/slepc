@@ -7,7 +7,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -47,7 +47,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
     ierr = PetscMalloc(n*sizeof(PetscScalar),&lhh);CHKERRQ(ierr);
   }
   ierr = PetscMalloc(n*n*sizeof(PetscScalar),&vw);CHKERRQ(ierr);
-  
+
   for (j=0;j<n;j++) {
     ierr = IPMInnerProduct(ip,V[j],n,W,vw+j*n);CHKERRQ(ierr);
   }
@@ -58,7 +58,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   PetscStackCall("LAPACKgelqf",LAPACKgelqf_(&n,&n,vw,&n,tau,work,&lwork,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   if (info) SETERRQ1(PetscObjectComm((PetscObject)ip),PETSC_ERR_LIB,"Error in Lapack xGELQF %d",info);
-  
+
   /*** First orthogonalization ***/
 
   /* h = W^* v */
@@ -73,7 +73,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
 
   /* compute norm of v */
   if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
-  
+
   if (n>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
   ierr = PetscFree(vw);CHKERRQ(ierr);
   ierr = PetscFree(tau);CHKERRQ(ierr);
@@ -137,7 +137,7 @@ PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScala
         allocated = PETSC_TRUE;
       }
     } else h = H;
-    
+
     /* retrieve hnrm and nrm for linear dependence check or conditional refinement */
     if (ip->orthog_ref == IP_ORTHOG_REFINE_IFNEEDED) {
       hnrm = &lhnrm;
@@ -147,7 +147,7 @@ PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScala
       hnrm = NULL;
       nrm = norm;
     }
-    
+
     switch (ip->orthog_type) {
       case IP_ORTHOG_CGS:
         ierr = IPCGSBiOrthogonalization(ip,n,V,W,v,h,hnrm,nrm);CHKERRQ(ierr);
@@ -155,7 +155,7 @@ PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScala
       default:
         SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
-    
+
     if (allocated) { ierr = PetscFree(h);CHKERRQ(ierr); }
     ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
   } 
@@ -196,7 +196,7 @@ PetscErrorCode IPPseudoOrthogonalizeCGS1(IP ip,PetscInt n,Vec *V,PetscReal* omeg
   for (j=0;j<n;j++) H[j] /= omega[j];  /* apply inverse of signature */
   ierr = SlepcVecMAXPBY(v,1.0,-1.0,n,H,V);CHKERRQ(ierr);
   for (j=0;j<n;j++) H[j] *= omega[j];  /* revert signature */
-    
+
   /* compute |v| */
   if (onorm) {
     if (PetscRealPart(alpha)>0.0) *onorm = PetscSqrtReal(PetscRealPart(alpha));
@@ -253,7 +253,7 @@ static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal
 
   /* orthogonalize and compute onorm */
   switch (ip->orthog_ref) {
-  
+
   case IP_ORTHOG_REFINE_NEVER:
     ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,h,NULL,NULL);CHKERRQ(ierr);
     /* compute |v| */
@@ -261,7 +261,7 @@ static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal
     /* linear dependence check does not work without refinement */
     if (lindep) *lindep = PETSC_FALSE;
     break;
-    
+
   case IP_ORTHOG_REFINE_ALWAYS:
     ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,h,NULL,NULL);CHKERRQ(ierr); 
     if (lindep) {
@@ -275,7 +275,7 @@ static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal
     for (j=0;j<n;j++) 
       h[j] += c[j];
     break;
-  
+
   case IP_ORTHOG_REFINE_IFNEEDED:
     ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,h,&onrm,&nrm);CHKERRQ(ierr); 
     /* ||q|| < eta ||h|| */

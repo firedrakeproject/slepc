@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -44,21 +44,21 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt 
     ierr = dvd_managementV_basic(d, b, bs, mpd, min_size_V, plusk,
                                harmMode==DVD_HARM_NONE?PETSC_FALSE:PETSC_TRUE,
                                allResiduals);CHKERRQ(ierr);
-  
+
     /* Setup the initial subspace for V */
     ierr = dvd_initV(d, b, ini_size_V, size_initV,
                      init==DVD_INITV_KRYLOV?PETSC_TRUE:PETSC_FALSE);CHKERRQ(ierr);
-  
+
     /* Setup the convergence in order to use the SLEPc convergence test */
     ierr = dvd_testconv_slepc(d, b);CHKERRQ(ierr);
-  
+
     /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
     ierr = dvd_calcpairs_qz(d, b, orth, NULL, cX_proj,
                 harmMode==DVD_HARM_NONE?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr);
     if (harmMode != DVD_HARM_NONE) {
       ierr = dvd_harm_conf(d, b, harmMode, PETSC_FALSE, 0.0);CHKERRQ(ierr);
     }
-  
+
     /* Setup the method for improving the eigenvectors */
     switch (method) {
       case DVD_METH_GD:

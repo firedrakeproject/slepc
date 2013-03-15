@@ -36,11 +36,11 @@ def Println(string):
 def Print(string):
   print string,
   f.write(string+' ')
-  
+
 def write(string):
   f.write(string)
   f.write('\n')
-  
+
 def Exit(string):
   f.write(string)
   f.write('\n')

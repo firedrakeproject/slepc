@@ -7,7 +7,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -120,7 +120,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsInt("-eps_ncv","Number of basis vectors","EPSSetDimensions",eps->ncv,&j,NULL);CHKERRQ(ierr);
     ierr = PetscOptionsInt("-eps_mpd","Maximum dimension of projected problem","EPSSetDimensions",eps->mpd,&k,NULL);CHKERRQ(ierr);
     ierr = EPSSetDimensions(eps,i,j,k);CHKERRQ(ierr);
-    
+
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to EPSSetFromOptions()
@@ -216,7 +216,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
     ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",0);CHKERRQ(ierr);
     ierr = PetscOptionsName("-eps_plot_eigs","Make a plot of the computed eigenvalues","EPSSolve",0);CHKERRQ(ierr);
-   
+
     if (eps->ops->setfromoptions) {
       ierr = (*eps->ops->setfromoptions)(eps);CHKERRQ(ierr);
     }
@@ -242,7 +242,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
    Input Parameter:
 .  eps - the eigensolver context
-  
+
    Output Parameters:
 +  tol - the convergence tolerance
 -  maxits - maximum number of iterations
@@ -326,7 +326,7 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
 
    Input Parameter:
 .  eps - the eigensolver context
-  
+
    Output Parameters:
 +  nev - number of eigenvalues to compute
 .  ncv - the maximum dimension of the subspace to be used by the solver
@@ -440,7 +440,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 
    Possible values:
    The parameter 'which' can have one of these values
-    
+
 +     EPS_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
 .     EPS_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
 .     EPS_LARGEST_REAL - largest real parts
@@ -471,7 +471,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
    problems. If SLEPc is compiled for real numbers EPS_LARGEST_IMAGINARY
    and EPS_SMALLEST_IMAGINARY use the absolute value of the imaginary part 
    for eigenvalue selection.
-    
+
    The target is a scalar value provided with EPSSetTarget().
 
    The criterion EPS_TARGET_IMAGINARY is available only in case PETSc and
@@ -948,7 +948,7 @@ PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
 .  -eps_gen_non_hermitian - generalized non-Hermitian eigenvalue problem 
 -  -eps_pos_gen_non_hermitian - generalized non-Hermitian eigenvalue problem 
    with positive semi-definite B
-    
+
    Notes:  
    Allowed values for the problem type are: Hermitian (EPS_HEP), non-Hermitian
    (EPS_NHEP), generalized Hermitian (EPS_GHEP), generalized non-Hermitian 
@@ -1056,7 +1056,7 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
    (without target)
 .  -eps_refined - refined Ritz extraction
 -  -eps_refined_harmonic - refined harmonic Ritz extraction
-    
+
    Notes:  
    Not all eigensolvers support all types of extraction. See the SLEPc
    Users Manual for details.
@@ -1125,7 +1125,7 @@ PetscErrorCode EPSGetExtraction(EPS eps,EPSExtraction *extr)
                            'none', 'oneside', 'twoside', or 'user'
 .  -eps_balance_its <its> - number of iterations
 -  -eps_balance_cutoff <cutoff> - cutoff value
-    
+
    Notes:
    When balancing is enabled, the solver works implicitly with matrix DAD^-1,
    where D is an appropriate diagonal matrix. This improves the accuracy of
@@ -1382,7 +1382,7 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
   ierr = PetscObjectSetOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);  
 }
- 
+
 #undef __FUNCT__
 #define __FUNCT__ "EPSAppendOptionsPrefix"
 /*@C

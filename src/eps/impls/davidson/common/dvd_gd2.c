@@ -8,7 +8,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -69,7 +69,7 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
   b->max_size_auxV = PetscMax(b->max_size_auxV,
      s +
      ((her_probl || !d->eps->trueres)?1:PetscMax(s*2,b->max_size_cX_proj+b->max_size_X))); /* testConv */
- 
+
   b->max_size_auxS = PetscMax(b->max_size_auxS,
       (her_probl || !d->eps->trueres)?0:b->max_nev*b->max_nev+PetscMax(b->max_nev*6,(b->max_nev+b->max_size_proj)*s+b->max_nev*(b->max_size_X+b->max_size_cX_proj)*(std_probl?2:4)+64)); /* preTestConv */
 
@@ -313,7 +313,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
       if (d->npreconv > 0) break;
     }
   }
- 
+
   /* D <- K*[Ax Bx] */
   if (d->npreconv == 0) {
     ierr = VecCopy(D[0],d->auxV[0]);CHKERRQ(ierr);
@@ -337,7 +337,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   } else {
     *size_D = 0;
   }
- 
+
   /* Callback old improveX */
   if (data->old_improveX) {
     d->improveX_data = data->old_improveX_data;

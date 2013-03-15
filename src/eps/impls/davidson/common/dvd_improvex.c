@@ -8,7 +8,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -126,7 +126,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
   b->max_size_auxV = PetscMax(b->max_size_auxV,
      b->max_size_X*3+(useGD?0:2)+ /* u, kr, auxV(max_size_X+2?) */
      ((her_probl || !d->eps->trueres)?1:PetscMax(s*2,b->max_size_cX_proj+b->max_size_X))); /* testConv */
- 
+
   b->own_scalars+= size_P*size_P; /* XKZ */
   b->max_size_auxS = PetscMax(b->max_size_auxS,
     b->max_size_X*3 + /* theta, thetai */
@@ -301,7 +301,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
     }
     PetscFunctionReturn(0);
   }
- 
+
   n = PetscMin(PetscMin(data->size_X, max_size_D), r_e-r_s);
   if (n == 0) SETERRQ(PETSC_COMM_SELF,1, "n == 0");
   if (data->size_X < r_e-r_s) SETERRQ(PETSC_COMM_SELF,1, "size_X < r_e-r_s");
@@ -384,14 +384,14 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
       ierr = VecCreateCompWithVecs(&D[i], data->ksp_max_size, data->friends,
                                    &D_comp);CHKERRQ(ierr);
       ierr = VecCompSetSubVecs(data->friends,s,NULL);CHKERRQ(ierr);
-  
+
       /* Solve the correction equation */
       ierr = KSPSetTolerances(data->ksp, tol, PETSC_DEFAULT, PETSC_DEFAULT,
                               maxits);CHKERRQ(ierr);
       ierr = KSPSolve(data->ksp, kr_comp, D_comp);CHKERRQ(ierr);
       ierr = KSPGetIterationNumber(data->ksp, &lits);CHKERRQ(ierr);
       d->eps->st->lineariterations+= lits;
-  
+
       /* Destroy the composed ks and D */
       ierr = VecDestroy(&kr_comp);CHKERRQ(ierr);
       ierr = VecDestroy(&D_comp);CHKERRQ(ierr);
@@ -412,7 +412,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
   }
   *size_D = i;
   if (data->dynamic) data->lastTol = PetscMax(data->lastTol/2.0,PETSC_MACHINE_EPSILON*10.0);
- 
+
   /* Callback old improveX */
   if (data->old_improveX) {
     d->improveX_data = data->old_improveX_data;
@@ -533,7 +533,7 @@ PetscErrorCode dvd_pcapplyba(PC pc,PCSide side,Vec in,Vec out,Vec w)
   case PC_LEFT:
     /* aux <- theta[1]A*in - theta[0]*B*in */
     ierr = dvd_aux_matmult(data,inx,data->auxV,outx);CHKERRQ(ierr);
-  
+
     /* out <- K * aux */
     for (i=0;i<n;i++) {
       ierr = data->d->improvex_precond(data->d,data->r_s+i,data->auxV[i],outx[i]);CHKERRQ(ierr);
@@ -544,7 +544,7 @@ PetscErrorCode dvd_pcapplyba(PC pc,PCSide side,Vec in,Vec out,Vec w)
     for (i=0;i<n;i++) {
       ierr = data->d->improvex_precond(data->d,data->r_s+i,inx[i],data->auxV[i]);CHKERRQ(ierr);
     }
-  
+
     /* out <- theta[1]A*auxV - theta[0]*B*auxV */
     ierr = dvd_aux_matmult(data,data->auxV,outx,wx);CHKERRQ(ierr);
     break;
@@ -553,10 +553,10 @@ PetscErrorCode dvd_pcapplyba(PC pc,PCSide side,Vec in,Vec out,Vec w)
     for (i=0;i<n;i++) {
       ierr = PCApplySymmetricRight(data->old_pc,inx[i],data->auxV[i]);CHKERRQ(ierr);
     }
-  
+
     /* out <- theta[1]A*auxV - theta[0]*B*auxV */
     ierr = dvd_aux_matmult(data,data->auxV,wx,outx);CHKERRQ(ierr);
-  
+
     /* aux <- K^{1/2} * in */
     for (i=0;i<n;i++) {
       ierr = PCApplySymmetricLeft(data->old_pc,wx[i],outx[i]);CHKERRQ(ierr);
@@ -622,7 +622,7 @@ PetscErrorCode dvd_pcapplytrans(PC pc,Vec in,Vec out)
   for (i=0;i<n;i++) {
     ierr = VecCopy(inx[i],data->auxV[i]);CHKERRQ(ierr);
   }
-  
+
   /* auxV <- auxV - u*(v'*auxV) */
   ierr = dvd_improvex_applytrans_proj(data->d,data->auxV,n,data->auxS);CHKERRQ(ierr);
 
@@ -1172,7 +1172,7 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV,PetscS
   DvdReduction      r;
   DvdReductionChunk ops[4];
   DvdMult_copy_func sr[4];
-  
+
   PetscFunctionBegin;
   if (cV > 2) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
 
@@ -1225,7 +1225,7 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV,P
   DvdReduction      r;
   DvdReductionChunk ops[2];
   DvdMult_copy_func sr[2];
-  
+
   PetscFunctionBegin;
   if (cV > 2) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
 

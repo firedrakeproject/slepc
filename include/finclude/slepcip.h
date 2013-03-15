@@ -25,7 +25,7 @@
 
       PetscEnum IP_ORTHOG_MGS
       PetscEnum IP_ORTHOG_CGS
-      
+
       parameter (IP_ORTHOG_MGS               =  0)
       parameter (IP_ORTHOG_CGS               =  1)
 

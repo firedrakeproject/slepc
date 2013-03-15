@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -310,7 +310,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   *outnep = nep;
   PetscFunctionReturn(0);
 }
- 
+
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetType"
 /*@C
@@ -325,7 +325,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
    Options Database Key:
 .  -nep_type <method> - Sets the method; use -help for a list 
     of available methods 
-    
+
    Notes:  
    See "slepc/include/slepcnep.h" for available methods.
 
@@ -727,7 +727,7 @@ PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
    Notes:
    The target is a scalar value used to determine the portion of the spectrum
    of interest. It is used in combination with NEPSetWhichEigenpairs().
-   
+
    Level: beginner
 
 .seealso: NEPGetTarget(), NEPSetWhichEigenpairs()

@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -63,7 +63,7 @@ int main(int argc,char **argv)
       ierr = MatSetValue(A,i,i-1,mu,INSERT_VALUES);CHKERRQ(ierr);
     }
   }
-  
+
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatGetVecs(A,&v,&u);CHKERRQ(ierr);
@@ -81,7 +81,7 @@ int main(int argc,char **argv)
      Set operator
   */
   ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
-  
+
   /*
      Use thick-restart Lanczos as default solver
   */
@@ -143,7 +143,7 @@ int main(int argc,char **argv)
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
-  
+
   /* 
      Free work space
   */

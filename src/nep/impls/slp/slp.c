@@ -20,7 +20,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -50,7 +50,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   PetscErrorCode ierr;
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
   ST             st;
-  
+
   PetscFunctionBegin;
   if (nep->ncv) { /* ncv set */
     if (nep->ncv<nep->nev) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must be at least nev"); 
@@ -104,7 +104,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   if (!nep->nini) {
     ierr = SlepcVecSetRandom(u,nep->rand);CHKERRQ(ierr);
   }
-  
+
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
     nep->its++;

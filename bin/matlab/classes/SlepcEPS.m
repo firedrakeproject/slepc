@@ -8,7 +8,7 @@ classdef SlepcEPS < PetscObject
 %     eps.SetOperators(A,B);
 %     (optional) eps.SetProblemType(...);
 %     eps.SetFromOptions;
- 
+
 %  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 %  SLEPc - Scalable Library for Eigenvalue Problem Computations
 %  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
@@ -196,4 +196,3 @@ classdef SlepcEPS < PetscObject
   end
 end
 
- 

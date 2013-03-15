@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -34,7 +34,7 @@ typedef struct {
 PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   /* standard eigenproblem: y = (A - sI)^-1 (A + tI)x */
   /* generalized eigenproblem: y = (A - sB)^-1 (A + tB)x */
@@ -48,7 +48,7 @@ PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
 PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   /* standard eigenproblem: y =  (A + tI)^T (A - sI)^-T x */
   /* generalized eigenproblem: y = (A + tB)^T (A - sB)^-T x */
@@ -65,12 +65,12 @@ static PetscErrorCode STBilinearMatMult_Cayley(Mat B,Vec x,Vec y)
   ST             st;
   ST_CAYLEY      *ctx;
   PetscScalar    nu;
-  
+
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&st);CHKERRQ(ierr);
   ctx = (ST_CAYLEY*)st->data;
   nu = ctx->nu;
-  
+
   if (st->shift_matrix == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
 
   if (st->nmat>1) {

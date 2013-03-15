@@ -66,7 +66,7 @@ def Check(conf,vars,cmake,tmpdir):
     functions += ['qstevr','qbdsdc','qlamch','qlag2','qlasv2','qlartg','qlaln2']
   else:
     functions += ['dstevr','dbdsdc','dlamch','dlag2','dlasv2','dlartg','dlaln2']
-   
+
   # check for all functions at once
   all = [] 
   for i in functions:
@@ -93,7 +93,7 @@ def Check(conf,vars,cmake,tmpdir):
     f += '#else\n'
     f += i + '\n'
     f += '#endif\n'
-  
+
     log.write('=== Checking LAPACK '+i+' function...')
     if not check.Link(tmpdir,[f],[],[]):
       missing.append(i)

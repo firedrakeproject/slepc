@@ -4,7 +4,7 @@ classdef SlepcST < PetscObject
 %
 %   Creation from an EPS:
 %     st = eps.GetST();
- 
+
 %  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 %  SLEPc - Scalable Library for Eigenvalue Problem Computations
 %  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
@@ -68,4 +68,3 @@ classdef SlepcST < PetscObject
   end
 end
 
- 

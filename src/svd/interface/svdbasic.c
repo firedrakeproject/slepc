@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -340,7 +340,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   *outsvd = svd;
   PetscFunctionReturn(0);
 }
- 
+
 #undef __FUNCT__
 #define __FUNCT__ "SVDReset"
 /*@
@@ -400,7 +400,7 @@ PetscErrorCode SVDReset(SVD svd)
 PetscErrorCode SVDDestroy(SVD *svd)
 {
   PetscErrorCode ierr;
- 
+
   PetscFunctionBegin;
   if (!*svd) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*svd,SVD_CLASSID,1);
@@ -432,7 +432,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
    Options Database Key:
 .  -svd_type <method> - Sets the method; use -help for a list 
     of available methods 
-    
+
    Notes:  
    See "slepc/include/slepcsvd.h" for available methods. The default
    is SVDCROSS.

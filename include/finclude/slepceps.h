@@ -49,7 +49,7 @@
       parameter (EPS_GNHEP                  =  4)
       parameter (EPS_PGNHEP                 =  5)
       parameter (EPS_GHIEP                  =  6)
-      
+
       PetscEnum EPS_LARGEST_MAGNITUDE
       PetscEnum EPS_SMALLEST_MAGNITUDE
       PetscEnum EPS_LARGEST_REAL
@@ -73,7 +73,7 @@
       parameter (EPS_TARGET_IMAGINARY       =  9)
       parameter (EPS_ALL                    = 10)
       parameter (EPS_WHICH_USER             = 11)
-       
+
       PetscEnum EPS_BALANCE_NONE
       PetscEnum EPS_BALANCE_ONESIDE
       PetscEnum EPS_BALANCE_TWOSIDE

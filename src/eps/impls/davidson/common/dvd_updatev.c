@@ -8,7 +8,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -188,7 +188,7 @@ PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d)
   PetscFunctionBegin;
   /* Restore changes in dvdDashboard */
   d->updateV_data = data->old_updateV_data;
-  
+
   /* Free local data */
   ierr = PetscFree(data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -321,7 +321,7 @@ PetscErrorCode dvd_updateV_conv_finish(dvdDashboard *d)
   ierr = d->calcpairs_selectPairs(d, data->min_size_V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
- 
+
 #undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_restart_gen"
 PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)

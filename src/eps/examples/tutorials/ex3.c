@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -134,15 +134,15 @@ static void tv(int nx,const PetscScalar *x,PetscScalar *y)
 
     The matrix used is the 2 dimensional discrete Laplacian on unit square with
     zero Dirichlet boundary condition.
- 
+
     Computes y <-- A*x, where A is the block tridiagonal matrix
- 
+
                  | T -I          | 
                  |-I  T -I       |
              A = |   -I  T       |
                  |        ...  -I|
                  |           -I T|
- 
+
     The subroutine TV is called to compute y<--T*x.
  */
 PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y)
@@ -152,7 +152,7 @@ PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py,dmone=-1.0;
   PetscErrorCode    ierr;
-  
+
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   nx = *(int*)ctx;

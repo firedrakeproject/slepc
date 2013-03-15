@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -86,7 +86,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
    Notes:
    The output matrix B must be destroyed after use. It will be NULL in
    case of standard eigenproblems.
-   
+
    Level: developer
 @*/
 PetscErrorCode STGetBilinearForm(ST st,Mat *B)
@@ -228,7 +228,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
     ierr = VecAssemblyEnd(in);CHKERRQ(ierr);
 
     ierr = STApply(st,in,out);CHKERRQ(ierr);
-    
+
     ierr = VecGetArrayRead(out,&array);CHKERRQ(ierr);
     ierr = MatSetValues(*mat,m,rows,1,&i,array,INSERT_VALUES);CHKERRQ(ierr); 
     ierr = VecRestoreArrayRead(out,&array);CHKERRQ(ierr);

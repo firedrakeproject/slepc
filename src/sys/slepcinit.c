@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -72,7 +72,7 @@ PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 {
   PetscErrorCode ierr;
   char           version[256];
-  
+
   PetscFunctionBegin;
   ierr = SlepcGetVersion(version,256);CHKERRQ(ierr);
   ierr = (*PetscHelpPrintf)(comm,"--------------------------------------------------------------------------\n");CHKERRQ(ierr);
@@ -93,7 +93,7 @@ PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 {
   PetscErrorCode  ierr;
-  
+
   PetscFunctionBegin;
   ierr = (*PetscHelpPrintf)(comm,"SLEPc help information includes that for the PETSc libraries, which provide\n");CHKERRQ(ierr);
   ierr = (*PetscHelpPrintf)(comm,"low-level system infrastructure and linear algebra tools.\n");CHKERRQ(ierr);
@@ -195,7 +195,7 @@ PetscErrorCode SlepcInitialize_LogEvents(void)
 
    Fortran Note:
    Fortran syntax is very similar to that of PetscInitialize()
-   
+
    Level: beginner
 
 .seealso: SlepcFinalize(), PetscInitialize()
@@ -246,7 +246,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
 PetscErrorCode SlepcFinalize(void)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   ierr = PetscInfo(0,"SlepcFinalize() called\n");CHKERRQ(ierr);
   if (SlepcBeganPetsc) {
@@ -263,7 +263,7 @@ PetscErrorCode SlepcFinalize(void)
    the command line arguments.
 
    Collective
-  
+
    Level: advanced
 
 .seealso: SlepcInitialize(), SlepcInitializeFortran()
@@ -283,7 +283,7 @@ PetscErrorCode SlepcInitializeNoArguments(void)
 #define __FUNCT__ "SlepcInitialized"
 /*@
    SlepcInitialized - Determine whether SLEPc is initialized.
-  
+
    Level: beginner
 
 .seealso: SlepcInitialize(), SlepcInitializeFortran()
@@ -305,7 +305,7 @@ PETSC_EXTERN PetscBool PetscBeganMPI;
    to argc and args (analogue to PetscInitializeNoPointers).
 
    Collective
-  
+
    Level: advanced
 
 .seealso: SlepcInitialize()

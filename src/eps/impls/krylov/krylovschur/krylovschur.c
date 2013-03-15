@@ -25,7 +25,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -216,7 +216,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],NULL);CHKERRQ(ierr);
   l = 0;
-  
+
   /* Restart loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
@@ -347,7 +347,7 @@ static PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal kee
 
    Notes:
    Allowed values are in the range [0.1,0.9]. The default is 0.5.
-   
+
    Level: advanced
 
 .seealso: EPSKrylovSchurGetRestart()

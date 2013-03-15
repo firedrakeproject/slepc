@@ -7,7 +7,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -35,7 +35,7 @@ static PetscErrorCode IPOrthogonalizeMGS1(IP ip,PetscInt n,PetscBool *which,Vec 
   PetscErrorCode ierr;
   PetscInt       j;
   PetscScalar    dot;
-  
+
   PetscFunctionBegin;
   for (j=0; j<n; j++)
     if (!which || which[j]) {
@@ -104,7 +104,7 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,PetscInt n,Petsc
   } else {
     ierr = SlepcVecMAXPBY(v,1.0,-1.0,n,H+nds,V);CHKERRQ(ierr);
   }
-    
+
   /* compute |v| */
   if (onorm) *onorm = PetscSqrtReal(PetscRealPart(alpha));
 
@@ -144,9 +144,9 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
   if (H) { 
     for (i=0;i<n;i++) H[i] = 0; 
   }
-  
+
   switch (ip->orthog_ref) {
-  
+
   case IP_ORTHOG_REFINE_NEVER:
     ierr = IPOrthogonalizeMGS1(ip,nds,NULL,defl,v,NULL);CHKERRQ(ierr);
     ierr = IPOrthogonalizeMGS1(ip,n,which,V,v,H);CHKERRQ(ierr);
@@ -155,7 +155,7 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     /* linear dependence check does not work without refinement */
     if (lindep) *lindep = PETSC_FALSE;
     break;
-    
+
   case IP_ORTHOG_REFINE_ALWAYS:
     /* first step */
     ierr = IPOrthogonalizeMGS1(ip,nds,NULL,defl,v,NULL);CHKERRQ(ierr);
@@ -171,7 +171,7 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     }
     if (norm) *norm = nrm;
     break;
-  
+
   case IP_ORTHOG_REFINE_IFNEEDED:
     /* first step */
     ierr = IPNorm(ip,v,&onrm);CHKERRQ(ierr);
@@ -193,7 +193,7 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     }
     if (norm) *norm = nrm;
     break;
-    
+
   default:
     SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization refinement");
   }
@@ -232,7 +232,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
 
   /* orthogonalize and compute onorm */
   switch (ip->orthog_ref) {
-  
+
   case IP_ORTHOG_REFINE_NEVER:
     ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,h,NULL,NULL);CHKERRQ(ierr);
     /* compute |v| */
@@ -240,7 +240,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     /* linear dependence check does not work without refinement */
     if (lindep) *lindep = PETSC_FALSE;
     break;
-    
+
   case IP_ORTHOG_REFINE_ALWAYS:
     ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,h,NULL,NULL);CHKERRQ(ierr); 
     if (lindep) {
@@ -254,7 +254,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     for (j=0;j<n;j++) 
       if (!which || which[j]) h[nds+j] += c[nds+j];
     break;
-  
+
   case IP_ORTHOG_REFINE_IFNEEDED:
     ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,h,&onrm,&nrm);CHKERRQ(ierr); 
     /* ||q|| < eta ||h|| */
@@ -398,7 +398,7 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
   PetscReal      norm;
   PetscBool      lindep;
   PetscRandom    rctx=NULL;
-  
+
   PetscFunctionBegin;
   for (k=m; k<n; k++) {
 
@@ -441,7 +441,7 @@ PetscErrorCode IPOrthonormalizeBasis_Private(IP ip,PetscInt *m,Vec **W,Vec *V)
   PetscInt       i,k;
   PetscBool      lindep;
   PetscReal      norm;
-  
+
   PetscFunctionBegin;
   k = 0;
   for (i=0;i<*m;i++) {

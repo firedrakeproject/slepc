@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -47,7 +47,7 @@
 PetscErrorCode MFNSetUp(MFN mfn)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   if (mfn->setupcalled) PetscFunctionReturn(0);
@@ -70,7 +70,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
   if (!((PetscObject)mfn->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(mfn->rand);CHKERRQ(ierr);
   }
-  
+
   /* Set problem dimensions */
   if (!mfn->A) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONGSTATE,"MFNSetOperator must be called first"); 
   ierr = MatGetSize(mfn->A,&mfn->n,NULL);CHKERRQ(ierr);
@@ -82,7 +82,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
   if (!mfn->function) {
     ierr = MFNSetFunction(mfn,SLEPC_FUNCTION_EXP);CHKERRQ(ierr);
   }
-  
+
   if (mfn->ncv > mfn->n) mfn->ncv = mfn->n;
 
   /* call specific solver setup */

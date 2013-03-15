@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -149,7 +149,7 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%6F, sigma_n=%6F\n",sigma_1,sigma_n);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%6F\n\n",sigma_1/sigma_n);CHKERRQ(ierr);
   }  
- 
+
   /* 
      Free work space
   */

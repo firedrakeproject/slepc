@@ -7,7 +7,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -163,7 +163,7 @@ static PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    *py;
 #endif
-  
+
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
   ierr = MatGetVecs(A,&xr,NULL);CHKERRQ(ierr);
@@ -242,7 +242,7 @@ static PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
   PetscScalar    *px;
   Vec            xr,xi,w;
   Mat            A;
-  
+
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
   ierr = MatGetVecs(A,&xr,NULL);CHKERRQ(ierr);
@@ -302,7 +302,7 @@ PetscErrorCode QEPSolve_Linear(QEP qep)
   /* restore target */
   ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
   ierr = EPSSetTarget(ctx->eps,sigma*qep->sfactor);CHKERRQ(ierr);
-  
+
   qep->matvecs *= 2;  /* convention: count one matvec for each non-trivial block in A */
   ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_linear_select_simple",&flg,NULL);CHKERRQ(ierr); 
   if (flg) { 

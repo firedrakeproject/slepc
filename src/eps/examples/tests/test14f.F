@@ -80,7 +80,7 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Create eigensolver and test interface functions
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-             
+
       call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
       call EPSSetOperators(eps,A,PETSC_NULL_OBJECT,ierr)
       call EPSGetOperators(eps,B,PETSC_NULL_OBJECT,ierr)

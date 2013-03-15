@@ -30,10 +30,10 @@ def Check(conf,vars,cmake,tmpdir,directory,libs):
 
   if petscconf.SCALAR == 'complex':
     log.Exit('ERROR: BLZPACK does not support complex numbers.') 
-  
+
   if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
     log.Exit('ERROR: BLZPACK is supported only in single or double precision.')
- 
+
   if petscconf.PRECISION == 'single':
     functions = ['blzdrs']
   else:

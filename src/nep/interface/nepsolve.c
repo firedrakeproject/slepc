@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -150,7 +150,7 @@ PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
    NEPGetIterationNumber - Gets the current iteration number. If the 
    call to NEPSolve() is complete, then it returns the number of iterations 
    carried out by the solution method.
- 
+
    Not Collective
 
    Input Parameter:
@@ -188,7 +188,7 @@ PetscErrorCode NEPGetIterationNumber(NEP nep,PetscInt *its)
 
    Input Parameter:
 .  nep - the nonlinear eigensolver context
-  
+
    Output Parameter:
 .  nconv - number of converged eigenpairs 
 
@@ -304,7 +304,7 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
   if (eigr) *eigr = nep->eigr[k];
   if (eigi) *eigi = nep->eigi[k];
 #endif
-  
+
   /* eigenvector */
 #if defined(PETSC_USE_COMPLEX)
   if (Vr) { ierr = VecCopy(nep->V[k],Vr);CHKERRQ(ierr); }
@@ -374,7 +374,7 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar kr,PetscScalar
   Vec            u;
   Mat            T=nep->function;
   MatStructure   mats;
-  
+
   PetscFunctionBegin;
   ierr = VecDuplicate(nep->V[0],&u);CHKERRQ(ierr);
   ierr = NEPComputeFunction(nep,kr,ki,&T,&T,&mats);CHKERRQ(ierr);
@@ -422,7 +422,7 @@ PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *norm)
   PetscErrorCode ierr;
   Vec            xr,xi;
   PetscScalar    kr,ki;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
@@ -449,7 +449,7 @@ PetscErrorCode NEPComputeRelativeError_Private(NEP nep,PetscScalar kr,PetscScala
 #if !defined(PETSC_USE_COMPLEX)
   PetscReal      ei;
 #endif
-  
+
   PetscFunctionBegin;
   ierr = NEPComputeResidualNorm_Private(nep,kr,ki,xr,xi,&norm);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
@@ -501,7 +501,7 @@ PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
   PetscErrorCode ierr;
   Vec            xr,xi;
   PetscScalar    kr,ki;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);  
   PetscValidLogicalCollectiveInt(nep,i,2);
@@ -664,7 +664,7 @@ PetscErrorCode NEPCompareEigenvalues(NEP nep,PetscScalar ar,PetscScalar ai,Petsc
 PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,PetscInt* lits)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (nfuncs) *nfuncs = nep->nfuncs; 

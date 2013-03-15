@@ -9,7 +9,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -47,7 +47,7 @@ static PetscErrorCode EPSFullLanczosIndef(EPS eps,PetscReal *alpha,PetscReal *be
     alpha[j] = PetscRealPart(hwork[j]);
     beta[j] = PetscAbsReal(norm);
     omega[j+1] = (norm<0.0)?-1.0:1.0;
-    
+
     if (breakdown && *breakdown) {
       *M = j+1;
       if (m > 100) {
@@ -93,7 +93,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
   ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
   ierr = VecScale(eps->V[0],1.0/norm);CHKERRQ(ierr);
   l = 0;
-  
+
   /* Restart loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
@@ -122,7 +122,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,1.0,&k);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
-    
+
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
     else {
@@ -134,7 +134,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
       }
       ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     }
-    
+
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
         SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",beta);

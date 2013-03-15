@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -50,7 +50,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   PetscBool      khas,mhas,islinear,flg;
   PetscReal      knorm,mnorm;
   Mat            mat[3];
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (qep->setupcalled) PetscFunctionReturn(0);
@@ -88,7 +88,7 @@ PetscErrorCode QEPSetUp(QEP qep)
     mat[2] = qep->M;
     ierr = STSetOperators(qep->st,3,mat);CHKERRQ(ierr);
   }
-  
+
   /* Set problem dimensions */
   ierr = MatGetSize(qep->M,&qep->n,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(qep->M,&qep->nloc,NULL);CHKERRQ(ierr);
@@ -308,7 +308,7 @@ PetscErrorCode QEPGetOperators(QEP qep,Mat *M,Mat *C,Mat *K)
 PetscErrorCode QEPSetInitialSpace(QEP qep,PetscInt n,Vec *is)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(qep,n,2);
@@ -352,7 +352,7 @@ PetscErrorCode QEPSetInitialSpace(QEP qep,PetscInt n,Vec *is)
 PetscErrorCode QEPSetInitialSpaceLeft(QEP qep,PetscInt n,Vec *is)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(qep,n,2);
@@ -373,7 +373,7 @@ PetscErrorCode QEPAllocateSolution(QEP qep)
 {
   PetscErrorCode ierr;
   PetscInt       newc,cnt;
-  
+
   PetscFunctionBegin;
   if (qep->allocated_ncv != qep->ncv) {
     newc = PetscMax(0,qep->ncv-qep->allocated_ncv);
@@ -402,7 +402,7 @@ PetscErrorCode QEPAllocateSolution(QEP qep)
 PetscErrorCode QEPFreeSolution(QEP qep)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   if (qep->allocated_ncv > 0) {
     ierr = PetscFree(qep->eigr);CHKERRQ(ierr);

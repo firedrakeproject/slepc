@@ -27,7 +27,7 @@
       PetscEnum DS_STATE_INTERMEDIATE
       PetscEnum DS_STATE_CONDENSED
       PetscEnum DS_STATE_TRUNCATED
-      
+
       parameter (DS_STATE_RAW                =  0)
       parameter (DS_STATE_INTERMEDIATE       =  1)
       parameter (DS_STATE_CONDENSED          =  2)

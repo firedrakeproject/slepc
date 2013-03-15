@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -106,7 +106,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscBool      flg;
   PetscInt       M,N,k;
   Vec            *T;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->setupcalled) PetscFunctionReturn(0);
@@ -131,14 +131,14 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   /* check matrix */
   if (!svd->OP) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperator must be called first"); 
-  
+
   /* determine how to build the transpose */
   if (svd->transmode == PETSC_DECIDE) {
     ierr = MatHasOperation(svd->OP,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);    
     if (flg) svd->transmode = SVD_TRANSPOSE_EXPLICIT;
     else svd->transmode = SVD_TRANSPOSE_IMPLICIT;
   }
-  
+
   /* build transpose matrix */
   ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
@@ -259,7 +259,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,n,2);
@@ -301,7 +301,7 @@ PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
 PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt n,Vec *is)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,n,2);

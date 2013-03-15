@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -52,9 +52,9 @@
 
    The default is SVD_TRANSPOSE_EXPLICIT if the matrix has defined the
    MatTranspose operation, and SVD_TRANSPOSE_IMPLICIT otherwise.
-   
+
    Level: advanced
-   
+
 .seealso: SVDGetTransposeMode(), SVDSolve(), SVDSetOperator(), 
    SVDGetOperator(), SVDTransposeMode
 @*/
@@ -92,9 +92,9 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
    Output paramter:
 .  mode - how to compute the transpose, one of SVD_TRANSPOSE_EXPLICIT
           or SVD_TRANSPOSE_IMPLICIT
-   
+
    Level: advanced
-   
+
 .seealso: SVDSetTransposeMode(), SVDSolve(), SVDSetOperator(), 
    SVDGetOperator(), SVDTransposeMode
 @*/
@@ -168,7 +168,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
 
    Input Parameter:
 .  svd - the singular value solver context
-  
+
    Output Parameters:
 +  tol - the convergence tolerance
 -  maxits - maximum number of iterations
@@ -268,7 +268,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
 
    Input Parameter:
 .  svd - the singular value context
-  
+
    Output Parameters:
 +  nsv - number of singular values to compute
 .  ncv - the maximum dimension of the subspace to be used by the solver
@@ -307,14 +307,14 @@ PetscErrorCode SVDGetDimensions(SVD svd,PetscInt *nsv,PetscInt *ncv,PetscInt *mp
 
     Possible values:
     The parameter 'which' can have one of these values:
-    
+
 +     SVD_LARGEST  - largest singular values
 -     SVD_SMALLEST - smallest singular values
 
     Options Database Keys:
 +   -svd_largest  - Sets largest singular values
 -   -svd_smallest - Sets smallest singular values
-    
+
     Level: intermediate
 
 .seealso: SVDGetWhichSingularTriplets(), SVDWhich
@@ -625,7 +625,7 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
   PetscErrorCode ierr;
   PetscBool      flg1,flg2;
   EPS            eps;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }

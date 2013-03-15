@@ -7,7 +7,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -285,7 +285,7 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
    On output, the value of ksp can be NULL if the combination of 
    eigenproblem type and selected transformation does not require to 
    solve a linear system of equations.
-   
+
    Level: intermediate
 
 @*/
@@ -325,7 +325,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 
    Notes:
    Any output parameter may be NULL on input if not needed. 
-   
+
    Level: intermediate
 
 .seealso: STResetOperationCounters()
@@ -375,7 +375,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,PetscInt n,const Vec V[])
   Mat            A;
   PC             pc;
   MatNullSpace   nullsp;
-  
+
   PetscFunctionBegin;
   ierr = PetscMalloc(n*sizeof(Vec),&T);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
@@ -419,7 +419,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,PetscInt n,const Vec V[])
    Note:
    This function allows to handle singular pencils and to solve some problems
    in which the nullspace is important (see the users guide for details).
-   
+
    Level: developer
 
 .seealso: EPSSetDeflationSpace()

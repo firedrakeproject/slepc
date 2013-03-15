@@ -7,7 +7,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -82,7 +82,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     i = 0;
     ierr = PetscOptionsInt("-mfn_ncv","Number of basis vectors","MFNSetDimensions",mfn->ncv,&i,NULL);CHKERRQ(ierr);
     ierr = MFNSetDimensions(mfn,i);CHKERRQ(ierr);
-    
+
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to MFNSetFromOptions()
@@ -108,7 +108,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
   /* -----------------------------------------------------------------------*/
 
     ierr = PetscOptionsName("-mfn_view","Print detailed information on solver used","MFNView",0);CHKERRQ(ierr);
-   
+
     if (mfn->ops->setfromoptions) {
       ierr = (*mfn->ops->setfromoptions)(mfn);CHKERRQ(ierr);
     }
@@ -133,7 +133,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
 
    Input Parameter:
 .  mfn - the matrix function context
-  
+
    Output Parameters:
 +  tol - the convergence tolerance
 -  maxits - maximum number of iterations
@@ -216,7 +216,7 @@ PetscErrorCode MFNSetTolerances(MFN mfn,PetscReal tol,PetscInt maxits)
 
    Input Parameter:
 .  mfn - the matrix function context
-  
+
    Output Parameter:
 .  ncv - the maximum dimension of the subspace to be used by the solver
 
@@ -285,7 +285,7 @@ PetscErrorCode MFNSetDimensions(MFN mfn,PetscInt ncv)
 
    Options Database Keys:
 .  -mfn_exp - matrix exponential
-    
+
    Level: beginner
 
 .seealso: MFNSetOperator(), MFNSetType(), MFNGetFunction(), SlepcFunction
@@ -371,7 +371,7 @@ PetscErrorCode MFNSetScaleFactor(MFN mfn,PetscReal alpha)
 
    Input Parameter:
 .  mfn - the matrix function context
-  
+
    Output Parameters:
 .  alpha - the scaling factor
 
@@ -429,7 +429,7 @@ PetscErrorCode MFNSetOptionsPrefix(MFN mfn,const char *prefix)
   ierr = PetscObjectSetOptionsPrefix((PetscObject)mfn,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);  
 }
- 
+
 #undef __FUNCT__
 #define __FUNCT__ "MFNAppendOptionsPrefix"
 /*@C

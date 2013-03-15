@@ -26,7 +26,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -103,7 +103,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
     ierr = IPOrthogonalize(svd->ip,0,NULL,i,NULL,V,V[i],work,&b,NULL);CHKERRQ(ierr);  
     ierr = VecScale(V[i],1.0/b);CHKERRQ(ierr);
     beta[i-1] = b;
-    
+
     ierr = SVDMatMult(svd,PETSC_FALSE,V[i],U[i]);CHKERRQ(ierr);
     ierr = VecAXPY(U[i],-b,U[i-1]);CHKERRQ(ierr);
     ierr = IPNorm(svd->ip,U[i],&a);CHKERRQ(ierr);
@@ -145,7 +145,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
       ierr = IPInnerProductEnd(svd->ip,V[i],V[i],&dot);CHKERRQ(ierr);
     }
     ierr = IPMInnerProductEnd(svd->ip,V[i],i,V,work);CHKERRQ(ierr);
-    
+
     ierr = VecScale(U[i-1],1.0/a);CHKERRQ(ierr);
     for (j=0;j<i;j++) work[j] = work[j] / a;
     ierr = SlepcVecMAXPBY(V[i],1.0/a,-1.0,i,work,V);CHKERRQ(ierr);
@@ -173,9 +173,9 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
       }
       break;
     }
-    
+
     ierr = VecScale(V[i],1.0/b);CHKERRQ(ierr);
-  
+
     ierr = SVDMatMult(svd,PETSC_FALSE,V[i],U[i]);CHKERRQ(ierr);
     ierr = VecAXPY(U[i],-b,U[i-1]);CHKERRQ(ierr);
 
@@ -193,7 +193,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
     ierr = IPInnerProductEnd(svd->ip,v,v,&dot);CHKERRQ(ierr);
   }
   ierr = IPMInnerProductEnd(svd->ip,v,n,V,work);CHKERRQ(ierr);
-    
+
   ierr = VecScale(U[n-1],1.0/a);CHKERRQ(ierr);
   for (j=0;j<n;j++) work[j] = work[j] / a;
   ierr = SlepcVecMAXPBY(v,1.0/a,-1.0,n,work,V);CHKERRQ(ierr);
@@ -221,7 +221,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
     }
     break;
   }
-      
+
   alpha[n-1] = a;
   beta[n-1] = b;
   PetscFunctionReturn(0);
@@ -239,7 +239,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   Vec            v;
   PetscBool      conv;
   IPOrthogType   orthog;
-  
+
   PetscFunctionBegin;
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
@@ -247,13 +247,13 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     ierr = PetscMalloc(sizeof(PetscScalar)*svd->n,&swork);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->V[0],&v);CHKERRQ(ierr);
   ierr = IPGetOrthogonalization(svd->ip,&orthog,NULL,NULL);CHKERRQ(ierr);
-  
+
   /* normalize start vector */
   if (!svd->nini) {
     ierr = SlepcVecSetRandom(svd->V[0],svd->rand);CHKERRQ(ierr);
   }
   ierr = VecNormalize(svd->V[0],&norm);CHKERRQ(ierr);
-  
+
   l = 0;
   while (svd->reason == SVD_CONVERGED_ITERATING) {
     svd->its++;
@@ -274,7 +274,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     lastbeta = beta[nv-1];
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     ierr = VecScale(v,1.0/lastbeta);CHKERRQ(ierr);
-   
+
     /* compute SVD of general matrix */
     ierr = DSSetDimensions(svd->ds,nv,nv,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
     if (l==0) {
@@ -302,13 +302,13 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
       }
     }
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
-    
+
     /* check convergence and update l */
     if (svd->its >= svd->max_it) svd->reason = SVD_DIVERGED_ITS;
     if (svd->nconv+k >= svd->nsv) svd->reason = SVD_CONVERGED_TOL;
     if (svd->reason != SVD_CONVERGED_ITERATING) l = 0;
     else l = PetscMax((nv-svd->nconv-k)/2,0);
-    
+
     /* compute converged singular vectors and restart vectors */
     off = svd->nconv+svd->nconv*ld;
     ierr = DSGetArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);
@@ -316,16 +316,16 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     ierr = SlepcUpdateVectors(nv-svd->nconv,svd->U+svd->nconv,0,k+l,Q+off,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = DSRestoreArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);
     ierr = DSRestoreArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
-    
+
     /* copy the last vector to be the next initial vector */
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       ierr = VecCopy(v,svd->V[svd->nconv+k+l]);CHKERRQ(ierr);
     }
-    
+
     svd->nconv += k;
     ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);CHKERRQ(ierr);
   }
-  
+
   /* orthonormalize U columns in one side method */
   if (lanczos->oneside) {
     for (i=0;i<svd->nconv;i++) {
@@ -333,7 +333,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
       ierr = VecScale(svd->U[i],1.0/norm);CHKERRQ(ierr);
     }
   }
-  
+
   /* free working space */
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = PetscFree(w);CHKERRQ(ierr);

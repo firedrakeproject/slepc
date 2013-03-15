@@ -143,7 +143,7 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
       call EPSSolve(solver,ierr) 
-  
+
 !     ** Optional: Get some information from the solver and display it
       call EPSGetType(solver,tname,ierr)
       if (rank .eq. 0) then

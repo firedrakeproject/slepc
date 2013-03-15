@@ -39,7 +39,7 @@
       PetscEnum MFN_EXP
 
       parameter (MFN_EXP                    =  1)
-      
+
 !
 !   Possible arguments to MFNMonitorSet()
 !

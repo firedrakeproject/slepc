@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -56,7 +56,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    sigma;
 #endif
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->setupcalled) PetscFunctionReturn(0);
@@ -83,7 +83,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (!((PetscObject)eps->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
   }
-  
+
   /* Set problem dimensions */
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   if (!nmat) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first"); 
@@ -110,7 +110,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
 #endif
   if (eps->ishermitian && eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requesting left eigenvectors not allowed in Hermitian problems");
-  
+
   if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
     ierr = STGetBilinearForm(eps->st,&B);CHKERRQ(ierr);
     ierr = IPSetMatrix(eps->ip,B);CHKERRQ(ierr);
@@ -121,7 +121,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   } else {
     ierr = IPSetMatrix(eps->ip,NULL);CHKERRQ(ierr);
   }
-  
+
   if (eps->nev > eps->n) eps->nev = eps->n;
   if (eps->ncv > eps->n) eps->ncv = eps->n;
 
@@ -211,7 +211,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* Setup ST */
   ierr = STSetUp(eps->st);CHKERRQ(ierr); 
-  
+
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg);CHKERRQ(ierr);
   if (flg && eps->problem_type == EPS_PGNHEP) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
 
@@ -396,7 +396,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
@@ -437,7 +437,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
 PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = VecDestroyVecs(eps->nds,&eps->defl);CHKERRQ(ierr);
@@ -480,7 +480,7 @@ PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
 PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
@@ -524,7 +524,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
 PetscErrorCode EPSSetInitialSpaceLeft(EPS eps,PetscInt n,Vec *is)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);

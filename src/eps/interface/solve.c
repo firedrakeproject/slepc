@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -250,7 +250,7 @@ PetscErrorCode EPSSolve(EPS eps)
    EPSGetIterationNumber - Gets the current iteration number. If the 
    call to EPSSolve() is complete, then it returns the number of iterations 
    carried out by the solution method.
- 
+
    Not Collective
 
    Input Parameter:
@@ -331,7 +331,7 @@ PetscErrorCode EPSGetOperationCounters(EPS eps,PetscInt* ops,PetscInt* dots,Pets
 
    Input Parameter:
 .  eps - the eigensolver context
-  
+
    Output Parameter:
 .  nconv - number of converged eigenpairs 
 
@@ -396,7 +396,7 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
 
    Input Parameter:
 .  eps - the eigensolver context
-  
+
    Output Parameter:
 .  v - an array of vectors
 
@@ -451,7 +451,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec *v)
 
    Input Parameter:
 .  eps - the eigensolver context
-  
+
    Output Parameter:
 .  v - an array of vectors
 
@@ -825,14 +825,14 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
   Vec            v;
   PetscReal      ni,nr;
 #endif
-  
+
   PetscFunctionBegin;
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
   ierr = VecDuplicate(eps->V[0],&u);CHKERRQ(ierr);
   ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
-  
+
 #if !defined(PETSC_USE_COMPLEX)
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
@@ -903,7 +903,7 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps,PetscInt i,PetscReal *norm)
   PetscErrorCode ierr;
   Vec            xr,xi;
   PetscScalar    kr,ki;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
@@ -953,7 +953,7 @@ PetscErrorCode EPSComputeResidualNormLeft(EPS eps,PetscInt i,PetscReal *norm)
 #if !defined(PETSC_USE_COMPLEX)
   PetscReal      ni,nr;
 #endif
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
@@ -1020,7 +1020,7 @@ PetscErrorCode EPSComputeRelativeError_Private(EPS eps,PetscScalar kr,PetscScala
 #if !defined(PETSC_USE_COMPLEX)
   PetscReal      ei;
 #endif
-  
+
   PetscFunctionBegin;
   ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,&norm);CHKERRQ(ierr);
 
@@ -1065,7 +1065,7 @@ PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *error)
   PetscErrorCode ierr;
   Vec            xr,xi;
   PetscScalar    kr,ki;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);  
   PetscValidLogicalCollectiveInt(eps,i,2);
@@ -1111,7 +1111,7 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps,PetscInt i,PetscReal *error)
   Vec            u;
   PetscReal      ei;
 #endif
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);  
   ierr = EPSComputeResidualNormLeft(eps,i,&norm);CHKERRQ(ierr);
@@ -1140,7 +1140,7 @@ PetscErrorCode EPSComputeRelativeErrorLeft(EPS eps,PetscInt i,PetscReal *error)
     *error = norm / SlepcAbsEigenvalue(er,ei);
   }
 #endif    
-  
+
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1310,7 +1310,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,Vec vec,PetscBool *breakdown
   PetscReal      norm;
   PetscBool      lindep;
   Vec            w;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
@@ -1385,7 +1385,7 @@ PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,Vec vec,PetscBool *break
   PetscReal      norm;
   PetscBool      lindep;
   Vec            w;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);

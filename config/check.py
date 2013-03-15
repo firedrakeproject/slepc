@@ -30,7 +30,7 @@ def LinkWithOutput(tmpdir,functions,callbacks,flags):
   code = '#include "petscksp.h"\n'
   for f in functions:
     code += 'PETSC_EXTERN int\n' + f + '();\n'
-  
+
   for c in callbacks:
     code += 'int '+ c + '() { return 0; } \n'
 
@@ -42,7 +42,7 @@ def LinkWithOutput(tmpdir,functions,callbacks,flags):
   for f in functions:
     code += f + '();\n'
   code += 'return 0;\n}\n'
-  
+
   cfile = open(os.sep.join([tmpdir,'checklink.c']),'w')
   cfile.write(code)
   cfile.close()
@@ -53,7 +53,7 @@ def LinkWithOutput(tmpdir,functions,callbacks,flags):
     return (0,code + output)
   else:
     return (1,code + output)  
- 
+
 def Link(tmpdir,functions,callbacks,flags):
   (result, output) = LinkWithOutput(tmpdir,functions,callbacks,flags)
   log.write(output)
@@ -85,7 +85,7 @@ def FortranLink(tmpdir,functions,callbacks,flags):
   (result, output3) = LinkWithOutput(tmpdir,functions,callbacks,flags) 
   output3 = '\n====== With unmodified Fortran names\n' + output3
   if result: return ('STDCALL',output3)
-  
+
   return ('',output + output1 + output2 + output3)
 
 def GenerateGuesses(name):
@@ -100,7 +100,7 @@ def GenerateGuesses(name):
       dirs = dirs + [i + '/' + d]
       dirs = dirs + [i + '/' + d + '/lib']
       dirs = dirs + [i + '/lib/' + d]
-      
+
   for d in dirs[:]:
     if not os.path.exists(d):
       dirs.remove(d)
@@ -132,7 +132,6 @@ def FortranLib(tmpdir,conf,vars,cmake,name,dirs,libs,functions,callbacks = []):
     log.Println('ERROR: In directories '+''.join([s+' ' for s in dirs]))
     log.Println('ERROR: With flags '+''.join([s+' ' for s in flags]))
     log.Exit('')
-    
 
   conf.write('#ifndef SLEPC_HAVE_' + name + '\n#define SLEPC_HAVE_' + name + ' 1\n#define SLEPC_' + name + '_HAVE_'+mangling+' 1\n#endif\n\n')
   vars.write(name + '_LIB = '+str.join(' ',flags)+'\n')

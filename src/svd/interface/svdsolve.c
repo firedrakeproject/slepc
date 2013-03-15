@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -105,7 +105,7 @@ PetscErrorCode SVDSolve(SVD svd)
    SVDGetIterationNumber - Gets the current iteration number. If the 
    call to SVDSolve() is complete, then it returns the number of iterations 
    carried out by the solution method.
- 
+
    Not Collective
 
    Input Parameter:
@@ -177,7 +177,7 @@ PetscErrorCode SVDGetConvergedReason(SVD svd,SVDConvergedReason *reason)
 
    Input Parameter:
 .  svd - the singular value solver context
-  
+
    Output Parameter:
 .  nconv - number of converged singular values 
 
@@ -292,7 +292,7 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,Petsc
   PetscValidLogicalCollectiveInt(svd,i,2);
   if (svd->reason == SVD_CONVERGED_ITERATING) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
   if (i<0 || i>=svd->nconv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
-  
+
   ierr = MatGetVecs(svd->OP,&v,&u);CHKERRQ(ierr);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
   if (norm1) {
@@ -390,7 +390,7 @@ PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
 PetscErrorCode SVDGetOperationCounters(SVD svd,PetscInt* matvecs,PetscInt* dots)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (matvecs) *matvecs = svd->matvecs; 

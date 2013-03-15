@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -60,10 +60,10 @@ PetscErrorCode SlepcDenseMatProd(PetscScalar *C,PetscInt _ldC,PetscScalar b,Pets
   /* Transpose if needed */
   if (At) tmp = rA, rA = cA, cA = tmp, qA = T;
   if (Bt) tmp = rB, rB = cB, cB = tmp, qB = T;
-  
+
   /* Check size */
   if (cA != rB) SETERRQ(PETSC_COMM_SELF,1, "Matrix dimensions do not match");
-  
+
   /* Do stub */
   if ((rA == 1) && (cA == 1) && (cB == 1)) {
     if (!At && !Bt) *C = *A * *B;
@@ -112,7 +112,7 @@ PetscErrorCode SlepcDenseMatProdTriang(PetscScalar *C,MatType_t sC,PetscInt ldC,
   /* Transpose if needed */
   if (At) tmp = rA, rA = cA, cA = tmp;
   if (Bt) tmp = rB, rB = cB, cB = tmp;
-  
+
   /* Check size */
   if (cA != rB) SETERRQ(PETSC_COMM_SELF,1, "Matrix dimensions do not match");
   if (sB != 0) SETERRQ(PETSC_COMM_SELF,1, "Matrix type not supported for B");
@@ -125,7 +125,7 @@ PetscErrorCode SlepcDenseMatProdTriang(PetscScalar *C,MatType_t sC,PetscInt ldC,
     else if (At && Bt)  *C = PetscConj(*A) * PetscConj(*B);
     PetscFunctionReturn(0);
   }
- 
+
   /* Optimized versions: sA == 0 && sB == 0 */
   if ((sA == 0) && (sB == 0)) {
     if (At) tmp = rA, rA = cA, cA = tmp;
@@ -157,7 +157,7 @@ PetscErrorCode SlepcDenseMatProdTriang(PetscScalar *C,MatType_t sC,PetscInt ldC,
     ierr = PetscLogEventEnd(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
- 
+
   SETERRQ(PETSC_COMM_SELF,1, "Matrix type not supported for A");
 }
 
@@ -220,7 +220,7 @@ PetscErrorCode SlepcDenseCopy(PetscScalar *Y,PetscInt ldY,PetscScalar *X,PetscIn
   PetscValidScalarPointer(X,3);
 
   if ((ldX < rX) || (ldY < rX)) SETERRQ(PETSC_COMM_SELF,1, "Leading dimension error");
-  
+
   /* Quick exit */
   if (Y == X) {
     if (ldX != ldY) SETERRQ(PETSC_COMM_SELF,1, "Leading dimension error");
@@ -283,7 +283,7 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y,MatType_t sY,PetscInt ldY,Pet
       c = 3;                                      /*     so reflect fr. down */
   } else                                          /* Full to any, */
     c = 0;                                        /*     so copy */
- 
+
   ierr = PetscLogEventBegin(SLEPC_SlepcDenseCopy,0,0,0,0);CHKERRQ(ierr);
 
   switch (c) {
@@ -370,7 +370,7 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y,PetscInt dY,PetscScalar beta,PetscScal
     /* Do operation */ 
     ierr = SlepcDenseMatProd(py, ldY, beta, alpha, px, ldX, rX, rcX,
                     PETSC_FALSE, M, ldM, rM, cM, PETSC_FALSE);CHKERRQ(ierr);
-  
+
     ierr = VecRestoreArrayRead(X[0], &px);CHKERRQ(ierr);
     ierr = VecRestoreArray(Y[0], &py);CHKERRQ(ierr);
     for (i=1;i<cM;i++) {
@@ -469,7 +469,7 @@ PetscErrorCode VecsMult(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt
   SlepcValidVecsContiguous(U,eU,4);
   SlepcValidVecsContiguous(V,eV,7);
   PetscValidScalarPointer(M,1);
-    
+
   /* Get the dense matrices and dimensions associated to U and V */
   ierr = VecGetLocalSize(U[0], &ldU);CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0], &ldV);CHKERRQ(ierr);
@@ -493,7 +493,7 @@ PetscErrorCode VecsMult(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt
     ierr = SlepcDenseMatProdTriang(W, sM, eU,
                                    pu, 0, ldU, ldU, eU, PETSC_TRUE,
                                    pv, 0, ldV, ldV, eV, PETSC_FALSE);CHKERRQ(ierr);
- 
+
     /* ReduceAll(W, SUM) */
     ierr = MPI_Allreduce(W, M, eU*eV, MPIU_SCALAR, MPIU_SUM,
                          PetscObjectComm((PetscObject)U[0]));CHKERRQ(ierr);
@@ -507,30 +507,30 @@ PetscErrorCode VecsMult(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt
     } else {
       ierr = PetscMalloc(sizeof(PetscScalar)*ms,&Wr);CHKERRQ(ierr);
     }
- 
+
     /* W(0:(eU-sU)*sV-1) <- U(sU:eU-1)' * V(0:sV-1) */
     if (sU > 0) {
       ierr = SlepcDenseMatProd(W, eU-sU, 0.0, 1.0,
                                pu+ldU*sU, ldU, ldU, eU-sU, PETSC_TRUE,
                                pv       , ldV, ldV, sV,    PETSC_FALSE);CHKERRQ(ierr);
     }
-  
+
     /* W((eU-sU)*sV:(eU-sU)*sV+(eV-sV)*eU-1) <- U(0:eU-1)' * V(sV:eV-1) */
     ierr = SlepcDenseMatProd(W+(eU-sU)*sV*(sU > 0?1:0), eU, 0.0, 1.0,
                              pu,        ldU, ldU, eU,    PETSC_TRUE,
                              pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);CHKERRQ(ierr);
-  
+
     /* ReduceAll(W, SUM) */
     ierr = MPI_Allreduce(W, Wr, ms, MPIU_SCALAR,
                       MPIU_SUM, PetscObjectComm((PetscObject)U[0]));CHKERRQ(ierr);
-  
+
     /* M(...,...) <- W */
     k = 0;
     if (sU > 0) for (i=0; i<sV; i++)
       for (j=ldM*i+sU; j<ldM*i+eU; j++,k++) M[j] = Wr[k];
     for (i=sV; i<eV; i++)
       for (j=ldM*i; j<ldM*i+eU; j++,k++) M[j] = Wr[k];
-  
+
     if (!workS1) {
       ierr = PetscFree(Wr);CHKERRQ(ierr);
     }
@@ -545,16 +545,16 @@ PetscErrorCode VecsMult(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt
     } else {
       ierr = PetscMalloc(sizeof(PetscScalar)*(eV-sV)*eU,&Wr);CHKERRQ(ierr);
     }
- 
+
     /* W(0:(eV-sV)*eU-1) <- U(0:eU-1)' * V(sV:eV-1) */
     ierr = SlepcDenseMatProd(W,         eU,  0.0, 1.0,
                              pu,        ldU, ldU, eU,    PETSC_TRUE,
                              pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);CHKERRQ(ierr);
-  
+
     /* ReduceAll(W, SUM) */
     ierr = MPI_Allreduce(W, Wr, (eV-sV)*eU, MPIU_SCALAR, MPIU_SUM,
                          PetscObjectComm((PetscObject)U[0]));CHKERRQ(ierr);
-  
+
     /* M(...,...) <- W */
     for (i=sV,k=0; i<eV; i++)
         for (j=ldM*i; j<ldM*i+eU; j++,k++) M[j] = Wr[k];
@@ -573,20 +573,20 @@ PetscErrorCode VecsMult(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt
     } else {
       ierr = PetscMalloc(sizeof(PetscScalar)*(eU-sU)*eV, &Wr);CHKERRQ(ierr);
     }
- 
+
     /* W(0:(eU-sU)*eV-1) <- U(sU:eU-1)' * V(0:eV-1) */
     ierr = SlepcDenseMatProd(W, eU-sU, 0.0, 1.0,
                              pu+ldU*sU, ldU, ldU, eU-sU, PETSC_TRUE,
                              pv       , ldV, ldV, eV,    PETSC_FALSE);CHKERRQ(ierr);
-  
+
     /* ReduceAll(W, SUM) */
     ierr = MPI_Allreduce(W, Wr, (eU-sU)*eV, MPIU_SCALAR, MPIU_SUM,
                          PetscObjectComm((PetscObject)U[0]));CHKERRQ(ierr);
-  
+
     /* M(...,...) <- W */
     for (i=0,k=0; i<eV; i++)
       for (j=ldM*i+sU; j<ldM*i+eU; j++,k++) M[j] = Wr[k];
-  
+
     if (!workS1) {
       ierr = PetscFree(Wr);CHKERRQ(ierr);
     }
@@ -621,7 +621,7 @@ PetscErrorCode VecsMultIa(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscI
   PetscFunctionBegin;
   /* Check if quick exit */
   if ((eU-sU == 0) || (eV-sV == 0)) PetscFunctionReturn(0);
-    
+
   SlepcValidVecsContiguous(U,eU,4);
   SlepcValidVecsContiguous(V,eV,7);
   PetscValidScalarPointer(M,1);
@@ -638,7 +638,7 @@ PetscErrorCode VecsMultIa(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscI
     ierr = SlepcDenseMatProdTriang(M, sM, eU,
                                    pu, 0, ldU, ldU, eU, PETSC_TRUE,
                                    pv, 0, ldV, ldV, eV, PETSC_FALSE);CHKERRQ(ierr);
- 
+
   /* Full M matrix */
   } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) && 
              DVD_ISNOT(sM,DVD_MAT_LTRIANG)) {
@@ -646,12 +646,12 @@ PetscErrorCode VecsMultIa(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscI
     ierr = SlepcDenseMatProd(&M[sU], ldM, 0.0, 1.0,
                              pu+ldU*sU, ldU, ldU, eU-sU, PETSC_TRUE,
                              pv       , ldV, ldV, sV,    PETSC_FALSE);CHKERRQ(ierr);
-  
+
     /* M(0:eU-1,sV:eV-1) <- U(0:eU-1)' * V(sV:eV-1) */
     ierr = SlepcDenseMatProd(&M[ldM*sV], ldM, 0.0, 1.0,
                              pu,        ldU, ldU, eU,    PETSC_TRUE,
                              pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);CHKERRQ(ierr);
-  
+
   /* Other structures */
   } else SETERRQ(PetscObjectComm((PetscObject)*U),1, "Matrix structure not supported");
 
@@ -676,7 +676,7 @@ PetscErrorCode VecsMultIc(PetscScalar *M,MatType_t sM,PetscInt ldM,PetscInt rM,P
   /* Check if quick exit */
   if ((rM == 0) || (cM == 0)) PetscFunctionReturn(0);
   PetscValidScalarPointer(M,1);
-    
+
   if (sM != 0) SETERRQ(PetscObjectComm((PetscObject)V),1, "Matrix structure not supported");
 
   MPI_Comm_size(PetscObjectComm((PetscObject)V), &n);
@@ -705,7 +705,7 @@ PetscErrorCode VecsMultIb(PetscScalar *M,MatType_t sM,PetscInt ldM,PetscInt rM,P
   /* Check if quick exit */
   if ((rM == 0) || (cM == 0)) PetscFunctionReturn(0);
   PetscValidScalarPointer(M,1);
-    
+
   if (auxS) {
     PetscValidScalarPointer(auxS,6);
     W = auxS;
@@ -756,7 +756,7 @@ PetscErrorCode VecsMultS(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscIn
   PetscFunctionBegin;
   /* Check if quick exit */
   if ((eU-sU == 0) || (eV-sV == 0)) PetscFunctionReturn(0);
-    
+
   SlepcValidVecsContiguous(U,eU,4);
   SlepcValidVecsContiguous(V,eV,7);
   PetscValidScalarPointer(M,1);
@@ -780,7 +780,7 @@ PetscErrorCode VecsMultS(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscIn
     ierr = SlepcDenseMatProdTriang(W, sM, eU,
                                    pu, 0, ldU, ldU, eU, PETSC_TRUE,
                                    pv, 0, ldV, ldV, eV, PETSC_FALSE);CHKERRQ(ierr);
- 
+
     /* M <- ReduceAll(W, SUM) */
     sr->M = M;    sr->ld = ldM;
     sr->i0 = 0;   sr->i1 = eV;    sr->s0 = sU;    sr->e0 = eU;
@@ -796,12 +796,12 @@ PetscErrorCode VecsMultS(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscIn
     ierr = SlepcDenseMatProd(W, eU-sU, 0.0, 1.0,
                              pu+ldU*sU, ldU, ldU, eU-sU, PETSC_TRUE,
                              pv       , ldV, ldV, sV,    PETSC_FALSE);CHKERRQ(ierr);
-  
+
     /* W((eU-sU)*sV:(eU-sU)*sV+(eV-sV)*eU-1) <- U(0:eU-1)' * V(sV:eV-1) */
     ierr = SlepcDenseMatProd(W+(eU-sU)*sV*(sU > 0?1:0), eU, 0.0, 1.0,
                              pu,        ldU, ldU, eU,    PETSC_TRUE,
                              pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);CHKERRQ(ierr);
-  
+
     /* M <- ReduceAll(W, SUM) */
     sr->M = M;            sr->ld = ldM;
     sr->i0 = sU>0?0:sV;   sr->i1 = sV;    sr->s0 = sU;    sr->e0 = eU;
@@ -812,28 +812,28 @@ PetscErrorCode VecsMultS(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscIn
              DVD_ISNOT(sM,DVD_MAT_LTRIANG)) {
     /* Add the reduction to r */
     ierr = SlepcAllReduceSum(r, (eV-sV)*eU, VecsMultS_copy_func, sr, &W);CHKERRQ(ierr);
- 
+
     /* W(0:(eV-sV)*eU-1) <- U(0:eU-1)' * V(sV:eV-1) */
     ierr = SlepcDenseMatProd(W,         eU,  0.0, 1.0,
                              pu,        ldU, ldU, eU,    PETSC_TRUE,
                              pv+ldV*sV, ldV, ldV, eV-sV, PETSC_FALSE);CHKERRQ(ierr);
-  
+
     /* M <- ReduceAll(W, SUM) */
     sr->M = M;    sr->ld = ldM;
     sr->i0 = sV;  sr->i1 = eV;    sr->s0 = 0;     sr->e0 = eU;
                   sr->i2 = eV;
-  
+
   /* Lower triangular M matrix */
   } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) &&
              DVD_IS(sM,DVD_MAT_LTRIANG)) {
     /* Add the reduction to r */
     ierr = SlepcAllReduceSum(r, (eU-sU)*eV, VecsMultS_copy_func, sr, &W);CHKERRQ(ierr);
- 
+
     /* W(0:(eU-sU)*eV-1) <- U(sU:eU-1)' * V(0:eV-1) */
     ierr = SlepcDenseMatProd(W, eU-sU, 0.0, 1.0,
                              pu+ldU*sU, ldU, ldU, eU-sU, PETSC_TRUE,
                              pv       , ldV, ldV, eV,    PETSC_FALSE);CHKERRQ(ierr);
-  
+
     /* ReduceAll(W, SUM) */
     sr->M = M;    sr->ld = ldM;
     sr->i0 = 0;   sr->i1 = eV;    sr->s0 = sU;    sr->e0 = eU;
@@ -881,7 +881,7 @@ PetscErrorCode VecsOrthonormalize(Vec *V,PetscInt n,PetscScalar *wS0,PetscScalar
   PetscBLASInt    nn = n, info, ld;
   PetscInt        ldV, i;
   PetscScalar     *H, *T, one=1.0, *pv;
-  
+
   PetscFunctionBegin;
   if (!wS0) {
     ierr = PetscMalloc(sizeof(PetscScalar)*n*n,&H);CHKERRQ(ierr);
@@ -996,7 +996,7 @@ PetscErrorCode dvd_orthV(IP ip,Vec *defl,PetscInt size_DS,Vec *cX,PetscInt size_
   PetscBool       lindep;
   PetscReal       norm;
   PetscScalar     *auxS0 = auxS;
- 
+
   PetscFunctionBegin;
   /* Orthonormalize V with IP */
   for (i=V_new_s;i<V_new_e;i++) {
@@ -1038,7 +1038,7 @@ PetscErrorCode dvd_BorthV_faster(IP ip,Vec *defl,Vec *BDS,PetscReal *BDSn,PetscI
   PetscBool       lindep;
   PetscReal       norm;
   PetscScalar     *auxS0 = auxS;
- 
+
   PetscFunctionBegin;
   /* Orthonormalize V with IP */
   for (i=V_new_s;i<V_new_e;i++) {
@@ -1085,7 +1085,7 @@ PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_D
   PetscBool       lindep;
   PetscReal       norm;
   PetscScalar     *auxS0 = auxS;
- 
+
   PetscFunctionBegin;
   /* Orthonormalize V with IP */
   for (i=V_new_s;i<V_new_e;i++) {

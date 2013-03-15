@@ -20,7 +20,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -125,7 +125,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
       ierr = IPNormBegin(eps->ip,u,&norm2);CHKERRQ(ierr); 
       ierr = VecDotBegin(u,V[j-2],&dot2);CHKERRQ(ierr);
     }
-    
+
     ierr = IPMInnerProductEnd(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
     if (j>k) { 
       ierr = IPMInnerProductEnd(eps->ip,V[j],j,V,lhh);CHKERRQ(ierr);
@@ -145,13 +145,13 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
         PetscFunctionReturn(0);
       }
     }
-    
+
     if (j>k) {      
       norm1 = PetscSqrtReal(PetscRealPart(dot));
       for (i=0;i<j;i++)
         H[ldh*j+i] = H[ldh*j+i]/norm1;
       H[ldh*j+j] = H[ldh*j+j]/dot;
-      
+
       ierr = VecCopy(V[j],t);CHKERRQ(ierr);
       ierr = VecScale(V[j],1.0/norm1);CHKERRQ(ierr);
       ierr = VecScale(f,1.0/norm1);CHKERRQ(ierr);
@@ -183,7 +183,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
   H[ldh*(m-2)+m-1] = norm2;
 
   ierr = IPMInnerProduct(eps->ip,f,m,V,lhh);CHKERRQ(ierr);
-  
+
   ierr = SlepcVecMAXPBY(f,1.0,-1.0,m,lhh,V);CHKERRQ(ierr);
   for (i=0;i<m;i++)
     H[ldh*(m-1)+i] += lhh[i];
@@ -191,7 +191,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
   ierr = IPNorm(eps->ip,f,beta);CHKERRQ(ierr);
   ierr = VecScale(f,1.0 / *beta);CHKERRQ(ierr);
   *breakdown = PETSC_FALSE;
-  
+
   if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
   ierr = VecDestroy(&u);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
@@ -220,12 +220,12 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pet
     if (j>k) { 
       ierr = IPInnerProductBegin(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr); 
     }
-    
+
     ierr = IPMInnerProductEnd(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
     if (j>k) { 
       ierr = IPInnerProductEnd(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr); 
     }
-    
+
     if (j>k) {      
       norm = PetscSqrtReal(PetscRealPart(dot));
       ierr = VecScale(V[j],1.0/norm);CHKERRQ(ierr);
@@ -271,7 +271,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],NULL);CHKERRQ(ierr);
-  
+
   /* Restart loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
@@ -330,7 +330,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   }
-  
+
   /* truncate Schur decomposition and change the state to raw so that
      PSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
@@ -381,7 +381,7 @@ static PetscErrorCode EPSArnoldiSetDelayed_Arnoldi(EPS eps,PetscBool delayed)
 
    Options Database Key:
 .  -eps_arnoldi_delayed - Activates delayed reorthogonalization in Arnoldi
-   
+
    Note:
    Delayed reorthogonalization is an aggressive optimization for the Arnoldi
    eigensolver than may provide better scalability, but sometimes makes the
@@ -478,7 +478,7 @@ PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
 PETSC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   ierr = PetscNewLog(eps,EPS_ARNOLDI,&eps->data);CHKERRQ(ierr);
   eps->ops->setup                = EPSSetUp_Arnoldi;

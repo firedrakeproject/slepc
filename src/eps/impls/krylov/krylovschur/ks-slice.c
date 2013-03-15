@@ -290,7 +290,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
       if (((sr->dir)*(sPres->value - lambda) > 0) && ((sr->dir)*(lambda - sPres->ext[0]) > 0)) count0++;
       if (((sr->dir)*(lambda - sPres->value) > 0) && ((sr->dir)*(sPres->ext[1] - lambda) > 0)) count1++;
     }
-    
+
     /* Checks completion */
     if ((!sch0||count0 >= sPres->nsch[0]) && (!sch1 ||count1 >= sPres->nsch[1])) {
       eps->reason = EPS_CONVERGED_TOL;
@@ -477,7 +477,7 @@ static PetscErrorCode sortRealEigenvalues(PetscScalar *r,PetscInt *perm,PetscInt
 {
   PetscReal      re;
   PetscInt       i,j,tmp;
-  
+
   PetscFunctionBegin; 
   if (!prev) for (i=0;i<nr;i++) perm[i] = i;
   /* Insertion sort */
@@ -608,7 +608,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   SR              sr;
   shift           s;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
- 
+
   PetscFunctionBegin;
   ierr = PetscMalloc(sizeof(struct _n_SR),&sr);CHKERRQ(ierr);
   ctx->sr = sr;
@@ -695,7 +695,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     ierr = EPSLookForDeflation(eps);CHKERRQ(ierr);
     /* KrylovSchur */
     ierr = EPSKrylovSchur_Slice(eps);CHKERRQ(ierr);
-    
+
     ierr = EPSStoreEigenpairs(eps);CHKERRQ(ierr);
     /* Select new shift */
     if (!sr->sPres->comp[1]) {

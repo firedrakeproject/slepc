@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -48,7 +48,7 @@ static void Precond_FnSingleVector(void *data,void *x,void *y)
   PetscErrorCode ierr;
   EPS            eps = (EPS)data;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
-      
+
   PetscFunctionBegin;
   ierr = KSPSolve(blopex->st->ksp,(Vec)x,(Vec)y);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
   PetscFunctionReturnVoid();
@@ -76,7 +76,7 @@ static void OperatorASingleVector(void *data,void *x,void *y)
   Mat            A,B;
   PetscScalar    sigma;
   PetscInt       nmat;
- 
+
   PetscFunctionBegin;
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
   ierr = STGetOperators(eps->st,0,&A);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
@@ -113,7 +113,7 @@ static void OperatorBSingleVector(void *data,void *x,void *y)
   PetscErrorCode ierr;
   EPS            eps = (EPS)data;
   Mat            B;
-  
+
   PetscFunctionBegin;
   ierr = STGetOperators(eps->st,1,&B);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
   ierr = MatMult(B,(Vec)x,(Vec)y);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
@@ -168,7 +168,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
-  
+
   if (eps->converged == EPSConvergedEigRelative) {
     blopex->tol.absolute = 0.0;
     blopex->tol.relative = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
@@ -178,7 +178,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   } else {
     SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Convergence test not supported in this solver");
   }
-  
+
   SLEPCSetupInterpreter(&blopex->ii);
   blopex->eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->ncv,eps->V);
   for (i=0;i<eps->ncv;i++) { ierr = PetscObjectReference((PetscObject)eps->V[i]);CHKERRQ(ierr); }
@@ -220,7 +220,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 #else
   double         *lambdahist=NULL;
 #endif
-  
+
   PetscFunctionBegin;
   /* Complete the initial basis with random vectors */
   for (i=eps->nini;i<eps->ncv;i++) {

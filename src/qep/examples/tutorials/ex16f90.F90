@@ -152,7 +152,7 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
       call QEPSolve(solver,ierr) 
-  
+
 !     ** Optional: Get some information from the solver and display it
       call QEPGetType(solver,tname,ierr)
       if (rank .eq. 0) then

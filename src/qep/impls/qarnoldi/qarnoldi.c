@@ -21,7 +21,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -45,7 +45,7 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
   PetscBool      sinv;
-  
+
   PetscFunctionBegin;
   if (qep->ncv) { /* ncv set */
     if (qep->ncv<qep->nev) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The value of ncv must be at least nev"); 
@@ -111,7 +111,7 @@ static PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,Pet
     ierr = SlepcVecMAXPBY(w,1.0,-1.0,j_1,work,V);CHKERRQ(ierr);
   }
   ierr = VecAXPY(w,-h[j],t);CHKERRQ(ierr);
-    
+
   /* compute norm of v and w */
   if (norm) {
     ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
@@ -138,7 +138,7 @@ static PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,Pet
   PetscFunctionBegin;
   ierr = IPGetOrthogonalization(qep->ip,NULL,&refinement,&eta);CHKERRQ(ierr);
   ierr = VecCopy(v,qep->V[k]);CHKERRQ(ierr);
-  
+
   for (j=k;j<m;j++) {
     /* apply operator */
     ierr = VecCopy(w,t);CHKERRQ(ierr);
@@ -179,7 +179,7 @@ static PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,Pet
     }
     ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
     ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
-    
+
     H[j+1+ldh*j] = norm;
     if (j<m-1) {
       ierr = VecCopy(v,V[j+1]);CHKERRQ(ierr);
@@ -218,7 +218,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
   norm = PetscSqrtReal(x*x+y*y);CHKERRQ(ierr);
   ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
   ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
-  
+
   /* Compute scaling factor if not set by user */
   ierr = PetscObjectTypeCompare((PetscObject)qep->st,STSINVERT,&issinv);CHKERRQ(ierr);
   if (issinv && !qep->sfactor_set) {
@@ -263,7 +263,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
     ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,nv-qep->nconv,nv,beta,&k);CHKERRQ(ierr);
     if (qep->its >= qep->max_it) qep->reason = QEP_DIVERGED_ITS;
     if (k >= qep->nev) qep->reason = QEP_CONVERGED_TOL;
-    
+
     /* Update l */
     if (qep->reason != QEP_CONVERGED_ITERATING || breakdown) l = 0;
     else l = (nv-k)/2;

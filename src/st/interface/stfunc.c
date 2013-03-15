@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -326,7 +326,7 @@ PetscErrorCode STGetNumMatrices(ST st,PetscInt *n)
    Note:
    In some spectral transformations, changing the shift may have associated
    a lot of work, for example recomputing a factorization.
-   
+
    Level: beginner
 
 @*/
@@ -412,7 +412,7 @@ PetscErrorCode STSetDefaultShift(ST st,PetscScalar defaultshift)
 
    Balancing is usually set via EPSSetBalance, but the advanced user may use
    this function to bypass the usual balancing methods.
-   
+
    Level: developer
 
 .seealso: EPSSetBalance(), STApply(), STGetBalanceMatrix()

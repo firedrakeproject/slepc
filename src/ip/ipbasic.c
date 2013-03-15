@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -391,7 +391,7 @@ PetscErrorCode IPSetFromOptions(IP ip)
                          (default) or mgs for Modified Gram-Schmidt orthogonalization
 .  -orthog_refine <type> - Where <type> is one of never, ifneeded (default) or always 
 -  -orthog_eta <eta> -  For setting the value of eta
-    
+
    Notes:  
    The default settings work well for most problems. 
 
@@ -610,7 +610,7 @@ PetscErrorCode IPDestroy(IP *ip)
 
    Output Parameter:
 .  dots - number of inner product operations
-   
+
    Level: intermediate
 
 .seealso: IPResetOperationCounters()

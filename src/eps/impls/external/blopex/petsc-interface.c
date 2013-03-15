@@ -207,7 +207,7 @@ int PETSCSetupInterpreter(mv_InterfaceInterpreter *i)
   i->VectorSize = PETSC_VectorSize;
 
   /* Multivector part */
- 
+
   i->CreateMultiVector = mv_TempMultiVectorCreateFromSampleVector;
   i->CopyCreateMultiVector = mv_TempMultiVectorCreateCopy;
   i->DestroyMultiVector = mv_TempMultiVectorDestroy;

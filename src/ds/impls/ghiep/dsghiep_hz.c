@@ -16,7 +16,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -105,16 +105,16 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
 
   /* Chase the bulge */
   for (jj=ntop;jj<nn-1;jj++) {
-  
+
     /* Check for trivial bulge */
     if (jj>ntop && PetscMax(PetscMax(PetscAbs(bulge10),PetscAbs(bulge20)),PetscAbs(bulge30))<PETSC_MACHINE_EPSILON*(PetscAbs(aa[jj]) + PetscAbs(aa[jj+1]))) {
       bb[jj-1] = 0.0;  /* deflate and move on */
-  
+
     } else { /* carry out the step */
 
       /* Annihilate tip entry bulge30 */
       if (bulge30 != 0.0) { 
-      
+
         /* Make an interchange if necessary to ensure that the 
            first transformation is othogonal, not hyperbolic.  */
         if (dd[jj+1] != dd[jj+2]) { /* make an interchange */
@@ -140,7 +140,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
             }
           }
         }
-    
+
         /* Set up transforming matrix rot. */
         ierr = UnifiedRotation(bulge20,bulge30,1,rot,&rcond,&swap);CHKERRQ(ierr);
 

@@ -44,5 +44,5 @@ def Check(conf,vars,cmake,tmpdir,directory,libs):
     dirs = [directory]
   else:
     dirs = check.GenerateGuesses('TRLan')
-    
+
   return check.FortranLib(tmpdir,conf,vars,cmake,'TRLAN',dirs,libs,functions)

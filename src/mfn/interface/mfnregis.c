@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -22,7 +22,7 @@
 #include <slepc-private/mfnimpl.h>  /*I "slepcmfn.h" I*/
 
 PETSC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN);
-  
+
 #undef __FUNCT__
 #define __FUNCT__ "MFNRegisterAll"
 /*@C

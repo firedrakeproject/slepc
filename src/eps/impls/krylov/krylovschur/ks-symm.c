@@ -9,7 +9,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -46,7 +46,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
   /* Get the starting Lanczos vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],NULL);CHKERRQ(ierr);
   l = 0;
-  
+
   /* Restart loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
@@ -75,7 +75,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,1.0,&k);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
-    
+
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));

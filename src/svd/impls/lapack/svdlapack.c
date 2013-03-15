@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -52,7 +52,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   PetscInt       M,N,n,i,j,k,ld;
   Mat            mat;
   PetscScalar    *pU,*pVT,*pmat,*pu,*pv,*A,*w;
-  
+
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
   ierr = MatConvert(svd->OP,MATSEQDENSE,MAT_INITIAL_MATRIX,&mat);CHKERRQ(ierr);
@@ -66,12 +66,12 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   ierr = DSRestoreArray(svd->ds,DS_MAT_A,&A);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(mat,&pmat);CHKERRQ(ierr);
   ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
-      
+
   n = PetscMin(M,N);
   ierr = PetscMalloc(sizeof(PetscScalar)*n,&w);CHKERRQ(ierr);
   ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
   ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  
+
   /* copy singular vectors */
   ierr = DSGetArray(svd->ds,DS_MAT_U,&pU);CHKERRQ(ierr);
   ierr = DSGetArray(svd->ds,DS_MAT_VT,&pVT);CHKERRQ(ierr);

@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -63,7 +63,7 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
     if (*newmat == mat) {
       ierr = MatDestroy(&mat);CHKERRQ(ierr);
     }
-  
+
     /* convert matrix to MatSeqDense */
     ierr = MatConvert(*M,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
     ierr = MatDestroyMatrices(1,&M);CHKERRQ(ierr);
@@ -124,7 +124,7 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   }
   ierr = MatSeqAIJSetPreallocation(G,0,nnz);CHKERRQ(ierr);
   ierr = PetscFree(nnz);CHKERRQ(ierr);
-  
+
   ierr = PetscMalloc(sizeof(PetscScalar)*PetscMax(N1,N2),&buf);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscInt)*PetscMax(N1,N2),&scols);CHKERRQ(ierr);
   /* Transfer A */
@@ -262,7 +262,7 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   }
   ierr = MatMPIAIJSetPreallocation(G,0,dnz,0,onz);CHKERRQ(ierr);
   ierr = MatPreallocateFinalize(dnz,onz);CHKERRQ(ierr);
-  
+
   /* Transfer A */
   if (a!=0.0) {
     ierr = MatGetOwnershipRange(A,&start,NULL);CHKERRQ(ierr);
@@ -719,7 +719,7 @@ PetscErrorCode SlepcBasisReference_Private(PetscInt n,Vec *V,PetscInt *m,Vec **W
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  
+
   PetscFunctionBegin;
   ierr = SlepcBasisDestroy_Private(m,W);CHKERRQ(ierr);
   if (n>0) {
@@ -743,7 +743,7 @@ PetscErrorCode SlepcBasisDestroy_Private(PetscInt *m,Vec **W)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  
+
   PetscFunctionBegin;
   if (*m<0) {
     for (i=0;i<-(*m);i++) {
@@ -760,7 +760,7 @@ PetscErrorCode SlepcBasisDestroy_Private(PetscInt *m,Vec **W)
 /*@C
    SlepcSNPrintfScalar - Prints a PetscScalar variable to a string of
    given length.
- 
+
    Not Collective
 
    Input Parameters:

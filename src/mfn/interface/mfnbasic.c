@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -233,7 +233,7 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   *outmfn = mfn;
   PetscFunctionReturn(0);
 }
- 
+
 #undef __FUNCT__
 #define __FUNCT__ "MFNSetType"
 /*@C
@@ -248,7 +248,7 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
    Options Database Key:
 .  -mfn_type <method> - Sets the method; use -help for a list 
     of available methods 
-    
+
    Notes:  
    See "slepc/include/slepcmfn.h" for available methods. The default
    is MFNKRYLOV

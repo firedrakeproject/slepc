@@ -7,7 +7,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -42,7 +42,7 @@ PetscErrorCode MatMult_Linear_N2A(Mat A,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
-  
+
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
@@ -75,7 +75,7 @@ PetscErrorCode MatMult_Linear_N2B(Mat B,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
-  
+
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
@@ -109,7 +109,7 @@ PetscErrorCode MatGetDiagonal_Linear_N2A(Mat A,Vec diag)
   QEP_LINEAR     *ctx;
   PetscScalar    *pd;
   PetscInt       m;
-  
+
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
@@ -133,7 +133,7 @@ PetscErrorCode MatGetDiagonal_Linear_N2B(Mat B,Vec diag)
   QEP_LINEAR     *ctx;
   PetscScalar    *pd;
   PetscInt       m;
-  
+
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
@@ -156,7 +156,7 @@ PetscErrorCode MatCreateExplicit_Linear_N2A(MPI_Comm comm,QEP_LINEAR *ctx,Mat *A
   PetscErrorCode ierr;
   PetscInt       M,N,m,n;
   Mat            Id;
-  
+
   PetscFunctionBegin;
   ierr = MatGetSize(ctx->M,&M,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,&n);CHKERRQ(ierr);
@@ -179,7 +179,7 @@ PetscErrorCode MatCreateExplicit_Linear_N2B(MPI_Comm comm,QEP_LINEAR *ctx,Mat *B
   PetscErrorCode ierr;
   PetscInt       M,N,m,n;
   Mat            Id;
-  
+
   PetscFunctionBegin;
   ierr = MatGetSize(ctx->M,&M,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,&n);CHKERRQ(ierr);

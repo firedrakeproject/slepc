@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -43,7 +43,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   } else eps->ncv = tr->maxlan;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
-  
+
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
 
   if (eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method is not available for generalized problems");
@@ -103,11 +103,11 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   PetscBLASInt   ipar[32],n,lohi,stat,ncv; 
   EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;   
   PetscScalar    *pV;
-  
+
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(eps->ncv,&ncv);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(eps->nloc,&n);CHKERRQ(ierr);
-  
+
   if (eps->which==EPS_LARGEST_REAL || eps->which==EPS_TARGET_REAL) lohi = 1;
   else if (eps->which==EPS_SMALLEST_REAL) lohi = -1;
   else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
@@ -142,7 +142,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   eps->nconv  = ipar[3];
   eps->its    = ipar[25];
   eps->reason = EPS_CONVERGED_TOL;
-  
+
   if (stat!=0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in TRLAN (code=%d)",stat);
   PetscFunctionReturn(0);
 }

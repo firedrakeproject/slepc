@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -417,7 +417,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   *outqep = qep;
   PetscFunctionReturn(0);
 }
- 
+
 #undef __FUNCT__
 #define __FUNCT__ "QEPSetType"
 /*@C
@@ -432,7 +432,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
    Options Database Key:
 .  -qep_type <method> - Sets the method; use -help for a list 
     of available methods 
-    
+
    Notes:  
    See "slepc/include/slepcqep.h" for available methods. The default
    is QEPLINEAR.
@@ -825,7 +825,7 @@ PetscErrorCode QEPGetST(QEP qep,ST *st)
    Notes:
    The target is a scalar value used to determine the portion of the spectrum
    of interest. It is used in combination with QEPSetWhichEigenpairs().
-   
+
    Level: beginner
 
 .seealso: QEPGetTarget(), QEPSetWhichEigenpairs()

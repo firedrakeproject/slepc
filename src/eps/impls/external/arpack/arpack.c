@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -112,14 +112,14 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
   ierr = EPSGetStartVector(eps,0,eps->work[1],NULL);CHKERRQ(ierr);
   ierr = VecGetArray(eps->work[1],&resid);CHKERRQ(ierr);
-  
+
   ido  = 0;            /* first call to reverse communication interface */
   info = 1;            /* indicates a initial vector is provided */
   iparam[0] = 1;       /* use exact shifts */
   ierr = PetscBLASIntCast(eps->max_it,&iparam[2]);CHKERRQ(ierr);  /* max Arnoldi iterations */
   iparam[3] = 1;       /* blocksize */
   iparam[4] = 0;       /* number of converged Ritz values */
- 
+
   /*
      Computational modes ([]=not supported):
             symmetric    non-symmetric    complex
@@ -151,7 +151,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
     iparam[6] = 1;
     bmat[0] = 'I';
   }
- 
+
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->ishermitian) {
       switch (eps->which) {
@@ -192,7 +192,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 #else
     PetscStackCall("ARPACKnaupd",ARPACKnaupd_(&fcomm,&ido,bmat,&n,which,&nev,&eps->tol,resid,&ncv,pV,&n,iparam,ipntr,ar->workd,ar->workl,&ar->lworkl,ar->rwork,&info));
 #endif
-    
+
     if (ido == -1 || ido == 1 || ido == 2) {
       if (ido == 1 && iparam[6] == 3 && bmat[0] == 'G') {
         /* special case for shift-and-invert with B semi-positive definite*/
@@ -201,7 +201,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         ierr = VecPlaceArray(x,&ar->workd[ipntr[0]-1]);CHKERRQ(ierr);
       }
       ierr = VecPlaceArray(y,&ar->workd[ipntr[1]-1]);CHKERRQ(ierr);
-      
+
       if (ido == -1) { 
         /* Y = OP * X for for the initialization phase to 
            force the starting vector into the range of OP */
@@ -228,16 +228,16 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         }
         ierr = IPOrthogonalize(eps->ip,0,NULL,eps->nds,NULL,eps->defl,y,NULL,NULL,NULL);CHKERRQ(ierr);
       }
-            
+
       ierr = VecResetArray(x);CHKERRQ(ierr);
       ierr = VecResetArray(y);CHKERRQ(ierr);
     } else if (ido != 99) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in ARPACK reverse comunication interface (ido=%d)",ido);
-    
+
   } while (ido != 99);
 
   eps->nconv = iparam[4];
   eps->its = iparam[2];
-  
+
   if (info==3) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"No shift could be applied in xxAUPD.\nTry increasing the size of NCV relative to NEV");
   else if (info!=0 && info!=1) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%d)",info);
 

@@ -7,7 +7,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -42,7 +42,7 @@ PetscErrorCode MatMult_Linear_S1A(Mat A,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
-  
+
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
@@ -78,7 +78,7 @@ PetscErrorCode MatMult_Linear_S1B(Mat B,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
-  
+
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
@@ -111,7 +111,7 @@ PetscErrorCode MatGetDiagonal_Linear_S1A(Mat A,Vec diag)
   QEP_LINEAR     *ctx;
   PetscScalar    *pd;
   PetscInt       m;
-  
+
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
@@ -135,7 +135,7 @@ PetscErrorCode MatGetDiagonal_Linear_S1B(Mat B,Vec diag)
   QEP_LINEAR     *ctx;
   PetscScalar    *pd;
   PetscInt       m;
-  
+
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
@@ -157,7 +157,7 @@ PetscErrorCode MatGetDiagonal_Linear_S1B(Mat B,Vec diag)
 PetscErrorCode MatCreateExplicit_Linear_S1A(MPI_Comm comm,QEP_LINEAR *ctx,Mat *A)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   ierr = SlepcMatTile(0.0,ctx->K,-1.0,ctx->K,-1.0,ctx->K,-ctx->sfactor,ctx->C,A);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -168,7 +168,7 @@ PetscErrorCode MatCreateExplicit_Linear_S1A(MPI_Comm comm,QEP_LINEAR *ctx,Mat *A
 PetscErrorCode MatCreateExplicit_Linear_S1B(MPI_Comm comm,QEP_LINEAR *ctx,Mat *B)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   ierr = SlepcMatTile(-1.0,ctx->K,0.0,ctx->M,0.0,ctx->M,ctx->sfactor*ctx->sfactor,ctx->M,B);CHKERRQ(ierr);
   PetscFunctionReturn(0);

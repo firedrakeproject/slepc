@@ -26,7 +26,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -62,7 +62,7 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   ierr = EPSJDGetKrylovStart(eps,&op);CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_jd_krylov_start","Start the searching subspace with a krylov basis","EPSJDSetKrylovStart",op,&op,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSJDSetKrylovStart(eps,op);CHKERRQ(ierr); }
- 
+
   ierr = EPSJDGetBlockSize(eps,&opi);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_jd_blocksize","Number vectors add to the searching subspace","EPSJDSetBlockSize",opi,&opi,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSJDSetBlockSize(eps,opi);CHKERRQ(ierr); }
@@ -85,7 +85,7 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   ierr = EPSJDGetBOrth(eps,&orth);CHKERRQ(ierr);
   ierr = PetscOptionsEList("-eps_jd_borth","orthogonalization used in the search subspace","EPSJDSetBOrth",orth_list,3,orth_list[orth-1],&opi,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSJDSetBOrth(eps,(EPSOrthType)(opi+1));CHKERRQ(ierr); }
- 
+
   ierr = EPSJDGetConstantCorrectionTolerance(eps,&op);CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_jd_constant_correction_tolerance","Disable the dynamic stopping criterion when solving the correction equation","EPSJDSetConstantCorrectionTolerance",op,&op,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSJDSetConstantCorrectionTolerance(eps,op);CHKERRQ(ierr); }
@@ -132,7 +132,7 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
     ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
     ierr = KSPSetTolerances(ksp,1e-4,PETSC_DEFAULT,PETSC_DEFAULT,90);CHKERRQ(ierr);
   }
- 
+
   /* Check some constraints */ 
   ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&t);CHKERRQ(ierr);
   if (t) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSJD does not work with KSPPREONLY");
@@ -181,7 +181,7 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
    Options Database Key:
 .  -eps_jd_krylov_start - Activates starting the searching subspace with a
     Krylov basis
-   
+
    Level: advanced
 
 .seealso: EPSJDGetKrylovStart()
@@ -241,7 +241,7 @@ PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart)
 
    Options Database Key:
 .  -eps_jd_blocksize - number of vectors added to the searching space every iteration
-   
+
    Level: advanced
 
 .seealso: EPSJDSetKrylovStart()
@@ -331,7 +331,7 @@ PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
    Options Database Keys:
 +  -eps_jd_minv - number of vectors of the searching subspace after restarting
 -  -eps_jd_plusk - number of vectors saved from the previous iteration   
-   
+
    Level: advanced
 
 .seealso: EPSJDGetRestart()
@@ -397,7 +397,7 @@ PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
 
    Options Database Key:
 .  -eps_jd_initial_size - number of vectors of the initial searching subspace
-   
+
    Notes:
    If EPSJDGetKrylovStart() is PETSC_FALSE and the user provides vectors with
    EPSSetInitialSpace(), up to initialsize vectors will be used; and if the
@@ -469,7 +469,7 @@ PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
 
    Options Database Key:
 .  -eps_jd_fix - the fix value
-   
+
    Note:
    The target in the correction equation is fixed at the first iterations.
    When the norm of the residual vector is lower than the fix value,
@@ -505,7 +505,7 @@ PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix)
 
    Options Database Key:
 .  -eps_jd_constant_correction_tolerance - Deactivates the dynamic stopping criterion.
-   
+
    Level: advanced
 
 .seealso: EPSJDGetConstantCorrectionTolerance()
@@ -598,7 +598,7 @@ PetscErrorCode EPSJDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
    Options Database Keys:
 +  -eps_jd_pwindow - set the number of converged vectors in the projector
 -  -eps_jd_qwindow - set the number of converged vectors in the projected problem  
-   
+
    Level: advanced
 
 .seealso: EPSJDGetWindowSizes()
@@ -642,7 +642,7 @@ PetscErrorCode EPSJDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
    IP associated to the EPS) with the inner product defined by the matrix problem B.
    If borth is EPS_ORTH_BOPT, it uses another variant of Gram-Schmidt that only performs
    one matrix-vector product although more than one reorthogonalization would be done.
-   
+
    Level: advanced
 
 .seealso: EPSJDGetBOrth()

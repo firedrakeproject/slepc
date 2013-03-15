@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -505,7 +505,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   *outeps = eps;
   PetscFunctionReturn(0);
 }
- 
+
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetType"
 /*@C
@@ -520,7 +520,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
    Options Database Key:
 .  -eps_type <method> - Sets the method; use -help for a list 
     of available methods 
-    
+
    Notes:  
    See "slepc/include/slepceps.h" for available methods. The default
    is EPSKRYLOVSCHUR.
@@ -709,7 +709,7 @@ PetscErrorCode EPSDestroy(EPS *eps)
    Notes:
    The target is a scalar value used to determine the portion of the spectrum
    of interest. It is used in combination with EPSSetWhichEigenpairs().
-   
+
    Level: beginner
 
 .seealso: EPSGetTarget(), EPSSetWhichEigenpairs()
@@ -781,7 +781,7 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
    one can give an infinite, e.g., -eps_interval 1.0,inf or -eps_interval -inf,1.0.
    An open interval in the programmatic interface can be specified with 
    PETSC_MAX_REAL and -PETSC_MAX_REAL.
-   
+
    Level: intermediate
 
 .seealso: EPSGetInterval(), EPSSetWhichEigenpairs()

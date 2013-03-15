@@ -25,7 +25,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -64,7 +64,7 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   ierr = EPSGDGetBOrth(eps,&orth);CHKERRQ(ierr);
   ierr = PetscOptionsEList("-eps_gd_borth","orthogonalization used in the search subspace","EPSGDSetBOrth",orth_list,3,orth_list[orth-1],&opi,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSGDSetBOrth(eps,(EPSOrthType)(opi+1));CHKERRQ(ierr); }
- 
+
   ierr = EPSGDGetBlockSize(eps,&opi);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_gd_blocksize","Number vectors add to the searching subspace","EPSGDSetBlockSize",opi,&opi,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSGDSetBlockSize(eps,opi);CHKERRQ(ierr); }
@@ -169,7 +169,7 @@ PetscErrorCode EPSDestroy_GD(EPS eps)
    Options Database Key:
 .  -eps_gd_krylov_start - Activates starting the searching subspace with a
     Krylov basis
-   
+
    Level: advanced
 
 .seealso: EPSGDGetKrylovStart()
@@ -229,7 +229,7 @@ PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscBool *krylovstart)
 
    Options Database Key:
 .  -eps_gd_blocksize - number of vectors added to the search space in every iteration
-   
+
    Level: advanced
 
 .seealso: EPSGDSetKrylovStart()
@@ -319,7 +319,7 @@ PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
    Options Database Keys:
 +  -eps_gd_minv - number of vectors of the searching subspace after restarting
 -  -eps_gd_plusk - number of vectors saved from the previous iteration   
-   
+
    Level: advanced
 
 .seealso: EPSGDSetRestart()
@@ -385,7 +385,7 @@ PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
 
    Options Database Key:
 .  -eps_gd_initial_size - number of vectors of the initial searching subspace
-   
+
    Notes:
    If EPSGDGetKrylovStart() is PETSC_FALSE and the user provides vectors with
    EPSSetInitialSpace(), up to initialsize vectors will be used; and if the
@@ -436,7 +436,7 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
    IP associated to the EPS) with the inner product defined by the matrix problem B.
    If borth is EPS_ORTH_BOPT, it uses another variant of Gram-Schmidt that only performs
    one matrix-vector product although more than one reorthogonalization would be done.
-   
+
    Level: advanced
 
 .seealso: EPSGDGetBOrth()
@@ -531,7 +531,7 @@ PetscErrorCode EPSGDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
    Options Database Keys:
 +  -eps_gd_pwindow - set the number of converged vectors in the projector
 -  -eps_gd_qwindow - set the number of converged vectors in the projected problem  
-   
+
    Level: advanced
 
 .seealso: EPSGDGetWindowSizes()
@@ -618,7 +618,7 @@ PetscErrorCode EPSGDGetDoubleExpansion(EPS eps,PetscBool *flg)
 
    Options Database Keys:
 .  -eps_gd_double_expansion - activate the double-expansion variant of GD
-   
+
    Level: advanced
 @*/
 PetscErrorCode EPSGDSetDoubleExpansion(EPS eps,PetscBool use_gd2)

@@ -25,7 +25,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -170,7 +170,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
           ierr = VecScale(v,1.0/delta);CHKERRQ(ierr);
           ierr = IPNorm(eps->ip,v,&norm);CHKERRQ(ierr);
           beta1 = norm;
-    
+
           /* alpha2 = (e'*A*e)/(beta1*beta1), where e is the residual */
           ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
           ierr = MatMult(A,v,e);CHKERRQ(ierr);
@@ -264,7 +264,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
 
   while (eps->its<eps->max_it) {
     eps->its++;
-    
+
     /* y = OP v, z = OP' w */
     ierr = STApply(eps->st,v,y);CHKERRQ(ierr);
     ierr = STApplyTranspose(eps->st,w,z);CHKERRQ(ierr);
@@ -317,7 +317,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
           ierr = VecScale(v,1.0/delta);CHKERRQ(ierr);
           ierr = IPNorm(eps->ip,v,&norm);CHKERRQ(ierr);
           beta1 = norm;
-    
+
           /* alpha2 = (e'*A*e)/(beta1*beta1), where e is the residual */
           ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
           ierr = MatMult(A,v,e);CHKERRQ(ierr);
@@ -459,7 +459,7 @@ static PetscErrorCode EPSPowerSetShiftType_Power(EPS eps,EPSPowerShiftType shift
    A variable shift can be specified (EPS_POWER_SHIFT_RAYLEIGH or
    EPS_POWER_SHIFT_WILKINSON). In this case, the iteration behaves rather like
    a cubic converging method as RQI. See the users manual for details.
-   
+
    Level: advanced
 
 .seealso: EPSPowerGetShiftType(), STSetShift(), EPSPowerShiftType

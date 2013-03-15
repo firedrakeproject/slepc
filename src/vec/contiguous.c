@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -114,7 +114,7 @@ PetscErrorCode SlepcVecSetTemplate(Vec v)
    SlepcMatGetVecsTemplate - Get vectors compatible with a matrix,
    i.e. with the same parallel layout, and mark them as templates
    for contiguous storage.
-   
+
    Collective on Mat
 
    Input Parameter:

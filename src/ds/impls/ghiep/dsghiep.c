@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -131,7 +131,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
           ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,ds->k+1,*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_A]);CHKERRQ(ierr);
-      
+
       ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",ds->n,ds->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"omega = zeros(%D,3);\n",3*ds->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"omega = [\n");CHKERRQ(ierr);
@@ -187,7 +187,7 @@ PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
 #if !defined(PETSC_USE_COMPLEX)
   PetscBLASInt   four=4;
 #endif
-  
+
   PetscFunctionBegin;
   X = ds->mat[DS_MAT_X];
   Q = ds->mat[DS_MAT_Q];
@@ -448,7 +448,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
     if x1*x1 - x2*x2 != 0 
       r = sqrt(|x1*x1 - x2*x2|)
       c = x1/r  s = x2/r
-     
+
       | c -s||x1|   |d*r|
       |-s  c||x2| = | 0 | 
       where d = 1 for type==1 and -1 for type==2
@@ -476,7 +476,7 @@ static PetscErrorCode DSGHIEPHRGen(PetscReal x1,PetscReal x2,PetscInt *type,Pets
     *cond = PETSC_MAX_REAL;
     PetscFunctionReturn(0);
   }
-  
+
   if (PetscAbsReal(x1)>PetscAbsReal(x2)) {
     xa = x1; xb = x2; type_ = 1;
   } else {
@@ -506,7 +506,7 @@ PetscErrorCode DSGHIEPHRApply(PetscInt n,PetscScalar *x1,PetscInt inc1,PetscScal
   PetscInt    i;
   PetscReal   t;
   PetscScalar tmp;
-  
+
   PetscFunctionBegin;
   if (PetscAbsReal(c)>PetscAbsReal(s)) { /* Type I */
     t = s/c;
@@ -550,7 +550,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
   PetscScalar    *work,tau,t,*AA;
   PetscBLASInt   n0,n1,ni,inc=1,m,n_,lda_,ldq_;
   PetscBool      breakdown = PETSC_TRUE;
-  
+
   PetscFunctionBegin;
   if (n<3) {
     if (n==1) Q[0]=1;
@@ -675,7 +675,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
         /* Apply to A */
         ierr = DSGHIEPHRApply(m,A+j+1+(ni-n0)*lda,1,A+j+1+(n-n1)*lda,1,cs,-sn);CHKERRQ(ierr);
         ierr = DSGHIEPHRApply(m,A+ni-n0+(j+1)*lda,lda,A+n-n1+(j+1)*lda,lda,cs,-sn);CHKERRQ(ierr);
-        
+
         /* Update Q */
         ierr = DSGHIEPHRApply(n,Q+(ni-n0)*ldq,1,Q+(n-n1)*ldq,1,cs,-sn);CHKERRQ(ierr);
         if (type==2) {
@@ -1319,7 +1319,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscStackCall("LAPACKhseqr",LAPACKhseqr_("S","V",&n1,&one,&n1,H+off,&ld,wr+ds->l,Q+off,&ld,work,&lwork,&info));
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",&info);
-  
+
   /* Compute eigenvectors */
 #if !defined(PETSC_USE_COMPLEX)
   PetscStackCall("LAPACKtrevc",LAPACKtrevc_("R","B",NULL,&n1,H+off,&ld,NULL,&ld,Q+off,&ld,&n1,&mout,ds->work,&info));

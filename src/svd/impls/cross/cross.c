@@ -11,7 +11,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -43,7 +43,7 @@ static PetscErrorCode ShellMatMult_Cross(Mat B,Vec x,Vec y)
   PetscErrorCode ierr;
   SVD            svd;
   SVD_CROSS      *cross;
-  
+
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   cross = (SVD_CROSS*)svd->data;
@@ -63,7 +63,7 @@ static PetscErrorCode ShellMatGetDiagonal_Cross(Mat B,Vec d)
   PetscScalar       *work1,*work2,*diag;
   const PetscInt    *cols;
   const PetscScalar *vals;
-  
+
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   cross = (SVD_CROSS*)svd->data;
@@ -158,7 +158,7 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
   PetscInt       i;
   PetscScalar    sigma;
-  
+
   PetscFunctionBegin;
   ierr = EPSSolve(cross->eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(cross->eps,&svd->nconv);CHKERRQ(ierr);
@@ -338,7 +338,7 @@ PETSC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
   PetscErrorCode ierr;
   SVD_CROSS      *cross;
   ST             st;
-  
+
   PetscFunctionBegin;
   ierr = PetscNewLog(svd,SVD_CROSS,&cross);CHKERRQ(ierr);
   svd->data                = (void*)cross;

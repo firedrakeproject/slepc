@@ -20,7 +20,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -42,7 +42,7 @@
 PetscErrorCode NEPSetUp_RII(NEP nep)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   if (nep->ncv) { /* ncv set */
     if (nep->ncv<nep->nev) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must be at least nev"); 
@@ -85,7 +85,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   if (!nep->nini) {
     ierr = SlepcVecSetRandom(u,nep->rand);CHKERRQ(ierr);
   }
-  
+
   /* correct eigenvalue approximation: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
   ierr = NEPComputeFunction(nep,lambda,0,&T,&T,&mats);CHKERRQ(ierr);
   ierr = NEPComputeJacobian(nep,lambda,0,&Tp,&mats);CHKERRQ(ierr);
@@ -94,7 +94,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   ierr = MatMult(Tp,u,r);CHKERRQ(ierr);
   ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
   lambda = lambda - a1/a2;
-  
+
   /* prepare linear solver */
   ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
   ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);

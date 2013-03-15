@@ -30,7 +30,7 @@ def Check(conf,vars,cmake,tmpdir,directory,libs):
 
   if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
     log.Exit('ERROR: ARPACK is supported only in single or double precision.')
- 
+
   if petscconf.MPIUNI:
     if petscconf.SCALAR == 'real':
       if petscconf.PRECISION == 'single':
@@ -66,5 +66,5 @@ def Check(conf,vars,cmake,tmpdir,directory,libs):
     dirs = [directory]
   else:
     dirs = check.GenerateGuesses('Arpack')
-    
+
   return check.FortranLib(tmpdir,conf,vars,cmake,'ARPACK',dirs,libs,functions)

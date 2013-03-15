@@ -11,7 +11,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -47,7 +47,7 @@ static PetscErrorCode ShellMatMult_Cyclic(Mat B,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
-  
+
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   cyclic = (SVD_CYCLIC*)svd->data;
@@ -74,7 +74,7 @@ static PetscErrorCode ShellMatMult_Cyclic(Mat B,Vec x,Vec y)
 static PetscErrorCode ShellMatGetDiagonal_Cyclic(Mat B,Vec diag)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   ierr = VecSet(diag,0.0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -196,7 +196,7 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
   PetscScalar       sigma;
   const PetscScalar *px;
   Vec               x,x1,x2;
-  
+
   PetscFunctionBegin;
   ierr = EPSSolve(cyclic->eps);CHKERRQ(ierr);
   ierr = EPSGetConverged(cyclic->eps,&svd->nconv);CHKERRQ(ierr);
@@ -503,7 +503,7 @@ PETSC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CYCLIC     *cyclic;
-  
+
   PetscFunctionBegin;
   ierr = PetscNewLog(svd,SVD_CYCLIC,&cyclic);CHKERRQ(ierr);
   svd->data                      = (void*)cyclic;

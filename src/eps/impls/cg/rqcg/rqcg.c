@@ -22,7 +22,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -157,7 +157,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
       /* Solve projected problem */
       ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
       ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
-    
+
       /* Update vectors V(:,idx) = V * Y(:,idx) */
       ierr = DSGetArray(eps->ds,DS_MAT_Q,&Y);CHKERRQ(ierr);
       off = eps->nconv+eps->nconv*ld;
@@ -172,7 +172,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         ierr = VecDot(ctx->AV[i-eps->nconv],eps->V[i],eps->eigr+i);CHKERRQ(ierr);
       }
     }
-    
+
     /* Compute gradient and check convergence */
     k = -1;
     for (i=eps->nconv;i<nv;i++) {
@@ -194,7 +194,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
     ierr = DSGetArray(eps->ds,DS_MAT_A,&C);CHKERRQ(ierr);
     for (i=eps->nconv;i<k;i++) C[i+i*ld] = eps->eigr[i];
     ierr = DSRestoreArray(eps->ds,DS_MAT_A,&C);CHKERRQ(ierr);
-  
+
     if (eps->reason == EPS_CONVERGED_ITERATING) {
 
       /* Search direction */
@@ -242,11 +242,11 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         }
       }
     }
-    
+
     ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
     eps->nconv = k;
   }
-    
+
   ierr = PetscFree(gamma);CHKERRQ(ierr);
   /* truncate Schur decomposition and change the state to raw so that
      PSVectors() computes eigenvectors from scratch */
@@ -280,7 +280,7 @@ static PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
 
    Options Database Key:
 .  -eps_rqcg_reset - Sets the reset parameter
-   
+
    Level: advanced
 
 .seealso: EPSRQCGGetReset()

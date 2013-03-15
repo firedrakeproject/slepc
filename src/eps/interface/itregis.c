@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -45,7 +45,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps);
-  
+
 #undef __FUNCT__
 #define __FUNCT__ "EPSRegisterAll"
 /*@C

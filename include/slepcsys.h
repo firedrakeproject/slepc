@@ -7,7 +7,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -62,7 +62,7 @@ PETSC_EXTERN PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
 PETSC_EXTERN PetscErrorCode SlepcMatTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);
 PETSC_EXTERN PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec*,PetscInt,Mat,PetscViewer,PetscReal*);
 PETSC_EXTERN PetscErrorCode SlepcSNPrintfScalar(char*,size_t,PetscScalar,PetscBool);
- 
+
 PETSC_EXTERN PetscBool SlepcInitializeCalled;
 
 #endif

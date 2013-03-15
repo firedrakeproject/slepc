@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -80,7 +80,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   PetscFunctionBegin;
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&numProcs);CHKERRQ(ierr);
   ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&procID);CHKERRQ(ierr);
-  
+
   /* Check some constraints and set some default values */ 
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
   ierr = STGetOperators(eps->st,0,&ops->A);CHKERRQ(ierr);
@@ -135,9 +135,9 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"'which' value does not supported by PRIMME");
       break;   
   }
-  
+
   if (primme_set_method(ops->method,primme) < 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME method not valid");
-  
+
   /* If user sets ncv, maxBasisSize is modified. If not, ncv is set as maxBasisSize */
   if (eps->ncv) primme->maxBasisSize = eps->ncv;
   else eps->ncv = primme->maxBasisSize;
@@ -162,7 +162,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Prepare auxiliary vectors */ 
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,eps->n,NULL,&ops->x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,eps->n,NULL,&ops->y);CHKERRQ(ierr);
- 
+
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_PRIMME;
@@ -200,7 +200,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   ierr = PetscFree(evals);CHKERRQ(ierr);
 #endif
   ierr = VecRestoreArray(eps->V[0],&a);CHKERRQ(ierr);
-  
+
   switch (ierr) {
     case 0: /* Successful */
       break;
@@ -242,7 +242,7 @@ static void multMatvec_PRIMME(void *in,void *out,int *blockSize,primme_params *p
     ierr = VecPlaceArray(y,(PetscScalar*)out+N*i);CHKERRABORT(PetscObjectComm((PetscObject)A),ierr);
 
     ierr = MatMult(A,x,y);CHKERRABORT(PetscObjectComm((PetscObject)A),ierr);
-    
+
     ierr = VecResetArray(x);CHKERRABORT(PetscObjectComm((PetscObject)A),ierr);
     ierr = VecResetArray(y);CHKERRABORT(PetscObjectComm((PetscObject)A),ierr);
   }
@@ -257,7 +257,7 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
   PetscInt       i,N = primme->n,lits;
   EPS_PRIMME     *ops = (EPS_PRIMME*)primme->matrix; 
   Vec            x = ops->x,y = ops->y;
- 
+
   PetscFunctionBegin;
   for (i=0;i<*blockSize;i++) {
     /* build vectors using 'in' an 'out' workspace */
@@ -267,7 +267,7 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
     ierr = KSPSolve(ops->ksp,x,y);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
     ierr = KSPGetIterationNumber(ops->ksp,&lits);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
     ops->eps->st->lineariterations+= lits;
-    
+
     ierr = VecResetArray(x);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
     ierr = VecResetArray(y);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
   }
@@ -435,7 +435,7 @@ static PetscErrorCode EPSPRIMMEGetBlockSize_PRIMME(EPS eps,PetscInt *bs)
 
    Input Parameters:
 .  eps - the eigenproblem solver context
-    
+
    Output Parameters:  
 .  bs - returned block size 
 
@@ -522,7 +522,7 @@ static PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps,EPSPRIMMEMethod *method)
 
    Input Parameters:
 .  eps - the eigenproblem solver context
-    
+
    Output Parameters: 
 .  method - method that will be used by PRIMME. It must be one of:
     EPS_PRIMME_DYNAMIC, EPS_PRIMME_DEFAULT_MIN_TIME(EPS_PRIMME_JDQMR_ETOL),

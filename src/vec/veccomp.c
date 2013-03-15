@@ -4,7 +4,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -171,7 +171,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
     ierr = VecGetLocalSize(x[i],&k);CHKERRQ(ierr);
     lN+= k;
   }
- 
+
   /* Allocate the shared structure, if it is not given */
   if (!n) {
     ierr = PetscNewLog(v,Vec_Comp_N,&n);CHKERRQ(ierr);

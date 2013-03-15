@@ -7,7 +7,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -134,7 +134,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
 
   /* orthogonalize and compute onorm */
   switch (ip->orthog_ref) {
-  
+
   case IP_ORTHOG_REFINE_NEVER:
     ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,NULL,NULL);CHKERRQ(ierr);
     /* compute |v| */
@@ -145,7 +145,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
     /* linear dependence check does not work without refinement */
     if (lindep) *lindep = PETSC_FALSE;
     break;
-    
+
   case IP_ORTHOG_REFINE_ALWAYS:
     ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,NULL,NULL);CHKERRQ(ierr);
     if (lindep) {
@@ -159,7 +159,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
     for (j=0;j<n;j++) 
       if (!which || which[j]) h[nds+j] += c[nds+j];
     break;
-  
+
   case IP_ORTHOG_REFINE_IFNEEDED:
     ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,&onrm,&nrm);CHKERRQ(ierr); 
     /* ||q|| < eta ||h|| */
@@ -251,12 +251,12 @@ PetscErrorCode IPBOrthogonalize(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscReal 
   PetscValidLogicalCollectiveInt(ip,nds,2);
   PetscValidLogicalCollectiveInt(ip,n,4);
   ierr = PetscLogEventBegin(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
- 
+
   /* Bv <- B * v */
   ierr = PetscLogEventBegin(IP_ApplyMatrix,ip,0,0,0);CHKERRQ(ierr);
   ierr = MatMult(ip->matrix,v,Bv);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(IP_ApplyMatrix,ip,0,0,0);CHKERRQ(ierr);
-   
+
   if (!nds && !n) {
     if (norm) {
       ierr = VecDot(Bv,v,&alpha);CHKERRQ(ierr);

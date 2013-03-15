@@ -7,7 +7,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -94,7 +94,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
       ierr = QEPSetWhichEigenpairs(qep,QEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
       ierr = QEPSetTarget(qep,s);CHKERRQ(ierr);
     }
-    
+
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to QEPSetFromOptions()
@@ -163,7 +163,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
 
     ierr = PetscOptionsName("-qep_view","Print detailed information on solver used","QEPView",0);CHKERRQ(ierr);
     ierr = PetscOptionsName("-qep_plot_eigs","Make a plot of the computed eigenvalues","QEPSolve",0);CHKERRQ(ierr);
-   
+
     if (qep->ops->setfromoptions) {
       ierr = (*qep->ops->setfromoptions)(qep);CHKERRQ(ierr);
     }
@@ -190,7 +190,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
 
    Input Parameter:
 .  qep - the quadratic eigensolver context
-  
+
    Output Parameters:
 +  tol - the convergence tolerance
 -  maxits - maximum number of iterations
@@ -274,7 +274,7 @@ PetscErrorCode QEPSetTolerances(QEP qep,PetscReal tol,PetscInt maxits)
 
    Input Parameter:
 .  qep - the quadratic eigensolver context
-  
+
    Output Parameters:
 +  nev - number of eigenvalues to compute
 .  ncv - the maximum dimension of the subspace to be used by the solver
@@ -381,7 +381,7 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 
     Possible values:
     The parameter 'which' can have one of these values
-    
+
 +     QEP_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
 .     QEP_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
 .     QEP_LARGEST_REAL - largest real parts
@@ -408,7 +408,7 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     stated above. If SLEPc is compiled for real numbers QEP_LARGEST_IMAGINARY
     and QEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part 
     for eigenvalue selection.
-    
+
     Level: intermediate
 
 .seealso: QEPGetWhichEigenpairs(), QEPWhich
@@ -545,7 +545,7 @@ PetscErrorCode QEPGetLeftVectorsWanted(QEP qep,PetscBool *leftvecs)
 
    Input Parameter:
 .  qep - the quadratic eigensolver context
-  
+
    Output Parameters:
 .  alpha - the scaling factor
 
@@ -624,7 +624,7 @@ PetscErrorCode QEPSetScaleFactor(QEP qep,PetscReal alpha)
 +  -qep_general - general problem with no particular structure
 .  -qep_hermitian - problem whose coefficient matrices are Hermitian
 -  -qep_gyroscopic - problem with Hamiltonian structure
-    
+
    Notes:  
    Allowed values for the problem type are: general (QEP_GENERAL), Hermitian
    (QEP_HERMITIAN), and gyroscopic (QEP_GYROSCOPIC).
@@ -818,7 +818,7 @@ PetscErrorCode QEPSetOptionsPrefix(QEP qep,const char *prefix)
   ierr = PetscObjectSetOptionsPrefix((PetscObject)qep,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);  
 }
- 
+
 #undef __FUNCT__
 #define __FUNCT__ "QEPAppendOptionsPrefix"
 /*@C

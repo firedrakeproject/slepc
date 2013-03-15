@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -152,12 +152,12 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   Mat            A;                              
   KSP            ksp;                            
   PC             pc;                             
-  
+
   PetscFunctionBegin;
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
-  
+
   if (eps->isgeneralized && !blz->slice) { 
     ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr); /* shift of origin */
     blz->rstor[0]  = sigma;        /* lower limit of eigenvalue interval */
@@ -243,7 +243,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       ierr = VecResetArray(x);CHKERRQ(ierr);
       break;
     }
-    
+
   } while (lflag > 0);
 
   ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);

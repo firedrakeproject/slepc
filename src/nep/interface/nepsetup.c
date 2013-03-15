@@ -6,7 +6,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -48,7 +48,7 @@ PetscErrorCode NEPSetUp(NEP nep)
 {
   PetscErrorCode ierr;
   Mat            T;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (nep->setupcalled) PetscFunctionReturn(0);
@@ -187,7 +187,7 @@ PetscErrorCode NEPSetUp(NEP nep)
 PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec *is)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,n,2);
@@ -208,7 +208,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep)
 {
   PetscErrorCode ierr;
   PetscInt       newc,cnt;
-  
+
   PetscFunctionBegin;
   if (nep->allocated_ncv != nep->ncv) {
     newc = PetscMax(0,nep->ncv-nep->allocated_ncv);
@@ -237,7 +237,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep)
 PetscErrorCode NEPFreeSolution(NEP nep)
 {
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   if (nep->allocated_ncv > 0) {
     ierr = PetscFree(nep->eigr);CHKERRQ(ierr);

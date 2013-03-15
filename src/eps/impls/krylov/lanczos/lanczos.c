@@ -22,7 +22,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -121,7 +121,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
   PetscReal      norm;
   PetscBool      *which,lwhich[100];
   PetscScalar    *hwork,lhwork[100];
-  
+
   PetscFunctionBegin;  
   if (m > 100) {
     ierr = PetscMalloc(sizeof(PetscBool)*m,&which);CHKERRQ(ierr);
@@ -197,7 +197,7 @@ static PetscErrorCode DenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,Pet
   PetscInt       i,j;
   PetscReal      *VV;
 #endif
-  
+
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(20*n_,&lwork);CHKERRQ(ierr);
@@ -283,7 +283,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
       e[i] = beta[i+k];
     }
     ierr = DenseTridiagonal(n,d,e,ritz,Y);CHKERRQ(ierr);
-    
+
     /* Estimate ||A|| */
     for (i=0;i<n;i++) 
       if (PetscAbsReal(ritz[i]) > anorm) anorm = PetscAbsReal(ritz[i]);
@@ -311,13 +311,13 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
         break;
       }
     }
-    
+
     if (j<m-1) {
       ierr = VecScale(f,1.0 / norm);CHKERRQ(ierr);
       ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
     }
   }
-  
+
   ierr = PetscFree(d);CHKERRQ(ierr);
   ierr = PetscFree(e);CHKERRQ(ierr);
   ierr = PetscFree(ritz);CHKERRQ(ierr);
@@ -349,7 +349,7 @@ static void update_omega(PetscReal *omega,PetscReal *omega_old,PetscInt j,PetscR
                 beta[j]*omega_old[0];
   if (omega_old[0] > 0) omega_old[0] = binv*(omega_old[0] + T);
   else omega_old[0] = binv*(omega_old[0] - T);  
-  
+
   /* Update remaining components. */
   for (k=1;k<j-1;k++) {
     omega_old[k] = beta[k+1]*omega[k+1] + (alpha[k]-alpha[j])*omega[k] + beta[k]*omega[k-1] - beta[j]*omega_old[k];
@@ -357,7 +357,7 @@ static void update_omega(PetscReal *omega,PetscReal *omega_old,PetscInt j,PetscR
     else omega_old[k] = binv*(omega_old[k] - T);       
   }
   omega_old[j-1] = binv*T;
-  
+
   /* Swap omega and omega_old. */
   for (k=0;k<j;k++) {
     omega[k] = omega_old[k];
@@ -374,7 +374,7 @@ static void compute_int(PetscBool *which,PetscReal *mu,PetscInt j,PetscReal delt
   PetscInt  i,k,maxpos;
   PetscReal max;
   PetscBool found;
-  
+
   PetscFunctionBegin;  
   /* initialize which */
   found = PETSC_FALSE;
@@ -391,7 +391,7 @@ static void compute_int(PetscBool *which,PetscReal *mu,PetscInt j,PetscReal delt
     }
   }
   if (!found) which[maxpos] = PETSC_TRUE;    
-  
+
   for (i=0;i<j;i++)
     if (which[i]) {
       /* find left interval */
@@ -453,7 +453,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
     omega[i] = omega_old[i] = 0.0;
   for (i=0;i<k;i++)
     which[i] = PETSC_TRUE;  
-  
+
   for (j=k;j<m;j++) {
     ierr = STApply(eps->st,V[j],f);CHKERRQ(ierr);
     if (fro) {
@@ -467,7 +467,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
       ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,which,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);
       alpha[j] = PetscRealPart(hwork[j]);
       beta[j] = norm;
-      
+
       /* Estimate ||A|| if needed */ 
       if (estimate_anorm) {
         if (j>k) anorm = PetscMax(anorm,PetscAbsReal(alpha[j])+norm+beta[j-1]);
@@ -503,7 +503,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
         }
       }
     }
-    
+
     if (*breakdown || norm < eps->n*anorm*PETSC_MACHINE_EPSILON) {
       *M = j+1;
       break;
@@ -512,7 +512,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
       fro = PETSC_TRUE;
       ierr = PetscInfo1(eps,"Switching to full reorthogonalization at iteration %D\n",eps->its);CHKERRQ(ierr);
     }
-    
+
     beta[j] = norm;
     if (j<m-1) {
       ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
@@ -617,10 +617,10 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
   /* The first Lanczos vector is the normalized initial vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],NULL);CHKERRQ(ierr);
-  
+
   anorm = -1.0;
   nconv = 0;
-  
+
   /* Restart loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
@@ -638,11 +638,11 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     /* Solve projected problem */ 
     ierr = DSSolve(eps->ds,ritz,NULL);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,ritz,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-    
+
     /* Estimate ||A|| */
     for (i=nconv;i<n;i++) 
       anorm = PetscMax(anorm,PetscAbsReal(PetscRealPart(ritz[i])));
-    
+
     /* Compute residual norm estimates as beta*abs(Y(m,:)) + eps*||A|| */
     ierr = DSGetArray(eps->ds,DS_MAT_Q,&Y);CHKERRQ(ierr);
     for (i=nconv;i<n;i++) {
@@ -708,11 +708,11 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
         }
       }
     }
-    
+
     /* compute converged eigenvectors */
     ierr = SlepcUpdateVectors(n,eps->V,nconv,nconv+k,Y,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Y);CHKERRQ(ierr);
-    
+
     /* purge spurious ritz values */
     if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
       for (i=nconv;i<k;i++) {
@@ -738,7 +738,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
         }
       k = i;
     }
-    
+
     /* store ritz values and estimated errors */
     for (i=nconv;i<n;i++) {
       eps->eigr[i] = ritz[i];
@@ -748,7 +748,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     nconv = k;
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
-    
+
     if (eps->reason == EPS_CONVERGED_ITERATING) { /* copy restart vector */
       if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL && !breakdown) {
         /* Reorthonormalize restart vector */
@@ -768,7 +768,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
       }
     }    
   }
-  
+
   eps->nconv = nconv;
 
   ierr = PetscFree(ritz);CHKERRQ(ierr);
@@ -834,7 +834,7 @@ static PetscErrorCode EPSLanczosSetReorthog_Lanczos(EPS eps,EPSLanczosReorthogTy
    Options Database Key:
 .  -eps_lanczos_reorthog - Sets the reorthogonalization type (either 'local', 'selective',
                          'periodic', 'partial', 'full' or 'delayed')
-   
+
    Level: advanced
 
 .seealso: EPSLanczosGetReorthog(), EPSLanczosReorthogType

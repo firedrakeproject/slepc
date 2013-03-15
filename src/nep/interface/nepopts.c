@@ -7,7 +7,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -92,7 +92,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
       ierr = NEPSetTarget(nep,s);CHKERRQ(ierr);
     }
-    
+
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to NEPSetFromOptions()
@@ -156,7 +156,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
     ierr = PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",0);CHKERRQ(ierr);
     ierr = PetscOptionsName("-nep_plot_eigs","Make a plot of the computed eigenvalues","NEPSolve",0);CHKERRQ(ierr);
-   
+
     if (nep->ops->setfromoptions) {
       ierr = (*nep->ops->setfromoptions)(nep);CHKERRQ(ierr);
     }
@@ -185,7 +185,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
    Input Parameter:
 .  nep - the nonlinear eigensolver context
-  
+
    Output Parameters:
 +  abstol - absolute convergence tolerance
 .  rtol   - relative convergence tolerance
@@ -310,7 +310,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
 
    Input Parameter:
 .  nep - the nonlinear eigensolver context
-  
+
    Output Parameters:
 +  nev - number of eigenvalues to compute
 .  ncv - the maximum dimension of the subspace to be used by the solver
@@ -417,7 +417,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 
     Possible values:
     The parameter 'which' can have one of these values
-    
+
 +     NEP_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
 .     NEP_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
 .     NEP_LARGEST_REAL - largest real parts
@@ -444,7 +444,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     stated above. If SLEPc is compiled for real numbers NEP_LARGEST_IMAGINARY
     and NEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part 
     for eigenvalue selection.
-    
+
     Level: intermediate
 
 .seealso: NEPGetWhichEigenpairs(), NEPWhich
@@ -781,7 +781,7 @@ PetscErrorCode NEPSetOptionsPrefix(NEP nep,const char *prefix)
   ierr = PetscObjectSetOptionsPrefix((PetscObject)nep,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);  
 }
- 
+
 #undef __FUNCT__
 #define __FUNCT__ "NEPAppendOptionsPrefix"
 /*@C

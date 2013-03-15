@@ -10,7 +10,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -24,7 +24,6 @@
    along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
-
 
 /* 
    Dashboard struct: contains the methods that will be employed and the tunning
@@ -92,7 +91,7 @@ typedef struct _dvdDashboard {
   /* Initialize V */
   PetscErrorCode (*initV)(struct _dvdDashboard*);
   void *initV_data;
-  
+
   /* Find the approximate eigenpairs from V */
   PetscErrorCode (*calcPairs)(struct _dvdDashboard*);
   void *calcPairs_data;
@@ -175,7 +174,7 @@ typedef struct _dvdDashboard {
     max_size_P,     /* max unconverged vectors in the projector */
     bs;             /* max vectors that expands the subspace every iteration */
   EPS eps;          /* Connection to SLEPc */
- 
+
   /**** Auxiliary space ****/
   Vec *auxV;        /* auxiliary vectors */
   PetscScalar

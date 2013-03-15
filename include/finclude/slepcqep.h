@@ -43,7 +43,7 @@
       parameter (QEP_GENERAL                =  1)
       parameter (QEP_HERMITIAN              =  2)
       parameter (QEP_GYROSCOPIC             =  3)
-      
+
       PetscEnum QEP_LARGEST_MAGNITUDE
       PetscEnum QEP_SMALLEST_MAGNITUDE
       PetscEnum QEP_LARGEST_REAL
@@ -63,7 +63,7 @@
       parameter (QEP_TARGET_MAGNITUDE       =  7)
       parameter (QEP_TARGET_REAL            =  8)
       parameter (QEP_TARGET_IMAGINARY       =  9)
-       
+
 !
 !   Possible arguments to QEPMonitorSet()
 !

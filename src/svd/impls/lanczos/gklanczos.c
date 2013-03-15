@@ -26,7 +26,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -89,7 +89,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  
+
   PetscFunctionBegin;
   ierr = SVDMatMult(svd,PETSC_FALSE,V[k],U[k]);CHKERRQ(ierr);
   ierr = IPOrthogonalize(svd->ip,0,NULL,k,NULL,U,U[k],work,alpha+k,NULL);CHKERRQ(ierr);
@@ -116,7 +116,7 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
   PetscInt       i;
   PetscReal      a,b;
   Vec            temp;
-  
+
   PetscFunctionBegin;
   ierr = SVDMatMult(svd,PETSC_FALSE,V[k],u);CHKERRQ(ierr);
   for (i=k+1;i<n;i++) {
@@ -125,13 +125,13 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
     ierr = IPMInnerProductBegin(svd->ip,V[i],i,V,work);CHKERRQ(ierr);
     ierr = IPNormEnd(svd->ip,u,&a);CHKERRQ(ierr);
     ierr = IPMInnerProductEnd(svd->ip,V[i],i,V,work);CHKERRQ(ierr);
-    
+
     ierr = VecScale(u,1.0/a);CHKERRQ(ierr);
     ierr = SlepcVecMAXPBY(V[i],1.0/a,-1.0/a,i,work,V);CHKERRQ(ierr);
 
     ierr = IPOrthogonalizeCGS1(svd->ip,0,NULL,i,NULL,V,V[i],work,NULL,&b);CHKERRQ(ierr);
     ierr = VecScale(V[i],1.0/b);CHKERRQ(ierr);
-  
+
     ierr = SVDMatMult(svd,PETSC_FALSE,V[i],u_1);CHKERRQ(ierr);
     ierr = VecAXPY(u_1,-b,u);CHKERRQ(ierr);
 
@@ -146,12 +146,12 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
   ierr = IPMInnerProductBegin(svd->ip,v,n,V,work);CHKERRQ(ierr);
   ierr = IPNormEnd(svd->ip,u,&a);CHKERRQ(ierr);
   ierr = IPMInnerProductEnd(svd->ip,v,n,V,work);CHKERRQ(ierr);
-    
+
   ierr = VecScale(u,1.0/a);CHKERRQ(ierr);
   ierr = SlepcVecMAXPBY(v,1.0/a,-1.0/a,n,work,V);CHKERRQ(ierr);
 
   ierr = IPOrthogonalizeCGS1(svd->ip,0,NULL,n,NULL,V,v,work,NULL,&b);CHKERRQ(ierr);
-  
+
   alpha[n-1] = a;
   beta[n-1] = b;
   PetscFunctionReturn(0);
@@ -168,7 +168,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   PetscInt       i,k,j,nv,ld,off;
   Vec            v,u=0,u_1=0;
   PetscBool      conv;
-  
+
   PetscFunctionBegin;
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
@@ -180,13 +180,13 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     ierr = SVDMatGetVecs(svd,NULL,&u);CHKERRQ(ierr);
     ierr = SVDMatGetVecs(svd,NULL,&u_1);CHKERRQ(ierr);
   }
-  
+
   /* normalize start vector */
   if (!svd->nini) {
     ierr = SlepcVecSetRandom(svd->V[0],svd->rand);CHKERRQ(ierr);
   }
   ierr = VecNormalize(svd->V[0],NULL);CHKERRQ(ierr);
-  
+
   while (svd->reason == SVD_CONVERGED_ITERATING) {
     svd->its++;
 
@@ -221,18 +221,18 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
         else conv = PETSC_FALSE;
       }
     }
-    
+
     /* check convergence */
     if (svd->its >= svd->max_it) svd->reason = SVD_DIVERGED_ITS;
     if (svd->nconv+k >= svd->nsv) svd->reason = SVD_CONVERGED_TOL;
-    
+
     /* compute restart vector */
     ierr = DSGetArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       for (j=svd->nconv;j<nv;j++) swork[j-svd->nconv] = PT[k+svd->nconv+j*ld];
       ierr = SlepcVecMAXPBY(v,0.0,1.0,nv-svd->nconv,swork,svd->V+svd->nconv);CHKERRQ(ierr);
     }
-    
+
     /* compute converged singular vectors */
     off = svd->nconv+svd->nconv*ld;
     ierr = SlepcUpdateVectors(nv-svd->nconv,svd->V+svd->nconv,0,k,PT+off,ld,PETSC_TRUE);CHKERRQ(ierr);
@@ -241,16 +241,16 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     }
     ierr = DSRestoreArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);
     ierr = DSRestoreArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
-        
+
     /* copy restart vector from temporary space */
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       ierr = VecCopy(v,svd->V[svd->nconv+k]);CHKERRQ(ierr);
     }
-        
+
     svd->nconv += k;
     ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);CHKERRQ(ierr);
   }
-  
+
   /* free working space */
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);

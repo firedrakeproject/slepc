@@ -21,7 +21,7 @@
    Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-      
+
    SLEPc is free software: you can redistribute it and/or modify it under  the
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
@@ -207,7 +207,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     rsd[i] = 0.0;
     itrsd[i] = -1;
   }
-  
+
   /* Complete the initial basis with random vectors and orthonormalize them */
   k = eps->nini;
   while (k<ncv) {
@@ -223,7 +223,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,0);CHKERRQ(ierr);
-    
+
     /* Find group in previously computed eigenvalues */
     ierr = EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
 
@@ -243,13 +243,13 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     /* Solve projected problem */
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
-    
+
     /* Update vectors V(:,idx) = V * U(:,idx) */
     ierr = DSGetArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,ctx->AV,eps->nconv,nv,U,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,nv,U,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
-    
+
     /* Convergence check */
     ierr = DSGetArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
     ierr = EPSSubspaceResidualNorms(eps->V,ctx->AV,T,eps->nconv,nv,ld,eps->work[0],rsd);CHKERRQ(ierr);
@@ -260,7 +260,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
       itrsd[i] = its;
       eps->errest[i] = rsd[i];
     }
-  
+
     for (;;) {
       /* Find group in currently computed eigenvalues */
       ierr = EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,eps->errest,grptol,&ngrp,&ctr,&ae,&arsd);CHKERRQ(ierr);
@@ -271,13 +271,13 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
       eps->nconv = eps->nconv + ngrp;
       if (eps->nconv>=nv) break;
     }
-    
+
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
     if (eps->nconv>=eps->nev) break;
-    
+
     /* Compute nxtsrr (iteration of next projection step) */
     nxtsrr = PetscMin(eps->max_it,PetscMax((PetscInt)floor(stpfac*its),init));
-    
+
     if (ngrp!=nogrp || ngrp==0 || arsd>=oarsd) {
       idsrr = nxtsrr - its;
     } else {
@@ -300,12 +300,12 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     /* Orthogonalization loop */
     do {
       while (its<nxtort) {
-      
+
         /* AV(:,idx) = OP * V(:,idx) */
         for (i=eps->nconv;i<nv;i++) {
           ierr = STApply(eps->st,eps->V[i],ctx->AV[i]);CHKERRQ(ierr);
         }
-        
+
         /* V(:,idx) = AV(:,idx) with normalization */
         for (i=eps->nconv;i<nv;i++) {
           ierr = VecCopy(ctx->AV[i],eps->V[i]);CHKERRQ(ierr);
