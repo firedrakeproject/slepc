@@ -193,7 +193,7 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   sigma = 0.0;
   lambda = sigma;
-  tol = 10*n*PETSC_MACHINE_EPSILON;
+  tol = 1000*n*PETSC_MACHINE_EPSILON;
 
   for (it=0;it<maxit;it++) {
 

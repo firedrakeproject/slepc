@@ -124,6 +124,8 @@ typedef enum { DS_MAT_A,
                DS_MAT_E9,
                DS_NUM_MAT } DSMatType;
 
+/* Convenience for indexing extra matrices */
+PETSC_EXTERN DSMatType DSMatExtra[];
 #define DS_NUM_EXTRA  10
 
 PETSC_EXTERN PetscErrorCode DSCreate(MPI_Comm,DS*);

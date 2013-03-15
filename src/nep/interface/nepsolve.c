@@ -145,6 +145,69 @@ PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPProjectOperator"
+/*@
+   NEPProjectOperator - Computes the projection of the nonlinear operator.
+
+   Collective on NEP
+
+   Input Parameters:
++  nep - the nonlinear eigensolver context
+.  j0  - initial index
+.  j1  - final index
+-  f   - workspace vector
+
+   Notes:
+   This is available for split operator only.
+
+   The nonlinear operator T(lambda) is projected onto span(V), where V is
+   an orthonormal basis built internally by the solver. The projected
+   operator is equal to sum_i V'*A_i*V*f_i(lambda), so this function
+   computes all matrices Ei = V'*A_i*V, and stores them in the extra
+   matrices inside DS. Only rows/columns in the range [j0,j1-1] are computed,
+   the previous ones are assumed to be available already.
+
+   Level: developer
+
+.seealso: NEPSetSplitOperator()
+@*/
+PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,j,k,ld;
+  PetscScalar    *G,val;
+  Vec            *V = nep->V;
+  PetscBool      isherm,set,flg;
+
+  PetscFunctionBegin;
+  if (!nep->split) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"This solver requires a split operator");
+  ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
+  for (k=0;k<nep->nt;k++) {
+    ierr = DSGetArray(nep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
+    ierr = MatIsHermitianKnown(nep->A[k],&set,&flg);CHKERRQ(ierr);
+    isherm = set? flg: PETSC_FALSE;
+    for (j=j0;j<j1;j++) {
+      if (!isherm) {
+        if (j>0) { ierr = MatMultTranspose(nep->A[k],V[j],f);CHKERRQ(ierr); }
+        ierr = VecMDot(f,j,V,G+j*ld);CHKERRQ(ierr);
+        for (i=0;i<j;i++)
+          G[j+i*ld] = G[i+j*ld];
+      }
+      ierr = MatMult(nep->A[k],V[j],f);CHKERRQ(ierr);
+      ierr = VecDot(f,V[j],&val);CHKERRQ(ierr);
+      G[j+j*ld] = val;
+      ierr = VecMDot(f,j,V,G+j*ld);CHKERRQ(ierr);
+      if (isherm) {
+        for (i=0;i<j;i++)
+          G[j+i*ld] = G[i+j*ld];
+      }
+    }
+    ierr = DSRestoreArray(nep->ds,DSMatExtra[i],&G);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPGetIterationNumber"
 /*@
    NEPGetIterationNumber - Gets the current iteration number. If the
@@ -254,7 +317,7 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
    NEPGetEigenpair - Gets the i-th solution of the eigenproblem as computed by
    NEPSolve(). The solution consists in both the eigenvalue and the eigenvector.
 
-   Logically Collective on EPS
+   Logically Collective on NEP
 
    Input Parameters:
 +  nep - nonlinear eigensolver context
