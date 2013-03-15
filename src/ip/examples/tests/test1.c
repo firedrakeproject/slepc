@@ -64,7 +64,7 @@ int main(int argc,char **argv)
     ierr = VecSetRandom(V[i],rctx);CHKERRQ(ierr);
   }
   ierr = IPQRDecomposition(ip,V,0,k,NULL,k);CHKERRQ(ierr);
-  ierr = SlepcCheckOrthogonality(V,k,NULL,k,NULL,&lev);CHKERRQ(ierr);
+  ierr = SlepcCheckOrthogonality(V,k,NULL,k,NULL,NULL,&lev);CHKERRQ(ierr);
   if (lev<100*PETSC_MACHINE_EPSILON) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below 100*eps\n");CHKERRQ(ierr); 
   } else {

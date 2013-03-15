@@ -193,14 +193,13 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   sigma = 0.0;
   lambda = sigma;
-  mu = sigma;
   tol = 10*n*PETSC_MACHINE_EPSILON;
 
-  /* evaluate T and T' */
-  ierr = DSComputeMatrix(ds,lambda,PETSC_FALSE,DS_MAT_A);CHKERRQ(ierr);
-  ierr = DSComputeMatrix(ds,lambda,PETSC_TRUE,DS_MAT_B);CHKERRQ(ierr);
-
   for (it=0;it<maxit;it++) {
+
+    /* evaluate T and T' */
+    ierr = DSComputeMatrix(ds,lambda,PETSC_FALSE,DS_MAT_A);CHKERRQ(ierr);
+    ierr = DSComputeMatrix(ds,lambda,PETSC_TRUE,DS_MAT_B);CHKERRQ(ierr);
 
     /* % compute eigenvalue correction mu and eigenvector u */
 #if defined(PETSC_USE_COMPLEX)
@@ -252,10 +251,6 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
     /* correct eigenvalue approximation */
     lambda = lambda - mu;
     if (PetscAbsScalar(mu)<=tol) break;
-
-    /* evaluate T and T' */
-    ierr = DSComputeMatrix(ds,lambda,PETSC_FALSE,DS_MAT_A);CHKERRQ(ierr);
-    ierr = DSComputeMatrix(ds,lambda,PETSC_TRUE,DS_MAT_B);CHKERRQ(ierr);
   }
 
   wr[0] = lambda;

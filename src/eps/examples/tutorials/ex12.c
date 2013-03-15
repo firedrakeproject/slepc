@@ -167,7 +167,7 @@ int main (int argc,char **argv)
          "                   Bi-orthogonality <x,y>                   \n"
          "   ---------------------------------------------------------\n");CHKERRQ(ierr);
 
-    ierr = SlepcCheckOrthogonality(X,nconv,Y,nconv,NULL,NULL);CHKERRQ(ierr);
+    ierr = SlepcCheckOrthogonality(X,nconv,Y,nconv,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
     ierr = VecDestroyVecs(nconv,&X);CHKERRQ(ierr);
     ierr = VecDestroyVecs(nconv,&Y);CHKERRQ(ierr);

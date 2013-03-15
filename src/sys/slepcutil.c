@@ -434,7 +434,8 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
 .  nv - number of V vectors
 .  W  - an alternative set of vectors (optional)
 .  nw - number of W vectors
--  B  - matrix defining the inner product (optional)
+.  B  - matrix defining the inner product (optional)
+-  viewer - optional visualization context
 
    Output parameter:
 .  lev - level of orthogonality (optional)
@@ -451,17 +452,26 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
 
    Level: developer
 @*/
-PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B,PetscReal *lev)
+PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev)
 {
   PetscErrorCode ierr;
   PetscInt       i,j;
   PetscScalar    *vals;
+  PetscBool      isascii;
   Vec            w;
-  MPI_Comm       comm;
 
   PetscFunctionBegin;
   if (nv<=0 || nw<=0) PetscFunctionReturn(0);
-  ierr = PetscObjectGetComm((PetscObject)V[0],&comm);CHKERRQ(ierr);
+  PetscValidPointer(V,1);
+  PetscValidHeaderSpecific(*V,VEC_CLASSID,1);
+  if (!lev) {
+    if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)*V));
+    PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
+    PetscCheckSameComm(*V,1,viewer,6);
+    ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+    if (!isascii) PetscFunctionReturn(0);
+  }
+
   ierr = PetscMalloc(nv*sizeof(PetscScalar),&vals);CHKERRQ(ierr);
   if (B) {
     ierr = VecDuplicate(V[0],&w);CHKERRQ(ierr);
@@ -483,13 +493,13 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
       if (lev) *lev = PetscMax(*lev,PetscAbsScalar((j==i)? (vals[j]-1.0): vals[j]));
       else { 
 #if !defined(PETSC_USE_COMPLEX)
-        ierr = PetscPrintf(comm," %12G  ",vals[j]);CHKERRQ(ierr); 
+        ierr = PetscViewerASCIIPrintf(viewer," %12G  ",vals[j]);CHKERRQ(ierr); 
 #else
-        ierr = PetscPrintf(comm," %12G%+12Gi ",PetscRealPart(vals[j]),PetscImaginaryPart(vals[j]));CHKERRQ(ierr);     
+        ierr = PetscViewerASCIIPrintf(viewer," %12G%+12Gi ",PetscRealPart(vals[j]),PetscImaginaryPart(vals[j]));CHKERRQ(ierr);     
 #endif
       }
     }
-    if (!lev) { ierr = PetscPrintf(comm,"\n");CHKERRQ(ierr); }
+    if (!lev) { ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr); }
   }
   ierr = PetscFree(vals);CHKERRQ(ierr);
   if (B) {

@@ -164,8 +164,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
       ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
       svd->IS[i] = v;
-      svd->nini = PetscMin(svd->nini,svd->ninil);
     }
+    svd->nini = PetscMin(svd->nini,svd->ninil);
     ierr = EPSSetInitialSpace(cyclic->eps,-svd->nini,svd->IS);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&svd->nini,&svd->IS);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&svd->ninil,&svd->ISL);CHKERRQ(ierr);
