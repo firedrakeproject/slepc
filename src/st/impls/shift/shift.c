@@ -1,5 +1,5 @@
 /*
-    Shift spectral transformation, applies (A + sigma I) as operator, or 
+    Shift spectral transformation, applies (A + sigma I) as operator, or
     inv(B)(A + sigma B) for generalized problems
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -12,9 +12,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -110,7 +110,7 @@ PetscErrorCode STSetUp_Shift(ST st)
     if (st->nmat>1) { ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr); }
     st->T[1] = st->A[1];
     /* T[0] = A+sigma*B  */
-    ierr = STMatGAXPY_Private(st,st->sigma,0.0,1,0,PETSC_TRUE);CHKERRQ(ierr); 
+    ierr = STMatGAXPY_Private(st,st->sigma,0.0,1,0,PETSC_TRUE);CHKERRQ(ierr);
   } else {
     /* T[2] = C */
     ierr = PetscObjectReference((PetscObject)st->A[2]);CHKERRQ(ierr);
@@ -118,14 +118,14 @@ PetscErrorCode STSetUp_Shift(ST st)
     /* T[0] = A-sigma*B+sigma*sigma*C */
     ierr = STMatGAXPY_Private(st,-st->sigma,0.0,2,0,PETSC_TRUE);CHKERRQ(ierr);
     /* T[1] = B-2*sigma*C  */
-    ierr = STMatGAXPY_Private(st,-2.0*st->sigma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);  
+    ierr = STMatGAXPY_Private(st,-2.0*st->sigma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);
   }
   if (st->nmat==2) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
     st->kspidx = 1;
-  }  
+  }
   PetscFunctionReturn(0);
 }
 
@@ -151,7 +151,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
     /* Check if the new KSP matrix has the same zero structure */
     if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
     else flg = SAME_NONZERO_PATTERN;
-    ierr = KSPSetOperators(st->ksp,st->T[st->kspidx],st->T[st->kspidx],flg);CHKERRQ(ierr);    
+    ierr = KSPSetOperators(st->ksp,st->T[st->kspidx],st->T[st->kspidx],flg);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -159,7 +159,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Shift"
-PetscErrorCode STSetFromOptions_Shift(ST st) 
+PetscErrorCode STSetFromOptions_Shift(ST st)
 {
   PetscErrorCode ierr;
   PC             pc;

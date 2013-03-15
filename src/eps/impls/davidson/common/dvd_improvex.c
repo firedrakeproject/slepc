@@ -13,9 +13,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -315,7 +315,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
   for (i=0,s=0,auxS0=auxS;i<n;i+=s) {
     /* If the selected eigenvalue is complex, but the arithmetic is real... */
 #if !defined(PETSC_USE_COMPLEX)
-    if (d->eigi[i] != 0.0) { 
+    if (d->eigi[i] != 0.0) {
       if (i+2 <= max_size_D) s=2;
       else break;
     } else
@@ -758,14 +758,14 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d,dvdBlackboard *b,ProjType
       d->improvex_jd_proj_uv = dvd_improvex_jd_proj_uv_KXX; break;
     case DVD_PROJ_KZX:
       d->improvex_jd_proj_uv = dvd_improvex_jd_proj_uv_KZX; break;
-    } 
+    }
   }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_jd_proj_cuv"
-/* 
+/*
   Compute: u <- X, v <- K*(theta[0]*A+theta[1]*B)*X,
   kr <- K^{-1}*(A-eig*B)*X, being X <- V*pX[i_s..i_e-1], Y <- W*pY[i_s..i_e-1]
   where
@@ -896,7 +896,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_jd_proj_uv_KZX"
-/* 
+/*
   Compute: u <- X, v <- K*(theta[0]*A+theta[1]*B)*X,
   kr <- K^{-1}*(A-eig*B)*X, being X <- V*pX[i_s..i_e-1], Y <- W*pY[i_s..i_e-1]
   where
@@ -946,9 +946,9 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt
   for (i=0;i<n;i++) {
 #if !defined(PETSC_USE_COMPLEX)
     if (d->eigi[i_s+i] != 0.0) {
-      /* [r_i r_i+1 kr_i kr_i+1]*= [ theta_2i'    0            1        0   
-                                       0         theta_2i'     0        1   
-                                     theta_2i+1 -thetai_i   -eigr_i -eigi_i 
+      /* [r_i r_i+1 kr_i kr_i+1]*= [ theta_2i'    0            1        0
+                                       0         theta_2i'     0        1
+                                     theta_2i+1 -thetai_i   -eigr_i -eigi_i
                                      thetai_i    theta_2i+1  eigi_i -eigr_i ] */
       b[0] = b[5] = PetscConj(theta[2*i]);
       b[2] = b[7] = -theta[2*i+1];
@@ -988,7 +988,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_jd_proj_uv_KXX"
-/* 
+/*
   Compute: u <- K^{-1}*X, v <- X,
   kr <- K^{-1}*(A-eig*B)*X, being X <- V*pX[i_s..i_e-1]
   where
@@ -1034,7 +1034,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d,PetscInt i_s,PetscInt
       /* kr <- Ax -eig*Bx */
       ierr = VecAXPBY(kr[i], -d->eigr[i_s+i]/d->nX[i_s+i], 1.0/d->nX[i_s+i], Bx[i]);CHKERRQ(ierr);
     } else {
-      /* [kr_i kr_i+1 r_i r_i+1]*= [   1        0 
+      /* [kr_i kr_i+1 r_i r_i+1]*= [   1        0
                                        0        1
                                     -eigr_i -eigi_i
                                      eigi_i -eigr_i] */
@@ -1160,7 +1160,7 @@ PetscErrorCode dvd_improvex_PfuncV(dvdDashboard *d,void *funcV,Vec *D,PetscInt m
 */
 PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV,PetscScalar *auxS)
 {
-#if defined(PETSC_MISSING_LAPACK_GETRS) 
+#if defined(PETSC_MISSING_LAPACK_GETRS)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable");
 #else
@@ -1213,7 +1213,7 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV,PetscS
 */
 PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV,PetscScalar *auxS)
 {
-#if defined(PETSC_MISSING_LAPACK_GETRS) 
+#if defined(PETSC_MISSING_LAPACK_GETRS)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable");
 #else

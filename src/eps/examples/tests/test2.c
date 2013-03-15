@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -41,7 +41,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -70,7 +70,7 @@ int main(int argc,char **argv)
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                         Create the eigensolver
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
@@ -79,7 +79,7 @@ int main(int argc,char **argv)
   ierr = EPSSetTolerances(eps,tol,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Solve for largest eigenvalues
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
@@ -87,7 +87,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Largest eigenvalues - - -\n");CHKERRQ(ierr);
   ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Solve for smallest eigenvalues
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
@@ -95,7 +95,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Smallest eigenvalues - - -\n");CHKERRQ(ierr);
   ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Solve for interior eigenvalues (target=2.1)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);

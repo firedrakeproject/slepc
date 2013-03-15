@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -45,7 +45,7 @@ int main(int argc,char **argv)
   N = n*m;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nQuadratic Eigenproblem, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -56,8 +56,8 @@ int main(int argc,char **argv)
   ierr = MatSetUp(K);CHKERRQ(ierr);
 
   ierr = MatGetOwnershipRange(K,&Istart,&Iend);CHKERRQ(ierr);
-  for (II=Istart;II<Iend;II++) { 
-    i = II/n; j = II-i*n;  
+  for (II=Istart;II<Iend;II++) {
+    i = II/n; j = II-i*n;
     if (i>0) { ierr = MatSetValue(K,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
     if (i<m-1) { ierr = MatSetValue(K,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
     if (j>0) { ierr = MatSetValue(K,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
@@ -85,16 +85,16 @@ int main(int argc,char **argv)
   ierr = MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatShift(M,1.0);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* 
+  /*
      Create eigensolver context
   */
   ierr = QEPCreate(PETSC_COMM_WORLD,&qep);CHKERRQ(ierr);
 
-  /* 
+  /*
      Set matrices and problem type
   */
   ierr = QEPSetOperators(qep,M,C,K);CHKERRQ(ierr);
@@ -105,7 +105,7 @@ int main(int argc,char **argv)
   */
   ierr = QEPSetFromOptions(qep);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -119,7 +119,7 @@ int main(int argc,char **argv)
   ierr = QEPGetDimensions(qep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 

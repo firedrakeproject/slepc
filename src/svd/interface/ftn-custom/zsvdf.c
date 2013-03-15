@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -65,7 +65,7 @@
 #endif
 
 /*
-   These are not usually called from Fortran but allow Fortran users 
+   These are not usually called from Fortran but allow Fortran users
    to transparently set these monitors from .F code, hence no STDCALL
 */
 PETSC_EXTERN void svdmonitorall_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)

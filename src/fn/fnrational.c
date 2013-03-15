@@ -12,9 +12,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -130,7 +130,7 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
       ierr = SlepcSNPrintfScalar(str,50,fn->beta[fn->nb-1],PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s)\n",str);CHKERRQ(ierr);
     }
-  }  
+  }
   PetscFunctionReturn(0);
 }
 

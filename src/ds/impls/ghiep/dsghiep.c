@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -28,14 +28,14 @@ PetscErrorCode DSAllocate_GHIEP(DS ds,PetscInt ld)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = DSAllocateMat_Private(ds,DS_MAT_A);CHKERRQ(ierr); 
-  ierr = DSAllocateMat_Private(ds,DS_MAT_B);CHKERRQ(ierr); 
-  ierr = DSAllocateMat_Private(ds,DS_MAT_Q);CHKERRQ(ierr); 
-  ierr = DSAllocateMatReal_Private(ds,DS_MAT_T);CHKERRQ(ierr); 
+  ierr = DSAllocateMat_Private(ds,DS_MAT_A);CHKERRQ(ierr);
+  ierr = DSAllocateMat_Private(ds,DS_MAT_B);CHKERRQ(ierr);
+  ierr = DSAllocateMat_Private(ds,DS_MAT_Q);CHKERRQ(ierr);
+  ierr = DSAllocateMatReal_Private(ds,DS_MAT_T);CHKERRQ(ierr);
   ierr = DSAllocateMatReal_Private(ds,DS_MAT_D);CHKERRQ(ierr);
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
   ierr = PetscMalloc(ld*sizeof(PetscInt),&ds->perm);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(ds,ld*sizeof(PetscInt));CHKERRQ(ierr);  
+  ierr = PetscLogObjectMemory(ds,ld*sizeof(PetscInt));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -65,7 +65,7 @@ PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
     }
     T[n-1] = PetscRealPart(A[n-1+(n-1)*ld]);
     S[n-1] = PetscRealPart(B[n-1+(n-1)*ld]);
-    for (i=ds->l;i< ds->k;i++) T[2*ld+i] = PetscRealPart(A[ds->k+i*ld]); 
+    for (i=ds->l;i< ds->k;i++) T[2*ld+i] = PetscRealPart(A[ds->k+i*ld]);
   } else { /* switch from compact (arrow) to dense storage */
     ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = PetscMemzero(B,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -169,7 +169,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
     ierr = DSViewMat_Private(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
   }
   if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Q);CHKERRQ(ierr); 
+    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -183,7 +183,7 @@ PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
   PetscReal      scal1,scal2,wr1,wr2,wi,ep,norm;
   PetscScalar    *Q,*X,Y[4],alpha,zeroS = 0.0;
   PetscInt       k;
-  PetscBLASInt   two = 2,n_,ld,one=1; 
+  PetscBLASInt   two = 2,n_,ld,one=1;
 #if !defined(PETSC_USE_COMPLEX)
   PetscBLASInt   four=4;
 #endif
@@ -230,9 +230,9 @@ PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
       if (scal1<ep) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
       wr1 /= scal1; wi /= scal1;
 #if !defined(PETSC_USE_COMPLEX)
-      if (SlepcAbs(s1*d1-wr1,wi)<SlepcAbs(s2*d2-wr1,wi)) { 
+      if (SlepcAbs(s1*d1-wr1,wi)<SlepcAbs(s2*d2-wr1,wi)) {
         Y[0] = wr1-s2*d2; Y[1] = s2*e; Y[2] = wi; Y[3] = 0.0;
-      } else { 
+      } else {
         Y[0] = s1*e; Y[1] = wr1-s1*d1; Y[2] = 0.0; Y[3] = wi;
       }
       norm = BLASnrm2_(&four,Y,&one);
@@ -247,9 +247,9 @@ PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
         X[(k+1)*ld+k] = Y[2]*norm; X[(k+1)*ld+k+1] = Y[3]*norm;
       }
 #else
-      if (SlepcAbs(s1*d1-wr1,wi)<SlepcAbs(s2*d2-wr1,wi)) { 
+      if (SlepcAbs(s1*d1-wr1,wi)<SlepcAbs(s2*d2-wr1,wi)) {
         Y[0] = wr1-s2*d2+PETSC_i*wi; Y[1] = s2*e;
-      } else { 
+      } else {
         Y[0] = s1*e; Y[1] = wr1-s1*d1+PETSC_i*wi;
       }
       norm = BLASnrm2_(&two,Y,&one);
@@ -305,7 +305,7 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
       break;
     default:
-      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
   }
   PetscFunctionReturn(0);
 }
@@ -335,7 +335,7 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds,PetscInt n0,PetscInt n1,PetscScalar *wr,
     if (k < n1-1) {
       e = (ds->compact)?T[ld+k]:PetscRealPart(A[(k+1)+ld*k]);
     } else e = 0.0;
-    if (e==0.0) { 
+    if (e==0.0) {
       /* real eigenvalue */
       wr[k] = (ds->compact)?T[k]/D[k]:A[k+k*ld]/B[k+k*ld];
 #if !defined(PETSC_USE_COMPLEX)
@@ -405,7 +405,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   d = ds->rmat[DS_MAT_T];
   e = d + ds->ld;
   s = ds->rmat[DS_MAT_D];
-  ierr = DSAllocateWork_Private(ds,ds->ld,ds->ld,0);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,ds->ld,ds->ld,0);CHKERRQ(ierr);
   perm = ds->perm;
   if (!rr) {
     rr = wr;
@@ -416,7 +416,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   ierr = PetscMemcpy(ds->work,wr,n*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=ds->l;i<n;i++) {
     wr[i] = *(ds->work + perm[i]);
-  } 
+  }
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscMemcpy(ds->work,wi,n*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=ds->l;i<n;i++) {
@@ -426,7 +426,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   ierr = PetscMemcpy(ds->rwork,s,n*sizeof(PetscReal));CHKERRQ(ierr);
   for (i=ds->l;i<n;i++) {
     s[i] = *(ds->rwork+perm[i]);
-  } 
+  }
   ierr = PetscMemcpy(ds->rwork,d,n*sizeof(PetscReal));CHKERRQ(ierr);
   for (i=ds->l;i<n;i++) {
     d[i] = *(ds->rwork  + perm[i]);
@@ -445,12 +445,12 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
 #define __FUNCT__ "DSGHIEPHRGen"
 /*
   Generates a hyperbolic rotation
-    if x1*x1 - x2*x2 != 0 
+    if x1*x1 - x2*x2 != 0
       r = sqrt(|x1*x1 - x2*x2|)
       c = x1/r  s = x2/r
 
       | c -s||x1|   |d*r|
-      |-s  c||x2| = | 0 | 
+      |-s  c||x2| = | 0 |
       where d = 1 for type==1 and -1 for type==2
   Returns the condition number of the reduction
 */
@@ -481,7 +481,7 @@ static PetscErrorCode DSGHIEPHRGen(PetscReal x1,PetscReal x2,PetscInt *type,Pets
     xa = x1; xb = x2; type_ = 1;
   } else {
     xa = x2; xb = x1; type_ = 2;
-  } 
+  }
   t = xb/xa;
   n2 = PetscAbsReal(1 - t*t);
   *r = PetscSqrtReal(n2)*PetscAbsReal(xa);
@@ -499,7 +499,7 @@ static PetscErrorCode DSGHIEPHRGen(PetscReal x1,PetscReal x2,PetscInt *type,Pets
                                 |c  s|
   Applies an hyperbolic rotator |s  c|
            |c  s|
-    [x1 x2]|s  c| 
+    [x1 x2]|s  c|
 */
 PetscErrorCode DSGHIEPHRApply(PetscInt n,PetscScalar *x1,PetscInt inc1,PetscScalar *x2,PetscInt inc2,PetscReal c,PetscReal s)
 {
@@ -568,7 +568,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
   if (!w || lw < nwall) {
     ierr = PetscMalloc(nwall*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   } else work = w;
-  ierr = PetscMalloc(n*sizeof(PetscReal),&ss);CHKERRQ(ierr); 
+  ierr = PetscMalloc(n*sizeof(PetscReal),&ss);CHKERRQ(ierr);
   ierr = PetscMalloc(n*sizeof(PetscInt),&perm);CHKERRQ(ierr);
   AA = work;
   for (i=0;i<n;i++) {
@@ -668,7 +668,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
           k++;
           if (k==n || flip)
             SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Breakdown in construction of hyperbolic transformation");
-          break;  
+          break;
         }
         A[ni-n0+j*lda] = r; A[n-n1+j*lda] = 0.0;
         A[j+(ni-n0)*lda] = r; A[j+(n-n1)*lda] = 0.0;
@@ -749,7 +749,7 @@ static PetscErrorCode IndefOrthog(PetscReal *s,PetscScalar *y,PetscReal ss,Petsc
 
 #undef __FUNCT__
 #define __FUNCT__ "IndefNorm"
-/* 
+/*
    normalization with a indefinite norm
 */
 static PetscErrorCode IndefNorm(PetscReal *s,PetscScalar *x,PetscReal *norm,PetscInt n)
@@ -1161,7 +1161,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   d = ds->rmat[DS_MAT_T];
   e = ds->rmat[DS_MAT_T] + ld;
   s = ds->rmat[DS_MAT_D];
-  ierr = DSAllocateWork_Private(ds,ld*ld,2*ld,ld*2);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,ld*ld,2*ld,ld*2);CHKERRQ(ierr);
   work = ds->work;
   lwork = ld*ld;
 
@@ -1257,14 +1257,14 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   s = ds->rmat[DS_MAT_D];
   ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
   H = ds->mat[DS_MAT_W];
-  ierr = DSAllocateWork_Private(ds,ld+ld*ld,ld,0);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,ld+ld*ld,ld,0);CHKERRQ(ierr);
   tau  = ds->work;
   work = ds->work+ld;
   lwork = ld*ld;
 
    /* initialize orthogonal matrix */
   ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=0;i< ds->n;i++) 
+  for (i=0;i< ds->n;i++)
     Q[i+i*ld] = 1.0;
   /* quick return */
   if (n1 == 1) {
@@ -1284,7 +1284,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
       H[i+i*ld] = d[i]/s[i];
       H[(i+1)+i*ld] = e[i]/s[i+1];
       H[i+(i+1)*ld] = e[i]/s[i];
-    } 
+    }
     H[ds->n-1 + (ds->n-1)*ld] = d[ds->n-1]/s[ds->n-1];
 
     for (i=ds->l; i < ds->k; i++) {
@@ -1369,7 +1369,7 @@ PetscErrorCode DSNormalize_GHIEP(DS ds,DSMatType mat,PetscInt col)
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
       break;
     default:
-      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
   }
 
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);

@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc eigensolver: "rqcg"
 
@@ -27,9 +27,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -57,9 +57,9 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
 
   PetscFunctionBegin;
-  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"RQCG only works for Hermitian problems"); 
+  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"RQCG only works for Hermitian problems");
   if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
   }
   else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
@@ -135,7 +135,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
     /* Generate more initial vectors if necessary */
     while (kini<nv) {
       ierr = SlepcVecSetRandom(eps->V[kini],eps->rand);CHKERRQ(ierr);
-      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,kini,NULL,eps->V,eps->V[kini],NULL,&norm,&breakdown);CHKERRQ(ierr); 
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,kini,NULL,eps->V,eps->V[kini],NULL,&norm,&breakdown);CHKERRQ(ierr);
       if (norm>0.0 && !breakdown) {
         ierr = VecScale(eps->V[kini],1.0/norm);CHKERRQ(ierr);
         kini++;
@@ -310,7 +310,7 @@ static PetscErrorCode EPSRQCGGetReset_RQCG(EPS eps,PetscInt *nrest)
 #undef __FUNCT__
 #define __FUNCT__ "EPSRQCGGetReset"
 /*@
-   EPSRQCGGetReset - Gets the reset parameter used in the RQCG method. 
+   EPSRQCGGetReset - Gets the reset parameter used in the RQCG method.
 
    Not Collective
 

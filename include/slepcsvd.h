@@ -1,5 +1,5 @@
 /*
-   User interface for the SLEPC singular value solvers. 
+   User interface for the SLEPC singular value solvers.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -28,7 +28,7 @@
 PETSC_EXTERN PetscErrorCode SVDInitializePackage(const char[]);
 
 /*S
-     SVD - Abstract SLEPc object that manages all the singular value 
+     SVD - Abstract SLEPc object that manages all the singular value
      problem solvers.
 
    Level: beginner
@@ -76,7 +76,7 @@ typedef enum { SVD_LARGEST,
                SVD_SMALLEST } SVDWhich;
 
 /*E
-    SVDConvergedReason - Reason a singular value solver was said to 
+    SVDConvergedReason - Reason a singular value solver was said to
          have converged or diverged
 
    Level: beginner

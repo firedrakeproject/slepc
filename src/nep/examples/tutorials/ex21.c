@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -39,7 +39,7 @@ PetscErrorCode FormInitialGuess(Vec);
 PetscErrorCode FormFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
 PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*);
 
-/* 
+/*
    Matrix operations and context
 */
 PetscErrorCode MatFun_Mult(Mat,Vec,Vec);
@@ -131,7 +131,7 @@ int main(int argc,char **argv)
   */
   ierr = NEPSetJacobian(nep,J,FormJacobian,NULL);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Customize nonlinear solver; set runtime options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -145,7 +145,7 @@ int main(int argc,char **argv)
   */
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -161,11 +161,11 @@ int main(int argc,char **argv)
   ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* 
+  /*
      Get number of converged approximate eigenpairs
   */
   ierr = NEPGetConverged(nep,&nconv);CHKERRQ(ierr);
@@ -179,7 +179,7 @@ int main(int argc,char **argv)
          "           k              ||T(k)x||\n"
          "   ----------------- ------------------\n");CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
-      /* 
+      /*
         Get converged eigenpairs (in this example they are always real)
       */
       ierr = NEPGetEigenpair(nep,i,&lambda,NULL,NULL,NULL);CHKERRQ(ierr);
@@ -194,7 +194,7 @@ int main(int argc,char **argv)
 #else
       re = lambda;
       im = 0.0;
-#endif 
+#endif
       if (im!=0.0) {
         ierr = PetscPrintf(PETSC_COMM_WORLD," %9F%+9F j %12G\n",re,im,norm);CHKERRQ(ierr);
       } else {

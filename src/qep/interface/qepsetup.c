@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -37,7 +37,7 @@
 
    Notes:
    This function need not be called explicitly in most cases, since QEPSolve()
-   calls it. It can be useful when one wants to measure the set-up time 
+   calls it. It can be useful when one wants to measure the set-up time
    separately from the solve time.
 
    Level: advanced
@@ -81,7 +81,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   }
 
   /* Check matrices, transfer them to ST */
-  if (!qep->M || !qep->C || !qep->K) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_WRONGSTATE,"QEPSetOperators must be called first"); 
+  if (!qep->M || !qep->C || !qep->K) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_WRONGSTATE,"QEPSetOperators must be called first");
   if (!islinear) {
     mat[0] = qep->K;
     mat[1] = qep->C;
@@ -199,7 +199,7 @@ PetscErrorCode QEPSetUp(QEP qep)
 .  C   - the second coefficient matrix
 -  K   - the third coefficient matrix
 
-   Notes: 
+   Notes:
    The quadratic eigenproblem is defined as (l^2*M + l*C + K)*x = 0, where l is
    the eigenvalue and x is the eigenvector.
 
@@ -312,7 +312,7 @@ PetscErrorCode QEPSetInitialSpace(QEP qep,PetscInt n,Vec *is)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(qep,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
+  if (n<0) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&qep->nini,&qep->IS);CHKERRQ(ierr);
   if (n>0) qep->setupcalled = 0;
   PetscFunctionReturn(0);
@@ -356,7 +356,7 @@ PetscErrorCode QEPSetInitialSpaceLeft(QEP qep,PetscInt n,Vec *is)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(qep,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
+  if (n<0) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&qep->ninil,&qep->ISL);CHKERRQ(ierr);
   if (n>0) qep->setupcalled = 0;
   PetscFunctionReturn(0);
@@ -396,7 +396,7 @@ PetscErrorCode QEPAllocateSolution(QEP qep)
 #undef __FUNCT__
 #define __FUNCT__ "QEPFreeSolution"
 /*
-  QEPFreeSolution - Free memory storage. This routine is related to 
+  QEPFreeSolution - Free memory storage. This routine is related to
   QEPAllocateSolution().
 */
 PetscErrorCode QEPFreeSolution(QEP qep)
@@ -407,8 +407,8 @@ PetscErrorCode QEPFreeSolution(QEP qep)
   if (qep->allocated_ncv > 0) {
     ierr = PetscFree(qep->eigr);CHKERRQ(ierr);
     ierr = PetscFree(qep->eigi);CHKERRQ(ierr);
-    ierr = PetscFree(qep->errest);CHKERRQ(ierr); 
-    ierr = PetscFree(qep->perm);CHKERRQ(ierr); 
+    ierr = PetscFree(qep->errest);CHKERRQ(ierr);
+    ierr = PetscFree(qep->perm);CHKERRQ(ierr);
     ierr = VecDestroyVecs(qep->allocated_ncv,&qep->V);CHKERRQ(ierr);
     qep->allocated_ncv = 0;
   }

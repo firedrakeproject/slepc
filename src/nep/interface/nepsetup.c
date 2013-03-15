@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -37,7 +37,7 @@
 
    Notes:
    This function need not be called explicitly in most cases, since NEPSolve()
-   calls it. It can be useful when one wants to measure the set-up time 
+   calls it. It can be useful when one wants to measure the set-up time
    separately from the solve time.
 
    Level: advanced
@@ -191,7 +191,7 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec *is)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
+  if (n<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&nep->nini,&nep->IS);CHKERRQ(ierr);
   if (n>0) nep->setupcalled = 0;
   PetscFunctionReturn(0);
@@ -231,7 +231,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep)
 #undef __FUNCT__
 #define __FUNCT__ "NEPFreeSolution"
 /*
-  NEPFreeSolution - Free memory storage. This routine is related to 
+  NEPFreeSolution - Free memory storage. This routine is related to
   NEPAllocateSolution().
 */
 PetscErrorCode NEPFreeSolution(NEP nep)
@@ -242,8 +242,8 @@ PetscErrorCode NEPFreeSolution(NEP nep)
   if (nep->allocated_ncv > 0) {
     ierr = PetscFree(nep->eigr);CHKERRQ(ierr);
     ierr = PetscFree(nep->eigi);CHKERRQ(ierr);
-    ierr = PetscFree(nep->errest);CHKERRQ(ierr); 
-    ierr = PetscFree(nep->perm);CHKERRQ(ierr); 
+    ierr = PetscFree(nep->errest);CHKERRQ(ierr);
+    ierr = PetscFree(nep->perm);CHKERRQ(ierr);
     ierr = VecDestroyVecs(nep->allocated_ncv,&nep->V);CHKERRQ(ierr);
     nep->allocated_ncv = 0;
   }

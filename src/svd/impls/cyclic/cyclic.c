@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc singular value solver: "cyclic"
 
@@ -16,9 +16,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -59,7 +59,7 @@ static PetscErrorCode ShellMatMult_Cyclic(Mat B,Vec x,Vec y)
   ierr = VecPlaceArray(cyclic->y1,py);CHKERRQ(ierr);
   ierr = VecPlaceArray(cyclic->y2,py+m);CHKERRQ(ierr);
   ierr = SVDMatMult(svd,PETSC_FALSE,cyclic->x2,cyclic->y1);CHKERRQ(ierr);
-  ierr = SVDMatMult(svd,PETSC_TRUE,cyclic->x1,cyclic->y2);CHKERRQ(ierr);        
+  ierr = SVDMatMult(svd,PETSC_TRUE,cyclic->x1,cyclic->y2);CHKERRQ(ierr);
   ierr = VecResetArray(cyclic->x1);CHKERRQ(ierr);
   ierr = VecResetArray(cyclic->x2);CHKERRQ(ierr);
   ierr = VecResetArray(cyclic->y1);CHKERRQ(ierr);
@@ -120,8 +120,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,m,M,NULL,&cyclic->y1);CHKERRQ(ierr);
       ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,n,N,NULL,&cyclic->y2);CHKERRQ(ierr);
       ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),m+n,m+n,M+N,M+N,svd,&cyclic->mat);CHKERRQ(ierr);
-      ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))ShellMatMult_Cyclic);CHKERRQ(ierr);  
-      ierr = MatShellSetOperation(cyclic->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_Cyclic);CHKERRQ(ierr);  
+      ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))ShellMatMult_Cyclic);CHKERRQ(ierr);
+      ierr = MatShellSetOperation(cyclic->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_Cyclic);CHKERRQ(ierr);
     }
   }
 
@@ -276,7 +276,7 @@ PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
     ierr = SVDCyclicSetExplicitMatrix(svd,val);CHKERRQ(ierr);
   }
   if (!cyclic->explicitmatrix) {
-    /* use as default an ST with shell matrix and Jacobi */ 
+    /* use as default an ST with shell matrix and Jacobi */
     ierr = EPSGetST(cyclic->eps,&st);CHKERRQ(ierr);
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
@@ -298,7 +298,7 @@ static PetscErrorCode SVDCyclicSetExplicitMatrix_Cyclic(SVD svd,PetscBool explic
 #undef __FUNCT__
 #define __FUNCT__ "SVDCyclicSetExplicitMatrix"
 /*@
-   SVDCyclicSetExplicitMatrix - Indicate if the eigensolver operator 
+   SVDCyclicSetExplicitMatrix - Indicate if the eigensolver operator
    H(A) = [ 0  A ; A^T 0 ] must be computed explicitly.
 
    Logically Collective on SVD
@@ -373,7 +373,7 @@ static PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
-  ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);  
+  ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);
   cyclic->eps = eps;
   ierr = PetscLogObjectParent(svd,cyclic->eps);CHKERRQ(ierr);
   svd->setupcalled = 0;
@@ -384,7 +384,7 @@ static PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
 #define __FUNCT__ "SVDCyclicSetEPS"
 /*@
    SVDCyclicSetEPS - Associate an eigensolver object (EPS) to the
-   singular value solver. 
+   singular value solver.
 
    Collective on SVD
 
@@ -521,7 +521,7 @@ PETSC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD svd)
   ierr = EPSCreate(PetscObjectComm((PetscObject)svd),&cyclic->eps);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(cyclic->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(cyclic->eps,"svd_");CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)cyclic->eps,(PetscObject)svd,1);CHKERRQ(ierr);  
+  ierr = PetscObjectIncrementTabLevel((PetscObject)cyclic->eps,(PetscObject)svd,1);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(svd,cyclic->eps);CHKERRQ(ierr);
   if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   ierr = EPSSetIP(cyclic->eps,svd->ip);CHKERRQ(ierr);

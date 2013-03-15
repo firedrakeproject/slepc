@@ -12,9 +12,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -25,8 +25,8 @@
 #include <slepc-private/ipimpl.h>      /*I "slepcip.h" I*/
 #include <slepcblaslapack.h>
 
-/* 
-   IPOrthogonalizeMGS1 - Compute one step of Modified Gram-Schmidt 
+/*
+   IPOrthogonalizeMGS1 - Compute one step of Modified Gram-Schmidt
 */
 #undef __FUNCT__
 #define __FUNCT__ "IPOrthogonalizeMGS1"
@@ -48,7 +48,7 @@ static PetscErrorCode IPOrthogonalizeMGS1(IP ip,PetscInt n,PetscBool *which,Vec 
   PetscFunctionReturn(0);
 }
 
-/* 
+/*
    IPOrthogonalizeCGS1 - Compute |v'| (estimated), |v| and one step of CGS with only one global synchronization
 */
 #undef __FUNCT__
@@ -62,27 +62,27 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,PetscInt n,Petsc
 
   PetscFunctionBegin;
   /* h = W^* v ; alpha = (v, v) */
-  if (!nds && !which && !onorm && !norm) { 
-    /* use simpler function */ 
+  if (!nds && !which && !onorm && !norm) {
+    /* use simpler function */
     ierr = IPMInnerProduct(ip,v,n,V,H);CHKERRQ(ierr);
-  } else {  
+  } else {
     /* merge comunications */
-    ierr = IPMInnerProductBegin(ip,v,nds,defl,H);CHKERRQ(ierr); 
+    ierr = IPMInnerProductBegin(ip,v,nds,defl,H);CHKERRQ(ierr);
     if (which) { /* use select array */
-      for (j=0;j<n;j++) 
+      for (j=0;j<n;j++)
         if (which[j]) {
           ierr = IPInnerProductBegin(ip,v,V[j],H+nds+j);CHKERRQ(ierr);
         }
     } else {
       ierr = IPMInnerProductBegin(ip,v,n,V,H+nds);CHKERRQ(ierr);
     }
-    if (onorm || (norm && !ip->matrix)) { 
-      ierr = IPInnerProductBegin(ip,v,v,&alpha);CHKERRQ(ierr); 
+    if (onorm || (norm && !ip->matrix)) {
+      ierr = IPInnerProductBegin(ip,v,v,&alpha);CHKERRQ(ierr);
     }
 
-    ierr = IPMInnerProductEnd(ip,v,nds,defl,H);CHKERRQ(ierr); 
+    ierr = IPMInnerProductEnd(ip,v,nds,defl,H);CHKERRQ(ierr);
     if (which) { /* use select array */
-      for (j=0;j<n;j++) 
+      for (j=0;j<n;j++)
         if (which[j]) {
           ierr = IPInnerProductEnd(ip,v,V[j],H+nds+j);CHKERRQ(ierr);
         }
@@ -97,7 +97,7 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,PetscInt n,Petsc
   /* q = v - V h */
   ierr = SlepcVecMAXPBY(v,1.0,-1.0,nds,H,defl);CHKERRQ(ierr);
   if (which) {
-    for (j=0;j<n;j++) 
+    for (j=0;j<n;j++)
       if (which[j]) {
         ierr = VecAXPBY(v,-H[nds+j],1.0,V[j]);CHKERRQ(ierr);
       }
@@ -129,7 +129,7 @@ PetscErrorCode IPOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,PetscInt n,Petsc
   PetscFunctionReturn(0);
 }
 
-/* 
+/*
   IPOrthogonalizeMGS - Orthogonalize with modified Gram-Schmidt
 */
 #undef __FUNCT__
@@ -141,8 +141,8 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
   PetscReal      onrm,nrm;
 
   PetscFunctionBegin;
-  if (H) { 
-    for (i=0;i<n;i++) H[i] = 0; 
+  if (H) {
+    for (i=0;i<n;i++) H[i] = 0;
   }
 
   switch (ip->orthog_ref) {
@@ -242,7 +242,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     break;
 
   case IP_ORTHOG_REFINE_ALWAYS:
-    ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,h,NULL,NULL);CHKERRQ(ierr); 
+    ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,h,NULL,NULL);CHKERRQ(ierr);
     if (lindep) {
       ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,c,&onrm,&nrm);CHKERRQ(ierr);
       if (norm) *norm = nrm;
@@ -251,23 +251,23 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     } else {
       ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,c,NULL,norm);CHKERRQ(ierr);
     }
-    for (j=0;j<n;j++) 
+    for (j=0;j<n;j++)
       if (!which || which[j]) h[nds+j] += c[nds+j];
     break;
 
   case IP_ORTHOG_REFINE_IFNEEDED:
-    ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,h,&onrm,&nrm);CHKERRQ(ierr); 
+    ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,h,&onrm,&nrm);CHKERRQ(ierr);
     /* ||q|| < eta ||h|| */
     k = 1;
     while (k<3 && nrm < ip->orthog_eta * onrm) {
       k++;
       if (!ip->matrix) {
-        ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,c,&onrm,&nrm);CHKERRQ(ierr); 
+        ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,c,&onrm,&nrm);CHKERRQ(ierr);
       } else {
         onrm = nrm;
-        ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,c,NULL,&nrm);CHKERRQ(ierr); 
+        ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,c,NULL,&nrm);CHKERRQ(ierr);
       }
-      for (j=0;j<n;j++) 
+      for (j=0;j<n;j++)
         if (!which || which[j]) h[nds+j] += c[nds+j];
     }
     if (norm) *norm = nrm;
@@ -283,7 +283,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
 
   /* recover H from workspace */
   if (H && nds>0) {
-    for (j=0;j<n;j++) 
+    for (j=0;j<n;j++)
       if (!which || which[j]) H[j] = h[nds+j];
   }
 
@@ -291,7 +291,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
   if (allocatedc) { ierr = PetscFree(c);CHKERRQ(ierr); }
   if (allocatedh) { ierr = PetscFree(h);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
-}        
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "IPOrthogonalize"
@@ -309,7 +309,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
 -  V      - second set of vectors
 
    Input/Output Parameter:
-.  v      - (input) vector to be orthogonalized and (output) result of 
+.  v      - (input) vector to be orthogonalized and (output) result of
             orthogonalization
 
    Output Parameter:
@@ -346,16 +346,16 @@ PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *defl,PetscInt n,PetscBool
   } else {
     switch (ip->orthog_type) {
     case IP_ORTHOG_CGS:
-      ierr = IPOrthogonalizeCGS(ip,nds,defl,n,which,V,v,H,norm,lindep);CHKERRQ(ierr); 
+      ierr = IPOrthogonalizeCGS(ip,nds,defl,n,which,V,v,H,norm,lindep);CHKERRQ(ierr);
       break;
     case IP_ORTHOG_MGS:
-      ierr = IPOrthogonalizeMGS(ip,nds,defl,n,which,V,v,H,norm,lindep);CHKERRQ(ierr); 
+      ierr = IPOrthogonalizeMGS(ip,nds,defl,n,which,V,v,H,norm,lindep);CHKERRQ(ierr);
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
   }
-  ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);  
+  ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -377,8 +377,8 @@ PetscErrorCode IPOrthogonalize(IP ip,PetscInt nds,Vec *defl,PetscInt n,PetscBool
 .  R  - triangular matrix of QR factorization
 
    Notes:
-   This routine orthonormalizes the columns of V so that V'*V=I up to 
-   working precision. It assumes that the first m columns (from 0 to m-1) 
+   This routine orthonormalizes the columns of V so that V'*V=I up to
+   working precision. It assumes that the first m columns (from 0 to m-1)
    are already orthonormal. The coefficients of the orthogonalization are
    stored in R so that V*R is equal to the original V.
 
@@ -410,7 +410,7 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
     }
 
     /* normalize v_k: r_{k,k} = ||v_k||_2; v_k = v_k/r_{k,k} */
-    if (norm==0.0 || lindep) { 
+    if (norm==0.0 || lindep) {
       ierr = PetscInfo(ip,"Linearly dependent vector found, generating a new random vector\n");CHKERRQ(ierr);
       if (!rctx) {
         ierr = PetscRandomCreate(PetscObjectComm((PetscObject)ip),&rctx);CHKERRQ(ierr);
@@ -447,7 +447,7 @@ PetscErrorCode IPOrthonormalizeBasis_Private(IP ip,PetscInt *m,Vec **W,Vec *V)
   for (i=0;i<*m;i++) {
     ierr = VecCopy((*W)[i],V[k]);CHKERRQ(ierr);
     ierr = VecDestroy(&(*W)[i]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(ip,0,NULL,k,NULL,V,V[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
+    ierr = IPOrthogonalize(ip,0,NULL,k,NULL,V,V[k],NULL,&norm,&lindep);CHKERRQ(ierr);
     if (norm==0.0 || lindep) { ierr = PetscInfo(ip,"Linearly dependent vector found, removing...\n");CHKERRQ(ierr); }
     else {
       ierr = VecScale(V[k],1.0/norm);CHKERRQ(ierr);

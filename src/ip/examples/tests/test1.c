@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -39,7 +39,7 @@ int main(int argc,char **argv)
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,"-k",&k,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"QR decomposition of %D random vectors of length %D.\n",k,n);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"QR decomposition of %D random vectors of length %D.\n",k,n);CHKERRQ(ierr);
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
@@ -53,9 +53,9 @@ int main(int argc,char **argv)
   /* with/without contiguous storage */
   if (cont) {
     ierr = SlepcVecSetTemplate(t);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"With contiguous storage.\n");CHKERRQ(ierr); 
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"With contiguous storage.\n");CHKERRQ(ierr);
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"With regular storage.\n");CHKERRQ(ierr); 
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"With regular storage.\n");CHKERRQ(ierr);
   }
   ierr = VecDuplicateVecs(t,k,&V);CHKERRQ(ierr);
 
@@ -66,9 +66,9 @@ int main(int argc,char **argv)
   ierr = IPQRDecomposition(ip,V,0,k,NULL,k);CHKERRQ(ierr);
   ierr = SlepcCheckOrthogonality(V,k,NULL,k,NULL,NULL,&lev);CHKERRQ(ierr);
   if (lev<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below 100*eps\n");CHKERRQ(ierr); 
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below 100*eps\n");CHKERRQ(ierr);
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %G\n",lev);CHKERRQ(ierr); 
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %G\n",lev);CHKERRQ(ierr);
   }
 
   ierr = VecDestroyVecs(k,&V);CHKERRQ(ierr);

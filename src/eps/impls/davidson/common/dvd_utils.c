@@ -13,9 +13,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -144,7 +144,7 @@ PetscErrorCode dvd_jacobi_precond(dvdDashboard *d,dvdBlackboard *b)
 
     /* Else, use no preconditioner */
     } else d->improvex_precond = dvd_precond_none;
-  } 
+  }
   PetscFunctionReturn(0);
 }
 
@@ -191,9 +191,9 @@ PetscErrorCode dvd_precond_none(dvdDashboard *d,PetscInt i,Vec x,Vec Px)
 */
 
 /* Define stages */
-#define DVD_STAGE_INITV 0 
-#define DVD_STAGE_NEWITER 1 
-#define DVD_STAGE_CALCPAIRS 2 
+#define DVD_STAGE_INITV 0
+#define DVD_STAGE_NEWITER 1
+#define DVD_STAGE_CALCPAIRS 2
 #define DVD_STAGE_IMPROVEX 3
 #define DVD_STAGE_UPDATEV 4
 #define DVD_STAGE_ORTHV 5
@@ -351,7 +351,7 @@ typedef struct {
   PetscScalar
     Wa, Wb,       /* span{W} = span{Wa*AV - Wb*BV} */
     Pa, Pb;       /* H=W'*(Pa*AV - Pb*BV), G=W'*(Wa*AV - Wb*BV) */
-  PetscBool 
+  PetscBool
     withTarget;
   HarmType_t
     mode;
@@ -504,7 +504,7 @@ PetscErrorCode dvd_harm_backtrans(dvdHarmonic *data,PetscScalar *ar,PetscScalar 
   if (xi != 0.0) {
     k = (data->Pa - data->Wa*xr)*(data->Pa - data->Wa*xr) +
         data->Wa*data->Wa*xi*xi;
-    *ar = (data->Pb*data->Pa - (data->Pb*data->Wa + data->Wb*data->Pa)*xr + 
+    *ar = (data->Pb*data->Pa - (data->Pb*data->Wa + data->Wb*data->Pa)*xr +
            data->Wb*data->Wa*(xr*xr + xi*xi))/k;
     *ai = (data->Pb*data->Wa - data->Wb*data->Pa)*xi/k;
   } else

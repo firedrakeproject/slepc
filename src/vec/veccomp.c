@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -68,7 +68,7 @@ static struct _VecOps DvOps = {VecDuplicate_Comp, /* 1 */
             VecWAXPY_Comp,
             VecAXPBYPCZ_Comp,
             VecPointwiseMult_Comp,
-            VecPointwiseDivide_Comp, 
+            VecPointwiseDivide_Comp,
             0, /* 20 */
             0,0,
             0 /*VecGetArray_Seq*/,

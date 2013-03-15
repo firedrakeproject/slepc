@@ -12,9 +12,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -146,7 +146,7 @@ PetscErrorCode STMatSolve(ST st,PetscInt k,Vec b,Vec x)
   ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
   if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
-  ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
+  ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
   st->lineariterations += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -199,7 +199,7 @@ PetscErrorCode STMatSolveTranspose(ST st,PetscInt k,Vec b,Vec x)
   ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
   if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
-  ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
+  ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
   st->lineariterations += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -219,7 +219,7 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
 #if defined(PETSC_USE_COMPLEX)
   PetscErrorCode ierr;
   PetscBool      set,aherm,mherm;
-  PetscInt       i; 
+  PetscInt       i;
 #endif
 
   PetscFunctionBegin;
@@ -240,7 +240,7 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
 #undef __FUNCT__
 #define __FUNCT__ "STSetKSP"
 /*@
-   STSetKSP - Sets the KSP object associated with the spectral 
+   STSetKSP - Sets the KSP object associated with the spectral
    transformation.
 
    Collective on ST
@@ -282,8 +282,8 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
 .  ksp  - the linear system context
 
    Notes:
-   On output, the value of ksp can be NULL if the combination of 
-   eigenproblem type and selected transformation does not require to 
+   On output, the value of ksp can be NULL if the combination of
+   eigenproblem type and selected transformation does not require to
    solve a linear system of equations.
 
    Level: intermediate
@@ -324,7 +324,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 -  lits - number of linear solver iterations
 
    Notes:
-   Any output parameter may be NULL on input if not needed. 
+   Any output parameter may be NULL on input if not needed.
 
    Level: intermediate
 
@@ -343,7 +343,7 @@ PetscErrorCode STGetOperationCounters(ST st,PetscInt* ops,PetscInt* lits)
 #define __FUNCT__ "STResetOperationCounters"
 /*@
    STResetOperationCounters - Resets the counters for operator applications,
-   inner product operations and total number of linear iterations used by 
+   inner product operations and total number of linear iterations used by
    the ST object.
 
    Logically Collective on ST

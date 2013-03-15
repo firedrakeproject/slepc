@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -29,7 +29,7 @@ static char help[] = "Solves a problem associated to the Brusselator wave model 
 #include <slepceps.h>
 
 /*
-   This example computes the eigenvalues with largest real part of the 
+   This example computes the eigenvalues with largest real part of the
    following matrix
 
         A = [ tau1*T+(beta-1)*I     alpha^2*I
@@ -44,7 +44,7 @@ static char help[] = "Solves a problem associated to the Brusselator wave model 
  */
 
 
-/* 
+/*
    Matrix operations
 */
 PetscErrorCode MatBrussel_Mult(Mat,Vec,Vec);
@@ -75,11 +75,11 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,"-n",&N,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%D\n\n",N);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        Generate the matrix 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* 
+  /*
      Create shell matrix context and set default parameters
   */
   ierr = PetscNew(CTX_BRUSSEL,&ctx);CHKERRQ(ierr);
@@ -89,7 +89,7 @@ int main(int argc,char **argv)
   delta2     = 0.004;
   L          = 0.51302;
 
-  /* 
+  /*
      Look the command line for user-provided parameters
   */
   ierr = PetscOptionsGetScalar(NULL,"-L",&L,NULL);CHKERRQ(ierr);
@@ -98,7 +98,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetScalar(NULL,"-delta1",&delta1,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(NULL,"-delta2",&delta2,NULL);CHKERRQ(ierr);
 
-  /* 
+  /*
      Create matrix T
   */
   ierr = MatCreate(PETSC_COMM_WORLD,&ctx->T);CHKERRQ(ierr);
@@ -127,7 +127,7 @@ int main(int argc,char **argv)
   ierr = MatAssemblyEnd(ctx->T,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->T,&n,NULL);CHKERRQ(ierr);
 
-  /* 
+  /*
      Fill the remaining information in the shell matrix context
      and create auxiliary vectors
   */
@@ -140,7 +140,7 @@ int main(int argc,char **argv)
   ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,NULL,&ctx->y1);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,NULL,&ctx->y2);CHKERRQ(ierr);
 
-  /* 
+  /*
      Create the shell matrix
   */
   ierr = MatCreateShell(PETSC_COMM_WORLD,2*n,2*n,2*N,2*N,(void*)ctx,&A);CHKERRQ(ierr);
@@ -148,16 +148,16 @@ int main(int argc,char **argv)
   ierr = MatShellSetOperation(A,MATOP_SHIFT,(void(*)())MatBrussel_Shift);CHKERRQ(ierr);
   ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)())MatBrussel_GetDiagonal);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* 
+  /*
      Create eigensolver context
   */
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
 
-  /* 
+  /*
      Set operators. In this case, it is a standard eigenvalue problem
   */
   ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
@@ -173,7 +173,7 @@ int main(int argc,char **argv)
   */
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -187,7 +187,7 @@ int main(int argc,char **argv)
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 

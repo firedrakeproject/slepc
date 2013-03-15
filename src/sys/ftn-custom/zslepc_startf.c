@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -38,7 +38,7 @@
 
    Notes:
    SlepcInitializeFortran() initializes some of the default SLEPc variables
-   for use in Fortran if a user's main program is written in C.  
+   for use in Fortran if a user's main program is written in C.
    SlepcInitializeFortran() is NOT needed if a user's main
    program is written in Fortran; in this case, just calling
    SlepcInitialize() in the main (Fortran) program is sufficient.

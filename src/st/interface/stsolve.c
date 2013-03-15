@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -72,7 +72,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
 #undef __FUNCT__
 #define __FUNCT__ "STGetBilinearForm"
 /*@
-   STGetBilinearForm - Returns the matrix used in the bilinear form with a 
+   STGetBilinearForm - Returns the matrix used in the bilinear form with a
    generalized problem with semi-definite B.
 
    Not collective, though a parallel Mat may be returned
@@ -166,7 +166,7 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
 #define __FUNCT__ "STComputeExplicitOperator"
 /*@
    STComputeExplicitOperator - Computes the explicit operator associated
-   to the eigenvalue problem with the specified spectral transformation.  
+   to the eigenvalue problem with the specified spectral transformation.
 
    Collective on ST
 
@@ -177,16 +177,16 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
 .  mat - the explicit operator
 
    Notes:
-   This routine builds a matrix containing the explicit operator. For 
+   This routine builds a matrix containing the explicit operator. For
    example, in generalized problems with shift-and-invert spectral
    transformation the result would be matrix (A - s B)^-1 B.
 
-   This computation is done by applying the operator to columns of the 
+   This computation is done by applying the operator to columns of the
    identity matrix. This is analogous to MatComputeExplicitOperator().
 
    Level: advanced
 
-.seealso: STApply()   
+.seealso: STApply()
 @*/
 PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
 {
@@ -230,7 +230,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
     ierr = STApply(st,in,out);CHKERRQ(ierr);
 
     ierr = VecGetArrayRead(out,&array);CHKERRQ(ierr);
-    ierr = MatSetValues(*mat,m,rows,1,&i,array,INSERT_VALUES);CHKERRQ(ierr); 
+    ierr = MatSetValues(*mat,m,rows,1,&i,array,INSERT_VALUES);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(out,&array);CHKERRQ(ierr);
   }
   ierr = PetscFree(rows);CHKERRQ(ierr);
@@ -373,7 +373,7 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
 #undef __FUNCT__
 #define __FUNCT__ "STPostSolve"
 /*@
-   STPostSolve - Optional post-solve phase, intended for any actions that must 
+   STPostSolve - Optional post-solve phase, intended for any actions that must
    be performed on the ST object after the eigensolver has finished.
 
    Collective on ST
@@ -400,8 +400,8 @@ PetscErrorCode STPostSolve(ST st)
 #undef __FUNCT__
 #define __FUNCT__ "STBackTransform"
 /*@
-   STBackTransform - Back-transformation phase, intended for 
-   spectral transformations which require to transform the computed 
+   STBackTransform - Back-transformation phase, intended for
+   spectral transformations which require to transform the computed
    eigenvalues back to the original eigenvalue problem.
 
    Not Collective

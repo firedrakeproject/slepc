@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -42,9 +42,9 @@ int main(int argc,char **argv)
   ierr = FNEvaluateFunction(fn,x,&y);CHKERRQ(ierr);
   ierr = FNEvaluateDerivative(fn,x,&yp);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,y,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%3.1F)=%s\n",x,str);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%3.1F)=%s\n",x,str);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%3.1F)=%s\n",x,str);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%3.1F)=%s\n",x,str);CHKERRQ(ierr);
 
   /* exponential with scaling factors eta*exp(tau*x) */
   ierr = FNSetType(fn,FNEXP);CHKERRQ(ierr);
@@ -56,9 +56,9 @@ int main(int argc,char **argv)
   ierr = FNEvaluateFunction(fn,x,&y);CHKERRQ(ierr);
   ierr = FNEvaluateDerivative(fn,x,&yp);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,y,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%3.1F)=%s\n",x,str);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%3.1F)=%s\n",x,str);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%3.1F)=%s\n",x,str);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%3.1F)=%s\n",x,str);CHKERRQ(ierr);
 
   ierr = FNDestroy(&fn);CHKERRQ(ierr);
   ierr = SlepcFinalize();

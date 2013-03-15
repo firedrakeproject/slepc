@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -29,7 +29,7 @@ typedef struct {
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Precond"
-PetscErrorCode STSetFromOptions_Precond(ST st) 
+PetscErrorCode STSetFromOptions_Precond(ST st)
 {
   PetscErrorCode ierr;
   PC             pc;
@@ -75,7 +75,7 @@ PetscErrorCode STSetUp_Precond(ST st)
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&t0);CHKERRQ(ierr);
-  ierr = STPrecondGetKSPHasMat(st,&setmat);CHKERRQ(ierr); 
+  ierr = STPrecondGetKSPHasMat(st,&setmat);CHKERRQ(ierr);
   if (t0 && !setmat) PetscFunctionReturn(0);
 
   /* Check if a user matrix is set */
@@ -102,11 +102,11 @@ PetscErrorCode STSetUp_Precond(ST st)
       } else {
         ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&P);CHKERRQ(ierr);
         destroyP = PETSC_TRUE;
-      } 
+      }
       if (st->nmat>1) {
-        ierr = MatAXPY(P,-st->sigma,st->A[1],st->str);CHKERRQ(ierr); 
+        ierr = MatAXPY(P,-st->sigma,st->A[1],st->str);CHKERRQ(ierr);
       } else {
-        ierr = MatShift(P,-st->sigma);CHKERRQ(ierr); 
+        ierr = MatShift(P,-st->sigma);CHKERRQ(ierr);
       }
       /* TODO: in case of ST_MATMODE_INPLACE should keep the Hermitian flag of st->A and restore at the end */
       ierr = STMatSetHermitian(st,P);CHKERRQ(ierr);
@@ -132,9 +132,9 @@ PetscErrorCode STSetUp_Precond(ST st)
   } else if (st->shift_matrix == ST_MATMODE_INPLACE && builtP) {
     if (st->sigma != 0.0 && PetscAbsScalar(st->sigma) < PETSC_MAX_REAL) {
       if (st->nmat>1) {
-        ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr); 
-      } else { 
-        ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr); 
+        ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
+      } else {
+        ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
       }
     }
   }
@@ -279,7 +279,7 @@ static PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool setmat)
 #define __FUNCT__ "STPrecondSetKSPHasMat"
 /*@
    STPrecondSetKSPHasMat - Sets a flag indicating that during STSetUp the coefficient
-   matrix of the KSP linear system (A) must be set to be the same matrix as the 
+   matrix of the KSP linear system (A) must be set to be the same matrix as the
    preconditioner (P).
 
    Collective on ST
@@ -323,7 +323,7 @@ static PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscBool *setmat)
 #define __FUNCT__ "STPrecondGetKSPHasMat"
 /*@
    STPrecondGetKSPHasMat - Returns the flag indicating if the coefficient
-   matrix of the KSP linear system (A) is set to be the same matrix as the 
+   matrix of the KSP linear system (A) is set to be the same matrix as the
    preconditioner (P).
 
    Not Collective

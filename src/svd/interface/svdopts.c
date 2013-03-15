@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -26,7 +26,7 @@
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetTransposeMode"
 /*@
-   SVDSetTransposeMode - Sets how to handle the transpose of the matrix 
+   SVDSetTransposeMode - Sets how to handle the transpose of the matrix
    associated with the singular value problem.
 
    Logically Collective on SVD
@@ -37,7 +37,7 @@
           or SVD_TRANSPOSE_IMPLICIT (see notes below)
 
    Options Database Key:
-.  -svd_transpose_mode <mode> - Indicates the mode flag, where <mode> 
+.  -svd_transpose_mode <mode> - Indicates the mode flag, where <mode>
     is one of 'explicit' or 'implicit'.
 
    Notes:
@@ -46,7 +46,7 @@
 
    The option SVD_TRANSPOSE_IMPLICIT does not build the transpose, but
    handles it implicitly via MatMultTranspose() (or MatMultHermitianTranspose()
-   in the complex case) operations. This is 
+   in the complex case) operations. This is
    likely to be more inefficient than SVD_TRANSPOSE_EXPLICIT, both in
    sequential and in parallel, but requires less storage.
 
@@ -55,7 +55,7 @@
 
    Level: advanced
 
-.seealso: SVDGetTransposeMode(), SVDSolve(), SVDSetOperator(), 
+.seealso: SVDGetTransposeMode(), SVDSolve(), SVDSetOperator(),
    SVDGetOperator(), SVDTransposeMode
 @*/
 PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
@@ -73,7 +73,7 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
       }
       break;
     default:
-      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode");
   }
   PetscFunctionReturn(0);
 }
@@ -81,7 +81,7 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetTransposeMode"
 /*@C
-   SVDGetTransposeMode - Gets the mode used to compute the transpose 
+   SVDGetTransposeMode - Gets the mode used to compute the transpose
    of the matrix associated with the singular value problem.
 
    Not Collective
@@ -95,7 +95,7 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
 
    Level: advanced
 
-.seealso: SVDSetTransposeMode(), SVDSolve(), SVDSetOperator(), 
+.seealso: SVDSetTransposeMode(), SVDSolve(), SVDSetOperator(),
    SVDGetOperator(), SVDTransposeMode
 @*/
 PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
@@ -111,7 +111,7 @@ PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
 #define __FUNCT__ "SVDSetTolerances"
 /*@
    SVDSetTolerances - Sets the tolerance and maximum
-   iteration count used by the default SVD convergence testers. 
+   iteration count used by the default SVD convergence testers.
 
    Logically Collective on SVD
 
@@ -122,11 +122,11 @@ PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
 
    Options Database Keys:
 +  -svd_tol <tol> - Sets the convergence tolerance
--  -svd_max_it <maxits> - Sets the maximum number of iterations allowed 
+-  -svd_max_it <maxits> - Sets the maximum number of iterations allowed
    (use PETSC_DECIDE to compute an educated guess based on basis and matrix sizes)
 
    Notes:
-   Pass 0 to retain the previous value of any parameter. 
+   Pass 0 to retain the previous value of any parameter.
 
    Level: intermediate
 
@@ -162,7 +162,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
 #define __FUNCT__ "SVDGetTolerances"
 /*@
    SVDGetTolerances - Gets the tolerance and maximum
-   iteration count used by the default SVD convergence tests. 
+   iteration count used by the default SVD convergence tests.
 
    Not Collective
 
@@ -211,7 +211,7 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,PetscInt *maxits)
    Notes:
    Pass 0 to retain the previous value of any parameter.
 
-   Use PETSC_DECIDE for ncv and mpd to assign a reasonably good value, which is 
+   Use PETSC_DECIDE for ncv and mpd to assign a reasonably good value, which is
    dependent on the solution method and the number of singular values required.
 
    The parameters ncv and mpd are intimately related, so that the user is advised
@@ -294,7 +294,7 @@ PetscErrorCode SVDGetDimensions(SVD svd,PetscInt *nsv,PetscInt *ncv,PetscInt *mp
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetWhichSingularTriplets"
 /*@
-    SVDSetWhichSingularTriplets - Specifies which singular triplets are 
+    SVDSetWhichSingularTriplets - Specifies which singular triplets are
     to be sought.
 
     Logically Collective on SVD
@@ -333,7 +333,7 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
       }
       break;
   default:
-    SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' parameter");    
+    SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' parameter");
   }
   PetscFunctionReturn(0);
 }
@@ -359,7 +359,7 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
 
 .seealso: SVDSetWhichSingularTriplets(), SVDWhich
 @*/
-PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which) 
+PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -372,20 +372,20 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
 #define __FUNCT__ "SVDSetFromOptions"
 /*@
    SVDSetFromOptions - Sets SVD options from the options database.
-   This routine must be called before SVDSetUp() if the user is to be 
-   allowed to set the solver type. 
+   This routine must be called before SVDSetUp() if the user is to be
+   allowed to set the solver type.
 
    Collective on SVD
 
    Input Parameters:
 .  svd - the singular value solver context
 
-   Notes:  
+   Notes:
    To see all options, run your program with the -help option.
 
    Level: beginner
 
-.seealso: 
+.seealso:
 @*/
 PetscErrorCode SVDSetFromOptions(SVD svd)
 {
@@ -416,7 +416,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   ierr = PetscOptionsEList("-svd_transpose_mode","Transpose SVD mode","SVDSetTransposeMode",mode_list,2,svd->transmode == PETSC_DECIDE ? "decide" : mode_list[svd->transmode],&i,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = SVDSetTransposeMode(svd,(SVDTransposeMode)i);CHKERRQ(ierr);
-  }   
+  }
 
   r = i = 0;
   ierr = PetscOptionsInt("-svd_max_it","Maximum number of iterations","SVDSetTolerances",svd->max_it,&i,NULL);CHKERRQ(ierr);
@@ -437,33 +437,33 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   flg = PETSC_FALSE;
   ierr = PetscOptionsBool("-svd_monitor_cancel","Remove any hardwired monitor routines","SVDMonitorCancel",flg,&flg,NULL);CHKERRQ(ierr);
   if (flg) {
-    ierr = SVDMonitorCancel(svd);CHKERRQ(ierr); 
+    ierr = SVDMonitorCancel(svd);CHKERRQ(ierr);
   }
 
-  ierr = PetscOptionsString("-svd_monitor_all","Monitor approximate singular values and error estimates","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+  ierr = PetscOptionsString("-svd_monitor_all","Monitor approximate singular values and error estimates","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)svd),monfilename,&monviewer);CHKERRQ(ierr);
     ierr = SVDMonitorSet(svd,SVDMonitorAll,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
     ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsString("-svd_monitor_conv","Monitor approximate singular values and error estimates as they converge","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+  ierr = PetscOptionsString("-svd_monitor_conv","Monitor approximate singular values and error estimates as they converge","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
   if (flg) {
       ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
       ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)svd),monfilename,&ctx->viewer);CHKERRQ(ierr);
       ierr = SVDMonitorSet(svd,SVDMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsString("-svd_monitor","Monitor first unconverged approximate singular value and error estimate","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+  ierr = PetscOptionsString("-svd_monitor","Monitor first unconverged approximate singular value and error estimate","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)svd),monfilename,&monviewer);CHKERRQ(ierr);
     ierr = SVDMonitorSet(svd,SVDMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
   }
   flg = PETSC_FALSE;
-  ierr = PetscOptionsBool("-svd_monitor_draw","Monitor first unconverged approximate singular value and error estimate graphically","SVDMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
+  ierr = PetscOptionsBool("-svd_monitor_draw","Monitor first unconverged approximate singular value and error estimate graphically","SVDMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
   if (flg) {
     ierr = SVDMonitorSet(svd,SVDMonitorLG,NULL,NULL);CHKERRQ(ierr);
   }
   flg = PETSC_FALSE;
-  ierr = PetscOptionsBool("-svd_monitor_draw_all","Monitor error estimates graphically","SVDMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
+  ierr = PetscOptionsBool("-svd_monitor_draw_all","Monitor error estimates graphically","SVDMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
   if (flg) {
     ierr = SVDMonitorSet(svd,SVDMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
     ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
@@ -498,7 +498,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
    Notes:
    If the user sets trackall=PETSC_TRUE then the solver computes (or estimates)
    the residual norm for each singular value approximation. Computing the residual is
-   usually an expensive operation and solvers commonly compute only the residual 
+   usually an expensive operation and solvers commonly compute only the residual
    associated to the first unconverged singular value.
 
    The options '-svd_monitor_all' and '-svd_monitor_draw_all' automatically
@@ -535,7 +535,7 @@ PetscErrorCode SVDSetTrackAll(SVD svd,PetscBool trackall)
 
 .seealso: SVDSetTrackAll()
 @*/
-PetscErrorCode SVDGetTrackAll(SVD svd,PetscBool *trackall) 
+PetscErrorCode SVDGetTrackAll(SVD svd,PetscBool *trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -548,7 +548,7 @@ PetscErrorCode SVDGetTrackAll(SVD svd,PetscBool *trackall)
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetOptionsPrefix"
 /*@C
-   SVDSetOptionsPrefix - Sets the prefix used for searching for all 
+   SVDSetOptionsPrefix - Sets the prefix used for searching for all
    SVD options in the database.
 
    Logically Collective on SVD
@@ -597,13 +597,13 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
     ierr = EPSSetOptionsPrefix(eps,prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(eps,"svd_");CHKERRQ(ierr);
   }
-  PetscFunctionReturn(0);  
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDAppendOptionsPrefix"
 /*@C
-   SVDAppendOptionsPrefix - Appends to the prefix used for searching for all 
+   SVDAppendOptionsPrefix - Appends to the prefix used for searching for all
    SVD options in the database.
 
    Logically Collective on SVD
@@ -650,7 +650,7 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetOptionsPrefix"
 /*@C
-   SVDGetOptionsPrefix - Gets the prefix used for searching for all 
+   SVDGetOptionsPrefix - Gets the prefix used for searching for all
    SVD options in the database.
 
    Not Collective

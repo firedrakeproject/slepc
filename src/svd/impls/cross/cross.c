@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc singular value solver: "cross"
 
@@ -16,9 +16,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -118,8 +118,8 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   if (!cross->mat) {
     ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))ShellMatMult_Cross);CHKERRQ(ierr);  
-    ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_Cross);CHKERRQ(ierr);  
+    ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))ShellMatMult_Cross);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_Cross);CHKERRQ(ierr);
     ierr = SVDMatGetVecs(svd,NULL,&cross->w);CHKERRQ(ierr);
   }
 
@@ -212,7 +212,7 @@ static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
-  ierr = EPSDestroy(&cross->eps);CHKERRQ(ierr);  
+  ierr = EPSDestroy(&cross->eps);CHKERRQ(ierr);
   cross->eps = eps;
   ierr = PetscLogObjectParent(svd,cross->eps);CHKERRQ(ierr);
   svd->setupcalled = 0;
@@ -223,7 +223,7 @@ static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
 #define __FUNCT__ "SVDCrossSetEPS"
 /*@
    SVDCrossSetEPS - Associate an eigensolver object (EPS) to the
-   singular value solver. 
+   singular value solver.
 
    Collective on SVD
 
@@ -354,7 +354,7 @@ PETSC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
   ierr = EPSCreate(PetscObjectComm((PetscObject)svd),&cross->eps);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(cross->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(cross->eps,"svd_");CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)cross->eps,(PetscObject)svd,1);CHKERRQ(ierr);  
+  ierr = PetscObjectIncrementTabLevel((PetscObject)cross->eps,(PetscObject)svd,1);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(svd,cross->eps);CHKERRQ(ierr);
   if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
   ierr = EPSSetIP(cross->eps,svd->ip);CHKERRQ(ierr);

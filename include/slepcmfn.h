@@ -1,5 +1,5 @@
 /*
-   User interface for the SLEPC matrix function object. 
+   User interface for the SLEPC matrix function object.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -89,7 +89,7 @@ PETSC_EXTERN PetscErrorCode MFNAppendOptionsPrefix(MFN,const char*);
 PETSC_EXTERN PetscErrorCode MFNGetOptionsPrefix(MFN,const char*[]);
 
 /*E
-    MFNConvergedReason - reason a matrix function iteration was said to 
+    MFNConvergedReason - reason a matrix function iteration was said to
          have converged or diverged
 
     Level: beginner

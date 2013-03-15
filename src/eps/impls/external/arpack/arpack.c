@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -37,7 +37,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) {
-    if (eps->ncv<eps->nev+2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2"); 
+    if (eps->ncv<eps->nev+2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2");
   } else eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n); /* set default value of ncv */
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(300,(PetscInt)(2*eps->n/eps->ncv));
@@ -48,22 +48,22 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = PetscFree(ar->rwork);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscReal),&ar->rwork);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(3*ncv*ncv+5*ncv,&ar->lworkl);CHKERRQ(ierr);
-  ierr = PetscFree(ar->workev);CHKERRQ(ierr); 
+  ierr = PetscFree(ar->workev);CHKERRQ(ierr);
   ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&ar->workev);CHKERRQ(ierr);
 #else
   if (eps->ishermitian) {
     ierr = PetscBLASIntCast(ncv*(ncv+8),&ar->lworkl);CHKERRQ(ierr);
   } else {
     ierr = PetscBLASIntCast(3*ncv*ncv+6*ncv,&ar->lworkl);CHKERRQ(ierr);
-    ierr = PetscFree(ar->workev);CHKERRQ(ierr); 
+    ierr = PetscFree(ar->workev);CHKERRQ(ierr);
     ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&ar->workev);CHKERRQ(ierr);
   }
 #endif
-  ierr = PetscFree(ar->workl);CHKERRQ(ierr); 
+  ierr = PetscFree(ar->workl);CHKERRQ(ierr);
   ierr = PetscMalloc(ar->lworkl*sizeof(PetscScalar),&ar->workl);CHKERRQ(ierr);
-  ierr = PetscFree(ar->select);CHKERRQ(ierr); 
+  ierr = PetscFree(ar->select);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*sizeof(PetscBool),&ar->select);CHKERRQ(ierr);
-  ierr = PetscFree(ar->workd);CHKERRQ(ierr); 
+  ierr = PetscFree(ar->workd);CHKERRQ(ierr);
   ierr = PetscMalloc(3*eps->nloc*sizeof(PetscScalar),&ar->workd);CHKERRQ(ierr);
 
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
@@ -135,7 +135,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ierr = STGetShift(eps->st,&sigmar);CHKERRQ(ierr);
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
 
-  if (isSinv) { 
+  if (isSinv) {
     /* shift-and-invert mode */
     iparam[6] = 3;
     if (eps->ispositive) bmat[0] = 'G';
@@ -144,7 +144,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
     /* generalized shift mode with B positive definite */
     iparam[6] = 2;
     bmat[0] = 'G';
-  } else { 
+  } else {
     /* regular mode */
     if (eps->ishermitian && eps->isgeneralized)
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectral transformation not supported by ARPACK hermitian solver");
@@ -202,8 +202,8 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
       }
       ierr = VecPlaceArray(y,&ar->workd[ipntr[1]-1]);CHKERRQ(ierr);
 
-      if (ido == -1) { 
-        /* Y = OP * X for for the initialization phase to 
+      if (ido == -1) {
+        /* Y = OP * X for for the initialization phase to
            force the starting vector into the range of OP */
         ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
       } else if (ido == 2) {
@@ -224,7 +224,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
           ierr = STMatSolve(eps->st,1,x,y);CHKERRQ(ierr);
         } else {
           /* Y = OP * X */
-          ierr = STApply(eps->st,x,y);CHKERRQ(ierr);        
+          ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
         }
         ierr = IPOrthogonalize(eps->ip,0,NULL,eps->nds,NULL,eps->defl,y,NULL,NULL,NULL);CHKERRQ(ierr);
       }
@@ -298,12 +298,12 @@ PetscErrorCode EPSReset_ARPACK(EPS eps)
   EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree(ar->workev);CHKERRQ(ierr); 
-  ierr = PetscFree(ar->workl);CHKERRQ(ierr); 
-  ierr = PetscFree(ar->select);CHKERRQ(ierr); 
-  ierr = PetscFree(ar->workd);CHKERRQ(ierr); 
+  ierr = PetscFree(ar->workev);CHKERRQ(ierr);
+  ierr = PetscFree(ar->workl);CHKERRQ(ierr);
+  ierr = PetscFree(ar->select);CHKERRQ(ierr);
+  ierr = PetscFree(ar->workd);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree(ar->rwork);CHKERRQ(ierr); 
+  ierr = PetscFree(ar->rwork);CHKERRQ(ierr);
 #endif
   ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);

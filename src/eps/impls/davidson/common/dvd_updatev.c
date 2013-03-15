@@ -13,9 +13,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -53,7 +53,7 @@ typedef struct {
   PetscInt
     ldoldU,         /* leading dimension of oldU */
     size_oldU;      /* size of oldU */
-  PetscBool 
+  PetscBool
     allResiduals;   /* if computing all the residuals */
 } dvdManagV_basic;
 
@@ -305,7 +305,7 @@ PetscErrorCode dvd_updateV_conv_finish(dvdDashboard *d)
 #if defined(PETSC_USE_COMPLEX)
   PetscInt        i, j;
   PetscScalar     s;
-#endif  
+#endif
 
   PetscFunctionBegin;
   /* Some functions need the diagonal elements in cT be real */
@@ -353,7 +353,7 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
     ierr = SlepcDenseCopy(pQ,ld,pZ,ld,d->size_H,size_X);CHKERRQ(ierr);
     ierr = DSRestoreArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
   }
-  if (size_plusk > 0 && DVD_IS(d->sEP,DVD_EP_INDEFINITE)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported plusk>0 in indefinite eigenvalue problems"); 
+  if (size_plusk > 0 && DVD_IS(d->sEP,DVD_EP_INDEFINITE)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported plusk>0 in indefinite eigenvalue problems");
   if (size_plusk > 0) {
     ierr = SlepcDenseCopy(&pQ[ld*size_X],ld,data->oldU,data->ldoldU,data->size_oldU,size_plusk);CHKERRQ(ierr);
     for (i=size_X;i<size_X+size_plusk;i++) {
@@ -470,7 +470,7 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,Pets
       (conv || data->allResiduals) && (i < e);
       i+=b) {
 #if !defined(PETSC_USE_COMPLEX)
-    b = d->eigi[i]!=0.0?2:1; 
+    b = d->eigi[i]!=0.0?2:1;
 #else
     b = 1;
 #endif
@@ -479,7 +479,7 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,Pets
     }
     /* Test the Schur vector */
     for (j=0,c=PETSC_TRUE; j<b && c; j++) {
-      norm = d->nR[i+j]/d->nX[i+j]; 
+      norm = d->nR[i+j]/d->nX[i+j];
       c = d->testConv(d, d->eigr[i+j], d->eigi[i+j], norm, &d->errest[i+j]);
     }
     /* Test the eigenvector */

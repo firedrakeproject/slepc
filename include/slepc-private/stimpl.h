@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -36,8 +36,8 @@ struct _STOps {
   PetscErrorCode (*applytrans)(ST,Vec,Vec);
   PetscErrorCode (*setshift)(ST,PetscScalar);
   PetscErrorCode (*setfromoptions)(ST);
-  PetscErrorCode (*postsolve)(ST);  
-  PetscErrorCode (*backtransform)(ST,PetscInt,PetscScalar*,PetscScalar*);  
+  PetscErrorCode (*postsolve)(ST);
+  PetscErrorCode (*backtransform)(ST,PetscInt,PetscScalar*,PetscScalar*);
   PetscErrorCode (*destroy)(ST);
   PetscErrorCode (*reset)(ST);
   PetscErrorCode (*view)(ST,PetscViewer);

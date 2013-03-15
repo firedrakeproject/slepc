@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -103,10 +103,10 @@ PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 
 /* ------------------------Nasty global variables -------------------------------*/
 /*
-   Indicates whether SLEPc started PETSc, or whether it was 
+   Indicates whether SLEPc started PETSc, or whether it was
    already started before SLEPc was initialized.
 */
-PetscBool SlepcBeganPetsc = PETSC_FALSE; 
+PetscBool SlepcBeganPetsc = PETSC_FALSE;
 PetscBool SlepcInitializeCalled = PETSC_FALSE;
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
@@ -114,9 +114,9 @@ PetscBool SlepcInitializeCalled = PETSC_FALSE;
 #undef __FUNCT__
 #define __FUNCT__ "SlepcInitialize_DynamicLibraries"
 /*
-    SlepcInitialize_DynamicLibraries - Adds the default dynamic link libraries to the 
+    SlepcInitialize_DynamicLibraries - Adds the default dynamic link libraries to the
     search path.
-*/ 
+*/
 PetscErrorCode SlepcInitialize_DynamicLibraries(void)
 {
   PetscErrorCode ierr;
@@ -138,7 +138,7 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
 #define __FUNCT__ "SlepcInitialize_Packages"
 /*
     SlepcInitialize_Packages - Initialize all SLEPc packages at the initialization.
-*/ 
+*/
 PetscErrorCode SlepcInitialize_Packages(void)
 {
   PetscErrorCode ierr;
@@ -162,7 +162,7 @@ PetscErrorCode SlepcInitialize_Packages(void)
 #define __FUNCT__ "SlepcInitialize_LogEvents"
 /*
     SlepcInitialize_LogEvents - Initialize log events not pertaining to any object class.
-*/ 
+*/
 PetscErrorCode SlepcInitialize_LogEvents(void)
 {
   PetscErrorCode ierr;
@@ -179,7 +179,7 @@ PetscErrorCode SlepcInitialize_LogEvents(void)
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcInitialize"
-/*@C 
+/*@C
    SlepcInitialize - Initializes the SLEPc library. SlepcInitialize() calls
    PetscInitialize() if that has not been called yet, so this routine should
    always be called near the beginning of your program.
@@ -206,7 +206,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
   PetscBool      flg;
 
   PetscFunctionBegin;
-  if (SlepcInitializeCalled) PetscFunctionReturn(0); 
+  if (SlepcInitializeCalled) PetscFunctionReturn(0);
   ierr = PetscSetHelpVersionFunctions(SlepcPrintHelpIntro,SlepcPrintVersion);CHKERRQ(ierr);
   ierr = PetscInitialized(&flg);CHKERRQ(ierr);
   if (!flg) {
@@ -328,7 +328,7 @@ PetscErrorCode SlepcInitializeNoPointers(int argc,char **args,const char *filena
 #undef __FUNCT__
 #define __FUNCT__ "PetscDLLibraryRegister_slepc"
 /*
-  PetscDLLibraryRegister - This function is called when the dynamic library 
+  PetscDLLibraryRegister - This function is called when the dynamic library
   it is in is opened.
 
   This one registers all the EPS and ST methods in the libslepc.a

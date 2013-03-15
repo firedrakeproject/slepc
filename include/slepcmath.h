@@ -12,9 +12,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -63,7 +63,7 @@ typedef enum { SLEPC_FUNCTION_NONE=0,
    Output parameter:
 .  return - the result
 
-   Note: 
+   Note:
    This function is not available from Fortran.
 
    Level: developer
@@ -92,7 +92,7 @@ PETSC_STATIC_INLINE PetscReal SlepcAbs(PetscReal x,PetscReal y)
 +  x  - the real part of the complex number
 -  y  - the imaginary part of the complex number
 
-   Notes: 
+   Notes:
    This function computes sqrt(x**2+y**2), taking care not to cause unnecessary
    overflow. It is based on LAPACK's DLAPY2.
 

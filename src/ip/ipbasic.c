@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -32,14 +32,14 @@ static PetscBool  IPPackageInitialized = PETSC_FALSE;
 #undef __FUNCT__
 #define __FUNCT__ "IPFinalizePackage"
 /*@C
-   IPFinalizePackage - This function destroys everything in the Slepc interface 
+   IPFinalizePackage - This function destroys everything in the Slepc interface
    to the IP package. It is called from SlepcFinalize().
 
    Level: developer
 
 .seealso: SlepcFinalize()
 @*/
-PetscErrorCode IPFinalizePackage(void) 
+PetscErrorCode IPFinalizePackage(void)
 {
   PetscFunctionBegin;
   IPPackageInitialized = PETSC_FALSE;
@@ -62,7 +62,7 @@ PetscErrorCode IPFinalizePackage(void)
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode IPInitializePackage(const char *path) 
+PetscErrorCode IPInitializePackage(const char *path)
 {
   char             logList[256];
   char             *className;
@@ -115,7 +115,7 @@ PetscErrorCode IPInitializePackage(const char *path)
 
    Level: beginner
 
-   Note: 
+   Note:
    IP objects are not intended for normal users but only for
    advanced user that for instance implement their own solvers.
 
@@ -144,7 +144,7 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
 #undef __FUNCT__
 #define __FUNCT__ "IPSetOptionsPrefix"
 /*@C
-   IPSetOptionsPrefix - Sets the prefix used for searching for all 
+   IPSetOptionsPrefix - Sets the prefix used for searching for all
    IP options in the database.
 
    Logically Collective on IP
@@ -175,7 +175,7 @@ PetscErrorCode IPSetOptionsPrefix(IP ip,const char *prefix)
 #undef __FUNCT__
 #define __FUNCT__ "IPAppendOptionsPrefix"
 /*@C
-   IPAppendOptionsPrefix - Appends to the prefix used for searching for all 
+   IPAppendOptionsPrefix - Appends to the prefix used for searching for all
    IP options in the database.
 
    Logically Collective on IP
@@ -205,7 +205,7 @@ PetscErrorCode IPAppendOptionsPrefix(IP ip,const char *prefix)
 #undef __FUNCT__
 #define __FUNCT__ "IPGetOptionsPrefix"
 /*@C
-   IPGetOptionsPrefix - Gets the prefix used for searching for all 
+   IPGetOptionsPrefix - Gets the prefix used for searching for all
    IP options in the database.
 
    Not Collective
@@ -389,14 +389,14 @@ PetscErrorCode IPSetFromOptions(IP ip)
    Options Database Keys:
 +  -orthog_type <type> - Where <type> is cgs for Classical Gram-Schmidt orthogonalization
                          (default) or mgs for Modified Gram-Schmidt orthogonalization
-.  -orthog_refine <type> - Where <type> is one of never, ifneeded (default) or always 
+.  -orthog_refine <type> - Where <type> is one of never, ifneeded (default) or always
 -  -orthog_eta <eta> -  For setting the value of eta
 
-   Notes:  
-   The default settings work well for most problems. 
+   Notes:
+   The default settings work well for most problems.
 
    The parameter eta should be a real value between 0 and 1 (or PETSC_DEFAULT).
-   The value of eta is used only when the refinement type is "ifneeded". 
+   The value of eta is used only when the refinement type is "ifneeded".
 
    When using several processors, MGS is likely to result in bad scalability.
 
@@ -432,7 +432,7 @@ PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogType type,IPOrthogRefineType
   if (eta == PETSC_DEFAULT) {
     ip->orthog_eta = 0.7071;
   } else {
-    if (eta <= 0.0 || eta > 1.0) SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_OUTOFRANGE,"Invalid eta value");    
+    if (eta <= 0.0 || eta > 1.0) SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_OUTOFRANGE,"Invalid eta value");
     ip->orthog_eta = eta;
   }
   PetscFunctionReturn(0);
@@ -441,13 +441,13 @@ PetscErrorCode IPSetOrthogonalization(IP ip,IPOrthogType type,IPOrthogRefineType
 #undef __FUNCT__
 #define __FUNCT__ "IPGetOrthogonalization"
 /*@C
-   IPGetOrthogonalization - Gets the orthogonalization settings from the 
+   IPGetOrthogonalization - Gets the orthogonalization settings from the
    IP object.
 
    Not Collective
 
    Input Parameter:
-.  ip - inner product context 
+.  ip - inner product context
 
    Output Parameter:
 +  type   - type of orthogonalization technique
@@ -485,8 +485,8 @@ PetscErrorCode IPGetOrthogonalization(IP ip,IPOrthogType *type,IPOrthogRefineTyp
 +     PETSC_VIEWER_STDOUT_SELF - standard output (default)
 -     PETSC_VIEWER_STDOUT_WORLD - synchronized standard
          output where only the first processor opens
-         the file.  All other processors send their 
-         data to the first processor to print. 
+         the file.  All other processors send their
+         data to the first processor to print.
 
    The user can open an alternative visualization context with
    PetscViewerASCIIOpen() - output to a specified file.
@@ -600,7 +600,7 @@ PetscErrorCode IPDestroy(IP *ip)
 #undef __FUNCT__
 #define __FUNCT__ "IPGetOperationCounters"
 /*@
-   IPGetOperationCounters - Gets the total number of inner product operations 
+   IPGetOperationCounters - Gets the total number of inner product operations
    made by the IP object.
 
    Not Collective
@@ -627,7 +627,7 @@ PetscErrorCode IPGetOperationCounters(IP ip,PetscInt *dots)
 #undef __FUNCT__
 #define __FUNCT__ "IPResetOperationCounters"
 /*@
-   IPResetOperationCounters - Resets the counters for inner product operations 
+   IPResetOperationCounters - Resets the counters for inner product operations
    made by of the IP object.
 
    Logically Collective on IP

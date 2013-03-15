@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -44,7 +44,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -76,15 +76,15 @@ int main(int argc,char **argv)
   ierr = MatGetVecs(A,NULL,&xr);CHKERRQ(ierr);
   ierr = MatGetVecs(A,NULL,&xi);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  /* 
+  /*
      Create eigensolver context
   */
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
 
-  /* 
+  /*
      Set operators. In this case, it is a standard eigenvalue problem
   */
   ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
@@ -95,7 +95,7 @@ int main(int argc,char **argv)
   */
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -112,10 +112,10 @@ int main(int argc,char **argv)
   ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  /* 
+  /*
      Get number of converged approximate eigenpairs
   */
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
@@ -130,7 +130,7 @@ int main(int argc,char **argv)
          "   ----------------- ------------------\n");CHKERRQ(ierr);
 
     for (i=0;i<nconv;i++) {
-      /* 
+      /*
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
       */
@@ -146,17 +146,17 @@ int main(int argc,char **argv)
 #else
       re = kr;
       im = ki;
-#endif 
+#endif
       if (im!=0.0) {
         ierr = PetscPrintf(PETSC_COMM_WORLD," %9F%+9F j %12G\n",re,im,error);CHKERRQ(ierr);
       } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12F       %12G\n",re,error);CHKERRQ(ierr); 
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12F       %12G\n",re,error);CHKERRQ(ierr);
       }
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
 
-  /* 
+  /*
      Free work space
   */
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);

@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -44,7 +44,7 @@ struct _EPSOps {
 /*
      Maximum number of monitors you can run with a single EPS
 */
-#define MAXEPSMONITORS 5 
+#define MAXEPSMONITORS 5
 
 /*
    Defines the EPS data structure.
@@ -95,7 +95,7 @@ struct _p_EPS {
   ST             st;               /* spectral transformation object */
   IP             ip;               /* innerproduct object */
   DS             ds;               /* direct solver object */
-  void           *data;            /* placeholder for misc stuff associated 
+  void           *data;            /* placeholder for misc stuff associated
                                       with a particular solver */
   PetscInt       nconv;            /* number of converged eigenvalues */
   PetscInt       its;              /* number of iterations so far computed */
@@ -111,17 +111,17 @@ struct _p_EPS {
   PetscInt       nwork;
   Vec            *work;
 
-  PetscBool      ds_ortho;         /* if defl vectors have been stored & orthonormalized */  
+  PetscBool      ds_ortho;         /* if defl vectors have been stored & orthonormalized */
   PetscInt       setupcalled;
   PetscBool      isgeneralized;
   PetscBool      ispositive;
   PetscBool      ishermitian;
-  EPSConvergedReason reason;     
+  EPSConvergedReason reason;
 
-  PetscErrorCode (*monitor[MAXEPSMONITORS])(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*); 
+  PetscErrorCode (*monitor[MAXEPSMONITORS])(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXEPSMONITORS])(void**);
   void           *monitorcontext[MAXEPSMONITORS];
-  PetscInt       numbermonitors; 
+  PetscInt       numbermonitors;
 };
 
 PETSC_INTERN PetscErrorCode EPSReset_Default(EPS);

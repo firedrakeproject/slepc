@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -54,7 +54,7 @@
 .seealso: MFNCreate(), MFNSetUp(), MFNDestroy(), MFNSetTolerances(),
           MFMSetOperator(), MFMSetFunction(), MFMSetScaleFactor()
 @*/
-PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x) 
+PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 {
   PetscErrorCode    ierr;
   PetscBool         flg;
@@ -84,7 +84,7 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->prefix,"-mfn_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = MFNView(mfn,viewer);CHKERRQ(ierr); 
+    ierr = MFNView(mfn,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
@@ -94,8 +94,8 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 #undef __FUNCT__
 #define __FUNCT__ "MFNGetIterationNumber"
 /*@
-   MFNGetIterationNumber - Gets the current iteration number. If the 
-   call to MFNSolve() is complete, then it returns the number of iterations 
+   MFNGetIterationNumber - Gets the current iteration number. If the
+   call to MFNSolve() is complete, then it returns the number of iterations
    carried out by the solution method.
 
    Not Collective
@@ -109,10 +109,10 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
    Level: intermediate
 
    Note:
-   During the i-th iteration this call returns i-1. If MFNSolve() is 
+   During the i-th iteration this call returns i-1. If MFNSolve() is
    complete, then parameter "its" contains either the iteration number at
-   which convergence was successfully reached, or failure was detected.  
-   Call MFNGetConvergedReason() to determine if the solver converged or 
+   which convergence was successfully reached, or failure was detected.
+   Call MFNGetConvergedReason() to determine if the solver converged or
    failed and why.
 
 .seealso: MFNGetConvergedReason(), MFNSetTolerances()
@@ -129,7 +129,7 @@ PetscErrorCode MFNGetIterationNumber(MFN mfn,PetscInt *its)
 #undef __FUNCT__
 #define __FUNCT__ "MFNGetConvergedReason"
 /*@C
-   MFNGetConvergedReason - Gets the reason why the MFNSolve() iteration was 
+   MFNGetConvergedReason - Gets the reason why the MFNSolve() iteration was
    stopped.
 
    Not Collective

@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -38,7 +38,7 @@
 
    Notes:
    This function need not be called explicitly in most cases, since EPSSolve()
-   calls it. It can be useful when one wants to measure the set-up time 
+   calls it. It can be useful when one wants to measure the set-up time
    separately from the solve time.
 
    Level: advanced
@@ -48,7 +48,7 @@
 PetscErrorCode EPSSetUp(EPS eps)
 {
   PetscErrorCode ierr;
-  Mat            A,B; 
+  Mat            A,B;
   PetscInt       i,k,nmat;
   PetscBool      flg,lindep;
   Vec            *newDS;
@@ -86,7 +86,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* Set problem dimensions */
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  if (!nmat) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first"); 
+  if (!nmat) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first");
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   ierr = MatGetSize(A,&eps->n,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(A,&eps->nloc,NULL);CHKERRQ(ierr);
@@ -104,7 +104,7 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = PetscInfo(eps,"Eigenproblem set as generalized but no matrix B was provided; reverting to a standard eigenproblem\n");CHKERRQ(ierr);
     eps->isgeneralized = PETSC_FALSE;
     eps->problem_type = eps->ishermitian? EPS_HEP: EPS_NHEP;
-  } else if (nmat>1 && !eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state"); 
+  } else if (nmat>1 && !eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state");
 #if defined(PETSC_USE_COMPLEX)
   ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
   if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
@@ -210,7 +210,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
 
   /* Setup ST */
-  ierr = STSetUp(eps->st);CHKERRQ(ierr); 
+  ierr = STSetUp(eps->st);CHKERRQ(ierr);
 
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg);CHKERRQ(ierr);
   if (flg && eps->problem_type == EPS_PGNHEP) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
@@ -231,7 +231,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       /* orthonormalize vectors in defl */
       k = 0;
       for (i=0;i<eps->nds;i++) {
-        ierr = IPOrthogonalize(eps->ip,0,NULL,k,NULL,eps->defl,eps->defl[k],NULL,&norm,&lindep);CHKERRQ(ierr); 
+        ierr = IPOrthogonalize(eps->ip,0,NULL,k,NULL,eps->defl,eps->defl[k],NULL,&norm,&lindep);CHKERRQ(ierr);
         if (norm==0.0 || lindep) {
           ierr = PetscInfo(eps,"Linearly dependent deflation vector found, removing...\n");CHKERRQ(ierr);
         } else {
@@ -279,7 +279,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 .  A  - the matrix associated with the eigensystem
 -  B  - the second matrix in the case of generalized eigenproblems
 
-   Notes: 
+   Notes:
    To specify a standard eigenproblem, use NULL for parameter B.
 
    It must be called after EPSSetUp(). If it is called again after EPSSetUp() then
@@ -305,7 +305,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   /* Check for square matrices */
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
   if (m!=n) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"A is a non-square matrix");
-  if (B) { 
+  if (B) {
     ierr = MatGetSize(B,&m0,&n);CHKERRQ(ierr);
     if (m0!=n) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B is a non-square matrix");
     if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Dimensions of A and B do not match");
@@ -376,7 +376,7 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
    Notes:
    When a deflation space is given, the eigensolver seeks the eigensolution
    in the restriction of the problem to the orthogonal complement of this
-   space. This can be used for instance in the case that an invariant 
+   space. This can be used for instance in the case that an invariant
    subspace is known beforehand (such as the nullspace of the matrix).
 
    Basis vectors set by a previous call to EPSSetDeflationSpace() are
@@ -400,7 +400,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range"); 
+  if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range");
 
   /* free previous vectors */
   ierr = EPSRemoveDeflationSpace(eps);CHKERRQ(ierr);
@@ -484,7 +484,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
+  if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&eps->nini,&eps->IS);CHKERRQ(ierr);
   if (n>0) eps->setupcalled = 0;
   PetscFunctionReturn(0);
@@ -528,7 +528,7 @@ PetscErrorCode EPSSetInitialSpaceLeft(EPS eps,PetscInt n,Vec *is)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
+  if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&eps->ninil,&eps->ISL);CHKERRQ(ierr);
   if (n>0) eps->setupcalled = 0;
   PetscFunctionReturn(0);

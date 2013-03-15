@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -42,7 +42,7 @@ struct _QEPOps {
 /*
      Maximum number of monitors you can run with a single QEP
 */
-#define MAXQEPMONITORS 5 
+#define MAXQEPMONITORS 5
 
 /*
    Defines the QEP data structure.
@@ -80,7 +80,7 @@ struct _p_QEP {
   IP             ip;               /* innerproduct object */
   DS             ds;               /* direct solver object */
   ST             st;               /* spectral transformation object */
-  void           *data;            /* placeholder for misc stuff associated 
+  void           *data;            /* placeholder for misc stuff associated
                                       with a particular solver */
   PetscInt       allocated_ncv;    /* number of basis vectors allocated */
   PetscInt       nconv;            /* number of converged eigenvalues */
@@ -96,12 +96,12 @@ struct _p_QEP {
   Vec            *work;
 
   PetscInt       setupcalled;
-  QEPConvergedReason reason;     
+  QEPConvergedReason reason;
 
-  PetscErrorCode (*monitor[MAXQEPMONITORS])(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*); 
+  PetscErrorCode (*monitor[MAXQEPMONITORS])(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXQEPMONITORS])(void**);
   void           *monitorcontext[MAXQEPMONITORS];
-  PetscInt        numbermonitors; 
+  PetscInt        numbermonitors;
 };
 
 PETSC_INTERN PetscErrorCode QEPReset_Default(QEP);

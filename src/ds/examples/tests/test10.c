@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -37,7 +37,7 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Compute symmetric matrix exponential - dimension %D.\n",n);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Compute symmetric matrix exponential - dimension %D.\n",n);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,"-verbose",&verbose);CHKERRQ(ierr);
 
   /* Create DS object */
@@ -53,7 +53,7 @@ int main(int argc,char **argv)
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
   ierr = DSView(ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-  if (verbose) { 
+  if (verbose) {
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
   }
 
@@ -65,14 +65,14 @@ int main(int argc,char **argv)
   }
   ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
   ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
-  if (verbose) { 
+  if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
 
   /* Compute matrix exponential */
   ierr = DSComputeFunction(ds,SLEPC_FUNCTION_EXP);CHKERRQ(ierr);
-  if (verbose) { 
+  if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSViewMat_Private(ds,viewer,DS_MAT_F);CHKERRQ(ierr);
   }

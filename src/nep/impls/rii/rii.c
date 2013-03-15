@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc nonlinear eigensolver: "rii"
 
@@ -25,9 +25,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -45,7 +45,7 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
 
   PetscFunctionBegin;
   if (nep->ncv) { /* ncv set */
-    if (nep->ncv<nep->nev) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must be at least nev"); 
+    if (nep->ncv<nep->nev) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must be at least nev");
   } else if (nep->mpd) { /* mpd set */
     nep->ncv = PetscMin(nep->n,nep->nev+nep->mpd);
   } else { /* neither set: defaults depend on nev being small or large */
@@ -56,7 +56,7 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
     }
   }
   if (!nep->mpd) nep->mpd = nep->ncv;
-  if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd"); 
+  if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (nep->nev>1) { ierr = PetscInfo(nep,"Warning: requested more than one eigenpair but RII can only compute one\n");CHKERRQ(ierr); }
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->max_funcs) nep->max_funcs = nep->max_it;
@@ -133,7 +133,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     if (relerr<=nep->rtol) {
       nep->nconv = nep->nconv + 1;
       nep->reason = NEP_CONVERGED_FNORM_RELATIVE;
-    } 
+    }
     ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,1);CHKERRQ(ierr);
 
     if (!nep->nconv) {
@@ -160,7 +160,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       lambda = lambda - a1/a2;
     }
     if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
-  } 
+  }
   ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

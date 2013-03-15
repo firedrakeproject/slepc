@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc eigensolver: "arnoldi"
 
@@ -10,7 +10,7 @@
 
    References:
 
-       [1] "Arnoldi Methods in SLEPc", SLEPc Technical Report STR-4, 
+       [1] "Arnoldi Methods in SLEPc", SLEPc Technical Report STR-4,
            available at http://www.grycap.upv.es/slepc.
 
    Last update: Feb 2009
@@ -25,9 +25,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -52,7 +52,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
   } else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
   } else { /* neither set: defaults depend on nev being small or large */
@@ -63,7 +63,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
     }
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
-  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd"); 
+  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
@@ -117,19 +117,19 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
     ierr = IPOrthogonalize(eps->ip,0,NULL,eps->nds,NULL,eps->defl,f,NULL,NULL,NULL);CHKERRQ(ierr);
 
     ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
-    if (j>k) { 
+    if (j>k) {
       ierr = IPMInnerProductBegin(eps->ip,V[j],j,V,lhh);CHKERRQ(ierr);
-      ierr = IPInnerProductBegin(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr); 
+      ierr = IPInnerProductBegin(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr);
     }
     if (j>k+1) {
-      ierr = IPNormBegin(eps->ip,u,&norm2);CHKERRQ(ierr); 
+      ierr = IPNormBegin(eps->ip,u,&norm2);CHKERRQ(ierr);
       ierr = VecDotBegin(u,V[j-2],&dot2);CHKERRQ(ierr);
     }
 
     ierr = IPMInnerProductEnd(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
-    if (j>k) { 
+    if (j>k) {
       ierr = IPMInnerProductEnd(eps->ip,V[j],j,V,lhh);CHKERRQ(ierr);
-      ierr = IPInnerProductEnd(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr); 
+      ierr = IPInnerProductEnd(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr);
     }
     if (j>k+1) {
       ierr = IPNormEnd(eps->ip,u,&norm2);CHKERRQ(ierr);
@@ -146,7 +146,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
       }
     }
 
-    if (j>k) {      
+    if (j>k) {
       norm1 = PetscSqrtReal(PetscRealPart(dot));
       for (i=0;i<j;i++)
         H[ldh*j+i] = H[ldh*j+i]/norm1;
@@ -217,23 +217,23 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pet
     ierr = IPOrthogonalize(eps->ip,0,NULL,eps->nds,NULL,eps->defl,f,NULL,NULL,NULL);CHKERRQ(ierr);
 
     ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
-    if (j>k) { 
-      ierr = IPInnerProductBegin(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr); 
+    if (j>k) {
+      ierr = IPInnerProductBegin(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr);
     }
 
     ierr = IPMInnerProductEnd(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
-    if (j>k) { 
-      ierr = IPInnerProductEnd(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr); 
+    if (j>k) {
+      ierr = IPInnerProductEnd(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr);
     }
 
-    if (j>k) {      
+    if (j>k) {
       norm = PetscSqrtReal(PetscRealPart(dot));
       ierr = VecScale(V[j],1.0/norm);CHKERRQ(ierr);
       H[ldh*(j-1)+j] = norm;
 
       for (i=0;i<j;i++)
         H[ldh*j+i] = H[ldh*j+i]/norm;
-      H[ldh*j+j] = H[ldh*j+j]/dot;      
+      H[ldh*j+j] = H[ldh*j+j]/dot;
       ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
     }
 
@@ -291,17 +291,17 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     ierr = DSRestoreArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
 
-    /* Compute translation of Krylov decomposition if harmonic extraction used */ 
+    /* Compute translation of Krylov decomposition if harmonic extraction used */
     if (harmonic) {
       ierr = DSTranslateHarmonic(eps->ds,eps->target,beta,PETSC_FALSE,NULL,&gamma);CHKERRQ(ierr);
     }
 
-    /* Solve projected problem */ 
+    /* Solve projected problem */
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(eps->ds);CHKERRQ(ierr);
 
-    /* Check convergence */ 
+    /* Check convergence */
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);
     if (refined) {
       ierr = DSGetArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
@@ -370,8 +370,8 @@ static PetscErrorCode EPSArnoldiSetDelayed_Arnoldi(EPS eps,PetscBool delayed)
 #undef __FUNCT__
 #define __FUNCT__ "EPSArnoldiSetDelayed"
 /*@
-   EPSArnoldiSetDelayed - Activates or deactivates delayed reorthogonalization 
-   in the Arnoldi iteration. 
+   EPSArnoldiSetDelayed - Activates or deactivates delayed reorthogonalization
+   in the Arnoldi iteration.
 
    Logically Collective on EPS
 
@@ -417,7 +417,7 @@ static PetscErrorCode EPSArnoldiGetDelayed_Arnoldi(EPS eps,PetscBool *delayed)
 #define __FUNCT__ "EPSArnoldiGetDelayed"
 /*@C
    EPSArnoldiGetDelayed - Gets the type of reorthogonalization used during the Arnoldi
-   iteration. 
+   iteration.
 
    Not Collective
 
@@ -468,8 +468,8 @@ PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
   if (isascii) {
     if (arnoldi->delayed) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Arnoldi: using delayed reorthogonalization\n");CHKERRQ(ierr);
-    }  
-  }  
+    }
+  }
   PetscFunctionReturn(0);
 }
 

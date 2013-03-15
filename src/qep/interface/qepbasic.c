@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -39,7 +39,7 @@ static PetscBool  QEPPackageInitialized = PETSC_FALSE;
 
 .seealso: SlepcFinalize()
 @*/
-PetscErrorCode QEPFinalizePackage(void) 
+PetscErrorCode QEPFinalizePackage(void)
 {
   PetscFunctionBegin;
   QEPPackageInitialized = PETSC_FALSE;
@@ -119,8 +119,8 @@ PetscErrorCode QEPInitializePackage(const char *path)
 +     PETSC_VIEWER_STDOUT_SELF - standard output (default)
 -     PETSC_VIEWER_STDOUT_WORLD - synchronized standard
          output where only the first processor opens
-         the file.  All other processors send their 
-         data to the first processor to print. 
+         the file.  All other processors send their
+         data to the first processor to print.
 
    The user can open an alternative visualization context with
    PetscViewerASCIIOpen() - output to a specified file.
@@ -197,7 +197,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
         break;
       default: SETERRQ(PetscObjectComm((PetscObject)qep),1,"Wrong value of qep->which");
-    }    
+    }
     if (qep->leftvecs) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing left eigenvectors also\n");CHKERRQ(ierr);
     }
@@ -267,7 +267,7 @@ PetscErrorCode QEPPrintSolution(QEP qep,PetscViewer viewer)
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)qep));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(qep,1,viewer,2);
-  if (!qep->eigr || !qep->eigi || !qep->V) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
+  if (!qep->eigr || !qep->eigi || !qep->V) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first");
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
@@ -293,13 +293,13 @@ PetscErrorCode QEPPrintSolution(QEP qep,PetscViewer viewer)
 #else
             re = kr;
             im = ki;
-#endif 
+#endif
             if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
             if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
             if (im!=0.0) {
               ierr = PetscViewerASCIIPrintf(viewer,"%.5F%+.5Fi",re,im);CHKERRQ(ierr);
             } else {
-              ierr = PetscViewerASCIIPrintf(viewer,"%.5F",re);CHKERRQ(ierr); 
+              ierr = PetscViewerASCIIPrintf(viewer,"%.5F",re);CHKERRQ(ierr);
             }
             if (8*i+j+1<qep->nev) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
           }
@@ -324,11 +324,11 @@ PetscErrorCode QEPPrintSolution(QEP qep,PetscViewer viewer)
 #else
         re = kr;
         im = ki;
-#endif 
+#endif
         if (im!=0.0) {
           ierr = PetscViewerASCIIPrintf(viewer," % 9F%+9F i     %12G\n",re,im,error);CHKERRQ(ierr);
         } else {
-          ierr = PetscViewerASCIIPrintf(viewer,"   % 12F           %12G\n",re,error);CHKERRQ(ierr); 
+          ierr = PetscViewerASCIIPrintf(viewer,"   % 12F           %12G\n",re,error);CHKERRQ(ierr);
         }
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
@@ -421,7 +421,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
 #undef __FUNCT__
 #define __FUNCT__ "QEPSetType"
 /*@C
-   QEPSetType - Selects the particular solver to be used in the QEP object. 
+   QEPSetType - Selects the particular solver to be used in the QEP object.
 
    Logically Collective on QEP
 
@@ -430,10 +430,10 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
 -  type     - a known method
 
    Options Database Key:
-.  -qep_type <method> - Sets the method; use -help for a list 
-    of available methods 
+.  -qep_type <method> - Sets the method; use -help for a list
+    of available methods
 
-   Notes:  
+   Notes:
    See "slepc/include/slepcqep.h" for available methods. The default
    is QEPLINEAR.
 
@@ -443,7 +443,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
    maximum flexibility in evaluating the different available methods.
    The QEPSetType() routine is provided for those situations where it
    is necessary to set the iterative solver independently of the command
-   line or options database. 
+   line or options database.
 
    Level: intermediate
 
@@ -481,10 +481,10 @@ PetscErrorCode QEPSetType(QEP qep,QEPType type)
    Not Collective
 
    Input Parameter:
-.  qep - the eigensolver context 
+.  qep - the eigensolver context
 
    Output Parameter:
-.  name - name of QEP method 
+.  name - name of QEP method
 
    Level: intermediate
 
@@ -570,7 +570,7 @@ PetscErrorCode QEPReset(QEP qep)
   ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
   qep->matvecs     = 0;
   qep->linits      = 0;
-  qep->setupcalled = 0;  
+  qep->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 
@@ -613,7 +613,7 @@ PetscErrorCode QEPDestroy(QEP *qep)
 #undef __FUNCT__
 #define __FUNCT__ "QEPSetIP"
 /*@
-   QEPSetIP - Associates an inner product object to the quadratic eigensolver. 
+   QEPSetIP - Associates an inner product object to the quadratic eigensolver.
 
    Collective on QEP
 
@@ -680,7 +680,7 @@ PetscErrorCode QEPGetIP(QEP qep,IP *ip)
 #undef __FUNCT__
 #define __FUNCT__ "QEPSetDS"
 /*@
-   QEPSetDS - Associates a direct solver object to the quadratic eigensolver. 
+   QEPSetDS - Associates a direct solver object to the quadratic eigensolver.
 
    Collective on QEP
 
@@ -714,7 +714,7 @@ PetscErrorCode QEPSetDS(QEP qep,DS ds)
 #undef __FUNCT__
 #define __FUNCT__ "QEPGetDS"
 /*@C
-   QEPGetDS - Obtain the direct solver object associated to the 
+   QEPGetDS - Obtain the direct solver object associated to the
    quadratic eigensolver object.
 
    Not Collective
@@ -747,7 +747,7 @@ PetscErrorCode QEPGetDS(QEP qep,DS *ds)
 #undef __FUNCT__
 #define __FUNCT__ "QEPSetST"
 /*@
-   QEPSetST - Associates a spectral transformation object to the eigensolver. 
+   QEPSetST - Associates a spectral transformation object to the eigensolver.
 
    Collective on QEP
 

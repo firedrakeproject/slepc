@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -106,7 +106,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   ierr = EPSDavidsonGetBlockSize_Davidson(eps,&bs);CHKERRQ(ierr);
   if (bs <= 0) bs = 1;
   if (eps->ncv) {
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The value of ncv must be at least nev");
   } else if (eps->mpd) eps->ncv = eps->mpd + eps->nev + bs;
   else if (eps->nev<500) eps->ncv = PetscMin(eps->n-bs,PetscMax(2*eps->nev,eps->nev+15))+bs;
   else eps->ncv = PetscMin(eps->n-bs,eps->nev+500)+bs;
@@ -627,7 +627,7 @@ PetscErrorCode EPSDavidsonGetMethod_Davidson(EPS eps,Method_t *method)
 #define __FUNCT__ "EPSComputeVectors_Davidson"
 /*
   EPSComputeVectors_Davidson - Compute eigenvectors from the vectors
-  provided by the eigensolver. This version is intended for solvers 
+  provided by the eigensolver. This version is intended for solvers
   that provide Schur vectors from the QZ decompositon. Given the partial
   Schur decomposition OP*V=V*T, the following steps are performed:
       1) compute eigenvectors of (S,T): S*Z=T*Z*D
@@ -660,7 +660,7 @@ PetscErrorCode EPSComputeVectors_Davidson(EPS eps)
     ierr = DSVectors(d->conv_ps,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
     ierr = DSNormalize(d->conv_ps,DS_MAT_X,-1);CHKERRQ(ierr);
 
-    /* V <- cX * pX */ 
+    /* V <- cX * pX */
     ierr = DSGetArray(d->conv_ps,DS_MAT_X,&pX);CHKERRQ(ierr);
     ierr = SlepcUpdateVectorsZ(eps->V,0.0,1.0,d->cX,d->size_cX,pX,ld,d->nconv,d->nconv);CHKERRQ(ierr);
     ierr = DSRestoreArray(d->conv_ps,DS_MAT_X,&pX);CHKERRQ(ierr);

@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -62,7 +62,7 @@ PetscErrorCode DSGetLeadingDimension(DS ds,PetscInt *ld)
 
    Notes:
    The state indicates that the dense system is in an initial state (raw),
-   in an intermediate state (such as tridiagonal, Hessenberg or 
+   in an intermediate state (such as tridiagonal, Hessenberg or
    Hessenberg-triangular), in a condensed state (such as diagonal, Schur or
    generalized Schur), or in a truncated state.
 
@@ -577,7 +577,7 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 #define __FUNCT__ "DSNormalize"
 /*@
    DSNormalize - Normalize a column or all the columns of a matrix. Considers
-   the case when the columns represent the real and the imaginary part of a vector.          
+   the case when the columns represent the real and the imaginary part of a vector.
 
    Logically Collective on DS
 
@@ -744,7 +744,7 @@ PetscErrorCode DSTranslateHarmonic(DS ds,PetscScalar tau,PetscReal beta,PetscBoo
    This function is intended for use in the context of Krylov methods only.
    It takes the leading (k+1,k) submatrix of A, containing the truncated
    Rayleigh quotient of a Krylov-Schur relation computed from a shift
-   sigma1 and transforms it to obtain a Krylov relation as if computed 
+   sigma1 and transforms it to obtain a Krylov relation as if computed
    from a different shift sigma2. The new matrix is computed as
    1.0/alpha*(eye(k)-Q*inv(R)), where [Q,R]=qr(eye(k)-alpha*A) and
    alpha = sigma1-sigma2.

@@ -13,9 +13,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -278,7 +278,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   for (i=0,s=0;i<n;i+=s) {
 #if !defined(PETSC_USE_COMPLEX)
     if (d->eigi[r_s+i] != 0.0) {
-       /* [Ax_i Ax_i+1 Bx_i Bx_i+1]*= [   1        0 
+       /* [Ax_i Ax_i+1 Bx_i Bx_i+1]*= [   1        0
                                           0        1
                                        -eigr_i -eigi_i
                                         eigi_i -eigr_i] */

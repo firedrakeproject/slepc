@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -42,7 +42,7 @@ struct _MFNOps {
 /*
      Maximum number of monitors you can run with a single MFN
 */
-#define MAXMFNMONITORS 5 
+#define MAXMFNMONITORS 5
 
 /*
    Defines the MFN data structure.
@@ -61,7 +61,7 @@ struct _p_MFN {
   PetscReal       errest;         /* error estimate */
   IP              ip;             /* innerproduct object */
   DS              ds;             /* direct solver object */
-  void            *data;          /* placeholder for misc stuff associated 
+  void            *data;          /* placeholder for misc stuff associated
                                      with a particular solver */
   PetscInt        its;            /* number of iterations so far computed */
   PetscInt        nv;             /* size of current Schur decomposition */
@@ -76,12 +76,12 @@ struct _p_MFN {
   Vec            *work;
 
   PetscInt       setupcalled;
-  MFNConvergedReason reason;     
+  MFNConvergedReason reason;
 
-  PetscErrorCode (*monitor[MAXMFNMONITORS])(MFN,PetscInt,PetscReal,void*); 
+  PetscErrorCode (*monitor[MAXMFNMONITORS])(MFN,PetscInt,PetscReal,void*);
   PetscErrorCode (*monitordestroy[MAXMFNMONITORS])(void**);
   void           *monitorcontext[MAXMFNMONITORS];
-  PetscInt       numbermonitors; 
+  PetscInt       numbermonitors;
 };
 
 PETSC_INTERN PetscErrorCode MFNReset_Default(MFN);

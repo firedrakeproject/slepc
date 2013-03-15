@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -27,20 +27,20 @@
    of dot products in the case of real scalars */
 #if defined(PETSC_USE_COMPLEX)
 #define VecXDotBegin  VecTDotBegin
-#define VecXDotEnd    VecTDotEnd  
+#define VecXDotEnd    VecTDotEnd
 #define VecMXDotBegin VecMTDotBegin
-#define VecMXDotEnd   VecMTDotEnd  
+#define VecMXDotEnd   VecMTDotEnd
 #else
 #define VecXDotBegin  VecDotBegin
-#define VecXDotEnd    VecDotEnd  
+#define VecXDotEnd    VecDotEnd
 #define VecMXDotBegin VecMDotBegin
-#define VecMXDotEnd   VecMDotEnd  
+#define VecMXDotEnd   VecMDotEnd
 #endif
 
 #undef __FUNCT__
 #define __FUNCT__ "IPNorm"
 /*@
-   IPNorm - Computes the norm of a vector as the square root of the inner 
+   IPNorm - Computes the norm of a vector as the square root of the inner
    product (x,x) as defined by IPInnerProduct().
 
    Collective on IP and Vec
@@ -54,9 +54,9 @@
 
    Notes:
    This function will usually compute the 2-norm of a vector, ||x||_2. But
-   this behaviour may be different if using a non-standard inner product changed 
-   via IPSetMatrix(). For example, if using the B-inner product for 
-   positive definite B, (x,y)_B=y^H Bx, then the computed norm is ||x||_B = 
+   this behaviour may be different if using a non-standard inner product changed
+   via IPSetMatrix(). For example, if using the B-inner product for
+   positive definite B, (x,y)_B=y^H Bx, then the computed norm is ||x||_B =
    sqrt(x^H Bx).
 
    In an indefinite inner product, matrix B is indefinite and the norm is
@@ -140,7 +140,7 @@ PetscErrorCode IPNormBegin_Indefinite(IP ip,Vec x,PetscReal *norm)
    Notes:
    Each call to IPNormBegin() should be paired with a call to IPNormEnd().
 
-.seealso: IPNormEnd(), IPNorm(), IPInnerProduct(), IPMInnerProduct(), 
+.seealso: IPNormEnd(), IPNorm(), IPInnerProduct(), IPMInnerProduct(),
           IPInnerProductBegin(), IPInnerProductEnd()
 @*/
 PetscErrorCode IPNormBegin(IP ip,Vec x,PetscReal *norm)
@@ -167,7 +167,7 @@ PetscErrorCode IPNormEnd_Bilinear(IP ip,Vec x,PetscReal *norm)
   if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
     ierr = PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-  if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON) 
+  if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))>PETSC_MACHINE_EPSILON)
     SETERRQ(PetscObjectComm((PetscObject)ip),1,"IPNorm: The inner product is not well defined");
   *norm = PetscSqrtScalar(PetscRealPart(p));
 #else
@@ -191,7 +191,7 @@ PetscErrorCode IPNormEnd_Sesquilinear(IP ip,Vec x,PetscReal *norm)
     ierr = IPInnerProductEnd(ip,x,x,&p);CHKERRQ(ierr);
     if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
       ierr = PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
-    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) 
+    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON)
       SETERRQ(PetscObjectComm((PetscObject)ip),1,"IPNorm: The inner product is not well defined");
     *norm = PetscSqrtScalar(PetscRealPart(p));
   }
@@ -212,7 +212,7 @@ PetscErrorCode IPNormEnd_Indefinite(IP ip,Vec x,PetscReal *norm)
     ierr = IPInnerProductEnd(ip,x,x,&p);CHKERRQ(ierr);
     if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
       ierr = PetscInfo(ip,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
-    if (PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) 
+    if (PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON)
       SETERRQ(PetscObjectComm((PetscObject)ip),1,"IPNorm: The inner product is not well defined");
     if (PetscRealPart(p)<0.0) *norm = -PetscSqrtScalar(-PetscRealPart(p));
     else *norm = PetscSqrtScalar(PetscRealPart(p));
@@ -239,7 +239,7 @@ PetscErrorCode IPNormEnd_Indefinite(IP ip,Vec x,PetscReal *norm)
    Notes:
    Each call to IPNormBegin() should be paired with a call to IPNormEnd().
 
-.seealso: IPNormBegin(), IPNorm(), IPInnerProduct(), IPMInnerProduct(), 
+.seealso: IPNormBegin(), IPNorm(), IPInnerProduct(), IPMInnerProduct(),
           IPInnerProductBegin(), IPInnerProductEnd()
 @*/
 PetscErrorCode IPNormEnd(IP ip,Vec x,PetscReal *norm)
@@ -271,7 +271,7 @@ PetscErrorCode IPNormEnd(IP ip,Vec x,PetscReal *norm)
 
    Notes:
    This function will usually compute the standard dot product of vectors
-   x and y, (x,y)=y^H x. However this behaviour may be different if changed 
+   x and y, (x,y)=y^H x. However this behaviour may be different if changed
    via IPSetMatrix(). This allows use of other inner products such as
    the indefinite product y^T x for complex symmetric problems or the
    B-inner product for positive definite B, (x,y)_B=y^H Bx.
@@ -347,8 +347,8 @@ PetscErrorCode IPInnerProductBegin_Sesquilinear(IP ip,Vec x,Vec y,PetscScalar *p
    Notes:
    Each call to IPInnerProductBegin() should be paired with a call to IPInnerProductEnd().
 
-.seealso: IPInnerProductEnd(), IPInnerProduct(), IPNorm(), IPNormBegin(), 
-          IPNormEnd(), IPMInnerProduct() 
+.seealso: IPInnerProductEnd(), IPInnerProduct(), IPNorm(), IPNormBegin(),
+          IPNormEnd(), IPMInnerProduct()
 @*/
 PetscErrorCode IPInnerProductBegin(IP ip,Vec x,Vec y,PetscScalar *p)
 {
@@ -416,8 +416,8 @@ PetscErrorCode IPInnerProductEnd_Sesquilinear(IP ip,Vec x,Vec y,PetscScalar *p)
    Notes:
    Each call to IPInnerProductBegin() should be paired with a call to IPInnerProductEnd().
 
-.seealso: IPInnerProductBegin(), IPInnerProduct(), IPNorm(), IPNormBegin(), 
-          IPNormEnd(), IPMInnerProduct() 
+.seealso: IPInnerProductBegin(), IPInnerProduct(), IPNorm(), IPNormBegin(),
+          IPNormEnd(), IPMInnerProduct()
 @*/
 PetscErrorCode IPInnerProductEnd(IP ip,Vec x,Vec y,PetscScalar *p)
 {
@@ -452,9 +452,9 @@ PetscErrorCode IPInnerProductEnd(IP ip,Vec x,Vec y,PetscScalar *p)
 .  p - result of the inner products
 
    Notes:
-   This function will usually compute the standard dot product of x and y_i, 
+   This function will usually compute the standard dot product of x and y_i,
    (x,y_i)=y_i^H x, for each column of Y. However this behaviour may be different
-   if changed via IPSetMatrix(). This allows use of other inner products 
+   if changed via IPSetMatrix(). This allows use of other inner products
    such as the indefinite product y_i^T x for complex symmetric problems or the
    B-inner product for positive definite B, (x,y_i)_B=y_i^H Bx.
 
@@ -531,8 +531,8 @@ PetscErrorCode IPMInnerProductBegin_Sesquilinear(IP ip,Vec x,PetscInt n,const Ve
    Notes:
    Each call to IPMInnerProductBegin() should be paired with a call to IPMInnerProductEnd().
 
-.seealso: IPMInnerProductEnd(), IPMInnerProduct(), IPNorm(), IPNormBegin(), 
-          IPNormEnd(), IPInnerProduct() 
+.seealso: IPMInnerProductEnd(), IPMInnerProduct(), IPNorm(), IPNormBegin(),
+          IPNormEnd(), IPInnerProduct()
 @*/
 PetscErrorCode IPMInnerProductBegin(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {
@@ -603,8 +603,8 @@ PetscErrorCode IPMInnerProductEnd_Sesquilinear(IP ip,Vec x,PetscInt n,const Vec 
    Notes:
    Each call to IPMInnerProductBegin() should be paired with a call to IPMInnerProductEnd().
 
-.seealso: IPMInnerProductBegin(), IPMInnerProduct(), IPNorm(), IPNormBegin(), 
-          IPNormEnd(), IPInnerProduct() 
+.seealso: IPMInnerProductBegin(), IPMInnerProduct(), IPNorm(), IPNormBegin(),
+          IPNormEnd(), IPInnerProduct()
 @*/
 PetscErrorCode IPMInnerProductEnd(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {

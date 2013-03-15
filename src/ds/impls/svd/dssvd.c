@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -29,10 +29,10 @@ PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = DSAllocateMat_Private(ds,DS_MAT_A);CHKERRQ(ierr); 
-  ierr = DSAllocateMat_Private(ds,DS_MAT_U);CHKERRQ(ierr); 
-  ierr = DSAllocateMat_Private(ds,DS_MAT_VT);CHKERRQ(ierr); 
-  ierr = DSAllocateMatReal_Private(ds,DS_MAT_T);CHKERRQ(ierr); 
+  ierr = DSAllocateMat_Private(ds,DS_MAT_A);CHKERRQ(ierr);
+  ierr = DSAllocateMat_Private(ds,DS_MAT_U);CHKERRQ(ierr);
+  ierr = DSAllocateMat_Private(ds,DS_MAT_VT);CHKERRQ(ierr);
+  ierr = DSAllocateMatReal_Private(ds,DS_MAT_T);CHKERRQ(ierr);
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
   ierr = PetscMalloc(ld*sizeof(PetscInt),&ds->perm);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory(ds,ld*sizeof(PetscInt));CHKERRQ(ierr);
@@ -96,7 +96,7 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds,PetscBool tocompact)
     for (i=k+1;i<m;i++) {
       A[i+i*ld] = T[i];
       A[i-1+i*ld] = T[i-1+ld];
-    } 
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -146,11 +146,11 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
   } else {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_A);CHKERRQ(ierr); 
+    ierr = DSViewMat_Private(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
   }
   if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_U);CHKERRQ(ierr); 
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_VT);CHKERRQ(ierr); 
+    ierr = DSViewMat_Private(ds,viewer,DS_MAT_U);CHKERRQ(ierr);
+    ierr = DSViewMat_Private(ds,viewer,DS_MAT_VT);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -165,7 +165,7 @@ PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     case DS_MAT_VT:
       break;
     default:
-      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
   }
   PetscFunctionReturn(0);
 }
@@ -241,10 +241,10 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   if (ds->state>DS_STATE_RAW) {
     /* Solve bidiagonal SVD problem */
     for (i=0;i<l;i++) wr[i] = d[i];
-    ierr = DSAllocateWork_Private(ds,0,3*ld*ld+4*ld,8*ld);CHKERRQ(ierr); 
+    ierr = DSAllocateWork_Private(ds,0,3*ld*ld+4*ld,8*ld);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    ierr = DSAllocateMatReal_Private(ds,DS_MAT_U);CHKERRQ(ierr); 
-    ierr = DSAllocateMatReal_Private(ds,DS_MAT_VT);CHKERRQ(ierr); 
+    ierr = DSAllocateMatReal_Private(ds,DS_MAT_U);CHKERRQ(ierr);
+    ierr = DSAllocateMatReal_Private(ds,DS_MAT_VT);CHKERRQ(ierr);
     Ur  = ds->rmat[DS_MAT_U];
     VTr = ds->rmat[DS_MAT_VT];
 #else
@@ -266,17 +266,17 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     if (ds->compact) { ierr = DSSwitchFormat_SVD(ds,PETSC_FALSE);CHKERRQ(ierr); }
     for (i=0;i<l;i++) wr[i] = d[i];
     nm = PetscMin(n,m);
-    ierr = DSAllocateWork_Private(ds,0,0,8*nm);CHKERRQ(ierr); 
+    ierr = DSAllocateWork_Private(ds,0,0,8*nm);CHKERRQ(ierr);
     lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
-    ierr = DSAllocateWork_Private(ds,0,5*nm*nm+7*nm,0);CHKERRQ(ierr); 
+    ierr = DSAllocateWork_Private(ds,0,5*nm*nm+7*nm,0);CHKERRQ(ierr);
     PetscStackCall("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,&qwork,&lwork,ds->rwork,ds->iwork,&info));
 #else
     PetscStackCall("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,&qwork,&lwork,ds->iwork,&info));
-#endif 
+#endif
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
     lwork = (PetscBLASInt)PetscRealPart(qwork);
-    ierr = DSAllocateWork_Private(ds,lwork,0,0);CHKERRQ(ierr); 
+    ierr = DSAllocateWork_Private(ds,lwork,0,0);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
     PetscStackCall("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,ds->work,&lwork,ds->rwork,ds->iwork,&info));
 #else

@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian, n=%D\n\n",n);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix for the 1-D Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -71,7 +71,7 @@ int main(int argc,char **argv)
   ierr = MatGetVecs(A,&v,&w);CHKERRQ(ierr);
   ierr = VecSet(v,1.0);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the spectral transformation object
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -80,7 +80,7 @@ int main(int argc,char **argv)
   ierr = STSetOperators(st,1,mat);CHKERRQ(ierr);
   ierr = STSetFromOptions(st);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
               Apply the transformed operator for several ST's
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -147,7 +147,7 @@ int main(int argc,char **argv)
   ierr = STApply(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                   Check inner product matrix in Cayley
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = STGetBilinearForm(st,&B);CHKERRQ(ierr);

@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -29,19 +29,19 @@ PetscClassId      DS_CLASSID = 0;
 PetscLogEvent     DS_Solve = 0,DS_Function = 0,DS_Vectors = 0,DS_Other = 0;
 static PetscBool  DSPackageInitialized = PETSC_FALSE;
 const char        *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","F","Q","Z","X","Y","U","VT","W","E0","E1","E2","E3","E4","E5","E6","E7","E8","E9"};
-DSMatType         DSMatExtra[DS_NUM_EXTRA] = {DS_MAT_E0,DS_MAT_E1,DS_MAT_E2,DS_MAT_E3,DS_MAT_E4,DS_MAT_E5,DS_MAT_E6,DS_MAT_E7,DS_MAT_E8,DS_MAT_E9}; 
+DSMatType         DSMatExtra[DS_NUM_EXTRA] = {DS_MAT_E0,DS_MAT_E1,DS_MAT_E2,DS_MAT_E3,DS_MAT_E4,DS_MAT_E5,DS_MAT_E6,DS_MAT_E7,DS_MAT_E8,DS_MAT_E9};
 
 #undef __FUNCT__
 #define __FUNCT__ "DSFinalizePackage"
 /*@C
-   DSFinalizePackage - This function destroys everything in the SLEPc interface 
+   DSFinalizePackage - This function destroys everything in the SLEPc interface
    to the DS package. It is called from SlepcFinalize().
 
    Level: developer
 
 .seealso: SlepcFinalize()
 @*/
-PetscErrorCode DSFinalizePackage(void) 
+PetscErrorCode DSFinalizePackage(void)
 {
   PetscFunctionBegin;
   DSPackageInitialized = PETSC_FALSE;
@@ -64,7 +64,7 @@ PetscErrorCode DSFinalizePackage(void)
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode DSInitializePackage(const char *path) 
+PetscErrorCode DSInitializePackage(const char *path)
 {
   char             logList[256];
   char             *className;
@@ -118,7 +118,7 @@ PetscErrorCode DSInitializePackage(const char *path)
 
    Level: beginner
 
-   Note: 
+   Note:
    DS objects are not intended for normal users but only for
    advanced user that for instance implement their own solvers.
 
@@ -167,7 +167,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
 #undef __FUNCT__
 #define __FUNCT__ "DSSetOptionsPrefix"
 /*@C
-   DSSetOptionsPrefix - Sets the prefix used for searching for all 
+   DSSetOptionsPrefix - Sets the prefix used for searching for all
    DS options in the database.
 
    Logically Collective on DS
@@ -198,7 +198,7 @@ PetscErrorCode DSSetOptionsPrefix(DS ds,const char *prefix)
 #undef __FUNCT__
 #define __FUNCT__ "DSAppendOptionsPrefix"
 /*@C
-   DSAppendOptionsPrefix - Appends to the prefix used for searching for all 
+   DSAppendOptionsPrefix - Appends to the prefix used for searching for all
    DS options in the database.
 
    Logically Collective on DS
@@ -228,7 +228,7 @@ PetscErrorCode DSAppendOptionsPrefix(DS ds,const char *prefix)
 #undef __FUNCT__
 #define __FUNCT__ "DSGetOptionsPrefix"
 /*@C
-   DSGetOptionsPrefix - Gets the prefix used for searching for all 
+   DSGetOptionsPrefix - Gets the prefix used for searching for all
    DS options in the database.
 
    Not Collective
@@ -804,7 +804,7 @@ PetscErrorCode DSGetNumFN(DS ds,PetscInt *n)
    Input Parameters:
 .  ds - the direct solver context
 
-   Notes:  
+   Notes:
    To see all options, run your program with the -help option.
 
    Level: beginner
@@ -848,8 +848,8 @@ PetscErrorCode DSSetFromOptions(DS ds)
 +     PETSC_VIEWER_STDOUT_SELF - standard output (default)
 -     PETSC_VIEWER_STDOUT_WORLD - synchronized standard
          output where only the first processor opens
-         the file.  All other processors send their 
-         data to the first processor to print. 
+         the file.  All other processors send their
+         data to the first processor to print.
 
    The user can open an alternative visualization context with
    PetscViewerASCIIOpen() - output to a specified file.
@@ -936,7 +936,7 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
   ds->ld = ld;
   ierr = (*ds->ops->allocate)(ds,ld);CHKERRQ(ierr);
   for (i=0;i<ds->nf;i++) {
-    ierr = DSAllocateMat_Private(ds,DSMatExtra[i]);CHKERRQ(ierr); 
+    ierr = DSAllocateMat_Private(ds,DSMatExtra[i]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

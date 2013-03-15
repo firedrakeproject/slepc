@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc eigensolver: "krylovschur"
 
@@ -14,9 +14,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -60,7 +60,7 @@ static PetscErrorCode EPSFullLanczosIndef(EPS eps,PetscReal *alpha,PetscReal *be
   }
   ierr = STApply(eps->st,V[m-1],f);CHKERRQ(ierr);
   ierr = IPPseudoOrthogonalize(eps->ip,m,V,omega,f,hwork,&norm,NULL);CHKERRQ(ierr);
-  alpha[m-1] = PetscRealPart(hwork[m-1]); 
+  alpha[m-1] = PetscRealPart(hwork[m-1]);
   beta[m-1] =PetscAbsReal(norm);
   omega[m] = (norm<0.0)?-1:1;
   if (m > 100) {
@@ -86,7 +86,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
   /* Get the starting Lanczos vector */
   ierr = SlepcVecSetRandom(eps->V[0],eps->rand);CHKERRQ(ierr);
   ierr = IPNorm(eps->ip,eps->V[0],&norm);CHKERRQ(ierr);
-  if (norm==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Initial vector is zero or belongs to the deflation space"); 
+  if (norm==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Initial vector is zero or belongs to the deflation space");
   ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
   omega[0] = (norm > 0)?1.0:-1.0;
   beta = PetscAbsReal(norm);

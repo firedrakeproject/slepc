@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -28,7 +28,7 @@ static char help[] = "Test indefinite IP.\n\n";
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
-  Mat            A;  
+  Mat            A;
   IP             ip;
   Vec            v;
   PetscInt       i,n=15,Istart,Iend;
@@ -37,7 +37,7 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Indefinite norm of a random vector of length %D.\n",n);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Indefinite norm of a random vector of length %D.\n",n);CHKERRQ(ierr);
 
   /* Create sip matrix (standard involutionary permutation) */
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
@@ -67,7 +67,7 @@ int main(int argc,char **argv)
 
   /* Check indefinite norm */
   ierr = IPNorm(ip,v,&norm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed norm=%G\n",norm);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed norm=%G\n",norm);CHKERRQ(ierr);
 
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = IPDestroy(&ip);CHKERRQ(ierr);

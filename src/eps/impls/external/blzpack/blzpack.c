@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -81,7 +81,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   if (eps->which==EPS_ALL) {
-    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Must define a computational interval when using EPS_ALL"); 
+    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Must define a computational interval when using EPS_ALL");
     blz->slice = 1;
   }
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&issinv);CHKERRQ(ierr);
@@ -146,19 +146,19 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   PetscErrorCode ierr;
   EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
   PetscInt       nn;
-  PetscBLASInt   i,nneig,lflag,nvopu;      
-  Vec            x,y;                           
-  PetscScalar    sigma,*pV;                      
-  Mat            A;                              
-  KSP            ksp;                            
-  PC             pc;                             
+  PetscBLASInt   i,nneig,lflag,nvopu;
+  Vec            x,y;
+  PetscScalar    sigma,*pV;
+  Mat            A;
+  KSP            ksp;
+  PC             pc;
 
   PetscFunctionBegin;
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
 
-  if (eps->isgeneralized && !blz->slice) { 
+  if (eps->isgeneralized && !blz->slice) {
     ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr); /* shift of origin */
     blz->rstor[0]  = sigma;        /* lower limit of eigenvalue interval */
     blz->rstor[1]  = sigma;        /* upper limit of eigenvalue interval */
@@ -197,7 +197,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       for (i=0;i<nvopu;i++) {
         ierr = VecPlaceArray(x,blz->u+i*eps->nloc);CHKERRQ(ierr);
         ierr = VecPlaceArray(y,blz->v+i*eps->nloc);CHKERRQ(ierr);
-        if (blz->slice || eps->isgeneralized) { 
+        if (blz->slice || eps->isgeneralized) {
           ierr = STMatSolve(eps->st,1,x,y);CHKERRQ(ierr);
         } else {
           ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
@@ -216,7 +216,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       eps->its = eps->its + 1;
       if (eps->its >= eps->max_it || eps->nconv >= eps->nev) lflag = 5;
       break;
-    case 2:  
+    case 2:
       /* compute v = B u */
       for (i=0;i<nvopu;i++) {
         ierr = VecPlaceArray(x,blz->u+i*eps->nloc);CHKERRQ(ierr);
@@ -226,7 +226,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
         ierr = VecResetArray(y);CHKERRQ(ierr);
       }
       break;
-    case 3:  
+    case 3:
       /* update shift */
       ierr = PetscInfo1(eps,"Factorization update (sigma=%g)\n",sigma);CHKERRQ(ierr);
       ierr = STSetShift(eps->st,sigma);CHKERRQ(ierr);
@@ -236,7 +236,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       ierr = MatGetInertia(A,&nn,NULL,NULL);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(nn,&nneig);CHKERRQ(ierr);
       break;
-    case 4:  
+    case 4:
       /* copy the initial vector */
       ierr = VecPlaceArray(x,blz->v);CHKERRQ(ierr);
       ierr = EPSGetStartVector(eps,0,x,NULL);CHKERRQ(ierr);
@@ -255,12 +255,12 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
     eps->eigr[i]=blz->eig[i];
   }
 
-  if (lflag!=0) { 
+  if (lflag!=0) {
     char msg[2048] = "";
     for (i = 0; i < 33; i++) {
       if (blz->istor[15] & (1 << i)) PetscStrcat(msg,blzpack_error[i]);
     }
-    SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in BLZPACK (code=%d): '%s'",blz->istor[15],msg); 
+    SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in BLZPACK (code=%d): '%s'",blz->istor[15],msg);
   }
   ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = VecDestroy(&y);CHKERRQ(ierr);
@@ -367,7 +367,7 @@ static PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) blz->block_size = 3;
-  else if (bs <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Block size must be positive"); 
+  else if (bs <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Block size must be positive");
   else {
     ierr = PetscBLASIntCast(bs,&blz->block_size);CHKERRQ(ierr);
   }

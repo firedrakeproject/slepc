@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -27,7 +27,7 @@ static char help[] = "Solves the same eigenproblem as in example ex2, but using 
 #include <slepceps.h>
 #include <petscblaslapack.h>
 
-/* 
+/*
    User-defined routines
 */
 PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y);
@@ -52,7 +52,7 @@ int main(int argc,char **argv)
   N = n*n;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n2-D Laplacian Eigenproblem (matrix-free version), N=%D (%Dx%D grid)\n\n",N,n,n);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -62,16 +62,16 @@ int main(int argc,char **argv)
   ierr = MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,(void(*)())MatLaplacian2D_Mult);CHKERRQ(ierr);
   ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)())MatLaplacian2D_GetDiagonal);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* 
+  /*
      Create eigensolver context
   */
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
 
-  /* 
+  /*
      Set operators. In this case, it is a standard eigenvalue problem
   */
   ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
@@ -82,7 +82,7 @@ int main(int argc,char **argv)
   */
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -96,7 +96,7 @@ int main(int argc,char **argv)
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -109,9 +109,9 @@ int main(int argc,char **argv)
 
 /*
     Compute the matrix vector multiplication y<---T*x where T is a nx by nx
-    tridiagonal matrix with DD on the diagonal, DL on the subdiagonal, and 
+    tridiagonal matrix with DD on the diagonal, DL on the subdiagonal, and
     DU on the superdiagonal.
- */   
+ */
 static void tv(int nx,const PetscScalar *x,PetscScalar *y)
 {
   PetscScalar dd,dl,du;
@@ -123,8 +123,8 @@ static void tv(int nx,const PetscScalar *x,PetscScalar *y)
 
   y[0] =  dd*x[0] + du*x[1];
   for (j=1;j<nx-1;j++)
-    y[j] = dl*x[j-1] + dd*x[j] + du*x[j+1]; 
-  y[nx-1] = dl*x[nx-2] + dd*x[nx-1]; 
+    y[j] = dl*x[j-1] + dd*x[j] + du*x[j+1];
+  y[nx-1] = dl*x[nx-2] + dd*x[nx-1];
 }
 
 #undef __FUNCT__
@@ -137,7 +137,7 @@ static void tv(int nx,const PetscScalar *x,PetscScalar *y)
 
     Computes y <-- A*x, where A is the block tridiagonal matrix
 
-                 | T -I          | 
+                 | T -I          |
                  |-I  T -I       |
              A = |   -I  T       |
                  |        ...  -I|

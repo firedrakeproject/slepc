@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -43,12 +43,12 @@ PetscFunctionList STList = 0;
    Use -help for a list of available transformations
 
    Notes:
-   See "slepc/include/slepcst.h" for available transformations 
+   See "slepc/include/slepcst.h" for available transformations
 
    Normally, it is best to use the EPSSetFromOptions() command and
    then set the ST type from the options database rather than by using
    this routine.  Using the options database provides the user with
-   maximum flexibility in evaluating the many different transformations. 
+   maximum flexibility in evaluating the many different transformations.
 
    Level: intermediate
 
@@ -90,7 +90,7 @@ PetscErrorCode STSetType(ST st,STType type)
 .  st - the spectral transformation context
 
    Output Parameter:
-.  name - name of the spectral transformation 
+.  name - name of the spectral transformation
 
    Level: intermediate
 
@@ -154,7 +154,7 @@ PetscErrorCode STSetFromOptions(ST st)
     if (flg) st->shift_matrix = (STMatMode)i;
 
     ierr = PetscOptionsEList("-st_matstructure","Shift nonzero pattern","STSetMatStructure",structure_list,3,structure_list[st->str],&i,&flg);CHKERRQ(ierr);
-    if (flg) { 
+    if (flg) {
       switch (i) {
         case 0: ierr = STSetMatStructure(st,SAME_NONZERO_PATTERN);CHKERRQ(ierr); break;
         case 1: ierr = STSetMatStructure(st,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr); break;
@@ -168,14 +168,14 @@ PetscErrorCode STSetFromOptions(ST st)
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)st);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr); 
+  ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetMatStructure"
 /*@
-   STSetMatStructure - Sets an internal MatStructure attribute to 
+   STSetMatStructure - Sets an internal MatStructure attribute to
    indicate which is the relation of the sparsity pattern of the two matrices
    A and B constituting the generalized eigenvalue problem.
 
@@ -188,8 +188,8 @@ PetscErrorCode STSetFromOptions(ST st)
 
    Options Database Key:
 .  -st_matstructure <str> - Indicates the structure flag, where <str> is one
-         of 'same' (A and B have the same nonzero pattern), 'different' (A 
-         and B have different nonzero pattern) or 'subset' (B's nonzero 
+         of 'same' (A and B have the same nonzero pattern), 'different' (A
+         and B have different nonzero pattern) or 'subset' (B's nonzero
          pattern is a subset of A's).
 
    Notes:
@@ -223,7 +223,7 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 #undef __FUNCT__
 #define __FUNCT__ "STGetMatStructure"
 /*@
-   STGetMatStructure - Gets the internal MatStructure attribute to 
+   STGetMatStructure - Gets the internal MatStructure attribute to
    indicate which is the relation of the sparsity pattern of the two matrices
    A and B constituting the generalized eigenvalue problem.
 
@@ -262,7 +262,7 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
 
    Input Parameters:
 +  st - the spectral transformation context
--  mode - the mode flag, one of ST_MATMODE_COPY, 
+-  mode - the mode flag, one of ST_MATMODE_COPY,
           ST_MATMODE_INPLACE or ST_MATMODE_SHELL
 
    Options Database Key:
@@ -270,23 +270,23 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
           'copy', 'inplace' or 'shell' (see explanation below).
 
    Notes:
-   By default (ST_MATMODE_COPY), a copy of matrix A is made and then 
-   this copy is shifted explicitly, e.g. A <- (A - s B). 
+   By default (ST_MATMODE_COPY), a copy of matrix A is made and then
+   this copy is shifted explicitly, e.g. A <- (A - s B).
 
-   With ST_MATMODE_INPLACE, the original matrix A is shifted at 
+   With ST_MATMODE_INPLACE, the original matrix A is shifted at
    STSetUp() and unshifted at the end of the computations. With respect to
    the previous one, this mode avoids a copy of matrix A. However, a
-   backdraw is that the recovered matrix might be slightly different 
+   backdraw is that the recovered matrix might be slightly different
    from the original one (due to roundoff).
 
-   With ST_MATMODE_SHELL, the solver works with an implicit shell 
-   matrix that represents the shifted matrix. This mode is the most efficient 
-   in creating the shifted matrix but it places serious limitations to the 
+   With ST_MATMODE_SHELL, the solver works with an implicit shell
+   matrix that represents the shifted matrix. This mode is the most efficient
+   in creating the shifted matrix but it places serious limitations to the
    linear solves performed in each iteration of the eigensolver (typically,
    only interative solvers with Jacobi preconditioning can be used).
 
    In the case of generalized problems, in the two first modes the matrix
-   A - s B has to be computed explicitly. The efficiency of this computation 
+   A - s B has to be computed explicitly. The efficiency of this computation
    can be controlled with STSetMatStructure().
 
    Level: intermediate
@@ -306,7 +306,7 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
 #undef __FUNCT__
 #define __FUNCT__ "STGetMatMode"
 /*@C
-   STGetMatMode - Gets a flag that indicates how the matrix is being 
+   STGetMatMode - Gets a flag that indicates how the matrix is being
    shifted in the shift-and-invert and Cayley spectral transformations.
 
    Not Collective

@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -36,7 +36,7 @@ typedef struct {
   Mat       A;                    /* problem matrix */
   EPS       eps;                  /* EPS current context */
   KSP       ksp;                  /* linear solver and preconditioner */
-  Vec       x,y;                  /* auxiliary vectors */ 
+  Vec       x,y;                  /* auxiliary vectors */
   PetscReal target;               /* a copy of eps's target */
 } EPS_PRIMME;
 
@@ -81,7 +81,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&numProcs);CHKERRQ(ierr);
   ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&procID);CHKERRQ(ierr);
 
-  /* Check some constraints and set some default values */ 
+  /* Check some constraints and set some default values */
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
   ierr = STGetOperators(eps->st,0,&ops->A);CHKERRQ(ierr);
   if (!ops->A) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
@@ -89,7 +89,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
-  if (eps->converged != EPSConvergedAbsolute) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only supports absolute convergence test"); 
+  if (eps->converged != EPSConvergedAbsolute) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only supports absolute convergence test");
 
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) {
@@ -106,12 +106,12 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Transfer SLEPc options to PRIMME options */
   primme->n          = eps->n;
   primme->nLocal     = eps->nloc;
-  primme->numEvals   = eps->nev; 
+  primme->numEvals   = eps->nev;
   primme->matrix     = ops;
   primme->commInfo   = eps;
-  primme->maxMatvecs = eps->max_it; 
-  primme->eps        = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol; 
-  primme->numProcs   = numProcs; 
+  primme->maxMatvecs = eps->max_it;
+  primme->eps        = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
+  primme->numProcs   = numProcs;
   primme->procID     = procID;
   primme->printLevel = 0;
   primme->correctionParams.precondition = 1;
@@ -133,7 +133,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"'which' value does not supported by PRIMME");
-      break;   
+      break;
   }
 
   if (primme_set_method(ops->method,primme) < 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME method not valid");
@@ -159,7 +159,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
     primme->applyPreconditioner = applyPreconditioner_PRIMME;
   }
 
-  /* Prepare auxiliary vectors */ 
+  /* Prepare auxiliary vectors */
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,eps->n,NULL,&ops->x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,eps->n,NULL,&ops->y);CHKERRQ(ierr);
 
@@ -231,7 +231,7 @@ static void multMatvec_PRIMME(void *in,void *out,int *blockSize,primme_params *p
 {
   PetscErrorCode ierr;
   PetscInt       i,N = primme->n;
-  EPS_PRIMME     *ops = (EPS_PRIMME*)primme->matrix; 
+  EPS_PRIMME     *ops = (EPS_PRIMME*)primme->matrix;
   Vec            x = ops->x,y = ops->y;
   Mat            A = ops->A;
 
@@ -255,7 +255,7 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
 {
   PetscErrorCode ierr;
   PetscInt       i,N = primme->n,lits;
-  EPS_PRIMME     *ops = (EPS_PRIMME*)primme->matrix; 
+  EPS_PRIMME     *ops = (EPS_PRIMME*)primme->matrix;
   Vec            x = ops->x,y = ops->y;
 
   PetscFunctionBegin;
@@ -272,7 +272,7 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
     ierr = VecResetArray(y);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
   }
   PetscFunctionReturnVoid();
-} 
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSReset_PRIMME"
@@ -373,7 +373,7 @@ static PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) ops->primme.maxBlockSize = 1;
-  else if (bs <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive"); 
+  else if (bs <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive");
   else ops->primme.maxBlockSize = bs;
   PetscFunctionReturn(0);
 }
@@ -381,11 +381,11 @@ static PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
 #undef __FUNCT__
 #define __FUNCT__ "EPSPRIMMESetBlockSize"
 /*@
-   EPSPRIMMESetBlockSize - The maximum block size the code will try to use. 
+   EPSPRIMMESetBlockSize - The maximum block size the code will try to use.
    The user should set
-   this based on the architecture specifics of the target computer, 
-   as well as any a priori knowledge of multiplicities. The code does 
-   NOT require BlockSize > 1 to find multiple eigenvalues.  For some 
+   this based on the architecture specifics of the target computer,
+   as well as any a priori knowledge of multiplicities. The code does
+   NOT require BlockSize > 1 to find multiple eigenvalues.  For some
    methods, keeping BlockSize = 1 yields the best overall performance.
 
    Collective on EPS
@@ -429,15 +429,15 @@ static PetscErrorCode EPSPRIMMEGetBlockSize_PRIMME(EPS eps,PetscInt *bs)
 #undef __FUNCT__
 #define __FUNCT__ "EPSPRIMMEGetBlockSize"
 /*@
-   EPSPRIMMEGetBlockSize - Get the maximum block size the code will try to use. 
+   EPSPRIMMEGetBlockSize - Get the maximum block size the code will try to use.
 
    Collective on EPS
 
    Input Parameters:
 .  eps - the eigenproblem solver context
 
-   Output Parameters:  
-.  bs - returned block size 
+   Output Parameters:
+.  bs - returned block size
 
    Level: advanced
 .seealso: EPSPRIMMESetBlockSize()
@@ -476,8 +476,8 @@ static PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps,EPSPRIMMEMethod method)
 -  method - method that will be used by PRIMME. It must be one of:
     EPS_PRIMME_DYNAMIC, EPS_PRIMME_DEFAULT_MIN_TIME(EPS_PRIMME_JDQMR_ETOL),
     EPS_PRIMME_DEFAULT_MIN_MATVECS(EPS_PRIMME_GD_OLSEN_PLUSK), EPS_PRIMME_ARNOLDI,
-    EPS_PRIMME_GD, EPS_PRIMME_GD_PLUSK, EPS_PRIMME_GD_OLSEN_PLUSK, 
-    EPS_PRIMME_JD_OLSEN_PLUSK, EPS_PRIMME_RQI, EPS_PRIMME_JDQR, EPS_PRIMME_JDQMR, 
+    EPS_PRIMME_GD, EPS_PRIMME_GD_PLUSK, EPS_PRIMME_GD_OLSEN_PLUSK,
+    EPS_PRIMME_JD_OLSEN_PLUSK, EPS_PRIMME_RQI, EPS_PRIMME_JDQR, EPS_PRIMME_JDQMR,
     EPS_PRIMME_JDQMR_ETOL, EPS_PRIMME_SUBSPACE_ITERATION,
     EPS_PRIMME_LOBPCG_ORTHOBASIS, EPS_PRIMME_LOBPCG_ORTHOBASISW
 
@@ -523,12 +523,12 @@ static PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps,EPSPRIMMEMethod *method)
    Input Parameters:
 .  eps - the eigenproblem solver context
 
-   Output Parameters: 
+   Output Parameters:
 .  method - method that will be used by PRIMME. It must be one of:
     EPS_PRIMME_DYNAMIC, EPS_PRIMME_DEFAULT_MIN_TIME(EPS_PRIMME_JDQMR_ETOL),
     EPS_PRIMME_DEFAULT_MIN_MATVECS(EPS_PRIMME_GD_OLSEN_PLUSK), EPS_PRIMME_ARNOLDI,
-    EPS_PRIMME_GD, EPS_PRIMME_GD_PLUSK, EPS_PRIMME_GD_OLSEN_PLUSK, 
-    EPS_PRIMME_JD_OLSEN_PLUSK, EPS_PRIMME_RQI, EPS_PRIMME_JDQR, EPS_PRIMME_JDQMR, 
+    EPS_PRIMME_GD, EPS_PRIMME_GD_PLUSK, EPS_PRIMME_GD_OLSEN_PLUSK,
+    EPS_PRIMME_JD_OLSEN_PLUSK, EPS_PRIMME_RQI, EPS_PRIMME_JDQR, EPS_PRIMME_JDQMR,
     EPS_PRIMME_JDQMR_ETOL, EPS_PRIMME_SUBSPACE_ITERATION,
     EPS_PRIMME_LOBPCG_ORTHOBASIS, EPS_PRIMME_LOBPCG_ORTHOBASISW
 

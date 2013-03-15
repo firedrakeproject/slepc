@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -44,7 +44,7 @@ PetscErrorCode MFNMonitor(MFN mfn,PetscInt it,PetscReal errest)
 #undef __FUNCT__
 #define __FUNCT__ "MFNMonitorSet"
 /*@C
-   MFNMonitorSet - Sets an ADDITIONAL function to be called at every 
+   MFNMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor convergence.
 
    Logically Collective on MFN
@@ -71,9 +71,9 @@ $     monitor (MFN mfn, int its, PetscReal errest, void *mctx)
       a code by calls to MFNMonitorSet(), but does not cancel those set via
       the options database.
 
-   Notes:  
+   Notes:
    Several different monitoring routines may be set by calling
-   MFNMonitorSet() multiple times; all will be called in the 
+   MFNMonitorSet() multiple times; all will be called in the
    order in which they were set.
 
    Level: intermediate
@@ -102,7 +102,7 @@ PetscErrorCode MFNMonitorSet(MFN mfn,PetscErrorCode (*monitor)(MFN,PetscInt,Pets
 .  mfn - matrix function context obtained from MFNCreate()
 
    Options Database Key:
-.    -mfn_monitor_cancel - Cancels all monitors that have been hardwired 
+.    -mfn_monitor_cancel - Cancels all monitors that have been hardwired
       into a code by calls to MFNMonitorSet(),
       but does not cancel those set via the options database.
 
@@ -129,7 +129,7 @@ PetscErrorCode MFNMonitorCancel(MFN mfn)
 #undef __FUNCT__
 #define __FUNCT__ "MFNGetMonitorContext"
 /*@C
-   MFNGetMonitorContext - Gets the monitor context, as set by 
+   MFNGetMonitorContext - Gets the monitor context, as set by
    MFNMonitorSet() for the FIRST monitor only.
 
    Not Collective
@@ -211,5 +211,5 @@ PetscErrorCode MFNMonitorLG(MFN mfn,PetscInt its,PetscReal errest,void *monctx)
   ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-} 
+}
 

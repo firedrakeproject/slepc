@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -29,7 +29,7 @@
 #define mfnappendoptionsprefix_     MFNAPPENDOPTIONSPREFIX
 #define mfngetoptionsprefix_        MFNGETOPTIONSPREFIX
 #define mfncreate_                  MFNCREATE
-#define mfnsettype_                 MFNSETTYPE           
+#define mfnsettype_                 MFNSETTYPE
 #define mfngettype_                 MFNGETTYPE
 #define mfnmonitordefault_          MFNMONITORDEFAULT
 #define mfnmonitorlg_               MFNMONITORLG
@@ -44,7 +44,7 @@
 #define mfnappendoptionsprefix_     mfnappendoptionsprefix
 #define mfngetoptionsprefix_        mfngetoptionsprefix
 #define mfncreate_                  mfncreate
-#define mfnsettype_                 mfnsettype           
+#define mfnsettype_                 mfnsettype
 #define mfngettype_                 mfngettype
 #define mfnmonitordefault_          mfnmonitordefault
 #define mfnmonitorlg_               mfnmonitorlg
@@ -55,7 +55,7 @@
 #endif
 
 /*
-   These are not usually called from Fortran but allow Fortran users 
+   These are not usually called from Fortran but allow Fortran users
    to transparently set these monitors from .F code, hence no STDCALL
 */
 PETSC_EXTERN void mfnmonitordefault_(MFN *mfn,PetscInt *it,PetscReal *errest,void *ctx,PetscErrorCode *ierr)

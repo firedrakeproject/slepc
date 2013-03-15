@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -48,13 +48,13 @@ PetscErrorCode DSAllocate_GNHEP(DS ds,PetscInt ld)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = DSAllocateMat_Private(ds,DS_MAT_A);CHKERRQ(ierr); 
-  ierr = DSAllocateMat_Private(ds,DS_MAT_B);CHKERRQ(ierr); 
-  ierr = DSAllocateMat_Private(ds,DS_MAT_Z);CHKERRQ(ierr); 
-  ierr = DSAllocateMat_Private(ds,DS_MAT_Q);CHKERRQ(ierr); 
+  ierr = DSAllocateMat_Private(ds,DS_MAT_A);CHKERRQ(ierr);
+  ierr = DSAllocateMat_Private(ds,DS_MAT_B);CHKERRQ(ierr);
+  ierr = DSAllocateMat_Private(ds,DS_MAT_Z);CHKERRQ(ierr);
+  ierr = DSAllocateMat_Private(ds,DS_MAT_Q);CHKERRQ(ierr);
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
   ierr = PetscMalloc(ld*sizeof(PetscInt),&ds->perm);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(ds,ld*sizeof(PetscInt));CHKERRQ(ierr); 
+  ierr = PetscLogObjectMemory(ds,ld*sizeof(PetscInt));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -65,17 +65,17 @@ PetscErrorCode DSView_GNHEP(DS ds,PetscViewer viewer)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = DSViewMat_Private(ds,viewer,DS_MAT_A);CHKERRQ(ierr); 
-  ierr = DSViewMat_Private(ds,viewer,DS_MAT_B);CHKERRQ(ierr); 
+  ierr = DSViewMat_Private(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
+  ierr = DSViewMat_Private(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
   if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Z);CHKERRQ(ierr); 
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Q);CHKERRQ(ierr); 
+    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Z);CHKERRQ(ierr);
+    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
   }
   if (ds->mat[DS_MAT_X]) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_X);CHKERRQ(ierr); 
+    ierr = DSViewMat_Private(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
   }
   if (ds->mat[DS_MAT_Y]) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Y);CHKERRQ(ierr); 
+    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -107,7 +107,7 @@ PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscBool left)
     Y = NULL;
     side = "R";
   }
-  ierr = DSAllocateWork_Private(ds,0,0,ld);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,0,0,ld);CHKERRQ(ierr);
   select = ds->iwork;
   for (i=0;i<n;i++) select[i] = 0;
   select[*k] = 1;
@@ -121,12 +121,12 @@ PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscBool left)
   }
 #if defined(PETSC_USE_COMPLEX)
   mm = 1;
-  ierr = DSAllocateWork_Private(ds,2*ld,2*ld,0);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,2*ld,2*ld,0);CHKERRQ(ierr);
   PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,"S",select,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&mm,&mout,ds->work,ds->rwork,&info));
 #else
   if ((*k)<n-1 && (A[ld*(*k)+(*k)+1] != 0.0 || B[ld*(*k)+(*k)+1] != 0.0)) iscomplex = PETSC_TRUE;
   mm = iscomplex ? 2 : 1;
-  ierr = DSAllocateWork_Private(ds,6*ld,0,0);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,6*ld,0,0);CHKERRQ(ierr);
   PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,"S",select,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&mm,&mout,ds->work,&info));
 #endif
   if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
@@ -175,10 +175,10 @@ PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
     ierr = DSSetState(ds,DS_STATE_CONDENSED);CHKERRQ(ierr);
   }
 #if defined(PETSC_USE_COMPLEX)
-  ierr = DSAllocateWork_Private(ds,2*ld,2*ld,0);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,2*ld,2*ld,0);CHKERRQ(ierr);
   PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,back,NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,ds->rwork,&info));
 #else
-  ierr = DSAllocateWork_Private(ds,6*ld,0,0);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,6*ld,0,0);CHKERRQ(ierr);
   PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,back,NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,&info));
 #endif
   if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
@@ -204,7 +204,7 @@ PetscErrorCode DSVectors_GNHEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
       }
       break;
     default:
-      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
   }
   PetscFunctionReturn(0);
 }
@@ -234,7 +234,7 @@ PetscErrorCode DSNormalize_GNHEP(DS ds,DSMatType mat,PetscInt col)
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
       break;
     default:
-      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter"); 
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
   }
 
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
@@ -290,7 +290,7 @@ PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Pets
   lwork = 1;
 #endif
   liwork = 1;
-  ierr = DSAllocateWork_Private(ds,lwork+2*n,0,liwork+n);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,lwork+2*n,0,liwork+n);CHKERRQ(ierr);
   beta = ds->work;
   work = ds->work + n;
   lwork = ds->lwork - n;
@@ -317,7 +317,7 @@ PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Pets
 #endif
   }
   PetscFunctionReturn(0);
-#endif 
+#endif
 }
 
 #undef __FUNCT__
@@ -347,7 +347,7 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscStackCall("LAPACKtgexc",LAPACKtgexc_(&one,&one,&ld,NULL,&ld,NULL,&ld,NULL,&ld,NULL,&ld,&one,&one,&a,&lwork,&info));
   safmin = LAPACKlamch_("S");
   lwork = a;
-  ierr = DSAllocateWork_Private(ds,lwork,0,0);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,lwork,0,0);CHKERRQ(ierr);
   work = ds->work;
 #endif
   /* selection sort */
@@ -362,7 +362,7 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
     if (im != 0) j=i+2;
 #endif
     /* find minimum eigenvalue */
-    for (;j<n;j++) { 
+    for (;j<n;j++) {
 #if !defined(PETSC_USE_COMPLEX)
       ierr = (*ds->comparison)(re,im,wr[j],wi[j],&result,ds->comparisonctx);CHKERRQ(ierr);
 #else
@@ -416,7 +416,7 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
   }
   PetscFunctionReturn(0);
-#endif 
+#endif
 }
 
 #undef __FUNCT__
@@ -560,7 +560,7 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
   PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,&info));
   lwork = (PetscBLASInt)a;
-  ierr = DSAllocateWork_Private(ds,lwork+ld,0,0);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,lwork+ld,0,0);CHKERRQ(ierr);
   beta = ds->work;
   work = beta+ds->n;
   ierr = PetscBLASIntCast(ds->lwork-ds->n,&lwork);CHKERRQ(ierr);
@@ -568,7 +568,7 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #else
   PetscStackCall("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,NULL,&info));
   lwork = (PetscBLASInt)PetscRealPart(a);
-  ierr = DSAllocateWork_Private(ds,lwork+ld,8*ld,0);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,lwork+ld,8*ld,0);CHKERRQ(ierr);
   beta = ds->work;
   work = beta+ds->n;
   ierr = PetscBLASIntCast(ds->lwork-ds->n,&lwork);CHKERRQ(ierr);

@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -39,7 +39,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(PetscMax(7,eps->nev+PetscMin(eps->nev,6)),&tr->maxlan);CHKERRQ(ierr);
   if (eps->ncv) {
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
   } else eps->ncv = tr->maxlan;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
@@ -100,8 +100,8 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   ipar[32],n,lohi,stat,ncv; 
-  EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;   
+  PetscBLASInt   ipar[32],n,lohi,stat,ncv;
+  EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;
   PetscScalar    *pV;
 
   PetscFunctionBegin;

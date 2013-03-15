@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -59,14 +59,14 @@ PETSC_EXTERN void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(l
   }
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-  *ierr = SlepcInitialize_DynamicLibraries(); 
+  *ierr = SlepcInitialize_DynamicLibraries();
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing dynamic libraries\n");return; }
 #else
-  *ierr = SlepcInitialize_Packages(); 
+  *ierr = SlepcInitialize_Packages();
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing packages\n");return; }
 #endif
 
-  *ierr = SlepcInitialize_LogEvents(); 
+  *ierr = SlepcInitialize_LogEvents();
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing log events\n");return; }
 
 #if defined(PETSC_HAVE_DRAND48)
@@ -77,5 +77,5 @@ PETSC_EXTERN void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(l
   SlepcInitializeCalled = PETSC_TRUE;
   *ierr = PetscInfo(0,"SLEPc successfully started from Fortran\n");
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Calling PetscInfo()");return; }
-}  
+}
 

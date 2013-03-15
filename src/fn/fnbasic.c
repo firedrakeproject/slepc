@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -31,14 +31,14 @@ static PetscBool  FNPackageInitialized = PETSC_FALSE;
 #undef __FUNCT__
 #define __FUNCT__ "FNFinalizePackage"
 /*@C
-   FNFinalizePackage - This function destroys everything in the Slepc interface 
+   FNFinalizePackage - This function destroys everything in the Slepc interface
    to the FN package. It is called from SlepcFinalize().
 
    Level: developer
 
 .seealso: SlepcFinalize()
 @*/
-PetscErrorCode FNFinalizePackage(void) 
+PetscErrorCode FNFinalizePackage(void)
 {
   PetscFunctionBegin;
   FNPackageInitialized = PETSC_FALSE;
@@ -61,7 +61,7 @@ PetscErrorCode FNFinalizePackage(void)
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode FNInitializePackage(const char *path) 
+PetscErrorCode FNInitializePackage(const char *path)
 {
   char             logList[256];
   char             *className;
@@ -131,7 +131,7 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
 #undef __FUNCT__
 #define __FUNCT__ "FNSetOptionsPrefix"
 /*@C
-   FNSetOptionsPrefix - Sets the prefix used for searching for all 
+   FNSetOptionsPrefix - Sets the prefix used for searching for all
    FN options in the database.
 
    Logically Collective on FN
@@ -162,7 +162,7 @@ PetscErrorCode FNSetOptionsPrefix(FN fn,const char *prefix)
 #undef __FUNCT__
 #define __FUNCT__ "FNAppendOptionsPrefix"
 /*@C
-   FNAppendOptionsPrefix - Appends to the prefix used for searching for all 
+   FNAppendOptionsPrefix - Appends to the prefix used for searching for all
    FN options in the database.
 
    Logically Collective on FN
@@ -192,7 +192,7 @@ PetscErrorCode FNAppendOptionsPrefix(FN fn,const char *prefix)
 #undef __FUNCT__
 #define __FUNCT__ "FNGetOptionsPrefix"
 /*@C
-   FNGetOptionsPrefix - Gets the prefix used for searching for all 
+   FNGetOptionsPrefix - Gets the prefix used for searching for all
    FN options in the database.
 
    Not Collective
@@ -325,10 +325,10 @@ PetscErrorCode FNSetParameters(FN fn,PetscInt na,PetscScalar *alpha,PetscInt nb,
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveInt(fn,na,2);
-  if (na<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument na cannot be negative"); 
+  if (na<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument na cannot be negative");
   if (na) PetscValidPointer(alpha,3);
   PetscValidLogicalCollectiveInt(fn,nb,4);
-  if (nb<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument nb cannot be negative"); 
+  if (nb<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument nb cannot be negative");
   if (nb) PetscValidPointer(beta,5);
   fn->na = na;
   ierr = PetscFree(fn->alpha);CHKERRQ(ierr);
@@ -490,8 +490,8 @@ PetscErrorCode FNSetFromOptions(FN fn)
 +     PETSC_VIEWER_STDOUT_SELF - standard output (default)
 -     PETSC_VIEWER_STDOUT_WORLD - synchronized standard
          output where only the first processor opens
-         the file.  All other processors send their 
-         data to the first processor to print. 
+         the file.  All other processors send their
+         data to the first processor to print.
 
    The user can open an alternative visualization context with
    PetscViewerASCIIOpen() - output to a specified file.

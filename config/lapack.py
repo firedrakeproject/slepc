@@ -4,14 +4,14 @@
 #  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
-#     
+#
 #  SLEPc is free software: you can redistribute it and/or modify it under  the
 #  terms of version 3 of the GNU Lesser General Public License as published by
 #  the Free Software Foundation.
 #
-#  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-#  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-#  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+#  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+#  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+#  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 #  more details.
 #
 #  You  should have received a copy of the GNU Lesser General  Public  License
@@ -51,7 +51,7 @@ def Check(conf,vars,cmake,tmpdir):
     else:
       prefix = 'z'
 
-  # add prefix to LAPACK names  
+  # add prefix to LAPACK names
   functions = []
   for i in l:
     functions.append(prefix + i)
@@ -59,7 +59,7 @@ def Check(conf,vars,cmake,tmpdir):
   # in this case, the real name represents both versions
   namesubst = {'unghr':'orghr', 'heevr':'syevr', 'heevd':'syevd', 'hetrd':'sytrd', 'hegvd':'sygvd', 'unmlq':'ormlq', 'ungqr':'orgqr', 'ungtr':'orgtr'}
 
-  # LAPACK functions which are always used in real version 
+  # LAPACK functions which are always used in real version
   if petscconf.PRECISION == 'single':
     functions += ['sstevr','sbdsdc','slamch','slag2','slasv2','slartg','slaln2']
   elif petscconf.PRECISION == '__float128':
@@ -68,7 +68,7 @@ def Check(conf,vars,cmake,tmpdir):
     functions += ['dstevr','dbdsdc','dlamch','dlag2','dlasv2','dlartg','dlaln2']
 
   # check for all functions at once
-  all = [] 
+  all = []
   for i in functions:
     f =  '#if defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
     f += i + '_\n'

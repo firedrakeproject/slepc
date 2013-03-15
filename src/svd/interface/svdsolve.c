@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -39,9 +39,9 @@
 
    Level: beginner
 
-.seealso: SVDCreate(), SVDSetUp(), SVDDestroy() 
+.seealso: SVDCreate(), SVDSetUp(), SVDDestroy()
 @*/
-PetscErrorCode SVDSolve(SVD svd) 
+PetscErrorCode SVDSolve(SVD svd)
 {
   PetscErrorCode    ierr;
   PetscBool         flg;
@@ -89,7 +89,7 @@ PetscErrorCode SVDSolve(SVD svd)
   ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->prefix,"-svd_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = SVDView(svd,viewer);CHKERRQ(ierr); 
+    ierr = SVDView(svd,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
@@ -102,8 +102,8 @@ PetscErrorCode SVDSolve(SVD svd)
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetIterationNumber"
 /*@
-   SVDGetIterationNumber - Gets the current iteration number. If the 
-   call to SVDSolve() is complete, then it returns the number of iterations 
+   SVDGetIterationNumber - Gets the current iteration number. If the
+   call to SVDSolve() is complete, then it returns the number of iterations
    carried out by the solution method.
 
    Not Collective
@@ -117,10 +117,10 @@ PetscErrorCode SVDSolve(SVD svd)
    Level: intermediate
 
    Notes:
-      During the i-th iteration this call returns i-1. If SVDSolve() is 
+      During the i-th iteration this call returns i-1. If SVDSolve() is
       complete, then parameter "its" contains either the iteration number at
-      which convergence was successfully reached, or failure was detected.  
-      Call SVDGetConvergedReason() to determine if the solver converged or 
+      which convergence was successfully reached, or failure was detected.
+      Call SVDGetConvergedReason() to determine if the solver converged or
       failed and why.
 
 @*/
@@ -136,7 +136,7 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetConvergedReason"
 /*@C
-   SVDGetConvergedReason - Gets the reason why the SVDSolve() iteration was 
+   SVDGetConvergedReason - Gets the reason why the SVDSolve() iteration was
    stopped.
 
    Not Collective
@@ -179,7 +179,7 @@ PetscErrorCode SVDGetConvergedReason(SVD svd,SVDConvergedReason *reason)
 .  svd - the singular value solver context
 
    Output Parameter:
-.  nconv - number of converged singular values 
+.  nconv - number of converged singular values
 
    Note:
    This function should be called after SVDSolve() has finished.
@@ -197,16 +197,16 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDGetSingularTriplet" 
+#define __FUNCT__ "SVDGetSingularTriplet"
 /*@
    SVDGetSingularTriplet - Gets the i-th triplet of the singular value decomposition
-   as computed by SVDSolve(). The solution consists in the singular value and its left 
+   as computed by SVDSolve(). The solution consists in the singular value and its left
    and right singular vectors.
 
    Not Collective, but vectors are shared by all processors that share the SVD
 
    Input Parameters:
-+  svd - singular value solver context 
++  svd - singular value solver context
 -  i   - index of the solution
 
    Output Parameters:
@@ -216,7 +216,7 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
 
    Note:
    The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
-   Both U or V can be NULL if singular vectors are not required. 
+   Both U or V can be NULL if singular vectors are not required.
 
    Level: beginner
 
@@ -233,8 +233,8 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (u) { PetscValidHeaderSpecific(u,VEC_CLASSID,4); PetscCheckSameComm(svd,1,u,4); }
   if (v) { PetscValidHeaderSpecific(v,VEC_CLASSID,5); PetscCheckSameComm(svd,1,v,5); }
-  if (svd->reason == SVD_CONVERGED_ITERATING) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
-  if (i<0 || i>=svd->nconv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
+  if (svd->reason == SVD_CONVERGED_ITERATING) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first");
+  if (i<0 || i>=svd->nconv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   *sigma = svd->sigma[svd->perm[i]];
   ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   if (M<N) { w = u; u = v; v = w; }
@@ -258,7 +258,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
 #undef __FUNCT__
 #define __FUNCT__ "SVDComputeResidualNorms"
 /*@
-   SVDComputeResidualNorms - Computes the norms of the residual vectors associated with 
+   SVDComputeResidualNorms - Computes the norms of the residual vectors associated with
    the i-th computed singular triplet.
 
    Collective on SVD
@@ -268,8 +268,8 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
 -  i    - the solution index
 
    Output Parameters:
-+  norm1 - the norm ||A*v-sigma*u||_2 where sigma is the 
-           singular value, u and v are the left and right singular vectors. 
++  norm1 - the norm ||A*v-sigma*u||_2 where sigma is the
+           singular value, u and v are the left and right singular vectors.
 -  norm2 - the norm ||A^T*u-sigma*v||_2 with the same sigma, u and v
 
    Note:
@@ -290,8 +290,8 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,Petsc
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,i,2);
-  if (svd->reason == SVD_CONVERGED_ITERATING) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
-  if (i<0 || i>=svd->nconv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
+  if (svd->reason == SVD_CONVERGED_ITERATING) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first");
+  if (i<0 || i>=svd->nconv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
 
   ierr = MatGetVecs(svd->OP,&v,&u);CHKERRQ(ierr);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
@@ -331,7 +331,7 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,Petsc
 #undef __FUNCT__
 #define __FUNCT__ "SVDComputeRelativeError"
 /*@
-   SVDComputeRelativeError - Computes the relative error bound associated 
+   SVDComputeRelativeError - Computes the relative error bound associated
    with the i-th singular triplet.
 
    Collective on SVD
@@ -342,7 +342,7 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,Petsc
 
    Output Parameter:
 .  error - the relative error bound, computed as sqrt(n1^2+n2^2)/sigma
-   where n1 = ||A*v-sigma*u||_2 , n2 = ||A^T*u-sigma*v||_2 , sigma is the singular value, 
+   where n1 = ||A*v-sigma*u||_2 , n2 = ||A^T*u-sigma*v||_2 , sigma is the singular value,
    u and v are the left and right singular vectors.
    If sigma is too small the relative error is computed as sqrt(n1^2+n2^2).
 
@@ -369,7 +369,7 @@ PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetOperationCounters"
 /*@
-   SVDGetOperationCounters - Gets the total number of matrix vector and dot 
+   SVDGetOperationCounters - Gets the total number of matrix vector and dot
    products used by the SVD object during the last SVDSolve() call.
 
    Not Collective
@@ -393,7 +393,7 @@ PetscErrorCode SVDGetOperationCounters(SVD svd,PetscInt* matvecs,PetscInt* dots)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (matvecs) *matvecs = svd->matvecs; 
+  if (matvecs) *matvecs = svd->matvecs;
   if (dots) {
     if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
     ierr = IPGetOperationCounters(svd->ip,dots);CHKERRQ(ierr);

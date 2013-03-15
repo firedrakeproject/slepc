@@ -1,5 +1,5 @@
 /*
-   User interface for SLEPc's quadratic eigenvalue solvers. 
+   User interface for SLEPc's quadratic eigenvalue solvers.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -28,7 +28,7 @@
 PETSC_EXTERN PetscErrorCode QEPInitializePackage(const char[]);
 
 /*S
-     QEP - Abstract SLEPc object that manages all the quadratic eigenvalue 
+     QEP - Abstract SLEPc object that manages all the quadratic eigenvalue
      problem solvers.
 
    Level: beginner
@@ -149,7 +149,7 @@ PETSC_EXTERN PetscErrorCode QEPAppendOptionsPrefix(QEP,const char*);
 PETSC_EXTERN PetscErrorCode QEPGetOptionsPrefix(QEP,const char*[]);
 
 /*E
-    QEPConvergedReason - Reason an eigensolver was said to 
+    QEPConvergedReason - Reason an eigensolver was said to
          have converged or diverged
 
     Level: beginner

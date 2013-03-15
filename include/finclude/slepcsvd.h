@@ -7,14 +7,14 @@
 !  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
-!     
+!
 !  SLEPc is free software: you can redistribute it and/or modify it under  the
 !  terms of version 3 of the GNU Lesser General Public License as published by
 !  the Free Software Foundation.
 !
-!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 !  more details.
 !
 !  You  should have received a copy of the GNU Lesser General  Public  License
@@ -26,7 +26,7 @@
 !  Convergence flags.
 !  They sould match the flags in $SLEPC_DIR/include/slepcsvd.h
 
-      PetscEnum SVD_CONVERGED_TOL        
+      PetscEnum SVD_CONVERGED_TOL
       PetscEnum SVD_DIVERGED_ITS
       PetscEnum SVD_DIVERGED_BREAKDOWN
       PetscEnum SVD_CONVERGED_ITERATING
@@ -37,7 +37,7 @@
       parameter (SVD_CONVERGED_ITERATING    =  0)
 
       PetscEnum SVD_TRANSPOSE_EXPLICIT
-      PetscEnum SVD_TRANSPOSE_IMPLICIT 
+      PetscEnum SVD_TRANSPOSE_IMPLICIT
 
       parameter (SVD_TRANSPOSE_EXPLICIT     =  0)
       parameter (SVD_TRANSPOSE_IMPLICIT     =  1)

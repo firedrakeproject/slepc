@@ -21,9 +21,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -52,7 +52,7 @@ static PetscErrorCode UnifiedRotation(PetscReal x,PetscReal y,PetscReal sygn,Pet
     nrm = PetscMax(PetscAbs(x),PetscAbs(y));
     c = x/nrm; s = y/nrm;
     if (sygn == 1.0) {  /* set up a rotator */
-      nrm = PetscSqrtReal(c*c+s*s);     
+      nrm = PetscSqrtReal(c*c+s*s);
       c = c/nrm; s = s/nrm;
       /* rot = [c s; -s c]; */
       rot[0] = c; rot[1] = -s; rot[2] = s; rot[3] = c;
@@ -96,7 +96,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
 
   /* Build initial bulge that sets step in motion */
-  bulge10 = dd[ntop+1]*(aa[ntop]*(aa[ntop] - dd[ntop]*tr) + dt*dd[ntop]*dd[ntop]) + dd[ntop]*bb[ntop]*bb[ntop]; 
+  bulge10 = dd[ntop+1]*(aa[ntop]*(aa[ntop] - dd[ntop]*tr) + dt*dd[ntop]*dd[ntop]) + dd[ntop]*bb[ntop]*bb[ntop];
   bulge20 = bb[ntop]*(dd[ntop+1]*aa[ntop] + dd[ntop]*aa[ntop+1] - dd[ntop]*dd[ntop+1]*tr);
   bulge30 = bb[ntop]*bb[ntop+1]*dd[ntop];
   bulge31 = 0.0;
@@ -113,9 +113,9 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
     } else { /* carry out the step */
 
       /* Annihilate tip entry bulge30 */
-      if (bulge30 != 0.0) { 
+      if (bulge30 != 0.0) {
 
-        /* Make an interchange if necessary to ensure that the 
+        /* Make an interchange if necessary to ensure that the
            first transformation is othogonal, not hyperbolic.  */
         if (dd[jj+1] != dd[jj+2]) { /* make an interchange */
           if (dd[jj] != dd[jj+1]) {  /* interchange 1st and 2nd */
@@ -217,7 +217,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
     bulge10 = bb[jj];
     bulge20 = bulge31;
     bulge30 = bulge41;
-    bulge31 = bulge42; 
+    bulge31 = bulge42;
     bulge41 = 0.0;
     bulge42 = 0.0;
   }
@@ -285,7 +285,7 @@ static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa
       for (ntry=1;ntry<=6;ntry++) {
         ierr = HZStep(ntop,nbot+1,tr,dt,aa,bb,dd,uu,nn,ld,&flag);CHKERRQ(ierr);
         if (!flag) break;
-        else if (ntry == 6) 
+        else if (ntry == 6)
           SETERRQ(PETSC_COMM_SELF,1,"Unable to complete hz step on six tries");
         else {
           tr = 0.9*tr; dt = 0.81*dt;
@@ -329,7 +329,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
       wr[ds->l] = d[ds->l]/s[ds->l]; wi[ds->l] = 0.0;
     } else {
       d[ds->l] = PetscRealPart(A[off]); s[ds->l] = PetscRealPart(B[off]);
-      wr[ds->l] = d[ds->l]/s[ds->l]; wi[ds->l] = 0.0;  
+      wr[ds->l] = d[ds->l]/s[ds->l]; wi[ds->l] = 0.0;
     }
     PetscFunctionReturn(0);
   }

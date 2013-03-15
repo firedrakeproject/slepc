@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -52,12 +52,12 @@ typedef struct {
     matrices
 */
 
-#if defined(PETSC_USE_SINGLE) 
+#if defined(PETSC_USE_SINGLE)
 /*
    For these machines we must call the single precision Fortran version
 */
 #define BLZpack_ SLEPC_BLZPACK(blzdrs,BLZDRS)
-#else 
+#else
 #define BLZpack_ SLEPC_BLZPACK(blzdrd,BLZDRD)
 #endif
 

@@ -1,5 +1,5 @@
 /*
-      QEP routines related to options that can be set via the command-line 
+      QEP routines related to options that can be set via the command-line
       or procedurally.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -12,9 +12,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -28,15 +28,15 @@
 #define __FUNCT__ "QEPSetFromOptions"
 /*@
    QEPSetFromOptions - Sets QEP options from the options database.
-   This routine must be called before QEPSetUp() if the user is to be 
-   allowed to set the solver type. 
+   This routine must be called before QEPSetUp() if the user is to be
+   allowed to set the solver type.
 
    Collective on QEP
 
    Input Parameters:
 .  qep - the quadratic eigensolver context
 
-   Notes:  
+   Notes:
    To see all options, run your program with the -help option.
 
    Level: beginner
@@ -107,30 +107,30 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     /*
       Prints approximate eigenvalues and error estimates at each iteration
     */
-    ierr = PetscOptionsString("-qep_monitor","Monitor first unconverged approximate eigenvalue and error estimate","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-qep_monitor","Monitor first unconverged approximate eigenvalue and error estimate","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)qep),monfilename,&monviewer);CHKERRQ(ierr);
       ierr = QEPMonitorSet(qep,QEPMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
     }
-    ierr = PetscOptionsString("-qep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-qep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
       ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)qep),monfilename,&ctx->viewer);CHKERRQ(ierr);
       ierr = QEPMonitorSet(qep,QEPMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
     }
-    ierr = PetscOptionsString("-qep_monitor_all","Monitor approximate eigenvalues and error estimates","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-qep_monitor_all","Monitor approximate eigenvalues and error estimates","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)qep),monfilename,&monviewer);CHKERRQ(ierr);
       ierr = QEPMonitorSet(qep,QEPMonitorAll,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
       ierr = QEPSetTrackAll(qep,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-qep_monitor_draw","Monitor first unconverged approximate error estimate graphically","QEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsBool("-qep_monitor_draw","Monitor first unconverged approximate error estimate graphically","QEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = QEPMonitorSet(qep,QEPMonitorLG,NULL,NULL);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-qep_monitor_draw_all","Monitor error estimates graphically","QEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsBool("-qep_monitor_draw_all","Monitor error estimates graphically","QEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = QEPMonitorSet(qep,QEPMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
       ierr = QEPSetTrackAll(qep,PETSC_TRUE);CHKERRQ(ierr);
@@ -184,7 +184,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
 #define __FUNCT__ "QEPGetTolerances"
 /*@
    QEPGetTolerances - Gets the tolerance and maximum iteration count used
-   by the QEP convergence tests. 
+   by the QEP convergence tests.
 
    Not Collective
 
@@ -215,7 +215,7 @@ PetscErrorCode QEPGetTolerances(QEP qep,PetscReal *tol,PetscInt *maxits)
 #define __FUNCT__ "QEPSetTolerances"
 /*@
    QEPSetTolerances - Sets the tolerance and maximum iteration count used
-   by the QEP convergence tests. 
+   by the QEP convergence tests.
 
    Logically Collective on QEP
 
@@ -231,7 +231,7 @@ PetscErrorCode QEPGetTolerances(QEP qep,PetscReal *tol,PetscInt *maxits)
    Notes:
    Pass 0 for an argument that need not be changed.
 
-   Use PETSC_DECIDE for maxits to assign a reasonably good value, which is 
+   Use PETSC_DECIDE for maxits to assign a reasonably good value, which is
    dependent on the solution method.
 
    Level: intermediate
@@ -370,7 +370,7 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 #undef __FUNCT__
 #define __FUNCT__ "QEPSetWhichEigenpairs"
 /*@
-    QEPSetWhichEigenpairs - Specifies which portion of the spectrum is 
+    QEPSetWhichEigenpairs - Specifies which portion of the spectrum is
     to be sought.
 
     Logically Collective on QEP
@@ -406,7 +406,7 @@ PetscErrorCode QEPSetDimensions(QEP qep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     Notes:
     Not all eigensolvers implemented in QEP account for all the possible values
     stated above. If SLEPc is compiled for real numbers QEP_LARGEST_IMAGINARY
-    and QEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part 
+    and QEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part
     for eigenvalue selection.
 
     Level: intermediate
@@ -438,7 +438,7 @@ PetscErrorCode QEPSetWhichEigenpairs(QEP qep,QEPWhich which)
         }
         break;
       default:
-        SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
+        SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value");
     }
   }
   PetscFunctionReturn(0);
@@ -447,7 +447,7 @@ PetscErrorCode QEPSetWhichEigenpairs(QEP qep,QEPWhich which)
 #undef __FUNCT__
 #define __FUNCT__ "QEPGetWhichEigenpairs"
 /*@C
-    QEPGetWhichEigenpairs - Returns which portion of the spectrum is to be 
+    QEPGetWhichEigenpairs - Returns which portion of the spectrum is to be
     sought.
 
     Not Collective
@@ -465,7 +465,7 @@ PetscErrorCode QEPSetWhichEigenpairs(QEP qep,QEPWhich which)
 
 .seealso: QEPSetWhichEigenpairs(), QEPWhich
 @*/
-PetscErrorCode QEPGetWhichEigenpairs(QEP qep,QEPWhich *which) 
+PetscErrorCode QEPGetWhichEigenpairs(QEP qep,QEPWhich *which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -512,7 +512,7 @@ PetscErrorCode QEPSetLeftVectorsWanted(QEP qep,PetscBool leftvecs)
 #undef __FUNCT__
 #define __FUNCT__ "QEPGetLeftVectorsWanted"
 /*@C
-    QEPGetLeftVectorsWanted - Returns the flag indicating whether left 
+    QEPGetLeftVectorsWanted - Returns the flag indicating whether left
     eigenvectors are required or not.
 
     Not Collective
@@ -527,7 +527,7 @@ PetscErrorCode QEPSetLeftVectorsWanted(QEP qep,PetscBool leftvecs)
 
 .seealso: QEPSetLeftVectorsWanted()
 @*/
-PetscErrorCode QEPGetLeftVectorsWanted(QEP qep,PetscBool *leftvecs) 
+PetscErrorCode QEPGetLeftVectorsWanted(QEP qep,PetscBool *leftvecs)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -618,23 +618,23 @@ PetscErrorCode QEPSetScaleFactor(QEP qep,PetscReal alpha)
 
    Input Parameters:
 +  qep      - the quadratic eigensolver context
--  type     - a known type of quadratic eigenvalue problem 
+-  type     - a known type of quadratic eigenvalue problem
 
    Options Database Keys:
 +  -qep_general - general problem with no particular structure
 .  -qep_hermitian - problem whose coefficient matrices are Hermitian
 -  -qep_gyroscopic - problem with Hamiltonian structure
 
-   Notes:  
+   Notes:
    Allowed values for the problem type are: general (QEP_GENERAL), Hermitian
    (QEP_HERMITIAN), and gyroscopic (QEP_GYROSCOPIC).
 
    This function is used to instruct SLEPc to exploit certain structure in
    the quadratic eigenproblem. By default, no particular structure is assumed.
 
-   If the problem matrices are Hermitian (symmetric in the real case) or 
+   If the problem matrices are Hermitian (symmetric in the real case) or
    Hermitian/skew-Hermitian then the solver can exploit this fact to perform
-   less operations or provide better stability. 
+   less operations or provide better stability.
 
    Level: intermediate
 
@@ -659,10 +659,10 @@ PetscErrorCode QEPSetProblemType(QEP qep,QEPProblemType type)
    Not Collective
 
    Input Parameter:
-.  qep - the quadratic eigensolver context 
+.  qep - the quadratic eigensolver context
 
    Output Parameter:
-.  type - name of QEP problem type 
+.  type - name of QEP problem type
 
    Level: intermediate
 
@@ -680,7 +680,7 @@ PetscErrorCode QEPGetProblemType(QEP qep,QEPProblemType *type)
 #undef __FUNCT__
 #define __FUNCT__ "QEPSetConvergenceTest"
 /*@C
-    QEPSetConvergenceTest - Sets a function to compute the error estimate used in 
+    QEPSetConvergenceTest - Sets a function to compute the error estimate used in
     the convergence test.
 
     Logically Collective on QEP
@@ -768,7 +768,7 @@ PetscErrorCode QEPSetTrackAll(QEP qep,PetscBool trackall)
 
 .seealso: QEPSetTrackAll()
 @*/
-PetscErrorCode QEPGetTrackAll(QEP qep,PetscBool *trackall) 
+PetscErrorCode QEPGetTrackAll(QEP qep,PetscBool *trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -780,7 +780,7 @@ PetscErrorCode QEPGetTrackAll(QEP qep,PetscBool *trackall)
 #undef __FUNCT__
 #define __FUNCT__ "QEPSetOptionsPrefix"
 /*@C
-   QEPSetOptionsPrefix - Sets the prefix used for searching for all 
+   QEPSetOptionsPrefix - Sets the prefix used for searching for all
    QEP options in the database.
 
    Logically Collective on QEP
@@ -816,13 +816,13 @@ PetscErrorCode QEPSetOptionsPrefix(QEP qep,const char *prefix)
   if (!qep->ds) { ierr = QEPGetDS(qep,&qep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(qep->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)qep,prefix);CHKERRQ(ierr);
-  PetscFunctionReturn(0);  
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPAppendOptionsPrefix"
 /*@C
-   QEPAppendOptionsPrefix - Appends to the prefix used for searching for all 
+   QEPAppendOptionsPrefix - Appends to the prefix used for searching for all
    QEP options in the database.
 
    Logically Collective on QEP
@@ -864,7 +864,7 @@ PetscErrorCode QEPAppendOptionsPrefix(QEP qep,const char *prefix)
 #undef __FUNCT__
 #define __FUNCT__ "QEPGetOptionsPrefix"
 /*@C
-   QEPGetOptionsPrefix - Gets the prefix used for searching for all 
+   QEPGetOptionsPrefix - Gets the prefix used for searching for all
    QEP options in the database.
 
    Not Collective

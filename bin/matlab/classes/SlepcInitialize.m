@@ -13,14 +13,14 @@ function err = SlepcInitialize(args,argfile,arghelp)
 %  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 %
 %  This file is part of SLEPc.
-%     
+%
 %  SLEPc is free software: you can redistribute it and/or modify it under  the
 %  terms of version 3 of the GNU Lesser General Public License as published by
 %  the Free Software Foundation.
 %
-%  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-%  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-%  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+%  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+%  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+%  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 %  more details.
 %
 %  You  should have received a copy of the GNU Lesser General  Public  License
@@ -58,13 +58,13 @@ end
 if (nargin == 0)
   args = '';
 end
-if (nargin < 2) 
+if (nargin < 2)
   argfile = '';
 end
 if (nargin < 3)
   arghelp = '';
 end
-if (ischar(args)) 
+if (ischar(args))
   args = {args};
 end
 
@@ -83,7 +83,7 @@ arg = ['matlab',args];
 %
 init = 0;
 err = calllib('libslepc', 'SlepcInitialized',init);
-if (init) 
+if (init)
   err = calllib('libslepc', 'SlepcFinalize');PetscCHKERRQ(err);
 end
 err = calllib('libslepc', 'SlepcInitializeNoPointers', length(arg), arg,argfile,arghelp);PetscCHKERRQ(err);

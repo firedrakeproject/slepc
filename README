@@ -52,11 +52,11 @@
  in directory  'docs' and it contains a general description of the capabilities
  of  the software.  The manual does not include detailed reference  information
  about  individual SLEPc routines. This information is provided in the form  of
- man pages in HTML format (see 'docs/manual.htm'). 
+ man pages in HTML format (see 'docs/manual.htm').
 
  The following journal article provides a general description of SLEPc:
 
- [1] V. Hernandez, J. E. Roman and V. Vidal (2005), SLEPc: A Scalable and 
+ [1] V. Hernandez, J. E. Roman and V. Vidal (2005), SLEPc: A Scalable and
      Flexible Toolkit for the Solution of Eigenvalue Problems, ACM Trans. Math.
      Softw. 31(3), 351-362.
 
@@ -112,9 +112,9 @@
     terms of version 3 of the GNU Lesser General Public License as published by
     the Free Software Foundation.
 
-    SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-    WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-    FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+    SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+    WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+    FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
     more details.
 
     You  should have received a copy of the GNU Lesser General  Public  License

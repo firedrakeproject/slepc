@@ -1,5 +1,5 @@
 /*
-      NEP routines related to options that can be set via the command-line 
+      NEP routines related to options that can be set via the command-line
       or procedurally.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -12,9 +12,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -28,15 +28,15 @@
 #define __FUNCT__ "NEPSetFromOptions"
 /*@
    NEPSetFromOptions - Sets NEP options from the options database.
-   This routine must be called before NEPSetUp() if the user is to be 
-   allowed to set the solver type. 
+   This routine must be called before NEPSetUp() if the user is to be
+   allowed to set the solver type.
 
    Collective on NEP
 
    Input Parameters:
 .  nep - the nonlinear eigensolver context
 
-   Notes:  
+   Notes:
    To see all options, run your program with the -help option.
 
    Level: beginner
@@ -105,30 +105,30 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     /*
       Prints approximate eigenvalues and error estimates at each iteration
     */
-    ierr = PetscOptionsString("-nep_monitor","Monitor first unconverged approximate eigenvalue and error estimate","NEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-nep_monitor","Monitor first unconverged approximate eigenvalue and error estimate","NEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)nep),monfilename,&monviewer);CHKERRQ(ierr);
       ierr = NEPMonitorSet(nep,NEPMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
     }
-    ierr = PetscOptionsString("-nep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","NEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-nep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","NEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
       ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)nep),monfilename,&ctx->viewer);CHKERRQ(ierr);
       ierr = NEPMonitorSet(nep,NEPMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
     }
-    ierr = PetscOptionsString("-nep_monitor_all","Monitor approximate eigenvalues and error estimates","NEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-nep_monitor_all","Monitor approximate eigenvalues and error estimates","NEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)nep),monfilename,&monviewer);CHKERRQ(ierr);
       ierr = NEPMonitorSet(nep,NEPMonitorAll,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
       ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-nep_monitor_draw","Monitor first unconverged approximate error estimate graphically","NEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsBool("-nep_monitor_draw","Monitor first unconverged approximate error estimate graphically","NEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = NEPMonitorSet(nep,NEPMonitorLG,NULL,NULL);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-nep_monitor_draw_all","Monitor error estimates graphically","NEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsBool("-nep_monitor_draw_all","Monitor error estimates graphically","NEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = NEPMonitorSet(nep,NEPMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
       ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
@@ -179,7 +179,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 #define __FUNCT__ "NEPGetTolerances"
 /*@
    NEPGetTolerances - Gets the tolerance and maximum iteration count used
-   by the NEP convergence tests. 
+   by the NEP convergence tests.
 
    Not Collective
 
@@ -239,7 +239,7 @@ PetscErrorCode NEPGetTolerances(NEP nep,PetscReal *abstol,PetscReal *rtol,PetscR
    Notes:
    Pass 0 for an argument that need not be changed.
 
-   Use PETSC_DECIDE for maxits to assign a reasonably good value, which is 
+   Use PETSC_DECIDE for maxits to assign a reasonably good value, which is
    dependent on the solution method.
 
    Level: intermediate
@@ -406,7 +406,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetWhichEigenpairs"
 /*@
-    NEPSetWhichEigenpairs - Specifies which portion of the spectrum is 
+    NEPSetWhichEigenpairs - Specifies which portion of the spectrum is
     to be sought.
 
     Logically Collective on NEP
@@ -442,7 +442,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     Notes:
     Not all eigensolvers implemented in NEP account for all the possible values
     stated above. If SLEPc is compiled for real numbers NEP_LARGEST_IMAGINARY
-    and NEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part 
+    and NEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part
     for eigenvalue selection.
 
     Level: intermediate
@@ -474,7 +474,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
         }
         break;
       default:
-        SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
+        SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value");
     }
   }
   PetscFunctionReturn(0);
@@ -483,7 +483,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetWhichEigenpairs"
 /*@C
-    NEPGetWhichEigenpairs - Returns which portion of the spectrum is to be 
+    NEPGetWhichEigenpairs - Returns which portion of the spectrum is to be
     sought.
 
     Not Collective
@@ -501,7 +501,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
 
 .seealso: NEPSetWhichEigenpairs(), NEPWhich
 @*/
-PetscErrorCode NEPGetWhichEigenpairs(NEP nep,NEPWhich *which) 
+PetscErrorCode NEPGetWhichEigenpairs(NEP nep,NEPWhich *which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -728,7 +728,7 @@ PetscErrorCode NEPSetTrackAll(NEP nep,PetscBool trackall)
 
 .seealso: NEPSetTrackAll()
 @*/
-PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall) 
+PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -740,7 +740,7 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetOptionsPrefix"
 /*@C
-   NEPSetOptionsPrefix - Sets the prefix used for searching for all 
+   NEPSetOptionsPrefix - Sets the prefix used for searching for all
    NEP options in the database.
 
    Logically Collective on NEP
@@ -779,13 +779,13 @@ PetscErrorCode NEPSetOptionsPrefix(NEP nep,const char *prefix)
   ierr = KSPSetOptionsPrefix(nep->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)nep,prefix);CHKERRQ(ierr);
-  PetscFunctionReturn(0);  
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPAppendOptionsPrefix"
 /*@C
-   NEPAppendOptionsPrefix - Appends to the prefix used for searching for all 
+   NEPAppendOptionsPrefix - Appends to the prefix used for searching for all
    NEP options in the database.
 
    Logically Collective on NEP
@@ -822,7 +822,7 @@ PetscErrorCode NEPAppendOptionsPrefix(NEP nep,const char *prefix)
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetOptionsPrefix"
 /*@C
-   NEPGetOptionsPrefix - Gets the prefix used for searching for all 
+   NEPGetOptionsPrefix - Gets the prefix used for searching for all
    NEP options in the database.
 
    Not Collective

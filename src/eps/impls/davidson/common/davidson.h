@@ -15,9 +15,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -25,7 +25,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-/* 
+/*
    Dashboard struct: contains the methods that will be employed and the tunning
    options.
 */
@@ -197,7 +197,7 @@ typedef struct _dvdDashboard {
     *errest,        /* relative error eigenpairs */
     *real_errest,   /* original errest */
     *nBDS,          /* B-norms of DS */
-    *nBV,           /* B-norms of V */ 
+    *nBV,           /* B-norms of V */
     *nBcX,          /* B-norms of cX */
     *nBpX,          /* B-norms of pX */
     *real_nBV;      /* original nBDS, nBV and nBcX */
@@ -263,7 +263,7 @@ typedef struct _dvdDashboard {
     cX_in_H,        /* number of converged vectors in H */
     cX_in_G;        /* number of converged vectors in G */
 
-  PetscInt 
+  PetscInt
     V_tra_s,
     V_tra_e,        /* cX <- [cX V*MT(0:V_tra_s-1)], V <- V*MT(V_tra_s:V_tra_e) */
     V_new_s,
@@ -325,14 +325,14 @@ typedef struct _dvdDashboard {
 
   The starting memory structure:
 
-  V           W?          AV          BV?          tKZ     
+  V           W?          AV          BV?          tKZ
   |-----------|-----------|-----------|------------|-------|
-  nev+mpd     nev+mpd     scP+mpd     nev?+mpd     sP+scP  
+  nev+mpd     nev+mpd     scP+mpd     nev?+mpd     sP+scP
               scP+mpd                 scP+mpd
 
   The final memory structure considering W_shift and BV_shift:
 
-  cX  V       cY?  W?     cAV AV      BcX? BV?     KZ  tKZ 
+  cX  V       cY?  W?     cAV AV      BcX? BV?     KZ  tKZ
   |---|-------|----|------|---|-------|----|-------|---|---|
   nev mpd     nev  mpd    scP mpd     nev  mpd     scP sP    <- shift
               scP                     scP                    <- !shift
@@ -343,7 +343,7 @@ typedef struct {
     size_V,             /* real size of V (nev+size_P+mpd) */
     max_size_oldX,      /* max size of oldX */
     max_size_auxV,      /* max size of auxiliary vecs */
-    max_size_auxS,      /* max size of auxiliary scalars */ 
+    max_size_auxS,      /* max size of auxiliary scalars */
     max_nev,            /* max number of converged pairs */
     max_size_P,         /* number of computed vectors for the projector */
     max_size_cP,        /* number of converged vectors in the projectors */
@@ -383,7 +383,7 @@ typedef struct {
   DvdReductionPostF
     f;                  /* function called after the reduction */
   void *ptr;
-} DvdReductionChunk;  
+} DvdReductionChunk;
 
 typedef struct {
   PetscScalar

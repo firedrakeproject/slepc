@@ -1,5 +1,5 @@
 /*
-   User interface for the SLEPC eigenproblem solvers. 
+   User interface for the SLEPC eigenproblem solvers.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -30,7 +30,7 @@
 PETSC_EXTERN PetscErrorCode EPSInitializePackage(const char[]);
 
 /*S
-    EPS - Abstract SLEPc object that manages all the eigenvalue 
+    EPS - Abstract SLEPc object that manages all the eigenvalue
     problem solvers.
 
     Level: beginner
@@ -109,7 +109,7 @@ typedef enum { EPS_LARGEST_MAGNITUDE=1,
                EPS_LARGEST_IMAGINARY,
                EPS_SMALLEST_IMAGINARY,
                EPS_TARGET_MAGNITUDE,
-               EPS_TARGET_REAL, 
+               EPS_TARGET_REAL,
                EPS_TARGET_IMAGINARY,
                EPS_ALL,
                EPS_WHICH_USER } EPSWhich;
@@ -232,7 +232,7 @@ PETSC_EXTERN PetscErrorCode EPSAppendOptionsPrefix(EPS,const char*);
 PETSC_EXTERN PetscErrorCode EPSGetOptionsPrefix(EPS,const char*[]);
 
 /*E
-    EPSConvergedReason - Reason an eigensolver was said to 
+    EPSConvergedReason - Reason an eigensolver was said to
          have converged or diverged
 
     Level: beginner
@@ -334,11 +334,11 @@ PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetRestart(EPS,PetscReal*);
 
 .seealso: EPSLanczosSetReorthog(), EPSLanczosGetReorthog()
 E*/
-typedef enum { EPS_LANCZOS_REORTHOG_LOCAL, 
+typedef enum { EPS_LANCZOS_REORTHOG_LOCAL,
                EPS_LANCZOS_REORTHOG_FULL,
                EPS_LANCZOS_REORTHOG_SELECTIVE,
                EPS_LANCZOS_REORTHOG_PERIODIC,
-               EPS_LANCZOS_REORTHOG_PARTIAL, 
+               EPS_LANCZOS_REORTHOG_PARTIAL,
                EPS_LANCZOS_REORTHOG_DELAYED } EPSLanczosReorthogType;
 PETSC_EXTERN const char *EPSLanczosReorthogTypes[];
 

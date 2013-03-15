@@ -31,9 +31,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -112,7 +112,7 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
     ierr = KSPSetTolerances(ksp,1e-4,PETSC_DEFAULT,PETSC_DEFAULT,90);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
-}  
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_JD"
@@ -133,7 +133,7 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
     ierr = KSPSetTolerances(ksp,1e-4,PETSC_DEFAULT,PETSC_DEFAULT,90);CHKERRQ(ierr);
   }
 
-  /* Check some constraints */ 
+  /* Check some constraints */
   ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&t);CHKERRQ(ierr);
   if (t) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSJD does not work with KSPPREONLY");
   PetscFunctionReturn(0);
@@ -170,7 +170,7 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
 #define __FUNCT__ "EPSJDSetKrylovStart"
 /*@
    EPSJDSetKrylovStart - Activates or deactivates starting the searching
-   subspace with a Krylov basis. 
+   subspace with a Krylov basis.
 
    Logically Collective on EPS
 
@@ -299,7 +299,7 @@ PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
 
    Output Parameter:
 +  minv - number of vectors of the searching subspace after restarting
--  plusk - number of vectors saved from the previous iteration   
+-  plusk - number of vectors saved from the previous iteration
 
    Level: advanced
 
@@ -326,11 +326,11 @@ PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
    Input Parameters:
 +  eps - the eigenproblem solver context
 .  minv - number of vectors of the searching subspace after restarting
--  plusk - number of vectors saved from the previous iteration   
+-  plusk - number of vectors saved from the previous iteration
 
    Options Database Keys:
 +  -eps_jd_minv - number of vectors of the searching subspace after restarting
--  -eps_jd_plusk - number of vectors saved from the previous iteration   
+-  -eps_jd_plusk - number of vectors saved from the previous iteration
 
    Level: advanced
 
@@ -597,7 +597,7 @@ PetscErrorCode EPSJDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
 
    Options Database Keys:
 +  -eps_jd_pwindow - set the number of converged vectors in the projector
--  -eps_jd_qwindow - set the number of converged vectors in the projected problem  
+-  -eps_jd_qwindow - set the number of converged vectors in the projected problem
 
    Level: advanced
 

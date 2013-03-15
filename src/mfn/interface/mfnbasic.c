@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -39,7 +39,7 @@ static PetscBool  MFNPackageInitialized = PETSC_FALSE;
 
 .seealso: SlepcFinalize()
 @*/
-PetscErrorCode MFNFinalizePackage(void) 
+PetscErrorCode MFNFinalizePackage(void)
 {
   PetscFunctionBegin;
   MFNPackageInitialized = PETSC_FALSE;
@@ -118,8 +118,8 @@ PetscErrorCode MFNInitializePackage(const char *path)
 +     PETSC_VIEWER_STDOUT_SELF - standard output (default)
 -     PETSC_VIEWER_STDOUT_WORLD - synchronized standard
          output where only the first processor opens
-         the file.  All other processors send their 
-         data to the first processor to print. 
+         the file.  All other processors send their
+         data to the first processor to print.
 
    The user can open an alternative visualization context with
    PetscViewerASCIIOpen() - output to a specified file.
@@ -237,7 +237,7 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
 #undef __FUNCT__
 #define __FUNCT__ "MFNSetType"
 /*@C
-   MFNSetType - Selects the particular solver to be used in the MFN object. 
+   MFNSetType - Selects the particular solver to be used in the MFN object.
 
    Logically Collective on MFN
 
@@ -246,10 +246,10 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
 -  type - a known method
 
    Options Database Key:
-.  -mfn_type <method> - Sets the method; use -help for a list 
-    of available methods 
+.  -mfn_type <method> - Sets the method; use -help for a list
+    of available methods
 
-   Notes:  
+   Notes:
    See "slepc/include/slepcmfn.h" for available methods. The default
    is MFNKRYLOV
 
@@ -259,7 +259,7 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
    maximum flexibility in evaluating the different available methods.
    The MFNSetType() routine is provided for those situations where it
    is necessary to set the iterative solver independently of the command
-   line or options database. 
+   line or options database.
 
    Level: intermediate
 
@@ -297,10 +297,10 @@ PetscErrorCode MFNSetType(MFN mfn,MFNType type)
    Not Collective
 
    Input Parameter:
-.  mfn - the matrix function context 
+.  mfn - the matrix function context
 
    Output Parameter:
-.  name - name of MFN method 
+.  name - name of MFN method
 
    Level: intermediate
 
@@ -420,7 +420,7 @@ PetscErrorCode MFNDestroy(MFN *mfn)
 #undef __FUNCT__
 #define __FUNCT__ "MFNSetIP"
 /*@
-   MFNSetIP - Associates an inner product object to the matrix function solver. 
+   MFNSetIP - Associates an inner product object to the matrix function solver.
 
    Collective on MFN
 
@@ -486,7 +486,7 @@ PetscErrorCode MFNGetIP(MFN mfn,IP *ip)
 #undef __FUNCT__
 #define __FUNCT__ "MFNSetDS"
 /*@
-   MFNSetDS - Associates a direct solver object to the matrix function solver. 
+   MFNSetDS - Associates a direct solver object to the matrix function solver.
 
    Collective on MFN
 

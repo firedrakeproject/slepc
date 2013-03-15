@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -77,7 +77,7 @@ static PetscErrorCode STBilinearMatMult_Cayley(Mat B,Vec x,Vec y)
     /* generalized eigenproblem: y = (A + tB)x */
     ierr = MatMult(st->A[0],x,y);CHKERRQ(ierr);
     ierr = MatMult(st->A[1],x,ctx->w2);CHKERRQ(ierr);
-    ierr = VecAXPY(y,nu,ctx->w2);CHKERRQ(ierr);    
+    ierr = VecAXPY(y,nu,ctx->w2);CHKERRQ(ierr);
   } else {
     /* standard eigenproblem: y = (A + tI)x */
     ierr = MatMult(st->A[0],x,y);CHKERRQ(ierr);
@@ -118,9 +118,9 @@ PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscSc
       i = eigi[j];
       r = st->sigma * (r * r + i * i - r) + ctx->nu * (r - 1);
       i = - st->sigma * i - ctx->nu * i;
-      t = i * i + r * (r - 2.0) + 1.0;    
+      t = i * i + r * (r - 2.0) + 1.0;
       eigr[j] = r / t;
-      eigi[j] = i / t;    
+      eigi[j] = i / t;
     }
   }
 #else
@@ -177,9 +177,9 @@ PetscErrorCode STSetUp_Cayley(ST st)
   /* T[1] = A-sigma*B */
   ierr = STMatGAXPY_Private(st,-st->sigma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);
 
-  if (st->nmat>1) { 
+  if (st->nmat>1) {
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
-    ierr = MatGetVecs(st->A[1],&ctx->w2,NULL);CHKERRQ(ierr); 
+    ierr = MatGetVecs(st->A[1],&ctx->w2,NULL);CHKERRQ(ierr);
   }
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
@@ -214,7 +214,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
     /* Check if the new KSP matrix has the same zero structure */
     if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
     else flg = SAME_NONZERO_PATTERN;
-    ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],flg);CHKERRQ(ierr);    
+    ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],flg);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -222,7 +222,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Cayley"
-PetscErrorCode STSetFromOptions_Cayley(ST st) 
+PetscErrorCode STSetFromOptions_Cayley(ST st)
 {
   PetscErrorCode ierr;
   PetscScalar    nu;

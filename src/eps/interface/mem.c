@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -71,7 +71,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
 #undef __FUNCT__
 #define __FUNCT__ "EPSFreeSolution"
 /*
-  EPSFreeSolution - Free memory storage. This routine is related to 
+  EPSFreeSolution - Free memory storage. This routine is related to
   EPSAllocateSolution().
 */
 PetscErrorCode EPSFreeSolution(EPS eps)
@@ -82,9 +82,9 @@ PetscErrorCode EPSFreeSolution(EPS eps)
   if (eps->allocated_ncv > 0) {
     ierr = PetscFree(eps->eigr);CHKERRQ(ierr);
     ierr = PetscFree(eps->eigi);CHKERRQ(ierr);
-    ierr = PetscFree(eps->errest);CHKERRQ(ierr); 
-    ierr = PetscFree(eps->errest_left);CHKERRQ(ierr); 
-    ierr = PetscFree(eps->perm);CHKERRQ(ierr); 
+    ierr = PetscFree(eps->errest);CHKERRQ(ierr);
+    ierr = PetscFree(eps->errest_left);CHKERRQ(ierr);
+    ierr = PetscFree(eps->perm);CHKERRQ(ierr);
     ierr = PetscFree(eps->rr);CHKERRQ(ierr);
     ierr = PetscFree(eps->ri);CHKERRQ(ierr);
     ierr = VecDestroyVecs(eps->allocated_ncv,&eps->V);CHKERRQ(ierr);

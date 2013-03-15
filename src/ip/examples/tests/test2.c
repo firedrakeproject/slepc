@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -42,13 +42,13 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,"-s",&s,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,"-e",&e,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,"-qtrans",&qtrans);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"V(:,%D:%D) = V*",s,e-1);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"V(:,%D:%D) = V*",s,e-1);CHKERRQ(ierr);
   if (qtrans) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Q(%D:%D,:)'",s,e-1);CHKERRQ(ierr);
   } else {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Q(:,%D:%D)",s,e-1);CHKERRQ(ierr);
   }
-  ierr = PetscPrintf(PETSC_COMM_WORLD," for random vectors of length %D (V has %D columns).\n",n,k);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD," for random vectors of length %D (V has %D columns).\n",n,k);CHKERRQ(ierr);
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
@@ -60,9 +60,9 @@ int main(int argc,char **argv)
   /* with/without contiguous storage */
   if (cont) {
     ierr = SlepcVecSetTemplate(t);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"With contiguous storage.\n");CHKERRQ(ierr); 
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"With contiguous storage.\n");CHKERRQ(ierr);
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"With regular storage.\n");CHKERRQ(ierr); 
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"With regular storage.\n");CHKERRQ(ierr);
   }
   ierr = VecDuplicateVecs(t,k,&V);CHKERRQ(ierr);
 
@@ -77,9 +77,9 @@ int main(int argc,char **argv)
   /* save a copy into Mat objects */
   ierr = MatCreateSeqDense(PETSC_COMM_WORLD,n,k,NULL,&A);CHKERRQ(ierr);
   ierr = MatDenseGetArray(A,&pa);CHKERRQ(ierr);
-  for (i=0;i<k;i++) { 
+  for (i=0;i<k;i++) {
     ierr = VecGetArray(V[i],&pv);CHKERRQ(ierr);
-    for (j=0;j<n;j++) { 
+    for (j=0;j<n;j++) {
       pa[i*n+j] = pv[j];
     }
     ierr = VecRestoreArray(V[i],&pv);CHKERRQ(ierr);
@@ -88,8 +88,8 @@ int main(int argc,char **argv)
   if (qtrans) {
     ierr = MatCreateSeqDense(PETSC_COMM_WORLD,k,e-s,NULL,&B);CHKERRQ(ierr);
     ierr = MatDenseGetArray(B,&pa);CHKERRQ(ierr);
-    for (i=s;i<e;i++) { 
-      for (j=0;j<k;j++) { 
+    for (i=s;i<e;i++) {
+      for (j=0;j<k;j++) {
         pa[(i-s)*k+j] = Q[i+j*k];
       }
     }
@@ -105,9 +105,9 @@ int main(int argc,char **argv)
   ierr = MatMatMult(A,B,MAT_INITIAL_MATRIX,1.0,&C);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_WORLD,n,e-s,NULL,&M);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&pa);CHKERRQ(ierr);
-  for (i=0;i<e-s;i++) { 
+  for (i=0;i<e-s;i++) {
     ierr = VecGetArray(V[i+s],&pv);CHKERRQ(ierr);
-    for (j=0;j<n;j++) { 
+    for (j=0;j<n;j++) {
       pa[i*n+j] = pv[j];
     }
     ierr = VecRestoreArray(V[i+s],&pv);CHKERRQ(ierr);
@@ -116,9 +116,9 @@ int main(int argc,char **argv)
   ierr = MatAXPY(M,-1.0,C,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = MatNorm(M,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
   if (nrm<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Test gave correct result.\n");CHKERRQ(ierr); 
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Test gave correct result.\n");CHKERRQ(ierr);
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Error against MatMatMult = %G.\n",nrm);CHKERRQ(ierr); 
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Error against MatMatMult = %G.\n",nrm);CHKERRQ(ierr);
   }
 
   ierr = VecDestroyVecs(k,&V);CHKERRQ(ierr);

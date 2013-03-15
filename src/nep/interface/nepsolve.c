@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -40,9 +40,9 @@
 
    Level: beginner
 
-.seealso: NEPCreate(), NEPSetUp(), NEPDestroy(), NEPSetTolerances() 
+.seealso: NEPCreate(), NEPSetUp(), NEPDestroy(), NEPSetTolerances()
 @*/
-PetscErrorCode NEPSolve(NEP nep) 
+PetscErrorCode NEPSolve(NEP nep)
 {
   PetscErrorCode    ierr;
   PetscInt          i;
@@ -98,14 +98,14 @@ PetscErrorCode NEPSolve(NEP nep)
   ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->prefix,"-nep_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = NEPView(nep,viewer);CHKERRQ(ierr); 
+    ierr = NEPView(nep,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
   flg = PETSC_FALSE;
-  ierr = PetscOptionsGetBool(((PetscObject)nep)->prefix,"-nep_plot_eigs",&flg,NULL);CHKERRQ(ierr); 
-  if (flg) { 
+  ierr = PetscOptionsGetBool(((PetscObject)nep)->prefix,"-nep_plot_eigs",&flg,NULL);CHKERRQ(ierr);
+  if (flg) {
     ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
     ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
     ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
@@ -147,8 +147,8 @@ PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetIterationNumber"
 /*@
-   NEPGetIterationNumber - Gets the current iteration number. If the 
-   call to NEPSolve() is complete, then it returns the number of iterations 
+   NEPGetIterationNumber - Gets the current iteration number. If the
+   call to NEPSolve() is complete, then it returns the number of iterations
    carried out by the solution method.
 
    Not Collective
@@ -162,10 +162,10 @@ PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
    Level: intermediate
 
    Note:
-   During the i-th iteration this call returns i-1. If NEPSolve() is 
+   During the i-th iteration this call returns i-1. If NEPSolve() is
    complete, then parameter "its" contains either the iteration number at
-   which convergence was successfully reached, or failure was detected.  
-   Call NEPGetConvergedReason() to determine if the solver converged or 
+   which convergence was successfully reached, or failure was detected.
+   Call NEPGetConvergedReason() to determine if the solver converged or
    failed and why.
 
 .seealso: NEPGetConvergedReason(), NEPSetTolerances()
@@ -190,7 +190,7 @@ PetscErrorCode NEPGetIterationNumber(NEP nep,PetscInt *its)
 .  nep - the nonlinear eigensolver context
 
    Output Parameter:
-.  nconv - number of converged eigenpairs 
+.  nconv - number of converged eigenpairs
 
    Note:
    This function should be called after NEPSolve() has finished.
@@ -211,7 +211,7 @@ PetscErrorCode NEPGetConverged(NEP nep,PetscInt *nconv)
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetConvergedReason"
 /*@C
-   NEPGetConvergedReason - Gets the reason why the NEPSolve() iteration was 
+   NEPGetConvergedReason - Gets the reason why the NEPSolve() iteration was
    stopped.
 
    Not Collective
@@ -249,15 +249,15 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPGetEigenpair" 
+#define __FUNCT__ "NEPGetEigenpair"
 /*@
-   NEPGetEigenpair - Gets the i-th solution of the eigenproblem as computed by 
+   NEPGetEigenpair - Gets the i-th solution of the eigenproblem as computed by
    NEPSolve(). The solution consists in both the eigenvalue and the eigenvector.
 
    Logically Collective on EPS
 
    Input Parameters:
-+  nep - nonlinear eigensolver context 
++  nep - nonlinear eigensolver context
 -  i   - index of the solution
 
    Output Parameters:
@@ -267,13 +267,13 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
 -  Vi   - imaginary part of eigenvector
 
    Notes:
-   If the eigenvalue is real, then eigi and Vi are set to zero. If PETSc is 
-   configured with complex scalars the eigenvalue is stored 
-   directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is 
+   If the eigenvalue is real, then eigi and Vi are set to zero. If PETSc is
+   configured with complex scalars the eigenvalue is stored
+   directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is
    set to zero).
 
    The index i should be a value between 0 and nconv-1 (see NEPGetConverged()).
-   Eigenpairs are indexed according to the ordering criterion established 
+   Eigenpairs are indexed according to the ordering criterion established
    with NEPSetWhichEigenpairs().
 
    Level: beginner
@@ -290,8 +290,8 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscValidLogicalCollectiveInt(nep,i,2);
   if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,6); PetscCheckSameComm(nep,1,Vr,6); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,7); PetscCheckSameComm(nep,1,Vi,7); }
-  if (!nep->eigr || !nep->eigi || !nep->V) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first"); 
-  if (i<0 || i>=nep->nconv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
+  if (!nep->eigr || !nep->eigi || !nep->V) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first");
+  if (i<0 || i>=nep->nconv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
 
   if (!nep->perm) k = i;
   else k = nep->perm[i];
@@ -315,9 +315,9 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
     if (Vi) { ierr = VecCopy(nep->V[k+1],Vi);CHKERRQ(ierr); }
   } else if (nep->eigi[k]<0) { /* second value of conjugate pair */
     if (Vr) { ierr = VecCopy(nep->V[k-1],Vr);CHKERRQ(ierr); }
-    if (Vi) { 
-      ierr = VecCopy(nep->V[k],Vi);CHKERRQ(ierr); 
-      ierr = VecScale(Vi,-1.0);CHKERRQ(ierr); 
+    if (Vi) {
+      ierr = VecCopy(nep->V[k],Vi);CHKERRQ(ierr);
+      ierr = VecScale(Vi,-1.0);CHKERRQ(ierr);
     }
   } else { /* real eigenvalue */
     if (Vr) { ierr = VecCopy(nep->V[k],Vr);CHKERRQ(ierr); }
@@ -328,15 +328,15 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPGetErrorEstimate" 
+#define __FUNCT__ "NEPGetErrorEstimate"
 /*@
-   NEPGetErrorEstimate - Returns the error estimate associated to the i-th 
+   NEPGetErrorEstimate - Returns the error estimate associated to the i-th
    computed eigenpair.
 
    Not Collective
 
    Input Parameter:
-+  nep - nonlinear eigensolver context 
++  nep - nonlinear eigensolver context
 -  i   - index of eigenpair
 
    Output Parameter:
@@ -355,9 +355,9 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(errest,3);
-  if (!nep->eigr || !nep->eigi) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first"); 
-  if (i<0 || i>=nep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
-  if (nep->perm) i = nep->perm[i];  
+  if (!nep->eigr || !nep->eigi) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first");
+  if (i<0 || i>=nep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
+  if (nep->perm) i = nep->perm[i];
   if (errest) *errest = nep->errest[i];
   PetscFunctionReturn(0);
 }
@@ -365,7 +365,7 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
 #undef __FUNCT__
 #define __FUNCT__ "NEPComputeResidualNorm_Private"
 /*
-   NEPComputeResidualNorm_Private - Computes the norm of the residual vector 
+   NEPComputeResidualNorm_Private - Computes the norm of the residual vector
    associated with an eigenpair.
 */
 PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *norm)
@@ -382,7 +382,7 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar kr,PetscScalar
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
     ierr = MatMult(T,xr,u);CHKERRQ(ierr);
-    ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);  
+    ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   } else {
     SETERRQ(PETSC_COMM_SELF,1,"Not implemented");
@@ -395,7 +395,7 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar kr,PetscScalar
 #undef __FUNCT__
 #define __FUNCT__ "NEPComputeResidualNorm"
 /*@
-   NEPComputeResidualNorm - Computes the norm of the residual vector associated with 
+   NEPComputeResidualNorm - Computes the norm of the residual vector associated with
    the i-th computed eigenpair.
 
    Collective on NEP
@@ -405,12 +405,12 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar kr,PetscScalar
 -  i   - the solution index
 
    Output Parameter:
-.  norm - the residual norm, computed as ||T(lambda)x||_2 where lambda is the 
-   eigenvalue and x is the eigenvector. 
+.  norm - the residual norm, computed as ||T(lambda)x||_2 where lambda is the
+   eigenvalue and x is the eigenvector.
 
    Notes:
    The index i should be a value between 0 and nconv-1 (see NEPGetConverged()).
-   Eigenpairs are indexed according to the ordering criterion established 
+   Eigenpairs are indexed according to the ordering criterion established
    with NEPSetWhichEigenpairs().
 
    Level: beginner
@@ -439,7 +439,7 @@ PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *norm)
 #undef __FUNCT__
 #define __FUNCT__ "NEPComputeRelativeError_Private"
 /*
-   NEPComputeRelativeError_Private - Computes the relative error bound 
+   NEPComputeRelativeError_Private - Computes the relative error bound
    associated with an eigenpair.
 */
 PetscErrorCode NEPComputeRelativeError_Private(NEP nep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *error)
@@ -463,22 +463,22 @@ PetscErrorCode NEPComputeRelativeError_Private(NEP nep,PetscScalar kr,PetscScala
     }
 #if !defined(PETSC_USE_COMPLEX)
   } else {
-    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);  
-    ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);  
+    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
+    ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);
     if (SlepcAbsEigenvalue(kr,ki) > norm) {
       *error = norm/(SlepcAbsEigenvalue(kr,ki)*SlepcAbsEigenvalue(er,ei));
     } else {
       *error = norm/SlepcAbsEigenvalue(er,ei);
     }
   }
-#endif    
+#endif
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPComputeRelativeError"
 /*@
-   NEPComputeRelativeError - Computes the relative error bound associated 
+   NEPComputeRelativeError - Computes the relative error bound associated
    with the i-th computed eigenpair.
 
    Collective on NEP
@@ -489,7 +489,7 @@ PetscErrorCode NEPComputeRelativeError_Private(NEP nep,PetscScalar kr,PetscScala
 
    Output Parameter:
 .  error - the relative error bound, computed as ||T(lambda)x||_2/||lambda*x||_2
-   where lambda is the eigenvalue and x is the eigenvector. 
+   where lambda is the eigenvalue and x is the eigenvector.
    If lambda=0 the relative error is computed as ||T(lambda)x||_2/||x||_2.
 
    Level: beginner
@@ -503,13 +503,13 @@ PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
   PetscScalar    kr,ki;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);  
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   PetscValidPointer(error,3);
   ierr = VecDuplicate(nep->V[0],&xr);CHKERRQ(ierr);
   ierr = VecDuplicate(nep->V[0],&xi);CHKERRQ(ierr);
   ierr = NEPGetEigenpair(nep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
-  ierr = NEPComputeRelativeError_Private(nep,kr,ki,xr,xi,error);CHKERRQ(ierr);  
+  ierr = NEPComputeRelativeError_Private(nep,kr,ki,xr,xi,error);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -518,7 +518,7 @@ PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
 #undef __FUNCT__
 #define __FUNCT__ "NEPSortEigenvalues"
 /*@
-   NEPSortEigenvalues - Sorts a list of eigenvalues according to the criterion 
+   NEPSortEigenvalues - Sorts a list of eigenvalues according to the criterion
    specified via NEPSetWhichEigenpairs().
 
    Not Collective
@@ -533,7 +533,7 @@ PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
 .  perm  - resulting permutation
 
    Note:
-   The result is a list of indices in the original eigenvalue array 
+   The result is a list of indices in the original eigenvalue array
    corresponding to the first nev eigenvalues sorted in the specified
    criterion.
 
@@ -548,7 +548,7 @@ PetscErrorCode NEPSortEigenvalues(NEP nep,PetscInt n,PetscScalar *eigr,PetscScal
   PetscInt       i,j,result,tmp;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);  
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidScalarPointer(eigr,3);
   PetscValidScalarPointer(eigi,4);
   PetscValidIntPointer(perm,5);
@@ -570,7 +570,7 @@ PetscErrorCode NEPSortEigenvalues(NEP nep,PetscInt n,PetscScalar *eigr,PetscScal
       if (result < 0) break;
 #if !defined(PETSC_USE_COMPLEX)
       /* keep together every complex conjugated eigenpair */
-      if (im == 0) { 
+      if (im == 0) {
         if (eigi[perm[j]] == 0) {
 #endif
           tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = tmp;
@@ -631,7 +631,7 @@ PetscErrorCode NEPCompareEigenvalues(NEP nep,PetscScalar ar,PetscScalar ai,Petsc
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);  
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidIntPointer(result,6);
   if (!nep->comparison) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
   ierr = (*nep->comparison)(ar,ai,br,bi,result,nep->comparisonctx);CHKERRQ(ierr);
@@ -641,7 +641,7 @@ PetscErrorCode NEPCompareEigenvalues(NEP nep,PetscScalar ar,PetscScalar ai,Petsc
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetOperationCounters"
 /*@
-   NEPGetOperationCounters - Gets the total number of function evaluations, dot 
+   NEPGetOperationCounters - Gets the total number of function evaluations, dot
    products, and linear solve iterations used by the NEP object during the last
    NEPSolve() call.
 
@@ -667,12 +667,12 @@ PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,P
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (nfuncs) *nfuncs = nep->nfuncs; 
+  if (nfuncs) *nfuncs = nep->nfuncs;
   if (dots) {
     if (!nep->ip) { ierr = NEPGetIP(nep,&nep->ip);CHKERRQ(ierr); }
     ierr = IPGetOperationCounters(nep->ip,dots);CHKERRQ(ierr);
   }
-  if (lits) *lits = nep->linits; 
+  if (lits) *lits = nep->linits;
   PetscFunctionReturn(0);
 }
 

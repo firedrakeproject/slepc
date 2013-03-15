@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -146,7 +146,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   PetscBool      isPrecond;
 
   PetscFunctionBegin;
-  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works for hermitian problems"); 
+  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works for hermitian problems");
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   if (eps->which!=EPS_SMALLEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
@@ -249,7 +249,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
         blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
         eps->eigr,lambdahist,eps->ncv,eps->errest,residhist,eps->ncv);
 #endif
-  if (info>0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in blopex (code=%d)",info); 
+  if (info>0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in blopex (code=%d)",info);
 
   if (eps->numbermonitors>0) {
     for (i=0;i<its;i++) {
@@ -260,8 +260,8 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
       }
       ierr = EPSMonitor(eps,i,nconv,(PetscScalar*)lambdahist+i*eps->ncv,eps->eigi,residhist+i*eps->ncv,eps->ncv);CHKERRQ(ierr);
     }
-    ierr = PetscFree(lambdahist);CHKERRQ(ierr); 
-    ierr = PetscFree(residhist);CHKERRQ(ierr); 
+    ierr = PetscFree(lambdahist);CHKERRQ(ierr);
+    ierr = PetscFree(residhist);CHKERRQ(ierr);
   }
 
   eps->its = its;

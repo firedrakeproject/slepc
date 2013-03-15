@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc quadratic eigensolver: "qlanczos"
 
@@ -26,9 +26,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -48,7 +48,7 @@ PetscErrorCode QEPSetUp_QLanczos(QEP qep)
 
   PetscFunctionBegin;
   if (qep->ncv) { /* ncv set */
-    if (qep->ncv<qep->nev) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The value of ncv must be at least nev"); 
+    if (qep->ncv<qep->nev) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The value of ncv must be at least nev");
   } else if (qep->mpd) { /* mpd set */
     qep->ncv = PetscMin(qep->n,qep->nev+qep->mpd);
   } else { /* neither set: defaults depend on nev being small or large */
@@ -59,7 +59,7 @@ PetscErrorCode QEPSetUp_QLanczos(QEP qep)
     }
   }
   if (!qep->mpd) qep->mpd = qep->ncv;
-  if (qep->ncv>qep->nev+qep->mpd) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The value of ncv must not be larger than nev+mpd"); 
+  if (qep->ncv>qep->nev+qep->mpd) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The value of ncv must not be larger than nev+mpd");
   if (!qep->max_it) qep->max_it = PetscMax(100,2*qep->n/qep->ncv);
   if (!qep->which) {
     ierr = PetscObjectTypeCompare((PetscObject)qep->st,STSINVERT,&sinv);CHKERRQ(ierr);
@@ -80,7 +80,7 @@ PetscErrorCode QEPSetUp_QLanczos(QEP qep)
 #undef __FUNCT__
 #define __FUNCT__ "QEPQLanczosCGS"
 /*
-  Compute a step of Classical Gram-Schmidt orthogonalization 
+  Compute a step of Classical Gram-Schmidt orthogonalization
 */
 static PetscErrorCode QEPQLanczosCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScalar *h,PetscBLASInt j,Vec *V,Vec t,Vec v,Vec w,PetscReal *onorm,PetscReal *norm,PetscScalar *work)
 {
@@ -255,12 +255,12 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
       ierr = DSSetState(qep->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
 
-    /* Solve projected problem */ 
+    /* Solve projected problem */
     ierr = DSSolve(qep->ds,qep->eigr,qep->eigi);CHKERRQ(ierr);
     ierr = DSSort(qep->ds,qep->eigr,qep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(qep->ds);CHKERRQ(ierr);
 
-    /* Check convergence */ 
+    /* Check convergence */
     ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,nv-qep->nconv,nv,beta,&k);CHKERRQ(ierr);
     if (qep->its >= qep->max_it) qep->reason = QEP_DIVERGED_ITS;
     if (k >= qep->nev) qep->reason = QEP_CONVERGED_TOL;
@@ -288,7 +288,7 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
 
     qep->nconv = k;
     ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,nv);CHKERRQ(ierr);
-  } 
+  }
 
   for (j=0;j<qep->nconv;j++) {
     qep->eigr[j] *= qep->sfactor;

@@ -12,9 +12,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -28,7 +28,7 @@
 
 #define MyPetscSqrtReal(alpha) (PetscSign(PetscRealPart(alpha))*PetscSqrtReal(PetscAbs(PetscRealPart(alpha))))
 
-/* 
+/*
    IPOrthogonalizeCGS1 - Compute |v'| (estimated), |v| and one step of CGS with only one global synchronization
 */
 #undef __FUNCT__
@@ -59,7 +59,7 @@ PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscR
     j++;
   }
   ierr = VecsMultIb(H,0,j,j,1,NULL,v);CHKERRQ(ierr);
-  if (onorm || norm) alpha = H[j-1]; 
+  if (onorm || norm) alpha = H[j-1];
 
   /* h = J * h */
   if (BDSnorms && defl) for (i=0; i<nds; i++) H[i]*= BDSnorms[i];
@@ -76,7 +76,7 @@ PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscR
   /* v = v - V h */
   ierr = SlepcVecMAXPBY(v,1.0,-1.0,nds,H,defl);CHKERRQ(ierr);
   if (which) {
-    for (j=0; j<n; j++) 
+    for (j=0; j<n; j++)
       if (which[j]) { ierr = VecAXPBY(v,-H[nds+j],1.0,V[j]);CHKERRQ(ierr); }
   } else {
     ierr = SlepcVecMAXPBY(v,1.0,-1.0,n,H+nds,V);CHKERRQ(ierr);
@@ -85,7 +85,7 @@ PetscErrorCode IPBOrthogonalizeCGS1(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscR
   /* Bv = Bv - BV h */
   ierr = SlepcVecMAXPBY(Bv,1.0,-1.0,nds,H,BDS);CHKERRQ(ierr);
   if (which) {
-    for (j=0; j<n; j++) 
+    for (j=0; j<n; j++)
       if (which[j]) { ierr = VecAXPBY(Bv,-H[nds+j],1.0,BV[j]);CHKERRQ(ierr); }
   } else {
     ierr = SlepcVecMAXPBY(Bv,1.0,-1.0,n,H+nds,BV);CHKERRQ(ierr);
@@ -156,23 +156,23 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
     } else {
       ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,NULL,norm);CHKERRQ(ierr);
     }
-    for (j=0;j<n;j++) 
+    for (j=0;j<n;j++)
       if (!which || which[j]) h[nds+j] += c[nds+j];
     break;
 
   case IP_ORTHOG_REFINE_IFNEEDED:
-    ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,&onrm,&nrm);CHKERRQ(ierr); 
+    ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,h,&onrm,&nrm);CHKERRQ(ierr);
     /* ||q|| < eta ||h|| */
     k = 1;
     while (k<3 && PetscAbs(nrm) < ip->orthog_eta * PetscAbs(onrm)) {
       k++;
       if (!ip->matrix) {
-        ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,&onrm,&nrm);CHKERRQ(ierr); 
+        ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,&onrm,&nrm);CHKERRQ(ierr);
       } else {
         onrm = nrm;
-        ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,NULL,&nrm);CHKERRQ(ierr); 
+        ierr = IPBOrthogonalizeCGS1(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,c,NULL,&nrm);CHKERRQ(ierr);
       }
-      for (j=0;j<n;j++) 
+      for (j=0;j<n;j++)
         if (!which || which[j]) h[nds+j] += c[nds+j];
     }
     if (norm) *norm = nrm;
@@ -188,7 +188,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
 
   /* recover H from workspace */
   if (H && nds>0) {
-    for (j=0;j<n;j++) 
+    for (j=0;j<n;j++)
       if (!which || which[j]) H[j] = h[nds+j];
   }
 
@@ -196,7 +196,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
   if (allocatedc) { ierr = PetscFree(c);CHKERRQ(ierr); }
   if (allocatedh) { ierr = PetscFree(h);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
-}        
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "IPBOrthogonalize"
@@ -218,7 +218,7 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
 -  BVnorms - V_i' * B * V_i
 
    Input/Output Parameter:
-+  v      - (input) vector to be orthogonalized and (output) result of 
++  v      - (input) vector to be orthogonalized and (output) result of
             orthogonalization
 -  Bv     - (input/output) B * v
 
@@ -266,7 +266,7 @@ PetscErrorCode IPBOrthogonalize(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscReal 
   } else {
     switch (ip->orthog_type) {
     case IP_ORTHOG_CGS:
-      ierr = IPBOrthogonalizeCGS(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,H,norm,lindep);CHKERRQ(ierr); 
+      ierr = IPBOrthogonalizeCGS(ip,nds,defl,BDS,BDSnorms,n,which,V,BV,BVnorms,v,Bv,H,norm,lindep);CHKERRQ(ierr);
       break;
     case IP_ORTHOG_MGS:
       SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unsupported orthogonalization type");
@@ -275,7 +275,7 @@ PetscErrorCode IPBOrthogonalize(IP ip,PetscInt nds,Vec *defl,Vec *BDS,PetscReal 
       SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
   }
-  ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);  
+  ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

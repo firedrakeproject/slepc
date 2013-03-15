@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc eigensolver: "power"
 
@@ -30,9 +30,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -61,7 +61,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) {
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
   } else eps->ncv = eps->nev;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(2000,100*eps->n);
@@ -70,7 +70,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
     ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
     if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert or Cayley ST");
-    ierr = STGetMatMode(eps->st,&mode);CHKERRQ(ierr); 
+    ierr = STGetMatMode(eps->st,&mode);CHKERRQ(ierr);
     if (mode == ST_MATMODE_INPLACE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
   }
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
@@ -96,7 +96,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 #if defined(SLEPC_MISSING_LAPACK_LAEV2)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable");
-#else 
+#else
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER*)eps->data;
   PetscInt       i;
@@ -160,7 +160,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 
       /* compute new shift */
       if (relerr<eps->tol) {
-        rho = sigma; /* if converged, restore original shift */ 
+        rho = sigma; /* if converged, restore original shift */
         ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
       } else {
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v) */
@@ -232,7 +232,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   }
   ierr = PetscFree(select);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif 
+#endif
 }
 
 #undef __FUNCT__
@@ -242,7 +242,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
 #if defined(SLEPC_MISSING_LAPACK_LAEV2)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable");
-#else 
+#else
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER*)eps->data;
   Vec            v,w,y,z,e;
@@ -307,7 +307,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
 
       /* compute new shift */
       if (eps->errest[eps->nconv]<eps->tol && eps->errest_left[eps->nconv]<eps->tol) {
-        rho = sigma; /* if converged, restore original shift */ 
+        rho = sigma; /* if converged, restore original shift */
         ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
       } else {
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v,w) */
@@ -376,7 +376,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
   if (eps->nconv == eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
   PetscFunctionReturn(0);
-#endif 
+#endif
 }
 
 #undef __FUNCT__
@@ -448,7 +448,7 @@ static PetscErrorCode EPSPowerSetShiftType_Power(EPS eps,EPSPowerShiftType shift
 -  shift - the type of shift
 
    Options Database Key:
-.  -eps_power_shift_type - Sets the shift type (either 'constant' or 
+.  -eps_power_shift_type - Sets the shift type (either 'constant' or
                            'rayleigh' or 'wilkinson')
 
    Notes:
@@ -490,7 +490,7 @@ static PetscErrorCode EPSPowerGetShiftType_Power(EPS eps,EPSPowerShiftType *shif
 #define __FUNCT__ "EPSPowerGetShiftType"
 /*@C
    EPSPowerGetShiftType - Gets the type of shifts used during the power
-   iteration. 
+   iteration.
 
    Not Collective
 

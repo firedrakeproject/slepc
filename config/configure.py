@@ -5,14 +5,14 @@
 #  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
-#     
+#
 #  SLEPc is free software: you can redistribute it and/or modify it under  the
 #  terms of version 3 of the GNU Lesser General Public License as published by
 #  the Free Software Foundation.
 #
-#  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-#  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-#  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+#  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+#  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+#  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 #  more details.
 #
 #  You  should have received a copy of the GNU Lesser General  Public  License
@@ -43,7 +43,7 @@ import log
 import check
 import arpack
 import blzpack
-import trlan  
+import trlan
 import lapack
 import primme
 import blopex
@@ -57,7 +57,7 @@ if not hasattr(sys, 'version_info') or not sys.version_info[0] == 2 or not sys.v
   print '*********************************************************************************'
   sys.exit(4)
 
-# support a few standard configure option types 
+# support a few standard configure option types
 for l in range(1,len(sys.argv)):
   name = sys.argv[l]
   if name.startswith('--enable'):
@@ -184,7 +184,7 @@ else:
 # Check PETSc version
 petscversion.Load(petscdir)
 if petscversion.VERSION < '3.3':
-  sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscversion.VERSION) 
+  sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscversion.VERSION)
 
 # Check some information about PETSc configuration
 petscconf.Load(petscdir)
@@ -390,7 +390,7 @@ log.Println('SLEPc directory:')
 log.Println(' '+slepcdir)
 if archdir != prefixdir:
   log.Println('SLEPc prefix directory:')
-  log.Println(' '+prefixdir)  
+  log.Println(' '+prefixdir)
 log.Println('PETSc directory:')
 log.Println(' '+petscdir)
 log.Println('Architecture "'+petscconf.ARCH+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')

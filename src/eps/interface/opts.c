@@ -1,5 +1,5 @@
 /*
-      EPS routines related to options that can be set via the command-line 
+      EPS routines related to options that can be set via the command-line
       or procedurally.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -12,9 +12,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -28,15 +28,15 @@
 #define __FUNCT__ "EPSSetFromOptions"
 /*@
    EPSSetFromOptions - Sets EPS options from the options database.
-   This routine must be called before EPSSetUp() if the user is to be 
-   allowed to set the solver type. 
+   This routine must be called before EPSSetUp() if the user is to be
+   allowed to set the solver type.
 
    Collective on EPS
 
    Input Parameters:
 .  eps - the eigensolver context
 
-   Notes:  
+   Notes:
    To see all options, run your program with the -help option.
 
    Level: beginner
@@ -133,30 +133,30 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     /*
       Prints approximate eigenvalues and error estimates at each iteration
     */
-    ierr = PetscOptionsString("-eps_monitor","Monitor first unconverged approximate eigenvalue and error estimate","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-eps_monitor","Monitor first unconverged approximate eigenvalue and error estimate","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)eps),monfilename,&monviewer);CHKERRQ(ierr);
       ierr = EPSMonitorSet(eps,EPSMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
     }
-    ierr = PetscOptionsString("-eps_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-eps_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
       ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)eps),monfilename,&ctx->viewer);CHKERRQ(ierr);
       ierr = EPSMonitorSet(eps,EPSMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
     }
-    ierr = PetscOptionsString("-eps_monitor_all","Monitor approximate eigenvalues and error estimates","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-eps_monitor_all","Monitor approximate eigenvalues and error estimates","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)eps),monfilename,&monviewer);CHKERRQ(ierr);
       ierr = EPSMonitorSet(eps,EPSMonitorAll,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
       ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-eps_monitor_draw","Monitor first unconverged approximate eigenvalue and error estimate graphically","EPSMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsBool("-eps_monitor_draw","Monitor first unconverged approximate eigenvalue and error estimate graphically","EPSMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = EPSMonitorSet(eps,EPSMonitorLG,NULL,NULL);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-eps_monitor_draw_all","Monitor error estimates graphically","EPSMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsBool("-eps_monitor_draw_all","Monitor error estimates graphically","EPSMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = EPSMonitorSet(eps,EPSMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
       ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
@@ -236,7 +236,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 #define __FUNCT__ "EPSGetTolerances"
 /*@
    EPSGetTolerances - Gets the tolerance and maximum iteration count used
-   by the EPS convergence tests. 
+   by the EPS convergence tests.
 
    Not Collective
 
@@ -267,7 +267,7 @@ PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,PetscInt *maxits)
 #define __FUNCT__ "EPSSetTolerances"
 /*@
    EPSSetTolerances - Sets the tolerance and maximum iteration count used
-   by the EPS convergence tests. 
+   by the EPS convergence tests.
 
    Logically Collective on EPS
 
@@ -283,7 +283,7 @@ PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,PetscInt *maxits)
    Notes:
    Pass 0 for an argument that need not be changed.
 
-   Use PETSC_DECIDE for maxits to assign a reasonably good value, which is 
+   Use PETSC_DECIDE for maxits to assign a reasonably good value, which is
    dependent on the solution method.
 
    Level: intermediate
@@ -429,7 +429,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetWhichEigenpairs"
 /*@
-   EPSSetWhichEigenpairs - Specifies which portion of the spectrum is 
+   EPSSetWhichEigenpairs - Specifies which portion of the spectrum is
    to be sought.
 
    Logically Collective on EPS
@@ -467,9 +467,9 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 
    Notes:
    Not all eigensolvers implemented in EPS account for all the possible values
-   stated above. Also, some values make sense only for certain types of 
+   stated above. Also, some values make sense only for certain types of
    problems. If SLEPc is compiled for real numbers EPS_LARGEST_IMAGINARY
-   and EPS_SMALLEST_IMAGINARY use the absolute value of the imaginary part 
+   and EPS_SMALLEST_IMAGINARY use the absolute value of the imaginary part
    for eigenvalue selection.
 
    The target is a scalar value provided with EPSSetTarget().
@@ -515,7 +515,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
         }
         break;
       default:
-        SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value"); 
+        SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value");
     }
   }
   PetscFunctionReturn(0);
@@ -524,7 +524,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetWhichEigenpairs"
 /*@C
-   EPSGetWhichEigenpairs - Returns which portion of the spectrum is to be 
+   EPSGetWhichEigenpairs - Returns which portion of the spectrum is to be
    sought.
 
    Not Collective
@@ -542,7 +542,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 
 .seealso: EPSSetWhichEigenpairs(), EPSWhich
 @*/
-PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which) 
+PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -589,7 +589,7 @@ PetscErrorCode EPSSetLeftVectorsWanted(EPS eps,PetscBool leftvecs)
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetLeftVectorsWanted"
 /*@
-   EPSGetLeftVectorsWanted - Returns the flag indicating whether left 
+   EPSGetLeftVectorsWanted - Returns the flag indicating whether left
    eigenvectors are required or not.
 
    Not Collective
@@ -604,7 +604,7 @@ PetscErrorCode EPSSetLeftVectorsWanted(EPS eps,PetscBool leftvecs)
 
 .seealso: EPSSetLeftVectorsWanted(), EPSWhich
 @*/
-PetscErrorCode EPSGetLeftVectorsWanted(EPS eps,PetscBool *leftvecs) 
+PetscErrorCode EPSGetLeftVectorsWanted(EPS eps,PetscBool *leftvecs)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -706,7 +706,7 @@ PetscErrorCode EPSSetMatrixNorms(EPS eps,PetscReal nrma,PetscReal nrmb,PetscBool
 
 .seealso: EPSSetMatrixNorms()
 @*/
-PetscErrorCode EPSGetMatrixNorms(EPS eps,PetscReal *nrma,PetscReal *nrmb,PetscBool *adaptive) 
+PetscErrorCode EPSGetMatrixNorms(EPS eps,PetscReal *nrma,PetscReal *nrmb,PetscBool *adaptive)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -880,7 +880,7 @@ PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,
 +     EPS_CONV_ABS - absolute error ||r||
 .     EPS_CONV_EIG - error relative to the eigenvalue l, ||r||/|l|
 .     EPS_CONV_NORM - error relative to the matrix norms, ||r||/(||A||+|l|*||B||)
--     EPS_CONV_USER - function set by EPSSetConvergenceTestFunction() 
+-     EPS_CONV_USER - function set by EPSSetConvergenceTestFunction()
 
    Level: intermediate
 
@@ -893,11 +893,11 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
   PetscValidLogicalCollectiveEnum(eps,conv,2);
   switch (conv) {
     case EPS_CONV_EIG:  eps->converged = EPSConvergedEigRelative; break;
-    case EPS_CONV_NORM: eps->converged = EPSConvergedNormRelative; break; 
+    case EPS_CONV_NORM: eps->converged = EPSConvergedNormRelative; break;
     case EPS_CONV_ABS:  eps->converged = EPSConvergedAbsolute; break;
     case EPS_CONV_USER: break;
     default:
-      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value"); 
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
   }
   eps->conv = conv;
   PetscFunctionReturn(0);
@@ -939,28 +939,28 @@ PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
 
    Input Parameters:
 +  eps      - the eigensolver context
--  type     - a known type of eigenvalue problem 
+-  type     - a known type of eigenvalue problem
 
    Options Database Keys:
 +  -eps_hermitian - Hermitian eigenvalue problem
 .  -eps_gen_hermitian - generalized Hermitian eigenvalue problem
 .  -eps_non_hermitian - non-Hermitian eigenvalue problem
-.  -eps_gen_non_hermitian - generalized non-Hermitian eigenvalue problem 
--  -eps_pos_gen_non_hermitian - generalized non-Hermitian eigenvalue problem 
+.  -eps_gen_non_hermitian - generalized non-Hermitian eigenvalue problem
+-  -eps_pos_gen_non_hermitian - generalized non-Hermitian eigenvalue problem
    with positive semi-definite B
 
-   Notes:  
+   Notes:
    Allowed values for the problem type are: Hermitian (EPS_HEP), non-Hermitian
-   (EPS_NHEP), generalized Hermitian (EPS_GHEP), generalized non-Hermitian 
+   (EPS_NHEP), generalized Hermitian (EPS_GHEP), generalized non-Hermitian
    (EPS_GNHEP), generalized non-Hermitian with positive semi-definite B
    (EPS_PGNHEP), and generalized Hermitian-indefinite (EPS_GHIEP).
 
    This function must be used to instruct SLEPc to exploit symmetry. If no
    problem type is specified, by default a non-Hermitian problem is assumed
    (either standard or generalized). If the user knows that the problem is
-   Hermitian (i.e. A=A^H) or generalized Hermitian (i.e. A=A^H, B=B^H, and 
+   Hermitian (i.e. A=A^H) or generalized Hermitian (i.e. A=A^H, B=B^H, and
    B positive definite) then it is recommended to set the problem type so
-   that eigensolver can exploit these properties. 
+   that eigensolver can exploit these properties.
 
    Level: beginner
 
@@ -976,7 +976,7 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
       eps->isgeneralized = PETSC_FALSE;
       eps->ishermitian = PETSC_TRUE;
       eps->ispositive = PETSC_FALSE;
-      break;      
+      break;
     case EPS_NHEP:
       eps->isgeneralized = PETSC_FALSE;
       eps->ishermitian = PETSC_FALSE;
@@ -1017,10 +1017,10 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
    Not Collective
 
    Input Parameter:
-.  eps - the eigensolver context 
+.  eps - the eigensolver context
 
    Output Parameter:
-.  type - name of EPS problem type 
+.  type - name of EPS problem type
 
    Level: intermediate
 
@@ -1038,7 +1038,7 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetExtraction"
 /*@
-   EPSSetExtraction - Specifies the type of extraction technique to be employed 
+   EPSSetExtraction - Specifies the type of extraction technique to be employed
    by the eigensolver.
 
    Logically Collective on EPS
@@ -1052,12 +1052,12 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
 .  -eps_harmonic - harmonic Ritz extraction
 .  -eps_harmonic_relative - harmonic Ritz extraction relative to the eigenvalue
 .  -eps_harmonic_right - harmonic Ritz extraction for rightmost eigenvalues
-.  -eps_harmonic_largest - harmonic Ritz extraction for largest magnitude 
+.  -eps_harmonic_largest - harmonic Ritz extraction for largest magnitude
    (without target)
 .  -eps_refined - refined Ritz extraction
 -  -eps_refined_harmonic - refined harmonic Ritz extraction
 
-   Notes:  
+   Notes:
    Not all eigensolvers support all types of extraction. See the SLEPc
    Users Manual for details.
 
@@ -1087,10 +1087,10 @@ PetscErrorCode EPSSetExtraction(EPS eps,EPSExtraction extr)
    Not Collective
 
    Input Parameter:
-.  eps - the eigensolver context 
+.  eps - the eigensolver context
 
    Output Parameter:
-.  extr - name of extraction type 
+.  extr - name of extraction type
 
    Level: intermediate
 
@@ -1166,7 +1166,7 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
         eps->balance = bal;
         break;
       default:
-        SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'bal'"); 
+        SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'bal'");
     }
   }
   if (its) {
@@ -1189,7 +1189,7 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
    Not Collective
 
    Input Parameter:
-.  eps - the eigensolver context 
+.  eps - the eigensolver context
 
    Output Parameters:
 +  bal    - the balancing method
@@ -1269,7 +1269,7 @@ PetscErrorCode EPSSetTrueResidual(EPS eps,PetscBool trueres)
 
 .seealso: EPSSetTrueResidual()
 @*/
-PetscErrorCode EPSGetTrueResidual(EPS eps,PetscBool *trueres) 
+PetscErrorCode EPSGetTrueResidual(EPS eps,PetscBool *trueres)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -1293,7 +1293,7 @@ PetscErrorCode EPSGetTrueResidual(EPS eps,PetscBool *trueres)
    Notes:
    If the user sets trackall=PETSC_TRUE then the solver computes (or estimates)
    the residual norm for each eigenpair approximation. Computing the residual is
-   usually an expensive operation and solvers commonly compute only the residual 
+   usually an expensive operation and solvers commonly compute only the residual
    associated to the first unconverged eigenpair.
 
    The options '-eps_monitor_all' and '-eps_monitor_draw_all' automatically
@@ -1330,7 +1330,7 @@ PetscErrorCode EPSSetTrackAll(EPS eps,PetscBool trackall)
 
 .seealso: EPSSetTrackAll()
 @*/
-PetscErrorCode EPSGetTrackAll(EPS eps,PetscBool *trackall) 
+PetscErrorCode EPSGetTrackAll(EPS eps,PetscBool *trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -1342,7 +1342,7 @@ PetscErrorCode EPSGetTrackAll(EPS eps,PetscBool *trackall)
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetOptionsPrefix"
 /*@C
-   EPSSetOptionsPrefix - Sets the prefix used for searching for all 
+   EPSSetOptionsPrefix - Sets the prefix used for searching for all
    EPS options in the database.
 
    Logically Collective on EPS
@@ -1380,13 +1380,13 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(eps->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
-  PetscFunctionReturn(0);  
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSAppendOptionsPrefix"
 /*@C
-   EPSAppendOptionsPrefix - Appends to the prefix used for searching for all 
+   EPSAppendOptionsPrefix - Appends to the prefix used for searching for all
    EPS options in the database.
 
    Logically Collective on EPS
@@ -1422,7 +1422,7 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetOptionsPrefix"
 /*@C
-   EPSGetOptionsPrefix - Gets the prefix used for searching for all 
+   EPSGetOptionsPrefix - Gets the prefix used for searching for all
    EPS options in the database.
 
    Not Collective

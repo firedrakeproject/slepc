@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc eigensolver: "krylovschur"
 
@@ -14,9 +14,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -65,7 +65,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
 
-    /* Solve projected problem */ 
+    /* Solve projected problem */
     ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
     if (eps->arbitrary) { ierr = EPSGetArbitraryValues(eps,eps->rr,eps->ri);CHKERRQ(ierr); }
     ierr = DSSort(eps->ds,eps->eigr,NULL,eps->rr,eps->ri,NULL);CHKERRQ(ierr);
@@ -105,7 +105,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
 
     ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
     eps->nconv = k;
-  } 
+  }
   PetscFunctionReturn(0);
 }
 

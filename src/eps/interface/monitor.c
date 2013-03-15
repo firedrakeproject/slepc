@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -44,7 +44,7 @@ PetscErrorCode EPSMonitor(EPS eps,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
 #undef __FUNCT__
 #define __FUNCT__ "EPSMonitorSet"
 /*@C
-   EPSMonitorSet - Sets an ADDITIONAL function to be called at every 
+   EPSMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor the error estimates for each requested eigenpair.
 
    Logically Collective on EPS
@@ -81,9 +81,9 @@ $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
       a code by calls to EPSMonitorSet(), but does not cancel those set via
       the options database.
 
-   Notes:  
+   Notes:
    Several different monitoring routines may be set by calling
-   EPSMonitorSet() multiple times; all will be called in the 
+   EPSMonitorSet() multiple times; all will be called in the
    order in which they were set.
 
    Level: intermediate
@@ -112,7 +112,7 @@ PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,PetscInt,Pets
 .  eps - eigensolver context obtained from EPSCreate()
 
    Options Database Key:
-.    -eps_monitor_cancel - Cancels all monitors that have been hardwired 
+.    -eps_monitor_cancel - Cancels all monitors that have been hardwired
       into a code by calls to EPSMonitorSet(),
       but does not cancel those set via the options database.
 
@@ -139,7 +139,7 @@ PetscErrorCode EPSMonitorCancel(EPS eps)
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetMonitorContext"
 /*@C
-   EPSGetMonitorContext - Gets the monitor context, as set by 
+   EPSGetMonitorContext - Gets the monitor context, as set by
    EPSMonitorSet() for the FIRST monitor only.
 
    Not Collective
@@ -165,7 +165,7 @@ PetscErrorCode EPSGetMonitorContext(EPS eps,void **ctx)
 #undef __FUNCT__
 #define __FUNCT__ "EPSMonitorAll"
 /*@C
-   EPSMonitorAll - Print the current approximate values and 
+   EPSMonitorAll - Print the current approximate values and
    error estimates at each iteration of the eigensolver.
 
    Collective on EPS
@@ -215,7 +215,7 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
 #undef __FUNCT__
 #define __FUNCT__ "EPSMonitorFirst"
 /*@C
-   EPSMonitorFirst - Print the first approximate value and 
+   EPSMonitorFirst - Print the first approximate value and
    error estimate at each iteration of the eigensolver.
 
    Collective on EPS
@@ -261,7 +261,7 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
 #undef __FUNCT__
 #define __FUNCT__ "EPSMonitorConverged"
 /*@C
-   EPSMonitorConverged - Print the approximate values and 
+   EPSMonitorConverged - Print the approximate values and
    error estimates as they converge.
 
    Collective on EPS
@@ -362,13 +362,13 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
     myeigr = PetscRealPart(er);
     ierr = PetscDrawLGAddPoint(lg1,&x,&myeigr);CHKERRQ(ierr);
     ierr = PetscDrawGetPause(draw1,&p);CHKERRQ(ierr);
-    ierr = PetscDrawSetPause(draw1,0);CHKERRQ(ierr);    
+    ierr = PetscDrawSetPause(draw1,0);CHKERRQ(ierr);
     ierr = PetscDrawLGDraw(lg1);CHKERRQ(ierr);
-    ierr = PetscDrawSetPause(draw1,p);CHKERRQ(ierr);    
+    ierr = PetscDrawSetPause(draw1,p);CHKERRQ(ierr);
   }
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-} 
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSMonitorLGAll"
@@ -425,14 +425,14 @@ PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
     }
     ierr = PetscDrawLGAddPoint(lg1,x,myeigr);CHKERRQ(ierr);
     ierr = PetscDrawGetPause(draw1,&p);CHKERRQ(ierr);
-    ierr = PetscDrawSetPause(draw1,0);CHKERRQ(ierr);    
+    ierr = PetscDrawSetPause(draw1,0);CHKERRQ(ierr);
     ierr = PetscDrawLGDraw(lg1);CHKERRQ(ierr);
-    ierr = PetscDrawSetPause(draw1,p);CHKERRQ(ierr);    
+    ierr = PetscDrawSetPause(draw1,p);CHKERRQ(ierr);
     ierr = PetscFree(myeigr);CHKERRQ(ierr);
   }
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
   ierr = PetscFree(x);CHKERRQ(ierr);
-  ierr = PetscFree(y);CHKERRQ(ierr);  
+  ierr = PetscFree(y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-} 
+}
 

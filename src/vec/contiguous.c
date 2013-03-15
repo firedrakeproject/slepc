@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -182,26 +182,26 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous_Inplace(PetscInt m_,Vec *
     for (j=0;j<m;j++) {
       ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
       ierr = PetscMemcpy(work+j*bs,pv,k*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);    
+      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);
     }
     PetscStackCall("BLASgemm",BLASgemm_("N",qtrans?"C":"N",&k,&m,&m,&one,work,&bs,pq,&ldq,&zero,out,&bs));
     for (j=0;j<m;j++) {
       ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
       ierr = PetscMemcpy(pv,out+j*bs,k*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);    
+      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);
     }
   }
   for (;k<ls;k+=bs) {
     for (j=0;j<m;j++) {
       ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
       ierr = PetscMemcpy(work+j*bs,pv+k,bs*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);    
+      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);
     }
     PetscStackCall("BLASgemm",BLASgemm_("N",qtrans?"C":"N",&bs,&m,&m,&one,work,&bs,pq,&ldq,&zero,out,&bs));
     for (j=0;j<m;j++) {
       ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
       ierr = PetscMemcpy(pv+k,out+j*bs,bs*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);    
+      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);
     }
   }
   ierr = PetscFree(work);CHKERRQ(ierr);
@@ -213,7 +213,7 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous_Inplace(PetscInt m_,Vec *
 #undef __FUNCT__
 #define __FUNCT__ "SlepcUpdateVectors_Noncontiguous"
 /*
-   SlepcUpdateVectors_Noncontiguous - V(:,s:e-1) = V*Q(:,s:e-1) for 
+   SlepcUpdateVectors_Noncontiguous - V(:,s:e-1) = V*Q(:,s:e-1) for
    regular vectors (non-contiguous).
 
    Writing V = [ V1 V2 V3 ] and Q = [ Q1 Q2 Q3 ], where the V2 and Q2
@@ -280,7 +280,7 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous(PetscInt n,Vec *V,PetscIn
    Input/Output parameter:
 .  V      - set of vectors
 
-   Notes: 
+   Notes:
    This function computes V(:,s:e-1) = V*Q(:,s:e-1), that is, given a set of
    vectors V, columns from s to e-1 are overwritten with columns from s to
    e-1 of the matrix-matrix product V*Q.
@@ -291,7 +291,7 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous(PetscInt n,Vec *V,PetscIn
 
    If qtrans=PETSC_TRUE, the operation is V*Q'.
 
-   This routine is implemented with a call to BLAS, therefore V is an array 
+   This routine is implemented with a call to BLAS, therefore V is an array
    of Vec which have the data stored contiguously in memory as a Fortran matrix.
    PETSc does not create such arrays by default.
 
@@ -342,7 +342,7 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n,Vec *V,PetscInt s,PetscInt e,const 
    Input/Output parameter:
 .  V      - set of vectors
 
-   Notes: 
+   Notes:
    This function computes V(:,s:d:e-1) = V*Q(:,s:e-1), that is, given a set
    of vectors V, columns from s to e-1 are overwritten with columns from s to
    e-1 of the matrix-matrix product V*Q.
@@ -353,7 +353,7 @@ PetscErrorCode SlepcUpdateVectors(PetscInt n,Vec *V,PetscInt s,PetscInt e,const 
 
    If qtrans=PETSC_TRUE, the operation is V*Q'.
 
-   This routine is implemented with a call to BLAS, therefore V is an array 
+   This routine is implemented with a call to BLAS, therefore V is an array
    of Vec which have the data stored contiguously in memory as a Fortran matrix.
    PETSc does not create such arrays by default.
 
@@ -398,7 +398,7 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
       for (i=0;i<k;i++) {
         *pw++ = *pwork++;
       }
-    }        
+    }
   }
   for (;k<ls;k+=bs) {
     PetscStackCall("BLASgemm",BLASgemm_("N",qt,&bs,&m,&n,&one,pv+k,&ld,pq,&ldq,&zero,work,&bs));

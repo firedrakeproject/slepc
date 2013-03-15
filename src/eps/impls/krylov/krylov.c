@@ -1,4 +1,4 @@
-/*                       
+/*
    Common subroutines for all Krylov-type solvers.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -37,8 +37,8 @@
    where the columns of V are the Arnoldi vectors (which are B-orthonormal),
    H is an upper Hessenberg matrix, f is the residual vector and e_m is
    the m-th vector of the canonical basis. The vector f is B-orthogonal to
-   the columns of V. On exit, beta contains the B-norm of f and the next 
-   Arnoldi vector can be computed as v_{m+1} = f / beta. 
+   the columns of V. On exit, beta contains the B-norm of f and the next
+   Arnoldi vector can be computed as v_{m+1} = f / beta.
 */
 PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscBool *breakdown)
 {
@@ -79,7 +79,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
    in Krylov methods.
 
    Input Parameters:
-     eps   - the eigensolver; some error estimates are updated in eps->errest 
+     eps   - the eigensolver; some error estimates are updated in eps->errest
      getall - whether all residuals must be computed
      kini  - initial value of k (the loop variable)
      nits  - number of iterations of the loop
@@ -156,7 +156,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
    This is equivalent to computing an m-step Arnoldi factorization and
    exploting symmetry of the operator.
 
-   The first k columns are assumed to be locked and therefore they are 
+   The first k columns are assumed to be locked and therefore they are
    not modified. On exit, the following relation is satisfied:
 
                     OP * V - V * T = f * e_m^T
@@ -166,8 +166,8 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
    is the m-th vector of the canonical basis. The tridiagonal is stored as
    two arrays: alpha contains the diagonal elements, beta the off-diagonal.
    The vector f is B-orthogonal to the columns of V. On exit, the last element
-   of beta contains the B-norm of f and the next Lanczos vector can be 
-   computed as v_{m+1} = f / beta(end). 
+   of beta contains the B-norm of f and the next Lanczos vector can be
+   computed as v_{m+1} = f / beta(end).
 
 */
 PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscBool *breakdown)
@@ -199,7 +199,7 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,Pe
   }
   ierr = STApply(eps->st,V[m-1],f);CHKERRQ(ierr);
   ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,NULL,V,f,hwork,&norm,NULL);CHKERRQ(ierr);
-  alpha[m-1] = PetscRealPart(hwork[m-1]); 
+  alpha[m-1] = PetscRealPart(hwork[m-1]);
   beta[m-1] = norm;
 
   if (m > 100) {
@@ -207,5 +207,4 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,Pe
   }
   PetscFunctionReturn(0);
 }
-
 

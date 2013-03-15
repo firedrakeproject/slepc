@@ -1,5 +1,4 @@
-/*                       
-
+/*
    Private header for Krylov-Schur.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -12,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -40,7 +39,7 @@ struct _n_shift {
   shift         neighb[2];  /* Adjacent shifts */
   PetscInt      index;      /* Index in eig where found values are stored */
   PetscInt      neigs;      /* Number of values found */
-  PetscReal     ext[2];     /* Limits for accepted values */ 
+  PetscReal     ext[2];     /* Limits for accepted values */
   PetscInt      nsch[2];    /* Number of missing values for each subinterval */
   PetscInt      nconv[2];   /* Converged on each side (accepted or not) */
 };

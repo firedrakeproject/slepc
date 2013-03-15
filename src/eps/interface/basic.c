@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -43,7 +43,7 @@ const char *EPSPRIMMEMethods[] = {"DYNAMIC","DEFAULT_MIN_TIME","DEFAULT_MIN_MATV
 
 .seealso: SlepcFinalize()
 @*/
-PetscErrorCode EPSFinalizePackage(void) 
+PetscErrorCode EPSFinalizePackage(void)
 {
   PetscFunctionBegin;
   EPSPackageInitialized = PETSC_FALSE;
@@ -122,8 +122,8 @@ PetscErrorCode EPSInitializePackage(const char *path)
 +     PETSC_VIEWER_STDOUT_SELF - standard output (default)
 -     PETSC_VIEWER_STDOUT_WORLD - synchronized standard
          output where only the first processor opens
-         the file.  All other processors send their 
-         data to the first processor to print. 
+         the file.  All other processors send their
+         data to the first processor to print.
 
    The user can open an alternative visualization context with
    PetscViewerASCIIOpen() - output to a specified file.
@@ -238,7 +238,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in interval [%G,%G]\n",eps->inta,eps->intb);CHKERRQ(ierr);
         break;
       default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
-    }    
+    }
     if (eps->leftvecs) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing left eigenvectors also\n");CHKERRQ(ierr);
     }
@@ -255,11 +255,11 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",eps->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
     switch (eps->conv) {
-    case EPS_CONV_ABS: 
+    case EPS_CONV_ABS:
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
-    case EPS_CONV_EIG: 
+    case EPS_CONV_EIG:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
-    case EPS_CONV_NORM: 
+    case EPS_CONV_NORM:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue and matrix norms\n");CHKERRQ(ierr);break;
     default:
       ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
@@ -335,7 +335,7 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(eps,1,viewer,2);
-  if (!eps->eigr || !eps->eigi || !eps->V) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first"); 
+  if (!eps->eigr || !eps->eigi || !eps->V) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first");
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
@@ -361,13 +361,13 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
 #else
             re = kr;
             im = ki;
-#endif 
+#endif
             if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
             if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
             if (im!=0.0) {
               ierr = PetscViewerASCIIPrintf(viewer,"%.5F%+.5Fi",re,im);CHKERRQ(ierr);
             } else {
-              ierr = PetscViewerASCIIPrintf(viewer,"%.5F",re);CHKERRQ(ierr); 
+              ierr = PetscViewerASCIIPrintf(viewer,"%.5F",re);CHKERRQ(ierr);
             }
             if (8*i+j+1<eps->nev) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
           }
@@ -392,11 +392,11 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
 #else
         re = kr;
         im = ki;
-#endif 
+#endif
         if (im!=0.0) {
           ierr = PetscViewerASCIIPrintf(viewer," % 9F%+9F i %12G\n",re,im,error);CHKERRQ(ierr);
         } else {
-          ierr = PetscViewerASCIIPrintf(viewer,"   % 12F       %12G\n",re,error);CHKERRQ(ierr); 
+          ierr = PetscViewerASCIIPrintf(viewer,"   % 12F       %12G\n",re,error);CHKERRQ(ierr);
         }
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
@@ -509,7 +509,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetType"
 /*@C
-   EPSSetType - Selects the particular solver to be used in the EPS object. 
+   EPSSetType - Selects the particular solver to be used in the EPS object.
 
    Logically Collective on EPS
 
@@ -518,10 +518,10 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 -  type - a known method
 
    Options Database Key:
-.  -eps_type <method> - Sets the method; use -help for a list 
-    of available methods 
+.  -eps_type <method> - Sets the method; use -help for a list
+    of available methods
 
-   Notes:  
+   Notes:
    See "slepc/include/slepceps.h" for available methods. The default
    is EPSKRYLOVSCHUR.
 
@@ -531,7 +531,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
    maximum flexibility in evaluating the different available methods.
    The EPSSetType() routine is provided for those situations where it
    is necessary to set the iterative solver independently of the command
-   line or options database. 
+   line or options database.
 
    Level: intermediate
 
@@ -569,10 +569,10 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
    Not Collective
 
    Input Parameter:
-.  eps - the eigensolver context 
+.  eps - the eigensolver context
 
    Output Parameter:
-.  name - name of EPS method 
+.  name - name of EPS method
 
    Level: intermediate
 
@@ -779,7 +779,7 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
 
    In the command-line option, two values must be provided. For an open interval,
    one can give an infinite, e.g., -eps_interval 1.0,inf or -eps_interval -inf,1.0.
-   An open interval in the programmatic interface can be specified with 
+   An open interval in the programmatic interface can be specified with
    PETSC_MAX_REAL and -PETSC_MAX_REAL.
 
    Level: intermediate
@@ -833,7 +833,7 @@ PetscErrorCode EPSGetInterval(EPS eps,PetscReal* inta,PetscReal* intb)
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetST"
 /*@
-   EPSSetST - Associates a spectral transformation object to the eigensolver. 
+   EPSSetST - Associates a spectral transformation object to the eigensolver.
 
    Collective on EPS
 
@@ -900,7 +900,7 @@ PetscErrorCode EPSGetST(EPS eps,ST *st)
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetIP"
 /*@
-   EPSSetIP - Associates an inner product object to the eigensolver. 
+   EPSSetIP - Associates an inner product object to the eigensolver.
 
    Collective on EPS
 
@@ -966,7 +966,7 @@ PetscErrorCode EPSGetIP(EPS eps,IP *ip)
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetDS"
 /*@
-   EPSSetDS - Associates a direct solver object to the eigensolver. 
+   EPSSetDS - Associates a direct solver object to the eigensolver.
 
    Collective on EPS
 
@@ -1032,7 +1032,7 @@ PetscErrorCode EPSGetDS(EPS eps,DS *ds)
 #undef __FUNCT__
 #define __FUNCT__ "EPSIsGeneralized"
 /*@
-   EPSIsGeneralized - Ask if the EPS object corresponds to a generalized 
+   EPSIsGeneralized - Ask if the EPS object corresponds to a generalized
    eigenvalue problem.
 
    Not collective
@@ -1059,7 +1059,7 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
 #undef __FUNCT__
 #define __FUNCT__ "EPSIsHermitian"
 /*@
-   EPSIsHermitian - Ask if the EPS object corresponds to a Hermitian 
+   EPSIsHermitian - Ask if the EPS object corresponds to a Hermitian
    eigenvalue problem.
 
    Not collective

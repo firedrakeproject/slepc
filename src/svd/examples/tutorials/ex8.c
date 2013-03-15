@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -58,8 +58,8 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,"-n",&N,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%D\n\n",N);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        Generate the matrix 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
@@ -80,16 +80,16 @@ int main(int argc,char **argv)
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create the singular value solver and set the solution method
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* 
+  /*
      Create singular value context
   */
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
 
-  /* 
+  /*
      Set operator
   */
   ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
@@ -100,7 +100,7 @@ int main(int argc,char **argv)
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
   ierr = SVDSetDimensions(svd,1,0,0);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the singular value problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -109,11 +109,11 @@ int main(int argc,char **argv)
   */
   ierr = SVDSetWhichSingularTriplets(svd,SVD_LARGEST);CHKERRQ(ierr);
   ierr = SVDSolve(svd);CHKERRQ(ierr);
-  /* 
+  /*
      Get number of converged singular values
   */
   ierr = SVDGetConverged(svd,&nconv1);CHKERRQ(ierr);
-  /* 
+  /*
      Get converged singular values: largest singular value is stored in sigma_1.
      In this example, we are not interested in the singular vectors
   */
@@ -121,36 +121,36 @@ int main(int argc,char **argv)
     ierr = SVDGetSingularTriplet(svd,0,&sigma_1,NULL,NULL);CHKERRQ(ierr);
   } else {
     ierr = PetscPrintf(PETSC_COMM_WORLD," Unable to compute large singular value!\n\n");CHKERRQ(ierr);
-  } 
+  }
 
   /*
      Request a singular value from the other end of the spectrum
   */
   ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr);
   ierr = SVDSolve(svd);CHKERRQ(ierr);
-  /* 
+  /*
      Get number of converged eigenpairs
   */
   ierr = SVDGetConverged(svd,&nconv2);CHKERRQ(ierr);
-  /* 
-     Get converged singular values: smallest singular value is stored in sigma_n. 
+  /*
+     Get converged singular values: smallest singular value is stored in sigma_n.
      As before, we are not interested in the singular vectors
   */
   if (nconv2 > 0) {
     ierr = SVDGetSingularTriplet(svd,0,&sigma_n,NULL,NULL);CHKERRQ(ierr);
   } else {
     ierr = PetscPrintf(PETSC_COMM_WORLD," Unable to compute small singular value!\n\n");CHKERRQ(ierr);
-  } 
+  }
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   if (nconv1 > 0 && nconv2 > 0) {
     ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%6F, sigma_n=%6F\n",sigma_1,sigma_n);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%6F\n\n",sigma_1/sigma_n);CHKERRQ(ierr);
-  }  
+  }
 
-  /* 
+  /*
      Free work space
   */
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);

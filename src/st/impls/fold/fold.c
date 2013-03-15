@@ -1,5 +1,5 @@
 /*
-    Folding spectral transformation, applies (A + sigma I)^2 as operator, or 
+    Folding spectral transformation, applies (A + sigma I)^2 as operator, or
     inv(B)(A + sigma I)^2 for generalized problems
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -12,9 +12,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -44,7 +44,7 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
     ierr = KSPSolve(st->ksp,st->w,ctx->w2);CHKERRQ(ierr);
     ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
     if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
-    ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
+    ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
     st->lineariterations += its;
     if (st->sigma != 0.0) {
       ierr = VecAXPY(ctx->w2,-st->sigma,x);CHKERRQ(ierr);
@@ -53,7 +53,7 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
     ierr = KSPSolve(st->ksp,st->w,y);CHKERRQ(ierr);
     ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
     if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
-    ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
+    ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
     st->lineariterations += its;
     if (st->sigma != 0.0) {
       ierr = VecAXPY(y,-st->sigma,ctx->w2);CHKERRQ(ierr);
@@ -87,7 +87,7 @@ PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
     ierr = KSPSolveTranspose(st->ksp,x,st->w);CHKERRQ(ierr);
     ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
     if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
-    ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
+    ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
     st->lineariterations += its;
     ierr = MatMult(st->A[0],st->w,ctx->w2);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
@@ -96,7 +96,7 @@ PetscErrorCode STApplyTranspose_Fold(ST st,Vec x,Vec y)
     ierr = KSPSolveTranspose(st->ksp,ctx->w2,st->w);CHKERRQ(ierr);
     ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
     if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
-    ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);  
+    ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
     st->lineariterations += its;
     ierr = MatMult(st->A[0],st->w,y);CHKERRQ(ierr);
     if (st->sigma != 0.0) {
@@ -161,14 +161,14 @@ PetscErrorCode STSetUp_Fold(ST st)
     ierr = KSPSetOperators(st->ksp,st->A[1],st->A[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
-    ierr = MatGetVecs(st->A[1],&ctx->w2,NULL);CHKERRQ(ierr); 
-  } 
+    ierr = MatGetVecs(st->A[1],&ctx->w2,NULL);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Fold"
-PetscErrorCode STSetFromOptions_Fold(ST st) 
+PetscErrorCode STSetFromOptions_Fold(ST st)
 {
   PetscErrorCode ierr;
   PC             pc;

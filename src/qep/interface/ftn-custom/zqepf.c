@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -30,7 +30,7 @@
 #define qepappendoptionsprefix_     QEPAPPENDOPTIONSPREFIX
 #define qepgetoptionsprefix_        QEPGETOPTIONSPREFIX
 #define qepcreate_                  QEPCREATE
-#define qepsettype_                 QEPSETTYPE           
+#define qepsettype_                 QEPSETTYPE
 #define qepgettype_                 QEPGETTYPE
 #define qepmonitorall_              QEPMONITORALL
 #define qepmonitorlg_               QEPMONITORLG
@@ -50,7 +50,7 @@
 #define qepappendoptionsprefix_     qepappendoptionsprefix
 #define qepgetoptionsprefix_        qepgetoptionsprefix
 #define qepcreate_                  qepcreate
-#define qepsettype_                 qepsettype           
+#define qepsettype_                 qepsettype
 #define qepgettype_                 qepgettype
 #define qepmonitorall_              qepmonitorall
 #define qepmonitorlg_               qepmonitorlg
@@ -66,7 +66,7 @@
 #endif
 
 /*
-   These are not usually called from Fortran but allow Fortran users 
+   These are not usually called from Fortran but allow Fortran users
    to transparently set these monitors from .F code, hence no STDCALL
 */
 PETSC_EXTERN void qepmonitorall_(QEP *qep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)

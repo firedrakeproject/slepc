@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -95,7 +95,7 @@ PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
 
    Notes:
    This function need not be called explicitly in most cases, since SVDSolve()
-   calls it. It can be useful when one wants to measure the set-up time 
+   calls it. It can be useful when one wants to measure the set-up time
    separately from the solve time.
 
 .seealso: SVDCreate(), SVDSolve(), SVDDestroy()
@@ -130,11 +130,11 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
 
   /* check matrix */
-  if (!svd->OP) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperator must be called first"); 
+  if (!svd->OP) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperator must be called first");
 
   /* determine how to build the transpose */
   if (svd->transmode == PETSC_DECIDE) {
-    ierr = MatHasOperation(svd->OP,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);    
+    ierr = MatHasOperation(svd->OP,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);
     if (flg) svd->transmode = SVD_TRANSPOSE_EXPLICIT;
     else svd->transmode = SVD_TRANSPOSE_IMPLICIT;
   }
@@ -159,14 +159,14 @@ PetscErrorCode SVDSetUp(SVD svd)
     case SVD_TRANSPOSE_IMPLICIT:
       if (M>=N) {
         svd->A = svd->OP;
-        svd->AT = NULL;    
+        svd->AT = NULL;
       } else {
         svd->A = NULL;
         svd->AT = svd->OP;
       }
       break;
     default:
-      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode"); 
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode");
   }
 
   ierr = VecDestroy(&svd->tr);CHKERRQ(ierr);
@@ -194,7 +194,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   if (svd->ncv != svd->n) {
     /* free memory for previous solution  */
-    if (svd->n) { 
+    if (svd->n) {
       ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
       ierr = PetscFree(svd->perm);CHKERRQ(ierr);
       ierr = PetscFree(svd->errest);CHKERRQ(ierr);
@@ -263,7 +263,7 @@ PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
+  if (n<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&svd->nini,&svd->IS);CHKERRQ(ierr);
   if (n>0) svd->setupcalled = 0;
   PetscFunctionReturn(0);
@@ -305,7 +305,7 @@ PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt n,Vec *is)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative"); 
+  if (n<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&svd->ninil,&svd->ISL);CHKERRQ(ierr);
   if (n>0) svd->setupcalled = 0;
   PetscFunctionReturn(0);

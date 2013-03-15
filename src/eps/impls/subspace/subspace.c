@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc eigensolver: "subspace"
 
@@ -11,7 +11,7 @@
 
    References:
 
-       [1] "Subspace Iteration in SLEPc", SLEPc Technical Report STR-3, 
+       [1] "Subspace Iteration in SLEPc", SLEPc Technical Report STR-3,
            available at http://www.grycap.upv.es/slepc.
 
    Last update: Feb 2009
@@ -26,9 +26,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -54,7 +54,7 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
   } else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
   } else { /* neither set: defaults depend on nev being small or large */
@@ -92,9 +92,9 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
 #undef __FUNCT__
 #define __FUNCT__ "EPSSubspaceFindGroup"
 /*
-   EPSSubspaceFindGroup - Find a group of nearly equimodular eigenvalues, provided 
+   EPSSubspaceFindGroup - Find a group of nearly equimodular eigenvalues, provided
    in arrays wr and wi, according to the tolerance grptol. Also the 2-norms
-   of the residuals must be passed in (rsd). Arrays are processed from index 
+   of the residuals must be passed in (rsd). Arrays are processed from index
    l to index m only. The output information is:
 
    ngrp - number of entries of the group
@@ -142,7 +142,7 @@ static PetscErrorCode EPSSubspaceFindGroup(PetscInt l,PetscInt m,PetscScalar *wr
 #define __FUNCT__ "EPSSubspaceResidualNorms"
 /*
    EPSSubspaceResidualNorms - Computes the column norms of residual vectors
-   OP*V(1:n,l:m) - V*T(1:m,l:m), where, on entry, OP*V has been computed and 
+   OP*V(1:n,l:m) - V*T(1:m,l:m), where, on entry, OP*V has been computed and
    stored in AV. ldt is the leading dimension of T. On exit, rsd(l) to
    rsd(m) contain the computed norms.
 */
@@ -163,7 +163,7 @@ static PetscErrorCode EPSSubspaceResidualNorms(Vec *V,Vec *AV,PetscScalar *T,Pet
   }
   for (i=l;i<m;i++) {
     if (i == m-1) {
-      rsd[i] = PetscSqrtReal(rsd[i]);  
+      rsd[i] = PetscSqrtReal(rsd[i]);
     } else if (T[i+1+(ldt*i)]==0.0) {
       rsd[i] = PetscSqrtReal(rsd[i]);
     } else {
@@ -212,7 +212,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   k = eps->nini;
   while (k<ncv) {
     ierr = SlepcVecSetRandom(eps->V[k],eps->rand);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,k,NULL,eps->V,eps->V[k],NULL,&norm,&breakdown);CHKERRQ(ierr); 
+    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,k,NULL,eps->V,eps->V[k],NULL,&norm,&breakdown);CHKERRQ(ierr);
     if (norm>0.0 && !breakdown) {
       ierr = VecScale(eps->V[k],1.0/norm);CHKERRQ(ierr);
       k++;
@@ -255,7 +255,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     ierr = EPSSubspaceResidualNorms(eps->V,ctx->AV,T,eps->nconv,nv,ld,eps->work[0],rsd);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
 
-    for (i=eps->nconv;i<nv;i++) { 
+    for (i=eps->nconv;i<nv;i++) {
       itrsdold[i] = itrsd[i];
       itrsd[i] = its;
       eps->errest[i] = rsd[i];
@@ -288,7 +288,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
     /* Compute nxtort (iteration of next orthogonalization step) */
     ierr = DSCond(eps->ds,&tcond);CHKERRQ(ierr);
-    idort = PetscMax(1,(PetscInt)floor(orttol/PetscMax(1,log10(tcond))));    
+    idort = PetscMax(1,(PetscInt)floor(orttol/PetscMax(1,log10(tcond))));
     nxtort = PetscMin(its+idort,nxtsrr);
 
     /* V(:,idx) = AV(:,idx) */

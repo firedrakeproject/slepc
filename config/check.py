@@ -4,14 +4,14 @@
 #  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
-#     
+#
 #  SLEPc is free software: you can redistribute it and/or modify it under  the
 #  terms of version 3 of the GNU Lesser General Public License as published by
 #  the Free Software Foundation.
 #
-#  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-#  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-#  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+#  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+#  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+#  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 #  more details.
 #
 #  You  should have received a copy of the GNU Lesser General  Public  License
@@ -52,7 +52,7 @@ def LinkWithOutput(tmpdir,functions,callbacks,flags):
   if result:
     return (0,code + output)
   else:
-    return (1,code + output)  
+    return (1,code + output)
 
 def Link(tmpdir,functions,callbacks,flags):
   (result, output) = LinkWithOutput(tmpdir,functions,callbacks,flags)
@@ -68,7 +68,7 @@ def FortranLink(tmpdir,functions,callbacks,flags):
   c = []
   for i in callbacks:
     c.append(i+'_')
-  (result, output1) = LinkWithOutput(tmpdir,f,c,flags) 
+  (result, output1) = LinkWithOutput(tmpdir,f,c,flags)
   output1 = '\n====== With underscore Fortran names\n' + output1
   if result: return ('UNDERSCORE',output1)
 
@@ -77,12 +77,12 @@ def FortranLink(tmpdir,functions,callbacks,flags):
     f.append(i.upper())
   c = []
   for i in callbacks:
-    c.append(i.upper())  
-  (result, output2) = LinkWithOutput(tmpdir,f,c,flags) 
+    c.append(i.upper())
+  (result, output2) = LinkWithOutput(tmpdir,f,c,flags)
   output2 = '\n====== With capital Fortran names\n' + output2
   if result: return ('CAPS',output2)
 
-  (result, output3) = LinkWithOutput(tmpdir,functions,callbacks,flags) 
+  (result, output3) = LinkWithOutput(tmpdir,functions,callbacks,flags)
   output3 = '\n====== With unmodified Fortran names\n' + output3
   if result: return ('STDCALL',output3)
 
@@ -122,7 +122,7 @@ def FortranLib(tmpdir,conf,vars,cmake,name,dirs,libs,functions,callbacks = []):
       (mangling, output) = FortranLink(tmpdir,functions,callbacks,flags)
       error += output
       if mangling: break
-    if mangling: break    
+    if mangling: break
 
   if mangling:
     log.write(output)

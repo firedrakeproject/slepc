@@ -1,5 +1,5 @@
 /*
-      MFN routines related to options that can be set via the command-line 
+      MFN routines related to options that can be set via the command-line
       or procedurally.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -12,9 +12,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -28,15 +28,15 @@
 #define __FUNCT__ "MFNSetFromOptions"
 /*@
    MFNSetFromOptions - Sets MFN options from the options database.
-   This routine must be called before MFNSetUp() if the user is to be 
-   allowed to set the solver type. 
+   This routine must be called before MFNSetUp() if the user is to be
+   allowed to set the solver type.
 
    Collective on MFN
 
    Input Parameters:
 .  mfn - the matrix function context
 
-   Notes:  
+   Notes:
    To see all options, run your program with the -help option.
 
    Level: beginner
@@ -95,13 +95,13 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     /*
       Prints error estimate at each iteration
     */
-    ierr = PetscOptionsString("-mfn_monitor","Monitor error estimate","MFNMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr); 
+    ierr = PetscOptionsString("-mfn_monitor","Monitor error estimate","MFNMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)mfn),monfilename,&monviewer);CHKERRQ(ierr);
       ierr = MFNMonitorSet(mfn,MFNMonitorDefault,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-mfn_monitor_draw","Monitor error estimate graphically","MFNMonitorSet",flg,&flg,NULL);CHKERRQ(ierr); 
+    ierr = PetscOptionsBool("-mfn_monitor_draw","Monitor error estimate graphically","MFNMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = MFNMonitorSet(mfn,MFNMonitorLG,NULL,NULL);CHKERRQ(ierr);
     }
@@ -127,7 +127,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
 #define __FUNCT__ "MFNGetTolerances"
 /*@
    MFNGetTolerances - Gets the tolerance and maximum iteration count used
-   by the MFN convergence tests. 
+   by the MFN convergence tests.
 
    Not Collective
 
@@ -158,7 +158,7 @@ PetscErrorCode MFNGetTolerances(MFN mfn,PetscReal *tol,PetscInt *maxits)
 #define __FUNCT__ "MFNSetTolerances"
 /*@
    MFNSetTolerances - Sets the tolerance and maximum iteration count used
-   by the MFN convergence tests. 
+   by the MFN convergence tests.
 
    Logically Collective on MFN
 
@@ -174,7 +174,7 @@ PetscErrorCode MFNGetTolerances(MFN mfn,PetscReal *tol,PetscInt *maxits)
    Notes:
    Pass 0 for an argument that need not be changed.
 
-   Use PETSC_DECIDE for maxits to assign a reasonably good value, which is 
+   Use PETSC_DECIDE for maxits to assign a reasonably good value, which is
    dependent on the solution method.
 
    Level: intermediate
@@ -297,7 +297,7 @@ PetscErrorCode MFNSetFunction(MFN mfn,SlepcFunction fun)
   PetscValidLogicalCollectiveEnum(mfn,fun,2);
   switch (fun) {
     case SLEPC_FUNCTION_EXP:
-      break;      
+      break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONG,"Unknown function");
   }
@@ -313,7 +313,7 @@ PetscErrorCode MFNSetFunction(MFN mfn,SlepcFunction fun)
    Not Collective
 
    Input Parameter:
-.  mfn - the matrix function context 
+.  mfn - the matrix function context
 
    Output Parameter:
 .  fun - function
@@ -391,7 +391,7 @@ PetscErrorCode MFNGetScaleFactor(MFN mfn,PetscReal *alpha)
 #undef __FUNCT__
 #define __FUNCT__ "MFNSetOptionsPrefix"
 /*@C
-   MFNSetOptionsPrefix - Sets the prefix used for searching for all 
+   MFNSetOptionsPrefix - Sets the prefix used for searching for all
    MFN options in the database.
 
    Logically Collective on MFN
@@ -427,13 +427,13 @@ PetscErrorCode MFNSetOptionsPrefix(MFN mfn,const char *prefix)
   if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(mfn->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)mfn,prefix);CHKERRQ(ierr);
-  PetscFunctionReturn(0);  
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNAppendOptionsPrefix"
 /*@C
-   MFNAppendOptionsPrefix - Appends to the prefix used for searching for all 
+   MFNAppendOptionsPrefix - Appends to the prefix used for searching for all
    MFN options in the database.
 
    Logically Collective on MFN
@@ -467,7 +467,7 @@ PetscErrorCode MFNAppendOptionsPrefix(MFN mfn,const char *prefix)
 #undef __FUNCT__
 #define __FUNCT__ "MFNGetOptionsPrefix"
 /*@C
-   MFNGetOptionsPrefix - Gets the prefix used for searching for all 
+   MFNGetOptionsPrefix - Gets the prefix used for searching for all
    MFN options in the database.
 
    Not Collective

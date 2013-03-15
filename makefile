@@ -1,5 +1,5 @@
 #
-# This is the makefile for installing SLEPc. See the Users Manual 
+# This is the makefile for installing SLEPc. See the Users Manual
 # for directions on installing SLEPc.
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -7,14 +7,14 @@
 #  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
-#     
+#
 #  SLEPc is free software: you can redistribute it and/or modify it under  the
 #  terms of version 3 of the GNU Lesser General Public License as published by
 #  the Free Software Foundation.
 #
-#  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-#  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-#  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+#  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+#  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+#  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 #  more details.
 #
 #  You  should have received a copy of the GNU Lesser General  Public  License
@@ -24,7 +24,7 @@
 
 ALL: all
 LOCDIR = .
-DIRS   = src include docs 
+DIRS   = src include docs
 
 # Include the rest of makefiles
 include ${SLEPC_DIR}/conf/slepc_common
@@ -116,21 +116,21 @@ info: chk_makej
 build: chk_makej
 	-@echo "BEGINNING TO COMPILE LIBRARIES IN ALL DIRECTORIES"
 	-@echo "========================================="
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=libfast slepc_tree 
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=libfast slepc_tree
 	-@${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}  > tmpf 2>&1 ; ${GREP} -v "has no symbols" tmpf; ${RM} tmpf;
 	-@echo "Completed building libraries"
 	-@echo "========================================="
 
 # Simple test examples for checking a correct installation
 check: test
-test: 
+test:
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} test_build 2>&1 | tee ./${PETSC_ARCH}/conf/test.log
-test_build: 
+test_build:
 	-@echo "Running test examples to verify correct installation"
 	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
 	@cd src/eps/examples/tests; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest10
 	@if [ "${FC}" != "" ]; then cd src/eps/examples/tests; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest7f; fi;
-	-@if [ "${BLOPEX_LIB}" != "" ]; then cd src/eps/examples/tests; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest5_blopex; fi; 
+	-@if [ "${BLOPEX_LIB}" != "" ]; then cd src/eps/examples/tests; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest5_blopex; fi;
 	-@echo "Completed test examples"
 
 # Builds SLEPc test examples for C
@@ -140,7 +140,7 @@ testexamples: info
 	-@echo "machines some of the numbers may not match exactly."
 	-@echo "========================================="
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
-	   ACTION=testexamples_C slepc_tree 
+	   ACTION=testexamples_C slepc_tree
 	-@echo "Completed compiling and running test examples"
 	-@echo "========================================="
 
@@ -320,20 +320,20 @@ deletemanualpages: chk_loc
           find ${LOC}/docs/manualpages -type f -name "*.html" -exec ${RM} {} \; ;\
           ${RM} ${LOC}/docs/manualpages/manualpages.cit ;\
         fi
-allcleanhtml: 
+allcleanhtml:
 	-${OMAKE} ACTION=cleanhtml PETSC_DIR=${PETSC_DIR} alltree
 
 # Builds Fortran stub files
 allfortranstubs:
 	-@${PYTHON} ${SLEPC_DIR}/config/generatefortranstubs.py ${BFORT}
 deletefortranstubs:
-	-@find . -type d -name ftn-auto | xargs rm -rf 
+	-@find . -type d -name ftn-auto | xargs rm -rf
 
 # -------------------------------------------------------------------------------
 #
 # Some macros to check if the Fortran interface is up-to-date.
 #
-countfortranfunctions: 
+countfortranfunctions:
 	-@for D in `find ${SLEPC_DIR}/src -name ftn-auto` \
 	`find ${SLEPC_DIR}/src -name ftn-custom`; do cd $$D; \
 	egrep '^void' *.c | \

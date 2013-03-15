@@ -20,9 +20,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -89,7 +89,7 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
   if (d->B && her_ind_probl && (orth == EPS_ORTH_I || orth == EPS_ORTH_BOPT)) {
     d->size_real_BV = b->size_V; d->BV_shift = PETSC_TRUE;
     if (orth == EPS_ORTH_BOPT) d->size_BDS = d->eps->nds;
-  } else if (d->B) { 
+  } else if (d->B) {
     d->size_real_BV = b->max_size_V + b->max_size_P; d->BV_shift = PETSC_FALSE;
   } else {
     d->size_real_BV = 0; d->BV_shift = PETSC_FALSE;
@@ -321,7 +321,7 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
   ierr = dvd_calcpairs_updateW0(d, &r, &sr0);CHKERRQ(ierr);
   ierr = dvd_calcpairs_updateAV0(d);CHKERRQ(ierr);
   ierr = dvd_calcpairs_updateBV0(d);CHKERRQ(ierr);
-  /* 2. V <- orth(V, V_new) */ 
+  /* 2. V <- orth(V, V_new) */
   ierr = dvd_calcpairs_updateV1(d);CHKERRQ(ierr);
   /* 3. AV <- [AV A * V(V_new_s:V_new_e-1)] */
   /* Check consistency */
@@ -959,7 +959,7 @@ PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e
   for (i=0;i<r_e-r_s;i++) {
 #if !defined(PETSC_USE_COMPLEX)
     if (d->eigi[r_s+i] != 0.0) {
-      /* [Ax_i Ax_i+1 Bx_i Bx_i+1]*= [   1        0 
+      /* [Ax_i Ax_i+1 Bx_i Bx_i+1]*= [   1        0
                                          0        1
                                       -eigr_i -eigi_i
                                        eigi_i -eigr_i] */
@@ -1027,7 +1027,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,V
     *BV+= d->V_tra_s-*cX_in_proj;
     *max_size_BV-= d->V_tra_s-*cX_in_proj;
     *size_BV = d->V_tra_e  - d->V_tra_s;
-    if (size_cBV && BV_shift) *size_cBV = *BV - real_BV; 
+    if (size_cBV && BV_shift) *size_cBV = *BV - real_BV;
     if (d->max_cX_in_proj>0) *cX_in_proj = PetscMin(*BV - real_BV, d->max_cX_in_proj);
   } else { /* !BV_shift */
     /* BV <- BV*MT(V_tra_s:) */

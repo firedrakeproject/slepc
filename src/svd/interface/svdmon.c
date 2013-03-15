@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -44,7 +44,7 @@ PetscErrorCode SVDMonitor(SVD svd,PetscInt it,PetscInt nconv,PetscReal *sigma,Pe
 #undef __FUNCT__
 #define __FUNCT__ "SVDMonitorSet"
 /*@C
-   SVDMonitorSet - Sets an ADDITIONAL function to be called at every 
+   SVDMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor the error estimates for each requested singular triplet.
 
    Collective on SVD
@@ -79,9 +79,9 @@ $     monitor (SVD svd, PetscInt its, PetscInt nconv, PetscReal *sigma, PetscRea
       a code by calls to SVDMonitorSet(), but does not cancel those set via
       the options database.
 
-   Notes:  
+   Notes:
    Several different monitoring routines may be set by calling
-   SVDMonitorSet() multiple times; all will be called in the 
+   SVDMonitorSet() multiple times; all will be called in the
    order in which they were set.
 
    Level: intermediate
@@ -110,7 +110,7 @@ PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,Pets
 .  svd - singular value solver context obtained from SVDCreate()
 
    Options Database Key:
-.    -svd_monitor_cancel - Cancels all monitors that have been hardwired 
+.    -svd_monitor_cancel - Cancels all monitors that have been hardwired
       into a code by calls to SVDMonitorSet(),
       but does not cancel those set via the options database.
 
@@ -137,7 +137,7 @@ PetscErrorCode SVDMonitorCancel(SVD svd)
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetMonitorContext"
 /*@C
-   SVDGetMonitorContext - Gets the monitor context, as set by 
+   SVDGetMonitorContext - Gets the monitor context, as set by
    SVDMonitorSet() for the FIRST monitor only.
 
    Not Collective
@@ -163,7 +163,7 @@ PetscErrorCode SVDGetMonitorContext(SVD svd,void **ctx)
 #undef __FUNCT__
 #define __FUNCT__ "SVDMonitorAll"
 /*@C
-   SVDMonitorAll - Print the current approximate values and 
+   SVDMonitorAll - Print the current approximate values and
    error estimates at each iteration of the singular value solver.
 
    Collective on SVD
@@ -203,7 +203,7 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
 #undef __FUNCT__
 #define __FUNCT__ "SVDMonitorFirst"
 /*@C
-   SVDMonitorFirst - Print the first unconverged approximate values and 
+   SVDMonitorFirst - Print the first unconverged approximate values and
    error estimates at each iteration of the singular value solver.
 
    Collective on SVD
@@ -250,7 +250,7 @@ PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
 .  sigma  - singular values
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  monctx - monitor context 
+-  monctx - monitor context
 
    Note:
    The monitor context must contain a struct with a PetscViewer and a
@@ -327,7 +327,7 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
 
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-} 
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDMonitorLGAll"
@@ -380,4 +380,4 @@ PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
   ierr = PetscFree(x);CHKERRQ(ierr);
   ierr = PetscFree(y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-} 
+}

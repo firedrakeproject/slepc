@@ -1,4 +1,4 @@
-/*                       
+/*
 
    Straightforward linearization for quadratic eigenproblems.
 
@@ -12,9 +12,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -71,10 +71,10 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
 
   ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
   ierr = MatDestroy(&ctx->B);CHKERRQ(ierr);
-  ierr = VecDestroy(&ctx->x1);CHKERRQ(ierr); 
-  ierr = VecDestroy(&ctx->x2);CHKERRQ(ierr); 
-  ierr = VecDestroy(&ctx->y1);CHKERRQ(ierr); 
-  ierr = VecDestroy(&ctx->y2);CHKERRQ(ierr); 
+  ierr = VecDestroy(&ctx->x1);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->x2);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->y1);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->y2);CHKERRQ(ierr);
 
   switch (qep->problem_type) {
     case QEP_GENERAL:    i = 0; break;
@@ -144,7 +144,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
 #define __FUNCT__ "QEPLinearSelect_Norm"
 /*
    QEPLinearSelect_Norm - Auxiliary routine that copies the solution of the
-   linear eigenproblem to the QEP object. The eigenvector of the generalized 
+   linear eigenproblem to the QEP object. The eigenvector of the generalized
    problem is supposed to be
                                z = [  x  ]
                                    [ l*x ]
@@ -228,7 +228,7 @@ static PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
 #define __FUNCT__ "QEPLinearSelect_Simple"
 /*
    QEPLinearSelect_Simple - Auxiliary routine that copies the solution of the
-   linear eigenproblem to the QEP object. The eigenvector of the generalized 
+   linear eigenproblem to the QEP object. The eigenvector of the generalized
    problem is supposed to be
                                z = [  x  ]
                                    [ l*x ]
@@ -304,8 +304,8 @@ PetscErrorCode QEPSolve_Linear(QEP qep)
   ierr = EPSSetTarget(ctx->eps,sigma*qep->sfactor);CHKERRQ(ierr);
 
   qep->matvecs *= 2;  /* convention: count one matvec for each non-trivial block in A */
-  ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_linear_select_simple",&flg,NULL);CHKERRQ(ierr); 
-  if (flg) { 
+  ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_linear_select_simple",&flg,NULL);CHKERRQ(ierr);
+  if (flg) {
     ierr = QEPLinearSelect_Simple(qep,ctx->eps);CHKERRQ(ierr);
   } else {
     ierr = QEPLinearSelect_Norm(qep,ctx->eps);CHKERRQ(ierr);
@@ -356,7 +356,7 @@ PetscErrorCode QEPSetFromOptions_Linear(QEP qep)
     ierr = QEPLinearSetExplicitMatrix(qep,val);CHKERRQ(ierr);
   }
   if (!ctx->explicitmatrix) {
-    /* use as default an ST with shell matrix and Jacobi */ 
+    /* use as default an ST with shell matrix and Jacobi */
     ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
@@ -540,7 +540,7 @@ static PetscErrorCode QEPLinearSetEPS_Linear(QEP qep,EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
-  ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);  
+  ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   ctx->eps = eps;
   ierr = PetscLogObjectParent(qep,ctx->eps);CHKERRQ(ierr);
   qep->setupcalled = 0;
@@ -551,7 +551,7 @@ static PetscErrorCode QEPLinearSetEPS_Linear(QEP qep,EPS eps)
 #define __FUNCT__ "QEPLinearSetEPS"
 /*@
    QEPLinearSetEPS - Associate an eigensolver object (EPS) to the
-   quadratic eigenvalue solver. 
+   quadratic eigenvalue solver.
 
    Collective on QEP
 
@@ -696,7 +696,7 @@ PETSC_EXTERN PetscErrorCode QEPCreate_Linear(QEP qep)
   ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)qep)->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(ctx->eps,"qep_");CHKERRQ(ierr);
   ierr = STSetOptionsPrefix(ctx->eps->st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)qep,1);CHKERRQ(ierr);  
+  ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)qep,1);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(qep,ctx->eps);CHKERRQ(ierr);
   if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
   ierr = EPSSetIP(ctx->eps,qep->ip);CHKERRQ(ierr);

@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -64,9 +64,9 @@ static PetscErrorCode QEPSortForSTFunc(PetscScalar ar,PetscScalar ai,
 
    Level: beginner
 
-.seealso: QEPCreate(), QEPSetUp(), QEPDestroy(), QEPSetTolerances() 
+.seealso: QEPCreate(), QEPSetUp(), QEPDestroy(), QEPSetTolerances()
 @*/
-PetscErrorCode QEPSolve(QEP qep) 
+PetscErrorCode QEPSolve(QEP qep)
 {
   PetscErrorCode    ierr;
   PetscInt          i;
@@ -146,14 +146,14 @@ PetscErrorCode QEPSolve(QEP qep)
   ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)qep),((PetscObject)qep)->prefix,"-qep_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = QEPView(qep,viewer);CHKERRQ(ierr); 
+    ierr = QEPView(qep,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
   flg = PETSC_FALSE;
-  ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_plot_eigs",&flg,NULL);CHKERRQ(ierr); 
-  if (flg) { 
+  ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_plot_eigs",&flg,NULL);CHKERRQ(ierr);
+  if (flg) {
     ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
     ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
     ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
@@ -180,8 +180,8 @@ PetscErrorCode QEPSolve(QEP qep)
 #undef __FUNCT__
 #define __FUNCT__ "QEPGetIterationNumber"
 /*@
-   QEPGetIterationNumber - Gets the current iteration number. If the 
-   call to QEPSolve() is complete, then it returns the number of iterations 
+   QEPGetIterationNumber - Gets the current iteration number. If the
+   call to QEPSolve() is complete, then it returns the number of iterations
    carried out by the solution method.
 
    Not Collective
@@ -195,10 +195,10 @@ PetscErrorCode QEPSolve(QEP qep)
    Level: intermediate
 
    Note:
-   During the i-th iteration this call returns i-1. If QEPSolve() is 
+   During the i-th iteration this call returns i-1. If QEPSolve() is
    complete, then parameter "its" contains either the iteration number at
-   which convergence was successfully reached, or failure was detected.  
-   Call QEPGetConvergedReason() to determine if the solver converged or 
+   which convergence was successfully reached, or failure was detected.
+   Call QEPGetConvergedReason() to determine if the solver converged or
    failed and why.
 
 .seealso: QEPGetConvergedReason(), QEPSetTolerances()
@@ -223,7 +223,7 @@ PetscErrorCode QEPGetIterationNumber(QEP qep,PetscInt *its)
 .  qep - the quadratic eigensolver context
 
    Output Parameter:
-.  nconv - number of converged eigenpairs 
+.  nconv - number of converged eigenpairs
 
    Note:
    This function should be called after QEPSolve() has finished.
@@ -244,7 +244,7 @@ PetscErrorCode QEPGetConverged(QEP qep,PetscInt *nconv)
 #undef __FUNCT__
 #define __FUNCT__ "QEPGetConvergedReason"
 /*@C
-   QEPGetConvergedReason - Gets the reason why the QEPSolve() iteration was 
+   QEPGetConvergedReason - Gets the reason why the QEPSolve() iteration was
    stopped.
 
    Not Collective
@@ -277,15 +277,15 @@ PetscErrorCode QEPGetConvergedReason(QEP qep,QEPConvergedReason *reason)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "QEPGetEigenpair" 
+#define __FUNCT__ "QEPGetEigenpair"
 /*@
-   QEPGetEigenpair - Gets the i-th solution of the eigenproblem as computed by 
+   QEPGetEigenpair - Gets the i-th solution of the eigenproblem as computed by
    QEPSolve(). The solution consists in both the eigenvalue and the eigenvector.
 
    Logically Collective on EPS
 
    Input Parameters:
-+  qep - quadratic eigensolver context 
++  qep - quadratic eigensolver context
 -  i   - index of the solution
 
    Output Parameters:
@@ -295,13 +295,13 @@ PetscErrorCode QEPGetConvergedReason(QEP qep,QEPConvergedReason *reason)
 -  Vi   - imaginary part of eigenvector
 
    Notes:
-   If the eigenvalue is real, then eigi and Vi are set to zero. If PETSc is 
-   configured with complex scalars the eigenvalue is stored 
-   directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is 
+   If the eigenvalue is real, then eigi and Vi are set to zero. If PETSc is
+   configured with complex scalars the eigenvalue is stored
+   directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is
    set to zero).
 
    The index i should be a value between 0 and nconv-1 (see QEPGetConverged()).
-   Eigenpairs are indexed according to the ordering criterion established 
+   Eigenpairs are indexed according to the ordering criterion established
    with QEPSetWhichEigenpairs().
 
    Level: beginner
@@ -318,8 +318,8 @@ PetscErrorCode QEPGetEigenpair(QEP qep,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscValidLogicalCollectiveInt(qep,i,2);
   if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,6); PetscCheckSameComm(qep,1,Vr,6); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,7); PetscCheckSameComm(qep,1,Vi,7); }
-  if (!qep->eigr || !qep->eigi || !qep->V) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
-  if (i<0 || i>=qep->nconv) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
+  if (!qep->eigr || !qep->eigi || !qep->V) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first");
+  if (i<0 || i>=qep->nconv) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
 
   if (!qep->perm) k = i;
   else k = qep->perm[i];
@@ -343,9 +343,9 @@ PetscErrorCode QEPGetEigenpair(QEP qep,PetscInt i,PetscScalar *eigr,PetscScalar 
     if (Vi) { ierr = VecCopy(qep->V[k+1],Vi);CHKERRQ(ierr); }
   } else if (qep->eigi[k]<0) { /* second value of conjugate pair */
     if (Vr) { ierr = VecCopy(qep->V[k-1],Vr);CHKERRQ(ierr); }
-    if (Vi) { 
-      ierr = VecCopy(qep->V[k],Vi);CHKERRQ(ierr); 
-      ierr = VecScale(Vi,-1.0);CHKERRQ(ierr); 
+    if (Vi) {
+      ierr = VecCopy(qep->V[k],Vi);CHKERRQ(ierr);
+      ierr = VecScale(Vi,-1.0);CHKERRQ(ierr);
     }
   } else { /* real eigenvalue */
     if (Vr) { ierr = VecCopy(qep->V[k],Vr);CHKERRQ(ierr); }
@@ -356,15 +356,15 @@ PetscErrorCode QEPGetEigenpair(QEP qep,PetscInt i,PetscScalar *eigr,PetscScalar 
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "QEPGetErrorEstimate" 
+#define __FUNCT__ "QEPGetErrorEstimate"
 /*@
-   QEPGetErrorEstimate - Returns the error estimate associated to the i-th 
+   QEPGetErrorEstimate - Returns the error estimate associated to the i-th
    computed eigenpair.
 
    Not Collective
 
    Input Parameter:
-+  qep - quadratic eigensolver context 
++  qep - quadratic eigensolver context
 -  i   - index of eigenpair
 
    Output Parameter:
@@ -384,9 +384,9 @@ PetscErrorCode QEPGetErrorEstimate(QEP qep,PetscInt i,PetscReal *errest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidPointer(errest,3);
-  if (!qep->eigr || !qep->eigi) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first"); 
-  if (i<0 || i>=qep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range"); 
-  if (qep->perm) i = qep->perm[i];  
+  if (!qep->eigr || !qep->eigi) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"QEPSolve must be called first");
+  if (i<0 || i>=qep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
+  if (qep->perm) i = qep->perm[i];
   if (errest) *errest = qep->errest[i];
   PetscFunctionReturn(0);
 }
@@ -394,7 +394,7 @@ PetscErrorCode QEPGetErrorEstimate(QEP qep,PetscInt i,PetscReal *errest)
 #undef __FUNCT__
 #define __FUNCT__ "QEPComputeResidualNorm_Private"
 /*
-   QEPComputeResidualNorm_Private - Computes the norm of the residual vector 
+   QEPComputeResidualNorm_Private - Computes the norm of the residual vector
    associated with an eigenpair.
 */
 PetscErrorCode QEPComputeResidualNorm_Private(QEP qep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *norm)
@@ -422,7 +422,7 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep,PetscScalar kr,PetscScalar
       ierr = MatMult(M,xr,w);CHKERRQ(ierr);               /* w=M*x */
       ierr = VecAXPY(u,kr*kr,w);CHKERRQ(ierr);            /* u=l^2*M*x+l*C*x+K*x */
     }
-    ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);  
+    ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   } else {
     ierr = VecDuplicate(u,&v);CHKERRQ(ierr);
@@ -465,7 +465,7 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep,PetscScalar kr,PetscScalar
 #undef __FUNCT__
 #define __FUNCT__ "QEPComputeResidualNorm"
 /*@
-   QEPComputeResidualNorm - Computes the norm of the residual vector associated with 
+   QEPComputeResidualNorm - Computes the norm of the residual vector associated with
    the i-th computed eigenpair.
 
    Collective on QEP
@@ -475,13 +475,13 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep,PetscScalar kr,PetscScalar
 -  i   - the solution index
 
    Output Parameter:
-.  norm - the residual norm, computed as ||(l^2*M+l*C+K)x||_2 where l is the 
-   eigenvalue and x is the eigenvector. 
+.  norm - the residual norm, computed as ||(l^2*M+l*C+K)x||_2 where l is the
+   eigenvalue and x is the eigenvector.
    If l=0 then the residual norm is computed as ||Kx||_2.
 
    Notes:
    The index i should be a value between 0 and nconv-1 (see QEPGetConverged()).
-   Eigenpairs are indexed according to the ordering criterion established 
+   Eigenpairs are indexed according to the ordering criterion established
    with QEPSetWhichEigenpairs().
 
    Level: beginner
@@ -510,7 +510,7 @@ PetscErrorCode QEPComputeResidualNorm(QEP qep,PetscInt i,PetscReal *norm)
 #undef __FUNCT__
 #define __FUNCT__ "QEPComputeRelativeError_Private"
 /*
-   QEPComputeRelativeError_Private - Computes the relative error bound 
+   QEPComputeRelativeError_Private - Computes the relative error bound
    associated with an eigenpair.
 */
 PetscErrorCode QEPComputeRelativeError_Private(QEP qep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *error)
@@ -534,22 +534,22 @@ PetscErrorCode QEPComputeRelativeError_Private(QEP qep,PetscScalar kr,PetscScala
     }
 #if !defined(PETSC_USE_COMPLEX)
   } else {
-    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);  
-    ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);  
+    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
+    ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);
     if (SlepcAbsEigenvalue(kr,ki) > norm) {
       *error = norm/(SlepcAbsEigenvalue(kr,ki)*SlepcAbsEigenvalue(er,ei));
     } else {
       *error = norm/SlepcAbsEigenvalue(er,ei);
     }
   }
-#endif    
+#endif
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPComputeRelativeError"
 /*@
-   QEPComputeRelativeError - Computes the relative error bound associated 
+   QEPComputeRelativeError - Computes the relative error bound associated
    with the i-th computed eigenpair.
 
    Collective on QEP
@@ -559,8 +559,8 @@ PetscErrorCode QEPComputeRelativeError_Private(QEP qep,PetscScalar kr,PetscScala
 -  i   - the solution index
 
    Output Parameter:
-.  error - the relative error bound, computed as ||(l^2*M+l*C+K)x||_2/||lx||_2 where 
-   l is the eigenvalue and x is the eigenvector. 
+.  error - the relative error bound, computed as ||(l^2*M+l*C+K)x||_2/||lx||_2 where
+   l is the eigenvalue and x is the eigenvector.
    If l=0 the relative error is computed as ||Kx||_2/||x||_2.
 
    Level: beginner
@@ -574,13 +574,13 @@ PetscErrorCode QEPComputeRelativeError(QEP qep,PetscInt i,PetscReal *error)
   PetscScalar    kr,ki;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);  
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(qep,i,2);
   PetscValidPointer(error,3);
   ierr = VecDuplicate(qep->V[0],&xr);CHKERRQ(ierr);
   ierr = VecDuplicate(qep->V[0],&xi);CHKERRQ(ierr);
   ierr = QEPGetEigenpair(qep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
-  ierr = QEPComputeRelativeError_Private(qep,kr,ki,xr,xi,error);CHKERRQ(ierr);  
+  ierr = QEPComputeRelativeError_Private(qep,kr,ki,xr,xi,error);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -589,7 +589,7 @@ PetscErrorCode QEPComputeRelativeError(QEP qep,PetscInt i,PetscReal *error)
 #undef __FUNCT__
 #define __FUNCT__ "QEPSortEigenvalues"
 /*@
-   QEPSortEigenvalues - Sorts a list of eigenvalues according to the criterion 
+   QEPSortEigenvalues - Sorts a list of eigenvalues according to the criterion
    specified via QEPSetWhichEigenpairs().
 
    Not Collective
@@ -604,7 +604,7 @@ PetscErrorCode QEPComputeRelativeError(QEP qep,PetscInt i,PetscReal *error)
 .  perm  - resulting permutation
 
    Note:
-   The result is a list of indices in the original eigenvalue array 
+   The result is a list of indices in the original eigenvalue array
    corresponding to the first nev eigenvalues sorted in the specified
    criterion.
 
@@ -619,7 +619,7 @@ PetscErrorCode QEPSortEigenvalues(QEP qep,PetscInt n,PetscScalar *eigr,PetscScal
   PetscInt       i,j,result,tmp;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);  
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidScalarPointer(eigr,3);
   PetscValidScalarPointer(eigi,4);
   PetscValidIntPointer(perm,5);
@@ -641,7 +641,7 @@ PetscErrorCode QEPSortEigenvalues(QEP qep,PetscInt n,PetscScalar *eigr,PetscScal
       if (result < 0) break;
 #if !defined(PETSC_USE_COMPLEX)
       /* keep together every complex conjugated eigenpair */
-      if (im == 0) { 
+      if (im == 0) {
         if (eigi[perm[j]] == 0) {
 #endif
           tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = tmp;
@@ -702,7 +702,7 @@ PetscErrorCode QEPCompareEigenvalues(QEP qep,PetscScalar ar,PetscScalar ai,Petsc
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);  
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidIntPointer(result,6);
   if (!qep->comparison) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
   ierr = (*qep->comparison)(ar,ai,br,bi,result,qep->comparisonctx);CHKERRQ(ierr);
@@ -712,7 +712,7 @@ PetscErrorCode QEPCompareEigenvalues(QEP qep,PetscScalar ar,PetscScalar ai,Petsc
 #undef __FUNCT__
 #define __FUNCT__ "QEPGetOperationCounters"
 /*@
-   QEPGetOperationCounters - Gets the total number of matrix-vector products, dot 
+   QEPGetOperationCounters - Gets the total number of matrix-vector products, dot
    products, and linear solve iterations used by the QEP object during the last
    QEPSolve() call.
 
@@ -738,11 +738,11 @@ PetscErrorCode QEPGetOperationCounters(QEP qep,PetscInt* matvecs,PetscInt* dots,
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  if (matvecs) *matvecs = qep->matvecs; 
+  if (matvecs) *matvecs = qep->matvecs;
   if (dots) {
     if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
     ierr = IPGetOperationCounters(qep->ip,dots);CHKERRQ(ierr);
   }
-  if (lits) *lits = qep->linits; 
+  if (lits) *lits = qep->linits;
   PetscFunctionReturn(0);
 }

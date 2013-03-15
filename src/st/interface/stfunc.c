@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -30,14 +30,14 @@ static PetscBool STPackageInitialized = PETSC_FALSE;
 #undef __FUNCT__
 #define __FUNCT__ "STFinalizePackage"
 /*@C
-   STFinalizePackage - This function destroys everything in the Slepc interface 
+   STFinalizePackage - This function destroys everything in the Slepc interface
    to the ST package. It is called from SlepcFinalize().
 
    Level: developer
 
 .seealso: SlepcFinalize()
 @*/
-PetscErrorCode STFinalizePackage(void) 
+PetscErrorCode STFinalizePackage(void)
 {
   PetscFunctionBegin;
   STPackageInitialized = PETSC_FALSE;
@@ -120,7 +120,7 @@ PetscErrorCode STReset(ST st)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (st->ops->reset) { ierr = (*st->ops->reset)(st);CHKERRQ(ierr); }
   if (st->ksp) { ierr = KSPReset(st->ksp);CHKERRQ(ierr); }
-  ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr); 
+  ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
   ierr = VecDestroy(&st->w);CHKERRQ(ierr);
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
   ierr = STResetOperationCounters(st);CHKERRQ(ierr);
@@ -169,7 +169,7 @@ PetscErrorCode STDestroy(ST *st)
    Collective on MPI_Comm
 
    Input Parameter:
-.  comm - MPI communicator 
+.  comm - MPI communicator
 
    Output Parameter:
 .  st - location to put the spectral transformation context
@@ -210,7 +210,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
 #undef __FUNCT__
 #define __FUNCT__ "STSetOperators"
 /*@
-   STSetOperators - Sets the matrices associated with the eigenvalue problem. 
+   STSetOperators - Sets the matrices associated with the eigenvalue problem.
 
    Collective on ST and Mat
 
@@ -464,7 +464,7 @@ PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
 #undef __FUNCT__
 #define __FUNCT__ "STSetOptionsPrefix"
 /*@C
-   STSetOptionsPrefix - Sets the prefix used for searching for all 
+   STSetOptionsPrefix - Sets the prefix used for searching for all
    ST options in the database.
 
    Logically Collective on ST
@@ -498,7 +498,7 @@ PetscErrorCode STSetOptionsPrefix(ST st,const char *prefix)
 #undef __FUNCT__
 #define __FUNCT__ "STAppendOptionsPrefix"
 /*@C
-   STAppendOptionsPrefix - Appends to the prefix used for searching for all 
+   STAppendOptionsPrefix - Appends to the prefix used for searching for all
    ST options in the database.
 
    Logically Collective on ST
@@ -532,7 +532,7 @@ PetscErrorCode STAppendOptionsPrefix(ST st,const char *prefix)
 #undef __FUNCT__
 #define __FUNCT__ "STGetOptionsPrefix"
 /*@C
-   STGetOptionsPrefix - Gets the prefix used for searching for all 
+   STGetOptionsPrefix - Gets the prefix used for searching for all
    ST options in the database.
 
    Not Collective
@@ -577,8 +577,8 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
 +     PETSC_VIEWER_STDOUT_SELF - standard output (default)
 -     PETSC_VIEWER_STDOUT_WORLD - synchronized standard
          output where only the first processor opens
-         the file.  All other processors send their 
-         data to the first processor to print. 
+         the file.  All other processors send their
+         data to the first processor to print.
 
    The user can open an alternative visualization contexts with
    PetscViewerASCIIOpen() (output to a specified file).
@@ -599,7 +599,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)st));
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2); 
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(st,1,viewer,2);
 
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -624,7 +624,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  using a shell matrix\n");CHKERRQ(ierr);
       break;
     }
-    if (st->nmat>1 && st->shift_matrix != ST_MATMODE_SHELL) { 
+    if (st->nmat>1 && st->shift_matrix != ST_MATMODE_SHELL) {
       switch (st->str) {
         case SAME_NONZERO_PATTERN:      pat = "same nonzero pattern";break;
         case DIFFERENT_NONZERO_PATTERN: pat = "different nonzero pattern";break;

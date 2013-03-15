@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc singular value solver: "trlanczos"
 
@@ -31,9 +31,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -59,7 +59,7 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
   if (svd->ncv) { /* ncv set */
-    if (svd->ncv<svd->nsv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must be at least nsv"); 
+    if (svd->ncv<svd->nsv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must be at least nsv");
   } else if (svd->mpd) { /* mpd set */
     svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
   } else { /* neither set: defaults depend on nsv being small or large */
@@ -70,9 +70,9 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     }
   }
   if (!svd->mpd) svd->mpd = svd->ncv;
-  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must not be larger than nev+mpd"); 
+  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must not be larger than nev+mpd");
   if (!svd->max_it) svd->max_it = PetscMax(N/svd->ncv,100);
-  if (svd->ncv!=svd->n) {  
+  if (svd->ncv!=svd->n) {
     ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
   }
   ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
@@ -100,7 +100,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
   alpha[k] = a;
   for (i=k+1;i<n;i++) {
     ierr = SVDMatMult(svd,PETSC_TRUE,U[i-1],V[i]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(svd->ip,0,NULL,i,NULL,V,V[i],work,&b,NULL);CHKERRQ(ierr);  
+    ierr = IPOrthogonalize(svd->ip,0,NULL,i,NULL,V,V[i],work,&b,NULL);CHKERRQ(ierr);
     ierr = VecScale(V[i],1.0/b);CHKERRQ(ierr);
     beta[i-1] = b;
 
@@ -111,7 +111,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
     alpha[i] = a;
   }
   ierr = SVDMatMult(svd,PETSC_TRUE,U[n-1],v);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(svd->ip,0,NULL,n,NULL,V,v,work,&b,NULL);CHKERRQ(ierr);      
+  ierr = IPOrthogonalize(svd->ip,0,NULL,n,NULL,V,v,work,&b,NULL);CHKERRQ(ierr);
   beta[n-1] = b;
   PetscFunctionReturn(0);
 }
@@ -153,7 +153,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
     switch (refine) {
     case IP_ORTHOG_REFINE_NEVER:
       ierr = IPNorm(svd->ip,V[i],&b);CHKERRQ(ierr);
-      break;      
+      break;
     case IP_ORTHOG_REFINE_ALWAYS:
       ierr = IPOrthogonalizeCGS1(svd->ip,0,NULL,i,NULL,V,V[i],work,NULL,&b);CHKERRQ(ierr);
       break;
@@ -201,7 +201,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   switch (refine) {
   case IP_ORTHOG_REFINE_NEVER:
     ierr = IPNorm(svd->ip,v,&b);CHKERRQ(ierr);
-    break;      
+    break;
   case IP_ORTHOG_REFINE_ALWAYS:
     ierr = IPOrthogonalizeCGS1(svd->ip,0,NULL,n,NULL,V,v,work,NULL,&b);CHKERRQ(ierr);
     break;
@@ -373,7 +373,7 @@ static PetscErrorCode SVDTRLanczosSetOneSide_TRLanczos(SVD svd,PetscBool oneside
 #undef __FUNCT__
 #define __FUNCT__ "SVDTRLanczosSetOneSide"
 /*@
-   SVDTRLanczosSetOneSide - Indicate if the variant of the Lanczos method 
+   SVDTRLanczosSetOneSide - Indicate if the variant of the Lanczos method
    to be used is one-sided or two-sided.
 
    Logically Collective on SVD
@@ -387,8 +387,8 @@ static PetscErrorCode SVDTRLanczosSetOneSide_TRLanczos(SVD svd,PetscBool oneside
 
    Note:
    By default, a two-sided variant is selected, which is sometimes slightly
-   more robust. However, the one-sided variant is faster because it avoids 
-   the orthogonalization associated to left singular vectors. 
+   more robust. However, the one-sided variant is faster because it avoids
+   the orthogonalization associated to left singular vectors.
 
    Level: advanced
 
@@ -408,7 +408,7 @@ PetscErrorCode SVDTRLanczosSetOneSide(SVD svd,PetscBool oneside)
 #undef __FUNCT__
 #define __FUNCT__ "SVDTRLanczosGetOneSide"
 /*@
-   SVDTRLanczosGetOneSide - Gets if the variant of the Lanczos method 
+   SVDTRLanczosGetOneSide - Gets if the variant of the Lanczos method
    to be used is one-sided or two-sided.
 
    Not Collective

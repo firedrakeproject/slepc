@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc eigensolver: "lanczos"
 
@@ -6,13 +6,13 @@
 
    Algorithm:
 
-       Lanczos method for symmetric (Hermitian) problems, with explicit 
+       Lanczos method for symmetric (Hermitian) problems, with explicit
        restart and deflation. Several reorthogonalization strategies can
        be selected.
 
    References:
 
-       [1] "Lanczos Methods in SLEPc", SLEPc Technical Report STR-5, 
+       [1] "Lanczos Methods in SLEPc", SLEPc Technical Report STR-5,
            available at http://www.grycap.upv.es/slepc.
 
    Last update: Feb 2009
@@ -27,9 +27,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -56,7 +56,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
   } else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
   } else { /* neither set: defaults depend on nev being small or large */
@@ -67,7 +67,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
     }
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
-  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd"); 
+  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
 
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
@@ -108,10 +108,10 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
 /*
    EPSLocalLanczos - Local reorthogonalization.
 
-   This is the simplest variant. At each Lanczos step, the corresponding Lanczos vector 
+   This is the simplest variant. At each Lanczos step, the corresponding Lanczos vector
    is orthogonalized with respect to the two previous Lanczos vectors, according to
-   the three term Lanczos recurrence. WARNING: This variant does not track the loss of 
-   orthogonality that occurs in finite-precision arithmetic and, therefore, the 
+   the three term Lanczos recurrence. WARNING: This variant does not track the loss of
+   orthogonality that occurs in finite-precision arithmetic and, therefore, the
    generated vectors are not guaranteed to be (semi-)orthogonal.
 */
 static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscBool *breakdown)
@@ -122,7 +122,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
   PetscBool      *which,lwhich[100];
   PetscScalar    *hwork,lhwork[100];
 
-  PetscFunctionBegin;  
+  PetscFunctionBegin;
   if (m > 100) {
     ierr = PetscMalloc(sizeof(PetscBool)*m,&which);CHKERRQ(ierr);
     ierr = PetscMalloc(m*sizeof(PetscScalar),&hwork);CHKERRQ(ierr);
@@ -153,7 +153,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
   }
   ierr = STApply(eps->st,V[m-1],f);CHKERRQ(ierr);
   ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,NULL,V,f,hwork,&norm,NULL);CHKERRQ(ierr);
-  alpha[m-1] = PetscRealPart(hwork[m-1]); 
+  alpha[m-1] = PetscRealPart(hwork[m-1]);
   beta[m-1] = norm;
 
   if (m > 100) {
@@ -221,7 +221,7 @@ static PetscErrorCode DenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,Pet
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DSTEVR %d",info);
 #if defined(PETSC_USE_COMPLEX)
   if (V) {
-    for (i=0;i<n;i++) 
+    for (i=0;i<n;i++)
       for (j=0;j<n;j++)
         V[i*n+j] = VV[i*n+j];
     ierr = PetscFree(VV);CHKERRQ(ierr);
@@ -285,7 +285,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
     ierr = DenseTridiagonal(n,d,e,ritz,Y);CHKERRQ(ierr);
 
     /* Estimate ||A|| */
-    for (i=0;i<n;i++) 
+    for (i=0;i<n;i++)
       if (PetscAbsReal(ritz[i]) > anorm) anorm = PetscAbsReal(ritz[i]);
 
     /* Compute nearly converged Ritz vectors */
@@ -337,24 +337,24 @@ static void update_omega(PetscReal *omega,PetscReal *omega_old,PetscInt j,PetscR
   PetscReal      T,binv;
 
   PetscFunctionBegin;
-  /* Estimate of contribution to roundoff errors from A*v 
-       fl(A*v) = A*v + f, 
+  /* Estimate of contribution to roundoff errors from A*v
+       fl(A*v) = A*v + f,
      where ||f|| \approx eps1*||A||.
      For a full matrix A, a rule-of-thumb estimate is eps1 = sqrt(n)*eps. */
   T = eps1*anorm;
   binv = 1.0/beta[j+1];
 
   /* Update omega(1) using omega(0)==0. */
-  omega_old[0]= beta[1]*omega[1] + (alpha[0]-alpha[j])*omega[0] - 
+  omega_old[0]= beta[1]*omega[1] + (alpha[0]-alpha[j])*omega[0] -
                 beta[j]*omega_old[0];
   if (omega_old[0] > 0) omega_old[0] = binv*(omega_old[0] + T);
-  else omega_old[0] = binv*(omega_old[0] - T);  
+  else omega_old[0] = binv*(omega_old[0] - T);
 
   /* Update remaining components. */
   for (k=1;k<j-1;k++) {
     omega_old[k] = beta[k+1]*omega[k+1] + (alpha[k]-alpha[j])*omega[k] + beta[k]*omega[k-1] - beta[j]*omega_old[k];
-    if (omega_old[k] > 0) omega_old[k] = binv*(omega_old[k] + T);       
-    else omega_old[k] = binv*(omega_old[k] - T);       
+    if (omega_old[k] > 0) omega_old[k] = binv*(omega_old[k] + T);
+    else omega_old[k] = binv*(omega_old[k] - T);
   }
   omega_old[j-1] = binv*T;
 
@@ -363,7 +363,7 @@ static void update_omega(PetscReal *omega,PetscReal *omega_old,PetscInt j,PetscR
     omega[k] = omega_old[k];
     omega_old[k] = omega[k];
   }
-  omega[j] = eps1;  
+  omega[j] = eps1;
   PetscFunctionReturnVoid();
 }
 
@@ -375,7 +375,7 @@ static void compute_int(PetscBool *which,PetscReal *mu,PetscInt j,PetscReal delt
   PetscReal max;
   PetscBool found;
 
-  PetscFunctionBegin;  
+  PetscFunctionBegin;
   /* initialize which */
   found = PETSC_FALSE;
   maxpos = 0;
@@ -390,7 +390,7 @@ static void compute_int(PetscBool *which,PetscReal *mu,PetscInt j,PetscReal delt
       max = PetscAbsReal(mu[i]);
     }
   }
-  if (!found) which[maxpos] = PETSC_TRUE;    
+  if (!found) which[maxpos] = PETSC_TRUE;
 
   for (i=0;i<j;i++)
     if (which[i]) {
@@ -449,16 +449,16 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
     anorm = 1.0;
     estimate_anorm = PETSC_TRUE;
   }
-  for (i=0;i<m-k;i++) 
+  for (i=0;i<m-k;i++)
     omega[i] = omega_old[i] = 0.0;
   for (i=0;i<k;i++)
-    which[i] = PETSC_TRUE;  
+    which[i] = PETSC_TRUE;
 
   for (j=k;j<m;j++) {
     ierr = STApply(eps->st,V[j],f);CHKERRQ(ierr);
     if (fro) {
       /* Lanczos step with full reorthogonalization */
-      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,NULL,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);      
+      ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,NULL,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);
       alpha[j] = PetscRealPart(hwork[j]);
     } else {
       /* Lanczos step */
@@ -468,7 +468,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
       alpha[j] = PetscRealPart(hwork[j]);
       beta[j] = norm;
 
-      /* Estimate ||A|| if needed */ 
+      /* Estimate ||A|| if needed */
       if (estimate_anorm) {
         if (j>k) anorm = PetscMax(anorm,PetscAbsReal(alpha[j])+norm+beta[j-1]);
         else anorm = PetscMax(anorm,PetscAbsReal(alpha[j])+norm);
@@ -476,7 +476,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
 
       /* Check if reorthogonalization is needed */
       reorth = PETSC_FALSE;
-      if (j>k) {      
+      if (j>k) {
         update_omega(omega,omega_old,j,alpha,beta-1,eps1,anorm);
         for (i=0;i<j-k;i++)
           if (PetscAbsScalar(omega[i]) > delta) reorth = PETSC_TRUE;
@@ -496,7 +496,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
           else {
             force_reorth = PETSC_TRUE;
             compute_int(which2,omega,j-k,delta,eta);
-            for (i=0;i<j-k;i++) 
+            for (i=0;i<j-k;i++)
               if (which2[i]) omega[i] = eps1;
           }
           ierr = IPOrthogonalize(eps->ip,0,NULL,j-k,which2,V+k,f,hwork,&norm,breakdown);CHKERRQ(ierr);
@@ -539,12 +539,12 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
 
                     OP * V - V * T = f * e_m^T
 
-   where the columns of V are the Lanczos vectors, T is a tridiagonal matrix, 
-   f is the residual vector and e_m is the m-th vector of the canonical basis. 
+   where the columns of V are the Lanczos vectors, T is a tridiagonal matrix,
+   f is the residual vector and e_m is the m-th vector of the canonical basis.
    The Lanczos vectors (together with vector f) are B-orthogonal (to working
    accuracy) if full reorthogonalization is being used, otherwise they are
-   (B-)semi-orthogonal. On exit, beta contains the B-norm of f and the next 
-   Lanczos vector can be computed as v_{m+1} = f / beta. 
+   (B-)semi-orthogonal. On exit, beta contains the B-norm of f and the next
+   Lanczos vector can be computed as v_{m+1} = f / beta.
 
    This function simply calls another function which depends on the selected
    reorthogonalization strategy.
@@ -577,7 +577,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
       ierr = PetscMalloc(n*n*sizeof(PetscScalar),&T);CHKERRQ(ierr);
       ierr = IPGetOrthogonalization(eps->ip,NULL,&orthog_ref,NULL);CHKERRQ(ierr);
       if (orthog_ref == IP_ORTHOG_REFINE_NEVER) {
-        ierr = EPSDelayedArnoldi1(eps,T,n,V,k,m,f,&betam,breakdown);CHKERRQ(ierr);       
+        ierr = EPSDelayedArnoldi1(eps,T,n,V,k,m,f,&betam,breakdown);CHKERRQ(ierr);
       } else {
         ierr = EPSDelayedArnoldi(eps,T,n,V,k,m,f,&betam,breakdown);CHKERRQ(ierr);
       }
@@ -590,7 +590,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
       ierr = PetscFree(T);CHKERRQ(ierr);
       break;
     default:
-      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid reorthogonalization type"); 
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid reorthogonalization type");
   }
   PetscFunctionReturn(0);
 }
@@ -635,12 +635,12 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     ierr = DSSetDimensions(eps->ds,n,0,nconv,0);CHKERRQ(ierr);
     ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
 
-    /* Solve projected problem */ 
+    /* Solve projected problem */
     ierr = DSSolve(eps->ds,ritz,NULL);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,ritz,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
 
     /* Estimate ||A|| */
-    for (i=nconv;i<n;i++) 
+    for (i=nconv;i<n;i++)
       anorm = PetscMax(anorm,PetscAbsReal(PetscRealPart(ritz[i])));
 
     /* Compute residual norm estimates as beta*abs(Y(m,:)) + eps*||A|| */
@@ -766,7 +766,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
       } else {
         ierr = VecCopy(f,eps->V[nconv]);CHKERRQ(ierr);
       }
-    }    
+    }
   }
 
   eps->nconv = nconv;
@@ -823,7 +823,7 @@ static PetscErrorCode EPSLanczosSetReorthog_Lanczos(EPS eps,EPSLanczosReorthogTy
 #define __FUNCT__ "EPSLanczosSetReorthog"
 /*@
    EPSLanczosSetReorthog - Sets the type of reorthogonalization used during the Lanczos
-   iteration. 
+   iteration.
 
    Logically Collective on EPS
 
@@ -865,7 +865,7 @@ static PetscErrorCode EPSLanczosGetReorthog_Lanczos(EPS eps,EPSLanczosReorthogTy
 #define __FUNCT__ "EPSLanczosGetReorthog"
 /*@C
    EPSLanczosGetReorthog - Gets the type of reorthogonalization used during the Lanczos
-   iteration. 
+   iteration.
 
    Not Collective
 

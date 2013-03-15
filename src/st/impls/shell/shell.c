@@ -1,6 +1,6 @@
 /*
-   This provides a simple shell interface for programmers to 
-   create their own spectral transformations without writing much 
+   This provides a simple shell interface for programmers to
+   create their own spectral transformations without writing much
    interface code.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -13,9 +13,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -59,9 +59,9 @@ PetscErrorCode STShellGetContext(ST st,void **ctx)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(ctx,2); 
+  PetscValidPointer(ctx,2);
   ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg);CHKERRQ(ierr);
-  if (!flg) *ctx = 0; 
+  if (!flg) *ctx = 0;
   else      *ctx = ((ST_Shell*)(st->data))->ctx;
   PetscFunctionReturn(0);
 }
@@ -201,7 +201,7 @@ static PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backt
 #undef __FUNCT__
 #define __FUNCT__ "STShellSetApply"
 /*@C
-   STShellSetApply - Sets routine to use as the application of the 
+   STShellSetApply - Sets routine to use as the application of the
    operator to a vector in the user-defined spectral transformation.
 
    Logically Collective on ST
@@ -236,7 +236,7 @@ PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
 #undef __FUNCT__
 #define __FUNCT__ "STShellSetApplyTranspose"
 /*@C
-   STShellSetApplyTranspose - Sets routine to use as the application of the 
+   STShellSetApplyTranspose - Sets routine to use as the application of the
    transposed operator to a vector in the user-defined spectral transformation.
 
    Logically Collective on ST
@@ -271,7 +271,7 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Ve
 #undef __FUNCT__
 #define __FUNCT__ "STShellSetBackTransform"
 /*@C
-   STShellSetBackTransform - Sets the routine to be called after the 
+   STShellSetBackTransform - Sets the routine to be called after the
    eigensolution process has finished in order to transform back the
    computed eigenvalues.
 
@@ -288,7 +288,7 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Ve
 
 +  st   - the spectral transformation context
 .  eigr - pointer ot the real part of the eigenvalue to transform back
--  eigi - pointer ot the imaginary part 
+-  eigi - pointer ot the imaginary part
 
    Level: developer
 
@@ -306,7 +306,7 @@ PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscIn
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Shell"
-PetscErrorCode STSetFromOptions_Shell(ST st) 
+PetscErrorCode STSetFromOptions_Shell(ST st)
 {
   PetscErrorCode ierr;
   PC             pc;

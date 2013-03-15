@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc singular value solver: "lanczos"
 
@@ -31,9 +31,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -60,7 +60,7 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
   if (svd->ncv) { /* ncv set */
-    if (svd->ncv<svd->nsv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must be at least nsv"); 
+    if (svd->ncv<svd->nsv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must be at least nsv");
   } else if (svd->mpd) { /* mpd set */
     svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
   } else { /* neither set: defaults depend on nsv being small or large */
@@ -71,7 +71,7 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
     }
   }
   if (!svd->mpd) svd->mpd = svd->ncv;
-  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must not be larger than nev+mpd"); 
+  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must not be larger than nev+mpd");
   if (!svd->max_it) svd->max_it = PetscMax(N/svd->ncv,100);
   if (!lanczos->oneside && svd->ncv != svd->n) {
     ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
@@ -295,7 +295,7 @@ static PetscErrorCode SVDLanczosSetOneSide_Lanczos(SVD svd,PetscBool oneside)
 #undef __FUNCT__
 #define __FUNCT__ "SVDLanczosSetOneSide"
 /*@
-   SVDLanczosSetOneSide - Indicate if the variant of the Lanczos method 
+   SVDLanczosSetOneSide - Indicate if the variant of the Lanczos method
    to be used is one-sided or two-sided.
 
    Logically Collective on SVD
@@ -309,7 +309,7 @@ static PetscErrorCode SVDLanczosSetOneSide_Lanczos(SVD svd,PetscBool oneside)
 
    Note:
    By default, a two-sided variant is selected, which is sometimes slightly
-   more robust. However, the one-sided variant is faster because it avoids 
+   more robust. However, the one-sided variant is faster because it avoids
    the orthogonalization associated to left singular vectors. It also saves
    the memory required for storing such vectors.
 
@@ -331,7 +331,7 @@ PetscErrorCode SVDLanczosSetOneSide(SVD svd,PetscBool oneside)
 #undef __FUNCT__
 #define __FUNCT__ "SVDLanczosGetOneSide"
 /*@
-   SVDLanczosGetOneSide - Gets if the variant of the Lanczos method 
+   SVDLanczosGetOneSide - Gets if the variant of the Lanczos method
    to be used is one-sided or two-sided.
 
    Not Collective

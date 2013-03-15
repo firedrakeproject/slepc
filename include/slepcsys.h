@@ -12,9 +12,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -26,7 +26,7 @@
 #define __SLEPCSYS_H
 
 /* ========================================================================== */
-/* 
+/*
    slepcconf.h is created by the configure script and placed in ${PETSC_ARCH}/include.
    It contains macro definitions set at configure time.
 */
@@ -38,8 +38,8 @@
 #define SLEPC_AUTHOR_INFO "       The SLEPc Team\n    slepc-maint@grycap.upv.es\n http://www.grycap.upv.es/slepc\n"
 
 /* ========================================================================== */
-/* 
-   The PETSc include files. 
+/*
+   The PETSc include files.
 */
 #include <petscmat.h>
 /*

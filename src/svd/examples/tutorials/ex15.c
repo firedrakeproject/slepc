@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -44,7 +44,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetReal(NULL,"-mu",&mu,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLauchli singular value decomposition, (%D x %D) mu=%G\n\n",n+1,n,mu);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                           Build the Lauchli matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -68,16 +68,16 @@ int main(int argc,char **argv)
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatGetVecs(A,&v,&u);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
           Create the singular value solver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* 
+  /*
      Create singular value solver context
   */
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
 
-  /* 
+  /*
      Set operator
   */
   ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
@@ -92,7 +92,7 @@ int main(int argc,char **argv)
   */
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the singular value system
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -110,11 +110,11 @@ int main(int argc,char **argv)
   ierr = SVDGetTolerances(svd,&tol,&maxit);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* 
+  /*
      Get number of converged singular triplets
   */
   ierr = SVDGetConverged(svd,&nconv);CHKERRQ(ierr);
@@ -128,13 +128,13 @@ int main(int argc,char **argv)
          "          sigma           relative error\n"
          "  --------------------- ------------------\n");CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
-      /* 
+      /*
          Get converged singular triplets: i-th singular value is stored in sigma
       */
       ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
 
       /*
-         Compute the error associated to each singular triplet 
+         Compute the error associated to each singular triplet
       */
       ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
 
@@ -144,7 +144,7 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
 
-  /* 
+  /*
      Free work space
   */
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);

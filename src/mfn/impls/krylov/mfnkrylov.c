@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc matrix function solver: "krylov"
 
@@ -26,9 +26,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -147,7 +147,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
       ierr = VecNorm(r,NORM_2,&avnorm);CHKERRQ(ierr);
     }
     ierr = PetscMemcpy(B,H,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = DSRestoreArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);  
+    ierr = DSRestoreArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
 
     mx = mb + k1;
     ierr = DSSetDimensions(mfn->ds,mx,0,0,0);CHKERRQ(ierr);
@@ -163,7 +163,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
       ierr = DSComputeFunction(mfn->ds,mfn->function);CHKERRQ(ierr);
 
       if (k1==0) {
-        err_loc = tol; 
+        err_loc = tol;
         break;
       } else {
         ierr = DSGetArray(mfn->ds,DS_MAT_F,&F);CHKERRQ(ierr);
@@ -204,7 +204,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     t_new = ceil(t_new/s)*s;
 
     err_loc = PetscMax(err_loc,rndoff);
-  } 
+  }
 
   if (mfn->its==mxstep) mfn->reason = MFN_DIVERGED_ITS;
   else mfn->reason = MFN_CONVERGED_TOL;

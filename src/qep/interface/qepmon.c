@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -44,7 +44,7 @@ PetscErrorCode QEPMonitor(QEP qep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
 #undef __FUNCT__
 #define __FUNCT__ "QEPMonitorSet"
 /*@C
-   QEPMonitorSet - Sets an ADDITIONAL function to be called at every 
+   QEPMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor the error estimates for each requested eigenpair.
 
    Logically Collective on QEP
@@ -81,9 +81,9 @@ $     monitor (QEP qep, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
       a code by calls to QEPMonitorSet(), but does not cancel those set via
       the options database.
 
-   Notes:  
+   Notes:
    Several different monitoring routines may be set by calling
-   QEPMonitorSet() multiple times; all will be called in the 
+   QEPMonitorSet() multiple times; all will be called in the
    order in which they were set.
 
    Level: intermediate
@@ -112,7 +112,7 @@ PetscErrorCode QEPMonitorSet(QEP qep,PetscErrorCode (*monitor)(QEP,PetscInt,Pets
 .  qep - eigensolver context obtained from QEPCreate()
 
    Options Database Key:
-.    -qep_monitor_cancel - Cancels all monitors that have been hardwired 
+.    -qep_monitor_cancel - Cancels all monitors that have been hardwired
       into a code by calls to QEPMonitorSet(),
       but does not cancel those set via the options database.
 
@@ -139,7 +139,7 @@ PetscErrorCode QEPMonitorCancel(QEP qep)
 #undef __FUNCT__
 #define __FUNCT__ "QEPGetMonitorContext"
 /*@C
-   QEPGetMonitorContext - Gets the monitor context, as set by 
+   QEPGetMonitorContext - Gets the monitor context, as set by
    QEPMonitorSet() for the FIRST monitor only.
 
    Not Collective
@@ -165,7 +165,7 @@ PetscErrorCode QEPGetMonitorContext(QEP qep,void **ctx)
 #undef __FUNCT__
 #define __FUNCT__ "QEPMonitorAll"
 /*@C
-   QEPMonitorAll - Print the current approximate values and 
+   QEPMonitorAll - Print the current approximate values and
    error estimates at each iteration of the quadratic eigensolver.
 
    Collective on QEP
@@ -212,7 +212,7 @@ PetscErrorCode QEPMonitorAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *ei
 #undef __FUNCT__
 #define __FUNCT__ "QEPMonitorFirst"
 /*@C
-   QEPMonitorFirst - Print the first unconverged approximate value and 
+   QEPMonitorFirst - Print the first unconverged approximate value and
    error estimate at each iteration of the quadratic eigensolver.
 
    Collective on QEP
@@ -255,7 +255,7 @@ PetscErrorCode QEPMonitorFirst(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *
 #undef __FUNCT__
 #define __FUNCT__ "QEPMonitorConverged"
 /*@C
-   QEPMonitorConverged - Print the approximate values and 
+   QEPMonitorConverged - Print the approximate values and
    error estimates as they converge.
 
    Collective on QEP
@@ -268,7 +268,7 @@ PetscErrorCode QEPMonitorFirst(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *
 .  eigi   - imaginary part of the eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  monctx - monitor context 
+-  monctx - monitor context
 
    Level: intermediate
 
@@ -336,7 +336,7 @@ PetscErrorCode QEPMonitorLG(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *eig
 
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-} 
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPMonitorLGAll"
@@ -372,7 +372,7 @@ PetscErrorCode QEPMonitorLGAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *
 
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
   ierr = PetscFree(x);CHKERRQ(ierr);
-  ierr = PetscFree(y);CHKERRQ(ierr);  
+  ierr = PetscFree(y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-} 
+}
 

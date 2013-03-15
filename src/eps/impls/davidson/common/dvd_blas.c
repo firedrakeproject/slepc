@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -326,7 +326,7 @@ PetscErrorCode SlepcUpdateVectorsZ(Vec *Y,PetscScalar beta,PetscScalar alpha,Vec
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-  ierr = SlepcUpdateVectorsS(Y,1,beta,alpha,X,cX,1,M,ldM,rM,cM);CHKERRQ(ierr); 
+  ierr = SlepcUpdateVectorsS(Y,1,beta,alpha,X,cX,1,M,ldM,rM,cM);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -367,7 +367,7 @@ PetscErrorCode SlepcUpdateVectorsS(Vec *Y,PetscInt dY,PetscScalar beta,PetscScal
     /* Update the strides */
     ldX = rX*dX; ldY= rY*dY;
 
-    /* Do operation */ 
+    /* Do operation */
     ierr = SlepcDenseMatProd(py, ldY, beta, alpha, px, ldX, rX, rcX,
                     PETSC_FALSE, M, ldM, rM, cM, PETSC_FALSE);CHKERRQ(ierr);
 
@@ -498,7 +498,7 @@ PetscErrorCode VecsMult(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt
     ierr = MPI_Allreduce(W, M, eU*eV, MPIU_SCALAR, MPIU_SUM,
                          PetscObjectComm((PetscObject)U[0]));CHKERRQ(ierr);
   /* Full M matrix */
-  } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) && 
+  } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) &&
              DVD_ISNOT(sM,DVD_MAT_LTRIANG)) {
     if (workS1) {
       PetscValidScalarPointer(workS1,11);
@@ -640,7 +640,7 @@ PetscErrorCode VecsMultIa(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscI
                                    pv, 0, ldV, ldV, eV, PETSC_FALSE);CHKERRQ(ierr);
 
   /* Full M matrix */
-  } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) && 
+  } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) &&
              DVD_ISNOT(sM,DVD_MAT_LTRIANG)) {
     /* M(sU:eU-1,0:sV-1) <- U(sU:eU-1)' * V(0:sV-1) */
     ierr = SlepcDenseMatProd(&M[sU], ldM, 0.0, 1.0,
@@ -784,10 +784,10 @@ PetscErrorCode VecsMultS(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscIn
     /* M <- ReduceAll(W, SUM) */
     sr->M = M;    sr->ld = ldM;
     sr->i0 = 0;   sr->i1 = eV;    sr->s0 = sU;    sr->e0 = eU;
-                  sr->i2 = eV; 
+                  sr->i2 = eV;
 
   /* Full M matrix */
-  } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) && 
+  } else if (DVD_ISNOT(sM,DVD_MAT_UTRIANG) &&
              DVD_ISNOT(sM,DVD_MAT_LTRIANG)) {
     /* Add the reduction to r */
     ierr = SlepcAllReduceSum(r, ms, VecsMultS_copy_func, sr, &W);CHKERRQ(ierr);
@@ -927,7 +927,7 @@ PetscErrorCode VecsOrthonormalize(Vec *V,PetscInt n,PetscScalar *wS0,PetscScalar
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcAllReduceSumBegin"
-/* 
+/*
   Sum up several arrays with only one call to MPIReduce.
 */
 PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk *ops,PetscInt max_size_ops,PetscScalar *in,PetscScalar *out,PetscInt max_size_in,DvdReduction *r,MPI_Comm comm)
@@ -1091,7 +1091,7 @@ PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_D
   for (i=V_new_s;i<V_new_e;i++) {
     for (j=0;j<3;j++) {
       if (j>0) {
-        ierr = SlepcVecSetRandom(V[i],rand);CHKERRQ(ierr); 
+        ierr = SlepcVecSetRandom(V[i],rand);CHKERRQ(ierr);
         ierr = PetscInfo1(ip,"Orthonormalization problems adding the vector %d to the searching subspace\n",i);CHKERRQ(ierr);
       }
       /* Orthogonalize against the deflation, if needed */

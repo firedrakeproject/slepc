@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -28,7 +28,7 @@ static char help[] = "Test IPPseudoOrthogonalize.\n\n";
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
-  Mat            B;  
+  Mat            B;
   IP             ip;
   Vec            *V,t;
   PetscInt       i,j,n=15,k=6,Istart,Iend;
@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,"-k",&k,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Pseudo-orthogonalization of %D random vectors of length %D.\n",k,n);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Pseudo-orthogonalization of %D random vectors of length %D.\n",k,n);CHKERRQ(ierr);
 
   /* Create sip matrix (standard involutionary permutation) */
   ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
@@ -93,7 +93,7 @@ int main(int argc,char **argv)
   ierr = PetscFree(vals);CHKERRQ(ierr);
 
   if (lev<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below 100*eps\n");CHKERRQ(ierr); 
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below 100*eps\n");CHKERRQ(ierr);
   } else {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %G\n",lev);CHKERRQ(ierr);
   }

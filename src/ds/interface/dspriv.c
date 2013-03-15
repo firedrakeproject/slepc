@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -40,8 +40,8 @@ PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
   } else {
     ierr = PetscLogObjectMemory(ds,sz);CHKERRQ(ierr);
   }
-  ierr = PetscMalloc(sz,&ds->mat[m]);CHKERRQ(ierr); 
-  ierr = PetscMemzero(ds->mat[m],sz);CHKERRQ(ierr); 
+  ierr = PetscMalloc(sz,&ds->mat[m]);CHKERRQ(ierr);
+  ierr = PetscMemzero(ds->mat[m],sz);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -58,9 +58,9 @@ PetscErrorCode DSAllocateMatReal_Private(DS ds,DSMatType m)
   else sz = ds->ld*ds->ld*sizeof(PetscReal);
   if (!ds->rmat[m]) {
     ierr = PetscLogObjectMemory(ds,sz);CHKERRQ(ierr);
-    ierr = PetscMalloc(sz,&ds->rmat[m]);CHKERRQ(ierr); 
+    ierr = PetscMalloc(sz,&ds->rmat[m]);CHKERRQ(ierr);
   }
-  ierr = PetscMemzero(ds->rmat[m],sz);CHKERRQ(ierr); 
+  ierr = PetscMemzero(ds->rmat[m],sz);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -74,19 +74,19 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
   if (s>ds->lwork) {
     ierr = PetscFree(ds->work);CHKERRQ(ierr);
     ierr = PetscMalloc(s*sizeof(PetscScalar),&ds->work);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(ds,(s-ds->lwork)*sizeof(PetscScalar));CHKERRQ(ierr); 
+    ierr = PetscLogObjectMemory(ds,(s-ds->lwork)*sizeof(PetscScalar));CHKERRQ(ierr);
     ds->lwork = s;
   }
   if (r>ds->lrwork) {
     ierr = PetscFree(ds->rwork);CHKERRQ(ierr);
     ierr = PetscMalloc(r*sizeof(PetscReal),&ds->rwork);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(ds,(r-ds->lrwork)*sizeof(PetscReal));CHKERRQ(ierr); 
+    ierr = PetscLogObjectMemory(ds,(r-ds->lrwork)*sizeof(PetscReal));CHKERRQ(ierr);
     ds->lrwork = r;
   }
   if (i>ds->liwork) {
     ierr = PetscFree(ds->iwork);CHKERRQ(ierr);
     ierr = PetscMalloc(i*sizeof(PetscBLASInt),&ds->iwork);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(ds,(i-ds->liwork)*sizeof(PetscBLASInt));CHKERRQ(ierr); 
+    ierr = PetscLogObjectMemory(ds,(i-ds->liwork)*sizeof(PetscBLASInt));CHKERRQ(ierr);
     ds->liwork = i;
   }
   PetscFunctionReturn(0);
@@ -384,7 +384,7 @@ PetscErrorCode DSComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatTyp
   ierr = PetscBLASIntCast(ld*n,&k);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&T);CHKERRQ(ierr);
-  ierr = PetscMemzero(T,k*sizeof(PetscScalar));CHKERRQ(ierr); 
+  ierr = PetscMemzero(T,k*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<ds->nf;i++) {
     if (deriv) {
       ierr = FNEvaluateDerivative(ds->f[i],lambda,&alpha);CHKERRQ(ierr);
@@ -410,7 +410,7 @@ PetscErrorCode DSComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatTyp
 -  cols - number of columns to orthogonalize (starting from the column zero)
 
    Output Parameter:
-.  lindcols - number of linearly independent columns of the matrix (can be NULL) 
+.  lindcols - number of linearly independent columns of the matrix (can be NULL)
 */
 PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindcols)
 {
@@ -472,7 +472,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
 -  s    - the signature that defines the inner product
 
    Output Parameter:
-+  lindcols - linear independent columns of the matrix (can be NULL) 
++  lindcols - linear independent columns of the matrix (can be NULL)
 -  ns - the new norm of the vectors (can be NULL)
 */
 PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal *s,PetscInt *lindcols,PetscReal *ns)

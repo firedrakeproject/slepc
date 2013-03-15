@@ -20,9 +20,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -52,7 +52,7 @@ static PetscErrorCode ScanJ(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *gl,P
 
   PetscFunctionBegin;
   /* For original matrix C, C_bal=T+S; T-symmetric and S=skew-symmetric
-   C_bal is the balanced form of C */ 
+   C_bal is the balanced form of C */
   /* Bounds on the imaginary part of C (Gersgorin bound for S)*/
   *sigma = 0.0;
   b0 = 0.0;
@@ -83,8 +83,8 @@ static PetscErrorCode ScanJ(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *gl,P
 
 #undef __FUNCT__
 #define __FUNCT__ "Prologue"
-/* 
-  INPUT: 
+/*
+  INPUT:
     a  - vector with the diagonal elements
     b  - vector with the subdiagonal elements
     gl - Gersgorin left bound (real axis)
@@ -92,8 +92,8 @@ static PetscErrorCode ScanJ(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *gl,P
   OUTPUT:
     eigvalue - multiple eigenvalue (if there is an eigenvalue)
     m        - its multiplicity    (m=0 if there isn't a multiple eigenvalue)
-    X        - matrix of generalized eigenvectors  
-    shift    
+    X        - matrix of generalized eigenvectors
+    shift
 */
 static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl,PetscReal gr,PetscInt *m,PetscReal *shift,PetscReal *w,PetscReal nw)
 {
@@ -131,7 +131,7 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
     xp[i+1]=a1[i]*xp[i]+x[i]-b[i-1]*xp[i-1];
   }
   *shift = mu;
-  if (PetscAbsReal(x[n])<tol) {   
+  if (PetscAbsReal(x[n])<tol) {
     /* mu is an eigenvalue */
     *m = *m+1;
     if (PetscAbsReal(xp[n])<tol) {
@@ -152,7 +152,7 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
         }
         *m = *m+1;
       }
-    }     
+    }
   }
   if (work != w) {
     ierr = PetscFree(work);CHKERRQ(ierr);
@@ -162,11 +162,11 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
 
   Need to check for overflow!
 
-  After calling Prologue, eigenComplexdqds and eigen3dqds will test if m==n in which case we have the one-point spectrum case; 
+  After calling Prologue, eigenComplexdqds and eigen3dqds will test if m==n in which case we have the one-point spectrum case;
   If m!=0, the only output to be used is the shift returned.
 */
   PetscFunctionReturn(0);
-}  
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "LUfac"
@@ -344,7 +344,7 @@ static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscRe
     yr = e1[0];
     zr = 0;
     /* step 1 */
-    /* the efect of Z1 */ 
+    /* the efect of Z1 */
     xr = xr*q1[0]+yr;
     /* the inverse of L1 */
     xl = (q1[0]+e1[0])*(q1[0]+e1[0])+q1[1]*e1[0]-sum*(q1[0]+e1[0])+prod;
@@ -366,7 +366,7 @@ static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscRe
     /* the effect of Y1 */
     xr = 1-xr;
     yr = e1[1]-yr;
-    zr = -zr; 
+    zr = -zr;
     /* step i=2,...,n-3 */
     for (i=1;i<n-3;i++) {
       /* the efect of Zi */
@@ -462,7 +462,7 @@ static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscRe
   } else {  /* The case n=3 */
     ierr = tridqdsZhuang3(n,e1,q1,sum,prod,tol,norm,tolDef,fail);CHKERRQ(ierr);
   }
-  PetscFunctionReturn(0); 
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
@@ -475,11 +475,11 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   PetscReal      tolZero=1.0/16;  /* Tolerance for zero shifts */
   PetscInt       maxIt=10*n;      /* Maximum number of iterations */
   PetscInt       maxFail=10*n;    /* Maximum number of failures allowed per each transformation */
-  PetscReal      tolDef=PETSC_MACHINE_EPSILON;  /* Tolerance for deflation eps, 10*eps, 100*eps */                      
-  PetscReal      tolGrowth=100000; 
-  PetscErrorCode ierr;        
+  PetscReal      tolDef=PETSC_MACHINE_EPSILON;  /* Tolerance for deflation eps, 10*eps, 100*eps */
+  PetscReal      tolGrowth=100000;
+  PetscErrorCode ierr;
   PetscInt       i,k,nwu=0,nwall,begin,ind,flag,dim,m;
-  PetscReal      norm,gr,gl,sigma,delta,meanEig,*work,*U,*L,*U1,*L1,*split;              
+  PetscReal      norm,gr,gl,sigma,delta,meanEig,*work,*U,*L,*U1,*L1,*split;
   PetscReal      acShift,initialShift,shift=0.0,sum,det,disc,prod,x1,x2;
   PetscInt       earlyDef,lastSplit,splitCount;
   PetscBool      test1,test2;
@@ -504,7 +504,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   U1 = work+2*n;
   L1 = work+3*n;
   nwu = 4*n;
-  if (wi) { 
+  if (wi) {
     ierr = PetscMemzero(wi,n*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   /* Normalization - the J form of C */
@@ -533,7 +533,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   if (delta==0.0) shift=0.0;  /* The case when all eigenvalues are pure imaginary */
   ierr = LUfac(n,a,b,shift,tolGrowth,norm,L,U,&flag,work+nwu,nwall-nwu);CHKERRQ(ierr); /* flag=1 failure; flag=0 successful transformation*/
   while (flag==1 && nFail<maxFail) {
-    shift=shift+delta;  
+    shift=shift+delta;
     if (shift>gr || shift<gl) { /* Successive failures */
       shift=meanEig;
       delta=-delta;
@@ -565,8 +565,8 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
             && PetscAbsReal(L[n-2])*(PetscAbsReal(U[n-2])+1)<tolDef*PetscAbsReal(acShift+U[n-1]))? PETSC_TRUE: PETSC_FALSE;
       if (flag==2) {  /* Early 2x2 deflation */
         earlyDef=earlyDef+1;
-        test2 = PETSC_TRUE;  
-      } else { 
+        test2 = PETSC_TRUE;
+      } else {
         if (n-begin>4) {
           test2 = (PetscAbsReal(L[n-3])<tolDef*PetscAbsReal(U[n-3])
                && PetscAbsReal(L[n-3]*(U[n-4]+L[n-4]))< tolDef*PetscAbsReal(U[n-4]*(U[n-3]+L[n-3])+L[n-4]*L[n-3]))? PETSC_TRUE: PETSC_FALSE;
@@ -583,7 +583,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
             disc = U[n-1];
             flag = 0;
           } else {
-            sum = (L[n-2]+(U[n-2]+U[n-1]))/2;  
+            sum = (L[n-2]+(U[n-2]+U[n-1]))/2;
             disc = (L[n-2]*(L[n-2]+2*(U[n-2]+U[n-1]))+(U[n-2]-U[n-1])*(U[n-2]-U[n-1]))/4;
             det = U[n-2]*U[n-1];
           }
@@ -595,11 +595,11 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
             wr[--n] = sum-PETSC_i*PetscSqrtReal(-disc)+acShift; if (wi) wi[n] = 0.0;
             wr[--n] = sum+PETSC_i*PetscSqrtReal(-disc)+acShift; if (wi) wi[n] = 0.0;
 #endif
-          } else {  
+          } else {
             if (sum==0.0) {
               x1 = PetscSqrtReal(disc);
               x2 = -x1;
-            } else { 
+            } else {
               x1 = ((sum>=0.0)?1.0:-1.0)*(PetscAbsReal(sum)+PetscSqrtReal(disc));
               x2 = det/x1;
             }
@@ -722,19 +722,19 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
         acShift = shift+acShift;
         for (i=begin;i<n-1;i++) {
           L[i] = L1[i];
-          U[i] = U1[i];          
+          U[i] = U1[i];
         }
-        U[n-1] = U1[n-1];          
+        U[n-1] = U1[n-1];
         totalFail = totalFail+nFail;
         nFail = 0;
-      }  /* end "if n>begin+1" */ 
+      }  /* end "if n>begin+1" */
     }  /* end WHILE 1 */
-    if (totalIt>=maxIt) { 
+    if (totalIt>=maxIt) {
       SETERRQ(PETSC_COMM_SELF,1,"Maximun number of iterations reached. No convergence in DQDS");
     }
     /* END: n=2 or n=1  % n=begin+1 or n=begin */
     if (n==begin+2) {
-      sum = (L[n-2]+U[n-2]+U[n-1])/2;  
+      sum = (L[n-2]+U[n-2]+U[n-1])/2;
       disc = (L[n-2]*(L[n-2]+2*(U[n-2]+U[n-1]))+(U[n-2]-U[n-1])*(U[n-2]-U[n-1]))/4;
         if (disc<=0)  {  /* Complex case */
         /* Deflation 2 */
@@ -754,8 +754,8 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
           x2 = U[n-2]*U[n-1]/x1;
         }
         /* Deflation 2 */
-        wr[--n] = x2+acShift;       
-        wr[--n] = x1+acShift;       
+        wr[--n] = x2+acShift;
+        wr[--n] = x1+acShift;
       }
     } else { /* n=1   n=begin */
       /* deflation 1 */
@@ -820,7 +820,7 @@ PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
     PetscFunctionReturn(0);
   }
   nwall = 12*ld+4;
-  ierr = DSAllocateWork_Private(ds,0,nwall,0);CHKERRQ(ierr); 
+  ierr = DSAllocateWork_Private(ds,0,nwall,0);CHKERRQ(ierr);
   /* Reduce to pseudotriadiagonal form */
   ierr = DSIntermediate_GHIEP(ds);CHKERRQ(ierr);
 

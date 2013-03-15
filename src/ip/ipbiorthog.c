@@ -12,9 +12,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -105,7 +105,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
    Notes:
    This function applies an oblique projector to project vector v onto the
    span of the columns of V along the orthogonal complement of the column
-   space of W. 
+   space of W.
 
    On exit, v0 = [V v]*H, where v0 is the original vector v.
 
@@ -158,11 +158,11 @@ PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScala
 
     if (allocated) { ierr = PetscFree(h);CHKERRQ(ierr); }
     ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
-  } 
+  }
   PetscFunctionReturn(0);
 }
 
-/* 
+/*
    IPPseudoOrthogonalizeCGS1 - Compute |v'| (estimated), |v| and one step of CGS with only one global synchronization (indefinite)
 */
 #undef __FUNCT__
@@ -176,14 +176,14 @@ PetscErrorCode IPPseudoOrthogonalizeCGS1(IP ip,PetscInt n,Vec *V,PetscReal* omeg
 
   PetscFunctionBegin;
   /* h = W^* v ; alpha = (v , v) */
-  if (!onorm && !norm) { 
-    /* use simpler function */ 
+  if (!onorm && !norm) {
+    /* use simpler function */
     ierr = IPMInnerProduct(ip,v,n,V,H);CHKERRQ(ierr);
-  } else {  
+  } else {
     /* merge comunications */
     ierr = IPMInnerProductBegin(ip,v,n,V,H);CHKERRQ(ierr);
-    if (onorm || (norm && !ip->matrix)) { 
-      ierr = IPInnerProductBegin(ip,v,v,&alpha);CHKERRQ(ierr); 
+    if (onorm || (norm && !ip->matrix)) {
+      ierr = IPInnerProductBegin(ip,v,v,&alpha);CHKERRQ(ierr);
     }
 
     ierr = IPMInnerProductEnd(ip,v,n,V,H);CHKERRQ(ierr);
@@ -263,32 +263,32 @@ static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal
     break;
 
   case IP_ORTHOG_REFINE_ALWAYS:
-    ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,h,NULL,NULL);CHKERRQ(ierr); 
+    ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,h,NULL,NULL);CHKERRQ(ierr);
     if (lindep) {
       ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,c,&onrm,&nrm);CHKERRQ(ierr);
       if (norm) *norm = nrm;
       if (PetscAbs(nrm) < ip->orthog_eta * PetscAbs(onrm)) *lindep = PETSC_TRUE;
-      else *lindep = PETSC_FALSE; 
+      else *lindep = PETSC_FALSE;
     } else {
       ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,c,NULL,norm);CHKERRQ(ierr);
     }
-    for (j=0;j<n;j++) 
+    for (j=0;j<n;j++)
       h[j] += c[j];
     break;
 
   case IP_ORTHOG_REFINE_IFNEEDED:
-    ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,h,&onrm,&nrm);CHKERRQ(ierr); 
+    ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,h,&onrm,&nrm);CHKERRQ(ierr);
     /* ||q|| < eta ||h|| */
     k = 1;
     while (k<3 && PetscAbs(nrm) < ip->orthog_eta * PetscAbs(onrm)) {
       k++;
       if (!ip->matrix) {
-        ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,c,&onrm,&nrm);CHKERRQ(ierr); 
+        ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,c,&onrm,&nrm);CHKERRQ(ierr);
       } else {
         onrm = nrm;
-        ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,c,NULL,&nrm);CHKERRQ(ierr); 
+        ierr = IPPseudoOrthogonalizeCGS1(ip,n,V,omega,v,c,NULL,&nrm);CHKERRQ(ierr);
       }
-      for (j=0;j<n;j++) 
+      for (j=0;j<n;j++)
         h[j] += c[j];
     }
     if (norm) *norm = nrm;
@@ -304,7 +304,7 @@ static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal
 
   /* recover H from workspace */
   if (H) {
-    for (j=0;j<n;j++) 
+    for (j=0;j<n;j++)
       H[j] = h[j];
   }
 
@@ -312,7 +312,7 @@ static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal
   if (allocatedc) { ierr = PetscFree(c);CHKERRQ(ierr); }
   if (allocatedh) { ierr = PetscFree(h);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
-}        
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "IPPseudoOrthogonalize"
@@ -329,7 +329,7 @@ static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal
 -  omega  - set of signs that define a signature matrix
 
    Input/Output Parameter:
-.  v      - (input) vector to be orthogonalized and (output) result of 
+.  v      - (input) vector to be orthogonalized and (output) result of
             orthogonalization
 
    Output Parameter:
@@ -341,8 +341,8 @@ static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal
    Notes:
    This function is the analogue of IPOrthogonalize, but for the indefinite
    case. When using an indefinite IP the norm is not well defined, so we
-   take the convention of having negative norms in such cases. The 
-   orthogonalization is then defined by a set of vectors V satisfying 
+   take the convention of having negative norms in such cases. The
+   orthogonalization is then defined by a set of vectors V satisfying
    V'*B*V=Omega, where Omega is a signature matrix diag([+/-1,...,+/-1]).
 
    On exit, v = v0 - V*Omega*H, where v0 is the original vector v.
@@ -368,7 +368,7 @@ PetscErrorCode IPPseudoOrthogonalize(IP ip,PetscInt n,Vec *V,PetscReal *omega,Ve
   } else {
     switch (ip->orthog_type) {
     case IP_ORTHOG_CGS:
-      ierr = IPPseudoOrthogonalizeCGS(ip,n,V,omega,v,H,norm,lindep);CHKERRQ(ierr); 
+      ierr = IPPseudoOrthogonalizeCGS(ip,n,V,omega,v,H,norm,lindep);CHKERRQ(ierr);
       break;
     case IP_ORTHOG_MGS:
       SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_SUP,"Modified Gram-Schmidt not implemented for indefinite case");
@@ -377,7 +377,7 @@ PetscErrorCode IPPseudoOrthogonalize(IP ip,PetscInt n,Vec *V,PetscReal *omega,Ve
       SETERRQ(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
     }
   }
-  ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);  
+  ierr = PetscLogEventEnd(IP_Orthogonalize,ip,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

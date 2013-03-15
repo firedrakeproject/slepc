@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -27,7 +27,7 @@ static char help[] = "Solves the same eigenproblem as in example ex5, but comput
 
 #include <slepceps.h>
 
-/* 
+/*
    User-defined routines
 */
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A);
@@ -52,7 +52,7 @@ int main (int argc,char **argv)
   N = m*(m+1)/2;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%D (m=%D)\n\n",N,m);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -62,18 +62,18 @@ int main (int argc,char **argv)
   ierr = MatSetUp(A);CHKERRQ(ierr);
   ierr = MatMarkovModel(m,A);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* 
+  /*
      Create eigensolver context
   */
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
 
-  /* 
+  /*
      Set operators. In this case, it is a standard eigenvalue problem.
-     Request also left eigenvectors 
+     Request also left eigenvectors
   */
   ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
@@ -94,7 +94,7 @@ int main (int argc,char **argv)
   ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
   ierr = EPSSetInitialSpaceLeft(eps,1,&w0);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -112,11 +112,11 @@ int main (int argc,char **argv)
   ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* 
+  /*
      Get number of converged approximate eigenpairs
   */
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
@@ -131,7 +131,7 @@ int main (int argc,char **argv)
          "   ----------------- ------------------ --------------------\n");CHKERRQ(ierr);
 
     for (i=0;i<nconv;i++) {
-      /* 
+      /*
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
       */
@@ -148,11 +148,11 @@ int main (int argc,char **argv)
 #else
       re = kr;
       im = ki;
-#endif 
+#endif
       if (im!=0.0) {
         ierr = PetscPrintf(PETSC_COMM_WORLD," %9F%+9F j %12G%12G\n",re,im,error1,error2);CHKERRQ(ierr);
       } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12F       %12G       %12G\n",re,error1,error2);CHKERRQ(ierr); 
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12F       %12G       %12G\n",re,error1,error2);CHKERRQ(ierr);
       }
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
@@ -174,7 +174,7 @@ int main (int argc,char **argv)
 
   }
 
-  /* 
+  /*
      Free work space
   */
   ierr = VecDestroy(&v0);CHKERRQ(ierr);
@@ -190,16 +190,16 @@ int main (int argc,char **argv)
 /*
     Matrix generator for a Markov model of a random walk on a triangular grid.
 
-    This subroutine generates a test matrix that models a random walk on a 
-    triangular grid. This test example was used by G. W. Stewart ["{SRRIT} - a 
+    This subroutine generates a test matrix that models a random walk on a
+    triangular grid. This test example was used by G. W. Stewart ["{SRRIT} - a
     FORTRAN subroutine to calculate the dominant invariant subspaces of a real
     matrix", Tech. report. TR-514, University of Maryland (1978).] and in a few
     papers on eigenvalue problems by Y. Saad [see e.g. LAA, vol. 34, pp. 269-295
     (1980) ]. These matrices provide reasonably easy test problems for eigenvalue
-    algorithms. The transpose of the matrix  is stochastic and so it is known 
-    that one is an exact eigenvalue. One seeks the eigenvector of the transpose 
+    algorithms. The transpose of the matrix  is stochastic and so it is known
+    that one is an exact eigenvalue. One seeks the eigenvector of the transpose
     associated with the eigenvalue unity. The problem is to calculate the steady
-    state probability distribution of the system, which is the eigevector 
+    state probability distribution of the system, which is the eigevector
     associated with the eigenvalue one and scaled in such a way that the sum all
     the components is equal to one.
     Note: the code will actually compute the transpose of the stochastic matrix
@@ -222,13 +222,13 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
       if (j!=jmax) {
         pd = cst*(PetscReal)(i+j-1);
         /* north */
-        if (i==1) { 
+        if (i==1) {
           ierr = MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES);CHKERRQ(ierr);
         } else {
           ierr = MatSetValue(A,ix-1,ix,pd,INSERT_VALUES);CHKERRQ(ierr);
         }
         /* east */
-        if (j==1) { 
+        if (j==1) {
           ierr = MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES);CHKERRQ(ierr);
         } else {
           ierr = MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES);CHKERRQ(ierr);

@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -102,7 +102,7 @@ PetscErrorCode IPApplyMatrix_Private(IP ip,Vec x)
     ip->xstate = ((PetscObject)x)->state;
     ierr = PetscLogEventEnd(IP_ApplyMatrix,ip,0,0,0);CHKERRQ(ierr);
   }
-  PetscFunctionReturn(0);  
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
@@ -117,14 +117,14 @@ PetscErrorCode IPApplyMatrix_Private(IP ip,Vec x)
 -  x     - the vector
 
    Output Parameter:
-.  y     - the result  
+.  y     - the result
 
    Note:
    If no matrix was specified this function copies the vector.
 
    Level: developer
 
-.seealso: IPSetMatrix(), IPInnerProduct(), IPNorm(), EPSSetProblemType() 
+.seealso: IPSetMatrix(), IPInnerProduct(), IPNorm(), EPSSetProblemType()
 @*/
 PetscErrorCode IPApplyMatrix(IP ip,Vec x,Vec y)
 {
@@ -138,5 +138,5 @@ PetscErrorCode IPApplyMatrix(IP ip,Vec x,Vec y)
   } else {
     ierr = VecCopy(x,y);CHKERRQ(ierr);
   }
-  PetscFunctionReturn(0);  
+  PetscFunctionReturn(0);
 }

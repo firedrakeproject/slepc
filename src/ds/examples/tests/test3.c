@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -38,7 +38,7 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type HEP with compact storage - dimension %D.\n",n);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type HEP with compact storage - dimension %D.\n",n);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,"-l",&l,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,"-k",&k,NULL);CHKERRQ(ierr);
   if (l>n || k>n || l>k) SETERRQ(PETSC_COMM_WORLD,1,"Wrong value of dimensions");
@@ -60,7 +60,7 @@ int main(int argc,char **argv)
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
   ierr = DSView(ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-  if (verbose) { 
+  if (verbose) {
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
   }
 
@@ -75,7 +75,7 @@ int main(int argc,char **argv)
   } else {
     ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
   }
-  if (verbose) { 
+  if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
@@ -86,13 +86,13 @@ int main(int argc,char **argv)
   ierr = DSSolve(ds,eig,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,eig,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   if (extrarow) { ierr = DSUpdateExtraRow(ds);CHKERRQ(ierr); }
-  if (verbose) { 
+  if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
 
   /* Print eigenvalues */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n",n);CHKERRQ(ierr); 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n",n);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     ierr = PetscViewerASCIIPrintf(viewer,"  %.5F\n",PetscRealPart(eig[i]));CHKERRQ(ierr);
   }

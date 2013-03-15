@@ -1,5 +1,5 @@
 /*
-     This file contains some simple default routines for common operations.  
+     This file contains some simple default routines for common operations.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -131,7 +131,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
       tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
       ierr = VecScale(eps->V[i],tmp);CHKERRQ(ierr);
       ierr = VecScale(eps->V[i+1],tmp);CHKERRQ(ierr);
-      i++;     
+      i++;
     } else
 #endif
     {
@@ -146,7 +146,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 #define __FUNCT__ "EPSComputeVectors_Schur"
 /*
   EPSComputeVectors_Schur - Compute eigenvectors from the vectors
-  provided by the eigensolver. This version is intended for solvers 
+  provided by the eigensolver. This version is intended for solvers
   that provide Schur vectors. Given the partial Schur decomposition
   OP*V=V*T, the following steps are performed:
       1) compute eigenvectors of T: T*Z=Z*D
@@ -188,7 +188,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   if (eps->ispositive) {
     ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
     for (i=0;i<n;i++) {
-      ierr = VecCopy(eps->V[i],w);CHKERRQ(ierr); 
+      ierr = VecCopy(eps->V[i],w);CHKERRQ(ierr);
       ierr = STApply(eps->st,w,eps->V[i]);CHKERRQ(ierr);
     }
     ierr = VecDestroy(&w);CHKERRQ(ierr);
@@ -211,7 +211,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
         tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
         ierr = VecScale(eps->V[i],tmp);CHKERRQ(ierr);
         ierr = VecScale(eps->V[i+1],tmp);CHKERRQ(ierr);
-        i++;     
+        i++;
       } else
 #endif
       {
@@ -311,7 +311,7 @@ PetscErrorCode EPSConvergedAbsolute(EPS eps,PetscScalar eigr,PetscScalar eigi,Pe
 #undef __FUNCT__
 #define __FUNCT__ "EPSConvergedNormRelative"
 /*
-  EPSConvergedNormRelative - Checks convergence relative to the eigenvalue and 
+  EPSConvergedNormRelative - Checks convergence relative to the eigenvalue and
   the matrix norms.
 */
 PetscErrorCode EPSConvergedNormRelative(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
@@ -353,8 +353,8 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,Vec 
     if (eps->ishermitian) {
       ierr = IPNorm(eps->ip,y,&norm);CHKERRQ(ierr);
     } else {
-      ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);          
-    } 
+      ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
+    }
     ierr = VecScale(y,1.0/norm);CHKERRQ(ierr);
     ierr = VecCopy(y,x);CHKERRQ(ierr);
   }
@@ -370,7 +370,7 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,Vec 
     if (eps->ispositive) {
       ierr = VecDuplicate(V[0],&z);CHKERRQ(ierr);
       ierr = STApply(eps->st,y,z);CHKERRQ(ierr);
-      ierr = VecNorm(z,NORM_2,&norm);CHKERRQ(ierr);          
+      ierr = VecNorm(z,NORM_2,&norm);CHKERRQ(ierr);
       ierr = VecScale(z,1.0/norm);CHKERRQ(ierr);
       ierr = VecCopy(z,y);CHKERRQ(ierr);
       ierr = VecDestroy(&z);CHKERRQ(ierr);

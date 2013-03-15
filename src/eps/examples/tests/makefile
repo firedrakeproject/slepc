@@ -4,14 +4,14 @@
 #  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
-#     
+#
 #  SLEPc is free software: you can redistribute it and/or modify it under  the
 #  terms of version 3 of the GNU Lesser General Public License as published by
 #  the Free Software Foundation.
 #
-#  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-#  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-#  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+#  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+#  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+#  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 #  more details.
 #
 #  You  should have received a copy of the GNU Lesser General  Public  License
@@ -19,9 +19,9 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS     = 
+CFLAGS     =
 FFLAGS     =
-CPPFLAGS   = 
+CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c \
@@ -49,7 +49,7 @@ TESTEXAMPLES_C_NOF128    = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN     = test7f.PETSc runtest7f_1 test7f.rm \
                            test14f.PETSc runtest14f_1 test14f.rm \
                            test15f.PETSc runtest15f_1 test15f.rm
-TESTEXAMPLES_BLOPEX      = test5.PETSc runtest5_blopex test5.rm 
+TESTEXAMPLES_BLOPEX      = test5.PETSc runtest5_blopex test5.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 

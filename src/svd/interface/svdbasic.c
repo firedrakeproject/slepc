@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -39,7 +39,7 @@ static PetscBool  SVDPackageInitialized = PETSC_FALSE;
 
 .seealso: SlepcFinalize()
 @*/
-PetscErrorCode SVDFinalizePackage(void) 
+PetscErrorCode SVDFinalizePackage(void)
 {
   PetscFunctionBegin;
   SVDPackageInitialized = PETSC_FALSE;
@@ -118,8 +118,8 @@ PetscErrorCode SVDInitializePackage(const char *path)
 +     PETSC_VIEWER_STDOUT_SELF - standard output (default)
 -     PETSC_VIEWER_STDOUT_WORLD - synchronized standard
          output where only the first processor opens
-         the file.  All other processors send their 
-         data to the first processor to print. 
+         the file.  All other processors send their
+         data to the first processor to print.
 
    The user can open an alternative visualization context with
    PetscViewerASCIIOpen() - output to a specified file.
@@ -161,7 +161,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: largest\n");CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: smallest\n");CHKERRQ(ierr);
-    }  
+    }
     ierr = PetscViewerASCIIPrintf(viewer,"  number of singular values (nsv): %D\n",svd->nsv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",svd->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",svd->mpd);CHKERRQ(ierr);
@@ -224,7 +224,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
-  if (!svd->sigma) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first"); 
+  if (!svd->sigma) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first");
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
@@ -244,7 +244,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
           ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
           for (j=0;j<PetscMin(8,svd->nsv-8*i);j++) {
             ierr = SVDGetSingularTriplet(svd,8*i+j,&sigma,NULL,NULL);CHKERRQ(ierr);
-            ierr = PetscViewerASCIIPrintf(viewer,"%.5F",sigma);CHKERRQ(ierr); 
+            ierr = PetscViewerASCIIPrintf(viewer,"%.5F",sigma);CHKERRQ(ierr);
             if (8*i+j+1<svd->nsv) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
           }
         }
@@ -262,7 +262,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
       for (i=0;i<svd->nconv;i++) {
         ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,NULL);CHKERRQ(ierr);
         ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"       % 6F          %12G\n",sigma,error);CHKERRQ(ierr); 
+        ierr = PetscViewerASCIIPrintf(viewer,"       % 6F          %12G\n",sigma,error);CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     }
@@ -318,14 +318,14 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->which          = SVD_LARGEST;
   svd->n              = 0;
   svd->nconv          = 0;
-  svd->nsv            = 1;    
-  svd->ncv            = 0;    
-  svd->mpd            = 0;    
+  svd->nsv            = 1;
+  svd->ncv            = 0;
+  svd->mpd            = 0;
   svd->nini           = 0;
   svd->ninil          = 0;
   svd->its            = 0;
-  svd->max_it         = 0;  
-  svd->tol            = PETSC_DEFAULT;    
+  svd->max_it         = 0;
+  svd->tol            = PETSC_DEFAULT;
   svd->errest         = NULL;
   svd->data           = NULL;
   svd->setupcalled    = 0;
@@ -370,7 +370,7 @@ PetscErrorCode SVDReset(SVD svd)
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
   ierr = VecDestroy(&svd->tl);CHKERRQ(ierr);
   ierr = VecDestroy(&svd->tr);CHKERRQ(ierr);
-  if (svd->n) { 
+  if (svd->n) {
     ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
     ierr = PetscFree(svd->perm);CHKERRQ(ierr);
     ierr = PetscFree(svd->errest);CHKERRQ(ierr);
@@ -421,7 +421,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetType"
 /*@C
-   SVDSetType - Selects the particular solver to be used in the SVD object. 
+   SVDSetType - Selects the particular solver to be used in the SVD object.
 
    Logically Collective on SVD
 
@@ -430,10 +430,10 @@ PetscErrorCode SVDDestroy(SVD *svd)
 -  type     - a known method
 
    Options Database Key:
-.  -svd_type <method> - Sets the method; use -help for a list 
-    of available methods 
+.  -svd_type <method> - Sets the method; use -help for a list
+    of available methods
 
-   Notes:  
+   Notes:
    See "slepc/include/slepcsvd.h" for available methods. The default
    is SVDCROSS.
 
@@ -443,7 +443,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
    maximum flexibility in evaluating the different available methods.
    The SVDSetType() routine is provided for those situations where it
    is necessary to set the iterative solver independently of the command
-   line or options database. 
+   line or options database.
 
    Level: intermediate
 
@@ -481,10 +481,10 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
    Not Collective
 
    Input Parameter:
-.  svd - the singular value solver context 
+.  svd - the singular value solver context
 
    Output Parameter:
-.  name - name of SVD method 
+.  name - name of SVD method
 
    Level: intermediate
 
@@ -543,7 +543,7 @@ PetscErrorCode SVDRegisterDestroy(void)
 #define __FUNCT__ "SVDSetIP"
 /*@
    SVDSetIP - Associates an inner product object to the
-   singular value solver. 
+   singular value solver.
 
    Collective on SVD
 
@@ -610,7 +610,7 @@ PetscErrorCode SVDGetIP(SVD svd,IP *ip)
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetDS"
 /*@
-   SVDSetDS - Associates a direct solver object to the singular value solver. 
+   SVDSetDS - Associates a direct solver object to the singular value solver.
 
    Collective on SVD
 

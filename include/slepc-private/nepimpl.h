@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -42,7 +42,7 @@ struct _NEPOps {
 /*
      Maximum number of monitors you can run with a single NEP
 */
-#define MAXNEPMONITORS 5 
+#define MAXNEPMONITORS 5
 
 /*
    Defines the NEP data structure.
@@ -91,7 +91,7 @@ struct _p_NEP {
   IP             ip;               /* innerproduct object */
   DS             ds;               /* direct solver object */
   KSP            ksp;              /* linear solver object */
-  void           *data;            /* placeholder for misc stuff associated 
+  void           *data;            /* placeholder for misc stuff associated
                                       with a particular solver */
   PetscInt       nconv;            /* number of converged eigenvalues */
   PetscInt       its;              /* number of iterations so far computed */
@@ -107,12 +107,12 @@ struct _p_NEP {
   Vec            *work;
 
   PetscInt       setupcalled;
-  NEPConvergedReason reason;     
+  NEPConvergedReason reason;
 
-  PetscErrorCode (*monitor[MAXNEPMONITORS])(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*); 
+  PetscErrorCode (*monitor[MAXNEPMONITORS])(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXNEPMONITORS])(void**);
   void           *monitorcontext[MAXNEPMONITORS];
-  PetscInt       numbermonitors; 
+  PetscInt       numbermonitors;
 };
 
 PETSC_INTERN PetscErrorCode NEPReset_Default(NEP);

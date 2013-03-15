@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -23,7 +23,7 @@
 #include <slepcst.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define stsettype_                STSETTYPE           
+#define stsettype_                STSETTYPE
 #define stgettype_                STGETTYPE
 #define stcreate_                 STCREATE
 #define stdestroy_                STDESTROY

@@ -1,4 +1,4 @@
-/*                       
+/*
 
    SLEPc eigensolver: "krylovschur"
 
@@ -11,11 +11,11 @@
 
    References:
 
-       [1] "Krylov-Schur Methods in SLEPc", SLEPc Technical Report STR-7, 
+       [1] "Krylov-Schur Methods in SLEPc", SLEPc Technical Report STR-7,
            available at http://www.grycap.upv.es/slepc.
 
        [2] G.W. Stewart, "A Krylov-Schur Algorithm for Large Eigenproblems",
-           SIAM J. Matrix Anal. App. 23(3):601-614, 2001. 
+           SIAM J. Matrix Anal. App. 23(3):601-614, 2001.
 
        [3] "Practical Implementation of Harmonic Krylov-Schur", SLEPc Technical
             Report STR-9, available at http://www.grycap.upv.es/slepc.
@@ -30,9 +30,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -68,7 +68,7 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
     else Zi = NULL;
     ierr = EPSComputeRitzVector(eps,Zr,Zi,eps->V,n,xr,xi);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-    ierr = (*eps->arbitrary)(re,im,xr,xi,rr+i,ri+i,eps->arbitraryctx);CHKERRQ(ierr);    
+    ierr = (*eps->arbitrary)(re,im,xr,xi,rr+i,ri+i,eps->arbitraryctx);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -85,8 +85,8 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   PetscFunctionBegin;
   /* spectrum slicing requires special treatment of default values */
   if (eps->which==EPS_ALL) {
-    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Must define a computational interval when using EPS_ALL"); 
-    if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems"); 
+    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Must define a computational interval when using EPS_ALL");
+    if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems");
     if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
     if (!((PetscObject)(eps->st))->type_name) { /* default to shift-and-invert */
       ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
@@ -104,7 +104,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     }
 
     if (eps->nev==1) eps->nev = 40;  /* nev not set, use default value */
-    if (eps->nev<10) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs"); 
+    if (eps->nev<10) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
     eps->ops->backtransform = NULL;
   }
 
@@ -112,7 +112,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 
   /* proceed with the general case */
   if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev"); 
+    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
   } else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
   } else { /* neither set: defaults depend on nev being small or large */
@@ -123,7 +123,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     }
   }
   if (!eps->mpd) eps->mpd = eps->ncv;
-  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd"); 
+  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) {
     if (eps->which==EPS_ALL) eps->max_it = 100;  /* special case for spectrum slicing */
     else eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
@@ -234,12 +234,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
 
-    /* Compute translation of Krylov decomposition if harmonic extraction used */ 
+    /* Compute translation of Krylov decomposition if harmonic extraction used */
     if (harmonic) {
       ierr = DSTranslateHarmonic(eps->ds,eps->target,beta,PETSC_FALSE,g,&gamma);CHKERRQ(ierr);
     }
 
-    /* Solve projected problem */ 
+    /* Solve projected problem */
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
     if (eps->arbitrary) {
       ierr = EPSGetArbitraryValues(eps,eps->rr,eps->ri);CHKERRQ(ierr);
@@ -247,7 +247,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     }
     ierr = DSSort(eps->ds,eps->eigr,eps->eigi,eps->rr,eps->ri,pj);CHKERRQ(ierr);
 
-    /* Check convergence */ 
+    /* Check convergence */
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
@@ -276,12 +276,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
           ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
         }
       } else {
-        /* Undo translation of Krylov decomposition */ 
+        /* Undo translation of Krylov decomposition */
         if (harmonic) {
           ierr = DSSetDimensions(eps->ds,nv,0,k,l);CHKERRQ(ierr);
           ierr = DSTranslateHarmonic(eps->ds,0.0,beta,PETSC_TRUE,g,&gamma);CHKERRQ(ierr);
           /* gamma u^ = u - U*g~ */
-          ierr = SlepcVecMAXPBY(u,1.0,-1.0,nv,g,eps->V);CHKERRQ(ierr);        
+          ierr = SlepcVecMAXPBY(u,1.0,-1.0,nv,g,eps->V);CHKERRQ(ierr);
           ierr = VecScale(u,1.0/gamma);CHKERRQ(ierr);
         }
         /* Prepare the Rayleigh quotient for restart */
@@ -304,7 +304,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     }
     eps->nconv = k;
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
-  } 
+  }
 
   if (harmonic) { ierr = PetscFree(g);CHKERRQ(ierr); }
   /* truncate Schur decomposition and change the state to raw so that
@@ -378,7 +378,7 @@ static PetscErrorCode EPSKrylovSchurGetRestart_KrylovSchur(EPS eps,PetscReal *ke
 #define __FUNCT__ "EPSKrylovSchurGetRestart"
 /*@
    EPSKrylovSchurGetRestart - Gets the restart parameter used in the
-   Krylov-Schur method. 
+   Krylov-Schur method.
 
    Not Collective
 

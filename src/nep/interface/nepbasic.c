@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -39,7 +39,7 @@ static PetscBool  NEPPackageInitialized = PETSC_FALSE;
 
 .seealso: SlepcFinalize()
 @*/
-PetscErrorCode NEPFinalizePackage(void) 
+PetscErrorCode NEPFinalizePackage(void)
 {
   PetscFunctionBegin;
   NEPPackageInitialized = PETSC_FALSE;
@@ -121,8 +121,8 @@ PetscErrorCode NEPInitializePackage(const char *path)
 +     PETSC_VIEWER_STDOUT_SELF - standard output (default)
 -     PETSC_VIEWER_STDOUT_WORLD - synchronized standard
          output where only the first processor opens
-         the file.  All other processors send their 
-         data to the first processor to print. 
+         the file.  All other processors send their
+         data to the first processor to print.
 
    The user can open an alternative visualization context with
    PetscViewerASCIIOpen() - output to a specified file.
@@ -189,7 +189,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
         break;
       default: SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of nep->which");
-    }    
+    }
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",nep->nev);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",nep->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",nep->mpd);CHKERRQ(ierr);
@@ -314,7 +314,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetType"
 /*@C
-   NEPSetType - Selects the particular solver to be used in the NEP object. 
+   NEPSetType - Selects the particular solver to be used in the NEP object.
 
    Logically Collective on NEP
 
@@ -323,10 +323,10 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
 -  type     - a known method
 
    Options Database Key:
-.  -nep_type <method> - Sets the method; use -help for a list 
-    of available methods 
+.  -nep_type <method> - Sets the method; use -help for a list
+    of available methods
 
-   Notes:  
+   Notes:
    See "slepc/include/slepcnep.h" for available methods.
 
    Normally, it is best to use the NEPSetFromOptions() command and
@@ -335,7 +335,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
    maximum flexibility in evaluating the different available methods.
    The NEPSetType() routine is provided for those situations where it
    is necessary to set the iterative solver independently of the command
-   line or options database. 
+   line or options database.
 
    Level: intermediate
 
@@ -373,10 +373,10 @@ PetscErrorCode NEPSetType(NEP nep,NEPType type)
    Not Collective
 
    Input Parameter:
-.  nep - the eigensolver context 
+.  nep - the eigensolver context
 
    Output Parameter:
-.  name - name of NEP method 
+.  name - name of NEP method
 
    Level: intermediate
 
@@ -459,7 +459,7 @@ PetscErrorCode NEPReset(NEP nep)
   ierr = NEPFreeSolution(nep);CHKERRQ(ierr);
   nep->nfuncs      = 0;
   nep->linits      = 0;
-  nep->setupcalled = 0;  
+  nep->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 
@@ -512,7 +512,7 @@ PetscErrorCode NEPDestroy(NEP *nep)
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetIP"
 /*@
-   NEPSetIP - Associates an inner product object to the nonlinear eigensolver. 
+   NEPSetIP - Associates an inner product object to the nonlinear eigensolver.
 
    Collective on NEP
 
@@ -579,7 +579,7 @@ PetscErrorCode NEPGetIP(NEP nep,IP *ip)
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetDS"
 /*@
-   NEPSetDS - Associates a direct solver object to the nonlinear eigensolver. 
+   NEPSetDS - Associates a direct solver object to the nonlinear eigensolver.
 
    Collective on NEP
 
@@ -613,7 +613,7 @@ PetscErrorCode NEPSetDS(NEP nep,DS ds)
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetDS"
 /*@C
-   NEPGetDS - Obtain the direct solver object associated to the 
+   NEPGetDS - Obtain the direct solver object associated to the
    nonlinear eigensolver object.
 
    Not Collective
@@ -646,7 +646,7 @@ PetscErrorCode NEPGetDS(NEP nep,DS *ds)
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetKSP"
 /*@
-   NEPSetKSP - Associates a linear solver object to the nonlinear eigensolver. 
+   NEPSetKSP - Associates a linear solver object to the nonlinear eigensolver.
 
    Collective on NEP
 
@@ -938,7 +938,7 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
 #define __FUNCT__ "NEPSetSplitOperator"
 /*@
    NEPSetSplitOperator - Sets the operator of the nonlinear eigenvalue problem
-   in split form. 
+   in split form.
 
    Collective on NEP, Mat and FN
 

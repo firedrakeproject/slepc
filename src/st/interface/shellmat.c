@@ -13,9 +13,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -58,7 +58,7 @@ static PetscErrorCode STMatShellMult(Mat A,Vec x,Vec y)
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   st = ctx->st;
-  if (ctx->alpha != 0.0) { 
+  if (ctx->alpha != 0.0) {
     ierr = MatMult(st->A[ctx->matIdx[ctx->nmat-1]],x,y);CHKERRQ(ierr);
     if (ctx->nmat>1) {  /*  */
       for (i=ctx->nmat-2;i>=0;i--) {
@@ -86,12 +86,12 @@ static PetscErrorCode STMatShellMultTranspose(Mat A,Vec x,Vec y)
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   st = ctx->st;
-  if (ctx->alpha != 0.0) { 
+  if (ctx->alpha != 0.0) {
     ierr = MatMultTranspose(st->A[ctx->matIdx[ctx->nmat-1]],x,y);CHKERRQ(ierr);
     if (st->nmat>1) {  /* y = (A + alpha*B) x */
       for (i=ctx->nmat-2;i>=0;i--) {
         ierr = MatMultTranspose(st->A[ctx->matIdx[i]],x,y);CHKERRQ(ierr);
-        ierr = VecAYPX(y,ctx->alpha,ctx->z);CHKERRQ(ierr); 
+        ierr = VecAYPX(y,ctx->alpha,ctx->z);CHKERRQ(ierr);
       }
     } else {    /* y = (A + alpha*I) x */
       ierr = VecAXPY(y,ctx->alpha,x);CHKERRQ(ierr);
@@ -115,7 +115,7 @@ static PetscErrorCode STMatShellGetDiagonal(Mat A,Vec diag)
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   st = ctx->st;
-  if (ctx->alpha != 0.0) { 
+  if (ctx->alpha != 0.0) {
     ierr = MatGetDiagonal(st->A[ctx->matIdx[ctx->nmat-1]],diag);CHKERRQ(ierr);
     if (st->nmat>1) {
       ierr = VecDuplicate(diag,&diagb);CHKERRQ(ierr);
@@ -158,12 +158,12 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
   ST_SHELLMAT    *ctx;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);  
-  ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);  
+  ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);
   ierr = PetscNew(ST_SHELLMAT,&ctx);CHKERRQ(ierr);
   ctx->st = st;
   ctx->alpha = alpha;
-  ctx->nmat = matIdx?nmat:st->nmat; 
+  ctx->nmat = matIdx?nmat:st->nmat;
   ierr = PetscMalloc(ctx->nmat*sizeof(PetscInt),&ctx->matIdx);CHKERRQ(ierr);
   if (matIdx) {
     for (i=0;i<ctx->nmat;i++) ctx->matIdx[i] = matIdx[i];

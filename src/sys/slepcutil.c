@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -25,7 +25,7 @@
 #undef __FUNCT__
 #define __FUNCT__ "SlepcMatConvertSeqDense"
 /*@C
-   SlepcMatConvertSeqDense - Converts a parallel matrix to another one in sequential 
+   SlepcMatConvertSeqDense - Converts a parallel matrix to another one in sequential
    dense format replicating the values in every processor.
 
    Collective on Mat
@@ -71,7 +71,7 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
     /* convert matrix to MatSeqDense */
     ierr = MatConvert(mat,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
   }
-  PetscFunctionReturn(0);  
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
@@ -181,7 +181,7 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   }
   ierr = PetscFree(buf);CHKERRQ(ierr);
   ierr = PetscFree(scols);CHKERRQ(ierr);
-  PetscFunctionReturn(0);  
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
@@ -327,7 +327,7 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   ierr = PetscFree(scols);CHKERRQ(ierr);
   ierr = PetscFree(map1);CHKERRQ(ierr);
   ierr = PetscFree(map2);CHKERRQ(ierr);
-  PetscFunctionReturn(0);  
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
@@ -418,7 +418,7 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
   }
   ierr = MatAssemblyBegin(*G,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(*G,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  PetscFunctionReturn(0);  
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
@@ -440,14 +440,14 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
    Output parameter:
 .  lev - level of orthogonality (optional)
 
-   Notes: 
+   Notes:
    This function computes W'*V and prints the result. It is intended to check
    the level of bi-orthogonality of the vectors in the two sets. If W is equal
    to NULL then V is used, thus checking the orthogonality of the V vectors.
 
    If matrix B is provided then the check uses the B-inner product, W'*B*V.
 
-   If lev is not NULL, it will contain the maximum entry of matrix 
+   If lev is not NULL, it will contain the maximum entry of matrix
    W'*V - I (in absolute value). Otherwise, the matrix W'*V is printed.
 
    Level: developer
@@ -491,11 +491,11 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
     ierr = VecMDot(w,nv,V,vals);CHKERRQ(ierr);
     for (j=0;j<nv;j++) {
       if (lev) *lev = PetscMax(*lev,PetscAbsScalar((j==i)? (vals[j]-1.0): vals[j]));
-      else { 
+      else {
 #if !defined(PETSC_USE_COMPLEX)
-        ierr = PetscViewerASCIIPrintf(viewer," %12G  ",vals[j]);CHKERRQ(ierr); 
+        ierr = PetscViewerASCIIPrintf(viewer," %12G  ",vals[j]);CHKERRQ(ierr);
 #else
-        ierr = PetscViewerASCIIPrintf(viewer," %12G%+12Gi ",PetscRealPart(vals[j]),PetscImaginaryPart(vals[j]));CHKERRQ(ierr);     
+        ierr = PetscViewerASCIIPrintf(viewer," %12G%+12Gi ",PetscRealPart(vals[j]),PetscImaginaryPart(vals[j]));CHKERRQ(ierr);
 #endif
       }
     }

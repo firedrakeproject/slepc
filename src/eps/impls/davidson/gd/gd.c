@@ -30,9 +30,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -103,7 +103,7 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
     ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
-}  
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_GD"
@@ -114,7 +114,7 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
   KSP            ksp;
 
   PetscFunctionBegin;
-  /* Set KSPPREONLY as default */ 
+  /* Set KSPPREONLY as default */
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
@@ -123,7 +123,7 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
   /* Setup common for all davidson solvers */
   ierr = EPSSetUp_Davidson(eps);CHKERRQ(ierr);
 
-  /* Check some constraints */ 
+  /* Check some constraints */
   ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&t);CHKERRQ(ierr);
   if (!t) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSGD only works with KSPPREONLY");
   PetscFunctionReturn(0);
@@ -158,7 +158,7 @@ PetscErrorCode EPSDestroy_GD(EPS eps)
 #define __FUNCT__ "EPSGDSetKrylovStart"
 /*@
    EPSGDSetKrylovStart - Activates or deactivates starting the searching
-   subspace with a Krylov basis. 
+   subspace with a Krylov basis.
 
    Logically Collective on EPS
 
@@ -287,7 +287,7 @@ PetscErrorCode EPSGDGetBlockSize(EPS eps,PetscInt *blocksize)
 
    Output Parameter:
 +  minv - number of vectors of the searching subspace after restarting
--  plusk - number of vectors saved from the previous iteration   
+-  plusk - number of vectors saved from the previous iteration
 
    Level: advanced
 
@@ -314,11 +314,11 @@ PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
    Input Parameters:
 +  eps - the eigenproblem solver context
 .  minv - number of vectors of the searching subspace after restarting
--  plusk - number of vectors saved from the previous iteration   
+-  plusk - number of vectors saved from the previous iteration
 
    Options Database Keys:
 +  -eps_gd_minv - number of vectors of the searching subspace after restarting
--  -eps_gd_plusk - number of vectors saved from the previous iteration   
+-  -eps_gd_plusk - number of vectors saved from the previous iteration
 
    Level: advanced
 
@@ -530,7 +530,7 @@ PetscErrorCode EPSGDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
 
    Options Database Keys:
 +  -eps_gd_pwindow - set the number of converged vectors in the projector
--  -eps_gd_qwindow - set the number of converged vectors in the projected problem  
+-  -eps_gd_qwindow - set the number of converged vectors in the projected problem
 
    Level: advanced
 
@@ -576,7 +576,7 @@ static PetscErrorCode EPSGDGetDoubleExpansion_GD(EPS eps,PetscBool *flg)
 #undef __FUNCT__
 #define __FUNCT__ "EPSGDGetDoubleExpansion"
 /*@
-   EPSGDGetDoubleExpansion - Gets a flag indicating whether the double 
+   EPSGDGetDoubleExpansion - Gets a flag indicating whether the double
    expansion variant has been activated or not.
 
    Not Collective

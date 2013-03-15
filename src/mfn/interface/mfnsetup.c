@@ -11,9 +11,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -37,7 +37,7 @@
 
    Notes:
    This function need not be called explicitly in most cases, since MFNSolve()
-   calls it. It can be useful when one wants to measure the set-up time 
+   calls it. It can be useful when one wants to measure the set-up time
    separately from the solve time.
 
    Level: advanced
@@ -72,7 +72,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
   }
 
   /* Set problem dimensions */
-  if (!mfn->A) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONGSTATE,"MFNSetOperator must be called first"); 
+  if (!mfn->A) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONGSTATE,"MFNSetOperator must be called first");
   ierr = MatGetSize(mfn->A,&mfn->n,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(mfn->A,&mfn->nloc,NULL);CHKERRQ(ierr);
   ierr = VecDestroy(&mfn->t);CHKERRQ(ierr);
@@ -107,7 +107,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
 +  mfn - the matrix function context
 -  A   - the problem matrix
 
-   Notes: 
+   Notes:
    It must be called after MFNSetUp(). If it is called again after MFNSetUp() then
    the MFN object is reset.
 

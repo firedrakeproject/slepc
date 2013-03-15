@@ -13,14 +13,14 @@ classdef SlepcSVD < PetscObject
 %  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 %
 %  This file is part of SLEPc.
-%     
+%
 %  SLEPc is free software: you can redistribute it and/or modify it under  the
 %  terms of version 3 of the GNU Lesser General Public License as published by
 %  the Free Software Foundation.
 %
-%  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-%  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-%  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+%  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+%  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+%  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 %  more details.
 %
 %  You  should have received a copy of the GNU Lesser General  Public  License
@@ -36,7 +36,7 @@ classdef SlepcSVD < PetscObject
   end
   methods
     function obj = SlepcSVD(pid,flag)
-      if (nargin > 1) 
+      if (nargin > 1)
         %  SelpcSVD(pid,'pobj') uses an already existing SLEPc SVD object
         obj.pobj = pid;
         return
@@ -80,12 +80,12 @@ classdef SlepcSVD < PetscObject
     end
     function [sigma,u,v,err] = GetSingularTriplet(obj,i,uu,vv)
       sigma = 0.0;
-      if (nargin < 3) 
+      if (nargin < 3)
         x = 0;
       else
         x = uu.pobj;
       end
-      if (nargin < 4) 
+      if (nargin < 4)
         y = 0;
       else
         y = vv.pobj;

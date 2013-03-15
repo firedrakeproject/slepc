@@ -9,9 +9,9 @@
    terms of version 3 of the GNU Lesser General Public License as published by
    the Free Software Foundation.
 
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
    more details.
 
    You  should have received a copy of the GNU Lesser General  Public  License
@@ -49,7 +49,7 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the matrices that define the eigensystem, Ax=kBx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -83,7 +83,7 @@ int main(int argc,char **argv)
   ierr = MatGetVecs(A,NULL,&xr);CHKERRQ(ierr);
   ierr = MatGetVecs(A,NULL,&xi);CHKERRQ(ierr);
 
-  /* 
+  /*
      Read user constraints if available
   */
   ierr = PetscOptionsGetInt(NULL,"-nconstr",&ncon,&flg);CHKERRQ(ierr);
@@ -99,7 +99,7 @@ int main(int argc,char **argv)
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
-  /* 
+  /*
      Read initial guesses if available
   */
   ierr = PetscOptionsGetInt(NULL,"-ninitial",&nini,&flg);CHKERRQ(ierr);
@@ -115,21 +115,21 @@ int main(int argc,char **argv)
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* 
+  /*
      Create eigensolver context
   */
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
 
-  /* 
+  /*
      Set operators. In this case, it is a generalized eigenvalue problem
   */
   ierr = EPSSetOperators(eps,A,B);CHKERRQ(ierr);
 
-  /* 
+  /*
      If the user provided initial guesses or constraints, pass them here
   */
   ierr = EPSSetInitialSpace(eps,nini,I);CHKERRQ(ierr);
@@ -140,7 +140,7 @@ int main(int argc,char **argv)
   */
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -160,7 +160,7 @@ int main(int argc,char **argv)
   ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -181,7 +181,7 @@ int main(int argc,char **argv)
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
-  /* 
+  /*
      Free work space
   */
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
