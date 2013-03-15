@@ -304,8 +304,7 @@ static PetscErrorCode tridqdsZhuang3(PetscInt n,PetscReal *e,PetscReal *q,PetscR
   } else { /* Free deflation */
     e[n-2] = (e[n-3]+(xr*q[n-2]+yr)+q[n-1])*0.5;       /* Sum=trace/2 */
     q[n-2] = (e[n-3]+q[n-2]*xr)*q[n-1]-xl;             /* det */
-    t = ((e[n-3]+(xr*q[n-2]+yr)-q[n-1])*0.5);
-    q[n-1] = t*t+(xl+q[n-1]*yr);
+    q[n-1] = e[n-2]*e[n-2]-q[n-2];
     *fail = 2;
   }
 
@@ -443,8 +442,7 @@ static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscRe
     } else {  /* FREE DEFLATION */
       e1[n-2] = (e1[n-3]+xr*q1[n-2]+yr+q1[n-1])*0.5;     /* sum=trace/2 */
       q1[n-2] = (e1[n-3]+q1[n-2]*xr)*q1[n-1]-xl;         /* det */
-      t = (e1[n-3]+xr*q1[n-2]+yr-q1[n-1])*0.5;
-      q1[n-1] = t*t+xl+q1[n-1]*yr;
+      q1[n-1] = e1[n-2]*e1[n-2]-q1[n-2];
       *fail = 2;
     }
 
