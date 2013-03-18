@@ -248,7 +248,7 @@ static PetscErrorCode realDQDS(PetscInt n,PetscReal *L,PetscReal *U,PetscReal sh
 #define __FUNCT__ "tridqdsZhuang3"
 static PetscErrorCode tridqdsZhuang3(PetscInt n,PetscReal *e,PetscReal *q,PetscReal sum,PetscReal prod,PetscReal tol,PetscReal norm,PetscReal tolDef,PetscInt *fail)
 {
-  PetscReal xl,yl,xr,yr,zr,t;
+  PetscReal xl,yl,xr,yr,zr;
   PetscInt  i;
 
   PetscFunctionBegin;
@@ -328,7 +328,7 @@ static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscRe
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscReal      xl,yl,xr,yr,zr,t;
+  PetscReal      xl,yl,xr,yr,zr;
 
   PetscFunctionBegin;
   for (i=0;i<n-1;i++) {

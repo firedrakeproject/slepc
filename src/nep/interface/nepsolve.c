@@ -188,10 +188,10 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
     isherm = set? flg: PETSC_FALSE;
     for (j=j0;j<j1;j++) {
       if (!isherm) {
-        if (j>0) { ierr = MatMultTranspose(nep->A[k],V[j],f);CHKERRQ(ierr); }
+        if (j>0) { ierr = MatMultHermitianTranspose(nep->A[k],V[j],f);CHKERRQ(ierr); }
         ierr = VecMDot(f,j,V,G+j*ld);CHKERRQ(ierr);
         for (i=0;i<j;i++)
-          G[j+i*ld] = G[i+j*ld];
+          G[j+i*ld] = PetscConj(G[i+j*ld]);
       }
       ierr = MatMult(nep->A[k],V[j],f);CHKERRQ(ierr);
       ierr = VecDot(f,V[j],&val);CHKERRQ(ierr);
@@ -199,7 +199,7 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
       ierr = VecMDot(f,j,V,G+j*ld);CHKERRQ(ierr);
       if (isherm) {
         for (i=0;i<j;i++)
-          G[j+i*ld] = G[i+j*ld];
+          G[j+i*ld] = PetscConj(G[i+j*ld]);
       }
     }
     ierr = DSRestoreArray(nep->ds,DSMatExtra[i],&G);CHKERRQ(ierr);

@@ -86,6 +86,7 @@ int main(int argc,char **argv)
   ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatShift(Id,1.0);CHKERRQ(ierr);
+  ierr = MatSetOption(Id,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
 
   /*
      A = 1/h^2*tridiag(1,-2,1) + a*I
@@ -112,6 +113,7 @@ int main(int argc,char **argv)
   }
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
 
   /*
      B = diag(b(xi))
@@ -128,6 +130,7 @@ int main(int argc,char **argv)
   }
   ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatSetOption(B,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
 
   /*
      Functions: f1=-lambda, f2=1.0, f3=exp(-tau*lambda)
