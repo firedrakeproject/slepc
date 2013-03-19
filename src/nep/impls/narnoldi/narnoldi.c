@@ -62,7 +62,7 @@ PetscErrorCode NEPSetUp_NARNOLDI(NEP nep)
   if (!nep->split) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NARNOLDI only available for split operator");
 
   ierr = NEPAllocateSolution(nep);CHKERRQ(ierr);
-  ierr = NEPSetWorkVecs(nep,2);CHKERRQ(ierr);
+  ierr = NEPSetWorkVecs(nep,3);CHKERRQ(ierr);
 
   /* set-up DS and transfer split operator functions */
   ierr = DSSetType(nep->ds,DSNEP);CHKERRQ(ierr);
@@ -77,7 +77,7 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
 {
   PetscErrorCode     ierr;
   Mat                T=nep->function,Tsigma;
-  Vec                f,u=nep->V[0],r=nep->work[0],x=nep->work[1];
+  Vec                f,u=nep->V[0],r=nep->work[0],x=nep->work[1],w=nep->work[2];
   PetscScalar        *X,lambda;
   PetscReal          beta,resnorm=0.0;
   PetscInt           n;
@@ -117,9 +117,8 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
     ierr = SlepcVecMAXPBY(x,0.0,1.0,n,X,nep->V);CHKERRQ(ierr);
     ierr = DSRestoreArray(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
 
-    /* evaluate T(lambda) and the residual, r = T(lambda)*x */
-    ierr = NEPComputeFunction(nep,lambda,0,&T,&T,&mats);CHKERRQ(ierr);
-    ierr = MatMult(T,x,r);CHKERRQ(ierr);
+    /* compute the residual, r = T(lambda)*x */
+    ierr = NEPApplyFunction(nep,lambda,0,x,w,r,NULL,NULL,NULL);CHKERRQ(ierr);
 
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);

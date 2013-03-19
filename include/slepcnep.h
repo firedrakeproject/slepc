@@ -136,6 +136,8 @@ PETSC_EXTERN PetscErrorCode NEPGetErrorEstimate(NEP,PetscInt,PetscReal*);
 
 PETSC_EXTERN PetscErrorCode NEPComputeFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*);
 PETSC_EXTERN PetscErrorCode NEPComputeJacobian(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*);
+PETSC_EXTERN PetscErrorCode NEPApplyFunction(NEP,PetscScalar,PetscScalar,Vec,Vec,Vec,Mat*,Mat*,MatStructure*);
+PETSC_EXTERN PetscErrorCode NEPApplyJacobian(NEP,PetscScalar,PetscScalar,Vec,Vec,Vec,Mat*,MatStructure*);
 PETSC_EXTERN PetscErrorCode NEPProjectOperator(NEP,PetscInt,PetscInt,Vec);
 
 PETSC_EXTERN PetscErrorCode NEPMonitor(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);

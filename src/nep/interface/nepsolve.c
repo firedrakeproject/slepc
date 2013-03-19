@@ -180,6 +180,10 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
   PetscBool      isherm,set,flg;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(nep,j0,2);
+  PetscValidLogicalCollectiveInt(nep,j1,3);
+  PetscValidHeaderSpecific(f,VEC_CLASSID,4);
   if (!nep->split) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"This solver requires a split operator");
   ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
   for (k=0;k<nep->nt;k++) {
@@ -203,6 +207,117 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
       }
     }
     ierr = DSRestoreArray(nep->ds,DSMatExtra[i],&G);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPApplyFunction"
+/*@
+   NEPApplyFunction - Applies the nonlinear function T(lambda) to a given vector.
+
+   Collective on NEP
+
+   Input Parameters:
++  nep - the nonlinear eigensolver context
+.  wr  - real part of the scalar argument
+.  wi  - imaginary part of the scalar argument
+.  x   - vector to be multiplied against
+-  v   - workspace vector
+
+   Output Parameters:
++  y   - result vector
+.  A   - Function matrix
+.  B   - optional preconditioning matrix
+-  flg - flag indicating matrix structure (see MatStructure enum)
+
+   Note:
+   If the nonlinear operator is represented in split form, the result 
+   y = T(lambda)*x is computed without building T(lambda) explicitly. In
+   that case, parameters A, B and flg are not used. Otherwise, the matrix
+   T(lambda) is built and the effect is the same as a call to
+   NEPComputeFunction() followed by a MatMult().
+
+   Level: developer
+
+.seealso: NEPSetSplitOperator(), NEPComputeFunction()
+@*/
+PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar wr,PetscScalar wi,Vec x,Vec v,Vec y,Mat *A,Mat *B,MatStructure *flg)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscScalar    alpha;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,4);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,5);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,6);
+  if (nep->split) {
+    ierr = VecZeroEntries(y);CHKERRQ(ierr);
+    for (i=0;i<nep->nt;i++) {
+      ierr = FNEvaluateFunction(nep->f[i],wr,&alpha);CHKERRQ(ierr);
+      ierr = MatMult(nep->A[i],x,v);CHKERRQ(ierr);
+      ierr = VecAXPY(y,alpha,v);CHKERRQ(ierr);
+    }
+  } else {
+    ierr = NEPComputeFunction(nep,wr,wi,A,B,flg);CHKERRQ(ierr);
+    ierr = MatMult(*A,x,y);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPApplyJacobian"
+/*@
+   NEPApplyJacobian - Applies the nonlinear Jacobian T'(lambda) to a given vector.
+
+   Collective on NEP
+
+   Input Parameters:
++  nep - the nonlinear eigensolver context
+.  wr  - real part of the scalar argument
+.  wi  - imaginary part of the scalar argument
+.  x   - vector to be multiplied against
+-  v   - workspace vector
+
+   Output Parameters:
++  y   - result vector
+.  A   - Jacobian matrix
+-  flg - flag indicating matrix structure (see MatStructure enum)
+
+   Note:
+   If the nonlinear operator is represented in split form, the result 
+   y = T'(lambda)*x is computed without building T'(lambda) explicitly. In
+   that case, parameters A and flg are not used. Otherwise, the matrix
+   T'(lambda) is built and the effect is the same as a call to
+   NEPComputeJacobian() followed by a MatMult().
+
+   Level: developer
+
+.seealso: NEPSetSplitOperator(), NEPComputeJacobian()
+@*/
+PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Vec x,Vec v,Vec y,Mat *A,MatStructure *flg)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscScalar    alpha;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,4);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,5);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,6);
+  if (nep->split) {
+    ierr = VecZeroEntries(y);CHKERRQ(ierr);
+    for (i=0;i<nep->nt;i++) {
+      ierr = FNEvaluateDerivative(nep->f[i],wr,&alpha);CHKERRQ(ierr);
+      ierr = MatMult(nep->A[i],x,v);CHKERRQ(ierr);
+      ierr = VecAXPY(y,alpha,v);CHKERRQ(ierr);
+    }
+  } else {
+    ierr = NEPComputeJacobian(nep,wr,wi,A,flg);CHKERRQ(ierr);
+    ierr = MatMult(*A,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
