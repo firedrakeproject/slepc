@@ -108,9 +108,9 @@ PETSC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,PetscErrorCode (*)(NEP,Pe
 PETSC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void**);
 PETSC_EXTERN PetscErrorCode NEPSetJacobian(NEP,Mat,PetscErrorCode (*)(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*),void*);
 PETSC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,PetscErrorCode (**)(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*),void**);
-PETSC_EXTERN PetscErrorCode NEPSetSplitOperator(NEP,PetscInt,Mat*,FN*);
-PETSC_EXTERN PetscErrorCode NEPGetSplitOperator(NEP,PetscInt,Mat*,FN*);
-PETSC_EXTERN PetscErrorCode NEPGetNumSplitTerms(NEP,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPSetSplitOperator(NEP,PetscInt,Mat*,FN*,MatStructure);
+PETSC_EXTERN PetscErrorCode NEPGetSplitOperatorTerm(NEP,PetscInt,Mat*,FN*);
+PETSC_EXTERN PetscErrorCode NEPGetSplitOperatorInfo(NEP,PetscInt*,MatStructure*);
 
 PETSC_EXTERN PetscErrorCode NEPSetIP(NEP,IP);
 PETSC_EXTERN PetscErrorCode NEPGetIP(NEP,IP*);

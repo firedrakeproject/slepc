@@ -289,6 +289,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->t               = NULL;
   nep->split           = PETSC_FALSE;
   nep->nt              = 0;
+  nep->mstr            = DIFFERENT_NONZERO_PATTERN;
   nep->A               = NULL;
   nep->f               = NULL;
   nep->nconv           = 0;
@@ -946,21 +947,28 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
 +  nep - the nonlinear eigensolver context
 .  n   - number of terms in the split form
 .  A   - array of matrices
--  f   - array of functions
+.  f   - array of functions
+-  str - structure flag for matrices
 
    Notes:
    The nonlinear operator is written as T(lambda) = sum_i A_i*f_i(lambda),
    for i=1,...,n. The derivative T'(lambda) can be obtained using the
    derivatives of f_i.
 
+   The structure flag provides information about A_i's nonzero pattern
+   (see MatStructure enum). If all matrices have the same pattern, then
+   use SAME_NONZERO_PATTERN. If the patterns are different but contained
+   in the pattern of the first one, then use SUBSET_NONZERO_PATTERN.
+   Otherwise use DIFFERENT_NONZERO_PATTERN.
+
    This function must be called before NEPSetUp(). If it is called again
    after NEPSetUp() then the NEP object is reset.
 
    Level: intermediate
 
-.seealso: NEPGetSplitOperator(), NEPGetNumSplitTerms()
+.seealso: NEPGetSplitOperatorTerm(), NEPGetSplitOperatorInfo()
  @*/
-PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[])
+PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructure str)
 {
   PetscInt       i;
   PetscErrorCode ierr;
@@ -999,14 +1007,15 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[])
     nep->f[i] = f[i];
   }
   nep->nt    = n;
+  nep->mstr  = str;
   nep->split = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPGetSplitOperator"
+#define __FUNCT__ "NEPGetSplitOperatorTerm"
 /*@
-   NEPGetSplitOperator - Gets the matrices and functions associated with
+   NEPGetSplitOperatorTerm - Gets the matrices and functions associated with
    the nonlinear operator in split form.
 
    Not collective, though parallel Mats and FNs are returned if the NEP is parallel
@@ -1021,9 +1030,9 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[])
 
    Level: intermediate
 
-.seealso: NEPSetSplitOperator(), NEPGetNumSplitTerms()
+.seealso: NEPSetSplitOperator(), NEPGetSplitOperatorInfo()
 @*/
-PetscErrorCode NEPGetSplitOperator(NEP nep,PetscInt k,Mat *A,FN *f)
+PetscErrorCode NEPGetSplitOperatorTerm(NEP nep,PetscInt k,Mat *A,FN *f)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -1034,10 +1043,10 @@ PetscErrorCode NEPGetSplitOperator(NEP nep,PetscInt k,Mat *A,FN *f)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPGetNumSplitTerms"
+#define __FUNCT__ "NEPGetSplitOperatorInfo"
 /*@
-   NEPGetNumSplitTerms - Returns the number of terms of the split form of
-   the nonlinear operator.
+   NEPGetSplitOperatorInfo - Returns the number of terms of the split form of
+   the nonlinear operator, as well as the structure flag for matrices.
 
    Not collective
 
@@ -1045,18 +1054,19 @@ PetscErrorCode NEPGetSplitOperator(NEP nep,PetscInt k,Mat *A,FN *f)
 .  nep - the nonlinear eigensolver context
 
    Output Parameters:
-.  n - the number of terms passed in NEPSetSplitOperator()
++  n   - the number of terms passed in NEPSetSplitOperator()
+-  str - the matrix structure flag passed in NEPSetSplitOperator()
 
    Level: intermediate
 
-.seealso: NEPSetSplitOperator()
+.seealso: NEPSetSplitOperator(), NEPGetSplitOperatorTerm()
 @*/
-PetscErrorCode NEPGetNumSplitTerms(NEP nep,PetscInt *n)
+PetscErrorCode NEPGetSplitOperatorInfo(NEP nep,PetscInt *n,MatStructure *str)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(n,2);
-  *n = nep->nt;
+  if (n) *n = nep->nt;
+  if (str) *str = nep->mstr;
   PetscFunctionReturn(0);
 }
 

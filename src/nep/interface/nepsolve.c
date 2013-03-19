@@ -896,7 +896,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
     ierr = MatZeroEntries(*A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateFunction(nep->f[i],wr,&alpha);CHKERRQ(ierr);
-      ierr = MatAXPY(*A,alpha,nep->A[i],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+      ierr = MatAXPY(*A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
     }
     if (*A != *B) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Not implemented");
 
@@ -958,7 +958,7 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
     ierr = MatZeroEntries(*A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateDerivative(nep->f[i],wr,&alpha);CHKERRQ(ierr);
-      ierr = MatAXPY(*A,alpha,nep->A[i],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+      ierr = MatAXPY(*A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
     }
 
   } else {

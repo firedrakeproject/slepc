@@ -80,6 +80,7 @@ struct _p_NEP {
   Mat            jacobian;
   void           *jacobianctx;
   PetscInt       nt;               /* number of terms in split form */
+  MatStructure   mstr;             /* pattern of split matrices */
   Mat            *A;               /* matrix coefficients of split form */
   FN             *f;               /* matrix functions of split form */
 

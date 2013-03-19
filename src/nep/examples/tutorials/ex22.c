@@ -151,12 +151,13 @@ int main(int argc,char **argv)
   ierr = FNSetParameters(f3,1,coeffs,0,NULL);CHKERRQ(ierr);
 
   /*
-     Set the split operator
+     Set the split operator. Note that A is passed first so that
+     SUBSET_NONZERO_PATTERN can be used
   */
-  mats[0] = Id; funs[0] = f1;
-  mats[1] = A;  funs[1] = f2;
+  mats[0] = A;  funs[0] = f2;
+  mats[1] = Id; funs[1] = f1;
   mats[2] = B;  funs[2] = f3;
-  ierr = NEPSetSplitOperator(nep,3,mats,funs);CHKERRQ(ierr);
+  ierr = NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Customize nonlinear solver; set runtime options
