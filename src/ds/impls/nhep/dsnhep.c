@@ -750,6 +750,8 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
 #endif
 }
 
+#define MAX_PADE 6
+
 #undef __FUNCT__
 #define __FUNCT__ "DSFunction_EXP_NHEP_PADE"
 PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
@@ -761,8 +763,8 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,ld2,*ipiv,info,inc=1;
   PetscInt       j,k,odd;
-  const PetscInt p=6;
-  PetscReal      c[p+1],s;
+  const PetscInt p=MAX_PADE;
+  PetscReal      c[MAX_PADE+1],s;
   PetscScalar    scale,mone=-1.0,one=1.0,two=2.0,zero=0.0;
   PetscScalar    *A,*A2,*Q,*P,*W,*aux;
 
