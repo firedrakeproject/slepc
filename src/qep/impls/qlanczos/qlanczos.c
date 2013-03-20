@@ -60,7 +60,7 @@ PetscErrorCode QEPSetUp_QLanczos(QEP qep)
   }
   if (!qep->mpd) qep->mpd = qep->ncv;
   if (qep->ncv>qep->nev+qep->mpd) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The value of ncv must not be larger than nev+mpd");
-  if (!qep->max_it) qep->max_it = PetscMax(100,2*qep->n/qep->ncv);
+  if (!qep->max_it) qep->max_it = PetscMax(100,2*qep->n/qep->ncv); /* -- */
   if (!qep->which) {
     ierr = PetscObjectTypeCompare((PetscObject)qep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv) qep->which = QEP_TARGET_MAGNITUDE;
@@ -71,40 +71,65 @@ PetscErrorCode QEPSetUp_QLanczos(QEP qep)
   ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
   ierr = QEPSetWorkVecs(qep,4);CHKERRQ(ierr);
 
-  ierr = DSSetType(qep->ds,DSNHEP);CHKERRQ(ierr);
-  ierr = DSSetExtraRow(qep->ds,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = DSSetType(qep->ds,DSGHIEP);CHKERRQ(ierr);
+  ierr = DSSetCompact(qep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(qep->ds,qep->ncv+1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPQLanczosNorm_private"
+/*
+  Compute B-norm of v=[v1;v2] whith  B=diag(-qep->T[0],qep->T[2]) 
+*/
+PetscErrorCode QEPQLanczosNorm_private(QEP qep,Vec v1,Vec v2,PetscReal *norm,Vec vw)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p1,p2;
+  
+  PetscFunctionBegin;
+  ierr = STMatMult(qep->st,0,v1,vw);CHKERRQ(ierr);
+  ierr = VecDot(vw,v1,&p1);CHKERRQ(ierr);
+  ierr = STMatMult(qep->st,2,v2,vw);CHKERRQ(ierr);
+  ierr = VecDot(vw,v2,&p2);CHKERRQ(ierr);
+  *norm = PetscRealPart(-p1+qep->sfactor*qep->sfactor*p2);
+  *norm = (*norm>0.0)?PetscSqrtReal(*norm):-PetscSqrtReal(-*norm);
+  PetscFunctionReturn(0);
+}
+
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPQLanczosCGS"
 /*
   Compute a step of Classical Gram-Schmidt orthogonalization
 */
-static PetscErrorCode QEPQLanczosCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScalar *h,PetscBLASInt j,Vec *V,Vec t,Vec v,Vec w,PetscReal *onorm,PetscReal *norm,PetscScalar *work)
+static PetscErrorCode QEPQLanczosCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscReal *omega,PetscScalar *h,PetscBLASInt j,Vec *V,Vec t,Vec v,Vec w,PetscReal *onorm,PetscReal *norm,PetscScalar *work,Vec vw)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   ione = 1,j_1 = j+1;
-  PetscReal      x,y;
+  PetscBLASInt   ione = 1,j_1 = j+1,i;
   PetscScalar    dot,one = 1.0,zero = 0.0;
 
   PetscFunctionBegin;
-  /* compute norm of v and w */
+  /* compute norm of [v;w] */
   if (onorm) {
-    ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
-    ierr = VecNorm(w,NORM_2,&y);CHKERRQ(ierr);
-    *onorm = PetscSqrtReal(x*x+y*y);
+    ierr = QEPQLanczosNorm_private(qep,v,w,onorm,vw);CHKERRQ(ierr);
   }
 
   /* orthogonalize: compute h */
-  ierr = VecMDot(v,j_1,V,h);CHKERRQ(ierr);
-  ierr = VecMDot(w,j_1,V,work);CHKERRQ(ierr);
-  if (j>0)
+  ierr = STMatMult(qep->st,0,v,vw);CHKERRQ(ierr);
+  ierr = VecMDot(vw,j_1,V,h);CHKERRQ(ierr);
+  for (i=0;i<=j;i++) h[i] = -h[i];
+  ierr = STMatMult(qep->st,2,w,vw);CHKERRQ(ierr);
+  if (j>0) {
+    ierr = VecMDot(vw,j_1,V,work);CHKERRQ(ierr);
+    for (i=0;i<j_1;i++) work[i] *= qep->sfactor*qep->sfactor;
     PetscStackCall("BLASgemv",BLASgemv_("C",&j_1,&j,&one,H,&ldh,work,&ione,&one,h,&ione));
-  ierr = VecDot(w,t,&dot);CHKERRQ(ierr);
-  h[j] += dot;
-
+  }
+  ierr = VecDot(vw,t,&dot);CHKERRQ(ierr);
+  h[j] += dot*qep->sfactor*qep->sfactor;
+  /* apply inverse of signature */
+  for (i=0;i<=j;i++) h[i] /= omega[i];
   /* orthogonalize: update v and w */
   ierr = SlepcVecMAXPBY(v,1.0,-1.0,j_1,h,V);CHKERRQ(ierr);
   if (j>0) {
@@ -113,11 +138,12 @@ static PetscErrorCode QEPQLanczosCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,Pet
   }
   ierr = VecAXPY(w,-h[j],t);CHKERRQ(ierr);
 
+  /* revert signature */
+  /* for (i=0;i<=j;i++) h[i] *= omega[i]; */ /* -- */
+
   /* compute norm of v and w */
   if (norm) {
-    ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
-    ierr = VecNorm(w,NORM_2,&y);CHKERRQ(ierr);
-    *norm = PetscSqrtReal(x*x+y*y);CHKERRQ(ierr);
+   ierr = QEPQLanczosNorm_private(qep,v,w,norm,vw);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -127,18 +153,19 @@ static PetscErrorCode QEPQLanczosCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,Pet
 /*
   Compute a run of Q-Lanczos iterations
 */
-static PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec v,Vec w,PetscReal *beta,PetscBool *breakdown,PetscScalar *work)
+static PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,PetscReal *omega,Vec *V,PetscInt k,PetscInt *M,Vec v,Vec w,PetscBool *breakdown,PetscScalar *work,Vec *t_)
 {
   PetscErrorCode     ierr;
-  PetscInt           i,j,l,m = *M;
-  Vec                t = qep->work[2],u = qep->work[3];
+  PetscInt           i,j,m = *M,nwu = 0,l;
+  Vec                t = t_[0],u = t_[1];
   IPOrthogRefineType refinement;
-  PetscReal          norm,onorm,eta;
-  PetscScalar        *c = work + m;
+  PetscReal          onorm,norm,eta;
+  PetscScalar        *c;
 
   PetscFunctionBegin;
   ierr = IPGetOrthogonalization(qep->ip,NULL,&refinement,&eta);CHKERRQ(ierr);
-  ierr = VecCopy(v,qep->V[k]);CHKERRQ(ierr);
+  nwu += m+1;
+  c = work+nwu;
 
   for (j=k;j<m;j++) {
     /* apply operator */
@@ -153,28 +180,34 @@ static PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,Pet
     /* orthogonalize */
     switch (refinement) {
       case IP_ORTHOG_REFINE_NEVER:
-        ierr = QEPQLanczosCGS(qep,H,ldh,H+ldh*j,j,V,t,v,w,NULL,&norm,work);CHKERRQ(ierr);
+        ierr = QEPQLanczosCGS(qep,H,ldh,omega,H+ldh*j,j,V,t,v,w,NULL,&norm,work,u);CHKERRQ(ierr);
         *breakdown = PETSC_FALSE;
         break;
       case IP_ORTHOG_REFINE_ALWAYS:
-        ierr = QEPQLanczosCGS(qep,H,ldh,H+ldh*j,j,V,t,v,w,NULL,NULL,work);CHKERRQ(ierr);
-        ierr = QEPQLanczosCGS(qep,H,ldh,c,j,V,t,v,w,&onorm,&norm,work);CHKERRQ(ierr);
+        ierr = QEPQLanczosCGS(qep,H,ldh,omega,H+ldh*j,j,V,t,v,w,NULL,NULL,work,u);CHKERRQ(ierr);
+        ierr = QEPQLanczosCGS(qep,H,ldh,omega,c,j,V,t,v,w,&onorm,&norm,work,u);CHKERRQ(ierr);
         for (i=0;i<=j;i++) H[ldh*j+i] += c[i];
+       /*
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
         else *breakdown = PETSC_FALSE;
+        */
+        *breakdown = PETSC_FALSE; /* -- */
         break;
-      case IP_ORTHOG_REFINE_IFNEEDED:
-        ierr = QEPQLanczosCGS(qep,H,ldh,H+ldh*j,j,V,t,v,w,&onorm,&norm,work);CHKERRQ(ierr);
+      case IP_ORTHOG_REFINE_IFNEEDED: /* -- */
+        ierr = QEPQLanczosCGS(qep,H,ldh,omega,H+ldh*j,j,V,t,v,w,&onorm,&norm,work,u);CHKERRQ(ierr);
         /* ||q|| < eta ||h|| */
         l = 1;
-        while (l<3 && norm < eta * onorm) {
+        while (l<3 && PetscAbsReal(norm) < eta * PetscAbsReal(onorm)) {
           l++;
           onorm = norm;
-          ierr = QEPQLanczosCGS(qep,H,ldh,c,j,V,t,v,w,NULL,&norm,work);CHKERRQ(ierr);
+          ierr = QEPQLanczosCGS(qep,H,ldh,omega,c,j,V,t,v,w,NULL,&norm,work,u);CHKERRQ(ierr);
           for (i=0;i<=j;i++) H[ldh*j+i] += c[i];
         }
+       /*
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
         else *breakdown = PETSC_FALSE;
+       */
+        *breakdown = PETSC_FALSE; /* -- */
         break;
       default: SETERRQ(PetscObjectComm((PetscObject)qep),1,"Wrong value of ip->orth_ref");
     }
@@ -182,11 +215,11 @@ static PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,Pet
     ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
 
     H[j+1+ldh*j] = norm;
+    omega[j+1] = (norm<0.0)?-1.0:1.0;
     if (j<m-1) {
       ierr = VecCopy(v,V[j+1]);CHKERRQ(ierr);
     }
   }
-  *beta = norm;
   PetscFunctionReturn(0);
 }
 
@@ -195,59 +228,90 @@ static PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,Pet
 PetscErrorCode QEPSolve_QLanczos(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscInt       j,k,l,lwork,nv,ld,newn;
-  Vec            v=qep->work[0],w=qep->work[1],v_=qep->work[2],w_=qep->work[3];
-  PetscScalar    *S,*Q,*work,r,s;
-  PetscReal      beta,norm,x,y,t;
-  PetscBool      breakdown,issinv;
+  PetscInt       j,k,l,lwork,nv,ld,ti;
+  Vec            v=qep->work[0],w=qep->work[1], w_=qep->work[2]; /* v_=qep->work[3]; */
+  PetscScalar    *S,*Q,*work;
+  PetscReal      beta,norm,*omega,*a,*b,*r;
+  PetscBool      breakdown;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
-  lwork = 7*qep->ncv;
+  lwork = 7*qep->ncv;  /* -- */
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
-  if (qep->nini>0) {
-    ierr = VecCopy(qep->V[0],v);CHKERRQ(ierr);
-  } else {
-    ierr = SlepcVecSetRandom(v,qep->rand);CHKERRQ(ierr);
+  if (qep->nini==0) {
+    ierr = SlepcVecSetRandom(qep->V[0],qep->rand);CHKERRQ(ierr);
   }
   /* w is always a random vector */
   ierr = SlepcVecSetRandom(w,qep->rand);CHKERRQ(ierr);
-  ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
-  ierr = VecNorm(w,NORM_2,&y);CHKERRQ(ierr);
-  norm = PetscSqrtReal(x*x+y*y);CHKERRQ(ierr);
-  ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
-  ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
 
-  /* Compute scaling factor if not set by user */
+#if 0
+ /* Compute scaling factor if not set by user */ /* -- */
   ierr = PetscObjectTypeCompare((PetscObject)qep->st,STSINVERT,&issinv);CHKERRQ(ierr);
   if (issinv && !qep->sfactor_set) {
+    qep->sfactor = 1.0;
+    ierr = QEPQLanczosNorm_private(qep,qep->V[0],w,&norm,w_);CHKERRQ(ierr);
+   if (norm==0.0) SETERRQ(((PetscObject)qep)->comm,1,"Initial vector is zero or belongs to the deflation space");
+    ierr = VecScale(qep->V[0],1.0/norm);CHKERRQ(ierr);
+    ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,1,w,w_);CHKERRQ(ierr);
-    ierr = STMatMult(qep->st,0,v,v_);CHKERRQ(ierr);
+    ierr = STMatMult(qep->st,0,qep->V[0],v_);CHKERRQ(ierr);
     ierr = VecAXPY(v_,1.0,w_);CHKERRQ(ierr);
     ierr = STMatSolve(qep->st,2,v_,w_);CHKERRQ(ierr);
     ierr = VecScale(w_,-1.0);CHKERRQ(ierr);
     ierr = VecCopy(w,v_);CHKERRQ(ierr);
-    ierr = VecDot(v_,v,&r);CHKERRQ(ierr);
-    ierr = VecDot(w_,w,&s);CHKERRQ(ierr);
-    t = PetscAbsScalar(r+s);
-    qep->sfactor = 1.0;
-    while (t > 1.0) {
+    ierr = VecDot(v_,qep->V[0],&y);CHKERRQ(ierr);
+    ierr = VecDot(w_,w,&x);CHKERRQ(ierr);
+    y = PetscAbs(y+x);
+    while (y > 1.0) {
       qep->sfactor *=10.0;
-      t /= 10.0;
+      y /= 10.0;
     }
   }
+#endif
+  ierr = QEPQLanczosNorm_private(qep,qep->V[0],w,&norm,w_);CHKERRQ(ierr);
+  if (norm==0.0) SETERRQ(((PetscObject)qep)->comm,1,"Initial vector is zero or belongs to the deflation space"); 
+  ierr = VecScale(qep->V[0],1.0/norm);CHKERRQ(ierr);
+  ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
+  ierr = VecCopy(qep->V[0],v);CHKERRQ(ierr);
+  ierr = DSGetArrayReal(qep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+  omega[0] = (norm > 0)?1.0:-1.0;
+
   /* Restart loop */
   l = 0;
   while (qep->reason == QEP_CONVERGED_ITERATING) {
     qep->its++;
 
+    /* Form projected problem matrix on S */
+    ierr = DSGetArray(qep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = DSGetArrayReal(qep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+    b = a+ld;
+    r = b+ld;
+    ierr = DSGetArrayReal(qep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+    ierr = PetscMemzero(S,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    ti = qep->nconv+l;
+    for (j=0;j<ti;j++) {
+      S[j+j*ld] = a[j]*omega[j];
+      S[j+1+j*ld] = b[j]*omega[j+1];
+      S[j+(j+1)*ld] = b[j]*omega[j];
+    }
+    for (j=qep->nconv;j<ti;j++) {
+      S[ti+j*ld] = r[j]*omega[ti];
+    }
+
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(qep->nconv+qep->mpd,qep->ncv);
-    ierr = DSGetArray(qep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = QEPQLanczos(qep,S,ld,qep->V,qep->nconv+l,&nv,v,w,&beta,&breakdown,work);CHKERRQ(ierr);
+    ierr = QEPQLanczos(qep,S,ld,omega,qep->V,qep->nconv+l,&nv,v,w,&breakdown,work,&qep->work[2]);CHKERRQ(ierr);
+    for (j=ti;j<nv-1;j++) {
+      a[j] = PetscRealPart(S[j+j*ld]*omega[j]);
+      b[j] = PetscAbsReal(PetscRealPart(S[j+1+j*ld]));
+    }
+    a[nv-1] = PetscRealPart(S[nv-1+(nv-1)*ld]*omega[nv-1]);
+    beta = PetscAbsReal(PetscRealPart(S[nv+(nv-1)*ld]));
     ierr = DSRestoreArray(qep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = DSRestoreArrayReal(qep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+    ierr = DSRestoreArrayReal(qep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
     ierr = DSSetDimensions(qep->ds,nv,0,qep->nconv,qep->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(qep->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
@@ -258,7 +322,6 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
     /* Solve projected problem */
     ierr = DSSolve(qep->ds,qep->eigr,qep->eigi);CHKERRQ(ierr);
     ierr = DSSort(qep->ds,qep->eigr,qep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
-    ierr = DSUpdateExtraRow(qep->ds);CHKERRQ(ierr);
 
     /* Check convergence */
     ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,nv-qep->nconv,nv,beta,&k);CHKERRQ(ierr);
@@ -267,7 +330,15 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
 
     /* Update l */
     if (qep->reason != QEP_CONVERGED_ITERATING || breakdown) l = 0;
-    else l = (nv-k)/2;
+    else { 
+      l = (nv-k)/2;
+      ierr = DSGetArrayReal(qep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+      if (*(a+ld+k+l-1)!=0) {
+        if (k+l<nv-1) l = l+1;
+        else l = l-1;
+      }
+      ierr = DSRestoreArrayReal(qep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+    }
 
     if (qep->reason == QEP_CONVERGED_ITERATING) {
       if (breakdown) {
@@ -276,16 +347,30 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
         qep->reason = QEP_DIVERGED_BREAKDOWN;
       } else {
         /* Prepare the Rayleigh quotient for restart */
-        ierr = DSTruncate(qep->ds,k+l);CHKERRQ(ierr);
-        ierr = DSGetDimensions(qep->ds,&newn,NULL,NULL,NULL);CHKERRQ(ierr);
-        l = newn-k;
+        ierr = DSGetArray(qep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+        ierr = DSGetArrayReal(qep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+        ierr = DSGetArrayReal(qep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+        r = a + 2*ld;
+        for (j=k;j<k+l;j++) {
+          r[j] = PetscRealPart(Q[nv-1+j*ld]*beta);
+        }
+        b = a+ld;
+        b[k+l-1] = r[k+l-1];
+        omega[k+l] = omega[nv];
+        ierr = DSRestoreArray(qep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+        ierr = DSRestoreArrayReal(qep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+        ierr = DSRestoreArrayReal(qep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     ierr = DSGetArray(qep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,qep->V,qep->nconv,k+l,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = DSRestoreArray(qep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-
+    
+    /* Append v to V*/
+    if (qep->reason == QEP_CONVERGED_ITERATING) { 
+      ierr = VecCopy(v,qep->V[k+l]);CHKERRQ(ierr);
+    }
     qep->nconv = k;
     ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,nv);CHKERRQ(ierr);
   }
