@@ -206,7 +206,7 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
           G[j+i*ld] = PetscConj(G[i+j*ld]);
       }
     }
-    ierr = DSRestoreArray(nep->ds,DSMatExtra[i],&G);CHKERRQ(ierr);
+    ierr = DSRestoreArray(nep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

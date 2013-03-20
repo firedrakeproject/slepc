@@ -197,8 +197,8 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
   PetscInt       j,k,l,lwork,nv,ld,newn;
   Vec            v=qep->work[0],w=qep->work[1],v_=qep->work[2],w_=qep->work[3];
   PetscScalar    *S,*Q,*work,r,s;
-  PetscReal      beta,norm,x,y,t;
-  PetscBool      breakdown,issinv;
+  PetscReal      beta=0.0,norm,x,y,t;
+  PetscBool      breakdown=PETSC_FALSE,issinv;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
