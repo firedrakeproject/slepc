@@ -230,7 +230,7 @@ testtest7f: test7f.PETSc
         elif [ "${MPIEXEC}" = "/bin/false" ]; then \
            echo "*mpiexec not found*. Please run src/eps/examples/tests/test7f manually"; \
 	elif [ -f test7f ]; then \
-           ${MPIEXEC} -np 1 ./test7f -eps_nev 4 -eps_terse > test7f_1.tmp 2>&1; \
+           GFORTRAN_UNBUFFERED_ALL=1 ${MPIEXEC} -np 1 ./test7f -eps_nev 4 -eps_terse > test7f_1.tmp 2>&1; \
 	   if (${DIFF} output/test7f_1.out test7f_1.tmp > /dev/null 2>&1) then \
            echo "Fortran example src/eps/examples/tests/test7f run successfully with 1 MPI process"; \
 	   else echo "Possible error running Fortran src/eps/examples/tests/test7f with 1 MPI process"; \
