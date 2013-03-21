@@ -38,6 +38,7 @@ if not os.path.isdir(configDir):
 sys.path.insert(0, configDir)
 
 import petscversion
+import slepcversion
 import petscconf
 import log
 import check
@@ -183,7 +184,8 @@ else:
 
 # Check PETSc version
 petscversion.Load(petscdir)
-if petscversion.VERSION < '3.3':
+slepcversion.Load(slepcdir)
+if petscversion.VERSION < slepcversion.VERSION:
   sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscversion.VERSION)
 
 # Check some information about PETSc configuration
@@ -234,6 +236,12 @@ if not os.path.exists(libdir):
     os.mkdir(libdir)
   except:
     sys.exit('ERROR: cannot create lib directory ' + libdir)
+modulesdir = os.sep.join([libdir,'modules'])
+if not os.path.exists(modulesdir):
+  try:
+    os.mkdir(modulesdir)
+  except:
+    sys.exit('ERROR: cannot create modules directory ' + modulesdir)
 try:
   slepcvars = open(os.sep.join([confdir,'slepcvariables']),'w')
   if not prefixdir:
@@ -264,6 +272,10 @@ try:
   cmake = open(os.sep.join([confdir,'SLEPcConfig.cmake']),'w')
 except:
   sys.exit('ERROR: cannot create CMake configuration file in ' + confdir)
+try:
+  modules = open(os.sep.join([modulesdir,slepcversion.LVERSION+'-'+petscconf.ARCH]),'w')
+except:
+  sys.exit('ERROR: cannot create modules file in ' + modulesdir)
 if prefixinstall and os.path.isfile(os.sep.join([prefixdir,'include','slepc.h'])):
   sys.exit('ERROR: prefix directory ' + prefixdir + ' contains files from a previous installation')
 
@@ -295,18 +307,19 @@ log.write('Python version:\n' + sys.version)
 log.write('make: ' + petscconf.MAKE)
 log.write('PETSc source directory: ' + petscdir)
 log.write('PETSc install directory: ' + petscconf.DESTDIR)
-log.write('PETSc version: ' + petscversion.VERSION)
+log.write('PETSc version: ' + petscversion.LVERSION)
 log.write('PETSc architecture: ' + petscconf.ARCH)
 log.write('SLEPc source directory: ' + slepcdir)
 log.write('SLEPc install directory: ' + prefixdir)
+log.write('SLEPc version: ' + slepcversion.LVERSION)
 log.write('='*80)
 
 # Check if PETSc is working
 log.Println('Checking PETSc installation...')
-if petscversion.VERSION > '3.3':
-  log.Println('WARNING: PETSc version '+petscversion.VERSION+' is newer than SLEPc version')
-if petscversion.RELEASE != '1':
-  log.Println('WARNING: using PETSc development version')
+if petscversion.VERSION > slepcversion.VERSION:
+  log.Println('WARNING: PETSc version '+petscversion.VERSION+' is newer than SLEPc version'+slepcversion.VERSION)
+if petscversion.RELEASE != '1' and slepcversion.RELEASE == '1':
+  log.Println('WARNING: using PETSc development version with a SLEPc release version')
 if petscconf.ISINSTALL:
   if os.path.realpath(petscconf.DESTDIR) != os.path.realpath(petscdir):
     log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
@@ -373,11 +386,26 @@ if sys.version_info >= (2,5) and not petscconf.ISINSTALL and petscconf.BUILD_USI
 if cmakeok:
   slepcvars.write('SLEPC_BUILD_USING_CMAKE = 1\n')
 
+# Modules file
+modules.write('#%Module\n\n')
+modules.write('proc ModulesHelp { } {\n')
+modules.write('    puts stderr "This module sets the path and environment variables for slepc-%s"\n' % slepcversion.LVERSION)
+modules.write('    puts stderr "     see http://www.grycap.upv.es/slepc/ for more information"\n')
+modules.write('    puts stderr ""\n}\n')
+modules.write('module-whatis "SLEPc - Scalable Library for Eigenvalue Problem Computations"\n\n')
+modules.write('module load petsc\n')
+if prefixinstall:
+  modules.write('set slepc_dir %s\n' % prefixdir)
+else:
+  modules.write('set slepc_dir %s\n' % slepcdir)
+modules.write('setenv SLEPC_DIR $slepc_dir\n')
+
 # Finish with configuration files
 slepcvars.close()
 slepcrules.close()
 slepcconf.write('#endif\n')
 slepcconf.close()
+modules.close()
 shutil.rmtree(tmpdir)
 
 # Print summary

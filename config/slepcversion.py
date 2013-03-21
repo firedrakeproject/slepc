@@ -22,25 +22,25 @@
 import os
 import sys
 
-def Load(petscdir):
+def Load(slepcdir):
   global VERSION,RELEASE,PATCHLEVEL,LVERSION
   try:
-    f = open(os.sep.join([petscdir,'include','petscversion.h']))
+    f = open(os.sep.join([slepcdir,'include','slepcversion.h']))
     for l in f.readlines():
       l = l.split()
       if len(l) == 3:
-        if l[1] == 'PETSC_VERSION_RELEASE':
+        if l[1] == 'SLEPC_VERSION_RELEASE':
 	  RELEASE = l[2]
-	if l[1] == 'PETSC_VERSION_MAJOR':
+	if l[1] == 'SLEPC_VERSION_MAJOR':
           major = l[2]
-	elif l[1] == 'PETSC_VERSION_MINOR':
+	elif l[1] == 'SLEPC_VERSION_MINOR':
           minor = l[2]
-	elif l[1] == 'PETSC_VERSION_SUBMINOR':
+	elif l[1] == 'SLEPC_VERSION_SUBMINOR':
           subminor = l[2]
-	elif l[1] == 'PETSC_VERSION_PATCH':
+	elif l[1] == 'SLEPC_VERSION_PATCH':
           PATCHLEVEL = l[2]
     f.close()
     VERSION = major + '.' + minor
     LVERSION = major + '.' + minor + '.' + subminor
   except:
-    sys.exit('ERROR: file error while reading PETSC version')
+    sys.exit('ERROR: file error while reading SLEPC version')

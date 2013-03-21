@@ -282,6 +282,12 @@ install:
               cp -f ${PETSC_ARCH}/lib/*.${SL_LINKER_SUFFIX} ${SLEPC_DESTDIR}/lib; \
             fi; \
           fi;\
+          if [ ! -d ${SLEPC_DESTDIR}/lib/modules ]; then \
+            ${MKDIR} ${SLEPC_DESTDIR}/lib/modules ; \
+          fi;\
+          if [ -d ${PETSC_ARCH}/lib/modules ]; then \
+            cp -f ${PETSC_ARCH}/lib/modules/* ${SLEPC_DESTDIR}/lib/modules; \
+          fi;\
           echo "====================================";\
           echo "Install complete.";\
           echo "It is usable with SLEPC_DIR=${SLEPC_DESTDIR} PETSC_DIR=${PETSC_DIR} [and no more PETSC_ARCH].";\
