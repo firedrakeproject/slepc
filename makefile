@@ -288,6 +288,12 @@ install:
           if [ -d ${PETSC_ARCH}/lib/modules ]; then \
             cp -f ${PETSC_ARCH}/lib/modules/* ${SLEPC_DESTDIR}/lib/modules; \
           fi;\
+          if [ ! -d ${SLEPC_DESTDIR}/lib/pkgconfig ]; then \
+            ${MKDIR} ${SLEPC_DESTDIR}/lib/pkgconfig ; \
+          fi;\
+          if [ -d ${PETSC_ARCH}/lib/pkgconfig ]; then \
+            cp -f ${PETSC_ARCH}/lib/pkgconfig/SLEPc.pc ${SLEPC_DESTDIR}/lib/pkgconfig; \
+          fi;\
           echo "====================================";\
           echo "Install complete.";\
           echo "It is usable with SLEPC_DIR=${SLEPC_DESTDIR} PETSC_DIR=${PETSC_DIR} [and no more PETSC_ARCH].";\

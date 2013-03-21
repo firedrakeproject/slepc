@@ -242,6 +242,12 @@ if not os.path.exists(modulesdir):
     os.mkdir(modulesdir)
   except:
     sys.exit('ERROR: cannot create modules directory ' + modulesdir)
+pkgconfigdir = os.sep.join([libdir,'pkgconfig'])
+if not os.path.exists(pkgconfigdir):
+  try:
+    os.mkdir(pkgconfigdir)
+  except:
+    sys.exit('ERROR: cannot create pkgconfig directory ' + pkgconfigdir)
 try:
   slepcvars = open(os.sep.join([confdir,'slepcvariables']),'w')
   if not prefixdir:
@@ -276,6 +282,10 @@ try:
   modules = open(os.sep.join([modulesdir,slepcversion.LVERSION+'-'+petscconf.ARCH]),'w')
 except:
   sys.exit('ERROR: cannot create modules file in ' + modulesdir)
+try:
+  pkgconfig = open(os.sep.join([pkgconfigdir,'SLEPc.pc']),'w')
+except:
+  sys.exit('ERROR: cannot create pkgconfig file in ' + pkgconfigdir)
 if prefixinstall and os.path.isfile(os.sep.join([prefixdir,'include','slepc.h'])):
   sys.exit('ERROR: prefix directory ' + prefixdir + ' contains files from a previous installation')
 
@@ -400,12 +410,23 @@ else:
   modules.write('set slepc_dir %s\n' % slepcdir)
 modules.write('setenv SLEPC_DIR $slepc_dir\n')
 
+# pkg-config file
+pkgconfig.write('Name: SLEPc, the Scalable Library for Eigenvalue Problem Computations\n')
+pkgconfig.write('Description: A parallel library to compute eigenvalues and eigenvectors of large, sparse matrices with iterative methods. It is based on PETSc.\n')
+pkgconfig.write('Version: %s\n' % slepcversion.LVERSION)
+pkgconfig.write('Requires: PETSc = %s\n' % petscversion.LVERSION)
+pkgconfig.write('Cflags: -I%s/include' % prefixdir)
+if not prefixinstall:
+  pkgconfig.write(' -I%s/include' % slepcdir)
+pkgconfig.write('\nLibs: -L%s/lib -lslepc\n' % prefixdir)
+
 # Finish with configuration files
 slepcvars.close()
 slepcrules.close()
 slepcconf.write('#endif\n')
 slepcconf.close()
 modules.close()
+pkgconfig.close()
 shutil.rmtree(tmpdir)
 
 # Print summary
