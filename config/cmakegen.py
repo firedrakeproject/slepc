@@ -14,11 +14,47 @@
 # This script supports one option:
 #   --verbose : Show mismatches between makefiles and the filesystem
 
-from __future__ import with_statement  # For python-2.5
-
 import os
-from collections import defaultdict, deque
+from collections import deque
 
+# compatibility code for python-2.4 from http://code.activestate.com/recipes/523034-emulate-collectionsdefaultdict/
+try:
+    from collections import defaultdict
+except:
+    class defaultdict(dict):
+        def __init__(self, default_factory=None, *a, **kw):
+            if (default_factory is not None and
+                not hasattr(default_factory, '__call__')):
+                raise TypeError('first argument must be callable')
+            dict.__init__(self, *a, **kw)
+            self.default_factory = default_factory
+        def __getitem__(self, key):
+            try:
+                return dict.__getitem__(self, key)
+            except KeyError:
+                return self.__missing__(key)
+        def __missing__(self, key):
+            if self.default_factory is None:
+                raise KeyError(key)
+            self[key] = value = self.default_factory()
+            return value
+        def __reduce__(self):
+            if self.default_factory is None:
+                args = tuple()
+            else:
+                args = self.default_factory,
+            return type(self), args, None, None, self.items()
+        def copy(self):
+            return self.__copy__()
+        def __copy__(self):
+            return type(self)(self.default_factory, self)
+        def __deepcopy__(self, memo):
+            import copy
+            return type(self)(self.default_factory,
+                              copy.deepcopy(self.items()))
+        def __repr__(self):
+            return 'defaultdict(%s, %s)' % (self.default_factory,
+                                            dict.__repr__(self))
 # Run with --verbose
 VERBOSE = False
 MISTAKES = []
@@ -98,10 +134,11 @@ def pkgsources(pkg):
     compareDirLists(mdirs,dirs) # diagnostic output to find unused directories
     candidates = set(mdirs).union(autodirs).difference(skipdirs)
     dirs[:] = list(candidates.intersection(dirs))
-    with open(makefile) as lines:
-      def stripsplit(line):
-        return filter(lambda c: c!="'", line[len('#requires'):]).split()
-      conditions.update(set(tuple(stripsplit(line)) for line in lines if line.startswith('#requires')))
+    lines = open(makefile)
+    def stripsplit(line):
+      return filter(lambda c: c!="'", line[len('#requires'):]).split()
+    conditions.update(set(tuple(stripsplit(line)) for line in lines if line.startswith('#requires')))
+    lines.close()
     def relpath(filename):
       return os.path.join(root,filename)
     sourcec = makevars.get('SOURCEC','').split()
@@ -166,23 +203,23 @@ def main(slepcdir,petscdir,petscarch,log=StdoutLogger()):
   written = False               # We delete the temporary file if it wasn't finished, otherwise rename (atomic)
   fd,tmplists = tempfile.mkstemp(prefix='CMakeLists.txt.',dir=slepcdir,text=True)
   try:
-    with os.fdopen(fd,'w') as f:
-      writeRoot(f,petscdir,petscarch)
-      f.write('include_directories (${PETSC_PACKAGE_INCLUDES} ${SLEPC_PACKAGE_INCLUDES})\n')
-      pkglist = [('sys'            , ''),
-                 ('vec'            , 'sys'),
-                 ('ip'             , 'sys'),
-                 ('ds'             , 'sys'),
-                 ('fn'             , 'sys'),
-                 ('st'             , 'ip sys'),
-                 ('eps'            , 'ip ds st vec sys'),
-                 ('svd'            , 'eps ip ds sys'),
-                 ('qep'            , 'eps st ip ds sys'),
-                 ('nep'            , 'eps ip ds fn sys'),
-                 ('mfn'            , 'ip ds fn sys')]
-      for pkg,deps in pkglist:
-        writePackage(f,pkg,deps.split())
-      f.write ('''
+    f = os.fdopen(fd,'w')
+    writeRoot(f,petscdir,petscarch)
+    f.write('include_directories (${PETSC_PACKAGE_INCLUDES} ${SLEPC_PACKAGE_INCLUDES})\n')
+    pkglist = [('sys'            , ''),
+               ('vec'            , 'sys'),
+               ('ip'             , 'sys'),
+               ('ds'             , 'sys'),
+               ('fn'             , 'sys'),
+               ('st'             , 'ip sys'),
+               ('eps'            , 'ip ds st vec sys'),
+               ('svd'            , 'eps ip ds sys'),
+               ('qep'            , 'eps st ip ds sys'),
+               ('nep'            , 'eps ip ds fn sys'),
+               ('mfn'            , 'ip ds fn sys')]
+    for pkg,deps in pkglist:
+      writePackage(f,pkg,deps.split())
+    f.write ('''
 add_library (slepc %s)
 target_link_libraries (slepc ${PETSC_LIB} ${SLEPC_PACKAGE_LIBS} ${PETSC_PACKAGE_LIBS})
 if (PETSC_WIN32FE)
@@ -190,7 +227,7 @@ if (PETSC_WIN32FE)
   set_target_properties (slepc PROPERTIES RULE_LAUNCH_LINK "${PETSC_WIN32FE}")
 endif ()
 ''' % (' '.join([r'${SLEPC' + pkg.upper() + r'_SRCS}' for pkg,deps in pkglist]),))
-      f.write('''
+    f.write('''
 if (PETSC_CLANGUAGE_Cxx)
   foreach (file IN LISTS %s)
     if (file MATCHES "^.*\\\\.c$")
@@ -200,6 +237,7 @@ if (PETSC_CLANGUAGE_Cxx)
 endif()''' % ('\n  '.join([r'SLEPC' + pkg.upper() + r'_SRCS' for (pkg,_) in pkglist])))
     written = True
   finally:
+    f.close()
     if written:
       shutil.move(tmplists,os.path.join(slepcdir,'CMakeLists.txt'))
     else:
