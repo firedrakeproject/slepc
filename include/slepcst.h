@@ -26,7 +26,7 @@
 #include <slepcsys.h>
 #include <petscksp.h>
 
-PETSC_EXTERN PetscErrorCode STInitializePackage(const char[]);
+PETSC_EXTERN PetscErrorCode STInitializePackage(void);
 
 /*S
     ST - Abstract SLEPc object that manages spectral transformations.
@@ -115,9 +115,9 @@ PETSC_EXTERN PetscErrorCode STGetMatStructure(ST,MatStructure*);
 
 PETSC_EXTERN PetscFunctionList STList;
 PETSC_EXTERN PetscBool         STRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode STRegisterAll(const char[]);
+PETSC_EXTERN PetscErrorCode STRegisterAll(void);
 PETSC_EXTERN PetscErrorCode STRegisterDestroy(void);
-PETSC_EXTERN PetscErrorCode STRegister(const char[],const char[],const char[],PetscErrorCode(*)(ST));
+PETSC_EXTERN PetscErrorCode STRegister(const char[],PetscErrorCode(*)(ST));
 
 /* --------- options specific to particular spectral transformations-------- */
 

@@ -387,8 +387,8 @@ PetscErrorCode SVDDestroy_Lanczos(SVD svd)
 
   PetscFunctionBegin;
   ierr = PetscFree(svd->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosSetOneSide_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosGetOneSide_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosSetOneSide_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosGetOneSide_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -418,8 +418,8 @@ PETSC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD svd)
   svd->ops->reset          = SVDReset_Lanczos;
   svd->ops->setfromoptions = SVDSetFromOptions_Lanczos;
   svd->ops->view           = SVDView_Lanczos;
-  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosSetOneSide_C","SVDLanczosSetOneSide_Lanczos",SVDLanczosSetOneSide_Lanczos);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosGetOneSide_C","SVDLanczosGetOneSide_Lanczos",SVDLanczosGetOneSide_Lanczos);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosSetOneSide_C",SVDLanczosSetOneSide_Lanczos);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosGetOneSide_C",SVDLanczosGetOneSide_Lanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

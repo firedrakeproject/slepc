@@ -67,7 +67,7 @@ PetscErrorCode STSetType(ST st,STType type)
   ierr = PetscObjectTypeCompare((PetscObject)st,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr =  PetscFunctionListFind(PetscObjectComm((PetscObject)st),STList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  ierr =  PetscFunctionListFind(STList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested ST type %s",type);
 
   if (st->ops->destroy) { ierr = (*st->ops->destroy)(st);CHKERRQ(ierr); }
@@ -132,7 +132,7 @@ PetscErrorCode STSetFromOptions(ST st)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (!STRegisterAllCalled) { ierr = STRegisterAll(NULL);CHKERRQ(ierr); }
+  if (!STRegisterAllCalled) { ierr = STRegisterAll();CHKERRQ(ierr); }
   ierr = PetscObjectOptionsBegin((PetscObject)st);CHKERRQ(ierr);
     ierr = PetscOptionsList("-st_type","Spectral Transformation type","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,256,&flg);CHKERRQ(ierr);
     if (flg) {

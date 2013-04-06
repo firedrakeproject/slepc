@@ -55,14 +55,11 @@ PetscErrorCode NEPFinalizePackage(void)
    from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to NEPCreate()
    when using static libraries.
 
-   Input Parameter:
-.  path - The dynamic library path, or NULL
-
    Level: developer
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode NEPInitializePackage(const char *path)
+PetscErrorCode NEPInitializePackage(void)
 {
   char           logList[256];
   char           *className;
@@ -75,7 +72,7 @@ PetscErrorCode NEPInitializePackage(const char *path)
   /* Register Classes */
   ierr = PetscClassIdRegister("Nonlinear Eigenvalue Problem solver",&NEP_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
-  ierr = NEPRegisterAll(path);CHKERRQ(ierr);
+  ierr = NEPRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("NEPSetUp",NEP_CLASSID,&NEP_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPSolve",NEP_CLASSID,&NEP_Solve);CHKERRQ(ierr);
@@ -354,7 +351,7 @@ PetscErrorCode NEPSetType(NEP nep,NEPType type)
   ierr = PetscObjectTypeCompare((PetscObject)nep,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFunctionListFind(PetscObjectComm((PetscObject)nep),NEPList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(NEPList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown NEP type given: %s",type);
 
   if (nep->ops->destroy) { ierr = (*nep->ops->destroy)(nep);CHKERRQ(ierr); }
@@ -400,18 +397,15 @@ PetscErrorCode NEPGetType(NEP nep,NEPType *type)
    Not Collective
 
    Input Parameters:
-+  name_solver - name of a new user-defined solver
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create the solver context
--  routine_create - routine to create the solver context
++  name - name of a new user-defined solver
+-  function - routine to create the solver context
 
    Notes:
    NEPRegister() may be called multiple times to add several user-defined solvers.
 
    Sample usage:
 .vb
-   NEPRegister("my_solver",/home/username/my_lib/lib/libO/solaris/mylib.a,
-               "MySolverCreate",MySolverCreate);
+   NEPRegister("my_solver",MySolverCreate);
 .ve
 
    Then, your solver can be chosen with the procedural interface via
@@ -423,14 +417,12 @@ $     -qep_type my_solver
 
 .seealso: NEPRegisterDestroy(), NEPRegisterAll()
 @*/
-PetscErrorCode NEPRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(NEP))
+PetscErrorCode NEPRegister(const char *name,PetscErrorCode (*function)(NEP))
 {
   PetscErrorCode ierr;
-  char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&NEPList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(&NEPList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

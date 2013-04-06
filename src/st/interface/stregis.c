@@ -35,25 +35,22 @@ PETSC_EXTERN PetscErrorCode STCreate_Precond(ST);
 
    Not Collective
 
-   Input Parameter:
-.  path - the library where the routines are to be found (optional)
-
    Level: advanced
 
 .seealso: STRegister()
 @*/
-PetscErrorCode STRegisterAll(const char *path)
+PetscErrorCode STRegisterAll(void)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   STRegisterAllCalled = PETSC_TRUE;
-  ierr = STRegister(STSHELL,path,"STCreate_Shell",STCreate_Shell);CHKERRQ(ierr);
-  ierr = STRegister(STSHIFT,path,"STCreate_Shift",STCreate_Shift);CHKERRQ(ierr);
-  ierr = STRegister(STSINVERT,path,"STCreate_Sinvert",STCreate_Sinvert);CHKERRQ(ierr);
-  ierr = STRegister(STCAYLEY,path,"STCreate_Cayley",STCreate_Cayley);CHKERRQ(ierr);
-  ierr = STRegister(STFOLD,path,"STCreate_Fold",STCreate_Fold);CHKERRQ(ierr);
-  ierr = STRegister(STPRECOND,path,"STCreate_Precond",STCreate_Precond);CHKERRQ(ierr);
+  ierr = STRegister(STSHELL,STCreate_Shell);CHKERRQ(ierr);
+  ierr = STRegister(STSHIFT,STCreate_Shift);CHKERRQ(ierr);
+  ierr = STRegister(STSINVERT,STCreate_Sinvert);CHKERRQ(ierr);
+  ierr = STRegister(STCAYLEY,STCreate_Cayley);CHKERRQ(ierr);
+  ierr = STRegister(STFOLD,STCreate_Fold);CHKERRQ(ierr);
+  ierr = STRegister(STPRECOND,STCreate_Precond);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

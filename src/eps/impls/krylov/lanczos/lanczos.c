@@ -911,8 +911,8 @@ PetscErrorCode EPSDestroy_Lanczos(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosSetReorthog_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosGetReorthog_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosSetReorthog_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosGetReorthog_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -947,8 +947,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS eps)
   eps->ops->view                 = EPSView_Lanczos;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Hermitian;
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosSetReorthog_C","EPSLanczosSetReorthog_Lanczos",EPSLanczosSetReorthog_Lanczos);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosGetReorthog_C","EPSLanczosGetReorthog_Lanczos",EPSLanczosGetReorthog_Lanczos);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosSetReorthog_C",EPSLanczosSetReorthog_Lanczos);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosGetReorthog_C",EPSLanczosGetReorthog_Lanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

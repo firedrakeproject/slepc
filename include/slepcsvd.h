@@ -25,7 +25,7 @@
 #define __SLEPCSVD_H
 #include <slepceps.h>
 
-PETSC_EXTERN PetscErrorCode SVDInitializePackage(const char[]);
+PETSC_EXTERN PetscErrorCode SVDInitializePackage(void);
 
 /*S
      SVD - Abstract SLEPc object that manages all the singular value
@@ -156,8 +156,8 @@ PETSC_EXTERN PetscErrorCode SVDTRLanczosGetOneSide(SVD,PetscBool*);
 
 PETSC_EXTERN PetscFunctionList SVDList;
 PETSC_EXTERN PetscBool         SVDRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode SVDRegisterAll(const char[]);
+PETSC_EXTERN PetscErrorCode SVDRegisterAll(void);
 PETSC_EXTERN PetscErrorCode SVDRegisterDestroy(void);
-PETSC_EXTERN PetscErrorCode SVDRegister(const char[],const char[],const char[],PetscErrorCode(*)(SVD));
+PETSC_EXTERN PetscErrorCode SVDRegister(const char[],PetscErrorCode(*)(SVD));
 
 #endif

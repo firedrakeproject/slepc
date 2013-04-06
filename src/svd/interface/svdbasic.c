@@ -55,14 +55,11 @@ PetscErrorCode SVDFinalizePackage(void)
    from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to SVDCreate()
    when using static libraries.
 
-   Input Parameter:
-.  path - The dynamic library path, or NULL
-
    Level: developer
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode SVDInitializePackage(const char *path)
+PetscErrorCode SVDInitializePackage(void)
 {
   char           logList[256];
   char           *className;
@@ -75,7 +72,7 @@ PetscErrorCode SVDInitializePackage(const char *path)
   /* Register Classes */
   ierr = PetscClassIdRegister("Singular Value Solver",&SVD_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
-  ierr = SVDRegisterAll(path);CHKERRQ(ierr);
+  ierr = SVDRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("SVDSetUp",SVD_CLASSID,&SVD_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("SVDSolve",SVD_CLASSID,&SVD_Solve);CHKERRQ(ierr);
@@ -461,7 +458,7 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
   ierr = PetscObjectTypeCompare((PetscObject)svd,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFunctionListFind(PetscObjectComm((PetscObject)svd),SVDList,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(SVDList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown SVD type given: %s",type);
 
   if (svd->ops->destroy) { ierr = (*svd->ops->destroy)(svd);CHKERRQ(ierr); }
@@ -507,18 +504,15 @@ PetscErrorCode SVDGetType(SVD svd,SVDType *type)
    Not Collective
 
    Input Parameters:
-+  name_solver - name of a new user-defined solver
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create the solver context
--  routine_create - routine to create the solver context
++  name - name of a new user-defined solver
+-  function - routine to create the solver context
 
    Notes:
    SVDRegister() may be called multiple times to add several user-defined solvers.
 
    Sample usage:
 .vb
-   SVDRegister("my_solver",/home/username/my_lib/lib/libO/solaris/mylib.a,
-               "MySolverCreate",MySolverCreate);
+   SVDRegister("my_solver",MySolverCreate);
 .ve
 
    Then, your solver can be chosen with the procedural interface via
@@ -530,14 +524,12 @@ $     -svd_type my_solver
 
 .seealso: SVDRegisterDestroy(), SVDRegisterAll()
 @*/
-PetscErrorCode SVDRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(SVD))
+PetscErrorCode SVDRegister(const char *name,PetscErrorCode (*function)(SVD))
 {
   PetscErrorCode ierr;
-  char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&SVDList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(&SVDList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

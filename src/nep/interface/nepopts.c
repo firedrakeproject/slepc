@@ -55,7 +55,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!NEPRegisterAllCalled) { ierr = NEPRegisterAll(NULL);CHKERRQ(ierr); }
+  if (!NEPRegisterAllCalled) { ierr = NEPRegisterAll();CHKERRQ(ierr); }
   ierr = PetscObjectOptionsBegin((PetscObject)nep);CHKERRQ(ierr);
     ierr = PetscOptionsList("-nep_type","Nonlinear Eigenvalue Problem method","NEPSetType",NEPList,(char*)(((PetscObject)nep)->type_name?((PetscObject)nep)->type_name:NEPRII),type,256,&flg);CHKERRQ(ierr);
     if (flg) {

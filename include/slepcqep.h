@@ -25,7 +25,7 @@
 #define __SLEPCQEP_H
 #include <slepceps.h>
 
-PETSC_EXTERN PetscErrorCode QEPInitializePackage(const char[]);
+PETSC_EXTERN PetscErrorCode QEPInitializePackage(void);
 
 /*S
      QEP - Abstract SLEPc object that manages all the quadratic eigenvalue
@@ -170,9 +170,9 @@ PETSC_EXTERN PetscErrorCode QEPCompareEigenvalues(QEP,PetscScalar,PetscScalar,Pe
 
 PETSC_EXTERN PetscFunctionList QEPList;
 PETSC_EXTERN PetscBool         QEPRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode QEPRegisterAll(const char[]);
+PETSC_EXTERN PetscErrorCode QEPRegisterAll(void);
 PETSC_EXTERN PetscErrorCode QEPRegisterDestroy(void);
-PETSC_EXTERN PetscErrorCode QEPRegister(const char[],const char[],const char[],PetscErrorCode(*)(QEP));
+PETSC_EXTERN PetscErrorCode QEPRegister(const char[],PetscErrorCode(*)(QEP));
 
 PETSC_EXTERN PetscErrorCode QEPSetWorkVecs(QEP,PetscInt);
 

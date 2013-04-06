@@ -147,22 +147,22 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetKrylovStart_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetKrylovStart_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBlockSize_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBlockSize_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetRestart_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetRestart_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetInitialSize_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetInitialSize_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetFix_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstantCorrectionTolerance_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstantCorrectionTolerance_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetWindowSizes_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetWindowSizes_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetKrylovStart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetKrylovStart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBlockSize_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBlockSize_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetRestart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetRestart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetInitialSize_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetInitialSize_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetFix_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstantCorrectionTolerance_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstantCorrectionTolerance_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetWindowSizes_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetWindowSizes_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -706,22 +706,22 @@ PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
   eps->ops->setup          = EPSSetUp_JD;
   eps->ops->destroy        = EPSDestroy_JD;
 
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetKrylovStart_C","EPSDavidsonSetKrylovStart_Davidson",EPSDavidsonSetKrylovStart_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetKrylovStart_C","EPSDavidsonGetKrylovStart_Davidson",EPSDavidsonGetKrylovStart_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBlockSize_C","EPSDavidsonSetBlockSize_Davidson",EPSDavidsonSetBlockSize_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBlockSize_C","EPSDavidsonGetBlockSize_Davidson",EPSDavidsonGetBlockSize_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetRestart_C","EPSDavidsonSetRestart_Davidson",EPSDavidsonSetRestart_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetRestart_C","EPSDavidsonGetRestart_Davidson",EPSDavidsonGetRestart_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetInitialSize_C","EPSDavidsonSetInitialSize_Davidson",EPSDavidsonSetInitialSize_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetInitialSize_C","EPSDavidsonGetInitialSize_Davidson",EPSDavidsonGetInitialSize_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetFix_C","EPSDavidsonSetFix_Davidson",EPSDavidsonSetFix_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C","EPSDavidsonGetFix_Davidson",EPSDavidsonGetFix_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstantCorrectionTolerance_C","EPSDavidsonSetConstantCorrectionTolerance_Davidson",EPSDavidsonSetConstantCorrectionTolerance_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstantCorrectionTolerance_C","EPSDavidsonGetConstantCorrectionTolerance_Davidson",EPSDavidsonGetConstantCorrectionTolerance_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetWindowSizes_C","EPSDavidsonSetWindowSizes_Davidson",EPSDavidsonSetWindowSizes_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetWindowSizes_C","EPSDavidsonGetWindowSizes_Davidson",EPSDavidsonGetWindowSizes_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C","EPSDavidsonSetBOrth_Davidson",EPSDavidsonSetBOrth_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C","EPSDavidsonGetBOrth_Davidson",EPSDavidsonGetBOrth_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetKrylovStart_C",EPSDavidsonSetKrylovStart_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetKrylovStart_C",EPSDavidsonGetKrylovStart_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBlockSize_C",EPSDavidsonSetBlockSize_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBlockSize_C",EPSDavidsonGetBlockSize_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetRestart_C",EPSDavidsonSetRestart_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetRestart_C",EPSDavidsonGetRestart_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetInitialSize_C",EPSDavidsonSetInitialSize_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetInitialSize_C",EPSDavidsonGetInitialSize_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetFix_C",EPSDavidsonSetFix_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C",EPSDavidsonGetFix_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstantCorrectionTolerance_C",EPSDavidsonSetConstantCorrectionTolerance_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstantCorrectionTolerance_C",EPSDavidsonGetConstantCorrectionTolerance_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetWindowSizes_C",EPSDavidsonSetWindowSizes_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetWindowSizes_C",EPSDavidsonGetWindowSizes_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C",EPSDavidsonSetBOrth_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C",EPSDavidsonGetBOrth_Davidson);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

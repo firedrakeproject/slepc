@@ -23,7 +23,7 @@
 #define __SLEPCIP_H
 #include <slepcvec.h>
 
-PETSC_EXTERN PetscErrorCode IPInitializePackage(const char[]);
+PETSC_EXTERN PetscErrorCode IPInitializePackage(void);
 /*S
     IP - Abstraction of a vector inner product, that can be defined
     in different ways. Using this object is not required for application
@@ -112,8 +112,8 @@ PETSC_EXTERN PetscErrorCode IPNormEnd(IP,Vec,PetscReal*);
 
 PETSC_EXTERN PetscFunctionList IPList;
 PETSC_EXTERN PetscBool         IPRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode IPRegisterAll(const char[]);
-PETSC_EXTERN PetscErrorCode IPRegister(const char[],const char[],const char[],PetscErrorCode(*)(IP));
+PETSC_EXTERN PetscErrorCode IPRegisterAll(void);
+PETSC_EXTERN PetscErrorCode IPRegister(const char[],PetscErrorCode(*)(IP));
 PETSC_EXTERN PetscErrorCode IPRegisterDestroy(void);
 
 PETSC_EXTERN PetscErrorCode IPGetOperationCounters(IP,PetscInt*);

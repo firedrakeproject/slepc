@@ -34,12 +34,12 @@ PETSC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN);
 
 .seealso:  MFNRegister()
 @*/
-PetscErrorCode MFNRegisterAll(const char *path)
+PetscErrorCode MFNRegisterAll(void)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   MFNRegisterAllCalled = PETSC_TRUE;
-  ierr = MFNRegister(MFNKRYLOV,path,"MFNCreate_Krylov",MFNCreate_Krylov);CHKERRQ(ierr);
+  ierr = MFNRegister(MFNKRYLOV,MFNCreate_Krylov);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

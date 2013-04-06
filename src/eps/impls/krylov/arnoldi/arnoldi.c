@@ -450,8 +450,8 @@ PetscErrorCode EPSDestroy_Arnoldi(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiSetDelayed_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiGetDelayed_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiSetDelayed_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiGetDelayed_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -488,8 +488,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
   eps->ops->view                 = EPSView_Arnoldi;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Schur;
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiSetDelayed_C","EPSArnoldiSetDelayed_Arnoldi",EPSArnoldiSetDelayed_Arnoldi);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiGetDelayed_C","EPSArnoldiGetDelayed_Arnoldi",EPSArnoldiGetDelayed_Arnoldi);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiSetDelayed_C",EPSArnoldiSetDelayed_Arnoldi);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiGetDelayed_C",EPSArnoldiGetDelayed_Arnoldi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -55,14 +55,11 @@ PetscErrorCode IPFinalizePackage(void)
   from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to IPCreate()
   when using static libraries.
 
-  Input Parameter:
-  path - The dynamic library path, or NULL
-
   Level: developer
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode IPInitializePackage(const char *path)
+PetscErrorCode IPInitializePackage(void)
 {
   char             logList[256];
   char             *className;
@@ -75,7 +72,7 @@ PetscErrorCode IPInitializePackage(const char *path)
   /* Register Classes */
   ierr = PetscClassIdRegister("Inner product",&IP_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
-  ierr = IPRegisterAll(path);CHKERRQ(ierr);
+  ierr = IPRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("IPOrthogonalize",IP_CLASSID,&IP_Orthogonalize);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("IPInnerProduct",IP_CLASSID,&IP_InnerProduct);CHKERRQ(ierr);
@@ -273,7 +270,7 @@ PetscErrorCode IPSetType(IP ip,IPType type)
   ierr = PetscObjectTypeCompare((PetscObject)ip,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr =  PetscFunctionListFind(PetscObjectComm((PetscObject)ip),IPList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  ierr =  PetscFunctionListFind(IPList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)ip),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested IP type %s",type);
 
   ierr = PetscMemzero(ip->ops,sizeof(struct _IPOps));CHKERRQ(ierr);
@@ -354,7 +351,7 @@ PetscErrorCode IPSetFromOptions(IP ip)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
-  if (!IPRegisterAllCalled) { ierr = IPRegisterAll(NULL);CHKERRQ(ierr); }
+  if (!IPRegisterAllCalled) { ierr = IPRegisterAll();CHKERRQ(ierr); }
   /* Set default type (we do not allow changing it with -ip_type) */
   if (!((PetscObject)ip)->type_name) {
     ierr = IPSetType_Default(ip);CHKERRQ(ierr);
@@ -656,9 +653,7 @@ PetscErrorCode IPResetOperationCounters(IP ip)
 
    Input Parameters:
 +  name - name of a new user-defined IP
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create context
--  routine_create - routine to create context
+-  function - routine to create context
 
    Notes:
    IPRegister() may be called multiple times to add several user-defined inner products.
@@ -667,14 +662,12 @@ PetscErrorCode IPResetOperationCounters(IP ip)
 
 .seealso: IPRegisterDestroy(), IPRegisterAll()
 @*/
-PetscErrorCode IPRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(IP))
+PetscErrorCode IPRegister(const char *name,PetscErrorCode (*function)(IP))
 {
   PetscErrorCode ierr;
-  char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&IPList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(&IPList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -713,22 +706,19 @@ PETSC_EXTERN PetscErrorCode IPCreate_Indefinite(IP);
 
    Not Collective
 
-   Input Parameter:
-.  path - the library where the routines are to be found (optional)
-
    Level: advanced
 @*/
-PetscErrorCode IPRegisterAll(const char *path)
+PetscErrorCode IPRegisterAll(void)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   IPRegisterAllCalled = PETSC_TRUE;
-  ierr = IPRegister(IPBILINEAR,path,"IPCreate_Bilinear",IPCreate_Bilinear);CHKERRQ(ierr);
+  ierr = IPRegister(IPBILINEAR,IPCreate_Bilinear);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-  ierr = IPRegister(IPSESQUILINEAR,path,"IPCreate_Sesquilinear",IPCreate_Sesquilinear);CHKERRQ(ierr);
+  ierr = IPRegister(IPSESQUILINEAR,IPCreate_Sesquilinear);CHKERRQ(ierr);
 #endif
-  ierr = IPRegister(IPINDEFINITE,path,"IPCreate_Indefinite",IPCreate_Indefinite);CHKERRQ(ierr);
+  ierr = IPRegister(IPINDEFINITE,IPCreate_Indefinite);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

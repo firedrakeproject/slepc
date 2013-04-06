@@ -144,17 +144,17 @@ PetscErrorCode SlepcInitialize_Packages(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = EPSInitializePackage(NULL);CHKERRQ(ierr);
-  ierr = SVDInitializePackage(NULL);CHKERRQ(ierr);
-  ierr = QEPInitializePackage(NULL);CHKERRQ(ierr);
-  ierr = NEPInitializePackage(NULL);CHKERRQ(ierr);
-  ierr = MFNInitializePackage(NULL);CHKERRQ(ierr);
-  ierr = STInitializePackage(NULL);CHKERRQ(ierr);
-  ierr = IPInitializePackage(NULL);CHKERRQ(ierr);
-  ierr = DSInitializePackage(NULL);CHKERRQ(ierr);
-  ierr = FNInitializePackage(NULL);CHKERRQ(ierr);
+  ierr = EPSInitializePackage();CHKERRQ(ierr);
+  ierr = SVDInitializePackage();CHKERRQ(ierr);
+  ierr = QEPInitializePackage();CHKERRQ(ierr);
+  ierr = NEPInitializePackage();CHKERRQ(ierr);
+  ierr = MFNInitializePackage();CHKERRQ(ierr);
+  ierr = STInitializePackage();CHKERRQ(ierr);
+  ierr = IPInitializePackage();CHKERRQ(ierr);
+  ierr = DSInitializePackage();CHKERRQ(ierr);
+  ierr = FNInitializePackage();CHKERRQ(ierr);
   /* New special type of Vec, implemented in SLEPc */
-  ierr = VecRegister_Comp(NULL);CHKERRQ(ierr);
+  ierr = VecRegister_Comp();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

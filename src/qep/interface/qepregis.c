@@ -36,14 +36,14 @@ PETSC_EXTERN PetscErrorCode QEPCreate_QLanczos(QEP);
 
 .seealso:  QEPRegister()
 @*/
-PetscErrorCode QEPRegisterAll(const char *path)
+PetscErrorCode QEPRegisterAll(void)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   QEPRegisterAllCalled = PETSC_TRUE;
-  ierr = QEPRegister(QEPLINEAR,path,"QEPCreate_Linear",QEPCreate_Linear);CHKERRQ(ierr);
-  ierr = QEPRegister(QEPQARNOLDI,path,"QEPCreate_QArnoldi",QEPCreate_QArnoldi);CHKERRQ(ierr);
-  ierr = QEPRegister(QEPQLANCZOS,path,"QEPCreate_QLanczos",QEPCreate_QLanczos);CHKERRQ(ierr);
+  ierr = QEPRegister(QEPLINEAR,QEPCreate_Linear);CHKERRQ(ierr);
+  ierr = QEPRegister(QEPQARNOLDI,QEPCreate_QArnoldi);CHKERRQ(ierr);
+  ierr = QEPRegister(QEPQLANCZOS,QEPCreate_QLanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

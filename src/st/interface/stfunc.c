@@ -53,14 +53,11 @@ PetscErrorCode STFinalizePackage(void)
    from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to STCreate()
    when using static libraries.
 
-   Input Parameter:
-.  path - The dynamic library path, or NULL
-
    Level: developer
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode STInitializePackage(const char *path)
+PetscErrorCode STInitializePackage(void)
 {
   char           logList[256];
   char           *className;
@@ -73,7 +70,7 @@ PetscErrorCode STInitializePackage(const char *path)
   /* Register Classes */
   ierr = PetscClassIdRegister("Spectral Transform",&ST_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
-  ierr = STRegisterAll(path);CHKERRQ(ierr);
+  ierr = STRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("STSetUp",ST_CLASSID,&ST_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STApply",ST_CLASSID,&ST_Apply);CHKERRQ(ierr);
@@ -663,9 +660,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 
    Input Parameters:
 +  name - name of a new user-defined transformation
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create method context
--  routine_create - routine to create method context
+-  function - routine to create method context
 
    Notes:
    STRegister() may be called multiple times to add several user-defined
@@ -673,8 +668,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 
    Sample usage:
 .vb
-   STRegister("my_solver","/home/username/my_lib/lib/libO/solaris/mylib.a",
-              "MySolverCreate",MySolverCreate);
+   STRegister("my_solver",MySolverCreate);
 .ve
 
    Then, your solver can be chosen with the procedural interface via
@@ -686,14 +680,12 @@ $     -st_type my_solver
 
 .seealso: STRegisterDestroy(), STRegisterAll()
 @*/
-PetscErrorCode STRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(ST))
+PetscErrorCode STRegister(const char *name,PetscErrorCode (*function)(ST))
 {
   PetscErrorCode ierr;
-  char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&STList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(&STList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

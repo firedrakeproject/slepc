@@ -54,14 +54,11 @@ PetscErrorCode FNFinalizePackage(void)
   from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to FNCreate()
   when using static libraries.
 
-  Input Parameter:
-  path - The dynamic library path, or NULL
-
   Level: developer
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode FNInitializePackage(const char *path)
+PetscErrorCode FNInitializePackage(void)
 {
   char             logList[256];
   char             *className;
@@ -74,7 +71,7 @@ PetscErrorCode FNInitializePackage(const char *path)
   /* Register Classes */
   ierr = PetscClassIdRegister("Math function",&FN_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
-  ierr = FNRegisterAll(path);CHKERRQ(ierr);
+  ierr = FNRegisterAll();CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
@@ -252,7 +249,7 @@ PetscErrorCode FNSetType(FN fn,FNType type)
   ierr = PetscObjectTypeCompare((PetscObject)fn,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr =  PetscFunctionListFind(PetscObjectComm((PetscObject)fn),FNList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  ierr =  PetscFunctionListFind(FNList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested FN type %s",type);
 
   ierr = PetscMemzero(fn->ops,sizeof(struct _FNOps));CHKERRQ(ierr);
@@ -463,7 +460,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  if (!FNRegisterAllCalled) { ierr = FNRegisterAll(NULL);CHKERRQ(ierr); }
+  if (!FNRegisterAllCalled) { ierr = FNRegisterAll();CHKERRQ(ierr); }
   /* Set default type (we do not allow changing it with -fn_type) */
   if (!((PetscObject)fn)->type_name) {
     ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
@@ -557,9 +554,7 @@ PetscErrorCode FNDestroy(FN *fn)
 
    Input Parameters:
 +  name - name of a new user-defined FN
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create context
--  routine_create - routine to create context
+-  function - routine to create context
 
    Notes:
    FNRegister() may be called multiple times to add several user-defined inner products.
@@ -568,14 +563,12 @@ PetscErrorCode FNDestroy(FN *fn)
 
 .seealso: FNRegisterDestroy(), FNRegisterAll()
 @*/
-PetscErrorCode FNRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(FN))
+PetscErrorCode FNRegister(const char *name,PetscErrorCode (*function)(FN))
 {
   PetscErrorCode ierr;
-  char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&FNList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(&FNList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -611,19 +604,16 @@ PETSC_EXTERN PetscErrorCode FNCreate_Exp(FN);
 
    Not Collective
 
-   Input Parameter:
-.  path - the library where the routines are to be found (optional)
-
    Level: advanced
 @*/
-PetscErrorCode FNRegisterAll(const char *path)
+PetscErrorCode FNRegisterAll(void)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   FNRegisterAllCalled = PETSC_TRUE;
-  ierr = FNRegister(FNRATIONAL,path,"FNCreate_Rational",FNCreate_Rational);CHKERRQ(ierr);
-  ierr = FNRegister(FNEXP,path,"FNCreate_Exp",FNCreate_Exp);CHKERRQ(ierr);
+  ierr = FNRegister(FNRATIONAL,FNCreate_Rational);CHKERRQ(ierr);
+  ierr = FNRegister(FNEXP,FNCreate_Exp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

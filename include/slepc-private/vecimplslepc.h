@@ -75,7 +75,7 @@ typedef struct {
 } Vec_Comp;
 
 /* Operations implemented in VecComp */
-PETSC_INTERN PetscErrorCode VecRegister_Comp(const char[]);
+PETSC_INTERN PetscErrorCode VecRegister_Comp(void);
 PETSC_INTERN PetscErrorCode VecDuplicateVecs_Comp(Vec,PetscInt,Vec*[]);
 PETSC_INTERN PetscErrorCode VecDestroyVecs_Comp(PetscInt,Vec[]);
 PETSC_INTERN PetscErrorCode VecDuplicate_Comp(Vec,Vec*);

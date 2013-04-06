@@ -55,14 +55,11 @@ PetscErrorCode MFNFinalizePackage(void)
   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
   on the first call to MFNCreate() when using static libraries.
 
-  Input Parameter:
-  path - The dynamic library path, or NULL
-
   Level: developer
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode MFNInitializePackage(const char *path)
+PetscErrorCode MFNInitializePackage(void)
 {
   char           logList[256];
   char           *className;
@@ -75,7 +72,7 @@ PetscErrorCode MFNInitializePackage(const char *path)
   /* Register Classes */
   ierr = PetscClassIdRegister("Matrix Function",&MFN_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
-  ierr = MFNRegisterAll(path);CHKERRQ(ierr);
+  ierr = MFNRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("MFNSetUp",MFN_CLASSID,&MFN_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("MFNSolve",MFN_CLASSID,&MFN_Solve);CHKERRQ(ierr);
@@ -277,7 +274,7 @@ PetscErrorCode MFNSetType(MFN mfn,MFNType type)
   ierr = PetscObjectTypeCompare((PetscObject)mfn,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFunctionListFind(PetscObjectComm((PetscObject)mfn),MFNList,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(MFNList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown MFN type given: %s",type);
 
   if (mfn->ops->destroy) { ierr = (*mfn->ops->destroy)(mfn);CHKERRQ(ierr); }
@@ -323,18 +320,15 @@ PetscErrorCode MFNGetType(MFN mfn,MFNType *type)
    Not Collective
 
    Input Parameters:
-+  name_solver - name of a new user-defined solver
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create the solver context
--  routine_create - routine to create the solver context
++  name - name of a new user-defined solver
+-  function - routine to create the solver context
 
    Notes:
    MFNRegister() may be called multiple times to add several user-defined solvers.
 
    Sample usage:
 .vb
-   MFNRegister("my_solver",/home/username/my_lib/lib/libO/solaris/mylib.a,
-               "MySolverCreate",MySolverCreate);
+   MFNRegister("my_solver",MySolverCreate);
 .ve
 
    Then, your solver can be chosen with the procedural interface via
@@ -346,14 +340,12 @@ $     -mfn_type my_solver
 
 .seealso: MFNRegisterDestroy(), MFNRegisterAll()
 @*/
-PetscErrorCode MFNRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(MFN))
+PetscErrorCode MFNRegister(const char *name,PetscErrorCode (*function)(MFN))
 {
   PetscErrorCode ierr;
-  char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&MFNList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(&MFNList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

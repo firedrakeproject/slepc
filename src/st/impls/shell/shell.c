@@ -159,9 +159,9 @@ PetscErrorCode STDestroy_Shell(ST st)
 
   PetscFunctionBegin;
   ierr = PetscFree(st->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -364,9 +364,9 @@ PETSC_EXTERN PetscErrorCode STCreate_Shell(ST st)
   st->ops->backtransform  = STBackTransform_Shell;
   st->ops->setfromoptions = STSetFromOptions_Shell;
   st->ops->destroy        = STDestroy_Shell;
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C","STShellSetApply_Shell",STShellSetApply_Shell);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C","STShellSetApplyTranspose_Shell",STShellSetApplyTranspose_Shell);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C","STShellSetBackTransform_Shell",STShellSetBackTransform_Shell);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",STShellSetApply_Shell);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",STShellSetApplyTranspose_Shell);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",STShellSetBackTransform_Shell);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

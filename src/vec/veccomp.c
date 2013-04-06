@@ -206,12 +206,12 @@ PETSC_EXTERN PetscErrorCode VecCreate_Comp(Vec V)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecRegister_Comp"
-PetscErrorCode VecRegister_Comp(const char path[])
+PetscErrorCode VecRegister_Comp(void)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = VecRegister(VECCOMP,path,"VecCreate_Comp",VecCreate_Comp);CHKERRQ(ierr);
+  ierr = VecRegister(VECCOMP,VecCreate_Comp);CHKERRQ(ierr);
   ierr = VecNormCompInit();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -357,10 +357,10 @@ PetscErrorCode STDestroy_Precond(ST st)
 
   PetscFunctionBegin;
   ierr = PetscFree(st->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetMatForPC_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetMatForPC_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetKSPHasMat_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetKSPHasMat_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetMatForPC_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetMatForPC_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetKSPHasMat_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetKSPHasMat_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -378,10 +378,10 @@ PETSC_EXTERN PetscErrorCode STCreate_Precond(ST st)
   st->ops->destroy         = STDestroy_Precond;
   st->ops->setfromoptions  = STSetFromOptions_Precond;
 
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetMatForPC_C","STPrecondGetMatForPC_Precond",STPrecondGetMatForPC_Precond);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetMatForPC_C","STPrecondSetMatForPC_Precond",STPrecondSetMatForPC_Precond);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetKSPHasMat_C","STPrecondGetKSPHasMat_Precond",STPrecondGetKSPHasMat_Precond);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetKSPHasMat_C","STPrecondSetKSPHasMat_Precond",STPrecondSetKSPHasMat_Precond);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetMatForPC_C",STPrecondGetMatForPC_Precond);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetMatForPC_C",STPrecondSetMatForPC_Precond);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetKSPHasMat_C",STPrecondGetKSPHasMat_Precond);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetKSPHasMat_C",STPrecondSetKSPHasMat_Precond);CHKERRQ(ierr);
 
   ierr = STPrecondSetKSPHasMat_Precond(st,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -38,16 +38,16 @@ PETSC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD);
 
 .seealso:  SVDRegister()
 @*/
-PetscErrorCode SVDRegisterAll(const char *path)
+PetscErrorCode SVDRegisterAll(void)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   SVDRegisterAllCalled = PETSC_TRUE;
-  ierr = SVDRegister(SVDCROSS,path,"SVDCreate_Cross",SVDCreate_Cross);CHKERRQ(ierr);
-  ierr = SVDRegister(SVDCYCLIC,path,"SVDCreate_Cyclic",SVDCreate_Cyclic);CHKERRQ(ierr);
-  ierr = SVDRegister(SVDLAPACK,path,"SVDCreate_LAPACK",SVDCreate_LAPACK);CHKERRQ(ierr);
-  ierr = SVDRegister(SVDLANCZOS,path,"SVDCreate_Lanczos",SVDCreate_Lanczos);CHKERRQ(ierr);
-  ierr = SVDRegister(SVDTRLANCZOS,path,"SVDCreate_TRLanczoS",SVDCreate_TRLanczos);CHKERRQ(ierr);
+  ierr = SVDRegister(SVDCROSS,SVDCreate_Cross);CHKERRQ(ierr);
+  ierr = SVDRegister(SVDCYCLIC,SVDCreate_Cyclic);CHKERRQ(ierr);
+  ierr = SVDRegister(SVDLAPACK,SVDCreate_LAPACK);CHKERRQ(ierr);
+  ierr = SVDRegister(SVDLANCZOS,SVDCreate_Lanczos);CHKERRQ(ierr);
+  ierr = SVDRegister(SVDTRLANCZOS,SVDCreate_TRLanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

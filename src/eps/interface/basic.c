@@ -59,14 +59,11 @@ PetscErrorCode EPSFinalizePackage(void)
   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
   on the first call to EPSCreate() when using static libraries.
 
-  Input Parameter:
-  path - The dynamic library path, or NULL
-
   Level: developer
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode EPSInitializePackage(const char *path)
+PetscErrorCode EPSInitializePackage()
 {
   char           logList[256];
   char           *className;
@@ -79,7 +76,7 @@ PetscErrorCode EPSInitializePackage(const char *path)
   /* Register Classes */
   ierr = PetscClassIdRegister("Eigenvalue Problem Solver",&EPS_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
-  ierr = EPSRegisterAll(path);CHKERRQ(ierr);
+  ierr = EPSRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("EPSSetUp",EPS_CLASSID,&EPS_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("EPSSolve",EPS_CLASSID,&EPS_Solve);CHKERRQ(ierr);
@@ -549,7 +546,7 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
   ierr = PetscObjectTypeCompare((PetscObject)eps,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFunctionListFind(PetscObjectComm((PetscObject)eps),EPSList,type,PETSC_TRUE,(void (**)(void)) &r);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(EPSList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown EPS type given: %s",type);
 
   if (eps->ops->destroy) { ierr = (*eps->ops->destroy)(eps);CHKERRQ(ierr); }
@@ -595,18 +592,15 @@ PetscErrorCode EPSGetType(EPS eps,EPSType *type)
    Not Collective
 
    Input Parameters:
-+  name_solver - name of a new user-defined solver
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create the solver context
--  routine_create - routine to create the solver context
++  name - name of a new user-defined solver
+-  function - routine to create the solver context
 
    Notes:
    EPSRegister() may be called multiple times to add several user-defined solvers.
 
    Sample usage:
 .vb
-   EPSRegister("my_solver",/home/username/my_lib/lib/libO/solaris/mylib.a,
-               "MySolverCreate",MySolverCreate);
+   EPSRegister("my_solver",MySolverCreate);
 .ve
 
    Then, your solver can be chosen with the procedural interface via
@@ -618,14 +612,12 @@ $     -eps_type my_solver
 
 .seealso: EPSRegisterDestroy(), EPSRegisterAll()
 @*/
-PetscErrorCode EPSRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(EPS))
+PetscErrorCode EPSRegister(const char *name,PetscErrorCode (*function)(EPS))
 {
   PetscErrorCode ierr;
-  char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&EPSList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(&EPSList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

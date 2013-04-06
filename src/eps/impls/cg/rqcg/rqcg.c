@@ -378,8 +378,8 @@ PetscErrorCode EPSDestroy_RQCG(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGSetReset_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGGetReset_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGSetReset_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGGetReset_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -416,8 +416,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
   eps->ops->computevectors = EPSComputeVectors_Default;
   ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
   ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGSetReset_C","EPSRQCGSetReset_RQCG",EPSRQCGSetReset_RQCG);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGGetReset_C","EPSRQCGGetReset_RQCG",EPSRQCGGetReset_RQCG);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGSetReset_C",EPSRQCGSetReset_RQCG);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGGetReset_C",EPSRQCGGetReset_RQCG);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

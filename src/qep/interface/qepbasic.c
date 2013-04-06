@@ -55,14 +55,11 @@ PetscErrorCode QEPFinalizePackage(void)
    from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to QEPCreate()
    when using static libraries.
 
-   Input Parameter:
-.  path - The dynamic library path, or NULL
-
    Level: developer
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode QEPInitializePackage(const char *path)
+PetscErrorCode QEPInitializePackage(void)
 {
   char           logList[256];
   char           *className;
@@ -75,7 +72,7 @@ PetscErrorCode QEPInitializePackage(const char *path)
   /* Register Classes */
   ierr = PetscClassIdRegister("Quadratic Eigenvalue Problem solver",&QEP_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
-  ierr = QEPRegisterAll(path);CHKERRQ(ierr);
+  ierr = QEPRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("QEPSetUp",QEP_CLASSID,&QEP_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("QEPSolve",QEP_CLASSID,&QEP_Solve);CHKERRQ(ierr);
@@ -461,7 +458,7 @@ PetscErrorCode QEPSetType(QEP qep,QEPType type)
   ierr = PetscObjectTypeCompare((PetscObject)qep,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFunctionListFind(PetscObjectComm((PetscObject)qep),QEPList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(QEPList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown QEP type given: %s",type);
 
   if (qep->ops->destroy) { ierr = (*qep->ops->destroy)(qep);CHKERRQ(ierr); }
@@ -507,18 +504,15 @@ PetscErrorCode QEPGetType(QEP qep,QEPType *type)
    Not Collective
 
    Input Parameters:
-+  name_solver - name of a new user-defined solver
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create the solver context
--  routine_create - routine to create the solver context
++  name - name of a new user-defined solver
+-  function - routine to create the solver context
 
    Notes:
    QEPRegister() may be called multiple times to add several user-defined solvers.
 
    Sample usage:
 .vb
-   QEPRegister("my_solver",/home/username/my_lib/lib/libO/solaris/mylib.a,
-               "MySolverCreate",MySolverCreate);
+   QEPRegister("my_solver",MySolverCreate);
 .ve
 
    Then, your solver can be chosen with the procedural interface via
@@ -530,14 +524,12 @@ $     -qep_type my_solver
 
 .seealso: QEPRegisterDestroy(), QEPRegisterAll()
 @*/
-PetscErrorCode QEPRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(QEP))
+PetscErrorCode QEPRegister(const char *name,PetscErrorCode (*function)(QEP))
 {
   PetscErrorCode ierr;
-  char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&QEPList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(&QEPList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

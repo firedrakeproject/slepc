@@ -523,8 +523,8 @@ PetscErrorCode EPSDestroy_Power(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -559,8 +559,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->ops->view                 = EPSView_Power;
   eps->ops->backtransform        = EPSBackTransform_Power;
   eps->ops->computevectors       = EPSComputeVectors_Default;
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C","EPSPowerSetShiftType_Power",EPSPowerSetShiftType_Power);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C","EPSPowerGetShiftType_Power",EPSPowerGetShiftType_Power);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C",EPSPowerSetShiftType_Power);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C",EPSPowerGetShiftType_Power);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

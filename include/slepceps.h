@@ -27,7 +27,7 @@
 #include <slepcip.h>
 #include <slepcds.h>
 
-PETSC_EXTERN PetscErrorCode EPSInitializePackage(const char[]);
+PETSC_EXTERN PetscErrorCode EPSInitializePackage(void);
 
 /*S
     EPS - Abstract SLEPc object that manages all the eigenvalue
@@ -256,9 +256,9 @@ PETSC_EXTERN PetscErrorCode EPSGetStartVectorLeft(EPS,PetscInt,Vec,PetscBool*);
 
 PETSC_EXTERN PetscFunctionList EPSList;
 PETSC_EXTERN PetscBool         EPSRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode EPSRegisterAll(const char[]);
+PETSC_EXTERN PetscErrorCode EPSRegisterAll(void);
 PETSC_EXTERN PetscErrorCode EPSRegisterDestroy(void);
-PETSC_EXTERN PetscErrorCode EPSRegister(const char[],const char[],const char[],PetscErrorCode(*)(EPS));
+PETSC_EXTERN PetscErrorCode EPSRegister(const char[],PetscErrorCode(*)(EPS));
 
 PETSC_EXTERN PetscErrorCode EPSSetWorkVecs(EPS,PetscInt);
 

@@ -23,7 +23,7 @@
 #define __SLEPCFN_H
 #include <slepcsys.h>
 
-PETSC_EXTERN PetscErrorCode FNInitializePackage(const char[]);
+PETSC_EXTERN PetscErrorCode FNInitializePackage(void);
 /*S
    FN - Abstraction of a mathematical function.
 
@@ -67,8 +67,8 @@ PETSC_EXTERN PetscErrorCode FNEvaluateDerivative(FN,PetscScalar,PetscScalar*);
 
 PETSC_EXTERN PetscFunctionList FNList;
 PETSC_EXTERN PetscBool         FNRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode FNRegisterAll(const char[]);
-PETSC_EXTERN PetscErrorCode FNRegister(const char[],const char[],const char[],PetscErrorCode(*)(FN));
+PETSC_EXTERN PetscErrorCode FNRegisterAll(void);
+PETSC_EXTERN PetscErrorCode FNRegister(const char[],PetscErrorCode(*)(FN));
 PETSC_EXTERN PetscErrorCode FNRegisterDestroy(void);
 
 #endif

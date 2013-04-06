@@ -306,8 +306,8 @@ PetscErrorCode EPSDestroy_BLZPACK(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetBlockSize_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetNSteps_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetBlockSize_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetNSteps_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -466,8 +466,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS eps)
   blzpack->slice = 0;
   blzpack->nsteps = 0;
 
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetBlockSize_C","EPSBlzpackSetBlockSize_BLZPACK",EPSBlzpackSetBlockSize_BLZPACK);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetNSteps_C","EPSBlzpackSetNSteps_BLZPACK",EPSBlzpackSetNSteps_BLZPACK);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetBlockSize_C",EPSBlzpackSetBlockSize_BLZPACK);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetNSteps_C",EPSBlzpackSetNSteps_BLZPACK);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

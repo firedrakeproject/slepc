@@ -280,8 +280,8 @@ PetscErrorCode NEPDestroy_SLP(NEP nep)
   PetscFunctionBegin;
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   ierr = PetscFree(nep->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetEPS_C","",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetEPS_C","",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetEPS_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetEPS_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -301,8 +301,8 @@ PETSC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
   nep->ops->reset          = NEPReset_SLP;
   nep->ops->destroy        = NEPDestroy_SLP;
   nep->ops->view           = NEPView_SLP;
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetEPS_C","NEPSLPSetEPS_SLP",NEPSLPSetEPS_SLP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetEPS_C","NEPSLPGetEPS_SLP",NEPSLPGetEPS_SLP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetEPS_C",NEPSLPSetEPS_SLP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetEPS_C",NEPSLPGetEPS_SLP);CHKERRQ(ierr);
 
   ierr = EPSCreate(PetscObjectComm((PetscObject)nep),&ctx->eps);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)nep)->prefix);CHKERRQ(ierr);

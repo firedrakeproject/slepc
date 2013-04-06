@@ -57,14 +57,11 @@ PetscErrorCode DSFinalizePackage(void)
   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
   on the first call to DSCreate() when using static libraries.
 
-  Input Parameter:
-  path - The dynamic library path, or NULL
-
   Level: developer
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode DSInitializePackage(const char *path)
+PetscErrorCode DSInitializePackage()
 {
   char             logList[256];
   char             *className;
@@ -77,7 +74,7 @@ PetscErrorCode DSInitializePackage(const char *path)
   /* Register Classes */
   ierr = PetscClassIdRegister("Direct solver",&DS_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
-  ierr = DSRegisterAll(path);CHKERRQ(ierr);
+  ierr = DSRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("DSSolve",DS_CLASSID,&DS_Solve);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("DSFunction",DS_CLASSID,&DS_Function);CHKERRQ(ierr);
@@ -284,7 +281,7 @@ PetscErrorCode DSSetType(DS ds,DSType type)
   ierr = PetscObjectTypeCompare((PetscObject)ds,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
 
-  ierr =  PetscFunctionListFind(PetscObjectComm((PetscObject)ds),DSList,type,PETSC_TRUE,(void (**)(void))&r);CHKERRQ(ierr);
+  ierr =  PetscFunctionListFind(DSList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
 
   ierr = PetscMemzero(ds->ops,sizeof(struct _DSOps));CHKERRQ(ierr);
@@ -817,7 +814,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (!DSRegisterAllCalled) { ierr = DSRegisterAll(NULL);CHKERRQ(ierr); }
+  if (!DSRegisterAllCalled) { ierr = DSRegisterAll();CHKERRQ(ierr); }
   /* Set default type (we do not allow changing it with -ds_type) */
   if (!((PetscObject)ds)->type_name) {
     ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);
@@ -1027,8 +1024,6 @@ PetscErrorCode DSDestroy(DS *ds)
 
    Input Parameters:
 +  name - name of a new user-defined DS
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create context
 -  routine_create - routine to create context
 
    Notes:
@@ -1039,14 +1034,12 @@ PetscErrorCode DSDestroy(DS *ds)
 
 .seealso: DSRegisterDestroy(), DSRegisterAll()
 @*/
-PetscErrorCode DSRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(DS))
+PetscErrorCode DSRegister(const char *name,PetscErrorCode (*function)(DS))
 {
   PetscErrorCode ierr;
-  char           fullname[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  ierr = PetscFunctionListConcat(path,name,fullname);CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(PETSC_COMM_WORLD,&DSList,sname,fullname,(void (*)(void))function);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(&DSList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1087,24 +1080,21 @@ PETSC_EXTERN PetscErrorCode DSCreate_NEP(DS);
 
    Not Collective
 
-   Input Parameter:
-.  path - the library where the routines are to be found (optional)
-
    Level: advanced
 @*/
-PetscErrorCode DSRegisterAll(const char *path)
+PetscErrorCode DSRegisterAll(void)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   DSRegisterAllCalled = PETSC_TRUE;
-  ierr = DSRegister(DSHEP,path,"DSCreate_HEP",DSCreate_HEP);CHKERRQ(ierr);
-  ierr = DSRegister(DSNHEP,path,"DSCreate_NHEP",DSCreate_NHEP);CHKERRQ(ierr);
-  ierr = DSRegister(DSGHEP,path,"DSCreate_GHEP",DSCreate_GHEP);CHKERRQ(ierr);
-  ierr = DSRegister(DSGHIEP,path,"DSCreate_GHIEP",DSCreate_GHIEP);CHKERRQ(ierr);
-  ierr = DSRegister(DSGNHEP,path,"DSCreate_GNHEP",DSCreate_GNHEP);CHKERRQ(ierr);
-  ierr = DSRegister(DSSVD,path,"DSCreate_SVD",DSCreate_SVD);CHKERRQ(ierr);
-  ierr = DSRegister(DSNEP,path,"DSCreate_NEP",DSCreate_NEP);CHKERRQ(ierr);
+  ierr = DSRegister(DSHEP,DSCreate_HEP);CHKERRQ(ierr);
+  ierr = DSRegister(DSNHEP,DSCreate_NHEP);CHKERRQ(ierr);
+  ierr = DSRegister(DSGHEP,DSCreate_GHEP);CHKERRQ(ierr);
+  ierr = DSRegister(DSGHIEP,DSCreate_GHIEP);CHKERRQ(ierr);
+  ierr = DSRegister(DSGNHEP,DSCreate_GNHEP);CHKERRQ(ierr);
+  ierr = DSRegister(DSSVD,DSCreate_SVD);CHKERRQ(ierr);
+  ierr = DSRegister(DSNEP,DSCreate_NEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -57,35 +57,35 @@ PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps);
 
 .seealso:  EPSRegister()
 @*/
-PetscErrorCode EPSRegisterAll(const char *path)
+PetscErrorCode EPSRegisterAll(void)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   EPSRegisterAllCalled = PETSC_TRUE;
-  ierr = EPSRegister(EPSKRYLOVSCHUR,path,"EPSCreate_KrylovSchur",EPSCreate_KrylovSchur);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSPOWER,path,"EPSCreate_Power",EPSCreate_Power);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSSUBSPACE,path,"EPSCreate_Subspace",EPSCreate_Subspace);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSARNOLDI,path,"EPSCreate_Arnoldi",EPSCreate_Arnoldi);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSLANCZOS,path,"EPSCreate_Lanczos",EPSCreate_Lanczos);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSGD,path,"EPSCreate_GD",EPSCreate_GD);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSJD,path,"EPSCreate_JD",EPSCreate_JD);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSRQCG,path,"EPSCreate_RQCG",EPSCreate_RQCG);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSLAPACK,path,"EPSCreate_LAPACK",EPSCreate_LAPACK);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSKRYLOVSCHUR,EPSCreate_KrylovSchur);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSPOWER,EPSCreate_Power);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSSUBSPACE,EPSCreate_Subspace);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSARNOLDI,EPSCreate_Arnoldi);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSLANCZOS,EPSCreate_Lanczos);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSGD,EPSCreate_GD);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSJD,EPSCreate_JD);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSRQCG,EPSCreate_RQCG);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSLAPACK,EPSCreate_LAPACK);CHKERRQ(ierr);
 #if defined(SLEPC_HAVE_ARPACK)
-  ierr = EPSRegister(EPSARPACK,path,"EPSCreate_ARPACK",EPSCreate_ARPACK);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSARPACK,EPSCreate_ARPACK);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_BLZPACK) && !defined(PETSC_USE_COMPLEX)
-  ierr = EPSRegister(EPSBLZPACK,path,"EPSCreate_BLZPACK",EPSCreate_BLZPACK);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSBLZPACK,EPSCreate_BLZPACK);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_TRLAN) && !defined(PETSC_USE_COMPLEX)
-  ierr = EPSRegister(EPSTRLAN,path,"EPSCreate_TRLAN",EPSCreate_TRLAN);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSTRLAN,EPSCreate_TRLAN);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_BLOPEX)
-  ierr = EPSRegister(EPSBLOPEX,path,"EPSCreate_BLOPEX",EPSCreate_BLOPEX);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSBLOPEX,EPSCreate_BLOPEX);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_PRIMME)
-  ierr = EPSRegister(EPSPRIMME,path,"EPSCreate_PRIMME",EPSCreate_PRIMME);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSPRIMME,EPSCreate_PRIMME);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }

@@ -36,14 +36,14 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NARNOLDI(NEP);
 
 .seealso:  NEPRegister()
 @*/
-PetscErrorCode NEPRegisterAll(const char *path)
+PetscErrorCode NEPRegisterAll(void)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   NEPRegisterAllCalled = PETSC_TRUE;
-  ierr = NEPRegister(NEPRII,path,"NEPCreate_RII",NEPCreate_RII);CHKERRQ(ierr);
-  ierr = NEPRegister(NEPSLP,path,"NEPCreate_SLP",NEPCreate_SLP);CHKERRQ(ierr);
-  ierr = NEPRegister(NEPNARNOLDI,path,"NEPCreate_NARNOLDI",NEPCreate_NARNOLDI);CHKERRQ(ierr);
+  ierr = NEPRegister(NEPRII,NEPCreate_RII);CHKERRQ(ierr);
+  ierr = NEPRegister(NEPSLP,NEPCreate_SLP);CHKERRQ(ierr);
+  ierr = NEPRegister(NEPNARNOLDI,NEPCreate_NARNOLDI);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

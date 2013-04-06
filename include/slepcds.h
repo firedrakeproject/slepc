@@ -26,7 +26,7 @@
 #define DS_MAX_SOLVE 6
 #define DS_MAX_FUN   6
 
-PETSC_EXTERN PetscErrorCode DSInitializePackage(const char[]);
+PETSC_EXTERN PetscErrorCode DSInitializePackage(void);
 /*S
     DS - Direct solver (or dense system), to represent low-dimensional
     eigenproblems that must be solved within iterative solvers. This is an
@@ -178,8 +178,8 @@ PETSC_EXTERN PetscErrorCode DSGetNumFN(DS,PetscInt*);
 
 PETSC_EXTERN PetscFunctionList DSList;
 PETSC_EXTERN PetscBool         DSRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode DSRegisterAll(const char[]);
-PETSC_EXTERN PetscErrorCode DSRegister(const char[],const char[],const char[],PetscErrorCode(*)(DS));
+PETSC_EXTERN PetscErrorCode DSRegisterAll(void);
+PETSC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));
 PETSC_EXTERN PetscErrorCode DSRegisterDestroy(void);
 
 #endif
