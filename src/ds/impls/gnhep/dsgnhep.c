@@ -129,7 +129,7 @@ PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscBool left)
   ierr = DSAllocateWork_Private(ds,6*ld,0,0);CHKERRQ(ierr);
   PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,"S",select,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&mm,&mout,ds->work,&info));
 #endif
-  if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+  if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTGEVC %i",info);
   if (select[(*k)] == 0 || mout != mm) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Unsupported the computation of the second vector in a complex pair");
   /* Backtransform: (X/Y) <- (Q/Z) * (X/Y) */
   ierr = PetscMemcpy(ds->work,left?Y:X,mm*ld*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -181,7 +181,7 @@ PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
   ierr = DSAllocateWork_Private(ds,6*ld,0,0);CHKERRQ(ierr);
   PetscStackCall("LAPACKtgevc",LAPACKtgevc_(side,back,NULL,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,&info));
 #endif
-  if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+  if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTGEVC %i",info);
   PetscFunctionReturn(0);
 #endif
 }

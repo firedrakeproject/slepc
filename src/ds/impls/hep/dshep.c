@@ -637,7 +637,7 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   for (j=ds->l;j<ds->n;j++)
     for (i=0;i<ds->l;i++) Q[i+j*ld] = 0.0;
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEDC %d",info);
   for (i=l;i<ds->n;i++) wr[i] = d[i];
 
   /* Create diagonal matrix as a result */
