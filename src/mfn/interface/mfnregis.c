@@ -32,7 +32,7 @@ PETSC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN);
 
   Level: advanced
 
-.seealso:  MFNRegisterDynamic()
+.seealso:  MFNRegister()
 @*/
 PetscErrorCode MFNRegisterAll(const char *path)
 {
@@ -40,6 +40,6 @@ PetscErrorCode MFNRegisterAll(const char *path)
 
   PetscFunctionBegin;
   MFNRegisterAllCalled = PETSC_TRUE;
-  ierr = MFNRegisterDynamic(MFNKRYLOV,path,"MFNCreate_Krylov",MFNCreate_Krylov);CHKERRQ(ierr);
+  ierr = MFNRegister(MFNKRYLOV,path,"MFNCreate_Krylov",MFNCreate_Krylov);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

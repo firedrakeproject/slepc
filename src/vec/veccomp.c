@@ -211,7 +211,7 @@ PetscErrorCode VecRegister_Comp(const char path[])
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = VecRegisterDynamic(VECCOMP,path,"VecCreate_Comp",VecCreate_Comp);CHKERRQ(ierr);
+  ierr = VecRegister(VECCOMP,path,"VecCreate_Comp",VecCreate_Comp);CHKERRQ(ierr);
   ierr = VecNormCompInit();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

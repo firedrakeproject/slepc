@@ -551,9 +551,22 @@ PetscErrorCode FNDestroy(FN *fn)
 #undef __FUNCT__
 #define __FUNCT__ "FNRegister"
 /*@C
-   FNRegister - See FNRegisterDynamic()
+   FNRegister - See Adds a mathematical function to the FN package.
+
+   Not collective
+
+   Input Parameters:
++  name - name of a new user-defined FN
+.  path - path (either absolute or relative) the library containing this solver
+.  name_create - name of routine to create context
+-  routine_create - routine to create context
+
+   Notes:
+   FNRegister() may be called multiple times to add several user-defined inner products.
 
    Level: advanced
+
+.seealso: FNRegisterDestroy(), FNRegisterAll()
 @*/
 PetscErrorCode FNRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(FN))
 {
@@ -570,13 +583,13 @@ PetscErrorCode FNRegister(const char *sname,const char *path,const char *name,Pe
 #define __FUNCT__ "FNRegisterDestroy"
 /*@
    FNRegisterDestroy - Frees the list of FN methods that were
-   registered by FNRegisterDynamic().
+   registered by FNRegister().
 
    Not Collective
 
    Level: advanced
 
-.seealso: FNRegisterDynamic(), FNRegisterAll()
+.seealso: FNRegister(), FNRegisterAll()
 @*/
 PetscErrorCode FNRegisterDestroy(void)
 {
@@ -609,8 +622,8 @@ PetscErrorCode FNRegisterAll(const char *path)
 
   PetscFunctionBegin;
   FNRegisterAllCalled = PETSC_TRUE;
-  ierr = FNRegisterDynamic(FNRATIONAL,path,"FNCreate_Rational",FNCreate_Rational);CHKERRQ(ierr);
-  ierr = FNRegisterDynamic(FNEXP,path,"FNCreate_Exp",FNCreate_Exp);CHKERRQ(ierr);
+  ierr = FNRegister(FNRATIONAL,path,"FNCreate_Rational",FNCreate_Rational);CHKERRQ(ierr);
+  ierr = FNRegister(FNEXP,path,"FNCreate_Exp",FNCreate_Exp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

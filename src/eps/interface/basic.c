@@ -590,9 +590,33 @@ PetscErrorCode EPSGetType(EPS eps,EPSType *type)
 #undef __FUNCT__
 #define __FUNCT__ "EPSRegister"
 /*@C
-  EPSRegister - See EPSRegisterDynamic()
+   EPSRegister - Adds a method to the eigenproblem solver package.
 
-  Level: advanced
+   Not Collective
+
+   Input Parameters:
++  name_solver - name of a new user-defined solver
+.  path - path (either absolute or relative) the library containing this solver
+.  name_create - name of routine to create the solver context
+-  routine_create - routine to create the solver context
+
+   Notes:
+   EPSRegister() may be called multiple times to add several user-defined solvers.
+
+   Sample usage:
+.vb
+   EPSRegister("my_solver",/home/username/my_lib/lib/libO/solaris/mylib.a,
+               "MySolverCreate",MySolverCreate);
+.ve
+
+   Then, your solver can be chosen with the procedural interface via
+$     EPSSetType(eps,"my_solver")
+   or at runtime via the option
+$     -eps_type my_solver
+
+   Level: advanced
+
+.seealso: EPSRegisterDestroy(), EPSRegisterAll()
 @*/
 PetscErrorCode EPSRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(EPS))
 {
@@ -609,13 +633,13 @@ PetscErrorCode EPSRegister(const char *sname,const char *path,const char *name,P
 #define __FUNCT__ "EPSRegisterDestroy"
 /*@
    EPSRegisterDestroy - Frees the list of EPS methods that were
-   registered by EPSRegisterDynamic().
+   registered by EPSRegister().
 
    Not Collective
 
    Level: advanced
 
-.seealso: EPSRegisterDynamic(), EPSRegisterAll()
+.seealso: EPSRegister(), EPSRegisterAll()
 @*/
 PetscErrorCode EPSRegisterDestroy(void)
 {

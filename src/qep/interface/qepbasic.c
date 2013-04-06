@@ -502,9 +502,33 @@ PetscErrorCode QEPGetType(QEP qep,QEPType *type)
 #undef __FUNCT__
 #define __FUNCT__ "QEPRegister"
 /*@C
-  QEPRegister - See QEPRegisterDynamic()
+   QEPRegister - Adds a method to the quadratic eigenproblem solver package.
 
-  Level: advanced
+   Not Collective
+
+   Input Parameters:
++  name_solver - name of a new user-defined solver
+.  path - path (either absolute or relative) the library containing this solver
+.  name_create - name of routine to create the solver context
+-  routine_create - routine to create the solver context
+
+   Notes:
+   QEPRegister() may be called multiple times to add several user-defined solvers.
+
+   Sample usage:
+.vb
+   QEPRegister("my_solver",/home/username/my_lib/lib/libO/solaris/mylib.a,
+               "MySolverCreate",MySolverCreate);
+.ve
+
+   Then, your solver can be chosen with the procedural interface via
+$     QEPSetType(qep,"my_solver")
+   or at runtime via the option
+$     -qep_type my_solver
+
+   Level: advanced
+
+.seealso: QEPRegisterDestroy(), QEPRegisterAll()
 @*/
 PetscErrorCode QEPRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(QEP))
 {
@@ -521,13 +545,13 @@ PetscErrorCode QEPRegister(const char *sname,const char *path,const char *name,P
 #define __FUNCT__ "QEPRegisterDestroy"
 /*@
    QEPRegisterDestroy - Frees the list of QEP methods that were
-   registered by QEPRegisterDynamic().
+   registered by QEPRegister().
 
    Not Collective
 
    Level: advanced
 
-.seealso: QEPRegisterDynamic(), QEPRegisterAll()
+.seealso: QEPRegister(), QEPRegisterAll()
 @*/
 PetscErrorCode QEPRegisterDestroy(void)
 {

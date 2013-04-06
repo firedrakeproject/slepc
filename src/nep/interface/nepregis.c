@@ -34,7 +34,7 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NARNOLDI(NEP);
 
    Level: advanced
 
-.seealso:  NEPRegisterDynamic()
+.seealso:  NEPRegister()
 @*/
 PetscErrorCode NEPRegisterAll(const char *path)
 {
@@ -42,8 +42,8 @@ PetscErrorCode NEPRegisterAll(const char *path)
 
   PetscFunctionBegin;
   NEPRegisterAllCalled = PETSC_TRUE;
-  ierr = NEPRegisterDynamic(NEPRII,path,"NEPCreate_RII",NEPCreate_RII);CHKERRQ(ierr);
-  ierr = NEPRegisterDynamic(NEPSLP,path,"NEPCreate_SLP",NEPCreate_SLP);CHKERRQ(ierr);
-  ierr = NEPRegisterDynamic(NEPNARNOLDI,path,"NEPCreate_NARNOLDI",NEPCreate_NARNOLDI);CHKERRQ(ierr);
+  ierr = NEPRegister(NEPRII,path,"NEPCreate_RII",NEPCreate_RII);CHKERRQ(ierr);
+  ierr = NEPRegister(NEPSLP,path,"NEPCreate_SLP",NEPCreate_SLP);CHKERRQ(ierr);
+  ierr = NEPRegister(NEPNARNOLDI,path,"NEPCreate_NARNOLDI",NEPCreate_NARNOLDI);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

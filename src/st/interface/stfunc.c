@@ -657,9 +657,34 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 #undef __FUNCT__
 #define __FUNCT__ "STRegister"
 /*@C
-   STRegister - See STRegisterDynamic()
+   STRegister - Adds a method to the spectral transformation package.
+
+   Not collective
+
+   Input Parameters:
++  name - name of a new user-defined transformation
+.  path - path (either absolute or relative) the library containing this solver
+.  name_create - name of routine to create method context
+-  routine_create - routine to create method context
+
+   Notes:
+   STRegister() may be called multiple times to add several user-defined
+   spectral transformations.
+
+   Sample usage:
+.vb
+   STRegister("my_solver","/home/username/my_lib/lib/libO/solaris/mylib.a",
+              "MySolverCreate",MySolverCreate);
+.ve
+
+   Then, your solver can be chosen with the procedural interface via
+$     STSetType(st,"my_solver")
+   or at runtime via the option
+$     -st_type my_solver
 
    Level: advanced
+
+.seealso: STRegisterDestroy(), STRegisterAll()
 @*/
 PetscErrorCode STRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(ST))
 {
@@ -676,13 +701,13 @@ PetscErrorCode STRegister(const char *sname,const char *path,const char *name,Pe
 #define __FUNCT__ "STRegisterDestroy"
 /*@
    STRegisterDestroy - Frees the list of ST methods that were
-   registered by STRegisterDynamic().
+   registered by STRegister().
 
    Not Collective
 
    Level: advanced
 
-.seealso: STRegisterDynamic(), STRegisterAll()
+.seealso: STRegister(), STRegisterAll()
 @*/
 PetscErrorCode STRegisterDestroy(void)
 {

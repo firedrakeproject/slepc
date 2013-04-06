@@ -36,7 +36,7 @@ PETSC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD);
 
    Level: advanced
 
-.seealso:  SVDRegisterDynamic()
+.seealso:  SVDRegister()
 @*/
 PetscErrorCode SVDRegisterAll(const char *path)
 {
@@ -44,10 +44,10 @@ PetscErrorCode SVDRegisterAll(const char *path)
 
   PetscFunctionBegin;
   SVDRegisterAllCalled = PETSC_TRUE;
-  ierr = SVDRegisterDynamic(SVDCROSS,path,"SVDCreate_Cross",SVDCreate_Cross);CHKERRQ(ierr);
-  ierr = SVDRegisterDynamic(SVDCYCLIC,path,"SVDCreate_Cyclic",SVDCreate_Cyclic);CHKERRQ(ierr);
-  ierr = SVDRegisterDynamic(SVDLAPACK,path,"SVDCreate_LAPACK",SVDCreate_LAPACK);CHKERRQ(ierr);
-  ierr = SVDRegisterDynamic(SVDLANCZOS,path,"SVDCreate_Lanczos",SVDCreate_Lanczos);CHKERRQ(ierr);
-  ierr = SVDRegisterDynamic(SVDTRLANCZOS,path,"SVDCreate_TRLanczoS",SVDCreate_TRLanczos);CHKERRQ(ierr);
+  ierr = SVDRegister(SVDCROSS,path,"SVDCreate_Cross",SVDCreate_Cross);CHKERRQ(ierr);
+  ierr = SVDRegister(SVDCYCLIC,path,"SVDCreate_Cyclic",SVDCreate_Cyclic);CHKERRQ(ierr);
+  ierr = SVDRegister(SVDLAPACK,path,"SVDCreate_LAPACK",SVDCreate_LAPACK);CHKERRQ(ierr);
+  ierr = SVDRegister(SVDLANCZOS,path,"SVDCreate_Lanczos",SVDCreate_Lanczos);CHKERRQ(ierr);
+  ierr = SVDRegister(SVDTRLANCZOS,path,"SVDCreate_TRLanczoS",SVDCreate_TRLanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

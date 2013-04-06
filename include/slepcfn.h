@@ -71,34 +71,4 @@ PETSC_EXTERN PetscErrorCode FNRegisterAll(const char[]);
 PETSC_EXTERN PetscErrorCode FNRegister(const char[],const char[],const char[],PetscErrorCode(*)(FN));
 PETSC_EXTERN PetscErrorCode FNRegisterDestroy(void);
 
-/*MC
-   FNRegisterDynamic - Adds a mathematical function to the FN package.
-
-   Synopsis:
-   PetscErrorCode FNRegisterDynamic(const char *name,const char *path,const char *name_create,PetscErrorCode (*routine_create)(FN))
-
-   Not collective
-
-   Input Parameters:
-+  name - name of a new user-defined FN
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create context
--  routine_create - routine to create context
-
-   Notes:
-   FNRegisterDynamic() may be called multiple times to add several user-defined inner products.
-
-   If dynamic libraries are used, then the fourth input argument (routine_create)
-   is ignored.
-
-   Level: advanced
-
-.seealso: FNRegisterDestroy(), FNRegisterAll()
-M*/
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-#define FNRegisterDynamic(a,b,c,d) FNRegister(a,b,c,0)
-#else
-#define FNRegisterDynamic(a,b,c,d) FNRegister(a,b,c,d)
-#endif
-
 #endif

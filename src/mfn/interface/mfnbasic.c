@@ -318,9 +318,33 @@ PetscErrorCode MFNGetType(MFN mfn,MFNType *type)
 #undef __FUNCT__
 #define __FUNCT__ "MFNRegister"
 /*@C
-  MFNRegister - See MFNRegisterDynamic()
+   MFNRegister - Adds a method to the matrix function solver package.
 
-  Level: advanced
+   Not Collective
+
+   Input Parameters:
++  name_solver - name of a new user-defined solver
+.  path - path (either absolute or relative) the library containing this solver
+.  name_create - name of routine to create the solver context
+-  routine_create - routine to create the solver context
+
+   Notes:
+   MFNRegister() may be called multiple times to add several user-defined solvers.
+
+   Sample usage:
+.vb
+   MFNRegister("my_solver",/home/username/my_lib/lib/libO/solaris/mylib.a,
+               "MySolverCreate",MySolverCreate);
+.ve
+
+   Then, your solver can be chosen with the procedural interface via
+$     MFNSetType(mfn,"my_solver")
+   or at runtime via the option
+$     -mfn_type my_solver
+
+   Level: advanced
+
+.seealso: MFNRegisterDestroy(), MFNRegisterAll()
 @*/
 PetscErrorCode MFNRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(MFN))
 {
@@ -337,13 +361,13 @@ PetscErrorCode MFNRegister(const char *sname,const char *path,const char *name,P
 #define __FUNCT__ "MFNRegisterDestroy"
 /*@
    MFNRegisterDestroy - Frees the list of MFN methods that were
-   registered by MFNRegisterDynamic().
+   registered by MFNRegister().
 
    Not Collective
 
    Level: advanced
 
-.seealso: MFNRegisterDynamic(), MFNRegisterAll()
+.seealso: MFNRegister(), MFNRegisterAll()
 @*/
 PetscErrorCode MFNRegisterDestroy(void)
 {

@@ -182,35 +182,4 @@ PETSC_EXTERN PetscErrorCode DSRegisterAll(const char[]);
 PETSC_EXTERN PetscErrorCode DSRegister(const char[],const char[],const char[],PetscErrorCode(*)(DS));
 PETSC_EXTERN PetscErrorCode DSRegisterDestroy(void);
 
-/*MC
-   DSRegisterDynamic - Adds a direct solver to the DS package.
-
-   Synopsis:
-   PetscErrorCode DSRegisterDynamic(const char *name,const char *path,const char *name_create,PetscErrorCode (*routine_create)(DS))
-
-   Not collective
-
-   Input Parameters:
-+  name - name of a new user-defined DS
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create context
--  routine_create - routine to create context
-
-   Notes:
-   DSRegisterDynamic() may be called multiple times to add several user-defined
-   direct solvers.
-
-   If dynamic libraries are used, then the fourth input argument (routine_create)
-   is ignored.
-
-   Level: advanced
-
-.seealso: DSRegisterDestroy(), DSRegisterAll()
-M*/
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-#define DSRegisterDynamic(a,b,c,d) DSRegister(a,b,c,0)
-#else
-#define DSRegisterDynamic(a,b,c,d) DSRegister(a,b,c,d)
-#endif
-
 #endif

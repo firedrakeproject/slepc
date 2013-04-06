@@ -116,36 +116,6 @@ PETSC_EXTERN PetscErrorCode IPRegisterAll(const char[]);
 PETSC_EXTERN PetscErrorCode IPRegister(const char[],const char[],const char[],PetscErrorCode(*)(IP));
 PETSC_EXTERN PetscErrorCode IPRegisterDestroy(void);
 
-/*MC
-   IPRegisterDynamic - Adds an inner product to the IP package.
-
-   Synopsis:
-   PetscErrorCode IPRegisterDynamic(const char *name,const char *path,const char *name_create,PetscErrorCode (*routine_create)(IP))
-
-   Not collective
-
-   Input Parameters:
-+  name - name of a new user-defined IP
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create context
--  routine_create - routine to create context
-
-   Notes:
-   IPRegisterDynamic() may be called multiple times to add several user-defined inner products.
-
-   If dynamic libraries are used, then the fourth input argument (routine_create)
-   is ignored.
-
-   Level: advanced
-
-.seealso: IPRegisterDestroy(), IPRegisterAll()
-M*/
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-#define IPRegisterDynamic(a,b,c,d) IPRegister(a,b,c,0)
-#else
-#define IPRegisterDynamic(a,b,c,d) IPRegister(a,b,c,d)
-#endif
-
 PETSC_EXTERN PetscErrorCode IPGetOperationCounters(IP,PetscInt*);
 PETSC_EXTERN PetscErrorCode IPResetOperationCounters(IP);
 

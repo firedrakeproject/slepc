@@ -1,5 +1,5 @@
 /*
-      Spectral transformation module for eigenvalue problems.
+   Spectral transformation module for eigenvalue problems.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -118,48 +118,6 @@ PETSC_EXTERN PetscBool         STRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode STRegisterAll(const char[]);
 PETSC_EXTERN PetscErrorCode STRegisterDestroy(void);
 PETSC_EXTERN PetscErrorCode STRegister(const char[],const char[],const char[],PetscErrorCode(*)(ST));
-
-/*MC
-   STRegisterDynamic - Adds a method to the spectral transformation package.
-
-   Synopsis:
-   PetscErrorCode STRegisterDynamic(const char *name,const char *path,const char *name_create,PetscErrorCode (*routine_create)(ST))
-
-   Not collective
-
-   Input Parameters:
-+  name - name of a new user-defined transformation
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create method context
--  routine_create - routine to create method context
-
-   Notes:
-   STRegisterDynamic() may be called multiple times to add several user-defined
-   spectral transformations.
-
-   If dynamic libraries are used, then the fourth input argument (routine_create)
-   is ignored.
-
-   Sample usage:
-.vb
-   STRegisterDynamic("my_solver","/home/username/my_lib/lib/libO/solaris/mylib.a",
-              "MySolverCreate",MySolverCreate);
-.ve
-
-   Then, your solver can be chosen with the procedural interface via
-$     STSetType(st,"my_solver")
-   or at runtime via the option
-$     -st_type my_solver
-
-   Level: advanced
-
-.seealso: STRegisterDestroy(), STRegisterAll()
-M*/
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-#define STRegisterDynamic(a,b,c,d) STRegister(a,b,c,0)
-#else
-#define STRegisterDynamic(a,b,c,d) STRegister(a,b,c,d)
-#endif
 
 /* --------- options specific to particular spectral transformations-------- */
 

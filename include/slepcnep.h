@@ -176,47 +176,6 @@ PETSC_EXTERN PetscErrorCode NEPRegisterAll(const char[]);
 PETSC_EXTERN PetscErrorCode NEPRegisterDestroy(void);
 PETSC_EXTERN PetscErrorCode NEPRegister(const char[],const char[],const char[],PetscErrorCode(*)(NEP));
 
-/*MC
-   NEPRegisterDynamic - Adds a method to the quadratic eigenproblem solver package.
-
-   Synopsis:
-   PetscErrorCode NEPRegisterDynamic(const char *name_solver,const char *path,const char *name_create,PetscErrorCode (*routine_create)(NEP))
-
-   Not Collective
-
-   Input Parameters:
-+  name_solver - name of a new user-defined solver
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create the solver context
--  routine_create - routine to create the solver context
-
-   Notes:
-   NEPRegisterDynamic() may be called multiple times to add several user-defined solvers.
-
-   If dynamic libraries are used, then the fourth input argument (routine_create)
-   is ignored.
-
-   Sample usage:
-.vb
-   NEPRegisterDynamic("my_solver",/home/username/my_lib/lib/libO/solaris/mylib.a,
-               "MySolverCreate",MySolverCreate);
-.ve
-
-   Then, your solver can be chosen with the procedural interface via
-$     NEPSetType(qep,"my_solver")
-   or at runtime via the option
-$     -qep_type my_solver
-
-   Level: advanced
-
-.seealso: NEPRegisterDestroy(), NEPRegisterAll()
-M*/
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-#define NEPRegisterDynamic(a,b,c,d) NEPRegister(a,b,c,0)
-#else
-#define NEPRegisterDynamic(a,b,c,d) NEPRegister(a,b,c,d)
-#endif
-
 PETSC_EXTERN PetscErrorCode NEPSetWorkVecs(NEP,PetscInt);
 
 /* --------- options specific to particular eigensolvers -------- */

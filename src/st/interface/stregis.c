@@ -40,7 +40,7 @@ PETSC_EXTERN PetscErrorCode STCreate_Precond(ST);
 
    Level: advanced
 
-.seealso: STRegisterDynamic()
+.seealso: STRegister()
 @*/
 PetscErrorCode STRegisterAll(const char *path)
 {
@@ -48,12 +48,12 @@ PetscErrorCode STRegisterAll(const char *path)
 
   PetscFunctionBegin;
   STRegisterAllCalled = PETSC_TRUE;
-  ierr = STRegisterDynamic(STSHELL,path,"STCreate_Shell",STCreate_Shell);CHKERRQ(ierr);
-  ierr = STRegisterDynamic(STSHIFT,path,"STCreate_Shift",STCreate_Shift);CHKERRQ(ierr);
-  ierr = STRegisterDynamic(STSINVERT,path,"STCreate_Sinvert",STCreate_Sinvert);CHKERRQ(ierr);
-  ierr = STRegisterDynamic(STCAYLEY,path,"STCreate_Cayley",STCreate_Cayley);CHKERRQ(ierr);
-  ierr = STRegisterDynamic(STFOLD,path,"STCreate_Fold",STCreate_Fold);CHKERRQ(ierr);
-  ierr = STRegisterDynamic(STPRECOND,path,"STCreate_Precond",STCreate_Precond);CHKERRQ(ierr);
+  ierr = STRegister(STSHELL,path,"STCreate_Shell",STCreate_Shell);CHKERRQ(ierr);
+  ierr = STRegister(STSHIFT,path,"STCreate_Shift",STCreate_Shift);CHKERRQ(ierr);
+  ierr = STRegister(STSINVERT,path,"STCreate_Sinvert",STCreate_Sinvert);CHKERRQ(ierr);
+  ierr = STRegister(STCAYLEY,path,"STCreate_Cayley",STCreate_Cayley);CHKERRQ(ierr);
+  ierr = STRegister(STFOLD,path,"STCreate_Fold",STCreate_Fold);CHKERRQ(ierr);
+  ierr = STRegister(STPRECOND,path,"STCreate_Precond",STCreate_Precond);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

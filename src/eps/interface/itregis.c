@@ -55,7 +55,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps);
 
   Level: advanced
 
-.seealso:  EPSRegisterDynamic()
+.seealso:  EPSRegister()
 @*/
 PetscErrorCode EPSRegisterAll(const char *path)
 {
@@ -63,29 +63,29 @@ PetscErrorCode EPSRegisterAll(const char *path)
 
   PetscFunctionBegin;
   EPSRegisterAllCalled = PETSC_TRUE;
-  ierr = EPSRegisterDynamic(EPSKRYLOVSCHUR,path,"EPSCreate_KrylovSchur",EPSCreate_KrylovSchur);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSPOWER,path,"EPSCreate_Power",EPSCreate_Power);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSSUBSPACE,path,"EPSCreate_Subspace",EPSCreate_Subspace);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSARNOLDI,path,"EPSCreate_Arnoldi",EPSCreate_Arnoldi);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSLANCZOS,path,"EPSCreate_Lanczos",EPSCreate_Lanczos);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSGD,path,"EPSCreate_GD",EPSCreate_GD);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSJD,path,"EPSCreate_JD",EPSCreate_JD);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSRQCG,path,"EPSCreate_RQCG",EPSCreate_RQCG);CHKERRQ(ierr);
-  ierr = EPSRegisterDynamic(EPSLAPACK,path,"EPSCreate_LAPACK",EPSCreate_LAPACK);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSKRYLOVSCHUR,path,"EPSCreate_KrylovSchur",EPSCreate_KrylovSchur);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSPOWER,path,"EPSCreate_Power",EPSCreate_Power);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSSUBSPACE,path,"EPSCreate_Subspace",EPSCreate_Subspace);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSARNOLDI,path,"EPSCreate_Arnoldi",EPSCreate_Arnoldi);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSLANCZOS,path,"EPSCreate_Lanczos",EPSCreate_Lanczos);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSGD,path,"EPSCreate_GD",EPSCreate_GD);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSJD,path,"EPSCreate_JD",EPSCreate_JD);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSRQCG,path,"EPSCreate_RQCG",EPSCreate_RQCG);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSLAPACK,path,"EPSCreate_LAPACK",EPSCreate_LAPACK);CHKERRQ(ierr);
 #if defined(SLEPC_HAVE_ARPACK)
-  ierr = EPSRegisterDynamic(EPSARPACK,path,"EPSCreate_ARPACK",EPSCreate_ARPACK);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSARPACK,path,"EPSCreate_ARPACK",EPSCreate_ARPACK);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_BLZPACK) && !defined(PETSC_USE_COMPLEX)
-  ierr = EPSRegisterDynamic(EPSBLZPACK,path,"EPSCreate_BLZPACK",EPSCreate_BLZPACK);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSBLZPACK,path,"EPSCreate_BLZPACK",EPSCreate_BLZPACK);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_TRLAN) && !defined(PETSC_USE_COMPLEX)
-  ierr = EPSRegisterDynamic(EPSTRLAN,path,"EPSCreate_TRLAN",EPSCreate_TRLAN);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSTRLAN,path,"EPSCreate_TRLAN",EPSCreate_TRLAN);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_BLOPEX)
-  ierr = EPSRegisterDynamic(EPSBLOPEX,path,"EPSCreate_BLOPEX",EPSCreate_BLOPEX);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSBLOPEX,path,"EPSCreate_BLOPEX",EPSCreate_BLOPEX);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_PRIMME)
-  ierr = EPSRegisterDynamic(EPSPRIMME,path,"EPSCreate_PRIMME",EPSCreate_PRIMME);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSPRIMME,path,"EPSCreate_PRIMME",EPSCreate_PRIMME);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }

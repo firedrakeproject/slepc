@@ -1,5 +1,5 @@
 /*
-   User interface for the SLEPC singular value solvers.
+   User interface for SLEPc's singular value solvers.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -159,46 +159,5 @@ PETSC_EXTERN PetscBool         SVDRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode SVDRegisterAll(const char[]);
 PETSC_EXTERN PetscErrorCode SVDRegisterDestroy(void);
 PETSC_EXTERN PetscErrorCode SVDRegister(const char[],const char[],const char[],PetscErrorCode(*)(SVD));
-
-/*MC
-   SVDRegisterDynamic - Adds a method to the singular value solver package.
-
-   Synopsis:
-   PetscErrorCode SVDRegisterDynamic(const char *name_solver,const char *path,const char *name_create,PetscErrorCode (*routine_create)(SVD))
-
-   Not Collective
-
-   Input Parameters:
-+  name_solver - name of a new user-defined solver
-.  path - path (either absolute or relative) the library containing this solver
-.  name_create - name of routine to create the solver context
--  routine_create - routine to create the solver context
-
-   Notes:
-   SVDRegisterDynamic() may be called multiple times to add several user-defined solvers.
-
-   If dynamic libraries are used, then the fourth input argument (routine_create)
-   is ignored.
-
-   Sample usage:
-.vb
-   SVDRegisterDynamic("my_solver",/home/username/my_lib/lib/libO/solaris/mylib.a,
-               "MySolverCreate",MySolverCreate);
-.ve
-
-   Then, your solver can be chosen with the procedural interface via
-$     SVDSetType(svd,"my_solver")
-   or at runtime via the option
-$     -svd_type my_solver
-
-   Level: advanced
-
-.seealso: SVDRegisterDestroy(), SVDRegisterAll()
-M*/
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
-#define SVDRegisterDynamic(a,b,c,d) SVDRegister(a,b,c,0)
-#else
-#define SVDRegisterDynamic(a,b,c,d) SVDRegister(a,b,c,d)
-#endif
 
 #endif

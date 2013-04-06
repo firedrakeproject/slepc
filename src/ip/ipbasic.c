@@ -650,9 +650,22 @@ PetscErrorCode IPResetOperationCounters(IP ip)
 #undef __FUNCT__
 #define __FUNCT__ "IPRegister"
 /*@C
-   IPRegister - See IPRegisterDynamic()
+   IPRegister - Adds an inner product to the IP package.
+
+   Not collective
+
+   Input Parameters:
++  name - name of a new user-defined IP
+.  path - path (either absolute or relative) the library containing this solver
+.  name_create - name of routine to create context
+-  routine_create - routine to create context
+
+   Notes:
+   IPRegister() may be called multiple times to add several user-defined inner products.
 
    Level: advanced
+
+.seealso: IPRegisterDestroy(), IPRegisterAll()
 @*/
 PetscErrorCode IPRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(IP))
 {
@@ -669,13 +682,13 @@ PetscErrorCode IPRegister(const char *sname,const char *path,const char *name,Pe
 #define __FUNCT__ "IPRegisterDestroy"
 /*@
    IPRegisterDestroy - Frees the list of IP methods that were
-   registered by IPRegisterDynamic().
+   registered by IPRegister().
 
    Not Collective
 
    Level: advanced
 
-.seealso: IPRegisterDynamic(), IPRegisterAll()
+.seealso: IPRegister(), IPRegisterAll()
 @*/
 PetscErrorCode IPRegisterDestroy(void)
 {
@@ -711,11 +724,11 @@ PetscErrorCode IPRegisterAll(const char *path)
 
   PetscFunctionBegin;
   IPRegisterAllCalled = PETSC_TRUE;
-  ierr = IPRegisterDynamic(IPBILINEAR,path,"IPCreate_Bilinear",IPCreate_Bilinear);CHKERRQ(ierr);
+  ierr = IPRegister(IPBILINEAR,path,"IPCreate_Bilinear",IPCreate_Bilinear);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-  ierr = IPRegisterDynamic(IPSESQUILINEAR,path,"IPCreate_Sesquilinear",IPCreate_Sesquilinear);CHKERRQ(ierr);
+  ierr = IPRegister(IPSESQUILINEAR,path,"IPCreate_Sesquilinear",IPCreate_Sesquilinear);CHKERRQ(ierr);
 #endif
-  ierr = IPRegisterDynamic(IPINDEFINITE,path,"IPCreate_Indefinite",IPCreate_Indefinite);CHKERRQ(ierr);
+  ierr = IPRegister(IPINDEFINITE,path,"IPCreate_Indefinite",IPCreate_Indefinite);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

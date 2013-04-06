@@ -502,9 +502,33 @@ PetscErrorCode SVDGetType(SVD svd,SVDType *type)
 #undef __FUNCT__
 #define __FUNCT__ "SVDRegister"
 /*@C
-   SVDRegister - See SVDRegisterDynamic()
+   SVDRegister - Adds a method to the singular value solver package.
+
+   Not Collective
+
+   Input Parameters:
++  name_solver - name of a new user-defined solver
+.  path - path (either absolute or relative) the library containing this solver
+.  name_create - name of routine to create the solver context
+-  routine_create - routine to create the solver context
+
+   Notes:
+   SVDRegister() may be called multiple times to add several user-defined solvers.
+
+   Sample usage:
+.vb
+   SVDRegister("my_solver",/home/username/my_lib/lib/libO/solaris/mylib.a,
+               "MySolverCreate",MySolverCreate);
+.ve
+
+   Then, your solver can be chosen with the procedural interface via
+$     SVDSetType(svd,"my_solver")
+   or at runtime via the option
+$     -svd_type my_solver
 
    Level: advanced
+
+.seealso: SVDRegisterDestroy(), SVDRegisterAll()
 @*/
 PetscErrorCode SVDRegister(const char *sname,const char *path,const char *name,PetscErrorCode (*function)(SVD))
 {
@@ -521,13 +545,13 @@ PetscErrorCode SVDRegister(const char *sname,const char *path,const char *name,P
 #define __FUNCT__ "SVDRegisterDestroy"
 /*@
    SVDRegisterDestroy - Frees the list of SVD methods that were
-   registered by SVDRegisterDynamic().
+   registered by SVDRegister().
 
    Not Collective
 
    Level: advanced
 
-.seealso: SVDRegisterDynamic(), SVDRegisterAll()
+.seealso: SVDRegister(), SVDRegisterAll()
 @*/
 PetscErrorCode SVDRegisterDestroy(void)
 {
