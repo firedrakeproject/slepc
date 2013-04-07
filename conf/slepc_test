@@ -24,5 +24,10 @@ include ${PETSC_DIR}/conf/test
 testexamples_BLOPEX: ${TESTEXAMPLES_BLOPEX}
 testexamples_C_NoF128: ${TESTEXAMPLES_C_NOF128}
 
+buildexamples_BLOPEX:
+	-@${OMAKE} testexamples_BLOPEX TESTEXAMPLES_BLOPEX=`echo ${TESTEXAMPLES_BLOPEX} | sed s/runex[0-9]*[a-z0-9_]*//g`
+buildexamples_C_NoF128:
+	-@${OMAKE} testexamples_C_NoF128 TESTEXAMPLES_C_NOF128=`echo ${TESTEXAMPLES_C_NOF128} | sed s/runex[0-9]*[a-z0-9_]*//g`
+
 slepc_alltests: alltests
 	@[ `grep Possible ${PETSC_ARCH}/conf/alltests.log | wc -l` -le 4 ]

@@ -44,7 +44,7 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test12.PETSc runtest12_1 test12.rm \
                            test13.PETSc runtest13_1 test13.rm \
                            test14.PETSc runtest14_1 test14.rm
-TESTEXAMPLES_C_NOCOMPLEX = test1.PETSc runtest1_2 test1.rm \
+TESTEXAMPLES_C_NOCOMPLEX = test1.PETSc runtest1_2 test1.rm
 TESTEXAMPLES_C_NOF128    = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN     = test7f.PETSc runtest7f_1 test7f.rm \
                            test14f.PETSc runtest14f_1 test14f.rm \
@@ -176,9 +176,9 @@ runtest5_1:
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps" >> test5_1.tmp; \
 	   if [ "$$eps" = gd ]; then EXTRA="-eps_ncv 7 -eps_gd_minv 2"; \
-	   elif [ "$$eps" = jd ]; then EXTRA="-eps_ncv 7 -eps_jd_minv 2"; else EXTRA=""; fi; \
+	   elif [ "$$eps" = jd ]; then EXTRA="-eps_ncv 7 -eps_jd_minv 2"; \
 	   elif [ "$$eps" = "gd2" ]; then eps=gd; EXTRA="-eps_gd_double_expansion"; else EXTRA=""; fi; \
-	   ${MPIEXEC} -np 1 ./test5 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA >> test5_1.tmp 2>&1;    \
+	   ${MPIEXEC} -np 1 ./test5 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA >> test5_1.tmp 2>&1; \
 	done; \
 	if (${GREP} USE_COMPLEX ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
 	  [ x${SAVE_OUTPUT} = xyes ] && cp test5_1.tmp output/test5_1_complex.out; \
