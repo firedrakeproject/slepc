@@ -87,7 +87,7 @@ int main(int argc,char **argv)
      Read user constraints if available
   */
   ierr = PetscOptionsGetInt(NULL,"-nconstr",&ncon,&flg);CHKERRQ(ierr);
-  if (flg && ncon>0) {
+  if (flg) {
     if (ncon<=0) SETERRQ(PETSC_COMM_WORLD,1,"The number of constraints must be >0");
     ierr = PetscOptionsGetString(NULL,"-fconstr",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must specify the name of the file storing the constraints");
@@ -103,7 +103,7 @@ int main(int argc,char **argv)
      Read initial guesses if available
   */
   ierr = PetscOptionsGetInt(NULL,"-ninitial",&nini,&flg);CHKERRQ(ierr);
-  if (flg && nini>0) {
+  if (flg) {
     if (nini<=0) SETERRQ(PETSC_COMM_WORLD,1,"The number of initial vectors must be >0");
     ierr = PetscOptionsGetString(NULL,"-finitial",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must specify the name of the file containing the initial vectors");
