@@ -108,11 +108,11 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
   max_cS = PetscMax(b->max_size_X,cX_proj);
   b->max_size_auxS = PetscMax(PetscMax(
     b->max_size_auxS,
-    b->max_size_X*b->max_size_proj*2*(std_probl?1:2) + /* updateAV1,BV1 */
+    b->max_size_proj*b->max_size_proj*2*(std_probl?1:2) + /* updateAV1,BV1 */
       max_cS*b->max_nev*(her_ind_probl?0:(!d->B?1:2)) + /* updateV0,W0 */
                                                      /* SlepcReduction: in */
       PetscMax(
-        b->max_size_X*b->max_size_proj*2*(std_probl?1:2) + /* updateAV1,BV1 */
+        b->max_size_proj*b->max_size_proj*2*(std_probl?1:2) + /* updateAV1,BV1 */
           max_cS*b->max_nev*(her_ind_probl?0:(!d->B?1:2)), /* updateV0,W0 */
                                                     /* SlepcReduction: out */
         PetscMax(
