@@ -45,9 +45,11 @@ const char *EPSPRIMMEMethods[] = {"DYNAMIC","DEFAULT_MIN_TIME","DEFAULT_MIN_MATV
 @*/
 PetscErrorCode EPSFinalizePackage(void)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscFunctionListDestroy(&EPSList);CHKERRQ(ierr);
   EPSPackageInitialized = PETSC_FALSE;
-  EPSList               = 0;
   EPSRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
@@ -610,7 +612,7 @@ $     -eps_type my_solver
 
    Level: advanced
 
-.seealso: EPSRegisterDestroy(), EPSRegisterAll()
+.seealso: EPSRegisterAll()
 @*/
 PetscErrorCode EPSRegister(const char *name,PetscErrorCode (*function)(EPS))
 {
@@ -618,28 +620,6 @@ PetscErrorCode EPSRegister(const char *name,PetscErrorCode (*function)(EPS))
 
   PetscFunctionBegin;
   ierr = PetscFunctionListAdd(&EPSList,name,function);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSRegisterDestroy"
-/*@
-   EPSRegisterDestroy - Frees the list of EPS methods that were
-   registered by EPSRegister().
-
-   Not Collective
-
-   Level: advanced
-
-.seealso: EPSRegister(), EPSRegisterAll()
-@*/
-PetscErrorCode EPSRegisterDestroy(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&EPSList);CHKERRQ(ierr);
-  EPSRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

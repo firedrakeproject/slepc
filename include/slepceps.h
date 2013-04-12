@@ -257,7 +257,6 @@ PETSC_EXTERN PetscErrorCode EPSGetStartVectorLeft(EPS,PetscInt,Vec,PetscBool*);
 PETSC_EXTERN PetscFunctionList EPSList;
 PETSC_EXTERN PetscBool         EPSRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode EPSRegisterAll(void);
-PETSC_EXTERN PetscErrorCode EPSRegisterDestroy(void);
 PETSC_EXTERN PetscErrorCode EPSRegister(const char[],PetscErrorCode(*)(EPS));
 
 PETSC_EXTERN PetscErrorCode EPSSetWorkVecs(EPS,PetscInt);

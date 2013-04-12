@@ -41,9 +41,11 @@ static PetscBool  SVDPackageInitialized = PETSC_FALSE;
 @*/
 PetscErrorCode SVDFinalizePackage(void)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscFunctionListDestroy(&SVDList);CHKERRQ(ierr);
   SVDPackageInitialized = PETSC_FALSE;
-  SVDList               = 0;
   SVDRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
@@ -522,7 +524,7 @@ $     -svd_type my_solver
 
    Level: advanced
 
-.seealso: SVDRegisterDestroy(), SVDRegisterAll()
+.seealso: SVDRegisterAll()
 @*/
 PetscErrorCode SVDRegister(const char *name,PetscErrorCode (*function)(SVD))
 {
@@ -530,28 +532,6 @@ PetscErrorCode SVDRegister(const char *name,PetscErrorCode (*function)(SVD))
 
   PetscFunctionBegin;
   ierr = PetscFunctionListAdd(&SVDList,name,function);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SVDRegisterDestroy"
-/*@
-   SVDRegisterDestroy - Frees the list of SVD methods that were
-   registered by SVDRegister().
-
-   Not Collective
-
-   Level: advanced
-
-.seealso: SVDRegister(), SVDRegisterAll()
-@*/
-PetscErrorCode SVDRegisterDestroy(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&SVDList);CHKERRQ(ierr);
-  SVDRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

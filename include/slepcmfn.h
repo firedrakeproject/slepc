@@ -108,7 +108,6 @@ PETSC_EXTERN PetscErrorCode MFNGetConvergedReason(MFN,MFNConvergedReason *);
 PETSC_EXTERN PetscFunctionList MFNList;
 PETSC_EXTERN PetscBool         MFNRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode MFNRegisterAll(void);
-PETSC_EXTERN PetscErrorCode MFNRegisterDestroy(void);
 PETSC_EXTERN PetscErrorCode MFNRegister(const char[],PetscErrorCode(*)(MFN));
 
 #endif

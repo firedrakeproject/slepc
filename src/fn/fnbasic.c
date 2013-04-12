@@ -40,9 +40,11 @@ static PetscBool  FNPackageInitialized = PETSC_FALSE;
 @*/
 PetscErrorCode FNFinalizePackage(void)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscFunctionListDestroy(&FNList);CHKERRQ(ierr);
   FNPackageInitialized = PETSC_FALSE;
-  FNList               = 0;
   FNRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
@@ -561,7 +563,7 @@ PetscErrorCode FNDestroy(FN *fn)
 
    Level: advanced
 
-.seealso: FNRegisterDestroy(), FNRegisterAll()
+.seealso: FNRegisterAll()
 @*/
 PetscErrorCode FNRegister(const char *name,PetscErrorCode (*function)(FN))
 {
@@ -569,28 +571,6 @@ PetscErrorCode FNRegister(const char *name,PetscErrorCode (*function)(FN))
 
   PetscFunctionBegin;
   ierr = PetscFunctionListAdd(&FNList,name,function);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "FNRegisterDestroy"
-/*@
-   FNRegisterDestroy - Frees the list of FN methods that were
-   registered by FNRegister().
-
-   Not Collective
-
-   Level: advanced
-
-.seealso: FNRegister(), FNRegisterAll()
-@*/
-PetscErrorCode FNRegisterDestroy(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&FNList);CHKERRQ(ierr);
-  FNRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

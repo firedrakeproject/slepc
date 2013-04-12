@@ -43,9 +43,11 @@ DSMatType         DSMatExtra[DS_NUM_EXTRA] = {DS_MAT_E0,DS_MAT_E1,DS_MAT_E2,DS_M
 @*/
 PetscErrorCode DSFinalizePackage(void)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscFunctionListDestroy(&DSList);CHKERRQ(ierr);
   DSPackageInitialized = PETSC_FALSE;
-  DSList               = 0;
   DSRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
@@ -1032,7 +1034,7 @@ PetscErrorCode DSDestroy(DS *ds)
 
    Level: advanced
 
-.seealso: DSRegisterDestroy(), DSRegisterAll()
+.seealso: DSRegisterAll()
 @*/
 PetscErrorCode DSRegister(const char *name,PetscErrorCode (*function)(DS))
 {
@@ -1040,28 +1042,6 @@ PetscErrorCode DSRegister(const char *name,PetscErrorCode (*function)(DS))
 
   PetscFunctionBegin;
   ierr = PetscFunctionListAdd(&DSList,name,function);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "DSRegisterDestroy"
-/*@
-   DSRegisterDestroy - Frees the list of DS methods that were
-   registered by DSRegister().
-
-   Not Collective
-
-   Level: advanced
-
-.seealso: DSRegister(), DSRegisterAll()
-@*/
-PetscErrorCode DSRegisterDestroy(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&DSList);CHKERRQ(ierr);
-  DSRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

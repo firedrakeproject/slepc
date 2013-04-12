@@ -41,9 +41,11 @@ static PetscBool  NEPPackageInitialized = PETSC_FALSE;
 @*/
 PetscErrorCode NEPFinalizePackage(void)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscFunctionListDestroy(&NEPList);CHKERRQ(ierr);
   NEPPackageInitialized = PETSC_FALSE;
-  NEPList               = 0;
   NEPRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
@@ -415,7 +417,7 @@ $     -qep_type my_solver
 
    Level: advanced
 
-.seealso: NEPRegisterDestroy(), NEPRegisterAll()
+.seealso: NEPRegisterAll()
 @*/
 PetscErrorCode NEPRegister(const char *name,PetscErrorCode (*function)(NEP))
 {
@@ -423,28 +425,6 @@ PetscErrorCode NEPRegister(const char *name,PetscErrorCode (*function)(NEP))
 
   PetscFunctionBegin;
   ierr = PetscFunctionListAdd(&NEPList,name,function);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPRegisterDestroy"
-/*@
-   NEPRegisterDestroy - Frees the list of NEP methods that were
-   registered by NEPRegister().
-
-   Not Collective
-
-   Level: advanced
-
-.seealso: NEPRegister(), NEPRegisterAll()
-@*/
-PetscErrorCode NEPRegisterDestroy(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&NEPList);CHKERRQ(ierr);
-  NEPRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

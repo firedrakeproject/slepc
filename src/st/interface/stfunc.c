@@ -39,9 +39,11 @@ static PetscBool STPackageInitialized = PETSC_FALSE;
 @*/
 PetscErrorCode STFinalizePackage(void)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscFunctionListDestroy(&STList);CHKERRQ(ierr);
   STPackageInitialized = PETSC_FALSE;
-  STList               = 0;
   STRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
@@ -678,7 +680,7 @@ $     -st_type my_solver
 
    Level: advanced
 
-.seealso: STRegisterDestroy(), STRegisterAll()
+.seealso: STRegisterAll()
 @*/
 PetscErrorCode STRegister(const char *name,PetscErrorCode (*function)(ST))
 {
@@ -689,24 +691,3 @@ PetscErrorCode STRegister(const char *name,PetscErrorCode (*function)(ST))
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STRegisterDestroy"
-/*@
-   STRegisterDestroy - Frees the list of ST methods that were
-   registered by STRegister().
-
-   Not Collective
-
-   Level: advanced
-
-.seealso: STRegister(), STRegisterAll()
-@*/
-PetscErrorCode STRegisterDestroy(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&STList);CHKERRQ(ierr);
-  STRegisterAllCalled = PETSC_FALSE;
-  PetscFunctionReturn(0);
-}

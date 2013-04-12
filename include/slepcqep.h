@@ -171,7 +171,6 @@ PETSC_EXTERN PetscErrorCode QEPCompareEigenvalues(QEP,PetscScalar,PetscScalar,Pe
 PETSC_EXTERN PetscFunctionList QEPList;
 PETSC_EXTERN PetscBool         QEPRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode QEPRegisterAll(void);
-PETSC_EXTERN PetscErrorCode QEPRegisterDestroy(void);
 PETSC_EXTERN PetscErrorCode QEPRegister(const char[],PetscErrorCode(*)(QEP));
 
 PETSC_EXTERN PetscErrorCode QEPSetWorkVecs(QEP,PetscInt);

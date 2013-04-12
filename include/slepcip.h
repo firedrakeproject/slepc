@@ -114,7 +114,6 @@ PETSC_EXTERN PetscFunctionList IPList;
 PETSC_EXTERN PetscBool         IPRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode IPRegisterAll(void);
 PETSC_EXTERN PetscErrorCode IPRegister(const char[],PetscErrorCode(*)(IP));
-PETSC_EXTERN PetscErrorCode IPRegisterDestroy(void);
 
 PETSC_EXTERN PetscErrorCode IPGetOperationCounters(IP,PetscInt*);
 PETSC_EXTERN PetscErrorCode IPResetOperationCounters(IP);

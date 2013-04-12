@@ -41,9 +41,11 @@ static PetscBool  QEPPackageInitialized = PETSC_FALSE;
 @*/
 PetscErrorCode QEPFinalizePackage(void)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscFunctionListDestroy(&QEPList);CHKERRQ(ierr);
   QEPPackageInitialized = PETSC_FALSE;
-  QEPList               = 0;
   QEPRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
@@ -522,7 +524,7 @@ $     -qep_type my_solver
 
    Level: advanced
 
-.seealso: QEPRegisterDestroy(), QEPRegisterAll()
+.seealso: QEPRegisterAll()
 @*/
 PetscErrorCode QEPRegister(const char *name,PetscErrorCode (*function)(QEP))
 {
@@ -530,28 +532,6 @@ PetscErrorCode QEPRegister(const char *name,PetscErrorCode (*function)(QEP))
 
   PetscFunctionBegin;
   ierr = PetscFunctionListAdd(&QEPList,name,function);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "QEPRegisterDestroy"
-/*@
-   QEPRegisterDestroy - Frees the list of QEP methods that were
-   registered by QEPRegister().
-
-   Not Collective
-
-   Level: advanced
-
-.seealso: QEPRegister(), QEPRegisterAll()
-@*/
-PetscErrorCode QEPRegisterDestroy(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&QEPList);CHKERRQ(ierr);
-  QEPRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

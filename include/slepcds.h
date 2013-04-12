@@ -180,6 +180,5 @@ PETSC_EXTERN PetscFunctionList DSList;
 PETSC_EXTERN PetscBool         DSRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode DSRegisterAll(void);
 PETSC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));
-PETSC_EXTERN PetscErrorCode DSRegisterDestroy(void);
 
 #endif

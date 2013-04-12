@@ -41,9 +41,11 @@ static PetscBool  IPPackageInitialized = PETSC_FALSE;
 @*/
 PetscErrorCode IPFinalizePackage(void)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscFunctionListDestroy(&IPList);CHKERRQ(ierr);
   IPPackageInitialized = PETSC_FALSE;
-  IPList               = 0;
   IPRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
@@ -660,7 +662,7 @@ PetscErrorCode IPResetOperationCounters(IP ip)
 
    Level: advanced
 
-.seealso: IPRegisterDestroy(), IPRegisterAll()
+.seealso: IPRegisterAll()
 @*/
 PetscErrorCode IPRegister(const char *name,PetscErrorCode (*function)(IP))
 {
@@ -668,28 +670,6 @@ PetscErrorCode IPRegister(const char *name,PetscErrorCode (*function)(IP))
 
   PetscFunctionBegin;
   ierr = PetscFunctionListAdd(&IPList,name,function);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "IPRegisterDestroy"
-/*@
-   IPRegisterDestroy - Frees the list of IP methods that were
-   registered by IPRegister().
-
-   Not Collective
-
-   Level: advanced
-
-.seealso: IPRegister(), IPRegisterAll()
-@*/
-PetscErrorCode IPRegisterDestroy(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&IPList);CHKERRQ(ierr);
-  IPRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

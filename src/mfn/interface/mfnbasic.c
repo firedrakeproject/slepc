@@ -41,9 +41,11 @@ static PetscBool  MFNPackageInitialized = PETSC_FALSE;
 @*/
 PetscErrorCode MFNFinalizePackage(void)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscFunctionListDestroy(&MFNList);CHKERRQ(ierr);
   MFNPackageInitialized = PETSC_FALSE;
-  MFNList               = 0;
   MFNRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
@@ -338,7 +340,7 @@ $     -mfn_type my_solver
 
    Level: advanced
 
-.seealso: MFNRegisterDestroy(), MFNRegisterAll()
+.seealso: MFNRegisterAll()
 @*/
 PetscErrorCode MFNRegister(const char *name,PetscErrorCode (*function)(MFN))
 {
@@ -346,28 +348,6 @@ PetscErrorCode MFNRegister(const char *name,PetscErrorCode (*function)(MFN))
 
   PetscFunctionBegin;
   ierr = PetscFunctionListAdd(&MFNList,name,function);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "MFNRegisterDestroy"
-/*@
-   MFNRegisterDestroy - Frees the list of MFN methods that were
-   registered by MFNRegister().
-
-   Not Collective
-
-   Level: advanced
-
-.seealso: MFNRegister(), MFNRegisterAll()
-@*/
-PetscErrorCode MFNRegisterDestroy(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&MFNList);CHKERRQ(ierr);
-  MFNRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

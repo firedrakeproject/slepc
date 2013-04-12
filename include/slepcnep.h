@@ -173,7 +173,6 @@ PETSC_EXTERN PetscErrorCode NEPCompareEigenvalues(NEP,PetscScalar,PetscScalar,Pe
 PETSC_EXTERN PetscFunctionList NEPList;
 PETSC_EXTERN PetscBool         NEPRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode NEPRegisterAll(void);
-PETSC_EXTERN PetscErrorCode NEPRegisterDestroy(void);
 PETSC_EXTERN PetscErrorCode NEPRegister(const char[],PetscErrorCode(*)(NEP));
 
 PETSC_EXTERN PetscErrorCode NEPSetWorkVecs(NEP,PetscInt);
