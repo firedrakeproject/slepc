@@ -27,6 +27,8 @@ DOC_GEN	= $(subst .tex,.aux,$(DOC_TEX)) \
 	  slepc.sinv2.gnuplot \
 	  slepc.sinv2.table
 
+LOCDIR  = docs/manual/
+
 default: pdf
 
 .SUFFIXES: .tex .pdf

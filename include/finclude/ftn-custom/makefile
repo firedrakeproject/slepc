@@ -19,6 +19,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-LOCDIR   = include/finclude/ftn-custom
+LOCDIR   = include/finclude/ftn-custom/
 
 include ${SLEPC_DIR}/conf/slepc_common

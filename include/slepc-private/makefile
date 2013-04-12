@@ -27,7 +27,7 @@ SOURCEH  = epsimpl.h stimpl.h svdimpl.h ipimpl.h qepimpl.h nepimpl.h \
            mfnimpl.h dsimpl.h fnimpl.h slepcimpl.h
 LIBBASE  = libslepc
 DIRS     = 
-LOCDIR   = include/
+LOCDIR   = include/slepc-private/
 MANSEC   = 
 
 include ${SLEPC_DIR}/conf/slepc_common
