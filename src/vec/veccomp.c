@@ -22,8 +22,9 @@
 #include <slepc-private/vecimplslepc.h>     /*I "slepcvec.h" I*/
 
 /* Private MPI datatypes and operators */
-MPI_Datatype MPIU_NORM2=0, MPIU_NORM1_AND_2=0;
-MPI_Op MPIU_NORM2_SUM=0;
+static MPI_Datatype MPIU_NORM2=0, MPIU_NORM1_AND_2=0;
+static MPI_Op MPIU_NORM2_SUM=0;
+static PetscBool VecCompInitialized = PETSC_FALSE;
 
 /* Private inline functions */
 PETSC_STATIC_INLINE void SumNorm2(PetscReal *,PetscReal *,PetscReal *,PetscReal *);
@@ -71,7 +72,7 @@ PETSC_STATIC_INLINE void AddNorm2(PetscReal *ssq,PetscReal *scale,PetscReal x)
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcSumNorm2_Local"
-void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
+static void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
 {
   PetscInt       i,count = *cnt;
 
@@ -96,7 +97,7 @@ void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datat
 
 #undef __FUNCT__
 #define __FUNCT__ "VecNormCompEnd"
-PetscErrorCode VecNormCompEnd(void)
+static PetscErrorCode VecNormCompEnd(void)
 {
   PetscErrorCode ierr;
 
@@ -109,7 +110,7 @@ PetscErrorCode VecNormCompEnd(void)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecNormCompInit"
-PetscErrorCode VecNormCompInit()
+static PetscErrorCode VecNormCompInit()
 {
   PetscErrorCode ierr;
 
@@ -302,18 +303,6 @@ PETSC_EXTERN PetscErrorCode VecCreate_Comp(Vec V)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "VecRegister_Comp"
-PetscErrorCode VecRegister_Comp(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = VecRegister(VECCOMP,VecCreate_Comp);CHKERRQ(ierr);
-  ierr = VecNormCompInit();CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "VecCreateComp"
 /*@C
    VecCreateComp - Creates a new vector containing several subvectors, each stored separately
@@ -346,6 +335,13 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec
 
   PetscFunctionBegin;
   ierr = VecCreate(comm,V);CHKERRQ(ierr);
+#if !defined(PETSC_USE_DYNAMIC_LIBRARIES)
+  if (!VecCompInitialized) {
+    VecCompInitialized = PETSC_TRUE;
+    ierr = VecRegister(VECCOMP,VecCreate_Comp);CHKERRQ(ierr);
+    ierr = VecNormCompInit();CHKERRQ(ierr);
+  }
+#endif
   ierr = PetscMalloc(sizeof(Vec)*n,&x);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     ierr = VecCreate(comm,&x[i]);CHKERRQ(ierr);

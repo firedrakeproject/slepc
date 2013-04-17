@@ -153,8 +153,6 @@ PetscErrorCode SlepcInitialize_Packages(void)
   ierr = IPInitializePackage();CHKERRQ(ierr);
   ierr = DSInitializePackage();CHKERRQ(ierr);
   ierr = FNInitializePackage();CHKERRQ(ierr);
-  /* New special type of Vec, implemented in SLEPc */
-  ierr = VecRegister_Comp();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
