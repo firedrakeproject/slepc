@@ -21,10 +21,107 @@
 
 #include <slepc-private/vecimplslepc.h>     /*I "slepcvec.h" I*/
 
+/* Private MPI datatypes and operators */
+MPI_Datatype MPIU_NORM2=0, MPIU_NORM1_AND_2=0;
+MPI_Op MPIU_NORM2_SUM=0;
+
+/* Private inline functions */
+PETSC_STATIC_INLINE void SumNorm2(PetscReal *,PetscReal *,PetscReal *,PetscReal *);
+PETSC_STATIC_INLINE PetscReal GetNorm2(PetscReal,PetscReal);
+PETSC_STATIC_INLINE void AddNorm2(PetscReal *,PetscReal *,PetscReal);
+
 #include "veccomp0.h"
 
 #define __WITH_MPI__
 #include "veccomp0.h"
+
+PETSC_STATIC_INLINE void SumNorm2(PetscReal *ssq0,PetscReal *scale0,PetscReal *ssq1,PetscReal *scale1)
+{
+  PetscReal q;
+  if (*scale0 > *scale1) {
+    q = *scale1/(*scale0);
+    *ssq1 = *ssq0 + q*q*(*ssq1);
+    *scale1 = *scale0;
+  } else {
+    q = *scale0/(*scale1);
+    *ssq1 += q*q*(*ssq0);
+  }
+}
+
+PETSC_STATIC_INLINE PetscReal GetNorm2(PetscReal ssq,PetscReal scale)
+{
+  return scale*PetscSqrtReal(ssq);
+}
+
+PETSC_STATIC_INLINE void AddNorm2(PetscReal *ssq,PetscReal *scale,PetscReal x)
+{
+  PetscReal absx,q;
+  if (x != 0.0) {
+    absx = PetscAbs(x);
+    if (*scale < absx) {
+      q = *scale/absx;
+      *ssq = 1.0 + *ssq*q*q;
+      *scale = absx;
+    } else {
+      q = absx/(*scale);
+      *ssq += q*q;
+    }
+  }
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SlepcSumNorm2_Local"
+void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
+{
+  PetscInt       i,count = *cnt;
+
+  PetscFunctionBegin;
+  if (*datatype == MPIU_NORM2) {
+    PetscReal *xin = (PetscReal*)in,*xout = (PetscReal*)out;
+    for (i=0; i<count; i++) {
+      SumNorm2(&xin[i*2],&xin[i*2+1],&xout[i*2],&xout[i*2+1]);
+    }
+  } else if (*datatype == MPIU_NORM1_AND_2) {
+    PetscReal *xin = (PetscReal*)in,*xout = (PetscReal*)out;
+    for (i=0; i<count; i++) {
+      xout[i*3]+= xin[i*3];
+      SumNorm2(&xin[i*3+1],&xin[i*3+2],&xout[i*3+1],&xout[i*3+2]);
+    }
+  } else {
+    (*PetscErrorPrintf)("Can only handle MPIU_NORM* data types");
+    MPI_Abort(MPI_COMM_WORLD,1);
+  }
+  PetscFunctionReturnVoid();
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "VecNormCompEnd"
+PetscErrorCode VecNormCompEnd(void)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = MPI_Type_free(&MPIU_NORM2);CHKERRQ(ierr);
+  ierr = MPI_Type_free(&MPIU_NORM1_AND_2);CHKERRQ(ierr);
+  ierr = MPI_Op_free(&MPIU_NORM2_SUM);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "VecNormCompInit"
+PetscErrorCode VecNormCompInit()
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = MPI_Type_contiguous(sizeof(PetscReal)*2,MPI_BYTE,&MPIU_NORM2);CHKERRQ(ierr);
+  ierr = MPI_Type_commit(&MPIU_NORM2);CHKERRQ(ierr);
+  ierr = MPI_Type_contiguous(sizeof(PetscReal)*3,MPI_BYTE,&MPIU_NORM1_AND_2);CHKERRQ(ierr);
+  ierr = MPI_Type_commit(&MPIU_NORM1_AND_2);CHKERRQ(ierr);
+  ierr = MPI_Op_create(SlepcSumNorm2_Local,1,&MPIU_NORM2_SUM);CHKERRQ(ierr);
+  ierr = PetscRegisterFinalize(VecNormCompEnd);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "VecDestroy_Comp"
