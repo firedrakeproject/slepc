@@ -31,8 +31,6 @@ PETSC_STATIC_INLINE void SumNorm2(PetscReal *,PetscReal *,PetscReal *,PetscReal 
 PETSC_STATIC_INLINE PetscReal GetNorm2(PetscReal,PetscReal);
 PETSC_STATIC_INLINE void AddNorm2(PetscReal *,PetscReal *,PetscReal);
 
-PETSC_EXTERN PetscErrorCode VecCreate_Comp(Vec);
-
 #include "veccomp0.h"
 
 #define __WITH_MPI__
