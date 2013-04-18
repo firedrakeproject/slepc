@@ -105,6 +105,7 @@ static PetscErrorCode VecNormCompEnd(void)
   ierr = MPI_Type_free(&MPIU_NORM2);CHKERRQ(ierr);
   ierr = MPI_Type_free(&MPIU_NORM1_AND_2);CHKERRQ(ierr);
   ierr = MPI_Op_free(&MPIU_NORM2_SUM);CHKERRQ(ierr);
+  VecCompInitialized = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -249,6 +250,13 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
   PetscInt       N=0,lN=0,i,k;
 
   PetscFunctionBegin;
+#if !defined(PETSC_USE_DYNAMIC_LIBRARIES)
+  if (!VecCompInitialized) {
+    VecCompInitialized = PETSC_TRUE;
+    ierr = VecRegister(VECCOMP,VecCreate_Comp);CHKERRQ(ierr);
+    ierr = VecNormCompInit();CHKERRQ(ierr);
+  }
+#endif
   /* Allocate a new Vec_Comp */
   if (v->data) { ierr = PetscFree(v->data);CHKERRQ(ierr); }
   ierr = PetscNewLog(v,Vec_Comp,&s);CHKERRQ(ierr);
@@ -335,13 +343,6 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec
 
   PetscFunctionBegin;
   ierr = VecCreate(comm,V);CHKERRQ(ierr);
-#if !defined(PETSC_USE_DYNAMIC_LIBRARIES)
-  if (!VecCompInitialized) {
-    VecCompInitialized = PETSC_TRUE;
-    ierr = VecRegister(VECCOMP,VecCreate_Comp);CHKERRQ(ierr);
-    ierr = VecNormCompInit();CHKERRQ(ierr);
-  }
-#endif
   ierr = PetscMalloc(sizeof(Vec)*n,&x);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     ierr = VecCreate(comm,&x[i]);CHKERRQ(ierr);
