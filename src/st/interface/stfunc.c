@@ -593,7 +593,6 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   const char*    pat;
   char           str[50];
   PetscBool      isascii,isstring,flg;
-  PC             pc;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -640,12 +639,6 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STSHIFT,STFOLD,"");CHKERRQ(ierr);
   if (st->nmat>1 || !flg) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    /* Trick for PCView when an unused PC is showed */
-    ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
-    ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = PCSetOperators(pc,NULL,NULL,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
