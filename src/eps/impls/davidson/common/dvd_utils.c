@@ -44,7 +44,7 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d,dvdBlackboard *b,PC pc)
   PetscErrorCode  ierr;
   dvdPCWrapper    *dvdpc;
   Mat             P;
-  MatStructure    str;
+  PetscBool       t0,t1;
 
   PetscFunctionBegin;
   /* Setup the step */
@@ -59,10 +59,12 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d,dvdBlackboard *b,PC pc)
 
       /* PC saves the matrix associated with the linear system, and it has to
          be initialize to a valid matrix */
-      ierr = PCGetOperators(pc, NULL, &P, &str);CHKERRQ(ierr);
-      if (P) {
+      ierr = PCGetOperatorsSet(pc,NULL,&t0);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&t1);CHKERRQ(ierr);
+      if (t0 && !t1) {
+        ierr = PCGetOperators(pc, NULL, &P, NULL);CHKERRQ(ierr);
         ierr = PetscObjectReference((PetscObject)P);CHKERRQ(ierr);
-        ierr = PCSetOperators(pc, P, P, str);CHKERRQ(ierr);
+        ierr = PCSetOperators(pc, P, P, SAME_PRECONDITIONER);CHKERRQ(ierr);
         ierr = MatDestroy(&P);CHKERRQ(ierr);
       } else d->improvex_precond = dvd_precond_none;
 
