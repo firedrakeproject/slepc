@@ -80,7 +80,7 @@ info: chk_makej
 	-@echo "-----------------------------------------"
 	-@grep "define PETSC_VERSION" ${PETSC_DIR}/include/petscversion.h | ${SED} "s/........//"
 	-@echo "-----------------------------------------"
-	-@echo "Using PETSc configure options:" ${CONFIGURE_OPTIONS}
+	-@echo "Using PETSc configure options: ${CONFIGURE_OPTIONS}"
 	-@echo "Using SLEPc configuration flags:"
 	-@cat ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcvariables
 	-@grep "\#define " ${SLEPC_DIR}/${PETSC_ARCH}/include/slepcconf.h
