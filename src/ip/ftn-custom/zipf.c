@@ -27,7 +27,7 @@
 #define ipdestroy_                IPDESTROY
 #define ipsetoptionsprefix_       IPSETOPTIONSPREFIX
 #define ipappendoptionsprefix_    IPAPPENDOPTIONSPREFIX
-#define ipgetoptionsprefix_       IPSETOPTIONSPREFIX
+#define ipgetoptionsprefix_       IPGETOPTIONSPREFIX
 #define ipgetorthogonalization_   IPGETORTHOGONALIZATION
 #define ipview_                   IPVIEW
 #define ipgetmatrix_              IPGETMATRIX

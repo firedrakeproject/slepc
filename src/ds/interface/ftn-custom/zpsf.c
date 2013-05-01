@@ -27,7 +27,7 @@
 #define dsdestroy_                DSDESTROY
 #define dssetoptionsprefix_       DSSETOPTIONSPREFIX
 #define dsappendoptionsprefix_    DSAPPENDOPTIONSPREFIX
-#define dsgetoptionsprefix_       DSSETOPTIONSPREFIX
+#define dsgetoptionsprefix_       DSGETOPTIONSPREFIX
 #define dsview_                   DSVIEW
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define dscreate_                 dscreate
