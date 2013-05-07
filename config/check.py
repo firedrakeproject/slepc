@@ -35,10 +35,11 @@ def LinkWithOutput(tmpdir,functions,callbacks,flags):
     code += 'int '+ c + '() { return 0; } \n'
 
   code += 'int main() {\n'
-  code += 'PetscInitialize(NULL,NULL,NULL,NULL);\n'
-  code += 'VecCreate(NULL,NULL);\n'
-  code += 'MatCreate(NULL,NULL);\n'
-  code += 'KSPCreate(NULL,NULL);\n'
+  code += 'Vec v; Mat m; KSP k;\n'
+  code += 'PetscInitializeNoArguments();\n'
+  code += 'VecCreate(PETSC_COMM_WORLD,&v);\n'
+  code += 'MatCreate(PETSC_COMM_WORLD,&m);\n'
+  code += 'KSPCreate(PETSC_COMM_WORLD,&k);\n'
   for f in functions:
     code += f + '();\n'
   code += 'return 0;\n}\n'
