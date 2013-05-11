@@ -100,14 +100,14 @@ static PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,Pet
   ierr = VecMDot(v,j_1,V,h);CHKERRQ(ierr);
   ierr = VecMDot(w,j_1,V,work);CHKERRQ(ierr);
   if (j>0)
-    PetscStackCall("BLASgemv",BLASgemv_("C",&j_1,&j,&one,H,&ldh,work,&ione,&one,h,&ione));
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&j_1,&j,&one,H,&ldh,work,&ione,&one,h,&ione));
   ierr = VecDot(w,t,&dot);CHKERRQ(ierr);
   h[j] += dot;
 
   /* orthogonalize: update v and w */
   ierr = SlepcVecMAXPBY(v,1.0,-1.0,j_1,h,V);CHKERRQ(ierr);
   if (j>0) {
-    PetscStackCall("BLASgemv",BLASgemv_("N",&j_1,&j,&one,H,&ldh,h,&ione,&zero,work,&ione));
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&j_1,&j,&one,H,&ldh,h,&ione,&zero,work,&ione));
     ierr = SlepcVecMAXPBY(w,1.0,-1.0,j_1,work,V);CHKERRQ(ierr);
   }
   ierr = VecAXPY(w,-h[j],t);CHKERRQ(ierr);

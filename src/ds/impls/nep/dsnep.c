@@ -106,7 +106,7 @@ PetscErrorCode DSNormalize_NEP(DS ds,DSMatType mat,PetscInt col)
   for (i=i0;i<i1;i++) {
     norm = BLASnrm2_(&n,&x[ld*i],&one);
     norm = 1.0/norm;
-    PetscStackCall("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
+    PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
   }
   PetscFunctionReturn(0);
 }
@@ -204,10 +204,10 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
     /* % compute eigenvalue correction mu and eigenvector u */
 #if defined(PETSC_USE_COMPLEX)
     rwork = ds->rwork;
-    PetscStackCall("LAPACKggev",LAPACKggev_("N","V",&n,A,&ld,B,&ld,alpha,beta,NULL,&ld,W,&ld,work,&lwork,rwork,&info));
+    PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&n,A,&ld,B,&ld,alpha,beta,NULL,&ld,W,&ld,work,&lwork,rwork,&info));
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack ZGGEV %d",info);
 #else
-    PetscStackCall("LAPACKggev",LAPACKggev_("N","V",&n,A,&ld,B,&ld,alpha,alphai,beta,NULL,&ld,W,&ld,work,&lwork,&info));
+    PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&n,A,&ld,B,&ld,alpha,alphai,beta,NULL,&ld,W,&ld,work,&lwork,&info));
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DGGEV %d",info);
 #endif
 
@@ -246,7 +246,7 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
     ierr = PetscMemcpy(X,W+pos*ld,n*sizeof(PetscScalar));CHKERRQ(ierr);
     norm = BLASnrm2_(&n,X,&one);
     norm = 1.0/norm;
-    PetscStackCall("BLASscal",BLASscal_(&n,&norm,X,&one));
+    PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,X,&one));
 
     /* correct eigenvalue approximation */
     lambda = lambda - mu;

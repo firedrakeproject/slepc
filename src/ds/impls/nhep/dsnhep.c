@@ -98,9 +98,9 @@ PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pe
 
   /* compute SVD of W */
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCall("LAPACKgesvd",LAPACKgesvd_("N","O",&n1,&n,W,&ld,sigma,&sdummy,&ld,&sdummy,&ld,ds->work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","O",&n1,&n,W,&ld,sigma,&sdummy,&ld,&sdummy,&ld,ds->work,&lwork,&info));
 #else
-  PetscStackCall("LAPACKgesvd",LAPACKgesvd_("N","O",&n1,&n,W,&ld,sigma,&sdummy,&ld,&sdummy,&ld,ds->work,&lwork,ds->rwork,&info));
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","O",&n1,&n,W,&ld,sigma,&sdummy,&ld,&sdummy,&ld,ds->work,&lwork,ds->rwork,&info));
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
 
@@ -109,7 +109,7 @@ PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pe
 
   /* update vector with right singular vector associated to smallest singular value,
      accumulating the transformation matrix Q */
-  PetscStackCall("BLASgemv",BLASgemv_("N",&n,&n,&done,Q,&ld,W+n-1,&ld,&zero,X+(*k)*ld,&inc));
+  PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&done,Q,&ld,W+n-1,&ld,&zero,X+(*k)*ld,&inc));
   PetscFunctionReturn(0);
 #endif
 }
@@ -163,10 +163,10 @@ PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pets
   mm = iscomplex? 2: 1;
   if (iscomplex) select[(*k)+1] = (PetscBLASInt)PETSC_TRUE;
   ierr = DSAllocateWork_Private(ds,3*ld,0,0);CHKERRQ(ierr);
-  PetscStackCall("LAPACKtrevc",LAPACKtrevc_(left?"L":"R","S",select,&n,A,&ld,Y,&ld,Y,&ld,&mm,&mout,ds->work,&info));
+  PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_(left?"L":"R","S",select,&n,A,&ld,Y,&ld,Y,&ld,&mm,&mout,ds->work,&info));
 #else
   ierr = DSAllocateWork_Private(ds,2*ld,ld,0);CHKERRQ(ierr);
-  PetscStackCall("LAPACKtrevc",LAPACKtrevc_(left?"L":"R","S",select,&n,A,&ld,Y,&ld,Y,&ld,&mm,&mout,ds->work,ds->rwork,&info));
+  PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_(left?"L":"R","S",select,&n,A,&ld,Y,&ld,Y,&ld,&mm,&mout,ds->work,ds->rwork,&info));
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREVC %d",info);
   if (mout != mm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Inconsistent arguments");
@@ -174,9 +174,9 @@ PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pets
   /* accumulate and normalize eigenvectors */
   if (ds->state>=DS_STATE_CONDENSED) {
     ierr = PetscMemcpy(ds->work,Y,mout*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-    PetscStackCall("BLASgemv",BLASgemv_("N",&n,&n,&done,Q,&ld,ds->work,&inc,&zero,Y,&inc));
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&done,Q,&ld,ds->work,&inc,&zero,Y,&inc));
 #if !defined(PETSC_USE_COMPLEX)
-    if (iscomplex) PetscStackCall("BLASgemv",BLASgemv_("N",&n,&n,&done,Q,&ld,ds->work+ld,&inc,&zero,Y+ld,&inc));
+    if (iscomplex) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&done,Q,&ld,ds->work+ld,&inc,&zero,Y+ld,&inc));
 #endif
     norm = BLASnrm2_(&n,Y,&inc);
 #if !defined(PETSC_USE_COMPLEX)
@@ -186,9 +186,9 @@ PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pets
     }
 #endif
     tmp = 1.0 / norm;
-    PetscStackCall("BLASscal",BLASscal_(&n,&tmp,Y,&inc));
+    PetscStackCallBLAS("BLASscal",BLASscal_(&n,&tmp,Y,&inc));
 #if !defined(PETSC_USE_COMPLEX)
-    if (iscomplex) PetscStackCall("BLASscal",BLASscal_(&n,&tmp,Y+ld,&inc));
+    if (iscomplex) PetscStackCallBLAS("BLASscal",BLASscal_(&n,&tmp,Y+ld,&inc));
 #endif
   }
 
@@ -234,10 +234,10 @@ PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
   } else back = "A";
 #if !defined(PETSC_USE_COMPLEX)
   ierr = DSAllocateWork_Private(ds,3*ld,0,0);CHKERRQ(ierr);
-  PetscStackCall("LAPACKtrevc",LAPACKtrevc_(side,back,NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,&info));
+  PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_(side,back,NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,&info));
 #else
   ierr = DSAllocateWork_Private(ds,2*ld,ld,0);CHKERRQ(ierr);
-  PetscStackCall("LAPACKtrevc",LAPACKtrevc_(side,back,NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,ds->rwork,&info));
+  PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_(side,back,NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,ds->rwork,&info));
 #endif
   if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
   PetscFunctionReturn(0);
@@ -329,15 +329,15 @@ PetscErrorCode DSNormalize_NHEP(DS ds,DSMatType mat,PetscInt col)
       norm = BLASnrm2_(&n,&x[ld*i],&one);
       norm0 = BLASnrm2_(&n,&x[ld*(i+1)],&one);
       norm = 1.0/SlepcAbsEigenvalue(norm,norm0);
-      PetscStackCall("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
-      PetscStackCall("BLASscal",BLASscal_(&n,&norm,&x[ld*(i+1)],&one));
+      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
+      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*(i+1)],&one));
       i++;
     } else
 #endif
     {
       norm = BLASnrm2_(&n,&x[ld*i],&one);
       norm = 1.0/norm;
-      PetscStackCall("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
+      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
     }
   }
   PetscFunctionReturn(0);
@@ -383,9 +383,9 @@ PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Petsc
   ierr = PetscMemzero(selection,n*sizeof(PetscBLASInt));CHKERRQ(ierr);
   for (i=0;i<*k;i++) selection[ds->perm[i]] = 1;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCall("LAPACKtrsen",LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,wi,&mout,NULL,NULL,work,&lwork,iwork,&liwork,&info));
+  PetscStackCallBLAS("LAPACKtrsen",LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,wi,&mout,NULL,NULL,work,&lwork,iwork,&liwork,&info));
 #else
-  PetscStackCall("LAPACKtrsen",LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,&mout,NULL,NULL,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKtrsen",LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,&mout,NULL,NULL,work,&lwork,&info));
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTRSEN %d",info);
   *k = mout;
@@ -452,9 +452,9 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
       ierr = PetscBLASIntCast(pos+1,&ifst);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(i+1,&ilst);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-      PetscStackCall("LAPACKtrexc",LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,work,&info));
+      PetscStackCallBLAS("LAPACKtrexc",LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,work,&info));
 #else
-      PetscStackCall("LAPACKtrexc",LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,&info));
+      PetscStackCallBLAS("LAPACKtrexc",LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,&info));
 #endif
       if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
       /* recover original eigenvalues from T matrix */
@@ -515,7 +515,7 @@ PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
   x = ds->work;
   y = ds->work+ld;
   for (i=0;i<n;i++) x[i] = A[n+i*ld];
-  PetscStackCall("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
+  PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
   for (i=0;i<n;i++) A[n+i*ld] = y[i];
   ds->k = n;
   PetscFunctionReturn(0);
@@ -556,7 +556,7 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* reduce to upper Hessenberg form */
   if (ds->state<DS_STATE_INTERMEDIATE) {
-    PetscStackCall("LAPACKgehrd",LAPACKgehrd_(&n,&ilo,&n,A,&ld,tau,work,&lwork,&info));
+    PetscStackCallBLAS("LAPACKgehrd",LAPACKgehrd_(&n,&ilo,&n,A,&ld,tau,work,&lwork,&info));
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEHRD %d",info);
     for (j=0;j<n-1;j++) {
       for (i=j+2;i<n;i++) {
@@ -564,13 +564,13 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
         A[i+j*ld] = 0.0;
       }
     }
-    PetscStackCall("LAPACKorghr",LAPACKorghr_(&n,&ilo,&n,Q,&ld,tau,work,&lwork,&info));
+    PetscStackCallBLAS("LAPACKorghr",LAPACKorghr_(&n,&ilo,&n,Q,&ld,tau,work,&lwork,&info));
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGHR %d",info);
   }
 
   /* compute the (real) Schur form */
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCall("LAPACKhseqr",LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,wi,Q,&ld,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,wi,Q,&ld,work,&lwork,&info));
   for (j=0;j<ds->l;j++) {
     if (j==n-1 || A[j+1+j*ld] == 0.0) {
       /* real eigenvalue */
@@ -587,7 +587,7 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
   }
 #else
-  PetscStackCall("LAPACKhseqr",LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,Q,&ld,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,Q,&ld,work,&lwork,&info));
   if (wi) for (i=ds->l;i<n;i++) wi[i] = 0.0;
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
@@ -656,9 +656,9 @@ PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
   else hn = LAPACKlanhs_("I",&n,A,&ld,rwork);
 
   /* norm of inv(A) */
-  PetscStackCall("LAPACKgetrf",LAPACKgetrf_(&n,&n,A,&ld,ipiv,&info));
+  PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,A,&ld,ipiv,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRF %d",info);
-  PetscStackCall("LAPACKgetri",LAPACKgetri_(&n,A,&ld,ipiv,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,A,&ld,ipiv,work,&lwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
   hin = LAPACKlange_("I",&n,&n,A,&ld,rwork);
 
@@ -707,11 +707,11 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
     /* g = (A-tau*eye(n))'\b */
     for (i=0;i<n;i++)
       B[i+i*ld] -= tau;
-    PetscStackCall("LAPACKgetrf",LAPACKgetrf_(&n,&n,B,&ld,ipiv,&info));
+    PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,B,&ld,ipiv,&info));
     if (info<0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Bad argument to LU factorization");
     if (info>0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"Bad LU factorization");
     ierr = PetscLogFlops(2.0*n*n*n/3.0);CHKERRQ(ierr);
-    PetscStackCall("LAPACKgetrs",LAPACKgetrs_("C",&n,&one,B,&ld,ipiv,g,&ld,&info));
+    PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("C",&n,&one,B,&ld,ipiv,g,&ld,&info));
     if (info) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"GETRS - Bad solve");
     ierr = PetscLogFlops(2.0*n*n-n);CHKERRQ(ierr);
 
@@ -728,7 +728,7 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
 
     /* g^ = -Q(:,idx)'*g */
     ierr = PetscBLASIntCast(ds->l+ds->k,&ncol);CHKERRQ(ierr);
-    PetscStackCall("BLASgemv",BLASgemv_("C",&n,&ncol,&dmone,Q,&ld,g,&one,&dzero,ghat,&one));
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&ncol,&dmone,Q,&ld,g,&one,&dzero,ghat,&one));
 
     /* A = A + g^*b' */
     for (i=0;i<ds->l+ds->k;i++)
@@ -736,7 +736,7 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
         A[i+j*ld] += ghat[i]*Q[n-1+j*ld]*beta;
 
     /* g~ = (I-Q(:,idx)*Q(:,idx)')*g = g+Q(:,idx)*g^ */
-    PetscStackCall("BLASgemv",BLASgemv_("N",&n,&ncol,&done,Q,&ld,ghat,&one,&done,g,&one));
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&ncol,&done,Q,&ld,ghat,&one,&done,g,&one));
   }
 
   /* Compute gamma factor */
@@ -793,11 +793,11 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
   if (s>0.5) {
     s = PetscMax(0,(int)(PetscLogReal(s)/PetscLogReal(2.0)) + 2);
     scale = PetscPowScalar(2,(-1)*s);
-    PetscStackCall("BLASscal",BLASscal_(&ld2,&scale,A,&inc));
+    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&scale,A,&inc));
   }
 
   /* Horner evaluation */
-  PetscStackCall("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,A,&ld,A,&ld,&zero,A2,&ld));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,A,&ld,A,&ld,&zero,A2,&ld));
   ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMemzero(P,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   for (j=0;j<n;j++) {
@@ -808,14 +808,14 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
   odd = 1;
   for (k=p-1;k>0;k--) {
     if (odd==1) {
-      PetscStackCall("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,A2,&ld,&zero,W,&ld));
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,A2,&ld,&zero,W,&ld));
       aux = Q;
       Q = W;
       W = aux;
       for (j=0;j<n;j++)
         Q[j+j*ld] = Q[j+j*ld] + c[k-1];
     } else {
-      PetscStackCall("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,A2,&ld,&zero,W,&ld));
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,A2,&ld,&zero,W,&ld));
       aux = P;
       P = W;
       W = aux;
@@ -825,30 +825,30 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
     odd = 1-odd;
   }
   if (odd==1) {
-    PetscStackCall("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,A,&ld,&zero,W,&ld));
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,A,&ld,&zero,W,&ld));
     aux = Q;
     Q = W;
     W = aux;
-    PetscStackCall("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
-    PetscStackCall("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
-    PetscStackCall("BLASscal",BLASscal_(&ld2,&two,P,&inc));
+    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
+    PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
+    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
     for (j=0;j<n;j++)
       P[j+j*ld] = P[j+j*ld] + 1.0;
-    PetscStackCall("BLASscal",BLASscal_(&ld2,&mone,P,&inc));
+    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&mone,P,&inc));
   } else {
-    PetscStackCall("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,A,&ld,&zero,W,&ld));
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,A,&ld,&zero,W,&ld));
     aux = P;
     P = W;
     W = aux;
-    PetscStackCall("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
-    PetscStackCall("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
-    PetscStackCall("BLASscal",BLASscal_(&ld2,&two,P,&inc));
+    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
+    PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
+    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
     for (j=0;j<n;j++)
       P[j+j*ld] = P[j+j*ld] + 1.0;
   }
 
   for (k=1;k<=s;k++) {
-    PetscStackCall("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,P,&ld,&zero,W,&ld));
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,P,&ld,&zero,W,&ld));
     ierr = PetscMemcpy(P,W,ld2*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   if (P!=ds->mat[DS_MAT_F]) {

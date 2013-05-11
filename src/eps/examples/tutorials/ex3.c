@@ -148,9 +148,9 @@ static void tv(int nx,const PetscScalar *x,PetscScalar *y)
 PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y)
 {
   void              *ctx;
-  int               nx,lo,j,one=1;
+  int               nx,lo,i,j;
   const PetscScalar *px;
-  PetscScalar       *py,dmone=-1.0;
+  PetscScalar       *py;
   PetscErrorCode    ierr;
 
   PetscFunctionBeginUser;
@@ -160,18 +160,17 @@ PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y)
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
 
   tv(nx,&px[0],&py[0]);
-  PetscStackCall("BLASaxpy",BLASaxpy_(&nx,&dmone,&px[nx],&one,&py[0],&one));
+  for (i=0;i<nx;i++) py[i] -= px[nx+i];
 
   for (j=2;j<nx;j++) {
     lo = (j-1)*nx;
     tv(nx,&px[lo],&py[lo]);
-    PetscStackCall("BLASaxpy",BLASaxpy_(&nx,&dmone,&px[lo-nx],&one,&py[lo],&one));
-    PetscStackCall("BLASaxpy",BLASaxpy_(&nx,&dmone,&px[lo+nx],&one,&py[lo],&one));
+    for (i=0;i<nx;i++) py[lo+i] -= px[lo-nx+i] + px[lo+nx+i];
   }
 
   lo = (nx-1)*nx;
   tv(nx,&px[lo],&py[lo]);
-  PetscStackCall("BLASaxpy",BLASaxpy_(&nx,&dmone,&px[lo-nx],&one,&py[lo],&one));
+  for (i=0;i<nx;i++) py[lo+i] -= px[lo-nx+i];
 
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);

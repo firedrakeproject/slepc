@@ -392,7 +392,7 @@ PetscErrorCode DSComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatTyp
       ierr = FNEvaluateFunction(ds->f[i],lambda,&alpha);CHKERRQ(ierr);
     }
     E = ds->mat[DSMatExtra[i]];
-    PetscStackCall("BLASaxpy",BLASaxpy_(&k,&alpha,E,&inc,T,&inc));
+    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k,&alpha,E,&inc,T,&inc));
   }
   ierr = DSRestoreArray(ds,mat,&T);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
@@ -438,7 +438,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   ierr = PetscBLASIntCast(n,&rA);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(cols,&cA);CHKERRQ(ierr);
   lw = -1;
-  PetscStackCall("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,A,&ld_,NULL,&saux,&lw,&info));
+  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,A,&ld_,NULL,&saux,&lw,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
   lw = (PetscBLASInt)PetscRealPart(saux);
   ierr = DSAllocateWork_Private(ds,lw+ltau,0,0);CHKERRQ(ierr);
@@ -446,9 +446,9 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   w = &tau[ltau];
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  PetscStackCall("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,&A[ld*l+l],&ld_,tau,w,&lw,&info));
+  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,&A[ld*l+l],&ld_,tau,w,&lw,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
-  PetscStackCall("LAPACKorgqr",LAPACKorgqr_(&rA,&ltau,&ltau,&A[ld*l+l],&ld_,tau,w,&lw,&info));
+  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&rA,&ltau,&ltau,&A[ld*l+l],&ld_,tau,w,&lw,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
@@ -527,7 +527,7 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
     ns_[i] = PetscSign(nr);
     /* A[i] <- A[i]/|nr| */
     alpha = 1.0/PetscAbs(nr);
-    PetscStackCall("BLASscal",BLASscal_(&rA_,&alpha,&A[i*ld],&one));
+    PetscStackCallBLAS("BLASscal",BLASscal_(&rA_,&alpha,&A[i*ld],&one));
   }
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = DSRestoreArray(ds,mat,&A_);CHKERRQ(ierr);

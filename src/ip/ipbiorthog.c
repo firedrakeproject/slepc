@@ -55,7 +55,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   ierr = PetscMalloc(n*sizeof(PetscScalar),&tau);CHKERRQ(ierr);
   ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  PetscStackCall("LAPACKgelqf",LAPACKgelqf_(&n,&n,vw,&n,tau,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKgelqf",LAPACKgelqf_(&n,&n,vw,&n,tau,work,&lwork,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   if (info) SETERRQ1(PetscObjectComm((PetscObject)ip),PETSC_ERR_LIB,"Error in Lapack xGELQF %d",info);
 
@@ -65,8 +65,8 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   /* q = v - V h */
   ierr = IPMInnerProduct(ip,v,n,W,H);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  PetscStackCall("BLAStrsm",BLAStrsm_("L","L","N","N",&n,&ione,&one,vw,&n,H,&n));
-  PetscStackCall("LAPACKormlq",LAPACKormlq_("L","N",&n,&ione,&n,vw,&n,tau,H,&n,work,&lwork,&info));
+  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("L","L","N","N",&n,&ione,&one,vw,&n,H,&n));
+  PetscStackCallBLAS("LAPACKormlq",LAPACKormlq_("L","N",&n,&ione,&n,vw,&n,tau,H,&n,work,&lwork,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   if (info) SETERRQ1(PetscObjectComm((PetscObject)ip),PETSC_ERR_LIB,"Error in Lapack xORMLQ %d",info);
   ierr = SlepcVecMAXPBY(v,1.0,-1.0,n,H,V);CHKERRQ(ierr);

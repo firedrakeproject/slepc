@@ -73,7 +73,7 @@ PetscErrorCode SlepcDenseMatProd(PetscScalar *C,PetscInt _ldC,PetscScalar b,Pets
     m = n = k = 1;
   } else {
     m = rA; n = cB; k = cA;
-    PetscStackCall("BLASgemm",BLASgemm_(qA,qB,&m,&n,&k,&a,(PetscScalar*)A,&ldA,(PetscScalar*)B,&ldB,&b,C,&ldC));
+    PetscStackCallBLAS("BLASgemm",BLASgemm_(qA,qB,&m,&n,&k,&a,(PetscScalar*)A,&ldA,(PetscScalar*)B,&ldB,&b,C,&ldC));
   }
 
   ierr = PetscLogFlops(m*n*2*k);CHKERRQ(ierr);
@@ -140,7 +140,7 @@ PetscErrorCode SlepcDenseMatProdTriang(PetscScalar *C,MatType_t sC,PetscInt ldC,
       DVD_ISNOT(sB,DVD_MAT_LTRIANG)) {
     ierr = PetscLogEventBegin(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
     rC = rA; cC = cB;
-    PetscStackCall("BLASsymm",BLASsymm_("L",DVD_ISNOT(sA,DVD_MAT_LTRIANG)?"U":"L",&rC,&cC,&one,(PetscScalar*)A,&_ldA,(PetscScalar*)B,&_ldB,&zero,C,&_ldC));
+    PetscStackCallBLAS("BLASsymm",BLASsymm_("L",DVD_ISNOT(sA,DVD_MAT_LTRIANG)?"U":"L",&rC,&cC,&one,(PetscScalar*)A,&_ldA,(PetscScalar*)B,&_ldB,&zero,C,&_ldC));
     ierr = PetscLogFlops(rA*cB*cA);CHKERRQ(ierr);
     ierr = PetscLogEventEnd(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
     PetscFunctionReturn(0);
@@ -152,7 +152,7 @@ PetscErrorCode SlepcDenseMatProdTriang(PetscScalar *C,MatType_t sC,PetscInt ldC,
       DVD_ISNOT(sA,DVD_MAT_LTRIANG)) {
     ierr = PetscLogEventBegin(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
     rC = rA; cC = cB;
-    PetscStackCall("BLASsymm",BLASsymm_("R",DVD_ISNOT(sB,DVD_MAT_LTRIANG)?"U":"L",&rC,&cC,&one,(PetscScalar*)B,&_ldB,(PetscScalar*)A,&_ldA,&zero,C,&_ldC));
+    PetscStackCallBLAS("BLASsymm",BLASsymm_("R",DVD_ISNOT(sB,DVD_MAT_LTRIANG)?"U":"L",&rC,&cC,&one,(PetscScalar*)B,&_ldB,(PetscScalar*)A,&_ldA,&zero,C,&_ldC));
     ierr = PetscLogFlops(rA*cB*cA);CHKERRQ(ierr);
     ierr = PetscLogEventEnd(SLEPC_SlepcDenseMatProd,0,0,0,0);CHKERRQ(ierr);
     PetscFunctionReturn(0);
@@ -188,13 +188,13 @@ PetscErrorCode SlepcDenseNorm(PetscScalar *A,PetscInt ldA,PetscInt _rA,PetscInt 
       norm = BLASnrm2_(&rA, &A[i*ldA], &one);
       norm0 = BLASnrm2_(&rA, &A[(i+1)*ldA], &one);
       norm = 1.0/PetscSqrtScalar(norm*norm + norm0*norm0);
-      PetscStackCall("BLASscal",BLASscal_(&rA, &norm, &A[i*ldA], &one));
-      PetscStackCall("BLASscal",BLASscal_(&rA, &norm, &A[(i+1)*ldA], &one));
+      PetscStackCallBLAS("BLASscal",BLASscal_(&rA, &norm, &A[i*ldA], &one));
+      PetscStackCallBLAS("BLASscal",BLASscal_(&rA, &norm, &A[(i+1)*ldA], &one));
       i++;
     } else {
       norm = BLASnrm2_(&rA, &A[i*ldA], &one);
       norm = 1.0 / norm;
-      PetscStackCall("BLASscal",BLASscal_(&rA, &norm, &A[i*ldA], &one));
+      PetscStackCallBLAS("BLASscal",BLASscal_(&rA, &norm, &A[i*ldA], &one));
     }
   }
 
@@ -901,7 +901,7 @@ PetscErrorCode VecsOrthonormalize(Vec *V,PetscInt n,PetscScalar *wS0,PetscScalar
 
   /* H <- chol(H) */
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  PetscStackCall("LAPACKpbtrf",LAPACKpbtrf_("U", &nn, &nn, H, &nn, &info));
+  PetscStackCallBLAS("LAPACKpbtrf",LAPACKpbtrf_("U", &nn, &nn, H, &nn, &info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   if (info) SETERRQ1(PetscObjectComm((PetscObject)*V),PETSC_ERR_LIB, "Error in Lapack PBTRF %d", info);
 
@@ -909,7 +909,7 @@ PetscErrorCode VecsOrthonormalize(Vec *V,PetscInt n,PetscScalar *wS0,PetscScalar
   ierr = VecGetLocalSize(V[0],&ldV);CHKERRQ(ierr);
   ierr = VecGetArray(V[0],&pv);CHKERRQ(ierr);
   ld = ldV;
-  PetscStackCall("BLAStrsm",BLAStrsm_("R", "U", "N", "N", &ld, &nn, &one, H, &nn, pv, &ld));
+  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R", "U", "N", "N", &ld, &nn, &one, H, &nn, pv, &ld));
   ierr = VecRestoreArray(V[0],&pv);CHKERRQ(ierr);
   for (i=1;i<n;i++) {
     ierr = PetscObjectStateIncrease((PetscObject)V[i]);CHKERRQ(ierr);

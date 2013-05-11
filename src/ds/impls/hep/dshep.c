@@ -296,7 +296,7 @@ static PetscErrorCode ArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,Pets
 
     /* Eliminate entry e(j) by a rotation in the planes (j,j+1) */
     temp = e[j+1];
-    PetscStackCall("LAPACKlartg",LAPACKlartg_(&temp,&e[j],&c,&s,&e[j+1]));
+    PetscStackCallBLAS("LAPACKlartg",LAPACKlartg_(&temp,&e[j],&c,&s,&e[j+1]));
     s = -s;
 
     /* Apply rotation to diagonal elements */
@@ -307,14 +307,14 @@ static PetscErrorCode ArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,Pets
 
     /* Apply rotation to Q */
     j2 = j+2;
-    PetscStackCall("BLASrot",BLASrot_(&j2,Q+j*ld,&one,Q+(j+1)*ld,&one,&c,&s));
+    PetscStackCallBLAS("BLASrot",BLASrot_(&j2,Q+j*ld,&one,Q+(j+1)*ld,&one,&c,&s));
 
     /* Chase newly introduced off-diagonal entry to the top left corner */
     for (i=j-1;i>=0;i--) {
       off  = -s*e[i];
       e[i] = c*e[i];
       temp = e[i+1];
-      PetscStackCall("LAPACKlartg",LAPACKlartg_(&temp,&off,&c,&s,&e[i+1]));
+      PetscStackCallBLAS("LAPACKlartg",LAPACKlartg_(&temp,&off,&c,&s,&e[i+1]));
       s = -s;
       temp = (d[i]-d[i+1])*s - 2.0*c*e[i];
       p = s*temp;
@@ -322,7 +322,7 @@ static PetscErrorCode ArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,Pets
       d[i] -= p;
       e[i] = -e[i] - c*temp;
       j2 = j+2;
-      PetscStackCall("BLASrot",BLASrot_(&j2,Q+i*ld,&one,Q+(i+1)*ld,&one,&c,&s));
+      PetscStackCallBLAS("BLASrot",BLASrot_(&j2,Q+i*ld,&one,Q+(i+1)*ld,&one,&c,&s));
     }
   }
   PetscFunctionReturn(0);
@@ -375,9 +375,9 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
       tau  = ds->work;
       work = ds->work+ld;
       lwork = ld*ld;
-      PetscStackCall("LAPACKsytrd",LAPACKsytrd_("L",&n3,Q+off,&ld,d+l,e+l,tau,work,&lwork,&info));
+      PetscStackCallBLAS("LAPACKsytrd",LAPACKsytrd_("L",&n3,Q+off,&ld,d+l,e+l,tau,work,&lwork,&info));
       if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSYTRD %d",info);
-      PetscStackCall("LAPACKorgtr",LAPACKorgtr_("L",&n3,Q+off,&ld,tau,work,&lwork,&info));
+      PetscStackCallBLAS("LAPACKorgtr",LAPACKorgtr_("L",&n3,Q+off,&ld,tau,work,&lwork,&info));
       if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGTR %d",info);
     } else {
       /* copy tridiagonal to d,e */
@@ -445,7 +445,7 @@ PetscErrorCode DSUpdateExtraRow_HEP(DS ds)
     x = ds->work;
     y = ds->work+ld;
     for (i=0;i<n;i++) x[i] = A[n+i*ld];
-    PetscStackCall("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
     for (i=0;i<n;i++) A[n+i*ld] = y[i];
     ds->k = n;
   }
@@ -486,7 +486,7 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   for (i=0;i<l;i++) wr[i] = d[i];
 
   ierr = DSAllocateWork_Private(ds,0,2*ld,0);CHKERRQ(ierr);
-  PetscStackCall("LAPACKsteqr",LAPACKsteqr_("V",&n3,d+l,e+l,Q+off,&ld,ds->rwork,&info));
+  PetscStackCallBLAS("LAPACKsteqr",LAPACKsteqr_("V",&n3,d+l,e+l,Q+off,&ld,ds->rwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
   for (i=l;i<n;i++) wr[i] = d[i];
 
@@ -557,10 +557,10 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
   isuppz = ds->iwork+liwork;
 #if defined(PETSC_USE_COMPLEX)
   ritz = ds->rwork+lwork;
-  PetscStackCall("LAPACKstevr",LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,ritz+l,ds->rmat[DS_MAT_Q]+off,&ld,isuppz,ds->rwork,&lwork,ds->iwork,&liwork,&info));
+  PetscStackCallBLAS("LAPACKstevr",LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,ritz+l,ds->rmat[DS_MAT_Q]+off,&ld,isuppz,ds->rwork,&lwork,ds->iwork,&liwork,&info));
   for (i=l;i<n;i++) wr[i] = ritz[i];
 #else
-  PetscStackCall("LAPACKstevr",LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,wr+l,Q+off,&ld,isuppz,ds->rwork,&lwork,ds->iwork,&liwork,&info));
+  PetscStackCallBLAS("LAPACKstevr",LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,wr+l,Q+off,&ld,isuppz,ds->rwork,&lwork,ds->iwork,&liwork,&info));
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DSTEVR %d",info);
 #if defined(PETSC_USE_COMPLEX)
@@ -569,7 +569,7 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
       Q[i+j*ld] = (ds->rmat[DS_MAT_Q])[i+j*ld];
 #endif
   if (ds->state<DS_STATE_INTERMEDIATE) {  /* accumulate previous Q */
-    PetscStackCall("BLASgemm",BLASgemm_("N","N",&n3,&n3,&n3,&one,W+off,&ld,Q+off,&ld,&zero,A+off,&ld));
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n3,&n3,&n3,&one,W+off,&ld,Q+off,&ld,&zero,A+off,&ld));
     ierr = DSCopyMatrix_Private(ds,DS_MAT_Q,DS_MAT_A);CHKERRQ(ierr);
   }
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
@@ -628,11 +628,11 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   liwork = 5*n1*n1+6*n1+6;
 #if !defined(PETSC_USE_COMPLEX)
   ierr = DSAllocateWork_Private(ds,0,lrwork,liwork);CHKERRQ(ierr);
-  PetscStackCall("LAPACKstedc",LAPACKstedc_("V",&n1,d+l,e+l,Q+off,&ld,ds->rwork,&lrwork,ds->iwork,&liwork,&info));
+  PetscStackCallBLAS("LAPACKstedc",LAPACKstedc_("V",&n1,d+l,e+l,Q+off,&ld,ds->rwork,&lrwork,ds->iwork,&liwork,&info));
 #else
   lwork = ld*ld;
   ierr = DSAllocateWork_Private(ds,lwork,lrwork,liwork);CHKERRQ(ierr);
-  PetscStackCall("LAPACKstedc",LAPACKstedc_("V",&n1,d+l,e+l,Q+off,&ld,ds->work,&lwork,ds->rwork,&lrwork,ds->iwork,&liwork,&info));
+  PetscStackCallBLAS("LAPACKstedc",LAPACKstedc_("V",&n1,d+l,e+l,Q+off,&ld,ds->work,&lwork,ds->rwork,&lrwork,ds->iwork,&liwork,&info));
   /* Fixing Lapack bug*/
   for (j=ds->l;j<ds->n;j++)
     for (i=0;i<ds->l;i++) Q[i+j*ld] = 0.0;
@@ -710,9 +710,9 @@ PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
   hn = LAPACKlange_("I",&n,&n,A,&ld,rwork);
 
   /* norm of inv(A) */
-  PetscStackCall("LAPACKgetrf",LAPACKgetrf_(&n,&n,A,&ld,ipiv,&info));
+  PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,A,&ld,ipiv,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRF %d",info);
-  PetscStackCall("LAPACKgetri",LAPACKgetri_(&n,A,&ld,ipiv,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,A,&ld,ipiv,work,&lwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
   hin = LAPACKlange_("I",&n,&n,A,&ld,rwork);
 
@@ -754,21 +754,21 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
   /* Compute qr */
   ierr = PetscBLASIntCast(k+1,&n1);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k,&n0);CHKERRQ(ierr);
-  PetscStackCall("LAPACKgeqrf",LAPACKgeqrf_(&n1,&n0,Q,&ld,tau,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&n1,&n0,Q,&ld,tau,work,&lwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
   /* Copy R from Q */
   for (j=0;j<k;j++)
     for (i=0;i<=j;i++)
       R[i+j*ld] = Q[i+j*ld];
   /* Compute orthogonal matrix in Q */
-  PetscStackCall("LAPACKorgqr",LAPACKorgqr_(&n1,&n1,&n0,Q,&ld,tau,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&n1,&n1,&n0,Q,&ld,tau,work,&lwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
   /* Compute the updated matrix of projected problem */
   for (j=0;j<k;j++)
     for (i=0;i<k+1;i++)
       A[j*ld+i] = Q[i*ld+j];
   alpha = -1.0/alpha;
-  PetscStackCall("BLAStrsm",BLAStrsm_("R","U","N","N",&n1,&n0,&alpha,R,&ld,A,&ld));
+  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&n1,&n0,&alpha,R,&ld,A,&ld));
   for (i=0;i<k;i++)
     A[ld*i+i]-=alpha;
   PetscFunctionReturn(0);
@@ -804,7 +804,7 @@ PetscErrorCode DSFunction_EXP_HEP_DIAG(DS ds)
     }
   }
   /* F = Q*W */
-  PetscStackCall("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,W,&ld,&zero,F,&ld));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,W,&ld,&zero,F,&ld));
   ierr = PetscFree(eig);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

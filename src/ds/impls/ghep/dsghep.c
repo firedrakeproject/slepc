@@ -127,7 +127,7 @@ PetscErrorCode DSNormalize_GHEP(DS ds,DSMatType mat,PetscInt col)
   for (i=i0;i<i1;i++) {
     norm = BLASnrm2_(&n,&x[ld*i],&one);
     norm = 1.0/norm;
-    PetscStackCall("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
+    PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
   }
   PetscFunctionReturn(0);
 }
@@ -195,11 +195,11 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   rr = ds->rwork;
   rwork = ds->rwork + n1;
   lrwork = ds->lrwork - n1;
-  PetscStackCall("LAPACKsygvd",LAPACKsygvd_(&itype,"V","U",&n1,A+off,&ld,B+off,&ld,rr,work,&lwork,rwork,&lrwork,iwork,&liwork,&info));
+  PetscStackCallBLAS("LAPACKsygvd",LAPACKsygvd_(&itype,"V","U",&n1,A+off,&ld,B+off,&ld,rr,work,&lwork,rwork,&lrwork,iwork,&liwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack ZHEGVD %d",info);
   for (i=0;i<n1;i++) wr[ds->l+i] = rr[i];
 #else
-  PetscStackCall("LAPACKsygvd",LAPACKsygvd_(&itype,"V","U",&n1,A+off,&ld,B+off,&ld,wr+ds->l,work,&lwork,iwork,&liwork,&info));
+  PetscStackCallBLAS("LAPACKsygvd",LAPACKsygvd_(&itype,"V","U",&n1,A+off,&ld,B+off,&ld,wr+ds->l,work,&lwork,iwork,&liwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DSYGVD %d",info);
 #endif
   ierr = PetscMemzero(Q+ds->l*ld,n1*ld*sizeof(PetscScalar));CHKERRQ(ierr);
