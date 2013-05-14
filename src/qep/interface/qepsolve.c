@@ -139,9 +139,9 @@ PetscErrorCode QEPSolve(QEP qep)
   ierr = PetscLogEventEnd(QEP_Solve,qep,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
-  ierr = MatViewFromOptions(qep->M,"-qep_view_mat0");CHKERRQ(ierr);
-  ierr = MatViewFromOptions(qep->C,"-qep_view_mat1");CHKERRQ(ierr);
-  ierr = MatViewFromOptions(qep->K,"-qep_view_mat2");CHKERRQ(ierr);
+  ierr = MatViewFromOptions(qep->M,((PetscObject)qep)->prefix,"-qep_view_mat0");CHKERRQ(ierr);
+  ierr = MatViewFromOptions(qep->C,((PetscObject)qep)->prefix,"-qep_view_mat1");CHKERRQ(ierr);
+  ierr = MatViewFromOptions(qep->K,((PetscObject)qep)->prefix,"-qep_view_mat2");CHKERRQ(ierr);
 
   ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)qep),((PetscObject)qep)->prefix,"-qep_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {

@@ -77,9 +77,9 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   ierr = PetscLogEventEnd(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
 
   /* various viewers */
-  ierr = MatViewFromOptions(mfn->A,"-mfn_view_mat");CHKERRQ(ierr);
-  ierr = VecViewFromOptions(b,"-mfn_view_rhs");CHKERRQ(ierr);
-  ierr = VecViewFromOptions(x,"-mfn_view_solution");CHKERRQ(ierr);
+  ierr = MatViewFromOptions(mfn->A,((PetscObject)mfn)->prefix,"-mfn_view_mat");CHKERRQ(ierr);
+  ierr = VecViewFromOptions(b,((PetscObject)mfn)->prefix,"-mfn_view_rhs");CHKERRQ(ierr);
+  ierr = VecViewFromOptions(x,((PetscObject)mfn)->prefix,"-mfn_view_solution");CHKERRQ(ierr);
 
   ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->prefix,"-mfn_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {

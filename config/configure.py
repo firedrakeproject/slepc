@@ -327,7 +327,7 @@ log.write('='*80)
 # Check if PETSc is working
 log.Println('Checking PETSc installation...')
 if petscversion.VERSION > slepcversion.VERSION:
-  log.Println('WARNING: PETSc version '+petscversion.VERSION+' is newer than SLEPc version'+slepcversion.VERSION)
+  log.Println('WARNING: PETSc version '+petscversion.VERSION+' is newer than SLEPc version '+slepcversion.VERSION)
 if petscversion.RELEASE != '1' and slepcversion.RELEASE == '1':
   log.Println('WARNING: using PETSc development version with a SLEPc release version')
 if petscconf.ISINSTALL:

@@ -206,8 +206,8 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = PetscLogEventEnd(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
-  ierr = MatViewFromOptions(A,"-eps_view_mat0");CHKERRQ(ierr);
-  if (nmat>1) { ierr = MatViewFromOptions(B,"-eps_view_mat1");CHKERRQ(ierr); }
+  ierr = MatViewFromOptions(A,((PetscObject)eps)->prefix,"-eps_view_mat0");CHKERRQ(ierr);
+  if (nmat>1) { ierr = MatViewFromOptions(B,((PetscObject)eps)->prefix,"-eps_view_mat1");CHKERRQ(ierr); }
 
   ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->prefix,"-eps_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {
