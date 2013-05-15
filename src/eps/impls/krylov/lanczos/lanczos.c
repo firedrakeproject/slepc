@@ -710,7 +710,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     }
 
     /* compute converged eigenvectors */
-    ierr = SlepcUpdateVectors(n,eps->V,nconv,nconv+k,Y,ld,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(n,eps->V,nconv,k,Y,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Y);CHKERRQ(ierr);
 
     /* purge spurious ritz values */
