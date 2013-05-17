@@ -33,7 +33,7 @@
   pdfkeywords={SLEPc, PETSc, eigenvalue problems}
 }
 
-\newcommand{\slepcversion}{3.3}
+\newcommand{\slepcversion}{3.4}
 \newcommand{\slepchome}{http://www.grycap.upv.es/slepc}
 \newcommand{\pack}[1]{{\sc #1}\index{\textsc{#1}}\xspace}
 \newcommand{\packnoi}[1]{{\sc #1}\xspace}
@@ -110,7 +110,7 @@
 
 \date{
 	To be used with \slepc \slepcversion\\
-	August, 2012
+	June, 2013
 }
 
 {
@@ -133,9 +133,9 @@
 %---------------------------------------------------
 \subsection*{Abstract}
 
-	This document describes \slepc, the {\em Scalable Library for Eigenvalue Problem Computations}, a software package for the solution of large sparse eigenproblems on parallel computers. It can be used for the solution of problems formulated in either standard or generalized form, as well as other related problems such as the singular value decomposition (SVD) or the quadratic eigenvalue problem (QEP). \slepc is a general library in the sense that it covers both Hermitian and non-Hermitian problems, with either real or complex arithmetic.
+	This document describes \slepc, the {\em Scalable Library for Eigenvalue Problem Computations}, a software package for the solution of large sparse eigenproblems on parallel computers. It can be used for the solution of various types of eigenvalue problems, including linear and nonlinear, as well as other related problems such as the singular value decomposition (see a summary of supported problem classes on page \pageref{tab:modules}). \slepc is a general library in the sense that it covers both Hermitian and non-Hermitian problems, with either real or complex arithmetic.
 
-	The emphasis of the software is on methods and techniques appropriate for problems in which the associated matrices are large and sparse, for example, those arising after the discretization of partial differential equations. Thus, most of the methods offered by the library are projection methods, including different variants of Krylov and Davidson iterations. In addition to its own solvers, \slepc provides transparent access to some external software packages such as \packnoi{arpack}. These packages are optional and their installation is not required to use \slepc, see \S\ref{sec:wrap} for details. Apart from eigensolvers, SVD and QEP solvers, \slepc also provides built-in support for spectral transformations such as shift-and-invert.
+	The emphasis of the software is on methods and techniques appropriate for problems in which the associated matrices are large and sparse, for example, those arising after the discretization of partial differential equations. Thus, most of the methods offered by the library are projection methods, including different variants of Krylov and Davidson iterations. In addition to its own solvers, \slepc provides transparent access to some external software packages such as \packnoi{arpack}. These packages are optional and their installation is not required to use \slepc, see \S\ref{sec:wrap} for details. Apart from the solvers, \slepc also provides built-in support for some operations commonly used in the context of eigenvalue computations, such as preconditioning or the shift-and-invert spectral transformation.
 
 	\slepc is built on top of \packnoi{pets\rm c}, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:2012:PUM}. It can be considered an extension of \packnoi{pets\rm c} providing all the functionality necessary for the solution of eigenvalue problems. This means that \packnoi{pets\rm c} must be previously installed in order to use \slepc. \packnoi{pets\rm c} users will find \slepc very easy to use, since it enforces the same programming paradigm. Those readers that are not acquainted with \packnoi{pets\rm c} are highly recommended to familiarize with it before proceeding with \slepc.
 
@@ -158,14 +158,15 @@
 
 \subsubsection*{How to Read this Manual}
 
-	Users that are already familiar with \packnoi{pets\rm c} can read chapter \ref{cap:int} very fast. Section \ref{sec:eig} provides a brief overview of eigenproblems and the general concepts used by eigensolvers, so it can be skipped by experienced users. Chapters \ref{cap:eps}--\ref{cap:qep} describe the main \slepc functionality, and include an advanced usage section that can be skipped at a first reading. Finally, chapter \ref{cap:add} contains less important, additional information.  
+	Users that are already familiar with \packnoi{pets\rm c} can read chapter \ref{cap:int} very fast. Section \ref{sec:eig} provides a brief overview of eigenproblems and the general concepts used by eigensolvers, so it can be skipped by experienced users. Chapters \ref{cap:eps}--\ref{cap:mfn} describe the main \slepc functionality. Some of them include an advanced usage section that can be skipped at a first reading. Finally, chapter \ref{cap:add} contains less important, additional information.  
 
 \subsubsection*{What's New}
 
 The major changes in the Users Manual with respect to the previous version are:
 \begin{itemize}
 \setlength{\itemsep}{-2pt}
-\item Chapter \ref{cap:eps} has been updated according to the new additions.
+\item Added chapter \ref{cap:nep} for nonlinear eigenvalue problems.
+\item Added chapter \ref{cap:mfn} for matrix functions.
 \end{itemize}
 
 \subsubsection*{\slepc Technical Reports}
@@ -191,9 +192,41 @@ Starting from version 3.0.0, \slepc is released under the GNU LGPL license. Deta
 
 \begin{quote}
 \begin{sffamily}
-Copyright 2002--2012 Universidad Polit\'ecnica de Valencia, Spain
+Copyright 2002--2013 Universidad Polit\'ecnica de Valencia, Spain
 \end{sffamily}
 \end{quote}
+
+%---------------------------------------------------
+\newpage
+\subsubsection*{Supported Problem Classes}
+
+The following table provides an overview of the functionality offered by \slepc, organized by problem classes.
+
+\begin{table}[h]
+\label{tab:modules}
+\centering
+{\small \begin{tabular}{lccc}
+Problem class                 & Model equation  & Module       & Chapter \\\hline
+Linear eigenvalue problem     & $Ax=\lambda x,\quad Ax=\lambda Bx$ & \texttt{EPS} & \ref{cap:eps} \\
+Quadratic eigenvalue problem  & $(\lambda^2M+\lambda C+K)x=0$ & \texttt{QEP} & \ref{cap:qep} \\
+Polynomial eigenvalue problem & $(\lambda^dA_d+\cdots+\lambda A_1+A_0)x=0$ & -- & -- \\
+Nonlinear eigenvalue problem  & $T(\lambda)x=0$ & \texttt{NEP} & \ref{cap:nep} \\\hline
+Singular value decomposition  & $Av=\sigma u$   & \texttt{SVD} & \ref{cap:svd} \\
+Matrix function (action of)   & $y=f(A)v$   & \texttt{MFN} & \ref{cap:mfn} \\\hline
+\end{tabular} }
+\end{table}
+
+\noindent In order to solve a given problem, one should create a solver object corresponding to the solver class (module) that better fits the problem (the less general one; e.g., we do not recommend using \texttt{NEP} to solve a linear eigenproblem).\\[3mm]
+
+\noindent Notes:\vspace{-2mm}
+\begin{itemize}
+\setlength{\itemsep}{-2pt}
+\item Most users are typically interested in linear eigenproblems only.
+\item In each problem class there may exist several subclasses (problem types in \slepc terminology), for instance symmetric-definite generalized eigenproblem in \texttt{EPS}.
+\item There are no polynomial eigensolvers available yet. For future releases, we foresee having a \texttt{PEP} module replacing \texttt{QEP}.
+\item The solver class (module) is named after the problem class. For historical reasons, the one for linear eigenvalue problems is called \texttt{EPS} rather than \texttt{LEP}.
+\item For the action of a matrix function (\texttt{MFN}), in \slepc we focus on methods that are closely related to methods for eigenvalue problems.
+\end{itemize}
 
 %---------------------------------------------------
   \setlength{\parskip}{0cm}
@@ -216,6 +249,8 @@ Copyright 2002--2012 Universidad Polit\'ecnica de Valencia, Spain
 \include{st}
 \include{svd}
 \include{qep}
+\include{nep}
+\include{mfn}
 \include{extra}
 
 %---------------------------------------------------
@@ -241,6 +276,7 @@ Copyright 2002--2012 Universidad Polit\'ecnica de Valencia, Spain
 \item[\textrm{\sffamily[STR-7]}] V. Hern\'andez, J. E. Rom\'an, A. Tom\'as, V. Vidal. ``Krylov-Schur Methods in \slepc.'' 
 \item[\textrm{\sffamily[STR-8]}] V. Hern\'andez, J. E. Rom\'an, A. Tom\'as. ``Restarted Lanczos Bidiagonalization for the SVD in \slepc.'' 
 \item[\textrm{\sffamily[STR-9]}] J. E. Rom\'an. ``Practical Implementation of Harmonic Krylov-Schur.'' 
+\item[\textrm{\sffamily[STR-10]}] M. E. Hochstenbach, E. Romero, J. E. Roman. ``Davidson Type Subspace Expansions for the Linear Eigenvalue Problem.'' 
 \end{list}
 }
 

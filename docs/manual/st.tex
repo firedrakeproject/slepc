@@ -4,15 +4,18 @@
 \chapter{\label{cap:st}ST: Spectral Transformation}
 %-------------------------------------------------------
 
-\noindent The Spectral Transformation (\ident{ST}) is the \slepc object that encapsulates the functionality required for acceleration techniques based on the transformation of the spectrum. Most eigensolvers provided in \ident{EPS} work by applying an operator to a set of vectors and this operator can adopt different forms. The \ident{ST} object handles all the different possibilities in a uniform way, so that the solver can proceed without knowing which transformation has been selected. The type of spectral transformation can be specified at run time, as well as several related options such as which linear solver to use.
+\noindent The Spectral Transformation (\ident{ST}) is the object that encapsulates the functionality required for acceleration techniques based on the transformation of the spectrum. Most eigensolvers in \ident{EPS} work by applying an operator to a set of vectors and this operator can adopt different forms. The \ident{ST} object handles all the different possibilities in a uniform way, so that the solver can proceed without knowing which transformation has been selected. The spectral transformation can be specified at run time, as well as related options such as which linear solver to use.
 
 	Despite being a rather unrelated concept, \ident{ST} is also used to handle the preconditioners and correction-equation solvers used in preconditioned eigensolvers such as GD and JD.
+
+	The description in this chapter focuses on the use of \ident{ST} in the context of \ident{EPS}. For usage within other solver classes, we will provide further details, e.g., shift-and-invert for quadratic eigenproblems in \S\ref{sec:qst}.
 
 %---------------------------------------------------
 \section{General Description}
 
 	Spectral transformations are powerful tools for adjusting the way in which eigensolvers behave when coping with a problem. The general strategy consists in transforming the original problem into a new one in which eigenvalues are mapped to a new position while eigenvectors remain unchanged. These transformations can be used with several goals in mind:
 \begin{itemize}
+\setlength{\itemsep}{-2pt}
 \item Compute internal eigenvalues. In some applications, the eigenpairs of interest are not the extreme ones (largest magnitude, smallest magnitude, rightmost, leftmost), but those contained in a certain interval or those closest to a certain value of the complex plane.
 \item Accelerate convergence. Convergence properties typically depend on how close the eigenvalues are from each other. With some spectral transformations, difficult eigenvalue distributions can be remapped in a more favorable way in terms of convergence. 
 \item Handle some special situations. For instance, in generalized problems when matrix $B$ is singular, it may be necessary to use a spectral transformation.
@@ -109,27 +112,27 @@ Shell Transformation    & \texttt{STSHELL}  & \texttt{shell}   & \emph{user-defi
 \subsection{Shift of Origin}
 
 	By default, no spectral transformation is performed. This is equivalent to a shift of origin (\texttt{STSHIFT}) with $\sigma=0$, that is, the first line of Table \ref{tab:op}. The solver works with the original expressions of the eigenvalue problems,
-\begin{equation}Ax=\lambda x\;\;,\end{equation}
+\begin{equation}Ax=\lambda x,\end{equation}
 for standard problems, and $Ax=\lambda Bx$ for generalized ones. Note that this last equation is actually treated internally as
-\begin{equation}B^{-1}Ax=\lambda x\;\;.\end{equation}
+\begin{equation}B^{-1}Ax=\lambda x.\end{equation}
 When the eigensolver in \ident{EPS} requests the application of the operator to a vector, a matrix-vector multiplication by matrix $A$ is carried out (in the standard case) or a matrix-vector multiplication by matrix $A$ followed by a linear system solve with coefficient matrix $B$ (in the generalized case). Note that in the last case, the operation will fail if matrix $B$ is singular.
 
 When the shift, $\sigma$, is given a value different from the default, 0, the effect is to move the whole spectrum by that exact quantity, $\sigma$, which is called \emph{shift of origin}. To achieve this, the solver works with the shifted matrix, that is, the expressions it has to cope with are
-\begin{equation}(A+\sigma I)x=\theta x\;\;,\end{equation}
+\begin{equation}(A+\sigma I)x=\theta x,\end{equation}
 for standard problems, and 
-\begin{equation}(B^{-1}A+\sigma I) x=\theta x\;\;,\end{equation}
+\begin{equation}(B^{-1}A+\sigma I) x=\theta x,\end{equation}
 for generalized ones. The important property that is used is that shifting does not alter the eigenvectors and that it does change the eigenvalues in a simple known way, it shifts them by $\sigma$. In both the standard and the generalized problems, the following relation holds 
-\begin{equation}\theta=\lambda+\sigma\;\;.\end{equation}
+\begin{equation}\theta=\lambda+\sigma.\end{equation}
 This means that after the solution process, the value $\sigma$ has to be subtracted from the computed eigenvalues, $\theta$, in order to retrieve the solution of the original problem, $\lambda$. This is done by means of the function \ident{STBackTransform}, which does not need to be called directly by the user.
 
 \subsection{Spectrum Folding}
 
 Spectrum folding refers to a spectral transformation that involves squaring in addition to shifting. The transformed problems to be addressed are the following
-\begin{equation}(A-\sigma I)^2x=\theta x\;\;,\end{equation}
+\begin{equation}(A-\sigma I)^2x=\theta x,\end{equation}
 for standard problems, and 
-\begin{equation}(B^{-1}A-\sigma I)^2 x=\theta x\;\;,\end{equation}
+\begin{equation}(B^{-1}A-\sigma I)^2 x=\theta x,\end{equation}
 for generalized ones. In both cases, the following relation holds 
-\begin{equation}\theta=(\lambda-\sigma)^2\;\;.\end{equation}
+\begin{equation}\theta=(\lambda-\sigma)^2.\end{equation}
 For real eigenvalues, the effect of this transformation is that the spectrum is folded around the value of $\sigma$. Thus, eigenvalues that are closest to the shift become the smallest eigenvalues in the folded spectrum, as illustrated in Figure \ref{fig:fold}. For this reason, spectrum folding is commonly used in combination with eigensolvers that compute the smallest eigenvalues, for instance in the context of electronic structure calculations, \citep{Canning:2000:PEP}. This transformation can be an effective, low-cost alternative to shift-and-invert (explained below).
 
   \begin{figure}
@@ -177,13 +180,13 @@ For real eigenvalues, the effect of this transformation is that the spectrum is 
 
 	The shift-and-invert spectral transformation (\texttt{STSINVERT}) is used to enhance convergence of eigenvalues in the neighborhood of a given value. In this case, the solver deals with the expressions 
 \begin{eqnarray}
-(A-\sigma I)^{-1}x=\theta x\;\;,\\
-(A-\sigma B)^{-1}B x=\theta x\;\;,
+(A-\sigma I)^{-1}x=\theta x,\\
+(A-\sigma B)^{-1}B x=\theta x,
 \end{eqnarray}
 for standard and generalized problems, respectively. 
 This transformation is effective for finding eigenvalues near $\sigma$ since the eigenvalues $\theta$ of the operator that are largest in magnitude correspond to the eigenvalues $\lambda$ of the original problem that are closest to the shift $\sigma$ in absolute value, as illustrated in Figure \ref{fig:sinvert} for an example with real eigenvalues. Once the wanted eigenvalues have been found, they may be transformed back to eigenvalues of the original problem. Again, the eigenvectors remain unchanged.
 In this case, the relation between the eigenvalues of both problems is
-\begin{equation}\theta=1/(\lambda-\sigma)\;\;.\end{equation}
+\begin{equation}\theta=1/(\lambda-\sigma).\end{equation}
 Therefore, after the solution process, the operation to be performed in function \ident{STBackTransform} is $\lambda=\sigma+1/\theta$ for each of the computed eigenvalues.
 
 This spectral transformation is used in the spectrum slicing technique, see \S\ref{sec:slice}.
@@ -193,8 +196,8 @@ This spectral transformation is used in the spectrum slicing technique, see \S\r
 
 	The generalized Cayley transform (\texttt{STCAYLEY}) is defined from the expressions
 \begin{eqnarray}
-(A-\sigma I)^{-1}(A+\nu I)x=\theta x\;\;,\\
-(A-\sigma B)^{-1}(A+\nu B)x=\theta x\;\;,
+(A-\sigma I)^{-1}(A+\nu I)x=\theta x,\\
+(A-\sigma B)^{-1}(A+\nu B)x=\theta x,
 \end{eqnarray}
 for standard and generalized problems, respectively. Sometimes, the term Cayley transform is applied for the particular case in which $\nu=\sigma$. This is the default if $\nu$ is not given a value explicitly. The value of $\nu$ (the anti-shift) can be set with the following function
 	\findex{STCayleySetAntishift}
@@ -206,7 +209,7 @@ or in the command line with \Verb!-st_cayley_antishift!.
 This transformation is mathematically equivalent to shift-and-invert and, therefore, it is effective for finding eigenvalues near $\sigma$ as well. However, in some situations it is numerically advantageous with respect to shift-and-invert (see \citep[\S 11.2]{Bai:2000:TSA}, \citep{Lehoucq:2001:LEC}).
 
 In this case, the relation between the eigenvalues of both problems is
-\begin{equation}\theta=(\lambda+\nu)/(\lambda-\sigma)\;\;.\end{equation}
+\begin{equation}\theta=(\lambda+\nu)/(\lambda-\sigma).\end{equation}
 Therefore, after the solution process, the operation to be performed in function \ident{STBackTransform} is $\lambda=(\theta\sigma+\nu)/(\theta-1)$ for each of the computed eigenvalues.
 
 \subsection{Preconditioner}
@@ -267,9 +270,9 @@ In this case, an external linear solver package is used (MUMPS, see \petsc's doc
 
 	Instead of a direct linear solver, it is possible to use an iterative solver. This may be necessary in some cases, specially for very large problems. However, the user is warned that using an iterative linear solver makes the overall solution process less robust (see also the discussion of preconditioned eigensolvers below). As an example, the command-line
 \begin{Verbatim}[fontsize=\small]
-	$ ./program -st_ksp_type gmres -st_pc_type bjacobi -st_ksp_rtol 1e-8
+	$ ./program -st_ksp_type gmres -st_pc_type bjacobi -st_ksp_rtol 1e-9
 \end{Verbatim}
-selects the GMRES solver with block Jacobi preconditioning. In the case of iterative solvers, it is important to use an appropriate tolerance, usually slightly more stringent for the linear solves relative to the desired accuracy of the eigenvalue calculation ($10^{-8}$ in the example, compared to $10^{-7}$ for the eigensolver). 
+selects the GMRES solver with block Jacobi preconditioning. In the case of iterative solvers, it is important to use an appropriate tolerance, usually slightly more stringent for the linear solves relative to the desired accuracy of the eigenvalue calculation ($10^{-9}$ in the example, compared to $10^{-8}$ for the eigensolver). 
 
 	Although the direct solver approach may seem too costly, note that the factorization is only carried out at the beginning of the eigenvalue calculation and this cost is amortized in each subsequent application of the operator. This is also the case for iterative methods with preconditioners with high-cost set-up such as ILU.
 
@@ -379,10 +382,10 @@ If the user knows that the pattern is the same (or a subset), then this can be s
   \node[below right,fill=black!5,text width=2.2cm] (n3) at (6.15,-0.97)
        {\begin{minipage}{\textwidth}Shift\\Shift-and-invert\\Cayley\\Fold
        \end{minipage}};
-  \draw (n1c.east) to[out=65,in=120] (n2.west)
-        (n2.west) to[out=-125,in=-40] (n1c.east);
-  \draw (n1.east) to[out=25,in=120] (n3.west)
-        (n3.west) to[out=-115,in=-70] (n1.east);
+  \draw[dashed,-latex] (n1c.east) to[out=65,in=120] (n2.west);
+  \draw[dashed,-latex] (n2.west) to[out=-125,in=-40] (n1c.east);
+  \draw[dashed,-latex] (n1.east) to[out=25,in=120] (n3.west);
+  \draw[dashed,-latex] (n3.west) to[out=-115,in=-70] (n1.east);
   \end{scope}
   \begin{scope}[every node/.style={text centered,text width=2cm,font=\sffamily\scriptsize}]
   \node at (4.5,.8) {Appropriate inner product is performed};

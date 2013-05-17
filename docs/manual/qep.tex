@@ -233,6 +233,10 @@ As a complete example of how to solve a quadratic eigenproblem via linearization
 The S2 linearization (Eq.\ \ref{eq:s2}) will be used, with explicit matrix storage and a preconditioned iterative method for solving linear systems with matrix $B$.
 
 %---------------------------------------------------
+\section{\label{sec:qst}Spectral Transformation}
+
+
+%---------------------------------------------------
 \section{Retrieving the Solution}
 
 After the call to \ident{QEPSolve} has finished, the computed results are stored internally. The procedure for retrieving the computed solution is exactly the same as in the case of \ident{EPS}. The user has to call \ident{QEPGetConverged} first, to obtain the number of converged solutions, then call \ident{QEPGetEigenpair} repeatedly within a loop, once per each eigenvalue-eigenvector pair. The same considerations relative to complex eigenvalues apply, see \S\ref{sec:retrsol} for additional details.

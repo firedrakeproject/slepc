@@ -4,25 +4,25 @@
 \chapter{\label{cap:eps}EPS: Eigenvalue Problem Solver}
 %-------------------------------------------------------
 
-\noindent The Eigenvalue Problem Solver (\ident{EPS}) is the main object provided by \slepc. It is used to specify an eigenvalue problem, either in standard or generalized form, and provides uniform and efficient access to all of the eigensolvers included in the package. Conceptually, the level of abstraction occupied by \ident{EPS} is similar to other solvers in \petsc\ such as \ident{KSP} for solving linear systems of equations.
+\noindent The Eigenvalue Problem Solver (\ident{EPS}) is the main object provided by \slepc. It is used to specify a linear eigenvalue problem, either in standard or generalized form, and provides uniform and efficient access to all of the linear eigensolvers included in the package. Conceptually, the level of abstraction occupied by \ident{EPS} is similar to other solvers in \petsc\ such as \ident{KSP} for solving linear systems of equations.
 	
 \section{\label{sec:eig}Eigenvalue Problems}
 
-	In this section, we present very briefly some basic concepts about eigenvalue problems as well as general techniques used to solve them. The description is not intended to be exhaustive. The objective is simply to define terms that will be referred to throughout the rest of the manual. Readers who are familiar with the terminology and the solution approach can skip this section. For a more comprehensive description, we refer the reader to monographs such as \citep{Stewart:2001:MAV}, \citep{Bai:2000:TSA}, \citep{Saad:1992:NML} or \citep{Parlett:1980:SEP}. A historical perspective of the topic can be found in \citep{Golub:2000:EC2}. See also the \slepc \hyperlink{str}{technical reports}.
+	In this section, we briefly present some basic concepts about eigenvalue problems as well as general techniques used to solve them. The description is not intended to be exhaustive. The objective is simply to define terms that will be referred to throughout the rest of the manual. Readers who are familiar with the terminology and the solution approach can skip this section. For a more comprehensive description, we refer the reader to monographs such as \citep{Stewart:2001:MAV}, \citep{Bai:2000:TSA}, \citep{Saad:1992:NML} or \citep{Parlett:1980:SEP}. A historical perspective of the topic can be found in \citep{Golub:2000:EC2}. See also the \slepc \hyperlink{str}{technical reports}.
 
-In the standard formulation, the eigenvalue problem consists in the determination of $\lambda\in\mathbb{C}$ for which the equation
+In the standard formulation, the linear eigenvalue problem consists in the determination of $\lambda\in\mathbb{C}$ for which the equation
 \begin{equation}
-Ax=\lambda x\;\;\label{eq:eigstd}
+Ax=\lambda x\label{eq:eigstd}
 \end{equation}
 has nontrivial solution, where $A\in\mathbb{C}^{n\times n}$ and $x\in\mathbb{C}^n$. The scalar $\lambda$ and the vector $x$ are called eigenvalue and (right) eigenvector, respectively. Note that they can be complex even when the matrix is real. If $\lambda$ is an eigenvalue of $A$ then $\bar{\lambda}$ is an eigenvalue of its conjugate transpose, $A^*$, or equivalently
 \begin{equation}
-y^*\!A=\lambda\, y^*\;\;,\label{eq:eigstdleft}
+y^*\!A=\lambda\, y^*,\label{eq:eigstdleft}
 \end{equation}
 where $y$ is called the left eigenvector.
 
 	In many applications, the problem is formulated as 
 \begin{equation}
-Ax=\lambda Bx\;\;,\label{eq:eiggen}
+Ax=\lambda Bx,\label{eq:eiggen}
 \end{equation}
 where $B\in\mathbb{C}^{n\times n}$, which is known as the generalized eigenvalue problem. Usually, this problem is solved by reformulating it in standard form, for example $B^{-1}Ax=\lambda x$ if $B$ is non-singular.
 
@@ -36,18 +36,18 @@ Depending on the application, either eigenvalues or eigenvectors or both are req
 
 	Most eigensolvers provided by \slepc perform a Rayleigh-Ritz projection for extracting the spectral approximations, that is, they project the problem onto a low-dimensional subspace that is built appropriately. Suppose that an orthogonal basis of this subspace is given by $V_j=[v_1,v_2,\ldots,v_j]$. If the solutions of the projected (reduced) problem $B_js=\theta s$ (i.e., $V_j^TAV_j=B_j$) are assumed to be $(\theta_i,s_i)$, $i=1,2,\ldots,j$, then the approximate eigenpairs $(\tilde{\lambda}_i,\tilde{x}_i)$ of the original problem (Ritz value and Ritz vector) are obtained as
 \begin{eqnarray}
-\tilde{\lambda}_i=\theta_i\quad,\\
-\quad\tilde{x}_i=V_js_i\quad.
+\tilde{\lambda}_i=\theta_i,\\
+\tilde{x}_i=V_js_i.
 \end{eqnarray}
 Starting from this general idea, eigensolvers differ from each other in which subspace is used, how it is built and other technicalities aimed at improving convergence, reducing storage requirements, etc.
 
 	The subspace
 \begin{equation}
-\mathcal{K}_m(A,v)\equiv\mathrm{span}\left\{v,Av,A^2v,\ldots,A^{m-1}v\right\}\;\;,\label{eq:krylov}
+\mathcal{K}_m(A,v)\equiv\mathrm{span}\left\{v,Av,A^2v,\ldots,A^{m-1}v\right\},\label{eq:krylov}
 \end{equation}
 is called the $m$-th Krylov subspace corresponding to $A$ and $v$. Methods that use subspaces of this kind to carry out the projection are called Krylov methods. One example of such methods is the Arnoldi algorithm: starting with $v_1$, $\|v_1\|_2=1$, the Arnoldi basis generation process can be expressed by the recurrence
 \begin{equation}
-v_{j+1}h_{j+1,j}=w_j=Av_j-\sum_{i=1}^jh_{i,j}v_i\quad,
+v_{j+1}h_{j+1,j}=w_j=Av_j-\sum_{i=1}^jh_{i,j}v_i,
 \end{equation}
 where $h_{i,j}$ are the scalar coefficients obtained in the Gram-Schmidt orthogonalization of $Av_j$ with respect to $v_i$, $i=1,2,\ldots,j$, and $h_{j+1,j}=\|w_j\|_2$. Then, the columns of $V_j$ span the Krylov subspace $\mathcal{K}_j(A,v_1)$ and $Ax=\lambda x$ is projected into $H_js=\theta s$, where $H_j$ is an upper Hessenberg matrix with elements $h_{i,j}$, which are 0 for $i\geq j+2$. The related Lanczos algorithms obtain a projected matrix that is tridiagonal.
 
@@ -60,7 +60,7 @@ where $h_{i,j}$ are the scalar coefficients obtained in the Gram-Schmidt orthogo
 
 \paragraph{Related Problems.}
 
-	In many applications such as the analysis of damped vibrating systems the problem to be solved is a \emph{quadratic eigenvalue problem} (QEP). Another linear algebra problem that is very closely related to the eigenvalue problem is the {\em singular value decomposition\/} (SVD). \slepc provides specific packages for both problems. The reader is referred to chapters \ref{cap:svd} and \ref{cap:qep}.
+	In many applications such as the analysis of damped vibrating systems the problem to be solved is a \emph{quadratic eigenvalue problem} (QEP), or more generally a \emph{nonlinear eigenvalue problem} (NEP). For these, the reader is referred to chapters \ref{cap:qep} and \ref{cap:nep}. Another linear algebra problem that is very closely related to the eigenvalue problem is the {\em singular value decomposition\/} (SVD), see chapter \ref{cap:svd}. 
 
 %---------------------------------------------------
 \section{Basic Usage}
@@ -407,13 +407,13 @@ With respect to the eigenvector, \texttt{xr} stores the real part of the eigenve
 
 	In this subsection, we discuss how a-posteriori error bounds can be obtained in order to assess the accuracy of the computed solutions. These bounds are based on the so-called residual vector, defined as
 \begin{equation}
-r=A\tilde{x}-\tilde{\lambda}\tilde{x}\quad,
+r=A\tilde{x}-\tilde{\lambda}\tilde{x},
 \end{equation}
 or $r=A\tilde{x}-\tilde{\lambda}B\tilde{x}$ in the case of a generalized problem, where $\tilde{\lambda}$ and $\tilde{x}$ represent any of the \texttt{nconv} computed eigenpairs delivered by \texttt{EPSGetEigenpair} (note that this function returns a normalized $\tilde{x}$). 
 
 	In the case of Hermitian problems, it is possible to demonstrate the following property (see for example \citep[ch. 3]{Saad:1992:NML}):
 \begin{equation}\label{eq:reserr}
-|\lambda-\tilde{\lambda}|\leq \|r\|_2\quad,
+|\lambda-\tilde{\lambda}|\leq \|r\|_2,
 \end{equation}
 where $\lambda$ is an exact eigenvalue. Therefore, the 2-norm of the residual vector can be used as a bound for the absolute error in the eigenvalue.
 
@@ -421,7 +421,7 @@ where $\lambda$ is an exact eigenvalue. Therefore, the 2-norm of the residual ve
 
 	With respect to eigenvectors, we have a similar scenario in the sense that bounds for the error may be established in the Hermitian case only, for example the following one:
 \begin{equation}
-\sin \theta(x,\tilde{x})\leq \frac{\|r\|_2}{\delta}\quad,
+\sin \theta(x,\tilde{x})\leq \frac{\|r\|_2}{\delta},
 \end{equation}
 where $\theta(x,\tilde{x})$ is the angle between the computed and exact eigenvectors, and $\delta$ is the distance from $\tilde{\lambda}$ to the rest of the spectrum. This bound is not provided by \slepc because $\delta$ is not available. The above expression is given here simply to warn the user about the fact that accuracy of eigenvectors may be deficient in the case of clustered eigenvalues.
 
@@ -455,7 +455,7 @@ The way in which it is relativized is the same as the one used for convergence c
 	\end{Verbatim}
 which returns in argument \texttt{its} either the iteration number at which convergence was successfully reached, or the iteration at which a problem was detected. 
 
-The user specifies when a solution should be considered sufficiently accurate by means of a tolerance. An approximate eigenvalue is considered to be converged if the error estimate associated to it is below the specified tolerance. The default value of the tolerance is $10^{-7}$ and can be changed at run time with \Verb!-eps_tol <tol>! or inside the program with the function
+The user specifies when a solution should be considered sufficiently accurate by means of a tolerance. An approximate eigenvalue is considered to be converged if the error estimate associated to it is below the specified tolerance. The default value of the tolerance is $10^{-8}$ and can be changed at run time with \Verb!-eps_tol <tol>! or inside the program with the function
 	\findex{EPSSetTolerances}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetTolerances(EPS eps,PetscReal tol,PetscInt max_it);
@@ -464,7 +464,7 @@ The user specifies when a solution should be considered sufficiently accurate by
 
 \paragraph{Convergence Check.}
 
-The error estimates used for the convergence test are based on the residual norm, as discussed in \S\ref{sec:errbnd}. Most eigensolvers explicitly compute the residual of the relevant eigenpairs during the iteration, but Krylov solvers use a cheap approximation instead. This approximation is usually very accurate, but in some cases (e.g., when a shift-and-invert spectral transformation is used) it may give too optimistic bounds. In such cases, the users can force the computation of the residual with 
+The error estimates used for the convergence test are based on the residual norm, as discussed in \S\ref{sec:errbnd}. Most eigensolvers explicitly compute the residual of the relevant eigenpairs during the iteration, but Krylov solvers use a cheap formula instead, allowing to track many eigenpairs simultaneously. When using a spectral transformation, this formula may give too optimistic bounds (corresponding to the residual of the transformed problem, not the original problem). In such cases, the users can force the computation of the residual with 
 	\findex{EPSSetTrueResidual}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetTrueResidual(EPS eps,PetscBool trueres);
@@ -517,9 +517,9 @@ The default is to use the criterion relative to the eigenvalue (note: for comput
     11 EPS nconv=2 first unconverged value (error) -0.671923+2.52712i (8.92724972e-05)
 \end{Verbatim}
 
-	Graphical monitoring (in an X display) is also available with \Verb!-eps_monitor_draw!. Figure \ref{fig:plot} (left) shows the result of the following sample command line:
+	Graphical monitoring (in an X display) is also available with \Verb!-eps_monitor_lg!. Figure \ref{fig:plot} (left) shows the result of the following sample command line:
 \begin{Verbatim}[fontsize=\footnotesize,numbers=none]
-   $ ./ex9 -n 200 -eps_nev 12 -eps_tol 1e-12 -eps_monitor_draw -draw_pause .2
+   $ ./ex9 -n 200 -eps_nev 12 -eps_tol 1e-12 -eps_monitor_lg -draw_pause .2
 \end{Verbatim}
 Again, only the error estimate of one eigenvalue is drawn. The spikes in the last part of the plot indicate convergence of one eigenvalue and switching to the next.
 
@@ -532,7 +532,7 @@ Again, only the error estimate of one eigenvalue is drawn. The spikes in the las
   \caption{\label{fig:plot}Graphical output in \slepc: default convergence monitor (left), simultaneous convergence monitor for all eigenvalues (middle) and eigenvalue plot (right).}
 \end{figure}
 
-	The two previously mentioned monitors have an alternative version (\Verb!*_all!) that processes all eigenvalues instead of just the first one. Figure \ref{fig:plot} (middle) corresponds to the same example but with \Verb!-eps_monitor_draw_all!. Note that these variants have a side effect: they force the computation of all error estimates even if the method would not normally do so. 
+	The two previously mentioned monitors have an alternative version (\Verb!*_all!) that processes all eigenvalues instead of just the first one. Figure \ref{fig:plot} (middle) corresponds to the same example but with \Verb!-eps_monitor_lg_all!. Note that these variants have a side effect: they force the computation of all error estimates even if the method would not normally do so. 
 
 	A less verbose textual monitor is \Verb!-eps_monitor_conv!, which simply displays the iteration number at which convergence takes places.
 \begin{Verbatim}[fontsize=\footnotesize,numbers=none]

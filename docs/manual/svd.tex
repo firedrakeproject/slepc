@@ -37,14 +37,14 @@ where $U=[u_1,\ldots,u_m]$ is an $m\times m$ unitary matrix ($U^*U=I$), $V=[v_1,
 In the following, we will assume that $m\geq n$. If $m<n$ then $A$ should be replaced by $A^*$ (note that in \slepc this is done transparently as described later in this chapter and the user need not worry about this). In the case that $m\geq n$, the top $n$ rows of $\Sigma$ contain $\mathrm{diag}(\sigma_1,\ldots,\sigma_n)$ and its bottom $m-n$ rows are zero. The relation \ref{eq:svd} may also be written as $AV=U\Sigma$, or
 \begin{equation}
 \label{eq:svdleft}
-Av_i=u_i\sigma_i\;,\quad i=1,\ldots,n\;,
+Av_i=u_i\sigma_i\;,\quad i=1,\ldots,n,
 \end{equation}
 and also as $A^*U=V\Sigma^*$, or
 \begin{align}
 \label{eq:svdright}
-A^*u_i&=v_i\sigma_i\;,\quad i=1,\ldots,n\;,\\
+A^*u_i&=v_i\sigma_i\;,\quad i=1,\ldots,n,\\
 \label{eq:svdright2}
-A^*u_i&=0\;,\quad i=n+1,\ldots,m\;.
+A^*u_i&=0\;,\quad i=n+1,\ldots,m.
 \end{align}
 The last left singular vectors corresponding to Eq.\ \ref{eq:svdright2} are often not computed, especially if $m\gg n$. In that case, the resulting factorization is sometimes called the \emph{thin} SVD, $A=U_n\Sigma_n V_n^*$, and is depicted in Figure \ref{fig:svd}. This factorization can also be written as
 \begin{equation}
@@ -73,14 +73,14 @@ In \slepc, the computation of the SVD is always based on one of these two altern
 By pre-multiplying Eq.\ \ref{eq:svdleft} by $A^*$ and then using Eq.\ \ref{eq:svdright}, the following relation results
 \begin{equation}
 \label{eq:eigleft}
-A^*Av_i=\sigma_i^2v_i\;,
+A^*Av_i=\sigma_i^2v_i,
 \end{equation}
 that is, the $v_i$ are the eigenvectors of matrix $A^*A$ with corresponding eigenvalues equal to $\sigma_i^2$. Note that after computing $v_i$ the corresponding left singular vector, $u_i$, is readily available through Eq.\ \ref{eq:svdleft} with just a matrix-vector product, $u_i=\frac{1}{\sigma_i}Av_i$.
 
 Alternatively, one could compute first the left vectors and then the right ones. For this, pre-multiply Eq.\ \ref{eq:svdright} by $A$ and then use Eq.\ \ref{eq:svdleft} to get
 \begin{equation}
 \label{eq:eigright}
-AA^*u_i=\sigma_i^2u_i\;.
+AA^*u_i=\sigma_i^2u_i.
 \end{equation}
 In this case, the right singular vectors are obtained as $v_i=\frac{1}{\sigma_i}A^*u_i$.
 
@@ -89,7 +89,7 @@ The two approaches represented in Eqs.\ \ref{eq:eigleft} and \ref{eq:eigright} a
 Computing the SVD via the cross product approach may be adequate for determining the largest singular triplets of $A$, but the loss of accuracy can be severe for the smallest singular triplets. The cyclic matrix approach is an alternative that avoids this problem, but at the expense of significantly increasing the cost of the computation. Consider the eigendecomposition of
 \begin{equation}
 \label{eq:cyclic}
-H(A)=\left[\begin{matrix}0&A\\A^*&0\end{matrix}\right]\;,
+H(A)=\left[\begin{matrix}0&A\\A^*&0\end{matrix}\right],
 \end{equation}
 which is a Hermitian matrix of order $(m+n)$. It can be shown that $\pm\sigma_i$ is a pair of eigenvalues of $H(A)$ for $i=1,\ldots,r$ and the other $m+n-2r$ eigenvalues are zero. The unit eigenvectors associated to $\pm\sigma_i$ are $\frac{1}{\sqrt{2}}\left[\begin{smallmatrix}\pm u_i\\v_i\end{smallmatrix}\right]$. Thus it is possible to extract the singular values and the left and right singular vectors of $A$ directly from the eigenvalues and eigenvectors of $H(A)$. Note that in this case singular values are not squared, and therefore the computed values will be more accurate. The drawback in this case is that small eigenvalues are located in the interior of the spectrum.
 
@@ -270,7 +270,7 @@ where $\tilde{\sigma}$, $\tilde{u}$ and $\tilde{v}$ represent any of the \texttt
 
 Given the above definition, the following relation holds
 \begin{equation}
-|\sigma-\tilde{\sigma}|\leq \|r\|_2\quad,
+|\sigma-\tilde{\sigma}|\leq \|r\|_2,
 \end{equation}
 where $\sigma$ is an exact singular value. The following \slepc function 
 	\findex{SVDComputeResidualNorms}

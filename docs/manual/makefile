@@ -6,6 +6,8 @@ DOC_TEX	= slepc.tex \
 	st.tex \
 	svd.tex \
 	qep.tex \
+	nep.tex \
+	mfn.tex \
 	extra.tex
 
 DOC_SRC = $(DOC_TEX) slepc.bbl
