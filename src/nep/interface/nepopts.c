@@ -123,12 +123,12 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-nep_monitor_draw","Monitor first unconverged approximate error estimate graphically","NEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-nep_monitor_lg","Monitor first unconverged approximate error estimate graphically","NEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = NEPMonitorSet(nep,NEPMonitorLG,NULL,NULL);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-nep_monitor_draw_all","Monitor error estimates graphically","NEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-nep_monitor_lg_all","Monitor error estimates graphically","NEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = NEPMonitorSet(nep,NEPMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
       ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
@@ -694,7 +694,7 @@ PetscErrorCode NEPSetConvergenceTest(NEP nep,PetscErrorCode (*func)(NEP,PetscInt
    the residual for each eigenpair approximation. Computing the residual is
    usually an expensive operation and solvers commonly compute the associated
    residual to the first unconverged eigenpair.
-   The options '-nep_monitor_all' and '-nep_monitor_draw_all' automatically
+   The options '-nep_monitor_all' and '-nep_monitor_lg_all' automatically
    activate this option.
 
    Level: intermediate

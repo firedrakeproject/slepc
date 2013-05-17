@@ -65,9 +65,9 @@ $     monitor (MFN mfn, int its, PetscReal errest, void *mctx)
 -  mctx   - optional monitoring context, as set by MFNMonitorSet()
 
    Options Database Keys:
-+    -mfn_monitor          - print the error estimate
-.    -mfn_monitor_draw     - sets line graph monitor for the error estimate
--    -mfn_monitor_cancel   - cancels all monitors that have been hardwired into
++    -mfn_monitor        - print the error estimate
+.    -mfn_monitor_lg     - sets line graph monitor for the error estimate
+-    -mfn_monitor_cancel - cancels all monitors that have been hardwired into
       a code by calls to MFNMonitorSet(), but does not cancel those set via
       the options database.
 

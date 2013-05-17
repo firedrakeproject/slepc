@@ -125,12 +125,12 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
       ierr = QEPSetTrackAll(qep,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-qep_monitor_draw","Monitor first unconverged approximate error estimate graphically","QEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-qep_monitor_lg","Monitor first unconverged approximate error estimate graphically","QEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = QEPMonitorSet(qep,QEPMonitorLG,NULL,NULL);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-qep_monitor_draw_all","Monitor error estimates graphically","QEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-qep_monitor_lg_all","Monitor error estimates graphically","QEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = QEPMonitorSet(qep,QEPMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
       ierr = QEPSetTrackAll(qep,PETSC_TRUE);CHKERRQ(ierr);
@@ -734,7 +734,7 @@ PetscErrorCode QEPSetConvergenceTest(QEP qep,PetscErrorCode (*func)(QEP,PetscSca
    the residual for each eigenpair approximation. Computing the residual is
    usually an expensive operation and solvers commonly compute the associated
    residual to the first unconverged eigenpair.
-   The options '-qep_monitor_all' and '-qep_monitor_draw_all' automatically
+   The options '-qep_monitor_all' and '-qep_monitor_lg_all' automatically
    activate this option.
 
    Level: intermediate

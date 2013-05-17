@@ -101,7 +101,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
       ierr = MFNMonitorSet(mfn,MFNMonitorDefault,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-mfn_monitor_draw","Monitor error estimate graphically","MFNMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-mfn_monitor_lg","Monitor error estimate graphically","MFNMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = MFNMonitorSet(mfn,MFNMonitorLG,NULL,NULL);CHKERRQ(ierr);
     }

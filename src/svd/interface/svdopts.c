@@ -458,12 +458,12 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = SVDMonitorSet(svd,SVDMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
   }
   flg = PETSC_FALSE;
-  ierr = PetscOptionsBool("-svd_monitor_draw","Monitor first unconverged approximate singular value and error estimate graphically","SVDMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-svd_monitor_lg","Monitor first unconverged approximate singular value and error estimate graphically","SVDMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
   if (flg) {
     ierr = SVDMonitorSet(svd,SVDMonitorLG,NULL,NULL);CHKERRQ(ierr);
   }
   flg = PETSC_FALSE;
-  ierr = PetscOptionsBool("-svd_monitor_draw_all","Monitor error estimates graphically","SVDMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-svd_monitor_lg_all","Monitor error estimates graphically","SVDMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
   if (flg) {
     ierr = SVDMonitorSet(svd,SVDMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
     ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
@@ -501,7 +501,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
    usually an expensive operation and solvers commonly compute only the residual
    associated to the first unconverged singular value.
 
-   The options '-svd_monitor_all' and '-svd_monitor_draw_all' automatically
+   The options '-svd_monitor_all' and '-svd_monitor_lg_all' automatically
    activate this option.
 
    Level: intermediate

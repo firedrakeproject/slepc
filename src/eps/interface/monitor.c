@@ -69,15 +69,15 @@ $     monitor (EPS eps, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 -  mctx   - optional monitoring context, as set by EPSMonitorSet()
 
    Options Database Keys:
-+    -eps_monitor          - print only the first error estimate
-.    -eps_monitor_all      - print error estimates at each iteration
-.    -eps_monitor_conv     - print the eigenvalue approximations only when
++    -eps_monitor        - print only the first error estimate
+.    -eps_monitor_all    - print error estimates at each iteration
+.    -eps_monitor_conv   - print the eigenvalue approximations only when
       convergence has been reached
-.    -eps_monitor_draw     - sets line graph monitor for the first unconverged
+.    -eps_monitor_lg     - sets line graph monitor for the first unconverged
       approximate eigenvalue
-.    -eps_monitor_draw_all - sets line graph monitor for all unconverged
+.    -eps_monitor_lg_all - sets line graph monitor for all unconverged
       approximate eigenvalues
--    -eps_monitor_cancel   - cancels all monitors that have been hardwired into
+-    -eps_monitor_cancel - cancels all monitors that have been hardwired into
       a code by calls to EPSMonitorSet(), but does not cancel those set via
       the options database.
 

@@ -151,12 +151,12 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-eps_monitor_draw","Monitor first unconverged approximate eigenvalue and error estimate graphically","EPSMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-eps_monitor_lg","Monitor first unconverged approximate eigenvalue and error estimate graphically","EPSMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = EPSMonitorSet(eps,EPSMonitorLG,NULL,NULL);CHKERRQ(ierr);
     }
     flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-eps_monitor_draw_all","Monitor error estimates graphically","EPSMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-eps_monitor_lg_all","Monitor error estimates graphically","EPSMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = EPSMonitorSet(eps,EPSMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
       ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
@@ -1296,7 +1296,7 @@ PetscErrorCode EPSGetTrueResidual(EPS eps,PetscBool *trueres)
    usually an expensive operation and solvers commonly compute only the residual
    associated to the first unconverged eigenpair.
 
-   The options '-eps_monitor_all' and '-eps_monitor_draw_all' automatically
+   The options '-eps_monitor_all' and '-eps_monitor_lg_all' automatically
    activate this option.
 
    Level: intermediate

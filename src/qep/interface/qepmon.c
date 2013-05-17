@@ -69,15 +69,15 @@ $     monitor (QEP qep, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 -  mctx   - optional monitoring context, as set by QEPMonitorSet()
 
    Options Database Keys:
-+    -qep_monitor          - print only the first error estimate
-.    -qep_monitor_all      - print error estimates at each iteration
-.    -qep_monitor_conv     - print the eigenvalue approximations only when
++    -qep_monitor        - print only the first error estimate
+.    -qep_monitor_all    - print error estimates at each iteration
+.    -qep_monitor_conv   - print the eigenvalue approximations only when
       convergence has been reached
-.    -qep_monitor_draw     - sets line graph monitor for the first unconverged
+.    -qep_monitor_lg     - sets line graph monitor for the first unconverged
       approximate eigenvalue
-.    -qep_monitor_draw_all - sets line graph monitor for all unconverged
+.    -qep_monitor_lg_all - sets line graph monitor for all unconverged
       approximate eigenvalues
--    -qep_monitor_cancel   - cancels all monitors that have been hardwired into
+-    -qep_monitor_cancel - cancels all monitors that have been hardwired into
       a code by calls to QEPMonitorSet(), but does not cancel those set via
       the options database.
 

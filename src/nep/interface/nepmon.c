@@ -70,15 +70,15 @@ $     monitor (NEP nep, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 -  mctx   - optional monitoring context, as set by NEPMonitorSet()
 
    Options Database Keys:
-+    -nep_monitor          - print only the first error estimate
-.    -nep_monitor_all      - print error estimates at each iteration
-.    -nep_monitor_conv     - print the eigenvalue approximations only when
++    -nep_monitor        - print only the first error estimate
+.    -nep_monitor_all    - print error estimates at each iteration
+.    -nep_monitor_conv   - print the eigenvalue approximations only when
       convergence has been reached
-.    -nep_monitor_draw     - sets line graph monitor for the first unconverged
+.    -nep_monitor_lg     - sets line graph monitor for the first unconverged
       approximate eigenvalue
-.    -nep_monitor_draw_all - sets line graph monitor for all unconverged
+.    -nep_monitor_lg_all - sets line graph monitor for all unconverged
       approximate eigenvalues
--    -nep_monitor_cancel   - cancels all monitors that have been hardwired into
+-    -nep_monitor_cancel - cancels all monitors that have been hardwired into
       a code by calls to NEPMonitorSet(), but does not cancel those set via
       the options database.
 

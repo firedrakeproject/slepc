@@ -67,15 +67,15 @@ $     monitor (SVD svd, PetscInt its, PetscInt nconv, PetscReal *sigma, PetscRea
 -  mctx   - optional monitoring context, as set by SVDMonitorSet()
 
    Options Database Keys:
-+    -svd_monitor          - print only the first error estimate
-.    -svd_monitor_all      - print error estimates at each iteration
-.    -svd_monitor_conv     - print the singular value approximations only when
++    -svd_monitor        - print only the first error estimate
+.    -svd_monitor_all    - print error estimates at each iteration
+.    -svd_monitor_conv   - print the singular value approximations only when
       convergence has been reached
-.    -svd_monitor_draw     - sets line graph monitor for the first unconverged
+.    -svd_monitor_lg     - sets line graph monitor for the first unconverged
       approximate singular value
-.    -svd_monitor_draw_all - sets line graph monitor for all unconverged
+.    -svd_monitor_lg_all - sets line graph monitor for all unconverged
       approximate singular values
--    -svd_monitor_cancel   - cancels all monitors that have been hardwired into
+-    -svd_monitor_cancel - cancels all monitors that have been hardwired into
       a code by calls to SVDMonitorSet(), but does not cancel those set via
       the options database.
 
