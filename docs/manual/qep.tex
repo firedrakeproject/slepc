@@ -69,7 +69,7 @@ or a similar way. Below, we show some of the most common linearizations.
 \end{equation}
 
 \medskip
-\item Hamiltonian linearizations. If the quadratic eigenproblem is Hamiltonian, one of the matrices is Hamiltonian and the other is skew-Hamiltonian. The first form (H1) is recommended when $M$ is singular, whereas the second form (H2) is recommended when $K$ is singular.
+\item Hamiltonian linearizations. If the quadratic eigenproblem is gyroscopic, one of the matrices is Hamiltonian and the other is skew-Hamiltonian. The first form (H1) is recommended when $M$ is singular, whereas the second form (H2) is recommended when $K$ is singular.
 \begin{equation}
 \label{eq:h1}
 \mbox{H1:}\qquad
@@ -165,6 +165,9 @@ The default is to compute only one. This function also allows control over the d
 \texttt{QEP\_SMALLEST\_REAL}       & \texttt{-qep\_smallest\_real}      & Smallest $\mathrm{Re}(\lambda)$ \\
 \texttt{QEP\_LARGEST\_IMAGINARY}   & \texttt{-qep\_largest\_imaginary}  & Largest $\mathrm{Im}(\lambda)$\footnotemark \\
 \texttt{QEP\_SMALLEST\_IMAGINARY}  & \texttt{-qep\_smallest\_imaginary} & Smallest $\mathrm{Im}(\lambda)$\addtocounter{footnote}{-1}\footnotemark \\\hline
+\texttt{QEP\_TARGET\_MAGNITUDE}    & \texttt{-qep\_target\_magnitude}   & Smallest $|\lambda-\tau|$ \\
+\texttt{QEP\_TARGET\_REAL}         & \texttt{-qep\_target\_real}        & Smallest $|\mathrm{Re}(\lambda-\tau)|$ \\
+\texttt{QEP\_TARGET\_IMAGINARY}    & \texttt{-qep\_target\_imaginary}   & Smallest $|\mathrm{Im}(\lambda-\tau)|$ \\\hline
 \end{tabular} }
 \caption{\label{tab:portionq}Available possibilities for selection of the eigenvalues of interest in \ident{QEP}.}
 \end{table}
@@ -176,8 +179,13 @@ The default is to compute only one. This function also allows control over the d
 	\begin{Verbatim}[fontsize=\small]
 	QEPSetWhichEigenpairs(QEP qep,QEPWhich which);
 	\end{Verbatim}
-The main difference with respect to \ident{EPS} is that sorting with respect to a target value is currently unavailable for \ident{QEP}. The default is to compute the largest magnitude eigenvalues.
-
+The default is to compute the largest magnitude eigenvalues.
+For the sorting criteria relative to a target value, $\tau$ must be specified with:
+	\findex{QEPSetTarget}
+	\begin{Verbatim}[fontsize=\small]
+	QEPSetTarget(QEP qep,PetscScalar target);
+	\end{Verbatim}
+or in the command-line with \Verb!-qep_target!. As in \ident{EPS}, complex values of $\tau$ are allowed only in complex scalar SLEPc builds. The criteria relative to a target must be used in combination with a spectral transformation as explained in \S\ref{sec:qst}.
 
 %---------------------------------------------------
 \section{Selecting the Solver}
@@ -195,7 +203,8 @@ or via the options database command \Verb!-qep_type! followed by the name of the
                    &                      & {\footnotesize Options} \\
 Method             & \ident{QEPType}      & {\footnotesize Database Name}\\\hline
 Linearization      & \texttt{QEPLINEAR}   & \texttt{linear} \\
-Quadratic Arnoldi  & \texttt{QEPQARNOLDI} & \texttt{qarnoldi} \\\hline
+Quadratic Arnoldi  & \texttt{QEPQARNOLDI} & \texttt{qarnoldi} \\
+Quadratic Lanczos  & \texttt{QEPQLANCZOS} & \texttt{qlanczos} \\\hline
 \end{tabular} }
 \caption{\label{tab:solversq}Quadratic eigenvalue solvers available in the \ident{QEP} module.}
 \end{table}
@@ -235,6 +244,25 @@ The S2 linearization (Eq.\ \ref{eq:s2}) will be used, with explicit matrix stora
 %---------------------------------------------------
 \section{\label{sec:qst}Spectral Transformation}
 
+For computing eigenvalues in the interior of the spectrum (closest to a target $\tau$), it is necessary to use a spectral transformation. Currently, only shift-and-invert is supported in \ident{QEP} solvers, and the way to handle it is via an \ident{ST} object as in the case of linear eigensolvers. Every \ident{QEP} object has an \ident{ST} object internally. Note that it would also be possible to select a spectral transformation in the \ident{ST} contained in the \ident{EPS} solver for the \texttt{QEPLINEAR} case. However, we do not recommend this approach.
+
+Given the quadratic eigenproblem in Eq.\ \ref{eq:eigquad}, it is possible to define the transformed problem
+\begin{equation}
+(\theta^2M_\sigma+\theta C_\sigma+K_\sigma)x=0,\label{eq:sinvquad}
+\end{equation}
+where the coefficient matrices are
+\begin{eqnarray}
+M_\sigma&\!\!=\!\!&K,\\
+C_\sigma&\!\!=\!\!&C+2\sigma K,\\
+K_\sigma&\!\!=\!\!&M+\sigma C+\sigma^2 K,
+\end{eqnarray}
+and the relation between the eigenvalue of the original eigenproblem, $\lambda$, and the transformed one, $\theta$, is $\theta=(\lambda-\sigma)^{-1}$ as in the case of the linear eigenvalue problem. See chapter \ref{cap:st} for additional details.
+
+A command line example would be:
+	\begin{Verbatim}[fontsize=\small]
+	$ ./ex16 -qep_nev 12 -qep_type qarnoldi -qep_target 0 -st_type sinvert
+	\end{Verbatim}
+The example computes 12 eigenpairs closest to the origin with shift-and-invert Q-Arnoldi.
 
 %---------------------------------------------------
 \section{Retrieving the Solution}
@@ -269,5 +297,5 @@ to specify the scaling factor. If not specified, the value $\alpha=\sqrt{\frac{\
 
 \paragraph{Controlling and Monitoring Convergence.}
 
-As in the case of \ident{EPS}, in \ident{QEP} the number of iterations carried out by the solver can be determined with \ident{QEPGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{QEPSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-qep_monitor!, \Verb!-qep_monitor_all!, \Verb!-qep_monitor_conv!, \Verb!-qep_monitor_draw!, or \Verb!-qep_monitor_draw_all!. See \S\ref{sec:monitor} for additional details.
+As in the case of \ident{EPS}, in \ident{QEP} the number of iterations carried out by the solver can be determined with \ident{QEPGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{QEPSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-qep_monitor!, \Verb!-qep_monitor_all!, \Verb!-qep_monitor_conv!, \Verb!-qep_monitor_lg!, or \Verb!-qep_monitor_lg_all!. See \S\ref{sec:monitor} for additional details.
 
