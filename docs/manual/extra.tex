@@ -12,13 +12,13 @@
 
 	\slepc mainly contains high level objects, as depicted in Figure \ref{fig:slepc}. These object classes have been designed and implemented following the philosophy of other high level objects in \petsc. In this way, \slepc benefits from a number of \petsc's good properties such as the following (see \petsc{} users guide for details):
 \begin{itemize}
-\item Portability and scalability in a wide range of platforms. Different architecture builds can coexist in the same installation. Where available, dynamic libraries are used to reduce disk space of executable files.
+\item Portability and scalability in a wide range of platforms. Different architecture builds can coexist in the same installation. Where available, shared libraries are used to reduce disk space of executable files.
 \item Support for profiling of programs:
   \begin{itemize}
   \setlength{\itemsep}{0mm}
   \item Display performance statistics with \Verb!-log_summary!, including also \slepc's objects. The collected data are \emph{flops}, memory usage and execution times as well as information about parallel performance, for individual subroutines and the possibility of user-defined stages.
   \item Event logging, including user-defined events.
-  \item Direct wall-clock timing with \ident{PetscGetTime}.
+  \item Direct wall-clock timing with \ident{PetscTime}.
   \item Display detailed profile information and trace of events.
   \end{itemize}
 \item Convergence monitoring, both textual and graphical.
@@ -102,16 +102,14 @@ can be used optionally to specify the routine for the back-transformation of eig
 
 	\slepc further supports extensibility by allowing application programmers to code their own subroutines for unimplemented features such as new eigensolvers or new spectral transformations. It is possible to register these new methods to the system and use them as the rest of standard subroutines. For example, to implement a variant of the Subspace Iteration method, one could copy the \slepc code associated to the \texttt{subspace} solver, modify it and register a new \ident{EPS} type with the following line of code
 	\begin{Verbatim}[fontsize=\small]
-	EPSRegister("newsubspace",0,"EPSCreate_NEWSUB",EPSCreate_NEWSUB);
+	EPSRegister("newsubspace",EPSCreate_NEWSUB);
 	\end{Verbatim}
 After this call, the new solver could be used in the same way as the rest of \slepc solvers:
 	\begin{Verbatim}[fontsize=\small]
 	$ ./program -eps_type newsubspace
 	\end{Verbatim}
 
-	\ident{EPSRegister} can be used to register new types whose code is linked into the executable. To register types in a dynamic library use \ident{EPSRegisterDynamic}.
-
-	A similar mechanism is available for registering new types of classes \ident{ST}, \ident{SVD} and \ident{QEP}.
+	A similar mechanism is available for registering new types of the other classes.
 
 %---------------------------------------------------
 \section{Directory Structure}
@@ -128,7 +126,7 @@ After this call, the new solver could be used in the same way as the rest of \sl
 \item[\texttt{finclude}] - include files for Fortran programmers.
 \item[\texttt{slepc-private}] - include files containing implementation details, for developer use only.
 \end{description}
-\item[\texttt{shared}] - Datafiles used by some examples.
+\item[\texttt{shared}] - Data files used by some examples.
 \item[\texttt{src}] - The source code for all \slepc components, which currently includes:
 \begin{description}
 \setlength{\itemsep}{0mm}
@@ -137,6 +135,9 @@ After this call, the new solver could be used in the same way as the rest of \sl
 \item[\texttt{st}] - spectral transformation.
 \item[\texttt{svd}] - singular value decomposition solver.
 \item[\texttt{qep}] - quadratic eigenvalue problem solver.
+\item[\texttt{nep}] - nonlinear eigenvalue problem solver.
+\item[\texttt{mfn}] - matrix function.
+\item[\texttt{fn}] - mathematical function, used in definition of nonlinear eigenproblems.
 \item[\texttt{ip}] - inner product, for developer use only.
 \item[\texttt{ds}] - direct solver (or dense system), for developer use only.
 \item[\texttt{vec}] - custom vector implementation, for developer use only.

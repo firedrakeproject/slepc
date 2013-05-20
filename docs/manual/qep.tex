@@ -252,9 +252,9 @@ Given the quadratic eigenproblem in Eq.\ \ref{eq:eigquad}, it is possible to def
 \end{equation}
 where the coefficient matrices are
 \begin{eqnarray}
-M_\sigma&\!\!=\!\!&K,\\
-C_\sigma&\!\!=\!\!&C+2\sigma K,\\
-K_\sigma&\!\!=\!\!&M+\sigma C+\sigma^2 K,
+M_\sigma&\!\!=\!\!&\sigma^2 M+\sigma C+K,\\
+C_\sigma&\!\!=\!\!&C+2\sigma M,\\
+K_\sigma&\!\!=\!\!&M,
 \end{eqnarray}
 and the relation between the eigenvalue of the original eigenproblem, $\lambda$, and the transformed one, $\theta$, is $\theta=(\lambda-\sigma)^{-1}$ as in the case of the linear eigenvalue problem. See chapter \ref{cap:st} for additional details.
 
