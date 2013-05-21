@@ -479,7 +479,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   PetscInt       i,k,nwu=0,nwall,begin,ind,flag,dim,m;
   PetscReal      norm,gr,gl,sigma,delta,meanEig,*work,*U,*L,*U1,*L1,*split;
   PetscReal      acShift,initialShift,shift=0.0,sum,det,disc,prod,x1,x2;
-  PetscInt       earlyDef,lastSplit,splitCount;
+  PetscInt       lastSplit;
   PetscBool      test1,test2;
 
   PetscFunctionBegin;
@@ -553,7 +553,6 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   split = work+nwu;
   nwu += n;
   split[lastSplit] = begin;
-  splitCount = 0;
   while (begin!=-1) {
     while (n-begin>2 && totalIt<maxIt) {
       /* Check for deflation before performing a transformation */
@@ -562,7 +561,6 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
             && PetscAbsReal(L[n-2]*U[n])<tolDef*PetscAbsReal(acShift+U[n-1])
             && PetscAbsReal(L[n-2])*(PetscAbsReal(U[n-2])+1)<tolDef*PetscAbsReal(acShift+U[n-1]))? PETSC_TRUE: PETSC_FALSE;
       if (flag==2) {  /* Early 2x2 deflation */
-        earlyDef=earlyDef+1;
         test2 = PETSC_TRUE;
       } else {
         if (n-begin>4) {
@@ -639,7 +637,6 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
           split[lastSplit] = begin;
           L[ind] = acShift; /* Use of L[ind] to save acShift */
           begin = ind+1;
-          splitCount = splitCount+1;
         }
       }
 
