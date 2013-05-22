@@ -1,0 +1,270 @@
+%-------------------------------------------------------
+% SLEPc Users Manual
+%-------------------------------------------------------
+\chapter{\label{cap:nep}NEP: Nonlinear Eigenvalue Problems}
+%-------------------------------------------------------
+
+\begin{center}
+  {\setlength{\fboxsep}{4mm}
+  \framebox{%
+   \begin{minipage}{.8\textwidth}
+   \textbf{Note:} The contents of this chapter should be considered work in progress.
+   The user interface will likely undergo changes in future versions, as new methods are
+   added. Also, the functionality is currently quite limited. In particular, current
+   solvers are able to compute only one eigenpair, and computing complex eigenvalues 
+   requires using complex arithmetic.
+   \end{minipage}
+  }}
+\end{center}
+
+\noindent The Nonlinear Eigenvalue Problem (\ident{NEP}) solver object covers the general case where the eigenproblem is nonlinear with respect to the eigenvalue, but it cannot be expressed in terms of a polynomial. We will write the problem as $T(\lambda)x=0$, where $T$ is a matrix-valued function of the eigenvalue $\lambda$. Note that \ident{NEP} does not cover the even more general case of having nonlinearities with respect to the eigenvector $x$.
+
+In terms of the user interface, \ident{NEP} is very similar to previously discussed solvers. The main difference is how to represent the function $T$. We will show different alternatives for this.
+
+\section{\label{sec:nep}Genuinely Nonlinear Eigenproblems}
+
+As in previous chapters, we first set up the notation and briefly review basic properties of the eigenvalue problems to be addressed. In this case, we focus on genuinely nonlinear eigenproblems, that is, those that cannot be expressed in a simpler form such as a polynomial eigenproblem. These problems arise in many applications, such as the discretization of delay differential equations. Many of the methods designed to solve such problems are based on Newton-type iterations, so in some ways \ident{NEP} has similarities to \petsc's nonlinear solvers \ident{SNES}. For background material on the nonlinear eigenproblem, the reader is referred to \citep{Mehrmann:2004:NEP}.
+
+We consider nonlinear eigenvalue problems of the form
+\begin{equation}
+T(\lambda)x=0,\qquad x\neq 0,\label{eq:nep}
+\end{equation}
+where $T:\Omega\rightarrow\mathbb{C}^{n\times n}$ is a matrix-valued function that is analytic on a subdomain of the complex plane $\Omega\subset\mathbb{C}$. Assuming that the problem is regular, that is, $\det T(\lambda)$ does not vanish identically, any pair $(\lambda,x)$ satisfying Eq.\ \ref{eq:nep} is an eigenpair, where $\lambda\in\Omega$ is the eigenvalue and $x\in\mathbb{C}^n$ is the eigenvector. Linear and polynomial eigenproblems are particular cases of Eq.\ \ref{eq:nep}.
+
+An example application is the rational eigenvalue problem
+\begin{equation}
+-Kx+\lambda Mx+\sum_{j=1}^k\frac{\lambda}{\sigma_j-\lambda}C_jx=0,\label{eq:rep}
+\end{equation}
+arising in the study of free vibration of plates with elastically attached masses. Here, all matrices are symmetric, $K$ and $M$ are positive-definite and $C_j$ have small rank.
+Another example comes from the discretization of parabolic partial differential equations with time delay $\tau$, resulting in
+\begin{equation}
+(-\lambda I + A + e^{-\tau\lambda}B)x = 0.\label{eq:delay}
+\end{equation}
+
+\paragraph{Split Form}
+Equation \ref{eq:nep} can always be rewritten as
+\begin{equation}
+\big(A_0f_0(\lambda)+A_1f_1(\lambda)+\cdots+A_{\ell-1}f_{\ell-1}(\lambda)\big)x=
+\left(\sum_{i=0}^{\ell-1}A_if_i(\lambda)\right)x = 0,\label{eq:split}
+\end{equation}
+where $A_i$ are $n\times n$ matrices and $f_i:\Omega\rightarrow\mathbb{C}$ are analytic functions. We will call Eq.\ \ref{eq:split} the split form of the nonlinear eigenvalue problem. Often, the formulation arising from applications already has this form, as illustrated by the examples above. Also, a polynomial eigenvalue problem fits this form, where in this case the $f_i$ functions are the polynomial bases of degree $i$, either monomial or non-monomial.
+
+%---------------------------------------------------
+\section{\label{sec:nepjac}Defining the Problem with Callbacks}
+
+The user interface of the \ident{NEP} package is quite similar to \ident{EPS} and \ident{QEP}. As mentioned above, the main difference is the way in which the eigenproblem is defined. In this section, we focus on the case where the problem is defined as in \petsc's nonlinear solvers \ident{SNES}, that is, providing user-defined callback functions to compute the nonlinear function matrix, $T(\lambda)$, and its derivative, $T'(\lambda)$. We defer the discussion of using the split form of the nonlinear eigenproblem to \S\ref{sec:nepsplit}.
+
+A sample code for solving a nonlinear eigenproblem with \ident{NEP} is shown in Figure \ref{fig:ex-nep}. The usual steps are performed, starting with the creation of the solver context with \ident{NEPCreate}. Then the problem matrices are defined, see discussion below. The call to \ident{NEPSetFromOptions} captures relevant options specified in the command line. The actual solver is invoked with \ident{NEPSolve}. Then, the solution is retrieved with \ident{NEPGetConverged} and \ident{NEPGetEigenpair}. Finally, \ident{NEPDestroy} destroys the object.
+
+\begin{figure}
+\begin{Verbatim}[fontsize=\small,numbers=left,numbersep=6pt,xleftmargin=15mm]
+NEP         nep;       /*  eigensolver context */
+Mat         F, J;      /*  Function and Jacobian matrices  */
+Vec         x;         /*  eigenvector */
+PetscScalar lambda;    /*  eigenvalue */
+ApplCtx     ctx;       /*  user-defined context */
+PetscInt    j, nconv;
+PetscReal   error;
+
+NEPCreate( PETSC_COMM_WORLD, &nep );
+/* create and preallocate F and J matrices */
+NEPSetFunction( nep, F, F, FormFunction, &ctx );
+NEPSetJacobian( nep, J, FormJacobian, &ctx );
+NEPSetFromOptions( nep );
+NEPSolve( nep );
+NEPGetConverged( nep, &nconv );
+for (j=0; j<nconv; j++) {
+  NEPGetEigenpair( nep, j, &lambda, NULL, x, NULL );
+  NEPComputeRelativeError( nep, j, &error );
+}
+NEPDestroy( nep );
+\end{Verbatim}
+\caption{\label{fig:ex-nep}Example code for basic solution with \ident{NEP} using callbacks.}
+\end{figure}
+
+In \ident{SNES}, the usual way to define a set of nonlinear equations $F(x)=0$ is to provide two user-defined callback functions, one to compute the residual vector, $r=F(x)$ for a given $x$, and another one to evaluate the Jacobian matrix, $J(x)=F'(x)$.
+In the case of \ident{NEP} there are some differences, since the function $T$ depends on the parameter $\lambda$ only. For a given value of $\lambda$ and its associated vector $x$, the residual vector is defined as
+\begin{equation}
+r=T(\lambda)x.\label{eq:nlres}
+\end{equation}
+We require the user to provide a callback function to evaluate $T(\lambda)$, rather than computing the residual $r$. Once $T(\lambda)$ has been computed, \ident{NEP} solvers can compute its action on any vector $x$. Regarding the derivative, in \ident{NEP} we use $T'(\lambda)$, which will be referred to as the Jacobian matrix by analogy to \ident{SNES}. This matrix must be computed with another callback function.
+
+Hence, both callback functions must compute a matrix. The nonzero pattern of these matrices does not usually change, so they must be created and preallocated at the beginning of the solution process. Then, these \texttt{Mat} objects are passed to the solver, together with the pointers to the callback functions, with
+	\findex{NEPSetFunction}\findex{NEPSetJacobian}
+	\begin{Verbatim}[fontsize=\small]
+	NEPSetFunction(NEP nep,Mat F,Mat P,PetscErrorCode (*fun)(NEP,PetscScalar,
+                       PetscScalar,Mat*,Mat*,MatStructure*,void*),void *ctx);
+	NEPSetJacobian(NEP nep,Mat J,PetscErrorCode (*jac)(NEP,PetscScalar,
+                       PetscScalar,Mat*,MatStructure*,void*),void *ctx)
+	\end{Verbatim}
+
+The argument \texttt{ctx} is an optional user-defined context intended to contain application-specific parameters required to build $T(\lambda)$ or $T'(\lambda)$, and it is received as the last argument in the callback functions. The callback routines also get an argument containing the value of $\lambda$ at which $T$ or $T'$ must be evaluated. Note that the \ident{NEPSetFunction} callback takes two \texttt{Mat} arguments instead of one. The rationale for this is that some \ident{NEP} solvers require to perform linear solves with $T(\lambda)$ within the iteration (in \ident{SNES} this is done with the Jacobian), so $T(\lambda)$ will be passed as the coefficient matrix to a \ident{KSP} object. The second \texttt{Mat} argument \texttt{P} is the matrix from which the preconditioner is constructed (which is usually the same as \texttt{F}). Apart from building the matrices, the callback routines must set a flag informing about the matrix structure (the same kind as the flag of \ident{KSPSetOperators}).
+
+There is the possibility of solving the problem in a matrix-free fashion, that is, just implementing subroutines that compute the action of $T(\lambda)$ or $T'(\lambda)$ on a vector, instead of having to explicitly compute all nonzero entries of these two matrices. The \slepc distribution contains an example illustrating this, using the concept of \emph{shell} matrices (see \S\ref{sec:supported} for details).
+
+\paragraph{Parameters for Problem Definition}
+
+Once $T$ and $T'$ have been set up, the definition of the problem is completed with the number and location of the eigenvalues to compute, in a similar way as eigensolvers discussed in previous chapters.
+
+	The number of requested eigenvalues (and eigenvectors), \texttt{nev}, is established with
+	\findex{NEPSetDimensions}
+	\begin{Verbatim}[fontsize=\small]
+	NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd);
+	\end{Verbatim}
+By default, \texttt{nev}=1 (and some solvers will return only one eigenpair, even if a larger \texttt{nev} is requested). The other two arguments control the dimension of the subspaces used internally (the number of column vectors, \texttt{ncv}, and the maximum projected dimension, \texttt{mpd}), although they are relevant only in eigensolvers based on subspace projection (basic algorithms ignore them). There are command-line keys for these parameters: \Verb!-nep_nev!, \Verb!-nep_ncv! and \Verb!-nep_mpd!.
+
+\begin{table}
+\centering
+{\small \begin{tabular}{lll}
+\texttt{NEPWhich}                  & Command line key                   & Sorting criterion \\\hline
+\texttt{NEP\_LARGEST\_MAGNITUDE}   & \texttt{-nep\_largest\_magnitude}  & Largest $|\lambda|$ \\
+\texttt{NEP\_SMALLEST\_MAGNITUDE}  & \texttt{-nep\_smallest\_magnitude} & Smallest $|\lambda|$ \\
+\texttt{NEP\_LARGEST\_REAL}        & \texttt{-nep\_largest\_real}       & Largest $\mathrm{Re}(\lambda)$ \\
+\texttt{NEP\_SMALLEST\_REAL}       & \texttt{-nep\_smallest\_real}      & Smallest $\mathrm{Re}(\lambda)$ \\
+\texttt{NEP\_LARGEST\_IMAGINARY}   & \texttt{-nep\_largest\_imaginary}  & Largest $\mathrm{Im}(\lambda)$ \\
+\texttt{NEP\_SMALLEST\_IMAGINARY}  & \texttt{-nep\_smallest\_imaginary} & Smallest $\mathrm{Im}(\lambda)$ \\\hline
+\texttt{NEP\_TARGET\_MAGNITUDE}    & \texttt{-nep\_target\_magnitude}   & Smallest $|\lambda-\tau|$ \\
+\texttt{NEP\_TARGET\_REAL}         & \texttt{-nep\_target\_real}        & Smallest $|\mathrm{Re}(\lambda-\tau)|$ \\
+\texttt{NEP\_TARGET\_IMAGINARY}    & \texttt{-nep\_target\_imaginary}   & Smallest $|\mathrm{Im}(\lambda-\tau)|$ \\\hline
+\end{tabular} }
+\caption{\label{tab:portionn}Available possibilities for selection of the eigenvalues of interest in \ident{NEP}.}
+\end{table}
+
+	For the selection of the portion of the spectrum of interest, there are several alternatives listed in Table~\ref{tab:portionn}, to be selected with the function
+	\findex{NEPSetWhichEigenpairs}
+	\begin{Verbatim}[fontsize=\small]
+	NEPSetWhichEigenpairs(NEP nep,NEPWhich which);
+	\end{Verbatim}
+The default is to compute the largest magnitude eigenvalues.
+For the sorting criteria relative to a target value, $\tau$ must be specified with \ident{NEPSetTarget} or in the command-line with \Verb!-nep_target!.
+
+%---------------------------------------------------
+\section{\label{sec:nepsplit}Defining the Problem in Split Form}
+
+Instead of implementing callback functions for $T(\lambda)$ and $T'(\lambda)$, a usually simpler alternative is to use the split form of the nonlinear eigenproblem, Eq.\ \ref{eq:split}. Note that in split form, we have $T'(\lambda)=\sum_{i=0}^{\ell-1}A_if'_i(\lambda)$, so the derivatives of $f_i(\lambda)$ are also required. As described below, we will represent each of the analytic functions $f_i$ by means of an auxiliary object \ident{FN} that holds both the function and its derivative.
+
+\begin{figure}
+\begin{Verbatim}[fontsize=\small,numbers=left,numbersep=6pt,xleftmargin=15mm]
+  FNCreate(PETSC_COMM_WORLD,&f1);  /* f1 = -lambda */
+  FNSetType(f1,FNRATIONAL);
+  coeffs[0] = -1.0; coeffs[1] = 0.0;
+  FNSetParameters(f1,2,coeffs,0,NULL);
+
+  FNCreate(PETSC_COMM_WORLD,&f2);  /* f2 = 1 */
+  FNSetType(f2,FNRATIONAL);
+  coeffs[0] = 1.0;
+  FNSetParameters(f2,1,coeffs,0,NULL);
+
+  FNCreate(PETSC_COMM_WORLD,&f3);  /* f3 = exp(-tau*lambda) */
+  FNSetType(f3,FNEXP);
+  coeffs[0] = -tau;
+  FNSetParameters(f3,1,coeffs,0,NULL);
+
+  mats[0] = A;  funs[0] = f2;
+  mats[1] = Id; funs[1] = f1;
+  mats[2] = B;  funs[2] = f3;
+  NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN);
+\end{Verbatim}
+\caption{\label{fig:ex-split}Example code for defining the \ident{NEP} eigenproblem in the split form.}
+\end{figure}
+
+Hence, for the split form representation we must provide $\ell$ matrices $A_i$ and the corresponding functions $f_i(\lambda)$, by means of%
+	\findex{NEPSetSplitOperator}
+	\begin{Verbatim}[fontsize=\small]
+	NEPSetSplitOperator(NEP nep,PetscInt l,Mat A[],FN f[],MatStructure str);
+	\end{Verbatim}
+Here, the \ident{MatStructure} flag is used to indicate whether all matrices have the same (or subset) nonzero pattern with respect to the first one.
+Figure \ref{fig:ex-split} illustrates this usage with the problem of Eq.\ \ref{eq:delay}, where $\ell=3$ and the matrices are $I$, $A$ and $B$ (note that in the code we have changed the order for efficiency reasons, since the nonzero pattern of $I$ and $B$ is a subset of $A$'s in this case). Two of the associated functions are polynomials ($-\lambda$ and $1$) and the other one is the exponential $e^{-\tau\lambda}$.
+
+Note that using the split form is required in order to be able to use some eigensolvers, in particular, those that project the nonlinear eigenproblem onto a low dimensional subspace and then use a dense nonlinear solver for the projected problem.
+
+\paragraph{FN: Mathematical Functions}
+
+The \ident{FN} class provides a few predefined mathematical functions, including rational functions (of which polynomials are a particular case) and exponentials. Objects of this class are instantiated by providing the values of the relevant coefficients. As shown in Figure \ref{fig:ex-split}, \ident{FN} objects are created with \ident{FNCreate} and it is necessary to select the type of function (rational, exponential, etc.)\ before specifying the parameters with
+	\findex{FNSetParameters}
+	\begin{Verbatim}[fontsize=\small]
+     FNSetParameters(FN fn,PetscInt n,PetscScalar *alpha,PetscInt m,PetscScalar *beta);
+	\end{Verbatim}
+Parameters are organized in two groups, $\alpha_i,i=1,\ldots,n$ and $\beta_j,j=1,\ldots,m$.
+
+In a rational function, the parameters are the coefficients of the numerator and denominator, respectively,
+\begin{equation}
+r(x)=\frac{p(x)}{q(x)}
+=\frac{\alpha_1x^{n-1}+\cdots+\alpha_{n-1}x+\alpha_{n}}{\beta_1x^{m-1}+\cdots+\beta_{m-1}x+\beta_{m}}.
+\end{equation}
+If $m=0$ then the function is just a polynomial $p(x)$. If $n=0$ then the function is $1/q(x)$.
+
+In an exponential function, the first parameter in each group is a scaling factor for the exponent and the exponential, respectively,
+\begin{equation}
+g(x)=\beta_1e^{\alpha_1x}.
+\end{equation}
+If $n=0$ or $m=0$ then the corresponding scaling factors are set to 1.
+
+
+%---------------------------------------------------
+\section{Selecting the Solver}
+
+The solution method can be specified procedurally with
+	\findex{NEPSetType}
+	\begin{Verbatim}[fontsize=\small]
+	NEPSetType(NEP nep,NEPType method);
+	\end{Verbatim}
+or via the options database command \Verb!-nep_type! followed by the name of the method (see Table~\ref{tab:solversn}). The methods currently available in \ident{NEP} are the following:
+\begin{itemize}
+\item Residual inverse iteration (RII), where in each iteration the eigenvector correction is computed as $T(\sigma)^{-1}$ times the residual $r$.
+\item Successive linear problems (SLP), where in each iteration a linear eigenvalue problem $T(\tilde\lambda)\tilde x=\mu T'(\tilde\lambda)\tilde x$ is solved for the eigenvalue correction $\mu$.
+\item Nonlinear Arnoldi, which builds an orthogonal basis $V_j$ of a subspace expanded with the vectors generated by RII, then chooses the approximate eigenpair $(\tilde\lambda,\tilde x)$ such that $\tilde x=V_jy$ and $V_j^*T(\tilde\lambda)V_jy=0$.
+\end{itemize}
+
+\begin{table}
+\centering
+{\small \begin{tabular}{lll}
+                   &                      & {\footnotesize Options} \\
+Method             & \ident{NEPType}      & {\footnotesize Database Name}\\\hline
+Residual inverse iteration & \texttt{NEPRII}      & \texttt{rii} \\
+Successive linear problems & \texttt{NEPSLP}      & \texttt{slp} \\
+Nonlinear Arnoldi          & \texttt{NEPNARNOLDI} & \texttt{narnoldi} \\\hline
+\end{tabular} }
+\caption{\label{tab:solversn}Nonlinear eigenvalue solvers available in the \ident{NEP} module.}
+\end{table}
+
+The \texttt{NEPSLP} method performs a linearization that results in a (linear) generalized eigenvalue problem. This is handled by an \ident{EPS} object created internally. If required, this \ident{EPS} object can be extracted with the operation
+	\findex{NEPSLPGetEPS}
+	\begin{Verbatim}[fontsize=\small]
+	NEPSLPGetEPS(NEP nep,EPS *eps);
+	\end{Verbatim}
+This allows the application programmer to set any of the \ident{EPS} options directly within the code. These options can also be set through the command-line, simply by prefixing the \ident{EPS} options with \texttt{-nep\_}.
+
+Similarly, many of the \ident{NEP} solvers need a \ident{KSP} object to handle the solution of linear systems of equations, as is the case of RII or nonlinear Arnoldi. This \ident{KSP} is present in all \ident{NEP} instances, and can be retrieved with
+	\findex{NEPGetKSP}
+	\begin{Verbatim}[fontsize=\small]
+	NEPGetKSP(NEP nep,KSP *ksp);
+	\end{Verbatim}
+
+This \ident{KSP} object is typically used to compute the action of $T(\sigma)^{-1}$ on a given vector. In principle, $\sigma$ is an approximation of an eigenvalue, but it is usually more efficient to keep this value constant, otherwise the factorization or preconditioner must be recomputed every time since eigensolvers update eigenvalue approximations in each iteration. This behaviour can be changed with
+	\findex{NEPSetLagPreconditioner}
+	\begin{Verbatim}[fontsize=\small]
+	NEPSetLagPreconditioner(NEP nep,PetscInt lag);
+	\end{Verbatim}
+Recomputing the preconditioner every 2 iterations, say, will introduce a considerable overhead, but may reduce the number of iterations significantly. Another related comment is that, when using an iterative linear solver, the requested accuracy is adapted as the outer iteration progresses, being the tolerance higher in the first solves. Again, the user can modify this behaviour with \ident{NEPSetConstantCorrectionTolerance}. Both options can also be changed at run time. As an example, consider the following command line:
+\begin{Verbatim}[fontsize=\small]
+	$ ./program -nep_type narnoldi -nep_lag_preconditioner 2
+                    -nep_ksp_type bcgs -nep_pc_type ilu
+                    -nep_constant_correction_tolerance 1 -nep_ksp_rtol 1e-3
+\end{Verbatim}
+The example uses nonlinear Arnoldi with BiCGStab plus ILU, where the preconditioner is updated every two outer iterations and linear systems are solved up to a tolerance of $10^{-3}$.
+
+%---------------------------------------------------
+\section{Retrieving the Solution}
+
+The procedure for obtaining the computed eigenpairs is similar to previously discussed eigensolvers. After the call to \ident{NEPSolve}, the computed results are stored internally and a call to \ident{NEPGetConverged} must be issued to obtain the number of converged solutions. Then calling \ident{NEPGetEigenpair} repeatedly will retrieve each eigenvalue-eigenvector pair.
+
+The function
+	\findex{NEPComputeRelativeError}
+	\begin{Verbatim}[fontsize=\small]
+	NEPComputeRelativeError(NEP nep,PetscInt j,PetscReal *error);
+	\end{Verbatim}
+can be used to assess the accuracy of the computed solutions. The error is based on the 2-norm of the residual vector $r$ defined in Eq.\ \ref{eq:nlres}.
+
+As in the case of \ident{EPS}, in \ident{NEP} the number of iterations carried out by the solver can be determined with \ident{NEPGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{NEPSetTolerances}. Also, convergence can be monitored with either textual monitors \Verb!-nep_monitor!, \Verb!-nep_monitor_all!, \Verb!-nep_monitor_conv!, or graphical monitors \Verb!-nep_monitor_lg!, \Verb!-nep_monitor_lg_all!. See \S\ref{sec:monitor} for additional details.
+
