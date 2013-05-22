@@ -337,7 +337,10 @@ allcleanhtml:
 
 # Builds Fortran stub files
 allfortranstubs:
+	-@${RM} -rf include/finclude/ftn-auto/*-tmpdir
 	-@${PYTHON} ${SLEPC_DIR}/config/generatefortranstubs.py ${BFORT}
+	-@${PYTHON} ${SLEPC_DIR}/config/generatefortranstubs.py -merge  ${VERBOSE}
+	-@${RM} -rf include/finclude/ftn-auto/*-tmpdir
 deletefortranstubs:
 	-@find . -type d -name ftn-auto | xargs rm -rf
 

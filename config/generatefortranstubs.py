@@ -205,7 +205,7 @@ def main(petscdir,bfort,dir,verbose):
 if __name__ ==  '__main__':
   import sys
   if len(sys.argv) < 2: sys.exit('Must give the BFORT program or -merge as the first argument')
-  petscdir = os.environ['PETSC_DIR']
+  petscdir = os.environ['SLEPC_DIR']
   if len(sys.argv) > 2: verbose = 1
   else: verbose = 0
   if not sys.argv[1].startswith('-'):
