@@ -128,8 +128,8 @@ PetscErrorCode STSetUp_Sinvert(ST st)
     gamma = -st->sigma;
   } else {
     /* T[0] = C */
-      ierr = PetscObjectReference((PetscObject)st->A[2]);CHKERRQ(ierr);
-      st->T[0] = st->A[2];
+    ierr = PetscObjectReference((PetscObject)st->A[2]);CHKERRQ(ierr);
+    st->T[0] = st->A[2];
     /* T[2] = A+sigma*B+sigma*sigma*C */
     ierr = STMatGAXPY_Private(st,st->sigma,0.0,2,2,PETSC_TRUE);CHKERRQ(ierr);
     gamma = 2.0*st->sigma;
