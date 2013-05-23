@@ -86,9 +86,9 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   ierr = PetscOptionsEList("-eps_jd_borth","orthogonalization used in the search subspace","EPSJDSetBOrth",orth_list,3,orth_list[orth-1],&opi,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSJDSetBOrth(eps,(EPSOrthType)(opi+1));CHKERRQ(ierr); }
 
-  ierr = EPSJDGetConstantCorrectionTolerance(eps,&op);CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-eps_jd_constant_correction_tolerance","Disable the dynamic stopping criterion when solving the correction equation","EPSJDSetConstantCorrectionTolerance",op,&op,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = EPSJDSetConstantCorrectionTolerance(eps,op);CHKERRQ(ierr); }
+  ierr = EPSJDGetConstCorrectionTol(eps,&op);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-eps_jd_const_correction_tol","Disable the dynamic stopping criterion when solving the correction equation","EPSJDSetConstCorrectionTol",op,&op,&flg);CHKERRQ(ierr);
+  if (flg) { ierr = EPSJDSetConstCorrectionTol(eps,op);CHKERRQ(ierr); }
 
   ierr = EPSJDGetWindowSizes(eps,&opi,&opi0);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_jd_pwindow","(Experimental!) Set the number of converged vectors in the projector","EPSJDSetWindowSizes",opi,&opi,&flg);CHKERRQ(ierr);
@@ -124,7 +124,7 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
 
   PetscFunctionBegin;
   /* Setup common for all davidson solvers */
-  ierr = EPSSetUp_Davidson(eps);CHKERRQ(ierr);
+  ierr = EPSSetUp_XD(eps);CHKERRQ(ierr);
 
   /* Set the default options of the KSP */
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
@@ -157,8 +157,8 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetInitialSize_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetFix_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstantCorrectionTolerance_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstantCorrectionTolerance_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstCorrectionTol_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstCorrectionTol_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetWindowSizes_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetWindowSizes_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C",NULL);CHKERRQ(ierr);
@@ -491,9 +491,9 @@ PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSJDSetConstantCorrectionTolerance"
+#define __FUNCT__ "EPSJDSetConstCorrectionTol"
 /*@
-   EPSJDSetConstantCorrectionTolerance - If true, deactivates the dynamic stopping criterion
+   EPSJDSetConstCorrectionTol - If true, deactivates the dynamic stopping criterion
    (also called Newton) that sets the KSP relative tolerance
    to 0.5**i, where i is the number of EPS iterations from the last converged value.
 
@@ -504,27 +504,27 @@ PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix)
 -  constant - if false, the KSP relative tolerance is set to 0.5**i.
 
    Options Database Key:
-.  -eps_jd_constant_correction_tolerance - Deactivates the dynamic stopping criterion.
+.  -eps_jd_const_correction_tol - Deactivates the dynamic stopping criterion.
 
    Level: advanced
 
-.seealso: EPSJDGetConstantCorrectionTolerance()
+.seealso: EPSJDGetConstCorrectionTol()
 @*/
-PetscErrorCode EPSJDSetConstantCorrectionTolerance(EPS eps,PetscBool constant)
+PetscErrorCode EPSJDSetConstCorrectionTol(EPS eps,PetscBool constant)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,constant,2);
-  ierr = PetscTryMethod(eps,"EPSJDSetConstantCorrectionTolerance_C",(EPS,PetscBool),(eps,constant));CHKERRQ(ierr);
+  ierr = PetscTryMethod(eps,"EPSJDSetConstCorrectionTol_C",(EPS,PetscBool),(eps,constant));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSJDGetConstantCorrectionTolerance"
+#define __FUNCT__ "EPSJDGetConstCorrectionTol"
 /*@
-   EPSJDGetConstantCorrectionTolerance - Returns a flag indicating if the dynamic stopping is being used for
+   EPSJDGetConstCorrectionTol - Returns a flag indicating if the dynamic stopping is being used for
    solving the correction equation. If the flag is false the KSP relative tolerance is set
    to 0.5**i, where i is the number of EPS iterations from the last converged value.
 
@@ -538,16 +538,16 @@ PetscErrorCode EPSJDSetConstantCorrectionTolerance(EPS eps,PetscBool constant)
 
    Level: advanced
 
-.seealso: EPSJDGetConstantCorrectionTolerance()
+.seealso: EPSJDGetConstCorrectionTol()
 @*/
-PetscErrorCode EPSJDGetConstantCorrectionTolerance(EPS eps,PetscBool *constant)
+PetscErrorCode EPSJDGetConstCorrectionTol(EPS eps,PetscBool *constant)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(constant,2);
-  ierr = PetscTryMethod(eps,"EPSJDGetConstantCorrectionTolerance",(EPS,PetscBool*),(eps,constant));CHKERRQ(ierr);
+  ierr = PetscTryMethod(eps,"EPSJDGetConstCorrectionTol",(EPS,PetscBool*),(eps,constant));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -698,30 +698,30 @@ PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
 
   PetscFunctionBegin;
   /* Load the Davidson solver */
-  ierr = EPSCreate_Davidson(eps);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetMethod_Davidson(eps,DVD_METH_JD);CHKERRQ(ierr);
+  ierr = EPSCreate_XD(eps);CHKERRQ(ierr);
+  ierr = EPSXDSetMethod(eps,DVD_METH_JD);CHKERRQ(ierr);
 
   /* Overload the JD properties */
   eps->ops->setfromoptions = EPSSetFromOptions_JD;
   eps->ops->setup          = EPSSetUp_JD;
   eps->ops->destroy        = EPSDestroy_JD;
 
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetKrylovStart_C",EPSDavidsonSetKrylovStart_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetKrylovStart_C",EPSDavidsonGetKrylovStart_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBlockSize_C",EPSDavidsonSetBlockSize_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBlockSize_C",EPSDavidsonGetBlockSize_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetRestart_C",EPSDavidsonSetRestart_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetRestart_C",EPSDavidsonGetRestart_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetInitialSize_C",EPSDavidsonSetInitialSize_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetInitialSize_C",EPSDavidsonGetInitialSize_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetFix_C",EPSDavidsonSetFix_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C",EPSDavidsonGetFix_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstantCorrectionTolerance_C",EPSDavidsonSetConstantCorrectionTolerance_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstantCorrectionTolerance_C",EPSDavidsonGetConstantCorrectionTolerance_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetWindowSizes_C",EPSDavidsonSetWindowSizes_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetWindowSizes_C",EPSDavidsonGetWindowSizes_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C",EPSDavidsonSetBOrth_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C",EPSDavidsonGetBOrth_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetKrylovStart_C",EPSXDSetKrylovStart_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetKrylovStart_C",EPSXDGetKrylovStart_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBlockSize_C",EPSXDSetBlockSize_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBlockSize_C",EPSXDGetBlockSize_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetRestart_C",EPSXDSetRestart_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetRestart_C",EPSXDGetRestart_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetInitialSize_C",EPSXDSetInitialSize_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetInitialSize_C",EPSXDGetInitialSize_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetFix_C",EPSJDSetFix_JD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C",EPSXDGetFix_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstCorrectionTol_C",EPSJDSetConstCorrectionTol_JD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstCorrectionTol_C",EPSJDGetConstCorrectionTol_JD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetWindowSizes_C",EPSXDSetWindowSizes_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetWindowSizes_C",EPSXDGetWindowSizes_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C",EPSXDSetBOrth_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C",EPSXDGetBOrth_XD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

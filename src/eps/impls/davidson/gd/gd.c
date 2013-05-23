@@ -121,7 +121,7 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
   }
 
   /* Setup common for all davidson solvers */
-  ierr = EPSSetUp_Davidson(eps);CHKERRQ(ierr);
+  ierr = EPSSetUp_XD(eps);CHKERRQ(ierr);
 
   /* Check some constraints */
   ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&t);CHKERRQ(ierr);
@@ -555,7 +555,7 @@ static PetscErrorCode EPSGDSetDoubleExpansion_GD(EPS eps,PetscBool use_gd2)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = EPSDavidsonSetMethod_Davidson(eps,use_gd2?DVD_METH_GD2:DVD_METH_GD);CHKERRQ(ierr);
+  ierr = EPSXDSetMethod(eps,use_gd2?DVD_METH_GD2:DVD_METH_GD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -567,7 +567,7 @@ static PetscErrorCode EPSGDGetDoubleExpansion_GD(EPS eps,PetscBool *flg)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = EPSDavidsonGetMethod_Davidson(eps,&meth);CHKERRQ(ierr);
+  ierr = EPSXDGetMethod_XD(eps,&meth);CHKERRQ(ierr);
   if (meth==DVD_METH_GD2) *flg = PETSC_TRUE;
   else *flg = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -640,27 +640,27 @@ PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps)
 
   PetscFunctionBegin;
   /* Load the Davidson solver */
-  ierr = EPSCreate_Davidson(eps);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetFix_Davidson(eps,0.0);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetMethod_Davidson(eps,DVD_METH_GD);CHKERRQ(ierr);
+  ierr = EPSCreate_XD(eps);CHKERRQ(ierr);
+  ierr = EPSJDSetFix_JD(eps,0.0);CHKERRQ(ierr);
+  ierr = EPSXDSetMethod(eps,DVD_METH_GD);CHKERRQ(ierr);
 
   /* Overload the GD properties */
   eps->ops->setfromoptions       = EPSSetFromOptions_GD;
   eps->ops->setup                = EPSSetUp_GD;
   eps->ops->destroy              = EPSDestroy_GD;
 
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetKrylovStart_C",EPSDavidsonSetKrylovStart_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetKrylovStart_C",EPSDavidsonGetKrylovStart_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetBOrth_C",EPSDavidsonSetBOrth_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetBOrth_C",EPSDavidsonGetBOrth_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetBlockSize_C",EPSDavidsonSetBlockSize_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetBlockSize_C",EPSDavidsonGetBlockSize_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetRestart_C",EPSDavidsonSetRestart_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetRestart_C",EPSDavidsonGetRestart_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetInitialSize_C",EPSDavidsonSetInitialSize_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetInitialSize_C",EPSDavidsonGetInitialSize_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetWindowSizes_C",EPSDavidsonSetWindowSizes_Davidson);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetWindowSizes_C",EPSDavidsonGetWindowSizes_Davidson);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetKrylovStart_C",EPSXDSetKrylovStart_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetKrylovStart_C",EPSXDGetKrylovStart_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetBOrth_C",EPSXDSetBOrth_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetBOrth_C",EPSXDGetBOrth_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetBlockSize_C",EPSXDSetBlockSize_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetBlockSize_C",EPSXDGetBlockSize_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetRestart_C",EPSXDSetRestart_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetRestart_C",EPSXDGetRestart_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetInitialSize_C",EPSXDSetInitialSize_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetInitialSize_C",EPSXDGetInitialSize_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetWindowSizes_C",EPSXDSetWindowSizes_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetWindowSizes_C",EPSXDGetWindowSizes_XD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetDoubleExpansion_C",EPSGDSetDoubleExpansion_GD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetDoubleExpansion_C",EPSGDGetDoubleExpansion_GD);CHKERRQ(ierr);
   PetscFunctionReturn(0);

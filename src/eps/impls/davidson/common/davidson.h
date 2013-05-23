@@ -457,29 +457,29 @@ PETSC_INTERN PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,Pe
 
 /* SLEPc interface routines */
 PETSC_INTERN PetscErrorCode SLEPcNotImplemented();
-PETSC_INTERN PetscErrorCode EPSCreate_Davidson(EPS eps);
-PETSC_INTERN PetscErrorCode EPSReset_Davidson(EPS eps);
-PETSC_INTERN PetscErrorCode EPSSetUp_Davidson(EPS eps);
-PETSC_INTERN PetscErrorCode EPSSolve_Davidson(EPS eps);
-PETSC_INTERN PetscErrorCode EPSComputeVectors_Davidson(EPS eps);
-PETSC_INTERN PetscErrorCode EPSDavidsonSetKrylovStart_Davidson(EPS eps,PetscBool krylovstart);
-PETSC_INTERN PetscErrorCode EPSDavidsonGetKrylovStart_Davidson(EPS eps,PetscBool *krylovstart);
-PETSC_INTERN PetscErrorCode EPSDavidsonSetBlockSize_Davidson(EPS eps,PetscInt blocksize);
-PETSC_INTERN PetscErrorCode EPSDavidsonGetBlockSize_Davidson(EPS eps,PetscInt *blocksize);
-PETSC_INTERN PetscErrorCode EPSDavidsonSetRestart_Davidson(EPS eps,PetscInt minv,PetscInt plusk);
-PETSC_INTERN PetscErrorCode EPSDavidsonGetRestart_Davidson(EPS eps,PetscInt *minv,PetscInt *plusk);
-PETSC_INTERN PetscErrorCode EPSDavidsonGetInitialSize_Davidson(EPS eps,PetscInt *initialsize);
-PETSC_INTERN PetscErrorCode EPSDavidsonSetInitialSize_Davidson(EPS eps,PetscInt initialsize);
-PETSC_INTERN PetscErrorCode EPSDavidsonGetFix_Davidson(EPS eps,PetscReal *fix);
-PETSC_INTERN PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix);
-PETSC_INTERN PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,EPSOrthType borth);
-PETSC_INTERN PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,EPSOrthType *borth);
-PETSC_INTERN PetscErrorCode EPSDavidsonSetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool constant);
-PETSC_INTERN PetscErrorCode EPSDavidsonGetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool *constant);
-PETSC_INTERN PetscErrorCode EPSDavidsonSetWindowSizes_Davidson(EPS eps,PetscInt pwindow,PetscInt qwindow);
-PETSC_INTERN PetscErrorCode EPSDavidsonGetWindowSizes_Davidson(EPS eps,PetscInt *pwindow,PetscInt *qwindow);
-PETSC_INTERN PetscErrorCode EPSDavidsonSetMethod_Davidson(EPS eps,Method_t method);
-PETSC_INTERN PetscErrorCode EPSDavidsonGetMethod_Davidson(EPS eps,Method_t *method);
+PETSC_INTERN PetscErrorCode EPSCreate_XD(EPS eps);
+PETSC_INTERN PetscErrorCode EPSReset_XD(EPS eps);
+PETSC_INTERN PetscErrorCode EPSSetUp_XD(EPS eps);
+PETSC_INTERN PetscErrorCode EPSSolve_XD(EPS eps);
+PETSC_INTERN PetscErrorCode EPSComputeVectors_XD(EPS eps);
+PETSC_INTERN PetscErrorCode EPSXDSetKrylovStart_XD(EPS eps,PetscBool krylovstart);
+PETSC_INTERN PetscErrorCode EPSXDGetKrylovStart_XD(EPS eps,PetscBool *krylovstart);
+PETSC_INTERN PetscErrorCode EPSXDSetBlockSize_XD(EPS eps,PetscInt blocksize);
+PETSC_INTERN PetscErrorCode EPSXDGetBlockSize_XD(EPS eps,PetscInt *blocksize);
+PETSC_INTERN PetscErrorCode EPSXDSetRestart_XD(EPS eps,PetscInt minv,PetscInt plusk);
+PETSC_INTERN PetscErrorCode EPSXDGetRestart_XD(EPS eps,PetscInt *minv,PetscInt *plusk);
+PETSC_INTERN PetscErrorCode EPSXDGetInitialSize_XD(EPS eps,PetscInt *initialsize);
+PETSC_INTERN PetscErrorCode EPSXDSetInitialSize_XD(EPS eps,PetscInt initialsize);
+PETSC_INTERN PetscErrorCode EPSXDGetFix_XD(EPS eps,PetscReal *fix);
+PETSC_INTERN PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix);
+PETSC_INTERN PetscErrorCode EPSXDSetBOrth_XD(EPS eps,EPSOrthType borth);
+PETSC_INTERN PetscErrorCode EPSXDGetBOrth_XD(EPS eps,EPSOrthType *borth);
+PETSC_INTERN PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant);
+PETSC_INTERN PetscErrorCode EPSJDGetConstCorrectionTol_JD(EPS eps,PetscBool *constant);
+PETSC_INTERN PetscErrorCode EPSXDSetWindowSizes_XD(EPS eps,PetscInt pwindow,PetscInt qwindow);
+PETSC_INTERN PetscErrorCode EPSXDGetWindowSizes_XD(EPS eps,PetscInt *pwindow,PetscInt *qwindow);
+PETSC_INTERN PetscErrorCode EPSXDSetMethod(EPS eps,Method_t method);
+PETSC_INTERN PetscErrorCode EPSXDGetMethod_XD(EPS eps,Method_t *method);
 
 /* Common inline function */
 #undef __FUNCT__

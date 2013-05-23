@@ -85,7 +85,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     ierr = PetscOptionsInt("-nep_lag_preconditioner","Interval to rebuild preconditioner","NEPSetLagPreconditioner",nep->lag,&i,&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPSetLagPreconditioner(nep,i);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsBool("-nep_constant_correction_tolerance","Constant correction tolerance for the linear solver","NEPSetConstantCorrectionTolerance",nep->cctol,&nep->cctol,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-nep_const_correction_tol","Constant correction tolerance for the linear solver","NEPSetConstCorrectionTol",nep->cctol,&nep->cctol,NULL);CHKERRQ(ierr);
 
     ierr = PetscOptionsScalar("-nep_target","Value of the target","NEPSetTarget",nep->target,&s,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -572,9 +572,9 @@ PetscErrorCode NEPGetLagPreconditioner(NEP nep,PetscInt *lag)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPSetConstantCorrectionTolerance"
+#define __FUNCT__ "NEPSetConstCorrectionTol"
 /*@
-    NEPSetConstantCorrectionTolerance - Sets a flag to keep the tolerance used
+    NEPSetConstCorrectionTol - Sets a flag to keep the tolerance used
     in the linear solver constant.
 
     Logically Collective on NEP
@@ -584,7 +584,7 @@ PetscErrorCode NEPGetLagPreconditioner(NEP nep,PetscInt *lag)
 -   cct - a boolean value
 
     Options Database Keys:
-.   -nep_constant_correction_tolerance <cct>
+.   -nep_const_correction_tol <cct>
 
     Notes:
     By default, an exponentially decreasing tolerance is set in the KSP used
@@ -594,9 +594,9 @@ PetscErrorCode NEPGetLagPreconditioner(NEP nep,PetscInt *lag)
 
     Level: intermediate
 
-.seealso: NEPGetConstantCorrectionTolerance()
+.seealso: NEPGetConstCorrectionTol()
 @*/
-PetscErrorCode NEPSetConstantCorrectionTolerance(NEP nep,PetscBool cct)
+PetscErrorCode NEPSetConstCorrectionTol(NEP nep,PetscBool cct)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -606,9 +606,9 @@ PetscErrorCode NEPSetConstantCorrectionTolerance(NEP nep,PetscBool cct)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPGetConstantCorrectionTolerance"
+#define __FUNCT__ "NEPGetConstCorrectionTol"
 /*@
-    NEPGetConstantCorrectionTolerance - Returns the constant tolerance flag.
+    NEPGetConstCorrectionTol - Returns the constant tolerance flag.
 
     Not Collective
 
@@ -620,9 +620,9 @@ PetscErrorCode NEPSetConstantCorrectionTolerance(NEP nep,PetscBool cct)
 
     Level: intermediate
 
-.seealso: NEPSetConstantCorrectionTolerance()
+.seealso: NEPSetConstCorrectionTol()
 @*/
-PetscErrorCode NEPGetConstantCorrectionTolerance(NEP nep,PetscBool *cct)
+PetscErrorCode NEPGetConstCorrectionTol(NEP nep,PetscBool *cct)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);

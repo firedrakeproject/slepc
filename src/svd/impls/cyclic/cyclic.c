@@ -130,7 +130,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   if (svd->which == SVD_LARGEST) {
     ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   } else {
-    ierr = EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPositiveReal,NULL);CHKERRQ(ierr);
+    ierr = EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPosReal,NULL);CHKERRQ(ierr);
     ierr = EPSSetTarget(cyclic->eps,0.0);CHKERRQ(ierr);
   }
   ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);

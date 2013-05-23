@@ -673,8 +673,8 @@ PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "dvd_calcpairs_apply_arbitrary_func"
-PetscErrorCode dvd_calcpairs_apply_arbitrary_func(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscScalar **rr_,PetscScalar **ri_)
+#define __FUNCT__ "dvd_calcpairs_apply_arbitrary"
+PetscErrorCode dvd_calcpairs_apply_arbitrary(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscScalar **rr_,PetscScalar **ri_)
 {
   PetscInt        i,k,ld;
   PetscScalar     *pX,*rr,*ri,ar,ai;
@@ -760,7 +760,7 @@ PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n)
   n = PetscMin(n,d->size_H-d->cX_in_H);
   /* Put the best n pairs at the beginning. Useful for restarting */
   ierr = DSSetDimensions(d->ps,0,0,d->cX_in_H,0);CHKERRQ(ierr);
-  ierr = dvd_calcpairs_apply_arbitrary_func(d,d->cX_in_H,d->size_H,&rr,&ri);CHKERRQ(ierr);
+  ierr = dvd_calcpairs_apply_arbitrary(d,d->cX_in_H,d->size_H,&rr,&ri);CHKERRQ(ierr);
   k = n;
   ierr = DSSort(d->ps,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H,rr,ri,&k);CHKERRQ(ierr);
   /* Put the best pair at the beginning. Useful to check its residual */
@@ -770,7 +770,7 @@ PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n)
   if (n != 1)
 #endif
   {
-    ierr = dvd_calcpairs_apply_arbitrary_func(d,d->cX_in_H,d->size_H,&rr,&ri);CHKERRQ(ierr);
+    ierr = dvd_calcpairs_apply_arbitrary(d,d->cX_in_H,d->size_H,&rr,&ri);CHKERRQ(ierr);
     k = 1;
     ierr = DSSort(d->ps,d->eigr-d->cX_in_H,d->eigi-d->cX_in_H,rr,ri,&k);CHKERRQ(ierr);
   }

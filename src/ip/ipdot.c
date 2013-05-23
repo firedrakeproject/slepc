@@ -92,8 +92,8 @@ PetscErrorCode IPNormBegin_Bilinear(IP ip,Vec x,PetscReal *norm)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "IPNormBegin_Sesquilinear"
-PetscErrorCode IPNormBegin_Sesquilinear(IP ip,Vec x,PetscReal *norm)
+#define __FUNCT__ "IPNormBegin_Sesquilin"
+PetscErrorCode IPNormBegin_Sesquilin(IP ip,Vec x,PetscReal *norm)
 {
   PetscErrorCode ierr;
   PetscScalar    p;
@@ -178,8 +178,8 @@ PetscErrorCode IPNormEnd_Bilinear(IP ip,Vec x,PetscReal *norm)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "IPNormEnd_Sesquilinear"
-PetscErrorCode IPNormEnd_Sesquilinear(IP ip,Vec x,PetscReal *norm)
+#define __FUNCT__ "IPNormEnd_Sesquilin"
+PetscErrorCode IPNormEnd_Sesquilin(IP ip,Vec x,PetscReal *norm)
 {
   PetscErrorCode ierr;
   PetscScalar    p;
@@ -314,8 +314,8 @@ PetscErrorCode IPInnerProductBegin_Bilinear(IP ip,Vec x,Vec y,PetscScalar *p)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "IPInnerProductBegin_Sesquilinear"
-PetscErrorCode IPInnerProductBegin_Sesquilinear(IP ip,Vec x,Vec y,PetscScalar *p)
+#define __FUNCT__ "IPInnerProductBegin_Sesquilin"
+PetscErrorCode IPInnerProductBegin_Sesquilin(IP ip,Vec x,Vec y,PetscScalar *p)
 {
   PetscErrorCode ierr;
 
@@ -382,8 +382,8 @@ PetscErrorCode IPInnerProductEnd_Bilinear(IP ip,Vec x,Vec y,PetscScalar *p)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "IPInnerProductEnd_Sesquilinear"
-PetscErrorCode IPInnerProductEnd_Sesquilinear(IP ip,Vec x,Vec y,PetscScalar *p)
+#define __FUNCT__ "IPInnerProductEnd_Sesquilin"
+PetscErrorCode IPInnerProductEnd_Sesquilin(IP ip,Vec x,Vec y,PetscScalar *p)
 {
   PetscErrorCode ierr;
 
@@ -497,8 +497,8 @@ PetscErrorCode IPMInnerProductBegin_Bilinear(IP ip,Vec x,PetscInt n,const Vec y[
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "IPMInnerProductBegin_Sesquilinear"
-PetscErrorCode IPMInnerProductBegin_Sesquilinear(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
+#define __FUNCT__ "IPMInnerProductBegin_Sesquilin"
+PetscErrorCode IPMInnerProductBegin_Sesquilin(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {
   PetscErrorCode ierr;
 
@@ -568,8 +568,8 @@ PetscErrorCode IPMInnerProductEnd_Bilinear(IP ip,Vec x,PetscInt n,const Vec y[],
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "IPMInnerProductEnd_Sesquilinear"
-PetscErrorCode IPMInnerProductEnd_Sesquilinear(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
+#define __FUNCT__ "IPMInnerProductEnd_Sesquilin"
+PetscErrorCode IPMInnerProductEnd_Sesquilin(IP ip,Vec x,PetscInt n,const Vec y[],PetscScalar *p)
 {
   PetscErrorCode ierr;
 
@@ -639,16 +639,16 @@ PETSC_EXTERN PetscErrorCode IPCreate_Bilinear(IP ip)
 
 #if defined(PETSC_USE_COMPLEX)
 #undef __FUNCT__
-#define __FUNCT__ "IPCreate_Sesquilinear"
-PETSC_EXTERN PetscErrorCode IPCreate_Sesquilinear(IP ip)
+#define __FUNCT__ "IPCreate_Sesquilin"
+PETSC_EXTERN PetscErrorCode IPCreate_Sesquilin(IP ip)
 {
   PetscFunctionBegin;
-  ip->ops->normbegin          = IPNormBegin_Sesquilinear;
-  ip->ops->normend            = IPNormEnd_Sesquilinear;
-  ip->ops->innerproductbegin  = IPInnerProductBegin_Sesquilinear;
-  ip->ops->innerproductend    = IPInnerProductEnd_Sesquilinear;
-  ip->ops->minnerproductbegin = IPMInnerProductBegin_Sesquilinear;
-  ip->ops->minnerproductend   = IPMInnerProductEnd_Sesquilinear;
+  ip->ops->normbegin          = IPNormBegin_Sesquilin;
+  ip->ops->normend            = IPNormEnd_Sesquilin;
+  ip->ops->innerproductbegin  = IPInnerProductBegin_Sesquilin;
+  ip->ops->innerproductend    = IPInnerProductEnd_Sesquilin;
+  ip->ops->minnerproductbegin = IPMInnerProductBegin_Sesquilin;
+  ip->ops->minnerproductend   = IPMInnerProductEnd_Sesquilin;
   PetscFunctionReturn(0);
 }
 #endif
@@ -661,10 +661,10 @@ PETSC_EXTERN PetscErrorCode IPCreate_Indefinite(IP ip)
   ip->ops->normbegin          = IPNormBegin_Indefinite;
   ip->ops->normend            = IPNormEnd_Indefinite;
 #if defined(PETSC_USE_COMPLEX)
-  ip->ops->innerproductbegin  = IPInnerProductBegin_Sesquilinear;
-  ip->ops->innerproductend    = IPInnerProductEnd_Sesquilinear;
-  ip->ops->minnerproductbegin = IPMInnerProductBegin_Sesquilinear;
-  ip->ops->minnerproductend   = IPMInnerProductEnd_Sesquilinear;
+  ip->ops->innerproductbegin  = IPInnerProductBegin_Sesquilin;
+  ip->ops->innerproductend    = IPInnerProductEnd_Sesquilin;
+  ip->ops->minnerproductbegin = IPMInnerProductBegin_Sesquilin;
+  ip->ops->minnerproductend   = IPMInnerProductEnd_Sesquilin;
 #else
   ip->ops->innerproductbegin  = IPInnerProductBegin_Bilinear;
   ip->ops->innerproductend    = IPInnerProductEnd_Bilinear;

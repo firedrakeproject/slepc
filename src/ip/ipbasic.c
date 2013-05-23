@@ -675,7 +675,7 @@ PetscErrorCode IPRegister(const char *name,PetscErrorCode (*function)(IP))
 
 PETSC_EXTERN PetscErrorCode IPCreate_Bilinear(IP);
 #if defined(PETSC_USE_COMPLEX)
-PETSC_EXTERN PetscErrorCode IPCreate_Sesquilinear(IP);
+PETSC_EXTERN PetscErrorCode IPCreate_Sesquilin(IP);
 #endif
 PETSC_EXTERN PetscErrorCode IPCreate_Indefinite(IP);
 
@@ -696,7 +696,7 @@ PetscErrorCode IPRegisterAll(void)
   IPRegisterAllCalled = PETSC_TRUE;
   ierr = IPRegister(IPBILINEAR,IPCreate_Bilinear);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-  ierr = IPRegister(IPSESQUILINEAR,IPCreate_Sesquilinear);CHKERRQ(ierr);
+  ierr = IPRegister(IPSESQUILINEAR,IPCreate_Sesquilin);CHKERRQ(ierr);
 #endif
   ierr = IPRegister(IPINDEFINITE,IPCreate_Indefinite);CHKERRQ(ierr);
   PetscFunctionReturn(0);

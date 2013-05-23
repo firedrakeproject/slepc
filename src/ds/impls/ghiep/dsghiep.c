@@ -895,12 +895,12 @@ static PetscErrorCode DSEigenVectorsPseudoOrthog(DS ds,DSMatType mat,PetscScalar
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSGHIEPPseudoOrthogInverseIteration"
+#define __FUNCT__ "DSInverseIterationPseudoOrthog"
 /*
   Get eigenvectors with inverse iteration.
   The system matrix is in Hessenberg form.
 */
-PetscErrorCode DSGHIEPPseudoOrthogInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode DSInverseIterationPseudoOrthog(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(PETSC_MISSING_LAPACK_HSEIN)
   PetscFunctionBegin;
@@ -1215,7 +1215,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",&info);
 
   /* Compute Eigenvectors with Inverse Iteration */
-  ierr = DSGHIEPPseudoOrthogInverseIteration(ds,wr,wi);CHKERRQ(ierr);
+  ierr = DSInverseIterationPseudoOrthog(ds,wr,wi);CHKERRQ(ierr);
 
   /* Recover eigenvalues from diagonal */
   ierr = DSGHIEPComplexEigs(ds,0,ds->l,wr,wi);CHKERRQ(ierr);

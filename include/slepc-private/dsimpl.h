@@ -89,7 +89,7 @@ PETSC_INTERN PetscErrorCode DSOrthogonalize(DS,DSMatType,PetscInt,PetscInt*);
 PETSC_INTERN PetscErrorCode DSPseudoOrthogonalize(DS,DSMatType,PetscInt,PetscReal*,PetscInt*,PetscReal*);
 
 PETSC_INTERN PetscErrorCode DSGHIEPComplexEigs(DS,PetscInt,PetscInt,PetscScalar*,PetscScalar*);
-PETSC_INTERN PetscErrorCode DSGHIEPPseudoOrthogInverseIteration(DS,PetscScalar*,PetscScalar*);
+PETSC_INTERN PetscErrorCode DSInverseIterationPseudoOrthog(DS,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode DSIntermediate_GHIEP(DS);
 PETSC_INTERN PetscErrorCode DSSwitchFormat_GHIEP(DS,PetscBool);
 PETSC_INTERN PetscErrorCode DSGHIEPHRApply(PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscReal,PetscReal);

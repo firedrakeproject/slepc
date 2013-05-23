@@ -23,7 +23,7 @@
 
 #include "davidson.h"
 
-PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer);
+PetscErrorCode EPSView_XD(EPS eps,PetscViewer viewer);
 
 typedef struct {
   /**** Solver options ****/
@@ -50,20 +50,20 @@ typedef struct {
 } EPS_DAVIDSON;
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSCreate_Davidson"
-PetscErrorCode EPSCreate_Davidson(EPS eps)
+#define __FUNCT__ "EPSCreate_XD"
+PetscErrorCode EPSCreate_XD(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_DAVIDSON   *data;
 
   PetscFunctionBegin;
   eps->st->ops->getbilinearform  = STGetBilinearForm_Default;
-  eps->ops->solve                = EPSSolve_Davidson;
-  eps->ops->setup                = EPSSetUp_Davidson;
-  eps->ops->reset                = EPSReset_Davidson;
+  eps->ops->solve                = EPSSolve_XD;
+  eps->ops->setup                = EPSSetUp_XD;
+  eps->ops->reset                = EPSReset_XD;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Davidson;
-  eps->ops->view                 = EPSView_Davidson;
+  eps->ops->computevectors       = EPSComputeVectors_XD;
+  eps->ops->view                 = EPSView_XD;
 
   ierr = PetscMalloc(sizeof(EPS_DAVIDSON),&data);CHKERRQ(ierr);
   eps->data = data;
@@ -73,20 +73,20 @@ PetscErrorCode EPSCreate_Davidson(EPS eps)
   ierr = PetscMemzero(&data->ddb,sizeof(dvdDashboard));CHKERRQ(ierr);
 
   /* Set default values */
-  ierr = EPSDavidsonSetKrylovStart_Davidson(eps,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetBlockSize_Davidson(eps,1);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetRestart_Davidson(eps,6,0);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetInitialSize_Davidson(eps,5);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetFix_Davidson(eps,0.01);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetBOrth_Davidson(eps,EPS_ORTH_B);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetConstantCorrectionTolerance_Davidson(eps,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = EPSDavidsonSetWindowSizes_Davidson(eps,0,0);CHKERRQ(ierr);
+  ierr = EPSXDSetKrylovStart_XD(eps,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = EPSXDSetBlockSize_XD(eps,1);CHKERRQ(ierr);
+  ierr = EPSXDSetRestart_XD(eps,6,0);CHKERRQ(ierr);
+  ierr = EPSXDSetInitialSize_XD(eps,5);CHKERRQ(ierr);
+  ierr = EPSJDSetFix_JD(eps,0.01);CHKERRQ(ierr);
+  ierr = EPSXDSetBOrth_XD(eps,EPS_ORTH_B);CHKERRQ(ierr);
+  ierr = EPSJDSetConstCorrectionTol_JD(eps,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = EPSXDSetWindowSizes_XD(eps,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_Davidson"
-PetscErrorCode EPSSetUp_Davidson(EPS eps)
+#define __FUNCT__ "EPSSetUp_XD"
+PetscErrorCode EPSSetUp_XD(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
@@ -103,7 +103,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
 
   PetscFunctionBegin;
   /* Setup EPS options and get the problem specification */
-  ierr = EPSDavidsonGetBlockSize_Davidson(eps,&bs);CHKERRQ(ierr);
+  ierr = EPSXDGetBlockSize_XD(eps,&bs);CHKERRQ(ierr);
   if (bs <= 0) bs = 1;
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The value of ncv must be at least nev");
@@ -118,10 +118,10 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Wrong value of eps->which");
   if (!(eps->nev + bs <= eps->ncv)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize");
 
-  ierr = EPSDavidsonGetRestart_Davidson(eps,&min_size_V,&plusk);CHKERRQ(ierr);
+  ierr = EPSXDGetRestart_XD(eps,&min_size_V,&plusk);CHKERRQ(ierr);
   if (!min_size_V) min_size_V = PetscMin(PetscMax(bs,5),eps->mpd/2);
   if (!(min_size_V+bs <= eps->mpd)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The value of minv must be less than mpd minus blocksize");
-  ierr = EPSDavidsonGetInitialSize_Davidson(eps,&initv);CHKERRQ(ierr);
+  ierr = EPSXDGetInitialSize_XD(eps,&initv);CHKERRQ(ierr);
   if (eps->mpd < initv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The initv has to be less or equal than mpd");
 
   /* Davidson solvers do not support left eigenvectors */
@@ -149,7 +149,7 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
-  ierr = EPSReset_Davidson(eps);CHKERRQ(ierr);
+  ierr = EPSReset_XD(eps);CHKERRQ(ierr);
   ierr = PetscMemzero(dvd,sizeof(dvdDashboard));CHKERRQ(ierr);
   dvd->A = A; dvd->B = eps->isgeneralized? B : NULL;
   ispositive = eps->ispositive;
@@ -233,11 +233,11 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   }
 
   /* Setup the type of starting subspace */
-  ierr = EPSDavidsonGetKrylovStart_Davidson(eps,&t);CHKERRQ(ierr);
+  ierr = EPSXDGetKrylovStart_XD(eps,&t);CHKERRQ(ierr);
   init = (!t)? DVD_INITV_CLASSIC : DVD_INITV_KRYLOV;
 
   /* Setup the presence of converged vectors in the projected problem and in the projector */
-  ierr = EPSDavidsonGetWindowSizes_Davidson(eps,&cX_in_impr,&cX_in_proj);CHKERRQ(ierr);
+  ierr = EPSXDGetWindowSizes_XD(eps,&cX_in_impr,&cX_in_proj);CHKERRQ(ierr);
   if (min_size_V <= cX_in_proj) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"minv has to be greater than qwindow");
   if (bs > 1 && cX_in_impr > 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported option: pwindow > 0 and bs > 1");
 
@@ -249,10 +249,10 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
   }
 
   /* Get the fix parameter */
-  ierr = EPSDavidsonGetFix_Davidson(eps,&fix);CHKERRQ(ierr);
+  ierr = EPSXDGetFix_XD(eps,&fix);CHKERRQ(ierr);
 
   /* Get whether the stopping criterion is used */
-  ierr = EPSDavidsonGetConstantCorrectionTolerance_Davidson(eps,&dynamic);CHKERRQ(ierr);
+  ierr = EPSJDGetConstCorrectionTol_JD(eps,&dynamic);CHKERRQ(ierr);
 
   /* Orthonormalize the deflation space */
   ierr = dvd_orthV(eps->ip,NULL,0,NULL,0,eps->defl,0,PetscAbs(eps->nds),NULL,eps->rand);CHKERRQ(ierr);
@@ -303,8 +303,8 @@ PetscErrorCode EPSSetUp_Davidson(EPS eps)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSSolve_Davidson"
-PetscErrorCode EPSSolve_Davidson(EPS eps)
+#define __FUNCT__ "EPSSolve_XD"
+PetscErrorCode EPSSolve_XD(EPS eps)
 {
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *d = &data->ddb;
@@ -341,8 +341,8 @@ PetscErrorCode EPSSolve_Davidson(EPS eps)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSReset_Davidson"
-PetscErrorCode EPSReset_Davidson(EPS eps)
+#define __FUNCT__ "EPSReset_XD"
+PetscErrorCode EPSReset_XD(EPS eps)
 {
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
@@ -364,8 +364,8 @@ PetscErrorCode EPSReset_Davidson(EPS eps)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSView_Davidson"
-PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
+#define __FUNCT__ "EPSView_XD"
+PetscErrorCode EPSView_XD(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscBool      isascii,opb;
@@ -376,11 +376,11 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = EPSDavidsonGetMethod_Davidson(eps,&meth);CHKERRQ(ierr);
+    ierr = EPSXDGetMethod_XD(eps,&meth);CHKERRQ(ierr);
     if (meth==DVD_METH_GD2) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: using double expansion variant (GD2)\n");CHKERRQ(ierr);
     }
-    ierr = EPSDavidsonGetBOrth_Davidson(eps,&borth);CHKERRQ(ierr);
+    ierr = EPSXDGetBOrth_XD(eps,&borth);CHKERRQ(ierr);
     switch (borth) {
     case EPS_ORTH_I:
       ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is orthogonalized\n");CHKERRQ(ierr);
@@ -392,15 +392,15 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is B-orthogonalized with an optimized method\n");CHKERRQ(ierr);
       break;
     }
-    ierr = EPSDavidsonGetBlockSize_Davidson(eps,&opi);CHKERRQ(ierr);
+    ierr = EPSXDGetBlockSize_XD(eps,&opi);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: block size=%D\n",opi);CHKERRQ(ierr);
-    ierr = EPSDavidsonGetKrylovStart_Davidson(eps,&opb);CHKERRQ(ierr);
+    ierr = EPSXDGetKrylovStart_XD(eps,&opb);CHKERRQ(ierr);
     if (!opb) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: type of the initial subspace: non-Krylov\n");CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: type of the initial subspace: Krylov\n");CHKERRQ(ierr);
     }
-    ierr = EPSDavidsonGetRestart_Davidson(eps,&opi,&opi0);CHKERRQ(ierr);
+    ierr = EPSXDGetRestart_XD(eps,&opi,&opi0);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: size of the subspace after restarting: %D\n",opi);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: number of vectors after restarting from the previous iteration: %D\n",opi0);CHKERRQ(ierr);
   }
@@ -408,8 +408,8 @@ PetscErrorCode EPSView_Davidson(EPS eps,PetscViewer viewer)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonSetKrylovStart_Davidson"
-PetscErrorCode EPSDavidsonSetKrylovStart_Davidson(EPS eps,PetscBool krylovstart)
+#define __FUNCT__ "EPSXDSetKrylovStart_XD"
+PetscErrorCode EPSXDSetKrylovStart_XD(EPS eps,PetscBool krylovstart)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -419,8 +419,8 @@ PetscErrorCode EPSDavidsonSetKrylovStart_Davidson(EPS eps,PetscBool krylovstart)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonGetKrylovStart_Davidson"
-PetscErrorCode EPSDavidsonGetKrylovStart_Davidson(EPS eps,PetscBool *krylovstart)
+#define __FUNCT__ "EPSXDGetKrylovStart_XD"
+PetscErrorCode EPSXDGetKrylovStart_XD(EPS eps,PetscBool *krylovstart)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -430,8 +430,8 @@ PetscErrorCode EPSDavidsonGetKrylovStart_Davidson(EPS eps,PetscBool *krylovstart
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonSetBlockSize_Davidson"
-PetscErrorCode EPSDavidsonSetBlockSize_Davidson(EPS eps,PetscInt blocksize)
+#define __FUNCT__ "EPSXDSetBlockSize_XD"
+PetscErrorCode EPSXDSetBlockSize_XD(EPS eps,PetscInt blocksize)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -443,8 +443,8 @@ PetscErrorCode EPSDavidsonSetBlockSize_Davidson(EPS eps,PetscInt blocksize)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonGetBlockSize_Davidson"
-PetscErrorCode EPSDavidsonGetBlockSize_Davidson(EPS eps,PetscInt *blocksize)
+#define __FUNCT__ "EPSXDGetBlockSize_XD"
+PetscErrorCode EPSXDGetBlockSize_XD(EPS eps,PetscInt *blocksize)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -454,8 +454,8 @@ PetscErrorCode EPSDavidsonGetBlockSize_Davidson(EPS eps,PetscInt *blocksize)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonSetRestart_Davidson"
-PetscErrorCode EPSDavidsonSetRestart_Davidson(EPS eps,PetscInt minv,PetscInt plusk)
+#define __FUNCT__ "EPSXDSetRestart_XD"
+PetscErrorCode EPSXDSetRestart_XD(EPS eps,PetscInt minv,PetscInt plusk)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -470,8 +470,8 @@ PetscErrorCode EPSDavidsonSetRestart_Davidson(EPS eps,PetscInt minv,PetscInt plu
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonGetRestart_Davidson"
-PetscErrorCode EPSDavidsonGetRestart_Davidson(EPS eps,PetscInt *minv,PetscInt *plusk)
+#define __FUNCT__ "EPSXDGetRestart_XD"
+PetscErrorCode EPSXDGetRestart_XD(EPS eps,PetscInt *minv,PetscInt *plusk)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -482,8 +482,8 @@ PetscErrorCode EPSDavidsonGetRestart_Davidson(EPS eps,PetscInt *minv,PetscInt *p
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonGetInitialSize_Davidson"
-PetscErrorCode EPSDavidsonGetInitialSize_Davidson(EPS eps,PetscInt *initialsize)
+#define __FUNCT__ "EPSXDGetInitialSize_XD"
+PetscErrorCode EPSXDGetInitialSize_XD(EPS eps,PetscInt *initialsize)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -493,8 +493,8 @@ PetscErrorCode EPSDavidsonGetInitialSize_Davidson(EPS eps,PetscInt *initialsize)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonSetInitialSize_Davidson"
-PetscErrorCode EPSDavidsonSetInitialSize_Davidson(EPS eps,PetscInt initialsize)
+#define __FUNCT__ "EPSXDSetInitialSize_XD"
+PetscErrorCode EPSXDSetInitialSize_XD(EPS eps,PetscInt initialsize)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -506,8 +506,8 @@ PetscErrorCode EPSDavidsonSetInitialSize_Davidson(EPS eps,PetscInt initialsize)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonGetFix_Davidson"
-PetscErrorCode EPSDavidsonGetFix_Davidson(EPS eps,PetscReal *fix)
+#define __FUNCT__ "EPSXDGetFix_XD"
+PetscErrorCode EPSXDGetFix_XD(EPS eps,PetscReal *fix)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -517,8 +517,8 @@ PetscErrorCode EPSDavidsonGetFix_Davidson(EPS eps,PetscReal *fix)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonSetFix_Davidson"
-PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix)
+#define __FUNCT__ "EPSJDSetFix_JD"
+PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -530,8 +530,8 @@ PetscErrorCode EPSDavidsonSetFix_Davidson(EPS eps,PetscReal fix)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonSetBOrth_Davidson"
-PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,EPSOrthType borth)
+#define __FUNCT__ "EPSXDSetBOrth_XD"
+PetscErrorCode EPSXDSetBOrth_XD(EPS eps,EPSOrthType borth)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -541,8 +541,8 @@ PetscErrorCode EPSDavidsonSetBOrth_Davidson(EPS eps,EPSOrthType borth)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonGetBOrth_Davidson"
-PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,EPSOrthType *borth)
+#define __FUNCT__ "EPSXDGetBOrth_XD"
+PetscErrorCode EPSXDGetBOrth_XD(EPS eps,EPSOrthType *borth)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -552,8 +552,8 @@ PetscErrorCode EPSDavidsonGetBOrth_Davidson(EPS eps,EPSOrthType *borth)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonSetConstantCorrectionTolerance_Davidson"
-PetscErrorCode EPSDavidsonSetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool constant)
+#define __FUNCT__ "EPSJDSetConstCorrectionTol_JD"
+PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -563,8 +563,8 @@ PetscErrorCode EPSDavidsonSetConstantCorrectionTolerance_Davidson(EPS eps,PetscB
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonGetConstantCorrectionTolerance_Davidson"
-PetscErrorCode EPSDavidsonGetConstantCorrectionTolerance_Davidson(EPS eps,PetscBool *constant)
+#define __FUNCT__ "EPSJDGetConstCorrectionTol_JD"
+PetscErrorCode EPSJDGetConstCorrectionTol_JD(EPS eps,PetscBool *constant)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -574,8 +574,8 @@ PetscErrorCode EPSDavidsonGetConstantCorrectionTolerance_Davidson(EPS eps,PetscB
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonSetWindowSizes_Davidson"
-PetscErrorCode EPSDavidsonSetWindowSizes_Davidson(EPS eps,PetscInt pwindow,PetscInt qwindow)
+#define __FUNCT__ "EPSXDSetWindowSizes_XD"
+PetscErrorCode EPSXDSetWindowSizes_XD(EPS eps,PetscInt pwindow,PetscInt qwindow)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -590,8 +590,8 @@ PetscErrorCode EPSDavidsonSetWindowSizes_Davidson(EPS eps,PetscInt pwindow,Petsc
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonGetWindowSizes_Davidson"
-PetscErrorCode EPSDavidsonGetWindowSizes_Davidson(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
+#define __FUNCT__ "EPSXDGetWindowSizes_XD"
+PetscErrorCode EPSXDGetWindowSizes_XD(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -602,8 +602,8 @@ PetscErrorCode EPSDavidsonGetWindowSizes_Davidson(EPS eps,PetscInt *pwindow,Pets
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonSetMethod_Davidson"
-PetscErrorCode EPSDavidsonSetMethod_Davidson(EPS eps,Method_t method)
+#define __FUNCT__ "EPSXDSetMethod"
+PetscErrorCode EPSXDSetMethod(EPS eps,Method_t method)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -613,8 +613,8 @@ PetscErrorCode EPSDavidsonSetMethod_Davidson(EPS eps,Method_t method)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonGetMethod_Davidson"
-PetscErrorCode EPSDavidsonGetMethod_Davidson(EPS eps,Method_t *method)
+#define __FUNCT__ "EPSXDGetMethod_XD"
+PetscErrorCode EPSXDGetMethod_XD(EPS eps,Method_t *method)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -624,9 +624,9 @@ PetscErrorCode EPSDavidsonGetMethod_Davidson(EPS eps,Method_t *method)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSComputeVectors_Davidson"
+#define __FUNCT__ "EPSComputeVectors_XD"
 /*
-  EPSComputeVectors_Davidson - Compute eigenvectors from the vectors
+  EPSComputeVectors_XD - Compute eigenvectors from the vectors
   provided by the eigensolver. This version is intended for solvers
   that provide Schur vectors from the QZ decompositon. Given the partial
   Schur decomposition OP*V=V*T, the following steps are performed:
@@ -634,7 +634,7 @@ PetscErrorCode EPSDavidsonGetMethod_Davidson(EPS eps,Method_t *method)
       2) compute eigenvectors of OP: X=V*Z
   If left eigenvectors are required then also do Z'*T=D*Z', Y=W*Z
  */
-PetscErrorCode EPSComputeVectors_Davidson(EPS eps)
+PetscErrorCode EPSComputeVectors_XD(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;

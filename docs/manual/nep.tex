@@ -246,11 +246,11 @@ This \ident{KSP} object is typically used to compute the action of $T(\sigma)^{-
 	\begin{Verbatim}[fontsize=\small]
 	NEPSetLagPreconditioner(NEP nep,PetscInt lag);
 	\end{Verbatim}
-Recomputing the preconditioner every 2 iterations, say, will introduce a considerable overhead, but may reduce the number of iterations significantly. Another related comment is that, when using an iterative linear solver, the requested accuracy is adapted as the outer iteration progresses, being the tolerance higher in the first solves. Again, the user can modify this behaviour with \ident{NEPSetConstantCorrectionTolerance}. Both options can also be changed at run time. As an example, consider the following command line:
+Recomputing the preconditioner every 2 iterations, say, will introduce a considerable overhead, but may reduce the number of iterations significantly. Another related comment is that, when using an iterative linear solver, the requested accuracy is adapted as the outer iteration progresses, being the tolerance higher in the first solves. Again, the user can modify this behaviour with \ident{NEPSetConstCorrectionTol}. Both options can also be changed at run time. As an example, consider the following command line:
 \begin{Verbatim}[fontsize=\small]
 	$ ./program -nep_type narnoldi -nep_lag_preconditioner 2
                     -nep_ksp_type bcgs -nep_pc_type ilu
-                    -nep_constant_correction_tolerance 1 -nep_ksp_rtol 1e-3
+                    -nep_const_correction_tol 1 -nep_ksp_rtol 1e-3
 \end{Verbatim}
 The example uses nonlinear Arnoldi with BiCGStab plus ILU, where the preconditioner is updated every two outer iterations and linear systems are solved up to a tolerance of $10^{-3}$.
 
