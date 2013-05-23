@@ -27,12 +27,12 @@
 #include <slepc-private/vecimplslepc.h>         /*I "slepcvec.h" I*/
 
 PetscErrorCode dvd_improvex_PfuncV(dvdDashboard *d,void *funcV,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,Vec *auxV,PetscScalar *auxS);
-PetscErrorCode dvd_pcapplyba(PC pc,PCSide side,Vec in,Vec out,Vec w);
-PetscErrorCode dvd_pcapply(PC pc,Vec in,Vec out);
-PetscErrorCode dvd_pcapplytrans(PC pc,Vec in,Vec out);
-PetscErrorCode dvd_matmult_jd(Mat A,Vec in,Vec out);
-PetscErrorCode dvd_matmulttrans_jd(Mat A,Vec in,Vec out);
-PetscErrorCode dvd_matgetvecs_jd(Mat A,Vec *right,Vec *left);
+PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w);
+PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out);
+PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out);
+PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out);
+PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out);
+PetscErrorCode MatGetVecs_dvd_jd(Mat A,Vec *right,Vec *left);
 PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d);
 PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d);
 PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d);
@@ -204,9 +204,9 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
       ierr = PCCreate(PetscObjectComm((PetscObject)d->eps),&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCSHELL);CHKERRQ(ierr);
       ierr = PCSetOperators(pc, d->A, d->A, SAME_PRECONDITIONER);CHKERRQ(ierr);
-      ierr = PCShellSetApply(pc,dvd_pcapply);CHKERRQ(ierr);
-      ierr = PCShellSetApplyBA(pc,dvd_pcapplyba);CHKERRQ(ierr);
-      ierr = PCShellSetApplyTranspose(pc,dvd_pcapplytrans);CHKERRQ(ierr);
+      ierr = PCShellSetApply(pc,PCApply_dvd);CHKERRQ(ierr);
+      ierr = PCShellSetApplyBA(pc,PCApplyBA_dvd);CHKERRQ(ierr);
+      ierr = PCShellSetApplyTranspose(pc,PCApplyTranspose_dvd);CHKERRQ(ierr);
       ierr = KSPSetPC(data->ksp,pc);CHKERRQ(ierr);
       ierr = PCDestroy(&pc);CHKERRQ(ierr);
     }
@@ -217,12 +217,9 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
     ierr = MatCreateShell(PetscObjectComm((PetscObject)d->A), rlA*data->ksp_max_size,
                           clA*data->ksp_max_size, rA*data->ksp_max_size,
                           cA*data->ksp_max_size, data, &A);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A, MATOP_MULT,
-                                (void(*)(void))dvd_matmult_jd);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A, MATOP_MULT_TRANSPOSE,
-                                (void(*)(void))dvd_matmulttrans_jd);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A, MATOP_GET_VECS,
-                                (void(*)(void))dvd_matgetvecs_jd);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A, MATOP_MULT,(void(*)(void))MatMult_dvd_jd);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A, MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_dvd_jd);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A, MATOP_GET_VECS,(void(*)(void))MatGetVecs_dvd_jd);CHKERRQ(ierr);
 
     /* Try to avoid KSPReset */
     ierr = KSPGetOperatorsSet(data->ksp,&t,NULL);CHKERRQ(ierr);
@@ -509,8 +506,8 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,con
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "dvd_pcapplyba"
-PetscErrorCode dvd_pcapplyba(PC pc,PCSide side,Vec in,Vec out,Vec w)
+#define __FUNCT__ "PCApplyBA_dvd"
+PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
@@ -572,8 +569,8 @@ PetscErrorCode dvd_pcapplyba(PC pc,PCSide side,Vec in,Vec out,Vec w)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "dvd_pcapply"
-PetscErrorCode dvd_pcapply(PC pc,Vec in,Vec out)
+#define __FUNCT__ "PCApply_dvd"
+PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
@@ -599,8 +596,8 @@ PetscErrorCode dvd_pcapply(PC pc,Vec in,Vec out)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "dvd_pcapplytrans"
-PetscErrorCode dvd_pcapplytrans(PC pc,Vec in,Vec out)
+#define __FUNCT__ "PCApplyTranspose_dvd"
+PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
@@ -634,8 +631,8 @@ PetscErrorCode dvd_pcapplytrans(PC pc,Vec in,Vec out)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "dvd_matmult_jd"
-PetscErrorCode dvd_matmult_jd(Mat A,Vec in,Vec out)
+#define __FUNCT__ "MatMult_dvd_jd"
+PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
@@ -664,8 +661,8 @@ PetscErrorCode dvd_matmult_jd(Mat A,Vec in,Vec out)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "dvd_matmulttrans_jd"
-PetscErrorCode dvd_matmulttrans_jd(Mat A,Vec in,Vec out)
+#define __FUNCT__ "MatMultTranspose_dvd_jd"
+PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
@@ -704,8 +701,8 @@ PetscErrorCode dvd_matmulttrans_jd(Mat A,Vec in,Vec out)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "dvd_matgetvecs_jd"
-PetscErrorCode dvd_matgetvecs_jd(Mat A,Vec *right,Vec *left)
+#define __FUNCT__ "MatGetVecs_dvd_jd"
+PetscErrorCode MatGetVecs_dvd_jd(Mat A,Vec *right,Vec *left)
 {
   PetscErrorCode  ierr;
   Vec             *r, *l;

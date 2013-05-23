@@ -33,11 +33,11 @@ typedef struct {
 } SampleShellST;
 
 /* Declare routines for user-provided spectral transformation */
-PetscErrorCode SampleShellSTCreate(SampleShellST**);
-PetscErrorCode SampleShellSTSetUp(SampleShellST*,ST);
-PetscErrorCode SampleShellSTApply(ST,Vec,Vec);
-PetscErrorCode SampleShellSTBackTransform(ST,PetscInt,PetscScalar*,PetscScalar*);
-PetscErrorCode SampleShellSTDestroy(SampleShellST*);
+PetscErrorCode STCreate_User(SampleShellST**);
+PetscErrorCode STSetUp_User(SampleShellST*,ST);
+PetscErrorCode STApply_User(ST,Vec,Vec);
+PetscErrorCode STBackTransform_User(ST,PetscInt,PetscScalar*,PetscScalar*);
+PetscErrorCode STDestroy_User(SampleShellST*);
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -115,20 +115,20 @@ int main (int argc,char **argv)
   if (isShell) {
     /* (Optional) Create a context for the user-defined spectral tranform;
        this context can be defined to contain any application-specific data. */
-    ierr = SampleShellSTCreate(&shell);CHKERRQ(ierr);
+    ierr = STCreate_User(&shell);CHKERRQ(ierr);
 
     /* (Required) Set the user-defined routine for applying the operator */
-    ierr = STShellSetApply(st,SampleShellSTApply);CHKERRQ(ierr);
+    ierr = STShellSetApply(st,STApply_User);CHKERRQ(ierr);
     ierr = STShellSetContext(st,shell);CHKERRQ(ierr);
 
     /* (Optional) Set the user-defined routine for back-transformation */
-    ierr = STShellSetBackTransform(st,SampleShellSTBackTransform);CHKERRQ(ierr);
+    ierr = STShellSetBackTransform(st,STBackTransform_User);CHKERRQ(ierr);
 
     /* (Optional) Set a name for the transformation, used for STView() */
     ierr = PetscObjectSetName((PetscObject)st,"MyTransformation");CHKERRQ(ierr);
 
     /* (Optional) Do any setup required for the new transformation */
-    ierr = SampleShellSTSetUp(shell,st);CHKERRQ(ierr);
+    ierr = STSetUp_User(shell,st);CHKERRQ(ierr);
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -151,7 +151,7 @@ int main (int argc,char **argv)
 
   ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
   if (isShell) {
-    ierr = SampleShellSTDestroy(shell);CHKERRQ(ierr);
+    ierr = STDestroy_User(shell);CHKERRQ(ierr);
   }
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
@@ -164,15 +164,15 @@ int main (int argc,char **argv)
 /***********************************************************************/
 
 #undef __FUNCT__
-#define __FUNCT__ "SampleShellSTCreate"
+#define __FUNCT__ "STCreate_User"
 /*
-   SampleShellSTCreate - This routine creates a user-defined
+   STCreate_User - This routine creates a user-defined
    spectral transformation context.
 
    Output Parameter:
 .  shell - user-defined spectral transformation context
 */
-PetscErrorCode SampleShellSTCreate(SampleShellST **shell)
+PetscErrorCode STCreate_User(SampleShellST **shell)
 {
   SampleShellST  *newctx;
   PetscErrorCode ierr;
@@ -186,9 +186,9 @@ PetscErrorCode SampleShellSTCreate(SampleShellST **shell)
 }
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__
-#define __FUNCT__ "SampleShellSTSetUp"
+#define __FUNCT__ "STSetUp_User"
 /*
-   SampleShellSTSetUp - This routine sets up a user-defined
+   STSetUp_User - This routine sets up a user-defined
    spectral transformation context.
 
    Input Parameters:
@@ -204,7 +204,7 @@ PetscErrorCode SampleShellSTCreate(SampleShellST **shell)
    used for the solution of linear systems with A is handled via the
    user-defined context SampleShellST.
 */
-PetscErrorCode SampleShellSTSetUp(SampleShellST *shell,ST st)
+PetscErrorCode STSetUp_User(SampleShellST *shell,ST st)
 {
   Mat            A;
   PetscErrorCode ierr;
@@ -217,9 +217,9 @@ PetscErrorCode SampleShellSTSetUp(SampleShellST *shell,ST st)
 }
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__
-#define __FUNCT__ "SampleShellSTApply"
+#define __FUNCT__ "STApply_User"
 /*
-   SampleShellSTApply - This routine demonstrates the use of a
+   STApply_User - This routine demonstrates the use of a
    user-provided spectral transformation.
 
    Input Parameters:
@@ -234,7 +234,7 @@ PetscErrorCode SampleShellSTSetUp(SampleShellST *shell,ST st)
    therefore it is of little use, merely as an example of working with
    a STSHELL.
 */
-PetscErrorCode SampleShellSTApply(ST st,Vec x,Vec y)
+PetscErrorCode STApply_User(ST st,Vec x,Vec y)
 {
   SampleShellST  *shell;
   PetscErrorCode ierr;
@@ -246,9 +246,9 @@ PetscErrorCode SampleShellSTApply(ST st,Vec x,Vec y)
 }
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__
-#define __FUNCT__ "SampleShellSTBackTransform"
+#define __FUNCT__ "STBackTransform_User"
 /*
-   SampleShellSTBackTransform - This routine demonstrates the use of a
+   STBackTransform_User - This routine demonstrates the use of a
    user-provided spectral transformation.
 
    Input Parameters:
@@ -265,7 +265,7 @@ PetscErrorCode SampleShellSTApply(ST st,Vec x,Vec y)
    order to retrieve the eigenvalues of the original problem. In this
    example, simply set k_i = 1/k_i.
 */
-PetscErrorCode SampleShellSTBackTransform(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode STBackTransform_User(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscInt j;
 
@@ -277,15 +277,15 @@ PetscErrorCode SampleShellSTBackTransform(ST st,PetscInt n,PetscScalar *eigr,Pet
 }
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__
-#define __FUNCT__ "SampleShellSTDestroy"
+#define __FUNCT__ "STDestroy_User"
 /*
-   SampleShellSTDestroy - This routine destroys a user-defined
+   STDestroy_User - This routine destroys a user-defined
    spectral transformation context.
 
    Input Parameter:
 .  shell - user-defined spectral transformation context
 */
-PetscErrorCode SampleShellSTDestroy(SampleShellST *shell)
+PetscErrorCode STDestroy_User(SampleShellST *shell)
 {
   PetscErrorCode ierr;
 

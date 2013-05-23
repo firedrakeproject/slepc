@@ -38,8 +38,8 @@ typedef struct {
 } SVD_CYCLIC;
 
 #undef __FUNCT__
-#define __FUNCT__ "ShellMatMult_Cyclic"
-static PetscErrorCode ShellMatMult_Cyclic(Mat B,Vec x,Vec y)
+#define __FUNCT__ "MatMult_Cyclic"
+static PetscErrorCode MatMult_Cyclic(Mat B,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
   SVD               svd;
@@ -70,8 +70,8 @@ static PetscErrorCode ShellMatMult_Cyclic(Mat B,Vec x,Vec y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "ShellMatGetDiagonal_Cyclic"
-static PetscErrorCode ShellMatGetDiagonal_Cyclic(Mat B,Vec diag)
+#define __FUNCT__ "MatGetDiagonal_Cyclic"
+static PetscErrorCode MatGetDiagonal_Cyclic(Mat B,Vec diag)
 {
   PetscErrorCode ierr;
 
@@ -120,8 +120,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,m,M,NULL,&cyclic->y1);CHKERRQ(ierr);
       ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,n,N,NULL,&cyclic->y2);CHKERRQ(ierr);
       ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),m+n,m+n,M+N,M+N,svd,&cyclic->mat);CHKERRQ(ierr);
-      ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))ShellMatMult_Cyclic);CHKERRQ(ierr);
-      ierr = MatShellSetOperation(cyclic->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_Cyclic);CHKERRQ(ierr);
+      ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))MatMult_Cyclic);CHKERRQ(ierr);
+      ierr = MatShellSetOperation(cyclic->mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cyclic);CHKERRQ(ierr);
     }
   }
 

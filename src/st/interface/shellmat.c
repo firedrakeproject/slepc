@@ -47,8 +47,8 @@ PetscErrorCode STMatShellShift(Mat A,PetscScalar alpha)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STMatShellMult"
-static PetscErrorCode STMatShellMult(Mat A,Vec x,Vec y)
+#define __FUNCT__ "MatMult_Shell"
+static PetscErrorCode MatMult_Shell(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   ST_SHELLMAT    *ctx;
@@ -75,8 +75,8 @@ static PetscErrorCode STMatShellMult(Mat A,Vec x,Vec y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STMatShellMultTranspose"
-static PetscErrorCode STMatShellMultTranspose(Mat A,Vec x,Vec y)
+#define __FUNCT__ "MatMultTranspose_Shell"
+static PetscErrorCode MatMultTranspose_Shell(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   ST_SHELLMAT    *ctx;
@@ -103,8 +103,8 @@ static PetscErrorCode STMatShellMultTranspose(Mat A,Vec x,Vec y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STMatShellGetDiagonal"
-static PetscErrorCode STMatShellGetDiagonal(Mat A,Vec diag)
+#define __FUNCT__ "MatGetDiagonal_Shell"
+static PetscErrorCode MatGetDiagonal_Shell(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
   ST_SHELLMAT    *ctx;
@@ -134,8 +134,8 @@ static PetscErrorCode STMatShellGetDiagonal(Mat A,Vec diag)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STMatShellDestroy"
-static PetscErrorCode STMatShellDestroy(Mat A)
+#define __FUNCT__ "MatDestroy_Shell"
+static PetscErrorCode MatDestroy_Shell(Mat A)
 {
   PetscErrorCode ierr;
   ST_SHELLMAT    *ctx;
@@ -173,9 +173,9 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
   }
   ierr = MatGetVecs(st->A[0],&ctx->z,NULL);CHKERRQ(ierr);
   ierr = MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,(void*)ctx,mat);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*mat,MATOP_MULT,(void(*)(void))STMatShellMult);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*mat,MATOP_MULT_TRANSPOSE,(void(*)(void))STMatShellMultTranspose);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*mat,MATOP_DESTROY,(void(*)(void))STMatShellDestroy);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*mat,MATOP_MULT,(void(*)(void))MatMult_Shell);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*mat,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Shell);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*mat,MATOP_DESTROY,(void(*)(void))MatDestroy_Shell);CHKERRQ(ierr);
 
   ierr = MatHasOperation(st->A[ctx->matIdx[0]],MATOP_GET_DIAGONAL,&hasA);CHKERRQ(ierr);
   if (st->nmat>1) {
@@ -186,7 +186,7 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
     }
   }
   if ((hasA && st->nmat==1) || has) {
-    ierr = MatShellSetOperation(*mat,MATOP_GET_DIAGONAL,(void(*)(void))STMatShellGetDiagonal);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(*mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Shell);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

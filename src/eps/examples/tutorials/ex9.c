@@ -47,9 +47,9 @@ static char help[] = "Solves a problem associated to the Brusselator wave model 
 /*
    Matrix operations
 */
-PetscErrorCode MatBrussel_Mult(Mat,Vec,Vec);
-PetscErrorCode MatBrussel_Shift(PetscScalar*,Mat);
-PetscErrorCode MatBrussel_GetDiagonal(Mat,Vec);
+PetscErrorCode MatMult_Brussel(Mat,Vec,Vec);
+PetscErrorCode MatShift_Brussel(PetscScalar*,Mat);
+PetscErrorCode MatGetDiagonal_Brussel(Mat,Vec);
 
 typedef struct {
   Mat         T;
@@ -144,9 +144,9 @@ int main(int argc,char **argv)
      Create the shell matrix
   */
   ierr = MatCreateShell(PETSC_COMM_WORLD,2*n,2*n,2*N,2*N,(void*)ctx,&A);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)())MatBrussel_Mult);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_SHIFT,(void(*)())MatBrussel_Shift);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)())MatBrussel_GetDiagonal);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)())MatMult_Brussel);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(A,MATOP_SHIFT,(void(*)())MatShift_Brussel);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Brussel);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
@@ -205,8 +205,8 @@ int main(int argc,char **argv)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatBrussel_Mult"
-PetscErrorCode MatBrussel_Mult(Mat A,Vec x,Vec y)
+#define __FUNCT__ "MatMult_Brussel"
+PetscErrorCode MatMult_Brussel(Mat A,Vec x,Vec y)
 {
   PetscInt          n;
   const PetscScalar *px;
@@ -244,8 +244,8 @@ PetscErrorCode MatBrussel_Mult(Mat A,Vec x,Vec y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatBrussel_Shift"
-PetscErrorCode MatBrussel_Shift(PetscScalar* a,Mat Y)
+#define __FUNCT__ "MatShift_Brussel"
+PetscErrorCode MatShift_Brussel(PetscScalar* a,Mat Y)
 {
   CTX_BRUSSEL    *ctx;
   PetscErrorCode ierr;
@@ -257,8 +257,8 @@ PetscErrorCode MatBrussel_Shift(PetscScalar* a,Mat Y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatBrussel_GetDiagonal"
-PetscErrorCode MatBrussel_GetDiagonal(Mat A,Vec diag)
+#define __FUNCT__ "MatGetDiagonal_Brussel"
+PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
 {
   Vec            d1,d2;
   PetscInt       n;

@@ -27,8 +27,8 @@ static char help[] = "Diagonal eigenproblem. Illustrates use of shell preconditi
 #include <slepceps.h>
 
 #undef __FUNCT__
-#define __FUNCT__ "MyPCApply"
-PetscErrorCode MyPCApply(PC pc,Vec x,Vec y)
+#define __FUNCT__ "PCApply_User"
+PetscErrorCode PCApply_User(PC pc,Vec x,Vec y)
 {
   PetscErrorCode ierr;
 
@@ -80,7 +80,7 @@ int main(int argc,char **argv)
   ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PCSetType(pc,PCSHELL);CHKERRQ(ierr);
-  ierr = PCShellSetApply(pc,MyPCApply);CHKERRQ(ierr);
+  ierr = PCShellSetApply(pc,PCApply_User);CHKERRQ(ierr);
   ierr = STPrecondSetMatForPC(st,A);CHKERRQ(ierr);
 
   /* set random initial vector */

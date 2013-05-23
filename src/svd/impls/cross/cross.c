@@ -37,8 +37,8 @@ typedef struct {
 } SVD_CROSS;
 
 #undef __FUNCT__
-#define __FUNCT__ "ShellMatMult_Cross"
-static PetscErrorCode ShellMatMult_Cross(Mat B,Vec x,Vec y)
+#define __FUNCT__ "MatMult_Cross"
+static PetscErrorCode MatMult_Cross(Mat B,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   SVD            svd;
@@ -53,8 +53,8 @@ static PetscErrorCode ShellMatMult_Cross(Mat B,Vec x,Vec y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "ShellMatGetDiagonal_Cross"
-static PetscErrorCode ShellMatGetDiagonal_Cross(Mat B,Vec d)
+#define __FUNCT__ "MatGetDiagonal_Cross"
+static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
 {
   PetscErrorCode    ierr;
   SVD               svd;
@@ -118,8 +118,8 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   if (!cross->mat) {
     ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))ShellMatMult_Cross);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))ShellMatGetDiagonal_Cross);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))MatMult_Cross);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross);CHKERRQ(ierr);
     ierr = SVDMatGetVecs(svd,NULL,&cross->w);CHKERRQ(ierr);
   }
 

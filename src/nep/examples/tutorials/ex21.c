@@ -42,12 +42,12 @@ PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*
 /*
    Matrix operations and context
 */
-PetscErrorCode MatFun_Mult(Mat,Vec,Vec);
-PetscErrorCode MatFun_GetDiagonal(Mat,Vec);
-PetscErrorCode MatFun_Destroy(Mat);
-PetscErrorCode MatFun_Duplicate(Mat,MatDuplicateOption,Mat*);
-PetscErrorCode MatJac_Mult(Mat,Vec,Vec);
-PetscErrorCode MatJac_Destroy(Mat);
+PetscErrorCode MatMult_Fun(Mat,Vec,Vec);
+PetscErrorCode MatGetDiagonal_Fun(Mat,Vec);
+PetscErrorCode MatDestroy_Fun(Mat);
+PetscErrorCode MatDuplicate_Fun(Mat,MatDuplicateOption,Mat*);
+PetscErrorCode MatMult_Jac(Mat,Vec,Vec);
+PetscErrorCode MatDestroy_Jac(Mat);
 
 typedef struct {
   PetscScalar lambda,kappa;
@@ -102,10 +102,10 @@ int main(int argc,char **argv)
   ctxF->kappa = ctx.kappa;
 
   ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,(void*)ctxF,&F);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(F,MATOP_MULT,(void(*)())MatFun_Mult);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)())MatFun_GetDiagonal);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(F,MATOP_DESTROY,(void(*)())MatFun_Destroy);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(F,MATOP_DUPLICATE,(void(*)())MatFun_Duplicate);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(F,MATOP_MULT,(void(*)())MatMult_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(F,MATOP_DESTROY,(void(*)())MatDestroy_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(F,MATOP_DUPLICATE,(void(*)())MatDuplicate_Fun);CHKERRQ(ierr);
 
   /*
      Set Function matrix data structure and default Function evaluation
@@ -122,8 +122,8 @@ int main(int argc,char **argv)
   ctxJ->kappa = ctx.kappa;
 
   ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,(void*)ctxJ,&J);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(J,MATOP_MULT,(void(*)())MatJac_Mult);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(J,MATOP_DESTROY,(void(*)())MatJac_Destroy);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(J,MATOP_MULT,(void(*)())MatMult_Jac);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(J,MATOP_DESTROY,(void(*)())MatDestroy_Jac);CHKERRQ(ierr);
 
   /*
      Set Jacobian matrix data structure and default Jacobian evaluation
@@ -295,8 +295,8 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *jac,MatSt
 
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__
-#define __FUNCT__ "MatFun_Mult"
-PetscErrorCode MatFun_Mult(Mat A,Vec x,Vec y)
+#define __FUNCT__ "MatMult_Fun"
+PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
   MatCtx            *ctx;
@@ -328,8 +328,8 @@ PetscErrorCode MatFun_Mult(Mat A,Vec x,Vec y)
 
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__
-#define __FUNCT__ "MatFun_GetDiagonal"
-PetscErrorCode MatFun_GetDiagonal(Mat A,Vec diag)
+#define __FUNCT__ "MatGetDiagonal_Fun"
+PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
 {
   PetscErrorCode    ierr;
   MatCtx            *ctx;
@@ -352,8 +352,8 @@ PetscErrorCode MatFun_GetDiagonal(Mat A,Vec diag)
 
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__
-#define __FUNCT__ "MatFun_Destroy"
-PetscErrorCode MatFun_Destroy(Mat A)
+#define __FUNCT__ "MatDestroy_Fun"
+PetscErrorCode MatDestroy_Fun(Mat A)
 {
   MatCtx         *ctx;
   PetscErrorCode ierr;
@@ -366,8 +366,8 @@ PetscErrorCode MatFun_Destroy(Mat A)
 
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__
-#define __FUNCT__ "MatFun_Duplicate"
-PetscErrorCode MatFun_Duplicate(Mat A,MatDuplicateOption op,Mat *B)
+#define __FUNCT__ "MatDuplicate_Fun"
+PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
 {
   MatCtx         *actx,*bctx;
   PetscInt       n;
@@ -385,17 +385,17 @@ PetscErrorCode MatFun_Duplicate(Mat A,MatDuplicateOption op,Mat *B)
 
   ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
   ierr = MatCreateShell(comm,n,n,n,n,(void*)bctx,B);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)())MatFun_Mult);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)())MatFun_GetDiagonal);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_DESTROY,(void(*)())MatFun_Destroy);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)())MatFun_Duplicate);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)())MatMult_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_DESTROY,(void(*)())MatDestroy_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)())MatDuplicate_Fun);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__
-#define __FUNCT__ "MatJac_Mult"
-PetscErrorCode MatJac_Mult(Mat A,Vec x,Vec y)
+#define __FUNCT__ "MatMult_Jac"
+PetscErrorCode MatMult_Jac(Mat A,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
   MatCtx            *ctx;
@@ -426,8 +426,8 @@ PetscErrorCode MatJac_Mult(Mat A,Vec x,Vec y)
 
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__
-#define __FUNCT__ "MatJac_Destroy"
-PetscErrorCode MatJac_Destroy(Mat A)
+#define __FUNCT__ "MatDestroy_Jac"
+PetscErrorCode MatDestroy_Jac(Mat A)
 {
   MatCtx         *ctx;
   PetscErrorCode ierr;

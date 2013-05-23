@@ -58,8 +58,8 @@ PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STBilinearMatMult_Cayley"
-static PetscErrorCode STBilinearMatMult_Cayley(Mat B,Vec x,Vec y)
+#define __FUNCT__ "MatMult_Cayley"
+static PetscErrorCode MatMult_Cayley(Mat B,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   ST             st;
@@ -169,7 +169,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
   if (st->shift_matrix==ST_MATMODE_INPLACE) {
     ierr = MatGetLocalSize(st->A[0],&n,&m);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)st),n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,&st->T[0]);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(st->T[0],MATOP_MULT,(void(*)(void))STBilinearMatMult_Cayley);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(st->T[0],MATOP_MULT,(void(*)(void))MatMult_Cayley);CHKERRQ(ierr);
   } else {
     ierr = STMatGAXPY_Private(st,ctx->nu,0.0,1,0,PETSC_TRUE);CHKERRQ(ierr);
   }

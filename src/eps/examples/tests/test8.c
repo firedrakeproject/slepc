@@ -30,8 +30,8 @@ static char help[] = "Solves the same eigenproblem as in example ex2, but using 
 /*
    User-defined routines
 */
-PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y);
-PetscErrorCode MatLaplacian2D_GetDiagonal(Mat A,Vec diag);
+PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y);
+PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag);
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -59,9 +59,9 @@ int main(int argc,char **argv)
 
   ierr = MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,&n,&A);CHKERRQ(ierr);
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)())MatLaplacian2D_Mult);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,(void(*)())MatLaplacian2D_Mult);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)())MatLaplacian2D_GetDiagonal);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)())MatMult_Laplacian2D);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,(void(*)())MatMult_Laplacian2D);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Laplacian2D);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
@@ -130,7 +130,7 @@ static void tv(int nx,const PetscScalar *x,PetscScalar *y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatLaplacian2D_Mult"
+#define __FUNCT__ "MatMult_Laplacian2D"
 /*
     Matrix-vector product subroutine for the 2D Laplacian.
 
@@ -147,7 +147,7 @@ static void tv(int nx,const PetscScalar *x,PetscScalar *y)
 
     The subroutine TV is called to compute y<--T*x.
  */
-PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y)
+PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y)
 {
   void              *ctx;
   int               nx,lo,i,j;
@@ -180,8 +180,8 @@ PetscErrorCode MatLaplacian2D_Mult(Mat A,Vec x,Vec y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatLaplacian2D_GetDiagonal"
-PetscErrorCode MatLaplacian2D_GetDiagonal(Mat A,Vec diag)
+#define __FUNCT__ "MatGetDiagonal_Laplacian2D"
+PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
 
