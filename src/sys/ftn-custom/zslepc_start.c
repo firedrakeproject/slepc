@@ -61,9 +61,6 @@ PETSC_EXTERN void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(l
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
   *ierr = SlepcInitialize_DynamicLibraries();
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing dynamic libraries\n");return; }
-#else
-  *ierr = SlepcInitialize_Packages();
-  if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing packages\n");return; }
 #endif
 
   *ierr = SlepcInitialize_LogEvents();

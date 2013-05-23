@@ -248,6 +248,10 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   PetscFunctionBegin;
   PetscValidPointer(outnep,2);
   *outnep = 0;
+#if !defined(PETSC_USE_DYNAMIC_LIBRARIES)
+  ierr = NEPInitializePackage();CHKERRQ(ierr);
+#endif
+
   ierr = SlepcHeaderCreate(nep,_p_NEP,struct _NEPOps,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView);CHKERRQ(ierr);
 
   nep->max_it          = 0;

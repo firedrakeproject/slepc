@@ -135,28 +135,6 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
 #endif
 
 #undef __FUNCT__
-#define __FUNCT__ "SlepcInitialize_Packages"
-/*
-    SlepcInitialize_Packages - Initialize all SLEPc packages at the initialization.
-*/
-PetscErrorCode SlepcInitialize_Packages(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = EPSInitializePackage();CHKERRQ(ierr);
-  ierr = SVDInitializePackage();CHKERRQ(ierr);
-  ierr = QEPInitializePackage();CHKERRQ(ierr);
-  ierr = NEPInitializePackage();CHKERRQ(ierr);
-  ierr = MFNInitializePackage();CHKERRQ(ierr);
-  ierr = STInitializePackage();CHKERRQ(ierr);
-  ierr = IPInitializePackage();CHKERRQ(ierr);
-  ierr = DSInitializePackage();CHKERRQ(ierr);
-  ierr = FNInitializePackage();CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "SlepcInitialize_LogEvents"
 /*
     SlepcInitialize_LogEvents - Initialize log events not pertaining to any object class.
@@ -214,8 +192,6 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
 
 #if defined(PETSC_USE_DYNAMIC_LIBRARIES)
   ierr = SlepcInitialize_DynamicLibraries();CHKERRQ(ierr);
-#else
-  ierr = SlepcInitialize_Packages();CHKERRQ(ierr);
 #endif
   ierr = SlepcInitialize_LogEvents();CHKERRQ(ierr);
 
@@ -339,13 +315,16 @@ PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepc(char *path)
 {
   PetscErrorCode ierr;
 
-  ierr = PetscInitializeNoArguments(); if (ierr) return 1;
-
   PetscFunctionBegin;
-  /*
-      If we got here then PETSc was properly loaded
-  */
-  ierr = SlepcInitialize_Packages();CHKERRQ(ierr);
+  ierr = EPSInitializePackage();CHKERRQ(ierr);
+  ierr = SVDInitializePackage();CHKERRQ(ierr);
+  ierr = QEPInitializePackage();CHKERRQ(ierr);
+  ierr = NEPInitializePackage();CHKERRQ(ierr);
+  ierr = MFNInitializePackage();CHKERRQ(ierr);
+  ierr = STInitializePackage();CHKERRQ(ierr);
+  ierr = IPInitializePackage();CHKERRQ(ierr);
+  ierr = DSInitializePackage();CHKERRQ(ierr);
+  ierr = FNInitializePackage();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_USE_DYNAMIC_LIBRARIES */

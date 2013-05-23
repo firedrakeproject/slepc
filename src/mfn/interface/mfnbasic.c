@@ -200,6 +200,9 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   PetscFunctionBegin;
   PetscValidPointer(outmfn,2);
   *outmfn = 0;
+#if !defined(PETSC_USE_DYNAMIC_LIBRARIES)
+  ierr = MFNInitializePackage();CHKERRQ(ierr);
+#endif
 
   ierr = SlepcHeaderCreate(mfn,_p_MFN,struct _MFNOps,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView);CHKERRQ(ierr);
 

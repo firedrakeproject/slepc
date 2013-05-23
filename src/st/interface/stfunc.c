@@ -185,23 +185,29 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   PetscFunctionBegin;
   PetscValidPointer(newst,2);
   *newst = 0;
+#if !defined(PETSC_USE_DYNAMIC_LIBRARIES)
+  ierr = STInitializePackage();CHKERRQ(ierr);
+#endif
+
   ierr = SlepcHeaderCreate(st,_p_ST,struct _STOps,ST_CLASSID,"ST","Spectral Transformation","ST",comm,STDestroy,STView);CHKERRQ(ierr);
-  st->A                   = 0;
-  st->Astate              = 0;
-  st->T                   = 0;
-  st->nmat                = 0;
-  st->sigma               = 0.0;
-  st->sigma_set           = PETSC_FALSE;
-  st->defsigma            = 0.0;
-  st->data                = 0;
-  st->setupcalled         = 0;
-  st->ksp                 = 0;
-  st->kspidx              = -1;
-  st->w                   = 0;
-  st->D                   = 0;
-  st->wb                  = 0;
-  st->shift_matrix        = ST_MATMODE_COPY;
-  st->str                 = DIFFERENT_NONZERO_PATTERN;
+
+  st->A            = 0;
+  st->Astate       = 0;
+  st->T            = 0;
+  st->nmat         = 0;
+  st->sigma        = 0.0;
+  st->sigma_set    = PETSC_FALSE;
+  st->defsigma     = 0.0;
+  st->data         = 0;
+  st->setupcalled  = 0;
+  st->ksp          = 0;
+  st->kspidx       = -1;
+  st->w            = 0;
+  st->D            = 0;
+  st->wb           = 0;
+  st->shift_matrix = ST_MATMODE_COPY;
+  st->str          = DIFFERENT_NONZERO_PATTERN;
+
   *newst = st;
   PetscFunctionReturn(0);
 }

@@ -127,8 +127,13 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
 
   PetscFunctionBegin;
   PetscValidPointer(newip,2);
+  *newip = 0;
+#if !defined(PETSC_USE_DYNAMIC_LIBRARIES)
+  ierr = IPInitializePackage();CHKERRQ(ierr);
+#endif
+
   ierr = SlepcHeaderCreate(ip,_p_IP,struct _IPOps,IP_CLASSID,"IP","Inner Product","IP",comm,IPDestroy,IPView);CHKERRQ(ierr);
-  *newip            = ip;
+
   ip->orthog_type   = IP_ORTHOG_CGS;
   ip->orthog_ref    = IP_ORTHOG_REFINE_IFNEEDED;
   ip->orthog_eta    = 0.7071;
@@ -137,6 +142,8 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   ip->Bx            = NULL;
   ip->xid           = 0;
   ip->xstate        = 0;
+
+  *newip = ip;
   PetscFunctionReturn(0);
 }
 

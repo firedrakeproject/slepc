@@ -118,12 +118,18 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
 
   PetscFunctionBegin;
   PetscValidPointer(newfn,2);
+  *newfn = 0;
+#if !defined(PETSC_USE_DYNAMIC_LIBRARIES)
+  ierr = FNInitializePackage();CHKERRQ(ierr);
+#endif
+
   ierr = SlepcHeaderCreate(fn,_p_FN,struct _FNOps,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView);CHKERRQ(ierr);
-  *newfn       = fn;
   fn->na       = 0;
   fn->alpha    = NULL;
   fn->nb       = 0;
   fn->beta     = NULL;
+
+  *newfn = fn;
   PetscFunctionReturn(0);
 }
 

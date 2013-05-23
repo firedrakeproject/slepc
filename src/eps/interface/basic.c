@@ -432,6 +432,9 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   PetscFunctionBegin;
   PetscValidPointer(outeps,2);
   *outeps = 0;
+#if !defined(PETSC_USE_DYNAMIC_LIBRARIES)
+  ierr = EPSInitializePackage();CHKERRQ(ierr);
+#endif
 
   ierr = SlepcHeaderCreate(eps,_p_EPS,struct _EPSOps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView);CHKERRQ(ierr);
 
