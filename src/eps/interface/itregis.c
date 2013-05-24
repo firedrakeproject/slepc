@@ -45,6 +45,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps);
+PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps);
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSRegisterAll"
@@ -71,6 +72,7 @@ PetscErrorCode EPSRegisterAll(void)
   ierr = EPSRegister(EPSGD,EPSCreate_GD);CHKERRQ(ierr);
   ierr = EPSRegister(EPSJD,EPSCreate_JD);CHKERRQ(ierr);
   ierr = EPSRegister(EPSRQCG,EPSCreate_RQCG);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSCISS,EPSCreate_CISS);CHKERRQ(ierr);
   ierr = EPSRegister(EPSLAPACK,EPSCreate_LAPACK);CHKERRQ(ierr);
 #if defined(SLEPC_HAVE_ARPACK)
   ierr = EPSRegister(EPSARPACK,EPSCreate_ARPACK);CHKERRQ(ierr);

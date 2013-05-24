@@ -21,10 +21,15 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = ciss.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepc
-DIRS     = power subspace krylov davidson cg ciss lapack external
-LOCDIR   = src/eps/impls/
+DIRS     =
 MANSEC   = EPS
+LOCDIR   = src/eps/impls/ciss/
 
 include ${SLEPC_DIR}/conf/slepc_common
 

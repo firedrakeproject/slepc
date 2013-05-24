@@ -53,6 +53,7 @@
 #define EPSGD          'gd'
 #define EPSJD          'jd'
 #define EPSRQCG        'rqcg'
+#define EPSCISS        'ciss'
 #define EPSLAPACK      'lapack'
 #define EPSARPACK      'arpack'
 #define EPSBLZPACK     'blzpack'
