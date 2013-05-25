@@ -53,7 +53,7 @@ typedef struct {
   PetscReal   radius;     /* radius of the region (1.0) */
   PetscReal   vscale;     /* vertical scale of the region (1.0) */
   PetscInt    N;          /* number of integration points (32) */
-  PetscInt    L;          /* block size (4) */
+  PetscInt    L;          /* block size (8) */
   PetscInt    M;          /* moment degree (N/4 = 8) */
   PetscReal   delta;      /* threshold of singular value (1e-12) */
   PetscBool   useconj;    /* (false) */
@@ -161,9 +161,9 @@ static PetscErrorCode EPSCISSSetRegion_CISS(EPS eps,PetscScalar center,PetscReal
 
   PetscFunctionBegin;
   ctx->center = center;
-  if (radius<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The radius argument must > 0.0");
+  if (radius<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The radius argument must be > 0.0");
   ctx->radius = radius;
-  if (vscale<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The vscale argument must > 0.0");
+  if (vscale<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The vscale argument must be > 0.0");
   ctx->vscale = vscale;
   PetscFunctionReturn(0);
 }
@@ -248,6 +248,137 @@ PetscErrorCode EPSCISSGetRegion(EPS eps,PetscScalar *center,PetscReal *radius,Pe
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSCISSSetSizes_CISS"
+static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart)
+{
+  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+
+  PetscFunctionBegin;
+  if (ip) {
+    if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) {
+      if (ctx->N!=32) { ctx->N = 32; ctx->M = ctx->N/4; }
+    } else {
+      if (ip<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be > 0");
+      if (ctx->N!=ip) { ctx->N = ip; ctx->M = ctx->N/4; }
+    }
+    eps->setupcalled = 0;   /* force setup to recompute communicator splitting */
+  }
+  if (bs) {
+    if (bs == PETSC_DECIDE || bs == PETSC_DEFAULT) {
+      ctx->L = 8;
+    } else {
+      if (bs<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be > 0");
+      ctx->L = bs;
+    }
+  }
+  if (ms) {
+    if (ms == PETSC_DECIDE || ms == PETSC_DEFAULT) {
+      ctx->M = ctx->N/4;
+    } else {
+      if (ms<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be > 0");
+      ctx->M = ms;
+    }
+  }
+  if (npart) {
+    if (npart == PETSC_DECIDE || npart == PETSC_DEFAULT) {
+      ctx->npart = 1;
+    } else {
+      if (npart<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The npart argument must be > 0");
+      ctx->npart = npart;
+    }
+    eps->setupcalled = 0;   /* force setup to recompute communicator splitting */
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSSetSizes"
+/*@
+   EPSCISSSetSizes - Sets the values of various size parameters in the CISS solver.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps   - the eigenproblem solver context
+.  ip    - number of integration points
+.  bs    - block size
+.  ms    - moment size
+-  npart - number of partitions when splitting the communicator
+
+   Options Database Keys:
++  -eps_ciss_integration_points - Sets the number of integration points
+.  -eps_ciss_blocksize - Sets the block size
+.  -eps_ciss_moments - Sets the moment size
+-  -eps_ciss_partitions - Sets the number of partitions
+
+   Note:
+   The default number of partitions is 1. This means the internal KSP object is shared
+   among all processes of the EPS communicator. Otherwise, the communicator is split
+   into npart communicators, so that npart KSP solves proceed simultaneously.
+
+   Level: advanced
+
+.seealso: EPSCISSGetSizes()
+@*/
+PetscErrorCode EPSCISSSetSizes(EPS eps,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,ip,2);
+  PetscValidLogicalCollectiveInt(eps,bs,3);
+  PetscValidLogicalCollectiveInt(eps,ms,4);
+  PetscValidLogicalCollectiveInt(eps,npart,5);
+  ierr = PetscTryMethod(eps,"EPSCISSSetSizes_C",(EPS,PetscInt,PetscInt,PetscInt,PetscInt),(eps,ip,bs,ms,npart));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSGetSizes_CISS"
+static PetscErrorCode EPSCISSGetSizes_CISS(EPS eps,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart)
+{
+  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+
+  PetscFunctionBegin;
+  if (ip) *ip = ctx->N;
+  if (bs) *bs = ctx->L;
+  if (ms) *ms = ctx->M;
+  if (npart) *npart = ctx->npart;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSGetSizes"
+/*@
+   EPSCISSGetSizes - Gets the values of various size parameters in the CISS solver.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameters:
++  ip    - number of integration points
+.  bs    - block size
+.  ms    - moment size
+-  npart - number of partitions when splitting the communicator
+
+   Level: advanced
+
+.seealso: EPSCISSSetSizes()
+@*/
+PetscErrorCode EPSCISSGetSizes(EPS eps,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscTryMethod(eps,"EPSCISSGetSizes_C",(EPS,PetscInt*,PetscInt*,PetscInt*,PetscInt*),(eps,ip,bs,ms,npart));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSReset_CISS"
 PetscErrorCode EPSReset_CISS(EPS eps)
 {
@@ -268,17 +399,22 @@ PetscErrorCode EPSReset_CISS(EPS eps)
 PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscBool      flg;
   PetscScalar    s;
   PetscReal      r1,r2;
+  PetscInt       i1=0,i2=0,i3=0,i4=0;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS CISS Options");CHKERRQ(ierr);
   ierr = EPSCISSGetRegion(eps,&s,&r1,&r2);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-eps_ciss_radius","CISS radius of region","EPSCISSSetRegion",r1,&r1,&flg);CHKERRQ(ierr);
-  ierr = PetscOptionsScalar("-eps_ciss_center","CISS center of region","EPSCISSSetRegion",s,&s,&flg);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-eps_ciss_vscale","CISS vertical scale of region","EPSCISSSetRegion",r2,&r2,&flg);CHKERRQ(ierr);
-  ierr = EPSCISSSetRegion(eps,s,r1,r2);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-eps_ciss_radius","CISS radius of region","EPSCISSSetRegion",r1,&r1,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsScalar("-eps_ciss_center","CISS center of region","EPSCISSSetRegion",s,&s,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-eps_ciss_vscale","CISS vertical scale of region","EPSCISSSetRegion",r2,&r2,NULL);CHKERRQ(ierr);
+
+  ierr = PetscOptionsInt("-eps_ciss_integration_points","CISS number of integration points","EPSCISSSetSizes",i1,&i1,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_ciss_blocksize","CISS block size","EPSCISSSetSizes",i2,&i2,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_ciss_moments","CISS moment size","EPSCISSSetSizes",i3,&i3,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_ciss_partitions","CISS number of partitions","EPSCISSSetSizes",i4,&i4,NULL);CHKERRQ(ierr);
+  ierr = EPSCISSSetSizes(eps,i1,i2,i3,i4);CHKERRQ(ierr);
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -293,6 +429,8 @@ PetscErrorCode EPSDestroy_CISS(EPS eps)
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRegion_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRegion_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetSizes_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetSizes_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -309,7 +447,8 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = SlepcSNPrintfScalar(str,50,ctx->center,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: region { center: %s, radius: %g, vscale: %g }\n",str,ctx->radius,ctx->vscale);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: region { center: %s, radius: %.4F, vscale: %.4F }\n",str,ctx->radius,ctx->vscale);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: sizes { integration points: %D, block size: %D, moment size: %D, partitions: %D }\n",ctx->N,ctx->L,ctx->M,ctx->npart);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -333,15 +472,19 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   eps->ops->computevectors = EPSComputeVectors_Default;
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRegion_C",EPSCISSSetRegion_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRegion_C",EPSCISSGetRegion_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetSizes_C",EPSCISSSetSizes_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetSizes_C",EPSCISSGetSizes_CISS);CHKERRQ(ierr);
   /* set default values of parameters */
-  if (!ctx->radius) ctx->radius = 1.0;
-  if (!ctx->vscale) ctx->vscale = 1.0;
-  if (!ctx->N)      ctx->N      = 32;
-  if (!ctx->L)      ctx->L      = 4;
-  if (!ctx->M)      ctx->M      = ctx->N/4;
-  if (!ctx->delta)  ctx->delta  = 1e-12;
-  if (!ctx->npart)  ctx->npart  = 1;
-  if (!ctx->Lmax)   ctx->Lmax   = 256;
+  ctx->center  = 0.0;
+  ctx->radius  = 1.0;
+  ctx->vscale  = 1.0;
+  ctx->N       = 32;
+  ctx->L       = 8;
+  ctx->M       = ctx->N/4;
+  ctx->delta   = 1e-12;
+  ctx->useconj = PETSC_FALSE;
+  ctx->npart   = 1;
+  ctx->Lmax    = 256;
   PetscFunctionReturn(0);
 }
 
