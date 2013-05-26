@@ -46,27 +46,375 @@
 #include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
+#define LMAX 256 
+
 PetscErrorCode EPSSolve_CISS(EPS);
 
 typedef struct {
-  PetscScalar center;     /* center of the region where to find eigenpairs (0.0) */
+  /* parameters */
+  PetscScalar center;     /* center of the region where to find eigenpairs (default: 0.0) */
   PetscReal   radius;     /* radius of the region (1.0) */
   PetscReal   vscale;     /* vertical scale of the region (1.0) */
   PetscInt    N;          /* number of integration points (32) */
   PetscInt    L;          /* block size (8) */
   PetscInt    M;          /* moment degree (N/4 = 8) */
   PetscReal   delta;      /* threshold of singular value (1e-12) */
-  PetscBool   useconj;    /* (false) */
+  PetscBool   useconj;    /* assume symmetry (false) */
   PetscInt    npart;      /* number of partitions of the matrix (1) */
-  PetscInt    Lmax;       /* (256) */
+  /* private data */
+  MPI_Comm    scomm;
+  PetscInt    solver_comm_id;
+  PetscInt    num_solve_point;
+  PetscInt    K;
+  PetscScalar *weight;
+  PetscScalar *omega;
+  PetscScalar *pp;
+  Vec         *V;
+  Vec         *Y;
+  Vec         *S;
+  Vec         *S1;
+  KSP         *ksp;
 } EPS_CISS;
+
+#undef __FUNCT__
+#define __FUNCT__ "SetSolverComm"
+static PetscErrorCode SetSolverComm(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  PetscInt       N = ctx->N;
+  PetscInt       size_solver = ctx->npart;
+  PetscInt       size_region,rank_region,icolor,ikey,num_solver_comm;
+
+  PetscFunctionBegin;
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size_region);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank_region);CHKERRQ(ierr);
+
+  if (ctx->useconj) N = N/2;
+  num_solver_comm = size_region / size_solver;
+  if (num_solver_comm > N) {
+    size_solver = size_region / N;
+    ierr = PetscInfo2(eps,"CISS changed size_solver %D --> %D\n",ctx->npart,size_solver);CHKERRQ(ierr);
+    ctx->npart = size_solver;
+  }
+
+  icolor = rank_region / size_solver;
+  ikey = rank_region % size_solver;
+  ierr = MPI_Comm_split(PetscObjectComm((PetscObject)eps),icolor,ikey,&ctx->scomm);CHKERRQ(ierr);
+
+  ctx->solver_comm_id = icolor;
+  num_solver_comm = size_region / size_solver;
+  ctx->num_solve_point = N / num_solver_comm;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SetPathParameter"
+static PetscErrorCode SetPathParameter(EPS eps)
+{
+  EPS_CISS  *ctx = (EPS_CISS*)eps->data;
+  PetscInt  i;
+  PetscReal theta;
+
+  PetscFunctionBegin;
+  for (i=0;i<ctx->N;i++){
+    theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);    
+    ctx->pp[i] = cos(theta) + PETSC_i*ctx->vscale*sin(theta);
+    ctx->omega[i] = ctx->center + ctx->radius*ctx->pp[i];
+    ctx->weight[i] = ctx->vscale*cos(theta) + PETSC_i*sin(theta);		
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "CISSVecSetRandom"
+static PetscErrorCode CISSVecSetRandom(Vec x,PetscRandom rctx)
+{
+  PetscErrorCode ierr;
+  PetscInt       j,nlocal;
+  PetscScalar    *vdata;
+
+  PetscFunctionBegin;
+  ierr = SlepcVecSetRandom(x,rctx);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(x,&nlocal);CHKERRQ(ierr);
+  ierr = VecGetArray(x,&vdata);CHKERRQ(ierr);
+  for (j=0;j<nlocal;j++) {
+    vdata[j] = PetscRealPart(vdata[j]);
+    if (PetscRealPart(vdata[j]) < 0.5) vdata[j] = -1.0;
+    else vdata[j] = 1.0;
+  }
+  ierr = VecRestoreArray(x,&vdata);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SolveLinearSystem"
+static PetscErrorCode SolveLinearSystem(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  PetscInt       i,j,nmat,p_id;
+  Mat            A,B,Fz;
+  PC             pc;
+  Vec            BV;
+
+  PetscFunctionBegin;
+  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+  if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
+  else B = NULL;
+  ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Fz);CHKERRQ(ierr);
+  ierr = VecDuplicate(ctx->V[0],&BV);CHKERRQ(ierr);
+
+  for (i=0;i<ctx->num_solve_point;i++) {
+    p_id = ctx->solver_comm_id * ctx->num_solve_point + i;
+    ierr = MatCopy(A,Fz,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    if (nmat>1) { 
+      ierr = MatAXPY(Fz,-ctx->omega[p_id],B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    } else {
+      ierr = MatShift(Fz,-ctx->omega[p_id]);CHKERRQ(ierr);
+    }
+    ierr = KSPSetOperators(ctx->ksp[i],Fz,Fz,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
+    ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
+    ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+    ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
+    for (j=0;j<ctx->L;j++) {
+      ierr = VecDuplicate(ctx->V[0],&ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
+      if (nmat==2) {
+        ierr = MatMult(B,ctx->V[j],BV);CHKERRQ(ierr);
+        ierr = KSPSolve(ctx->ksp[i],BV,ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
+      } else {
+        ierr = KSPSolve(ctx->ksp[i],ctx->V[j],ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
+      }
+    }
+  }
+  ierr = MatDestroy(&Fz);CHKERRQ(ierr);
+  ierr = VecDestroy(&BV);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "ConstructS"
+static PetscErrorCode ConstructS(EPS eps,Vec **S)
+{
+  PetscErrorCode ierr;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  PetscInt       i,j,k,s,t;
+  PetscInt       rank_region,icolor,ikey,rank_row_comm,size_row_comm;
+  PetscInt       vec_local_size,row_vec_local_size;
+  PetscInt       *array_row_vec_local_size,*array_start_id;
+  MPI_Comm       Row_Comm,Vec_Comm;
+  Vec            v,row_vec,z;
+  PetscScalar    ppk[ctx->num_solve_point],*S_data,*v_data,*send;
+
+  PetscFunctionBegin;
+  /* 1 */
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank_region);CHKERRQ(ierr);
+  icolor = rank_region % ctx->npart;
+  ikey = rank_region / ctx->npart;
+  ierr = MPI_Comm_split(PetscObjectComm((PetscObject)eps),icolor,ikey,&Row_Comm);CHKERRQ(ierr);
+
+  ierr = MPI_Comm_rank(Row_Comm,&rank_row_comm);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(Row_Comm,&size_row_comm);CHKERRQ(ierr);	
+
+  ikey = size_row_comm * icolor + rank_row_comm;
+  icolor = 0;
+  ierr = MPI_Comm_split(PetscObjectComm((PetscObject)eps),icolor,ikey,&Vec_Comm);CHKERRQ(ierr);
+
+  /* 2 */
+  ierr = VecGetLocalSize(ctx->Y[0],&vec_local_size);CHKERRQ(ierr);
+  ierr = VecCreateMPI(Row_Comm,PETSC_DECIDE,vec_local_size,&row_vec);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(row_vec,&row_vec_local_size);CHKERRQ(ierr);
+  ierr = VecDestroy(&row_vec);CHKERRQ(ierr);
+
+  ierr = VecCreateMPI(Vec_Comm,row_vec_local_size,eps->n,&z);CHKERRQ(ierr);
+  ierr = VecDuplicateVecs(z,ctx->M*ctx->L,S);CHKERRQ(ierr);
+  ierr = VecDestroy(&z);CHKERRQ(ierr);
+
+  ierr = PetscMalloc(size_row_comm*sizeof(PetscInt),&array_row_vec_local_size);CHKERRQ(ierr);
+  ierr = PetscMalloc((size_row_comm+1)*sizeof(PetscInt),&array_start_id);CHKERRQ(ierr);
+  ierr = MPI_Allgather(&row_vec_local_size,1,MPI_INT,array_row_vec_local_size,1,MPI_INT,Row_Comm);CHKERRQ(ierr);
+  array_start_id[0] = 0;
+  for (i=1;i<size_row_comm+1;i++) {
+    array_start_id[i] = array_start_id[i-1] + array_row_vec_local_size[i-1];
+  }
+
+  /* 3 */
+  for (i=0;i<ctx->num_solve_point;i++) ppk[i] = 1;
+  ierr = VecDuplicate(ctx->Y[0],&v);CHKERRQ(ierr);
+  for (k=0;k<ctx->M;k++) {
+    for (j=0;j<ctx->L;j++) {
+      ierr = VecSet(v,0);CHKERRQ(ierr);
+      for (i=0;i<ctx->num_solve_point; i++) {
+        ierr = VecAXPY(v,ppk[i]*ctx->weight[ctx->solver_comm_id*ctx->num_solve_point+i]/ctx->N,ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
+      }
+
+      ierr = VecGetArray((*S)[k*ctx->L+j],&S_data);CHKERRQ(ierr);
+      ierr = VecGetArray(v,&v_data);CHKERRQ(ierr);
+
+      for (i=0;i<size_row_comm;i++) {
+        ierr = PetscMalloc(array_row_vec_local_size[i]*sizeof(PetscScalar),&send);CHKERRQ(ierr);
+        for (s=array_start_id[i],t=0;s<array_start_id[i+1];s++,t++) {
+          if (ctx->useconj) send[t] = PetscRealPart(v_data[s])*2;
+          else send[t] = v_data[s];
+        }
+        ierr = MPI_Reduce(send,S_data,array_row_vec_local_size[i],MPIU_SCALAR,MPIU_SUM,i,Row_Comm);CHKERRQ(ierr);
+        ierr = PetscFree(send);CHKERRQ(ierr);
+      }
+      ierr = VecRestoreArray((*S)[k*ctx->L+j],&S_data);CHKERRQ(ierr);
+      ierr = VecRestoreArray(v,&v_data);CHKERRQ(ierr);
+    }
+    for (i=0;i<ctx->num_solve_point;i++) {
+      ppk[i] *= ctx->pp[ctx->solver_comm_id*ctx->num_solve_point+i];
+    }
+  }
+  ierr = PetscFree(array_row_vec_local_size);CHKERRQ(ierr);
+  ierr = PetscFree(array_start_id);CHKERRQ(ierr);
+  ierr = VecDestroy(&v);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EstimateNumberEigs"
+static PetscErrorCode EstimateNumberEigs(EPS eps,Vec *S1,PetscInt *L_add)
+{
+  PetscErrorCode ierr;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  PetscInt       i,j,istart,p_start,p_end;
+  PetscScalar    *data,*p_data,tmp,sum = 0.0;
+  Vec            V_p;
+  PetscReal      est_eig;
+
+  PetscFunctionBegin;
+  ierr = VecGetOwnershipRange(ctx->V[0],&istart,NULL);CHKERRQ(ierr);
+  ierr = VecGetOwnershipRange(S1[0],&p_start,&p_end);CHKERRQ(ierr);
+
+  ierr = VecDuplicate(S1[0],&V_p);CHKERRQ(ierr);
+  for (i=0;i<ctx->L;i++) {
+    ierr = VecGetArray(ctx->V[i],&data);CHKERRQ(ierr);
+    ierr = VecGetArray(V_p,&p_data);CHKERRQ(ierr);
+    for (j=p_start;j<p_end;j++) p_data[j-p_start] = data[j-istart];
+    ierr = VecRestoreArray(ctx->V[i],&data);CHKERRQ(ierr);
+    ierr = VecRestoreArray(V_p,&p_data);CHKERRQ(ierr);
+    ierr = VecDot(V_p,S1[i],&tmp);CHKERRQ(ierr);
+    sum += tmp;
+  }
+  ierr = VecDestroy(&V_p);CHKERRQ(ierr);
+  est_eig = PetscAbsScalar(ctx->radius*sum/ctx->L);
+  ierr = PetscInfo1(eps,"Estimation_#Eig %F\n",est_eig);CHKERRQ(ierr);
+  *L_add = (PetscInt)est_eig/ctx->M - ctx->L;
+  if (*L_add+ctx->L>=LMAX) {
+    ierr = PetscInfo(eps,"Number of eigenvalues around the contour path may be too large\n");
+    *L_add = LMAX-ctx->L;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SetAddVector"
+static PetscErrorCode SetAddVector(EPS eps,PetscInt Ladd_end)
+{
+  PetscErrorCode ierr;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  PetscInt       i,j,nlocal,Ladd_start=ctx->L;
+  PetscScalar    *vdata;
+
+  PetscFunctionBegin;
+  ierr = VecGetLocalSize(ctx->V[0],&nlocal);CHKERRQ(ierr);
+  for (i=Ladd_start;i<Ladd_end;i++) {
+    ierr = VecDuplicate(ctx->V[0],&ctx->V[i]);CHKERRQ(ierr);
+    ierr = SlepcVecSetRandom(ctx->V[i],eps->rand);CHKERRQ(ierr);
+    ierr = VecGetArray(ctx->V[i],&vdata);CHKERRQ(ierr);
+    for (j=0;j<nlocal;j++) vdata[j] = PetscRealPart(vdata[j]);		
+    ierr = VecRestoreArray(ctx->V[i],&vdata);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SolveAddLinearSystem"
+static PetscErrorCode SolveAddLinearSystem(EPS eps,PetscInt Ladd_end)
+{
+  PetscErrorCode ierr;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  PetscInt       i,j,p_id,Ladd_start=ctx->L;
+
+  PetscFunctionBegin;
+  for (i=0;i<ctx->num_solve_point;i++) {
+    p_id = ctx->solver_comm_id * ctx->num_solve_point + i;		
+    for (j=Ladd_start;j<Ladd_end;j++) {
+      ierr = VecDuplicate(ctx->V[0],&ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
+      ierr = KSPSolve(ctx->ksp[i],ctx->V[j],ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVD"
+static PetscErrorCode SVD(EPS eps,Vec *Q)
+{
+  PetscErrorCode ierr;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  PetscInt       i,j,n,ld;
+  PetscReal      rii,sigma;
+  PetscScalar    *R,*w,rij;
+  DS             ds;
+  Vec            *A;
+
+  PetscFunctionBegin;
+  ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
+  ierr = DSSetType(ds,DSSVD);CHKERRQ(ierr);
+  ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
+  n = ctx->M*ctx->L;
+  ld = n;
+  ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,n,n,0,0);CHKERRQ(ierr);
+
+  ierr = VecDuplicateVecs(Q[0],ctx->M*ctx->L,&A);CHKERRQ(ierr);
+  for (i=0;i<ctx->M*ctx->L;i++) {
+    ierr = VecCopy(Q[i],A[i]);CHKERRQ(ierr);
+  }
+
+  /* QR decomposition with Modified Gram-Schmidt */
+  ierr = DSGetArray(ds,DS_MAT_A,&R);CHKERRQ(ierr);
+  for (i=0;i<ctx->M*ctx->L;i++) {
+    ierr = VecNorm(A[i],NORM_2,&rii);CHKERRQ(ierr);
+    ierr = VecCopy(A[i],Q[i]);CHKERRQ(ierr);
+    ierr = VecScale(Q[i],1.0/rii);CHKERRQ(ierr);
+    for (j=i+1;j<ctx->M*ctx->L;j++) {
+      ierr = VecDot(A[j],Q[i],&rij);CHKERRQ(ierr);
+      ierr = VecAXPY(A[j],-rij,Q[i]);CHKERRQ(ierr);
+      R[i*ld+j] = rij;
+    }
+    R[i*ld+i] = rii;
+  }
+  ierr = DSRestoreArray(ds,DS_MAT_A,&R);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(ctx->M*ctx->L,&A);CHKERRQ(ierr);
+
+  ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
+  ierr = PetscMalloc(n*sizeof(PetscScalar),&w);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestReal,NULL);CHKERRQ(ierr);
+  ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
+  ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ctx->K = 0;
+  for (i=0;i<n;i++) {
+    sigma = PetscRealPart(w[i])/PetscRealPart(w[0]);
+    if (sigma>ctx->delta) ctx->K++;
+  }
+  ierr = PetscFree(w);CHKERRQ(ierr);
+  ierr = DSDestroy(&ds);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_CISS"
 PetscErrorCode EPSSetUp_CISS(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       nmat;
+  PetscInt       i;
+  Vec            stemp;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
@@ -94,15 +442,30 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   } else if (eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
+  /* create split comm */
+  ierr = SetSolverComm(eps);CHKERRQ(ierr);
+
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
-//  ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->AV);CHKERRQ(ierr);
-//  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-//  if (nmat>1) {
-//    ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->BV);CHKERRQ(ierr);
-//  }
-//  ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->P);CHKERRQ(ierr);
-//  ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->G);CHKERRQ(ierr);
-  ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
+  ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->weight);CHKERRQ(ierr);
+  ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->omega);CHKERRQ(ierr);
+  ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->pp);CHKERRQ(ierr);
+
+  /* create a template vector for Vecs on solver communicator */
+  ierr = VecCreateMPI(ctx->scomm,PETSC_DECIDE,eps->n,&stemp); CHKERRQ(ierr);
+  ierr = VecDuplicateVecs(stemp,ctx->L,&ctx->V);CHKERRQ(ierr);
+  ierr = VecDestroy(&stemp);CHKERRQ(ierr);
+
+  ierr = PetscMalloc(ctx->num_solve_point*sizeof(KSP),&ctx->ksp);CHKERRQ(ierr);
+  for (i=0;i<ctx->num_solve_point;i++) {
+    ierr = KSPCreate(ctx->scomm,&ctx->ksp[i]);CHKERRQ(ierr);
+  }
+  ierr = PetscMalloc(ctx->num_solve_point*LMAX*sizeof(Vec),&ctx->Y);CHKERRQ(ierr);
+
+  if (eps->isgeneralized) {
+    ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
+  } else {
+    ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
+  }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
 
@@ -118,8 +481,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j,k,ld,off,nv,ncv = eps->ncv,kini,nmat;
-  PetscScalar    *C,*Y;
+  PetscInt       i,j,k,ld,off,nv,ncv = eps->ncv,kini,nmat,L_add;
+  PetscScalar    *QFQ,*Y;
   PetscReal      resnorm,norm;
   PetscBool      breakdown;
   Mat            A,B;
@@ -131,12 +494,54 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
-//  ierr = PetscMalloc(eps->mpd*sizeof(PetscScalar),&gamma);CHKERRQ(ierr);
 
-  ierr = SlepcVecSetRandom(eps->V[0],eps->rand);CHKERRQ(ierr);
+  ierr = SetPathParameter(eps);CHKERRQ(ierr);
+  for (i=0;i<ctx->L;i++) {
+    ierr = CISSVecSetRandom(ctx->V[i],eps->rand);CHKERRQ(ierr);
+  }
+  ierr = SolveLinearSystem(eps);CHKERRQ(ierr);
+  ierr = ConstructS(eps,&ctx->S1);CHKERRQ(ierr);
+  ierr = EstimateNumberEigs(eps,ctx->S1,&L_add);CHKERRQ(ierr);
 
-  k = 0;
-  while (eps->reason == EPS_CONVERGED_ITERATING) {
+  if (L_add>0) {
+    ierr = SetAddVector(eps,ctx->L+L_add);CHKERRQ(ierr);	
+    ierr = SolveAddLinearSystem(eps,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = PetscInfo2(eps,"Changing L %d -> %d\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ctx->L += L_add;
+  }
+  ierr = ConstructS(eps,&ctx->S);CHKERRQ(ierr);
+  ierr = SVD(eps,ctx->S);CHKERRQ(ierr);
+
+  nv = ctx->K;
+printf("nv=%d\n",nv);
+  ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
+
+  ierr = DSGetArray(eps->ds,DS_MAT_A,&QFQ);CHKERRQ(ierr);
+  for (j=0;j<nv;j++) {
+    ierr = MatMult(A,ctx->S[j],w);CHKERRQ(ierr);
+    for (i=0;i<nv;i++) {
+      ierr = VecDot(w,ctx->S[i],QFQ+i+j*ld);CHKERRQ(ierr);
+    }
+  }
+  ierr = DSRestoreArray(eps->ds,DS_MAT_A,&QFQ);CHKERRQ(ierr);
+
+  if (nmat>1) {
+    ierr = DSGetArray(eps->ds,DS_MAT_B,&QFQ);CHKERRQ(ierr);
+    for (j=0;j<nv;j++) {
+      ierr = MatMult(B,ctx->S[j],w);CHKERRQ(ierr);
+      for (i=0;i<nv;i++) {
+        ierr = VecDot(w,ctx->S[i],QFQ+i+j*ld);CHKERRQ(ierr);
+      }
+    }
+    ierr = DSRestoreArray(eps->ds,DS_MAT_B,&QFQ);CHKERRQ(ierr);
+  }
+
+  ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
+  ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+  
+
+/*  while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,0);CHKERRQ(ierr);
@@ -144,7 +549,13 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
     eps->nconv = k;
     eps->reason = EPS_DIVERGED_ITS;
+  }*/
+
+  for (j=0;j<nv;j++) {
+    printf("eig[%d] = %G + %Gi\n",j,eps->eigr[j],eps->eigi[j]);
   }
+  eps->reason = EPS_CONVERGED_TOL;
+  eps->nconv = 0;
 
   /* truncate Schur decomposition and change the state to raw so that
      PSVectors() computes eigenvectors from scratch */
@@ -251,7 +662,8 @@ PetscErrorCode EPSCISSGetRegion(EPS eps,PetscScalar *center,PetscReal *radius,Pe
 #define __FUNCT__ "EPSCISSSetSizes_CISS"
 static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart)
 {
-  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+  PetscErrorCode ierr;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
   if (ip) {
@@ -261,7 +673,6 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
       if (ip<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be > 0");
       if (ctx->N!=ip) { ctx->N = ip; ctx->M = ctx->N/4; }
     }
-    eps->setupcalled = 0;   /* force setup to recompute communicator splitting */
   }
   if (bs) {
     if (bs == PETSC_DECIDE || bs == PETSC_DEFAULT) {
@@ -286,8 +697,8 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
       if (npart<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The npart argument must be > 0");
       ctx->npart = npart;
     }
-    eps->setupcalled = 0;   /* force setup to recompute communicator splitting */
   }
+  ierr = EPSReset(eps);CHKERRQ(ierr);   /* clean allocated arrays and force new setup */
   PetscFunctionReturn(0);
 }
 
@@ -383,13 +794,25 @@ PetscErrorCode EPSCISSGetSizes(EPS eps,PetscInt *ip,PetscInt *bs,PetscInt *ms,Pe
 PetscErrorCode EPSReset_CISS(EPS eps)
 {
   PetscErrorCode ierr;
+  PetscInt       i;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
-//  ierr = VecDestroyVecs(eps->mpd,&ctx->AV);CHKERRQ(ierr);
-//  ierr = VecDestroyVecs(eps->mpd,&ctx->BV);CHKERRQ(ierr);
-//  ierr = VecDestroyVecs(eps->mpd,&ctx->P);CHKERRQ(ierr);
-//  ierr = VecDestroyVecs(eps->mpd,&ctx->G);CHKERRQ(ierr);
+  if (eps->setupcalled) { ierr = MPI_Comm_free(&ctx->scomm);CHKERRQ(ierr); }
+  ierr = PetscFree(ctx->weight);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->omega);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->pp);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(ctx->L,&ctx->V);CHKERRQ(ierr);
+  for (i=0;i<ctx->num_solve_point;i++) {
+    ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
+  for (i=0;i<ctx->num_solve_point*LMAX;i++) {
+    ierr = VecDestroy(&ctx->Y[i]);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(ctx->Y);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(ctx->M*ctx->L,&ctx->S1);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(ctx->M*ctx->L,&ctx->S);CHKERRQ(ierr);
   ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -484,7 +907,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ctx->delta   = 1e-12;
   ctx->useconj = PETSC_FALSE;
   ctx->npart   = 1;
-  ctx->Lmax    = 256;
   PetscFunctionReturn(0);
 }
 
