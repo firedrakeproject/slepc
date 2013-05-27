@@ -338,11 +338,10 @@ static PetscErrorCode SolveAddLinearSystem(EPS eps,PetscInt Ladd_end)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j,p_id,Ladd_start=ctx->L;
+  PetscInt       i,j,Ladd_start=ctx->L;
 
   PetscFunctionBegin;
   for (i=0;i<ctx->num_solve_point;i++) {
-    p_id = ctx->solver_comm_id * ctx->num_solve_point + i;		
     for (j=Ladd_start;j<Ladd_end;j++) {
       ierr = VecDuplicate(ctx->V[0],&ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
       ierr = KSPSolve(ctx->ksp[i],ctx->V[j],ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
@@ -461,10 +460,10 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   }
   ierr = PetscMalloc(ctx->num_solve_point*LMAX*sizeof(Vec),&ctx->Y);CHKERRQ(ierr);
 
-  if (eps->isgeneralized) {
-    ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
+  if (eps->ishermitian) {
+    ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);
   } else {
-    ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
+    ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
   }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
@@ -481,10 +480,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j,k,ld,off,nv,ncv = eps->ncv,kini,nmat,L_add;
-  PetscScalar    *QFQ,*Y;
-  PetscReal      resnorm,norm;
-  PetscBool      breakdown;
+  PetscInt       i,j,ld,nv,nmat,L_add;
+  PetscScalar    *QFQ,*rr,*pX;
+  PetscReal      dx,dy,d;
   Mat            A,B;
   Vec            w=eps->work[0];
 
@@ -513,54 +511,53 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   ierr = SVD(eps,ctx->S);CHKERRQ(ierr);
 
   nv = ctx->K;
-printf("nv=%d\n",nv);
   ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
   ierr = DSGetArray(eps->ds,DS_MAT_A,&QFQ);CHKERRQ(ierr);
   for (j=0;j<nv;j++) {
     ierr = MatMult(A,ctx->S[j],w);CHKERRQ(ierr);
-    for (i=0;i<nv;i++) {
-      ierr = VecDot(w,ctx->S[i],QFQ+i+j*ld);CHKERRQ(ierr);
-    }
+    ierr = VecMDot(w,nv,ctx->S,QFQ+j*ld);CHKERRQ(ierr);
   }
   ierr = DSRestoreArray(eps->ds,DS_MAT_A,&QFQ);CHKERRQ(ierr);
 
-  if (nmat>1) {
-    ierr = DSGetArray(eps->ds,DS_MAT_B,&QFQ);CHKERRQ(ierr);
-    for (j=0;j<nv;j++) {
+  ierr = DSGetArray(eps->ds,DS_MAT_B,&QFQ);CHKERRQ(ierr);
+  for (j=0;j<nv;j++) {
+    if (nmat>1) {
       ierr = MatMult(B,ctx->S[j],w);CHKERRQ(ierr);
-      for (i=0;i<nv;i++) {
-        ierr = VecDot(w,ctx->S[i],QFQ+i+j*ld);CHKERRQ(ierr);
-      }
+    } else {
+      ierr = VecCopy(ctx->S[j],w);CHKERRQ(ierr);
     }
-    ierr = DSRestoreArray(eps->ds,DS_MAT_B,&QFQ);CHKERRQ(ierr);
+    ierr = VecMDot(w,nv,ctx->S,QFQ+j*ld);CHKERRQ(ierr);
+  }
+  ierr = DSRestoreArray(eps->ds,DS_MAT_B,&QFQ);CHKERRQ(ierr);
+
+  ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
+
+  ierr = PetscMalloc(nv*sizeof(PetscScalar),&rr);CHKERRQ(ierr);
+  eps->nconv = 0;
+  for (i=0;i<nv;i++) {
+    dx = PetscRealPart(eps->eigr[i])-PetscRealPart(ctx->center);
+    dy = (1.0/ctx->vscale)*PetscImaginaryPart(eps->eigr[i])-PetscImaginaryPart(ctx->center);
+    d = PetscSqrtReal(dx*dx + dy*dy);
+    rr[i] = d;
+    if (d<ctx->radius) eps->nconv++;
+    else rr[i] = 0;
+  }
+  ierr = DSSort(eps->ds,eps->eigr,NULL,rr,NULL,&eps->nconv);CHKERRQ(ierr);
+  ierr = PetscFree(rr);CHKERRQ(ierr);
+  
+  for (i=0;i<nv;i++) {
+    ierr = VecCopy(ctx->S[i],eps->V[i]);CHKERRQ(ierr);
   }
 
-  ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-  ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
-  
-
-/*  while (eps->reason == EPS_CONVERGED_ITERATING) {
-    eps->its++;
-    nv = PetscMin(eps->nconv+eps->mpd,ncv);
-    ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,0);CHKERRQ(ierr);
-
-    ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
-    eps->nconv = k;
-    eps->reason = EPS_DIVERGED_ITS;
-  }*/
-
-  for (j=0;j<nv;j++) {
-    printf("eig[%d] = %G + %Gi\n",j,eps->eigr[j],eps->eigi[j]);
+  if (eps->ishermitian) {  /* compute eigenvectors */
+    ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(nv,eps->V,0,eps->nconv,pX,ld,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
   }
   eps->reason = EPS_CONVERGED_TOL;
-  eps->nconv = 0;
-
-  /* truncate Schur decomposition and change the state to raw so that
-     PSVectors() computes eigenvectors from scratch */
-  //ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
-  //ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -832,6 +829,7 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
   ierr = PetscOptionsReal("-eps_ciss_radius","CISS radius of region","EPSCISSSetRegion",r1,&r1,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsScalar("-eps_ciss_center","CISS center of region","EPSCISSSetRegion",s,&s,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsReal("-eps_ciss_vscale","CISS vertical scale of region","EPSCISSSetRegion",r2,&r2,NULL);CHKERRQ(ierr);
+  ierr = EPSCISSSetRegion(eps,s,r1,r2);CHKERRQ(ierr);
 
   ierr = PetscOptionsInt("-eps_ciss_integration_points","CISS number of integration points","EPSCISSSetSizes",i1,&i1,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_ciss_blocksize","CISS block size","EPSCISSSetSizes",i2,&i2,NULL);CHKERRQ(ierr);
@@ -892,7 +890,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   eps->ops->reset          = EPSReset_CISS;
   eps->ops->view           = EPSView_CISS;
   eps->ops->backtransform  = EPSBackTransform_Default;
-  eps->ops->computevectors = EPSComputeVectors_Default;
+  eps->ops->computevectors = EPSComputeVectors_Schur;
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRegion_C",EPSCISSSetRegion_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRegion_C",EPSCISSGetRegion_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetSizes_C",EPSCISSSetSizes_CISS);CHKERRQ(ierr);
