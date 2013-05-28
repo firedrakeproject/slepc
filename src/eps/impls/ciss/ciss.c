@@ -247,7 +247,7 @@ static PetscErrorCode ConstructS(EPS eps,Vec **S)
     for (j=0;j<ctx->L;j++) {
       ierr = VecSet(v,0);CHKERRQ(ierr);
       for (i=0;i<ctx->num_solve_point; i++) {
-        ierr = VecAXPY(v,ppk[i]*ctx->weight[ctx->solver_comm_id*ctx->num_solve_point+i]/ctx->N,ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
+        ierr = VecAXPY(v,ppk[i]*ctx->weight[ctx->solver_comm_id*ctx->num_solve_point+i]/(PetscReal)ctx->N,ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
       }
 
       ierr = VecGetArray((*S)[k*ctx->L+j],&S_data);CHKERRQ(ierr);
@@ -301,7 +301,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,Vec *S1,PetscInt *L_add)
     sum += tmp;
   }
   ierr = VecDestroy(&V_p);CHKERRQ(ierr);
-  est_eig = PetscAbsScalar(ctx->radius*sum/ctx->L);
+  est_eig = PetscAbsScalar(ctx->radius*sum/(PetscReal)ctx->L);
   ierr = PetscInfo1(eps,"Estimation_#Eig %F\n",est_eig);CHKERRQ(ierr);
   *L_add = (PetscInt)est_eig/ctx->M - ctx->L;
   if (*L_add+ctx->L>=LMAX) {

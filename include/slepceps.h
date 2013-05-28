@@ -382,5 +382,10 @@ PETSC_EXTERN PetscErrorCode EPSJDSetWindowSizes(EPS eps,PetscInt pwindow,PetscIn
 PETSC_EXTERN PetscErrorCode EPSRQCGSetReset(EPS,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSRQCGGetReset(EPS,PetscInt*);
 
+PETSC_EXTERN PetscErrorCode EPSCISSSetRegion(EPS,PetscScalar,PetscReal,PetscReal);
+PETSC_EXTERN PetscErrorCode EPSCISSGetRegion(EPS,PetscScalar*,PetscReal*,PetscReal*);
+PETSC_EXTERN PetscErrorCode EPSCISSSetSizes(EPS,PetscInt,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode EPSCISSGetSizes(EPS,PetscInt*,PetscInt*,PetscInt*,PetscInt*);
+
 #endif
 
