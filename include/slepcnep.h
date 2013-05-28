@@ -104,10 +104,10 @@ PETSC_EXTERN PetscErrorCode NEPSetUp(NEP);
 PETSC_EXTERN PetscErrorCode NEPSolve(NEP);
 PETSC_EXTERN PetscErrorCode NEPView(NEP,PetscViewer);
 
-PETSC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,PetscErrorCode (*)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void*);
-PETSC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void**);
-PETSC_EXTERN PetscErrorCode NEPSetJacobian(NEP,Mat,PetscErrorCode (*)(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*),void*);
-PETSC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,PetscErrorCode (**)(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*),void**);
+PETSC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat*,Mat*,MatStructure*,void*),void*);
+PETSC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat*,Mat*,MatStructure*,void*),void**);
+PETSC_EXTERN PetscErrorCode NEPSetJacobian(NEP,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat*,MatStructure*,void*),void*);
+PETSC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat*,MatStructure*,void*),void**);
 PETSC_EXTERN PetscErrorCode NEPSetSplitOperator(NEP,PetscInt,Mat*,FN*,MatStructure);
 PETSC_EXTERN PetscErrorCode NEPGetSplitOperatorTerm(NEP,PetscInt,Mat*,FN*);
 PETSC_EXTERN PetscErrorCode NEPGetSplitOperatorInfo(NEP,PetscInt*,MatStructure*);
@@ -128,20 +128,20 @@ PETSC_EXTERN PetscErrorCode NEPSetConstCorrectionTol(NEP,PetscBool);
 PETSC_EXTERN PetscErrorCode NEPGetConstCorrectionTol(NEP,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode NEPGetConverged(NEP,PetscInt*);
-PETSC_EXTERN PetscErrorCode NEPGetEigenpair(NEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
+PETSC_EXTERN PetscErrorCode NEPGetEigenpair(NEP,PetscInt,PetscScalar*,Vec);
 
 PETSC_EXTERN PetscErrorCode NEPComputeRelativeError(NEP,PetscInt,PetscReal*);
 PETSC_EXTERN PetscErrorCode NEPComputeResidualNorm(NEP,PetscInt,PetscReal*);
 PETSC_EXTERN PetscErrorCode NEPGetErrorEstimate(NEP,PetscInt,PetscReal*);
 
-PETSC_EXTERN PetscErrorCode NEPComputeFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*);
-PETSC_EXTERN PetscErrorCode NEPComputeJacobian(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*);
-PETSC_EXTERN PetscErrorCode NEPApplyFunction(NEP,PetscScalar,PetscScalar,Vec,Vec,Vec,Mat*,Mat*,MatStructure*);
-PETSC_EXTERN PetscErrorCode NEPApplyJacobian(NEP,PetscScalar,PetscScalar,Vec,Vec,Vec,Mat*,MatStructure*);
+PETSC_EXTERN PetscErrorCode NEPComputeFunction(NEP,PetscScalar,Mat*,Mat*,MatStructure*);
+PETSC_EXTERN PetscErrorCode NEPComputeJacobian(NEP,PetscScalar,Mat*,MatStructure*);
+PETSC_EXTERN PetscErrorCode NEPApplyFunction(NEP,PetscScalar,Vec,Vec,Vec,Mat*,Mat*,MatStructure*);
+PETSC_EXTERN PetscErrorCode NEPApplyJacobian(NEP,PetscScalar,Vec,Vec,Vec,Mat*,MatStructure*);
 PETSC_EXTERN PetscErrorCode NEPProjectOperator(NEP,PetscInt,PetscInt,Vec);
 
-PETSC_EXTERN PetscErrorCode NEPMonitor(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
-PETSC_EXTERN PetscErrorCode NEPMonitorSet(NEP,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
+PETSC_EXTERN PetscErrorCode NEPMonitor(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPMonitorSet(NEP,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
 PETSC_EXTERN PetscErrorCode NEPMonitorCancel(NEP);
 PETSC_EXTERN PetscErrorCode NEPGetMonitorContext(NEP,void **);
 PETSC_EXTERN PetscErrorCode NEPGetIterationNumber(NEP,PetscInt*);
@@ -150,13 +150,13 @@ PETSC_EXTERN PetscErrorCode NEPGetOperationCounters(NEP,PetscInt*,PetscInt*,Pets
 PETSC_EXTERN PetscErrorCode NEPSetInitialSpace(NEP,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode NEPSetWhichEigenpairs(NEP,NEPWhich);
 PETSC_EXTERN PetscErrorCode NEPGetWhichEigenpairs(NEP,NEPWhich*);
-PETSC_EXTERN PetscErrorCode NEPSetEigenvalueComparison(NEP,PetscErrorCode (*func)(NEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
+PETSC_EXTERN PetscErrorCode NEPSetEigenvalueComparison(NEP,PetscErrorCode (*func)(NEP,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
-PETSC_EXTERN PetscErrorCode NEPMonitorAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
-PETSC_EXTERN PetscErrorCode NEPMonitorFirst(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
-PETSC_EXTERN PetscErrorCode NEPMonitorConverged(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
-PETSC_EXTERN PetscErrorCode NEPMonitorLG(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
-PETSC_EXTERN PetscErrorCode NEPMonitorLGAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
+PETSC_EXTERN PetscErrorCode NEPMonitorAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
+PETSC_EXTERN PetscErrorCode NEPMonitorFirst(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
+PETSC_EXTERN PetscErrorCode NEPMonitorConverged(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
+PETSC_EXTERN PetscErrorCode NEPMonitorLG(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
+PETSC_EXTERN PetscErrorCode NEPMonitorLGAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
 
 PETSC_EXTERN PetscErrorCode NEPSetTrackAll(NEP,PetscBool);
 PETSC_EXTERN PetscErrorCode NEPGetTrackAll(NEP,PetscBool*);
@@ -167,8 +167,8 @@ PETSC_EXTERN PetscErrorCode NEPGetOptionsPrefix(NEP,const char*[]);
 
 PETSC_EXTERN PetscErrorCode NEPGetConvergedReason(NEP,NEPConvergedReason *);
 
-PETSC_EXTERN PetscErrorCode NEPSortEigenvalues(NEP,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
-PETSC_EXTERN PetscErrorCode NEPCompareEigenvalues(NEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPSortEigenvalues(NEP,PetscInt,PetscScalar*,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPCompareEigenvalues(NEP,PetscScalar,PetscScalar,PetscInt*);
 
 PETSC_EXTERN PetscFunctionList NEPList;
 PETSC_EXTERN PetscBool         NEPRegisterAllCalled;

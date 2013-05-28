@@ -110,8 +110,8 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
     nep->its++;
 
     /* evaluate T(lambda) and T'(lambda) */
-    ierr = NEPComputeFunction(nep,lambda,0,&T,&T,&mats);CHKERRQ(ierr);
-    ierr = NEPComputeJacobian(nep,lambda,0,&Tp,&mats);CHKERRQ(ierr);
+    ierr = NEPComputeFunction(nep,lambda,&T,&T,&mats);CHKERRQ(ierr);
+    ierr = NEPComputeJacobian(nep,lambda,&Tp,&mats);CHKERRQ(ierr);
 
     /* form residual,  r = T(lambda)*u (used in convergence test only) */
     ierr = MatMult(T,u,r);CHKERRQ(ierr);
@@ -119,12 +119,12 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&relerr);CHKERRQ(ierr);
     nep->errest[nep->nconv] = relerr;
-    nep->eigr[nep->nconv] = lambda;
+    nep->eig[nep->nconv] = lambda;
     if (relerr<=nep->rtol) {
       nep->nconv = nep->nconv + 1;
       nep->reason = NEP_CONVERGED_FNORM_RELATIVE;
     }
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,1);CHKERRQ(ierr);
+    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eig,nep->errest,1);CHKERRQ(ierr);
 
     if (!nep->nconv) {
       /* compute eigenvalue correction mu and eigenvector approximation u */

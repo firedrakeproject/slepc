@@ -87,10 +87,10 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   }
 
   /* correct eigenvalue approximation: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
-  ierr = NEPComputeFunction(nep,lambda,0,&T,&T,&mats);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,lambda,&T,&T,&mats);CHKERRQ(ierr);
   ierr = MatMult(T,u,r);CHKERRQ(ierr);
   ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
-  ierr = NEPApplyJacobian(nep,lambda,0,u,delta,r,&Tp,&mats);CHKERRQ(ierr);
+  ierr = NEPApplyJacobian(nep,lambda,u,delta,r,&Tp,&mats);CHKERRQ(ierr);
   ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
   lambda = lambda - a1/a2;
 
@@ -119,17 +119,17 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     }
 
     /* form residual,  r = T(lambda)*u */
-    ierr = NEPApplyFunction(nep,lambda,0,u,delta,r,&T,&T,&mats);CHKERRQ(ierr);
+    ierr = NEPApplyFunction(nep,lambda,u,delta,r,&T,&T,&mats);CHKERRQ(ierr);
 
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&relerr);CHKERRQ(ierr);
     nep->errest[nep->nconv] = relerr;
-    nep->eigr[nep->nconv] = lambda;
+    nep->eig[nep->nconv] = lambda;
     if (relerr<=nep->rtol) {
       nep->nconv = nep->nconv + 1;
       nep->reason = NEP_CONVERGED_FNORM_RELATIVE;
     }
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,1);CHKERRQ(ierr);
+    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eig,nep->errest,1);CHKERRQ(ierr);
 
     if (!nep->nconv) {
       /* eigenvector correction: delta = T(sigma)\r */
@@ -148,9 +148,9 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
 
       /* correct eigenvalue: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
-      ierr = NEPApplyFunction(nep,lambda,0,u,delta,r,&T,&T,&mats);CHKERRQ(ierr);
+      ierr = NEPApplyFunction(nep,lambda,u,delta,r,&T,&T,&mats);CHKERRQ(ierr);
       ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
-      ierr = NEPApplyJacobian(nep,lambda,0,u,delta,r,&Tp,&mats);CHKERRQ(ierr);
+      ierr = NEPApplyJacobian(nep,lambda,u,delta,r,&Tp,&mats);CHKERRQ(ierr);
       ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
       lambda = lambda - a1/a2;
     }

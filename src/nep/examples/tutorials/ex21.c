@@ -36,8 +36,8 @@ static char help[] = "Simple 1-D nonlinear eigenproblem (matrix-free version, se
    User-defined routines
 */
 PetscErrorCode FormInitialGuess(Vec);
-PetscErrorCode FormFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
-PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*);
+PetscErrorCode FormFunction(NEP,PetscScalar,Mat*,Mat*,MatStructure*,void*);
+PetscErrorCode FormJacobian(NEP,PetscScalar,Mat*,MatStructure*,void*);
 
 /*
    Matrix operations and context
@@ -182,7 +182,7 @@ int main(int argc,char **argv)
       /*
         Get converged eigenpairs (in this example they are always real)
       */
-      ierr = NEPGetEigenpair(nep,i,&lambda,NULL,NULL,NULL);CHKERRQ(ierr);
+      ierr = NEPGetEigenpair(nep,i,&lambda,NULL);CHKERRQ(ierr);
       /*
          Compute residual norm
       */
@@ -236,28 +236,23 @@ PetscErrorCode FormInitialGuess(Vec x)
    FormFunction - Computes Function matrix  T(lambda)
 
    Input Parameters:
-.  nep - the NEP context
-.  wr  - real part of the scalar argument
-.  wi  - imaginary part of the scalar argument
-.  ctx - optional user-defined context, as set by NEPSetJacobian()
+.  nep    - the NEP context
+.  lambda - real part of the scalar argument
+.  ctx    - optional user-defined context, as set by NEPSetJacobian()
 
    Output Parameters:
 .  fun - Function matrix
 .  B   - optionally different preconditioning matrix
 .  flg - flag indicating matrix structure
-
-   Note:
-   lambda can be represented as wr+wi*PETSC_i or as wr (in case of a configuration
-   with complex scalars). See NEPGetEigenvalues() for details.
 */
-PetscErrorCode FormFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *fun,Mat *B,MatStructure *flg,void *ctx)
+PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat *fun,Mat *B,MatStructure *flg,void *ctx)
 {
   PetscErrorCode ierr;
   MatCtx         *ctxF;
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(*fun,(void**)&ctxF);CHKERRQ(ierr);
-  ctxF->lambda = wr;
+  ctxF->lambda = lambda;
   PetscFunctionReturn(0);
 }
 
@@ -268,28 +263,23 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *fun,Mat *
    FormJacobian - Computes Jacobian matrix  T'(lambda)
 
    Input Parameters:
-.  nep - the NEP context
-.  wr  - real part of the scalar argument
-.  wi  - imaginary part of the scalar argument
-.  ctx - optional user-defined context, as set by NEPSetJacobian()
+.  nep    - the NEP context
+.  lambda - real part of the scalar argument
+.  ctx    - optional user-defined context, as set by NEPSetJacobian()
 
    Output Parameters:
 .  jac - Jacobian matrix
 .  B   - optionally different preconditioning matrix
 .  flg - flag indicating matrix structure
-
-   Note:
-   lambda can be represented as wr+wi*PETSC_i or as wr (in case of a configuration
-   with complex scalars). See NEPGetEigenvalues() for details.
 */
-PetscErrorCode FormJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *jac,MatStructure *flg,void *ctx)
+PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat *jac,MatStructure *flg,void *ctx)
 {
   PetscErrorCode ierr;
   MatCtx         *ctxJ;
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(*jac,(void**)&ctxJ);CHKERRQ(ierr);
-  ctxJ->lambda = wr;
+  ctxJ->lambda = lambda;
   PetscFunctionReturn(0);
 }
 

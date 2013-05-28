@@ -62,12 +62,11 @@ PetscErrorCode NEPSolve(NEP nep)
   nep->nconv = 0;
   nep->its = 0;
   for (i=0;i<nep->ncv;i++) {
-    nep->eigr[i]   = 0.0;
-    nep->eigi[i]   = 0.0;
+    nep->eig[i]   = 0.0;
     nep->errest[i] = 0.0;
   }
   nep->ktol = 0.1;
-  ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nep->ncv);CHKERRQ(ierr);
+  ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eig,nep->errest,nep->ncv);CHKERRQ(ierr);
 
   ierr = DSSetEigenvalueComparison(nep->ds,nep->comparison,nep->comparisonctx);CHKERRQ(ierr);
 
@@ -75,22 +74,8 @@ PetscErrorCode NEPSolve(NEP nep)
 
   if (!nep->reason) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
-#if !defined(PETSC_USE_COMPLEX)
-  /* reorder conjugate eigenvalues (positive imaginary first) */
-  for (i=0;i<nep->nconv-1;i++) {
-    if (nep->eigi[i] != 0) {
-      if (nep->eigi[i] < 0) {
-        nep->eigi[i] = -nep->eigi[i];
-        nep->eigi[i+1] = -nep->eigi[i+1];
-        ierr = VecScale(nep->V[i+1],-1.0);CHKERRQ(ierr);
-      }
-      i++;
-    }
-  }
-#endif
-
   /* sort eigenvalues according to nep->which parameter */
-  ierr = NEPSortEigenvalues(nep,nep->nconv,nep->eigr,nep->eigi,nep->perm);CHKERRQ(ierr);
+  ierr = NEPSortEigenvalues(nep,nep->nconv,nep->eig,nep->perm);CHKERRQ(ierr);
 
   ierr = PetscLogEventEnd(NEP_Solve,nep,0,0,0);CHKERRQ(ierr);
 
@@ -110,13 +95,8 @@ PetscErrorCode NEPSolve(NEP nep)
     ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
     ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
     for (i=0;i<nep->nconv;i++) {
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(nep->eigr[i]);
-      im = PetscImaginaryPart(nep->eigi[i]);
-#else
-      re = nep->eigr[i];
-      im = nep->eigi[i];
-#endif
+      re = PetscRealPart(nep->eig[i]);
+      im = PetscImaginaryPart(nep->eig[i]);
       ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
     }
     ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
@@ -219,11 +199,10 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
    Collective on NEP
 
    Input Parameters:
-+  nep - the nonlinear eigensolver context
-.  wr  - real part of the scalar argument
-.  wi  - imaginary part of the scalar argument
-.  x   - vector to be multiplied against
--  v   - workspace vector
++  nep    - the nonlinear eigensolver context
+.  lambda - scalar argument
+.  x      - vector to be multiplied against
+-  v      - workspace vector
 
    Output Parameters:
 +  y   - result vector
@@ -242,7 +221,7 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
 
 .seealso: NEPSetSplitOperator(), NEPComputeFunction()
 @*/
-PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar wr,PetscScalar wi,Vec x,Vec v,Vec y,Mat *A,Mat *B,MatStructure *flg)
+PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat *A,Mat *B,MatStructure *flg)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -250,18 +229,19 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar wr,PetscScalar wi,Vec x,Vec 
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidHeaderSpecific(x,VEC_CLASSID,4);
+  PetscValidLogicalCollectiveScalar(nep,lambda,2);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   PetscValidHeaderSpecific(y,VEC_CLASSID,5);
-  PetscValidHeaderSpecific(y,VEC_CLASSID,6);
   if (nep->split) {
     ierr = VecZeroEntries(y);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
-      ierr = FNEvaluateFunction(nep->f[i],wr,&alpha);CHKERRQ(ierr);
+      ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
       ierr = MatMult(nep->A[i],x,v);CHKERRQ(ierr);
       ierr = VecAXPY(y,alpha,v);CHKERRQ(ierr);
     }
   } else {
-    ierr = NEPComputeFunction(nep,wr,wi,A,B,flg);CHKERRQ(ierr);
+    ierr = NEPComputeFunction(nep,lambda,A,B,flg);CHKERRQ(ierr);
     ierr = MatMult(*A,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -275,11 +255,10 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar wr,PetscScalar wi,Vec x,Vec 
    Collective on NEP
 
    Input Parameters:
-+  nep - the nonlinear eigensolver context
-.  wr  - real part of the scalar argument
-.  wi  - imaginary part of the scalar argument
-.  x   - vector to be multiplied against
--  v   - workspace vector
++  nep    - the nonlinear eigensolver context
+.  lambda - scalar argument
+.  x      - vector to be multiplied against
+-  v      - workspace vector
 
    Output Parameters:
 +  y   - result vector
@@ -297,7 +276,7 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar wr,PetscScalar wi,Vec x,Vec 
 
 .seealso: NEPSetSplitOperator(), NEPComputeJacobian()
 @*/
-PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Vec x,Vec v,Vec y,Mat *A,MatStructure *flg)
+PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat *A,MatStructure *flg)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -305,18 +284,19 @@ PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Vec x,Vec 
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidHeaderSpecific(x,VEC_CLASSID,4);
+  PetscValidLogicalCollectiveScalar(nep,lambda,2);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   PetscValidHeaderSpecific(y,VEC_CLASSID,5);
-  PetscValidHeaderSpecific(y,VEC_CLASSID,6);
   if (nep->split) {
     ierr = VecZeroEntries(y);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
-      ierr = FNEvaluateDerivative(nep->f[i],wr,&alpha);CHKERRQ(ierr);
+      ierr = FNEvaluateDerivative(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
       ierr = MatMult(nep->A[i],x,v);CHKERRQ(ierr);
       ierr = VecAXPY(y,alpha,v);CHKERRQ(ierr);
     }
   } else {
-    ierr = NEPComputeJacobian(nep,wr,wi,A,flg);CHKERRQ(ierr);
+    ierr = NEPComputeJacobian(nep,lambda,A,flg);CHKERRQ(ierr);
     ierr = MatMult(*A,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -439,16 +419,13 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
 -  i   - index of the solution
 
    Output Parameters:
-+  eigr - real part of eigenvalue
-.  eigi - imaginary part of eigenvalue
-.  Vr   - real part of eigenvector
--  Vi   - imaginary part of eigenvector
++  eig - eigenvalue
+-  V   - eigenvector
 
    Notes:
-   If the eigenvalue is real, then eigi and Vi are set to zero. If PETSc is
-   configured with complex scalars the eigenvalue is stored
-   directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is
-   set to zero).
+   If PETSc is configured with real scalars, then complex eigenpairs cannot
+   be obtained. Users should use a complex-scalar configuration. This
+   behaviour is different to other SLEPc solvers such as EPS.
 
    The index i should be a value between 0 and nconv-1 (see NEPGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established
@@ -458,7 +435,7 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
 
 .seealso: NEPSolve(), NEPGetConverged(), NEPSetWhichEigenpairs()
 @*/
-PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar *eigi,Vec Vr,Vec Vi)
+PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eig,Vec V)
 {
   PetscInt       k;
   PetscErrorCode ierr;
@@ -466,42 +443,15 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
-  if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,6); PetscCheckSameComm(nep,1,Vr,6); }
-  if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,7); PetscCheckSameComm(nep,1,Vi,7); }
-  if (!nep->eigr || !nep->eigi || !nep->V) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first");
+  if (V) { PetscValidHeaderSpecific(V,VEC_CLASSID,4); PetscCheckSameComm(nep,1,V,4); }
+  if (!nep->eig || !nep->V) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first");
   if (i<0 || i>=nep->nconv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
 
   if (!nep->perm) k = i;
   else k = nep->perm[i];
 
-  /* eigenvalue */
-#if defined(PETSC_USE_COMPLEX)
-  if (eigr) *eigr = nep->eigr[k];
-  if (eigi) *eigi = 0;
-#else
-  if (eigr) *eigr = nep->eigr[k];
-  if (eigi) *eigi = nep->eigi[k];
-#endif
-
-  /* eigenvector */
-#if defined(PETSC_USE_COMPLEX)
-  if (Vr) { ierr = VecCopy(nep->V[k],Vr);CHKERRQ(ierr); }
-  if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
-#else
-  if (nep->eigi[k]>0) { /* first value of conjugate pair */
-    if (Vr) { ierr = VecCopy(nep->V[k],Vr);CHKERRQ(ierr); }
-    if (Vi) { ierr = VecCopy(nep->V[k+1],Vi);CHKERRQ(ierr); }
-  } else if (nep->eigi[k]<0) { /* second value of conjugate pair */
-    if (Vr) { ierr = VecCopy(nep->V[k-1],Vr);CHKERRQ(ierr); }
-    if (Vi) {
-      ierr = VecCopy(nep->V[k],Vi);CHKERRQ(ierr);
-      ierr = VecScale(Vi,-1.0);CHKERRQ(ierr);
-    }
-  } else { /* real eigenvalue */
-    if (Vr) { ierr = VecCopy(nep->V[k],Vr);CHKERRQ(ierr); }
-    if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
-  }
-#endif
+  if (eig) *eig = nep->eig[k];
+  if (V) { ierr = VecCopy(nep->V[k],V);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -533,7 +483,7 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(errest,3);
-  if (!nep->eigr || !nep->eigi) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first");
+  if (!nep->eig) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first");
   if (i<0 || i>=nep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   if (nep->perm) i = nep->perm[i];
   if (errest) *errest = nep->errest[i];
@@ -546,7 +496,7 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
    NEPComputeResidualNorm_Private - Computes the norm of the residual vector
    associated with an eigenpair.
 */
-PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *norm)
+PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,PetscReal *norm)
 {
   PetscErrorCode ierr;
   Vec            u;
@@ -555,17 +505,9 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar kr,PetscScalar
 
   PetscFunctionBegin;
   ierr = VecDuplicate(nep->V[0],&u);CHKERRQ(ierr);
-  ierr = NEPComputeFunction(nep,kr,ki,&T,&T,&mats);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
-#endif
-    ierr = MatMult(T,xr,u);CHKERRQ(ierr);
-    ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  } else {
-    SETERRQ(PETSC_COMM_SELF,1,"Not implemented");
-  }
-#endif
+  ierr = NEPComputeFunction(nep,lambda,&T,&T,&mats);CHKERRQ(ierr);
+  ierr = MatMult(T,x,u);CHKERRQ(ierr);
+  ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -598,19 +540,17 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar kr,PetscScalar
 PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *norm)
 {
   PetscErrorCode ierr;
-  Vec            xr,xi;
-  PetscScalar    kr,ki;
+  Vec            x;
+  PetscScalar    lambda;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   PetscValidPointer(norm,3);
-  ierr = VecDuplicate(nep->V[0],&xr);CHKERRQ(ierr);
-  ierr = VecDuplicate(nep->V[0],&xi);CHKERRQ(ierr);
-  ierr = NEPGetEigenpair(nep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
-  ierr = NEPComputeResidualNorm_Private(nep,kr,ki,xr,xi,norm);CHKERRQ(ierr);
-  ierr = VecDestroy(&xr);CHKERRQ(ierr);
-  ierr = VecDestroy(&xi);CHKERRQ(ierr);
+  ierr = VecDuplicate(nep->V[0],&x);CHKERRQ(ierr);
+  ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
+  ierr = NEPComputeResidualNorm_Private(nep,lambda,x,norm);CHKERRQ(ierr);
+  ierr = VecDestroy(&x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -620,36 +560,19 @@ PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *norm)
    NEPComputeRelativeError_Private - Computes the relative error bound
    associated with an eigenpair.
 */
-PetscErrorCode NEPComputeRelativeError_Private(NEP nep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *error)
+PetscErrorCode NEPComputeRelativeError_Private(NEP nep,PetscScalar lambda,Vec x,PetscReal *error)
 {
   PetscErrorCode ierr;
   PetscReal      norm,er;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscReal      ei;
-#endif
 
   PetscFunctionBegin;
-  ierr = NEPComputeResidualNorm_Private(nep,kr,ki,xr,xi,&norm);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
-#endif
-    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
-    if (PetscAbsScalar(kr) > norm) {
-      *error = norm/(PetscAbsScalar(kr)*er);
-    } else {
-      *error = norm/er;
-    }
-#if !defined(PETSC_USE_COMPLEX)
+  ierr = NEPComputeResidualNorm_Private(nep,lambda,x,&norm);CHKERRQ(ierr);
+  ierr = VecNorm(x,NORM_2,&er);CHKERRQ(ierr);
+  if (PetscAbsScalar(lambda) > norm) {
+    *error = norm/(PetscAbsScalar(lambda)*er);
   } else {
-    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
-    ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);
-    if (SlepcAbsEigenvalue(kr,ki) > norm) {
-      *error = norm/(SlepcAbsEigenvalue(kr,ki)*SlepcAbsEigenvalue(er,ei));
-    } else {
-      *error = norm/SlepcAbsEigenvalue(er,ei);
-    }
+    *error = norm/er;
   }
-#endif
   PetscFunctionReturn(0);
 }
 
@@ -677,19 +600,17 @@ PetscErrorCode NEPComputeRelativeError_Private(NEP nep,PetscScalar kr,PetscScala
 PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
 {
   PetscErrorCode ierr;
-  Vec            xr,xi;
-  PetscScalar    kr,ki;
+  Vec            x;
+  PetscScalar    lambda;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   PetscValidPointer(error,3);
-  ierr = VecDuplicate(nep->V[0],&xr);CHKERRQ(ierr);
-  ierr = VecDuplicate(nep->V[0],&xi);CHKERRQ(ierr);
-  ierr = NEPGetEigenpair(nep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
-  ierr = NEPComputeRelativeError_Private(nep,kr,ki,xr,xi,error);CHKERRQ(ierr);
-  ierr = VecDestroy(&xr);CHKERRQ(ierr);
-  ierr = VecDestroy(&xi);CHKERRQ(ierr);
+  ierr = VecDuplicate(nep->V[0],&x);CHKERRQ(ierr);
+  ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
+  ierr = NEPComputeRelativeError_Private(nep,lambda,x,error);CHKERRQ(ierr);
+  ierr = VecDestroy(&x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -702,13 +623,12 @@ PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
    Not Collective
 
    Input Parameters:
-+  nep   - the nonlinear eigensolver context
-.  n     - number of eigenvalues in the list
-.  eigr  - pointer to the array containing the eigenvalues
--  eigi  - imaginary part of the eigenvalues (only when using real numbers)
++  nep - the nonlinear eigensolver context
+.  n   - number of eigenvalues in the list
+-  eig - pointer to the array containing the eigenvalues
 
    Output Parameter:
-.  perm  - resulting permutation
+.  perm - resulting permutation
 
    Note:
    The result is a list of indices in the original eigenvalue array
@@ -719,56 +639,24 @@ PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
 
 .seealso: NEPSetWhichEigenpairs()
 @*/
-PetscErrorCode NEPSortEigenvalues(NEP nep,PetscInt n,PetscScalar *eigr,PetscScalar *eigi,PetscInt *perm)
+PetscErrorCode NEPSortEigenvalues(NEP nep,PetscInt n,PetscScalar *eig,PetscInt *perm)
 {
   PetscErrorCode ierr;
-  PetscScalar    re,im;
   PetscInt       i,j,result,tmp;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidScalarPointer(eigr,3);
-  PetscValidScalarPointer(eigi,4);
-  PetscValidIntPointer(perm,5);
+  PetscValidScalarPointer(eig,3);
+  PetscValidIntPointer(perm,4);
   for (i=0;i<n;i++) perm[i] = i;
   /* insertion sort */
   for (i=n-1;i>=0;i--) {
-    re = eigr[perm[i]];
-    im = eigi[perm[i]];
     j = i + 1;
-#if !defined(PETSC_USE_COMPLEX)
-    if (im != 0) {
-      /* complex eigenvalue */
-      i--;
-      im = eigi[perm[i]];
-    }
-#endif
     while (j<n) {
-      ierr = NEPCompareEigenvalues(nep,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
+      ierr = NEPCompareEigenvalues(nep,eig[perm[i]],eig[perm[j]],&result);CHKERRQ(ierr);
       if (result < 0) break;
-#if !defined(PETSC_USE_COMPLEX)
-      /* keep together every complex conjugated eigenpair */
-      if (im == 0) {
-        if (eigi[perm[j]] == 0) {
-#endif
-          tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = tmp;
-          j++;
-#if !defined(PETSC_USE_COMPLEX)
-        } else {
-          tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp;
-          j+=2;
-        }
-      } else {
-        if (eigi[perm[j]] == 0) {
-          tmp = perm[j-2]; perm[j-2] = perm[j]; perm[j] = perm[j-1]; perm[j-1] = tmp;
-          j++;
-        } else {
-          tmp = perm[j-2]; perm[j-2] = perm[j]; perm[j] = tmp;
-          tmp = perm[j-1]; perm[j-1] = perm[j+1]; perm[j+1] = tmp;
-          j+=2;
-        }
-      }
-#endif
+      tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = tmp;
+      j++;
     }
   }
   PetscFunctionReturn(0);
@@ -777,20 +665,17 @@ PetscErrorCode NEPSortEigenvalues(NEP nep,PetscInt n,PetscScalar *eigr,PetscScal
 #undef __FUNCT__
 #define __FUNCT__ "NEPCompareEigenvalues"
 /*@
-   NEPCompareEigenvalues - Compares two (possibly complex) eigenvalues according
-   to a certain criterion.
+   NEPCompareEigenvalues - Compares two eigenvalues according to a certain criterion.
 
    Not Collective
 
    Input Parameters:
-+  nep    - the nonlinear eigensolver context
-.  ar     - real part of the 1st eigenvalue
-.  ai     - imaginary part of the 1st eigenvalue
-.  br     - real part of the 2nd eigenvalue
--  bi     - imaginary part of the 2nd eigenvalue
++  nep - the nonlinear eigensolver context
+.  a   - the 1st eigenvalue
+-  b   - the 2nd eigenvalue
 
    Output Parameter:
-.  res    - result of comparison
+.  res - result of comparison
 
    Notes:
    Returns an integer less than, equal to, or greater than zero if the first
@@ -804,15 +689,15 @@ PetscErrorCode NEPSortEigenvalues(NEP nep,PetscInt n,PetscScalar *eigr,PetscScal
 
 .seealso: NEPSortEigenvalues(), NEPSetWhichEigenpairs()
 @*/
-PetscErrorCode NEPCompareEigenvalues(NEP nep,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result)
+PetscErrorCode NEPCompareEigenvalues(NEP nep,PetscScalar a,PetscScalar b,PetscInt *result)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidIntPointer(result,6);
+  PetscValidIntPointer(result,4);
   if (!nep->comparison) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
-  ierr = (*nep->comparison)(ar,ai,br,bi,result,nep->comparisonctx);CHKERRQ(ierr);
+  ierr = (*nep->comparison)(a,0.0,b,0.0,result,nep->comparisonctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -863,9 +748,8 @@ PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,P
    Collective on NEP and Mat
 
    Input Parameters:
-+  nep - the NEP context
-.  wr  - real part of the scalar argument
--  wi  - imaginary part of the scalar argument
++  nep    - the NEP context
+-  lambda - the scalar argument
 
    Output Parameters:
 +  A   - Function matrix
@@ -881,7 +765,7 @@ PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,P
 
 .seealso: NEPSetFunction(), NEPGetFunction()
 @*/
-PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,Mat *B,MatStructure *flg)
+PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat *A,Mat *B,MatStructure *flg)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -889,13 +773,13 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(flg,6);
+  PetscValidPointer(flg,5);
 
   if (nep->split) {
 
     ierr = MatZeroEntries(*A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
-      ierr = FNEvaluateFunction(nep->f[i],wr,&alpha);CHKERRQ(ierr);
+      ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
       ierr = MatAXPY(*A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
     }
     if (*A != *B) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Not implemented");
@@ -908,7 +792,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
     ierr = PetscLogEventBegin(NEP_FunctionEval,nep,*A,*B,0);CHKERRQ(ierr);
 
     PetscStackPush("NEP user Function function");
-    ierr = (*nep->computefunction)(nep,wr,wi,A,B,flg,nep->functionctx);CHKERRQ(ierr);
+    ierr = (*nep->computefunction)(nep,lambda,A,B,flg,nep->functionctx);CHKERRQ(ierr);
     PetscStackPop;
 
     ierr = PetscLogEventEnd(NEP_FunctionEval,nep,*A,*B,0);CHKERRQ(ierr);
@@ -927,9 +811,8 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
    Collective on NEP and Mat
 
    Input Parameters:
-+  nep - the NEP context
-.  wr  - real part of the scalar argument
--  wi  - imaginary part of the scalar argument
++  nep    - the NEP context
+-  lambda - the scalar argument
 
    Output Parameters:
 +  A   - Jacobian matrix
@@ -943,7 +826,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
 
 .seealso: NEPSetJacobian(), NEPGetJacobian()
 @*/
-PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,MatStructure *flg)
+PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat *A,MatStructure *flg)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -951,13 +834,13 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(flg,5);
+  PetscValidPointer(flg,4);
 
   if (nep->split) {
 
     ierr = MatZeroEntries(*A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
-      ierr = FNEvaluateDerivative(nep->f[i],wr,&alpha);CHKERRQ(ierr);
+      ierr = FNEvaluateDerivative(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
       ierr = MatAXPY(*A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
     }
 
@@ -969,7 +852,7 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *A,M
     ierr = PetscLogEventBegin(NEP_JacobianEval,nep,*A,0,0);CHKERRQ(ierr);
 
     PetscStackPush("NEP user Jacobian function");
-    ierr = (*nep->computejacobian)(nep,wr,wi,A,flg,nep->jacobianctx);CHKERRQ(ierr);
+    ierr = (*nep->computejacobian)(nep,lambda,A,flg,nep->jacobianctx);CHKERRQ(ierr);
     PetscStackPop;
 
     ierr = PetscLogEventEnd(NEP_JacobianEval,nep,*A,0,0);CHKERRQ(ierr);

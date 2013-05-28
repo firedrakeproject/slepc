@@ -68,8 +68,8 @@ struct _p_NEP {
                                       split form, otherwise user callbacks are used */
 
   /*-------------- User-provided functions and contexts -----------------*/
-  PetscErrorCode (*computefunction)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
-  PetscErrorCode (*computejacobian)(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*);
+  PetscErrorCode (*computefunction)(NEP,PetscScalar,Mat*,Mat*,MatStructure*,void*);
+  PetscErrorCode (*computejacobian)(NEP,PetscScalar,Mat*,MatStructure*,void*);
   PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   PetscErrorCode (*converged)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
@@ -87,7 +87,7 @@ struct _p_NEP {
   /*------------------------- Working data --------------------------*/
   Vec            *V;               /* set of basis vectors and computed eigenvectors */
   Vec            *IS;              /* placeholder for references to user-provided initial space */
-  PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
+  PetscScalar    *eig;             /* computed eigenvalues */
   PetscReal      *errest;          /* error estimates */
   IP             ip;               /* innerproduct object */
   DS             ds;               /* direct solver object */
@@ -110,7 +110,7 @@ struct _p_NEP {
   PetscInt       setupcalled;
   NEPConvergedReason reason;
 
-  PetscErrorCode (*monitor[MAXNEPMONITORS])(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
+  PetscErrorCode (*monitor[MAXNEPMONITORS])(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXNEPMONITORS])(void**);
   void           *monitorcontext[MAXNEPMONITORS];
   PetscInt       numbermonitors;
@@ -121,7 +121,7 @@ PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
 PETSC_INTERN PetscErrorCode NEPAllocateSolution(NEP);
 PETSC_INTERN PetscErrorCode NEPFreeSolution(NEP);
 PETSC_INTERN PetscErrorCode NEP_KSPSolve(NEP,Vec,Vec);
-PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-PETSC_INTERN PetscErrorCode NEPComputeRelativeError_Private(NEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
+PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,PetscReal*);
+PETSC_INTERN PetscErrorCode NEPComputeRelativeError_Private(NEP,PetscScalar,Vec,PetscReal*);
 
 #endif

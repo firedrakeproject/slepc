@@ -29,14 +29,14 @@
 /*
    Runs the user provided monitor routines, if any.
 */
-PetscErrorCode NEPMonitor(NEP nep,PetscInt it,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest)
+PetscErrorCode NEPMonitor(NEP nep,PetscInt it,PetscInt nconv,PetscScalar *eig,PetscReal *errest,PetscInt nest)
 {
   PetscErrorCode ierr;
   PetscInt       i,n = nep->numbermonitors;
 
   PetscFunctionBegin;
   for (i=0;i<n;i++) {
-    ierr = (*nep->monitor[i])(nep,it,nconv,eigr,eigi,errest,nest,nep->monitorcontext[i]);CHKERRQ(ierr);
+    ierr = (*nep->monitor[i])(nep,it,nconv,eig,errest,nest,nep->monitorcontext[i]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -58,13 +58,12 @@ PetscErrorCode NEPMonitor(NEP nep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
              (may be NULL)
 
    Calling Sequence of monitor:
-$     monitor (NEP nep, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi, PetscReal* errest, int nest, void *mctx)
+$     monitor (NEP nep, int its, int nconv, PetscScalar *eig, PetscReal* errest, int nest, void *mctx)
 
 +  nep    - nonlinear eigensolver context obtained from NEPCreate()
 .  its    - iteration number
 .  nconv  - number of converged eigenpairs
-.  eigr   - real part of the eigenvalues
-.  eigi   - imaginary part of the eigenvalues
+.  eig    - eigenvalues
 .  errest - error estimates for each eigenpair
 .  nest   - number of error estimates
 -  mctx   - optional monitoring context, as set by NEPMonitorSet()
@@ -91,7 +90,7 @@ $     monitor (NEP nep, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi
 
 .seealso: NEPMonitorFirst(), NEPMonitorAll(), NEPMonitorCancel()
 @*/
-PetscErrorCode NEPMonitorSet(NEP nep,PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void *mctx,PetscErrorCode (*monitordestroy)(void**))
+PetscErrorCode NEPMonitorSet(NEP nep,PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*),void *mctx,PetscErrorCode (*monitordestroy)(void**))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -175,8 +174,7 @@ PetscErrorCode NEPGetMonitorContext(NEP nep,void **ctx)
 +  nep    - nonlinear eigensolver context
 .  its    - iteration number
 .  nconv  - number of converged eigenpairs so far
-.  eigr   - real part of the eigenvalues
-.  eigi   - imaginary part of the eigenvalues
+.  eig    - eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
 -  monctx - monitor context (contains viewer, can be NULL)
@@ -185,7 +183,7 @@ PetscErrorCode NEPGetMonitorContext(NEP nep,void **ctx)
 
 .seealso: NEPMonitorSet(), NEPMonitorFirst(), NEPMonitorConverged()
 @*/
-PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
+PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -197,10 +195,9 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
     ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP nconv=%D Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(eigr[i]),PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(eig[i]),PetscImaginaryPart(eig[i]));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIPrintf(viewer," %G",eigr[i]);CHKERRQ(ierr);
-      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+Gi",eigi[i]);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIPrintf(viewer," %G",eig[i]);CHKERRQ(ierr);
 #endif
       ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)",(double)errest[i]);CHKERRQ(ierr);
     }
@@ -222,8 +219,7 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
 +  nep    - nonlinear eigensolver context
 .  its    - iteration number
 .  nconv  - number of converged eigenpairs so far
-.  eigr   - real part of the eigenvalues
-.  eigi   - imaginary part of the eigenvalues
+.  eig    - eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
 -  monctx - monitor context (contains viewer, can be NULL)
@@ -232,7 +228,7 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
 
 .seealso: NEPMonitorSet(), NEPMonitorAll(), NEPMonitorConverged()
 @*/
-PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
+PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscErrorCode ierr;
   PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep));
@@ -242,10 +238,9 @@ PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(eigr[nconv]),PetscImaginaryPart(eigr[nconv]));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(eig[nconv]),PetscImaginaryPart(eig[nconv]));CHKERRQ(ierr);
 #else
-    ierr = PetscViewerASCIIPrintf(viewer," %G",eigr[nconv]);CHKERRQ(ierr);
-    if (eigi[nconv]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+Gi",eigi[nconv]);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPrintf(viewer," %G",eig[nconv]);CHKERRQ(ierr);
 #endif
     ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[nconv]);CHKERRQ(ierr);
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
@@ -265,8 +260,7 @@ PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
 +  nep    - nonlinear eigensolver context
 .  its    - iteration number
 .  nconv  - number of converged eigenpairs so far
-.  eigr   - real part of the eigenvalues
-.  eigi   - imaginary part of the eigenvalues
+.  eig    - eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
 -  monctx - monitor context
@@ -279,7 +273,7 @@ PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
 
 .seealso: NEPMonitorSet(), NEPMonitorFirst(), NEPMonitorAll()
 @*/
-PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
+PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscErrorCode   ierr;
   PetscInt         i;
@@ -296,10 +290,9 @@ PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScal
       ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP converged value (error) #%D",its,i);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(eigr[i]),PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(eig[i]),PetscImaginaryPart(eig[i]));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIPrintf(viewer," %G",eigr[i]);CHKERRQ(ierr);
-      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+Gi",eigi[i]);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIPrintf(viewer," %G",eig[i]);CHKERRQ(ierr);
 #endif
       ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[i]);CHKERRQ(ierr);
       ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
@@ -311,7 +304,7 @@ PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScal
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPMonitorLG"
-PetscErrorCode NEPMonitorLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
+PetscErrorCode NEPMonitorLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscViewer    viewer = (PetscViewer)monctx;
   PetscDraw      draw;
@@ -341,7 +334,7 @@ PetscErrorCode NEPMonitorLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPMonitorLGAll"
-PetscErrorCode NEPMonitorLGAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
+PetscErrorCode NEPMonitorLGAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscViewer    viewer = (PetscViewer)monctx;
   PetscDraw      draw;

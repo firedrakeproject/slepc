@@ -11,8 +11,8 @@
    \textbf{Note:} The contents of this chapter should be considered work in progress.
    The user interface will likely undergo changes in future versions, as new methods are
    added. Also, the functionality is currently quite limited. In particular, current
-   solvers are able to compute only one eigenpair, and computing complex eigenvalues 
-   requires using complex arithmetic.
+   solvers are able to compute only one eigenpair.
+   Users interested in this functionality are encouraged to contact the authors.
    \end{minipage}
   }}
 \end{center}
@@ -74,7 +74,7 @@ NEPSetFromOptions( nep );
 NEPSolve( nep );
 NEPGetConverged( nep, &nconv );
 for (j=0; j<nconv; j++) {
-  NEPGetEigenpair( nep, j, &lambda, NULL, x, NULL );
+  NEPGetEigenpair( nep, j, &lambda, x );
   NEPComputeRelativeError( nep, j, &error );
 }
 NEPDestroy( nep );
@@ -93,9 +93,9 @@ Hence, both callback functions must compute a matrix. The nonzero pattern of the
 	\findex{NEPSetFunction}\findex{NEPSetJacobian}
 	\begin{Verbatim}[fontsize=\small]
 	NEPSetFunction(NEP nep,Mat F,Mat P,PetscErrorCode (*fun)(NEP,PetscScalar,
-                       PetscScalar,Mat*,Mat*,MatStructure*,void*),void *ctx);
+                       Mat*,Mat*,MatStructure*,void*),void *ctx);
 	NEPSetJacobian(NEP nep,Mat J,PetscErrorCode (*jac)(NEP,PetscScalar,
-                       PetscScalar,Mat*,MatStructure*,void*),void *ctx)
+                       Mat*,MatStructure*,void*),void *ctx)
 	\end{Verbatim}
 
 The argument \texttt{ctx} is an optional user-defined context intended to contain application-specific parameters required to build $T(\lambda)$ or $T'(\lambda)$, and it is received as the last argument in the callback functions. The callback routines also get an argument containing the value of $\lambda$ at which $T$ or $T'$ must be evaluated. Note that the \ident{NEPSetFunction} callback takes two \texttt{Mat} arguments instead of one. The rationale for this is that some \ident{NEP} solvers require to perform linear solves with $T(\lambda)$ within the iteration (in \ident{SNES} this is done with the Jacobian), so $T(\lambda)$ will be passed as the coefficient matrix to a \ident{KSP} object. The second \texttt{Mat} argument \texttt{P} is the matrix from which the preconditioner is constructed (which is usually the same as \texttt{F}). Apart from building the matrices, the callback routines must set a flag informing about the matrix structure (the same kind as the flag of \ident{KSPSetOperators}).
@@ -258,6 +258,13 @@ The example uses nonlinear Arnoldi with BiCGStab plus ILU, where the preconditio
 \section{Retrieving the Solution}
 
 The procedure for obtaining the computed eigenpairs is similar to previously discussed eigensolvers. After the call to \ident{NEPSolve}, the computed results are stored internally and a call to \ident{NEPGetConverged} must be issued to obtain the number of converged solutions. Then calling \ident{NEPGetEigenpair} repeatedly will retrieve each eigenvalue-eigenvector pair.
+
+	\findex{NEPGetEigenpair}
+	\begin{Verbatim}[fontsize=\small]
+	NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eig,Vec V);
+	\end{Verbatim}
+
+\textbf{Note about real/complex scalar versions}: As opposed to other eigensolvers such as \ident{EPS}, the interface does not make provision for returning a complex eigenvalue (or eigenvector) when doing the computation in a \petsc/\slepc version built with real scalars. The implication is that  \ident{NEP} cannot compute complex eigenvalues unless built with complex scalars. This applies also to all eigenvalue approximations that appear throughout the computation.
 
 The function
 	\findex{NEPComputeRelativeError}

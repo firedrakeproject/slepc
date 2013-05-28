@@ -214,8 +214,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep)
     newc = PetscMax(0,nep->ncv-nep->allocated_ncv);
     ierr = NEPFreeSolution(nep);CHKERRQ(ierr);
     cnt = 0;
-    ierr = PetscMalloc(nep->ncv*sizeof(PetscScalar),&nep->eigr);CHKERRQ(ierr);
-    ierr = PetscMalloc(nep->ncv*sizeof(PetscScalar),&nep->eigi);CHKERRQ(ierr);
+    ierr = PetscMalloc(nep->ncv*sizeof(PetscScalar),&nep->eig);CHKERRQ(ierr);
     cnt += 2*newc*sizeof(PetscScalar);
     ierr = PetscMalloc(nep->ncv*sizeof(PetscReal),&nep->errest);CHKERRQ(ierr);
     ierr = PetscMalloc(nep->ncv*sizeof(PetscInt),&nep->perm);CHKERRQ(ierr);
@@ -240,8 +239,7 @@ PetscErrorCode NEPFreeSolution(NEP nep)
 
   PetscFunctionBegin;
   if (nep->allocated_ncv > 0) {
-    ierr = PetscFree(nep->eigr);CHKERRQ(ierr);
-    ierr = PetscFree(nep->eigi);CHKERRQ(ierr);
+    ierr = PetscFree(nep->eig);CHKERRQ(ierr);
     ierr = PetscFree(nep->errest);CHKERRQ(ierr);
     ierr = PetscFree(nep->perm);CHKERRQ(ierr);
     ierr = VecDestroyVecs(nep->allocated_ncv,&nep->V);CHKERRQ(ierr);

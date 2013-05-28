@@ -206,7 +206,7 @@ int main(int argc,char **argv)
          "           k              ||T(k)x||\n"
          "   ----------------- ------------------\n");CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
-      ierr = NEPGetEigenpair(nep,i,&lambda,NULL,NULL,NULL);CHKERRQ(ierr);
+      ierr = NEPGetEigenpair(nep,i,&lambda,NULL);CHKERRQ(ierr);
       ierr = NEPComputeRelativeError(nep,i,&norm);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(lambda);

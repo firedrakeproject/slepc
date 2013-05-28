@@ -98,7 +98,7 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
   ierr = NEPProjectOperator(nep,0,n,r);CHKERRQ(ierr);
 
   /* prepare linear solver */
-  ierr = NEPComputeFunction(nep,lambda,0,&T,&T,&mats);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,lambda,&T,&T,&mats);CHKERRQ(ierr);
   ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
   ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
 
@@ -109,8 +109,8 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
     /* solve projected problem */
     ierr = DSSetDimensions(nep->ds,n,0,0,0);CHKERRQ(ierr);
     ierr = DSSetState(nep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
-    lambda = nep->eigr[0];
+    ierr = DSSolve(nep->ds,nep->eig,NULL);CHKERRQ(ierr);
+    lambda = nep->eig[0];
 
     /* compute Ritz vector, x = V*s */
     ierr = DSGetArray(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
@@ -118,7 +118,7 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
     ierr = DSRestoreArray(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
 
     /* compute the residual, r = T(lambda)*x */
-    ierr = NEPApplyFunction(nep,lambda,0,x,w,r,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = NEPApplyFunction(nep,lambda,x,w,r,NULL,NULL,NULL);CHKERRQ(ierr);
 
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
@@ -128,7 +128,7 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
       nep->nconv = nep->nconv + 1;
       nep->reason = NEP_CONVERGED_FNORM_RELATIVE;
     }
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,1);CHKERRQ(ierr);
+    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eig,nep->errest,1);CHKERRQ(ierr);
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
 

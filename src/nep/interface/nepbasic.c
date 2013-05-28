@@ -285,8 +285,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->jacobianctx     = NULL;
   nep->V               = NULL;
   nep->IS              = NULL;
-  nep->eigr            = NULL;
-  nep->eigi            = NULL;
+  nep->eig             = NULL;
   nep->errest          = NULL;
   nep->data            = NULL;
   nep->t               = NULL;
@@ -800,7 +799,7 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
 
 .seealso: NEPGetFunction(), NEPSetJacobian()
 @*/
-PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void *ctx)
+PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,PetscScalar,Mat*,Mat*,MatStructure*,void*),void *ctx)
 {
   PetscErrorCode ierr;
 
@@ -847,7 +846,7 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,Pets
 
 .seealso: NEPSetFunction()
 @*/
-PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*),void **ctx)
+PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,PetscScalar,Mat*,Mat*,MatStructure*,void*),void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -886,7 +885,7 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
 
 .seealso: NEPSetFunction(), NEPGetJacobian()
 @*/
-PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*),void *ctx)
+PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScalar,Mat*,MatStructure*,void*),void *ctx)
 {
   PetscErrorCode ierr;
 
@@ -925,7 +924,7 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScala
 
 .seealso: NEPSetJacobian()
 @*/
-PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*),void **ctx)
+PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscScalar,Mat*,MatStructure*,void*),void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);

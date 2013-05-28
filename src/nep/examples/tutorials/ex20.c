@@ -37,9 +37,9 @@ static char help[] = "Simple 1-D nonlinear eigenproblem.\n\n"
    User-defined routines
 */
 PetscErrorCode FormInitialGuess(Vec);
-PetscErrorCode FormFunction(NEP,PetscScalar,PetscScalar,Mat*,Mat*,MatStructure*,void*);
-PetscErrorCode FormJacobian(NEP,PetscScalar,PetscScalar,Mat*,MatStructure*,void*);
-PetscErrorCode CheckSolution(PetscScalar,PetscScalar,Vec,Vec,PetscReal*,void*);
+PetscErrorCode FormFunction(NEP,PetscScalar,Mat*,Mat*,MatStructure*,void*);
+PetscErrorCode FormJacobian(NEP,PetscScalar,Mat*,MatStructure*,void*);
+PetscErrorCode CheckSolution(PetscScalar,Vec,PetscReal*,void*);
 PetscErrorCode FixSign(Vec);
 
 /*
@@ -175,13 +175,13 @@ int main(int argc,char **argv)
       /*
         Get converged eigenpairs (in this example they are always real)
       */
-      ierr = NEPGetEigenpair(nep,i,&lambda,NULL,x,NULL);CHKERRQ(ierr);
+      ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
       ierr = FixSign(x);CHKERRQ(ierr);
       /*
          Compute residual norm and error
       */
       ierr = NEPComputeRelativeError(nep,i,&norm);CHKERRQ(ierr);
-      ierr = CheckSolution(lambda,0,x,NULL,&error,&ctx);CHKERRQ(ierr);
+      ierr = CheckSolution(lambda,x,&error,&ctx);CHKERRQ(ierr);
 
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(lambda);
@@ -236,36 +236,25 @@ PetscErrorCode FormInitialGuess(Vec x)
    FormFunction - Computes Function matrix  T(lambda)
 
    Input Parameters:
-.  nep - the NEP context
-.  wr  - real part of the scalar argument
-.  wi  - imaginary part of the scalar argument
-.  ctx - optional user-defined context, as set by NEPSetJacobian()
+.  nep    - the NEP context
+.  lambda - the scalar argument
+.  ctx    - optional user-defined context, as set by NEPSetJacobian()
 
    Output Parameters:
 .  fun - Function matrix
 .  B   - optionally different preconditioning matrix
 .  flg - flag indicating matrix structure
-
-   Note:
-   lambda can be represented as wr+wi*PETSC_i or as wr (in case of a configuration
-   with complex scalars). See NEPGetEigenvalues() for details.
 */
-PetscErrorCode FormFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *fun,Mat *B,MatStructure *flg,void *ctx)
+PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat *fun,Mat *B,MatStructure *flg,void *ctx)
 {
   PetscErrorCode ierr;
   ApplicationCtx *user = (ApplicationCtx*)ctx;
-  PetscScalar    lambda,A[3],c,d;
+  PetscScalar    A[3],c,d;
   PetscReal      h;
   PetscInt       i,n,j[3],Istart,Iend;
   PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
 
   PetscFunctionBeginUser;
-  /* in this example the eigenvalue is always real */
-  lambda = wr;
-#if !defined(PETSC_USE_COMPLEX)
-  if (wi) SETERRQ(PETSC_COMM_SELF,1,"Non-real scalar parameter generated!");
-#endif
-
   /*
      Compute Function entries and insert into matrix
   */
@@ -322,36 +311,25 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar wr,PetscScalar wi,Mat *fun,Mat *
    FormJacobian - Computes Jacobian matrix  T'(lambda)
 
    Input Parameters:
-.  nep - the NEP context
-.  wr  - real part of the scalar argument
-.  wi  - imaginary part of the scalar argument
-.  ctx - optional user-defined context, as set by NEPSetJacobian()
+.  nep    - the NEP context
+.  lambda - the scalar argument
+.  ctx    - optional user-defined context, as set by NEPSetJacobian()
 
    Output Parameters:
 .  jac - Jacobian matrix
 .  B   - optionally different preconditioning matrix
 .  flg - flag indicating matrix structure
-
-   Note:
-   lambda can be represented as wr+wi*PETSC_i or as wr (in case of a configuration
-   with complex scalars). See NEPGetEigenvalues() for details.
 */
-PetscErrorCode FormJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *jac,MatStructure *flg,void *ctx)
+PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat *jac,MatStructure *flg,void *ctx)
 {
   PetscErrorCode ierr;
   ApplicationCtx *user = (ApplicationCtx*)ctx;
-  PetscScalar    lambda,A[3],c;
+  PetscScalar    A[3],c;
   PetscReal      h;
   PetscInt       i,n,j[3],Istart,Iend;
   PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
 
   PetscFunctionBeginUser;
-  /* in this example the eigenvalue is always real */
-  lambda = wr;
-#if !defined(PETSC_USE_COMPLEX)
-  if (wi) SETERRQ(PETSC_COMM_SELF,1,"Non-real scalar parameter generated!");
-#endif
-
   /*
      Compute Jacobian entries and insert into matrix
   */
@@ -404,15 +382,13 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar wr,PetscScalar wi,Mat *jac,MatSt
    satisfies the analytic solution.
 
    Input Parameters:
-+  kr - the computed eigenvalue (real part)
-.  ki - the computed eigenvalue (imaginary part)
-.  xr - the computed eigenvector (real part)
--  xi - the computed eigenvector (imaginary part)
++  lambda - the computed eigenvalue
+-  y      - the computed eigenvector
 
    Output Parameter:
 .  error - norm of difference between the computed and exact eigenvector
 */
-PetscErrorCode CheckSolution(PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *error,void *ctx)
+PetscErrorCode CheckSolution(PetscScalar lambda,Vec y,PetscReal *error,void *ctx)
 {
   PetscErrorCode ierr;
   PetscScalar    nu,*uu;
@@ -422,13 +398,10 @@ PetscErrorCode CheckSolution(PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscRe
   ApplicationCtx *user = (ApplicationCtx*)ctx;
 
   PetscFunctionBeginUser;
-  nu = PetscSqrtScalar(kr);
-#if !defined(PETSC_USE_COMPLEX)
-  if (ki) SETERRQ(PETSC_COMM_SELF,1,"ki must not be used in this example");
-#endif
-  ierr = VecDuplicate(xr,&u);CHKERRQ(ierr);
+  nu = PetscSqrtScalar(lambda);
+  ierr = VecDuplicate(y,&u);CHKERRQ(ierr);
   ierr = VecGetSize(u,&n);CHKERRQ(ierr);
-  ierr = VecGetOwnershipRange(xr,&Istart,&Iend);CHKERRQ(ierr);
+  ierr = VecGetOwnershipRange(y,&Istart,&Iend);CHKERRQ(ierr);
   ierr = VecGetArray(u,&uu);CHKERRQ(ierr);
   for (i=Istart;i<Iend;i++) {
     x = (i+1)*user->h;
@@ -436,7 +409,7 @@ PetscErrorCode CheckSolution(PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscRe
   }
   ierr = VecRestoreArray(u,&uu);CHKERRQ(ierr);
   ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
-  ierr = VecAXPY(u,-1.0,xr);CHKERRQ(ierr);
+  ierr = VecAXPY(u,-1.0,y);CHKERRQ(ierr);
   ierr = VecNorm(u,NORM_2,error);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
