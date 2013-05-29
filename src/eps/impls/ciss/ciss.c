@@ -72,7 +72,6 @@ typedef struct {
   Vec         *V;
   Vec         *Y;
   Vec         *S;
-  Vec         *S1;
   KSP         *ksp;
 } EPS_CISS;
 
@@ -318,9 +317,14 @@ static PetscErrorCode SetAddVector(EPS eps,PetscInt Ladd_end)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,j,nlocal,Ladd_start=ctx->L;
+  Vec            *newV;
   PetscScalar    *vdata;
 
   PetscFunctionBegin;
+  ierr = PetscMalloc(Ladd_end*sizeof(Vec*),&newV);CHKERRQ(ierr);
+  for (i=0;i<ctx->L;i++) { newV[i] = ctx->V[i]; }
+  ierr = PetscFree(ctx->V);CHKERRQ(ierr);
+  ctx->V = newV;
   ierr = VecGetLocalSize(ctx->V[0],&nlocal);CHKERRQ(ierr);
   for (i=Ladd_start;i<Ladd_end;i++) {
     ierr = VecDuplicate(ctx->V[0],&ctx->V[i]);CHKERRQ(ierr);
@@ -484,7 +488,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscScalar    *QFQ,*rr,*pX;
   PetscReal      dx,dy,d;
   Mat            A,B;
-  Vec            w=eps->work[0];
+  Vec            *S1,w=eps->work[0];
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -498,8 +502,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = CISSVecSetRandom(ctx->V[i],eps->rand);CHKERRQ(ierr);
   }
   ierr = SolveLinearSystem(eps);CHKERRQ(ierr);
-  ierr = ConstructS(eps,&ctx->S1);CHKERRQ(ierr);
-  ierr = EstimateNumberEigs(eps,ctx->S1,&L_add);CHKERRQ(ierr);
+  ierr = ConstructS(eps,&S1);CHKERRQ(ierr);
+  ierr = EstimateNumberEigs(eps,S1,&L_add);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(ctx->M*ctx->L,&S1);CHKERRQ(ierr);
 
   if (L_add>0) {
     ierr = SetAddVector(eps,ctx->L+L_add);CHKERRQ(ierr);	
@@ -808,7 +813,6 @@ PetscErrorCode EPSReset_CISS(EPS eps)
     ierr = VecDestroy(&ctx->Y[i]);CHKERRQ(ierr);
   }
   ierr = PetscFree(ctx->Y);CHKERRQ(ierr);
-  ierr = VecDestroyVecs(ctx->M*ctx->L,&ctx->S1);CHKERRQ(ierr);
   ierr = VecDestroyVecs(ctx->M*ctx->L,&ctx->S);CHKERRQ(ierr);
   ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
