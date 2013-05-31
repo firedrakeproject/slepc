@@ -24,11 +24,23 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/mfn/examples/tutorials/
-EXAMPLESC  =
+EXAMPLESC  = ex23.c
 EXAMPLESF  =
 MANSEC     = MFN
 
-TESTEXAMPLES_C                 =
+TESTEXAMPLES_C = ex23.PETSc runex23_1 ex23.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+ex23: ex23.o chkopts
+	-${CLINKER} -o ex23 ex23.o ${SLEPC_LIB}
+	${RM} ex23.o
+
+#------------------------------------------------------------------------------------
+
+runex23_1:
+	-@${MPIEXEC} -np 1 ./ex23 -mfn_scale 2 > ex23_1.tmp 2>&1; \
+	   if (${DIFF} output/ex23_1.out ex23_1.tmp) then true; \
+	   else echo "Possible problem with ex23_1, diffs above"; fi; \
+	   ${RM} -f ex23_1.tmp
 

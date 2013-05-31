@@ -67,7 +67,7 @@ struct _p_MFN {
   PetscInt        nv;             /* size of current Schur decomposition */
   PetscInt        n,nloc;         /* problem dimensions (global, local) */
   PetscInt        allocated_ncv;  /* number of basis vectors allocated */
-  PetscReal       sfactor;        /* scaling factor */
+  PetscScalar     sfactor;        /* scaling factor */
   PetscRandom     rand;           /* random number generator */
   Vec             t;              /* template vector */
 

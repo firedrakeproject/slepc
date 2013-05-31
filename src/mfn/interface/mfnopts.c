@@ -70,9 +70,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
       ierr = MFNSetFunction(mfn,SLEPC_FUNCTION_EXP);CHKERRQ(ierr);
     }
 
-    r = 0;
-    ierr = PetscOptionsReal("-mfn_scale","Scale factor","MFNSetScaleFactor",mfn->sfactor,&r,NULL);CHKERRQ(ierr);
-    ierr = MFNSetScaleFactor(mfn,r);CHKERRQ(ierr);
+    ierr = PetscOptionsScalar("-mfn_scale","Scale factor","MFNSetScaleFactor",mfn->sfactor,&mfn->sfactor,NULL);CHKERRQ(ierr);
 
     r = i = 0;
     ierr = PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,NULL);CHKERRQ(ierr);
@@ -353,11 +351,11 @@ PetscErrorCode MFNGetFunction(MFN mfn,SlepcFunction *fun)
 
 .seealso: MFNGetScaleFactor(), MFNSolve()
 @*/
-PetscErrorCode MFNSetScaleFactor(MFN mfn,PetscReal alpha)
+PetscErrorCode MFNSetScaleFactor(MFN mfn,PetscScalar alpha)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidLogicalCollectiveReal(mfn,alpha,2);
+  PetscValidLogicalCollectiveScalar(mfn,alpha,2);
   mfn->sfactor = alpha;
   PetscFunctionReturn(0);
 }
@@ -379,7 +377,7 @@ PetscErrorCode MFNSetScaleFactor(MFN mfn,PetscReal alpha)
 
 .seealso: MFNSetScaleFactor(), MFNSolve()
 @*/
-PetscErrorCode MFNGetScaleFactor(MFN mfn,PetscReal *alpha)
+PetscErrorCode MFNGetScaleFactor(MFN mfn,PetscScalar *alpha)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);

@@ -1,4 +1,4 @@
-\begin{thebibliography}{31}
+\begin{thebibliography}{33}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 
 \bibitem[{Anderson {\em et~al.\/}(1992)Anderson, Bai, Bischof, Demmel,
@@ -77,6 +77,11 @@ Hansen, P.~C. (1998).
 \newblock {\em Rank-Deficient and Discrete Ill-Posed Problems: Numerical
   Aspects of Linear Inversion\/}.
 \newblock Society for Industrial and Applied Mathematics, Philadelphia, PA.
+
+\bibitem[{Higham and Al-Mohy(2010)}]{Higham:2010:CMF}
+Higham, N.~J. and A.~H. Al-Mohy (2010).
+\newblock Computing matrix functions.
+\newblock {\em Acta Numerica\/}, 19:159--208.
 
 \bibitem[{Knyazev {\em et~al.\/}(2007)Knyazev, Argentati, Lashuk, and
   Ovtchinnikov}]{Knyazev:2007:BLO}
@@ -163,6 +168,11 @@ Scott, D.~S. (1982).
 \newblock The Advantages of Inverted Operators in {Rayleigh-Ritz}
   Approximations.
 \newblock {\em {SIAM} J. Sci. Statist. Comput.\/}, 3(1):68--75.
+
+\bibitem[{Sidje(1998)}]{Sidje:1998:ESP}
+Sidje, R.~B. (1998).
+\newblock Expokit: a software package for computing matrix exponentials.
+\newblock {\em {ACM} Trans. Math. Softw.\/}, 24(1):130--156.
 
 \bibitem[{Stathopoulos and McCombs(2010)}]{Stathopoulos:2010:PMS}
 Stathopoulos, A. and J.~R. McCombs (2010).

@@ -484,7 +484,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j,ld,nv,nmat,L_add;
+  PetscInt       i,j,ld,nv,nmat,L_add=0;
   PetscScalar    *QFQ,*rr,*pX;
   PetscReal      dx,dy,d;
   Mat            A,B;

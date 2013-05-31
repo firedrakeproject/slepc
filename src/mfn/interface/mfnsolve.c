@@ -45,14 +45,14 @@
 -  -mfn_view_solution binary - save computed solution vector to the default binary viewer
 
    Notes:
-   The matrix A is specified with MFMSetOperator().
-   The function f is specified with MFMSetFunction().
-   The scalar alpha is specified with MFMSetScaleFactor().
+   The matrix A is specified with MFNSetOperator().
+   The function f is specified with MFNSetFunction().
+   The scalar alpha is specified with MFNSetScaleFactor().
 
    Level: beginner
 
 .seealso: MFNCreate(), MFNSetUp(), MFNDestroy(), MFNSetTolerances(),
-          MFMSetOperator(), MFMSetFunction(), MFMSetScaleFactor()
+          MFNSetOperator(), MFNSetFunction(), MFNSetScaleFactor()
 @*/
 PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 {

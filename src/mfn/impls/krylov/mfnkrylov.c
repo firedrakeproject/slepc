@@ -103,7 +103,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   gamma = 0.9;
   delta = 1.2;
   mb    = m;
-  t     = mfn->sfactor;
+  t     = PetscRealPart(mfn->sfactor);
   t_out = PetscAbsReal(t);
   t_new = 0.0;
   t_now = 0.0;

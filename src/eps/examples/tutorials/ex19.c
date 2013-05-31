@@ -25,6 +25,7 @@ static char help[] = "Standard symmetric eigenproblem for the 3-D Laplacian buil
 
 #include <slepceps.h>
 #include <petscdmda.h>
+#include <petsctime.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "GetExactEigenvalues"
@@ -160,7 +161,7 @@ int main(int argc,char **argv)
      Set specific solver options
   */
   ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,1e-8,100);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,1e-8,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
 
   /*
@@ -172,11 +173,11 @@ int main(int argc,char **argv)
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PetscGetTime(&t1);CHKERRQ(ierr);
+  ierr = PetscTime(&t1);CHKERRQ(ierr);
   ierr = EPSSetUp(eps);CHKERRQ(ierr);
-  ierr = PetscGetTime(&t2);CHKERRQ(ierr);
+  ierr = PetscTime(&t2);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = PetscGetTime(&t3);CHKERRQ(ierr);
+  ierr = PetscTime(&t3);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
 
