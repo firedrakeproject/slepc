@@ -81,6 +81,9 @@ PETSC_EXTERN PetscErrorCode MFNMonitorCancel(MFN);
 PETSC_EXTERN PetscErrorCode MFNGetMonitorContext(MFN,void **);
 PETSC_EXTERN PetscErrorCode MFNGetIterationNumber(MFN,PetscInt*);
 
+PETSC_EXTERN PetscErrorCode MFNSetErrorIfNotConverged(MFN,PetscBool);
+PETSC_EXTERN PetscErrorCode MFNGetErrorIfNotConverged(MFN,PetscBool*);
+
 PETSC_EXTERN PetscErrorCode MFNMonitorDefault(MFN,PetscInt,PetscReal,void*);
 PETSC_EXTERN PetscErrorCode MFNMonitorLG(MFN,PetscInt,PetscReal,void*);
 

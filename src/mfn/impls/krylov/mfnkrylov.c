@@ -126,8 +126,8 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   ierr = DSGetLeadingDimension(mfn->ds,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc(ld*ld*sizeof(PetscScalar),&B);CHKERRQ(ierr);
 
-  while (t_now<t_out && mfn->its<mxstep) {
-    mfn->its = mfn->its + 1;
+  while (mfn->reason == MFN_CONVERGED_ITERATING) {
+    mfn->its++;
     t_step = PetscMin(t_out-t_now,t_new);
 
     ierr = VecCopy(x,mfn->V[0]);CHKERRQ(ierr);
@@ -199,15 +199,16 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     ierr = VecNorm(x,NORM_2,&beta);CHKERRQ(ierr);
 
     t_now = t_now+t_step;
-    t_new = gamma*t_step*PetscPowReal((t_step*tol)/err_loc,xm);
-    s = PetscPowReal(10,floor(log10(t_new))-1);
-    t_new = ceil(t_new/s)*s;
-
+    if (t_now>=t_out) mfn->reason = MFN_CONVERGED_TOL;
+    else {
+      t_new = gamma*t_step*PetscPowReal((t_step*tol)/err_loc,xm);
+      s = PetscPowReal(10,floor(log10(t_new))-1);
+      t_new = ceil(t_new/s)*s;
+    }
     err_loc = PetscMax(err_loc,rndoff);
+    if (mfn->its==mxstep) mfn->reason = MFN_DIVERGED_ITS;
   }
 
-  if (mfn->its==mxstep) mfn->reason = MFN_DIVERGED_ITS;
-  else mfn->reason = MFN_CONVERGED_TOL;
   ierr = VecDestroy(&r);CHKERRQ(ierr);
   ierr = PetscFree(betaF);CHKERRQ(ierr);
   ierr = PetscFree(B);CHKERRQ(ierr);

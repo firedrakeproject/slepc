@@ -54,6 +54,8 @@ struct _p_MFN {
   PetscInt        ncv;            /* number of basis vectors */
   PetscReal       tol;            /* tolerance */
   SlepcFunction   function;       /* which function to compute */
+  PetscScalar     sfactor;        /* scaling factor */
+  PetscBool       errorifnotconverged;    /* error out if MFNSolve() does not converge */
 
   /*------------------------- Working data --------------------------*/
   Mat             A;              /* the problem matrix */
@@ -67,7 +69,6 @@ struct _p_MFN {
   PetscInt        nv;             /* size of current Schur decomposition */
   PetscInt        n,nloc;         /* problem dimensions (global, local) */
   PetscInt        allocated_ncv;  /* number of basis vectors allocated */
-  PetscScalar     sfactor;        /* scaling factor */
   PetscRandom     rand;           /* random number generator */
   Vec             t;              /* template vector */
 

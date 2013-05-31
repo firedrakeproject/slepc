@@ -81,6 +81,8 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     ierr = PetscOptionsInt("-mfn_ncv","Number of basis vectors","MFNSetDimensions",mfn->ncv,&i,NULL);CHKERRQ(ierr);
     ierr = MFNSetDimensions(mfn,i);CHKERRQ(ierr);
 
+    ierr = PetscOptionsBool("-mfn_error_if_not_converged","Generate error if solver does not converge","MFNSetErrorIfNotConverged",mfn->errorifnotconverged,&mfn->errorifnotconverged,NULL);CHKERRQ(ierr);
+
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to MFNSetFromOptions()
@@ -383,6 +385,65 @@ PetscErrorCode MFNGetScaleFactor(MFN mfn,PetscScalar *alpha)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidPointer(alpha,2);
   *alpha = mfn->sfactor;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MFNSetErrorIfNotConverged"
+/*@
+   MFNSetErrorIfNotConverged - Causes MFNSolve() to generate an error if the
+   solver has not converged.
+
+   Logically Collective on MFN
+
+   Input Parameters:
++  mfn - the matrix function context
+-  flg - PETSC_TRUE indicates you want the error generated
+
+   Options Database Keys:
+.  -mfn_error_if_not_converged - this takes an optional truth value (0/1/no/yes/true/false)
+
+   Level: intermediate
+
+   Note:
+   Normally SLEPc continues if the solver fails to converge, you can call
+   MFNGetConvergedReason() after a MFNSolve() to determine if it has converged.
+
+.seealso: MFNGetErrorIfNotConverged()
+@*/
+PetscErrorCode MFNSetErrorIfNotConverged(MFN mfn,PetscBool flg)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
+  PetscValidLogicalCollectiveBool(mfn,flg,2);
+  mfn->errorifnotconverged = flg;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MFNGetErrorIfNotConverged"
+/*@
+   MFNGetErrorIfNotConverged - Return a flag indicating whether MFNSolve() will
+   generate an error if the solver does not converge.
+
+   Not Collective
+
+   Input Parameter:
+.  mfn - the matrix function context
+
+   Output Parameter:
+.  flag - PETSC_TRUE if it will generate an error, else PETSC_FALSE
+
+   Level: intermediate
+
+.seealso:  MFNSetErrorIfNotConverged()
+@*/
+PetscErrorCode MFNGetErrorIfNotConverged(MFN mfn,PetscBool *flag)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
+  PetscValidPointer(flag,2);
+  *flag = mfn->errorifnotconverged;
   PetscFunctionReturn(0);
 }
 
