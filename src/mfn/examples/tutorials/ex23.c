@@ -38,7 +38,7 @@ int main(int argc,char **argv)
   MFN                mfn;
   PetscReal          tol,norm;
   PetscScalar        t;
-  Vec                v,x;
+  Vec                v,y;
   PetscInt           N,m=15,ncv,maxit,its;
   PetscErrorCode     ierr;
   PetscBool          draw_sol;
@@ -48,7 +48,7 @@ int main(int argc,char **argv)
 
   ierr = PetscOptionsGetInt(NULL,"-m",&m,NULL);CHKERRQ(ierr);
   N = m*(m+1)/2;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov x=exp(t*A)*e_1, N=%D (m=%D)\n\n",N,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov y=exp(t*A)*e_1, N=%D (m=%D)\n\n",N,m);CHKERRQ(ierr);
 
   ierr = PetscOptionsHasName(PETSC_NULL,"-draw_sol",&draw_sol);CHKERRQ(ierr);
 
@@ -63,7 +63,7 @@ int main(int argc,char **argv)
   ierr = MatMarkovModel(m,A);CHKERRQ(ierr);
 
   /* set v = e_1 */
-  ierr = MatGetVecs(A,PETSC_NULL,&x);CHKERRQ(ierr);
+  ierr = MatGetVecs(A,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = MatGetVecs(A,PETSC_NULL,&v);CHKERRQ(ierr);
   ierr = VecSetValue(v,1,1.0,INSERT_VALUES);CHKERRQ(ierr);
   ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
@@ -90,13 +90,13 @@ int main(int argc,char **argv)
   ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                      Solve the problem, x=exp(A)*v
+                      Solve the problem, y=exp(A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MFNSolve(mfn,v,x);CHKERRQ(ierr);
+  ierr = MFNSolve(mfn,v,y);CHKERRQ(ierr);
   ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
   if (reason!=MFN_CONVERGED_TOL) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
-  ierr = VecNorm(x,NORM_2,&norm);CHKERRQ(ierr);
+  ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
   
   /*
      Optional: Get some information from the solver and display it
@@ -115,7 +115,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4G has norm %G\n\n",PetscRealPart(t),norm);CHKERRQ(ierr);
   if (draw_sol) {
     ierr = PetscViewerDrawSetPause(PETSC_VIEWER_DRAW_WORLD,-1);CHKERRQ(ierr);
-    ierr = VecView(x,PETSC_VIEWER_DRAW_WORLD);CHKERRQ(ierr);
+    ierr = VecView(y,PETSC_VIEWER_DRAW_WORLD);CHKERRQ(ierr);
   }
 
   /* 
@@ -124,7 +124,7 @@ int main(int argc,char **argv)
   ierr = MFNDestroy(&mfn);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&x);CHKERRQ(ierr);
+  ierr = VecDestroy(&y);CHKERRQ(ierr);
   ierr = SlepcFinalize();CHKERRQ(ierr);
   return 0;
 }
@@ -133,22 +133,7 @@ int main(int argc,char **argv)
 #define __FUNCT__ "MatMarkovModel"
 /*
     Matrix generator for a Markov model of a random walk on a triangular grid.
-
-    This subroutine generates a test matrix that models a random walk on a
-    triangular grid. This test example was used by G. W. Stewart ["{SRRIT} - a
-    FORTRAN subroutine to calculate the dominant invariant subspaces of a real
-    matrix", Tech. report. TR-514, University of Maryland (1978).] and in a few
-    papers on eigenvalue problems by Y. Saad [see e.g. LAA, vol. 34, pp. 269-295
-    (1980) ]. These matrices provide reasonably easy test problems for eigenvalue
-    algorithms. The transpose of the matrix  is stochastic and so it is known
-    that one is an exact eigenvalue. One seeks the eigenvector of the transpose
-    associated with the eigenvalue unity. The problem is to calculate the steady
-    state probability distribution of the system, which is the eigevector
-    associated with the eigenvalue one and scaled in such a way that the sum all
-    the components is equal to one.
-
-    Note: the code will actually compute the transpose of the stochastic matrix
-    that contains the transition probabilities.
+    See ex5.c for additional details.
 */
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
 {
