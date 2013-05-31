@@ -34,14 +34,15 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A);
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Mat            A;           /* problem matrix */
-  MFN            mfn;
-  PetscReal      tol,norm;
-  PetscScalar    t;
-  Vec            v,x;
-  PetscInt       N,m=15,ncv,maxit,its;
-  PetscErrorCode ierr;
-  PetscBool      draw_sol;
+  Mat                A;           /* problem matrix */
+  MFN                mfn;
+  PetscReal          tol,norm;
+  PetscScalar        t;
+  Vec                v,x;
+  PetscInt           N,m=15,ncv,maxit,its;
+  PetscErrorCode     ierr;
+  PetscBool          draw_sol;
+  MFNConvergedReason reason;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -93,6 +94,8 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = MFNSolve(mfn,v,x);CHKERRQ(ierr);
+  ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
+  if (reason!=MFN_CONVERGED_TOL) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
   ierr = VecNorm(x,NORM_2,&norm);CHKERRQ(ierr);
   
   /*

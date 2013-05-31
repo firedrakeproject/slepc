@@ -72,6 +72,8 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   ierr = MFNSetUp(mfn);CHKERRQ(ierr);
   mfn->its = 0;
 
+  ierr = MFNMonitor(mfn,mfn->its,0);CHKERRQ(ierr);
+
   /* call solver */
   ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
   ierr = (*mfn->ops->solve)(mfn,b,x);CHKERRQ(ierr);
@@ -155,7 +157,7 @@ PetscErrorCode MFNGetIterationNumber(MFN mfn,PetscInt *its)
 
    Level: intermediate
 
-.seealso: MFNSetTolerances(), MFNSolve(), MFNConvergedReason
+.seealso: MFNSetTolerances(), MFNSolve(), MFNConvergedReason, MFNSetErrorIfNotConverged()
 @*/
 PetscErrorCode MFNGetConvergedReason(MFN mfn,MFNConvergedReason *reason)
 {

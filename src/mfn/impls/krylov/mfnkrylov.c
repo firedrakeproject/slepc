@@ -207,6 +207,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     }
     err_loc = PetscMax(err_loc,rndoff);
     if (mfn->its==mxstep) mfn->reason = MFN_DIVERGED_ITS;
+    ierr = MFNMonitor(mfn,mfn->its,t_now);CHKERRQ(ierr);
   }
 
   ierr = VecDestroy(&r);CHKERRQ(ierr);
