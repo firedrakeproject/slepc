@@ -1,5 +1,5 @@
 
-Markov x=exp(t*A)*e_1, N=120 (m=15)
+Markov y=exp(t*A)*e_1, N=120 (m=15)
 
  Number of iterations of the method: 1
  Subspace dimension: 30

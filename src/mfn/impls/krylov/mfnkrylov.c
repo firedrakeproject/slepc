@@ -128,6 +128,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 
   while (mfn->reason == MFN_CONVERGED_ITERATING) {
     mfn->its++;
+    if (PetscIsInfOrNanReal(t_new)) t_new = PETSC_MAX_REAL;
     t_step = PetscMin(t_out-t_now,t_new);
 
     ierr = VecCopy(x,mfn->V[0]);CHKERRQ(ierr);
@@ -149,10 +150,10 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     ierr = PetscMemcpy(B,H,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = DSRestoreArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
 
-    mx = mb + k1;
-    ierr = DSSetDimensions(mfn->ds,mx,0,0,0);CHKERRQ(ierr);
     ireject = 0;
     while (ireject <= mxrej) {
+      mx = mb + k1;
+      ierr = DSSetDimensions(mfn->ds,mx,0,0,0);CHKERRQ(ierr);
       ierr = DSGetArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
       for (i=0;i<mx;i++) {
         for (j=0;j<mx;j++) {
