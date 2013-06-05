@@ -162,6 +162,7 @@ PetscErrorCode STSetUp_Fold(ST st)
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
     ierr = MatGetVecs(st->A[1],&ctx->w2,NULL);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(st,ctx->w2);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

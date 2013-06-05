@@ -149,6 +149,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
     ierr = PetscMalloc(sizeof(dvdImprovex_jd),&data);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory(d->eps,sizeof(dvdImprovex_jd));CHKERRQ(ierr);
     data->dynamic = dynamic;
     data->size_real_KZ = size_P;
     data->real_KZ = b->free_vecs; b->free_vecs+= data->size_real_KZ;
@@ -190,8 +191,8 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
   /* Setup the ksp */
   if (data->ksp) {
     /* Create the reference vector */
-    ierr = VecCreateCompWithVecs(d->V, data->ksp_max_size, NULL,
-                                 &data->friends);CHKERRQ(ierr);
+    ierr = VecCreateCompWithVecs(d->V,data->ksp_max_size,NULL,&data->friends);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(d->eps,data->friends);CHKERRQ(ierr);
 
     /* Save the current pc and set a PCNONE */
     ierr = KSPGetPC(data->ksp, &data->old_pc);CHKERRQ(ierr);
@@ -375,18 +376,15 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
         ierr = VecScale(kr[j],-1.0);CHKERRQ(ierr);
       }
 
-      /* Compouse kr and D */
-      ierr = VecCreateCompWithVecs(kr, data->ksp_max_size, data->friends,
-                                   &kr_comp);CHKERRQ(ierr);
-      ierr = VecCreateCompWithVecs(&D[i], data->ksp_max_size, data->friends,
-                                   &D_comp);CHKERRQ(ierr);
+      /* Compose kr and D */
+      ierr = VecCreateCompWithVecs(kr,data->ksp_max_size,data->friends,&kr_comp);CHKERRQ(ierr);
+      ierr = VecCreateCompWithVecs(&D[i],data->ksp_max_size,data->friends,&D_comp);CHKERRQ(ierr);
       ierr = VecCompSetSubVecs(data->friends,s,NULL);CHKERRQ(ierr);
 
       /* Solve the correction equation */
-      ierr = KSPSetTolerances(data->ksp, tol, PETSC_DEFAULT, PETSC_DEFAULT,
-                              maxits);CHKERRQ(ierr);
-      ierr = KSPSolve(data->ksp, kr_comp, D_comp);CHKERRQ(ierr);
-      ierr = KSPGetIterationNumber(data->ksp, &lits);CHKERRQ(ierr);
+      ierr = KSPSetTolerances(data->ksp,tol,PETSC_DEFAULT,PETSC_DEFAULT,maxits);CHKERRQ(ierr);
+      ierr = KSPSolve(data->ksp,kr_comp,D_comp);CHKERRQ(ierr);
+      ierr = KSPGetIterationNumber(data->ksp,&lits);CHKERRQ(ierr);
       d->eps->st->lineariterations+= lits;
 
       /* Destroy the composed ks and D */

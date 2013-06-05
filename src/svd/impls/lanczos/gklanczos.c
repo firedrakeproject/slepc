@@ -76,6 +76,7 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
   if (!lanczos->oneside && svd->ncv != svd->n) {
     ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
     ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(svd,svd->ncv,svd->U);CHKERRQ(ierr);
   }
   ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
   ierr = DSSetCompact(svd->ds,PETSC_TRUE);CHKERRQ(ierr);

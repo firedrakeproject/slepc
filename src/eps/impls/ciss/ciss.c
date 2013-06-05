@@ -180,6 +180,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps)
     ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
     for (j=0;j<ctx->L;j++) {
       ierr = VecDuplicate(ctx->V[0],&ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent(eps,ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
       if (nmat==2) {
         ierr = MatMult(B,ctx->V[j],BV);CHKERRQ(ierr);
         ierr = KSPSolve(ctx->ksp[i],BV,ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
@@ -328,6 +329,7 @@ static PetscErrorCode SetAddVector(EPS eps,PetscInt Ladd_end)
   ierr = VecGetLocalSize(ctx->V[0],&nlocal);CHKERRQ(ierr);
   for (i=Ladd_start;i<Ladd_end;i++) {
     ierr = VecDuplicate(ctx->V[0],&ctx->V[i]);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(eps,ctx->V[i]);CHKERRQ(ierr);
     ierr = SlepcVecSetRandom(ctx->V[i],eps->rand);CHKERRQ(ierr);
     ierr = VecGetArray(ctx->V[i],&vdata);CHKERRQ(ierr);
     for (j=0;j<nlocal;j++) vdata[j] = PetscRealPart(vdata[j]);		
@@ -348,6 +350,7 @@ static PetscErrorCode SolveAddLinearSystem(EPS eps,PetscInt Ladd_end)
   for (i=0;i<ctx->num_solve_point;i++) {
     for (j=Ladd_start;j<Ladd_end;j++) {
       ierr = VecDuplicate(ctx->V[0],&ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent(eps,ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
       ierr = KSPSolve(ctx->ksp[i],ctx->V[j],ctx->Y[i*LMAX+j]);CHKERRQ(ierr);
     }
   }
@@ -452,17 +455,22 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->weight);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->omega);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->pp);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(eps,3*ctx->N*sizeof(PetscScalar));CHKERRQ(ierr);
 
   /* create a template vector for Vecs on solver communicator */
   ierr = VecCreateMPI(ctx->scomm,PETSC_DECIDE,eps->n,&stemp); CHKERRQ(ierr);
   ierr = VecDuplicateVecs(stemp,ctx->L,&ctx->V);CHKERRQ(ierr);
+  ierr = PetscLogObjectParents(eps,ctx->L,ctx->V);CHKERRQ(ierr);
   ierr = VecDestroy(&stemp);CHKERRQ(ierr);
 
   ierr = PetscMalloc(ctx->num_solve_point*sizeof(KSP),&ctx->ksp);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(eps,ctx->num_solve_point*sizeof(KSP));CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) {
     ierr = KSPCreate(ctx->scomm,&ctx->ksp[i]);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(eps,ctx->ksp[i]);CHKERRQ(ierr);
   }
   ierr = PetscMalloc(ctx->num_solve_point*LMAX*sizeof(Vec),&ctx->Y);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(eps,ctx->num_solve_point*LMAX*sizeof(Vec));CHKERRQ(ierr);
 
   if (eps->ishermitian) {
     ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);

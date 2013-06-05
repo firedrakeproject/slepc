@@ -90,12 +90,16 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->AV);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent(eps,ctx->AV);CHKERRQ(ierr);
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   if (nmat>1) {
     ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->BV);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(eps,ctx->BV);CHKERRQ(ierr);
   }
   ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->P);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent(eps,ctx->P);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->G);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent(eps,ctx->G);CHKERRQ(ierr);
   ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);

@@ -59,6 +59,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
     ierr = PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10),&tr->lwork);CHKERRQ(ierr);
   }
   ierr = PetscMalloc(tr->lwork*sizeof(PetscReal),&tr->work);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(eps,tr->lwork*sizeof(PetscReal));CHKERRQ(ierr);
 
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
 

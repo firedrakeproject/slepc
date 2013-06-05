@@ -93,6 +93,10 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)qep),1,qep->nloc,qep->n,NULL,&ctx->x2);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)qep),1,qep->nloc,qep->n,NULL,&ctx->y1);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)qep),1,qep->nloc,qep->n,NULL,&ctx->y2);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(qep,ctx->x1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(qep,ctx->x2);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(qep,ctx->y1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(qep,ctx->y2);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)qep),2*qep->nloc,2*qep->nloc,2*qep->n,2*qep->n,ctx,&ctx->A);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))fmult[i][0]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->A,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[i][0]);CHKERRQ(ierr);
@@ -100,6 +104,8 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
     ierr = MatShellSetOperation(ctx->B,MATOP_MULT,(void(*)(void))fmult[i][1]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->B,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[i][1]);CHKERRQ(ierr);
   }
+  ierr = PetscLogObjectParent(qep,ctx->A);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent(qep,ctx->B);CHKERRQ(ierr);
 
   ierr = EPSSetOperators(ctx->eps,ctx->A,ctx->B);CHKERRQ(ierr);
   if (qep->problem_type==QEP_HERMITIAN) {

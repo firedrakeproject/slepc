@@ -74,6 +74,7 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   if (!svd->max_it) svd->max_it = PetscMax(N/svd->ncv,100);
   if (svd->ncv!=svd->n) {
     ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(svd,svd->ncv,svd->U);CHKERRQ(ierr);
   }
   ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
   ierr = DSSetCompact(svd->ds,PETSC_TRUE);CHKERRQ(ierr);
@@ -244,7 +245,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc(sizeof(PetscScalar)*ld,&w);CHKERRQ(ierr);
-    ierr = PetscMalloc(sizeof(PetscScalar)*svd->n,&swork);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscScalar)*svd->n,&swork);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->V[0],&v);CHKERRQ(ierr);
   ierr = IPGetOrthogonalization(svd->ip,&orthog,NULL,NULL);CHKERRQ(ierr);
 

@@ -246,8 +246,10 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
   if (st->setupcalled) { ierr = STReset(st);CHKERRQ(ierr); }
   ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->A);CHKERRQ(ierr);
   ierr = PetscMalloc(PetscMax(2,n)*sizeof(Mat),&st->A);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(st,PetscMax(2,n)*sizeof(Mat));CHKERRQ(ierr);
   ierr = PetscFree(st->Astate);CHKERRQ(ierr);
   ierr = PetscMalloc(PetscMax(2,n)*sizeof(PetscInt),&st->Astate);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(st,PetscMax(2,n)*sizeof(PetscInt));CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
     ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);

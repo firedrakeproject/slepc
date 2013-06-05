@@ -38,6 +38,7 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   svd->max_it = 1;
   if (svd->ncv!=svd->n) {
     ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(svd,svd->ncv,svd->U);CHKERRQ(ierr);
   }
   ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
   ierr = DSAllocate(svd->ds,PetscMax(M,N));CHKERRQ(ierr);

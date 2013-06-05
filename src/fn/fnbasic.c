@@ -339,12 +339,14 @@ PetscErrorCode FNSetParameters(FN fn,PetscInt na,PetscScalar *alpha,PetscInt nb,
   ierr = PetscFree(fn->alpha);CHKERRQ(ierr);
   if (na) {
     ierr = PetscMalloc(na*sizeof(PetscScalar),&fn->alpha);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory(fn,na*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<na;i++) fn->alpha[i] = alpha[i];
   }
   fn->nb = nb;
   ierr = PetscFree(fn->beta);CHKERRQ(ierr);
   if (nb) {
     ierr = PetscMalloc(nb*sizeof(PetscScalar),&fn->beta);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory(fn,nb*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<nb;i++) fn->beta[i] = beta[i];
   }
   PetscFunctionReturn(0);

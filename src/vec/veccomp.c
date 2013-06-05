@@ -348,7 +348,8 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec
 
   PetscFunctionBegin;
   ierr = VecCreate(comm,V);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(Vec)*n,&x);CHKERRQ(ierr);
+  ierr = PetscMalloc(n*sizeof(Vec),&x);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(*V,n*sizeof(Vec));CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     ierr = VecCreate(comm,&x[i]);CHKERRQ(ierr);
     ierr = VecSetSizes(x[i],PETSC_DECIDE,Nx[i]);CHKERRQ(ierr);
@@ -406,7 +407,8 @@ PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V)
   PetscFunctionBegin;
   SlepcValidVecComp(win);
   ierr = VecCreate(PetscObjectComm((PetscObject)win),V);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(Vec)*s->nx,&x);CHKERRQ(ierr);
+  ierr = PetscMalloc(s->nx*sizeof(Vec),&x);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(*V,s->nx*sizeof(Vec));CHKERRQ(ierr);
   for (i=0;i<s->nx;i++) {
     ierr = VecDuplicate(s->x[i],&x[i]);CHKERRQ(ierr);
   }

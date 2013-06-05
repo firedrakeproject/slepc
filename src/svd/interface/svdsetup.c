@@ -176,6 +176,8 @@ PetscErrorCode SVDSetUp(SVD svd)
   } else {
     ierr = SlepcMatGetVecsTemplate(svd->AT,&svd->tl,&svd->tr);CHKERRQ(ierr);
   }
+  ierr = PetscLogObjectParent(svd,svd->tl);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent(svd,svd->tr);CHKERRQ(ierr);
 
   /* swap initial vectors if necessary */
   if (M<N) {

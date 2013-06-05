@@ -121,6 +121,8 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
     ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))MatMult_Cross);CHKERRQ(ierr);
     ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross);CHKERRQ(ierr);
     ierr = SVDMatGetVecs(svd,NULL,&cross->w);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(svd,cross->mat);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(svd,cross->w);CHKERRQ(ierr);
   }
 
   ierr = EPSSetOperators(cross->eps,cross->mat,NULL);CHKERRQ(ierr);

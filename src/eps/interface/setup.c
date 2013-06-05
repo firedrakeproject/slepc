@@ -92,6 +92,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = MatGetLocalSize(A,&eps->nloc,NULL);CHKERRQ(ierr);
   ierr = VecDestroy(&eps->t);CHKERRQ(ierr);
   ierr = SlepcMatGetVecsTemplate(A,&eps->t,NULL);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent(eps,eps->t);CHKERRQ(ierr);
 
   /* Set default problem type */
   if (!eps->problem_type) {
@@ -202,6 +203,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
     if (!eps->D) {
       ierr = VecDuplicate(eps->V[0],&eps->D);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent(eps,eps->D);CHKERRQ(ierr);
     } else {
       ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
     }
@@ -228,6 +230,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       }
       ierr = PetscFree(eps->defl);CHKERRQ(ierr);
       eps->defl = newDS;
+      ierr = PetscLogObjectParents(eps,eps->nds,eps->defl);CHKERRQ(ierr);
       /* orthonormalize vectors in defl */
       k = 0;
       for (i=0;i<eps->nds;i++) {
@@ -408,6 +411,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
   /* get references of passed vectors */
   if (n>0) {
     ierr = PetscMalloc(n*sizeof(Vec),&eps->defl);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory(eps,n*sizeof(Vec));CHKERRQ(ierr);
     for (i=0;i<n;i++) {
       ierr = PetscObjectReference((PetscObject)v[i]);CHKERRQ(ierr);
       eps->defl[i] = v[i];

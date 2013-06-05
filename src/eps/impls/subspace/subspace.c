@@ -75,6 +75,7 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
 
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(eps->t,eps->ncv,&ctx->AV);CHKERRQ(ierr);
+  ierr = PetscLogObjectParents(eps,eps->ncv,ctx->AV);CHKERRQ(ierr);
   if (eps->ishermitian) {
     ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
   } else {

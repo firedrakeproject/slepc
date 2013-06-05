@@ -241,6 +241,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   if (u) {
     if (!svd->U) {
       ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
+      ierr = PetscLogObjectParents(svd,svd->ncv,svd->U);CHKERRQ(ierr);
       for (j=0;j<svd->nconv;j++) {
         ierr = SVDMatMult(svd,PETSC_FALSE,svd->V[j],svd->U[j]);CHKERRQ(ierr);
         ierr = IPOrthogonalize(svd->ip,0,NULL,j,NULL,svd->U,svd->U[j],NULL,&norm,NULL);CHKERRQ(ierr);
