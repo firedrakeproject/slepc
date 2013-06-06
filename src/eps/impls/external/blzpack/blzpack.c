@@ -79,6 +79,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
 
+  if (!blz->block_size) blz->block_size = 3;
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   if (eps->which==EPS_ALL) {
     if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Must define a computational interval when using EPS_ALL");
@@ -466,11 +467,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS eps)
   eps->ops->view                 = EPSView_BLZPACK;
   eps->ops->backtransform        = EPSBackTransform_BLZPACK;
   eps->ops->computevectors       = EPSComputeVectors_Default;
-
-  blzpack->block_size = 3;
-  blzpack->slice = 0;
-  blzpack->nsteps = 0;
-
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetBlockSize_C",EPSBlzpackSetBlockSize_BLZPACK);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetNSteps_C",EPSBlzpackSetNSteps_BLZPACK);CHKERRQ(ierr);
   PetscFunctionReturn(0);

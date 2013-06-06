@@ -125,6 +125,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
     ierr = PetscLogObjectParent(svd,cross->w);CHKERRQ(ierr);
   }
 
+  if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
   ierr = EPSSetOperators(cross->eps,cross->mat,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(cross->eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cross->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_REAL);CHKERRQ(ierr);
@@ -253,9 +254,24 @@ PetscErrorCode SVDCrossSetEPS(SVD svd,EPS eps)
 #define __FUNCT__ "SVDCrossGetEPS_Cross"
 static PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
 {
-  SVD_CROSS *cross = (SVD_CROSS*)svd->data;
+  SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
+  ST             st;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (!cross->eps) {
+    ierr = EPSCreate(PetscObjectComm((PetscObject)svd),&cross->eps);CHKERRQ(ierr);
+    ierr = EPSSetOptionsPrefix(cross->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
+    ierr = EPSAppendOptionsPrefix(cross->eps,"svd_");CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)cross->eps,(PetscObject)svd,1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(svd,cross->eps);CHKERRQ(ierr);
+    if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
+    ierr = EPSSetIP(cross->eps,svd->ip);CHKERRQ(ierr);
+    ierr = EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+    ierr = EPSMonitorSet(cross->eps,SVDMonitor_Cross,svd,NULL);CHKERRQ(ierr);
+    ierr = EPSGetST(cross->eps,&st);CHKERRQ(ierr);
+    ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
+  }
   *eps = cross->eps;
   PetscFunctionReturn(0);
 }
@@ -297,6 +313,7 @@ PetscErrorCode SVDView_Cross(SVD svd,PetscViewer viewer)
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
 
   PetscFunctionBegin;
+  if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
   ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
   ierr = EPSView(cross->eps,viewer);CHKERRQ(ierr);
   ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
@@ -311,7 +328,7 @@ PetscErrorCode SVDReset_Cross(SVD svd)
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
 
   PetscFunctionBegin;
-  ierr = EPSReset(cross->eps);CHKERRQ(ierr);
+  if (cross->eps) { ierr = EPSReset(cross->eps);CHKERRQ(ierr); }
   ierr = MatDestroy(&cross->mat);CHKERRQ(ierr);
   ierr = VecDestroy(&cross->w);CHKERRQ(ierr);
   ierr = VecDestroy(&cross->diag);CHKERRQ(ierr);
@@ -339,7 +356,6 @@ PETSC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross;
-  ST             st;
 
   PetscFunctionBegin;
   ierr = PetscNewLog(svd,SVD_CROSS,&cross);CHKERRQ(ierr);
@@ -352,22 +368,6 @@ PETSC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
   svd->ops->view           = SVDView_Cross;
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetEPS_C",SVDCrossSetEPS_Cross);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetEPS_C",SVDCrossGetEPS_Cross);CHKERRQ(ierr);
-
-  ierr = EPSCreate(PetscObjectComm((PetscObject)svd),&cross->eps);CHKERRQ(ierr);
-  ierr = EPSSetOptionsPrefix(cross->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
-  ierr = EPSAppendOptionsPrefix(cross->eps,"svd_");CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)cross->eps,(PetscObject)svd,1);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(svd,cross->eps);CHKERRQ(ierr);
-  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-  ierr = EPSSetIP(cross->eps,svd->ip);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSMonitorSet(cross->eps,SVDMonitor_Cross,svd,NULL);CHKERRQ(ierr);
-  ierr = EPSGetST(cross->eps,&st);CHKERRQ(ierr);
-  ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
-  cross->mat  = NULL;
-  cross->w    = NULL;
-  cross->diag = NULL;
-  cross->setfromoptionscalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

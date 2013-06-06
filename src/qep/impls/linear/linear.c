@@ -63,6 +63,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   };
 
   PetscFunctionBegin;
+  if (!ctx->cform) ctx->cform = 1;
   if (!qep->which) qep->which = QEP_LARGEST_MAGNITUDE;
   ctx->M = qep->M;
   ctx->C = qep->C;
@@ -107,6 +108,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   ierr = PetscLogObjectParent(qep,ctx->A);CHKERRQ(ierr);
   ierr = PetscLogObjectParent(qep,ctx->B);CHKERRQ(ierr);
 
+  if (!ctx->eps) { ierr = QEPLinearGetEPS(qep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSSetOperators(ctx->eps,ctx->A,ctx->B);CHKERRQ(ierr);
   if (qep->problem_type==QEP_HERMITIAN) {
     ierr = EPSSetProblemType(ctx->eps,EPS_GHIEP);CHKERRQ(ierr);
@@ -363,6 +365,7 @@ PetscErrorCode QEPSetFromOptions_Linear(QEP qep)
   }
   if (!ctx->explicitmatrix) {
     /* use as default an ST with shell matrix and Jacobi */
+    if (!ctx->eps) { ierr = QEPLinearGetEPS(qep,&ctx->eps);CHKERRQ(ierr); }
     ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
@@ -585,9 +588,21 @@ PetscErrorCode QEPLinearSetEPS(QEP qep,EPS eps)
 #define __FUNCT__ "QEPLinearGetEPS_Linear"
 static PetscErrorCode QEPLinearGetEPS_Linear(QEP qep,EPS *eps)
 {
-  QEP_LINEAR *ctx = (QEP_LINEAR*)qep->data;
+  PetscErrorCode ierr;
+  QEP_LINEAR     *ctx = (QEP_LINEAR*)qep->data;
 
   PetscFunctionBegin;
+  if (!ctx->eps) {
+    ierr = EPSCreate(PetscObjectComm((PetscObject)qep),&ctx->eps);CHKERRQ(ierr);
+    ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)qep)->prefix);CHKERRQ(ierr);
+    ierr = EPSAppendOptionsPrefix(ctx->eps,"qep_");CHKERRQ(ierr);
+    ierr = STSetOptionsPrefix(ctx->eps->st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)qep,1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(qep,ctx->eps);CHKERRQ(ierr);
+    if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
+    ierr = EPSSetIP(ctx->eps,qep->ip);CHKERRQ(ierr);
+    ierr = EPSMonitorSet(ctx->eps,EPSMonitor_Linear,qep,NULL);CHKERRQ(ierr);
+  }
   *eps = ctx->eps;
   PetscFunctionReturn(0);
 }
@@ -629,6 +644,7 @@ PetscErrorCode QEPView_Linear(QEP qep,PetscViewer viewer)
   QEP_LINEAR     *ctx = (QEP_LINEAR*)qep->data;
 
   PetscFunctionBegin;
+  if (!ctx->eps) { ierr = QEPLinearGetEPS(qep,&ctx->eps);CHKERRQ(ierr); }
   ierr = PetscViewerASCIIPrintf(viewer,"  Linear: %s matrices\n",ctx->explicitmatrix? "explicit": "implicit");CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"  Linear: %s companion form\n",ctx->cform==1? "1st": "2nd");CHKERRQ(ierr);
   ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
@@ -645,7 +661,7 @@ PetscErrorCode QEPReset_Linear(QEP qep)
   QEP_LINEAR     *ctx = (QEP_LINEAR*)qep->data;
 
   PetscFunctionBegin;
-  ierr = EPSReset(ctx->eps);CHKERRQ(ierr);
+  if (!ctx->eps) { ierr = EPSReset(ctx->eps);CHKERRQ(ierr); }
   ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
   ierr = MatDestroy(&ctx->B);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->x1);CHKERRQ(ierr);
@@ -697,25 +713,6 @@ PETSC_EXTERN PetscErrorCode QEPCreate_Linear(QEP qep)
   ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearGetEPS_C",QEPLinearGetEPS_Linear);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearSetExplicitMatrix_C",QEPLinearSetExplicitMatrix_Linear);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPLinearGetExplicitMatrix_C",QEPLinearGetExplicitMatrix_Linear);CHKERRQ(ierr);
-
-  ierr = EPSCreate(PetscObjectComm((PetscObject)qep),&ctx->eps);CHKERRQ(ierr);
-  ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)qep)->prefix);CHKERRQ(ierr);
-  ierr = EPSAppendOptionsPrefix(ctx->eps,"qep_");CHKERRQ(ierr);
-  ierr = STSetOptionsPrefix(ctx->eps->st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)qep,1);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(qep,ctx->eps);CHKERRQ(ierr);
-  if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
-  ierr = EPSSetIP(ctx->eps,qep->ip);CHKERRQ(ierr);
-  ierr = EPSMonitorSet(ctx->eps,EPSMonitor_Linear,qep,NULL);CHKERRQ(ierr);
-  ctx->explicitmatrix = PETSC_FALSE;
-  ctx->cform = 1;
-  ctx->A = NULL;
-  ctx->B = NULL;
-  ctx->x1 = NULL;
-  ctx->x2 = NULL;
-  ctx->y1 = NULL;
-  ctx->y2 = NULL;
-  ctx->setfromoptionscalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

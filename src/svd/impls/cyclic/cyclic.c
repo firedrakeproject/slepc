@@ -131,6 +131,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     ierr = PetscLogObjectParent(svd,cyclic->mat);CHKERRQ(ierr);
   }
 
+  if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
   ierr = EPSSetOperators(cyclic->eps,cyclic->mat,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(cyclic->eps,EPS_HEP);CHKERRQ(ierr);
   if (svd->which == SVD_LARGEST) {
@@ -284,6 +285,7 @@ PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
   }
   if (!cyclic->explicitmatrix) {
     /* use as default an ST with shell matrix and Jacobi */
+    if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
     ierr = EPSGetST(cyclic->eps,&st);CHKERRQ(ierr);
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
@@ -419,9 +421,21 @@ PetscErrorCode SVDCyclicSetEPS(SVD svd,EPS eps)
 #define __FUNCT__ "SVDCyclicGetEPS_Cyclic"
 static PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
 {
-  SVD_CYCLIC *cyclic = (SVD_CYCLIC*)svd->data;
+  PetscErrorCode ierr;
+  SVD_CYCLIC     *cyclic = (SVD_CYCLIC*)svd->data;
 
   PetscFunctionBegin;
+  if (!cyclic->eps) {
+    ierr = EPSCreate(PetscObjectComm((PetscObject)svd),&cyclic->eps);CHKERRQ(ierr);
+    ierr = EPSSetOptionsPrefix(cyclic->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
+    ierr = EPSAppendOptionsPrefix(cyclic->eps,"svd_");CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)cyclic->eps,(PetscObject)svd,1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(svd,cyclic->eps);CHKERRQ(ierr);
+    if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
+    ierr = EPSSetIP(cyclic->eps,svd->ip);CHKERRQ(ierr);
+    ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+    ierr = EPSMonitorSet(cyclic->eps,SVDMonitor_Cyclic,svd,NULL);CHKERRQ(ierr);
+  }
   *eps = cyclic->eps;
   PetscFunctionReturn(0);
 }
@@ -463,6 +477,7 @@ PetscErrorCode SVDView_Cyclic(SVD svd,PetscViewer viewer)
   SVD_CYCLIC     *cyclic = (SVD_CYCLIC*)svd->data;
 
   PetscFunctionBegin;
+  if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
   ierr = PetscViewerASCIIPrintf(viewer,"  Cyclic: %s matrix\n",cyclic->explicitmatrix?"explicit":"implicit");CHKERRQ(ierr);
   ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
   ierr = EPSView(cyclic->eps,viewer);CHKERRQ(ierr);
@@ -478,7 +493,7 @@ PetscErrorCode SVDReset_Cyclic(SVD svd)
   SVD_CYCLIC     *cyclic = (SVD_CYCLIC*)svd->data;
 
   PetscFunctionBegin;
-  ierr = EPSReset(cyclic->eps);CHKERRQ(ierr);
+  if (!cyclic->eps) { ierr = EPSReset(cyclic->eps);CHKERRQ(ierr); }
   ierr = MatDestroy(&cyclic->mat);CHKERRQ(ierr);
   ierr = VecDestroy(&cyclic->x1);CHKERRQ(ierr);
   ierr = VecDestroy(&cyclic->x2);CHKERRQ(ierr);
@@ -524,23 +539,6 @@ PETSC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD svd)
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCyclicGetEPS_C",SVDCyclicGetEPS_Cyclic);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCyclicSetExplicitMatrix_C",SVDCyclicSetExplicitMatrix_Cyclic);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCyclicGetExplicitMatrix_C",SVDCyclicGetExplicitMatrix_Cyclic);CHKERRQ(ierr);
-
-  ierr = EPSCreate(PetscObjectComm((PetscObject)svd),&cyclic->eps);CHKERRQ(ierr);
-  ierr = EPSSetOptionsPrefix(cyclic->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
-  ierr = EPSAppendOptionsPrefix(cyclic->eps,"svd_");CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)cyclic->eps,(PetscObject)svd,1);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(svd,cyclic->eps);CHKERRQ(ierr);
-  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-  ierr = EPSSetIP(cyclic->eps,svd->ip);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSMonitorSet(cyclic->eps,SVDMonitor_Cyclic,svd,NULL);CHKERRQ(ierr);
-  cyclic->explicitmatrix = PETSC_FALSE;
-  cyclic->mat = NULL;
-  cyclic->x1 = NULL;
-  cyclic->x2 = NULL;
-  cyclic->y1 = NULL;
-  cyclic->y2 = NULL;
-  cyclic->setfromoptionscalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

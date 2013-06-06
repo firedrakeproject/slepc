@@ -69,6 +69,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->max_funcs) nep->max_funcs = nep->max_it;
 
+  if (!ctx->eps) { ierr = NEPSLPGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSSetWhichEigenpairs(ctx->eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSetTarget(ctx->eps,0.0);CHKERRQ(ierr);
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
@@ -207,9 +208,20 @@ PetscErrorCode NEPSLPSetEPS(NEP nep,EPS eps)
 #define __FUNCT__ "NEPSLPGetEPS_SLP"
 static PetscErrorCode NEPSLPGetEPS_SLP(NEP nep,EPS *eps)
 {
-  NEP_SLP *ctx = (NEP_SLP*)nep->data;
+  PetscErrorCode ierr;
+  NEP_SLP        *ctx = (NEP_SLP*)nep->data;
 
   PetscFunctionBegin;
+  if (!ctx->eps) {
+    ierr = EPSCreate(PetscObjectComm((PetscObject)nep),&ctx->eps);CHKERRQ(ierr);
+    ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)nep)->prefix);CHKERRQ(ierr);
+    ierr = EPSAppendOptionsPrefix(ctx->eps,"nep_");CHKERRQ(ierr);
+    ierr = STSetOptionsPrefix(ctx->eps->st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)nep,1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(nep,ctx->eps);CHKERRQ(ierr);
+    if (!nep->ip) { ierr = NEPGetIP(nep,&nep->ip);CHKERRQ(ierr); }
+    ierr = EPSSetIP(ctx->eps,nep->ip);CHKERRQ(ierr);
+  }
   *eps = ctx->eps;
   PetscFunctionReturn(0);
 }
@@ -251,6 +263,7 @@ PetscErrorCode NEPView_SLP(NEP nep,PetscViewer viewer)
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
 
   PetscFunctionBegin;
+  if (!ctx->eps) { ierr = NEPSLPGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
   ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
   ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
   ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
@@ -265,7 +278,7 @@ PetscErrorCode NEPReset_SLP(NEP nep)
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
 
   PetscFunctionBegin;
-  ierr = EPSReset(ctx->eps);CHKERRQ(ierr);
+  if (!ctx->eps) { ierr = EPSReset(ctx->eps);CHKERRQ(ierr); }
   ierr = NEPReset_Default(nep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -303,16 +316,6 @@ PETSC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
   nep->ops->view           = NEPView_SLP;
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetEPS_C",NEPSLPSetEPS_SLP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetEPS_C",NEPSLPGetEPS_SLP);CHKERRQ(ierr);
-
-  ierr = EPSCreate(PetscObjectComm((PetscObject)nep),&ctx->eps);CHKERRQ(ierr);
-  ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)nep)->prefix);CHKERRQ(ierr);
-  ierr = EPSAppendOptionsPrefix(ctx->eps,"nep_");CHKERRQ(ierr);
-  ierr = STSetOptionsPrefix(ctx->eps->st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)nep,1);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(nep,ctx->eps);CHKERRQ(ierr);
-  if (!nep->ip) { ierr = NEPGetIP(nep,&nep->ip);CHKERRQ(ierr); }
-  ierr = EPSSetIP(ctx->eps,nep->ip);CHKERRQ(ierr);
-  ctx->setfromoptionscalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
