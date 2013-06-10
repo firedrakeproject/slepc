@@ -52,7 +52,7 @@ typedef struct {
   /* parameters */
   PetscScalar center;     /* center of the region where to find eigenpairs (default: 0.0) */
   PetscReal   radius;     /* radius of the region (1.0) */
-  PetscReal   vscale;     /* vertical scale of the region (1.0) */
+  PetscReal   vscale;     /* vertical scale of the region (1.0; 0.1 if spectrum real) */
   PetscInt    N;          /* number of integration points (32) */
   PetscInt    L;          /* block size (16) */
   PetscInt    M;          /* moment degree (N/4 = 4) */
@@ -461,7 +461,10 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   } else if (eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
-  if (eps->ishermitian && (eps->ispositive || !eps->isgeneralized) && PetscImaginaryPart(ctx->center) == 0.0) ctx->vscale = 0.1;
+  if (ctx->vscale == PETSC_DEFAULT) {
+    if (eps->ishermitian && (eps->ispositive || !eps->isgeneralized) && PetscImaginaryPart(ctx->center) == 0.0) ctx->vscale = 0.1;
+    else ctx->vscale = 1.0;
+  }
   if (ctx->isreal && PetscImaginaryPart(ctx->center) == 0.0) ctx->useconj = PETSC_TRUE;
   else ctx->useconj = PETSC_FALSE;
 
@@ -625,10 +628,22 @@ static PetscErrorCode EPSCISSSetRegion_CISS(EPS eps,PetscScalar center,PetscReal
 
   PetscFunctionBegin;
   ctx->center = center;
-  if (radius<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The radius argument must be > 0.0");
-  ctx->radius = radius;
-  if (vscale<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The vscale argument must be > 0.0");
-  ctx->vscale = vscale;
+  if (radius) {
+    if (radius == PETSC_DEFAULT) {
+      ctx->radius = 1.0;
+    } else {
+      if (radius<0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The radius argument must be > 0.0");
+      ctx->radius = radius;
+    }
+  }
+  if (vscale) {
+    if (vscale == PETSC_DEFAULT) {
+      ctx->vscale = PETSC_DEFAULT;
+    } else {
+      if (vscale<0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The vscale argument must be > 0.0");
+      ctx->vscale = vscale;
+    }
+  }
   PetscFunctionReturn(0);
 }
 
@@ -1092,7 +1107,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   /* set default values of parameters */
   ctx->center  = 0.0;
   ctx->radius  = 1.0;
-  ctx->vscale  = 1.0;
+  ctx->vscale  = PETSC_DEFAULT;
   ctx->N       = 32;
   ctx->L       = 16;
   ctx->M       = ctx->N/4;
