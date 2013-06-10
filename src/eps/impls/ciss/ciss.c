@@ -66,7 +66,6 @@ typedef struct {
   MPI_Comm    scomm;
   PetscInt    solver_comm_id;
   PetscInt    num_solve_point;
-  PetscInt    K;
   PetscScalar *weight;
   PetscScalar *omega;
   PetscScalar *pp;
@@ -362,7 +361,7 @@ static PetscErrorCode SolveAddLinearSystem(EPS eps,PetscInt Ladd_end)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVD"
-static PetscErrorCode SVD(EPS eps,Vec *Q)
+static PetscErrorCode SVD(EPS eps,Vec *Q,PetscInt *K)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
@@ -395,10 +394,10 @@ static PetscErrorCode SVD(EPS eps,Vec *Q)
   ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestReal,NULL);CHKERRQ(ierr);
   ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  ctx->K = 0;
+  *K = 0;
   for (i=0;i<ml;i++) {
     ctx->sigma[i] = PetscRealPart(w[i]);
-    if (ctx->sigma[i]/ctx->sigma[0]>ctx->delta) ctx->K++;
+    if (ctx->sigma[i]/ctx->sigma[0]>ctx->delta) (*K)++;
   }
   ierr = DSGetArray(ds,DS_MAT_U,&R);CHKERRQ(ierr);
   for (i=0;i<ml;i++) {
@@ -558,9 +557,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = PetscMalloc(ctx->L*ctx->M*sizeof(PetscReal),&ctx->sigma);CHKERRQ(ierr);
   }
   ierr = ConstructS(eps,&ctx->S);CHKERRQ(ierr);
-  ierr = SVD(eps,ctx->S);CHKERRQ(ierr);
+  ierr = SVD(eps,ctx->S,&nv);CHKERRQ(ierr);
 
-  nv = ctx->K;
   ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   
