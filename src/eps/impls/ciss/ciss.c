@@ -416,6 +416,30 @@ static PetscErrorCode SVD(EPS eps,Vec *Q)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "ProjectMatrix"
+static PetscErrorCode ProjectMatrix(Mat A,PetscInt nv,PetscInt ld,Vec *Q,PetscScalar *H,Vec w,PetscBool isherm)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,j;
+
+  PetscFunctionBegin;
+  if (isherm) {
+    for (j=0;j<nv;j++) {
+      ierr = MatMult(A,Q[j],w);CHKERRQ(ierr);
+      ierr = VecMDot(w,j+1,Q,H+j*ld);CHKERRQ(ierr);
+      for (i=0;i<j;i++)
+        H[j+i*ld] = PetscConj(H[i+j*ld]);
+    }
+  } else {
+    for (j=0;j<nv;j++) {
+      ierr = MatMult(A,Q[j],w);CHKERRQ(ierr);
+      ierr = VecMDot(w,nv,Q,H+j*ld);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_CISS"
 PetscErrorCode EPSSetUp_CISS(EPS eps)
 {
@@ -466,10 +490,18 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscMalloc(ctx->num_solve_point*ctx->L_max*sizeof(Vec),&ctx->Y);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory(eps,ctx->num_solve_point*ctx->L_max*sizeof(Vec));CHKERRQ(ierr);
 
-  if (eps->ishermitian) {
-    ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);
+  if (eps->isgeneralized) {
+    if (eps->ishermitian && eps->ispositive) {
+      ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);
+    } else {
+      ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
+    }
   } else {
-    ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
+    if (eps->ishermitian) {
+      ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
+    } else {
+      ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
+    }
   }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
@@ -487,7 +519,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,j,ld,nv,nmat,L_add=0;
-  PetscScalar    *QFQ,*rr,*pX;
+  PetscScalar    *H,*rr,*pX;
   PetscReal      dx,dy,d,*tau,s1,s2,tau_max=0.0;
   Mat            A,B;
   Vec            *S1,w=eps->work[0];
@@ -529,23 +561,15 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   
-  ierr = DSGetArray(eps->ds,DS_MAT_A,&QFQ);CHKERRQ(ierr);
-  for (j=0;j<nv;j++) {
-    ierr = MatMult(A,ctx->S[j],w);CHKERRQ(ierr);
-    ierr = VecMDot(w,nv,ctx->S,QFQ+j*ld);CHKERRQ(ierr);
-  }
-  ierr = DSRestoreArray(eps->ds,DS_MAT_A,&QFQ);CHKERRQ(ierr);
+  ierr = DSGetArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+  ierr = ProjectMatrix(A,nv,ld,ctx->S,H,w,eps->ishermitian);CHKERRQ(ierr);
+  ierr = DSRestoreArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
 
-  ierr = DSGetArray(eps->ds,DS_MAT_B,&QFQ);CHKERRQ(ierr);
-  for (j=0;j<nv;j++) {
-    if (nmat>1) {
-      ierr = MatMult(B,ctx->S[j],w);CHKERRQ(ierr);
-    } else {
-      ierr = VecCopy(ctx->S[j],w);CHKERRQ(ierr);
-    }
-    ierr = VecMDot(w,nv,ctx->S,QFQ+j*ld);CHKERRQ(ierr);
+  if (nmat>1) {
+    ierr = DSGetArray(eps->ds,DS_MAT_B,&H);CHKERRQ(ierr);
+    ierr = ProjectMatrix(B,nv,ld,ctx->S,H,w,eps->ishermitian);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_B,&H);CHKERRQ(ierr);
   }
-  ierr = DSRestoreArray(eps->ds,DS_MAT_B,&QFQ);CHKERRQ(ierr);
 
   ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
 
