@@ -333,7 +333,7 @@ static PetscErrorCode SetAddVector(EPS eps,PetscInt Ladd_end)
   for (i=Ladd_start;i<Ladd_end;i++) {
     ierr = VecDuplicate(ctx->V[0],&ctx->V[i]);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(eps,ctx->V[i]);CHKERRQ(ierr);
-    ierr = SlepcVecSetRandom(ctx->V[i],eps->rand);CHKERRQ(ierr);
+    ierr = CISSVecSetRandom(ctx->V[i],eps->rand);CHKERRQ(ierr);
     ierr = VecGetArray(ctx->V[i],&vdata);CHKERRQ(ierr);
     for (j=0;j<nlocal;j++) vdata[j] = PetscRealPart(vdata[j]);         
     ierr = VecRestoreArray(ctx->V[i],&vdata);CHKERRQ(ierr);
