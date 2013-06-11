@@ -207,7 +207,7 @@ static PetscErrorCode ConstructS(EPS eps,Vec **S)
   PetscInt       *array_row_vec_local_size,*array_start_id;
   MPI_Comm       Row_Comm,Vec_Comm;
   Vec            v,row_vec,z;
-  PetscScalar    ppk[ctx->num_solve_point],*S_data,*v_data,*send;
+  PetscScalar    *ppk,*S_data,*v_data,*send;
 
   PetscFunctionBegin;
   /* 1 */
@@ -242,6 +242,7 @@ static PetscErrorCode ConstructS(EPS eps,Vec **S)
   }
 
   /* 3 */
+  ierr = PetscMalloc(ctx->num_solve_point*sizeof(PetscScalar),&ppk);CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) ppk[i] = 1;
   ierr = VecDuplicate(ctx->Y[0],&v);CHKERRQ(ierr);
   for (k=0;k<ctx->M;k++) {
@@ -272,6 +273,7 @@ static PetscErrorCode ConstructS(EPS eps,Vec **S)
   }
   ierr = PetscFree(array_row_vec_local_size);CHKERRQ(ierr);
   ierr = PetscFree(array_start_id);CHKERRQ(ierr);
+  ierr = PetscFree(ppk);CHKERRQ(ierr);
   ierr = VecDestroy(&v);
   PetscFunctionReturn(0);
 }
