@@ -197,7 +197,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "ConstructS"
-static PetscErrorCode ConstructS(EPS eps,Vec **S)
+static PetscErrorCode ConstructS(EPS eps,PetscInt M,Vec **S)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
@@ -230,7 +230,7 @@ static PetscErrorCode ConstructS(EPS eps,Vec **S)
   ierr = VecDestroy(&row_vec);CHKERRQ(ierr);
 
   ierr = VecCreateMPI(Vec_Comm,row_vec_local_size,eps->n,&z);CHKERRQ(ierr);
-  ierr = VecDuplicateVecs(z,ctx->M*ctx->L,S);CHKERRQ(ierr);
+  ierr = VecDuplicateVecs(z,M*ctx->L,S);CHKERRQ(ierr);
   ierr = VecDestroy(&z);CHKERRQ(ierr);
 
   ierr = PetscMalloc(size_row_comm*sizeof(PetscInt),&array_row_vec_local_size);CHKERRQ(ierr);
@@ -245,7 +245,7 @@ static PetscErrorCode ConstructS(EPS eps,Vec **S)
   ierr = PetscMalloc(ctx->num_solve_point*sizeof(PetscScalar),&ppk);CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) ppk[i] = 1;
   ierr = VecDuplicate(ctx->Y[0],&v);CHKERRQ(ierr);
-  for (k=0;k<ctx->M;k++) {
+  for (k=0;k<M;k++) {
     for (j=0;j<ctx->L;j++) {
       ierr = VecSet(v,0);CHKERRQ(ierr);
       for (i=0;i<ctx->num_solve_point; i++) {
@@ -287,7 +287,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,Vec *S1,PetscInt *L_add)
   PetscInt       i,j,istart,p_start,p_end;
   PetscScalar    *data,*p_data,tmp,sum = 0.0;
   Vec            V_p;
-  PetscReal      est_eig;
+  PetscReal      eta,est_eig;
 
   PetscFunctionBegin;
   ierr = VecGetOwnershipRange(ctx->V[0],&istart,NULL);CHKERRQ(ierr);
@@ -305,10 +305,11 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,Vec *S1,PetscInt *L_add)
   }
   ierr = VecDestroy(&V_p);CHKERRQ(ierr);
   est_eig = PetscAbsScalar(ctx->radius*sum/(PetscReal)ctx->L);
+  eta = PetscPowReal(10,-log10(eps->tol)/ctx->N);
   ierr = PetscInfo1(eps,"Estimation_#Eig %F\n",est_eig);CHKERRQ(ierr);
-  *L_add = (PetscInt)est_eig/ctx->M - ctx->L;
+  *L_add = (PetscInt)ceil((est_eig*eta)/ctx->M) - ctx->L;
   if (*L_add < 0) *L_add = 0;
-  if (*L_add+ctx->L>ctx->L_max) {
+  if (*L_add>ctx->L_max-ctx->L) {
     ierr = PetscInfo(eps,"Number of eigenvalues around the contour path may be too large\n");
     *L_add = ctx->L_max-ctx->L;
   }
@@ -376,8 +377,8 @@ static PetscErrorCode SVD(EPS eps,Vec *Q,PetscInt *K)
   ierr = DSSetType(ds,DSSVD);CHKERRQ(ierr);
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
   n = eps->n;
-  ml = ctx->M*ctx->L;
-  ld = PetscMax(n,ml);
+  ml = PetscMin(n,ctx->M*ctx->L);
+  ld = PetscMax(n,ctx->M*ctx->L);
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
   ierr = DSSetDimensions(ds,n,ml,0,0);CHKERRQ(ierr);
 
@@ -441,6 +442,24 @@ static PetscErrorCode ProjectMatrix(Mat A,PetscInt nv,PetscInt ld,Vec *Q,PetscSc
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "isInsideGamma"
+static PetscErrorCode isInsideGamma(EPS eps,PetscInt nv,PetscBool *fl)
+{
+  EPS_CISS    *ctx = (EPS_CISS*)eps->data;
+  PetscInt    i;
+  PetscScalar d;
+  PetscReal   dx,dy;
+  for (i=0;i<nv;i++) {
+    d = (eps->eigr[i]-ctx->center)/ctx->radius;
+    dx = PetscRealPart(d);
+    dy = PetscImaginaryPart(d);
+    if ((dx*dx+(dy*dy)/(ctx->vscale*ctx->vscale))<=1) fl[i] = PETSC_TRUE;
+    else fl[i] = PETSC_FALSE;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_CISS"
 PetscErrorCode EPSSetUp_CISS(EPS eps)
 {
@@ -455,8 +474,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 #endif
   eps->ncv = PetscMin(eps->n,ctx->L*ctx->M);
   if (!eps->mpd) eps->mpd = eps->ncv;
-  if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
-  if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
+  if (!eps->which) eps->which = EPS_ALL;
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
@@ -524,7 +542,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,j,ld,nv,nmat,L_add=0;
   PetscScalar    *H,*rr,*pX;
-  PetscReal      dx,dy,d,*tau,s1,s2,tau_max=0.0;
+  PetscReal      *tau,s1,s2,tau_max=0.0;
+  PetscBool      *fl;
   Mat            A,B;
   Vec            *S1,w=eps->work[0];
 
@@ -540,14 +559,15 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = CISSVecSetRandom(ctx->V[i],eps->rand);CHKERRQ(ierr);
   }
   ierr = SolveLinearSystem(eps);CHKERRQ(ierr);
-  ierr = ConstructS(eps,&S1);CHKERRQ(ierr);
+  ierr = ConstructS(eps,1,&S1);CHKERRQ(ierr);
   ierr = EstimateNumberEigs(eps,S1,&L_add);CHKERRQ(ierr);
-  ierr = VecDestroyVecs(ctx->M*ctx->L,&S1);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(ctx->L,&S1);CHKERRQ(ierr);
 
   if (L_add>0) {
+    ierr = PetscInfo2(eps,"Changing L %d -> %d\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = SetAddVector(eps,ctx->L+L_add);CHKERRQ(ierr);
     ierr = SolveAddLinearSystem(eps,ctx->L+L_add);CHKERRQ(ierr);
-    ierr = PetscInfo2(eps,"Changing L %d -> %d\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+
     ctx->L += L_add;
     eps->mpd = ctx->L*ctx->M;
     eps->ncv = PetscMin(eps->n,ctx->L*ctx->M);
@@ -556,15 +576,15 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = DSSetEigenvalueComparison(eps->ds,eps->comparison,eps->comparisonctx);CHKERRQ(ierr);
     if (eps->isgeneralized) {
       if (eps->ishermitian && eps->ispositive) {
-	ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);
+        ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);
       } else {
-	ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
+        ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
       }
     } else {
       if (eps->ishermitian) {
-	ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
+        ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
       } else {
-	ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
+        ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
       }
     }
     ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
@@ -573,9 +593,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = PetscFree(ctx->sigma);CHKERRQ(ierr);
     ierr = PetscMalloc(ctx->L*ctx->M*sizeof(PetscReal),&ctx->sigma);CHKERRQ(ierr);
   }
-  ierr = ConstructS(eps,&ctx->S);CHKERRQ(ierr);
+  ierr = ConstructS(eps,ctx->M,&ctx->S);CHKERRQ(ierr);
   ierr = SVD(eps,ctx->S,&nv);CHKERRQ(ierr);
-
   ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
@@ -607,20 +626,20 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
   for (i=0;i<nv;i++) tau[i]/=tau_max;
 
+  ierr = PetscMalloc(nv*sizeof(PetscBool),&fl);CHKERRQ(ierr);
+  ierr = isInsideGamma(eps,nv,fl);CHKERRQ(ierr);
   ierr = PetscMalloc(nv*sizeof(PetscScalar),&rr);CHKERRQ(ierr);
   eps->nconv = 0;
   for (i=0;i<nv;i++) {
-    dx = PetscRealPart(eps->eigr[i])-PetscRealPart(ctx->center);
-    dy = (1.0/ctx->vscale)*PetscImaginaryPart(eps->eigr[i])-PetscImaginaryPart(ctx->center);
-    d = PetscSqrtReal(dx*dx + dy*dy);
-    rr[i] = d;
-    if (d<ctx->radius && tau[i] >= ctx->spurious_threshold*tau_max) eps->nconv++;
-    else rr[i] = 0;
+    if (fl[i] && tau[i] >= ctx->spurious_threshold*tau_max) {
+      rr[i] = 1.0;
+      eps->nconv++;
+    } else rr[i] = 0.0;
   }
   ierr = PetscFree(tau);CHKERRQ(ierr);
+  ierr = PetscFree(fl);CHKERRQ(ierr);
   ierr = DSSort(eps->ds,eps->eigr,NULL,rr,NULL,&eps->nconv);CHKERRQ(ierr);
   ierr = PetscFree(rr);CHKERRQ(ierr);
-
   for (i=0;i<nv;i++) {
     ierr = VecCopy(ctx->S[i],eps->V[i]);CHKERRQ(ierr);
   }
