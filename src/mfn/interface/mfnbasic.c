@@ -131,6 +131,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   const char     *fun;
+  char           str[50];
   PetscBool      isascii;
 
   PetscFunctionBegin;
@@ -157,7 +158,8 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",mfn->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",mfn->max_it);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",mfn->tol);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %G\n",mfn->sfactor);CHKERRQ(ierr);
+    ierr = SlepcSNPrintfScalar(str,50,mfn->sfactor,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %s\n",str);CHKERRQ(ierr);
   } else {
     if (mfn->ops->view) {
       ierr = (*mfn->ops->view)(mfn,viewer);CHKERRQ(ierr);
