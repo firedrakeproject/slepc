@@ -638,7 +638,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   }
   ierr = PetscFree(tau);CHKERRQ(ierr);
   ierr = PetscFree(fl);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(eps->ds,SlepcCompareLargestMagnitude,NULL);CHKERRQ(ierr);
   ierr = DSSort(eps->ds,eps->eigr,NULL,rr,NULL,&eps->nconv);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(eps->ds,eps->comparison,eps->comparisonctx);CHKERRQ(ierr);
   ierr = PetscFree(rr);CHKERRQ(ierr);
   for (i=0;i<nv;i++) {
     ierr = VecCopy(ctx->S[i],eps->V[i]);CHKERRQ(ierr);
