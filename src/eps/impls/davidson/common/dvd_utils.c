@@ -44,7 +44,7 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d,dvdBlackboard *b,PC pc)
   PetscErrorCode  ierr;
   dvdPCWrapper    *dvdpc;
   Mat             P;
-  PetscBool       t0,t1;
+  PetscBool       t0,t1,t2;
 
   PetscFunctionBegin;
   /* Setup the step */
@@ -62,12 +62,17 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d,dvdBlackboard *b,PC pc)
          be initialize to a valid matrix */
       ierr = PCGetOperatorsSet(pc,NULL,&t0);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&t1);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)pc,PCSHELL,&t2);CHKERRQ(ierr);
       if (t0 && !t1) {
-        ierr = PCGetOperators(pc, NULL, &P, NULL);CHKERRQ(ierr);
+        ierr = PCGetOperators(pc,NULL,&P,NULL);CHKERRQ(ierr);
         ierr = PetscObjectReference((PetscObject)P);CHKERRQ(ierr);
-        ierr = PCSetOperators(pc, P, P, SAME_PRECONDITIONER);CHKERRQ(ierr);
+        ierr = PCSetOperators(pc,P,P,SAME_PRECONDITIONER);CHKERRQ(ierr);
         ierr = MatDestroy(&P);CHKERRQ(ierr);
-      } else d->improvex_precond = dvd_precond_none;
+      } else if (t2) {
+        ierr = PCSetOperators(pc,d->A,d->A,SAME_PRECONDITIONER);CHKERRQ(ierr);
+      } else {
+        d->improvex_precond = dvd_precond_none;
+      }
 
       DVD_FL_ADD(d->destroyList, dvd_improvex_precond_d);
 

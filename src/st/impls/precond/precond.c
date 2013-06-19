@@ -70,10 +70,12 @@ PetscErrorCode STSetUp_Precond(ST st)
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
 
-  /* If pc is none and no matrix has to be set, exit */
+  /* If either pc is none and no matrix has to be set, or pc is shell , exit */
   ierr = STSetFromOptions_Precond(st);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)pc,PCSHELL,&t0);CHKERRQ(ierr);
+  if (t0) PetscFunctionReturn(0);
   ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&t0);CHKERRQ(ierr);
   ierr = STPrecondGetKSPHasMat(st,&setmat);CHKERRQ(ierr);
   if (t0 && !setmat) PetscFunctionReturn(0);
