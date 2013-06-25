@@ -283,6 +283,9 @@ PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
   }
+  if (ds->state < DS_STATE_CONDENSED) {
+    ierr = DSSetState(ds,DS_STATE_CONDENSED);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

@@ -111,7 +111,7 @@ PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscBool left)
   select = ds->iwork;
   for (i=0;i<n;i++) select[i] = 0;
   select[*k] = 1;
-  if (ds->state == DS_STATE_INTERMEDIATE) {
+  if (ds->state <= DS_STATE_INTERMEDIATE) {
     ierr = DSSetIdentity(ds,DS_MAT_Q);CHKERRQ(ierr);
     ierr = DSSetIdentity(ds,DS_MAT_Z);CHKERRQ(ierr);
   }
@@ -164,6 +164,10 @@ PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
     X = ds->mat[DS_MAT_X];
     Y = NULL;
     side = "R";
+  }
+  if (ds->state <= DS_STATE_INTERMEDIATE) {
+    ierr = DSSetIdentity(ds,DS_MAT_Q);CHKERRQ(ierr);
+    ierr = DSSetIdentity(ds,DS_MAT_Z);CHKERRQ(ierr);
   }
   ierr = CleanDenseSchur(n,0,A,ld,B,ld,ds->mat[DS_MAT_Q],ld,ds->mat[DS_MAT_Z],ld,PETSC_TRUE);CHKERRQ(ierr);
   if (ds->state>=DS_STATE_CONDENSED) {
@@ -521,7 +525,7 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
           PetscStackCallBLAS("BLASrot",BLASrot_(&n_i_2,&T[ldT*(i+2)+i],&ldT_,&T[ldT*(i+2)+i+1],&ldT_,&cl,&sl));
           PetscStackCallBLAS("BLASrot",BLASrot_(&i_,&T[ldT*i],&one,&T[ldT*(i+1)],&one,&cr,&sr));
           if (X) PetscStackCallBLAS("BLASrot",BLASrot_(&n_,&X[ldX*i],&one,&X[ldX*(i+1)],&one,&cr,&sr));
-          if (Y) PetscStackCallBLAS("BLASrot",BLASrot_(&n_,&Y[ldY*i],&one,&X[ldY*(i+1)],&one,&cl,&sl));
+          if (Y) PetscStackCallBLAS("BLASrot",BLASrot_(&n_,&Y[ldY*i],&one,&Y[ldY*(i+1)],&one,&cl,&sl));
           T[ldT*i+i] = b11;
           T[ldT*i+i+1] = 0.0;
           T[ldT*(i+1)+i] = 0.0;
