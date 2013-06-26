@@ -377,7 +377,7 @@ static PetscErrorCode SVD(EPS eps,Vec *Q,PetscInt *K)
   ierr = DSSetType(ds,DSSVD);CHKERRQ(ierr);
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
   n = eps->n;
-  ml = PetscMin(n,ctx->M*ctx->L);
+  ml = ctx->M*ctx->L;
   ld = PetscMax(n,ctx->M*ctx->L);
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
   ierr = DSSetDimensions(ds,n,ml,0,0);CHKERRQ(ierr);
@@ -393,7 +393,7 @@ static PetscErrorCode SVD(EPS eps,Vec *Q,PetscInt *K)
   ierr = DSRestoreArray(ds,DS_MAT_A,&R);CHKERRQ(ierr);
 
   ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&w);CHKERRQ(ierr);
+  ierr = PetscMalloc(ml*sizeof(PetscScalar),&w);CHKERRQ(ierr);
   ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestReal,NULL);CHKERRQ(ierr);
   ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
@@ -410,7 +410,7 @@ static PetscErrorCode SVD(EPS eps,Vec *Q,PetscInt *K)
     }
     ierr = VecRestoreArray(Q[i],&s);CHKERRQ(ierr);
   }
-  ierr = DSRestoreArray(ds,DS_MAT_A,&R);CHKERRQ(ierr);
+  ierr = DSRestoreArray(ds,DS_MAT_U,&R);CHKERRQ(ierr);
 
   ierr = PetscFree(w);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
