@@ -900,6 +900,11 @@ PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e
   /* Check consistency */
   if (d->size_auxV < PetscMax(2*(r_e-r_s),d->cX_in_AV+r_e) || d->size_auxS < PetscMax(d->size_H*(r_e-r_s) /* pX0 */, 2*size_in /* SlepcAllReduceSum */)) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
 
+  /*
+    Compute expanded cS = conv_ps.A, cT = conv_ps.B:
+    conv_ps.A = [ cX'*A*cX    cX'*A*X ]
+                [  X'*A*cX     X'*A*X ], where cX'*A*cX = cS and X = V*ps.Q
+  */ 
   n = d->size_cX+r_e;
   ierr = DSSetDimensions(d->conv_ps,n,0,0,0);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(d->conv_ps,&ldc);CHKERRQ(ierr);
@@ -913,7 +918,7 @@ PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e
   ierr = DSGetArray(d->ps,DS_MAT_Q,&pX);CHKERRQ(ierr);
   /* Prepare reductions */
   ierr = SlepcAllReduceSumBegin(ops,2,d->auxS,d->auxS+size_in,size_in,&r,PetscObjectComm((PetscObject)d->V[0]));CHKERRQ(ierr);
-  /* auxV <- AV * pX(0:r_e+cX_in_H) */
+  /* auxV <- A*X = AV * pX(0:r_e+cX_in_H) */
   ierr = SlepcUpdateVectorsZ(d->auxV,0.0,1.0,d->AV-d->cX_in_AV,d->size_AV+d->cX_in_AV,pX,ld,d->size_H,d->cX_in_AV+r_e);CHKERRQ(ierr);
   /* cS(:, size_cS:) <- cX' * auxV */
   ierr = VecsMultS(&cS[ldc*d->size_cS],0,ldc,d->cY?d->cY:d->cX,0,d->size_cX+r_e,d->auxV,0,d->cX_in_AV+r_e,&r,&sr[0]);CHKERRQ(ierr);
@@ -939,12 +944,19 @@ PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e
   /* pX0 <- ps.Q(0:d->cX_in_AV+r_e-1) * conv_ps.X(size_cX-cX_in_H:) */
   pX0 = d->auxS;
   ierr = DSGetArray(d->conv_ps,DS_MAT_X,&pcX);CHKERRQ(ierr);
-  ierr = SlepcDenseMatProd(pX0,d->size_H,0.0,1.0,pX,ld,d->size_H,d->cX_in_AV+r_e,PETSC_FALSE,&pcX[(d->size_cX-d->cX_in_H)*ldc],ldc,n,r_e-r_s,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = SlepcDenseMatProd(pX0,d->size_H,0.0,1.0,&pX[(d->cX_in_AV+r_s)*ld],ld,d->size_H,r_e-r_s,PETSC_FALSE,&pcX[d->size_cX+d->size_cX*ldc],ldc,r_e+d->cX_in_H,r_e-r_s,PETSC_FALSE);CHKERRQ(ierr);
   ierr = DSRestoreArray(d->ps,DS_MAT_Q,&pX);CHKERRQ(ierr);
   /* auxV <- cX(0:size_cX-cX_in_AV)*conv_ps.X + V*pX0 */
-  ierr = SlepcUpdateVectorsZ(d->auxV,0.0,1.0,d->cX,d->size_cX-d->cX_in_AV,pcX,ldc,n,r_e-r_s);CHKERRQ(ierr);
+  ierr = SlepcUpdateVectorsZ(d->auxV,0.0,1.0,d->cX,d->size_cX,&pcX[d->size_cX*ldc],ldc,d->size_cX,r_e-r_s);CHKERRQ(ierr);
   ierr = DSRestoreArray(d->conv_ps,DS_MAT_X,&pcX);CHKERRQ(ierr);
-  ierr = SlepcUpdateVectorsZ(d->auxV,d->size_cX-d->cX_in_AV==0?0.0:1.0,1.0,d->V-d->cX_in_AV,d->size_V+d->cX_in_AV,pX0,d->size_H,d->size_H,r_e-r_s);CHKERRQ(ierr);
+  ierr = SlepcUpdateVectorsZ(d->auxV,(d->size_cX-d->cX_in_AV==0)?0.0:1.0,1.0,d->V-d->cX_in_AV,d->size_V+d->cX_in_AV,pX0,d->size_H,d->size_H,r_e-r_s);CHKERRQ(ierr);
+  /* nX <- ||auxV|| */
+  for (i=0;i<r_e-r_s;i++) {
+    ierr = VecNormBegin(d->auxV[i],NORM_2,&d->nX[r_s+i]);CHKERRQ(ierr);
+  }
+  for (i=0;i<r_e-r_s;i++) {
+    ierr = VecNormEnd(d->auxV[i],NORM_2,&d->nX[r_s+i]);CHKERRQ(ierr);
+  }
   /* R <- A*auxV */
   for (i=0; i<r_e-r_s; i++) {
     ierr = MatMult(d->A,d->auxV[i],R[i]);CHKERRQ(ierr);
