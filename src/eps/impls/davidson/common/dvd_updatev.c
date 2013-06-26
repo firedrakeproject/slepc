@@ -33,7 +33,6 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d);
 PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d);
 PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d);
 PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d);
-PetscErrorCode dvd_updateV_conv_finish(dvdDashboard *d);
 PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,PetscInt e,Vec *auxV,PetscScalar *auxS,PetscInt *nConv);
 
 typedef struct {
@@ -127,7 +126,6 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
     d->updateV = dvd_updateV_extrapol;
     d->preTestConv = dvd_updateV_testConv;
     DVD_FL_ADD(d->startList, dvd_updateV_start);
-    DVD_FL_ADD(d->endList, dvd_updateV_conv_finish);
     DVD_FL_ADD(d->destroyList, dvd_managementV_basic_d);
   }
   PetscFunctionReturn(0);
@@ -144,9 +142,7 @@ PetscErrorCode dvd_updateV_start(dvdDashboard *d)
   d->size_cX = 0;
   d->eigr = d->ceigr = d->real_eigr;
   d->eigi = d->ceigi = d->real_eigi;
-#if defined(PETSC_USE_COMPLEX)
   for (i=0;i<d->size_real_V;i++) d->eigi[i] = 0.0;
-#endif
   d->nR = d->real_nR;
   for (i=0;i<d->size_real_V;i++) d->nR[i] = PETSC_MAX_REAL;
   d->nX = d->real_nX;
@@ -298,32 +294,6 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "dvd_updateV_conv_finish"
-PetscErrorCode dvd_updateV_conv_finish(dvdDashboard *d)
-{
-  PetscErrorCode  ierr;
-  dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
-#if defined(PETSC_USE_COMPLEX)
-  PetscInt        i, j;
-  PetscScalar     s;
-#endif
-
-  PetscFunctionBegin;
-  /* Some functions need the diagonal elements in cT be real */
-#if defined(PETSC_USE_COMPLEX)
-  if (d->cT) for (i=0;i<d->nconv;i++) {
-    s = PetscConj(d->cT[d->ldcT*i+i])/PetscAbsScalar(d->cT[d->ldcT*i+i]);
-    for (j=0;j<=i;j++)
-      d->cT[d->ldcT*i+j] = PetscRealPart(d->cT[d->ldcT*i+j]*s),
-      d->cS[d->ldcS*i+j]*= s;
-    ierr = VecScale(d->cX[i],s);CHKERRQ(ierr);
-  }
-#endif
-  ierr = d->calcpairs_selectPairs(d, data->min_size_V);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_restart_gen"
 PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 {
@@ -370,15 +340,13 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
     ierr = DSOrthogonalize(d->ps,DS_MAT_Q,size_X+size_plusk,&cMTX);CHKERRQ(ierr);
   }
 
-  if (d->W) {
+  if (d->W && size_plusk > 0) {
     /* ps.Z <- orth([ps.Z(0:size_X-1) [oldV(0:size_plusk-1); 0] ]) */
-    if (size_plusk > 0) {
-      ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
-      ierr = SlepcDenseCopy(&pZ[ld*size_X],ld,data->oldV,data->ldoldU,data->size_oldU,size_plusk);CHKERRQ(ierr);
-      for (i=size_X;i<size_X+size_plusk;i++) {
-        for (j=data->size_oldU;j<d->size_H;j++) {
-          pZ[j*ld+i] = 0.0;
-        }
+    ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
+    ierr = SlepcDenseCopy(&pZ[ld*size_X],ld,data->oldV,data->ldoldU,data->size_oldU,size_plusk);CHKERRQ(ierr);
+    for(i=size_X; i<size_X+size_plusk; i++) {
+      for(j=data->size_oldU; j<d->size_H; j++) {
+        pZ[j*ld+i] = 0.0;
       }
     }
     ierr = DSRestoreArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
@@ -387,7 +355,7 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   }
 
   /* Notify the changes in V and update the other subspaces */
-  d->V_tra_s = d->cX_in_H;                  d->V_tra_e = cMTX;
+  d->V_tra_s = d->cX_in_H;            d->V_tra_e = cMTX;
   d->V_new_s = d->V_tra_e-d->cX_in_H; d->V_new_e = d->V_new_s;
 
   /* Remove oldU */
