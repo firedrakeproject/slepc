@@ -400,7 +400,7 @@ static PetscErrorCode SVD(EPS eps,Vec *Q,PetscInt *K)
   *K = 0;
   for (i=0;i<ml;i++) {
     ctx->sigma[i] = PetscRealPart(w[i]);
-    if (ctx->sigma[i]/ctx->sigma[0]>ctx->delta) (*K)++;
+    if (ctx->sigma[i]/PetscMax(ctx->sigma[0],1)>ctx->delta) (*K)++;
   }
   ierr = DSGetArray(ds,DS_MAT_U,&R);CHKERRQ(ierr);
   for (i=0;i<ml;i++) {
@@ -595,67 +595,70 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   }
   ierr = ConstructS(eps,ctx->M,&ctx->S);CHKERRQ(ierr);
   ierr = SVD(eps,ctx->S,&nv);CHKERRQ(ierr);
-  ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
-  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
-  ierr = DSGetArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-  ierr = ProjectMatrix(A,nv,ld,ctx->S,H,w,eps->ishermitian);CHKERRQ(ierr);
-  ierr = DSRestoreArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-
-  if (nmat>1) {
-    ierr = DSGetArray(eps->ds,DS_MAT_B,&H);CHKERRQ(ierr);
-    ierr = ProjectMatrix(B,nv,ld,ctx->S,H,w,eps->ishermitian);CHKERRQ(ierr);
-    ierr = DSRestoreArray(eps->ds,DS_MAT_B,&H);CHKERRQ(ierr);
-  }
-
-  ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
-
-  ierr = PetscMalloc(nv*sizeof(PetscReal),&tau);CHKERRQ(ierr);
-  ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-  for (i=0;i<nv;i++) {
-    s1 = 0;
-    s2 = 0;
-    for (j=0;j<nv;j++) {
-      s1 += PetscAbsScalar(PetscPowScalar(pX[i*ld+j],2));
-      s2 += PetscPowScalar(PetscAbsScalar(pX[i*ld+j]),2)/ctx->sigma[j];
-    }
-    tau[i] = s1/s2;
-    tau_max = PetscMax(tau_max,tau[i]);
-  }
-  ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-  for (i=0;i<nv;i++) tau[i]/=tau_max;
-
-  ierr = PetscMalloc(nv*sizeof(PetscBool),&fl);CHKERRQ(ierr);
-  ierr = isInsideGamma(eps,nv,fl);CHKERRQ(ierr);
-  ierr = PetscMalloc(nv*sizeof(PetscScalar),&rr);CHKERRQ(ierr);
   eps->nconv = 0;
-  for (i=0;i<nv;i++) {
-    if (fl[i] && tau[i] >= ctx->spurious_threshold*tau_max) {
-      rr[i] = 1.0;
-      eps->nconv++;
-    } else rr[i] = 0.0;
-  }
-  ierr = PetscFree(tau);CHKERRQ(ierr);
-  ierr = PetscFree(fl);CHKERRQ(ierr);
-  ierr = DSSetEigenvalueComparison(eps->ds,SlepcCompareLargestMagnitude,NULL);CHKERRQ(ierr);
-  ierr = DSSort(eps->ds,eps->eigr,NULL,rr,NULL,&eps->nconv);CHKERRQ(ierr);
-  ierr = DSSetEigenvalueComparison(eps->ds,eps->comparison,eps->comparisonctx);CHKERRQ(ierr);
-  ierr = PetscFree(rr);CHKERRQ(ierr);
-  for (i=0;i<nv;i++) {
-    ierr = VecCopy(ctx->S[i],eps->V[i]);CHKERRQ(ierr);
-  }
-
-  if (eps->ishermitian) {  /* compute eigenvectors */
+  if (nv>0) {
+    ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
+    ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  
+    ierr = DSGetArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+    ierr = ProjectMatrix(A,nv,ld,ctx->S,H,w,eps->ishermitian);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+    
+    if (nmat>1) {
+      ierr = DSGetArray(eps->ds,DS_MAT_B,&H);CHKERRQ(ierr);
+      ierr = ProjectMatrix(B,nv,ld,ctx->S,H,w,eps->ishermitian);CHKERRQ(ierr);
+      ierr = DSRestoreArray(eps->ds,DS_MAT_B,&H);CHKERRQ(ierr);
+    }
+    
+    ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
+    
+    ierr = PetscMalloc(nv*sizeof(PetscReal),&tau);CHKERRQ(ierr);
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
     ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-    ierr = SlepcUpdateVectors(nv,eps->V,0,eps->nconv,pX,ld,PETSC_FALSE);CHKERRQ(ierr);
+    for (i=0;i<nv;i++) {
+      s1 = 0;
+      s2 = 0;
+      for (j=0;j<nv;j++) {
+	s1 += PetscAbsScalar(PetscPowScalar(pX[i*ld+j],2));
+	s2 += PetscPowScalar(PetscAbsScalar(pX[i*ld+j]),2)/ctx->sigma[j];
+      }
+      tau[i] = s1/s2;
+      tau_max = PetscMax(tau_max,tau[i]);
+    }
+    tau_max /= ctx->sigma[0];
     ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
+    for (i=0;i<nv;i++) tau[i]/=tau_max;
+    ierr = PetscMalloc(nv*sizeof(PetscBool),&fl);CHKERRQ(ierr);
+    ierr = isInsideGamma(eps,nv,fl);CHKERRQ(ierr);
+    ierr = PetscMalloc(nv*sizeof(PetscScalar),&rr);CHKERRQ(ierr);
+    for (i=0;i<nv;i++) {
+      if (fl[i] && tau[i] >= ctx->spurious_threshold*tau_max) {
+	rr[i] = 1.0;
+	eps->nconv++;
+      } else rr[i] = 0.0;
+    }
+    ierr = PetscFree(tau);CHKERRQ(ierr);
+    ierr = PetscFree(fl);CHKERRQ(ierr);
+    ierr = DSSetEigenvalueComparison(eps->ds,SlepcCompareLargestMagnitude,NULL);CHKERRQ(ierr);
+    ierr = DSSort(eps->ds,eps->eigr,NULL,rr,NULL,&eps->nconv);CHKERRQ(ierr);
+    ierr = DSSetEigenvalueComparison(eps->ds,eps->comparison,eps->comparisonctx);CHKERRQ(ierr);
+    ierr = PetscFree(rr);CHKERRQ(ierr);
+    for (i=0;i<nv;i++) {
+      ierr = VecCopy(ctx->S[i],eps->V[i]);CHKERRQ(ierr);
+    }
+    
+    if (eps->ishermitian) {  /* compute eigenvectors */
+      ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+      ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
+      ierr = SlepcUpdateVectors(nv,eps->V,0,eps->nconv,pX,ld,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
+    }
   }
   eps->reason = EPS_CONVERGED_TOL;
   PetscFunctionReturn(0);
 }
-
+  
 #undef __FUNCT__
 #define __FUNCT__ "EPSCISSSetRegion_CISS"
 static PetscErrorCode EPSCISSSetRegion_CISS(EPS eps,PetscScalar center,PetscReal radius,PetscReal vscale)
