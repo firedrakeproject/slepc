@@ -276,7 +276,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
       } else {
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSTruncate(qep->ds,k+l);CHKERRQ(ierr);
-        ierr = DSGetDimensions(qep->ds,&newn,NULL,NULL,NULL);CHKERRQ(ierr);
+        ierr = DSGetDimensions(qep->ds,&newn,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
         l = newn-k;
       }
     }

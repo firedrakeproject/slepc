@@ -192,7 +192,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     /* Rational Krylov */
     ierr = DSTranslateRKS(eps->ds,sr->sPrev->value-sPres->value);CHKERRQ(ierr);
     ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = DSGetDimensions(eps->ds,NULL,NULL,NULL,&l);CHKERRQ(ierr);
+    ierr = DSGetDimensions(eps->ds,NULL,NULL,NULL,&l,NULL);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(l+1,eps->V,0,l+1,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   } else {

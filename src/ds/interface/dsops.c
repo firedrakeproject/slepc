@@ -198,13 +198,18 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
 +  n  - the current size
 .  m  - the current column size (only for DSSVD)
 .  l  - number of locked (inactive) leading columns
--  k  - intermediate dimension (e.g., position of arrow)
+.  k  - intermediate dimension (e.g., position of arrow)
+-  t  - truncated length
 
    Level: intermediate
 
-.seealso: DSSetDimensions()
+   Note:
+   The t parameter makes sense only if DSTruncate() has been called.
+   Otherwise its value equals n.
+
+.seealso: DSSetDimensions(), DSTruncate()
 @*/
-PetscErrorCode DSGetDimensions(DS ds,PetscInt *n,PetscInt *m,PetscInt *l,PetscInt *k)
+PetscErrorCode DSGetDimensions(DS ds,PetscInt *n,PetscInt *m,PetscInt *l,PetscInt *k,PetscInt *t)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
@@ -212,6 +217,7 @@ PetscErrorCode DSGetDimensions(DS ds,PetscInt *n,PetscInt *m,PetscInt *l,PetscIn
   if (m) *m = ds->m;
   if (l) *l = ds->l;
   if (k) *k = ds->k;
+  if (t) *t = ds->t;
   PetscFunctionReturn(0);
 }
 

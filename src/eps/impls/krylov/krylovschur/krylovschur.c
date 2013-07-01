@@ -55,7 +55,7 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetDimensions(eps->ds,&n,NULL,&l,NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
   for (i=l;i<n;i++) {
     re = eps->eigr[i];
     im = eps->eigi[i];
