@@ -349,6 +349,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
     for (i=ds->l;i<ds->n;i++) wi[i] = 0.0;
   }
 #endif
+  ds->t = ds->n;
   PetscFunctionReturn(0);
 }
 

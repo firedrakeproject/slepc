@@ -844,7 +844,7 @@ PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = DSGHIEP_Eigen3DQDS(ds->n-ds->l,a+ds->l,b+ds->l,c+ds->l,wr+ds->l,vi,ds->rwork+nwu,nwall-nwu);CHKERRQ(ierr);
 
   /* Compute Eigenvectors with Inverse Iteration */
-  ierr = DSInverseIterationPseudoOrthog(ds,wr,wi);CHKERRQ(ierr);
+  ierr = DSGHIEPInverseIteration(ds,wr,wi);CHKERRQ(ierr);
 
   /* Recover eigenvalues from diagonal */
   ierr = DSGHIEPComplexEigs(ds,0,ds->l,wr,wi);CHKERRQ(ierr);

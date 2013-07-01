@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = dsghiep.c dsghiep_hz.c dsghiep_dqds.c
+SOURCEC  = dsghiep_ivit.c dsghiep.c dsghiep_hz.c dsghiep_dqds.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepc
