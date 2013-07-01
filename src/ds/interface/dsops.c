@@ -159,6 +159,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
       if (ds->extrarow && n+1>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"A value of n equal to ld leaves no room for extra row");
       ds->n = n;
     }
+    ds->t = ds->n;   /* truncated length equal to the new dimension */
   }
   if (m) {
     if (m==PETSC_DECIDE || m==PETSC_DEFAULT) {

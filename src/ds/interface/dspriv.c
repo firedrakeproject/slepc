@@ -156,9 +156,10 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
 {
   PetscErrorCode ierr;
   PetscScalar    re,im,wi0;
-  PetscInt       i,j,result,tmp1,tmp2=0,d=1;
+  PetscInt       n,i,j,result,tmp1,tmp2=0,d=1;
 
   PetscFunctionBegin;
+  n = ds->t;   /* sort only first t pairs if truncated */
   for (i=0;i<ds->n;i++) perm[i] = i;
   /* insertion sort */
   i=ds->l+1;
@@ -167,7 +168,7 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
 #else
   if (isghiep && PetscImaginaryPart(wr[perm[i-1]])!=0.0) i++;
 #endif
-  for (;i<ds->n;i+=d) {
+  for (;i<n;i+=d) {
     re = wr[perm[i]];
     if (wi) im = wi[perm[i]];
     else im = 0.0;
@@ -214,7 +215,7 @@ PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm
   PetscInt       i,j,result,tmp,l,n;
 
   PetscFunctionBegin;
-  n = ds->n;
+  n = ds->t;   /* sort only first t pairs if truncated */
   l = ds->l;
   for (i=0;i<n;i++) perm[i] = i;
   /* insertion sort */
