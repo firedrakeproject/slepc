@@ -45,6 +45,7 @@ import check
 import arpack
 import blzpack
 import trlan
+import feast
 import lapack
 import primme
 import blopex
@@ -86,6 +87,9 @@ trlanlibs = []
 haveprimme = 0
 primmedir = ''
 primmelibs = []
+havefeast = 0
+feastdir = ''
+feastlibs = []
 getblopex = 0
 haveblopex = 0
 blopexurl = ''
@@ -124,6 +128,14 @@ for i in sys.argv[1:]:
     haveprimme = 1
   elif i.startswith('--with-primme'):
     haveprimme = not i.endswith('=0')
+  elif i.startswith('--with-feast-dir='):
+    feastdir = i.split('=')[1]
+    havefeast = 1
+  elif i.startswith('--with-feast-flags='):
+    feastlibs = i.split('=')[1].split(',')
+    havefeast = 1
+  elif i.startswith('--with-feast'):
+    havefeast = not i.endswith('=0')
   elif i.startswith('--download-blopex'):
     getblopex = not i.endswith('=0')
     try: blopexurl = i.split('=')[1]
@@ -150,6 +162,10 @@ for i in sys.argv[1:]:
     print '  --with-primme                    : Indicate if you wish to test for PRIMME'
     print '  --with-primme-dir=<dir>          : Indicate the directory for PRIMME libraries'
     print '  --with-primme-flags=<flags>      : Indicate comma-separated flags for linking PRIMME'
+    print 'FEAST:'
+    print '  --with-feast                     : Indicate if you wish to test for FEAST'
+    print '  --with-feast-dir=<dir>           : Indicate the directory for FEAST libraries'
+    print '  --with-feast-flags=<flags>       : Indicate comma-separated flags for linking FEAST'
     print 'BLOPEX:'
     print '  --download-blopex                : Download and install BLOPEX in SLEPc directory'
     sys.exit(0)
@@ -345,6 +361,8 @@ if havetrlan:
   trlanlibs = trlan.Check(slepcconf,slepcvars,cmake,tmpdir,trlandir,trlanlibs)
 if haveprimme:
   primmelibs = primme.Check(slepcconf,slepcvars,cmake,tmpdir,primmedir,primmelibs)
+if havefeast:
+  feastlibs = feast.Check(slepcconf,slepcvars,cmake,tmpdir,feastdir,feastlibs)
 if getblopex:
   blopexlibs = blopex.Install(slepcconf,slepcvars,cmake,tmpdir,blopexurl,archdir)
   haveblopex = 1
@@ -362,7 +380,7 @@ if subversion and hasattr(petscconf,'FC'):
     sys.exit('ERROR: cannot generate Fortran stubs; try configuring PETSc with --download-sowing or use a mercurial version of PETSc')
 
 # CMake stuff
-cmake.write('set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}" "${BLOPEX_LIB}" )\n')
+cmake.write('set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}" "${FEAST_LIB}" "${BLOPEX_LIB}" )\n')
 cmake.write('set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")\n')
 cmake.write('find_library (PETSC_LIB petsc HINTS ${PETSc_BINARY_DIR}/lib )\n')
 cmake.write('''
@@ -456,6 +474,9 @@ if havetrlan:
 if haveprimme:
   log.Println('PRIMME library flags:')
   log.Println(' '+str.join(' ',primmelibs))
+if havefeast:
+  log.Println('FEAST library flags:')
+  log.Println(' '+str.join(' ',feastlibs))
 if haveblopex:
   log.Println('BLOPEX library flags:')
   log.Println(' '+str.join(' ',blopexlibs))

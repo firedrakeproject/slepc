@@ -62,6 +62,7 @@ typedef const char* EPSType;
 #define EPSTRLAN       "trlan"
 #define EPSBLOPEX      "blopex"
 #define EPSPRIMME      "primme"
+#define EPSFEAST       "feast"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId EPS_CLASSID;

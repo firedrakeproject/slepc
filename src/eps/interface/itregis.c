@@ -42,6 +42,9 @@ PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS);
 #if defined(SLEPC_HAVE_PRIMME)
 PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps);
 #endif
+#if defined(SLEPC_HAVE_FEAST)
+PETSC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS);
+#endif
 PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps);
@@ -90,6 +93,9 @@ PetscErrorCode EPSRegisterAll(void)
 #endif
 #if defined(SLEPC_HAVE_PRIMME)
   ierr = EPSRegister(EPSPRIMME,EPSCreate_PRIMME);CHKERRQ(ierr);
+#endif
+#if defined(SLEPC_HAVE_FEAST)
+  ierr = EPSRegister(EPSFEAST,EPSCreate_FEAST);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }

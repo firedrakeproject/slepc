@@ -19,13 +19,41 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
+import os
+import sys
 
-LIBBASE  = libslepc
-DIRS     = arpack blopex blzpack primme trlan feast
-LOCDIR   = src/eps/impls/external/
-MANSEC   = EPS
+import petscconf
+import log
+import check
 
-include ${SLEPC_DIR}/conf/slepc_common
+def Check(conf,vars,cmake,tmpdir,directory,libs):
 
+  if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
+    log.Exit('ERROR: FEAST is supported only in single or double precision.')
 
+  functions = ['feastinit']
+  if petscconf.SCALAR == 'real':
+    if petscconf.PRECISION == 'single':
+      functions += ['sfeast_srci']
+    else:
+      functions += ['dfeast_srci']
+  else:
+    if petscconf.PRECISION == 'single':
+      functions += ['cfeast_hrci']
+    else:
+      functions += ['zfeast_hrci']
+
+  if libs:
+    libs = [libs]
+  else:
+    if petscconf.MPIUNI:
+      libs = [['-lpfeast']]
+    else:
+      libs = [['-lfeast']]
+
+  if directory:
+    dirs = [directory]
+  else:
+    dirs = check.GenerateGuesses('Feast')
+
+  return check.FortranLib(tmpdir,conf,vars,cmake,'FEAST',dirs,libs,functions)

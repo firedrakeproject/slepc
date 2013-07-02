@@ -21,10 +21,17 @@
 
 ALL: lib
 
+#requiresdefine  'SLEPC_HAVE_FEAST'
+
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = feast.c
+SOURCEF  =
+SOURCEH  = feastp.h
 LIBBASE  = libslepc
-DIRS     = arpack blopex blzpack primme trlan feast
-LOCDIR   = src/eps/impls/external/
+DIRS     =
 MANSEC   = EPS
+LOCDIR   = src/eps/impls/external/feast/
 
 include ${SLEPC_DIR}/conf/slepc_common
 

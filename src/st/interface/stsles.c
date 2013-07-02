@@ -34,8 +34,9 @@
    Collective on ST
 
    Input Parameters:
-.  st - the spectral transformation context
-.  x  - the vector to be multiplied
++  st - the spectral transformation context
+.  k  - index of matrix to use
+-  x  - the vector to be multiplied
 
    Output Parameter:
 .  y - the result
@@ -71,8 +72,9 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
    Collective on ST
 
    Input Parameters:
-.  st - the spectral transformation context
-.  x  - the vector to be multiplied
++  st - the spectral transformation context
+.  k  - index of matrix to use
+-  x  - the vector to be multiplied
 
    Output Parameter:
 .  y - the result
@@ -108,8 +110,9 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
    Collective on ST
 
    Input Parameters:
-.  st - the spectral transformation context
-.  b  - right hand side vector
++  st - the spectral transformation context
+.  k  - index of matrix to use
+-  b  - right hand side vector
 
    Output Parameter:
 .  x - computed solution
