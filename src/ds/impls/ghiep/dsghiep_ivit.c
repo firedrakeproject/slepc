@@ -854,11 +854,11 @@ if (ldl==1) {
 PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScalar *wi,PetscBool accum)
 {
   PetscErrorCode ierr;
-  PetscInt       lws,nwus=0,lwi,nwui=0;
+  PetscInt       lws,nwus=0,lwi;
   PetscInt       off,n,nv,ld,i,ldr,*perm,*cmplxEig,l;
   PetscScalar    *W,*X,*R,*ts,zeroS=0.0,oneS=1.0;
   PetscReal      *s,vi,vr,tr,*d,*e;
-  PetscBLASInt   ld_,n_,nv_;
+  PetscBLASInt   ld_,n_,nv_,nwui=0;
 
   PetscFunctionBegin;
 #if 0
@@ -869,7 +869,9 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
 #endif
   l = ds->l;
   n = ds->n-l;
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ld = ds->ld;
+  ierr = PetscBLASIntCast(ld,&ld_);CHKERRQ(ierr);
   off = l*ld+l;
   s = ds->rmat[DS_MAT_D];
   if (!ds->compact) {
@@ -882,9 +884,9 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
   nwus += n*n;
   ldr = n;
   perm = ds->iwork + nwui;
-  nwui += n;
+  nwui += n_;
   cmplxEig = ds->iwork+nwui;
-  nwui += n;
+  nwui += n_;
   X = ds->mat[mat];
   for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
@@ -950,9 +952,7 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
   }
   /* accumulate previous Q */
   if (accum && mat!=DS_MAT_Q) {
-    ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(nv,&nv_);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(ld,&ld_);CHKERRQ(ierr);
     ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
     W = ds->mat[DS_MAT_W];
     ierr = DSCopyMatrix_Private(ds,DS_MAT_W,DS_MAT_Q);CHKERRQ(ierr);
