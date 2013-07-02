@@ -141,7 +141,9 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   if (eps->arbitrary) {
     ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
-  } else {
+  } else if (eps->ishermitian && !eps->ispositive){
+    ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
+  } else{
     ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
   }
 
