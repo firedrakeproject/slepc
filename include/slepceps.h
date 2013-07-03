@@ -390,5 +390,8 @@ PETSC_EXTERN PetscErrorCode EPSCISSGetSizes(EPS,PetscInt*,PetscInt*,PetscInt*,Pe
 PETSC_EXTERN PetscErrorCode EPSCISSSetThreshold(EPS,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode EPSCISSGetThreshold(EPS,PetscReal*,PetscReal*);
 
+PETSC_EXTERN PetscErrorCode EPSFEASTSetNumPoints(EPS,PetscInt);
+PETSC_EXTERN PetscErrorCode EPSFEASTGetNumPoints(EPS,PetscInt*);
+
 #endif
 

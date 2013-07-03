@@ -25,7 +25,8 @@
 #define __FEASTP_H
 
 typedef struct {
-  PetscScalar *work1,*work2,*Aq,*Bq,*Q;
+  PetscScalar  *work1,*work2,*Aq,*Bq;   /* workspace */
+  PetscBLASInt npoints;                 /* number of contour points */
 } EPS_FEAST;
 
 /*

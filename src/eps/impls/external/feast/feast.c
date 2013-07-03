@@ -68,6 +68,8 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   if (eps->balance!=EPS_BALANCE_NONE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Balancing not supported in the Arpack interface");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
+  if (!ctx->npoints) ctx->npoints = 8;
+
   ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
 
@@ -98,6 +100,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
   /* parameters */
   FEASTinit_(fpm);
   fpm[0] = (eps->numbermonitors>0)? 1: 0;                      /* runtime comments */
+  fpm[1] = ctx->npoints;                                       /* contour points */
   ierr = PetscBLASIntCast(eps->max_it,&fpm[3]);CHKERRQ(ierr);  /* refinement loops */
 #if !defined(PETSC_HAVE_MPIUNI)
   ierr = PetscBLASIntCast(MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&fpm[8]);CHKERRQ(ierr);
@@ -191,6 +194,130 @@ PetscErrorCode EPSDestroy_FEAST(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTSetNumPoints_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTGetNumPoints_C",NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSSetFromOptions_FEAST"
+PetscErrorCode EPSSetFromOptions_FEAST(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
+  PetscInt       n;
+  PetscBool      flg;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead("EPS FEAST Options");CHKERRQ(ierr);
+
+  n = ctx->npoints;
+  ierr = PetscOptionsInt("-eps_feast_num_points","Number of contour integration points","EPSFEASTSetNumPoints",n,&n,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = EPSFEASTSetNumPoints(eps,n);CHKERRQ(ierr);
+  }
+
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSView_FEAST"
+PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
+  PetscBool      isascii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  FEAST: number of contour integration points=%d\n",ctx->npoints);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSFEASTSetNumPoints_FEAST"
+static PetscErrorCode EPSFEASTSetNumPoints_FEAST(EPS eps,PetscInt npoints)
+{
+  PetscErrorCode ierr;
+  EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
+
+  PetscFunctionBegin;
+  if (npoints == PETSC_DEFAULT) ctx->npoints = 8;
+  else {
+    ierr = PetscBLASIntCast(npoints,&ctx->npoints);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSFEASTSetNumPoints"
+/*@
+   EPSFEASTSetNumPoints - Sets the number of contour integration points for
+   the FEAST package.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps     - the eigenproblem solver context
+-  npoints - number of contour integration points
+
+   Options Database Key:
+.  -eps_feast_num_points - Sets the number of points
+
+   Level: advanced
+
+.seealso: EPSFEASTGetNumPoints()
+@*/
+PetscErrorCode EPSFEASTSetNumPoints(EPS eps,PetscInt npoints)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,npoints,2);
+  ierr = PetscTryMethod(eps,"EPSFEASTSetNumPoints_C",(EPS,PetscInt),(eps,npoints));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSFEASTGetNumPoints_FEAST"
+static PetscErrorCode EPSFEASTGetNumPoints_FEAST(EPS eps,PetscInt *npoints)
+{
+  EPS_FEAST *ctx = (EPS_FEAST*)eps->data;
+
+  PetscFunctionBegin;
+  if (npoints) *npoints = ctx->npoints;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSFEASTGetNumPoints"
+/*@
+   EPSFEASTGetNumPoints - Gets the number of contour integration points for
+   the FEAST package.
+
+   Collective on EPS
+
+   Input Parameter:
+.  eps     - the eigenproblem solver context
+
+   Output Parameter:
+-  npoints - number of contour integration points
+
+   Level: advanced
+
+.seealso: EPSFEASTSetNumPoints()
+@*/
+PetscErrorCode EPSFEASTGetNumPoints(EPS eps,PetscInt *npoints)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscTryMethod(eps,"EPSFEASTSetNumPoints_C",(EPS,PetscInt*),(eps,npoints));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -203,9 +330,13 @@ PETSC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
   PetscFunctionBegin;
   ierr = PetscNewLog(eps,EPS_FEAST,&eps->data);CHKERRQ(ierr);
   eps->ops->setup                = EPSSetUp_FEAST;
+  eps->ops->setfromoptions       = EPSSetFromOptions_FEAST;
   eps->ops->destroy              = EPSDestroy_FEAST;
   eps->ops->reset                = EPSReset_FEAST;
+  eps->ops->view                 = EPSView_FEAST;
   eps->ops->computevectors       = EPSComputeVectors_Default;
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTSetNumPoints_C",EPSFEASTSetNumPoints_FEAST);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTGetNumPoints_C",EPSFEASTGetNumPoints_FEAST);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
