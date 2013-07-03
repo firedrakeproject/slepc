@@ -357,6 +357,7 @@ static PetscErrorCode SolveAddLinearSystem(EPS eps,PetscInt Ladd_start,PetscInt 
   PetscFunctionBegin;
   for (i=0;i<ctx->num_solve_point;i++) {
     for (j=Ladd_start;j<Ladd_end;j++) {
+      ierr = VecDestroy(&ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
       ierr = VecDuplicate(ctx->V[0],&ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
       ierr = PetscLogObjectParent(eps,ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
       ierr = KSPSolve(ctx->ksp[i],ctx->V[j],ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
@@ -576,8 +577,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   }
 
   if (ctx->L != L_base) {
-    eps->mpd = ctx->L*ctx->M;
     eps->ncv = PetscMin(eps->n,ctx->L*ctx->M);
+    eps->mpd = eps->ncv;
     ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
     ierr = DSReset(eps->ds);CHKERRQ(ierr);
     ierr = DSSetEigenvalueComparison(eps->ds,eps->comparison,eps->comparisonctx);CHKERRQ(ierr);
