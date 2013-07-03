@@ -60,5 +60,6 @@
 #define EPSTRLAN       'trlan'
 #define EPSBLOPEX      'blopex'
 #define EPSPRIMME      'primme'
+#define EPSFEAST       'feast'
 
 #endif

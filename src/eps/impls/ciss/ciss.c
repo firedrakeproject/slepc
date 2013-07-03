@@ -62,6 +62,8 @@ typedef struct {
   PetscInt    L_max;      /* maximum number of columns of the source matrix V */
   PetscReal   spurious_threshold; /* discard spurious eigenpairs */
   PetscBool   isreal;     /* A and B are real */
+  PetscInt    refine_inner;
+  PetscInt    refine_outer;
   /* private data */
   MPI_Comm    scomm;
   PetscInt    solver_comm_id;
@@ -74,6 +76,7 @@ typedef struct {
   Vec         *S;
   KSP         *ksp;
   PetscBool   useconj;
+  PetscReal   est_eig;
 } EPS_CISS;
 
 #undef __FUNCT__
@@ -287,7 +290,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,Vec *S1,PetscInt *L_add)
   PetscInt       i,j,istart,p_start,p_end;
   PetscScalar    *data,*p_data,tmp,sum = 0.0;
   Vec            V_p;
-  PetscReal      eta,est_eig;
+  PetscReal      eta;
 
   PetscFunctionBegin;
   ierr = VecGetOwnershipRange(ctx->V[0],&istart,NULL);CHKERRQ(ierr);
@@ -304,10 +307,10 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,Vec *S1,PetscInt *L_add)
     sum += tmp;
   }
   ierr = VecDestroy(&V_p);CHKERRQ(ierr);
-  est_eig = PetscAbsScalar(ctx->radius*sum/(PetscReal)ctx->L);
+  ctx->est_eig = PetscAbsScalar(ctx->radius*sum/(PetscReal)ctx->L);
   eta = PetscPowReal(10,-log10(eps->tol)/ctx->N);
-  ierr = PetscInfo1(eps,"Estimation_#Eig %F\n",est_eig);CHKERRQ(ierr);
-  *L_add = (PetscInt)ceil((est_eig*eta)/ctx->M) - ctx->L;
+  ierr = PetscInfo1(eps,"Estimation_#Eig %F\n",ctx->est_eig);CHKERRQ(ierr);
+  *L_add = (PetscInt)ceil((ctx->est_eig*eta)/ctx->M) - ctx->L;
   if (*L_add < 0) *L_add = 0;
   if (*L_add>ctx->L_max-ctx->L) {
     ierr = PetscInfo(eps,"Number of eigenvalues around the contour path may be too large\n");
@@ -345,11 +348,11 @@ static PetscErrorCode SetAddVector(EPS eps,PetscInt Ladd_end)
 
 #undef __FUNCT__
 #define __FUNCT__ "SolveAddLinearSystem"
-static PetscErrorCode SolveAddLinearSystem(EPS eps,PetscInt Ladd_end)
+static PetscErrorCode SolveAddLinearSystem(EPS eps,PetscInt Ladd_start,PetscInt Ladd_end)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j,Ladd_start=ctx->L;
+  PetscInt       i,j;
 
   PetscFunctionBegin;
   for (i=0;i<ctx->num_solve_point;i++) {
@@ -364,11 +367,11 @@ static PetscErrorCode SolveAddLinearSystem(EPS eps,PetscInt Ladd_end)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVD"
-static PetscErrorCode SVD(EPS eps,Vec *Q,PetscInt *K)
+static PetscErrorCode SVD(EPS eps,PetscInt n,PetscInt ml,Vec *Q,PetscInt *K)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j,n,ld,ml;
+  PetscInt       i,j,ld;
   PetscScalar    *R,*w,*s;
   DS             ds;
 
@@ -376,11 +379,9 @@ static PetscErrorCode SVD(EPS eps,Vec *Q,PetscInt *K)
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
   ierr = DSSetType(ds,DSSVD);CHKERRQ(ierr);
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
-  n = eps->n;
-  ml = ctx->M*ctx->L;
-  ld = PetscMax(n,ctx->M*ctx->L);
+  ld = PetscMax(n,ml);
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,ml,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,ld,ml,0,0);CHKERRQ(ierr);
 
   ierr = DSGetArray(ds,DS_MAT_A,&R);CHKERRQ(ierr);
   for (i=0;i<ml;i++) {
@@ -487,6 +488,8 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (ctx->isreal && PetscImaginaryPart(ctx->center) == 0.0) ctx->useconj = PETSC_TRUE;
   else ctx->useconj = PETSC_FALSE;
 
+  if (!ctx->delta) ctx->delta = PetscMin((eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol),1e-12);
+
   /* create split comm */
   ierr = SetSolverComm(eps);CHKERRQ(ierr);
 
@@ -526,7 +529,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     }
   }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
-  ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
+  ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
@@ -540,12 +543,12 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j,ld,nv,nmat,L_add=0;
-  PetscScalar    *H,*rr,*pX;
-  PetscReal      *tau,s1,s2,tau_max=0.0;
+  PetscInt       i,j,k,ld,nv,nmat,nvecs,L_add=0,inner,outer,L_base=ctx->L;
+  PetscScalar    *H,*rr,*pX,*tdata,*vdata;
+  PetscReal      *tau,s1,s2,tau_max=0.0,*temp,error,max_error;
   PetscBool      *fl;
   Mat            A,B;
-  Vec            *S1,w=eps->work[0];
+  Vec            w=eps->work[0],tempv=eps->work[1];
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -559,16 +562,20 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = CISSVecSetRandom(ctx->V[i],eps->rand);CHKERRQ(ierr);
   }
   ierr = SolveLinearSystem(eps);CHKERRQ(ierr);
-  ierr = ConstructS(eps,1,&S1);CHKERRQ(ierr);
-  ierr = EstimateNumberEigs(eps,S1,&L_add);CHKERRQ(ierr);
-  ierr = VecDestroyVecs(ctx->L,&S1);CHKERRQ(ierr);
+  ierr = ConstructS(eps,1,&ctx->S);CHKERRQ(ierr);
+  nvecs = ctx->L;
+  ierr = EstimateNumberEigs(eps,ctx->S,&L_add);CHKERRQ(ierr);
 
   if (L_add>0) {
-    ierr = PetscInfo2(eps,"Changing L %d -> %d\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = PetscInfo2(eps,"Changing L %d -> %d by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = SetAddVector(eps,ctx->L+L_add);CHKERRQ(ierr);
-    ierr = SolveAddLinearSystem(eps,ctx->L+L_add);CHKERRQ(ierr);
-
+    ierr = SolveAddLinearSystem(eps,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ctx->L += L_add;
+    ierr = PetscFree(ctx->sigma);CHKERRQ(ierr);
+    ierr = PetscMalloc(ctx->L*ctx->M*sizeof(PetscReal),&ctx->sigma);CHKERRQ(ierr);
+  }
+
+  if (ctx->L != L_base) {
     eps->mpd = ctx->L*ctx->M;
     eps->ncv = PetscMin(eps->n,ctx->L*ctx->M);
     ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
@@ -588,19 +595,27 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       }
     }
     ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
-    ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
     ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-    ierr = PetscFree(ctx->sigma);CHKERRQ(ierr);
-    ierr = PetscMalloc(ctx->L*ctx->M*sizeof(PetscReal),&ctx->sigma);CHKERRQ(ierr);
   }
-  ierr = ConstructS(eps,ctx->M,&ctx->S);CHKERRQ(ierr);
-  ierr = SVD(eps,ctx->S,&nv);CHKERRQ(ierr);
 
-  eps->nconv = 0;
-  if (nv>0) {
+  for (outer=0;outer<=ctx->refine_outer;outer++) {
+    for (inner=0;inner<=ctx->refine_inner;inner++) {
+      ierr = VecDestroyVecs(nvecs,&ctx->S);CHKERRQ(ierr);
+      ierr = ConstructS(eps,ctx->M,&ctx->S);CHKERRQ(ierr);
+      nvecs = ctx->M*ctx->L;
+      ierr = SVD(eps,eps->n,ctx->M*ctx->L,ctx->S,&nv);CHKERRQ(ierr);
+      if (ctx->sigma[0]>ctx->delta && nv==ctx->L*ctx->M && inner!=ctx->refine_inner) {
+        for (i=0;i<ctx->L;i++) {
+          ierr = VecCopy(ctx->S[i],ctx->V[i]);CHKERRQ(ierr);
+        }
+        ierr = SolveAddLinearSystem(eps,0,ctx->L);CHKERRQ(ierr);
+      } else break;
+    }
+    eps->nconv = 0;
+    if (nv == 0) break;
     ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
     ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
-  
+
     ierr = DSGetArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = ProjectMatrix(A,nv,ld,ctx->S,H,w,eps->ishermitian);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
@@ -620,24 +635,25 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       s1 = 0;
       s2 = 0;
       for (j=0;j<nv;j++) {
-	s1 += PetscAbsScalar(PetscPowScalar(pX[i*ld+j],2));
-	s2 += PetscPowScalar(PetscAbsScalar(pX[i*ld+j]),2)/ctx->sigma[j];
+        s1 += PetscAbsScalar(PetscPowScalar(pX[i*ld+j],2));
+        s2 += PetscPowScalar(PetscAbsScalar(pX[i*ld+j]),2)/ctx->sigma[j];
       }
       tau[i] = s1/s2;
       tau_max = PetscMax(tau_max,tau[i]);
     }
     tau_max /= ctx->sigma[0];
     ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-    for (i=0;i<nv;i++) tau[i]/=tau_max;
+    for (i=0;i<nv;i++) tau[i] /= tau_max;
     ierr = PetscMalloc(nv*sizeof(PetscBool),&fl);CHKERRQ(ierr);
     ierr = isInsideGamma(eps,nv,fl);CHKERRQ(ierr);
     ierr = PetscMalloc(nv*sizeof(PetscScalar),&rr);CHKERRQ(ierr);
     for (i=0;i<nv;i++) {
-      if (fl[i] && tau[i] >= ctx->spurious_threshold*tau_max) {
-	rr[i] = 1.0;
-	eps->nconv++;
+      if (fl[i] && tau[i]>=ctx->spurious_threshold*tau_max) {
+        rr[i] = 1.0;
+        eps->nconv++;
       } else rr[i] = 0.0;
     }
+    
     ierr = PetscFree(tau);CHKERRQ(ierr);
     ierr = PetscFree(fl);CHKERRQ(ierr);
     ierr = DSSetEigenvalueComparison(eps->ds,SlepcCompareLargestMagnitude,NULL);CHKERRQ(ierr);
@@ -648,17 +664,45 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       ierr = VecCopy(ctx->S[i],eps->V[i]);CHKERRQ(ierr);
     }
     
-    if (eps->ishermitian) {  /* compute eigenvectors */
-      ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-      ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-      ierr = SlepcUpdateVectors(nv,eps->V,0,eps->nconv,pX,ld,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
+    ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(nv,eps->V,0,eps->nconv,pX,ld,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
+    max_error = 0.0;
+    for (i=0;i<eps->nconv;i++) {
+      ierr = VecNormalize(eps->V[i],NULL);CHKERRQ(ierr);
+      ierr = EPSComputeRelativeError_Private(eps,eps->eigr[i],0,eps->V[i],NULL,&error);CHKERRQ(ierr);
+      max_error = PetscMax(max_error,error);
     }
+    
+    if (max_error < eps->tol || outer == ctx->refine_outer) break;
+    ierr = PetscMalloc(ctx->L*eps->nconv*sizeof(PetscReal),&temp);CHKERRQ(ierr);
+    for (i=0;i<ctx->L*eps->nconv;i++) {
+      ierr = PetscRandomGetValueReal(eps->rand,&temp[i]);CHKERRQ(ierr);
+    }
+    
+    for (k=0;k<ctx->L;k++) {      
+      ierr = VecGetArray(tempv,&tdata);CHKERRQ(ierr);
+      for (j=0;j<eps->nconv;j++) {
+        ierr = VecGetArray(eps->V[j],&vdata);CHKERRQ(ierr);
+        for (i=0;i<eps->n;i++) {
+          if (j==0) tdata[i] = vdata[i]*temp[j+eps->nconv*k];
+          else tdata[i] = tdata[i]+vdata[i]*temp[j+eps->nconv*k];
+        }
+        ierr = VecRestoreArray(eps->V[j],&vdata);CHKERRQ(ierr);
+      }
+      ierr = VecRestoreArray(tempv,&tdata);CHKERRQ(ierr);
+      ierr = VecCopy(tempv,ctx->V[k]);CHKERRQ(ierr);
+    }
+    
+    ierr = PetscFree(temp);CHKERRQ(ierr);
+    
+    ierr = SolveAddLinearSystem(eps,0,ctx->L);CHKERRQ(ierr);
   }
   eps->reason = EPS_CONVERGED_TOL;
   PetscFunctionReturn(0);
 }
-  
+
 #undef __FUNCT__
 #define __FUNCT__ "EPSCISSSetRegion_CISS"
 static PetscErrorCode EPSCISSSetRegion_CISS(EPS eps,PetscScalar center,PetscReal radius,PetscReal vscale)
@@ -948,7 +992,8 @@ static PetscErrorCode EPSCISSSetThreshold_CISS(EPS eps,PetscReal delta,PetscReal
 #undef __FUNCT__
 #define __FUNCT__ "EPSCISSSetThreshold"
 /*@
-   EPSCISSSetThreshold - Sets the values of various threshold parameters in the CISS solver.
+   EPSCISSSetThreshold - Sets the values of various threshold parameters in
+   the CISS solver.
 
    Logically Collective on EPS
 
@@ -992,7 +1037,8 @@ static PetscErrorCode EPSCISSGetThreshold_CISS(EPS eps,PetscReal *delta,PetscRea
 #undef __FUNCT__
 #define __FUNCT__ "EPSCISSGetThreshold"
 /*@
-   EPSCISSGetThreshold - Gets the values of various threshold parameters in the CISS solver.
+   EPSCISSGetThreshold - Gets the values of various threshold parameters
+   in the CISS solver.
 
    Not Collective
 
@@ -1014,6 +1060,102 @@ PetscErrorCode EPSCISSGetThreshold(EPS eps,PetscReal *delta,PetscReal *spur)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = PetscTryMethod(eps,"EPSCISSGetThreshold_C",(EPS,PetscReal*,PetscReal*),(eps,delta,spur));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSSetRefinement_CISS"
+static PetscErrorCode EPSCISSSetRefinement_CISS(EPS eps,PetscInt inner,PetscInt outer)
+{
+  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+
+  PetscFunctionBegin;
+  if (inner == PETSC_DEFAULT) {
+    ctx->refine_inner = 1;
+  } else {
+    if (inner<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The refine inner argument must be >= 0");
+    ctx->refine_inner = inner;
+  }
+  if (outer == PETSC_DEFAULT) {
+    ctx->refine_outer = 1;
+  } else {
+    if (outer<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The refine outer argument must be >= 0");
+    ctx->refine_outer = outer;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSSetRefinement"
+/*@
+   EPSCISSSetRefinement - Sets the maximum number of refinement iterations
+   in the CISS solver.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps   - the eigenproblem solver context
+.  inner - number of iterative refinement iterations (inner loop)
+-  outer - number of iterative refinement iterations (outer loop)
+
+   Options Database Keys:
++  -eps_ciss_refine_inner - Sets number of inner iterations
+-  -eps_ciss_refine_outer - Sets number of outer iterations
+
+   Level: advanced
+
+.seealso: EPSCISSGetRefinement()
+@*/
+PetscErrorCode EPSCISSSetRefinement(EPS eps,PetscInt inner,PetscInt outer)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,inner,2);
+  PetscValidLogicalCollectiveInt(eps,outer,3);
+  ierr = PetscTryMethod(eps,"EPSCISSSetRefinement_C",(EPS,PetscInt,PetscInt),(eps,inner,outer));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSGetRefinement_CISS"
+static PetscErrorCode EPSCISSGetRefinement_CISS(EPS eps,PetscInt *inner,PetscInt *outer)
+{
+  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+
+  PetscFunctionBegin;
+  if (inner) *inner = ctx->refine_inner;
+  if (outer) *outer = ctx->refine_outer;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSGetRefinement"
+/*@
+   EPSCISSGetRefinement - Gets the maximum number of refinement iterations
+   in the CISS solver.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameters:
++  inner - number of iterative refinement iterations (inner loop)
+-  outer - number of iterative refinement iterations (outer loop)
+
+   Level: advanced
+
+.seealso: EPSCISSSetRefinement()
+@*/
+PetscErrorCode EPSCISSGetRefinement(EPS eps,PetscInt *inner,PetscInt *outer)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscTryMethod(eps,"EPSCISSGetRefinement_C",(EPS,PetscInt*,PetscInt*),(eps,inner,outer));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1052,7 +1194,7 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
   PetscErrorCode ierr;
   PetscScalar    s;
   PetscReal      r1,r2,r3,r4;
-  PetscInt       i1=0,i2=0,i3=0,i4=0,i5=0;
+  PetscInt       i1=0,i2=0,i3=0,i4=0,i5=0,i6=0,i7=0;
   PetscBool      b1=PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -1076,6 +1218,11 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
   ierr = PetscOptionsReal("-eps_ciss_spurious_threshold","CISS threshold for the spurious eigenpairs","EPSCISSSetThreshold",r4,&r4,NULL);CHKERRQ(ierr);
   ierr = EPSCISSSetThreshold(eps,r3,r4);CHKERRQ(ierr);
 
+  ierr = EPSCISSGetRefinement(eps,&i6,&i7);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_ciss_refine_inner","CISS number of inner iterative refinement iterations","EPSCISSSetRefinement",i6,&i6,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_ciss_refine_outer","CISS number of outer iterative refinement iterations","EPSCISSSetRefinement",i7,&i7,NULL);CHKERRQ(ierr);
+  ierr = EPSCISSSetRefinement(eps,i6,i7);CHKERRQ(ierr);
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1094,6 +1241,8 @@ PetscErrorCode EPSDestroy_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetSizes_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetThreshold_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetThreshold_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRefinement_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRefinement_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1116,6 +1265,7 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  CISS: exploiting symmetry of integration points\n");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: threshold { delta: %G, spurious threshold: %G }\n",ctx->delta,ctx->spurious_threshold);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: iterative refinement { inner: %D, outer: %D }\n",ctx->refine_inner,ctx->refine_outer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -1143,6 +1293,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetSizes_C",EPSCISSGetSizes_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetThreshold_C",EPSCISSSetThreshold_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetThreshold_C",EPSCISSGetThreshold_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRefinement_C",EPSCISSSetRefinement_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRefinement_C",EPSCISSGetRefinement_CISS);CHKERRQ(ierr);
   /* set default values of parameters */
   ctx->center  = 0.0;
   ctx->radius  = 1.0;
@@ -1150,11 +1302,12 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ctx->N       = 32;
   ctx->L       = 16;
   ctx->M       = ctx->N/4;
-  ctx->delta   = 1e-12;
   ctx->npart   = 1;
-  ctx->L_max   = 256;
+  ctx->L_max   = 128;
   ctx->spurious_threshold = 1e-4;
   ctx->isreal  = PETSC_FALSE;
+  ctx->refine_outer = 1;
+  ctx->refine_inner = 1;
   PetscFunctionReturn(0);
 }
 
