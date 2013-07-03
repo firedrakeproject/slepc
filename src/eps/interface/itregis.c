@@ -94,7 +94,7 @@ PetscErrorCode EPSRegisterAll(void)
 #if defined(SLEPC_HAVE_PRIMME)
   ierr = EPSRegister(EPSPRIMME,EPSCreate_PRIMME);CHKERRQ(ierr);
 #endif
-#if defined(SLEPC_HAVE_FEAST)
+#if defined(SLEPC_HAVE_FEAST) && defined(PETSC_USE_COMPLEX)
   ierr = EPSRegister(EPSFEAST,EPSCreate_FEAST);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);

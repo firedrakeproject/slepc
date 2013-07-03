@@ -47,8 +47,8 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   ierr = PetscFree(ctx->work1);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->nloc*ncv*sizeof(PetscScalar),&ctx->work1);CHKERRQ(ierr);
   ierr = PetscFree(ctx->work2);CHKERRQ(ierr);
-  ierr = PetscMalloc(2*eps->nloc*ncv*sizeof(PetscReal),&ctx->work2);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(eps,3*eps->nloc*ncv*sizeof(PetscReal));CHKERRQ(ierr);
+  ierr = PetscMalloc(eps->nloc*ncv*sizeof(PetscScalar),&ctx->work2);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory(eps,2*eps->nloc*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscFree(ctx->Aq);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&ctx->Aq);CHKERRQ(ierr);
   ierr = PetscFree(ctx->Bq);CHKERRQ(ierr);
@@ -148,12 +148,17 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
 
   } while (ijob != 0);
 
-  if (info!=0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by FEAST (%d)",info);
-
+  eps->reason = EPS_CONVERGED_TOL;
   eps->its = loop;
+  if (info!=0) {
+    if (info==1) { /* No eigenvalue has been found in the proposed search interval */
+      eps->nconv = 0;
+    } else if (info==2) { /* FEAST did not converge "yet" */
+      eps->reason = EPS_DIVERGED_ITS;
+    } else SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by FEAST (%d)",info);
+  }
+
   for (i=0;i<eps->nconv;i++) eps->eigr[i] = evals[i];
-  if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
-  else eps->reason = EPS_DIVERGED_ITS;
 
   ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
   ierr = VecDestroy(&x);CHKERRQ(ierr);

@@ -28,6 +28,9 @@ import check
 
 def Check(conf,vars,cmake,tmpdir,directory,libs):
 
+  if petscconf.SCALAR != 'complex':
+    log.Exit('ERROR: FEAST is supported only with complex numbers.')
+
   if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
     log.Exit('ERROR: FEAST is supported only in single or double precision.')
 

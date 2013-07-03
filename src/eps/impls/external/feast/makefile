@@ -22,6 +22,7 @@
 ALL: lib
 
 #requiresdefine  'SLEPC_HAVE_FEAST'
+#requiresscalar  complex
 
 CFLAGS   =
 FFLAGS   =
