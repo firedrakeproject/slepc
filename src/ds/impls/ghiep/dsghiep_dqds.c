@@ -199,8 +199,8 @@ static PetscErrorCode LUfac(PetscInt n,PetscReal *a,PetscReal *b,PetscReal shift
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "realDQDS"
-static PetscErrorCode realDQDS(PetscInt n,PetscReal *L,PetscReal *U,PetscReal shift,PetscReal tol,PetscReal norm,PetscReal *L1,PetscReal *U1,PetscInt *fail)
+#define __FUNCT__ "RealDQDS"
+static PetscErrorCode RealDQDS(PetscInt n,PetscReal *L,PetscReal *U,PetscReal shift,PetscReal tol,PetscReal norm,PetscReal *L1,PetscReal *U1,PetscInt *fail)
 {
   PetscReal d;
   PetscInt  i;
@@ -230,8 +230,8 @@ static PetscErrorCode realDQDS(PetscInt n,PetscReal *L,PetscReal *U,PetscReal sh
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "tridqdsZhuang3"
-static PetscErrorCode tridqdsZhuang3(PetscInt n,PetscReal *e,PetscReal *q,PetscReal sum,PetscReal prod,PetscReal tol,PetscReal norm,PetscReal tolDef,PetscInt *fail)
+#define __FUNCT__ "TridqdsZhuang3"
+static PetscErrorCode TridqdsZhuang3(PetscInt n,PetscReal *e,PetscReal *q,PetscReal sum,PetscReal prod,PetscReal tol,PetscReal norm,PetscReal tolDef,PetscInt *fail)
 {
   PetscReal xl,yl,xr,yr,zr;
   PetscInt  i;
@@ -308,8 +308,8 @@ static PetscErrorCode tridqdsZhuang3(PetscInt n,PetscReal *e,PetscReal *q,PetscR
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "tridqdsZhuang"
-static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscReal sum,PetscReal prod,PetscReal tol,PetscReal norm,PetscReal tolDef,PetscReal *e1,PetscReal *q1,PetscInt *fail)
+#define __FUNCT__ "TridqdsZhuang"
+static PetscErrorCode TridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscReal sum,PetscReal prod,PetscReal tol,PetscReal norm,PetscReal tolDef,PetscReal *e1,PetscReal *q1,PetscInt *fail)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -443,7 +443,7 @@ static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscRe
     if (!*fail && PetscAbsReal(q1[n-1])>tol*norm) *fail = 1;
 
   } else {  /* The case n=3 */
-    ierr = tridqdsZhuang3(n,e1,q1,sum,prod,tol,norm,tolDef,fail);CHKERRQ(ierr);
+    ierr = TridqdsZhuang3(n,e1,q1,sum,prod,tol,norm,tolDef,fail);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -628,9 +628,9 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
           shift = 0;
           sum = 0; /* Needed in case of failure */
           prod = 0;
-          ierr = realDQDS(n-begin,L+begin,U+begin,0,tolGrowth,norm,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
+          ierr = RealDQDS(n-begin,L+begin,U+begin,0,tolGrowth,norm,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
           if (flag) {  /* Failure */
-            ierr = tridqdsZhuang(n-begin,L+begin,U+begin,0.0,0.0,tolGrowth,norm,tolDef,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
+            ierr = TridqdsZhuang(n-begin,L+begin,U+begin,0.0,0.0,tolGrowth,norm,tolDef,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
             shift = 0.0;
             while (flag==1 && nFail<maxFail) {  /* Successive failures */
               shift = shift+delta;
@@ -639,18 +639,18 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
                 delta = -delta;
               }
               nFail++;
-              ierr = realDQDS(n-begin,L+begin,U+begin,0,tolGrowth,norm,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
+              ierr = RealDQDS(n-begin,L+begin,U+begin,0,tolGrowth,norm,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
             }
           }
         } else { /* L's are small */
           if (disc<0) {  /* disc <0   Complex case; Francis shift; 3dqds */
             sum = U[n-2]+L[n-2]+U[n-1];
             prod = U[n-2]*U[n-1];
-            ierr = tridqdsZhuang(n-begin,L+begin,U+begin,sum,prod,tolGrowth,norm,tolDef,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
+            ierr = TridqdsZhuang(n-begin,L+begin,U+begin,sum,prod,tolGrowth,norm,tolDef,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
             shift = 0.0; /* Restoring transformation */
             while (flag==1 && nFail<maxFail) { /* In case of failure */
               shift = shift+U[n-1];  /* first time shift=0 */
-              ierr = realDQDS(n-begin,L+begin,U+begin,shift,tolGrowth,norm,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
+              ierr = RealDQDS(n-begin,L+begin,U+begin,shift,tolGrowth,norm,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
               nFail++;
             }
           } else  { /* disc >0  Real case; real Wilkinson shift; dqds */
@@ -668,12 +668,12 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
             } else {
               shift = x2;
             }
-            ierr = realDQDS(n-begin,L+begin,U+begin,shift,tolGrowth,norm,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
+            ierr = RealDQDS(n-begin,L+begin,U+begin,shift,tolGrowth,norm,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
             /* In case of failure */
             while (flag==1 && nFail<maxFail) {
               sum = 2*shift;
               prod = shift*shift;
-              ierr = tridqdsZhuang(n-1-begin,L+begin,U+begin,sum,prod,tolGrowth,norm,tolDef,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
+              ierr = TridqdsZhuang(n-1-begin,L+begin,U+begin,sum,prod,tolGrowth,norm,tolDef,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
               /* In case of successive failures */
               if (shift==0.0) {
                 shift = PetscMin(PetscAbsReal(L[n-2]),PetscAbsReal(L[n-3]))*delta;

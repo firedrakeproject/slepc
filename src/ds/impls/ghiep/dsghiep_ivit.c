@@ -95,7 +95,7 @@ static PetscErrorCode HRGen(PetscReal x1,PetscReal x2,PetscInt *type,PetscReal *
            |c  s|
     [x1 x2]|s  c|
 */
-PetscErrorCode HRApply(PetscInt n,PetscScalar *x1,PetscInt inc1,PetscScalar *x2,PetscInt inc2,PetscReal c,PetscReal s)
+static PetscErrorCode HRApply(PetscInt n,PetscScalar *x1,PetscInt inc1,PetscScalar *x2,PetscInt inc2,PetscReal c,PetscReal s)
 {
   PetscInt    i;
   PetscReal   t;
@@ -132,7 +132,7 @@ PetscErrorCode HRApply(PetscInt n,PetscScalar *x1,PetscInt inc1,PetscScalar *x2,
     s
     Q s-orthogonal matrix with Q^T*A*Q = T (symmetric tridiagonal matrix)
 */
-PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,PetscReal *s,PetscScalar* Q,PetscInt ldq,PetscBool flip,PetscReal *d,PetscReal *e,PetscInt *perm_,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nwr,PetscBLASInt *iwork,PetscInt nwi)
+static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,PetscReal *s,PetscScalar* Q,PetscInt ldq,PetscBool flip,PetscReal *d,PetscReal *e,PetscInt *perm_,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nwr,PetscBLASInt *iwork,PetscInt nwi)
 {
 #if defined(PETSC_MISSING_LAPACK_LARFG) || defined(PETSC_MISSING_LAPACK_LARF)
   PetscFunctionBegin;
@@ -321,8 +321,8 @@ PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,PetscReal 
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "madeHRtr"
-static PetscErrorCode madeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,PetscInt idx1,PetscInt n1,struct HRtr *tr1,struct HRtr *tr2,PetscReal *ncond,PetscScalar *work,PetscInt lw)
+#define __FUNCT__ "TadeHRtr"
+static PetscErrorCode TadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,PetscInt idx1,PetscInt n1,struct HRtr *tr1,struct HRtr *tr2,PetscReal *ncond,PetscScalar *work,PetscInt lw)
 {
   PetscErrorCode ierr;
   PetscScalar    *x,*y;
@@ -438,7 +438,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
   tr1_t.data = x;
   if (sz==1) {
     /* Hyperbolic transformation to make zeros in x */
-    ierr = madeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_t,NULL,&ncond,work+nwu,nwall-nwu);CHKERRQ(ierr);
+    ierr = TadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_t,NULL,&ncond,work+nwu,nwall-nwu);CHKERRQ(ierr);
     /* Check condition number to single column*/
     if (ncond>tolD) {
       *ok = PETSC_FALSE;
@@ -450,7 +450,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
     nwu += n;
     ierr = PetscMemcpy(y,R+(j+1)*ldr,n*sizeof(PetscScalar));CHKERRQ(ierr);
     tr2_t.data = y;
-    ierr = madeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_t,&tr2_t,&ncond,work+nwu,nwall-nwu);CHKERRQ(ierr);
+    ierr = TadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_t,&tr2_t,&ncond,work+nwu,nwall-nwu);CHKERRQ(ierr);
     /* Computing hyperbolic transformations also for exchanged vectors */
     tr1_te.data = work+nwu;
     nwu += n;
@@ -458,7 +458,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
     tr2_te.data = work+nwu;
     nwu += n;
     ierr = PetscMemcpy(tr2_te.data,R+j*ldr,n*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = madeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_te,&tr2_te,&ncond_e,work+nwu,nwall-nwu);CHKERRQ(ierr);
+    ierr = TadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_te,&tr2_te,&ncond_e,work+nwu,nwall-nwu);CHKERRQ(ierr);
     if (ncond > d*ncond_e) {
       *exg = PETSC_TRUE;
       tr1 = &tr1_te;
@@ -560,7 +560,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
 /*
   compute V = HR whit H s-orthogonal and R upper triangular  
 */
-PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,PetscReal *s,PetscScalar *R,PetscInt ldr,PetscBLASInt *perm,PetscBLASInt *cmplxEig,PetscBool *breakdown,PetscScalar *work,PetscInt nw)
+static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,PetscReal *s,PetscScalar *R,PetscInt ldr,PetscBLASInt *perm,PetscBLASInt *cmplxEig,PetscBool *breakdown,PetscScalar *work,PetscInt nw)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,n,n0,n1,np,idx0,idx1,sz=1,k=0,t1,t2,nwall,nwu=0;
@@ -701,7 +701,7 @@ for (j=0;j<n;j++) {
   compute x = x - y*ss^{-1}*y^T*s*x where ss=y^T*s*y
   s diagonal (signature matrix)
 */
-PetscErrorCode IndefOrthog_CGS(PetscInt n,PetscReal *s,PetscInt nv,PetscScalar *Y,PetscInt ldy,PetscReal *ss,PetscScalar *x,PetscScalar *h,PetscScalar *work,PetscInt lw)
+static PetscErrorCode IndefOrthog_CGS(PetscInt n,PetscReal *s,PetscInt nv,PetscScalar *Y,PetscInt ldy,PetscReal *ss,PetscScalar *x,PetscScalar *h,PetscScalar *work,PetscInt lw)
 {
   PetscErrorCode ierr;
   PetscInt       i,nwall,nwu=0;
@@ -744,7 +744,7 @@ PetscErrorCode IndefOrthog_CGS(PetscInt n,PetscReal *s,PetscInt nv,PetscScalar *
 /*
    normalization with a indefinite norm
 */
-PetscErrorCode IndefNorm(PetscInt n,PetscReal *s,PetscScalar *x,PetscReal *norm)
+static PetscErrorCode IndefNorm(PetscInt n,PetscReal *s,PetscScalar *x,PetscReal *norm)
 {
   PetscInt     i;
   PetscReal    r=0.0,t,max=0.0;
@@ -773,7 +773,7 @@ PetscErrorCode IndefNorm(PetscInt n,PetscReal *s,PetscScalar *x,PetscReal *norm)
 /*
   compute V = HR whit H s-orthogonal and R upper triangular  
 */
-PetscErrorCode PseudoOrthog_CGS(PetscInt n,PetscScalar *V,PetscInt ldv,PetscReal *s,PetscScalar *R,PetscInt ldr,PetscBLASInt *perm,PetscBLASInt *cmplxEig,PetscBool *breakdown)
+static PetscErrorCode PseudoOrthog_CGS(PetscInt n,PetscScalar *V,PetscInt ldv,PetscReal *s,PetscScalar *R,PetscInt ldr,PetscBLASInt *perm,PetscBLASInt *cmplxEig,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
   PetscInt       j,nwu=0,lw;
