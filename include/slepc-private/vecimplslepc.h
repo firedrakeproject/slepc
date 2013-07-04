@@ -110,6 +110,6 @@ PETSC_INTERN PetscErrorCode VecAbs_Comp(Vec);
 PETSC_INTERN PetscErrorCode VecExp_Comp(Vec);
 PETSC_INTERN PetscErrorCode VecLog_Comp(Vec);
 PETSC_INTERN PetscErrorCode VecShift_Comp(Vec,PetscScalar);
-PETSC_INTERN PetscErrorCode VecCreate_Comp(Vec);
+PETSC_EXTERN PetscErrorCode VecCreate_Comp(Vec);
 
 #endif
