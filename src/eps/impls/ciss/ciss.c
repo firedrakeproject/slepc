@@ -341,7 +341,11 @@ static PetscErrorCode SetAddVector(EPS eps,PetscInt Ladd_end)
     ierr = PetscLogObjectParent(eps,ctx->V[i]);CHKERRQ(ierr);
     ierr = CISSVecSetRandom(ctx->V[i],eps->rand);CHKERRQ(ierr);
     ierr = VecGetArray(ctx->V[i],&vdata);CHKERRQ(ierr);
-    for (j=0;j<nlocal;j++) vdata[j] = PetscRealPart(vdata[j]);
+    for (j=0;j<nlocal;j++) {
+      vdata[j] = PetscRealPart(vdata[j]);
+      if (PetscRealPart(vdata[j]) < 0.5) vdata[j] = -1.0;
+      else vdata[j] = 1.0;
+    }
     ierr = VecRestoreArray(ctx->V[i],&vdata);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -553,15 +557,17 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   } else if (eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
-  if (ctx->vscale == PETSC_DEFAULT) {
-    if (eps->ishermitian && (eps->ispositive || !eps->isgeneralized) && PetscImaginaryPart(ctx->center) == 0.0) ctx->vscale = 0.1;
-    else ctx->vscale = 1.0;
-  }
+
   if (ctx->isreal && PetscImaginaryPart(ctx->center) == 0.0) ctx->useconj = PETSC_TRUE;
   else ctx->useconj = PETSC_FALSE;
 
   if (!ctx->delta) 
     ctx->delta = PetscMin((eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL*1e-1:eps->tol*1e-1),1e-12);
+
+  if (!ctx->vscale) {
+    if (eps->ishermitian && (eps->ispositive || !eps->isgeneralized) && PetscImaginaryPart(ctx->center) == 0.0) ctx->vscale = 0.1;
+    else ctx->vscale = 1.0;
+  }
 
   /* create split comm */
   ierr = SetSolverComm(eps);CHKERRQ(ierr);
@@ -759,12 +765,17 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
     ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-    ierr = SlepcUpdateVectors(nv,eps->V,0,eps->nconv,pX,ld,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcUpdateVectors(nv,ctx->S,0,eps->nconv,pX,ld,PETSC_FALSE);CHKERRQ(ierr);
+    if (eps->ishermitian) {  /* compute eigenvectors */
+      ierr = SlepcUpdateVectors(nv,eps->V,0,eps->nconv,pX,ld,PETSC_FALSE);CHKERRQ(ierr);
+    }
     ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
+
     max_error = 0.0;
     for (i=0;i<eps->nconv;i++) {
       ierr = VecNormalize(eps->V[i],NULL);CHKERRQ(ierr);
-      ierr = EPSComputeRelativeError_Private(eps,eps->eigr[i],0,eps->V[i],NULL,&error);CHKERRQ(ierr);
+      ierr = VecNormalize(ctx->S[i],NULL);CHKERRQ(ierr);
+      ierr = EPSComputeRelativeError_Private(eps,eps->eigr[i],0,ctx->S[i],NULL,&error);CHKERRQ(ierr);
       max_error = PetscMax(max_error,error);
     }
     if (max_error <= eps->tol || outer == ctx->refine_outer) break;
@@ -777,12 +788,12 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     for (k=0;k<ctx->L;k++) {      
       ierr = VecGetArray(tempv,&tdata);CHKERRQ(ierr);
       for (j=0;j<eps->nconv;j++) {
-        ierr = VecGetArray(eps->V[j],&vdata);CHKERRQ(ierr);
+        ierr = VecGetArray(ctx->S[j],&vdata);CHKERRQ(ierr);
         for (i=0;i<eps->n;i++) {
           if (j==0) tdata[i] = vdata[i]*temp[j+eps->nconv*k];
           else tdata[i] = tdata[i]+vdata[i]*temp[j+eps->nconv*k];
         }
-        ierr = VecRestoreArray(eps->V[j],&vdata);CHKERRQ(ierr);
+        ierr = VecRestoreArray(ctx->S[j],&vdata);CHKERRQ(ierr);
       }
       ierr = VecRestoreArray(tempv,&tdata);CHKERRQ(ierr);
       ierr = VecCopy(tempv,ctx->V[k]);CHKERRQ(ierr);
@@ -812,12 +823,8 @@ static PetscErrorCode EPSCISSSetRegion_CISS(EPS eps,PetscScalar center,PetscReal
     }
   }
   if (vscale) {
-    if (vscale == PETSC_DEFAULT) {
-      ctx->vscale = PETSC_DEFAULT;
-    } else {
-      if (vscale<0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The vscale argument must be > 0.0");
-      ctx->vscale = vscale;
-    }
+    if (vscale<0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The vscale argument must be > 0.0");
+    ctx->vscale = vscale;
   }
   PetscFunctionReturn(0);
 }
@@ -1402,7 +1409,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   /* set default values of parameters */
   ctx->center  = 0.0;
   ctx->radius  = 1.0;
-  ctx->vscale  = PETSC_DEFAULT;
+  ctx->vscale  = 0.0;
   ctx->N       = 32;
   ctx->L       = 16;
   ctx->M       = ctx->N/4;
