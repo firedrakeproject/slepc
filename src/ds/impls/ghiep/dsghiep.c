@@ -738,15 +738,16 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEHRD/ORGHR/HSEQR - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,j,off;
-  PetscBLASInt   lwork,info,n1,one=1,mout,ld;
-  PetscScalar    *A,*B,*H,*Q,*work,*tau;
+  PetscInt       i,off;
+  PetscBLASInt   n1,ld,one,info,lwork,mout;
+  PetscScalar    *H,*A,*B,*Q,*X;
   PetscReal      *d,*e,*s;
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
   PetscValidPointer(wi,3);
 #endif
+  one = 1;
   ierr = PetscBLASIntCast(ds->n-ds->l,&n1);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   off = ds->l + ds->l*ld;
@@ -756,19 +757,12 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   d = ds->rmat[DS_MAT_T];
   e = ds->rmat[DS_MAT_T] + ld;
   s = ds->rmat[DS_MAT_D];
-  ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
-  H = ds->mat[DS_MAT_W];
-  ierr = DSAllocateWork_Private(ds,ld+ld*ld,ld,0);CHKERRQ(ierr);
-  tau  = ds->work;
-  work = ds->work+ld;
+  ierr = DSAllocateWork_Private(ds,ld+ld*ld,2*ld,ld*2);CHKERRQ(ierr);
   lwork = ld*ld;
 
-   /* initialize orthogonal matrix */
-  ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=0;i< ds->n;i++)
-    Q[i+i*ld] = 1.0;
-  /* quick return */
+  /* Quick return if possible */
   if (n1 == 1) {
+    *(Q+off) = 1;
     if (!ds->compact) {
       d[ds->l] = PetscRealPart(A[off]);
       s[ds->l] = PetscRealPart(B[off]);
@@ -777,63 +771,56 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
     if (wi) wi[ds->l] = 0.0;
     PetscFunctionReturn(0);
   }
+  /* Reduce to pseudotriadiagonal form */
+  ierr = DSIntermediate_GHIEP(ds);CHKERRQ(ierr);
 
   /* form standard problem in H */
+  ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
+  H = ds->mat[DS_MAT_W];
   if (ds->compact) {
-    ierr = PetscMemzero(H,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=ds->l; i < ds->n-1; i++) {
-      H[i+i*ld] = d[i]/s[i];
-      H[(i+1)+i*ld] = e[i]/s[i+1];
-      H[i+(i+1)*ld] = e[i]/s[i];
+    H[off] = d[ds->l]*s[ds->l];
+    H[off+ld] = e[ds->l]*s[ds->l];
+    for (i=ds->l+1;i<ds->n-1;i++) {
+      H[i+(i-1)*ld] = e[i-1]*s[i];
+      H[i+i*ld]     = d[i]*s[i];
+      H[i+(i+1)*ld] = e[i]*s[i];
     }
-    H[ds->n-1 + (ds->n-1)*ld] = d[ds->n-1]/s[ds->n-1];
-
-    for (i=ds->l; i < ds->k; i++) {
-      H[ds->k+i*ld] = *(ds->rmat[DS_MAT_T]+2*ld+i)/s[ds->k];
-      H[i+ds->k*ld] = *(ds->rmat[DS_MAT_T]+2*ld+i)/s[i];
-    }
+    H[ds->n-1+(ds->n-2)*ld] = e[ds->n-2]*s[ds->n-1];
+    H[ds->n-1+(ds->n-1)*ld] = d[ds->n-1]*s[ds->n-1];
   } else {
-    for (j=ds->l; j<ds->n; j++) {
-      for (i=ds->l; i<ds->n; i++) {
-        H[i+j*ld] = A[i+j*ld]/B[i+i*ld];
-      }
+    s[ds->l] = PetscRealPart(B[off]);
+    H[off] = A[off]*s[ds->l];
+    H[off+ld] = A[off+ld]*s[ds->l];
+    for (i=ds->l+1;i<ds->n-1;i++) {
+      s[i] = PetscRealPart(B[i+i*ld]);
+      H[i+(i-1)*ld] = A[i+(i-1)*ld]*s[i];
+      H[i+i*ld]     = A[i+i*ld]*s[i];
+      H[i+(i+1)*ld] = A[i+(i+1)*ld]*s[i];
     }
+    s[ds->n-1] = PetscRealPart(B[ds->n-1+(ds->n-1)*ld]);
+    H[ds->n-1+(ds->n-2)*ld] = A[ds->n-1+(ds->n-2)*ld]*s[ds->n-1];
+    H[ds->n-1+(ds->n-1)*ld] = A[ds->n-1+(ds->n-1)*ld]*s[ds->n-1];
   }
-  /* reduce to upper Hessenberg form */
-  if (ds->state<DS_STATE_INTERMEDIATE) {
-    PetscStackCallBLAS("LAPACKgehrd",LAPACKgehrd_(&n1,&one,&n1,H+off,&ld,tau,work,&lwork,&info));
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEHRD %d",&info);
-    for (j=ds->l;j<ds->n-1;j++) {
-      for (i=j+2;i<ds->n;i++) {
-        Q[i+j*ld] = H[i+j*ld];
-        H[i+j*ld] = 0.0;
-      }
-    }
-    PetscStackCallBLAS("LAPACKorghr",LAPACKorghr_(&n1,&one,&n1,Q+off,&ld,tau,work,&lwork,&info));
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGHR %d",&info);
-  }
-
   /* Compute the real Schur form */
+  ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
+  X = ds->mat[DS_MAT_X];
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","V",&n1,&one,&n1,H+off,&ld,wr+ds->l,wi+ds->l,Q+off,&ld,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n1,&one,&n1,H+off,&ld,wr+ds->l,wi+ds->l,X+off,&ld,ds->work,&lwork,&info));
 #else
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","V",&n1,&one,&n1,H+off,&ld,wr+ds->l,Q+off,&ld,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n1,&one,&n1,H+off,&ld,wr+ds->l,X+off,&ld,ds->work,&lwork,&info));
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",&info);
 
   /* Compute eigenvectors */
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","B",NULL,&n1,H+off,&ld,NULL,&ld,Q+off,&ld,&n1,&mout,ds->work,&info));
+  PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","B",NULL,&n1,H+off,&ld,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,&info));
 #else
-  PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","B",NULL,&n1,H+off,&ld,NULL,&ld,Q+off,&ld,&n1,&mout,work,ds->rwork,&info));
+  PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","B",NULL,&n1,H+off,&ld,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,ds->rwork,&info));
 #endif
   if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTREVC %i",&info);
 
   /* Compute real s-orthonormal basis */
-  ierr = DSGHIEPOrthogEigenv(ds,DS_MAT_Q,wr,wi,PETSC_FALSE);CHKERRQ(ierr);
-
-  /* Undo from diagonal the blocks whith real eigenvalues*/
-  ierr = DSGHIEPRealBlocks(ds);CHKERRQ(ierr);
+  ierr = DSGHIEPOrthogEigenv(ds,DS_MAT_X,wr,wi,PETSC_TRUE);CHKERRQ(ierr);
 
   /* Recover eigenvalues from diagonal */
   ierr = DSGHIEPComplexEigs(ds,0,ds->l,wr,wi);CHKERRQ(ierr);
