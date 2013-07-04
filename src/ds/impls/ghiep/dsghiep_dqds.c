@@ -95,11 +95,11 @@ static PetscErrorCode ScanJ(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *gl,P
     X        - matrix of generalized eigenvectors
     shift
 */
-static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl,PetscReal gr,PetscInt *m,PetscReal *shift,PetscReal *w,PetscReal nw)
+static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl,PetscReal gr,PetscInt *m,PetscReal *shift,PetscReal *work,PetscReal nw)
 {
 
   PetscErrorCode ierr;
-  PetscReal      mu,tol,*a1,*work,*y,*yp,*x,*xp;
+  PetscReal      mu,tol,*a1,*y,*yp,*x,*xp;
   PetscInt       i,k,nwall=0;
 
   PetscFunctionBegin;
@@ -109,13 +109,9 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
   mu /= n;
   tol = n*PETSC_MACHINE_EPSILON*(gr-gl);
   nwall = 5*n+4;
-  if (w && nw>=nwall) {
-    work = w;
-    nwall = nw;
-  } else {
-    ierr = PetscMalloc(nwall*sizeof(PetscReal),&work);CHKERRQ(ierr);
-    ierr = PetscMemzero(work,nwall*sizeof(PetscReal));CHKERRQ(ierr);
-  }
+  if (!work || nw<nwall) {
+    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
+  } 
   a1 = work; /* size n */
   y = work+n; /* size n+1 */
   yp = y+n+1; /* size n+1. yp is the derivative of y (p for "prime") */
@@ -154,9 +150,6 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
       }
     }
   }
-  if (work != w) {
-    ierr = PetscFree(work);CHKERRQ(ierr);
-  }
 /*
   When mu is not an eigenvalue or it it an eigenvalue but it is not the one-point spectrum case, we will always have shift=mu
 
@@ -170,19 +163,15 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
 
 #undef __FUNCT__
 #define __FUNCT__ "LUfac"
-static PetscErrorCode LUfac(PetscInt n,PetscReal *a,PetscReal *b,PetscReal shift,PetscReal tol,PetscReal norm,PetscReal *L,PetscReal *U,PetscInt *fail,PetscReal *w,PetscInt nw)
+static PetscErrorCode LUfac(PetscInt n,PetscReal *a,PetscReal *b,PetscReal shift,PetscReal tol,PetscReal norm,PetscReal *L,PetscReal *U,PetscInt *fail,PetscReal *work,PetscInt nw)
 {
-  PetscErrorCode ierr;
   PetscInt       nwall,i;
-  PetscReal      *work,*a1;
+  PetscReal      *a1;
 
   PetscFunctionBegin;
   nwall = n;
-  if (w && nw>=nwall) {
-    work = w;
-    nwall = nw;
-  } else {
-    ierr = PetscMalloc(nwall*sizeof(PetscReal),&work);CHKERRQ(ierr);
+  if (!work || nw<nwall) {
+    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
   }
   a1 = work;
   for (i=0;i<n;i++) a1[i] = a[i]-shift;
@@ -206,10 +195,6 @@ static PetscErrorCode LUfac(PetscInt n,PetscReal *a,PetscReal *b,PetscReal shift
     if (PetscAbsReal(U[i])>tol*norm) *fail = 1;
   }
   if (!*fail && PetscAbsReal(U[n-1])>tol*norm) *fail = 1;
-
-  if (work != w) {
-    ierr = PetscFree(work);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -465,7 +450,7 @@ static PetscErrorCode tridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscRe
 
 #undef __FUNCT__
 #define __FUNCT__ "DSGHIEP_Eigen3DQDS"
-static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *c,PetscScalar *wr,PetscScalar *wi,PetscReal *w,PetscInt nw)
+static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *c,PetscScalar *wr,PetscScalar *wi,PetscReal *work,PetscInt nw)
 {
   PetscInt       totalIt=0;       /* Total Number of Iterations  */
   PetscInt       totalFail=0;     /* Total number of failures */
@@ -477,7 +462,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   PetscReal      tolGrowth=100000;
   PetscErrorCode ierr;
   PetscInt       i,k,nwu=0,nwall,begin,ind,flag,dim,m;
-  PetscReal      norm,gr,gl,sigma,delta,meanEig,*work,*U,*L,*U1,*L1,*split;
+  PetscReal      norm,gr,gl,sigma,delta,meanEig,*U,*L,*U1,*L1,*split;
   PetscReal      acShift,initialShift,shift=0.0,sum,det,disc,prod,x1,x2;
   PetscInt       lastSplit;
   PetscBool      test1,test2;
@@ -491,11 +476,8 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
     }
   }
   nwall = 9*n+4;
-  if (w && nw>=nwall) {
-    work = w;
-    nwall = nw;
-  } else {
-    ierr = PetscMalloc(nwall*sizeof(PetscReal),&work);CHKERRQ(ierr);
+  if (!work || nw<nwall) {
+    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
   }
   U = work;
   L = work+n;
@@ -774,9 +756,6 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   }/* While begin~=-1 */
   for (i=0;i<dim;i++) {
     wr[i] = wr[i]+initialShift;
-  }
-  if (work!=w) {
-    ierr = PetscFree(work);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

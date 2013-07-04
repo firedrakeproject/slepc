@@ -143,7 +143,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
   } else if (eps->ishermitian && !eps->ispositive){
     ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
-  } else{
+  } else {
     ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
   }
 

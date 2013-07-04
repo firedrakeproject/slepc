@@ -334,7 +334,9 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds,PetscInt n0,PetscInt n1,PetscScalar *wr,
   for (k=n0;k<n1;k++) {
     if (k < n1-1) {
       e = (ds->compact)?T[ld+k]:PetscRealPart(A[(k+1)+ld*k]);
-    } else e = 0.0;
+    } else {
+      e = 0.0;
+    }
     if (e==0.0) {
       /* real eigenvalue */
       wr[k] = (ds->compact)?T[k]/D[k]:A[k+k*ld]/B[k+k*ld];
@@ -516,51 +518,6 @@ PetscErrorCode DSGHIEPInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSIntermediate_GHIEP"
-/*
-   Reduce to tridiagonal-diagonal pair by means of DSGHIEPTridiagDiag_HHR.
-*/
-PetscErrorCode DSIntermediate_GHIEP(DS ds)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,ld,off;
-  PetscScalar    *A,*B,*Q;
-  PetscReal      *d,*e,*s;
-
-  PetscFunctionBegin;
-  ld = ds->ld;
-  A = ds->mat[DS_MAT_A];
-  B = ds->mat[DS_MAT_B];
-  Q = ds->mat[DS_MAT_Q];
-  d = ds->rmat[DS_MAT_T];
-  e = ds->rmat[DS_MAT_T]+ld;
-  s = ds->rmat[DS_MAT_D];
-  off = ds->l+ds->l*ld;
-  ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = DSAllocateWork_Private(ds,ld*ld,0,0);CHKERRQ(ierr);
-
-  for (i=0;i<ds->n;i++) Q[i+i*ld]=1.0;
-  for (i=0;i<ds->n-ds->l;i++) *(ds->perm+i)=i;
-  if (ds->compact) {
-    if (ds->state < DS_STATE_INTERMEDIATE) {
-      ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = DSGHIEPTridiagDiag_HHR(ds->k-ds->l+1,A+off,ld,s+ds->l,Q+off,ld,PETSC_TRUE,d+ds->l,e+ds->l,ds->perm,ds->work,ld*ld);CHKERRQ(ierr);
-      ds->k = ds->l;
-      ierr = PetscMemzero(d+2*ld+ds->l,(ds->n-ds->l)*sizeof(PetscReal));CHKERRQ(ierr);
-    }
-  } else {
-    if (ds->state < DS_STATE_INTERMEDIATE) {
-      for (i=0;i<ds->n;i++)
-        s[i] = PetscRealPart(B[i+i*ld]);
-      ierr = DSGHIEPTridiagDiag_HHR(ds->n-ds->l,A+off,ld,s+ds->l,Q+off,ld,PETSC_FALSE,d+ds->l,e+ds->l,ds->perm,ds->work,ld*ld);CHKERRQ(ierr);
-      ierr = PetscMemzero(d+2*ld,(ds->n)*sizeof(PetscReal));CHKERRQ(ierr);
-      ds->k = ds->l;
-      ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr);
-    } else { ierr = DSSwitchFormat_GHIEP(ds,PETSC_TRUE);CHKERRQ(ierr); }
-  }
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__
 #define __FUNCT__ "DSGHIEPRealBlocks"
@@ -692,7 +649,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscErrorCode ierr;
   PetscInt       i,off;
   PetscBLASInt   n1,ld,one,info,lwork;
-  PetscScalar    *H,*A,*B,*Q,*work;
+  PetscScalar    *H,*A,*B,*Q;
   PetscReal      *d,*e,*s;
 
   PetscFunctionBegin;
@@ -710,7 +667,6 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   e = ds->rmat[DS_MAT_T] + ld;
   s = ds->rmat[DS_MAT_D];
   ierr = DSAllocateWork_Private(ds,ld*ld,2*ld,ld*2);CHKERRQ(ierr);
-  work = ds->work;
   lwork = ld*ld;
 
   /* Quick return if possible */
@@ -756,9 +712,9 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
 
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,wi+ds->l,NULL,&ld,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,wi+ds->l,NULL,&ld,ds->work,&lwork,&info));
 #else
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,NULL,&ld,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,NULL,&ld,ds->work,&lwork,&info));
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",&info);
 

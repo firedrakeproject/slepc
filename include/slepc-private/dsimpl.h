@@ -93,9 +93,7 @@ PETSC_INTERN PetscErrorCode DSGHIEPComplexEigs(DS,PetscInt,PetscInt,PetscScalar*
 PETSC_INTERN PetscErrorCode DSGHIEPInverseIteration(DS,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode DSIntermediate_GHIEP(DS);
 PETSC_INTERN PetscErrorCode DSSwitchFormat_GHIEP(DS,PetscBool);
-PETSC_INTERN PetscErrorCode DSGHIEPHRApply(PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscReal,PetscReal);
 PETSC_INTERN PetscErrorCode DSGHIEPRealBlocks(DS);
-PETSC_INTERN PetscErrorCode DSGHIEPTridiagDiag_HHR(PetscInt,PetscScalar*,PetscInt,PetscReal*,PetscScalar*,PetscInt,PetscBool,PetscReal*,PetscReal*,PetscInt*,PetscScalar*,PetscInt);
 
 PETSC_INTERN PetscErrorCode DSSolve_GHIEP_HZ(DS,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode DSSolve_GHIEP_DQDS_II(DS,PetscScalar*,PetscScalar*);

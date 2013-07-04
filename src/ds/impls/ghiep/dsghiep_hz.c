@@ -84,10 +84,10 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
 {
   PetscErrorCode ierr;
   PetscBLASInt   one=1;
-  PetscInt       k,jj;
+  PetscInt       k,jj,ii;
   PetscBLASInt   n_;
   PetscReal      bulge10,bulge20,bulge30,bulge31,bulge41,bulge42;
-  PetscReal      sygn,rcond=1.0,worstcond,rot[4],buf[2];
+  PetscReal      sygn,rcond=1.0,worstcond,rot[4],buf[2],t;
   PetscScalar    rtmp;
   PetscBool      swap;
 
@@ -208,7 +208,20 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
         if (sygn==1) {
           PetscStackCallBLAS("BLASrot",BLASrot_(&n_,uu+jj*ld,&one,uu+(jj+1)*ld,&one,&rot[0],&rot[2]));
         } else {
-          ierr = DSGHIEPHRApply(n,uu+jj*ld,1,uu+(jj+1)*ld,1,rot[0],rot[1]);CHKERRQ(ierr);
+          if (PetscAbsReal(rot[0])>PetscAbsReal(rot[1])) { /* Type I */
+            t = rot[1]/rot[0];
+            for (ii=0;ii<n;ii++) {
+              uu[jj*ld+ii] = rot[0]*uu[jj*ld+ii] + rot[1]*uu[(jj+1)*ld+ii];
+              uu[(jj+1)*ld+ii] = t*uu[jj*ld+ii] + uu[(jj+1)*ld+ii]/rot[0];
+            }
+          } else { /* Type II */
+            t = rot[0]/rot[1];
+            for (ii=0;ii<n;ii++) {
+              rtmp = uu[jj*ld+ii];
+              uu[jj*ld+ii] = rot[0]*uu[jj*ld+ii] + rot[1]*uu[(jj+1)*ld+ii];
+              uu[(jj+1)*ld+ii] = t*uu[jj*ld+ii] + rtmp/rot[1];
+            }
+          }
         }
       }
     }
