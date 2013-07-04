@@ -109,9 +109,7 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
   mu /= n;
   tol = n*PETSC_MACHINE_EPSILON*(gr-gl);
   nwall = 5*n+4;
-  if (!work || nw<nwall) {
-    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
-  } 
+  if (!work || nw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",9);
   a1 = work; /* size n */
   y = work+n; /* size n+1 */
   yp = y+n+1; /* size n+1. yp is the derivative of y (p for "prime") */
@@ -170,9 +168,7 @@ static PetscErrorCode LUfac(PetscInt n,PetscReal *a,PetscReal *b,PetscReal shift
 
   PetscFunctionBegin;
   nwall = n;
-  if (!work || nw<nwall) {
-    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
-  }
+  if (!work || nw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
   a1 = work;
   for (i=0;i<n;i++) a1[i] = a[i]-shift;
   *fail = 0;
@@ -471,14 +467,10 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   dim = n;
   /* Test if the matrix is unreduced */
   for (i=0;i<n-1;i++) {
-    if (PetscAbsReal(b[i])==0.0 || PetscAbsReal(c[i])==0.0) {
-      SETERRQ(PETSC_COMM_SELF,1,"Initial tridiagonal matrix is not unreduced");
-    }
+    if (PetscAbsReal(b[i])==0.0 || PetscAbsReal(c[i])==0.0) SETERRQ(PETSC_COMM_SELF,1,"Initial tridiagonal matrix is not unreduced");
   }
   nwall = 9*n+4;
-  if (!work || nw<nwall) {
-    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
-  }
+  if (!work || nw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",8);
   U = work;
   L = work+n;
   U1 = work+2*n;
@@ -521,9 +513,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
     nFail=nFail+1;
     ierr = LUfac(n,a,b,shift,tolGrowth,norm,L,U,&flag,work+nwu,nwall-nwu);CHKERRQ(ierr); /* flag=1 failure; flag=0 successful transformation*/
   }
-  if (nFail==maxFail) {
-    SETERRQ(PETSC_COMM_SELF,1,"Maximun number of failures reached in Initial LU factorization");
-  }
+  if (nFail==maxFail) SETERRQ(PETSC_COMM_SELF,1,"Maximun number of failures reached in Initial LU factorization");
   /* Successful Initial transformation */
   totalFail = totalFail+nFail;
   nFail = 0;
@@ -691,9 +681,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
             }
           }
         } /* end "if tolZero" */
-        if (nFail==maxFail) {
-          SETERRQ(PETSC_COMM_SELF,1,"Maximun number of failures reached. No convergence in DQDS");
-        }
+        if (nFail==maxFail) SETERRQ(PETSC_COMM_SELF,1,"Maximun number of failures reached. No convergence in DQDS");
         /* Successful Transformation; flag==0 */
         totalIt++;
         acShift = shift+acShift;
@@ -706,9 +694,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
         nFail = 0;
       }  /* end "if n>begin+1" */
     }  /* end WHILE 1 */
-    if (totalIt>=maxIt) {
-      SETERRQ(PETSC_COMM_SELF,1,"Maximun number of iterations reached. No convergence in DQDS");
-    }
+    if (totalIt>=maxIt) SETERRQ(PETSC_COMM_SELF,1,"Maximun number of iterations reached. No convergence in DQDS");
     /* END: n=2 or n=1  % n=begin+1 or n=begin */
     if (n==begin+2) {
       sum = (L[n-2]+U[n-2]+U[n-1])/2;

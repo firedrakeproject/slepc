@@ -224,9 +224,9 @@ PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
     ep = LAPACKlamch_("S");
     /* Compute eigenvalues of the block */
     PetscStackCallBLAS("LAPACKlag2",LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi));
-    if (wi==0.0) { /* Real eigenvalues */
+    if (wi==0.0)  /* Real eigenvalues */
       SETERRQ(PETSC_COMM_SELF,1,"Real block in DSVectors_GHIEP");
-    } else { /* Complex eigenvalues */
+    else { /* Complex eigenvalues */
       if (scal1<ep) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
       wr1 /= scal1; wi /= scal1;
 #if !defined(PETSC_USE_COMPLEX)
@@ -508,11 +508,8 @@ PetscErrorCode DSGHIEPInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
 #else
   PetscStackCallBLAS("LAPACKhsein",LAPACKhsein_("R","N","N",select,&n1,H+off,&ld,wr+ds->l,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,ds->rwork,NULL,infoC,&info));
 #endif
-  if (info<0)SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in hsein routine %d",-i);
-  if (info>0) {
-    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Convergence error in hsein routine %d",i);
-  }
-
+  if (info<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in hsein routine %d",-i);
+  if (info>0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Convergence error in hsein routine %d",i);
   ierr = DSGHIEPOrthogEigenv(ds,DS_MAT_X,wr,wi,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif

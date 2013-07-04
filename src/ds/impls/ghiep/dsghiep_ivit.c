@@ -159,19 +159,13 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldq,&ldq_);CHKERRQ(ierr);
   nwall = n*n+n;
-  if (!work || nw<nwall) {
-    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
-  }
+  if (!work || nw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
   nwallr = n;
-  if (!rwork || nwr<nwallr) {
-    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",14);
-  }
+  if (!rwork || nwr<nwallr) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",14);
   ss = rwork;
   nwur += n;
   nwalli = n;
-  if (!iwork || nwi<nwalli) {
-    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",16);
-  }
+  if (!iwork || nwi<nwalli) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",16);
   perm = iwork;
   nwui += n;
   AA = work;
@@ -321,8 +315,8 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "TadeHRtr"
-static PetscErrorCode TadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,PetscInt idx1,PetscInt n1,struct HRtr *tr1,struct HRtr *tr2,PetscReal *ncond,PetscScalar *work,PetscInt lw)
+#define __FUNCT__ "MadeHRtr"
+static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,PetscInt idx1,PetscInt n1,struct HRtr *tr1,struct HRtr *tr2,PetscReal *ncond,PetscScalar *work,PetscInt lw)
 {
   PetscErrorCode ierr;
   PetscScalar    *x,*y;
@@ -330,9 +324,7 @@ static PetscErrorCode TadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
   PetscBLASInt   n0_,n1_,inc=1;
 
   PetscFunctionBegin;
-  if (lw<n) {
-    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Invalid argument %d",11);
-  }
+  if (lw<n) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
   /* Hyperbolic transformation to make zeros in x */
   x = tr1->data;
   tr1->n[0] = n0;
@@ -427,9 +419,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
   ierr = PetscBLASIntCast(ldr,&ldr_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldh,&ldh_);CHKERRQ(ierr);
   nwall = 5*n;
-  if (!work || nw<nwall) {
-    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
-  }
+  if (!work || nw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",16);
   x = work+nwu;
   nwu += n;
   ierr = PetscMemcpy(x,R+j*ldr,n*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -438,7 +428,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
   tr1_t.data = x;
   if (sz==1) {
     /* Hyperbolic transformation to make zeros in x */
-    ierr = TadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_t,NULL,&ncond,work+nwu,nwall-nwu);CHKERRQ(ierr);
+    ierr = MadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_t,NULL,&ncond,work+nwu,nwall-nwu);CHKERRQ(ierr);
     /* Check condition number to single column*/
     if (ncond>tolD) {
       *ok = PETSC_FALSE;
@@ -450,7 +440,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
     nwu += n;
     ierr = PetscMemcpy(y,R+(j+1)*ldr,n*sizeof(PetscScalar));CHKERRQ(ierr);
     tr2_t.data = y;
-    ierr = TadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_t,&tr2_t,&ncond,work+nwu,nwall-nwu);CHKERRQ(ierr);
+    ierr = MadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_t,&tr2_t,&ncond,work+nwu,nwall-nwu);CHKERRQ(ierr);
     /* Computing hyperbolic transformations also for exchanged vectors */
     tr1_te.data = work+nwu;
     nwu += n;
@@ -458,7 +448,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
     tr2_te.data = work+nwu;
     nwu += n;
     ierr = PetscMemcpy(tr2_te.data,R+j*ldr,n*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = TadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_te,&tr2_te,&ncond_e,work+nwu,nwall-nwu);CHKERRQ(ierr);
+    ierr = MadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_te,&tr2_te,&ncond_e,work+nwu,nwall-nwu);CHKERRQ(ierr);
     if (ncond > d*ncond_e) {
       *exg = PETSC_TRUE;
       tr1 = &tr1_te;
@@ -570,9 +560,7 @@ static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,P
   PetscFunctionBegin;
   n = *nv;
   nwall = 7*n;
-  if (!work || nw<nwall) {
-    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
-  }
+  if (!work || nw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
   col1 = work+nwu;
   nwu += n;
   col2 = work+nwu;
@@ -710,9 +698,7 @@ static PetscErrorCode IndefOrthog_CGS(PetscInt n,PetscReal *s,PetscInt nv,PetscS
 
   PetscFunctionBegin;
   nwall = 3*n;
-  if (!work || nw<nwall) {
-    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
-  }
+  if (!work || nw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
   t1 = work+nwu;
   nwu += n;
   t2 = work+nwu;

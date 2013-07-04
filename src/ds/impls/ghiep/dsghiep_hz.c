@@ -63,12 +63,8 @@ static PetscErrorCode UnifiedRotation(PetscReal x,PetscReal y,PetscReal sygn,Pet
       else if (nrm < 0) {
         nrm = PetscSqrtReal(-nrm);
         *swap = PETSC_TRUE;
-      } else {  /* breakdown */
+      } else   /* breakdown */
         SETERRQ(PETSC_COMM_SELF,1,"Breakdown in construction of hyperbolic transformation");
-        rot[0] = 1.0; rot[1] = 0.0; rot[2] = 0.0; rot[3] = 1.0;
-        *rcond = 0.0;
-        PetscFunctionReturn(0);
-      }
       c = c/nrm; s = s/nrm;
       /* rot = [c -s; -s c]; */
       rot[0] = c; rot[1] = -s; rot[2] = -s; rot[3] = c;
