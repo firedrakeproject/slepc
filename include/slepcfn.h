@@ -36,7 +36,7 @@ typedef struct _p_FN* FN;
 /*J
    FNType - String with the name of the mathematical function.
 
-   Level: basic
+   Level: beginner
 
 .seealso: FNSetType(), FN
 J*/
