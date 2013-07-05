@@ -34,8 +34,11 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   PetscInt       ncv;
   PetscBool      issinv;
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
+  PetscMPIInt    size;
 
   PetscFunctionBegin;
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size);CHKERRQ(ierr);
+  if (size!=1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The FEAST interface is supported for sequential runs only");
   if (eps->ncv) {
     if (eps->ncv<eps->nev+2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2");
   } else eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n); /* set default value of ncv */
