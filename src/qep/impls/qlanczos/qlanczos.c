@@ -137,13 +137,11 @@ static PetscErrorCode QEPQLanczosCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,Pet
     ierr = SlepcVecMAXPBY(w,1.0,-1.0,j_1,work,V);CHKERRQ(ierr);
   }
   ierr = VecAXPY(w,-h[j],t);CHKERRQ(ierr);
-
-  /* revert signature */
-  /* for (i=0;i<=j;i++) h[i] *= omega[i]; */ /* -- */
+  /* H pseudosymmetric, signature is not revert*/
 
   /* compute norm of v and w */
   if (norm) {
-   ierr = QEPQLanczosNorm_private(qep,v,w,norm,vw);CHKERRQ(ierr);
+    ierr = QEPQLanczosNorm_private(qep,v,w,norm,vw);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -181,17 +179,11 @@ static PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,PetscReal 
     switch (refinement) {
       case IP_ORTHOG_REFINE_NEVER:
         ierr = QEPQLanczosCGS(qep,H,ldh,omega,H+ldh*j,j,V,t,v,w,NULL,&norm,work,u);CHKERRQ(ierr);
-        *breakdown = PETSC_FALSE;
         break;
       case IP_ORTHOG_REFINE_ALWAYS:
         ierr = QEPQLanczosCGS(qep,H,ldh,omega,H+ldh*j,j,V,t,v,w,NULL,NULL,work,u);CHKERRQ(ierr);
         ierr = QEPQLanczosCGS(qep,H,ldh,omega,c,j,V,t,v,w,&onorm,&norm,work,u);CHKERRQ(ierr);
         for (i=0;i<=j;i++) H[ldh*j+i] += c[i];
-       /*
-        if (norm < eta * onorm) *breakdown = PETSC_TRUE;
-        else *breakdown = PETSC_FALSE;
-        */
-        *breakdown = PETSC_FALSE; /* -- */
         break;
       case IP_ORTHOG_REFINE_IFNEEDED: /* -- */
         ierr = QEPQLanczosCGS(qep,H,ldh,omega,H+ldh*j,j,V,t,v,w,&onorm,&norm,work,u);CHKERRQ(ierr);
@@ -203,14 +195,10 @@ static PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,PetscReal 
           ierr = QEPQLanczosCGS(qep,H,ldh,omega,c,j,V,t,v,w,NULL,&norm,work,u);CHKERRQ(ierr);
           for (i=0;i<=j;i++) H[ldh*j+i] += c[i];
         }
-       /*
-        if (norm < eta * onorm) *breakdown = PETSC_TRUE;
-        else *breakdown = PETSC_FALSE;
-       */
-        *breakdown = PETSC_FALSE; /* -- */
         break;
       default: SETERRQ(PetscObjectComm((PetscObject)qep),1,"Wrong value of ip->orth_ref");
     }
+    if (breakdown) *breakdown = PETSC_FALSE; /* -- */
     ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
     ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
 
@@ -228,8 +216,8 @@ static PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,PetscReal 
 PetscErrorCode QEPSolve_QLanczos(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscInt       j,k,l,lwork,nv,ld,ti;
-  Vec            v=qep->work[0],w=qep->work[1], w_=qep->work[2]; /* v_=qep->work[3]; */
+  PetscInt       j,k,l,lwork,nv,ld,ti,t;
+  Vec            v=qep->work[0],w=qep->work[1],w_=qep->work[2]; /* v_=qep->work[3]; */
   PetscScalar    *S,*Q,*work;
   PetscReal      beta,norm,*omega,*a,*b,*r;
   PetscBool      breakdown;
@@ -245,31 +233,6 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
   }
   /* w is always a random vector */
   ierr = SlepcVecSetRandom(w,qep->rand);CHKERRQ(ierr);
-
-#if 0
- /* Compute scaling factor if not set by user */ /* -- */
-  ierr = PetscObjectTypeCompare((PetscObject)qep->st,STSINVERT,&issinv);CHKERRQ(ierr);
-  if (issinv && !qep->sfactor_set) {
-    qep->sfactor = 1.0;
-    ierr = QEPQLanczosNorm_private(qep,qep->V[0],w,&norm,w_);CHKERRQ(ierr);
-   if (norm==0.0) SETERRQ(((PetscObject)qep)->comm,1,"Initial vector is zero or belongs to the deflation space");
-    ierr = VecScale(qep->V[0],1.0/norm);CHKERRQ(ierr);
-    ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
-    ierr = STMatMult(qep->st,1,w,w_);CHKERRQ(ierr);
-    ierr = STMatMult(qep->st,0,qep->V[0],v_);CHKERRQ(ierr);
-    ierr = VecAXPY(v_,1.0,w_);CHKERRQ(ierr);
-    ierr = STMatSolve(qep->st,2,v_,w_);CHKERRQ(ierr);
-    ierr = VecScale(w_,-1.0);CHKERRQ(ierr);
-    ierr = VecCopy(w,v_);CHKERRQ(ierr);
-    ierr = VecDot(v_,qep->V[0],&y);CHKERRQ(ierr);
-    ierr = VecDot(w_,w,&x);CHKERRQ(ierr);
-    y = PetscAbs(y+x);
-    while (y > 1.0) {
-      qep->sfactor *=10.0;
-      y /= 10.0;
-    }
-  }
-#endif
   ierr = QEPQLanczosNorm_private(qep,qep->V[0],w,&norm,w_);CHKERRQ(ierr);
   if (norm==0.0) SETERRQ(((PetscObject)qep)->comm,1,"Initial vector is zero or belongs to the deflation space"); 
   ierr = VecScale(qep->V[0],1.0/norm);CHKERRQ(ierr);
@@ -277,6 +240,7 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
   ierr = VecCopy(qep->V[0],v);CHKERRQ(ierr);
   ierr = DSGetArrayReal(qep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
   omega[0] = (norm > 0)?1.0:-1.0;
+  ierr = DSRestoreArrayReal(qep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
 
   /* Restart loop */
   l = 0;
@@ -324,14 +288,16 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
     ierr = DSSort(qep->ds,qep->eigr,qep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,nv-qep->nconv,nv,beta,&k);CHKERRQ(ierr);
+    ierr = DSGetDimensions(qep->ds,NULL,NULL,NULL,NULL,&t);CHKERRQ(ierr);    
+    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,t-qep->nconv,nv,beta,&k);CHKERRQ(ierr);
     if (qep->its >= qep->max_it) qep->reason = QEP_DIVERGED_ITS;
     if (k >= qep->nev) qep->reason = QEP_CONVERGED_TOL;
 
     /* Update l */
     if (qep->reason != QEP_CONVERGED_ITERATING || breakdown) l = 0;
-    else { 
-      l = (nv-k)/2;
+    else {
+      l = PetscMax(1,(PetscInt)((nv-k)/2));
+      l = PetscMin(l,t);
       ierr = DSGetArrayReal(qep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
       if (*(a+ld+k+l-1)!=0) {
         if (k+l<nv-1) l = l+1;
