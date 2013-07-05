@@ -288,6 +288,24 @@
       </font>
     </td>
   </tr>
+  <tr valign="middle" bgcolor="#fff0d0"> 
+    <td width="138" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      3.4
+      </font>
+    </td>
+    <td width="175" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      3.4
+      </font>
+    </td>
+    <td width="75" height="21" align="center"> * </td>
+    <td width="146" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      Jul 2013
+      </font>
+    </td>
+  </tr>
 </table>
 
 <p>&nbsp;</p>
@@ -302,7 +320,26 @@ Changes in Version 3.4</font></b>
 
 <ul>
   <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Added new class of solvers NEP for the nonlinear eigenvalue problem.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Added new class of solvers MFN for computing the action of a matrix
+    function on a vector.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    New EPS solver: Contour integral spectrum slice (CISS). Allows to compute
+    all eigenvalues inside a region.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    New QEP solver: Q-Lanczos is a specialized variant of Q-Arnoldi for
+    problems with symmetric matrices.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
     Added support for shift-and-invert in QEP.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Added a new auxiliary class FN: Mathematical Function, to be used in
+    the definition of nonlinear eigenproblems.
     </font></li>
   <li><font size="2" face="Arial, Helvetica, sans-serif">
     Changed options -xxx_monitor_draw to -xxx_monitor_lg, and similarly for 

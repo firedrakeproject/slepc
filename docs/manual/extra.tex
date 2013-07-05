@@ -270,6 +270,15 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\item[Specific options.] Since BLOPEX contains preconditioned solvers, the \slepc interface uses \ident{STPRECOND}, as described in \ref{sec:precond}.
 	\end{description}
 
+\subsection*{\underline{\feast}}
+	\begin{description}
+	\setlength{\itemsep}{0pt}
+	\item[References.]\citep{Polizzi:2009:DAS}.
+	\item[Website.] \url{http://www.ecs.umass.edu/~polizzi/feast}.
+	\item[Summary.] \feast is a numerical library for solving the standard or generalized symmetric eigenvalue problem, and obtaining all the eigenvalues and eigenvectors within a given search interval. It is based on an innovative fast and stable numerical algorithm which deviates fundamentally from the traditional Krylov subspace based iterations or Davidson-Jacobi techniques. The FEAST algorithm takes its inspiration from the density-matrix representation and contour integration technique in quantum mechanics.
+	\item[Specific options.] The \slepc interface to \feast allows the user to specify the number of contour integration points with the function \ident{EPSFEASTSetNumPoints} or at run time with the option \Verb!-eps_feast_num_points <n>!.
+	\end{description}
+
 %---------------------------------------------------
 \section{Fortran Interface}
 \label{sec:fortran}

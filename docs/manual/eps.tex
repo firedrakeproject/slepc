@@ -271,6 +271,7 @@ The selection criteria discussed above are based solely on the eigenvalue. In so
 
 	The available methods for solving the eigenvalue problems are the following:
 \begin{itemize}
+\setlength{\itemsep}{0pt}
 \item Power Iteration with deflation. When combined with shift-and-invert (see chapter \ref{cap:st}), it is equivalent to the Inverse Iteration. Also, this solver embeds the Rayleigh Quotient Iteration (RQI) by allowing variable shifts.
 \item Subspace Iteration with Rayleigh-Ritz projection and locking.
 \item Arnoldi method with explicit restart and deflation.
@@ -279,6 +280,7 @@ The selection criteria discussed above are based solely on the eigenvalue. In so
 \item Generalized Davidson, a simple iteration based on the subspace expansion by the preconditioned residual.
 \item Jacobi-Davidson, a preconditioned eigensolver with an effective correction equation.
 \item RQCG, a basic conjugate gradient iteration for the minimization of the Rayleigh quotient.
+\item CISS, a contour-integral solver that allows computing all eigenvalues in a given region.
 \end{itemize}
 
 \begin{table}
@@ -294,13 +296,15 @@ Krylov-Schur               & \texttt{EPSKRYLOVSCHUR} & \texttt{krylovschur} & $\
 Generalized Davidson       & \texttt{EPSGD}       & \texttt{gd} \\
 Jacobi-Davidson            & \texttt{EPSJD}       & \texttt{jd} \\
 Rayleigh quotient CG       & \texttt{EPSRQCG}     & \texttt{rqcg} \\
+Contour integral SS        & \texttt{EPSCISS}     & \texttt{ciss} \\
 \hline
 \lapack solver             & \texttt{EPSLAPACK}   & \texttt{lapack} \\
 Wrapper to \arpack         & \texttt{EPSARPACK}   & \texttt{arpack} \\
 Wrapper to \primme         & \texttt{EPSPRIMME}   & \texttt{primme} \\
 Wrapper to \blzpack        & \texttt{EPSBLZPACK}  & \texttt{blzpack} \\
 Wrapper to \trlan          & \texttt{EPSTRLAN}    & \texttt{trlan} \\
-Wrapper to \blopex         & \texttt{EPSBLOPEX}   & \texttt{blopex} \\\hline
+Wrapper to \blopex         & \texttt{EPSBLOPEX}   & \texttt{blopex} \\
+Wrapper to \feast          & \texttt{EPSFEAST}    & \texttt{feast} \\\hline
 \end{tabular} }
 \caption{\label{tab:solvers}Eigenvalue solvers available in the \ident{EPS} module.}
 \end{table}
@@ -321,22 +325,24 @@ while the user writes the options database command \Verb!-eps_type! followed by 
 \begin{table}
 \centering
 \begin{tabular}{ccccc} \hline
-Method   &  Portion of spectrum & Problem type & Complex \\ \hline
-\texttt{power}       & Largest $|\lambda|$ & any & yes \\ 
-\texttt{subspace}    & Largest $|\lambda|$ & any & yes \\ 
-\texttt{arnoldi}     & any\footnotemark    & any & yes \addtocounter{footnote}{-1} \\ 
-\texttt{lanczos}     & any\footnotemark    & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & yes \addtocounter{footnote}{-1} \\ 
-\texttt{krylovschur} & any                 & any & yes \\ 
-\texttt{gd}          & any\footnotemark    & any & yes \addtocounter{footnote}{-1} \\ 
-\texttt{jd}          & any\footnotemark    & any & yes \addtocounter{footnote}{-1} \\ 
-\texttt{rqcg}        & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & yes \\ 
+Method   &  Portion of spectrum & Problem type & Real/Complex \\ \hline
+\texttt{power}       & Largest $|\lambda|$ & any & both \\ 
+\texttt{subspace}    & Largest $|\lambda|$ & any & both \\ 
+\texttt{arnoldi}     & any\footnotemark    & any & both\addtocounter{footnote}{-1} \\ 
+\texttt{lanczos}     & any\footnotemark    & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both\addtocounter{footnote}{-1} \\ 
+\texttt{krylovschur} & any                 & any & both \\ 
+\texttt{gd}          & any\footnotemark    & any & both\addtocounter{footnote}{-1} \\ 
+\texttt{jd}          & any\footnotemark    & any & both\addtocounter{footnote}{-1} \\ 
+\texttt{rqcg}        & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\ 
+\texttt{ciss}        & All $\lambda$ in region & any & complex \\ 
 \hline
-\texttt{lapack}      & any                 & any & yes \\ 
-\texttt{arpack}      & any\footnotemark    & any & yes \\ 
-\texttt{primme}      & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & yes \\ 
-\texttt{blzpack}     & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP!  & no \\ 
-\texttt{trlan}       & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & no \\
-\texttt{blopex}      & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & yes \\ \hline
+\texttt{lapack}      & any                 & any & both \\ 
+\texttt{arpack}      & any\footnotemark    & any & both \\ 
+\texttt{primme}      & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & both \\ 
+\texttt{blzpack}     & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP!  & real \\ 
+\texttt{trlan}       & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & real \\
+\texttt{blopex}      & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\
+\texttt{feast}       & All $\lambda$ in an interval & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & complex \\ \hline
 \end{tabular}
 \caption{\label{tab:support}Supported problem types for all eigensolvers available in \slepc.}
 \end{table}
