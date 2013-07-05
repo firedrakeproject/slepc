@@ -229,27 +229,24 @@ PetscErrorCode IPPseudoOrthogonalizeCGS1(IP ip,PetscInt n,Vec *V,PetscReal* omeg
 static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal *omega,Vec v,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
   PetscErrorCode ierr;
-  PetscScalar    lh[100],*h,lc[100],*c;
-  PetscBool      allocatedh = PETSC_FALSE,allocatedc = PETSC_FALSE;
+  PetscScalar    *h,*c;
   PetscReal      onrm,nrm;
-  PetscInt       j,k;
+  PetscInt       sz=0,sz1,j,k;
 
   PetscFunctionBegin;
   /* allocate h and c if needed */
-  if (!H) {
-    if (n<=100) h = lh;
-    else {
-      ierr = PetscMalloc(n*sizeof(PetscScalar),&h);CHKERRQ(ierr);
-      allocatedh = PETSC_TRUE;
-    }
-  } else h = H;
-  if (ip->orthog_ref != IP_ORTHOG_REFINE_NEVER) {
-    if (n<=100) c = lc;
-    else {
-      ierr = PetscMalloc(n*sizeof(PetscScalar),&c);CHKERRQ(ierr);
-      allocatedc = PETSC_TRUE;
-    }
+  if (!H) sz = n;
+  sz1 = sz;
+  if (ip->orthog_ref != IP_ORTHOG_REFINE_NEVER) sz += n;
+  if (sz>ip->lwork) {
+    ierr = PetscFree(ip->work);CHKERRQ(ierr);
+    ierr = PetscMalloc(sz*sizeof(PetscScalar),&ip->work);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory(ip,(sz-ip->lwork)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ip->lwork = sz;
   }
+  if (!H) h = ip->work;
+  else h = H;
+  if (ip->orthog_ref != IP_ORTHOG_REFINE_NEVER) c = ip->work + sz1;
 
   /* orthogonalize and compute onorm */
   switch (ip->orthog_ref) {
@@ -307,10 +304,6 @@ static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal
     for (j=0;j<n;j++)
       H[j] = h[j];
   }
-
-  /* free work space */
-  if (allocatedc) { ierr = PetscFree(c);CHKERRQ(ierr); }
-  if (allocatedh) { ierr = PetscFree(h);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

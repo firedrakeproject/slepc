@@ -142,6 +142,8 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   ip->Bx            = NULL;
   ip->xid           = 0;
   ip->xstate        = 0;
+  ip->work          = NULL;
+  ip->lwork         = 0;
 
   *newip = ip;
   PetscFunctionReturn(0);
@@ -572,6 +574,8 @@ PetscErrorCode IPReset(IP ip)
   ierr = VecDestroy(&ip->Bx);CHKERRQ(ierr);
   ip->xid    = 0;
   ip->xstate = 0;
+  ierr = PetscFree(ip->work);CHKERRQ(ierr);
+  ip->lwork  = 0;
   ierr = IPResetOperationCounters(ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

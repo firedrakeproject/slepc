@@ -45,6 +45,8 @@ struct _p_IP {
   PetscReal          orthog_eta;     /* refinement threshold */
   Mat                matrix;
   PetscInt           innerproducts;
+  PetscScalar        *work;
+  PetscInt           lwork;
 
   /*------------------------- Cache Bx product -------------------*/
   PetscInt           xid;
