@@ -66,7 +66,6 @@ typedef struct {
   PetscInt    refine_outer;
   PetscInt    refine_blocksize;
   /* private data */
-  MPI_Comm    scomm;
   PetscInt    solver_comm_id;
   PetscInt    num_solve_point;
   PetscScalar *weight;
@@ -84,31 +83,13 @@ typedef struct {
 #define __FUNCT__ "SetSolverComm"
 static PetscErrorCode SetSolverComm(EPS eps)
 {
-  PetscErrorCode ierr;
-  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       N = ctx->N;
-  PetscInt       size_solver = ctx->npart;
-  PetscInt       size_region,rank_region,icolor,ikey,num_solver_comm;
+  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+  PetscInt N = ctx->N;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size_region);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank_region);CHKERRQ(ierr);
-
   if (ctx->useconj) N = N/2;
-  num_solver_comm = size_region / size_solver;
-  if (num_solver_comm > N) {
-    size_solver = size_region / N;
-    ierr = PetscInfo2(eps,"CISS changed size_solver %D --> %D\n",ctx->npart,size_solver);CHKERRQ(ierr);
-    ctx->npart = size_solver;
-  }
-
-  icolor = rank_region / size_solver;
-  ikey = rank_region % size_solver;
-  ierr = MPI_Comm_split(PetscObjectComm((PetscObject)eps),icolor,ikey,&ctx->scomm);CHKERRQ(ierr);
-
-  ctx->solver_comm_id = icolor;
-  num_solver_comm = size_region / size_solver;
-  ctx->num_solve_point = N / num_solver_comm;
+  ctx->solver_comm_id = 0;
+  ctx->num_solve_point = N;
   PetscFunctionReturn(0);
 }
 
@@ -181,7 +162,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps)
     ierr = KSPSetOperators(ctx->ksp[i],Fz,Fz,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
     ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
-    ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+    ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
     for (j=0;j<ctx->L;j++) {
       ierr = VecDuplicate(ctx->V[0],&ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
@@ -205,47 +186,12 @@ static PetscErrorCode ConstructS(EPS eps,PetscInt M,Vec **S)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j,k,s,t;
-  PetscInt       rank_region,icolor,ikey,rank_row_comm,size_row_comm;
-  PetscInt       vec_local_size,row_vec_local_size;
-  PetscInt       *array_row_vec_local_size,*array_start_id;
-  MPI_Comm       Row_Comm,Vec_Comm;
-  Vec            v,row_vec,z;
-  PetscScalar    *ppk,*S_data,*v_data,*send;
+  PetscInt       i,j,k;
+  Vec            v;
+  PetscScalar    *ppk;
 
   PetscFunctionBegin;
-  /* 1 */
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank_region);CHKERRQ(ierr);
-  icolor = rank_region % ctx->npart;
-  ikey = rank_region / ctx->npart;
-  ierr = MPI_Comm_split(PetscObjectComm((PetscObject)eps),icolor,ikey,&Row_Comm);CHKERRQ(ierr);
-
-  ierr = MPI_Comm_rank(Row_Comm,&rank_row_comm);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(Row_Comm,&size_row_comm);CHKERRQ(ierr);
-
-  ikey = size_row_comm * icolor + rank_row_comm;
-  icolor = 0;
-  ierr = MPI_Comm_split(PetscObjectComm((PetscObject)eps),icolor,ikey,&Vec_Comm);CHKERRQ(ierr);
-
-  /* 2 */
-  ierr = VecGetLocalSize(ctx->Y[0],&vec_local_size);CHKERRQ(ierr);
-  ierr = VecCreateMPI(Row_Comm,PETSC_DECIDE,vec_local_size,&row_vec);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(row_vec,&row_vec_local_size);CHKERRQ(ierr);
-  ierr = VecDestroy(&row_vec);CHKERRQ(ierr);
-
-  ierr = VecCreateMPI(Vec_Comm,row_vec_local_size,eps->n,&z);CHKERRQ(ierr);
-  ierr = VecDuplicateVecs(z,M*ctx->L,S);CHKERRQ(ierr);
-  ierr = VecDestroy(&z);CHKERRQ(ierr);
-
-  ierr = PetscMalloc(size_row_comm*sizeof(PetscInt),&array_row_vec_local_size);CHKERRQ(ierr);
-  ierr = PetscMalloc((size_row_comm+1)*sizeof(PetscInt),&array_start_id);CHKERRQ(ierr);
-  ierr = MPI_Allgather(&row_vec_local_size,1,MPI_INT,array_row_vec_local_size,1,MPI_INT,Row_Comm);CHKERRQ(ierr);
-  array_start_id[0] = 0;
-  for (i=1;i<size_row_comm+1;i++) {
-    array_start_id[i] = array_start_id[i-1] + array_row_vec_local_size[i-1];
-  }
-
-  /* 3 */
+  ierr = VecDuplicateVecs(ctx->Y[0],M*ctx->L,S);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->num_solve_point*sizeof(PetscScalar),&ppk);CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) ppk[i] = 1;
   ierr = VecDuplicate(ctx->Y[0],&v);CHKERRQ(ierr);
@@ -255,28 +201,12 @@ static PetscErrorCode ConstructS(EPS eps,PetscInt M,Vec **S)
       for (i=0;i<ctx->num_solve_point; i++) {
         ierr = VecAXPY(v,ppk[i]*ctx->weight[ctx->solver_comm_id*ctx->num_solve_point+i]/(PetscReal)ctx->N,ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
       }
-
-      ierr = VecGetArray((*S)[k*ctx->L+j],&S_data);CHKERRQ(ierr);
-      ierr = VecGetArray(v,&v_data);CHKERRQ(ierr);
-
-      for (i=0;i<size_row_comm;i++) {
-        ierr = PetscMalloc(array_row_vec_local_size[i]*sizeof(PetscScalar),&send);CHKERRQ(ierr);
-        for (s=array_start_id[i],t=0;s<array_start_id[i+1];s++,t++) {
-          if (ctx->useconj) send[t] = PetscRealPart(v_data[s])*2;
-          else send[t] = v_data[s];
-        }
-        ierr = MPI_Reduce(send,S_data,array_row_vec_local_size[i],MPIU_SCALAR,MPIU_SUM,i,Row_Comm);CHKERRQ(ierr);
-        ierr = PetscFree(send);CHKERRQ(ierr);
-      }
-      ierr = VecRestoreArray((*S)[k*ctx->L+j],&S_data);CHKERRQ(ierr);
-      ierr = VecRestoreArray(v,&v_data);CHKERRQ(ierr);
+      ierr = VecCopy(v,(*S)[k*ctx->L+j]);CHKERRQ(ierr);
     }
     for (i=0;i<ctx->num_solve_point;i++) {
       ppk[i] *= ctx->pp[ctx->solver_comm_id*ctx->num_solve_point+i];
     }
   }
-  ierr = PetscFree(array_row_vec_local_size);CHKERRQ(ierr);
-  ierr = PetscFree(array_start_id);CHKERRQ(ierr);
   ierr = PetscFree(ppk);CHKERRQ(ierr);
   ierr = VecDestroy(&v);
   PetscFunctionReturn(0);
@@ -466,12 +396,12 @@ static PetscErrorCode SVD(EPS eps,Vec *Q,PetscInt *K,PetscBool isqr)
 
   if (isqr) {
     for (i=0;i<ml;i++) 
-      for (j=0;j<ml;j++) 
+      for (j=0;j<PetscMin(n,ml);j++) 
 	R[i*ld+j] = s[i*ml+j];
   } else {
     for (i=0;i<ml;i++) {
       ierr = VecGetArray(Q[i],&s);CHKERRQ(ierr);
-      for (j=0;j<ml;j++) {
+      for (j=0;j<PetscMin(n,ml);j++) {
 	R[i*ld+j] = s[j];
       }
       ierr = VecRestoreArray(Q[i],&s);CHKERRQ(ierr);
@@ -557,12 +487,10 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   } else if (eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
-
   if (ctx->isreal && PetscImaginaryPart(ctx->center) == 0.0) ctx->useconj = PETSC_TRUE;
   else ctx->useconj = PETSC_FALSE;
 
-  if (!ctx->delta) 
-    ctx->delta = PetscMin((eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL*1e-1:eps->tol*1e-1),1e-12);
+  if (!ctx->delta) ctx->delta = PetscMin((eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL*1e-1:eps->tol*1e-1),1e-12);
 
   if (!ctx->vscale) {
     if (eps->ishermitian && (eps->ispositive || !eps->isgeneralized) && PetscImaginaryPart(ctx->center) == 0.0) ctx->vscale = 0.1;
@@ -580,7 +508,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscMalloc(ctx->L*ctx->M*sizeof(PetscReal),&ctx->sigma);CHKERRQ(ierr);
 
   /* create a template vector for Vecs on solver communicator */
-  ierr = VecCreateMPI(ctx->scomm,PETSC_DECIDE,eps->n,&stemp); CHKERRQ(ierr);
+  ierr = VecCreateMPI(PetscObjectComm((PetscObject)eps),PETSC_DECIDE,eps->n,&stemp); CHKERRQ(ierr);
   ierr = VecDuplicateVecs(stemp,ctx->L,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParents(eps,ctx->L,ctx->V);CHKERRQ(ierr);
   ierr = VecDestroy(&stemp);CHKERRQ(ierr);
@@ -588,10 +516,11 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscMalloc(ctx->num_solve_point*sizeof(KSP),&ctx->ksp);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory(eps,ctx->num_solve_point*sizeof(KSP));CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) {
-    ierr = KSPCreate(ctx->scomm,&ctx->ksp[i]);CHKERRQ(ierr);
+    ierr = KSPCreate(PetscObjectComm((PetscObject)eps),&ctx->ksp[i]);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(eps,ctx->ksp[i]);CHKERRQ(ierr);
   }
   ierr = PetscMalloc(ctx->num_solve_point*ctx->L_max*sizeof(Vec),&ctx->Y);CHKERRQ(ierr);
+  ierr = PetscMemzero(ctx->Y,ctx->num_solve_point*ctx->L_max*sizeof(Vec));CHKERRQ(ierr);
   ierr = PetscLogObjectMemory(eps,ctx->num_solve_point*ctx->L_max*sizeof(Vec));CHKERRQ(ierr);
 
   if (eps->isgeneralized) {
@@ -627,7 +556,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscReal      *tau,s1,s2,tau_max=0.0,*temp,error,max_error;
   PetscBool      *fl;
   Mat            A,B;
-  Vec            w=eps->work[0],tempv=eps->work[1],*H0,aux;
+  Vec            w=eps->work[0],tempv=eps->work[1],*H0;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -657,9 +586,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   for (i=0;i<ctx->refine_blocksize;i++) {
     ierr = PetscMalloc(ctx->L*ctx->L*ctx->M*2*sizeof(PetscScalar),&Mu);CHKERRQ(ierr);
     ierr = CalcMu(eps,Mu);CHKERRQ(ierr);
-    ierr = VecCreateMPI(ctx->scomm,PETSC_DECIDE,ctx->L*ctx->M,&aux);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(aux,ctx->L*ctx->M,&H0);CHKERRQ(ierr);
-    ierr = VecDestroy(&aux);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(eps->t,ctx->L*ctx->M,&H0);CHKERRQ(ierr);
     ierr = BlockHankel(eps,Mu,0,H0);CHKERRQ(ierr);
     ierr = SVD(eps,H0,&nv,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PetscFree(Mu);CHKERRQ(ierr);
@@ -726,7 +653,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     }
     
     ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
-    
+
     ierr = PetscMalloc(nv*sizeof(PetscReal),&tau);CHKERRQ(ierr);
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
     ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
@@ -1278,7 +1205,6 @@ PetscErrorCode EPSReset_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
-  if (eps->setupcalled) { ierr = MPI_Comm_free(&ctx->scomm);CHKERRQ(ierr); }
   ierr = PetscFree(ctx->weight);CHKERRQ(ierr);
   ierr = PetscFree(ctx->omega);CHKERRQ(ierr);
   ierr = PetscFree(ctx->pp);CHKERRQ(ierr);
