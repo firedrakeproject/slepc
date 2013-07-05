@@ -474,6 +474,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   PetscInt       i;
   Vec            stemp;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  const char     *prefix;
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
@@ -517,7 +518,11 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscLogObjectMemory(eps,ctx->num_solve_point*sizeof(KSP));CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) {
     ierr = KSPCreate(PetscObjectComm((PetscObject)eps),&ctx->ksp[i]);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)eps,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent(eps,ctx->ksp[i]);CHKERRQ(ierr);
+    ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"eps_ciss_");CHKERRQ(ierr);
+    ierr = EPSGetOptionsPrefix(eps,&prefix);CHKERRQ(ierr);
+    ierr = KSPAppendOptionsPrefix(ctx->ksp[i],prefix);CHKERRQ(ierr);
   }
   ierr = PetscMalloc(ctx->num_solve_point*ctx->L_max*sizeof(Vec),&ctx->Y);CHKERRQ(ierr);
   ierr = PetscMemzero(ctx->Y,ctx->num_solve_point*ctx->L_max*sizeof(Vec));CHKERRQ(ierr);
@@ -1303,6 +1308,10 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: threshold { delta: %G, spurious threshold: %G }\n",ctx->delta,ctx->spurious_threshold);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: iterative refinement  { inner: %D, outer: %D, blocksize: %D }\n",ctx->refine_inner,ctx->refine_outer, ctx->refine_blocksize);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+
   }
   PetscFunctionReturn(0);
 }
