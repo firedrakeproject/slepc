@@ -151,7 +151,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 #endif
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)eps,viewer,"EPS Object");CHKERRQ(ierr);
+    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)eps,viewer);CHKERRQ(ierr);
     if (eps->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);

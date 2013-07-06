@@ -879,7 +879,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ds,viewer,"DS Object");CHKERRQ(ierr);
+    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ds,viewer);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
       switch (ds->state) {
         case DS_STATE_RAW:          state = "raw"; break;

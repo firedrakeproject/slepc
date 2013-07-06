@@ -517,7 +517,7 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
   PetscCheckSameComm(fn,1,viewer,2);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)fn,viewer,"FN Object");CHKERRQ(ierr);
+    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)fn,viewer);CHKERRQ(ierr);
     if (fn->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*fn->ops->view)(fn,viewer);CHKERRQ(ierr);

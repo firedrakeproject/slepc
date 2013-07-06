@@ -140,7 +140,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)svd,viewer,"SVD Object");CHKERRQ(ierr);
+    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)svd,viewer);CHKERRQ(ierr);
     if (svd->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);

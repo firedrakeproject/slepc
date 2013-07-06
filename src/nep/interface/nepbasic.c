@@ -144,7 +144,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)nep,viewer,"NEP Object");CHKERRQ(ierr);
+    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)nep,viewer);CHKERRQ(ierr);
     if (nep->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*nep->ops->view)(nep,viewer);CHKERRQ(ierr);

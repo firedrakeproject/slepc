@@ -515,7 +515,7 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
   PetscCheckSameComm(ip,1,viewer,2);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ip,viewer,"IP Object");CHKERRQ(ierr);
+    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ip,viewer);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization method: ");CHKERRQ(ierr);
     switch (ip->orthog_type) {
       case IP_ORTHOG_MGS:

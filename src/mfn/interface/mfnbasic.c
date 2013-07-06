@@ -142,7 +142,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
 
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)mfn,viewer,"MFN Object");CHKERRQ(ierr);
+    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)mfn,viewer);CHKERRQ(ierr);
     if (mfn->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*mfn->ops->view)(mfn,viewer);CHKERRQ(ierr);

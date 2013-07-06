@@ -148,7 +148,7 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
 #endif
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)qep,viewer,"QEP Object");CHKERRQ(ierr);
+    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)qep,viewer);CHKERRQ(ierr);
     if (qep->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*qep->ops->view)(qep,viewer);CHKERRQ(ierr);
