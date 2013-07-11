@@ -82,7 +82,7 @@ def bootstrap():
     if ('setuptools' in sys.modules):
         metadata['zip_safe'] = False
         if not PETSC_DIR:
-            metadata['install_requires']= ['petsc>=3.3,<3.4']
+            metadata['install_requires']= ['petsc>=3.4,<3.5']
 
 def get_petsc_dir():
     PETSC_DIR = os.environ.get('PETSC_DIR')
