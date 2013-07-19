@@ -211,21 +211,16 @@ if not petscconf.PRECISION in ['double','single','__float128']:
 if prefixinstall and not petscconf.ISINSTALL:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
-# Check whether this is a working copy of the Subversion repository
-subversion = 0
-if os.path.exists(os.sep.join([slepcdir,'src','docs'])) and os.path.exists(os.sep.join([slepcdir,'.svn'])):
-  (result, output) = commands.getstatusoutput('svn info')
-  if result:
-    print 'WARNING: SLEPC_DIR appears to be a subversion working copy, but svn is not found in PATH'
+# Check whether this is a working copy of the repository
+isrepo = 0
+if os.path.exists(os.sep.join([slepcdir,'src','docs'])) and os.path.exists(os.sep.join([slepcdir,'.git'])):
+  (status, output) = commands.getstatusoutput('git rev-parse')
+  if status:
+    print 'WARNING: SLEPC_DIR appears to be a git working copy, but git is not found in PATH'
   else:
-    subversion = 1
-    svnrev = '-1'
-    svndate = '-1'
-    for line in output.split('\n'):
-      if line.startswith('Last Changed Rev: '):
-        svnrev = line.split('Rev: ')[-1]
-      if line.startswith('Last Changed Date: '):
-        svndate = line.split('Date: ')[-1]
+    isrepo = 1
+    (status, gitrev) = commands.getstatusoutput('git log -1 --pretty=format:%H')
+    (status, gitdate) = commands.getstatusoutput('git log -1 --pretty=format:%ci')
 
 # Create architecture directory and configuration files
 archdir = os.sep.join([slepcdir,petscconf.ARCH])
@@ -284,9 +279,9 @@ try:
   slepcconf = open(os.sep.join([incdir,'slepcconf.h']),'w')
   slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
   slepcconf.write('#define __SLEPCCONF_H\n\n')
-  if subversion:
-    slepcconf.write('#ifndef SLEPC_VERSION_SVN\n#define SLEPC_VERSION_SVN ' + svnrev + '\n#endif\n\n')
-    slepcconf.write('#ifndef SLEPC_VERSION_DATE_SVN\n#define SLEPC_VERSION_DATE_SVN "' + svndate + '"\n#endif\n\n')
+  if isrepo:
+    slepcconf.write('#ifndef SLEPC_VERSION_GIT\n#define SLEPC_VERSION_GIT "' + gitrev + '"\n#endif\n\n')
+    slepcconf.write('#ifndef SLEPC_VERSION_DATE_GIT\n#define SLEPC_VERSION_DATE_GIT "' + gitdate + '"\n#endif\n\n')
   slepcconf.write('#ifndef SLEPC_LIB_DIR\n#define SLEPC_LIB_DIR "' + prefixdir + '/lib"\n#endif\n\n')
 except:
   sys.exit('ERROR: cannot create configuration header in ' + confdir)
@@ -371,7 +366,7 @@ if getblopex:
 missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
 
 # Make Fortran stubs if necessary
-if subversion and hasattr(petscconf,'FC'):
+if isrepo and hasattr(petscconf,'FC'):
   try:
     import generatefortranstubs
     generatefortranstubs.main(slepcdir,petscconf.BFORT,os.getcwd(),0)
