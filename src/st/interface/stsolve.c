@@ -269,18 +269,23 @@ PetscErrorCode STSetUp(ST st)
   if (!((PetscObject)st)->type_name) {
     ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
   }
-  ierr = STReset(st);CHKERRQ(ierr);
-  ierr = PetscMalloc(PetscMax(2,st->nmat)*sizeof(Mat),&st->T);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
+  if (!st->T) {
+    ierr = PetscMalloc(PetscMax(2,st->nmat)*sizeof(Mat),&st->T);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory(st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
+  }
   for (i=0;i<PetscMax(2,st->nmat);i++) st->T[i] = NULL;
-  ierr = MatGetVecs(st->A[0],&st->w,NULL);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(st,st->w);CHKERRQ(ierr);
+  if (!st->w) {
+    ierr = MatGetVecs(st->A[0],&st->w,NULL);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(st,st->w);CHKERRQ(ierr);
+  }
   if (st->D) {
     ierr = MatGetLocalSize(st->A[0],NULL,&n);CHKERRQ(ierr);
     ierr = VecGetLocalSize(st->D,&k);CHKERRQ(ierr);
     if (n != k) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Balance matrix has wrong dimension %D (should be %D)",k,n);
-    ierr = VecDuplicate(st->D,&st->wb);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(st,st->wb);CHKERRQ(ierr);
+    if (!st->wb) {
+      ierr = VecDuplicate(st->D,&st->wb);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent(st,st->wb);CHKERRQ(ierr);
+    }
   }
   if (st->ops->setup) { ierr = (*st->ops->setup)(st);CHKERRQ(ierr); }
   st->setupcalled = 1;
