@@ -55,11 +55,6 @@ static PetscErrorCode EPSFullLanczosIndef(EPS eps,PetscReal *alpha,PetscReal *be
     ierr = VecNorm(w,NORM_2,&norm2);CHKERRQ(ierr);
     t=1/(norm1*norm2);
     if (cos && *cos>t) *cos = t;
-#if 0
-    if (norm1*norm2>tolB){ 
-      SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Lanczos");
-    }
-#endif
   }
   ierr = STApply(eps->st,V[m-1],f);CHKERRQ(ierr);
   ierr = IPPseudoOrthogonalize(eps->ip,m,V,omega,f,hwork,&norm,NULL);CHKERRQ(ierr);
