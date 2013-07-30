@@ -453,7 +453,7 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(y,VEC_CLASSID,1);
-  if (!nv || !(y)->map->n) PetscFunctionReturn(0);
+  if (!nv) PetscFunctionReturn(0);
   if (nv < 0) SETERRQ1(PetscObjectComm((PetscObject)y),PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",nv);
   PetscValidLogicalCollectiveScalar(y,alpha,2);
   PetscValidLogicalCollectiveScalar(y,beta,3);
@@ -475,7 +475,7 @@ PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt 
     ierr = VecGetArrayRead(*x,&px);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(nv,&n);CHKERRQ(ierr);
     ierr = PetscBLASIntCast((y)->map->n,&m);CHKERRQ(ierr);
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&m,&n,&alpha,px,&m,a,&one,&beta,py,&one));
+    if (m>0) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&m,&n,&alpha,px,&m,a,&one,&beta,py,&one));
     ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(*x,&px);CHKERRQ(ierr);
     ierr = PetscLogFlops(nv*2*(y)->map->n);CHKERRQ(ierr);
