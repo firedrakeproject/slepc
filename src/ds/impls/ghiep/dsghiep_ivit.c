@@ -411,10 +411,6 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
   PetscReal      tolD = 1e+6;
 
   PetscFunctionBegin;
-#if 0
-  ierr = PetscOptionsGetReal(NULL,"-tolD",&tolD,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,"-d",&d,NULL);CHKERRQ(ierr);
-#endif
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldr,&ldr_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldh,&ldh_);CHKERRQ(ierr);
@@ -565,33 +561,6 @@ static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,P
   nwu += n;
   col2 = work+nwu;
   nwu += n;
-#if 0
-PetscInt *q;
-ierr = PetscMalloc(n*sizeof(PetscInt),&q);CHKERRQ(ierr);
-PetscReal xx=0.0,yy=0.0,xy=0.0;
-PetscInt ldl=0;
-ierr = PetscOptionsGetInt(NULL,"-ldl",&ldl,NULL);CHKERRQ(ierr);
-
-for (i=0;i<n;i++) q[i]=i;
-if (ldl==1) {
-for (j=0;j<n;j++) {
-  if (cmplxEig[j]==1) {
-    xx = 0.0; yy = 0.0; xy = 0.0;
-    for (i=0;i<n;i++) {
-      xx += V[j*ldv+i]*V[j*ldv+i]*s[i];
-      xy += V[j*ldv+i]*V[(j+1)*ldv+i]*s[i];
-      yy += V[(j+1)*ldv+i]*V[(j+1)*ldv+i]*s[i];
-    }
-    if (xx*xx<(PetscAbsReal(xx*yy-xy*xy))) {
-      q[j] = j+1;
-      q[j+1] = j;
-      cmplxEig[j]=-1;
-    }
-    j++;
-  }
-}
-}
-#endif
   /* Sort R and s according to sing(s) */
   np = 0;
   for (i=0;i<n;i++) if (s[i]>0) np++;
@@ -612,10 +581,7 @@ for (j=0;j<n;j++) {
   idx1 = n0;
   if (idx1==n) idx1=idx0;
   for (i=0;i<n;i++) {
-#if 0
-  for (j=0;j<n;j++) R[j*ldr+i] = V[q[j]*ldv+perm[i]];
-#endif
-   for (j=0;j<n;j++) R[j*ldr+i] = V[j*ldv+perm[i]];
+    for (j=0;j<n;j++) R[j*ldr+i] = V[j*ldv+perm[i]];
   }
   /* Initialize H */
   for (i=0;i<n;i++) {
@@ -682,148 +648,6 @@ for (j=0;j<n;j++) {
   PetscFunctionReturn(0);
 }
 
-#if 0
-#undef __FUNCT__
-#define __FUNCT__ "IndefOrthog_CGS"
-/*
-  compute x = x - y*ss^{-1}*y^T*s*x where ss=y^T*s*y
-  s diagonal (signature matrix)
-*/
-static PetscErrorCode IndefOrthog_CGS(PetscInt n,PetscReal *s,PetscInt nv,PetscScalar *Y,PetscInt ldy,PetscReal *ss,PetscScalar *x,PetscScalar *h,PetscScalar *work,PetscInt lw)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,nwall,nwu=0;
-  PetscScalar    *h2,*h1,*t1,*t2,*work,one=1.0,zero=0.0,onen=-1.0;
-  PetscBLASInt   n_,nv_,ldy_,inc=1;
-
-  PetscFunctionBegin;
-  nwall = 3*n;
-  if (!work || nw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
-  t1 = work+nwu;
-  nwu += n;
-  t2 = work+nwu;
-  nwu += n;
-  h2 = work+nwu;
-  nwu +=n;
-  if (h) h1 = h;
-  else h1 = h2;
-  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(nv,&nv_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ldy,&ldy_);CHKERRQ(ierr);
-  for (i=0;i<n;i++) t1[i] = s[i]*x[i];
-  PetscStackCall("BLASgemv",BLASgemv_("C",&n_,&nv_,&one,Y,&ldy_,t1,&inc,&zero,t2,&inc));
-  for (i=0;i<nv;i++) h1[i] = t2[i]/ss[i];
-  PetscStackCall("BLASgemv",BLASgemv_("N",&n_,&nv_,&onen,Y,&ldy_,h1,&inc,&one,x,&inc));
-  /* Repeat */
-  for (i=0;i<n;i++) t1[i] = s[i]*x[i];
-  PetscStackCall("BLASgemv",BLASgemv_("C",&n_,&nv_,&one,Y,&ldy_,t1,&inc,&zero,t2,&inc));
-  for (i=0;i<nv;i++) h2[i] = t2[i]/ss[i];
-  PetscStackCall("BLASgemv",BLASgemv_("N",&n_,&nv_,&onen,Y,&ldy_,h2,&inc,&one,x,&inc));
-  if (h) {
-    for (i=0;i<n;i++) h[i] += h2[i];
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "IndefNorm"
-/*
-   normalization with a indefinite norm
-*/
-static PetscErrorCode IndefNorm(PetscInt n,PetscReal *s,PetscScalar *x,PetscReal *norm)
-{
-  PetscInt     i;
-  PetscReal    r=0.0,t,max=0.0;
-
-  PetscFunctionBegin;
-  for (i=0;i<n;i++) {
-    t = PetscAbsScalar(x[i]);
-    if (t > max) max = t;
-  }
-  for (i=0;i<n;i++) {
-    t = PetscRealPart(x[i])/max;
-    r += t*t*s[i];
-  }
-  if (r<0) r = -max*PetscSqrtReal(-r);
-  else r = max*PetscSqrtReal(r);
-  for (i=0;i<n;i++) {
-    x[i] /= r;
-  }
-  if (norm) *norm = r;
-  PetscFunctionReturn(0);
-}
-
-
-#undef __FUNCT__
-#define __FUNCT__ "PseudoOrthog_CGS"
-/*
-  compute V = HR whit H s-orthogonal and R upper triangular  
-*/
-static PetscErrorCode PseudoOrthog_CGS(PetscInt n,PetscScalar *V,PetscInt ldv,PetscReal *s,PetscScalar *R,PetscInt ldr,PetscBLASInt *perm,PetscBLASInt *cmplxEig,PetscBool *breakdown)
-{
-  PetscErrorCode ierr;
-  PetscInt       j,nwu=0,lw;
-  PetscReal      *ss,norm;
-  PetscScalar    *work,*X;
-
-  PetscFunctionBegin;
-  lw = 4*n;
-  ierr = PetscMalloc(lw*sizeof(PetscScalar),&work);CHKERRQ(ierr);
-  ierr = PetscMalloc(n*sizeof(PetscReal),&ss);CHKERRQ(ierr);
-  X = work+nwu;
-  nwu += n;
-  for (j=0;j<n;j++) perm[j] = j;
-#if 0
-  PetscReal xx=0.0,yy=0.0,xy=0.0;
-  PetscInt ldl=0;
-  ierr = PetscOptionsGetInt(NULL,"-ldl",&ldl,NULL);CHKERRQ(ierr);
-if (ldl==1) {
-  for (j=0;j<n;j++) {
-    if (cmplxEig[j]==1) {
-      xx = 0.0; yy = 0.0; xy = 0.0;
-      for (i=0;i<n;i++) {
-        xx += V[j*ldv+i]*V[j*ldv+i]*s[i];
-        xy += V[j*ldv+i]*V[(j+1)*ldv+i]*s[i];
-        yy += V[(j+1)*ldv+i]*V[(j+1)*ldv+i]*s[i];
-      }
-      if (xx*xx<(PetscAbsReal(xx*yy-xy*xy))) {
-        cmplxEig[j] = -cmplxEig[j];
-        ierr = PetscMemcpy(X,V+j*ldv,n*sizeof(PetscScalar));CHKERRQ(ierr);
-        ierr = PetscMemcpy(V+j*ldv,V+(j+1)*ldv,n*sizeof(PetscScalar));CHKERRQ(ierr);
-        ierr = PetscMemcpy(V+(j+1)*ldv,X,n*sizeof(PetscScalar));CHKERRQ(ierr);    
-      }
-      j++;
-    }
-  }
-  for (j=0;j<n;j++) {
-    ierr = IndefOrthog_CGS(n,s,j,V,ldv,ss,V+j*ldv,R+j*ldr,work+nwu,lw-nwu);CHKERRQ(ierr);
-    ierr = IndefNorm(n,s,V+j*ldv,&norm);CHKERRQ(ierr);
-    ss[j] = (norm>0)?1.0:-1.0;
-    R[j+j*ldr] = norm;
-  }
-} else {
-#endif
-  j = 0;
-  while (j<n) {
-    ierr = PetscMemcpy(X,V+j*ldv,n*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = PetscMemzero(R+j*ldr,n*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = IndefOrthog_CGS(n,s,j,V,ldv,ss,X,R+j*ldr,work+nwu,lw-nwu);CHKERRQ(ierr);
-    ierr = IndefNorm(n,s,X,&norm);CHKERRQ(ierr);
-    ss[j] = (norm>0)?1.0:-1.0;
-    ierr = PetscMemcpy(V+j*ldv,X,n*sizeof(PetscScalar));CHKERRQ(ierr);
-    R[j+j*ldr] = norm;
-    j++;
-  }
-#if 0
-}
-#endif
-  for (j=0;j<n;j++) s[j] = ss[j];
-  ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscFree(ss);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-#endif
-
 #undef __FUNCT__
 #define __FUNCT__ "DSGHIEPOrthogEigenv"
 PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScalar *wi,PetscBool accum)
@@ -836,10 +660,6 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
   PetscBLASInt   ld_,n_,nv_,*perm,*cmplxEig;
 
   PetscFunctionBegin;
-#if 0
-  orth = 1;
-  ierr = PetscOptionsGetInt(NULL,"-orth",&orth,NULL);CHKERRQ(ierr);
-#endif
   l = ds->l;
   n = ds->n-l;
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
@@ -876,17 +696,8 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
   nv = n;
   
   /* Perform HR decomposition */
-#if 0
-  if (orth==0) {
-    /* CGS method */
-    ierr = PseudoOrthog_CGS(n,X+off,ld,s+l,R,ldr,perm,cmplxEig,NULL);CHKERRQ(ierr);
-  } else {
-#endif
     /* Hyperbolic rotators */
     ierr = PseudoOrthog_HR(&nv,X+off,ld,s+l,R,ldr,perm,cmplxEig,NULL,ds->work+nwus,lws-nwus);CHKERRQ(ierr);
-#if 0
-  }
-#endif
   /* Sort wr,wi perm */ 
   ts = ds->work+nwus;
   nwus += n;
