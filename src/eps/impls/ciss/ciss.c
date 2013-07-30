@@ -561,7 +561,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscReal      *tau,s1,s2,tau_max=0.0,*temp,error,max_error;
   PetscBool      *fl;
   Mat            A,B;
-  Vec            w=eps->work[0],tempv=eps->work[1],*H0;
+  Vec            w=eps->work[0],tempv=eps->work[1],*H0,aux;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -591,7 +591,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   for (i=0;i<ctx->refine_blocksize;i++) {
     ierr = PetscMalloc(ctx->L*ctx->L*ctx->M*2*sizeof(PetscScalar),&Mu);CHKERRQ(ierr);
     ierr = CalcMu(eps,Mu);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(eps->t,ctx->L*ctx->M,&H0);CHKERRQ(ierr);
+    ierr = VecCreateMPI(PetscObjectComm((PetscObject)eps),PETSC_DECIDE,ctx->L*ctx->M,&aux);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(aux,ctx->L*ctx->M,&H0);CHKERRQ(ierr);
+    ierr = VecDestroy(&aux);CHKERRQ(ierr);
     ierr = BlockHankel(eps,Mu,0,H0);CHKERRQ(ierr);
     ierr = SVD(eps,H0,&nv,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PetscFree(Mu);CHKERRQ(ierr);
