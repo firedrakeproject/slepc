@@ -54,9 +54,9 @@ PetscErrorCode SlepcGetVersion(char version[],size_t len)
 
   PetscFunctionBegin;
 #if (SLEPC_VERSION_RELEASE == 1)
-  ierr = PetscSNPrintf(version,len,"SLEPc Release Version %d.%d, Patch %d, %s",SLEPC_VERSION_MAJOR,SLEPC_VERSION_MINOR,SLEPC_VERSION_PATCH,SLEPC_VERSION_PATCH_DATE);CHKERRQ(ierr);
+  ierr = PetscSNPrintf(version,len,"SLEPc Release Version %d.%d.%d, %s",SLEPC_VERSION_MAJOR,SLEPC_VERSION_MINOR,SLEPC_VERSION_SUBMINOR,SLEPC_VERSION_DATE);CHKERRQ(ierr);
 #else
-  ierr = PetscSNPrintf(version,len,"SLEPc Development SVN revision: %d  SVN Date: %s",SLEPC_VERSION_SVN,SLEPC_VERSION_DATE_SVN);CHKERRQ(ierr);
+  ierr = PetscSNPrintf(version,len,"SLEPc Development GIT revision: %d  GIT Date: %s",SLEPC_VERSION_GIT,SLEPC_VERSION_DATE_GIT);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }
