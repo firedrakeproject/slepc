@@ -25,7 +25,7 @@ import sys
 def Load(petscdir):
   global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,DESTDIR,BFORT,TEST_RUNS,CC,CC_FLAGS,FC,AR,AR_FLAGS,AR_LIB_SUFFIX,RANLIB,IND64,BUILD_USING_CMAKE,MPIUNI
 
-  if 'PETSC_ARCH' in os.environ:
+  if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']:
     ISINSTALL = 0
     ARCH = os.environ['PETSC_ARCH']
     PETSCVARIABLES = os.sep.join([petscdir,ARCH,'conf','petscvariables'])
