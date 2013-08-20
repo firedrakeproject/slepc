@@ -51,12 +51,12 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   ierr = PetscMalloc(eps->nloc*ncv*sizeof(PetscScalar),&ctx->work1);CHKERRQ(ierr);
   ierr = PetscFree(ctx->work2);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->nloc*ncv*sizeof(PetscScalar),&ctx->work2);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(eps,2*eps->nloc*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,2*eps->nloc*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscFree(ctx->Aq);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&ctx->Aq);CHKERRQ(ierr);
   ierr = PetscFree(ctx->Bq);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&ctx->Bq);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(eps,2*ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,2*ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
 
   if (!((PetscObject)(eps->st))->type_name) { /* default to shift-and-invert */
     ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);

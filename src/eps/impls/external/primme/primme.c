@@ -162,8 +162,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Prepare auxiliary vectors */
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,eps->n,NULL,&ops->x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,eps->n,NULL,&ops->y);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(eps,ops->x);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(eps,ops->y);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ops->x);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ops->y);CHKERRQ(ierr);
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");

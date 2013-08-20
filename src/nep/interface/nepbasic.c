@@ -309,7 +309,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
 
   ierr = PetscRandomCreate(comm,&nep->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(nep->rand,0x12345678);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(nep,nep->rand);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rand);CHKERRQ(ierr);
   *outnep = nep;
   PetscFunctionReturn(0);
 }
@@ -539,7 +539,7 @@ PetscErrorCode NEPSetIP(NEP nep,IP ip)
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
   ierr = IPDestroy(&nep->ip);CHKERRQ(ierr);
   nep->ip = ip;
-  ierr = PetscLogObjectParent(nep,nep->ip);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -570,7 +570,7 @@ PetscErrorCode NEPGetIP(NEP nep,IP *ip)
   PetscValidPointer(ip,2);
   if (!nep->ip) {
     ierr = IPCreate(PetscObjectComm((PetscObject)nep),&nep->ip);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(nep,nep->ip);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ip);CHKERRQ(ierr);
   }
   *ip = nep->ip;
   PetscFunctionReturn(0);
@@ -606,7 +606,7 @@ PetscErrorCode NEPSetDS(NEP nep,DS ds)
   ierr = PetscObjectReference((PetscObject)ds);CHKERRQ(ierr);
   ierr = DSDestroy(&nep->ds);CHKERRQ(ierr);
   nep->ds = ds;
-  ierr = PetscLogObjectParent(nep,nep->ds);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -637,7 +637,7 @@ PetscErrorCode NEPGetDS(NEP nep,DS *ds)
   PetscValidPointer(ds,2);
   if (!nep->ds) {
     ierr = DSCreate(PetscObjectComm((PetscObject)nep),&nep->ds);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(nep,nep->ds);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ds);CHKERRQ(ierr);
   }
   *ds = nep->ds;
   PetscFunctionReturn(0);
@@ -673,7 +673,7 @@ PetscErrorCode NEPSetKSP(NEP nep,KSP ksp)
   ierr = PetscObjectReference((PetscObject)ksp);CHKERRQ(ierr);
   ierr = KSPDestroy(&nep->ksp);CHKERRQ(ierr);
   nep->ksp = ksp;
-  ierr = PetscLogObjectParent(nep,nep->ksp);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -707,7 +707,7 @@ PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
     ierr = KSPSetOptionsPrefix(nep->ksp,((PetscObject)nep)->prefix);CHKERRQ(ierr);
     ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)nep->ksp,(PetscObject)nep,1);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(nep,nep->ksp);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ksp);CHKERRQ(ierr);
   }
   *ksp = nep->ksp;
   PetscFunctionReturn(0);
@@ -994,14 +994,14 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
   }
   /* allocate space and copy matrices and functions */
   ierr = PetscMalloc(n*sizeof(Mat),&nep->A);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(nep,n*sizeof(Mat));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(Mat));CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
     ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
     nep->A[i] = A[i];
   }
   ierr = PetscMalloc(n*sizeof(FN),&nep->f);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(nep,n*sizeof(FN));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(FN));CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     PetscValidHeaderSpecific(f[i],FN_CLASSID,4);
     ierr = PetscObjectReference((PetscObject)f[i]);CHKERRQ(ierr);

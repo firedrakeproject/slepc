@@ -47,7 +47,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
     cnt += 2*newc*sizeof(PetscReal);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscInt),&eps->perm);CHKERRQ(ierr);
     cnt += newc*sizeof(PetscInt);
-    ierr = PetscLogObjectMemory(eps,cnt);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,cnt);CHKERRQ(ierr);
     ierr = VecDuplicateVecs(eps->t,eps->ncv,&eps->V);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(eps,eps->ncv,eps->V);CHKERRQ(ierr);
     if (eps->leftvecs) {
@@ -63,7 +63,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps)
     ierr = PetscFree(eps->ri);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->rr);CHKERRQ(ierr);
     ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->ri);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(eps,2*newc*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,2*newc*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

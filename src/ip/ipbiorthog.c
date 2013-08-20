@@ -241,7 +241,7 @@ static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal
   if (sz>ip->lwork) {
     ierr = PetscFree(ip->work);CHKERRQ(ierr);
     ierr = PetscMalloc(sz*sizeof(PetscScalar),&ip->work);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(ip,(sz-ip->lwork)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)ip,(sz-ip->lwork)*sizeof(PetscScalar));CHKERRQ(ierr);
     ip->lwork = sz;
   }
   if (!H) h = ip->work;

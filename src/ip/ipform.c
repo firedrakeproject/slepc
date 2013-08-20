@@ -58,7 +58,7 @@ PetscErrorCode IPSetMatrix(IP ip,Mat mat)
   ip->matrix = mat;
   if (mat) {
     ierr = MatGetVecs(mat,&ip->Bx,NULL);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(ip,ip->Bx);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)ip,(PetscObject)ip->Bx);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

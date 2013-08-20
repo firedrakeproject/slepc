@@ -271,12 +271,12 @@ PetscErrorCode STSetUp(ST st)
   }
   if (!st->T) {
     ierr = PetscMalloc(PetscMax(2,st->nmat)*sizeof(Mat),&st->T);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
   }
   for (i=0;i<PetscMax(2,st->nmat);i++) st->T[i] = NULL;
   if (!st->w) {
     ierr = MatGetVecs(st->A[0],&st->w,NULL);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(st,st->w);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->w);CHKERRQ(ierr);
   }
   if (st->D) {
     ierr = MatGetLocalSize(st->A[0],NULL,&n);CHKERRQ(ierr);
@@ -284,7 +284,7 @@ PetscErrorCode STSetUp(ST st)
     if (n != k) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Balance matrix has wrong dimension %D (should be %D)",k,n);
     if (!st->wb) {
       ierr = VecDuplicate(st->D,&st->wb);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent(st,st->wb);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->wb);CHKERRQ(ierr);
     }
   }
   if (st->ops->setup) { ierr = (*st->ops->setup)(st);CHKERRQ(ierr); }
@@ -342,7 +342,7 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
       } else {
         ierr = STMatShellCreate(st,alpha,deg,NULL,&st->T[k]);CHKERRQ(ierr);
       }
-      ierr = PetscLogObjectParent(st,st->T[k]);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[k]);CHKERRQ(ierr);
     } else {
       ierr = STMatShellShift(st->T[k],alpha);CHKERRQ(ierr);
     }
@@ -357,12 +357,12 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
     } else {
       if (initial) {
         ierr = MatDuplicate(st->A[t],MAT_COPY_VALUES,&st->T[k]);CHKERRQ(ierr);
-        ierr = PetscLogObjectParent(st,st->T[k]);CHKERRQ(ierr);
+        ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[k]);CHKERRQ(ierr);
       } else {
         if (beta==0.0) {
           ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
           ierr = MatDuplicate(st->A[t],MAT_COPY_VALUES,&st->T[k]);CHKERRQ(ierr);
-          ierr = PetscLogObjectParent(st,st->T[k]);CHKERRQ(ierr);
+          ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[k]);CHKERRQ(ierr);
         } else {
           ierr = MatCopy(st->A[t],st->T[k],SAME_NONZERO_PATTERN);CHKERRQ(ierr);
         }

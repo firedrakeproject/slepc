@@ -51,7 +51,7 @@ PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,PetscInt 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
     ierr = PetscMalloc(sizeof(dvdInitV),&data);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(d->eps,sizeof(dvdInitV));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdInitV));CHKERRQ(ierr);
     data->k = k;
     data->user = PetscMin(k, user);
     data->old_initV_data = d->initV_data;

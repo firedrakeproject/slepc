@@ -503,7 +503,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   ierr = PetscRandomCreate(comm,&eps->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(eps->rand,0x12345678);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(eps,eps->rand);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->rand);CHKERRQ(ierr);
   *outeps = eps;
   PetscFunctionReturn(0);
 }
@@ -859,7 +859,7 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
   ierr = PetscObjectReference((PetscObject)st);CHKERRQ(ierr);
   ierr = STDestroy(&eps->st);CHKERRQ(ierr);
   eps->st = st;
-  ierr = PetscLogObjectParent(eps,eps->st);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -890,7 +890,7 @@ PetscErrorCode EPSGetST(EPS eps,ST *st)
   PetscValidPointer(st,2);
   if (!eps->st) {
     ierr = STCreate(PetscObjectComm((PetscObject)eps),&eps->st);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(eps,eps->st);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->st);CHKERRQ(ierr);
   }
   *st = eps->st;
   PetscFunctionReturn(0);
@@ -926,7 +926,7 @@ PetscErrorCode EPSSetIP(EPS eps,IP ip)
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
   ierr = IPDestroy(&eps->ip);CHKERRQ(ierr);
   eps->ip = ip;
-  ierr = PetscLogObjectParent(eps,eps->ip);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -956,7 +956,7 @@ PetscErrorCode EPSGetIP(EPS eps,IP *ip)
   PetscValidPointer(ip,2);
   if (!eps->ip) {
     ierr = IPCreate(PetscObjectComm((PetscObject)eps),&eps->ip);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(eps,eps->ip);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->ip);CHKERRQ(ierr);
   }
   *ip = eps->ip;
   PetscFunctionReturn(0);
@@ -992,7 +992,7 @@ PetscErrorCode EPSSetDS(EPS eps,DS ds)
   ierr = PetscObjectReference((PetscObject)ds);CHKERRQ(ierr);
   ierr = DSDestroy(&eps->ds);CHKERRQ(ierr);
   eps->ds = ds;
-  ierr = PetscLogObjectParent(eps,eps->ds);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1022,7 +1022,7 @@ PetscErrorCode EPSGetDS(EPS eps,DS *ds)
   PetscValidPointer(ds,2);
   if (!eps->ds) {
     ierr = DSCreate(PetscObjectComm((PetscObject)eps),&eps->ds);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(eps,eps->ds);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->ds);CHKERRQ(ierr);
   }
   *ds = eps->ds;
   PetscFunctionReturn(0);
