@@ -376,13 +376,14 @@ static PetscErrorCode SVD(EPS eps,Vec *Q,PetscInt *K,PetscBool isqr)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j,ld,ml=ctx->L*ctx->M,n=eps->n;
+  PetscInt       i,j,k,ld,ml=ctx->L*ctx->M,n=eps->n;
   PetscScalar    *R,*w,*s;
   DS             ds;
 
   PetscFunctionBegin;
   if (isqr) {
     ierr = PetscMalloc(ml*ml*sizeof(PetscScalar),&s);CHKERRQ(ierr);
+    ierr = PetscMemzero(s,ml*ml*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = IPQRDecomposition(eps->ip,Q,0,ml,s,ml);CHKERRQ(ierr);
   }
 
@@ -391,17 +392,17 @@ static PetscErrorCode SVD(EPS eps,Vec *Q,PetscInt *K,PetscBool isqr)
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
   ld = ml;
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,PetscMin(n,ml),ml,0,0);CHKERRQ(ierr);
+  k = PetscMin(n,ml);
+  ierr = DSSetDimensions(ds,k,ml,0,0);CHKERRQ(ierr);
   ierr = DSGetArray(ds,DS_MAT_A,&R);CHKERRQ(ierr);
-
   if (isqr) {
     for (i=0;i<ml;i++) 
-      for (j=0;j<PetscMin(n,ml);j++) 
+      for (j=0;j<k;j++) 
 	R[i*ld+j] = s[i*ml+j];
   } else {
     for (i=0;i<ml;i++) {
       ierr = VecGetArray(Q[i],&s);CHKERRQ(ierr);
-      for (j=0;j<PetscMin(n,ml);j++) {
+      for (j=0;j<k;j++) {
 	R[i*ld+j] = s[j];
       }
       ierr = VecRestoreArray(Q[i],&s);CHKERRQ(ierr);
@@ -410,12 +411,12 @@ static PetscErrorCode SVD(EPS eps,Vec *Q,PetscInt *K,PetscBool isqr)
   ierr = DSRestoreArray(ds,DS_MAT_A,&R);CHKERRQ(ierr);
   if (isqr) { ierr = PetscFree(s);CHKERRQ(ierr); }
   ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
-  ierr = PetscMalloc(ml*sizeof(PetscScalar),&w);CHKERRQ(ierr);
+  ierr = PetscMalloc(k*sizeof(PetscScalar),&w);CHKERRQ(ierr);
   ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestReal,NULL);CHKERRQ(ierr);
   ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   (*K) = 0;
-  for (i=0;i<ml;i++) {
+  for (i=0;i<k;i++) {
     ctx->sigma[i] = PetscRealPart(w[i]);
     if (ctx->sigma[i]/PetscMax(ctx->sigma[0],1)>ctx->delta) (*K)++;
   }
