@@ -284,6 +284,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
   }
+  for (i=l;i<PetscMin(ds->n,ds->m);i++) wr[i] = d[i];
 
   /* Create diagonal matrix as a result */
   if (ds->compact) {
