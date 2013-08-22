@@ -183,7 +183,7 @@ def processf90interfaces(petscdir,verbose):
     if verbose: print 'Processing F90 interface for '+mansec
     if os.path.isdir(os.path.join(petscdir,'include','finclude','ftn-auto',mansec)):
       mansec = mansec[:-7]
-      f90inc = os.path.join(petscdir,'include','finclude','ftn-auto','petsc'+mansec+'.h90')
+      f90inc = os.path.join(petscdir,'include','finclude','ftn-auto','slepc'+mansec+'.h90')
       fd = open(f90inc,'w')
       for sfile in os.listdir(os.path.join(petscdir,'include','finclude','ftn-auto',mansec+'-tmpdir')):
         if verbose: print '  Copying in '+sfile
