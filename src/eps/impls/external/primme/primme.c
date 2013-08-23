@@ -64,7 +64,7 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
 static void par_GlobalSumDouble(void *sendBuf,void *recvBuf,int *count,primme_params *primme)
 {
   PetscErrorCode ierr;
-  ierr = MPI_Allreduce((double*)sendBuf,(double*)recvBuf,*count,MPI_DOUBLE,MPI_SUM,PetscObjectComm((PetscObject)(primme->commInfo))->comm);CHKERRABORT(((PetscObject)(primme->commInfo)),ierr);
+  ierr = MPI_Allreduce((double*)sendBuf,(double*)recvBuf,*count,MPI_DOUBLE,MPI_SUM,primme->commInfo);CHKERRABORT(primme->commInfo,ierr);
 }
 
 #undef __FUNCT__
@@ -108,7 +108,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->nLocal     = eps->nloc;
   primme->numEvals   = eps->nev;
   primme->matrix     = ops;
-  primme->commInfo   = eps;
+  primme->commInfo   = PetscObjectComm((PetscObject)eps);
   primme->maxMatvecs = eps->max_it;
   primme->eps        = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
   primme->numProcs   = numProcs;
