@@ -17,8 +17,8 @@ quadratic eigenvalue problems
 
     $ pip install petsc==dev slepc==dev
 
-  .. _slepc-dev: http://www.grycap.upv.es/slepc/
-                 svn/trunk/#egg=slepc-dev
+  .. _slepc-dev: https://bitbucket.org/slepc/
+                 slepc/get/master.tar.gz#egg=slepc-dev
 """
 
 import sys, os
@@ -261,7 +261,7 @@ def tarball():
         return None
     bits = VERSION.split('.')
     if len(bits) == 2: bits.append('0')
-    SLEPC_VERSION = '.'.join(bits[:-1]) + '-p' + bits[-1]
+    SLEPC_VERSION = '.'.join(bits[:3])
     return ('http://www.grycap.upv.es/slepc/download/distrib/'
             'slepc-%s.tar.gz#egg=slepc-%s' % (SLEPC_VERSION, VERSION))
 
