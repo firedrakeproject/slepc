@@ -146,7 +146,13 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
       for (k=0;k<fpm[24];k++) {
         ierr = VecPlaceArray(x,&pV[(fpm[23]+k-1)*eps->nloc]);CHKERRQ(ierr);
         ierr = VecPlaceArray(y,&ctx->work1[(fpm[23]+k-1)*eps->nloc]);CHKERRQ(ierr);
-        ierr = MatMult((ijob==30)?A:B,x,y);CHKERRQ(ierr);
+        if (ijob == 30) {
+          ierr = MatMult(A,x,y);CHKERRQ(ierr);
+        } else if (nmat>1) {
+          ierr = MatMult(B,x,y);CHKERRQ(ierr);
+        } else {
+          ierr = VecCopy(x,y);CHKERRQ(ierr);
+        }
         ierr = VecResetArray(x);CHKERRQ(ierr);
         ierr = VecResetArray(y);CHKERRQ(ierr);
       }
