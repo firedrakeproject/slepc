@@ -40,5 +40,6 @@
 #define QEPLINEAR    'linear'
 #define QEPQARNOLDI  'qarnoldi'
 #define QEPQLANCZOS  'qlanczos'
+#define QEPSTOAR     'stoar'
 
 #endif

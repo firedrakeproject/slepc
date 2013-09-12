@@ -48,6 +48,7 @@ typedef const char* QEPType;
 #define QEPLINEAR    "linear"
 #define QEPQARNOLDI  "qarnoldi"
 #define QEPQLANCZOS  "qlanczos"
+#define QEPSTOAR     "stoar"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId QEP_CLASSID;
