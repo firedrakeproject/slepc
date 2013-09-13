@@ -64,7 +64,7 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
 static void par_GlobalSumDouble(void *sendBuf,void *recvBuf,int *count,primme_params *primme)
 {
   PetscErrorCode ierr;
-  ierr = MPI_Allreduce((double*)sendBuf,(double*)recvBuf,*count,MPI_DOUBLE,MPI_SUM,primme->commInfo);CHKERRABORT(primme->commInfo,ierr);
+  ierr = MPI_Allreduce((double*)sendBuf,(double*)recvBuf,*count,MPI_DOUBLE,MPI_SUM,(MPI_Comm)primme->commInfo);CHKERRABORT((MPI_Comm)primme->commInfo,ierr);
 }
 
 #undef __FUNCT__
