@@ -390,7 +390,7 @@ static PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
    NOT require BlockSize > 1 to find multiple eigenvalues.  For some
    methods, keeping BlockSize = 1 yields the best overall performance.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -404,6 +404,7 @@ static PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
    is used.
 
    Level: advanced
+
 .seealso: EPSPRIMMEGetBlockSize()
 @*/
 PetscErrorCode EPSPRIMMESetBlockSize(EPS eps,PetscInt bs)
@@ -433,15 +434,16 @@ static PetscErrorCode EPSPRIMMEGetBlockSize_PRIMME(EPS eps,PetscInt *bs)
 /*@
    EPSPRIMMEGetBlockSize - Get the maximum block size the code will try to use.
 
-   Collective on EPS
+   Not Collective
 
-   Input Parameters:
+   Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Output Parameters:
+   Output Parameter:
 .  bs - returned block size
 
    Level: advanced
+
 .seealso: EPSPRIMMESetBlockSize()
 @*/
 PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,PetscInt *bs)
@@ -471,7 +473,7 @@ static PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps,EPSPRIMMEMethod method)
 /*@
    EPSPRIMMESetMethod - Sets the method for the PRIMME library.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -484,7 +486,10 @@ static PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps,EPSPRIMMEMethod method)
     EPS_PRIMME_LOBPCG_ORTHOBASIS, EPS_PRIMME_LOBPCG_ORTHOBASISW
 
    Options Database Key:
-.  -eps_primme_set_method - Sets the method for the PRIMME library.
+.  -eps_primme_method - Sets the method for the PRIMME library (one of 
+    'dynamic', 'default_min_time', 'default_min_matvecs', 'arnoldi',
+    'gd', 'gd_plusk', 'gd_olsen_plusk', 'jd_olsen_plusk', 'rqi', 'jdqr', 'jdqmr',
+    'jdqmr_etol', 'subspace_iteration', 'lobpcg_orthobasis', 'lobpcg_orthobasisw').
 
    Note:
    If not set, the method defaults to EPS_PRIMME_DEFAULT_MIN_TIME.
@@ -518,15 +523,15 @@ static PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps,EPSPRIMMEMethod *method)
 #undef __FUNCT__
 #define __FUNCT__ "EPSPRIMMEGetMethod"
 /*@C
-    EPSPRIMMEGetMethod - Gets the method for the PRIMME library.
+   EPSPRIMMEGetMethod - Gets the method for the PRIMME library.
 
-    Mon Collective on EPS
+   Not Collective
 
-   Input Parameters:
+   Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Output Parameters:
-.  method - method that will be used by PRIMME. It must be one of:
+   Output Parameter:
+.  method - method that will be used by PRIMME, one of
     EPS_PRIMME_DYNAMIC, EPS_PRIMME_DEFAULT_MIN_TIME(EPS_PRIMME_JDQMR_ETOL),
     EPS_PRIMME_DEFAULT_MIN_MATVECS(EPS_PRIMME_GD_OLSEN_PLUSK), EPS_PRIMME_ARNOLDI,
     EPS_PRIMME_GD, EPS_PRIMME_GD_PLUSK, EPS_PRIMME_GD_OLSEN_PLUSK,
@@ -534,7 +539,7 @@ static PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps,EPSPRIMMEMethod *method)
     EPS_PRIMME_JDQMR_ETOL, EPS_PRIMME_SUBSPACE_ITERATION,
     EPS_PRIMME_LOBPCG_ORTHOBASIS, EPS_PRIMME_LOBPCG_ORTHOBASISW
 
-    Level: advanced
+   Level: advanced
 
 .seealso: EPSPRIMMESetMethod(), EPSPRIMMEMethod
 @*/
