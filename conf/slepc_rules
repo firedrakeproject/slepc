@@ -179,8 +179,8 @@ slepc_tree: ${ACTION}
               continue; \
             fi; \
             (cd $$dir ; \
-            echo ${ACTION} in: `pwd`; \
-            ${OMAKE} slepc_tree ACTION=${ACTION}  PETSC_ARCH=${PETSC_ARCH} LOC=${LOC} DATAFILESPATH=${DATAFILESPATH} BASE_DIR=${BASE_DIR});\
+            if [ ${NO_PRINT_DIR}foo = foo ] ; then echo ${ACTION} in: `pwd`; fi; \
+            ${OMAKE_NOPRINTDIR} slepc_tree ACTION=${ACTION}  PETSC_ARCH=${PETSC_ARCH} LOC=${LOC} DATAFILESPATH=${DATAFILESPATH} BASE_DIR=${BASE_DIR} NO_PRINT_DIR=${NO_PRINT_DIR});\
 	  done
 
 # builds the SLEPc shared library
