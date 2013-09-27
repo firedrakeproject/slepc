@@ -72,22 +72,25 @@ class Slepc(object):
         self.mistakes = Mistakes(debuglogger(self.log), verbose=verbose)
         self.gendeps = []
 
-    def petsc_arch_path(self, *args):
-        return os.path.join(self.petsc_dir, self.petsc_arch, *args)
+    def petsc_path(self, *args):
+        if os.environ.get('PETSC_ARCH') == 'arch-installed-petsc':
+            return os.path.join(self.petsc_dir, *args)
+        else:
+            return os.path.join(self.petsc_dir, self.petsc_arch, *args)
 
     def arch_path(self, *args):
         return os.path.join(self.slepc_dir, self.petsc_arch, *args)
 
     def read_conf(self):
         self.conf = dict()
-        for line in open(self.petsc_arch_path('include', 'petscconf.h')):
+        for line in open(self.petsc_path('include', 'petscconf.h')):
             if line.startswith('#define '):
                 define = line[len('#define '):]
                 space = define.find(' ')
                 key = define[:space]
                 val = define[space+1:]
                 self.conf[key] = val
-        self.conf.update(parse_makefile(self.petsc_arch_path('conf', 'petscvariables')))
+        self.conf.update(parse_makefile(self.petsc_path('conf', 'petscvariables')))
         for line in open(self.arch_path('include', 'slepcconf.h')):
             if line.startswith('#define '):
                 define = line[len('#define '):]
