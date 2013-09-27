@@ -66,7 +66,7 @@ srcs.o := $(foreach pkg, $(pkgs), $(call concatlang,$(pkg)))
 
 # with-single-library=1 (default)
 $(libslepc_shared) : $(srcs.o) | $$(@D)/.DIR
-	$(call quiet,CLINKER) -shared -o $@ $^ $(SLEPC_EXTERNAL_LIB)
+	$(call quiet,CLINKER) -shared -o $@ $^ $(SLEPC_EXTERNAL_LIB) $(PETSC_KSP_LIB)
 
 $(libslepc_static) : obj := $(srcs.o)
 
