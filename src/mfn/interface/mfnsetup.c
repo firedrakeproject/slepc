@@ -77,7 +77,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
   ierr = MatGetLocalSize(mfn->A,&mfn->nloc,NULL);CHKERRQ(ierr);
   ierr = VecDestroy(&mfn->t);CHKERRQ(ierr);
   ierr = SlepcMatGetVecsTemplate(mfn->A,&mfn->t,NULL);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(mfn,mfn->t);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->t);CHKERRQ(ierr);
 
   /* Set default function */
   if (!mfn->function) {

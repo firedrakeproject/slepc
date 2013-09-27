@@ -55,7 +55,7 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,shift neighb0,shift n
   PetscFunctionBegin;
   sr = ctx->sr;
   ierr = PetscMalloc(sizeof(struct _n_shift),&s);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(eps,sizeof(struct _n_shift));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(struct _n_shift));CHKERRQ(ierr);
   s->value = val;
   s->neighb[0] = neighb0;
   if (neighb0) neighb0->neighb[1] = s;
@@ -72,7 +72,7 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,shift neighb0,shift n
   if (sr->nPend >= sr->maxPend) {
     sr->maxPend *= 2;
     ierr = PetscMalloc((sr->maxPend)*sizeof(shift),&pending2);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(eps,sizeof(shift));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(shift));CHKERRQ(ierr);
     for (i=0;i<sr->nPend;i++) pending2[i] = sr->pending[i];
     ierr = PetscFree(sr->pending);CHKERRQ(ierr);
     sr->pending = pending2;
@@ -613,7 +613,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscMalloc(sizeof(struct _n_SR),&sr);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(eps,sizeof(struct _n_SR));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(struct _n_SR));CHKERRQ(ierr);
   ctx->sr = sr;
   sr->itsKs = 0;
   sr->nleap = 0;
@@ -641,7 +641,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   /* Array of pending shifts */
   sr->maxPend = 100;/* Initial size */
   ierr = PetscMalloc((sr->maxPend)*sizeof(shift),&sr->pending);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(eps,(sr->maxPend)*sizeof(shift));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,(sr->maxPend)*sizeof(shift));CHKERRQ(ierr);
   if (sr->hasEnd) {
     ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
@@ -674,7 +674,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   ierr = PetscMalloc((sr->numEigs+eps->ncv)*sizeof(PetscReal),&errest_left);CHKERRQ(ierr);
   ierr = PetscMalloc((sr->numEigs+eps->ncv)*sizeof(PetscScalar),&sr->monit);CHKERRQ(ierr);
   ierr = PetscMalloc((eps->ncv)*sizeof(PetscScalar),&sr->back);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(eps,(lds*lds+3*sr->numEigs+eps->ncv)*sizeof(PetscScalar)+2*(sr->numEigs+eps->ncv)*sizeof(PetscReal));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,(lds*lds+3*sr->numEigs+eps->ncv)*sizeof(PetscScalar)+2*(sr->numEigs+eps->ncv)*sizeof(PetscReal));CHKERRQ(ierr);
   for (i=0;i<sr->numEigs;i++) {
     sr->eig[i]  = 0.0;
     sr->eigi[i] = 0.0;
@@ -690,13 +690,13 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   /* Vector for maintaining order of eigenvalues */
   ierr = PetscMalloc(sr->numEigs*sizeof(PetscInt),&sr->perm);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(eps,sr->numEigs*sizeof(PetscInt));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,sr->numEigs*sizeof(PetscInt));CHKERRQ(ierr);
   for (i=0;i< sr->numEigs;i++) sr->perm[i]=i;
   /* Vectors for deflation */
   ierr = PetscMalloc(sr->numEigs*sizeof(PetscInt),&sr->idxDef);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(eps,sr->numEigs*sizeof(PetscInt));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,sr->numEigs*sizeof(PetscInt));CHKERRQ(ierr);
   ierr = PetscMalloc(sr->numEigs*sizeof(Vec),&sr->VDef);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(eps,sr->numEigs*sizeof(Vec));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,sr->numEigs*sizeof(Vec));CHKERRQ(ierr);
   sr->indexEig = 0;
   /* Main loop */
   while (sr->sPres) {

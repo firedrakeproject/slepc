@@ -220,7 +220,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
   if (sz>ip->lwork) {
     ierr = PetscFree(ip->work);CHKERRQ(ierr);
     ierr = PetscMalloc(sz*sizeof(PetscScalar),&ip->work);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(ip,(sz-ip->lwork)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)ip,(sz-ip->lwork)*sizeof(PetscScalar));CHKERRQ(ierr);
     ip->lwork = sz;
   }
   if (!H || nds>0) h = ip->work;

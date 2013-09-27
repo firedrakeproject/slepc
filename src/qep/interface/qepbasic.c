@@ -416,7 +416,7 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
 
   ierr = PetscRandomCreate(comm,&qep->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(qep->rand,0x12345678);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(qep,qep->rand);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)qep->rand);CHKERRQ(ierr);
   *outqep = qep;
   PetscFunctionReturn(0);
 }
@@ -640,7 +640,7 @@ PetscErrorCode QEPSetIP(QEP qep,IP ip)
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
   ierr = IPDestroy(&qep->ip);CHKERRQ(ierr);
   qep->ip = ip;
-  ierr = PetscLogObjectParent(qep,qep->ip);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)qep->ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -671,7 +671,7 @@ PetscErrorCode QEPGetIP(QEP qep,IP *ip)
   PetscValidPointer(ip,2);
   if (!qep->ip) {
     ierr = IPCreate(PetscObjectComm((PetscObject)qep),&qep->ip);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(qep,qep->ip);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)qep->ip);CHKERRQ(ierr);
   }
   *ip = qep->ip;
   PetscFunctionReturn(0);
@@ -707,7 +707,7 @@ PetscErrorCode QEPSetDS(QEP qep,DS ds)
   ierr = PetscObjectReference((PetscObject)ds);CHKERRQ(ierr);
   ierr = DSDestroy(&qep->ds);CHKERRQ(ierr);
   qep->ds = ds;
-  ierr = PetscLogObjectParent(qep,qep->ds);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)qep->ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -738,7 +738,7 @@ PetscErrorCode QEPGetDS(QEP qep,DS *ds)
   PetscValidPointer(ds,2);
   if (!qep->ds) {
     ierr = DSCreate(PetscObjectComm((PetscObject)qep),&qep->ds);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(qep,qep->ds);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)qep->ds);CHKERRQ(ierr);
   }
   *ds = qep->ds;
   PetscFunctionReturn(0);
@@ -774,7 +774,7 @@ PetscErrorCode QEPSetST(QEP qep,ST st)
   ierr = PetscObjectReference((PetscObject)st);CHKERRQ(ierr);
   ierr = STDestroy(&qep->st);CHKERRQ(ierr);
   qep->st = st;
-  ierr = PetscLogObjectParent(qep,qep->st);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)qep->st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -805,7 +805,7 @@ PetscErrorCode QEPGetST(QEP qep,ST *st)
   PetscValidPointer(st,2);
   if (!qep->st) {
     ierr = STCreate(PetscObjectComm((PetscObject)qep),&qep->st);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(qep,qep->st);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)qep->st);CHKERRQ(ierr);
   }
   *st = qep->st;
   PetscFunctionReturn(0);

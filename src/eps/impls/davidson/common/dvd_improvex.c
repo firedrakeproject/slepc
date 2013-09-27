@@ -149,7 +149,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
     ierr = PetscMalloc(sizeof(dvdImprovex_jd),&data);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(d->eps,sizeof(dvdImprovex_jd));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdImprovex_jd));CHKERRQ(ierr);
     data->dynamic = dynamic;
     data->size_real_KZ = size_P;
     data->real_KZ = b->free_vecs; b->free_vecs+= data->size_real_KZ;
@@ -192,7 +192,7 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
   if (data->ksp) {
     /* Create the reference vector */
     ierr = VecCreateCompWithVecs(d->V,data->ksp_max_size,NULL,&data->friends);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(d->eps,data->friends);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)d->eps,(PetscObject)data->friends);CHKERRQ(ierr);
 
     /* Save the current pc and set a PCNONE */
     ierr = KSPGetPC(data->ksp, &data->old_pc);CHKERRQ(ierr);

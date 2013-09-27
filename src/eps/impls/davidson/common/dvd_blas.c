@@ -614,9 +614,9 @@ PetscErrorCode VecsMult(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt
 */
 PetscErrorCode VecsMultIa(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt sU,PetscInt eU,Vec *V,PetscInt sV,PetscInt eV)
 {
-  PetscErrorCode  ierr;
-  PetscInt        ldU, ldV;
-  PetscScalar     *pu, *pv;
+  PetscErrorCode    ierr;
+  PetscInt          ldU, ldV;
+  const PetscScalar *pu, *pv;
 
   PetscFunctionBegin;
   /* Check if quick exit */
@@ -630,8 +630,8 @@ PetscErrorCode VecsMultIa(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscI
   ierr = VecGetLocalSize(U[0],&ldU);CHKERRQ(ierr);
   ierr = VecGetLocalSize(V[0],&ldV);CHKERRQ(ierr);
   if (ldU != ldV) SETERRQ(PetscObjectComm((PetscObject)*U),1, "Matrix dimensions do not match");
-  ierr = VecGetArray(U[0],&pu);CHKERRQ(ierr);
-  ierr = VecGetArray(V[0],&pv);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(U[0],&pu);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(V[0],&pv);CHKERRQ(ierr);
 
   if ((sU == 0) && (sV == 0) && (eU == ldM)) {
     /* M <- local_U' * local_V */
@@ -655,10 +655,8 @@ PetscErrorCode VecsMultIa(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscI
   /* Other structures */
   } else SETERRQ(PetscObjectComm((PetscObject)*U),1, "Matrix structure not supported");
 
-  ierr = VecRestoreArray(U[0],&pu);CHKERRQ(ierr);
-  ierr = PetscObjectStateDecrease((PetscObject)U[0]);CHKERRQ(ierr);
-  ierr = VecRestoreArray(V[0],&pv);CHKERRQ(ierr);
-  ierr = PetscObjectStateDecrease((PetscObject)V[0]);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(U[0],&pu);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(V[0],&pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -83,14 +83,14 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (nep->split) {
     ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->function);CHKERRQ(ierr);
     ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->jacobian);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(nep,nep->function);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(nep,nep->jacobian);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->function);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->jacobian);CHKERRQ(ierr);
     ierr = SlepcMatGetVecsTemplate(nep->A[0],&nep->t,NULL);CHKERRQ(ierr);
   } else {
     ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = SlepcMatGetVecsTemplate(T,&nep->t,NULL);CHKERRQ(ierr);
   }
-  ierr = PetscLogObjectParent(nep,nep->t);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->t);CHKERRQ(ierr);
   ierr = VecGetSize(nep->t,&nep->n);CHKERRQ(ierr);
   ierr = VecGetLocalSize(nep->t,&nep->nloc);CHKERRQ(ierr);
 
@@ -222,7 +222,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep)
     ierr = PetscMalloc(nep->ncv*sizeof(PetscReal),&nep->errest);CHKERRQ(ierr);
     ierr = PetscMalloc(nep->ncv*sizeof(PetscInt),&nep->perm);CHKERRQ(ierr);
     cnt += 2*newc*sizeof(PetscReal);
-    ierr = PetscLogObjectMemory(nep,cnt);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)nep,cnt);CHKERRQ(ierr);
     ierr = VecDuplicateVecs(nep->t,nep->ncv,&nep->V);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(nep,nep->ncv,nep->V);CHKERRQ(ierr);
     nep->allocated_ncv = nep->ncv;

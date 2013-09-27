@@ -271,7 +271,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   nvecs = b.max_size_auxV + b.own_vecs;
   nscalars = b.own_scalars + b.max_size_auxS;
   ierr = PetscMalloc(nscalars*sizeof(PetscScalar),&data->wS);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(eps,nscalars*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,nscalars*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = VecDuplicateVecs(eps->t,nvecs,&data->wV);CHKERRQ(ierr);
   ierr = PetscLogObjectParents(eps,nvecs,data->wV);CHKERRQ(ierr);
   data->size_wV = nvecs;
@@ -284,7 +284,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   eps->errest_left = NULL;
   ierr = PetscMalloc(eps->ncv*sizeof(PetscInt),&eps->perm);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(eps,eps->ncv*sizeof(PetscInt));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,eps->ncv*sizeof(PetscInt));CHKERRQ(ierr);
   for (i=0;i<eps->ncv;i++) eps->perm[i] = i;
 
   /* Configure dvd for a basic GD */

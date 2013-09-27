@@ -38,7 +38,7 @@ PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
   if (ds->mat[m]) {
     ierr = PetscFree(ds->mat[m]);CHKERRQ(ierr);
   } else {
-    ierr = PetscLogObjectMemory(ds,sz);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)ds,sz);CHKERRQ(ierr);
   }
   ierr = PetscMalloc(sz,&ds->mat[m]);CHKERRQ(ierr);
   ierr = PetscMemzero(ds->mat[m],sz);CHKERRQ(ierr);
@@ -57,7 +57,7 @@ PetscErrorCode DSAllocateMatReal_Private(DS ds,DSMatType m)
   else if (m==DS_MAT_D) sz = ds->ld*sizeof(PetscReal);
   else sz = ds->ld*ds->ld*sizeof(PetscReal);
   if (!ds->rmat[m]) {
-    ierr = PetscLogObjectMemory(ds,sz);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)ds,sz);CHKERRQ(ierr);
     ierr = PetscMalloc(sz,&ds->rmat[m]);CHKERRQ(ierr);
   }
   ierr = PetscMemzero(ds->rmat[m],sz);CHKERRQ(ierr);
@@ -74,19 +74,19 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
   if (s>ds->lwork) {
     ierr = PetscFree(ds->work);CHKERRQ(ierr);
     ierr = PetscMalloc(s*sizeof(PetscScalar),&ds->work);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(ds,(s-ds->lwork)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)ds,(s-ds->lwork)*sizeof(PetscScalar));CHKERRQ(ierr);
     ds->lwork = s;
   }
   if (r>ds->lrwork) {
     ierr = PetscFree(ds->rwork);CHKERRQ(ierr);
     ierr = PetscMalloc(r*sizeof(PetscReal),&ds->rwork);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(ds,(r-ds->lrwork)*sizeof(PetscReal));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)ds,(r-ds->lrwork)*sizeof(PetscReal));CHKERRQ(ierr);
     ds->lrwork = r;
   }
   if (i>ds->liwork) {
     ierr = PetscFree(ds->iwork);CHKERRQ(ierr);
     ierr = PetscMalloc(i*sizeof(PetscBLASInt),&ds->iwork);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory(ds,(i-ds->liwork)*sizeof(PetscBLASInt));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)ds,(i-ds->liwork)*sizeof(PetscBLASInt));CHKERRQ(ierr);
     ds->liwork = i;
   }
   PetscFunctionReturn(0);

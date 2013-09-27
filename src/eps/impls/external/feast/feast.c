@@ -51,12 +51,12 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   ierr = PetscMalloc(eps->nloc*ncv*sizeof(PetscScalar),&ctx->work1);CHKERRQ(ierr);
   ierr = PetscFree(ctx->work2);CHKERRQ(ierr);
   ierr = PetscMalloc(eps->nloc*ncv*sizeof(PetscScalar),&ctx->work2);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(eps,2*eps->nloc*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,2*eps->nloc*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscFree(ctx->Aq);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&ctx->Aq);CHKERRQ(ierr);
   ierr = PetscFree(ctx->Bq);CHKERRQ(ierr);
   ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&ctx->Bq);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(eps,2*ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,2*ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
 
   if (!((PetscObject)(eps->st))->type_name) { /* default to shift-and-invert */
     ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
@@ -146,7 +146,13 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
       for (k=0;k<fpm[24];k++) {
         ierr = VecPlaceArray(x,&pV[(fpm[23]+k-1)*eps->nloc]);CHKERRQ(ierr);
         ierr = VecPlaceArray(y,&ctx->work1[(fpm[23]+k-1)*eps->nloc]);CHKERRQ(ierr);
-        ierr = MatMult((ijob==30)?A:B,x,y);CHKERRQ(ierr);
+        if (ijob == 30) {
+          ierr = MatMult(A,x,y);CHKERRQ(ierr);
+        } else if (nmat>1) {
+          ierr = MatMult(B,x,y);CHKERRQ(ierr);
+        } else {
+          ierr = VecCopy(x,y);CHKERRQ(ierr);
+        }
         ierr = VecResetArray(x);CHKERRQ(ierr);
         ierr = VecResetArray(y);CHKERRQ(ierr);
       }

@@ -551,7 +551,7 @@ static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,P
   PetscErrorCode ierr;
   PetscInt       i,j,n,n0,n1,np,idx0,idx1,sz=1,k=0,t1,t2,nwall,nwu=0;
   PetscScalar    *col1,*col2;
-  PetscBool      exg,ok;
+  PetscBool      exg=PETSC_FALSE,ok=PETSC_FALSE;
 
   PetscFunctionBegin;
   n = *nv;

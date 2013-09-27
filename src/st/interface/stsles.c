@@ -266,7 +266,7 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
   ierr = PetscObjectReference((PetscObject)ksp);CHKERRQ(ierr);
   ierr = KSPDestroy(&st->ksp);CHKERRQ(ierr);
   st->ksp = ksp;
-  ierr = PetscLogObjectParent(st,st->ksp);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -304,7 +304,7 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
     ierr = KSPSetOptionsPrefix(st->ksp,((PetscObject)st)->prefix);CHKERRQ(ierr);
     ierr = KSPAppendOptionsPrefix(st->ksp,"st_");CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(st,st->ksp);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->ksp);CHKERRQ(ierr);
     ierr = KSPSetTolerances(st->ksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   }
   *ksp = st->ksp;

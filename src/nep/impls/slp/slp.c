@@ -171,7 +171,7 @@ static PetscErrorCode NEPSLPSetEPS_SLP(NEP nep,EPS eps)
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   ctx->eps = eps;
-  ierr = PetscLogObjectParent(nep,ctx->eps);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->eps);CHKERRQ(ierr);
   nep->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -218,7 +218,7 @@ static PetscErrorCode NEPSLPGetEPS_SLP(NEP nep,EPS *eps)
     ierr = EPSAppendOptionsPrefix(ctx->eps,"nep_");CHKERRQ(ierr);
     ierr = STSetOptionsPrefix(ctx->eps->st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)nep,1);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(nep,ctx->eps);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->eps);CHKERRQ(ierr);
     if (!nep->ip) { ierr = NEPGetIP(nep,&nep->ip);CHKERRQ(ierr); }
     ierr = EPSSetIP(ctx->eps,nep->ip);CHKERRQ(ierr);
   }

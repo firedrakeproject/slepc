@@ -94,7 +94,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   ierr = MatGetLocalSize(qep->M,&qep->nloc,NULL);CHKERRQ(ierr);
   ierr = VecDestroy(&qep->t);CHKERRQ(ierr);
   ierr = SlepcMatGetVecsTemplate(qep->M,&qep->t,NULL);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(qep,qep->t);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)qep->t);CHKERRQ(ierr);
 
   /* Set default problem type */
   if (!qep->problem_type) {
@@ -386,7 +386,7 @@ PetscErrorCode QEPAllocateSolution(QEP qep)
     ierr = PetscMalloc(qep->ncv*sizeof(PetscReal),&qep->errest);CHKERRQ(ierr);
     ierr = PetscMalloc(qep->ncv*sizeof(PetscInt),&qep->perm);CHKERRQ(ierr);
     cnt += 2*newc*sizeof(PetscReal);
-    ierr = PetscLogObjectMemory(qep,cnt);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)qep,cnt);CHKERRQ(ierr);
     ierr = VecDuplicateVecs(qep->t,qep->ncv,&qep->V);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(qep,qep->ncv,qep->V);CHKERRQ(ierr);
     qep->allocated_ncv = qep->ncv;

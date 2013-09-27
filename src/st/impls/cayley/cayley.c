@@ -170,7 +170,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
     ierr = MatGetLocalSize(st->A[0],&n,&m);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)st),n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,&st->T[0]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(st->T[0],MATOP_MULT,(void(*)(void))MatMult_Cayley);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(st,st->T[0]);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[0]);CHKERRQ(ierr);
   } else {
     ierr = STMatGAXPY_Private(st,ctx->nu,0.0,1,0,PETSC_TRUE);CHKERRQ(ierr);
   }
@@ -181,7 +181,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
   if (st->nmat>1) {
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
     ierr = MatGetVecs(st->A[1],&ctx->w2,NULL);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(st,ctx->w2);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)ctx->w2);CHKERRQ(ierr);
   }
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);

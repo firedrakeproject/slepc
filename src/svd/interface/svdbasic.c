@@ -339,7 +339,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 
   ierr = PetscRandomCreate(comm,&svd->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(svd->rand,0x12345678);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(svd,svd->rand);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->rand);CHKERRQ(ierr);
   *outsvd = svd;
   PetscFunctionReturn(0);
 }
@@ -570,7 +570,7 @@ PetscErrorCode SVDSetIP(SVD svd,IP ip)
   ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
   ierr = IPDestroy(&svd->ip);CHKERRQ(ierr);
   svd->ip = ip;
-  ierr = PetscLogObjectParent(svd,svd->ip);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -601,7 +601,7 @@ PetscErrorCode SVDGetIP(SVD svd,IP *ip)
   PetscValidPointer(ip,2);
   if (!svd->ip) {
     ierr = IPCreate(PetscObjectComm((PetscObject)svd),&svd->ip);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(svd,svd->ip);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->ip);CHKERRQ(ierr);
   }
   *ip = svd->ip;
   PetscFunctionReturn(0);
@@ -637,7 +637,7 @@ PetscErrorCode SVDSetDS(SVD svd,DS ds)
   ierr = PetscObjectReference((PetscObject)ds);CHKERRQ(ierr);
   ierr = DSDestroy(&svd->ds);CHKERRQ(ierr);
   svd->ds = ds;
-  ierr = PetscLogObjectParent(svd,svd->ds);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -668,7 +668,7 @@ PetscErrorCode SVDGetDS(SVD svd,DS *ds)
   PetscValidPointer(ds,2);
   if (!svd->ds) {
     ierr = DSCreate(PetscObjectComm((PetscObject)svd),&svd->ds);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(svd,svd->ds);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->ds);CHKERRQ(ierr);
   }
   *ds = svd->ds;
   PetscFunctionReturn(0);

@@ -94,10 +94,10 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)qep),1,qep->nloc,qep->n,NULL,&ctx->x2);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)qep),1,qep->nloc,qep->n,NULL,&ctx->y1);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)qep),1,qep->nloc,qep->n,NULL,&ctx->y2);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(qep,ctx->x1);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(qep,ctx->x2);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(qep,ctx->y1);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(qep,ctx->y2);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)ctx->x1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)ctx->x2);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)ctx->y1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)ctx->y2);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)qep),2*qep->nloc,2*qep->nloc,2*qep->n,2*qep->n,ctx,&ctx->A);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))fmult[i][0]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->A,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[i][0]);CHKERRQ(ierr);
@@ -105,8 +105,8 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
     ierr = MatShellSetOperation(ctx->B,MATOP_MULT,(void(*)(void))fmult[i][1]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(ctx->B,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[i][1]);CHKERRQ(ierr);
   }
-  ierr = PetscLogObjectParent(qep,ctx->A);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent(qep,ctx->B);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)ctx->A);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)ctx->B);CHKERRQ(ierr);
 
   if (!ctx->eps) { ierr = QEPLinearGetEPS(qep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSSetOperators(ctx->eps,ctx->A,ctx->B);CHKERRQ(ierr);
@@ -551,7 +551,7 @@ static PetscErrorCode QEPLinearSetEPS_Linear(QEP qep,EPS eps)
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   ctx->eps = eps;
-  ierr = PetscLogObjectParent(qep,ctx->eps);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)ctx->eps);CHKERRQ(ierr);
   qep->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -598,7 +598,7 @@ static PetscErrorCode QEPLinearGetEPS_Linear(QEP qep,EPS *eps)
     ierr = EPSAppendOptionsPrefix(ctx->eps,"qep_");CHKERRQ(ierr);
     ierr = STSetOptionsPrefix(ctx->eps->st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)qep,1);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent(qep,ctx->eps);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)ctx->eps);CHKERRQ(ierr);
     if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
     ierr = EPSSetIP(ctx->eps,qep->ip);CHKERRQ(ierr);
     ierr = EPSMonitorSet(ctx->eps,EPSMonitor_Linear,qep,NULL);CHKERRQ(ierr);

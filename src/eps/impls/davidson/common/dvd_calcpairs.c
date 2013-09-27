@@ -198,7 +198,7 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
       ierr = DSGetEigenvalueComparison(d->eps->ds,&f,&ctx);CHKERRQ(ierr);
       ierr = DSSetEigenvalueComparison(d->conv_ps,f,ctx);CHKERRQ(ierr);
       ierr = DSAllocate(d->conv_ps,b->max_nev);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent(d->eps,d->conv_ps);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)d->eps,(PetscObject)d->conv_ps);CHKERRQ(ierr);
     } else {
       d->conv_ps = NULL;
     }
