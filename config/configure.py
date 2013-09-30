@@ -485,7 +485,8 @@ if missing:
   log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
 print
 print 'xxx'+'='*73+'xxx'
-if cmakeok: buildtype = 'cmake'
+if petscconf.MAKE_IS_GNUMAKE: buildtype = 'gnumake'
+elif cmakeok: buildtype = 'cmake'
 else: buildtype = 'legacy'
 print ' Configure stage complete. Now build the SLEPc library with ('+buildtype+' build):'
 print '   make SLEPC_DIR=$PWD PETSC_DIR='+petscdir+' PETSC_ARCH='+petscconf.ARCH
