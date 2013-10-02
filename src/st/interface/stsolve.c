@@ -109,7 +109,10 @@ PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
 
   PetscFunctionBegin;
   if (st->nmat==1) *B = NULL;
-  else {
+  else if (st->nmat==3) {
+    *B = st->T[2];
+    ierr = PetscObjectReference((PetscObject)*B);CHKERRQ(ierr);
+  } else {
     *B = st->A[1];
     ierr = PetscObjectReference((PetscObject)*B);CHKERRQ(ierr);
   }

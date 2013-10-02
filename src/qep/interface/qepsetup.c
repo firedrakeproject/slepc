@@ -374,6 +374,7 @@ PetscErrorCode QEPAllocateSolution(QEP qep)
 {
   PetscErrorCode ierr;
   PetscInt       newc,cnt;
+  PetscBool      isstoar;
 
   PetscFunctionBegin;
   if (qep->allocated_ncv != qep->ncv) {
@@ -387,9 +388,11 @@ PetscErrorCode QEPAllocateSolution(QEP qep)
     ierr = PetscMalloc(qep->ncv*sizeof(PetscInt),&qep->perm);CHKERRQ(ierr);
     cnt += 2*newc*sizeof(PetscReal);
     ierr = PetscLogObjectMemory((PetscObject)qep,cnt);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(qep->t,qep->ncv,&qep->V);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(qep,qep->ncv,qep->V);CHKERRQ(ierr);
-    qep->allocated_ncv = qep->ncv;
+    ierr = PetscObjectTypeCompare((PetscObject)qep,QEPSTOAR,&isstoar);CHKERRQ(ierr);
+    cnt = (isstoar)?qep->ncv+2:qep->ncv;
+    ierr = VecDuplicateVecs(qep->t,cnt,&qep->V);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(qep,cnt,qep->V);CHKERRQ(ierr);
+    qep->allocated_ncv = cnt;
   }
   PetscFunctionReturn(0);
 }
