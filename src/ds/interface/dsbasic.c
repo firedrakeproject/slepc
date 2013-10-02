@@ -132,10 +132,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   PetscFunctionBegin;
   PetscValidPointer(newds,2);
   *newds = 0;
-#if !defined(PETSC_USE_DYNAMIC_LIBRARIES)
   ierr = DSInitializePackage();CHKERRQ(ierr);
-#endif
-
   ierr = SlepcHeaderCreate(ds,_p_DS,struct _DSOps,DS_CLASSID,"DS","Direct Solver (or Dense System)","DS",comm,DSDestroy,DSView);CHKERRQ(ierr);
 
   ds->state         = DS_STATE_RAW;

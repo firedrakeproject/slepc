@@ -58,7 +58,7 @@ PETSC_EXTERN void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(l
     SlepcBeganPetsc = PETSC_TRUE;
   }
 
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
+#if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
   *ierr = SlepcInitialize_DynamicLibraries();
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing dynamic libraries\n");return; }
 #endif

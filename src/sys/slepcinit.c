@@ -109,7 +109,7 @@ PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 PetscBool SlepcBeganPetsc = PETSC_FALSE;
 PetscBool SlepcInitializeCalled = PETSC_FALSE;
 
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
+#if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcInitialize_DynamicLibraries"
@@ -190,7 +190,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
     SlepcBeganPetsc = PETSC_TRUE;
   }
 
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
+#if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
   ierr = SlepcInitialize_DynamicLibraries();CHKERRQ(ierr);
 #endif
   ierr = SlepcInitialize_LogEvents();CHKERRQ(ierr);
@@ -297,7 +297,7 @@ PetscErrorCode SlepcInitializeNoPointers(int argc,char **args,const char *filena
   PetscFunctionReturn(ierr);
 }
 
-#if defined(PETSC_USE_DYNAMIC_LIBRARIES)
+#if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
 
 #undef __FUNCT__
 #define __FUNCT__ "PetscDLLibraryRegister_slepc"
@@ -327,5 +327,5 @@ PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepc(char *path)
   ierr = FNInitializePackage();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-#endif /* PETSC_USE_DYNAMIC_LIBRARIES */
+#endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */
 
