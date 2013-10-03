@@ -98,6 +98,7 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   ctx->ld = ld;
   ierr = STGetBilinearForm(st,&M);CHKERRQ(ierr);
   ierr = IPSetMatrix(ctx->ip,M);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->d*ld*ld*sizeof(PetscScalar),&ctx->S);CHKERRQ(ierr);
   ierr = PetscMemzero(ctx->S,ctx->d*ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(ld*sizeof(PetscReal),&ctx->qM);CHKERRQ(ierr);
@@ -624,6 +625,23 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     ierr = QEPComputeVectors_Schur(qep);CHKERRQ(ierr);
   }
   ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscFree(rwork);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPDestroy_STOAR"
+PetscErrorCode QEPDestroy_STOAR(QEP qep)
+{
+  PetscErrorCode ierr;
+  QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
+
+  PetscFunctionBegin;
+  ierr = IPDestroy(&ctx->ip);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->S);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->qM);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->qK);CHKERRQ(ierr);
+  ierr = PetscFree(qep->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -635,5 +653,6 @@ PETSC_EXTERN PetscErrorCode QEPCreate_STOAR(QEP qep)
   qep->ops->solve                = QEPSolve_STOAR;
   qep->ops->setup                = QEPSetUp_STOAR;
   qep->ops->reset                = QEPReset_Default;
+  qep->ops->destroy              = QEPDestroy_STOAR;
   PetscFunctionReturn(0);
 }
