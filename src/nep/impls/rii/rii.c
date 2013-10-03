@@ -61,7 +61,7 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->max_funcs) nep->max_funcs = nep->max_it;
 
-  ierr = NEPAllocateSolution(nep);CHKERRQ(ierr);
+  ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

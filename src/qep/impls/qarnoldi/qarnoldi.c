@@ -67,7 +67,7 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
     else qep->which = QEP_LARGEST_MAGNITUDE;
   }
 
-  ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
+  ierr = QEPAllocateSolution(qep,0);CHKERRQ(ierr);
   ierr = QEPSetWorkVecs(qep,4);CHKERRQ(ierr);
 
   ierr = DSSetType(qep->ds,DSNHEP);CHKERRQ(ierr);

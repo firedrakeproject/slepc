@@ -81,7 +81,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
     ctx->setfromoptionscalled = PETSC_FALSE;
   }
 
-  ierr = NEPAllocateSolution(nep);CHKERRQ(ierr);
+  ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

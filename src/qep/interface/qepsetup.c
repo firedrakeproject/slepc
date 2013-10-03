@@ -367,32 +367,30 @@ PetscErrorCode QEPSetInitialSpaceLeft(QEP qep,PetscInt n,Vec *is)
 #define __FUNCT__ "QEPAllocateSolution"
 /*
   QEPAllocateSolution - Allocate memory storage for common variables such
-  as eigenvalues and eigenvectors. All vectors in V (and W) share a
-  contiguous chunk of memory.
+  as eigenvalues and eigenvectors. The argument extra is used for methods
+  that require a working basis slightly larger than ncv.
 */
-PetscErrorCode QEPAllocateSolution(QEP qep)
+PetscErrorCode QEPAllocateSolution(QEP qep,PetscInt extra)
 {
   PetscErrorCode ierr;
-  PetscInt       newc,cnt;
-  PetscBool      isstoar;
+  PetscInt       newc,cnt,requested;
 
   PetscFunctionBegin;
-  if (qep->allocated_ncv != qep->ncv) {
-    newc = PetscMax(0,qep->ncv-qep->allocated_ncv);
+  requested = qep->ncv + extra;
+  if (qep->allocated_ncv != requested) {
+    newc = PetscMax(0,requested-qep->allocated_ncv);
     ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
     cnt = 0;
-    ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigr);CHKERRQ(ierr);
-    ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigi);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscScalar),&qep->eigr);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscScalar),&qep->eigi);CHKERRQ(ierr);
     cnt += 2*newc*sizeof(PetscScalar);
-    ierr = PetscMalloc(qep->ncv*sizeof(PetscReal),&qep->errest);CHKERRQ(ierr);
-    ierr = PetscMalloc(qep->ncv*sizeof(PetscInt),&qep->perm);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscReal),&qep->errest);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscInt),&qep->perm);CHKERRQ(ierr);
     cnt += 2*newc*sizeof(PetscReal);
     ierr = PetscLogObjectMemory((PetscObject)qep,cnt);CHKERRQ(ierr);
-    ierr = PetscObjectTypeCompare((PetscObject)qep,QEPSTOAR,&isstoar);CHKERRQ(ierr);
-    cnt = (isstoar)?qep->ncv+2:qep->ncv;
-    ierr = VecDuplicateVecs(qep->t,cnt,&qep->V);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(qep,cnt,qep->V);CHKERRQ(ierr);
-    qep->allocated_ncv = cnt;
+    ierr = VecDuplicateVecs(qep->t,requested,&qep->V);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(qep,requested,qep->V);CHKERRQ(ierr);
+    qep->allocated_ncv = requested;
   }
   PetscFunctionReturn(0);
 }

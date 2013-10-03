@@ -68,7 +68,7 @@ PetscErrorCode QEPSetUp_QLanczos(QEP qep)
   }
   if (qep->problem_type!=QEP_HERMITIAN) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
 
-  ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
+  ierr = QEPAllocateSolution(qep,0);CHKERRQ(ierr);
   ierr = QEPSetWorkVecs(qep,4);CHKERRQ(ierr);
 
   ierr = DSSetType(qep->ds,DSGHIEP);CHKERRQ(ierr);

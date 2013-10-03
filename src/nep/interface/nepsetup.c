@@ -204,28 +204,29 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec *is)
 #define __FUNCT__ "NEPAllocateSolution"
 /*
   NEPAllocateSolution - Allocate memory storage for common variables such
-  as eigenvalues and eigenvectors. All vectors in V (and W) share a
-  contiguous chunk of memory.
+  as eigenvalues and eigenvectors. The argument extra is used for methods
+  that require a working basis slightly larger than ncv.
 */
-PetscErrorCode NEPAllocateSolution(NEP nep)
+PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
 {
   PetscErrorCode ierr;
-  PetscInt       newc,cnt;
+  PetscInt       newc,cnt,requested;
 
   PetscFunctionBegin;
-  if (nep->allocated_ncv != nep->ncv) {
-    newc = PetscMax(0,nep->ncv-nep->allocated_ncv);
+  requested = nep->ncv + extra;
+  if (nep->allocated_ncv != requested) {
+    newc = PetscMax(0,requested-nep->allocated_ncv);
     ierr = NEPFreeSolution(nep);CHKERRQ(ierr);
     cnt = 0;
-    ierr = PetscMalloc(nep->ncv*sizeof(PetscScalar),&nep->eig);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscScalar),&nep->eig);CHKERRQ(ierr);
     cnt += 2*newc*sizeof(PetscScalar);
-    ierr = PetscMalloc(nep->ncv*sizeof(PetscReal),&nep->errest);CHKERRQ(ierr);
-    ierr = PetscMalloc(nep->ncv*sizeof(PetscInt),&nep->perm);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscReal),&nep->errest);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscInt),&nep->perm);CHKERRQ(ierr);
     cnt += 2*newc*sizeof(PetscReal);
     ierr = PetscLogObjectMemory((PetscObject)nep,cnt);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(nep->t,nep->ncv,&nep->V);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(nep,nep->ncv,nep->V);CHKERRQ(ierr);
-    nep->allocated_ncv = nep->ncv;
+    ierr = VecDuplicateVecs(nep->t,requested,&nep->V);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(nep,requested,nep->V);CHKERRQ(ierr);
+    nep->allocated_ncv = requested;
   }
   PetscFunctionReturn(0);
 }

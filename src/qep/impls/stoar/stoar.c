@@ -82,7 +82,7 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   if (qep->problem_type!=QEP_HERMITIAN) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   if (qep->sfactor_set && qep->sfactor!=1.0) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_SUP,"Requested method is not jet available with scaling");
   else qep->sfactor = 1.0;
-  ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
+  ierr = QEPAllocateSolution(qep,2);CHKERRQ(ierr);
   ierr = QEPSetWorkVecs(qep,4);CHKERRQ(ierr);
   ld = qep->ncv+2;
   ierr = DSSetType(qep->ds,DSGHIEP);CHKERRQ(ierr);

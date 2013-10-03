@@ -61,7 +61,7 @@ PetscErrorCode NEPSetUp_NARNOLDI(NEP nep)
   if (!nep->max_funcs) nep->max_funcs = nep->max_it;
   if (!nep->split) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NARNOLDI only available for split operator");
 
-  ierr = NEPAllocateSolution(nep);CHKERRQ(ierr);
+  ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,3);CHKERRQ(ierr);
 
   /* set-up DS and transfer split operator functions */

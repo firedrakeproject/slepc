@@ -144,7 +144,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   ierr = EPSGetDimensions(ctx->eps,NULL,&qep->ncv,&qep->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(ctx->eps,NULL,&qep->max_it);CHKERRQ(ierr);
   if (qep->nini>0 || qep->ninil>0) { ierr = PetscInfo(qep,"Ignoring initial vectors\n");CHKERRQ(ierr); }
-  ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
+  ierr = QEPAllocateSolution(qep,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

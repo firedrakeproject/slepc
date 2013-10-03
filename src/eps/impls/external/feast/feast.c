@@ -73,7 +73,7 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
 
   if (!ctx->npoints) ctx->npoints = 8;
 
-  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
