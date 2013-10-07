@@ -21,10 +21,15 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = toar.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepc
-DIRS     = linear qarnoldi qlanczos stoar toar
-LOCDIR   = src/qep/impls/
+DIRS     =
 MANSEC   = QEP
+LOCDIR   = src/qep/impls/toar/
 
 include ${SLEPC_DIR}/conf/slepc_common
 

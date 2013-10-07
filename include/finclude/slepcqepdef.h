@@ -41,5 +41,6 @@
 #define QEPQARNOLDI  'qarnoldi'
 #define QEPQLANCZOS  'qlanczos'
 #define QEPSTOAR     'stoar'
+#define QEPTOAR      'toar'
 
 #endif
