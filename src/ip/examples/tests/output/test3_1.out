@@ -3,7 +3,7 @@ IP Object: 1 MPI processes
   type: indefinite
   orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
-  Matrix Object:   1 MPI processes
+  Mat Object:   1 MPI processes
     type: seqaij
     rows=15, cols=15
     total: nonzeros=15, allocated nonzeros=75

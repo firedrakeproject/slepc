@@ -128,7 +128,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Grid partitioning: %D %D %D\n",m,n,p);CHKERRQ(ierr);
 
   /* create and fill the matrix */
-  ierr = DMCreateMatrix(da,MATAIJ,&A);CHKERRQ(ierr);
+  ierr = DMCreateMatrix(da,&A);CHKERRQ(ierr);
   ierr = FillMatrix(da,A);CHKERRQ(ierr);
 
   /* create random initial vector */
