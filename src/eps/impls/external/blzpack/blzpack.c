@@ -369,7 +369,8 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
 #define __FUNCT__ "EPSBlzpackSetBlockSize_BLZPACK"
 static PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
 {
-  EPS_BLZPACK *blz = (EPS_BLZPACK*)eps->data;;
+  PetscErrorCode ierr;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;;
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) blz->block_size = 3;
@@ -411,7 +412,8 @@ PetscErrorCode EPSBlzpackSetBlockSize(EPS eps,PetscInt bs)
 #define __FUNCT__ "EPSBlzpackSetNSteps_BLZPACK"
 static PetscErrorCode EPSBlzpackSetNSteps_BLZPACK(EPS eps,PetscInt nsteps)
 {
-  EPS_BLZPACK *blz = (EPS_BLZPACK*)eps->data;
+  PetscErrorCode ierr;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
 
   PetscFunctionBegin;
   if (nsteps == PETSC_DEFAULT) blz->nsteps = 0;
