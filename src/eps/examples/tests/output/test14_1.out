@@ -1,7 +1,7 @@
 
 Diagonal Eigenproblem, n=20
 
-Matrix Object: 1 MPI processes
+Mat Object: 1 MPI processes
   type: seqaij
 row 0: (0, 1) 
 row 1: (1, 2) 
@@ -43,6 +43,7 @@ ST Object: 1 MPI processes
     using DEFAULT norm type for convergence test
   PC Object:  (st_)   1 MPI processes
     type not yet set
+    PC has not been set up so information may be incomplete
 IP Object: 1 MPI processes
   type not yet set
   orthogonalization method: classical Gram-Schmidt

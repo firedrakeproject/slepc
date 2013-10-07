@@ -2,7 +2,7 @@
 1-D Laplacian plus diagonal, n=10
 
 ST type shift
-Vector Object: 1 MPI processes
+Vec Object: 1 MPI processes
   type: seq
 -1
 0
@@ -15,7 +15,7 @@ Vector Object: 1 MPI processes
 0
 0.111111
 With shift=0.1
-Vector Object: 1 MPI processes
+Vec Object: 1 MPI processes
   type: seq
 -0.9
 0.1
@@ -29,7 +29,7 @@ Vector Object: 1 MPI processes
 0.211111
 ST type sinvert
 With shift=0.1
-Vector Object: 1 MPI processes
+Vec Object: 1 MPI processes
   type: seq
 0.882432
 2.85311
@@ -42,7 +42,7 @@ Vector Object: 1 MPI processes
 -14.8222
 -5.2929
 With shift=-0.5
-Vector Object: 1 MPI processes
+Vec Object: 1 MPI processes
   type: seq
 0.0585408
 1.08781
@@ -56,7 +56,7 @@ Vector Object: 1 MPI processes
 1.68393
 ST type cayley
 With shift=-0.5, antishift=-0.5
-Vector Object: 1 MPI processes
+Vec Object: 1 MPI processes
   type: seq
 0.941459
 -0.0878112
@@ -69,7 +69,7 @@ Vector Object: 1 MPI processes
 -0.945566
 -0.683933
 With shift=1.1, antishift=1.1
-Vector Object: 1 MPI processes
+Vec Object: 1 MPI processes
   type: seq
 -0.865819
 -2.58404
@@ -82,7 +82,7 @@ Vector Object: 1 MPI processes
 -0.962683
 -1.25789
 With shift=1.1, antishift=-1
-Vector Object: 1 MPI processes
+Vec Object: 1 MPI processes
   type: seq
 0.91519
 0.837089
@@ -94,7 +94,7 @@ Vector Object: 1 MPI processes
 0.909279
 0.910787
 0.897369
-Vector Object: 1 MPI processes
+Vec Object: 1 MPI processes
   type: seq
 2
 -1
