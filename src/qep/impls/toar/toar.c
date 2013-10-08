@@ -2,16 +2,16 @@
 
    SLEPc quadratic eigensolver: "toar"
 
-   Method: S-TOAR
+   Method: TOAR
 
    Algorithm:
 
-       Symmetric Two-Level Orthogonalization Arnoldi.
+       Two-Level Orthogonal Arnoldi.
 
    References:
 
-       [1] C. Campos and J.E. Roman, "A thick-restart Q-Lanczos method
-           for quadratic eigenvalue problems", in preparation, 2013.
+       [1] D. Lu and Y. Su, "Two-level orthogonal Arnoldi process
+           for the solution of quadratic eigenvalue problems".
 
    Last update: Oct 2013
 
@@ -191,14 +191,14 @@ PetscErrorCode QEPTOARTrunc(QEP qep,PetscScalar *S, PetscInt ld,PetscInt rs1,Pet
   PetscErrorCode ierr;
   PetscInt       lwa,nwu=0,lrwa,nrwu=0;
   PetscInt       j,i,n,lds=2*ld;
-  PetscScalar    *M,*V,*U;
+  PetscScalar    *M,*V,*U,t;
   PetscReal      *sg;
   PetscBLASInt   cs1_,rs1_,cs1t2,n_,info,lw_;
 
   PetscFunctionBegin;
   n = (rs1>2*cs1)?2*cs1:rs1;
   lwa = cs1*rs1*4+n*(rs1+2*cs1);
-  lrwa = n;
+  lrwa = 6*n;
   if (!work||nw<lwa){
     if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",6);
     if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",5);
@@ -224,7 +224,11 @@ PetscErrorCode QEPTOARTrunc(QEP qep,PetscScalar *S, PetscInt ld,PetscInt rs1,Pet
   ierr = PetscBLASIntCast(rs1,&rs1_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(cs1*2,&cs1t2);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lwa-nwu,&lw_);CHKERRQ(ierr);
+#if !defined (PETSC_USE_COMPLEX)
   PetscStackCall("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1t2,M,&rs1_,sg,U,&rs1_,V,&n_,work+nwu,&lw_,&info));
+#else
+  PetscStackCall("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1t2,M,&rs1_,sg,U,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));  
+#endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
   
   /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
@@ -233,7 +237,8 @@ PetscErrorCode QEPTOARTrunc(QEP qep,PetscScalar *S, PetscInt ld,PetscInt rs1,Pet
   /* Update S */
   ierr = PetscMemzero(S,lds*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<cs1+1;i++) {
-    PetscStackCall("BLASscal",BLASscal_(&cs1t2,sg+i,V+i,&n_));
+    t = sg[i];
+    PetscStackCall("BLASscal",BLASscal_(&cs1t2,&t,V+i,&n_));
   }
   for (j=0;j<cs1;j++) { 
     ierr = PetscMemcpy(S+j*lds,V+j*n,(cs1+1)*sizeof(PetscScalar));CHKERRQ(ierr);

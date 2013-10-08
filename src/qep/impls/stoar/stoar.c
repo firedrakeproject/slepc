@@ -6,7 +6,7 @@
 
    Algorithm:
 
-       Symmetric Two-Level Orthogonalization Arnoldi.
+       Symmetric Two-Level Orthogonal Arnoldi.
 
    References:
 
@@ -36,13 +36,11 @@
 */
 
 #include <slepc-private/qepimpl.h>         /*I "slepcqep.h" I*/
-#include <slepc-private/dsimpl.h>
 #include <slepcblaslapack.h>
 
 typedef struct {
-  IP           ip;
   PetscScalar  *S; 
-  PetscInt     d; /* Degree of the polynomial */
+  PetscInt     d;
   PetscInt     ld;
   PetscScalar  *qK;
   PetscReal    *qM;
@@ -58,6 +56,7 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   ST             st;
   Mat            M;
   PetscInt       ld;
+  IP             ip;
 
   PetscFunctionBegin;
   if (qep->ncv) { /* ncv set */
@@ -89,15 +88,15 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   ierr = DSSetCompact(qep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(qep->ds,ld);CHKERRQ(ierr);
   ierr = PetscNewLog(qep,QEP_STOAR,&ctx);CHKERRQ(ierr);
-  ierr = IPCreate(PetscObjectComm((PetscObject)qep),&ctx->ip);CHKERRQ(ierr);
-  ierr = IPSetType(ctx->ip,IPINDEFINITE);CHKERRQ(ierr);
+  ierr = QEPGetIP(qep,&ip);CHKERRQ(ierr);
+  ierr = IPSetType(ip,IPINDEFINITE);CHKERRQ(ierr);
   ierr = QEPGetST(qep,&st);CHKERRQ(ierr);
   ierr = STSetUp(st);CHKERRQ(ierr);
   ierr = STGetNumMatrices(st,&ctx->d);CHKERRQ(ierr);
   ctx->d--;
   ctx->ld = ld;
   ierr = STGetBilinearForm(st,&M);CHKERRQ(ierr);
-  ierr = IPSetMatrix(ctx->ip,M);CHKERRQ(ierr);
+  ierr = IPSetMatrix(qep->ip,M);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->d*ld*ld*sizeof(PetscScalar),&ctx->S);CHKERRQ(ierr);
   ierr = PetscMemzero(ctx->S,ctx->d*ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -108,61 +107,6 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   PetscFunctionReturn(0);
 }
 
-#if 0
-#undef __FUNCT__
-#define __FUNCT__ "printMatrix"
-static PetscErrorCode printMatrix(PetscInt nrows,PetscInt ncols,PetscScalar *X,PetscInt ldx,const char *s){
-  PetscErrorCode ierr;
-  PetscInt       i,j;
-
-  PetscFunctionBegin;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"%s=[\n",s);CHKERRQ(ierr);
-  for (i=0;i<nrows;i++) {
-    for (j=0;j<ncols;j++) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"%.18g ",X[i+j*ldx]);CHKERRQ(ierr);
-    }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
-  }
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"];\n");CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "checkResidual"
-static PetscErrorCode checkResidual(QEP qep,PetscInt k){
-  PetscErrorCode ierr;
-  QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
-  PetscInt       j;
-
-  PetscFunctionBegin;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"V=[\n");CHKERRQ(IERR);
-  for (j=0;j<k+2;j++) {
-    ierr = VecView(qep->V[j],0);CHKERRQ(ierr);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"n");CHKERRQ(ierr);
-  }
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"n");CHKERRQ(ierr);
-  DSView(qep->ds,0);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"k=%d;\n",k);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"A=full(A(1:k,1:k));\n");CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"B=full(B(1:k,1:k));\n");CHKERRQ(ierr);
-  ierr = printMatrix(k+2,k+1,ctx->S,ctx->d*ctx->ld,"S0");CHKERRQ(ierr);
-  ierr = printMatrix(k+2,k+1,ctx->S+ctx->ld,ctx->d*ctx->ld,"S1");CHKERRQ(ierr);
-  ierr = printMatrix(k+2,k+2,ctx->qK,ctx->ld,"qKq");CHKERRQ(ierr);
-  ierr = printMatrix(k+2,1,ctx->qM,ctx->ld,"qMq");CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"beta=%.18g;\n",*(qep->ds->rmat[DS_MAT_T]+qep->ds->ld+k-1));CHKERRQ(ierr);
-  ierr = printMatrix(k,1,qep->ds->rmat[DS_MAT_T]+qep->ds->ld*2,qep->ds->ld,"r");CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"A(k+1,k)=beta;\n");CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"om=%g;\n",*(qep->ds->rmat[DS_MAT_D]+k));CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"B(k+1,k+1)=om;\n");CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"n=size(Ks,1);");CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"W = zeros(n,k+2);\n");CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"for i=1:k+2, W(:,i)=V((i-1)*n+1:i*n); end\n");CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"V = [W*S0 ; W*S1];\n");CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"M = [zeros(n,n) eye(n); -Ms\\Ks -Ms\\Cs];\n");CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"norm(M*V(:,1:k)-V*B*A)\n");CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPSTOARNorm"
@@ -200,7 +144,7 @@ static PetscErrorCode QEPSTOARNorm(QEP qep,PetscInt j,PetscReal *norm,PetscScala
  where y = Omega\([Sp;Sq]'*[qK zeros(size(qK,1)) ;zeros(size(qK,1)) qM]*[z;x]).
  n: Column from S to be orthogonalized against previous columns.
 */
-static PetscErrorCode QEPSTOAROrth2(QEP qep,PetscInt k,PetscScalar *Omega,PetscScalar *y,PetscScalar *work,PetscInt nw)
+static PetscErrorCode QEPSTOAROrth2(QEP qep,PetscInt k,PetscReal *Omega,PetscScalar *y,PetscScalar *work,PetscInt nw)
 {
   PetscErrorCode ierr;
   QEP_STOAR      *ctx=(QEP_STOAR*)qep->data;
@@ -267,9 +211,9 @@ PetscErrorCode QEPSTOARqKupdate(QEP qep,PetscInt j,Vec wv)
 #undef __FUNCT__
 #define __FUNCT__ "QEPSTOARrun"
 /*
-  Compute a run of Q-Lanczos iterations
+  Compute a run of Lanczos iterations
 */
-static PetscErrorCode QEPSTOARrun(QEP qep,PetscScalar *a,PetscScalar *b,PetscReal *omega,Vec *V,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscScalar *work,PetscInt nw,Vec *t_,PetscInt nwv)
+static PetscErrorCode QEPSTOARrun(QEP qep,PetscReal *a,PetscReal *b,PetscReal *omega,Vec *V,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscScalar *work,PetscInt nw,Vec *t_,PetscInt nwv)
 {
   PetscErrorCode     ierr;
   QEP_STOAR          *ctx=(QEP_STOAR*)qep->data;
@@ -280,13 +224,12 @@ static PetscErrorCode QEPSTOARrun(QEP qep,PetscScalar *a,PetscScalar *b,PetscRea
   PetscScalar        *y,*S=ctx->S;
 
   PetscFunctionBegin;
-  *breakdown = PETSC_FALSE; /* ///////////////////// */
+  *breakdown = PETSC_FALSE; /* ////////////// */
   if (!t_||nwv<3) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
   lwa = (ctx->ld)*4;
   if (!work||nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
   y = work;
   nwu += ctx->ld;
-
   for (j=k;j<m;j++) {
     /* apply operator */
     ierr = VecZeroEntries(v);CHKERRQ(ierr);
@@ -300,7 +243,7 @@ static PetscErrorCode QEPSTOARrun(QEP qep,PetscScalar *a,PetscScalar *b,PetscRea
     ierr = VecScale(q,-1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
 
     /* orthogonalize */
-    ierr = IPPseudoOrthogonalize(ctx->ip,j+2,qep->V,ctx->qM,q,S+offq+(j+1)*lds,&norm,NULL);CHKERRQ(ierr);
+    ierr = IPPseudoOrthogonalize(qep->ip,j+2,qep->V,ctx->qM,q,S+offq+(j+1)*lds,&norm,NULL);CHKERRQ(ierr);
     for (i=0;i<j+2;i++) *(S+offq+(j+1)*lds+i) *= *(ctx->qM+i);
     *(S+offq+(j+1)*lds+j+2) = norm;
     ierr = VecScale(q,1.0/norm);CHKERRQ(ierr);
@@ -313,7 +256,7 @@ static PetscErrorCode QEPSTOARrun(QEP qep,PetscScalar *a,PetscScalar *b,PetscRea
 
     /* Level-2 orthogonalization */
     ierr = QEPSTOAROrth2(qep,j+1,omega,y,work+nwu,lwa-nwu);CHKERRQ(ierr);
-    a[j] = y[j]/omega[j];
+    a[j] = PetscRealPart(y[j])/omega[j];
     ierr = QEPSTOARNorm(qep,j+1,&norm,work+nwu,lwa-nwu);CHKERRQ(ierr);
     omega[j+1] = (norm > 0)?1.0:-1.0;
     for (i=0;i<=j+2;i++) {
@@ -326,14 +269,15 @@ static PetscErrorCode QEPSTOARrun(QEP qep,PetscScalar *a,PetscScalar *b,PetscRea
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "QEPSTOARTrunc"
-PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
+#define __FUNCT__ "QEPSTOARTrunc2"
+PetscErrorCode QEPSTOARTrunc2(QEP qep,PetscInt rs1,PetscInt cs1,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
 {
   PetscErrorCode ierr;
   QEP_STOAR      *ctx=(QEP_STOAR*)qep->data;
   PetscInt       lwa,nwu=0,lrwa,nrwu=0,j,i,off1,off2,lds=ctx->ld*ctx->d,i0,i1;
   PetscScalar    *V,*S1,*S2,*St,*tau,*lapackw,*qK=ctx->qK,*qKt;
-  PetscReal      mone=-1.0,one=1.0,zero=0.0,*e,*d,rt,*qM=ctx->qM;
+  PetscScalar     mone=-1.0,one=1.0,zero=0.0,rt;
+  PetscReal      *e,*d,*qM=ctx->qM;
   PetscBLASInt   cs1_,rs1_,cs1p1,cs1t2,lds_,info,lw_,ione=1,ld_;
 
   PetscFunctionBegin;
@@ -366,20 +310,20 @@ PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScalar *work
   }
   for (j=0;j<rs1;j++) {
     if (qM[j]<0) {
-      PetscStackCall("BLASscal",BLASscal_(&cs1,&mone,St+j,&rs1));
+      PetscStackCall("BLASscal",BLASscal_(&cs1_,&mone,St+j,&rs1));
     }
   }
-  PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1,&cs1,&rs1,&one,S1,&lds_,St,&rs1,&zero,V,&cs1t2));
+  PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1_,&cs1_,&rs1_,&one,S1,&lds_,St,&rs1_,&zero,V,&cs1t2));
   for (j=0;j<cs1;j++) {
     ierr = PetscMemcpy(St+j*rs1,S2+j*lds,rs1*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   for (j=0;j<rs1;j++) {
     if (qM[j]<0) {
-      PetscStackCall("BLASscal",BLASscal_(&cs1,&mone,St+j,&rs1));
+      PetscStackCall("BLASscal",BLASscal_(&cs1_,&mone,St+j,&rs1_));
     }
   }
-  PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1,&cs1,&rs1,&one,S1,&lds_,St,&rs1,&zero,V+cs1*cs1t2,&cs1t2));
-  PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1,&cs1,&rs1,&one,S2,&lds_,St,&rs1,&zero,V+cs1*cs1t2+cs1,&cs1t2));
+  PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1_,&cs1_,&rs1_,&one,S1,&lds_,St,&rs1_,&zero,V+cs1*cs1t2,&cs1t2));
+  PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1_,&cs1_,&rs1_,&one,S2,&lds_,St,&rs1_,&zero,V+cs1*cs1t2+cs1,&cs1t2));
   tau = work+nwu;
   nwu += 2*cs1;
   d = rwork+nrwu;
@@ -425,13 +369,13 @@ PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScalar *work
   }
   off2 = off1*2*cs1+cs1;
   /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-  PetscStackCall("BLASgemm",BLASgemm_("N","N",&rs1,&cs1p1,&cs1,&one,S1,&lds_,V+off1*2*cs1,&cs1t2,&zero,St,&rs1));
-  PetscStackCall("BLASgemm",BLASgemm_("N","N",&rs1,&cs1p1,&cs1,&one,S2,&lds_,V+off2,&cs1t2,&one,St,&rs1));
+  PetscStackCall("BLASgemm",BLASgemm_("N","N",&rs1_,&cs1p1,&cs1_,&one,S1,&lds_,V+off1*2*cs1,&cs1t2,&zero,St,&rs1_));
+  PetscStackCall("BLASgemm",BLASgemm_("N","N",&rs1_,&cs1p1,&cs1_,&one,S2,&lds_,V+off2,&cs1t2,&one,St,&rs1_));
   ierr = SlepcUpdateVectors(rs1,qep->V,0,cs1+1,St,rs1,PETSC_FALSE);CHKERRQ(ierr);
   
   /* Update qK */
-  PetscStackCall("BLASgemm",BLASgemm_("N","N",&rs1,&cs1p1,&rs1,&one,qK,&ld_,St,&rs1,&zero,qKt,&ld_));
-  PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1p1,&cs1p1,&rs1,&one,St,&rs1,qKt,&ld_,&zero,qK,&ld_));
+  PetscStackCall("BLASgemm",BLASgemm_("N","N",&rs1_,&cs1p1,&rs1_,&one,qK,&ld_,St,&rs1_,&zero,qKt,&rs1_));
+  PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1p1,&cs1p1,&rs1_,&one,St,&rs1_,qKt,&rs1_,&zero,qK,&ld_));
  
   /* Update S */
   ierr = PetscMemzero(ctx->S,lds*ctx->ld*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -445,44 +389,196 @@ PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScalar *work
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "QEPSTOARSupdate"
+#define __FUNCT__ "IndefOrthog_CGS"
 /*
-  S <- S*Q 
-  columns s-e of S
-  rows 0-m of S
-  size(Q) (m-s)x(e-s)
+  compute x = x - y*ss^{-1}*y^T*s*x where ss=y^T*s*y
+  s diagonal (signature matrix)
 */
-PetscErrorCode QEPSTOARSupdate(QEP qep,PetscInt sr,PetscInt s,PetscInt ncu,PetscInt qr,PetscScalar *Q,PetscInt ldq,PetscScalar *work,PetscInt nw)
+static PetscErrorCode IndefOrthog_CGS(PetscInt n,PetscReal *s,PetscInt nv,PetscScalar *Y,PetscInt ldy,PetscReal *ss,PetscScalar *x,PetscScalar *h,PetscScalar *work,PetscInt lw)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,nwall,nwu=0;
+  PetscScalar    *h2,*h1,*t1,*t2,one=1.0,zero=0.0,onen=-1.0;
+  PetscBLASInt   n_,nv_,ldy_,inc=1;
+
+  PetscFunctionBegin;
+  nwall = 3*n;
+  if (!work || lw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
+  t1 = work+nwu;
+  nwu += n;
+  t2 = work+nwu;
+  nwu += n;
+  h2 = work+nwu;
+  nwu +=n;
+  if (h) h1 = h;
+  else h1 = h2;
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(nv,&nv_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ldy,&ldy_);CHKERRQ(ierr);
+  for (i=0;i<n;i++) t1[i] = s[i]*x[i];
+  PetscStackCall("BLASgemv",BLASgemv_("C",&n_,&nv_,&one,Y,&ldy_,t1,&inc,&zero,t2,&inc));
+  for (i=0;i<nv;i++) h1[i] = t2[i]/ss[i];
+  PetscStackCall("BLASgemv",BLASgemv_("N",&n_,&nv_,&onen,Y,&ldy_,h1,&inc,&one,x,&inc));
+  /* Repeat */
+  for (i=0;i<n;i++) t1[i] = s[i]*x[i];
+  PetscStackCall("BLASgemv",BLASgemv_("C",&n_,&nv_,&one,Y,&ldy_,t1,&inc,&zero,t2,&inc));
+  for (i=0;i<nv;i++) h2[i] = t2[i]/ss[i];
+  PetscStackCall("BLASgemv",BLASgemv_("N",&n_,&nv_,&onen,Y,&ldy_,h2,&inc,&one,x,&inc));
+  if (h) {
+    for (i=0;i<nv;i++) h[i] += h2[i];
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "IndefNorm"
+/*
+   normalization with a indefinite norm
+*/
+static PetscErrorCode IndefNorm(PetscInt n,PetscReal *s,PetscScalar *x,PetscReal *norm)
+{
+  PetscInt     i;
+  PetscReal    r=0.0,t,max=0.0;
+
+  PetscFunctionBegin;
+  for (i=0;i<n;i++) {
+    t = PetscAbsScalar(x[i]);
+    if (t > max) max = t;
+  }
+  for (i=0;i<n;i++) {
+    t = PetscRealPart(x[i])/max;
+    r += t*t*s[i];
+  }
+  if (r<0) r = -max*PetscSqrtReal(-r);
+  else r = max*PetscSqrtReal(r);
+  for (i=0;i<n;i++) {
+    x[i] /= r;
+  }
+  if (norm) *norm = r;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPSTOARTrunc"
+PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
 {
   PetscErrorCode ierr;
   QEP_STOAR      *ctx=(QEP_STOAR*)qep->data;
-  PetscScalar    *S=ctx->S,a=1.0,b=0.0;
+  PetscInt       lwa,nwu=0,lrwa,nrwu=0;
+  PetscInt       j,i,n,lds=2*ctx->ld;
+  PetscScalar    *M,*V,*U,*S=ctx->S,*R,sone=1.0,zero=0.0,t;
+  PetscReal      *sg,*qM=ctx->qM,*ss,norm;
+  PetscBLASInt   cs1_,rs1_,cs1t2,cs1p1,n_,info,lw_,one=1,lds_,ld_;
+
+  PetscFunctionBegin;
+  n = (rs1>2*cs1)?2*cs1:rs1;
+  lwa = cs1*rs1*4+n*(rs1+2*cs1)+(cs1+1)*(cs1+2);
+  lrwa = n+cs1+1+5*n;
+  if (!work||nw<lwa){
+    if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",6);
+    if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",5);
+  }
+  if (!rwork||nrw<lrwa){
+    if (nrw<lrwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",8);
+    if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",7);
+  }
+  M = work+nwu;
+  nwu += rs1*cs1*2;
+  U = work+nwu;
+  nwu += rs1*n;
+  V = work+nwu;
+  nwu += 2*cs1*n;
+  sg = rwork+nrwu;
+  nrwu += n;
+  for (i=0;i<cs1;i++) {
+    ierr = PetscMemcpy(M+i*rs1,S+i*lds,rs1*sizeof(PetscScalar));CHKERRQ(ierr);  
+    ierr = PetscMemcpy(M+(i+cs1)*rs1,S+i*lds+ctx->ld,rs1*sizeof(PetscScalar));CHKERRQ(ierr);  
+  }
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(cs1,&cs1_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(rs1,&rs1_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(cs1*2,&cs1t2);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(cs1+1,&cs1p1);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ctx->ld,&ld_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(lwa-nwu,&lw_);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  PetscStackCall("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1t2,M,&rs1_,sg,U,&rs1_,V,&n_,work+nwu,&lw_,&info));
+#else
+  PetscStackCall("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1t2,M,&rs1_,sg,U,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));  
+#endif
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
+/* /// Falta ldl previa /// */
+  R = work+nwu;
+  ierr = PetscMemzero(R,(cs1+1)*(cs1+1)*sizeof(PetscScalar));CHKERRQ(ierr);
+  nwu += (cs1+1)*(cs1+1);
+  nwu += cs1+1;
+  ss = rwork+nrwu;
+  nrwu += cs1+1;
+  for (j=0;j<cs1+1;j++) {
+    ierr = IndefOrthog_CGS(rs1,qM,j,U,rs1,ss,U+j*rs1,R+j*(cs1+1),work+nwu,lwa-nwu);CHKERRQ(ierr);
+    ierr = IndefNorm(rs1,qM,U+j*rs1,&norm);CHKERRQ(ierr);
+    ss[j] = (norm>0)?1.0:-1.0;
+    R[j+j*(cs1+1)] = norm;
+  }
+
+  /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
+  ierr = SlepcUpdateVectors(rs1,qep->V,0,cs1+1,U,rs1,PETSC_FALSE);CHKERRQ(ierr);
+  
+  /* Update S */  
+  for (i=0;i<cs1+1;i++) {
+    t = sg[i];
+    PetscStackCall("BLASscal",BLASscal_(&cs1p1,&t,R+i*(cs1+1),&one));
+  }
+  ierr = PetscMemzero(S,lds*ctx->ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  PetscStackCall("BLASgemm",BLASgemm_("N","N",&cs1p1,&cs1_,&cs1p1,&sone,R,&cs1p1,V,&n_,&zero,S,&lds_));
+  PetscStackCall("BLASgemm",BLASgemm_("N","N",&cs1p1,&cs1_,&cs1p1,&sone,R,&cs1p1,V+cs1*n,&n_,&zero,S+ctx->ld,&lds_));
+
+  /* Update qM and qK */
+  for (j=0;j<cs1+1;j++) qM[j] = ss[j];
+  PetscStackCall("BLASgemm",BLASgemm_("N","N",&rs1_,&cs1p1,&rs1_,&sone,ctx->qK,&ld_,U,&rs1_,&zero,work+nwu,&rs1_));
+  PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1p1,&cs1p1,&rs1_,&sone,U,&rs1_,work+nwu,&rs1_,&zero,ctx->qK,&ld_));
+
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPSTOARSupdate"
+/*
+  S <- S*Q 
+  columns s-s+ncu of S
+  rows 0-sr of S
+  size(Q) qr x ncu
+*/
+PetscErrorCode QEPSTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,PetscInt s,PetscInt ncu,PetscInt qr,PetscScalar *Q,PetscInt ldq,PetscScalar *work,PetscInt nw)
+{
+  PetscErrorCode ierr;
+  PetscScalar    a=1.0,b=0.0;
   PetscBLASInt   sr_,ncu_,ldq_,lds_,qr_;
-  PetscInt       lwa,j,lds=ctx->ld*ctx->d;
+  PetscInt       lwa,j,lds=2*ld;
 
   PetscFunctionBegin;
   lwa = sr*ncu;
   if (!work||nw<lwa){
-    if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",4);
-    if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",3);
+    if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
+    if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",9);
   }
   ierr = PetscBLASIntCast(sr,&sr_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(qr,&qr_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ncu,&ncu_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldq,&ldq_);CHKERRQ(ierr);
-  PetscStackCall("BLASgemm",BLASgemm_("N","N",&sr_,&ncu_,&qr_,&a,S+lds*s,&lds,Q,&ldq_,&b,work,&sr_));
+  PetscStackCall("BLASgemm",BLASgemm_("N","N",&sr_,&ncu_,&qr_,&a,S,&lds,Q,&ldq_,&b,work,&sr_));
   for(j=0;j<ncu;j++){
     ierr = PetscMemcpy(S+lds*(s+j),work+j*sr,sr*sizeof(PetscScalar));CHKERRQ(ierr);
   }
-  PetscStackCall("BLASgemm",BLASgemm_("N","N",&sr_,&ncu_,&qr_,&a,S+lds*s+ctx->ld,&lds,Q,&ldq_,&b,work,&sr_));
+  PetscStackCall("BLASgemm",BLASgemm_("N","N",&sr_,&ncu_,&qr_,&a,S+ld,&lds,Q,&ldq_,&b,work,&sr_));
   for(j=0;j<ncu;j++){
-    ierr = PetscMemcpy(S+lds*(s+j)+ctx->ld,work+j*sr,sr*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemcpy(S+lds*(s+j)+ld,work+j*sr,sr*sizeof(PetscScalar));CHKERRQ(ierr);
   }
-  /* Copy last column of S */
-  ierr = PetscMemcpy(S+lds*(ncu+s),S+lds*(s+qr),lds*sizeof(PetscScalar));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPSolve_STOAR"
@@ -490,7 +586,8 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_STOAR      *ctx=(QEP_STOAR*)qep->data;
-  PetscInt       j,k,l,lwa,lrwa,nv,ld=ctx->ld,lds=ctx->d*ctx->ld,nwu=0,nrwu=0,off,ldq;
+  PetscInt       j,k,l,nv,ld=ctx->ld,lds=ctx->d*ctx->ld,off,ldds,t;
+  PetscInt       lwa,lrwa,nwu=0,nrwu=0;
   Vec            w=qep->work[0];
   PetscScalar    *S=ctx->S,*Q,*work;
   PetscReal      beta,norm,*omega,*a,*b,*r,*qM=ctx->qM,*rwork;
@@ -507,12 +604,12 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     ierr = SlepcVecSetRandom(qep->V[0],qep->rand);CHKERRQ(ierr);
   }
   ierr = SlepcVecSetRandom(qep->V[1],qep->rand);CHKERRQ(ierr);
-  ierr = IPNorm(ctx->ip,qep->V[0],&norm);CHKERRQ(ierr);
+  ierr = IPNorm(qep->ip,qep->V[0],&norm);CHKERRQ(ierr);
   ierr = VecScale(qep->V[0],1/norm);CHKERRQ(ierr);
   qM[0] = (norm>0)?1.0:-1.0;
   ierr = QEPSTOARqKupdate(qep,0,w);CHKERRQ(ierr);
   S[0] = norm;
-  ierr = IPPseudoOrthogonalize(ctx->ip,1,qep->V,qM,qep->V[1],S+ld,&norm,NULL);CHKERRQ(ierr);
+  ierr = IPPseudoOrthogonalize(qep->ip,1,qep->V,qM,qep->V[1],S+ld,&norm,NULL);CHKERRQ(ierr);
   *(S+ld) *= *(ctx->qM);
   ierr = VecScale(qep->V[1],1/norm);CHKERRQ(ierr);
   qM[1] = (norm>0)?1.0:-1.0;
@@ -530,11 +627,12 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
 
   /* Restart loop */
   l = 0;
+  ierr = DSGetLeadingDimension(qep->ds,&ldds);CHKERRQ(ierr);
   while (qep->reason == QEP_CONVERGED_ITERATING) {
     qep->its++;
     ierr = DSGetArrayReal(qep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-    b = a+ld;
-    r = b+ld;
+    b = a+ldds;
+    r = b+ldds;
     ierr = DSGetArrayReal(qep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
     
     /* Compute an nv-step Lanczos factorization */
@@ -548,21 +646,23 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     } else {
       ierr = DSSetState(qep->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
-
     /* Solve projected problem */
     ierr = DSSolve(qep->ds,qep->eigr,qep->eigi);CHKERRQ(ierr);
     ierr = DSSort(qep->ds,qep->eigr,qep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+
     /* Check convergence */
-    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,nv-qep->nconv,nv,beta,&k);CHKERRQ(ierr);
+    ierr = DSGetDimensions(qep->ds,NULL,NULL,NULL,NULL,&t);CHKERRQ(ierr);    
+    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,t-qep->nconv,nv,beta,&k);CHKERRQ(ierr);
     if (qep->its >= qep->max_it) qep->reason = QEP_DIVERGED_ITS;
     if (k >= qep->nev) qep->reason = QEP_CONVERGED_TOL;
 
     /* Update l */
     if (qep->reason != QEP_CONVERGED_ITERATING || breakdown) l = 0;
     else { 
-      l = (nv-k)/2;
+      l = PetscMax(1,(PetscInt)((nv-k)/2));
+      l = PetscMin(l,t);
       ierr = DSGetArrayReal(qep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-      if (*(a+ld+k+l-1)!=0) {
+      if (*(a+ldds+k+l-1)!=0) {
         if (k+l<nv-1) l = l+1;
         else l = l-1;
       }
@@ -570,11 +670,14 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     }
 
     /* Update S */
-    ierr = DSGetLeadingDimension(qep->ds,&ldq);CHKERRQ(ierr);
-    off = qep->nconv*(ldq+1);
+    off = qep->nconv*ldds;
     ierr = DSGetArray(qep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = QEPSTOARSupdate(qep,nv+2,qep->nconv,k+l-qep->nconv,nv-qep->nconv,Q+off,ldq,work+nwu,lwa-nwu);CHKERRQ(ierr);
+    ierr = QEPSTOARSupdate(S,ld,nv+2,qep->nconv,k+l-qep->nconv,nv,Q+off,ldds,work+nwu,lwa-nwu);CHKERRQ(ierr);
     ierr = DSRestoreArray(qep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+
+    /* Copy last column of S */
+    ierr = PetscMemcpy(S+lds*(k+l),S+lds*nv,lds*sizeof(PetscScalar));CHKERRQ(ierr);
+
     if (qep->reason == QEP_CONVERGED_ITERATING) {
       if (breakdown) {
 
@@ -585,18 +688,18 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
 
         /* Truncate S */
         ierr = DSGetArrayReal(qep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-        ierr = QEPSTOARTrunc(qep,nv+2,k+l+1,work,lwa-nwu,rwork,lrwa-nrwu);CHKERRQ(ierr);
+        ierr = QEPSTOARTrunc(qep,nv+2,k+l+1,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
         ierr = DSRestoreArrayReal(qep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
 
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSGetArray(qep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
         ierr = DSGetArrayReal(qep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
         ierr = DSGetArrayReal(qep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-        r = a + 2*ld;
+        r = a + 2*ldds;
         for (j=k;j<k+l;j++) {
-          r[j] = PetscRealPart(Q[nv-1+j*ld]*beta);
+          r[j] = PetscRealPart(Q[nv-1+j*ldds]*beta);
         }
-        b = a+ld;
+        b = a+ldds;
         b[k+l-1] = r[k+l-1];
         omega[k+l] = omega[nv];
         ierr = DSRestoreArray(qep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
@@ -637,7 +740,6 @@ PetscErrorCode QEPDestroy_STOAR(QEP qep)
   QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
 
   PetscFunctionBegin;
-  ierr = IPDestroy(&ctx->ip);CHKERRQ(ierr);
   ierr = PetscFree(ctx->S);CHKERRQ(ierr);
   ierr = PetscFree(ctx->qM);CHKERRQ(ierr);
   ierr = PetscFree(ctx->qK);CHKERRQ(ierr);
