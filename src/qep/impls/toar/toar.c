@@ -332,7 +332,7 @@ PetscErrorCode QEPSolve_TOAR(QEP qep)
     nv = PetscMin(qep->nconv+qep->mpd,qep->ncv);
     ierr = DSGetArray(qep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = QEPTOARrun(qep,S,ld,H,ldds,qep->V,qep->nconv+l,&nv,&breakdown,work+nwu,lwa-nwu,qep->work,3);CHKERRQ(ierr);
-    beta = H[(nv-1)*ldds+nv];
+    beta = PetscAbsScalar(H[(nv-1)*ldds+nv]);
     ierr = DSRestoreArray(qep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = DSSetDimensions(qep->ds,nv,0,qep->nconv,qep->nconv+l);CHKERRQ(ierr);
     if (l==0) {
