@@ -307,7 +307,7 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,k,s;
-  PetscInt       rank_region,icolor,ikey;
+  PetscMPIInt    rank_region,icolor,ikey;
   PetscScalar    *temp,*temp2,*ppk,alp;
   MPI_Comm       Row_Comm;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
