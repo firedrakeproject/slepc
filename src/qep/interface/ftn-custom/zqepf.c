@@ -191,7 +191,7 @@ PETSC_EXTERN void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *mon
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorlgall_) {
     *ierr = QEPMonitorSet(*qep,QEPMonitorLGAll,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)qepmonitorconverged_) {
-    if (!FORTRANNULLOBJECT(mctx)) {
+    if (mctx) {
       PetscError(PetscObjectComm((PetscObject)*qep),__LINE__,"qepmonitorset_",__FILE__,__SDIR__,PETSC_ERR_ARG_WRONG,PETSC_ERROR_INITIAL,"Must provide PETSC_NULL_OBJECT as a context in the Fortran interface to QEPMonitorSet");
       *ierr = 1;
       return;
