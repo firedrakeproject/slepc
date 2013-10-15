@@ -217,9 +217,9 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
 {
   PetscErrorCode ierr;
   PetscInt       j,k,l,lwork,nv,ld,ti,t;
-  Vec            v=qep->work[0],w=qep->work[1],w_=qep->work[2]; /* v_=qep->work[3]; */
+  Vec            v=qep->work[0],w=qep->work[1],w_=qep->work[2];
   PetscScalar    *S,*Q,*work;
-  PetscReal      beta,norm,*omega,*a,*b,*r;
+  PetscReal      beta,norm,*omega,*a,*b,*r,t1,t2;
   PetscBool      breakdown;
 
   PetscFunctionBegin;
@@ -288,8 +288,18 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
     ierr = DSSort(qep->ds,qep->eigr,qep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
 
     /* Check convergence */
+    ierr = VecNorm(v,NORM_2,&t1);CHKERRQ(ierr);
+    ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
+    t1 = SlepcAbs(t1,norm);
+    ierr = STMatMult(qep->st,0,v,w_);CHKERRQ(ierr);
+    ierr = VecNorm(w_,NORM_2,&t2);CHKERRQ(ierr);
+    ierr = STMatMult(qep->st,2,w,w_);CHKERRQ(ierr);
+    ierr = VecNorm(w_,NORM_2,&norm);CHKERRQ(ierr);
+    norm *= qep->sfactor*qep->sfactor;
+    t2 = SlepcAbs(t2,norm);
+    norm = PetscMax(t1,t2);
     ierr = DSGetDimensions(qep->ds,NULL,NULL,NULL,NULL,&t);CHKERRQ(ierr);    
-    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,t-qep->nconv,nv,beta,&k);CHKERRQ(ierr);
+    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,t-qep->nconv,nv,beta*norm,&k);CHKERRQ(ierr);
     if (qep->its >= qep->max_it) qep->reason = QEP_DIVERGED_ITS;
     if (k >= qep->nev) qep->reason = QEP_CONVERGED_TOL;
 

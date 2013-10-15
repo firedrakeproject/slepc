@@ -588,9 +588,9 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
   QEP_STOAR      *ctx=(QEP_STOAR*)qep->data;
   PetscInt       j,k,l,nv,ld=ctx->ld,lds=ctx->d*ctx->ld,off,ldds,t;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0;
-  Vec            w=qep->work[0];
+  Vec            w=qep->work[0],w2=qep->work[1];
   PetscScalar    *S=ctx->S,*Q,*work;
-  PetscReal      beta,norm,*omega,*a,*b,*r,*qM=ctx->qM,*rwork;
+  PetscReal      beta,norm,t1,t2,*omega,*a,*b,*r,*qM=ctx->qM,*rwork;
   PetscBool      breakdown;
 
   PetscFunctionBegin;
@@ -651,8 +651,21 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     ierr = DSSort(qep->ds,qep->eigr,qep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
 
     /* Check convergence */
+    ierr = VecZeroEntries(w);CHKERRQ(ierr);
+    ierr = VecMAXPY(w,nv+2,S+nv*lds,qep->V);CHKERRQ(ierr);
+    ierr = VecNorm(w,NORM_2,&t1);CHKERRQ(ierr);
+    ierr = STMatMult(qep->st,0,w,w2);CHKERRQ(ierr);
+    ierr = VecNorm(w2,NORM_2,&t2);CHKERRQ(ierr);
+    ierr = VecZeroEntries(w);CHKERRQ(ierr);
+    ierr = VecMAXPY(w,nv+2,S+ld+nv*lds,qep->V);CHKERRQ(ierr);
+    ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
+    t1 = SlepcAbs(norm,t1);
+    ierr = STMatMult(qep->st,2,w,w2);CHKERRQ(ierr);
+    ierr = VecNorm(w2,NORM_2,&norm);CHKERRQ(ierr);
+    t2 = SlepcAbs(norm,t2);
+    norm = PetscMax(t1,t2);
     ierr = DSGetDimensions(qep->ds,NULL,NULL,NULL,NULL,&t);CHKERRQ(ierr);    
-    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,t-qep->nconv,nv,beta,&k);CHKERRQ(ierr);
+    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,t-qep->nconv,nv,beta*norm,&k);CHKERRQ(ierr);
     if (qep->its >= qep->max_it) qep->reason = QEP_DIVERGED_ITS;
     if (k >= qep->nev) qep->reason = QEP_CONVERGED_TOL;
 
