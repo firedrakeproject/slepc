@@ -44,6 +44,7 @@ struct _p_IP {
   IPOrthogRefineType orthog_ref;     /* refinement method */
   PetscReal          orthog_eta;     /* refinement threshold */
   Mat                matrix;
+  PetscScalar        sfactor;
   PetscInt           innerproducts;
   PetscScalar        *work;
   PetscInt           lwork;

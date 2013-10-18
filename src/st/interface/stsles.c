@@ -47,6 +47,8 @@
 @*/
 PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
 {
+  PetscInt       i;
+  PetscScalar    alpha;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -59,6 +61,14 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
     ierr = VecCopy(x,y);CHKERRQ(ierr);
   } else {
     ierr = MatMult(st->T[k],x,y);CHKERRQ(ierr);
+  }
+  /* apply scaling */
+  if (st->gamma || st->delta) {
+    alpha = st->delta==0? 1.0: st->delta;
+    if (st->gamma) {
+      for (i=0;i<k;i++) alpha *= st->gamma;
+    }
+    ierr = VecScale(y,alpha);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -85,6 +95,8 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
 @*/
 PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
 {
+  PetscInt       i;
+  PetscScalar    alpha;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -97,6 +109,14 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
     ierr = VecCopy(x,y);CHKERRQ(ierr);
   } else {
     ierr = MatMultTranspose(st->T[k],x,y);CHKERRQ(ierr);
+  }
+  /* apply scaling */
+  if (st->gamma || st->delta) {
+    alpha = st->delta==0? 1.0: st->delta;
+    if (st->gamma) {
+      for (i=0;i<k;i++) alpha *= st->gamma;
+    }
+    ierr = VecScale(y,alpha);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -127,6 +147,8 @@ PetscErrorCode STMatSolve(ST st,PetscInt k,Vec b,Vec x)
   PetscInt           its;
   PetscBool          flg;
   KSPConvergedReason reason;
+  PetscInt           i;
+  PetscScalar        alpha;
 
   PetscFunctionBegin;
   if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
@@ -152,6 +174,14 @@ PetscErrorCode STMatSolve(ST st,PetscInt k,Vec b,Vec x)
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
   st->lineariterations += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
+  /* apply scaling */
+  if (st->gamma || st->delta) {
+    alpha = st->delta==0? 1.0: st->delta;
+    if (st->gamma) {
+      for (i=0;i<k;i++) alpha *= st->gamma;
+    }
+    ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -180,6 +210,8 @@ PetscErrorCode STMatSolveTranspose(ST st,PetscInt k,Vec b,Vec x)
   PetscInt           its;
   PetscBool          flg;
   KSPConvergedReason reason;
+  PetscInt           i;
+  PetscScalar        alpha;
 
   PetscFunctionBegin;
   if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
@@ -205,6 +237,14 @@ PetscErrorCode STMatSolveTranspose(ST st,PetscInt k,Vec b,Vec x)
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
   st->lineariterations += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
+  /* apply scaling */
+  if (st->gamma || st->delta) {
+    alpha = st->delta==0? 1.0: st->delta;
+    if (st->gamma) {
+      for (i=0;i<k;i++) alpha *= st->gamma;
+    }
+    ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

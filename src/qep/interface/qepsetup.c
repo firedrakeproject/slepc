@@ -23,6 +23,7 @@
 
 #include <slepc-private/qepimpl.h>       /*I "slepcqep.h" I*/
 #include <slepc-private/ipimpl.h>
+#include <slepc-private/stimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPSetUp"
@@ -47,8 +48,7 @@
 PetscErrorCode QEPSetUp(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscBool      khas,mhas,islinear,flg;
-  PetscReal      knorm,mnorm;
+  PetscBool      islinear,flg;
   Mat            mat[3];
 
   PetscFunctionBegin;
@@ -99,17 +99,6 @@ PetscErrorCode QEPSetUp(QEP qep)
   /* Set default problem type */
   if (!qep->problem_type) {
     ierr = QEPSetProblemType(qep,QEP_GENERAL);CHKERRQ(ierr);
-  }
-
-  /* Compute scaling factor if not set by user */
-  if (qep->sfactor==0.0) {
-    ierr = MatHasOperation(qep->K,MATOP_NORM,&khas);CHKERRQ(ierr);
-    ierr = MatHasOperation(qep->M,MATOP_NORM,&mhas);CHKERRQ(ierr);
-    if (khas && mhas) {
-      ierr = MatNorm(qep->K,NORM_INFINITY,&knorm);CHKERRQ(ierr);
-      ierr = MatNorm(qep->M,NORM_INFINITY,&mnorm);CHKERRQ(ierr);
-      qep->sfactor = PetscSqrtReal(knorm/mnorm);
-    } else qep->sfactor = 1.0;
   }
 
   /* Call specific solver setup */
@@ -165,7 +154,14 @@ PetscErrorCode QEPSetUp(QEP qep)
   if (!islinear) {
     ierr = PetscObjectTypeCompareAny((PetscObject)qep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
     if (!flg) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in QEP");
+    qep->st->userscale = qep->sfactor_set;
+    if (qep->sfactor_set) {
+      if (qep->sfactor==1.0) qep->st->gamma = 0.0;
+      else qep->st->gamma = qep->sfactor;
+      qep->st->delta = 0.0;
+    }
     ierr = STSetUp(qep->st);CHKERRQ(ierr);
+    if (!qep->sfactor_set) qep->sfactor = qep->st->gamma;
   }
 
   /* process initial vectors */

@@ -36,6 +36,8 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   EPSWhich       which;
   PetscBool      trackall;
   PetscScalar    sigma;
+  PetscBool      khas,mhas;
+  PetscScalar    knorm,mnorm;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,QEP_LINEAR*,Mat*) = {
     { MatCreateExplicit_Linear_N1A, MatCreateExplicit_Linear_N1B },   /* N1 */
@@ -68,6 +70,17 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   ctx->M = qep->M;
   ctx->C = qep->C;
   ctx->K = qep->K;
+
+  /* Compute scaling factor if not set by user */
+  if (qep->sfactor==0.0) {
+    ierr = MatHasOperation(qep->K,MATOP_NORM,&khas);CHKERRQ(ierr);
+    ierr = MatHasOperation(qep->M,MATOP_NORM,&mhas);CHKERRQ(ierr);
+    if (khas && mhas) {
+      ierr = MatNorm(qep->K,NORM_INFINITY,&knorm);CHKERRQ(ierr);
+      ierr = MatNorm(qep->M,NORM_INFINITY,&mnorm);CHKERRQ(ierr);
+      qep->sfactor = PetscSqrtReal(knorm/mnorm);
+    } else qep->sfactor = 1.0;
+  }
   ctx->sfactor = qep->sfactor;
 
   ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);

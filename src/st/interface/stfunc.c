@@ -207,6 +207,9 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->wb           = 0;
   st->shift_matrix = ST_MATMODE_COPY;
   st->str          = DIFFERENT_NONZERO_PATTERN;
+  st->gamma        = 0;
+  st->delta        = 0;
+  st->userscale    = PETSC_FALSE;
 
   *newst = st;
   PetscFunctionReturn(0);

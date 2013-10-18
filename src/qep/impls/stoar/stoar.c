@@ -36,6 +36,7 @@
 */
 
 #include <slepc-private/qepimpl.h>         /*I "slepcqep.h" I*/
+#include <slepc-private/stimpl.h>
 #include <slepcblaslapack.h>
 
 typedef struct {
@@ -79,8 +80,6 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
     else qep->which = QEP_LARGEST_MAGNITUDE;
   }
   if (qep->problem_type!=QEP_HERMITIAN) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
-  if (qep->sfactor_set && qep->sfactor!=1.0) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_SUP,"Requested method is not jet available with scaling");
-  else qep->sfactor = 1.0;
   ierr = QEPAllocateSolution(qep,2);CHKERRQ(ierr);
   ierr = QEPSetWorkVecs(qep,4);CHKERRQ(ierr);
   ld = qep->ncv+2;
@@ -96,7 +95,7 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   ctx->d--;
   ctx->ld = ld;
   ierr = STGetBilinearForm(st,&M);CHKERRQ(ierr);
-  ierr = IPSetMatrix(qep->ip,M);CHKERRQ(ierr);
+  ierr = IPSetMatrix(qep->ip,M,st->delta*st->gamma*st->gamma);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->d*ld*ld*sizeof(PetscScalar),&ctx->S);CHKERRQ(ierr);
   ierr = PetscMemzero(ctx->S,ctx->d*ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -238,9 +237,9 @@ static PetscErrorCode QEPSTOARrun(QEP qep,PetscReal *a,PetscReal *b,PetscReal *o
     ierr = VecZeroEntries(v);CHKERRQ(ierr);
     ierr = VecMAXPY(v,j+2,S+offq+j*lds,V);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,1,v,q);CHKERRQ(ierr);
-    ierr = VecAXPY(t,qep->sfactor,q);CHKERRQ(ierr);
+    ierr = VecAXPY(t,1.0,q);CHKERRQ(ierr);
     ierr = STMatSolve(qep->st,2,t,q);CHKERRQ(ierr);
-    ierr = VecScale(q,-1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
+    ierr = VecScale(q,-1.0);CHKERRQ(ierr);
 
     /* orthogonalize */
     ierr = IPPseudoOrthogonalize(qep->ip,j+2,qep->V,ctx->qM,q,S+offq+(j+1)*lds,&norm,NULL);CHKERRQ(ierr);

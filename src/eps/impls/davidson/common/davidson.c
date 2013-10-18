@@ -243,9 +243,9 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   /* Setup IP */
   if (ipB && dvd->B) {
-    ierr = IPSetMatrix(eps->ip,dvd->B);CHKERRQ(ierr);
+    ierr = IPSetMatrix(eps->ip,dvd->B,1.0);CHKERRQ(ierr);
   } else {
-    ierr = IPSetMatrix(eps->ip,NULL);CHKERRQ(ierr);
+    ierr = IPSetMatrix(eps->ip,NULL,0.0);CHKERRQ(ierr);
   }
 
   /* Get the fix parameter */
