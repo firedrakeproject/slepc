@@ -252,22 +252,24 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
 @*/
 PetscErrorCode STComputeScaleFactors(ST st)
 {
-  PetscBool      khas,mhas;
-  PetscScalar    knorm,mnorm;
+  PetscBool      khas,mhas,chas;
+  PetscScalar    knorm,mnorm,cnorm;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (st->nmat==3) {
     ierr = MatHasOperation(st->T[0],MATOP_NORM,&khas);CHKERRQ(ierr);
+    ierr = MatHasOperation(st->T[1],MATOP_NORM,&chas);CHKERRQ(ierr);
     ierr = MatHasOperation(st->T[2],MATOP_NORM,&mhas);CHKERRQ(ierr);
-    if (khas && mhas) {
+    if (khas && chas && mhas) {
       ierr = MatNorm(st->T[0],NORM_INFINITY,&knorm);CHKERRQ(ierr);
+      ierr = MatNorm(st->T[1],NORM_INFINITY,&cnorm);CHKERRQ(ierr);
       ierr = MatNorm(st->T[2],NORM_INFINITY,&mnorm);CHKERRQ(ierr);
       st->gamma = PetscSqrtReal(knorm/mnorm);
-      st->delta = 2.0/(knorm+mnorm*st->gamma);
+      st->delta = 2.0/(knorm+cnorm*st->gamma);
     } else {
-      st->gamma = 0.0;
-      st->delta = 0.0;
+      st->gamma = 1.0;
+      st->delta = 1.0;
     }
   }
   PetscFunctionReturn(0);

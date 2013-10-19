@@ -63,13 +63,9 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
     ierr = MatMult(st->T[k],x,y);CHKERRQ(ierr);
   }
   /* apply scaling */
-  if (st->gamma || st->delta) {
-    alpha = st->delta==0? 1.0: st->delta;
-    if (st->gamma) {
-      for (i=0;i<k;i++) alpha *= st->gamma;
-    }
-    ierr = VecScale(y,alpha);CHKERRQ(ierr);
-  }
+  alpha = st->delta;
+  for (i=0;i<k;i++) alpha *= st->gamma;
+  ierr = VecScale(y,alpha);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -111,13 +107,9 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
     ierr = MatMultTranspose(st->T[k],x,y);CHKERRQ(ierr);
   }
   /* apply scaling */
-  if (st->gamma || st->delta) {
-    alpha = st->delta==0? 1.0: st->delta;
-    if (st->gamma) {
-      for (i=0;i<k;i++) alpha *= st->gamma;
-    }
-    ierr = VecScale(y,alpha);CHKERRQ(ierr);
-  }
+  alpha = st->delta;
+  for (i=0;i<k;i++) alpha *= st->gamma;
+  ierr = VecScale(y,alpha);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -175,13 +167,9 @@ PetscErrorCode STMatSolve(ST st,PetscInt k,Vec b,Vec x)
   st->lineariterations += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   /* apply scaling */
-  if (st->gamma || st->delta) {
-    alpha = st->delta==0? 1.0: st->delta;
-    if (st->gamma) {
-      for (i=0;i<k;i++) alpha *= st->gamma;
-    }
-    ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);
-  }
+  alpha = st->delta;
+  for (i=0;i<k;i++) alpha *= st->gamma;
+  ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -238,13 +226,9 @@ PetscErrorCode STMatSolveTranspose(ST st,PetscInt k,Vec b,Vec x)
   st->lineariterations += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   /* apply scaling */
-  if (st->gamma || st->delta) {
-    alpha = st->delta==0? 1.0: st->delta;
-    if (st->gamma) {
-      for (i=0;i<k;i++) alpha *= st->gamma;
-    }
-    ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);
-  }
+  alpha = st->delta;
+  for (i=0;i<k;i++) alpha *= st->gamma;
+  ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

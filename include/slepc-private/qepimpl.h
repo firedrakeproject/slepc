@@ -108,6 +108,7 @@ PETSC_INTERN PetscErrorCode QEPReset_Default(QEP);
 PETSC_INTERN PetscErrorCode QEPAllocateSolution(QEP,PetscInt);
 PETSC_INTERN PetscErrorCode QEPFreeSolution(QEP);
 PETSC_INTERN PetscErrorCode QEPComputeVectors_Schur(QEP);
+PETSC_INTERN PetscErrorCode QEPComputeVectors_Indefinite(QEP);
 PETSC_INTERN PetscErrorCode QEPComputeResidualNorm_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode QEPComputeRelativeError_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode QEPKrylovConvergence(QEP,PetscBool,PetscInt,PetscInt,PetscInt,PetscReal,PetscInt*);

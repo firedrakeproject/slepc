@@ -737,7 +737,7 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
 
   /* Compute eigenvectors */
   if (qep->nconv > 0) {
-    ierr = QEPComputeVectors_Schur(qep);CHKERRQ(ierr);
+    ierr = QEPComputeVectors_Indefinite(qep);CHKERRQ(ierr);
   }
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
