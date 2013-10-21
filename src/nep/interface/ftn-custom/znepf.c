@@ -192,7 +192,7 @@ PETSC_EXTERN void PETSC_STDCALL nepmonitorset_(NEP *nep,void (PETSC_STDCALL *mon
     *ierr = NEPMonitorSet(*nep,NEPMonitorLGAll,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)nepmonitorconverged_) {
     if (!FORTRANNULLOBJECT(mctx)) {
-      PetscError(PetscObjectComm((PetscObject)*nep),__LINE__,"nepmonitorset_",__FILE__,__SDIR__,PETSC_ERR_ARG_WRONG,PETSC_ERROR_INITIAL,"Must provide PETSC_NULL_OBJECT as a context in the Fortran interface to NEPMonitorSet");
+      PetscError(PetscObjectComm((PetscObject)*nep),__LINE__,"nepmonitorset_",__FILE__,PETSC_ERR_ARG_WRONG,PETSC_ERROR_INITIAL,"Must provide PETSC_NULL_OBJECT as a context in the Fortran interface to NEPMonitorSet");
       *ierr = 1;
       return;
     }
