@@ -21,10 +21,15 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = stoarm.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepc
-DIRS     = linear qarnoldi qlanczos toar stoar stoarm
-LOCDIR   = src/qep/impls/
+DIRS     =
 MANSEC   = QEP
+LOCDIR   = src/qep/impls/stoarm/
 
 include ${SLEPC_DIR}/conf/slepc_common
 
