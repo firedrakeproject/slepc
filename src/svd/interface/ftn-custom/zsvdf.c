@@ -175,7 +175,7 @@ PETSC_EXTERN void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *mon
     *ierr = SVDMonitorSet(*svd,SVDMonitorLGAll,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)svdmonitorconverged_) {
     if (mctx) {
-      PetscError(PetscObjectComm((PetscObject)*svd),__LINE__,"svdmonitorset_",__FILE__,__SDIR__,PETSC_ERR_ARG_WRONG,PETSC_ERROR_INITIAL,"Must provide PETSC_NULL_OBJECT as a context in the Fortran interface to SVDMonitorSet");
+      PetscError(PetscObjectComm((PetscObject)*svd),__LINE__,"svdmonitorset_",__FILE__,PETSC_ERR_ARG_WRONG,PETSC_ERROR_INITIAL,"Must provide PETSC_NULL_OBJECT as a context in the Fortran interface to SVDMonitorSet");
       *ierr = 1;
       return;
     }

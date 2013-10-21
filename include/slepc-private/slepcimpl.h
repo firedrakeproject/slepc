@@ -51,7 +51,7 @@ PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors,SLEPC_VecMAXPBY,SLEPC_SlepcDenseM
 @*/
 #define SlepcHeaderCreate(h,tp,pops,classid,class_name,descr,mansec,com,des,vie) \
     ((!SlepcInitializeCalled && \
-    PetscError(comm,__LINE__,PETSC_FUNCTION_NAME,__FILE__,__SDIR__,1,PETSC_ERROR_INITIAL, \
+    PetscError(comm,__LINE__,PETSC_FUNCTION_NAME,__FILE__,1,PETSC_ERROR_INITIAL, \
     "Must call SlepcInitialize instead of PetscInitialize to use SLEPc classes")) ||  \
     PetscHeaderCreate(h,tp,pops,classid,class_name,descr,mansec,com,des,vie))
 
