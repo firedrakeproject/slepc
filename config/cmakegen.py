@@ -208,7 +208,6 @@ endif ()
 include_directories ("${PETSc_SOURCE_DIR}/include" "${PETSc_BINARY_DIR}/include")
 include_directories ("${SLEPc_SOURCE_DIR}/include" "${SLEPc_BINARY_DIR}/include")
 
-add_definitions (-D__INSDIR__= ) # CMake always uses the absolute path
 set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${SLEPc_BINARY_DIR}/lib" CACHE PATH "Output directory for SLEPc archives")
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${SLEPc_BINARY_DIR}/lib" CACHE PATH "Output directory for SLEPc libraries")
 set (CMAKE_Fortran_MODULE_DIRECTORY "${SLEPc_BINARY_DIR}/include" CACHE PATH "Output directory for fortran *.mod files")
