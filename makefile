@@ -34,7 +34,7 @@ include ${SLEPC_DIR}/conf/slepc_common
 all: chk_makej
 	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ${PETSC_ARCH}/conf/make.log
 	@if [ "${MAKE_IS_GNUMAKE}" != "" ]; then \
-	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-gnumake-local 2>&1 | tee -a ${PETSC_ARCH}/conf/make.log; \
+	   ${OMAKE_PRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-gnumake-local 2>&1 | tee -a ${PETSC_ARCH}/conf/make.log; \
 	elif [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
 	   if [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
 	     ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} cmakegen; \
@@ -65,7 +65,7 @@ cmakegen:
 
 all-gnumake:
 	@if [ "${MAKE_IS_GNUMAKE}" != "" ]; then \
-          ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} SLEPC_BUILD_USING_CMAKE="" all;\
+          ${OMAKE_PRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} SLEPC_BUILD_USING_CMAKE="" all;\
         else printf ${PETSC_TEXT_HILIGHT}"Build not configured for GNUMAKE. Quiting"${PETSC_TEXT_NORMAL}"\n"; exit 1; fi
 
 all-cmake:
@@ -144,13 +144,13 @@ build: chk_makej
 # Simple test examples for checking a correct installation
 check: test
 test:
-	-@${OMAKE_NOPRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} test_build 2>&1 | tee ./${PETSC_ARCH}/conf/test.log
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} test_build 2>&1 | tee ./${PETSC_ARCH}/conf/test.log
 test_build:
 	-@echo "Running test examples to verify correct installation"
 	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
-	@cd src/eps/examples/tests; ${OMAKE_NOPRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest10
-	@if [ "${FC}" != "" ]; then cd src/eps/examples/tests; ${OMAKE_NOPRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest7f; fi;
-	-@if [ "${BLOPEX_LIB}" != "" ]; then cd src/eps/examples/tests; ${OMAKE_NOPRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest5_blopex; fi;
+	@cd src/eps/examples/tests; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest10
+	@if [ "${FC}" != "" ]; then cd src/eps/examples/tests; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest7f; fi;
+	-@if [ "${BLOPEX_LIB}" != "" ]; then cd src/eps/examples/tests; ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest5_blopex; fi;
 	-@echo "Completed test examples"
 
 # Builds SLEPc test examples for C
