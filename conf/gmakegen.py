@@ -174,7 +174,7 @@ def WriteGnuMake(slepc):
     fd.write('\n')
     fd.write('# Dependency to regenerate this file\n')
     fd.write('%s : %s %s\n' % (os.path.relpath(arch_files, slepc.slepc_dir),
-                               os.path.relpath(__file__, slepc.slepc_dir),
+                               os.path.relpath(__file__, os.path.realpath(slepc.slepc_dir)),
                                ' '.join(gendeps)))
     fd.write('\n')
     fd.write('# Dummy dependencies in case makefiles are removed\n')
