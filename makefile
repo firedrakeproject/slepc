@@ -208,9 +208,21 @@ deletemods: chk_makej
 	-${RM} -f ${SLEPC_DIR}/${PETSC_ARCH}/include/slepc*.mod
 
 # Cleans up build
-allclean: deletelibs deletemods
+allclean-legacy: deletelibs deletemods
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=clean slepc_tree
+allclean-cmake:
+	-@cd ${PETSC_ARCH} && ${OMAKE} clean
+allclean-gnumake:
+	-@${OMAKE} -f gmakefile clean
 
+allclean:
+	@if [ "${MAKE_IS_GNUMAKE}" != "" ]; then \
+	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} allclean-gnumake; \
+	elif [ "${PETSC_BUILD_USING_CMAKE}" != "" ]; then \
+	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} allclean-cmake; \
+	else \
+	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} allclean-legacy; \
+	fi
 #
 # Check if PETSC_DIR variable specified is valid
 #
