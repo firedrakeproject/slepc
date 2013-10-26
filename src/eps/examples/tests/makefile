@@ -202,7 +202,7 @@ testtest5_blopex: test5.PETSc
            echo "Skipping BLOPEX test"; \
 	elif [ -f test5 ]; then \
            ${MPIEXEC} -np 1 ./test5 -symm -eps_type blopex -eps_nev 4 -eps_terse > test5_blopex.tmp 2>&1; \
-	   if [ "${PETSC_SCALAR}" == "complex" ]; then REFFILE=_complex; fi; \
+	   if [ "${PETSC_SCALAR}" = "complex" ]; then REFFILE=_complex; fi; \
 	   if (${DIFF} output/test5_blopex$$REFFILE.out test5_blopex.tmp > /dev/null 2>&1) then \
            echo "BLOPEX example src/eps/examples/tests/test5 run successfully with 1 MPI process"; \
 	   else echo "Possible error running BLOPEX src/eps/examples/tests/test5 with 1 MPI process"; \
