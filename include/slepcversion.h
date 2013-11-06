@@ -4,7 +4,7 @@
 #define SLEPC_VERSION_RELEASE    0
 #define SLEPC_VERSION_MAJOR      3
 #define SLEPC_VERSION_MINOR      4
-#define SLEPC_VERSION_SUBMINOR   2
+#define SLEPC_VERSION_SUBMINOR   3
 #define SLEPC_VERSION_PATCH      0
 #define SLEPC_RELEASE_DATE       "July 5, 2013"
 #define SLEPC_VERSION_DATE       "unknown"

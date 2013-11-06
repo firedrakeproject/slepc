@@ -24,9 +24,7 @@
 /* Private MPI datatypes and operators */
 static MPI_Datatype MPIU_NORM2=0, MPIU_NORM1_AND_2=0;
 static MPI_Op MPIU_NORM2_SUM=0;
-#if !defined(PETSC_USE_DYNAMIC_LIBRARIES)
 static PetscBool VecCompInitialized = PETSC_FALSE;
-#endif
 
 /* Private inline functions */
 PETSC_STATIC_INLINE void SumNorm2(PetscReal *,PetscReal *,PetscReal *,PetscReal *);
@@ -71,8 +69,6 @@ PETSC_STATIC_INLINE void AddNorm2(PetscReal *ssq,PetscReal *scale,PetscReal x)
     }
   }
 }
-
-#if !defined(PETSC_USE_DYNAMIC_LIBRARIES)
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcSumNorm2_Local"
@@ -128,7 +124,6 @@ static PetscErrorCode VecNormCompInit()
   ierr = PetscRegisterFinalize(VecNormCompEnd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "VecDestroy_Comp"
@@ -255,13 +250,12 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
   PetscInt       N=0,lN=0,i,k;
 
   PetscFunctionBegin;
-#if !defined(PETSC_USE_DYNAMIC_LIBRARIES)
   if (!VecCompInitialized) {
     VecCompInitialized = PETSC_TRUE;
     ierr = VecRegister(VECCOMP,VecCreate_Comp);CHKERRQ(ierr);
     ierr = VecNormCompInit();CHKERRQ(ierr);
   }
-#endif
+
   /* Allocate a new Vec_Comp */
   if (v->data) { ierr = PetscFree(v->data);CHKERRQ(ierr); }
   ierr = PetscNewLog(v,Vec_Comp,&s);CHKERRQ(ierr);

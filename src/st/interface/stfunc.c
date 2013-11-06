@@ -185,10 +185,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   PetscFunctionBegin;
   PetscValidPointer(newst,2);
   *newst = 0;
-#if !defined(PETSC_USE_DYNAMIC_LIBRARIES)
   ierr = STInitializePackage();CHKERRQ(ierr);
-#endif
-
   ierr = SlepcHeaderCreate(st,_p_ST,struct _STOps,ST_CLASSID,"ST","Spectral Transformation","ST",comm,STDestroy,STView);CHKERRQ(ierr);
 
   st->A            = 0;
