@@ -38,7 +38,7 @@ def Install(conf,vars,cmake,tmpdir,url,archdir):
     log.Exit('ERROR: BLOPEX is supported only in double precision.')
 
   # Create externalpackages directory
-  externdir = 'externalpackages'
+  externdir = archdir+'/externalpackages'
   if not os.path.exists(externdir):
     try:
       os.mkdir(externdir)
