@@ -253,7 +253,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
 PetscErrorCode STComputeScaleFactors(ST st)
 {
   PetscBool      khas,mhas,chas;
-  PetscScalar    knorm,mnorm,cnorm;
+  PetscReal      knorm,mnorm,cnorm;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;

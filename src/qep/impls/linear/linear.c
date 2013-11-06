@@ -34,10 +34,9 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   QEP_LINEAR     *ctx = (QEP_LINEAR*)qep->data;
   PetscInt       i=0;
   EPSWhich       which;
-  PetscBool      trackall;
+  PetscBool      trackall,khas,mhas;
   PetscScalar    sigma;
-  PetscBool      khas,mhas;
-  PetscScalar    knorm,mnorm;
+  PetscReal      knorm,mnorm;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,QEP_LINEAR*,Mat*) = {
     { MatCreateExplicit_Linear_N1A, MatCreateExplicit_Linear_N1B },   /* N1 */
