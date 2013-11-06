@@ -11,7 +11,7 @@
    References:
 
        [1] C. Campos and J.E. Roman, "A thick-restart Q-Lanczos method
-           for quadratic eigenvalue problems", in preparation, 2013.
+           for quadratic eigenvalue problems", submitted, 2013.
 
    Last update: Oct 2013
 
@@ -106,7 +106,6 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__
 #define __FUNCT__ "QEPSTOARNorm"
 /*
@@ -134,7 +133,6 @@ static PetscErrorCode QEPSTOARNorm(QEP qep,PetscInt j,PetscReal *norm,PetscScala
   *norm = (*norm>0.0)?PetscSqrtReal(*norm):-PetscSqrtReal(-*norm);
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPSTOAROrth2"
@@ -268,126 +266,6 @@ static PetscErrorCode QEPSTOARrun(QEP qep,PetscReal *a,PetscReal *b,PetscReal *o
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "QEPSTOARTrunc2"
-static PetscErrorCode QEPSTOARTrunc2(QEP qep,PetscInt rs1,PetscInt cs1,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
-{
-  PetscErrorCode ierr;
-  QEP_STOAR      *ctx=(QEP_STOAR*)qep->data;
-  PetscInt       lwa,nwu=0,lrwa,nrwu=0,j,i,off1,off2,lds=ctx->ld*ctx->d,i0,i1;
-  PetscScalar    *V,*S1,*S2,*St,*tau,*lapackw,*qK=ctx->qK,*qKt;
-  PetscScalar     mone=-1.0,one=1.0,zero=0.0,rt;
-  PetscReal      *e,*d,*qM=ctx->qM;
-  PetscBLASInt   cs1_,rs1_,cs1p1,cs1t2,lds_,info,lw_,ione=1,ld_;
-
-  PetscFunctionBegin;
-  lwa = cs1*cs1*7+(3+rs1)*cs1+rs1+ctx->ld*ctx->ld;
-  lrwa = 8*cs1;
-  if (!work||nw<lwa){
-    if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",6);
-    if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",5);
-  }
-  if (!rwork||nrw<lrwa){
-    if (nrw<lrwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",8);
-    if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",7);
-  }
-  S1 = ctx->S;
-  S2 = ctx->S+ctx->ld;
-  qKt = work+nwu;
-  nwu += ctx->ld*ctx->ld;
-  V = work+nwu;
-  nwu += cs1*cs1*4;
-  St = work+nwu;
-  nwu += (cs1+1)*rs1;
-  ierr = PetscBLASIntCast(cs1,&cs1_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(rs1,&rs1_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(cs1+1,&cs1p1);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(cs1*2,&cs1t2);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ctx->ld,&ld_);CHKERRQ(ierr);
-  for (j=0;j<cs1;j++) {
-    ierr = PetscMemcpy(St+j*rs1,S1+j*lds,rs1*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  for (j=0;j<rs1;j++) {
-    if (qM[j]<0) {
-      PetscStackCall("BLASscal",BLASscal_(&cs1_,&mone,St+j,&rs1));
-    }
-  }
-  PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1_,&cs1_,&rs1_,&one,S1,&lds_,St,&rs1_,&zero,V,&cs1t2));
-  for (j=0;j<cs1;j++) {
-    ierr = PetscMemcpy(St+j*rs1,S2+j*lds,rs1*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  for (j=0;j<rs1;j++) {
-    if (qM[j]<0) {
-      PetscStackCall("BLASscal",BLASscal_(&cs1_,&mone,St+j,&rs1_));
-    }
-  }
-  PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1_,&cs1_,&rs1_,&one,S1,&lds_,St,&rs1_,&zero,V+cs1*cs1t2,&cs1t2));
-  PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1_,&cs1_,&rs1_,&one,S2,&lds_,St,&rs1_,&zero,V+cs1*cs1t2+cs1,&cs1t2));
-  tau = work+nwu;
-  nwu += 2*cs1;
-  d = rwork+nrwu;
-  nrwu += 2*cs1;
-  e = rwork+nrwu;
-  nrwu += 2*cs1-1;
-  lapackw = work+nwu;
-  ierr = PetscBLASIntCast(lwa-nwu,&lw_);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKsytrd",LAPACKsytrd_("U",&cs1t2,V,&cs1t2,d,e,tau,lapackw,&lw_,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSYTRD %d",info);
-  PetscStackCallBLAS("LAPACKorgtr",LAPACKorgtr_("U",&cs1t2,V,&cs1t2,tau,lapackw,&lw_,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGTR %d",info);
-  PetscStackCallBLAS("LAPACKsteqr",LAPACKsteqr_("V",&cs1t2,d,e,V,&cs1t2,rwork+nrwu,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
-  
-  /* d is in ascending order */
-  i0 = 0;
-  i1 = 2*cs1-1;
-  while (i1-i0+1>cs1-1) {
-    if (PetscAbsReal(d[i0])>PetscAbsReal(d[i1])) i0++;
-    else i1--;
-  }
-  if (i0>cs1-1) {
-    if (i1<2*cs1-1) {
-      ierr = PetscMemcpy(V+i0*(2*cs1),V+(i1+1)*(2*cs1),(2*cs1-i1-1)*2*cs1*sizeof(PetscScalar));CHKERRQ(ierr);
-      for (i=0;i<2*cs1-i1-1;i++) d[i0+i] = d[i1+1+i];
-    }
-    off1 = 0;
-  } else {
-    off1 = i1-i0+1;
-    if (i0>0) {
-      ierr = PetscMemcpy(V+off1*2*cs1,V,i0*2*cs1*sizeof(PetscScalar));CHKERRQ(ierr);
-      for (i=0;i<i0;i++) d[off1+i] = d[i];
-    }
-  } 
-  for (j=0;j<cs1+1;j++) {
-    qM[j] = (d[off1+j]>0)?1.0:-1.0;
-    d[off1+j] = PetscSqrtReal(PetscAbsReal(d[off1+j]));
-  }
-  for (j=0;j<cs1+1;j++) {
-    rt = 1/d[off1+j];
-    PetscStackCall("BLASscal",BLASscal_(&cs1t2,&rt,V+(off1+j)*2*cs1,&ione));
-  }
-  off2 = off1*2*cs1+cs1;
-  /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-  PetscStackCall("BLASgemm",BLASgemm_("N","N",&rs1_,&cs1p1,&cs1_,&one,S1,&lds_,V+off1*2*cs1,&cs1t2,&zero,St,&rs1_));
-  PetscStackCall("BLASgemm",BLASgemm_("N","N",&rs1_,&cs1p1,&cs1_,&one,S2,&lds_,V+off2,&cs1t2,&one,St,&rs1_));
-  ierr = SlepcUpdateVectors(rs1,qep->V,0,cs1+1,St,rs1,PETSC_FALSE);CHKERRQ(ierr);
-  
-  /* Update qK */
-  PetscStackCall("BLASgemm",BLASgemm_("N","N",&rs1_,&cs1p1,&rs1_,&one,qK,&ld_,St,&rs1_,&zero,qKt,&rs1_));
-  PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1p1,&cs1p1,&rs1_,&one,St,&rs1_,qKt,&rs1_,&zero,qK,&ld_));
- 
-  /* Update S */
-  ierr = PetscMemzero(ctx->S,lds*ctx->ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (j=0;j<cs1+1;j++) {
-    for (i=0;i<cs1;i++) {
-      S1[j+i*lds] = d[off1+j]*d[off1+j]*V[(off1+j)*2*cs1+i];
-      S2[j+i*lds] = d[off1+j]*d[off1+j]*V[(off1+j)*2*cs1+cs1+i];
-    }
-  } 
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "IndefOrthog_CGS"
 /*
   compute x = x - y*ss^{-1}*y^T*s*x where ss=y^T*s*y
@@ -507,7 +385,6 @@ static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScala
   PetscStackCall("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1t2,M,&rs1_,sg,U,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));  
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
-/* /// Falta ldl previa /// */
   R = work+nwu;
   ierr = PetscMemzero(R,(cs1+1)*(cs1+1)*sizeof(PetscScalar));CHKERRQ(ierr);
   nwu += (cs1+1)*(cs1+1);
@@ -537,7 +414,6 @@ static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScala
   for (j=0;j<cs1+1;j++) qM[j] = ss[j];
   PetscStackCall("BLASgemm",BLASgemm_("N","N",&rs1_,&cs1p1,&rs1_,&sone,ctx->qK,&ld_,U,&rs1_,&zero,work+nwu,&rs1_));
   PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1p1,&cs1p1,&rs1_,&sone,U,&rs1_,work+nwu,&rs1_,&zero,ctx->qK,&ld_));
-
   PetscFunctionReturn(0);
 }
 
@@ -577,7 +453,6 @@ static PetscErrorCode QEPSTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,Pet
   }
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPSolve_STOAR"
