@@ -519,7 +519,7 @@ PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
   y = ds->work+ld;
   for (i=0;i<n;i++) x[i] = A[n+i*ld];
   PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
-  for (i=0;i<n;i++) A[n+i*ld] = y[i];
+  for (i=0;i<n;i++) A[n+i*ld] = PetscConj(y[i]);
   ds->k = n;
   PetscFunctionReturn(0);
 }
