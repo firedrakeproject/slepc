@@ -37,62 +37,68 @@ def Install(conf,vars,cmake,tmpdir,url,archdir):
   if petscconf.PRECISION != 'double':
     log.Exit('ERROR: BLOPEX is supported only in double precision.')
 
+  packagename = 'blopex-1.1.2'
+  externdir   = archdir+'/externalpackages'
+  builddir    = os.sep.join([externdir,packagename])
+
   # Create externalpackages directory
-  externdir = 'externalpackages'
   if not os.path.exists(externdir):
     try:
       os.mkdir(externdir)
     except:
       sys.exit('ERROR: cannot create directory ' + externdir)
 
-  # Download tarball
-  packagename = 'blopex-1.1.2'
-  if url=='':
-    url = 'http://www.grycap.upv.es/slepc/download/external/'+packagename+'.tar.gz'
-  archiveZip = 'blopex.tar.gz'
-  localFile = os.sep.join([externdir,archiveZip])
-  log.Println('Downloading '+url+' to '+localFile)
+  # Check if source is already available
+  if os.path.exists(builddir):
+    log.Println('Using '+builddir)
+  else:
 
-  if os.path.exists(localFile):
-    os.remove(localFile)
-  try:
-    urllib.urlretrieve(url, localFile)
-  except Exception, e:
-    name = 'blopex'
-    filename   = os.path.basename(urlparse.urlparse(url)[2])
-    failureMessage = '''\
+    # Download tarball
+    if url=='':
+      url = 'http://www.grycap.upv.es/slepc/download/external/'+packagename+'.tar.gz'
+    archiveZip = 'blopex.tar.gz'
+    localFile = os.sep.join([externdir,archiveZip])
+    log.Println('Downloading '+url+' to '+localFile)
+  
+    if os.path.exists(localFile):
+      os.remove(localFile)
+    try:
+      urllib.urlretrieve(url, localFile)
+    except Exception, e:
+      name = 'blopex'
+      filename   = os.path.basename(urlparse.urlparse(url)[2])
+      failureMessage = '''\
 Unable to download package %s from: %s
 * If your network is disconnected - please reconnect and rerun config/configure.py
 * Alternatively, you can download the above URL manually, to /yourselectedlocation/%s
   and use the configure option:
   --download-%s=/yourselectedlocation/%s
 ''' % (name, url, filename, name, filename)
-    raise RuntimeError(failureMessage)
-
-  # Uncompress tarball
-  destDir = os.sep.join([externdir,packagename])
-  log.Println('Uncompressing '+localFile+' to directory '+destDir)
-  if os.path.exists(destDir):
-    for root, dirs, files in os.walk(destDir, topdown=False):
-      for name in files:
-        os.remove(os.path.join(root, name))
-      for name in dirs:
-        os.rmdir(os.path.join(root, name))
-  try:
-    if sys.version_info >= (2,5):
-      import tarfile
-      tar = tarfile.open(localFile, "r:gz")
-      tar.extractall(path=externdir)
-      tar.close()
-      os.remove(localFile)
-    else:
-      result,output = commands.getstatusoutput('cd '+externdir+'; gunzip '+archiveZip+'; tar -xf '+archiveZip.split('.gz')[0])
-      os.remove(localFile.split('.gz')[0])
-  except RuntimeError, e:
-    raise RuntimeError('Error uncompressing '+archiveZip+': '+str(e))
+      raise RuntimeError(failureMessage)
+  
+    # Uncompress tarball
+    log.Println('Uncompressing '+localFile+' to directory '+builddir)
+    if os.path.exists(builddir):
+      for root, dirs, files in os.walk(builddir, topdown=False):
+        for name in files:
+          os.remove(os.path.join(root, name))
+        for name in dirs:
+          os.rmdir(os.path.join(root, name))
+    try:
+      if sys.version_info >= (2,5):
+        import tarfile
+        tar = tarfile.open(localFile, "r:gz")
+        tar.extractall(path=externdir)
+        tar.close()
+        os.remove(localFile)
+      else:
+        result,output = commands.getstatusoutput('cd '+externdir+'; gunzip '+archiveZip+'; tar -xf '+archiveZip.split('.gz')[0])
+        os.remove(localFile.split('.gz')[0])
+    except RuntimeError, e:
+      raise RuntimeError('Error uncompressing '+archiveZip+': '+str(e))
 
   # Configure
-  g = open(os.path.join(destDir,'Makefile.inc'),'w')
+  g = open(os.path.join(builddir,'Makefile.inc'),'w')
   g.write('CC          = '+petscconf.CC+'\n')
   if petscconf.IND64: blopexint = ' -DBlopexInt="long long" '
   else: blopexint = ''
@@ -104,16 +110,16 @@ Unable to download package %s from: %s
   g.close()
 
   # Build package
-  result,output = commands.getstatusoutput('cd '+destDir+'&&'+petscconf.MAKE+' clean &&'+petscconf.MAKE)
+  result,output = commands.getstatusoutput('cd '+builddir+'&&'+petscconf.MAKE+' clean &&'+petscconf.MAKE)
   log.write(output)
 
   # Move files
   incDir = os.sep.join([archdir,'include'])
   libDir = os.sep.join([archdir,'lib'])
-  os.rename(os.path.join(destDir,'lib/libBLOPEX.'+petscconf.AR_LIB_SUFFIX),os.path.join(libDir,'libBLOPEX.'+petscconf.AR_LIB_SUFFIX))
-  for root, dirs, files in os.walk(os.path.join(destDir,'include')):
+  os.rename(os.path.join(builddir,'lib/libBLOPEX.'+petscconf.AR_LIB_SUFFIX),os.path.join(libDir,'libBLOPEX.'+petscconf.AR_LIB_SUFFIX))
+  for root, dirs, files in os.walk(os.path.join(builddir,'include')):
     for name in files:
-      os.rename(os.path.join(destDir,'include/'+name),os.path.join(incDir,name))
+      os.rename(os.path.join(builddir,'include/'+name),os.path.join(incDir,name))
 
   # Write configuration files
   conf.write('#ifndef SLEPC_HAVE_BLOPEX\n#define SLEPC_HAVE_BLOPEX 1\n#endif\n\n')

@@ -400,7 +400,7 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
           ierr = MatDuplicate(st->A[t],MAT_COPY_VALUES,&st->T[k]);CHKERRQ(ierr);
           ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[k]);CHKERRQ(ierr);
         } else {
-          ierr = MatCopy(st->A[t],st->T[k],SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+          ierr = MatCopy(st->A[t],st->T[k],SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
         }
       }
       if (st->nmat>1) {

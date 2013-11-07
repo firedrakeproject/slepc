@@ -93,6 +93,7 @@ feastlibs = []
 getblopex = 0
 haveblopex = 0
 blopexurl = ''
+doclean = 0
 prefixdir = ''
 
 for i in sys.argv[1:]:
@@ -140,11 +141,15 @@ for i in sys.argv[1:]:
     getblopex = not i.endswith('=0')
     try: blopexurl = i.split('=')[1]
     except IndexError: pass
+  elif i.startswith('--with-clean'):
+    doclean = not i.endswith('=0')
   elif i.startswith('--prefix='):
     prefixdir = i.split('=')[1]
   elif i.startswith('--h') or i.startswith('-h') or i.startswith('-?'):
     print 'SLEPc Configure Help'
     print '-'*80
+    print 'SLEPc:'
+    print '  --with-clean=<bool>              : Delete prior build files including externalpackages'
     print '  --prefix=<dir>                   : Specify location to install SLEPc (e.g., /usr/local)'
     print 'ARPACK:'
     print '  --with-arpack                    : Indicate if you wish to test for ARPACK (PARPACK)'
@@ -224,6 +229,11 @@ if os.path.exists(os.sep.join([slepcdir,'src','docs'])) and os.path.exists(os.se
 
 # Create architecture directory and configuration files
 archdir = os.sep.join([slepcdir,petscconf.ARCH])
+if doclean and os.path.exists(archdir):
+  try:
+    shutil.rmtree(archdir)
+  except:
+    sys.exit('ERROR: cannot remove existing directory ' + archdir)
 if not os.path.exists(archdir):
   try:
     os.mkdir(archdir)
