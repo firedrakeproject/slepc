@@ -40,10 +40,9 @@
 #include <slepcblaslapack.h>
 
 typedef struct {
-  PetscScalar  *S; 
-  PetscInt     d;
-  PetscInt     ld;
-  PetscScalar  *qK;
+  PetscBool    monic;
+  PetscInt     d,ld;
+  PetscScalar  *S,*qK;
   PetscReal    *qM;
 } QEP_STOAR;
 
@@ -53,7 +52,7 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
 {
   PetscErrorCode ierr;
   PetscBool      sinv;
-  QEP_STOAR      *ctx;
+  QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
   PetscInt       ld;
 
   PetscFunctionBegin;
@@ -83,7 +82,6 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   ierr = DSSetType(qep->ds,DSGHIEP);CHKERRQ(ierr);
   ierr = DSSetCompact(qep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(qep->ds,ld);CHKERRQ(ierr);
-  ierr = PetscNewLog(qep,QEP_STOAR,&ctx);CHKERRQ(ierr);
   ierr = STGetNumMatrices(qep->st,&ctx->d);CHKERRQ(ierr);
   ctx->d--;
   ctx->ld = ld;
@@ -92,7 +90,6 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   ierr = PetscMalloc(ld*sizeof(PetscReal),&ctx->qM);CHKERRQ(ierr);
   ierr = PetscMalloc(ld*ld*sizeof(PetscScalar),&ctx->qK);CHKERRQ(ierr);
   ierr = PetscMemzero(ctx->qK,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  qep->data = ctx;
   PetscFunctionReturn(0);
 }
 
@@ -616,6 +613,125 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "QEPSetFromOptions_STOAR"
+PetscErrorCode QEPSetFromOptions_STOAR(QEP qep)
+{
+  PetscErrorCode ierr;
+  PetscBool      set,val;
+  QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead("QEP STOAR Options");CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-qep_stoar_monic","Use monic variant of STOAR","QEPSTOARSetMonic",ctx->monic,&val,&set);CHKERRQ(ierr);
+  if (set) {
+    ierr = QEPSTOARSetMonic(qep,val);CHKERRQ(ierr);
+  }
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPSTOARSetMonic_STOAR"
+static PetscErrorCode QEPSTOARSetMonic_STOAR(QEP qep,PetscBool monic)
+{
+  QEP_STOAR *ctx = (QEP_STOAR*)qep->data;
+
+  PetscFunctionBegin;
+  ctx->monic = monic;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPSTOARSetMonic"
+/*@
+   QEPSTOARSetMonic - Set the monic variant of the STOAR solver.
+
+   Logically Collective on QEP
+
+   Input Parameters:
++  qep   - quadratic eigenvalue solver
+-  monic - boolean flag to set the monic variant
+
+   Options Database Key:
+.  -qep_stoar_monic <boolean> - Indicates the boolean flag
+
+   Note:
+   The monic variant can be used only if the coefficient matrices
+   after the spectral transformation, M_sigma, C_sigma and K_sigma,
+   satisfy that M_sigma commutes with the other two. In this case,
+   the solver implicitly transforms the problem to use a monic
+   polynomial by multiplying with inv(M_sigma).
+
+   Level: advanced
+
+.seealso: QEPSTOARGetMonic()
+@*/
+PetscErrorCode QEPSTOARSetMonic(QEP qep,PetscBool monic)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidLogicalCollectiveBool(qep,monic,2);
+  ierr = PetscTryMethod(qep,"QEPSTOARSetMonic_C",(QEP,PetscBool),(qep,monic));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPSTOARGetMonic_STOAR"
+static PetscErrorCode QEPSTOARGetMonic_STOAR(QEP qep,PetscBool *monic)
+{
+  QEP_STOAR *ctx = (QEP_STOAR*)qep->data;
+
+  PetscFunctionBegin;
+  *monic = ctx->monic;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPSTOARGetMonic"
+/*@
+   QEPSTOARGetMonic - Returns the flag indicating that the monic variant
+   is being used.
+
+   Not Collective
+
+   Input Parameter:
+.  qep  - quadratic eigenvalue solver
+
+   Output Parameter:
+.  monic - the flag
+
+   Level: advanced
+
+.seealso: QEPSTOARSetMonic()
+@*/
+PetscErrorCode QEPSTOARGetMonic(QEP qep,PetscBool *monic)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
+  PetscValidPointer(monic,2);
+  ierr = PetscTryMethod(qep,"QEPSTOARGetMonic_C",(QEP,PetscBool*),(qep,monic));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "QEPView_STOAR"
+PetscErrorCode QEPView_STOAR(QEP qep,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
+
+  PetscFunctionBegin;
+  if (ctx->monic) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  STOAR: using the monic variant\n");CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "QEPDestroy_STOAR"
 PetscErrorCode QEPDestroy_STOAR(QEP qep)
 {
@@ -627,6 +743,8 @@ PetscErrorCode QEPDestroy_STOAR(QEP qep)
   ierr = PetscFree(ctx->qM);CHKERRQ(ierr);
   ierr = PetscFree(ctx->qK);CHKERRQ(ierr);
   ierr = PetscFree(qep->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPSTOARSetMonic_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPSTOARGetMonic_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -634,10 +752,19 @@ PetscErrorCode QEPDestroy_STOAR(QEP qep)
 #define __FUNCT__ "QEPCreate_STOAR"
 PETSC_EXTERN PetscErrorCode QEPCreate_STOAR(QEP qep)
 {
+  PetscErrorCode ierr;
+  QEP_STOAR      *ctx;
+
   PetscFunctionBegin;
+  ierr = PetscNewLog(qep,QEP_STOAR,&ctx);CHKERRQ(ierr);
+  qep->data                      = (void*)ctx;
   qep->ops->solve                = QEPSolve_STOAR;
   qep->ops->setup                = QEPSetUp_STOAR;
+  qep->ops->setfromoptions       = QEPSetFromOptions_STOAR;
+  qep->ops->view                 = QEPView_STOAR;
   qep->ops->reset                = QEPReset_Default;
   qep->ops->destroy              = QEPDestroy_STOAR;
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPSTOARSetMonic_C",QEPSTOARSetMonic_STOAR);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPSTOARGetMonic_C",QEPSTOARGetMonic_STOAR);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

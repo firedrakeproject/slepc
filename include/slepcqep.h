@@ -187,5 +187,8 @@ PETSC_EXTERN PetscErrorCode QEPLinearGetExplicitMatrix(QEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode QEPLinearSetEPS(QEP,EPS);
 PETSC_EXTERN PetscErrorCode QEPLinearGetEPS(QEP,EPS*);
 
+PETSC_EXTERN PetscErrorCode QEPSTOARSetMonic(QEP,PetscBool);
+PETSC_EXTERN PetscErrorCode QEPSTOARGetMonic(QEP,PetscBool*);
+
 #endif
 
