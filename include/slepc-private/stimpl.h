@@ -56,7 +56,7 @@ struct _p_ST {
   PetscScalar  defsigma;         /* Default value of the shift */
   STMatMode    shift_matrix;
   MatStructure str;              /* whether matrices have the same pattern or not */
-  PetscScalar  gamma,delta;      /* scaling factors */
+  PetscReal    gamma,delta;      /* scaling factors */
   PetscBool    userscale;        /* flag indicating the user passed gamma,delta */
 
   /*------------------------- Misc data --------------------------*/
