@@ -54,9 +54,7 @@ PetscErrorCode QEPSetUp_STOARM(QEP qep)
   PetscErrorCode ierr;
   PetscBool      sinv;
   QEP_STOAR      *ctx;
-  ST             st;
   PetscInt       ld;
-  IP             ip;
 
   PetscFunctionBegin;
   if (qep->ncv) { /* ncv set */
@@ -86,14 +84,9 @@ PetscErrorCode QEPSetUp_STOARM(QEP qep)
   ierr = DSSetCompact(qep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(qep->ds,ld);CHKERRQ(ierr);
   ierr = PetscNewLog(qep,QEP_STOAR,&ctx);CHKERRQ(ierr);
-  ierr = QEPGetIP(qep,&ip);CHKERRQ(ierr);
-  ierr = IPSetType(ip,IPINDEFINITE);CHKERRQ(ierr);
-  ierr = QEPGetST(qep,&st);CHKERRQ(ierr);
-  ierr = STSetUp(st);CHKERRQ(ierr);
-  ierr = STGetNumMatrices(st,&ctx->d);CHKERRQ(ierr);
+  ierr = STGetNumMatrices(qep->st,&ctx->d);CHKERRQ(ierr);
   ctx->d--;
   ctx->ld = ld;
-  ierr = IPSetMatrix(qep->ip,NULL,1.0);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->d*ld*ld*sizeof(PetscScalar),&ctx->S);CHKERRQ(ierr);
   ierr = PetscMemzero(ctx->S,ctx->d*ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(ld*sizeof(PetscReal),&ctx->qM);CHKERRQ(ierr);
@@ -394,6 +387,7 @@ PetscErrorCode QEPSolve_STOARM(QEP qep)
   PetscBool      breakdown;
 
   PetscFunctionBegin;
+  ierr = IPSetMatrix(qep->ip,NULL,1.0);CHKERRQ(ierr);
   lwa = 9*ld*ld+5*ld;
   ierr = PetscMalloc(lwa*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   lrwa = 8*ld;

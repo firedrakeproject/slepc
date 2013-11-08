@@ -54,10 +54,7 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   PetscErrorCode ierr;
   PetscBool      sinv;
   QEP_STOAR      *ctx;
-  ST             st;
-  Mat            M;
   PetscInt       ld;
-  IP             ip;
 
   PetscFunctionBegin;
   if (qep->ncv) { /* ncv set */
@@ -87,16 +84,9 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   ierr = DSSetCompact(qep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(qep->ds,ld);CHKERRQ(ierr);
   ierr = PetscNewLog(qep,QEP_STOAR,&ctx);CHKERRQ(ierr);
-  ierr = QEPGetIP(qep,&ip);CHKERRQ(ierr);
-  ierr = IPSetType(ip,IPINDEFINITE);CHKERRQ(ierr);
-  ierr = QEPGetST(qep,&st);CHKERRQ(ierr);
-  ierr = STSetUp(st);CHKERRQ(ierr);
-  ierr = STGetNumMatrices(st,&ctx->d);CHKERRQ(ierr);
+  ierr = STGetNumMatrices(qep->st,&ctx->d);CHKERRQ(ierr);
   ctx->d--;
   ctx->ld = ld;
-  ierr = STGetBilinearForm(st,&M);CHKERRQ(ierr);
-  ierr = IPSetMatrix(qep->ip,M,st->delta*st->gamma*st->gamma);CHKERRQ(ierr);
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->d*ld*ld*sizeof(PetscScalar),&ctx->S);CHKERRQ(ierr);
   ierr = PetscMemzero(ctx->S,ctx->d*ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc(ld*sizeof(PetscReal),&ctx->qM);CHKERRQ(ierr);
@@ -467,8 +457,13 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
   PetscScalar    *S=ctx->S,*Q,*work;
   PetscReal      beta,norm,t1,t2,*omega,*a,*b,*r,*qM=ctx->qM,*rwork;
   PetscBool      breakdown;
+  Mat            M;
 
   PetscFunctionBegin;
+  ierr = STGetBilinearForm(qep->st,&M);CHKERRQ(ierr);
+  ierr = IPSetType(qep->ip,IPINDEFINITE);CHKERRQ(ierr);
+  ierr = IPSetMatrix(qep->ip,M,qep->st->delta*qep->st->gamma*qep->st->gamma);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
   lwa = 9*ld*ld+5*ld;
   ierr = PetscMalloc(lwa*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   lrwa = 8*ld;
