@@ -127,7 +127,7 @@ static PetscErrorCode QEPSTOARNorm(QEP qep,PetscInt j,PetscReal *norm,PetscScala
   ierr = PetscBLASIntCast(ctx->ld,&ld_);CHKERRQ(ierr);
   PetscStackCall("BLASgemv",BLASgemv_("N",&n_,&n_,&sone,ctx->qK,&ld_,sp,&one,&szero,w,&one));
   *norm = 0.0;
-  for (i=0;i<n;i++) *norm += PetscRealPart(w[i]*sp[i]+sq[i]*sq[i]*(*(ctx->qM+i)));
+  for (i=0;i<n;i++) *norm += PetscRealPart(w[i]*PetscConj(sp[i])+PetscConj(sq[i])*sq[i]*(*(ctx->qM+i)));
   *norm = (*norm>0.0)?PetscSqrtReal(*norm):-PetscSqrtReal(-*norm);
   PetscFunctionReturn(0);
 }
@@ -204,8 +204,8 @@ static PetscErrorCode QEPSTOARqKupdate(QEP qep,PetscInt j,Vec *wv,PetscInt nwv)
   ierr = STMatSolve(qep->st,2,v1,v2);CHKERRQ(ierr);
   ierr = VecMDot(v2,j+1,V,qK+j*ld);CHKERRQ(ierr);
   for (i=0;i<=j;i++) {
-    qK[i+j*ld] = -PetscConj(qK[i+j*ld]);
-    qK[j+i*ld] = qK[i+ld*j];
+    qK[i+j*ld] = -qK[i+j*ld];
+    qK[j+i*ld] = PetscConj(qK[i+ld*j]);
   }
   PetscFunctionReturn(0);
 }
