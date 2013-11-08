@@ -273,11 +273,11 @@ PetscErrorCode QEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,PetscInt s,
   ierr = PetscBLASIntCast(ncu,&ncu_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldq,&ldq_);CHKERRQ(ierr);
-  PetscStackCall("BLASgemm",BLASgemm_("N","N",&sr_,&ncu_,&qr_,&a,S,&lds,Q,&ldq_,&b,work,&sr_));
+  PetscStackCall("BLASgemm",BLASgemm_("N","N",&sr_,&ncu_,&qr_,&a,S,&lds_,Q,&ldq_,&b,work,&sr_));
   for(j=0;j<ncu;j++){
     ierr = PetscMemcpy(S+lds*(s+j),work+j*sr,sr*sizeof(PetscScalar));CHKERRQ(ierr);
   }
-  PetscStackCall("BLASgemm",BLASgemm_("N","N",&sr_,&ncu_,&qr_,&a,S+ld,&lds,Q,&ldq_,&b,work,&sr_));
+  PetscStackCall("BLASgemm",BLASgemm_("N","N",&sr_,&ncu_,&qr_,&a,S+ld,&lds_,Q,&ldq_,&b,work,&sr_));
   for(j=0;j<ncu;j++){
     ierr = PetscMemcpy(S+lds*(s+j)+ld,work+j*sr,sr*sizeof(PetscScalar));CHKERRQ(ierr);
   }
