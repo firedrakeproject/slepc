@@ -26,7 +26,6 @@ PETSC_EXTERN PetscErrorCode QEPCreate_QArnoldi(QEP);
 PETSC_EXTERN PetscErrorCode QEPCreate_QLanczos(QEP);
 PETSC_EXTERN PetscErrorCode QEPCreate_TOAR(QEP);
 PETSC_EXTERN PetscErrorCode QEPCreate_STOAR(QEP);
-PETSC_EXTERN PetscErrorCode QEPCreate_STOARM(QEP);
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPRegisterAll"
@@ -50,6 +49,5 @@ PetscErrorCode QEPRegisterAll(void)
   ierr = QEPRegister(QEPQLANCZOS,QEPCreate_QLanczos);CHKERRQ(ierr);
   ierr = QEPRegister(QEPTOAR,QEPCreate_TOAR);CHKERRQ(ierr);
   ierr = QEPRegister(QEPSTOAR,QEPCreate_STOAR);CHKERRQ(ierr);
-  ierr = QEPRegister(QEPSTOARM,QEPCreate_STOARM);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -42,6 +42,5 @@
 #define QEPQLANCZOS  'qlanczos'
 #define QEPTOAR      'toar'
 #define QEPSTOAR     'stoar'
-#define QEPSTOARM    'stoarm'
 
 #endif

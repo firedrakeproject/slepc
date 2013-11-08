@@ -50,7 +50,6 @@ typedef const char* QEPType;
 #define QEPQLANCZOS  "qlanczos"
 #define QEPTOAR      "toar"
 #define QEPSTOAR     "stoar"
-#define QEPSTOARM    "stoarm"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId QEP_CLASSID;
