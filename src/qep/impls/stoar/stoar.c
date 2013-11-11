@@ -217,7 +217,7 @@ static PetscErrorCode QEPSTOARrun(QEP qep,PetscReal *a,PetscReal *b,PetscReal *o
   PetscScalar        *y,*S=ctx->S;
 
   PetscFunctionBegin;
-  *breakdown = PETSC_FALSE; /* ////////////// */
+  *breakdown = PETSC_FALSE; /* ----- */
   if (!t_||nwv<3) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
   lwa = (ctx->ld)*4;
   if (!work||nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
@@ -352,11 +352,11 @@ static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScala
   n = (rs1>2*cs1)?2*cs1:rs1;
   lwa = cs1*rs1*4+n*(rs1+2*cs1)+(cs1+1)*(cs1+2);
   lrwa = n+cs1+1+5*n;
-  if (!work||nw<lwa){
+  if (!work||nw<lwa) {
     if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",6);
     if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",5);
   }
-  if (!rwork||nrw<lrwa){
+  if (!rwork||nrw<lrwa) {
     if (nrw<lrwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",8);
     if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",7);
   }
@@ -447,7 +447,7 @@ static PetscErrorCode QEPSTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,Pet
 
   PetscFunctionBegin;
   lwa = sr*ncu;
-  if (!work||nw<lwa){
+  if (!work||nw<lwa) {
     if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
     if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",9);
   }
@@ -457,11 +457,11 @@ static PetscErrorCode QEPSTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,Pet
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldq,&ldq_);CHKERRQ(ierr);
   PetscStackCall("BLASgemm",BLASgemm_("N","N",&sr_,&ncu_,&qr_,&a,S,&lds_,Q,&ldq_,&b,work,&sr_));
-  for(j=0;j<ncu;j++){
+  for (j=0;j<ncu;j++) {
     ierr = PetscMemcpy(S+lds*(s+j),work+j*sr,sr*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   PetscStackCall("BLASgemm",BLASgemm_("N","N",&sr_,&ncu_,&qr_,&a,S+ld,&lds_,Q,&ldq_,&b,work,&sr_));
-  for(j=0;j<ncu;j++){
+  for (j=0;j<ncu;j++) {
     ierr = PetscMemcpy(S+lds*(s+j)+ld,work+j*sr,sr*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
