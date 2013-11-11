@@ -775,7 +775,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscScalar    *H,*A,*B,*Q,*X;
   PetscReal      *d,*e,*s;
 #if defined(PETSC_USE_COMPLEX)
-  PetscInt       j;
+  PetscInt       j,k;
 #endif
 
   PetscFunctionBegin;
@@ -852,16 +852,35 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #else
   PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","B",NULL,&n1,H+off,&ld,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,ds->rwork,&info));
 
-  /* Sort to have consecutive conjugate pairs */
+  /* Sort to have consecutive conjugate pairs 
+     Separate real and imaginary part of complex eigenvectors*/
   for (i=ds->l;i<ds->n;i++) {
       j=i+1;
       while (j<ds->n && (PetscAbsScalar(wr[i]-PetscConj(wr[j]))>PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON)) j++;
       if (j==ds->n) {
-        if (PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON) wr[i]=PetscRealPart(wr[i]);
-        else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"In QR_II complex without conjugate pair");
+        if (PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON) {
+          wr[i]=PetscRealPart(wr[i]); /* real eigenvalue */
+          for (k=ds->l;k<ds->n;k++) {
+            X[k+i*ds->ld] = PetscRealPart(X[k+i*ds->ld]);
+          }
+        } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"In QR_II complex without conjugate pair");
       } else { /* complex eigenvalue */
-        wr[j] = wr[i+1];
-        if (PetscImaginaryPart(wr[i])<0) wr[i] = PetscConj(wr[i]);
+        if (j!=i+1) {
+          wr[j] = wr[i+1];
+          ierr = PetscMemcpy(X+j*ds->ld,X+(i+1)*ds->ld,ds->ld*sizeof(PetscScalar));CHKERRQ(ierr);
+        }
+        if (PetscImaginaryPart(wr[i])<0) {
+          wr[i] = PetscConj(wr[i]);
+          for (k=ds->l;k<ds->n;k++) {
+            X[k+(i+1)*ds->ld] = -PetscImaginaryPart(X[k+i*ds->ld]);
+            X[k+i*ds->ld] = PetscRealPart(X[k+i*ds->ld]);
+          }
+        } else {
+          for (k=ds->l;k<ds->n;k++) {
+            X[k+(i+1)*ds->ld] = PetscImaginaryPart(X[k+i*ds->ld]);
+            X[k+i*ds->ld] = PetscRealPart(X[k+i*ds->ld]);
+          }
+        }
         wr[i+1] = PetscConj(wr[i]);
         i++;
       }
