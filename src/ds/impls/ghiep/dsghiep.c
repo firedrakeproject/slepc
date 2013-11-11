@@ -461,6 +461,9 @@ PetscErrorCode DSGHIEPInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscBLASInt   *select,*infoC,ld,n1,mout,info;
   PetscScalar    *A,*B,*H,*X;
   PetscReal      *s,*d,*e;
+#if defined(PETSC_USE_COMPLEX)
+  PetscInt       j;
+#endif
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
@@ -502,11 +505,22 @@ PetscErrorCode DSGHIEPInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
   ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
   X = ds->mat[DS_MAT_X];
-  for (i=0;i<n1;i++)select[i]=1;
+  for (i=0;i<n1;i++) select[i] = 1;
 #if !defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKhsein",LAPACKhsein_("R","N","N",select,&n1,H+off,&ld,wr+ds->l,wi+ds->l,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,NULL,infoC,&info));
 #else
   PetscStackCallBLAS("LAPACKhsein",LAPACKhsein_("R","N","N",select,&n1,H+off,&ld,wr+ds->l,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,ds->rwork,NULL,infoC,&info));
+
+  /* Separate real and imaginary part of complex eigenvectors */
+  for (j=ds->l;j<ds->n;j++) {
+    if (PetscAbsReal(PetscImaginaryPart(wr[j])) > PetscAbsScalar(wr[j])*PETSC_SQRT_MACHINE_EPSILON) {
+      for (i=ds->l;i<ds->n;i++) {
+        X[i+(j+1)*ds->ld] = PetscImaginaryPart(X[i+j*ds->ld]);
+        X[i+j*ds->ld] = PetscRealPart(X[i+j*ds->ld]);
+      }
+      j++;
+    }
+  }
 #endif
   if (info<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in hsein routine %d",-i);
   if (info>0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Convergence error in hsein routine %d",i);
@@ -576,6 +590,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
         M[0] = d1; M[1] = e; M[2] = e; M[3]= d2;
         b[0] = s1; b[1] = 0.0; b[2] = 0.0; b[3] = s2;
         ep = LAPACKlamch_("S");
+
         /* Compute eigenvalues of the block */
         PetscStackCallBLAS("LAPACKlag2",LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi));
         if (wi==0.0) { /* Real eigenvalues */
@@ -648,6 +663,9 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscBLASInt   n1,ld,one,info,lwork;
   PetscScalar    *H,*A,*B,*Q;
   PetscReal      *d,*e,*s;
+#if defined(PETSC_USE_COMPLEX)
+  PetscInt       j;
+#endif
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
@@ -712,9 +730,23 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,wi+ds->l,NULL,&ld,ds->work,&lwork,&info));
 #else
   PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,NULL,&ld,ds->work,&lwork,&info));
+
+  /* Sort to have consecutive conjugate pairs */
+  for (i=ds->l;i<ds->n;i++) {
+      j=i+1;
+      while (j<ds->n && (PetscAbsScalar(wr[i]-PetscConj(wr[j]))>PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON)) j++;
+      if (j==ds->n) {
+        if (PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON) wr[i]=PetscRealPart(wr[i]);
+        else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"In QR_II complex without conjugate pair");
+      } else { /* complex eigenvalue */
+        wr[j] = wr[i+1];
+        if (PetscImaginaryPart(wr[i])<0) wr[i] = PetscConj(wr[i]);
+        wr[i+1] = PetscConj(wr[i]);
+        i++;
+      }
+  }
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",&info);
-
   /* Compute Eigenvectors with Inverse Iteration */
   ierr = DSGHIEPInverseIteration(ds,wr,wi);CHKERRQ(ierr);
 
@@ -742,6 +774,9 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscBLASInt   n1,ld,one,info,lwork,mout;
   PetscScalar    *H,*A,*B,*Q,*X;
   PetscReal      *d,*e,*s;
+#if defined(PETSC_USE_COMPLEX)
+  PetscInt       j;
+#endif
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
@@ -816,6 +851,21 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","B",NULL,&n1,H+off,&ld,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,&info));
 #else
   PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","B",NULL,&n1,H+off,&ld,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,ds->rwork,&info));
+
+  /* Sort to have consecutive conjugate pairs */
+  for (i=ds->l;i<ds->n;i++) {
+      j=i+1;
+      while (j<ds->n && (PetscAbsScalar(wr[i]-PetscConj(wr[j]))>PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON)) j++;
+      if (j==ds->n) {
+        if (PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON) wr[i]=PetscRealPart(wr[i]);
+        else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"In QR_II complex without conjugate pair");
+      } else { /* complex eigenvalue */
+        wr[j] = wr[i+1];
+        if (PetscImaginaryPart(wr[i])<0) wr[i] = PetscConj(wr[i]);
+        wr[i+1] = PetscConj(wr[i]);
+        i++;
+      }
+  }
 #endif
   if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTREVC %i",&info);
 
@@ -885,7 +935,7 @@ PetscErrorCode DSNormalize_GHIEP(DS ds,DSMatType mat,PetscInt col)
       norm = BLASnrm2_(&n,&x[ld*i],&one);
       norm = 1.0/norm;
       PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
-     }
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -906,4 +956,3 @@ PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
   ds->ops->normalize     = DSNormalize_GHIEP;
   PetscFunctionReturn(0);
 }
-
