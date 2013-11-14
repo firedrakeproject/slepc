@@ -4,14 +4,14 @@
 #  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
-#     
+#
 #  SLEPc is free software: you can redistribute it and/or modify it under  the
 #  terms of version 3 of the GNU Lesser General Public License as published by
 #  the Free Software Foundation.
 #
-#  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-#  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-#  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+#  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+#  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+#  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 #  more details.
 #
 #  You  should have received a copy of the GNU Lesser General  Public  License
@@ -19,16 +19,25 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS   =
-FFLAGS   =
-SOURCEC  =
-SOURCEF  =
-SOURCEH  = slepc.h slepcsys.h slepcmath.h slepcversion.h slepcblaslapack.h \
-           slepceps.h slepcqep.h slepcpep.h slepcnep.h slepcmfn.h slepcsvd.h \
-           slepcst.h slepcip.h slepcds.h slepcfn.h slepcvec.h
-LIBBASE  = libslepc
-DIRS     = finclude slepc-private
-LOCDIR   = include/
-MANSEC   = 
+CFLAGS     =
+FFLAGS     =
+CPPFLAGS   =
+FPPFLAGS   =
+LOCDIR     = src/pep/examples/tests/
+EXAMPLESC  =
+EXAMPLESF  =
+MANSEC     = PEP
+TESTS      = 
+
+TESTEXAMPLES_C       =
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+#------------------------------------------------------------------------------------
+
+TESTCODE = \
+	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${test}.out; \
+	${DIFF} output/$${test}.out $${test}.tmp || \
+	echo "Possible problem with $${test}, diffs above"; \
+	${RM} -f $${test}.tmp
+

@@ -19,8 +19,31 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep pep nep mfn ip ds fn sys vec
+CFLAGS     =
+FFLAGS     =
+CPPFLAGS   =
+FPPFLAGS   =
+LOCDIR     = src/pep/examples/tutorials/
+EXAMPLESC  = ex23.c
+EXAMPLESF  = 
+MANSEC     = PEP
 
-LOCDIR   = src/
+TESTEXAMPLES_C           =
+TESTEXAMPLES_C_NOCOMPLEX = ex23.PETSc runex23_1 ex23.rm
+TESTEXAMPLES_F90         =
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+ex23: ex23.o chkopts
+	-${CLINKER} -o ex23 ex23.o ${SLEPC_LIB}
+	${RM} ex23.o
+
+#------------------------------------------------------------------------------------
+DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
+
+runex23_1:
+	-@${MPIEXEC} -np 1 ./ex23 -coeff ${DATAPATH}/speaker107m.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107k.petsc -pep_linear_explicitmatrix -pep_nev 4 -pep_ncv 20 -pep_tol 1e-9 -pep_terse > ex23_1.tmp 2>&1; \
+	   if (${DIFF} output/ex23_1.out ex23_1.tmp) then true; \
+	   else echo "Possible problem with ex23_1, diffs above"; fi; \
+	   ${RM} -f ex23_1.tmp
+
