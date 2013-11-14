@@ -367,9 +367,8 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   ierr = PEPInitializePackage();CHKERRQ(ierr);
   ierr = SlepcHeaderCreate(pep,_p_PEP,struct _PEPOps,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView);CHKERRQ(ierr);
 
-/*  pep->M               = 0;
-  pep->C               = 0;
-  pep->K               = 0;*/
+  pep->A               = 0;
+  pep->nmat            = 0;
   pep->max_it          = 0;
   pep->nev             = 1;
   pep->ncv             = 0;
@@ -560,9 +559,6 @@ PetscErrorCode PEPReset(PEP pep)
   if (pep->ops->reset) { ierr = (pep->ops->reset)(pep);CHKERRQ(ierr); }
   if (pep->ip) { ierr = IPReset(pep->ip);CHKERRQ(ierr); }
   if (pep->ds) { ierr = DSReset(pep->ds);CHKERRQ(ierr); }
-  /*ierr = MatDestroy(&pep->M);CHKERRQ(ierr);
-  ierr = MatDestroy(&pep->C);CHKERRQ(ierr);
-  ierr = MatDestroy(&pep->K);CHKERRQ(ierr);*/
   ierr = VecDestroy(&pep->t);CHKERRQ(ierr);
   ierr = PEPFreeSolution(pep);CHKERRQ(ierr);
   pep->matvecs     = 0;
@@ -594,6 +590,7 @@ PetscErrorCode PEPDestroy(PEP *pep)
   PetscValidHeaderSpecific(*pep,PEP_CLASSID,1);
   if (--((PetscObject)(*pep))->refct > 0) { *pep = 0; PetscFunctionReturn(0); }
   ierr = PEPReset(*pep);CHKERRQ(ierr);
+  ierr = MatDestroyMatrices((*pep)->nmat,&(*pep)->A);CHKERRQ(ierr);
   if ((*pep)->ops->destroy) { ierr = (*(*pep)->ops->destroy)(*pep);CHKERRQ(ierr); }
   ierr = STDestroy(&(*pep)->st);CHKERRQ(ierr);
   ierr = IPDestroy(&(*pep)->ip);CHKERRQ(ierr);

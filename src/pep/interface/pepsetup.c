@@ -184,62 +184,52 @@ PetscErrorCode PEPSetUp(PEP pep)
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetOperators"
 /*@
-   PEPSetOperators - Sets the matrices associated with the polynomial eigenvalue problem.
+   PEPSetOperators - Sets the coefficient matrices associated with the polynomial
+   eigenvalue problem.
 
    Collective on PEP and Mat
 
    Input Parameters:
 +  pep - the eigenproblem solver context
-.  M   - the first coefficient matrix
-.  C   - the second coefficient matrix
--  K   - the third coefficient matrix
+.  n  - number of matrices in array A
+-  A  - the array of matrices associated with the eigenproblem
 
    Notes:
-   The polynomial eigenproblem is defined as (l^2*M + l*C + K)*x = 0, where l is
-   the eigenvalue and x is the eigenvector.
+   The polynomial eigenproblem is defined as P(l)*x=0, where l is
+   the eigenvalue, x is the eigenvector, and P(l) is defined as
+   P(l) = A_0 + l*A_1 + ... + l^d*A_d, with d=n-1 (the degree of P).
 
    Level: beginner
 
-.seealso: PEPSolve(), PEPGetOperators()
+.seealso: PEPSolve(), PEPGetOperators(), PEPGetNumMatrices()
 @*/
 PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
 {
-/*  PetscErrorCode ierr;
-  PetscInt       m,n,m0;*/
+  PetscErrorCode ierr;
+  PetscInt       i,n,m,m0;
 
   PetscFunctionBegin;
-#if 0
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidHeaderSpecific(M,MAT_CLASSID,2);
-  PetscValidHeaderSpecific(C,MAT_CLASSID,3);
-  PetscValidHeaderSpecific(K,MAT_CLASSID,4);
-  PetscCheckSameComm(pep,1,M,2);
-  PetscCheckSameComm(pep,1,C,3);
-  PetscCheckSameComm(pep,1,K,4);
+  PetscValidLogicalCollectiveInt(pep,nmat,2);
+  if (nmat <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %D",nmat);
+  PetscValidPointer(A,3);
+  PetscCheckSameComm(pep,1,*A,3);
 
-  /* Check for square matrices */
-  ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
-  if (m!=n) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"M is a non-square matrix");
-  m0=m;
-  ierr = MatGetSize(C,&m,&n);CHKERRQ(ierr);
-  if (m!=n) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"C is a non-square matrix");
-  if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Dimensions of M and C do not match");
-  ierr = MatGetSize(K,&m,&n);CHKERRQ(ierr);
-  if (m!=n) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"K is a non-square matrix");
-  if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Dimensions of M and K do not match");
-
-  /* Store a copy of the matrices */
   if (pep->setupcalled) { ierr = PEPReset(pep);CHKERRQ(ierr); }
-  ierr = PetscObjectReference((PetscObject)M);CHKERRQ(ierr);
-  ierr = MatDestroy(&pep->M);CHKERRQ(ierr);
-  pep->M = M;
-  ierr = PetscObjectReference((PetscObject)C);CHKERRQ(ierr);
-  ierr = MatDestroy(&pep->C);CHKERRQ(ierr);
-  pep->C = C;
-  ierr = PetscObjectReference((PetscObject)K);CHKERRQ(ierr);
-  ierr = MatDestroy(&pep->K);CHKERRQ(ierr);
-  pep->K = K;
-#endif
+  ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
+  ierr = PetscMalloc(nmat*sizeof(Mat),&pep->A);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat));CHKERRQ(ierr);
+  for (i=0;i<nmat;i++) {
+    PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
+    PetscCheckSameComm(pep,1,A[i],3);
+    ierr = MatGetSize(A[i],&m,&n);CHKERRQ(ierr);
+    if (m!=n) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%D] is a non-square matrix",i);
+    if (!i) m0 = m;
+    if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Dimensions of matrices do not match with each other");
+    ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
+    pep->A[i] = A[i];
+  }
+  pep->nmat = nmat;
   PetscFunctionReturn(0);
 }
 
@@ -248,29 +238,52 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
 /*@
    PEPGetOperators - Gets the matrices associated with the polynomial eigensystem.
 
-   Collective on PEP and Mat
+   Not collective, though parallel Mats are returned if the PEP is parallel
+
+   Input Parameters:
++  pep - the PEP context
+-  k   - the index of the requested matrix (starting in 0)
+
+   Output Parameter:
+.  A - the requested matrix
+
+   Level: intermediate
+
+.seealso: PEPSolve(), PEPSetOperators(), PEPGetNumMatrices()
+@*/
+PetscErrorCode PEPGetOperators(PEP pep,PetscInt k,Mat *A)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(A,3);
+  if (k<0 || k>=pep->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",pep->nmat-1);
+  *A = pep->A[k];
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPGetNumMatrices"
+/*@
+   PEPGetNumMatrices - Returns the number of matrices stored in the PEP.
+
+   Not collective
 
    Input Parameter:
 .  pep - the PEP context
 
    Output Parameters:
-+  M   - the first coefficient matrix
-.  C   - the second coefficient matrix
--  K   - the third coefficient matrix
+.  nmat - the number of matrices passed in PEPSetOperators()
 
    Level: intermediate
 
-.seealso: PEPSolve(), PEPSetOperators()
+.seealso: PEPSetOperators()
 @*/
-PetscErrorCode PEPGetOperators(PEP pep,PetscInt k,Mat *A)
+PetscErrorCode PEPGetNumMatrices(PEP pep,PetscInt *nmat)
 {
   PetscFunctionBegin;
-#if 0
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (M) { PetscValidPointer(M,2); *M = pep->M; }
-  if (C) { PetscValidPointer(C,3); *C = pep->C; }
-  if (K) { PetscValidPointer(K,4); *K = pep->K; }
-#endif
+  PetscValidPointer(nmat,2);
+  *nmat = pep->nmat;
   PetscFunctionReturn(0);
 }
 
