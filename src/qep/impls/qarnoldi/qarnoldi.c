@@ -67,7 +67,7 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
     else qep->which = QEP_LARGEST_MAGNITUDE;
   }
 
-  ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
+  ierr = QEPAllocateSolution(qep,0);CHKERRQ(ierr);
   ierr = QEPSetWorkVecs(qep,4);CHKERRQ(ierr);
 
   ierr = DSSetType(qep->ds,DSNHEP);CHKERRQ(ierr);
@@ -144,9 +144,9 @@ static PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,Pet
     ierr = VecCopy(w,t);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,0,v,u);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,1,t,w);CHKERRQ(ierr);
-    ierr = VecAXPY(u,qep->sfactor,w);CHKERRQ(ierr);
+    ierr = VecAXPY(u,1.0,w);CHKERRQ(ierr);
     ierr = STMatSolve(qep->st,2,u,w);CHKERRQ(ierr);
-    ierr = VecScale(w,-1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
+    ierr = VecScale(w,-1.0);CHKERRQ(ierr);
     ierr = VecCopy(t,v);CHKERRQ(ierr);
 
     /* orthogonalize */
@@ -195,10 +195,10 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
 {
   PetscErrorCode ierr;
   PetscInt       j,k,l,lwork,nv,ld,newn;
-  Vec            v=qep->work[0],w=qep->work[1],v_=qep->work[2],w_=qep->work[3];
-  PetscScalar    *S,*Q,*work,r,s;
-  PetscReal      beta=0.0,norm,x,y,t;
-  PetscBool      breakdown=PETSC_FALSE,issinv;
+  Vec            v=qep->work[0],w=qep->work[1];
+  PetscScalar    *S,*Q,*work;
+  PetscReal      beta=0.0,norm,x,y;
+  PetscBool      breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
@@ -219,25 +219,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
   ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
   ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
 
-  /* Compute scaling factor if not set by user */
-  ierr = PetscObjectTypeCompare((PetscObject)qep->st,STSINVERT,&issinv);CHKERRQ(ierr);
-  if (issinv && !qep->sfactor_set) {
-    ierr = STMatMult(qep->st,1,w,w_);CHKERRQ(ierr);
-    ierr = STMatMult(qep->st,0,v,v_);CHKERRQ(ierr);
-    ierr = VecAXPY(v_,1.0,w_);CHKERRQ(ierr);
-    ierr = STMatSolve(qep->st,2,v_,w_);CHKERRQ(ierr);
-    ierr = VecScale(w_,-1.0);CHKERRQ(ierr);
-    ierr = VecCopy(w,v_);CHKERRQ(ierr);
-    ierr = VecDot(v_,v,&r);CHKERRQ(ierr);
-    ierr = VecDot(w_,w,&s);CHKERRQ(ierr);
-    t = PetscAbsScalar(r+s);
-    qep->sfactor = 1.0;
-    while (t > 1.0) {
-      qep->sfactor *=10.0;
-      t /= 10.0;
-    }
-  }
-  /* Restart loop */
+   /* Restart loop */
   l = 0;
   while (qep->reason == QEP_CONVERGED_ITERATING) {
     qep->its++;

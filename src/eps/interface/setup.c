@@ -114,13 +114,13 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
     ierr = STGetBilinearForm(eps->st,&B);CHKERRQ(ierr);
-    ierr = IPSetMatrix(eps->ip,B);CHKERRQ(ierr);
+    ierr = IPSetMatrix(eps->ip,B,1.0);CHKERRQ(ierr);
     ierr = MatDestroy(&B);CHKERRQ(ierr);
     if (!eps->ispositive) {
       ierr = IPSetType(eps->ip,IPINDEFINITE);CHKERRQ(ierr);
     }
   } else {
-    ierr = IPSetMatrix(eps->ip,NULL);CHKERRQ(ierr);
+    ierr = IPSetMatrix(eps->ip,NULL,0.0);CHKERRQ(ierr);
   }
 
   if (eps->nev > eps->n) eps->nev = eps->n;

@@ -723,7 +723,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   /* create split comm */
   ierr = SetSolverComm(eps);CHKERRQ(ierr);
 
-  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->weight);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->omega);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->pp);CHKERRQ(ierr);
@@ -832,7 +832,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   if (ctx->L != L_base) {
     eps->ncv = PetscMin(eps->n,ctx->L*ctx->M);
     eps->mpd = eps->ncv;
-    ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+    ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
     ierr = DSReset(eps->ds);CHKERRQ(ierr);
     ierr = DSSetEigenvalueComparison(eps->ds,eps->comparison,eps->comparisonctx);CHKERRQ(ierr);
     if (eps->isgeneralized) {

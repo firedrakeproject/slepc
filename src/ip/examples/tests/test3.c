@@ -61,7 +61,7 @@ int main(int argc,char **argv)
   /* Create IP object */
   ierr = IPCreate(PETSC_COMM_WORLD,&ip);CHKERRQ(ierr);
   ierr = IPSetType(ip,IPINDEFINITE);CHKERRQ(ierr);
-  ierr = IPSetMatrix(ip,A);CHKERRQ(ierr);
+  ierr = IPSetMatrix(ip,A,1.0);CHKERRQ(ierr);
   ierr = IPSetFromOptions(ip);CHKERRQ(ierr);
   ierr = IPView(ip,NULL);CHKERRQ(ierr);
 

@@ -27,42 +27,44 @@
 #define __FUNCT__ "EPSAllocateSolution"
 /*
   EPSAllocateSolution - Allocate memory storage for common variables such
-  as eigenvalues and eigenvectors.
+  as eigenvalues and eigenvectors. The argument extra is used for methods
+  that require a working basis slightly larger than ncv.
 */
-PetscErrorCode EPSAllocateSolution(EPS eps)
+PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
 {
   PetscErrorCode ierr;
-  PetscInt       newc,cnt;
+  PetscInt       newc,cnt,requested;
 
   PetscFunctionBegin;
-  if (eps->allocated_ncv != eps->ncv) {
-    newc = PetscMax(0,eps->ncv-eps->allocated_ncv);
+  requested = eps->ncv + extra;
+  if (eps->allocated_ncv != requested) {
+    newc = PetscMax(0,requested-eps->allocated_ncv);
     ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
     cnt = 0;
-    ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->eigr);CHKERRQ(ierr);
-    ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->eigi);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscScalar),&eps->eigr);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscScalar),&eps->eigi);CHKERRQ(ierr);
     cnt += 2*newc*sizeof(PetscScalar);
-    ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&eps->errest);CHKERRQ(ierr);
-    ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&eps->errest_left);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscReal),&eps->errest);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscReal),&eps->errest_left);CHKERRQ(ierr);
     cnt += 2*newc*sizeof(PetscReal);
-    ierr = PetscMalloc(eps->ncv*sizeof(PetscInt),&eps->perm);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscInt),&eps->perm);CHKERRQ(ierr);
     cnt += newc*sizeof(PetscInt);
     ierr = PetscLogObjectMemory((PetscObject)eps,cnt);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(eps->t,eps->ncv,&eps->V);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(eps,eps->ncv,eps->V);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(eps->t,requested,&eps->V);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(eps,requested,eps->V);CHKERRQ(ierr);
     if (eps->leftvecs) {
-      ierr = VecDuplicateVecs(eps->t,eps->ncv,&eps->W);CHKERRQ(ierr);
-      ierr = PetscLogObjectParents(eps,eps->ncv,eps->W);CHKERRQ(ierr);
+      ierr = VecDuplicateVecs(eps->t,requested,&eps->W);CHKERRQ(ierr);
+      ierr = PetscLogObjectParents(eps,requested,eps->W);CHKERRQ(ierr);
     }
-    eps->allocated_ncv = eps->ncv;
+    eps->allocated_ncv = requested;
   }
   /* The following cannot go in the above if, to avoid crash when ncv did not change */
   if (eps->arbitrary) {
-    newc = PetscMax(0,eps->ncv-eps->allocated_ncv);
+    newc = PetscMax(0,requested-eps->allocated_ncv);
     ierr = PetscFree(eps->rr);CHKERRQ(ierr);
     ierr = PetscFree(eps->ri);CHKERRQ(ierr);
-    ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->rr);CHKERRQ(ierr);
-    ierr = PetscMalloc(eps->ncv*sizeof(PetscScalar),&eps->ri);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscScalar),&eps->rr);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscScalar),&eps->ri);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)eps,2*newc*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

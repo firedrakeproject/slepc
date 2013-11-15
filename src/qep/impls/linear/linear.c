@@ -34,8 +34,9 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   QEP_LINEAR     *ctx = (QEP_LINEAR*)qep->data;
   PetscInt       i=0;
   EPSWhich       which;
-  PetscBool      trackall;
+  PetscBool      trackall,khas,mhas;
   PetscScalar    sigma;
+  PetscReal      knorm,mnorm;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,QEP_LINEAR*,Mat*) = {
     { MatCreateExplicit_Linear_N1A, MatCreateExplicit_Linear_N1B },   /* N1 */
@@ -68,6 +69,17 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   ctx->M = qep->M;
   ctx->C = qep->C;
   ctx->K = qep->K;
+
+  /* Compute scaling factor if not set by user */
+  if (qep->sfactor==0.0) {
+    ierr = MatHasOperation(qep->K,MATOP_NORM,&khas);CHKERRQ(ierr);
+    ierr = MatHasOperation(qep->M,MATOP_NORM,&mhas);CHKERRQ(ierr);
+    if (khas && mhas) {
+      ierr = MatNorm(qep->K,NORM_INFINITY,&knorm);CHKERRQ(ierr);
+      ierr = MatNorm(qep->M,NORM_INFINITY,&mnorm);CHKERRQ(ierr);
+      qep->sfactor = PetscSqrtReal(knorm/mnorm);
+    } else qep->sfactor = 1.0;
+  }
   ctx->sfactor = qep->sfactor;
 
   ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
@@ -144,7 +156,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   ierr = EPSGetDimensions(ctx->eps,NULL,&qep->ncv,&qep->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(ctx->eps,NULL,&qep->max_it);CHKERRQ(ierr);
   if (qep->nini>0 || qep->ninil>0) { ierr = PetscInfo(qep,"Ignoring initial vectors\n");CHKERRQ(ierr); }
-  ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
+  ierr = QEPAllocateSolution(qep,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

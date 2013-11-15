@@ -109,7 +109,10 @@ PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
 
   PetscFunctionBegin;
   if (st->nmat==1) *B = NULL;
-  else {
+  else if (st->nmat==3) {
+    *B = st->T[2];
+    ierr = PetscObjectReference((PetscObject)*B);CHKERRQ(ierr);
+  } else {
     *B = st->A[1];
     ierr = PetscObjectReference((PetscObject)*B);CHKERRQ(ierr);
   }
@@ -242,6 +245,37 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "STComputeScaleFactors"
+/*
+   STComputeScaleFactors - Computes gamma and delta for Fan-Lin-van Dooren scaling
+   of quadratic eigenproblems.
+@*/
+PetscErrorCode STComputeScaleFactors(ST st)
+{
+  PetscBool      khas,mhas,chas;
+  PetscReal      knorm,mnorm,cnorm;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (st->nmat==3) {
+    ierr = MatHasOperation(st->T[0],MATOP_NORM,&khas);CHKERRQ(ierr);
+    ierr = MatHasOperation(st->T[1],MATOP_NORM,&chas);CHKERRQ(ierr);
+    ierr = MatHasOperation(st->T[2],MATOP_NORM,&mhas);CHKERRQ(ierr);
+    if (khas && chas && mhas) {
+      ierr = MatNorm(st->T[0],NORM_INFINITY,&knorm);CHKERRQ(ierr);
+      ierr = MatNorm(st->T[1],NORM_INFINITY,&cnorm);CHKERRQ(ierr);
+      ierr = MatNorm(st->T[2],NORM_INFINITY,&mnorm);CHKERRQ(ierr);
+      st->gamma = PetscSqrtReal(knorm/mnorm);
+      st->delta = 2.0/(knorm+cnorm*st->gamma);
+    } else {
+      st->gamma = 1.0;
+      st->delta = 1.0;
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "STSetUp"
 /*@
    STSetUp - Prepares for the use of a spectral transformation.
@@ -288,6 +322,8 @@ PetscErrorCode STSetUp(ST st)
     }
   }
   if (st->ops->setup) { ierr = (*st->ops->setup)(st);CHKERRQ(ierr); }
+  /* Compute scaling factor if not set by user */
+  if (!st->userscale) { ierr = STComputeScaleFactors(st);CHKERRQ(ierr); }
   st->setupcalled = 1;
   ierr = PetscLogEventEnd(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -364,7 +400,7 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
           ierr = MatDuplicate(st->A[t],MAT_COPY_VALUES,&st->T[k]);CHKERRQ(ierr);
           ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[k]);CHKERRQ(ierr);
         } else {
-          ierr = MatCopy(st->A[t],st->T[k],SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+          ierr = MatCopy(st->A[t],st->T[k],SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
         }
       }
       if (st->nmat>1) {

@@ -23,6 +23,7 @@
 
 #include <slepc-private/qepimpl.h>       /*I "slepcqep.h" I*/
 #include <slepc-private/ipimpl.h>
+#include <slepc-private/stimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPSetUp"
@@ -47,8 +48,7 @@
 PetscErrorCode QEPSetUp(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscBool      khas,mhas,islinear,flg;
-  PetscReal      knorm,mnorm;
+  PetscBool      islinear,flg;
   Mat            mat[3];
 
   PetscFunctionBegin;
@@ -101,18 +101,7 @@ PetscErrorCode QEPSetUp(QEP qep)
     ierr = QEPSetProblemType(qep,QEP_GENERAL);CHKERRQ(ierr);
   }
 
-  /* Compute scaling factor if not set by user */
-  if (qep->sfactor==0.0) {
-    ierr = MatHasOperation(qep->K,MATOP_NORM,&khas);CHKERRQ(ierr);
-    ierr = MatHasOperation(qep->M,MATOP_NORM,&mhas);CHKERRQ(ierr);
-    if (khas && mhas) {
-      ierr = MatNorm(qep->K,NORM_INFINITY,&knorm);CHKERRQ(ierr);
-      ierr = MatNorm(qep->M,NORM_INFINITY,&mnorm);CHKERRQ(ierr);
-      qep->sfactor = PetscSqrtReal(knorm/mnorm);
-    } else qep->sfactor = 1.0;
-  }
-
-  /* Call specific solver setup */
+ /* Call specific solver setup */
   ierr = (*qep->ops->setup)(qep);CHKERRQ(ierr);
 
   /* set tolerance if not yet set */
@@ -161,11 +150,17 @@ PetscErrorCode QEPSetUp(QEP qep)
   if (qep->ncv > 2*qep->n) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
   if (qep->nev > qep->ncv) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
 
-  /* Setup ST */
+   /* Setup ST */
   if (!islinear) {
     ierr = PetscObjectTypeCompareAny((PetscObject)qep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
     if (!flg) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in QEP");
+    qep->st->userscale = qep->sfactor_set;
+    if (qep->sfactor_set) {
+      qep->st->gamma = qep->sfactor;
+      qep->st->delta = 1.0;
+    }
     ierr = STSetUp(qep->st);CHKERRQ(ierr);
+    if (!qep->sfactor_set) qep->sfactor = qep->st->gamma;
   }
 
   /* process initial vectors */
@@ -367,29 +362,30 @@ PetscErrorCode QEPSetInitialSpaceLeft(QEP qep,PetscInt n,Vec *is)
 #define __FUNCT__ "QEPAllocateSolution"
 /*
   QEPAllocateSolution - Allocate memory storage for common variables such
-  as eigenvalues and eigenvectors. All vectors in V (and W) share a
-  contiguous chunk of memory.
+  as eigenvalues and eigenvectors. The argument extra is used for methods
+  that require a working basis slightly larger than ncv.
 */
-PetscErrorCode QEPAllocateSolution(QEP qep)
+PetscErrorCode QEPAllocateSolution(QEP qep,PetscInt extra)
 {
   PetscErrorCode ierr;
-  PetscInt       newc,cnt;
+  PetscInt       newc,cnt,requested;
 
   PetscFunctionBegin;
-  if (qep->allocated_ncv != qep->ncv) {
-    newc = PetscMax(0,qep->ncv-qep->allocated_ncv);
+  requested = qep->ncv + extra;
+  if (qep->allocated_ncv != requested) {
+    newc = PetscMax(0,requested-qep->allocated_ncv);
     ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
     cnt = 0;
-    ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigr);CHKERRQ(ierr);
-    ierr = PetscMalloc(qep->ncv*sizeof(PetscScalar),&qep->eigi);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscScalar),&qep->eigr);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscScalar),&qep->eigi);CHKERRQ(ierr);
     cnt += 2*newc*sizeof(PetscScalar);
-    ierr = PetscMalloc(qep->ncv*sizeof(PetscReal),&qep->errest);CHKERRQ(ierr);
-    ierr = PetscMalloc(qep->ncv*sizeof(PetscInt),&qep->perm);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscReal),&qep->errest);CHKERRQ(ierr);
+    ierr = PetscMalloc(requested*sizeof(PetscInt),&qep->perm);CHKERRQ(ierr);
     cnt += 2*newc*sizeof(PetscReal);
     ierr = PetscLogObjectMemory((PetscObject)qep,cnt);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(qep->t,qep->ncv,&qep->V);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(qep,qep->ncv,qep->V);CHKERRQ(ierr);
-    qep->allocated_ncv = qep->ncv;
+    ierr = VecDuplicateVecs(qep->t,requested,&qep->V);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(qep,requested,qep->V);CHKERRQ(ierr);
+    qep->allocated_ncv = requested;
   }
   PetscFunctionReturn(0);
 }

@@ -116,6 +116,49 @@ PetscErrorCode QEPComputeVectors_Schur(QEP qep)
   ierr = DSRestoreArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+#undef __FUNCT__
+#define __FUNCT__ "QEPComputeVectors_Indefinite"
+PetscErrorCode QEPComputeVectors_Indefinite(QEP qep)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,ld,i;
+  PetscScalar    *Z;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    tmp;
+  PetscReal      norm,normi;
+#endif
+
+  PetscFunctionBegin;
+  ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
+  ierr = DSGetDimensions(qep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+
+  /* right eigenvectors */
+  ierr = DSVectors(qep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+
+  /* AV = V * Z */
+  ierr = DSGetArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = SlepcUpdateVectors(n,qep->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = DSRestoreArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+
+  /* normalization */
+  for (i=0;i<n;i++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if (qep->eigi[i] != 0.0) {
+      ierr = VecNorm(qep->V[i],NORM_2,&norm);CHKERRQ(ierr);
+      ierr = VecNorm(qep->V[i+1],NORM_2,&normi);CHKERRQ(ierr);
+      tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
+      ierr = VecScale(qep->V[i],tmp);CHKERRQ(ierr);
+      ierr = VecScale(qep->V[i+1],tmp);CHKERRQ(ierr);
+      i++;
+    } else
+#endif
+    {
+      ierr = VecNormalize(qep->V[i],NULL);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPKrylovConvergence"

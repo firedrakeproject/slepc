@@ -90,8 +90,8 @@ PETSC_EXTERN void PETSC_STDCALL ipview_(IP *ip,PetscViewer *viewer,PetscErrorCod
   *ierr = IPView(*ip,v);
 }
 
-PETSC_EXTERN void PETSC_STDCALL ipgetmatrix_(IP *ip,Mat *mat,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL ipgetmatrix_(IP *ip,Mat *mat,PetscScalar *sfact,PetscErrorCode *ierr)
 {
-  *ierr = IPGetMatrix(*ip,mat);
+  *ierr = IPGetMatrix(*ip,mat,sfact);
 }
 

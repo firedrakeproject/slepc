@@ -68,7 +68,7 @@ PetscErrorCode QEPSetUp_QLanczos(QEP qep)
   }
   if (qep->problem_type!=QEP_HERMITIAN) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
 
-  ierr = QEPAllocateSolution(qep);CHKERRQ(ierr);
+  ierr = QEPAllocateSolution(qep,0);CHKERRQ(ierr);
   ierr = QEPSetWorkVecs(qep,4);CHKERRQ(ierr);
 
   ierr = DSSetType(qep->ds,DSGHIEP);CHKERRQ(ierr);
@@ -93,7 +93,7 @@ PetscErrorCode QEPQLanczosNorm_private(QEP qep,Vec v1,Vec v2,PetscReal *norm,Vec
   ierr = VecDot(vw,v1,&p1);CHKERRQ(ierr);
   ierr = STMatMult(qep->st,2,v2,vw);CHKERRQ(ierr);
   ierr = VecDot(vw,v2,&p2);CHKERRQ(ierr);
-  *norm = PetscRealPart(-p1+qep->sfactor*qep->sfactor*p2);
+  *norm = PetscRealPart(-p1+p2);
   *norm = (*norm>0.0)?PetscSqrtReal(*norm):-PetscSqrtReal(-*norm);
   PetscFunctionReturn(0);
 }
@@ -123,11 +123,10 @@ static PetscErrorCode QEPQLanczosCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,Pet
   ierr = STMatMult(qep->st,2,w,vw);CHKERRQ(ierr);
   if (j>0) {
     ierr = VecMDot(vw,j_1,V,work);CHKERRQ(ierr);
-    for (i=0;i<j_1;i++) work[i] *= qep->sfactor*qep->sfactor;
     PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&j_1,&j,&one,H,&ldh,work,&ione,&one,h,&ione));
   }
   ierr = VecDot(vw,t,&dot);CHKERRQ(ierr);
-  h[j] += dot*qep->sfactor*qep->sfactor;
+  h[j] += dot;
   /* apply inverse of signature */
   for (i=0;i<=j;i++) h[i] /= omega[i];
   /* orthogonalize: update v and w */
@@ -170,9 +169,9 @@ static PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,PetscReal 
     ierr = VecCopy(w,t);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,0,v,u);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,1,t,w);CHKERRQ(ierr);
-    ierr = VecAXPY(u,qep->sfactor,w);CHKERRQ(ierr);
+    ierr = VecAXPY(u,1.0,w);CHKERRQ(ierr);
     ierr = STMatSolve(qep->st,2,u,w);CHKERRQ(ierr);
-    ierr = VecScale(w,-1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
+    ierr = VecScale(w,-1.0);CHKERRQ(ierr);
     ierr = VecCopy(t,v);CHKERRQ(ierr);
 
     /* orthogonalize */
@@ -217,9 +216,9 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
 {
   PetscErrorCode ierr;
   PetscInt       j,k,l,lwork,nv,ld,ti,t;
-  Vec            v=qep->work[0],w=qep->work[1],w_=qep->work[2]; /* v_=qep->work[3]; */
+  Vec            v=qep->work[0],w=qep->work[1],w_=qep->work[2];
   PetscScalar    *S,*Q,*work;
-  PetscReal      beta,norm,*omega,*a,*b,*r;
+  PetscReal      beta,norm,*omega,*a,*b,*r,t1,t2;
   PetscBool      breakdown;
 
   PetscFunctionBegin;
@@ -288,8 +287,17 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
     ierr = DSSort(qep->ds,qep->eigr,qep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
 
     /* Check convergence */
+    ierr = VecNorm(v,NORM_2,&t1);CHKERRQ(ierr);
+    ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
+    t1 = SlepcAbs(t1,norm);
+    ierr = STMatMult(qep->st,0,v,w_);CHKERRQ(ierr);
+    ierr = VecNorm(w_,NORM_2,&t2);CHKERRQ(ierr);
+    ierr = STMatMult(qep->st,2,w,w_);CHKERRQ(ierr);
+    ierr = VecNorm(w_,NORM_2,&norm);CHKERRQ(ierr);
+    t2 = SlepcAbs(t2,norm);
+    norm = PetscMax(t1,t2);
     ierr = DSGetDimensions(qep->ds,NULL,NULL,NULL,NULL,&t);CHKERRQ(ierr);    
-    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,t-qep->nconv,nv,beta,&k);CHKERRQ(ierr);
+    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,t-qep->nconv,nv,beta*norm,&k);CHKERRQ(ierr);
     if (qep->its >= qep->max_it) qep->reason = QEP_DIVERGED_ITS;
     if (k >= qep->nev) qep->reason = QEP_CONVERGED_TOL;
 
@@ -353,7 +361,7 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
 
   /* Compute eigenvectors */
   if (qep->nconv > 0) {
-    ierr = QEPComputeVectors_Schur(qep);CHKERRQ(ierr);
+    ierr = QEPComputeVectors_Indefinite(qep);CHKERRQ(ierr);
   }
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);

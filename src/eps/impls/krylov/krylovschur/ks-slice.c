@@ -292,24 +292,26 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
       if (((sr->dir)*(sPres->value - lambda) > 0) && ((sr->dir)*(lambda - sPres->ext[0]) > 0)) count0++;
       if (((sr->dir)*(lambda - sPres->value) > 0) && ((sr->dir)*(sPres->ext[1] - lambda) > 0)) count1++;
     }
-
-    /* Checks completion */
-    if ((!sch0||count0 >= sPres->nsch[0]) && (!sch1 ||count1 >= sPres->nsch[1])) {
-      eps->reason = EPS_CONVERGED_TOL;
-    } else {
-      if (!complIterating && eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
-      if (complIterating) {
-        if (--iterCompl <= 0) eps->reason = EPS_DIVERGED_ITS;
-      } else if (k >= eps->nev) {
-        n0 = sPres->nsch[0]-count0;
-        n1 = sPres->nsch[1]-count1;
-        if (sr->iterCompl>0 && ((n0>0 && n0<= sr->nMAXCompl)||(n1>0&&n1<=sr->nMAXCompl))) {
-          /* Iterating for completion*/
-          complIterating = PETSC_TRUE;
-          if (n0 >sr->nMAXCompl)sch0 = PETSC_FALSE;
-          if (n1 >sr->nMAXCompl)sch1 = PETSC_FALSE;
-          iterCompl = sr->iterCompl;
-        } else eps->reason = EPS_CONVERGED_TOL;
+    if (k>eps->nev && eps->ncv-k<5) eps->reason = EPS_CONVERGED_TOL;
+    else {
+      /* Checks completion */
+      if ((!sch0||count0 >= sPres->nsch[0]) && (!sch1 ||count1 >= sPres->nsch[1])) {
+        eps->reason = EPS_CONVERGED_TOL;
+      } else {
+        if (!complIterating && eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
+        if (complIterating) {
+          if (--iterCompl <= 0) eps->reason = EPS_DIVERGED_ITS;
+        } else if (k >= eps->nev) {
+          n0 = sPres->nsch[0]-count0;
+          n1 = sPres->nsch[1]-count1;
+          if (sr->iterCompl>0 && ((n0>0 && n0<= sr->nMAXCompl)||(n1>0&&n1<=sr->nMAXCompl))) {
+            /* Iterating for completion*/
+            complIterating = PETSC_TRUE;
+            if (n0 >sr->nMAXCompl)sch0 = PETSC_FALSE;
+            if (n1 >sr->nMAXCompl)sch1 = PETSC_FALSE;
+            iterCompl = sr->iterCompl;
+          } else eps->reason = EPS_CONVERGED_TOL;
+        }
       }
     }
     /* Update l */

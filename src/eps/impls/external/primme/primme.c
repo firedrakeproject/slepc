@@ -147,7 +147,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
 
   /* Set workspace */
-  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
 
   /* Setup the preconditioner */
   ops->eps = eps;

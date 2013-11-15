@@ -96,8 +96,8 @@ PETSC_EXTERN PetscErrorCode IPBiOrthogonalize(IP,PetscInt,Vec*,Vec*,Vec,PetscSca
 PETSC_EXTERN PetscErrorCode IPPseudoOrthogonalize(IP,PetscInt,Vec*,PetscReal*,Vec,PetscScalar*,PetscReal*,PetscBool*);
 PETSC_EXTERN PetscErrorCode IPQRDecomposition(IP,Vec*,PetscInt,PetscInt,PetscScalar*,PetscInt);
 
-PETSC_EXTERN PetscErrorCode IPSetMatrix(IP,Mat);
-PETSC_EXTERN PetscErrorCode IPGetMatrix(IP,Mat*);
+PETSC_EXTERN PetscErrorCode IPSetMatrix(IP,Mat,PetscScalar);
+PETSC_EXTERN PetscErrorCode IPGetMatrix(IP,Mat*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode IPApplyMatrix(IP,Vec,Vec);
 
 PETSC_EXTERN PetscErrorCode IPInnerProduct(IP,Vec,Vec,PetscScalar*);

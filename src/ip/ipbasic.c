@@ -136,6 +136,7 @@ PetscErrorCode IPCreate(MPI_Comm comm,IP *newip)
   ip->orthog_eta    = 0.7071;
   ip->innerproducts = 0;
   ip->matrix        = NULL;
+  ip->sfactor       = 1.0;
   ip->Bx            = NULL;
   ip->xid           = 0;
   ip->xstate        = 0;
@@ -569,10 +570,11 @@ PetscErrorCode IPReset(IP ip)
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
   ierr = MatDestroy(&ip->matrix);CHKERRQ(ierr);
   ierr = VecDestroy(&ip->Bx);CHKERRQ(ierr);
-  ip->xid    = 0;
-  ip->xstate = 0;
+  ip->sfactor = 1.0;
+  ip->xid     = 0;
+  ip->xstate  = 0;
   ierr = PetscFree(ip->work);CHKERRQ(ierr);
-  ip->lwork  = 0;
+  ip->lwork   = 0;
   ierr = IPResetOperationCounters(ip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

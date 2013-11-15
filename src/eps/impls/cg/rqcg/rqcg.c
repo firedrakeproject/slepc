@@ -88,7 +88,7 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
 
   if (!ctx->nrest) ctx->nrest = 20;
 
-  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->AV);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->AV);CHKERRQ(ierr);
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);

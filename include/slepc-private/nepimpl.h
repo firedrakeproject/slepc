@@ -118,7 +118,7 @@ struct _p_NEP {
 
 PETSC_INTERN PetscErrorCode NEPReset_Default(NEP);
 PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
-PETSC_INTERN PetscErrorCode NEPAllocateSolution(NEP);
+PETSC_INTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
 PETSC_INTERN PetscErrorCode NEPFreeSolution(NEP);
 PETSC_INTERN PetscErrorCode NEP_KSPSolve(NEP,Vec,Vec);
 PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,PetscReal*);

@@ -64,7 +64,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
   if (!((PetscObject)mfn->ip)->type_name) {
     ierr = IPSetType_Default(mfn->ip);CHKERRQ(ierr);
   }
-  ierr = IPSetMatrix(mfn->ip,NULL);CHKERRQ(ierr);
+  ierr = IPSetMatrix(mfn->ip,NULL,0.0);CHKERRQ(ierr);
   if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = DSReset(mfn->ds);CHKERRQ(ierr);
   if (!((PetscObject)mfn->rand)->type_name) {

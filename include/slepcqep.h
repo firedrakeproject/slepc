@@ -48,6 +48,8 @@ typedef const char* QEPType;
 #define QEPLINEAR    "linear"
 #define QEPQARNOLDI  "qarnoldi"
 #define QEPQLANCZOS  "qlanczos"
+#define QEPTOAR      "toar"
+#define QEPSTOAR     "stoar"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId QEP_CLASSID;
@@ -183,6 +185,9 @@ PETSC_EXTERN PetscErrorCode QEPLinearSetExplicitMatrix(QEP,PetscBool);
 PETSC_EXTERN PetscErrorCode QEPLinearGetExplicitMatrix(QEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode QEPLinearSetEPS(QEP,EPS);
 PETSC_EXTERN PetscErrorCode QEPLinearGetEPS(QEP,EPS*);
+
+PETSC_EXTERN PetscErrorCode QEPSTOARSetMonic(QEP,PetscBool);
+PETSC_EXTERN PetscErrorCode QEPSTOARGetMonic(QEP,PetscBool*);
 
 #endif
 

@@ -137,7 +137,7 @@ lrstor*=10;
 
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
 
-  ierr = EPSAllocateSolution(eps);CHKERRQ(ierr);
+  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");

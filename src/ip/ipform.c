@@ -32,7 +32,8 @@
 
    Input Parameters:
 +  ip    - the inner product context
--  mat   - the matrix (may be NULL)
+.  mat   - the matrix (may be NULL)
+-  sfact - the scale factor
 
    Notes:
    A NULL has the same effect as if the identity matrix was passed.
@@ -44,7 +45,7 @@
 
 .seealso: IPGetMatrix(), IPInnerProduct(), IPNorm(), EPSSetProblemType()
 @*/
-PetscErrorCode IPSetMatrix(IP ip,Mat mat)
+PetscErrorCode IPSetMatrix(IP ip,Mat mat,PetscScalar sfact)
 {
   PetscErrorCode ierr;
 
@@ -54,8 +55,10 @@ PetscErrorCode IPSetMatrix(IP ip,Mat mat)
     PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
     PetscObjectReference((PetscObject)mat);
   }
+  PetscValidLogicalCollectiveScalar(ip,sfact,3);
   ierr = IPReset(ip);CHKERRQ(ierr);
-  ip->matrix = mat;
+  ip->matrix  = mat;
+  ip->sfactor = sfact;
   if (mat) {
     ierr = MatGetVecs(mat,&ip->Bx,NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)ip,(PetscObject)ip->Bx);CHKERRQ(ierr);
@@ -74,18 +77,19 @@ PetscErrorCode IPSetMatrix(IP ip,Mat mat)
 .  ip    - the inner product context
 
    Output Parameter:
-.  mat   - the matrix of the inner product (may be NULL)
++  mat   - the matrix of the inner product (may be NULL)
+-  sfact - the scale factor
 
    Level: developer
 
 .seealso: IPSetMatrix(), IPInnerProduct(), IPNorm(), EPSSetProblemType()
 @*/
-PetscErrorCode IPGetMatrix(IP ip,Mat* mat)
+PetscErrorCode IPGetMatrix(IP ip,Mat* mat,PetscScalar* sfact)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ip,IP_CLASSID,1);
-  PetscValidPointer(mat,2);
-  *mat  = ip->matrix;
+  if (mat)   *mat   = ip->matrix;
+  if (sfact) *sfact = ip->sfactor;
   PetscFunctionReturn(0);
 }
 
@@ -99,6 +103,7 @@ PetscErrorCode IPApplyMatrix_Private(IP ip,Vec x)
   if (((PetscObject)x)->id != ip->xid || ((PetscObject)x)->state != ip->xstate) {
     ierr = PetscLogEventBegin(IP_ApplyMatrix,ip,0,0,0);CHKERRQ(ierr);
     ierr = MatMult(ip->matrix,x,ip->Bx);CHKERRQ(ierr);
+    ierr = VecScale(ip->Bx,ip->sfactor);CHKERRQ(ierr);
     ip->xid = ((PetscObject)x)->id;
     ip->xstate = ((PetscObject)x)->state;
     ierr = PetscLogEventEnd(IP_ApplyMatrix,ip,0,0,0);CHKERRQ(ierr);
