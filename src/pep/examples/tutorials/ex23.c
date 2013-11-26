@@ -19,24 +19,22 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Solves a quadratic eigenproblem (l^2*M + l*C + K)*x = 0 with matrices loaded from a file.\n\n"
+static char help[] = "Solves a polynomial eigenproblem P(l)x = 0 with matrices loaded from a file.\n\n"
   "The command line options are:\n"
-  "  -M <filename>, where <filename> = matrix (M) file in PETSc binary form.\n"
-  "  -C <filename>, where <filename> = matrix (C) file in PETSc binary form.\n"
-  "  -K <filename>, where <filename> = matrix (K) file in PETSc binary form.\n\n";
+  "-A <filename1,filename2, ...> , where <filename1,.. > = matrices A0 ... files in PETSc binary form (Maxim 40 matrices).\n\n";
 
-#include <slepcqep.h>
+#include <slepcpep.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Mat            M,C,K;           /* problem matrices */
-  QEP            qep;             /* quadratic eigenproblem solver context */
-  QEPType        type;
+  Mat            A[40];           /* problem matrices */
+  PEP            pep;             /* polynomial eigenproblem solver context */
+  PEPType        type;
   PetscReal      tol;
-  PetscInt       nev,maxit,its;
-  char           filename[PETSC_MAX_PATH_LEN];
+  PetscInt       nev,maxit,its,nmat=40,i;
+  char*          filenames[40];
   PetscViewer    viewer;
   PetscBool      flg;
   PetscErrorCode ierr;
@@ -44,40 +42,24 @@ int main(int argc,char **argv)
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        Load the matrices that define the quadratic eigenproblem
+        Load the matrices that define the polynomial eigenproblem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nQuadratic eigenproblem stored in file.\n\n");CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nPolynomial eigenproblem stored in file.\n\n");CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n");CHKERRQ(ierr);
 #else
   ierr = PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n");CHKERRQ(ierr);
 #endif
-
-  ierr = PetscOptionsGetString(NULL,"-M",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-  if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name for matrix M with the -M option");
-  ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-  ierr = MatCreate(PETSC_COMM_WORLD,&M);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(M);CHKERRQ(ierr);
-  ierr = MatLoad(M,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-
-  ierr = PetscOptionsGetString(NULL,"-C",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-  if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name for matrix C with the -C option");
-  ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-  ierr = MatCreate(PETSC_COMM_WORLD,&C);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(C);CHKERRQ(ierr);
-  ierr = MatLoad(C,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-
-  ierr = PetscOptionsGetString(NULL,"-K",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-  if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name for matrix K with the -K option");
-  ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-  ierr = MatCreate(PETSC_COMM_WORLD,&K);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(K);CHKERRQ(ierr);
-  ierr = MatLoad(K,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-
+  ierr = PetscOptionsGetStringArray(NULL,"-A",filenames,&nmat,&flg);CHKERRQ(ierr);
+  if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name with the -A option");
+  for (i=0;i<nmat;i++) { 
+    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filenames[i],FILE_MODE_READ,&viewer);CHKERRQ(ierr);
+    ierr = MatCreate(PETSC_COMM_WORLD,&A[i]);CHKERRQ(ierr);
+    ierr = MatSetFromOptions(A[i]);CHKERRQ(ierr);
+    ierr = MatLoad(A[i],viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -85,45 +67,41 @@ int main(int argc,char **argv)
   /*
      Create eigensolver context
   */
-  ierr = QEPCreate(PETSC_COMM_WORLD,&qep);CHKERRQ(ierr);
+  ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
 
   /*
      Set matrices
   */
-  ierr = QEPSetOperators(qep,M,C,K);CHKERRQ(ierr);
-
+  ierr = PEPSetOperators(pep,nmat,A);CHKERRQ(ierr);
   /*
      Set solver parameters at runtime
   */
-  ierr = QEPSetFromOptions(qep);CHKERRQ(ierr);
+  ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  ierr = QEPSolve(qep);CHKERRQ(ierr);
-  ierr = QEPGetIterationNumber(qep,&its);CHKERRQ(ierr);
+  
+  ierr = PEPSolve(pep);CHKERRQ(ierr);
+  ierr = PEPGetIterationNumber(pep,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
 
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = QEPGetType(qep,&type);CHKERRQ(ierr);
+  ierr = PEPGetType(pep,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = QEPGetDimensions(qep,&nev,NULL,NULL);CHKERRQ(ierr);
+  ierr = PEPGetDimensions(pep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
-  ierr = QEPGetTolerances(qep,&tol,&maxit);CHKERRQ(ierr);
+  ierr = PEPGetTolerances(pep,&tol,&maxit);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = QEPPrintSolution(qep,NULL);CHKERRQ(ierr);
-  ierr = QEPDestroy(&qep);CHKERRQ(ierr);
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = MatDestroy(&C);CHKERRQ(ierr);
-  ierr = MatDestroy(&K);CHKERRQ(ierr);
+  ierr = PEPPrintSolution(pep,NULL);CHKERRQ(ierr);
+  ierr = PEPDestroy(&pep);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return 0;
 }
