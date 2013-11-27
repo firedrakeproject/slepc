@@ -80,13 +80,10 @@ PetscErrorCode PEPSetUp(PEP pep)
   }
 
   /* Check matrices, transfer them to ST */
-  /*if (!pep->M || !pep->C || !pep->K) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"PEPSetOperators must be called first");
+  if (!pep->A) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"PEPSetOperators must be called first");
   if (!islinear) {
-    mat[0] = pep->K;
-    mat[1] = pep->C;
-    mat[2] = pep->M;
-    ierr = STSetOperators(pep->st,3,mat);CHKERRQ(ierr);
-  }*/
+    ierr = STSetOperators(pep->st,pep->nmat,pep->A);CHKERRQ(ierr);
+  }
 
   /* Set problem dimensions */
   ierr = MatGetSize(pep->A[0],&pep->n,NULL);CHKERRQ(ierr);
@@ -427,4 +424,3 @@ PetscErrorCode PEPFreeSolution(PEP pep)
   }
   PetscFunctionReturn(0);
 }
-

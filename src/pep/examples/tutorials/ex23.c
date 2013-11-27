@@ -102,7 +102,10 @@ int main(int argc,char **argv)
 
   ierr = PEPPrintSolution(pep,NULL);CHKERRQ(ierr);
   ierr = PEPDestroy(&pep);CHKERRQ(ierr);
+  for (i=0;i<nmat;i++) {
+    ierr = MatDestroy(&A[i]);CHKERRQ(ierr);
+    PetscFree(filenames[i]);
+  }
   ierr = SlepcFinalize();
   return 0;
 }
-

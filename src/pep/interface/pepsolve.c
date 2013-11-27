@@ -395,69 +395,64 @@ PetscErrorCode PEPGetErrorEstimate(PEP pep,PetscInt i,PetscReal *errest)
 */
 PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *norm)
 {
-#if 0
   PetscErrorCode ierr;
   Vec            u,w;
-  Mat            M=pep->M,C=pep->C,K=pep->K;
+  Mat            *A=pep->A;
+  PetscInt       i;
 #if !defined(PETSC_USE_COMPLEX)
-  Vec            v,y,z;
+  Vec            ui,wi,t;
   PetscReal      ni,nr;
-  PetscScalar    a1,a2;
 #endif
 
   PetscFunctionBegin;
   ierr = VecDuplicate(pep->V[0],&u);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&w);CHKERRQ(ierr);
-
 #if !defined(PETSC_USE_COMPLEX)
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
-    ierr = MatMult(K,xr,u);CHKERRQ(ierr);                 /* u=K*x */
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
-      ierr = MatMult(C,xr,w);CHKERRQ(ierr);               /* w=C*x */
-      ierr = VecAXPY(u,kr,w);CHKERRQ(ierr);               /* u=l*C*x+K*x */
-      ierr = MatMult(M,xr,w);CHKERRQ(ierr);               /* w=M*x */
-      ierr = VecAXPY(u,kr*kr,w);CHKERRQ(ierr);            /* u=l^2*M*x+l*C*x+K*x */
+      ierr = MatMult(A[pep->nmat-1],xr,u);CHKERRQ(ierr);
+      for (i=pep->nmat-2;i>=0;i--) {
+        ierr = MatMult(A[i],xr,w);CHKERRQ(ierr);
+        ierr = VecAYPX(u,kr,w);CHKERRQ(ierr);
+      }
+    } else {
+      ierr = MatMult(A[0],xr,u);CHKERRQ(ierr);
     }
     ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   } else {
-    ierr = VecDuplicate(u,&v);CHKERRQ(ierr);
-    ierr = VecDuplicate(u,&y);CHKERRQ(ierr);
-    ierr = VecDuplicate(u,&z);CHKERRQ(ierr);
-    a1 = kr*kr-ki*ki;
-    a2 = 2.0*kr*ki;
-    ierr = MatMult(K,xr,u);CHKERRQ(ierr);           /* u=K*xr */
+    ierr = VecDuplicate(u,&ui);CHKERRQ(ierr);
+    ierr = VecDuplicate(u,&wi);CHKERRQ(ierr);
+    ierr = VecDuplicate(u,&t);CHKERRQ(ierr);
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
-      ierr = MatMult(C,xr,v);CHKERRQ(ierr);         /* v=C*xr */
-      ierr = MatMult(C,xi,w);CHKERRQ(ierr);         /* w=C*xi */
-      ierr = MatMult(M,xr,y);CHKERRQ(ierr);         /* y=M*xr */
-      ierr = MatMult(M,xi,z);CHKERRQ(ierr);         /* z=M*xi */
-      ierr = VecAXPY(u,kr,v);CHKERRQ(ierr);         /* u=kr*C*xr+K*xr */
-      ierr = VecAXPY(u,-ki,w);CHKERRQ(ierr);        /* u=kr*C*xr-ki*C*xi+K*xr */
-      ierr = VecAXPY(u,a1,y);CHKERRQ(ierr);         /* u=a1*M*xr+kr*C*xr-ki*C*xi+K*xr */
-      ierr = VecAXPY(u,-a2,z);CHKERRQ(ierr);        /* u=a1*M*xr-a2*M*xi+kr*C*xr-ki*C*xi+K*xr */
+      ierr = MatMult(A[pep->nmat-1],xr,u);CHKERRQ(ierr);
+      ierr = VecCopy(u,t);CHKERRQ(ierr);
+      ierr = MatMult(A[pep->nmat-1],xi,ui);CHKERRQ(ierr);
+      for (i=pep->nmat-2;i>=0;i--) {
+        ierr = MatMult(A[i],xr,w);CHKERRQ(ierr);
+        ierr = MatMult(A[i],xi,wi);CHKERRQ(ierr);
+        ierr = VecCopy(u,t);CHKERRQ(ierr);
+        ierr = VecAYPX(u,kr,w);CHKERRQ(ierr);
+        ierr = VecAXPY(u,-ki,ui);CHKERRQ(ierr);
+        ierr = VecAYPX(ui,kr,wi);CHKERRQ(ierr);
+        ierr = VecAXPY(ui,ki,t);CHKERRQ(ierr);
+      }
+    } else {
+      ierr = MatMult(A[0],xr,u);CHKERRQ(ierr);
+      ierr = MatMult(A[0],xi,ui);CHKERRQ(ierr);
     }
     ierr = VecNorm(u,NORM_2,&nr);CHKERRQ(ierr);
-    ierr = MatMult(K,xi,u);CHKERRQ(ierr);         /* u=K*xi */
-    if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
-      ierr = VecAXPY(u,kr,w);CHKERRQ(ierr);         /* u=kr*C*xi+K*xi */
-      ierr = VecAXPY(u,ki,v);CHKERRQ(ierr);         /* u=kr*C*xi+ki*C*xi+K*xi */
-      ierr = VecAXPY(u,a1,z);CHKERRQ(ierr);         /* u=a1*M*xi+kr*C*xi+ki*C*xi+K*xi */
-      ierr = VecAXPY(u,a2,y);CHKERRQ(ierr);         /* u=a1*M*xi+a2*M*ki+kr*C*xi+ki*C*xi+K*xi */
-    }
-    ierr = VecNorm(u,NORM_2,&ni);CHKERRQ(ierr);
+    ierr = VecNorm(ui,NORM_2,&ni);CHKERRQ(ierr);
     *norm = SlepcAbsEigenvalue(nr,ni);
-    ierr = VecDestroy(&v);CHKERRQ(ierr);
-    ierr = VecDestroy(&y);CHKERRQ(ierr);
-    ierr = VecDestroy(&z);CHKERRQ(ierr);
+    ierr = VecDestroy(&ui);CHKERRQ(ierr);
+    ierr = VecDestroy(&wi);CHKERRQ(ierr);
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
   }
 #endif
-
   ierr = VecDestroy(&w);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 #undef __FUNCT__
