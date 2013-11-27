@@ -418,6 +418,86 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "STMatMAXPY_Private"
+/*
+   Computes coefficients for the transformed polynomial,
+   and stores the result in one of the T[:] matrices.
+
+   Builds matrix in T[k] as follows:
+*/
+PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar *coeffs,PetscBool initial,Mat *S)
+{
+  PetscErrorCode ierr;
+  /*PetscInt       *matIdx,idx[40],nmat,i; //// */
+  PetscInt       i;
+  PetscScalar    t=1.0,ta;
+
+  PetscFunctionBegin;
+  //nmat = st->nmat-k;
+  switch (st->shift_matrix) {
+  case ST_MATMODE_INPLACE:
+    SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for polynomial eigenproblems");
+    break;
+  case ST_MATMODE_SHELL:
+    SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"STSHELL not supported for polynomial eigenproblems");
+    break;
+#if 0
+    if (initial) {
+      if (nmat>40) {
+        ierr = PetscMalloc(nmat*sizeof(PetscInt),&matIdx);CHKERRQ(ierr);
+      } else matIdx = idx;
+      for (i=k;i<st->nmat;i++) matIdx[i] = i;
+      ierr = STMatShellCreate(st,alpha,st->nmat-k,matIdx,coeffs,S);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
+      if (nmat>40) PetscFree(matIdx);
+    } else {
+      ierr = STMatShellShift(st->T[k],alpha);CHKERRQ(ierr);
+    }
+    break;
+#endif
+  default:
+    ierr = MatDestroy(S);CHKERRQ(ierr);
+    if (alpha == 0.0 && !coeffs) {
+      ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
+      *S = st->A[k];
+    } else {
+      ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
+      ierr = MatDuplicate(st->A[k],MAT_COPY_VALUES,S);CHKERRQ(ierr);
+      if (coeffs && coeffs[0]!=1.0) {
+        ierr = MatScale(*S,coeffs[0]);CHKERRQ(ierr);
+      }
+      for (i=k+1;i<st->nmat;i++) {
+        t *= alpha;
+        ta = t;
+        if (coeffs) ta *= coeffs[i-k];
+        ierr = MatAXPY(*S,ta,st->A[i],st->str);CHKERRQ(ierr);
+      }
+    }
+  }
+  ierr = STMatSetHermitian(st,*S);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STCoeffs_monomial"
+PetscErrorCode STCoeffs_monomial(ST st, PetscScalar *coeffs)
+{
+  PetscInt  k,i,ini,inip;  
+
+  PetscFunctionBegin;
+  /* Compute binomial coefficients */
+  ini = (st->nmat*(st->nmat-1))/2;
+  for (i=0;i<st->nmat;i++) coeffs[ini+i]=1.0;
+  for (k=st->nmat-1;k>=1;k--) {
+    inip = ini+1;
+    ini = (k*(k-1))/2;
+    coeffs[ini] = 1.0;
+    for (i=1;i<k;i++) coeffs[ini+i] = coeffs[ini+i-1]+coeffs[inip+i-1];
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "STPostSolve"
 /*@
    STPostSolve - Optional post-solve phase, intended for any actions that must

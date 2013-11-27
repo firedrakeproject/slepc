@@ -116,7 +116,8 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
 PetscErrorCode STSetUp_Sinvert(ST st)
 {
   PetscErrorCode ierr;
-  PetscScalar    gamma;
+  PetscInt       k;
+  PetscScalar    c[210],*coeffs;
 
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
@@ -125,17 +126,21 @@ PetscErrorCode STSetUp_Sinvert(ST st)
     /* T[0] = B */
     if (st->nmat>1) { ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr); }
     st->T[0] = st->A[1];
-    gamma = -st->sigma;
+    ierr = STMatGAXPY_Private(st,-st->sigma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);
   } else {
-    /* T[0] = C */
-    ierr = PetscObjectReference((PetscObject)st->A[2]);CHKERRQ(ierr);
-    st->T[0] = st->A[2];
-    /* T[2] = A+sigma*B+sigma*sigma*C */
-    ierr = STMatGAXPY_Private(st,st->sigma,0.0,2,2,PETSC_TRUE);CHKERRQ(ierr);
-    gamma = 2.0*st->sigma;
+    if (st->nmat>20) {
+      ierr = PetscMalloc(st->nmat*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
+    } else coeffs = c;
+    /* Compute coeffs */
+    ierr = STCoeffs_monomial(st,coeffs);CHKERRQ(ierr);
+    /* T[0] = A_n */
+    k = st->nmat-1;
+    ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
+    st->T[0] = st->A[k];
+    for (k=1;k<st->nmat;k++) {
+      ierr = STMatMAXPY_Private(st,st->sigma,st->nmat-k-1,coeffs+(k*(k+1))/2,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
+    }
   }
-  /* T[1] = A-sigma*B or B+2*sigma*C  */
-  ierr = STMatGAXPY_Private(st,gamma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);
   if (st->nmat<3) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
@@ -217,4 +222,3 @@ PETSC_EXTERN PetscErrorCode STCreate_Sinvert(ST st)
   st->ops->checknullspace  = STCheckNullSpace_Default;
   PetscFunctionReturn(0);
 }
-

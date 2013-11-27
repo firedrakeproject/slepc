@@ -103,6 +103,8 @@ PetscErrorCode STPostSolve_Shift(ST st)
 PetscErrorCode STSetUp_Shift(ST st)
 {
   PetscErrorCode ierr;
+  PetscInt       k;
+  PetscScalar    c[210],*coeffs;
 
   PetscFunctionBegin;
   if (st->nmat<3) {
@@ -112,13 +114,18 @@ PetscErrorCode STSetUp_Shift(ST st)
     /* T[0] = A+sigma*B  */
     ierr = STMatGAXPY_Private(st,st->sigma,0.0,1,0,PETSC_TRUE);CHKERRQ(ierr);
   } else {
-    /* T[2] = C */
-    ierr = PetscObjectReference((PetscObject)st->A[2]);CHKERRQ(ierr);
-    st->T[2] = st->A[2];
-    /* T[0] = A-sigma*B+sigma*sigma*C */
-    ierr = STMatGAXPY_Private(st,-st->sigma,0.0,2,0,PETSC_TRUE);CHKERRQ(ierr);
-    /* T[1] = B-2*sigma*C  */
-    ierr = STMatGAXPY_Private(st,-2.0*st->sigma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);
+    if (st->nmat>20) {
+      ierr = PetscMalloc(st->nmat*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
+    } else coeffs = c;    
+    /* Compute coeffs */
+    ierr = STCoeffs_monomial(st,coeffs);CHKERRQ(ierr);
+    /* T[n] = A_n */
+    k = st->nmat-1;
+    ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
+    st->T[k] = st->A[k];
+    for (k=0;k<st->nmat-1;k++) {
+      ierr = STMatMAXPY_Private(st,st->sigma,k,coeffs+((st->nmat-k)*(st->nmat-k-1))/2,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
+    }
   }
   if (st->nmat==2) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
@@ -200,4 +207,3 @@ PETSC_EXTERN PetscErrorCode STCreate_Shift(ST st)
   st->ops->setshift        = STSetShift_Shift;
   PetscFunctionReturn(0);
 }
-
