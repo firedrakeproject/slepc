@@ -204,9 +204,6 @@ slepc_gnumake: chk_makej
 	@echo "Building SLEPc using GNU Make with ${MAKE_NP} build threads"
 	@echo "=========================================="
 	@cd ${SLEPC_DIR} && ${OMAKE_PRINTDIR} -f gmakefile -j ${MAKE_NP} V=${V}
-	@if [ "${BUILDSHAREDLIB}" = "yes" -a "${DSYMUTIL}" != "true" ]; then \
-        echo "Running ${DSYMUTIL} on ${SHLIBS}";\
-        for LIBNAME in ${SHLIBS}; do ${DSYMUTIL} ${INSTALL_LIB_DIR}/$$LIBNAME.${SL_LINKER_SUFFIX}; done; fi
 	@echo "========================================="
 
 include ${PETSC_DIR}/conf/rules
