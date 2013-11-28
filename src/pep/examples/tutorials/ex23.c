@@ -21,20 +21,22 @@
 
 static char help[] = "Solves a polynomial eigenproblem P(l)x = 0 with matrices loaded from a file.\n\n"
   "The command line options are:\n"
-  "-A <filename1,filename2, ...> , where <filename1,.. > = matrices A0 ... files in PETSc binary form (Maxim 40 matrices).\n\n";
+  "-A <filename1,filename2, ...> , where <filename1,.. > = matrices A0 ... files in PETSc binary form.\n\n";
 
 #include <slepcpep.h>
+
+#define MAX_MATRICES 40
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Mat            A[40];           /* problem matrices */
+  Mat            A[MAX_MATRICES]; /* problem matrices */
   PEP            pep;             /* polynomial eigenproblem solver context */
   PEPType        type;
   PetscReal      tol;
-  PetscInt       nev,maxit,its,nmat=40,i;
-  char*          filenames[40];
+  PetscInt       nev,maxit,its,nmat=MAX_MATRICES,i;
+  char*          filenames[MAX_MATRICES];
   PetscViewer    viewer;
   PetscBool      flg;
   PetscErrorCode ierr;
@@ -52,7 +54,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n");CHKERRQ(ierr);
 #endif
   ierr = PetscOptionsGetStringArray(NULL,"-A",filenames,&nmat,&flg);CHKERRQ(ierr);
-  if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name with the -A option");
+  if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a comma-separated list of file names with the -A option");
   for (i=0;i<nmat;i++) { 
     ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filenames[i],FILE_MODE_READ,&viewer);CHKERRQ(ierr);
     ierr = MatCreate(PETSC_COMM_WORLD,&A[i]);CHKERRQ(ierr);

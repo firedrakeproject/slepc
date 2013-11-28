@@ -42,7 +42,7 @@ ex23: ex23.o chkopts
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runex23_1:
-	-@${MPIEXEC} -np 1 ./ex23 -coeff ${DATAPATH}/speaker107m.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107k.petsc -pep_linear_explicitmatrix -pep_nev 4 -pep_ncv 20 -pep_tol 1e-9 -pep_terse > ex23_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex23 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_type toar -pep_nev 4 -pep_ncv 20 -pep_tol 1e-9 -pep_terse > ex23_1.tmp 2>&1; \
 	   if (${DIFF} output/ex23_1.out ex23_1.tmp) then true; \
 	   else echo "Possible problem with ex23_1, diffs above"; fi; \
 	   ${RM} -f ex23_1.tmp
