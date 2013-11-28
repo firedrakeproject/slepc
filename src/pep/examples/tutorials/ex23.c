@@ -106,7 +106,7 @@ int main(int argc,char **argv)
   ierr = PEPDestroy(&pep);CHKERRQ(ierr);
   for (i=0;i<nmat;i++) {
     ierr = MatDestroy(&A[i]);CHKERRQ(ierr);
-    PetscFree(filenames[i]);
+    ierr = PetscFree(filenames[i]);CHKERRQ(ierr);
   }
   ierr = SlepcFinalize();
   return 0;
