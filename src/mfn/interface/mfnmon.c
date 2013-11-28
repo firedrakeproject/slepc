@@ -204,10 +204,10 @@ PetscErrorCode MFNMonitorLG(MFN mfn,PetscInt its,PetscReal errest,void *monctx)
     ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
     ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,0,1.0,log10(mfn->tol)-2,0.0);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,0,1.0,PetscLog10Real(mfn->tol)-2,0.0);CHKERRQ(ierr);
   }
   x = (PetscReal)its;
-  if (errest>0.0) y = log10(errest); else y = 0.0;
+  if (errest>0.0) y = PetscLog10Real(errest); else y = 0.0;
   ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -306,7 +306,7 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
     ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
     ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,0,1.0,log10(svd->tol)-2,0.0);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,0,1.0,PetscLog10Real(svd->tol)-2,0.0);CHKERRQ(ierr);
 
     ierr = PetscDrawSetTitle(draw1,"Approximate singular values");CHKERRQ(ierr);
     ierr = PetscDrawSetDoubleBuffer(draw1);CHKERRQ(ierr);
@@ -316,7 +316,7 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
   }
 
   x = (PetscReal)its;
-  if (errest[nconv] > 0.0) y = log10(errest[nconv]); else y = 0.0;
+  if (errest[nconv] > 0.0) y = PetscLog10Real(errest[nconv]); else y = 0.0;
   ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
 
   ierr = PetscDrawLGAddPoint(lg1,&x,svd->sigma);CHKERRQ(ierr);
@@ -352,7 +352,7 @@ PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
     ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
     ierr = PetscDrawLGSetDimension(lg,n);CHKERRQ(ierr);
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,0,1.0,log10(svd->tol)-2,0.0);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,0,1.0,PetscLog10Real(svd->tol)-2,0.0);CHKERRQ(ierr);
 
     ierr = PetscDrawSetTitle(draw1,"Approximate singular values");CHKERRQ(ierr);
     ierr = PetscDrawSetDoubleBuffer(draw1);CHKERRQ(ierr);
@@ -365,7 +365,7 @@ PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
   ierr = PetscMalloc(sizeof(PetscReal)*n,&y);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     x[i] = (PetscReal)its;
-    if (i < nest && errest[i] > 0.0) y[i] = log10(errest[i]);
+    if (i < nest && errest[i] > 0.0) y[i] = PetscLog10Real(errest[i]);
     else y[i] = 0.0;
   }
   ierr = PetscDrawLGAddPoint(lg,x,y);CHKERRQ(ierr);

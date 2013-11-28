@@ -405,7 +405,7 @@ PetscErrorCode CheckSolution(PetscScalar lambda,Vec y,PetscReal *error,void *ctx
   ierr = VecGetArray(u,&uu);CHKERRQ(ierr);
   for (i=Istart;i<Iend;i++) {
     x = (i+1)*user->h;
-    uu[i-Istart] = sin(nu*x);
+    uu[i-Istart] = PetscSinReal(nu*x);
   }
   ierr = VecRestoreArray(u,&uu);CHKERRQ(ierr);
   ierr = VecNormalize(u,NULL);CHKERRQ(ierr);

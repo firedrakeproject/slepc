@@ -278,19 +278,19 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     if (eps->nconv>=eps->nev) break;
 
     /* Compute nxtsrr (iteration of next projection step) */
-    nxtsrr = PetscMin(eps->max_it,PetscMax((PetscInt)floor(stpfac*its),init));
+    nxtsrr = PetscMin(eps->max_it,PetscMax((PetscInt)PetscFloorReal(stpfac*its),init));
 
     if (ngrp!=nogrp || ngrp==0 || arsd>=oarsd) {
       idsrr = nxtsrr - its;
     } else {
-      idsrr = (PetscInt)floor(alpha+beta*(itrsdold[eps->nconv]-itrsd[eps->nconv])*log(arsd/eps->tol)/log(arsd/oarsd));
+      idsrr = (PetscInt)PetscFloorReal(alpha+beta*(itrsdold[eps->nconv]-itrsd[eps->nconv])*PetscLogReal(arsd/eps->tol)/PetscLogReal(arsd/oarsd));
       idsrr = PetscMax(1,idsrr);
     }
     nxtsrr = PetscMin(nxtsrr,its+idsrr);
 
     /* Compute nxtort (iteration of next orthogonalization step) */
     ierr = DSCond(eps->ds,&tcond);CHKERRQ(ierr);
-    idort = PetscMax(1,(PetscInt)floor(orttol/PetscMax(1,log10(tcond))));
+    idort = PetscMax(1,(PetscInt)PetscFloorReal(orttol/PetscMax(1,PetscLog10Real(tcond))));
     nxtort = PetscMin(its+idort,nxtsrr);
 
     /* V(:,idx) = AV(:,idx) */
