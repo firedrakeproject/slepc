@@ -118,7 +118,7 @@ PetscErrorCode STSetUp_Shift(ST st)
       ierr = PetscMalloc(st->nmat*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
     } else coeffs = c;    
     /* Compute coeffs */
-    ierr = STCoeffs_monomial(st,coeffs);CHKERRQ(ierr);
+    ierr = STCoeffs_Monomial(st,coeffs);CHKERRQ(ierr);
     /* T[n] = A_n */
     k = st->nmat-1;
     ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);

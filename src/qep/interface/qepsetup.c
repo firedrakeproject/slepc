@@ -101,7 +101,7 @@ PetscErrorCode QEPSetUp(QEP qep)
     ierr = QEPSetProblemType(qep,QEP_GENERAL);CHKERRQ(ierr);
   }
 
- /* Call specific solver setup */
+  /* Call specific solver setup */
   ierr = (*qep->ops->setup)(qep);CHKERRQ(ierr);
 
   /* set tolerance if not yet set */
@@ -150,7 +150,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   if (qep->ncv > 2*qep->n) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
   if (qep->nev > qep->ncv) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
 
-   /* Setup ST */
+  /* Setup ST */
   if (!islinear) {
     ierr = PetscObjectTypeCompareAny((PetscObject)qep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
     if (!flg) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in QEP");

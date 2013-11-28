@@ -78,7 +78,7 @@ PETSC_INTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
 PETSC_INTERN PetscErrorCode STMatSetHermitian(ST,Mat);
 PETSC_INTERN PetscErrorCode STMatGAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscInt,PetscBool);
 PETSC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscInt,PetscScalar*,PetscBool,Mat*);
-PETSC_INTERN PetscErrorCode STCoeffs_monomial(ST, PetscScalar*);
+PETSC_INTERN PetscErrorCode STCoeffs_Monomial(ST, PetscScalar*);
 PETSC_INTERN PetscErrorCode STComputeScaleFactors(ST);
 
 #endif

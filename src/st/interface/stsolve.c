@@ -422,8 +422,6 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
 /*
    Computes coefficients for the transformed polynomial,
    and stores the result in one of the T[:] matrices.
-
-   Builds matrix in T[k] as follows:
 */
 PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar *coeffs,PetscBool initial,Mat *S)
 {
@@ -433,13 +431,13 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
   PetscScalar    t=1.0,ta;
 
   PetscFunctionBegin;
-  //nmat = st->nmat-k;
+  /*nmat = st->nmat-k; */
   switch (st->shift_matrix) {
   case ST_MATMODE_INPLACE:
     SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for polynomial eigenproblems");
     break;
   case ST_MATMODE_SHELL:
-    SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"STSHELL not supported for polynomial eigenproblems");
+    SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_SHELL not supported for polynomial eigenproblems");
     break;
 #if 0
     if (initial) {
@@ -479,8 +477,12 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STCoeffs_monomial"
-PetscErrorCode STCoeffs_monomial(ST st, PetscScalar *coeffs)
+#define __FUNCT__ "STCoeffs_Monomial"
+/*
+   Computes the values of the coefficients required by STMatMAXPY_Private
+   for the case of monomial basis.
+*/
+PetscErrorCode STCoeffs_Monomial(ST st, PetscScalar *coeffs)
 {
   PetscInt  k,i,ini,inip;  
 
@@ -551,3 +553,4 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
   }
   PetscFunctionReturn(0);
 }
+
