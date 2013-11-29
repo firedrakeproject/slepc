@@ -455,7 +455,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
 #endif
   default:
     ierr = MatDestroy(S);CHKERRQ(ierr);
-    if (alpha == 0.0 && !coeffs) {
+    if (alpha == 0.0) {
       ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
       *S = st->A[k];
     } else {

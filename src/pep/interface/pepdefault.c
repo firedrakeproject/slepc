@@ -100,27 +100,6 @@ PetscErrorCode PEPConvergedAbsolute(PEP pep,PetscScalar eigr,PetscScalar eigi,Pe
 PetscErrorCode PEPComputeVectors_Schur(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscInt       n,ld;
-  PetscScalar    *Z;
-
-  PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetDimensions(pep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-
-  /* right eigenvectors */
-  ierr = DSVectors(pep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-
-  /* AV = V * Z */
-  ierr = DSGetArray(pep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  ierr = SlepcUpdateVectors(n,pep->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = DSRestoreArray(pep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-#undef __FUNCT__
-#define __FUNCT__ "PEPComputeVectors_Indefinite"
-PetscErrorCode PEPComputeVectors_Indefinite(PEP pep)
-{
-  PetscErrorCode ierr;
   PetscInt       n,ld,i;
   PetscScalar    *Z;
 #if !defined(PETSC_USE_COMPLEX)
