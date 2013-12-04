@@ -248,25 +248,32 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
 #define __FUNCT__ "STComputeScaleFactors"
 /*
    STComputeScaleFactors - Computes gamma and delta for Fan-Lin-van Dooren scaling
-   of quadratic eigenproblems.
+   of quadratic eigenproblems. For degree larger than 2, it uses the extension
+   described in [Betcke 2008].
 @*/
 PetscErrorCode STComputeScaleFactors(ST st)
 {
-  PetscBool      khas,mhas,chas;
-  PetscReal      knorm,mnorm,cnorm;
   PetscErrorCode ierr;
+  PetscBool      has=PETSC_TRUE,hast;
+  PetscReal      norm0,norm1,norm;
+  PetscInt       i;
 
   PetscFunctionBegin;
-  if (st->nmat==3) {
-    ierr = MatHasOperation(st->T[0],MATOP_NORM,&khas);CHKERRQ(ierr);
-    ierr = MatHasOperation(st->T[1],MATOP_NORM,&chas);CHKERRQ(ierr);
-    ierr = MatHasOperation(st->T[2],MATOP_NORM,&mhas);CHKERRQ(ierr);
-    if (khas && chas && mhas) {
-      ierr = MatNorm(st->T[0],NORM_INFINITY,&knorm);CHKERRQ(ierr);
-      ierr = MatNorm(st->T[1],NORM_INFINITY,&cnorm);CHKERRQ(ierr);
-      ierr = MatNorm(st->T[2],NORM_INFINITY,&mnorm);CHKERRQ(ierr);
-      st->gamma = PetscSqrtReal(knorm/mnorm);
-      st->delta = 2.0/(knorm+cnorm*st->gamma);
+  if (st->nmat>2) {
+    for (i=0;i<st->nmat && has;i++) {
+      ierr = MatHasOperation(st->T[i],MATOP_NORM,&hast);CHKERRQ(ierr);
+      has = (has && hast)?PETSC_TRUE:PETSC_FALSE;
+    }
+    if (has) {
+      ierr = MatNorm(st->T[0],NORM_INFINITY,&norm0);CHKERRQ(ierr);
+      ierr = MatNorm(st->T[st->nmat-1],NORM_INFINITY,&norm1);CHKERRQ(ierr);
+      st->gamma = PetscPowReal(norm0/norm1,1.0/(st->nmat-1));
+      ierr = MatNorm(st->T[st->nmat-2],NORM_INFINITY,&norm1);CHKERRQ(ierr);
+      for (i=st->nmat-3;i>1;i--) {
+        ierr = MatNorm(st->T[i],NORM_INFINITY,&norm);CHKERRQ(ierr);
+        norm1 = norm1*st->gamma+norm;
+      }
+      st->delta = (st->nmat-1)/(norm0+norm1*st->gamma);
     } else {
       st->gamma = 1.0;
       st->delta = 1.0;
