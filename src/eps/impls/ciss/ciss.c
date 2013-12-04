@@ -505,7 +505,6 @@ static PetscErrorCode ConstructS(EPS eps)
       for (i=0;i<ctx->num_solve_point; i++) {
 	p_id = i*ctx->subcomm->n + ctx->subcomm_id;
 	ierr = VecAXPY(v,ppk[i]*ctx->weight[p_id]/(PetscReal)ctx->N,ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
-	ppk[i] *= ctx->pp[p_id];
       }
       if (ctx->useconj) {
 	ierr = VecGetArray(v,&v_data);CHKERRQ(ierr);
@@ -520,6 +519,10 @@ static PetscErrorCode ConstructS(EPS eps)
       else{
 	ierr = VecCopy(v,ctx->S[k*ctx->L+j]);CHKERRQ(ierr);
       }
+    }
+    for (i=0;i<ctx->num_solve_point; i++) {
+      p_id = i*ctx->subcomm->n + ctx->subcomm_id;
+      ppk[i] *= ctx->pp[p_id];
     }
   }
   ierr = PetscFree(ppk);CHKERRQ(ierr);
@@ -541,6 +544,7 @@ static PetscErrorCode SVD_S(EPS eps,PetscInt *K)
   Vec            *tempQ1, *tempQ2;
   char           jobu,jobvt,transa,transb;
   PetscBLASInt   l,m,n,lda,ldu,ldvt,lwork,info,ldb,ldc;
+
   PetscFunctionBegin;
   ierr = PetscMalloc(3*ml*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(5*ml*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
@@ -551,22 +555,25 @@ static PetscErrorCode SVD_S(EPS eps,PetscInt *K)
   ierr = VecDuplicateVecs(ctx->V[0],ctx->L*ctx->M,&tempQ1);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(ctx->V[0],ctx->L*ctx->M,&tempQ2);CHKERRQ(ierr);
 
-  for (i=0;i<ml;i++) {
-    B[i*ml+i]=1;
-  }
   for(k=0;k<2;k++){
     ierr = PetscMemzero(temp,ml*ml*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemzero(tempB,ml*ml*sizeof(PetscScalar));CHKERRQ(ierr);
     for (j=0;j<ml;j++) {
       if(k == 0){ ierr = VecMDot(ctx->S[j],j+1,ctx->S,&temp[j*ml]);CHKERRQ(ierr); }
-      else{ ierr = VecMDot(tempQ1[j],j+1,tempQ1,&temp[j*ml]);CHKERRQ(ierr); }
+      else if(k%2==1){ ierr = VecMDot(tempQ1[j],j+1,tempQ1,&temp[j*ml]);CHKERRQ(ierr); }
+      else{ ierr = VecMDot(tempQ2[j],j+1,tempQ2,&temp[j*ml]);CHKERRQ(ierr); }
       for (i=0;i<j;i++)
 	temp[j+i*ml] = PetscConj(temp[i+j*ml]);
     }
+
     jobu='O'; jobvt='N';
     m = (PetscBLASInt)ml; n = m; lda = m; lwork = 3*m, ldu = (PetscBLASInt)ml; ldvt = (PetscBLASInt)ml;
     zgesvd_(&jobu, &jobvt, &m, &n, temp, &lda, ctx->sigma, NULL, &ldu, NULL, &ldvt, work, &lwork, rwork, &info);
+
     transa='N'; transb='N'; l = ml; m = ml; n = ml; lda = l; ldb = m; ldc = l; alpha = 1; beta = 0;
-    zgemm_(&transa, &transb, &l, &n, &m, &alpha, B, &lda, temp, &ldb, &beta, tempB, &ldc);
+    if(k != 0){
+      zgemm_(&transa, &transb, &l, &n, &m, &alpha, B, &lda, temp, &ldb, &beta, tempB, &ldc);
+    }
     for (j=0;j<ml;j++) {
       ctx->sigma[j] = sqrt(ctx->sigma[j]);
       if(k==0){
@@ -574,26 +581,40 @@ static PetscErrorCode SVD_S(EPS eps,PetscInt *K)
 	ierr = VecMAXPY(tempQ1[j],ml,&temp[j*ml],ctx->S);CHKERRQ(ierr);
 	ierr = VecScale(tempQ1[j],1/ctx->sigma[j]);CHKERRQ(ierr);
       }
-      else{
+      else if(k%2==1){
 	ierr = VecSet(tempQ2[j],0);CHKERRQ(ierr);
 	ierr = VecMAXPY(tempQ2[j],ml,&temp[j*ml],tempQ1);CHKERRQ(ierr);
 	ierr = VecScale(tempQ2[j],1/ctx->sigma[j]);CHKERRQ(ierr);
       }
+      else{
+	ierr = VecSet(tempQ1[j],0);CHKERRQ(ierr);
+	ierr = VecMAXPY(tempQ1[j],ml,&temp[j*ml],tempQ2);CHKERRQ(ierr);
+	ierr = VecScale(tempQ1[j],1/ctx->sigma[j]);CHKERRQ(ierr);
+      }
       for (i=0;i<ml;i++) {
-	B[i+j*ml]=tempB[i+j*ml]*ctx->sigma[j];
+	if(k==0) B[i+j*ml]=temp[i+j*ml]*ctx->sigma[j];
+	else B[i+j*ml]=tempB[i+j*ml]*ctx->sigma[j];
       }
     }
   }
   jobu='N' ,jobvt='O'; m = ml; n = m; lda = m; ldu=1; ldvt=1;
   zgesvd_(&jobu, &jobvt, &m, &n, B, &lda, ctx->sigma, NULL, &ldu, NULL, &ldvt, work, &lwork, rwork, &info);
+
   for (j=0;j<ml;j++) {
     ierr = VecSet(ctx->S[j],0);CHKERRQ(ierr);
-    ierr = VecMAXPY(ctx->S[j],ml,&B[j*ml],tempQ2);CHKERRQ(ierr);
+    if(k%2==0){
+      for (i=0;i<ml;i++) {
+	ierr = VecAXPY(ctx->S[j],B[j+i*ml],tempQ2[i]);CHKERRQ(ierr);
+      }
+    }
+    else{
+      for (i=0;i<ml;i++) {
+	ierr = VecAXPY(ctx->S[j],B[j+i*ml],tempQ1[i]);CHKERRQ(ierr);
+      }
+    }
   }
   (*K) = 0;
 
-  PetscInt rank;
-  ierr = MPI_Comm_rank((PetscObjectComm((PetscObject)eps)),&rank);CHKERRQ(ierr);
   for (i=0;i<ml;i++) {
     if (ctx->sigma[i]/PetscMax(ctx->sigma[0],1)>ctx->delta) (*K)++;
   }
@@ -609,23 +630,48 @@ static PetscErrorCode SVD_S(EPS eps,PetscInt *K)
 
 #undef __FUNCT__
 #define __FUNCT__ "ProjectMatrix"
-static PetscErrorCode ProjectMatrix(Mat A,PetscInt nv,PetscInt ld,Vec *Q,PetscScalar *H,Vec w,PetscBool isherm)
+static PetscErrorCode ProjectMatrix(Mat A,Mat B,PetscInt nv,PetscInt ld,Vec *Q,PetscScalar center,PetscScalar *PA,PetscScalar *PB,Vec w,PetscBool isherm)
 {
   PetscErrorCode ierr;
   PetscInt       i,j;
 
   PetscFunctionBegin;
-  if (isherm) {
-    for (j=0;j<nv;j++) {
-      ierr = MatMult(A,Q[j],w);CHKERRQ(ierr);
-      ierr = VecMDot(w,j+1,Q,H+j*ld);CHKERRQ(ierr);
-      for (i=0;i<j;i++)
-        H[j+i*ld] = PetscConj(H[i+j*ld]);
+
+  if(B != NULL){
+    if (isherm) {
+      for (j=0;j<nv;j++) {
+	ierr = MatMult(B,Q[j],w);CHKERRQ(ierr);
+	ierr = VecMDot(w,j+1,Q,PB+j*ld);CHKERRQ(ierr);
+	ierr = MatMult(A,Q[j],w);CHKERRQ(ierr);
+	ierr = VecMDot(w,j+1,Q,PA+j*ld);CHKERRQ(ierr);
+	for (i=0;i<j+1;i++) PA[i+j*ld]-= center*PB[i+j*ld];
+	for (i=0;i<j;i++)
+	  PB[j+i*ld] = PetscConj(PB[i+j*ld]);
+	  PA[j+i*ld] = PetscConj(PA[i+j*ld]);
+      }
+    } else {
+      for (j=0;j<nv;j++) {
+	ierr = MatMult(B,Q[j],w);CHKERRQ(ierr);
+	ierr = VecMDot(w,nv,Q,PB+j*ld);CHKERRQ(ierr);
+	ierr = MatMult(A,Q[j],w);CHKERRQ(ierr);
+	ierr = VecMDot(w,nv,Q,PA+j*ld);CHKERRQ(ierr);
+	for (i=0;i<nv;i++) PA[i+j*ld]-= center*PB[i+j*ld];
+      }
     }
-  } else {
-    for (j=0;j<nv;j++) {
-      ierr = MatMult(A,Q[j],w);CHKERRQ(ierr);
-      ierr = VecMDot(w,nv,Q,H+j*ld);CHKERRQ(ierr);
+  }
+  else{
+    if (isherm) {
+      for (j=0;j<nv;j++) {
+	ierr = MatMult(A,Q[j],w);CHKERRQ(ierr);
+	ierr = VecMDot(w,j+1,Q,PA+j*ld);CHKERRQ(ierr);
+	for (i=0;i<j;i++)
+	  PA[j+i*ld] = PetscConj(PA[i+j*ld]);
+      }
+    } else {
+      for (j=0;j<nv;j++) {
+	ierr = MatMult(A,Q[j],w);CHKERRQ(ierr);
+	ierr = VecMDot(w,nv,Q,PA+j*ld);CHKERRQ(ierr);
+      }
     }
   }
   PetscFunctionReturn(0);
@@ -684,7 +730,6 @@ static PetscErrorCode isInsideGamma(EPS eps,PetscInt nv,PetscBool *fl)
     dy = PetscImaginaryPart(d);
     if ((dx*dx+(dy*dy)/(ctx->vscale*ctx->vscale))<=1) fl[i] = PETSC_TRUE;
     else fl[i] = PETSC_FALSE;
-    if(fl[i]) PetscPrintf(PETSC_COMM_WORLD,"[%d]%f+%fi\n",i,eps->eigr[i]);
   }
   PetscFunctionReturn(0);
 }
@@ -784,8 +829,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   Mat            A,B;
-  PetscInt       i,j,ld,nmat,L_add=0,nv,L_base=ctx->L,inner,outer,nlocal;
-  PetscScalar    *Mu,*H0,*H,*rr,*pX,*temp;
+  PetscInt       i,ld,nmat,L_add=0,nv,L_base=ctx->L,inner,outer,nlocal;
+  PetscScalar    *Mu,*H0,*H1,*rr,*pX,*temp;
   PetscReal      error,max_error,tempr;
   PetscBool      *fl1,*fl2;
   Vec            w=eps->work[0];
@@ -804,7 +849,6 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 
   ierr = SolveLinearSystem(eps,ctx->V,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
   ierr = EstimateNumberEigs(eps,&L_add);CHKERRQ(ierr);
-  PetscPrintf(PETSC_COMM_WORLD,"[Estimate]%f\n",ctx->est_eig);
   if (L_add>0) {
     ierr = PetscInfo2(eps,"Changing L %d -> %d by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = SetAddVector(eps,ctx->L+L_add);CHKERRQ(ierr);
@@ -859,7 +903,6 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     for (inner=0;inner<=ctx->refine_inner;inner++) {
       ierr = ConstructS(eps);CHKERRQ(ierr);
       ierr = SVD_S(eps,&nv);CHKERRQ(ierr);
-      PetscPrintf(PETSC_COMM_WORLD,"%d\n",nv);
       if (ctx->sigma[0]>ctx->delta && nv==ctx->L*ctx->M && inner!=ctx->refine_inner) {
 	ierr = SolveLinearSystem(eps,ctx->S,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
       } else break;
@@ -871,33 +914,26 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
     if (nmat>1) {
-      ierr = DSGetArray(eps->ds,DS_MAT_B,&H);CHKERRQ(ierr);
-      ierr = ProjectMatrix(B,nv,ld,ctx->S,H,w,eps->ishermitian);CHKERRQ(ierr);
+      ierr = DSGetArray(eps->ds,DS_MAT_B,&H1);CHKERRQ(ierr);
     }
     ierr = DSGetArray(eps->ds,DS_MAT_A,&H0);CHKERRQ(ierr);
-    ierr = ProjectMatrix(A,nv,ld,ctx->S,H0,w,eps->ishermitian);CHKERRQ(ierr);
-    for(i = 0; i < ld; i++){
-      if (nmat>1) {
-	for(j = 0; j < ld; j++){
-	  H0[i*ld+j] = H0[i*ld+j] - ctx->center*H[i*ld+j];
-	}
-      }
-      else{
-	H0[i*ld+i] = H0[i*ld+i] - ctx->center*H[i*ld+j];
-      }
-    }
+    ierr = ProjectMatrix(A,B,nv,ld,ctx->S,ctx->center,H0,H1,w,eps->ishermitian);CHKERRQ(ierr);
+
     ierr = DSRestoreArray(eps->ds,DS_MAT_A,&H0);CHKERRQ(ierr);
     if (nmat>1) {
-      ierr = DSRestoreArray(eps->ds,DS_MAT_B,&H);CHKERRQ(ierr);
+      ierr = DSRestoreArray(eps->ds,DS_MAT_B,&H1);CHKERRQ(ierr);
     }
+
 
     ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
-    PetscPrintf(PETSC_COMM_WORLD,"Eig\n");
-    for (i=0;i<nv;i++) {
-      eps->eigr[i]=ctx->center + ctx->radius*eps->eigr[i];
-      PetscPrintf(PETSC_COMM_WORLD,"%f+%fi\n",eps->eigr[i]);
-    }
+    ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
 
+    for (i=0;i<nv;i++) {
+      eps->eigr[i]=ctx->center + eps->eigr[i];
+    }
+    
     ierr = PetscMalloc(nv*sizeof(PetscBool),&fl1);CHKERRQ(ierr);
     ierr = PetscMalloc(nv*sizeof(PetscBool),&fl2);CHKERRQ(ierr);
     ierr = isGhost(eps,ld,nv,fl1);CHKERRQ(ierr);
@@ -913,10 +949,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = PetscFree(fl2);CHKERRQ(ierr);
     ierr = DSSetEigenvalueComparison(eps->ds,SlepcCompareLargestMagnitude,NULL);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eps->eigr,NULL,rr,NULL,&eps->nconv);CHKERRQ(ierr);
-    PetscPrintf(PETSC_COMM_WORLD,"[test1]\n");
     for (i=0;i<nv;i++) {
-      eps->eigr[i]=ctx->center + ctx->radius*eps->eigr[i];
-      PetscPrintf(PETSC_COMM_WORLD,"%f+%fi\n",eps->eigr[i]);
+      eps->eigr[i]=ctx->center + eps->eigr[i];
     }
     ierr = DSSetEigenvalueComparison(eps->ds,eps->comparison,eps->comparisonctx);CHKERRQ(ierr);
     ierr = PetscFree(rr);CHKERRQ(ierr);
@@ -926,7 +960,6 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
     ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-
     ierr = SlepcUpdateVectors(nv,ctx->S,0,eps->nconv,pX,ld,PETSC_FALSE);CHKERRQ(ierr);
     if (eps->ishermitian) {
       ierr = SlepcUpdateVectors(nv,eps->V,0,eps->nconv,pX,ld,PETSC_FALSE);CHKERRQ(ierr);
@@ -936,13 +969,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     for (i=0;i<eps->nconv;i++) {
       ierr = VecNormalize(ctx->S[i],NULL);CHKERRQ(ierr);
       ierr = EPSComputeRelativeError_Private(eps,eps->eigr[i],0,ctx->S[i],NULL,&error);CHKERRQ(ierr);
-      PetscPrintf(PETSC_COMM_WORLD,"%e\n",error);
       max_error = PetscMax(max_error,error);
-    }
-
-    PetscPrintf(PETSC_COMM_WORLD,"[test]\n");
-    for (i=0;i<eps->nconv;i++) {
-      PetscPrintf(PETSC_COMM_WORLD,"%f+%fi\n",eps->eigr[i]);
     }
 
     if (max_error <= eps->tol || outer == ctx->refine_outer) break;
