@@ -69,11 +69,11 @@ PetscErrorCode PEPSetWorkVecs(PEP pep,PetscInt nw)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPConvergedDefault"
+#define __FUNCT__ "PEPConvergedEigRelative"
 /*
-  PEPConvergedDefault - Checks convergence relative to the eigenvalue.
+  PEPConvergedEigRelative - Checks convergence relative to the eigenvalue.
 */
-PetscErrorCode PEPConvergedDefault(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+PetscErrorCode PEPConvergedEigRelative(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscReal w;
 

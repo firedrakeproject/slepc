@@ -57,6 +57,7 @@ struct _p_PEP {
   PetscInt       nini,ninil;       /* number of initial vectors (negative means not copied yet) */
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
+  PEPConv        conv;             /* convergence test */
   PetscReal      sfactor;          /* scaling factor */
   PetscBool      sfactor_set;      /* flag to indicate the user gave sfactor */
   PEPWhich       which;            /* which part of the spectrum to be sought */

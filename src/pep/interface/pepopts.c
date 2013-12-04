@@ -78,10 +78,10 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PetscOptionsInt("-pep_max_it","Maximum number of iterations","PEPSetTolerances",pep->max_it,&i,NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-pep_tol","Tolerance","PEPSetTolerances",pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:pep->tol,&r,NULL);CHKERRQ(ierr);
     ierr = PEPSetTolerances(pep,r,i);CHKERRQ(ierr);
-    ierr = PetscOptionsBoolGroupBegin("-pep_convergence_default","Default (relative error) convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetConvergenceTest(pep,PEPConvergedDefault,NULL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-pep_convergence_absolute","Absolute error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetConvergenceTest(pep,PEPConvergedAbsolute,NULL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupBegin("-pep_conv_eig","Relative error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_EIG);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-pep_conv_abs","Absolute error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_ABS);CHKERRQ(ierr); }
 
     i = j = k = 0;
     ierr = PetscOptionsInt("-pep_nev","Number of eigenvalues to compute","PEPSetDimensions",pep->nev,&i,NULL);CHKERRQ(ierr);
@@ -678,46 +678,6 @@ PetscErrorCode PEPGetProblemType(PEP pep,PEPProblemType *type)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPSetConvergenceTest"
-/*@C
-    PEPSetConvergenceTest - Sets a function to compute the error estimate used in
-    the convergence test.
-
-    Logically Collective on PEP
-
-    Input Parameters:
-+   pep  - eigensolver context obtained from PEPCreate()
-.   func - a pointer to the convergence test function
--   ctx  - a context pointer (the last parameter to the convergence test function)
-
-    Calling Sequence of func:
-$   func(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal* errest,void *ctx)
-
-+   pep    - eigensolver context obtained from PEPCreate()
-.   eigr   - real part of the eigenvalue
-.   eigi   - imaginary part of the eigenvalue
-.   res    - residual norm associated to the eigenpair
-.   errest - (output) computed error estimate
--   ctx    - optional context, as set by PEPSetConvergenceTest()
-
-    Note:
-    If the error estimate returned by the convergence test function is less than
-    the tolerance, then the eigenvalue is accepted as converged.
-
-    Level: advanced
-
-.seealso: PEPSetTolerances()
-@*/
-PetscErrorCode PEPSetConvergenceTest(PEP pep,PetscErrorCode (*func)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  pep->converged    = func;
-  pep->convergedctx = ctx;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "PEPSetTrackAll"
 /*@
    PEPSetTrackAll - Specifies if the solver must compute the residual of all
@@ -774,6 +734,73 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(trackall,2);
   *trackall = pep->trackall;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetConvergenceTest"
+/*@
+   PEPSetConvergenceTest - Specifies how to compute the error estimate
+   used in the convergence test.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep   - eigensolver context obtained from PEPCreate()
+-  conv  - the type of convergence test
+
+   Options Database Keys:
++  -pep_conv_abs - Sets the absolute convergence test
+-  -pep_conv_eig - Sets the convergence test relative to the eigenvalue
+
+   Note:
+   The parameter 'conv' can have one of these values
++     PEP_CONV_ABS - absolute error ||r||
+-     PEP_CONV_EIG - error relative to the eigenvalue l, ||r||/|l|
+
+   Level: intermediate
+
+.seealso: PEPGetConvergenceTest(), PEPConv
+@*/
+PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(pep,conv,2);
+  switch (conv) {
+    case PEP_CONV_EIG:  pep->converged = PEPConvergedEigRelative; break;
+    case PEP_CONV_ABS:  pep->converged = PEPConvergedAbsolute; break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
+  }
+  pep->conv = conv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPGetConvergenceTest"
+/*@
+   PEPGetConvergenceTest - Gets the method used to compute the error estimate
+   used in the convergence test.
+
+   Not Collective
+
+   Input Parameters:
+.  pep   - eigensolver context obtained from PEPCreate()
+
+   Output Parameters:
+.  conv  - the type of convergence test
+
+   Level: intermediate
+
+.seealso: PEPSetConvergenceTest(), PEPConv
+@*/
+PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(conv,2);
+  *conv = pep->conv;
   PetscFunctionReturn(0);
 }
 
@@ -892,3 +919,4 @@ PetscErrorCode PEPGetOptionsPrefix(PEP pep,const char *prefix[])
   ierr = PetscObjectGetOptionsPrefix((PetscObject)pep,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

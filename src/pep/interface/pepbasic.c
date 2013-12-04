@@ -205,6 +205,13 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",pep->mpd);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",pep->max_it);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",pep->tol);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
+    switch (pep->conv) {
+    case PEP_CONV_ABS:
+      ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
+    case PEP_CONV_EIG:
+      ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
+    }
     ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %G\n",pep->sfactor);CHKERRQ(ierr);
     if (pep->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(pep->nini));CHKERRQ(ierr);
@@ -381,7 +388,8 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->tol             = PETSC_DEFAULT;
   pep->sfactor         = 0.0;
   pep->sfactor_set     = PETSC_FALSE;
-  pep->converged       = PEPConvergedDefault;
+  pep->conv            = PEP_CONV_EIG;
+  pep->converged       = PEPConvergedEigRelative;
   pep->convergedctx    = NULL;
   pep->which           = (PEPWhich)0;
   pep->comparison      = NULL;
