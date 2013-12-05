@@ -668,8 +668,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     PetscFunctionReturn(0);
   }
   /* Memory reservation for eig, V and perm */
-  ierr = PetscMalloc1(lds*lds,&sr->S);CHKERRQ(ierr);
-  ierr = PetscMemzero(sr->S,lds*lds*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscCalloc1(lds*lds,&sr->S);CHKERRQ(ierr);
   ierr = PetscMalloc6(sr->numEigs,&sr->eig,sr->numEigs,&sr->eigi,sr->numEigs+eps->ncv,&sr->errest,sr->numEigs+eps->ncv,&errest_left,sr->numEigs+eps->ncv,&sr->monit,eps->ncv,&sr->back);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,(lds*lds+3*sr->numEigs+eps->ncv)*sizeof(PetscScalar)+2*(sr->numEigs+eps->ncv)*sizeof(PetscReal));CHKERRQ(ierr);
   for (i=0;i<sr->numEigs;i++) {

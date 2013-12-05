@@ -70,7 +70,6 @@ PetscErrorCode EPSCreate_XD(EPS eps)
   data->wS = NULL;
   data->wV = NULL;
   data->size_wV = 0;
-  ierr = PetscMemzero(&data->ddb,sizeof(dvdDashboard));CHKERRQ(ierr);
 
   /* Set default values */
   ierr = EPSXDSetKrylovStart_XD(eps,PETSC_FALSE);CHKERRQ(ierr);

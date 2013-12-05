@@ -88,8 +88,7 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   ierr = MatGetSize(A,&M1,&N1);CHKERRQ(ierr);
   ierr = MatGetSize(D,&M2,&N2);CHKERRQ(ierr);
 
-  ierr = PetscMalloc1(M1+M2,&nnz);CHKERRQ(ierr);
-  ierr = PetscMemzero(nnz,(M1+M2)*sizeof(PetscInt));CHKERRQ(ierr);
+  ierr = PetscCalloc1(M1+M2,&nnz);CHKERRQ(ierr);
   /* Preallocate for A */
   if (a!=0.0) {
     for (i=0;i<M1;i++) {

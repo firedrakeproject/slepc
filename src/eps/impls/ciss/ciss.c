@@ -382,8 +382,7 @@ static PetscErrorCode SVD(EPS eps,Vec *Q,PetscInt *K,PetscBool isqr)
 
   PetscFunctionBegin;
   if (isqr) {
-    ierr = PetscMalloc1(ml*ml,&s);CHKERRQ(ierr);
-    ierr = PetscMemzero(s,ml*ml*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscCalloc1(ml*ml,&s);CHKERRQ(ierr);
     ierr = IPQRDecomposition(eps->ip,Q,0,ml,s,ml);CHKERRQ(ierr);
   }
 
@@ -525,8 +524,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     ierr = EPSGetOptionsPrefix(eps,&prefix);CHKERRQ(ierr);
     ierr = KSPAppendOptionsPrefix(ctx->ksp[i],prefix);CHKERRQ(ierr);
   }
-  ierr = PetscMalloc1(ctx->num_solve_point*ctx->L_max,&ctx->Y);CHKERRQ(ierr);
-  ierr = PetscMemzero(ctx->Y,ctx->num_solve_point*ctx->L_max*sizeof(Vec));CHKERRQ(ierr);
+  ierr = PetscCalloc1(ctx->num_solve_point*ctx->L_max,&ctx->Y);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,ctx->num_solve_point*ctx->L_max*sizeof(Vec));CHKERRQ(ierr);
 
   if (eps->isgeneralized) {

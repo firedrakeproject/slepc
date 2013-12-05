@@ -85,10 +85,7 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   ierr = STGetNumMatrices(qep->st,&ctx->d);CHKERRQ(ierr);
   ctx->d--;
   ctx->ld = ld;
-  ierr = PetscMalloc1(ctx->d*ld*ld,&ctx->S);CHKERRQ(ierr);
-  ierr = PetscMemzero(ctx->S,ctx->d*ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc2(ld,&ctx->qM,ld*ld,&ctx->qK);CHKERRQ(ierr);
-  ierr = PetscMemzero(ctx->qK,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscCalloc3(ctx->d*ld*ld,&ctx->S,ld,&ctx->qM,ld*ld,&ctx->qK);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
