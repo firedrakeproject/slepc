@@ -117,7 +117,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     ierr = MatHasOperation(A,MATOP_NORM,&hasnorm);CHKERRQ(ierr);
     if (hasnorm) {
       ierr = MatNorm(A,NORM_INFINITY,&anorm);CHKERRQ(ierr);
-      ierr = PetscMalloc(eps->nev*sizeof(PetscBool),&select);CHKERRQ(ierr);
+      ierr = PetscMalloc1(eps->nev,&select);CHKERRQ(ierr);
     }
   }
 

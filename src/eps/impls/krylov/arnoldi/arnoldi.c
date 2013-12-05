@@ -108,7 +108,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
   PetscFunctionBegin;
   if (m<=100) lhh = shh;
   else {
-    ierr = PetscMalloc(m*sizeof(PetscScalar),&lhh);CHKERRQ(ierr);
+    ierr = PetscMalloc1(m,&lhh);CHKERRQ(ierr);
   }
   ierr = VecDuplicate(f,&u);CHKERRQ(ierr);
   ierr = VecDuplicate(f,&t);CHKERRQ(ierr);

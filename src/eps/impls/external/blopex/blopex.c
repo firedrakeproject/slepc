@@ -230,11 +230,11 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 
   if (eps->numbermonitors>0) {
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscMalloc(eps->ncv*(eps->max_it+1)*sizeof(komplex),&lambdahist);CHKERRQ(ierr);
+    ierr = PetscMalloc1(eps->ncv*(eps->max_it+1),&lambdahist);CHKERRQ(ierr);
 #else
-    ierr = PetscMalloc(eps->ncv*(eps->max_it+1)*sizeof(double),&lambdahist);CHKERRQ(ierr);
+    ierr = PetscMalloc1(eps->ncv*(eps->max_it+1),&lambdahist);CHKERRQ(ierr);
 #endif
-    ierr = PetscMalloc(eps->ncv*(eps->max_it+1)*sizeof(double),&residhist);CHKERRQ(ierr);
+    ierr = PetscMalloc1(eps->ncv*(eps->max_it+1),&residhist);CHKERRQ(ierr);
   }
 
 #if defined(PETSC_USE_COMPLEX)

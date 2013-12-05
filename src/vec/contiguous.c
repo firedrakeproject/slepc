@@ -59,7 +59,7 @@ static PetscErrorCode VecDuplicateVecs_Contiguous(Vec v,PetscInt m,Vec *V[])
   PetscFunctionBegin;
   /* Allocate array */
   ierr = VecGetLocalSize(v,&nloc);CHKERRQ(ierr);
-  ierr = PetscMalloc(m*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
+  ierr = PetscMalloc1(m*nloc,&pV);CHKERRQ(ierr);
   /* Create container */
   ierr = PetscNew(&vc);CHKERRQ(ierr);
   vc->nvecs = m;
@@ -68,7 +68,7 @@ static PetscErrorCode VecDuplicateVecs_Contiguous(Vec v,PetscInt m,Vec *V[])
   ierr = PetscContainerSetPointer(container,vc);CHKERRQ(ierr);
   ierr = PetscContainerSetUserDestroy(container,Vecs_ContiguousDestroy);CHKERRQ(ierr);
   /* Create vectors */
-  ierr = PetscMalloc(m*sizeof(Vec),V);CHKERRQ(ierr);
+  ierr = PetscMalloc1(m,V);CHKERRQ(ierr);
   for (i=0;i<m;i++) {
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)v),1,nloc,PETSC_DECIDE,pV+i*nloc,*V+i);CHKERRQ(ierr);
     ierr = PetscObjectCompose((PetscObject)*(*V+i),"contiguous",(PetscObject)container);CHKERRQ(ierr);
@@ -234,7 +234,7 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous(PetscInt n,Vec *V,PetscIn
     ln = PetscMax(s,n-e);
     if (ln<=100) pq = qt;
     else {
-      ierr = PetscMalloc(ln*sizeof(PetscScalar),&pq);CHKERRQ(ierr);
+      ierr = PetscMalloc1(ln,&pq);CHKERRQ(ierr);
       allocated = PETSC_TRUE;
     }
   }

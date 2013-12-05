@@ -211,7 +211,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
-  if (harmonic) { ierr = PetscMalloc(ld*sizeof(PetscScalar),&g);CHKERRQ(ierr); }
+  if (harmonic) { ierr = PetscMalloc1(ld,&g);CHKERRQ(ierr); }
   if (eps->arbitrary) pj = &j;
   else pj = NULL;
 

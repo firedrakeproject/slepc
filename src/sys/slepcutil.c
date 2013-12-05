@@ -88,7 +88,7 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   ierr = MatGetSize(A,&M1,&N1);CHKERRQ(ierr);
   ierr = MatGetSize(D,&M2,&N2);CHKERRQ(ierr);
 
-  ierr = PetscMalloc((M1+M2)*sizeof(PetscInt),&nnz);CHKERRQ(ierr);
+  ierr = PetscMalloc1(M1+M2,&nnz);CHKERRQ(ierr);
   ierr = PetscMemzero(nnz,(M1+M2)*sizeof(PetscInt));CHKERRQ(ierr);
   /* Preallocate for A */
   if (a!=0.0) {
@@ -472,7 +472,7 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
     if (!isascii) PetscFunctionReturn(0);
   }
 
-  ierr = PetscMalloc(nv*sizeof(PetscScalar),&vals);CHKERRQ(ierr);
+  ierr = PetscMalloc1(nv,&vals);CHKERRQ(ierr);
   if (B) {
     ierr = VecDuplicate(V[0],&w);CHKERRQ(ierr);
   }
@@ -723,7 +723,7 @@ PetscErrorCode SlepcBasisReference_Private(PetscInt n,Vec *V,PetscInt *m,Vec **W
   PetscFunctionBegin;
   ierr = SlepcBasisDestroy_Private(m,W);CHKERRQ(ierr);
   if (n>0) {
-    ierr = PetscMalloc(n*sizeof(Vec),W);CHKERRQ(ierr);
+    ierr = PetscMalloc1(n,W);CHKERRQ(ierr);
     for (i=0;i<n;i++) {
       ierr = PetscObjectReference((PetscObject)V[i]);CHKERRQ(ierr);
       (*W)[i] = V[i];

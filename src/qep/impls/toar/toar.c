@@ -299,10 +299,10 @@ PetscErrorCode QEPSolve_TOAR(QEP qep)
   ld = qep->ncv+2;
   lds = 2*ld;
   lwa = 9*ld*ld+5*ld;
-  ierr = PetscMalloc(lwa*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc1(lwa,&work);CHKERRQ(ierr);
   lrwa = 8*ld;
-  ierr = PetscMalloc(lrwa*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-  ierr = PetscMalloc(2*ld*ld*sizeof(PetscScalar),&S);CHKERRQ(ierr);
+  ierr = PetscMalloc1(lrwa,&rwork);CHKERRQ(ierr);
+  ierr = PetscMalloc1(2*ld*ld,&S);CHKERRQ(ierr);
   ierr = PetscMemzero(S,2*ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(qep->ds,&ldds);CHKERRQ(ierr);
 

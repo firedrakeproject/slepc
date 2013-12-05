@@ -120,11 +120,11 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   t_new = ceil(t_new/s)*s;
   sgn = PetscSign(t);
 
-  ierr = PetscMalloc((m+1)*sizeof(PetscScalar),&betaF);CHKERRQ(ierr);
+  ierr = PetscMalloc1(m+1,&betaF);CHKERRQ(ierr);
   ierr = VecDuplicate(mfn->V[0],&r);CHKERRQ(ierr);
   ierr = VecCopy(b,x);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(mfn->ds,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc(ld*ld*sizeof(PetscScalar),&B);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ld*ld,&B);CHKERRQ(ierr);
 
   while (mfn->reason == MFN_CONVERGED_ITERATING) {
     mfn->its++;

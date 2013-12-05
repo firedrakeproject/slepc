@@ -40,15 +40,8 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
   if (eps->allocated_ncv != requested) {
     newc = PetscMax(0,requested-eps->allocated_ncv);
     ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
-    cnt = 0;
-    ierr = PetscMalloc(requested*sizeof(PetscScalar),&eps->eigr);CHKERRQ(ierr);
-    ierr = PetscMalloc(requested*sizeof(PetscScalar),&eps->eigi);CHKERRQ(ierr);
-    cnt += 2*newc*sizeof(PetscScalar);
-    ierr = PetscMalloc(requested*sizeof(PetscReal),&eps->errest);CHKERRQ(ierr);
-    ierr = PetscMalloc(requested*sizeof(PetscReal),&eps->errest_left);CHKERRQ(ierr);
-    cnt += 2*newc*sizeof(PetscReal);
-    ierr = PetscMalloc(requested*sizeof(PetscInt),&eps->perm);CHKERRQ(ierr);
-    cnt += newc*sizeof(PetscInt);
+    ierr = PetscMalloc5(requested,&eps->eigr,requested,&eps->eigi,requested,&eps->errest,requested,&eps->errest_left,requested,&eps->perm);CHKERRQ(ierr);
+    cnt = 2*newc*sizeof(PetscScalar) + 2*newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
     ierr = PetscLogObjectMemory((PetscObject)eps,cnt);CHKERRQ(ierr);
     ierr = VecDuplicateVecs(eps->t,requested,&eps->V);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(eps,requested,eps->V);CHKERRQ(ierr);
@@ -61,10 +54,8 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
   /* The following cannot go in the above if, to avoid crash when ncv did not change */
   if (eps->arbitrary) {
     newc = PetscMax(0,requested-eps->allocated_ncv);
-    ierr = PetscFree(eps->rr);CHKERRQ(ierr);
-    ierr = PetscFree(eps->ri);CHKERRQ(ierr);
-    ierr = PetscMalloc(requested*sizeof(PetscScalar),&eps->rr);CHKERRQ(ierr);
-    ierr = PetscMalloc(requested*sizeof(PetscScalar),&eps->ri);CHKERRQ(ierr);
+    ierr = PetscFree2(eps->rr,eps->ri);CHKERRQ(ierr);
+    ierr = PetscMalloc2(requested,&eps->rr,requested,&eps->ri);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)eps,2*newc*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -82,13 +73,7 @@ PetscErrorCode EPSFreeSolution(EPS eps)
 
   PetscFunctionBegin;
   if (eps->allocated_ncv > 0) {
-    ierr = PetscFree(eps->eigr);CHKERRQ(ierr);
-    ierr = PetscFree(eps->eigi);CHKERRQ(ierr);
-    ierr = PetscFree(eps->errest);CHKERRQ(ierr);
-    ierr = PetscFree(eps->errest_left);CHKERRQ(ierr);
-    ierr = PetscFree(eps->perm);CHKERRQ(ierr);
-    ierr = PetscFree(eps->rr);CHKERRQ(ierr);
-    ierr = PetscFree(eps->ri);CHKERRQ(ierr);
+    ierr = PetscFree7(eps->eigr,eps->eigi,eps->errest,eps->errest_left,eps->perm,eps->rr,eps->ri);CHKERRQ(ierr);
     ierr = VecDestroyVecs(eps->allocated_ncv,&eps->V);CHKERRQ(ierr);
     ierr = VecDestroyVecs(eps->allocated_ncv,&eps->W);CHKERRQ(ierr);
     eps->allocated_ncv = 0;

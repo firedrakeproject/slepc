@@ -73,19 +73,19 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
   PetscFunctionBegin;
   if (s>ds->lwork) {
     ierr = PetscFree(ds->work);CHKERRQ(ierr);
-    ierr = PetscMalloc(s*sizeof(PetscScalar),&ds->work);CHKERRQ(ierr);
+    ierr = PetscMalloc1(s,&ds->work);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)ds,(s-ds->lwork)*sizeof(PetscScalar));CHKERRQ(ierr);
     ds->lwork = s;
   }
   if (r>ds->lrwork) {
     ierr = PetscFree(ds->rwork);CHKERRQ(ierr);
-    ierr = PetscMalloc(r*sizeof(PetscReal),&ds->rwork);CHKERRQ(ierr);
+    ierr = PetscMalloc1(r,&ds->rwork);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)ds,(r-ds->lrwork)*sizeof(PetscReal));CHKERRQ(ierr);
     ds->lrwork = r;
   }
   if (i>ds->liwork) {
     ierr = PetscFree(ds->iwork);CHKERRQ(ierr);
-    ierr = PetscMalloc(i*sizeof(PetscBLASInt),&ds->iwork);CHKERRQ(ierr);
+    ierr = PetscMalloc1(i,&ds->iwork);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)ds,(i-ds->liwork)*sizeof(PetscBLASInt));CHKERRQ(ierr);
     ds->liwork = i;
   }

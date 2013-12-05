@@ -164,7 +164,7 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
   ctx->st = st;
   ctx->alpha = alpha;
   ctx->nmat = matIdx?nmat:st->nmat;
-  ierr = PetscMalloc(ctx->nmat*sizeof(PetscInt),&ctx->matIdx);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ctx->nmat,&ctx->matIdx);CHKERRQ(ierr);
   if (matIdx) {
     for (i=0;i<ctx->nmat;i++) ctx->matIdx[i] = matIdx[i];
   } else {

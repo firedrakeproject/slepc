@@ -990,14 +990,14 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
     ierr = PetscFree(nep->f);CHKERRQ(ierr);
   }
   /* allocate space and copy matrices and functions */
-  ierr = PetscMalloc(n*sizeof(Mat),&nep->A);CHKERRQ(ierr);
+  ierr = PetscMalloc1(n,&nep->A);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(Mat));CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
     ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
     nep->A[i] = A[i];
   }
-  ierr = PetscMalloc(n*sizeof(FN),&nep->f);CHKERRQ(ierr);
+  ierr = PetscMalloc1(n,&nep->f);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(FN));CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     PetscValidHeaderSpecific(f[i],FN_CLASSID,4);

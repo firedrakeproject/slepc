@@ -47,16 +47,9 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   if (!eps->which) eps->which = EPS_ALL;
 
   ncv = eps->ncv;
-  ierr = PetscFree(ctx->work1);CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->nloc*ncv*sizeof(PetscScalar),&ctx->work1);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->work2);CHKERRQ(ierr);
-  ierr = PetscMalloc(eps->nloc*ncv*sizeof(PetscScalar),&ctx->work2);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,2*eps->nloc*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscFree(ctx->Aq);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&ctx->Aq);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->Bq);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*ncv*sizeof(PetscScalar),&ctx->Bq);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,2*ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscFree4(ctx->work1,ctx->work2,ctx->Aq,ctx->Bq);CHKERRQ(ierr);
+  ierr = PetscMalloc4(eps->nloc*ncv,&ctx->work1,eps->nloc*ncv,&ctx->work2,ncv*ncv,&ctx->Aq,ncv*ncv,&ctx->Bq);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,(2*eps->nloc*ncv+2*ncv*ncv)*sizeof(PetscScalar));CHKERRQ(ierr);
 
   if (!((PetscObject)(eps->st))->type_name) { /* default to shift-and-invert */
     ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
@@ -109,7 +102,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
   ierr = PetscBLASIntCast(MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&fpm[8]);CHKERRQ(ierr);
 #endif
 
-  ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&evals);CHKERRQ(ierr);
+  ierr = PetscMalloc1(eps->ncv,&evals);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
   ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);

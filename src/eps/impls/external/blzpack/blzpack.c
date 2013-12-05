@@ -111,7 +111,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 
   listor = 123+k1*12;
   ierr = PetscFree(blz->istor);CHKERRQ(ierr);
-  ierr = PetscMalloc((17+listor)*sizeof(PetscBLASInt),&blz->istor);CHKERRQ(ierr);
+  ierr = PetscMalloc1((17+listor),&blz->istor);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,(17+listor)*sizeof(PetscBLASInt));CHKERRQ(ierr);
   ierr = PetscBLASIntCast(listor,&blz->istor[14]);CHKERRQ(ierr);
 
@@ -119,20 +119,20 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   else lrstor = eps->nloc*(k2*4+k1)+k3;
 lrstor*=10;
   ierr = PetscFree(blz->rstor);CHKERRQ(ierr);
-  ierr = PetscMalloc((4+lrstor)*sizeof(PetscReal),&blz->rstor);CHKERRQ(ierr);
+  ierr = PetscMalloc1((4+lrstor),&blz->rstor);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,(4+lrstor)*sizeof(PetscReal));CHKERRQ(ierr);
   blz->rstor[3] = lrstor;
 
   ncuv = PetscMax(3,blz->block_size);
   ierr = PetscFree(blz->u);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncuv*eps->nloc*sizeof(PetscScalar),&blz->u);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ncuv*eps->nloc,&blz->u);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,ncuv*eps->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscFree(blz->v);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncuv*eps->nloc*sizeof(PetscScalar),&blz->v);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ncuv*eps->nloc,&blz->v);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,ncuv*eps->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
 
   ierr = PetscFree(blz->eig);CHKERRQ(ierr);
-  ierr = PetscMalloc(2*eps->ncv*sizeof(PetscReal),&blz->eig);CHKERRQ(ierr);
+  ierr = PetscMalloc1(2*eps->ncv,&blz->eig);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,2*eps->ncv*sizeof(PetscReal));CHKERRQ(ierr);
 
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }

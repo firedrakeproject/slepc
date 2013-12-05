@@ -195,7 +195,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   ierr = dprimme(eps->eigr,a,eps->errest,&ops->primme);CHKERRQ(ierr);
 #else
   /* PRIMME returns real eigenvalues, but SLEPc works with complex ones */
-  ierr = PetscMalloc(eps->ncv*sizeof(PetscReal),&evals);CHKERRQ(ierr);
+  ierr = PetscMalloc1(eps->ncv,&evals);CHKERRQ(ierr);
   ierr = zprimme(evals,(Complex_Z*)a,eps->errest,&ops->primme);CHKERRQ(ierr);
   for (i=0;i<eps->ncv;i++)
     eps->eigr[i] = evals[i];

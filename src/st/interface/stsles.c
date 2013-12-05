@@ -404,7 +404,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,PetscInt n,const Vec V[])
   MatNullSpace   nullsp;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc(n*sizeof(Vec),&T);CHKERRQ(ierr);
+  ierr = PetscMalloc1(n,&T);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PCGetOperators(pc,&A,NULL,NULL);CHKERRQ(ierr);

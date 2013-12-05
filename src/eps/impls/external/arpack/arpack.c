@@ -46,11 +46,11 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ncv = eps->ncv;
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(ar->rwork);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscReal),&ar->rwork);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ncv,&ar->rwork);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,ncv*sizeof(PetscReal));CHKERRQ(ierr);
   ierr = PetscBLASIntCast(3*ncv*ncv+5*ncv,&ar->lworkl);CHKERRQ(ierr);
   ierr = PetscFree(ar->workev);CHKERRQ(ierr);
-  ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&ar->workev);CHKERRQ(ierr);
+  ierr = PetscMalloc1(3*ncv,&ar->workev);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,3*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
 #else
   if (eps->ishermitian) {
@@ -58,18 +58,18 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   } else {
     ierr = PetscBLASIntCast(3*ncv*ncv+6*ncv,&ar->lworkl);CHKERRQ(ierr);
     ierr = PetscFree(ar->workev);CHKERRQ(ierr);
-    ierr = PetscMalloc(3*ncv*sizeof(PetscScalar),&ar->workev);CHKERRQ(ierr);
+    ierr = PetscMalloc1(3*ncv,&ar->workev);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)eps,3*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
   }
 #endif
   ierr = PetscFree(ar->workl);CHKERRQ(ierr);
-  ierr = PetscMalloc(ar->lworkl*sizeof(PetscScalar),&ar->workl);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ar->lworkl,&ar->workl);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,ar->lworkl*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscFree(ar->select);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscBool),&ar->select);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ncv,&ar->select);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,ncv*sizeof(PetscBool));CHKERRQ(ierr);
   ierr = PetscFree(ar->workd);CHKERRQ(ierr);
-  ierr = PetscMalloc(3*eps->nloc*sizeof(PetscScalar),&ar->workd);CHKERRQ(ierr);
+  ierr = PetscMalloc1(3*eps->nloc,&ar->workd);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,3*eps->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
 
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }

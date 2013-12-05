@@ -44,16 +44,15 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   /* Don't allocate small arrays */
   if (n<=100) lhh = shh;
   else {
-    ierr = PetscMalloc(n*sizeof(PetscScalar),&lhh);CHKERRQ(ierr);
+    ierr = PetscMalloc1(n,&lhh);CHKERRQ(ierr);
   }
-  ierr = PetscMalloc(n*n*sizeof(PetscScalar),&vw);CHKERRQ(ierr);
+  ierr = PetscMalloc1(n*n,&vw);CHKERRQ(ierr);
 
   for (j=0;j<n;j++) {
     ierr = IPMInnerProduct(ip,V[j],n,W,vw+j*n);CHKERRQ(ierr);
   }
   lwork = n;
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&tau);CHKERRQ(ierr);
-  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc2(n,&tau,lwork,&work);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgelqf",LAPACKgelqf_(&n,&n,vw,&n,tau,work,&lwork,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
@@ -133,7 +132,7 @@ PetscErrorCode IPBiOrthogonalize(IP ip,PetscInt n,Vec *V,Vec *W,Vec v,PetscScala
     if (!H) {
       if (n<=100) h = lh;
       else {
-        ierr = PetscMalloc(n*sizeof(PetscScalar),&h);CHKERRQ(ierr);
+        ierr = PetscMalloc1(n,&h);CHKERRQ(ierr);
         allocated = PETSC_TRUE;
       }
     } else h = H;
@@ -240,7 +239,7 @@ static PetscErrorCode IPPseudoOrthogonalizeCGS(IP ip,PetscInt n,Vec *V,PetscReal
   if (ip->orthog_ref != IP_ORTHOG_REFINE_NEVER) sz += n;
   if (sz>ip->lwork) {
     ierr = PetscFree(ip->work);CHKERRQ(ierr);
-    ierr = PetscMalloc(sz*sizeof(PetscScalar),&ip->work);CHKERRQ(ierr);
+    ierr = PetscMalloc1(sz,&ip->work);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)ip,(sz-ip->lwork)*sizeof(PetscScalar));CHKERRQ(ierr);
     ip->lwork = sz;
   }

@@ -85,10 +85,9 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   ierr = STGetNumMatrices(qep->st,&ctx->d);CHKERRQ(ierr);
   ctx->d--;
   ctx->ld = ld;
-  ierr = PetscMalloc(ctx->d*ld*ld*sizeof(PetscScalar),&ctx->S);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ctx->d*ld*ld,&ctx->S);CHKERRQ(ierr);
   ierr = PetscMemzero(ctx->S,ctx->d*ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(ld*sizeof(PetscReal),&ctx->qM);CHKERRQ(ierr);
-  ierr = PetscMalloc(ld*ld*sizeof(PetscScalar),&ctx->qK);CHKERRQ(ierr);
+  ierr = PetscMalloc2(ld,&ctx->qM,ld*ld,&ctx->qK);CHKERRQ(ierr);
   ierr = PetscMemzero(ctx->qK,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -491,9 +490,9 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     ierr = MatDestroy(&M);CHKERRQ(ierr);
   }
   lwa = 9*ld*ld+5*ld;
-  ierr = PetscMalloc(lwa*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc1(lwa,&work);CHKERRQ(ierr);
   lrwa = 8*ld;
-  ierr = PetscMalloc(lrwa*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+  ierr = PetscMalloc1(lrwa,&rwork);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
   if (qep->nini==0) {  

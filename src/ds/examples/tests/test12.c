@@ -107,8 +107,7 @@ int main(int argc,char **argv)
   }
 
   /* Solve */
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&wr);CHKERRQ(ierr);
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&wi);CHKERRQ(ierr);
+  ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
   ierr = DSSolve(ds,wr,wi);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
