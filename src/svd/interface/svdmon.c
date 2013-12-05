@@ -377,7 +377,6 @@ PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
   ierr = PetscDrawSetPause(draw1,p);CHKERRQ(ierr);
 
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
-  ierr = PetscFree(x);CHKERRQ(ierr);
-  ierr = PetscFree(y);CHKERRQ(ierr);
+  ierr = PetscFree2(x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

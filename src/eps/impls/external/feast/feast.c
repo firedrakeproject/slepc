@@ -180,10 +180,7 @@ PetscErrorCode EPSReset_FEAST(EPS eps)
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree(ctx->work1);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->work2);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->Aq);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->Bq);CHKERRQ(ierr);
+  ierr = PetscFree4(ctx->work1,ctx->work2,ctx->Aq,ctx->Bq);CHKERRQ(ierr);
   ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

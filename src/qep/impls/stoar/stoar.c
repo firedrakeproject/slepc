@@ -647,8 +647,7 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
   if (qep->nconv > 0) {
     ierr = QEPComputeVectors_Indefinite(qep);CHKERRQ(ierr);
   }
-  ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
+  ierr = PetscFree2(work,rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -779,10 +778,7 @@ PetscErrorCode QEPDestroy_STOAR(QEP qep)
   QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree(ctx->S);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->qM);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->qK);CHKERRQ(ierr);
-  ierr = PetscFree(qep->data);CHKERRQ(ierr);
+  ierr = PetscFree4(ctx->S,ctx->qM,ctx->qK,qep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPSTOARSetMonic_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPSTOARGetMonic_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);

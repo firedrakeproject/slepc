@@ -132,8 +132,7 @@ int main(int argc,char **argv)
     }
   }
 
-  ierr = PetscFree(wr);CHKERRQ(ierr);
-  ierr = PetscFree(wi);CHKERRQ(ierr);
+  ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
   ierr = FNDestroy(&f1);CHKERRQ(ierr);
   ierr = FNDestroy(&f2);CHKERRQ(ierr);
   ierr = FNDestroy(&f3);CHKERRQ(ierr);

@@ -74,9 +74,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
 
   if (n>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
-  ierr = PetscFree(vw);CHKERRQ(ierr);
-  ierr = PetscFree(tau);CHKERRQ(ierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscFree3(vw,tau,work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }

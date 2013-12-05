@@ -145,8 +145,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
     if (*breakdown) {
       *M = j+1;
       if (m > 100) {
-        ierr = PetscFree(which);CHKERRQ(ierr);
-        ierr = PetscFree(hwork);CHKERRQ(ierr);
+        ierr = PetscFree2(which,hwork);CHKERRQ(ierr);
       }
       PetscFunctionReturn(0);
     } else {
@@ -159,8 +158,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
   beta[m-1] = norm;
 
   if (m > 100) {
-    ierr = PetscFree(which);CHKERRQ(ierr);
-    ierr = PetscFree(hwork);CHKERRQ(ierr);
+    ierr = PetscFree2(which,hwork);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -227,9 +225,7 @@ static PetscErrorCode DenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,Pet
     ierr = PetscFree(VV);CHKERRQ(ierr);
   }
 #endif
-  ierr = PetscFree(isuppz);CHKERRQ(ierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscFree(iwork);CHKERRQ(ierr);
+  ierr = PetscFree3(isuppz,work,iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -314,13 +310,9 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
     }
   }
 
-  ierr = PetscFree(d);CHKERRQ(ierr);
-  ierr = PetscFree(e);CHKERRQ(ierr);
-  ierr = PetscFree(ritz);CHKERRQ(ierr);
-  ierr = PetscFree(Y);CHKERRQ(ierr);
+  ierr = PetscFree4(d,e,ritz,Y);CHKERRQ(ierr);
   if (m > 100) {
-    ierr = PetscFree(which);CHKERRQ(ierr);
-    ierr = PetscFree(hwork);CHKERRQ(ierr);
+    ierr = PetscFree2(which,hwork);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -514,11 +506,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
   }
 
   if (m>100) {
-    ierr = PetscFree(omega);CHKERRQ(ierr);
-    ierr = PetscFree(omega_old);CHKERRQ(ierr);
-    ierr = PetscFree(which);CHKERRQ(ierr);
-    ierr = PetscFree(which2);CHKERRQ(ierr);
-    ierr = PetscFree(hwork);CHKERRQ(ierr);
+    ierr = PetscFree5(omega,omega_old,which,which2,hwork);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -761,10 +749,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
   eps->nconv = nconv;
 
-  ierr = PetscFree(ritz);CHKERRQ(ierr);
-  ierr = PetscFree(bnd);CHKERRQ(ierr);
-  ierr = PetscFree(perm);CHKERRQ(ierr);
-  ierr = PetscFree(conv);CHKERRQ(ierr);
+  ierr = PetscFree4(ritz,bnd,perm,conv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -143,8 +143,7 @@ static PetscErrorCode MatDestroy_Shell(Mat A)
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->z);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->matIdx);CHKERRQ(ierr);
-  ierr = PetscFree(ctx);CHKERRQ(ierr);
+  ierr = PetscFree2(ctx->matIdx,ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

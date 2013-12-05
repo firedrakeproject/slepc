@@ -371,9 +371,7 @@ PetscErrorCode SVDReset(SVD svd)
   ierr = VecDestroy(&svd->tl);CHKERRQ(ierr);
   ierr = VecDestroy(&svd->tr);CHKERRQ(ierr);
   if (svd->n) {
-    ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
-    ierr = PetscFree(svd->perm);CHKERRQ(ierr);
-    ierr = PetscFree(svd->errest);CHKERRQ(ierr);
+    ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
     ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
     ierr = VecDestroyVecs(svd->n,&svd->V);CHKERRQ(ierr);
   }

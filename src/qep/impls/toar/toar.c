@@ -401,9 +401,7 @@ PetscErrorCode QEPSolve_TOAR(QEP qep)
   if (qep->nconv > 0) {
     ierr = QEPComputeVectors_Schur(qep);CHKERRQ(ierr);
   }
-  ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
-  ierr = PetscFree(S);CHKERRQ(ierr);
+  ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

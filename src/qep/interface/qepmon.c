@@ -371,8 +371,7 @@ PetscErrorCode QEPMonitorLGAll(QEP qep,PetscInt its,PetscInt nconv,PetscScalar *
   ierr = PetscDrawLGAddPoint(lg,x,y);CHKERRQ(ierr);
 
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
-  ierr = PetscFree(x);CHKERRQ(ierr);
-  ierr = PetscFree(y);CHKERRQ(ierr);
+  ierr = PetscFree2(x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

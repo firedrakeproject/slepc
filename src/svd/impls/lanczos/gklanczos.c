@@ -256,8 +256,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
   ierr = VecDestroy(&u_1);CHKERRQ(ierr);
-  ierr = PetscFree(w);CHKERRQ(ierr);
-  ierr = PetscFree(swork);CHKERRQ(ierr);
+  ierr = PetscFree2(w,swork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

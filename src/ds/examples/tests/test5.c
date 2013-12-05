@@ -104,8 +104,7 @@ int main(int argc,char **argv)
       ierr = PetscViewerASCIIPrintf(viewer,"  %.5F%+.5Fi\n",re,im);CHKERRQ(ierr);
     }
   }
-  ierr = PetscFree(eigr);CHKERRQ(ierr);
-  ierr = PetscFree(eigi);CHKERRQ(ierr);
+  ierr = PetscFree2(eigr,eigi);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return 0;

@@ -178,8 +178,7 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
       ierr = MatRestoreRow(D,i,&ncols,&cols,&vals);CHKERRQ(ierr);
     }
   }
-  ierr = PetscFree(buf);CHKERRQ(ierr);
-  ierr = PetscFree(scols);CHKERRQ(ierr);
+  ierr = PetscFree2(buf,scols);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -322,10 +321,7 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
       ierr = MatRestoreRow(D,i+start,&ncols,&cols,&vals);CHKERRQ(ierr);
     }
   }
-  ierr = PetscFree(buf);CHKERRQ(ierr);
-  ierr = PetscFree(scols);CHKERRQ(ierr);
-  ierr = PetscFree(map1);CHKERRQ(ierr);
-  ierr = PetscFree(map2);CHKERRQ(ierr);
+  ierr = PetscFree4(buf,scols,map1,map2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

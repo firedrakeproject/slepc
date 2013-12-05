@@ -212,8 +212,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   }
 
   ierr = VecDestroy(&r);CHKERRQ(ierr);
-  ierr = PetscFree(betaF);CHKERRQ(ierr);
-  ierr = PetscFree(B);CHKERRQ(ierr);
+  ierr = PetscFree2(betaF,B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

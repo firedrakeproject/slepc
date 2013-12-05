@@ -662,9 +662,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   /* Only with eigenvalues present in the interval ...*/
   if (sr->numEigs==0) {
     eps->reason = EPS_CONVERGED_TOL;
-    ierr = PetscFree(sr->s0);CHKERRQ(ierr);
-    ierr = PetscFree(sr->pending);CHKERRQ(ierr);
-    ierr = PetscFree(sr);CHKERRQ(ierr);
+    ierr = PetscFree3(sr->s0,sr->pending,sr);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
   /* Memory reservation for eig, V and perm */
@@ -719,12 +717,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   /* Updating eps values prior to exit */
   ierr = VecDestroyVecs(eps->allocated_ncv,&eps->V);CHKERRQ(ierr);
   eps->V = sr->V;
-  ierr = PetscFree(sr->S);CHKERRQ(ierr);
-  ierr = PetscFree(eps->eigr);CHKERRQ(ierr);
-  ierr = PetscFree(eps->eigi);CHKERRQ(ierr);
-  ierr = PetscFree(eps->errest);CHKERRQ(ierr);
-  ierr = PetscFree(eps->errest_left);CHKERRQ(ierr);
-  ierr = PetscFree(eps->perm);CHKERRQ(ierr);
+  ierr = PetscFree6(sr->S,eps->eigr,eps->eigi,eps->errest,eps->errest_left,eps->perm);CHKERRQ(ierr);
   eps->eigr = sr->eig;
   eps->eigi = sr->eigi;
   eps->errest = sr->errest;
@@ -737,11 +730,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   eps->nds = 0;
   eps->defl = NULL;
   eps->evecsavailable = PETSC_TRUE;
-  ierr = PetscFree(sr->VDef);CHKERRQ(ierr);
-  ierr = PetscFree(sr->idxDef);CHKERRQ(ierr);
-  ierr = PetscFree(sr->pending);CHKERRQ(ierr);
-  ierr = PetscFree(sr->monit);CHKERRQ(ierr);
-  ierr = PetscFree(sr->back);CHKERRQ(ierr);
+  ierr = PetscFree5(sr->VDef,sr->idxDef,sr->pending,sr->monit,sr->back);CHKERRQ(ierr);
   /* Reviewing list of shifts to free memory */
   s = sr->s0;
   if (s) {

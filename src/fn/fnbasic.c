@@ -546,8 +546,7 @@ PetscErrorCode FNDestroy(FN *fn)
   if (!*fn) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*fn,FN_CLASSID,1);
   if (--((PetscObject)(*fn))->refct > 0) { *fn = 0; PetscFunctionReturn(0); }
-  ierr = PetscFree((*fn)->alpha);CHKERRQ(ierr);
-  ierr = PetscFree((*fn)->beta);CHKERRQ(ierr);
+  ierr = PetscFree2((*fn)->alpha,(*fn)->beta);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(fn);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

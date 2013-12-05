@@ -261,8 +261,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
       }
       ierr = EPSMonitor(eps,i,nconv,(PetscScalar*)lambdahist+i*eps->ncv,eps->eigi,residhist+i*eps->ncv,eps->ncv);CHKERRQ(ierr);
     }
-    ierr = PetscFree(lambdahist);CHKERRQ(ierr);
-    ierr = PetscFree(residhist);CHKERRQ(ierr);
+    ierr = PetscFree2(lambdahist,residhist);CHKERRQ(ierr);
   }
 
   eps->its = its;

@@ -329,9 +329,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     } while (its<nxtsrr);
   }
 
-  ierr = PetscFree(rsd);CHKERRQ(ierr);
-  ierr = PetscFree(itrsd);CHKERRQ(ierr);
-  ierr = PetscFree(itrsdold);CHKERRQ(ierr);
+  ierr = PetscFree3(rsd,itrsd,itrsdold);CHKERRQ(ierr);
 
   if (eps->nconv == eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;

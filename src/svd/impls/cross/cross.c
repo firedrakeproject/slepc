@@ -98,8 +98,7 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
     for (i=start;i<end;i++)
       diag[i-start] = work2[i];
     ierr = VecRestoreArray(cross->diag,&diag);CHKERRQ(ierr);
-    ierr = PetscFree(work1);CHKERRQ(ierr);
-    ierr = PetscFree(work2);CHKERRQ(ierr);
+    ierr = PetscFree2(work1,work2);CHKERRQ(ierr);
   }
   ierr = VecCopy(cross->diag,d);CHKERRQ(ierr);
   PetscFunctionReturn(0);

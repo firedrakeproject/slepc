@@ -337,8 +337,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 
   /* free working space */
   ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = PetscFree(w);CHKERRQ(ierr);
-  ierr = PetscFree(swork);CHKERRQ(ierr);
+  ierr = PetscFree2(w,swork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
