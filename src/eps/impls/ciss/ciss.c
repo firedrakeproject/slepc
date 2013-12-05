@@ -121,7 +121,7 @@ static PetscErrorCode CISSRedundantMat(EPS eps)
     ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
     ierr = MatGetRedundantMatrix(A,ctx->subcomm->n,ctx->subcomm->comm,MAT_INITIAL_MATRIX,&ctx->pA);CHKERRQ(ierr);
     if(nmat>1){
-      ierr = STGetOperators(eps->st,0,&B);CHKERRQ(ierr);
+      ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
       ierr = MatGetRedundantMatrix(B,ctx->subcomm->n,ctx->subcomm->comm,MAT_INITIAL_MATRIX,&ctx->pB);CHKERRQ(ierr); 
     }
     else ctx->pB = NULL;
@@ -322,7 +322,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j;
+  PetscInt       i,j,p_id;
   PetscScalar    tmp,sum = 0.0;
   PetscReal      eta;
   Vec            v,vtemp;
@@ -334,7 +334,8 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
   for (j=0;j<ctx->L;j++) {
     ierr = VecSet(v,0);CHKERRQ(ierr);
     for (i=0;i<ctx->num_solve_point; i++) {
-      ierr = VecAXPY(v,ctx->weight[i*ctx->subcomm->n + ctx->subcomm_id]/(PetscReal)ctx->N,ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
+      p_id = i*ctx->subcomm->n + ctx->subcomm_id;
+      ierr = VecAXPY(v,ctx->weight[p_id]/(PetscReal)ctx->N,ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
     }
     if(ctx->pA != NULL){
       ierr = VecSet(vtemp,0);CHKERRQ(ierr);
