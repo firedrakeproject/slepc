@@ -40,7 +40,7 @@ PetscErrorCode GetExactEigenvalues(PetscInt M,PetscInt N,PetscInt P,PetscInt nco
   ay = PETSC_PI/2/(N+1);
   az = PETSC_PI/2/(P+1);
   n = PetscCeilReal(PetscPowReal(nconv,0.33333)+1);
-  ierr = PetscMalloc(n*n*n*sizeof(PetscReal),&evals);CHKERRQ(ierr);
+  ierr = PetscMalloc1(n*n*n,&evals);CHKERRQ(ierr);
   l = 0;
   for (i=1;i<=n;i++) {
     sx = PetscSinReal(ax*i);
@@ -202,7 +202,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %D\n\n",nconv);CHKERRQ(ierr);
 
   if (nconv>0) {
-    ierr = PetscMalloc(nconv*sizeof(PetscReal),&exact);CHKERRQ(ierr);
+    ierr = PetscMalloc1(nconv,&exact);CHKERRQ(ierr);
     ierr = GetExactEigenvalues(M,N,P,nconv,exact);CHKERRQ(ierr);
     /*
        Display eigenvalues and relative errors

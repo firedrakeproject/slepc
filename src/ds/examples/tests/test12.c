@@ -107,8 +107,7 @@ int main(int argc,char **argv)
   }
 
   /* Solve */
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&wr);CHKERRQ(ierr);
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&wi);CHKERRQ(ierr);
+  ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
   ierr = DSSolve(ds,wr,wi);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
@@ -133,8 +132,7 @@ int main(int argc,char **argv)
     }
   }
 
-  ierr = PetscFree(wr);CHKERRQ(ierr);
-  ierr = PetscFree(wi);CHKERRQ(ierr);
+  ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
   ierr = FNDestroy(&f1);CHKERRQ(ierr);
   ierr = FNDestroy(&f2);CHKERRQ(ierr);
   ierr = FNDestroy(&f3);CHKERRQ(ierr);

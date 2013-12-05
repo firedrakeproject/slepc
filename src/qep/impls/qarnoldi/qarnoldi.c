@@ -203,7 +203,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
   lwork = 7*qep->ncv;
-  ierr = PetscMalloc(lwork*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
   if (qep->nini>0) {

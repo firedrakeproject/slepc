@@ -448,7 +448,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   }
   ierr = PetscOptionsString("-svd_monitor_conv","Monitor approximate singular values and error estimates as they converge","SVDMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
   if (flg) {
-      ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
+      ierr = PetscNew(&ctx);CHKERRQ(ierr);
       ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)svd),monfilename,&ctx->viewer);CHKERRQ(ierr);
       ierr = SVDMonitorSet(svd,SVDMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
   }

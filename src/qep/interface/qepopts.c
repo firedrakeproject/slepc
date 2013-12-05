@@ -114,7 +114,7 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     }
     ierr = PetscOptionsString("-qep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","QEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (flg) {
-      ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
+      ierr = PetscNew(&ctx);CHKERRQ(ierr);
       ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)qep),monfilename,&ctx->viewer);CHKERRQ(ierr);
       ierr = QEPMonitorSet(qep,QEPMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
     }

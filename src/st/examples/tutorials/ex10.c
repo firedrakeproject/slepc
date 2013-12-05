@@ -178,7 +178,7 @@ PetscErrorCode STCreate_User(SampleShellST **shell)
   PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr   = PetscNew(SampleShellST,&newctx);CHKERRQ(ierr);
+  ierr   = PetscNew(&newctx);CHKERRQ(ierr);
   ierr   = KSPCreate(PETSC_COMM_WORLD,&newctx->ksp);CHKERRQ(ierr);
   ierr   = KSPAppendOptionsPrefix(newctx->ksp,"st_");CHKERRQ(ierr);
   *shell = newctx;

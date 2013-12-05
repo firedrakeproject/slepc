@@ -85,11 +85,7 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   ierr = STGetNumMatrices(qep->st,&ctx->d);CHKERRQ(ierr);
   ctx->d--;
   ctx->ld = ld;
-  ierr = PetscMalloc(ctx->d*ld*ld*sizeof(PetscScalar),&ctx->S);CHKERRQ(ierr);
-  ierr = PetscMemzero(ctx->S,ctx->d*ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(ld*sizeof(PetscReal),&ctx->qM);CHKERRQ(ierr);
-  ierr = PetscMalloc(ld*ld*sizeof(PetscScalar),&ctx->qK);CHKERRQ(ierr);
-  ierr = PetscMemzero(ctx->qK,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscCalloc3(ctx->d*ld*ld,&ctx->S,ld,&ctx->qM,ld*ld,&ctx->qK);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -217,7 +213,7 @@ static PetscErrorCode QEPSTOARrun(QEP qep,PetscReal *a,PetscReal *b,PetscReal *o
   PetscScalar        *y,*S=ctx->S;
 
   PetscFunctionBegin;
-  *breakdown = PETSC_FALSE; /* ////////////// */
+  *breakdown = PETSC_FALSE; /* ----- */
   if (!t_||nwv<3) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
   lwa = (ctx->ld)*4;
   if (!work||nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
@@ -352,11 +348,11 @@ static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScala
   n = (rs1>2*cs1)?2*cs1:rs1;
   lwa = cs1*rs1*4+n*(rs1+2*cs1)+(cs1+1)*(cs1+2);
   lrwa = n+cs1+1+5*n;
-  if (!work||nw<lwa){
+  if (!work||nw<lwa) {
     if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",6);
     if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",5);
   }
-  if (!rwork||nrw<lrwa){
+  if (!rwork||nrw<lrwa) {
     if (nrw<lrwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",8);
     if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",7);
   }
@@ -447,7 +443,7 @@ static PetscErrorCode QEPSTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,Pet
 
   PetscFunctionBegin;
   lwa = sr*ncu;
-  if (!work||nw<lwa){
+  if (!work||nw<lwa) {
     if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
     if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",9);
   }
@@ -457,11 +453,11 @@ static PetscErrorCode QEPSTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,Pet
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldq,&ldq_);CHKERRQ(ierr);
   PetscStackCall("BLASgemm",BLASgemm_("N","N",&sr_,&ncu_,&qr_,&a,S,&lds_,Q,&ldq_,&b,work,&sr_));
-  for(j=0;j<ncu;j++){
+  for (j=0;j<ncu;j++) {
     ierr = PetscMemcpy(S+lds*(s+j),work+j*sr,sr*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   PetscStackCall("BLASgemm",BLASgemm_("N","N",&sr_,&ncu_,&qr_,&a,S+ld,&lds_,Q,&ldq_,&b,work,&sr_));
-  for(j=0;j<ncu;j++){
+  for (j=0;j<ncu;j++) {
     ierr = PetscMemcpy(S+lds*(s+j)+ld,work+j*sr,sr*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -491,9 +487,9 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     ierr = MatDestroy(&M);CHKERRQ(ierr);
   }
   lwa = 9*ld*ld+5*ld;
-  ierr = PetscMalloc(lwa*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc1(lwa,&work);CHKERRQ(ierr);
   lrwa = 8*ld;
-  ierr = PetscMalloc(lrwa*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+  ierr = PetscMalloc1(lrwa,&rwork);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
   if (qep->nini==0) {  
@@ -651,8 +647,7 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
   if (qep->nconv > 0) {
     ierr = QEPComputeVectors_Indefinite(qep);CHKERRQ(ierr);
   }
-  ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
+  ierr = PetscFree2(work,rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -783,10 +778,7 @@ PetscErrorCode QEPDestroy_STOAR(QEP qep)
   QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree(ctx->S);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->qM);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->qK);CHKERRQ(ierr);
-  ierr = PetscFree(qep->data);CHKERRQ(ierr);
+  ierr = PetscFree4(ctx->S,ctx->qM,ctx->qK,qep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPSTOARSetMonic_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPSTOARGetMonic_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -800,8 +792,9 @@ PETSC_EXTERN PetscErrorCode QEPCreate_STOAR(QEP qep)
   QEP_STOAR      *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(qep,QEP_STOAR,&ctx);CHKERRQ(ierr);
-  qep->data                      = (void*)ctx;
+  ierr = PetscNewLog(qep,&ctx);CHKERRQ(ierr);
+  qep->data = (void*)ctx;
+
   qep->ops->solve                = QEPSolve_STOAR;
   qep->ops->setup                = QEPSetUp_STOAR;
   qep->ops->setfromoptions       = QEPSetFromOptions_STOAR;

@@ -196,7 +196,7 @@ PETSC_EXTERN void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *mon
       *ierr = 1;
       return;
     }
-    *ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);
+    *ierr = PetscNew(&ctx);
     if (*ierr) return;
     ctx->viewer = NULL;
     *ierr = QEPMonitorSet(*qep,QEPMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);

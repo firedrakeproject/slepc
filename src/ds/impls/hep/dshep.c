@@ -33,7 +33,7 @@ PetscErrorCode DSAllocate_HEP(DS ds,PetscInt ld)
   ierr = DSAllocateMat_Private(ds,DS_MAT_Q);CHKERRQ(ierr);
   ierr = DSAllocateMatReal_Private(ds,DS_MAT_T);CHKERRQ(ierr);
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
-  ierr = PetscMalloc(ld*sizeof(PetscInt),&ds->perm);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ld,&ds->perm);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -788,7 +788,7 @@ PetscErrorCode DSFunction_EXP_HEP_DIAG(DS ds)
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&eig);CHKERRQ(ierr);
+  ierr = PetscMalloc1(n,&eig);CHKERRQ(ierr);
   ierr = DSSolve(ds,eig,NULL);CHKERRQ(ierr);
   if (!ds->mat[DS_MAT_W]) {
     ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);

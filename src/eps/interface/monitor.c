@@ -431,8 +431,7 @@ PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
     ierr = PetscFree(myeigr);CHKERRQ(ierr);
   }
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
-  ierr = PetscFree(x);CHKERRQ(ierr);
-  ierr = PetscFree(y);CHKERRQ(ierr);
+  ierr = PetscFree2(x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

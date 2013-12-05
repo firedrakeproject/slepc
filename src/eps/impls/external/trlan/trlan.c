@@ -58,7 +58,7 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   } else {
     ierr = PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10),&tr->lwork);CHKERRQ(ierr);
   }
-  ierr = PetscMalloc(tr->lwork*sizeof(PetscReal),&tr->work);CHKERRQ(ierr);
+  ierr = PetscMalloc1(tr->lwork,&tr->work);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,tr->lwork*sizeof(PetscReal));CHKERRQ(ierr);
 
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
@@ -176,10 +176,13 @@ PetscErrorCode EPSDestroy_TRLAN(EPS eps)
 #define __FUNCT__ "EPSCreate_TRLAN"
 PETSC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
 {
+  EPS_TRLAN      *ctx;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_TRLAN,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup                = EPSSetUp_TRLAN;
   eps->ops->destroy              = EPSDestroy_TRLAN;
   eps->ops->reset                = EPSReset_TRLAN;
