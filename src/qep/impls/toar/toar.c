@@ -299,11 +299,9 @@ PetscErrorCode QEPSolve_TOAR(QEP qep)
   ld = qep->ncv+2;
   lds = 2*ld;
   lwa = 9*ld*ld+5*ld;
-  ierr = PetscMalloc(lwa*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc1(lwa,&work);CHKERRQ(ierr);
   lrwa = 8*ld;
-  ierr = PetscMalloc(lrwa*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-  ierr = PetscMalloc(2*ld*ld*sizeof(PetscScalar),&S);CHKERRQ(ierr);
-  ierr = PetscMemzero(S,2*ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscCalloc2(lrwa,&rwork,2*ld*ld,&S);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(qep->ds,&ldds);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
@@ -403,9 +401,7 @@ PetscErrorCode QEPSolve_TOAR(QEP qep)
   if (qep->nconv > 0) {
     ierr = QEPComputeVectors_Schur(qep);CHKERRQ(ierr);
   }
-  ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
-  ierr = PetscFree(S);CHKERRQ(ierr);
+  ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

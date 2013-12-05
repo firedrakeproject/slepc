@@ -335,14 +335,14 @@ PetscErrorCode FNSetParameters(FN fn,PetscInt na,PetscScalar *alpha,PetscInt nb,
   fn->na = na;
   ierr = PetscFree(fn->alpha);CHKERRQ(ierr);
   if (na) {
-    ierr = PetscMalloc(na*sizeof(PetscScalar),&fn->alpha);CHKERRQ(ierr);
+    ierr = PetscMalloc1(na,&fn->alpha);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)fn,na*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<na;i++) fn->alpha[i] = alpha[i];
   }
   fn->nb = nb;
   ierr = PetscFree(fn->beta);CHKERRQ(ierr);
   if (nb) {
-    ierr = PetscMalloc(nb*sizeof(PetscScalar),&fn->beta);CHKERRQ(ierr);
+    ierr = PetscMalloc1(nb,&fn->beta);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)fn,nb*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<nb;i++) fn->beta[i] = beta[i];
   }
@@ -546,8 +546,7 @@ PetscErrorCode FNDestroy(FN *fn)
   if (!*fn) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*fn,FN_CLASSID,1);
   if (--((PetscObject)(*fn))->refct > 0) { *fn = 0; PetscFunctionReturn(0); }
-  ierr = PetscFree((*fn)->alpha);CHKERRQ(ierr);
-  ierr = PetscFree((*fn)->beta);CHKERRQ(ierr);
+  ierr = PetscFree2((*fn)->alpha,(*fn)->beta);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(fn);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

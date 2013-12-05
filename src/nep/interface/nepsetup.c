@@ -217,12 +217,8 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
   if (nep->allocated_ncv != requested) {
     newc = PetscMax(0,requested-nep->allocated_ncv);
     ierr = NEPFreeSolution(nep);CHKERRQ(ierr);
-    cnt = 0;
-    ierr = PetscMalloc(requested*sizeof(PetscScalar),&nep->eig);CHKERRQ(ierr);
-    cnt += 2*newc*sizeof(PetscScalar);
-    ierr = PetscMalloc(requested*sizeof(PetscReal),&nep->errest);CHKERRQ(ierr);
-    ierr = PetscMalloc(requested*sizeof(PetscInt),&nep->perm);CHKERRQ(ierr);
-    cnt += 2*newc*sizeof(PetscReal);
+    ierr = PetscMalloc3(requested,&nep->eig,requested,&nep->errest,requested,&nep->perm);CHKERRQ(ierr);
+    cnt = 2*newc*sizeof(PetscScalar) + 2*newc*sizeof(PetscReal);
     ierr = PetscLogObjectMemory((PetscObject)nep,cnt);CHKERRQ(ierr);
     ierr = VecDuplicateVecs(nep->t,requested,&nep->V);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(nep,requested,nep->V);CHKERRQ(ierr);
@@ -243,9 +239,7 @@ PetscErrorCode NEPFreeSolution(NEP nep)
 
   PetscFunctionBegin;
   if (nep->allocated_ncv > 0) {
-    ierr = PetscFree(nep->eig);CHKERRQ(ierr);
-    ierr = PetscFree(nep->errest);CHKERRQ(ierr);
-    ierr = PetscFree(nep->perm);CHKERRQ(ierr);
+    ierr = PetscFree3(nep->eig,nep->errest,nep->perm);CHKERRQ(ierr);
     ierr = VecDestroyVecs(nep->allocated_ncv,&nep->V);CHKERRQ(ierr);
     nep->allocated_ncv = 0;
   }

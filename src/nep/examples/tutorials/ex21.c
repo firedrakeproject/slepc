@@ -97,7 +97,7 @@ int main(int argc,char **argv)
      Create matrix data structure; set Function evaluation routine
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PetscNew(MatCtx,&ctxF);CHKERRQ(ierr);
+  ierr = PetscNew(&ctxF);CHKERRQ(ierr);
   ctxF->h = ctx.h;
   ctxF->kappa = ctx.kappa;
 
@@ -117,7 +117,7 @@ int main(int argc,char **argv)
      Create matrix data structure; set Jacobian evaluation routine
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PetscNew(MatCtx,&ctxJ);CHKERRQ(ierr);
+  ierr = PetscNew(&ctxJ);CHKERRQ(ierr);
   ctxJ->h = ctx.h;
   ctxJ->kappa = ctx.kappa;
 
@@ -368,7 +368,7 @@ PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
   ierr = MatShellGetContext(A,(void**)&actx);CHKERRQ(ierr);
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
 
-  ierr = PetscNew(MatCtx,&bctx);CHKERRQ(ierr);
+  ierr = PetscNew(&bctx);CHKERRQ(ierr);
   bctx->h      = actx->h;
   bctx->kappa  = actx->kappa;
   bctx->lambda = actx->lambda;

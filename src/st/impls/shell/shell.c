@@ -30,7 +30,7 @@ typedef struct {
   PetscErrorCode (*apply)(ST,Vec,Vec);
   PetscErrorCode (*applytrans)(ST,Vec,Vec);
   PetscErrorCode (*backtransform)(ST,PetscInt n,PetscScalar*,PetscScalar*);
-} ST_Shell;
+} ST_SHELL;
 
 #undef __FUNCT__
 #define __FUNCT__ "STShellGetContext"
@@ -62,7 +62,7 @@ PetscErrorCode STShellGetContext(ST st,void **ctx)
   PetscValidPointer(ctx,2);
   ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg);CHKERRQ(ierr);
   if (!flg) *ctx = 0;
-  else      *ctx = ((ST_Shell*)(st->data))->ctx;
+  else      *ctx = ((ST_SHELL*)(st->data))->ctx;
   PetscFunctionReturn(0);
 }
 
@@ -86,7 +86,7 @@ PetscErrorCode STShellGetContext(ST st,void **ctx)
 @*/
 PetscErrorCode STShellSetContext(ST st,void *ctx)
 {
-  ST_Shell       *shell = (ST_Shell*)st->data;
+  ST_SHELL       *shell = (ST_SHELL*)st->data;
   PetscErrorCode ierr;
   PetscBool      flg;
 
@@ -104,7 +104,7 @@ PetscErrorCode STShellSetContext(ST st,void *ctx)
 PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  ST_Shell       *shell = (ST_Shell*)st->data;
+  ST_SHELL       *shell = (ST_SHELL*)st->data;
 
   PetscFunctionBegin;
   if (!shell->apply) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No apply() routine provided to Shell ST");
@@ -121,7 +121,7 @@ PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
 PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  ST_Shell       *shell = (ST_Shell*)st->data;
+  ST_SHELL       *shell = (ST_SHELL*)st->data;
 
   PetscFunctionBegin;
   if (!shell->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No applytranspose() routine provided to Shell ST");
@@ -138,7 +138,7 @@ PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
 PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscErrorCode ierr;
-  ST_Shell       *shell = (ST_Shell*)st->data;
+  ST_SHELL       *shell = (ST_SHELL*)st->data;
 
   PetscFunctionBegin;
   if (shell->backtransform) {
@@ -169,7 +169,7 @@ PetscErrorCode STDestroy_Shell(ST st)
 #define __FUNCT__ "STShellSetApply_Shell"
 static PetscErrorCode STShellSetApply_Shell(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
 {
-  ST_Shell *shell = (ST_Shell*)st->data;
+  ST_SHELL *shell = (ST_SHELL*)st->data;
 
   PetscFunctionBegin;
   shell->apply = apply;
@@ -180,7 +180,7 @@ static PetscErrorCode STShellSetApply_Shell(ST st,PetscErrorCode (*apply)(ST,Vec
 #define __FUNCT__ "STShellSetApplyTranspose_Shell"
 static PetscErrorCode STShellSetApplyTranspose_Shell(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec))
 {
-  ST_Shell *shell = (ST_Shell*)st->data;
+  ST_SHELL *shell = (ST_SHELL*)st->data;
 
   PetscFunctionBegin;
   shell->applytrans = applytrans;
@@ -191,7 +191,7 @@ static PetscErrorCode STShellSetApplyTranspose_Shell(ST st,PetscErrorCode (*appl
 #define __FUNCT__ "STShellSetBackTransform_Shell"
 static PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*))
 {
-  ST_Shell *shell = (ST_Shell*)st->data;
+  ST_SHELL *shell = (ST_SHELL*)st->data;
 
   PetscFunctionBegin;
   shell->backtransform = backtr;
@@ -356,9 +356,12 @@ M*/
 PETSC_EXTERN PetscErrorCode STCreate_Shell(ST st)
 {
   PetscErrorCode ierr;
+  ST_SHELL       *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(st,ST_Shell,&st->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(st,&ctx);CHKERRQ(ierr);
+  st->data = (void*)ctx;
+
   st->ops->apply          = STApply_Shell;
   st->ops->applytrans     = STApplyTranspose_Shell;
   st->ops->backtransform  = STBackTransform_Shell;

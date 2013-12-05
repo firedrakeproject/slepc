@@ -256,8 +256,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
   ierr = VecDestroy(&u_1);CHKERRQ(ierr);
-  ierr = PetscFree(w);CHKERRQ(ierr);
-  ierr = PetscFree(swork);CHKERRQ(ierr);
+  ierr = PetscFree2(w,swork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -410,9 +409,12 @@ PetscErrorCode SVDView_Lanczos(SVD svd,PetscViewer viewer)
 PETSC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
+  SVD_LANCZOS    *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(svd,SVD_LANCZOS,&svd->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(svd,&ctx);CHKERRQ(ierr);
+  svd->data = (void*)ctx;
+
   svd->ops->setup          = SVDSetUp_Lanczos;
   svd->ops->solve          = SVDSolve_Lanczos;
   svd->ops->destroy        = SVDDestroy_Lanczos;

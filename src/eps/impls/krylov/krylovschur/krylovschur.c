@@ -211,7 +211,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
-  if (harmonic) { ierr = PetscMalloc(ld*sizeof(PetscScalar),&g);CHKERRQ(ierr); }
+  if (harmonic) { ierr = PetscMalloc1(ld,&g);CHKERRQ(ierr); }
   if (eps->arbitrary) pj = &j;
   else pj = NULL;
 
@@ -469,10 +469,13 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
 #define __FUNCT__ "EPSCreate_KrylovSchur"
 PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
 {
-  PetscErrorCode ierr;
+  EPS_KRYLOVSCHUR *ctx;
+  PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_KRYLOVSCHUR,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup          = EPSSetUp_KrylovSchur;
   eps->ops->setfromoptions = EPSSetFromOptions_KrylovSchur;
   eps->ops->destroy        = EPSDestroy_KrylovSchur;

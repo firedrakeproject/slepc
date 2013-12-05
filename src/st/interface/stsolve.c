@@ -211,7 +211,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   ierr = VecGetLocalSize(out,&m);CHKERRQ(ierr);
   ierr = VecSetOption(in,VEC_IGNORE_OFF_PROC_ENTRIES,PETSC_TRUE);CHKERRQ(ierr);
   ierr = VecGetOwnershipRange(out,&start,&end);CHKERRQ(ierr);
-  ierr = PetscMalloc(m*sizeof(PetscInt),&rows);CHKERRQ(ierr);
+  ierr = PetscMalloc1(m,&rows);CHKERRQ(ierr);
   for (i=0;i<m;i++) rows[i] = start + i;
 
   ierr = MatCreate(PetscObjectComm((PetscObject)st),mat);CHKERRQ(ierr);

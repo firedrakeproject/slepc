@@ -108,7 +108,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
   PetscFunctionBegin;
   if (m<=100) lhh = shh;
   else {
-    ierr = PetscMalloc(m*sizeof(PetscScalar),&lhh);CHKERRQ(ierr);
+    ierr = PetscMalloc1(m,&lhh);CHKERRQ(ierr);
   }
   ierr = VecDuplicate(f,&u);CHKERRQ(ierr);
   ierr = VecDuplicate(f,&t);CHKERRQ(ierr);
@@ -478,10 +478,13 @@ PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
 #define __FUNCT__ "EPSCreate_Arnoldi"
 PETSC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
 {
+  EPS_ARNOLDI    *ctx;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_ARNOLDI,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup                = EPSSetUp_Arnoldi;
   eps->ops->setfromoptions       = EPSSetFromOptions_Arnoldi;
   eps->ops->destroy              = EPSDestroy_Arnoldi;

@@ -230,11 +230,11 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 
   if (eps->numbermonitors>0) {
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscMalloc(eps->ncv*(eps->max_it+1)*sizeof(komplex),&lambdahist);CHKERRQ(ierr);
+    ierr = PetscMalloc1(eps->ncv*(eps->max_it+1),&lambdahist);CHKERRQ(ierr);
 #else
-    ierr = PetscMalloc(eps->ncv*(eps->max_it+1)*sizeof(double),&lambdahist);CHKERRQ(ierr);
+    ierr = PetscMalloc1(eps->ncv*(eps->max_it+1),&lambdahist);CHKERRQ(ierr);
 #endif
-    ierr = PetscMalloc(eps->ncv*(eps->max_it+1)*sizeof(double),&residhist);CHKERRQ(ierr);
+    ierr = PetscMalloc1(eps->ncv*(eps->max_it+1),&residhist);CHKERRQ(ierr);
   }
 
 #if defined(PETSC_USE_COMPLEX)
@@ -261,8 +261,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
       }
       ierr = EPSMonitor(eps,i,nconv,(PetscScalar*)lambdahist+i*eps->ncv,eps->eigi,residhist+i*eps->ncv,eps->ncv);CHKERRQ(ierr);
     }
-    ierr = PetscFree(lambdahist);CHKERRQ(ierr);
-    ierr = PetscFree(residhist);CHKERRQ(ierr);
+    ierr = PetscFree2(lambdahist,residhist);CHKERRQ(ierr);
   }
 
   eps->its = its;
@@ -333,10 +332,13 @@ PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps)
 #define __FUNCT__ "EPSCreate_BLOPEX"
 PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
 {
+  EPS_BLOPEX     *ctx;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_BLOPEX,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup                = EPSSetUp_BLOPEX;
   eps->ops->setfromoptions       = EPSSetFromOptions_BLOPEX;
   eps->ops->destroy              = EPSDestroy_BLOPEX;

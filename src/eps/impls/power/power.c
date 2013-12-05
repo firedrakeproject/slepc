@@ -117,7 +117,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     ierr = MatHasOperation(A,MATOP_NORM,&hasnorm);CHKERRQ(ierr);
     if (hasnorm) {
       ierr = MatNorm(A,NORM_INFINITY,&anorm);CHKERRQ(ierr);
-      ierr = PetscMalloc(eps->nev*sizeof(PetscBool),&select);CHKERRQ(ierr);
+      ierr = PetscMalloc1(eps->nev,&select);CHKERRQ(ierr);
     }
   }
 
@@ -548,10 +548,13 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
 #define __FUNCT__ "EPSCreate_Power"
 PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
 {
+  EPS_POWER      *ctx;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_POWER,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup                = EPSSetUp_Power;
   eps->ops->setfromoptions       = EPSSetFromOptions_Power;
   eps->ops->destroy              = EPSDestroy_Power;
