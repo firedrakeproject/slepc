@@ -330,10 +330,13 @@ PetscErrorCode EPSDestroy_ARPACK(EPS eps)
 #define __FUNCT__ "EPSCreate_ARPACK"
 PETSC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS eps)
 {
+  EPS_ARPACK     *ctx;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_ARPACK,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup                = EPSSetUp_ARPACK;
   eps->ops->destroy              = EPSDestroy_ARPACK;
   eps->ops->reset                = EPSReset_ARPACK;

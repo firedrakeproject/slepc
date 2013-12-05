@@ -65,8 +65,8 @@ PetscErrorCode EPSCreate_XD(EPS eps)
   eps->ops->computevectors       = EPSComputeVectors_XD;
   eps->ops->view                 = EPSView_XD;
 
-  ierr = PetscNewLog(eps,EPS_DAVIDSON,&data);CHKERRQ(ierr);
-  eps->data = data;
+  ierr = PetscNewLog(eps,&data);CHKERRQ(ierr);
+  eps->data = (void*)data;
   data->wS = NULL;
   data->wV = NULL;
   data->size_wV = 0;

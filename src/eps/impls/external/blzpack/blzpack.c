@@ -460,8 +460,9 @@ PETSC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS eps)
   EPS_BLZPACK    *blzpack;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_BLZPACK,&blzpack);CHKERRQ(ierr);
-  eps->data                      = (void*)blzpack;
+  ierr = PetscNewLog(eps,&blzpack);CHKERRQ(ierr);
+  eps->data = (void*)blzpack;
+
   eps->ops->setup                = EPSSetUp_BLZPACK;
   eps->ops->setfromoptions       = EPSSetFromOptions_BLZPACK;
   eps->ops->destroy              = EPSDestroy_BLZPACK;

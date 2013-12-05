@@ -358,8 +358,9 @@ PETSC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
   SVD_CROSS      *cross;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(svd,SVD_CROSS,&cross);CHKERRQ(ierr);
-  svd->data                = (void*)cross;
+  ierr = PetscNewLog(svd,&cross);CHKERRQ(ierr);
+  svd->data = (void*)cross;
+
   svd->ops->solve          = SVDSolve_Cross;
   svd->ops->setup          = SVDSetUp_Cross;
   svd->ops->setfromoptions = SVDSetFromOptions_Cross;

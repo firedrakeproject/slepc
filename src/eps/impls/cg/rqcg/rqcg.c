@@ -407,10 +407,13 @@ PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
 #define __FUNCT__ "EPSCreate_RQCG"
 PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
 {
+  EPS_RQCG       *rqcg;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_RQCG,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&rqcg);CHKERRQ(ierr);
+  eps->data = (void*)rqcg;
+
   eps->ops->setup          = EPSSetUp_RQCG;
   eps->ops->setfromoptions = EPSSetFromOptions_RQCG;
   eps->ops->destroy        = EPSDestroy_RQCG;

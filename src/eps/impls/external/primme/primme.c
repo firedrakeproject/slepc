@@ -561,8 +561,9 @@ PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
   EPS_PRIMME     *primme;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_PRIMME,&primme);CHKERRQ(ierr);
-  eps->data                      = (void*)primme;
+  ierr = PetscNewLog(eps,&primme);CHKERRQ(ierr);
+  eps->data = (void*)primme;
+
   eps->ops->setup                = EPSSetUp_PRIMME;
   eps->ops->setfromoptions       = EPSSetFromOptions_PRIMME;
   eps->ops->destroy              = EPSDestroy_PRIMME;

@@ -333,10 +333,13 @@ PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps)
 #define __FUNCT__ "EPSCreate_BLOPEX"
 PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
 {
+  EPS_BLOPEX     *ctx;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_BLOPEX,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup                = EPSSetUp_BLOPEX;
   eps->ops->setfromoptions       = EPSSetFromOptions_BLOPEX;
   eps->ops->destroy              = EPSDestroy_BLOPEX;

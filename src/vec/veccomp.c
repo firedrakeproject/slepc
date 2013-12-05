@@ -258,7 +258,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
 
   /* Allocate a new Vec_Comp */
   if (v->data) { ierr = PetscFree(v->data);CHKERRQ(ierr); }
-  ierr = PetscNewLog(v,Vec_Comp,&s);CHKERRQ(ierr);
+  ierr = PetscNewLog(v,&s);CHKERRQ(ierr);
   ierr = PetscMemcpy(v->ops,&DvOps,sizeof(DvOps));CHKERRQ(ierr);
   v->data  = (void*)s;
   v->petscnative     = PETSC_FALSE;
@@ -279,7 +279,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
 
   /* Allocate the shared structure, if it is not given */
   if (!n) {
-    ierr = PetscNewLog(v,Vec_Comp_N,&n);CHKERRQ(ierr);
+    ierr = PetscNewLog(v,&n);CHKERRQ(ierr);
     s->n = n;
     n->n = nx;
     n->N = N;

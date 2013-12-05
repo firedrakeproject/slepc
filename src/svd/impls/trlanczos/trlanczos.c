@@ -487,9 +487,12 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
 PETSC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
+  SVD_TRLANCZOS  *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(svd,SVD_TRLANCZOS,&svd->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(svd,&ctx);CHKERRQ(ierr);
+  svd->data = (void*)ctx;
+
   svd->ops->setup          = SVDSetUp_TRLanczos;
   svd->ops->solve          = SVDSolve_TRLanczos;
   svd->ops->destroy        = SVDDestroy_TRLanczos;

@@ -334,10 +334,13 @@ PetscErrorCode EPSFEASTGetNumPoints(EPS eps,PetscInt *npoints)
 #define __FUNCT__ "EPSCreate_FEAST"
 PETSC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
 {
+  EPS_FEAST      *ctx;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_FEAST,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup                = EPSSetUp_FEAST;
   eps->ops->setfromoptions       = EPSSetFromOptions_FEAST;
   eps->ops->destroy              = EPSDestroy_FEAST;

@@ -800,8 +800,9 @@ PETSC_EXTERN PetscErrorCode QEPCreate_STOAR(QEP qep)
   QEP_STOAR      *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(qep,QEP_STOAR,&ctx);CHKERRQ(ierr);
-  qep->data                      = (void*)ctx;
+  ierr = PetscNewLog(qep,&ctx);CHKERRQ(ierr);
+  qep->data = (void*)ctx;
+
   qep->ops->solve                = QEPSolve_STOAR;
   qep->ops->setup                = QEPSetUp_STOAR;
   qep->ops->setfromoptions       = QEPSetFromOptions_STOAR;

@@ -1324,11 +1324,12 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
 PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  EPS_CISS       *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_CISS,&ctx);CHKERRQ(ierr);
-  eps->data = ctx;
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup          = EPSSetUp_CISS;
   eps->ops->setfromoptions = EPSSetFromOptions_CISS;
   eps->ops->destroy        = EPSDestroy_CISS;

@@ -478,10 +478,13 @@ PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
 #define __FUNCT__ "EPSCreate_Arnoldi"
 PETSC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
 {
+  EPS_ARNOLDI    *ctx;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_ARNOLDI,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup                = EPSSetUp_Arnoldi;
   eps->ops->setfromoptions       = EPSSetFromOptions_Arnoldi;
   eps->ops->destroy              = EPSDestroy_Arnoldi;

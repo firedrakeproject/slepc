@@ -61,7 +61,7 @@ static PetscErrorCode VecDuplicateVecs_Contiguous(Vec v,PetscInt m,Vec *V[])
   ierr = VecGetLocalSize(v,&nloc);CHKERRQ(ierr);
   ierr = PetscMalloc(m*nloc*sizeof(PetscScalar),&pV);CHKERRQ(ierr);
   /* Create container */
-  ierr = PetscNew(Vecs_Contiguous,&vc);CHKERRQ(ierr);
+  ierr = PetscNew(&vc);CHKERRQ(ierr);
   vc->nvecs = m;
   vc->array = pV;
   ierr = PetscContainerCreate(PetscObjectComm((PetscObject)v),&container);CHKERRQ(ierr);

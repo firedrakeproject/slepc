@@ -938,10 +938,13 @@ PetscErrorCode EPSView_Lanczos(EPS eps,PetscViewer viewer)
 #define __FUNCT__ "EPSCreate_Lanczos"
 PETSC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS eps)
 {
+  EPS_LANCZOS    *ctx;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_LANCZOS,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup                = EPSSetUp_Lanczos;
   eps->ops->setfromoptions       = EPSSetFromOptions_Lanczos;
   eps->ops->destroy              = EPSDestroy_Lanczos;

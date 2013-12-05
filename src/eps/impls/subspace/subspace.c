@@ -370,10 +370,13 @@ PetscErrorCode EPSDestroy_Subspace(EPS eps)
 #define __FUNCT__ "EPSCreate_Subspace"
 PETSC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
 {
+  EPS_SUBSPACE   *ctx;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_SUBSPACE,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup                = EPSSetUp_Subspace;
   eps->ops->destroy              = EPSDestroy_Subspace;
   eps->ops->reset                = EPSReset_Subspace;

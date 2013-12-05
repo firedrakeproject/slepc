@@ -176,10 +176,13 @@ PetscErrorCode EPSDestroy_TRLAN(EPS eps)
 #define __FUNCT__ "EPSCreate_TRLAN"
 PETSC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
 {
+  EPS_TRLAN      *ctx;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_TRLAN,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup                = EPSSetUp_TRLAN;
   eps->ops->destroy              = EPSDestroy_TRLAN;
   eps->ops->reset                = EPSReset_TRLAN;
