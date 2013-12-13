@@ -77,7 +77,7 @@ int main(int argc,char **argv)
   }
 
   /* Solve */
-  ierr = PetscMalloc(k*sizeof(PetscScalar),&w);CHKERRQ(ierr);
+  ierr = PetscMalloc1(k,&w);CHKERRQ(ierr);
   ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestReal,NULL);CHKERRQ(ierr);
   ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);

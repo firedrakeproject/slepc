@@ -65,12 +65,11 @@ PetscErrorCode EPSCreate_XD(EPS eps)
   eps->ops->computevectors       = EPSComputeVectors_XD;
   eps->ops->view                 = EPSView_XD;
 
-  ierr = PetscNewLog(eps,EPS_DAVIDSON,&data);CHKERRQ(ierr);
-  eps->data = data;
+  ierr = PetscNewLog(eps,&data);CHKERRQ(ierr);
+  eps->data = (void*)data;
   data->wS = NULL;
   data->wV = NULL;
   data->size_wV = 0;
-  ierr = PetscMemzero(&data->ddb,sizeof(dvdDashboard));CHKERRQ(ierr);
 
   /* Set default values */
   ierr = EPSXDSetKrylovStart_XD(eps,PETSC_FALSE);CHKERRQ(ierr);
@@ -270,7 +269,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   /* Allocate memory */
   nvecs = b.max_size_auxV + b.own_vecs;
   nscalars = b.own_scalars + b.max_size_auxS;
-  ierr = PetscMalloc(nscalars*sizeof(PetscScalar),&data->wS);CHKERRQ(ierr);
+  ierr = PetscMalloc1(nscalars,&data->wS);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,nscalars*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = VecDuplicateVecs(eps->t,nvecs,&data->wV);CHKERRQ(ierr);
   ierr = PetscLogObjectParents(eps,nvecs,data->wV);CHKERRQ(ierr);
@@ -283,7 +282,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   dvd->size_auxS = b.max_size_auxS;
 
   eps->errest_left = NULL;
-  ierr = PetscMalloc(eps->ncv*sizeof(PetscInt),&eps->perm);CHKERRQ(ierr);
+  ierr = PetscMalloc1(eps->ncv,&eps->perm);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,eps->ncv*sizeof(PetscInt));CHKERRQ(ierr);
   for (i=0;i<eps->ncv;i++) eps->perm[i] = i;
 
@@ -361,8 +360,7 @@ PetscErrorCode EPSReset_XD(EPS eps)
   if (data->size_wV > 0) {
     ierr = VecDestroyVecs(data->size_wV,&data->wV);CHKERRQ(ierr);
   }
-  ierr = PetscFree(data->wS);CHKERRQ(ierr);
-  ierr = PetscFree(eps->perm);CHKERRQ(ierr);
+  ierr = PetscFree2(data->wS,eps->perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

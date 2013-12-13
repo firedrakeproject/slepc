@@ -197,15 +197,11 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (svd->ncv != svd->n) {
     /* free memory for previous solution  */
     if (svd->n) {
-      ierr = PetscFree(svd->sigma);CHKERRQ(ierr);
-      ierr = PetscFree(svd->perm);CHKERRQ(ierr);
-      ierr = PetscFree(svd->errest);CHKERRQ(ierr);
+      ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
       ierr = VecDestroyVecs(svd->n,&svd->V);CHKERRQ(ierr);
     }
     /* allocate memory for next solution */
-    ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->sigma);CHKERRQ(ierr);
-    ierr = PetscMalloc(svd->ncv*sizeof(PetscInt),&svd->perm);CHKERRQ(ierr);
-    ierr = PetscMalloc(svd->ncv*sizeof(PetscReal),&svd->errest);CHKERRQ(ierr);
+    ierr = PetscMalloc3(svd->ncv,&svd->sigma,svd->ncv,&svd->perm,svd->ncv,&svd->errest);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)svd,PetscMax(0,svd->ncv-svd->n)*(2*sizeof(PetscReal)+sizeof(PetscInt)));CHKERRQ(ierr);
     ierr = VecDuplicateVecs(svd->tr,svd->ncv,&svd->V);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(svd,svd->ncv,svd->V);CHKERRQ(ierr);

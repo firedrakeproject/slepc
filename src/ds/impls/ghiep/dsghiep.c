@@ -34,7 +34,7 @@ PetscErrorCode DSAllocate_GHIEP(DS ds,PetscInt ld)
   ierr = DSAllocateMatReal_Private(ds,DS_MAT_T);CHKERRQ(ierr);
   ierr = DSAllocateMatReal_Private(ds,DS_MAT_D);CHKERRQ(ierr);
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
-  ierr = PetscMalloc(ld*sizeof(PetscInt),&ds->perm);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ld,&ds->perm);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -81,7 +81,7 @@ int main(int argc,char **argv)
   }
 
   /* Check orthogonality */
-  ierr = PetscMalloc(k*sizeof(PetscScalar),&vals);CHKERRQ(ierr);
+  ierr = PetscMalloc1(k,&vals);CHKERRQ(ierr);
   lev = 0.0;
   for (i=0;i<k;i++) {
     ierr = MatMultTranspose(B,V[i],t);CHKERRQ(ierr);

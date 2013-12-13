@@ -78,8 +78,7 @@ int main(int argc,char **argv)
   }
 
   /* Solve */
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&wr);CHKERRQ(ierr);
-  ierr = PetscMalloc(n*sizeof(PetscScalar),&wi);CHKERRQ(ierr);
+  ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
   ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestMagnitude,NULL);CHKERRQ(ierr);
   ierr = DSSolve(ds,wr,wi);CHKERRQ(ierr);
   ierr = DSSort(ds,wr,wi,NULL,NULL,NULL);CHKERRQ(ierr);
@@ -105,8 +104,7 @@ int main(int argc,char **argv)
     }
   }
 
-  ierr = PetscFree(wr);CHKERRQ(ierr);
-  ierr = PetscFree(wi);CHKERRQ(ierr);
+  ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return 0;

@@ -85,11 +85,7 @@ PetscErrorCode QEPSetUp_STOAR(QEP qep)
   ierr = STGetNumMatrices(qep->st,&ctx->d);CHKERRQ(ierr);
   ctx->d--;
   ctx->ld = ld;
-  ierr = PetscMalloc(ctx->d*ld*ld*sizeof(PetscScalar),&ctx->S);CHKERRQ(ierr);
-  ierr = PetscMemzero(ctx->S,ctx->d*ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(ld*sizeof(PetscReal),&ctx->qM);CHKERRQ(ierr);
-  ierr = PetscMalloc(ld*ld*sizeof(PetscScalar),&ctx->qK);CHKERRQ(ierr);
-  ierr = PetscMemzero(ctx->qK,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscCalloc3(ctx->d*ld*ld,&ctx->S,ld,&ctx->qM,ld*ld,&ctx->qK);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -491,9 +487,9 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     ierr = MatDestroy(&M);CHKERRQ(ierr);
   }
   lwa = 9*ld*ld+5*ld;
-  ierr = PetscMalloc(lwa*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc1(lwa,&work);CHKERRQ(ierr);
   lrwa = 8*ld;
-  ierr = PetscMalloc(lrwa*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+  ierr = PetscMalloc1(lrwa,&rwork);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
   if (qep->nini==0) {  
@@ -651,8 +647,7 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
   if (qep->nconv > 0) {
     ierr = QEPComputeVectors_Indefinite(qep);CHKERRQ(ierr);
   }
-  ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
+  ierr = PetscFree2(work,rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -783,10 +778,7 @@ PetscErrorCode QEPDestroy_STOAR(QEP qep)
   QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree(ctx->S);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->qM);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->qK);CHKERRQ(ierr);
-  ierr = PetscFree(qep->data);CHKERRQ(ierr);
+  ierr = PetscFree4(ctx->S,ctx->qM,ctx->qK,qep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPSTOARSetMonic_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPSTOARGetMonic_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -800,8 +792,9 @@ PETSC_EXTERN PetscErrorCode QEPCreate_STOAR(QEP qep)
   QEP_STOAR      *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(qep,QEP_STOAR,&ctx);CHKERRQ(ierr);
-  qep->data                      = (void*)ctx;
+  ierr = PetscNewLog(qep,&ctx);CHKERRQ(ierr);
+  qep->data = (void*)ctx;
+
   qep->ops->solve                = QEPSolve_STOAR;
   qep->ops->setup                = QEPSetUp_STOAR;
   qep->ops->setfromoptions       = QEPSetFromOptions_STOAR;

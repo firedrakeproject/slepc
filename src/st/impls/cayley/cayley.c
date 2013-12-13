@@ -394,9 +394,12 @@ PetscErrorCode STDestroy_Cayley(ST st)
 PETSC_EXTERN PetscErrorCode STCreate_Cayley(ST st)
 {
   PetscErrorCode ierr;
+  ST_CAYLEY      *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(st,ST_CAYLEY,&st->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(st,&ctx);CHKERRQ(ierr);
+  st->data = (void*)ctx;
+
   st->ops->apply           = STApply_Cayley;
   st->ops->getbilinearform = STGetBilinearForm_Cayley;
   st->ops->applytrans      = STApplyTranspose_Cayley;

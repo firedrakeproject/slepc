@@ -67,6 +67,9 @@ srcs.o := $(foreach pkg, $(pkgs), $(call concatlang,$(pkg)))
 # with-single-library=1 (default)
 $(libslepc_shared) : $(srcs.o) | $$(@D)/.DIR
 	$(call quiet,CLINKER) -shared -o $@ $^ $(SLEPC_EXTERNAL_LIB) $(PETSC_KSP_LIB)
+ifneq ($(DSYMUTIL),true)
+	$(call quiet,DSYMUTIL) $@
+endif
 
 $(libslepc_static) : obj := $(srcs.o)
 
@@ -134,6 +137,9 @@ else
 endif
 $(libslepcpkgs_shared) : $$(obj) $(libdep_true) | $(libdep_order) $$(@D)/.DIR
 	$(call quiet,CLINKER) -shared -o $@ $(obj) $(libdep) $(SLEPC_EXTERNAL_LIB)
+ifneq ($(DSYMUTIL),true)
+	$(call quiet,DSYMUTIL) $@
+endif
 
 $(OBJDIR)/%.o : %.c | $$(@D)/.DIR
 	$(PETSC_COMPILE.c) $< -o $@

@@ -118,8 +118,7 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
   }
 #endif
 
-  ierr = PetscFree(work0);CHKERRQ(ierr);
-  ierr = PetscFree(bx);CHKERRQ(ierr);
+  ierr = PetscFree2(work0,bx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -210,8 +209,7 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
   }
 #endif
 
-  ierr = PetscFree(work0);CHKERRQ(ierr);
-  ierr = PetscFree(bx);CHKERRQ(ierr);
+  ierr = PetscFree2(work0,bx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
