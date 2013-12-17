@@ -255,7 +255,7 @@ PetscErrorCode STComputeScaleFactors(ST st)
 {
   PetscErrorCode ierr;
   PetscBool      has=PETSC_TRUE,hast;
-  PetscReal      norm0,norm1,norm;
+  PetscReal      norm0,norm1;
   PetscInt       i;
 
   PetscFunctionBegin;
@@ -268,12 +268,10 @@ PetscErrorCode STComputeScaleFactors(ST st)
       ierr = MatNorm(st->T[0],NORM_INFINITY,&norm0);CHKERRQ(ierr);
       ierr = MatNorm(st->T[st->nmat-1],NORM_INFINITY,&norm1);CHKERRQ(ierr);
       st->gamma = PetscPowReal(norm0/norm1,1.0/(st->nmat-1));
-      ierr = MatNorm(st->T[st->nmat-2],NORM_INFINITY,&norm1);CHKERRQ(ierr);
-      for (i=st->nmat-3;i>1;i--) {
-        ierr = MatNorm(st->T[i],NORM_INFINITY,&norm);CHKERRQ(ierr);
-        norm1 = norm1*st->gamma+norm;
-      }
-      st->delta = (st->nmat-1)/(norm0+norm1*st->gamma);
+      if (st->nmat==3) {
+        ierr = MatNorm(st->T[st->nmat-2],NORM_INFINITY,&norm1);CHKERRQ(ierr);
+        st->delta = (st->nmat-1)/(norm0+norm1*st->gamma);
+      } else st->delta = 1.0;
     } else {
       st->gamma = 1.0;
       st->delta = 1.0;
