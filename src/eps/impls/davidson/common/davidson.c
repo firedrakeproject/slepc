@@ -360,7 +360,8 @@ PetscErrorCode EPSReset_XD(EPS eps)
   if (data->size_wV > 0) {
     ierr = VecDestroyVecs(data->size_wV,&data->wV);CHKERRQ(ierr);
   }
-  ierr = PetscFree2(data->wS,eps->perm);CHKERRQ(ierr);
+  ierr = PetscFree(data->wS);CHKERRQ(ierr);
+  ierr = PetscFree(eps->perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

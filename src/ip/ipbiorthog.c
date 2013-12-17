@@ -38,21 +38,15 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
 #else
   PetscErrorCode ierr;
   PetscBLASInt   j,ione=1,lwork,info,n=n_;
-  PetscScalar    shh[100],*lhh,*vw,*tau,one=1.0,*work;
+  PetscScalar    *lhh,*vw,*tau,one=1.0,*work;
 
   PetscFunctionBegin;
-  /* Don't allocate small arrays */
-  if (n<=100) lhh = shh;
-  else {
-    ierr = PetscMalloc1(n,&lhh);CHKERRQ(ierr);
-  }
-  ierr = PetscMalloc1(n*n,&vw);CHKERRQ(ierr);
+  lwork = n;
+  ierr = PetscMalloc4(n,&lhh,n*n,&vw,n,&tau,lwork,&work);CHKERRQ(ierr);
 
   for (j=0;j<n;j++) {
     ierr = IPMInnerProduct(ip,V[j],n,W,vw+j*n);CHKERRQ(ierr);
   }
-  lwork = n;
-  ierr = PetscMalloc2(n,&tau,lwork,&work);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgelqf",LAPACKgelqf_(&n,&n,vw,&n,tau,work,&lwork,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
@@ -73,8 +67,7 @@ static PetscErrorCode IPCGSBiOrthogonalization(IP ip,PetscInt n_,Vec *V,Vec *W,V
   /* compute norm of v */
   if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
 
-  if (n>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
-  ierr = PetscFree3(vw,tau,work);CHKERRQ(ierr);
+  ierr = PetscFree4(lhh,vw,tau,work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }

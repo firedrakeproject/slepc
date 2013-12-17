@@ -299,9 +299,8 @@ PetscErrorCode QEPSolve_TOAR(QEP qep)
   ld = qep->ncv+2;
   lds = 2*ld;
   lwa = 9*ld*ld+5*ld;
-  ierr = PetscMalloc1(lwa,&work);CHKERRQ(ierr);
   lrwa = 8*ld;
-  ierr = PetscCalloc2(lrwa,&rwork,2*ld*ld,&S);CHKERRQ(ierr);
+  ierr = PetscCalloc3(lwa,&work,lrwa,&rwork,2*ld*ld,&S);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(qep->ds,&ldds);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */

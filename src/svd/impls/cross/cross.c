@@ -72,8 +72,7 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
     ierr = VecDuplicate(d,&cross->diag);CHKERRQ(ierr);
     ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
     ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
-    ierr = PetscMalloc(sizeof(PetscScalar)*N,&work1);CHKERRQ(ierr);
-    ierr = PetscMalloc(sizeof(PetscScalar)*N,&work2);CHKERRQ(ierr);
+    ierr = PetscMalloc2(N,&work1,N,&work2);CHKERRQ(ierr);
     for (i=0;i<n;i++) work1[i] = work2[i] = 0.0;
     if (svd->AT) {
       ierr = MatGetOwnershipRange(svd->AT,&start,&end);CHKERRQ(ierr);

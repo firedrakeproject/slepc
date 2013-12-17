@@ -975,13 +975,17 @@ PetscErrorCode DSReset(DS ds)
   ds->m        = 0;
   ds->k        = 0;
   for (i=0;i<DS_NUM_MAT;i++) {
-    ierr = PetscFree2(ds->mat[i],ds->rmat[i]);CHKERRQ(ierr);
+    ierr = PetscFree(ds->mat[i]);CHKERRQ(ierr);
+    ierr = PetscFree(ds->rmat[i]);CHKERRQ(ierr);
   }
   for (i=0;i<ds->nf;i++) {
     ierr = FNDestroy(&ds->f[i]);CHKERRQ(ierr);
   }
   ds->nf            = 0;
-  ierr = PetscFree4(ds->perm,ds->work,ds->rwork,ds->iwork);CHKERRQ(ierr);
+  ierr = PetscFree(ds->perm);CHKERRQ(ierr);
+  ierr = PetscFree(ds->work);CHKERRQ(ierr);
+  ierr = PetscFree(ds->rwork);CHKERRQ(ierr);
+  ierr = PetscFree(ds->iwork);CHKERRQ(ierr);
   ds->lwork         = 0;
   ds->lrwork        = 0;
   ds->liwork        = 0;
