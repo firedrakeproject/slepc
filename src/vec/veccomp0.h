@@ -81,8 +81,7 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
     PetscFunctionReturn(0);
   }
 
-  ierr = PetscMalloc(sizeof(PetscScalar)*n,&work0);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(Vec)*n,&bx);CHKERRQ(ierr);
+  ierr = PetscMalloc2(n,&work0,n,&bx);CHKERRQ(ierr);
 
 #if defined(__WITH_MPI__)
   if (as->x[0]->ops->mdot_local) {
@@ -172,8 +171,7 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
     PetscFunctionReturn(0);
   }
 
-  ierr = PetscMalloc(sizeof(PetscScalar)*n,&work0);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(Vec)*n,&bx);CHKERRQ(ierr);
+  ierr = PetscMalloc2(n,&work0,n,&bx);CHKERRQ(ierr);
 
 #if defined(__WITH_MPI__)
   if (as->x[0]->ops->mtdot_local) {

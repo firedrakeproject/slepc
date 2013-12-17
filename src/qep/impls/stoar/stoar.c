@@ -487,9 +487,8 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     ierr = MatDestroy(&M);CHKERRQ(ierr);
   }
   lwa = 9*ld*ld+5*ld;
-  ierr = PetscMalloc1(lwa,&work);CHKERRQ(ierr);
   lrwa = 8*ld;
-  ierr = PetscMalloc1(lrwa,&rwork);CHKERRQ(ierr);
+  ierr = PetscMalloc2(lwa,&work,lrwa,&rwork);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
   if (qep->nini==0) {  
@@ -778,7 +777,8 @@ PetscErrorCode QEPDestroy_STOAR(QEP qep)
   QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree4(ctx->S,ctx->qM,ctx->qK,qep->data);CHKERRQ(ierr);
+  ierr = PetscFree3(ctx->S,ctx->qM,ctx->qK);CHKERRQ(ierr);
+  ierr = PetscFree(qep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPSTOARSetMonic_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPSTOARGetMonic_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
