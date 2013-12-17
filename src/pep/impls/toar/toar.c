@@ -45,7 +45,6 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PetscBool      sinv;
-  ST             st;
 
   PetscFunctionBegin;
   if (pep->ncv) { /* ncv set */
@@ -72,8 +71,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ierr = DSSetType(pep->ds,DSNHEP);CHKERRQ(ierr);
   ierr = DSSetExtraRow(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(pep->ds,pep->ncv+1);CHKERRQ(ierr);
-  ierr = PEPGetST(pep,&st);CHKERRQ(ierr);
-  ierr = STSetUp(st);CHKERRQ(ierr);
+  ierr = STSetUp(pep->st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
