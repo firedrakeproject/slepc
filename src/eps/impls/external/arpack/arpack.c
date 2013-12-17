@@ -304,7 +304,10 @@ PetscErrorCode EPSReset_ARPACK(EPS eps)
   EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree4(ar->workev,ar->workl,ar->select,ar->workd);CHKERRQ(ierr);
+  ierr = PetscFree(ar->workev);CHKERRQ(ierr);
+  ierr = PetscFree(ar->workl);CHKERRQ(ierr);
+  ierr = PetscFree(ar->select);CHKERRQ(ierr);
+  ierr = PetscFree(ar->workd);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(ar->rwork);CHKERRQ(ierr);
 #endif

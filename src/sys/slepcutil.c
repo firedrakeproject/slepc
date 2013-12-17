@@ -124,8 +124,7 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   ierr = MatSeqAIJSetPreallocation(G,0,nnz);CHKERRQ(ierr);
   ierr = PetscFree(nnz);CHKERRQ(ierr);
 
-  ierr = PetscMalloc(sizeof(PetscScalar)*PetscMax(N1,N2),&buf);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscInt)*PetscMax(N1,N2),&scols);CHKERRQ(ierr);
+  ierr = PetscMalloc2(PetscMax(N1,N2),&buf,PetscMax(N1,N2),&scols);CHKERRQ(ierr);
   /* Transfer A */
   if (a!=0.0) {
     for (i=0;i<M1;i++) {
@@ -204,17 +203,13 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   MPI_Comm_size(PetscObjectComm((PetscObject)G),&np);
   ierr = MatGetOwnershipRangesColumn(A,&mapptr1);CHKERRQ(ierr);
   ierr = MatGetOwnershipRangesColumn(B,&mapptr2);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscInt)*N1,&map1);CHKERRQ(ierr);
+  ierr = PetscMalloc4(PetscMax(N1,N2),&buf,PetscMax(N1,N2),&scols,N1,&map1,N2,&map2);CHKERRQ(ierr);
   for (p=0;p<np;p++) {
     for (i=mapptr1[p];i<mapptr1[p+1];i++) map1[i] = i+mapptr2[p];
   }
-  ierr = PetscMalloc(sizeof(PetscInt)*N2,&map2);CHKERRQ(ierr);
   for (p=0;p<np;p++) {
     for (i=mapptr2[p];i<mapptr2[p+1];i++) map2[i] = i+mapptr1[p+1];
   }
-
-  ierr = PetscMalloc(sizeof(PetscScalar)*PetscMax(N1,N2),&buf);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscInt)*PetscMax(N1,N2),&scols);CHKERRQ(ierr);
 
   ierr = MatPreallocateInitialize(PetscObjectComm((PetscObject)G),m1+m2,n1+n2,dnz,onz);CHKERRQ(ierr);
   ierr = MatGetOwnershipRange(G,&gstart,NULL);CHKERRQ(ierr);
