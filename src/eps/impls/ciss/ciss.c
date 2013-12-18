@@ -554,46 +554,33 @@ static PetscErrorCode ProjectMatrix(Mat A,Mat B,PetscInt nv,PetscInt ld,Vec *Q,P
 
   PetscFunctionBegin;
 
-  if(B != NULL){
-    if (isherm) {
-      for (j=0;j<nv;j++) {
+  if (isherm) {
+    for (j=0;j<nv;j++) {
+      if(B != NULL){
 	ierr = MatMult(B,Q[j],w);CHKERRQ(ierr);
 	ierr = VecMDot(w,j+1,Q,PB+j*ld);CHKERRQ(ierr);
-	ierr = MatMult(A,Q[j],w);CHKERRQ(ierr);
-	ierr = VecMDot(w,j+1,Q,PA+j*ld);CHKERRQ(ierr);
-	for (i=0;i<j+1;i++) PA[i+j*ld]-= center*PB[i+j*ld];
-	for (i=0;i<j;i++)
-	  PB[j+i*ld] = PetscConj(PB[i+j*ld]);
-	  PA[j+i*ld] = PetscConj(PA[i+j*ld]);
+      } else {
+	ierr = VecMDot(Q[j],j+1,Q,PB+j*ld);CHKERRQ(ierr);
       }
-    } else {
-      for (j=0;j<nv;j++) {
-	ierr = MatMult(B,Q[j],w);CHKERRQ(ierr);
-	ierr = VecMDot(w,nv,Q,PB+j*ld);CHKERRQ(ierr);
-	ierr = MatMult(A,Q[j],w);CHKERRQ(ierr);
-	ierr = VecMDot(w,nv,Q,PA+j*ld);CHKERRQ(ierr);
-	for (i=0;i<nv;i++) PA[i+j*ld]-= center*PB[i+j*ld];
+      ierr = MatMult(A,Q[j],w);CHKERRQ(ierr);
+      ierr = VecMDot(w,j+1,Q,PA+j*ld);CHKERRQ(ierr);
+      for (i=0;i<j+1;i++) PA[i+j*ld]-= center*PB[i+j*ld];
+      for (i=0;i<j;i++){
+	PB[j+i*ld] = PetscConj(PB[i+j*ld]);
+	PA[j+i*ld] = PetscConj(PA[i+j*ld]);
       }
     }
-  }
-  else{
-    if (isherm) {
-      for (j=0;j<nv;j++) {
-	ierr = VecMDot(Q[j],j+1,Q,PB+j*ld);CHKERRQ(ierr);
-	ierr = MatMult(A,Q[j],w);CHKERRQ(ierr);
-	ierr = VecMDot(w,j+1,Q,PA+j*ld);CHKERRQ(ierr);
-	for (i=0;i<j+1;i++) PA[i+j*ld]-= center*PB[i+j*ld];
-	for (i=0;i<j;i++)
-	  PB[j+i*ld] = PetscConj(PB[i+j*ld]);
-	  PA[j+i*ld] = PetscConj(PA[i+j*ld]);
-      }
-    } else {
-      for (j=0;j<nv;j++) {
+  } else {
+    for (j=0;j<nv;j++) {
+      if(B != NULL){
+	ierr = MatMult(B,Q[j],w);CHKERRQ(ierr);
+	ierr = VecMDot(w,nv,Q,PB+j*ld);CHKERRQ(ierr);
+      } else {
 	ierr = VecMDot(Q[j],nv,Q,PB+j*ld);CHKERRQ(ierr);
-	ierr = MatMult(A,Q[j],w);CHKERRQ(ierr);
-	ierr = VecMDot(w,nv,Q,PA+j*ld);CHKERRQ(ierr);
-	for (i=0;i<nv;i++) PA[i+i*ld]-= center*PB[i+j*ld];
       }
+      ierr = MatMult(A,Q[j],w);CHKERRQ(ierr);
+      ierr = VecMDot(w,nv,Q,PA+j*ld);CHKERRQ(ierr);
+      for (i=0;i<nv;i++) PA[i+j*ld]-= center*PB[i+j*ld];
     }
   }
   PetscFunctionReturn(0);
@@ -679,7 +666,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (ctx->isreal && PetscImaginaryPart(ctx->center) == 0.0) ctx->useconj = PETSC_TRUE;
   else ctx->useconj = PETSC_FALSE;
 
-  if (!ctx->delta) ctx->delta = PetscMin((eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL*1e-1:eps->tol*1e-1),1e-12);
 
   if (!ctx->vscale) {
     if (eps->ishermitian && (eps->ispositive || !eps->isgeneralized) && PetscImaginaryPart(ctx->center) == 0.0) ctx->vscale = 0.1;
@@ -745,7 +731,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   Mat            A,B;
   PetscInt       i,ld,nmat,L_add=0,nv,L_base=ctx->L,inner,outer,nlocal;
   PetscScalar    *Mu,*H0,*H1,*rr,*pX,*temp;
-  PetscReal      error,max_error,tempr;
+  PetscReal      error,max_error;
   PetscBool      *fl1,*fl2;
   Vec            w=eps->work[0];
 
@@ -841,9 +827,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
 
     for (i=0;i<nv;i++) {
-      eps->eigr[i]=ctx->center + eps->eigr[i];
+      eps->eigr[i]+=ctx->center;
     }
-    
+
     ierr = PetscMalloc(nv*sizeof(PetscBool),&fl1);CHKERRQ(ierr);
     ierr = PetscMalloc(nv*sizeof(PetscBool),&fl2);CHKERRQ(ierr);
     ierr = isGhost(eps,ld,nv,fl1);CHKERRQ(ierr);
@@ -860,7 +846,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = DSSetEigenvalueComparison(eps->ds,SlepcCompareLargestMagnitude,NULL);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eps->eigr,NULL,rr,NULL,&eps->nconv);CHKERRQ(ierr);
     for (i=0;i<nv;i++) {
-      eps->eigr[i]=ctx->center + eps->eigr[i];
+      eps->eigr[i]+=ctx->center;
     }
     ierr = DSSetEigenvalueComparison(eps->ds,eps->comparison,eps->comparisonctx);CHKERRQ(ierr);
     ierr = PetscFree(rr);CHKERRQ(ierr);
@@ -884,11 +870,13 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 
     if (max_error <= eps->tol || outer == ctx->refine_outer) break;
 
-    if(nv<ctx->L) nv=ctx->L;
+    if(eps->nconv > ctx->L) nv = eps->nconv;
+    else if(ctx->L > nv) nv = ctx->L;
     ierr = PetscMalloc(ctx->L*nv*sizeof(PetscScalar),&temp);CHKERRQ(ierr);
     for (i=0;i<ctx->L*nv;i++) {
-      ierr = PetscRandomGetValueReal(eps->rand,&tempr);CHKERRQ(ierr);
-      temp[i] = 2*tempr-1;
+      ierr = PetscRandomGetValue(eps->rand,&temp[i]);CHKERRQ(ierr);
+      if (PetscRealPart(temp[i]) < 0.5) temp[i] = -1.0;
+      else temp[i] = 1.0;
     }
     ierr = SlepcUpdateVectors(nv,ctx->V,0,ctx->L,temp,nv,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PetscFree(temp);CHKERRQ(ierr);
