@@ -72,15 +72,6 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ierr = DSSetExtraRow(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(pep->ds,pep->ncv+1);CHKERRQ(ierr);
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
-/* //// */
-{
-PetscBool balance=PETSC_FALSE;
-PetscReal w=1.0;
-ierr = PetscOptionsGetBool(NULL,"-balance",&balance,NULL);CHKERRQ(ierr);
-ierr = PetscOptionsGetReal(NULL,"-w",&w,NULL);CHKERRQ(ierr);
-ierr = PEPSetBalance(pep,balance,PETSC_DECIDE,w);CHKERRQ(ierr);
-}
-/* //// */
   PetscFunctionReturn(0);
 }
 

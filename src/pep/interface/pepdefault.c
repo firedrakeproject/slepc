@@ -342,5 +342,6 @@ PetscErrorCode PEPBuildBalance(PEP pep)
   ierr = PetscFree(rsum);CHKERRQ(ierr);
   ierr = PetscFree(aux);CHKERRQ(ierr);
   ierr = PetscFree(csum);CHKERRQ(ierr);
+  ierr = PetscFree(T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

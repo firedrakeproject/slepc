@@ -163,6 +163,11 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       }
     } else type = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
+    if (pep->balance) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,", with its=%D",pep->balance_its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," and w=%G\n",pep->balance_w);CHKERRQ(ierr);
+    }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = SlepcSNPrintfScalar(str,50,pep->target,PETSC_FALSE);CHKERRQ(ierr);
     if (!pep->which) {

@@ -74,6 +74,12 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PetscOptionsReal("-pep_scale","Scale factor","PEPSetScaleFactor",pep->sfactor,&r,NULL);CHKERRQ(ierr);
     ierr = PEPSetScaleFactor(pep,r);CHKERRQ(ierr);
 
+    ierr = PetscOptionsBool("-pep_balance","Enable diagonal scaling (balancing)","PEPSetBalance",pep->balance,&pep->balance,NULL);CHKERRQ(ierr);
+    r = j = 0;
+    ierr = PetscOptionsInt("-pep_balance_its","Number of iterations in balancing","PEPSetBalance",pep->balance_its,&j,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-pep_balance_w","Estimate of eigenvalue (modulus) for balancing","PEPSetBalance",pep->balance_w,&r,NULL);CHKERRQ(ierr);
+    ierr = PEPSetBalance(pep,pep->balance,j,r);CHKERRQ(ierr);
+
     r = i = 0;
     ierr = PetscOptionsInt("-pep_max_it","Maximum number of iterations","PEPSetTolerances",pep->max_it,&i,NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-pep_tol","Tolerance","PEPSetTolerances",pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:pep->tol,&r,NULL);CHKERRQ(ierr);
