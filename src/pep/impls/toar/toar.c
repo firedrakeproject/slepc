@@ -72,6 +72,15 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ierr = DSSetExtraRow(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(pep->ds,pep->ncv+1);CHKERRQ(ierr);
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
+/* //// */
+{
+PetscBool balance=PETSC_FALSE;
+PetscReal w=1.0;
+ierr = PetscOptionsGetBool(NULL,"-balance",&balance,NULL);CHKERRQ(ierr);
+ierr = PetscOptionsGetReal(NULL,"-w",&w,NULL);CHKERRQ(ierr);
+ierr = PEPSetBalance(pep,balance,PETSC_DECIDE,w);CHKERRQ(ierr);
+}
+/* //// */
   PetscFunctionReturn(0);
 }
 
@@ -140,6 +149,43 @@ static PetscErrorCode PEPTOAROrth2(PetscScalar *S,PetscInt ld,PetscInt deg,Petsc
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPTOARApplyOp"
+/*
+  Apply the matrix operator over a vector which is decomposed 
+   on the TOAR way 
+*/
+static PetscErrorCode PEPTOARApplyOp(PEP pep,PetscScalar *S,PetscInt ld,PetscInt nv,Vec *V,Vec t,Vec *t_,PetscInt nwv)
+{
+  PetscErrorCode ierr;
+  PetscInt       deg=pep->nmat-1,i;
+  Vec            v=t_[0],q=t_[1];  
+
+  PetscFunctionBegin;
+  if (!t_||nwv<2) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
+  ierr = VecZeroEntries(v);CHKERRQ(ierr);
+  ierr = VecMAXPY(v,nv,S,V);CHKERRQ(ierr);
+  if (pep->Dr) { /* Balancing */
+    ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
+  }
+  ierr = STMatMult(pep->st,0,v,q);CHKERRQ(ierr);
+  for (i=1;i<deg;i++) {
+    ierr = VecZeroEntries(v);CHKERRQ(ierr);
+    ierr = VecMAXPY(v,nv,S+i*ld,V);CHKERRQ(ierr);
+    if (pep->Dr) { /* Balancing */
+      ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
+    }
+    ierr = STMatMult(pep->st,i,v,t);CHKERRQ(ierr);
+    ierr = VecAXPY(q,1.0,t);CHKERRQ(ierr);
+  }
+  ierr = STMatSolve(pep->st,deg,q,t);CHKERRQ(ierr);
+  ierr = VecScale(t,-1.0);CHKERRQ(ierr);
+  if (pep->Dr) { /* Balancing */
+    ierr = VecPointwiseDivide(t,t,pep->Dr);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPTOARrun"
 /*
   Compute a run of Arnoldi iterations
@@ -149,7 +195,7 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar *S,PetscInt ld,PetscScalar 
   PetscErrorCode ierr;
   PetscInt       i,j,p,m=*M,nwu=0,lwa,deg=pep->nmat-1;
   PetscInt       lds=ld*deg;
-  Vec            v=t_[0],t=t_[1],q=t_[2];
+  Vec            t=t_[0];
   PetscReal      norm;
 
   PetscFunctionBegin;
@@ -158,17 +204,7 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar *S,PetscInt ld,PetscScalar 
   if (!work||nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
   for (j=k;j<m;j++) {
     /* apply operator */
-    ierr = VecZeroEntries(v);CHKERRQ(ierr);
-    ierr = VecMAXPY(v,j+deg,S+j*lds,V);CHKERRQ(ierr);
-    ierr = STMatMult(pep->st,0,v,q);CHKERRQ(ierr);
-    for (i=1;i<deg;i++) {
-      ierr = VecZeroEntries(v);CHKERRQ(ierr);
-      ierr = VecMAXPY(v,j+deg,S+i*ld+j*lds,V);CHKERRQ(ierr);
-      ierr = STMatMult(pep->st,i,v,t);CHKERRQ(ierr);
-      ierr = VecAXPY(q,1.0,t);CHKERRQ(ierr);
-    }
-    ierr = STMatSolve(pep->st,deg,q,t);CHKERRQ(ierr);
-    ierr = VecScale(t,-1.0);CHKERRQ(ierr);
+    ierr = PEPTOARApplyOp(pep,S+j*lds,ld,j+deg,V,t,t_+1,2);CHKERRQ(ierr);
     
     /* orthogonalize */
     ierr = IPOrthogonalize(pep->ip,0,NULL,j+deg,NULL,pep->V,t,S+(deg-1)*ld+(j+1)*lds,&norm,breakdown);CHKERRQ(ierr);
@@ -456,20 +492,22 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     pep->nconv = k;
     ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
   }
+  if (pep->nconv>0) {
   /* Extract invariant pair */
   /* ////////////////////////// */
-  {PetscBool ext=PETSC_FALSE;
-  ierr = PetscOptionsGetBool(NULL,"-extraction",&ext,NULL);CHKERRQ(ierr);
-  ierr = PEPTOARTrunc(pep,S,ld,deg,nv+deg,pep->nconv,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
-  if (ext) {
+    {PetscBool ext=PETSC_FALSE;
+    ierr = PetscOptionsGetBool(NULL,"-extraction",&ext,NULL);CHKERRQ(ierr);
+    ierr = PEPTOARTrunc(pep,S,ld,deg,nv+deg,pep->nconv,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+    if (ext) {
   /* /////////////////////////// */
-  ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-  ierr = PEPExtractInvariantPair(pep->nconv,S,ld,deg,H,ldds,work+nwu,lwa-nwu);CHKERRQ(ierr);
-  ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-  }}/* ///////////////// */
+      ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+      ierr = PEPExtractInvariantPair(pep->nconv,S,ld,deg,H,ldds,work+nwu,lwa-nwu);CHKERRQ(ierr);
+      ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+    }
+    }/* ///////////////// */
   /* Update vectors V = V*S */    
-  ierr = SlepcUpdateVectors(pep->nconv+deg-1,pep->V,0,pep->nconv,S,lds,PETSC_FALSE);CHKERRQ(ierr);
-
+    ierr = SlepcUpdateVectors(pep->nconv+deg-1,pep->V,0,pep->nconv,S,lds,PETSC_FALSE);CHKERRQ(ierr);
+  }
   for (j=0;j<pep->nconv;j++) {
     pep->eigr[j] *= pep->sfactor;
     pep->eigi[j] *= pep->sfactor;

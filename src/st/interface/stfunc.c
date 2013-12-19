@@ -294,6 +294,35 @@ PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "STGetTOperators"
+/*@
+   STGetTOperators - Gets the matrices associated with the transformed eigensystem.
+
+   Not collective, though parallel Mats are returned if the ST is parallel
+
+   Input Parameter:
++  st - the spectral transformation context
+-  k  - the index of the requested matrix (starting in 0)
+
+   Output Parameters:
+.  T - the requested matrix
+
+   Level: developer
+
+.seealso: STGetOperators(), STGetNumMatrices()
+@*/
+PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *T)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(T,3);
+  if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat-1);
+  if (!st->T) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_POINTER,"There are no transformed matrices");
+  *T = st->T[k];
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "STGetNumMatrices"
 /*@
    STGetNumMatrices - Returns the number of matrices stored in the ST.

@@ -63,6 +63,9 @@ struct _p_PEP {
   PEPWhich       which;            /* which part of the spectrum to be sought */
   PetscBool      leftvecs;         /* if left eigenvectors are requested */
   PEPProblemType problem_type;     /* which kind of problem to be solved */
+  PetscBool      balance;          /* whether balancing must be performed*/
+  PetscInt       balance_its;      /* number of iterations of the balancing method */
+  PetscReal      balance_w;        /* norm eigenvalue approximation for balancing*/
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
@@ -74,6 +77,7 @@ struct _p_PEP {
   /*------------------------- Working data --------------------------*/
   Mat            *A;               /* coefficient matrices of the polynomial */
   PetscInt       nmat;             /* number of matrices */
+  Vec            Dl,Dr;            /* diagonal matrices for balancing */
   Vec            *V;               /* set of basis vectors and computed eigenvectors */
   Vec            *W;               /* set of left basis vectors and computed left eigenvectors */
   Vec            *IS,*ISL;         /* placeholder for references to user-provided initial space */
@@ -114,5 +118,6 @@ PETSC_INTERN PetscErrorCode PEPComputeVectors_Indefinite(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeResidualNorm_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPComputeRelativeError_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPKrylovConvergence(PEP,PetscBool,PetscInt,PetscInt,PetscInt,PetscReal,PetscInt*);
+PETSC_INTERN PetscErrorCode PEPBuildBalance(PEP);
 
 #endif

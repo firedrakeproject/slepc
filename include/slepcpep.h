@@ -110,7 +110,8 @@ PETSC_EXTERN PetscErrorCode PEPSetUp(PEP);
 PETSC_EXTERN PetscErrorCode PEPSolve(PEP);
 PETSC_EXTERN PetscErrorCode PEPView(PEP,PetscViewer);
 PETSC_EXTERN PetscErrorCode PEPPrintSolution(PEP,PetscViewer);
-
+PETSC_EXTERN PetscErrorCode PEPSetBalance(PEP,PetscBool,PetscInt,PetscReal);
+PETSC_EXTERN PetscErrorCode PEPGetBalance(PEP,PetscBool*,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPSetIP(PEP,IP);
 PETSC_EXTERN PetscErrorCode PEPGetIP(PEP,IP*);
 PETSC_EXTERN PetscErrorCode PEPSetDS(PEP,DS);

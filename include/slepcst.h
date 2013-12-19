@@ -63,6 +63,7 @@ PETSC_EXTERN PetscErrorCode STSetType(ST,STType);
 PETSC_EXTERN PetscErrorCode STGetType(ST,STType*);
 PETSC_EXTERN PetscErrorCode STSetOperators(ST,PetscInt,Mat*);
 PETSC_EXTERN PetscErrorCode STGetOperators(ST,PetscInt,Mat*);
+PETSC_EXTERN PetscErrorCode STGetTOperators(ST,PetscInt,Mat*);
 PETSC_EXTERN PetscErrorCode STGetNumMatrices(ST,PetscInt*);
 PETSC_EXTERN PetscErrorCode STSetUp(ST);
 PETSC_EXTERN PetscErrorCode STSetFromOptions(ST);

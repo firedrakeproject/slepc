@@ -805,6 +805,92 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPSetBalance"
+/*@
+   PEPSetBalance - Specifies if eigensolver performs balancing.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep    - the eigensolver context
+.  bal    - flag indicating if balancing is required
+.  its    - number of iterations of the balancing algorithm
+-  w      - approximation to wanted eigenvalues (norm)
+
+   Options Database Keys:
++  -pep_balance  - flag 
+.  -pep_balance_its <its> - number of iterations
+-  -pep_balance_lambda <w> - approximation to eigenvalues
+
+   Notes:
+   When balancing is enabled, the solver works implicitly with matrix Dr*A*Dl,
+   where Dr and Dl are appropriate diagonal matrices. This improves the accuracy
+   of the computed results in some cases.
+
+   By default, balancing is disabled and it requires MATAIJ matrices.
+
+   The parameter 'its' is the number of iterations performed by the method.
+   Parameter 'w' must be positive. Use PETSC_DECIDE or set w = 1.0 if no
+   information about eigenvalues is available.
+
+   Level: intermediate
+
+.seealso: PEPGetBalance()
+@*/
+PetscErrorCode PEPSetBalance(PEP pep,PetscBool bal,PetscInt its,PetscReal w)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveBool(pep,bal,2);
+  PetscValidLogicalCollectiveInt(pep,its,3);
+  PetscValidLogicalCollectiveReal(pep,w,4);
+  pep->balance = bal;
+  if (its) {
+    if (its==PETSC_DECIDE || its==PETSC_DEFAULT) pep->balance_its = 5;
+    else pep->balance_its = its;
+  }
+  if (w) {
+    if (w==PETSC_DECIDE || w==PETSC_DEFAULT) pep->balance_w = 1.0;
+    else if (w<0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"w must be positive");
+    else pep->balance_w = w;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPGetBalance"
+/*@
+   PEPGetBalance - Gets the balancing type used by the PEP object, and the associated
+   parameters.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigensolver context
+
+   Output Parameters:
++  bal    - flag indicating whether balancing is required or not
+.  its    - number of iterations of the balancing algorithm
+-  w      - magnitude of wanted eigenvalue
+
+   Level: intermediate
+
+   Note:
+   The user can specify NULL for any parameter that is not needed.
+
+.seealso: PEPSetBalance()
+@*/
+PetscErrorCode PEPGetBalance(PEP pep,PetscBool *bal,PetscInt *its,PetscReal *w)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  if (bal) *bal = pep->balance;
+  if (its) *its = pep->balance_its;
+  if (w)   *w   = pep->balance_w;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPSetOptionsPrefix"
 /*@C
    PEPSetOptionsPrefix - Sets the prefix used for searching for all

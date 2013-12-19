@@ -146,7 +146,20 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (pep->ncv > pep->n) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be the problem size at most");
   if (pep->nev > pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
 
-   /* Setup ST */
+ /* Build balancing matrix if required */
+  if (pep->balance) {
+    if (!pep->Dl) {
+      ierr = VecDuplicate(pep->V[0],&pep->Dl);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dl);CHKERRQ(ierr);
+    }
+    if (!pep->Dr) {
+      ierr = VecDuplicate(pep->V[0],&pep->Dr);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dr);CHKERRQ(ierr);
+    }
+    ierr = PEPBuildBalance(pep);CHKERRQ(ierr);
+  }
+
+  /* Setup ST */
   if (!islinear) {
     ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
     if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in PEP");

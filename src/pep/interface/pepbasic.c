@@ -396,6 +396,9 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->comparisonctx   = NULL;
   pep->leftvecs        = PETSC_FALSE;
   pep->problem_type    = (PEPProblemType)0;
+  pep->balance         = PETSC_FALSE;
+  pep->balance_its     = 5;
+  pep->balance_w       = 1.0;
   pep->V               = NULL;
   pep->W               = NULL;
   pep->IS              = NULL;
@@ -568,6 +571,8 @@ PetscErrorCode PEPReset(PEP pep)
   if (pep->ip) { ierr = IPReset(pep->ip);CHKERRQ(ierr); }
   if (pep->ds) { ierr = DSReset(pep->ds);CHKERRQ(ierr); }
   ierr = VecDestroy(&pep->t);CHKERRQ(ierr);
+  ierr = VecDestroy(&pep->Dl);CHKERRQ(ierr);
+  ierr = VecDestroy(&pep->Dr);CHKERRQ(ierr);
   ierr = PEPFreeSolution(pep);CHKERRQ(ierr);
   pep->matvecs     = 0;
   pep->linits      = 0;

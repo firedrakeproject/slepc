@@ -22,7 +22,6 @@
 */
 
 #include <slepc-private/pepimpl.h>     /*I "slepcpep.h" I*/
-#include <slepcblaslapack.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPReset_Default"
@@ -119,6 +118,13 @@ PetscErrorCode PEPComputeVectors_Schur(PEP pep)
   ierr = SlepcUpdateVectors(n,pep->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
   ierr = DSRestoreArray(pep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
 
+  /* Fix eigenvectors if balancing was used */
+  if (pep->balance && pep->Dr) {
+    for (i=0;i<n;i++) {
+      ierr = VecPointwiseMult(pep->V[i],pep->V[i],pep->Dr);CHKERRQ(ierr);
+    }
+  }
+
   /* normalization */
   for (i=0;i<n;i++) {
 #if !defined(PETSC_USE_COMPLEX)
@@ -183,3 +189,158 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "PEPBuildBalance"
+/*
+  PEPBuildBalance compute two diagonal matrices to be applied for balancing in plynomial eigenproblems.
+*/
+PetscErrorCode PEPBuildBalance(PEP pep)
+{
+  PetscErrorCode ierr;
+  PetscInt       it,i,j,k,nmat,nr,e,nz,lst,lend,nc=0,*cols;
+  const PetscInt *cidx,*ridx;
+  Mat            M,*T,A;
+  PetscMPIInt    emax,emin,emaxl,eminl,n;
+  PetscBool      cont=PETSC_TRUE,flg=PETSC_FALSE;
+  PetscScalar    *array,*Dr,*Dl,t;
+  PetscReal      l2,d,*rsum,*aux,*csum,w=pep->balance_w;
+  MatStructure   str;
+  MatInfo        info;
+
+  PetscFunctionBegin;
+  l2 = 2*PetscLogReal(2.0);
+  nmat = pep->nmat;
+  ierr = PetscMPIIntCast(pep->n,&n);
+  ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
+  ierr = PetscMalloc(nmat*sizeof(Mat),&T);CHKERRQ(ierr);
+  for (k=0;k<nmat;k++) {
+    ierr = STGetTOperators(pep->st,k,&T[k]);CHKERRQ(ierr);
+  }
+  /* Form local auxiliar matrix M */
+  ierr = PetscObjectTypeCompareAny((PetscObject)T[0],&cont,MATMPIAIJ,MATSEQAIJ);CHKERRQ(ierr);
+  if (!cont) SETERRQ(PetscObjectComm((PetscObject)T[0]), PETSC_ERR_SUP,"Only for MPIAIJ or SEQAIJ matrix types");
+  ierr = PetscObjectTypeCompare((PetscObject)T[0],MATMPIAIJ,&cont);CHKERRQ(ierr);
+  if (cont) {
+    ierr = MatMPIAIJGetLocalMat(T[0],MAT_INITIAL_MATRIX,&M);CHKERRQ(ierr);
+    flg = PETSC_TRUE; 
+  } else {
+    ierr = MatDuplicate(T[0],MAT_COPY_VALUES,&M);CHKERRQ(ierr);
+  }
+  ierr = MatGetInfo(M,MAT_LOCAL,&info);CHKERRQ(ierr);
+  nz = info.nz_used;
+  ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
+  for (i=0;i<nz;i++) {
+    t = PetscAbsScalar(array[i]);
+    array[i] = t*t;
+  }
+  ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);
+  for (k=1;k<nmat;k++) {
+    if (flg) {
+      ierr = MatMPIAIJGetLocalMat(T[k],MAT_INITIAL_MATRIX,&A);CHKERRQ(ierr);
+    } else {
+      if (str==SAME_NONZERO_PATTERN){
+        ierr = MatCopy(T[k],A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+      } else {
+        ierr = MatDuplicate(T[k],MAT_COPY_VALUES,&A);CHKERRQ(ierr);
+      }
+    }
+    ierr = MatGetInfo(A,MAT_LOCAL,&info);CHKERRQ(ierr);
+    nz = info.nz_used;
+    ierr = MatSeqAIJGetArray(A,&array);CHKERRQ(ierr);
+    for (i=0;i<nz;i++) {
+      t = PetscAbsScalar(array[i]);
+      array[i] = t*t;
+    }
+    ierr = MatSeqAIJRestoreArray(A,&array);CHKERRQ(ierr);
+    ierr = MatAXPY(M,w*w,A,str);CHKERRQ(ierr);
+    if (flg || str!=SAME_NONZERO_PATTERN || k==nmat-2) {
+      ierr = MatDestroy(&A);CHKERRQ(ierr);
+    } 
+    w *= pep->balance_w;
+  }
+  ierr = MatGetRowIJ(M,0,PETSC_FALSE,PETSC_FALSE,&nr,&ridx,&cidx,&cont);CHKERRQ(ierr);
+  if (!cont) SETERRQ(PetscObjectComm((PetscObject)T[0]), PETSC_ERR_SUP,"It is not possible to compute scaling diagonals to balance the PEP matrices");
+  ierr = MatGetInfo(M,MAT_LOCAL,&info);CHKERRQ(ierr);
+  nz = info.nz_used;
+  ierr = PetscMalloc(nr*sizeof(PetscReal),&rsum);CHKERRQ(ierr);
+  ierr = PetscMalloc(pep->n*sizeof(PetscReal),&csum);CHKERRQ(ierr);
+  ierr = PetscMalloc(pep->n*sizeof(PetscReal),&aux);CHKERRQ(ierr);
+  ierr = PetscMalloc(PetscMin(pep->n-lend+lst,nz)*sizeof(PetscInt),&cols);CHKERRQ(ierr);
+  ierr = VecSet(pep->Dr,1.0);CHKERRQ(ierr);
+  ierr = VecSet(pep->Dl,1.0);CHKERRQ(ierr);
+  ierr = VecGetOwnershipRange(pep->Dl,&lst,&lend);CHKERRQ(ierr);
+  ierr = VecGetArray(pep->Dl,&Dl);CHKERRQ(ierr);
+  ierr = VecGetArray(pep->Dr,&Dr);CHKERRQ(ierr);
+  ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
+  ierr = PetscMemzero(aux,pep->n*sizeof(PetscReal));CHKERRQ(ierr);
+  for (j=0;j<nz;j++) {
+    /* Search non-zero columns outsize lst-lend */
+    if ( aux[cidx[j]]==0 && (cidx[j]<lst || lend<=cidx[j]) ) cols[nc++] = cidx[j];
+    /* Local column sums */
+    aux[cidx[j]] += PetscAbsScalar(array[j]);
+  }
+  for (it=0;it<pep->balance_its && cont;it++) {
+    emaxl = 0; eminl = 0;
+    /* Columns' sum  */    
+    if (it>0) { /* it=0 has been already done*/
+      ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
+      ierr = PetscMemzero(aux,pep->n*sizeof(PetscReal));CHKERRQ(ierr);
+      for (j=0;j<nz;j++) aux[cidx[j]] += PetscAbsScalar(array[j]);
+      ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr); 
+    }
+    ierr = MPI_Allreduce(aux,csum,n,MPIU_REAL,MPI_SUM,PetscObjectComm((PetscObject)pep->Dr));
+    /* Update Dr */
+    for (j=lst;j<lend;j++) {
+      d = PetscLogReal(csum[j])/l2;
+      e = -(PetscInt)((d < 0)?(d-0.5):(d+0.5));
+      d = PetscPowReal(2,e);
+      Dr[j-lst] *= d;
+      aux[j] = d*d;
+      emaxl = PetscMax(emaxl,e);
+      eminl = PetscMin(eminl,e);
+    }
+    for (j=0;j<nc;j++) {
+      d = PetscLogReal(csum[cols[j]])/l2;
+      e = -(PetscInt)((d < 0)?(d-0.5):(d+0.5));
+      d = PetscPowReal(2,e);
+      aux[cols[j]] = d*d;
+      emaxl = PetscMax(emaxl,e);
+      eminl = PetscMin(eminl,e);
+    }
+    /* Scale M */
+    ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
+    for (j=0;j<nz;j++) {
+      array[j] *= aux[cidx[j]];
+    }
+    ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);
+    /* Row sum  */    
+    ierr = PetscMemzero(rsum,nr*sizeof(PetscReal));CHKERRQ(ierr);
+    ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
+    for (i=0;i<nr;i++) {
+      for (j=ridx[i];j<ridx[i+1];j++) rsum[i] += PetscAbsScalar(array[j]);
+      /* Update Dl */
+      d = PetscLogReal(rsum[i])/l2;
+      e = -(PetscInt)((d < 0)?(d-0.5):(d+0.5));
+      d = PetscPowReal(2,e);
+      Dl[i] *= d;
+      /* Scale M */
+      for (j=ridx[i];j<ridx[i+1];j++) array[j] *= d*d;
+      emaxl = PetscMax(emaxl,e);
+      eminl = PetscMin(eminl,e);      
+    }
+    ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);  
+    /* Compute global max and min */
+    ierr = MPI_Allreduce(&emaxl,&emax,1,MPIU_INT,MPI_MAX,PetscObjectComm((PetscObject)pep->Dl));
+    ierr = MPI_Allreduce(&eminl,&emin,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)pep->Dl));
+    if (emax<=emin+2) cont = PETSC_FALSE;
+  }
+  ierr = VecRestoreArray(pep->Dr,&Dr);CHKERRQ(ierr);
+  ierr = VecRestoreArray(pep->Dl,&Dl);CHKERRQ(ierr);
+  /* Free memory*/
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
+  ierr = PetscFree(cols);CHKERRQ(ierr);
+  ierr = PetscFree(rsum);CHKERRQ(ierr);
+  ierr = PetscFree(aux);CHKERRQ(ierr);
+  ierr = PetscFree(csum);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
