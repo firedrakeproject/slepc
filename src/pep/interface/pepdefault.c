@@ -262,13 +262,13 @@ PetscErrorCode PEPBuildBalance(PEP pep)
   if (!cont) SETERRQ(PetscObjectComm((PetscObject)T[0]), PETSC_ERR_SUP,"It is not possible to compute scaling diagonals to balance the PEP matrices");
   ierr = MatGetInfo(M,MAT_LOCAL,&info);CHKERRQ(ierr);
   nz = info.nz_used;
+  ierr = VecGetOwnershipRange(pep->Dl,&lst,&lend);CHKERRQ(ierr);
   ierr = PetscMalloc(nr*sizeof(PetscReal),&rsum);CHKERRQ(ierr);
   ierr = PetscMalloc(pep->n*sizeof(PetscReal),&csum);CHKERRQ(ierr);
   ierr = PetscMalloc(pep->n*sizeof(PetscReal),&aux);CHKERRQ(ierr);
   ierr = PetscMalloc(PetscMin(pep->n-lend+lst,nz)*sizeof(PetscInt),&cols);CHKERRQ(ierr);
   ierr = VecSet(pep->Dr,1.0);CHKERRQ(ierr);
   ierr = VecSet(pep->Dl,1.0);CHKERRQ(ierr);
-  ierr = VecGetOwnershipRange(pep->Dl,&lst,&lend);CHKERRQ(ierr);
   ierr = VecGetArray(pep->Dl,&Dl);CHKERRQ(ierr);
   ierr = VecGetArray(pep->Dr,&Dr);CHKERRQ(ierr);
   ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
