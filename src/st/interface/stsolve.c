@@ -379,9 +379,9 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
         for (i=0;i<=deg;i++) {
           matIdx[i] = t+i;
         }
-        ierr = STMatShellCreate(st,alpha,deg+1,matIdx,&st->T[k]);CHKERRQ(ierr);
+        ierr = STMatShellCreate(st,alpha,deg+1,matIdx,NULL,&st->T[k]);CHKERRQ(ierr);
       } else {
-        ierr = STMatShellCreate(st,alpha,deg,NULL,&st->T[k]);CHKERRQ(ierr);
+        ierr = STMatShellCreate(st,alpha,deg,NULL,NULL,&st->T[k]);CHKERRQ(ierr);
       }
       ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[k]);CHKERRQ(ierr);
     } else {
@@ -431,33 +431,26 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
 PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar *coeffs,PetscBool initial,Mat *S)
 {
   PetscErrorCode ierr;
-  /*PetscInt       *matIdx,idx[40],nmat,i; //// */
-  PetscInt       i;
+  PetscInt       *matIdx,nmat,i;
   PetscScalar    t=1.0,ta;
 
   PetscFunctionBegin;
-  /*nmat = st->nmat-k; */
+  nmat = st->nmat-k;
   switch (st->shift_matrix) {
   case ST_MATMODE_INPLACE:
     SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for polynomial eigenproblems");
     break;
   case ST_MATMODE_SHELL:
-    SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_SHELL not supported for polynomial eigenproblems");
-    break;
-#if 0
     if (initial) {
-      if (nmat>40) {
-        ierr = PetscMalloc(nmat*sizeof(PetscInt),&matIdx);CHKERRQ(ierr);
-      } else matIdx = idx;
-      for (i=k;i<st->nmat;i++) matIdx[i] = i;
+      ierr = PetscMalloc(nmat*sizeof(PetscInt),&matIdx);CHKERRQ(ierr);
+      for (i=0;i<nmat;i++) matIdx[i] = k+i;
       ierr = STMatShellCreate(st,alpha,st->nmat-k,matIdx,coeffs,S);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
-      if (nmat>40) PetscFree(matIdx);
+      ierr = PetscFree(matIdx);CHKERRQ(ierr);
     } else {
       ierr = STMatShellShift(st->T[k],alpha);CHKERRQ(ierr);
     }
     break;
-#endif
   default:
     ierr = MatDestroy(S);CHKERRQ(ierr);
     if (alpha == 0.0) {
