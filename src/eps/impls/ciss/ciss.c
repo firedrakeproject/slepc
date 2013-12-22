@@ -399,7 +399,9 @@ static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
   ierr = PetscMalloc(3*ml*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(5*ml*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
   m = ml; n = m; lda = m; lwork = 3*m;
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   zgesvd_(&jobu,&jobvt,&m,&n,S,&lda,ctx->sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   (*K) = 0;
   for (i=0;i<ml;i++) {
     if (ctx->sigma[i]/PetscMax(ctx->sigma[0],1)>ctx->delta) (*K)++;
@@ -463,7 +465,7 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
   PetscReal      *rwork;
   PetscScalar    *work, *temp, *B, *tempB, *s_data, *Q1, *Q2, *temp2;
   PetscScalar    alpha = 1,beta = 0;
-  char           jobu,jobvt,transa,transb;
+  char           jobu,jobvt;
   PetscBLASInt   l,m,n,lda,ldu,ldvt,lwork,info,ldb,ldc;
 
   PetscFunctionBegin;
@@ -478,6 +480,7 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
   ierr = PetscMalloc(3*ml*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(5*ml*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
   ierr = PetscMalloc(ml*ml*sizeof(PetscScalar),&tempB);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 
   for (i=0;i<ml;i++) {
     B[i*ml+i]=1;
@@ -485,13 +488,12 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
 
   for (k=0;k<2;k++) {
     m = (PetscBLASInt)local_size; l = (PetscBLASInt)ml; n = l; lda = m; ldb = m; ldc = l;
-    transa = 'C'; transb = 'N';
     if (k == 0) {
-      zgemm_(&transa,&transb,&l,&n,&m,&alpha,s_data,&lda,s_data,&ldb,&beta,temp,&ldc);
-    } else if((k%2)==1) {
-      zgemm_(&transa,&transb,&l,&n,&m,&alpha,Q1,&lda,Q1,&ldb,&beta,temp,&ldc);
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,s_data,&lda,s_data,&ldb,&beta,temp,&ldc));
+    } else if ((k%2)==1) {
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,Q1,&lda,Q1,&ldb,&beta,temp,&ldc));
     } else {
-      zgemm_(&transa,&transb,&l,&n,&m,&alpha,Q2,&lda,Q2,&ldb,&beta,temp,&ldc);
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,Q2,&lda,Q2,&ldb,&beta,temp,&ldc));
     }
     ierr = PetscMemzero(temp2,ml*ml*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = MPI_Allreduce(temp,temp2,ml*ml,MPIU_SCALAR,MPIU_SUM,(PetscObjectComm((PetscObject)S[0])));CHKERRQ(ierr);
@@ -500,19 +502,17 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
     m = (PetscBLASInt)ml; n = m; lda = m; lwork = 3*m, ldu = 1; ldvt = 1;
     zgesvd_(&jobu,&jobvt,&m,&n,temp2,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info);
 
-    transa = 'N', transb = 'N';
     l = (PetscBLASInt)local_size; n = (PetscBLASInt)ml; m = n; lda = l; ldb = m; ldc = l;
     if (k==0) {
-      zgemm_(&transa,&transb,&l,&n,&m,&alpha,s_data,&lda,temp2,&ldb,&beta,Q1,&ldc);
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,s_data,&lda,temp2,&ldb,&beta,Q1,&ldc));
     } else if((k%2)==1) {
-      zgemm_(&transa,&transb,&l,&n,&m,&alpha,Q1,&lda,temp2,&ldb,&beta,Q2,&ldc);
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,Q1,&lda,temp2,&ldb,&beta,Q2,&ldc));
     } else {
-      zgemm_(&transa,&transb,&l,&n,&m,&alpha,Q2,&lda,temp2,&ldb,&beta,Q1,&ldc);
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,Q2,&lda,temp2,&ldb,&beta,Q1,&ldc));
     }
 
-    transa = 'N', transb = 'N';
     l = (PetscBLASInt)ml; m = l; n = l; lda = l; ldb = m; ldc = l;
-    zgemm_(&transa,&transb,&l,&n,&m,&alpha,B,&lda,temp2,&ldb,&beta,tempB,&ldc);
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,B,&lda,temp2,&ldb,&beta,tempB,&ldc));
     for (i=0;i<ml;i++) {
       sigma[i] = sqrt(sigma[i]);
       for (j=0;j<local_size;j++) {
@@ -528,13 +528,14 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
   jobu='N' ,jobvt='O'; m = ml; n = m; lda = m; ldu=1; ldvt=1;
   zgesvd_(&jobu,&jobvt,&m,&n,B,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info);
 
-  transa = 'N', transb = 'T'; l = (PetscBLASInt)local_size; n = (PetscBLASInt)ml; m = n; lda = l; ldb = m; ldc = l;
+  l = (PetscBLASInt)local_size; n = (PetscBLASInt)ml; m = n; lda = l; ldb = m; ldc = l;
   if ((k%2)==1) {
-    zgemm_(&transa,&transb,&l,&n,&m,&alpha,Q1,&lda,B,&ldb,&beta,s_data,&ldc);
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","T",&l,&n,&m,&alpha,Q1,&lda,B,&ldb,&beta,s_data,&ldc));
   } else {
-    zgemm_(&transa,&transb,&l,&n,&m,&alpha,Q2,&lda,B,&ldb,&beta,s_data,&ldc);
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","T",&l,&n,&m,&alpha,Q2,&lda,B,&ldb,&beta,s_data,&ldc));
   }
  
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = VecRestoreArray(S[0],&s_data);CHKERRQ(ierr);
   ierr = PetscFree(temp2);CHKERRQ(ierr);
   ierr = PetscFree(Q1);CHKERRQ(ierr);
