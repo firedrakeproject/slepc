@@ -145,7 +145,7 @@ static PetscErrorCode CISSScatterVec(EPS eps)
   PetscFunctionBegin;
   ierr = MPI_Comm_rank(ctx->subcomm->comm,&subrank);CHKERRQ(ierr);
   ierr = MPI_Comm_size(ctx->subcomm->comm,&subsize);CHKERRQ(ierr);
-  ierr = VecGetOwnershipRanges(ctx->V[0],&range);CHKERRQ(ierr);//end index of mat A
+  ierr = VecGetOwnershipRanges(ctx->V[0],&range);CHKERRQ(ierr); /*end index of mat A*/
   rstart_sub = range[ctx->subcomm->n*subrank]; 
   if (subrank+1 < subsize) rend_sub = range[ctx->subcomm->n*(subrank+1)];
   else rend_sub = eps->n;
@@ -1463,7 +1463,7 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: threshold { delta: %G, spurious threshold: %G }\n",ctx->delta,ctx->spurious_threshold);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: iterative refinement  { inner: %D, outer: %D, blocksize: %D }\n",ctx->refine_inner,ctx->refine_outer, ctx->refine_blocksize);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    //ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
+    /*ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);*/
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
