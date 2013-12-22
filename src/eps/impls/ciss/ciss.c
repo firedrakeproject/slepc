@@ -227,7 +227,7 @@ PetscErrorCode VecScatterVecs(EPS eps,Vec *Vin,PetscInt n)
     ierr = VecScatterEnd(ctx->scatterin,Vin[i],ctx->xdup,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
     ierr = VecGetArray(ctx->xdup,&array);CHKERRQ(ierr);
     ierr = VecPlaceArray(ctx->xsub,(const PetscScalar*)array);CHKERRQ(ierr);
-    ierr = VecCopy(ctx->xsub,ctx->pV[i]);
+    ierr = VecCopy(ctx->xsub,ctx->pV[i]);CHKERRQ(ierr);
     ierr = VecResetArray(ctx->xsub);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -314,11 +314,11 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
   *L_add = (PetscInt)ceil((ctx->est_eig*eta)/ctx->M) - ctx->L;
   if (*L_add < 0) *L_add = 0;
   if (*L_add>ctx->L_max-ctx->L) {
-    ierr = PetscInfo(eps,"Number of eigenvalues around the contour path may be too large\n");
+    ierr = PetscInfo(eps,"Number of eigenvalues around the contour path may be too large\n");CHKERRQ(ierr);
     *L_add = ctx->L_max-ctx->L;
   }
-  ierr = VecDestroy(&v);
-  ierr = VecDestroy(&vtemp);
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  ierr = VecDestroy(&vtemp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -332,7 +332,7 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_size(ctx->subcomm->comm,&sub_size);
+  ierr = MPI_Comm_size(ctx->subcomm->comm,&sub_size);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->num_solve_point*ctx->L*ctx->L*sizeof(PetscScalar),&temp);CHKERRQ(ierr);
   ierr = PetscMalloc(2*ctx->M*ctx->L*ctx->L*sizeof(PetscScalar),&temp2);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->num_solve_point*sizeof(PetscScalar),&ppk);CHKERRQ(ierr);
@@ -450,7 +450,7 @@ static PetscErrorCode ConstructS(EPS eps)
     }
   }
   ierr = PetscFree(ppk);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
