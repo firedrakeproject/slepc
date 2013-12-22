@@ -138,7 +138,8 @@ static PetscErrorCode CISSScatterVec(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   IS             is1,is2;
-  PetscInt       i,j,k,mstart,mend,mlocal,subrank,subsize;
+  PetscMPIInt    subrank,subsize;
+  PetscInt       i,j,k,mstart,mend,mlocal;
   PetscInt       *idx1,*idx2,rstart_sub,rend_sub,mloc_sub;
   const PetscInt *range;
 
@@ -327,7 +328,8 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
 static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,k,s,sub_size;
+  PetscMPIInt    sub_size;
+  PetscInt       i,j,k,s;
   PetscScalar    *temp,*temp2,*ppk,alp;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
 
@@ -390,14 +392,15 @@ static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,ml=ctx->L*ctx->M;
-  PetscBLASInt   m,n,lda,ldu=ml,ldvt=ml,lwork,info;
+  PetscBLASInt   m,n,lda,ldu,ldvt,lwork,info;
   PetscReal      *rwork;
   PetscScalar    *work;
 
   PetscFunctionBegin;
   ierr = PetscMalloc(3*ml*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   ierr = PetscMalloc(5*ml*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-  m = ml; n = m; lda = m; lwork = 3*m;
+  ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
+  n = m; lda = m; ldu = m; ldvt = m; lwork = 3*m;
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&m,&n,S,&lda,ctx->sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
@@ -462,8 +465,7 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
   PetscErrorCode ierr;
   PetscInt       i,j,k,local_size;
   PetscReal      *rwork;
-  PetscScalar    *work, *temp, *B, *tempB, *s_data, *Q1, *Q2, *temp2;
-  PetscScalar    alpha = 1,beta = 0;
+  PetscScalar    *work,*temp,*B,*tempB,*s_data,*Q1,*Q2,*temp2,alpha=1,beta=0;
   PetscBLASInt   l,m,n,lda,ldu,ldvt,lwork,info,ldb,ldc;
 
   PetscFunctionBegin;
@@ -485,7 +487,9 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
   }
 
   for (k=0;k<2;k++) {
-    m = (PetscBLASInt)local_size; l = (PetscBLASInt)ml; n = l; lda = m; ldb = m; ldc = l;
+    ierr = PetscBLASIntCast(local_size,&m);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(ml,&l);CHKERRQ(ierr);
+    n = l; lda = m; ldb = m; ldc = l;
     if (k == 0) {
       PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,s_data,&lda,s_data,&ldb,&beta,temp,&ldc));
     } else if ((k%2)==1) {
@@ -496,10 +500,13 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
     ierr = PetscMemzero(temp2,ml*ml*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = MPI_Allreduce(temp,temp2,ml*ml,MPIU_SCALAR,MPIU_SUM,(PetscObjectComm((PetscObject)S[0])));CHKERRQ(ierr);
 
-    m = (PetscBLASInt)ml; n = m; lda = m; lwork = 3*m, ldu = 1; ldvt = 1;
+    ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
+    n = m; lda = m; lwork = 3*m, ldu = 1; ldvt = 1;
     PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("O","N",&m,&n,temp2,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
 
-    l = (PetscBLASInt)local_size; n = (PetscBLASInt)ml; m = n; lda = l; ldb = m; ldc = l;
+    ierr = PetscBLASIntCast(local_size,&l);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(ml,&n);CHKERRQ(ierr);
+    m = n; lda = l; ldb = m; ldc = l;
     if (k==0) {
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,s_data,&lda,temp2,&ldb,&beta,Q1,&ldc));
     } else if((k%2)==1) {
@@ -508,7 +515,8 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,Q2,&lda,temp2,&ldb,&beta,Q1,&ldc));
     }
 
-    l = (PetscBLASInt)ml; m = l; n = l; lda = l; ldb = m; ldc = l;
+    ierr = PetscBLASIntCast(ml,&l);CHKERRQ(ierr);
+    m = l; n = l; lda = l; ldb = m; ldc = l;
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,B,&lda,temp2,&ldb,&beta,tempB,&ldc));
     for (i=0;i<ml;i++) {
       sigma[i] = sqrt(sigma[i]);
@@ -522,10 +530,13 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
     }
   }
 
-  m = ml; n = m; lda = m; ldu=1; ldvt=1;
+  ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
+  n = m; lda = m; ldu=1; ldvt=1;
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","O",&m,&n,B,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
 
-  l = (PetscBLASInt)local_size; n = (PetscBLASInt)ml; m = n; lda = l; ldb = m; ldc = l;
+  ierr = PetscBLASIntCast(local_size,&l);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ml,&n);CHKERRQ(ierr);
+  m = n; lda = l; ldb = m; ldc = l;
   if ((k%2)==1) {
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","T",&l,&n,&m,&alpha,Q1,&lda,B,&ldb,&beta,s_data,&ldc));
   } else {
