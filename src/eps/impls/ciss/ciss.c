@@ -389,6 +389,10 @@ static PetscErrorCode BlockHankel(EPS eps,PetscScalar *Mu,PetscInt s,PetscScalar
 #define __FUNCT__ "SVD_H0"
 static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
 {
+#if defined(SLEPC_MISSING_LAPACK_GESVD)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,ml=ctx->L*ctx->M;
@@ -403,6 +407,7 @@ static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
   n = m; lda = m; ldu = m; ldvt = m; lwork = 3*m;
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&m,&n,S,&lda,ctx->sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   (*K) = 0;
   for (i=0;i<ml;i++) {
@@ -411,6 +416,7 @@ static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__
@@ -462,6 +468,10 @@ static PetscErrorCode ConstructS(EPS eps)
 #define __FUNCT__ "SVD_S"
 static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,PetscInt *K)
 {
+#if defined(SLEPC_MISSING_LAPACK_GESVD)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PetscInt       i,j,k,local_size;
   PetscReal      *rwork;
@@ -503,6 +513,7 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
     ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
     n = m; lda = m; lwork = 3*m, ldu = 1; ldvt = 1;
     PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("O","N",&m,&n,temp2,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
 
     ierr = PetscBLASIntCast(local_size,&l);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(ml,&n);CHKERRQ(ierr);
@@ -533,6 +544,7 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
   ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
   n = m; lda = m; ldu=1; ldvt=1;
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","O",&m,&n,B,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
 
   ierr = PetscBLASIntCast(local_size,&l);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ml,&n);CHKERRQ(ierr);
@@ -559,6 +571,7 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscFree(rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__
