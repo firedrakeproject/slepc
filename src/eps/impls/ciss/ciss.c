@@ -659,9 +659,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   const char     *prefix;
 
   PetscFunctionBegin;
-#if !defined(PETSC_USE_COMPLEX)
-  SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"CISS only works for complex scalars");
-#endif
   eps->ncv = PetscMin(eps->n,ctx->L_max*ctx->M);
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (!eps->which) eps->which = EPS_ALL;
