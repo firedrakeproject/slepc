@@ -114,6 +114,7 @@ static PetscErrorCode CISSRedundantMat(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   Mat            A,B;
   PetscInt       nmat;
+
   PetscFunctionBegin;
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   if(ctx->subcomm->n != 1){
@@ -142,6 +143,7 @@ static PetscErrorCode CISSScatterVec(EPS eps)
   PetscInt       i,j,k,mstart,mend,mlocal,subrank,subsize,rstart_sub,rend_sub,mloc_sub;
   PetscInt       *idx1,*idx2;
   const PetscInt *range;
+
   PetscFunctionBegin;
   ierr = MPI_Comm_rank(ctx->subcomm->comm,&subrank);CHKERRQ(ierr);
   ierr = MPI_Comm_size(ctx->subcomm->comm,&subsize);CHKERRQ(ierr);
@@ -243,6 +245,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps, Mat A, Mat B, Vec *V, PetscInt 
   Mat            Fz;
   PC             pc;
   Vec            BV;
+
   PetscFunctionBegin;
   ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Fz);CHKERRQ(ierr);
   ierr = VecDuplicate(V[0],&BV);CHKERRQ(ierr);
@@ -290,7 +293,6 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
   Vec            v,vtemp;
 
   PetscFunctionBegin;
-
   ierr = VecDuplicate(ctx->Y[0],&v);CHKERRQ(ierr);
   ierr = VecDuplicate(ctx->V[0],&vtemp);CHKERRQ(ierr);
   for (j=0;j<ctx->L;j++) {
@@ -333,6 +335,7 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   PetscInt       i,j,k,s,sub_size;
   PetscScalar    *temp,*temp2,*ppk,alp;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+
   PetscFunctionBegin;
   ierr = MPI_Comm_size(ctx->subcomm->comm,&sub_size);
   ierr = PetscMalloc(ctx->num_solve_point*ctx->L*ctx->L*sizeof(PetscScalar),&temp);CHKERRQ(ierr);
@@ -370,7 +373,6 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   ierr = PetscFree(temp2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__
 #define __FUNCT__ "BlockHankel"
@@ -422,6 +424,7 @@ static PetscErrorCode ConstructS(EPS eps)
   PetscInt       i,j,k,vec_local_size,p_id;
   Vec            v;
   PetscScalar    *ppk, *v_data;
+
   PetscFunctionBegin;
   ierr = VecGetLocalSize(ctx->Y[0],&vec_local_size);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->num_solve_point*sizeof(PetscScalar),&ppk);CHKERRQ(ierr);
@@ -553,7 +556,6 @@ static PetscErrorCode ProjectMatrix(Mat A,Mat B,PetscInt nv,PetscInt ld,Vec *Q,P
   PetscInt       i,j;
 
   PetscFunctionBegin;
-
   if (isherm) {
     for (j=0;j<nv;j++) {
       if(B != NULL){
@@ -595,6 +597,7 @@ static PetscErrorCode isGhost(EPS eps,PetscInt ld,PetscInt nv,PetscBool *fl)
   PetscInt       i,j;
   PetscScalar    *pX;
   PetscReal      *tau,s1,s2,tau_max=0.0;
+
   PetscFunctionBegin;
   ierr = PetscMalloc(nv*sizeof(PetscReal),&tau);CHKERRQ(ierr);
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
@@ -631,6 +634,7 @@ static PetscErrorCode isInsideGamma(EPS eps,PetscInt nv,PetscBool *fl)
   PetscInt    i;
   PetscScalar d;
   PetscReal   dx,dy;
+
   PetscFunctionBegin;
   for (i=0;i<nv;i++) {
     d = (eps->eigr[i]-ctx->center)/ctx->radius;
@@ -642,7 +646,6 @@ static PetscErrorCode isInsideGamma(EPS eps,PetscInt nv,PetscBool *fl)
   PetscFunctionReturn(0);
 }
 
-
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_CISS"
 PetscErrorCode EPSSetUp_CISS(EPS eps)
@@ -650,7 +653,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   const char     *prefix;
-
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
@@ -665,7 +667,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 
   if (ctx->isreal && PetscImaginaryPart(ctx->center) == 0.0) ctx->useconj = PETSC_TRUE;
   else ctx->useconj = PETSC_FALSE;
-
 
   if (!ctx->vscale) {
     if (eps->ishermitian && (eps->ispositive || !eps->isgeneralized) && PetscImaginaryPart(ctx->center) == 0.0) ctx->vscale = 0.1;
@@ -889,7 +890,6 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     }
   }
   eps->reason = EPS_CONVERGED_TOL;
-  
   PetscFunctionReturn(0);
 }
 
