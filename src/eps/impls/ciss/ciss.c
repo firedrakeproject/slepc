@@ -391,7 +391,6 @@ static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,ml=ctx->L*ctx->M;
   PetscBLASInt   m,n,lda,ldu=ml,ldvt=ml,lwork,info;
-  const char     jobu='N',jobvt='N';
   PetscReal      *rwork;
   PetscScalar    *work;
 
@@ -400,7 +399,7 @@ static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
   ierr = PetscMalloc(5*ml*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
   m = ml; n = m; lda = m; lwork = 3*m;
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  zgesvd_(&jobu,&jobvt,&m,&n,S,&lda,ctx->sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info);
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&m,&n,S,&lda,ctx->sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   (*K) = 0;
   for (i=0;i<ml;i++) {
@@ -465,7 +464,6 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
   PetscReal      *rwork;
   PetscScalar    *work, *temp, *B, *tempB, *s_data, *Q1, *Q2, *temp2;
   PetscScalar    alpha = 1,beta = 0;
-  char           jobu,jobvt;
   PetscBLASInt   l,m,n,lda,ldu,ldvt,lwork,info,ldb,ldc;
 
   PetscFunctionBegin;
@@ -498,9 +496,8 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
     ierr = PetscMemzero(temp2,ml*ml*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = MPI_Allreduce(temp,temp2,ml*ml,MPIU_SCALAR,MPIU_SUM,(PetscObjectComm((PetscObject)S[0])));CHKERRQ(ierr);
 
-    jobu='O'; jobvt='N';
     m = (PetscBLASInt)ml; n = m; lda = m; lwork = 3*m, ldu = 1; ldvt = 1;
-    zgesvd_(&jobu,&jobvt,&m,&n,temp2,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info);
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("O","N",&m,&n,temp2,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
 
     l = (PetscBLASInt)local_size; n = (PetscBLASInt)ml; m = n; lda = l; ldb = m; ldc = l;
     if (k==0) {
@@ -525,8 +522,8 @@ static PetscErrorCode SVD_S(Vec *S,PetscInt ml,PetscReal delta,PetscReal *sigma,
     }
   }
 
-  jobu='N' ,jobvt='O'; m = ml; n = m; lda = m; ldu=1; ldvt=1;
-  zgesvd_(&jobu,&jobvt,&m,&n,B,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info);
+  m = ml; n = m; lda = m; ldu=1; ldvt=1;
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","O",&m,&n,B,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
 
   l = (PetscBLASInt)local_size; n = (PetscBLASInt)ml; m = n; lda = l; ldb = m; ldc = l;
   if ((k%2)==1) {
