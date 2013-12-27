@@ -82,7 +82,7 @@ int main(int argc,char **argv)
   /*
      Create shell matrix context and set default parameters
   */
-  ierr = PetscNew(CTX_BRUSSEL,&ctx);CHKERRQ(ierr);
+  ierr = PetscNew(&ctx);CHKERRQ(ierr);
   ctx->alpha = 2.0;
   ctx->beta  = 5.45;
   delta1     = 0.008;

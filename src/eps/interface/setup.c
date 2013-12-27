@@ -410,7 +410,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
 
   /* get references of passed vectors */
   if (n>0) {
-    ierr = PetscMalloc(n*sizeof(Vec),&eps->defl);CHKERRQ(ierr);
+    ierr = PetscMalloc1(n,&eps->defl);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)eps,n*sizeof(Vec));CHKERRQ(ierr);
     for (i=0;i<n;i++) {
       ierr = PetscObjectReference((PetscObject)v[i]);CHKERRQ(ierr);

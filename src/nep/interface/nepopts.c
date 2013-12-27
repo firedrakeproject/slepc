@@ -112,7 +112,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     }
     ierr = PetscOptionsString("-nep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","NEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
     if (flg) {
-      ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);CHKERRQ(ierr);
+      ierr = PetscNew(&ctx);CHKERRQ(ierr);
       ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)nep),monfilename,&ctx->viewer);CHKERRQ(ierr);
       ierr = NEPMonitorSet(nep,NEPMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
     }

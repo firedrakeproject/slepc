@@ -176,11 +176,11 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
   PetscFunctionBegin;
   ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);
-  ierr = PetscNew(ST_SHELLMAT,&ctx);CHKERRQ(ierr);
+  ierr = PetscNew(&ctx);CHKERRQ(ierr);
   ctx->st = st;
   ctx->alpha = alpha;
   ctx->nmat = matIdx?nmat:st->nmat;
-  ierr = PetscMalloc(ctx->nmat*sizeof(PetscInt),&ctx->matIdx);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ctx->nmat,&ctx->matIdx);CHKERRQ(ierr);
   if (matIdx) {
     for (i=0;i<ctx->nmat;i++) ctx->matIdx[i] = matIdx[i];
   } else {

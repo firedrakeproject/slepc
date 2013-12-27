@@ -32,7 +32,7 @@ PetscErrorCode DSAllocate_NEP(DS ds,PetscInt ld)
   if (!ds->nf) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"DSNEP requires passing some functions via DSSetFN()");
   ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
-  ierr = PetscMalloc(ld*sizeof(PetscInt),&ds->perm);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ld,&ds->perm);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

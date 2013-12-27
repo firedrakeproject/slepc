@@ -88,8 +88,7 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   ierr = MatGetSize(A,&M1,&N1);CHKERRQ(ierr);
   ierr = MatGetSize(D,&M2,&N2);CHKERRQ(ierr);
 
-  ierr = PetscMalloc((M1+M2)*sizeof(PetscInt),&nnz);CHKERRQ(ierr);
-  ierr = PetscMemzero(nnz,(M1+M2)*sizeof(PetscInt));CHKERRQ(ierr);
+  ierr = PetscCalloc1(M1+M2,&nnz);CHKERRQ(ierr);
   /* Preallocate for A */
   if (a!=0.0) {
     for (i=0;i<M1;i++) {
@@ -125,8 +124,7 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   ierr = MatSeqAIJSetPreallocation(G,0,nnz);CHKERRQ(ierr);
   ierr = PetscFree(nnz);CHKERRQ(ierr);
 
-  ierr = PetscMalloc(sizeof(PetscScalar)*PetscMax(N1,N2),&buf);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscInt)*PetscMax(N1,N2),&scols);CHKERRQ(ierr);
+  ierr = PetscMalloc2(PetscMax(N1,N2),&buf,PetscMax(N1,N2),&scols);CHKERRQ(ierr);
   /* Transfer A */
   if (a!=0.0) {
     for (i=0;i<M1;i++) {
@@ -179,8 +177,7 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
       ierr = MatRestoreRow(D,i,&ncols,&cols,&vals);CHKERRQ(ierr);
     }
   }
-  ierr = PetscFree(buf);CHKERRQ(ierr);
-  ierr = PetscFree(scols);CHKERRQ(ierr);
+  ierr = PetscFree2(buf,scols);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -206,17 +203,13 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   MPI_Comm_size(PetscObjectComm((PetscObject)G),&np);
   ierr = MatGetOwnershipRangesColumn(A,&mapptr1);CHKERRQ(ierr);
   ierr = MatGetOwnershipRangesColumn(B,&mapptr2);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscInt)*N1,&map1);CHKERRQ(ierr);
+  ierr = PetscMalloc4(PetscMax(N1,N2),&buf,PetscMax(N1,N2),&scols,N1,&map1,N2,&map2);CHKERRQ(ierr);
   for (p=0;p<np;p++) {
     for (i=mapptr1[p];i<mapptr1[p+1];i++) map1[i] = i+mapptr2[p];
   }
-  ierr = PetscMalloc(sizeof(PetscInt)*N2,&map2);CHKERRQ(ierr);
   for (p=0;p<np;p++) {
     for (i=mapptr2[p];i<mapptr2[p+1];i++) map2[i] = i+mapptr1[p+1];
   }
-
-  ierr = PetscMalloc(sizeof(PetscScalar)*PetscMax(N1,N2),&buf);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscInt)*PetscMax(N1,N2),&scols);CHKERRQ(ierr);
 
   ierr = MatPreallocateInitialize(PetscObjectComm((PetscObject)G),m1+m2,n1+n2,dnz,onz);CHKERRQ(ierr);
   ierr = MatGetOwnershipRange(G,&gstart,NULL);CHKERRQ(ierr);
@@ -323,10 +316,7 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
       ierr = MatRestoreRow(D,i+start,&ncols,&cols,&vals);CHKERRQ(ierr);
     }
   }
-  ierr = PetscFree(buf);CHKERRQ(ierr);
-  ierr = PetscFree(scols);CHKERRQ(ierr);
-  ierr = PetscFree(map1);CHKERRQ(ierr);
-  ierr = PetscFree(map2);CHKERRQ(ierr);
+  ierr = PetscFree4(buf,scols,map1,map2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -472,7 +462,7 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
     if (!isascii) PetscFunctionReturn(0);
   }
 
-  ierr = PetscMalloc(nv*sizeof(PetscScalar),&vals);CHKERRQ(ierr);
+  ierr = PetscMalloc1(nv,&vals);CHKERRQ(ierr);
   if (B) {
     ierr = VecDuplicate(V[0],&w);CHKERRQ(ierr);
   }
@@ -723,7 +713,7 @@ PetscErrorCode SlepcBasisReference_Private(PetscInt n,Vec *V,PetscInt *m,Vec **W
   PetscFunctionBegin;
   ierr = SlepcBasisDestroy_Private(m,W);CHKERRQ(ierr);
   if (n>0) {
-    ierr = PetscMalloc(n*sizeof(Vec),W);CHKERRQ(ierr);
+    ierr = PetscMalloc1(n,W);CHKERRQ(ierr);
     for (i=0;i<n;i++) {
       ierr = PetscObjectReference((PetscObject)V[i]);CHKERRQ(ierr);
       (*W)[i] = V[i];

@@ -223,9 +223,12 @@ PetscErrorCode STDestroy_Fold(ST st)
 PETSC_EXTERN PetscErrorCode STCreate_Fold(ST st)
 {
   PetscErrorCode ierr;
+  ST_FOLD        *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(st,ST_FOLD,&st->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(st,&ctx);CHKERRQ(ierr);
+  st->data = (void*)ctx;
+
   st->ops->apply           = STApply_Fold;
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->applytrans      = STApplyTranspose_Fold;

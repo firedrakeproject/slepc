@@ -200,9 +200,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
   PetscFunctionBegin;
   its = 0;
-  ierr = PetscMalloc(sizeof(PetscReal)*ncv,&rsd);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsd);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscInt)*ncv,&itrsdold);CHKERRQ(ierr);
+  ierr = PetscMalloc3(ncv,&rsd,ncv,&itrsd,ncv,&itrsdold);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
 
   for (i=0;i<ncv;i++) {
@@ -329,9 +327,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     } while (its<nxtsrr);
   }
 
-  ierr = PetscFree(rsd);CHKERRQ(ierr);
-  ierr = PetscFree(itrsd);CHKERRQ(ierr);
-  ierr = PetscFree(itrsdold);CHKERRQ(ierr);
+  ierr = PetscFree3(rsd,itrsd,itrsdold);CHKERRQ(ierr);
 
   if (eps->nconv == eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
@@ -370,10 +366,13 @@ PetscErrorCode EPSDestroy_Subspace(EPS eps)
 #define __FUNCT__ "EPSCreate_Subspace"
 PETSC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
 {
+  EPS_SUBSPACE   *ctx;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_SUBSPACE,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup                = EPSSetUp_Subspace;
   eps->ops->destroy              = EPSDestroy_Subspace;
   eps->ops->reset                = EPSReset_Subspace;

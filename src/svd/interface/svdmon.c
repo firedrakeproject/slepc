@@ -361,8 +361,7 @@ PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
     ierr = PetscDrawLGSetLimits(lg1,0,1.0,1.e20,-1.e20);CHKERRQ(ierr);
   }
 
-  ierr = PetscMalloc(sizeof(PetscReal)*n,&x);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscReal)*n,&y);CHKERRQ(ierr);
+  ierr = PetscMalloc2(n,&x,n,&y);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     x[i] = (PetscReal)its;
     if (i < nest && errest[i] > 0.0) y[i] = log10(errest[i]);
@@ -377,7 +376,6 @@ PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
   ierr = PetscDrawSetPause(draw1,p);CHKERRQ(ierr);
 
   ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
-  ierr = PetscFree(x);CHKERRQ(ierr);
-  ierr = PetscFree(y);CHKERRQ(ierr);
+  ierr = PetscFree2(x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

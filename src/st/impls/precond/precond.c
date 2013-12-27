@@ -371,9 +371,12 @@ PetscErrorCode STDestroy_Precond(ST st)
 PETSC_EXTERN PetscErrorCode STCreate_Precond(ST st)
 {
   PetscErrorCode ierr;
+  ST_PRECOND     *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(st,ST_PRECOND,&st->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(st,&ctx);CHKERRQ(ierr);
+  st->data = (void*)ctx;
+
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->setup           = STSetUp_Precond;
   st->ops->setshift        = STSetShift_Precond;

@@ -129,7 +129,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
-  ierr = PetscMalloc(eps->mpd*sizeof(PetscScalar),&gamma);CHKERRQ(ierr);
+  ierr = PetscMalloc1(eps->mpd,&gamma);CHKERRQ(ierr);
 
   kini = eps->nini;
   while (eps->reason == EPS_CONVERGED_ITERATING) {
@@ -407,10 +407,13 @@ PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
 #define __FUNCT__ "EPSCreate_RQCG"
 PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
 {
+  EPS_RQCG       *rqcg;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_RQCG,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&rqcg);CHKERRQ(ierr);
+  eps->data = (void*)rqcg;
+
   eps->ops->setup          = EPSSetUp_RQCG;
   eps->ops->setfromoptions = EPSSetFromOptions_RQCG;
   eps->ops->destroy        = EPSDestroy_RQCG;

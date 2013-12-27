@@ -221,7 +221,7 @@ PetscErrorCode VecDuplicateVecs_Comp(Vec w,PetscInt m,Vec *V[])
   PetscValidHeaderSpecific(w,VEC_CLASSID,1);
   PetscValidPointer(V,3);
   if (m<=0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %D",m);
-  ierr = PetscMalloc(m*sizeof(Vec*),V);CHKERRQ(ierr);
+  ierr = PetscMalloc1(m,V);CHKERRQ(ierr);
   for (i=0;i<m;i++) { ierr = VecDuplicate(w,*V+i);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
@@ -258,7 +258,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
 
   /* Allocate a new Vec_Comp */
   if (v->data) { ierr = PetscFree(v->data);CHKERRQ(ierr); }
-  ierr = PetscNewLog(v,Vec_Comp,&s);CHKERRQ(ierr);
+  ierr = PetscNewLog(v,&s);CHKERRQ(ierr);
   ierr = PetscMemcpy(v->ops,&DvOps,sizeof(DvOps));CHKERRQ(ierr);
   v->data  = (void*)s;
   v->petscnative     = PETSC_FALSE;
@@ -279,7 +279,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
 
   /* Allocate the shared structure, if it is not given */
   if (!n) {
-    ierr = PetscNewLog(v,Vec_Comp_N,&n);CHKERRQ(ierr);
+    ierr = PetscNewLog(v,&n);CHKERRQ(ierr);
     s->n = n;
     n->n = nx;
     n->N = N;
@@ -342,7 +342,7 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec
 
   PetscFunctionBegin;
   ierr = VecCreate(comm,V);CHKERRQ(ierr);
-  ierr = PetscMalloc(n*sizeof(Vec),&x);CHKERRQ(ierr);
+  ierr = PetscMalloc1(n,&x);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)*V,n*sizeof(Vec));CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     ierr = VecCreate(comm,&x[i]);CHKERRQ(ierr);
@@ -401,7 +401,7 @@ PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V)
   PetscFunctionBegin;
   SlepcValidVecComp(win);
   ierr = VecCreate(PetscObjectComm((PetscObject)win),V);CHKERRQ(ierr);
-  ierr = PetscMalloc(s->nx*sizeof(Vec),&x);CHKERRQ(ierr);
+  ierr = PetscMalloc1(s->nx,&x);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)*V,s->nx*sizeof(Vec));CHKERRQ(ierr);
   for (i=0;i<s->nx;i++) {
     ierr = VecDuplicate(s->x[i],&x[i]);CHKERRQ(ierr);

@@ -126,8 +126,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
 
   PetscFunctionBegin;
   if (m > 100) {
-    ierr = PetscMalloc(sizeof(PetscBool)*m,&which);CHKERRQ(ierr);
-    ierr = PetscMalloc(m*sizeof(PetscScalar),&hwork);CHKERRQ(ierr);
+    ierr = PetscMalloc2(m,&which,m,&hwork);CHKERRQ(ierr);
   } else {
     which = lwhich;
     hwork = lhwork;
@@ -145,8 +144,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
     if (*breakdown) {
       *M = j+1;
       if (m > 100) {
-        ierr = PetscFree(which);CHKERRQ(ierr);
-        ierr = PetscFree(hwork);CHKERRQ(ierr);
+        ierr = PetscFree2(which,hwork);CHKERRQ(ierr);
       }
       PetscFunctionReturn(0);
     } else {
@@ -159,8 +157,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
   beta[m-1] = norm;
 
   if (m > 100) {
-    ierr = PetscFree(which);CHKERRQ(ierr);
-    ierr = PetscFree(hwork);CHKERRQ(ierr);
+    ierr = PetscFree2(which,hwork);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -207,12 +204,10 @@ static PetscErrorCode DenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,Pet
   if (V) {
     jobz = "V";
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscMalloc(n*n*sizeof(PetscReal),&VV);CHKERRQ(ierr);
+    ierr = PetscMalloc1(n*n,&VV);CHKERRQ(ierr);
 #endif
   } else jobz = "N";
-  ierr = PetscMalloc(2*n*sizeof(PetscBLASInt),&isuppz);CHKERRQ(ierr);
-  ierr = PetscMalloc(lwork*sizeof(PetscReal),&work);CHKERRQ(ierr);
-  ierr = PetscMalloc(liwork*sizeof(PetscBLASInt),&iwork);CHKERRQ(ierr);
+  ierr = PetscMalloc3(2*n,&isuppz,lwork,&work,liwork,&iwork);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKstevr",LAPACKstevr_(jobz,"A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&m,w,VV,&n,isuppz,work,&lwork,iwork,&liwork,&info));
@@ -229,9 +224,7 @@ static PetscErrorCode DenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,Pet
     ierr = PetscFree(VV);CHKERRQ(ierr);
   }
 #endif
-  ierr = PetscFree(isuppz);CHKERRQ(ierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscFree(iwork);CHKERRQ(ierr);
+  ierr = PetscFree3(isuppz,work,iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -247,23 +240,12 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS*)eps->data;
   PetscInt       i,j,m = *M,n,nritz=0,nritzo;
   PetscReal      *d,*e,*ritz,norm;
-  PetscScalar    *Y,*hwork,lhwork[100];
-  PetscBool      *which,lwhich[100];
+  PetscScalar    *Y,*hwork;
+  PetscBool      *which;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc(m*sizeof(PetscReal),&d);CHKERRQ(ierr);
-  ierr = PetscMalloc(m*sizeof(PetscReal),&e);CHKERRQ(ierr);
-  ierr = PetscMalloc(m*sizeof(PetscReal),&ritz);CHKERRQ(ierr);
-  ierr = PetscMalloc(m*m*sizeof(PetscScalar),&Y);CHKERRQ(ierr);
-  if (m > 100) {
-    ierr = PetscMalloc(sizeof(PetscBool)*m,&which);CHKERRQ(ierr);
-    ierr = PetscMalloc(m*sizeof(PetscScalar),&hwork);CHKERRQ(ierr);
-  } else {
-    which = lwhich;
-    hwork = lhwork;
-  }
-  for (i=0;i<k;i++)
-    which[i] = PETSC_TRUE;
+  ierr = PetscMalloc6(m,&d,m,&e,m,&ritz,m*m,&Y,m,&which,m,&hwork);CHKERRQ(ierr);
+  for (i=0;i<k;i++) which[i] = PETSC_TRUE;
 
   for (j=k;j<m;j++) {
     /* Lanczos step */
@@ -320,14 +302,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
     }
   }
 
-  ierr = PetscFree(d);CHKERRQ(ierr);
-  ierr = PetscFree(e);CHKERRQ(ierr);
-  ierr = PetscFree(ritz);CHKERRQ(ierr);
-  ierr = PetscFree(Y);CHKERRQ(ierr);
-  if (m > 100) {
-    ierr = PetscFree(which);CHKERRQ(ierr);
-    ierr = PetscFree(hwork);CHKERRQ(ierr);
-  }
+  ierr = PetscFree6(d,e,ritz,Y,which,hwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -428,20 +403,13 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
 
   PetscFunctionBegin;
   if (m>100) {
-    ierr = PetscMalloc(m*sizeof(PetscReal),&omega);CHKERRQ(ierr);
-    ierr = PetscMalloc(m*sizeof(PetscReal),&omega_old);CHKERRQ(ierr);
+    ierr = PetscMalloc5(m,&omega,m,&omega_old,m,&which,m,&which2,m,&hwork);CHKERRQ(ierr);
   } else {
-    omega = lomega;
+    omega     = lomega;
     omega_old = lomega_old;
-  }
-  if (m > 100) {
-    ierr = PetscMalloc(sizeof(PetscBool)*m,&which);CHKERRQ(ierr);
-    ierr = PetscMalloc(sizeof(PetscBool)*m,&which2);CHKERRQ(ierr);
-    ierr = PetscMalloc(m*sizeof(PetscScalar),&hwork);CHKERRQ(ierr);
-  } else {
-    which = lwhich;
-    which2 = lwhich2;
-    hwork = lhwork;
+    which     = lwhich;
+    which2    = lwhich2;
+    hwork     = lhwork;
   }
 
   eps1 = PetscSqrtReal((PetscReal)eps->n)*PETSC_MACHINE_EPSILON/2;
@@ -523,11 +491,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
   }
 
   if (m>100) {
-    ierr = PetscFree(omega);CHKERRQ(ierr);
-    ierr = PetscFree(omega_old);CHKERRQ(ierr);
-    ierr = PetscFree(which);CHKERRQ(ierr);
-    ierr = PetscFree(which2);CHKERRQ(ierr);
-    ierr = PetscFree(hwork);CHKERRQ(ierr);
+    ierr = PetscFree5(omega,omega_old,which,which2,hwork);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -576,7 +540,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
       ierr = EPSPartialLanczos(eps,alpha,beta,V,k,m,f,breakdown,anorm);CHKERRQ(ierr);
       break;
     case EPS_LANCZOS_REORTHOG_DELAYED:
-      ierr = PetscMalloc(n*n*sizeof(PetscScalar),&T);CHKERRQ(ierr);
+      ierr = PetscMalloc1(n*n,&T);CHKERRQ(ierr);
       ierr = IPGetOrthogonalization(eps->ip,NULL,&orthog_ref,NULL);CHKERRQ(ierr);
       if (orthog_ref == IP_ORTHOG_REFINE_NEVER) {
         ierr = EPSDelayedArnoldi1(eps,T,n,V,k,m,f,&betam,breakdown);CHKERRQ(ierr);
@@ -612,10 +576,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscScalar),&ritz);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscReal),&bnd);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(PetscInt),&perm);CHKERRQ(ierr);
-  ierr = PetscMalloc(ncv*sizeof(char),&conv);CHKERRQ(ierr);
+  ierr = PetscMalloc4(ncv,&ritz,ncv,&bnd,ncv,&perm,ncv,&conv);CHKERRQ(ierr);
 
   /* The first Lanczos vector is the normalized initial vector */
   ierr = EPSGetStartVector(eps,0,eps->V[0],NULL);CHKERRQ(ierr);
@@ -773,10 +734,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
   eps->nconv = nconv;
 
-  ierr = PetscFree(ritz);CHKERRQ(ierr);
-  ierr = PetscFree(bnd);CHKERRQ(ierr);
-  ierr = PetscFree(perm);CHKERRQ(ierr);
-  ierr = PetscFree(conv);CHKERRQ(ierr);
+  ierr = PetscFree4(ritz,bnd,perm,conv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -938,10 +896,13 @@ PetscErrorCode EPSView_Lanczos(EPS eps,PetscViewer viewer)
 #define __FUNCT__ "EPSCreate_Lanczos"
 PETSC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS eps)
 {
+  EPS_LANCZOS    *ctx;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,EPS_LANCZOS,&eps->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data = (void*)ctx;
+
   eps->ops->setup                = EPSSetUp_Lanczos;
   eps->ops->setfromoptions       = EPSSetFromOptions_Lanczos;
   eps->ops->destroy              = EPSDestroy_Lanczos;

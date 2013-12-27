@@ -244,8 +244,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   PetscFunctionBegin;
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscScalar)*ld,&w);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscScalar)*svd->n,&swork);CHKERRQ(ierr);
+  ierr = PetscMalloc2(ld,&w,svd->n,&swork);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->V[0],&v);CHKERRQ(ierr);
   ierr = IPGetOrthogonalization(svd->ip,&orthog,NULL,NULL);CHKERRQ(ierr);
 
@@ -337,8 +336,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 
   /* free working space */
   ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = PetscFree(w);CHKERRQ(ierr);
-  ierr = PetscFree(swork);CHKERRQ(ierr);
+  ierr = PetscFree2(w,swork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -487,9 +485,12 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
 PETSC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
+  SVD_TRLANCZOS  *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(svd,SVD_TRLANCZOS,&svd->data);CHKERRQ(ierr);
+  ierr = PetscNewLog(svd,&ctx);CHKERRQ(ierr);
+  svd->data = (void*)ctx;
+
   svd->ops->setup          = SVDSetUp_TRLanczos;
   svd->ops->solve          = SVDSolve_TRLanczos;
   svd->ops->destroy        = SVDDestroy_TRLanczos;

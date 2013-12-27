@@ -179,7 +179,7 @@ PETSC_EXTERN void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *mon
       *ierr = 1;
       return;
     }
-    *ierr = PetscNew(struct _n_SlepcConvMonitor,&ctx);
+    *ierr = PetscNew(&ctx);
     if (*ierr) return;
     ctx->viewer = NULL;
     *ierr = SVDMonitorSet(*svd,SVDMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);
