@@ -108,7 +108,8 @@ PETSC_EXTERN PetscErrorCode STResetOperationCounters(ST);
 E*/
 typedef enum { ST_MATMODE_COPY,
                ST_MATMODE_INPLACE,
-               ST_MATMODE_SHELL } STMatMode;
+               ST_MATMODE_SHELL,
+               ST_MATMODE_HYBRID } STMatMode;
 PETSC_EXTERN PetscErrorCode STSetMatMode(ST,STMatMode);
 PETSC_EXTERN PetscErrorCode STGetMatMode(ST,STMatMode*);
 PETSC_EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);

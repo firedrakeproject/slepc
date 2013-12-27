@@ -388,7 +388,7 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
       ierr = STMatShellShift(st->T[k],alpha);CHKERRQ(ierr);
     }
     break;
-  default:
+  case ST_MATMODE_COPY:
     if (alpha == 0.0) {
       if (!initial) {
         ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
@@ -417,6 +417,8 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
         ierr = MatShift(st->T[k],alpha);CHKERRQ(ierr);
       }
     }
+  case ST_MATMODE_HYBRID:
+    SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_HYBRID not supported");
   }
   ierr = STMatSetHermitian(st,st->T[k]);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -433,6 +435,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
   PetscErrorCode ierr;
   PetscInt       *matIdx,nmat,i;
   PetscScalar    t=1.0,ta;
+  PetscBool      copy=PETSC_FALSE;
 
   PetscFunctionBegin;
   nmat = st->nmat-k;
@@ -440,18 +443,22 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
   case ST_MATMODE_INPLACE:
     SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for polynomial eigenproblems");
     break;
+  case ST_MATMODE_HYBRID:
+    if (coeffs) copy = PETSC_TRUE;
   case ST_MATMODE_SHELL:
-    if (initial) {
-      ierr = PetscMalloc(nmat*sizeof(PetscInt),&matIdx);CHKERRQ(ierr);
-      for (i=0;i<nmat;i++) matIdx[i] = k+i;
-      ierr = STMatShellCreate(st,alpha,st->nmat-k,matIdx,coeffs,S);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
-      ierr = PetscFree(matIdx);CHKERRQ(ierr);
-    } else {
-      ierr = STMatShellShift(st->T[k],alpha);CHKERRQ(ierr);
+    if (!copy) {
+      if (initial) {
+        ierr = PetscMalloc(nmat*sizeof(PetscInt),&matIdx);CHKERRQ(ierr);
+        for (i=0;i<nmat;i++) matIdx[i] = k+i;
+        ierr = STMatShellCreate(st,alpha,st->nmat-k,matIdx,coeffs,S);CHKERRQ(ierr);
+        ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
+        ierr = PetscFree(matIdx);CHKERRQ(ierr);
+      } else {
+        ierr = STMatShellShift(st->T[k],alpha);CHKERRQ(ierr);
+      }
+      break;
     }
-    break;
-  default:
+  case ST_MATMODE_COPY:
     ierr = MatDestroy(S);CHKERRQ(ierr);
     if (alpha == 0.0) {
       ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);

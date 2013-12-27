@@ -30,8 +30,8 @@ MANSEC     = ST
 TESTS      = test1 test2 test3
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 test1.rm \
-                       test2.PETSc runtest2_1 test2.rm \
-                       test3.PETSc runtest3_1 test3.rm
+                       test2.PETSc runtest2_1 runtest2_3 test2.rm \
+                       test3.PETSc runtest3_1 runtest3_3 test3.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
