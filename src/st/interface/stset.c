@@ -127,7 +127,7 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscScalar    s;
   char           type[256];
   PetscBool      flg;
-  const char     *mode_list[3] = {"copy","inplace","shell","hybrid"};
+  const char     *mode_list[4] = {"copy","inplace","shell","hybrid"};
   const char     *structure_list[3] = {"same","different","subset"};
 
   PetscFunctionBegin;
