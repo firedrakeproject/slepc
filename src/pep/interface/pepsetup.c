@@ -227,7 +227,7 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
 
   if (pep->setupcalled) { ierr = PEPReset(pep);CHKERRQ(ierr); }
   ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
-  ierr = PetscMalloc(nmat*sizeof(Mat),&pep->A);CHKERRQ(ierr);
+  ierr = PetscMalloc1(nmat,&pep->A);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat));CHKERRQ(ierr);
   for (i=0;i<nmat;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
@@ -401,13 +401,8 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
   if (pep->allocated_ncv != requested) {
     newc = PetscMax(0,requested-pep->allocated_ncv);
     ierr = PEPFreeSolution(pep);CHKERRQ(ierr);
-    cnt = 0;
-    ierr = PetscMalloc(requested*sizeof(PetscScalar),&pep->eigr);CHKERRQ(ierr);
-    ierr = PetscMalloc(requested*sizeof(PetscScalar),&pep->eigi);CHKERRQ(ierr);
-    cnt += 2*newc*sizeof(PetscScalar);
-    ierr = PetscMalloc(requested*sizeof(PetscReal),&pep->errest);CHKERRQ(ierr);
-    ierr = PetscMalloc(requested*sizeof(PetscInt),&pep->perm);CHKERRQ(ierr);
-    cnt += 2*newc*sizeof(PetscReal);
+    cnt = 2*newc*sizeof(PetscScalar) + 2*newc*sizeof(PetscReal);
+    ierr = PetscMalloc4(requested,&pep->eigr,requested,&pep->eigi,requested,&pep->errest,requested,&pep->perm);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)pep,cnt);CHKERRQ(ierr);
     ierr = VecDuplicateVecs(pep->t,requested,&pep->V);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(pep,requested,pep->V);CHKERRQ(ierr);
@@ -428,10 +423,7 @@ PetscErrorCode PEPFreeSolution(PEP pep)
 
   PetscFunctionBegin;
   if (pep->allocated_ncv > 0) {
-    ierr = PetscFree(pep->eigr);CHKERRQ(ierr);
-    ierr = PetscFree(pep->eigi);CHKERRQ(ierr);
-    ierr = PetscFree(pep->errest);CHKERRQ(ierr);
-    ierr = PetscFree(pep->perm);CHKERRQ(ierr);
+    ierr = PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm);CHKERRQ(ierr);
     ierr = VecDestroyVecs(pep->allocated_ncv,&pep->V);CHKERRQ(ierr);
     pep->allocated_ncv = 0;
   }

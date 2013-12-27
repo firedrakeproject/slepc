@@ -212,7 +212,7 @@ PetscErrorCode PEPBuildBalance(PEP pep)
   nmat = pep->nmat;
   ierr = PetscMPIIntCast(pep->n,&n);
   ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
-  ierr = PetscMalloc(nmat*sizeof(Mat),&T);CHKERRQ(ierr);
+  ierr = PetscMalloc1(nmat,&T);CHKERRQ(ierr);
   for (k=0;k<nmat;k++) {
     ierr = STGetTOperators(pep->st,k,&T[k]);CHKERRQ(ierr);
   }
@@ -263,10 +263,7 @@ PetscErrorCode PEPBuildBalance(PEP pep)
   ierr = MatGetInfo(M,MAT_LOCAL,&info);CHKERRQ(ierr);
   nz = info.nz_used;
   ierr = VecGetOwnershipRange(pep->Dl,&lst,&lend);CHKERRQ(ierr);
-  ierr = PetscMalloc(nr*sizeof(PetscReal),&rsum);CHKERRQ(ierr);
-  ierr = PetscMalloc(pep->n*sizeof(PetscReal),&csum);CHKERRQ(ierr);
-  ierr = PetscMalloc(pep->n*sizeof(PetscReal),&aux);CHKERRQ(ierr);
-  ierr = PetscMalloc(PetscMin(pep->n-lend+lst,nz)*sizeof(PetscInt),&cols);CHKERRQ(ierr);
+  ierr = PetscMalloc4(nr,&rsum,pep->n,&csum,pep->n,&aux,PetscMin(pep->n-lend+lst,nz),&cols);CHKERRQ(ierr);
   ierr = VecSet(pep->Dr,1.0);CHKERRQ(ierr);
   ierr = VecSet(pep->Dl,1.0);CHKERRQ(ierr);
   ierr = VecGetArray(pep->Dl,&Dl);CHKERRQ(ierr);
@@ -338,10 +335,7 @@ PetscErrorCode PEPBuildBalance(PEP pep)
   ierr = VecRestoreArray(pep->Dl,&Dl);CHKERRQ(ierr);
   /* Free memory*/
   ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = PetscFree(cols);CHKERRQ(ierr);
-  ierr = PetscFree(rsum);CHKERRQ(ierr);
-  ierr = PetscFree(aux);CHKERRQ(ierr);
-  ierr = PetscFree(csum);CHKERRQ(ierr);
+  ierr = PetscFree4(rsum,csum,aux,cols);CHKERRQ(ierr);
   ierr = PetscFree(T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

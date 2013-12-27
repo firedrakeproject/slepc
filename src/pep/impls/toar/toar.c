@@ -346,7 +346,7 @@ static PetscErrorCode PEPExtractInvariantPair(PetscInt k,PetscScalar *S,PetscInt
   nwu += k*k;
   Hj = work+nwu;
   nwu += k*k;
-  ierr = PetscMalloc(k*sizeof(PetscBLASInt),&p);CHKERRQ(ierr);
+  ierr = PetscMalloc1(k,&p);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(sr,&sr_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
@@ -395,10 +395,8 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   ld = pep->ncv+deg;
   lds = deg*ld;
   lwa = (deg+5)*ld*lds;
-  ierr = PetscMalloc(lwa*sizeof(PetscScalar),&work);CHKERRQ(ierr);
   lrwa = 7*lds;
-  ierr = PetscMalloc(lrwa*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
-  ierr = PetscMalloc(lds*ld*sizeof(PetscScalar),&S);CHKERRQ(ierr);
+  ierr = PetscMalloc3(lwa,&work,lrwa,&rwork,lds*ld,&S);CHKERRQ(ierr);
   ierr = PetscMemzero(S,lds*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
 
@@ -513,9 +511,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   if (pep->nconv > 0) {
     ierr = PEPComputeVectors_Schur(pep);CHKERRQ(ierr);
   }
-  ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
-  ierr = PetscFree(S);CHKERRQ(ierr);
+  ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
