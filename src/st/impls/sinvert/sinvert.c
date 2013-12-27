@@ -139,15 +139,13 @@ PetscErrorCode STSetUp_Sinvert(ST st)
     for (k=1;k<nmat;k++) {
       ierr = STMatMAXPY_Private(st,st->sigma,nmat-k-1,coeffs+(k*(k+1))/2,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
     }
+    ierr = PetscFree(coeffs);CHKERRQ(ierr);
   }
   if (nmat<3) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
     st->kspidx = 1;
-  }
-  if (nmat>=3) {
-    ierr = PetscFree(coeffs);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -158,19 +156,40 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
   MatStructure   flg;
-  PetscScalar    alpha,beta;
+  PetscInt       nmat=st->nmat,d=0,k,nc;
+  PetscScalar    c[nmat],*coeffs;
 
   PetscFunctionBegin;
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->setupcalled) PetscFunctionReturn(0);
   if (st->nmat<3) {
-    alpha = -newshift; beta = -st->sigma;
+    ierr = STMatGAXPY_Private(st,-newshift,-st->sigma,1,1,PETSC_FALSE);CHKERRQ(ierr);
   } else {
-    ierr = STMatGAXPY_Private(st,newshift,st->sigma,2,2,PETSC_FALSE);CHKERRQ(ierr);
-    alpha = 2.0*newshift; beta = 2.0*st->sigma;
+    if (st->shift_matrix == ST_MATMODE_COPY) {
+      nc = (nmat*(nmat+1))/2;
+      ierr = PetscMalloc(nc*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
+      /* Compute coeffs */
+      ierr = STCoeffs_Monomial(st,coeffs);CHKERRQ(ierr);
+      /* T[0] = A_n */
+      k = nmat-1;
+      ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
+      st->T[0] = st->A[k];
+      for (k=1;k<nmat;k++) {
+        ierr = STMatMAXPY_Private(st,st->sigma,nmat-k-1,coeffs+(k*(k+1))/2,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
+      }
+      ierr = PetscFree(coeffs);CHKERRQ(ierr);
+    } else {
+      if (st->shift_matrix == ST_MATMODE_HYBRID) {
+        d = 1;
+        for (k=0;k<st->nmat;k++) c[k] = 1.0;
+        ierr = STMatMAXPY_Private(st,st->sigma,0,c,PETSC_TRUE,&st->T[nmat-1]);CHKERRQ(ierr);
+      }
+      for (k=1;k<nmat-d;k++) {
+        ierr = STMatMAXPY_Private(st,st->sigma,nmat-k-1,NULL,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
+      }
+    }
   }
-  ierr = STMatGAXPY_Private(st,alpha,beta,1,1,PETSC_FALSE);CHKERRQ(ierr);
-  if (st->kspidx==1 || (st->nmat==3 && st->kspidx==2)) {  /* Update KSP operator */
+  if (st->kspidx>0) {  /* Update KSP operator */
     /* Check if the new KSP matrix has the same zero structure */
     if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
     else flg = SAME_NONZERO_PATTERN;

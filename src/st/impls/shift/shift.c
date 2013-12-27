@@ -125,15 +125,13 @@ PetscErrorCode STSetUp_Shift(ST st)
     for (k=0;k<nmat-1;k++) {
       ierr = STMatMAXPY_Private(st,st->sigma,k,coeffs+((nmat-k)*(nmat-k-1))/2,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
     }
+    ierr = PetscFree(coeffs);CHKERRQ(ierr);
   }
   if (nmat==2) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
     st->kspidx = 1;
-  }
-  if (nmat>=3) {
-    ierr = PetscFree(coeffs);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -144,6 +142,8 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
   MatStructure   flg;
+  PetscInt       k,nc,nmat=st->nmat;
+  PetscScalar    *coeffs;
 
   PetscFunctionBegin;
   /* Nothing to be done if STSetUp has not been called yet */
@@ -152,11 +152,22 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
   if (st->nmat<3) {
     ierr = STMatGAXPY_Private(st,newshift,st->sigma,1,0,PETSC_FALSE);CHKERRQ(ierr);
   } else {
-    ierr = STMatGAXPY_Private(st,-newshift,-st->sigma,2,2,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = STMatGAXPY_Private(st,-2.0*newshift,-2.0*st->sigma,1,1,PETSC_FALSE);CHKERRQ(ierr);
+    if (st->shift_matrix == ST_MATMODE_COPY) {
+      nc = (nmat*(nmat+1))/2;
+      ierr = PetscMalloc(nc*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
+      /* Compute coeffs */
+      ierr = STCoeffs_Monomial(st,coeffs);CHKERRQ(ierr);
+      for (k=0;k<nmat-1;k++) {
+        ierr = STMatMAXPY_Private(st,st->sigma,k,coeffs+((nmat-k)*(nmat-k-1))/2,PETSC_FALSE,&st->T[k]);CHKERRQ(ierr);
+      }
+      ierr = PetscFree(coeffs);CHKERRQ(ierr);
+    } else {
+      for (k=0;k<nmat-1;k++) {
+        ierr = STMatMAXPY_Private(st,st->sigma,k,NULL,PETSC_FALSE,&st->T[k]);CHKERRQ(ierr);
+      }
+    } 
   }
-
-  if (st->kspidx==0 || (st->nmat==3 && st->kspidx==1)) {  /* Update KSP operator */
+  if (st->kspidx > -1 && st->kspidx != st->nmat-1) { /* Update KSP operator */
     /* Check if the new KSP matrix has the same zero structure */
     if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
     else flg = SAME_NONZERO_PATTERN;
