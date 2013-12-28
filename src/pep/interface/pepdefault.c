@@ -203,7 +203,7 @@ PetscErrorCode PEPBuildBalance(PEP pep)
   PetscMPIInt    emax,emin,emaxl,eminl,n;
   PetscBool      cont=PETSC_TRUE,flg=PETSC_FALSE;
   PetscScalar    *array,*Dr,*Dl,t;
-  PetscReal      l2,d,*rsum,*aux,*csum,w=pep->balance_w;
+  PetscReal      l2,d,*rsum,*aux,*csum,w=1.0;
   MatStructure   str;
   MatInfo        info;
 
@@ -252,11 +252,11 @@ PetscErrorCode PEPBuildBalance(PEP pep)
       array[i] = t*t;
     }
     ierr = MatSeqAIJRestoreArray(A,&array);CHKERRQ(ierr);
-    ierr = MatAXPY(M,w*w,A,str);CHKERRQ(ierr);
+    w *= pep->balance_w*pep->balance_w*pep->sfactor;
+    ierr = MatAXPY(M,w,A,str);CHKERRQ(ierr);
     if (flg || str!=SAME_NONZERO_PATTERN || k==nmat-2) {
       ierr = MatDestroy(&A);CHKERRQ(ierr);
     } 
-    w *= pep->balance_w;
   }
   ierr = MatGetRowIJ(M,0,PETSC_FALSE,PETSC_FALSE,&nr,&ridx,&cidx,&cont);CHKERRQ(ierr);
   if (!cont) SETERRQ(PetscObjectComm((PetscObject)T[0]), PETSC_ERR_SUP,"It is not possible to compute scaling diagonals to balance the PEP matrices");
