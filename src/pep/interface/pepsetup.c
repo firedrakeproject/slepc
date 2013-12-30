@@ -23,7 +23,6 @@
 
 #include <slepc-private/pepimpl.h>       /*I "slepcpep.h" I*/
 #include <slepc-private/ipimpl.h>
-#include <slepc-private/stimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetUp"
@@ -150,13 +149,11 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (!islinear) {
     ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
     if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in PEP");
-    pep->st->userscale = pep->sfactor_set;
-    if (pep->sfactor_set) {
-      pep->st->gamma = pep->sfactor;
-      pep->st->delta = 1.0;
-    }
     ierr = STSetUp(pep->st);CHKERRQ(ierr);
-    if (!pep->sfactor_set) pep->sfactor = pep->st->gamma;
+    /* Compute scaling factor if not set by user */
+    if (!pep->sfactor_set) {
+      ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
+    }
   }
 
  /* Build balancing matrix if required */

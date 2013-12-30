@@ -245,42 +245,6 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STComputeScaleFactors"
-/*
-   STComputeScaleFactors - Computes gamma and delta for Fan-Lin-van Dooren scaling
-   of quadratic eigenproblems. For degree larger than 2, it uses the extension
-   described in [Betcke 2008].
-@*/
-PetscErrorCode STComputeScaleFactors(ST st)
-{
-  PetscErrorCode ierr;
-  PetscBool      has=PETSC_TRUE,hast;
-  PetscReal      norm0,norm1;
-  PetscInt       i;
-
-  PetscFunctionBegin;
-  if (st->nmat>2) {
-    for (i=0;i<st->nmat && has;i++) {
-      ierr = MatHasOperation(st->T[i],MATOP_NORM,&hast);CHKERRQ(ierr);
-      has = (has && hast)?PETSC_TRUE:PETSC_FALSE;
-    }
-    if (has) {
-      ierr = MatNorm(st->T[0],NORM_INFINITY,&norm0);CHKERRQ(ierr);
-      ierr = MatNorm(st->T[st->nmat-1],NORM_INFINITY,&norm1);CHKERRQ(ierr);
-      st->gamma = PetscPowReal(norm0/norm1,1.0/(st->nmat-1));
-      if (st->nmat==3) {
-        ierr = MatNorm(st->T[st->nmat-2],NORM_INFINITY,&norm1);CHKERRQ(ierr);
-        st->delta = (st->nmat-1)/(norm0+norm1*st->gamma);
-      } else st->delta = 1.0;
-    } else {
-      st->gamma = 1.0;
-      st->delta = 1.0;
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "STSetUp"
 /*@
    STSetUp - Prepares for the use of a spectral transformation.
@@ -327,8 +291,6 @@ PetscErrorCode STSetUp(ST st)
     }
   }
   if (st->ops->setup) { ierr = (*st->ops->setup)(st);CHKERRQ(ierr); }
-  /* Compute scaling factor if not set by user */
-  if (!st->userscale) { ierr = STComputeScaleFactors(st);CHKERRQ(ierr); }
   st->setupcalled = 1;
   ierr = PetscLogEventEnd(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

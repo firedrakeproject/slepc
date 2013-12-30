@@ -339,3 +339,32 @@ PetscErrorCode PEPBuildBalance(PEP pep)
   ierr = PetscFree(T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPComputeScaleFactor"
+/*
+   PEPComputeScaleFactor - Computes sfactor as described in [Betcke 2008].
+@*/
+PetscErrorCode PEPComputeScaleFactor(PEP pep)
+{
+  PetscErrorCode ierr;
+  PetscBool      has0,has1;
+  PetscReal      norm0,norm1;
+  Mat            T[2];
+
+  PetscFunctionBegin;
+  ierr = STGetTOperators(pep->st,0,&T[0]);CHKERRQ(ierr);
+  ierr = STGetTOperators(pep->st,pep->nmat-1,&T[1]);CHKERRQ(ierr);
+  if (pep->nmat>2) {
+    ierr = MatHasOperation(T[0],MATOP_NORM,&has0);CHKERRQ(ierr);
+    ierr = MatHasOperation(T[1],MATOP_NORM,&has1);CHKERRQ(ierr);
+    if (has0 && has1) {
+      ierr = MatNorm(T[0],NORM_INFINITY,&norm0);CHKERRQ(ierr);
+      ierr = MatNorm(T[1],NORM_INFINITY,&norm1);CHKERRQ(ierr);
+      pep->sfactor = PetscPowReal(norm0/norm1,1.0/(pep->nmat-1));
+    } else {
+      pep->sfactor = 1.0;
+    }
+  }
+  PetscFunctionReturn(0);
+}

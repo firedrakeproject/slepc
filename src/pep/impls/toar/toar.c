@@ -149,7 +149,8 @@ static PetscErrorCode PEPTOARApplyOp(PEP pep,PetscScalar *S,PetscInt ld,PetscInt
 {
   PetscErrorCode ierr;
   PetscInt       deg=pep->nmat-1,i;
-  Vec            v=t_[0],q=t_[1];  
+  Vec            v=t_[0],q=t_[1];
+  PetscScalar    alpha=1.0;
 
   PetscFunctionBegin;
   if (!t_||nwv<2) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
@@ -160,16 +161,18 @@ static PetscErrorCode PEPTOARApplyOp(PEP pep,PetscScalar *S,PetscInt ld,PetscInt
   }
   ierr = STMatMult(pep->st,0,v,q);CHKERRQ(ierr);
   for (i=1;i<deg;i++) {
+    alpha *= pep->sfactor;
     ierr = VecZeroEntries(v);CHKERRQ(ierr);
     ierr = VecMAXPY(v,nv,S+i*ld,V);CHKERRQ(ierr);
     if (pep->Dr) { /* Balancing */
       ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
     }
     ierr = STMatMult(pep->st,i,v,t);CHKERRQ(ierr);
-    ierr = VecAXPY(q,1.0,t);CHKERRQ(ierr);
+    ierr = VecAXPY(q,alpha,t);CHKERRQ(ierr);
   }
+  alpha *= pep->sfactor;
   ierr = STMatSolve(pep->st,deg,q,t);CHKERRQ(ierr);
-  ierr = VecScale(t,-1.0);CHKERRQ(ierr);
+  ierr = VecScale(t,-1.0/alpha);CHKERRQ(ierr);
   if (pep->Dr) { /* Balancing */
     ierr = VecPointwiseDivide(t,t,pep->Dr);CHKERRQ(ierr);
   }

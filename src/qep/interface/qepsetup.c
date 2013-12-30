@@ -23,7 +23,6 @@
 
 #include <slepc-private/qepimpl.h>       /*I "slepcqep.h" I*/
 #include <slepc-private/ipimpl.h>
-#include <slepc-private/stimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPSetUp"
@@ -154,13 +153,11 @@ PetscErrorCode QEPSetUp(QEP qep)
   if (!islinear) {
     ierr = PetscObjectTypeCompareAny((PetscObject)qep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
     if (!flg) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in QEP");
-    qep->st->userscale = qep->sfactor_set;
-    if (qep->sfactor_set) {
-      qep->st->gamma = qep->sfactor;
-      qep->st->delta = 1.0;
-    }
     ierr = STSetUp(qep->st);CHKERRQ(ierr);
-    if (!qep->sfactor_set) qep->sfactor = qep->st->gamma;
+    /* Compute scaling factor if not set by user */
+    if (!qep->sfactor_set) {
+      ierr = QEPComputeScaleFactor(qep);CHKERRQ(ierr);
+    }
   }
 
   /* process initial vectors */

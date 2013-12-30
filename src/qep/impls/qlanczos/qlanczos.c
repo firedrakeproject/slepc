@@ -93,7 +93,7 @@ PetscErrorCode QEPQLanczosNorm_private(QEP qep,Vec v1,Vec v2,PetscReal *norm,Vec
   ierr = VecDot(vw,v1,&p1);CHKERRQ(ierr);
   ierr = STMatMult(qep->st,2,v2,vw);CHKERRQ(ierr);
   ierr = VecDot(vw,v2,&p2);CHKERRQ(ierr);
-  *norm = PetscRealPart(-p1+p2);
+  *norm = PetscRealPart(-p1+p2*qep->sfactor*qep->sfactor);
   *norm = (*norm>0.0)?PetscSqrtReal(*norm):-PetscSqrtReal(-*norm);
   PetscFunctionReturn(0);
 }
@@ -123,10 +123,11 @@ static PetscErrorCode QEPQLanczosCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,Pet
   ierr = STMatMult(qep->st,2,w,vw);CHKERRQ(ierr);
   if (j>0) {
     ierr = VecMDot(vw,j_1,V,work);CHKERRQ(ierr);
+    for (i=0;i<j_1;i++) work[i] *= qep->sfactor*qep->sfactor;
     PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&j_1,&j,&one,H,&ldh,work,&ione,&one,h,&ione));
   }
   ierr = VecDot(vw,t,&dot);CHKERRQ(ierr);
-  h[j] += dot;
+  h[j] += dot*qep->sfactor*qep->sfactor;
   /* apply inverse of signature */
   for (i=0;i<=j;i++) h[i] /= omega[i];
   /* orthogonalize: update v and w */
@@ -169,9 +170,9 @@ static PetscErrorCode QEPQLanczos(QEP qep,PetscScalar *H,PetscInt ldh,PetscReal 
     ierr = VecCopy(w,t);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,0,v,u);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,1,t,w);CHKERRQ(ierr);
-    ierr = VecAXPY(u,1.0,w);CHKERRQ(ierr);
+    ierr = VecAXPY(u,qep->sfactor,w);CHKERRQ(ierr);
     ierr = STMatSolve(qep->st,2,u,w);CHKERRQ(ierr);
-    ierr = VecScale(w,-1.0);CHKERRQ(ierr);
+    ierr = VecScale(w,-1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
     ierr = VecCopy(t,v);CHKERRQ(ierr);
 
     /* orthogonalize */
@@ -294,6 +295,7 @@ PetscErrorCode QEPSolve_QLanczos(QEP qep)
     ierr = VecNorm(w_,NORM_2,&t2);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,2,w,w_);CHKERRQ(ierr);
     ierr = VecNorm(w_,NORM_2,&norm);CHKERRQ(ierr);
+    norm *= qep->sfactor*qep->sfactor;
     t2 = SlepcAbs(t2,norm);
     norm = PetscMax(t1,t2);
     ierr = DSGetDimensions(qep->ds,NULL,NULL,NULL,NULL,&t);CHKERRQ(ierr);    

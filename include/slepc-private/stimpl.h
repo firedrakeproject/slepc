@@ -56,8 +56,6 @@ struct _p_ST {
   PetscScalar  defsigma;         /* Default value of the shift */
   STMatMode    shift_matrix;
   MatStructure str;              /* whether matrices have the same pattern or not */
-  PetscReal    gamma,delta;      /* scaling factors */
-  PetscBool    userscale;        /* flag indicating the user passed gamma,delta */
 
   /*------------------------- Misc data --------------------------*/
   KSP          ksp;
@@ -79,6 +77,5 @@ PETSC_INTERN PetscErrorCode STMatSetHermitian(ST,Mat);
 PETSC_INTERN PetscErrorCode STMatGAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscInt,PetscBool);
 PETSC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscInt,PetscScalar*,PetscBool,Mat*);
 PETSC_INTERN PetscErrorCode STCoeffs_Monomial(ST, PetscScalar*);
-PETSC_INTERN PetscErrorCode STComputeScaleFactors(ST);
 
 #endif
