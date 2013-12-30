@@ -158,12 +158,12 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
       /* Compute coeffs */
       ierr = STCoeffs_Monomial(st,coeffs);CHKERRQ(ierr);
       for (k=0;k<nmat-1;k++) {
-        ierr = STMatMAXPY_Private(st,st->sigma,k,coeffs+((nmat-k)*(nmat-k-1))/2,PETSC_FALSE,&st->T[k]);CHKERRQ(ierr);
+        ierr = STMatMAXPY_Private(st,newshift,k,coeffs+((nmat-k)*(nmat-k-1))/2,PETSC_FALSE,&st->T[k]);CHKERRQ(ierr);
       }
       ierr = PetscFree(coeffs);CHKERRQ(ierr);
     } else {
       for (k=0;k<nmat-1;k++) {
-        ierr = STMatMAXPY_Private(st,st->sigma,k,NULL,PETSC_FALSE,&st->T[k]);CHKERRQ(ierr);
+        ierr = STMatMAXPY_Private(st,newshift,k,NULL,PETSC_FALSE,&st->T[k]);CHKERRQ(ierr);
       }
     } 
   }

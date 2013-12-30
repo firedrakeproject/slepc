@@ -417,6 +417,7 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
         ierr = MatShift(st->T[k],alpha);CHKERRQ(ierr);
       }
     }
+    break;
   case ST_MATMODE_HYBRID:
     SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_HYBRID not supported");
   }

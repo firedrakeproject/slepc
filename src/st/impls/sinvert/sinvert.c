@@ -175,17 +175,17 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
       ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
       st->T[0] = st->A[k];
       for (k=1;k<nmat;k++) {
-        ierr = STMatMAXPY_Private(st,st->sigma,nmat-k-1,coeffs+(k*(k+1))/2,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
+        ierr = STMatMAXPY_Private(st,newshift,nmat-k-1,coeffs+(k*(k+1))/2,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
       }
       ierr = PetscFree(coeffs);CHKERRQ(ierr);
     } else {
       if (st->shift_matrix == ST_MATMODE_HYBRID) {
         d = 1;
         for (k=0;k<st->nmat;k++) c[k] = 1.0;
-        ierr = STMatMAXPY_Private(st,st->sigma,0,c,PETSC_TRUE,&st->T[nmat-1]);CHKERRQ(ierr);
+        ierr = STMatMAXPY_Private(st,newshift,0,c,PETSC_TRUE,&st->T[nmat-1]);CHKERRQ(ierr);
       }
       for (k=1;k<nmat-d;k++) {
-        ierr = STMatMAXPY_Private(st,st->sigma,nmat-k-1,NULL,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
+        ierr = STMatMAXPY_Private(st,newshift,nmat-k-1,NULL,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
       }
     }
   }
