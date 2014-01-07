@@ -90,7 +90,7 @@ PetscErrorCode STPostSolve_Shift(ST st)
       } else s = -st->sigma;
       ierr = MatAXPY(st->A[0],s,st->A[1],st->str);CHKERRQ(ierr);
     } else {
-      ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
+      ierr = MatShift(st->A[0],-st->sigma);CHKERRQ(ierr);
     }
     st->Astate[0] = ((PetscObject)st->A[0])->state;
     st->setupcalled = 0;
