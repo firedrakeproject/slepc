@@ -411,7 +411,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
     SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for polynomial eigenproblems");
     break;
   case ST_MATMODE_HYBRID:
-    if (coeffs) copy = PETSC_TRUE;
+    if (!initial && coeffs) copy = PETSC_TRUE;
   case ST_MATMODE_SHELL:
     if (!copy) {
       if (initial) {
@@ -421,7 +421,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
         ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
         ierr = PetscFree(matIdx);CHKERRQ(ierr);
       } else {
-        ierr = STMatShellShift(st->T[k],alpha);CHKERRQ(ierr);
+        ierr = STMatShellShift(*S,alpha);CHKERRQ(ierr);
       }
       break;
     }
