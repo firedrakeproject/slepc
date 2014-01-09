@@ -634,7 +634,7 @@ static PetscErrorCode isGhost(EPS eps,PetscInt ld,PetscInt nv,PetscBool *fl)
     s2 = 0;
     for (j=0;j<nv;j++) {
       s1 += PetscAbsScalar(PetscPowScalar(pX[i*ld+j],2));
-      s2 += PetscPowScalar(PetscAbsScalar(pX[i*ld+j]),2)/ctx->sigma[j];
+      s2 += PetscPowReal(PetscAbsScalar(pX[i*ld+j]),2)/ctx->sigma[j];
     }
     tau[i] = s1/s2;
     tau_max = PetscMax(tau_max,tau[i]);
