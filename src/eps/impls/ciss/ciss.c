@@ -187,7 +187,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
     theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
     ctx->pp[i] = cos(theta) + PETSC_i*ctx->vscale*sin(theta);
     ctx->omega[i] = ctx->center + ctx->radius*ctx->pp[i];
-    ctx->weight[i] = ctx->vscale*cos(theta) + PETSC_i*sin(theta);
+    ctx->weight[i] = (ctx->vscale*cos(theta) + PETSC_i*sin(theta))/(PetscReal)ctx->N;
   }
   PetscFunctionReturn(0);
 }
@@ -296,7 +296,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
     ierr = VecSet(v,0);CHKERRQ(ierr);
     for (i=0;i<ctx->num_solve_point; i++) {
       p_id = i*ctx->subcomm->n + ctx->subcomm_id;
-      ierr = VecAXPY(v,ctx->weight[p_id]/(PetscReal)ctx->N,ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
+      ierr = VecAXPY(v,ctx->weight[p_id],ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
     }
     if (ctx->pA) {
       ierr = VecSet(vtemp,0);CHKERRQ(ierr);
@@ -352,7 +352,7 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   for (k=0;k<2*ctx->M;k++) {
     for (j=0;j<ctx->L;j++) {
       for (i=0;i<ctx->num_solve_point;i++) {
-	alp = ppk[i]*ctx->weight[i*ctx->subcomm->n + ctx->subcomm_id]/(PetscReal)ctx->N;
+	alp = ppk[i]*ctx->weight[i*ctx->subcomm->n + ctx->subcomm_id];
 	for (s=0;s<ctx->L;s++) {
 	  if (ctx->useconj) temp2[s+(j+k*ctx->L)*ctx->L] += PetscRealPart(alp*temp[s+(j+i*ctx->L)*ctx->L])*2;
 	  else temp2[s+(j+k*ctx->L)*ctx->L] += alp*temp[s+(j+i*ctx->L)*ctx->L];
@@ -439,7 +439,7 @@ static PetscErrorCode ConstructS(EPS eps)
       ierr = VecSet(v,0);CHKERRQ(ierr);
       for (i=0;i<ctx->num_solve_point;i++) {
 	p_id = i*ctx->subcomm->n + ctx->subcomm_id;
-	ierr = VecAXPY(v,ppk[i]*ctx->weight[p_id]/(PetscReal)ctx->N,ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
+	ierr = VecAXPY(v,ppk[i]*ctx->weight[p_id],ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
       }
       if (ctx->useconj) {
 	ierr = VecGetArray(v,&v_data);CHKERRQ(ierr);
