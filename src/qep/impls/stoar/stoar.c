@@ -336,13 +336,14 @@ static PetscErrorCode IndefNorm(PetscInt n,PetscReal *s,PetscScalar *x,PetscReal
 #define __FUNCT__ "QEPSTOARTrunc"
 static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
 {
-  PetscErrorCode ierr;
-  QEP_STOAR      *ctx=(QEP_STOAR*)qep->data;
-  PetscInt       lwa,nwu=0,lrwa,nrwu=0;
-  PetscInt       j,i,n,lds=2*ctx->ld;
-  PetscScalar    *M,*V,*U,*S=ctx->S,*R,sone=1.0,zero=0.0,t;
-  PetscReal      *sg,*qM=ctx->qM,*ss,norm;
-  PetscBLASInt   cs1_,rs1_,cs1t2,cs1p1,n_,info,lw_,one=1,lds_,ld_;
+  PetscErrorCode  ierr;
+  QEP_STOAR       *ctx=(QEP_STOAR*)qep->data;
+  PetscInt        lwa,nwu=0,lrwa,nrwu=0;
+  PetscInt        j,i,n,lds=2*ctx->ld;
+  PetscScalar     *M,*V,*U,*S=ctx->S,*R=NULL,sone=1.0,zero=0.0,t;
+  PetscReal       *sg,*qM=ctx->qM,*ss,norm;
+  PetscBLASInt    cs1_,rs1_,cs1t2,cs1p1,n_,info,lw_,one=1,lds_,ld_;
+  const PetscBool ismonic=ctx->monic;
 
   PetscFunctionBegin;
   n = (rs1>2*cs1)?2*cs1:rs1;
@@ -382,7 +383,7 @@ static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScala
   PetscStackCall("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1t2,M,&rs1_,sg,U,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));  
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
-  if (!ctx->monic) {
+  if (!ismonic) {
     R = work+nwu;
     ierr = PetscMemzero(R,(cs1+1)*(cs1+1)*sizeof(PetscScalar));CHKERRQ(ierr);
     nwu += (cs1+1)*(cs1+1);
@@ -402,7 +403,7 @@ static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScala
   
   /* Update S */
   ierr = PetscMemzero(S,lds*ctx->ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  if (ctx->monic) {
+  if (ismonic) {
     for (i=0;i<cs1+1;i++) {
       t = sg[i];
       PetscStackCall("BLASscal",BLASscal_(&cs1t2,&t,V+i,&n_));
@@ -420,7 +421,7 @@ static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScala
     PetscStackCall("BLASgemm",BLASgemm_("N","N",&cs1p1,&cs1_,&cs1p1,&sone,R,&cs1p1,V+cs1*n,&n_,&zero,S+ctx->ld,&lds_));
   }
   /* Update qM and qK */
-  for (j=0;j<cs1+1;j++) qM[j] = (ctx->monic)?1.0:ss[j];
+  for (j=0;j<cs1+1;j++) qM[j] = ismonic? 1.0: ss[j];
   PetscStackCall("BLASgemm",BLASgemm_("N","N",&rs1_,&cs1p1,&rs1_,&sone,ctx->qK,&ld_,U,&rs1_,&zero,work+nwu,&rs1_));
   PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1p1,&cs1p1,&rs1_,&sone,U,&rs1_,work+nwu,&rs1_,&zero,ctx->qK,&ld_));
   PetscFunctionReturn(0);
