@@ -77,7 +77,7 @@ static PetscErrorCode MFNBasicArnoldi(MFN mfn,PetscScalar *H,PetscInt ldh,Vec *V
     }
   }
   ierr = MatMult(mfn->A,V[m-1],f);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(mfn->ip,0,NULL,m,NULL,V,f,H+ldh*(m-1),beta,NULL);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(mfn->ip,0,NULL,m,NULL,V,f,H+ldh*(m-1),beta,breakdown);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

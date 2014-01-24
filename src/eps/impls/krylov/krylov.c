@@ -68,7 +68,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
   } else {
     ierr = STApply(eps->st,V[m-1],f);CHKERRQ(ierr);
   }
-  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,NULL,V,f,H+ldh*(m-1),beta,NULL);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,NULL,V,f,H+ldh*(m-1),beta,breakdown);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -198,7 +198,7 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,Pe
     }
   }
   ierr = STApply(eps->st,V[m-1],f);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,NULL,V,f,hwork,&norm,NULL);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,NULL,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);
   alpha[m-1] = PetscRealPart(hwork[m-1]);
   beta[m-1] = norm;
 
