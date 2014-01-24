@@ -384,8 +384,10 @@ PetscErrorCode QEPSolve_TOAR(QEP qep)
     ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,nv);CHKERRQ(ierr);
   }
 
-  /* Update vectors V = V*S */    
-  ierr = SlepcUpdateVectors(nv+2,qep->V,0,qep->nconv,S,lds,PETSC_FALSE);CHKERRQ(ierr);
+  /* Update vectors V = V*S */  
+  if (qep->nconv>0) {
+    ierr = SlepcUpdateVectors(nv+2,qep->V,0,qep->nconv,S,lds,PETSC_FALSE);CHKERRQ(ierr);
+  }
   for (j=0;j<qep->nconv;j++) {
     qep->eigr[j] *= qep->sfactor;
     qep->eigi[j] *= qep->sfactor;
