@@ -136,9 +136,10 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     ierr = DSGetArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = MFNBasicArnoldi(mfn,H,ld,mfn->V,0,&mb,r,&beta2,&breakdown);CHKERRQ(ierr);
     H[mb+(mb-1)*ld] = beta2;
-    ierr = VecScale(r,1.0/beta2);CHKERRQ(ierr);
-    ierr = VecCopy(r,mfn->V[m]);CHKERRQ(ierr);
-    if (breakdown) {
+    if (!breakdown) {
+      ierr = VecScale(r,1.0/beta2);CHKERRQ(ierr);
+      ierr = VecCopy(r,mfn->V[m]);CHKERRQ(ierr);
+    } else {
       k1 = 0;
       t_step = t_out-t_now;
     }
