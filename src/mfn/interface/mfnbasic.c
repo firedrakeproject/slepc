@@ -452,7 +452,8 @@ PetscErrorCode MFNSetIP(MFN mfn,IP ip)
 #undef __FUNCT__
 #define __FUNCT__ "MFNGetIP"
 /*@C
-   MFNGetIP - Obtain the inner product object associated to the eigensolver object.
+   MFNGetIP - Obtain the inner product object associated to the matrix
+   function solver.
 
    Not Collective
 
