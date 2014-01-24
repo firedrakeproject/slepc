@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = toar.c
+SOURCEC  = ptoar.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepc

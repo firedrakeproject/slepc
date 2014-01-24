@@ -388,7 +388,7 @@ static PetscErrorCode PEPExtractInvariantPair(PetscInt k,PetscScalar *S,PetscInt
 PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,k,l,nv,ld,lds,off,ldds,newn;
+  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,deg=pep->nmat-1;
   PetscScalar    *S,*Q,*work,*H;
   PetscReal      beta,norm,*rwork;

@@ -470,7 +470,7 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_STOAR      *ctx=(QEP_STOAR*)qep->data;
-  PetscInt       j,k,l,nv,ld=ctx->ld,lds=ctx->d*ctx->ld,off,ldds,t;
+  PetscInt       j,k,l,nv=0,ld=ctx->ld,lds=ctx->d*ctx->ld,off,ldds,t;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0;
   Vec            w=qep->work[0],w2=qep->work[1];
   PetscScalar    *S=ctx->S,*Q,*work;
