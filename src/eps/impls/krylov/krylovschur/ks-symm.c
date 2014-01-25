@@ -84,10 +84,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
       if (breakdown) {
         /* Start a new Lanczos factorization */
         ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%D norm=%G)\n",eps->its,beta);CHKERRQ(ierr);
-        ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
-        if (breakdown) {
-          eps->reason = EPS_DIVERGED_BREAKDOWN;
-          ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
+        if (k<eps->nev) {
+          ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
+          if (breakdown) {
+            eps->reason = EPS_DIVERGED_BREAKDOWN;
+            ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
+          }
         }
       } else {
         /* Prepare the Rayleigh quotient for restart */
