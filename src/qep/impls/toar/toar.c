@@ -289,7 +289,7 @@ PetscErrorCode QEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,PetscInt s,
 PetscErrorCode QEPSolve_TOAR(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscInt       j,k,l,nv,ld,lds,off,ldds,newn;
+  PetscInt       j,k,l,nv=0,ld,lds,off,ldds,newn;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0;
   PetscScalar    *S,*Q,*work,*H;
   PetscReal      beta,norm,*rwork;
