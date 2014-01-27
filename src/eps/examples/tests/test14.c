@@ -91,13 +91,13 @@ int main(int argc,char **argv)
 
   ierr = EPSSetBalance(eps,EPS_BALANCE_ONESIDE,8,1e-6);CHKERRQ(ierr);
   ierr = EPSGetBalance(eps,&bal,&its,&cut);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Balance: %D, its=%D, cutoff=%G\n",bal,its,cut);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Balance: %D, its=%D, cutoff=%g\n",bal,its,(double)cut);CHKERRQ(ierr);
 
   ierr = EPSSetTarget(eps,4.8);CHKERRQ(ierr);
   ierr = EPSGetTarget(eps,&target);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSGetWhichEigenpairs(eps,&which);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Which = %D, target = %G\n",which,PetscRealPart(target));CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Which = %D, target = %g\n",which,(double)PetscRealPart(target));CHKERRQ(ierr);
 
   ierr = EPSSetDimensions(eps,4,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,&ncv,&mpd);CHKERRQ(ierr);
@@ -106,7 +106,7 @@ int main(int argc,char **argv)
   ierr = EPSSetTolerances(eps,0,200);CHKERRQ(ierr);
   ierr = EPSSetTolerances(eps,2.2e-4,0);CHKERRQ(ierr);
   ierr = EPSGetTolerances(eps,&tol,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance = %.5F, max_its = %D\n",tol,its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance = %.5f, max_its = %D\n",(double)tol,its);CHKERRQ(ierr);
 
   ierr = EPSSetConvergenceTest(eps,EPS_CONV_ABS);CHKERRQ(ierr);
   ierr = EPSGetConvergenceTest(eps,&conv);CHKERRQ(ierr);

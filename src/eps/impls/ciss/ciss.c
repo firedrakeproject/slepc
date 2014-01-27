@@ -240,7 +240,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,Vec *S1,PetscInt *L_add)
   ierr = VecDestroy(&V_p);CHKERRQ(ierr);
   ctx->est_eig = PetscAbsScalar(ctx->radius*sum/(PetscReal)ctx->L);
   eta = PetscPowReal(10,-log10(eps->tol)/ctx->N);
-  ierr = PetscInfo1(eps,"Estimation_#Eig %F\n",ctx->est_eig);CHKERRQ(ierr);
+  ierr = PetscInfo1(eps,"Estimation_#Eig %f\n",(double)ctx->est_eig);CHKERRQ(ierr);
   *L_add = (PetscInt)ceil((ctx->est_eig*eta)/ctx->M) - ctx->L;
   if (*L_add < 0) *L_add = 0;
   if (*L_add>ctx->L_max-ctx->L) {
@@ -1302,12 +1302,12 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = SlepcSNPrintfScalar(str,50,ctx->center,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: region { center: %s, radius: %G, vscale: %G }\n",str,ctx->radius,ctx->vscale);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: region { center: %s, radius: %g, vscale: %g }\n",str,(double)ctx->radius,(double)ctx->vscale);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: sizes { integration points: %D, block size: %D, moment size: %D, partitions: %D, maximum block size: %D }\n",ctx->N,ctx->L,ctx->M,ctx->npart,ctx->L_max);CHKERRQ(ierr);
     if (ctx->isreal) {
       ierr = PetscViewerASCIIPrintf(viewer,"  CISS: exploiting symmetry of integration points\n");CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: threshold { delta: %G, spurious threshold: %G }\n",ctx->delta,ctx->spurious_threshold);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: iterative refinement  { inner: %D, outer: %D, blocksize: %D }\n",ctx->refine_inner,ctx->refine_outer, ctx->refine_blocksize);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);

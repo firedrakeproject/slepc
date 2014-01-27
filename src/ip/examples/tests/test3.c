@@ -67,7 +67,7 @@ int main(int argc,char **argv)
 
   /* Check indefinite norm */
   ierr = IPNorm(ip,v,&norm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed norm=%G\n",norm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed norm=%g\n",(double)norm);CHKERRQ(ierr);
 
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = IPDestroy(&ip);CHKERRQ(ierr);

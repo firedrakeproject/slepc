@@ -165,7 +165,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",svd->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",svd->mpd);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",svd->max_it);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",svd->tol);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)svd->tol);CHKERRQ(ierr);
     if (svd->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(svd->nini));CHKERRQ(ierr);
     }
@@ -243,7 +243,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
           ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
           for (j=0;j<PetscMin(8,svd->nsv-8*i);j++) {
             ierr = SVDGetSingularTriplet(svd,8*i+j,&sigma,NULL,NULL);CHKERRQ(ierr);
-            ierr = PetscViewerASCIIPrintf(viewer,"%.5F",sigma);CHKERRQ(ierr);
+            ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)sigma);CHKERRQ(ierr);
             if (8*i+j+1<svd->nsv) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
           }
         }
@@ -261,7 +261,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
       for (i=0;i<svd->nconv;i++) {
         ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,NULL);CHKERRQ(ierr);
         ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"       % 6F          %12G\n",sigma,error);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"       % 6f          %12g\n",(double)sigma,(double)error);CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     }

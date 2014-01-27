@@ -373,7 +373,7 @@ PetscErrorCode QEPSolve_TOAR(QEP qep)
       if (breakdown) {
 
         /* Stop if breakdown */
-        ierr = PetscInfo2(qep,"Breakdown TOAR method (it=%D norm=%G)\n",qep->its,beta);CHKERRQ(ierr);
+        ierr = PetscInfo2(qep,"Breakdown TOAR method (it=%D norm=%g)\n",qep->its,(double)beta);CHKERRQ(ierr);
         qep->reason = QEP_DIVERGED_BREAKDOWN;
       } else {
         /* Truncate S */

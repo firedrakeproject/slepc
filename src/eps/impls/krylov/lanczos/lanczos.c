@@ -625,7 +625,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
     /* Compute restart vector */
     if (breakdown) {
-      ierr = PetscInfo2(eps,"Breakdown in Lanczos method (it=%D norm=%G)\n",eps->its,beta);CHKERRQ(ierr);
+      ierr = PetscInfo2(eps,"Breakdown in Lanczos method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
     } else {
       restart = nconv;
       while (restart<n && conv[restart] != 'N') restart++;

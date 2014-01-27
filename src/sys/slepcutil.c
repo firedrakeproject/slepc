@@ -483,9 +483,9 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
       if (lev) *lev = PetscMax(*lev,PetscAbsScalar((j==i)? (vals[j]-1.0): vals[j]));
       else {
 #if !defined(PETSC_USE_COMPLEX)
-        ierr = PetscViewerASCIIPrintf(viewer," %12G  ",vals[j]);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer," %12g  ",(double)vals[j]);CHKERRQ(ierr);
 #else
-        ierr = PetscViewerASCIIPrintf(viewer," %12G%+12Gi ",PetscRealPart(vals[j]),PetscImaginaryPart(vals[j]));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer," %12g%+12gi ",(double)PetscRealPart(vals[j]),(double)PetscImaginaryPart(vals[j]));CHKERRQ(ierr);
 #endif
       }
     }
@@ -772,24 +772,24 @@ PetscErrorCode SlepcSNPrintfScalar(char *str,size_t len,PetscScalar val,PetscBoo
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
   if (exp) {
-    ierr = PetscSNPrintf(str,len,"%+G",val);CHKERRQ(ierr);
+    ierr = PetscSNPrintf(str,len,"%+g",(double)val);CHKERRQ(ierr);
   } else {
-    ierr = PetscSNPrintf(str,len,"%G",val);CHKERRQ(ierr);
+    ierr = PetscSNPrintf(str,len,"%g",(double)val);CHKERRQ(ierr);
   }
 #else
   re = PetscRealPart(val);
   im = PetscImaginaryPart(val);
   if (im!=0.0) {
     if (exp) {
-      ierr = PetscSNPrintf(str,len,"+(%G%+G i)",re,im);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(str,len,"+(%g%+g i)",(double)re,(double)im);CHKERRQ(ierr);
     } else {
-      ierr = PetscSNPrintf(str,len,"%G%+G i",re,im);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(str,len,"%g%+g i",(double)re,(double)im);CHKERRQ(ierr);
     }
   } else {
     if (exp) {
-      ierr = PetscSNPrintf(str,len,"%+G",re,im);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(str,len,"%+g",(double)re);CHKERRQ(ierr);
     } else {
-      ierr = PetscSNPrintf(str,len,"%G",re,im);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(str,len,"%g",(double)re);CHKERRQ(ierr);
     }
   }
 #endif

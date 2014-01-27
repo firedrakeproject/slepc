@@ -54,7 +54,7 @@ int main(int argc,char **argv)
   N = m*(m+1)/2;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%D (m=%D)\n",N,m);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(NULL,"-target",&target,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Searching closest eigenvalues to the right of %G.\n\n",target);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Searching closest eigenvalues to the right of %g.\n\n",(double)target);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
