@@ -555,7 +555,11 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<n;i++)
     Q[i+i*ld] = 1.0;
-  if (n==1) PetscFunctionReturn(0);
+  if (n==1) { /* quick return */
+    wr[0] = A[0];
+    wi[0] = 0.0;
+    PetscFunctionReturn(0);
+  }
 
   /* reduce to upper Hessenberg form */
   if (ds->state<DS_STATE_INTERMEDIATE) {

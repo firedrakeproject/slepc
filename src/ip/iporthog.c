@@ -152,8 +152,8 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     ierr = IPOrthogonalizeMGS1(ip,n,which,V,v,H);CHKERRQ(ierr);
     /* compute |v| */
     if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
-    /* linear dependence check does not work without refinement */
-    if (lindep) *lindep = PETSC_FALSE;
+    /* linear dependence check: just test for exactly zero norm */
+    if (lindep) *lindep = (*norm)? PETSC_FALSE: PETSC_TRUE;
     break;
 
   case IP_ORTHOG_REFINE_ALWAYS:
@@ -166,7 +166,7 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     ierr = IPOrthogonalizeMGS1(ip,n,which,V,v,H);CHKERRQ(ierr);
     if (lindep || norm) { ierr = IPNorm(ip,v,&nrm);CHKERRQ(ierr); }
     if (lindep) {
-      if (nrm < ip->orthog_eta * onrm) *lindep = PETSC_TRUE;
+      if (nrm==0.0 || nrm < ip->orthog_eta * onrm) *lindep = PETSC_TRUE;
       else *lindep = PETSC_FALSE;
     }
     if (norm) *norm = nrm;
@@ -180,7 +180,7 @@ static PetscErrorCode IPOrthogonalizeMGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     ierr = IPNorm(ip,v,&nrm);CHKERRQ(ierr);
     /* ||q|| < eta ||h|| */
     k = 1;
-    while (k<3 && nrm < ip->orthog_eta * onrm) {
+    while (k<3 && nrm && nrm < ip->orthog_eta * onrm) {
       k++;
       onrm = nrm;
       ierr = IPOrthogonalizeMGS1(ip,nds,NULL,defl,v,NULL);CHKERRQ(ierr);
@@ -234,8 +234,8 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,h,NULL,NULL);CHKERRQ(ierr);
     /* compute |v| */
     if (norm) { ierr = IPNorm(ip,v,norm);CHKERRQ(ierr); }
-    /* linear dependence check does not work without refinement */
-    if (lindep) *lindep = PETSC_FALSE;
+    /* linear dependence check: just test for exactly zero norm */
+    if (lindep) *lindep = (*norm)? PETSC_FALSE: PETSC_TRUE;
     break;
 
   case IP_ORTHOG_REFINE_ALWAYS:
@@ -243,7 +243,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     if (lindep) {
       ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,c,&onrm,&nrm);CHKERRQ(ierr);
       if (norm) *norm = nrm;
-      if (nrm < ip->orthog_eta * onrm) *lindep = PETSC_TRUE;
+      if (nrm==0.0 || nrm < ip->orthog_eta * onrm) *lindep = PETSC_TRUE;
       else *lindep = PETSC_FALSE;
     } else {
       ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,c,NULL,norm);CHKERRQ(ierr);
@@ -256,7 +256,7 @@ static PetscErrorCode IPOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,PetscInt n
     ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,h,&onrm,&nrm);CHKERRQ(ierr);
     /* ||q|| < eta ||h|| */
     k = 1;
-    while (k<3 && nrm < ip->orthog_eta * onrm) {
+    while (k<3 && nrm && nrm < ip->orthog_eta * onrm) {
       k++;
       if (!ip->matrix) {
         ierr = IPOrthogonalizeCGS1(ip,nds,defl,n,which,V,v,c,&onrm,&nrm);CHKERRQ(ierr);
