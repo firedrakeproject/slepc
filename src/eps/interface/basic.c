@@ -194,7 +194,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,", with its=%D",eps->balance_its);CHKERRQ(ierr);
       }
       if (eps->balance==EPS_BALANCE_TWOSIDE && eps->balance_cutoff!=0.0) {
-        ierr = PetscViewerASCIIPrintf(viewer," and cutoff=%G",eps->balance_cutoff);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer," and cutoff=%g",(double)eps->balance_cutoff);CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     }
@@ -234,7 +234,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
         break;
       case EPS_ALL:
-        ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in interval [%G,%G]\n",eps->inta,eps->intb);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in interval [%g,%g]\n",(double)eps->inta,(double)eps->intb);CHKERRQ(ierr);
         break;
       default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
     }
@@ -251,7 +251,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",eps->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",eps->mpd);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",eps->max_it);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",eps->tol);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)eps->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
     switch (eps->conv) {
     case EPS_CONV_ABS:
@@ -272,9 +272,9 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     if (eps->nds>0) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %D\n",eps->nds);CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  estimates of matrix norms (%s): norm(A)=%G",eps->adaptive?"adaptive":"constant",eps->nrma);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  estimates of matrix norms (%s): norm(A)=%g",eps->adaptive?"adaptive":"constant",(double)eps->nrma);CHKERRQ(ierr);
     if (eps->isgeneralized) {
-      ierr = PetscViewerASCIIPrintf(viewer,", norm(B)=%G",eps->nrmb);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,", norm(B)=%g",(double)eps->nrmb);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   } else {
@@ -364,9 +364,9 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
             if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
             if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
             if (im!=0.0) {
-              ierr = PetscViewerASCIIPrintf(viewer,"%.5F%+.5Fi",re,im);CHKERRQ(ierr);
+              ierr = PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im);CHKERRQ(ierr);
             } else {
-              ierr = PetscViewerASCIIPrintf(viewer,"%.5F",re);CHKERRQ(ierr);
+              ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)re);CHKERRQ(ierr);
             }
             if (8*i+j+1<eps->nev) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
           }
@@ -393,9 +393,9 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
         im = ki;
 #endif
         if (im!=0.0) {
-          ierr = PetscViewerASCIIPrintf(viewer," % 9F%+9F i %12G\n",re,im,error);CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer," % 9f%+9f i %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
         } else {
-          ierr = PetscViewerASCIIPrintf(viewer,"   % 12F       %12G\n",re,error);CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"   % 12f       %12g\n",(double)re,(double)error);CHKERRQ(ierr);
         }
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);

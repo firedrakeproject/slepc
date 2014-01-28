@@ -234,7 +234,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       break;
     case 3:
       /* update shift */
-      ierr = PetscInfo1(eps,"Factorization update (sigma=%g)\n",sigma);CHKERRQ(ierr);
+      ierr = PetscInfo1(eps,"Factorization update (sigma=%g)\n",(double)sigma);CHKERRQ(ierr);
       ierr = STSetShift(eps->st,sigma);CHKERRQ(ierr);
       ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);

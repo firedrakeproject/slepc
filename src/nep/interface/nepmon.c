@@ -195,9 +195,9 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
     ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP nconv=%D Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(eig[i]),PetscImaginaryPart(eig[i]));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(eig[i]),(double)PetscImaginaryPart(eig[i]));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIPrintf(viewer," %G",eig[i]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," %g",(double)eig[i]);CHKERRQ(ierr);
 #endif
       ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)",(double)errest[i]);CHKERRQ(ierr);
     }
@@ -238,9 +238,9 @@ PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(eig[nconv]),PetscImaginaryPart(eig[nconv]));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(eig[nconv]),(double)PetscImaginaryPart(eig[nconv]));CHKERRQ(ierr);
 #else
-    ierr = PetscViewerASCIIPrintf(viewer," %G",eig[nconv]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer," %g",(double)eig[nconv]);CHKERRQ(ierr);
 #endif
     ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[nconv]);CHKERRQ(ierr);
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
@@ -290,9 +290,9 @@ PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScal
       ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP converged value (error) #%D",its,i);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(eig[i]),PetscImaginaryPart(eig[i]));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(eig[i]),(double)PetscImaginaryPart(eig[i]));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIPrintf(viewer," %G",eig[i]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," %g",(double)eig[i]);CHKERRQ(ierr);
 #endif
       ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[i]);CHKERRQ(ierr);
       ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);

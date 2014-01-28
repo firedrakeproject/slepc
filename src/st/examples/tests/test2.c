@@ -95,7 +95,7 @@ int main(int argc,char **argv)
   sigma = 0.1;
   ierr = STSetShift(st,sigma);CHKERRQ(ierr);
   ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%G\n",PetscRealPart(sigma));CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
 
@@ -105,7 +105,7 @@ int main(int argc,char **argv)
   ierr = STGetType(st,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
   ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%G\n",PetscRealPart(sigma));CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
 
@@ -113,7 +113,7 @@ int main(int argc,char **argv)
   sigma = -0.5;
   ierr = STSetShift(st,sigma);CHKERRQ(ierr);
   ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%G\n",PetscRealPart(sigma));CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
 
@@ -125,7 +125,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
   ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
   ierr = STCayleyGetAntishift(st,&tau);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%G, antishift=%G\n",PetscRealPart(sigma),PetscRealPart(tau));CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g, antishift=%g\n",(double)PetscRealPart(sigma),(double)PetscRealPart(tau));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
 
@@ -134,7 +134,7 @@ int main(int argc,char **argv)
   ierr = STSetShift(st,sigma);CHKERRQ(ierr);
   ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
   ierr = STCayleyGetAntishift(st,&tau);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%G, antishift=%G\n",PetscRealPart(sigma),PetscRealPart(tau));CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g, antishift=%g\n",(double)PetscRealPart(sigma),(double)PetscRealPart(tau));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
 
@@ -143,7 +143,7 @@ int main(int argc,char **argv)
   ierr = STCayleySetAntishift(st,tau);CHKERRQ(ierr);
   ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
   ierr = STCayleyGetAntishift(st,&tau);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%G, antishift=%G\n",PetscRealPart(sigma),PetscRealPart(tau));CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g, antishift=%g\n",(double)PetscRealPart(sigma),(double)PetscRealPart(tau));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
 

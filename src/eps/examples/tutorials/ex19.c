@@ -189,7 +189,7 @@ int main(int argc,char **argv)
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
   ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4G, maxit=%D\n",tol,maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%D\n",(double)tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
@@ -231,7 +231,7 @@ int main(int argc,char **argv)
 #endif
       if (im!=0.0) SETERRQ(PETSC_COMM_WORLD,1,"Eigenvalue should be real");
       else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12G       %12G        %12G\n",re,error,PetscAbsReal(re-exact[i]));CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12g       %12g        %12g\n",(double)re,(double)error,(double)PetscAbsReal(re-exact[i]));CHKERRQ(ierr);
       }
     }
     ierr = PetscFree(exact);CHKERRQ(ierr);
@@ -243,7 +243,7 @@ int main(int argc,char **argv)
   */
   ierr = PetscOptionsHasName(NULL,"-showtimes",&flg);CHKERRQ(ierr);
   if (flg) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Elapsed time: %G (setup), %G (solve)\n",t2-t1,t3-t2);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Elapsed time: %g (setup), %g (solve)\n",(double)(t2-t1),(double)(t3-t2));CHKERRQ(ierr);
   }
 
   /*

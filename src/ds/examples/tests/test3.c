@@ -94,7 +94,7 @@ int main(int argc,char **argv)
   /* Print eigenvalues */
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n",n);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  %.5F\n",PetscRealPart(eig[i]));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)PetscRealPart(eig[i]));CHKERRQ(ierr);
   }
 
   ierr = PetscFree(eig);CHKERRQ(ierr);

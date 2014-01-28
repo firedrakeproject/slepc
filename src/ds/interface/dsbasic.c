@@ -726,7 +726,7 @@ PetscErrorCode DSSetFN(DS ds,PetscInt n,FN f[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
   if (n<=0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more functions, you have %D",n);
-  if (n>DS_NUM_EXTRA) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Too many functions, you specified %D but the limit is",n,DS_NUM_EXTRA);
+  if (n>DS_NUM_EXTRA) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Too many functions, you specified %D but the limit is %D",n,DS_NUM_EXTRA);
   if (ds->ld) { ierr = PetscInfo(ds,"DSSetFN() called after DSAllocate()\n");CHKERRQ(ierr); }
   PetscValidPointer(f,3);
   PetscCheckSameComm(ds,1,*f,3);

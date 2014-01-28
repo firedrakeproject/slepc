@@ -192,7 +192,7 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%3D SVD nconv=%D Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
-      ierr = PetscViewerASCIIPrintf(viewer," %G (%10.8e)",sigma[i],(double)errest[i]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," %g (%10.8e)",(double)sigma[i],(double)errest[i]);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
@@ -230,7 +230,7 @@ PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
   if (its && nconv<nest) {
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%3D SVD nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer," %G (%10.8e)\n",sigma[nconv],(double)errest[nconv]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer," %g (%10.8e)\n",(double)sigma[nconv],(double)errest[nconv]);CHKERRQ(ierr);
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -276,7 +276,7 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
     for (i=ctx->oldnconv;i<nconv;i++) {
       ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%3D SVD converged value (error) #%D",its,i);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer," %G (%10.8e)\n",sigma[i],(double)errest[i]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," %g (%10.8e)\n",(double)sigma[i],(double)errest[i]);CHKERRQ(ierr);
       ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
     }
     ctx->oldnconv = nconv;
