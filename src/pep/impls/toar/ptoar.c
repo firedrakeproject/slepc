@@ -474,7 +474,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       if (breakdown) {
 
         /* Stop if breakdown */
-        ierr = PetscInfo2(pep,"Breakdown TOAR method (it=%D norm=%G)\n",pep->its,beta);CHKERRQ(ierr);
+        ierr = PetscInfo2(pep,"Breakdown TOAR method (it=%D norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
         pep->reason = PEP_DIVERGED_BREAKDOWN;
       } else {
         /* Truncate S */

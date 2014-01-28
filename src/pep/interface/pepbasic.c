@@ -166,7 +166,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     if (pep->balance) {
       ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled");CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,", with its=%D",pep->balance_its);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer," and w=%G\n",pep->balance_w);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," and w=%g\n",(double)pep->balance_w);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = SlepcSNPrintfScalar(str,50,pep->target,PETSC_FALSE);CHKERRQ(ierr);
@@ -209,7 +209,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",pep->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",pep->mpd);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",pep->max_it);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",pep->tol);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)pep->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
     switch (pep->conv) {
     case PEP_CONV_ABS:
@@ -217,7 +217,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     case PEP_CONV_EIG:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %G\n",pep->sfactor);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %g\n",(double)pep->sfactor);CHKERRQ(ierr);
     if (pep->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(pep->nini));CHKERRQ(ierr);
     }
@@ -308,9 +308,9 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
             if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
             if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
             if (im!=0.0) {
-              ierr = PetscViewerASCIIPrintf(viewer,"%.5F%+.5Fi",re,im);CHKERRQ(ierr);
+              ierr = PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im);CHKERRQ(ierr);
             } else {
-              ierr = PetscViewerASCIIPrintf(viewer,"%.5F",re);CHKERRQ(ierr);
+              ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)re);CHKERRQ(ierr);
             }
             if (8*i+j+1<pep->nev) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
           }
@@ -337,9 +337,9 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
         im = ki;
 #endif
         if (im!=0.0) {
-          ierr = PetscViewerASCIIPrintf(viewer," % 9F%+9F i     %12G\n",re,im,error);CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer," % 9f%+9f i     %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
         } else {
-          ierr = PetscViewerASCIIPrintf(viewer,"   % 12F           %12G\n",re,error);CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"   % 12f           %12g\n",(double)re,(double)error);CHKERRQ(ierr);
         }
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
