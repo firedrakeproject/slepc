@@ -204,6 +204,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->wb           = 0;
   st->shift_matrix = ST_MATMODE_COPY;
   st->str          = DIFFERENT_NONZERO_PATTERN;
+  st->transform    = PETSC_FALSE;
 
   *newst = st;
   PetscFunctionReturn(0);
@@ -667,6 +668,9 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
         default: SETERRQ(PetscObjectComm((PetscObject)st),1,"Wrong structure flag");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  all matrices have %s\n",pat);CHKERRQ(ierr);
+    }
+    if (st->transform) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  computing transformed matrices\n");CHKERRQ(ierr);
     }
   } else if (isstring) {
     ierr = STGetType(st,&cstr);CHKERRQ(ierr);

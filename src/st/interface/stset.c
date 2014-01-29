@@ -162,6 +162,8 @@ PetscErrorCode STSetFromOptions(ST st)
       }
     }
 
+    ierr = PetscOptionsBool("-st_transform","Whether transformed matrices are computed or not","STSetTransform",st->transform,&st->transform,&flg);CHKERRQ(ierr);
+
     if (st->ops->setfromoptions) {
       ierr = (*st->ops->setfromoptions)(st);CHKERRQ(ierr);
     }
@@ -331,6 +333,68 @@ PetscErrorCode STGetMatMode(ST st,STMatMode *mode)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(mode,2);
   *mode = st->shift_matrix;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STSetTransform"
+/*@
+   STSetTransform - Sets a flag to indicate whether the transformed matrices are
+   computed or not.
+
+   Logically Collective on ST
+
+   Input Parameters:
++  st  - the spectral transformation context
+-  flg - the boolean flag
+
+   Options Database Key:
+.  -st_transform <bool> - Activate/deactivate the computation of matrices.
+
+   Notes:
+   This flag is intended for the case of polynomial eigenproblems solved
+   via linearization. If this flag is off (default) the spectral transformation
+   is applied to the linearization (handled by the eigensolver), otherwise
+   it is applied to the original problem.
+
+   Level: developer
+
+.seealso: STMatSolve(), STMatMult(), STSetMatStructure(), STGetTransform()
+@*/
+PetscErrorCode STSetTransform(ST st,PetscBool flg)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveBool(st,flg,2);
+  st->transform = flg;
+  st->setupcalled = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STGetTransform"
+/*@
+   STGetTransform - Gets a flag that that indicates whether the transformed
+   matrices are computed or not.
+
+   Not Collective
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Output Parameter:
+.  flg - the flag
+
+   Level: developer
+
+.seealso: STSetTransform()
+@*/
+PetscErrorCode STGetTransform(ST st,PetscBool *flg)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(flg,2);
+  *flg = st->transform;
   PetscFunctionReturn(0);
 }
 

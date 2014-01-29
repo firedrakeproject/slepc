@@ -56,6 +56,7 @@ struct _p_ST {
   PetscScalar  defsigma;         /* Default value of the shift */
   STMatMode    shift_matrix;
   MatStructure str;              /* whether matrices have the same pattern or not */
+  PetscBool    transform;        /* whether transformed matrices are computed */
 
   /*------------------------- Misc data --------------------------*/
   KSP          ksp;

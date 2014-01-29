@@ -86,6 +86,8 @@ PETSC_EXTERN PetscErrorCode STGetShift(ST,PetscScalar*);
 PETSC_EXTERN PetscErrorCode STSetDefaultShift(ST,PetscScalar);
 PETSC_EXTERN PetscErrorCode STSetBalanceMatrix(ST,Vec);
 PETSC_EXTERN PetscErrorCode STGetBalanceMatrix(ST,Vec*);
+PETSC_EXTERN PetscErrorCode STSetTransform(ST,PetscBool);
+PETSC_EXTERN PetscErrorCode STGetTransform(ST,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode STSetOptionsPrefix(ST,const char*);
 PETSC_EXTERN PetscErrorCode STAppendOptionsPrefix(ST,const char*);
