@@ -1484,13 +1484,8 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = SlepcSNPrintfScalar(str,50,ctx->center,PETSC_FALSE);CHKERRQ(ierr);
-<<<<<<< HEAD
-    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: region { center: %s, radius: %G, vscale: %G }\n",str,ctx->radius,ctx->vscale);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: sizes { integration points: %D, block size: %D, moment size: %D, maximum block size: %D, partitions: %D}\n",ctx->N,ctx->L,ctx->M,ctx->L_max,ctx->num_subcomm);CHKERRQ(ierr);
-=======
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: region { center: %s, radius: %g, vscale: %g }\n",str,(double)ctx->radius,(double)ctx->vscale);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: sizes { integration points: %D, block size: %D, moment size: %D, partitions: %D, maximum block size: %D }\n",ctx->N,ctx->L,ctx->M,ctx->npart,ctx->L_max);CHKERRQ(ierr);
->>>>>>> master
+    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: sizes { integration points: %D, block size: %D, moment size: %D, partitions: %D, maximum block size: %D }\n",ctx->N,ctx->L,ctx->M,ctx->num_subcomm,ctx->L_max);CHKERRQ(ierr);
     if (ctx->isreal) {
       ierr = PetscViewerASCIIPrintf(viewer,"  CISS: exploiting symmetry of integration points\n");CHKERRQ(ierr);
     }
