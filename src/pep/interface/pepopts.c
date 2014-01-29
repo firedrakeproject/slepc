@@ -101,6 +101,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
       ierr = PEPSetTarget(pep,s);CHKERRQ(ierr);
     }
 
+    ierr = PetscOptionsEnum("-pep_basis","Polynomial basis","PEPSetBasis",PEPBasisTypes,(PetscEnum)pep->basis,(PetscEnum*)&pep->basis,NULL);CHKERRQ(ierr);
+
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to PEPSetFromOptions()
@@ -680,6 +682,67 @@ PetscErrorCode PEPGetProblemType(PEP pep,PEPProblemType *type)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(type,2);
   *type = pep->problem_type;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetBasis"
+/*@
+   PEPSetBasis - Specifies the type of polynomial basis used to describe the
+   polynomial eigenvalue problem.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep   - the polynomial eigensolver context
+-  basis - the type of polynomial basis
+
+   Options Database Key:
+.  -pep_basis <basis> - Select the basis type
+
+   Notes:
+   By default, the coefficient matrices passed via PEPSetOperators() are
+   expressed in the monomial basis, i.e. 
+   P(lambda) = A_0 + lambda*A_1 + lambda^2*A_2 + ... + lambda^d*A_d.
+   Other polynomial bases may have better numerical behaviour, but the user
+   must then pass the coefficient matrices accordingly.
+
+   Level: intermediate
+
+.seealso: PEPSetOperators(), PEPGetBasis(), PEPBasis
+@*/
+PetscErrorCode PEPSetBasis(PEP pep,PEPBasis basis)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(pep,basis,2);
+  pep->basis = basis;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPGetBasis"
+/*@C
+   PEPGetBasis - Gets the type of polynomial basis from the PEP object.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the polynomial eigensolver context
+
+   Output Parameter:
+.  basis - the polynomial basis
+
+   Level: intermediate
+
+.seealso: PEPSetBasis(), PEPBasis
+@*/
+PetscErrorCode PEPGetBasis(PEP pep,PEPBasis *basis)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(basis,2);
+  *basis = pep->basis;
   PetscFunctionReturn(0);
 }
 

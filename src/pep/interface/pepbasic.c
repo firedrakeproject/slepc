@@ -29,6 +29,8 @@ PetscClassId      PEP_CLASSID = 0;
 PetscLogEvent     PEP_SetUp = 0,PEP_Solve = 0,PEP_Dense = 0;
 static PetscBool  PEPPackageInitialized = PETSC_FALSE;
 
+const char *PEPBasisTypes[] = {"MONOMIAL","CHEBYSHEV1","CHEBYSHEV2","LEGENDRE","LAGUERRE","HERMITE","PEPBasis","PEP_BASIS_",0};
+
 #undef __FUNCT__
 #define __FUNCT__ "PEPFinalizePackage"
 /*@C
@@ -163,6 +165,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       }
     } else type = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  polynomial represented in %s basis\n",PEPBasisTypes[pep->basis]);CHKERRQ(ierr);
     if (pep->balance) {
       ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled");CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,", with its=%D",pep->balance_its);CHKERRQ(ierr);
@@ -397,6 +400,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->converged       = PEPConvergedEigRelative;
   pep->convergedctx    = NULL;
   pep->which           = (PEPWhich)0;
+  pep->basis           = PEP_BASIS_MONOMIAL;
   pep->comparison      = NULL;
   pep->comparisonctx   = NULL;
   pep->leftvecs        = PETSC_FALSE;

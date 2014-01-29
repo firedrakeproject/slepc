@@ -61,6 +61,7 @@ struct _p_PEP {
   PetscReal      sfactor;          /* scaling factor */
   PetscBool      sfactor_set;      /* flag to indicate the user gave sfactor */
   PEPWhich       which;            /* which part of the spectrum to be sought */
+  PEPBasis       basis;            /* polynomial basis used to represent the problem */
   PetscBool      leftvecs;         /* if left eigenvectors are requested */
   PEPProblemType problem_type;     /* which kind of problem to be solved */
   PetscBool      balance;          /* whether balancing must be performed*/

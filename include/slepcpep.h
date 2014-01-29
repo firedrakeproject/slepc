@@ -84,6 +84,22 @@ typedef enum { PEP_LARGEST_MAGNITUDE=1,
                PEP_TARGET_IMAGINARY} PEPWhich;
 
 /*E
+    PEPBasis - The type of polynomial basis used to represent the polynomial
+    eigenproblem
+
+    Level: intermediate
+
+.seealso: PEPSetBasis()
+E*/
+typedef enum { PEP_BASIS_MONOMIAL,
+               PEP_BASIS_CHEBYSHEV1,
+               PEP_BASIS_CHEBYSHEV2,
+               PEP_BASIS_LEGENDRE,
+               PEP_BASIS_LAGUERRE,
+               PEP_BASIS_HERMITE } PEPBasis;
+PETSC_EXTERN const char *PEPBasisTypes[];
+
+/*E
     PEPConv - Determines the convergence test
 
     Level: intermediate
@@ -129,6 +145,8 @@ PETSC_EXTERN PetscErrorCode PEPSetDimensions(PEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode PEPGetDimensions(PEP,PetscInt*,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode PEPSetScaleFactor(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPGetScaleFactor(PEP,PetscReal*);
+PETSC_EXTERN PetscErrorCode PEPSetBasis(PEP,PEPBasis);
+PETSC_EXTERN PetscErrorCode PEPGetBasis(PEP,PEPBasis*);
 
 PETSC_EXTERN PetscErrorCode PEPGetConverged(PEP,PetscInt*);
 PETSC_EXTERN PetscErrorCode PEPGetEigenpair(PEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
