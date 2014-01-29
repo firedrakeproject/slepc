@@ -530,7 +530,7 @@ PetscErrorCode IPView(IP ip,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"never\n");CHKERRQ(ierr);
         break;
       case IP_ORTHOG_REFINE_IFNEEDED:
-        ierr = PetscViewerASCIIPrintf(viewer,"if needed (eta: %G)\n",ip->orthog_eta);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"if needed (eta: %g)\n",(double)ip->orthog_eta);CHKERRQ(ierr);
         break;
       case IP_ORTHOG_REFINE_ALWAYS:
         ierr = PetscViewerASCIIPrintf(viewer,"always\n");CHKERRQ(ierr);

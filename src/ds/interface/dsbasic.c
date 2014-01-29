@@ -726,7 +726,7 @@ PetscErrorCode DSSetFN(DS ds,PetscInt n,FN f[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
   if (n<=0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more functions, you have %D",n);
-  if (n>DS_NUM_EXTRA) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Too many functions, you specified %D but the limit is",n,DS_NUM_EXTRA);
+  if (n>DS_NUM_EXTRA) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Too many functions, you specified %D but the limit is %D",n,DS_NUM_EXTRA);
   if (ds->ld) { ierr = PetscInfo(ds,"DSSetFN() called after DSAllocate()\n");CHKERRQ(ierr); }
   PetscValidPointer(f,3);
   PetscCheckSameComm(ds,1,*f,3);
@@ -975,13 +975,17 @@ PetscErrorCode DSReset(DS ds)
   ds->m        = 0;
   ds->k        = 0;
   for (i=0;i<DS_NUM_MAT;i++) {
-    ierr = PetscFree2(ds->mat[i],ds->rmat[i]);CHKERRQ(ierr);
+    ierr = PetscFree(ds->mat[i]);CHKERRQ(ierr);
+    ierr = PetscFree(ds->rmat[i]);CHKERRQ(ierr);
   }
   for (i=0;i<ds->nf;i++) {
     ierr = FNDestroy(&ds->f[i]);CHKERRQ(ierr);
   }
   ds->nf            = 0;
-  ierr = PetscFree4(ds->perm,ds->work,ds->rwork,ds->iwork);CHKERRQ(ierr);
+  ierr = PetscFree(ds->perm);CHKERRQ(ierr);
+  ierr = PetscFree(ds->work);CHKERRQ(ierr);
+  ierr = PetscFree(ds->rwork);CHKERRQ(ierr);
+  ierr = PetscFree(ds->iwork);CHKERRQ(ierr);
   ds->lwork         = 0;
   ds->lrwork        = 0;
   ds->liwork        = 0;

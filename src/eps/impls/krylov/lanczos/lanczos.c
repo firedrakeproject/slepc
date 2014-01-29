@@ -126,8 +126,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,V
 
   PetscFunctionBegin;
   if (m > 100) {
-    ierr = PetscMalloc(sizeof(PetscBool)*m,&which);CHKERRQ(ierr);
-    ierr = PetscMalloc1(m,&hwork);CHKERRQ(ierr);
+    ierr = PetscMalloc2(m,&which,m,&hwork);CHKERRQ(ierr);
   } else {
     which = lwhich;
     hwork = lhwork;
@@ -241,19 +240,12 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS*)eps->data;
   PetscInt       i,j,m = *M,n,nritz=0,nritzo;
   PetscReal      *d,*e,*ritz,norm;
-  PetscScalar    *Y,*hwork,lhwork[100];
-  PetscBool      *which,lwhich[100];
+  PetscScalar    *Y,*hwork;
+  PetscBool      *which;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc4(m,&d,m,&e,m,&ritz,m*m,&Y);CHKERRQ(ierr);
-  if (m > 100) {
-    ierr = PetscMalloc2(m,&which,m,&hwork);CHKERRQ(ierr);
-  } else {
-    which = lwhich;
-    hwork = lhwork;
-  }
-  for (i=0;i<k;i++)
-    which[i] = PETSC_TRUE;
+  ierr = PetscMalloc6(m,&d,m,&e,m,&ritz,m*m,&Y,m,&which,m,&hwork);CHKERRQ(ierr);
+  for (i=0;i<k;i++) which[i] = PETSC_TRUE;
 
   for (j=k;j<m;j++) {
     /* Lanczos step */
@@ -310,10 +302,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
     }
   }
 
-  ierr = PetscFree4(d,e,ritz,Y);CHKERRQ(ierr);
-  if (m > 100) {
-    ierr = PetscFree2(which,hwork);CHKERRQ(ierr);
-  }
+  ierr = PetscFree6(d,e,ritz,Y,which,hwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -414,17 +403,13 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
 
   PetscFunctionBegin;
   if (m>100) {
-    ierr = PetscMalloc2(m,&omega,m,&omega_old);CHKERRQ(ierr);
+    ierr = PetscMalloc5(m,&omega,m,&omega_old,m,&which,m,&which2,m,&hwork);CHKERRQ(ierr);
   } else {
-    omega = lomega;
+    omega     = lomega;
     omega_old = lomega_old;
-  }
-  if (m > 100) {
-    ierr = PetscMalloc3(m,&which,m,&which2,m,&hwork);CHKERRQ(ierr);
-  } else {
-    which = lwhich;
-    which2 = lwhich2;
-    hwork = lhwork;
+    which     = lwhich;
+    which2    = lwhich2;
+    hwork     = lhwork;
   }
 
   eps1 = PetscSqrtReal((PetscReal)eps->n)*PETSC_MACHINE_EPSILON/2;
@@ -640,7 +625,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
     /* Compute restart vector */
     if (breakdown) {
-      ierr = PetscInfo2(eps,"Breakdown in Lanczos method (it=%D norm=%G)\n",eps->its,beta);CHKERRQ(ierr);
+      ierr = PetscInfo2(eps,"Breakdown in Lanczos method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
     } else {
       restart = nconv;
       while (restart<n && conv[restart] != 'N') restart++;

@@ -234,7 +234,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       break;
     case 3:
       /* update shift */
-      ierr = PetscInfo1(eps,"Factorization update (sigma=%g)\n",sigma);CHKERRQ(ierr);
+      ierr = PetscInfo1(eps,"Factorization update (sigma=%g)\n",(double)sigma);CHKERRQ(ierr);
       ierr = STSetShift(eps->st,sigma);CHKERRQ(ierr);
       ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
@@ -295,7 +295,11 @@ PetscErrorCode EPSReset_BLZPACK(EPS eps)
   EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree5(blz->istor,blz->rstor,blz->u,blz->v,blz->eig);CHKERRQ(ierr);
+  ierr = PetscFree(blz->istor);CHKERRQ(ierr);
+  ierr = PetscFree(blz->rstor);CHKERRQ(ierr);
+  ierr = PetscFree(blz->u);CHKERRQ(ierr);
+  ierr = PetscFree(blz->v);CHKERRQ(ierr);
+  ierr = PetscFree(blz->eig);CHKERRQ(ierr);
   ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

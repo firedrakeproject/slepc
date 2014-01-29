@@ -77,7 +77,7 @@ static PetscErrorCode MFNBasicArnoldi(MFN mfn,PetscScalar *H,PetscInt ldh,Vec *V
     }
   }
   ierr = MatMult(mfn->A,V[m-1],f);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(mfn->ip,0,NULL,m,NULL,V,f,H+ldh*(m-1),beta,NULL);CHKERRQ(ierr);
+  ierr = IPOrthogonalize(mfn->ip,0,NULL,m,NULL,V,f,H+ldh*(m-1),beta,breakdown);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -113,6 +113,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   k1 = 2;
   xm = 1.0/(PetscReal)m;
   ierr = VecNorm(b,NORM_2,&normb);CHKERRQ(ierr);
+  if (!normb) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Cannot pass a zero b vector to MFNSolve()");
   beta = normb;
   fact = PetscPowRealInt((m+1)/2.72,m+1)*PetscSqrtReal(2*PETSC_PI*(m+1));
   t_new = (1.0/anorm)*PetscPowReal((fact*tol)/(4.0*beta*anorm),xm);
@@ -120,11 +121,10 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   t_new = ceil(t_new/s)*s;
   sgn = PetscSign(t);
 
-  ierr = PetscMalloc1(m+1,&betaF);CHKERRQ(ierr);
   ierr = VecDuplicate(mfn->V[0],&r);CHKERRQ(ierr);
   ierr = VecCopy(b,x);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(mfn->ds,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc1(ld*ld,&B);CHKERRQ(ierr);
+  ierr = PetscMalloc2(m+1,&betaF,ld*ld,&B);CHKERRQ(ierr);
 
   while (mfn->reason == MFN_CONVERGED_ITERATING) {
     mfn->its++;
@@ -136,9 +136,10 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     ierr = DSGetArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = MFNBasicArnoldi(mfn,H,ld,mfn->V,0,&mb,r,&beta2,&breakdown);CHKERRQ(ierr);
     H[mb+(mb-1)*ld] = beta2;
-    ierr = VecScale(r,1.0/beta2);CHKERRQ(ierr);
-    ierr = VecCopy(r,mfn->V[m]);CHKERRQ(ierr);
-    if (breakdown) {
+    if (!breakdown) {
+      ierr = VecScale(r,1.0/beta2);CHKERRQ(ierr);
+      ierr = VecCopy(r,mfn->V[m]);CHKERRQ(ierr);
+    } else {
       k1 = 0;
       t_step = t_out-t_now;
     }

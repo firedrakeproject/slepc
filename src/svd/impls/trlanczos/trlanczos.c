@@ -244,8 +244,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   PetscFunctionBegin;
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscScalar)*ld,&w);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscScalar)*svd->n,&swork);CHKERRQ(ierr);
+  ierr = PetscMalloc2(ld,&w,svd->n,&swork);CHKERRQ(ierr);
   ierr = VecDuplicate(svd->V[0],&v);CHKERRQ(ierr);
   ierr = IPGetOrthogonalization(svd->ip,&orthog,NULL,NULL);CHKERRQ(ierr);
 

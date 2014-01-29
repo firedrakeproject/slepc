@@ -320,8 +320,8 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     eps->nconv = k;
 
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
-    if (breakdown) {
-      ierr = PetscInfo2(eps,"Breakdown in Arnoldi method (it=%D norm=%G)\n",eps->its,beta);CHKERRQ(ierr);
+    if (breakdown && k<eps->nev) {
+      ierr = PetscInfo2(eps,"Breakdown in Arnoldi method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
       ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
       if (breakdown) {
         eps->reason = EPS_DIVERGED_BREAKDOWN;

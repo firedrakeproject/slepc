@@ -146,8 +146,8 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   if (nconv1 > 0 && nconv2 > 0) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%6F, sigma_n=%6F\n",sigma_1,sigma_n);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%6F\n\n",sigma_1/sigma_n);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%6f, sigma_n=%6f\n",(double)sigma_1,(double)sigma_n);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%6f\n\n",(double)(sigma_1/sigma_n));CHKERRQ(ierr);
   }
 
   /*

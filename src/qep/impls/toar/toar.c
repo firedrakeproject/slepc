@@ -289,7 +289,7 @@ PetscErrorCode QEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,PetscInt s,
 PetscErrorCode QEPSolve_TOAR(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscInt       j,k,l,nv,ld,lds,off,ldds,newn;
+  PetscInt       j,k,l,nv=0,ld,lds,off,ldds,newn;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0;
   PetscScalar    *S,*Q,*work,*H;
   PetscReal      beta,norm,*rwork;
@@ -299,9 +299,8 @@ PetscErrorCode QEPSolve_TOAR(QEP qep)
   ld = qep->ncv+2;
   lds = 2*ld;
   lwa = 9*ld*ld+5*ld;
-  ierr = PetscMalloc1(lwa,&work);CHKERRQ(ierr);
   lrwa = 8*ld;
-  ierr = PetscCalloc2(lrwa,&rwork,2*ld*ld,&S);CHKERRQ(ierr);
+  ierr = PetscCalloc3(lwa,&work,lrwa,&rwork,2*ld*ld,&S);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(qep->ds,&ldds);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
@@ -374,7 +373,7 @@ PetscErrorCode QEPSolve_TOAR(QEP qep)
       if (breakdown) {
 
         /* Stop if breakdown */
-        ierr = PetscInfo2(qep,"Breakdown TOAR method (it=%D norm=%G)\n",qep->its,beta);CHKERRQ(ierr);
+        ierr = PetscInfo2(qep,"Breakdown TOAR method (it=%D norm=%g)\n",qep->its,(double)beta);CHKERRQ(ierr);
         qep->reason = QEP_DIVERGED_BREAKDOWN;
       } else {
         /* Truncate S */
@@ -385,8 +384,10 @@ PetscErrorCode QEPSolve_TOAR(QEP qep)
     ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,nv);CHKERRQ(ierr);
   }
 
-  /* Update vectors V = V*S */    
-  ierr = SlepcUpdateVectors(nv+2,qep->V,0,qep->nconv,S,lds,PETSC_FALSE);CHKERRQ(ierr);
+  /* Update vectors V = V*S */  
+  if (qep->nconv>0) {
+    ierr = SlepcUpdateVectors(nv+2,qep->V,0,qep->nconv,S,lds,PETSC_FALSE);CHKERRQ(ierr);
+  }
   for (j=0;j<qep->nconv;j++) {
     qep->eigr[j] *= qep->sfactor;
     qep->eigi[j] *= qep->sfactor;
