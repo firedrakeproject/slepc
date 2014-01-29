@@ -123,7 +123,6 @@ PetscErrorCode STReset(ST st)
   ierr = VecDestroy(&st->w);CHKERRQ(ierr);
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
   ierr = STResetOperationCounters(st);CHKERRQ(ierr);
-  st->kspidx = -1;
   st->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -154,6 +153,7 @@ PetscErrorCode STDestroy(ST *st)
   ierr = MatDestroyMatrices(PetscMax(2,(*st)->nmat),&(*st)->A);CHKERRQ(ierr);
   ierr = PetscFree((*st)->Astate);CHKERRQ(ierr);
   if ((*st)->ops->destroy) { ierr = (*(*st)->ops->destroy)(*st);CHKERRQ(ierr); }
+  ierr = MatDestroy(&(*st)->P);CHKERRQ(ierr);
   ierr = VecDestroy(&(*st)->D);CHKERRQ(ierr);
   ierr = KSPDestroy(&(*st)->ksp);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(st);CHKERRQ(ierr);
@@ -191,6 +191,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->A            = 0;
   st->Astate       = 0;
   st->T            = 0;
+  st->P            = 0;
   st->nmat         = 0;
   st->sigma        = 0.0;
   st->sigma_set    = PETSC_FALSE;
@@ -198,7 +199,6 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->data         = 0;
   st->setupcalled  = 0;
   st->ksp          = 0;
-  st->kspidx       = -1;
   st->w            = 0;
   st->D            = 0;
   st->wb           = 0;

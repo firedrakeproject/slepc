@@ -281,6 +281,7 @@ PetscErrorCode STSetUp(ST st)
       ierr = MatDestroy(&st->T[i]);CHKERRQ(ierr);
     }
   }
+  ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   if (!st->w) {
     ierr = MatGetVecs(st->A[0],&st->w,NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->w);CHKERRQ(ierr);

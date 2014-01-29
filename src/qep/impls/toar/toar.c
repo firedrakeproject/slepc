@@ -162,7 +162,7 @@ static PetscErrorCode QEPTOARrun(QEP qep,PetscScalar *S,PetscInt ld,PetscScalar 
     ierr = VecMAXPY(v,j+2,S+ld+j*lds,V);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,1,v,q);CHKERRQ(ierr);
     ierr = VecAXPY(t,qep->sfactor,q);CHKERRQ(ierr);
-    ierr = STMatSolve(qep->st,2,t,q);CHKERRQ(ierr);
+    ierr = STMatSolve(qep->st,t,q);CHKERRQ(ierr);
     ierr = VecScale(q,-1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
     
     /* orthogonalize */

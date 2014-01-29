@@ -186,7 +186,7 @@ static PetscErrorCode QEPSTOARqKupdate(QEP qep,PetscInt j,Vec *wv,PetscInt nwv)
   v2 = wv[1];
   ierr = STMatMult(qep->st,0,V[j],v1);CHKERRQ(ierr);
   if (ctx->monic) {
-    ierr = STMatSolve(qep->st,2,v1,v2);CHKERRQ(ierr);
+    ierr = STMatSolve(qep->st,v1,v2);CHKERRQ(ierr);
     ierr = VecScale(v2,1/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
     v1 = v2;
   }
@@ -229,7 +229,7 @@ static PetscErrorCode QEPSTOARrun(QEP qep,PetscReal *a,PetscReal *b,PetscReal *o
     ierr = VecMAXPY(v,j+2,S+offq+j*lds,V);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,1,v,q);CHKERRQ(ierr);
     ierr = VecAXPY(t,qep->sfactor,q);CHKERRQ(ierr);
-    ierr = STMatSolve(qep->st,2,t,q);CHKERRQ(ierr);
+    ierr = STMatSolve(qep->st,t,q);CHKERRQ(ierr);
     ierr = VecScale(q,-1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
 
     /* orthogonalize */
@@ -557,7 +557,7 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     ierr = VecNorm(w,NORM_2,&t1);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,0,w,w2);CHKERRQ(ierr);
     if (ctx->monic) {
-      ierr = STMatSolve(qep->st,2,w2,w);CHKERRQ(ierr);
+      ierr = STMatSolve(qep->st,w2,w);CHKERRQ(ierr);
       ierr = VecNorm(w,NORM_2,&t2);CHKERRQ(ierr);
       t2 /= qep->sfactor*qep->sfactor;
     } else {

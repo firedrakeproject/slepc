@@ -50,6 +50,7 @@ struct _p_ST {
   Mat          *A;               /* Matrices which define the eigensystem */
   PetscInt     *Astate;          /* State (to identify the original matrices) */
   Mat          *T;               /* Matrices resulting from transformation */
+  Mat          P;                /* Matrix from which preconditioner is built */
   PetscInt     nmat;             /* Number of matrices */
   PetscScalar  sigma;            /* Value of the shift */
   PetscBool    sigma_set;        /* whether the user provided the shift or not */
@@ -60,7 +61,6 @@ struct _p_ST {
 
   /*------------------------- Misc data --------------------------*/
   KSP          ksp;
-  PetscInt     kspidx;           /* which T matrix is associated to ksp */
   Vec          w;
   Vec          D;                /* diagonal matrix for balancing */
   Vec          wb;               /* balancing requires an extra work vector */

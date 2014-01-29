@@ -33,10 +33,10 @@ PetscErrorCode STApply_Sinvert(ST st,Vec x,Vec y)
   if (st->nmat>1) {
     /* generalized eigenproblem: y = (A - sB)^-1 B x */
     ierr = MatMult(st->T[0],x,st->w);CHKERRQ(ierr);
-    ierr = STMatSolve(st,1,st->w,y);CHKERRQ(ierr);
+    ierr = STMatSolve(st,st->w,y);CHKERRQ(ierr);
   } else {
     /* standard eigenproblem: y = (A - sI)^-1 x */
-    ierr = STMatSolve(st,1,x,y);CHKERRQ(ierr);
+    ierr = STMatSolve(st,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -50,11 +50,11 @@ PetscErrorCode STApplyTranspose_Sinvert(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   if (st->nmat>1) {
     /* generalized eigenproblem: y = B^T (A - sB)^-T x */
-    ierr = STMatSolveTranspose(st,1,x,st->w);CHKERRQ(ierr);
+    ierr = STMatSolveTranspose(st,x,st->w);CHKERRQ(ierr);
     ierr = MatMultTranspose(st->T[0],st->w,y);CHKERRQ(ierr);
   } else {
     /* standard eigenproblem: y = (A - sI)^-T x */
-    ierr = STMatSolveTranspose(st,1,x,y);CHKERRQ(ierr);
+    ierr = STMatSolveTranspose(st,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -141,11 +141,12 @@ PetscErrorCode STSetUp_Sinvert(ST st)
     }
     ierr = PetscFree(coeffs);CHKERRQ(ierr);
   }
-  if (nmat<3) {
+  st->P = st->T[PetscMax(nmat-1,1)];
+  ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
+  if (st->P) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->P,st->P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-    st->kspidx = 1;
   }
   PetscFunctionReturn(0);
 }
@@ -185,13 +186,11 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
       }
     }
   }
-  if (st->kspidx>0) {  /* Update KSP operator */
-    /* Check if the new KSP matrix has the same zero structure */
-    if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
-    else flg = SAME_NONZERO_PATTERN;
-    ierr = KSPSetOperators(st->ksp,st->T[st->kspidx],st->T[st->kspidx],flg);CHKERRQ(ierr);
-    ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-  }
+  /* Check if the new KSP matrix has the same zero structure */
+  if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
+  else flg = SAME_NONZERO_PATTERN;
+  ierr = KSPSetOperators(st->ksp,st->P,st->P,flg);CHKERRQ(ierr);
+  ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

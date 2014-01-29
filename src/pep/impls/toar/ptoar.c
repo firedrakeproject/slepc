@@ -171,7 +171,7 @@ static PetscErrorCode PEPTOARApplyOp(PEP pep,PetscScalar *S,PetscInt ld,PetscInt
     ierr = VecAXPY(q,alpha,t);CHKERRQ(ierr);
   }
   alpha *= pep->sfactor;
-  ierr = STMatSolve(pep->st,deg,q,t);CHKERRQ(ierr);
+  ierr = STMatSolve(pep->st,q,t);CHKERRQ(ierr);
   ierr = VecScale(t,-1.0/alpha);CHKERRQ(ierr);
   if (pep->Dr) { /* Balancing */
     ierr = VecPointwiseDivide(t,t,pep->Dr);CHKERRQ(ierr);

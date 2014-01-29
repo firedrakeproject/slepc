@@ -34,7 +34,7 @@ PetscErrorCode STApply_Shift(ST st,Vec x,Vec y)
   if (st->nmat>1) {
     /* generalized eigenproblem: y = B^-1 (A + sB) x */
     ierr = MatMult(st->T[0],x,st->w);CHKERRQ(ierr);
-    ierr = STMatSolve(st,1,st->w,y);CHKERRQ(ierr);
+    ierr = STMatSolve(st,st->w,y);CHKERRQ(ierr);
   } else {
     /* standard eigenproblem: y = (A + sI) x */
     ierr = MatMult(st->T[0],x,y);CHKERRQ(ierr);
@@ -51,7 +51,7 @@ PetscErrorCode STApplyTranspose_Shift(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   if (st->nmat>1) {
     /* generalized eigenproblem: y = (A + sB)^T B^-T  x */
-    ierr = STMatSolveTranspose(st,1,x,st->w);CHKERRQ(ierr);
+    ierr = STMatSolveTranspose(st,x,st->w);CHKERRQ(ierr);
     ierr = MatMultTranspose(st->T[0],st->w,y);CHKERRQ(ierr);
   } else {
     /* standard eigenproblem: y = (A^T + sI) x */
@@ -127,11 +127,14 @@ PetscErrorCode STSetUp_Shift(ST st)
     }
     ierr = PetscFree(coeffs);CHKERRQ(ierr);
   }
-  if (nmat==2) {
+  if (nmat>1) {
+    st->P = st->T[nmat-1];
+    ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
+  }
+  if (st->P) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    ierr = KSPSetOperators(st->ksp,st->T[1],st->T[1],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->P,st->P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-    st->kspidx = 1;
   }
   PetscFunctionReturn(0);
 }
@@ -141,7 +144,6 @@ PetscErrorCode STSetUp_Shift(ST st)
 PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
-  MatStructure   flg;
   PetscInt       k,nc,nmat=st->nmat;
   PetscScalar    *coeffs;
 
@@ -166,13 +168,6 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
         ierr = STMatMAXPY_Private(st,newshift,k,NULL,PETSC_FALSE,&st->T[k]);CHKERRQ(ierr);
       }
     } 
-  }
-  if (st->kspidx > -1 && st->kspidx != st->nmat-1) { /* Update KSP operator */
-    /* Check if the new KSP matrix has the same zero structure */
-    if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
-    else flg = SAME_NONZERO_PATTERN;
-    ierr = KSPSetOperators(st->ksp,st->T[st->kspidx],st->T[st->kspidx],flg);CHKERRQ(ierr);
-    ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

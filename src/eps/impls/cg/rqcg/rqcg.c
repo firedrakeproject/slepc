@@ -203,7 +203,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
 
       /* Search direction */
       for (i=0;i<nv-eps->nconv;i++) {
-        ierr = STMatSolve(eps->st,0,ctx->G[i],w);CHKERRQ(ierr);
+        ierr = STMatSolve(eps->st,ctx->G[i],w);CHKERRQ(ierr);
         ierr = VecDot(ctx->G[i],w,&g);CHKERRQ(ierr);
         beta = (!reset && eps->its>1)? g/gamma[i]: 0.0;
         gamma[i] = g;
