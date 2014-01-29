@@ -90,7 +90,7 @@ for (j=0; j<nconv; j++) {
   EPSGetEigenpair( eps, j, &kr, &ki, xr, xi );
   EPSComputeRelativeError( eps, j, &error );
 }
-EPSDestroy( eps );
+EPSDestroy( &eps );
 \end{Verbatim}
 \caption{\label{fig:ex-eps}Example code for basic solution with \ident{EPS}.}
 \end{figure}
@@ -129,7 +129,7 @@ EPSDestroy( eps );
 	Once the \ident{EPS} context is no longer needed, it should be destroyed with the command
 	\findex{EPSDestroy}
 	\begin{Verbatim}[fontsize=\small]
-	EPSDestroy(EPS eps);
+	EPSDestroy(EPS *eps);
 	\end{Verbatim}
 
 	The above procedure is sufficient for general use of the \ident{EPS} package. As in the case of the \ident{KSP} solver, the user can optionally explicitly call 
