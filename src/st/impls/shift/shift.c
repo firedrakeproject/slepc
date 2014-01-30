@@ -114,18 +114,25 @@ PetscErrorCode STSetUp_Shift(ST st)
     /* T[0] = A+sigma*B  */
     ierr = STMatGAXPY_Private(st,st->sigma,0.0,1,0,PETSC_TRUE);CHKERRQ(ierr);
   } else {
-    nc = (nmat*(nmat+1))/2;
-    ierr = PetscMalloc(nc*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
-    /* Compute coeffs */
-    ierr = STCoeffs_Monomial(st,coeffs);CHKERRQ(ierr);
-    /* T[n] = A_n */
-    k = nmat-1;
-    ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
-    st->T[k] = st->A[k];
-    for (k=0;k<nmat-1;k++) {
-      ierr = STMatMAXPY_Private(st,st->sigma,k,coeffs+((nmat-k)*(nmat-k-1))/2,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
+    if (st->transform) {
+      nc = (nmat*(nmat+1))/2;
+      ierr = PetscMalloc(nc*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
+      /* Compute coeffs */
+      ierr = STCoeffs_Monomial(st,coeffs);CHKERRQ(ierr);
+      /* T[n] = A_n */
+      k = nmat-1;
+      ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
+      st->T[k] = st->A[k];
+      for (k=0;k<nmat-1;k++) {
+        ierr = STMatMAXPY_Private(st,st->sigma,k,coeffs+((nmat-k)*(nmat-k-1))/2,PETSC_TRUE,&st->T[k],PETSC_FALSE);CHKERRQ(ierr);
+      }
+      ierr = PetscFree(coeffs);CHKERRQ(ierr);
+    } else {
+      for (k=0;k<nmat;k++) {
+        ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
+        st->T[k] = st->A[k];
+      }
     }
-    ierr = PetscFree(coeffs);CHKERRQ(ierr);
   }
   if (nmat>1) {
     st->P = st->T[nmat-1];
@@ -154,19 +161,21 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
   if (st->nmat<3) {
     ierr = STMatGAXPY_Private(st,newshift,st->sigma,1,0,PETSC_FALSE);CHKERRQ(ierr);
   } else {
-    if (st->shift_matrix == ST_MATMODE_COPY) {
-      nc = (nmat*(nmat+1))/2;
-      ierr = PetscMalloc(nc*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
-      /* Compute coeffs */
-      ierr = STCoeffs_Monomial(st,coeffs);CHKERRQ(ierr);
-      for (k=0;k<nmat-1;k++) {
-        ierr = STMatMAXPY_Private(st,newshift,k,coeffs+((nmat-k)*(nmat-k-1))/2,PETSC_FALSE,&st->T[k]);CHKERRQ(ierr);
-      }
-      ierr = PetscFree(coeffs);CHKERRQ(ierr);
-    } else {
-      for (k=0;k<nmat-1;k++) {
-        ierr = STMatMAXPY_Private(st,newshift,k,NULL,PETSC_FALSE,&st->T[k]);CHKERRQ(ierr);
-      }
+    if (st->transform) {
+      if (st->shift_matrix == ST_MATMODE_COPY) {
+        nc = (nmat*(nmat+1))/2;
+        ierr = PetscMalloc(nc*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
+        /* Compute coeffs */
+        ierr = STCoeffs_Monomial(st,coeffs);CHKERRQ(ierr);
+        for (k=0;k<nmat-1;k++) {
+          ierr = STMatMAXPY_Private(st,newshift,k,coeffs+((nmat-k)*(nmat-k-1))/2,PETSC_FALSE,&st->T[k],PETSC_FALSE);CHKERRQ(ierr);
+        }
+        ierr = PetscFree(coeffs);CHKERRQ(ierr);
+      } else {
+        for (k=0;k<nmat-1;k++) {
+          ierr = STMatMAXPY_Private(st,newshift,k,NULL,PETSC_FALSE,&st->T[k],PETSC_FALSE);CHKERRQ(ierr);
+        }
+      } 
     } 
   }
   PetscFunctionReturn(0);

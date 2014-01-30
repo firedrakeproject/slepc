@@ -398,7 +398,7 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
    Computes coefficients for the transformed polynomial,
    and stores the result in one of the T[:] matrices.
 */
-PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar *coeffs,PetscBool initial,Mat *S)
+PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar *coeffs,PetscBool initial,Mat *S,PetscBool prec)
 {
   PetscErrorCode ierr;
   PetscInt       *matIdx,nmat,i;
@@ -412,7 +412,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
     SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for polynomial eigenproblems");
     break;
   case ST_MATMODE_HYBRID:
-    if (!initial && coeffs) copy = PETSC_TRUE;
+    if (prec) copy = PETSC_TRUE;
   case ST_MATMODE_SHELL:
     if (!copy) {
       if (initial) {
