@@ -1,0 +1,268 @@
+
+1-D Laplacian plus diagonal, n=10
+
+ST type shift
+k= 0
+Vec Object: 1 MPI processes
+  type: seq
+1
+0
+0
+0
+0
+0
+0
+0
+0
+1
+k= 1
+Vec Object: 1 MPI processes
+  type: seq
+-1
+1
+2
+3
+4
+5
+6
+7
+8
+9
+k= 2
+Vec Object: 1 MPI processes
+  type: seq
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+k= 3
+Vec Object: 1 MPI processes
+  type: seq
+1
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7
+0.8
+1.9
+solve
+Vec Object: 1 MPI processes
+  type: seq
+0.1
+10
+5
+3.33333
+2.5
+2
+1.66667
+1.42857
+1.25
+1
+With shift=0.1
+k= 0
+Vec Object: 1 MPI processes
+  type: seq
+1
+0
+0
+0
+0
+0
+0
+0
+0
+1
+k= 1
+Vec Object: 1 MPI processes
+  type: seq
+-1
+1
+2
+3
+4
+5
+6
+7
+8
+9
+k= 2
+Vec Object: 1 MPI processes
+  type: seq
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+k= 3
+Vec Object: 1 MPI processes
+  type: seq
+1
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7
+0.8
+1.9
+solve
+Vec Object: 1 MPI processes
+  type: seq
+0.1
+10
+5
+3.33333
+2.5
+2
+1.66667
+1.42857
+1.25
+1
+ST type sinvert
+With shift=0.1
+k= 0
+Vec Object: 1 MPI processes
+  type: seq
+1
+0
+0
+0
+0
+0
+0
+0
+0
+1
+k= 1
+Vec Object: 1 MPI processes
+  type: seq
+-1
+1
+2
+3
+4
+5
+6
+7
+8
+9
+k= 2
+Vec Object: 1 MPI processes
+  type: seq
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+k= 3
+Vec Object: 1 MPI processes
+  type: seq
+1
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7
+0.8
+1.9
+solve
+Vec Object: 1 MPI processes
+  type: seq
+2.04158
+2.88687
+3.03214
+2.79837
+2.42188
+2.03545
+1.69199
+1.39272
+1.09965
+0.716051
+With shift=-0.5
+k= 0
+Vec Object: 1 MPI processes
+  type: seq
+1
+0
+0
+0
+0
+0
+0
+0
+0
+1
+k= 1
+Vec Object: 1 MPI processes
+  type: seq
+-1
+1
+2
+3
+4
+5
+6
+7
+8
+9
+k= 2
+Vec Object: 1 MPI processes
+  type: seq
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+k= 3
+Vec Object: 1 MPI processes
+  type: seq
+1
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+0.7
+0.8
+1.9
+solve
+Vec Object: 1 MPI processes
+  type: seq
+-3.55381
+-9.71
+-13.1628
+-2.65643
+8.80516
+1.62157
+-8.516
+5.86903
+-5.09177
+1.39619
