@@ -389,9 +389,9 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn;
-  PetscInt       lwa,lrwa,nwu=0,nrwu=0,deg=pep->nmat-1;
+  PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H;
-  PetscReal      beta,norm,*rwork;
+  PetscReal      beta,norm,*rwork,pbc[4*nmat];
   PetscBool      breakdown;
 
   PetscFunctionBegin;
@@ -402,6 +402,9 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   ierr = PetscMalloc3(lwa,&work,lrwa,&rwork,lds*ld,&S);CHKERRQ(ierr);
   ierr = PetscMemzero(S,lds*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
+
+  /* Compute polynomial basis coefficients */
+  ierr = PEPBasisCoefficients(pep,pbc);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
   if (pep->nini==0) {  

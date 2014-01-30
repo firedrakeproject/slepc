@@ -368,3 +368,65 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
   }
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPBasisCoefficients"
+/*
+  Computes polynomial basis coefficients
+*/
+PetscErrorCode PEPBasisCoefficients(PEP pep,PetscScalar *pbc)
+{
+  PetscReal *ca,*cb,*cg,*cc;
+  PetscInt  k,nmat=pep->nmat;
+  
+  PetscFunctionBegin;
+  ca = pbc;
+  cb = pbc+nmat;
+  cg = pbc+2*nmat;
+  cc = pbc+3*nmat;
+  switch (pep->basis) {
+  case PEP_BASIS_MONOMIAL:
+    for (k=0;k<nmat;k++) {
+      ca[k] = 1.0; cb[k] = 0.0; cg[k] = 0.0; cc[k] = 1.0;
+    }
+    break;
+  case PEP_BASIS_CHEBYSHEV1:
+    ca[0] = 1.0; cb[0] = 0.0; cg[0] = 0.0; cc[0] = 1.0;
+    for (k=1;k<nmat;k++) {
+      ca[k] = .5; cb[k] = 0.0; cg[k] = .5;
+      cc[k] = cc[k-1]/ca[k-1];
+    }
+    break;
+  case PEP_BASIS_CHEBYSHEV2:
+    ca[0] = .5; cb[0] = 0.0; cg[0] = 0.0; cc[0] = 1.0;
+    for (k=1;k<nmat;k++) {
+      ca[k] = .5; cb[k] = 0.0; cg[k] = .5;
+      cc[k] = cc[k-1]/ca[k-1];
+    }    
+    break;
+  case PEP_BASIS_LEGENDRE:
+    ca[0] = 1.0; cb[0] = 0.0; cg[0] = 0.0; cc[0] = 1.0;
+    for (k=1;k<nmat;k++) {
+      ca[k] = k+1; cb[k] = -2*k; cg[k] = k;
+      cc[k] = cc[k-1]/ca[k-1];
+    }
+    break;
+  case PEP_BASIS_LAGUERRE:
+    ca[0] = -1.0; cb[0] = 0.0; cg[0] = 0.0; cc[0] = 1.0;
+    for (k=1;k<nmat;k++) {
+      ca[k] = -(k+1); cb[k] = 2*k+1; cg[k] = -k;
+      cc[k] = cc[k-1]/ca[k-1];
+    }
+    break;
+  case PEP_BASIS_HERMITE:
+    ca[0] = .5; cb[0] = 0.0; cg[0] = 0.0; cc[0] = 1.0;
+    for (k=1;k<nmat;k++) {
+      ca[k] = .5; cb[k] = 0.0; cg[k] = -k;
+      cc[k] = cc[k-1]/ca[k-1];
+    }
+    break;
+  default:
+    SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'basis' value");
+  }
+  PetscFunctionReturn(0);
+}

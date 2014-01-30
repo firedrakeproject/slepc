@@ -121,5 +121,6 @@ PETSC_INTERN PetscErrorCode PEPComputeRelativeError_Private(PEP,PetscScalar,Pets
 PETSC_INTERN PetscErrorCode PEPKrylovConvergence(PEP,PetscBool,PetscInt,PetscInt,PetscInt,PetscReal,PetscInt*);
 PETSC_INTERN PetscErrorCode PEPComputeScaleFactor(PEP);
 PETSC_INTERN PetscErrorCode PEPBuildBalance(PEP);
+PETSC_INTERN PetscErrorCode PEPBasisCoefficients(PEP,PetscScalar *pbc);
 
 #endif

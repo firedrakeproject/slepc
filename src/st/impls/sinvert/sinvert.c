@@ -128,8 +128,8 @@ PetscErrorCode STSetUp_Sinvert(ST st)
     st->T[0] = st->A[1];
     ierr = STMatGAXPY_Private(st,-st->sigma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);
     st->P = st->T[PetscMax(nmat-1,1)];
-    ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);  }
- else {
+    ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
+  } else {
     if (st->transform) {
       nc = (nmat*(nmat+1))/2;
       ierr = PetscMalloc(nc*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
