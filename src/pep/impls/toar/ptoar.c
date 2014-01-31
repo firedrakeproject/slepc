@@ -180,35 +180,156 @@ static PetscErrorCode PEPTOARApplyOp(PEP pep,PetscScalar *S,PetscInt ld,PetscInt
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPTOARExtendBasis"
+/*
+  Extend the TOAR basis by applying the the matrix operator
+  over a vector which is decomposed on the TOAR way
+  Input:
+    - pbc: array containing the polynomial basis coefficients
+    - S,V: define the latest Arnoldi vector (nv vectors in V)
+  Output:
+    - t: new vector extending the TOAR basis
+    - r: temporally coefficients to compute the TOAR coefficients
+         for the new Arnoldi vector
+  Workspace: t_ (two vectors)
+*/
+static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar sigma,PetscReal *pbc,PetscScalar *S,PetscInt ls,PetscInt nv,Vec *V,Vec t,PetscScalar *r,PetscInt lr,Vec *t_,PetscInt nwv)
+{
+  PetscErrorCode ierr;
+  PetscInt       nmat=pep->nmat,deg=nmat-1,k,j,off=0,lss;
+  Vec            v=t_[0],ve=t_[1],q=t_[2];
+  PetscScalar    alpha=1.0,*ss;
+  PetscReal      *ca=pbc,*cb=pbc+nmat,*cg=pbc+2*nmat;
+
+  PetscFunctionBegin;
+  if (sinvert) {
+    for (j=0;j<nv;j++) {
+      r[lr+j] = S[j]/ca[0];
+      r[2*lr+j] = (S[ls+j]+(sigma-cb[1])*r[lr+j])/ca[1];
+    }
+    for (k=2;k<deg-1;k++) {
+      for (j=0;j<nv;j++) r[(k+1)*lr+j] = (S[k*ls+j]+(sigma-cb[k])*r[k*lr+j]-cg[k]*r[(k-1)*lr+j])/ca[k];
+    }
+    k = deg-1;
+    for (j=0;j<nv;j++) r[j] = (S[k*ls+j]+(sigma-cb[k])*r[k*lr+j]-cg[k]*r[(k-1)*lr+j])/ca[k];
+    ss = r; ls = lr; off = 1; alpha = -1.0;
+  } else {
+    ss = S; lss = ls; off = 0; alpha = -1/ca[deg-1];
+  }
+  ierr = SlepcVecMAXPBY(v,0.0,1.0,nv,ss+off*lss,V);CHKERRQ(ierr);
+  if (pep->Dr) { /* Balancing */
+    ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
+  }
+  ierr = STMatMult(pep->st,off,v,q);CHKERRQ(ierr);
+  for (j=1+off;j<deg+off-1;j++) {
+    ierr = SlepcVecMAXPBY(v,0.0,1.0,nv,ss+j*lss,V);CHKERRQ(ierr);
+    if (pep->Dr) {
+      ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
+    }
+    ierr = STMatMult(pep->st,j,v,t);CHKERRQ(ierr);
+    ierr = VecAXPY(q,1.0,t);CHKERRQ(ierr);
+  }
+  if (sinvert) {
+    ierr = SlepcVecMAXPBY(v,0.0,1.0,nv,ss,V);CHKERRQ(ierr);
+    if (pep->Dr) {
+      ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
+    }
+    ierr = STMatMult(pep->st,deg-1,v,t);CHKERRQ(ierr);
+    ierr = VecAXPY(q,1.0,t);CHKERRQ(ierr);
+  } else {
+    ierr = SlepcVecMAXPBY(ve,0.0,1.0,nv,ss+(deg-1)*lss,V);CHKERRQ(ierr);
+    if (pep->Dr) {
+      ierr = VecPointwiseMult(ve,ve,pep->Dr);CHKERRQ(ierr);
+    }
+    ierr = STMatMult(pep->st,deg-1,ve,t);CHKERRQ(ierr);
+    ierr = VecAXPY(q,1.0,t);CHKERRQ(ierr);    
+  }
+  ierr = STMatSolve(pep->st,q,t);CHKERRQ(ierr);
+  ierr = VecScale(t,alpha);CHKERRQ(ierr);
+  if (!sinvert) {
+    ierr = VecAXPY(t,cg[deg-1],v);CHKERRQ(ierr);    
+    ierr = VecAXPY(t,cb[deg-1],ve);CHKERRQ(ierr);    
+  }
+  if (pep->Dr) {
+    ierr = VecPointwiseDivide(t,t,pep->Dr);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPTOARCoefficients"
+/*
+  Compute TOAR coefficiets of the blocks of the new Arnoldi vector computed
+*/
+static PetscErrorCode PEPTOARCoefficients(PEP pep,PetscReal *pbc,PetscBool sinvert,PetscScalar sigma,PetscInt nv,PetscScalar *S,PetscInt ls,PetscScalar *r,PetscInt lr,PetscScalar *x)
+{
+  PetscInt  k,j,nmat=pep->nmat,d=nmat-1;
+  PetscReal *ca=pbc,*cb=pbc+nmat,*cg=pbc+2*nmat,t=1.0,tp=0.0,tt;
+
+  PetscFunctionBegin;
+  if (sinvert) {
+    for (k=1;k<d;k++) {
+      tt = t;
+      t = ((sigma-cb[k-1])*t-cg[k-1]*tp)/ca[k-1]; /* k-rth basis' polynomial */
+      tp = tt;
+      for (j=0;j<nv;j++) r[k*lr+j] += t*x[j];
+    }
+  } else {
+    for (j=0;j<nv;j++) r[j] = (cb[0]-sigma)*S[j]+ca[0]*S[ls+j];
+    for (k=1;k<d-1;k++) {
+      for (j=0;j<nv;j++) r[k*lr+j] = (cb[k]-sigma)*S[k*ls+j]+ca[k]*S[(k+1)*ls+j]-cg[k]*S[(k-1)*ls+j];
+    }
+    if (sigma!=0) for (j=0;j<nv;j++) r[(d-1)*lr+j] -= sigma*S[(d-1)*ls+j];
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPTOARrun"
 /*
   Compute a run of Arnoldi iterations
 */
-static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar *S,PetscInt ld,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscScalar *work,PetscInt nw,Vec *t_,PetscInt nwv)
+static PetscErrorCode PEPTOARrun(PEP pep,PetscReal *pbc,PetscScalar *S,PetscInt ld,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscScalar *work,PetscInt nw,Vec *t_,PetscInt nwv)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,p,m=*M,nwu=0,lwa,deg=pep->nmat-1;
   PetscInt       lds=ld*deg;
   Vec            t=t_[0];
   PetscReal      norm;
+  PetscBool      flg,sinvert=PETSC_FALSE;
+  PetscScalar    sigma=0.0,*x;
 
   PetscFunctionBegin;
-  if (!t_||nwv<3) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
+  if (!t_||nwv<4) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
   lwa = ld;
   if (!work||nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (!flg) {
+    /* Spectral transformation handled by the solver */
+    ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSINVERT,STSHIFT,"");CHKERRQ(ierr);
+    if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"STtype not supported fr TOAR without transforming matrices");
+    ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr); 
+    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinvert);CHKERRQ(ierr);
+  }
   for (j=k;j<m;j++) {
     /* apply operator */
-    ierr = PEPTOARApplyOp(pep,S+j*lds,ld,j+deg,V,t,t_+1,2);CHKERRQ(ierr);
+    //ierr = PEPTOARApplyOp(pep,S+j*lds,ld,j+deg,V,t,t_+1,2);CHKERRQ(ierr);
+    ierr = PEPTOARExtendBasis(pep,sinvert,sigma,pbc,S+j*lds,ld,j+deg,V,t,S+(j+1)*lds,ld,t_+1,2);CHKERRQ(ierr);
     
     /* orthogonalize */
-    ierr = IPOrthogonalize(pep->ip,0,NULL,j+deg,NULL,pep->V,t,S+(deg-1)*ld+(j+1)*lds,&norm,breakdown);CHKERRQ(ierr);
-    *(S+(deg-1)*ld+(j+1)*lds+j+deg) = norm;
+    if (sinvert) x = S+(j+1)*lds;
+    else x = S+(deg-1)*ld+(j+1)*lds;
+    ierr = IPOrthogonalize(pep->ip,0,NULL,j+deg,NULL,pep->V,t,x,&norm,breakdown);CHKERRQ(ierr);
+    x[j+deg] = norm;
     ierr = VecScale(t,1.0/norm);CHKERRQ(ierr);
     ierr = VecCopy(t,V[j+deg]);CHKERRQ(ierr);
+    /*
+    *(S+(deg-1)*ld+(j+1)*lds+j+deg) = norm;
     for (p=0;p<deg-1;p++) {
       for (i=0;i<=j+deg;i++) *(S+p*ld+(j+1)*lds+i) = *(S+(p+1)*ld+j*lds+i);
     }
-
+    */
+    ierr = PEPTOARCoefficients(pep,pbc,sinvert,sigma,j+deg,S+j*lds,ld,S+(j+1)*lds,ld,x);CHKERRQ(ierr);
     /* Level-2 orthogonalization */
     ierr = PEPTOAROrth2(S,ld,deg,j+1,H+j*ldh,work+nwu,lwa-nwu);CHKERRQ(ierr);
     ierr = PEPTOARSNorm2(lds,S+(j+1)*lds,&norm);CHKERRQ(ierr);
@@ -432,7 +553,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(pep->nconv+pep->mpd,pep->ncv);
     ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-    ierr = PEPTOARrun(pep,S,ld,H,ldds,pep->V,pep->nconv+l,&nv,&breakdown,work+nwu,lwa-nwu,pep->work,3);CHKERRQ(ierr);
+    ierr = PEPTOARrun(pep,pbc,S,ld,H,ldds,pep->V,pep->nconv+l,&nv,&breakdown,work+nwu,lwa-nwu,pep->work,4);CHKERRQ(ierr);
     beta = PetscAbsScalar(H[(nv-1)*ldds+nv]);
     ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = DSSetDimensions(pep->ds,nv,0,pep->nconv,pep->nconv+l);CHKERRQ(ierr);

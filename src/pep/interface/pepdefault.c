@@ -374,7 +374,7 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
 /*
   Computes polynomial basis coefficients
 */
-PetscErrorCode PEPBasisCoefficients(PEP pep,PetscScalar *pbc)
+PetscErrorCode PEPBasisCoefficients(PEP pep,PetscReal *pbc)
 {
   PetscReal *ca,*cb,*cg,*cc;
   PetscInt  k,nmat=pep->nmat;
