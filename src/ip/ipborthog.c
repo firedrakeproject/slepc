@@ -116,9 +116,9 @@ static PetscErrorCode IPBOrthogonalizeCGS(IP ip,PetscInt nds,Vec *defl,Vec *BDS,
 
   PetscFunctionBegin;
   /* allocate h and c if needed */
-  if (!H || nds>0) sz = nds+n;
+  if (!H || nds>0) sz += nds+n+1;
   sz1 = sz;
-  if (ip->orthog_ref != IP_ORTHOG_REFINE_NEVER) sz += nds+n;
+  if (ip->orthog_ref != IP_ORTHOG_REFINE_NEVER) sz += nds+n+1;
   if (sz>ip->lwork) {
     ierr = PetscFree(ip->work);CHKERRQ(ierr);
     ierr = PetscMalloc(sz*sizeof(PetscScalar),&ip->work);CHKERRQ(ierr);
