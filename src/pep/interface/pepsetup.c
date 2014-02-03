@@ -25,6 +25,20 @@
 #include <slepc-private/ipimpl.h>
 
 #undef __FUNCT__
+#define __FUNCT__ "EvaluateBasis_PEP"
+/*
+  Gateway to call PEPEvaluateBasis from ST
+*/
+PetscErrorCode EvaluateBasis_PEP(PetscObject obj,PetscScalar sigma,PetscScalar *vals)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PEPEvaluateBasis((PEP)obj,sigma,vals);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPSetUp"
 /*@
    PEPSetUp - Sets up all the internal data structures necessary for the
@@ -96,7 +110,7 @@ PetscErrorCode PEPSetUp(PEP pep)
     ierr = PEPSetProblemType(pep,PEP_GENERAL);CHKERRQ(ierr);
   }
 
- /* Call specific solver setup */
+  /* Call specific solver setup */
   ierr = (*pep->ops->setup)(pep);CHKERRQ(ierr);
 
   /* set tolerance if not yet set */
@@ -149,6 +163,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (!islinear) {
     ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
     if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in PEP");
+    ierr = STSetEvaluateCoeffs(pep->st,EvaluateBasis_PEP,(PetscObject)pep);CHKERRQ(ierr);
     ierr = STSetUp(pep->st);CHKERRQ(ierr);
     /* Compute scaling factor if not set by user */
     if (!pep->sfactor_set) {

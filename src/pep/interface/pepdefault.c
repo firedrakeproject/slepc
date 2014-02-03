@@ -430,3 +430,14 @@ PetscErrorCode PEPBasisCoefficients(PEP pep,PetscReal *pbc)
   }
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPEvaluateBasis"
+/*
+  Evaluates the polynomial basis on a given parameter sigma
+*/
+PetscErrorCode PEPEvaluateBasis(PEP pep,PetscScalar sigma,PetscScalar *vals)
+{
+  PetscFunctionBegin;
+  PetscFunctionReturn(0);
+}

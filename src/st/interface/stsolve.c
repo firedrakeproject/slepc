@@ -527,3 +527,44 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "STSetEvaluateCoeffs"
+/*@
+   STSetEvaluateCoeffs - Provide a callback function to evaluate the
+   coefficients needed to compute T(sigma).
+
+   Not Collective
+
+   Input Parameters:
+   st  - the spectral transformation context
+   f   - callback function
+   obj - object that will be used to invoke the function
+
+   Level: developer
+@*/
+PetscErrorCode STSetEvaluateCoeffs(ST st,PetscErrorCode (*f)(PetscObject,PetscScalar,PetscScalar*),PetscObject obj)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  st->evalcoeffs = f;
+  st->evalobj = obj;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STEvaluateCoeffs"
+/*
+   STEvaluateCoeffs - Evaluate the coefficients needed to compute T(sigma).
+*/
+PetscErrorCode STEvaluateCoeffs(ST st,PetscScalar sigma,PetscScalar* vals)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  if (st->evalcoeffs) {
+    ierr = (*st->evalcoeffs)(st->evalobj,sigma,vals);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
