@@ -34,7 +34,7 @@ PetscErrorCode EvaluateBasis_PEP(PetscObject obj,PetscScalar sigma,PetscScalar *
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PEPEvaluateBasis((PEP)obj,sigma,vals);CHKERRQ(ierr);
+  ierr = PEPEvaluateBasis((PEP)obj,sigma,0,vals,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

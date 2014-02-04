@@ -152,7 +152,11 @@ PetscErrorCode STSetUp_Sinvert(ST st)
         ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
         st->T[k] = st->A[k];
       }
-      ierr = STMatMAXPY_Private(st,st->sigma,0,NULL,PETSC_TRUE,&st->P,PETSC_TRUE);CHKERRQ(ierr);
+      ierr = PetscMalloc(nmat*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
+      ierr = STEvaluateCoeffs(st,st->sigma,coeffs);CHKERRQ(ierr);
+      ierr = STMatMAXPY_Private(st,1.0,0,coeffs,PETSC_TRUE,&st->P,PETSC_TRUE);CHKERRQ(ierr);
+      ierr = PetscFree(coeffs);CHKERRQ(ierr);
+      /*ierr = STMatMAXPY_Private(st,st->sigma,0,NULL,PETSC_TRUE,&st->P,PETSC_TRUE);CHKERRQ(ierr);*/
     } 
   }
   if (st->P) {

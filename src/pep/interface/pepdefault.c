@@ -376,53 +376,47 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
 */
 PetscErrorCode PEPBasisCoefficients(PEP pep,PetscReal *pbc)
 {
-  PetscReal *ca,*cb,*cg,*cc;
+  PetscReal *ca,*cb,*cg;
   PetscInt  k,nmat=pep->nmat;
   
   PetscFunctionBegin;
   ca = pbc;
   cb = pbc+nmat;
   cg = pbc+2*nmat;
-  cc = pbc+3*nmat;
   switch (pep->basis) {
   case PEP_BASIS_MONOMIAL:
     for (k=0;k<nmat;k++) {
-      ca[k] = 1.0; cb[k] = 0.0; cg[k] = 0.0; cc[k] = 1.0;
+      ca[k] = 1.0; cb[k] = 0.0; cg[k] = 0.0;
     }
     break;
   case PEP_BASIS_CHEBYSHEV1:
-    ca[0] = 1.0; cb[0] = 0.0; cg[0] = 0.0; cc[0] = 1.0;
+    ca[0] = 1.0; cb[0] = 0.0; cg[0] = 0.0;
     for (k=1;k<nmat;k++) {
       ca[k] = .5; cb[k] = 0.0; cg[k] = .5;
-      cc[k] = cc[k-1]/ca[k-1];
     }
     break;
   case PEP_BASIS_CHEBYSHEV2:
-    ca[0] = .5; cb[0] = 0.0; cg[0] = 0.0; cc[0] = 1.0;
+    ca[0] = .5; cb[0] = 0.0; cg[0] = 0.0;
     for (k=1;k<nmat;k++) {
       ca[k] = .5; cb[k] = 0.0; cg[k] = .5;
-      cc[k] = cc[k-1]/ca[k-1];
     }    
     break;
   case PEP_BASIS_LEGENDRE:
-    ca[0] = 1.0; cb[0] = 0.0; cg[0] = 0.0; cc[0] = 1.0;
+    ca[0] = 1.0; cb[0] = 0.0; cg[0] = 0.0;
     for (k=1;k<nmat;k++) {
       ca[k] = k+1; cb[k] = -2*k; cg[k] = k;
-      cc[k] = cc[k-1]/ca[k-1];
     }
     break;
   case PEP_BASIS_LAGUERRE:
-    ca[0] = -1.0; cb[0] = 0.0; cg[0] = 0.0; cc[0] = 1.0;
+    ca[0] = -1.0; cb[0] = 0.0; cg[0] = 0.0;
     for (k=1;k<nmat;k++) {
       ca[k] = -(k+1); cb[k] = 2*k+1; cg[k] = -k;
-      cc[k] = cc[k-1]/ca[k-1];
     }
     break;
   case PEP_BASIS_HERMITE:
-    ca[0] = .5; cb[0] = 0.0; cg[0] = 0.0; cc[0] = 1.0;
+    ca[0] = .5; cb[0] = 0.0; cg[0] = 0.0;
     for (k=1;k<nmat;k++) {
       ca[k] = .5; cb[k] = 0.0; cg[k] = -k;
-      cc[k] = cc[k-1]/ca[k-1];
     }
     break;
   default:
@@ -436,8 +430,26 @@ PetscErrorCode PEPBasisCoefficients(PEP pep,PetscReal *pbc)
 /*
   Evaluates the polynomial basis on a given parameter sigma
 */
-PetscErrorCode PEPEvaluateBasis(PEP pep,PetscScalar sigma,PetscScalar *vals)
+PetscErrorCode PEPEvaluateBasis(PEP pep,PetscScalar sigma,PetscScalar isigma,PetscScalar *vals,PetscScalar *ivals)
 {
+  PetscErrorCode ierr;
+  PetscInt       nmat=pep->nmat,k;
+  PetscReal      pbc[3*nmat],*a=pbc,*b=pbc+nmat,*g=pbc+2*nmat;
+  
   PetscFunctionBegin;
+  ierr = PEPBasisCoefficients(pep,pbc);CHKERRQ(ierr);
+  if (ivals) for (k=0;k<nmat;k++) ivals[k] = 0.0;
+  vals[0] = 1.0;
+  vals[1] = (sigma-b[0])/a[0];
+#if !defined(PETSC_USE_COMPLEX)
+  if (ivals) ivals[1] = isigma/a[0];
+#endif
+  for (k=2;k<nmat;k++) {
+    vals[k] = ((sigma-b[k-1])*vals[k-1]-g[k-1]*vals[k-2])/a[k-1];
+    if (ivals) vals[k] -= isigma*ivals[k-1]/a[k-1];
+#if !defined(PETSC_USE_COMPLEX)
+    if (ivals) ivals[k] = ((sigma-b[k-1])*ivals[k-1]+isigma*vals[k-1]-g[k-1]*ivals[k-2])/a[k-1];
+#endif
+  }
   PetscFunctionReturn(0);
 }

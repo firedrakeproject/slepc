@@ -173,7 +173,7 @@ static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar s
     for (j=0;j<nv;j++) r[j] = (S[k*ls+j]+(sigma-cb[k])*r[k*lr+j]-cg[k]*r[(k-1)*lr+j])/ca[k];
     ss = r; lss = lr; off = 1; alpha = -1.0;
   } else {
-    ss = S; lss = ls; off = 0; alpha = -1/ca[deg-1];
+    ss = S; lss = ls; off = 0; alpha = -ca[deg-1];
   }
   ierr = SlepcVecMAXPBY(v,0.0,1.0,nv,ss+off*lss,V);CHKERRQ(ierr);
   if (pep->Dr) { /* Balancing */
@@ -234,11 +234,11 @@ static PetscErrorCode PEPTOARCoefficients(PEP pep,PetscReal *pbc,PetscBool sinve
       for (j=0;j<=nv;j++) r[k*lr+j] += t*x[j];
     }
   } else {
-    for (j=0;j<nv;j++) r[j] = (cb[0]-sigma)*S[j]+ca[0]*S[ls+j];
+    for (j=0;j<=nv;j++) r[j] = (cb[0]-sigma)*S[j]+ca[0]*S[ls+j];
     for (k=1;k<d-1;k++) {
-      for (j=0;j<nv;j++) r[k*lr+j] = (cb[k]-sigma)*S[k*ls+j]+ca[k]*S[(k+1)*ls+j]-cg[k]*S[(k-1)*ls+j];
+      for (j=0;j<=nv;j++) r[k*lr+j] = (cb[k]-sigma)*S[k*ls+j]+ca[k]*S[(k+1)*ls+j]+cg[k]*S[(k-1)*ls+j];
     }
-    if (sigma!=0) for (j=0;j<nv;j++) r[(d-1)*lr+j] -= sigma*S[(d-1)*ls+j];
+    if (sigma!=0) for (j=0;j<=nv;j++) r[(d-1)*lr+j] -= sigma*S[(d-1)*ls+j];
   }
   PetscFunctionReturn(0);
 }
@@ -465,7 +465,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H;
-  PetscReal      beta,norm,*rwork,pbc[4*nmat];
+  PetscReal      beta,norm,*rwork,pbc[3*nmat];
   PetscBool      breakdown;
 
   PetscFunctionBegin;
