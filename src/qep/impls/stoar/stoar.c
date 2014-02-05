@@ -341,7 +341,7 @@ static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScala
   PetscInt        lwa,nwu=0,lrwa,nrwu=0;
   PetscInt        j,i,n,lds=2*ctx->ld;
   PetscScalar     *M,*V,*U,*S=ctx->S,*R=NULL,sone=1.0,zero=0.0,t;
-  PetscReal       *sg,*qM=ctx->qM,*ss,norm;
+  PetscReal       *sg,*qM=ctx->qM,*ss=NULL,norm;
   PetscBLASInt    cs1_,rs1_,cs1t2,cs1p1,n_,info,lw_,one=1,lds_,ld_;
   const PetscBool ismonic=ctx->monic;
 
@@ -470,7 +470,7 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_STOAR      *ctx=(QEP_STOAR*)qep->data;
-  PetscInt       j,k,l,nv,ld=ctx->ld,lds=ctx->d*ctx->ld,off,ldds,t;
+  PetscInt       j,k,l,nv=0,ld=ctx->ld,lds=ctx->d*ctx->ld,off,ldds,t;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0;
   Vec            w=qep->work[0],w2=qep->work[1];
   PetscScalar    *S=ctx->S,*Q,*work;
