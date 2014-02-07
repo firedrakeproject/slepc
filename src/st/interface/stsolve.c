@@ -403,7 +403,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
   PetscErrorCode ierr;
   PetscInt       *matIdx,nmat,i;
   PetscScalar    t=1.0,ta;
-  PetscBool      copy=PETSC_FALSE;
+  PetscBool      copy=PETSC_FALSE,nz=PETSC_FALSE;
 
   PetscFunctionBegin;
   nmat = st->nmat-k;
@@ -428,7 +428,11 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
     }
   case ST_MATMODE_COPY:
     ierr = MatDestroy(S);CHKERRQ(ierr);
-    if (alpha == 0.0) {
+    if (coeffs) {
+      if (coeffs[0] != 1.0) nz = PETSC_TRUE;
+      for (i=1;i<st->nmat-k&&!nz;i++) if (coeffs[i]!=0) nz = PETSC_TRUE;
+    }
+    if (alpha == 0.0||!nz) {
       ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
       *S = st->A[k];
     } else {
@@ -441,7 +445,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
         t *= alpha;
         ta = t;
         if (coeffs) ta *= coeffs[i-k];
-        ierr = MatAXPY(*S,ta,st->A[i],st->str);CHKERRQ(ierr);
+        if (ta!=0) {ierr = MatAXPY(*S,ta,st->A[i],st->str);CHKERRQ(ierr);}
       }
     }
   }
