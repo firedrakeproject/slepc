@@ -613,6 +613,7 @@ PetscErrorCode PEPDestroy(PEP *pep)
   if (--((PetscObject)(*pep))->refct > 0) { *pep = 0; PetscFunctionReturn(0); }
   ierr = PEPReset(*pep);CHKERRQ(ierr);
   ierr = MatDestroyMatrices((*pep)->nmat,&(*pep)->A);CHKERRQ(ierr);
+  ierr = PetscFree((*pep)->pbc);CHKERRQ(ierr);
   if ((*pep)->ops->destroy) { ierr = (*(*pep)->ops->destroy)(*pep);CHKERRQ(ierr); }
   ierr = STDestroy(&(*pep)->st);CHKERRQ(ierr);
   ierr = IPDestroy(&(*pep)->ip);CHKERRQ(ierr);

@@ -35,6 +35,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
+#include <slepc-private/stimpl.h>         /*I "slepcst.h" I*/ /* /////////////// */
 #include <slepc-private/pepimpl.h>         /*I "slepcpep.h" I*/
 #include <slepcblaslapack.h>
 
@@ -44,7 +45,8 @@
 PetscErrorCode PEPSetUp_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscBool      sinv;
+  PetscBool      sinv,flg;
+  PetscInt       i;
 
   PetscFunctionBegin;
   if (pep->ncv) { /* ncv set */
@@ -71,6 +73,25 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ierr = DSSetType(pep->ds,DSNHEP);CHKERRQ(ierr);
   ierr = DSSetExtraRow(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(pep->ds,pep->ncv+1);CHKERRQ(ierr);
+
+  ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (!flg) {
+    /* Compute scaling factor if not set by user */
+    if (!pep->sfactor_set) {
+      ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
+    }
+    if (pep->sfactor!=1.0) {
+      /* temporary change of shift */
+      pep->target /= pep->sfactor;
+      pep->st->defsigma /= pep->sfactor;
+      for (i=0;i<pep->nmat;i++){
+        pep->pbc[i] /= pep->sfactor; 
+        pep->pbc[pep->nmat+i] /= pep->sfactor;
+        pep->pbc[2*pep->nmat+i] /= pep->sfactor;
+      }
+    }
+  }
   PetscFunctionReturn(0);
 }
 
@@ -152,13 +173,13 @@ static PetscErrorCode PEPTOAROrth2(PetscScalar *S,PetscInt ld,PetscInt deg,Petsc
          for the new Arnoldi vector
   Workspace: t_ (two vectors)
 */
-static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar sigma,PetscReal *pbc,PetscScalar *S,PetscInt ls,PetscInt nv,Vec *V,Vec t,PetscScalar *r,PetscInt lr,Vec *t_,PetscInt nwv)
+static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar sigma,PetscScalar *S,PetscInt ls,PetscInt nv,Vec *V,Vec t,PetscScalar *r,PetscInt lr,Vec *t_,PetscInt nwv)
 {
   PetscErrorCode ierr;
   PetscInt       nmat=pep->nmat,deg=nmat-1,k,j,off=0,lss;
   Vec            v=t_[0],ve=t_[1],q=t_[2];
   PetscScalar    alpha=1.0,*ss;
-  PetscReal      *ca=pbc,*cb=pbc+nmat,*cg=pbc+2*nmat;
+  PetscReal      *ca=pep->pbc,*cb=pep->pbc+nmat,*cg=pep->pbc+2*nmat;
 
   PetscFunctionBegin;
   if (sinvert) {
@@ -220,10 +241,10 @@ static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar s
 /*
   Compute TOAR coefficiets of the blocks of the new Arnoldi vector computed
 */
-static PetscErrorCode PEPTOARCoefficients(PEP pep,PetscReal *pbc,PetscBool sinvert,PetscScalar sigma,PetscInt nv,PetscScalar *S,PetscInt ls,PetscScalar *r,PetscInt lr,PetscScalar *x)
+static PetscErrorCode PEPTOARCoefficients(PEP pep,PetscBool sinvert,PetscScalar sigma,PetscInt nv,PetscScalar *S,PetscInt ls,PetscScalar *r,PetscInt lr,PetscScalar *x)
 {
   PetscInt  k,j,nmat=pep->nmat,d=nmat-1;
-  PetscReal *ca=pbc,*cb=pbc+nmat,*cg=pbc+2*nmat,t=1.0,tp=0.0,tt;
+  PetscReal *ca=pep->pbc,*cb=pep->pbc+nmat,*cg=pep->pbc+2*nmat,t=1.0,tp=0.0,tt;
 
   PetscFunctionBegin;
   if (sinvert) {
@@ -248,7 +269,7 @@ static PetscErrorCode PEPTOARCoefficients(PEP pep,PetscReal *pbc,PetscBool sinve
 /*
   Compute a run of Arnoldi iterations
 */
-static PetscErrorCode PEPTOARrun(PEP pep,PetscReal *pbc,PetscScalar *S,PetscInt ld,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscScalar *work,PetscInt nw,Vec *t_,PetscInt nwv)
+static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar *S,PetscInt ld,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscScalar *work,PetscInt nw,Vec *t_,PetscInt nwv)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,p,m=*M,nwu=0,lwa,deg=pep->nmat-1;
@@ -272,7 +293,7 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscReal *pbc,PetscScalar *S,PetscInt 
   }
   for (j=k;j<m;j++) {
     /* apply operator */
-    ierr = PEPTOARExtendBasis(pep,sinvert,sigma,pbc,S+j*lds,ld,j+deg,V,t,S+(j+1)*lds,ld,t_+1,2);CHKERRQ(ierr);
+    ierr = PEPTOARExtendBasis(pep,sinvert,sigma,S+j*lds,ld,j+deg,V,t,S+(j+1)*lds,ld,t_+1,2);CHKERRQ(ierr);
 
     /* orthogonalize */
     if (sinvert) x = S+(j+1)*lds;
@@ -282,7 +303,7 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscReal *pbc,PetscScalar *S,PetscInt 
     ierr = VecScale(t,1.0/norm);CHKERRQ(ierr);
     ierr = VecCopy(t,V[j+deg]);CHKERRQ(ierr);
 
-    ierr = PEPTOARCoefficients(pep,pbc,sinvert,sigma,j+deg,S+j*lds,ld,S+(j+1)*lds,ld,x);CHKERRQ(ierr);
+    ierr = PEPTOARCoefficients(pep,sinvert,sigma,j+deg,S+j*lds,ld,S+(j+1)*lds,ld,x);CHKERRQ(ierr);
     /* Level-2 orthogonalization */
     ierr = PEPTOAROrth2(S,ld,deg,j+1,H+j*ldh,work+nwu,lwa-nwu);CHKERRQ(ierr);
     ierr = PEPTOARSNorm2(lds,S+(j+1)*lds,&norm);CHKERRQ(ierr);
@@ -416,8 +437,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscInt k,PetscScalar *S,
     if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",9);
   }
   ierr = PetscMalloc(3*pep->nmat*sizeof(PetscReal),&pbc);CHKERRQ(ierr);
-  ierr = PEPBasisCoefficients(pep,pbc);CHKERRQ(ierr);
-  ca = pbc; cb = pbc+pep->nmat; cg = cb+pep->nmat;
+  ca = pep->pbc; cb = pep->pbc+pep->nmat; cg = pep->pbc+2*pep->nmat;
   lds = deg*ld;
   At = work+nwu;
   nwu += sr*k;
@@ -501,8 +521,8 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H;
-  PetscReal      beta,norm,*rwork,pbc[3*nmat];
-  PetscBool      breakdown;
+  PetscReal      beta,norm,*rwork;
+  PetscBool      breakdown,flg;
 
   PetscFunctionBegin;
   ld = pep->ncv+deg;
@@ -513,9 +533,18 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   ierr = PetscMemzero(S,lds*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
 
-  /* Compute polynomial basis coefficients */
-  ierr = PEPBasisCoefficients(pep,pbc);CHKERRQ(ierr);
-
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (flg) {
+    /* Compute polynomial basis coefficients */
+    ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
+    if (pep->sfactor!=1) {
+      for (i=0;i<nmat;i++) {
+        pep->pbc[i] /= pep->sfactor;
+        pep->pbc[nmat+i] /= pep->sfactor;
+        pep->pbc[2*nmat+i] /= pep->sfactor; 
+      }
+    }
+  }
   /* Get the starting Lanczos vector */
   if (pep->nini==0) {  
     ierr = SlepcVecSetRandom(pep->V[0],pep->rand);CHKERRQ(ierr);
@@ -542,7 +571,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(pep->nconv+pep->mpd,pep->ncv);
     ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-    ierr = PEPTOARrun(pep,pbc,S,ld,H,ldds,pep->V,pep->nconv+l,&nv,&breakdown,work+nwu,lwa-nwu,pep->work,4);CHKERRQ(ierr);
+    ierr = PEPTOARrun(pep,S,ld,H,ldds,pep->V,pep->nconv+l,&nv,&breakdown,work+nwu,lwa-nwu,pep->work,4);CHKERRQ(ierr);
     beta = PetscAbsScalar(H[(nv-1)*ldds+nv]);
     ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = DSSetDimensions(pep->ds,nv,0,pep->nconv,pep->nconv+l);CHKERRQ(ierr);
@@ -613,11 +642,25 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   /* Update vectors V = V*S */    
     ierr = SlepcUpdateVectors(pep->nconv+deg-1,pep->V,0,pep->nconv,S,lds,PETSC_FALSE);CHKERRQ(ierr);
   }
-  for (j=0;j<pep->nconv;j++) {
-    pep->eigr[j] *= pep->sfactor;
-    pep->eigi[j] *= pep->sfactor;
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (!flg) {
+    ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+    pep->target *= pep->sfactor;
+    pep->st->sigma *= pep->sfactor;
+    pep->st->defsigma *= pep->sfactor;
   }
-
+  if (pep->sfactor!=1.0) {
+    for (j=0;j<pep->nconv;j++) {
+      pep->eigr[j] *= pep->sfactor;
+      pep->eigi[j] *= pep->sfactor;
+    }
+    /* Restore original values */
+    for (i=0;i<pep->nmat;i++){
+      pep->pbc[i] *= pep->sfactor; 
+      pep->pbc[pep->nmat+i] *= pep->sfactor;
+      pep->pbc[2*pep->nmat+i] *= pep->sfactor;
+    }
+  } 
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);

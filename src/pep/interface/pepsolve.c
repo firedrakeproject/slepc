@@ -116,7 +116,10 @@ PetscErrorCode PEPSolve(PEP pep)
     pep->comparison    = data.comparison;
     pep->comparisonctx = data.comparisonctx;
     /* Map eigenvalues back to the original problem */
-    ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+    }
   }
 
 #if !defined(PETSC_USE_COMPLEX)

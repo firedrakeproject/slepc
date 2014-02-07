@@ -166,7 +166,8 @@ PetscErrorCode PEPSetUp(PEP pep)
     ierr = STSetEvaluateCoeffs(pep->st,EvaluateBasis_PEP,(PetscObject)pep);CHKERRQ(ierr);
     ierr = STSetUp(pep->st);CHKERRQ(ierr);
     /* Compute scaling factor if not set by user */
-    if (!pep->sfactor_set) {
+    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+    if (!pep->sfactor_set && flg) {
       ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
     }
   }
@@ -240,6 +241,8 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   if (pep->setupcalled) { ierr = PEPReset(pep);CHKERRQ(ierr); }
   ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
   ierr = PetscMalloc1(nmat,&pep->A);CHKERRQ(ierr);
+  ierr = PetscFree(pep->pbc);CHKERRQ(ierr);
+  ierr = PetscMalloc(3*nmat*sizeof(PetscReal),&pep->pbc);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat));CHKERRQ(ierr);
   for (i=0;i<nmat;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);

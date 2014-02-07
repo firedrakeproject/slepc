@@ -348,24 +348,34 @@ PetscErrorCode PEPBuildBalance(PEP pep)
 PetscErrorCode PEPComputeScaleFactor(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscBool      has0,has1;
+  PetscBool      has0,has1,flg;
   PetscReal      norm0,norm1;
   Mat            T[2];
+  PEPBasis       basis;
 
   PetscFunctionBegin;
-  ierr = STGetTOperators(pep->st,0,&T[0]);CHKERRQ(ierr);
-  ierr = STGetTOperators(pep->st,pep->nmat-1,&T[1]);CHKERRQ(ierr);
-  if (pep->nmat>2) {
-    ierr = MatHasOperation(T[0],MATOP_NORM,&has0);CHKERRQ(ierr);
-    ierr = MatHasOperation(T[1],MATOP_NORM,&has1);CHKERRQ(ierr);
-    if (has0 && has1) {
-      ierr = MatNorm(T[0],NORM_INFINITY,&norm0);CHKERRQ(ierr);
-      ierr = MatNorm(T[1],NORM_INFINITY,&norm1);CHKERRQ(ierr);
-      pep->sfactor = PetscPowReal(norm0/norm1,1.0/(pep->nmat-1));
+  ierr = PEPGetBasis(pep,&basis);CHKERRQ(ierr);
+  if (basis==PEP_BASIS_MONOMIAL) {
+    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = STGetTOperators(pep->st,0,&T[0]);CHKERRQ(ierr);
+      ierr = STGetTOperators(pep->st,pep->nmat-1,&T[1]);CHKERRQ(ierr);
     } else {
-      pep->sfactor = 1.0;
+      T[0] = pep->A[0];
+      T[1] = pep->A[pep->nmat-1];
     }
-  }
+    if (pep->nmat>2) {
+      ierr = MatHasOperation(T[0],MATOP_NORM,&has0);CHKERRQ(ierr);
+      ierr = MatHasOperation(T[1],MATOP_NORM,&has1);CHKERRQ(ierr);
+      if (has0 && has1) {
+        ierr = MatNorm(T[0],NORM_INFINITY,&norm0);CHKERRQ(ierr);
+        ierr = MatNorm(T[1],NORM_INFINITY,&norm1);CHKERRQ(ierr);
+        pep->sfactor = PetscPowReal(norm0/norm1,1.0/(pep->nmat-1));
+      } else {
+        pep->sfactor = 1.0;
+      }
+    }
+  } else pep->sfactor = 1.0;
   PetscFunctionReturn(0);
 }
 
@@ -432,12 +442,10 @@ PetscErrorCode PEPBasisCoefficients(PEP pep,PetscReal *pbc)
 */
 PetscErrorCode PEPEvaluateBasis(PEP pep,PetscScalar sigma,PetscScalar isigma,PetscScalar *vals,PetscScalar *ivals)
 {
-  PetscErrorCode ierr;
-  PetscInt       nmat=pep->nmat,k;
-  PetscReal      pbc[3*nmat],*a=pbc,*b=pbc+nmat,*g=pbc+2*nmat;
+  PetscInt   nmat=pep->nmat,k;
+  PetscReal  *a=pep->pbc,*b=pep->pbc+nmat,*g=pep->pbc+2*nmat;
   
   PetscFunctionBegin;
-  ierr = PEPBasisCoefficients(pep,pbc);CHKERRQ(ierr);
   if (ivals) for (k=0;k<nmat;k++) ivals[k] = 0.0;
   vals[0] = 1.0;
   vals[1] = (sigma-b[0])/a[0];
