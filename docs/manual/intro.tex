@@ -383,7 +383,7 @@ Usage of eigensolvers is very similar to other kinds of solvers provided by \pet
 	EPSSolve(EPS eps);
 	EPSGetConverged(EPS eps,PetscInt *nconv);
 	EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *kr,PetscScalar *ki,Vec xr,Vec xi);
-	EPSDestroy(EPS eps);
+	EPSDestroy(EPS *eps);
 	\end{Verbatim} 
 The user first creates the \ident{EPS} context and sets the operators associated with the eigensystem as well as the problem type. The user then sets various options for customized solution, solves the problem, retrieves the solution, and finally destroys the \ident{EPS} context. Chapter~\ref{cap:eps} describes in detail the \ident{EPS} package, including
 the options database that enables the user to customize the solution process at runtime by selecting the solution algorithm and also specifying the convergence tolerance, the number of eigenvalues, the dimension of the subspace, etc.

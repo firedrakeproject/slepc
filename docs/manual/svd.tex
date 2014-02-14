@@ -116,7 +116,7 @@ for (j=0; j<nconv; j++) {
   SVDGetSingularTriplet( svd, j, &sigma, u, v );
   SVDComputeRelativeError( svd, j, &error );
 }
-SVDDestroy( svd );
+SVDDestroy( &svd );
 \end{Verbatim}
 \caption{\label{fig:ex-svd}Example code for basic solution with \ident{SVD}.}
 \end{figure}
