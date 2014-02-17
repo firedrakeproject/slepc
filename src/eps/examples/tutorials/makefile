@@ -25,7 +25,7 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tutorials/
 EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex11.c ex12.c ex13.c \
-             ex18.c ex19.c
+             ex18.c ex19.c ex24.c
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
@@ -35,7 +35,8 @@ TESTEXAMPLES_C                 = ex2.PETSc runex2_1 ex2.rm \
                                  ex9.PETSc runex9_1 ex9.rm \
                                  ex11.PETSc runex11_1 ex11.rm \
                                  ex13.PETSc runex13_1 ex13.rm \
-                                 ex18.PETSc runex18_1 ex18.rm
+                                 ex18.PETSc runex18_1 ex18.rm \
+                                 ex24.PETSc runex24_1 ex24.rm
 TESTEXAMPLES_C_NOCOMPLEX       = ex4.PETSc runex4_1 ex4.rm \
                                  ex7.PETSc runex7_1 ex7.rm
 TESTEXAMPLES_FORTRAN_NOCOMPLEX = ex6f.PETSc runex6f_1 ex6f.rm
@@ -102,6 +103,10 @@ ex18: ex18.o chkopts
 ex19: ex19.o chkopts
 	-${CLINKER} -o ex19 ex19.o ${SLEPC_LIB}
 	${RM} ex19.o
+
+ex24: ex24.o chkopts
+	-${CLINKER} -o ex24 ex24.o ${SLEPC_LIB}
+	${RM} ex24.o
 
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
@@ -195,4 +200,10 @@ runex19_1:
 	   if (${DIFF} output/ex19_1.out ex19_1.tmp) then true; \
 	   else echo "Possible problem with ex19_1, diffs above"; fi; \
 	   ${RM} -f ex19_1.tmp
+
+runex24_1:
+	-@${MPIEXEC} -np 1 ./ex24 > ex24_1.tmp 2>&1; \
+	   if (${DIFF} output/ex24_1.out ex24_1.tmp) then true; \
+	   else echo "Possible problem with ex24_1, diffs above"; fi; \
+	   ${RM} -f ex24_1.tmp
 
