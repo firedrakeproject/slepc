@@ -131,7 +131,7 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   if (x == b) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
-  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STFOLD,STPRECOND,STSHELL,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STPRECOND,STSHELL,"");CHKERRQ(ierr);
   if (!flg && !st->P) {
     /* P=NULL means identity matrix */
     ierr = VecCopy(b,x);CHKERRQ(ierr);
@@ -174,7 +174,7 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STFOLD,STPRECOND,STSHELL,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STPRECOND,STSHELL,"");CHKERRQ(ierr);
   if (x == b) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
