@@ -239,18 +239,19 @@ static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar s
 #undef __FUNCT__
 #define __FUNCT__ "PEPTOARCoefficients"
 /*
-  Compute TOAR coefficiets of the blocks of the new Arnoldi vector computed
+  Compute TOAR coefficients of the blocks of the new Arnoldi vector computed
 */
 static PetscErrorCode PEPTOARCoefficients(PEP pep,PetscBool sinvert,PetscScalar sigma,PetscInt nv,PetscScalar *S,PetscInt ls,PetscScalar *r,PetscInt lr,PetscScalar *x)
 {
-  PetscInt  k,j,nmat=pep->nmat,d=nmat-1;
-  PetscReal *ca=pep->pbc,*cb=pep->pbc+nmat,*cg=pep->pbc+2*nmat,t=1.0,tp=0.0,tt;
+  PetscInt    k,j,nmat=pep->nmat,d=nmat-1;
+  PetscReal   *ca=pep->pbc,*cb=pep->pbc+nmat,*cg=pep->pbc+2*nmat;
+  PetscScalar t=1.0,tp=0.0,tt;
 
   PetscFunctionBegin;
   if (sinvert) {
     for (k=1;k<d;k++) {
       tt = t;
-      t = ((sigma-cb[k-1])*t-cg[k-1]*tp)/ca[k-1]; /* k-rth basis' polynomial */
+      t = ((sigma-cb[k-1])*t-cg[k-1]*tp)/ca[k-1]; /* k-th basis polynomial */
       tp = tt;
       for (j=0;j<=nv;j++) r[k*lr+j] += t*x[j];
     }
@@ -259,7 +260,7 @@ static PetscErrorCode PEPTOARCoefficients(PEP pep,PetscBool sinvert,PetscScalar 
     for (k=1;k<d-1;k++) {
       for (j=0;j<=nv;j++) r[k*lr+j] = (cb[k]-sigma)*S[k*ls+j]+ca[k]*S[(k+1)*ls+j]+cg[k]*S[(k-1)*ls+j];
     }
-    if (sigma!=0) for (j=0;j<=nv;j++) r[(d-1)*lr+j] -= sigma*S[(d-1)*ls+j];
+    if (PetscAbsScalar(sigma)!=0.0) for (j=0;j<=nv;j++) r[(d-1)*lr+j] -= sigma*S[(d-1)*ls+j];
   }
   PetscFunctionReturn(0);
 }
@@ -457,7 +458,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscInt k,PetscScalar *S,
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) {
     ierr =  PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&flg);CHKERRQ(ierr);
-    if (flg||pep->target!=0) transf=PETSC_TRUE;
+    if (flg||PetscAbsScalar(pep->target)!=0.0) transf=PETSC_TRUE;
   }
   if (transf) {
     ldt = k;
@@ -471,7 +472,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscInt k,PetscScalar *S,
       ierr = PetscBLASIntCast(nw-nwu,&lwork);CHKERRQ(ierr);
       PetscStackCall("LAPACKgetri",LAPACKgetri_(&k_,T,&k_,p,work+nwu,&lwork,&info));  
     }
-    if (pep->target!=0) for (i=0;i<k;i++) T[i+k*i] += pep->target;
+    if (PetscAbsScalar(pep->target)!=0.0) for (i=0;i<k;i++) T[i+k*i] += pep->target;
   } else {
     T = H; ldt = ldh;
   }
