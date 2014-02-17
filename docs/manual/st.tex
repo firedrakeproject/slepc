@@ -47,7 +47,7 @@ As explained in the previous chapter, \ident{EPS} contains preconditioned eigens
 	\end{Verbatim}
 	This can also be done with the command line option \Verb!-st_shift <shift>!. Note that the argument \texttt{shift} is defined as a \texttt{PetscScalar}, and this means that complex shifts are not allowed unless the complex version of \slepc is used.
 
-	Other object operations are available, which are not usually called by the user. The most important of such functions are \ident{STApply}, which applies the operator to a vector, and \ident{STSetUp}, which prepares all the necessary data structures before the solution process starts. The term ``operator'' refers to one of $A$, $B^{-1}\!A$, $A+\sigma I$, ...\ depending on which kind of spectral transformation is being used.
+	Other object operations are available, which are not usually called by the user. The most important of such functions are \ident{STApply}, which applies the operator to a vector, and \ident{STSetUp}, which prepares all the necessary data structures before the solution process starts. The term ``operator'' refers to one of $A$, $B^{-1}\!A$, $A-\sigma I$, ...\ depending on which kind of spectral transformation is being used.
  
 %---------------------------------------------------
 \section{Available Transformations}
@@ -68,7 +68,7 @@ The \ident{ST} type can also be set with the command-line option \Verb!-st_type!
 {\small \begin{tabular}{lllc}
                         &                   & {\footnotesize Options} &\\
 Spectral Transformation & \ident{STType}    & {\footnotesize Name}    & Operator\\\hline
-Shift of Origin         & \texttt{STSHIFT}  & \texttt{shift}   & $B^{-1}A+\sigma I$\\
+Shift of Origin         & \texttt{STSHIFT}  & \texttt{shift}   & $B^{-1}A-\sigma I$\\
 Spectrum Folding        & \texttt{STFOLD}   & \texttt{fold}    & $(B^{-1}A-\sigma I)^2$\\
 Shift-and-invert        & \texttt{STSINVERT}& \texttt{sinvert} & $(A-\sigma B)^{-1}B$\\
 Generalized Cayley      & \texttt{STCAYLEY} & \texttt{cayley}  & $(A-\sigma B)^{-1}(A+\nu B)$\\
@@ -85,7 +85,7 @@ Shell Transformation    & \texttt{STSHELL}  & \texttt{shell}   & \emph{user-defi
 	\ident{ST}     & Choice of $\sigma,\nu$ & Standard problem & Generalized problem \\\hline
 	\texttt{shift}
         & $\sigma=0$     & $A$           & $B^{-1}A$          \\
-	& $\sigma\not=0$ & $A+\sigma I$  & $B^{-1}A+\sigma I$ \\ \hline
+	& $\sigma\not=0$ & $A-\sigma I$  & $B^{-1}A-\sigma I$ \\ \hline
 	\texttt{fold}
         & $\sigma=0$     & $A^2$         & $(B^{-1}A)^2$          \\
 	& $\sigma\not=0$ & $(A-\sigma I)^2$ & $(B^{-1}A-\sigma I)^2$ \\ \hline
@@ -118,12 +118,12 @@ for standard problems, and $Ax=\lambda Bx$ for generalized ones. Note that this 
 When the eigensolver in \ident{EPS} requests the application of the operator to a vector, a matrix-vector multiplication by matrix $A$ is carried out (in the standard case) or a matrix-vector multiplication by matrix $A$ followed by a linear system solve with coefficient matrix $B$ (in the generalized case). Note that in the last case, the operation will fail if matrix $B$ is singular.
 
 When the shift, $\sigma$, is given a value different from the default, 0, the effect is to move the whole spectrum by that exact quantity, $\sigma$, which is called \emph{shift of origin}. To achieve this, the solver works with the shifted matrix, that is, the expressions it has to cope with are
-\begin{equation}(A+\sigma I)x=\theta x,\end{equation}
+\begin{equation}(A-\sigma I)x=\theta x,\end{equation}
 for standard problems, and 
-\begin{equation}(B^{-1}A+\sigma I) x=\theta x,\end{equation}
+\begin{equation}(B^{-1}A-\sigma I) x=\theta x,\end{equation}
 for generalized ones. The important property that is used is that shifting does not alter the eigenvectors and that it does change the eigenvalues in a simple known way, it shifts them by $\sigma$. In both the standard and the generalized problems, the following relation holds 
-\begin{equation}\theta=\lambda+\sigma.\end{equation}
-This means that after the solution process, the value $\sigma$ has to be subtracted from the computed eigenvalues, $\theta$, in order to retrieve the solution of the original problem, $\lambda$. This is done by means of the function \ident{STBackTransform}, which does not need to be called directly by the user.
+\begin{equation}\theta=\lambda-\sigma.\end{equation}
+This means that after the solution process, the value $\sigma$ has to be added\footnote{Note that the sign changed in \slepc 3.5 with respect to previous versions.} to the computed eigenvalues, $\theta$, in order to retrieve the solution of the original problem, $\lambda$. This is done by means of the function \ident{STBackTransform}, which does not need to be called directly by the user.
 
 \subsection{Spectrum Folding}
 
@@ -351,7 +351,7 @@ If the user knows that the pattern is the same (or a subset), then this can be s
 \subsection{Preserving the Symmetry in Generalized Eigenproblems}
 \label{sec:symm}
 
-	As mentioned in \S\ref{sec:defprob}, some eigensolvers can exploit symmetry and compute a solution for Hermitian problems with less storage and/or computational cost than other methods. Also, symmetric solvers can be more accurate in some cases. However, in the case of generalized eigenvalue problems in which both $A$ and $B$ are symmetric, it happens that, due to the spectral transformation, symmetry is lost since none of the transformed operators $B^{-1}\!A+\sigma I$, $(A-\sigma B)^{-1}B$, etc.\ is symmetric (the same applies in the Hermitian case for complex matrices).
+	As mentioned in \S\ref{sec:defprob}, some eigensolvers can exploit symmetry and compute a solution for Hermitian problems with less storage and/or computational cost than other methods. Also, symmetric solvers can be more accurate in some cases. However, in the case of generalized eigenvalue problems in which both $A$ and $B$ are symmetric, it happens that, due to the spectral transformation, symmetry is lost since none of the transformed operators $B^{-1}\!A-\sigma I$, $(A-\sigma B)^{-1}B$, etc.\ is symmetric (the same applies in the Hermitian case for complex matrices).
 
 	The solution proposed in \slepc is based on selecting different kinds of inner products. Currently, we have the following choice of inner products:
   \begin{itemize}

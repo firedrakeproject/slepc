@@ -32,11 +32,11 @@ PetscErrorCode STApply_Shift(ST st,Vec x,Vec y)
 
   PetscFunctionBegin;
   if (st->nmat>1) {
-    /* generalized eigenproblem: y = B^-1 (A + sB) x */
+    /* generalized eigenproblem: y = B^-1 (A - sB) x */
     ierr = MatMult(st->T[0],x,st->w);CHKERRQ(ierr);
     ierr = STMatSolve(st,st->w,y);CHKERRQ(ierr);
   } else {
-    /* standard eigenproblem: y = (A + sI) x */
+    /* standard eigenproblem: y = (A - sI) x */
     ierr = MatMult(st->T[0],x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -50,11 +50,11 @@ PetscErrorCode STApplyTranspose_Shift(ST st,Vec x,Vec y)
 
   PetscFunctionBegin;
   if (st->nmat>1) {
-    /* generalized eigenproblem: y = (A + sB)^T B^-T  x */
+    /* generalized eigenproblem: y = (A - sB)^T B^-T  x */
     ierr = STMatSolveTranspose(st,x,st->w);CHKERRQ(ierr);
     ierr = MatMultTranspose(st->T[0],st->w,y);CHKERRQ(ierr);
   } else {
-    /* standard eigenproblem: y = (A^T + sI) x */
+    /* standard eigenproblem: y = (A^T - sI) x */
     ierr = MatMultTranspose(st->T[0],x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -68,7 +68,7 @@ PetscErrorCode STBackTransform_Shift(ST st,PetscInt n,PetscScalar *eigr,PetscSca
 
   PetscFunctionBegin;
   for (j=0;j<n;j++) {
-    eigr[j] -= st->sigma;
+    eigr[j] += st->sigma;
   }
   PetscFunctionReturn(0);
 }
@@ -87,10 +87,10 @@ PetscErrorCode STPostSolve_Shift(ST st)
         ierr = MatAXPY(st->A[0],-st->sigma*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
         ierr = MatAXPY(st->A[1],2.0*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
         s = st->sigma;
-      } else s = -st->sigma;
+      } else s = st->sigma;
       ierr = MatAXPY(st->A[0],s,st->A[1],st->str);CHKERRQ(ierr);
     } else {
-      ierr = MatShift(st->A[0],-st->sigma);CHKERRQ(ierr);
+      ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
     }
     st->Astate[0] = ((PetscObject)st->A[0])->state;
     st->setupcalled = 0;
@@ -111,8 +111,8 @@ PetscErrorCode STSetUp_Shift(ST st)
     /* T[1] = B */
     if (nmat>1) { ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr); }
     st->T[1] = st->A[1];
-    /* T[0] = A+sigma*B  */
-    ierr = STMatGAXPY_Private(st,st->sigma,0.0,1,0,PETSC_TRUE);CHKERRQ(ierr);
+    /* T[0] = A-sigma*B  */
+    ierr = STMatGAXPY_Private(st,-st->sigma,0.0,1,0,PETSC_TRUE);CHKERRQ(ierr);
   } else {
     if (st->transform) {
       nc = (nmat*(nmat+1))/2;
@@ -159,7 +159,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
   if (!st->setupcalled) PetscFunctionReturn(0);
 
   if (st->nmat<3) {
-    ierr = STMatGAXPY_Private(st,newshift,st->sigma,1,0,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = STMatGAXPY_Private(st,newshift,-st->sigma,1,0,PETSC_FALSE);CHKERRQ(ierr);
   } else {
     if (st->transform) {
       if (st->shift_matrix == ST_MATMODE_COPY) {
