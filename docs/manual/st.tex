@@ -58,7 +58,7 @@ As explained in the previous chapter, \ident{EPS} contains preconditioned eigens
 	STSetType(ST st,STType type);
 	\end{Verbatim}
 where \texttt{type} can be one of 
-\texttt{STSHIFT}, \texttt{STFOLD},
+\texttt{STSHIFT}, 
 \texttt{STSINVERT}, \texttt{STCAYLEY},
 \texttt{STPRECOND}, or \texttt{STSHELL}.
 The \ident{ST} type can also be set with the command-line option \Verb!-st_type! followed by the name of the method (see Table \ref{tab:transforms}). The first five spectral transformations are described in detail in the rest of this section. The last possibility, \texttt{STSHELL}, uses a specific, application-provided spectral transformation. Section \ref{sec:shell} describes how to implement one of these transformations.
@@ -69,7 +69,6 @@ The \ident{ST} type can also be set with the command-line option \Verb!-st_type!
                         &                   & {\footnotesize Options} &\\
 Spectral Transformation & \ident{STType}    & {\footnotesize Name}    & Operator\\\hline
 Shift of Origin         & \texttt{STSHIFT}  & \texttt{shift}   & $B^{-1}A+\sigma I$\\
-Spectrum Folding        & \texttt{STFOLD}   & \texttt{fold}    & $(B^{-1}A-\sigma I)^2$\\
 Shift-and-invert        & \texttt{STSINVERT}& \texttt{sinvert} & $(A-\sigma B)^{-1}B$\\
 Generalized Cayley      & \texttt{STCAYLEY} & \texttt{cayley}  & $(A-\sigma B)^{-1}(A+\nu B)$\\
 Preconditioner          & \texttt{STPRECOND}& \texttt{precond} & $K^{-1}\approx(A-\sigma B)^{-1}$\\\hline
@@ -86,9 +85,6 @@ Shell Transformation    & \texttt{STSHELL}  & \texttt{shell}   & \emph{user-defi
 	\texttt{shift}
         & $\sigma=0$     & $A$           & $B^{-1}A$          \\
 	& $\sigma\not=0$ & $A+\sigma I$  & $B^{-1}A+\sigma I$ \\ \hline
-	\texttt{fold}
-        & $\sigma=0$     & $A^2$         & $(B^{-1}A)^2$          \\
-	& $\sigma\not=0$ & $(A-\sigma I)^2$ & $(B^{-1}A-\sigma I)^2$ \\ \hline
 	\texttt{sinvert}
         & $\sigma=0$     & $A^{-1}$      & $A^{-1}B$          \\
 	& $\sigma\not=0$ & $(A-\sigma I)^{-1}$  & $(A-\sigma B)^{-1}B$ \\ \hline
@@ -124,35 +120,6 @@ for standard problems, and
 for generalized ones. The important property that is used is that shifting does not alter the eigenvectors and that it does change the eigenvalues in a simple known way, it shifts them by $\sigma$. In both the standard and the generalized problems, the following relation holds 
 \begin{equation}\theta=\lambda+\sigma.\end{equation}
 This means that after the solution process, the value $\sigma$ has to be subtracted from the computed eigenvalues, $\theta$, in order to retrieve the solution of the original problem, $\lambda$. This is done by means of the function \ident{STBackTransform}, which does not need to be called directly by the user.
-
-\subsection{Spectrum Folding}
-
-Spectrum folding refers to a spectral transformation that involves squaring in addition to shifting. The transformed problems to be addressed are the following
-\begin{equation}(A-\sigma I)^2x=\theta x,\end{equation}
-for standard problems, and 
-\begin{equation}(B^{-1}A-\sigma I)^2 x=\theta x,\end{equation}
-for generalized ones. In both cases, the following relation holds 
-\begin{equation}\theta=(\lambda-\sigma)^2.\end{equation}
-For real eigenvalues, the effect of this transformation is that the spectrum is folded around the value of $\sigma$. Thus, eigenvalues that are closest to the shift become the smallest eigenvalues in the folded spectrum, as illustrated in Figure \ref{fig:fold}. For this reason, spectrum folding is commonly used in combination with eigensolvers that compute the smallest eigenvalues, for instance in the context of electronic structure calculations, \citep{Canning:2000:PEP}. This transformation can be an effective, low-cost alternative to shift-and-invert (explained below).
-
-  \begin{figure}
-    \centering
-    % Requires gnuplot
-    \begin{tikzpicture}[domain=-2:2]
-      \draw[->] (-2.5,0) -- (2.5,0) node[right] {$\lambda$};
-      \draw[->] (0,0) node[below] {$\sigma$} -- (0,4.2) node[above] {$\theta$};
-      \draw[color=blue] plot[id=fold] function{x*x} 
-          node[right] {$\theta = (\lambda-\sigma)^2$};
-      \draw[very thin,color=gray] (-1.3,0) |- (0,1.69);
-      \draw[very thin,color=gray] (-0.5,0) |- (0,0.25);
-      \draw[very thin,color=gray] (1.1,0) |- (0,1.21);
-      \foreach \pos/\label in {1.69/$\theta_1$,0.25/$\theta_2$,1.21/$\theta_3$}
-      \draw (-0.1,\pos) -- (0.1,\pos) (1mm,\pos cm) node[anchor=west,font=\footnotesize] {\label};
-      \foreach \pos/\label in {-1.3/$\lambda_1$,-0.5/$\lambda_2$,1.1/$\lambda_3$}
-      \draw (\pos,0.1) -- (\pos,-0.1) (\pos cm,-2.5ex) node[anchor=base,font=\footnotesize] {\label};
-    \end{tikzpicture}
-    \caption{\label{fig:fold}Illustration of the effect of spectrum folding.}
-  \end{figure}
 
 \subsection{Shift-and-invert}
 
@@ -380,7 +347,7 @@ If the user knows that the pattern is the same (or a subset), then this can be s
   \node[above right,rounded corners,fill=black!10,text width=2.5cm,inner ysep=2mm] (n3c) at (6,-1.0)
        {The user can specify the spectral transform};
   \node[below right,fill=black!5,text width=2.2cm] (n3) at (6.15,-0.97)
-       {\begin{minipage}{\textwidth}Shift\\Shift-and-invert\\Cayley\\Fold
+       {\begin{minipage}{\textwidth}Shift\\Shift-and-invert\\Cayley
        \end{minipage}};
   \draw[dashed,-latex] (n1c.east) to[out=65,in=120] (n2.west);
   \draw[dashed,-latex] (n2.west) to[out=-125,in=-40] (n1c.east);
@@ -458,4 +425,36 @@ Apart from the above recommendations, the following must be taken into account:
 \item The parameters \texttt{nev} and \texttt{ncv} explained in the previous chapter (see \ident{EPSSetDimensions}) change their meaning in this context: \texttt{ncv} cannot be given by the user but is determined internally, and \texttt{nev} represents in this case the number of eigenvalues that will be computed in each chunk.
 \item Apart from \texttt{nev}, the user can tune the computation by setting different values of \texttt{max\_it} (see \ident{EPSSetTolerances}).
 \end{itemize}
+
+\subsection{Spectrum Folding}
+
+In \slepc versions prior to 3.5, \texttt{ST} had another type intended to perform the spectrum folding technique described below. It it no longer available with \texttt{ST}, but it can be implemented directly in application code as illustrated in example \texttt{ex24.c}.
+
+Spectrum folding involves squaring in addition to shifting. This makes sense for standard Hermitian eigenvalue problems, where the transformed problem to be addressed is
+\begin{equation}(A-\sigma I)^2x=\theta x.\end{equation}
+The following relation holds 
+\begin{equation}\theta=(\lambda-\sigma)^2.\end{equation}
+Note that the mapping between $\lambda$ and $\theta$ is not injective, and hence this cannot be considered a true spectral transformation.
+
+The effect is that the spectrum is folded around the value of $\sigma$. Thus, eigenvalues that are closest to the shift become the smallest eigenvalues in the folded spectrum, as illustrated in Figure \ref{fig:fold}. For this reason, spectrum folding is commonly used in combination with eigensolvers that compute the smallest eigenvalues, for instance in the context of electronic structure calculations, \citep{Canning:2000:PEP}. This transformation can be an effective, low-cost alternative to shift-and-invert.
+
+  \begin{figure}
+    \centering
+    % Requires gnuplot
+    \begin{tikzpicture}[domain=-2:2]
+      \draw[->] (-2.5,0) -- (2.5,0) node[right] {$\lambda$};
+      \draw[->] (0,0) node[below] {$\sigma$} -- (0,4.2) node[above] {$\theta$};
+      \draw[color=blue] plot[id=fold] function{x*x} 
+          node[right] {$\theta = (\lambda-\sigma)^2$};
+      \draw[very thin,color=gray] (-1.3,0) |- (0,1.69);
+      \draw[very thin,color=gray] (-0.5,0) |- (0,0.25);
+      \draw[very thin,color=gray] (1.1,0) |- (0,1.21);
+      \foreach \pos/\label in {1.69/$\theta_1$,0.25/$\theta_2$,1.21/$\theta_3$}
+      \draw (-0.1,\pos) -- (0.1,\pos) (1mm,\pos cm) node[anchor=west,font=\footnotesize] {\label};
+      \foreach \pos/\label in {-1.3/$\lambda_1$,-0.5/$\lambda_2$,1.1/$\lambda_3$}
+      \draw (\pos,0.1) -- (\pos,-0.1) (\pos cm,-2.5ex) node[anchor=base,font=\footnotesize] {\label};
+    \end{tikzpicture}
+    \caption{\label{fig:fold}Illustration of the effect of spectrum folding.}
+  \end{figure}
+
 
