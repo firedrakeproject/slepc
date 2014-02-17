@@ -97,25 +97,29 @@ int main(int argc,char **argv)
   ierr = EPSSetProblemType(eps,EPS_GHEP);CHKERRQ(ierr);
 
   /*
-     Select portion of spectrum
-  */
-  ierr = EPSSetTarget(eps,0.0);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
-
-  /*
-     Use shift-and-invert to avoid solving linear systems with a singular B
-     in case nulldim>0
-  */
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flag,EPSGD,EPSJD,EPSBLOPEX,"");CHKERRQ(ierr);
-  if (!flag) {
-    ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-    ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  }
-
-  /*
      Set solver parameters at runtime
   */
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flag,EPSBLOPEX,EPSRQCG,"");CHKERRQ(ierr);
+  if (flag) {
+    ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
+  } else {
+    /*
+       Select portion of spectrum
+    */
+    ierr = EPSSetTarget(eps,0.0);CHKERRQ(ierr);
+    ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
+    /*
+       Use shift-and-invert to avoid solving linear systems with a singular B
+       in case nulldim>0
+    */
+    ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flag,EPSGD,EPSJD,"");CHKERRQ(ierr);
+    if (!flag) {
+      ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
+      ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
+    }
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
