@@ -436,8 +436,8 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
       ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
       *S = st->A[k];
     } else {
-      ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
       ierr = MatDuplicate(st->A[k],MAT_COPY_VALUES,S);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
       if (coeffs && coeffs[0]!=1.0) {
         ierr = MatScale(*S,coeffs[0]);CHKERRQ(ierr);
       }
