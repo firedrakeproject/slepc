@@ -429,7 +429,7 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
   }
 #endif
   for (i=0;i<nmat;i++) {
-    if (vals[i]!=0) {
+    if (PetscAbsScalar(vals[i])!=0.0) {
       ierr = MatMult(A[i],xr,w);CHKERRQ(ierr);
       ierr = VecAXPY(u,vals[i],w);CHKERRQ(ierr);
     }
