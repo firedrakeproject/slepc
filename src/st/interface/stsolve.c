@@ -431,7 +431,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
     if (coeffs) {
       if (coeffs[0] != 1.0) nz = PETSC_TRUE;
       for (i=1;i<st->nmat-k&&!nz;i++) if (PetscAbsScalar(coeffs[i])!=0.0) nz = PETSC_TRUE;
-    }
+    } else nz = PETSC_TRUE;
     if (alpha == 0.0||!nz) {
       ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
       *S = st->A[k];
