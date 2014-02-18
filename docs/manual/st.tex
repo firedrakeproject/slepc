@@ -121,35 +121,6 @@ for generalized ones. The important property that is used is that shifting does 
 \begin{equation}\theta=\lambda-\sigma.\end{equation}
 This means that after the solution process, the value $\sigma$ has to be added\footnote{Note that the sign changed in \slepc 3.5 with respect to previous versions.} to the computed eigenvalues, $\theta$, in order to retrieve the solution of the original problem, $\lambda$. This is done by means of the function \ident{STBackTransform}, which does not need to be called directly by the user.
 
-\subsection{Spectrum Folding}
-
-Spectrum folding refers to a spectral transformation that involves squaring in addition to shifting. The transformed problems to be addressed are the following
-\begin{equation}(A-\sigma I)^2x=\theta x,\end{equation}
-for standard problems, and 
-\begin{equation}(B^{-1}A-\sigma I)^2 x=\theta x,\end{equation}
-for generalized ones. In both cases, the following relation holds 
-\begin{equation}\theta=(\lambda-\sigma)^2.\end{equation}
-For real eigenvalues, the effect of this transformation is that the spectrum is folded around the value of $\sigma$. Thus, eigenvalues that are closest to the shift become the smallest eigenvalues in the folded spectrum, as illustrated in Figure \ref{fig:fold}. For this reason, spectrum folding is commonly used in combination with eigensolvers that compute the smallest eigenvalues, for instance in the context of electronic structure calculations, \citep{Canning:2000:PEP}. This transformation can be an effective, low-cost alternative to shift-and-invert (explained below).
-
-  \begin{figure}
-    \centering
-    % Requires gnuplot
-    \begin{tikzpicture}[domain=-2:2]
-      \draw[->] (-2.5,0) -- (2.5,0) node[right] {$\lambda$};
-      \draw[->] (0,0) node[below] {$\sigma$} -- (0,4.2) node[above] {$\theta$};
-      \draw[color=blue] plot[id=fold] function{x*x} 
-          node[right] {$\theta = (\lambda-\sigma)^2$};
-      \draw[very thin,color=gray] (-1.3,0) |- (0,1.69);
-      \draw[very thin,color=gray] (-0.5,0) |- (0,0.25);
-      \draw[very thin,color=gray] (1.1,0) |- (0,1.21);
-      \foreach \pos/\label in {1.69/$\theta_1$,0.25/$\theta_2$,1.21/$\theta_3$}
-      \draw (-0.1,\pos) -- (0.1,\pos) (1mm,\pos cm) node[anchor=west,font=\footnotesize] {\label};
-      \foreach \pos/\label in {-1.3/$\lambda_1$,-0.5/$\lambda_2$,1.1/$\lambda_3$}
-      \draw (\pos,0.1) -- (\pos,-0.1) (\pos cm,-2.5ex) node[anchor=base,font=\footnotesize] {\label};
-    \end{tikzpicture}
-    \caption{\label{fig:fold}Illustration of the effect of spectrum folding.}
-  \end{figure}
-
 \subsection{Shift-and-invert}
 
   \begin{figure}[t]
