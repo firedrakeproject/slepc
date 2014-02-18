@@ -229,7 +229,7 @@ PetscErrorCode PEPSetUp(PEP pep)
 PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
 {
   PetscErrorCode ierr;
-  PetscInt       i,n,m,m0;
+  PetscInt       i,n,m,m0=0;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
