@@ -159,7 +159,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
   if (!st->setupcalled) PetscFunctionReturn(0);
 
   if (st->nmat<3) {
-    ierr = STMatGAXPY_Private(st,newshift,-st->sigma,1,0,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = STMatGAXPY_Private(st,-newshift,-st->sigma,1,0,PETSC_FALSE);CHKERRQ(ierr);
   } else {
     if (st->transform) {
       if (st->shift_matrix == ST_MATMODE_COPY) {
