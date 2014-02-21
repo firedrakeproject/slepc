@@ -23,7 +23,7 @@ import os
 import sys
 
 def Load(petscdir):
-  global VERSION,RELEASE,PATCHLEVEL,LVERSION
+  global VERSION,RELEASE,LVERSION
   try:
     f = open(os.sep.join([petscdir,'include','petscversion.h']))
     for l in f.readlines():
@@ -38,7 +38,7 @@ def Load(petscdir):
 	elif l[1] == 'PETSC_VERSION_SUBMINOR':
           subminor = l[2]
 	elif l[1] == 'PETSC_VERSION_PATCH':
-          PATCHLEVEL = l[2]
+          patchlevel = l[2]
     f.close()
     VERSION = major + '.' + minor
     LVERSION = major + '.' + minor + '.' + subminor
