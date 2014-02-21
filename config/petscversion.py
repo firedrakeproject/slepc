@@ -21,9 +21,10 @@
 
 import os
 import sys
+import commands
 
 def Load(petscdir):
-  global VERSION,RELEASE,LVERSION
+  global VERSION,RELEASE,LVERSION,ISREPO,GITREV,GITDATE
   try:
     f = open(os.sep.join([petscdir,'include','petscversion.h']))
     for l in f.readlines():
@@ -44,3 +45,14 @@ def Load(petscdir):
     LVERSION = major + '.' + minor + '.' + subminor
   except:
     sys.exit('ERROR: file error while reading PETSC version')
+
+  # Check whether this is a working copy of the repository
+  ISREPO = 0
+  if os.path.exists(os.sep.join([petscdir,'.git'])):
+    (status, output) = commands.getstatusoutput('cd '+petscdir+';git rev-parse')
+    if not status:
+      ISREPO = 1
+      (status, GITREV) = commands.getstatusoutput('cd '+petscdir+';git log -1 --pretty=format:%H')
+      (status, GITDATE) = commands.getstatusoutput('cd '+petscdir+';git log -1 --pretty=format:%ci')
+
+
