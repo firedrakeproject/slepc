@@ -452,8 +452,22 @@ log.Println(' '+slepcdir)
 if archdir != prefixdir:
   log.Println('SLEPc prefix directory:')
   log.Println(' '+prefixdir)
+if slepcversion.ISREPO:
+  log.Println('  It is a git repository on branch: '+slepcversion.BRANCH)
 log.Println('PETSc directory:')
 log.Println(' '+petscdir)
+if petscversion.ISREPO:
+  log.Println('  It is a git repository on branch: '+petscversion.BRANCH)
+if petscversion.ISREPO and slepcversion.ISREPO:
+  if petscversion.BRANCH!='maint' and slepcversion.BRANCH!='maint':
+    import dateutil.parser
+    import datetime
+    petscdate = dateutil.parser.parse(petscversion.GITDATE)
+    slepcdate = dateutil.parser.parse(slepcversion.GITDATE)
+    if abs(petscdate-slepcdate)>datetime.timedelta(days=30):
+      log.Println('xxx'+'='*73+'xxx')
+      log.Println('WARNING: your PETSc and SLEPc repos may not be in sync (more than 30 days apart)')
+      log.Println('xxx'+'='*73+'xxx')
 log.Println('Architecture "'+petscconf.ARCH+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
 if havearpack:
   log.Println('ARPACK library flags:')

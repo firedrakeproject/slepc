@@ -24,7 +24,7 @@ import sys
 import commands
 
 def Load(slepcdir):
-  global VERSION,RELEASE,LVERSION,ISREPO,GITREV,GITDATE
+  global VERSION,RELEASE,LVERSION,ISREPO,GITREV,GITDATE,BRANCH
   try:
     f = open(os.sep.join([slepcdir,'include','slepcversion.h']))
     for l in f.readlines():
@@ -56,4 +56,5 @@ def Load(slepcdir):
       ISREPO = 1
       (status, GITREV) = commands.getstatusoutput('git log -1 --pretty=format:%H')
       (status, GITDATE) = commands.getstatusoutput('git log -1 --pretty=format:%ci')
+      (status, BRANCH) = commands.getstatusoutput('git describe --contains --all HEAD')
 

@@ -24,7 +24,7 @@ import sys
 import commands
 
 def Load(petscdir):
-  global VERSION,RELEASE,LVERSION,ISREPO,GITREV,GITDATE
+  global VERSION,RELEASE,LVERSION,ISREPO,GITREV,GITDATE,BRANCH
   try:
     f = open(os.sep.join([petscdir,'include','petscversion.h']))
     for l in f.readlines():
@@ -54,5 +54,5 @@ def Load(petscdir):
       ISREPO = 1
       (status, GITREV) = commands.getstatusoutput('cd '+petscdir+';git log -1 --pretty=format:%H')
       (status, GITDATE) = commands.getstatusoutput('cd '+petscdir+';git log -1 --pretty=format:%ci')
-
+      (status, BRANCH) = commands.getstatusoutput('cd '+petscdir+';git describe --contains --all HEAD')
 
