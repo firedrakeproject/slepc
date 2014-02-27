@@ -221,7 +221,7 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
 
 .seealso: NEPSetSplitOperator(), NEPComputeFunction()
 @*/
-PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat *A,Mat *B,MatStructure *flg)
+PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat A,Mat B,MatStructure *flg)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -242,7 +242,7 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
     }
   } else {
     ierr = NEPComputeFunction(nep,lambda,A,B,flg);CHKERRQ(ierr);
-    ierr = MatMult(*A,x,y);CHKERRQ(ierr);
+    ierr = MatMult(A,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -276,7 +276,7 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
 
 .seealso: NEPSetSplitOperator(), NEPComputeJacobian()
 @*/
-PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat *A,MatStructure *flg)
+PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat A,MatStructure *flg)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -297,7 +297,7 @@ PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
     }
   } else {
     ierr = NEPComputeJacobian(nep,lambda,A,flg);CHKERRQ(ierr);
-    ierr = MatMult(*A,x,y);CHKERRQ(ierr);
+    ierr = MatMult(A,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -505,7 +505,7 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,P
 
   PetscFunctionBegin;
   ierr = VecDuplicate(nep->V[0],&u);CHKERRQ(ierr);
-  ierr = NEPComputeFunction(nep,lambda,&T,&T,&mats);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,lambda,T,T,&mats);CHKERRQ(ierr);
   ierr = MatMult(T,x,u);CHKERRQ(ierr);
   ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
@@ -765,7 +765,7 @@ PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,P
 
 .seealso: NEPSetFunction(), NEPGetFunction()
 @*/
-PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat *A,Mat *B,MatStructure *flg)
+PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B,MatStructure *flg)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -777,25 +777,25 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat *A,Mat *B,MatSt
 
   if (nep->split) {
 
-    ierr = MatZeroEntries(*A);CHKERRQ(ierr);
+    ierr = MatZeroEntries(A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
-      ierr = MatAXPY(*A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
+      ierr = MatAXPY(A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
     }
-    if (*A != *B) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Not implemented");
+    if (A != B) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Not implemented");
 
   } else {
 
     if (!nep->computefunction) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetFunction() first");
 
     *flg = DIFFERENT_NONZERO_PATTERN;
-    ierr = PetscLogEventBegin(NEP_FunctionEval,nep,*A,*B,0);CHKERRQ(ierr);
+    ierr = PetscLogEventBegin(NEP_FunctionEval,nep,A,B,0);CHKERRQ(ierr);
 
     PetscStackPush("NEP user Function function");
     ierr = (*nep->computefunction)(nep,lambda,A,B,flg,nep->functionctx);CHKERRQ(ierr);
     PetscStackPop;
 
-    ierr = PetscLogEventEnd(NEP_FunctionEval,nep,*A,*B,0);CHKERRQ(ierr);
+    ierr = PetscLogEventEnd(NEP_FunctionEval,nep,A,B,0);CHKERRQ(ierr);
     nep->nfuncs++;
 
   }
@@ -826,7 +826,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat *A,Mat *B,MatSt
 
 .seealso: NEPSetJacobian(), NEPGetJacobian()
 @*/
-PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat *A,MatStructure *flg)
+PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat A,MatStructure *flg)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -838,10 +838,10 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat *A,MatStructure
 
   if (nep->split) {
 
-    ierr = MatZeroEntries(*A);CHKERRQ(ierr);
+    ierr = MatZeroEntries(A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateDerivative(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
-      ierr = MatAXPY(*A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
+      ierr = MatAXPY(A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
     }
 
   } else {
@@ -849,13 +849,13 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat *A,MatStructure
     if (!nep->computejacobian) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetJacobian() first");
 
     *flg = DIFFERENT_NONZERO_PATTERN;
-    ierr = PetscLogEventBegin(NEP_JacobianEval,nep,*A,0,0);CHKERRQ(ierr);
+    ierr = PetscLogEventBegin(NEP_JacobianEval,nep,A,0,0);CHKERRQ(ierr);
 
     PetscStackPush("NEP user Jacobian function");
     ierr = (*nep->computejacobian)(nep,lambda,A,flg,nep->jacobianctx);CHKERRQ(ierr);
     PetscStackPop;
 
-    ierr = PetscLogEventEnd(NEP_JacobianEval,nep,*A,0,0);CHKERRQ(ierr);
+    ierr = PetscLogEventEnd(NEP_JacobianEval,nep,A,0,0);CHKERRQ(ierr);
 
   }
   PetscFunctionReturn(0);

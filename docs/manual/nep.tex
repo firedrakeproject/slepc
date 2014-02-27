@@ -93,9 +93,9 @@ Hence, both callback functions must compute a matrix. The nonzero pattern of the
 	\findex{NEPSetFunction}\findex{NEPSetJacobian}
 	\begin{Verbatim}[fontsize=\small]
 	NEPSetFunction(NEP nep,Mat F,Mat P,PetscErrorCode (*fun)(NEP,PetscScalar,
-                       Mat*,Mat*,MatStructure*,void*),void *ctx);
+                       Mat,Mat,MatStructure*,void*),void *ctx);
 	NEPSetJacobian(NEP nep,Mat J,PetscErrorCode (*jac)(NEP,PetscScalar,
-                       Mat*,MatStructure*,void*),void *ctx)
+                       Mat,MatStructure*,void*),void *ctx)
 	\end{Verbatim}
 
 The argument \texttt{ctx} is an optional user-defined context intended to contain application-specific parameters required to build $T(\lambda)$ or $T'(\lambda)$, and it is received as the last argument in the callback functions. The callback routines also get an argument containing the value of $\lambda$ at which $T$ or $T'$ must be evaluated. Note that the \ident{NEPSetFunction} callback takes two \texttt{Mat} arguments instead of one. The rationale for this is that some \ident{NEP} solvers require to perform linear solves with $T(\lambda)$ within the iteration (in \ident{SNES} this is done with the Jacobian), so $T(\lambda)$ will be passed as the coefficient matrix to a \ident{KSP} object. The second \texttt{Mat} argument \texttt{P} is the matrix from which the preconditioner is constructed (which is usually the same as \texttt{F}). Apart from building the matrices, the callback routines must set a flag informing about the matrix structure (the same kind as the flag of \ident{KSPSetOperators}).

@@ -98,7 +98,7 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
   ierr = NEPProjectOperator(nep,0,n,r);CHKERRQ(ierr);
 
   /* prepare linear solver */
-  ierr = NEPComputeFunction(nep,lambda,&T,&T,&mats);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,lambda,T,T,&mats);CHKERRQ(ierr);
   ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
   ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
 

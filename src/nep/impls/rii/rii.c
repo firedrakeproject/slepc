@@ -87,10 +87,10 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   }
 
   /* correct eigenvalue approximation: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
-  ierr = NEPComputeFunction(nep,lambda,&T,&T,&mats);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,lambda,T,T,&mats);CHKERRQ(ierr);
   ierr = MatMult(T,u,r);CHKERRQ(ierr);
   ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
-  ierr = NEPApplyJacobian(nep,lambda,u,delta,r,&Tp,&mats);CHKERRQ(ierr);
+  ierr = NEPApplyJacobian(nep,lambda,u,delta,r,Tp,&mats);CHKERRQ(ierr);
   ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
   lambda = lambda - a1/a2;
 
@@ -119,7 +119,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     }
 
     /* form residual,  r = T(lambda)*u */
-    ierr = NEPApplyFunction(nep,lambda,u,delta,r,&T,&T,&mats);CHKERRQ(ierr);
+    ierr = NEPApplyFunction(nep,lambda,u,delta,r,T,T,&mats);CHKERRQ(ierr);
 
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&relerr);CHKERRQ(ierr);
@@ -148,9 +148,9 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
 
       /* correct eigenvalue: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
-      ierr = NEPApplyFunction(nep,lambda,u,delta,r,&T,&T,&mats);CHKERRQ(ierr);
+      ierr = NEPApplyFunction(nep,lambda,u,delta,r,T,T,&mats);CHKERRQ(ierr);
       ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
-      ierr = NEPApplyJacobian(nep,lambda,u,delta,r,&Tp,&mats);CHKERRQ(ierr);
+      ierr = NEPApplyJacobian(nep,lambda,u,delta,r,Tp,&mats);CHKERRQ(ierr);
       ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
       lambda = lambda - a1/a2;
     }

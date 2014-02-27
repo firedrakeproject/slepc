@@ -111,8 +111,8 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
     nep->its++;
 
     /* evaluate T(lambda) and T'(lambda) */
-    ierr = NEPComputeFunction(nep,lambda,&T,&T,&mats);CHKERRQ(ierr);
-    ierr = NEPComputeJacobian(nep,lambda,&Tp,&mats);CHKERRQ(ierr);
+    ierr = NEPComputeFunction(nep,lambda,T,T,&mats);CHKERRQ(ierr);
+    ierr = NEPComputeJacobian(nep,lambda,Tp,&mats);CHKERRQ(ierr);
 
     /* form residual,  r = T(lambda)*u (used in convergence test only) */
     ierr = MatMult(T,u,r);CHKERRQ(ierr);

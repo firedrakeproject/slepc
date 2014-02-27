@@ -36,8 +36,8 @@ static char help[] = "Simple 1-D nonlinear eigenproblem (matrix-free version, se
    User-defined routines
 */
 PetscErrorCode FormInitialGuess(Vec);
-PetscErrorCode FormFunction(NEP,PetscScalar,Mat*,Mat*,MatStructure*,void*);
-PetscErrorCode FormJacobian(NEP,PetscScalar,Mat*,MatStructure*,void*);
+PetscErrorCode FormFunction(NEP,PetscScalar,Mat,Mat,MatStructure*,void*);
+PetscErrorCode FormJacobian(NEP,PetscScalar,Mat,MatStructure*,void*);
 
 /*
    Matrix operations and context
@@ -245,13 +245,13 @@ PetscErrorCode FormInitialGuess(Vec x)
 .  B   - optionally different preconditioning matrix
 .  flg - flag indicating matrix structure
 */
-PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat *fun,Mat *B,MatStructure *flg,void *ctx)
+PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,MatStructure *flg,void *ctx)
 {
   PetscErrorCode ierr;
   MatCtx         *ctxF;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(*fun,(void**)&ctxF);CHKERRQ(ierr);
+  ierr = MatShellGetContext(fun,(void**)&ctxF);CHKERRQ(ierr);
   ctxF->lambda = lambda;
   PetscFunctionReturn(0);
 }
@@ -272,13 +272,13 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat *fun,Mat *B,MatStruct
 .  B   - optionally different preconditioning matrix
 .  flg - flag indicating matrix structure
 */
-PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat *jac,MatStructure *flg,void *ctx)
+PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,MatStructure *flg,void *ctx)
 {
   PetscErrorCode ierr;
   MatCtx         *ctxJ;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(*jac,(void**)&ctxJ);CHKERRQ(ierr);
+  ierr = MatShellGetContext(jac,(void**)&ctxJ);CHKERRQ(ierr);
   ctxJ->lambda = lambda;
   PetscFunctionReturn(0);
 }
