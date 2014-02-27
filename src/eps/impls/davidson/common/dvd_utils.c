@@ -64,12 +64,14 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d,dvdBlackboard *b,PC pc)
       ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&t1);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)pc,PCSHELL,&t2);CHKERRQ(ierr);
       if (t0 && !t1) {
-        ierr = PCGetOperators(pc,NULL,&P,NULL);CHKERRQ(ierr);
+        ierr = PCGetOperators(pc,NULL,&P);CHKERRQ(ierr);
         ierr = PetscObjectReference((PetscObject)P);CHKERRQ(ierr);
-        ierr = PCSetOperators(pc,P,P,SAME_PRECONDITIONER);CHKERRQ(ierr);
+        ierr = PCSetOperators(pc,P,P);CHKERRQ(ierr);
+        ierr = PCSetReusePreconditioner(pc,PETSC_TRUE);CHKERRQ(ierr);
         ierr = MatDestroy(&P);CHKERRQ(ierr);
       } else if (t2) {
-        ierr = PCSetOperators(pc,d->A,d->A,SAME_PRECONDITIONER);CHKERRQ(ierr);
+        ierr = PCSetOperators(pc,d->A,d->A);CHKERRQ(ierr);
+        ierr = PCSetReusePreconditioner(pc,PETSC_TRUE);CHKERRQ(ierr);
       } else {
         d->improvex_precond = dvd_precond_none;
       }

@@ -139,7 +139,7 @@ PetscErrorCode EPSSolve(EPS eps)
   /* Adjust left eigenvectors in generalized problems: y = B^T y */
   if (eps->isgeneralized && eps->leftvecs) {
     ierr = KSPCreate(PetscObjectComm((PetscObject)eps),&ksp);CHKERRQ(ierr);
-    ierr = KSPSetOperators(ksp,B,B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(ksp,B,B);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
     ierr = MatGetVecs(B,NULL,&w);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
