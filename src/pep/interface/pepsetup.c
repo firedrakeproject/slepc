@@ -163,13 +163,15 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (!islinear) {
     ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
     if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in PEP");
-    ierr = STSetEvaluateCoeffs(pep->st,EvaluateBasis_PEP,(PetscObject)pep);CHKERRQ(ierr);
     ierr = STSetUp(pep->st);CHKERRQ(ierr);
     /* Compute scaling factor if not set by user */
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-    if (!pep->sfactor_set && flg) {
+    if (!flg) {
+      ierr = STComputeSolveMat(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr);
+    } else if (!pep->sfactor_set) {
       ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
     }
+    
   }
 
  /* Build balancing matrix if required */
@@ -241,8 +243,8 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   if (pep->setupcalled) { ierr = PEPReset(pep);CHKERRQ(ierr); }
   ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
   ierr = PetscMalloc1(nmat,&pep->A);CHKERRQ(ierr);
-  ierr = PetscFree(pep->pbc);CHKERRQ(ierr);
-  ierr = PetscMalloc(3*nmat*sizeof(PetscReal),&pep->pbc);CHKERRQ(ierr);
+  ierr = PetscFree2(pep->pbc,pep->solvematcoeffs);CHKERRQ(ierr);
+  ierr = PetscMalloc2(3*nmat,&pep->pbc,nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat));CHKERRQ(ierr);
   for (i=0;i<nmat;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);

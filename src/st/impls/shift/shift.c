@@ -134,7 +134,7 @@ PetscErrorCode STSetUp_Shift(ST st)
       }
     }
   }
-  if (nmat>1) {
+  if (nmat==2 || (nmat>2 && st->transform)) {
     st->P = st->T[nmat-1];
     ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
   }

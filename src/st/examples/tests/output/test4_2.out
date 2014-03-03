@@ -57,15 +57,15 @@ Vec Object: 1 MPI processes
 solve
 Vec Object: 1 MPI processes
   type: seq
-0.1
-10
-5
-3.33333
-2.5
-2
-1.66667
-1.42857
-1.25
+1
+1
+1
+1
+1
+1
+1
+1
+1
 1
 With shift=0.1
 k= 0
@@ -123,15 +123,15 @@ Vec Object: 1 MPI processes
 solve
 Vec Object: 1 MPI processes
   type: seq
-0.1
-10
-5
-3.33333
-2.5
-2
-1.66667
-1.42857
-1.25
+1
+1
+1
+1
+1
+1
+1
+1
+1
 1
 ST type sinvert
 With shift=0.1
@@ -256,13 +256,13 @@ Vec Object: 1 MPI processes
 solve
 Vec Object: 1 MPI processes
   type: seq
-0.418138
-0.672269
-1.02564
-2.16216
--20
--1.77778
--0.930233
--0.629921
--0.47619
--0.362768
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
