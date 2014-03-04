@@ -50,7 +50,7 @@ MFNSetOperator( mfn, A );
 MFNSetFunction( mfn, SLEPC_FUNCTION_EXP );
 MFNSetFromOptions( mfn );
 MFNSolve( mfn, v, y );
-MFNDestroy( mfn );
+MFNDestroy( &mfn );
 \end{Verbatim}
 \caption{\label{fig:ex-mfn}Example code for basic solution with \ident{MFN}.}
 \end{figure}

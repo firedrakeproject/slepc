@@ -245,37 +245,6 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STComputeScaleFactors"
-/*
-   STComputeScaleFactors - Computes gamma and delta for Fan-Lin-van Dooren scaling
-   of quadratic eigenproblems.
-@*/
-PetscErrorCode STComputeScaleFactors(ST st)
-{
-  PetscBool      khas,mhas,chas;
-  PetscReal      knorm,mnorm,cnorm;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (st->nmat==3) {
-    ierr = MatHasOperation(st->T[0],MATOP_NORM,&khas);CHKERRQ(ierr);
-    ierr = MatHasOperation(st->T[1],MATOP_NORM,&chas);CHKERRQ(ierr);
-    ierr = MatHasOperation(st->T[2],MATOP_NORM,&mhas);CHKERRQ(ierr);
-    if (khas && chas && mhas) {
-      ierr = MatNorm(st->T[0],NORM_INFINITY,&knorm);CHKERRQ(ierr);
-      ierr = MatNorm(st->T[1],NORM_INFINITY,&cnorm);CHKERRQ(ierr);
-      ierr = MatNorm(st->T[2],NORM_INFINITY,&mnorm);CHKERRQ(ierr);
-      st->gamma = PetscSqrtReal(knorm/mnorm);
-      st->delta = 2.0/(knorm+cnorm*st->gamma);
-    } else {
-      st->gamma = 1.0;
-      st->delta = 1.0;
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "STSetUp"
 /*@
    STSetUp - Prepares for the use of a spectral transformation.
@@ -312,6 +281,7 @@ PetscErrorCode STSetUp(ST st)
       ierr = MatDestroy(&st->T[i]);CHKERRQ(ierr);
     }
   }
+  ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   if (!st->w) {
     ierr = MatGetVecs(st->A[0],&st->w,NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->w);CHKERRQ(ierr);
@@ -326,8 +296,6 @@ PetscErrorCode STSetUp(ST st)
     }
   }
   if (st->ops->setup) { ierr = (*st->ops->setup)(st);CHKERRQ(ierr); }
-  /* Compute scaling factor if not set by user */
-  if (!st->userscale) { ierr = STComputeScaleFactors(st);CHKERRQ(ierr); }
   st->setupcalled = 1;
   ierr = PetscLogEventEnd(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -378,16 +346,16 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
         for (i=0;i<=deg;i++) {
           matIdx[i] = t+i;
         }
-        ierr = STMatShellCreate(st,alpha,deg+1,matIdx,&st->T[k]);CHKERRQ(ierr);
+        ierr = STMatShellCreate(st,alpha,deg+1,matIdx,NULL,&st->T[k]);CHKERRQ(ierr);
       } else {
-        ierr = STMatShellCreate(st,alpha,deg,NULL,&st->T[k]);CHKERRQ(ierr);
+        ierr = STMatShellCreate(st,alpha,deg,NULL,NULL,&st->T[k]);CHKERRQ(ierr);
       }
       ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[k]);CHKERRQ(ierr);
     } else {
       ierr = STMatShellShift(st->T[k],alpha);CHKERRQ(ierr);
     }
     break;
-  default:
+  case ST_MATMODE_COPY:
     if (alpha == 0.0) {
       if (!initial) {
         ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
@@ -416,8 +384,95 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
         ierr = MatShift(st->T[k],alpha);CHKERRQ(ierr);
       }
     }
+    break;
+  case ST_MATMODE_HYBRID:
+    SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_HYBRID not supported");
   }
   ierr = STMatSetHermitian(st,st->T[k]);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STMatMAXPY_Private"
+/*
+   Computes coefficients for the transformed polynomial,
+   and stores the result in one of the T[:] matrices.
+*/
+PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar *coeffs,PetscBool initial,Mat *S,PetscBool prec)
+{
+  PetscErrorCode ierr;
+  PetscInt       *matIdx,nmat,i;
+  PetscScalar    t=1.0,ta;
+  PetscBool      copy=PETSC_FALSE,nz=PETSC_FALSE;
+
+  PetscFunctionBegin;
+  nmat = st->nmat-k;
+  switch (st->shift_matrix) {
+  case ST_MATMODE_INPLACE:
+    SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for polynomial eigenproblems");
+    break;
+  case ST_MATMODE_HYBRID:
+    if (prec) copy = PETSC_TRUE;
+  case ST_MATMODE_SHELL:
+    if (!copy) {
+      if (initial) {
+        ierr = PetscMalloc(nmat*sizeof(PetscInt),&matIdx);CHKERRQ(ierr);
+        for (i=0;i<nmat;i++) matIdx[i] = k+i;
+        ierr = STMatShellCreate(st,alpha,st->nmat-k,matIdx,coeffs,S);CHKERRQ(ierr);
+        ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
+        ierr = PetscFree(matIdx);CHKERRQ(ierr);
+      } else {
+        ierr = STMatShellShift(*S,alpha);CHKERRQ(ierr);
+      }
+      break;
+    }
+  case ST_MATMODE_COPY:
+    ierr = MatDestroy(S);CHKERRQ(ierr);
+    if (coeffs) {
+      if (coeffs[0] != 1.0) nz = PETSC_TRUE;
+      for (i=1;i<st->nmat-k&&!nz;i++) if (PetscAbsScalar(coeffs[i])!=0.0) nz = PETSC_TRUE;
+    }
+    if (alpha == 0.0||!nz) {
+      ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
+      *S = st->A[k];
+    } else {
+      ierr = MatDuplicate(st->A[k],MAT_COPY_VALUES,S);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
+      if (coeffs && coeffs[0]!=1.0) {
+        ierr = MatScale(*S,coeffs[0]);CHKERRQ(ierr);
+      }
+      for (i=k+1;i<st->nmat;i++) {
+        t *= alpha;
+        ta = t;
+        if (coeffs) ta *= coeffs[i-k];
+        if (PetscAbsScalar(ta)!=0.0) { ierr = MatAXPY(*S,ta,st->A[i],st->str);CHKERRQ(ierr); }
+      }
+    }
+  }
+  ierr = STMatSetHermitian(st,*S);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STCoeffs_Monomial"
+/*
+   Computes the values of the coefficients required by STMatMAXPY_Private
+   for the case of monomial basis.
+*/
+PetscErrorCode STCoeffs_Monomial(ST st, PetscScalar *coeffs)
+{
+  PetscInt  k,i,ini,inip;  
+
+  PetscFunctionBegin;
+  /* Compute binomial coefficients */
+  ini = (st->nmat*(st->nmat-1))/2;
+  for (i=0;i<st->nmat;i++) coeffs[ini+i]=1.0;
+  for (k=st->nmat-1;k>=1;k--) {
+    inip = ini+1;
+    ini = (k*(k-1))/2;
+    coeffs[ini] = 1.0;
+    for (i=1;i<k;i++) coeffs[ini+i] = coeffs[ini+i-1]+coeffs[inip+i-1];
+  }
   PetscFunctionReturn(0);
 }
 
@@ -475,3 +530,45 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
   }
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__
+#define __FUNCT__ "STSetEvaluateCoeffs"
+/*@
+   STSetEvaluateCoeffs - Provide a callback function to evaluate the
+   coefficients needed to compute T(sigma).
+
+   Not Collective
+
+   Input Parameters:
+   st  - the spectral transformation context
+   f   - callback function
+   obj - object that will be used to invoke the function
+
+   Level: developer
+@*/
+PetscErrorCode STSetEvaluateCoeffs(ST st,PetscErrorCode (*f)(PetscObject,PetscScalar,PetscScalar*),PetscObject obj)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  st->evalcoeffs = f;
+  st->evalobj = obj;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STEvaluateCoeffs"
+/*
+   STEvaluateCoeffs - Evaluate the coefficients needed to compute T(sigma).
+*/
+PetscErrorCode STEvaluateCoeffs(ST st,PetscScalar sigma,PetscScalar* vals)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  if (st->evalcoeffs) {
+    ierr = (*st->evalcoeffs)(st->evalobj,sigma,vals);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+

@@ -218,7 +218,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
       } else { /* ido == 1 */
         if (iparam[6] == 3 && bmat[0] == 'G') {
           /* Y = OP * X for shift-and-invert with B semi-positive definite */
-          ierr = STMatSolve(eps->st,1,x,y);CHKERRQ(ierr);
+          ierr = STMatSolve(eps->st,x,y);CHKERRQ(ierr);
         } else if (iparam[6] == 2) {
           /* X=A*X Y=B^-1*X for shift with B positive definite */
           ierr = MatMult(A,x,y);CHKERRQ(ierr);
@@ -227,7 +227,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
             ierr = VecAXPY(y,sigmar,w);CHKERRQ(ierr);
           }
           ierr = VecCopy(y,x);CHKERRQ(ierr);
-          ierr = STMatSolve(eps->st,1,x,y);CHKERRQ(ierr);
+          ierr = STMatSolve(eps->st,x,y);CHKERRQ(ierr);
         } else {
           /* Y = OP * X */
           ierr = STApply(eps->st,x,y);CHKERRQ(ierr);

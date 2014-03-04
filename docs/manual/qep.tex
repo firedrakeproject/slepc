@@ -118,7 +118,7 @@ for (j=0; j<nconv; j++) {
   QEPGetEigenpair( qep, j, &kr, &ki, xr, xi );
   QEPComputeRelativeError( qep, j, &error );
 }
-QEPDestroy( qep );
+QEPDestroy( &qep );
 \end{Verbatim}
 \caption{\label{fig:ex-qep}Example code for basic solution with \ident{QEP}.}
 \end{figure}

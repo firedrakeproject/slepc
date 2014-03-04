@@ -144,9 +144,9 @@ static PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,Pet
     ierr = VecCopy(w,t);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,0,v,u);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,1,t,w);CHKERRQ(ierr);
-    ierr = VecAXPY(u,1.0,w);CHKERRQ(ierr);
-    ierr = STMatSolve(qep->st,2,u,w);CHKERRQ(ierr);
-    ierr = VecScale(w,-1.0);CHKERRQ(ierr);
+    ierr = VecAXPY(u,qep->sfactor,w);CHKERRQ(ierr);
+    ierr = STMatSolve(qep->st,u,w);CHKERRQ(ierr);
+    ierr = VecScale(w,-1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
     ierr = VecCopy(t,v);CHKERRQ(ierr);
 
     /* orthogonalize */

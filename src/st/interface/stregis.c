@@ -25,7 +25,6 @@ PETSC_EXTERN PetscErrorCode STCreate_Shell(ST);
 PETSC_EXTERN PetscErrorCode STCreate_Shift(ST);
 PETSC_EXTERN PetscErrorCode STCreate_Sinvert(ST);
 PETSC_EXTERN PetscErrorCode STCreate_Cayley(ST);
-PETSC_EXTERN PetscErrorCode STCreate_Fold(ST);
 PETSC_EXTERN PetscErrorCode STCreate_Precond(ST);
 
 #undef __FUNCT__
@@ -49,7 +48,6 @@ PetscErrorCode STRegisterAll(void)
   ierr = STRegister(STSHIFT,STCreate_Shift);CHKERRQ(ierr);
   ierr = STRegister(STSINVERT,STCreate_Sinvert);CHKERRQ(ierr);
   ierr = STRegister(STCAYLEY,STCreate_Cayley);CHKERRQ(ierr);
-  ierr = STRegister(STFOLD,STCreate_Fold);CHKERRQ(ierr);
   ierr = STRegister(STPRECOND,STCreate_Precond);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

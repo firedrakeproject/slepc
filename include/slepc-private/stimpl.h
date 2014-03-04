@@ -50,18 +50,21 @@ struct _p_ST {
   Mat          *A;               /* Matrices which define the eigensystem */
   PetscInt     *Astate;          /* State (to identify the original matrices) */
   Mat          *T;               /* Matrices resulting from transformation */
+  Mat          P;                /* Matrix from which preconditioner is built */
   PetscInt     nmat;             /* Number of matrices */
   PetscScalar  sigma;            /* Value of the shift */
   PetscBool    sigma_set;        /* whether the user provided the shift or not */
   PetscScalar  defsigma;         /* Default value of the shift */
   STMatMode    shift_matrix;
   MatStructure str;              /* whether matrices have the same pattern or not */
-  PetscReal    gamma,delta;      /* scaling factors */
-  PetscBool    userscale;        /* flag indicating the user passed gamma,delta */
+  PetscBool    transform;        /* whether transformed matrices are computed */
+
+  /*-------------- User-provided functions and contexts -----------------*/
+  PetscErrorCode (*evalcoeffs)(PetscObject,PetscScalar,PetscScalar*);
+  PetscObject    evalobj;
 
   /*------------------------- Misc data --------------------------*/
   KSP          ksp;
-  PetscInt     kspidx;           /* which T matrix is associated to ksp */
   Vec          w;
   Vec          D;                /* diagonal matrix for balancing */
   Vec          wb;               /* balancing requires an extra work vector */
@@ -73,11 +76,12 @@ struct _p_ST {
 
 PETSC_INTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
 PETSC_INTERN PetscErrorCode STCheckNullSpace_Default(ST,PetscInt,const Vec[]);
-PETSC_INTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,Mat*);
+PETSC_INTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,PetscScalar*,Mat*);
 PETSC_INTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
 PETSC_INTERN PetscErrorCode STMatSetHermitian(ST,Mat);
 PETSC_INTERN PetscErrorCode STMatGAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscInt,PetscBool);
-PETSC_INTERN PetscErrorCode STComputeScaleFactors(ST);
+PETSC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscInt,PetscScalar*,PetscBool,Mat*,PetscBool);
+PETSC_INTERN PetscErrorCode STCoeffs_Monomial(ST,PetscScalar*);
+PETSC_INTERN PetscErrorCode STEvaluateCoeffs(ST,PetscScalar,PetscScalar*);
 
 #endif
-

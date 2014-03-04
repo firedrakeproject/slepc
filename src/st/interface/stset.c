@@ -127,7 +127,7 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscScalar    s;
   char           type[256];
   PetscBool      flg;
-  const char     *mode_list[3] = {"copy","inplace","shell"};
+  const char     *mode_list[4] = {"copy","inplace","shell","hybrid"};
   const char     *structure_list[3] = {"same","different","subset"};
 
   PetscFunctionBegin;
@@ -150,7 +150,7 @@ PetscErrorCode STSetFromOptions(ST st)
       ierr = STSetShift(st,s);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsEList("-st_matmode","Shift matrix mode","STSetMatMode",mode_list,3,mode_list[st->shift_matrix],&i,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsEList("-st_matmode","Matrix mode for transformed matrices","STSetMatMode",mode_list,4,mode_list[st->shift_matrix],&i,&flg);CHKERRQ(ierr);
     if (flg) st->shift_matrix = (STMatMode)i;
 
     ierr = PetscOptionsEList("-st_matstructure","Shift nonzero pattern","STSetMatStructure",structure_list,3,structure_list[st->str],&i,&flg);CHKERRQ(ierr);
@@ -161,6 +161,8 @@ PetscErrorCode STSetFromOptions(ST st)
         case 2: ierr = STSetMatStructure(st,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr); break;
       }
     }
+
+    ierr = PetscOptionsBool("-st_transform","Whether transformed matrices are computed or not","STSetTransform",st->transform,&st->transform,&flg);CHKERRQ(ierr);
 
     if (st->ops->setfromoptions) {
       ierr = (*st->ops->setfromoptions)(st);CHKERRQ(ierr);
@@ -255,19 +257,19 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
 #undef __FUNCT__
 #define __FUNCT__ "STSetMatMode"
 /*@
-   STSetMatMode - Sets a flag to indicate how the matrix is
-   being shifted in the shift-and-invert and Cayley spectral transformations.
+   STSetMatMode - Sets a flag to indicate how the transformed matrices are
+   being stored in the spectral transformations.
 
    Logically Collective on ST
 
    Input Parameters:
 +  st - the spectral transformation context
 -  mode - the mode flag, one of ST_MATMODE_COPY,
-          ST_MATMODE_INPLACE or ST_MATMODE_SHELL
+          ST_MATMODE_INPLACE, ST_MATMODE_SHELL or ST_MATMODE_HYBRID
 
    Options Database Key:
 .  -st_matmode <mode> - Indicates the mode flag, where <mode> is one of
-          'copy', 'inplace' or 'shell' (see explanation below).
+          'copy', 'inplace', 'shell', 'hybrid' (see explanation below).
 
    Notes:
    By default (ST_MATMODE_COPY), a copy of matrix A is made and then
@@ -276,7 +278,7 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
    With ST_MATMODE_INPLACE, the original matrix A is shifted at
    STSetUp() and unshifted at the end of the computations. With respect to
    the previous one, this mode avoids a copy of matrix A. However, a
-   backdraw is that the recovered matrix might be slightly different
+   drawback is that the recovered matrix might be slightly different
    from the original one (due to roundoff).
 
    With ST_MATMODE_SHELL, the solver works with an implicit shell
@@ -284,6 +286,10 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
    in creating the shifted matrix but it places serious limitations to the
    linear solves performed in each iteration of the eigensolver (typically,
    only interative solvers with Jacobi preconditioning can be used).
+
+   ST_MATMODE_HYBRID mixes the 'shell' and 'copy' methods, where only
+   one matrix is built explicitly (the one for the linear solves), and
+   hence the previously mentioned limitation disappears. 
 
    In the case of generalized problems, in the two first modes the matrix
    A - s B has to be computed explicitly. The efficiency of this computation
@@ -306,8 +312,8 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
 #undef __FUNCT__
 #define __FUNCT__ "STGetMatMode"
 /*@C
-   STGetMatMode - Gets a flag that indicates how the matrix is being
-   shifted in the shift-and-invert and Cayley spectral transformations.
+   STGetMatMode - Gets a flag that indicates how the transformed matrices
+   are stored in spectral transformations.
 
    Not Collective
 
@@ -327,6 +333,68 @@ PetscErrorCode STGetMatMode(ST st,STMatMode *mode)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(mode,2);
   *mode = st->shift_matrix;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STSetTransform"
+/*@
+   STSetTransform - Sets a flag to indicate whether the transformed matrices are
+   computed or not.
+
+   Logically Collective on ST
+
+   Input Parameters:
++  st  - the spectral transformation context
+-  flg - the boolean flag
+
+   Options Database Key:
+.  -st_transform <bool> - Activate/deactivate the computation of matrices.
+
+   Notes:
+   This flag is intended for the case of polynomial eigenproblems solved
+   via linearization. If this flag is off (default) the spectral transformation
+   is applied to the linearization (handled by the eigensolver), otherwise
+   it is applied to the original problem.
+
+   Level: developer
+
+.seealso: STMatSolve(), STMatMult(), STSetMatStructure(), STGetTransform()
+@*/
+PetscErrorCode STSetTransform(ST st,PetscBool flg)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveBool(st,flg,2);
+  st->transform = flg;
+  st->setupcalled = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STGetTransform"
+/*@
+   STGetTransform - Gets a flag that that indicates whether the transformed
+   matrices are computed or not.
+
+   Not Collective
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Output Parameter:
+.  flg - the flag
+
+   Level: developer
+
+.seealso: STSetTransform()
+@*/
+PetscErrorCode STGetTransform(ST st,PetscBool *flg)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(flg,2);
+  *flg = st->transform;
   PetscFunctionReturn(0);
 }
 

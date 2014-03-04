@@ -96,7 +96,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 
   /* prepare linear solver */
   ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
-  ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
 
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
@@ -111,7 +111,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
         ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
         ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
       }
-      ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma,mats);CHKERRQ(ierr);
+      ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
     }
     if (!nep->cctol) {
       nep->ktol = PetscMax(nep->ktol/2.0,PETSC_MACHINE_EPSILON*10.0);

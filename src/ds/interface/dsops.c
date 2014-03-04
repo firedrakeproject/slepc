@@ -609,7 +609,7 @@ PetscErrorCode DSNormalize(DS ds,DSMatType mat,PetscInt col)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidLogicalCollectiveInt(ds,mat,2);
+  PetscValidLogicalCollectiveEnum(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,col,3);
   if (ds->state<DS_STATE_CONDENSED) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSSolve() first");
   if (!ds->ops->normalize) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);

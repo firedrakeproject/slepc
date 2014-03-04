@@ -19,18 +19,14 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+#requiresdefine   'PETSC_HAVE_FORTRAN'
 ALL: lib
-
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = fold.c
+SOURCEC  = zpepf.c
 SOURCEF  =
 SOURCEH  =
-LIBBASE  = libslepc
 DIRS     =
-MANSEC   = ST
-LOCDIR   = src/st/impls/fold/
-
+LIBBASE  = libslepc
+LOCDIR   = src/pep/interface/ftn-custom/
 include ${SLEPC_DIR}/conf/slepc_common
-
-

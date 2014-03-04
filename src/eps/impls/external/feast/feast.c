@@ -126,9 +126,9 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
       for (k=0;k<ncv;k++) {
         ierr = VecPlaceArray(x,ctx->work2+eps->nloc*k);CHKERRQ(ierr);
         if (ijob == 11) {
-          ierr = STMatSolve(eps->st,1,x,w);CHKERRQ(ierr);
+          ierr = STMatSolve(eps->st,x,w);CHKERRQ(ierr);
         } else {
-          ierr = STMatSolveTranspose(eps->st,1,x,w);CHKERRQ(ierr);
+          ierr = STMatSolveTranspose(eps->st,x,w);CHKERRQ(ierr);
         }
         ierr = VecCopy(w,x);CHKERRQ(ierr);
         ierr = VecScale(x,-1.0);CHKERRQ(ierr);

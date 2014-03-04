@@ -90,16 +90,16 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->AV);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->AV);CHKERRQ(ierr);
+  ierr = PetscLogObjectParents(eps,eps->mpd,ctx->AV);CHKERRQ(ierr);
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   if (nmat>1) {
     ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->BV);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->BV);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(eps,eps->mpd,ctx->BV);CHKERRQ(ierr);
   }
   ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->P);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->P);CHKERRQ(ierr);
+  ierr = PetscLogObjectParents(eps,eps->mpd,ctx->P);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(eps->t,eps->mpd,&ctx->G);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->G);CHKERRQ(ierr);
+  ierr = PetscLogObjectParents(eps,eps->mpd,ctx->G);CHKERRQ(ierr);
   ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
@@ -203,7 +203,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
 
       /* Search direction */
       for (i=0;i<nv-eps->nconv;i++) {
-        ierr = STMatSolve(eps->st,0,ctx->G[i],w);CHKERRQ(ierr);
+        ierr = STMatSolve(eps->st,ctx->G[i],w);CHKERRQ(ierr);
         ierr = VecDot(ctx->G[i],w,&g);CHKERRQ(ierr);
         beta = (!reset && eps->its>1)? g/gamma[i]: 0.0;
         gamma[i] = g;

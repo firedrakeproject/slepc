@@ -77,7 +77,7 @@ for (j=0; j<nconv; j++) {
   NEPGetEigenpair( nep, j, &lambda, x );
   NEPComputeRelativeError( nep, j, &error );
 }
-NEPDestroy( nep );
+NEPDestroy( &nep );
 \end{Verbatim}
 \caption{\label{fig:ex-nep}Example code for basic solution with \ident{NEP} using callbacks.}
 \end{figure}

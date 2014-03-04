@@ -6,7 +6,7 @@ OBJDIR := $(PETSC_ARCH)/obj
 MODDIR := $(PETSC_ARCH)/include
 LIBDIR := $(abspath $(PETSC_ARCH)/lib)
 
-pkgs := sys vec ip ds fn st eps svd qep nep mfn
+pkgs := sys vec ip ds fn st eps svd qep pep nep mfn
 
 libslepc_shared := $(LIBDIR)/libslepc.$(SL_LINKER_SUFFIX)
 libslepc_static := $(LIBDIR)/libslepc.$(AR_LIB_SUFFIX)
@@ -108,6 +108,8 @@ $(LIBDIR)/libslepcsvd.$(SL_LINKER_SUFFIX)  : obj    := $(call concatlang,svd)
 $(LIBDIR)/libslepcsvd.$(SL_LINKER_SUFFIX)  : libdep := $(call libpkg,eps ip ds sys)
 $(LIBDIR)/libslepcqep.$(SL_LINKER_SUFFIX)  : obj    := $(call concatlang,qep)
 $(LIBDIR)/libslepcqep.$(SL_LINKER_SUFFIX)  : libdep := $(call libpkg,eps st ip ds sys)
+$(LIBDIR)/libslepcpep.$(SL_LINKER_SUFFIX)  : obj    := $(call concatlang,pep)
+$(LIBDIR)/libslepcpep.$(SL_LINKER_SUFFIX)  : libdep := $(call libpkg,eps st ip ds sys)
 $(LIBDIR)/libslepcnep.$(SL_LINKER_SUFFIX)  : obj    := $(call concatlang,nep)
 $(LIBDIR)/libslepcnep.$(SL_LINKER_SUFFIX)  : libdep := $(call libpkg,eps ip ds fn sys)
 $(LIBDIR)/libslepcmfn.$(SL_LINKER_SUFFIX)  : obj    := $(call concatlang,mfn)
@@ -121,6 +123,7 @@ $(LIBDIR)/libslepcst.$(AR_LIB_SUFFIX)   : $(call concatlang,st)
 $(LIBDIR)/libslepceps.$(AR_LIB_SUFFIX)  : $(call concatlang,eps)
 $(LIBDIR)/libslepcsvd.$(AR_LIB_SUFFIX)  : $(call concatlang,svd)
 $(LIBDIR)/libslepcqep.$(AR_LIB_SUFFIX)  : $(call concatlang,qep)
+$(LIBDIR)/libslepcpep.$(AR_LIB_SUFFIX)  : $(call concatlang,pep)
 $(LIBDIR)/libslepcnep.$(AR_LIB_SUFFIX)  : $(call concatlang,nep)
 $(LIBDIR)/libslepcmfn.$(AR_LIB_SUFFIX)  : $(call concatlang,mfn)
 

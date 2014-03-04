@@ -259,7 +259,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,Vec *V,PetscInt L_st
       } else {
 	ierr = MatShift(Fz,-ctx->omega[p_id]);CHKERRQ(ierr);
       }
-      ierr = KSPSetOperators(ctx->ksp,Fz,Fz,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+      ierr = KSPSetOperators(ctx->ksp,Fz,Fz);CHKERRQ(ierr);
       ierr = KSPSetType(ctx->ksp,KSPPREONLY);CHKERRQ(ierr);
       ierr = KSPGetPC(ctx->ksp,&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
