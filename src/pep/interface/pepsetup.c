@@ -168,7 +168,9 @@ PetscErrorCode PEPSetUp(PEP pep)
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
     if (!flg) {
       ierr = STComputeSolveMat(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr);
-    } else if (!pep->sfactor_set) {
+    }
+    /* Compute scale factor if no set by user */
+    if (!pep->sfactor_set) {
       ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
     }
     

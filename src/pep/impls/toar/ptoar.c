@@ -35,7 +35,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>         /*I "slepcst.h" I*/ /* /////////////// */
+#include <slepc-private/stimpl.h>         /* ///////// */
 #include <slepc-private/pepimpl.h>         /*I "slepcpep.h" I*/
 #include <slepcblaslapack.h>
 
@@ -130,7 +130,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   PetscErrorCode ierr;
   PetscBool      sinv,flg;
   PetscInt       i;
-  PetscScalar    s=1.0,*coeffs=pep->solvematcoeffs;
+  PetscScalar    *coeffs=pep->solvematcoeffs;
 
   PetscFunctionBegin;
   if (pep->ncv) { /* ncv set */
@@ -161,25 +161,12 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) {
-    /* Compute scaling factor if not set by user */
-    if (!pep->sfactor_set) {
-      ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
-    }
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv) {
       ierr = PEPEvaluateBasis(pep,pep->target,0,coeffs,NULL);CHKERRQ(ierr);
     } else {
       for (i=0;i<pep->nmat-1;i++) coeffs[i] = 0.0;
       coeffs[pep->nmat-1] = 1.0;
-    }
-if (pep->sfactor!=1.0) {
-      /* temporary change of shift */
-      pep->target /= pep->sfactor;
-      pep->st->defsigma /= pep->sfactor;
-      for (i=0;i<pep->nmat;i++){
-        pep->pbc[pep->nmat+i] /= pep->sfactor;
-        pep->pbc[2*pep->nmat+i] /= pep->sfactor*pep->sfactor;
-      }
     }
   }
   PetscFunctionReturn(0);
@@ -387,7 +374,7 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar *S,PetscInt ld,PetscScalar 
     /* Spectral transformation handled by the solver */
     ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSINVERT,STSHIFT,"");CHKERRQ(ierr);
     if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"STtype not supported fr TOAR without transforming matrices");
-    ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr); 
+    sigma = pep->target;
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinvert);CHKERRQ(ierr);
   }
   for (j=k;j<m;j++) {
@@ -665,15 +652,16 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 #endif
   }
 /* /////////// */
-  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-  if (flg) {
-    /* Compute polynomial basis coefficients */
-    ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
-    if (pep->sfactor!=1) {
-      for (i=0;i<nmat;i++) {
-        pep->pbc[nmat+i] /= pep->sfactor;
-        pep->pbc[2*nmat+i] /= pep->sfactor*pep->sfactor; 
-      }
+  /* Update polynomial basis coefficients */
+  if (pep->sfactor!=1) {
+    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+    for (i=0;i<nmat;i++) {
+      pep->pbc[nmat+i] /= pep->sfactor;
+      pep->pbc[2*nmat+i] /= pep->sfactor*pep->sfactor; 
+    }
+    if (!flg) {
+      pep->target /= pep->sfactor;
+      pep->st->sigma /= pep->sfactor;
     }
   }
   /* Get the starting Lanczos vector */
@@ -790,9 +778,9 @@ printf("region interior values=%d\n",count);
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) {
     ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+    /* Restore original values */
     pep->target *= pep->sfactor;
     pep->st->sigma *= pep->sfactor;
-    pep->st->defsigma *= pep->sfactor;
   }
   if (pep->sfactor!=1.0) {
     for (j=0;j<pep->nconv;j++) {
