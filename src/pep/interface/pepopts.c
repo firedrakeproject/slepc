@@ -56,11 +56,11 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   if (!PEPRegisterAllCalled) { ierr = PEPRegisterAll();CHKERRQ(ierr); }
   ierr = PetscObjectOptionsBegin((PetscObject)pep);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-pep_type","Polynomial Eigenvalue Problem method","PEPSetType",PEPList,(char*)(((PetscObject)pep)->type_name?((PetscObject)pep)->type_name:PEPLINEAR),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-pep_type","Polynomial Eigenvalue Problem method","PEPSetType",PEPList,(char*)(((PetscObject)pep)->type_name?((PetscObject)pep)->type_name:PEPTOAR),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = PEPSetType(pep,type);CHKERRQ(ierr);
     } else if (!((PetscObject)pep)->type_name) {
-      ierr = PEPSetType(pep,PEPLINEAR);CHKERRQ(ierr);
+      ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
     }
 
     ierr = PetscOptionsBoolGroupBegin("-pep_general","general polynomial eigenvalue problem","PEPSetProblemType",&flg);CHKERRQ(ierr);

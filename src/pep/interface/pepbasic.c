@@ -365,7 +365,7 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
 .  pep - location to put the PEP context
 
    Note:
-   The default PEP type is PEPLINEAR
+   The default PEP type is PEPTOAR
 
    Level: beginner
 
@@ -454,7 +454,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
 
    Notes:
    See "slepc/include/slepcpep.h" for available methods. The default
-   is PEPLINEAR.
+   is PEPTOAR.
 
    Normally, it is best to use the PEPSetFromOptions() command and
    then set the PEP type from the options database rather than by using
