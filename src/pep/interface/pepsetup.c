@@ -73,7 +73,7 @@ PetscErrorCode PEPSetUp(PEP pep)
 
   /* Set default solver type (PEPSetFromOptions was not called) */
   if (!((PetscObject)pep)->type_name) {
-    ierr = PEPSetType(pep,PEPLINEAR);CHKERRQ(ierr);
+    ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
   }
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
