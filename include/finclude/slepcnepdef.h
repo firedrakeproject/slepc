@@ -39,5 +39,6 @@
 #define NEPRII       'rii'
 #define NEPSLP       'slp'
 #define NEPNARNOLDI  'narnoldi'
+#define NEPNLEIGS    'nleigs'
 
 #endif

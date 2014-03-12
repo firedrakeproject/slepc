@@ -24,6 +24,7 @@
 PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP);
 PETSC_EXTERN PetscErrorCode NEPCreate_SLP(NEP);
 PETSC_EXTERN PetscErrorCode NEPCreate_NARNOLDI(NEP);
+PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP);
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPRegisterAll"
@@ -45,5 +46,6 @@ PetscErrorCode NEPRegisterAll(void)
   ierr = NEPRegister(NEPRII,NEPCreate_RII);CHKERRQ(ierr);
   ierr = NEPRegister(NEPSLP,NEPCreate_SLP);CHKERRQ(ierr);
   ierr = NEPRegister(NEPNARNOLDI,NEPCreate_NARNOLDI);CHKERRQ(ierr);
+  ierr = NEPRegister(NEPNLEIGS,NEPCreate_NLEIGS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

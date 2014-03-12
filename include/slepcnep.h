@@ -49,6 +49,7 @@ typedef const char* NEPType;
 #define NEPRII       "rii"
 #define NEPSLP       "slp"
 #define NEPNARNOLDI  "narnoldi"
+#define NEPNLEIGS    "nleigs"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId NEP_CLASSID;
