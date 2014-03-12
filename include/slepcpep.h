@@ -107,6 +107,7 @@ PETSC_EXTERN const char *PEPBasisTypes[];
 .seealso: PEPSetConvergenceTest()
 E*/
 typedef enum { PEP_CONV_ABS=1,
+               PEP_CONV_NORM,
                PEP_CONV_EIG } PEPConv;
 
 PETSC_EXTERN PetscErrorCode PEPCreate(MPI_Comm,PEP*);
@@ -140,6 +141,7 @@ PETSC_EXTERN PetscErrorCode PEPGetTolerances(PEP,PetscReal*,PetscInt*);
 PETSC_EXTERN PetscErrorCode PEPSetConvergenceTest(PEP,PEPConv);
 PETSC_EXTERN PetscErrorCode PEPGetConvergenceTest(PEP,PEPConv*);
 PETSC_EXTERN PetscErrorCode PEPConvergedEigRelative(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+PETSC_EXTERN PetscErrorCode PEPConvergedNormRelative(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode PEPConvergedAbsolute(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode PEPSetDimensions(PEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode PEPGetDimensions(PEP,PetscInt*,PetscInt*,PetscInt*);

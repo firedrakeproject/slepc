@@ -86,6 +86,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PEPSetTolerances(pep,r,i);CHKERRQ(ierr);
     ierr = PetscOptionsBoolGroupBegin("-pep_conv_eig","Relative error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_EIG);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-pep_conv_norm","Convergence test relative to the eigenvalue and the matrix norms","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_NORM);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-pep_conv_abs","Absolute error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_ABS);CHKERRQ(ierr); }
 
@@ -837,8 +839,9 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,conv,2);
   switch (conv) {
-    case PEP_CONV_EIG:  pep->converged = PEPConvergedEigRelative; break;
-    case PEP_CONV_ABS:  pep->converged = PEPConvergedAbsolute; break;
+    case PEP_CONV_EIG:   pep->converged = PEPConvergedEigRelative; break;
+    case PEP_CONV_ABS:   pep->converged = PEPConvergedAbsolute; break;
+    case PEP_CONV_NORM:  pep->converged = PEPConvergedNormRelative; break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
   }

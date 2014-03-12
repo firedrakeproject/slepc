@@ -99,6 +99,7 @@ struct _p_PEP {
   PetscRandom    rand;             /* random number generator */
   Vec            t;                /* template vector */
   PetscScalar    *solvematcoeffs;  /* coefficients to compute the matrix to be inverted */
+  PetscReal      *nrma;            /* matrix norms */
 
   /* ---------------- Default work-area and status vars -------------------- */
   PetscInt       nwork;
