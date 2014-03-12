@@ -191,7 +191,7 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
     /* eigenvalue */
     re = pep->eigr[k];
     im = pep->eigi[k];
-    if (pep->conv == PEP_CONV_NORM) {
+    if (pep->conv==PEP_CONV_NORM) {
       ierr = STBackTransform(pep->st,1,&re,&im);CHKERRQ(ierr);
     }
     newk = k;

@@ -205,7 +205,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       ierr = EPSSetTrueResidual(eps,val);CHKERRQ(ierr);
     }
 
-    nrma = nrmb = 0;
+    nrma = nrmb = PETSC_DETERMINE;
     ierr = PetscOptionsReal("-eps_norm_a","Norm of matrix A","EPSSetMatrixNorms",eps->nrma,&nrma,NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-eps_norm_b","Norm of matrix B","EPSSetMatrixNorms",eps->nrmb,&nrmb,NULL);CHKERRQ(ierr);
     ierr = EPSSetMatrixNorms(eps,nrma,nrmb,eps->adaptive);CHKERRQ(ierr);

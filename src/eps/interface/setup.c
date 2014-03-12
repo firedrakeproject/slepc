@@ -310,8 +310,9 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
     if (m0!=n) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B is a non-square matrix");
     if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Dimensions of A and B do not match");
   }
-
   if (eps->setupcalled) { ierr = EPSReset(eps);CHKERRQ(ierr); }
+  eps->nrma = PETSC_DETERMINE;
+  eps->nrmb = PETSC_DETERMINE;
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   mat[0] = A;
   if (B) {

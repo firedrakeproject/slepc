@@ -107,8 +107,8 @@ PETSC_EXTERN const char *PEPBasisTypes[];
 .seealso: PEPSetConvergenceTest()
 E*/
 typedef enum { PEP_CONV_ABS=1,
-               PEP_CONV_NORM,
-               PEP_CONV_EIG } PEPConv;
+               PEP_CONV_EIG,
+               PEP_CONV_NORM } PEPConv;
 
 PETSC_EXTERN PetscErrorCode PEPCreate(MPI_Comm,PEP*);
 PETSC_EXTERN PetscErrorCode PEPDestroy(PEP*);

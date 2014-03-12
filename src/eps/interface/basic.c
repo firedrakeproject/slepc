@@ -464,8 +464,8 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->balance         = (EPSBalance)0;
   eps->balance_its     = 5;
   eps->balance_cutoff  = 1e-8;
-  eps->nrma            = 1.0;
-  eps->nrmb            = 1.0;
+  eps->nrma            = PETSC_DETERMINE;
+  eps->nrmb            = PETSC_DETERMINE;
   eps->adaptive        = PETSC_FALSE;
 
   eps->V               = 0;
