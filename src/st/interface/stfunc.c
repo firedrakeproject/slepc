@@ -357,12 +357,16 @@ PetscErrorCode STGetNumMatrices(ST st,PetscInt *n)
 +  st - the spectral transformation context
 -  shift - the value of the shift
 
-   Note:
+   Notes:
    In some spectral transformations, changing the shift may have associated
    a lot of work, for example recomputing a factorization.
 
-   Level: beginner
+   This function is normally not directly called by users, since the shift is
+   indirectly set by EPSSetTarget().
 
+   Level: advanced
+
+.seealso: EPSSetTarget()
 @*/
 PetscErrorCode STSetShift(ST st,PetscScalar shift)
 {
