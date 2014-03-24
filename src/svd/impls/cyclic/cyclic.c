@@ -86,7 +86,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 {
   PetscErrorCode    ierr;
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
-  PetscInt          M,N,m,n,i,isl;
+  PetscInt          M,N,m,n,i,isl,Istart,Iend;
   const PetscScalar *isa;
   PetscScalar       *va;
   PetscBool         trackall;
@@ -103,15 +103,23 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = MatSetSizes(Zm,m,m,M,M);CHKERRQ(ierr);
       ierr = MatSetFromOptions(Zm);CHKERRQ(ierr);
       ierr = MatSetUp(Zm);CHKERRQ(ierr);
+      ierr = MatGetOwnershipRange(Zm,&Istart,&Iend);CHKERRQ(ierr);
+      for (i=Istart;i<Iend;i++) {
+        ierr = MatSetValue(Zm,i,i,0.0,INSERT_VALUES);CHKERRQ(ierr);
+      }
       ierr = MatAssemblyBegin(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatAssemblyEnd(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Zn);CHKERRQ(ierr);
       ierr = MatSetSizes(Zn,n,n,N,N);CHKERRQ(ierr);
       ierr = MatSetFromOptions(Zn);CHKERRQ(ierr);
       ierr = MatSetUp(Zn);CHKERRQ(ierr);
+      ierr = MatGetOwnershipRange(Zn,&Istart,&Iend);CHKERRQ(ierr);
+      for (i=Istart;i<Iend;i++) {
+        ierr = MatSetValue(Zn,i,i,0.0,INSERT_VALUES);CHKERRQ(ierr);
+      }
       ierr = MatAssemblyBegin(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatAssemblyEnd(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-      ierr = SlepcMatTile(0.0,Zm,1.0,svd->A,1.0,svd->AT,0.0,Zn,&cyclic->mat);CHKERRQ(ierr);
+      ierr = SlepcMatTile(1.0,Zm,1.0,svd->A,1.0,svd->AT,1.0,Zn,&cyclic->mat);CHKERRQ(ierr);
       ierr = PetscLogObjectParent(svd,cyclic->mat);CHKERRQ(ierr);
       ierr = MatDestroy(&Zm);CHKERRQ(ierr);
       ierr = MatDestroy(&Zn);CHKERRQ(ierr);
