@@ -86,7 +86,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 {
   PetscErrorCode    ierr;
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
-  PetscInt          M,N,m,n,i,isl;
+  PetscInt          M,N,m,n,i,isl,Istart,Iend;
   const PetscScalar *isa;
   PetscScalar       *va;
   PetscBool         trackall;
@@ -103,15 +103,23 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = MatSetSizes(Zm,m,m,M,M);CHKERRQ(ierr);
       ierr = MatSetFromOptions(Zm);CHKERRQ(ierr);
       ierr = MatSetUp(Zm);CHKERRQ(ierr);
+      ierr = MatGetOwnershipRange(Zm,&Istart,&Iend);CHKERRQ(ierr);
+      for (i=Istart;i<Iend;i++) {
+        ierr = MatSetValue(Zm,i,i,0.0,INSERT_VALUES);CHKERRQ(ierr);
+      }
       ierr = MatAssemblyBegin(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatAssemblyEnd(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Zn);CHKERRQ(ierr);
       ierr = MatSetSizes(Zn,n,n,N,N);CHKERRQ(ierr);
       ierr = MatSetFromOptions(Zn);CHKERRQ(ierr);
       ierr = MatSetUp(Zn);CHKERRQ(ierr);
+      ierr = MatGetOwnershipRange(Zn,&Istart,&Iend);CHKERRQ(ierr);
+      for (i=Istart;i<Iend;i++) {
+        ierr = MatSetValue(Zn,i,i,0.0,INSERT_VALUES);CHKERRQ(ierr);
+      }
       ierr = MatAssemblyBegin(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatAssemblyEnd(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-      ierr = SlepcMatTile(0.0,Zm,1.0,svd->A,1.0,svd->AT,0.0,Zn,&cyclic->mat);CHKERRQ(ierr);
+      ierr = SlepcMatTile(1.0,Zm,1.0,svd->A,1.0,svd->AT,1.0,Zn,&cyclic->mat);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->mat);CHKERRQ(ierr);
       ierr = MatDestroy(&Zm);CHKERRQ(ierr);
       ierr = MatDestroy(&Zn);CHKERRQ(ierr);
@@ -384,7 +392,7 @@ static PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
   ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);
   cyclic->eps = eps;
-  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->eps);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent(svd,cyclic->eps);CHKERRQ(ierr);
   svd->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -430,7 +438,7 @@ static PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
     ierr = EPSSetOptionsPrefix(cyclic->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(cyclic->eps,"svd_");CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)cyclic->eps,(PetscObject)svd,1);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->eps);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent(svd,cyclic->eps);CHKERRQ(ierr);
     if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
     ierr = EPSSetIP(cyclic->eps,svd->ip);CHKERRQ(ierr);
     ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
@@ -527,9 +535,8 @@ PETSC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD svd)
   SVD_CYCLIC     *cyclic;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(svd,&cyclic);CHKERRQ(ierr);
-  svd->data = (void*)cyclic;
-
+  ierr = PetscNewLog(svd,SVD_CYCLIC,&cyclic);CHKERRQ(ierr);
+  svd->data                      = (void*)cyclic;
   svd->ops->solve                = SVDSolve_Cyclic;
   svd->ops->setup                = SVDSetUp_Cyclic;
   svd->ops->setfromoptions       = SVDSetFromOptions_Cyclic;
