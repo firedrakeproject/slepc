@@ -156,7 +156,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   }
   if (st->P) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    ierr = KSPSetOperators(st->ksp,st->P,st->P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -167,7 +167,6 @@ PetscErrorCode STSetUp_Sinvert(ST st)
 PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
-  MatStructure   flg;
   PetscInt       nmat=st->nmat,k,nc;
   PetscScalar    *coeffs;
 
@@ -205,13 +204,8 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
       }
     }
   }
-  /* Check if the new KSP matrix has the same zero structure */
-  if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
-  else flg = SAME_NONZERO_PATTERN;
-  if (st->nmat<2 || (st->nmat>2 && st->transform)) {
-    ierr = KSPSetOperators(st->ksp,st->P,st->P,flg);CHKERRQ(ierr);
-    ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-  }
+  ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
+  ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -549,7 +549,7 @@ PetscErrorCode  STComputeSolveMat(ST st,PetscScalar sigma,PetscScalar *coeffs)
   PetscFunctionBegin;
   ierr = STMatMAXPY_Private(st,sigma,0,coeffs,PETSC_TRUE,&st->P,PETSC_TRUE);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = KSPSetOperators(st->ksp,st->P,st->P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
