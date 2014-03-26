@@ -249,7 +249,6 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,Vec *V,PetscInt L_st
   KSP            ksp;
 
   PetscFunctionBegin;
-
   ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Fz);CHKERRQ(ierr);
   ierr = VecDuplicate(V[0],&BV);CHKERRQ(ierr);
   if (ctx->usest && ctx->pA) {
@@ -1441,17 +1440,17 @@ static PetscErrorCode EPSCISSSetUseST_CISS(EPS eps,PetscBool usest)
 #undef __FUNCT__
 #define __FUNCT__ "EPSCISSSetUseST"
 /*@
-   EPSCISSSetUseST - Sets the values of various refinement parameters
-   in the CISS solver.
+   EPSCISSSetUseST - Sets a flag indicating that the CISS solver will
+   use the ST object for the linear solves.
 
    Logically Collective on EPS
 
    Input Parameters:
 +  eps    - the eigenproblem solver context
--  usest  - use ST object
+-  usest  - boolean flag to use the ST object or not
 
    Options Database Keys:
-+  -eps_ciss_refine_inner - Use ST object
++  -eps_ciss_usest <bool> - whether the ST object will be used or not
 
    Level: advanced
 
@@ -1482,7 +1481,7 @@ static PetscErrorCode EPSCISSGetUseST_CISS(EPS eps,PetscBool *usest)
 #undef __FUNCT__
 #define __FUNCT__ "EPSCISSGetUseST"
 /*@
-   EPSCISSGetUseST - Gets the parameter for using ST object
+   EPSCISSGetUseST - Gets the flag for using the ST object
    in the CISS solver.
 
    Not Collective
@@ -1491,7 +1490,7 @@ static PetscErrorCode EPSCISSGetUseST_CISS(EPS eps,PetscBool *usest)
 .  eps - the eigenproblem solver context
 
    Output Parameters:
-+  usest  - use ST object
++  usest - boolean flag indicating if the ST object is being used
 
    Level: advanced
 
@@ -1580,7 +1579,7 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
   ierr = EPSCISSSetRefinement(eps,i6,i7,i8);CHKERRQ(ierr);
 
   ierr = EPSCISSGetUseST(eps,&b2);CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-eps_ciss_usest","CISS use ST","EPSCISSSetUseST",b2,&b2,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-eps_ciss_usest","CISS use ST for linear solves","EPSCISSSetUseST",b2,&b2,NULL);CHKERRQ(ierr);
   ierr = EPSCISSSetUseST(eps,b2);CHKERRQ(ierr);
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
@@ -1629,7 +1628,7 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: iterative refinement  { inner: %D, outer: %D, blocksize: %D }\n",ctx->refine_inner,ctx->refine_outer, ctx->refine_blocksize);CHKERRQ(ierr);
     if (ctx->usest) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  CISS: use ST\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  CISS: using ST for linear solves\n");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     /*ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);*/
@@ -1675,7 +1674,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ctx->delta   = 1e-12;
   ctx->L_max   = 64;
   ctx->spurious_threshold = 1e-4;
-  ctx->usest  = PETSC_FALSE;
+  ctx->usest   = PETSC_FALSE;
   ctx->isreal  = PETSC_FALSE;
   ctx->refine_outer = 1;
   ctx->refine_inner = 1;
