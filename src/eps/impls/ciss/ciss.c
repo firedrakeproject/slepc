@@ -77,12 +77,13 @@ typedef struct {
   Vec          *Y;
   Vec          xsub;
   Vec          xdup;
-  KSP          ksp;
+  KSP          *ksp;
   PetscBool    useconj;
   PetscReal    est_eig;
   VecScatter   scatterin;
   Mat          pA,pB;
   PetscSubcomm subcomm;
+  PetscBool    usest;
 } EPS_CISS;
 
 #undef __FUNCT__
@@ -245,37 +246,73 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,Vec *V,PetscInt L_st
   Mat            Fz;
   PC             pc;
   Vec            BV;
+  KSP            ksp;
 
   PetscFunctionBegin;
+
   ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Fz);CHKERRQ(ierr);
   ierr = VecDuplicate(V[0],&BV);CHKERRQ(ierr);
-
+  if (ctx->usest && ctx->pA) {
+    ierr = KSPCreate(ctx->subcomm->comm,&ksp);CHKERRQ(ierr);
+  }
   for (i=0;i<ctx->num_solve_point;i++) {
-    if (ctx->num_solve_point !=1 || initksp == PETSC_TRUE) {
-      p_id = i*ctx->subcomm->n + ctx->subcomm_id;
+    p_id = i*ctx->subcomm->n + ctx->subcomm_id;
+    if (!ctx->usest && ((ctx->num_solve_point !=1) || initksp == PETSC_TRUE)) {
       ierr = MatCopy(A,Fz,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
       if (B) {
 	ierr = MatAXPY(Fz,-ctx->omega[p_id],B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
       } else {
 	ierr = MatShift(Fz,-ctx->omega[p_id]);CHKERRQ(ierr);
       }
-      ierr = KSPSetOperators(ctx->ksp,Fz,Fz);CHKERRQ(ierr);
-      ierr = KSPSetType(ctx->ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = KSPGetPC(ctx->ksp,&pc);CHKERRQ(ierr);
+      ierr = KSPSetOperators(ctx->ksp[i],Fz,Fz);CHKERRQ(ierr);
+      ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
+      ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
-      ierr = KSPSetFromOptions(ctx->ksp);CHKERRQ(ierr);
+      ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
+    } else if (ctx->usest && ctx->pA) {
+      ierr = MatCopy(A,Fz,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+      if (B) {
+	ierr = MatAXPY(Fz,-ctx->omega[p_id],B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+      } else {
+	ierr = MatShift(Fz,-ctx->omega[p_id]);CHKERRQ(ierr);
+      }
+      ierr = KSPSetOperators(ksp,Fz,Fz);CHKERRQ(ierr);
+      ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+      ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
+    } else if (ctx->usest && !ctx->pA) {
+      ierr = STSetShift(eps->st,-ctx->omega[p_id]);CHKERRQ(ierr);
+      ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+      ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+      ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
     }
+    
     for (j=L_start;j<L_end;j++) {
       if (B) {
 	ierr = MatMult(B,V[j],BV);CHKERRQ(ierr);
-	ierr = KSPSolve(ctx->ksp,BV,ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
+	if (ctx->usest) {
+	  ierr = KSPSolve(ksp,BV,ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
+	} else {
+	  ierr = KSPSolve(ctx->ksp[i],BV,ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
+	}
       } else {
-	ierr = KSPSolve(ctx->ksp,V[j],ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
+	if (ctx->usest) {
+	  ierr = KSPSolve(ksp,V[j],ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
+	} else {
+	  ierr = KSPSolve(ctx->ksp[i],V[j],ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
+	}
       }
     }
+    if (ctx->usest && ctx->pA) { ierr =  KSPReset(ksp);CHKERRQ(ierr); }
   }
   ierr = MatDestroy(&Fz);CHKERRQ(ierr);
   ierr = VecDestroy(&BV);CHKERRQ(ierr);
+  if (ctx->usest && ctx->pA) {
+    ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -680,6 +717,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   const char     *prefix;
+  PetscInt       i;
 
   PetscFunctionBegin;
   eps->ncv = PetscMin(eps->n,ctx->L_max*ctx->M);
@@ -720,13 +758,20 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     ierr = VecDuplicateVecs(ctx->xsub,ctx->L_max,&ctx->pV);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)eps,ctx->L_max*sizeof(Vec));CHKERRQ(ierr);
   }
-  ierr = KSPCreate(ctx->subcomm->comm,&ctx->ksp);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(KSP));CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp,(PetscObject)eps,1);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->ksp);CHKERRQ(ierr);
-  ierr = KSPAppendOptionsPrefix(ctx->ksp,"eps_ciss_");CHKERRQ(ierr);
-  ierr = EPSGetOptionsPrefix(eps,&prefix);CHKERRQ(ierr);
-  ierr = KSPAppendOptionsPrefix(ctx->ksp,prefix);CHKERRQ(ierr);
+
+  if (!ctx->usest) {
+    ierr = PetscMalloc(ctx->num_solve_point*sizeof(KSP),&ctx->ksp);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,ctx->num_solve_point*sizeof(KSP));CHKERRQ(ierr);
+    for (i=0;i<ctx->num_solve_point;i++) {
+      ierr = KSPCreate(ctx->subcomm->comm,&ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)eps,1);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"eps_ciss_");CHKERRQ(ierr);
+      ierr = EPSGetOptionsPrefix(eps,&prefix);CHKERRQ(ierr);
+      ierr = KSPAppendOptionsPrefix(ctx->ksp[i],prefix);CHKERRQ(ierr);
+    }
+  }
+
   if (ctx->pA) {
     ierr = VecDuplicateVecs(ctx->xsub,ctx->num_solve_point*ctx->L_max,&ctx->Y);CHKERRQ(ierr);
   } else {
@@ -1383,11 +1428,92 @@ PetscErrorCode EPSCISSGetRefinement(EPS eps, PetscInt *inner, PetscInt *outer,Pe
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSCISSSetUseST_CISS"
+static PetscErrorCode EPSCISSSetUseST_CISS(EPS eps,PetscBool usest)
+{
+  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+
+  PetscFunctionBegin;
+  ctx->usest = usest;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSSetUseST"
+/*@
+   EPSCISSSetUseST - Sets the values of various refinement parameters
+   in the CISS solver.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps    - the eigenproblem solver context
+-  usest  - use ST object
+
+   Options Database Keys:
++  -eps_ciss_refine_inner - Use ST object
+
+   Level: advanced
+
+.seealso: EPSCISSGetUseST()
+@*/
+PetscErrorCode EPSCISSSetUseST(EPS eps,PetscBool usest)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,usest,2);
+  ierr = PetscTryMethod(eps,"EPSCISSSetUseST_C",(EPS,PetscBool),(eps,usest));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSGetUseST_CISS"
+static PetscErrorCode EPSCISSGetUseST_CISS(EPS eps,PetscBool *usest)
+{
+  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+
+  PetscFunctionBegin;
+  *usest = ctx->usest;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSGetUseST"
+/*@
+   EPSCISSGetUseST - Gets the parameter for using ST object
+   in the CISS solver.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameters:
++  usest  - use ST object
+
+   Level: advanced
+
+.seealso: EPSCISSSetUseST()
+@*/
+PetscErrorCode EPSCISSGetUseST(EPS eps, PetscBool *usest)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscTryMethod(eps,"EPSCISSGetUseST_C",(EPS,PetscBool*),(eps,usest));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSReset_CISS"
 PetscErrorCode EPSReset_CISS(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  PetscInt       i;
 
   PetscFunctionBegin;
   ierr = PetscSubcommDestroy(&ctx->subcomm);CHKERRQ(ierr);
@@ -1398,7 +1524,12 @@ PetscErrorCode EPSReset_CISS(EPS eps)
   ierr = VecDestroyVecs(ctx->L_max,&ctx->V);CHKERRQ(ierr);
   ierr = PetscFree(ctx->sigma);CHKERRQ(ierr);
   ierr = VecDestroyVecs(ctx->L_max*ctx->num_solve_point,&ctx->Y);CHKERRQ(ierr);
-  ierr = KSPDestroy(&ctx->ksp);CHKERRQ(ierr);
+  if (!ctx->usest) {
+    for (i=0;i<ctx->num_solve_point;i++) {
+      ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
+  }
   ierr = VecScatterDestroy(&ctx->scatterin);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->xsub);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->xdup);CHKERRQ(ierr);
@@ -1419,7 +1550,7 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
   PetscScalar    s;
   PetscReal      r1,r2,r3,r4;
   PetscInt       i1=0,i2=0,i3=0,i4=0,i5=0,i6=0,i7=0,i8=0;
-  PetscBool      b1=PETSC_FALSE;
+  PetscBool      b1=PETSC_FALSE,b2=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS CISS Options");CHKERRQ(ierr);
@@ -1448,6 +1579,10 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
   ierr = PetscOptionsInt("-eps_ciss_refine_blocksize","CISS number of blocksize iterative refinement iterations","EPSCISSSetRefinement",i8,&i8,NULL);CHKERRQ(ierr);
   ierr = EPSCISSSetRefinement(eps,i6,i7,i8);CHKERRQ(ierr);
 
+  ierr = EPSCISSGetUseST(eps,&b2);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-eps_ciss_usest","CISS use ST","EPSCISSSetUseST",b2,&b2,NULL);CHKERRQ(ierr);
+  ierr = EPSCISSSetUseST(eps,b2);CHKERRQ(ierr);
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1468,6 +1603,8 @@ PetscErrorCode EPSDestroy_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetThreshold_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRefinement_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRefinement_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetUseST_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetUseST_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1491,8 +1628,11 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: iterative refinement  { inner: %D, outer: %D, blocksize: %D }\n",ctx->refine_inner,ctx->refine_outer, ctx->refine_blocksize);CHKERRQ(ierr);
+    if (ctx->usest) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  CISS: use ST\n");CHKERRQ(ierr);
+    }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    /*ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);*/
+    /*ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);*/
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -1523,6 +1663,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetThreshold_C",EPSCISSGetThreshold_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRefinement_C",EPSCISSSetRefinement_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRefinement_C",EPSCISSGetRefinement_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetUseST_C",EPSCISSSetUseST_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetUseST_C",EPSCISSGetUseST_CISS);CHKERRQ(ierr);
   /* set default values of parameters */
   ctx->center  = 0.0;
   ctx->radius  = 1.0;
@@ -1533,6 +1675,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ctx->delta   = 1e-12;
   ctx->L_max   = 64;
   ctx->spurious_threshold = 1e-4;
+  ctx->usest  = PETSC_FALSE;
   ctx->isreal  = PETSC_FALSE;
   ctx->refine_outer = 1;
   ctx->refine_inner = 1;
