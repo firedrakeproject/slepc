@@ -259,7 +259,13 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     case EPS_CONV_EIG:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
     case EPS_CONV_NORM:
-      ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue and matrix norms\n");CHKERRQ(ierr);break;
+      ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue and matrix norms\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: norm(A)=%g",(double)eps->nrma);CHKERRQ(ierr);
+      if (eps->isgeneralized) {
+        ierr = PetscViewerASCIIPrintf(viewer,", norm(B)=%g",(double)eps->nrmb);CHKERRQ(ierr);
+      }
+      ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+      break;
     default:
       ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
     }
@@ -272,11 +278,6 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     if (eps->nds>0) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %D\n",eps->nds);CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  estimates of matrix norms (%s): norm(A)=%g",eps->adaptive?"adaptive":"constant",(double)eps->nrma);CHKERRQ(ierr);
-    if (eps->isgeneralized) {
-      ierr = PetscViewerASCIIPrintf(viewer,", norm(B)=%g",(double)eps->nrmb);CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   } else {
     if (eps->ops->view) {
       ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
@@ -464,9 +465,8 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->balance         = (EPSBalance)0;
   eps->balance_its     = 5;
   eps->balance_cutoff  = 1e-8;
-  eps->nrma            = PETSC_DETERMINE;
-  eps->nrmb            = PETSC_DETERMINE;
-  eps->adaptive        = PETSC_FALSE;
+  eps->nrma            = 0.0;
+  eps->nrmb            = 0.0;
 
   eps->V               = 0;
   eps->W               = 0;

@@ -46,7 +46,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscErrorCode   ierr;
   char             type[256],monfilename[PETSC_MAX_PATH_LEN];
   PetscBool        flg,val;
-  PetscReal        r,nrma,nrmb,array[2]={0,0};
+  PetscReal        r,array[2]={0,0};
   PetscScalar      s;
   PetscInt         i,j,k;
   const char       *bal_list[4] = {"none","oneside","twoside","user"};
@@ -203,15 +203,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsBool("-eps_true_residual","Compute true residuals explicitly","EPSSetTrueResidual",eps->trueres,&val,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = EPSSetTrueResidual(eps,val);CHKERRQ(ierr);
-    }
-
-    nrma = nrmb = PETSC_DETERMINE;
-    ierr = PetscOptionsReal("-eps_norm_a","Norm of matrix A","EPSSetMatrixNorms",eps->nrma,&nrma,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-eps_norm_b","Norm of matrix B","EPSSetMatrixNorms",eps->nrmb,&nrmb,NULL);CHKERRQ(ierr);
-    ierr = EPSSetMatrixNorms(eps,nrma,nrmb,eps->adaptive);CHKERRQ(ierr);
-    ierr = PetscOptionsBool("-eps_norms_adaptive","Update the value of matrix norms adaptively","EPSSetMatrixNorms",eps->adaptive,&val,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = EPSSetMatrixNorms(eps,0,0,val);CHKERRQ(ierr);
     }
 
     ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",0);CHKERRQ(ierr);
@@ -610,109 +601,6 @@ PetscErrorCode EPSGetLeftVectorsWanted(EPS eps,PetscBool *leftvecs)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(leftvecs,2);
   *leftvecs = eps->leftvecs;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetMatrixNorms"
-/*@
-   EPSSetMatrixNorms - Gives the reference values of the matrix norms
-   and specifies whether these values should be improved adaptively.
-
-   Logically Collective on EPS
-
-   Input Parameters:
-+  eps      - the eigensolver context
-.  nrma     - a reference value for the norm of matrix A
-.  nrmb     - a reference value for the norm of matrix B
--  adaptive - whether matrix norms are improved adaptively
-
-   Options Database Keys:
-+  -eps_norm_a <nrma> - norm of A
-.  -eps_norm_b <nrma> - norm of B
--  -eps_norms_adaptive <boolean> - Sets/resets the boolean flag 'adaptive'
-
-   Notes:
-   If the user sets adaptive=PETSC_FALSE then the solver uses the values
-   of nrma and nrmb for the matrix norms, and these values do not change
-   throughout the iteration.
-
-   If the user sets adaptive=PETSC_TRUE then the solver tries to adaptively
-   improve the supplied values, with the numerical information generated
-   during the iteration. This option is not available in all solvers.
-
-   If a passed value is PETSC_DEFAULT, the corresponding norm will be set to 1.
-   If a passed value is PETSC_DETERMINE, the corresponding norm will be computed
-   as the NORM_INFINITY with MatNorm().
-
-   Level: intermediate
-
-.seealso: EPSGetMatrixNorms()
-@*/
-PetscErrorCode EPSSetMatrixNorms(EPS eps,PetscReal nrma,PetscReal nrmb,PetscBool adaptive)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidLogicalCollectiveReal(eps,nrma,2);
-  PetscValidLogicalCollectiveReal(eps,nrmb,3);
-  PetscValidLogicalCollectiveBool(eps,adaptive,4);
-  if (nrma) {
-    if (nrma == PETSC_DEFAULT) eps->nrma = 1.0;
-    else if (nrma == PETSC_DETERMINE) {
-      eps->nrma = nrma;
-      eps->setupcalled = 0;
-    } else {
-      if (nrma < 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nrma. Must be > 0");
-      eps->nrma = nrma;
-    }
-  }
-  if (nrmb) {
-    if (!eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Norm of B only allowed in generalized problems");
-    if (nrmb == PETSC_DEFAULT) eps->nrmb = 1.0;
-    else if (nrmb == PETSC_DETERMINE) {
-      eps->nrmb = nrmb;
-      eps->setupcalled = 0;
-    } else {
-      if (nrmb < 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nrmb. Must be > 0");
-      eps->nrmb = nrmb;
-    }
-  }
-  if (eps->adaptive != adaptive) {
-    eps->adaptive = adaptive;
-    eps->setupcalled = 0;
-    if (adaptive) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Sorry, adaptive norms are not implemented in this release");
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetMatrixNorms"
-/*@
-   EPSGetMatrixNorms - Returns the value of the matrix norms (either set
-   by the user or estimated by the solver) and the flag indicating whether
-   the norms are being adaptively improved.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigensolver context
-
-   Output Parameters:
-+  nrma     - the norm of matrix A
-.  nrmb     - the norm of matrix B
--  adaptive - whether matrix norms are improved adaptively
-
-   Level: intermediate
-
-.seealso: EPSSetMatrixNorms()
-@*/
-PetscErrorCode EPSGetMatrixNorms(EPS eps,PetscReal *nrma,PetscReal *nrmb,PetscBool *adaptive)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (nrma) *nrma = eps->nrma;
-  if (nrmb) *nrmb = eps->nrmb;
-  if (adaptive) *adaptive = eps->adaptive;
   PetscFunctionReturn(0);
 }
 

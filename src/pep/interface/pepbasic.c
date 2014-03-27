@@ -136,6 +136,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   const char     *type;
   char           str[50];
   PetscBool      isascii,islinear;
+  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -220,7 +221,15 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     case PEP_CONV_EIG:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
     case PEP_CONV_NORM:
-      ierr = PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n");CHKERRQ(ierr);break;
+      ierr = PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n");CHKERRQ(ierr);
+      if (pep->nrma) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)pep->nrma[0]);CHKERRQ(ierr);
+        for (i=1;i<pep->nmat;i++) {
+          ierr = PetscViewerASCIIPrintf(viewer,", %g",(double)pep->nrma[i]);CHKERRQ(ierr);
+        }
+        ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+      }
+      break;
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %g\n",(double)pep->sfactor);CHKERRQ(ierr);
     if (pep->nini) {

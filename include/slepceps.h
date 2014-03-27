@@ -205,8 +205,6 @@ PETSC_EXTERN PetscErrorCode EPSSetWhichEigenpairs(EPS,EPSWhich);
 PETSC_EXTERN PetscErrorCode EPSGetWhichEigenpairs(EPS,EPSWhich*);
 PETSC_EXTERN PetscErrorCode EPSSetLeftVectorsWanted(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSGetLeftVectorsWanted(EPS,PetscBool*);
-PETSC_EXTERN PetscErrorCode EPSSetMatrixNorms(EPS,PetscReal,PetscReal,PetscBool);
-PETSC_EXTERN PetscErrorCode EPSGetMatrixNorms(EPS,PetscReal*,PetscReal*,PetscBool*);
 PETSC_EXTERN PetscErrorCode EPSSetTrueResidual(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSGetTrueResidual(EPS,PetscBool*);
 PETSC_EXTERN PetscErrorCode EPSSetEigenvalueComparison(EPS,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);

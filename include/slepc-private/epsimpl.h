@@ -69,8 +69,7 @@ struct _p_EPS {
   EPSBalance     balance;          /* the balancing method */
   PetscInt       balance_its;      /* number of iterations of the balancing method */
   PetscReal      balance_cutoff;   /* cutoff value for balancing */
-  PetscReal      nrma,nrmb;        /* matrix norms */
-  PetscBool      adaptive;         /* whether matrix norms are adaptively improved */
+  PetscReal      nrma,nrmb;        /* computed matrix norms */
   PetscBool      trueres;          /* whether the true residual norm must be computed */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 

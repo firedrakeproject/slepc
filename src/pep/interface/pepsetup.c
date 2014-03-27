@@ -112,12 +112,11 @@ PetscErrorCode PEPSetUp(PEP pep)
   }
 
   /* initialization of matrix norms */
-  for (i=0;i<pep->nmat;i++) {
-    if (pep->nrma[i] == PETSC_DETERMINE) {
-      ierr = MatHasOperation(pep->A[i],MATOP_NORM,&flg);CHKERRQ(ierr);
-      if (flg) {
+  if (pep->conv==PEP_CONV_NORM) {
+    for (i=0;i<pep->nmat;i++) {
+      if (!pep->nrma[i]) {
         ierr = MatNorm(pep->A[i],NORM_INFINITY,&pep->nrma[i]);CHKERRQ(ierr);
-      } else pep->nrma[i] = 1.0;
+      }
     }
   }
 
@@ -257,8 +256,7 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
   ierr = PetscMalloc1(nmat,&pep->A);CHKERRQ(ierr);
   ierr = PetscFree3(pep->pbc,pep->solvematcoeffs,pep->nrma);CHKERRQ(ierr);
-  ierr = PetscMalloc3(3*nmat,&pep->pbc,nmat,&pep->solvematcoeffs,nmat,&pep->nrma);CHKERRQ(ierr);
-  for (i=0;i<nmat;i++) *(pep->nrma+i) = PETSC_DETERMINE;
+  ierr = PetscCalloc3(3*nmat,&pep->pbc,nmat,&pep->solvematcoeffs,nmat,&pep->nrma);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat));CHKERRQ(ierr);
   for (i=0;i<nmat;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
