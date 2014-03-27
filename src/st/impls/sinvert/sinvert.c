@@ -152,10 +152,6 @@ PetscErrorCode STSetUp_Sinvert(ST st)
         ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
         st->T[k] = st->A[k];
       }
-      ierr = PetscMalloc(nmat*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
-      ierr = STEvaluateCoeffs(st,st->sigma,coeffs);CHKERRQ(ierr);
-      ierr = STMatMAXPY_Private(st,1.0,0,coeffs,PETSC_TRUE,&st->P,PETSC_TRUE);CHKERRQ(ierr);
-      ierr = PetscFree(coeffs);CHKERRQ(ierr);
     } 
   }
   if (st->P) {
@@ -206,8 +202,6 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
         st->P = st->T[nmat-1];
         ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
       }
-    } else {
-      ierr = STMatMAXPY_Private(st,newshift,0,NULL,PETSC_FALSE,&st->P,PETSC_TRUE);CHKERRQ(ierr);
     }
   }
   ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);

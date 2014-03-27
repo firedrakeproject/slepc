@@ -401,7 +401,7 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
 PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar *coeffs,PetscBool initial,Mat *S,PetscBool prec)
 {
   PetscErrorCode ierr;
-  PetscInt       *matIdx,nmat,i;
+  PetscInt       *matIdx,nmat,i,ini=0;
   PetscScalar    t=1.0,ta;
   PetscBool      copy=PETSC_FALSE,nz=PETSC_FALSE;
 
@@ -429,23 +429,27 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
   case ST_MATMODE_COPY:
     ierr = MatDestroy(S);CHKERRQ(ierr);
     if (coeffs) {
-      if (coeffs[0] != 1.0) nz = PETSC_TRUE;
-      for (i=1;i<st->nmat-k&&!nz;i++) if (PetscAbsScalar(coeffs[i])!=0.0) nz = PETSC_TRUE;
-    }
-    if (alpha == 0.0||!nz) {
-      ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
-      *S = st->A[k];
-    } else {
-      ierr = MatDuplicate(st->A[k],MAT_COPY_VALUES,S);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
-      if (coeffs && coeffs[0]!=1.0) {
-        ierr = MatScale(*S,coeffs[0]);CHKERRQ(ierr);
+      for (i=0;i<st->nmat-k && ini==-1;i++) {
+        if (coeffs[i]!=0.0) ini = i;
+        else t *= alpha;
       }
-      for (i=k+1;i<st->nmat;i++) {
+      if (coeffs[ini] != 1.0) nz = PETSC_TRUE;
+      for (i=ini+1;i<st->nmat-k&&!nz;i++) if (coeffs[i]!=0.0) nz = PETSC_TRUE;
+    } else nz = PETSC_TRUE;
+    if ((alpha == 0.0 || !nz) && t==1.0) {
+      ierr = PetscObjectReference((PetscObject)st->A[k+ini]);CHKERRQ(ierr);
+      *S = st->A[k+ini];
+    } else {
+      ierr = MatDuplicate(st->A[k+ini],MAT_COPY_VALUES,S);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
+      if (coeffs && coeffs[ini]!=1.0) {
+        ierr = MatScale(*S,coeffs[ini]);CHKERRQ(ierr);
+      }
+      for (i=ini+k+1;i<st->nmat;i++) {
         t *= alpha;
         ta = t;
         if (coeffs) ta *= coeffs[i-k];
-        if (PetscAbsScalar(ta)!=0.0) { ierr = MatAXPY(*S,ta,st->A[i],st->str);CHKERRQ(ierr); }
+        if (ta!=0.0) {ierr = MatAXPY(*S,ta,st->A[i],st->str);CHKERRQ(ierr);}
       }
     }
   }
@@ -532,43 +536,21 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STSetEvaluateCoeffs"
-/*@
-   STSetEvaluateCoeffs - Provide a callback function to evaluate the
-   coefficients needed to compute T(sigma).
-
-   Not Collective
-
-   Input Parameters:
-   st  - the spectral transformation context
-   f   - callback function
-   obj - object that will be used to invoke the function
-
-   Level: developer
-@*/
-PetscErrorCode STSetEvaluateCoeffs(ST st,PetscErrorCode (*f)(PetscObject,PetscScalar,PetscScalar*),PetscObject obj)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  st->evalcoeffs = f;
-  st->evalobj = obj;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "STEvaluateCoeffs"
+#define __FUNCT__ "STComputeSolveMat"
 /*
-   STEvaluateCoeffs - Evaluate the coefficients needed to compute T(sigma).
+  Forces ST to compute the matrix st->P (matrix which is used in the STMatSolve call) 
+    If (coeffs):  st->P = Sum_{i=0:nmat-1} coeffs[i]*sigma^i*A_i.
+    else          st->P = Sum_{i=0:nmat-1} sigma^i*A_i
 */
-PetscErrorCode STEvaluateCoeffs(ST st,PetscScalar sigma,PetscScalar* vals)
+PetscErrorCode  STComputeSolveMat(ST st,PetscScalar sigma,PetscScalar *coeffs)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (st->evalcoeffs) {
-    ierr = (*st->evalcoeffs)(st->evalobj,sigma,vals);CHKERRQ(ierr);
-  }
+  ierr = STMatMAXPY_Private(st,sigma,0,coeffs,PETSC_TRUE,&st->P,PETSC_TRUE);CHKERRQ(ierr);
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+  ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
+  ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

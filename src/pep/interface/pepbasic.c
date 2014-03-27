@@ -136,6 +136,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   const char     *type;
   char           str[50];
   PetscBool      isascii,islinear;
+  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -219,6 +220,16 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
     case PEP_CONV_EIG:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
+    case PEP_CONV_NORM:
+      ierr = PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n");CHKERRQ(ierr);
+      if (pep->nrma) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)pep->nrma[0]);CHKERRQ(ierr);
+        for (i=1;i<pep->nmat;i++) {
+          ierr = PetscViewerASCIIPrintf(viewer,", %g",(double)pep->nrma[i]);CHKERRQ(ierr);
+        }
+        ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+      }
+      break;
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %g\n",(double)pep->sfactor);CHKERRQ(ierr);
     if (pep->nini) {
@@ -365,7 +376,7 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
 .  pep - location to put the PEP context
 
    Note:
-   The default PEP type is PEPLINEAR
+   The default PEP type is PEPTOAR
 
    Level: beginner
 
@@ -454,7 +465,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
 
    Notes:
    See "slepc/include/slepcpep.h" for available methods. The default
-   is PEPLINEAR.
+   is PEPTOAR.
 
    Normally, it is best to use the PEPSetFromOptions() command and
    then set the PEP type from the options database rather than by using
@@ -613,7 +624,7 @@ PetscErrorCode PEPDestroy(PEP *pep)
   if (--((PetscObject)(*pep))->refct > 0) { *pep = 0; PetscFunctionReturn(0); }
   ierr = PEPReset(*pep);CHKERRQ(ierr);
   ierr = MatDestroyMatrices((*pep)->nmat,&(*pep)->A);CHKERRQ(ierr);
-  ierr = PetscFree((*pep)->pbc);CHKERRQ(ierr);
+  ierr = PetscFree3((*pep)->pbc,(*pep)->solvematcoeffs,(*pep)->nrma);CHKERRQ(ierr);
   if ((*pep)->ops->destroy) { ierr = (*(*pep)->ops->destroy)(*pep);CHKERRQ(ierr); }
   ierr = STDestroy(&(*pep)->st);CHKERRQ(ierr);
   ierr = IPDestroy(&(*pep)->ip);CHKERRQ(ierr);

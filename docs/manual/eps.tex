@@ -494,7 +494,7 @@ Relative to matrix norms & \texttt{EPS\_CONV\_NORM} & \texttt{-eps\_conv\_norm} 
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetConvergenceTest(EPS eps,EPSConv conv);
 	\end{Verbatim}
-The default is to use the criterion relative to the eigenvalue (note: for computing eigenvalues close to the origin this criterion will likely give very poor accuracy, so the user is advised to use \ident{EPS\_CONV\_ABS} in that case). For the criteria that involve matrix norms, they can be provided by means of \ident{EPSSetMatrixNorms}. Finally, a custom convergence criterion may be established by specifying a user function (\ident{EPSSetConvergenceTestFunction}).
+The default is to use the criterion relative to the eigenvalue (note: for computing eigenvalues close to the origin this criterion will likely give very poor accuracy, so the user is advised to use \ident{EPS\_CONV\_ABS} in that case). Finally, a custom convergence criterion may be established by specifying a user function (\ident{EPSSetConvergenceTestFunction}).
 
 	Error estimates used internally by eigensolvers for checking convergence may be different from the error bounds provided by \ident{EPSComputeRelativeError}. At the end of the solution process, error estimates are available via
 	\findex{EPSGetErrorEstimate}

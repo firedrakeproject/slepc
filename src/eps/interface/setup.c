@@ -127,18 +127,14 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->ncv > eps->n) eps->ncv = eps->n;
 
   /* initialization of matrix norms */
-  if (eps->nrma == PETSC_DETERMINE) {
-    ierr = MatHasOperation(A,MATOP_NORM,&flg);CHKERRQ(ierr);
-    if (flg) {
+  if (eps->conv==EPS_CONV_NORM) {
+    if (!eps->nrma) {
       ierr = MatNorm(A,NORM_INFINITY,&eps->nrma);CHKERRQ(ierr);
-    } else eps->nrma = 1.0;
-  }
-  if (eps->nrmb == PETSC_DETERMINE) {
-    if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
-    ierr = MatHasOperation(B,MATOP_NORM,&flg);CHKERRQ(ierr);
-    if (flg) {
+    }
+    if (nmat>1 && !eps->nrmb) {
+      ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
       ierr = MatNorm(B,NORM_INFINITY,&eps->nrmb);CHKERRQ(ierr);
-    } else eps->nrmb = 1.0;
+    }
   }
 
   if (!eps->balance) eps->balance = EPS_BALANCE_NONE;
@@ -310,8 +306,9 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
     if (m0!=n) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B is a non-square matrix");
     if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Dimensions of A and B do not match");
   }
-
   if (eps->setupcalled) { ierr = EPSReset(eps);CHKERRQ(ierr); }
+  eps->nrma = 0.0;
+  eps->nrmb = 0.0;
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   mat[0] = A;
   if (B) {
