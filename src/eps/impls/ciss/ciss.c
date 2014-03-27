@@ -281,12 +281,12 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,Vec *V,PetscInt L_st
       ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
       ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
     } else if (ctx->usest && !ctx->pA) {
-      ierr = STSetShift(eps->st,-ctx->omega[p_id]);CHKERRQ(ierr);
+      ierr = STSetShift(eps->st,ctx->omega[p_id]);CHKERRQ(ierr);
       ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-      ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+      /*ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
-      ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
+      ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);*/
     }
     
     for (j=L_start;j<L_end;j++) {
@@ -305,7 +305,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,Vec *V,PetscInt L_st
 	}
       }
     }
-    if (ctx->usest && ctx->pA) { ierr =  KSPReset(ksp);CHKERRQ(ierr); }
+    if (ctx->usest && i<ctx->num_solve_point-1) { ierr =  KSPReset(ksp);CHKERRQ(ierr); }
   }
   ierr = MatDestroy(&Fz);CHKERRQ(ierr);
   ierr = VecDestroy(&BV);CHKERRQ(ierr);
@@ -717,6 +717,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   const char     *prefix;
   PetscInt       i;
+  PetscBool      issinvert;
 
   PetscFunctionBegin;
   eps->ncv = PetscMin(eps->n,ctx->L_max*ctx->M);
@@ -758,7 +759,10 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     ierr = PetscLogObjectMemory((PetscObject)eps,ctx->L_max*sizeof(Vec));CHKERRQ(ierr);
   }
 
-  if (!ctx->usest) {
+  if (ctx->usest) {
+    ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&issinvert);CHKERRQ(ierr);
+    if (!issinvert) { ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr); }
+  } else {
     ierr = PetscMalloc(ctx->num_solve_point*sizeof(KSP),&ctx->ksp);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)eps,ctx->num_solve_point*sizeof(KSP));CHKERRQ(ierr);
     for (i=0;i<ctx->num_solve_point;i++) {
