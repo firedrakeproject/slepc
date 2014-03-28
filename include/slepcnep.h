@@ -80,6 +80,7 @@ typedef enum { NEP_LARGEST_MAGNITUDE=1,
 .seealso: NEPSolve(), NEPGetConvergedReason(), NEPSetTolerances()
 E*/
 typedef enum {/* converged */
+              NEP_CONVERGED_TOL                =  1,
               NEP_CONVERGED_FNORM_ABS          =  2,
               NEP_CONVERGED_FNORM_RELATIVE     =  3,
               NEP_CONVERGED_SNORM_RELATIVE     =  4,

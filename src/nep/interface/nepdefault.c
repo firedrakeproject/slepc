@@ -143,3 +143,102 @@ PetscErrorCode NEPConvergedDefault(NEP nep,PetscInt it,PetscReal xnorm,PetscReal
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "NEPComputeVectors_Schur"
+PetscErrorCode NEPComputeVectors_Schur(NEP nep)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,ld,i;
+  PetscScalar    *Z;
+/*
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    tmp;
+  PetscReal      norm,normi;
+#endif
+*/
+
+  PetscFunctionBegin;
+  ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
+  ierr = DSGetDimensions(nep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+
+  /* right eigenvectors */
+  ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+
+  /* AV = V * Z */
+  ierr = DSGetArray(nep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = SlepcUpdateVectors(n,nep->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = DSRestoreArray(nep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+
+  /* normalization */
+  for (i=0;i<n;i++) {
+/*
+#if !defined(PETSC_USE_COMPLEX)
+    if (nep->eigi[i] != 0.0) {
+      ierr = VecNorm(nep->V[i],NORM_2,&norm);CHKERRQ(ierr);
+      ierr = VecNorm(nep->V[i+1],NORM_2,&normi);CHKERRQ(ierr);
+      tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
+      ierr = VecScale(nep->V[i],tmp);CHKERRQ(ierr);
+      ierr = VecScale(nep->V[i+1],tmp);CHKERRQ(ierr);
+      i++;
+    } else
+#endif
+*/
+    {
+      ierr = VecNormalize(nep->V[i],NULL);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPKrylovConvergence"
+/*
+   NEPKrylovConvergence - This is the analogue to EPSKrylovConvergence, but
+   for polynomial Krylov methods.
+
+   Differences:
+   - Always non-symmetric
+   - Does not check for STSHIFT
+   - No correction factor
+   - No support for true residual
+*/
+PetscErrorCode NEPKrylovConvergence(NEP nep,PetscBool getall,PetscInt kini,PetscInt nits,PetscInt nv,PetscReal beta,PetscInt *kout)
+{
+  PetscErrorCode ierr;
+  PetscInt       k,newk,marker,ld;
+  /* // PetscScalar    re,im; // */
+  PetscReal      resnorm;
+
+  PetscFunctionBegin;
+  ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
+  marker = -1;
+  if (nep->trackall) getall = PETSC_TRUE;
+  for (k=kini;k<kini+nits;k++) {
+    /* eigenvalue */
+    /* ////
+    re = nep->eig[k];
+    im = nep->eigi[k];
+    /// */
+    newk = k;
+    ierr = DSVectors(nep->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
+    resnorm *= beta;
+    /* error estimate */
+    /* // nep->errest[k] = resnorm/PetscAbsScalar(nep->eig[k]);// */
+    nep->errest[k] = resnorm;/* */
+    /*
+    ierr = (*nep->converged)(nep,re,im,resnorm,&nep->errest[k],nep->convergedctx);CHKERRQ(ierr);
+    */
+    if (marker==-1 && nep->errest[k] >= nep->rtol) marker = k;
+    if (newk==k+1) {
+      nep->errest[k+1] = nep->errest[k];
+      k++;
+    }
+    if (marker!=-1 && !getall) break;
+  }
+  if (marker!=-1) k = marker;
+  *kout = k;
+  PetscFunctionReturn(0);
+}
+
+
