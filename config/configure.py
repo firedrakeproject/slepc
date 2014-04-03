@@ -23,7 +23,6 @@
 import os
 import sys
 import time
-import commands
 import tempfile
 import shutil
 
@@ -216,17 +215,6 @@ if not petscconf.PRECISION in ['double','single','__float128']:
 if prefixinstall and not petscconf.ISINSTALL:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
-# Check whether this is a working copy of the repository
-isrepo = 0
-if os.path.exists(os.sep.join([slepcdir,'src','docs'])) and os.path.exists(os.sep.join([slepcdir,'.git'])):
-  (status, output) = commands.getstatusoutput('git rev-parse')
-  if status:
-    print 'WARNING: SLEPC_DIR appears to be a git working copy, but git is not found in PATH'
-  else:
-    isrepo = 1
-    (status, gitrev) = commands.getstatusoutput('git log -1 --pretty=format:%H')
-    (status, gitdate) = commands.getstatusoutput('git log -1 --pretty=format:%ci')
-
 # Create architecture directory and configuration files
 archdir = os.sep.join([slepcdir,petscconf.ARCH])
 if doclean and os.path.exists(archdir):
@@ -289,9 +277,9 @@ try:
   slepcconf = open(os.sep.join([incdir,'slepcconf.h']),'w')
   slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
   slepcconf.write('#define __SLEPCCONF_H\n\n')
-  if isrepo:
-    slepcconf.write('#ifndef SLEPC_VERSION_GIT\n#define SLEPC_VERSION_GIT "' + gitrev + '"\n#endif\n\n')
-    slepcconf.write('#ifndef SLEPC_VERSION_DATE_GIT\n#define SLEPC_VERSION_DATE_GIT "' + gitdate + '"\n#endif\n\n')
+  if slepcversion.ISREPO:
+    slepcconf.write('#ifndef SLEPC_VERSION_GIT\n#define SLEPC_VERSION_GIT "' + slepcversion.GITREV + '"\n#endif\n\n')
+    slepcconf.write('#ifndef SLEPC_VERSION_DATE_GIT\n#define SLEPC_VERSION_DATE_GIT "' + slepcversion.GITDATE + '"\n#endif\n\n')
   slepcconf.write('#ifndef SLEPC_LIB_DIR\n#define SLEPC_LIB_DIR "' + prefixdir + '/lib"\n#endif\n\n')
 except:
   sys.exit('ERROR: cannot create configuration header in ' + confdir)
@@ -376,7 +364,7 @@ if getblopex:
 missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
 
 # Make Fortran stubs if necessary
-if isrepo and hasattr(petscconf,'FC'):
+if slepcversion.ISREPO and hasattr(petscconf,'FC'):
   try:
     import generatefortranstubs
     generatefortranstubs.main(slepcdir,petscconf.BFORT,os.getcwd(),0)
@@ -464,8 +452,24 @@ log.Println(' '+slepcdir)
 if archdir != prefixdir:
   log.Println('SLEPc prefix directory:')
   log.Println(' '+prefixdir)
+if slepcversion.ISREPO:
+  log.Println('  It is a git repository on branch: '+slepcversion.BRANCH)
 log.Println('PETSc directory:')
 log.Println(' '+petscdir)
+if petscversion.ISREPO:
+  log.Println('  It is a git repository on branch: '+petscversion.BRANCH)
+if petscversion.ISREPO and slepcversion.ISREPO:
+  if petscversion.BRANCH!='maint' and slepcversion.BRANCH!='maint':
+    try:
+      import dateutil.parser
+      import datetime
+      petscdate = dateutil.parser.parse(petscversion.GITDATE)
+      slepcdate = dateutil.parser.parse(slepcversion.GITDATE)
+      if abs(petscdate-slepcdate)>datetime.timedelta(days=30):
+        log.Println('xxx'+'='*73+'xxx')
+        log.Println('WARNING: your PETSc and SLEPc repos may not be in sync (more than 30 days apart)')
+        log.Println('xxx'+'='*73+'xxx')
+    except ImportError: pass
 log.Println('Architecture "'+petscconf.ARCH+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
 if havearpack:
   log.Println('ARPACK library flags:')
