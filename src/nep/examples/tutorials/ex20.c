@@ -37,8 +37,8 @@ static char help[] = "Simple 1-D nonlinear eigenproblem.\n\n"
    User-defined routines
 */
 PetscErrorCode FormInitialGuess(Vec);
-PetscErrorCode FormFunction(NEP,PetscScalar,Mat*,Mat*,MatStructure*,void*);
-PetscErrorCode FormJacobian(NEP,PetscScalar,Mat*,MatStructure*,void*);
+PetscErrorCode FormFunction(NEP,PetscScalar,Mat,Mat,void*);
+PetscErrorCode FormJacobian(NEP,PetscScalar,Mat,void*);
 PetscErrorCode CheckSolution(PetscScalar,Vec,PetscReal*,void*);
 PetscErrorCode FixSign(Vec);
 
@@ -243,9 +243,8 @@ PetscErrorCode FormInitialGuess(Vec x)
    Output Parameters:
 .  fun - Function matrix
 .  B   - optionally different preconditioning matrix
-.  flg - flag indicating matrix structure
 */
-PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat *fun,Mat *B,MatStructure *flg,void *ctx)
+PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
 {
   PetscErrorCode ierr;
   ApplicationCtx *user = (ApplicationCtx*)ctx;
@@ -258,8 +257,8 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat *fun,Mat *B,MatStruct
   /*
      Compute Function entries and insert into matrix
   */
-  ierr = MatGetSize(*fun,&n,NULL);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(*fun,&Istart,&Iend);CHKERRQ(ierr);
+  ierr = MatGetSize(fun,&n,NULL);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(fun,&Istart,&Iend);CHKERRQ(ierr);
   if (Istart==0) FirstBlock=PETSC_TRUE;
   if (Iend==n) LastBlock=PETSC_TRUE;
   h = user->h;
@@ -272,7 +271,7 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat *fun,Mat *B,MatStruct
   for (i=(FirstBlock? Istart+1: Istart);i<(LastBlock? Iend-1: Iend);i++) {
     j[0] = i-1; j[1] = i; j[2] = i+1;
     A[0] = A[2] = -d-lambda*h/6.0; A[1] = 2.0*(d-lambda*h/3.0);
-    ierr = MatSetValues(*fun,1,&i,3,j,A,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = MatSetValues(fun,1,&i,3,j,A,INSERT_VALUES);CHKERRQ(ierr);
   }
 
   /*
@@ -282,24 +281,24 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat *fun,Mat *B,MatStruct
     i = 0;
     j[0] = 0; j[1] = 1;
     A[0] = 2.0*(d-lambda*h/3.0); A[1] = -d-lambda*h/6.0;
-    ierr = MatSetValues(*fun,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = MatSetValues(fun,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
   }
 
   if (LastBlock) {
     i = n-1;
     j[0] = n-2; j[1] = n-1;
     A[0] = -d-lambda*h/6.0; A[1] = d-lambda*h/3.0+lambda*c;
-    ierr = MatSetValues(*fun,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = MatSetValues(fun,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
   }
 
   /*
      Assemble matrix
   */
-  ierr = MatAssemblyBegin(*B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(*B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  if (*fun != *B) {
-    ierr = MatAssemblyBegin(*fun,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(*fun,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  if (fun != B) {
+    ierr = MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -318,9 +317,8 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat *fun,Mat *B,MatStruct
    Output Parameters:
 .  jac - Jacobian matrix
 .  B   - optionally different preconditioning matrix
-.  flg - flag indicating matrix structure
 */
-PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat *jac,MatStructure *flg,void *ctx)
+PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
 {
   PetscErrorCode ierr;
   ApplicationCtx *user = (ApplicationCtx*)ctx;
@@ -333,8 +331,8 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat *jac,MatStructure *fl
   /*
      Compute Jacobian entries and insert into matrix
   */
-  ierr = MatGetSize(*jac,&n,NULL);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(*jac,&Istart,&Iend);CHKERRQ(ierr);
+  ierr = MatGetSize(jac,&n,NULL);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(jac,&Istart,&Iend);CHKERRQ(ierr);
   if (Istart==0) FirstBlock=PETSC_TRUE;
   if (Iend==n) LastBlock=PETSC_TRUE;
   h = user->h;
@@ -346,7 +344,7 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat *jac,MatStructure *fl
   for (i=(FirstBlock? Istart+1: Istart);i<(LastBlock? Iend-1: Iend);i++) {
     j[0] = i-1; j[1] = i; j[2] = i+1;
     A[0] = A[2] = -h/6.0; A[1] = -2.0*h/3.0;
-    ierr = MatSetValues(*jac,1,&i,3,j,A,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = MatSetValues(jac,1,&i,3,j,A,INSERT_VALUES);CHKERRQ(ierr);
   }
 
   /*
@@ -356,21 +354,21 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat *jac,MatStructure *fl
     i = 0;
     j[0] = 0; j[1] = 1;
     A[0] = -2.0*h/3.0; A[1] = -h/6.0;
-    ierr = MatSetValues(*jac,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = MatSetValues(jac,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
   }
 
   if (LastBlock) {
     i = n-1;
     j[0] = n-2; j[1] = n-1;
     A[0] = -h/6.0; A[1] = -h/3.0-c*c;
-    ierr = MatSetValues(*jac,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = MatSetValues(jac,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
   }
 
   /*
      Assemble matrix
   */
-  ierr = MatAssemblyBegin(*jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(*jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyBegin(jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
