@@ -127,7 +127,7 @@ PetscErrorCode STSetUp_Precond(ST st)
     }
   }
 
-  ierr = KSPSetOperators(st->ksp,setmat?P:NULL,P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = KSPSetOperators(st->ksp,setmat?P:NULL,P);CHKERRQ(ierr);
 
   if (destroyP) {
     ierr = MatDestroy(&P);CHKERRQ(ierr);
@@ -172,7 +172,7 @@ static PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PCGetOperatorsSet(pc,NULL,&flag);CHKERRQ(ierr);
   if (flag) {
-    ierr = PCGetOperators(pc,NULL,mat,NULL);CHKERRQ(ierr);
+    ierr = PCGetOperators(pc,NULL,mat);CHKERRQ(ierr);
   } else *mat = NULL;
   PetscFunctionReturn(0);
 }
@@ -222,11 +222,11 @@ static PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
      matrix in pc */
   ierr = PCGetOperatorsSet(pc,&flag,NULL);CHKERRQ(ierr);
   if (flag) {
-    ierr = PCGetOperators(pc,&A,NULL,NULL);CHKERRQ(ierr);
+    ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
     ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
   } else A = NULL;
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
-  ierr = PCSetOperators(pc,A,mat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = PCSetOperators(pc,A,mat);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&mat);CHKERRQ(ierr);
   ierr = STPrecondSetKSPHasMat(st,PETSC_TRUE);CHKERRQ(ierr);

@@ -140,7 +140,7 @@ PetscErrorCode STSetUp_Shift(ST st)
   }
   if (st->P) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    ierr = KSPSetOperators(st->ksp,st->P,st->P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

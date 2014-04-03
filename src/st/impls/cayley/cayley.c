@@ -185,7 +185,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)ctx->w2);CHKERRQ(ierr);
   }
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = KSPSetOperators(st->ksp,st->P,st->P,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -196,7 +196,6 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
-  MatStructure   flg;
 
   PetscFunctionBegin;
   if (newshift==0.0 && (!ctx->nu_set || (ctx->nu_set && ctx->nu==0.0))) SETERRQ(PetscObjectComm((PetscObject)st),1,"Values of shift and antishift cannot be zero simultaneously");
@@ -212,10 +211,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   }
   ierr = STMatGAXPY_Private(st,-newshift,-st->sigma,1,1,PETSC_FALSE);CHKERRQ(ierr);
 
-  /* Check if the new KSP matrix has the same zero structure */
-  if (st->nmat>1 && st->str == DIFFERENT_NONZERO_PATTERN && (st->sigma == 0.0 || newshift == 0.0)) flg = DIFFERENT_NONZERO_PATTERN;
-  else flg = SAME_NONZERO_PATTERN;
-  ierr = KSPSetOperators(st->ksp,st->P,st->P,flg);CHKERRQ(ierr);
+  ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

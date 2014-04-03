@@ -100,7 +100,7 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
   /* prepare linear solver */
   ierr = NEPComputeFunction(nep,lambda,&T,&T,&mats);CHKERRQ(ierr);
   ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
-  ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
 
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {

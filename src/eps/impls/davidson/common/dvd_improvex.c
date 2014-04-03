@@ -204,7 +204,8 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
       ierr = PetscObjectReference((PetscObject)data->old_pc);CHKERRQ(ierr);
       ierr = PCCreate(PetscObjectComm((PetscObject)d->eps),&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCSHELL);CHKERRQ(ierr);
-      ierr = PCSetOperators(pc, d->A, d->A, SAME_PRECONDITIONER);CHKERRQ(ierr);
+      ierr = PCSetOperators(pc,d->A,d->A);CHKERRQ(ierr);
+      ierr = PCSetReusePreconditioner(pc,PETSC_TRUE);CHKERRQ(ierr);
       ierr = PCShellSetApply(pc,PCApply_dvd);CHKERRQ(ierr);
       ierr = PCShellSetApplyBA(pc,PCApplyBA_dvd);CHKERRQ(ierr);
       ierr = PCShellSetApplyTranspose(pc,PCApplyTranspose_dvd);CHKERRQ(ierr);
@@ -227,11 +228,12 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
     if (t) {
       Mat M;
       PetscInt rM;
-      ierr = KSPGetOperators(data->ksp,&M,NULL,NULL);CHKERRQ(ierr);
+      ierr = KSPGetOperators(data->ksp,&M,NULL);CHKERRQ(ierr);
       ierr = MatGetSize(M,&rM,NULL);CHKERRQ(ierr);
       if (rM != rA*data->ksp_max_size) { ierr = KSPReset(data->ksp);CHKERRQ(ierr); }
     }
-    ierr = KSPSetOperators(data->ksp, A, A, SAME_PRECONDITIONER);CHKERRQ(ierr);
+    ierr = KSPSetOperators(data->ksp,A,A);CHKERRQ(ierr);
+    ierr = KSPSetReusePreconditioner(data->ksp,PETSC_TRUE);CHKERRQ(ierr);
     ierr = KSPSetUp(data->ksp);CHKERRQ(ierr);
     ierr = MatDestroy(&A);CHKERRQ(ierr);
   } else {
@@ -514,7 +516,7 @@ PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w)
   Mat             A;
 
   PetscFunctionBegin;
-  ierr = PCGetOperators(pc,&A,NULL,NULL);CHKERRQ(ierr);
+  ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
   ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
@@ -577,7 +579,7 @@ PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out)
   Mat             A;
 
   PetscFunctionBegin;
-  ierr = PCGetOperators(pc,&A,NULL,NULL);CHKERRQ(ierr);
+  ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
   ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
@@ -604,7 +606,7 @@ PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out)
   Mat             A;
 
   PetscFunctionBegin;
-  ierr = PCGetOperators(pc,&A,NULL,NULL);CHKERRQ(ierr);
+  ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
   ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
