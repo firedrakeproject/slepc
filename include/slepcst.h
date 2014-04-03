@@ -50,7 +50,6 @@ typedef const char* STType;
 #define STSHIFT     "shift"
 #define STSINVERT   "sinvert"
 #define STCAYLEY    "cayley"
-#define STFOLD      "fold"
 #define STPRECOND   "precond"
 
 /* Logging support */
@@ -63,6 +62,7 @@ PETSC_EXTERN PetscErrorCode STSetType(ST,STType);
 PETSC_EXTERN PetscErrorCode STGetType(ST,STType*);
 PETSC_EXTERN PetscErrorCode STSetOperators(ST,PetscInt,Mat*);
 PETSC_EXTERN PetscErrorCode STGetOperators(ST,PetscInt,Mat*);
+PETSC_EXTERN PetscErrorCode STGetTOperators(ST,PetscInt,Mat*);
 PETSC_EXTERN PetscErrorCode STGetNumMatrices(ST,PetscInt*);
 PETSC_EXTERN PetscErrorCode STSetUp(ST);
 PETSC_EXTERN PetscErrorCode STSetFromOptions(ST);
@@ -71,12 +71,14 @@ PETSC_EXTERN PetscErrorCode STView(ST,PetscViewer);
 PETSC_EXTERN PetscErrorCode STApply(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STMatMult(ST,PetscInt,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STMatMultTranspose(ST,PetscInt,Vec,Vec);
-PETSC_EXTERN PetscErrorCode STMatSolve(ST,PetscInt,Vec,Vec);
-PETSC_EXTERN PetscErrorCode STMatSolveTranspose(ST,PetscInt,Vec,Vec);
+PETSC_EXTERN PetscErrorCode STMatSolve(ST,Vec,Vec);
+PETSC_EXTERN PetscErrorCode STMatSolveTranspose(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STGetBilinearForm(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STPostSolve(ST);
+
+PETSC_EXTERN PetscErrorCode STSetEvaluateCoeffs(ST,PetscErrorCode (*)(PetscObject,PetscScalar,PetscScalar*),PetscObject);
 
 PETSC_EXTERN PetscErrorCode STSetKSP(ST,KSP);
 PETSC_EXTERN PetscErrorCode STGetKSP(ST,KSP*);
@@ -85,6 +87,8 @@ PETSC_EXTERN PetscErrorCode STGetShift(ST,PetscScalar*);
 PETSC_EXTERN PetscErrorCode STSetDefaultShift(ST,PetscScalar);
 PETSC_EXTERN PetscErrorCode STSetBalanceMatrix(ST,Vec);
 PETSC_EXTERN PetscErrorCode STGetBalanceMatrix(ST,Vec*);
+PETSC_EXTERN PetscErrorCode STSetTransform(ST,PetscBool);
+PETSC_EXTERN PetscErrorCode STGetTransform(ST,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode STSetOptionsPrefix(ST,const char*);
 PETSC_EXTERN PetscErrorCode STAppendOptionsPrefix(ST,const char*);
@@ -107,7 +111,8 @@ PETSC_EXTERN PetscErrorCode STResetOperationCounters(ST);
 E*/
 typedef enum { ST_MATMODE_COPY,
                ST_MATMODE_INPLACE,
-               ST_MATMODE_SHELL } STMatMode;
+               ST_MATMODE_SHELL,
+               ST_MATMODE_HYBRID } STMatMode;
 PETSC_EXTERN PetscErrorCode STSetMatMode(ST,STMatMode);
 PETSC_EXTERN PetscErrorCode STGetMatMode(ST,STMatMode*);
 PETSC_EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);

@@ -152,7 +152,7 @@ int main(int argc,char **argv)
   ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
   ierr = NEPGetTolerances(nep,&abstol,&rtol,&stol,&maxit,&maxf);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: atol=%G, rtol=%G, stol=%G, maxit=%D, maxf=%D\n",abstol,rtol,stol,maxit,maxf);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: atol=%g, rtol=%g, stol=%g, maxit=%D, maxf=%D\n",(double)abstol,(double)rtol,(double)stol,maxit,maxf);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
@@ -191,9 +191,9 @@ int main(int argc,char **argv)
       im = 0.0;
 #endif
       if (im!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9F%+9F j %12G     %12G\n",re,im,norm,error);CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12g     %12g\n",(double)re,(double)im,(double)norm,(double)error);CHKERRQ(ierr);
       } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12F         %12G     %12G\n",re,norm,error);CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f         %12g     %12g\n",(double)re,(double)norm,(double)error);CHKERRQ(ierr);
       }
       if (draw_sol) {
         ierr = PetscViewerDrawSetPause(PETSC_VIEWER_DRAW_WORLD,-1);CHKERRQ(ierr);

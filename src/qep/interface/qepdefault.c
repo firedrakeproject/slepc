@@ -204,3 +204,29 @@ PetscErrorCode QEPKrylovConvergence(QEP qep,PetscBool getall,PetscInt kini,Petsc
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "QEPComputeScaleFactor"
+/*
+   QEPComputeScaleFactor - Computes sfactor as described in [Betcke 2008].
+@*/
+PetscErrorCode QEPComputeScaleFactor(QEP qep)
+{
+  PetscErrorCode ierr;
+  PetscBool      has0,has1;
+  PetscReal      norm0,norm1;
+  Mat            T[2];
+
+  PetscFunctionBegin;
+  ierr = STGetTOperators(qep->st,0,&T[0]);CHKERRQ(ierr);
+  ierr = STGetTOperators(qep->st,2,&T[1]);CHKERRQ(ierr);
+  ierr = MatHasOperation(T[0],MATOP_NORM,&has0);CHKERRQ(ierr);
+  ierr = MatHasOperation(T[1],MATOP_NORM,&has1);CHKERRQ(ierr);
+  if (has0 && has1) {
+    ierr = MatNorm(T[0],NORM_INFINITY,&norm0);CHKERRQ(ierr);
+    ierr = MatNorm(T[1],NORM_INFINITY,&norm1);CHKERRQ(ierr);
+    qep->sfactor = PetscSqrtReal(norm0/norm1);
+  } else {
+    qep->sfactor = 1.0;
+  }
+  PetscFunctionReturn(0);
+}

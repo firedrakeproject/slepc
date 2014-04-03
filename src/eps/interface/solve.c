@@ -71,7 +71,7 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscInt          i,nmat;
   PetscReal         re,im;
   PetscScalar       dot;
-  PetscBool         flg,isfold,iscayley;
+  PetscBool         flg,iscayley;
   PetscViewer       viewer;
   PetscViewerFormat format;
   PetscDraw         draw;
@@ -139,7 +139,7 @@ PetscErrorCode EPSSolve(EPS eps)
   /* Adjust left eigenvectors in generalized problems: y = B^T y */
   if (eps->isgeneralized && eps->leftvecs) {
     ierr = KSPCreate(PetscObjectComm((PetscObject)eps),&ksp);CHKERRQ(ierr);
-    ierr = KSPSetOperators(ksp,B,B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = KSPSetOperators(ksp,B,B);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
     ierr = MatGetVecs(B,NULL,&w);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
@@ -167,24 +167,6 @@ PetscErrorCode EPSSolve(EPS eps)
     }
   }
 #endif
-
-  /* quick and dirty solution for FOLD: recompute eigenvalues as Rayleigh quotients */
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFOLD,&isfold);CHKERRQ(ierr);
-  if (isfold) {
-    ierr = MatGetVecs(A,&w,NULL);CHKERRQ(ierr);
-    if (!eps->evecsavailable) { ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr); }
-    for (i=0;i<eps->nconv;i++) {
-      x = eps->V[i];
-      ierr = MatMult(A,x,w);CHKERRQ(ierr);
-      ierr = VecDot(w,x,&eps->eigr[i]);CHKERRQ(ierr);
-      if (eps->isgeneralized) {
-        ierr = MatMult(B,x,w);CHKERRQ(ierr);
-        ierr = VecDot(w,x,&dot);CHKERRQ(ierr);
-        eps->eigr[i] /= dot;
-      }
-    }
-    ierr = VecDestroy(&w);CHKERRQ(ierr);
-  }
 
   /* In the case of Cayley transform, eigenvectors need to be B-normalized */
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);

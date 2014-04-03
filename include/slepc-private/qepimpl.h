@@ -112,5 +112,6 @@ PETSC_INTERN PetscErrorCode QEPComputeVectors_Indefinite(QEP);
 PETSC_INTERN PetscErrorCode QEPComputeResidualNorm_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode QEPComputeRelativeError_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode QEPKrylovConvergence(QEP,PetscBool,PetscInt,PetscInt,PetscInt,PetscReal,PetscInt*);
+PETSC_INTERN PetscErrorCode QEPComputeScaleFactor(QEP);
 
 #endif

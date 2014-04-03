@@ -263,6 +263,7 @@ def main(slepcdir,petscdir,petscarch,log=StdoutLogger(), verbose=False):
                ('eps'            , 'ip ds st vec sys'),
                ('svd'            , 'eps ip ds sys'),
                ('qep'            , 'eps st ip ds sys'),
+               ('pep'            , 'eps st ip ds sys'),
                ('nep'            , 'eps ip ds fn sys'),
                ('mfn'            , 'ip ds fn sys')]
     for pkg,deps in pkglist:

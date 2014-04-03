@@ -27,6 +27,7 @@
 
 typedef struct {
   PetscScalar alpha;
+  PetscScalar *coeffs;
   ST          st;
   Vec         z;
   PetscInt    nmat;
@@ -48,28 +49,35 @@ PetscErrorCode STMatShellShift(Mat A,PetscScalar alpha)
 
 #undef __FUNCT__
 #define __FUNCT__ "MatMult_Shell"
+/*
+  For i=0:nmat-1 computes y = (sum_i (coeffs[i]*alpha^i*st->A[idx[i]]))x
+  If null coeffs computes with coeffs[i]=1.0  
+*/
 static PetscErrorCode MatMult_Shell(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   ST_SHELLMAT    *ctx;
   ST             st;
   PetscInt       i;
+  PetscScalar    t=1.0,c;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   st = ctx->st;
-  if (ctx->alpha != 0.0) {
-    ierr = MatMult(st->A[ctx->matIdx[ctx->nmat-1]],x,y);CHKERRQ(ierr);
-    if (ctx->nmat>1) {  /*  */
-      for (i=ctx->nmat-2;i>=0;i--) {
-        ierr = MatMult(st->A[ctx->matIdx[i]],x,ctx->z);CHKERRQ(ierr);
-        ierr = VecAYPX(y,ctx->alpha,ctx->z);CHKERRQ(ierr);
-      }
-    } else {    /* y = (A + alpha*I) x */
+  ierr = MatMult(st->A[ctx->matIdx[0]],x,y);CHKERRQ(ierr);
+  if (ctx->coeffs && ctx->coeffs[0]!=1.0) {
+    ierr = VecScale(y,ctx->coeffs[0]);CHKERRQ(ierr);
+  }
+  if (ctx->alpha!=0.0) {
+    for (i=1;i<ctx->nmat;i++) {
+      ierr = MatMult(st->A[ctx->matIdx[i]],x,ctx->z);CHKERRQ(ierr);
+      t *= ctx->alpha;
+      c = (ctx->coeffs)?t*ctx->coeffs[i]:t;
+      ierr = VecAXPY(y,c,ctx->z);CHKERRQ(ierr);
+    }
+    if (ctx->nmat==1) {    /* y = (A + alpha*I) x */
       ierr = VecAXPY(y,ctx->alpha,x);CHKERRQ(ierr);
     }
-  } else {
-    ierr = MatMult(st->A[ctx->matIdx[0]],x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -82,22 +90,25 @@ static PetscErrorCode MatMultTranspose_Shell(Mat A,Vec x,Vec y)
   ST_SHELLMAT    *ctx;
   ST             st;
   PetscInt       i;
+  PetscScalar    t=1.0,c;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   st = ctx->st;
-  if (ctx->alpha != 0.0) {
-    ierr = MatMultTranspose(st->A[ctx->matIdx[ctx->nmat-1]],x,y);CHKERRQ(ierr);
-    if (st->nmat>1) {  /* y = (A + alpha*B) x */
-      for (i=ctx->nmat-2;i>=0;i--) {
-        ierr = MatMultTranspose(st->A[ctx->matIdx[i]],x,y);CHKERRQ(ierr);
-        ierr = VecAYPX(y,ctx->alpha,ctx->z);CHKERRQ(ierr);
-      }
-    } else {    /* y = (A + alpha*I) x */
+  ierr = MatMultTranspose(st->A[ctx->matIdx[0]],x,y);CHKERRQ(ierr);
+  if (ctx->coeffs && ctx->coeffs[0]!=1.0) {
+    ierr = VecScale(y,ctx->coeffs[0]);CHKERRQ(ierr);
+  }
+  if (ctx->alpha!=0.0) {
+    for (i=1;i<ctx->nmat;i++) {
+      ierr = MatMultTranspose(st->A[ctx->matIdx[i]],x,ctx->z);CHKERRQ(ierr);
+      t *= ctx->alpha;
+      c = (ctx->coeffs)?t*ctx->coeffs[i]:t;
+      ierr = VecAXPY(y,c,ctx->z);CHKERRQ(ierr);
+    }
+    if (ctx->nmat==1) {    /* y = (A + alpha*I) x */
       ierr = VecAXPY(y,ctx->alpha,x);CHKERRQ(ierr);
     }
-  } else {
-    ierr = MatMultTranspose(st->A[ctx->matIdx[0]],x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -111,24 +122,28 @@ static PetscErrorCode MatGetDiagonal_Shell(Mat A,Vec diag)
   ST             st;
   Vec            diagb;
   PetscInt       i;
+  PetscScalar    t=1.0,c;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   st = ctx->st;
-  if (ctx->alpha != 0.0) {
-    ierr = MatGetDiagonal(st->A[ctx->matIdx[ctx->nmat-1]],diag);CHKERRQ(ierr);
-    if (st->nmat>1) {
+  ierr = MatGetDiagonal(st->A[ctx->matIdx[0]],diag);CHKERRQ(ierr);
+  if (ctx->coeffs && ctx->coeffs[0]!=1.0) {
+    ierr = VecScale(diag,ctx->coeffs[0]);CHKERRQ(ierr);
+  }
+  if (ctx->alpha!=0.0) {
+    if (ctx->nmat==1) {    /* y = (A + alpha*I) x */
+      ierr = VecShift(diag,ctx->alpha);CHKERRQ(ierr);
+    } else {
       ierr = VecDuplicate(diag,&diagb);CHKERRQ(ierr);
-      for (i=ctx->nmat-2;i>=0;i--) {
+      for (i=1;i<ctx->nmat;i++) {
         ierr = MatGetDiagonal(st->A[ctx->matIdx[i]],diagb);CHKERRQ(ierr);
-        ierr = VecAYPX(diag,ctx->alpha,diagb);CHKERRQ(ierr);
+        t *= ctx->alpha;
+        c = (ctx->coeffs)?t*ctx->coeffs[i]:t;
+        ierr = VecAYPX(diag,c,diagb);CHKERRQ(ierr);
       }
       ierr = VecDestroy(&diagb);CHKERRQ(ierr);
-    } else {
-      ierr = VecShift(diag,ctx->alpha);CHKERRQ(ierr);
     }
-  } else {
-    ierr = MatGetDiagonal(st->A[ctx->matIdx[0]],diag);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -143,13 +158,15 @@ static PetscErrorCode MatDestroy_Shell(Mat A)
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->z);CHKERRQ(ierr);
-  ierr = PetscFree2(ctx->matIdx,ctx);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->matIdx);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->coeffs);CHKERRQ(ierr);
+  ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "STMatShellCreate"
-PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *matIdx,Mat *mat)
+PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *matIdx,PetscScalar *coeffs,Mat *mat)
 {
   PetscErrorCode ierr;
   PetscInt       n,m,N,M,i;
@@ -169,6 +186,10 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
   } else {
     ctx->matIdx[0] = 0;
     if (ctx->nmat>1) ctx->matIdx[1] = 1;
+  }
+  if (coeffs) {
+    ierr = PetscMalloc(ctx->nmat*sizeof(PetscScalar),&ctx->coeffs);CHKERRQ(ierr);
+    for (i=0;i<ctx->nmat;i++) ctx->coeffs[i] = coeffs[i];
   }
   ierr = MatGetVecs(st->A[0],&ctx->z,NULL);CHKERRQ(ierr);
   ierr = MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,(void*)ctx,mat);CHKERRQ(ierr);

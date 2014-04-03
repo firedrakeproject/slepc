@@ -47,8 +47,6 @@
 @*/
 PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
 {
-  PetscInt       i;
-  PetscScalar    alpha;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -62,10 +60,6 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
   } else {
     ierr = MatMult(st->T[k],x,y);CHKERRQ(ierr);
   }
-  /* apply scaling */
-  alpha = st->delta;
-  for (i=0;i<k;i++) alpha *= st->gamma;
-  ierr = VecScale(y,alpha);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -91,8 +85,6 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
 @*/
 PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
 {
-  PetscInt       i;
-  PetscScalar    alpha;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -106,24 +98,19 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
   } else {
     ierr = MatMultTranspose(st->T[k],x,y);CHKERRQ(ierr);
   }
-  /* apply scaling */
-  alpha = st->delta;
-  for (i=0;i<k;i++) alpha *= st->gamma;
-  ierr = VecScale(y,alpha);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "STMatSolve"
 /*@
-   STMatSolve - Solves T[k] x = b, where T[k] is the k-th matrix of
+   STMatSolve - Solves P x = b, where P is the preconditioner matrix of
    the spectral transformation, using a KSP object stored internally.
 
    Collective on ST
 
    Input Parameters:
 +  st - the spectral transformation context
-.  k  - index of matrix to use
 -  b  - right hand side vector
 
    Output Parameter:
@@ -133,50 +120,37 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
 
 .seealso: STMatSolveTranspose()
 @*/
-PetscErrorCode STMatSolve(ST st,PetscInt k,Vec b,Vec x)
+PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
 {
   PetscErrorCode     ierr;
   PetscInt           its;
   PetscBool          flg;
   KSPConvergedReason reason;
-  PetscInt           i;
-  PetscScalar        alpha;
 
   PetscFunctionBegin;
-  if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
   if (x == b) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
-  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STFOLD,STPRECOND,STSHELL,"");CHKERRQ(ierr);
-  if (!flg && !st->T[k]) {
-    /* T[k]=NULL means identity matrix */
+  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STPRECOND,STSHELL,"");CHKERRQ(ierr);
+  if (!flg && !st->P) {
+    /* P=NULL means identity matrix */
     ierr = VecCopy(b,x);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  if (!flg && k!=st->kspidx) {
-    /* change of coefficient matrix; should not happen normally */
-    ierr = KSPSetOperators(st->ksp,st->T[k],st->T[k],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-    st->kspidx = k;
-  }
   ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
   if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
   st->lineariterations += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
-  /* apply scaling */
-  alpha = st->delta;
-  for (i=0;i<k;i++) alpha *= st->gamma;
-  ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "STMatSolveTranspose"
 /*@
-   STMatSolveTranspose - Solves T[k]' x = b, where T[k] is the k-th matrix of
+   STMatSolveTranspose - Solves P' x = b, where P is the preconditioner matrix of
    the spectral transformation, using a KSP object stored internally.
 
    Collective on ST
@@ -192,43 +166,30 @@ PetscErrorCode STMatSolve(ST st,PetscInt k,Vec b,Vec x)
 
 .seealso: STMatSolve()
 @*/
-PetscErrorCode STMatSolveTranspose(ST st,PetscInt k,Vec b,Vec x)
+PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
 {
   PetscErrorCode     ierr;
   PetscInt           its;
   PetscBool          flg;
   KSPConvergedReason reason;
-  PetscInt           i;
-  PetscScalar        alpha;
 
   PetscFunctionBegin;
-  if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
-  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STFOLD,STPRECOND,STSHELL,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STPRECOND,STSHELL,"");CHKERRQ(ierr);
   if (x == b) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
-  if (!flg && !st->T[k]) {
-    /* T[k]=NULL means identity matrix */
+  if (!flg && !st->P) {
+    /* P=NULL means identity matrix */
     ierr = VecCopy(b,x);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  if (!flg && k!=st->kspidx) {
-    /* change of coefficient matrix; should not happen normally */
-    ierr = KSPSetOperators(st->ksp,st->T[k],st->T[k],DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-    ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
-    st->kspidx = k;
-  }
   ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
   if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
   st->lineariterations += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
-  /* apply scaling */
-  alpha = st->delta;
-  for (i=0;i<k;i++) alpha *= st->gamma;
-  ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -407,7 +368,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,PetscInt n,const Vec V[])
   ierr = PetscMalloc1(n,&T);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
-  ierr = PCGetOperators(pc,&A,NULL,NULL);CHKERRQ(ierr);
+  ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
   ierr = MatGetVecs(A,NULL,&w);CHKERRQ(ierr);
   c = 0;
   for (i=0;i<n;i++) {

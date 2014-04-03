@@ -204,8 +204,8 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",qep->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",qep->mpd);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",qep->max_it);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",qep->tol);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %G\n",qep->sfactor);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)qep->tol);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %g\n",(double)qep->sfactor);CHKERRQ(ierr);
     if (qep->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(qep->nini));CHKERRQ(ierr);
     }
@@ -296,9 +296,9 @@ PetscErrorCode QEPPrintSolution(QEP qep,PetscViewer viewer)
             if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
             if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
             if (im!=0.0) {
-              ierr = PetscViewerASCIIPrintf(viewer,"%.5F%+.5Fi",re,im);CHKERRQ(ierr);
+              ierr = PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im);CHKERRQ(ierr);
             } else {
-              ierr = PetscViewerASCIIPrintf(viewer,"%.5F",re);CHKERRQ(ierr);
+              ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)re);CHKERRQ(ierr);
             }
             if (8*i+j+1<qep->nev) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
           }
@@ -325,9 +325,9 @@ PetscErrorCode QEPPrintSolution(QEP qep,PetscViewer viewer)
         im = ki;
 #endif
         if (im!=0.0) {
-          ierr = PetscViewerASCIIPrintf(viewer," % 9F%+9F i     %12G\n",re,im,error);CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer," % 9f%+9f i     %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
         } else {
-          ierr = PetscViewerASCIIPrintf(viewer,"   % 12F           %12G\n",re,error);CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"   % 12f           %12g\n",(double)re,(double)error);CHKERRQ(ierr);
         }
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);

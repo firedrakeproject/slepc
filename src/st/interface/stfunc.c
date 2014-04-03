@@ -123,7 +123,6 @@ PetscErrorCode STReset(ST st)
   ierr = VecDestroy(&st->w);CHKERRQ(ierr);
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
   ierr = STResetOperationCounters(st);CHKERRQ(ierr);
-  st->kspidx = -1;
   st->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -154,6 +153,7 @@ PetscErrorCode STDestroy(ST *st)
   ierr = MatDestroyMatrices(PetscMax(2,(*st)->nmat),&(*st)->A);CHKERRQ(ierr);
   ierr = PetscFree((*st)->Astate);CHKERRQ(ierr);
   if ((*st)->ops->destroy) { ierr = (*(*st)->ops->destroy)(*st);CHKERRQ(ierr); }
+  ierr = MatDestroy(&(*st)->P);CHKERRQ(ierr);
   ierr = VecDestroy(&(*st)->D);CHKERRQ(ierr);
   ierr = KSPDestroy(&(*st)->ksp);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(st);CHKERRQ(ierr);
@@ -191,6 +191,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->A            = 0;
   st->Astate       = 0;
   st->T            = 0;
+  st->P            = 0;
   st->nmat         = 0;
   st->sigma        = 0.0;
   st->sigma_set    = PETSC_FALSE;
@@ -198,15 +199,12 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->data         = 0;
   st->setupcalled  = 0;
   st->ksp          = 0;
-  st->kspidx       = -1;
   st->w            = 0;
   st->D            = 0;
   st->wb           = 0;
   st->shift_matrix = ST_MATMODE_COPY;
   st->str          = DIFFERENT_NONZERO_PATTERN;
-  st->gamma        = 1.0;
-  st->delta        = 1.0;
-  st->userscale    = PETSC_FALSE;
+  st->transform    = PETSC_FALSE;
 
   *newst = st;
   PetscFunctionReturn(0);
@@ -290,6 +288,35 @@ PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A)
   if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat-1);
   if (((PetscObject)st->A[k])->state!=st->Astate[k]) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot retrieve original matrices (have been modified)");
   *A = st->A[k];
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STGetTOperators"
+/*@
+   STGetTOperators - Gets the matrices associated with the transformed eigensystem.
+
+   Not collective, though parallel Mats are returned if the ST is parallel
+
+   Input Parameter:
++  st - the spectral transformation context
+-  k  - the index of the requested matrix (starting in 0)
+
+   Output Parameters:
+.  T - the requested matrix
+
+   Level: developer
+
+.seealso: STGetOperators(), STGetNumMatrices()
+@*/
+PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *T)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(T,3);
+  if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat-1);
+  if (!st->T) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_POINTER,"There are no transformed matrices");
+  *T = st->T[k];
   PetscFunctionReturn(0);
 }
 
@@ -629,6 +656,9 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     case ST_MATMODE_SHELL:
       ierr = PetscViewerASCIIPrintf(viewer,"  using a shell matrix\n");CHKERRQ(ierr);
       break;
+    case ST_MATMODE_HYBRID:
+      ierr = PetscViewerASCIIPrintf(viewer,"  using a hybrid matrix representation\n");CHKERRQ(ierr);
+      break;
     }
     if (st->nmat>1 && st->shift_matrix != ST_MATMODE_SHELL) {
       switch (st->str) {
@@ -639,12 +669,15 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  all matrices have %s\n",pat);CHKERRQ(ierr);
     }
+    if (st->transform) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  computing transformed matrices\n");CHKERRQ(ierr);
+    }
   } else if (isstring) {
     ierr = STGetType(st,&cstr);CHKERRQ(ierr);
     ierr = PetscViewerStringSPrintf(viewer," %-7.7s",cstr);CHKERRQ(ierr);
     if (st->ops->view) { ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr); }
   }
-  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STSHIFT,STFOLD,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)st,STSHIFT,&flg);CHKERRQ(ierr);
   if (st->nmat>1 || !flg) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);

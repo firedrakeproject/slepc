@@ -27,11 +27,11 @@ LOCDIR     = src/st/examples/tests/
 EXAMPLESC  = test1.c test2.c
 EXAMPLESF  =
 MANSEC     = ST
-TESTS      = test1 test2 test3
+TESTS      = test1 test2 test3 test4
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 test1.rm \
-                       test2.PETSc runtest2_1 test2.rm \
-                       test3.PETSc runtest3_1 test3.rm
+                       test2.PETSc runtest2_1 runtest2_3 runtest2_3 test2.rm \
+                       test3.PETSc runtest3_1 runtest2_3 runtest3_3 test3.rm 
 
 include ${SLEPC_DIR}/conf/slepc_common
 
@@ -46,6 +46,10 @@ test2: test2.o chkopts
 test3: test3.o chkopts
 	-${CLINKER} -o test3 test3.o ${SLEPC_LIB}
 	${RM} test3.o
+
+test4: test4.o chkopts
+	-${CLINKER} -o test4 test4.o ${SLEPC_LIB}
+	${RM} test4.o
 
 #------------------------------------------------------------------------------------
 
@@ -101,4 +105,34 @@ runtest3_2:
 runtest3_3:
 	-@test=test3_1; \
 	${MPIEXEC} -np 1 ./test3 -st_matmode shell 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest4_1:
+	-@test=test4_2; \
+	${MPIEXEC} -np 1 ./test4 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest4_2:
+	-@test=test4_2; \
+	${MPIEXEC} -np 1 ./test4 -st_matmode shell 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest4_3:
+	-@test=test4_2; \
+	${MPIEXEC} -np 1 ./test4 -st_matmode hybrid 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest4_4:
+	-@test=test4_1; \
+	${MPIEXEC} -np 1 ./test4 -st_transform 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest4_5:
+	-@test=test4_1; \
+	${MPIEXEC} -np 1 ./test4 -st_transform -st_matmode shell 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest4_6:
+	-@test=test4_1; \
+	${MPIEXEC} -np 1 ./test4 -st_transform -st_matmode hybrid 2>&1 > $${test}.tmp; \
 	${TESTCODE}

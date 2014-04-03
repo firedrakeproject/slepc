@@ -95,7 +95,7 @@ int main(int argc,char **argv)
   if (lev<100*PETSC_MACHINE_EPSILON) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below 100*eps\n");CHKERRQ(ierr);
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %G\n",lev);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)lev);CHKERRQ(ierr);
   }
 
   ierr = MatDestroy(&B);CHKERRQ(ierr);

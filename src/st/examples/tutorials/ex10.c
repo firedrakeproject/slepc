@@ -211,7 +211,7 @@ PetscErrorCode STSetUp_User(SampleShellST *shell,ST st)
 
   PetscFunctionBeginUser;
   ierr = STGetOperators(st,0,&A);CHKERRQ(ierr);
-  ierr = KSPSetOperators(shell->ksp,A,A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = KSPSetOperators(shell->ksp,A,A);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(shell->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

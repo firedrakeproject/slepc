@@ -47,6 +47,7 @@ int main(int argc,char **argv)
   PetscScalar    target=0.5;
   PetscInt       N,m=15,nev;
   PetscErrorCode ierr;
+  char           str[50];
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -54,7 +55,8 @@ int main(int argc,char **argv)
   N = m*(m+1)/2;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%D (m=%D)\n",N,m);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(NULL,"-target",&target,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Searching closest eigenvalues to the right of %G.\n\n",target);CHKERRQ(ierr);
+  ierr = SlepcSNPrintfScalar(str,50,target,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Searching closest eigenvalues to the right of %s.\n\n",str);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx

@@ -54,8 +54,7 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,shift neighb0,shift n
 
   PetscFunctionBegin;
   sr = ctx->sr;
-  ierr = PetscMalloc(sizeof(struct _n_shift),&s);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(struct _n_shift));CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&s);CHKERRQ(ierr);
   s->value = val;
   s->neighb[0] = neighb0;
   if (neighb0) neighb0->neighb[1] = s;
@@ -322,7 +321,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
         /* Start a new Lanczos factorization */
-        ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%D norm=%G)\n",eps->its,beta);CHKERRQ(ierr);
+        ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
         ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
         if (breakdown) {
           eps->reason = EPS_DIVERGED_BREAKDOWN;
@@ -614,8 +613,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc(sizeof(struct _n_SR),&sr);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(struct _n_SR));CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&sr);CHKERRQ(ierr);
   ctx->sr = sr;
   sr->itsKs = 0;
   sr->nleap = 0;
@@ -662,7 +660,9 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   /* Only with eigenvalues present in the interval ...*/
   if (sr->numEigs==0) {
     eps->reason = EPS_CONVERGED_TOL;
-    ierr = PetscFree3(sr->s0,sr->pending,sr);CHKERRQ(ierr);
+    ierr = PetscFree(sr->s0);CHKERRQ(ierr);
+    ierr = PetscFree(sr->pending);CHKERRQ(ierr);
+    ierr = PetscFree(sr);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
   /* Memory reservation for eig, V and perm */
@@ -717,7 +717,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   /* Updating eps values prior to exit */
   ierr = VecDestroyVecs(eps->allocated_ncv,&eps->V);CHKERRQ(ierr);
   eps->V = sr->V;
-  ierr = PetscFree6(sr->S,eps->eigr,eps->eigi,eps->errest,eps->errest_left,eps->perm);CHKERRQ(ierr);
+  ierr = PetscFree(sr->S);CHKERRQ(ierr);
+  ierr = PetscFree5(eps->eigr,eps->eigi,eps->errest,eps->errest_left,eps->perm);CHKERRQ(ierr);
   eps->eigr = sr->eig;
   eps->eigi = sr->eigi;
   eps->errest = sr->errest;

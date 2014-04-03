@@ -199,10 +199,10 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
       er = eigr[i]; ei = eigi[i];
       ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIPrintf(viewer," %G",er);CHKERRQ(ierr);
-      if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+Gi",ei);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIPrintf(viewer," %g",(double)er);CHKERRQ(ierr);
+      if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)ei);CHKERRQ(ierr); }
 #endif
       ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)",(double)errest[i]);CHKERRQ(ierr);
     }
@@ -247,10 +247,10 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
     er = eigr[nconv]; ei = eigi[nconv];
     ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
-    ierr = PetscViewerASCIIPrintf(viewer," %G",er);CHKERRQ(ierr);
-    if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+Gi",ei);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPrintf(viewer," %g",(double)er);CHKERRQ(ierr);
+    if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)ei);CHKERRQ(ierr); }
 #endif
     ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[nconv]);CHKERRQ(ierr);
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
@@ -304,10 +304,10 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
       er = eigr[i]; ei = eigi[i];
       ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIPrintf(viewer," %G%+Gi",PetscRealPart(er),PetscImaginaryPart(er));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIPrintf(viewer," %G",er);CHKERRQ(ierr);
-      if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+Gi",ei);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIPrintf(viewer," %g",(double)er);CHKERRQ(ierr);
+      if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)ei);CHKERRQ(ierr); }
 #endif
       ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[i]);CHKERRQ(ierr);
       ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
@@ -407,8 +407,7 @@ PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
     }
   }
 
-  ierr = PetscMalloc(sizeof(PetscReal)*n,&x);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscReal)*n,&y);CHKERRQ(ierr);
+  ierr = PetscMalloc2(n,&x,n,&y);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     x[i] = (PetscReal)its;
     if (i < nest && errest[i] > 0.0) y[i] = PetscLog10Real(errest[i]);

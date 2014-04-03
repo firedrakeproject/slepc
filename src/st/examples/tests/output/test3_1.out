@@ -17,16 +17,16 @@ Vec Object: 1 MPI processes
 With shift=0.1
 Vec Object: 1 MPI processes
   type: seq
--0.9
-0.1
-0.1
-0.1
-0.1
-0.1
-0.1
-0.1
-0.1
-0.211111
+-1.1
+-0.1
+-0.1
+-0.1
+-0.1
+-0.1
+-0.1
+-0.1
+-0.1
+0.0111111
 ST type sinvert
 With shift=0.1
 Vec Object: 1 MPI processes

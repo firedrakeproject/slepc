@@ -854,7 +854,7 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,
       }
     }
     if (lindep || (PetscAbs(d->nR[r_s+i]) < PETSC_MACHINE_EPSILON)) {
-      ierr = PetscInfo2(d->eps,"The computed eigenvector residual %D is too low, %G!\n",r_s+i,d->nR[r_s+i]);CHKERRQ(ierr);
+      ierr = PetscInfo2(d->eps,"The computed eigenvector residual %D is too low, %g!\n",r_s+i,(double)(d->nR[r_s+i]));CHKERRQ(ierr);
     }
   }
   if (!cX || (cX && d->orthoV_type == EPS_ORTH_BOPT)) {

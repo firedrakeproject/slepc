@@ -217,9 +217,6 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg);CHKERRQ(ierr);
   if (flg && eps->problem_type == EPS_PGNHEP) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
 
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFOLD,&flg);CHKERRQ(ierr);
-  if (flg && !eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Fold spectral transformation requires a Hermitian problem");
-
   if (eps->nds>0) {
     if (!eps->ds_ortho) {
       /* allocate memory and copy deflation basis vectors into defl */

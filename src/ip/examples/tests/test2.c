@@ -118,7 +118,7 @@ int main(int argc,char **argv)
   if (nrm<100*PETSC_MACHINE_EPSILON) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Test gave correct result.\n");CHKERRQ(ierr);
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Error against MatMatMult = %G.\n",nrm);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Error against MatMatMult = %g.\n",(double)nrm);CHKERRQ(ierr);
   }
 
   ierr = VecDestroyVecs(k,&V);CHKERRQ(ierr);

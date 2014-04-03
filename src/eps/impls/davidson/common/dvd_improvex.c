@@ -204,7 +204,8 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
       ierr = PetscObjectReference((PetscObject)data->old_pc);CHKERRQ(ierr);
       ierr = PCCreate(PetscObjectComm((PetscObject)d->eps),&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCSHELL);CHKERRQ(ierr);
-      ierr = PCSetOperators(pc, d->A, d->A, SAME_PRECONDITIONER);CHKERRQ(ierr);
+      ierr = PCSetOperators(pc,d->A,d->A);CHKERRQ(ierr);
+      ierr = PCSetReusePreconditioner(pc,PETSC_TRUE);CHKERRQ(ierr);
       ierr = PCShellSetApply(pc,PCApply_dvd);CHKERRQ(ierr);
       ierr = PCShellSetApplyBA(pc,PCApplyBA_dvd);CHKERRQ(ierr);
       ierr = PCShellSetApplyTranspose(pc,PCApplyTranspose_dvd);CHKERRQ(ierr);
@@ -227,11 +228,12 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
     if (t) {
       Mat M;
       PetscInt rM;
-      ierr = KSPGetOperators(data->ksp,&M,NULL,NULL);CHKERRQ(ierr);
+      ierr = KSPGetOperators(data->ksp,&M,NULL);CHKERRQ(ierr);
       ierr = MatGetSize(M,&rM,NULL);CHKERRQ(ierr);
       if (rM != rA*data->ksp_max_size) { ierr = KSPReset(data->ksp);CHKERRQ(ierr); }
     }
-    ierr = KSPSetOperators(data->ksp, A, A, SAME_PRECONDITIONER);CHKERRQ(ierr);
+    ierr = KSPSetOperators(data->ksp,A,A);CHKERRQ(ierr);
+    ierr = KSPSetReusePreconditioner(data->ksp,PETSC_TRUE);CHKERRQ(ierr);
     ierr = KSPSetUp(data->ksp);CHKERRQ(ierr);
     ierr = MatDestroy(&A);CHKERRQ(ierr);
   } else {
@@ -514,7 +516,7 @@ PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w)
   Mat             A;
 
   PetscFunctionBegin;
-  ierr = PCGetOperators(pc,&A,NULL,NULL);CHKERRQ(ierr);
+  ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
   ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
@@ -577,7 +579,7 @@ PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out)
   Mat             A;
 
   PetscFunctionBegin;
-  ierr = PCGetOperators(pc,&A,NULL,NULL);CHKERRQ(ierr);
+  ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
   ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
@@ -604,7 +606,7 @@ PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out)
   Mat             A;
 
   PetscFunctionBegin;
-  ierr = PCGetOperators(pc,&A,NULL,NULL);CHKERRQ(ierr);
+  ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
   ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
@@ -864,10 +866,10 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
             PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10    || \
           PetscAbsScalar((eigi)[(i_s)+(i)] - (b)[9])/ \
             PetscAbsScalar((eigi)[(i_s)+(i)]) > 1e-10) { \
-        (ierr) = PetscInfo4((eps), "The eigenvalue %G+%G is far from its "\
-                            "Rayleigh quotient value %G+%G\n", \
-                            (eigr)[(i_s)+(i)], \
-                            (eigi)[(i_s)+(i)], (b)[8], (b)[9]); \
+        (ierr) = PetscInfo4((eps), "The eigenvalue %g+%g is far from its "\
+                            "Rayleigh quotient value %g+%g\n", \
+                            (double)(eigr)[(i_s)+(i)], \
+                            (double)(eigi)[(i_s)+(i)], (double)(b)[8], (double)(b)[9]); \
       } \
       (i)++; \
     } \
@@ -880,11 +882,11 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
       (b)[0] = (b)[0]/(b)[1]; \
       if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[0])/ \
             PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10) { \
-        (ierr) = PetscInfo4((eps), "The eigenvalue %G+%G is far from its " \
-               "Rayleigh quotient value %G+%G\n", \
-               PetscRealPart((eigr)[(i_s)+(i)]), \
-               PetscImaginaryPart((eigr)[(i_s)+(i)]), PetscRealPart((b)[0]), \
-               PetscImaginaryPart((b)[0])); \
+        (ierr) = PetscInfo4((eps), "The eigenvalue %g+%g is far from its " \
+               "Rayleigh quotient value %g+%g\n", \
+               (double)PetscRealPart((eigr)[(i_s)+(i)]), \
+               (double)PetscImaginaryPart((eigr)[(i_s)+(i)]), (double)PetscRealPart((b)[0]), \
+               (double)PetscImaginaryPart((b)[0])); \
       } \
     }
 #endif

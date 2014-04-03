@@ -186,7 +186,8 @@ static PetscErrorCode QEPSTOARqKupdate(QEP qep,PetscInt j,Vec *wv,PetscInt nwv)
   v2 = wv[1];
   ierr = STMatMult(qep->st,0,V[j],v1);CHKERRQ(ierr);
   if (ctx->monic) {
-    ierr = STMatSolve(qep->st,2,v1,v2);CHKERRQ(ierr);
+    ierr = STMatSolve(qep->st,v1,v2);CHKERRQ(ierr);
+    ierr = VecScale(v2,1/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
     v1 = v2;
   }
   ierr = VecMDot(v1,j+1,V,qK+j*ld);CHKERRQ(ierr);
@@ -227,9 +228,9 @@ static PetscErrorCode QEPSTOARrun(QEP qep,PetscReal *a,PetscReal *b,PetscReal *o
     ierr = VecZeroEntries(v);CHKERRQ(ierr);
     ierr = VecMAXPY(v,j+2,S+offq+j*lds,V);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,1,v,q);CHKERRQ(ierr);
-    ierr = VecAXPY(t,1.0,q);CHKERRQ(ierr);
-    ierr = STMatSolve(qep->st,2,t,q);CHKERRQ(ierr);
-    ierr = VecScale(q,-1.0);CHKERRQ(ierr);
+    ierr = VecAXPY(t,qep->sfactor,q);CHKERRQ(ierr);
+    ierr = STMatSolve(qep->st,t,q);CHKERRQ(ierr);
+    ierr = VecScale(q,-1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
 
     /* orthogonalize */
     if (ctx->monic) {
@@ -336,13 +337,14 @@ static PetscErrorCode IndefNorm(PetscInt n,PetscReal *s,PetscScalar *x,PetscReal
 #define __FUNCT__ "QEPSTOARTrunc"
 static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
 {
-  PetscErrorCode ierr;
-  QEP_STOAR      *ctx=(QEP_STOAR*)qep->data;
-  PetscInt       lwa,nwu=0,lrwa,nrwu=0;
-  PetscInt       j,i,n,lds=2*ctx->ld;
-  PetscScalar    *M,*V,*U,*S=ctx->S,*R,sone=1.0,zero=0.0,t;
-  PetscReal      *sg,*qM=ctx->qM,*ss,norm;
-  PetscBLASInt   cs1_,rs1_,cs1t2,cs1p1,n_,info,lw_,one=1,lds_,ld_;
+  PetscErrorCode  ierr;
+  QEP_STOAR       *ctx=(QEP_STOAR*)qep->data;
+  PetscInt        lwa,nwu=0,lrwa,nrwu=0;
+  PetscInt        j,i,n,lds=2*ctx->ld;
+  PetscScalar     *M,*V,*U,*S=ctx->S,*R=NULL,sone=1.0,zero=0.0,t;
+  PetscReal       *sg,*qM=ctx->qM,*ss=NULL,norm;
+  PetscBLASInt    cs1_,rs1_,cs1t2,cs1p1,n_,info,lw_,one=1,lds_,ld_;
+  const PetscBool ismonic=ctx->monic;
 
   PetscFunctionBegin;
   n = (rs1>2*cs1)?2*cs1:rs1;
@@ -382,7 +384,7 @@ static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScala
   PetscStackCall("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1t2,M,&rs1_,sg,U,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));  
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
-  if (!ctx->monic) {
+  if (!ismonic) {
     R = work+nwu;
     ierr = PetscMemzero(R,(cs1+1)*(cs1+1)*sizeof(PetscScalar));CHKERRQ(ierr);
     nwu += (cs1+1)*(cs1+1);
@@ -402,7 +404,7 @@ static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScala
   
   /* Update S */
   ierr = PetscMemzero(S,lds*ctx->ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  if (ctx->monic) {
+  if (ismonic) {
     for (i=0;i<cs1+1;i++) {
       t = sg[i];
       PetscStackCall("BLASscal",BLASscal_(&cs1t2,&t,V+i,&n_));
@@ -420,7 +422,7 @@ static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScala
     PetscStackCall("BLASgemm",BLASgemm_("N","N",&cs1p1,&cs1_,&cs1p1,&sone,R,&cs1p1,V+cs1*n,&n_,&zero,S+ctx->ld,&lds_));
   }
   /* Update qM and qK */
-  for (j=0;j<cs1+1;j++) qM[j] = (ctx->monic)?1.0:ss[j];
+  for (j=0;j<cs1+1;j++) qM[j] = ismonic? 1.0: ss[j];
   PetscStackCall("BLASgemm",BLASgemm_("N","N",&rs1_,&cs1p1,&rs1_,&sone,ctx->qK,&ld_,U,&rs1_,&zero,work+nwu,&rs1_));
   PetscStackCall("BLASgemm",BLASgemm_("C","N",&cs1p1,&cs1p1,&rs1_,&sone,U,&rs1_,work+nwu,&rs1_,&zero,ctx->qK,&ld_));
   PetscFunctionReturn(0);
@@ -469,7 +471,7 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
 {
   PetscErrorCode ierr;
   QEP_STOAR      *ctx=(QEP_STOAR*)qep->data;
-  PetscInt       j,k,l,nv,ld=ctx->ld,lds=ctx->d*ctx->ld,off,ldds,t;
+  PetscInt       j,k,l,nv=0,ld=ctx->ld,lds=ctx->d*ctx->ld,off,ldds,t;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0;
   Vec            w=qep->work[0],w2=qep->work[1];
   PetscScalar    *S=ctx->S,*Q,*work;
@@ -483,13 +485,12 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
   } else {
     ierr = STGetBilinearForm(qep->st,&M);CHKERRQ(ierr);
     ierr = IPSetType(qep->ip,IPINDEFINITE);CHKERRQ(ierr);
-    ierr = IPSetMatrix(qep->ip,M,qep->st->delta*qep->st->gamma*qep->st->gamma);CHKERRQ(ierr);
+    ierr = IPSetMatrix(qep->ip,M,qep->sfactor*qep->sfactor);CHKERRQ(ierr);
     ierr = MatDestroy(&M);CHKERRQ(ierr);
   }
   lwa = 9*ld*ld+5*ld;
-  ierr = PetscMalloc1(lwa,&work);CHKERRQ(ierr);
   lrwa = 8*ld;
-  ierr = PetscMalloc1(lrwa,&rwork);CHKERRQ(ierr);
+  ierr = PetscMalloc2(lwa,&work,lrwa,&rwork);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
   if (qep->nini==0) {  
@@ -556,8 +557,9 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     ierr = VecNorm(w,NORM_2,&t1);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,0,w,w2);CHKERRQ(ierr);
     if (ctx->monic) {
-      ierr = STMatSolve(qep->st,2,w2,w);CHKERRQ(ierr);
+      ierr = STMatSolve(qep->st,w2,w);CHKERRQ(ierr);
       ierr = VecNorm(w,NORM_2,&t2);CHKERRQ(ierr);
+      t2 /= qep->sfactor*qep->sfactor;
     } else {
       ierr = VecNorm(w2,NORM_2,&t2);CHKERRQ(ierr);
     }
@@ -568,6 +570,7 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     if (!ctx->monic) {
       ierr = STMatMult(qep->st,2,w,w2);CHKERRQ(ierr);
       ierr = VecNorm(w2,NORM_2,&norm);CHKERRQ(ierr);
+      norm *= qep->sfactor*qep->sfactor;
     }
     t2 = SlepcAbs(norm,t2);
     norm = PetscMax(t1,t2);
@@ -602,7 +605,7 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
       if (breakdown) {
 
         /* Stop if breakdown */
-        ierr = PetscInfo2(qep,"Breakdown STOAR method (it=%D norm=%G)\n",qep->its,beta);CHKERRQ(ierr);
+        ierr = PetscInfo2(qep,"Breakdown STOAR method (it=%D norm=%g)\n",qep->its,(double)beta);CHKERRQ(ierr);
         qep->reason = QEP_DIVERGED_BREAKDOWN;
       } else {
 
@@ -778,7 +781,8 @@ PetscErrorCode QEPDestroy_STOAR(QEP qep)
   QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree4(ctx->S,ctx->qM,ctx->qK,qep->data);CHKERRQ(ierr);
+  ierr = PetscFree3(ctx->S,ctx->qM,ctx->qK);CHKERRQ(ierr);
+  ierr = PetscFree(qep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPSTOARSetMonic_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)qep,"QEPSTOARGetMonic_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);

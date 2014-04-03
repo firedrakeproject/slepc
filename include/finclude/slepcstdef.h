@@ -36,7 +36,6 @@
 #define STSHIFT     'shift'
 #define STSINVERT   'sinvert'
 #define STCAYLEY    'cayley'
-#define STFOLD      'fold'
 #define STPRECOND   'precond'
 
 #endif

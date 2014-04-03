@@ -92,7 +92,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed singular values =\n",n);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     sigma = PetscRealPart(w[i]);
-    ierr = PetscViewerASCIIPrintf(viewer,"  %.5F\n",sigma);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)sigma);CHKERRQ(ierr);
   }
   ierr = PetscFree(w);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);

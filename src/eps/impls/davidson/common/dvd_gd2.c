@@ -144,10 +144,10 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
             PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10    || \
           PetscAbsScalar((eigi)[(i_s)+(i)] - (b)[9])/ \
             PetscAbsScalar((eigi)[(i_s)+(i)]) > 1e-10) { \
-        (ierr) = PetscInfo4((eps), "The eigenvalue %G+%G is far from its "\
-                            "Rayleigh quotient value %G+%G\n", \
-                            (eigr)[(i_s)+(i)], \
-                            (eigi)[(i_s)+1], (b)[8], (b)[9]);CHKERRQ(ierr); \
+        (ierr) = PetscInfo4((eps), "The eigenvalue %g+%g is far from its "\
+                            "Rayleigh quotient value %g+%g\n", \
+                            (double)(eigr)[(i_s)+(i)], \
+                            (double)(eigi)[(i_s)+1], (double)(b)[8], (double)(b)[9]);CHKERRQ(ierr); \
       } \
       (i)++; \
     } else { \
@@ -156,10 +156,10 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
       (b)[0] = (b)[0]/(b)[1]; \
       if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[0])/ \
             PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10) { \
-        (ierr) = PetscInfo3((eps), "The eigenvalue %G is far from its " \
-               "Rayleigh quotient value %G. (y'*B*x = %G)\n", \
-               (eigr)[(i_s)+(i)], \
-               (b)[0], (b)[1]);CHKERRQ(ierr); \
+        (ierr) = PetscInfo3((eps), "The eigenvalue %g is far from its " \
+               "Rayleigh quotient value %g. (y'*B*x = %g)\n", \
+               (double)(eigr)[(i_s)+(i)], \
+               (double)(b)[0], (double)(b)[1]);CHKERRQ(ierr); \
       } \
     } \
   }
@@ -171,11 +171,11 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
       (b)[0] = (b)[0]/(b)[1]; \
       if (PetscAbsScalar((eigr)[(i_s)+(i)] - (b)[0])/ \
             PetscAbsScalar((eigr)[(i_s)+(i)]) > 1e-10) { \
-        (ierr) = PetscInfo4((eps), "The eigenvalue %G+%G is far from its " \
-               "Rayleigh quotient value %G+%G\n", \
-               PetscRealPart((eigr)[(i_s)+(i)]), \
-               PetscImaginaryPart((eigr)[(i_s)+(i)]), PetscRealPart((b)[0]), \
-               PetscImaginaryPart((b)[0])); \
+        (ierr) = PetscInfo4((eps), "The eigenvalue %g+%g is far from its " \
+               "Rayleigh quotient value %g+%g\n", \
+               (double)PetscRealPart((eigr)[(i_s)+(i)]), \
+               (double)PetscImaginaryPart((eigr)[(i_s)+(i)]), (double)PetscRealPart((b)[0]), \
+               (double)PetscImaginaryPart((b)[0])); \
       } \
     }
 #endif

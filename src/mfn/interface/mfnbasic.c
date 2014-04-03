@@ -157,7 +157,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  function: %s\n",fun);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",mfn->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",mfn->max_it);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %G\n",mfn->tol);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)mfn->tol);CHKERRQ(ierr);
     ierr = SlepcSNPrintfScalar(str,50,mfn->sfactor,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %s\n",str);CHKERRQ(ierr);
   } else {
@@ -452,7 +452,8 @@ PetscErrorCode MFNSetIP(MFN mfn,IP ip)
 #undef __FUNCT__
 #define __FUNCT__ "MFNGetIP"
 /*@C
-   MFNGetIP - Obtain the inner product object associated to the eigensolver object.
+   MFNGetIP - Obtain the inner product object associated to the matrix
+   function solver.
 
    Not Collective
 

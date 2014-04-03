@@ -51,7 +51,6 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   PetscInt         i,j,k;
   PetscViewer      monviewer;
   SlepcConvMonitor ctx;
-  MatStructure     matflag;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -168,8 +167,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(nep->ds);CHKERRQ(ierr);
   if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
-  ierr = KSPGetOperators(nep->ksp,NULL,NULL,&matflag);CHKERRQ(ierr);
-  ierr = KSPSetOperators(nep->ksp,nep->function,nep->function_pre,matflag);CHKERRQ(ierr);
+  ierr = KSPSetOperators(nep->ksp,nep->function,nep->function_pre);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(nep->ksp);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(nep->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -259,7 +257,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
     if (abstol == PETSC_DEFAULT) {
       nep->abstol = PETSC_DEFAULT;
     } else {
-      if (abstol < 0.0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Absolute tolerance %G must be non-negative",abstol);
+      if (abstol < 0.0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Absolute tolerance %g must be non-negative",(double)abstol);
       nep->abstol = abstol;
     }
   }
@@ -267,7 +265,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
     if (rtol == PETSC_DEFAULT) {
       nep->rtol = PETSC_DEFAULT;
     } else {
-      if (rtol < 0.0 || 1.0 <= rtol) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Relative tolerance %G must be non-negative and less than 1.0",rtol);
+      if (rtol < 0.0 || 1.0 <= rtol) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Relative tolerance %g must be non-negative and less than 1.0",(double)rtol);
       nep->rtol = rtol;
     }
   }
@@ -275,7 +273,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
     if (stol == PETSC_DEFAULT) {
       nep->stol = PETSC_DEFAULT;
     } else {
-      if (stol < 0.0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Step tolerance %G must be non-negative",stol);
+      if (stol < 0.0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Step tolerance %g must be non-negative",(double)stol);
       nep->stol = stol;
     }
   }

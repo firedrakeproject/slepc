@@ -50,6 +50,7 @@
       EPSType        tname
       PetscReal      tol, error
       PetscScalar    kr, ki
+      Vec            xr, xi
       PetscInt       n, i, Istart, Iend
       PetscInt       nev, maxit, its, nconv
       PetscInt       col(3)
@@ -117,6 +118,8 @@
       call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr)
 
+      call MatGetVecs(A,xr,xi,ierr)
+
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Create the eigensolver and display info
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -180,8 +183,7 @@
         do i=0,nconv-1
 !         ** Get converged eigenpairs: i-th eigenvalue is stored in kr 
 !         ** (real part) and ki (imaginary part)
-          call EPSGetEigenpair(eps,i,kr,ki,PETSC_NULL_OBJECT,           &
-     &                         PETSC_NULL_OBJECT,ierr)
+          call EPSGetEigenpair(eps,i,kr,ki,xr,xi,ierr)
 
 !         ** Compute the relative error associated to each eigenpair
           call EPSComputeRelativeError(eps,i,error,ierr)
@@ -199,6 +201,8 @@
 !     ** Free work space
       call EPSDestroy(eps,ierr)
       call MatDestroy(A,ierr)
+      call VecDestroy(xr,ierr)
+      call VecDestroy(xi,ierr)
 
       call SlepcFinalize(ierr)
       end
