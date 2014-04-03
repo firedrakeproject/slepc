@@ -68,8 +68,8 @@ struct _p_NEP {
                                       split form, otherwise user callbacks are used */
 
   /*-------------- User-provided functions and contexts -----------------*/
-  PetscErrorCode (*computefunction)(NEP,PetscScalar,Mat,Mat,MatStructure*,void*);
-  PetscErrorCode (*computejacobian)(NEP,PetscScalar,Mat,MatStructure*,void*);
+  PetscErrorCode (*computefunction)(NEP,PetscScalar,Mat,Mat,void*);
+  PetscErrorCode (*computejacobian)(NEP,PetscScalar,Mat,void*);
   PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   PetscErrorCode (*converged)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
   PetscErrorCode (*convergeddestroy)(void*);

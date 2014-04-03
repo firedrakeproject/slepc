@@ -37,8 +37,8 @@ static char help[] = "Simple 1-D nonlinear eigenproblem.\n\n"
    User-defined routines
 */
 PetscErrorCode FormInitialGuess(Vec);
-PetscErrorCode FormFunction(NEP,PetscScalar,Mat,Mat,MatStructure*,void*);
-PetscErrorCode FormJacobian(NEP,PetscScalar,Mat,MatStructure*,void*);
+PetscErrorCode FormFunction(NEP,PetscScalar,Mat,Mat,void*);
+PetscErrorCode FormJacobian(NEP,PetscScalar,Mat,void*);
 PetscErrorCode CheckSolution(PetscScalar,Vec,PetscReal*,void*);
 PetscErrorCode FixSign(Vec);
 
@@ -243,9 +243,8 @@ PetscErrorCode FormInitialGuess(Vec x)
    Output Parameters:
 .  fun - Function matrix
 .  B   - optionally different preconditioning matrix
-.  flg - flag indicating matrix structure
 */
-PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,MatStructure *flg,void *ctx)
+PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
 {
   PetscErrorCode ierr;
   ApplicationCtx *user = (ApplicationCtx*)ctx;
@@ -318,9 +317,8 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,MatStructur
    Output Parameters:
 .  jac - Jacobian matrix
 .  B   - optionally different preconditioning matrix
-.  flg - flag indicating matrix structure
 */
-PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,MatStructure *flg,void *ctx)
+PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
 {
   PetscErrorCode ierr;
   ApplicationCtx *user = (ApplicationCtx*)ctx;

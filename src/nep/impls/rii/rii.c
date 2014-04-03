@@ -76,7 +76,6 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   PetscScalar        lambda,a1,a2;
   PetscReal          relerr;
   PetscBool          hascopy;
-  MatStructure       mats;
   KSPConvergedReason kspreason;
 
   PetscFunctionBegin;
@@ -87,10 +86,10 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   }
 
   /* correct eigenvalue approximation: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
-  ierr = NEPComputeFunction(nep,lambda,T,T,&mats);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
   ierr = MatMult(T,u,r);CHKERRQ(ierr);
   ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
-  ierr = NEPApplyJacobian(nep,lambda,u,delta,r,Tp,&mats);CHKERRQ(ierr);
+  ierr = NEPApplyJacobian(nep,lambda,u,delta,r,Tp);CHKERRQ(ierr);
   ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
   lambda = lambda - a1/a2;
 
@@ -106,7 +105,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     if (nep->lag && !(nep->its%nep->lag) && nep->its>2*nep->lag && relerr<1e-2) {
       ierr = MatHasOperation(T,MATOP_COPY,&hascopy);CHKERRQ(ierr);
       if (hascopy) {
-        ierr = MatCopy(T,Tsigma,mats);CHKERRQ(ierr);
+        ierr = MatCopy(T,Tsigma,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
       } else {
         ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
         ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
@@ -119,7 +118,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     }
 
     /* form residual,  r = T(lambda)*u */
-    ierr = NEPApplyFunction(nep,lambda,u,delta,r,T,T,&mats);CHKERRQ(ierr);
+    ierr = NEPApplyFunction(nep,lambda,u,delta,r,T,T);CHKERRQ(ierr);
 
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&relerr);CHKERRQ(ierr);
@@ -148,9 +147,9 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
 
       /* correct eigenvalue: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
-      ierr = NEPApplyFunction(nep,lambda,u,delta,r,T,T,&mats);CHKERRQ(ierr);
+      ierr = NEPApplyFunction(nep,lambda,u,delta,r,T,T);CHKERRQ(ierr);
       ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
-      ierr = NEPApplyJacobian(nep,lambda,u,delta,r,Tp,&mats);CHKERRQ(ierr);
+      ierr = NEPApplyJacobian(nep,lambda,u,delta,r,Tp);CHKERRQ(ierr);
       ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
       lambda = lambda - a1/a2;
     }

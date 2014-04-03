@@ -207,13 +207,12 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
    Output Parameters:
 +  y   - result vector
 .  A   - Function matrix
-.  B   - optional preconditioning matrix
--  flg - flag indicating matrix structure (see MatStructure enum)
+-  B   - optional preconditioning matrix
 
    Note:
    If the nonlinear operator is represented in split form, the result 
    y = T(lambda)*x is computed without building T(lambda) explicitly. In
-   that case, parameters A, B and flg are not used. Otherwise, the matrix
+   that case, parameters A and B are not used. Otherwise, the matrix
    T(lambda) is built and the effect is the same as a call to
    NEPComputeFunction() followed by a MatMult().
 
@@ -221,7 +220,7 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
 
 .seealso: NEPSetSplitOperator(), NEPComputeFunction()
 @*/
-PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat A,Mat B,MatStructure *flg)
+PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat A,Mat B)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -241,7 +240,7 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
       ierr = VecAXPY(y,alpha,v);CHKERRQ(ierr);
     }
   } else {
-    ierr = NEPComputeFunction(nep,lambda,A,B,flg);CHKERRQ(ierr);
+    ierr = NEPComputeFunction(nep,lambda,A,B);CHKERRQ(ierr);
     ierr = MatMult(A,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -262,13 +261,12 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
 
    Output Parameters:
 +  y   - result vector
-.  A   - Jacobian matrix
--  flg - flag indicating matrix structure (see MatStructure enum)
+-  A   - Jacobian matrix
 
    Note:
    If the nonlinear operator is represented in split form, the result 
    y = T'(lambda)*x is computed without building T'(lambda) explicitly. In
-   that case, parameters A and flg are not used. Otherwise, the matrix
+   that case, parameter A is not used. Otherwise, the matrix
    T'(lambda) is built and the effect is the same as a call to
    NEPComputeJacobian() followed by a MatMult().
 
@@ -276,7 +274,7 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
 
 .seealso: NEPSetSplitOperator(), NEPComputeJacobian()
 @*/
-PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat A,MatStructure *flg)
+PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat A)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -296,7 +294,7 @@ PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
       ierr = VecAXPY(y,alpha,v);CHKERRQ(ierr);
     }
   } else {
-    ierr = NEPComputeJacobian(nep,lambda,A,flg);CHKERRQ(ierr);
+    ierr = NEPComputeJacobian(nep,lambda,A);CHKERRQ(ierr);
     ierr = MatMult(A,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -501,11 +499,10 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,P
   PetscErrorCode ierr;
   Vec            u;
   Mat            T=nep->function;
-  MatStructure   mats;
 
   PetscFunctionBegin;
   ierr = VecDuplicate(nep->V[0],&u);CHKERRQ(ierr);
-  ierr = NEPComputeFunction(nep,lambda,T,T,&mats);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
   ierr = MatMult(T,x,u);CHKERRQ(ierr);
   ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
@@ -753,8 +750,7 @@ PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,P
 
    Output Parameters:
 +  A   - Function matrix
-.  B   - optional preconditioning matrix
--  flg - flag indicating matrix structure (see MatStructure enum)
+-  B   - optional preconditioning matrix
 
    Notes:
    NEPComputeFunction() is typically used within nonlinear eigensolvers
@@ -765,7 +761,7 @@ PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,P
 
 .seealso: NEPSetFunction(), NEPGetFunction()
 @*/
-PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B,MatStructure *flg)
+PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -773,7 +769,6 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B,MatStru
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(flg,5);
 
   if (nep->split) {
 
@@ -788,11 +783,10 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B,MatStru
 
     if (!nep->computefunction) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetFunction() first");
 
-    *flg = DIFFERENT_NONZERO_PATTERN;
     ierr = PetscLogEventBegin(NEP_FunctionEval,nep,A,B,0);CHKERRQ(ierr);
 
     PetscStackPush("NEP user Function function");
-    ierr = (*nep->computefunction)(nep,lambda,A,B,flg,nep->functionctx);CHKERRQ(ierr);
+    ierr = (*nep->computefunction)(nep,lambda,A,B,nep->functionctx);CHKERRQ(ierr);
     PetscStackPop;
 
     ierr = PetscLogEventEnd(NEP_FunctionEval,nep,A,B,0);CHKERRQ(ierr);
@@ -815,8 +809,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B,MatStru
 -  lambda - the scalar argument
 
    Output Parameters:
-+  A   - Jacobian matrix
--  flg - flag indicating matrix structure (see MatStructure enum)
+.  A   - Jacobian matrix
 
    Notes:
    Most users should not need to explicitly call this routine, as it
@@ -826,7 +819,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B,MatStru
 
 .seealso: NEPSetJacobian(), NEPGetJacobian()
 @*/
-PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat A,MatStructure *flg)
+PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat A)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -834,7 +827,6 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat A,MatStructure 
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(flg,4);
 
   if (nep->split) {
 
@@ -848,11 +840,10 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat A,MatStructure 
 
     if (!nep->computejacobian) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetJacobian() first");
 
-    *flg = DIFFERENT_NONZERO_PATTERN;
     ierr = PetscLogEventBegin(NEP_JacobianEval,nep,A,0,0);CHKERRQ(ierr);
 
     PetscStackPush("NEP user Jacobian function");
-    ierr = (*nep->computejacobian)(nep,lambda,A,flg,nep->jacobianctx);CHKERRQ(ierr);
+    ierr = (*nep->computejacobian)(nep,lambda,A,nep->jacobianctx);CHKERRQ(ierr);
     PetscStackPop;
 
     ierr = PetscLogEventEnd(NEP_JacobianEval,nep,A,0,0);CHKERRQ(ierr);
