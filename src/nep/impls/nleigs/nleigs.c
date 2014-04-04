@@ -146,7 +146,8 @@ static PetscErrorCode NEPNLEIGSDividedDifferences(NEP nep)
   PetscBool      flg=PETSC_TRUE;
 
   PetscFunctionBegin;
-  ierr = NEPComputeFunction(nep,s[0],&T,&T,&str);CHKERRQ(ierr);
+  ierr = STGetMatStructure(ctx->st,&str);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,s[0],T,T);CHKERRQ(ierr);
   ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[0]);CHKERRQ(ierr);
   if (beta[0]!=1.0) {
     ierr = MatScale(D[0],1.0/beta[0]);CHKERRQ(ierr);
@@ -155,7 +156,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences(NEP nep)
   ctx->nmat = MAX_LBPOINTS;
   for (k=1;k<MAX_LBPOINTS && flg;k++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,k,s[k],b);CHKERRQ(ierr);
-    ierr = NEPComputeFunction(nep,s[k],&T,&T,&str);CHKERRQ(ierr);
+    ierr = NEPComputeFunction(nep,s[k],T,T);CHKERRQ(ierr);
     ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[k]);CHKERRQ(ierr);
     for (j=0;j<k;j++) {
       ierr = MatAXPY(D[k],-b[j],D[j],str);CHKERRQ(ierr);
