@@ -97,7 +97,6 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   PetscScalar    lambda,mu,im;
   PetscReal      relerr;
   PetscInt       nconv;
-  MatStructure   mats;
 
   PetscFunctionBegin;
   /* get initial approximation of eigenvalue and eigenvector */
@@ -111,8 +110,8 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
     nep->its++;
 
     /* evaluate T(lambda) and T'(lambda) */
-    ierr = NEPComputeFunction(nep,lambda,&T,&T,&mats);CHKERRQ(ierr);
-    ierr = NEPComputeJacobian(nep,lambda,&Tp,&mats);CHKERRQ(ierr);
+    ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
+    ierr = NEPComputeJacobian(nep,lambda,Tp);CHKERRQ(ierr);
 
     /* form residual,  r = T(lambda)*u (used in convergence test only) */
     ierr = MatMult(T,u,r);CHKERRQ(ierr);

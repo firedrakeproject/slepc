@@ -176,7 +176,9 @@ int main(int argc,char **argv)
     for (i=0;i<nconv;i++) {
       ierr = EPSGetEigenvector(eps,i,xr,xi);CHKERRQ(ierr);
       ierr = VecView(xr,viewer);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
       if (!ishermitian) { ierr = VecView(xi,viewer);CHKERRQ(ierr); }
+#endif
     }
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }

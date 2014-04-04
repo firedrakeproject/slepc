@@ -337,7 +337,7 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
     ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
     ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,0,1.0,log10(eps->tol)-2,0.0);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,0,1.0,PetscLog10Real(eps->tol)-2,0.0);CHKERRQ(ierr);
   }
 
   /* In the hermitian case, the eigenvalues are real and can be plotted */
@@ -354,7 +354,7 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
   }
 
   x = (PetscReal)its;
-  if (errest[nconv] > 0.0) y = log10(errest[nconv]); else y = 0.0;
+  if (errest[nconv] > 0.0) y = PetscLog10Real(errest[nconv]); else y = 0.0;
   ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
   if (eps->ishermitian) {
     er = eigr[nconv]; ei = eigi[nconv];
@@ -391,7 +391,7 @@ PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
     ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
     ierr = PetscDrawLGSetDimension(lg,n);CHKERRQ(ierr);
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,0,1.0,log10(eps->tol)-2,0.0);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,0,1.0,PetscLog10Real(eps->tol)-2,0.0);CHKERRQ(ierr);
   }
 
   /* In the hermitian case, the eigenvalues are real and can be plotted */
@@ -410,7 +410,7 @@ PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
   ierr = PetscMalloc2(n,&x,n,&y);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     x[i] = (PetscReal)its;
-    if (i < nest && errest[i] > 0.0) y[i] = log10(errest[i]);
+    if (i < nest && errest[i] > 0.0) y[i] = PetscLog10Real(errest[i]);
     else y[i] = 0.0;
   }
   ierr = PetscDrawLGAddPoint(lg,x,y);CHKERRQ(ierr);
