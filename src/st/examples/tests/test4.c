@@ -143,9 +143,9 @@ int main(int argc,char **argv)
   ierr = STMatSolve(st,v,w);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"solve\n");CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
-  
+
   /* sinvert, sigma=0.1 */
-  ierr = STPostSolve(st);CHKERRQ(ierr);   /* undo changes if inplace */
+  ierr = STPostSolve(st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = STGetType(st,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
@@ -173,7 +173,6 @@ int main(int argc,char **argv)
   ierr = STMatSolve(st,v,w);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"solve\n");CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
-
   ierr = STDestroy(&st);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);

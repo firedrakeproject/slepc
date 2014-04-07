@@ -83,6 +83,25 @@ PetscErrorCode PEPConvergedEigRelative(PEP pep,PetscScalar eigr,PetscScalar eigi
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPConvergedNormRelative"
+/*
+  PEPConvergedNormRelative - Checks convergence relative to the matrix norms.
+*/
+PetscErrorCode PEPConvergedNormRelative(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscReal      w=0.0;
+  PetscScalar    vals[pep->nmat],ivals[pep->nmat];
+
+  PetscFunctionBegin;
+  ierr = PEPEvaluateBasis(pep,eigr,eigi,vals,ivals);CHKERRQ(ierr);
+  for (i=0;i<pep->nmat;i++) w += SlepcAbsEigenvalue(vals[i],ivals[i])*pep->nrma[i];
+  *errest = res/w;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPConvergedAbsolute"
 /*
   PEPConvergedAbsolute - Checks convergence absolutely.
@@ -172,6 +191,9 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
     /* eigenvalue */
     re = pep->eigr[k];
     im = pep->eigi[k];
+    if (pep->conv==PEP_CONV_NORM) {
+      ierr = STBackTransform(pep->st,1,&re,&im);CHKERRQ(ierr);
+    }
     newk = k;
     ierr = DSVectors(pep->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
     resnorm *= beta;
