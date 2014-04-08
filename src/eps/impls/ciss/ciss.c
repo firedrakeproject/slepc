@@ -101,6 +101,7 @@ static PetscErrorCode SetSolverComm(EPS eps)
     ierr = PetscSubcommSetNumber(ctx->subcomm,ctx->num_subcomm);CHKERRQ(ierr);CHKERRQ(ierr);
     ierr = PetscSubcommSetType(ctx->subcomm,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(PetscSubcomm));CHKERRQ(ierr);
+    ierr = PetscSubcommSetFromOptions(ctx->subcomm);CHKERRQ(ierr);
   }
   ctx->subcomm_id = ctx->subcomm->color;
   ctx->num_solve_point = N / ctx->num_subcomm;
@@ -140,20 +141,12 @@ static PetscErrorCode CISSScatterVec(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   IS             is1,is2;
-  PetscMPIInt    subrank,subsize;
   PetscInt       i,j,k,mstart,mend,mlocal;
-  PetscInt       *idx1,*idx2,rstart_sub,rend_sub,mloc_sub;
-  const PetscInt *range;
+  PetscInt       *idx1,*idx2,mloc_sub;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_rank(ctx->subcomm->comm,&subrank);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(ctx->subcomm->comm,&subsize);CHKERRQ(ierr);
-  ierr = VecGetOwnershipRanges(ctx->V[0],&range);CHKERRQ(ierr); /*end index of mat A*/
-  rstart_sub = range[ctx->subcomm->n*subrank]; 
-  if (subrank+1 < subsize) rend_sub = range[ctx->subcomm->n*(subrank+1)];
-  else rend_sub = eps->n;
-  mloc_sub = rend_sub - rstart_sub;
   ierr = MatGetVecs(ctx->pA,&ctx->xsub,NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(ctx->pA,&mloc_sub,NULL);CHKERRQ(ierr);
   ierr = VecCreateMPI(ctx->subcomm->dupparent,mloc_sub,PETSC_DECIDE,&ctx->xdup);CHKERRQ(ierr);
   if (!ctx->scatterin) {
     ierr = VecGetOwnershipRange(ctx->V[0],&mstart,&mend);CHKERRQ(ierr);
@@ -171,7 +164,7 @@ static PetscErrorCode CISSScatterVec(EPS eps)
     ierr = VecScatterCreate(ctx->V[0],is1,ctx->xdup,is2,&ctx->scatterin);CHKERRQ(ierr);
     ierr = ISDestroy(&is1);CHKERRQ(ierr);
     ierr = ISDestroy(&is2);CHKERRQ(ierr);
-    PetscFree2(idx1,idx2);
+    ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -217,7 +210,7 @@ static PetscErrorCode CISSVecSetRandom(Vec x,PetscRandom rctx)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecScatterVecs"
-PetscErrorCode VecScatterVecs(EPS eps,Vec *Vin,PetscInt n)
+static PetscErrorCode VecScatterVecs(EPS eps,Vec *Vin,PetscInt n)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
