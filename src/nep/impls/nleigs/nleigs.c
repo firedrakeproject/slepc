@@ -319,12 +319,14 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscScalar sigma,PetscScalar *
   PetscScalar    *beta=ctx->beta,*s=ctx->s,*xi=ctx->xi;
 
   PetscFunctionBegin;
+  if (PetscAbsScalar(s[deg-2]-sigma)<100*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1,"Breakdown in NLEIGS");
   for (j=0;j<nv;j++) {
     r[(deg-2)*lr+j] = (S[(deg-2)*ls+j]+(beta[deg-1]/xi[deg-2])*S[(deg-1)*ls+j])/(s[deg-2]-sigma);
   }
   ierr = SlepcVecMAXPBY(v,0.0,1.0,nv,r+(deg-2)*lr,V);CHKERRQ(ierr);
   ierr = STMatMult(ctx->st,deg-2,v,q);CHKERRQ(ierr);
   for (k=deg-2;k>0;k--) {
+    if (PetscAbsScalar(s[k-1]-sigma)<100*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1,"Breakdown in NLEIGS");
     for (j=0;j<nv;j++) r[(k-1)*lr+j] = (S[(k-1)*ls+j]+(beta[k]/xi[k-1])*S[k*ls+j]-beta[k]*(1-sigma/xi[k-1])*r[(k)*lr+j])/(s[k-1]-sigma);
     ierr = SlepcVecMAXPBY(v,0.0,1.0,nv,r+(k-1)*lr,V);CHKERRQ(ierr);
     ierr = STMatMult(ctx->st,k-1,v,t);CHKERRQ(ierr);
@@ -499,6 +501,52 @@ PetscErrorCode NEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt s
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPDebbugShowResidual"
+PetscErrorCode NEPDebbugShowResidual(NEP nep)
+{
+  PetscErrorCode ierr;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  PetscReal      re,im,norm;
+  PetscScalar    coeffs[ctx->nmat];
+  Vec            x,t;
+  PetscInt       i,j,deg=ctx->nmat;
+  
+  PetscFunctionBegin;
+  ierr = VecDuplicate(nep->V[0],&x);CHKERRQ(ierr);
+  ierr = VecDuplicate(nep->V[0],&t);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Showing absolute residual for the interpolation function eigenpairs\n",nep->nconv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %d\n",nep->nconv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations: %d\n\n",nep->its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,
+         "           k              ||Q%d(k)x||           error\n"
+         "   ----------------- ------------------ ------------------\n",deg);CHKERRQ(ierr);
+  for (i=0;i<nep->nconv;i++) {
+    ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,nep->eig[i],coeffs);CHKERRQ(ierr);
+    ierr = STMatMult(ctx->st,0,nep->V[i],x);CHKERRQ(ierr);
+    for (j=1;j<ctx->nmat;j++) {
+      ierr = STMatMult(ctx->st,j,nep->V[i],t);CHKERRQ(ierr);
+      ierr = VecAXPY(x,coeffs[j],t);CHKERRQ(ierr);
+    }
+    ierr = VecNorm(x,NORM_2,&norm);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    re = PetscRealPart(nep->eig[i]);
+    im = PetscImaginaryPart(nep->eig[i]);
+#else
+    re = nep->eig[i];
+    im = 0.0;
+#endif
+    if (im!=0.0) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12g\n",(double)re,(double)im,(double)norm);CHKERRQ(ierr);
+    } else {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f         %12g\n",(double)re,(double)norm);CHKERRQ(ierr);
+    }
+  } 
+  ierr = VecDestroy(&x);CHKERRQ(ierr);
+  ierr = VecDestroy(&t);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPSolve_NLEIGS"
 PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 {
@@ -510,11 +558,6 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   PetscReal      beta,norm,*rwork;
   PetscBool      breakdown;
   NEPSortForSTData  data;
-/* /////// */
-  PetscReal      re,im;
-  PetscScalar    coeffs[ctx->nmat];
-  Vec            x,t;
-/* /////// */
     
   PetscFunctionBegin;
 /* /////// */
@@ -633,7 +676,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     ierr = NEPComputeVectors_Schur(nep);CHKERRQ(ierr);
   }
   ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
-  /* /////// */
+  /* //  // */
   /* restore comparison function */
   nep->comparison    = data.comparison;
   nep->comparisonctx = data.comparisonctx;
@@ -645,39 +688,9 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   /* For testing, before destroying the solver context 
      the residual for the interpolation is shown */
   if (nep->nconv>0) {
-    ierr = VecDuplicate(nep->V[0],&x);CHKERRQ(ierr);
-    ierr = VecDuplicate(nep->V[0],&t);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Showing absolute residual for the interpolation function eigenpairs\n",nep->nconv);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %d\n",nep->nconv);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations: %d\n\n",nep->its);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k              ||Q%d(k)x||           error\n"
-         "   ----------------- ------------------ ------------------\n",deg);CHKERRQ(ierr);
-    for (i=0;i<nep->nconv;i++) {
-      ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,nep->eig[i],coeffs);CHKERRQ(ierr);
-      ierr = STMatMult(ctx->st,0,nep->V[i],x);CHKERRQ(ierr);
-      for (j=1;j<ctx->nmat;j++) {
-        ierr = STMatMult(ctx->st,j,nep->V[i],t);CHKERRQ(ierr);
-        ierr = VecAXPY(x,coeffs[j],t);CHKERRQ(ierr);
-      }
-      ierr = VecNorm(x,NORM_2,&norm);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(nep->eig[i]);
-      im = PetscImaginaryPart(nep->eig[i]);
-#else
-      re = nep->eig[i];
-      im = 0.0;
-#endif
-      if (im!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12g\n",(double)re,(double)im,(double)norm);CHKERRQ(ierr);
-      } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f         %12g\n",(double)re,(double)norm);CHKERRQ(ierr);
-      }
-    }
-    ierr = VecDestroy(&x);CHKERRQ(ierr);
-    ierr = VecDestroy(&t);CHKERRQ(ierr);
+    ierr = NEPDebbugShowResidual(nep);CHKERRQ(ierr);
   }
-/* /////// */
+  /* /////// */
   PetscFunctionReturn(0);
 }
 
