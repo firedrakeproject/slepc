@@ -204,8 +204,11 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
       }
     }
   }
-  ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
-  ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+  if (st->P) {
+    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+    ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
+    ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
