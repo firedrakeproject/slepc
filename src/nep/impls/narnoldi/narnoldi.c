@@ -82,7 +82,6 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
   PetscReal          beta,resnorm=0.0;
   PetscInt           n;
   PetscBool          breakdown;
-  MatStructure       mats;
   KSPConvergedReason kspreason;
 
   PetscFunctionBegin;
@@ -98,7 +97,7 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
   ierr = NEPProjectOperator(nep,0,n,r);CHKERRQ(ierr);
 
   /* prepare linear solver */
-  ierr = NEPComputeFunction(nep,lambda,&T,&T,&mats);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
   ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
   ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
 
@@ -118,7 +117,7 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
     ierr = DSRestoreArray(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
 
     /* compute the residual, r = T(lambda)*x */
-    ierr = NEPApplyFunction(nep,lambda,x,w,r,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = NEPApplyFunction(nep,lambda,x,w,r,NULL,NULL);CHKERRQ(ierr);
 
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);

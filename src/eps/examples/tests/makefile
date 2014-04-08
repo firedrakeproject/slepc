@@ -42,7 +42,7 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test10.PETSc runtest10_1 test10.rm \
                            test11.PETSc runtest11_1 test11.rm \
                            test12.PETSc runtest12_1 test12.rm \
-                           test13.PETSc runtest13_1 test13.rm \
+                           test13.PETSc runtest13_1 runtest13_2 test13.rm \
                            test14.PETSc runtest14_1 test14.rm
 TESTEXAMPLES_C_NOCOMPLEX = test1.PETSc runtest1_2 test1.rm
 TESTEXAMPLES_C_NOF128    = test5.PETSc runtest5_1 test5.rm
@@ -325,7 +325,7 @@ runtest13_1:
 	${TESTCODE}
 
 runtest13_2:
-	-@test=test13_2; \
+	-@test=test13_1; \
 	for eps in ${EPSAR}; do \
 	   echo "eps type $$eps"; \
 	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
