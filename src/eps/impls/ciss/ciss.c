@@ -180,9 +180,9 @@ static PetscErrorCode SetPathParameter(EPS eps)
   PetscFunctionBegin;
   for (i=0;i<ctx->N;i++) {
     theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
-    ctx->pp[i] = cos(theta) + PETSC_i*ctx->vscale*sin(theta);
+    ctx->pp[i] = PetscCosReal(theta) + PETSC_i*ctx->vscale*PetscSinReal(theta);
     ctx->omega[i] = ctx->center + ctx->radius*ctx->pp[i];
-    ctx->weight[i] = (ctx->vscale*cos(theta) + PETSC_i*sin(theta))/(PetscReal)ctx->N;
+    ctx->weight[i] = ctx->vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta);
   }
   PetscFunctionReturn(0);
 }
@@ -340,9 +340,9 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
     else sum += tmp;
   }
   ctx->est_eig = PetscAbsScalar(ctx->radius*sum/(PetscReal)ctx->L);
-  eta = PetscPowReal(10,-log10(eps->tol)/ctx->N);
+  eta = PetscPowReal(10,-PetscLog10Real(eps->tol)/ctx->N);
   ierr = PetscInfo1(eps,"Estimation_#Eig %f\n",(double)ctx->est_eig);CHKERRQ(ierr);
-  *L_add = (PetscInt)ceil((ctx->est_eig*eta)/ctx->M) - ctx->L;
+  *L_add = (PetscInt)PetscCeilReal((ctx->est_eig*eta)/ctx->M) - ctx->L;
   if (*L_add < 0) *L_add = 0;
   if (*L_add>ctx->L_max-ctx->L) {
     ierr = PetscInfo(eps,"Number of eigenvalues around the contour path may be too large\n");CHKERRQ(ierr);

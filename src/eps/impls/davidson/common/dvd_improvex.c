@@ -336,7 +336,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
                                 &data->thetai[j], &maxits0, &tol0);CHKERRQ(ierr);
       maxits+= maxits0; tol*= tol0;
     }
-    maxits/= s; tol = data->dynamic?data->lastTol:exp(log(tol)/s);
+    maxits/= s; tol = data->dynamic?data->lastTol:PetscExpReal(PetscLogReal(tol)/s);
 
     /* Compute u, v and kr */
     k = r_s+i+d->cX_in_H;
