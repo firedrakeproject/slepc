@@ -37,19 +37,19 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 test1.rm \
 include ${SLEPC_DIR}/conf/slepc_common
 
 test1: test1.o chkopts
-	-${CLINKER} -o test1 test1.o ${SLEPC_LIB}
+	-${CLINKER} -o test1 test1.o ${SLEPC_SYS_LIB}
 	${RM} test1.o
 
 test2: test2.o chkopts
-	-${CLINKER} -o test2 test2.o ${SLEPC_LIB}
+	-${CLINKER} -o test2 test2.o ${SLEPC_SYS_LIB}
 	${RM} test2.o
 
 test3: test3.o chkopts
-	-${CLINKER} -o test3 test3.o ${SLEPC_LIB}
+	-${CLINKER} -o test3 test3.o ${SLEPC_SYS_LIB}
 	${RM} test3.o
 
 test4: test4.o chkopts
-	-${CLINKER} -o test4 test4.o ${SLEPC_LIB}
+	-${CLINKER} -o test4 test4.o ${SLEPC_SYS_LIB}
 	${RM} test4.o
 
 #------------------------------------------------------------------------------------

@@ -46,51 +46,51 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
 include ${SLEPC_DIR}/conf/slepc_common
 
 test1: test1.o chkopts
-	-${CLINKER} -o test1 test1.o ${SLEPC_LIB}
+	-${CLINKER} -o test1 test1.o ${SLEPC_SYS_LIB}
 	${RM} test1.o
 
 test2: test2.o chkopts
-	-${CLINKER} -o test2 test2.o ${SLEPC_LIB}
+	-${CLINKER} -o test2 test2.o ${SLEPC_SYS_LIB}
 	${RM} test2.o
 
 test3: test3.o chkopts
-	-${CLINKER} -o test3 test3.o ${SLEPC_LIB}
+	-${CLINKER} -o test3 test3.o ${SLEPC_SYS_LIB}
 	${RM} test3.o
 
 test4: test4.o chkopts
-	-${CLINKER} -o test4 test4.o ${SLEPC_LIB}
+	-${CLINKER} -o test4 test4.o ${SLEPC_SYS_LIB}
 	${RM} test4.o
 
 test5: test5.o chkopts
-	-${CLINKER} -o test5 test5.o ${SLEPC_LIB}
+	-${CLINKER} -o test5 test5.o ${SLEPC_SYS_LIB}
 	${RM} test5.o
 
 test6: test6.o chkopts
-	-${CLINKER} -o test6 test6.o ${SLEPC_LIB}
+	-${CLINKER} -o test6 test6.o ${SLEPC_SYS_LIB}
 	${RM} test6.o
 
 test7: test7.o chkopts
-	-${CLINKER} -o test7 test7.o ${SLEPC_LIB}
+	-${CLINKER} -o test7 test7.o ${SLEPC_SYS_LIB}
 	${RM} test7.o
 
 test8: test8.o chkopts
-	-${CLINKER} -o test8 test8.o ${SLEPC_LIB}
+	-${CLINKER} -o test8 test8.o ${SLEPC_SYS_LIB}
 	${RM} test8.o
 
 test9: test9.o chkopts
-	-${CLINKER} -o test9 test9.o ${SLEPC_LIB}
+	-${CLINKER} -o test9 test9.o ${SLEPC_SYS_LIB}
 	${RM} test9.o
 
 test10: test10.o chkopts
-	-${CLINKER} -o test10 test10.o ${SLEPC_LIB}
+	-${CLINKER} -o test10 test10.o ${SLEPC_SYS_LIB}
 	${RM} test10.o
 
 test11: test11.o chkopts
-	-${CLINKER} -o test11 test11.o ${SLEPC_LIB}
+	-${CLINKER} -o test11 test11.o ${SLEPC_SYS_LIB}
 	${RM} test11.o
 
 test12: test12.o chkopts
-	-${CLINKER} -o test12 test12.o ${SLEPC_LIB}
+	-${CLINKER} -o test12 test12.o ${SLEPC_SYS_LIB}
 	${RM} test12.o
 
 #------------------------------------------------------------------------------------

@@ -35,19 +35,19 @@ TESTEXAMPLES_FORTRAN     =
 include ${SLEPC_DIR}/conf/slepc_common
 
 ex8: ex8.o chkopts
-	-${CLINKER} -o ex8 ex8.o ${SLEPC_LIB}
+	-${CLINKER} -o ex8 ex8.o ${SLEPC_SVD_LIB}
 	${RM} ex8.o
 
 ex14: ex14.o chkopts
-	-${CLINKER} -o ex14 ex14.o ${SLEPC_LIB}
+	-${CLINKER} -o ex14 ex14.o ${SLEPC_SVD_LIB}
 	${RM} ex14.o
 
 ex15: ex15.o chkopts
-	-${CLINKER} -o ex15 ex15.o ${SLEPC_LIB}
+	-${CLINKER} -o ex15 ex15.o ${SLEPC_SVD_LIB}
 	${RM} ex15.o
 
 ex15f: ex15f.o chkopts
-	-${FLINKER} -o ex15f ex15f.o ${SLEPC_LIB}
+	-${FLINKER} -o ex15f ex15f.o ${SLEPC_SVD_LIB}
 	${RM} ex15f.o
 
 #------------------------------------------------------------------------------------

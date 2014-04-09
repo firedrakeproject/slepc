@@ -33,7 +33,7 @@ TESTEXAMPLES_C      = ex10.PETSc runex10_1 ex10.rm
 include ${SLEPC_DIR}/conf/slepc_common
 
 ex10: ex10.o chkopts
-	-${CLINKER} -o ex10 ex10.o ${SLEPC_LIB}
+	-${CLINKER} -o ex10 ex10.o ${SLEPC_SYS_LIB}
 	${RM} ex10.o
 
 #------------------------------------------------------------------------------------
