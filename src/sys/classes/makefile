@@ -19,8 +19,17 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps svd qep pep nep mfn sys
+ALL: lib
 
-LOCDIR   = src/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  =
+SOURCEF  =
+SOURCEH  =
+LIBBASE  = libslepc
+MANSEC   = sys
+LOCDIR   = src/sys/classes/
+DIRS     = ds fn ip st
 
 include ${SLEPC_DIR}/conf/slepc_common
+

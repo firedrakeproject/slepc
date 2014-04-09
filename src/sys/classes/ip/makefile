@@ -19,8 +19,17 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps svd qep pep nep mfn sys
+ALL: lib
 
-LOCDIR   = src/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = ipbasic.c ipdot.c iporthog.c ipborthog.c ipform.c ipbiorthog.c
+SOURCEF  =
+SOURCEH  = ../../../../include/slepc-private/ipimpl.h ../../../../include/slepcip.h \
+           ../../../eps/impls/davidson/common/davidson.h
+LIBBASE  = libslepc
+DIRS     =
+MANSEC   = IP
+LOCDIR   = src/sys/classes/ip/
 
 include ${SLEPC_DIR}/conf/slepc_common

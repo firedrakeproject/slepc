@@ -19,8 +19,16 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps svd qep pep nep mfn sys
+ALL: lib
 
-LOCDIR   = src/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = dssvd.c
+SOURCEF  =
+SOURCEH  =
+LIBBASE  = libslepc
+DIRS     =
+MANSEC   = DS
+LOCDIR   = src/sys/classes/ds/impls/svd/
 
 include ${SLEPC_DIR}/conf/slepc_common

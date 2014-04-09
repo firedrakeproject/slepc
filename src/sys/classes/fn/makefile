@@ -19,8 +19,16 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps svd qep pep nep mfn sys
+ALL: lib
 
-LOCDIR   = src/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = fnbasic.c fnrational.c fnexp.c
+SOURCEF  =
+SOURCEH  = ../../../../include/slepc-private/fnimpl.h ../../../../include/slepcfn.h
+LIBBASE  = libslepc
+DIRS     =
+MANSEC   = FN
+LOCDIR   = src/sys/classes/fn/
 
 include ${SLEPC_DIR}/conf/slepc_common

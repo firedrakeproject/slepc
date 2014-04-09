@@ -19,8 +19,18 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps svd qep pep nep mfn sys
+ALL: lib
 
-LOCDIR   = src/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = vecutil.c veccomp.c contiguous.c
+SOURCEF  =
+SOURCEH  = veccomp0.h
+LIBBASE  = libslepc
+DIRS     =
+MANSEC   = sys
+LOCDIR   = src/sys/vec/
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+

@@ -19,8 +19,18 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps svd qep pep nep mfn sys
+ALL: lib
 
-LOCDIR   = src/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = cayley.c
+SOURCEF  =
+SOURCEH  =
+LIBBASE  = libslepc
+DIRS     =
+MANSEC   = ST
+LOCDIR   = src/sys/classes/st/impls/cayley/
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+

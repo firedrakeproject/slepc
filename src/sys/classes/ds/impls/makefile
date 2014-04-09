@@ -19,8 +19,11 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps svd qep pep nep mfn sys
+ALL: lib
 
-LOCDIR   = src/
+LIBBASE  = libslepc
+DIRS     = hep nhep ghep ghiep gnhep svd nep
+LOCDIR   = src/sys/classes/ds/impls/
+MANSEC   = DS
 
 include ${SLEPC_DIR}/conf/slepc_common

@@ -19,8 +19,10 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps svd qep pep nep mfn sys
+ALL:
 
-LOCDIR   = src/
+LOCDIR   = src/sys/classes/ds/examples/
+DIRS     = tests
 
 include ${SLEPC_DIR}/conf/slepc_common
+
