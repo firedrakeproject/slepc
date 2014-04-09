@@ -21,7 +21,7 @@
 
 ALL: lib
 
-LIBBASE  = libslepc
+LIBBASE  = libslepcmfn
 DIRS     = krylov
 LOCDIR   = src/mfn/impls/
 MANSEC   = MFN

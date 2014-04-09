@@ -23,7 +23,7 @@ import os
 import sys
 
 def Load(petscdir):
-  global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,DESTDIR,BFORT,TEST_RUNS,CC,CC_FLAGS,FC,AR,AR_FLAGS,AR_LIB_SUFFIX,RANLIB,IND64,BUILD_USING_CMAKE,MAKE_IS_GNUMAKE,MPIUNI
+  global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,DESTDIR,BFORT,TEST_RUNS,CC,CC_FLAGS,FC,AR,AR_FLAGS,AR_LIB_SUFFIX,RANLIB,IND64,BUILD_USING_CMAKE,MAKE_IS_GNUMAKE,MPIUNI,SINGLELIB
 
   if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']:
     ISINSTALL = 0
@@ -37,6 +37,7 @@ def Load(petscdir):
     PETSCCONF_H = os.sep.join([petscdir,'include','petscconf.h'])
 
   BUILD_USING_CMAKE = 0
+  SINGLELIB = 0
   try:
     f = open(PETSCVARIABLES)
     for l in f.readlines():
@@ -74,6 +75,8 @@ def Load(petscdir):
 	BUILD_USING_CMAKE = v
       elif k == 'MAKE_IS_GNUMAKE':
 	MAKE_IS_GNUMAKE = v
+      elif k == 'SHLIBS' and v=='libpetsc':
+	SINGLELIB = 1
     f.close()
   except:
     sys.exit('ERROR: cannot process file ' +  PETSCVARIABLES)

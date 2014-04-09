@@ -26,11 +26,10 @@ FFLAGS   =
 SOURCEC  = jd.c
 SOURCEF  =
 SOURCEH  =
-LIBBASE  = libslepc
+LIBBASE  = libslepceps
 DIRS     =
 MANSEC   = EPS
 LOCDIR   = src/eps/impls/davidson/jd/
 
 include ${SLEPC_DIR}/conf/slepc_common
-
 

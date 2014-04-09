@@ -27,7 +27,7 @@ SOURCEC  = ipbasic.c ipdot.c iporthog.c ipborthog.c ipform.c ipbiorthog.c
 SOURCEF  =
 SOURCEH  = ../../../../include/slepc-private/ipimpl.h ../../../../include/slepcip.h \
            ../../../eps/impls/davidson/common/davidson.h
-LIBBASE  = libslepc
+LIBBASE  = libslepcsys
 DIRS     =
 MANSEC   = IP
 LOCDIR   = src/sys/classes/ip/

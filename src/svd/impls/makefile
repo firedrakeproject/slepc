@@ -21,7 +21,7 @@
 
 ALL: lib
 
-LIBBASE  = libslepc
+LIBBASE  = libslepcsvd
 DIRS     = cross cyclic lapack lanczos trlanczos
 LOCDIR   = src/svd/impls/
 MANSEC   = SVD

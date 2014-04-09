@@ -21,7 +21,7 @@
 
 ALL: lib
 
-LIBBASE  = libslepc
+LIBBASE  = libslepcpep
 DIRS     = toar
 LOCDIR   = src/pep/impls/
 MANSEC   = PEP

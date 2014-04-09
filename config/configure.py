@@ -345,6 +345,12 @@ if petscconf.ISINSTALL:
 if not check.Link(tmpdir,[],[],[]):
   log.Exit('ERROR: Unable to link with PETSc')
 
+# Single library installation
+if petscconf.SINGLELIB:
+  slepcvars.write('SHLIBS = libslepc\n')
+  for module in ['SYS','MFN','EPS','SVD','QEP','PEP','NEP']:
+    slepcvars.write('SLEPC_'+module+'_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}\n')
+
 # Check for external packages
 if havearpack:
   arpacklibs = arpack.Check(slepcconf,slepcvars,cmake,tmpdir,arpackdir,arpacklibs)

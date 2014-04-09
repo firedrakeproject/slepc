@@ -21,7 +21,7 @@
 
 ALL: lib
 
-LIBBASE  = libslepc
+LIBBASE  = libslepcsys
 DIRS     = shell shift sinvert cayley precond
 LOCDIR   = src/sys/classes/st/impls/
 MANSEC   = ST

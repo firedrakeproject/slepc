@@ -27,6 +27,6 @@ SOURCEC  = zpsf.c
 SOURCEF  =
 SOURCEH  =
 DIRS     =
-LIBBASE  = libslepc
+LIBBASE  = libslepcsys
 LOCDIR   = src/sys/classes/ds/interface/ftn-custom/
 include ${SLEPC_DIR}/conf/slepc_common

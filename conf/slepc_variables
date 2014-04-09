@@ -20,7 +20,6 @@
 #
 
 include ${PETSC_DIR}/conf/variables
-include ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcvariables
 
 SLEPC_SYS_LIB_BASIC = -lslepcsys
 SLEPC_MFN_LIB_BASIC = -lslepcmfn ${SLEPC_SYS_LIB_BASIC}
@@ -53,9 +52,7 @@ SLEPC_PEP_LIB   = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} ${SLEPC
 SLEPC_NEP_LIB   = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} ${SLEPC_NEP_LIB_BASIC} ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}
 SLEPC_LIB       = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} ${SLEPC_LIB_BASIC} ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}
 
-# no longer required
-SLEPC_FORTRAN_LIB =
-
 SHLIBS   = libslepcsys libslepcmfn libslepceps libslepcqep libslepcpep libslepcnep
 LIBNAME  = ${INSTALL_LIB_DIR}/${LIBBASE}.${AR_LIB_SUFFIX}
 
+include ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcvariables
