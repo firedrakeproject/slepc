@@ -170,9 +170,10 @@ def pkgsources(pkg, mistakes):
       return os.path.join(root,filename)
     sourcecu = makevars.get('SOURCECU','').split()
     sourcec = makevars.get('SOURCEC','').split()
+    sourcecxx = makevars.get('SOURCECXX','').split()
     sourcef = makevars.get('SOURCEF','').split()
-    mistakes.compareSourceLists(root,sourcec+sourcef+sourcecu, files) # Diagnostic output about unused source files
-    sources[repr(sorted(conditions))].extend(relpath(f) for f in sourcec + sourcef + sourcecu)
+    mistakes.compareSourceLists(root,sourcec+sourcecxx+sourcef+sourcecu, files) # Diagnostic output about unused source files
+    sources[repr(sorted(conditions))].extend(relpath(f) for f in sourcec + sourcecxx + sourcef + sourcecu)
     allconditions[root] = conditions
   return sources
 
@@ -255,17 +256,12 @@ def main(slepcdir,petscdir,petscarch,log=StdoutLogger(), verbose=False):
     writeRoot(f,petscdir,petscarch)
     f.write('include_directories (${PETSC_PACKAGE_INCLUDES} ${SLEPC_PACKAGE_INCLUDES})\n')
     pkglist = [('sys'            , ''),
-               ('vec'            , 'sys'),
-               ('ip'             , 'sys'),
-               ('ds'             , 'sys'),
-               ('fn'             , 'sys'),
-               ('st'             , 'ip sys'),
-               ('eps'            , 'ip ds st vec sys'),
-               ('svd'            , 'eps ip ds sys'),
-               ('qep'            , 'eps st ip ds sys'),
-               ('pep'            , 'eps st ip ds sys'),
-               ('nep'            , 'eps ip ds fn sys'),
-               ('mfn'            , 'ip ds fn sys')]
+               ('eps'            , 'sys'),
+               ('svd'            , 'eps sys'),
+               ('qep'            , 'eps sys'),
+               ('pep'            , 'eps sys'),
+               ('nep'            , 'eps sys'),
+               ('mfn'            , 'sys')]
     for pkg,deps in pkglist:
       writePackage(f,pkg,deps.split(),mistakes)
     f.write ('''
