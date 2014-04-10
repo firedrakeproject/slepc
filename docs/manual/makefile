@@ -21,13 +21,7 @@ DOC_GEN	= $(subst .tex,.aux,$(DOC_TEX)) \
 	  slepc.lof \
 	  slepc.log \
 	  slepc.lot \
-	  slepc.toc \
-	  slepc.fold.gnuplot \
-	  slepc.fold.table \
-	  slepc.sinv1.gnuplot \
-	  slepc.sinv1.table \
-	  slepc.sinv2.gnuplot \
-	  slepc.sinv2.table
+	  slepc.toc
 
 LOCDIR  = docs/manual/
 
