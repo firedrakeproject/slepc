@@ -170,9 +170,10 @@ def pkgsources(pkg, mistakes):
       return os.path.join(root,filename)
     sourcecu = makevars.get('SOURCECU','').split()
     sourcec = makevars.get('SOURCEC','').split()
+    sourcecxx = makevars.get('SOURCECXX','').split()
     sourcef = makevars.get('SOURCEF','').split()
-    mistakes.compareSourceLists(root,sourcec+sourcef+sourcecu, files) # Diagnostic output about unused source files
-    sources[repr(sorted(conditions))].extend(relpath(f) for f in sourcec + sourcef + sourcecu)
+    mistakes.compareSourceLists(root,sourcec+sourcecxx+sourcef+sourcecu, files) # Diagnostic output about unused source files
+    sources[repr(sorted(conditions))].extend(relpath(f) for f in sourcec + sourcecxx + sourcef + sourcecu)
     allconditions[root] = conditions
   return sources
 
@@ -233,11 +234,11 @@ def writePackage(f,pkg,pkgdeps,mistakes):
   f.write('''
 if (NOT PETSC_USE_SINGLE_LIBRARY)
   if (PETSC_HAVE_CUDA)
-    cuda_add_library (slepc%(pkg)s ${PETSC%(PKG)s_SRCS})
+    cuda_add_library (slepc%(pkg)s ${SLEPC%(PKG)s_SRCS})
   else ()
-    add_library (slepc%(pkg)s ${PETSC%(PKG)s_SRCS})
+    add_library (slepc%(pkg)s ${SLEPC%(PKG)s_SRCS})
   endif ()
-  target_link_libraries (slepcc%(pkg)s %(pkgdeps)s ${PETSC_PACKAGE_LIBS})
+  target_link_libraries (slepc%(pkg)s %(pkgdeps)s ${SLEPC_PACKAGE_LIBS} ${PETSC_PACKAGE_LIBS})
   if (PETSC_WIN32FE)
     set_target_properties (slepc%(pkg)s PROPERTIES RULE_LAUNCH_COMPILE "${PETSC_WIN32FE}")
     set_target_properties (slepc%(pkg)s PROPERTIES RULE_LAUNCH_LINK "${PETSC_WIN32FE}")
@@ -255,17 +256,12 @@ def main(slepcdir,petscdir,petscarch,log=StdoutLogger(), verbose=False):
     writeRoot(f,petscdir,petscarch)
     f.write('include_directories (${PETSC_PACKAGE_INCLUDES} ${SLEPC_PACKAGE_INCLUDES})\n')
     pkglist = [('sys'            , ''),
-               ('vec'            , 'sys'),
-               ('ip'             , 'sys'),
-               ('ds'             , 'sys'),
-               ('fn'             , 'sys'),
-               ('st'             , 'ip sys'),
-               ('eps'            , 'ip ds st vec sys'),
-               ('svd'            , 'eps ip ds sys'),
-               ('qep'            , 'eps st ip ds sys'),
-               ('pep'            , 'eps st ip ds sys'),
-               ('nep'            , 'eps ip ds fn sys'),
-               ('mfn'            , 'ip ds fn sys')]
+               ('eps'            , 'sys'),
+               ('svd'            , 'eps sys'),
+               ('qep'            , 'eps sys'),
+               ('pep'            , 'eps sys'),
+               ('nep'            , 'eps sys'),
+               ('mfn'            , 'sys')]
     for pkg,deps in pkglist:
       writePackage(f,pkg,deps.split(),mistakes)
     f.write ('''

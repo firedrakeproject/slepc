@@ -45,67 +45,67 @@ TESTEXAMPLES_F90               = ex1f90.PETSc runex1f90_1 ex1f90.rm
 include ${SLEPC_DIR}/conf/slepc_common
 
 ex1: ex1.o chkopts
-	-${CLINKER} -o ex1 ex1.o ${SLEPC_LIB}
+	-${CLINKER} -o ex1 ex1.o ${SLEPC_EPS_LIB}
 	${RM} ex1.o
 
 ex1f: ex1f.o chkopts
-	-${FLINKER} -o ex1f ex1f.o ${SLEPC_LIB}
+	-${FLINKER} -o ex1f ex1f.o ${SLEPC_EPS_LIB}
 	${RM} ex1f.o
 
 ex1f90: ex1f90.o chkopts
-	-${FLINKER} -o ex1f90 ex1f90.o ${SLEPC_LIB}
+	-${FLINKER} -o ex1f90 ex1f90.o ${SLEPC_EPS_LIB}
 	${RM} ex1f90.o
 
 ex2: ex2.o chkopts
-	-${CLINKER} -o ex2 ex2.o ${SLEPC_LIB}
+	-${CLINKER} -o ex2 ex2.o ${SLEPC_EPS_LIB}
 	${RM} ex2.o
 
 ex3: ex3.o chkopts
-	-${CLINKER} -o ex3 ex3.o ${SLEPC_LIB}
+	-${CLINKER} -o ex3 ex3.o ${SLEPC_EPS_LIB}
 	${RM} ex3.o
 
 ex4: ex4.o chkopts
-	-${CLINKER} -o ex4 ex4.o ${SLEPC_LIB}
+	-${CLINKER} -o ex4 ex4.o ${SLEPC_EPS_LIB}
 	${RM} ex4.o
 
 ex5: ex5.o chkopts
-	-${CLINKER} -o ex5 ex5.o ${SLEPC_LIB}
+	-${CLINKER} -o ex5 ex5.o ${SLEPC_EPS_LIB}
 	${RM} ex5.o
 
 ex6f: ex6f.o chkopts
-	-${FLINKER} -o ex6f ex6f.o ${SLEPC_LIB}
+	-${FLINKER} -o ex6f ex6f.o ${SLEPC_EPS_LIB}
 	${RM} ex6f.o
 
 ex7: ex7.o chkopts
-	-${CLINKER} -o ex7 ex7.o ${SLEPC_LIB}
+	-${CLINKER} -o ex7 ex7.o ${SLEPC_EPS_LIB}
 	${RM} ex7.o
 
 ex9: ex9.o chkopts
-	-${CLINKER} -o ex9 ex9.o ${SLEPC_LIB}
+	-${CLINKER} -o ex9 ex9.o ${SLEPC_EPS_LIB}
 	${RM} ex9.o
 
 ex11: ex11.o chkopts
-	-${CLINKER} -o ex11 ex11.o ${SLEPC_LIB}
+	-${CLINKER} -o ex11 ex11.o ${SLEPC_EPS_LIB}
 	${RM} ex11.o
 
 ex12: ex12.o chkopts
-	-${CLINKER} -o ex12 ex12.o ${SLEPC_LIB}
+	-${CLINKER} -o ex12 ex12.o ${SLEPC_EPS_LIB}
 	${RM} ex12.o
 
 ex13: ex13.o chkopts
-	-${CLINKER} -o ex13 ex13.o ${SLEPC_LIB}
+	-${CLINKER} -o ex13 ex13.o ${SLEPC_EPS_LIB}
 	${RM} ex13.o
 
 ex18: ex18.o chkopts
-	-${CLINKER} -o ex18 ex18.o ${SLEPC_LIB}
+	-${CLINKER} -o ex18 ex18.o ${SLEPC_EPS_LIB}
 	${RM} ex18.o
 
 ex19: ex19.o chkopts
-	-${CLINKER} -o ex19 ex19.o ${SLEPC_LIB}
+	-${CLINKER} -o ex19 ex19.o ${SLEPC_EPS_LIB}
 	${RM} ex19.o
 
 ex24: ex24.o chkopts
-	-${CLINKER} -o ex24 ex24.o ${SLEPC_LIB}
+	-${CLINKER} -o ex24 ex24.o ${SLEPC_EPS_LIB}
 	${RM} ex24.o
 
 #------------------------------------------------------------------------------------

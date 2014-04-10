@@ -415,11 +415,11 @@ default: ex1
 include ${SLEPC_DIR}/conf/slepc_common
 
 ex1: ex1.o chkopts
-	-${CLINKER} -o ex1 ex1.o ${SLEPC_LIB}
+	-${CLINKER} -o ex1 ex1.o ${SLEPC_EPS_LIB}
 	${RM} ex1.o
 
 ex1f: ex1f.o chkopts
-	-${FLINKER} -o ex1f ex1f.o ${SLEPC_LIB}
+	-${FLINKER} -o ex1f ex1f.o ${SLEPC_EPS_LIB}
 	${RM} ex1f.o
 	\end{Verbatim}
 

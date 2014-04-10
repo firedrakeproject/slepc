@@ -295,8 +295,6 @@ try:
   pkgconfig = open(os.sep.join([pkgconfigdir,'SLEPc.pc']),'w')
 except:
   sys.exit('ERROR: cannot create pkgconfig file in ' + pkgconfigdir)
-if prefixinstall and os.path.isfile(os.sep.join([prefixdir,'include','slepc.h'])):
-  sys.exit('ERROR: prefix directory ' + prefixdir + ' contains files from a previous installation')
 
 # Create temporary directory and makefile for running tests
 try:
@@ -345,6 +343,16 @@ if petscconf.ISINSTALL:
 if not check.Link(tmpdir,[],[],[]):
   log.Exit('ERROR: Unable to link with PETSc')
 
+if prefixinstall and os.path.isfile(os.sep.join([prefixdir,'include','slepc.h'])):
+  log.Println('WARNING: prefix directory ' + prefixdir + ' contains files from a previous installation')
+
+# Single library installation
+if petscconf.SINGLELIB:
+  slepcvars.write('SHLIBS = libslepc\n')
+  slepcvars.write('LIBNAME = ${INSTALL_LIB_DIR}/libslepc.${AR_LIB_SUFFIX}\n')
+  for module in ['SYS','MFN','EPS','SVD','QEP','PEP','NEP']:
+    slepcvars.write('SLEPC_'+module+'_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}\n')
+
 # Check for external packages
 if havearpack:
   arpacklibs = arpack.Check(slepcconf,slepcvars,cmake,tmpdir,arpackdir,arpacklibs)
@@ -379,9 +387,9 @@ cmake.write('find_library (PETSC_LIB petsc HINTS ${PETSc_BINARY_DIR}/lib )\n')
 cmake.write('''
 if (NOT PETSC_LIB) # Interpret missing libpetsc to mean that PETSc was built --with-single-library=0
   set (PETSC_LIB "")
-  foreach (pkg sys vec mat dm ksp snes ts)
+  foreach (pkg sys vec mat dm ksp snes ts tao)
     string (TOUPPER ${pkg} PKG)
-    find_library(PETSC${PKG}_LIB "petsc${pkg}" HINTS ${PETSc_BINARY_DIR}/lib)
+    find_library (PETSC${PKG}_LIB "petsc${pkg}" HINTS ${PETSc_BINARY_DIR}/lib)
     list (APPEND PETSC_LIB "${PETSC${PKG}_LIB}")
   endforeach ()
 endif ()

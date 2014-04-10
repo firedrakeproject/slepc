@@ -27,6 +27,6 @@ SOURCEC  = zepsf.c
 SOURCEF  =
 SOURCEH  =
 DIRS     =
-LIBBASE  = libslepc
+LIBBASE  = libslepceps
 LOCDIR   = src/eps/interface/ftn-custom/
 include ${SLEPC_DIR}/conf/slepc_common

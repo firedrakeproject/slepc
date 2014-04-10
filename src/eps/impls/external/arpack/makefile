@@ -28,11 +28,10 @@ FFLAGS   =
 SOURCEC  = arpack.c
 SOURCEF  =
 SOURCEH  = arpackp.h
-LIBBASE  = libslepc
+LIBBASE  = libslepceps
 DIRS     =
 MANSEC   = EPS
 LOCDIR   = src/eps/impls/external/arpack/
 
 include ${SLEPC_DIR}/conf/slepc_common
-
 

@@ -25,18 +25,17 @@ CFLAGS    =
 FFLAGS    =
 SOURCEC   =
 SOURCEF   =
-SOURCEH   = slepc.h slepceps.h slepcst.h slepcsvd.h slepcqep.h slepcpep.h slepcnep.h slepcmfn.h slepcip.h slepcds.h slepcfn.h \
-            slepc.h90 slepceps.h90 slepcst.h90 slepcsvd.h90 slepcqep.h90 slepcpep.h90 slepcnep.h90 slepcmfn.h90 slepcip.h90 slepcds.h90 slepcfn.h90 \
-            slepcdef.h slepcepsdef.h slepcstdef.h slepcsvddef.h slepcqepdef.h slepcpepdef.h slepcnepdef.h slepcmfndef.h slepcipdef.h slepcdsdef.h slepcfndef.h
-LIBBASE   = libslepc
+SOURCEH   = slepc.h slepceps.h slepcst.h slepcsvd.h slepcqep.h slepcpep.h \
+            slepcnep.h slepcmfn.h slepcip.h slepcds.h slepcfn.h \
+            slepc.h90 slepceps.h90 slepcst.h90 slepcsvd.h90 slepcqep.h90 \
+            slepcpep.h90 slepcnep.h90 slepcmfn.h90 slepcip.h90 slepcds.h90 \
+            slepcfn.h90 slepcdef.h slepcepsdef.h slepcstdef.h slepcsvddef.h \
+            slepcqepdef.h slepcpepdef.h slepcnepdef.h slepcmfndef.h slepcipdef.h \
+            slepcdsdef.h slepcfndef.h
+LIBBASE   = libslepcsys
 DIRS      = 
 MANSEC    = 
 LOCDIR    = include/finclude/
 
 include ${SLEPC_DIR}/conf/slepc_common
-
-runexamples:
-
-
-
 

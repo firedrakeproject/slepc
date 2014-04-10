@@ -21,11 +21,10 @@
 
 ALL: lib
 
-LIBBASE  = libslepc
+LIBBASE  = libslepceps
 DIRS     = rqcg
 LOCDIR   = src/eps/impls/cg/
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/conf/slepc_common
-
 
