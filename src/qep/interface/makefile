@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = qepmon.c qepbasic.c qepdefault.c qepregis.c qepopts.c qepsetup.c qepsolve.c
+SOURCEC  = qepmon.c qepbasic.c qepdefault.c qepregis.c qepopts.c qepsetup.c qepsolve.c dlregisqep.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcqep
