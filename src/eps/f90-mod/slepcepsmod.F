@@ -19,46 +19,16 @@
 
 #define PETSC_USE_FORTRAN_MODULES
 
-        module slepcstdef
-        use petscksp
-#include <finclude/slepcst.h>
-#include <finclude/ftn-custom/slepcstdef.h90>
+        module slepcepsdef
+        use slepcst
+        use slepcip
+        use slepcds
+#include <finclude/slepceps.h>
+#include <finclude/ftn-custom/slepcepsdef.h90>
         end module
 
-        module slepcst
-        use slepcstdef
-#include <finclude/slepcst.h90>
-        end module
-
-        module slepcipdef
-        use petscsys
-#include <finclude/slepcip.h>
-#include <finclude/ftn-custom/slepcipdef.h90>
-        end module
-
-        module slepcip
-        use slepcipdef
-#include <finclude/slepcip.h90>
-        end module
-
-        module slepcdsdef
-        use petscsys
-#include <finclude/slepcds.h>
-#include <finclude/ftn-custom/slepcdsdef.h90>
-        end module
-
-        module slepcds
-        use slepcdsdef
-#include <finclude/slepcds.h90>
-        end module
-
-        module slepcfndef
-#include <finclude/slepcfn.h>
-#include <finclude/ftn-custom/slepcfndef.h90>
-        end module
-
-        module slepcfn
-        use slepcfndef
-#include <finclude/slepcfn.h90>
+        module slepceps
+        use slepcepsdef
+#include <finclude/slepceps.h90>
         end module
 
