@@ -295,8 +295,6 @@ try:
   pkgconfig = open(os.sep.join([pkgconfigdir,'SLEPc.pc']),'w')
 except:
   sys.exit('ERROR: cannot create pkgconfig file in ' + pkgconfigdir)
-if prefixinstall and os.path.isfile(os.sep.join([prefixdir,'include','slepc.h'])):
-  sys.exit('ERROR: prefix directory ' + prefixdir + ' contains files from a previous installation')
 
 # Create temporary directory and makefile for running tests
 try:
@@ -344,6 +342,9 @@ if petscconf.ISINSTALL:
     log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
 if not check.Link(tmpdir,[],[],[]):
   log.Exit('ERROR: Unable to link with PETSc')
+
+if prefixinstall and os.path.isfile(os.sep.join([prefixdir,'include','slepc.h'])):
+  log.Println('WARNING: prefix directory ' + prefixdir + ' contains files from a previous installation')
 
 # Single library installation
 if petscconf.SINGLELIB:

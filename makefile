@@ -252,86 +252,9 @@ install:
 	-@if [ "${PETSC_ARCH}" = "" ]; then \
 	  echo "PETSC_ARCH is undefined";\
 	elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
-	  echo "Install directory is current directory; nothing needs to be done";\
+	  echo "SLEPc is built without prefix option, rerun configure with --prefix";\
         else \
-	  echo Installing SLEPc at ${SLEPC_DESTDIR};\
-          if [ ! -d `dirname ${SLEPC_DESTDIR}` ]; then \
-	    ${MKDIR} `dirname ${SLEPC_DESTDIR}` ; \
-          fi;\
-          if [ ! -d ${SLEPC_DESTDIR} ]; then \
-	    ${MKDIR} ${SLEPC_DESTDIR} ; \
-          fi;\
-          if [ ! -d ${SLEPC_DESTDIR}/include ]; then \
-	    ${MKDIR} ${SLEPC_DESTDIR}/include ; \
-          fi;\
-          cp -f include/*.h ${SLEPC_DESTDIR}/include;\
-          cp -f ${PETSC_ARCH}/include/*.h ${SLEPC_DESTDIR}/include;\
-          if [ -f ${PETSC_ARCH}/include/slepceps.mod ]; then \
-            cp -f ${PETSC_ARCH}/include/*.mod ${SLEPC_DESTDIR}/include;\
-          fi;\
-          if [ ! -d ${SLEPC_DESTDIR}/include/finclude ]; then \
-	    ${MKDIR} ${SLEPC_DESTDIR}/include/finclude ; \
-          fi;\
-          cp -f include/finclude/*.h* ${SLEPC_DESTDIR}/include/finclude;\
-          if [ -d include/finclude/ftn-auto ]; then \
-            if [ ! -d ${SLEPC_DESTDIR}/include/finclude/ftn-auto ]; then \
-	      ${MKDIR} ${SLEPC_DESTDIR}/include/finclude/ftn-auto ; \
-            fi;\
-            cp -f include/finclude/ftn-auto/*.h90 ${SLEPC_DESTDIR}/include/finclude/ftn-auto;\
-          fi;\
-          if [ ! -d ${SLEPC_DESTDIR}/include/finclude/ftn-custom ]; then \
-	    ${MKDIR} ${SLEPC_DESTDIR}/include/finclude/ftn-custom ; \
-          fi;\
-          cp -f include/finclude/ftn-custom/*.h90 ${SLEPC_DESTDIR}/include/finclude/ftn-custom;\
-          if [ ! -d ${SLEPC_DESTDIR}/include/slepc-private ]; then \
-	    ${MKDIR} ${SLEPC_DESTDIR}/include/slepc-private ; \
-          fi;\
-          cp -f include/slepc-private/*.h ${SLEPC_DESTDIR}/include/slepc-private;\
-          if [ ! -d ${SLEPC_DESTDIR}/conf ]; then \
-	    ${MKDIR} ${SLEPC_DESTDIR}/conf ; \
-          fi;\
-          for dir in bin bin/matlab bin/matlab/classes; \
-          do \
-            if [ ! -d ${SLEPC_DESTDIR}/$$dir ]; then ${MKDIR} ${SLEPC_DESTDIR}/$$dir; fi;\
-          done; \
-          for dir in bin/matlab/classes; \
-          do \
-            cp -f $$dir/*.m ${SLEPC_DESTDIR}/$$dir;\
-          done; \
-          cp -f bin/matlab/classes/slepcmatlabheader.h ${SLEPC_DESTDIR}/bin/matlab/classes;\
-          cp -f conf/slepc_* ${SLEPC_DESTDIR}/conf;\
-          cp -f ${PETSC_ARCH}/conf/slepcvariables ${SLEPC_DESTDIR}/conf;\
-          cp -f ${PETSC_ARCH}/conf/slepcrules ${SLEPC_DESTDIR}/conf;\
-          if [ ! -d ${SLEPC_DESTDIR}/lib ]; then \
-            ${MKDIR} ${SLEPC_DESTDIR}/lib ; \
-          fi;\
-          if [ -d ${PETSC_ARCH}/lib ]; then \
-            if [ -f ${PETSC_ARCH}/lib/libslepc.${AR_LIB_SUFFIX} ]; then \
-              cp -f ${PETSC_ARCH}/lib/*.${AR_LIB_SUFFIX} ${SLEPC_DESTDIR}/lib; \
-              ${RANLIB} ${SLEPC_DESTDIR}/lib/*.${AR_LIB_SUFFIX} ; \
-	      ${OMAKE} PETSC_DIR=${PETSC_DIR} PETSC_ARCH="" SLEPC_DIR=${SLEPC_DESTDIR} OTHERSHAREDLIBS="${PETSC_KSP_LIB} ${SLEPC_EXTERNAL_LIB}" shared; \
-            elif [ -f ${PETSC_ARCH}/lib/libslepc.${SL_LINKER_SUFFIX} ]; then \
-              cp -f ${PETSC_ARCH}/lib/*.${SL_LINKER_SUFFIX} ${SLEPC_DESTDIR}/lib; \
-            fi; \
-          fi;\
-          if [ ! -d ${SLEPC_DESTDIR}/lib/modules ]; then \
-            ${MKDIR} ${SLEPC_DESTDIR}/lib/modules ; \
-          fi;\
-          if [ -d ${PETSC_ARCH}/lib/modules ]; then \
-            cp -f ${PETSC_ARCH}/lib/modules/* ${SLEPC_DESTDIR}/lib/modules; \
-          fi;\
-          if [ ! -d ${SLEPC_DESTDIR}/lib/pkgconfig ]; then \
-            ${MKDIR} ${SLEPC_DESTDIR}/lib/pkgconfig ; \
-          fi;\
-          if [ -d ${PETSC_ARCH}/lib/pkgconfig ]; then \
-            cp -f ${PETSC_ARCH}/lib/pkgconfig/SLEPc.pc ${SLEPC_DESTDIR}/lib/pkgconfig; \
-          fi;\
-          echo "====================================";\
-          echo "Install complete.";\
-          echo "It is usable with SLEPC_DIR=${SLEPC_DESTDIR} PETSC_DIR=${PETSC_DIR} [and no more PETSC_ARCH].";\
-          echo "Run the following to verify the install (in current directory):";\
-          echo "make SLEPC_DIR=${SLEPC_DESTDIR} PETSC_DIR=${PETSC_DIR} test";\
-          echo "====================================";\
+	  ${PYTHON} ${SLEPC_DIR}/config/install.py ${SLEPC_DIR} ${PETSC_DIR} ${SLEPC_DESTDIR} ${PETSC_ARCH} ${RANLIB} ${AR_LIB_SUFFIX}; \
         fi;
 
 # ------------------------------------------------------------------
