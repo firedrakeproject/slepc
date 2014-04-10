@@ -32,19 +32,12 @@ SPECIALFASTLIB = yes
 CFLAGS     =
 FFLAGS     =
 SOURCEC    =
-SOURCEF    = slepcmod.F
+SOURCEF    = slepcsysmod.F
 SOURCEH    =
-LIBBASE    = libslepc
+LIBBASE    = libslepcsys
 MANSEC     = sys
 LOCDIR     = src/sys/f90-mod/
 CLEANFILES = *.mod
 
 include ${SLEPC_DIR}/conf/slepc_common
 
-buildmod_slepc:
-	-@${OMAKE}  clean
-	@${OMAKE}  libfastcompile
-	@${OMAKE}  modcopy_slepc
-	@${OMAKE}  clean
-modcopy_slepc:
-	@${CP} -f *.mod ${SLEPC_DIR}/${PETSC_ARCH}/include

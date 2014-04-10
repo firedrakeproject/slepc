@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = mfnmon.c mfnbasic.c mfnregis.c mfnopts.c mfnsetup.c mfnsolve.c
+SOURCEC  = mfnmon.c mfnbasic.c mfnregis.c mfnopts.c mfnsetup.c mfnsolve.c dlregismfn.c
 SOURCEF  =
 SOURCEH  =
-LIBBASE  = libslepc
+LIBBASE  = libslepcmfn
 DIRS     =
 MANSEC   = MFN
 LOCDIR   = src/mfn/interface/

@@ -35,7 +35,7 @@ TESTEXAMPLES_F90         =
 include ${SLEPC_DIR}/conf/slepc_common
 
 ex23: ex23.o chkopts
-	-${CLINKER} -o ex23 ex23.o ${SLEPC_LIB}
+	-${CLINKER} -o ex23 ex23.o ${SLEPC_PEP_LIB}
 	${RM} ex23.o
 
 #------------------------------------------------------------------------------------

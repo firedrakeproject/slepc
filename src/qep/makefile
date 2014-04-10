@@ -22,7 +22,7 @@
 ALL: lib
 
 SOURCEH  = ../../include/slepc-private/qepimpl.h ../../include/slepcqep.h
-DIRS     = interface impls examples
+DIRS     = interface impls examples f90-mod
 LOCDIR   = src/qep/
 MANSEC   = QEP
 

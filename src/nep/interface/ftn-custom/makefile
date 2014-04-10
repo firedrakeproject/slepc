@@ -27,6 +27,6 @@ SOURCEC  = znepf.c
 SOURCEF  =
 SOURCEH  =
 DIRS     =
-LIBBASE  = libslepc
+LIBBASE  = libslepcnep
 LOCDIR   = src/nep/interface/ftn-custom/
 include ${SLEPC_DIR}/conf/slepc_common
