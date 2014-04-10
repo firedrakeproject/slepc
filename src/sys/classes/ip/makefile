@@ -28,7 +28,7 @@ SOURCEF  =
 SOURCEH  = ../../../../include/slepc-private/ipimpl.h ../../../../include/slepcip.h \
            ../../../eps/impls/davidson/common/davidson.h
 LIBBASE  = libslepcsys
-DIRS     =
+DIRS     = examples
 MANSEC   = IP
 LOCDIR   = src/sys/classes/ip/
 

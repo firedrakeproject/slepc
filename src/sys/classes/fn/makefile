@@ -27,7 +27,7 @@ SOURCEC  = fnbasic.c fnrational.c fnexp.c
 SOURCEF  =
 SOURCEH  = ../../../../include/slepc-private/fnimpl.h ../../../../include/slepcfn.h
 LIBBASE  = libslepcsys
-DIRS     =
+DIRS     = examples
 MANSEC   = FN
 LOCDIR   = src/sys/classes/fn/
 
