@@ -254,7 +254,7 @@ install:
 	elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
 	  echo "SLEPc is built without prefix option, rerun configure with --prefix";\
         else \
-	  ${PYTHON} ${SLEPC_DIR}/config/install.py ${SLEPC_DIR} ${PETSC_DIR} ${SLEPC_DESTDIR} ${PETSC_ARCH} ${RANLIB} ${AR_LIB_SUFFIX}; \
+	  ${PYTHON} ${SLEPC_DIR}/config/install.py ${SLEPC_DIR} ${PETSC_DIR} ${SLEPC_DESTDIR} ${PETSC_ARCH} ${AR_LIB_SUFFIX} ${RANLIB}; \
         fi;
 
 # ------------------------------------------------------------------

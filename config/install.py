@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import re, os, sys, shutil
+import commands
 
 try:
   WindowsError
@@ -8,18 +9,19 @@ except NameError:
 
 class Installer:
   def __init__(self, args = None):
-    if len(args)!=6:
+    if len(args)<6:
       print '********************************************************************'
       print 'Installation script error - not enough arguments:'
-      print './config/install.py SLEPC_DIR PETSC_DIR PETSC_ARCH DESTDIR RANLIB LIB_SUFFIX'
+      print './config/install.py SLEPC_DIR PETSC_DIR PETSC_ARCH DESTDIR LIB_SUFFIX RANLIB'
       print '********************************************************************'
       sys.exit(1)
     self.rootDir     = args[0]
     self.petscDir    = args[1]
     self.destDir     = os.path.abspath(args[2])
     self.arch        = args[3]
-    self.ranlib      = args[4]
-    self.arLibSuffix = args[5]
+    self.arLibSuffix = args[4]
+    self.ranlib      = ' '.join(args[5:])
+    print self.ranlib
     self.copies = []
     return
 
@@ -196,10 +198,10 @@ for src, dst in copies:
     if not os.path.splitext(src)[1] == '.o':
       shutil.copy2(src, dst)
     if os.path.splitext(dst)[1] == '.'+self.arLibSuffix:
-      self.executeShellCommand(self.ranlib+' '+dst)
+      (result, output) = commands.getstatusoutput(self.ranlib+' '+dst)
     if os.path.splitext(dst)[1] == '.dylib' and os.path.isfile('/usr/bin/install_name_tool'):
       installName = re.sub(self.destDir, self.installDir, dst)
-      self.executeShellCommand('/usr/bin/install_name_tool -id ' + installName + ' ' + dst)
+      (result, output) = commands.getstatusoutput('/usr/bin/install_name_tool -id ' + installName + ' ' + dst)
     # preserve the original timestamps - so that the .a vs .so time order is preserved
     shutil.copystat(src,dst)
     return
