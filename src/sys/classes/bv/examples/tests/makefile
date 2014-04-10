@@ -19,17 +19,34 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
+CFLAGS     =
+FFLAGS     =
+CPPFLAGS   =
+FPPFLAGS   =
+LOCDIR     = src/sys/classes/bv/examples/tests/
+EXAMPLESC  = test1.c
+EXAMPLESF  =
+MANSEC     = BV
+TESTS      = test1
 
-CFLAGS   =
-FFLAGS   =
-SOURCEC  =
-SOURCEF  =
-SOURCEH  =
-LIBBASE  = libslepcsys
-MANSEC   = sys
-LOCDIR   = src/sys/classes/
-DIRS     = ds fn ip st bv
+TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 test1.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+test1: test1.o chkopts
+	-${CLINKER} -o test1 test1.o ${SLEPC_SYS_LIB}
+	${RM} test1.o
+
+#------------------------------------------------------------------------------------
+
+TESTCODE = \
+	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${test}.out; \
+	${DIFF} output/$${test}.out $${test}.tmp || \
+	echo "Possible problem with $${test}, diffs above"; \
+	${RM} -f $${test}.tmp
+
+runtest1_1:
+	-@test=test1_1; \
+	${MPIEXEC} -np 1 ./test1 2>&1 > $${test}.tmp; \
+	${TESTCODE}
 

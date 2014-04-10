@@ -62,3 +62,13 @@
 #include <finclude/slepcfn.h90>
         end module
 
+        module slepcbvdef
+#include <finclude/slepcbv.h>
+#include <finclude/ftn-custom/slepcbvdef.h90>
+        end module
+
+        module slepcbv
+        use slepcbvdef
+#include <finclude/slepcbv.h90>
+        end module
+

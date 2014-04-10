@@ -23,6 +23,7 @@
 #include <slepc-private/ipimpl.h>
 #include <slepc-private/dsimpl.h>
 #include <slepc-private/fnimpl.h>
+#include <slepc-private/bvimpl.h>
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
 
@@ -45,7 +46,7 @@ PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcmfn(void);
   PetscDLLibraryRegister - This function is called when the dynamic library
   it is in is opened.
 
-  This one registers all the basic objects IP, ST, FN, DS.
+  This one registers all the basic objects IP, ST, FN, DS, BV.
  */
 #if defined(PETSC_USE_SINGLE_LIBRARY)
 PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepc(void)
@@ -60,6 +61,7 @@ PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsys(void)
   ierr = IPInitializePackage();CHKERRQ(ierr);
   ierr = DSInitializePackage();CHKERRQ(ierr);
   ierr = FNInitializePackage();CHKERRQ(ierr);
+  ierr = BVInitializePackage();CHKERRQ(ierr);
 
 #if defined(PETSC_USE_SINGLE_LIBRARY)
   ierr = PetscDLLibraryRegister_slepceps();CHKERRQ(ierr);
