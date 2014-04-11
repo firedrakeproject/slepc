@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) , Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,35 +19,30 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(_BVIMPL)
-#define _BVIMPL
+static char help[] = "Test BV operations.\n\n";
 
 #include <slepcbv.h>
-#include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent BV_Mult,BV_MultVec,BV_Dot;
+#undef __FUNCT__
+#define __FUNCT__ "main"
+int main(int argc,char **argv)
+{
+  PetscErrorCode ierr;
+  BV             bv;
+  PetscInt       n=10,k=5;
 
-typedef struct _BVOps *BVOps;
+  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-k",&k,NULL);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV with %D columns of dimension %D.\n",k,n);CHKERRQ(ierr);
 
-struct _BVOps {
-  PetscErrorCode (*setup)(BV);
-  PetscErrorCode (*mult)(BV,BV,PetscScalar,Mat);
-  PetscErrorCode (*setfromoptions)(BV);
-  PetscErrorCode (*create)(BV);
-  PetscErrorCode (*destroy)(BV);
-  PetscErrorCode (*reset)(BV);
-  PetscErrorCode (*view)(BV,PetscViewer);
-};
+  /* Create BV object */
+  ierr = BVCreate(PETSC_COMM_WORLD,&bv);CHKERRQ(ierr);
+  ierr = BVSetSizes(bv,PETSC_DECIDE,n,k);CHKERRQ(ierr);
+  ierr = BVSetFromOptions(bv);CHKERRQ(ierr);
+  ierr = BVView(bv,NULL);CHKERRQ(ierr);
 
-struct _p_BV {
-  PETSCHEADER(struct _BVOps);
-  /*------------------------- User parameters --------------------------*/
-  PetscInt     n,N;              /* Dimensions of vectors */
-  PetscInt     k;                /* Number of vectors */
-
-  /*------------------------- Misc data --------------------------*/
-  void         *data;
-  PetscInt     setupcalled;
-};
-
-#endif
+  ierr = BVDestroy(&bv);CHKERRQ(ierr);
+  ierr = SlepcFinalize();
+  return 0;
+}

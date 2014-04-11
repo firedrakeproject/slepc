@@ -178,6 +178,8 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   ierr = BVInitializePackage();CHKERRQ(ierr);
   ierr = SlepcHeaderCreate(bv,_p_BV,struct _BVOps,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView);CHKERRQ(ierr);
 
+  bv->n            = -1;
+  bv->N            = -1;
   bv->k            = 0;
   bv->data         = 0;
   bv->setupcalled  = 0;
@@ -352,6 +354,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERSTRING,&isstring);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)bv,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  %D columns of global length %D\n",bv->k,bv->N);CHKERRQ(ierr);
     if (bv->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr);

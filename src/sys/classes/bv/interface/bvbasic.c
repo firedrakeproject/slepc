@@ -65,7 +65,11 @@ PetscErrorCode BVSetType(BV bv,BVType type)
 
   bv->setupcalled = 0;
   ierr = PetscObjectChangeTypeName((PetscObject)bv,type);CHKERRQ(ierr);
-  ierr = (*r)(bv);CHKERRQ(ierr);
+  if (bv->n < 0 && bv->N < 0) {
+    bv->ops->create = r;
+  } else {
+    ierr = (*r)(bv);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -93,6 +97,79 @@ PetscErrorCode BVGetType(BV bv,BVType *type)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidPointer(type,2);
   *type = ((PetscObject)bv)->type_name;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVSetSizes"
+/*@
+  BVSetSizes - Sets the local and global sizes, and the number of columns.
+
+  Collective on BV
+
+  Input Parameters:
++ bv - the basis vectors
+. n  - the local size (or PETSC_DECIDE to have it set)
+. N  - the global size (or PETSC_DECIDE)
+- k  - the number of columns
+
+  Notes:
+  n and N cannot be both PETSC_DECIDE
+  If one processor calls this with N of PETSC_DECIDE then all processors must,
+  otherwise the program will hang.
+
+  Level: basic
+
+.seealso: BVGetSize()
+@*/
+PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt k)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  if (N >= 0) PetscValidLogicalCollectiveInt(bv,N,3);
+  PetscValidLogicalCollectiveInt(bv,k,4);
+  if (N >= 0 && n > N) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Local size %D cannot be larger than global size %D",n,N);
+  if (k <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",k);
+  if ((bv->n >= 0 || bv->N >= 0) && (bv->n != n || bv->N != N)) SETERRQ4(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot change/reset vector sizes to %D local %D global after previously setting them to %D local %D global",n,N,bv->n,bv->N);
+  if (bv->k > 0 && bv->k != k) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot change/reset the number of columns to %D after previously setting it to %D",k,bv->k);
+  bv->n = n;
+  bv->N = N;
+  bv->k = k;
+  if (bv->ops->create) {
+    ierr = (*bv->ops->create)(bv);CHKERRQ(ierr);
+    bv->ops->create = 0;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetSizes"
+/*@
+  BVGetSizes - Returns the local and global sizes, and the number of columns.
+
+  Not Collective
+
+  Input Parameter:
+. bv - the basis vectors
+
+  Output Parameters:
++ n  - the local size
+. N  - the global size
+- k  - the number of columns
+
+  Level: basic
+
+.seealso: BVSetSize()
+@*/
+PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *k)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  if (n) *n = bv->n;
+  if (N) *N = bv->N;
+  if (k) *k = bv->k;
   PetscFunctionReturn(0);
 }
 
