@@ -377,6 +377,9 @@ if slepcversion.ISREPO and hasattr(petscconf,'FC'):
     import generatefortranstubs
     generatefortranstubs.main(slepcdir,petscconf.BFORT,os.getcwd(),0)
     generatefortranstubs.processf90interfaces(slepcdir,0)
+    for f in os.listdir(os.sep.join([slepcdir,'include/finclude/ftn-auto'])):
+      if '-tmpdir' in f: shutil.rmtree(os.sep.join([slepcdir,'include/finclude/ftn-auto/',f]))
+      if 'petsc' in f: os.remove(os.sep.join([slepcdir,'include/finclude/ftn-auto/',f]))
   except AttributeError:
     sys.exit('ERROR: cannot generate Fortran stubs; try configuring PETSc with --download-sowing or use a mercurial version of PETSc')
 

@@ -20,6 +20,7 @@
 #define PETSC_USE_FORTRAN_MODULES
 
         module slepcmfndef
+        use slepcsys
         use slepcip
         use slepcds
 #include <finclude/slepcmfn.h>
