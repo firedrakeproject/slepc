@@ -363,3 +363,35 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "BVGetVec"
+/*@
+   BVGetVec - Creates a new Vec object with the same type and dimensions
+   as the columns of the basis vectors object.
+
+   Collective on BV
+
+   Input Parameters:
+.  bv - the basis vectors context
+
+   Output Parameter:
+.  v  - the new vector
+
+   Note:
+   The user is responsible of destroying the returned vector.
+
+   Level: beginner
+@*/
+PetscErrorCode BVGetVec(BV bv,Vec *v)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  PetscValidPointer(v,2);
+  if (!bv->k) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Must call BVSetSizes (or BVSetSizesFromVec) first");
+  ierr = VecDuplicate(bv->t,v);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
