@@ -29,8 +29,10 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   Vec            t,v;
-  BV             bv;
-  PetscInt       j,n=10,k=5;
+  Mat            Q;
+  BV             X,Y;
+  PetscInt       i,j,n=10,k=5,l=3;
+  PetscScalar    *q;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -42,20 +44,38 @@ int main(int argc,char **argv)
   ierr = VecSetSizes(t,PETSC_DECIDE,n);CHKERRQ(ierr);
   ierr = VecSetFromOptions(t);CHKERRQ(ierr);
 
-  /* Create BV object */
-  ierr = BVCreate(PETSC_COMM_WORLD,&bv);CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(bv,t,k);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(bv);CHKERRQ(ierr);
-  ierr = BVView(bv,NULL);CHKERRQ(ierr);
+  /* Create BV object X */
+  ierr = BVCreate(PETSC_COMM_WORLD,&X);CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(X,t,k);CHKERRQ(ierr);
+  ierr = BVSetFromOptions(X);CHKERRQ(ierr);
+  ierr = BVView(X,NULL);CHKERRQ(ierr);
 
-  /* Fill BV entries */
+  /* Fill X entries */
   for (j=0;j<k;j++) {
-    ierr = BVGetColumn(bv,j,&v);CHKERRQ(ierr);
+    ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
     ierr = VecSetRandom(v,NULL);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(bv,j,&v);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
   }
 
-  ierr = BVDestroy(&bv);CHKERRQ(ierr);
+  /* Create BV object Y */
+  ierr = BVCreate(PETSC_COMM_WORLD,&Y);CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(Y,t,l);CHKERRQ(ierr);
+  ierr = BVSetFromOptions(Y);CHKERRQ(ierr);
+
+  /* Create Mat */
+  ierr = MatCreateSeqDense(PETSC_COMM_WORLD,k,l,NULL,&Q);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  for (i=0;i<k;i++)
+    for (j=0;j<l;j++)
+      q[i+j*k] = 1.0;
+  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+
+  /* Test BVMult */
+  ierr = BVMult(Y,2.0,1.0,X,Q);CHKERRQ(ierr);
+
+  ierr = BVDestroy(&X);CHKERRQ(ierr);
+  ierr = BVDestroy(&Y);CHKERRQ(ierr);
+  ierr = MatDestroy(&Q);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return 0;

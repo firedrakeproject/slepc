@@ -213,6 +213,7 @@ PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *k)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  BVCheckSizes(bv,1);
   if (n) *n = bv->n;
   if (N) *N = bv->N;
   if (k) *k = bv->k;
@@ -296,13 +297,13 @@ PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
   PetscValidLogicalCollectiveInt(bv,j,2);
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Column index must be non-negative");
   if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %D but only %D are available",j,bv->k);
   if (j==bv->ci[0] || j==bv->ci[1]) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Column %D already fetched in a previous call to BVGetColumn",j);
   l = BVAvailableVec;
   if (l==-1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Too many requested columns; you must call BVReleaseColumn for one of the previously fetched columns");
-  if (!bv->ops->getcolumn) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_POINTER,"BVGetColumn operation not defined");
   ierr = (*bv->ops->getcolumn)(bv,j,v);CHKERRQ(ierr);
   bv->ci[l] = j;
   ierr = PetscObjectStateGet((PetscObject)bv->cv[l],&bv->st[l]);CHKERRQ(ierr);
@@ -340,6 +341,7 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
   PetscValidLogicalCollectiveInt(bv,j,2);
   PetscValidPointer(v,3);
   PetscValidHeaderSpecific(*v,VEC_CLASSID,3);
@@ -389,8 +391,8 @@ PetscErrorCode BVGetVec(BV bv,Vec *v)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
   PetscValidPointer(v,2);
-  if (!bv->k) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Must call BVSetSizes (or BVSetSizesFromVec) first");
   ierr = VecDuplicate(bv->t,v);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

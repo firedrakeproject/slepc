@@ -28,11 +28,36 @@ typedef struct {
 } BV_VECS;
 
 #undef __FUNCT__
+#define __FUNCT__ "BVMult_Vecs"
+PetscErrorCode BVMult_Vecs(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *y = (BV_VECS*)Y->data,*x = (BV_VECS*)X->data;
+  PetscScalar    *q,*s;
+  PetscInt       i,j,ldq;
+
+  PetscFunctionBegin;
+  ldq = X->k;
+  if (alpha!=1.0) { ierr = PetscMalloc1(X->k,&s);CHKERRQ(ierr); }
+  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  for (j=0;j<Y->k;j++) {
+    ierr = VecScale(y->V[j],beta);CHKERRQ(ierr);
+    if (alpha!=1.0) {
+      for (i=0;i<X->k;i++) s[i] = alpha*q[i+j*ldq];
+    } else s = q+j*ldq;
+    ierr = VecMAXPY(y->V[j],X->k,s,x->V);CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  if (alpha!=1.0) { ierr = PetscFree(s);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Vecs"
 PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
 {
-  BV_VECS        *ctx = (BV_VECS*)bv->data;
-  PetscInt       l;
+  BV_VECS  *ctx = (BV_VECS*)bv->data;
+  PetscInt l;
 
   PetscFunctionBegin;
   l = BVAvailableVec;
@@ -67,6 +92,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   ierr = VecDuplicateVecs(bv->t,bv->k,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParents(bv,bv->k,ctx->V);CHKERRQ(ierr);
 
+  bv->ops->mult           = BVMult_Vecs;
   bv->ops->getcolumn      = BVGetColumn_Vecs;
   bv->ops->destroy        = BVDestroy_Vecs;
   PetscFunctionReturn(0);

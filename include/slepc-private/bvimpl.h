@@ -30,7 +30,7 @@ PETSC_EXTERN PetscLogEvent BV_Mult,BV_MultVec,BV_Dot;
 typedef struct _BVOps *BVOps;
 
 struct _BVOps {
-  PetscErrorCode (*mult)(BV,BV,PetscScalar,Mat);
+  PetscErrorCode (*mult)(BV,PetscScalar,PetscScalar,BV,Mat);
   PetscErrorCode (*getcolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*restorecolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*setfromoptions)(BV);
@@ -59,5 +59,21 @@ struct _p_BV {
   getcolumn operation (or -1 if both vectors already fetched).
 */
 #define BVAvailableVec (((bv->ci[0]==-1)? 0: (bv->ci[1]==-1)? 1: -1))
+
+/*
+    Macros to test valid BV arguments
+*/
+#if !defined(PETSC_USE_DEBUG)
+
+#define BVCheckSizes(h,arg) do {} while (0)
+
+#else
+
+#define BVCheckSizes(h,arg) \
+  do { \
+    if (!h->k) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"BV sizes have not been defined: Parameter #%d",arg); \
+  } while (0)
+
+#endif
 
 #endif
