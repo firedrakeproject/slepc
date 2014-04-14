@@ -30,24 +30,22 @@ PETSC_EXTERN PetscLogEvent BV_Mult,BV_MultVec,BV_Dot;
 typedef struct _BVOps *BVOps;
 
 struct _BVOps {
-  PetscErrorCode (*setup)(BV);
   PetscErrorCode (*mult)(BV,BV,PetscScalar,Mat);
   PetscErrorCode (*setfromoptions)(BV);
   PetscErrorCode (*create)(BV);
   PetscErrorCode (*destroy)(BV);
-  PetscErrorCode (*reset)(BV);
   PetscErrorCode (*view)(BV,PetscViewer);
 };
 
 struct _p_BV {
   PETSCHEADER(struct _BVOps);
   /*------------------------- User parameters --------------------------*/
+  Vec          t;                /* Template vector */
   PetscInt     n,N;              /* Dimensions of vectors */
   PetscInt     k;                /* Number of vectors */
 
   /*------------------------- Misc data --------------------------*/
   void         *data;
-  PetscInt     setupcalled;
 };
 
 #endif

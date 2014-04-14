@@ -54,12 +54,11 @@ PETSC_EXTERN PetscClassId BV_CLASSID;
 
 PETSC_EXTERN PetscErrorCode BVCreate(MPI_Comm,BV*);
 PETSC_EXTERN PetscErrorCode BVDestroy(BV*);
-PETSC_EXTERN PetscErrorCode BVReset(BV);
 PETSC_EXTERN PetscErrorCode BVSetType(BV,BVType);
 PETSC_EXTERN PetscErrorCode BVGetType(BV,BVType*);
 PETSC_EXTERN PetscErrorCode BVSetSizes(BV,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode BVSetSizesFromVec(BV,Vec,PetscInt);
 PETSC_EXTERN PetscErrorCode BVGetSizes(BV,PetscInt*,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode BVSetUp(BV);
 PETSC_EXTERN PetscErrorCode BVSetFromOptions(BV);
 PETSC_EXTERN PetscErrorCode BVView(BV,PetscViewer);
 

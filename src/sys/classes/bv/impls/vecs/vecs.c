@@ -23,11 +23,20 @@
 
 #include <slepc-private/bvimpl.h>          /*I "slepcbv.h" I*/
 
+typedef struct {
+  Vec *V;
+} BV_VECS;
+
 #undef __FUNCT__
-#define __FUNCT__ "BVSetUp_Vecs"
-PetscErrorCode BVSetUp_Vecs(BV bv)
+#define __FUNCT__ "BVDestroy_Vecs"
+PetscErrorCode BVDestroy_Vecs(BV bv)
 {
+  PetscErrorCode ierr;
+  BV_VECS        *ctx = (BV_VECS*)bv->data;
+
   PetscFunctionBegin;
+  ierr = VecDestroyVecs(bv->k,&ctx->V);CHKERRQ(ierr);
+  ierr = PetscFree(bv->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -35,7 +44,16 @@ PetscErrorCode BVSetUp_Vecs(BV bv)
 #define __FUNCT__ "BVCreate_Vecs"
 PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
 {
+  PetscErrorCode ierr;
+  BV_VECS        *ctx;
+
   PetscFunctionBegin;
-  bv->ops->setup           = BVSetUp_Vecs;
+  ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
+  bv->data = (void*)ctx;
+
+  ierr = VecDuplicateVecs(bv->t,bv->k,&ctx->V);CHKERRQ(ierr);
+  ierr = PetscLogObjectParents(bv,bv->k,ctx->V);CHKERRQ(ierr);
+
+  bv->ops->destroy        = BVDestroy_Vecs;
   PetscFunctionReturn(0);
 }

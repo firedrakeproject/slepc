@@ -98,31 +98,6 @@ PetscErrorCode BVInitializePackage(void)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVReset"
-/*@
-   BVReset - Resets the BV context and removes any allocated objects.
-
-   Collective on BV
-
-   Input Parameter:
-.  bv - the basis vectors context
-
-   Level: advanced
-
-.seealso: BVDestroy()
-@*/
-PetscErrorCode BVReset(BV bv)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  if (bv->ops->reset) { ierr = (*bv->ops->reset)(bv);CHKERRQ(ierr); }
-  bv->setupcalled = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "BVDestroy"
 /*@C
    BVDestroy - Destroys BV context that was created with BVCreate().
@@ -144,8 +119,8 @@ PetscErrorCode BVDestroy(BV *bv)
   if (!*bv) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*bv,BV_CLASSID,1);
   if (--((PetscObject)(*bv))->refct > 0) { *bv = 0; PetscFunctionReturn(0); }
-  ierr = BVReset(*bv);CHKERRQ(ierr);
   if ((*bv)->ops->destroy) { ierr = (*(*bv)->ops->destroy)(*bv);CHKERRQ(ierr); }
+  ierr = VecDestroy(&(*bv)->t);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -178,43 +153,13 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   ierr = BVInitializePackage();CHKERRQ(ierr);
   ierr = SlepcHeaderCreate(bv,_p_BV,struct _BVOps,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView);CHKERRQ(ierr);
 
+  bv->t            = NULL;
   bv->n            = -1;
   bv->N            = -1;
   bv->k            = 0;
   bv->data         = 0;
-  bv->setupcalled  = 0;
 
   *newbv = bv;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "BVSetUp"
-/*@
-   BVSetUp - Prepares for the use of a basis vectors object.
-
-   Collective on BV
-
-   Input Parameter:
-.  bv - the basis vectors context
-
-   Level: advanced
-
-.seealso: BVCreate(), BVDestroy()
-@*/
-PetscErrorCode BVSetUp(BV bv)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  if (bv->setupcalled) PetscFunctionReturn(0);
-  ierr = PetscInfo(bv,"Setting up new BV\n");CHKERRQ(ierr);
-  if (!((PetscObject)bv)->type_name) {
-    ierr = BVSetType(bv,BVVECS);CHKERRQ(ierr);
-  }
-  if (bv->ops->setup) { ierr = (*bv->ops->setup)(bv);CHKERRQ(ierr); }
-  bv->setupcalled = 1;
   PetscFunctionReturn(0);
 }
 

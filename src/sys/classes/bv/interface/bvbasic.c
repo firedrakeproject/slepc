@@ -63,7 +63,6 @@ PetscErrorCode BVSetType(BV bv,BVType type)
   if (bv->ops->destroy) { ierr = (*bv->ops->destroy)(bv);CHKERRQ(ierr); }
   ierr = PetscMemzero(bv->ops,sizeof(struct _BVOps));CHKERRQ(ierr);
 
-  bv->setupcalled = 0;
   ierr = PetscObjectChangeTypeName((PetscObject)bv,type);CHKERRQ(ierr);
   if (bv->n < 0 && bv->N < 0) {
     bv->ops->create = r;
@@ -120,7 +119,7 @@ PetscErrorCode BVGetType(BV bv,BVType *type)
 
   Level: basic
 
-.seealso: BVGetSize()
+.seealso: BVSetSizesFromVec(), BVGetSizes()
 @*/
 PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt k)
 {
@@ -137,6 +136,53 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt k)
   bv->n = n;
   bv->N = N;
   bv->k = k;
+  if (!bv->t) {  /* create template vector and get actual dimensions */
+    ierr = VecCreate(PetscObjectComm((PetscObject)bv),&bv->t);CHKERRQ(ierr);
+    ierr = VecSetSizes(bv->t,bv->n,bv->N);CHKERRQ(ierr);
+    ierr = VecSetFromOptions(bv->t);CHKERRQ(ierr);
+    ierr = VecGetSize(bv->t,&bv->N);CHKERRQ(ierr);
+    ierr = VecGetLocalSize(bv->t,&bv->n);CHKERRQ(ierr);
+  }
+  if (bv->ops->create) {
+    ierr = (*bv->ops->create)(bv);CHKERRQ(ierr);
+    bv->ops->create = 0;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVSetSizesFromVec"
+/*@
+  BVSetSizes - Sets the local and global sizes, and the number of columns.
+  Local and global sizes are specified indirectly by passing a template vector.
+
+  Collective on BV
+
+  Input Parameters:
++ bv - the basis vectors
+. t  - the template vectors
+- k  - the number of columns
+
+  Level: basic
+
+.seealso: BVSetSizes(), BVGetSizes()
+@*/
+PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt k)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidHeaderSpecific(t,VEC_CLASSID,2);
+  PetscCheckSameComm(bv,1,t,2);
+  PetscValidLogicalCollectiveInt(bv,k,3);
+  if (k <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",k);
+  if (bv->t) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Template vector was already set by a previous call to BVSetSizes/FromVec");
+  ierr = VecGetSize(t,&bv->N);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(t,&bv->n);CHKERRQ(ierr);
+  bv->k = k;
+  bv->t = t;
+  ierr = PetscObjectReference((PetscObject)t);CHKERRQ(ierr);
   if (bv->ops->create) {
     ierr = (*bv->ops->create)(bv);CHKERRQ(ierr);
     bv->ops->create = 0;
@@ -161,7 +207,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt k)
 
   Level: basic
 
-.seealso: BVSetSize()
+.seealso: BVSetSizes(), BVSetSizesFromVec()
 @*/
 PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *k)
 {
