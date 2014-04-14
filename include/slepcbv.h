@@ -62,6 +62,9 @@ PETSC_EXTERN PetscErrorCode BVGetSizes(BV,PetscInt*,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode BVSetFromOptions(BV);
 PETSC_EXTERN PetscErrorCode BVView(BV,PetscViewer);
 
+PETSC_EXTERN PetscErrorCode BVGetColumn(BV,PetscInt,Vec*);
+PETSC_EXTERN PetscErrorCode BVRestoreColumn(BV,PetscInt,Vec*);
+
 PETSC_EXTERN PetscErrorCode BVSetOptionsPrefix(BV,const char*);
 PETSC_EXTERN PetscErrorCode BVAppendOptionsPrefix(BV,const char*);
 PETSC_EXTERN PetscErrorCode BVGetOptionsPrefix(BV,const char*[]);

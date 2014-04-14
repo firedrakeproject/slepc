@@ -157,6 +157,15 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->n            = -1;
   bv->N            = -1;
   bv->k            = 0;
+
+  bv->cv[0]        = NULL;
+  bv->cv[1]        = NULL;
+  bv->ci[0]        = -1;
+  bv->ci[1]        = -1;
+  bv->st[0]        = -1;
+  bv->st[1]        = -1;
+  bv->id[0]        = 0;
+  bv->id[1]        = 0;
   bv->data         = 0;
 
   *newbv = bv;

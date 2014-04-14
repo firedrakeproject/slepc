@@ -28,6 +28,19 @@ typedef struct {
 } BV_VECS;
 
 #undef __FUNCT__
+#define __FUNCT__ "BVGetColumn_Vecs"
+PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
+{
+  BV_VECS        *ctx = (BV_VECS*)bv->data;
+  PetscInt       l;
+
+  PetscFunctionBegin;
+  l = BVAvailableVec;
+  bv->cv[l] = ctx->V[j];
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDestroy_Vecs"
 PetscErrorCode BVDestroy_Vecs(BV bv)
 {
@@ -54,6 +67,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   ierr = VecDuplicateVecs(bv->t,bv->k,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParents(bv,bv->k,ctx->V);CHKERRQ(ierr);
 
+  bv->ops->getcolumn      = BVGetColumn_Vecs;
   bv->ops->destroy        = BVDestroy_Vecs;
   PetscFunctionReturn(0);
 }

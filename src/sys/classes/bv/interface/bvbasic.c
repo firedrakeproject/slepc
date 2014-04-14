@@ -117,7 +117,7 @@ PetscErrorCode BVGetType(BV bv,BVType *type)
   If one processor calls this with N of PETSC_DECIDE then all processors must,
   otherwise the program will hang.
 
-  Level: basic
+  Level: beginner
 
 .seealso: BVSetSizesFromVec(), BVGetSizes()
 @*/
@@ -153,7 +153,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt k)
 #undef __FUNCT__
 #define __FUNCT__ "BVSetSizesFromVec"
 /*@
-  BVSetSizes - Sets the local and global sizes, and the number of columns.
+  BVSetSizesFromVec - Sets the local and global sizes, and the number of columns.
   Local and global sizes are specified indirectly by passing a template vector.
 
   Collective on BV
@@ -163,7 +163,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt k)
 . t  - the template vectors
 - k  - the number of columns
 
-  Level: basic
+  Level: beginner
 
 .seealso: BVSetSizes(), BVGetSizes()
 @*/
@@ -205,7 +205,7 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt k)
 . N  - the global size
 - k  - the number of columns
 
-  Level: basic
+  Level: beginner
 
 .seealso: BVSetSizes(), BVSetSizesFromVec()
 @*/
@@ -257,6 +257,109 @@ PetscErrorCode BVSetFromOptions(BV bv)
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)bv);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetColumn"
+/*@
+   BVGetColumn - Returns a Vec object that contains the entries of the
+   requested column of the basis vectors object.
+
+   Collective on BV
+
+   Input Parameters:
++  bv - the basis vectors context
+-  j  - the index of the requested column
+
+   Output Parameter:
+.  v  - vector containing the jth column
+
+   Notes:
+   The returned Vec must be seen as a reference (not a copy) of the BV
+   column, that is, modifying the Vec will change the BV entries as well.
+
+   The returned Vec must not be destroyed. BVRestoreColumn() must be
+   called when it is no longer needed. At most, two columns can be fetched,
+   that is, this function can only be called twice before the corresponding
+   BVRestoreColumn() is invoked.
+
+   Level: beginner
+
+.seealso: BVRestoreColumn()
+@*/
+PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
+{
+  PetscErrorCode ierr;
+  PetscInt       l;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  PetscValidLogicalCollectiveInt(bv,j,2);
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Column index must be non-negative");
+  if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %D but only %D are available",j,bv->k);
+  if (j==bv->ci[0] || j==bv->ci[1]) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Column %D already fetched in a previous call to BVGetColumn",j);
+  l = BVAvailableVec;
+  if (l==-1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Too many requested columns; you must call BVReleaseColumn for one of the previously fetched columns");
+  if (!bv->ops->getcolumn) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_POINTER,"BVGetColumn operation not defined");
+  ierr = (*bv->ops->getcolumn)(bv,j,v);CHKERRQ(ierr);
+  bv->ci[l] = j;
+  ierr = PetscObjectStateGet((PetscObject)bv->cv[l],&bv->st[l]);CHKERRQ(ierr);
+  ierr = PetscObjectGetId((PetscObject)bv->cv[l],&bv->id[l]);CHKERRQ(ierr);
+  *v = bv->cv[l];
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVRestoreColumn"
+/*@
+   BVRestoreColumn - Restore a column obtained with BVGetColumn().
+
+   Logically Collective on BV
+
+   Input Parameters:
++  bv - the basis vectors context
+.  j  - the index of the column
+-  v  - vector obtained with BVGetColumn()
+
+   Note:
+   The arguments must match the corresponding call to BVGetColumn().
+
+   Level: beginner
+
+.seealso: BVGetColumn()
+@*/
+PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
+{
+  PetscErrorCode   ierr;
+  PetscObjectId    id;
+  PetscObjectState st;
+  PetscInt         l;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  PetscValidLogicalCollectiveInt(bv,j,2);
+  PetscValidPointer(v,3);
+  PetscValidHeaderSpecific(*v,VEC_CLASSID,3);
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Column index must be non-negative");
+  if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %D but only %D are available",j,bv->k);
+  if (j!=bv->ci[0] && j!=bv->ci[1]) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Column %D has not been fetched with a call to BVGetColumn",j);
+  l = (j==bv->ci[0])? 0: 1;
+  ierr = PetscObjectGetId((PetscObject)*v,&id);CHKERRQ(ierr);
+  if (id!=bv->id[l]) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 3 is not the same Vec that was obtained with BVGetColumn");
+  ierr = PetscObjectStateGet((PetscObject)*v,&st);CHKERRQ(ierr);
+  if (st!=bv->st[l]) {
+    ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
+  }
+  if (bv->ops->restorecolumn) {
+    ierr = (*bv->ops->restorecolumn)(bv,j,v);CHKERRQ(ierr);
+  } else bv->cv[l] = NULL;
+  bv->ci[l] = -1;
+  bv->st[l] = -1;
+  bv->id[l] = 0;
+  *v = NULL;
   PetscFunctionReturn(0);
 }
 

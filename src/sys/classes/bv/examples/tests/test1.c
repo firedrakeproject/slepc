@@ -28,9 +28,9 @@ static char help[] = "Test BV operations.\n\n";
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
-  Vec            t;
+  Vec            t,v;
   BV             bv;
-  PetscInt       n=10,k=5;
+  PetscInt       j,n=10,k=5;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -47,6 +47,13 @@ int main(int argc,char **argv)
   ierr = BVSetSizesFromVec(bv,t,k);CHKERRQ(ierr);
   ierr = BVSetFromOptions(bv);CHKERRQ(ierr);
   ierr = BVView(bv,NULL);CHKERRQ(ierr);
+
+  /* Fill BV entries */
+  for (j=0;j<k;j++) {
+    ierr = BVGetColumn(bv,j,&v);CHKERRQ(ierr);
+    ierr = VecSetRandom(v,NULL);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(bv,j,&v);CHKERRQ(ierr);
+  }
 
   ierr = BVDestroy(&bv);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
