@@ -66,6 +66,21 @@ PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVView_Vecs"
+PetscErrorCode BVView_Vecs(BV bv,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *ctx = (BV_VECS*)bv->data;
+  PetscInt       j;
+
+  PetscFunctionBegin;
+  for (j=0;j<bv->k;j++) {
+    ierr = VecView(ctx->V[j],viewer);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDestroy_Vecs"
 PetscErrorCode BVDestroy_Vecs(BV bv)
 {
@@ -94,6 +109,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
 
   bv->ops->mult           = BVMult_Vecs;
   bv->ops->getcolumn      = BVGetColumn_Vecs;
+  bv->ops->view           = BVView_Vecs;
   bv->ops->destroy        = BVDestroy_Vecs;
   PetscFunctionReturn(0);
 }

@@ -294,30 +294,31 @@ PetscErrorCode BVGetOptionsPrefix(BV bv,const char *prefix[])
 @*/
 PetscErrorCode BVView(BV bv,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
-  BVType         cstr;
-  PetscBool      isascii,isstring;
+  PetscErrorCode    ierr;
+  PetscBool         isascii;
+  PetscViewerFormat format;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)bv));
+  PetscValidType(bv,1);
+  if (!viewer) {
+    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)bv),&viewer);CHKERRQ(ierr);
+  }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
-  PetscCheckSameComm(bv,1,viewer,2);
 
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERSTRING,&isstring);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)bv,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  %D columns of global length %D\n",bv->k,bv->N);CHKERRQ(ierr);
-    if (bv->ops->view) {
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
+      ierr = PetscViewerASCIIPrintf(viewer,"%D columns of global length %D\n",bv->k,bv->N);CHKERRQ(ierr);
+    } else {
       ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-  } else if (isstring) {
-    ierr = BVGetType(bv,&cstr);CHKERRQ(ierr);
-    ierr = PetscViewerStringSPrintf(viewer," %-7.7s",cstr);CHKERRQ(ierr);
-    if (bv->ops->view) { ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  } else {
+    ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
