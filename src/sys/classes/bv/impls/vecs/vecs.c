@@ -53,6 +53,26 @@ PetscErrorCode BVMult_Vecs(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVMultVec_Vecs"
+PetscErrorCode BVMultVec_Vecs(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *x = (BV_VECS*)X->data;
+  PetscScalar    *s;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  if (alpha!=1.0) { ierr = PetscMalloc1(X->k,&s);CHKERRQ(ierr); }
+  ierr = VecScale(y,beta);CHKERRQ(ierr);
+  if (alpha!=1.0) {
+    for (i=0;i<X->k;i++) s[i] = alpha*q[i];
+  } else s = q;
+  ierr = VecMAXPY(y,X->k,s,x->V);CHKERRQ(ierr);
+  if (alpha!=1.0) { ierr = PetscFree(s);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Vecs"
 PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
 {
@@ -116,6 +136,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   }
 
   bv->ops->mult           = BVMult_Vecs;
+  bv->ops->multvec        = BVMultVec_Vecs;
   bv->ops->getcolumn      = BVGetColumn_Vecs;
   bv->ops->view           = BVView_Vecs;
   bv->ops->destroy        = BVDestroy_Vecs;

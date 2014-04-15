@@ -30,12 +30,15 @@
 
    Logically Collective on BV
 
-   Input Parameter:
-+  alpha - a scalar
-.  X,Y   - basis vectors
--  Q     - a sequential dense matrix
+   Input Parameters:
++  Y,X        - basis vectors
+.  alpha,beta - scalars
+-  Q          - a sequential dense matrix
 
-   Note:
+   Output Parameter:
+.  Y          - the modified basis vectors
+
+   Notes:
    X and Y must be different objects.
 
    The matrix Q must be a sequential dense Mat, with all entries equal on
@@ -77,3 +80,58 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   ierr = PetscObjectStateIncrease((PetscObject)Y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMultVec"
+/*@
+   BVMultVec - Computes y = beta*y + alpha*X*q.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  X          - a basis vectors object
+.  alpha,beta - scalars
+.  y          - a vector
+-  q          - an array of scalars
+
+   Output Parameter:
+.  y          - the modified vector
+
+   Notes:
+   This operation is the analogue of BVMult() but with a BV and a Vec,
+   instead of two BV. Note that arguments are listed in different order
+   with respect to BVMult().
+
+   The length of array q must be equal to the number of columns of X.
+
+   Level: intermediate
+
+.seealso: BVMult()
+
+@*/
+PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,N;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidLogicalCollectiveScalar(X,alpha,2);
+  PetscValidLogicalCollectiveScalar(X,beta,3);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,4);
+  PetscValidPointer(q,5);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+  PetscValidType(y,4);
+  PetscCheckSameComm(X,1,y,4);
+
+  ierr = VecGetSize(y,&N);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
+  if (N!=X->N || n!=X->n) SETERRQ4(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Vec sizes (global %D, local %D) do not match BV sizes (global %D, local %D)",N,n,X->N,X->n);
+
+  ierr = PetscLogEventBegin(BV_MultVec,X,y,0,0);CHKERRQ(ierr);
+  ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_MultVec,X,y,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

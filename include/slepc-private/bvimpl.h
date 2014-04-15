@@ -31,6 +31,7 @@ typedef struct _BVOps *BVOps;
 
 struct _BVOps {
   PetscErrorCode (*mult)(BV,PetscScalar,PetscScalar,BV,Mat);
+  PetscErrorCode (*multvec)(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
   PetscErrorCode (*getcolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*restorecolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*setfromoptions)(BV);

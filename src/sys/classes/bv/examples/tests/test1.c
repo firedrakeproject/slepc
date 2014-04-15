@@ -32,7 +32,7 @@ int main(int argc,char **argv)
   Mat            Q;
   BV             X,Y;
   PetscInt       i,j,n=10,k=5,l=3;
-  PetscScalar    *q;
+  PetscScalar    *q,*z;
   PetscViewer    view;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -91,6 +91,16 @@ int main(int argc,char **argv)
 
   /* Test BVMult */
   ierr = BVMult(Y,2.0,1.0,X,Q);CHKERRQ(ierr);
+  ierr = BVView(Y,view);CHKERRQ(ierr);
+
+  /* Test BVMultVec */
+  ierr = BVGetColumn(Y,0,&v);CHKERRQ(ierr);
+  ierr = PetscMalloc1(k,&z);CHKERRQ(ierr);
+  z[0] = 2.0;
+  for (i=1;i<k;i++) z[i] = -0.5*z[i-1];
+  ierr = BVMultVec(X,-1.0,1.0,v,z);CHKERRQ(ierr);
+  ierr = PetscFree(z);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(Y,0,&v);CHKERRQ(ierr);
   ierr = BVView(Y,view);CHKERRQ(ierr);
 
   ierr = BVDestroy(&X);CHKERRQ(ierr);
