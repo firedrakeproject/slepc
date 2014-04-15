@@ -33,11 +33,13 @@ int main(int argc,char **argv)
   BV             X,Y;
   PetscInt       i,j,n=10,k=5,l=3;
   PetscScalar    *q;
+  PetscViewer    view;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV with %D columns of dimension %D.\n",k,n);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
 
   /* Create template vector */
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
@@ -46,32 +48,50 @@ int main(int argc,char **argv)
 
   /* Create BV object X */
   ierr = BVCreate(PETSC_COMM_WORLD,&X);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)X,"X");CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(X,t,k);CHKERRQ(ierr);
   ierr = BVSetFromOptions(X);CHKERRQ(ierr);
-  ierr = BVView(X,NULL);CHKERRQ(ierr);
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
     ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
-    ierr = VecSetRandom(v,NULL);CHKERRQ(ierr);
+    ierr = VecZeroEntries(v);CHKERRQ(ierr);
+    for (i=0;i<4;i++) {
+      if (i+j<n) {
+        ierr = VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES);CHKERRQ(ierr);
+      }
+    }
     ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
   }
+  ierr = BVView(X,view);CHKERRQ(ierr);
 
   /* Create BV object Y */
   ierr = BVCreate(PETSC_COMM_WORLD,&Y);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)Y,"Y");CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(Y,t,l);CHKERRQ(ierr);
   ierr = BVSetFromOptions(Y);CHKERRQ(ierr);
 
+  /* Fill Y entries */
+  for (j=0;j<l;j++) {
+    ierr = BVGetColumn(Y,j,&v);CHKERRQ(ierr);
+    ierr = VecSet(v,(PetscScalar)(j+1)/4.0);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(Y,j,&v);CHKERRQ(ierr);
+  }
+  ierr = BVView(Y,view);CHKERRQ(ierr);
+
   /* Create Mat */
   ierr = MatCreateSeqDense(PETSC_COMM_WORLD,k,l,NULL,&Q);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)Q,"Q");CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
   for (i=0;i<k;i++)
     for (j=0;j<l;j++)
-      q[i+j*k] = 1.0;
+      q[i+j*k] = (i<j)? 2.0: -0.5;
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatView(Q,view);CHKERRQ(ierr);
 
   /* Test BVMult */
   ierr = BVMult(Y,2.0,1.0,X,Q);CHKERRQ(ierr);
+  ierr = BVView(Y,view);CHKERRQ(ierr);
 
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);

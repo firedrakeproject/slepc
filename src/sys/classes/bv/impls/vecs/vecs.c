@@ -99,6 +99,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
 {
   PetscErrorCode ierr;
   BV_VECS        *ctx;
+  PetscInt       j;
+  char           str[50];
 
   PetscFunctionBegin;
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
@@ -106,6 +108,12 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
 
   ierr = VecDuplicateVecs(bv->t,bv->k,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParents(bv,bv->k,ctx->V);CHKERRQ(ierr);
+  if (((PetscObject)bv)->name) {
+    for (j=0;j<bv->k;j++) {
+      ierr = PetscSNPrintf(str,50,"%s_%d",((PetscObject)bv)->name,j);CHKERRQ(ierr);
+      ierr = PetscObjectSetName((PetscObject)ctx->V[j],str);CHKERRQ(ierr);
+    }
+  }
 
   bv->ops->mult           = BVMult_Vecs;
   bv->ops->getcolumn      = BVGetColumn_Vecs;

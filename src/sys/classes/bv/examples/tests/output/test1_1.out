@@ -1,0 +1,146 @@
+Test BV with 5 columns of dimension 10.
+BV Object:X 1 MPI processes
+  type: vecs
+  Vec Object:  X_0   1 MPI processes
+    type: seq
+  -2
+  1
+  4
+  7
+  0
+  0
+  0
+  0
+  0
+  0
+  Vec Object:  X_1   1 MPI processes
+    type: seq
+  0
+  -1
+  2
+  5
+  8
+  0
+  0
+  0
+  0
+  0
+  Vec Object:  X_2   1 MPI processes
+    type: seq
+  0
+  0
+  0
+  3
+  6
+  9
+  0
+  0
+  0
+  0
+  Vec Object:  X_3   1 MPI processes
+    type: seq
+  0
+  0
+  0
+  1
+  4
+  7
+  10
+  0
+  0
+  0
+  Vec Object:  X_4   1 MPI processes
+    type: seq
+  0
+  0
+  0
+  0
+  2
+  5
+  8
+  11
+  0
+  0
+BV Object:Y 1 MPI processes
+  type: vecs
+  Vec Object:  Y_0   1 MPI processes
+    type: seq
+  0.25
+  0.25
+  0.25
+  0.25
+  0.25
+  0.25
+  0.25
+  0.25
+  0.25
+  0.25
+  Vec Object:  Y_1   1 MPI processes
+    type: seq
+  0.5
+  0.5
+  0.5
+  0.5
+  0.5
+  0.5
+  0.5
+  0.5
+  0.5
+  0.5
+  Vec Object:  Y_2   1 MPI processes
+    type: seq
+  0.75
+  0.75
+  0.75
+  0.75
+  0.75
+  0.75
+  0.75
+  0.75
+  0.75
+  0.75
+Mat Object:Q 1 MPI processes
+  type: seqdense
+-5.0000000000000000e-01 2.0000000000000000e+00 2.0000000000000000e+00 
+-5.0000000000000000e-01 -5.0000000000000000e-01 2.0000000000000000e+00 
+-5.0000000000000000e-01 -5.0000000000000000e-01 -5.0000000000000000e-01 
+-5.0000000000000000e-01 -5.0000000000000000e-01 -5.0000000000000000e-01 
+-5.0000000000000000e-01 -5.0000000000000000e-01 -5.0000000000000000e-01 
+BV Object:Y 1 MPI processes
+  type: vecs
+  Vec Object:  Y_0   1 MPI processes
+    type: seq
+  2.25
+  0.25
+  -5.75
+  -15.75
+  -19.75
+  -20.75
+  -17.75
+  -10.75
+  0.25
+  0.25
+  Vec Object:  Y_1   1 MPI processes
+    type: seq
+  -7.5
+  5.5
+  14.5
+  19.5
+  -19.5
+  -20.5
+  -17.5
+  -10.5
+  0.5
+  0.5
+  Vec Object:  Y_2   1 MPI processes
+    type: seq
+  -7.25
+  0.75
+  24.75
+  44.75
+  20.75
+  -20.25
+  -17.25
+  -10.25
+  0.75
+  0.75
