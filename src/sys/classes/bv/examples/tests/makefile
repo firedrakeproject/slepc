@@ -47,6 +47,6 @@ TESTCODE = \
 
 runtest1_1:
 	-@test=test1_1; \
-	${MPIEXEC} -np 1 ./test1 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test1 -verbose 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 

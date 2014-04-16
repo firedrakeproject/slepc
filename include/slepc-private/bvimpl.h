@@ -25,7 +25,7 @@
 #include <slepcbv.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent BV_Mult,BV_MultVec,BV_Dot;
+PETSC_EXTERN PetscLogEvent BV_Mult,BV_Dot;
 
 typedef struct _BVOps *BVOps;
 
@@ -33,6 +33,7 @@ struct _BVOps {
   PetscErrorCode (*mult)(BV,PetscScalar,PetscScalar,BV,Mat);
   PetscErrorCode (*multvec)(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
   PetscErrorCode (*dot)(BV,BV,Mat);
+  PetscErrorCode (*dotvec)(BV,Vec,PetscScalar*);
   PetscErrorCode (*getcolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*restorecolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*setfromoptions)(BV);

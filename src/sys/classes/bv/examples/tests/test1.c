@@ -34,12 +34,13 @@ int main(int argc,char **argv)
   PetscInt       i,j,n=10,k=5,l=3;
   PetscScalar    *q,*z;
   PetscViewer    view;
+  PetscBool      verbose;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV with %D columns of dimension %D.\n",k,n);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,"-verbose",&verbose);CHKERRQ(ierr);
 
   /* Create template vector */
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
@@ -51,6 +52,14 @@ int main(int argc,char **argv)
   ierr = PetscObjectSetName((PetscObject)X,"X");CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(X,t,k);CHKERRQ(ierr);
   ierr = BVSetFromOptions(X);CHKERRQ(ierr);
+
+  /* Set up viewer */
+  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
+  if (!verbose) {
+    ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+    ierr = BVView(X,view);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(view);CHKERRQ(ierr);
+  }
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
@@ -65,7 +74,9 @@ int main(int argc,char **argv)
     ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
   }
-  ierr = BVView(X,view);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = BVView(X,view);CHKERRQ(ierr);
+  }
 
   /* Create BV object Y */
   ierr = BVCreate(PETSC_COMM_WORLD,&Y);CHKERRQ(ierr);
@@ -79,7 +90,9 @@ int main(int argc,char **argv)
     ierr = VecSet(v,(PetscScalar)(j+1)/4.0);CHKERRQ(ierr);
     ierr = BVRestoreColumn(Y,j,&v);CHKERRQ(ierr);
   }
-  ierr = BVView(Y,view);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = BVView(Y,view);CHKERRQ(ierr);
+  }
 
   /* Create Mat */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q);CHKERRQ(ierr);
@@ -89,11 +102,16 @@ int main(int argc,char **argv)
     for (j=0;j<l;j++)
       q[i+j*k] = (i<j)? 2.0: -0.5;
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
-  ierr = MatView(Q,NULL);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = MatView(Q,NULL);CHKERRQ(ierr);
+  }
 
   /* Test BVMult */
   ierr = BVMult(Y,2.0,1.0,X,Q);CHKERRQ(ierr);
-  ierr = BVView(Y,view);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVMult - - - - - - - - -\n");CHKERRQ(ierr);
+    ierr = BVView(Y,view);CHKERRQ(ierr);
+  }
 
   /* Test BVMultVec */
   ierr = BVGetColumn(Y,0,&v);CHKERRQ(ierr);
@@ -103,13 +121,33 @@ int main(int argc,char **argv)
   ierr = BVMultVec(X,-1.0,1.0,v,z);CHKERRQ(ierr);
   ierr = PetscFree(z);CHKERRQ(ierr);
   ierr = BVRestoreColumn(Y,0,&v);CHKERRQ(ierr);
-  ierr = BVView(Y,view);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVMultVec - - - - - - -\n");CHKERRQ(ierr);
+    ierr = BVView(Y,view);CHKERRQ(ierr);
+  }
 
   /* Test BVDot */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,l,k,NULL,&M);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)M,"M");CHKERRQ(ierr);
   ierr = BVDot(X,Y,M);CHKERRQ(ierr);
-  ierr = MatView(M,NULL);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVDot - - - - - - - - -\n");CHKERRQ(ierr);
+    ierr = MatView(M,NULL);CHKERRQ(ierr);
+  }
+
+  /* Test BVDot */
+  ierr = BVGetColumn(Y,0,&v);CHKERRQ(ierr);
+  ierr = PetscMalloc1(k,&z);CHKERRQ(ierr);
+  ierr = BVDotVec(X,v,z);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(Y,0,&v);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVDotVec - - - - - - -\n");CHKERRQ(ierr);
+    ierr = VecCreateSeqWithArray(PETSC_COMM_SELF,1,k,z,&v);CHKERRQ(ierr);
+    ierr = PetscObjectSetName((PetscObject)v,"z");CHKERRQ(ierr);
+    ierr = VecView(v,view);CHKERRQ(ierr);
+    ierr = VecDestroy(&v);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(z);CHKERRQ(ierr);
 
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);

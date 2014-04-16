@@ -87,7 +87,7 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 /*@
    BVMultVec - Computes y = beta*y + alpha*X*q.
 
-   Logically Collective on BV
+   Logically Collective on BV and Vec
 
    Input Parameters:
 +  X          - a basis vectors object
@@ -130,9 +130,9 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
   ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
   if (N!=X->N || n!=X->n) SETERRQ4(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Vec sizes (global %D, local %D) do not match BV sizes (global %D, local %D)",N,n,X->N,X->n);
 
-  ierr = PetscLogEventBegin(BV_MultVec,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_Mult,X,y,0,0);CHKERRQ(ierr);
   ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(BV_MultVec,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Mult,X,y,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -190,6 +190,48 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   ierr = PetscLogEventBegin(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
   ierr = (*X->ops->dot)(X,Y,M);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVDotVec"
+/*@
+   BVDotVec - Computes multiple dot products of a vector against all the
+   column vectors of a BV.
+
+   Collective on BV and Vec
+
+   Input Parameters:
++  X - basis vectors
+-  y - a vector
+
+   Output Parameter:
+.  m - an array where the result must be placed
+
+   Notes:
+   This is analogue to VecMDot(), but using BV to represent a collection
+   of vectors. The result is m = X^H*y, so m_i is equal to x_j^H y. Note
+   that here X is transposed as opposed to BVDot().
+
+   Level: intermediate
+
+.seealso: BVDot()
+@*/
+PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar *m)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,2);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+  PetscValidType(y,2);
+  PetscCheckSameTypeAndComm(X,1,y,2);
+
+  ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+  ierr = (*X->ops->dotvec)(X,y,m);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Dot,X,y,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

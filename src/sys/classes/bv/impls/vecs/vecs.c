@@ -92,6 +92,18 @@ PetscErrorCode BVDot_Vecs(BV X,BV Y,Mat M)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVDotVec_Vecs"
+PetscErrorCode BVDotVec_Vecs(BV X,Vec y,PetscScalar *m)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *x = (BV_VECS*)X->data;
+
+  PetscFunctionBegin;
+  ierr = VecMDot(y,X->k,x->V,m);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Vecs"
 PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
 {
@@ -157,6 +169,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->mult           = BVMult_Vecs;
   bv->ops->multvec        = BVMultVec_Vecs;
   bv->ops->dot            = BVDot_Vecs;
+  bv->ops->dotvec         = BVDotVec_Vecs;
   bv->ops->getcolumn      = BVGetColumn_Vecs;
   bv->ops->view           = BVView_Vecs;
   bv->ops->destroy        = BVDestroy_Vecs;
