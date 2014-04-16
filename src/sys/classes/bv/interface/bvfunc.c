@@ -24,7 +24,7 @@
 #include <slepc-private/bvimpl.h>            /*I "slepcbv.h" I*/
 
 PetscClassId     BV_CLASSID = 0;
-PetscLogEvent    BV_Mult = 0,BV_Dot = 0;
+PetscLogEvent    BV_Create = 0,BV_Mult = 0,BV_Dot = 0;
 static PetscBool BVPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__
@@ -74,6 +74,7 @@ PetscErrorCode BVInitializePackage(void)
   /* Register Constructors */
   ierr = BVRegisterAll();CHKERRQ(ierr);
   /* Register Events */
+  ierr = PetscLogEventRegister("BVCreate",BV_CLASSID,&BV_Create);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVMult",BV_CLASSID,&BV_Mult);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVDot",BV_CLASSID,&BV_Dot);CHKERRQ(ierr);
   /* Process info exclusions */

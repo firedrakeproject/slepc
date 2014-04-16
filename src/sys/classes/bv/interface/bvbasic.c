@@ -67,7 +67,9 @@ PetscErrorCode BVSetType(BV bv,BVType type)
   if (bv->n < 0 && bv->N < 0) {
     bv->ops->create = r;
   } else {
+    ierr = PetscLogEventBegin(BV_Create,bv,0,0,0);CHKERRQ(ierr);
     ierr = (*r)(bv);CHKERRQ(ierr);
+    ierr = PetscLogEventEnd(BV_Create,bv,0,0,0);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -144,7 +146,9 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt k)
     ierr = VecGetLocalSize(bv->t,&bv->n);CHKERRQ(ierr);
   }
   if (bv->ops->create) {
+    ierr = PetscLogEventBegin(BV_Create,bv,0,0,0);CHKERRQ(ierr);
     ierr = (*bv->ops->create)(bv);CHKERRQ(ierr);
+    ierr = PetscLogEventEnd(BV_Create,bv,0,0,0);CHKERRQ(ierr);
     bv->ops->create = 0;
   }
   PetscFunctionReturn(0);

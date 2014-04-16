@@ -25,7 +25,7 @@
 #include <slepcbv.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent BV_Mult,BV_Dot;
+PETSC_EXTERN PetscLogEvent BV_Create,BV_Mult,BV_Dot;
 
 typedef struct _BVOps *BVOps;
 

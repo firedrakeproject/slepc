@@ -47,6 +47,11 @@ TESTCODE = \
 
 runtest1_1:
 	-@test=test1_1; \
-	${MPIEXEC} -np 1 ./test1 -verbose 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test1 -bv_type vecs -verbose 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest1_2:
+	-@test=test1_2; \
+	${MPIEXEC} -np 1 ./test1 -bv_type contiguous -verbose 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 

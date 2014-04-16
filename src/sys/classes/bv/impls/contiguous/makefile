@@ -21,10 +21,15 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = contig.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     = vecs contiguous
-LOCDIR   = src/sys/classes/bv/impls/
+DIRS     =
 MANSEC   = BV
+LOCDIR   = src/sys/classes/bv/impls/contiguous/
 
 include ${SLEPC_DIR}/conf/slepc_common
 
