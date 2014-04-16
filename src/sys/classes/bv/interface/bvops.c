@@ -67,6 +67,7 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   BVCheckSizes(X,4);
   PetscValidType(Q,5);
   PetscCheckSameTypeAndComm(Y,1,X,4);
+  if (X==Y) SETERRQ(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_WRONG,"X and Y arguments must be different");
   ierr = PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSE,&match);CHKERRQ(ierr);
   if (!match) SETERRQ(PetscObjectComm((PetscObject)Y),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
 
@@ -132,6 +133,63 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
   ierr = PetscLogEventBegin(BV_MultVec,X,y,0,0);CHKERRQ(ierr);
   ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_MultVec,X,y,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVDot"
+/*@
+   BVDot - Computes the 'block-dot' product of two basis vectors objects.
+
+   Collective on BV
+
+   Input Parameters:
++  X, Y - basis vectors
+-  M    - Mat object where the result must be placed
+
+   Output Parameter:
+.  M    - the resulting matrix
+
+   Notes:
+   This is the generalization of VecDot() for a collection of vectors, M = Y^H*X.
+   The result is a matrix M whose entry m_ij is equal to y_i^H x_j (where y_i^H
+   denotes the conjugate transpose of y_i).
+
+   On entry, M must be a sequential dense Mat with dimensions m,n where
+   m is the number of vectors of Y and n is the number of vectors of X.
+
+   X and Y need not be different objects.
+
+   Level: intermediate
+
+.seealso: BVDotVec()
+@*/
+PetscErrorCode BVDot(BV X,BV Y,Mat M)
+{
+  PetscErrorCode ierr;
+  PetscBool      match;
+  PetscInt       m,n;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidHeaderSpecific(Y,BV_CLASSID,2);
+  PetscValidHeaderSpecific(M,MAT_CLASSID,3);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+  PetscValidType(Y,2);
+  BVCheckSizes(Y,2);
+  PetscValidType(M,3);
+  PetscCheckSameTypeAndComm(X,1,Y,2);
+  ierr = PetscObjectTypeCompare((PetscObject)M,MATSEQDENSE,&match);CHKERRQ(ierr);
+  if (!match) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
+
+  ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
+  if (m!=Y->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should be %D",m,Y->k);
+  if (n!=X->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should be %D",n,X->k);
+
+  ierr = PetscLogEventBegin(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
+  ierr = (*X->ops->dot)(X,Y,M);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

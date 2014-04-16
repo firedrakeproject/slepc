@@ -29,7 +29,7 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   Vec            t,v;
-  Mat            Q;
+  Mat            Q,M;
   BV             X,Y;
   PetscInt       i,j,n=10,k=5,l=3;
   PetscScalar    *q,*z;
@@ -61,6 +61,8 @@ int main(int argc,char **argv)
         ierr = VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES);CHKERRQ(ierr);
       }
     }
+    ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
   }
   ierr = BVView(X,view);CHKERRQ(ierr);
@@ -80,14 +82,14 @@ int main(int argc,char **argv)
   ierr = BVView(Y,view);CHKERRQ(ierr);
 
   /* Create Mat */
-  ierr = MatCreateSeqDense(PETSC_COMM_WORLD,k,l,NULL,&Q);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)Q,"Q");CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
   for (i=0;i<k;i++)
     for (j=0;j<l;j++)
       q[i+j*k] = (i<j)? 2.0: -0.5;
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
-  ierr = MatView(Q,view);CHKERRQ(ierr);
+  ierr = MatView(Q,NULL);CHKERRQ(ierr);
 
   /* Test BVMult */
   ierr = BVMult(Y,2.0,1.0,X,Q);CHKERRQ(ierr);
@@ -103,9 +105,16 @@ int main(int argc,char **argv)
   ierr = BVRestoreColumn(Y,0,&v);CHKERRQ(ierr);
   ierr = BVView(Y,view);CHKERRQ(ierr);
 
+  /* Test BVDot */
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,l,k,NULL,&M);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)M,"M");CHKERRQ(ierr);
+  ierr = BVDot(X,Y,M);CHKERRQ(ierr);
+  ierr = MatView(M,NULL);CHKERRQ(ierr);
+
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);
   ierr = MatDestroy(&Q);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return 0;
