@@ -79,4 +79,6 @@ struct _p_BV {
 
 #endif
 
+PETSC_INTERN PetscErrorCode BVView_Vecs(BV,PetscViewer);
+
 #endif

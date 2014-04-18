@@ -120,13 +120,26 @@ PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
 #define __FUNCT__ "BVView_Vecs"
 PetscErrorCode BVView_Vecs(BV bv,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
-  BV_VECS        *ctx = (BV_VECS*)bv->data;
-  PetscInt       j;
+  PetscErrorCode    ierr;
+  BV_VECS           *ctx = (BV_VECS*)bv->data;
+  PetscInt          j;
+  PetscViewerFormat format;
+  PetscBool         isascii,ismatlab=PETSC_FALSE;
 
   PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+    if (format == PETSC_VIEWER_ASCII_MATLAB) ismatlab = PETSC_TRUE;
+  }
+  if (ismatlab) {
+    ierr = PetscViewerASCIIPrintf(viewer,"%s=[];\n",((PetscObject)bv)->name);CHKERRQ(ierr);
+  }
   for (j=0;j<bv->k;j++) {
     ierr = VecView(ctx->V[j],viewer);CHKERRQ(ierr);
+    if (ismatlab) {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",((PetscObject)bv)->name,((PetscObject)bv)->name,((PetscObject)ctx->V[j])->name,((PetscObject)ctx->V[j])->name);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }

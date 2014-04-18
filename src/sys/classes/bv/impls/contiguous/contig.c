@@ -118,21 +118,6 @@ PetscErrorCode BVGetColumn_Contiguous(BV bv,PetscInt j,Vec *v)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVView_Contiguous"
-PetscErrorCode BVView_Contiguous(BV bv,PetscViewer viewer)
-{
-  PetscErrorCode ierr;
-  BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
-  PetscInt       j;
-
-  PetscFunctionBegin;
-  for (j=0;j<bv->k;j++) {
-    ierr = VecView(ctx->V[j],viewer);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "BVDestroy_Contiguous"
 PetscErrorCode BVDestroy_Contiguous(BV bv)
 {
@@ -190,7 +175,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->dot            = BVDot_Contiguous;
   bv->ops->dotvec         = BVDotVec_Contiguous;
   bv->ops->getcolumn      = BVGetColumn_Contiguous;
-  bv->ops->view           = BVView_Contiguous;
+  bv->ops->view           = BVView_Vecs;
   bv->ops->destroy        = BVDestroy_Contiguous;
   PetscFunctionReturn(0);
 }
