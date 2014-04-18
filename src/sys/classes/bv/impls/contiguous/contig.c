@@ -24,6 +24,8 @@
 #include <slepc-private/bvimpl.h>          /*I "slepcbv.h" I*/
 #include <petscblaslapack.h>
 
+#define BLOCKSIZE 64
+
 typedef struct {
   Vec         *V;
   PetscScalar *array;
@@ -35,22 +37,21 @@ PetscErrorCode BVMult_Contiguous(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Ma
 {
   PetscErrorCode ierr;
   BV_CONTIGUOUS  *y = (BV_CONTIGUOUS*)Y->data,*x = (BV_CONTIGUOUS*)X->data;
-  PetscScalar    *q,*s;
-  PetscInt       i,j,ldq;
+  PetscScalar    *q;
+  PetscBLASInt   m,n,k,l,bs=BLOCKSIZE;
 
   PetscFunctionBegin;
-  ldq = X->k;
-  if (alpha!=1.0) { ierr = PetscMalloc1(X->k,&s);CHKERRQ(ierr); }
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  for (j=0;j<Y->k;j++) {
-    ierr = VecScale(y->V[j],beta);CHKERRQ(ierr);
-    if (alpha!=1.0) {
-      for (i=0;i<X->k;i++) s[i] = alpha*q[i+j*ldq];
-    } else s = q+j*ldq;
-    ierr = VecMAXPY(y->V[j],X->k,s,x->V);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(X->k,&m);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(Y->k,&l);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(X->n,&n);CHKERRQ(ierr);
+  k = n % bs;
+  if (k) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&k,&l,&m,&alpha,x->array,&n,q,&m,&beta,y->array,&n));
+  for (;k<n;k+=bs) {
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&bs,&l,&m,&alpha,x->array+k,&n,q,&m,&beta,y->array,&n));
   }
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
-  if (alpha!=1.0) { ierr = PetscFree(s);CHKERRQ(ierr); }
+  ierr = PetscLogFlops(2*n*m*l);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -79,16 +80,17 @@ PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
 {
   PetscErrorCode ierr;
   BV_CONTIGUOUS  *x = (BV_CONTIGUOUS*)X->data,*y = (BV_CONTIGUOUS*)Y->data;
-  PetscScalar    *m;
-  PetscInt       j,ldm;
+  PetscScalar    *m,zero=0.0,one=1.0;
+  PetscBLASInt   k,n,l;
 
   PetscFunctionBegin;
-  ldm = Y->k;
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  for (j=0;j<X->k;j++) {
-    ierr = VecMDot(x->V[j],Y->k,y->V,m+j*ldm);CHKERRQ(ierr);
-  }
+  ierr = PetscBLASIntCast(X->k,&k);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(Y->k,&l);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(X->n,&n);CHKERRQ(ierr);
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&k,&n,&one,y->array,&n,x->array,&n,&zero,m,&l));
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
+  ierr = PetscLogFlops(2*n*k*l);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -98,9 +100,16 @@ PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *m)
 {
   PetscErrorCode ierr;
   BV_CONTIGUOUS  *x = (BV_CONTIGUOUS*)X->data;
+  PetscScalar    *py,zero=0.0,done=1.0;
+  PetscBLASInt   k,n,one=1;
 
   PetscFunctionBegin;
-  ierr = VecMDot(y,X->k,x->V,m);CHKERRQ(ierr);
+  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(X->k,&k);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(X->n,&n);CHKERRQ(ierr);
+  if (n>0) PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,x->array,&n,py,&one,&zero,m,&one));
+  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  ierr = PetscLogFlops(2*n*k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
