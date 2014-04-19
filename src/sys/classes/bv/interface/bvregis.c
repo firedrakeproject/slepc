@@ -23,6 +23,7 @@
 
 PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV);
 PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV);
+PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV);
 
 #undef __FUNCT__
 #define __FUNCT__ "BVRegisterAll"
@@ -43,6 +44,7 @@ PetscErrorCode BVRegisterAll(void)
   BVRegisterAllCalled = PETSC_TRUE;
   ierr = BVRegister(BVVECS,BVCreate_Vecs);CHKERRQ(ierr);
   ierr = BVRegister(BVCONTIGUOUS,BVCreate_Contiguous);CHKERRQ(ierr);
+  ierr = BVRegister(BVSVEC,BVCreate_Svec);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

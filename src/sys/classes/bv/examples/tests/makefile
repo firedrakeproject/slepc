@@ -55,3 +55,8 @@ runtest1_2:
 	${MPIEXEC} -np 1 ./test1 -bv_type contiguous -verbose 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
+runtest1_3:
+	-@test=test1_3; \
+	${MPIEXEC} -np 1 ./test1 -bv_type svec -verbose 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
