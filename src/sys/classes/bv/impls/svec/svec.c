@@ -22,9 +22,6 @@
 */
 
 #include <slepc-private/bvimpl.h>          /*I "slepcbv.h" I*/
-#include <petscblaslapack.h>
-
-#define BLOCKSIZE 64
 
 typedef struct {
   Vec v;
@@ -37,24 +34,15 @@ PetscErrorCode BVMult_Svec(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscErrorCode ierr;
   BV_SVEC        *y = (BV_SVEC*)Y->data,*x = (BV_SVEC*)X->data;
   PetscScalar    *px,*py,*q;
-  PetscBLASInt   m,n,k,l,bs=BLOCKSIZE;
 
   PetscFunctionBegin;
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y->v,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(X->k,&m);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(Y->k,&l);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(X->n,&n);CHKERRQ(ierr);
-  k = n % bs;
-  if (k) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&k,&l,&m,&alpha,px,&n,q,&m,&beta,py,&n));
-  for (;k<n;k+=bs) {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&bs,&l,&m,&alpha,px+k,&n,q,&m,&beta,py,&n));
-  }
+  ierr = BVMult_BLAS_Private(X->k,Y->k,X->n,alpha,px,q,beta,py);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y->v,&py);CHKERRQ(ierr);
-  ierr = PetscLogFlops(2*n*m*l);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -65,17 +53,13 @@ PetscErrorCode BVMultVec_Svec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
   PetscErrorCode ierr;
   BV_SVEC        *x = (BV_SVEC*)X->data;
   PetscScalar    *px,*py;
-  PetscBLASInt   n,k,one=1;
 
   PetscFunctionBegin;
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(X->k,&k);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(X->n,&n);CHKERRQ(ierr);
-  PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&k,&alpha,px,&n,q,&one,&beta,py,&one));
+  ierr = BVMultVec_BLAS_Private(X->n,X->k,alpha,px,q,beta,py);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
-  ierr = PetscLogFlops(2*n*k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -85,21 +69,16 @@ PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
 {
   PetscErrorCode ierr;
   BV_SVEC        *x = (BV_SVEC*)X->data,*y = (BV_SVEC*)Y->data;
-  PetscScalar    *px,*py,*m,zero=0.0,one=1.0;
-  PetscBLASInt   k,n,l;
+  PetscScalar    *px,*py,*m;
 
   PetscFunctionBegin;
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y->v,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(X->k,&k);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(Y->k,&l);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(X->n,&n);CHKERRQ(ierr);
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&k,&n,&one,py,&n,px,&n,&zero,m,&l));
+  ierr = BVDot_BLAS_Private(Y->k,X->k,X->n,py,px,m);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y->v,&py);CHKERRQ(ierr);
-  ierr = PetscLogFlops(2*n*k*l);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -109,18 +88,14 @@ PetscErrorCode BVDotVec_Svec(BV X,Vec y,PetscScalar *m)
 {
   PetscErrorCode ierr;
   BV_SVEC        *x = (BV_SVEC*)X->data;
-  PetscScalar    *px,*py,zero=0.0,done=1.0;
-  PetscBLASInt   k,n,one=1;
+  PetscScalar    *px,*py;
 
   PetscFunctionBegin;
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(X->k,&k);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(X->n,&n);CHKERRQ(ierr);
-  PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,px,&n,py,&one,&zero,m,&one));
+  ierr = BVDotVec_BLAS_Private(X->n,X->k,px,py,m);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
-  ierr = PetscLogFlops(2*n*k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

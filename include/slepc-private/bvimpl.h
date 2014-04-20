@@ -81,4 +81,9 @@ struct _p_BV {
 
 PETSC_INTERN PetscErrorCode BVView_Vecs(BV,PetscViewer);
 
+PETSC_INTERN PetscErrorCode BVMult_BLAS_Private(PetscInt,PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*,PetscScalar,PetscScalar*);
+PETSC_INTERN PetscErrorCode BVMultVec_BLAS_Private(PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*,PetscScalar,PetscScalar*);
+PETSC_INTERN PetscErrorCode BVDot_BLAS_Private(PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*);
+PETSC_INTERN PetscErrorCode BVDotVec_BLAS_Private(PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*);
+
 #endif
