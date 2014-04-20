@@ -72,7 +72,7 @@ PetscErrorCode BVMultVec_Mat(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Petsc
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(X->k,&k);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(X->n,&n);CHKERRQ(ierr);
-  if (n>0) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&k,&alpha,px,&n,q,&one,&beta,py,&one));
+  PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&k,&alpha,px,&n,q,&one,&beta,py,&one));
   ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   ierr = PetscLogFlops(2*n*k);CHKERRQ(ierr);
@@ -117,7 +117,7 @@ PetscErrorCode BVDotVec_Mat(BV X,Vec y,PetscScalar *m)
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(X->k,&k);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(X->n,&n);CHKERRQ(ierr);
-  if (n>0) PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,px,&n,py,&one,&zero,m,&one));
+  PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,px,&n,py,&one,&zero,m,&one));
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
   ierr = PetscLogFlops(2*n*k);CHKERRQ(ierr);
