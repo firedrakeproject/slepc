@@ -24,7 +24,8 @@
 #include <slepc-private/bvimpl.h>          /*I "slepcbv.h" I*/
 
 typedef struct {
-  Vec v;
+  Vec       v;
+  PetscBool mpi;
 } BV_SVEC;
 
 #undef __FUNCT__
@@ -75,7 +76,7 @@ PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y->v,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  ierr = BVDot_BLAS_Private(Y->k,X->k,X->n,py,px,m);CHKERRQ(ierr);
+  ierr = BVDot_BLAS_Private(Y->k,X->k,X->n,py,px,m,x->mpi,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y->v,&py);CHKERRQ(ierr);
@@ -93,7 +94,7 @@ PetscErrorCode BVDotVec_Svec(BV X,Vec y,PetscScalar *m)
   PetscFunctionBegin;
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = BVDotVec_BLAS_Private(X->n,X->k,px,py,m);CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X->n,X->k,px,py,m,x->mpi,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -173,15 +174,15 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   PetscErrorCode ierr;
   BV_SVEC        *ctx;
   PetscInt       nloc,bs;
-  PetscBool      seq,mpi;
+  PetscBool      seq;
   char           str[50];
 
   PetscFunctionBegin;
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
   bv->data = (void*)ctx;
 
-  ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&mpi);CHKERRQ(ierr);
-  if (!mpi) {
+  ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&ctx->mpi);CHKERRQ(ierr);
+  if (!ctx->mpi) {
     ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq);CHKERRQ(ierr);
     if (!seq) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot create a BVSVEC from a non-standard template vector");
   }
@@ -199,7 +200,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     ierr = PetscObjectSetName((PetscObject)ctx->v,str);CHKERRQ(ierr);
   }
 
-  if (mpi) {
+  if (ctx->mpi) {
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[0]);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[1]);CHKERRQ(ierr);
   } else {

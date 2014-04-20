@@ -26,6 +26,7 @@
 typedef struct {
   Vec         *V;
   PetscScalar *array;
+  PetscBool   mpi;
 } BV_CONTIGUOUS;
 
 #undef __FUNCT__
@@ -68,7 +69,7 @@ PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  ierr = BVDot_BLAS_Private(Y->k,X->k,X->n,y->array,x->array,m);CHKERRQ(ierr);
+  ierr = BVDot_BLAS_Private(Y->k,X->k,X->n,y->array,x->array,m,x->mpi,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -83,7 +84,7 @@ PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *m)
 
   PetscFunctionBegin;
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = BVDotVec_BLAS_Private(X->n,X->k,x->array,py,m);CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X->n,X->k,x->array,py,m,x->mpi,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -122,15 +123,15 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   PetscErrorCode ierr;
   BV_CONTIGUOUS  *ctx;
   PetscInt       j,nloc,bs;
-  PetscBool      seq,mpi;
+  PetscBool      seq;
   char           str[50];
 
   PetscFunctionBegin;
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
   bv->data = (void*)ctx;
 
-  ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&mpi);CHKERRQ(ierr);
-  if (!mpi) {
+  ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&ctx->mpi);CHKERRQ(ierr);
+  if (!ctx->mpi) {
     ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq);CHKERRQ(ierr);
     if (!seq) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot create a contiguous BV from a non-standard template vector");
   }
@@ -140,7 +141,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   ierr = PetscMalloc1(bv->k*nloc,&ctx->array);CHKERRQ(ierr);
   ierr = PetscMalloc1(bv->k,&ctx->V);CHKERRQ(ierr);
   for (j=0;j<bv->k;j++) {
-    if (mpi) {
+    if (ctx->mpi) {
       ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,ctx->array+j*nloc,ctx->V+j);CHKERRQ(ierr);
     } else {
       ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,ctx->array+j*nloc,ctx->V+j);CHKERRQ(ierr);

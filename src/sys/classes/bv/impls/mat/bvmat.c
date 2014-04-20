@@ -24,7 +24,8 @@
 #include <slepc-private/bvimpl.h>          /*I "slepcbv.h" I*/
 
 typedef struct {
-  Mat A;
+  Mat       A;
+  PetscBool mpi;
 } BV_MAT;
 
 #undef __FUNCT__
@@ -75,7 +76,7 @@ PetscErrorCode BVDot_Mat(BV X,BV Y,Mat M)
   ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
   ierr = MatDenseGetArray(y->A,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  ierr = BVDot_BLAS_Private(Y->k,X->k,X->n,py,px,m);CHKERRQ(ierr);
+  ierr = BVDot_BLAS_Private(Y->k,X->k,X->n,py,px,m,x->mpi,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(y->A,&py);CHKERRQ(ierr);
@@ -93,7 +94,7 @@ PetscErrorCode BVDotVec_Mat(BV X,Vec y,PetscScalar *m)
   PetscFunctionBegin;
   ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = BVDotVec_BLAS_Private(X->n,X->k,px,py,m);CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X->n,X->k,px,py,m,x->mpi,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -174,15 +175,15 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   PetscErrorCode ierr;
   BV_MAT         *ctx;
   PetscInt       nloc,bs;
-  PetscBool      seq,mpi;
+  PetscBool      seq;
   char           str[50];
 
   PetscFunctionBegin;
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
   bv->data = (void*)ctx;
 
-  ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&mpi);CHKERRQ(ierr);
-  if (!mpi) {
+  ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&ctx->mpi);CHKERRQ(ierr);
+  if (!ctx->mpi) {
     ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq);CHKERRQ(ierr);
     if (!seq) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot create a BVMAT from a non-standard template vector");
   }
@@ -190,14 +191,16 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
 
-  ierr = MatCreateDense(PetscObjectComm((PetscObject)bv->t),nloc,bv->k,PETSC_DECIDE,bv->k,NULL,&ctx->A);CHKERRQ(ierr);
+  ierr = MatCreateDense(PetscObjectComm((PetscObject)bv->t),nloc,PETSC_DECIDE,PETSC_DECIDE,bv->k,NULL,&ctx->A);CHKERRQ(ierr);
+  ierr = MatAssemblyBegin(ctx->A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(ctx->A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)ctx->A);CHKERRQ(ierr);
   if (((PetscObject)bv)->name) {
     ierr = PetscSNPrintf(str,50,"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);
     ierr = PetscObjectSetName((PetscObject)ctx->A,str);CHKERRQ(ierr);
   }
 
-  if (mpi) {
+  if (ctx->mpi) {
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[0]);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[1]);CHKERRQ(ierr);
   } else {
