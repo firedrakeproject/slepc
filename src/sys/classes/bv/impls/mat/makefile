@@ -21,10 +21,15 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = bvmat.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     = vecs contiguous svec mat
-LOCDIR   = src/sys/classes/bv/impls/
+DIRS     =
 MANSEC   = BV
+LOCDIR   = src/sys/classes/bv/impls/svec/
 
 include ${SLEPC_DIR}/conf/slepc_common
 
