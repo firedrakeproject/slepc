@@ -246,7 +246,7 @@ PetscErrorCode BVSetFromOptions(BV bv)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   if (!BVRegisterAllCalled) { ierr = BVRegisterAll();CHKERRQ(ierr); }
   ierr = PetscObjectOptionsBegin((PetscObject)bv);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-bv_type","Basis Vectors type","BVSetType",BVList,(char*)(((PetscObject)bv)->type_name?((PetscObject)bv)->type_name:BVVECS),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-bv_type","Basis Vectors type","BVSetType",BVList,(char*)(((PetscObject)bv)->type_name?((PetscObject)bv)->type_name:BVSVEC),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = BVSetType(bv,type);CHKERRQ(ierr);
     }
@@ -254,7 +254,7 @@ PetscErrorCode BVSetFromOptions(BV bv)
       Set the type if it was never set.
     */
     if (!((PetscObject)bv)->type_name) {
-      ierr = BVSetType(bv,BVVECS);CHKERRQ(ierr);
+      ierr = BVSetType(bv,BVSVEC);CHKERRQ(ierr);
     }
 
     if (bv->ops->setfromoptions) {
