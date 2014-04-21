@@ -247,12 +247,12 @@ PetscErrorCode dlaed3m_(char *jobz,char *defl,PetscBLASInt k,PetscBLASInt n,
   /* Compute updated W (used for computing the eigenvectors corresponding */
   /* to the previously computed eigenvalues). */
 
-  dcopy_(&k, w, &one, s, &one);
+  PetscStackCallBLAS("BLAScopy",BLAScopy_(&k, w, &one, s, &one));
 
   /* Initialize W(I) = Q(I,I) */
 
   i1 = ldq + 1;
-  dcopy_(&k, q, &i1, w, &one);
+  PetscStackCallBLAS("BLAScopy",BLAScopy_(&k, q, &i1, w, &one));
   for (j = 0; j < k; ++j) {
     for (i = 0; i < j; ++i) {
       w[i] *= q[i+j*ldq] / (dlamda[i] - dlamda[j]);
