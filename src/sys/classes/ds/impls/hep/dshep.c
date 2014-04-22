@@ -121,6 +121,9 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
+    if (ds->bs>1) {
+      ierr = PetscViewerASCIIPrintf(viewer,"block size: %D\n",ds->bs);CHKERRQ(ierr);
+    }
     if (ds->method>=nmeth) {
       ierr = PetscViewerASCIIPrintf(viewer,"solving the problem with: INVALID METHOD\n");CHKERRQ(ierr);
     } else {
