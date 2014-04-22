@@ -42,7 +42,7 @@ PetscErrorCode BVMult_BLAS_Private(PetscInt m_,PetscInt n_,PetscInt k_,PetscScal
   for (;l<k;l+=bs) {
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&bs,&n,&m,&alpha,A+l,&k,B,&m,&beta,C,&k));
   }
-  ierr = PetscLogFlops(2*m*n*k);CHKERRQ(ierr);
+  ierr = PetscLogFlops(2.0*m*n*k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -57,7 +57,7 @@ PetscErrorCode BVMultVec_BLAS_Private(PetscInt n_,PetscInt k_,PetscScalar alpha,
   ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k_,&k);CHKERRQ(ierr);
   PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&k,&alpha,A,&n,B,&one,&beta,C,&one));
-  ierr = PetscLogFlops(2*n*k);CHKERRQ(ierr);
+  ierr = PetscLogFlops(2.0*n*k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -85,7 +85,7 @@ PetscErrorCode BVDot_BLAS_Private(PetscInt m_,PetscInt n_,PetscInt k_,PetscScala
   } else {
     PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,A,&k,B,&k,&zero,C,&m));
   }
-  ierr = PetscLogFlops(2*m*n*k);CHKERRQ(ierr);
+  ierr = PetscLogFlops(2.0*m*n*k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -112,7 +112,7 @@ PetscErrorCode BVDotVec_BLAS_Private(PetscInt n_,PetscInt k_,PetscScalar *A,Pets
   } else {
     PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,A,&n,B,&one,&zero,C,&one));
   }
-  ierr = PetscLogFlops(2*n*k);CHKERRQ(ierr);
+  ierr = PetscLogFlops(2.0*n*k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
