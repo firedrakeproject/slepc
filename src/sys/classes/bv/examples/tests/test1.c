@@ -136,7 +136,7 @@ int main(int argc,char **argv)
     ierr = MatView(M,NULL);CHKERRQ(ierr);
   }
 
-  /* Test BVDot */
+  /* Test BVDotVec */
   ierr = BVGetColumn(Y,0,&v);CHKERRQ(ierr);
   ierr = PetscMalloc1(k,&z);CHKERRQ(ierr);
   ierr = BVDotVec(X,v,z);CHKERRQ(ierr);

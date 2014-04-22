@@ -163,7 +163,7 @@ PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s=reshape(%s,%d,%d)\n",((PetscObject)bv)->name,((PetscObject)ctx->v)->name,bv->N,bv->k);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=reshape(%s,%d,%d);\n",((PetscObject)bv)->name,((PetscObject)ctx->v)->name,bv->N,bv->k);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

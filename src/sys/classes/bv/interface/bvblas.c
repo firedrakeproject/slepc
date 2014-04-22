@@ -40,7 +40,7 @@ PetscErrorCode BVMult_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,Pet
   l = k % bs;
   if (l) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,A,&k,B,&m,&beta,C,&k));
   for (;l<k;l+=bs) {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&bs,&n,&m,&alpha,A+l,&k,B,&m,&beta,C,&k));
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&bs,&n,&m,&alpha,A+l,&k,B,&m,&beta,C+l,&k));
   }
   ierr = PetscLogFlops(2.0*m*n*k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
