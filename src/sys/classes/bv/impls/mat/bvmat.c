@@ -65,6 +65,23 @@ PetscErrorCode BVMultVec_Mat(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Petsc
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVMultInPlace_Mat"
+PetscErrorCode BVMultInPlace_Mat(BV V,Mat Q,PetscInt s,PetscInt e)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *ctx = (BV_MAT*)V->data;
+  PetscScalar    *pv,*q;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(ctx->A,&pv);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V->k,s,e,V->n,pv,q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(ctx->A,&pv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDot_Mat"
 PetscErrorCode BVDot_Mat(BV X,BV Y,Mat M)
 {
@@ -210,6 +227,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
 
   bv->ops->mult           = BVMult_Mat;
   bv->ops->multvec        = BVMultVec_Mat;
+  bv->ops->multinplace    = BVMultInPlace_Mat;
   bv->ops->dot            = BVDot_Mat;
   bv->ops->dotvec         = BVDotVec_Mat;
   bv->ops->getcolumn      = BVGetColumn_Mat;

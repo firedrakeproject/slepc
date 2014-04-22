@@ -73,6 +73,39 @@ PetscErrorCode BVMultVec_Vecs(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVMultInPlace_Vecs"
+/*
+   BVMultInPlace_Vecs - V(:,s:e-1) = V*Q(:,s:e-1) for regular vectors.
+
+   Writing V = [ V1 V2 V3 ] and Q(:,s:e-1) = [ Q1 Q2 Q3 ]', where V2
+   corresponds to the columns s:e-1, the computation is done as
+                  V2 := V2*Q2 + V1*Q1 + V3*Q3
+*/
+PetscErrorCode BVMultInPlace_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *ctx = (BV_VECS*)V->data;
+  PetscScalar    *q;
+  PetscInt       i,ldq = V->k;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  /* V2 := V2*Q2 */
+  ierr = BVMultInPlace_Vecs_Private(V->k,e-s,V->n,ctx->V+s,q+s*ldq+s);CHKERRQ(ierr);
+  /* V2 += V1*Q1 + V3*Q3 */
+  for (i=s;i<e;i++) {
+    if (s>0) {
+      ierr = VecMAXPY(ctx->V[i],s,q+i*ldq,ctx->V);CHKERRQ(ierr);
+    }
+    if (ldq>e) {
+      ierr = VecMAXPY(ctx->V[i],ldq-e,q+i*ldq+e,ctx->V+e);CHKERRQ(ierr);
+    }
+  }
+  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDot_Vecs"
 PetscErrorCode BVDot_Vecs(BV X,BV Y,Mat M)
 {
@@ -181,6 +214,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
 
   bv->ops->mult           = BVMult_Vecs;
   bv->ops->multvec        = BVMultVec_Vecs;
+  bv->ops->multinplace    = BVMultInPlace_Vecs;
   bv->ops->dot            = BVDot_Vecs;
   bv->ops->dotvec         = BVDotVec_Vecs;
   bv->ops->getcolumn      = BVGetColumn_Vecs;

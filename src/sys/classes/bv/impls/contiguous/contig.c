@@ -60,6 +60,21 @@ PetscErrorCode BVMultVec_Contiguous(BV X,PetscScalar alpha,PetscScalar beta,Vec 
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVMultInPlace_Contiguous"
+PetscErrorCode BVMultInPlace_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
+{
+  PetscErrorCode ierr;
+  BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)V->data;
+  PetscScalar    *q;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V->k,s,e,V->n,ctx->array,q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDot_Contiguous"
 PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
 {
@@ -157,6 +172,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
 
   bv->ops->mult           = BVMult_Contiguous;
   bv->ops->multvec        = BVMultVec_Contiguous;
+  bv->ops->multinplace    = BVMultInPlace_Contiguous;
   bv->ops->dot            = BVDot_Contiguous;
   bv->ops->dotvec         = BVDotVec_Contiguous;
   bv->ops->getcolumn      = BVGetColumn_Contiguous;

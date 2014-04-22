@@ -32,6 +32,7 @@ typedef struct _BVOps *BVOps;
 struct _BVOps {
   PetscErrorCode (*mult)(BV,PetscScalar,PetscScalar,BV,Mat);
   PetscErrorCode (*multvec)(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
+  PetscErrorCode (*multinplace)(BV,Mat,PetscInt,PetscInt);
   PetscErrorCode (*dot)(BV,BV,Mat);
   PetscErrorCode (*dotvec)(BV,Vec,PetscScalar*);
   PetscErrorCode (*getcolumn)(BV,PetscInt,Vec*);
@@ -83,6 +84,8 @@ PETSC_INTERN PetscErrorCode BVView_Vecs(BV,PetscViewer);
 
 PETSC_INTERN PetscErrorCode BVMult_BLAS_Private(PetscInt,PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*,PetscScalar,PetscScalar*);
 PETSC_INTERN PetscErrorCode BVMultVec_BLAS_Private(PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*,PetscScalar,PetscScalar*);
+PETSC_INTERN PetscErrorCode BVMultInPlace_BLAS_Private(PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*);
+PETSC_INTERN PetscErrorCode BVMultInPlace_Vecs_Private(PetscInt,PetscInt,PetscInt,Vec*,PetscScalar*);
 PETSC_INTERN PetscErrorCode BVDot_BLAS_Private(PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscBool,MPI_Comm);
 PETSC_INTERN PetscErrorCode BVDotVec_BLAS_Private(PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscBool,MPI_Comm);
 

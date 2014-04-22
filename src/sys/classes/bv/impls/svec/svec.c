@@ -65,6 +65,23 @@ PetscErrorCode BVMultVec_Svec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVMultInPlace_Svec"
+PetscErrorCode BVMultInPlace_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *ctx = (BV_SVEC*)V->data;
+  PetscScalar    *pv,*q;
+
+  PetscFunctionBegin;
+  ierr = VecGetArray(ctx->v,&pv);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V->k,s,e,V->n,pv,q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = VecRestoreArray(ctx->v,&pv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDot_Svec"
 PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
 {
@@ -210,6 +227,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 
   bv->ops->mult           = BVMult_Svec;
   bv->ops->multvec        = BVMultVec_Svec;
+  bv->ops->multinplace    = BVMultInPlace_Svec;
   bv->ops->dot            = BVDot_Svec;
   bv->ops->dotvec         = BVDotVec_Svec;
   bv->ops->getcolumn      = BVGetColumn_Svec;

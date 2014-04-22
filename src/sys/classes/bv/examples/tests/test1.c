@@ -149,6 +149,13 @@ int main(int argc,char **argv)
   }
   ierr = PetscFree(z);CHKERRQ(ierr);
 
+  /* Test BVMultInPlace */
+  ierr = BVMultInPlace(X,Q,1,l);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVMultInPlace - - - - -\n");CHKERRQ(ierr);
+    ierr = BVView(X,view);CHKERRQ(ierr);
+  }
+
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);
   ierr = MatDestroy(&Q);CHKERRQ(ierr);

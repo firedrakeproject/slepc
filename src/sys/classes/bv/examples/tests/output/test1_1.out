@@ -198,3 +198,66 @@ Vec Object:z 1 MPI processes
 -379.125
 -413.375
 -412
+After BVMultInPlace - - - - -
+BV Object:X 1 MPI processes
+  type: vecs
+  Vec Object:  X_0   1 MPI processes
+    type: seq
+  -2
+  1
+  4
+  7
+  0
+  0
+  0
+  0
+  0
+  0
+  Vec Object:  X_1   1 MPI processes
+    type: seq
+  -4
+  2.5
+  7
+  9.5
+  -10
+  -10.5
+  -9
+  -5.5
+  0
+  0
+  Vec Object:  X_2   1 MPI processes
+    type: seq
+  -4
+  0
+  12
+  22
+  10
+  -10.5
+  -9
+  -5.5
+  0
+  0
+  Vec Object:  X_3   1 MPI processes
+    type: seq
+  0
+  0
+  0
+  1
+  4
+  7
+  10
+  0
+  0
+  0
+  Vec Object:  X_4   1 MPI processes
+    type: seq
+  0
+  0
+  0
+  0
+  2
+  5
+  8
+  11
+  0
+  0
