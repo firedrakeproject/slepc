@@ -40,7 +40,7 @@ PetscErrorCode BVMult_Svec(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y->v,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMult_BLAS_Private(X->k,Y->k,X->n,alpha,px,q,beta,py);CHKERRQ(ierr);
+  ierr = BVMult_BLAS_Private(Y,X->k,Y->k,X->n,alpha,px,q,beta,py);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y->v,&py);CHKERRQ(ierr);
@@ -58,7 +58,7 @@ PetscErrorCode BVMultVec_Svec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
   PetscFunctionBegin;
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = BVMultVec_BLAS_Private(X->n,X->k,alpha,px,q,beta,py);CHKERRQ(ierr);
+  ierr = BVMultVec_BLAS_Private(X,X->n,X->k,alpha,px,q,beta,py);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -75,7 +75,7 @@ PetscErrorCode BVMultInPlace_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionBegin;
   ierr = VecGetArray(ctx->v,&pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMultInPlace_BLAS_Private(V->k,s,e,V->n,pv,q);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,V->k,s,e,V->n,pv,q);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = VecRestoreArray(ctx->v,&pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -93,7 +93,7 @@ PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y->v,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  ierr = BVDot_BLAS_Private(Y->k,X->k,X->n,py,px,m,x->mpi,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
+  ierr = BVDot_BLAS_Private(X,Y->k,X->k,X->n,py,px,m,x->mpi);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y->v,&py);CHKERRQ(ierr);
@@ -111,7 +111,7 @@ PetscErrorCode BVDotVec_Svec(BV X,Vec y,PetscScalar *m)
   PetscFunctionBegin;
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = BVDotVec_BLAS_Private(X->n,X->k,px,py,m,x->mpi,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X,X->n,X->k,px,py,m,x->mpi);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   PetscFunctionReturn(0);

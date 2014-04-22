@@ -39,7 +39,7 @@ PetscErrorCode BVMult_Contiguous(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Ma
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMult_BLAS_Private(X->k,Y->k,X->n,alpha,x->array,q,beta,y->array);CHKERRQ(ierr);
+  ierr = BVMult_BLAS_Private(Y,X->k,Y->k,X->n,alpha,x->array,q,beta,y->array);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -54,7 +54,7 @@ PetscErrorCode BVMultVec_Contiguous(BV X,PetscScalar alpha,PetscScalar beta,Vec 
 
   PetscFunctionBegin;
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = BVMultVec_BLAS_Private(X->n,X->k,alpha,x->array,q,beta,py);CHKERRQ(ierr);
+  ierr = BVMultVec_BLAS_Private(X,X->n,X->k,alpha,x->array,q,beta,py);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -69,7 +69,7 @@ PetscErrorCode BVMultInPlace_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMultInPlace_BLAS_Private(V->k,s,e,V->n,ctx->array,q);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,V->k,s,e,V->n,ctx->array,q);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -84,7 +84,7 @@ PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  ierr = BVDot_BLAS_Private(Y->k,X->k,X->n,y->array,x->array,m,x->mpi,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
+  ierr = BVDot_BLAS_Private(X,Y->k,X->k,X->n,y->array,x->array,m,x->mpi);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -99,7 +99,7 @@ PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *m)
 
   PetscFunctionBegin;
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = BVDotVec_BLAS_Private(X->n,X->k,x->array,py,m,x->mpi,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X,X->n,X->k,x->array,py,m,x->mpi);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

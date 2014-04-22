@@ -55,6 +55,8 @@ struct _p_BV {
   PetscInt         ci[2];        /* Column indices of obtained vectors */
   PetscObjectState st[2];        /* State of obtained vectors */
   PetscObjectId    id[2];        /* Object id of obtained vectors */
+  PetscScalar      *work;
+  PetscInt         lwork;
   void             *data;
 };
 
@@ -82,11 +84,13 @@ struct _p_BV {
 
 PETSC_INTERN PetscErrorCode BVView_Vecs(BV,PetscViewer);
 
-PETSC_INTERN PetscErrorCode BVMult_BLAS_Private(PetscInt,PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*,PetscScalar,PetscScalar*);
-PETSC_INTERN PetscErrorCode BVMultVec_BLAS_Private(PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*,PetscScalar,PetscScalar*);
-PETSC_INTERN PetscErrorCode BVMultInPlace_BLAS_Private(PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*);
-PETSC_INTERN PetscErrorCode BVMultInPlace_Vecs_Private(PetscInt,PetscInt,PetscInt,Vec*,PetscScalar*);
-PETSC_INTERN PetscErrorCode BVDot_BLAS_Private(PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscBool,MPI_Comm);
-PETSC_INTERN PetscErrorCode BVDotVec_BLAS_Private(PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscBool,MPI_Comm);
+PETSC_INTERN PetscErrorCode BVAllocateWork_Private(BV,PetscInt);
+
+PETSC_INTERN PetscErrorCode BVMult_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*,PetscScalar,PetscScalar*);
+PETSC_INTERN PetscErrorCode BVMultVec_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*,PetscScalar,PetscScalar*);
+PETSC_INTERN PetscErrorCode BVMultInPlace_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*);
+PETSC_INTERN PetscErrorCode BVMultInPlace_Vecs_Private(BV,PetscInt,PetscInt,PetscInt,Vec*,PetscScalar*);
+PETSC_INTERN PetscErrorCode BVDot_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscBool);
+PETSC_INTERN PetscErrorCode BVDotVec_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscBool);
 
 #endif

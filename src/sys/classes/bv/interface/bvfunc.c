@@ -121,6 +121,7 @@ PetscErrorCode BVDestroy(BV *bv)
   if (--((PetscObject)(*bv))->refct > 0) { *bv = 0; PetscFunctionReturn(0); }
   if ((*bv)->ops->destroy) { ierr = (*(*bv)->ops->destroy)(*bv);CHKERRQ(ierr); }
   ierr = VecDestroy(&(*bv)->t);CHKERRQ(ierr);
+  ierr = PetscFree((*bv)->work);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -166,6 +167,8 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->st[1]        = -1;
   bv->id[0]        = 0;
   bv->id[1]        = 0;
+  bv->work         = NULL;
+  bv->lwork        = 0;
   bv->data         = 0;
 
   *newbv = bv;
@@ -348,6 +351,22 @@ PetscErrorCode BVRegister(const char *name,PetscErrorCode (*function)(BV))
 
   PetscFunctionBegin;
   ierr = PetscFunctionListAdd(&BVList,name,function);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVAllocateWork_Private"
+PetscErrorCode BVAllocateWork_Private(BV bv,PetscInt s)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (s>bv->lwork) {
+    ierr = PetscFree(bv->work);CHKERRQ(ierr);
+    ierr = PetscMalloc1(s,&bv->work);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)bv,(s-bv->lwork)*sizeof(PetscScalar));CHKERRQ(ierr);
+    bv->lwork = s;
+  }
   PetscFunctionReturn(0);
 }
 
