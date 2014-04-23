@@ -21,7 +21,7 @@
 
 static char help[] = "Test SlepcUpdateVectors.\n\n";
 
-#include <slepcsys.h>
+#include <slepcvec.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
