@@ -47,7 +47,7 @@
 
    Level: intermediate
 
-.seealso: BVMultVec(), BVMultInPlace()
+.seealso: BVMultVec(), BVMultInPlace(), BVSetActiveColumns()
 
 @*/
 PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
@@ -73,8 +73,8 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   if (!match) SETERRQ(PetscObjectComm((PetscObject)Y),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
 
   ierr = MatGetSize(Q,&m,&n);CHKERRQ(ierr);
-  if (m!=X->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, cannot multiply a BV with %D columns",m,X->k);
-  if (n!=Y->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, result cannot be added to a BV with %D columns",n,Y->k);
+  if (m!=X->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, cannot multiply a BV with %D active columns",m,X->k);
+  if (n!=Y->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, result cannot be added to a BV with %D active columns",n,Y->k);
   if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
   if (!X->n) PetscFunctionReturn(0);
 
@@ -106,11 +106,11 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
    instead of two BV. Note that arguments are listed in different order
    with respect to BVMult().
 
-   The length of array q must be equal to the number of columns of X.
+   The length of array q must be equal to the number of active columns of X.
 
    Level: intermediate
 
-.seealso: BVMult(), BVMultInPlace()
+.seealso: BVMult(), BVMultInPlace(), BVSetActiveColumns()
 
 @*/
 PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
@@ -166,7 +166,7 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
 
    Level: intermediate
 
-.seealso: BVMult(), BVMultVec()
+.seealso: BVMult(), BVMultVec(), BVSetActiveColumns()
 
 @*/
 PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
@@ -189,7 +189,7 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
   if (s<0 || s>=V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %D, should be between 0 and %D",s,V->k-1);
   if (e<0 || e>V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %D, should be between 0 and %D",e,V->k);
   ierr = MatGetSize(Q,&m,&n);CHKERRQ(ierr);
-  if (m!=V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, cannot multiply a BV with %D columns",m,V->k);
+  if (m!=V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, cannot multiply a BV with %D active columns",m,V->k);
   if (e>n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %D columns, the requested value of e is larger: %D",n,e);
   if (s>=e || !V->n) PetscFunctionReturn(0);
 
@@ -220,13 +220,13 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
    denotes the conjugate transpose of y_i).
 
    On entry, M must be a sequential dense Mat with dimensions m,n where
-   m is the number of vectors of Y and n is the number of vectors of X.
+   m is the number of active columns of Y and n is the number of active columns of X.
 
    X and Y need not be different objects.
 
    Level: intermediate
 
-.seealso: BVDotVec()
+.seealso: BVDotVec(), BVSetActiveColumns()
 @*/
 PetscErrorCode BVDot(BV X,BV Y,Mat M)
 {
@@ -281,7 +281,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
 
    Level: intermediate
 
-.seealso: BVDot()
+.seealso: BVDot(), BVSetActiveColumns()
 @*/
 PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar *m)
 {

@@ -157,6 +157,8 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->t            = NULL;
   bv->n            = -1;
   bv->N            = -1;
+  bv->m            = 0;
+  bv->l            = 0;
   bv->k            = 0;
 
   bv->cv[0]        = NULL;
@@ -315,7 +317,11 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%D columns of global length %D\n",bv->k,bv->N);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%D columns of global length %D",bv->m,bv->N);CHKERRQ(ierr);
+      if (bv->l>0 || bv->k<bv->m) {
+        ierr = PetscViewerASCIIPrintf(viewer,"- active columns: l=%D k=%D",bv->l,bv->k);CHKERRQ(ierr);
+      }
+      ierr = PetscViewerASCIIPrintf(viewer,"\n",bv->m,bv->N);CHKERRQ(ierr);
     } else {
       ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr);
     }

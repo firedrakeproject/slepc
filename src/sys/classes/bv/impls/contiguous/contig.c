@@ -125,7 +125,7 @@ PetscErrorCode BVDestroy_Contiguous(BV bv)
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
   PetscFunctionBegin;
-  ierr = VecDestroyVecs(bv->k,&ctx->V);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(bv->m,&ctx->V);CHKERRQ(ierr);
   ierr = PetscFree(ctx->array);CHKERRQ(ierr);
   ierr = PetscFree(bv->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -153,18 +153,18 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
 
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
-  ierr = PetscMalloc1(bv->k*nloc,&ctx->array);CHKERRQ(ierr);
-  ierr = PetscMalloc1(bv->k,&ctx->V);CHKERRQ(ierr);
-  for (j=0;j<bv->k;j++) {
+  ierr = PetscMalloc1(bv->m*nloc,&ctx->array);CHKERRQ(ierr);
+  ierr = PetscMalloc1(bv->m,&ctx->V);CHKERRQ(ierr);
+  for (j=0;j<bv->m;j++) {
     if (ctx->mpi) {
       ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,ctx->array+j*nloc,ctx->V+j);CHKERRQ(ierr);
     } else {
       ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,ctx->array+j*nloc,ctx->V+j);CHKERRQ(ierr);
     }
   }
-  ierr = PetscLogObjectParents(bv,bv->k,ctx->V);CHKERRQ(ierr);
+  ierr = PetscLogObjectParents(bv,bv->m,ctx->V);CHKERRQ(ierr);
   if (((PetscObject)bv)->name) {
-    for (j=0;j<bv->k;j++) {
+    for (j=0;j<bv->m;j++) {
       ierr = PetscSNPrintf(str,50,"%s_%d",((PetscObject)bv)->name,j);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)ctx->V[j],str);CHKERRQ(ierr);
     }

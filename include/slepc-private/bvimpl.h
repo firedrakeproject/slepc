@@ -48,7 +48,8 @@ struct _p_BV {
   /*------------------------- User parameters --------------------------*/
   Vec              t;            /* Template vector */
   PetscInt         n,N;          /* Dimensions of vectors */
-  PetscInt         k;            /* Number of vectors */
+  PetscInt         m;            /* Number of vectors */
+  PetscInt         l,k;          /* Active columns */
 
   /*------------------------- Misc data --------------------------*/
   Vec              cv[2];        /* Column vectors obtained with BVGetColumn() */
@@ -77,7 +78,7 @@ struct _p_BV {
 
 #define BVCheckSizes(h,arg) \
   do { \
-    if (!h->k) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"BV sizes have not been defined: Parameter #%d",arg); \
+    if (!h->m) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"BV sizes have not been defined: Parameter #%d",arg); \
   } while (0)
 
 #endif

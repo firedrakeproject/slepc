@@ -112,7 +112,7 @@ PetscErrorCode BVGetType(BV bv,BVType *type)
 + bv - the basis vectors
 . n  - the local size (or PETSC_DECIDE to have it set)
 . N  - the global size (or PETSC_DECIDE)
-- k  - the number of columns
+- m  - the number of columns
 
   Notes:
   n and N cannot be both PETSC_DECIDE
@@ -123,21 +123,22 @@ PetscErrorCode BVGetType(BV bv,BVType *type)
 
 .seealso: BVSetSizesFromVec(), BVGetSizes()
 @*/
-PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt k)
+PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   if (N >= 0) PetscValidLogicalCollectiveInt(bv,N,3);
-  PetscValidLogicalCollectiveInt(bv,k,4);
+  PetscValidLogicalCollectiveInt(bv,m,4);
   if (N >= 0 && n > N) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Local size %D cannot be larger than global size %D",n,N);
-  if (k <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",k);
+  if (m <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",m);
   if ((bv->n >= 0 || bv->N >= 0) && (bv->n != n || bv->N != N)) SETERRQ4(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot change/reset vector sizes to %D local %D global after previously setting them to %D local %D global",n,N,bv->n,bv->N);
-  if (bv->k > 0 && bv->k != k) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot change/reset the number of columns to %D after previously setting it to %D",k,bv->k);
+  if (bv->m > 0 && bv->m != m) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot change/reset the number of columns to %D after previously setting it to %D",m,bv->m);
   bv->n = n;
   bv->N = N;
-  bv->k = k;
+  bv->m = m;
+  bv->k = m;
   if (!bv->t) {  /* create template vector and get actual dimensions */
     ierr = VecCreate(PetscObjectComm((PetscObject)bv),&bv->t);CHKERRQ(ierr);
     ierr = VecSetSizes(bv->t,bv->n,bv->N);CHKERRQ(ierr);
@@ -165,13 +166,13 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt k)
   Input Parameters:
 + bv - the basis vectors
 . t  - the template vectors
-- k  - the number of columns
+- m  - the number of columns
 
   Level: beginner
 
 .seealso: BVSetSizes(), BVGetSizes()
 @*/
-PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt k)
+PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
 {
   PetscErrorCode ierr;
 
@@ -179,12 +180,13 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt k)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidHeaderSpecific(t,VEC_CLASSID,2);
   PetscCheckSameComm(bv,1,t,2);
-  PetscValidLogicalCollectiveInt(bv,k,3);
-  if (k <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",k);
+  PetscValidLogicalCollectiveInt(bv,m,3);
+  if (m <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",m);
   if (bv->t) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Template vector was already set by a previous call to BVSetSizes/FromVec");
   ierr = VecGetSize(t,&bv->N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(t,&bv->n);CHKERRQ(ierr);
-  bv->k = k;
+  bv->m = m;
+  bv->k = m;
   bv->t = t;
   ierr = PetscObjectReference((PetscObject)t);CHKERRQ(ierr);
   if (bv->ops->create) {
@@ -207,19 +209,93 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt k)
   Output Parameters:
 + n  - the local size
 . N  - the global size
-- k  - the number of columns
+- m  - the number of columns
 
   Level: beginner
 
 .seealso: BVSetSizes(), BVSetSizesFromVec()
 @*/
-PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *k)
+PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
   if (n) *n = bv->n;
   if (N) *N = bv->N;
+  if (m) *m = bv->m;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVSetActiveColumns"
+/*@
+   BVSetActiveColumns - Specify the columns that will be involved in operations.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  bv - the basis vectors context
+.  l  - number of leading columns
+-  k  - number of active columns
+
+   Notes:
+   In operations such as BVMult() or BVDot(), only the first k columns are
+   considered. This is useful when the BV is filled from left to right, so
+   the last m-k columns do not have relevant information.
+
+   In orthogonalization operations, the first l columns are treated
+   differently: they participate in the orthogonalization but the computed
+   coefficients are not stored.
+
+   Level: intermediate
+
+.seealso: BVGetActiveColumns(), BVSetSizes()
+@*/
+PetscErrorCode BVSetActiveColumns(BV bv,PetscInt l,PetscInt k)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(bv,l,2);
+  PetscValidLogicalCollectiveInt(bv,k,3);
+  BVCheckSizes(bv,1);
+  if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
+    bv->l = 0;
+  } else {
+    if (l<0 || l>bv->m) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and m");
+    bv->l = l;
+  }
+  if (k==PETSC_DECIDE || k==PETSC_DEFAULT) {
+    bv->k = bv->m;
+  } else {
+    if (k<0 || k>bv->m) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and m");
+    bv->k = k;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetActiveColumns"
+/*@
+   BVGetActiveColumns - Returns the current active dimensions.
+
+   Not Collective
+
+   Input Parameter:
+.  bv - the basis vectors context
+
+   Output Parameter:
++  l  - number of leading columns
+-  k  - number of active columns
+
+   Level: intermediate
+
+.seealso: BVSetActiveColumns()
+@*/
+PetscErrorCode BVGetActiveColumns(BV bv,PetscInt *l,PetscInt *k)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  if (l) *l = bv->l;
   if (k) *k = bv->k;
   PetscFunctionReturn(0);
 }
@@ -304,7 +380,7 @@ PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
   BVCheckSizes(bv,1);
   PetscValidLogicalCollectiveInt(bv,j,2);
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Column index must be non-negative");
-  if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %D but only %D are available",j,bv->k);
+  if (j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %D but only %D are available",j,bv->m);
   if (j==bv->ci[0] || j==bv->ci[1]) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Column %D already fetched in a previous call to BVGetColumn",j);
   l = BVAvailableVec;
   if (l==-1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Too many requested columns; you must call BVReleaseColumn for one of the previously fetched columns");
@@ -350,7 +426,7 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   PetscValidPointer(v,3);
   PetscValidHeaderSpecific(*v,VEC_CLASSID,3);
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Column index must be non-negative");
-  if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %D but only %D are available",j,bv->k);
+  if (j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %D but only %D are available",j,bv->m);
   if (j!=bv->ci[0] && j!=bv->ci[1]) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Column %D has not been fetched with a call to BVGetColumn",j);
   l = (j==bv->ci[0])? 0: 1;
   ierr = PetscObjectGetId((PetscObject)*v,&id);CHKERRQ(ierr);

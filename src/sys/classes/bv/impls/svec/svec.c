@@ -163,7 +163,7 @@ PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s=reshape(%s,%d,%d);\n",((PetscObject)bv)->name,((PetscObject)ctx->v)->name,bv->N,bv->k);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=reshape(%s,%d,%d);\n",((PetscObject)bv)->name,((PetscObject)ctx->v)->name,bv->N,bv->m);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
@@ -209,7 +209,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 
   ierr = VecCreate(PetscObjectComm((PetscObject)bv->t),&ctx->v);CHKERRQ(ierr);
   ierr = VecSetType(ctx->v,((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
-  ierr = VecSetSizes(ctx->v,bv->k*nloc,PETSC_DECIDE);CHKERRQ(ierr);
+  ierr = VecSetSizes(ctx->v,bv->m*nloc,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = VecSetBlockSize(ctx->v,bs);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)ctx->v);CHKERRQ(ierr);
   if (((PetscObject)bv)->name) {

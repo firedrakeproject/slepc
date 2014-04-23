@@ -172,7 +172,7 @@ PetscErrorCode BVView_Vecs(BV bv,PetscViewer viewer)
   if (ismatlab) {
     ierr = PetscViewerASCIIPrintf(viewer,"%s=[];\n",((PetscObject)bv)->name);CHKERRQ(ierr);
   }
-  for (j=0;j<bv->k;j++) {
+  for (j=0;j<bv->m;j++) {
     ierr = VecView(ctx->V[j],viewer);CHKERRQ(ierr);
     if (ismatlab) {
       ierr = PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",((PetscObject)bv)->name,((PetscObject)bv)->name,((PetscObject)ctx->V[j])->name,((PetscObject)ctx->V[j])->name);CHKERRQ(ierr);
@@ -189,7 +189,7 @@ PetscErrorCode BVDestroy_Vecs(BV bv)
   BV_VECS        *ctx = (BV_VECS*)bv->data;
 
   PetscFunctionBegin;
-  ierr = VecDestroyVecs(bv->k,&ctx->V);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(bv->m,&ctx->V);CHKERRQ(ierr);
   ierr = PetscFree(bv->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -207,10 +207,10 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
   bv->data = (void*)ctx;
 
-  ierr = VecDuplicateVecs(bv->t,bv->k,&ctx->V);CHKERRQ(ierr);
-  ierr = PetscLogObjectParents(bv,bv->k,ctx->V);CHKERRQ(ierr);
+  ierr = VecDuplicateVecs(bv->t,bv->m,&ctx->V);CHKERRQ(ierr);
+  ierr = PetscLogObjectParents(bv,bv->m,ctx->V);CHKERRQ(ierr);
   if (((PetscObject)bv)->name) {
-    for (j=0;j<bv->k;j++) {
+    for (j=0;j<bv->m;j++) {
       ierr = PetscSNPrintf(str,50,"%s_%d",((PetscObject)bv)->name,j);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)ctx->V[j],str);CHKERRQ(ierr);
     }
