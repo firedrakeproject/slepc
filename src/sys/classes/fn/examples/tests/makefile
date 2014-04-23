@@ -30,7 +30,7 @@ MANSEC     = FN
 TESTS      = test1 test2
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
-                     = test2.PETSc runtest2_1 test2.rm
+                       test2.PETSc runtest2_1 test2.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
