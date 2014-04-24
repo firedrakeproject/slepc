@@ -31,7 +31,7 @@ int main(int argc,char **argv)
   FN             fn;
   PetscInt       na,nb;
   PetscScalar    x,y,yp,p[10],q[10],five=5.0;
-  char           str[50];
+  char           strx[50],str[50];
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
@@ -43,12 +43,13 @@ int main(int argc,char **argv)
   ierr = FNSetParameters(fn,na,p,0,NULL);CHKERRQ(ierr);
   ierr = FNView(fn,NULL);CHKERRQ(ierr);
   x = 2.2;
+  ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);
   ierr = FNEvaluateFunction(fn,x,&y);CHKERRQ(ierr);
   ierr = FNEvaluateDerivative(fn,x,&yp);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,y,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%3.1f)=%s\n",(double)x,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%3.1f)=%s\n",(double)x,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
 
   /* inverse of polynomial 1/q(x) */
   nb = 3;
@@ -57,12 +58,13 @@ int main(int argc,char **argv)
   ierr = FNSetParameters(fn,0,NULL,nb,q);CHKERRQ(ierr);
   ierr = FNView(fn,NULL);CHKERRQ(ierr);
   x = 2.2;
+  ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);
   ierr = FNEvaluateFunction(fn,x,&y);CHKERRQ(ierr);
   ierr = FNEvaluateDerivative(fn,x,&yp);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,y,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%3.1f)=%s\n",(double)x,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%3.1f)=%s\n",(double)x,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
 
   /* rational p(x)/q(x) */
   na = 2; nb = 3;
@@ -72,24 +74,26 @@ int main(int argc,char **argv)
   ierr = FNSetParameters(fn,na,p,nb,q);CHKERRQ(ierr);
   ierr = FNView(fn,NULL);CHKERRQ(ierr);
   x = 2.2;
+  ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);
   ierr = FNEvaluateFunction(fn,x,&y);CHKERRQ(ierr);
   ierr = FNEvaluateDerivative(fn,x,&yp);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,y,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%3.1f)=%s\n",(double)x,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%3.1f)=%s\n",(double)x,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
 
   /* constant */
   ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
   ierr = FNSetParameters(fn,1,&five,0,NULL);CHKERRQ(ierr);
   ierr = FNView(fn,NULL);CHKERRQ(ierr);
   x = 2.2;
+  ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);
   ierr = FNEvaluateFunction(fn,x,&y);CHKERRQ(ierr);
   ierr = FNEvaluateDerivative(fn,x,&yp);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,y,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%3.1f)=%s\n",(double)x,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%3.1f)=%s\n",(double)x,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
 
   ierr = FNDestroy(&fn);CHKERRQ(ierr);
   ierr = SlepcFinalize();
