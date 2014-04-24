@@ -122,7 +122,7 @@ Unable to download package %s from: %s
       os.rename(os.path.join(builddir,'include/'+name),os.path.join(incDir,name))
 
   if 'rpath' in petscconf.SLFLAG:
-    l = petscconf.SLFLAG + libDir + '-L' + libDir + ' -lBLOPEX'
+    l = petscconf.SLFLAG + libDir + ' -L' + libDir + ' -lBLOPEX'
   else:
     l = '-L' + libDir + ' -lBLOPEX'
 
