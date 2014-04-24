@@ -32,7 +32,6 @@ int main(int argc,char **argv)
   IP             ip;
   Vec            v;
   PetscInt       i,n=15,Istart,Iend;
-  PetscRandom    rctx;
   PetscReal      norm;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -51,12 +50,13 @@ int main(int argc,char **argv)
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
-  /* Create random vector */
-  ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
-  ierr = PetscRandomSetInterval(rctx,-1.0,1.0);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
+  /* Create vector */
   ierr = MatGetVecs(A,NULL,&v);CHKERRQ(ierr);
-  ierr = VecSetRandom(v,rctx);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    ierr = VecSetValue(v,i,i-n/2,INSERT_VALUES);CHKERRQ(ierr);
+  }
+  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
 
   /* Create IP object */
   ierr = IPCreate(PETSC_COMM_WORLD,&ip);CHKERRQ(ierr);
@@ -72,7 +72,6 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = IPDestroy(&ip);CHKERRQ(ierr);
   ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(&rctx);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return 0;
 }
