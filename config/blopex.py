@@ -121,11 +121,16 @@ Unable to download package %s from: %s
     for name in files:
       os.rename(os.path.join(builddir,'include/'+name),os.path.join(incDir,name))
 
+  if 'rpath' in petscconf.SLFLAG:
+    l = petscconf.SLFLAG + libDir + '-L' + libDir + ' -lBLOPEX'
+  else:
+    l = '-L' + libDir + ' -lBLOPEX'
+
   # Write configuration files
   conf.write('#ifndef SLEPC_HAVE_BLOPEX\n#define SLEPC_HAVE_BLOPEX 1\n#endif\n\n')
-  vars.write('BLOPEX_LIB = -L' + libDir + ' -lBLOPEX\n')
+  vars.write('BLOPEX_LIB = ' + l + '\n')
   cmake.write('set (SLEPC_HAVE_BLOPEX YES)\n')
   cmake.write('find_library (BLOPEX_LIB BLOPEX HINTS '+ libDir +')\n')
 
-  return ['-L' + libDir] + ['-I' + incDir]
+  return [l] + ['-I' + incDir]
 
