@@ -21,6 +21,7 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
+#include "finclude/slepcsysdef.h"
 #include "finclude/slepcmfndef.h"
 
 !  Convergence flags.
