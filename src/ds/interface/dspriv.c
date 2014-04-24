@@ -28,7 +28,7 @@
 #define __FUNCT__ "DSAllocateMat_Private"
 PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
 {
-  PetscInt       sz;
+  size_t         sz;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -49,7 +49,7 @@ PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
 #define __FUNCT__ "DSAllocateMatReal_Private"
 PetscErrorCode DSAllocateMatReal_Private(DS ds,DSMatType m)
 {
-  PetscInt       sz;
+  size_t         sz;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;

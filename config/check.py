@@ -117,7 +117,10 @@ def FortranLib(tmpdir,conf,vars,cmake,name,dirs,libs,functions,callbacks = []):
   for d in dirs:
     for l in libs:
       if d:
-	flags = ['-L' + d] + l
+        if 'rpath' in petscconf.SLFLAG:
+	  flags = [petscconf.SLFLAG + d] + ['-L' + d] + l
+        else:
+	  flags = ['-L' + d] + l
       else:
 	flags = l
       (mangling, output) = FortranLink(tmpdir,functions,callbacks,flags)
