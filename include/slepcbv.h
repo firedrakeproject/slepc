@@ -74,6 +74,8 @@ PETSC_EXTERN PetscErrorCode BVMultInPlace(BV,Mat,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVDot(BV,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVDotVec(BV,Vec,PetscScalar*);
 
+PETSC_EXTERN PetscErrorCode BVOrthogonalize(BV,PetscInt,PetscScalar*,PetscReal*,PetscBool*);
+
 PETSC_EXTERN PetscErrorCode BVSetOptionsPrefix(BV,const char*);
 PETSC_EXTERN PetscErrorCode BVAppendOptionsPrefix(BV,const char*);
 PETSC_EXTERN PetscErrorCode BVGetOptionsPrefix(BV,const char*[]);

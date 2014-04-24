@@ -25,7 +25,7 @@
 #include <slepcbv.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent BV_Create,BV_Mult,BV_Dot;
+PETSC_EXTERN PetscLogEvent BV_Create,BV_Mult,BV_Dot,BV_Orthogonalize;
 
 typedef struct _BVOps *BVOps;
 
@@ -56,6 +56,7 @@ struct _p_BV {
   PetscInt         ci[2];        /* Column indices of obtained vectors */
   PetscObjectState st[2];        /* State of obtained vectors */
   PetscObjectId    id[2];        /* Object id of obtained vectors */
+  PetscScalar      *h,*c;        /* Orthogonalization coefficients */
   PetscScalar      *work;
   PetscInt         lwork;
   void             *data;

@@ -24,7 +24,7 @@
 #include <slepc-private/bvimpl.h>            /*I "slepcbv.h" I*/
 
 PetscClassId     BV_CLASSID = 0;
-PetscLogEvent    BV_Create = 0,BV_Mult = 0,BV_Dot = 0;
+PetscLogEvent    BV_Create = 0,BV_Mult = 0,BV_Dot = 0,BV_Orthogonalize = 0;
 static PetscBool BVPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__
@@ -77,6 +77,7 @@ PetscErrorCode BVInitializePackage(void)
   ierr = PetscLogEventRegister("BVCreate",BV_CLASSID,&BV_Create);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVMult",BV_CLASSID,&BV_Mult);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVDot",BV_CLASSID,&BV_Dot);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("BVOrthogonalize",BV_CLASSID,&BV_Orthogonalize);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
@@ -122,6 +123,7 @@ PetscErrorCode BVDestroy(BV *bv)
   if ((*bv)->ops->destroy) { ierr = (*(*bv)->ops->destroy)(*bv);CHKERRQ(ierr); }
   ierr = VecDestroy(&(*bv)->t);CHKERRQ(ierr);
   ierr = PetscFree((*bv)->work);CHKERRQ(ierr);
+  ierr = PetscFree2((*bv)->h,(*bv)->c);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -169,6 +171,8 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->st[1]        = -1;
   bv->id[0]        = 0;
   bv->id[1]        = 0;
+  bv->h            = NULL;
+  bv->c            = NULL;
   bv->work         = NULL;
   bv->lwork        = 0;
   bv->data         = 0;

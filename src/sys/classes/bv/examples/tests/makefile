@@ -24,18 +24,23 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/bv/examples/tests/
-EXAMPLESC  = test1.c
+EXAMPLESC  = test1.c test2.c
 EXAMPLESF  =
 MANSEC     = BV
-TESTS      = test1
+TESTS      = test1 test2
 
-TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 test1.rm
+TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 runtest1_3 runtest1_4 test1.rm \
+                       test2.PETSc runtest2_1 test2.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
 test1: test1.o chkopts
 	-${CLINKER} -o test1 test1.o ${SLEPC_SYS_LIB}
 	${RM} test1.o
+
+test2: test2.o chkopts
+	-${CLINKER} -o test2 test2.o ${SLEPC_SYS_LIB}
+	${RM} test2.o
 
 #------------------------------------------------------------------------------------
 
@@ -63,5 +68,10 @@ runtest1_3:
 runtest1_4:
 	-@test=test1_4; \
 	${MPIEXEC} -np 1 ./test1 -bv_type mat -verbose 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest2_1:
+	-@test=test2_1; \
+	${MPIEXEC} -np 1 ./test2 -verbose 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
