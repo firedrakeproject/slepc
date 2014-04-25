@@ -30,7 +30,7 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   FN             fn;
   PetscScalar    x,y,yp,tau,eta;
-  char           str[50];
+  char           strx[50],str[50];
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
@@ -39,12 +39,13 @@ int main(int argc,char **argv)
   ierr = FNSetType(fn,FNEXP);CHKERRQ(ierr);
   ierr = FNView(fn,NULL);CHKERRQ(ierr);
   x = 2.2;
+  ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);
   ierr = FNEvaluateFunction(fn,x,&y);CHKERRQ(ierr);
   ierr = FNEvaluateDerivative(fn,x,&yp);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,y,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%3.1f)=%s\n",(double)x,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%3.1f)=%s\n",(double)x,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
 
   /* exponential with scaling factors eta*exp(tau*x) */
   ierr = FNSetType(fn,FNEXP);CHKERRQ(ierr);
@@ -53,12 +54,13 @@ int main(int argc,char **argv)
   ierr = FNSetParameters(fn,1,&tau,1,&eta);CHKERRQ(ierr);
   ierr = FNView(fn,NULL);CHKERRQ(ierr);
   x = 2.2;
+  ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);
   ierr = FNEvaluateFunction(fn,x,&y);CHKERRQ(ierr);
   ierr = FNEvaluateDerivative(fn,x,&yp);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,y,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%3.1f)=%s\n",(double)x,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%3.1f)=%s\n",(double)x,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
 
   ierr = FNDestroy(&fn);CHKERRQ(ierr);
   ierr = SlepcFinalize();
