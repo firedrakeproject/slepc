@@ -46,39 +46,39 @@ def Load(petscdir):
       k = r[0].strip()
       v = r[1].strip()
       if k == 'PETSC_SCALAR':
-	SCALAR = v
+        SCALAR = v
       elif k == 'PETSC_PRECISION':
         PRECISION = v
       elif k == 'MAKE':
-	MAKE = v
+        MAKE = v
       elif k == 'DESTDIR':
         DESTDIR = v
       elif k == 'BFORT':
-	BFORT = v
+        BFORT = v
       elif k == 'TEST_RUNS':
-	TEST_RUNS = v
+        TEST_RUNS = v
       elif k == 'CC':
-	CC = v
+        CC = v
       elif k == 'CC_FLAGS':
-	CC_FLAGS = v
+        CC_FLAGS = v
       elif k == 'FC' and not v=='':
-	FC = v
+        FC = v
       elif k == 'AR':
-	AR = v
+        AR = v
       elif k == 'AR_FLAGS':
-	AR_FLAGS = v
+        AR_FLAGS = v
       elif k == 'AR_LIB_SUFFIX':
-	AR_LIB_SUFFIX = v
-      elif k == 'FC_LINKER_SLFLAG':
-	SLFLAG = v
+        AR_LIB_SUFFIX = v
+      elif k == 'CC_LINKER_SLFLAG':
+        SLFLAG = v
       elif k == 'RANLIB':
-	RANLIB = v
+        RANLIB = v
       elif k == 'PETSC_BUILD_USING_CMAKE':
-	BUILD_USING_CMAKE = v
+        BUILD_USING_CMAKE = v
       elif k == 'MAKE_IS_GNUMAKE':
-	MAKE_IS_GNUMAKE = v
+        MAKE_IS_GNUMAKE = v
       elif k == 'SHLIBS' and v=='libpetsc':
-	SINGLELIB = 1
+        SINGLELIB = 1
     f.close()
   except:
     sys.exit('ERROR: cannot process file ' +  PETSCVARIABLES)
@@ -90,9 +90,9 @@ def Load(petscdir):
     for l in f.readlines():
       l = l.split()
       if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_64BIT_INDICES' and l[2]=='1':
-	IND64 = 1
+        IND64 = 1
       elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_MPIUNI' and l[2]=='1':
-	MPIUNI = 1
+        MPIUNI = 1
     f.close()
   except:
     sys.exit('ERROR: cannot process file ' +  PETSCCONF_H)
