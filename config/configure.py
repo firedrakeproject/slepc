@@ -96,6 +96,7 @@ haveblopex = 0
 blopexurl = ''
 doclean = 0
 prefixdir = ''
+datafilespath = ''
 
 for i in sys.argv[1:]:
   if   i.startswith('--with-arpack-dir='):
@@ -146,12 +147,15 @@ for i in sys.argv[1:]:
     doclean = not i.endswith('=0')
   elif i.startswith('--prefix='):
     prefixdir = i.split('=')[1]
+  elif i.startswith('--DATAFILESPATH='):
+    datafilespath = i.split('=')[1]
   elif i.startswith('--h') or i.startswith('-h') or i.startswith('-?'):
     print 'SLEPc Configure Help'
     print '-'*80
     print 'SLEPc:'
     print '  --with-clean=<bool>              : Delete prior build files including externalpackages'
     print '  --prefix=<dir>                   : Specify location to install SLEPc (e.g., /usr/local)'
+    print '  --DATAFILESPATH=<dir>            : Specify location of datafiles (for SLEPc developers)'
     print 'ARPACK:'
     print '  --with-arpack                    : Indicate if you wish to test for ARPACK (PARPACK)'
     print '  --with-arpack-dir=<dir>          : Indicate the directory for ARPACK libraries'
@@ -268,6 +272,9 @@ try:
   testruns = testruns.intersection(set(['C','F90','Fortran','C_NoComplex','Fortran_NoComplex']))
   if petscconf.PRECISION != '__float128':
     testruns = testruns.union(set(['C_NoF128']))
+  if datafilespath:
+    slepcvars.write('DATAFILESPATH = ' + datafilespath +'\n')
+    testruns = testruns.union(set(['DATAFILESPATH']))
   slepcvars.write('TEST_RUNS = ' + ' '.join(testruns) +'\n')
 except:
   sys.exit('ERROR: cannot create configuration file in ' + confdir)
