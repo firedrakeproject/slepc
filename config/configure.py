@@ -182,6 +182,7 @@ for i in sys.argv[1:]:
   else:
     sys.exit('ERROR: Invalid argument ' + i +'. Use -h for help')
 
+external = havearpack or haveblzpack or havetrlan or haveprimme or havefeast or getblopex
 prefixinstall = not prefixdir==''
 
 # Check if enviroment is ok
@@ -221,13 +222,26 @@ if not petscconf.PRECISION in ['double','single','__float128']:
 if prefixinstall and not petscconf.ISINSTALL:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
-# Create architecture directory and configuration files
+# Clean previous configuration if needed
 archdir = os.sep.join([slepcdir,petscconf.ARCH])
+try:
+  with open(os.sep.join([archdir,'conf/slepcvariables']),"r") as f:
+    searchlines = f.readlines()
+  found = 0
+  for library in ['ARPACK','BLZPACK','TRLAN','PRIMME','FEAST','BLOPEX']:
+    if library in ''.join(searchlines):
+      found = 1
+  if found and not external:
+    print 'WARNING: forcing --with-clean=1 because previous configuration had external packages'
+    doclean = 1
+except: pass
 if doclean and os.path.exists(archdir):
   try:
     shutil.rmtree(archdir)
   except:
     sys.exit('ERROR: cannot remove existing directory ' + archdir)
+
+# Create architecture directory and configuration files
 if not os.path.exists(archdir):
   try:
     os.mkdir(archdir)
