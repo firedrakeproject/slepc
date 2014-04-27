@@ -19,8 +19,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/vecimplslepc.h>
-#include "davidson.h"
+#include <slepc-private/vecimplslepc.h>    /*I "slepcvec.h" I*/
+#include <slepcblaslapack.h>
 
 PetscLogEvent SLEPC_SlepcDenseMatProd = 0;
 PetscLogEvent SLEPC_SlepcDenseNorm = 0;

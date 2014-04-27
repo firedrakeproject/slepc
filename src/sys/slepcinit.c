@@ -20,7 +20,6 @@
 */
 
 #include <slepc-private/slepcimpl.h>           /*I "slepcsys.h" I*/
-#include <slepc-private/vecimplslepc.h>
 #include <stdlib.h>
 
 #undef __FUNCT__

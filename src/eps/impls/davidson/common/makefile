@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = davidson.c dvd_blas.c dvd_calcpairs.c dvd_improvex.c dvd_initv.c \
+SOURCEC  = davidson.c dvd_calcpairs.c dvd_improvex.c dvd_initv.c \
            dvd_schm.c dvd_testconv.c dvd_updatev.c dvd_utils.c dvd_gd2.c dvd_orth.c
 SOURCEF  =
 SOURCEH  = davidson.h
