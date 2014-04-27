@@ -22,11 +22,6 @@
 #include <slepc-private/vecimplslepc.h>    /*I "slepcvec.h" I*/
 #include <slepcblaslapack.h>
 
-PetscLogEvent SLEPC_SlepcDenseMatProd = 0;
-PetscLogEvent SLEPC_SlepcDenseNorm = 0;
-PetscLogEvent SLEPC_SlepcDenseCopy = 0;
-PetscLogEvent SLEPC_VecsMult = 0;
-
 void dvd_sum_local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *t);
 PetscErrorCode VecsMultS_copy_func(PetscScalar *out,PetscInt size_out,void *ptr);
 

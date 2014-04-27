@@ -26,7 +26,6 @@
 #include <petsc-private/petscimpl.h>
 
 PETSC_INTERN PetscBool SlepcBeganPetsc;
-PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors,SLEPC_VecMAXPBY,SLEPC_SlepcDenseMatProd,SLEPC_SlepcDenseOrth,SLEPC_SlepcDenseMatInvProd,SLEPC_SlepcDenseNorm,SLEPC_SlepcDenseCopy,SLEPC_VecsMult;
 
 /*@C
     SlepcHeaderCreate - Creates a SLEPc object
