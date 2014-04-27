@@ -72,6 +72,8 @@ for l in range(1,len(sys.argv)):
     sys.argv[l] = name.replace('--without','--with')
     if name.find('=') == -1: sys.argv[l] += '=0'
     elif name.endswith('=1'): sys.argv[l].replace('=1','=0')
+  if name.startswith('--with'):
+    if name.find('=') == -1: sys.argv[l] += '=1'
 
 # Check configure parameters
 havearpack = 0
@@ -102,7 +104,7 @@ for i in sys.argv[1:]:
   elif i.startswith('--with-arpack-flags='):
     arpacklibs = i.split('=')[1].split(',')
     havearpack = 1
-  elif i.startswith('--with-arpack'):
+  elif i.startswith('--with-arpack='):
     havearpack = not i.endswith('=0')
   elif i.startswith('--with-blzpack-dir='):
     blzpackdir = i.split('=')[1]
@@ -110,7 +112,7 @@ for i in sys.argv[1:]:
   elif i.startswith('--with-blzpack-flags='):
     blzpacklibs = i.split('=')[1].split(',')
     haveblzpack = 1
-  elif i.startswith('--with-blzpack'):
+  elif i.startswith('--with-blzpack='):
     haveblzpack = not i.endswith('=0')
   elif i.startswith('--with-trlan-dir='):
     trlandir = i.split('=')[1]
@@ -118,15 +120,15 @@ for i in sys.argv[1:]:
   elif i.startswith('--with-trlan-flags='):
     trlanlibs = i.split('=')[1].split(',')
     havetrlan = 1
-  elif i.startswith('--with-trlan'):
+  elif i.startswith('--with-trlan='):
     havetrlan = not i.endswith('=0')
-  elif i.startswith('--with-primme-dir'):
+  elif i.startswith('--with-primme-dir='):
     primmedir = i.split('=')[1]
     haveprimme = 1
   elif i.startswith('--with-primme-flags='):
     primmelibs = i.split('=')[1].split(',')
     haveprimme = 1
-  elif i.startswith('--with-primme'):
+  elif i.startswith('--with-primme='):
     haveprimme = not i.endswith('=0')
   elif i.startswith('--with-feast-dir='):
     feastdir = i.split('=')[1]
@@ -134,13 +136,13 @@ for i in sys.argv[1:]:
   elif i.startswith('--with-feast-flags='):
     feastlibs = i.split('=')[1].split(',')
     havefeast = 1
-  elif i.startswith('--with-feast'):
+  elif i.startswith('--with-feast='):
     havefeast = not i.endswith('=0')
   elif i.startswith('--download-blopex'):
     getblopex = not i.endswith('=0')
     try: blopexurl = i.split('=')[1]
     except IndexError: pass
-  elif i.startswith('--with-clean'):
+  elif i.startswith('--with-clean='):
     doclean = not i.endswith('=0')
   elif i.startswith('--prefix='):
     prefixdir = i.split('=')[1]
