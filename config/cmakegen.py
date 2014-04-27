@@ -238,13 +238,13 @@ if (NOT PETSC_USE_SINGLE_LIBRARY)
   else ()
     add_library (slepc%(pkg)s ${SLEPC%(PKG)s_SRCS})
   endif ()
-  target_link_libraries (slepc%(pkg)s %(pkgdeps)s ${SLEPC_PACKAGE_LIBS} ${PETSC_PACKAGE_LIBS})
+  target_link_libraries (slepc%(pkg)s %(pkgdeps)s ${PETSC_LIB} ${SLEPC_PACKAGE_LIBS} ${PETSC_PACKAGE_LIBS})
   if (PETSC_WIN32FE)
     set_target_properties (slepc%(pkg)s PROPERTIES RULE_LAUNCH_COMPILE "${PETSC_WIN32FE}")
     set_target_properties (slepc%(pkg)s PROPERTIES RULE_LAUNCH_LINK "${PETSC_WIN32FE}")
   endif ()
 endif ()
-''' % dict(pkg=pkg, PKG=pkg.upper(), pkgdeps=' '.join('petsc%s'%p for p in pkgdeps)))
+''' % dict(pkg=pkg, PKG=pkg.upper(), pkgdeps=' '.join('slepc%s'%p for p in pkgdeps)))
 
 def main(slepcdir,petscdir,petscarch,log=StdoutLogger(), verbose=False):
   import tempfile, shutil
