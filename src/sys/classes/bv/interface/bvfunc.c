@@ -162,6 +162,9 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->m            = 0;
   bv->l            = 0;
   bv->k            = 0;
+  bv->orthog_type  = BV_ORTHOG_CGS;
+  bv->orthog_ref   = BV_ORTHOG_REFINE_IFNEEDED;
+  bv->orthog_eta   = 0.7071;
 
   bv->cv[0]        = NULL;
   bv->cv[1]        = NULL;
@@ -306,6 +309,8 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
   PetscErrorCode    ierr;
   PetscBool         isascii;
   PetscViewerFormat format;
+  const char        *orthname[2] = {"classical","modified"};
+  const char        *refname[3] = {"if needed","never","always"};
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -325,7 +330,17 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
       if (bv->l>0 || bv->k<bv->m) {
         ierr = PetscViewerASCIIPrintf(viewer,"- active columns: l=%D k=%D",bv->l,bv->k);CHKERRQ(ierr);
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"\n",bv->m,bv->N);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"orthogonalization method: %s Gram-Schmidt\n",orthname[bv->orthog_type]);CHKERRQ(ierr);
+      switch (bv->orthog_ref) {
+        case BV_ORTHOG_REFINE_IFNEEDED:
+          ierr = PetscViewerASCIIPrintf(viewer,"orthogonalization refinement: %s (eta: %g)\n",refname[bv->orthog_ref],(double)bv->orthog_eta);CHKERRQ(ierr);
+          break;
+        case BV_ORTHOG_REFINE_NEVER:
+        case BV_ORTHOG_REFINE_ALWAYS:
+          ierr = PetscViewerASCIIPrintf(viewer,"orthogonalization refinement: %s\n",refname[bv->orthog_ref]);CHKERRQ(ierr);
+          break;
+      }
     } else {
       ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr);
     }

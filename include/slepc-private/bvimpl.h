@@ -46,20 +46,23 @@ struct _BVOps {
 struct _p_BV {
   PETSCHEADER(struct _BVOps);
   /*------------------------- User parameters --------------------------*/
-  Vec              t;            /* Template vector */
-  PetscInt         n,N;          /* Dimensions of vectors */
-  PetscInt         m;            /* Number of vectors */
-  PetscInt         l,k;          /* Active columns */
+  Vec                t;            /* Template vector */
+  PetscInt           n,N;          /* Dimensions of vectors */
+  PetscInt           m;            /* Number of vectors */
+  PetscInt           l,k;          /* Active columns */
+  BVOrthogType       orthog_type;  /* which orthogonalization to use */
+  BVOrthogRefineType orthog_ref;   /* refinement method */
+  PetscReal          orthog_eta;   /* refinement threshold */
 
   /*------------------------- Misc data --------------------------*/
-  Vec              cv[2];        /* Column vectors obtained with BVGetColumn() */
-  PetscInt         ci[2];        /* Column indices of obtained vectors */
-  PetscObjectState st[2];        /* State of obtained vectors */
-  PetscObjectId    id[2];        /* Object id of obtained vectors */
-  PetscScalar      *h,*c;        /* Orthogonalization coefficients */
-  PetscScalar      *work;
-  PetscInt         lwork;
-  void             *data;
+  Vec                cv[2];        /* Column vectors obtained with BVGetColumn() */
+  PetscInt           ci[2];        /* Column indices of obtained vectors */
+  PetscObjectState   st[2];        /* State of obtained vectors */
+  PetscObjectId      id[2];        /* Object id of obtained vectors */
+  PetscScalar        *h,*c;        /* Orthogonalization coefficients */
+  PetscScalar        *work;
+  PetscInt           lwork;
+  void               *data;
 };
 
 /*

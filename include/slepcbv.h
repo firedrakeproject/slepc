@@ -52,6 +52,28 @@ typedef const char* BVType;
 /* Logging support */
 PETSC_EXTERN PetscClassId BV_CLASSID;
 
+/*E
+    BVOrthogType - Determines what type of orthogonalization to use
+
+    Level: advanced
+
+.seealso: BVSetOrthogonalization(), BVGetOrthogonalization(), BVOrthogonalize()
+E*/
+typedef enum { BV_ORTHOG_CGS,
+               BV_ORTHOG_MGS } BVOrthogType;
+
+/*E
+    BVOrthogRefineType - Determines what type of refinement
+    to use during orthogonalization
+
+    Level: advanced
+
+.seealso: BVSetOrthogonalization(), BVGetOrthogonalization(), BVOrthogonalize()
+E*/
+typedef enum { BV_ORTHOG_REFINE_IFNEEDED,
+               BV_ORTHOG_REFINE_NEVER,
+               BV_ORTHOG_REFINE_ALWAYS } BVOrthogRefineType;
+
 PETSC_EXTERN PetscErrorCode BVCreate(MPI_Comm,BV*);
 PETSC_EXTERN PetscErrorCode BVDestroy(BV*);
 PETSC_EXTERN PetscErrorCode BVSetType(BV,BVType);
@@ -74,6 +96,8 @@ PETSC_EXTERN PetscErrorCode BVMultInPlace(BV,Mat,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVDot(BV,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVDotVec(BV,Vec,PetscScalar*);
 
+PETSC_EXTERN PetscErrorCode BVSetOrthogonalization(BV,BVOrthogType,BVOrthogRefineType,PetscReal);
+PETSC_EXTERN PetscErrorCode BVGetOrthogonalization(BV,BVOrthogType*,BVOrthogRefineType*,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVOrthogonalize(BV,PetscInt,PetscScalar*,PetscReal*,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode BVSetOptionsPrefix(BV,const char*);

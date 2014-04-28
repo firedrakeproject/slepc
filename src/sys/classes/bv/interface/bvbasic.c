@@ -317,6 +317,10 @@ PetscErrorCode BVSetFromOptions(BV bv)
   PetscErrorCode ierr;
   char           type[256];
   PetscBool      flg;
+  PetscReal      r;
+  PetscInt       i,j;
+  const char     *orth_list[2] = {"cgs","mgs"};
+  const char     *ref_list[3] = {"ifneeded","never","always"};
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -333,11 +337,113 @@ PetscErrorCode BVSetFromOptions(BV bv)
       ierr = BVSetType(bv,BVSVEC);CHKERRQ(ierr);
     }
 
+    i = bv->orthog_type;
+    ierr = PetscOptionsEList("-bv_orthog_type","Orthogonalization method","BVSetOrthogonalization",orth_list,2,orth_list[i],&i,NULL);CHKERRQ(ierr);
+    j = bv->orthog_ref;
+    ierr = PetscOptionsEList("-bv_orthog_refine","Iterative refinement mode during orthogonalization","BVSetOrthogonalization",ref_list,3,ref_list[j],&j,NULL);CHKERRQ(ierr);
+    r = bv->orthog_eta;
+    ierr = PetscOptionsReal("-bv_orthog_eta","Parameter of iterative refinement during orthogonalization","BVSetOrthogonalization",r,&r,NULL);CHKERRQ(ierr);
+    ierr = BVSetOrthogonalization(bv,(BVOrthogType)i,(BVOrthogRefineType)j,r);CHKERRQ(ierr);
+
     if (bv->ops->setfromoptions) {
       ierr = (*bv->ops->setfromoptions)(bv);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)bv);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVSetOrthogonalization"
+/*@
+   BVSetOrthogonalization - Specifies the type of orthogonalization technique
+   to be used (classical or modified Gram-Schmidt with or without refinement).
+
+   Logically Collective on BV
+
+   Input Parameters:
++  bv     - the basis vectors context
+.  type   - the type of orthogonalization technique
+.  refine - type of refinement
+-  eta    - parameter for selective refinement
+
+   Options Database Keys:
++  -bv_orthog_type <type> - Where <type> is cgs for Classical Gram-Schmidt orthogonalization
+                         (default) or mgs for Modified Gram-Schmidt orthogonalization
+.  -bv_orthog_refine <ref> - Where <ref> is one of never, ifneeded (default) or always
+-  -bv_orthog_eta <eta> -  For setting the value of eta
+
+   Notes:
+   The default settings work well for most problems.
+
+   The parameter eta should be a real value between 0 and 1 (or PETSC_DEFAULT).
+   The value of eta is used only when the refinement type is "ifneeded".
+
+   When using several processors, MGS is likely to result in bad scalability.
+
+   Level: advanced
+
+.seealso: BVOrthogonalize(), BVGetOrthogonalization(), BVOrthogType, BVOrthogRefineType
+@*/
+PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType refine,PetscReal eta)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(bv,type,2);
+  PetscValidLogicalCollectiveEnum(bv,refine,3);
+  PetscValidLogicalCollectiveReal(bv,eta,4);
+  switch (type) {
+    case BV_ORTHOG_CGS:
+    case BV_ORTHOG_MGS:
+      bv->orthog_type = type;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Unknown orthogonalization type");
+  }
+  switch (refine) {
+    case BV_ORTHOG_REFINE_NEVER:
+    case BV_ORTHOG_REFINE_IFNEEDED:
+    case BV_ORTHOG_REFINE_ALWAYS:
+      bv->orthog_ref = refine;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Unknown refinement type");
+  }
+  if (eta == PETSC_DEFAULT) {
+    bv->orthog_eta = 0.7071;
+  } else {
+    if (eta <= 0.0 || eta > 1.0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Invalid eta value");
+    bv->orthog_eta = eta;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetOrthogonalization"
+/*@C
+   BVGetOrthogonalization - Gets the orthogonalization settings from the BV object.
+
+   Not Collective
+
+   Input Parameter:
+.  bv - basis vectors context
+
+   Output Parameter:
++  type   - type of orthogonalization technique
+.  refine - type of refinement
+-  eta    - parameter for selective refinement
+
+   Level: advanced
+
+.seealso: BVOrthogonalize(), BVSetOrthogonalization(), BVOrthogType, BVOrthogRefineType
+@*/
+PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineType *refine,PetscReal *eta)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  if (type)   *type   = bv->orthog_type;
+  if (refine) *refine = bv->orthog_ref;
+  if (eta)    *eta    = bv->orthog_eta;
   PetscFunctionReturn(0);
 }
 
