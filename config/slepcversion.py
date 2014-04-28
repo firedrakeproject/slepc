@@ -31,14 +31,14 @@ def Load(slepcdir):
       l = l.split()
       if len(l) == 3:
         if l[1] == 'SLEPC_VERSION_RELEASE':
-	  RELEASE = l[2]
-	if l[1] == 'SLEPC_VERSION_MAJOR':
+          RELEASE = l[2]
+        if l[1] == 'SLEPC_VERSION_MAJOR':
           major = l[2]
-	elif l[1] == 'SLEPC_VERSION_MINOR':
+        elif l[1] == 'SLEPC_VERSION_MINOR':
           minor = l[2]
-	elif l[1] == 'SLEPC_VERSION_SUBMINOR':
+        elif l[1] == 'SLEPC_VERSION_SUBMINOR':
           subminor = l[2]
-	elif l[1] == 'SLEPC_VERSION_PATCH':
+        elif l[1] == 'SLEPC_VERSION_PATCH':
           patchlevel = l[2]
     f.close()
     VERSION = major + '.' + minor
