@@ -25,42 +25,15 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-/*
-   Dashboard struct: contains the methods that will be employed and the tunning
-   options.
-*/
-
-#include <slepc-private/epsimpl.h>         /*I "slepceps.h" I*/
-#include <slepc-private/stimpl.h>          /*I "slepcst.h" I*/
-#include <slepcblaslapack.h>
+#include <slepc-private/epsimpl.h>
+#include <slepc-private/stimpl.h>
+#include <slepc-private/vecimplslepc.h>
 
 typedef struct _dvdFunctionList {
   PetscErrorCode (*f)(void*);
   void *d;
   struct _dvdFunctionList *next;
 } dvdFunctionList;
-
-typedef PetscInt MatType_t;
-#define DVD_MAT_HERMITIAN (1<<1)
-#define DVD_MAT_NEG_DEF (1<<2)
-#define DVD_MAT_POS_DEF (1<<3)
-#define DVD_MAT_SINGULAR (1<<4)
-#define DVD_MAT_COMPLEX (1<<5)
-#define DVD_MAT_IMPLICIT (1<<6)
-#define DVD_MAT_IDENTITY (1<<7)
-#define DVD_MAT_DIAG (1<<8)
-#define DVD_MAT_TRIANG (1<<9)
-#define DVD_MAT_UTRIANG (1<<9)
-#define DVD_MAT_LTRIANG (1<<10)
-#define DVD_MAT_UNITARY (1<<11)
-
-typedef PetscInt EPType_t;
-#define DVD_EP_STD (1<<1)
-#define DVD_EP_HERMITIAN (1<<2)
-#define DVD_EP_INDEFINITE (1<<3)
-
-#define DVD_IS(T,P) ((T) & (P))
-#define DVD_ISNOT(T,P) (((T) & (P)) ^ (P))
 
 typedef enum {
   DVD_HARM_NONE,
@@ -85,6 +58,11 @@ typedef enum {
   DVD_METH_JD,
   DVD_METH_GD2
 } Method_t;
+
+/*
+   Dashboard struct: contains the methods that will be employed and the tunning
+   options.
+*/
 
 typedef struct _dvdDashboard {
   /**** Function steps ****/
@@ -373,37 +351,6 @@ typedef PetscBool (*isRestarting_type)(dvdDashboard*);
 typedef PetscErrorCode (*e_newIteration_type)(dvdDashboard*);
 typedef PetscErrorCode (*improveX_type)(dvdDashboard*,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
 
-/* Structures for blas */
-typedef PetscErrorCode (*DvdReductionPostF)(PetscScalar*,PetscInt,void*);
-typedef struct {
-  PetscScalar
-    *out;               /* final vector */
-  PetscInt
-    size_out;           /* size of out */
-  DvdReductionPostF
-    f;                  /* function called after the reduction */
-  void *ptr;
-} DvdReductionChunk;
-
-typedef struct {
-  PetscScalar
-    *in,                /* vector to sum-up with more nodes */
-    *out;               /* final vector */
-  PetscInt size_in,     /* size of in */
-    max_size_in;        /* max size of in */
-  DvdReductionChunk
-    *ops;               /* vector of reduction operations */
-  PetscInt
-    size_ops,           /* size of ops */
-    max_size_ops;       /* max size of ops */
-  MPI_Comm comm;        /* MPI communicator */
-} DvdReduction;
-
-typedef struct {
-  PetscInt i0, i1, i2, ld, s0, e0, s1, e1;
-  PetscScalar *M;
-} DvdMult_copy_func;
-
 /* Routines for initV step */
 PETSC_INTERN PetscErrorCode dvd_initV(dvdDashboard *d,dvdBlackboard *b,PetscInt k,PetscInt user,PetscBool krylov);
 
@@ -436,21 +383,7 @@ PETSC_INTERN PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmT
 PETSC_INTERN PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,KSP ksp,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,Method_t method);
 PETSC_INTERN PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,IP ip,HarmType_t harmMode,PetscBool fixedTarget,PetscScalar t,KSP ksp,PetscReal fix,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,PetscBool dynamic,Method_t method);
 
-/* BLAS routines */
-PETSC_INTERN PetscErrorCode SlepcDenseMatProdTriang(PetscScalar *C,MatType_t sC,PetscInt ldC,const PetscScalar *A,MatType_t sA,PetscInt ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,MatType_t sB,PetscInt ldB,PetscInt rB,PetscInt cB,PetscBool Bt);
-PETSC_INTERN PetscErrorCode SlepcDenseNorm(PetscScalar *A,PetscInt ldA,PetscInt _rA,PetscInt cA,PetscScalar *eigi);
-PETSC_INTERN PetscErrorCode SlepcDenseCopy(PetscScalar *Y,PetscInt ldY,PetscScalar *X,PetscInt ldX,PetscInt rX,PetscInt cX);
-PETSC_INTERN PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y,MatType_t sY,PetscInt ldY,PetscScalar *X,MatType_t sX,PetscInt ldX,PetscInt rX,PetscInt cX);
-PETSC_INTERN PetscErrorCode SlepcUpdateVectorsZ(Vec *Y,PetscScalar beta,PetscScalar alpha,Vec *X,PetscInt cX,const PetscScalar *M,PetscInt ldM,PetscInt rM,PetscInt cM);
-PETSC_INTERN PetscErrorCode SlepcUpdateVectorsS(Vec *Y,PetscInt dY,PetscScalar beta,PetscScalar alpha,Vec *X,PetscInt cX,PetscInt dX,const PetscScalar *M,PetscInt ldM,PetscInt rM,PetscInt cM);
-PETSC_INTERN PetscErrorCode SlepcUpdateVectorsD(Vec *X,PetscInt cX,PetscScalar alpha,const PetscScalar *M,PetscInt ldM,PetscInt rM,PetscInt cM,PetscScalar *work,PetscInt lwork);
-PETSC_INTERN PetscErrorCode VecsMult(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt sU,PetscInt eU,Vec *V,PetscInt sV,PetscInt eV,PetscScalar *workS0,PetscScalar *workS1);
-PETSC_INTERN PetscErrorCode VecsMultS(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt sU,PetscInt eU,Vec *V,PetscInt sV,PetscInt eV,DvdReduction *r,DvdMult_copy_func *sr);
-PETSC_INTERN PetscErrorCode VecsMultIb(PetscScalar *M,MatType_t sM,PetscInt ldM,PetscInt rM,PetscInt cM,PetscScalar *auxS,Vec V);
-PETSC_INTERN PetscErrorCode VecsMultIa(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscInt sU,PetscInt eU,Vec *V,PetscInt sV,PetscInt eV);
-PETSC_INTERN PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk *ops,PetscInt max_size_ops,PetscScalar *in,PetscScalar *out,PetscInt max_size_in,DvdReduction *r,MPI_Comm comm);
-PETSC_INTERN PetscErrorCode SlepcAllReduceSum(DvdReduction *r,PetscInt size_in,DvdReductionPostF f,void *ptr,PetscScalar **in);
-PETSC_INTERN PetscErrorCode SlepcAllReduceSumEnd(DvdReduction *r);
+/* Orthogonalization routines */
 PETSC_INTERN PetscErrorCode dvd_orthV(IP ip,Vec *DS,PetscInt size_DS,Vec *cX,PetscInt size_cX,Vec *V,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
 PETSC_INTERN PetscErrorCode dvd_BorthV_faster(IP ip,Vec *DS,Vec *BDS,PetscReal *BDSn,PetscInt size_DS,Vec *cX,Vec *BcX,PetscReal *BcXn,PetscInt size_cX,Vec *V,Vec *BV,PetscReal *BVn,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
 PETSC_INTERN PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_DS,Vec *cX,PetscReal *BcXn,PetscInt size_cX,Vec *V,PetscReal *BVn,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);

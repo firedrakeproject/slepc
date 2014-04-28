@@ -176,7 +176,7 @@ class PETScMaker(script.Script):
    else:
      return True # Configure successful
 
-def main(slepcdir, petscdir, petscarch, argDB=None, framework=None, log=StdoutLogger(), args=[]):
+def main(slepcdir, petscdir, petscarch=os.environ['PETSC_ARCH'], argDB=None, framework=None, log=StdoutLogger(), args=[]):
   # This can be called as a stand-alone program, or by importing it from
   # python.  The latter functionality is needed because argDB does not
   # get written until the very end of configure, but we want to run this

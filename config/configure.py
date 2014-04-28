@@ -72,6 +72,8 @@ for l in range(1,len(sys.argv)):
     sys.argv[l] = name.replace('--without','--with')
     if name.find('=') == -1: sys.argv[l] += '=0'
     elif name.endswith('=1'): sys.argv[l].replace('=1','=0')
+  if name.startswith('--with'):
+    if name.find('=') == -1: sys.argv[l] += '=1'
 
 # Check configure parameters
 havearpack = 0
@@ -94,6 +96,7 @@ haveblopex = 0
 blopexurl = ''
 doclean = 0
 prefixdir = ''
+datafilespath = ''
 
 for i in sys.argv[1:]:
   if   i.startswith('--with-arpack-dir='):
@@ -102,7 +105,7 @@ for i in sys.argv[1:]:
   elif i.startswith('--with-arpack-flags='):
     arpacklibs = i.split('=')[1].split(',')
     havearpack = 1
-  elif i.startswith('--with-arpack'):
+  elif i.startswith('--with-arpack='):
     havearpack = not i.endswith('=0')
   elif i.startswith('--with-blzpack-dir='):
     blzpackdir = i.split('=')[1]
@@ -110,7 +113,7 @@ for i in sys.argv[1:]:
   elif i.startswith('--with-blzpack-flags='):
     blzpacklibs = i.split('=')[1].split(',')
     haveblzpack = 1
-  elif i.startswith('--with-blzpack'):
+  elif i.startswith('--with-blzpack='):
     haveblzpack = not i.endswith('=0')
   elif i.startswith('--with-trlan-dir='):
     trlandir = i.split('=')[1]
@@ -118,15 +121,15 @@ for i in sys.argv[1:]:
   elif i.startswith('--with-trlan-flags='):
     trlanlibs = i.split('=')[1].split(',')
     havetrlan = 1
-  elif i.startswith('--with-trlan'):
+  elif i.startswith('--with-trlan='):
     havetrlan = not i.endswith('=0')
-  elif i.startswith('--with-primme-dir'):
+  elif i.startswith('--with-primme-dir='):
     primmedir = i.split('=')[1]
     haveprimme = 1
   elif i.startswith('--with-primme-flags='):
     primmelibs = i.split('=')[1].split(',')
     haveprimme = 1
-  elif i.startswith('--with-primme'):
+  elif i.startswith('--with-primme='):
     haveprimme = not i.endswith('=0')
   elif i.startswith('--with-feast-dir='):
     feastdir = i.split('=')[1]
@@ -134,22 +137,25 @@ for i in sys.argv[1:]:
   elif i.startswith('--with-feast-flags='):
     feastlibs = i.split('=')[1].split(',')
     havefeast = 1
-  elif i.startswith('--with-feast'):
+  elif i.startswith('--with-feast='):
     havefeast = not i.endswith('=0')
   elif i.startswith('--download-blopex'):
     getblopex = not i.endswith('=0')
     try: blopexurl = i.split('=')[1]
     except IndexError: pass
-  elif i.startswith('--with-clean'):
+  elif i.startswith('--with-clean='):
     doclean = not i.endswith('=0')
   elif i.startswith('--prefix='):
     prefixdir = i.split('=')[1]
+  elif i.startswith('--DATAFILESPATH='):
+    datafilespath = i.split('=')[1]
   elif i.startswith('--h') or i.startswith('-h') or i.startswith('-?'):
     print 'SLEPc Configure Help'
     print '-'*80
     print 'SLEPc:'
     print '  --with-clean=<bool>              : Delete prior build files including externalpackages'
     print '  --prefix=<dir>                   : Specify location to install SLEPc (e.g., /usr/local)'
+    print '  --DATAFILESPATH=<dir>            : Specify location of datafiles (for SLEPc developers)'
     print 'ARPACK:'
     print '  --with-arpack                    : Indicate if you wish to test for ARPACK (PARPACK)'
     print '  --with-arpack-dir=<dir>          : Indicate the directory for ARPACK libraries'
@@ -176,6 +182,7 @@ for i in sys.argv[1:]:
   else:
     sys.exit('ERROR: Invalid argument ' + i +'. Use -h for help')
 
+external = havearpack or haveblzpack or havetrlan or haveprimme or havefeast or getblopex
 prefixinstall = not prefixdir==''
 
 # Check if enviroment is ok
@@ -215,13 +222,40 @@ if not petscconf.PRECISION in ['double','single','__float128']:
 if prefixinstall and not petscconf.ISINSTALL:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
-# Create architecture directory and configuration files
+# Check for empty PETSC_ARCH
 archdir = os.sep.join([slepcdir,petscconf.ARCH])
-if doclean and os.path.exists(archdir):
+emptyarch = 1
+if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']: emptyarch = 0
+if emptyarch:
+  globconfdir = os.sep.join([slepcdir,'conf'])
   try:
-    shutil.rmtree(archdir)
+    globconf = open(os.sep.join([globconfdir,'slepcvariables']),'w')
+    globconf.write('SLEPC_DIR = ' + slepcdir +'\n')
+    globconf.write('PETSC_ARCH = ' + petscconf.ARCH +'\n')
+    globconf.close()
   except:
-    sys.exit('ERROR: cannot remove existing directory ' + archdir)
+    sys.exit('ERROR: cannot create configuration file in ' + globconfdir)
+
+# Clean previous configuration if needed
+if os.path.exists(archdir):
+  try:
+    with open(os.sep.join([archdir,'conf/slepcvariables']),"r") as f:
+      searchlines = f.readlines()
+    found = 0
+    for library in ['ARPACK','BLZPACK','TRLAN','PRIMME','FEAST','BLOPEX']:
+      if library in ''.join(searchlines):
+        found = 1
+    if found and not external:
+      print 'WARNING: forcing --with-clean=1 because previous configuration had external packages'
+      doclean = 1
+  except: pass
+  if doclean:
+    try:
+      shutil.rmtree(archdir)
+    except:
+      sys.exit('ERROR: cannot remove existing directory ' + archdir)
+
+# Create architecture directory and configuration files
 if not os.path.exists(archdir):
   try:
     os.mkdir(archdir)
@@ -262,10 +296,15 @@ try:
   if not prefixdir:
     prefixdir = archdir
   slepcvars.write('SLEPC_DESTDIR = ' + prefixdir +'\n')
+  if emptyarch:
+    slepcvars.write('INSTALLED_PETSC = 1\n')
   testruns = set(petscconf.TEST_RUNS.split())
   testruns = testruns.intersection(set(['C','F90','Fortran','C_NoComplex','Fortran_NoComplex']))
   if petscconf.PRECISION != '__float128':
     testruns = testruns.union(set(['C_NoF128']))
+  if datafilespath:
+    slepcvars.write('DATAFILESPATH = ' + datafilespath +'\n')
+    testruns = testruns.union(set(['DATAFILESPATH']))
   slepcvars.write('TEST_RUNS = ' + ' '.join(testruns) +'\n')
 except:
   sys.exit('ERROR: cannot create configuration file in ' + confdir)
@@ -288,7 +327,10 @@ try:
 except:
   sys.exit('ERROR: cannot create CMake configuration file in ' + confdir)
 try:
-  modules = open(os.sep.join([modulesdir,slepcversion.LVERSION+'-'+petscconf.ARCH]),'w')
+  if archdir != prefixdir:
+    modules = open(os.sep.join([modulesdir,slepcversion.LVERSION]),'w')
+  else:
+    modules = open(os.sep.join([modulesdir,slepcversion.LVERSION+'-'+petscconf.ARCH]),'w')
 except:
   sys.exit('ERROR: cannot create modules file in ' + modulesdir)
 try:
@@ -325,7 +367,8 @@ log.write('make: ' + petscconf.MAKE)
 log.write('PETSc source directory: ' + petscdir)
 log.write('PETSc install directory: ' + petscconf.DESTDIR)
 log.write('PETSc version: ' + petscversion.LVERSION)
-log.write('PETSc architecture: ' + petscconf.ARCH)
+if not emptyarch:
+  log.write('PETSc architecture: ' + petscconf.ARCH)
 log.write('SLEPc source directory: ' + slepcdir)
 log.write('SLEPc install directory: ' + prefixdir)
 log.write('SLEPc version: ' + slepcversion.LVERSION)
@@ -402,12 +445,12 @@ cmakeok = False
 if sys.version_info >= (2,5) and not petscconf.ISINSTALL and petscconf.BUILD_USING_CMAKE:
   import cmakegen
   try:
-    cmakegen.main(slepcdir,petscdir,petscarch=petscconf.ARCH)
+    cmakegen.main(slepcdir,petscdir,petscdestdir=petscconf.DESTDIR)
   except (OSError), e:
     log.Exit('ERROR: Generating CMakeLists.txt failed:\n' + str(e))
   import cmakeboot
   try:
-    cmakeok = cmakeboot.main(slepcdir,petscdir,petscarch=petscconf.ARCH,log=log)
+    cmakeok = cmakeboot.main(slepcdir,petscdir,log=log)
   except (OSError), e:
     log.Exit('ERROR: Booting CMake in PETSC_ARCH failed:\n' + str(e))
   except (ImportError, KeyError), e:
@@ -460,11 +503,11 @@ log.Println('='*79)
 log.Println('')
 log.Println('SLEPc directory:')
 log.Println(' '+slepcdir)
+if slepcversion.ISREPO:
+  log.Println('  It is a git repository on branch: '+slepcversion.BRANCH)
 if archdir != prefixdir:
   log.Println('SLEPc prefix directory:')
   log.Println(' '+prefixdir)
-if slepcversion.ISREPO:
-  log.Println('  It is a git repository on branch: '+slepcversion.BRANCH)
 log.Println('PETSc directory:')
 log.Println(' '+petscdir)
 if petscversion.ISREPO:
@@ -481,7 +524,10 @@ if petscversion.ISREPO and slepcversion.ISREPO:
         log.Println('WARNING: your PETSc and SLEPc repos may not be in sync (more than 30 days apart)')
         log.Println('xxx'+'='*73+'xxx')
     except ImportError: pass
-log.Println('Architecture "'+petscconf.ARCH+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
+if emptyarch and archdir != prefixdir:
+  log.Println('Prefix install with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
+else:
+  log.Println('Architecture "'+petscconf.ARCH+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
 if havearpack:
   log.Println('ARPACK library flags:')
   log.Println(' '+str.join(' ',arpacklibs))
@@ -514,6 +560,9 @@ if petscconf.MAKE_IS_GNUMAKE: buildtype = 'gnumake'
 elif cmakeok: buildtype = 'cmake'
 else: buildtype = 'legacy'
 print ' Configure stage complete. Now build the SLEPc library with ('+buildtype+' build):'
-print '   make SLEPC_DIR=$PWD PETSC_DIR='+petscdir+' PETSC_ARCH='+petscconf.ARCH
+if emptyarch and archdir != prefixdir:
+  print '   make SLEPC_DIR=$PWD PETSC_DIR='+petscdir
+else:
+  print '   make SLEPC_DIR=$PWD PETSC_DIR='+petscdir+' PETSC_ARCH='+petscconf.ARCH
 print 'xxx'+'='*73+'xxx'
 print
