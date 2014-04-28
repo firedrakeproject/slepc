@@ -20,7 +20,7 @@ c_test
 RDict.db
 RDict.log
 TAGS*
-conf/petscvariables
+conf/slepcvariables
 configure.log*
 externalpackages/*
 ftn-auto
@@ -71,3 +71,4 @@ GRTAGS
 GSYMS
 GTAGS
 CMakeLists.txt
+docs/manual/slepc.pdf

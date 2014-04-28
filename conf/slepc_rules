@@ -131,7 +131,7 @@ modcopy_slepc:
 slepc_tree: ${ACTION}
 	-@for dir in ${DIRS} ftn-auto ftn-custom f90-custom; do \
             if [ -d $$dir ]; then \
-              if [ "${PETSC_ARCH}" = "arch-installed-petsc" ]; then \
+              if [ "${INSTALLED_PETSC}" != "" ]; then \
                 PETSCCONF="${PETSC_DIR}/include/petscconf.h" ; \
               else \
                 PETSCCONF="${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h" ; \
