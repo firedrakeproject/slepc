@@ -24,7 +24,7 @@
 #include <slepc-private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode dmerg2_(char *jobz,PetscBLASInt rkct,PetscBLASInt n, 
+PetscErrorCode dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n, 
         PetscReal *ev,PetscReal *q,PetscBLASInt ldq,PetscBLASInt *indxq, 
         PetscReal *rho,PetscReal *u,PetscBLASInt sbrkp1,PetscReal *v, 
         PetscBLASInt sbrk,PetscBLASInt cutpnt,PetscReal *work,PetscBLASInt lwork, 

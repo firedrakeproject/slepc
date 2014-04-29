@@ -24,7 +24,7 @@
 #include <slepc-private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode dibtdc_(char *jobz,PetscBLASInt n,PetscBLASInt nblks, 
+PetscErrorCode dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks, 
         PetscBLASInt *ksizes,PetscReal *d,PetscBLASInt l1d,PetscBLASInt l2d, 
         PetscReal *e,PetscBLASInt *rank,PetscBLASInt l1e,PetscBLASInt l2e,
         PetscReal tol,PetscReal *ev,PetscReal *z,PetscBLASInt ldz,PetscReal *work, 

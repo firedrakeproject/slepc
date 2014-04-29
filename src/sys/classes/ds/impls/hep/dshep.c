@@ -114,7 +114,8 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
   const char        *methodname[] = {
                      "Implicit QR method (_steqr)",
                      "Relatively Robust Representations (_stevr)",
-                     "Divide and Conquer method (_stedc)"
+                     "Divide and Conquer method (_stedc)",
+                     "Block Divide and Conquer method (dsbtdc)"
   };
   const int         nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
@@ -470,6 +471,7 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscReal      *d,*e;
 
   PetscFunctionBegin;
+  if (ds->bs>1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This method is not prepared for bs>1");
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
@@ -528,6 +530,7 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
+  if (ds->bs>1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This method is not prepared for bs>1");
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
@@ -612,6 +615,7 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
+  if (ds->bs>1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This method is not prepared for bs>1");
   ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->n-ds->l,&n1);CHKERRQ(ierr);
@@ -657,6 +661,66 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   if (wi) for (i=l;i<ds->n;i++) wi[i] = 0.0;
   PetscFunctionReturn(0);
 #endif
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSSolve_HEP_BDC"
+PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   i,j,k,m,n,info,nblks,bs,ld,lde,lrwork,liwork,*ksizes,*iwork,mingapi;
+  PetscScalar    *Q,*A;
+  PetscReal      *D,*E,tau1=1e-16,tau2=1e-18,*rwork,mingap;
+
+  PetscFunctionBegin;
+  if (ds->l>0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This method is not prepared for l>1");
+  if (ds->compact) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for compact storage");
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->bs,&bs);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  nblks = n/bs;
+  Q  = ds->mat[DS_MAT_Q];
+  A  = ds->mat[DS_MAT_A];
+  D  = ds->rmat[DS_MAT_T];
+  E  = ds->rmat[DS_MAT_T]+ds->bs*ld;
+  lrwork  = 4*n*n+60*n+1;
+  liwork = 2*(5*n+5*nblks-1);
+  ierr = DSAllocateWork_Private(ds,0,lrwork,nblks+liwork);CHKERRQ(ierr);
+  rwork  = ds->rwork;
+  ksizes = ds->iwork;
+  iwork  = ds->iwork+nblks;
+  lde = 2*bs+1;
+
+  /* Copy matrix to block tridiagonal format */
+  j=0;
+  for (i=0;i<nblks;i++) {
+    ksizes[i]=bs;
+    for (k=0;k<bs;k++)
+      for (m=0;m<bs;m++)
+        D[k+m*bs+i*bs*bs] = PetscRealPart(A[j+k+(j+m)*n]);
+    j = j + bs;
+  }
+  j=0;
+  for (i=0;i<nblks-1;i++) {
+    for (k=0;k<bs;k++)
+      for (m=0;m<bs;m++)
+        E[k+m*lde+i*lde*lde] = PetscRealPart(A[j+bs+k+(j+m)*n]);
+    j = j + bs;
+  }
+
+  /* Solve the block tridiagonal eigenproblem */
+  dsbtdc_("D","A",n,nblks,ksizes,D,bs,bs,E,lde,lde,PETSC_MACHINE_EPSILON,tau1,tau2,wr,
+           Q,n,rwork,lrwork,iwork,liwork,&mingap,&mingapi,&info,1,1);
+
+  /* Create diagonal matrix as a result */
+  for (i=0;i<ds->n;i++) {
+    ierr = PetscMemzero(A+i*ld,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  for (i=0;i<ds->n;i++) A[i+i*ld] = wr[i];
+
+  /* Set zero wi */
+  if (wi) for (i=0;i<ds->n;i++) wi[i] = 0.0;
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
@@ -823,6 +887,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_HEP(DS ds)
   ds->ops->solve[0]      = DSSolve_HEP_QR;
   ds->ops->solve[1]      = DSSolve_HEP_MRRR;
   ds->ops->solve[2]      = DSSolve_HEP_DC;
+  ds->ops->solve[3]      = DSSolve_HEP_BDC;
   ds->ops->sort          = DSSort_HEP;
   ds->ops->truncate      = DSTruncate_HEP;
   ds->ops->update        = DSUpdateExtraRow_HEP;
