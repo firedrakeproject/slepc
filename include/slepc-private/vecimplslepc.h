@@ -161,19 +161,16 @@ typedef struct {
 } DvdMult_copy_func;
 
 /* BLAS-type operations */
-PETSC_INTERN PetscErrorCode SlepcDenseMatProdTriang(PetscScalar*,MatType_t,PetscInt,const PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt,PetscBool,const PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt,PetscBool);
+PETSC_EXTERN PetscErrorCode SlepcDenseMatProdTriang(PetscScalar*,MatType_t,PetscInt,const PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt,PetscBool,const PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt,PetscBool);
 PETSC_INTERN PetscErrorCode SlepcDenseNorm(PetscScalar*,PetscInt,PetscInt,PetscInt,PetscScalar*);
-PETSC_INTERN PetscErrorCode SlepcDenseCopy(PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscInt);
-PETSC_INTERN PetscErrorCode SlepcDenseCopyTriang(PetscScalar*,MatType_t,PetscInt,PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt);
-PETSC_INTERN PetscErrorCode SlepcUpdateVectorsZ(Vec*,PetscScalar,PetscScalar,Vec*,PetscInt,const PetscScalar*,PetscInt,PetscInt,PetscInt);
-PETSC_INTERN PetscErrorCode SlepcUpdateVectorsS(Vec*,PetscInt,PetscScalar,PetscScalar,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscInt,PetscInt);
-PETSC_INTERN PetscErrorCode SlepcUpdateVectorsD(Vec*,PetscInt,PetscScalar,const PetscScalar*,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscInt);
-PETSC_INTERN PetscErrorCode VecsMult(PetscScalar*,MatType_t,PetscInt,Vec*,PetscInt,PetscInt,Vec*,PetscInt,PetscInt,PetscScalar*,PetscScalar*);
-PETSC_INTERN PetscErrorCode VecsMultS(PetscScalar*,MatType_t,PetscInt,Vec*,PetscInt,PetscInt,Vec*,PetscInt,PetscInt,DvdReduction*,DvdMult_copy_func*);
+PETSC_EXTERN PetscErrorCode SlepcDenseCopy(PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode SlepcDenseCopyTriang(PetscScalar*,MatType_t,PetscInt,PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode SlepcUpdateVectorsZ(Vec*,PetscScalar,PetscScalar,Vec*,PetscInt,const PetscScalar*,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode SlepcUpdateVectorsD(Vec*,PetscInt,PetscScalar,const PetscScalar*,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscInt);
+PETSC_EXTERN PetscErrorCode VecsMultS(PetscScalar*,MatType_t,PetscInt,Vec*,PetscInt,PetscInt,Vec*,PetscInt,PetscInt,DvdReduction*,DvdMult_copy_func*);
 PETSC_INTERN PetscErrorCode VecsMultIb(PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt,PetscScalar*,Vec);
 PETSC_INTERN PetscErrorCode VecsMultIa(PetscScalar*,MatType_t,PetscInt,Vec*,PetscInt,PetscInt,Vec*,PetscInt,PetscInt);
-PETSC_INTERN PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk*,PetscInt,PetscScalar*,PetscScalar*,PetscInt,DvdReduction*,MPI_Comm);
-PETSC_INTERN PetscErrorCode SlepcAllReduceSum(DvdReduction*,PetscInt,DvdReductionPostF,void*,PetscScalar**);
-PETSC_INTERN PetscErrorCode SlepcAllReduceSumEnd(DvdReduction*);
+PETSC_EXTERN PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk*,PetscInt,PetscScalar*,PetscScalar*,PetscInt,DvdReduction*,MPI_Comm);
+PETSC_EXTERN PetscErrorCode SlepcAllReduceSumEnd(DvdReduction*);
 
 #endif
