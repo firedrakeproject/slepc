@@ -701,7 +701,7 @@ L20:
   /*    approximations).............................................. */
 
   *mingap = ev[1] - ev[0];
-  if (*mingap < 0.) SETERRQ2(PETSC_COMM_SELF,1,"dsbtdc: Eigenvalue approximations are not ordered properly. Approximation %d is larger than approximation %d.",i,i+1);
+  if (*mingap < 0.) SETERRQ2(PETSC_COMM_SELF,1,"dsbtdc: Eigenvalue approximations are not ordered properly. Approximation %d is larger than approximation %d.",1,2);
   *mingapi = 1;
   for (i = 2; i < n; ++i) {
     absdiff = ev[i] - ev[i-1];
