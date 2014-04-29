@@ -250,18 +250,20 @@ PetscErrorCode dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
   /* Calculate the allowable deflation tolerance */
 
   /* imax = BLASamax_(&n, z, &one); */
+  imax = 1;
   dmax = PetscAbsReal(z[0]);
   for (i=1;i<n;i++) {
     if (PetscAbsReal(z[i])>dmax) {
-      imax = i;
+      imax = i+1;
       dmax = PetscAbsReal(z[i]);
     }
   }
   /* jmax = BLASamax_(&n, d, &one); */
+  jmax = 1;
   dmax = PetscAbsReal(d[0]);
   for (i=1;i<n;i++) {
     if (PetscAbsReal(d[i])>dmax) {
-      jmax = i;
+      jmax = i+1;
       dmax = PetscAbsReal(d[i]);
     }
   }

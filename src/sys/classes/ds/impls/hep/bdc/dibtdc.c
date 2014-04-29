@@ -181,7 +181,7 @@ PetscErrorCode dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
   PetscBLASInt   cut, mat1, kchk, kbrk, blks, kmax, icut, size, ksum, lsum;
   PetscBLASInt   lblks, rblks, isize, lwmin, ilsum;
   PetscBLASInt   start, vstrt, istck1, istck2, istck3, merged;
-  PetscBLASInt   curmod, liwmin, matsiz, startp, istrtp, liwork2;
+  PetscBLASInt   liwmin, matsiz, startp, istrtp;
   PetscReal      rho, done=1.0, dmone=-1.0;
   PetscErrorCode ierr;
 
@@ -236,10 +236,6 @@ PetscErrorCode dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
   if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %d in DIBTDC",-(*info));
 
 /* **************************************************************************** */
-
-  /* size of integer workspace needed for DSYEVD */
-
-  liwork2 = n * 5 + 3;
 
   /* ...Preprocessing..................................................... */
   /*    Determine the optimal order for merging the subblocks and how much */
@@ -599,7 +595,6 @@ L200:
   /* Perform all the merging operations. */
 
   vstrt = 0;
-  curmod = 0;
   for (i = 0; i < nblks-1; ++i) {
 
     /* MATSIZ = total size of the current rank RANK modification problem */

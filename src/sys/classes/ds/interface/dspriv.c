@@ -32,8 +32,8 @@ PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (m==DS_MAT_T) sz = 3*ds->bs*ds->ld*sizeof(PetscScalar);
-  else if (m==DS_MAT_D) sz = ds->bs*ds->ld*sizeof(PetscScalar);
+  if (m==DS_MAT_T) sz = 3*ds->ld*sizeof(PetscScalar);
+  else if (m==DS_MAT_D) sz = ds->ld*sizeof(PetscScalar);
   else sz = ds->ld*ds->ld*sizeof(PetscScalar);
   if (ds->mat[m]) {
     ierr = PetscFree(ds->mat[m]);CHKERRQ(ierr);
@@ -53,8 +53,8 @@ PetscErrorCode DSAllocateMatReal_Private(DS ds,DSMatType m)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (m==DS_MAT_T) sz = 3*ds->bs*ds->ld*sizeof(PetscReal);
-  else if (m==DS_MAT_D) sz = ds->bs*ds->ld*sizeof(PetscReal);
+  if (m==DS_MAT_T) sz = 3*ds->ld*sizeof(PetscReal);
+  else if (m==DS_MAT_D) sz = ds->ld*sizeof(PetscReal);
   else sz = ds->ld*ds->ld*sizeof(PetscReal);
   if (!ds->rmat[m]) {
     ierr = PetscLogObjectMemory((PetscObject)ds,sz);CHKERRQ(ierr);

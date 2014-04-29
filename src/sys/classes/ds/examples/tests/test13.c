@@ -46,8 +46,9 @@ int main(int argc,char **argv)
   /* Create DS object */
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
   ierr = DSSetType(ds,DSHEP);CHKERRQ(ierr);
-  ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
+  ierr = DSSetMethod(ds,3);CHKERRQ(ierr);   /* Select block divide-and-conquer */
   ierr = DSSetBlockSize(ds,bs);CHKERRQ(ierr);
+  ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
   ld = n;
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
   ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
@@ -64,7 +65,7 @@ int main(int argc,char **argv)
   /* Fill with a symmetric band Toeplitz matrix */
   ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
   for (i=0;i<n;i++) A[i+i*ld]=2.0;
-  for (j=1;j<bs;j++) {
+  for (j=1;j<=bs;j++) {
     for (i=0;i<n-j;i++) { A[i+(i+j)*ld]=1.0; A[(i+j)+i*ld]=1.0; }
   }
   ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
@@ -76,7 +77,7 @@ int main(int argc,char **argv)
 
   /* Solve */
   ierr = PetscMalloc1(n,&eig);CHKERRQ(ierr);
-  ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestMagnitude,NULL);CHKERRQ(ierr);
+  ierr = DSSetEigenvalueComparison(ds,SlepcCompareSmallestReal,NULL);CHKERRQ(ierr);
   ierr = DSSolve(ds,eig,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,eig,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   if (verbose) {

@@ -670,7 +670,7 @@ PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscErrorCode ierr;
   PetscBLASInt   i,j,k,m,n,info,nblks,bs,ld,lde,lrwork,liwork,*ksizes,*iwork,mingapi;
   PetscScalar    *Q,*A;
-  PetscReal      *D,*E,tau1=1e-16,tau2=1e-18,*rwork,mingap;
+  PetscReal      *D,*E,*d,*e,tol=PETSC_MACHINE_EPSILON/2,tau1=1e-16,tau2=1e-18,*rwork,mingap;
 
   PetscFunctionBegin;
   if (ds->l>0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This method is not prepared for l>1");
@@ -681,15 +681,18 @@ PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
   nblks = n/bs;
   Q  = ds->mat[DS_MAT_Q];
   A  = ds->mat[DS_MAT_A];
-  D  = ds->rmat[DS_MAT_T];
-  E  = ds->rmat[DS_MAT_T]+ds->bs*ld;
-  lrwork  = 4*n*n+60*n+1;
-  liwork = 2*(5*n+5*nblks-1);
-  ierr = DSAllocateWork_Private(ds,0,lrwork,nblks+liwork);CHKERRQ(ierr);
+  d  = ds->rmat[DS_MAT_T];
+  e  = ds->rmat[DS_MAT_T]+ld;
+  lrwork = 4*n*n+60*n+1;
+  liwork = 5*n+5*nblks-1;
+  lde = 2*bs+1;
+  ierr = DSAllocateWork_Private(ds,bs*n+lde*lde*(nblks-1),lrwork,nblks+liwork);CHKERRQ(ierr);
+  D      = ds->work;
+  E      = ds->work+bs*n;
   rwork  = ds->rwork;
   ksizes = ds->iwork;
   iwork  = ds->iwork+nblks;
-  lde = 2*bs+1;
+  ierr = PetscMemzero(iwork,liwork*sizeof(PetscBLASInt));CHKERRQ(ierr);
 
   /* Copy matrix to block tridiagonal format */
   j=0;
@@ -709,14 +712,19 @@ PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
 
   /* Solve the block tridiagonal eigenproblem */
-  dsbtdc_("D","A",n,nblks,ksizes,D,bs,bs,E,lde,lde,PETSC_MACHINE_EPSILON,tau1,tau2,wr,
+  dsbtdc_("D","A",n,nblks,ksizes,D,bs,bs,E,lde,lde,tol,tau1,tau2,d,
            Q,n,rwork,lrwork,iwork,liwork,&mingap,&mingapi,&info,1,1);
+  for (i=0;i<ds->n;i++) wr[i] = d[i];
 
   /* Create diagonal matrix as a result */
-  for (i=0;i<ds->n;i++) {
-    ierr = PetscMemzero(A+i*ld,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  if (ds->compact) {
+    ierr = PetscMemzero(e,(ds->n-1)*sizeof(PetscReal));CHKERRQ(ierr);
+  } else {
+    for (i=0;i<ds->n;i++) {
+      ierr = PetscMemzero(A+i*ld,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    for (i=0;i<ds->n;i++) A[i+i*ld] = wr[i];
   }
-  for (i=0;i<ds->n;i++) A[i+i*ld] = wr[i];
 
   /* Set zero wi */
   if (wi) for (i=0;i<ds->n;i++) wi[i] = 0.0;

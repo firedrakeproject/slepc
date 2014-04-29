@@ -173,7 +173,7 @@ runtest12_1:
 	  ${RM} -f test12_1.tmp
 
 runtest13_1:
-	-@${MPIEXEC} -np 1 ./test13 -ds_method 3 > test13_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./test13 > test13_1.tmp 2>&1; \
 	  if (${DIFF} output/test13_1.out test13_1.tmp) then true; \
 	  else echo "Possible problem with test13_1, diffs above"; fi; \
 	  ${RM} -f test13_1.tmp
