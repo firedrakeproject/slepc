@@ -158,47 +158,6 @@ PetscErrorCode SlepcDenseMatProdTriang(PetscScalar *C,MatType_t sC,PetscInt ldC,
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SlepcDenseNorm"
-/*
-  Normalize the columns of the matrix A, where
-    ldA, the leading dimension of A,
-    rA, cA, rows and columns of A.
-  if eigi is given, the pairs of contiguous columns i i+1 such as eigi[i] != 0
-  are normalized as being one column.
-*/
-PetscErrorCode SlepcDenseNorm(PetscScalar *A,PetscInt ldA,PetscInt _rA,PetscInt cA,PetscScalar *eigi)
-{
-  PetscErrorCode  ierr;
-  PetscInt        i;
-  PetscScalar     norm, norm0;
-  PetscBLASInt    rA = _rA, one=1;
-
-  PetscFunctionBegin;
-  PetscValidScalarPointer(A,1);
-  PetscValidScalarPointer(eigi,5);
-
-  ierr = PetscLogEventBegin(SLEPC_SlepcDenseNorm,0,0,0,0);CHKERRQ(ierr);
-
-  for (i=0;i<cA;i++) {
-    if (eigi && eigi[i] != 0.0) {
-      norm = BLASnrm2_(&rA, &A[i*ldA], &one);
-      norm0 = BLASnrm2_(&rA, &A[(i+1)*ldA], &one);
-      norm = 1.0/PetscSqrtScalar(norm*norm + norm0*norm0);
-      PetscStackCallBLAS("BLASscal",BLASscal_(&rA, &norm, &A[i*ldA], &one));
-      PetscStackCallBLAS("BLASscal",BLASscal_(&rA, &norm, &A[(i+1)*ldA], &one));
-      i++;
-    } else {
-      norm = BLASnrm2_(&rA, &A[i*ldA], &one);
-      norm = 1.0 / norm;
-      PetscStackCallBLAS("BLASscal",BLASscal_(&rA, &norm, &A[i*ldA], &one));
-    }
-  }
-
-  ierr = PetscLogEventEnd(SLEPC_SlepcDenseNorm,0,0,0,0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "SlepcDenseCopy"
 /*
   Y <- X, where

@@ -25,7 +25,7 @@
 #include <slepcvec.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors,SLEPC_VecMAXPBY,SLEPC_SlepcDenseMatProd,SLEPC_SlepcDenseOrth,SLEPC_SlepcDenseMatInvProd,SLEPC_SlepcDenseNorm,SLEPC_SlepcDenseCopy,SLEPC_VecsMult;
+PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors,SLEPC_VecMAXPBY,SLEPC_SlepcDenseMatProd,SLEPC_SlepcDenseOrth,SLEPC_SlepcDenseMatInvProd,SLEPC_SlepcDenseCopy,SLEPC_VecsMult;
 
 /* context for the storage of contiguous Vecs */
 typedef struct {
@@ -162,7 +162,6 @@ typedef struct {
 
 /* BLAS-type operations */
 PETSC_EXTERN PetscErrorCode SlepcDenseMatProdTriang(PetscScalar*,MatType_t,PetscInt,const PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt,PetscBool,const PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt,PetscBool);
-PETSC_INTERN PetscErrorCode SlepcDenseNorm(PetscScalar*,PetscInt,PetscInt,PetscInt,PetscScalar*);
 PETSC_EXTERN PetscErrorCode SlepcDenseCopy(PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode SlepcDenseCopyTriang(PetscScalar*,MatType_t,PetscInt,PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode SlepcUpdateVectorsZ(Vec*,PetscScalar,PetscScalar,Vec*,PetscInt,const PetscScalar*,PetscInt,PetscInt,PetscInt);
