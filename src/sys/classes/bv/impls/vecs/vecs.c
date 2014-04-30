@@ -141,6 +141,25 @@ PetscErrorCode BVDotVec_Vecs(BV X,Vec y,PetscScalar *m)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVScale_Vecs"
+PetscErrorCode BVScale_Vecs(BV bv,PetscInt j,PetscScalar alpha)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  BV_VECS        *ctx = (BV_VECS*)bv->data;
+
+  PetscFunctionBegin;
+  if (j<0) {
+    for (i=0;i<bv->k;i++) {
+      ierr = VecScale(ctx->V[i],alpha);CHKERRQ(ierr);
+    }
+  } else {
+    ierr = VecScale(ctx->V[j],alpha);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Vecs"
 PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
 {
@@ -221,6 +240,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->multinplace    = BVMultInPlace_Vecs;
   bv->ops->dot            = BVDot_Vecs;
   bv->ops->dotvec         = BVDotVec_Vecs;
+  bv->ops->scale          = BVScale_Vecs;
   bv->ops->getcolumn      = BVGetColumn_Vecs;
   bv->ops->view           = BVView_Vecs;
   bv->ops->destroy        = BVDestroy_Vecs;

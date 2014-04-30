@@ -118,6 +118,25 @@ PetscErrorCode BVDotVec_Mat(BV X,Vec y,PetscScalar *m)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVScale_Mat"
+PetscErrorCode BVScale_Mat(BV bv,PetscInt j,PetscScalar alpha)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *ctx = (BV_MAT*)bv->data;
+  PetscScalar    *array;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(ctx->A,&array);CHKERRQ(ierr);
+  if (j<0) {
+    ierr = BVScale_BLAS_Private(bv,bv->k*bv->n,array,alpha);CHKERRQ(ierr);
+  } else {
+    ierr = BVScale_BLAS_Private(bv,bv->n,array+j*bv->n,alpha);CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(ctx->A,&array);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Mat"
 PetscErrorCode BVGetColumn_Mat(BV bv,PetscInt j,Vec *v)
 {
@@ -230,6 +249,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->multinplace    = BVMultInPlace_Mat;
   bv->ops->dot            = BVDot_Mat;
   bv->ops->dotvec         = BVDotVec_Mat;
+  bv->ops->scale          = BVScale_Mat;
   bv->ops->getcolumn      = BVGetColumn_Mat;
   bv->ops->restorecolumn  = BVRestoreColumn_Mat;
   bv->ops->view           = BVView_Mat;

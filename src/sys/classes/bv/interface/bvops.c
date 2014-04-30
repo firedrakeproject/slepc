@@ -306,3 +306,44 @@ PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar *m)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "BVScale"
+/*@
+   BVScale - Scale one column (or all columns) of a BV.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  bv    - basis vectors
+-  j     - column number to be scaled (or negative number to scale all columns)
+-  alpha - scaling factor
+
+   Note:
+   The column index j must be smaller than the number of active columns.
+   If j<0 then all active columns are scaled.
+
+   Level: intermediate
+
+.seealso: BVSetActiveColumns()
+@*/
+PetscErrorCode BVScale(BV bv,PetscInt j,PetscScalar alpha)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(bv,j,2);
+  PetscValidLogicalCollectiveScalar(bv,alpha,3);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+
+  if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, should be less than %D",j,bv->k);
+  if (!bv->n || alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
+
+  ierr = PetscLogEventBegin(BV_Scale,bv,0,0,0);CHKERRQ(ierr);
+  ierr = (*bv->ops->scale)(bv,j,alpha);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Scale,bv,0,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

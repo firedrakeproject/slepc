@@ -203,10 +203,10 @@ BV Object:X 1 MPI processes
   type: contiguous
   Vec Object:  X_0   1 MPI processes
     type: seq
-  -2
-  1
-  4
-  7
+  -4
+  2
+  8
+  14
   0
   0
   0
@@ -215,26 +215,26 @@ BV Object:X 1 MPI processes
   0
   Vec Object:  X_1   1 MPI processes
     type: seq
-  -4
-  2.5
-  7
-  9.5
-  -10
-  -10.5
-  -9
-  -5.5
+  -8
+  5
+  14
+  19
+  -20
+  -21
+  -18
+  -11
   0
   0
   Vec Object:  X_2   1 MPI processes
     type: seq
-  -4
+  -8
   0
-  12
-  22
-  10
-  -10.5
-  -9
-  -5.5
+  24
+  44
+  20
+  -21
+  -18
+  -11
   0
   0
   Vec Object:  X_3   1 MPI processes
@@ -242,10 +242,10 @@ BV Object:X 1 MPI processes
   0
   0
   0
-  1
-  4
-  7
-  10
+  2
+  8
+  14
+  20
   0
   0
   0
@@ -255,9 +255,9 @@ BV Object:X 1 MPI processes
   0
   0
   0
-  2
-  5
-  8
-  11
+  4
+  10
+  16
+  22
   0
   0

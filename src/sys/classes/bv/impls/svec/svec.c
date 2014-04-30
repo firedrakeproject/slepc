@@ -118,6 +118,25 @@ PetscErrorCode BVDotVec_Svec(BV X,Vec y,PetscScalar *m)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVScale_Svec"
+PetscErrorCode BVScale_Svec(BV bv,PetscInt j,PetscScalar alpha)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *ctx = (BV_SVEC*)bv->data;
+  PetscScalar    *array;
+
+  PetscFunctionBegin;
+  ierr = VecGetArray(ctx->v,&array);CHKERRQ(ierr);
+  if (j<0) {
+    ierr = BVScale_BLAS_Private(bv,bv->k*bv->n,array,alpha);CHKERRQ(ierr);
+  } else {
+    ierr = BVScale_BLAS_Private(bv,bv->n,array+j*bv->n,alpha);CHKERRQ(ierr);
+  }
+  ierr = VecRestoreArray(ctx->v,&array);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Svec"
 PetscErrorCode BVGetColumn_Svec(BV bv,PetscInt j,Vec *v)
 {
@@ -230,6 +249,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   bv->ops->multinplace    = BVMultInPlace_Svec;
   bv->ops->dot            = BVDot_Svec;
   bv->ops->dotvec         = BVDotVec_Svec;
+  bv->ops->scale          = BVScale_Svec;
   bv->ops->getcolumn      = BVGetColumn_Svec;
   bv->ops->restorecolumn  = BVRestoreColumn_Svec;
   bv->ops->view           = BVView_Svec;

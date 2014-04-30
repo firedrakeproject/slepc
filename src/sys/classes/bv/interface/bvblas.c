@@ -183,3 +183,21 @@ PetscErrorCode BVDotVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,PetscScalar *
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "BVScale_BLAS_Private"
+PetscErrorCode BVScale_BLAS_Private(BV bv,PetscInt n_,PetscScalar *A,PetscScalar alpha)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   n,one=1;
+
+  PetscFunctionBegin;
+  if (alpha == (PetscScalar)0.0) {
+    ierr = PetscMemzero(A,n_*sizeof(PetscScalar));CHKERRQ(ierr);
+  } else {
+    ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
+    PetscStackCallBLAS("BLASscal",BLASscal_(&n,&alpha,A,&one));
+    ierr = PetscLogFlops(n);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
