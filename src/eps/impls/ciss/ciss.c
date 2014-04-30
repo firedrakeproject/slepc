@@ -182,7 +182,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
     theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
     ctx->pp[i] = PetscCosReal(theta) + PETSC_i*ctx->vscale*PetscSinReal(theta);
     ctx->omega[i] = ctx->center + ctx->radius*ctx->pp[i];
-    ctx->weight[i] = ctx->vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta);
+    ctx->weight[i] = (ctx->vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
   }
   PetscFunctionReturn(0);
 }
@@ -249,7 +249,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,Vec *V,PetscInt L_st
   }
   for (i=0;i<ctx->num_solve_point;i++) {
     p_id = i*ctx->subcomm->n + ctx->subcomm_id;
-    if (!ctx->usest && ((ctx->num_solve_point !=1) || initksp == PETSC_TRUE)) {
+    if (!ctx->usest && initksp == PETSC_TRUE) {
       ierr = MatCopy(A,Fz,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
       if (B) {
 	ierr = MatAXPY(Fz,-ctx->omega[p_id],B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
@@ -796,7 +796,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   Mat            A,B;
-  PetscInt       i,ld,nmat,L_add=0,nv,L_base=ctx->L,inner,outer,nlocal;
+  PetscInt       i,ld,nmat,L_add=0,nv=0,L_base=ctx->L,inner,outer,nlocal;
   PetscScalar    *Mu,*H0,*H1,*rr,*pX,*temp;
   PetscReal      error,max_error;
   PetscBool      *fl1,*fl2;
