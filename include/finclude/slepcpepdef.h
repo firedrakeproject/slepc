@@ -38,9 +38,6 @@
 #define PEPConvergedReason PetscEnum
 
 #define PEPLINEAR    'linear'
-#define PEPPARNOLDI  'parnoldi'
-#define PEPPLANCZOS  'planczos'
 #define PEPTOAR      'toar'
-#define PEPSTOAR     'stoar'
 
 #endif
