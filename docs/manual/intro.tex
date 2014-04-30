@@ -278,11 +278,11 @@ In order to prepare a prefix-based installation of \slepc that uses a prefix-bas
 	$ unset PETSC_ARCH
 	$ cd $SLEPC_DIR
 	$ ./configure --prefix=/opt/slepc-3.4.0-linux-gnu-c-debug
-	$ make PETSC_ARCH=arch-installed-petsc
-	$ make PETSC_ARCH=arch-installed-petsc install
+	$ make
+	$ make install
 	$ export SLEPC_DIR=/opt/slepc-3.4.0-linux-gnu-c-debug
 	\end{Verbatim}
-Note that it is important to unset the value of \ident{PETSC\_ARCH} before \slepc's configure. The special value \texttt{arch-installed-petsc} of the \ident{PETSC\_ARCH} variable is required only during \slepc's build, and should not be used afterwards.
+Note that it is important to unset the value of \ident{PETSC\_ARCH} before \slepc's configure. \slepc will use a temporary arch name during the build. Although it is not a common case, it is also possible to configure \slepc without prefix, in which case the \ident{PETSC\_ARCH} variable is again necessary (must be set to the value reported by \slepc's configure).
 
 %\subsection{Building Python Interfaces}
 %\label{sec:py-inst}
@@ -415,11 +415,11 @@ default: ex1
 include ${SLEPC_DIR}/conf/slepc_common
 
 ex1: ex1.o chkopts
-	-${CLINKER} -o ex1 ex1.o ${SLEPC_LIB}
+	-${CLINKER} -o ex1 ex1.o ${SLEPC_EPS_LIB}
 	${RM} ex1.o
 
 ex1f: ex1f.o chkopts
-	-${FLINKER} -o ex1f ex1f.o ${SLEPC_LIB}
+	-${FLINKER} -o ex1f ex1f.o ${SLEPC_EPS_LIB}
 	${RM} ex1f.o
 	\end{Verbatim}
 

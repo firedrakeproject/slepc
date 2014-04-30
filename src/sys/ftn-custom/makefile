@@ -27,7 +27,7 @@ SOURCEC  = zslepc_start.c zslepc_startf.c
 SOURCEF  =
 SOURCEH  =
 DIRS     =
-LIBBASE  = libslepc
+LIBBASE  = libslepcsys
 MANSEC   = sys
 LOCDIR   = src/sys/ftn-custom/
 include ${SLEPC_DIR}/conf/slepc_common

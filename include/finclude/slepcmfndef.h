@@ -23,6 +23,7 @@
 #if !defined(__SLEPCMFN_H)
 #define __SLEPCMFN_H
 
+#include "finclude/petscmatdef.h"
 #include "finclude/slepcdsdef.h"
 #include "finclude/slepcipdef.h"
 

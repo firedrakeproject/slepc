@@ -27,6 +27,6 @@ SOURCEC  = zsvdf.c
 SOURCEF  =
 SOURCEH  =
 DIRS     =
-LIBBASE  = libslepc
+LIBBASE  = libslepcsvd
 LOCDIR   = src/svd/interface/ftn-custom/
 include ${SLEPC_DIR}/conf/slepc_common

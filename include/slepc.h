@@ -1,7 +1,5 @@
 /*
-   This is the main SLEPc include file (for C and C++).  It is included
-   by all other SLEPc include files, so it almost never has to be
-   specifically included.
+   Include all top-level SLEPc functionality.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -23,11 +21,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-/*
-   Include all top-level SLEPc functionality
-*/
 #include <slepcsvd.h>
 #include <slepcqep.h>
+#include <slepcpep.h>
 #include <slepcnep.h>
 #include <slepcmfn.h>
 

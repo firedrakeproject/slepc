@@ -27,38 +27,39 @@ LOCDIR = .
 DIRS   = src include docs
 
 # Include the rest of makefiles
+include ./${PETSC_ARCH}/conf/slepcvariables
 include ${SLEPC_DIR}/conf/slepc_common
 
 #
 # Basic targets to build SLEPc library
 all: chk_makej
-	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ${PETSC_ARCH}/conf/make.log
+	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ./${PETSC_ARCH}/conf/make.log
 	@if [ "${MAKE_IS_GNUMAKE}" != "" ]; then \
-	   ${OMAKE_PRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-gnumake-local 2>&1 | tee -a ${PETSC_ARCH}/conf/make.log; \
+	   ${OMAKE_PRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-gnumake-local 2>&1 | tee -a ./${PETSC_ARCH}/conf/make.log; \
 	elif [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
 	   if [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
 	     ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} cmakegen; \
 	   fi; \
-	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-cmake-local 2>&1 | tee ${PETSC_ARCH}/conf/make.log \
+	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-cmake-local 2>&1 | tee ./${PETSC_ARCH}/conf/make.log \
 	          | egrep -v '( --check-build-system |cmake -E | -o CMakeFiles/slepc[[:lower:]]*.dir/| -o lib/libslepc|CMakeFiles/slepc[[:lower:]]*\.dir/(build|depend|requires)|-f CMakeFiles/Makefile2|Dependee .* is newer than depender |provides\.build. is up to date)'; \
 	 else \
-	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-legacy-local 2>&1 | tee ${PETSC_ARCH}/conf/make.log | ${GREP} -v "has no symbols"; \
+	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-legacy-local 2>&1 | tee ./${PETSC_ARCH}/conf/make.log | ${GREP} -v "has no symbols"; \
 	 fi
-	@egrep -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/conf/make.log | tee ${PETSC_ARCH}/conf/error.log > /dev/null
-	@if test -s ${PETSC_ARCH}/conf/error.log; then \
-           printf ${PETSC_TEXT_HILIGHT}"*******************************ERROR************************************\n" 2>&1 | tee -a ${PETSC_ARCH}/conf/make.log; \
-           echo "  Error during compile, check ${PETSC_ARCH}/conf/make.log" 2>&1 | tee -a ${PETSC_ARCH}/conf/make.log; \
-           echo "  Send all contents of ${PETSC_ARCH}/conf to slepc-maint@grycap.upv.es" 2>&1 | tee -a ${PETSC_ARCH}/conf/make.log;\
-           printf "************************************************************************"${PETSC_TEXT_NORMAL}"\n" 2>&1 | tee -a ${PETSC_ARCH}/conf/make.log; \
+	@egrep -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/conf/make.log | tee ./${PETSC_ARCH}/conf/error.log > /dev/null
+	@if test -s ./${PETSC_ARCH}/conf/error.log; then \
+           printf ${PETSC_TEXT_HILIGHT}"*******************************ERROR************************************\n" 2>&1 | tee -a ./${PETSC_ARCH}/conf/make.log; \
+           echo "  Error during compile, check ./${PETSC_ARCH}/conf/make.log" 2>&1 | tee -a ./${PETSC_ARCH}/conf/make.log; \
+           echo "  Send all contents of ./${PETSC_ARCH}/conf to slepc-maint@grycap.upv.es" 2>&1 | tee -a ./${PETSC_ARCH}/conf/make.log;\
+           printf "************************************************************************"${PETSC_TEXT_NORMAL}"\n" 2>&1 | tee -a ./${PETSC_ARCH}/conf/make.log; \
 	 elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
            echo "Now to check if the library is working do: make test";\
            echo "=========================================";\
 	 else \
 	   echo "Now to install the library do:";\
-	   echo "make SLEPC_DIR=${PWD} PETSC_DIR=${PETSC_DIR} PETSC_ARCH=arch-installed-petsc install";\
+	   echo "make SLEPC_DIR=${PWD} PETSC_DIR=${PETSC_DIR} install";\
 	   echo "=========================================";\
 	 fi
-	@if test -s ${PETSC_ARCH}/conf/error.log; then exit 1; fi
+	@if test -s ./${PETSC_ARCH}/conf/error.log; then exit 1; fi
 
 cmakegen:
 	-@${PYTHON} config/cmakegen.py
@@ -105,10 +106,10 @@ info: chk_makej
 	-@cat ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcvariables
 	-@grep "\#define " ${SLEPC_DIR}/${PETSC_ARCH}/include/slepcconf.h
 	-@echo "Using PETSc configuration flags:"
-	-@if [ "${PETSC_ARCH}" != "arch-installed-petsc" ]; then \
-	   grep "\#define " ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h; \
-	 else \
+	-@if [ "${INSTALLED_PETSC}" != "" ]; then \
 	   grep "\#define " ${PETSC_DIR}/include/petscconf.h; \
+	 else \
+	   grep "\#define " ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h; \
          fi
 	-@echo "-----------------------------------------"
 	-@echo "Using C/C++ include paths: ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES}"
@@ -211,7 +212,7 @@ deletemods: chk_makej
 allclean-legacy: deletelibs deletemods
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=clean slepc_tree
 allclean-cmake:
-	-@cd ${PETSC_ARCH} && ${OMAKE} clean
+	-@cd ./${PETSC_ARCH} && ${OMAKE} clean
 allclean-gnumake:
 	-@${OMAKE} -f gmakefile clean
 
@@ -252,86 +253,9 @@ install:
 	-@if [ "${PETSC_ARCH}" = "" ]; then \
 	  echo "PETSC_ARCH is undefined";\
 	elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
-	  echo "Install directory is current directory; nothing needs to be done";\
+	  echo "SLEPc is built without prefix option, rerun configure with --prefix";\
         else \
-	  echo Installing SLEPc at ${SLEPC_DESTDIR};\
-          if [ ! -d `dirname ${SLEPC_DESTDIR}` ]; then \
-	    ${MKDIR} `dirname ${SLEPC_DESTDIR}` ; \
-          fi;\
-          if [ ! -d ${SLEPC_DESTDIR} ]; then \
-	    ${MKDIR} ${SLEPC_DESTDIR} ; \
-          fi;\
-          if [ ! -d ${SLEPC_DESTDIR}/include ]; then \
-	    ${MKDIR} ${SLEPC_DESTDIR}/include ; \
-          fi;\
-          cp -f include/*.h ${SLEPC_DESTDIR}/include;\
-          cp -f ${PETSC_ARCH}/include/*.h ${SLEPC_DESTDIR}/include;\
-          if [ -f ${PETSC_ARCH}/include/slepceps.mod ]; then \
-            cp -f ${PETSC_ARCH}/include/*.mod ${SLEPC_DESTDIR}/include;\
-          fi;\
-          if [ ! -d ${SLEPC_DESTDIR}/include/finclude ]; then \
-	    ${MKDIR} ${SLEPC_DESTDIR}/include/finclude ; \
-          fi;\
-          cp -f include/finclude/*.h* ${SLEPC_DESTDIR}/include/finclude;\
-          if [ -d include/finclude/ftn-auto ]; then \
-            if [ ! -d ${SLEPC_DESTDIR}/include/finclude/ftn-auto ]; then \
-	      ${MKDIR} ${SLEPC_DESTDIR}/include/finclude/ftn-auto ; \
-            fi;\
-            cp -f include/finclude/ftn-auto/*.h90 ${SLEPC_DESTDIR}/include/finclude/ftn-auto;\
-          fi;\
-          if [ ! -d ${SLEPC_DESTDIR}/include/finclude/ftn-custom ]; then \
-	    ${MKDIR} ${SLEPC_DESTDIR}/include/finclude/ftn-custom ; \
-          fi;\
-          cp -f include/finclude/ftn-custom/*.h90 ${SLEPC_DESTDIR}/include/finclude/ftn-custom;\
-          if [ ! -d ${SLEPC_DESTDIR}/include/slepc-private ]; then \
-	    ${MKDIR} ${SLEPC_DESTDIR}/include/slepc-private ; \
-          fi;\
-          cp -f include/slepc-private/*.h ${SLEPC_DESTDIR}/include/slepc-private;\
-          if [ ! -d ${SLEPC_DESTDIR}/conf ]; then \
-	    ${MKDIR} ${SLEPC_DESTDIR}/conf ; \
-          fi;\
-          for dir in bin bin/matlab bin/matlab/classes; \
-          do \
-            if [ ! -d ${SLEPC_DESTDIR}/$$dir ]; then ${MKDIR} ${SLEPC_DESTDIR}/$$dir; fi;\
-          done; \
-          for dir in bin/matlab/classes; \
-          do \
-            cp -f $$dir/*.m ${SLEPC_DESTDIR}/$$dir;\
-          done; \
-          cp -f bin/matlab/classes/slepcmatlabheader.h ${SLEPC_DESTDIR}/bin/matlab/classes;\
-          cp -f conf/slepc_* ${SLEPC_DESTDIR}/conf;\
-          cp -f ${PETSC_ARCH}/conf/slepcvariables ${SLEPC_DESTDIR}/conf;\
-          cp -f ${PETSC_ARCH}/conf/slepcrules ${SLEPC_DESTDIR}/conf;\
-          if [ ! -d ${SLEPC_DESTDIR}/lib ]; then \
-            ${MKDIR} ${SLEPC_DESTDIR}/lib ; \
-          fi;\
-          if [ -d ${PETSC_ARCH}/lib ]; then \
-            if [ -f ${PETSC_ARCH}/lib/libslepc.${AR_LIB_SUFFIX} ]; then \
-              cp -f ${PETSC_ARCH}/lib/*.${AR_LIB_SUFFIX} ${SLEPC_DESTDIR}/lib; \
-              ${RANLIB} ${SLEPC_DESTDIR}/lib/*.${AR_LIB_SUFFIX} ; \
-	      ${OMAKE} PETSC_DIR=${PETSC_DIR} PETSC_ARCH="" SLEPC_DIR=${SLEPC_DESTDIR} OTHERSHAREDLIBS="${PETSC_KSP_LIB} ${SLEPC_EXTERNAL_LIB}" shared; \
-            elif [ -f ${PETSC_ARCH}/lib/libslepc.${SL_LINKER_SUFFIX} ]; then \
-              cp -f ${PETSC_ARCH}/lib/*.${SL_LINKER_SUFFIX} ${SLEPC_DESTDIR}/lib; \
-            fi; \
-          fi;\
-          if [ ! -d ${SLEPC_DESTDIR}/lib/modules ]; then \
-            ${MKDIR} ${SLEPC_DESTDIR}/lib/modules ; \
-          fi;\
-          if [ -d ${PETSC_ARCH}/lib/modules ]; then \
-            cp -f ${PETSC_ARCH}/lib/modules/* ${SLEPC_DESTDIR}/lib/modules; \
-          fi;\
-          if [ ! -d ${SLEPC_DESTDIR}/lib/pkgconfig ]; then \
-            ${MKDIR} ${SLEPC_DESTDIR}/lib/pkgconfig ; \
-          fi;\
-          if [ -d ${PETSC_ARCH}/lib/pkgconfig ]; then \
-            cp -f ${PETSC_ARCH}/lib/pkgconfig/SLEPc.pc ${SLEPC_DESTDIR}/lib/pkgconfig; \
-          fi;\
-          echo "====================================";\
-          echo "Install complete.";\
-          echo "It is usable with SLEPC_DIR=${SLEPC_DESTDIR} PETSC_DIR=${PETSC_DIR} [and no more PETSC_ARCH].";\
-          echo "Run the following to verify the install (in current directory):";\
-          echo "make SLEPC_DIR=${SLEPC_DESTDIR} PETSC_DIR=${PETSC_DIR} test";\
-          echo "====================================";\
+	  ${PYTHON} ${SLEPC_DIR}/config/install.py ${SLEPC_DIR} ${PETSC_DIR} ${SLEPC_DESTDIR} ${PETSC_ARCH} ${AR_LIB_SUFFIX} ${RANLIB}; \
         fi;
 
 # ------------------------------------------------------------------

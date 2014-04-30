@@ -20,16 +20,7 @@
 */
 
 #include <slepc-private/slepcimpl.h>           /*I "slepcsys.h" I*/
-#include <slepc-private/epsimpl.h>
-#include <slepc-private/stimpl.h>
-#include <slepc-private/svdimpl.h>
-#include <slepc-private/qepimpl.h>
-#include <slepc-private/nepimpl.h>
-#include <slepc-private/mfnimpl.h>
-#include <slepc-private/ipimpl.h>
-#include <slepc-private/dsimpl.h>
-#include <slepc-private/fnimpl.h>
-#include <slepc-private/vecimplslepc.h>
+#include <slepc-private/vecimplslepc.h>        /*I "slepcvec.h" I*/
 #include <stdlib.h>
 
 #undef __FUNCT__
@@ -145,8 +136,25 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
   preload = PETSC_FALSE;
   ierr = PetscOptionsGetBool(NULL,"-dynamic_library_preload",&preload,NULL);CHKERRQ(ierr);
   if (preload) {
+#if defined(PETSC_USE_SINGLE_LIBRARY)
     ierr = SlepcLoadDynamicLibrary("",&found);CHKERRQ(ierr);
     if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+#else
+    ierr = SlepcLoadDynamicLibrary("sys",&found);CHKERRQ(ierr);
+    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+    ierr = SlepcLoadDynamicLibrary("eps",&found);CHKERRQ(ierr);
+    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+    ierr = SlepcLoadDynamicLibrary("qep",&found);CHKERRQ(ierr);
+    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+    ierr = SlepcLoadDynamicLibrary("pep",&found);CHKERRQ(ierr);
+    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+    ierr = SlepcLoadDynamicLibrary("nep",&found);CHKERRQ(ierr);
+    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+    ierr = SlepcLoadDynamicLibrary("svd",&found);CHKERRQ(ierr);
+    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+    ierr = SlepcLoadDynamicLibrary("mfn",&found);CHKERRQ(ierr);
+    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+#endif
   }
   PetscFunctionReturn(0);
 }
@@ -164,10 +172,9 @@ PetscErrorCode SlepcInitialize_LogEvents(void)
   PetscFunctionBegin;
   ierr = PetscLogEventRegister("UpdateVectors",0,&SLEPC_UpdateVectors);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("VecMAXPBY",0,&SLEPC_VecMAXPBY);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseMatProd",EPS_CLASSID,&SLEPC_SlepcDenseMatProd);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseMatNorm",EPS_CLASSID,&SLEPC_SlepcDenseNorm);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseCopy",EPS_CLASSID,&SLEPC_SlepcDenseCopy);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("VecsMult",EPS_CLASSID,&SLEPC_VecsMult);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DenseMatProd",0,&SLEPC_SlepcDenseMatProd);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("DenseCopy",0,&SLEPC_SlepcDenseCopy);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("VecsMult",0,&SLEPC_VecsMult);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -314,36 +321,4 @@ PetscErrorCode SlepcInitializeNoPointers(int argc,char **args,const char *filena
   PetscBeganMPI = PETSC_FALSE;
   PetscFunctionReturn(ierr);
 }
-
-#if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
-
-#undef __FUNCT__
-#define __FUNCT__ "PetscDLLibraryRegister_slepc"
-/*
-  PetscDLLibraryRegister - This function is called when the dynamic library
-  it is in is opened.
-
-  This one registers all the EPS and ST methods in the libslepc.a
-  library.
-
-  Input Parameter:
-  path - library path
- */
-PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepc(char *path)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = EPSInitializePackage();CHKERRQ(ierr);
-  ierr = SVDInitializePackage();CHKERRQ(ierr);
-  ierr = QEPInitializePackage();CHKERRQ(ierr);
-  ierr = NEPInitializePackage();CHKERRQ(ierr);
-  ierr = MFNInitializePackage();CHKERRQ(ierr);
-  ierr = STInitializePackage();CHKERRQ(ierr);
-  ierr = IPInitializePackage();CHKERRQ(ierr);
-  ierr = DSInitializePackage();CHKERRQ(ierr);
-  ierr = FNInitializePackage();CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-#endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */
 

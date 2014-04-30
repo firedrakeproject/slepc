@@ -35,15 +35,15 @@ TESTEXAMPLES_F90         = ex16f90.PETSc runex16f90_1 ex16f90.rm
 include ${SLEPC_DIR}/conf/slepc_common
 
 ex16: ex16.o chkopts
-	-${CLINKER} -o ex16 ex16.o ${SLEPC_LIB}
+	-${CLINKER} -o ex16 ex16.o ${SLEPC_QEP_LIB}
 	${RM} ex16.o
 
 ex16f90: ex16f90.o chkopts
-	-${FLINKER} -o ex16f90 ex16f90.o ${SLEPC_LIB}
+	-${FLINKER} -o ex16f90 ex16f90.o ${SLEPC_QEP_LIB}
 	${RM} ex16f90.o
 
 ex17: ex17.o chkopts
-	-${CLINKER} -o ex17 ex17.o ${SLEPC_LIB}
+	-${CLINKER} -o ex17 ex17.o ${SLEPC_QEP_LIB}
 	${RM} ex17.o
 
 #------------------------------------------------------------------------------------

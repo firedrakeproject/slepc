@@ -24,7 +24,6 @@
 */
 
 #include "davidson.h"
-#include <slepc-private/vecimplslepc.h>         /*I "slepcvec.h" I*/
 
 PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d);
 PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D);

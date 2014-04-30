@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = nepmon.c nepbasic.c nepdefault.c nepregis.c nepopts.c nepsetup.c nepsolve.c
+SOURCEC  = nepmon.c nepbasic.c nepdefault.c nepregis.c nepopts.c nepsetup.c nepsolve.c dlregisnep.c
 SOURCEF  =
 SOURCEH  =
-LIBBASE  = libslepc
+LIBBASE  = libslepcnep
 DIRS     =
 MANSEC   = NEP
 LOCDIR   = src/nep/interface/

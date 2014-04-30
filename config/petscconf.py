@@ -23,7 +23,7 @@ import os
 import sys
 
 def Load(petscdir):
-  global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,DESTDIR,BFORT,TEST_RUNS,CC,CC_FLAGS,FC,AR,AR_FLAGS,AR_LIB_SUFFIX,RANLIB,IND64,BUILD_USING_CMAKE,MAKE_IS_GNUMAKE,MPIUNI
+  global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,DESTDIR,BFORT,TEST_RUNS,CC,CC_FLAGS,FC,AR,AR_FLAGS,AR_LIB_SUFFIX,RANLIB,IND64,BUILD_USING_CMAKE,MAKE_IS_GNUMAKE,MPIUNI,SINGLELIB,SLFLAG,LANGUAGE,DEBUG
 
   if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']:
     ISINSTALL = 0
@@ -32,11 +32,12 @@ def Load(petscdir):
     PETSCCONF_H = os.sep.join([petscdir,ARCH,'include','petscconf.h'])
   else:
     ISINSTALL = 1
-    ARCH = 'arch-installed-petsc'
     PETSCVARIABLES = os.sep.join([petscdir,'conf','petscvariables'])
     PETSCCONF_H = os.sep.join([petscdir,'include','petscconf.h'])
 
   BUILD_USING_CMAKE = 0
+  SINGLELIB = 0
+  LANGUAGE = 'c'
   try:
     f = open(PETSCVARIABLES)
     for l in f.readlines():
@@ -45,50 +46,72 @@ def Load(petscdir):
       k = r[0].strip()
       v = r[1].strip()
       if k == 'PETSC_SCALAR':
-	SCALAR = v
+        SCALAR = v
       elif k == 'PETSC_PRECISION':
         PRECISION = v
       elif k == 'MAKE':
-	MAKE = v
+        MAKE = v
       elif k == 'DESTDIR':
         DESTDIR = v
       elif k == 'BFORT':
-	BFORT = v
+        BFORT = v
       elif k == 'TEST_RUNS':
-	TEST_RUNS = v
+        TEST_RUNS = v
       elif k == 'CC':
-	CC = v
+        CC = v
       elif k == 'CC_FLAGS':
-	CC_FLAGS = v
+        CC_FLAGS = v
       elif k == 'FC' and not v=='':
-	FC = v
+        FC = v
       elif k == 'AR':
-	AR = v
+        AR = v
       elif k == 'AR_FLAGS':
-	AR_FLAGS = v
+        AR_FLAGS = v
       elif k == 'AR_LIB_SUFFIX':
-	AR_LIB_SUFFIX = v
+        AR_LIB_SUFFIX = v
+      elif k == 'CC_LINKER_SLFLAG':
+        SLFLAG = v
       elif k == 'RANLIB':
-	RANLIB = v
+        RANLIB = v
       elif k == 'PETSC_BUILD_USING_CMAKE':
-	BUILD_USING_CMAKE = v
+        BUILD_USING_CMAKE = v
       elif k == 'MAKE_IS_GNUMAKE':
-	MAKE_IS_GNUMAKE = v
+        MAKE_IS_GNUMAKE = v
+      elif k == 'SHLIBS' and v=='libpetsc':
+        SINGLELIB = 1
+      elif k == 'PETSC_LANGUAGE' and v=='CXXONLY':
+        LANGUAGE = 'c++'
     f.close()
   except:
-    sys.exit('ERROR: cannot process file ' +  PETSCVARIABLES)
+    sys.exit('ERROR: cannot process file ' + PETSCVARIABLES)
 
   IND64 = 0
   MPIUNI = 0
+  DEBUG = 0
   try:
     f = open(PETSCCONF_H)
     for l in f.readlines():
       l = l.split()
       if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_64BIT_INDICES' and l[2]=='1':
-	IND64 = 1
+        IND64 = 1
       elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_MPIUNI' and l[2]=='1':
-	MPIUNI = 1
+        MPIUNI = 1
+      elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_DEBUG' and l[2]=='1':
+        DEBUG = 1
     f.close()
   except:
-    sys.exit('ERROR: cannot process file ' +  PETSCCONF_H)
+    if ISINSTALL:
+      sys.exit('ERROR: cannot process file ' + PETSCCONF_H + ', maybe you forgot to set PETSC_ARCH')
+    else:
+      sys.exit('ERROR: cannot process file ' + PETSCCONF_H)
+
+  # empty PETSC_ARCH, guess an arch name
+  if ISINSTALL:
+    ARCH = 'arch-' + sys.platform.replace('cygwin','mswin')+ '-' + LANGUAGE
+    if DEBUG:
+      ARCH += '-debug'
+    else:
+      ARCH += '-opt'
+    if not 'real' in SCALAR:
+      ARCH += '-' + SCALAR
 

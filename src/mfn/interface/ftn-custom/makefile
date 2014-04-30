@@ -27,6 +27,6 @@ SOURCEC  = zmfnf.c
 SOURCEF  =
 SOURCEH  =
 DIRS     =
-LIBBASE  = libslepc
+LIBBASE  = libslepcmfn
 LOCDIR   = src/mfn/interface/ftn-custom/
 include ${SLEPC_DIR}/conf/slepc_common

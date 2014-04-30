@@ -27,79 +27,6 @@ PetscFunctionList PEPList = 0;
 PetscBool         PEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId      PEP_CLASSID = 0;
 PetscLogEvent     PEP_SetUp = 0,PEP_Solve = 0,PEP_Dense = 0;
-static PetscBool  PEPPackageInitialized = PETSC_FALSE;
-
-const char *PEPBasisTypes[] = {"MONOMIAL","CHEBYSHEV1","CHEBYSHEV2","LEGENDRE","LAGUERRE","HERMITE","PEPBasis","PEP_BASIS_",0};
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPFinalizePackage"
-/*@C
-   PEPFinalizePackage - This function destroys everything in the Slepc interface
-   to the PEP package. It is called from SlepcFinalize().
-
-   Level: developer
-
-.seealso: SlepcFinalize()
-@*/
-PetscErrorCode PEPFinalizePackage(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&PEPList);CHKERRQ(ierr);
-  PEPPackageInitialized = PETSC_FALSE;
-  PEPRegisterAllCalled  = PETSC_FALSE;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPInitializePackage"
-/*@C
-   PEPInitializePackage - This function initializes everything in the PEP package. It is called
-   from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to PEPCreate()
-   when using static libraries.
-
-   Level: developer
-
-.seealso: SlepcInitialize()
-@*/
-PetscErrorCode PEPInitializePackage(void)
-{
-  char           logList[256];
-  char           *className;
-  PetscBool      opt;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (PEPPackageInitialized) PetscFunctionReturn(0);
-  PEPPackageInitialized = PETSC_TRUE;
-  /* Register Classes */
-  ierr = PetscClassIdRegister("Polynomial Eigenvalue Problem solver",&PEP_CLASSID);CHKERRQ(ierr);
-  /* Register Constructors */
-  ierr = PEPRegisterAll();CHKERRQ(ierr);
-  /* Register Events */
-  ierr = PetscLogEventRegister("PEPSetUp",PEP_CLASSID,&PEP_SetUp);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("PEPSolve",PEP_CLASSID,&PEP_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("PEPDense",PEP_CLASSID,&PEP_Dense);CHKERRQ(ierr);
-  /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
-  if (opt) {
-    ierr = PetscStrstr(logList,"pep",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscInfoDeactivateClass(PEP_CLASSID);CHKERRQ(ierr);
-    }
-  }
-  /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
-  if (opt) {
-    ierr = PetscStrstr(logList,"pep",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscLogEventDeactivateClass(PEP_CLASSID);CHKERRQ(ierr);
-    }
-  }
-  ierr = PetscRegisterFinalize(PEPFinalizePackage);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPView"
@@ -136,6 +63,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   const char     *type;
   char           str[50];
   PetscBool      isascii,islinear;
+  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -219,6 +147,16 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
     case PEP_CONV_EIG:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
+    case PEP_CONV_NORM:
+      ierr = PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n");CHKERRQ(ierr);
+      if (pep->nrma) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)pep->nrma[0]);CHKERRQ(ierr);
+        for (i=1;i<pep->nmat;i++) {
+          ierr = PetscViewerASCIIPrintf(viewer,", %g",(double)pep->nrma[i]);CHKERRQ(ierr);
+        }
+        ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+      }
+      break;
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %g\n",(double)pep->sfactor);CHKERRQ(ierr);
     if (pep->nini) {
@@ -365,7 +303,7 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
 .  pep - location to put the PEP context
 
    Note:
-   The default PEP type is PEPLINEAR
+   The default PEP type is PEPTOAR
 
    Level: beginner
 
@@ -454,7 +392,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
 
    Notes:
    See "slepc/include/slepcpep.h" for available methods. The default
-   is PEPLINEAR.
+   is PEPTOAR.
 
    Normally, it is best to use the PEPSetFromOptions() command and
    then set the PEP type from the options database rather than by using
@@ -613,7 +551,7 @@ PetscErrorCode PEPDestroy(PEP *pep)
   if (--((PetscObject)(*pep))->refct > 0) { *pep = 0; PetscFunctionReturn(0); }
   ierr = PEPReset(*pep);CHKERRQ(ierr);
   ierr = MatDestroyMatrices((*pep)->nmat,&(*pep)->A);CHKERRQ(ierr);
-  ierr = PetscFree((*pep)->pbc);CHKERRQ(ierr);
+  ierr = PetscFree3((*pep)->pbc,(*pep)->solvematcoeffs,(*pep)->nrma);CHKERRQ(ierr);
   if ((*pep)->ops->destroy) { ierr = (*(*pep)->ops->destroy)(*pep);CHKERRQ(ierr); }
   ierr = STDestroy(&(*pep)->st);CHKERRQ(ierr);
   ierr = IPDestroy(&(*pep)->ip);CHKERRQ(ierr);

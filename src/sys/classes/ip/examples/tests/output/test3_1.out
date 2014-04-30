@@ -1,0 +1,12 @@
+Indefinite norm of a random vector of length 15.
+IP Object: 1 MPI processes
+  type: indefinite
+  orthogonalization method: classical Gram-Schmidt
+  orthogonalization refinement: if needed (eta: 0.7071)
+  Mat Object:   1 MPI processes
+    type: seqaij
+    rows=15, cols=15
+    total: nonzeros=15, allocated nonzeros=75
+    total number of mallocs used during MatSetValues calls =0
+      not using I-node routines
+Computed norm=-16.7332

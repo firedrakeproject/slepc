@@ -37,15 +37,15 @@ TESTEXAMPLES_F90         =
 include ${SLEPC_DIR}/conf/slepc_common
 
 ex20: ex20.o chkopts
-	-${CLINKER} -o ex20 ex20.o ${SLEPC_LIB}
+	-${CLINKER} -o ex20 ex20.o ${SLEPC_NEP_LIB}
 	${RM} ex20.o
 
 ex21: ex21.o chkopts
-	-${CLINKER} -o ex21 ex21.o ${SLEPC_LIB}
+	-${CLINKER} -o ex21 ex21.o ${SLEPC_NEP_LIB}
 	${RM} ex21.o
 
 ex22: ex22.o chkopts
-	-${CLINKER} -o ex22 ex22.o ${SLEPC_LIB}
+	-${CLINKER} -o ex22 ex22.o ${SLEPC_NEP_LIB}
 	${RM} ex22.o
 
 #------------------------------------------------------------------------------------

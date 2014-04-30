@@ -119,10 +119,19 @@ slepc_html:
 	   cat makefile | ${C2HTML}  | ${MAPNAMES} -map /tmp/$$USER.htmlmap -inhtml > $${loc}/makefile.html
 	-@${RM} /tmp/$$USER.htmlmap tmp
 
+buildmod_slepc:
+	-@${OMAKE}  clean
+	@${OMAKE}  libfastcompile
+	@${OMAKE}  modcopy_slepc
+	@${OMAKE}  clean
+
+modcopy_slepc:
+	@${CP} -f *.mod ${SLEPC_DIR}/${PETSC_ARCH}/include
+
 slepc_tree: ${ACTION}
 	-@for dir in ${DIRS} ftn-auto ftn-custom f90-custom; do \
             if [ -d $$dir ]; then \
-              if [ "${PETSC_ARCH}" = "arch-installed-petsc" ]; then \
+              if [ "${INSTALLED_PETSC}" != "" ]; then \
                 PETSCCONF="${PETSC_DIR}/include/petscconf.h" ; \
               else \
                 PETSCCONF="${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h" ; \

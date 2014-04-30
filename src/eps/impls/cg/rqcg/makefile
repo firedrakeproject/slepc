@@ -26,11 +26,10 @@ FFLAGS   =
 SOURCEC  = rqcg.c
 SOURCEF  =
 SOURCEH  =
-LIBBASE  = libslepc
+LIBBASE  = libslepceps
 DIRS     =
 MANSEC   = EPS
 LOCDIR   = src/eps/impls/cg/rqcg/
 
 include ${SLEPC_DIR}/conf/slepc_common
-
 

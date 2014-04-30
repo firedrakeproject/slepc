@@ -27,6 +27,6 @@ SOURCEC  = zqepf.c
 SOURCEF  =
 SOURCEH  =
 DIRS     =
-LIBBASE  = libslepc
+LIBBASE  = libslepcqep
 LOCDIR   = src/qep/interface/ftn-custom/
 include ${SLEPC_DIR}/conf/slepc_common

@@ -59,10 +59,6 @@ struct _p_ST {
   MatStructure str;              /* whether matrices have the same pattern or not */
   PetscBool    transform;        /* whether transformed matrices are computed */
 
-  /*-------------- User-provided functions and contexts -----------------*/
-  PetscErrorCode (*evalcoeffs)(PetscObject,PetscScalar,PetscScalar*);
-  PetscObject    evalobj;
-
   /*------------------------- Misc data --------------------------*/
   KSP          ksp;
   Vec          w;
@@ -82,6 +78,5 @@ PETSC_INTERN PetscErrorCode STMatSetHermitian(ST,Mat);
 PETSC_INTERN PetscErrorCode STMatGAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscInt,PetscBool);
 PETSC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscInt,PetscScalar*,PetscBool,Mat*,PetscBool);
 PETSC_INTERN PetscErrorCode STCoeffs_Monomial(ST,PetscScalar*);
-PETSC_INTERN PetscErrorCode STEvaluateCoeffs(ST,PetscScalar,PetscScalar*);
 
 #endif

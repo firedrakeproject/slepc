@@ -83,15 +83,15 @@ class PETScMaker(script.Script):
    import re
    m = re.match(r'cmake version (.+)$', output)
    if not m:
-       self.logPrintBox('Could not parse CMake version: %s, falling back to legacy build' % output)
+       self.logPrintBox('Could not parse CMake version: %s, disabling cmake build option' % output)
        return False
    from distutils.version import LooseVersion
    version = LooseVersion(m.groups()[0])
    if version < LooseVersion('2.6.2'):
-       self.logPrintBox('CMake version %s < 2.6.2, falling back to legacy build' % version.vstring)
+       self.logPrintBox('CMake version %s < 2.6.2, disabling cmake build option' % version.vstring)
        return False
    if self.languages.clanguage == 'Cxx' and version < LooseVersion('2.8'):
-       self.logPrintBox('Cannot use --with-clanguage=C++ with CMake version %s < 2.8, falling back to legacy build' % version.vstring)
+       self.logPrintBox('Cannot use --with-clanguage=C++ with CMake version %s < 2.8, disabling cmake build option' % version.vstring)
        return False # no support for: set_source_files_properties(${file} PROPERTIES LANGUAGE CXX)
 
    langlist = [('C','C')]
@@ -162,7 +162,7 @@ class PETScMaker(script.Script):
    log.write('Invoking: %s\n' % cmd)
    output,error,retcode = self.executeShellCommand(cmd, checkCommand = noCheck, log=log, cwd=archdir,timeout=300)
    if retcode:
-     self.logPrintBox('CMake setup incomplete (status %d), falling back to legacy build' % (retcode,))
+     self.logPrintBox('CMake setup incomplete (status %d), disabling cmake build option' % (retcode,))
      self.logPrint('Output: '+output+'\nError: '+error)
      cachetxt = os.path.join(archdir, 'CMakeCache.txt')
      try:
@@ -176,7 +176,7 @@ class PETScMaker(script.Script):
    else:
      return True # Configure successful
 
-def main(slepcdir, petscdir, petscarch, argDB=None, framework=None, log=StdoutLogger(), args=[]):
+def main(slepcdir, petscdir, petscarch=os.environ['PETSC_ARCH'], argDB=None, framework=None, log=StdoutLogger(), args=[]):
   # This can be called as a stand-alone program, or by importing it from
   # python.  The latter functionality is needed because argDB does not
   # get written until the very end of configure, but we want to run this

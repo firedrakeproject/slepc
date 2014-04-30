@@ -114,7 +114,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     /* eigenvalue */
     re = eps->eigr[k];
     im = eps->eigi[k];
-    if (eps->trueres || isshift) {
+    if (eps->trueres || isshift || eps->conv==EPS_CONV_NORM) {
       ierr = STBackTransform(eps->st,1,&re,&im);CHKERRQ(ierr);
     }
     newk = k;

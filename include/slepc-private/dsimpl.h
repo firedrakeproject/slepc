@@ -85,8 +85,8 @@ PETSC_INTERN PetscErrorCode DSPermuteBoth_Private(DS,PetscInt,PetscInt,DSMatType
 PETSC_INTERN PetscErrorCode DSCopyMatrix_Private(DS,DSMatType,DSMatType);
 PETSC_INTERN PetscErrorCode DSSetIdentity(DS,DSMatType);
 PETSC_INTERN PetscErrorCode DSComputeMatrix(DS,PetscScalar,PetscBool,DSMatType);
-PETSC_INTERN PetscErrorCode DSOrthogonalize(DS,DSMatType,PetscInt,PetscInt*);
-PETSC_INTERN PetscErrorCode DSPseudoOrthogonalize(DS,DSMatType,PetscInt,PetscReal*,PetscInt*,PetscReal*);
+PETSC_EXTERN PetscErrorCode DSOrthogonalize(DS,DSMatType,PetscInt,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSPseudoOrthogonalize(DS,DSMatType,PetscInt,PetscReal*,PetscInt*,PetscReal*);
 
 PETSC_INTERN PetscErrorCode DSGHIEPOrthogEigenv(DS,DSMatType,PetscScalar*,PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode DSGHIEPComplexEigs(DS,PetscInt,PetscInt,PetscScalar*,PetscScalar*);
