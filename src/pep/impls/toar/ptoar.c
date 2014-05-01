@@ -720,7 +720,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     ierr = TemporaryRegionTest(reg,nv,pep->eigr,pep->eigi,&count,NULL);CHKERRQ(ierr);
 #endif
     k = PetscMin(k,count);
-printf("region interior values=%d\n",count);
     }
 /* ///////////// */
     if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
