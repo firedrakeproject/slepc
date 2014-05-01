@@ -72,6 +72,6 @@ runtest1_4:
 
 runtest2_1:
 	-@test=test2_1; \
-	${MPIEXEC} -np 1 ./test2 -verbose 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test2 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 

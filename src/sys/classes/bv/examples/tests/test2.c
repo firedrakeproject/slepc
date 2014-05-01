@@ -29,10 +29,13 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   BV             X;
+  Mat            M;
   Vec            v,t;
-  PetscInt       i,j,n=10,k=5;
+  PetscInt       i,j,n=20,k=8;
   PetscViewer    view;
   PetscBool      verbose;
+  PetscReal      norm;
+  PetscScalar    alpha;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -53,10 +56,8 @@ int main(int argc,char **argv)
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
-  if (!verbose) {
-    ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = BVView(X,view);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(view);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
   }
 
   /* Fill X entries */
@@ -77,11 +78,27 @@ int main(int argc,char **argv)
   }
 
   /* Test BVOrthogonalize */
-  ierr = BVOrthogonalize(X,2,NULL,NULL,NULL);CHKERRQ(ierr);
+  for (j=0;j<k;j++) {
+    ierr = BVOrthogonalize(X,j,NULL,&norm,NULL);CHKERRQ(ierr);
+    alpha = 1.0/norm;
+    ierr = BVScale(X,j,alpha);CHKERRQ(ierr);
+  }
   if (verbose) {
     ierr = BVView(X,view);CHKERRQ(ierr);
   }
 
+  /* Check orthogonality */
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M);CHKERRQ(ierr);
+  ierr = BVDot(X,X,M);CHKERRQ(ierr);
+  ierr = MatShift(M,-1.0);CHKERRQ(ierr);
+  ierr = MatNorm(M,NORM_1,&norm);CHKERRQ(ierr);
+  if (norm<100*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n");CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
+  }
+
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = SlepcFinalize();
