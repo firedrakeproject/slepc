@@ -10,10 +10,10 @@
 
    References:
 
-       [1] D. Lu and Y. Su, "Two-level orthogonal Arnoldi process
-           for the solution of quadratic eigenvalue problems".
+       [1] Y. Su, J. Zhang and Z. Bai, "A compact Arnoldi algorithm for
+           polynomial eigenvalue problems", talk presented at RANMEP 2008.
 
-   Last update: Oct 2013
+   Last update: Apr 2014
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -87,7 +87,7 @@ PetscErrorCode TemporaryRegionTest(Reg *reg,PetscInt n,PetscScalar *zr,PetscScal
 #else
     xr = zr[i]; xi = zi[i];
 #endif
-   (*reg->transf)(1,&xr,&xi,reg->transfctx); /* backtransform */
+    (*reg->transf)(1,&xr,&xi,reg->transfctx); /* backtransform */
 #if defined(PETSC_USE_COMPLEX)
     xi = PetscImaginaryPart(xr);
     xr = PetscRealPart(xr);
@@ -612,10 +612,12 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 /* /////////// */
   PetscBool    withreg=PETSC_FALSE;
   PEPBasis     bs;
-  PetscScalar  *ei,*er;
   PEPCmpctx    *ctx;
   Reg          *reg;
   PetscInt     count;
+#if defined(PETSC_USE_COMPLEX)
+  PetscScalar  *er,*ei;
+#endif
 /* /////////// */
 
   PetscFunctionBegin;
@@ -645,10 +647,9 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     ierr = DSGetEigenvalueComparison(pep->ds,&ctx->comparison,&ctx->compctx);CHKERRQ(ierr);
     ierr = DSSetEigenvalueComparison(pep->ds,TemporaryComparisonFunct,ctx);CHKERRQ(ierr);
     ctx->region = TemporaryRegionTest;
-#if !defined(PETSC_USE_COMPLEX)
-    er = pep->eigr; ei = pep->eigi;
-#else
-    ierr = PetscMalloc2(pep->ncv,&er,pep->ncv,&ei);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    ierr = PetscMalloc(pep->ncv,&er);CHKERRQ(ierr);
+    ierr = PetscMalloc(pep->ncv,&ei);CHKERRQ(ierr);
 #endif
   }
 /* /////////// */
@@ -714,10 +715,11 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       er[i] = PetscRealPart(pep->eigr[i]);
       ei[i] = PetscImaginaryPart(pep->eigr[i]);
     }
+    ierr = TemporaryRegionTest(reg,nv,er,ei,&count,NULL);CHKERRQ(ierr);
+#else
+    ierr = TemporaryRegionTest(reg,nv,pep->eigr,pep->eigi,&count,NULL);CHKERRQ(ierr);
 #endif
-      ierr = TemporaryRegionTest(reg,nv,er,ei,&count,NULL);CHKERRQ(ierr);
     k = PetscMin(k,count);
-printf("region interior values=%d\n",count);
     }
 /* ///////////// */
     if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
@@ -809,7 +811,8 @@ printf("region interior values=%d\n",count);
     ierr = PetscFree(ctx);CHKERRQ(ierr);
     ierr = PetscFree(reg);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscFree2(er,ei);CHKERRQ(ierr);
+    ierr = PetscFree(er);CHKERRQ(ierr);
+    ierr = PetscFree(ei);CHKERRQ(ierr);
 #endif
   }
   /* ////////// */
