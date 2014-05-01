@@ -347,3 +347,51 @@ PetscErrorCode BVScale(BV bv,PetscInt j,PetscScalar alpha)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "BVNorm"
+/*@
+   BVNorm - Computes the vector norm of a selected column, or the matrix norm
+   of all columns.
+
+   Collective on BV
+
+   Input Parameters:
++  bv   - basis vectors
+-  j    - column number to be used (or negative number to select all columns)
+-  type - the norm type
+
+   Output Parameter:
+.  val  - the norm
+
+   Notes:
+   The column index j must be smaller than the number of active columns.
+
+   If j<0 then all active columns are considered as a matrix. In this case, the
+   allowed norms are NORM_1, NORM_FROBENIUS, and NORM_INFINITY. Otherwise, the
+   norm of V[j] is computed (NORM_1, NORM_2, or NORM_INFINITY),
+
+   Level: intermediate
+
+.seealso: BVSetActiveColumns()
+@*/
+PetscErrorCode BVNorm(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(bv,j,2);
+  PetscValidLogicalCollectiveEnum(bv,type,3);
+  PetscValidPointer(val,4);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+
+  if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, should be less than %D",j,bv->k);
+  if (type==NORM_1_AND_2 || (type==NORM_2 && j<0)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+
+  ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  ierr = (*bv->ops->norm)(bv,j,type,val);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

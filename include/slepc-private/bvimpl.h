@@ -25,7 +25,7 @@
 #include <slepcbv.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent BV_Create,BV_Mult,BV_Dot,BV_Orthogonalize,BV_Scale;
+PETSC_EXTERN PetscLogEvent BV_Create,BV_Mult,BV_Dot,BV_Orthogonalize,BV_Scale,BV_Norm;
 
 typedef struct _BVOps *BVOps;
 
@@ -36,6 +36,7 @@ struct _BVOps {
   PetscErrorCode (*dot)(BV,BV,Mat);
   PetscErrorCode (*dotvec)(BV,Vec,PetscScalar*);
   PetscErrorCode (*scale)(BV,PetscInt,PetscScalar);
+  PetscErrorCode (*norm)(BV,PetscInt,NormType,PetscReal*);
   PetscErrorCode (*getcolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*restorecolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*setfromoptions)(BV);
@@ -99,5 +100,6 @@ PETSC_INTERN PetscErrorCode BVMultInPlace_Vecs_Private(BV,PetscInt,PetscInt,Pets
 PETSC_INTERN PetscErrorCode BVDot_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode BVDotVec_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode BVScale_BLAS_Private(BV,PetscInt,PetscScalar*,PetscScalar);
+PETSC_INTERN PetscErrorCode BVNorm_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar*,NormType,PetscReal*,PetscBool);
 
 #endif

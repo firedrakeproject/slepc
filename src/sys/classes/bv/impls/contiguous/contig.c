@@ -121,6 +121,22 @@ PetscErrorCode BVScale_Contiguous(BV bv,PetscInt j,PetscScalar alpha)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVNorm_Contiguous"
+PetscErrorCode BVNorm_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
+
+  PetscFunctionBegin;
+  if (j<0) {
+    ierr = BVNorm_BLAS_Private(bv,bv->n,bv->k,ctx->array,type,val,ctx->mpi);CHKERRQ(ierr);
+  } else {
+    ierr = BVNorm_BLAS_Private(bv,bv->n,1,ctx->array+j*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Contiguous"
 PetscErrorCode BVGetColumn_Contiguous(BV bv,PetscInt j,Vec *v)
 {
@@ -192,6 +208,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->dot            = BVDot_Contiguous;
   bv->ops->dotvec         = BVDotVec_Contiguous;
   bv->ops->scale          = BVScale_Contiguous;
+  bv->ops->norm           = BVNorm_Contiguous;
   bv->ops->getcolumn      = BVGetColumn_Contiguous;
   bv->ops->view           = BVView_Vecs;
   bv->ops->destroy        = BVDestroy_Contiguous;

@@ -137,6 +137,25 @@ PetscErrorCode BVScale_Mat(BV bv,PetscInt j,PetscScalar alpha)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVNorm_Mat"
+PetscErrorCode BVNorm_Mat(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *ctx = (BV_MAT*)bv->data;
+  PetscScalar    *array;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(ctx->A,&array);CHKERRQ(ierr);
+  if (j<0) {
+    ierr = BVNorm_BLAS_Private(bv,bv->n,bv->k,array,type,val,ctx->mpi);CHKERRQ(ierr);
+  } else {
+    ierr = BVNorm_BLAS_Private(bv,bv->n,1,array+j*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(ctx->A,&array);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Mat"
 PetscErrorCode BVGetColumn_Mat(BV bv,PetscInt j,Vec *v)
 {
@@ -250,6 +269,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->dot            = BVDot_Mat;
   bv->ops->dotvec         = BVDotVec_Mat;
   bv->ops->scale          = BVScale_Mat;
+  bv->ops->norm           = BVNorm_Mat;
   bv->ops->getcolumn      = BVGetColumn_Mat;
   bv->ops->restorecolumn  = BVRestoreColumn_Mat;
   bv->ops->view           = BVView_Mat;

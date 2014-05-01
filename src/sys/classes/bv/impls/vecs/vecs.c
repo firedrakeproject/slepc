@@ -160,6 +160,35 @@ PetscErrorCode BVScale_Vecs(BV bv,PetscInt j,PetscScalar alpha)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVNorm_Vecs"
+PetscErrorCode BVNorm_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscReal      nrm;
+  BV_VECS        *ctx = (BV_VECS*)bv->data;
+
+  PetscFunctionBegin;
+  if (j<0) {
+    switch (type) {
+    case NORM_FROBENIUS:
+      *val = 0.0;
+      for (i=0;i<bv->k;i++) {
+        ierr = VecNorm(ctx->V[i],NORM_2,&nrm);CHKERRQ(ierr);
+        *val += nrm*nrm;
+      }
+      *val = PetscSqrtReal(*val);
+      break;
+    default:
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
+    }
+  } else {
+    ierr = VecNorm(ctx->V[j],type,val);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Vecs"
 PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
 {
@@ -241,6 +270,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->dot            = BVDot_Vecs;
   bv->ops->dotvec         = BVDotVec_Vecs;
   bv->ops->scale          = BVScale_Vecs;
+  bv->ops->norm           = BVNorm_Vecs;
   bv->ops->getcolumn      = BVGetColumn_Vecs;
   bv->ops->view           = BVView_Vecs;
   bv->ops->destroy        = BVDestroy_Vecs;

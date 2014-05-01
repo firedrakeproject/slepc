@@ -33,6 +33,7 @@ int main(int argc,char **argv)
   BV             X,Y;
   PetscInt       i,j,n=10,k=5,l=3;
   PetscScalar    *q,*z;
+  PetscReal      nrm;
   PetscViewer    view;
   PetscBool      verbose;
 
@@ -157,6 +158,12 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVMultInPlace - - - - -\n");CHKERRQ(ierr);
     ierr = BVView(X,view);CHKERRQ(ierr);
   }
+
+  /* Test BVNorm */
+  ierr = BVNorm(X,0,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"2-Norm or X[0] = %g\n",(double)nrm);CHKERRQ(ierr);
+  ierr = BVNorm(X,-1,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Frobenius Norm or X = %g\n",(double)nrm);CHKERRQ(ierr);
 
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);

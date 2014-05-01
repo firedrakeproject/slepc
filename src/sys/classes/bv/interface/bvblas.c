@@ -201,3 +201,52 @@ PetscErrorCode BVScale_BLAS_Private(BV bv,PetscInt n_,PetscScalar *A,PetscScalar
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "BVNorm_BLAS_Private"
+PetscErrorCode BVNorm_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscScalar *A,NormType type,PetscReal *nrm,PetscBool mpi)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   m,n,i,j;
+  PetscReal      lnrm,*rwork=NULL,*rwork2=NULL;
+
+  PetscFunctionBegin;
+  ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
+  if (type==NORM_FROBENIUS || type==NORM_2) {
+    lnrm = LAPACKlange_("F",&m,&n,A,&m,rwork);
+    if (mpi) {
+      lnrm = lnrm*lnrm;
+      ierr = MPI_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+      *nrm = PetscSqrtReal(*nrm);
+    } else *nrm = lnrm;
+    ierr = PetscLogFlops(2*m*n);CHKERRQ(ierr);
+  } else if (type==NORM_1) {
+    if (mpi) {
+      ierr = BVAllocateWork_Private(bv,2*n_);CHKERRQ(ierr);
+      rwork = (PetscReal*)bv->work;
+      rwork2 = rwork+n_;
+      ierr = PetscMemzero(rwork,n_*sizeof(PetscReal));CHKERRQ(ierr);
+      ierr = PetscMemzero(rwork2,n_*sizeof(PetscReal));CHKERRQ(ierr);
+      for (j=0;j<n_;j++) {
+        for (i=0;i<m_;i++) {
+          rwork[j] += PetscAbsScalar(A[i+j*m_]);
+        }
+      }
+      ierr = MPI_Allreduce(rwork,rwork2,n_,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+      for (j=0;j<n_;j++) if (rwork2[j] > *nrm) *nrm = rwork2[j];
+    } else {
+      *nrm = LAPACKlange_("O",&m,&n,A,&m,rwork);
+    }
+    ierr = PetscLogFlops(m*n);CHKERRQ(ierr);
+  } else if (type==NORM_INFINITY) {
+    ierr = BVAllocateWork_Private(bv,m_);CHKERRQ(ierr);
+    rwork = (PetscReal*)bv->work;
+    lnrm = LAPACKlange_("I",&m,&n,A,&m,rwork);
+    if (mpi) {
+      ierr = MPI_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+    } else *nrm = lnrm;
+    ierr = PetscLogFlops(m*n);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+

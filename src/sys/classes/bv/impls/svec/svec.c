@@ -137,6 +137,25 @@ PetscErrorCode BVScale_Svec(BV bv,PetscInt j,PetscScalar alpha)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVNorm_Svec"
+PetscErrorCode BVNorm_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *ctx = (BV_SVEC*)bv->data;
+  PetscScalar    *array;
+
+  PetscFunctionBegin;
+  ierr = VecGetArray(ctx->v,&array);CHKERRQ(ierr);
+  if (j<0) {
+    ierr = BVNorm_BLAS_Private(bv,bv->n,bv->k,array,type,val,ctx->mpi);CHKERRQ(ierr);
+  } else {
+    ierr = BVNorm_BLAS_Private(bv,bv->n,1,array+j*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
+  }
+  ierr = VecRestoreArray(ctx->v,&array);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Svec"
 PetscErrorCode BVGetColumn_Svec(BV bv,PetscInt j,Vec *v)
 {
@@ -250,6 +269,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   bv->ops->dot            = BVDot_Svec;
   bv->ops->dotvec         = BVDotVec_Svec;
   bv->ops->scale          = BVScale_Svec;
+  bv->ops->norm           = BVNorm_Svec;
   bv->ops->getcolumn      = BVGetColumn_Svec;
   bv->ops->restorecolumn  = BVRestoreColumn_Svec;
   bv->ops->view           = BVView_Svec;
