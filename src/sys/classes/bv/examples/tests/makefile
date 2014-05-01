@@ -30,7 +30,8 @@ MANSEC     = BV
 TESTS      = test1 test2
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 runtest1_3 runtest1_4 test1.rm \
-                       test2.PETSc runtest2_1 test2.rm
+                       test2.PETSc runtest2_1 runtest2_2 runtest2_3 runtest2_4 \
+                                   runtest2_5 runtest2_6 runtest2_7 runtest2_8 test2.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
@@ -72,6 +73,41 @@ runtest1_4:
 
 runtest2_1:
 	-@test=test2_1; \
-	${MPIEXEC} -np 1 ./test2 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test2 -bv_type vecs -bv_orthog_type cgs 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest2_2:
+	-@test=test2_1; \
+	${MPIEXEC} -np 1 ./test2 -bv_type contiguous -bv_orthog_type cgs 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest2_3:
+	-@test=test2_1; \
+	${MPIEXEC} -np 1 ./test2 -bv_type svec -bv_orthog_type cgs 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest2_4:
+	-@test=test2_1; \
+	${MPIEXEC} -np 1 ./test2 -bv_type mat -bv_orthog_type cgs 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest2_5:
+	-@test=test2_1; \
+	${MPIEXEC} -np 1 ./test2 -bv_type vecs -bv_orthog_type mgs 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest2_6:
+	-@test=test2_1; \
+	${MPIEXEC} -np 1 ./test2 -bv_type contiguous -bv_orthog_type mgs 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest2_7:
+	-@test=test2_1; \
+	${MPIEXEC} -np 1 ./test2 -bv_type svec -bv_orthog_type mgs 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest2_8:
+	-@test=test2_1; \
+	${MPIEXEC} -np 1 ./test2 -bv_type mat -bv_orthog_type mgs 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 

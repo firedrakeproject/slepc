@@ -337,7 +337,7 @@ PetscErrorCode BVScale(BV bv,PetscInt j,PetscScalar alpha)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, should be less than %D",j,bv->k);
+  if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of active columns is %D",j,bv->k);
   if (!bv->n || alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Scale,bv,0,0,0);CHKERRQ(ierr);
@@ -386,7 +386,7 @@ PetscErrorCode BVNorm(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, should be less than %D",j,bv->k);
+  if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of active columns is %D",j,bv->k);
   if (type==NORM_1_AND_2 || (type==NORM_2 && j<0)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
   ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
