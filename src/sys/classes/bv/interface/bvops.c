@@ -75,7 +75,7 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   ierr = MatGetSize(Q,&m,&n);CHKERRQ(ierr);
   if (m!=X->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, cannot multiply a BV with %D active columns",m,X->k);
   if (n!=Y->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, result cannot be added to a BV with %D active columns",n,Y->k);
-  if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
+  if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
   if (!X->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Mult,X,Y,0,0);CHKERRQ(ierr);
@@ -131,7 +131,7 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
 
   ierr = VecGetSize(y,&N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
-  if (N!=X->N || n!=X->n) SETERRQ4(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Vec sizes (global %D, local %D) do not match BV sizes (global %D, local %D)",N,n,X->N,X->n);
+  if (N!=X->N || n!=X->n) SETERRQ4(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %D, local %D) do not match BV sizes (global %D, local %D)",N,n,X->N,X->n);
   if (!X->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Mult,X,y,0,0);CHKERRQ(ierr);
@@ -250,7 +250,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
   if (m!=Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should be %D",m,Y->k);
   if (n!=X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should be %D",n,X->k);
-  if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
+  if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
   if (!X->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
@@ -297,7 +297,7 @@ PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar *m)
   PetscCheckSameTypeAndComm(X,1,y,2);
 
   ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
-  if (X->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Mismatching local dimension X %D, y %D",X->n,n);
+  if (X->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, y %D",X->n,n);
   if (!X->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);

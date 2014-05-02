@@ -187,6 +187,82 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVInsertVecs"
+/*@
+   BVInsertVecs - Insert a set of vectors into the specified columns.
+
+   Collective on BV
+
+   Input Parameters:
++  V - basis vectors
+.  s - first column of V to be overwritten
+.  W - set of vectors to be copied
+-  orth - flag indicating if the vectors must be orthogonalized
+
+   Input/Output Parameter:
+.  m - number of input vectors, on output the number of linearly independent
+       vectors
+
+   Notes:
+   Copies the contents of vectors W to V(:,s:s+n). If the orthogonalization
+   flag is set, then the vectors are copied one by one and then orthogonalized
+   against the previous ones. If any of them is linearly dependent then it
+   is discarded and the value of n is decreased.
+
+   Level: intermediate
+
+.seealso: BVOrthogonalize()
+
+@*/
+PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,N,i,ndep;
+  PetscBool      lindep;
+  PetscReal      norm;
+  Vec            v;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(V,s,2);
+  PetscValidPointer(m,3);
+  PetscValidLogicalCollectiveInt(V,*m,3);
+  if (!*m) PetscFunctionReturn(0);
+  if (*m<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",*m);
+  PetscValidPointer(W,4);
+  PetscValidHeaderSpecific(*W,VEC_CLASSID,4);
+  PetscValidLogicalCollectiveBool(V,orth,5);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscCheckSameComm(V,1,*W,4);
+
+  ierr = VecGetSize(*W,&N);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(*W,&n);CHKERRQ(ierr);
+  if (N!=V->N || n!=V->n) SETERRQ4(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %D, local %D) do not match BV sizes (global %D, local %D)",N,n,V->N,V->n);
+  if (s<0 || s>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %D, should be between 0 and %D",s,V->m-1);
+  if (s+(*m)>V->m) SETERRQ1(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Too many vectors provided, there is only room for %D",V->m);
+
+  ndep = 0;
+  for (i=0;i<*m;i++) {
+    ierr = BVGetColumn(V,s+i-ndep,&v);CHKERRQ(ierr);
+    ierr = VecCopy(W[i],v);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,s+i-ndep,&v);CHKERRQ(ierr);
+    if (orth) {
+      ierr = BVOrthogonalize(V,s+i-ndep,NULL,&norm,&lindep);CHKERRQ(ierr);
+      if (norm==0.0 || lindep) {
+        ierr = PetscInfo1(V,"Removing linearly dependent vector %D\n",i);CHKERRQ(ierr);
+        ndep++;
+      } else {
+        ierr = BVScale(V,s+i-ndep,1.0/norm);CHKERRQ(ierr);
+      }
+    }
+  }
+  *m -= ndep;
+  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVSetOptionsPrefix"
 /*@C
    BVSetOptionsPrefix - Sets the prefix used for searching for all
