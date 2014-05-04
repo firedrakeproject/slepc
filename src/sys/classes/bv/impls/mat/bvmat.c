@@ -147,11 +147,45 @@ PetscErrorCode BVNorm_Mat(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionBegin;
   ierr = MatDenseGetArray(ctx->A,&array);CHKERRQ(ierr);
   if (j<0) {
-    ierr = BVNorm_BLAS_Private(bv,bv->n,bv->k,array,type,val,ctx->mpi);CHKERRQ(ierr);
+    ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k,array,type,val,ctx->mpi);CHKERRQ(ierr);
   } else {
-    ierr = BVNorm_BLAS_Private(bv,bv->n,1,array+j*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
+    ierr = BVNorm_LAPACK_Private(bv,bv->n,1,array+j*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(ctx->A,&array);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVOrthogonalizeAll_Mat"
+PetscErrorCode BVOrthogonalizeAll_Mat(BV V,Mat R)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *ctx = (BV_MAT*)V->data;
+  PetscScalar    *pv,*r=NULL;
+
+  PetscFunctionBegin;
+  if (R) { ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr); }
+  ierr = MatDenseGetArray(ctx->A,&pv);CHKERRQ(ierr);
+  ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k,pv,r,ctx->mpi);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(ctx->A,&pv);CHKERRQ(ierr);
+  if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVCopy_Mat"
+PetscErrorCode BVCopy_Mat(BV V,BV W)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *v = (BV_MAT*)V->data,*w = (BV_MAT*)W->data;
+  PetscScalar    *pv,*pw;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(v->A,&pv);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(w->A,&pw);CHKERRQ(ierr);
+  ierr = PetscMemcpy(pw,pv,V->k*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(v->A,&pv);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(w->A,&pw);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -270,6 +304,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->dotvec         = BVDotVec_Mat;
   bv->ops->scale          = BVScale_Mat;
   bv->ops->norm           = BVNorm_Mat;
+  bv->ops->orthogonalize  = BVOrthogonalizeAll_Mat;
+  bv->ops->copy           = BVCopy_Mat;
   bv->ops->getcolumn      = BVGetColumn_Mat;
   bv->ops->restorecolumn  = BVRestoreColumn_Mat;
   bv->ops->view           = BVView_Mat;

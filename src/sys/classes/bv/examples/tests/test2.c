@@ -28,8 +28,8 @@ static char help[] = "Test BV orthogonalization functions.\n\n";
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
-  BV             X;
-  Mat            M;
+  BV             X,Y,Z;
+  Mat            M,R;
   Vec            v,t;
   PetscInt       i,j,n=20,k=8;
   PetscViewer    view;
@@ -66,7 +66,7 @@ int main(int argc,char **argv)
     ierr = VecZeroEntries(v);CHKERRQ(ierr);
     for (i=0;i<=n/2;i++) {
       if (i+j<n) {
-        ierr = VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES);CHKERRQ(ierr);
+        ierr = VecSetValue(v,i+j,(PetscScalar)(3*i+j-2)/(2*(i+j+1)),INSERT_VALUES);CHKERRQ(ierr);
       }
     }
     ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
@@ -76,6 +76,18 @@ int main(int argc,char **argv)
   if (verbose) {
     ierr = BVView(X,view);CHKERRQ(ierr);
   }
+
+  /* Create copies on Y and Z */
+  ierr = BVCreate(PETSC_COMM_WORLD,&Y);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)Y,"Y");CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(Y,t,k);CHKERRQ(ierr);
+  ierr = BVSetFromOptions(Y);CHKERRQ(ierr);
+  ierr = BVCopy(X,Y);CHKERRQ(ierr);
+  ierr = BVCreate(PETSC_COMM_WORLD,&Z);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)Z,"Z");CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(Z,t,k);CHKERRQ(ierr);
+  ierr = BVSetFromOptions(Z);CHKERRQ(ierr);
+  ierr = BVCopy(X,Z);CHKERRQ(ierr);
 
   /* Test BVOrthogonalize */
   for (j=0;j<k;j++) {
@@ -98,8 +110,39 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
   }
 
+  /* Test BVOrthogonalizeAll */
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&R);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)R,"R");CHKERRQ(ierr);
+  ierr = BVOrthogonalizeAll(Y,R);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = BVView(Y,view);CHKERRQ(ierr);
+    ierr = MatView(R,view);CHKERRQ(ierr);
+  }
+
+  /* Check orthogonality */
+  ierr = BVDot(Y,Y,M);CHKERRQ(ierr);
+  ierr = MatShift(M,-1.0);CHKERRQ(ierr);
+  ierr = MatNorm(M,NORM_1,&norm);CHKERRQ(ierr);
+  if (norm<100*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n");CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
+  }
+
+  /* Check residual */
+  ierr = BVMult(Z,-1.0,1.0,Y,R);CHKERRQ(ierr);
+  ierr = BVNorm(Z,-1,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
+  if (norm<100*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||X-QR|| < 100*eps\n");CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||X-QR||: %g\n",(double)norm);CHKERRQ(ierr);
+  }
+
   ierr = MatDestroy(&M);CHKERRQ(ierr);
+  ierr = MatDestroy(&R);CHKERRQ(ierr);
   ierr = BVDestroy(&X);CHKERRQ(ierr);
+  ierr = BVDestroy(&Y);CHKERRQ(ierr);
+  ierr = BVDestroy(&Z);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return 0;

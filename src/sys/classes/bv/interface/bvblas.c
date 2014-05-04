@@ -202,14 +202,15 @@ PetscErrorCode BVScale_BLAS_Private(BV bv,PetscInt n_,PetscScalar *A,PetscScalar
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVNorm_BLAS_Private"
-PetscErrorCode BVNorm_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscScalar *A,NormType type,PetscReal *nrm,PetscBool mpi)
+#define __FUNCT__ "BVNorm_LAPACK_Private"
+PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,PetscScalar *A,NormType type,PetscReal *nrm,PetscBool mpi)
 {
   PetscErrorCode ierr;
   PetscBLASInt   m,n,i,j;
   PetscReal      lnrm,*rwork=NULL,*rwork2=NULL;
 
   PetscFunctionBegin;
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
   if (type==NORM_FROBENIUS || type==NORM_2) {
@@ -247,6 +248,94 @@ PetscErrorCode BVNorm_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscScalar *A,
     } else *nrm = lnrm;
     ierr = PetscLogFlops(m*n);CHKERRQ(ierr);
   }
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVOrthogonalize_LAPACK_Private"
+PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R,PetscBool mpi)
+{
+#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routines are unavailable");
+#else
+  PetscErrorCode ierr;
+  PetscBLASInt   m,n,i,j,k,l,nb,lwork,info;
+  PetscScalar    *tau,*work,*Rl,*A,*C,one=1.0,zero=0.0;
+  PetscMPIInt    rank,size;
+
+  PetscFunctionBegin;
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
+  k = PetscMin(m,n);
+  nb = 16;
+  if (mpi) {
+    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)bv),&rank);CHKERRQ(ierr);
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size);CHKERRQ(ierr);
+    ierr = BVAllocateWork_Private(bv,k+n*nb+n*n+n*n*size+m*n);CHKERRQ(ierr);
+  } else {
+    ierr = BVAllocateWork_Private(bv,k+n*nb);CHKERRQ(ierr);
+   }
+  tau = bv->work;
+  work = bv->work+k;
+  ierr = PetscBLASIntCast(n*nb,&lwork);CHKERRQ(ierr);
+  if (mpi) {
+    Rl = bv->work+k+n*nb;
+    A  = bv->work+k+n*nb+n*n;
+    C  = bv->work+k+n*nb+n*n+n*n*size;
+  }
+
+  /* Compute QR */
+  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&m,&n,Q,&m,tau,work,&lwork,&info));
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
+
+  /* Extract R */
+  if (R || mpi) {
+    ierr = PetscMemzero(mpi? Rl: R,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (j=0;j<n;j++) {
+      for (i=0;i<=j;i++) {
+        if (mpi) Rl[i+j*n] = Q[i+j*m];
+        else R[i+j*n] = Q[i+j*m];
+      }
+    }
+  }
+
+  /* Compute orthogonal matrix in Q */
+  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&m,&n,&k,Q,&m,tau,work,&lwork,&info));
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
+
+  if (mpi) {
+
+    /* Stack triangular matrices */
+    ierr = PetscBLASIntCast(n*size,&l);CHKERRQ(ierr);
+    for (j=0;j<n;j++) {
+      ierr = MPI_Allgather(Rl+j*n,n,MPIU_SCALAR,A+j*l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+    }
+
+    /* Compute QR */
+    PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&l,&n,A,&l,tau,work,&lwork,&info));
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
+
+    /* Extract R */
+    if (R) {
+      ierr = PetscMemzero(R,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+      for (j=0;j<n;j++)
+        for (i=0;i<=j;i++)
+          R[i+j*n] = A[i+j*l];
+    }
+
+    /* Accumulate orthogonal matrix */
+    PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&l,&n,&n,A,&l,tau,work,&lwork,&info));
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&m,&n,&n,&one,Q,&m,A+rank*n,&l,&zero,C,&m));
+    ierr = PetscMemcpy(Q,C,m*n*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+
+  ierr = PetscLogFlops(3*m*n*n);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
 }
 

@@ -147,11 +147,45 @@ PetscErrorCode BVNorm_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionBegin;
   ierr = VecGetArray(ctx->v,&array);CHKERRQ(ierr);
   if (j<0) {
-    ierr = BVNorm_BLAS_Private(bv,bv->n,bv->k,array,type,val,ctx->mpi);CHKERRQ(ierr);
+    ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k,array,type,val,ctx->mpi);CHKERRQ(ierr);
   } else {
-    ierr = BVNorm_BLAS_Private(bv,bv->n,1,array+j*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
+    ierr = BVNorm_LAPACK_Private(bv,bv->n,1,array+j*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
   }
   ierr = VecRestoreArray(ctx->v,&array);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVOrthogonalizeAll_Svec"
+PetscErrorCode BVOrthogonalizeAll_Svec(BV V,Mat R)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *ctx = (BV_SVEC*)V->data;
+  PetscScalar    *pv,*r=NULL;
+
+  PetscFunctionBegin;
+  if (R) { ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr); }
+  ierr = VecGetArray(ctx->v,&pv);CHKERRQ(ierr);
+  ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k,pv,r,ctx->mpi);CHKERRQ(ierr);
+  ierr = VecRestoreArray(ctx->v,&pv);CHKERRQ(ierr);
+  if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVCopy_Svec"
+PetscErrorCode BVCopy_Svec(BV V,BV W)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *v = (BV_SVEC*)V->data,*w = (BV_SVEC*)W->data;
+  PetscScalar    *pv,*pw;
+
+  PetscFunctionBegin;
+  ierr = VecGetArray(v->v,&pv);CHKERRQ(ierr);
+  ierr = VecGetArray(w->v,&pw);CHKERRQ(ierr);
+  ierr = PetscMemcpy(pw,pv,V->k*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = VecRestoreArray(v->v,&pv);CHKERRQ(ierr);
+  ierr = VecRestoreArray(w->v,&pw);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -201,7 +235,7 @@ PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s=reshape(%s,%d,%d);\n",((PetscObject)bv)->name,((PetscObject)ctx->v)->name,bv->N,bv->m);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=reshape(%s,%d,%d);clear %s\n",((PetscObject)bv)->name,((PetscObject)ctx->v)->name,bv->N,bv->m,((PetscObject)ctx->v)->name);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
@@ -270,6 +304,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   bv->ops->dotvec         = BVDotVec_Svec;
   bv->ops->scale          = BVScale_Svec;
   bv->ops->norm           = BVNorm_Svec;
+  bv->ops->orthogonalize  = BVOrthogonalizeAll_Svec;
+  bv->ops->copy           = BVCopy_Svec;
   bv->ops->getcolumn      = BVGetColumn_Svec;
   bv->ops->restorecolumn  = BVRestoreColumn_Svec;
   bv->ops->view           = BVView_Svec;

@@ -90,6 +90,7 @@ PETSC_EXTERN PetscErrorCode BVGetVec(BV,Vec*);
 PETSC_EXTERN PetscErrorCode BVSetActiveColumns(BV,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVGetActiveColumns(BV,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode BVInsertVecs(BV,PetscInt,PetscInt*,Vec*,PetscBool);
+PETSC_EXTERN PetscErrorCode BVCopy(BV,BV);
 
 PETSC_EXTERN PetscErrorCode BVMult(BV,PetscScalar,PetscScalar,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVMultVec(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
@@ -102,6 +103,7 @@ PETSC_EXTERN PetscErrorCode BVNorm(BV,PetscInt,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVSetOrthogonalization(BV,BVOrthogType,BVOrthogRefineType,PetscReal);
 PETSC_EXTERN PetscErrorCode BVGetOrthogonalization(BV,BVOrthogType*,BVOrthogRefineType*,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVOrthogonalize(BV,PetscInt,PetscScalar*,PetscReal*,PetscBool*);
+PETSC_EXTERN PetscErrorCode BVOrthogonalizeAll(BV,Mat);
 
 PETSC_EXTERN PetscErrorCode BVSetOptionsPrefix(BV,const char*);
 PETSC_EXTERN PetscErrorCode BVAppendOptionsPrefix(BV,const char*);

@@ -189,6 +189,49 @@ PetscErrorCode BVNorm_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVOrthogonalizeAll_Vecs"
+PetscErrorCode BVOrthogonalizeAll_Vecs(BV V,Mat R)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *r=NULL;
+  PetscReal      norm;
+  PetscInt       j,ldr;
+
+  PetscFunctionBegin;
+  ldr = V->k;
+  if (R) {
+    ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr);
+    ierr = PetscMemzero(r,ldr*ldr*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  for (j=0;j<V->k;j++) {
+    if (R) {
+      ierr = BVOrthogonalize(V,j,r+j*ldr,&norm,NULL);CHKERRQ(ierr);
+      r[j+j*ldr] = norm;
+    } else {
+      ierr = BVOrthogonalize(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
+    }
+    ierr = BVScale(V,j,1.0/norm);CHKERRQ(ierr);
+  }
+  if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVCopy_Vecs"
+PetscErrorCode BVCopy_Vecs(BV V,BV W)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *v = (BV_VECS*)V->data,*w = (BV_VECS*)W->data;
+  PetscInt       j;
+
+  PetscFunctionBegin;
+  for (j=0;j<V->k;j++) {
+    ierr = VecCopy(v->V[j],w->V[j]);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Vecs"
 PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
 {
@@ -271,6 +314,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->dotvec         = BVDotVec_Vecs;
   bv->ops->scale          = BVScale_Vecs;
   bv->ops->norm           = BVNorm_Vecs;
+  bv->ops->orthogonalize  = BVOrthogonalizeAll_Vecs;
+  bv->ops->copy           = BVCopy_Vecs;
   bv->ops->getcolumn      = BVGetColumn_Vecs;
   bv->ops->view           = BVView_Vecs;
   bv->ops->destroy        = BVDestroy_Vecs;

@@ -129,10 +129,37 @@ PetscErrorCode BVNorm_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
 
   PetscFunctionBegin;
   if (j<0) {
-    ierr = BVNorm_BLAS_Private(bv,bv->n,bv->k,ctx->array,type,val,ctx->mpi);CHKERRQ(ierr);
+    ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k,ctx->array,type,val,ctx->mpi);CHKERRQ(ierr);
   } else {
-    ierr = BVNorm_BLAS_Private(bv,bv->n,1,ctx->array+j*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
+    ierr = BVNorm_LAPACK_Private(bv,bv->n,1,ctx->array+j*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVOrthogonalizeAll_Contiguous"
+PetscErrorCode BVOrthogonalizeAll_Contiguous(BV V,Mat R)
+{
+  PetscErrorCode ierr;
+  BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)V->data;
+  PetscScalar    *r=NULL;
+
+  PetscFunctionBegin;
+  if (R) { ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr); }
+  ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k,ctx->array,r,ctx->mpi);CHKERRQ(ierr);
+  if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVCopy_Contiguous"
+PetscErrorCode BVCopy_Contiguous(BV V,BV W)
+{
+  PetscErrorCode ierr;
+  BV_CONTIGUOUS  *v = (BV_CONTIGUOUS*)V->data,*w = (BV_CONTIGUOUS*)W->data;
+
+  PetscFunctionBegin;
+  ierr = PetscMemcpy(w->array,v->array,V->k*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -209,6 +236,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->dotvec         = BVDotVec_Contiguous;
   bv->ops->scale          = BVScale_Contiguous;
   bv->ops->norm           = BVNorm_Contiguous;
+  bv->ops->orthogonalize  = BVOrthogonalizeAll_Contiguous;
+  bv->ops->copy           = BVCopy_Contiguous;
   bv->ops->getcolumn      = BVGetColumn_Contiguous;
   bv->ops->view           = BVView_Vecs;
   bv->ops->destroy        = BVDestroy_Contiguous;

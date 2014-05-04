@@ -566,7 +566,7 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
 
    Collective on BV
 
-   Input Parameters:
+   Input Parameter:
 .  bv - the basis vectors context
 
    Output Parameter:
@@ -587,6 +587,47 @@ PetscErrorCode BVGetVec(BV bv,Vec *v)
   BVCheckSizes(bv,1);
   PetscValidPointer(v,2);
   ierr = VecDuplicate(bv->t,v);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVCopy"
+/*@
+   BVCopy - Copies a basis vector object into another one, W <- V.
+
+   Logically Collective on BV
+
+   Input Parameter:
+.  V - basis vectors context
+
+   Output Parameter:
+.  W - the copy
+
+   Note:
+   Both V and W must be distributed in the same manner; local copies are
+   done. Only the active columns of V are copied.
+
+   Level: beginner
+@*/
+PetscErrorCode BVCopy(BV V,BV W)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidHeaderSpecific(W,BV_CLASSID,2);
+  PetscValidType(W,2);
+  BVCheckSizes(W,2);
+  PetscCheckSameTypeAndComm(V,1,W,2);
+  if (V->n!=W->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, W %D",V->n,W->n);
+  if (V->k>W->m) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"W has %D columns, not enough to store %D columns",W->m,V->k);
+  if (!V->n) PetscFunctionReturn(0);
+
+  ierr = PetscLogEventBegin(BV_Copy,V,W,0,0);CHKERRQ(ierr);
+  ierr = (*V->ops->copy)(V,W);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Copy,V,W,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -24,7 +24,7 @@
 #include <slepc-private/bvimpl.h>            /*I "slepcbv.h" I*/
 
 PetscClassId     BV_CLASSID = 0;
-PetscLogEvent    BV_Create = 0,BV_Mult = 0,BV_Dot = 0,BV_Orthogonalize = 0,BV_Scale = 0,BV_Norm = 0;
+PetscLogEvent    BV_Create = 0,BV_Copy = 0,BV_Mult = 0,BV_Dot = 0,BV_Orthogonalize = 0,BV_Scale = 0,BV_Norm = 0;
 static PetscBool BVPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__
@@ -75,6 +75,7 @@ PetscErrorCode BVInitializePackage(void)
   ierr = BVRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("BVCreate",BV_CLASSID,&BV_Create);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("BVCopy",BV_CLASSID,&BV_Copy);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVMult",BV_CLASSID,&BV_Mult);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVDot",BV_CLASSID,&BV_Dot);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVOrthogonalize",BV_CLASSID,&BV_Orthogonalize);CHKERRQ(ierr);
@@ -207,7 +208,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
    Copies the contents of vectors W to V(:,s:s+n). If the orthogonalization
    flag is set, then the vectors are copied one by one and then orthogonalized
    against the previous ones. If any of them is linearly dependent then it
-   is discarded and the value of n is decreased.
+   is discarded and the value of m is decreased.
 
    Level: intermediate
 
