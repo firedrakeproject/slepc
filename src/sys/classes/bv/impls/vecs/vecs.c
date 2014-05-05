@@ -33,7 +33,7 @@ PetscErrorCode BVMult_Vecs(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
   PetscErrorCode ierr;
   BV_VECS        *y = (BV_VECS*)Y->data,*x = (BV_VECS*)X->data;
-  PetscScalar    *q,*s;
+  PetscScalar    *q,*s=NULL;
   PetscInt       i,j,ldq;
 
   PetscFunctionBegin;
@@ -60,7 +60,7 @@ PetscErrorCode BVMultVec_Vecs(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
 {
   PetscErrorCode ierr;
   BV_VECS        *x = (BV_VECS*)X->data;
-  PetscScalar    *s;
+  PetscScalar    *s=NULL;
   PetscInt       i;
 
   PetscFunctionBegin;
@@ -95,7 +95,7 @@ PetscErrorCode BVMultInPlace_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionBegin;
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
   /* V2 := V2*Q2 */
-  ierr = BVMultInPlace_Vecs_Private(V,V->k,e-s,V->n,ctx->V+s,q+s*ldq+s);CHKERRQ(ierr);
+  ierr = BVMultInPlace_Vecs_Private(V,V->n,e-s,V->k,ctx->V+s,q+s*ldq+s);CHKERRQ(ierr);
   /* V2 += V1*Q1 + V3*Q3 */
   for (i=s;i<e;i++) {
     if (s>0) {
