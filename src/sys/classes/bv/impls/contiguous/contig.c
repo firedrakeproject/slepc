@@ -96,11 +96,16 @@ PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *m)
   PetscErrorCode ierr;
   BV_CONTIGUOUS  *x = (BV_CONTIGUOUS*)X->data;
   PetscScalar    *py;
+  Vec            z = y;
 
   PetscFunctionBegin;
-  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+  if (X->matrix) {
+    ierr = BV_MatMult(X,y);CHKERRQ(ierr);
+    z = X->Bx;
+  }
+  ierr = VecGetArray(z,&py);CHKERRQ(ierr);
   ierr = BVDotVec_BLAS_Private(X,X->n,X->k,x->array,py,m,x->mpi);CHKERRQ(ierr);
-  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  ierr = VecRestoreArray(z,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

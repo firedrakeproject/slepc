@@ -308,6 +308,92 @@ PetscErrorCode BVGetActiveColumns(BV bv,PetscInt *l,PetscInt *k)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVSetMatrix"
+/*@
+   BVSetMatrix - Specifies the inner product to be used in orthogonalization.
+
+   Collective on BV
+
+   Input Parameters:
++  bv    - the basis vectors context
+.  B     - a symmetric matrix (may be NULL)
+-  indef - a flag indicating if the matrix is indefinite
+
+   Notes:
+   This is used to specify a non-standard inner product, whose matrix
+   representation is given by B. Then, all inner products required during
+   orthogonalization are computed as (x,y)_B=y^H*B*x rather than the
+   standard form (x,y)=y^H*x.
+
+   Matrix B must be real symmetric (or complex Hermitian). A genuine inner
+   product requires that B is also positive (semi-)definite. However, we
+   also allow for an indefinite B (setting indef=PETSC_TRUE), in which
+   case the orthogonalization uses an indefinite inner product.
+
+   This affects operations BVDot(), BVDotVec(), BVNorm(), and BVOrthogonalize().
+
+   Setting B=NULL has the same effect as if the identity matrix was passed.
+
+   Level: advanced
+
+.seealso: BVGetMatrix(), BVDot(), BVDotVec(), BVNorm(), BVOrthogonalize()
+@*/
+PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
+{
+  PetscErrorCode ierr;
+  PetscInt       m,n;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,2);
+  PetscValidLogicalCollectiveBool(bv,indef,3);
+
+  if (B) {
+    ierr = MatGetLocalSize(B,&m,&n);CHKERRQ(ierr);
+    if (m!=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Matrix must be square");
+    if (bv->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension BV %D, Mat %D",bv->n,n);
+  }
+  ierr = MatDestroy(&bv->matrix);CHKERRQ(ierr);
+  if (B) PetscObjectReference((PetscObject)B);
+  bv->matrix = B;
+  bv->indef  = indef;
+  if (!bv->Bx) {
+    ierr = MatGetVecs(B,&bv->Bx,NULL);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Bx);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetMatrix"
+/*@C
+   BVGetMatrix - Retrieves the matrix representation of the inner product.
+
+   Not collective, though a parallel Mat may be returned
+
+   Input Parameter:
+.  bv    - the basis vectors context
+
+   Output Parameter:
++  B     - the matrix of the inner product (may be NULL)
+-  indef - the flag indicating if the matrix is indefinite
+
+   Level: advanced
+
+.seealso: BVSetMatrix()
+@*/
+PetscErrorCode BVGetMatrix(BV bv,Mat *B,PetscBool *indef)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  if (B)     *B     = bv->matrix;
+  if (indef) *indef = bv->indef;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVSetFromOptions"
 /*@
    BVSetFromOptions - Sets BV options from the options database.

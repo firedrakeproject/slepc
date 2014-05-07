@@ -57,6 +57,13 @@ struct _p_BV {
   BVOrthogType       orthog_type;  /* which orthogonalization to use */
   BVOrthogRefineType orthog_ref;   /* refinement method */
   PetscReal          orthog_eta;   /* refinement threshold */
+  Mat                matrix;       /* inner product matrix */
+  PetscBool          indef;        /* matrix is indefinite */
+
+  /*------------------------- Cache Bx product -------------------*/
+  PetscInt           xid;
+  PetscInt           xstate;
+  Vec                Bx;
 
   /*------------------------- Misc data --------------------------*/
   Vec                cv[2];        /* Column vectors obtained with BVGetColumn() */
@@ -68,6 +75,21 @@ struct _p_BV {
   PetscInt           lwork;
   void               *data;
 };
+
+#undef __FUNCT__
+#define __FUNCT__ "BV_MatMult"
+PETSC_STATIC_INLINE PetscErrorCode BV_MatMult(BV bv,Vec x)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (((PetscObject)x)->id != bv->xid || ((PetscObject)x)->state != bv->xstate) {
+    ierr = MatMult(bv->matrix,x,bv->Bx);CHKERRQ(ierr);
+    bv->xid = ((PetscObject)x)->id;
+    bv->xstate = ((PetscObject)x)->state;
+  }
+  PetscFunctionReturn(0);
+}
 
 /*
   BVAvailableVec: First (0) or second (1) vector available for

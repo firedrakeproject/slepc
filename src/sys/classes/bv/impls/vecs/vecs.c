@@ -134,9 +134,14 @@ PetscErrorCode BVDotVec_Vecs(BV X,Vec y,PetscScalar *m)
 {
   PetscErrorCode ierr;
   BV_VECS        *x = (BV_VECS*)X->data;
+  Vec            z = y;
 
   PetscFunctionBegin;
-  ierr = VecMDot(y,X->k,x->V,m);CHKERRQ(ierr);
+  if (X->matrix) {
+    ierr = BV_MatMult(X,y);CHKERRQ(ierr);
+    z = X->Bx;
+  }
+  ierr = VecMDot(z,X->k,x->V,m);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

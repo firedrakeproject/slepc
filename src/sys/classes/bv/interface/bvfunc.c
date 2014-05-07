@@ -113,7 +113,7 @@ PetscErrorCode BVInitializePackage(void)
 
    Level: beginner
 
-.seealso: BVCreate(), BVSetUp()
+.seealso: BVCreate()
 @*/
 PetscErrorCode BVDestroy(BV *bv)
 {
@@ -125,6 +125,8 @@ PetscErrorCode BVDestroy(BV *bv)
   if (--((PetscObject)(*bv))->refct > 0) { *bv = 0; PetscFunctionReturn(0); }
   if ((*bv)->ops->destroy) { ierr = (*(*bv)->ops->destroy)(*bv);CHKERRQ(ierr); }
   ierr = VecDestroy(&(*bv)->t);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*bv)->matrix);CHKERRQ(ierr);
+  ierr = VecDestroy(&(*bv)->Bx);CHKERRQ(ierr);
   ierr = PetscFree((*bv)->work);CHKERRQ(ierr);
   ierr = PetscFree2((*bv)->h,(*bv)->c);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(bv);CHKERRQ(ierr);
@@ -168,6 +170,12 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->orthog_type  = BV_ORTHOG_CGS;
   bv->orthog_ref   = BV_ORTHOG_REFINE_IFNEEDED;
   bv->orthog_eta   = 0.7071;
+
+  bv->matrix       = NULL;
+  bv->indef        = PETSC_FALSE;
+  bv->xid          = 0;
+  bv->xstate       = 0;
+  bv->Bx           = NULL;
 
   bv->cv[0]        = NULL;
   bv->cv[1]        = NULL;
@@ -419,6 +427,16 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
         case BV_ORTHOG_REFINE_ALWAYS:
           ierr = PetscViewerASCIIPrintf(viewer,"orthogonalization refinement: %s\n",refname[bv->orthog_ref]);CHKERRQ(ierr);
           break;
+      }
+      if (bv->matrix) {
+        if (bv->indef) {
+          ierr = PetscViewerASCIIPrintf(viewer,"indefinite inner product\n");CHKERRQ(ierr);
+        } else {
+          ierr = PetscViewerASCIIPrintf(viewer,"non-standard inner product\n");CHKERRQ(ierr);
+        }
+        ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
+        ierr = MatView(bv->matrix,viewer);CHKERRQ(ierr);
+        ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
       }
     } else {
       ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr);

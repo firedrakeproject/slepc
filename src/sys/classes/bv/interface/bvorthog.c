@@ -238,15 +238,19 @@ static PetscErrorCode BVOrthogonalizeCGS(BV bv,PetscInt j,PetscScalar *H,PetscRe
 
    Notes:
    This function applies an orthogonal projector to project vector V[j] onto
-   the orthogonal complement of the span of the columns of defl and V[0..j-1],
+   the orthogonal complement of the span of the columns of V[0..j-1],
    where V[.] are the vectors of BV. The columns V[0..j-1] are assumed to be
    mutually orthonormal.
+
+   If a non-standard inner product has been specified with BVSetMatrix(),
+   then the vector is B-orthogonalized, using the non-standard inner product
+   defined by matrix B. The output vector satisfies V[j]'*B*V[0..j-1] = 0.
 
    This routine does not normalize the resulting vector.
 
    Level: advanced
 
-.seealso: BVSetOrthogonalization()
+.seealso: BVSetOrthogonalization(), BVSetMatrix()
 @*/
 PetscErrorCode BVOrthogonalize(BV bv,PetscInt j,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
@@ -326,6 +330,7 @@ PetscErrorCode BVOrthogonalizeAll(BV V,Mat R)
     if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument is not square, it has %D rows and %D columns",m,n);
     if (n!=V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat size %D does not match the number of BV active columns %D",n,V->k);
   }
+  if (V->matrix) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Not implemented for non-standard inner product, use BVOrthogonalize() instead");
 
   ierr = PetscLogEventBegin(BV_Orthogonalize,V,R,0,0);CHKERRQ(ierr);
   ierr = (*V->ops->orthogonalize)(V,R);CHKERRQ(ierr);

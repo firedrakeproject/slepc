@@ -219,6 +219,10 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
    The result is a matrix M whose entry m_ij is equal to y_i^H x_j (where y_i^H
    denotes the conjugate transpose of y_i).
 
+   If a non-standard inner product has been specified with BVSetMatrix(),
+   then the result is M = Y^H*B*X. In this case, both X and Y must have
+   the same associated matrix.
+
    On entry, M must be a sequential dense Mat with dimensions m,n where
    m is the number of active columns of Y and n is the number of active columns of X.
 
@@ -226,13 +230,15 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
 
    Level: intermediate
 
-.seealso: BVDotVec(), BVSetActiveColumns()
+.seealso: BVDotVec(), BVSetActiveColumns(), BVSetMatrix()
 @*/
 PetscErrorCode BVDot(BV X,BV Y,Mat M)
 {
   PetscErrorCode ierr;
   PetscBool      match;
-  PetscInt       m,n;
+  PetscInt       j,m,n;
+  PetscScalar    *marray;
+  Vec            z;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(X,BV_CLASSID,1);
@@ -251,10 +257,21 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   if (m!=Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should be %D",m,Y->k);
   if (n!=X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should be %D",n,X->k);
   if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
+  if (X->matrix!=Y->matrix) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"X and Y must have the same inner product matrix");
   if (!X->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
-  ierr = (*X->ops->dot)(X,Y,M);CHKERRQ(ierr);
+  if (X->matrix) { /* non-standard inner product: cast into dotvec ops */
+    ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
+    for (j=0;j<X->k;j++) {
+      ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
+      ierr = (*X->ops->dotvec)(Y,z,marray+j*m);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(X,j,&z);CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(M,&marray);CHKERRQ(ierr);
+  } else {
+    ierr = (*X->ops->dot)(X,Y,M);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -279,9 +296,12 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
    of vectors. The result is m = X^H*y, so m_i is equal to x_j^H y. Note
    that here X is transposed as opposed to BVDot().
 
+   If a non-standard inner product has been specified with BVSetMatrix(),
+   then the result is m = X^H*B*y.
+
    Level: intermediate
 
-.seealso: BVDot(), BVSetActiveColumns()
+.seealso: BVDot(), BVSetActiveColumns(), BVSetMatrix()
 @*/
 PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar *m)
 {
@@ -368,15 +388,21 @@ PetscErrorCode BVScale(BV bv,PetscInt j,PetscScalar alpha)
 
    If j<0 then all active columns are considered as a matrix. In this case, the
    allowed norms are NORM_1, NORM_FROBENIUS, and NORM_INFINITY. Otherwise, the
-   norm of V[j] is computed (NORM_1, NORM_2, or NORM_INFINITY),
+   norm of V[j] is computed (NORM_1, NORM_2, or NORM_INFINITY).
+
+   If a non-standard inner product has been specified with BVSetMatrix(),
+   then j<0 is not allowed and the returned value is sqrt(V[j]'*B*V[j]), 
+   where B is the inner product matrix (argument 'type' is ignored).
 
    Level: intermediate
 
-.seealso: BVSetActiveColumns()
+.seealso: BVSetActiveColumns(), BVSetMatrix()
 @*/
 PetscErrorCode BVNorm(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
+  Vec            z;
+  PetscScalar    p;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -388,9 +414,22 @@ PetscErrorCode BVNorm(BV bv,PetscInt j,NormType type,PetscReal *val)
 
   if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of active columns is %D",j,bv->k);
   if (type==NORM_1_AND_2 || (type==NORM_2 && j<0)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+  if (bv->matrix && j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Matrix norm not available for non-standard inner product");
 
   ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
-  ierr = (*bv->ops->norm)(bv,j,type,val);CHKERRQ(ierr);
+  if (bv->matrix) { /* non-standard inner product */
+    ierr = BVGetColumn(bv,j,&z);CHKERRQ(ierr);
+    ierr = BV_MatMult(bv,z);CHKERRQ(ierr);
+    ierr = VecDot(bv->Bx,z,&p);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(bv,j,&z);CHKERRQ(ierr);
+    if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
+      ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
+    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON)
+      SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
+    *val = PetscSqrtScalar(PetscRealPart(p));
+  } else {
+    ierr = (*bv->ops->norm)(bv,j,type,val);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

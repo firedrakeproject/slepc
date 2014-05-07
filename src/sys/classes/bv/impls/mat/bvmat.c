@@ -107,12 +107,17 @@ PetscErrorCode BVDotVec_Mat(BV X,Vec y,PetscScalar *m)
   PetscErrorCode ierr;
   BV_MAT         *x = (BV_MAT*)X->data;
   PetscScalar    *px,*py;
+  Vec            z = y;
 
   PetscFunctionBegin;
+  if (X->matrix) {
+    ierr = BV_MatMult(X,y);CHKERRQ(ierr);
+    z = X->Bx;
+  }
   ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
-  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+  ierr = VecGetArray(z,&py);CHKERRQ(ierr);
   ierr = BVDotVec_BLAS_Private(X,X->n,X->k,px,py,m,x->mpi);CHKERRQ(ierr);
-  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  ierr = VecRestoreArray(z,&py);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
