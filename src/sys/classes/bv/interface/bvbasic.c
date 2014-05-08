@@ -346,20 +346,20 @@ PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidType(bv,1);
-  BVCheckSizes(bv,1);
-  if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,2);
   PetscValidLogicalCollectiveBool(bv,indef,3);
-
   if (B) {
+    PetscValidHeaderSpecific(B,MAT_CLASSID,2);
+    BVCheckSizes(bv,1);
     ierr = MatGetLocalSize(B,&m,&n);CHKERRQ(ierr);
     if (m!=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Matrix must be square");
     if (bv->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension BV %D, Mat %D",bv->n,n);
   }
+
   ierr = MatDestroy(&bv->matrix);CHKERRQ(ierr);
   if (B) PetscObjectReference((PetscObject)B);
   bv->matrix = B;
   bv->indef  = indef;
-  if (!bv->Bx) {
+  if (!bv->Bx && B) {
     ierr = MatGetVecs(B,&bv->Bx,NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Bx);CHKERRQ(ierr);
   }

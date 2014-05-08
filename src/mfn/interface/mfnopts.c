@@ -115,8 +115,8 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)mfn);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
-  if (!mfn->ip) { ierr = MFNGetIP(mfn,&mfn->ip);CHKERRQ(ierr); }
-  ierr = IPSetFromOptions(mfn->ip);CHKERRQ(ierr);
+  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
+  ierr = BVSetFromOptions(mfn->V);CHKERRQ(ierr);
   if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(mfn->ds);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(mfn->rand);CHKERRQ(ierr);
@@ -481,8 +481,8 @@ PetscErrorCode MFNSetOptionsPrefix(MFN mfn,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (!mfn->ip) { ierr = MFNGetIP(mfn,&mfn->ip);CHKERRQ(ierr); }
-  ierr = IPSetOptionsPrefix(mfn->ip,prefix);CHKERRQ(ierr);
+  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
+  ierr = BVSetOptionsPrefix(mfn->V,prefix);CHKERRQ(ierr);
   if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(mfn->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)mfn,prefix);CHKERRQ(ierr);
@@ -515,8 +515,8 @@ PetscErrorCode MFNAppendOptionsPrefix(MFN mfn,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (!mfn->ip) { ierr = MFNGetIP(mfn,&mfn->ip);CHKERRQ(ierr); }
-  ierr = IPSetOptionsPrefix(mfn->ip,prefix);CHKERRQ(ierr);
+  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
+  ierr = BVSetOptionsPrefix(mfn->V,prefix);CHKERRQ(ierr);
   if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(mfn->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)mfn,prefix);CHKERRQ(ierr);

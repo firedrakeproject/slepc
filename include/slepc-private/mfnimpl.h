@@ -59,18 +59,15 @@ struct _p_MFN {
 
   /*------------------------- Working data --------------------------*/
   Mat             A;              /* the problem matrix */
-  Vec             *V;             /* set of basis vectors */
+  BV              V;              /* set of basis vectors */
   PetscReal       errest;         /* error estimate */
-  IP              ip;             /* innerproduct object */
   DS              ds;             /* direct solver object */
   void            *data;          /* placeholder for misc stuff associated
                                      with a particular solver */
   PetscInt        its;            /* number of iterations so far computed */
   PetscInt        nv;             /* size of current Schur decomposition */
   PetscInt        n,nloc;         /* problem dimensions (global, local) */
-  PetscInt        allocated_ncv;  /* number of basis vectors allocated */
   PetscRandom     rand;           /* random number generator */
-  Vec             t;              /* template vector */
 
   /* ---------------- Default work-area and status vars -------------------- */
   PetscInt       nwork;

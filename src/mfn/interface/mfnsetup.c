@@ -22,7 +22,7 @@
 */
 
 #include <slepc-private/mfnimpl.h>       /*I "slepcmfn.h" I*/
-#include <slepc-private/ipimpl.h>
+#include <slepc-private/bvimpl.h>        /*I "slepcbv.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNSetUp"
@@ -47,6 +47,7 @@
 PetscErrorCode MFNSetUp(MFN mfn)
 {
   PetscErrorCode ierr;
+  Vec            t;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
@@ -60,11 +61,8 @@ PetscErrorCode MFNSetUp(MFN mfn)
   if (!((PetscObject)mfn)->type_name) {
     ierr = MFNSetType(mfn,MFNKRYLOV);CHKERRQ(ierr);
   }
-  if (!mfn->ip) { ierr = MFNGetIP(mfn,&mfn->ip);CHKERRQ(ierr); }
-  if (!((PetscObject)mfn->ip)->type_name) {
-    ierr = IPSetType_Default(mfn->ip);CHKERRQ(ierr);
-  }
-  ierr = IPSetMatrix(mfn->ip,NULL,0.0);CHKERRQ(ierr);
+  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
+  ierr = BVSetMatrix(mfn->V,NULL,0.0);CHKERRQ(ierr);
   if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = DSReset(mfn->ds);CHKERRQ(ierr);
   if (!((PetscObject)mfn->rand)->type_name) {
@@ -75,19 +73,20 @@ PetscErrorCode MFNSetUp(MFN mfn)
   if (!mfn->A) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONGSTATE,"MFNSetOperator must be called first");
   ierr = MatGetSize(mfn->A,&mfn->n,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(mfn->A,&mfn->nloc,NULL);CHKERRQ(ierr);
-  ierr = VecDestroy(&mfn->t);CHKERRQ(ierr);
-  ierr = SlepcMatGetVecsTemplate(mfn->A,&mfn->t,NULL);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->t);CHKERRQ(ierr);
+  if (mfn->ncv > mfn->n) mfn->ncv = mfn->n;
 
   /* Set default function */
   if (!mfn->function) {
     ierr = MFNSetFunction(mfn,SLEPC_FUNCTION_EXP);CHKERRQ(ierr);
   }
 
-  if (mfn->ncv > mfn->n) mfn->ncv = mfn->n;
-
   /* call specific solver setup */
   ierr = (*mfn->ops->setup)(mfn);CHKERRQ(ierr);
+
+  /* allocate basis vectors */
+  ierr = MatGetVecs(mfn->A,&t,NULL);CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(mfn->V,t,mfn->ncv);CHKERRQ(ierr);
+  ierr = VecDestroy(&t);CHKERRQ(ierr);
 
   /* set tolerance if not yet set */
   if (mfn->tol==PETSC_DEFAULT) mfn->tol = SLEPC_DEFAULT_TOL;
