@@ -109,10 +109,10 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
   }
   ierr = PetscObjectTypeCompareAny((PetscObject)svd,&isshell,SVDCROSS,SVDCYCLIC,"");CHKERRQ(ierr);
   if (!isshell) {
-    if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-    ierr = IPView(svd->ip,viewer);CHKERRQ(ierr);
-    if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
+    if (!svd->V) { ierr = SVDGetBV(svd,&svd->V,NULL);CHKERRQ(ierr); }
+    ierr = BVView(svd->V,viewer);CHKERRQ(ierr);
+    if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
     ierr = DSView(svd->ds,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   }
@@ -231,7 +231,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   ierr = SlepcHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_CLASSID,"SVD","Singular Value Decomposition","SVD",comm,SVDDestroy,SVDView);CHKERRQ(ierr);
 
   svd->OP             = NULL;
-  svd->ip             = NULL;
   svd->ds             = NULL;
   svd->A              = NULL;
   svd->AT             = NULL;
@@ -242,8 +241,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->V              = NULL;
   svd->IS             = NULL;
   svd->ISL            = NULL;
-  svd->tl             = NULL;
-  svd->tr             = NULL;
   svd->rand           = NULL;
   svd->which          = SVD_LARGEST;
   svd->n              = 0;
@@ -293,18 +290,15 @@ PetscErrorCode SVDReset(SVD svd)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->ops->reset) { ierr = (svd->ops->reset)(svd);CHKERRQ(ierr); }
-  if (svd->ip) { ierr = IPReset(svd->ip);CHKERRQ(ierr); }
   if (svd->ds) { ierr = DSReset(svd->ds);CHKERRQ(ierr); }
   ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
-  ierr = VecDestroy(&svd->tl);CHKERRQ(ierr);
-  ierr = VecDestroy(&svd->tr);CHKERRQ(ierr);
   if (svd->n) {
     ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
-    ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
-    ierr = VecDestroyVecs(svd->n,&svd->V);CHKERRQ(ierr);
   }
+  ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
+  ierr = BVDestroy(&svd->V);CHKERRQ(ierr);
   svd->transmode   = (SVDTransposeMode)PETSC_DECIDE;
   svd->matvecs     = 0;
   svd->setupcalled = 0;
@@ -335,7 +329,6 @@ PetscErrorCode SVDDestroy(SVD *svd)
   if (--((PetscObject)(*svd))->refct > 0) { *svd = 0; PetscFunctionReturn(0); }
   ierr = SVDReset(*svd);CHKERRQ(ierr);
   if ((*svd)->ops->destroy) { ierr = (*(*svd)->ops->destroy)(*svd);CHKERRQ(ierr); }
-  ierr = IPDestroy(&(*svd)->ip);CHKERRQ(ierr);
   ierr = DSDestroy(&(*svd)->ds);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*svd)->nini,&(*svd)->IS);CHKERRQ(ierr);
@@ -465,44 +458,55 @@ PetscErrorCode SVDRegister(const char *name,PetscErrorCode (*function)(SVD))
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDSetIP"
+#define __FUNCT__ "SVDSetBV"
 /*@
-   SVDSetIP - Associates an inner product object to the
+   SVDSetBV - Associates basis vectors objects to the
    singular value solver.
 
    Collective on SVD
 
    Input Parameters:
 +  svd - singular value solver context obtained from SVDCreate()
--  ip  - the inner product object
+-  V   - the basis vectors object for right singular vectors
+-  U   - the basis vectors object for left singular vectors
 
    Note:
-   Use SVDGetIP() to retrieve the inner product context (for example,
-   to free it at the end of the computations).
+   Use SVDGetBV() to retrieve the basis vectors contexts (for example,
+   to free them at the end of the computations).
 
    Level: advanced
 
-.seealso: SVDGetIP()
+.seealso: SVDGetBV()
 @*/
-PetscErrorCode SVDSetIP(SVD svd,IP ip)
+PetscErrorCode SVDSetBV(SVD svd,BV V,BV U)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidHeaderSpecific(ip,IP_CLASSID,2);
-  PetscCheckSameComm(svd,1,ip,2);
-  ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
-  ierr = IPDestroy(&svd->ip);CHKERRQ(ierr);
-  svd->ip = ip;
-  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->ip);CHKERRQ(ierr);
+  if (V) {
+    PetscValidHeaderSpecific(V,BV_CLASSID,2);
+    PetscCheckSameComm(svd,1,V,2);
+    ierr = PetscObjectReference((PetscObject)V);CHKERRQ(ierr);
+    ierr = BVDestroy(&svd->V);CHKERRQ(ierr);
+    svd->V = V;
+    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->V);CHKERRQ(ierr);
+  }
+  if (U) {
+    PetscValidHeaderSpecific(U,BV_CLASSID,3);
+    PetscCheckSameComm(svd,1,U,3);
+    ierr = PetscObjectReference((PetscObject)U);CHKERRQ(ierr);
+    ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
+    svd->U = U;
+    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->U);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDGetIP"
+#define __FUNCT__ "SVDGetBV"
 /*@C
-   SVDGetIP - Obtain the inner product object associated
+   SVDGetBV - Obtain the basis vectors objects associated
    to the singular value solver object.
 
    Not Collective
@@ -511,24 +515,33 @@ PetscErrorCode SVDSetIP(SVD svd,IP ip)
 .  svd - singular value solver context obtained from SVDCreate()
 
    Output Parameter:
-.  ip - inner product context
++  V - basis vectors context for right singular vectors
+-  U - basis vectors context for left singular vectors
 
    Level: advanced
 
-.seealso: SVDSetIP()
+.seealso: SVDSetBV()
 @*/
-PetscErrorCode SVDGetIP(SVD svd,IP *ip)
+PetscErrorCode SVDGetBV(SVD svd,BV *V,BV *U)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(ip,2);
-  if (!svd->ip) {
-    ierr = IPCreate(PetscObjectComm((PetscObject)svd),&svd->ip);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->ip);CHKERRQ(ierr);
+  if (V) {
+    if (!svd->V) {
+      ierr = BVCreate(PetscObjectComm((PetscObject)svd),&svd->V);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->V);CHKERRQ(ierr);
+    }
+    *V = svd->V;
   }
-  *ip = svd->ip;
+  if (U) {
+    if (!svd->U) {
+      ierr = BVCreate(PetscObjectComm((PetscObject)svd),&svd->U);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->U);CHKERRQ(ierr);
+    }
+    *U = svd->U;
+  }
   PetscFunctionReturn(0);
 }
 

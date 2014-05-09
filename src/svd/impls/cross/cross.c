@@ -159,6 +159,7 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
   PetscInt       i;
   PetscScalar    sigma;
+  Vec            v;
 
   PetscFunctionBegin;
   ierr = EPSSolve(cross->eps);CHKERRQ(ierr);
@@ -166,7 +167,9 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   ierr = EPSGetIterationNumber(cross->eps,&svd->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(cross->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
-    ierr = EPSGetEigenpair(cross->eps,i,&sigma,NULL,svd->V[i],NULL);CHKERRQ(ierr);
+    ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
+    ierr = EPSGetEigenpair(cross->eps,i,&sigma,NULL,v,NULL);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
     if (PetscRealPart(sigma)<0.0) SETERRQ(PetscObjectComm((PetscObject)svd),1,"Negative eigenvalue computed by EPS");
     svd->sigma[i] = PetscSqrtReal(PetscRealPart(sigma));
   }
@@ -263,8 +266,6 @@ static PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
     ierr = EPSAppendOptionsPrefix(cross->eps,"svd_");CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)cross->eps,(PetscObject)svd,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->eps);CHKERRQ(ierr);
-    if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-    ierr = EPSSetIP(cross->eps,svd->ip);CHKERRQ(ierr);
     ierr = EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
     ierr = EPSMonitorSet(cross->eps,SVDMonitor_Cross,svd,NULL);CHKERRQ(ierr);
     ierr = EPSGetST(cross->eps,&st);CHKERRQ(ierr);

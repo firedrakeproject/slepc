@@ -90,7 +90,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   const PetscScalar *isa;
   PetscScalar       *va;
   PetscBool         trackall;
-  Vec               v;
+  Vec               v,tl;
   Mat               Zm,Zn;
 
   PetscFunctionBegin;
@@ -195,9 +195,11 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   ierr = EPSGetTolerances(cyclic->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
 
   if (svd->ncv != svd->n) {
-    ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(svd,svd->ncv,svd->U);CHKERRQ(ierr);
+    ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
+    ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr);
+    ierr = SVDMatGetVecs(svd,NULL,&tl);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
+    ierr = VecDestroy(&tl);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -208,7 +210,7 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
 {
   PetscErrorCode    ierr;
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
-  PetscInt          i,j,M,N,m,n;
+  PetscInt          i,j,k,M,N,m,n;
   PetscScalar       sigma;
   const PetscScalar *px;
   Vec               x,x1,x2;
@@ -231,10 +233,11 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
       ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
       ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
-      ierr = VecCopy(x1,svd->U[j]);CHKERRQ(ierr);
-      ierr = VecScale(svd->U[j],1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
-      ierr = VecCopy(x2,svd->V[j]);CHKERRQ(ierr);
-      ierr = VecScale(svd->V[j],1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
+      k = 1;
+      ierr = BVInsertVecs(svd->U,j,&k,&x1,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = BVScale(svd->U,j,1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
+      ierr = BVInsertVecs(svd->V,j,&k,&x2,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = BVScale(svd->V,j,1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
       ierr = VecResetArray(x1);CHKERRQ(ierr);
       ierr = VecResetArray(x2);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
@@ -439,8 +442,6 @@ static PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
     ierr = EPSAppendOptionsPrefix(cyclic->eps,"svd_");CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)cyclic->eps,(PetscObject)svd,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->eps);CHKERRQ(ierr);
-    if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-    ierr = EPSSetIP(cyclic->eps,svd->ip);CHKERRQ(ierr);
     ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
     ierr = EPSMonitorSet(cyclic->eps,SVDMonitor_Cyclic,svd,NULL);CHKERRQ(ierr);
   }

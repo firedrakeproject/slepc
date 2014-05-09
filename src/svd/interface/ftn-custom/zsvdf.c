@@ -34,7 +34,7 @@
 #define svdcreate_                   SVDCREATE
 #define svdsettype_                  SVDSETTYPE
 #define svdgettype_                  SVDGETTYPE
-#define svdgetip_                    SVDGETIP
+#define svdgetbv_                    SVDGETBV
 #define svdgetds_                    SVDGETDS
 #define svdmonitorset_               SVDMONITORSET
 #define svdgettransposemode_         SVDGETTRANSPOSEMODE
@@ -53,7 +53,7 @@
 #define svdcreate_                   svdcreate
 #define svdsettype_                  svdsettype
 #define svdgettype_                  svdgettype
-#define svdgetip_                    svdgetip
+#define svdgetbv_                    svdgetbv
 #define svdgetds_                    svdgetds
 #define svdmonitorset_               svdmonitorset
 #define svdgettransposemode_         svdgettransposemode
@@ -151,9 +151,9 @@ PETSC_EXTERN void PETSC_STDCALL svdgettype_(SVD *svd,CHAR name PETSC_MIXED_LEN(l
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgetip_(SVD *svd,IP *ip,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL svdgetbv_(SVD *svd,BV *V,BV *U,PetscErrorCode *ierr)
 {
-  *ierr = SVDGetIP(*svd,ip);
+  *ierr = SVDGetBV(*svd,V,U);
 }
 
 PETSC_EXTERN void PETSC_STDCALL svdgetds_(SVD *svd,DS *ds,PetscErrorCode *ierr)

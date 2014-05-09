@@ -475,8 +475,9 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   ierr = PetscObjectProcessOptionsHandlers((PetscObject)svd);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
-  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-  ierr = IPSetFromOptions(svd->ip);CHKERRQ(ierr);
+  if (!svd->V) { ierr = SVDGetBV(svd,&svd->V,&svd->U);CHKERRQ(ierr); }
+  ierr = BVSetFromOptions(svd->V);CHKERRQ(ierr);
+  ierr = BVSetFromOptions(svd->U);CHKERRQ(ierr);
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(svd->ds);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(svd->rand);CHKERRQ(ierr);
@@ -581,8 +582,9 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-  ierr = IPSetOptionsPrefix(svd->ip,prefix);CHKERRQ(ierr);
+  if (!svd->V) { ierr = SVDGetBV(svd,&svd->V,&svd->U);CHKERRQ(ierr); }
+  ierr = BVSetOptionsPrefix(svd->V,prefix);CHKERRQ(ierr);
+  ierr = BVSetOptionsPrefix(svd->U,prefix);CHKERRQ(ierr);
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(svd->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);
@@ -628,8 +630,9 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-  ierr = IPSetOptionsPrefix(svd->ip,prefix);CHKERRQ(ierr);
+  if (!svd->V) { ierr = SVDGetBV(svd,&svd->V,&svd->U);CHKERRQ(ierr); }
+  ierr = BVSetOptionsPrefix(svd->V,prefix);CHKERRQ(ierr);
+  ierr = BVSetOptionsPrefix(svd->U,prefix);CHKERRQ(ierr);
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(svd->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)svd,prefix);CHKERRQ(ierr);

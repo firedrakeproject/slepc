@@ -22,7 +22,6 @@
 */
 
 #include <slepc-private/svdimpl.h>      /*I "slepcsvd.h" I*/
-#include <slepc-private/ipimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetOperator"
@@ -105,7 +104,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscErrorCode ierr;
   PetscBool      flg;
   PetscInt       M,N,k;
-  Vec            *T;
+  Vec            *T,tr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -118,10 +117,6 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* Set default solver type (SVDSetFromOptions was not called) */
   if (!((PetscObject)svd)->type_name) {
     ierr = SVDSetType(svd,SVDCROSS);CHKERRQ(ierr);
-  }
-  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-  if (!((PetscObject)svd->ip)->type_name) {
-    ierr = IPSetType_Default(svd->ip);CHKERRQ(ierr);
   }
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
   ierr = DSReset(svd->ds);CHKERRQ(ierr);
@@ -169,16 +164,6 @@ PetscErrorCode SVDSetUp(SVD svd)
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode");
   }
 
-  ierr = VecDestroy(&svd->tr);CHKERRQ(ierr);
-  ierr = VecDestroy(&svd->tl);CHKERRQ(ierr);
-  if (svd->A) {
-    ierr = SlepcMatGetVecsTemplate(svd->A,&svd->tr,&svd->tl);CHKERRQ(ierr);
-  } else {
-    ierr = SlepcMatGetVecsTemplate(svd->AT,&svd->tl,&svd->tr);CHKERRQ(ierr);
-  }
-  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->tl);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->tr);CHKERRQ(ierr);
-
   /* swap initial vectors if necessary */
   if (M<N) {
     T=svd->ISL; svd->ISL=svd->IS; svd->IS=T;
@@ -198,13 +183,15 @@ PetscErrorCode SVDSetUp(SVD svd)
     /* free memory for previous solution  */
     if (svd->n) {
       ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
-      ierr = VecDestroyVecs(svd->n,&svd->V);CHKERRQ(ierr);
+      ierr = BVDestroy(&svd->V);CHKERRQ(ierr);
     }
     /* allocate memory for next solution */
     ierr = PetscMalloc3(svd->ncv,&svd->sigma,svd->ncv,&svd->perm,svd->ncv,&svd->errest);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)svd,PetscMax(0,svd->ncv-svd->n)*(2*sizeof(PetscReal)+sizeof(PetscInt)));CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(svd->tr,svd->ncv,&svd->V);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(svd,svd->ncv,svd->V);CHKERRQ(ierr);
+    if (!svd->V) { ierr = SVDGetBV(svd,&svd->V,NULL);CHKERRQ(ierr); }
+    ierr = SVDMatGetVecs(svd,&tr,NULL);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(svd->V,tr,svd->ncv);CHKERRQ(ierr);
+    ierr = VecDestroy(&tr);CHKERRQ(ierr);
     svd->n = svd->ncv;
   }
 
@@ -212,12 +199,12 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (svd->nini<0) {
     svd->nini = -svd->nini;
     if (svd->nini>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of initial vectors is larger than ncv");
-    ierr = IPOrthonormalizeBasis_Private(svd->ip,&svd->nini,&svd->IS,svd->V);CHKERRQ(ierr);
+    ierr = BVInsertVecs(svd->V,0,&svd->nini,svd->IS,PETSC_TRUE);CHKERRQ(ierr);
   }
   if (svd->ninil<0 && svd->U) { /* skip this if the solver is not using a left basis */
     svd->ninil = -svd->ninil;
     if (svd->ninil>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of left initial vectors is larger than ncv");
-    ierr = IPOrthonormalizeBasis_Private(svd->ip,&svd->ninil,&svd->ISL,svd->U);CHKERRQ(ierr);
+    ierr = BVInsertVecs(svd->U,0,&svd->ninil,svd->ISL,PETSC_TRUE);CHKERRQ(ierr);
   }
 
   ierr = PetscLogEventEnd(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);

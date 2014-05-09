@@ -227,7 +227,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   PetscErrorCode ierr;
   PetscReal      norm;
   PetscInt       j,M,N;
-  Vec            w;
+  Vec            w,tl,vj,uj;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -240,18 +240,27 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   if (M<N) { w = u; u = v; v = w; }
   if (u) {
     if (!svd->U) {
-      ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
-      ierr = PetscLogObjectParents(svd,svd->ncv,svd->U);CHKERRQ(ierr);
+      ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr);
+      ierr = SVDMatGetVecs(svd,NULL,&tl);CHKERRQ(ierr);
+      ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
       for (j=0;j<svd->nconv;j++) {
-        ierr = SVDMatMult(svd,PETSC_FALSE,svd->V[j],svd->U[j]);CHKERRQ(ierr);
-        ierr = IPOrthogonalize(svd->ip,0,NULL,j,NULL,svd->U,svd->U[j],NULL,&norm,NULL);CHKERRQ(ierr);
-        ierr = VecScale(svd->U[j],1.0/norm);CHKERRQ(ierr);
+        ierr = BVGetColumn(svd->V,j,&vj);CHKERRQ(ierr);
+        ierr = BVGetColumn(svd->U,j,&uj);CHKERRQ(ierr);
+        ierr = SVDMatMult(svd,PETSC_FALSE,vj,uj);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(svd->V,j,&vj);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(svd->U,j,&uj);CHKERRQ(ierr);
+        ierr = BVOrthogonalize(svd->U,j,NULL,&norm,NULL);CHKERRQ(ierr);
+        ierr = BVScale(svd->U,j,1.0/norm);CHKERRQ(ierr);
       }
     }
-    ierr = VecCopy(svd->U[svd->perm[i]],u);CHKERRQ(ierr);
+    ierr = BVGetColumn(svd->U,svd->perm[i],&uj);CHKERRQ(ierr);
+    ierr = VecCopy(uj,u);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->U,svd->perm[i],&uj);CHKERRQ(ierr);
   }
   if (v) {
-    ierr = VecCopy(svd->V[svd->perm[i]],v);CHKERRQ(ierr);
+    ierr = BVGetColumn(svd->V,svd->perm[i],&vj);CHKERRQ(ierr);
+    ierr = VecCopy(vj,v);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->V,svd->perm[i],&vj);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -395,9 +404,9 @@ PetscErrorCode SVDGetOperationCounters(SVD svd,PetscInt* matvecs,PetscInt* dots)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (matvecs) *matvecs = svd->matvecs;
-  if (dots) {
+  /*if (dots) {
     if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
     ierr = IPGetOperationCounters(svd->ip,dots);CHKERRQ(ierr);
-  }
+  }*/
   PetscFunctionReturn(0);
 }

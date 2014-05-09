@@ -55,7 +55,7 @@ struct _p_SVD {
   SVDTransposeMode transmode;   /* transpose mode */
   PetscReal        *sigma;      /* singular values */
   PetscInt         *perm;       /* permutation for singular value ordering */
-  Vec              *U,*V;       /* left and right singular vectors */
+  BV               U,V;         /* left and right singular vectors */
   Vec              *IS,*ISL;    /* placeholder for references to user-provided initial space */
   PetscInt         n;           /* maximun size of descomposition */
   SVDWhich         which;       /* which singular values are computed */
@@ -69,12 +69,10 @@ struct _p_SVD {
   PetscReal        tol;         /* tolerance */
   PetscReal        *errest;     /* error estimates */
   PetscRandom      rand;        /* random number generator */
-  Vec              tl,tr;       /* template vectors */
   void             *data;       /* placeholder for misc stuff associated
                                    with a particular solver */
   PetscInt         setupcalled;
   SVDConvergedReason reason;
-  IP               ip;          /* innerproduct object */
   DS               ds;          /* direct solver object */
   PetscBool        trackall;
   PetscInt         matvecs;
@@ -89,6 +87,6 @@ PETSC_INTERN PetscErrorCode SVDMatMult(SVD,PetscBool,Vec,Vec);
 PETSC_INTERN PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
 PETSC_INTERN PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);
 PETSC_INTERN PetscErrorCode SVDMatGetLocalSize(SVD,PetscInt*,PetscInt*);
-PETSC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,Vec*,Vec,Vec*,PetscInt,PetscInt,PetscScalar*);
+PETSC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,PetscInt,PetscInt,PetscScalar*);
 
 #endif

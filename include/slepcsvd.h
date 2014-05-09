@@ -24,6 +24,8 @@
 #if !defined(__SLEPCSVD_H)
 #define __SLEPCSVD_H
 #include <slepceps.h>
+#include <slepcbv.h>
+#include <slepcds.h>
 
 PETSC_EXTERN PetscErrorCode SVDInitializePackage(void);
 
@@ -91,8 +93,8 @@ typedef enum {/* converged */
               SVD_CONVERGED_ITERATING          =  0 } SVDConvergedReason;
 
 PETSC_EXTERN PetscErrorCode SVDCreate(MPI_Comm,SVD*);
-PETSC_EXTERN PetscErrorCode SVDSetIP(SVD,IP);
-PETSC_EXTERN PetscErrorCode SVDGetIP(SVD,IP*);
+PETSC_EXTERN PetscErrorCode SVDSetBV(SVD,BV,BV);
+PETSC_EXTERN PetscErrorCode SVDGetBV(SVD,BV*,BV*);
 PETSC_EXTERN PetscErrorCode SVDSetDS(SVD,DS);
 PETSC_EXTERN PetscErrorCode SVDGetDS(SVD,DS*);
 PETSC_EXTERN PetscErrorCode SVDSetType(SVD,SVDType);
