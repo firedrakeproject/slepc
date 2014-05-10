@@ -434,3 +434,74 @@ PetscErrorCode BVNorm(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "BVSetRandom"
+/*@
+   BVSetRandom - Set one column (or all columns) of a BV to random numbers.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  bv    - basis vectors
+-  j     - column number to be set (or negative number to set all columns)
+-  rctx - the random number context, formed by PetscRandomCreate(), or NULL and
+          it will create one internally.
+
+   Note:
+   The column index j must be smaller than the number of active columns.
+   If j<0 then all active columns are scaled.
+
+   This operation is analogue to VecSetRandom - the difference is that the
+   generated random vector is the same irrespective of the size of the
+   communicator (if all processes pass a PetscRandom context initialized
+   with the same seed).
+
+   Level: advanced
+
+.seealso: BVSetActiveColumns()
+@*/
+PetscErrorCode BVSetRandom(BV bv,PetscInt j,PetscRandom rctx)
+{
+  PetscErrorCode ierr;
+  PetscRandom    rand=NULL;
+  PetscInt       i,low,high,k,ks,ke;
+  PetscScalar    *px,t;
+  Vec            x;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(bv,j,2);
+  if (rctx) PetscValidHeaderSpecific(rctx,PETSC_RANDOM_CLASSID,3);
+  else {
+    ierr = PetscRandomCreate(PetscObjectComm((PetscObject)bv),&rand);CHKERRQ(ierr);
+    ierr = PetscRandomSetSeed(rand,0x12345678);CHKERRQ(ierr);
+    ierr = PetscRandomSetFromOptions(rand);CHKERRQ(ierr);
+    rctx = rand;
+  }
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of active columns is %D",j,bv->k);
+
+  ierr = PetscLogEventBegin(BV_SetRandom,bv,rctx,0,0);CHKERRQ(ierr);
+  if (j<0) {
+    ks = 0; ke = bv->k;
+  } else {
+    ks = j; ke = j+1;
+  }
+  for (k=ks;k<ke;k++) {
+    ierr = BVGetColumn(bv,k,&x);CHKERRQ(ierr);
+    ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
+    ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+    for (i=0;i<bv->N;i++) {
+      ierr = PetscRandomGetValue(rctx,&t);CHKERRQ(ierr);
+      if (i>=low && i<high) px[i-low] = t;
+    }
+    ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(bv,k,&x);CHKERRQ(ierr);
+  }
+  ierr = PetscLogEventEnd(BV_SetRandom,bv,rctx,0,0);CHKERRQ(ierr);
+  ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
