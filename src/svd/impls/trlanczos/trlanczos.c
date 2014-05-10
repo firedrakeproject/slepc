@@ -252,12 +252,11 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   ierr = BVGetOrthogonalization(svd->V,&orthog,NULL,NULL);CHKERRQ(ierr);
 
   /* normalize start vector */
-  ierr = BVGetColumn(svd->V,0,&v);CHKERRQ(ierr);
   if (!svd->nini) {
-    ierr = SlepcVecSetRandom(v,svd->rand);CHKERRQ(ierr);
+    ierr = BVSetRandom(svd->V,0,svd->rand);CHKERRQ(ierr);
+    ierr = BVNorm(svd->V,0,NORM_2,&norm);CHKERRQ(ierr);
+    ierr = BVScale(svd->V,0,1.0/norm);CHKERRQ(ierr);
   }
-  ierr = VecNormalize(v,&norm);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(svd->V,0,&v);CHKERRQ(ierr);
 
   l = 0;
   while (svd->reason == SVD_CONVERGED_ITERATING) {

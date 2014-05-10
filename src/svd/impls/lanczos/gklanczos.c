@@ -182,7 +182,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,lastbeta;
+  PetscReal      *alpha,*beta,lastbeta,norm;
   PetscScalar    *swork,*w,*Q,*PT;
   PetscInt       i,k,j,nv,ld,off;
   Vec            v,u=0,u_1=0;
@@ -200,12 +200,11 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   }
 
   /* normalize start vector */
-  ierr = BVGetColumn(svd->V,0,&v);CHKERRQ(ierr);
   if (!svd->nini) {
-    ierr = SlepcVecSetRandom(v,svd->rand);CHKERRQ(ierr);
+    ierr = BVSetRandom(svd->V,0,svd->rand);CHKERRQ(ierr);
+    ierr = BVNorm(svd->V,0,NORM_2,&norm);CHKERRQ(ierr);
+    ierr = BVScale(svd->V,0,1.0/norm);CHKERRQ(ierr);
   }
-  ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(svd->V,0,&v);CHKERRQ(ierr);
 
   while (svd->reason == SVD_CONVERGED_ITERATING) {
     svd->its++;
