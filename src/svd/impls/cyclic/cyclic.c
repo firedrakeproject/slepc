@@ -210,7 +210,7 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
 {
   PetscErrorCode    ierr;
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
-  PetscInt          i,j,k,M,N,m,n;
+  PetscInt          i,j,M,N,m,n;
   PetscScalar       sigma;
   const PetscScalar *px;
   Vec               x,x1,x2;
@@ -233,10 +233,9 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
       ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
       ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
-      k = 1;
-      ierr = BVInsertVecs(svd->U,j,&k,&x1,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = BVInsertVec(svd->U,j,x1);CHKERRQ(ierr);
       ierr = BVScale(svd->U,j,1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
-      ierr = BVInsertVecs(svd->V,j,&k,&x2,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = BVInsertVec(svd->V,j,x2);CHKERRQ(ierr);
       ierr = BVScale(svd->V,j,1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
       ierr = VecResetArray(x1);CHKERRQ(ierr);
       ierr = VecResetArray(x2);CHKERRQ(ierr);

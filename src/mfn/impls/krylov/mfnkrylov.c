@@ -85,7 +85,7 @@ static PetscErrorCode MFNBasicArnoldi(BV V, Mat A,PetscScalar *H,PetscInt ldh,Pe
 PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 {
   PetscErrorCode ierr;
-  PetscInt       mxstep,mxrej,m,mb,ld,i,j,k,ireject,mx,k1;
+  PetscInt       mxstep,mxrej,m,mb,ld,i,j,ireject,mx,k1;
   Vec            v,r;
   PetscScalar    *H,*B,*F,*betaF;
   PetscReal      anorm,normb,avnorm,tol,err_loc,rndoff;
@@ -128,9 +128,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     mfn->its++;
     if (PetscIsInfOrNanReal(t_new)) t_new = PETSC_MAX_REAL;
     t_step = PetscMin(t_out-t_now,t_new);
-
-    k = 1;
-    ierr = BVInsertVecs(mfn->V,0,&k,&x,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVInsertVec(mfn->V,0,x);CHKERRQ(ierr);
     ierr = BVScale(mfn->V,0,1.0/beta);CHKERRQ(ierr);
     ierr = DSGetArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = MFNBasicArnoldi(mfn->V,mfn->A,H,ld,0,&mb,&breakdown);CHKERRQ(ierr);
