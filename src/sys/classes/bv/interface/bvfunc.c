@@ -24,7 +24,7 @@
 #include <slepc-private/bvimpl.h>            /*I "slepcbv.h" I*/
 
 PetscClassId     BV_CLASSID = 0;
-PetscLogEvent    BV_Create = 0,BV_Copy = 0,BV_Mult = 0,BV_Dot = 0,BV_Orthogonalize = 0,BV_Scale = 0,BV_Norm = 0;
+PetscLogEvent    BV_Create = 0,BV_Copy = 0,BV_Mult = 0,BV_Dot = 0,BV_Orthogonalize = 0,BV_Scale = 0,BV_Norm = 0,BV_SetRandom = 0;
 static PetscBool BVPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__
@@ -81,6 +81,7 @@ PetscErrorCode BVInitializePackage(void)
   ierr = PetscLogEventRegister("BVOrthogonalize",BV_CLASSID,&BV_Orthogonalize);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVScale",BV_CLASSID,&BV_Scale);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVNorm",BV_CLASSID,&BV_Norm);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("BVSetRandom",BV_CLASSID,&BV_SetRandom);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
@@ -196,6 +197,48 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVInsertVec"
+/*@
+   BVInsertVec - Insert a vector into the specified column.
+
+   Collective on BV
+
+   Input Parameters:
++  V - basis vectors
+.  j - the column of V to be overwritten
+-  w - the vector to be copied
+
+   Level: intermediate
+
+.seealso: BVInsertVecs()
+@*/
+PetscErrorCode BVInsertVec(BV V,PetscInt j,Vec w)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,N;
+  Vec            v;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(V,j,2);
+  PetscValidHeaderSpecific(w,VEC_CLASSID,3);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscCheckSameComm(V,1,w,3);
+
+  ierr = VecGetSize(w,&N);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(w,&n);CHKERRQ(ierr);
+  if (N!=V->N || n!=V->n) SETERRQ4(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %D, local %D) do not match BV sizes (global %D, local %D)",N,n,V->N,V->n);
+  if (j<0 || j>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, should be between 0 and %D",j,V->m-1);
+
+  ierr = BVGetColumn(V,j,&v);CHKERRQ(ierr);
+  ierr = VecCopy(w,v);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,j,&v);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVInsertVecs"
 /*@
    BVInsertVecs - Insert a set of vectors into the specified columns.
@@ -220,8 +263,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
 
    Level: intermediate
 
-.seealso: BVOrthogonalize()
-
+.seealso: BVInsertVec(), BVOrthogonalize()
 @*/
 PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
 {
