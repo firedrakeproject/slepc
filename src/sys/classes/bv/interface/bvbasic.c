@@ -211,6 +211,13 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
 . N  - the global size
 - m  - the number of columns
 
+  Note:
+  Normal usage requires that bv has already been given its sizes, otherwise
+  the call fails. However, this function can also be used to determine if
+  a BV object has been initialized completely (sizes and type). For this,
+  call with n=NULL and N=NULL, then a return value of m=0 indicates that
+  the BV object is not ready for use yet.
+
   Level: beginner
 
 .seealso: BVSetSizes(), BVSetSizesFromVec()
@@ -218,11 +225,16 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
 PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
 {
   PetscFunctionBegin;
+  if (!bv) {
+    if (m && !n && !N) *m = 0;
+    PetscFunctionReturn(0);
+  }
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  BVCheckSizes(bv,1);
+  if (n || N) BVCheckSizes(bv,1);
   if (n) *n = bv->n;
   if (N) *N = bv->N;
   if (m) *m = bv->m;
+  if (m && !n && !N && !((PetscObject)bv)->type_name) *m = 0;
   PetscFunctionReturn(0);
 }
 
