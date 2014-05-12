@@ -67,7 +67,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
   n = PetscMin(M,N);
-  ierr = PetscMalloc(sizeof(PetscScalar)*n,&w);CHKERRQ(ierr);
+  ierr = PetscMalloc1(n,&w);CHKERRQ(ierr);
   ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
   ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
 
@@ -106,24 +106,12 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDDestroy_LAPACK"
-PetscErrorCode SVDDestroy_LAPACK(SVD svd)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFree(svd->data);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "SVDCreate_LAPACK"
 PETSC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD svd)
 {
   PetscFunctionBegin;
   svd->ops->setup   = SVDSetUp_LAPACK;
   svd->ops->solve   = SVDSolve_LAPACK;
-  svd->ops->destroy = SVDDestroy_LAPACK;
   if (svd->transmode == PETSC_DECIDE)
     svd->transmode = SVD_TRANSPOSE_IMPLICIT; /* don't build the transpose */
   PetscFunctionReturn(0);

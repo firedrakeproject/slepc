@@ -57,7 +57,6 @@ struct _p_SVD {
   PetscInt         *perm;       /* permutation for singular value ordering */
   BV               U,V;         /* left and right singular vectors */
   Vec              *IS,*ISL;    /* placeholder for references to user-provided initial space */
-  PetscInt         n;           /* maximun size of descomposition */
   SVDWhich         which;       /* which singular values are computed */
   PetscInt         nconv;       /* number of converged values */
   PetscInt         nsv;         /* number of requested values */

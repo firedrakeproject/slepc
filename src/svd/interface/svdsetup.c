@@ -103,7 +103,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      flg;
-  PetscInt       M,N,k;
+  PetscInt       M,N,k,oldncv;
   Vec            *T,tr,tl;
 
   PetscFunctionBegin;
@@ -179,17 +179,23 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (svd->ncv > M || svd->ncv > N) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"ncv bigger than matrix dimensions");
   if (svd->nsv > svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
 
+  /* oldncv is zero if this is the first time setup is called */
+  ierr = BVGetSizes(svd->V,NULL,NULL,&oldncv);CHKERRQ(ierr);
+
   /* allocate sigma */
-  if (svd->ncv != svd->n) {
-    if (svd->n) {
+  if (svd->ncv != oldncv) {
+    if (oldncv) {
       ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
     }
     ierr = PetscMalloc3(svd->ncv,&svd->sigma,svd->ncv,&svd->perm,svd->ncv,&svd->errest);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)svd,PetscMax(0,svd->ncv-svd->n)*(2*sizeof(PetscReal)+sizeof(PetscInt)));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)svd,PetscMax(0,svd->ncv-oldncv)*(2*sizeof(PetscReal)+sizeof(PetscInt)));CHKERRQ(ierr);
   }
   /* allocate V */
   if (!svd->V) { ierr = SVDGetBV(svd,&svd->V,NULL);CHKERRQ(ierr); }
-  if (!svd->n) {
+  if (!oldncv) {
+    if (!((PetscObject)(svd->V))->type_name) {
+      ierr = BVSetType(svd->V,BVSVEC);CHKERRQ(ierr);
+    }
     ierr = SVDMatGetVecs(svd,&tr,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(svd->V,tr,svd->ncv);CHKERRQ(ierr);
     ierr = VecDestroy(&tr);CHKERRQ(ierr);
@@ -199,7 +205,10 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* allocate U */
   if (svd->leftbasis) {
     if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
-    if (!svd->n) {
+    if (!oldncv) {
+      if (!((PetscObject)(svd->U))->type_name) {
+        ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
+      }
       ierr = SVDMatGetVecs(svd,NULL,&tl);CHKERRQ(ierr);
       ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
       ierr = VecDestroy(&tl);CHKERRQ(ierr);
@@ -207,7 +216,6 @@ PetscErrorCode SVDSetUp(SVD svd)
       ierr = BVResize(svd->U,svd->ncv,PETSC_FALSE);CHKERRQ(ierr);
     }
   }
-  svd->n = svd->ncv;
 
   /* process initial vectors */
   if (svd->nini<0) {

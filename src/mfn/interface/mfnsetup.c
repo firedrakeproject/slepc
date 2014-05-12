@@ -48,6 +48,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
 {
   PetscErrorCode ierr;
   Vec            t;
+  PetscInt       oldncv;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
@@ -61,8 +62,6 @@ PetscErrorCode MFNSetUp(MFN mfn)
   if (!((PetscObject)mfn)->type_name) {
     ierr = MFNSetType(mfn,MFNKRYLOV);CHKERRQ(ierr);
   }
-  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
-  ierr = BVSetMatrix(mfn->V,NULL,0.0);CHKERRQ(ierr);
   if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = DSReset(mfn->ds);CHKERRQ(ierr);
   if (!((PetscObject)mfn->rand)->type_name) {
@@ -83,10 +82,22 @@ PetscErrorCode MFNSetUp(MFN mfn)
   /* call specific solver setup */
   ierr = (*mfn->ops->setup)(mfn);CHKERRQ(ierr);
 
+  /* oldncv is zero if this is the first time setup is called */
+  ierr = BVGetSizes(mfn->V,NULL,NULL,&oldncv);CHKERRQ(ierr);
+
   /* allocate basis vectors */
-  ierr = MatGetVecs(mfn->A,&t,NULL);CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(mfn->V,t,mfn->ncv);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
+  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
+  if (!oldncv) {
+    if (!((PetscObject)(mfn->V))->type_name) {
+      ierr = BVSetType(mfn->V,BVSVEC);CHKERRQ(ierr);
+    }
+    ierr = MatGetVecs(mfn->A,&t,NULL);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(mfn->V,t,mfn->ncv);CHKERRQ(ierr);
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
+  } else {
+    ierr = BVResize(mfn->V,mfn->ncv,PETSC_FALSE);CHKERRQ(ierr);
+  }
+  ierr = BVSetMatrix(mfn->V,NULL,0.0);CHKERRQ(ierr);
 
   /* set tolerance if not yet set */
   if (mfn->tol==PETSC_DEFAULT) mfn->tol = SLEPC_DEFAULT_TOL;

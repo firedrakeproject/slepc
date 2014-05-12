@@ -243,7 +243,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->ISL            = NULL;
   svd->rand           = NULL;
   svd->which          = SVD_LARGEST;
-  svd->n              = 0;
   svd->nconv          = 0;
   svd->nsv            = 1;
   svd->ncv            = 0;
@@ -288,6 +287,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 PetscErrorCode SVDReset(SVD svd)
 {
   PetscErrorCode ierr;
+  PetscInt       ncols;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -296,7 +296,8 @@ PetscErrorCode SVDReset(SVD svd)
   ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
-  if (svd->n) {
+  ierr = BVGetSizes(svd->V,NULL,NULL,&ncols);CHKERRQ(ierr);
+  if (ncols) {
     ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
   }
   ierr = BVDestroy(&svd->U);CHKERRQ(ierr);

@@ -184,7 +184,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   PetscFunctionBegin;
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc2(ld,&w,svd->n,&swork);CHKERRQ(ierr);
+  ierr = PetscMalloc2(ld,&w,svd->ncv,&swork);CHKERRQ(ierr);
 
 //  ierr = VecDuplicate(svd->V[0],&v);CHKERRQ(ierr);
   if (lanczos->oneside) {
@@ -203,7 +203,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     svd->its++;
 
     /* inner loop */
-    nv = PetscMin(svd->nconv+svd->mpd,svd->n);
+    nv = PetscMin(svd->nconv+svd->mpd,svd->ncv);
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     beta = alpha + ld;
     if (lanczos->oneside) {
