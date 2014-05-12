@@ -169,6 +169,45 @@ PetscErrorCode BVCopy_Contiguous(BV V,BV W)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVResize_Contiguous"
+PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
+{
+  PetscErrorCode ierr;
+  BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
+  PetscInt       j,bs;
+  PetscScalar    *newarray;
+  Vec            *newV;
+  char           str[50];
+
+  PetscFunctionBegin;
+  ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
+  ierr = PetscMalloc1(m*bv->n,&newarray);CHKERRQ(ierr);
+  ierr = PetscMalloc1(m,&newV);CHKERRQ(ierr);
+  for (j=0;j<m;j++) {
+    if (ctx->mpi) {
+      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,PETSC_DECIDE,newarray+j*bv->n,newV+j);CHKERRQ(ierr);
+    } else {
+      ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,newarray+j*bv->n,newV+j);CHKERRQ(ierr);
+    }
+  }
+  ierr = PetscLogObjectParents(bv,m,newV);CHKERRQ(ierr);
+  if (((PetscObject)bv)->name) {
+    for (j=0;j<m;j++) {
+      ierr = PetscSNPrintf(str,50,"%s_%d",((PetscObject)bv)->name,j);CHKERRQ(ierr);
+      ierr = PetscObjectSetName((PetscObject)newV[j],str);CHKERRQ(ierr);
+    }
+  }
+  if (copy) {
+    ierr = PetscMemcpy(newarray,ctx->array,PetscMin(m,bv->m)*bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  ierr = VecDestroyVecs(bv->m,&ctx->V);CHKERRQ(ierr);
+  ctx->V = newV;
+  ierr = PetscFree(ctx->array);CHKERRQ(ierr);
+  ctx->array = newarray;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Contiguous"
 PetscErrorCode BVGetColumn_Contiguous(BV bv,PetscInt j,Vec *v)
 {
@@ -243,6 +282,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->norm           = BVNorm_Contiguous;
   bv->ops->orthogonalize  = BVOrthogonalizeAll_Contiguous;
   bv->ops->copy           = BVCopy_Contiguous;
+  bv->ops->resize         = BVResize_Contiguous;
   bv->ops->getcolumn      = BVGetColumn_Contiguous;
   bv->ops->view           = BVView_Vecs;
   bv->ops->destroy        = BVDestroy_Contiguous;

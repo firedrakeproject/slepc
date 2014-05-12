@@ -81,6 +81,7 @@ PETSC_EXTERN PetscErrorCode BVGetType(BV,BVType*);
 PETSC_EXTERN PetscErrorCode BVSetSizes(BV,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVSetSizesFromVec(BV,Vec,PetscInt);
 PETSC_EXTERN PetscErrorCode BVGetSizes(BV,PetscInt*,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode BVResize(BV,PetscInt,PetscBool);
 PETSC_EXTERN PetscErrorCode BVSetFromOptions(BV);
 PETSC_EXTERN PetscErrorCode BVView(BV,PetscViewer);
 

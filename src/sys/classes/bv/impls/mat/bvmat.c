@@ -195,6 +195,37 @@ PetscErrorCode BVCopy_Mat(BV V,BV W)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVResize_Mat"
+PetscErrorCode BVResize_Mat(BV bv,PetscInt m,PetscBool copy)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *ctx = (BV_MAT*)bv->data;
+  PetscScalar    *pA,*pnew;
+  Mat            A;
+  char           str[50];
+
+  PetscFunctionBegin;
+  ierr = MatCreateDense(PetscObjectComm((PetscObject)bv->t),bv->n,PETSC_DECIDE,PETSC_DECIDE,m,NULL,&A);CHKERRQ(ierr);
+  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)A);CHKERRQ(ierr);
+  if (((PetscObject)bv)->name) {
+    ierr = PetscSNPrintf(str,50,"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);
+    ierr = PetscObjectSetName((PetscObject)A,str);CHKERRQ(ierr);
+  }
+  if (copy) {
+    ierr = MatDenseGetArray(ctx->A,&pA);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(A,&pnew);CHKERRQ(ierr);
+    ierr = PetscMemcpy(pnew,pA,PetscMin(m,bv->m)*bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(ctx->A,&pA);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(A,&pnew);CHKERRQ(ierr);
+  }
+  ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
+  ctx->A = A;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Mat"
 PetscErrorCode BVGetColumn_Mat(BV bv,PetscInt j,Vec *v)
 {
@@ -311,6 +342,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->norm           = BVNorm_Mat;
   bv->ops->orthogonalize  = BVOrthogonalizeAll_Mat;
   bv->ops->copy           = BVCopy_Mat;
+  bv->ops->resize         = BVResize_Mat;
   bv->ops->getcolumn      = BVGetColumn_Mat;
   bv->ops->restorecolumn  = BVRestoreColumn_Mat;
   bv->ops->view           = BVView_Mat;
