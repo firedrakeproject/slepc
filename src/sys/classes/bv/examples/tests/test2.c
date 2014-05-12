@@ -66,7 +66,8 @@ int main(int argc,char **argv)
     ierr = VecZeroEntries(v);CHKERRQ(ierr);
     for (i=0;i<=n/2;i++) {
       if (i+j<n) {
-        ierr = VecSetValue(v,i+j,(PetscScalar)(3*i+j-2)/(2*(i+j+1)),INSERT_VALUES);CHKERRQ(ierr);
+        alpha = (3*i+j-2)/(2*(i+j+1));
+        ierr = VecSetValue(v,i+j,alpha,INSERT_VALUES);CHKERRQ(ierr);
       }
     }
     ierr = VecAssemblyBegin(v);CHKERRQ(ierr);

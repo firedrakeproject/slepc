@@ -694,6 +694,8 @@ PetscErrorCode BVGetVec(BV bv,Vec *v)
    done. Only the active columns of V are copied.
 
    Level: beginner
+
+.seealso: BVCopyVec()
 @*/
 PetscErrorCode BVCopy(BV V,BV W)
 {
@@ -714,6 +716,53 @@ PetscErrorCode BVCopy(BV V,BV W)
   ierr = PetscLogEventBegin(BV_Copy,V,W,0,0);CHKERRQ(ierr);
   ierr = (*V->ops->copy)(V,W);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_Copy,V,W,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVCopyVec"
+/*@
+   BVCopyVec - Copies one of the columns of a basis vectors object into a Vec.
+
+   Logically Collective on BV
+
+   Input Parameter:
++  V - basis vectors context
+-  j - the column number to be copied
+
+   Output Parameter:
+.  w - the copied column
+
+   Note:
+   Both V and w must be distributed in the same manner; local copies are done.
+
+   Level: beginner
+
+.seealso: BVCopy()
+@*/
+PetscErrorCode BVCopyVec(BV V,PetscInt j,Vec w)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,N;
+  Vec            z;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidLogicalCollectiveInt(V,j,2);
+  PetscValidHeaderSpecific(w,VEC_CLASSID,3);
+  PetscCheckSameComm(V,1,w,3);
+
+  ierr = VecGetSize(w,&N);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(w,&n);CHKERRQ(ierr);
+  if (N!=V->N || n!=V->n) SETERRQ4(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %D, local %D) do not match BV sizes (global %D, local %D)",N,n,V->N,V->n);
+
+  ierr = PetscLogEventBegin(BV_Copy,V,w,0,0);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,j,&z);CHKERRQ(ierr);
+  ierr = VecCopy(z,w);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,j,&z);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Copy,V,w,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

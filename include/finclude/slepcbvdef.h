@@ -28,6 +28,8 @@
 #endif
 
 #define BVType    character*(80)
+#define BVOrthogType       PetscEnum
+#define BVOrthogRefineType PetscEnum
 
 #define BVMAT        'mat'
 #define BVSVEC       'svec'
