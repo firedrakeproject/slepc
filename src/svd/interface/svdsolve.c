@@ -81,6 +81,7 @@ PetscErrorCode SVDSolve(SVD svd)
     ierr = PetscFree(workperm);CHKERRQ(ierr);
   }
 
+  svd->lvecsavail = (svd->leftbasis)? PETSC_TRUE: PETSC_FALSE;
   ierr = PetscLogEventEnd(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
@@ -240,10 +241,11 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   if (M<N) { w = u; u = v; v = w; }
   if (u) {
-    if (!svd->U) {
-      ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr);
+    if (!svd->lvecsavail) {  /* generate left singular vectors on U */
+      if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
       ierr = SVDMatGetVecs(svd,NULL,&tl);CHKERRQ(ierr);
       ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
+      ierr = VecDestroy(&tl);CHKERRQ(ierr);
       for (j=0;j<svd->nconv;j++) {
         ierr = BVGetColumn(svd->V,j,&vj);CHKERRQ(ierr);
         ierr = BVGetColumn(svd->U,j,&uj);CHKERRQ(ierr);
@@ -253,6 +255,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
         ierr = BVOrthogonalize(svd->U,j,NULL,&norm,NULL);CHKERRQ(ierr);
         ierr = BVScale(svd->U,j,1.0/norm);CHKERRQ(ierr);
       }
+      svd->lvecsavail = PETSC_TRUE;
     }
     ierr = BVCopyVec(svd->U,svd->perm[i],u);CHKERRQ(ierr);
   }

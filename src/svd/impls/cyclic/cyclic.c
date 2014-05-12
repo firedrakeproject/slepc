@@ -90,7 +90,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   const PetscScalar *isa;
   PetscScalar       *va;
   PetscBool         trackall;
-  Vec               v,tl;
+  Vec               v;
   Mat               Zm,Zn;
 
   PetscFunctionBegin;
@@ -194,13 +194,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   svd->ncv = PetscMin(svd->ncv,PetscMin(M,N));
   ierr = EPSGetTolerances(cyclic->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
 
-  if (svd->ncv != svd->n) {
-    ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
-    ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr);
-    ierr = SVDMatGetVecs(svd,NULL,&tl);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
-    ierr = VecDestroy(&tl);CHKERRQ(ierr);
-  }
+  svd->leftbasis = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 

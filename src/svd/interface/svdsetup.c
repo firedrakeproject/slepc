@@ -104,7 +104,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscErrorCode ierr;
   PetscBool      flg;
   PetscInt       M,N,k;
-  Vec            *T,tr;
+  Vec            *T,tr,tl;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -179,21 +179,35 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (svd->ncv > M || svd->ncv > N) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"ncv bigger than matrix dimensions");
   if (svd->nsv > svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
 
+  /* allocate sigma */
   if (svd->ncv != svd->n) {
-    /* free memory for previous solution  */
     if (svd->n) {
       ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
-      ierr = BVDestroy(&svd->V);CHKERRQ(ierr);
     }
-    /* allocate memory for next solution */
     ierr = PetscMalloc3(svd->ncv,&svd->sigma,svd->ncv,&svd->perm,svd->ncv,&svd->errest);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)svd,PetscMax(0,svd->ncv-svd->n)*(2*sizeof(PetscReal)+sizeof(PetscInt)));CHKERRQ(ierr);
-    if (!svd->V) { ierr = SVDGetBV(svd,&svd->V,NULL);CHKERRQ(ierr); }
+  }
+  /* allocate V */
+  if (!svd->V) { ierr = SVDGetBV(svd,&svd->V,NULL);CHKERRQ(ierr); }
+  if (!svd->n) {
     ierr = SVDMatGetVecs(svd,&tr,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(svd->V,tr,svd->ncv);CHKERRQ(ierr);
     ierr = VecDestroy(&tr);CHKERRQ(ierr);
-    svd->n = svd->ncv;
+  } else {
+    ierr = BVResize(svd->V,svd->ncv,PETSC_FALSE);CHKERRQ(ierr);
   }
+  /* allocate U */
+  if (svd->leftbasis) {
+    if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
+    if (!svd->n) {
+      ierr = SVDMatGetVecs(svd,NULL,&tl);CHKERRQ(ierr);
+      ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
+      ierr = VecDestroy(&tl);CHKERRQ(ierr);
+    } else {
+      ierr = BVResize(svd->U,svd->ncv,PETSC_FALSE);CHKERRQ(ierr);
+    }
+  }
+  svd->n = svd->ncv;
 
   /* process initial vectors */
   if (svd->nini<0) {
@@ -201,7 +215,7 @@ PetscErrorCode SVDSetUp(SVD svd)
     if (svd->nini>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of initial vectors is larger than ncv");
     ierr = BVInsertVecs(svd->V,0,&svd->nini,svd->IS,PETSC_TRUE);CHKERRQ(ierr);
   }
-  if (svd->ninil<0 && svd->U) { /* skip this if the solver is not using a left basis */
+  if (svd->ninil<0 && svd->leftbasis) { /* skip if the solver is not using a left basis */
     svd->ninil = -svd->ninil;
     if (svd->ninil>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of left initial vectors is larger than ncv");
     ierr = BVInsertVecs(svd->U,0,&svd->ninil,svd->ISL,PETSC_TRUE);CHKERRQ(ierr);

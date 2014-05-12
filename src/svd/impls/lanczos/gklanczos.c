@@ -56,7 +56,6 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
   PetscInt       N;
-  Vec            tl;
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
@@ -74,13 +73,7 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
   if (!svd->mpd) svd->mpd = svd->ncv;
   if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must not be larger than nev+mpd");
   if (!svd->max_it) svd->max_it = PetscMax(N/svd->ncv,100);
-  if (!lanczos->oneside && svd->ncv != svd->n) {
-    ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
-    ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr);
-    ierr = SVDMatGetVecs(svd,NULL,&tl);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
-    ierr = VecDestroy(&tl);CHKERRQ(ierr);
-  }
+  svd->leftbasis = (lanczos->oneside)? PETSC_FALSE: PETSC_TRUE;
   ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
   ierr = DSSetCompact(svd->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(svd->ds,svd->ncv);CHKERRQ(ierr);

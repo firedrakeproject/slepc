@@ -76,6 +76,8 @@ struct _p_SVD {
   DS               ds;          /* direct solver object */
   PetscBool        trackall;
   PetscInt         matvecs;
+  PetscBool        leftbasis;   /* if U is filled by the solver */
+  PetscBool        lvecsavail;  /* if U contains left singular vectors */
 
   PetscErrorCode   (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
   PetscErrorCode   (*monitordestroy[MAXSVDMONITORS])(void**);

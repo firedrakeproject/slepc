@@ -30,20 +30,13 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 {
   PetscErrorCode ierr;
   PetscInt       M,N;
-  Vec            tl;
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   svd->ncv = N;
   if (svd->mpd) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   svd->max_it = 1;
-  if (svd->ncv!=svd->n) {
-    ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
-    ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr);
-    ierr = SVDMatGetVecs(svd,NULL,&tl);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
-    ierr = VecDestroy(&tl);CHKERRQ(ierr);
-  }
+  svd->leftbasis = PETSC_TRUE;
   ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
   ierr = DSAllocate(svd->ds,PetscMax(M,N));CHKERRQ(ierr);
   PetscFunctionReturn(0);

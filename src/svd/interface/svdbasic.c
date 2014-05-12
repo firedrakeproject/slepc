@@ -260,6 +260,8 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->numbermonitors = 0;
   svd->matvecs        = 0;
   svd->trackall       = PETSC_FALSE;
+  svd->leftbasis      = PETSC_FALSE;
+  svd->lvecsavail     = PETSC_FALSE;
 
   ierr = PetscRandomCreate(comm,&svd->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(svd->rand,0x12345678);CHKERRQ(ierr);
