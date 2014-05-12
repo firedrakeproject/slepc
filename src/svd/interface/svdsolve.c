@@ -254,14 +254,10 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
         ierr = BVScale(svd->U,j,1.0/norm);CHKERRQ(ierr);
       }
     }
-    ierr = BVGetColumn(svd->U,svd->perm[i],&uj);CHKERRQ(ierr);
-    ierr = VecCopy(uj,u);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(svd->U,svd->perm[i],&uj);CHKERRQ(ierr);
+    ierr = BVCopyVec(svd->U,svd->perm[i],u);CHKERRQ(ierr);
   }
   if (v) {
-    ierr = BVGetColumn(svd->V,svd->perm[i],&vj);CHKERRQ(ierr);
-    ierr = VecCopy(vj,v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(svd->V,svd->perm[i],&vj);CHKERRQ(ierr);
+    ierr = BVCopyVec(svd->V,svd->perm[i],v);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
