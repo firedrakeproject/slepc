@@ -115,13 +115,13 @@ PetscErrorCode BVGetType(BV bv,BVType *type)
 - m  - the number of columns
 
   Notes:
-  n and N cannot be both PETSC_DECIDE
+  n and N cannot be both PETSC_DECIDE.
   If one processor calls this with N of PETSC_DECIDE then all processors must,
   otherwise the program will hang.
 
   Level: beginner
 
-.seealso: BVSetSizesFromVec(), BVGetSizes()
+.seealso: BVSetSizesFromVec(), BVGetSizes(), BVResize()
 @*/
 PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
 {
@@ -134,7 +134,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
   if (N >= 0 && n > N) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Local size %D cannot be larger than global size %D",n,N);
   if (m <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",m);
   if ((bv->n >= 0 || bv->N >= 0) && (bv->n != n || bv->N != N)) SETERRQ4(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot change/reset vector sizes to %D local %D global after previously setting them to %D local %D global",n,N,bv->n,bv->N);
-  if (bv->m > 0 && bv->m != m) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot change/reset the number of columns to %D after previously setting it to %D",m,bv->m);
+  if (bv->m > 0 && bv->m != m) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot change the number of columns to %D after previously setting it to %D; use BVResize()",m,bv->m);
   bv->n = n;
   bv->N = N;
   bv->m = m;
@@ -170,7 +170,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
 
   Level: beginner
 
-.seealso: BVSetSizes(), BVGetSizes()
+.seealso: BVSetSizes(), BVGetSizes(), BVResize()
 @*/
 PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
 {
@@ -223,6 +223,46 @@ PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
   if (n) *n = bv->n;
   if (N) *N = bv->N;
   if (m) *m = bv->m;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVResize"
+/*@
+  BVResize - Change the number of columns.
+
+  Collective on BV
+
+  Input Parameters:
++ bv   - the basis vectors
+. m    - the new number of columns
+- copy - a flag indicating whether current values should be kept
+
+  Note:
+  Internal storage is reallocated. If the copy flag is set to true, then
+  the contents are copied to the leading part of the new space.
+
+  Level: advanced
+
+.seealso: BVSetSizes(), BVSetSizesFromVec()
+@*/
+PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(bv,m,2);
+  PetscValidLogicalCollectiveBool(bv,copy,3);
+  if (m <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",m);
+  if (bv->m == m) PetscFunctionReturn(0);
+
+  ierr = PetscLogEventBegin(BV_Create,bv,0,0,0);CHKERRQ(ierr);
+  ierr = (*bv->ops->resize)(bv,m,copy);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Create,bv,0,0,0);CHKERRQ(ierr);
+  bv->m = m;
+  bv->k = PetscMin(bv->k,m);
+  bv->l = PetscMin(bv->l,m);
   PetscFunctionReturn(0);
 }
 

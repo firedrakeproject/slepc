@@ -195,6 +195,40 @@ PetscErrorCode BVCopy_Svec(BV V,BV W)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVResize_Svec"
+PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *ctx = (BV_SVEC*)bv->data;
+  PetscScalar    *pv,*pnew;
+  PetscInt       bs;
+  Vec            vnew;
+  char           str[50];
+
+  PetscFunctionBegin;
+  ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
+  ierr = VecCreate(PetscObjectComm((PetscObject)bv->t),&vnew);CHKERRQ(ierr);
+  ierr = VecSetType(vnew,((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
+  ierr = VecSetSizes(vnew,m*bv->n,PETSC_DECIDE);CHKERRQ(ierr);
+  ierr = VecSetBlockSize(vnew,bs);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)vnew);CHKERRQ(ierr);
+  if (((PetscObject)bv)->name) {
+    ierr = PetscSNPrintf(str,50,"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);
+    ierr = PetscObjectSetName((PetscObject)vnew,str);CHKERRQ(ierr);
+  }
+  if (copy) {
+    ierr = VecGetArray(ctx->v,&pv);CHKERRQ(ierr);
+    ierr = VecGetArray(vnew,&pnew);CHKERRQ(ierr);
+    ierr = PetscMemcpy(pnew,pv,PetscMin(m,bv->m)*bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = VecRestoreArray(ctx->v,&pv);CHKERRQ(ierr);
+    ierr = VecRestoreArray(vnew,&pnew);CHKERRQ(ierr);
+  }
+  ierr = VecDestroy(&ctx->v);CHKERRQ(ierr);
+  ctx->v = vnew;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Svec"
 PetscErrorCode BVGetColumn_Svec(BV bv,PetscInt j,Vec *v)
 {
@@ -311,6 +345,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   bv->ops->norm           = BVNorm_Svec;
   bv->ops->orthogonalize  = BVOrthogonalizeAll_Svec;
   bv->ops->copy           = BVCopy_Svec;
+  bv->ops->resize         = BVResize_Svec;
   bv->ops->getcolumn      = BVGetColumn_Svec;
   bv->ops->restorecolumn  = BVRestoreColumn_Svec;
   bv->ops->view           = BVView_Svec;

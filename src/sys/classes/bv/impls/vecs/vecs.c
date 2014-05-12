@@ -237,6 +237,35 @@ PetscErrorCode BVCopy_Vecs(BV V,BV W)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVResize_Vecs"
+PetscErrorCode BVResize_Vecs(BV bv,PetscInt m,PetscBool copy)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *ctx = (BV_VECS*)bv->data;
+  Vec            *newV;
+  PetscInt       j;
+  char           str[50];
+
+  PetscFunctionBegin;
+  ierr = VecDuplicateVecs(bv->t,m,&newV);CHKERRQ(ierr);
+  ierr = PetscLogObjectParents(bv,m,newV);CHKERRQ(ierr);
+  if (((PetscObject)bv)->name) {
+    for (j=0;j<m;j++) {
+      ierr = PetscSNPrintf(str,50,"%s_%d",((PetscObject)bv)->name,j);CHKERRQ(ierr);
+      ierr = PetscObjectSetName((PetscObject)newV[j],str);CHKERRQ(ierr);
+    }
+  }
+  if (copy) {
+    for (j=0;j<PetscMin(m,bv->m);j++) {
+      ierr = VecCopy(ctx->V[j],newV[j]);CHKERRQ(ierr);
+    }
+  }
+  ierr = VecDestroyVecs(bv->m,&ctx->V);CHKERRQ(ierr);
+  ctx->V = newV;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn_Vecs"
 PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
 {
@@ -321,6 +350,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->norm           = BVNorm_Vecs;
   bv->ops->orthogonalize  = BVOrthogonalizeAll_Vecs;
   bv->ops->copy           = BVCopy_Vecs;
+  bv->ops->resize         = BVResize_Vecs;
   bv->ops->getcolumn      = BVGetColumn_Vecs;
   bv->ops->view           = BVView_Vecs;
   bv->ops->destroy        = BVDestroy_Vecs;

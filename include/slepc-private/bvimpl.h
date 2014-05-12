@@ -38,13 +38,14 @@ struct _BVOps {
   PetscErrorCode (*scale)(BV,PetscInt,PetscScalar);
   PetscErrorCode (*norm)(BV,PetscInt,NormType,PetscReal*);
   PetscErrorCode (*orthogonalize)(BV,Mat);
+  PetscErrorCode (*copy)(BV,BV);
+  PetscErrorCode (*resize)(BV,PetscInt,PetscBool);
   PetscErrorCode (*getcolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*restorecolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*setfromoptions)(BV);
-  PetscErrorCode (*copy)(BV,BV);
   PetscErrorCode (*create)(BV);
-  PetscErrorCode (*destroy)(BV);
   PetscErrorCode (*view)(BV,PetscViewer);
+  PetscErrorCode (*destroy)(BV);
 };
 
 struct _p_BV {
