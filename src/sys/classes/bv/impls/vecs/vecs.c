@@ -39,16 +39,16 @@ PetscErrorCode BVMult_Vecs(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscFunctionBegin;
   ldq = X->k;
   if (alpha!=1.0) {
-    ierr = BVAllocateWork_Private(Y,X->k);CHKERRQ(ierr);
+    ierr = BVAllocateWork_Private(Y,X->k-X->l);CHKERRQ(ierr);
     s = Y->work;
   }
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  for (j=0;j<Y->k;j++) {
+  for (j=Y->l;j<Y->k;j++) {
     ierr = VecScale(y->V[j],beta);CHKERRQ(ierr);
     if (alpha!=1.0) {
-      for (i=0;i<X->k;i++) s[i] = alpha*q[i+j*ldq];
-    } else s = q+j*ldq;
-    ierr = VecMAXPY(y->V[j],X->k,s,x->V);CHKERRQ(ierr);
+      for (i=X->l;i<X->k;i++) s[i-X->l] = alpha*q[i+j*ldq];
+    } else s = q+j*ldq+X->l;
+    ierr = VecMAXPY(y->V[j],X->k-X->l,s,x->V+X->l);CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -65,14 +65,14 @@ PetscErrorCode BVMultVec_Vecs(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
 
   PetscFunctionBegin;
   if (alpha!=1.0) {
-    ierr = BVAllocateWork_Private(X,X->k);CHKERRQ(ierr);
+    ierr = BVAllocateWork_Private(X,X->k-X->l);CHKERRQ(ierr);
     s = X->work;
   }
   ierr = VecScale(y,beta);CHKERRQ(ierr);
   if (alpha!=1.0) {
-    for (i=0;i<X->k;i++) s[i] = alpha*q[i];
+    for (i=0;i<X->k-X->l;i++) s[i] = alpha*q[i];
   } else s = q;
-  ierr = VecMAXPY(y,X->k,s,x->V);CHKERRQ(ierr);
+  ierr = VecMAXPY(y,X->k-X->l,s,x->V+X->l);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

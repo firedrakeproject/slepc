@@ -31,12 +31,12 @@
 /*
     C := alpha*A*B + beta*C
 
-    A is mxk (ld=m), B is kxn (ld=k), C is mxn (ld=m)
+    A is mxk (ld=m), B is kxn (ld=ldb), C is mxn (ld=m)
 */
-PetscErrorCode BVMult_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscScalar alpha,PetscScalar *A,PetscScalar *B,PetscScalar beta,PetscScalar *C)
+PetscErrorCode BVMult_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscInt ldb_,PetscScalar alpha,PetscScalar *A,PetscScalar *B,PetscScalar beta,PetscScalar *C)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   m,n,k;
+  PetscBLASInt   m,n,k,ldb;
 #if defined(PETSC_HAVE_FBLASLAPACK) || defined(PETSC_HAVE_F2CBLASLAPACK)
   PetscBLASInt   l,bs=BLOCKSIZE;
 #endif
@@ -45,14 +45,15 @@ PetscErrorCode BVMult_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,Pet
   ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k_,&k);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ldb_,&ldb);CHKERRQ(ierr);
 #if defined(PETSC_HAVE_FBLASLAPACK) || defined(PETSC_HAVE_F2CBLASLAPACK)
   l = m % bs;
-  if (l) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&k,&alpha,A,&m,B,&k,&beta,C,&m));
+  if (l) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&k,&alpha,A,&m,B,&ldb,&beta,C,&m));
   for (;l<m;l+=bs) {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&bs,&n,&k,&alpha,A+l,&m,B,&k,&beta,C+l,&m));
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&bs,&n,&k,&alpha,A+l,&m,B,&ldb,&beta,C+l,&m));
   }
 #else
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&m,&n,&k,&alpha,A,&m,B,&k,&beta,C,&m));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&m,&n,&k,&alpha,A,&m,B,&ldb,&beta,C,&m));
 #endif
   ierr = PetscLogFlops(2.0*m*n*k);CHKERRQ(ierr);
   PetscFunctionReturn(0);

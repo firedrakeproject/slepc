@@ -45,6 +45,9 @@
    The matrix Q must be a sequential dense Mat, with all entries equal on
    all processes (otherwise each process will compute a different update).
 
+   The leading columns of Y are not modified. Also, if X has leading
+   columns specified, then these columns do not participate in the computation.
+
    Level: intermediate
 
 .seealso: BVMultVec(), BVMultInPlace(), BVSetActiveColumns()
@@ -106,7 +109,12 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
    instead of two BV. Note that arguments are listed in different order
    with respect to BVMult().
 
-   The length of array q must be equal to the number of active columns of X.
+   If X has leading columns specified, then these columns do not participate
+   in the computation.
+
+   The length of array q must be equal to the number of active columns of X
+   minus the number of leading columns, i.e. the first entry of q multiplies
+   the first non-leading column.
 
    Level: intermediate
 
