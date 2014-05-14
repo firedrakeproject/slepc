@@ -143,21 +143,21 @@ runtest3_4:
 
 runtest4_1:
 	-@test=test4_1; \
-	${MPIEXEC} -np 1 ./test4 -bv_type vecs 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test4 -n 18 -kx 12 -ky 8 -bv_type vecs 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest4_2:
 	-@test=test4_1; \
-	${MPIEXEC} -np 1 ./test4 -bv_type contiguous 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test4 -n 18 -kx 12 -ky 8 -bv_type svec 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest4_3:
 	-@test=test4_1; \
-	${MPIEXEC} -np 1 ./test4 -bv_type svec 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test4 -n 18 -kx 12 -ky 8 -bv_type vecs -trans 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest4_4:
 	-@test=test4_1; \
-	${MPIEXEC} -np 1 ./test4 -bv_type mat 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test4 -n 18 -kx 12 -ky 8 -bv_type mat -trans 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 

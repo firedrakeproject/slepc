@@ -75,7 +75,26 @@ PetscErrorCode BVMultInPlace_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionBegin;
   ierr = VecGetArray(ctx->v,&pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,V->k,s-V->l,e-V->l,pv+V->l*V->n,q+s*V->k+V->l);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,V->k,s-V->l,e-V->l,pv+V->l*V->n,q+V->l*V->k+V->l,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = VecRestoreArray(ctx->v,&pv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMultInPlaceTranspose_Svec"
+PetscErrorCode BVMultInPlaceTranspose_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *ctx = (BV_SVEC*)V->data;
+  PetscScalar    *pv,*q;
+  PetscInt       ldq;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
+  ierr = VecGetArray(ctx->v,&pv);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,pv+V->l*V->n,q+V->l*ldq+V->l,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = VecRestoreArray(ctx->v,&pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -336,20 +355,21 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[1]);CHKERRQ(ierr);
   }
 
-  bv->ops->mult           = BVMult_Svec;
-  bv->ops->multvec        = BVMultVec_Svec;
-  bv->ops->multinplace    = BVMultInPlace_Svec;
-  bv->ops->dot            = BVDot_Svec;
-  bv->ops->dotvec         = BVDotVec_Svec;
-  bv->ops->scale          = BVScale_Svec;
-  bv->ops->norm           = BVNorm_Svec;
-  bv->ops->orthogonalize  = BVOrthogonalizeAll_Svec;
-  bv->ops->copy           = BVCopy_Svec;
-  bv->ops->resize         = BVResize_Svec;
-  bv->ops->getcolumn      = BVGetColumn_Svec;
-  bv->ops->restorecolumn  = BVRestoreColumn_Svec;
-  bv->ops->view           = BVView_Svec;
-  bv->ops->destroy        = BVDestroy_Svec;
+  bv->ops->mult             = BVMult_Svec;
+  bv->ops->multvec          = BVMultVec_Svec;
+  bv->ops->multinplace      = BVMultInPlace_Svec;
+  bv->ops->multinplacetrans = BVMultInPlaceTranspose_Svec;
+  bv->ops->dot              = BVDot_Svec;
+  bv->ops->dotvec           = BVDotVec_Svec;
+  bv->ops->scale            = BVScale_Svec;
+  bv->ops->norm             = BVNorm_Svec;
+  bv->ops->orthogonalize    = BVOrthogonalizeAll_Svec;
+  bv->ops->copy             = BVCopy_Svec;
+  bv->ops->resize           = BVResize_Svec;
+  bv->ops->getcolumn        = BVGetColumn_Svec;
+  bv->ops->restorecolumn    = BVRestoreColumn_Svec;
+  bv->ops->view             = BVView_Svec;
+  bv->ops->destroy          = BVDestroy_Svec;
   PetscFunctionReturn(0);
 }
 

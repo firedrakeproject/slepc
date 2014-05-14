@@ -35,7 +35,7 @@ int main(int argc,char **argv)
   PetscScalar    *q,*z;
   PetscReal      nrm;
   PetscViewer    view;
-  PetscBool      verbose;
+  PetscBool      verbose,trans;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -155,7 +155,15 @@ int main(int argc,char **argv)
   ierr = PetscFree(z);CHKERRQ(ierr);
 
   /* Test BVMultInPlace and BVScale */
-  ierr = BVMultInPlace(X,Q,lx+1,ky);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,"-trans",&trans);CHKERRQ(ierr);
+  if (trans) {
+    Mat Qt;
+    ierr = MatTranspose(Q,MAT_INITIAL_MATRIX,&Qt);CHKERRQ(ierr);
+    ierr = BVMultInPlaceTranspose(X,Qt,lx+1,ky);CHKERRQ(ierr);
+    ierr = MatDestroy(&Qt);CHKERRQ(ierr);
+  } else {
+    ierr = BVMultInPlace(X,Q,lx+1,ky);CHKERRQ(ierr);
+  }
   ierr = BVScale(X,-1,2.0);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVMultInPlace - - - - -\n");CHKERRQ(ierr);

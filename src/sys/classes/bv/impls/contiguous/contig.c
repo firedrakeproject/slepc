@@ -69,7 +69,24 @@ PetscErrorCode BVMultInPlace_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,V->k,s-V->l,e-V->l,ctx->array+V->l*V->n,q+s*V->k+V->l);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,V->k,s-V->l,e-V->l,ctx->array+V->l*V->n,q+V->l*V->k+V->l,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMultInPlaceTranspose_Contiguous"
+PetscErrorCode BVMultInPlaceTranspose_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
+{
+  PetscErrorCode ierr;
+  BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)V->data;
+  PetscScalar    *q;
+  PetscInt       ldq;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,ctx->array+V->l*V->n,q+V->l*ldq+V->l,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -273,19 +290,20 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
     }
   }
 
-  bv->ops->mult           = BVMult_Contiguous;
-  bv->ops->multvec        = BVMultVec_Contiguous;
-  bv->ops->multinplace    = BVMultInPlace_Contiguous;
-  bv->ops->dot            = BVDot_Contiguous;
-  bv->ops->dotvec         = BVDotVec_Contiguous;
-  bv->ops->scale          = BVScale_Contiguous;
-  bv->ops->norm           = BVNorm_Contiguous;
-  bv->ops->orthogonalize  = BVOrthogonalizeAll_Contiguous;
-  bv->ops->copy           = BVCopy_Contiguous;
-  bv->ops->resize         = BVResize_Contiguous;
-  bv->ops->getcolumn      = BVGetColumn_Contiguous;
-  bv->ops->view           = BVView_Vecs;
-  bv->ops->destroy        = BVDestroy_Contiguous;
+  bv->ops->mult             = BVMult_Contiguous;
+  bv->ops->multvec          = BVMultVec_Contiguous;
+  bv->ops->multinplace      = BVMultInPlace_Contiguous;
+  bv->ops->multinplacetrans = BVMultInPlaceTranspose_Contiguous;
+  bv->ops->dot              = BVDot_Contiguous;
+  bv->ops->dotvec           = BVDotVec_Contiguous;
+  bv->ops->scale            = BVScale_Contiguous;
+  bv->ops->norm             = BVNorm_Contiguous;
+  bv->ops->orthogonalize    = BVOrthogonalizeAll_Contiguous;
+  bv->ops->copy             = BVCopy_Contiguous;
+  bv->ops->resize           = BVResize_Contiguous;
+  bv->ops->getcolumn        = BVGetColumn_Contiguous;
+  bv->ops->view             = BVView_Vecs;
+  bv->ops->destroy          = BVDestroy_Contiguous;
   PetscFunctionReturn(0);
 }
 

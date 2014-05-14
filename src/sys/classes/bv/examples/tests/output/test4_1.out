@@ -1,4 +1,4 @@
-First BV with 6 active columns (3 leading columns) of dimension 10.
-Second BV with 5 active columns (2 leading columns) of dimension 10.
+First BV with 12 active columns (3 leading columns) of dimension 18.
+Second BV with 8 active columns (2 leading columns) of dimension 18.
 2-Norm or X[0] = 16.7332
-Frobenius Norm or X = 68.8186
+Frobenius Norm or X = 330.23
