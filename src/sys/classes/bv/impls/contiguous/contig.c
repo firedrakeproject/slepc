@@ -84,7 +84,7 @@ PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  ierr = BVDot_BLAS_Private(X,Y->k,X->k,X->n,y->array,x->array,m,x->mpi);CHKERRQ(ierr);
+  ierr = BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,X->n,Y->k,y->array+Y->l*Y->n,x->array+X->l*X->n,m+X->l*Y->k+Y->l,x->mpi);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -104,7 +104,7 @@ PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *m)
     z = X->Bx;
   }
   ierr = VecGetArray(z,&py);CHKERRQ(ierr);
-  ierr = BVDotVec_BLAS_Private(X,X->n,X->k,x->array,py,m,x->mpi);CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,x->array+X->l*X->n,py,m,x->mpi);CHKERRQ(ierr);
   ierr = VecRestoreArray(z,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

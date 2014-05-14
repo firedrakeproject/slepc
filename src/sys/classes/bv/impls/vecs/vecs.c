@@ -121,8 +121,8 @@ PetscErrorCode BVDot_Vecs(BV X,BV Y,Mat M)
   PetscFunctionBegin;
   ldm = Y->k;
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  for (j=0;j<X->k;j++) {
-    ierr = VecMDot(x->V[j],Y->k,y->V,m+j*ldm);CHKERRQ(ierr);
+  for (j=X->l;j<X->k;j++) {
+    ierr = VecMDot(x->V[j],Y->k-Y->l,y->V+Y->l,m+j*ldm+Y->l);CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -141,7 +141,7 @@ PetscErrorCode BVDotVec_Vecs(BV X,Vec y,PetscScalar *m)
     ierr = BV_MatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
-  ierr = VecMDot(z,X->k,x->V,m);CHKERRQ(ierr);
+  ierr = VecMDot(z,X->k-X->l,x->V+X->l,m);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

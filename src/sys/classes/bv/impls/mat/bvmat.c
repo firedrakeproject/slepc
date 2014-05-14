@@ -93,7 +93,7 @@ PetscErrorCode BVDot_Mat(BV X,BV Y,Mat M)
   ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
   ierr = MatDenseGetArray(y->A,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  ierr = BVDot_BLAS_Private(X,Y->k,X->k,X->n,py,px,m,x->mpi);CHKERRQ(ierr);
+  ierr = BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,X->n,Y->k,py+Y->l*Y->n,px+X->l*X->n,m+X->l*Y->k+Y->l,x->mpi);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(y->A,&py);CHKERRQ(ierr);
@@ -116,7 +116,7 @@ PetscErrorCode BVDotVec_Mat(BV X,Vec y,PetscScalar *m)
   }
   ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
   ierr = VecGetArray(z,&py);CHKERRQ(ierr);
-  ierr = BVDotVec_BLAS_Private(X,X->n,X->k,px,py,m,x->mpi);CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+X->l*X->n,py,m,x->mpi);CHKERRQ(ierr);
   ierr = VecRestoreArray(z,&py);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
   PetscFunctionReturn(0);

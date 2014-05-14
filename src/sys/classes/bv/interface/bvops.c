@@ -233,6 +233,8 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
 
    On entry, M must be a sequential dense Mat with dimensions m,n where
    m is the number of active columns of Y and n is the number of active columns of X.
+   Only rows (resp. columns) of M starting from ly (resp. lx) are computed,
+   where ly (resp. lx) is the number of leading columns of Y (resp. X).
 
    X and Y need not be different objects.
 
@@ -271,9 +273,9 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   ierr = PetscLogEventBegin(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
   if (X->matrix) { /* non-standard inner product: cast into dotvec ops */
     ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
-    for (j=0;j<X->k;j++) {
+    for (j=X->l;j<X->k;j++) {
       ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
-      ierr = (*X->ops->dotvec)(Y,z,marray+j*m);CHKERRQ(ierr);
+      ierr = (*X->ops->dotvec)(Y,z,marray+j*m+Y->l);CHKERRQ(ierr);
       ierr = BVRestoreColumn(X,j,&z);CHKERRQ(ierr);
     }
     ierr = MatDenseRestoreArray(M,&marray);CHKERRQ(ierr);
@@ -306,6 +308,10 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
 
    If a non-standard inner product has been specified with BVSetMatrix(),
    then the result is m = X^H*B*y.
+
+   The length of array m must be equal to the number of active columns of X
+   minus the number of leading columns, i.e. the first entry of m is the
+   product of the first non-leading column with y.
 
    Level: intermediate
 

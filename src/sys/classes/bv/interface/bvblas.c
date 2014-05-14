@@ -171,24 +171,35 @@ PetscErrorCode BVMultInPlace_Vecs_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt
 /*
     C := A'*B
 
-    A' is mxk (ld=k), B is kxn (ld=k), C is mxn (ld=m)
+    A' is mxk (ld=k), B is kxn (ld=k), C is mxn (ld=ldc)
 */
-PetscErrorCode BVDot_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscScalar *A,PetscScalar *B,PetscScalar *C,PetscBool mpi)
+PetscErrorCode BVDot_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,PetscInt ldc_,PetscScalar *A,PetscScalar *B,PetscScalar *C,PetscBool mpi)
 {
   PetscErrorCode ierr;
-  PetscScalar    zero=0.0,one=1.0;
-  PetscBLASInt   m,n,k;
+  PetscScalar    zero=0.0,one=1.0,*CC;
+  PetscBLASInt   m,n,k,ldc,j;
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k_,&k);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ldc_,&ldc);CHKERRQ(ierr);
   if (mpi) {
-    ierr = BVAllocateWork_Private(bv,m*n);CHKERRQ(ierr);
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,A,&k,B,&k,&zero,bv->work,&m));
-    ierr = MPI_Allreduce(bv->work,C,m*n,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+    if (ldc==m) {
+      ierr = BVAllocateWork_Private(bv,m*n);CHKERRQ(ierr);
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,A,&k,B,&k,&zero,bv->work,&ldc));
+      ierr = MPI_Allreduce(bv->work,C,m*n,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+    } else {
+      ierr = BVAllocateWork_Private(bv,2*m*n);CHKERRQ(ierr);
+      CC = bv->work+m*n;
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,A,&k,B,&k,&zero,bv->work,&m));
+      ierr = MPI_Allreduce(bv->work,CC,m*n,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+      for (j=0;j<n;j++) {
+        ierr = PetscMemcpy(C+j*ldc,CC+j*m,m*sizeof(PetscScalar));CHKERRQ(ierr);
+      }
+    }
   } else {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,A,&k,B,&k,&zero,C,&m));
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,A,&k,B,&k,&zero,C,&ldc));
   }
   ierr = PetscLogFlops(2.0*m*n*k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
