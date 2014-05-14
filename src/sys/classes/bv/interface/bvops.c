@@ -489,9 +489,14 @@ PetscErrorCode BVNorm(BV bv,PetscInt j,NormType type,PetscReal *val)
     ierr = BVRestoreColumn(bv,j,&z);CHKERRQ(ierr);
     if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
       ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
-    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON)
-      SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
-    *val = PetscSqrtScalar(PetscRealPart(p));
+    if (bv->indef) {
+      if (PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
+      if (PetscRealPart(p)<0.0) *val = -PetscSqrtScalar(-PetscRealPart(p));
+      else *val = PetscSqrtScalar(PetscRealPart(p));
+    } else { 
+      if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
+      *val = PetscSqrtScalar(PetscRealPart(p));
+    }
   } else {
     ierr = (*bv->ops->norm)(bv,j,type,val);CHKERRQ(ierr);
   }

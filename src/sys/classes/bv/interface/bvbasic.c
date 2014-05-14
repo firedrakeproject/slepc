@@ -450,6 +450,98 @@ PetscErrorCode BVGetMatrix(BV bv,Mat *B,PetscBool *indef)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVSetSignature"
+/*@
+   BVSetSignature - Sets the signature matrix to be used in orthogonalization.
+
+   Logically Collective on BV
+
+   Input Parameter:
++  bv    - the basis vectors context
+-  omega - a vector representing the diagonal of the signature matrix
+
+   Note:
+   The signature matrix Omega = V'*B*V is relevant only for an indefinite B.
+
+   Level: developer
+
+.seealso: BVSetMatrix(), BVGetSignature()
+@*/
+PetscErrorCode BVSetSignature(BV bv,Vec omega)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,n;
+  PetscScalar    *pomega;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  PetscValidHeaderSpecific(omega,VEC_CLASSID,2);
+  PetscValidType(omega,2);
+
+  ierr = VecGetSize(omega,&n);CHKERRQ(ierr);
+  if (n!=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Vec argument has %D elements, should be %D",n,bv->k);
+  if (bv->indef) {
+    if (!bv->omega) {
+      ierr = PetscMalloc1(bv->m,&bv->omega);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)bv,bv->m*sizeof(PetscReal));CHKERRQ(ierr);
+    }
+    ierr = VecGetArray(omega,&pomega);CHKERRQ(ierr);
+    for (i=0;i<n;i++) bv->omega[i] = PetscRealPart(pomega[i]);
+    ierr = VecRestoreArray(omega,&pomega);CHKERRQ(ierr);
+  } else {
+    ierr = PetscInfo(bv,"Ignoring signature because BV is not indefinite\n");CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetSignature"
+/*@
+   BVGetSignature - Retrieves the signature matrix from last orthogonalization.
+
+   Not collective
+
+   Input Parameter:
+.  bv    - the basis vectors context
+
+   Output Parameter:
+.  omega - a vector representing the diagonal of the signature matrix
+
+   Note:
+   The signature matrix Omega = V'*B*V is relevant only for an indefinite B.
+
+   Level: developer
+
+.seealso: BVSetMatrix(), BVSetSignature()
+@*/
+PetscErrorCode BVGetSignature(BV bv,Vec omega)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,n;
+  PetscScalar    *pomega;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  PetscValidHeaderSpecific(omega,VEC_CLASSID,2);
+  PetscValidType(omega,2);
+
+  ierr = VecGetSize(omega,&n);CHKERRQ(ierr);
+  if (n!=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Vec argument has %D elements, should be %D",n,bv->k);
+  if (bv->indef && bv->omega) {
+    ierr = VecGetArray(omega,&pomega);CHKERRQ(ierr);
+    for (i=0;i<n;i++) pomega[i] = bv->omega[i];
+    ierr = VecRestoreArray(omega,&pomega);CHKERRQ(ierr);
+  } else {
+    ierr = VecSet(omega,1.0);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVSetFromOptions"
 /*@
    BVSetFromOptions - Sets BV options from the options database.
