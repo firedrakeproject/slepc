@@ -21,6 +21,8 @@
 
 ALL: lib
 
+#requiresscalar    real
+
 CFLAGS   =
 FFLAGS   =
 SOURCEC  = cutlr.c dibtdc.c dlaed3m.c dmerg2.c dsbtdc.c dsrtdf.c

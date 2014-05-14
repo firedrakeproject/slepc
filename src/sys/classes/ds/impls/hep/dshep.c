@@ -663,6 +663,7 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
+#if !defined(PETSC_USE_COMPLEX)
 #undef __FUNCT__
 #define __FUNCT__ "DSSolve_HEP_BDC"
 PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
@@ -730,6 +731,7 @@ PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
   if (wi) for (i=0;i<ds->n;i++) wi[i] = 0.0;
   PetscFunctionReturn(0);
 }
+#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "DSTruncate_HEP"
@@ -895,7 +897,9 @@ PETSC_EXTERN PetscErrorCode DSCreate_HEP(DS ds)
   ds->ops->solve[0]      = DSSolve_HEP_QR;
   ds->ops->solve[1]      = DSSolve_HEP_MRRR;
   ds->ops->solve[2]      = DSSolve_HEP_DC;
+#if !defined(PETSC_USE_COMPLEX)
   ds->ops->solve[3]      = DSSolve_HEP_BDC;
+#endif
   ds->ops->sort          = DSSort_HEP;
   ds->ops->truncate      = DSTruncate_HEP;
   ds->ops->update        = DSUpdateExtraRow_HEP;
