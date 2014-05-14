@@ -39,16 +39,16 @@ PetscErrorCode BVMult_Vecs(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscFunctionBegin;
   ldq = X->k;
   if (alpha!=1.0) {
-    ierr = BVAllocateWork_Private(Y,X->k);CHKERRQ(ierr);
+    ierr = BVAllocateWork_Private(Y,X->k-X->l);CHKERRQ(ierr);
     s = Y->work;
   }
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  for (j=0;j<Y->k;j++) {
+  for (j=Y->l;j<Y->k;j++) {
     ierr = VecScale(y->V[j],beta);CHKERRQ(ierr);
     if (alpha!=1.0) {
-      for (i=0;i<X->k;i++) s[i] = alpha*q[i+j*ldq];
-    } else s = q+j*ldq;
-    ierr = VecMAXPY(y->V[j],X->k,s,x->V);CHKERRQ(ierr);
+      for (i=X->l;i<X->k;i++) s[i-X->l] = alpha*q[i+j*ldq];
+    } else s = q+j*ldq+X->l;
+    ierr = VecMAXPY(y->V[j],X->k-X->l,s,x->V+X->l);CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -65,14 +65,14 @@ PetscErrorCode BVMultVec_Vecs(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
 
   PetscFunctionBegin;
   if (alpha!=1.0) {
-    ierr = BVAllocateWork_Private(X,X->k);CHKERRQ(ierr);
+    ierr = BVAllocateWork_Private(X,X->k-X->l);CHKERRQ(ierr);
     s = X->work;
   }
   ierr = VecScale(y,beta);CHKERRQ(ierr);
   if (alpha!=1.0) {
-    for (i=0;i<X->k;i++) s[i] = alpha*q[i];
+    for (i=0;i<X->k-X->l;i++) s[i] = alpha*q[i];
   } else s = q;
-  ierr = VecMAXPY(y,X->k,s,x->V);CHKERRQ(ierr);
+  ierr = VecMAXPY(y,X->k-X->l,s,x->V+X->l);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -95,14 +95,44 @@ PetscErrorCode BVMultInPlace_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionBegin;
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
   /* V2 := V2*Q2 */
-  ierr = BVMultInPlace_Vecs_Private(V,V->n,e-s,V->k,ctx->V+s,q+s*ldq+s);CHKERRQ(ierr);
+  ierr = BVMultInPlace_Vecs_Private(V,V->n,e-s,V->k,ctx->V+s,q+s*ldq+s,PETSC_FALSE);CHKERRQ(ierr);
   /* V2 += V1*Q1 + V3*Q3 */
   for (i=s;i<e;i++) {
-    if (s>0) {
-      ierr = VecMAXPY(ctx->V[i],s,q+i*ldq,ctx->V);CHKERRQ(ierr);
+    if (s>V->l) {
+      ierr = VecMAXPY(ctx->V[i],s-V->l,q+i*ldq+V->l,ctx->V+V->l);CHKERRQ(ierr);
     }
     if (ldq>e) {
       ierr = VecMAXPY(ctx->V[i],ldq-e,q+i*ldq+e,ctx->V+e);CHKERRQ(ierr);
+    }
+  }
+  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMultInPlaceTranspose_Vecs"
+/*
+   BVMultInPlaceTranspose_Vecs - V(:,s:e-1) = V*Q'(:,s:e-1) for regular vectors.
+*/
+PetscErrorCode BVMultInPlaceTranspose_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *ctx = (BV_VECS*)V->data;
+  PetscScalar    *q;
+  PetscInt       i,j,ldq,n;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(Q,&ldq,&n);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  /* V2 := V2*Q2' */
+  ierr = BVMultInPlace_Vecs_Private(V,V->n,e-s,ldq,ctx->V+s,q+s*ldq+s,PETSC_TRUE);CHKERRQ(ierr);
+  /* V2 += V1*Q1' + V3*Q3' */
+  for (i=s;i<e;i++) {
+    for (j=V->l;j<s;j++) {
+      ierr = VecAXPY(ctx->V[i],q[i+j*ldq],ctx->V[j]);CHKERRQ(ierr);
+    }
+    for (j=e;j<n;j++) {
+      ierr = VecAXPY(ctx->V[i],q[i+j*ldq],ctx->V[j]);CHKERRQ(ierr);
     }
   }
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
@@ -121,8 +151,8 @@ PetscErrorCode BVDot_Vecs(BV X,BV Y,Mat M)
   PetscFunctionBegin;
   ldm = Y->k;
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  for (j=0;j<X->k;j++) {
-    ierr = VecMDot(x->V[j],Y->k,y->V,m+j*ldm);CHKERRQ(ierr);
+  for (j=X->l;j<X->k;j++) {
+    ierr = VecMDot(x->V[j],Y->k-Y->l,y->V+Y->l,m+j*ldm+Y->l);CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -141,7 +171,7 @@ PetscErrorCode BVDotVec_Vecs(BV X,Vec y,PetscScalar *m)
     ierr = BV_MatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
-  ierr = VecMDot(z,X->k,x->V,m);CHKERRQ(ierr);
+  ierr = VecMDot(z,X->k-X->l,x->V+X->l,m);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -341,19 +371,20 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
     }
   }
 
-  bv->ops->mult           = BVMult_Vecs;
-  bv->ops->multvec        = BVMultVec_Vecs;
-  bv->ops->multinplace    = BVMultInPlace_Vecs;
-  bv->ops->dot            = BVDot_Vecs;
-  bv->ops->dotvec         = BVDotVec_Vecs;
-  bv->ops->scale          = BVScale_Vecs;
-  bv->ops->norm           = BVNorm_Vecs;
-  bv->ops->orthogonalize  = BVOrthogonalizeAll_Vecs;
-  bv->ops->copy           = BVCopy_Vecs;
-  bv->ops->resize         = BVResize_Vecs;
-  bv->ops->getcolumn      = BVGetColumn_Vecs;
-  bv->ops->view           = BVView_Vecs;
-  bv->ops->destroy        = BVDestroy_Vecs;
+  bv->ops->mult             = BVMult_Vecs;
+  bv->ops->multvec          = BVMultVec_Vecs;
+  bv->ops->multinplace      = BVMultInPlace_Vecs;
+  bv->ops->multinplacetrans = BVMultInPlaceTranspose_Vecs;
+  bv->ops->dot              = BVDot_Vecs;
+  bv->ops->dotvec           = BVDotVec_Vecs;
+  bv->ops->scale            = BVScale_Vecs;
+  bv->ops->norm             = BVNorm_Vecs;
+  bv->ops->orthogonalize    = BVOrthogonalizeAll_Vecs;
+  bv->ops->copy             = BVCopy_Vecs;
+  bv->ops->resize           = BVResize_Vecs;
+  bv->ops->getcolumn        = BVGetColumn_Vecs;
+  bv->ops->view             = BVView_Vecs;
+  bv->ops->destroy          = BVDestroy_Vecs;
   PetscFunctionReturn(0);
 }
 

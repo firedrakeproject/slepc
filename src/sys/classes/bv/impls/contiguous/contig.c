@@ -39,7 +39,7 @@ PetscErrorCode BVMult_Contiguous(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Ma
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMult_BLAS_Private(Y,Y->n,Y->k,X->k,alpha,x->array,q,beta,y->array);CHKERRQ(ierr);
+  ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,X->k,alpha,x->array+X->l*X->n,q+Y->l*X->k+X->l,beta,y->array+Y->l*Y->n);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -54,7 +54,7 @@ PetscErrorCode BVMultVec_Contiguous(BV X,PetscScalar alpha,PetscScalar beta,Vec 
 
   PetscFunctionBegin;
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = BVMultVec_BLAS_Private(X,X->n,X->k,alpha,x->array,q,beta,py);CHKERRQ(ierr);
+  ierr = BVMultVec_BLAS_Private(X,X->n,X->k-X->l,alpha,x->array+X->l*X->n,q,beta,py);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -69,7 +69,24 @@ PetscErrorCode BVMultInPlace_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k,s,e,ctx->array,q);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,V->k,s-V->l,e-V->l,ctx->array+V->l*V->n,q+V->l*V->k+V->l,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMultInPlaceTranspose_Contiguous"
+PetscErrorCode BVMultInPlaceTranspose_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
+{
+  PetscErrorCode ierr;
+  BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)V->data;
+  PetscScalar    *q;
+  PetscInt       ldq;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,ctx->array+V->l*V->n,q+V->l*ldq+V->l,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -84,7 +101,7 @@ PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  ierr = BVDot_BLAS_Private(X,Y->k,X->k,X->n,y->array,x->array,m,x->mpi);CHKERRQ(ierr);
+  ierr = BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,X->n,Y->k,y->array+Y->l*Y->n,x->array+X->l*X->n,m+X->l*Y->k+Y->l,x->mpi);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -104,7 +121,7 @@ PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *m)
     z = X->Bx;
   }
   ierr = VecGetArray(z,&py);CHKERRQ(ierr);
-  ierr = BVDotVec_BLAS_Private(X,X->n,X->k,x->array,py,m,x->mpi);CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,x->array+X->l*X->n,py,m,x->mpi);CHKERRQ(ierr);
   ierr = VecRestoreArray(z,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -273,19 +290,20 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
     }
   }
 
-  bv->ops->mult           = BVMult_Contiguous;
-  bv->ops->multvec        = BVMultVec_Contiguous;
-  bv->ops->multinplace    = BVMultInPlace_Contiguous;
-  bv->ops->dot            = BVDot_Contiguous;
-  bv->ops->dotvec         = BVDotVec_Contiguous;
-  bv->ops->scale          = BVScale_Contiguous;
-  bv->ops->norm           = BVNorm_Contiguous;
-  bv->ops->orthogonalize  = BVOrthogonalizeAll_Contiguous;
-  bv->ops->copy           = BVCopy_Contiguous;
-  bv->ops->resize         = BVResize_Contiguous;
-  bv->ops->getcolumn      = BVGetColumn_Contiguous;
-  bv->ops->view           = BVView_Vecs;
-  bv->ops->destroy        = BVDestroy_Contiguous;
+  bv->ops->mult             = BVMult_Contiguous;
+  bv->ops->multvec          = BVMultVec_Contiguous;
+  bv->ops->multinplace      = BVMultInPlace_Contiguous;
+  bv->ops->multinplacetrans = BVMultInPlaceTranspose_Contiguous;
+  bv->ops->dot              = BVDot_Contiguous;
+  bv->ops->dotvec           = BVDotVec_Contiguous;
+  bv->ops->scale            = BVScale_Contiguous;
+  bv->ops->norm             = BVNorm_Contiguous;
+  bv->ops->orthogonalize    = BVOrthogonalizeAll_Contiguous;
+  bv->ops->copy             = BVCopy_Contiguous;
+  bv->ops->resize           = BVResize_Contiguous;
+  bv->ops->getcolumn        = BVGetColumn_Contiguous;
+  bv->ops->view             = BVView_Vecs;
+  bv->ops->destroy          = BVDestroy_Contiguous;
   PetscFunctionReturn(0);
 }
 

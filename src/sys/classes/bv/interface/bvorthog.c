@@ -242,6 +242,8 @@ static PetscErrorCode BVOrthogonalizeCGS(BV bv,PetscInt j,PetscScalar *H,PetscRe
    where V[.] are the vectors of BV. The columns V[0..j-1] are assumed to be
    mutually orthonormal.
 
+   Leading columns V[0..l-1] also participate in the orthogonalization.
+
    If a non-standard inner product has been specified with BVSetMatrix(),
    then the vector is B-orthogonalized, using the non-standard inner product
    defined by matrix B. The output vector satisfies V[j]'*B*V[0..j-1] = 0.
@@ -250,12 +252,12 @@ static PetscErrorCode BVOrthogonalizeCGS(BV bv,PetscInt j,PetscScalar *H,PetscRe
 
    Level: advanced
 
-.seealso: BVSetOrthogonalization(), BVSetMatrix()
+.seealso: BVSetOrthogonalization(), BVSetMatrix(), BVSetActiveColumns()
 @*/
 PetscErrorCode BVOrthogonalize(BV bv,PetscInt j,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
   PetscErrorCode ierr;
-  PetscInt       i,ksave;
+  PetscInt       i,ksave,lsave;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -267,6 +269,8 @@ PetscErrorCode BVOrthogonalize(BV bv,PetscInt j,PetscScalar *H,PetscReal *norm,P
 
   ierr = PetscLogEventBegin(BV_Orthogonalize,bv,0,0,0);CHKERRQ(ierr);
   ksave = bv->k;
+  lsave = bv->l;
+  bv->l = 0;  /* must also orthogonalize against leading columns */
   if (!bv->h) {
     ierr = PetscMalloc2(bv->m,&bv->h,bv->m,&bv->c);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)bv,2*bv->m*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -279,8 +283,9 @@ PetscErrorCode BVOrthogonalize(BV bv,PetscInt j,PetscScalar *H,PetscReal *norm,P
     ierr = BVOrthogonalizeMGS(bv,j,H,norm,lindep);CHKERRQ(ierr);
     break;
   }
-  if (H) for (i=bv->l;i<j;i++) H[i-bv->l] = bv->h[i];
   bv->k = ksave;
+  bv->l = lsave;
+  if (H) for (i=bv->l;i<j;i++) H[i-bv->l] = bv->h[i];
   ierr = PetscLogEventEnd(BV_Orthogonalize,bv,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

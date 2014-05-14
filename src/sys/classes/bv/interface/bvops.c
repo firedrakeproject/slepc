@@ -45,10 +45,12 @@
    The matrix Q must be a sequential dense Mat, with all entries equal on
    all processes (otherwise each process will compute a different update).
 
+   The leading columns of Y are not modified. Also, if X has leading
+   columns specified, then these columns do not participate in the computation.
+
    Level: intermediate
 
 .seealso: BVMultVec(), BVMultInPlace(), BVSetActiveColumns()
-
 @*/
 PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
@@ -106,12 +108,16 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
    instead of two BV. Note that arguments are listed in different order
    with respect to BVMult().
 
-   The length of array q must be equal to the number of active columns of X.
+   If X has leading columns specified, then these columns do not participate
+   in the computation.
+
+   The length of array q must be equal to the number of active columns of X
+   minus the number of leading columns, i.e. the first entry of q multiplies
+   the first non-leading column.
 
    Level: intermediate
 
 .seealso: BVMult(), BVMultInPlace(), BVSetActiveColumns()
-
 @*/
 PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
 {
@@ -166,8 +172,7 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
 
    Level: intermediate
 
-.seealso: BVMult(), BVMultVec(), BVSetActiveColumns()
-
+.seealso: BVMult(), BVMultVec(), BVMultInPlaceTranspose(), BVSetActiveColumns()
 @*/
 PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
 {
@@ -186,8 +191,8 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
   ierr = PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSE,&match);CHKERRQ(ierr);
   if (!match) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
 
-  if (s<0 || s>=V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %D, should be between 0 and %D",s,V->k-1);
-  if (e<0 || e>V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %D, should be between 0 and %D",e,V->k);
+  if (s<V->l || s>=V->k) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %D, should be between %D and %D",s,V->l,V->k-1);
+  if (e<V->l || e>V->k) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %D, should be between %D and %D",e,V->l,V->k);
   ierr = MatGetSize(Q,&m,&n);CHKERRQ(ierr);
   if (m!=V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, cannot multiply a BV with %D active columns",m,V->k);
   if (e>n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %D columns, the requested value of e is larger: %D",n,e);
@@ -195,6 +200,60 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
 
   ierr = PetscLogEventBegin(BV_Mult,V,Q,0,0);CHKERRQ(ierr);
   ierr = (*V->ops->multinplace)(V,Q,s,e);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Mult,V,Q,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMultInPlaceTranspose"
+/*@
+   BVMultInPlaceTranspose - Update a set of vectors as V(:,s:e-1) = V*Q'(:,s:e-1).
+
+   Logically Collective on BV
+
+   Input Parameters:
++  Q - a sequential dense matrix
+.  s - first column of V to be overwritten
+-  e - first column of V not to be overwritten
+
+   Input/Output Parameter:
++  V - basis vectors
+
+   Notes:
+   This is a variant of BVMultInPlace() where the conjugate transpose
+   of Q is used.
+
+   Level: intermediate
+
+.seealso: BVMultInPlace()
+@*/
+PetscErrorCode BVMultInPlaceTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
+{
+  PetscErrorCode ierr;
+  PetscBool      match;
+  PetscInt       m,n;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidHeaderSpecific(Q,MAT_CLASSID,2);
+  PetscValidLogicalCollectiveInt(V,s,3);
+  PetscValidLogicalCollectiveInt(V,e,4);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidType(Q,2);
+  ierr = PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSE,&match);CHKERRQ(ierr);
+  if (!match) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
+
+  if (s<V->l || s>=V->k) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %D, should be between %D and %D",s,V->l,V->k-1);
+  if (e<V->l || e>V->k) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %D, should be between %D and %D",e,V->l,V->k);
+  ierr = MatGetSize(Q,&m,&n);CHKERRQ(ierr);
+  if (n!=V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, cannot multiply a BV with %D active columns",n,V->k);
+  if (e>m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %D columns, the requested value of e is larger: %D",m,e);
+  if (s>=e || !V->n) PetscFunctionReturn(0);
+
+  ierr = PetscLogEventBegin(BV_Mult,V,Q,0,0);CHKERRQ(ierr);
+  ierr = (*V->ops->multinplacetrans)(V,Q,s,e);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_Mult,V,Q,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -225,6 +284,8 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
 
    On entry, M must be a sequential dense Mat with dimensions m,n where
    m is the number of active columns of Y and n is the number of active columns of X.
+   Only rows (resp. columns) of M starting from ly (resp. lx) are computed,
+   where ly (resp. lx) is the number of leading columns of Y (resp. X).
 
    X and Y need not be different objects.
 
@@ -263,9 +324,9 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   ierr = PetscLogEventBegin(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
   if (X->matrix) { /* non-standard inner product: cast into dotvec ops */
     ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
-    for (j=0;j<X->k;j++) {
+    for (j=X->l;j<X->k;j++) {
       ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
-      ierr = (*X->ops->dotvec)(Y,z,marray+j*m);CHKERRQ(ierr);
+      ierr = (*X->ops->dotvec)(Y,z,marray+j*m+Y->l);CHKERRQ(ierr);
       ierr = BVRestoreColumn(X,j,&z);CHKERRQ(ierr);
     }
     ierr = MatDenseRestoreArray(M,&marray);CHKERRQ(ierr);
@@ -298,6 +359,10 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
 
    If a non-standard inner product has been specified with BVSetMatrix(),
    then the result is m = X^H*B*y.
+
+   The length of array m must be equal to the number of active columns of X
+   minus the number of leading columns, i.e. the first entry of m is the
+   product of the first non-leading column with y.
 
    Level: intermediate
 

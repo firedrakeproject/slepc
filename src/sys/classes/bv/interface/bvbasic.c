@@ -295,6 +295,10 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
    considered. This is useful when the BV is filled from left to right, so
    the last m-k columns do not have relevant information.
 
+   Also in operations such as BVMult() or BVDot(), the first l columns are
+   normally not included in the computation. See the manpage of each
+   operation.
+
    In orthogonalization operations, the first l columns are treated
    differently: they participate in the orthogonalization but the computed
    coefficients are not stored.
@@ -313,20 +317,20 @@ PetscErrorCode BVSetActiveColumns(BV bv,PetscInt l,PetscInt k)
   PetscValidLogicalCollectiveInt(bv,l,2);
   PetscValidLogicalCollectiveInt(bv,k,3);
   BVCheckSizes(bv,1);
-  if (l) {
-    if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
-      bv->l = 0;
-    } else {
-      if (l<0 || l>bv->m) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and m");
-      bv->l = l;
-    }
-  }
   if (k) {
     if (k==PETSC_DECIDE || k==PETSC_DEFAULT) {
       bv->k = bv->m;
     } else {
       if (k<0 || k>bv->m) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and m");
       bv->k = k;
+    }
+  }
+  if (l) {
+    if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
+      bv->l = 0;
+    } else {
+      if (l<0 || l>bv->k-1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and k-1");
+      bv->l = l;
     }
   }
   PetscFunctionReturn(0);
