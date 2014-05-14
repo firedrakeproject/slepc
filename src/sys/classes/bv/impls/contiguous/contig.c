@@ -69,7 +69,7 @@ PetscErrorCode BVMultInPlace_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k,s,e,ctx->array,q);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,V->k,s-V->l,e-V->l,ctx->array+V->l*V->n,q+s*V->k+V->l);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

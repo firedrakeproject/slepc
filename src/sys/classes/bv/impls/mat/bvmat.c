@@ -75,7 +75,7 @@ PetscErrorCode BVMultInPlace_Mat(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionBegin;
   ierr = MatDenseGetArray(ctx->A,&pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k,s,e,pv,q);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,V->k,s-V->l,e-V->l,pv+V->l*V->n,q+s*V->k+V->l);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(ctx->A,&pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);

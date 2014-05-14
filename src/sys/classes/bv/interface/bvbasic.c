@@ -295,6 +295,10 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
    considered. This is useful when the BV is filled from left to right, so
    the last m-k columns do not have relevant information.
 
+   Also in operations such as BVMult() or BVDot(), the first l columns are
+   normally not included in the computation. See the manpage of each
+   operation.
+
    In orthogonalization operations, the first l columns are treated
    differently: they participate in the orthogonalization but the computed
    coefficients are not stored.

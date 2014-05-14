@@ -98,8 +98,8 @@ PetscErrorCode BVMultInPlace_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
   ierr = BVMultInPlace_Vecs_Private(V,V->n,e-s,V->k,ctx->V+s,q+s*ldq+s);CHKERRQ(ierr);
   /* V2 += V1*Q1 + V3*Q3 */
   for (i=s;i<e;i++) {
-    if (s>0) {
-      ierr = VecMAXPY(ctx->V[i],s,q+i*ldq,ctx->V);CHKERRQ(ierr);
+    if (s>V->l) {
+      ierr = VecMAXPY(ctx->V[i],s-V->l,q+i*ldq+V->l,ctx->V+V->l);CHKERRQ(ierr);
     }
     if (ldq>e) {
       ierr = VecMAXPY(ctx->V[i],ldq-e,q+i*ldq+e,ctx->V+e);CHKERRQ(ierr);
