@@ -180,7 +180,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   PetscReal      *alpha,*beta,lastbeta,norm;
   PetscScalar    *swork,*w,*Q,*PT;
   PetscInt       i,k,j,nv,ld;
-  Vec            v,z,u=0,u_1=0;
+  Vec            v,u=0,u_1=0;
   Mat            U,VT;
   PetscBool      conv;
 
@@ -265,9 +265,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
 
     /* copy restart vector from the last column */
     if (svd->reason == SVD_CONVERGED_ITERATING) {
-      ierr = BVGetColumn(svd->V,svd->nconv+k,&z);CHKERRQ(ierr);
-      ierr = BVCopyVec(svd->V,nv,z);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(svd->V,svd->nconv+k,&z);CHKERRQ(ierr);
+      ierr = BVCopyColumn(svd->V,nv,svd->nconv+k);CHKERRQ(ierr);
     }
 
     svd->nconv += k;

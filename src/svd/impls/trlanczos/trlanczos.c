@@ -233,7 +233,6 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   PetscReal      *alpha,*beta,lastbeta,norm;
   PetscScalar    *Q,*swork,*w;
   PetscInt       i,k,l,nv,ld;
-  Vec            z;
   Mat            U,VT;
   PetscBool      conv;
   BVOrthogType   orthog;
@@ -272,9 +271,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     }
     lastbeta = beta[nv-1];
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(svd->V,svd->nconv,nv+1);CHKERRQ(ierr);
     ierr = BVScale(svd->V,nv,1.0/lastbeta);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(svd->V,svd->nconv,nv);CHKERRQ(ierr);
 
     /* compute SVD of general matrix */
     ierr = DSSetDimensions(svd->ds,nv,nv,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
@@ -321,9 +318,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 
     /* copy the last vector to be the next initial vector */
     if (svd->reason == SVD_CONVERGED_ITERATING) {
-      ierr = BVGetColumn(svd->V,svd->nconv+k+l,&z);CHKERRQ(ierr);
-      ierr = BVCopyVec(svd->V,nv,z);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(svd->V,svd->nconv+k+l,&z);CHKERRQ(ierr);
+      ierr = BVCopyColumn(svd->V,nv,svd->nconv+k+l);CHKERRQ(ierr);
     }
 
     svd->nconv += k;
