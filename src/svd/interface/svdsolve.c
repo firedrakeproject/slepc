@@ -399,7 +399,7 @@ PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
 @*/
 PetscErrorCode SVDGetOperationCounters(SVD svd,PetscInt* matvecs,PetscInt* dots)
 {
-  PetscErrorCode ierr;
+  /*PetscErrorCode ierr;*/
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);

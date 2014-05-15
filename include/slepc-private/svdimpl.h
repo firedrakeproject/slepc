@@ -88,6 +88,6 @@ PETSC_INTERN PetscErrorCode SVDMatMult(SVD,PetscBool,Vec,Vec);
 PETSC_INTERN PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
 PETSC_INTERN PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);
 PETSC_INTERN PetscErrorCode SVDMatGetLocalSize(SVD,PetscInt*,PetscInt*);
-PETSC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,PetscInt,PetscInt,PetscScalar*);
+PETSC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,PetscInt,PetscInt);
 
 #endif
