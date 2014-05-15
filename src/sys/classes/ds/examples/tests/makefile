@@ -30,19 +30,19 @@ EXAMPLESF  =
 MANSEC     = DS
 TESTS      = test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test13
 
-TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
-                       test2.PETSc runtest2_1 test2.rm \
-                       test3.PETSc runtest3_1 test3.rm \
-                       test4.PETSc runtest4_1 test4.rm \
-                       test5.PETSc runtest5_1 test5.rm \
-                       test6.PETSc runtest6_1 test6.rm \
-                       test7.PETSc runtest7_1 test7.rm \
-                       test8.PETSc runtest8_1 test8.rm \
-                       test9.PETSc runtest9_1 test9.rm \
-                       test10.PETSc runtest10_1 test10.rm \
-                       test11.PETSc runtest11_1 test11.rm \
-                       test12.PETSc runtest12_1 test12.rm \
-                       test13.PETSc runtest13_1 test13.rm
+TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
+                           test2.PETSc runtest2_1 test2.rm \
+                           test3.PETSc runtest3_1 test3.rm \
+                           test4.PETSc runtest4_1 test4.rm \
+                           test5.PETSc runtest5_1 test5.rm \
+                           test6.PETSc runtest6_1 test6.rm \
+                           test7.PETSc runtest7_1 test7.rm \
+                           test8.PETSc runtest8_1 test8.rm \
+                           test9.PETSc runtest9_1 test9.rm \
+                           test10.PETSc runtest10_1 test10.rm \
+                           test11.PETSc runtest11_1 test11.rm \
+                           test12.PETSc runtest12_1 test12.rm
+TESTEXAMPLES_C_NOCOMPLEX = test13.PETSc runtest13_1 test13.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
