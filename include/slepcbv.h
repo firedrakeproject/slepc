@@ -94,8 +94,11 @@ PETSC_EXTERN PetscErrorCode BVInsertVec(BV,PetscInt,Vec);
 PETSC_EXTERN PetscErrorCode BVInsertVecs(BV,PetscInt,PetscInt*,Vec*,PetscBool);
 PETSC_EXTERN PetscErrorCode BVCopy(BV,BV);
 PETSC_EXTERN PetscErrorCode BVCopyVec(BV,PetscInt,Vec);
+PETSC_EXTERN PetscErrorCode BVCopyColumn(BV,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVSetMatrix(BV,Mat,PetscBool);
 PETSC_EXTERN PetscErrorCode BVGetMatrix(BV,Mat*,PetscBool*);
+PETSC_EXTERN PetscErrorCode BVSetSignature(BV,Vec);
+PETSC_EXTERN PetscErrorCode BVGetSignature(BV,Vec);
 
 PETSC_EXTERN PetscErrorCode BVMult(BV,PetscScalar,PetscScalar,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVMultVec(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);

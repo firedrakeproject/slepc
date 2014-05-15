@@ -73,6 +73,7 @@ struct _p_BV {
   PetscObjectState   st[2];        /* State of obtained vectors */
   PetscObjectId      id[2];        /* Object id of obtained vectors */
   PetscScalar        *h,*c;        /* Orthogonalization coefficients */
+  PetscReal          *omega;       /* Signature matrix values for indefinite case */
   PetscScalar        *work;
   PetscInt           lwork;
   void               *data;
