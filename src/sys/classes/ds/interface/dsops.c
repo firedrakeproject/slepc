@@ -261,6 +261,70 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "DSGetMat"
+/*@
+   DSGetMat - Returns a sequential dense Mat object containing the requested
+   matrix. 
+
+   Not Collective
+
+   Input Parameters:
++  ds - the direct solver context
+-  m  - the requested matrix
+
+   Output Parameter:
+.  A  - Mat object
+
+   Notes:
+   The Mat is created with sizes equal to the current DS dimensions (nxm),
+   then it is filled with the values that would be obtained with DSGetArray()
+   (not DSGetArrayReal()). The communicator is always PETSC_COMM_SELF.
+
+   The user is responsible for destroying the matrix.
+
+   Level: advanced
+
+.seealso: DSSetDimensions(), DSGetArray(), DSGetArrayReal()
+@*/
+PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
+{
+  PetscErrorCode ierr;
+  PetscInt       j,rows=0,cols=0;
+  PetscBool      create=PETSC_FALSE;
+  PetscScalar    *pA,*M;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidPointer(A,2);
+  if (m<0 || m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (!ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSAllocate() first");
+  if (!ds->mat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
+
+  if (!ds->omat[m]) create=PETSC_TRUE;
+  else {
+    ierr = MatGetSize(ds->omat[m],&rows,&cols);CHKERRQ(ierr);
+    if (rows!=ds->n || (ds->m && cols!=ds->m)) {
+      ierr = MatDestroy(&ds->omat[m]);CHKERRQ(ierr);
+      create=PETSC_TRUE;
+    }
+  }
+  if (create) {
+    rows = ds->n;
+    cols = ds->m? ds->m: ds->n;
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,rows,cols,NULL,&ds->omat[m]);CHKERRQ(ierr);
+  }
+  ierr = PetscObjectReference((PetscObject)ds->omat[m]);CHKERRQ(ierr);
+  *A = ds->omat[m];
+  M  = ds->mat[m];
+  ierr = MatDenseGetArray(*A,&pA);CHKERRQ(ierr);
+  for (j=0;j<cols;j++) {
+    ierr = PetscMemcpy(pA+j*rows,M+j*ds->ld,rows*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(*A,&pA);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "DSGetArray"
 /*@C
    DSGetArray - Returns a pointer to one of the internal arrays used to
@@ -271,10 +335,10 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
 
    Input Parameters:
 +  ds - the direct solver context
--  m - the requested matrix
+-  m  - the requested matrix
 
    Output Parameter:
-.  a - pointer to the values
+.  a  - pointer to the values
 
    Level: advanced
 
@@ -302,8 +366,8 @@ PetscErrorCode DSGetArray(DS ds,DSMatType m,PetscScalar *a[])
 
    Input Parameters:
 +  ds - the direct solver context
-.  m - the requested matrix
--  a - pointer to the values
+.  m  - the requested matrix
+-  a  - pointer to the values
 
    Level: advanced
 
@@ -327,17 +391,17 @@ PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
 #define __FUNCT__ "DSGetArrayReal"
 /*@C
    DSGetArrayReal - Returns a pointer to one of the internal arrays used to
-   represent real matrices. You MUST call DSRestoreArray() when you no longer
+   represent real matrices. You MUST call DSRestoreArrayReal() when you no longer
    need to access the array.
 
    Not Collective
 
    Input Parameters:
 +  ds - the direct solver context
--  m - the requested matrix
+-  m  - the requested matrix
 
    Output Parameter:
-.  a - pointer to the values
+.  a  - pointer to the values
 
    Level: advanced
 
@@ -365,8 +429,8 @@ PetscErrorCode DSGetArrayReal(DS ds,DSMatType m,PetscReal *a[])
 
    Input Parameters:
 +  ds - the direct solver context
-.  m - the requested matrix
--  a - pointer to the values
+.  m  - the requested matrix
+-  a  - pointer to the values
 
    Level: advanced
 

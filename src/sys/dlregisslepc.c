@@ -19,11 +19,11 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>
-#include <slepc-private/ipimpl.h>
-#include <slepc-private/dsimpl.h>
-#include <slepc-private/fnimpl.h>
-#include <slepc-private/bvimpl.h>
+#include <slepcst.h>
+#include <slepcip.h>
+#include <slepcds.h>
+#include <slepcfn.h>
+#include <slepcbv.h>
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
 

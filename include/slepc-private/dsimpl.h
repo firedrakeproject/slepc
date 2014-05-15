@@ -61,6 +61,7 @@ struct _p_DS {
   DSStateType    state;              /* the current state */
   PetscScalar    *mat[DS_NUM_MAT];   /* the matrices */
   PetscReal      *rmat[DS_NUM_MAT];  /* the matrices (real) */
+  Mat            omat[DS_NUM_MAT];   /* the matrices (PETSc object) */
   PetscInt       *perm;              /* permutation */
   PetscInt       nf;                 /* number of functions in f[] */
   FN             f[DS_NUM_EXTRA];    /* functions provided via DSSetFN() */

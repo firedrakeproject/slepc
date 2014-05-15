@@ -977,6 +977,7 @@ PetscErrorCode DSReset(DS ds)
   for (i=0;i<DS_NUM_MAT;i++) {
     ierr = PetscFree(ds->mat[i]);CHKERRQ(ierr);
     ierr = PetscFree(ds->rmat[i]);CHKERRQ(ierr);
+    ierr = MatDestroy(&ds->omat[i]);CHKERRQ(ierr);
   }
   for (i=0;i<ds->nf;i++) {
     ierr = FNDestroy(&ds->f[i]);CHKERRQ(ierr);
