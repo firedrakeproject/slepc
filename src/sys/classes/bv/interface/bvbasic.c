@@ -843,7 +843,7 @@ PetscErrorCode BVGetVec(BV bv,Vec *v)
 
    Level: beginner
 
-.seealso: BVCopyVec()
+.seealso: BVCopyVec(), BVCopyColumn()
 @*/
 PetscErrorCode BVCopy(BV V,BV W)
 {
@@ -886,7 +886,7 @@ PetscErrorCode BVCopy(BV V,BV W)
 
    Level: beginner
 
-.seealso: BVCopy()
+.seealso: BVCopy(), BVCopyColumn()
 @*/
 PetscErrorCode BVCopyVec(BV V,PetscInt j,Vec w)
 {
@@ -910,6 +910,44 @@ PetscErrorCode BVCopyVec(BV V,PetscInt j,Vec w)
   ierr = BVGetColumn(V,j,&z);CHKERRQ(ierr);
   ierr = VecCopy(z,w);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,j,&z);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Copy,V,w,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVCopyColumn"
+/*@
+   BVCopyColumn - Copies the values from one of the columns to another one.
+
+   Logically Collective on BV
+
+   Input Parameter:
++  V - basis vectors context
+.  j - the number of the source column
+-  i - the number of the destination column
+
+   Level: beginner
+
+.seealso: BVCopy(), BVCopyVec()
+@*/
+PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
+{
+  PetscErrorCode ierr;
+  Vec            z,w;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidLogicalCollectiveInt(V,j,2);
+  PetscValidLogicalCollectiveInt(V,i,3);
+
+  ierr = PetscLogEventBegin(BV_Copy,V,w,0,0);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,j,&z);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,i,&w);CHKERRQ(ierr);
+  ierr = VecCopy(z,w);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,j,&z);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,i,&w);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_Copy,V,w,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
