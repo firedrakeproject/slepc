@@ -92,7 +92,6 @@ PetscErrorCode BVOrthogonalizeCGS1(BV bv,PetscInt j,PetscScalar *H,PetscReal *on
   if (onorm) *onorm = PetscSqrtReal(PetscRealPart(H[j]));
 
   if (bv->indef) {
-    bv->k = j+1;
     ierr = BVNorm(bv,j,NORM_2,&nrm);CHKERRQ(ierr);
     if (norm) *norm = nrm;
     bv->omega[j] = PetscSign(nrm);
@@ -102,7 +101,6 @@ PetscErrorCode BVOrthogonalizeCGS1(BV bv,PetscInt j,PetscScalar *H,PetscReal *on
     for (i=0;i<j;i++) sum += PetscRealPart(H[i]*PetscConj(H[i]));
     *norm = PetscRealPart(H[j])-sum;
     if (*norm <= 0.0) {
-      bv->k = j+1;
       ierr = BVNorm(bv,j,NORM_2,norm);CHKERRQ(ierr);
     } else *norm = PetscSqrtReal(*norm);
   }
@@ -122,7 +120,6 @@ static PetscErrorCode BVOrthogonalizeMGS(BV bv,PetscInt j,PetscScalar *H,PetscRe
 
   PetscFunctionBegin;
   ierr = PetscMemzero(bv->h,j*sizeof(PetscScalar));CHKERRQ(ierr);
-  bv->k = j+1;
   switch (bv->orthog_ref) {
 
   case BV_ORTHOG_REFINE_IFNEEDED:
@@ -163,7 +160,6 @@ static PetscErrorCode BVOrthogonalizeMGS(BV bv,PetscInt j,PetscScalar *H,PetscRe
     /* second step */
     ierr = BVOrthogonalizeMGS1(bv,j,bv->h);CHKERRQ(ierr);
     if (norm || lindep) {
-      bv->k = j+1;
       ierr = BVNorm(bv,j,NORM_2,&nrm);CHKERRQ(ierr);
     }
     if (lindep) {
@@ -173,7 +169,6 @@ static PetscErrorCode BVOrthogonalizeMGS(BV bv,PetscInt j,PetscScalar *H,PetscRe
     break;
   }
   if (bv->indef) {
-    bv->k = j+1;
     ierr = BVNorm(bv,j,NORM_2,&nrm);CHKERRQ(ierr);
     bv->omega[j] = PetscSign(nrm);
   }
@@ -215,7 +210,6 @@ static PetscErrorCode BVOrthogonalizeCGS(BV bv,PetscInt j,PetscScalar *H,PetscRe
     ierr = BVOrthogonalizeCGS1(bv,j,bv->h,NULL,NULL);CHKERRQ(ierr);
     /* compute |v| */
     if (norm || lindep) {
-      bv->k = j+1;
       ierr = BVNorm(bv,j,NORM_2,&nrm);CHKERRQ(ierr);
     }
     if (norm) *norm = nrm;

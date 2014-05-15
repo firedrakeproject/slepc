@@ -404,7 +404,6 @@ PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar *m)
 -  alpha - scaling factor
 
    Note:
-   The column index j must be smaller than the number of active columns.
    If j<0 then all active columns are scaled.
 
    Level: intermediate
@@ -422,7 +421,7 @@ PetscErrorCode BVScale(BV bv,PetscInt j,PetscScalar alpha)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of active columns is %D",j,bv->k);
+  if (j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
   if (!bv->n || alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Scale,bv,0,0,0);CHKERRQ(ierr);
@@ -449,8 +448,6 @@ PetscErrorCode BVScale(BV bv,PetscInt j,PetscScalar alpha)
 .  val  - the norm
 
    Notes:
-   The column index j must be smaller than the number of active columns.
-
    If j<0 then all active columns are considered as a matrix. In this case, the
    allowed norms are NORM_1, NORM_FROBENIUS, and NORM_INFINITY. Otherwise, the
    norm of V[j] is computed (NORM_1, NORM_2, or NORM_INFINITY).
@@ -477,7 +474,7 @@ PetscErrorCode BVNorm(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of active columns is %D",j,bv->k);
+  if (j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
   if (type==NORM_1_AND_2 || (type==NORM_2 && j<0)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
   if (bv->matrix && j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Matrix norm not available for non-standard inner product");
 
@@ -518,7 +515,6 @@ PetscErrorCode BVNorm(BV bv,PetscInt j,NormType type,PetscReal *val)
           it will create one internally.
 
    Note:
-   The column index j must be smaller than the number of active columns.
    If j<0 then all active columns are scaled.
 
    This operation is analogue to VecSetRandom - the difference is that the
@@ -550,7 +546,7 @@ PetscErrorCode BVSetRandom(BV bv,PetscInt j,PetscRandom rctx)
   }
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
-  if (j>=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of active columns is %D",j,bv->k);
+  if (j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
 
   ierr = PetscLogEventBegin(BV_SetRandom,bv,rctx,0,0);CHKERRQ(ierr);
   if (j<0) {
