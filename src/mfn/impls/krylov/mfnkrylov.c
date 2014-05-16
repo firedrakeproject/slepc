@@ -193,9 +193,8 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     ierr = DSGetArray(mfn->ds,DS_MAT_F,&F);CHKERRQ(ierr);
     for (j=0;j<mx;j++) betaF[j] = beta*F[j];
     ierr = DSRestoreArray(mfn->ds,DS_MAT_F,&F);CHKERRQ(ierr);
-    ierr = VecSet(x,0.0);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(mfn->V,0,mx);CHKERRQ(ierr);
-    ierr = BVMultVec(mfn->V,1.0,1.0,x,betaF);CHKERRQ(ierr);
+    ierr = BVMultVec(mfn->V,1.0,0.0,x,betaF);CHKERRQ(ierr);
     ierr = VecNorm(x,NORM_2,&beta);CHKERRQ(ierr);
 
     t_now = t_now+t_step;
