@@ -50,7 +50,7 @@
 
    Level: intermediate
 
-.seealso: BVMultVec(), BVMultInPlace(), BVSetActiveColumns()
+.seealso: BVMultVec(), BVMultColumn(), BVMultInPlace(), BVSetActiveColumns()
 @*/
 PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
@@ -117,7 +117,7 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 
    Level: intermediate
 
-.seealso: BVMult(), BVMultInPlace(), BVSetActiveColumns()
+.seealso: BVMult(), BVMultColumn(), BVMultInPlace(), BVSetActiveColumns()
 @*/
 PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
 {
@@ -142,6 +142,62 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
 
   ierr = PetscLogEventBegin(BV_Mult,X,y,0,0);CHKERRQ(ierr);
   ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Mult,X,y,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMultColumn"
+/*@
+   BVMultColumn - Computes y = beta*y + alpha*X*q, where y is the j-th column
+   of X.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  X          - a basis vectors object
+.  alpha,beta - scalars
+.  j          - the column index
+-  q          - an array of scalars
+
+   Notes:
+   This operation is equivalent to BVMultVec() but it uses column j of X
+   rather than taking a Vec as an argument. The number of active columns of
+   X is set to j before the computation, and restored afterwards.
+   If X has leading columns specified, then these columns do not participate
+   in the computation. Therefore, the length of array q must be equal to j
+   minus the number of leading columns.
+
+   Level: advanced
+
+.seealso: BVMult(), BVMultVec(), BVMultInPlace(), BVSetActiveColumns()
+@*/
+PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,PetscScalar *q)
+{
+  PetscErrorCode ierr;
+  PetscInt       ksave;
+  Vec            y;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidLogicalCollectiveScalar(X,alpha,2);
+  PetscValidLogicalCollectiveScalar(X,beta,3);
+  PetscValidLogicalCollectiveInt(X,j,4);
+  PetscValidPointer(q,5);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
+  if (!X->n) PetscFunctionReturn(0);
+
+  ierr = PetscLogEventBegin(BV_Mult,X,y,0,0);CHKERRQ(ierr);
+  ksave = X->k;
+  X->k = j;
+  ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
+  ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
+  X->k = ksave;
   ierr = PetscLogEventEnd(BV_Mult,X,y,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -291,7 +347,7 @@ PetscErrorCode BVMultInPlaceTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
 
    Level: intermediate
 
-.seealso: BVDotVec(), BVSetActiveColumns(), BVSetMatrix()
+.seealso: BVDotVec(), BVDotColumn(), BVSetActiveColumns(), BVSetMatrix()
 @*/
 PetscErrorCode BVDot(BV X,BV Y,Mat M)
 {
@@ -319,7 +375,6 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   if (n!=X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should be %D",n,X->k);
   if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
   if (X->matrix!=Y->matrix) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"X and Y must have the same inner product matrix");
-  if (!X->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
   if (X->matrix) { /* non-standard inner product: cast into dotvec ops */
@@ -366,7 +421,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
 
    Level: intermediate
 
-.seealso: BVDot(), BVSetActiveColumns(), BVSetMatrix()
+.seealso: BVDot(), BVDotColumn(), BVSetActiveColumns(), BVSetMatrix()
 @*/
 PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar *m)
 {
@@ -383,10 +438,62 @@ PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar *m)
 
   ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
   if (X->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, y %D",X->n,n);
-  if (!X->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
   ierr = (*X->ops->dotvec)(X,y,m);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVDotColumn"
+/*@
+   BVDotColumn - Computes multiple dot products of a column against all the
+   previous columns of a BV.
+
+   Collective on BV
+
+   Input Parameters:
++  X - basis vectors
+-  j - the column index
+
+   Output Parameter:
+.  m - an array where the result must be placed
+
+   Notes:
+   This operation is equivalent to BVDotVec() but it uses column j of X
+   rather than taking a Vec as an argument. The number of active columns of
+   X is set to j before the computation, and restored afterwards.
+   If X has leading columns specified, then these columns do not participate
+   in the computation. Therefore, the length of array m must be equal to j
+   minus the number of leading columns.
+
+   Level: advanced
+
+.seealso: BVDot(), BVDotVec(), BVSetActiveColumns(), BVSetMatrix()
+@*/
+PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *m)
+{
+  PetscErrorCode ierr;
+  PetscInt       ksave;
+  Vec            y;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(X,j,2);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
+
+  ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+  ksave = X->k;
+  X->k = j;
+  ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
+  ierr = (*X->ops->dotvec)(X,y,m);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
+  X->k = ksave;
   ierr = PetscLogEventEnd(BV_Dot,X,y,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
