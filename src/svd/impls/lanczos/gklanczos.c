@@ -96,6 +96,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
   ierr = BVRestoreColumn(svd->U,k,&u);CHKERRQ(ierr);
   ierr = BVOrthogonalize(svd->U,k,NULL,alpha+k,NULL);CHKERRQ(ierr);
   ierr = BVScale(U,k,1.0/alpha[k]);CHKERRQ(ierr);
+
   for (i=k+1;i<n;i++) {
     ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
     ierr = BVGetColumn(svd->U,i-1,&u);CHKERRQ(ierr);
@@ -113,6 +114,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
     ierr = BVOrthogonalize(svd->U,i,NULL,alpha+i,NULL);CHKERRQ(ierr);
     ierr = BVScale(U,i,1.0/alpha[i]);CHKERRQ(ierr);
   }
+
   ierr = BVGetColumn(svd->V,n,&v);CHKERRQ(ierr);
   ierr = BVGetColumn(svd->U,n-1,&u);CHKERRQ(ierr);
   ierr = SVDMatMult(svd,PETSC_TRUE,u,v);CHKERRQ(ierr);
@@ -122,54 +124,66 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
   PetscFunctionReturn(0);
 }
 
-/*#undef __FUNCT__
+#undef __FUNCT__
 #define __FUNCT__ "SVDOneSideLanczos"
-static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,Vec *V,Vec v,Vec u,Vec u_1,PetscInt k,PetscInt n,PetscScalar* work)
+static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,Vec u,Vec u_1,PetscInt k,PetscInt n,PetscScalar* work)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,bvl,bvk;
   PetscReal      a,b;
-  Vec            temp;
+  Vec            z,temp;
 
   PetscFunctionBegin;
-  ierr = SVDMatMult(svd,PETSC_FALSE,V[k],u);CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(V,&bvl,&bvk);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,k,&z);CHKERRQ(ierr);
+  ierr = SVDMatMult(svd,PETSC_FALSE,z,u);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,k,&z);CHKERRQ(ierr);
+
   for (i=k+1;i<n;i++) {
-    ierr = SVDMatMult(svd,PETSC_TRUE,u,V[i]);CHKERRQ(ierr);
-    ierr = IPNormBegin(svd->ip,u,&a);CHKERRQ(ierr);
-    ierr = IPMInnerProductBegin(svd->ip,V[i],i,V,work);CHKERRQ(ierr);
-    ierr = IPNormEnd(svd->ip,u,&a);CHKERRQ(ierr);
-    ierr = IPMInnerProductEnd(svd->ip,V[i],i,V,work);CHKERRQ(ierr);
-
+    ierr = BVGetColumn(V,i,&z);CHKERRQ(ierr);
+    ierr = SVDMatMult(svd,PETSC_TRUE,u,z);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,i,&z);CHKERRQ(ierr);
+    ierr = VecNorm(u,NORM_2,&a);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(V,0,i);CHKERRQ(ierr);
+    ierr = BVDotColumn(V,i,work);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/a);CHKERRQ(ierr);
-    ierr = SlepcVecMAXPBY(V[i],1.0/a,-1.0/a,i,work,V);CHKERRQ(ierr);
+    ierr = BVMultColumn(V,-1.0/a,1.0/a,i,work);CHKERRQ(ierr);
 
-    ierr = IPOrthogonalizeCGS1(svd->ip,0,NULL,i,NULL,V,V[i],work,NULL,&b);CHKERRQ(ierr);
-    ierr = VecScale(V[i],1.0/b);CHKERRQ(ierr);
+    /* h = V^* z, z = z - V h  */
+    ierr = BVDotColumn(V,i,work);CHKERRQ(ierr);
+    ierr = BVMultColumn(V,-1.0,1.0,i,work);CHKERRQ(ierr);
+    ierr = BVNorm(V,i,NORM_2,&b);CHKERRQ(ierr);
+    ierr = BVScale(V,i,1.0/b);CHKERRQ(ierr);
 
-    ierr = SVDMatMult(svd,PETSC_FALSE,V[i],u_1);CHKERRQ(ierr);
+    ierr = BVGetColumn(V,i,&z);CHKERRQ(ierr);
+    ierr = SVDMatMult(svd,PETSC_FALSE,z,u_1);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,i,&z);CHKERRQ(ierr);
     ierr = VecAXPY(u_1,-b,u);CHKERRQ(ierr);
-
     alpha[i-1] = a;
     beta[i-1] = b;
     temp = u;
     u = u_1;
     u_1 = temp;
   }
-  ierr = SVDMatMult(svd,PETSC_TRUE,u,v);CHKERRQ(ierr);
-  ierr = IPNormBegin(svd->ip,u,&a);CHKERRQ(ierr);
-  ierr = IPMInnerProductBegin(svd->ip,v,n,V,work);CHKERRQ(ierr);
-  ierr = IPNormEnd(svd->ip,u,&a);CHKERRQ(ierr);
-  ierr = IPMInnerProductEnd(svd->ip,v,n,V,work);CHKERRQ(ierr);
 
+  ierr = BVGetColumn(V,n,&z);CHKERRQ(ierr);
+  ierr = SVDMatMult(svd,PETSC_TRUE,u,z);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,n,&z);CHKERRQ(ierr);
+  ierr = VecNorm(u,NORM_2,&a);CHKERRQ(ierr);
+  ierr = BVDotColumn(V,n,work);CHKERRQ(ierr);
   ierr = VecScale(u,1.0/a);CHKERRQ(ierr);
-  ierr = SlepcVecMAXPBY(v,1.0/a,-1.0/a,n,work,V);CHKERRQ(ierr);
+  ierr = BVMultColumn(V,-1.0/a,1.0/a,n,work);CHKERRQ(ierr);
 
-  ierr = IPOrthogonalizeCGS1(svd->ip,0,NULL,n,NULL,V,v,work,NULL,&b);CHKERRQ(ierr);
+  /* h = V^* z, z = z - V h  */
+  ierr = BVDotColumn(V,n,work);CHKERRQ(ierr);
+  ierr = BVMultColumn(V,-1.0,1.0,n,work);CHKERRQ(ierr);
+  ierr = BVNorm(V,i,NORM_2,&b);CHKERRQ(ierr);
 
   alpha[n-1] = a;
   beta[n-1] = b;
+  ierr = BVSetActiveColumns(V,bvl,bvk);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-}*/
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSolve_Lanczos"
@@ -180,7 +194,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   PetscReal      *alpha,*beta,lastbeta,norm;
   PetscScalar    *swork,*w,*Q,*PT;
   PetscInt       i,k,j,nv,ld;
-  Vec            v,u=0,u_1=0;
+  Vec            u=0,u_1=0;
   Mat            U,VT;
   PetscBool      conv;
 
@@ -210,7 +224,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     beta = alpha + ld;
     if (lanczos->oneside) {
-      //ierr = SVDOneSideLanczos(svd,alpha,beta,svd->V,v,u,u_1,svd->nconv,nv,swork);CHKERRQ(ierr);
+      ierr = SVDOneSideLanczos(svd,alpha,beta,svd->V,u,u_1,svd->nconv,nv,swork);CHKERRQ(ierr);
     } else {
       ierr = BVSetActiveColumns(svd->U,svd->nconv,nv);CHKERRQ(ierr);
       ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,svd->U,svd->nconv,nv);CHKERRQ(ierr);
@@ -247,9 +261,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     ierr = DSGetArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       for (j=svd->nconv;j<nv;j++) swork[j-svd->nconv] = PT[k+svd->nconv+j*ld];
-      ierr = BVGetColumn(svd->V,nv,&v);CHKERRQ(ierr);
-      ierr = BVMultVec(svd->V,1.0,0.0,v,swork);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(svd->V,nv,&v);CHKERRQ(ierr);
+      ierr = BVMultColumn(svd->V,1.0,0.0,nv,swork);CHKERRQ(ierr);
     }
     ierr = DSRestoreArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);
 
