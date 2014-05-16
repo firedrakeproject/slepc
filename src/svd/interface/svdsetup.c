@@ -219,14 +219,21 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   /* process initial vectors */
   if (svd->nini<0) {
-    svd->nini = -svd->nini;
-    if (svd->nini>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of initial vectors is larger than ncv");
-    ierr = BVInsertVecs(svd->V,0,&svd->nini,svd->IS,PETSC_TRUE);CHKERRQ(ierr);
+    k = -svd->nini;
+    if (k>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of initial vectors is larger than ncv");
+    ierr = BVInsertVecs(svd->V,0,&k,svd->IS,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = SlepcBasisDestroy_Private(&svd->nini,&svd->IS);CHKERRQ(ierr);
+    svd->nini = k;
   }
-  if (svd->ninil<0 && svd->leftbasis) { /* skip if the solver is not using a left basis */
-    svd->ninil = -svd->ninil;
-    if (svd->ninil>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of left initial vectors is larger than ncv");
-    ierr = BVInsertVecs(svd->U,0,&svd->ninil,svd->ISL,PETSC_TRUE);CHKERRQ(ierr);
+  if (svd->ninil<0) {
+    k = 0;
+    if (svd->leftbasis) {
+      k = -svd->ninil;
+      if (k>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of left initial vectors is larger than ncv");
+      ierr = BVInsertVecs(svd->U,0,&k,svd->ISL,PETSC_TRUE);CHKERRQ(ierr);
+    }
+    ierr = SlepcBasisDestroy_Private(&svd->ninil,&svd->ISL);CHKERRQ(ierr);
+    svd->ninil = k;
   }
 
   ierr = PetscLogEventEnd(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
