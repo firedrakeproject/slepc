@@ -73,20 +73,24 @@ PetscErrorCode BVOrthogonalizeCGS1(BV bv,PetscInt j,PetscScalar *H,PetscReal *on
   PetscFunctionBegin;
   /* h = W^* v ; alpha = (v, v) */
   bv->k = j;
-  if (onorm || norm) bv->k++;
-  ierr = BVGetColumn(bv,j,&v);CHKERRQ(ierr);
-  ierr = BVDotVec(bv,v,H);CHKERRQ(ierr);
+  if (onorm || norm) {
+    bv->k++;
+    ierr = BVGetColumn(bv,j,&v);CHKERRQ(ierr);
+    ierr = BVDotVec(bv,v,H);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(bv,j,&v);CHKERRQ(ierr);
+    bv->k--;
+  } else {
+    ierr = BVDotColumn(bv,j,H);CHKERRQ(ierr);
+  }
 
   /* q = v - V h */
-  if (onorm || norm) bv->k--;
   if (bv->indef) {
     for (i=0;i<j;i++) H[i] /= bv->omega[i];  /* apply inverse of signature */
   }
-  ierr = BVMultVec(bv,-1.0,1.0,v,H);CHKERRQ(ierr);
+  ierr = BVMultColumn(bv,-1.0,1.0,j,H);CHKERRQ(ierr);
   if (bv->indef) {
     for (i=0;i<j;i++) H[i] *= bv->omega[i];  /* revert signature */
   }
-  ierr = BVRestoreColumn(bv,j,&v);CHKERRQ(ierr);
 
   /* compute |v| */
   if (onorm) *onorm = PetscSqrtReal(PetscRealPart(H[j]));
