@@ -82,10 +82,6 @@ struct _p_MFN {
   PetscInt       numbermonitors;
 };
 
-PETSC_INTERN PetscErrorCode MFNReset_Default(MFN);
-PETSC_INTERN PetscErrorCode MFNDefaultGetWork(MFN,PetscInt);
-PETSC_INTERN PetscErrorCode MFNDefaultFreeWork(MFN);
 PETSC_INTERN PetscErrorCode MFNAllocateSolution(MFN,PetscInt);
-PETSC_INTERN PetscErrorCode MFNFreeSolution(MFN);
 
 #endif

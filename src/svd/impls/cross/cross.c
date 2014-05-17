@@ -145,6 +145,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
     ierr = SlepcBasisDestroy_Private(&svd->nini,&svd->IS);CHKERRQ(ierr);
   }
   svd->leftbasis = PETSC_FALSE;
+  ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

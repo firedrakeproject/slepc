@@ -37,6 +37,7 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   if (svd->mpd) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   svd->max_it = 1;
   svd->leftbasis = PETSC_TRUE;
+  ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
   ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
   ierr = DSAllocate(svd->ds,PetscMax(M,N));CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -195,6 +195,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   ierr = EPSGetTolerances(cyclic->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
 
   svd->leftbasis = PETSC_TRUE;
+  ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

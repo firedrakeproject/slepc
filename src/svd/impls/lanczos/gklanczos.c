@@ -59,21 +59,11 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
-  if (svd->ncv) { /* ncv set */
-    if (svd->ncv<svd->nsv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must be at least nsv");
-  } else if (svd->mpd) { /* mpd set */
-    svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
-  } else { /* neither set: defaults depend on nsv being small or large */
-    if (svd->nsv<500) svd->ncv = PetscMin(N,PetscMax(2*svd->nsv,10));
-    else {
-      svd->mpd = 500;
-      svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
-    }
-  }
-  if (!svd->mpd) svd->mpd = svd->ncv;
+  ierr = SVDSetDimensions_Default(svd);CHKERRQ(ierr);
   if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must not be larger than nev+mpd");
   if (!svd->max_it) svd->max_it = PetscMax(N/svd->ncv,100);
   svd->leftbasis = (lanczos->oneside)? PETSC_FALSE: PETSC_TRUE;
+  ierr = SVDAllocateSolution(svd,1);CHKERRQ(ierr);
   ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
   ierr = DSSetCompact(svd->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(svd->ds,svd->ncv);CHKERRQ(ierr);
@@ -219,7 +209,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     svd->its++;
 
     /* inner loop */
-    nv = PetscMin(svd->nconv+svd->mpd,svd->ncv)-1;
+    nv = PetscMin(svd->nconv+svd->mpd,svd->ncv);
     ierr = BVSetActiveColumns(svd->V,svd->nconv,nv);CHKERRQ(ierr);
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     beta = alpha + ld;

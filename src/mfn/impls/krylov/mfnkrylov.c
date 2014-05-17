@@ -47,7 +47,8 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
   PetscFunctionBegin;
   if (!mfn->ncv) mfn->ncv = PetscMin(30,mfn->n);
   if (!mfn->max_it) mfn->max_it = PetscMax(100,2*mfn->n/mfn->ncv);
-  ierr = DSAllocate(mfn->ds,mfn->ncv);CHKERRQ(ierr);
+  ierr = MFNAllocateSolution(mfn,2);CHKERRQ(ierr);
+  ierr = DSAllocate(mfn->ds,mfn->ncv+2);CHKERRQ(ierr);
   ierr = DSSetType(mfn->ds,DSNHEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -95,7 +96,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscBool      breakdown;
 
   PetscFunctionBegin;
-  m   = mfn->ncv-2;
+  m   = mfn->ncv;
   tol = mfn->tol;
   mxstep = mfn->max_it;
   mxrej = 10;

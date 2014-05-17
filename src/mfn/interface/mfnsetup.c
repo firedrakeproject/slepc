@@ -47,8 +47,6 @@
 PetscErrorCode MFNSetUp(MFN mfn)
 {
   PetscErrorCode ierr;
-  Vec            t;
-  PetscInt       oldncv;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
@@ -81,23 +79,6 @@ PetscErrorCode MFNSetUp(MFN mfn)
 
   /* call specific solver setup */
   ierr = (*mfn->ops->setup)(mfn);CHKERRQ(ierr);
-
-  /* oldncv is zero if this is the first time setup is called */
-  ierr = BVGetSizes(mfn->V,NULL,NULL,&oldncv);CHKERRQ(ierr);
-
-  /* allocate basis vectors */
-  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
-  if (!oldncv) {
-    if (!((PetscObject)(mfn->V))->type_name) {
-      ierr = BVSetType(mfn->V,BVSVEC);CHKERRQ(ierr);
-    }
-    ierr = MatGetVecs(mfn->A,&t,NULL);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(mfn->V,t,mfn->ncv);CHKERRQ(ierr);
-    ierr = VecDestroy(&t);CHKERRQ(ierr);
-  } else {
-    ierr = BVResize(mfn->V,mfn->ncv,PETSC_FALSE);CHKERRQ(ierr);
-  }
-  ierr = BVSetMatrix(mfn->V,NULL,0.0);CHKERRQ(ierr);
 
   /* set tolerance if not yet set */
   if (mfn->tol==PETSC_DEFAULT) mfn->tol = SLEPC_DEFAULT_TOL;
@@ -168,6 +149,43 @@ PetscErrorCode MFNGetOperator(MFN mfn,Mat *A)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidPointer(A,2);
   *A = mfn->A;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MFNAllocateSolution"
+/*
+  MFNAllocateSolution - Allocate memory storage for common variables such as
+  the basis vectors. The argument extra is used for methods that require a working
+  basis slightly larger than ncv. This is called at setup after setting the value
+  of ncv.
+ */
+PetscErrorCode MFNAllocateSolution(MFN mfn,PetscInt extra)
+{
+  PetscErrorCode ierr;
+  PetscInt       oldsize,requested;
+  Vec            t;
+
+  PetscFunctionBegin;
+  requested = mfn->ncv + extra;
+
+  /* oldsize is zero if this is the first time setup is called */
+  ierr = BVGetSizes(mfn->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
+
+  /* allocate basis vectors */
+  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
+  if (!oldsize) {
+    if (!((PetscObject)(mfn->V))->type_name) {
+      ierr = BVSetType(mfn->V,BVSVEC);CHKERRQ(ierr);
+    }
+    ierr = MatGetVecs(mfn->A,&t,NULL);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(mfn->V,t,requested);CHKERRQ(ierr);
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
+  } else {
+    ierr = BVResize(mfn->V,requested,PETSC_FALSE);CHKERRQ(ierr);
+  }
+  ierr = BVSetMatrix(mfn->V,NULL,0.0);CHKERRQ(ierr);
+
   PetscFunctionReturn(0);
 }
 
