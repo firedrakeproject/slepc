@@ -84,10 +84,83 @@ struct _p_SVD {
   PetscInt         numbermonitors;
 };
 
-PETSC_INTERN PetscErrorCode SVDMatMult(SVD,PetscBool,Vec,Vec);
-PETSC_INTERN PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
-PETSC_INTERN PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);
-PETSC_INTERN PetscErrorCode SVDMatGetLocalSize(SVD,PetscInt*,PetscInt*);
+#undef __FUNCT__
+#define __FUNCT__ "SVDMatMult"
+PETSC_STATIC_INLINE PetscErrorCode SVDMatMult(SVD svd,PetscBool trans,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  svd->matvecs++;
+  if (trans) {
+    if (svd->AT) {
+      ierr = MatMult(svd->AT,x,y);CHKERRQ(ierr);
+    } else {
+#if defined(PETSC_USE_COMPLEX)
+      ierr = MatMultHermitianTranspose(svd->A,x,y);CHKERRQ(ierr);
+#else
+      ierr = MatMultTranspose(svd->A,x,y);CHKERRQ(ierr);
+#endif
+    }
+  } else {
+    if (svd->A) {
+      ierr = MatMult(svd->A,x,y);CHKERRQ(ierr);
+    } else {
+#if defined(PETSC_USE_COMPLEX)
+      ierr = MatMultHermitianTranspose(svd->AT,x,y);CHKERRQ(ierr);
+#else
+      ierr = MatMultTranspose(svd->AT,x,y);CHKERRQ(ierr);
+#endif
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDMatGetVecs"
+PETSC_STATIC_INLINE PetscErrorCode SVDMatGetVecs(SVD svd,Vec *x,Vec *y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (svd->A) {
+    ierr = MatGetVecs(svd->A,x,y);CHKERRQ(ierr);
+  } else {
+    ierr = MatGetVecs(svd->AT,y,x);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDMatGetSize"
+PETSC_STATIC_INLINE PetscErrorCode SVDMatGetSize(SVD svd,PetscInt *m,PetscInt *n)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (svd->A) {
+    ierr = MatGetSize(svd->A,m,n);CHKERRQ(ierr);
+  } else {
+    ierr = MatGetSize(svd->AT,n,m);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDMatGetLocalSize"
+PETSC_STATIC_INLINE PetscErrorCode SVDMatGetLocalSize(SVD svd,PetscInt *m,PetscInt *n)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (svd->A) {
+    ierr = MatGetLocalSize(svd->A,m,n);CHKERRQ(ierr);
+  } else {
+    ierr = MatGetLocalSize(svd->AT,n,m);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+} 
+
 PETSC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,PetscInt,PetscInt);
 
 #endif
