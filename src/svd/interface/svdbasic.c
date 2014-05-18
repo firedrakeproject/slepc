@@ -333,10 +333,10 @@ PetscErrorCode SVDDestroy(SVD *svd)
   ierr = SVDReset(*svd);CHKERRQ(ierr);
   if ((*svd)->ops->destroy) { ierr = (*(*svd)->ops->destroy)(*svd);CHKERRQ(ierr); }
   ierr = DSDestroy(&(*svd)->ds);CHKERRQ(ierr);
+  ierr = PetscRandomDestroy(&(*svd)->rand);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*svd)->nini,&(*svd)->IS);CHKERRQ(ierr);
   ierr = SlepcBasisDestroy_Private(&(*svd)->ninil,&(*svd)->ISL);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(&(*svd)->rand);CHKERRQ(ierr);
   ierr = SVDMonitorCancel(*svd);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(svd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -463,14 +463,13 @@ PetscErrorCode SVDRegister(const char *name,PetscErrorCode (*function)(SVD))
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetBV"
 /*@
-   SVDSetBV - Associates basis vectors objects to the
-   singular value solver.
+   SVDSetBV - Associates basis vectors objects to the singular value solver.
 
    Collective on SVD
 
    Input Parameters:
 +  svd - singular value solver context obtained from SVDCreate()
--  V   - the basis vectors object for right singular vectors
+.  V   - the basis vectors object for right singular vectors
 -  U   - the basis vectors object for left singular vectors
 
    Note:
@@ -509,8 +508,8 @@ PetscErrorCode SVDSetBV(SVD svd,BV V,BV U)
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetBV"
 /*@C
-   SVDGetBV - Obtain the basis vectors objects associated
-   to the singular value solver object.
+   SVDGetBV - Obtain the basis vectors objects associated to the singular
+   value solver object.
 
    Not Collective
 

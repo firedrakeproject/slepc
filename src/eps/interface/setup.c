@@ -49,10 +49,8 @@ PetscErrorCode EPSSetUp(EPS eps)
 {
   PetscErrorCode ierr;
   Mat            A,B;
-  PetscInt       i,k,nmat;
-  PetscBool      flg,lindep;
-  Vec            *newDS;
-  PetscReal      norm;
+  PetscInt       k,nmat;
+  PetscBool      flg;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    sigma;
 #endif
@@ -74,10 +72,6 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flg,EPSGD,EPSJD,EPSRQCG,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
     ierr = STSetType(eps->st,flg?STPRECOND:STSHIFT);CHKERRQ(ierr);
   }
-  if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
-  if (!((PetscObject)eps->ip)->type_name) {
-    ierr = IPSetType_Default(eps->ip);CHKERRQ(ierr);
-  }
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSReset(eps->ds);CHKERRQ(ierr);
   if (!((PetscObject)eps->rand)->type_name) {
@@ -90,9 +84,6 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   ierr = MatGetSize(A,&eps->n,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(A,&eps->nloc,NULL);CHKERRQ(ierr);
-  ierr = VecDestroy(&eps->t);CHKERRQ(ierr);
-  ierr = SlepcMatGetVecsTemplate(A,&eps->t,NULL);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->t);CHKERRQ(ierr);
 
   /* Set default problem type */
   if (!eps->problem_type) {
@@ -114,13 +105,11 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
     ierr = STGetBilinearForm(eps->st,&B);CHKERRQ(ierr);
-    ierr = IPSetMatrix(eps->ip,B,1.0);CHKERRQ(ierr);
+    if (!eps->V) { ierr = EPSGetBV(eps,&eps->V,NULL);CHKERRQ(ierr); }
+    ierr = BVSetMatrix(eps->V,B,!eps->ispositive);CHKERRQ(ierr);
     ierr = MatDestroy(&B);CHKERRQ(ierr);
-    if (!eps->ispositive) {
-      ierr = IPSetType(eps->ip,IPINDEFINITE);CHKERRQ(ierr);
-    }
   } else {
-    ierr = IPSetMatrix(eps->ip,NULL,0.0);CHKERRQ(ierr);
+    ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
   }
 
   if (eps->nev > eps->n) eps->nev = eps->n;
@@ -198,7 +187,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* Build balancing matrix if required */
   if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
     if (!eps->D) {
-      ierr = VecDuplicate(eps->V[0],&eps->D);CHKERRQ(ierr);
+      ierr = BVGetVec(eps->V,&eps->D);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->D);CHKERRQ(ierr);
     } else {
       ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
@@ -213,49 +202,32 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg);CHKERRQ(ierr);
   if (flg && eps->problem_type == EPS_PGNHEP) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
 
-  if (eps->nds>0) {
-    if (!eps->ds_ortho) {
-      /* allocate memory and copy deflation basis vectors into defl */
-      ierr = VecDuplicateVecs(eps->t,eps->nds,&newDS);CHKERRQ(ierr);
-      for (i=0;i<eps->nds;i++) {
-        ierr = VecCopy(eps->defl[i],newDS[i]);CHKERRQ(ierr);
-        ierr = VecDestroy(&eps->defl[i]);CHKERRQ(ierr);
-      }
-      ierr = PetscFree(eps->defl);CHKERRQ(ierr);
-      eps->defl = newDS;
-      ierr = PetscLogObjectParents(eps,eps->nds,eps->defl);CHKERRQ(ierr);
-      /* orthonormalize vectors in defl */
-      k = 0;
-      for (i=0;i<eps->nds;i++) {
-        ierr = IPOrthogonalize(eps->ip,0,NULL,k,NULL,eps->defl,eps->defl[k],NULL,&norm,&lindep);CHKERRQ(ierr);
-        if (norm==0.0 || lindep) {
-          ierr = PetscInfo(eps,"Linearly dependent deflation vector found, removing...\n");CHKERRQ(ierr);
-        } else {
-          ierr = VecScale(eps->defl[k],1.0/norm);CHKERRQ(ierr);
-          k++;
-        }
-      }
-      for (i=k;i<eps->nds;i++) { ierr = VecDestroy(&eps->defl[i]);CHKERRQ(ierr); }
-      eps->nds = k;
-      eps->ds_ortho = PETSC_TRUE;
-    }
+  /* process deflation and initial vectors */
+  if (eps->nds<0) {
+    k = -eps->nds;
+    ierr = BVInsertVecs(eps->V,0,&k,eps->defl,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = SlepcBasisDestroy_Private(&eps->nds,&eps->defl);CHKERRQ(ierr);
+    eps->nds = k;
+    //ierr = STCheckNullSpace(eps->st,eps->nds,eps->defl);CHKERRQ(ierr);
   }
-  ierr = STCheckNullSpace(eps->st,eps->nds,eps->defl);CHKERRQ(ierr);
-
-  /* process initial vectors */
   if (eps->nini<0) {
-    eps->nini = -eps->nini;
-    if (eps->nini>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The number of initial vectors is larger than ncv");
-    ierr = IPOrthonormalizeBasis_Private(eps->ip,&eps->nini,&eps->IS,eps->V);CHKERRQ(ierr);
+    k = -eps->nini;
+    if (k>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The number of initial vectors is larger than ncv");
+    ierr = BVInsertVecs(eps->V,eps->nds,&k,eps->IS,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = SlepcBasisDestroy_Private(&eps->nini,&eps->IS);CHKERRQ(ierr);
+    eps->nini = k;
   }
   if (eps->ninil<0) {
-    if (!eps->leftvecs) {
-      ierr = PetscInfo(eps,"Ignoring initial left vectors\n");CHKERRQ(ierr);
+    k = 0;
+    if (eps->leftvecs) {
+      k = -eps->ninil;
+      if (k>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The number of left initial vectors is larger than ncv");
+      ierr = BVInsertVecs(eps->W,0,&k,eps->ISL,PETSC_TRUE);CHKERRQ(ierr);
     } else {
-      eps->ninil = -eps->ninil;
-      if (eps->ninil>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The number of initial left vectors is larger than ncv");
-      ierr = IPOrthonormalizeBasis_Private(eps->ip,&eps->ninil,&eps->ISL,eps->W);CHKERRQ(ierr);
+      ierr = PetscInfo(eps,"Ignoring initial left vectors\n");CHKERRQ(ierr);
     }
+    ierr = SlepcBasisDestroy_Private(&eps->ninil,&eps->ISL);CHKERRQ(ierr);
+    eps->ninil = k;
   }
 
   ierr = PetscLogEventEnd(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
@@ -360,15 +332,15 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetDeflationSpace"
 /*@
-   EPSSetDeflationSpace - Specify a basis of vectors that constitute
-   the deflation space.
+   EPSSetDeflationSpace - Specify a basis of vectors that constitute the deflation
+   space.
 
    Collective on EPS and Vec
 
    Input Parameter:
-+  eps   - the eigenproblem solver context
-.  n     - number of vectors
--  v     - set of basis vectors of the deflation space
++  eps - the eigenproblem solver context
+.  n   - number of vectors
+-  v   - set of basis vectors of the deflation space
 
    Notes:
    When a deflation space is given, the eigensolver seeks the eigensolution
@@ -376,72 +348,26 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
    space. This can be used for instance in the case that an invariant
    subspace is known beforehand (such as the nullspace of the matrix).
 
-   Basis vectors set by a previous call to EPSSetDeflationSpace() are
-   replaced.
+   These vectors do not persist from one EPSSolve() call to the other, so the
+   deflation space should be set every time.
 
    The vectors do not need to be mutually orthonormal, since they are explicitly
    orthonormalized internally.
 
-   These vectors persist from one EPSSolve() call to the other, use
-   EPSRemoveDeflationSpace() to eliminate them.
-
    Level: intermediate
 
-.seealso: EPSRemoveDeflationSpace()
+.seealso: EPSSetInitialSpace()
 @*/
 PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range");
-
-  /* free previous vectors */
-  ierr = EPSRemoveDeflationSpace(eps);CHKERRQ(ierr);
-
-  /* get references of passed vectors */
-  if (n>0) {
-    ierr = PetscMalloc1(n,&eps->defl);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)eps,n*sizeof(Vec));CHKERRQ(ierr);
-    for (i=0;i<n;i++) {
-      ierr = PetscObjectReference((PetscObject)v[i]);CHKERRQ(ierr);
-      eps->defl[i] = v[i];
-    }
-    eps->setupcalled = 0;
-    eps->ds_ortho = PETSC_FALSE;
-  }
-
-  eps->nds = n;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSRemoveDeflationSpace"
-/*@
-   EPSRemoveDeflationSpace - Removes the deflation space.
-
-   Collective on EPS
-
-   Input Parameter:
-.  eps   - the eigenproblem solver context
-
-   Level: intermediate
-
-.seealso: EPSSetDeflationSpace()
-@*/
-PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = VecDestroyVecs(eps->nds,&eps->defl);CHKERRQ(ierr);
-  eps->nds = 0;
-  eps->setupcalled = 0;
-  eps->ds_ortho = PETSC_FALSE;
+  ierr = SlepcBasisReference_Private(n,v,&eps->nds,&eps->defl);CHKERRQ(ierr);
+  if (n>0) eps->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 
@@ -454,16 +380,16 @@ PetscErrorCode EPSRemoveDeflationSpace(EPS eps)
    Collective on EPS and Vec
 
    Input Parameter:
-+  eps   - the eigenproblem solver context
-.  n     - number of vectors
--  is    - set of basis vectors of the initial space
++  eps - the eigenproblem solver context
+.  n   - number of vectors
+-  is  - set of basis vectors of the initial space
 
    Notes:
    Some solvers start to iterate on a single vector (initial vector). In that case,
    the other vectors are ignored.
 
-   In contrast to EPSSetDeflationSpace(), these vectors do not persist from one
-   EPSSolve() call to the other, so the initial space should be set every time.
+   These vectors do not persist from one EPSSolve() call to the other, so the
+   initial space should be set every time.
 
    The vectors do not need to be mutually orthonormal, since they are explicitly
    orthonormalized internally.
@@ -498,9 +424,9 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
    Collective on EPS and Vec
 
    Input Parameter:
-+  eps   - the eigenproblem solver context
-.  n     - number of vectors
--  is    - set of basis vectors of the initial left space
++  eps - the eigenproblem solver context
+.  n   - number of vectors
+-  is  - set of basis vectors of the initial left space
 
    Notes:
    Some solvers start to iterate on a single vector (initial left vector). In that case,
@@ -529,6 +455,79 @@ PetscErrorCode EPSSetInitialSpaceLeft(EPS eps,PetscInt n,Vec *is)
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&eps->ninil,&eps->ISL);CHKERRQ(ierr);
   if (n>0) eps->setupcalled = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSAllocateSolution"
+/*
+  EPSAllocateSolution - Allocate memory storage for common variables such
+  as eigenvalues and eigenvectors. The argument extra is used for methods
+  that require a working basis slightly larger than ncv.
+*/
+PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
+{
+  PetscErrorCode ierr;
+  PetscInt       oldsize,newc,requested;
+  PetscLogDouble cnt;
+  Mat            A;
+  Vec            t;
+
+  PetscFunctionBegin;
+  requested = eps->nds + eps->ncv + extra;
+
+  /* oldsize is zero if this is the first time setup is called */
+  ierr = BVGetSizes(eps->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
+  newc = PetscMax(0,requested-oldsize);
+
+  /* allocate space for eigenvalues and friends */
+  if (requested != oldsize) {
+    if (oldsize) {
+      ierr = PetscFree5(eps->eigr,eps->eigi,eps->errest,eps->errest_left,eps->perm);CHKERRQ(ierr);
+    }
+    ierr = PetscMalloc5(requested,&eps->eigr,requested,&eps->eigi,requested,&eps->errest,requested,&eps->errest_left,requested,&eps->perm);CHKERRQ(ierr);
+    cnt = 2*newc*sizeof(PetscScalar) + 2*newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
+    ierr = PetscLogObjectMemory((PetscObject)eps,cnt);CHKERRQ(ierr);
+  }
+
+  /* workspace for the case of arbitrary selection */
+  if (eps->arbitrary) {
+    if (eps->rr) {
+      ierr = PetscFree2(eps->rr,eps->ri);CHKERRQ(ierr);
+    }
+    ierr = PetscMalloc2(requested,&eps->rr,requested,&eps->ri);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,2*newc*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+
+  /* allocate V */
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V,NULL);CHKERRQ(ierr); }
+  if (!oldsize) {
+    if (!((PetscObject)(eps->V))->type_name) {
+      ierr = BVSetType(eps->V,BVSVEC);CHKERRQ(ierr);
+    }
+    ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+    ierr = MatGetVecs(A,&t,NULL);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(eps->V,t,requested);CHKERRQ(ierr);
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
+  } else {
+    ierr = BVResize(eps->V,requested,PETSC_FALSE);CHKERRQ(ierr);
+  }
+
+  /* allocate W */
+  if (eps->leftvecs) {
+    if (!eps->W) { ierr = EPSGetBV(eps,&eps->W,NULL);CHKERRQ(ierr); }
+    if (!oldsize) {
+      if (!((PetscObject)(eps->W))->type_name) {
+        ierr = BVSetType(eps->W,BVSVEC);CHKERRQ(ierr);
+      }
+      ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+      ierr = MatGetVecs(A,&t,NULL);CHKERRQ(ierr);
+      ierr = BVSetSizesFromVec(eps->W,t,requested);CHKERRQ(ierr);
+      ierr = VecDestroy(&t);CHKERRQ(ierr);
+    } else {
+      ierr = BVResize(eps->W,requested,PETSC_FALSE);CHKERRQ(ierr);
+    }
+  }
   PetscFunctionReturn(0);
 }
 

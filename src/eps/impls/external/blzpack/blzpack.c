@@ -300,7 +300,6 @@ PetscErrorCode EPSReset_BLZPACK(EPS eps)
   ierr = PetscFree(blz->u);CHKERRQ(ierr);
   ierr = PetscFree(blz->v);CHKERRQ(ierr);
   ierr = PetscFree(blz->eig);CHKERRQ(ierr);
-  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

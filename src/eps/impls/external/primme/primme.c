@@ -287,7 +287,6 @@ PetscErrorCode EPSReset_PRIMME(EPS eps)
   primme_Free(&ops->primme);
   ierr = VecDestroy(&ops->x);CHKERRQ(ierr);
   ierr = VecDestroy(&ops->y);CHKERRQ(ierr);
-  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

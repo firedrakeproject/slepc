@@ -24,7 +24,7 @@
 #if !defined(__SLEPCEPS_H)
 #define __SLEPCEPS_H
 #include <slepcst.h>
-#include <slepcip.h>
+#include <slepcbv.h>
 #include <slepcds.h>
 
 PETSC_EXTERN PetscErrorCode EPSInitializePackage(void);
@@ -165,8 +165,8 @@ PETSC_EXTERN PetscErrorCode EPSSetInterval(EPS,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode EPSGetInterval(EPS,PetscReal*,PetscReal*);
 PETSC_EXTERN PetscErrorCode EPSSetST(EPS,ST);
 PETSC_EXTERN PetscErrorCode EPSGetST(EPS,ST*);
-PETSC_EXTERN PetscErrorCode EPSSetIP(EPS,IP);
-PETSC_EXTERN PetscErrorCode EPSGetIP(EPS,IP*);
+PETSC_EXTERN PetscErrorCode EPSSetBV(EPS,BV,BV);
+PETSC_EXTERN PetscErrorCode EPSGetBV(EPS,BV*,BV*);
 PETSC_EXTERN PetscErrorCode EPSSetDS(EPS,DS);
 PETSC_EXTERN PetscErrorCode EPSGetDS(EPS,DS*);
 PETSC_EXTERN PetscErrorCode EPSSetTolerances(EPS,PetscReal,PetscInt);
@@ -223,7 +223,6 @@ PETSC_EXTERN PetscErrorCode EPSSetTrackAll(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSGetTrackAll(EPS,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode EPSSetDeflationSpace(EPS,PetscInt,Vec*);
-PETSC_EXTERN PetscErrorCode EPSRemoveDeflationSpace(EPS);
 PETSC_EXTERN PetscErrorCode EPSSetInitialSpace(EPS,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode EPSSetInitialSpaceLeft(EPS,PetscInt,Vec*);
 
@@ -250,9 +249,6 @@ PETSC_EXTERN PetscErrorCode EPSGetConvergedReason(EPS,EPSConvergedReason *);
 
 PETSC_EXTERN PetscErrorCode EPSSortEigenvalues(EPS,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
 PETSC_EXTERN PetscErrorCode EPSCompareEigenvalues(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*);
-
-PETSC_EXTERN PetscErrorCode EPSGetStartVector(EPS,PetscInt,Vec,PetscBool*);
-PETSC_EXTERN PetscErrorCode EPSGetStartVectorLeft(EPS,PetscInt,Vec,PetscBool*);
 
 PETSC_EXTERN PetscFunctionList EPSList;
 PETSC_EXTERN PetscBool         EPSRegisterAllCalled;

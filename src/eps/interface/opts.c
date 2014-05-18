@@ -214,8 +214,9 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)eps);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
-  if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
-  ierr = IPSetFromOptions(eps->ip);CHKERRQ(ierr);
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V,&eps->W);CHKERRQ(ierr); }
+  ierr = BVSetFromOptions(eps->V);CHKERRQ(ierr);
+  ierr = BVSetFromOptions(eps->W);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(eps->ds);CHKERRQ(ierr);
   ierr = STSetFromOptions(eps->st);CHKERRQ(ierr);
@@ -1263,8 +1264,9 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   ierr = STSetOptionsPrefix(eps->st,prefix);CHKERRQ(ierr);
-  if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
-  ierr = IPSetOptionsPrefix(eps->ip,prefix);CHKERRQ(ierr);
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V,&eps->W);CHKERRQ(ierr); }
+  ierr = BVSetOptionsPrefix(eps->V,prefix);CHKERRQ(ierr);
+  ierr = BVSetOptionsPrefix(eps->W,prefix);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(eps->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
@@ -1299,8 +1301,9 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   ierr = STAppendOptionsPrefix(eps->st,prefix);CHKERRQ(ierr);
-  if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
-  ierr = IPSetOptionsPrefix(eps->ip,prefix);CHKERRQ(ierr);
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V,&eps->W);CHKERRQ(ierr); }
+  ierr = BVSetOptionsPrefix(eps->V,prefix);CHKERRQ(ierr);
+  ierr = BVSetOptionsPrefix(eps->W,prefix);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(eps->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
@@ -1338,3 +1341,4 @@ PetscErrorCode EPSGetOptionsPrefix(EPS eps,const char *prefix[])
   ierr = PetscObjectGetOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

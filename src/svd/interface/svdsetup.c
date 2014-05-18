@@ -194,6 +194,8 @@ PetscErrorCode SVDSetUp(SVD svd)
       k = -svd->ninil;
       if (k>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of left initial vectors is larger than ncv");
       ierr = BVInsertVecs(svd->U,0,&k,svd->ISL,PETSC_TRUE);CHKERRQ(ierr);
+    } else {
+      ierr = PetscInfo(svd,"Ignoring initial left vectors\n");CHKERRQ(ierr);
     }
     ierr = SlepcBasisDestroy_Private(&svd->ninil,&svd->ISL);CHKERRQ(ierr);
     svd->ninil = k;
@@ -232,6 +234,8 @@ PetscErrorCode SVDSetUp(SVD svd)
    of the wanted singular space. Then, convergence may be faster.
 
    Level: intermediate
+
+.seealso: SVDSetInitialSpaceLeft()
 @*/
 PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
 {
@@ -274,6 +278,8 @@ PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
    of the wanted singular space. Then, convergence may be faster.
 
    Level: intermediate
+
+.seealso: SVDSetInitialSpace()
 @*/
 PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt n,Vec *is)
 {

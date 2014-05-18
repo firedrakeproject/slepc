@@ -87,15 +87,12 @@ struct _p_EPS {
   /*----------------- Child objects and working data -------------------*/
   ST             st;               /* spectral transformation object */
   DS             ds;               /* direct solver object */
-  IP             ip;               /* innerproduct object */
-  Vec            *defl;            /* deflation space */
-  PetscInt       allocated_ncv;    /* number of basis vectors allocated */
-  Vec            *V;               /* set of basis vectors and computed eigenvectors */
-  Vec            *W;               /* set of left basis vectors and computed left eigenvectors */
-  Vec            t;                /* template vector */
+  BV             V;                /* set of basis vectors and computed eigenvectors */
+  BV             W;                /* set of left basis vectors and computed left eigenvectors */
   PetscRandom    rand;             /* random number generator */
   Vec            D;                /* diagonal matrix for balancing */
-  Vec            *IS,*ISL;         /* placeholder for references to user-provided initialspace */
+  Vec            *IS,*ISL;         /* references to user-provided initial space */
+  Vec            *defl;            /* references to user-provided deflation space */
   PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
   PetscReal      *errest;          /* error estimates */
   PetscReal      *errest_left;     /* left error estimates */
@@ -108,7 +105,6 @@ struct _p_EPS {
   /* ----------------------- Status variables --------------------------*/
   PetscInt       nconv;            /* number of converged eigenvalues */
   PetscInt       its;              /* number of iterations so far computed */
-  PetscBool      ds_ortho;         /* if defl vectors have been stored & orthonormalized */
   PetscBool      evecsavailable;   /* computed eigenvectors */
   PetscInt       nv;               /* size of current Schur decomposition */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
@@ -123,14 +119,15 @@ struct _p_EPS {
 PETSC_INTERN PetscErrorCode EPSReset_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSSetWhichEigenpairs_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSAllocateSolution(EPS,PetscInt);
-PETSC_INTERN PetscErrorCode EPSFreeSolution(EPS);
 PETSC_INTERN PetscErrorCode EPSBackTransform_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Hermitian(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode EPSComputeRelativeError_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-PETSC_INTERN PetscErrorCode EPSComputeRitzVector(EPS,PetscScalar*,PetscScalar*,Vec*,PetscInt,Vec,Vec);
+PETSC_INTERN PetscErrorCode EPSComputeRitzVector(EPS,PetscScalar*,PetscScalar*,BV,PetscInt,Vec,Vec);
+PETSC_INTERN PetscErrorCode EPSGetStartVector(EPS,PetscInt,PetscBool*);
+PETSC_INTERN PetscErrorCode EPSGetStartVectorLeft(EPS,PetscInt,PetscBool*);
 
 /* Private functions of the solver implementations */
 

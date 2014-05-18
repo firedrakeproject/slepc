@@ -22,6 +22,7 @@
 */
 
 #include <slepc-private/epsimpl.h>   /*I "slepceps.h" I*/
+#include <slepcvec.h>
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
@@ -33,7 +34,6 @@ PetscErrorCode EPSReset_Default(EPS eps)
   PetscFunctionBegin;
   ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
   eps->nwork = 0;
-  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -73,17 +73,19 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      norm;
-  Vec            w;
+  Vec            w,z;
 
   PetscFunctionBegin;
   if (eps->isgeneralized) {
     /* Purify eigenvectors */
-    ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
+    ierr = BVGetVec(eps->V,&w);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
-      ierr = VecCopy(eps->V[i],w);CHKERRQ(ierr);
-      ierr = STApply(eps->st,w,eps->V[i]);CHKERRQ(ierr);
-      ierr = IPNorm(eps->ip,eps->V[i],&norm);CHKERRQ(ierr);
-      ierr = VecScale(eps->V[i],1.0/norm);CHKERRQ(ierr);
+      ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);
+      ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
+      ierr = STApply(eps->st,w,z);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
+      ierr = BVNorm(eps->V,i,NORM_2,&norm);CHKERRQ(ierr);
+      ierr = BVScale(eps->V,i,1.0/norm);CHKERRQ(ierr);
     }
     ierr = VecDestroy(&w);CHKERRQ(ierr);
   }
@@ -101,8 +103,8 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       n,ld,i;
-  PetscScalar    *Z;
-  Vec            v;
+  Mat            X;
+  Vec            v,v1,z;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    tmp;
   PetscReal      norm,normi;
@@ -112,31 +114,39 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  ierr = SlepcUpdateVectors(n,eps->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = DSRestoreArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = DSGetMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = BVMultInPlace(eps->V,X,0,n);CHKERRQ(ierr);
+  ierr = MatDestroy(&X);CHKERRQ(ierr);
+
   /* purification */
-  ierr = VecDuplicate(eps->V[0],&v);CHKERRQ(ierr);
+  ierr = BVGetVec(eps->V,&v);CHKERRQ(ierr);
   for (i=0;i<eps->nconv;i++) {
-    ierr = VecCopy(eps->V[i],v);CHKERRQ(ierr);
-    ierr = STApply(eps->st,v,eps->V[i]);CHKERRQ(ierr);
+    ierr = BVCopyVec(eps->V,i,v);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
+    ierr = STApply(eps->st,v,z);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
   }
   ierr = VecDestroy(&v);CHKERRQ(ierr);
+
   /* normalization */
   for (i=0;i<n;i++) {
+    ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->eigi[i] != 0.0) {
-      ierr = VecNorm(eps->V[i],NORM_2,&norm);CHKERRQ(ierr);
-      ierr = VecNorm(eps->V[i+1],NORM_2,&normi);CHKERRQ(ierr);
+      ierr = BVGetColumn(eps->V,i+1,&v1);CHKERRQ(ierr);
+      ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
+      ierr = VecNorm(v1,NORM_2,&normi);CHKERRQ(ierr);
       tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
-      ierr = VecScale(eps->V[i],tmp);CHKERRQ(ierr);
-      ierr = VecScale(eps->V[i+1],tmp);CHKERRQ(ierr);
+      ierr = VecScale(v,tmp);CHKERRQ(ierr);
+      ierr = VecScale(v1,tmp);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(eps->V,i+1,&v1);CHKERRQ(ierr);
       i++;
     } else
 #endif
     {
-      ierr = VecNormalize(eps->V[i],NULL);CHKERRQ(ierr);
+      ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
     }
+    ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
   }
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
@@ -157,12 +167,12 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       n,i,ld;
-  PetscScalar    *Z;
+  Mat            Z;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    tmp;
   PetscReal      norm,normi;
 #endif
-  Vec            w;
+  Vec            w,z,v,v1;
 
   PetscFunctionBegin;
   if (eps->ishermitian) {
@@ -180,16 +190,18 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
 
   /* V = V * Z */
-  ierr = DSGetArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  ierr = SlepcUpdateVectors(n,eps->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = DSRestoreArray(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = DSGetMat(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = BVMultInPlace(eps->V,Z,0,n);CHKERRQ(ierr);
+  ierr = MatDestroy(&Z);CHKERRQ(ierr);
 
   /* Purify eigenvectors */
   if (eps->ispositive) {
-    ierr = VecDuplicate(eps->V[0],&w);CHKERRQ(ierr);
+    ierr = BVGetVec(eps->V,&w);CHKERRQ(ierr);
     for (i=0;i<n;i++) {
-      ierr = VecCopy(eps->V[i],w);CHKERRQ(ierr);
-      ierr = STApply(eps->st,w,eps->V[i]);CHKERRQ(ierr);
+      ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);
+      ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
+      ierr = STApply(eps->st,w,z);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
     }
     ierr = VecDestroy(&w);CHKERRQ(ierr);
   }
@@ -197,26 +209,32 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   /* Fix eigenvectors if balancing was used */
   if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
     for (i=0;i<n;i++) {
-      ierr = VecPointwiseDivide(eps->V[i],eps->V[i],eps->D);CHKERRQ(ierr);
+      ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
+      ierr = VecPointwiseDivide(z,z,eps->D);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
     }
   }
 
   /* normalize eigenvectors (when using purification or balancing) */
   if (eps->ispositive || (eps->balance!=EPS_BALANCE_NONE && eps->D)) {
     for (i=0;i<n;i++) {
+      ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
       if (eps->eigi[i] != 0.0) {
-        ierr = VecNorm(eps->V[i],NORM_2,&norm);CHKERRQ(ierr);
-        ierr = VecNorm(eps->V[i+1],NORM_2,&normi);CHKERRQ(ierr);
+        ierr = BVGetColumn(eps->V,i+1,&v1);CHKERRQ(ierr);
+        ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
+        ierr = VecNorm(v1,NORM_2,&normi);CHKERRQ(ierr);
         tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
-        ierr = VecScale(eps->V[i],tmp);CHKERRQ(ierr);
-        ierr = VecScale(eps->V[i+1],tmp);CHKERRQ(ierr);
+        ierr = VecScale(v,tmp);CHKERRQ(ierr);
+        ierr = VecScale(v1,tmp);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(eps->V,i+1,&v1);CHKERRQ(ierr);
         i++;
       } else
 #endif
       {
-        ierr = VecNormalize(eps->V[i],NULL);CHKERRQ(ierr);
+        ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
       }
+      ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
     }
   }
 
@@ -224,9 +242,9 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   if (eps->leftvecs) {
     ierr = DSVectors(eps->ds,DS_MAT_Y,NULL,NULL);CHKERRQ(ierr);
     /* W = W * Z */
-    ierr = DSGetArray(eps->ds,DS_MAT_Y,&Z);CHKERRQ(ierr);
-    ierr = SlepcUpdateVectors(n,eps->W,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = DSRestoreArray(eps->ds,DS_MAT_Y,&Z);CHKERRQ(ierr);
+    ierr = DSGetMat(eps->ds,DS_MAT_Y,&Z);CHKERRQ(ierr);
+    ierr = BVMultInPlace(eps->W,Z,0,n);CHKERRQ(ierr);
+    ierr = MatDestroy(&Z);CHKERRQ(ierr);
   }
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
@@ -252,12 +270,15 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 PetscErrorCode EPSSetWorkVecs(EPS eps,PetscInt nw)
 {
   PetscErrorCode ierr;
+  Vec            t;
 
   PetscFunctionBegin;
   if (eps->nwork != nw) {
     ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
     eps->nwork = nw;
-    ierr = VecDuplicateVecs(eps->t,nw,&eps->work);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->V,0,&t);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(t,nw,&eps->work);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,0,&t);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(eps,nw,eps->work);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -330,28 +351,30 @@ PetscErrorCode EPSConvergedNormRelative(EPS eps,PetscScalar eigr,PetscScalar eig
   EPSComputeRitzVector - Computes the current Ritz vector.
 
   Simple case (complex scalars or real scalars with Zi=NULL):
-    x = V*Zr  (V is an array of nv vectors, Zr has length nv)
+    x = V*Zr  (V is a basis of nv vectors, Zr has length nv)
 
   Split case:
     x = V*Zr  y = V*Zi  (Zr and Zi have length nv)
 */
-PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,Vec *V,PetscInt nv,Vec x,Vec y)
+PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V,PetscInt nv,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   PetscReal      norm;
+//  Mat            B;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            z;
 #endif
 
   PetscFunctionBegin;
   /* compute eigenvector */
-  ierr = SlepcVecMAXPBY(x,0.0,1.0,nv,Zr,V);CHKERRQ(ierr);
+  ierr = BVMultVec(V,1.0,0.0,x,Zr);CHKERRQ(ierr);
 
   /* purify eigenvector in positive generalized problems */
   if (eps->ispositive) {
     ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
-    if (eps->ishermitian) {
-      ierr = IPNorm(eps->ip,y,&norm);CHKERRQ(ierr);
+//    ierr = BVGetMatrix(eps->V,&B,NULL);CHKERRQ(ierr);
+    if (eps->ishermitian) { // && B) {
+//      ierr = IPNorm(eps->ip,y,&norm);CHKERRQ(ierr);
     } else {
       ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
     }
@@ -366,9 +389,9 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,Vec 
 #if !defined(PETSC_USE_COMPLEX)
   /* compute imaginary part of eigenvector */
   if (Zi) {
-    ierr = SlepcVecMAXPBY(y,0.0,1.0,nv,Zi,V);CHKERRQ(ierr);
+    ierr = BVMultVec(V,1.0,0.0,y,Zi);CHKERRQ(ierr);
     if (eps->ispositive) {
-      ierr = VecDuplicate(V[0],&z);CHKERRQ(ierr);
+      ierr = BVGetVec(V,&z);CHKERRQ(ierr);
       ierr = STApply(eps->st,y,z);CHKERRQ(ierr);
       ierr = VecNorm(z,NORM_2,&norm);CHKERRQ(ierr);
       ierr = VecScale(z,1.0/norm);CHKERRQ(ierr);
@@ -401,9 +424,9 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
   PetscErrorCode    ierr;
 
   PetscFunctionBegin;
-  ierr = VecDuplicate(eps->V[0],&r);CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->V[0],&p);CHKERRQ(ierr);
-  ierr = VecDuplicate(eps->V[0],&z);CHKERRQ(ierr);
+  ierr = BVGetVec(eps->V,&r);CHKERRQ(ierr);
+  ierr = BVGetVec(eps->V,&p);CHKERRQ(ierr);
+  ierr = BVGetVec(eps->V,&z);CHKERRQ(ierr);
   ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
 
   for (j=0;j<eps->balance_its;j++) {

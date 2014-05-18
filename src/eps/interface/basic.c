@@ -201,8 +201,8 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     if (eps->ninil) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %D\n",PetscAbs(eps->ninil));CHKERRQ(ierr);
     }
-    if (eps->nds>0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %D\n",eps->nds);CHKERRQ(ierr);
+    if (eps->nds) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %D\n",PetscAbs(eps->nds));CHKERRQ(ierr);
     }
   } else {
     if (eps->ops->view) {
@@ -211,15 +211,15 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   }
   ierr = PetscObjectTypeCompareAny((PetscObject)eps,&isexternal,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
   if (!isexternal) {
-    if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
-    ierr = IPView(eps->ip,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
+    if (!eps->V) { ierr = EPSGetBV(eps,&eps->V,NULL);CHKERRQ(ierr); }
+    ierr = BVView(eps->V,viewer);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)eps,EPSPOWER,&ispower);CHKERRQ(ierr);
     if (!ispower) {
       if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
-      ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
       ierr = DSView(eps->ds,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     }
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   }
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   ierr = STView(eps->st,viewer);CHKERRQ(ierr);
@@ -366,7 +366,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nev             = 1;
   eps->ncv             = 0;
   eps->mpd             = 0;
-  eps->allocated_ncv   = 0;
   eps->nini            = 0;
   eps->ninil           = 0;
   eps->nds             = 0;
@@ -397,17 +396,14 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->V               = 0;
   eps->W               = 0;
   eps->D               = 0;
-  eps->defl            = 0;
   eps->IS              = 0;
   eps->ISL             = 0;
-  eps->t               = 0;
-  eps->ds_ortho        = PETSC_FALSE;
+  eps->defl            = 0;
   eps->eigr            = 0;
   eps->eigi            = 0;
   eps->errest          = 0;
   eps->errest_left     = 0;
   eps->st              = 0;
-  eps->ip              = 0;
   eps->ds              = 0;
   eps->rand            = 0;
   eps->data            = 0;
@@ -567,15 +563,21 @@ PetscErrorCode EPSRegister(const char *name,PetscErrorCode (*function)(EPS))
 PetscErrorCode EPSReset(EPS eps)
 {
   PetscErrorCode ierr;
+  PetscInt       ncols;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->ops->reset) { ierr = (eps->ops->reset)(eps);CHKERRQ(ierr); }
   if (eps->st) { ierr = STReset(eps->st);CHKERRQ(ierr); }
-  if (eps->ip) { ierr = IPReset(eps->ip);CHKERRQ(ierr); }
   if (eps->ds) { ierr = DSReset(eps->ds);CHKERRQ(ierr); }
-  ierr = VecDestroy(&eps->t);CHKERRQ(ierr);
   ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
+  ierr = BVGetSizes(eps->V,NULL,NULL,&ncols);CHKERRQ(ierr);
+  if (ncols) {
+    ierr = PetscFree5(eps->eigr,eps->eigi,eps->errest,eps->errest_left,eps->perm);CHKERRQ(ierr);
+    ierr = PetscFree2(eps->rr,eps->ri);CHKERRQ(ierr);
+  }
+  ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
+  ierr = BVDestroy(&eps->W);CHKERRQ(ierr);
   eps->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -605,13 +607,12 @@ PetscErrorCode EPSDestroy(EPS *eps)
   ierr = EPSReset(*eps);CHKERRQ(ierr);
   if ((*eps)->ops->destroy) { ierr = (*(*eps)->ops->destroy)(*eps);CHKERRQ(ierr); }
   ierr = STDestroy(&(*eps)->st);CHKERRQ(ierr);
-  ierr = IPDestroy(&(*eps)->ip);CHKERRQ(ierr);
   ierr = DSDestroy(&(*eps)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*eps)->rand);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
+  ierr = SlepcBasisDestroy_Private(&(*eps)->nds,&(*eps)->defl);CHKERRQ(ierr);
   ierr = SlepcBasisDestroy_Private(&(*eps)->nini,&(*eps)->IS);CHKERRQ(ierr);
   ierr = SlepcBasisDestroy_Private(&(*eps)->ninil,&(*eps)->ISL);CHKERRQ(ierr);
-  ierr = EPSRemoveDeflationSpace(*eps);CHKERRQ(ierr);
   ierr = EPSMonitorCancel(*eps);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -827,43 +828,54 @@ PetscErrorCode EPSGetST(EPS eps,ST *st)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSSetIP"
+#define __FUNCT__ "EPSSetBV"
 /*@
-   EPSSetIP - Associates an inner product object to the eigensolver.
+   EPSSetBV - Associates basis vectors objects to the eigensolver.
 
    Collective on EPS
 
    Input Parameters:
 +  eps - eigensolver context obtained from EPSCreate()
--  ip  - the inner product object
+.  V   - the basis vectors object for right eigenvectors
+-  W   - the basis vectors object for left eigenvectors
 
    Note:
-   Use EPSGetIP() to retrieve the inner product context (for example,
-   to free it at the end of the computations).
+   Use EPSGetBV() to retrieve the basis vectors contexts (for example,
+   to free them at the end of the computations).
 
    Level: advanced
 
-.seealso: EPSGetIP()
+.seealso: EPSGetBV()
 @*/
-PetscErrorCode EPSSetIP(EPS eps,IP ip)
+PetscErrorCode EPSSetBV(EPS eps,BV V,BV W)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidHeaderSpecific(ip,IP_CLASSID,2);
-  PetscCheckSameComm(eps,1,ip,2);
-  ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
-  ierr = IPDestroy(&eps->ip);CHKERRQ(ierr);
-  eps->ip = ip;
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->ip);CHKERRQ(ierr);
+  if (V) {
+    PetscValidHeaderSpecific(V,BV_CLASSID,2);
+    PetscCheckSameComm(eps,1,V,2);
+    ierr = PetscObjectReference((PetscObject)V);CHKERRQ(ierr);
+    ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
+    eps->V = V;
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->V);CHKERRQ(ierr);
+  }
+  if (W) {
+    PetscValidHeaderSpecific(W,BV_CLASSID,3);
+    PetscCheckSameComm(eps,1,W,3);
+    ierr = PetscObjectReference((PetscObject)W);CHKERRQ(ierr);
+    ierr = BVDestroy(&eps->W);CHKERRQ(ierr);
+    eps->W = W;
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->W);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSGetIP"
+#define __FUNCT__ "EPSGetBV"
 /*@C
-   EPSGetIP - Obtain the inner product object associated to the eigensolver object.
+   EPSGetBV - Obtain the basis vectors objects associated to the eigensolver object.
 
    Not Collective
 
@@ -871,24 +883,33 @@ PetscErrorCode EPSSetIP(EPS eps,IP ip)
 .  eps - eigensolver context obtained from EPSCreate()
 
    Output Parameter:
-.  ip - inner product context
++  V - basis vectors context for right eigenvectors
+-  W - basis vectors context for left eigenvectors
 
    Level: advanced
 
-.seealso: EPSSetIP()
+.seealso: EPSSetBV()
 @*/
-PetscErrorCode EPSGetIP(EPS eps,IP *ip)
+PetscErrorCode EPSGetBV(EPS eps,BV *V,BV *W)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(ip,2);
-  if (!eps->ip) {
-    ierr = IPCreate(PetscObjectComm((PetscObject)eps),&eps->ip);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->ip);CHKERRQ(ierr);
+  if (V) {
+    if (!eps->V) {
+      ierr = BVCreate(PetscObjectComm((PetscObject)eps),&eps->V);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->V);CHKERRQ(ierr);
+    }
+    *V = eps->V;
   }
-  *ip = eps->ip;
+  if (W) {
+    if (!eps->W) {
+      ierr = BVCreate(PetscObjectComm((PetscObject)eps),&eps->W);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->W);CHKERRQ(ierr);
+    }
+    *W = eps->W;
+  }
   PetscFunctionReturn(0);
 }
 

@@ -173,24 +173,12 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSReset_LAPACK"
-PetscErrorCode EPSReset_LAPACK(EPS eps)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSCreate_LAPACK"
 PETSC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
 {
   PetscFunctionBegin;
   eps->ops->solve                = EPSSolve_LAPACK;
   eps->ops->setup                = EPSSetUp_LAPACK;
-  eps->ops->reset                = EPSReset_LAPACK;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);

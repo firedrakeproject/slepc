@@ -157,7 +157,6 @@ PetscErrorCode EPSReset_TRLAN(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(tr->work);CHKERRQ(ierr);
-  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
