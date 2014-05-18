@@ -47,6 +47,7 @@
 PetscErrorCode MFNSetUp(MFN mfn)
 {
   PetscErrorCode ierr;
+  PetscInt       N;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
@@ -66,11 +67,10 @@ PetscErrorCode MFNSetUp(MFN mfn)
     ierr = PetscRandomSetFromOptions(mfn->rand);CHKERRQ(ierr);
   }
 
-  /* Set problem dimensions */
+  /* Check problem dimensions */
   if (!mfn->A) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONGSTATE,"MFNSetOperator must be called first");
-  ierr = MatGetSize(mfn->A,&mfn->n,NULL);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(mfn->A,&mfn->nloc,NULL);CHKERRQ(ierr);
-  if (mfn->ncv > mfn->n) mfn->ncv = mfn->n;
+  ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
+  if (mfn->ncv > N) mfn->ncv = N;
 
   /* Set default function */
   if (!mfn->function) {

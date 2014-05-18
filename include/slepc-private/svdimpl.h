@@ -49,39 +49,44 @@ struct _SVDOps {
 */
 struct _p_SVD {
   PETSCHEADER(struct _SVDOps);
+  /*------------------------- User parameters ---------------------------*/
   Mat              OP;          /* problem matrix */
-  Mat              A;           /* problem matrix (m>n) */
-  Mat              AT;          /* transposed matrix */
-  SVDTransposeMode transmode;   /* transpose mode */
-  PetscReal        *sigma;      /* singular values */
-  PetscInt         *perm;       /* permutation for singular value ordering */
-  BV               U,V;         /* left and right singular vectors */
-  Vec              *IS,*ISL;    /* placeholder for references to user-provided initial space */
-  SVDWhich         which;       /* which singular values are computed */
-  PetscInt         nconv;       /* number of converged values */
+  PetscInt         max_it;      /* max iterations */
   PetscInt         nsv;         /* number of requested values */
   PetscInt         ncv;         /* basis size */
   PetscInt         mpd;         /* maximum dimension of projected problem */
   PetscInt         nini,ninil;  /* number of initial vectors (negative means not copied yet) */
-  PetscInt         its;         /* iteration counter */
-  PetscInt         max_it;      /* max iterations */
   PetscReal        tol;         /* tolerance */
-  PetscReal        *errest;     /* error estimates */
-  PetscRandom      rand;        /* random number generator */
-  void             *data;       /* placeholder for misc stuff associated
-                                   with a particular solver */
-  PetscInt         setupcalled;
-  SVDConvergedReason reason;
-  DS               ds;          /* direct solver object */
-  PetscBool        trackall;
-  PetscInt         matvecs;
-  PetscBool        leftbasis;   /* if U is filled by the solver */
-  PetscBool        lvecsavail;  /* if U contains left singular vectors */
+  SVDWhich         which;       /* which singular values are computed */
+  SVDTransposeMode transmode;   /* transpose mode */
+  PetscBool        trackall;    /* whether all the residuals must be computed */
 
+  /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode   (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
   PetscErrorCode   (*monitordestroy[MAXSVDMONITORS])(void**);
   void             *monitorcontext[MAXSVDMONITORS];
   PetscInt         numbermonitors;
+
+  /*----------------- Child objects and working data -------------------*/
+  DS               ds;          /* direct solver object */
+  BV               U,V;         /* left and right singular vectors */
+  PetscRandom      rand;        /* random number generator */
+  Mat              A;           /* problem matrix (m>n) */
+  Mat              AT;          /* transposed matrix */
+  Vec              *IS,*ISL;    /* placeholder for references to user-provided initial space */
+  PetscReal        *sigma;      /* singular values */
+  PetscInt         *perm;       /* permutation for singular value ordering */
+  PetscReal        *errest;     /* error estimates */
+  void             *data;       /* placeholder for solver-specific stuff */
+
+  /* ----------------------- Status variables -------------------------- */
+  PetscInt         nconv;       /* number of converged values */
+  PetscInt         its;         /* iteration counter */
+  PetscBool        leftbasis;   /* if U is filled by the solver */
+  PetscBool        lvecsavail;  /* if U contains left singular vectors */
+  PetscInt         setupcalled;
+  PetscInt         matvecs;
+  SVDConvergedReason reason;
 };
 
 #undef __FUNCT__

@@ -51,7 +51,7 @@ struct _EPSOps {
 */
 struct _p_EPS {
   PETSCHEADER(struct _EPSOps);
-  /*------------------------- User parameters --------------------------*/
+  /*------------------------- User parameters ---------------------------*/
   PetscInt       max_it;           /* maximum number of iterations */
   PetscInt       nev;              /* number of eigenvalues to compute */
   PetscInt       ncv;              /* number of basis vectors */
@@ -69,7 +69,6 @@ struct _p_EPS {
   EPSBalance     balance;          /* the balancing method */
   PetscInt       balance_its;      /* number of iterations of the balancing method */
   PetscReal      balance_cutoff;   /* cutoff value for balancing */
-  PetscReal      nrma,nrmb;        /* computed matrix norms */
   PetscBool      trueres;          /* whether the true residual norm must be computed */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
@@ -80,47 +79,45 @@ struct _p_EPS {
   void           *comparisonctx;
   void           *convergedctx;
   void           *arbitraryctx;
+  PetscErrorCode (*monitor[MAXEPSMONITORS])(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
+  PetscErrorCode (*monitordestroy[MAXEPSMONITORS])(void**);
+  void           *monitorcontext[MAXEPSMONITORS];
+  PetscInt       numbermonitors;
 
-  /*------------------------- Working data --------------------------*/
-  Vec            D;                /* diagonal matrix for balancing */
+  /*----------------- Child objects and working data -------------------*/
+  ST             st;               /* spectral transformation object */
+  DS             ds;               /* direct solver object */
+  IP             ip;               /* innerproduct object */
+  Vec            *defl;            /* deflation space */
+  PetscInt       allocated_ncv;    /* number of basis vectors allocated */
   Vec            *V;               /* set of basis vectors and computed eigenvectors */
   Vec            *W;               /* set of left basis vectors and computed left eigenvectors */
-  Vec            *IS,*ISL;         /* placeholder for references to user-provided initial space */
-  Vec            *defl;            /* deflation space */
+  Vec            t;                /* template vector */
+  PetscRandom    rand;             /* random number generator */
+  Vec            D;                /* diagonal matrix for balancing */
+  Vec            *IS,*ISL;         /* placeholder for references to user-provided initialspace */
   PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
   PetscReal      *errest;          /* error estimates */
   PetscReal      *errest_left;     /* left error estimates */
   PetscScalar    *rr,*ri;          /* values computed by user's arbitrary selection function */
-  ST             st;               /* spectral transformation object */
-  IP             ip;               /* innerproduct object */
-  DS             ds;               /* direct solver object */
-  void           *data;            /* placeholder for misc stuff associated
-                                      with a particular solver */
+  PetscInt       *perm;            /* permutation for eigenvalue ordering */
+  PetscInt       nwork;            /* number of work vectors */
+  Vec            *work;            /* work vectors */
+  void           *data;            /* placeholder for solver-specific stuff */
+
+  /* ----------------------- Status variables --------------------------*/
   PetscInt       nconv;            /* number of converged eigenvalues */
   PetscInt       its;              /* number of iterations so far computed */
-  PetscInt       *perm;            /* permutation for eigenvalue ordering */
+  PetscBool      ds_ortho;         /* if defl vectors have been stored & orthonormalized */
+  PetscBool      evecsavailable;   /* computed eigenvectors */
   PetscInt       nv;               /* size of current Schur decomposition */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
-  PetscInt       allocated_ncv;    /* number of basis vectors allocated */
-  PetscBool      evecsavailable;   /* computed eigenvectors */
-  PetscRandom    rand;             /* random number generator */
-  Vec            t;                /* template vector */
-
-  /* ---------------- Default work-area and status vars -------------------- */
-  PetscInt       nwork;
-  Vec            *work;
-
-  PetscBool      ds_ortho;         /* if defl vectors have been stored & orthonormalized */
+  PetscReal      nrma,nrmb;        /* computed matrix norms */
   PetscInt       setupcalled;
   PetscBool      isgeneralized;
   PetscBool      ispositive;
   PetscBool      ishermitian;
   EPSConvergedReason reason;
-
-  PetscErrorCode (*monitor[MAXEPSMONITORS])(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
-  PetscErrorCode (*monitordestroy[MAXEPSMONITORS])(void**);
-  void           *monitorcontext[MAXEPSMONITORS];
-  PetscInt       numbermonitors;
 };
 
 PETSC_INTERN PetscErrorCode EPSReset_Default(EPS);

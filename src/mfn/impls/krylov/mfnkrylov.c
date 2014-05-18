@@ -43,10 +43,12 @@
 PetscErrorCode MFNSetUp_Krylov(MFN mfn)
 {
   PetscErrorCode  ierr;
+  PetscInt        N;
 
   PetscFunctionBegin;
-  if (!mfn->ncv) mfn->ncv = PetscMin(30,mfn->n);
-  if (!mfn->max_it) mfn->max_it = PetscMax(100,2*mfn->n/mfn->ncv);
+  ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
+  if (!mfn->ncv) mfn->ncv = PetscMin(30,N);
+  if (!mfn->max_it) mfn->max_it = PetscMax(100,2*N/mfn->ncv);
   ierr = MFNAllocateSolution(mfn,2);CHKERRQ(ierr);
   ierr = DSAllocate(mfn->ds,mfn->ncv+2);CHKERRQ(ierr);
   ierr = DSSetType(mfn->ds,DSNHEP);CHKERRQ(ierr);
