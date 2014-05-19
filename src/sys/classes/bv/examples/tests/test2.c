@@ -79,15 +79,11 @@ int main(int argc,char **argv)
   }
 
   /* Create copies on Y and Z */
-  ierr = BVCreate(PETSC_COMM_WORLD,&Y);CHKERRQ(ierr);
+  ierr = BVDuplicate(X,&Y);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)Y,"Y");CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(Y,t,k);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(Y);CHKERRQ(ierr);
   ierr = BVCopy(X,Y);CHKERRQ(ierr);
-  ierr = BVCreate(PETSC_COMM_WORLD,&Z);CHKERRQ(ierr);
+  ierr = BVDuplicate(X,&Z);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)Z,"Z");CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(Z,t,k);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(Z);CHKERRQ(ierr);
   ierr = BVCopy(X,Z);CHKERRQ(ierr);
 
   /* Test BVOrthogonalize */
