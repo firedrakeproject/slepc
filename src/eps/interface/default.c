@@ -360,7 +360,6 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
 {
   PetscErrorCode ierr;
   PetscReal      norm;
-//  Mat            B;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            z;
 #endif
@@ -372,9 +371,8 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
   /* purify eigenvector in positive generalized problems */
   if (eps->ispositive) {
     ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
-//    ierr = BVGetMatrix(eps->V,&B,NULL);CHKERRQ(ierr);
-    if (eps->ishermitian) { // && B) {
-//      ierr = IPNorm(eps->ip,y,&norm);CHKERRQ(ierr);
+    if (eps->ishermitian) {
+      ierr = BVNormVec(eps->V,y,NORM_2,&norm);CHKERRQ(ierr);
     } else {
       ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
     }
