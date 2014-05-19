@@ -403,12 +403,11 @@ PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
     if (m!=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Matrix must be square");
     if (bv->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension BV %D, Mat %D",bv->n,n);
   }
-
   ierr = MatDestroy(&bv->matrix);CHKERRQ(ierr);
   if (B) PetscObjectReference((PetscObject)B);
   bv->matrix = B;
   bv->indef  = indef;
-  if (!bv->Bx && B) {
+  if (B && !bv->Bx) {
     ierr = MatGetVecs(B,&bv->Bx,NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Bx);CHKERRQ(ierr);
   }
@@ -818,6 +817,50 @@ PetscErrorCode BVGetVec(BV bv,Vec *v)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVDuplicate"
+/*@
+   BVDuplicate - Creates a new basis vector object of the same type and
+   dimensions as an existing one.
+
+   Collective on BV
+
+   Input Parameter:
+.  V - basis vectors context
+
+   Output Parameter:
+.  W - location to put the new BV
+
+   Notes:
+   The new BV has the same type and dimensions as V, and it shares the same
+   template vector. Also, the inner product matrix and orthogonalization
+   options are copied.
+
+   BVDuplicate() DOES NOT COPY the entries, but rather allocates storage
+   for the new basis vectors. Use BVCopy() to copy the contents.
+
+   Level: intermediate
+
+.seealso: BVCreate(), BVSetSizesFromVec(), BVCopy()
+@*/
+PetscErrorCode BVDuplicate(BV V,BV *W)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidPointer(W,2);
+  ierr = BVCreate(PetscObjectComm((PetscObject)V),W);CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(*W,V->t,V->m);CHKERRQ(ierr);
+  ierr = BVSetType(*W,((PetscObject)V)->type_name);CHKERRQ(ierr);
+  ierr = BVSetMatrix(*W,V->matrix,V->indef);CHKERRQ(ierr);
+  ierr = BVSetOrthogonalization(*W,V->orthog_type,V->orthog_ref,V->orthog_eta);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)*W);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVCopy"
 /*@
    BVCopy - Copies a basis vector object into another one, W <- V.
@@ -836,7 +879,7 @@ PetscErrorCode BVGetVec(BV bv,Vec *v)
 
    Level: beginner
 
-.seealso: BVCopyVec(), BVCopyColumn()
+.seealso: BVCopyVec(), BVCopyColumn(), BVDuplicate()
 @*/
 PetscErrorCode BVCopy(BV V,BV W)
 {
