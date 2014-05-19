@@ -40,7 +40,7 @@
 #define epsmonitorconverged_        EPSMONITORCONVERGED
 #define epsmonitorfirst_            EPSMONITORFIRST
 #define epsgetst_                   EPSGETST
-#define epsgetip_                   EPSGETIP
+#define epsgetbv_                   EPSGETBV
 #define epsgetds_                   EPSGETDS
 #define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
 #define epsgetproblemtype_          EPSGETPROBLEMTYPE
@@ -71,7 +71,7 @@
 #define epsmonitorconverged_        epsmonitorconverged
 #define epsmonitorfirst_            epsmonitorfirst
 #define epsgetst_                   epsgetst
-#define epsgetip_                   epsgetip
+#define epsgetbv_                   epsgetbv
 #define epsgetds_                   epsgetds
 #define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
 #define epsgetproblemtype_          epsgetproblemtype
@@ -276,9 +276,9 @@ PETSC_EXTERN void PETSC_STDCALL epsgetst_(EPS *eps,ST *st,PetscErrorCode *ierr)
   *ierr = EPSGetST(*eps,st);
 }
 
-PETSC_EXTERN void PETSC_STDCALL epsgetip_(EPS *eps,IP *ip,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL epsgetbv_(EPS *eps,BV *V,BV *W,PetscErrorCode *ierr)
 {
-  *ierr = EPSGetIP(*eps,ip);
+  *ierr = EPSGetBV(*eps,V,W);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epsgetds_(EPS *eps,DS *ds,PetscErrorCode *ierr)
