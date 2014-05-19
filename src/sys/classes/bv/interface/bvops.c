@@ -539,6 +539,30 @@ PetscErrorCode BVScale(BV bv,PetscInt j,PetscScalar alpha)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVNorm_Private"
+PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+  ierr = BV_MatMult(bv,z);CHKERRQ(ierr);
+  ierr = VecDot(bv->Bx,z,&p);CHKERRQ(ierr);
+  if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
+    ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
+  if (bv->indef) {
+    if (PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
+    if (PetscRealPart(p)<0.0) *val = -PetscSqrtScalar(-PetscRealPart(p));
+    else *val = PetscSqrtScalar(PetscRealPart(p));
+  } else { 
+    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
+    *val = PetscSqrtScalar(PetscRealPart(p));
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVNorm"
 /*@
    BVNorm - Computes the vector norm of a selected column, or the matrix norm
@@ -571,7 +595,6 @@ PetscErrorCode BVNorm(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
   Vec            z;
-  PetscScalar    p;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -582,27 +605,64 @@ PetscErrorCode BVNorm(BV bv,PetscInt j,NormType type,PetscReal *val)
   BVCheckSizes(bv,1);
 
   if (j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
-  if (type==NORM_1_AND_2 || (type==NORM_2 && j<0)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+  if (type==NORM_2 && j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
   if (bv->matrix && j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Matrix norm not available for non-standard inner product");
 
   ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
     ierr = BVGetColumn(bv,j,&z);CHKERRQ(ierr);
-    ierr = BV_MatMult(bv,z);CHKERRQ(ierr);
-    ierr = VecDot(bv->Bx,z,&p);CHKERRQ(ierr);
+    ierr = BVNorm_Private(bv,z,type,val);CHKERRQ(ierr);
     ierr = BVRestoreColumn(bv,j,&z);CHKERRQ(ierr);
-    if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
-      ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
-    if (bv->indef) {
-      if (PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
-      if (PetscRealPart(p)<0.0) *val = -PetscSqrtScalar(-PetscRealPart(p));
-      else *val = PetscSqrtScalar(PetscRealPart(p));
-    } else { 
-      if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
-      *val = PetscSqrtScalar(PetscRealPart(p));
-    }
   } else {
     ierr = (*bv->ops->norm)(bv,j,type,val);CHKERRQ(ierr);
+  }
+  ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNormVec"
+/*@
+   BVNormVec - Computes the norm of a given vector.
+
+   Collective on BV
+
+   Input Parameters:
++  bv   - basis vectors
+-  v    - the vector
+-  type - the norm type
+
+   Output Parameter:
+.  val  - the norm
+
+   Notes:
+   This is the analogue of BVNorm but for a vector that is not in the BV.
+   If a non-standard inner product has been specified with BVSetMatrix(),
+   then the returned value is sqrt(v'*B*v), where B is the inner product
+   matrix (argument 'type' is ignored). Otherwise, VecNorm() is called.
+
+   Level: developer
+
+.seealso: BVNorm(), BVSetMatrix()
+@*/
+PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidHeaderSpecific(v,VEC_CLASSID,2);
+  PetscValidLogicalCollectiveEnum(bv,type,3);
+  PetscValidPointer(val,4);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  PetscCheckSameComm(bv,1,v,2);
+
+  ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  if (bv->matrix) { /* non-standard inner product */
+    ierr = BVNorm_Private(bv,v,type,val);CHKERRQ(ierr);
+  } else {
+    ierr = VecNorm(v,type,val);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
