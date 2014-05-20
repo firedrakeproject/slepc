@@ -182,9 +182,9 @@ PetscErrorCode BVCopy_Contiguous(BV V,BV W)
   PetscScalar    *pvc,*pwc;
 
   PetscFunctionBegin;
-  pvc = v->array+V->nc*V->n;
-  pwc = w->array+W->nc*W->n;
-  ierr = PetscMemcpy(pwc,pvc,V->k*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  pvc = v->array+(V->nc+V->l)*V->n;
+  pwc = w->array+(W->nc+W->l)*W->n;
+  ierr = PetscMemcpy(pwc,pvc,(V->k-V->l)*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

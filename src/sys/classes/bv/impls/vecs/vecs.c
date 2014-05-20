@@ -260,8 +260,8 @@ PetscErrorCode BVCopy_Vecs(BV V,BV W)
   PetscInt       j;
 
   PetscFunctionBegin;
-  for (j=0;j<V->k;j++) {
-    ierr = VecCopy(v->V[V->nc+j],w->V[W->nc+j]);CHKERRQ(ierr);
+  for (j=0;j<V->k-V->l;j++) {
+    ierr = VecCopy(v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
