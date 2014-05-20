@@ -169,6 +169,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->m            = 0;
   bv->l            = 0;
   bv->k            = 0;
+  bv->nc           = 0;
   bv->orthog_type  = BV_ORTHOG_CGS;
   bv->orthog_ref   = BV_ORTHOG_REFINE_IFNEEDED;
   bv->orthog_eta   = 0.7071;
@@ -311,6 +312,73 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
     }
   }
   *m -= ndep;
+  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVInsertConstraints"
+/*@
+   BVInsertConstraints - Insert a set of vectors as constraints.
+
+   Collective on BV
+
+   Input Parameters:
++  V - basis vectors
+-  C - set of vectors to be inserted as constraints
+
+   Input/Output Parameter:
+.  nc - number of input vectors, on output the number of linearly independent
+       vectors
+
+   Notes:
+   The constraints are relevant only during orthogonalization. Constraint
+   vectors span a subspace that is deflated in every orthogonalization
+   operation, so they are intended for removing those directions from the
+   orthogonal basis computed in regular BV columns.
+
+   Constraints are not stored in regular BV colums, but in a special part of
+   the storage. They can be accessed with negative indices in BVGetColumn().
+
+   This operation is DESTRUCTIVE, meaning that all data contained in the
+   columns of V is lost. This is typically invoked just after creating the BV.
+   Once a set of constraints has been set, it is not allowed to call this
+   function again.
+
+   The vectors are copied one by one and then orthogonalized against the
+   previous ones. If any of them is linearly dependent then it is discarded
+   and the value of nc is decreased. The behaviour is similar to BVInsertVecs().
+
+   Level: advanced
+
+.seealso: BVInsertVecs(), BVOrthogonalize(), BVGetColumn()
+@*/
+PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
+{
+  PetscErrorCode ierr;
+  PetscInt       msave;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidPointer(nc,2);
+  PetscValidLogicalCollectiveInt(V,*nc,2);
+  if (!*nc) PetscFunctionReturn(0);
+  if (*nc<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %D) cannot be negative",*nc);
+  PetscValidPointer(C,3);
+  PetscValidHeaderSpecific(*C,VEC_CLASSID,3);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscCheckSameComm(V,1,*C,3);
+  if (V->nc) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"Constraints already present in this BV object");
+  if (V->ci[0]!=-1 || V->ci[1]!=-1) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot call BVInsertConstraints after BVGetColumn");
+
+  msave = V->m;
+  ierr = BVResize(V,*nc+V->m,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVInsertVecs(V,0,nc,C,PETSC_TRUE);CHKERRQ(ierr);
+  V->nc = *nc;
+  V->m  = msave;
+  V->ci[0] = -V->nc-1;
+  V->ci[1] = -V->nc-1;
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -462,6 +530,9 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"- active columns: l=%D k=%D",bv->l,bv->k);CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+      if (bv->nc>0) {
+        ierr = PetscViewerASCIIPrintf(viewer,"number of constraints: %D\n",bv->nc);CHKERRQ(ierr);
+      }
       ierr = PetscViewerASCIIPrintf(viewer,"orthogonalization method: %s Gram-Schmidt\n",orthname[bv->orthog_type]);CHKERRQ(ierr);
       switch (bv->orthog_ref) {
         case BV_ORTHOG_REFINE_IFNEEDED:

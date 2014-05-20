@@ -40,7 +40,7 @@ PetscErrorCode BVMult_Svec(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y->v,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,X->k,alpha,px+X->l*X->n,q+Y->l*X->k+X->l,beta,py+Y->l*Y->n);CHKERRQ(ierr);
+  ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,X->k,alpha,px+(X->nc+X->l)*X->n,q+Y->l*X->k+X->l,beta,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y->v,&py);CHKERRQ(ierr);
@@ -58,7 +58,7 @@ PetscErrorCode BVMultVec_Svec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
   PetscFunctionBegin;
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = BVMultVec_BLAS_Private(X,X->n,X->k-X->l,alpha,px+X->l*X->n,q,beta,py);CHKERRQ(ierr);
+  ierr = BVMultVec_BLAS_Private(X,X->n,X->k-X->l,alpha,px+(X->nc+X->l)*X->n,q,beta,py);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -75,7 +75,7 @@ PetscErrorCode BVMultInPlace_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionBegin;
   ierr = VecGetArray(ctx->v,&pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,V->k,s-V->l,e-V->l,pv+V->l*V->n,q+V->l*V->k+V->l,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,V->k,s-V->l,e-V->l,pv+(V->nc+V->l)*V->n,q+V->l*V->k+V->l,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = VecRestoreArray(ctx->v,&pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -94,7 +94,7 @@ PetscErrorCode BVMultInPlaceTranspose_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
   ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(ctx->v,&pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,pv+V->l*V->n,q+V->l*ldq+V->l,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,pv+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = VecRestoreArray(ctx->v,&pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -112,7 +112,7 @@ PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y->v,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  ierr = BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,X->n,Y->k,py+Y->l*Y->n,px+X->l*X->n,m+X->l*Y->k+Y->l,x->mpi);CHKERRQ(ierr);
+  ierr = BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,X->n,Y->k,py+(Y->nc+Y->l)*Y->n,px+(X->nc+X->l)*X->n,m+X->l*Y->k+Y->l,x->mpi);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y->v,&py);CHKERRQ(ierr);
@@ -135,7 +135,7 @@ PetscErrorCode BVDotVec_Svec(BV X,Vec y,PetscScalar *m)
   }
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(z,&py);CHKERRQ(ierr);
-  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+X->l*X->n,py,m,x->mpi);CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+(X->nc+X->l)*X->n,py,m,x->mpi);CHKERRQ(ierr);
   ierr = VecRestoreArray(z,&py);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -152,9 +152,9 @@ PetscErrorCode BVScale_Svec(BV bv,PetscInt j,PetscScalar alpha)
   PetscFunctionBegin;
   ierr = VecGetArray(ctx->v,&array);CHKERRQ(ierr);
   if (j<0) {
-    ierr = BVScale_BLAS_Private(bv,bv->k*bv->n,array,alpha);CHKERRQ(ierr);
+    ierr = BVScale_BLAS_Private(bv,bv->k*bv->n,array+bv->nc*bv->n,alpha);CHKERRQ(ierr);
   } else {
-    ierr = BVScale_BLAS_Private(bv,bv->n,array+j*bv->n,alpha);CHKERRQ(ierr);
+    ierr = BVScale_BLAS_Private(bv,bv->n,array+(bv->nc+j)*bv->n,alpha);CHKERRQ(ierr);
   }
   ierr = VecRestoreArray(ctx->v,&array);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -171,9 +171,9 @@ PetscErrorCode BVNorm_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionBegin;
   ierr = VecGetArray(ctx->v,&array);CHKERRQ(ierr);
   if (j<0) {
-    ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k,array,type,val,ctx->mpi);CHKERRQ(ierr);
+    ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k,array+bv->nc*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
   } else {
-    ierr = BVNorm_LAPACK_Private(bv,bv->n,1,array+j*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
+    ierr = BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
   }
   ierr = VecRestoreArray(ctx->v,&array);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -190,7 +190,7 @@ PetscErrorCode BVOrthogonalizeAll_Svec(BV V,Mat R)
   PetscFunctionBegin;
   if (R) { ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr); }
   ierr = VecGetArray(ctx->v,&pv);CHKERRQ(ierr);
-  ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k,pv,r,ctx->mpi);CHKERRQ(ierr);
+  ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k,pv+V->nc*V->n,r,ctx->mpi);CHKERRQ(ierr);
   ierr = VecRestoreArray(ctx->v,&pv);CHKERRQ(ierr);
   if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
@@ -202,12 +202,14 @@ PetscErrorCode BVCopy_Svec(BV V,BV W)
 {
   PetscErrorCode ierr;
   BV_SVEC        *v = (BV_SVEC*)V->data,*w = (BV_SVEC*)W->data;
-  PetscScalar    *pv,*pw;
+  PetscScalar    *pv,*pw,*pvc,*pwc;
 
   PetscFunctionBegin;
   ierr = VecGetArray(v->v,&pv);CHKERRQ(ierr);
   ierr = VecGetArray(w->v,&pw);CHKERRQ(ierr);
-  ierr = PetscMemcpy(pw,pv,V->k*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  pvc = pv+V->nc*V->n;
+  pwc = pw+W->nc*W->n;
+  ierr = PetscMemcpy(pwc,pvc,V->k*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = VecRestoreArray(v->v,&pv);CHKERRQ(ierr);
   ierr = VecRestoreArray(w->v,&pw);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -259,7 +261,7 @@ PetscErrorCode BVGetColumn_Svec(BV bv,PetscInt j,Vec *v)
   PetscFunctionBegin;
   l = BVAvailableVec;
   ierr = VecGetArray(ctx->v,&pv);CHKERRQ(ierr);
-  ierr = VecPlaceArray(bv->cv[l],pv+j*bv->n);CHKERRQ(ierr);
+  ierr = VecPlaceArray(bv->cv[l],pv+(bv->nc+j)*bv->n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -293,7 +295,10 @@ PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s=reshape(%s,%d,%d);clear %s\n",((PetscObject)bv)->name,((PetscObject)ctx->v)->name,bv->N,bv->m,((PetscObject)ctx->v)->name);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=reshape(%s,%d,%d);clear %s\n",((PetscObject)bv)->name,((PetscObject)ctx->v)->name,bv->N,bv->nc+bv->m,((PetscObject)ctx->v)->name);CHKERRQ(ierr);
+      if (bv->nc) {
+        ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%d:end);\n",((PetscObject)bv)->name,((PetscObject)bv)->name,bv->nc+1);CHKERRQ(ierr);
+      }
     }
   }
   PetscFunctionReturn(0);

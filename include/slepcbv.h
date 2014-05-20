@@ -92,6 +92,8 @@ PETSC_EXTERN PetscErrorCode BVSetActiveColumns(BV,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVGetActiveColumns(BV,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode BVInsertVec(BV,PetscInt,Vec);
 PETSC_EXTERN PetscErrorCode BVInsertVecs(BV,PetscInt,PetscInt*,Vec*,PetscBool);
+PETSC_EXTERN PetscErrorCode BVInsertConstraints(BV,PetscInt*,Vec*);
+PETSC_EXTERN PetscErrorCode BVGetNumConstraints(BV,PetscInt*);
 PETSC_EXTERN PetscErrorCode BVDuplicate(BV,BV*);
 PETSC_EXTERN PetscErrorCode BVCopy(BV,BV);
 PETSC_EXTERN PetscErrorCode BVCopyVec(BV,PetscInt,Vec);

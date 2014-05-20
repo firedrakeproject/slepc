@@ -24,17 +24,18 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/bv/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c
 EXAMPLESF  =
 MANSEC     = BV
-TESTS      = test1 test2 test3 test4 test5
+TESTS      = test1 test2 test3 test4 test5 test6
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 runtest1_3 runtest1_4 test1.rm \
                        test2.PETSc runtest2_1 runtest2_2 runtest2_3 runtest2_4 \
                                    runtest2_5 runtest2_6 runtest2_7 runtest2_8 test2.rm \
                        test3.PETSc runtest3_1 runtest3_2 runtest3_3 runtest3_4 test3.rm \
                        test4.PETSc runtest4_1 runtest4_2 runtest4_3 runtest4_4 test4.rm \
-                       test5.PETSc runtest5_1 runtest5_2 runtest5_3 runtest5_4 test5.rm
+                       test5.PETSc runtest5_1 runtest5_2 runtest5_3 runtest5_4 test5.rm \
+                       test6.PETSc runtest6_1 runtest6_2 runtest6_3 runtest6_4 test6.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
@@ -57,6 +58,10 @@ test4: test4.o chkopts
 test5: test5.o chkopts
 	-${CLINKER} -o test5 test5.o ${SLEPC_SYS_LIB}
 	${RM} test5.o
+
+test6: test6.o chkopts
+	-${CLINKER} -o test6 test6.o ${SLEPC_SYS_LIB}
+	${RM} test6.o
 
 #------------------------------------------------------------------------------------
 
@@ -184,5 +189,25 @@ runtest5_3:
 runtest5_4:
 	-@test=test5_1; \
 	${MPIEXEC} -np 1 ./test5 -bv_orthog_refine always -bv_type mat 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest6_1:
+	-@test=test6_1; \
+	${MPIEXEC} -np 1 ./test6 -bv_type vecs 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest6_2:
+	-@test=test6_1; \
+	${MPIEXEC} -np 1 ./test6 -bv_type contiguous 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest6_3:
+	-@test=test6_1; \
+	${MPIEXEC} -np 1 ./test6 -bv_type svec 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest6_4:
+	-@test=test6_1; \
+	${MPIEXEC} -np 1 ./test6 -bv_type mat 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
