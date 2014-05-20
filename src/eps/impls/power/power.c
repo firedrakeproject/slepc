@@ -106,7 +106,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
-    k = eps->nds+eps->nconv;
+    k = eps->nconv;
 
     /* y = OP v */
     ierr = BVGetColumn(eps->V,k,&v);CHKERRQ(ierr);

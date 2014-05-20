@@ -1290,29 +1290,29 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
 
   /* For the first step, use the first initial vector, otherwise a random one */
   if (i>0 || eps->nini==0) {
-    ierr = BVSetRandom(eps->V,eps->nds+i,eps->rand);CHKERRQ(ierr);
+    ierr = BVSetRandom(eps->V,i,eps->rand);CHKERRQ(ierr);
   }
   ierr = BVGetVec(eps->V,&w);CHKERRQ(ierr);
-  ierr = BVCopyVec(eps->V,eps->nds+i,w);CHKERRQ(ierr);
+  ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);
 
   /* Force the vector to be in the range of OP for definite generalized problems */
-  ierr = BVGetColumn(eps->V,eps->nds+i,&z);CHKERRQ(ierr);
+  ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
   if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
     ierr = STApply(eps->st,w,z);CHKERRQ(ierr);
   } else {
     ierr = VecCopy(w,z);CHKERRQ(ierr);
   }
-  ierr = BVRestoreColumn(eps->V,eps->nds+i,&z);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
   ierr = VecDestroy(&w);CHKERRQ(ierr);
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = BVOrthogonalize(eps->V,eps->nds+i,NULL,&norm,&lindep);CHKERRQ(ierr);
+  ierr = BVOrthogonalize(eps->V,i,NULL,&norm,&lindep);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
     if (i==0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Initial vector is zero or belongs to the deflation space");
     else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unable to generate more start vectors");
   }
-  ierr = BVScale(eps->V,eps->nds+i,1.0/norm);CHKERRQ(ierr);
+  ierr = BVScale(eps->V,i,1.0/norm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -205,7 +205,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* process deflation and initial vectors */
   if (eps->nds<0) {
     k = -eps->nds;
-    ierr = BVInsertVecs(eps->V,0,&k,eps->defl,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = BVInsertConstraints(eps->V,&k,eps->defl);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&eps->nds,&eps->defl);CHKERRQ(ierr);
     eps->nds = k;
     //ierr = STCheckNullSpace(eps->st,eps->nds,eps->defl);CHKERRQ(ierr);
@@ -213,7 +213,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->nini<0) {
     k = -eps->nini;
     if (k>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The number of initial vectors is larger than ncv");
-    ierr = BVInsertVecs(eps->V,eps->nds,&k,eps->IS,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = BVInsertVecs(eps->V,0,&k,eps->IS,PETSC_TRUE);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&eps->nini,&eps->IS);CHKERRQ(ierr);
     eps->nini = k;
   }
@@ -459,6 +459,30 @@ PetscErrorCode EPSSetInitialSpaceLeft(EPS eps,PetscInt n,Vec *is)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSSetDimensions_Default"
+/*
+  EPSSetDimensions_Default - Set reasonable values for ncv, mpd if not set
+  by the user. This is called at setup.
+ */
+PetscErrorCode EPSSetDimensions_Default(EPS eps)
+{
+  PetscFunctionBegin;
+  if (eps->ncv) { /* ncv set */
+    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
+  } else if (eps->mpd) { /* mpd set */
+    eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
+  } else { /* neither set: defaults depend on nev being small or large */
+    if (eps->nev<500) eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15));
+    else {
+      eps->mpd = 500;
+      eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
+    }
+  }
+  if (!eps->mpd) eps->mpd = eps->ncv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSAllocateSolution"
 /*
   EPSAllocateSolution - Allocate memory storage for common variables such
@@ -474,7 +498,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
   Vec            t;
 
   PetscFunctionBegin;
-  requested = eps->nds + eps->ncv + extra;
+  requested = eps->ncv + extra;
 
   /* oldsize is zero if this is the first time setup is called */
   ierr = BVGetSizes(eps->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
