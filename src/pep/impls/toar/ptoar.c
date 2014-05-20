@@ -57,7 +57,7 @@ typedef struct{ /* temporary comparing structure considering a region */
 
 #undef __FUNCT__
 #define __FUNCT__ "TemporaryTransf"
-PetscErrorCode TemporaryTransf(PetscInt n,PetscScalar *ar,PetscScalar *ai,void *ctx)
+static PetscErrorCode TemporaryTransf(PetscInt n,PetscScalar *ar,PetscScalar *ai,void *ctx)
 {
   PetscErrorCode ierr;
   ST             st=(ST)ctx;
@@ -73,7 +73,7 @@ PetscErrorCode TemporaryTransf(PetscInt n,PetscScalar *ar,PetscScalar *ai,void *
   zr, real part of the eigenvalue
   zi, imaginary part of the eigenvalue
 */
-PetscErrorCode TemporaryRegionTest(Reg *reg,PetscInt n,PetscScalar *zr,PetscScalar *zi,PetscInt *count,PetscBool *zin)
+static PetscErrorCode TemporaryRegionTest(Reg *reg,PetscInt n,PetscScalar *zr,PetscScalar *zi,PetscInt *count,PetscBool *zin)
 {
   PetscInt    i,c;
   PetscScalar cr=reg->zr,ci=reg->zi,xr,xi=0.0;
@@ -103,7 +103,7 @@ PetscErrorCode TemporaryRegionTest(Reg *reg,PetscInt n,PetscScalar *zr,PetscScal
 
 #undef __FUNCT__
 #define __FUNCT__ "TemporaryComparisonFunct"
-PetscErrorCode TemporaryComparisonFunct(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
+static PetscErrorCode TemporaryComparisonFunct(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
 {
   PetscErrorCode ierr;
   PetscBool      ain,bin;
@@ -405,7 +405,7 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar *S,PetscInt ld,PetscScalar 
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPTOARTrunc"
-PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt rs1,PetscInt cs1,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
+static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt rs1,PetscInt cs1,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
 {
   PetscErrorCode ierr;
   PetscInt       lwa,nwu=0,lrwa,nrwu=0;
@@ -476,7 +476,7 @@ PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt deg,Pets
   rows 0-sr of S
   size(Q) qr x ncu
 */
-PetscErrorCode PEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt sr,PetscInt s,PetscInt ncu,PetscInt qr,PetscScalar *Q,PetscInt ldq,PetscScalar *work,PetscInt nw)
+static PetscErrorCode PEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt sr,PetscInt s,PetscInt ncu,PetscInt qr,PetscScalar *Q,PetscInt ldq,PetscScalar *work,PetscInt nw)
 {
   PetscErrorCode ierr;
   PetscScalar    a=1.0,b=0.0;
@@ -610,11 +610,11 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscReal      beta,norm,*rwork;
   PetscBool      breakdown,flg;
 /* /////////// */
-  PetscBool    withreg=PETSC_FALSE;
+  PetscBool    withreg=PETSC_FALSE,sinvert;
   PEPBasis     bs;
   PEPCmpctx    *ctx;
   Reg          *reg;
-  PetscInt     count;
+  PetscInt     count,newtonRefIt=0;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar  *er,*ei;
 #endif
@@ -648,8 +648,8 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     ierr = DSSetEigenvalueComparison(pep->ds,TemporaryComparisonFunct,ctx);CHKERRQ(ierr);
     ctx->region = TemporaryRegionTest;
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscMalloc(pep->ncv,&er);CHKERRQ(ierr);
-    ierr = PetscMalloc(pep->ncv,&ei);CHKERRQ(ierr);
+    ierr = PetscMalloc1(pep->ncv,&er);CHKERRQ(ierr);
+    ierr = PetscMalloc1(pep->ncv,&ei);CHKERRQ(ierr);
 #endif
   }
 /* /////////// */
@@ -774,12 +774,29 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     }
     }/* ///////////////// */
-  /* Update vectors V = V*S */  
-    ierr = SlepcUpdateVectors(pep->nconv+deg-1,pep->V,0,pep->nconv,S,lds,PETSC_FALSE);CHKERRQ(ierr);
+
+    /* Perform Newton refinement if required */
+    ierr = PetscOptionsGetInt(NULL,"-newton_refinement",&newtonRefIt,NULL);CHKERRQ(ierr);
+    if (newtonRefIt>0) {
+      ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);//////////////
+      ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
+      ierr = PEPNewtonRefinement_TOAR(pep,&newtonRefIt,NULL,pep->nconv,S,lds);CHKERRQ(ierr);
+      ierr = DSSolve(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
+      ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);;
+      ierr = DSGetArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+      ierr = PEPTOARSupdate(S,ld,deg,pep->nconv+deg-1,0,pep->nconv,pep->nconv,Q,ldds,work+nwu,lwa-nwu);CHKERRQ(ierr);
+      ierr = DSRestoreArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinvert);CHKERRQ(ierr);
+    }
+
+    /* Update vectors V = V*S */  
+    ierr = SlepcUpdateVectors(pep->nconv,pep->V,0,pep->nconv,S,lds,PETSC_FALSE);CHKERRQ(ierr);
   }
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) {
-    ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+    if (!newtonRefIt) {
+      ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+    }
     /* Restore original values */
     pep->target *= pep->sfactor;
     pep->st->sigma *= pep->sfactor;
@@ -794,7 +811,8 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       pep->pbc[pep->nmat+i] *= pep->sfactor;
       pep->pbc[2*pep->nmat+i] *= pep->sfactor*pep->sfactor;
     }
-  } 
+  }
+
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
