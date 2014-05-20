@@ -52,28 +52,28 @@ struct _BVOps {
 struct _p_BV {
   PETSCHEADER(struct _BVOps);
   /*------------------------- User parameters --------------------------*/
-  Vec                t;            /* Template vector */
-  PetscInt           n,N;          /* Dimensions of vectors */
-  PetscInt           m;            /* Number of vectors */
-  PetscInt           l,k;          /* Active columns */
+  Vec                t;            /* template vector */
+  PetscInt           n,N;          /* dimensions of vectors (local, global) */
+  PetscInt           m;            /* number of vectors */
+  PetscInt           l;            /* number of leading columns */
+  PetscInt           k;            /* number of active columns */
+  PetscInt           nc;           /* number of constraints */
   BVOrthogType       orthog_type;  /* which orthogonalization to use */
   BVOrthogRefineType orthog_ref;   /* refinement method */
   PetscReal          orthog_eta;   /* refinement threshold */
   Mat                matrix;       /* inner product matrix */
   PetscBool          indef;        /* matrix is indefinite */
 
-  /*------------------------- Cache Bx product -------------------*/
-  PetscInt           xid;
-  PetscInt           xstate;
-  Vec                Bx;
-
-  /*------------------------- Misc data --------------------------*/
-  Vec                cv[2];        /* Column vectors obtained with BVGetColumn() */
-  PetscInt           ci[2];        /* Column indices of obtained vectors */
-  PetscObjectState   st[2];        /* State of obtained vectors */
-  PetscObjectId      id[2];        /* Object id of obtained vectors */
-  PetscScalar        *h,*c;        /* Orthogonalization coefficients */
-  PetscReal          *omega;       /* Signature matrix values for indefinite case */
+  /*---------------------- Cached data and workspace -------------------*/
+  Vec                Bx;           /* result of matrix times a vector x */
+  PetscInt           xid;          /* object id of vector x */
+  PetscInt           xstate;       /* state of vector x */
+  Vec                cv[2];        /* column vectors obtained with BVGetColumn() */
+  PetscInt           ci[2];        /* column indices of obtained vectors */
+  PetscObjectState   st[2];        /* state of obtained vectors */
+  PetscObjectId      id[2];        /* object id of obtained vectors */
+  PetscScalar        *h,*c;        /* orthogonalization coefficients */
+  PetscReal          *omega;       /* signature matrix values for indefinite case */
   PetscScalar        *work;
   PetscInt           lwork;
   void               *data;
@@ -98,7 +98,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_MatMult(BV bv,Vec x)
   BVAvailableVec: First (0) or second (1) vector available for
   getcolumn operation (or -1 if both vectors already fetched).
 */
-#define BVAvailableVec (((bv->ci[0]==-1)? 0: (bv->ci[1]==-1)? 1: -1))
+#define BVAvailableVec (((bv->ci[0]==-bv->nc-1)? 0: (bv->ci[1]==-bv->nc-1)? 1: -1))
 
 /*
     Macros to test valid BV arguments

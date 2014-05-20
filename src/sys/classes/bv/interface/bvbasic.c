@@ -239,6 +239,32 @@ PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVGetNumConstraints"
+/*@
+  BVGetNumConstraints - Returns the number of constraints.
+
+  Not Collective
+
+  Input Parameter:
+. bv - the basis vectors
+
+  Output Parameters:
+. nc - the number of constraints
+
+  Level: advanced
+
+.seealso: BVGetSizes(), BVInsertConstraints()
+@*/
+PetscErrorCode BVGetNumConstraints(BV bv,PetscInt *nc)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidPointer(nc,2);
+  *nc = bv->nc;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVResize"
 /*@
   BVResize - Change the number of columns.
@@ -261,20 +287,32 @@ PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
 PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
 {
   PetscErrorCode ierr;
+  PetscReal      *omega;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(bv,m,2);
   PetscValidLogicalCollectiveBool(bv,copy,3);
   if (m <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",m);
+  if (bv->nc) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Cannot resize a BV with constraints");
   if (bv->m == m) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Create,bv,0,0,0);CHKERRQ(ierr);
   ierr = (*bv->ops->resize)(bv,m,copy);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(BV_Create,bv,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFree2(bv->h,bv->c);CHKERRQ(ierr);
+  if (bv->omega) {
+    ierr = PetscMalloc1(m,&omega);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)bv,m*sizeof(PetscReal));CHKERRQ(ierr);
+    if (copy) {
+      ierr = PetscMemcpy(omega,bv->omega,PetscMin(m,bv->m)*sizeof(PetscReal));CHKERRQ(ierr);
+    }
+    ierr = PetscFree(bv->omega);CHKERRQ(ierr);
+    bv->omega = omega;
+  }
   bv->m = m;
   bv->k = PetscMin(bv->k,m);
   bv->l = PetscMin(bv->l,m);
+  ierr = PetscLogEventEnd(BV_Create,bv,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -476,11 +514,11 @@ PetscErrorCode BVSetSignature(BV bv,Vec omega)
   if (n!=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Vec argument has %D elements, should be %D",n,bv->k);
   if (bv->indef) {
     if (!bv->omega) {
-      ierr = PetscMalloc1(bv->m,&bv->omega);CHKERRQ(ierr);
-      ierr = PetscLogObjectMemory((PetscObject)bv,bv->m*sizeof(PetscReal));CHKERRQ(ierr);
+      ierr = PetscMalloc1(bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)bv,(bv->nc+bv->m)*sizeof(PetscReal));CHKERRQ(ierr);
     }
     ierr = VecGetArray(omega,&pomega);CHKERRQ(ierr);
-    for (i=0;i<n;i++) bv->omega[i] = PetscRealPart(pomega[i]);
+    for (i=0;i<n;i++) bv->omega[bv->nc+i] = PetscRealPart(pomega[i]);
     ierr = VecRestoreArray(omega,&pomega);CHKERRQ(ierr);
   } else {
     ierr = PetscInfo(bv,"Ignoring signature because BV is not indefinite\n");CHKERRQ(ierr);
@@ -525,7 +563,7 @@ PetscErrorCode BVGetSignature(BV bv,Vec omega)
   if (n!=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Vec argument has %D elements, should be %D",n,bv->k);
   if (bv->indef && bv->omega) {
     ierr = VecGetArray(omega,&pomega);CHKERRQ(ierr);
-    for (i=0;i<n;i++) pomega[i] = bv->omega[i];
+    for (i=0;i<n;i++) pomega[i] = bv->omega[bv->nc+i];
     ierr = VecRestoreArray(omega,&pomega);CHKERRQ(ierr);
   } else {
     ierr = VecSet(omega,1.0);CHKERRQ(ierr);
@@ -704,9 +742,12 @@ PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineTyp
    that is, this function can only be called twice before the corresponding
    BVRestoreColumn() is invoked.
 
+   A negative index j selects the i-th constraint, where i=-j. Constraints
+   should not be modified.
+
    Level: beginner
 
-.seealso: BVRestoreColumn()
+.seealso: BVRestoreColumn(), BVInsertConstraints()
 @*/
 PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
 {
@@ -718,7 +759,7 @@ PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
   PetscValidLogicalCollectiveInt(bv,j,2);
-  if (j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Column index must be non-negative");
+  if (j<0 && -j>bv->nc) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested constraint %D but only %D are available",-j,bv->nc);
   if (j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %D but only %D are available",j,bv->m);
   if (j==bv->ci[0] || j==bv->ci[1]) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Column %D already fetched in a previous call to BVGetColumn",j);
   l = BVAvailableVec;
@@ -764,7 +805,7 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   PetscValidLogicalCollectiveInt(bv,j,2);
   PetscValidPointer(v,3);
   PetscValidHeaderSpecific(*v,VEC_CLASSID,3);
-  if (j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Column index must be non-negative");
+  if (j<0 && -j>bv->nc) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested constraint %D but only %D are available",-j,bv->nc);
   if (j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %D but only %D are available",j,bv->m);
   if (j!=bv->ci[0] && j!=bv->ci[1]) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Column %D has not been fetched with a call to BVGetColumn",j);
   l = (j==bv->ci[0])? 0: 1;
@@ -777,7 +818,7 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   if (bv->ops->restorecolumn) {
     ierr = (*bv->ops->restorecolumn)(bv,j,v);CHKERRQ(ierr);
   } else bv->cv[l] = NULL;
-  bv->ci[l] = -1;
+  bv->ci[l] = -bv->nc-1;
   bv->st[l] = -1;
   bv->id[l] = 0;
   *v = NULL;
@@ -875,7 +916,7 @@ PetscErrorCode BVDuplicate(BV V,BV *W)
 
    Note:
    Both V and W must be distributed in the same manner; local copies are
-   done. Only the active columns of V are copied.
+   done. Only the active columns of V are copied. Constraints are not copied.
 
    Level: beginner
 
