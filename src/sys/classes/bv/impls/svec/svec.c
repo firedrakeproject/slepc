@@ -207,9 +207,9 @@ PetscErrorCode BVCopy_Svec(BV V,BV W)
   PetscFunctionBegin;
   ierr = VecGetArray(v->v,&pv);CHKERRQ(ierr);
   ierr = VecGetArray(w->v,&pw);CHKERRQ(ierr);
-  pvc = pv+V->nc*V->n;
-  pwc = pw+W->nc*W->n;
-  ierr = PetscMemcpy(pwc,pvc,V->k*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  pvc = pv+(V->nc+W->l)*V->n;
+  pwc = pw+(W->nc+W->l)*W->n;
+  ierr = PetscMemcpy(pwc,pvc,(V->k-V->l)*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = VecRestoreArray(v->v,&pv);CHKERRQ(ierr);
   ierr = VecRestoreArray(w->v,&pw);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -924,11 +924,13 @@ PetscErrorCode BVDuplicate(BV V,BV *W)
 
    Note:
    Both V and W must be distributed in the same manner; local copies are
-   done. Only the active columns of V are copied. Constraints are not copied.
+   done. Only active columns (excluding the leading ones) are copied.
+   In the destination W, columns are overwritten starting from the leading ones.
+   Constraints are not copied.
 
    Level: beginner
 
-.seealso: BVCopyVec(), BVCopyColumn(), BVDuplicate()
+.seealso: BVCopyVec(), BVCopyColumn(), BVDuplicate(), BVSetActiveColumns()
 @*/
 PetscErrorCode BVCopy(BV V,BV W)
 {
@@ -943,7 +945,7 @@ PetscErrorCode BVCopy(BV V,BV W)
   BVCheckSizes(W,2);
   PetscCheckSameTypeAndComm(V,1,W,2);
   if (V->n!=W->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, W %D",V->n,W->n);
-  if (V->k>W->m) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"W has %D columns, not enough to store %D columns",W->m,V->k);
+  if (V->k-V->l>W->m-W->l) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"W has %D non-leading columns, not enough to store %D columns",W->m-W->l,V->k-V->l);
   if (!V->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Copy,V,W,0,0);CHKERRQ(ierr);

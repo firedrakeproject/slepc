@@ -207,9 +207,9 @@ PetscErrorCode BVCopy_Mat(BV V,BV W)
   PetscFunctionBegin;
   ierr = MatDenseGetArray(v->A,&pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(w->A,&pw);CHKERRQ(ierr);
-  pvc = pv+V->nc*V->n;
-  pwc = pw+W->nc*W->n;
-  ierr = PetscMemcpy(pwc,pvc,V->k*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  pvc = pv+(V->nc+V->l)*V->n;
+  pwc = pw+(W->nc+W->l)*W->n;
+  ierr = PetscMemcpy(pwc,pvc,(V->k-V->l)*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(v->A,&pv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(w->A,&pw);CHKERRQ(ierr);
   PetscFunctionReturn(0);
