@@ -191,6 +191,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 
   /* V = V * Z */
   ierr = DSGetMat(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->V,0,n);CHKERRQ(ierr);
   ierr = BVMultInPlace(eps->V,Z,0,n);CHKERRQ(ierr);
   ierr = MatDestroy(&Z);CHKERRQ(ierr);
 
@@ -243,6 +244,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     ierr = DSVectors(eps->ds,DS_MAT_Y,NULL,NULL);CHKERRQ(ierr);
     /* W = W * Z */
     ierr = DSGetMat(eps->ds,DS_MAT_Y,&Z);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(eps->W,0,n);CHKERRQ(ierr);
     ierr = BVMultInPlace(eps->W,Z,0,n);CHKERRQ(ierr);
     ierr = MatDestroy(&Z);CHKERRQ(ierr);
   }
