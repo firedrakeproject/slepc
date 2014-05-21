@@ -280,11 +280,12 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
    then it is filled with the values that would be obtained with DSGetArray()
    (not DSGetArrayReal()). The communicator is always PETSC_COMM_SELF.
 
-   The user is responsible for destroying the matrix.
+   When no longer needed, the user can either destroy the matrix or call
+   DSRestoreMat(). The latter will copy back the modified values.
 
    Level: advanced
 
-.seealso: DSSetDimensions(), DSGetArray(), DSGetArrayReal()
+.seealso: DSRestoreMat(), DSSetDimensions(), DSGetArray(), DSGetArrayReal()
 @*/
 PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 {
@@ -295,7 +296,8 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(A,2);
+  PetscValidLogicalCollectiveEnum(ds,m,2);
+  PetscValidPointer(A,3);
   if (m<0 || m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   if (!ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSAllocate() first");
   if (!ds->mat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
@@ -321,6 +323,55 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
     ierr = PetscMemcpy(pA+j*rows,M+j*ds->ld,rows*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(*A,&pA);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSRestoreMat"
+/*@
+   DSRestoreMat - Restores the matrix after DSGetMat() was called.
+
+   Not Collective
+
+   Input Parameters:
++  ds - the direct solver context
+.  m  - the requested matrix
+-  A  - the fetched Mat object
+
+   Notes:
+   A call to this function must match a previous call of DSGetMat().
+   The effect is that the contents of the Mat are copied back to the
+   DS internal array, and the matrix is destroyed.
+
+   It is not compulsory to call this function, the matrix obtained with
+   DSGetMat() can simply be destroyed if entries need not be copied back.
+
+   Level: advanced
+
+.seealso: DSGetMat(), DSRestoreArray(), DSRestoreArrayReal()
+@*/
+PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
+{
+  PetscErrorCode ierr;
+  PetscInt       j,rows,cols;
+  PetscScalar    *pA,*M;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ds,m,2);
+  PetscValidPointer(A,3);
+  if (m<0 || m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (!ds->omat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSRestoreMat must match a previous call to DSGetMat");
+  if (ds->omat[m]!=*A) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Mat argument is not the same as the one obtained with DSGetMat");
+
+  ierr = MatGetSize(*A,&rows,&cols);CHKERRQ(ierr);
+  M  = ds->mat[m];
+  ierr = MatDenseGetArray(*A,&pA);CHKERRQ(ierr);
+  for (j=0;j<cols;j++) {
+    ierr = PetscMemcpy(M+j*ds->ld,pA+j*rows,rows*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(*A,&pA);CHKERRQ(ierr);
+  ierr = MatDestroy(A);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

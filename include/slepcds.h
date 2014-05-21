@@ -157,6 +157,7 @@ PETSC_EXTERN PetscErrorCode DSGetExtraRow(DS,PetscBool*);
 PETSC_EXTERN PetscErrorCode DSSetRefined(DS,PetscBool);
 PETSC_EXTERN PetscErrorCode DSGetRefined(DS,PetscBool*);
 PETSC_EXTERN PetscErrorCode DSGetMat(DS,DSMatType,Mat*);
+PETSC_EXTERN PetscErrorCode DSRestoreMat(DS,DSMatType,Mat*);
 PETSC_EXTERN PetscErrorCode DSGetArray(DS,DSMatType,PetscScalar*[]);
 PETSC_EXTERN PetscErrorCode DSRestoreArray(DS,DSMatType,PetscScalar*[]);
 PETSC_EXTERN PetscErrorCode DSGetArrayReal(DS,DSMatType,PetscReal*[]);
