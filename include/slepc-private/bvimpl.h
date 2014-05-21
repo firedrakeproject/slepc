@@ -25,7 +25,7 @@
 #include <slepcbv.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_Dot,BV_Orthogonalize,BV_Scale,BV_Norm,BV_SetRandom;
+PETSC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_Dot,BV_Orthogonalize,BV_Scale,BV_Norm,BV_SetRandom,BV_MatMult,BV_AXPY;
 
 typedef struct _BVOps *BVOps;
 
@@ -39,6 +39,7 @@ struct _BVOps {
   PetscErrorCode (*scale)(BV,PetscInt,PetscScalar);
   PetscErrorCode (*norm)(BV,PetscInt,NormType,PetscReal*);
   PetscErrorCode (*orthogonalize)(BV,Mat);
+  PetscErrorCode (*matmult)(BV,Mat,BV);
   PetscErrorCode (*copy)(BV,BV);
   PetscErrorCode (*resize)(BV,PetscInt,PetscBool);
   PetscErrorCode (*getcolumn)(BV,PetscInt,Vec*);
@@ -80,8 +81,12 @@ struct _p_BV {
 };
 
 #undef __FUNCT__
-#define __FUNCT__ "BV_MatMult"
-PETSC_STATIC_INLINE PetscErrorCode BV_MatMult(BV bv,Vec x)
+#define __FUNCT__ "BV_IPMatMult"
+/*
+  BV_IPMatMult - Multiply a vector x by the inner-product matrix, cache the
+  result in Bx.
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMult(BV bv,Vec x)
 {
   PetscErrorCode ierr;
 

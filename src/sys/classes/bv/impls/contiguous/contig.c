@@ -117,7 +117,7 @@ PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *m)
 
   PetscFunctionBegin;
   if (X->matrix) {
-    ierr = BV_MatMult(X,y);CHKERRQ(ierr);
+    ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
   ierr = VecGetArray(z,&py);CHKERRQ(ierr);
@@ -170,6 +170,25 @@ PetscErrorCode BVOrthogonalizeAll_Contiguous(BV V,Mat R)
   if (R) { ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr); }
   ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k,ctx->array+V->nc*V->n,r,ctx->mpi);CHKERRQ(ierr);
   if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatMult_Contiguous"
+PetscErrorCode BVMatMult_Contiguous(BV V,Mat A,BV W)
+{
+  PetscErrorCode ierr;
+  BV_CONTIGUOUS  *v = (BV_CONTIGUOUS*)V->data,*w = (BV_CONTIGUOUS*)W->data;
+  PetscInt       j;
+
+  PetscFunctionBegin;
+  for (j=0;j<V->k-V->l;j++) {
+    ierr = VecPlaceArray(V->cv[1],v->array+(V->nc+V->l+j)*V->n);CHKERRQ(ierr);
+    ierr = VecPlaceArray(W->cv[1],w->array+(W->nc+W->l+j)*W->n);CHKERRQ(ierr);
+    ierr = MatMult(A,V->cv[1],W->cv[1]);CHKERRQ(ierr);
+    ierr = VecResetArray(V->cv[1]);CHKERRQ(ierr);
+    ierr = VecResetArray(W->cv[1]);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -302,6 +321,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->scale            = BVScale_Contiguous;
   bv->ops->norm             = BVNorm_Contiguous;
   bv->ops->orthogonalize    = BVOrthogonalizeAll_Contiguous;
+  bv->ops->matmult          = BVMatMult_Contiguous;
   bv->ops->copy             = BVCopy_Contiguous;
   bv->ops->resize           = BVResize_Contiguous;
   bv->ops->getcolumn        = BVGetColumn_Contiguous;

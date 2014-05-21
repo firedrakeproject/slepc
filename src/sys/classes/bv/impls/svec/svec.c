@@ -130,7 +130,7 @@ PetscErrorCode BVDotVec_Svec(BV X,Vec y,PetscScalar *m)
 
   PetscFunctionBegin;
   if (X->matrix) {
-    ierr = BV_MatMult(X,y);CHKERRQ(ierr);
+    ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
@@ -193,6 +193,30 @@ PetscErrorCode BVOrthogonalizeAll_Svec(BV V,Mat R)
   ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k,pv+V->nc*V->n,r,ctx->mpi);CHKERRQ(ierr);
   ierr = VecRestoreArray(ctx->v,&pv);CHKERRQ(ierr);
   if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatMult_Svec"
+PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *v = (BV_SVEC*)V->data,*w = (BV_SVEC*)W->data;
+  PetscScalar    *pv,*pw;
+  PetscInt       j;
+
+  PetscFunctionBegin;
+  ierr = VecGetArray(v->v,&pv);CHKERRQ(ierr);
+  ierr = VecGetArray(w->v,&pw);CHKERRQ(ierr);
+  for (j=0;j<V->k-V->l;j++) {
+    ierr = VecPlaceArray(V->cv[1],pv+(V->nc+V->l+j)*V->n);CHKERRQ(ierr);
+    ierr = VecPlaceArray(W->cv[1],pw+(W->nc+W->l+j)*W->n);CHKERRQ(ierr);
+    ierr = MatMult(A,V->cv[1],W->cv[1]);CHKERRQ(ierr);
+    ierr = VecResetArray(V->cv[1]);CHKERRQ(ierr);
+    ierr = VecResetArray(W->cv[1]);CHKERRQ(ierr);
+  }
+  ierr = VecRestoreArray(v->v,&pv);CHKERRQ(ierr);
+  ierr = VecRestoreArray(w->v,&pw);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -369,6 +393,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   bv->ops->scale            = BVScale_Svec;
   bv->ops->norm             = BVNorm_Svec;
   bv->ops->orthogonalize    = BVOrthogonalizeAll_Svec;
+  bv->ops->matmult          = BVMatMult_Svec;
   bv->ops->copy             = BVCopy_Svec;
   bv->ops->resize           = BVResize_Svec;
   bv->ops->getcolumn        = BVGetColumn_Svec;
