@@ -171,8 +171,8 @@ PetscErrorCode BVNorm_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalizeAll_Contiguous"
-PetscErrorCode BVOrthogonalizeAll_Contiguous(BV V,Mat R)
+#define __FUNCT__ "BVOrthogonalize_Contiguous"
+PetscErrorCode BVOrthogonalize_Contiguous(BV V,Mat R)
 {
   PetscErrorCode ierr;
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)V->data;
@@ -331,7 +331,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->dotvec           = BVDotVec_Contiguous;
   bv->ops->scale            = BVScale_Contiguous;
   bv->ops->norm             = BVNorm_Contiguous;
-  bv->ops->orthogonalize    = BVOrthogonalizeAll_Contiguous;
+  bv->ops->orthogonalize    = BVOrthogonalize_Contiguous;
   bv->ops->matmult          = BVMatMult_Contiguous;
   bv->ops->copy             = BVCopy_Contiguous;
   bv->ops->resize           = BVResize_Contiguous;
