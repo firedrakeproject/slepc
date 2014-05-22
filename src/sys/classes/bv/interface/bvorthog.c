@@ -42,7 +42,7 @@ static PetscErrorCode BVOrthogonalizeMGS1(BV bv,PetscInt j,PetscScalar *H)
     ierr = BVGetColumn(bv,i,&vi);CHKERRQ(ierr);
     /* h_i = ( v, v_i ) */
     if (bv->matrix) {
-      ierr = BV_MatMult(bv,v);CHKERRQ(ierr);
+      ierr = BV_IPMatMult(bv,v);CHKERRQ(ierr);
       z = bv->Bx;
     }
     ierr = VecDot(z,vi,&dot);CHKERRQ(ierr);

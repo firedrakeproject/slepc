@@ -547,7 +547,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,Pets
 
   PetscFunctionBegin;
   if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
-  ierr = BV_MatMult(bv,z);CHKERRQ(ierr);
+  ierr = BV_IPMatMult(bv,z);CHKERRQ(ierr);
   ierr = VecDot(bv->Bx,z,&p);CHKERRQ(ierr);
   if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
     ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
@@ -735,6 +735,101 @@ PetscErrorCode BVSetRandom(BV bv,PetscInt j,PetscRandom rctx)
   ierr = PetscLogEventEnd(BV_SetRandom,bv,rctx,0,0);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatMult"
+/*@
+   BVMatMult - Computes the matrix-vector product for each column, Y=A*X.
+
+   Neighbor-wise Collective on Mat and BV
+
+   Input Parameters:
++  V - basis vectors context
+-  A - the matrix
+
+   Output Parameter:
+.  Y - the result
+
+   Note:
+   Both V and Y must be distributed in the same manner. Only active columns
+   (excluding the leading ones) are processed.
+   In the result Y, columns are overwritten starting from the leading ones.
+
+   Level: beginner
+
+.seealso: BVCopy(), BVSetActiveColumns()
+@*/
+PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscValidHeaderSpecific(Y,BV_CLASSID,3);
+  PetscValidType(Y,3);
+  BVCheckSizes(Y,3);
+  PetscCheckSameComm(V,1,A,2);
+  PetscCheckSameTypeAndComm(V,1,Y,3);
+  if (V->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, Y %D",V->n,Y->n);
+  if (V->k-V->l>Y->m-Y->l) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, not enough to store %D columns",Y->m-Y->l,V->k-V->l);
+  if (!V->n) PetscFunctionReturn(0);
+
+  ierr = PetscLogEventBegin(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
+  ierr = (*V->ops->matmult)(V,A,Y);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVAXPY"
+/*@
+   BVAXPY - Computes Y = Y + alpha*X.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  Y,X   - basis vectors
+-  alpha - scalar
+
+   Output Parameter:
+.  Y     - the modified basis vectors
+
+   Notes:
+   X and Y must be different objects, with compatible dimensions.
+   The effect is the same as doing a VecAXPY for each of the active
+   columns (excluding the leading ones).
+
+   Level: intermediate
+
+.seealso: BVMult(), BVSetActiveColumns()
+@*/
+PetscErrorCode BVAXPY(BV Y,PetscScalar alpha,BV X)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(Y,BV_CLASSID,1);
+  PetscValidLogicalCollectiveScalar(Y,alpha,2);
+  PetscValidHeaderSpecific(X,BV_CLASSID,3);
+  PetscValidType(Y,1);
+  BVCheckSizes(Y,1);
+  PetscValidType(X,3);
+  BVCheckSizes(X,3);
+  PetscCheckSameTypeAndComm(Y,1,X,3);
+  if (X==Y) SETERRQ(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_WRONG,"X and Y arguments must be different");
+  if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
+  if (X->k-X->l!=Y->m-Y->l) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, while X has %D",Y->m-Y->l,X->k-X->l);
+  if (!X->n) PetscFunctionReturn(0);
+
+  ierr = PetscLogEventBegin(BV_AXPY,X,Y,0,0);CHKERRQ(ierr);
+  ierr = (*Y->ops->axpy)(Y,alpha,X);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_AXPY,X,Y,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)Y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

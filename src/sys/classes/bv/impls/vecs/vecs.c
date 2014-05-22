@@ -140,6 +140,21 @@ PetscErrorCode BVMultInPlaceTranspose_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVAXPY_Vecs"
+PetscErrorCode BVAXPY_Vecs(BV Y,PetscScalar alpha,BV X)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *y = (BV_VECS*)Y->data,*x = (BV_VECS*)X->data;
+  PetscInt       j;
+
+  PetscFunctionBegin;
+  for (j=0;j<Y->k-Y->l;j++) {
+    ierr = VecAXPY(y->V[Y->nc+Y->l+j],alpha,x->V[X->nc+X->l+j]);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDot_Vecs"
 PetscErrorCode BVDot_Vecs(BV X,BV Y,Mat M)
 {
@@ -168,7 +183,7 @@ PetscErrorCode BVDotVec_Vecs(BV X,Vec y,PetscScalar *m)
 
   PetscFunctionBegin;
   if (X->matrix) {
-    ierr = BV_MatMult(X,y);CHKERRQ(ierr);
+    ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
   ierr = VecMDot(z,X->k-X->l,x->V+X->nc+X->l,m);CHKERRQ(ierr);
@@ -248,6 +263,21 @@ PetscErrorCode BVOrthogonalizeAll_Vecs(BV V,Mat R)
     ierr = BVScale(V,j,1.0/norm);CHKERRQ(ierr);
   }
   if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatMult_Vecs"
+PetscErrorCode BVMatMult_Vecs(BV V,Mat A,BV W)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *v = (BV_VECS*)V->data,*w = (BV_VECS*)W->data;
+  PetscInt       j;
+
+  PetscFunctionBegin;
+  for (j=0;j<V->k-V->l;j++) {
+    ierr = MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -375,16 +405,18 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->multvec          = BVMultVec_Vecs;
   bv->ops->multinplace      = BVMultInPlace_Vecs;
   bv->ops->multinplacetrans = BVMultInPlaceTranspose_Vecs;
+  bv->ops->axpy             = BVAXPY_Vecs;
   bv->ops->dot              = BVDot_Vecs;
   bv->ops->dotvec           = BVDotVec_Vecs;
   bv->ops->scale            = BVScale_Vecs;
   bv->ops->norm             = BVNorm_Vecs;
   bv->ops->orthogonalize    = BVOrthogonalizeAll_Vecs;
+  bv->ops->matmult          = BVMatMult_Vecs;
   bv->ops->copy             = BVCopy_Vecs;
   bv->ops->resize           = BVResize_Vecs;
   bv->ops->getcolumn        = BVGetColumn_Vecs;
-  bv->ops->view             = BVView_Vecs;
   bv->ops->destroy          = BVDestroy_Vecs;
+  bv->ops->view             = BVView_Vecs;
   PetscFunctionReturn(0);
 }
 

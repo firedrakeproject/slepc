@@ -25,7 +25,7 @@
 #include <slepcbv.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_Dot,BV_Orthogonalize,BV_Scale,BV_Norm,BV_SetRandom;
+PETSC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_Dot,BV_Orthogonalize,BV_Scale,BV_Norm,BV_SetRandom,BV_MatMult,BV_AXPY;
 
 typedef struct _BVOps *BVOps;
 
@@ -34,11 +34,13 @@ struct _BVOps {
   PetscErrorCode (*multvec)(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
   PetscErrorCode (*multinplace)(BV,Mat,PetscInt,PetscInt);
   PetscErrorCode (*multinplacetrans)(BV,Mat,PetscInt,PetscInt);
+  PetscErrorCode (*axpy)(BV,PetscScalar,BV);
   PetscErrorCode (*dot)(BV,BV,Mat);
   PetscErrorCode (*dotvec)(BV,Vec,PetscScalar*);
   PetscErrorCode (*scale)(BV,PetscInt,PetscScalar);
   PetscErrorCode (*norm)(BV,PetscInt,NormType,PetscReal*);
   PetscErrorCode (*orthogonalize)(BV,Mat);
+  PetscErrorCode (*matmult)(BV,Mat,BV);
   PetscErrorCode (*copy)(BV,BV);
   PetscErrorCode (*resize)(BV,PetscInt,PetscBool);
   PetscErrorCode (*getcolumn)(BV,PetscInt,Vec*);
@@ -80,8 +82,12 @@ struct _p_BV {
 };
 
 #undef __FUNCT__
-#define __FUNCT__ "BV_MatMult"
-PETSC_STATIC_INLINE PetscErrorCode BV_MatMult(BV bv,Vec x)
+#define __FUNCT__ "BV_IPMatMult"
+/*
+  BV_IPMatMult - Multiply a vector x by the inner-product matrix, cache the
+  result in Bx.
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMult(BV bv,Vec x)
 {
   PetscErrorCode ierr;
 
@@ -124,6 +130,7 @@ PETSC_INTERN PetscErrorCode BVMult_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,Pe
 PETSC_INTERN PetscErrorCode BVMultVec_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*,PetscScalar,PetscScalar*);
 PETSC_INTERN PetscErrorCode BVMultInPlace_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode BVMultInPlace_Vecs_Private(BV,PetscInt,PetscInt,PetscInt,Vec*,PetscScalar*,PetscBool);
+PETSC_INTERN PetscErrorCode BVAXPY_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode BVDot_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode BVDotVec_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode BVScale_BLAS_Private(BV,PetscInt,PetscScalar*,PetscScalar);
