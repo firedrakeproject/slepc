@@ -109,7 +109,7 @@ int main(int argc,char **argv)
   for (j=0;j<k;j++) {
     ierr = BVOrthogonalize(X,j,NULL,&nrm,NULL);CHKERRQ(ierr);
     alpha = 1.0/nrm;
-    ierr = BVScale(X,j,alpha);CHKERRQ(ierr);
+    ierr = BVScaleColumn(X,j,alpha);CHKERRQ(ierr);
   }
   if (verbose) {
     ierr = BVView(X,view);CHKERRQ(ierr);

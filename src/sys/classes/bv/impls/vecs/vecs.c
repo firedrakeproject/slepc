@@ -260,7 +260,7 @@ PetscErrorCode BVOrthogonalizeAll_Vecs(BV V,Mat R)
     } else {
       ierr = BVOrthogonalize(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
     }
-    ierr = BVScale(V,j,1.0/norm);CHKERRQ(ierr);
+    ierr = BVScaleColumn(V,j,1.0/norm);CHKERRQ(ierr);
   }
   if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
