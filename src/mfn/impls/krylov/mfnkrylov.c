@@ -71,7 +71,7 @@ static PetscErrorCode MFNBasicArnoldi(BV V, Mat A,PetscScalar *H,PetscInt ldh,Pe
     ierr = MatMult(A,vj,vj1);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = BVOrthogonalize(V,j+1,H+ldh*j,&norm,breakdown);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeColumn(V,j+1,H+ldh*j,&norm,breakdown);CHKERRQ(ierr);
     H[j+1+ldh*j] = norm;
     if (*breakdown) {
       *M = j+1;

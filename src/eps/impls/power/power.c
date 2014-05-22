@@ -191,7 +191,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 
     /* purge previously converged eigenvectors */
     ierr = BVInsertVec(eps->V,k,y);CHKERRQ(ierr);
-    ierr = BVOrthogonalize(eps->V,k,NULL,&norm,NULL);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeColumn(eps->V,k,NULL,&norm,NULL);CHKERRQ(ierr);
     ierr = BVScaleColumn(eps->V,k,1.0/norm);CHKERRQ(ierr);
 
     /* if relerr<tol, accept eigenpair */

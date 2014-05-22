@@ -1306,7 +1306,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
   ierr = VecDestroy(&w);CHKERRQ(ierr);
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = BVOrthogonalize(eps->V,i,NULL,&norm,&lindep);CHKERRQ(ierr);
+  ierr = BVOrthogonalizeColumn(eps->V,i,NULL,&norm,&lindep);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
     if (i==0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Initial vector is zero or belongs to the deflation space");
@@ -1367,7 +1367,7 @@ PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,PetscBool *breakdown)
   ierr = VecDestroy(&w);CHKERRQ(ierr);
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = BVOrthogonalize(eps->W,i,NULL,&norm,&lindep);CHKERRQ(ierr);
+  ierr = BVOrthogonalizeColumn(eps->W,i,NULL,&norm,&lindep);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
     if (i==0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Left initial vector is zero");

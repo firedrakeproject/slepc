@@ -252,7 +252,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
         ierr = SVDMatMult(svd,PETSC_FALSE,vj,uj);CHKERRQ(ierr);
         ierr = BVRestoreColumn(svd->V,j,&vj);CHKERRQ(ierr);
         ierr = BVRestoreColumn(svd->U,j,&uj);CHKERRQ(ierr);
-        ierr = BVOrthogonalize(svd->U,j,NULL,&norm,NULL);CHKERRQ(ierr);
+        ierr = BVOrthogonalizeColumn(svd->U,j,NULL,&norm,NULL);CHKERRQ(ierr);
         ierr = BVScaleColumn(svd->U,j,1.0/norm);CHKERRQ(ierr);
       }
       svd->lvecsavail = PETSC_TRUE;

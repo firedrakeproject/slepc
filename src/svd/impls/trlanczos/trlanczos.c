@@ -96,7 +96,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
     ierr = SVDMatMult(svd,PETSC_TRUE,ui1,vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U,i-1,&ui1);CHKERRQ(ierr);
-    ierr = BVOrthogonalize(V,i,NULL,&b,NULL);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeColumn(V,i,NULL,&b,NULL);CHKERRQ(ierr);
     ierr = BVScaleColumn(V,i,1.0/b);CHKERRQ(ierr);
     beta[i-1] = b;
 
@@ -118,7 +118,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
   ierr = SVDMatMult(svd,PETSC_TRUE,ui1,vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,n,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,n-1,&ui1);CHKERRQ(ierr);
-  ierr = BVOrthogonalize(V,n,NULL,&b,NULL);CHKERRQ(ierr);
+  ierr = BVOrthogonalizeColumn(V,n,NULL,&b,NULL);CHKERRQ(ierr);
   beta[n-1] = b;
   PetscFunctionReturn(0);
 }
@@ -361,7 +361,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   /* orthonormalize U columns in one side method */
   if (lanczos->oneside) {
     for (i=0;i<svd->nconv;i++) {
-      ierr = BVOrthogonalize(svd->U,i,NULL,&norm,NULL);CHKERRQ(ierr);
+      ierr = BVOrthogonalizeColumn(svd->U,i,NULL,&norm,NULL);CHKERRQ(ierr);
       ierr = BVScaleColumn(svd->U,i,1.0/norm);CHKERRQ(ierr);
     }
   }
