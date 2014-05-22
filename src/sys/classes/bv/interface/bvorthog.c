@@ -271,7 +271,7 @@ static PetscErrorCode BVOrthogonalizeCGS(BV bv,PetscInt j,PetscScalar *H,PetscRe
 
    Level: advanced
 
-.seealso: BVSetOrthogonalization(), BVSetMatrix(), BVSetActiveColumns(), BVOrthogonalizeAll()
+.seealso: BVSetOrthogonalization(), BVSetMatrix(), BVSetActiveColumns(), BVOrthogonalize()
 @*/
 PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
@@ -314,9 +314,9 @@ PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalizeAll"
+#define __FUNCT__ "BVOrthogonalize"
 /*@
-   BVOrthogonalizeAll - Orthogonalize all columns, that is, compute the
+   BVOrthogonalize - Orthogonalize all columns, that is, compute the
    QR decomposition.
 
    Collective on BV
@@ -339,7 +339,7 @@ PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *
 
 .seealso: BVOrthogonalizeColumn(), BVSetActiveColumns()
 @*/
-PetscErrorCode BVOrthogonalizeAll(BV V,Mat R)
+PetscErrorCode BVOrthogonalize(BV V,Mat R)
 {
   PetscErrorCode ierr;
   PetscBool      match;

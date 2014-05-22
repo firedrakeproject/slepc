@@ -107,10 +107,10 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
   }
 
-  /* Test BVOrthogonalizeAll */
+  /* Test BVOrthogonalize */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&R);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)R,"R");CHKERRQ(ierr);
-  ierr = BVOrthogonalizeAll(Y,R);CHKERRQ(ierr);
+  ierr = BVOrthogonalize(Y,R);CHKERRQ(ierr);
   if (verbose) {
     ierr = BVView(Y,view);CHKERRQ(ierr);
     ierr = MatView(R,view);CHKERRQ(ierr);

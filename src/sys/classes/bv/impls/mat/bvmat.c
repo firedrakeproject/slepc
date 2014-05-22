@@ -197,8 +197,8 @@ PetscErrorCode BVNorm_Mat(BV bv,PetscInt j,NormType type,PetscReal *val)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalizeAll_Mat"
-PetscErrorCode BVOrthogonalizeAll_Mat(BV V,Mat R)
+#define __FUNCT__ "BVOrthogonalize_Mat"
+PetscErrorCode BVOrthogonalize_Mat(BV V,Mat R)
 {
   PetscErrorCode ierr;
   BV_MAT         *ctx = (BV_MAT*)V->data;
@@ -407,7 +407,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->dotvec           = BVDotVec_Mat;
   bv->ops->scale            = BVScale_Mat;
   bv->ops->norm             = BVNorm_Mat;
-  bv->ops->orthogonalize    = BVOrthogonalizeAll_Mat;
+  bv->ops->orthogonalize    = BVOrthogonalize_Mat;
   bv->ops->matmult          = BVMatMult_Mat;
   bv->ops->copy             = BVCopy_Mat;
   bv->ops->resize           = BVResize_Mat;

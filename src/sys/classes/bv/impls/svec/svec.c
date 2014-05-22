@@ -197,8 +197,8 @@ PetscErrorCode BVNorm_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalizeAll_Svec"
-PetscErrorCode BVOrthogonalizeAll_Svec(BV V,Mat R)
+#define __FUNCT__ "BVOrthogonalize_Svec"
+PetscErrorCode BVOrthogonalize_Svec(BV V,Mat R)
 {
   PetscErrorCode ierr;
   BV_SVEC        *ctx = (BV_SVEC*)V->data;
@@ -410,7 +410,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   bv->ops->dotvec           = BVDotVec_Svec;
   bv->ops->scale            = BVScale_Svec;
   bv->ops->norm             = BVNorm_Svec;
-  bv->ops->orthogonalize    = BVOrthogonalizeAll_Svec;
+  bv->ops->orthogonalize    = BVOrthogonalize_Svec;
   bv->ops->matmult          = BVMatMult_Svec;
   bv->ops->copy             = BVCopy_Svec;
   bv->ops->resize           = BVResize_Svec;

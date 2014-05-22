@@ -123,7 +123,7 @@ PETSC_EXTERN PetscErrorCode BVSetRandomColumn(BV,PetscInt,PetscRandom);
 
 PETSC_EXTERN PetscErrorCode BVSetOrthogonalization(BV,BVOrthogType,BVOrthogRefineType,PetscReal);
 PETSC_EXTERN PetscErrorCode BVGetOrthogonalization(BV,BVOrthogType*,BVOrthogRefineType*,PetscReal*);
-PETSC_EXTERN PetscErrorCode BVOrthogonalizeAll(BV,Mat);
+PETSC_EXTERN PetscErrorCode BVOrthogonalize(BV,Mat);
 PETSC_EXTERN PetscErrorCode BVOrthogonalizeColumn(BV,PetscInt,PetscScalar*,PetscReal*,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode BVSetOptionsPrefix(BV,const char*);

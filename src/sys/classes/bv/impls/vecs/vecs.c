@@ -239,8 +239,8 @@ PetscErrorCode BVNorm_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalizeAll_Vecs"
-PetscErrorCode BVOrthogonalizeAll_Vecs(BV V,Mat R)
+#define __FUNCT__ "BVOrthogonalize_Vecs"
+PetscErrorCode BVOrthogonalize_Vecs(BV V,Mat R)
 {
   PetscErrorCode ierr;
   PetscScalar    *r=NULL;
@@ -410,7 +410,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->dotvec           = BVDotVec_Vecs;
   bv->ops->scale            = BVScale_Vecs;
   bv->ops->norm             = BVNorm_Vecs;
-  bv->ops->orthogonalize    = BVOrthogonalizeAll_Vecs;
+  bv->ops->orthogonalize    = BVOrthogonalize_Vecs;
   bv->ops->matmult          = BVMatMult_Vecs;
   bv->ops->copy             = BVCopy_Vecs;
   bv->ops->resize           = BVResize_Vecs;
