@@ -146,7 +146,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
       ierr = MatMult(mfn->A,v,r);CHKERRQ(ierr);
       ierr = BVRestoreColumn(mfn->V,m,&v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(mfn->V,m+1,&r);CHKERRQ(ierr);
-      ierr = BVNorm(mfn->V,m+1,NORM_2,&avnorm);CHKERRQ(ierr);
+      ierr = BVNormColumn(mfn->V,m+1,NORM_2,&avnorm);CHKERRQ(ierr);
     }
     ierr = PetscMemcpy(B,H,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = DSRestoreArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);

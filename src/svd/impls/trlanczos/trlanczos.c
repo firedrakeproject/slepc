@@ -86,7 +86,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
   if (l>0) {
     ierr = BVMultColumn(U,-1.0,1.0,k,beta+nconv);CHKERRQ(ierr);
   }
-  ierr = BVNorm(U,k,NORM_2,&a);CHKERRQ(ierr);
+  ierr = BVNormColumn(U,k,NORM_2,&a);CHKERRQ(ierr);
   ierr = BVScaleColumn(U,k,1.0/a);CHKERRQ(ierr);
   alpha[k] = a;
 
@@ -108,7 +108,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
     ierr = VecAXPY(ui,-b,ui1);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U,i-1,&ui1);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U,i,&ui);CHKERRQ(ierr);
-    ierr = BVNorm(U,i,NORM_2,&a);CHKERRQ(ierr);
+    ierr = BVNormColumn(U,i,NORM_2,&a);CHKERRQ(ierr);
     ierr = BVScaleColumn(U,i,1.0/a);CHKERRQ(ierr);
     alpha[i] = a;
   }
@@ -138,13 +138,13 @@ static PetscErrorCode SVDOrthogonalizeCGS(BV V,PetscInt i,PetscScalar* h,PetscRe
   PetscFunctionBegin;
   switch (refine) {
   case BV_ORTHOG_REFINE_NEVER:
-    ierr = BVNorm(V,i,NORM_2,norm);CHKERRQ(ierr);
+    ierr = BVNormColumn(V,i,NORM_2,norm);CHKERRQ(ierr);
     break;
   case BV_ORTHOG_REFINE_ALWAYS:
     ierr = BVSetActiveColumns(V,0,i);CHKERRQ(ierr);
     ierr = BVDotColumn(V,i,h);CHKERRQ(ierr);
     ierr = BVMultColumn(V,-1.0,1.0,i,h);CHKERRQ(ierr);
-    ierr = BVNorm(V,i,NORM_2,norm);CHKERRQ(ierr);
+    ierr = BVNormColumn(V,i,NORM_2,norm);CHKERRQ(ierr);
     break;
   case BV_ORTHOG_REFINE_IFNEEDED:
     dot = h[i];
@@ -156,13 +156,13 @@ static PetscErrorCode SVDOrthogonalizeCGS(BV V,PetscInt i,PetscScalar* h,PetscRe
     *norm = PetscRealPart(dot)/(a*a) - sum;
     if (*norm>0.0) *norm = PetscSqrtReal(*norm);
     else {
-      ierr = BVNorm(V,i,NORM_2,norm);CHKERRQ(ierr);
+      ierr = BVNormColumn(V,i,NORM_2,norm);CHKERRQ(ierr);
     }
     if (*norm < eta*onorm) {
       ierr = BVSetActiveColumns(V,0,i);CHKERRQ(ierr);
       ierr = BVDotColumn(V,i,h);CHKERRQ(ierr);
       ierr = BVMultColumn(V,-1.0,1.0,i,h);CHKERRQ(ierr);
-      ierr = BVNorm(V,i,NORM_2,norm);CHKERRQ(ierr);
+      ierr = BVNormColumn(V,i,NORM_2,norm);CHKERRQ(ierr);
     }
     break;
   }
@@ -196,7 +196,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
     ierr = SVDMatMult(svd,PETSC_TRUE,ui1,vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U,i-1,&ui1);CHKERRQ(ierr);
-    ierr = BVNorm(U,i-1,NORM_2,&a);CHKERRQ(ierr);
+    ierr = BVNormColumn(U,i-1,NORM_2,&a);CHKERRQ(ierr);
     if (refine == BV_ORTHOG_REFINE_IFNEEDED) {
       ierr = BVSetActiveColumns(V,0,i+1);CHKERRQ(ierr);
       ierr = BVGetColumn(V,i,&vi);CHKERRQ(ierr);
@@ -233,7 +233,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   ierr = BVRestoreColumn(V,n,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,n-1,&ui1);CHKERRQ(ierr);
 
-  ierr = BVNorm(svd->U,n-1,NORM_2,&a);CHKERRQ(ierr);
+  ierr = BVNormColumn(svd->U,n-1,NORM_2,&a);CHKERRQ(ierr);
   if (refine == BV_ORTHOG_REFINE_IFNEEDED) {
     ierr = BVSetActiveColumns(V,0,n+1);CHKERRQ(ierr);
     ierr = BVGetColumn(V,n,&vi);CHKERRQ(ierr);
@@ -279,7 +279,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   /* normalize start vector */
   if (!svd->nini) {
     ierr = BVSetRandomColumn(svd->V,0,svd->rand);CHKERRQ(ierr);
-    ierr = BVNorm(svd->V,0,NORM_2,&norm);CHKERRQ(ierr);
+    ierr = BVNormColumn(svd->V,0,NORM_2,&norm);CHKERRQ(ierr);
     ierr = BVScaleColumn(svd->V,0,1.0/norm);CHKERRQ(ierr);
   }
 

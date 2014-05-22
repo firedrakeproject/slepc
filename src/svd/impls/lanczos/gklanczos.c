@@ -142,7 +142,7 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
     /* h = V^* z, z = z - V h  */
     ierr = BVDotColumn(V,i,work);CHKERRQ(ierr);
     ierr = BVMultColumn(V,-1.0,1.0,i,work);CHKERRQ(ierr);
-    ierr = BVNorm(V,i,NORM_2,&b);CHKERRQ(ierr);
+    ierr = BVNormColumn(V,i,NORM_2,&b);CHKERRQ(ierr);
     ierr = BVScaleColumn(V,i,1.0/b);CHKERRQ(ierr);
 
     ierr = BVGetColumn(V,i,&z);CHKERRQ(ierr);
@@ -167,7 +167,7 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
   /* h = V^* z, z = z - V h  */
   ierr = BVDotColumn(V,n,work);CHKERRQ(ierr);
   ierr = BVMultColumn(V,-1.0,1.0,n,work);CHKERRQ(ierr);
-  ierr = BVNorm(V,i,NORM_2,&b);CHKERRQ(ierr);
+  ierr = BVNormColumn(V,i,NORM_2,&b);CHKERRQ(ierr);
 
   alpha[n-1] = a;
   beta[n-1] = b;
@@ -201,7 +201,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   /* normalize start vector */
   if (!svd->nini) {
     ierr = BVSetRandomColumn(svd->V,0,svd->rand);CHKERRQ(ierr);
-    ierr = BVNorm(svd->V,0,NORM_2,&norm);CHKERRQ(ierr);
+    ierr = BVNormColumn(svd->V,0,NORM_2,&norm);CHKERRQ(ierr);
     ierr = BVScaleColumn(svd->V,0,1.0/norm);CHKERRQ(ierr);
   }
 

@@ -294,7 +294,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
           ierr = STApply(eps->st,v,w);CHKERRQ(ierr);
           ierr = VecCopy(w,v);CHKERRQ(ierr);
           ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
-          ierr = BVNorm(eps->V,i,NORM_INFINITY,&norm);CHKERRQ(ierr);
+          ierr = BVNormColumn(eps->V,i,NORM_INFINITY,&norm);CHKERRQ(ierr);
           ierr = BVScaleColumn(eps->V,i,1/norm);CHKERRQ(ierr);
         }
         its++;

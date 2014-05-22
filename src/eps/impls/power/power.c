@@ -155,7 +155,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
           ierr = VecAXPY(v,-theta/(delta*delta),y);CHKERRQ(ierr);
           ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
           ierr = BVScaleColumn(eps->V,k,1.0/delta);CHKERRQ(ierr);
-          ierr = BVNorm(eps->V,k,NORM_2,&norm);CHKERRQ(ierr);
+          ierr = BVNormColumn(eps->V,k,NORM_2,&norm);CHKERRQ(ierr);
           beta1 = norm;
 
           /* alpha2 = (e'*A*e)/(beta1*beta1), where e is the residual */
