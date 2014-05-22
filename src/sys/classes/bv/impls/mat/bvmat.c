@@ -413,8 +413,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->resize           = BVResize_Mat;
   bv->ops->getcolumn        = BVGetColumn_Mat;
   bv->ops->restorecolumn    = BVRestoreColumn_Mat;
-  bv->ops->view             = BVView_Mat;
   bv->ops->destroy          = BVDestroy_Mat;
+  if (!ctx->mpi) bv->ops->view = BVView_Mat;
   PetscFunctionReturn(0);
 }
 

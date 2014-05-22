@@ -415,8 +415,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->copy             = BVCopy_Vecs;
   bv->ops->resize           = BVResize_Vecs;
   bv->ops->getcolumn        = BVGetColumn_Vecs;
-  bv->ops->view             = BVView_Vecs;
   bv->ops->destroy          = BVDestroy_Vecs;
+  bv->ops->view             = BVView_Vecs;
   PetscFunctionReturn(0);
 }
 

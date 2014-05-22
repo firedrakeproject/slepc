@@ -416,8 +416,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   bv->ops->resize           = BVResize_Svec;
   bv->ops->getcolumn        = BVGetColumn_Svec;
   bv->ops->restorecolumn    = BVRestoreColumn_Svec;
-  bv->ops->view             = BVView_Svec;
   bv->ops->destroy          = BVDestroy_Svec;
+  if (!ctx->mpi) bv->ops->view = BVView_Svec;
   PetscFunctionReturn(0);
 }
 

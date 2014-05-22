@@ -229,6 +229,7 @@ PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
   PetscFunctionBegin;
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
   ierr = PetscMalloc1(m*bv->n,&newarray);CHKERRQ(ierr);
+  ierr = PetscMemzero(newarray,m*bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc1(m,&newV);CHKERRQ(ierr);
   for (j=0;j<m;j++) {
     if (ctx->mpi) {
@@ -304,6 +305,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
   ierr = PetscMalloc1(bv->m*nloc,&ctx->array);CHKERRQ(ierr);
+  ierr = PetscMemzero(ctx->array,bv->m*nloc*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMalloc1(bv->m,&ctx->V);CHKERRQ(ierr);
   for (j=0;j<bv->m;j++) {
     if (ctx->mpi) {
@@ -334,7 +336,6 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->copy             = BVCopy_Contiguous;
   bv->ops->resize           = BVResize_Contiguous;
   bv->ops->getcolumn        = BVGetColumn_Contiguous;
-  bv->ops->view             = BVView_Vecs;
   bv->ops->destroy          = BVDestroy_Contiguous;
   PetscFunctionReturn(0);
 }

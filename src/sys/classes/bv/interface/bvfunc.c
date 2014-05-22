@@ -480,6 +480,36 @@ PetscErrorCode BVGetOptionsPrefix(BV bv,const char *prefix[])
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVView_Default"
+static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
+{
+  PetscErrorCode    ierr;
+  PetscInt          j;
+  Vec               v;
+  PetscViewerFormat format;
+  PetscBool         isascii,ismatlab=PETSC_FALSE;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+    if (format == PETSC_VIEWER_ASCII_MATLAB) ismatlab = PETSC_TRUE;
+  }
+  if (ismatlab) {
+    ierr = PetscViewerASCIIPrintf(viewer,"%s=[];\n",((PetscObject)bv)->name);CHKERRQ(ierr);
+  }
+  for (j=bv->nc;j<bv->nc+bv->m;j++) {
+    ierr = BVGetColumn(bv,j,&v);CHKERRQ(ierr);
+    ierr = VecView(v,viewer);CHKERRQ(ierr);
+    if (ismatlab) {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",((PetscObject)bv)->name,((PetscObject)bv)->name,((PetscObject)v)->name,((PetscObject)v)->name);CHKERRQ(ierr);
+    }
+    ierr = BVRestoreColumn(bv,j,&v);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVView"
 /*@C
    BVView - Prints the BV data structure.
@@ -556,7 +586,8 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
         ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
       }
     } else {
-      ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr);
+      if (bv->ops->view) { ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr); }
+      else { ierr = BVView_Default(bv,viewer);CHKERRQ(ierr); }
     }
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   } else {
