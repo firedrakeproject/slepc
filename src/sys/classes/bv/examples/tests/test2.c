@@ -86,9 +86,9 @@ int main(int argc,char **argv)
   ierr = PetscObjectSetName((PetscObject)Z,"Z");CHKERRQ(ierr);
   ierr = BVCopy(X,Z);CHKERRQ(ierr);
 
-  /* Test BVOrthogonalize */
+  /* Test BVOrthogonalizeColumn */
   for (j=0;j<k;j++) {
-    ierr = BVOrthogonalize(X,j,NULL,&norm,NULL);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeColumn(X,j,NULL,&norm,NULL);CHKERRQ(ierr);
     alpha = 1.0/norm;
     ierr = BVScaleColumn(X,j,alpha);CHKERRQ(ierr);
   }

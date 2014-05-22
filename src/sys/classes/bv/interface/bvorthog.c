@@ -238,9 +238,9 @@ static PetscErrorCode BVOrthogonalizeCGS(BV bv,PetscInt j,PetscScalar *H,PetscRe
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalize"
+#define __FUNCT__ "BVOrthogonalizeColumn"
 /*@
-   BVOrthogonalize - Orthogonalize one of the column vectors with respect to
+   BVOrthogonalizeColumn - Orthogonalize one of the column vectors with respect to
    the previous ones.
 
    Collective on BV
@@ -271,9 +271,9 @@ static PetscErrorCode BVOrthogonalizeCGS(BV bv,PetscInt j,PetscScalar *H,PetscRe
 
    Level: advanced
 
-.seealso: BVSetOrthogonalization(), BVSetMatrix(), BVSetActiveColumns()
+.seealso: BVSetOrthogonalization(), BVSetMatrix(), BVSetActiveColumns(), BVOrthogonalizeAll()
 @*/
-PetscErrorCode BVOrthogonalize(BV bv,PetscInt j,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
+PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
   PetscErrorCode ierr;
   PetscInt       i,ksave,lsave;
@@ -337,7 +337,7 @@ PetscErrorCode BVOrthogonalize(BV bv,PetscInt j,PetscScalar *H,PetscReal *norm,P
 
    Level: intermediate
 
-.seealso: BVOrthogonalize(), BVSetActiveColumns()
+.seealso: BVOrthogonalizeColumn(), BVSetActiveColumns()
 @*/
 PetscErrorCode BVOrthogonalizeAll(BV V,Mat R)
 {
@@ -358,8 +358,8 @@ PetscErrorCode BVOrthogonalizeAll(BV V,Mat R)
     if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument is not square, it has %D rows and %D columns",m,n);
     if (n!=V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat size %D does not match the number of BV active columns %D",n,V->k);
   }
-  if (V->matrix) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Not implemented for non-standard inner product, use BVOrthogonalize() instead");
-  if (V->nc) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Not implemented for BV with constraints, use BVOrthogonalize() instead");
+  if (V->matrix) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Not implemented for non-standard inner product, use BVOrthogonalizeColumn() instead");
+  if (V->nc) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Not implemented for BV with constraints, use BVOrthogonalizeColumn() instead");
 
   ierr = PetscLogEventBegin(BV_Orthogonalize,V,R,0,0);CHKERRQ(ierr);
   ierr = (*V->ops->orthogonalize)(V,R);CHKERRQ(ierr);

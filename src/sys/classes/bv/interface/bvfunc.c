@@ -268,7 +268,7 @@ PetscErrorCode BVInsertVec(BV V,PetscInt j,Vec w)
 
    Level: intermediate
 
-.seealso: BVInsertVec(), BVOrthogonalize()
+.seealso: BVInsertVec(), BVOrthogonalizeColumn()
 @*/
 PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
 {
@@ -304,7 +304,7 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
     ierr = VecCopy(W[i],v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,s+i-ndep,&v);CHKERRQ(ierr);
     if (orth) {
-      ierr = BVOrthogonalize(V,s+i-ndep,NULL,&norm,&lindep);CHKERRQ(ierr);
+      ierr = BVOrthogonalizeColumn(V,s+i-ndep,NULL,&norm,&lindep);CHKERRQ(ierr);
       if (norm==0.0 || lindep) {
         ierr = PetscInfo1(V,"Removing linearly dependent vector %D\n",i);CHKERRQ(ierr);
         ndep++;
@@ -353,7 +353,7 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
 
    Level: advanced
 
-.seealso: BVInsertVecs(), BVOrthogonalize(), BVGetColumn()
+.seealso: BVInsertVecs(), BVOrthogonalizeColumn(), BVGetColumn()
 @*/
 PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
 {

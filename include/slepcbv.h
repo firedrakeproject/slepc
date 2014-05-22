@@ -57,7 +57,7 @@ PETSC_EXTERN PetscClassId BV_CLASSID;
 
     Level: advanced
 
-.seealso: BVSetOrthogonalization(), BVGetOrthogonalization(), BVOrthogonalize()
+.seealso: BVSetOrthogonalization(), BVGetOrthogonalization(), BVOrthogonalizeColumn()
 E*/
 typedef enum { BV_ORTHOG_CGS,
                BV_ORTHOG_MGS } BVOrthogType;
@@ -68,7 +68,7 @@ typedef enum { BV_ORTHOG_CGS,
 
     Level: advanced
 
-.seealso: BVSetOrthogonalization(), BVGetOrthogonalization(), BVOrthogonalize()
+.seealso: BVSetOrthogonalization(), BVGetOrthogonalization(), BVOrthogonalizeColumn()
 E*/
 typedef enum { BV_ORTHOG_REFINE_IFNEEDED,
                BV_ORTHOG_REFINE_NEVER,
@@ -123,8 +123,8 @@ PETSC_EXTERN PetscErrorCode BVSetRandomColumn(BV,PetscInt,PetscRandom);
 
 PETSC_EXTERN PetscErrorCode BVSetOrthogonalization(BV,BVOrthogType,BVOrthogRefineType,PetscReal);
 PETSC_EXTERN PetscErrorCode BVGetOrthogonalization(BV,BVOrthogType*,BVOrthogRefineType*,PetscReal*);
-PETSC_EXTERN PetscErrorCode BVOrthogonalize(BV,PetscInt,PetscScalar*,PetscReal*,PetscBool*);
 PETSC_EXTERN PetscErrorCode BVOrthogonalizeAll(BV,Mat);
+PETSC_EXTERN PetscErrorCode BVOrthogonalizeColumn(BV,PetscInt,PetscScalar*,PetscReal*,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode BVSetOptionsPrefix(BV,const char*);
 PETSC_EXTERN PetscErrorCode BVAppendOptionsPrefix(BV,const char*);

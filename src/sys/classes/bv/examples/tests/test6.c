@@ -93,9 +93,9 @@ int main(int argc,char **argv)
     ierr = BVView(X,view);CHKERRQ(ierr);
   }
 
-  /* Test BVOrthogonalize */
+  /* Test BVOrthogonalizeColumn */
   for (j=0;j<k;j++) {
-    ierr = BVOrthogonalize(X,j,NULL,&norm,NULL);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeColumn(X,j,NULL,&norm,NULL);CHKERRQ(ierr);
     alpha = 1.0/norm;
     ierr = BVScaleColumn(X,j,alpha);CHKERRQ(ierr);
   }
