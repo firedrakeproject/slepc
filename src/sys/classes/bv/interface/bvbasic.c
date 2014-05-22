@@ -654,7 +654,7 @@ PetscErrorCode BVSetFromOptions(BV bv)
 
    Level: advanced
 
-.seealso: BVOrthogonalize(), BVGetOrthogonalization(), BVOrthogType, BVOrthogRefineType
+.seealso: BVOrthogonalizeColumn(), BVGetOrthogonalization(), BVOrthogType, BVOrthogRefineType
 @*/
 PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType refine,PetscReal eta)
 {
@@ -706,7 +706,7 @@ PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType
 
    Level: advanced
 
-.seealso: BVOrthogonalize(), BVSetOrthogonalization(), BVOrthogType, BVOrthogRefineType
+.seealso: BVOrthogonalizeColumn(), BVSetOrthogonalization(), BVOrthogType, BVOrthogRefineType
 @*/
 PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineType *refine,PetscReal *eta)
 {

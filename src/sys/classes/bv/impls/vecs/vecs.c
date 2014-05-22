@@ -255,10 +255,10 @@ PetscErrorCode BVOrthogonalizeAll_Vecs(BV V,Mat R)
   }
   for (j=0;j<V->k;j++) {
     if (R) {
-      ierr = BVOrthogonalize(V,j,r+j*ldr,&norm,NULL);CHKERRQ(ierr);
+      ierr = BVOrthogonalizeColumn(V,j,r+j*ldr,&norm,NULL);CHKERRQ(ierr);
       r[j+j*ldr] = norm;
     } else {
-      ierr = BVOrthogonalize(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
+      ierr = BVOrthogonalizeColumn(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
     }
     ierr = BVScaleColumn(V,j,1.0/norm);CHKERRQ(ierr);
   }

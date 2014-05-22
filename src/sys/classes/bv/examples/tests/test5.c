@@ -94,9 +94,9 @@ int main(int argc,char **argv)
   ierr = BVNormColumn(X,0,NORM_2,&nrm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"B-Norm or X[0] = %g\n",(double)nrm);CHKERRQ(ierr);
 
-  /* Test BVOrthogonalize */
+  /* Test BVOrthogonalizeColumn */
   for (j=0;j<k;j++) {
-    ierr = BVOrthogonalize(X,j,NULL,&nrm,NULL);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeColumn(X,j,NULL,&nrm,NULL);CHKERRQ(ierr);
     alpha = 1.0/nrm;
     ierr = BVScaleColumn(X,j,alpha);CHKERRQ(ierr);
   }
