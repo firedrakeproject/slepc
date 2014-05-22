@@ -66,7 +66,7 @@ test6: test6.o chkopts
 
 test7: test7.o chkopts
 	-${CLINKER} -o test7 test7.o ${SLEPC_SYS_LIB}
-	${RM} test6.o
+	${RM} test7.o
 
 #------------------------------------------------------------------------------------
 

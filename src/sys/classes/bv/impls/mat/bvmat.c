@@ -101,6 +101,23 @@ PetscErrorCode BVMultInPlaceTranspose_Mat(BV V,Mat Q,PetscInt s,PetscInt e)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVAXPY_Mat"
+PetscErrorCode BVAXPY_Mat(BV Y,PetscScalar alpha,BV X)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *x = (BV_MAT*)X->data,*y = (BV_MAT*)Y->data;
+  PetscScalar    *px,*py;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(y->A,&py);CHKERRQ(ierr);
+  ierr = BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,px+(X->nc+X->l)*X->n,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(y->A,&py);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDot_Mat"
 PetscErrorCode BVDot_Mat(BV X,BV Y,Mat M)
 {
@@ -385,6 +402,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->multvec          = BVMultVec_Mat;
   bv->ops->multinplace      = BVMultInPlace_Mat;
   bv->ops->multinplacetrans = BVMultInPlaceTranspose_Mat;
+  bv->ops->axpy             = BVAXPY_Mat;
   bv->ops->dot              = BVDot_Mat;
   bv->ops->dotvec           = BVDotVec_Mat;
   bv->ops->scale            = BVScale_Mat;

@@ -30,9 +30,10 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   Vec            t,v;
   Mat            B;
-  BV             X,Y;
+  BV             X,Y,Z;
   PetscInt       i,j,n=10,k=5,Istart,Iend,col[3];
   PetscScalar    value[3];
+  PetscReal      norm;
   PetscViewer    view;
   PetscBool      verbose,FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
 
@@ -85,10 +86,8 @@ int main(int argc,char **argv)
   for (j=0;j<k;j++) {
     ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
     ierr = VecZeroEntries(v);CHKERRQ(ierr);
-    for (i=0;i<=j;i++) {
-      if (i+j<n) {
-        ierr = VecSetValue(v,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
-      }
+    for (i=Istart;i<PetscMin(j+1,Iend);i++) {
+      ierr = VecSetValue(v,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
     }
     ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
     ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
@@ -111,8 +110,33 @@ int main(int argc,char **argv)
     ierr = BVView(Y,view);CHKERRQ(ierr);
   }
 
+  /* Create BV object Z */
+  ierr = BVDuplicate(X,&Z);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)Z,"Z");CHKERRQ(ierr);
+
+  /* Fill Z entries */
+  for (j=0;j<k;j++) {
+    ierr = BVGetColumn(Z,j,&v);CHKERRQ(ierr);
+    ierr = VecZeroEntries(v);CHKERRQ(ierr);
+    ierr = VecSetValue(v,0,1.0,ADD_VALUES);CHKERRQ(ierr);
+    if (j<n) { ierr = VecSetValue(v,j,1.0,ADD_VALUES);CHKERRQ(ierr); }
+    if (j+1<n) { ierr = VecSetValue(v,j+1,-1.0,ADD_VALUES);CHKERRQ(ierr); }
+    ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(Z,j,&v);CHKERRQ(ierr);
+  }
+  if (verbose) {
+    ierr = BVView(Z,view);CHKERRQ(ierr);
+  }
+
+  /* Test BVAXPY */
+  ierr = BVAXPY(Z,-1.0,Y);CHKERRQ(ierr);
+  ierr = BVNorm(Z,-1,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of error: %g\n",(double)norm);CHKERRQ(ierr);
+
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);
+  ierr = BVDestroy(&Z);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = SlepcFinalize();

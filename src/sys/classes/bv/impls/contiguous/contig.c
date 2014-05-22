@@ -92,6 +92,18 @@ PetscErrorCode BVMultInPlaceTranspose_Contiguous(BV V,Mat Q,PetscInt s,PetscInt 
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVAXPY_Contiguous"
+PetscErrorCode BVAXPY_Contiguous(BV Y,PetscScalar alpha,BV X)
+{
+  PetscErrorCode ierr;
+  BV_CONTIGUOUS  *x = (BV_CONTIGUOUS*)X->data,*y = (BV_CONTIGUOUS*)Y->data;
+
+  PetscFunctionBegin;
+  ierr = BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,x->array+(X->nc+X->l)*X->n,y->array+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDot_Contiguous"
 PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
 {
@@ -183,11 +195,7 @@ PetscErrorCode BVMatMult_Contiguous(BV V,Mat A,BV W)
 
   PetscFunctionBegin;
   for (j=0;j<V->k-V->l;j++) {
-    ierr = VecPlaceArray(V->cv[1],v->array+(V->nc+V->l+j)*V->n);CHKERRQ(ierr);
-    ierr = VecPlaceArray(W->cv[1],w->array+(W->nc+W->l+j)*W->n);CHKERRQ(ierr);
-    ierr = MatMult(A,V->cv[1],W->cv[1]);CHKERRQ(ierr);
-    ierr = VecResetArray(V->cv[1]);CHKERRQ(ierr);
-    ierr = VecResetArray(W->cv[1]);CHKERRQ(ierr);
+    ierr = MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -316,6 +324,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->multvec          = BVMultVec_Contiguous;
   bv->ops->multinplace      = BVMultInPlace_Contiguous;
   bv->ops->multinplacetrans = BVMultInPlaceTranspose_Contiguous;
+  bv->ops->axpy             = BVAXPY_Contiguous;
   bv->ops->dot              = BVDot_Contiguous;
   bv->ops->dotvec           = BVDotVec_Contiguous;
   bv->ops->scale            = BVScale_Contiguous;

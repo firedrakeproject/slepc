@@ -101,6 +101,23 @@ PetscErrorCode BVMultInPlaceTranspose_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVAXPY_Svec"
+PetscErrorCode BVAXPY_Svec(BV Y,PetscScalar alpha,BV X)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *x = (BV_SVEC*)X->data,*y = (BV_SVEC*)Y->data;
+  PetscScalar    *px,*py;
+
+  PetscFunctionBegin;
+  ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
+  ierr = VecGetArray(y->v,&py);CHKERRQ(ierr);
+  ierr = BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,px+(X->nc+X->l)*X->n,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
+  ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArray(y->v,&py);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDot_Svec"
 PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
 {
@@ -388,6 +405,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   bv->ops->multvec          = BVMultVec_Svec;
   bv->ops->multinplace      = BVMultInPlace_Svec;
   bv->ops->multinplacetrans = BVMultInPlaceTranspose_Svec;
+  bv->ops->axpy             = BVAXPY_Svec;
   bv->ops->dot              = BVDot_Svec;
   bv->ops->dotvec           = BVDotVec_Svec;
   bv->ops->scale            = BVScale_Svec;

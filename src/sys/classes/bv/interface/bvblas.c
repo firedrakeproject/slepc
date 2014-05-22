@@ -179,6 +179,25 @@ PetscErrorCode BVMultInPlace_Vecs_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVAXPY_BLAS_Private"
+/*
+    B := alpha*A + B
+
+    A,B are nxk (ld=n)
+*/
+PetscErrorCode BVAXPY_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,PetscScalar alpha,PetscScalar *A,PetscScalar *B)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   m,one=1;
+
+  PetscFunctionBegin;
+  ierr = PetscBLASIntCast(n_*k_,&m);CHKERRQ(ierr);
+  PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&m,&alpha,A,&one,B,&one));
+  ierr = PetscLogFlops(2.0*n_*k_);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDot_BLAS_Private"
 /*
     C := A'*B

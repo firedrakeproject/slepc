@@ -109,6 +109,7 @@ PETSC_EXTERN PetscErrorCode BVMultColumn(BV,PetscScalar,PetscScalar,PetscInt,Pet
 PETSC_EXTERN PetscErrorCode BVMultInPlace(BV,Mat,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVMultInPlaceTranspose(BV,Mat,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVMatMult(BV,Mat,BV);
+PETSC_EXTERN PetscErrorCode BVAXPY(BV,PetscScalar,BV);
 PETSC_EXTERN PetscErrorCode BVDot(BV,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVDotVec(BV,Vec,PetscScalar*);
 PETSC_EXTERN PetscErrorCode BVDotColumn(BV,PetscInt,PetscScalar*);

@@ -140,6 +140,21 @@ PetscErrorCode BVMultInPlaceTranspose_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVAXPY_Vecs"
+PetscErrorCode BVAXPY_Vecs(BV Y,PetscScalar alpha,BV X)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *y = (BV_VECS*)Y->data,*x = (BV_VECS*)X->data;
+  PetscInt       j;
+
+  PetscFunctionBegin;
+  for (j=0;j<Y->k-Y->l;j++) {
+    ierr = VecAXPY(y->V[Y->nc+Y->l+j],alpha,x->V[X->nc+X->l+j]);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDot_Vecs"
 PetscErrorCode BVDot_Vecs(BV X,BV Y,Mat M)
 {
@@ -390,6 +405,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->multvec          = BVMultVec_Vecs;
   bv->ops->multinplace      = BVMultInPlace_Vecs;
   bv->ops->multinplacetrans = BVMultInPlaceTranspose_Vecs;
+  bv->ops->axpy             = BVAXPY_Vecs;
   bv->ops->dot              = BVDot_Vecs;
   bv->ops->dotvec           = BVDotVec_Vecs;
   bv->ops->scale            = BVScale_Vecs;

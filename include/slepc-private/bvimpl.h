@@ -34,6 +34,7 @@ struct _BVOps {
   PetscErrorCode (*multvec)(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
   PetscErrorCode (*multinplace)(BV,Mat,PetscInt,PetscInt);
   PetscErrorCode (*multinplacetrans)(BV,Mat,PetscInt,PetscInt);
+  PetscErrorCode (*axpy)(BV,PetscScalar,BV);
   PetscErrorCode (*dot)(BV,BV,Mat);
   PetscErrorCode (*dotvec)(BV,Vec,PetscScalar*);
   PetscErrorCode (*scale)(BV,PetscInt,PetscScalar);
@@ -129,6 +130,7 @@ PETSC_INTERN PetscErrorCode BVMult_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,Pe
 PETSC_INTERN PetscErrorCode BVMultVec_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*,PetscScalar,PetscScalar*);
 PETSC_INTERN PetscErrorCode BVMultInPlace_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode BVMultInPlace_Vecs_Private(BV,PetscInt,PetscInt,PetscInt,Vec*,PetscScalar*,PetscBool);
+PETSC_INTERN PetscErrorCode BVAXPY_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode BVDot_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode BVDotVec_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode BVScale_BLAS_Private(BV,PetscInt,PetscScalar*,PetscScalar);
