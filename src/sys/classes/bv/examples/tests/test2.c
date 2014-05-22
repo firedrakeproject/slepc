@@ -30,7 +30,7 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   BV             X,Y,Z;
   Mat            M,R;
-  Vec            v,t;
+  Vec            v,t,e;
   PetscInt       i,j,n=20,k=8;
   PetscViewer    view;
   PetscBool      verbose;
@@ -135,11 +135,18 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||X-QR||: %g\n",(double)norm);CHKERRQ(ierr);
   }
 
+  /* Test BVOrthogonalizeVec */
+  ierr = VecDuplicate(t,&e);CHKERRQ(ierr);
+  ierr = VecSet(e,1.0);CHKERRQ(ierr);
+  ierr = BVOrthogonalizeVec(X,e,NULL,&norm,NULL);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of ones(n,1) after orthogonalizing against X: %g\n",(double)norm);CHKERRQ(ierr);
+
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&R);CHKERRQ(ierr);
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);
   ierr = BVDestroy(&Z);CHKERRQ(ierr);
+  ierr = VecDestroy(&e);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return 0;
