@@ -227,7 +227,7 @@ Additionally, \petsc's configuration script provides a very long list of options
 \item If not detected, use \Verb!--with-blas-lapack-lib! to specify the location of \blas and \lapack. If \slepc's configure complains about some missing \lapack subroutines, reconfigure \petsc with option \Verb!--download-f2cblaslapack!.
 \item Enable external libraries that provide direct linear solvers or preconditioners, such as MUMPS, hypre, or SuperLU; for example, \Verb!--download-mumps!. These are especially relevant for \slepc in the case that a spectral transformation is used, see chapter \ref{cap:st}.
 \item Enable use from C++, \Verb!--with-clanguage=C++!.
-\item Add \Verb!--with-64-bit-indices=1! to use 4 byte integers (\texttt{long long}) for indexing in vectors and matrices. This is only needed when working with over roughly 2 billion unknowns.
+\item Add \Verb!--with-64-bit-indices=1! to use 8 byte integers (\texttt{long long}) for indexing in vectors and matrices. This is only needed when working with over roughly 2 billion unknowns.
 \item Build shared libraries, \Verb!--with-shared-libraries=1!, for smaller executables whose symbols are resolved at run time.
 \item Error-checking code can be disabled with \Verb!--with-debugging=0!, but this is only recommended in production runs of well-tested applications.
 \item Enable GPU computing setting \Verb!--with-cuda=1! and other options, see \S\ref{sec:gpu} for details.
