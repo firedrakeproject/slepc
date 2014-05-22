@@ -136,6 +136,7 @@ static PetscErrorCode EPSSubspaceResidualNorms(BV V,BV AV,PetscScalar *T,PetscIn
   for (i=l;i<m;i++) {
     if (i==m-1 || T[i+1+ldt*i]==0.0) k=i+1;
     else k=i+2;
+    ierr = BVSetActiveColumns(V,0,k);CHKERRQ(ierr);
     ierr = BVCopyVec(AV,i,w);CHKERRQ(ierr);
     ierr = BVMultVec(V,-1.0,1.0,w,T+ldt*i);CHKERRQ(ierr);
     ierr = VecDot(w,w,&t);CHKERRQ(ierr);
@@ -192,10 +193,10 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   /* Complete the initial basis with random vectors and orthonormalize them */
   k = eps->nini;
   while (k<ncv) {
-    ierr = BVSetRandom(eps->V,k,eps->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(eps->V,k,eps->rand);CHKERRQ(ierr);
     ierr = BVOrthogonalize(eps->V,k,NULL,&norm,&breakdown);CHKERRQ(ierr);
     if (norm>0.0 && !breakdown) {
-      ierr = BVScale(eps->V,k,1.0/norm);CHKERRQ(ierr);
+      ierr = BVScaleColumn(eps->V,k,1.0/norm);CHKERRQ(ierr);
       k++;
     }
   }
@@ -294,7 +295,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
           ierr = VecCopy(w,v);CHKERRQ(ierr);
           ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
           ierr = BVNorm(eps->V,i,NORM_INFINITY,&norm);CHKERRQ(ierr);
-          ierr = BVScale(eps->V,i,1/norm);CHKERRQ(ierr);
+          ierr = BVScaleColumn(eps->V,i,1/norm);CHKERRQ(ierr);
         }
         its++;
       }
@@ -302,10 +303,10 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
       for (i=eps->nconv;i<nv;i++) {
         ierr = BVOrthogonalize(eps->V,i,NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (breakdown) {
-          ierr = BVSetRandom(eps->V,i,eps->rand);CHKERRQ(ierr);
+          ierr = BVSetRandomColumn(eps->V,i,eps->rand);CHKERRQ(ierr);
           ierr = BVOrthogonalize(eps->V,i,NULL,&norm,&breakdown);CHKERRQ(ierr);
         }
-        ierr = BVScale(eps->V,i,1/norm);CHKERRQ(ierr);
+        ierr = BVScaleColumn(eps->V,i,1/norm);CHKERRQ(ierr);
       }
       nxtort = PetscMin(its+idort,nxtsrr);
     } while (its<nxtsrr);

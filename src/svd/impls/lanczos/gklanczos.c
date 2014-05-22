@@ -85,7 +85,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
   ierr = BVRestoreColumn(svd->V,k,&v);CHKERRQ(ierr);
   ierr = BVRestoreColumn(svd->U,k,&u);CHKERRQ(ierr);
   ierr = BVOrthogonalize(svd->U,k,NULL,alpha+k,NULL);CHKERRQ(ierr);
-  ierr = BVScale(U,k,1.0/alpha[k]);CHKERRQ(ierr);
+  ierr = BVScaleColumn(U,k,1.0/alpha[k]);CHKERRQ(ierr);
 
   for (i=k+1;i<n;i++) {
     ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
@@ -94,7 +94,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
     ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(svd->U,i-1,&u);CHKERRQ(ierr);
     ierr = BVOrthogonalize(svd->V,i,NULL,beta+i-1,NULL);CHKERRQ(ierr);
-    ierr = BVScale(V,i,1.0/beta[i-1]);CHKERRQ(ierr);
+    ierr = BVScaleColumn(V,i,1.0/beta[i-1]);CHKERRQ(ierr);
 
     ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
     ierr = BVGetColumn(svd->U,i,&u);CHKERRQ(ierr);
@@ -102,7 +102,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
     ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(svd->U,i,&u);CHKERRQ(ierr);
     ierr = BVOrthogonalize(svd->U,i,NULL,alpha+i,NULL);CHKERRQ(ierr);
-    ierr = BVScale(U,i,1.0/alpha[i]);CHKERRQ(ierr);
+    ierr = BVScaleColumn(U,i,1.0/alpha[i]);CHKERRQ(ierr);
   }
 
   ierr = BVGetColumn(svd->V,n,&v);CHKERRQ(ierr);
@@ -143,7 +143,7 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
     ierr = BVDotColumn(V,i,work);CHKERRQ(ierr);
     ierr = BVMultColumn(V,-1.0,1.0,i,work);CHKERRQ(ierr);
     ierr = BVNorm(V,i,NORM_2,&b);CHKERRQ(ierr);
-    ierr = BVScale(V,i,1.0/b);CHKERRQ(ierr);
+    ierr = BVScaleColumn(V,i,1.0/b);CHKERRQ(ierr);
 
     ierr = BVGetColumn(V,i,&z);CHKERRQ(ierr);
     ierr = SVDMatMult(svd,PETSC_FALSE,z,u_1);CHKERRQ(ierr);
@@ -200,9 +200,9 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
 
   /* normalize start vector */
   if (!svd->nini) {
-    ierr = BVSetRandom(svd->V,0,svd->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(svd->V,0,svd->rand);CHKERRQ(ierr);
     ierr = BVNorm(svd->V,0,NORM_2,&norm);CHKERRQ(ierr);
-    ierr = BVScale(svd->V,0,1.0/norm);CHKERRQ(ierr);
+    ierr = BVScaleColumn(svd->V,0,1.0/norm);CHKERRQ(ierr);
   }
 
   while (svd->reason == SVD_CONVERGED_ITERATING) {

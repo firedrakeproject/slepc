@@ -162,7 +162,7 @@ PetscErrorCode EPSSolve(EPS eps)
           /* the next correction only works with eigenvectors */
           ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
         }
-        ierr = BVScale(eps->V,i+1,-1.0);CHKERRQ(ierr);
+        ierr = BVScaleColumn(eps->V,i+1,-1.0);CHKERRQ(ierr);
       }
       i++;
     }
@@ -1290,7 +1290,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
 
   /* For the first step, use the first initial vector, otherwise a random one */
   if (i>0 || eps->nini==0) {
-    ierr = BVSetRandom(eps->V,i,eps->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(eps->V,i,eps->rand);CHKERRQ(ierr);
   }
   ierr = BVGetVec(eps->V,&w);CHKERRQ(ierr);
   ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);
@@ -1312,7 +1312,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
     if (i==0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Initial vector is zero or belongs to the deflation space");
     else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unable to generate more start vectors");
   }
-  ierr = BVScale(eps->V,i,1.0/norm);CHKERRQ(ierr);
+  ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1355,7 +1355,7 @@ PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,PetscBool *breakdown)
 
   /* For the first step, use the first initial left vector, otherwise a random one */
   if (i>0 || eps->ninil==0) {
-    ierr = BVSetRandom(eps->W,i,eps->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(eps->W,i,eps->rand);CHKERRQ(ierr);
   }
   ierr = BVGetVec(eps->W,&w);CHKERRQ(ierr);
   ierr = BVCopyVec(eps->W,i,w);CHKERRQ(ierr);
@@ -1373,6 +1373,6 @@ PetscErrorCode EPSGetStartVectorLeft(EPS eps,PetscInt i,PetscBool *breakdown)
     if (i==0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Left initial vector is zero");
     else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unable to generate more left start vectors");
   }
-  ierr = BVScale(eps->W,i,1/norm);CHKERRQ(ierr);
+  ierr = BVScaleColumn(eps->W,i,1/norm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

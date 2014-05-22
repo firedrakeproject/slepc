@@ -154,7 +154,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
           ierr = BVGetColumn(eps->V,k,&v);CHKERRQ(ierr);
           ierr = VecAXPY(v,-theta/(delta*delta),y);CHKERRQ(ierr);
           ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
-          ierr = BVScale(eps->V,k,1.0/delta);CHKERRQ(ierr);
+          ierr = BVScaleColumn(eps->V,k,1.0/delta);CHKERRQ(ierr);
           ierr = BVNorm(eps->V,k,NORM_2,&norm);CHKERRQ(ierr);
           beta1 = norm;
 
@@ -192,7 +192,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     /* purge previously converged eigenvectors */
     ierr = BVInsertVec(eps->V,k,y);CHKERRQ(ierr);
     ierr = BVOrthogonalize(eps->V,k,NULL,&norm,NULL);CHKERRQ(ierr);
-    ierr = BVScale(eps->V,k,1.0/norm);CHKERRQ(ierr);
+    ierr = BVScaleColumn(eps->V,k,1.0/norm);CHKERRQ(ierr);
 
     /* if relerr<tol, accept eigenpair */
     if (relerr<eps->tol) {

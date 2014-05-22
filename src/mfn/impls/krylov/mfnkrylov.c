@@ -77,7 +77,7 @@ static PetscErrorCode MFNBasicArnoldi(BV V, Mat A,PetscScalar *H,PetscInt ldh,Pe
       *M = j+1;
       PetscFunctionReturn(0);
     } else {
-      ierr = BVScale(V,j+1,1/norm);CHKERRQ(ierr);
+      ierr = BVScaleColumn(V,j+1,1/norm);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
@@ -132,7 +132,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     if (PetscIsInfOrNanReal(t_new)) t_new = PETSC_MAX_REAL;
     t_step = PetscMin(t_out-t_now,t_new);
     ierr = BVInsertVec(mfn->V,0,x);CHKERRQ(ierr);
-    ierr = BVScale(mfn->V,0,1.0/beta);CHKERRQ(ierr);
+    ierr = BVScaleColumn(mfn->V,0,1.0/beta);CHKERRQ(ierr);
     ierr = DSGetArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = MFNBasicArnoldi(mfn->V,mfn->A,H,ld,0,&mb,&breakdown);CHKERRQ(ierr);
     if (breakdown) {

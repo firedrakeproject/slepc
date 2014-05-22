@@ -85,7 +85,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
       ierr = STApply(eps->st,w,z);CHKERRQ(ierr);
       ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
       ierr = BVNorm(eps->V,i,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = BVScale(eps->V,i,1.0/norm);CHKERRQ(ierr);
+      ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
     }
     ierr = VecDestroy(&w);CHKERRQ(ierr);
   }
