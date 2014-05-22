@@ -131,7 +131,7 @@ int main(int argc,char **argv)
 
   /* Test BVAXPY */
   ierr = BVAXPY(Z,-1.0,Y);CHKERRQ(ierr);
-  ierr = BVNorm(Z,-1,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
+  ierr = BVNorm(Z,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of error: %g\n",(double)norm);CHKERRQ(ierr);
 
   ierr = BVDestroy(&X);CHKERRQ(ierr);

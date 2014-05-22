@@ -128,7 +128,7 @@ int main(int argc,char **argv)
 
   /* Check residual */
   ierr = BVMult(Z,-1.0,1.0,Y,R);CHKERRQ(ierr);
-  ierr = BVNorm(Z,-1,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
+  ierr = BVNorm(Z,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
   if (norm<100*PETSC_MACHINE_EPSILON) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||X-QR|| < 100*eps\n");CHKERRQ(ierr);
   } else {
