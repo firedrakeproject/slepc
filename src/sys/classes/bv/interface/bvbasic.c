@@ -424,13 +424,13 @@ PetscErrorCode BVGetActiveColumns(BV bv,PetscInt *l,PetscInt *k)
    also allow for an indefinite B (setting indef=PETSC_TRUE), in which
    case the orthogonalization uses an indefinite inner product.
 
-   This affects operations BVDot(), BVDotVec(), BVNorm(), and BVOrthogonalize().
+   This affects operations BVDot(), BVNorm(), BVOrthogonalize(), and variants.
 
    Setting B=NULL has the same effect as if the identity matrix was passed.
 
    Level: advanced
 
-.seealso: BVGetMatrix(), BVDot(), BVDotVec(), BVNorm(), BVOrthogonalize()
+.seealso: BVGetMatrix(), BVDot(), BVNorm(), BVOrthogonalize()
 @*/
 PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
 {

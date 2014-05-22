@@ -160,9 +160,9 @@ int main(int argc,char **argv)
   }
 
   /* Test BVNorm */
-  ierr = BVNorm(X,0,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = BVNormColumn(X,0,NORM_2,&nrm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"2-Norm or X[0] = %g\n",(double)nrm);CHKERRQ(ierr);
-  ierr = BVNorm(X,-1,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
+  ierr = BVNorm(X,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Frobenius Norm or X = %g\n",(double)nrm);CHKERRQ(ierr);
 
   ierr = BVDestroy(&X);CHKERRQ(ierr);

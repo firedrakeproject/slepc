@@ -101,8 +101,8 @@ int main(int argc,char **argv)
     ierr = BVView(X,view);CHKERRQ(ierr);
   }
 
-  /* Test BVNorm */
-  ierr = BVNorm(X,0,NORM_2,&nrm);CHKERRQ(ierr);
+  /* Test BVNormColumn */
+  ierr = BVNormColumn(X,0,NORM_2,&nrm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"B-Norm or X[0] = %g\n",(double)nrm);CHKERRQ(ierr);
 
   /* Test BVOrthogonalize */

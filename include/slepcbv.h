@@ -115,8 +115,9 @@ PETSC_EXTERN PetscErrorCode BVDotVec(BV,Vec,PetscScalar*);
 PETSC_EXTERN PetscErrorCode BVDotColumn(BV,PetscInt,PetscScalar*);
 PETSC_EXTERN PetscErrorCode BVScale(BV,PetscScalar);
 PETSC_EXTERN PetscErrorCode BVScaleColumn(BV,PetscInt,PetscScalar);
-PETSC_EXTERN PetscErrorCode BVNorm(BV,PetscInt,NormType,PetscReal*);
+PETSC_EXTERN PetscErrorCode BVNorm(BV,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVNormVec(BV,Vec,NormType,PetscReal*);
+PETSC_EXTERN PetscErrorCode BVNormColumn(BV,PetscInt,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVSetRandom(BV,PetscRandom);
 PETSC_EXTERN PetscErrorCode BVSetRandomColumn(BV,PetscInt,PetscRandom);
 
