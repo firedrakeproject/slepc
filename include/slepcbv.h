@@ -113,10 +113,12 @@ PETSC_EXTERN PetscErrorCode BVAXPY(BV,PetscScalar,BV);
 PETSC_EXTERN PetscErrorCode BVDot(BV,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVDotVec(BV,Vec,PetscScalar*);
 PETSC_EXTERN PetscErrorCode BVDotColumn(BV,PetscInt,PetscScalar*);
-PETSC_EXTERN PetscErrorCode BVScale(BV,PetscInt,PetscScalar);
+PETSC_EXTERN PetscErrorCode BVScale(BV,PetscScalar);
+PETSC_EXTERN PetscErrorCode BVScaleColumn(BV,PetscInt,PetscScalar);
 PETSC_EXTERN PetscErrorCode BVNorm(BV,PetscInt,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVNormVec(BV,Vec,NormType,PetscReal*);
-PETSC_EXTERN PetscErrorCode BVSetRandom(BV,PetscInt,PetscRandom);
+PETSC_EXTERN PetscErrorCode BVSetRandom(BV,PetscRandom);
+PETSC_EXTERN PetscErrorCode BVSetRandomColumn(BV,PetscInt,PetscRandom);
 
 PETSC_EXTERN PetscErrorCode BVSetOrthogonalization(BV,BVOrthogType,BVOrthogRefineType,PetscReal);
 PETSC_EXTERN PetscErrorCode BVGetOrthogonalization(BV,BVOrthogType*,BVOrthogRefineType*,PetscReal*);

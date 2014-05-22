@@ -501,23 +501,56 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *m)
 #undef __FUNCT__
 #define __FUNCT__ "BVScale"
 /*@
-   BVScale - Scale one column (or all columns) of a BV.
+   BVScale - Scale all columns of a BV.
 
    Logically Collective on BV
 
    Input Parameters:
 +  bv    - basis vectors
--  j     - column number to be scaled (or negative number to scale all columns)
 -  alpha - scaling factor
 
    Note:
-   If j<0 then all active columns are scaled.
+   All active columns are scaled.
 
    Level: intermediate
 
-.seealso: BVSetActiveColumns()
+.seealso: BVScaleColumn(), BVSetActiveColumns()
 @*/
-PetscErrorCode BVScale(BV bv,PetscInt j,PetscScalar alpha)
+PetscErrorCode BVScale(BV bv,PetscScalar alpha)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveScalar(bv,alpha,2);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  if (!bv->n || alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
+
+  ierr = PetscLogEventBegin(BV_Scale,bv,0,0,0);CHKERRQ(ierr);
+  ierr = (*bv->ops->scale)(bv,-1,alpha);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Scale,bv,0,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVScaleColumn"
+/*@
+   BVScaleColumn - Scale one column of a BV.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  bv    - basis vectors
+-  j     - column number to be scaled
+-  alpha - scaling factor
+
+   Level: intermediate
+
+.seealso: BVScale(), BVSetActiveColumns()
+@*/
+PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
 {
   PetscErrorCode ierr;
 
@@ -528,7 +561,7 @@ PetscErrorCode BVScale(BV bv,PetscInt j,PetscScalar alpha)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  if (j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
+  if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
   if (!bv->n || alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Scale,bv,0,0,0);CHKERRQ(ierr);
@@ -671,19 +704,74 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
 #undef __FUNCT__
 #define __FUNCT__ "BVSetRandom"
 /*@
-   BVSetRandom - Set one column (or all columns) of a BV to random numbers.
+   BVSetRandom - Set all columns of a BV to random numbers.
 
    Logically Collective on BV
 
    Input Parameters:
 +  bv    - basis vectors
--  j     - column number to be set (or negative number to set all columns)
 -  rctx - the random number context, formed by PetscRandomCreate(), or NULL and
           it will create one internally.
 
    Note:
-   If j<0 then all active columns are scaled.
+   All active columns are modified.
 
+   Level: advanced
+
+.seealso: BVSetRandomColumn(), BVSetActiveColumns()
+@*/
+PetscErrorCode BVSetRandom(BV bv,PetscRandom rctx)
+{
+  PetscErrorCode ierr;
+  PetscRandom    rand=NULL;
+  PetscInt       i,low,high,k;
+  PetscScalar    *px,t;
+  Vec            x;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  if (rctx) PetscValidHeaderSpecific(rctx,PETSC_RANDOM_CLASSID,2);
+  else {
+    ierr = PetscRandomCreate(PetscObjectComm((PetscObject)bv),&rand);CHKERRQ(ierr);
+    ierr = PetscRandomSetSeed(rand,0x12345678);CHKERRQ(ierr);
+    ierr = PetscRandomSetFromOptions(rand);CHKERRQ(ierr);
+    rctx = rand;
+  }
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+
+  ierr = PetscLogEventBegin(BV_SetRandom,bv,rctx,0,0);CHKERRQ(ierr);
+  for (k=0;k<bv->k;k++) {
+    ierr = BVGetColumn(bv,k,&x);CHKERRQ(ierr);
+    ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
+    ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+    for (i=0;i<bv->N;i++) {
+      ierr = PetscRandomGetValue(rctx,&t);CHKERRQ(ierr);
+      if (i>=low && i<high) px[i-low] = t;
+    }
+    ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(bv,k,&x);CHKERRQ(ierr);
+  }
+  ierr = PetscLogEventEnd(BV_SetRandom,bv,rctx,0,0);CHKERRQ(ierr);
+  ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVSetRandomColumn"
+/*@
+   BVSetRandomColumn - Set one column of a BV to random numbers.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  bv    - basis vectors
+-  j     - column number to be set
+-  rctx - the random number context, formed by PetscRandomCreate(), or NULL and
+          it will create one internally.
+
+   Note:
    This operation is analogue to VecSetRandom - the difference is that the
    generated random vector is the same irrespective of the size of the
    communicator (if all processes pass a PetscRandom context initialized
@@ -691,13 +779,13 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
 
    Level: advanced
 
-.seealso: BVSetActiveColumns()
+.seealso: BVSetRandom(), BVSetActiveColumns()
 @*/
-PetscErrorCode BVSetRandom(BV bv,PetscInt j,PetscRandom rctx)
+PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j,PetscRandom rctx)
 {
   PetscErrorCode ierr;
   PetscRandom    rand=NULL;
-  PetscInt       i,low,high,k,ks,ke;
+  PetscInt       i,low,high;
   PetscScalar    *px,t;
   Vec            x;
 
@@ -713,25 +801,18 @@ PetscErrorCode BVSetRandom(BV bv,PetscInt j,PetscRandom rctx)
   }
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
-  if (j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
+  if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
 
   ierr = PetscLogEventBegin(BV_SetRandom,bv,rctx,0,0);CHKERRQ(ierr);
-  if (j<0) {
-    ks = 0; ke = bv->k;
-  } else {
-    ks = j; ke = j+1;
+  ierr = BVGetColumn(bv,j,&x);CHKERRQ(ierr);
+  ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
+  ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+  for (i=0;i<bv->N;i++) {
+    ierr = PetscRandomGetValue(rctx,&t);CHKERRQ(ierr);
+    if (i>=low && i<high) px[i-low] = t;
   }
-  for (k=ks;k<ke;k++) {
-    ierr = BVGetColumn(bv,k,&x);CHKERRQ(ierr);
-    ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
-    ierr = VecGetArray(x,&px);CHKERRQ(ierr);
-    for (i=0;i<bv->N;i++) {
-      ierr = PetscRandomGetValue(rctx,&t);CHKERRQ(ierr);
-      if (i>=low && i<high) px[i-low] = t;
-    }
-    ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(bv,k,&x);CHKERRQ(ierr);
-  }
+  ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(bv,j,&x);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_SetRandom,bv,rctx,0,0);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);

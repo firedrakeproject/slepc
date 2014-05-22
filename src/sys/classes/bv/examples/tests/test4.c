@@ -164,7 +164,7 @@ int main(int argc,char **argv)
   } else {
     ierr = BVMultInPlace(X,Q,lx+1,ky);CHKERRQ(ierr);
   }
-  ierr = BVScale(X,-1,2.0);CHKERRQ(ierr);
+  ierr = BVScale(X,2.0);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVMultInPlace - - - - -\n");CHKERRQ(ierr);
     ierr = BVView(X,view);CHKERRQ(ierr);

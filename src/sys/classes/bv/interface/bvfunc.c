@@ -309,7 +309,7 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
         ierr = PetscInfo1(V,"Removing linearly dependent vector %D\n",i);CHKERRQ(ierr);
         ndep++;
       } else {
-        ierr = BVScale(V,s+i-ndep,1.0/norm);CHKERRQ(ierr);
+        ierr = BVScaleColumn(V,s+i-ndep,1.0/norm);CHKERRQ(ierr);
       }
     }
   }
