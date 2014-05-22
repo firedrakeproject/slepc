@@ -118,9 +118,9 @@ int main(int argc,char **argv)
   for (j=0;j<k;j++) {
     ierr = BVGetColumn(Z,j,&v);CHKERRQ(ierr);
     ierr = VecZeroEntries(v);CHKERRQ(ierr);
-    ierr = VecSetValue(v,0,1.0,ADD_VALUES);CHKERRQ(ierr);
-    if (j<n) { ierr = VecSetValue(v,j,1.0,ADD_VALUES);CHKERRQ(ierr); }
-    if (j+1<n) { ierr = VecSetValue(v,j+1,-1.0,ADD_VALUES);CHKERRQ(ierr); }
+    if (!Istart) { ierr = VecSetValue(v,0,1.0,ADD_VALUES);CHKERRQ(ierr); }
+    if (j<n && j>=Istart && j<Iend) { ierr = VecSetValue(v,j,1.0,ADD_VALUES);CHKERRQ(ierr); }
+    if (j+1<n && j>=Istart && j<Iend) { ierr = VecSetValue(v,j+1,-1.0,ADD_VALUES);CHKERRQ(ierr); }
     ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
     ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(Z,j,&v);CHKERRQ(ierr);
