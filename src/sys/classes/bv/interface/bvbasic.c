@@ -146,6 +146,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
     ierr = VecGetSize(bv->t,&bv->N);CHKERRQ(ierr);
     ierr = VecGetLocalSize(bv->t,&bv->n);CHKERRQ(ierr);
   }
+  if (m > bv->N) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Number of columns %D cannot be larger than global length %D",m,bv->N);
   if (bv->ops->create) {
     ierr = PetscLogEventBegin(BV_Create,bv,0,0,0);CHKERRQ(ierr);
     ierr = (*bv->ops->create)(bv);CHKERRQ(ierr);
@@ -185,6 +186,7 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
   if (bv->t) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Template vector was already set by a previous call to BVSetSizes/FromVec");
   ierr = VecGetSize(t,&bv->N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(t,&bv->n);CHKERRQ(ierr);
+  if (m > bv->N) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Number of columns %D cannot be larger than global length %D",m,bv->N);
   bv->m = m;
   bv->k = m;
   bv->t = t;
