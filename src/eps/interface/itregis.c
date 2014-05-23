@@ -74,7 +74,7 @@ PetscErrorCode EPSRegisterAll(void)
 //  ierr = EPSRegister(EPSLANCZOS,EPSCreate_Lanczos);CHKERRQ(ierr);
 //  ierr = EPSRegister(EPSGD,EPSCreate_GD);CHKERRQ(ierr);
 //  ierr = EPSRegister(EPSJD,EPSCreate_JD);CHKERRQ(ierr);
-//  ierr = EPSRegister(EPSRQCG,EPSCreate_RQCG);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSRQCG,EPSCreate_RQCG);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
 //  ierr = EPSRegister(EPSCISS,EPSCreate_CISS);CHKERRQ(ierr);
 #endif
