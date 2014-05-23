@@ -138,6 +138,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   PetscErrorCode ierr;
   PetscInt       n=eps->n,i,low,high;
   PetscScalar    *array,*pX,*pY;
+  Vec            v,w;
 
   PetscFunctionBegin;
   ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
@@ -147,10 +148,12 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
   for (i=0;i<eps->ncv;i++) {
-    ierr = VecGetOwnershipRange(eps->V[i],&low,&high);CHKERRQ(ierr);
-    ierr = VecGetArray(eps->V[i],&array);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
+    ierr = VecGetOwnershipRange(v,&low,&high);CHKERRQ(ierr);
+    ierr = VecGetArray(v,&array);CHKERRQ(ierr);
     ierr = PetscMemcpy(array,pX+i*n+low,(high-low)*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = VecRestoreArray(eps->V[i],&array);CHKERRQ(ierr);
+    ierr = VecRestoreArray(v,&array);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
   }
   ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
 
@@ -159,10 +162,12 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
     ierr = DSVectors(eps->ds,DS_MAT_Y,NULL,NULL);CHKERRQ(ierr);
     ierr = DSGetArray(eps->ds,DS_MAT_Y,&pY);CHKERRQ(ierr);
     for (i=0;i<eps->ncv;i++) {
-      ierr = VecGetOwnershipRange(eps->W[i],&low,&high);CHKERRQ(ierr);
-      ierr = VecGetArray(eps->W[i],&array);CHKERRQ(ierr);
+      ierr = BVGetColumn(eps->W,i,&w);CHKERRQ(ierr);
+      ierr = VecGetOwnershipRange(w,&low,&high);CHKERRQ(ierr);
+      ierr = VecGetArray(w,&array);CHKERRQ(ierr);
       ierr = PetscMemcpy(array,pY+i*n+low,(high-low)*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = VecRestoreArray(eps->W[i],&array);CHKERRQ(ierr);
+      ierr = VecRestoreArray(w,&array);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(eps->W,i,&w);CHKERRQ(ierr);
     }
     ierr = DSRestoreArray(eps->ds,DS_MAT_Y,&pY);CHKERRQ(ierr);
   }
