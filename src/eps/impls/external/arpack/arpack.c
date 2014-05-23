@@ -33,6 +33,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       ncv;
+  PetscBool      flg;
   EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
 
   PetscFunctionBegin;
@@ -80,6 +81,9 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
 
+  ierr = PetscObjectTypeCompare((PetscObject)eps->V,BVVECS,&flg);CHKERRQ(ierr);
+  if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
+
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_ARPACK;
@@ -99,7 +103,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   PetscBLASInt   fcomm;
 #endif
   PetscScalar    sigmar,*pV,*resid;
-  Vec            x,y,w = eps->work[0];
+  Vec            v0,x,y,w = eps->work[0];
   Mat            A;
   PetscBool      isSinv,isShift,rvec;
 #if !defined(PETSC_USE_COMPLEX)
@@ -115,8 +119,11 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ierr = PetscBLASIntCast(eps->nloc,&n);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
-  ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
-  ierr = EPSGetStartVector(eps,0,eps->work[1],NULL);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->V,0,0);CHKERRQ(ierr);  /* just for deflation space */
+  ierr = BVGetColumn(eps->V,0,&v0);CHKERRQ(ierr);
+  ierr = VecCopy(v0,eps->work[1]);CHKERRQ(ierr);
+  ierr = VecGetArray(v0,&pV);CHKERRQ(ierr);
   ierr = VecGetArray(eps->work[1],&resid);CHKERRQ(ierr);
 
   ido  = 0;            /* first call to reverse communication interface */
@@ -214,7 +221,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
       } else if (ido == 2) {
         /* Y = B * X */
-        ierr = IPApplyMatrix(eps->ip,x,y);CHKERRQ(ierr);
+        ierr = BVApplyMatrix(eps->V,x,y);CHKERRQ(ierr);
       } else { /* ido == 1 */
         if (iparam[6] == 3 && bmat[0] == 'G') {
           /* Y = OP * X for shift-and-invert with B semi-positive definite */
@@ -223,7 +230,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
           /* X=A*X Y=B^-1*X for shift with B positive definite */
           ierr = MatMult(A,x,y);CHKERRQ(ierr);
           if (sigmar != 0.0) {
-            ierr = IPApplyMatrix(eps->ip,x,w);CHKERRQ(ierr);
+            ierr = BVApplyMatrix(eps->V,x,w);CHKERRQ(ierr);
             ierr = VecAXPY(y,sigmar,w);CHKERRQ(ierr);
           }
           ierr = VecCopy(y,x);CHKERRQ(ierr);
@@ -232,7 +239,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
           /* Y = OP * X */
           ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
         }
-        ierr = IPOrthogonalize(eps->ip,0,NULL,eps->nds,NULL,eps->defl,y,NULL,NULL,NULL);CHKERRQ(ierr);
+        ierr = BVOrthogonalizeVec(eps->V,y,NULL,NULL,NULL);CHKERRQ(ierr);
       }
 
       ierr = VecResetArray(x);CHKERRQ(ierr);
@@ -265,7 +272,8 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
     if (info!=0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info);
   }
 
-  ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
+  ierr = VecRestoreArray(v0,&pV);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(eps->V,0,&v0);CHKERRQ(ierr);
   ierr = VecRestoreArray(eps->work[1],&resid);CHKERRQ(ierr);
   if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;

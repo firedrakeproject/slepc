@@ -70,7 +70,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   PetscErrorCode ierr;
   PetscInt       listor,lrstor,ncuv,k1,k2,k3,k4;
   EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
-  PetscBool      issinv;
+  PetscBool      issinv,flg;
 
   PetscFunctionBegin;
   if (eps->ncv) {
@@ -138,6 +138,8 @@ lrstor*=10;
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->V,BVVECS,&flg);CHKERRQ(ierr);
+  if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
 
   /* dispatch solve method */
   if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
@@ -153,7 +155,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
   PetscInt       nn;
   PetscBLASInt   i,nneig,lflag,nvopu;
-  Vec            x,y;
+  Vec            x,y,v0;
   PetscScalar    sigma,*pV;
   Mat            A;
   KSP            ksp;
@@ -162,7 +164,10 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   PetscFunctionBegin;
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
-  ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->V,0,0);CHKERRQ(ierr);  /* just for deflation space */
+  ierr = BVGetColumn(eps->V,0,&v0);CHKERRQ(ierr);
+  ierr = VecGetArray(v0,&pV);CHKERRQ(ierr);
 
   if (eps->isgeneralized && !blz->slice) {
     ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr); /* shift of origin */
@@ -208,7 +213,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
         } else {
           ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
         }
-        ierr = IPOrthogonalize(eps->ip,0,NULL,eps->nds,NULL,eps->defl,y,NULL,NULL,NULL);CHKERRQ(ierr);
+        ierr = BVOrthogonalizeVec(eps->V,y,NULL,NULL,NULL);CHKERRQ(ierr);
         ierr = VecResetArray(x);CHKERRQ(ierr);
         ierr = VecResetArray(y);CHKERRQ(ierr);
       }
@@ -227,7 +232,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       for (i=0;i<nvopu;i++) {
         ierr = VecPlaceArray(x,blz->u+i*eps->nloc);CHKERRQ(ierr);
         ierr = VecPlaceArray(y,blz->v+i*eps->nloc);CHKERRQ(ierr);
-        ierr = IPApplyMatrix(eps->ip,x,y);CHKERRQ(ierr);
+        ierr = BVApplyMatrix(eps->V,x,y);CHKERRQ(ierr);
         ierr = VecResetArray(x);CHKERRQ(ierr);
         ierr = VecResetArray(y);CHKERRQ(ierr);
       }
@@ -245,14 +250,15 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
     case 4:
       /* copy the initial vector */
       ierr = VecPlaceArray(x,blz->v);CHKERRQ(ierr);
-      ierr = EPSGetStartVector(eps,0,x,NULL);CHKERRQ(ierr);
+      ierr = VecCopy(v0,x);CHKERRQ(ierr);
       ierr = VecResetArray(x);CHKERRQ(ierr);
       break;
     }
 
   } while (lflag > 0);
 
-  ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
+  ierr = VecRestoreArray(v0,&pV);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(eps->V,0,&v0);CHKERRQ(ierr);
 
   eps->nconv  = BLZistorr_(blz->istor,"NTEIG",5);
   eps->reason = EPS_CONVERGED_TOL;

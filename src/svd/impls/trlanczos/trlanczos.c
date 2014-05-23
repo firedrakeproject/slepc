@@ -74,6 +74,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
 {
   PetscErrorCode ierr;
   PetscReal      a,b;
+  PetscScalar    gamma;
   PetscInt       i,k=nconv+l;
   Vec            ui,ui1,vi;
 
@@ -84,7 +85,8 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
   ierr = BVRestoreColumn(V,k,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,k,&ui);CHKERRQ(ierr);
   if (l>0) {
-    ierr = BVMultColumn(U,-1.0,1.0,k,beta+nconv);CHKERRQ(ierr);
+    ierr = BVMultColumn(U,-1.0,1.0,k,&gamma);CHKERRQ(ierr);
+    beta[nconv] = PetscRealPart(gamma);
   }
   ierr = BVNormColumn(U,k,NORM_2,&a);CHKERRQ(ierr);
   ierr = BVScaleColumn(U,k,1.0/a);CHKERRQ(ierr);
@@ -175,6 +177,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
 {
   PetscErrorCode     ierr;
   PetscReal          a,b,eta;
+  PetscScalar        gamma;
   PetscInt           i,j,k=nconv+l;
   Vec                ui,ui1,vi;
   BVOrthogRefineType refine;
@@ -186,7 +189,8 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   ierr = BVRestoreColumn(V,k,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,k,&ui);CHKERRQ(ierr);
   if (l>0) {
-    ierr = BVMultColumn(U,-1.0,1.0,k,beta+nconv);CHKERRQ(ierr);
+    ierr = BVMultColumn(U,-1.0,1.0,k,&gamma);CHKERRQ(ierr);
+    beta[nconv] = PetscRealPart(gamma);
   }
   ierr = BVGetOrthogonalization(V,NULL,&refine,&eta);CHKERRQ(ierr);
 

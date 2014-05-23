@@ -75,7 +75,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   PetscMPIInt    numProcs,procID;
   EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
   primme_params  *primme = &ops->primme;
-  PetscBool      t;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&numProcs);CHKERRQ(ierr);
@@ -100,8 +100,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   ierr = STSetDefaultShift(eps->st,0.0);CHKERRQ(ierr);
 
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&t);CHKERRQ(ierr);
-  if (!t) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only works with STPRECOND");
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&flg);CHKERRQ(ierr);
+  if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only works with STPRECOND");
 
   /* Transfer SLEPc options to PRIMME options */
   primme->n          = eps->n;
@@ -148,13 +148,15 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 
   /* Set workspace */
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->V,BVVECS,&flg);CHKERRQ(ierr);
+  if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
 
   /* Setup the preconditioner */
   ops->eps = eps;
   if (primme->correctionParams.precondition) {
     ierr = STGetKSP(eps->st,&ops->ksp);CHKERRQ(ierr);
-    ierr = PetscObjectTypeCompare((PetscObject)ops->ksp,KSPPREONLY,&t);CHKERRQ(ierr);
-    if (!t) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only works with KSPPREONLY");
+    ierr = PetscObjectTypeCompare((PetscObject)ops->ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
+    if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only works with KSPPREONLY");
     primme->preconditioner = NULL;
     primme->applyPreconditioner = applyPreconditioner_PRIMME;
   }
@@ -178,6 +180,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   PetscErrorCode ierr;
   EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
   PetscScalar    *a;
+  Vec            v0;
 #if defined(PETSC_USE_COMPLEX)
   PetscInt       i;
   PetscReal      *evals;
@@ -190,7 +193,8 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   ops->primme.iseed[0] = -1;
 
   /* Call PRIMME solver */
-  ierr = VecGetArray(eps->V[0],&a);CHKERRQ(ierr);
+  ierr = BVGetColumn(eps->V,0,&v0);CHKERRQ(ierr);
+  ierr = VecGetArray(v0,&a);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   ierr = dprimme(eps->eigr,a,eps->errest,&ops->primme);CHKERRQ(ierr);
 #else
@@ -201,7 +205,8 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
     eps->eigr[i] = evals[i];
   ierr = PetscFree(evals);CHKERRQ(ierr);
 #endif
-  ierr = VecRestoreArray(eps->V[0],&a);CHKERRQ(ierr);
+  ierr = VecRestoreArray(v0,&a);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(eps->V,0,&v0);CHKERRQ(ierr);
 
   switch (ierr) {
     case 0: /* Successful */

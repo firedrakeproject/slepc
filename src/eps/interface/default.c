@@ -104,8 +104,9 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
   PetscErrorCode ierr;
   PetscInt       n,ld,i;
   Mat            X;
-  Vec            v,v1,z;
+  Vec            v,z;
 #if !defined(PETSC_USE_COMPLEX)
+  Vec            v1;
   PetscScalar    tmp;
   PetscReal      norm,normi;
 #endif
@@ -168,11 +169,12 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   PetscErrorCode ierr;
   PetscInt       n,i,ld;
   Mat            Z;
+  Vec            w,z,v;
 #if !defined(PETSC_USE_COMPLEX)
+  Vec            v1;
   PetscScalar    tmp;
   PetscReal      norm,normi;
 #endif
-  Vec            w,z,v,v1;
 
   PetscFunctionBegin;
   if (eps->ishermitian) {
