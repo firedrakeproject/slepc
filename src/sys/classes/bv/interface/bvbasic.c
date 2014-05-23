@@ -151,6 +151,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
       if (bv->n!=ma) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Local dimension %D does not match that of matrix given at BVSetMatrix %D",bv->n,ma);
     }
   }
+  if (m > bv->N) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Number of columns %D cannot be larger than global length %D",m,bv->N);
   if (bv->ops->create) {
     ierr = PetscLogEventBegin(BV_Create,bv,0,0,0);CHKERRQ(ierr);
     ierr = (*bv->ops->create)(bv);CHKERRQ(ierr);
@@ -195,6 +196,7 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
     ierr = MatGetLocalSize(bv->matrix,&ma,NULL);CHKERRQ(ierr);
     if (bv->n!=ma) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Local dimension %D does not match that of matrix given at BVSetMatrix %D",bv->n,ma);
   }
+  if (m > bv->N) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Number of columns %D cannot be larger than global length %D",m,bv->N);
   bv->m = m;
   bv->k = m;
   bv->t = t;
@@ -372,7 +374,7 @@ PetscErrorCode BVSetActiveColumns(BV bv,PetscInt l,PetscInt k)
   if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
     bv->l = 0;
   } else {
-    if (l<0 || l>bv->k-1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and k-1");
+    if (l<0 || l>bv->k) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and k");
     bv->l = l;
   }
   PetscFunctionReturn(0);
@@ -485,6 +487,45 @@ PetscErrorCode BVGetMatrix(BV bv,Mat *B,PetscBool *indef)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   if (B)     *B     = bv->matrix;
   if (indef) *indef = bv->indef;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVApplyMatrix"
+/*@C
+   BVApplyMatrix - Multiplies a vector by the matrix representation of the
+   inner product.
+
+   Neighbor-wise Collective on BV and Vec
+
+   Input Parameter:
++  bv - the basis vectors context
+-  x  - the vector
+
+   Output Parameter:
+.  y  - the result
+
+   Note:
+   If no matrix was specified this function copies the vector.
+
+   Level: advanced
+
+.seealso: BVSetMatrix()
+@*/
+PetscErrorCode BVApplyMatrix(BV bv,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,2);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,3);
+  if (bv->matrix) {
+    ierr = BV_IPMatMult(bv,x);CHKERRQ(ierr);
+    ierr = VecCopy(bv->Bx,y);CHKERRQ(ierr);
+  } else {
+    ierr = VecCopy(x,y);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

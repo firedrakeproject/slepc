@@ -100,6 +100,7 @@ PETSC_EXTERN PetscErrorCode BVCopyVec(BV,PetscInt,Vec);
 PETSC_EXTERN PetscErrorCode BVCopyColumn(BV,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVSetMatrix(BV,Mat,PetscBool);
 PETSC_EXTERN PetscErrorCode BVGetMatrix(BV,Mat*,PetscBool*);
+PETSC_EXTERN PetscErrorCode BVApplyMatrix(BV,Vec,Vec);
 PETSC_EXTERN PetscErrorCode BVSetSignature(BV,Vec);
 PETSC_EXTERN PetscErrorCode BVGetSignature(BV,Vec);
 
