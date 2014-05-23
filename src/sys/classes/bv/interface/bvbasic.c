@@ -151,6 +151,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
       if (bv->n!=ma) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Local dimension %D does not match that of matrix given at BVSetMatrix %D",bv->n,ma);
     }
   }
+  if (m > bv->N) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Number of columns %D cannot be larger than global length %D",m,bv->N);
   if (bv->ops->create) {
     ierr = PetscLogEventBegin(BV_Create,bv,0,0,0);CHKERRQ(ierr);
     ierr = (*bv->ops->create)(bv);CHKERRQ(ierr);
@@ -195,6 +196,7 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
     ierr = MatGetLocalSize(bv->matrix,&ma,NULL);CHKERRQ(ierr);
     if (bv->n!=ma) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Local dimension %D does not match that of matrix given at BVSetMatrix %D",bv->n,ma);
   }
+  if (m > bv->N) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Number of columns %D cannot be larger than global length %D",m,bv->N);
   bv->m = m;
   bv->k = m;
   bv->t = t;
@@ -303,7 +305,6 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(bv,m,2);
   PetscValidLogicalCollectiveBool(bv,copy,3);
-  PetscValidType(bv,1);
   if (m <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",m);
   if (bv->nc) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Cannot resize a BV with constraints");
   if (bv->m == m) PetscFunctionReturn(0);
@@ -352,6 +353,9 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
    differently: they participate in the orthogonalization but the computed
    coefficients are not stored.
 
+   If one of the arguments is PETSC_IGNORE then it is left unchanged.
+   To reset l to zero, use PETSC_DEFAULT.
+
    Level: intermediate
 
 .seealso: BVGetActiveColumns(), BVSetSizes()
@@ -363,17 +367,21 @@ PetscErrorCode BVSetActiveColumns(BV bv,PetscInt l,PetscInt k)
   PetscValidLogicalCollectiveInt(bv,l,2);
   PetscValidLogicalCollectiveInt(bv,k,3);
   BVCheckSizes(bv,1);
-  if (k==PETSC_DECIDE || k==PETSC_DEFAULT) {
-    bv->k = bv->m;
-  } else {
-    if (k<0 || k>bv->m) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and m");
-    bv->k = k;
+  if (k) {
+    if (k==PETSC_DECIDE || k==PETSC_DEFAULT) {
+      bv->k = bv->m;
+    } else {
+      if (k<0 || k>bv->m) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and m");
+      bv->k = k;
+    }
   }
-  if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
-    bv->l = 0;
-  } else {
-    if (l<0 || l>bv->k-1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and k-1");
-    bv->l = l;
+  if (l) {
+    if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
+      bv->l = 0;
+    } else {
+      if (l<0 || l>bv->k-1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and k-1");
+      bv->l = l;
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -443,12 +451,15 @@ PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,2);
   PetscValidLogicalCollectiveBool(bv,indef,3);
+
   if (B) {
-    PetscValidHeaderSpecific(B,MAT_CLASSID,2);
     ierr = MatGetLocalSize(B,&m,&n);CHKERRQ(ierr);
     if (m!=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Matrix must be square");
-    if (bv->m && bv->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension BV %D, Mat %D",bv->n,n);
+    if (bv->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension BV %D, Mat %D",bv->n,n);
   }
   ierr = MatDestroy(&bv->matrix);CHKERRQ(ierr);
   if (B) PetscObjectReference((PetscObject)B);
@@ -514,6 +525,7 @@ PetscErrorCode BVSetSignature(BV bv,Vec omega)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
   BVCheckSizes(bv,1);
   PetscValidHeaderSpecific(omega,VEC_CLASSID,2);
   PetscValidType(omega,2);
@@ -562,6 +574,7 @@ PetscErrorCode BVGetSignature(BV bv,Vec omega)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
   BVCheckSizes(bv,1);
   PetscValidHeaderSpecific(omega,VEC_CLASSID,2);
   PetscValidType(omega,2);
@@ -857,6 +870,7 @@ PetscErrorCode BVGetVec(BV bv,Vec *v)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
   BVCheckSizes(bv,1);
   PetscValidPointer(v,2);
   ierr = VecDuplicate(bv->t,v);CHKERRQ(ierr);
