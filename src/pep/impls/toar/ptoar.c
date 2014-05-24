@@ -635,7 +635,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   if (withreg && bs==PEP_BASIS_CHEBYSHEV1) {
     ierr = PetscMalloc(sizeof(PEPCmpctx),&ctx);CHKERRQ(ierr);
     ierr = PetscMalloc(sizeof(Reg),&reg);CHKERRQ(ierr);
-    reg->ri = 0.001;
+    reg->ri = PETSC_MAX_REAL;
     reg->rr = 1.0/pep->sfactor;
     reg->zr = 0.0;
     reg->zi = 0.0;

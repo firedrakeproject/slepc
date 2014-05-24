@@ -103,8 +103,7 @@ static PetscErrorCode PEPEvaluateBasisforMatrix(PEP pep,PetscInt nm,PetscInt k,P
   }
   for (i=2;i<nm;i++) {
     off = i*k;
-    corr = b[i-1];
-    if (i==3) {
+    if (i==2) {
       for (j=0;j<k;j++) {
         fH[off+j+j*ldfh] = 1.0;
         H[j+j*ldh] -= b[1];
@@ -116,7 +115,7 @@ static PetscErrorCode PEPEvaluateBasisforMatrix(PEP pep,PetscInt nm,PetscInt k,P
       }
     }
     corr = b[i-1];
-    beta = g[i-1]/a[i-1];
+    beta = -g[i-1]/a[i-1];
     alpha = 1/a[i-1];
     PetscStackCall("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&alpha,H,&ldh_,fH+(i-1)*k,&ldfh_,&beta,fH+off,&ldfh_));
   }
@@ -248,6 +247,7 @@ static PetscErrorCode NRefRightside(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
     Z = work+nwu;
     nwu += k*k;
     ierr = PetscMemzero(Z,k*k*sizeof(PetscScalar));
+    ierr = PetscMemzero(DS0,k*k*sizeof(PetscScalar));
     ierr = PetscMemcpy(Z+(j-1)*k,dH+(j-1)*k,k*sizeof(PetscScalar));CHKERRQ(ierr);
     /* Update DfH */
     for (i=1;i<nmat;i++) {
@@ -827,7 +827,6 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
   }
   ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = PetscLogStagePop();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
