@@ -127,6 +127,7 @@ PETSC_EXTERN PetscErrorCode BVGetOrthogonalization(BV,BVOrthogType*,BVOrthogRefi
 PETSC_EXTERN PetscErrorCode BVOrthogonalize(BV,Mat);
 PETSC_EXTERN PetscErrorCode BVOrthogonalizeVec(BV,Vec,PetscScalar*,PetscReal*,PetscBool*);
 PETSC_EXTERN PetscErrorCode BVOrthogonalizeColumn(BV,PetscInt,PetscScalar*,PetscReal*,PetscBool*);
+PETSC_EXTERN PetscErrorCode BVOrthogonalizeSomeColumn(BV,PetscInt,PetscBool*,PetscScalar*,PetscReal*,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode BVSetOptionsPrefix(BV,const char*);
 PETSC_EXTERN PetscErrorCode BVAppendOptionsPrefix(BV,const char*);

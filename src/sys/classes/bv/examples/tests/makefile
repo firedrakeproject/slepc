@@ -24,10 +24,10 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/bv/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c
 EXAMPLESF  =
 MANSEC     = BV
-TESTS      = test1 test2 test3 test4 test5 test6 test7
+TESTS      = test1 test2 test3 test4 test5 test6 test7 test8
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 runtest1_3 runtest1_4 test1.rm \
                        test2.PETSc runtest2_1 runtest2_2 runtest2_3 runtest2_4 \
@@ -36,7 +36,8 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 runtest1_3 runtest1_4 t
                        test4.PETSc runtest4_1 runtest4_2 runtest4_3 runtest4_4 test4.rm \
                        test5.PETSc runtest5_1 runtest5_2 runtest5_3 runtest5_4 test5.rm \
                        test6.PETSc runtest6_1 runtest6_2 runtest6_3 runtest6_4 test6.rm \
-                       test7.PETSc runtest7_1 runtest7_2 runtest7_3 runtest7_4 test7.rm
+                       test7.PETSc runtest7_1 runtest7_2 runtest7_3 runtest7_4 test7.rm \
+                       test8.PETSc runtest8_1 runtest8_2 runtest8_3 runtest8_4 test8.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
@@ -67,6 +68,10 @@ test6: test6.o chkopts
 test7: test7.o chkopts
 	-${CLINKER} -o test7 test7.o ${SLEPC_SYS_LIB}
 	${RM} test7.o
+
+test8: test8.o chkopts
+	-${CLINKER} -o test8 test8.o ${SLEPC_SYS_LIB}
+	${RM} test8.o
 
 #------------------------------------------------------------------------------------
 
@@ -234,5 +239,25 @@ runtest7_3:
 runtest7_4:
 	-@test=test7_1; \
 	${MPIEXEC} -np 1 ./test7 -bv_type mat 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest8_1:
+	-@test=test8_1; \
+	${MPIEXEC} -np 1 ./test8 -bv_type vecs 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest8_2:
+	-@test=test8_1; \
+	${MPIEXEC} -np 1 ./test8 -bv_type contiguous 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest8_3:
+	-@test=test8_1; \
+	${MPIEXEC} -np 1 ./test8 -bv_type svec 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest8_4:
+	-@test=test8_1; \
+	${MPIEXEC} -np 1 ./test8 -bv_type mat 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
