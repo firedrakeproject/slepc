@@ -1067,6 +1067,7 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
   BVCheckSizes(V,1);
   PetscValidLogicalCollectiveInt(V,j,2);
   PetscValidLogicalCollectiveInt(V,i,3);
+  if (j==i) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Copy,V,w,0,0);CHKERRQ(ierr);
   ierr = BVGetColumn(V,j,&z);CHKERRQ(ierr);
