@@ -31,7 +31,7 @@ int main(int argc,char **argv)
   Vec            t,v;
   Mat            B,M;
   Vec            omega;
-  BV             X;
+  BV             X,Y;
   PetscInt       i,j,n=10,k=5,Istart,Iend;
   PetscScalar    alpha;
   PetscReal      nrm;
@@ -104,11 +104,16 @@ int main(int argc,char **argv)
     ierr = BVView(X,view);CHKERRQ(ierr);
   }
 
+  /* Create a copy on Y */
+  ierr = BVDuplicate(X,&Y);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)Y,"Y");CHKERRQ(ierr);
+  ierr = BVCopy(X,Y);CHKERRQ(ierr);
+
   /* Check orthogonality */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M);CHKERRQ(ierr);
-  ierr = BVDot(X,X,M);CHKERRQ(ierr);
+  ierr = BVDot(Y,Y,M);CHKERRQ(ierr);
   ierr = VecCreateSeq(PETSC_COMM_SELF,k,&omega);CHKERRQ(ierr);
-  ierr = BVGetSignature(X,omega);CHKERRQ(ierr);
+  ierr = BVGetSignature(Y,omega);CHKERRQ(ierr);
   ierr = VecScale(omega,-1.0);CHKERRQ(ierr);
   ierr = MatDiagonalSet(M,omega,ADD_VALUES);CHKERRQ(ierr);
   ierr = VecDestroy(&omega);CHKERRQ(ierr);
@@ -120,6 +125,7 @@ int main(int argc,char **argv)
   }
 
   ierr = BVDestroy(&X);CHKERRQ(ierr);
+  ierr = BVDestroy(&Y);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);

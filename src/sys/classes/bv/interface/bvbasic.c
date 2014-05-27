@@ -988,6 +988,14 @@ PetscErrorCode BVCopy(BV V,BV W)
   if (!V->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Copy,V,W,0,0);CHKERRQ(ierr);
+  if (V->indef && V->matrix && V->indef==W->indef && V->matrix==W->matrix) {
+    /* copy signature */
+    if (!W->omega) {
+      ierr = PetscMalloc1(W->nc+W->m,&W->omega);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)W,W->m*sizeof(PetscReal));CHKERRQ(ierr);
+    }
+    ierr = PetscMemcpy(W->omega+W->nc+W->l,V->omega+V->nc+V->l,(V->k-V->l)*sizeof(PetscReal));CHKERRQ(ierr);
+  }
   ierr = (*V->ops->copy)(V,W);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_Copy,V,W,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1070,6 +1078,7 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
   if (j==i) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Copy,V,w,0,0);CHKERRQ(ierr);
+  if (V->omega) V->omega[i] = V->omega[j];
   ierr = BVGetColumn(V,j,&z);CHKERRQ(ierr);
   ierr = BVGetColumn(V,i,&w);CHKERRQ(ierr);
   ierr = VecCopy(z,w);CHKERRQ(ierr);
