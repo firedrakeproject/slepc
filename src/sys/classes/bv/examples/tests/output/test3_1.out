@@ -1,0 +1,3 @@
+Test BV with non-standard inner product (n=10, k=5).
+B-Norm or X[0] = 8.94427
+Level of orthogonality < 100*eps
