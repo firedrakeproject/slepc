@@ -116,6 +116,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
   ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->V,0,n);CHKERRQ(ierr);
   ierr = BVMultInPlace(eps->V,X,0,n);CHKERRQ(ierr);
   ierr = MatDestroy(&X);CHKERRQ(ierr);
 
@@ -360,7 +361,7 @@ PetscErrorCode EPSConvergedNormRelative(EPS eps,PetscScalar eigr,PetscScalar eig
   Split case:
     x = V*Zr  y = V*Zi  (Zr and Zi have length nv)
 */
-PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V,PetscInt nv,Vec x,Vec y)
+PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   PetscReal      norm;

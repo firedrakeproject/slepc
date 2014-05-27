@@ -300,6 +300,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
 {
   PetscErrorCode ierr;
   PetscReal      *omega;
+  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -316,6 +317,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   if (bv->omega) {
     ierr = PetscMalloc1(m,&omega);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)bv,m*sizeof(PetscReal));CHKERRQ(ierr);
+    for (i=0;i<m;i++) omega[i] = 1.0;
     if (copy) {
       ierr = PetscMemcpy(omega,bv->omega,PetscMin(m,bv->m)*sizeof(PetscReal));CHKERRQ(ierr);
     }
@@ -565,6 +567,7 @@ PetscErrorCode BVSetSignature(BV bv,Vec omega)
     if (!bv->omega) {
       ierr = PetscMalloc1(bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
       ierr = PetscLogObjectMemory((PetscObject)bv,(bv->nc+bv->m)*sizeof(PetscReal));CHKERRQ(ierr);
+      for (i=-bv->nc;i<bv->m;i++) bv->omega[i] = 1.0;
     }
     ierr = VecGetArray(omega,&pomega);CHKERRQ(ierr);
     for (i=0;i<n;i++) bv->omega[bv->nc+i] = PetscRealPart(pomega[i]);

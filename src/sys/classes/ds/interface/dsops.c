@@ -278,19 +278,21 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
    Notes:
    The Mat is created with sizes equal to the current DS dimensions (nxm),
    then it is filled with the values that would be obtained with DSGetArray()
-   (not DSGetArrayReal()). The communicator is always PETSC_COMM_SELF.
+   (not DSGetArrayReal()). If the DS was truncated, then the number of rows
+   is equal to the dimension prior to truncation, see DSTruncate().
+   The communicator is always PETSC_COMM_SELF.
 
    When no longer needed, the user can either destroy the matrix or call
    DSRestoreMat(). The latter will copy back the modified values.
 
    Level: advanced
 
-.seealso: DSRestoreMat(), DSSetDimensions(), DSGetArray(), DSGetArrayReal()
+.seealso: DSRestoreMat(), DSSetDimensions(), DSGetArray(), DSGetArrayReal(), DSTruncate()
 @*/
 PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 {
   PetscErrorCode ierr;
-  PetscInt       j,rows=0,cols=0;
+  PetscInt       j,rows,cols,arows,acols;
   PetscBool      create=PETSC_FALSE;
   PetscScalar    *pA,*M;
 
@@ -302,17 +304,17 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   if (!ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSAllocate() first");
   if (!ds->mat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
 
+  rows = PetscMax(ds->n,ds->t);
+  cols = ds->m? ds->m: ds->n;
   if (!ds->omat[m]) create=PETSC_TRUE;
   else {
-    ierr = MatGetSize(ds->omat[m],&rows,&cols);CHKERRQ(ierr);
-    if (rows!=ds->n || (ds->m && cols!=ds->m)) {
+    ierr = MatGetSize(ds->omat[m],&arows,&acols);CHKERRQ(ierr);
+    if (arows!=rows || acols!=cols) {
       ierr = MatDestroy(&ds->omat[m]);CHKERRQ(ierr);
       create=PETSC_TRUE;
     }
   }
   if (create) {
-    rows = ds->n;
-    cols = ds->m? ds->m: ds->n;
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,rows,cols,NULL,&ds->omat[m]);CHKERRQ(ierr);
   }
   ierr = PetscObjectReference((PetscObject)ds->omat[m]);CHKERRQ(ierr);

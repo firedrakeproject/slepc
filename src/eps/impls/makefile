@@ -22,7 +22,7 @@
 ALL: lib
 
 LIBBASE  = libslepceps
-DIRS     = power subspace cg lapack external
+DIRS     = power subspace krylov cg lapack external
 #DIRS     = power subspace krylov davidson cg ciss lapack external
 LOCDIR   = src/eps/impls/
 MANSEC   = EPS

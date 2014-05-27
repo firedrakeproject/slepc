@@ -23,7 +23,8 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = krylovschur.c ks-symm.c ks-slice.c ks-indef.c
+SOURCEC  = krylovschur.c ks-symm.c ks-indef.c
+#SOURCEC  = krylovschur.c ks-symm.c ks-slice.c ks-indef.c
 SOURCEF  =
 SOURCEH  = krylovschur.h
 LIBBASE  = libslepceps

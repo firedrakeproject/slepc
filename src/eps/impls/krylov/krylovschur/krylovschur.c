@@ -50,7 +50,7 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
 {
   PetscErrorCode ierr;
   PetscInt       i,newi,ld,n,l;
-  Vec            xr=eps->work[1],xi=eps->work[2];
+  Vec            xr=eps->work[0],xi=eps->work[1];
   PetscScalar    re,im,*Zr,*Zi,*X;
 
   PetscFunctionBegin;
@@ -66,7 +66,7 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
     Zr = X+i*ld;
     if (newi==i+1) Zi = X+newi*ld;
     else Zi = NULL;
-    ierr = EPSComputeRitzVector(eps,Zr,Zi,eps->V,n,xr,xi);CHKERRQ(ierr);
+    ierr = EPSComputeRitzVector(eps,Zr,Zi,eps->V,xr,xi);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
     ierr = (*eps->arbitrary)(re,im,xr,xi,rr+i,ri+i,eps->arbitraryctx);CHKERRQ(ierr);
   }
@@ -111,18 +111,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   if (eps->isgeneralized && eps->ishermitian && !eps->ispositive && eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not implemented for indefinite problems");
 
   /* proceed with the general case */
-  if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev+1 && !(eps->ncv==eps->nev && eps->ncv==eps->n)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev+1");
-  } else if (eps->mpd) { /* mpd set */
-    eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
-  } else { /* neither set: defaults depend on nev being small or large */
-    if (eps->nev<500) eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15));
-    else {
-      eps->mpd = 500;
-      eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
-    }
-  }
-  if (!eps->mpd) eps->mpd = eps->ncv;
+  ierr = EPSSetDimensions_Default(eps);CHKERRQ(ierr);
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) {
     if (eps->which==EPS_ALL) eps->max_it = 100;  /* special case for spectrum slicing */
@@ -138,12 +127,10 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 
   if (!ctx->keep) ctx->keep = 0.5;
 
-  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  ierr = EPSAllocateSolution(eps,1);CHKERRQ(ierr);
   if (eps->arbitrary) {
-    ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
-  } else if (eps->ishermitian && !eps->ispositive){
     ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
-  } else {
+  } else if (eps->ishermitian && !eps->ispositive) {
     ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
   }
 
@@ -181,7 +168,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       ierr = DSSetExtraRow(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       break;
     case EPS_KS_SLICE:
-      eps->ops->solve = EPSSolve_KrylovSchur_Slice;
+     /* eps->ops->solve = EPSSolve_KrylovSchur_Slice; */ SETERRQ(PETSC_COMM_SELF,1,"Temporarily disabled");
       ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       break;
@@ -203,7 +190,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscInt        i,j,*pj,k,l,nv,ld;
-  Vec             u=eps->work[0];
+  Mat             U;
   PetscScalar     *S,*Q,*g;
   PetscReal       beta,gamma=1.0;
   PetscBool       breakdown,harmonic;
@@ -216,7 +203,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   else pj = NULL;
 
   /* Get the starting Arnoldi vector */
-  ierr = EPSGetStartVector(eps,0,eps->V[0],NULL);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
   l = 0;
 
   /* Restart loop */
@@ -226,8 +213,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,ld,eps->V,eps->nconv+l,&nv,u,&beta,&breakdown);CHKERRQ(ierr);
-    ierr = VecScale(u,1.0/beta);CHKERRQ(ierr);
+    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,ld,eps->nconv+l,&nv,&beta,&breakdown);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
@@ -235,6 +221,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     } else {
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
+    ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
 
     /* Compute translation of Krylov decomposition if harmonic extraction used */
     if (harmonic) {
@@ -250,7 +237,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     ierr = DSSort(eps->ds,eps->eigr,eps->eigi,eps->rr,eps->ri,pj);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta,gamma,&k);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
 
@@ -273,7 +260,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
         /* Start a new Arnoldi factorization */
         ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
         if (k<eps->nev) {
-          ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
+          ierr = EPSGetStartVector(eps,k,&breakdown);CHKERRQ(ierr);
           if (breakdown) {
             eps->reason = EPS_DIVERGED_BREAKDOWN;
             ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
@@ -285,8 +272,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
           ierr = DSSetDimensions(eps->ds,nv,0,k,l);CHKERRQ(ierr);
           ierr = DSTranslateHarmonic(eps->ds,0.0,beta,PETSC_TRUE,g,&gamma);CHKERRQ(ierr);
           /* gamma u^ = u - U*g~ */
-          ierr = SlepcVecMAXPBY(u,1.0,-1.0,nv,g,eps->V);CHKERRQ(ierr);
-          ierr = VecScale(u,1.0/gamma);CHKERRQ(ierr);
+          ierr = BVMultColumn(eps->V,-1.0,1.0,nv,g);CHKERRQ(ierr);
+          ierr = BVScaleColumn(eps->V,nv,1.0/gamma);CHKERRQ(ierr);
         }
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
@@ -299,12 +286,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,k+l,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSGetMat(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
+    ierr = BVMultInPlace(eps->V,U,eps->nconv,k+l);CHKERRQ(ierr);
+    ierr = MatDestroy(&U);CHKERRQ(ierr);
 
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
-      ierr = VecCopy(u,eps->V[k+l]);CHKERRQ(ierr);
+      ierr = BVCopyColumn(eps->V,nv,k+l);CHKERRQ(ierr);
     }
     eps->nconv = k;
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);

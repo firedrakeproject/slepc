@@ -67,11 +67,11 @@ PetscErrorCode EPSRegisterAll(void)
 
   PetscFunctionBegin;
   EPSRegisterAllCalled = PETSC_TRUE;
-//  ierr = EPSRegister(EPSKRYLOVSCHUR,EPSCreate_KrylovSchur);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSKRYLOVSCHUR,EPSCreate_KrylovSchur);CHKERRQ(ierr);
   ierr = EPSRegister(EPSPOWER,EPSCreate_Power);CHKERRQ(ierr);
   ierr = EPSRegister(EPSSUBSPACE,EPSCreate_Subspace);CHKERRQ(ierr);
-//  ierr = EPSRegister(EPSARNOLDI,EPSCreate_Arnoldi);CHKERRQ(ierr);
-//  ierr = EPSRegister(EPSLANCZOS,EPSCreate_Lanczos);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSARNOLDI,EPSCreate_Arnoldi);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSLANCZOS,EPSCreate_Lanczos);CHKERRQ(ierr);
 //  ierr = EPSRegister(EPSGD,EPSCreate_GD);CHKERRQ(ierr);
 //  ierr = EPSRegister(EPSJD,EPSCreate_JD);CHKERRQ(ierr);
   ierr = EPSRegister(EPSRQCG,EPSCreate_RQCG);CHKERRQ(ierr);
