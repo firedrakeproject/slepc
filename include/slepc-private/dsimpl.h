@@ -58,6 +58,7 @@ struct _p_DS {
   PetscInt       m;                  /* current column dimension (for SVD only) */
   PetscInt       k;                  /* intermediate dimension (e.g. position of arrow) */
   PetscInt       t;                  /* length of decomposition when it was truncated */
+  PetscInt       bs;                 /* block size */
   DSStateType    state;              /* the current state */
   PetscScalar    *mat[DS_NUM_MAT];   /* the matrices */
   PetscReal      *rmat[DS_NUM_MAT];  /* the matrices (real) */
@@ -97,5 +98,12 @@ PETSC_INTERN PetscErrorCode DSGHIEPRealBlocks(DS);
 
 PETSC_INTERN PetscErrorCode DSSolve_GHIEP_HZ(DS,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode DSSolve_GHIEP_DQDS_II(DS,PetscScalar*,PetscScalar*);
+
+PETSC_INTERN PetscErrorCode cutlr_(PetscBLASInt,PetscBLASInt,PetscBLASInt,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
+PETSC_INTERN PetscErrorCode dibtdc_(const char*,PetscBLASInt,PetscBLASInt,PetscBLASInt*,PetscReal*,PetscBLASInt,PetscBLASInt,PetscReal*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscReal,PetscReal*,PetscReal*,PetscBLASInt,PetscReal*,PetscBLASInt,PetscBLASInt*,PetscBLASInt,PetscBLASInt*,PetscBLASInt);
+PETSC_INTERN PetscErrorCode dlaed3m_(const char*,const char*,PetscBLASInt,PetscBLASInt,PetscBLASInt,PetscReal*,PetscReal*,PetscBLASInt,PetscReal,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
+PETSC_INTERN PetscErrorCode dmerg2_(const char*,PetscBLASInt,PetscBLASInt,PetscReal*,PetscReal*,PetscBLASInt,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt,PetscReal*,PetscBLASInt,PetscBLASInt,PetscReal*,PetscBLASInt,PetscBLASInt*,PetscReal,PetscBLASInt*,PetscBLASInt);
+PETSC_INTERN PetscErrorCode dsbtdc_(const char*,const char*,PetscBLASInt,PetscBLASInt,PetscBLASInt*,PetscReal*,PetscBLASInt,PetscBLASInt,PetscReal*,PetscBLASInt,PetscBLASInt,PetscReal,PetscReal,PetscReal,PetscReal*,PetscReal*,PetscBLASInt,PetscReal*,PetscBLASInt,PetscBLASInt*,PetscBLASInt,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
+PETSC_INTERN PetscErrorCode dsrtdf_(PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscReal*,PetscReal*,PetscBLASInt,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscReal,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
 
 #endif
