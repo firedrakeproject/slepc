@@ -26,7 +26,7 @@
 PetscFunctionList QEPList = 0;
 PetscBool         QEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId      QEP_CLASSID = 0;
-PetscLogEvent     QEP_SetUp = 0,QEP_Solve = 0,QEP_Dense = 0;
+PetscLogEvent     QEP_SetUp = 0,QEP_Solve = 0;
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPView"
@@ -148,10 +148,10 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
   }
   ierr = PetscObjectTypeCompare((PetscObject)qep,QEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
-    if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
-    ierr = IPView(qep->ip,viewer);CHKERRQ(ierr);
-    if (!qep->ds) { ierr = QEPGetDS(qep,&qep->ds);CHKERRQ(ierr); }
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
+    if (!qep->V) { ierr = QEPGetBV(qep,&qep->V);CHKERRQ(ierr); }
+    ierr = BVView(qep->V,viewer);CHKERRQ(ierr);
+    if (!qep->ds) { ierr = QEPGetDS(qep,&qep->ds);CHKERRQ(ierr); }
     ierr = DSView(qep->ds,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     if (!qep->st) { ierr = QEPGetST(qep,&qep->st);CHKERRQ(ierr); }
@@ -305,8 +305,6 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->mpd             = 0;
   qep->nini            = 0;
   qep->ninil           = 0;
-  qep->allocated_ncv   = 0;
-  qep->ip              = 0;
   qep->ds              = 0;
   qep->tol             = PETSC_DEFAULT;
   qep->sfactor         = 0.0;
@@ -319,19 +317,15 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->leftvecs        = PETSC_FALSE;
   qep->problem_type    = (QEPProblemType)0;
   qep->V               = NULL;
-  qep->W               = NULL;
   qep->IS              = NULL;
   qep->ISL             = NULL;
   qep->eigr            = NULL;
   qep->eigi            = NULL;
   qep->errest          = NULL;
   qep->data            = NULL;
-  qep->t               = NULL;
   qep->nconv           = 0;
   qep->its             = 0;
   qep->perm            = NULL;
-  qep->matvecs         = 0;
-  qep->linits          = 0;
   qep->nwork           = 0;
   qep->work            = NULL;
   qep->setupcalled     = 0;
@@ -483,19 +477,21 @@ PetscErrorCode QEPRegister(const char *name,PetscErrorCode (*function)(QEP))
 PetscErrorCode QEPReset(QEP qep)
 {
   PetscErrorCode ierr;
+  PetscInt       ncols;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   if (qep->ops->reset) { ierr = (qep->ops->reset)(qep);CHKERRQ(ierr); }
-  if (qep->ip) { ierr = IPReset(qep->ip);CHKERRQ(ierr); }
+  if (qep->st) { ierr = STReset(qep->st);CHKERRQ(ierr); }
   if (qep->ds) { ierr = DSReset(qep->ds);CHKERRQ(ierr); }
   ierr = MatDestroy(&qep->M);CHKERRQ(ierr);
   ierr = MatDestroy(&qep->C);CHKERRQ(ierr);
   ierr = MatDestroy(&qep->K);CHKERRQ(ierr);
-  ierr = VecDestroy(&qep->t);CHKERRQ(ierr);
-  ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
-  qep->matvecs     = 0;
-  qep->linits      = 0;
+  ierr = BVGetSizes(qep->V,NULL,NULL,&ncols);CHKERRQ(ierr);
+  if (ncols) {
+    ierr = PetscFree4(qep->eigr,qep->eigi,qep->errest,qep->perm);CHKERRQ(ierr);
+  }
+  ierr = BVDestroy(&qep->V);CHKERRQ(ierr);
   qep->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -525,7 +521,6 @@ PetscErrorCode QEPDestroy(QEP *qep)
   ierr = QEPReset(*qep);CHKERRQ(ierr);
   if ((*qep)->ops->destroy) { ierr = (*(*qep)->ops->destroy)(*qep);CHKERRQ(ierr); }
   ierr = STDestroy(&(*qep)->st);CHKERRQ(ierr);
-  ierr = IPDestroy(&(*qep)->ip);CHKERRQ(ierr);
   ierr = DSDestroy(&(*qep)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*qep)->rand);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
@@ -537,44 +532,44 @@ PetscErrorCode QEPDestroy(QEP *qep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "QEPSetIP"
+#define __FUNCT__ "QEPSetBV"
 /*@
-   QEPSetIP - Associates an inner product object to the quadratic eigensolver.
+   QEPSetBV - Associates a basis vectors object to the quadratic eigensolver.
 
    Collective on QEP
 
    Input Parameters:
 +  qep - eigensolver context obtained from QEPCreate()
--  ip  - the inner product object
+-  bv  - the basis vectors object
 
    Note:
-   Use QEPGetIP() to retrieve the inner product context (for example,
+   Use QEPGetBV() to retrieve the basis vectors context (for example,
    to free it at the end of the computations).
 
    Level: advanced
 
-.seealso: QEPGetIP()
+.seealso: QEPGetBV()
 @*/
-PetscErrorCode QEPSetIP(QEP qep,IP ip)
+PetscErrorCode QEPSetBV(QEP qep,BV bv)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  PetscValidHeaderSpecific(ip,IP_CLASSID,2);
-  PetscCheckSameComm(qep,1,ip,2);
-  ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
-  ierr = IPDestroy(&qep->ip);CHKERRQ(ierr);
-  qep->ip = ip;
-  ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)qep->ip);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(bv,BV_CLASSID,2);
+  PetscCheckSameComm(qep,1,bv,2);
+  ierr = PetscObjectReference((PetscObject)bv);CHKERRQ(ierr);
+  ierr = BVDestroy(&qep->V);CHKERRQ(ierr);
+  qep->V = bv;
+  ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)qep->V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "QEPGetIP"
+#define __FUNCT__ "QEPGetBV"
 /*@C
-   QEPGetIP - Obtain the inner product object associated
-   to the quadratic eigensolver object.
+   QEPGetBV - Obtain the basis vectors object associated to the quadratic
+   eigensolver object.
 
    Not Collective
 
@@ -582,24 +577,24 @@ PetscErrorCode QEPSetIP(QEP qep,IP ip)
 .  qep - eigensolver context obtained from QEPCreate()
 
    Output Parameter:
-.  ip - inner product context
+.  bv - basis vectors context
 
    Level: advanced
 
-.seealso: QEPSetIP()
+.seealso: QEPSetBV()
 @*/
-PetscErrorCode QEPGetIP(QEP qep,IP *ip)
+PetscErrorCode QEPGetBV(QEP qep,BV *bv)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  PetscValidPointer(ip,2);
-  if (!qep->ip) {
-    ierr = IPCreate(PetscObjectComm((PetscObject)qep),&qep->ip);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)qep->ip);CHKERRQ(ierr);
+  PetscValidPointer(bv,2);
+  if (!qep->V) {
+    ierr = BVCreate(PetscObjectComm((PetscObject)qep),&qep->V);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)qep->V);CHKERRQ(ierr);
   }
-  *ip = qep->ip;
+  *bv = qep->V;
   PetscFunctionReturn(0);
 }
 

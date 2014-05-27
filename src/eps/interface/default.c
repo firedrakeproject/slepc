@@ -102,7 +102,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
 PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       n,ld,i;
+  PetscInt       n,i;
   Mat            X;
   Vec            v,z;
 #if !defined(PETSC_USE_COMPLEX)
@@ -112,7 +112,6 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 #endif
 
   PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
@@ -168,7 +167,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       n,i,ld;
+  PetscInt       n,i;
   Mat            Z;
   Vec            w,z,v;
 #if !defined(PETSC_USE_COMPLEX)
@@ -186,7 +185,6 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     }
     PetscFunctionReturn(0);
   }
-  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
 
   /* right eigenvectors */

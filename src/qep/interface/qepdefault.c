@@ -33,7 +33,6 @@ PetscErrorCode QEPReset_Default(QEP qep)
   PetscFunctionBegin;
   ierr = VecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
   qep->nwork = 0;
-  ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -57,12 +56,15 @@ PetscErrorCode QEPReset_Default(QEP qep)
 PetscErrorCode QEPSetWorkVecs(QEP qep,PetscInt nw)
 {
   PetscErrorCode ierr;
+  Vec            t;
 
   PetscFunctionBegin;
   if (qep->nwork != nw) {
     ierr = VecDestroyVecs(qep->nwork,&qep->work);CHKERRQ(ierr);
     qep->nwork = nw;
-    ierr = VecDuplicateVecs(qep->t,nw,&qep->work);CHKERRQ(ierr);
+    ierr = BVGetColumn(qep->V,0,&t);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(t,nw,&qep->work);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(qep->V,0,&t);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(qep,nw,qep->work);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -100,61 +102,60 @@ PetscErrorCode QEPConvergedAbsolute(QEP qep,PetscScalar eigr,PetscScalar eigi,Pe
 PetscErrorCode QEPComputeVectors_Schur(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscInt       n,ld;
-  PetscScalar    *Z;
+  PetscInt       n;
+  Mat            Z;
 
   PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
   ierr = DSGetDimensions(qep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-
-  /* right eigenvectors */
   ierr = DSVectors(qep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-
-  /* AV = V * Z */
-  ierr = DSGetArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  ierr = SlepcUpdateVectors(n,qep->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = DSRestoreArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = DSGetMat(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(qep->V,0,n);CHKERRQ(ierr);
+  ierr = BVMultInPlace(qep->V,Z,0,n);CHKERRQ(ierr);
+  ierr = MatDestroy(&Z);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
 #undef __FUNCT__
 #define __FUNCT__ "QEPComputeVectors_Indefinite"
 PetscErrorCode QEPComputeVectors_Indefinite(QEP qep)
 {
   PetscErrorCode ierr;
-  PetscInt       n,ld,i;
-  PetscScalar    *Z;
+  PetscInt       n,i;
+  Mat            Z;
+  Vec            v;
 #if !defined(PETSC_USE_COMPLEX)
+  Vec            v1;
   PetscScalar    tmp;
   PetscReal      norm,normi;
 #endif
 
   PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(qep->ds,&ld);CHKERRQ(ierr);
   ierr = DSGetDimensions(qep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-
-  /* right eigenvectors */
   ierr = DSVectors(qep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-
-  /* AV = V * Z */
-  ierr = DSGetArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  ierr = SlepcUpdateVectors(n,qep->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = DSRestoreArray(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = DSGetMat(qep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(qep->V,0,n);CHKERRQ(ierr);
+  ierr = BVMultInPlace(qep->V,Z,0,n);CHKERRQ(ierr);
+  ierr = MatDestroy(&Z);CHKERRQ(ierr);
 
   /* normalization */
   for (i=0;i<n;i++) {
+    ierr = BVGetColumn(qep->V,i,&v);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
     if (qep->eigi[i] != 0.0) {
-      ierr = VecNorm(qep->V[i],NORM_2,&norm);CHKERRQ(ierr);
-      ierr = VecNorm(qep->V[i+1],NORM_2,&normi);CHKERRQ(ierr);
+      ierr = BVGetColumn(qep->V,i+1,&v1);CHKERRQ(ierr);
+      ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
+      ierr = VecNorm(v1,NORM_2,&normi);CHKERRQ(ierr);
       tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
-      ierr = VecScale(qep->V[i],tmp);CHKERRQ(ierr);
-      ierr = VecScale(qep->V[i+1],tmp);CHKERRQ(ierr);
+      ierr = VecScale(v,tmp);CHKERRQ(ierr);
+      ierr = VecScale(v1,tmp);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(qep->V,i+1,&v1);CHKERRQ(ierr);
       i++;
     } else
 #endif
     {
-      ierr = VecNormalize(qep->V[i],NULL);CHKERRQ(ierr);
+      ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
     }
+    ierr = BVRestoreColumn(qep->V,i,&v);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

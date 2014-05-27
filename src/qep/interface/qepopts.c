@@ -170,8 +170,8 @@ PetscErrorCode QEPSetFromOptions(QEP qep)
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)qep);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
-  if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
-  ierr = IPSetFromOptions(qep->ip);CHKERRQ(ierr);
+  if (!qep->V) { ierr = QEPGetBV(qep,&qep->V);CHKERRQ(ierr); }
+  ierr = BVSetFromOptions(qep->V);CHKERRQ(ierr);
   if (!qep->ds) { ierr = QEPGetDS(qep,&qep->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(qep->ds);CHKERRQ(ierr);
   if (!qep->st) { ierr = QEPGetST(qep,&qep->st);CHKERRQ(ierr); }
@@ -811,8 +811,10 @@ PetscErrorCode QEPSetOptionsPrefix(QEP qep,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
-  ierr = IPSetOptionsPrefix(qep->ip,prefix);CHKERRQ(ierr);
+  if (!qep->st) { ierr = QEPGetST(qep,&qep->st);CHKERRQ(ierr); }
+  ierr = STSetOptionsPrefix(qep->st,prefix);CHKERRQ(ierr);
+  if (!qep->V) { ierr = QEPGetBV(qep,&qep->V);CHKERRQ(ierr); }
+  ierr = BVSetOptionsPrefix(qep->V,prefix);CHKERRQ(ierr);
   if (!qep->ds) { ierr = QEPGetDS(qep,&qep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(qep->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)qep,prefix);CHKERRQ(ierr);
@@ -847,8 +849,10 @@ PetscErrorCode QEPAppendOptionsPrefix(QEP qep,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
-  ierr = IPSetOptionsPrefix(qep->ip,prefix);CHKERRQ(ierr);
+  if (!qep->st) { ierr = QEPGetST(qep,&qep->st);CHKERRQ(ierr); }
+  ierr = STAppendOptionsPrefix(qep->st,prefix);CHKERRQ(ierr);
+  if (!qep->V) { ierr = QEPGetBV(qep,&qep->V);CHKERRQ(ierr); }
+  ierr = BVSetOptionsPrefix(qep->V,prefix);CHKERRQ(ierr);
   if (!qep->ds) { ierr = QEPGetDS(qep,&qep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(qep->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)qep,prefix);CHKERRQ(ierr);
@@ -892,3 +896,4 @@ PetscErrorCode QEPGetOptionsPrefix(QEP qep,const char *prefix[])
   ierr = PetscObjectGetOptionsPrefix((PetscObject)qep,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

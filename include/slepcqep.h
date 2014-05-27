@@ -104,8 +104,8 @@ PETSC_EXTERN PetscErrorCode QEPSolve(QEP);
 PETSC_EXTERN PetscErrorCode QEPView(QEP,PetscViewer);
 PETSC_EXTERN PetscErrorCode QEPPrintSolution(QEP,PetscViewer);
 
-PETSC_EXTERN PetscErrorCode QEPSetIP(QEP,IP);
-PETSC_EXTERN PetscErrorCode QEPGetIP(QEP,IP*);
+PETSC_EXTERN PetscErrorCode QEPSetBV(QEP,BV);
+PETSC_EXTERN PetscErrorCode QEPGetBV(QEP,BV*);
 PETSC_EXTERN PetscErrorCode QEPSetDS(QEP,DS);
 PETSC_EXTERN PetscErrorCode QEPGetDS(QEP,DS*);
 PETSC_EXTERN PetscErrorCode QEPSetTolerances(QEP,PetscReal,PetscInt);

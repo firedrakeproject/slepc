@@ -106,7 +106,6 @@ struct _p_EPS {
   PetscInt       nconv;            /* number of converged eigenvalues */
   PetscInt       its;              /* number of iterations so far computed */
   PetscBool      evecsavailable;   /* computed eigenvectors */
-  PetscInt       nv;               /* size of current Schur decomposition */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
   PetscReal      nrma,nrmb;        /* computed matrix norms */
   PetscInt       setupcalled;

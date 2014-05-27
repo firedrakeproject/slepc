@@ -47,9 +47,9 @@ PetscErrorCode QEPFinalizePackage(void)
 #undef __FUNCT__
 #define __FUNCT__ "QEPInitializePackage"
 /*@C
-   QEPInitializePackage - This function initializes everything in the QEP package. It is called
-   from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to QEPCreate()
-   when using static libraries.
+   QEPInitializePackage - This function initializes everything in the QEP package.
+   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
+   on the first call to QEPCreate() when using static libraries.
 
    Level: developer
 
@@ -72,7 +72,6 @@ PetscErrorCode QEPInitializePackage(void)
   /* Register Events */
   ierr = PetscLogEventRegister("QEPSetUp",QEP_CLASSID,&QEP_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("QEPSolve",QEP_CLASSID,&QEP_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("QEPDense",QEP_CLASSID,&QEP_Dense);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {

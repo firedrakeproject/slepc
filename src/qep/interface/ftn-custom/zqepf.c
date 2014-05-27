@@ -38,7 +38,7 @@
 #define qepmonitorset_              QEPMONITORSET
 #define qepmonitorconverged_        QEPMONITORCONVERGED
 #define qepmonitorfirst_            QEPMONITORFIRST
-#define qepgetip_                   QEPGETIP
+#define qepgetbv_                   QEPGETBV
 #define qepgetds_                   QEPGETDS
 #define qepgetwhicheigenpairs_      QEPGETWHICHEIGENPAIRS
 #define qepgetproblemtype_          QEPGETPROBLEMTYPE
@@ -58,7 +58,7 @@
 #define qepmonitorset_              qepmonitorset
 #define qepmonitorconverged_        qepmonitorconverged
 #define qepmonitorfirst_            qepmonitorfirst
-#define qepgetip_                   qepgetip
+#define qepgetbv_                   qepgetbv
 #define qepgetds_                   qepgetds
 #define qepgetwhicheigenpairs_      qepgetwhicheigenpairs
 #define qepgetproblemtype_          qepgetproblemtype
@@ -213,9 +213,9 @@ PETSC_EXTERN void PETSC_STDCALL qepmonitorset_(QEP *qep,void (PETSC_STDCALL *mon
   }
 }
 
-PETSC_EXTERN void PETSC_STDCALL qepgetip_(QEP *qep,IP *ip,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL qepgetbv_(QEP *qep,BV *bv,PetscErrorCode *ierr)
 {
-  *ierr = QEPGetIP(*qep,ip);
+  *ierr = QEPGetBV(*qep,bv);
 }
 
 PETSC_EXTERN void PETSC_STDCALL qepgetds_(QEP *qep,DS *ds,PetscErrorCode *ierr)

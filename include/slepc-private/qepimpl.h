@@ -25,7 +25,7 @@
 #include <slepcqep.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent QEP_SetUp, QEP_Solve, QEP_Dense;
+PETSC_EXTERN PetscLogEvent QEP_SetUp,QEP_Solve;
 
 typedef struct _QEPOps *QEPOps;
 
@@ -49,7 +49,7 @@ struct _QEPOps {
 */
 struct _p_QEP {
   PETSCHEADER(struct _QEPOps);
-  /*------------------------- User parameters --------------------------*/
+  /*------------------------- User parameters ---------------------------*/
   PetscInt       max_it;           /* maximum number of iterations */
   PetscInt       nev;              /* number of eigenvalues to compute */
   PetscInt       ncv;              /* number of basis vectors */
@@ -69,44 +69,35 @@ struct _p_QEP {
   PetscErrorCode (*converged)(QEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   void           *comparisonctx;
   void           *convergedctx;
-
-  /*------------------------- Working data --------------------------*/
-  Mat            M,C,K;            /* problem matrices */
-  Vec            *V;               /* set of basis vectors and computed eigenvectors */
-  Vec            *W;               /* set of left basis vectors and computed left eigenvectors */
-  Vec            *IS,*ISL;         /* placeholder for references to user-provided initial space */
-  PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
-  PetscReal      *errest;          /* error estimates */
-  IP             ip;               /* innerproduct object */
-  DS             ds;               /* direct solver object */
-  ST             st;               /* spectral transformation object */
-  void           *data;            /* placeholder for misc stuff associated
-                                      with a particular solver */
-  PetscInt       allocated_ncv;    /* number of basis vectors allocated */
-  PetscInt       nconv;            /* number of converged eigenvalues */
-  PetscInt       its;              /* number of iterations so far computed */
-  PetscInt       *perm;            /* permutation for eigenvalue ordering */
-  PetscInt       matvecs,linits;   /* operation counters */
-  PetscInt       n,nloc;           /* problem dimensions (global, local) */
-  PetscRandom    rand;             /* random number generator */
-  Vec            t;                /* template vector */
-
-  /* ---------------- Default work-area and status vars -------------------- */
-  PetscInt       nwork;
-  Vec            *work;
-
-  PetscInt       setupcalled;
-  QEPConvergedReason reason;
-
   PetscErrorCode (*monitor[MAXQEPMONITORS])(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXQEPMONITORS])(void**);
   void           *monitorcontext[MAXQEPMONITORS];
   PetscInt        numbermonitors;
+
+  /*----------------- Child objects and working data -------------------*/
+  ST             st;               /* spectral transformation object */
+  DS             ds;               /* direct solver object */
+  BV             V;                /* set of basis vectors and computed eigenvectors */
+  PetscRandom    rand;             /* random number generator */
+  Mat            M,C,K;            /* problem matrices */
+  Vec            *IS,*ISL;         /* placeholder for references to user-provided initial space */
+  PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
+  PetscReal      *errest;          /* error estimates */
+  PetscInt       *perm;            /* permutation for eigenvalue ordering */
+  PetscInt       nwork;            /* number of work vectors */
+  Vec            *work;            /* work vectors */
+  void           *data;            /* placeholder for solver-specific stuff */
+
+  /* ----------------------- Status variables --------------------------*/
+  PetscInt       nconv;            /* number of converged eigenvalues */
+  PetscInt       its;              /* number of iterations so far computed */
+  PetscInt       n,nloc;           /* problem dimensions (global, local) */
+  PetscInt       setupcalled;
+  QEPConvergedReason reason;
 };
 
 PETSC_INTERN PetscErrorCode QEPReset_Default(QEP);
 PETSC_INTERN PetscErrorCode QEPAllocateSolution(QEP,PetscInt);
-PETSC_INTERN PetscErrorCode QEPFreeSolution(QEP);
 PETSC_INTERN PetscErrorCode QEPComputeVectors_Schur(QEP);
 PETSC_INTERN PetscErrorCode QEPComputeVectors_Indefinite(QEP);
 PETSC_INTERN PetscErrorCode QEPComputeResidualNorm_Private(QEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);

@@ -32,8 +32,7 @@ typedef struct {
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPSortForSTFunc"
-static PetscErrorCode QEPSortForSTFunc(PetscScalar ar,PetscScalar ai,
-                                PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
+static PetscErrorCode QEPSortForSTFunc(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
 {
   QEPSortForSTData *data = (QEPSortForSTData*)ctx;
   PetscErrorCode   ierr;
@@ -126,7 +125,7 @@ PetscErrorCode QEPSolve(QEP qep)
       if (qep->eigi[i] < 0) {
         qep->eigi[i] = -qep->eigi[i];
         qep->eigi[i+1] = -qep->eigi[i+1];
-        ierr = VecScale(qep->V[i+1],-1.0);CHKERRQ(ierr);
+        ierr = BVScaleColumn(qep->V,i+1,-1.0);CHKERRQ(ierr);
       }
       i++;
     }
@@ -174,6 +173,7 @@ PetscErrorCode QEPSolve(QEP qep)
 
   /* Remove the initial subspace */
   qep->nini = 0;
+  qep->ninil = 0;
   PetscFunctionReturn(0);
 }
 
@@ -335,20 +335,20 @@ PetscErrorCode QEPGetEigenpair(QEP qep,PetscInt i,PetscScalar *eigr,PetscScalar 
 
   /* eigenvector */
 #if defined(PETSC_USE_COMPLEX)
-  if (Vr) { ierr = VecCopy(qep->V[k],Vr);CHKERRQ(ierr); }
+  if (Vr) { ierr = BVCopyVec(qep->V,k,Vr);CHKERRQ(ierr); }
   if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
 #else
   if (qep->eigi[k]>0) { /* first value of conjugate pair */
-    if (Vr) { ierr = VecCopy(qep->V[k],Vr);CHKERRQ(ierr); }
-    if (Vi) { ierr = VecCopy(qep->V[k+1],Vi);CHKERRQ(ierr); }
+    if (Vr) { ierr = BVCopyVec(qep->V,k,Vr);CHKERRQ(ierr); }
+    if (Vi) { ierr = BVCopyVec(qep->V,k+1,Vi);CHKERRQ(ierr); }
   } else if (qep->eigi[k]<0) { /* second value of conjugate pair */
-    if (Vr) { ierr = VecCopy(qep->V[k-1],Vr);CHKERRQ(ierr); }
+    if (Vr) { ierr = BVCopyVec(qep->V,k-1,Vr);CHKERRQ(ierr); }
     if (Vi) {
-      ierr = VecCopy(qep->V[k],Vi);CHKERRQ(ierr);
+      ierr = BVCopyVec(qep->V,k,Vi);CHKERRQ(ierr);
       ierr = VecScale(Vi,-1.0);CHKERRQ(ierr);
     }
   } else { /* real eigenvalue */
-    if (Vr) { ierr = VecCopy(qep->V[k],Vr);CHKERRQ(ierr); }
+    if (Vr) { ierr = BVCopyVec(qep->V,k,Vr);CHKERRQ(ierr); }
     if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
   }
 #endif
@@ -409,8 +409,8 @@ PetscErrorCode QEPComputeResidualNorm_Private(QEP qep,PetscScalar kr,PetscScalar
 #endif
 
   PetscFunctionBegin;
-  ierr = VecDuplicate(qep->V[0],&u);CHKERRQ(ierr);
-  ierr = VecDuplicate(u,&w);CHKERRQ(ierr);
+  ierr = BVGetVec(qep->V,&u);CHKERRQ(ierr);
+  ierr = BVGetVec(qep->V,&w);CHKERRQ(ierr);
 
 #if !defined(PETSC_USE_COMPLEX)
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
@@ -498,8 +498,8 @@ PetscErrorCode QEPComputeResidualNorm(QEP qep,PetscInt i,PetscReal *norm)
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(qep,i,2);
   PetscValidPointer(norm,3);
-  ierr = VecDuplicate(qep->V[0],&xr);CHKERRQ(ierr);
-  ierr = VecDuplicate(qep->V[0],&xi);CHKERRQ(ierr);
+  ierr = BVGetVec(qep->V,&xr);CHKERRQ(ierr);
+  ierr = BVGetVec(qep->V,&xi);CHKERRQ(ierr);
   ierr = QEPGetEigenpair(qep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
   ierr = QEPComputeResidualNorm_Private(qep,kr,ki,xr,xi,norm);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
@@ -577,8 +577,8 @@ PetscErrorCode QEPComputeRelativeError(QEP qep,PetscInt i,PetscReal *error)
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(qep,i,2);
   PetscValidPointer(error,3);
-  ierr = VecDuplicate(qep->V[0],&xr);CHKERRQ(ierr);
-  ierr = VecDuplicate(qep->V[0],&xi);CHKERRQ(ierr);
+  ierr = BVGetVec(qep->V,&xr);CHKERRQ(ierr);
+  ierr = BVGetVec(qep->V,&xi);CHKERRQ(ierr);
   ierr = QEPGetEigenpair(qep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
   ierr = QEPComputeRelativeError_Private(qep,kr,ki,xr,xi,error);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
@@ -734,15 +734,15 @@ PetscErrorCode QEPCompareEigenvalues(QEP qep,PetscScalar ar,PetscScalar ai,Petsc
 @*/
 PetscErrorCode QEPGetOperationCounters(QEP qep,PetscInt* matvecs,PetscInt* dots,PetscInt* lits)
 {
-  PetscErrorCode ierr;
+  /*PetscErrorCode ierr;*/
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  if (matvecs) *matvecs = qep->matvecs;
+  /*if (matvecs) *matvecs = qep->matvecs;
   if (dots) {
     if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
     ierr = IPGetOperationCounters(qep->ip,dots);CHKERRQ(ierr);
   }
-  if (lits) *lits = qep->linits;
+  if (lits) *lits = qep->linits;*/
   PetscFunctionReturn(0);
 }

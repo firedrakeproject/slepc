@@ -49,6 +49,7 @@ PetscErrorCode QEPSetUp(QEP qep)
   PetscErrorCode ierr;
   PetscBool      islinear,flg;
   Mat            mat[3];
+  PetscInt       k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -69,10 +70,6 @@ PetscErrorCode QEPSetUp(QEP qep)
       ierr = STSetType(qep->st,STSHIFT);CHKERRQ(ierr);
     }
   }
-  if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
-  if (!((PetscObject)qep->ip)->type_name) {
-    ierr = IPSetType_Default(qep->ip);CHKERRQ(ierr);
-  }
   if (!qep->ds) { ierr = QEPGetDS(qep,&qep->ds);CHKERRQ(ierr); }
   ierr = DSReset(qep->ds);CHKERRQ(ierr);
   if (!((PetscObject)qep->rand)->type_name) {
@@ -91,14 +88,14 @@ PetscErrorCode QEPSetUp(QEP qep)
   /* Set problem dimensions */
   ierr = MatGetSize(qep->M,&qep->n,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(qep->M,&qep->nloc,NULL);CHKERRQ(ierr);
-  ierr = VecDestroy(&qep->t);CHKERRQ(ierr);
-  ierr = SlepcMatGetVecsTemplate(qep->M,&qep->t,NULL);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)qep->t);CHKERRQ(ierr);
 
   /* Set default problem type */
   if (!qep->problem_type) {
     ierr = QEPSetProblemType(qep,QEP_GENERAL);CHKERRQ(ierr);
   }
+
+  if (qep->nev > 2*qep->n) qep->nev = 2*qep->n;
+  if (qep->ncv > 2*qep->n) qep->ncv = 2*qep->n;
 
   /* Call specific solver setup */
   ierr = (*qep->ops->setup)(qep);CHKERRQ(ierr);
@@ -146,9 +143,6 @@ PetscErrorCode QEPSetUp(QEP qep)
       break;
   }
 
-  if (qep->ncv > 2*qep->n) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
-  if (qep->nev > qep->ncv) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
-
   /* Setup ST */
   if (!islinear) {
     ierr = PetscObjectTypeCompareAny((PetscObject)qep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
@@ -162,17 +156,11 @@ PetscErrorCode QEPSetUp(QEP qep)
 
   /* process initial vectors */
   if (qep->nini<0) {
-    qep->nini = -qep->nini;
-    if (qep->nini>qep->ncv) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The number of initial vectors is larger than ncv");
-    ierr = IPOrthonormalizeBasis_Private(qep->ip,&qep->nini,&qep->IS,qep->V);CHKERRQ(ierr);
-  }
-  if (qep->ninil<0) {
-    if (!qep->leftvecs) { ierr = PetscInfo(qep,"Ignoring initial left vectors\n");CHKERRQ(ierr); }
-    else {
-      qep->ninil = -qep->ninil;
-      if (qep->ninil>qep->ncv) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The number of initial left vectors is larger than ncv");
-      ierr = IPOrthonormalizeBasis_Private(qep->ip,&qep->ninil,&qep->ISL,qep->W);CHKERRQ(ierr);
-    }
+    k = -qep->nini;
+    if (k>qep->ncv) SETERRQ(PetscObjectComm((PetscObject)qep),1,"The number of initial vectors is larger than ncv");
+    ierr = BVInsertVecs(qep->V,0,&k,qep->IS,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = SlepcBasisDestroy_Private(&qep->nini,&qep->IS);CHKERRQ(ierr);
+    qep->nini = k;
   }
   ierr = PetscLogEventEnd(QEP_SetUp,qep,0,0,0);CHKERRQ(ierr);
   qep->setupcalled = 1;
@@ -365,38 +353,40 @@ PetscErrorCode QEPSetInitialSpaceLeft(QEP qep,PetscInt n,Vec *is)
 PetscErrorCode QEPAllocateSolution(QEP qep,PetscInt extra)
 {
   PetscErrorCode ierr;
-  PetscInt       newc,cnt,requested;
+  PetscInt       oldsize,newc,requested;
+  PetscLogDouble cnt;
+  Mat            A;
+  Vec            t;
 
   PetscFunctionBegin;
   requested = qep->ncv + extra;
-  if (qep->allocated_ncv != requested) {
-    newc = PetscMax(0,requested-qep->allocated_ncv);
-    ierr = QEPFreeSolution(qep);CHKERRQ(ierr);
+
+  /* oldsize is zero if this is the first time setup is called */
+  ierr = BVGetSizes(qep->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
+  newc = PetscMax(0,requested-oldsize);
+
+  /* allocate space for eigenvalues and friends */
+  if (requested != oldsize) {
+    if (oldsize) {
+      ierr = PetscFree4(qep->eigr,qep->eigi,qep->errest,qep->perm);CHKERRQ(ierr);
+    }
     ierr = PetscMalloc4(requested,&qep->eigr,requested,&qep->eigi,requested,&qep->errest,requested,&qep->perm);CHKERRQ(ierr);
     cnt = 2*newc*sizeof(PetscScalar) + 2*newc*sizeof(PetscReal);
     ierr = PetscLogObjectMemory((PetscObject)qep,cnt);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(qep->t,requested,&qep->V);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(qep,requested,qep->V);CHKERRQ(ierr);
-    qep->allocated_ncv = requested;
   }
-  PetscFunctionReturn(0);
-}
 
-#undef __FUNCT__
-#define __FUNCT__ "QEPFreeSolution"
-/*
-  QEPFreeSolution - Free memory storage. This routine is related to
-  QEPAllocateSolution().
-*/
-PetscErrorCode QEPFreeSolution(QEP qep)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (qep->allocated_ncv > 0) {
-    ierr = PetscFree4(qep->eigr,qep->eigi,qep->errest,qep->perm);CHKERRQ(ierr);
-    ierr = VecDestroyVecs(qep->allocated_ncv,&qep->V);CHKERRQ(ierr);
-    qep->allocated_ncv = 0;
+  /* allocate V */
+  if (!qep->V) { ierr = QEPGetBV(qep,&qep->V);CHKERRQ(ierr); }
+  if (!oldsize) {
+    if (!((PetscObject)(qep->V))->type_name) {
+      ierr = BVSetType(qep->V,BVSVEC);CHKERRQ(ierr);
+    }
+    ierr = STGetOperators(qep->st,0,&A);CHKERRQ(ierr);
+    ierr = MatGetVecs(A,&t,NULL);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(qep->V,t,requested);CHKERRQ(ierr);
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
+  } else {
+    ierr = BVResize(qep->V,requested,PETSC_FALSE);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
