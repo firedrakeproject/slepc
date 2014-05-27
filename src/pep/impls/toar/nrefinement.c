@@ -364,7 +364,7 @@ PetscErrorCode NRefSysIter_explicit(PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,P
   MPI_Comm_size(PetscObjectComm((PetscObject)M),&np);
   ierr = MatGetOwnershipRanges(E[0],&rgs0);CHKERRQ(ierr);
   ierr = MatGetOwnershipRanges(E[1],&rgs1);CHKERRQ(ierr);
-  ierr = PetscMalloc5(PetscMax(k,m1-n1),&idxp,m0-n0,&idxg,nmat,&ts,N0,&map0,N1,&map1);CHKERRQ(ierr);
+  ierr = PetscMalloc5(PetscMax(k,N1),&idxp,N0,&idxg,nmat,&ts,N0,&map0,N1,&map1);CHKERRQ(ierr);
   
   /* Create column (and row) mapping */
   for (p=0;p<np;p++) {
