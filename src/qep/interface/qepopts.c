@@ -844,8 +844,8 @@ PetscErrorCode QEPSetOptionsPrefix(QEP qep,const char *prefix)
 PetscErrorCode QEPAppendOptionsPrefix(QEP qep,const char *prefix)
 {
   PetscErrorCode ierr;
-  PetscBool      flg;
-  EPS            eps;
+  /*PetscBool      flg;
+  EPS            eps;*/
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
@@ -856,12 +856,12 @@ PetscErrorCode QEPAppendOptionsPrefix(QEP qep,const char *prefix)
   if (!qep->ds) { ierr = QEPGetDS(qep,&qep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(qep->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)qep,prefix);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)qep,QEPLINEAR,&flg);CHKERRQ(ierr);
+  /*ierr = PetscObjectTypeCompare((PetscObject)qep,QEPLINEAR,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = QEPLinearGetEPS(qep,&eps);CHKERRQ(ierr);
     ierr = EPSSetOptionsPrefix(eps,((PetscObject)qep)->prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(eps,"qep_");CHKERRQ(ierr);
-  }
+  }*/
   PetscFunctionReturn(0);
 }
 

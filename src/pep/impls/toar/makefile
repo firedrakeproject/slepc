@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = ptoar.c nrefinement.c
+SOURCEC  = ptoar.c #nrefinement.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcpep

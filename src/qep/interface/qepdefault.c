@@ -139,23 +139,25 @@ PetscErrorCode QEPComputeVectors_Indefinite(QEP qep)
 
   /* normalization */
   for (i=0;i<n;i++) {
-    ierr = BVGetColumn(qep->V,i,&v);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
     if (qep->eigi[i] != 0.0) {
+      ierr = BVGetColumn(qep->V,i,&v);CHKERRQ(ierr);
       ierr = BVGetColumn(qep->V,i+1,&v1);CHKERRQ(ierr);
       ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
       ierr = VecNorm(v1,NORM_2,&normi);CHKERRQ(ierr);
       tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
       ierr = VecScale(v,tmp);CHKERRQ(ierr);
       ierr = VecScale(v1,tmp);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(qep->V,i,&v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(qep->V,i+1,&v1);CHKERRQ(ierr);
       i++;
     } else
 #endif
     {
+      ierr = BVGetColumn(qep->V,i,&v);CHKERRQ(ierr);
       ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(qep->V,i,&v);CHKERRQ(ierr);
     }
-    ierr = BVRestoreColumn(qep->V,i,&v);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

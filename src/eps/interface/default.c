@@ -131,23 +131,25 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 
   /* normalization */
   for (i=0;i<n;i++) {
-    ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->eigi[i] != 0.0) {
+      ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
       ierr = BVGetColumn(eps->V,i+1,&v1);CHKERRQ(ierr);
       ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
       ierr = VecNorm(v1,NORM_2,&normi);CHKERRQ(ierr);
       tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
       ierr = VecScale(v,tmp);CHKERRQ(ierr);
       ierr = VecScale(v1,tmp);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(eps->V,i+1,&v1);CHKERRQ(ierr);
       i++;
     } else
 #endif
     {
+      ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
       ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
     }
-    ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
   }
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
@@ -220,23 +222,25 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   /* normalize eigenvectors (when using purification or balancing) */
   if (eps->ispositive || (eps->balance!=EPS_BALANCE_NONE && eps->D)) {
     for (i=0;i<n;i++) {
-      ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
       if (eps->eigi[i] != 0.0) {
+        ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
         ierr = BVGetColumn(eps->V,i+1,&v1);CHKERRQ(ierr);
         ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
         ierr = VecNorm(v1,NORM_2,&normi);CHKERRQ(ierr);
         tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
         ierr = VecScale(v,tmp);CHKERRQ(ierr);
         ierr = VecScale(v1,tmp);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
         ierr = BVRestoreColumn(eps->V,i+1,&v1);CHKERRQ(ierr);
         i++;
       } else
 #endif
       {
+        ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
         ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
       }
-      ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
     }
   }
 
