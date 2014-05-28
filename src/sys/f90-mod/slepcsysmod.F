@@ -39,6 +39,7 @@
         end module
 
         module slepcipdef
+        use petscsys
 #include <finclude/slepcip.h>
 #include <finclude/ftn-custom/slepcipdef.h90>
         end module
@@ -68,5 +69,15 @@
         module slepcds
         use slepcdsdef
 #include <finclude/slepcds.h90>
+        end module
+
+        module slepcbvdef
+#include <finclude/slepcbv.h>
+#include <finclude/ftn-custom/slepcbvdef.h90>
+        end module
+
+        module slepcbv
+        use slepcbvdef
+#include <finclude/slepcbv.h90>
         end module
 
