@@ -25,7 +25,7 @@
 #include <petsc-private/vecimpl.h>            /*I "petscvec.h" I*/
 #include <petscblaslapack.h>
 
-PetscLogEvent SLEPC_UpdateVectors = 0,SLEPC_VecMAXPBY = 0,SLEPC_SlepcDenseMatProd = 0,SLEPC_SlepcDenseNorm = 0,SLEPC_SlepcDenseCopy = 0,SLEPC_VecsMult = 0;
+PetscLogEvent SLEPC_UpdateVectors = 0,SLEPC_VecMAXPBY = 0,SLEPC_SlepcDenseMatProd = 0,SLEPC_SlepcDenseCopy = 0,SLEPC_VecsMult = 0;
 
 #undef __FUNCT__
 #define __FUNCT__ "Vecs_ContiguousDestroy"

@@ -145,6 +145,8 @@ PETSC_EXTERN PetscErrorCode DSSetState(DS,DSStateType);
 PETSC_EXTERN PetscErrorCode DSGetState(DS,DSStateType*);
 PETSC_EXTERN PetscErrorCode DSSetDimensions(DS,PetscInt,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode DSGetDimensions(DS,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSSetBlockSize(DS,PetscInt);
+PETSC_EXTERN PetscErrorCode DSGetBlockSize(DS,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSTruncate(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSSetMethod(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSGetMethod(DS,PetscInt*);

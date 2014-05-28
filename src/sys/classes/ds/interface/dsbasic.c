@@ -147,6 +147,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   ds->m             = 0;
   ds->k             = 0;
   ds->t             = 0;
+  ds->bs            = 1;
   for (i=0;i<DS_NUM_MAT;i++) {
     ds->mat[i]      = NULL;
     ds->rmat[i]     = NULL;
@@ -607,6 +608,57 @@ PetscErrorCode DSGetRefined(DS ds,PetscBool *ref)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "DSSetBlockSize"
+/*@
+   DSSetBlockSize - Sets the block size.
+
+   Logically Collective on DS
+
+   Input Parameter:
++  ds - the direct solver context
+-  bs - the block size
+
+   Level: intermediate
+
+.seealso: DSGetBlockSize()
+@*/
+PetscErrorCode DSSetBlockSize(DS ds,PetscInt bs)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ds,bs,2);
+  if (bs<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The block size must be at least one");
+  ds->bs = bs;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSGetBlockSize"
+/*@
+   DSGetBlockSize - Gets the block size.
+
+   Not Collective
+
+   Input Parameter:
+.  ds - the direct solver context
+
+   Output Parameter:
+.  bs - block size
+
+   Level: intermediate
+
+.seealso: DSSetBlockSize()
+@*/
+PetscErrorCode DSGetBlockSize(DS ds,PetscInt *bs)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidPointer(bs,2);
+  *bs = ds->bs;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "DSSetEigenvalueComparison"
 /*@C
    DSSetEigenvalueComparison - Specifies the eigenvalue comparison function
@@ -815,7 +867,7 @@ PetscErrorCode DSGetNumFN(DS ds,PetscInt *n)
 PetscErrorCode DSSetFromOptions(DS ds)
 {
   PetscErrorCode ierr;
-  PetscInt       meth;
+  PetscInt       bs,meth;
   PetscBool      flag;
 
   PetscFunctionBegin;
@@ -826,6 +878,8 @@ PetscErrorCode DSSetFromOptions(DS ds)
     ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);
   }
   ierr = PetscObjectOptionsBegin((PetscObject)ds);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-ds_block_size","Block size for the dense system solver","DSSetBlockSize",ds->bs,&bs,&flag);CHKERRQ(ierr);
+    if (flag) { ierr = DSSetBlockSize(ds,bs);CHKERRQ(ierr); }
     ierr = PetscOptionsInt("-ds_method","Method to be used for the dense system","DSSetMethod",ds->method,&meth,&flag);CHKERRQ(ierr);
     if (flag) { ierr = DSSetMethod(ds,meth);CHKERRQ(ierr); }
     ierr = PetscOptionsInt("-ds_function_method","Method to be used to compute a matrix function","DSSetFunctionMethod",ds->funmethod,&meth,&flag);CHKERRQ(ierr);
