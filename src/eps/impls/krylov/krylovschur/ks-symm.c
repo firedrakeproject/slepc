@@ -98,7 +98,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     ierr = DSGetMat(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
-    ierr = BVMultInPlace(eps->V,U,k,k+l);CHKERRQ(ierr);
+    ierr = BVMultInPlace(eps->V,U,eps->nconv,k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
 
     /* Normalize u and append it to V */
