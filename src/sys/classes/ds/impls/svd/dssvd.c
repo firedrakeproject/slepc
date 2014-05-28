@@ -275,7 +275,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,&qwork,&lwork,ds->iwork,&info));
 #endif
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
-    lwork = (PetscBLASInt)PetscRealPart(qwork);
+    ierr = PetscBLASIntCast((PetscInt)PetscRealPart(qwork),&lwork);CHKERRQ(ierr);
     ierr = DSAllocateWork_Private(ds,lwork,0,0);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
     PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,ds->work,&lwork,ds->rwork,ds->iwork,&info));

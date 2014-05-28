@@ -50,7 +50,10 @@ def Check(conf,vars,cmake,tmpdir,directory,libs):
 
   for d in dirs:
     if d:
-      l = ['-L' + d] + libs
+      if 'rpath' in petscconf.SLFLAG:
+        l = [petscconf.SLFLAG + d] + ['-L' + d] + libs
+      else:
+        l = ['-L' + d] + libs
       f = ['-I' + d + '/' + include]
     else:
       l =  libs

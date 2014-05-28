@@ -25,7 +25,7 @@
 #include <petsc-private/vecimpl.h>            /*I "petscvec.h" I*/
 #include <petscblaslapack.h>
 
-PetscLogEvent SLEPC_UpdateVectors = 0,SLEPC_VecMAXPBY = 0;
+PetscLogEvent SLEPC_UpdateVectors = 0,SLEPC_VecMAXPBY = 0,SLEPC_SlepcDenseMatProd = 0,SLEPC_SlepcDenseCopy = 0,SLEPC_VecsMult = 0;
 
 #undef __FUNCT__
 #define __FUNCT__ "Vecs_ContiguousDestroy"
@@ -244,7 +244,7 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous(PetscInt n,Vec *V,PetscIn
   if (s>0) {
     for (i=s;i<e;i++) {
       if (qtrans) {
-        for (j=0;j<s;j++) pq[j] = Q[i+j*ldq];
+        for (j=0;j<s;j++) pq[j] = PetscConj(Q[i+j*ldq]);
       } else pq = (PetscScalar*)Q+i*ldq;
       ierr = VecMAXPY(V[i],s,pq,V);CHKERRQ(ierr);
     }
@@ -253,7 +253,7 @@ static PetscErrorCode SlepcUpdateVectors_Noncontiguous(PetscInt n,Vec *V,PetscIn
   if (n>e) {
     for (i=s;i<e;i++) {
       if (qtrans) {
-        for (j=0;j<n-e;j++) pq[j] = Q[i+(j+e)*ldq];
+        for (j=0;j<n-e;j++) pq[j] = PetscConj(Q[i+(j+e)*ldq]);
       } else pq = (PetscScalar*)Q+i*ldq+e;
       ierr = VecMAXPY(V[i],n-e,pq,V+e);CHKERRQ(ierr);
     }

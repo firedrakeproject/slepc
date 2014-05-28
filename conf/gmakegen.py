@@ -50,7 +50,7 @@ class debuglogger(object):
         self._log.debug(string)
 
 class Slepc(object):
-    def __init__(self, slepc_dir=None, petsc_dir=None, petsc_arch=None, verbose=False):
+    def __init__(self, slepc_dir=None, petsc_dir=None, petsc_arch=None, installed_petsc=False, verbose=False):
         if slepc_dir is None:
             slepc_dir = os.environ.get('SLEPC_DIR')
             if slepc_dir is None:
@@ -66,6 +66,7 @@ class Slepc(object):
         self.slepc_dir = slepc_dir
         self.petsc_dir = petsc_dir
         self.petsc_arch = petsc_arch
+        self.installed_petsc = installed_petsc
         self.read_conf()
         logging.basicConfig(filename=self.arch_path('conf', 'gmake.log'), level=logging.DEBUG)
         self.log = logging.getLogger('gmakegen')
@@ -73,7 +74,7 @@ class Slepc(object):
         self.gendeps = []
 
     def petsc_path(self, *args):
-        if os.environ.get('PETSC_ARCH') == 'arch-installed-petsc':
+        if self.installed_petsc:
             return os.path.join(self.petsc_dir, *args)
         else:
             return os.path.join(self.petsc_dir, self.petsc_arch, *args)
@@ -181,11 +182,11 @@ def WriteGnuMake(slepc):
     fd.write(''.join([dep + ':\n' for dep in gendeps]))
     fd.close()
 
-def main(slepc_dir=None, petsc_dir=None, petsc_arch=None, output=None, verbose=False):
+def main(slepc_dir=None, petsc_dir=None, petsc_arch=None, installed_petsc=False, output=None, verbose=False):
     if output is None:
         output = 'gnumake'
     writer = dict(gnumake=WriteGnuMake)
-    slepc = Slepc(slepc_dir=slepc_dir, petsc_dir=petsc_dir, petsc_arch=petsc_arch, verbose=verbose)
+    slepc = Slepc(slepc_dir=slepc_dir, petsc_dir=petsc_dir, petsc_arch=petsc_arch, installed_petsc=installed_petsc, verbose=verbose)
     writer[output](slepc)
     slepc.summary()
 
@@ -194,10 +195,11 @@ if __name__ == '__main__':
     parser = optparse.OptionParser()
     parser.add_option('--verbose', help='Show mismatches between makefiles and the filesystem', action='store_true', default=False)
     parser.add_option('--petsc-arch', help='Set PETSC_ARCH different from environment', default=os.environ.get('PETSC_ARCH'))
+    parser.add_option('--installed-petsc', help='Using a prefix PETSc installation', default=False)
     parser.add_option('--output', help='Location to write output file', default=None)
     opts, extra_args = parser.parse_args()
     if extra_args:
         import sys
         sys.stderr.write('Unknown arguments: %s\n' % ' '.join(extra_args))
         exit(1)
-    main(petsc_arch=opts.petsc_arch, output=opts.output, verbose=opts.verbose)
+    main(petsc_arch=opts.petsc_arch, installed_petsc=opts.installed_petsc, output=opts.output, verbose=opts.verbose)

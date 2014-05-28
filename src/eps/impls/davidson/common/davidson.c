@@ -57,7 +57,6 @@ PetscErrorCode EPSCreate_XD(EPS eps)
   EPS_DAVIDSON   *data;
 
   PetscFunctionBegin;
-  eps->st->ops->getbilinearform  = STGetBilinearForm_Default;
   eps->ops->solve                = EPSSolve_XD;
   eps->ops->setup                = EPSSetUp_XD;
   eps->ops->reset                = EPSReset_XD;

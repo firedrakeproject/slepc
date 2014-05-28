@@ -21,7 +21,7 @@
 
 static char help[] = "Test SlepcUpdateVectors.\n\n";
 
-#include <slepcsys.h>
+#include <slepcvec.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -90,7 +90,7 @@ int main(int argc,char **argv)
     ierr = MatDenseGetArray(B,&pa);CHKERRQ(ierr);
     for (i=s;i<e;i++) {
       for (j=0;j<k;j++) {
-        pa[(i-s)*k+j] = Q[i+j*k];
+        pa[(i-s)*k+j] = PetscConj(Q[i+j*k]);
       }
     }
     ierr = MatDenseRestoreArray(B,&pa);CHKERRQ(ierr);

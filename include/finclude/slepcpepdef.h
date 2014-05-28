@@ -35,6 +35,8 @@
 #define PEPType            character*(80)
 #define PEPProblemType     PetscEnum
 #define PEPWhich           PetscEnum
+#define PEPBasis           PetscEnum
+#define PEPConv            PetscEnum
 #define PEPConvergedReason PetscEnum
 
 #define PEPLINEAR    'linear'

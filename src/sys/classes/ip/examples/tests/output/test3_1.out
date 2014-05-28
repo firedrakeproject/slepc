@@ -9,4 +9,4 @@ IP Object: 1 MPI processes
     total: nonzeros=15, allocated nonzeros=75
     total number of mallocs used during MatSetValues calls =0
       not using I-node routines
-Computed norm=-1.77074
+Computed norm=-16.7332

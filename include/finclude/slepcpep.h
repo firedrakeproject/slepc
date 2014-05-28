@@ -64,6 +64,28 @@
       parameter (PEP_TARGET_REAL            =  8)
       parameter (PEP_TARGET_IMAGINARY       =  9)
 
+      PetscEnum PEP_BASIS_MONOMIAL
+      PetscEnum PEP_BASIS_CHEBYSHEV1
+      PetscEnum PEP_BASIS_CHEBYSHEV2
+      PetscEnum PEP_BASIS_LEGENDRE
+      PetscEnum PEP_BASIS_LAGUERRE
+      PetscEnum PEP_BASIS_HERMITE
+
+      parameter (PEP_BASIS_MONOMIAL         =  0)
+      parameter (PEP_BASIS_CHEBYSHEV1       =  1)
+      parameter (PEP_BASIS_CHEBYSHEV2       =  2)
+      parameter (PEP_BASIS_LEGENDRE         =  3)
+      parameter (PEP_BASIS_LAGUERRE         =  4)
+      parameter (PEP_BASIS_HERMITE          =  5)
+
+      PetscEnum PEP_CONV_ABS
+      PetscEnum PEP_CONV_EIG
+      PetscEnum PEP_CONV_NORM
+
+      parameter (PEP_CONV_ABS               =  1)
+      parameter (PEP_CONV_EIG               =  2)
+      parameter (PEP_CONV_NORM              =  3)
+
 !
 !   Possible arguments to PEPMonitorSet()
 !

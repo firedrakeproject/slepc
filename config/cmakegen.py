@@ -177,7 +177,7 @@ def pkgsources(pkg, mistakes):
     allconditions[root] = conditions
   return sources
 
-def writeRoot(f,petscdir,petscarch):
+def writeRoot(f,petscdir,petscdestdir):
   f.write(r'''cmake_minimum_required (VERSION 2.6.2)
 project (SLEPc C)
 
@@ -218,7 +218,7 @@ set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 ###################  The following describes the build  ####################
 
-''' % (petscdir,os.sep.join([petscdir,petscarch])))
+''' % (petscdir,petscdestdir))
 
 def writePackage(f,pkg,pkgdeps,mistakes):
   for conds, srcs in pkgsources(pkg,mistakes).items():
@@ -238,22 +238,22 @@ if (NOT PETSC_USE_SINGLE_LIBRARY)
   else ()
     add_library (slepc%(pkg)s ${SLEPC%(PKG)s_SRCS})
   endif ()
-  target_link_libraries (slepc%(pkg)s %(pkgdeps)s ${SLEPC_PACKAGE_LIBS} ${PETSC_PACKAGE_LIBS})
+  target_link_libraries (slepc%(pkg)s %(pkgdeps)s ${PETSC_LIB} ${SLEPC_PACKAGE_LIBS} ${PETSC_PACKAGE_LIBS})
   if (PETSC_WIN32FE)
     set_target_properties (slepc%(pkg)s PROPERTIES RULE_LAUNCH_COMPILE "${PETSC_WIN32FE}")
     set_target_properties (slepc%(pkg)s PROPERTIES RULE_LAUNCH_LINK "${PETSC_WIN32FE}")
   endif ()
 endif ()
-''' % dict(pkg=pkg, PKG=pkg.upper(), pkgdeps=' '.join('petsc%s'%p for p in pkgdeps)))
+''' % dict(pkg=pkg, PKG=pkg.upper(), pkgdeps=' '.join('slepc%s'%p for p in pkgdeps)))
 
-def main(slepcdir,petscdir,petscarch,log=StdoutLogger(), verbose=False):
+def main(slepcdir,petscdir,petscdestdir,log=StdoutLogger(), verbose=False):
   import tempfile, shutil
   written = False               # We delete the temporary file if it wasn't finished, otherwise rename (atomic)
   mistakes = Mistakes(log=log, verbose=verbose)
   fd,tmplists = tempfile.mkstemp(prefix='CMakeLists.txt.',dir=slepcdir,text=True)
   try:
     f = os.fdopen(fd,'w')
-    writeRoot(f,petscdir,petscarch)
+    writeRoot(f,petscdir,petscdestdir)
     f.write('include_directories (${PETSC_PACKAGE_INCLUDES} ${SLEPC_PACKAGE_INCLUDES})\n')
     pkglist = [('sys'            , ''),
                ('eps'            , 'sys'),
@@ -301,4 +301,4 @@ if __name__ == "__main__":
   parser = optparse.OptionParser()
   parser.add_option('--verbose', help='Show mismatches between makefiles and the filesystem', dest='verbose', action='store_true', default=False)
   (opts, extra_args) = parser.parse_args()
-  main(slepcdir=os.environ['SLEPC_DIR'],petscdir=os.environ['PETSC_DIR'],petscarch=os.environ['PETSC_ARCH'], verbose=opts.verbose)
+  main(slepcdir=os.environ['SLEPC_DIR'],petscdir=os.environ['PETSC_DIR'],petscdestdir=os.sep.join([os.environ['PETSC_DIR'],os.environ['PETSC_ARCH']]), verbose=opts.verbose)
