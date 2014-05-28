@@ -95,9 +95,9 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   maxnrs = 0.0;
   minnrxi = PETSC_MAX_REAL; 
   for (i=0;i<ndpt;i++) {
-    nrs[i]  = (ds[i]-s[0])/(1-ds[i]/xi[0]);
+    nrs[i]  = (ds[i]-s[0])/(1.0-ds[i]/xi[0]);
     if (PetscAbsScalar(nrs[i])>maxnrs) {maxnrs = PetscAbsScalar(nrs[i]); s[1] = ds[i];}
-    nrxi[i] = (dxi[i]-s[0])/(1-dxi[i]/xi[0]);
+    nrxi[i] = (dxi[i]-s[0])/(1.0-dxi[i]/xi[0]);
     if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[1] = dxi[i];}
   }
   beta[1] = maxnrs;
@@ -105,9 +105,9 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
     maxnrs = 0.0;
     minnrxi = PETSC_MAX_REAL;
     for (i=0;i<ndpt;i++) {
-      nrs[i]  *= ((ds[i]-s[k-1])/(1-ds[i]/xi[k-1]))/beta[k-1];
+      nrs[i]  *= ((ds[i]-s[k-1])/(1.0-ds[i]/xi[k-1]))/beta[k-1];
       if (PetscAbsScalar(nrs[i])>maxnrs) {maxnrs = PetscAbsScalar(nrs[i]); s[k] = ds[i];}
-      nrxi[i] *= ((dxi[i]-s[k-1])/(1-dxi[i]/xi[k-1]))/beta[k-1];
+      nrxi[i] *= ((dxi[i]-s[k-1])/(1.0-dxi[i]/xi[k-1]))/beta[k-1];
       if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[k] = dxi[i];}
     }
     beta[k] = maxnrs;
@@ -127,7 +127,7 @@ static PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP nep,PetscInt k,PetscScalar sigma
   PetscFunctionBegin;
   b[0] = 1.0/beta[0];
   for (i=0;i<k;i++) {
-    b[i+1] = ((sigma-s[i])*b[i])/(beta[i+1]*(1-sigma/xi[i]));
+    b[i+1] = ((sigma-s[i])*b[i])/(beta[i+1]*(1.0-sigma/xi[i]));
   }
   PetscFunctionReturn(0);
 }
@@ -328,7 +328,7 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscScalar sigma,PetscScalar *
   ierr = STMatMult(ctx->st,deg-2,v,q);CHKERRQ(ierr);
   for (k=deg-2;k>0;k--) {
     if (PetscAbsScalar(s[k-1]-sigma)<100*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1,"Breakdown in NLEIGS");
-    for (j=0;j<nv;j++) r[(k-1)*lr+j] = (S[(k-1)*ls+j]+(beta[k]/xi[k-1])*S[k*ls+j]-beta[k]*(1-sigma/xi[k-1])*r[(k)*lr+j])/(s[k-1]-sigma);
+    for (j=0;j<nv;j++) r[(k-1)*lr+j] = (S[(k-1)*ls+j]+(beta[k]/xi[k-1])*S[k*ls+j]-beta[k]*(1.0-sigma/xi[k-1])*r[(k)*lr+j])/(s[k-1]-sigma);
     ierr = SlepcVecMAXPBY(v,0.0,1.0,nv,r+(k-1)*lr,V);CHKERRQ(ierr);
     ierr = STMatMult(ctx->st,k-1,v,t);CHKERRQ(ierr);
     ierr = VecAXPY(q,1.0,t);CHKERRQ(ierr);
