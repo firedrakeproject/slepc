@@ -79,8 +79,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
   PetscInt        i,k,l,ld,nv,t;
   Mat             U;
   Vec             vomega,u,w=eps->work[0];
-  PetscScalar     *Q;
-  PetscReal       *a,*b,*r,beta,beta1,beta2,*omega,*aux;
+  PetscScalar     *Q,*aux;
+  PetscReal       *a,*b,*r,beta,beta1,beta2,*omega;
   PetscBool       breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -95,7 +95,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
   ierr = BVGetSignature(eps->V,vomega);CHKERRQ(ierr);
   ierr = VecGetArray(vomega,&aux);CHKERRQ(ierr);
   ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-  omega[0] = aux[0];
+  omega[0] = PetscRealPart(aux[0]);
   ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
   ierr = VecRestoreArray(vomega,&aux);CHKERRQ(ierr);
   ierr = VecDestroy(&vomega);CHKERRQ(ierr);

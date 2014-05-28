@@ -106,7 +106,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
     ierr = STGetBilinearForm(eps->st,&B);CHKERRQ(ierr);
     if (!eps->V) { ierr = EPSGetBV(eps,&eps->V,NULL);CHKERRQ(ierr); }
-    ierr = BVSetMatrix(eps->V,B,!eps->ispositive);CHKERRQ(ierr);
+    ierr = BVSetMatrix(eps->V,B,eps->ispositive?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr);
     ierr = MatDestroy(&B);CHKERRQ(ierr);
   } else {
     ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);

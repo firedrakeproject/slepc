@@ -184,7 +184,7 @@ PetscErrorCode MFNAllocateSolution(MFN mfn,PetscInt extra)
   } else {
     ierr = BVResize(mfn->V,requested,PETSC_FALSE);CHKERRQ(ierr);
   }
-  ierr = BVSetMatrix(mfn->V,NULL,0.0);CHKERRQ(ierr);
+  ierr = BVSetMatrix(mfn->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
 
   PetscFunctionReturn(0);
 }
