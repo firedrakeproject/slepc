@@ -58,7 +58,6 @@ struct _p_QEP {
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
   PetscReal      sfactor;          /* scaling factor of the quadratic problem */
-  PetscBool      sfactor_set;      /* flag to indicate the user gave sfactor */
   QEPWhich       which;            /* which part of the spectrum to be sought */
   PetscBool      leftvecs;         /* if left eigenvectors are requested */
   QEPProblemType problem_type;     /* which kind of problem to be solved */
@@ -80,7 +79,7 @@ struct _p_QEP {
   BV             V;                /* set of basis vectors and computed eigenvectors */
   PetscRandom    rand;             /* random number generator */
   Mat            M,C,K;            /* problem matrices */
-  Vec            *IS,*ISL;         /* placeholder for references to user-provided initial space */
+  Vec            *IS,*ISL;         /* references to user-provided initial space */
   PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
   PetscReal      *errest;          /* error estimates */
   PetscInt       *perm;            /* permutation for eigenvalue ordering */
@@ -92,6 +91,7 @@ struct _p_QEP {
   PetscInt       nconv;            /* number of converged eigenvalues */
   PetscInt       its;              /* number of iterations so far computed */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
+  PetscBool      sfactor_set;      /* flag to indicate the user gave sfactor */
   PetscInt       setupcalled;
   QEPConvergedReason reason;
 };

@@ -77,7 +77,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PetscOptionsBool("-pep_balance","Enable diagonal scaling (balancing)","PEPSetBalance",pep->balance,&pep->balance,NULL);CHKERRQ(ierr);
     r = j = 0;
     ierr = PetscOptionsInt("-pep_balance_its","Number of iterations in balancing","PEPSetBalance",pep->balance_its,&j,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-pep_balance_w","Estimate of eigenvalue (modulus) for balancing","PEPSetBalance",pep->balance_w,&r,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-pep_balance_lambda","Estimate of eigenvalue (modulus) for balancing","PEPSetBalance",pep->balance_lambda,&r,NULL);CHKERRQ(ierr);
     ierr = PEPSetBalance(pep,pep->balance,j,r);CHKERRQ(ierr);
 
     r = i = 0;
@@ -180,8 +180,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)pep);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
-  if (!pep->ip) { ierr = PEPGetIP(pep,&pep->ip);CHKERRQ(ierr); }
-  ierr = IPSetFromOptions(pep->ip);CHKERRQ(ierr);
+  if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
+  ierr = BVSetFromOptions(pep->V);CHKERRQ(ierr);
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(pep->ds);CHKERRQ(ierr);
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
@@ -887,12 +887,12 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
 +  pep    - the eigensolver context
 .  bal    - flag indicating if balancing is required
 .  its    - number of iterations of the balancing algorithm
--  w      - approximation to wanted eigenvalues (norm)
+-  lambda - approximation to wanted eigenvalues (modulus)
 
    Options Database Keys:
-+  -pep_balance  - flag 
++  -pep_balance - boolean flag 
 .  -pep_balance_its <its> - number of iterations
--  -pep_balance_lambda <w> - approximation to eigenvalues
+-  -pep_balance_lambda <lambda> - approximation to eigenvalues
 
    Notes:
    When balancing is enabled, the solver works implicitly with matrix Dr*A*Dl,
@@ -902,29 +902,29 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
    By default, balancing is disabled and it requires MATAIJ matrices.
 
    The parameter 'its' is the number of iterations performed by the method.
-   Parameter 'w' must be positive. Use PETSC_DECIDE or set w = 1.0 if no
+   Parameter 'lambda' must be positive. Use PETSC_DECIDE or set lambda = 1.0 if no
    information about eigenvalues is available.
 
    Level: intermediate
 
 .seealso: PEPGetBalance()
 @*/
-PetscErrorCode PEPSetBalance(PEP pep,PetscBool bal,PetscInt its,PetscReal w)
+PetscErrorCode PEPSetBalance(PEP pep,PetscBool bal,PetscInt its,PetscReal lambda)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(pep,bal,2);
   PetscValidLogicalCollectiveInt(pep,its,3);
-  PetscValidLogicalCollectiveReal(pep,w,4);
+  PetscValidLogicalCollectiveReal(pep,lambda,4);
   pep->balance = bal;
   if (its) {
     if (its==PETSC_DECIDE || its==PETSC_DEFAULT) pep->balance_its = 5;
     else pep->balance_its = its;
   }
-  if (w) {
-    if (w==PETSC_DECIDE || w==PETSC_DEFAULT) pep->balance_w = 1.0;
-    else if (w<0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"w must be positive");
-    else pep->balance_w = w;
+  if (lambda) {
+    if (lambda==PETSC_DECIDE || lambda==PETSC_DEFAULT) pep->balance_lambda = 1.0;
+    else if (lambda<0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"lambda must be positive");
+    else pep->balance_lambda = lambda;
   }
   PetscFunctionReturn(0);
 }
@@ -943,7 +943,7 @@ PetscErrorCode PEPSetBalance(PEP pep,PetscBool bal,PetscInt its,PetscReal w)
    Output Parameters:
 +  bal    - flag indicating whether balancing is required or not
 .  its    - number of iterations of the balancing algorithm
--  w      - magnitude of wanted eigenvalue
+-  lambda - magnitude of wanted eigenvalue
 
    Level: intermediate
 
@@ -952,13 +952,13 @@ PetscErrorCode PEPSetBalance(PEP pep,PetscBool bal,PetscInt its,PetscReal w)
 
 .seealso: PEPSetBalance()
 @*/
-PetscErrorCode PEPGetBalance(PEP pep,PetscBool *bal,PetscInt *its,PetscReal *w)
+PetscErrorCode PEPGetBalance(PEP pep,PetscBool *bal,PetscInt *its,PetscReal *lambda)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (bal) *bal = pep->balance;
-  if (its) *its = pep->balance_its;
-  if (w)   *w   = pep->balance_w;
+  if (bal)    *bal    = pep->balance;
+  if (its)    *its    = pep->balance_its;
+  if (lambda) *lambda = pep->balance_lambda;
   PetscFunctionReturn(0);
 }
 
@@ -996,8 +996,10 @@ PetscErrorCode PEPSetOptionsPrefix(PEP pep,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (!pep->ip) { ierr = PEPGetIP(pep,&pep->ip);CHKERRQ(ierr); }
-  ierr = IPSetOptionsPrefix(pep->ip,prefix);CHKERRQ(ierr);
+  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
+  ierr = STSetOptionsPrefix(pep->st,prefix);CHKERRQ(ierr);
+  if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
+  ierr = BVSetOptionsPrefix(pep->V,prefix);CHKERRQ(ierr);
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(pep->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)pep,prefix);CHKERRQ(ierr);
@@ -1032,8 +1034,10 @@ PetscErrorCode PEPAppendOptionsPrefix(PEP pep,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (!pep->ip) { ierr = PEPGetIP(pep,&pep->ip);CHKERRQ(ierr); }
-  ierr = IPSetOptionsPrefix(pep->ip,prefix);CHKERRQ(ierr);
+  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
+  ierr = STAppendOptionsPrefix(pep->st,prefix);CHKERRQ(ierr);
+  if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
+  ierr = BVSetOptionsPrefix(pep->V,prefix);CHKERRQ(ierr);
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(pep->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)pep,prefix);CHKERRQ(ierr);

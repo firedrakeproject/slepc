@@ -26,7 +26,7 @@
 PetscFunctionList PEPList = 0;
 PetscBool         PEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId      PEP_CLASSID = 0;
-PetscLogEvent     PEP_SetUp = 0,PEP_Solve = 0,PEP_Dense = 0;
+PetscLogEvent     PEP_SetUp = 0,PEP_Solve = 0;
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPView"
@@ -97,7 +97,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     if (pep->balance) {
       ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled");CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,", with its=%D",pep->balance_its);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer," and w=%g\n",(double)pep->balance_w);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," and lambda=%g\n",(double)pep->balance_lambda);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = SlepcSNPrintfScalar(str,50,pep->target,PETSC_FALSE);CHKERRQ(ierr);
@@ -172,10 +172,10 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   }
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
-    if (!pep->ip) { ierr = PEPGetIP(pep,&pep->ip);CHKERRQ(ierr); }
-    ierr = IPView(pep->ip,viewer);CHKERRQ(ierr);
-    if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
+    if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
+    ierr = BVView(pep->V,viewer);CHKERRQ(ierr);
+    if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
     ierr = DSView(pep->ds,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
@@ -265,7 +265,7 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer," Number of converged approximate eigenpairs: %D\n\n",pep->nconv);CHKERRQ(ierr);
     if (pep->nconv>0) {
       ierr = PetscViewerASCIIPrintf(viewer,
-           "           k          ||(k^2M+Ck+K)x||/||kx||\n"
+           "           k             ||P(k)x||/||kx||\n"
            "   ----------------- -------------------------\n");CHKERRQ(ierr);
       for (i=0;i<pep->nconv;i++) {
         ierr = PEPGetEigenpair(pep,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
@@ -328,8 +328,6 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->mpd             = 0;
   pep->nini            = 0;
   pep->ninil           = 0;
-  pep->allocated_ncv   = 0;
-  pep->ip              = 0;
   pep->ds              = 0;
   pep->tol             = PETSC_DEFAULT;
   pep->sfactor         = 0.0;
@@ -345,21 +343,17 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->problem_type    = (PEPProblemType)0;
   pep->balance         = PETSC_FALSE;
   pep->balance_its     = 5;
-  pep->balance_w       = 1.0;
+  pep->balance_lambda  = 1.0;
   pep->V               = NULL;
-  pep->W               = NULL;
   pep->IS              = NULL;
   pep->ISL             = NULL;
   pep->eigr            = NULL;
   pep->eigi            = NULL;
   pep->errest          = NULL;
   pep->data            = NULL;
-  pep->t               = NULL;
   pep->nconv           = 0;
   pep->its             = 0;
   pep->perm            = NULL;
-  pep->matvecs         = 0;
-  pep->linits          = 0;
   pep->nwork           = 0;
   pep->work            = NULL;
   pep->setupcalled     = 0;
@@ -511,18 +505,25 @@ PetscErrorCode PEPRegister(const char *name,PetscErrorCode (*function)(PEP))
 PetscErrorCode PEPReset(PEP pep)
 {
   PetscErrorCode ierr;
+  PetscInt       ncols;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   if (pep->ops->reset) { ierr = (pep->ops->reset)(pep);CHKERRQ(ierr); }
-  if (pep->ip) { ierr = IPReset(pep->ip);CHKERRQ(ierr); }
+  if (pep->st) { ierr = STReset(pep->st);CHKERRQ(ierr); }
   if (pep->ds) { ierr = DSReset(pep->ds);CHKERRQ(ierr); }
-  ierr = VecDestroy(&pep->t);CHKERRQ(ierr);
+  if (pep->nmat) {
+    ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
+    ierr = PetscFree3(pep->pbc,pep->solvematcoeffs,pep->nrma);CHKERRQ(ierr);
+    pep->nmat = 0;
+  }
   ierr = VecDestroy(&pep->Dl);CHKERRQ(ierr);
   ierr = VecDestroy(&pep->Dr);CHKERRQ(ierr);
-  ierr = PEPFreeSolution(pep);CHKERRQ(ierr);
-  pep->matvecs     = 0;
-  pep->linits      = 0;
+  ierr = BVGetSizes(pep->V,NULL,NULL,&ncols);CHKERRQ(ierr);
+  if (ncols) {
+    ierr = PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm);CHKERRQ(ierr);
+  }
+  ierr = BVDestroy(&pep->V);CHKERRQ(ierr);
   pep->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -550,11 +551,8 @@ PetscErrorCode PEPDestroy(PEP *pep)
   PetscValidHeaderSpecific(*pep,PEP_CLASSID,1);
   if (--((PetscObject)(*pep))->refct > 0) { *pep = 0; PetscFunctionReturn(0); }
   ierr = PEPReset(*pep);CHKERRQ(ierr);
-  ierr = MatDestroyMatrices((*pep)->nmat,&(*pep)->A);CHKERRQ(ierr);
-  ierr = PetscFree3((*pep)->pbc,(*pep)->solvematcoeffs,(*pep)->nrma);CHKERRQ(ierr);
   if ((*pep)->ops->destroy) { ierr = (*(*pep)->ops->destroy)(*pep);CHKERRQ(ierr); }
   ierr = STDestroy(&(*pep)->st);CHKERRQ(ierr);
-  ierr = IPDestroy(&(*pep)->ip);CHKERRQ(ierr);
   ierr = DSDestroy(&(*pep)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*pep)->rand);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
@@ -566,44 +564,44 @@ PetscErrorCode PEPDestroy(PEP *pep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPSetIP"
+#define __FUNCT__ "PEPSetBV"
 /*@
-   PEPSetIP - Associates an inner product object to the polynomial eigensolver.
+   PEPSetBV - Associates a basis vectors object to the polynomial eigensolver.
 
    Collective on PEP
 
    Input Parameters:
 +  pep - eigensolver context obtained from PEPCreate()
--  ip  - the inner product object
+-  bv  - the basis vectors object
 
    Note:
-   Use PEPGetIP() to retrieve the inner product context (for example,
+   Use PEPGetBV() to retrieve the basis vectors context (for example,
    to free it at the end of the computations).
 
    Level: advanced
 
-.seealso: PEPGetIP()
+.seealso: PEPGetBV()
 @*/
-PetscErrorCode PEPSetIP(PEP pep,IP ip)
+PetscErrorCode PEPSetBV(PEP pep,BV bv)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidHeaderSpecific(ip,IP_CLASSID,2);
-  PetscCheckSameComm(pep,1,ip,2);
-  ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
-  ierr = IPDestroy(&pep->ip);CHKERRQ(ierr);
-  pep->ip = ip;
-  ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->ip);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(bv,BV_CLASSID,2);
+  PetscCheckSameComm(pep,1,bv,2);
+  ierr = PetscObjectReference((PetscObject)bv);CHKERRQ(ierr);
+  ierr = BVDestroy(&pep->V);CHKERRQ(ierr);
+  pep->V = bv;
+  ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPGetIP"
+#define __FUNCT__ "PEPGetBV"
 /*@C
-   PEPGetIP - Obtain the inner product object associated
-   to the polynomial eigensolver object.
+   PEPGetBV - Obtain the basis vectors object associated to the polynomial
+   eigensolver object.
 
    Not Collective
 
@@ -611,24 +609,24 @@ PetscErrorCode PEPSetIP(PEP pep,IP ip)
 .  pep - eigensolver context obtained from PEPCreate()
 
    Output Parameter:
-.  ip - inner product context
+.  bv - basis vectors context
 
    Level: advanced
 
-.seealso: PEPSetIP()
+.seealso: PEPSetBV()
 @*/
-PetscErrorCode PEPGetIP(PEP pep,IP *ip)
+PetscErrorCode PEPGetBV(PEP pep,BV *bv)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(ip,2);
-  if (!pep->ip) {
-    ierr = IPCreate(PetscObjectComm((PetscObject)pep),&pep->ip);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->ip);CHKERRQ(ierr);
+  PetscValidPointer(bv,2);
+  if (!pep->V) {
+    ierr = BVCreate(PetscObjectComm((PetscObject)pep),&pep->V);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->V);CHKERRQ(ierr);
   }
-  *ip = pep->ip;
+  *bv = pep->V;
   PetscFunctionReturn(0);
 }
 
