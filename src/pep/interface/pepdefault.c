@@ -94,12 +94,32 @@ PetscErrorCode PEPConvergedNormRelative(PEP pep,PetscScalar eigr,PetscScalar eig
   PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      w=0.0;
-  PetscScalar    vals[pep->nmat],ivals[pep->nmat];
+  PetscScalar    t[20],*vals=t,*ivals=NULL;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    it[20];
+#endif
 
   PetscFunctionBegin;
+#if !defined(PETSC_USE_COMPLEX)
+  ivals = it;
+#endif
+  if (pep->nmat>20) {
+#if !defined(PETSC_USE_COMPLEX)
+    ierr = PetscMalloc2(pep->nmat,&vals,pep->nmat,&ivals);CHKERRQ(ierr);
+#else
+    ierr = PetscMalloc1(pep->nmat,&vals);CHKERRQ(ierr);
+#endif
+  }
   ierr = PEPEvaluateBasis(pep,eigr,eigi,vals,ivals);CHKERRQ(ierr);
   for (i=0;i<pep->nmat;i++) w += SlepcAbsEigenvalue(vals[i],ivals[i])*pep->nrma[i];
   *errest = res/w;
+  if (pep->nmat>20) {
+#if !defined(PETSC_USE_COMPLEX)
+    ierr = PetscFree2(vals,ivals);CHKERRQ(ierr);
+#else
+    ierr = PetscFree(vals);CHKERRQ(ierr);
+#endif
+  }
   PetscFunctionReturn(0);
 }
 

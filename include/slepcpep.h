@@ -48,10 +48,7 @@ typedef struct _p_PEP* PEP;
 J*/
 typedef const char* PEPType;
 #define PEPLINEAR    "linear"
-#define PEPPARNOLDI  "parnoldi"
-#define PEPPLANCZOS  "planczos"
 #define PEPTOAR      "toar"
-#define PEPSTOAR     "stoar"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId PEP_CLASSID;
