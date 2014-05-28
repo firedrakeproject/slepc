@@ -27,7 +27,7 @@ SOURCEC  = dshep.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     =
+DIRS     = bdc
 MANSEC   = DS
 LOCDIR   = src/sys/classes/ds/impls/hep/
 

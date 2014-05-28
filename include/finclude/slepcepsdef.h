@@ -42,7 +42,6 @@
 #define EPSPowerShiftType      PetscEnum
 #define EPSLanczosReorthogType PetscEnum
 #define EPSPRIMMEMethod        PetscEnum
-#define EPSPRIMMEPrecond       PetscEnum
 
 
 #define EPSPOWER       'power'

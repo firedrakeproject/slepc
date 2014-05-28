@@ -25,8 +25,7 @@ CFLAGS   =
 FFLAGS   =
 SOURCEC  = ipbasic.c ipdot.c iporthog.c ipborthog.c ipform.c ipbiorthog.c
 SOURCEF  =
-SOURCEH  = ../../../../include/slepc-private/ipimpl.h ../../../../include/slepcip.h \
-           ../../../eps/impls/davidson/common/davidson.h
+SOURCEH  =
 LIBBASE  = libslepcsys
 DIRS     = examples
 MANSEC   = IP

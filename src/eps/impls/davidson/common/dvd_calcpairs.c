@@ -31,7 +31,6 @@
 */
 
 #include "davidson.h"
-#include <slepcblaslapack.h>
 
 PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d);

@@ -402,21 +402,27 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
   Vec            u,w;
   Mat            *A=pep->A;
   PetscInt       i,nmat=pep->nmat;
-  PetscScalar    *vals,*ivals=NULL;
+  PetscScalar    t[20],*vals=t,*ivals=NULL;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            ui,wi;
   PetscReal      ni;
   PetscBool      imag;
+  PetscScalar    it[20];
 #endif
 
   PetscFunctionBegin;
   ierr = VecDuplicate(pep->V[0],&u);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&w);CHKERRQ(ierr);
   ierr = VecZeroEntries(u);CHKERRQ(ierr);
-  ierr = PetscMalloc(nmat*sizeof(PetscScalar),&vals);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc(nmat*sizeof(PetscScalar),&ivals);CHKERRQ(ierr);
+  ivals = it; 
 #endif
+  if (nmat>20) {
+    ierr = PetscMalloc(nmat*sizeof(PetscScalar),&vals);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    ierr = PetscMalloc(nmat*sizeof(PetscScalar),&ivals);CHKERRQ(ierr);
+#endif
+  }
   ierr = PEPEvaluateBasis(pep,kr,ki,vals,ivals);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON))
@@ -460,9 +466,13 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
 #endif
   ierr = VecDestroy(&w);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
-  ierr = PetscFree(vals);CHKERRQ(ierr);
+  if (nmat>20) {
+    ierr = PetscFree(vals);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree(ivals);CHKERRQ(ierr);
+    ierr = PetscFree(ivals);CHKERRQ(ierr);
+#endif
+  }
+#if !defined(PETSC_USE_COMPLEX)
   if (imag) {
     ierr = VecDestroy(&wi);CHKERRQ(ierr);
     ierr = VecDestroy(&ui);CHKERRQ(ierr);

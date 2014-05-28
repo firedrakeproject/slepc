@@ -35,12 +35,11 @@
 #define PEPType            character*(80)
 #define PEPProblemType     PetscEnum
 #define PEPWhich           PetscEnum
+#define PEPBasis           PetscEnum
+#define PEPConv            PetscEnum
 #define PEPConvergedReason PetscEnum
 
 #define PEPLINEAR    'linear'
-#define PEPPARNOLDI  'parnoldi'
-#define PEPPLANCZOS  'planczos'
 #define PEPTOAR      'toar'
-#define PEPSTOAR     'stoar'
 
 #endif

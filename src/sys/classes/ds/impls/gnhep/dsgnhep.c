@@ -350,7 +350,7 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
   lwork = -1;
   PetscStackCallBLAS("LAPACKtgexc",LAPACKtgexc_(&one,&one,&ld,NULL,&ld,NULL,&ld,NULL,&ld,NULL,&ld,&one,&one,&a,&lwork,&info));
   safmin = LAPACKlamch_("S");
-  lwork = a;
+  ierr = PetscBLASIntCast((PetscInt)a,&lwork);CHKERRQ(ierr);
   ierr = DSAllocateWork_Private(ds,lwork,0,0);CHKERRQ(ierr);
   work = ds->work;
 #endif
@@ -563,7 +563,7 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   lwork = -1;
 #if !defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,&info));
-  lwork = (PetscBLASInt)a;
+  ierr = PetscBLASIntCast((PetscInt)a,&lwork);CHKERRQ(ierr);
   ierr = DSAllocateWork_Private(ds,lwork+ld,0,0);CHKERRQ(ierr);
   beta = ds->work;
   work = beta+ds->n;
@@ -571,7 +571,7 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscStackCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,wi,beta,Z,&ld,Q,&ld,work,&lwork,NULL,&info));
 #else
   PetscStackCallBLAS("LAPACKgges",LAPACKgges_("V","V","N",NULL,&n,A,&ld,B,&ld,&iaux,wr,NULL,Z,&ld,Q,&ld,&a,&lwork,NULL,NULL,&info));
-  lwork = (PetscBLASInt)PetscRealPart(a);
+  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
   ierr = DSAllocateWork_Private(ds,lwork+ld,8*ld,0);CHKERRQ(ierr);
   beta = ds->work;
   work = beta+ds->n;
