@@ -622,8 +622,9 @@ PetscErrorCode VecsMultIa(PetscScalar *M,MatType_t sM,PetscInt ldM,Vec *U,PetscI
 */
 PetscErrorCode VecsMultIc(PetscScalar *M,MatType_t sM,PetscInt ldM,PetscInt rM,PetscInt cM,Vec V)
 {
-  PetscInt    i,j;
-  PetscMPIInt n;
+  PetscErrorCode ierr;
+  PetscInt       i,j;
+  PetscMPIInt    n;
 
   PetscFunctionBegin;
   /* Check if quick exit */
@@ -632,7 +633,7 @@ PetscErrorCode VecsMultIc(PetscScalar *M,MatType_t sM,PetscInt ldM,PetscInt rM,P
 
   if (sM != 0) SETERRQ(PetscObjectComm((PetscObject)V),1, "Matrix structure not supported");
 
-  MPI_Comm_size(PetscObjectComm((PetscObject)V), &n);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)V),&n);CHKERRQ(ierr);
 
   for (i=0;i<cM;i++)
     for (j=0;j<rM;j++)

@@ -200,7 +200,7 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   ierr = MatGetLocalSize(D,&m2,&n2);CHKERRQ(ierr);
 
   /* Create mappings */
-  MPI_Comm_size(PetscObjectComm((PetscObject)G),&np);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)G),&np);CHKERRQ(ierr);
   ierr = MatGetOwnershipRangesColumn(A,&mapptr1);CHKERRQ(ierr);
   ierr = MatGetOwnershipRangesColumn(B,&mapptr2);CHKERRQ(ierr);
   ierr = PetscMalloc4(PetscMax(N1,N2),&buf,PetscMax(N1,N2),&scols,N1,&map1,N2,&map2);CHKERRQ(ierr);
