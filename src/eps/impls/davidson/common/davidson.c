@@ -45,8 +45,6 @@ typedef struct {
 
   /**** Things to destroy ****/
   PetscScalar *wS;
-  Vec         *wV;
-  PetscInt    size_wV;
 } EPS_DAVIDSON;
 
 #undef __FUNCT__
@@ -67,8 +65,6 @@ PetscErrorCode EPSCreate_XD(EPS eps)
   ierr = PetscNewLog(eps,&data);CHKERRQ(ierr);
   eps->data = (void*)data;
   data->wS = NULL;
-  data->wV = NULL;
-  data->size_wV = 0;
 
   /* Set default values */
   ierr = EPSXDSetKrylovStart_XD(eps,PETSC_FALSE);CHKERRQ(ierr);
@@ -90,7 +86,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
   dvdBlackboard  b;
-  PetscInt       nvecs,nscalars,min_size_V,plusk,bs,initv,i,cX_in_proj,cX_in_impr,nmat;
+  PetscInt       nscalars,min_size_V,plusk,bs,initv,i,cX_in_proj,cX_in_impr,nmat;
   Mat            A,B;
   KSP            ksp;
   PetscBool      t,ipB,ispositive,dynamic;
@@ -239,11 +235,9 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   if (min_size_V <= cX_in_proj) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"minv has to be greater than qwindow");
   if (bs > 1 && cX_in_impr > 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported option: pwindow > 0 and bs > 1");
 
-  /* Setup IP */
-  if (ipB && dvd->B) {
-    ierr = IPSetMatrix(eps->ip,dvd->B,1.0);CHKERRQ(ierr);
-  } else {
-    ierr = IPSetMatrix(eps->ip,NULL,0.0);CHKERRQ(ierr);
+  /* Setup orthogonalization */
+  if (!(ipB && dvd->B)) {
+    ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
   }
 
   /* Get the fix parameter */
@@ -251,9 +245,6 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   /* Get whether the stopping criterion is used */
   ierr = EPSJDGetConstCorrectionTol_JD(eps,&dynamic);CHKERRQ(ierr);
-
-  /* Orthonormalize the deflation space */
-  ierr = dvd_orthV(eps->ip,NULL,0,NULL,0,eps->defl,0,PetscAbs(eps->nds),NULL,eps->rand);CHKERRQ(ierr);
 
   /* Preconfigure dvd */
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
@@ -266,40 +257,28 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
                                 data->scheme);CHKERRQ(ierr);
 
   /* Allocate memory */
-  nvecs = b.max_size_auxV + b.own_vecs;
+  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   nscalars = b.own_scalars + b.max_size_auxS;
   ierr = PetscMalloc1(nscalars,&data->wS);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,nscalars*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = VecDuplicateVecs(eps->t,nvecs,&data->wV);CHKERRQ(ierr);
-  ierr = PetscLogObjectParents(eps,nvecs,data->wV);CHKERRQ(ierr);
-  data->size_wV = nvecs;
-  b.free_vecs = data->wV;
   b.free_scalars = data->wS;
-  dvd->auxV = data->wV + b.own_vecs;
+  ierr = BVDuplicate(eps->V,&dvd->auxV);CHKERRQ(ierr);
+  ierr = BVResize(dvd->auxV,b.max_size_auxV,PETSC_FALSE);CHKERRQ(ierr);
   dvd->auxS = b.free_scalars + b.own_scalars;
-  dvd->size_auxV = b.max_size_auxV;
   dvd->size_auxS = b.max_size_auxS;
 
   eps->errest_left = NULL;
-  ierr = PetscMalloc1(eps->ncv,&eps->perm);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,eps->ncv*sizeof(PetscInt));CHKERRQ(ierr);
   for (i=0;i<eps->ncv;i++) eps->perm[i] = i;
 
   /* Configure dvd for a basic GD */
   ierr = dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,
                              initv,
                              PetscAbs(eps->nini),plusk,
-                             eps->ip,harm,dvd->withTarget,
+                             harm,dvd->withTarget,
                              target,ksp,
                              fix,init,eps->trackall,
                              data->ipB,cX_in_proj,cX_in_impr,dynamic,
                              data->scheme);CHKERRQ(ierr);
-
-  /* Associate the eigenvalues to the EPS */
-  eps->eigr = dvd->real_eigr;
-  eps->eigi = dvd->real_eigi;
-  eps->errest = dvd->real_errest;
-  eps->V = dvd->real_V;
   PetscFunctionReturn(0);
 }
 
@@ -309,6 +288,7 @@ PetscErrorCode EPSSolve_XD(EPS eps)
 {
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *d = &data->ddb;
+  PetscInt       l,k;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -317,7 +297,8 @@ PetscErrorCode EPSSolve_XD(EPS eps)
 
   for (eps->its=0;eps->its<eps->max_it;eps->its++) {
     /* Initialize V, if it is needed */
-    if (d->size_V == 0) { ierr = d->initV(d);CHKERRQ(ierr); }
+    ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
+    if (l == k) { ierr = d->initV(d);CHKERRQ(ierr); }
 
     /* Find the best approximated eigenpairs in V, X */
     ierr = d->calcPairs(d);CHKERRQ(ierr);
@@ -330,7 +311,8 @@ PetscErrorCode EPSSolve_XD(EPS eps)
 
     /* Monitor progress */
     eps->nconv = d->nconv;
-    ierr = EPSMonitor(eps,eps->its+1,eps->nconv,eps->eigr,eps->eigi,eps->errest,d->size_V+d->size_cX);CHKERRQ(ierr);
+    ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
+    ierr = EPSMonitor(eps,eps->its+1,eps->nconv,eps->eigr,eps->eigi,eps->errest,k);CHKERRQ(ierr);
   }
 
   /* Call the ending routines */
@@ -356,11 +338,7 @@ PetscErrorCode EPSReset_XD(EPS eps)
   DVD_FL_DEL(dvd->startList);
   DVD_FL_DEL(dvd->endList);
 
-  if (data->size_wV > 0) {
-    ierr = VecDestroyVecs(data->size_wV,&data->wV);CHKERRQ(ierr);
-  }
   ierr = PetscFree(data->wS);CHKERRQ(ierr);
-  ierr = PetscFree(eps->perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -637,8 +615,9 @@ PetscErrorCode EPSComputeVectors_XD(EPS eps)
   PetscErrorCode ierr;
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *d = &data->ddb;
-  PetscScalar    *pX,*cS,*cT;
+  PetscScalar    *cS,*cT;
   PetscInt       ld;
+  Mat            Z;
 
   PetscFunctionBegin;
   if (d->cS) {
@@ -658,12 +637,12 @@ PetscErrorCode EPSComputeVectors_XD(EPS eps)
     ierr = DSVectors(d->conv_ps,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
     ierr = DSNormalize(d->conv_ps,DS_MAT_X,-1);CHKERRQ(ierr);
 
-    /* V <- cX * pX */
-    ierr = DSGetArray(d->conv_ps,DS_MAT_X,&pX);CHKERRQ(ierr);
-    ierr = SlepcUpdateVectorsZ(eps->V,0.0,1.0,d->cX,d->size_cX,pX,ld,d->nconv,d->nconv);CHKERRQ(ierr);
-    ierr = DSRestoreArray(d->conv_ps,DS_MAT_X,&pX);CHKERRQ(ierr);
+    /* V <- V * Z */
+    ierr = DSGetMat(d->conv_ps,DS_MAT_X,&Z);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
+    ierr = BVMultInPlace(eps->V,Z,0,eps->nconv);CHKERRQ(ierr);
+    ierr = MatDestroy(&Z);CHKERRQ(ierr);
   }
-
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
 }

@@ -53,7 +53,7 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt 
     ierr = dvd_testconv_slepc(d, b);CHKERRQ(ierr);
 
     /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
-    ierr = dvd_calcpairs_qz(d, b, orth, NULL, cX_proj,
+    ierr = dvd_calcpairs_qz(d, b, orth, cX_proj,
                 harmMode==DVD_HARM_NONE?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr);
     if (harmMode != DVD_HARM_NONE) {
       ierr = dvd_harm_conf(d, b, harmMode, PETSC_FALSE, 0.0);CHKERRQ(ierr);
@@ -77,10 +77,9 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt 
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_schm_basic_conf"
-PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,IP ip,HarmType_t harmMode,PetscBool fixedTarget,PetscScalar t,KSP ksp,PetscReal fix,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,PetscBool dynamic,Method_t method)
+PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,PetscBool fixedTarget,PetscScalar t,KSP ksp,PetscReal fix,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,PetscBool dynamic,Method_t method)
 {
   PetscInt        check_sum0, check_sum1, maxits;
-  Vec             *fv;
   PetscScalar     *fs;
   PetscReal       tol;
   PetscErrorCode  ierr;
@@ -89,7 +88,7 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd
   b->state = DVD_STATE_CONF;
   check_sum0 = DVD_CHECKSUM(b);
   b->own_vecs = 0; b->own_scalars = 0;
-  fv = b->free_vecs; fs = b->free_scalars;
+  fs = b->free_scalars;
 
   /* Setup basic management of V */
   ierr = dvd_managementV_basic(d, b, bs, mpd, min_size_V, plusk,
@@ -104,7 +103,7 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd
   ierr = dvd_testconv_slepc(d, b);CHKERRQ(ierr);
 
   /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
-  ierr = dvd_calcpairs_qz(d, b, orth, ip, cX_proj,
+  ierr = dvd_calcpairs_qz(d, b, orth, cX_proj,
                 harmMode==DVD_HARM_NONE?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr);
   if (harmMode != DVD_HARM_NONE) {
     ierr = dvd_harm_conf(d, b, harmMode, fixedTarget, t);CHKERRQ(ierr);
@@ -126,7 +125,6 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd
 
   check_sum1 = DVD_CHECKSUM(b);
   if ((check_sum0 != check_sum1) ||
-      (b->free_vecs - fv > b->own_vecs) ||
       (b->free_scalars - fs > b->own_scalars))
     SETERRQ(PETSC_COMM_SELF,1, "Something awful happened");
   PetscFunctionReturn(0);

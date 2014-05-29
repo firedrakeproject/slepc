@@ -103,6 +103,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
   PetscBool       useGD,her_probl,std_probl;
   PC              pc;
   PetscInt        size_P,s=1;
+  Vec             t;
 
   PetscFunctionBegin;
   std_probl = DVD_IS(d->sEP,DVD_EP_STD)?PETSC_TRUE:PETSC_FALSE;
@@ -150,9 +151,11 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
   if (b->state >= DVD_STATE_CONF) {
     ierr = PetscMalloc(sizeof(dvdImprovex_jd),&data);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdImprovex_jd));CHKERRQ(ierr);
+    ierr = BVGetColumn(d->eps->V,0,&t);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(t,size_P,&data->real_KZ);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(d->eps->V,0,&t);CHKERRQ(ierr);
     data->dynamic = dynamic;
     data->size_real_KZ = size_P;
-    data->real_KZ = b->free_vecs; b->free_vecs+= data->size_real_KZ;
     d->max_cX_in_impr = cX_impr;
     data->XKZ = b->free_scalars; b->free_scalars+= size_P*size_P;
     data->ldXKZ = size_P;
@@ -191,7 +194,7 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
   /* Setup the ksp */
   if (data->ksp) {
     /* Create the reference vector */
-    ierr = VecCreateCompWithVecs(d->V,data->ksp_max_size,NULL,&data->friends);CHKERRQ(ierr);
+    ierr = VecCreateCompWithVecs(d->eps->V,data->ksp_max_size,NULL,&data->friends);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)d->eps,(PetscObject)data->friends);CHKERRQ(ierr);
 
     /* Save the current pc and set a PCNONE */
@@ -273,6 +276,7 @@ PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
   d->improveX_data = data->old_improveX_data;
 
   /* Free local data and objects */
+  ierr = VecDestroyVecs(data->size_real_KZ,&data->real_KZ);CHKERRQ(ierr);
   ierr = PetscFree(data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -283,7 +287,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
 {
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
   PetscErrorCode  ierr;
-  PetscInt        i,j,n,maxits,maxits0,lits,s,ld,k;
+  PetscInt        i,j,n,maxits,maxits0,lits,s,ld,l,k;
   PetscScalar     *pX,*pY,*auxS = d->auxS,*auxS0;
   PetscReal       tol,tol0;
   Vec             *u,*v,*kr,kr_comp,D_comp;
@@ -307,9 +311,10 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
   if (data->size_X < r_e-r_s) SETERRQ(PETSC_COMM_SELF,1, "size_X < r_e-r_s");
 
   ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(d->eps->V,&l,NULL);CHKERRQ(ierr);
 
   /* Restart lastTol if a new pair converged */
-  if (data->dynamic && data->size_cX < d->size_cX)
+  if (data->dynamic && data->size_cX < l)
     data->lastTol = 0.5;
 
   for (i=0,s=0,auxS0=auxS;i<n;i+=s) {
@@ -778,7 +783,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF - Lapack routine is unavailable");
 #else
   PetscErrorCode    ierr;
-  PetscInt          n = i_e - i_s, size_KZ, V_new, rm, i, size_in;
+  PetscInt          l,n = i_e - i_s, size_KZ, V_new, rm, i, size_in;
   dvdImprovex_jd    *data = (dvdImprovex_jd*)d->improveX_data;
   PetscBLASInt      s, ldXKZ, info;
   DvdReduction      r;
@@ -787,7 +792,8 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
 
   PetscFunctionBegin;
   /* Check consistency */
-  V_new = d->size_cX - data->size_cX;
+  ierr = BVGetActiveColumns(d->eps->V,&l,NULL);CHKERRQ(ierr);
+  V_new = l - data->size_cX;
   if (V_new > data->old_size_X) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
   data->old_size_X = n;
 
@@ -796,7 +802,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
   for (i=0; i<d->max_cX_in_impr; i++) {
     ierr = VecCopy(data->KZ[i+rm], data->KZ[i]);CHKERRQ(ierr);
   }
-  data->size_cX = d->size_cX;
+  data->size_cX = l;
 
   /* XKZ <- XKZ(rm:rm+max_cX-1,rm:rm+max_cX-1) */
   for (i=0; i<d->max_cX_in_impr; i++) {
