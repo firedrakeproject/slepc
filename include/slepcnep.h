@@ -114,8 +114,8 @@ PETSC_EXTERN PetscErrorCode NEPSetSplitOperator(NEP,PetscInt,Mat*,FN*,MatStructu
 PETSC_EXTERN PetscErrorCode NEPGetSplitOperatorTerm(NEP,PetscInt,Mat*,FN*);
 PETSC_EXTERN PetscErrorCode NEPGetSplitOperatorInfo(NEP,PetscInt*,MatStructure*);
 
-PETSC_EXTERN PetscErrorCode NEPSetIP(NEP,IP);
-PETSC_EXTERN PetscErrorCode NEPGetIP(NEP,IP*);
+PETSC_EXTERN PetscErrorCode NEPSetBV(NEP,BV);
+PETSC_EXTERN PetscErrorCode NEPGetBV(NEP,BV*);
 PETSC_EXTERN PetscErrorCode NEPSetDS(NEP,DS);
 PETSC_EXTERN PetscErrorCode NEPGetDS(NEP,DS*);
 PETSC_EXTERN PetscErrorCode NEPSetTolerances(NEP,PetscReal,PetscReal,PetscReal,PetscInt,PetscInt);

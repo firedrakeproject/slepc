@@ -371,7 +371,7 @@ PetscErrorCode QEPAllocateSolution(QEP qep,PetscInt extra)
       ierr = PetscFree4(qep->eigr,qep->eigi,qep->errest,qep->perm);CHKERRQ(ierr);
     }
     ierr = PetscMalloc4(requested,&qep->eigr,requested,&qep->eigi,requested,&qep->errest,requested,&qep->perm);CHKERRQ(ierr);
-    cnt = 2*newc*sizeof(PetscScalar) + 2*newc*sizeof(PetscReal);
+    cnt = 2*newc*sizeof(PetscScalar) + newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
     ierr = PetscLogObjectMemory((PetscObject)qep,cnt);CHKERRQ(ierr);
   }
 

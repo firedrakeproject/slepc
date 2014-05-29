@@ -42,8 +42,8 @@ PetscErrorCode NEPRegisterAll(void)
 
   PetscFunctionBegin;
   NEPRegisterAllCalled = PETSC_TRUE;
-  ierr = NEPRegister(NEPRII,NEPCreate_RII);CHKERRQ(ierr);
-  ierr = NEPRegister(NEPSLP,NEPCreate_SLP);CHKERRQ(ierr);
-  ierr = NEPRegister(NEPNARNOLDI,NEPCreate_NARNOLDI);CHKERRQ(ierr);
+//  ierr = NEPRegister(NEPRII,NEPCreate_RII);CHKERRQ(ierr);
+//  ierr = NEPRegister(NEPSLP,NEPCreate_SLP);CHKERRQ(ierr);
+//  ierr = NEPRegister(NEPNARNOLDI,NEPCreate_NARNOLDI);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

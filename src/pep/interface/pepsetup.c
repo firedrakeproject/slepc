@@ -58,7 +58,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   /* reset the convergence flag from the previous solves */
   pep->reason = PEP_CONVERGED_ITERATING;
 
-  /* Set default solver type (PEPSetFromOptions was not called) */
+  /* set default solver type (PEPSetFromOptions was not called) */
   if (!((PetscObject)pep)->type_name) {
     ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
   }
@@ -75,17 +75,17 @@ PetscErrorCode PEPSetUp(PEP pep)
     ierr = PetscRandomSetFromOptions(pep->rand);CHKERRQ(ierr);
   }
 
-  /* Check matrices, transfer them to ST */
+  /* check matrices, transfer them to ST */
   if (!pep->A) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"PEPSetOperators must be called first");
   if (!islinear) {
     ierr = STSetOperators(pep->st,pep->nmat,pep->A);CHKERRQ(ierr);
   }
 
-  /* Set problem dimensions */
+  /* set problem dimensions */
   ierr = MatGetSize(pep->A[0],&pep->n,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(pep->A[0],&pep->nloc,NULL);CHKERRQ(ierr);
 
-  /* Set default problem type */
+  /* set default problem type */
   if (!pep->problem_type) {
     ierr = PEPSetProblemType(pep,PEP_GENERAL);CHKERRQ(ierr);
   }
@@ -99,7 +99,7 @@ PetscErrorCode PEPSetUp(PEP pep)
     }
   }
 
-  /* Call specific solver setup */
+  /* call specific solver setup */
   ierr = (*pep->ops->setup)(pep);CHKERRQ(ierr);
 
   /* set tolerance if not yet set */
@@ -148,23 +148,23 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (pep->ncv > pep->n) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be the problem size at most");
   if (pep->nev > pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
 
-  /* Setup ST */
+  /* setup ST */
   if (!islinear) {
     ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
     if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in PEP");
     ierr = STSetUp(pep->st);CHKERRQ(ierr);
-    /* Compute matrix coefficients */
+    /* compute matrix coefficients */
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
     if (!flg) {
       ierr = STComputeSolveMat(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr);
     }
-    /* Compute scale factor if no set by user */
+    /* compute scale factor if no set by user */
     if (!pep->sfactor_set) {
       ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
     }
   }
 
- /* Build balancing matrix if required */
+  /* build balancing matrix if required */
   if (pep->balance) {
     if (!pep->Dl) {
       ierr = BVGetVec(pep->V,&pep->Dl);CHKERRQ(ierr);
@@ -411,7 +411,7 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
       ierr = PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm);CHKERRQ(ierr);
     }
     ierr = PetscMalloc4(requested,&pep->eigr,requested,&pep->eigi,requested,&pep->errest,requested,&pep->perm);CHKERRQ(ierr);
-    cnt = 2*newc*sizeof(PetscScalar) + 2*newc*sizeof(PetscReal);
+    cnt = 2*newc*sizeof(PetscScalar) + newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
     ierr = PetscLogObjectMemory((PetscObject)pep,cnt);CHKERRQ(ierr);
   }
 

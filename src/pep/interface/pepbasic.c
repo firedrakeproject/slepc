@@ -809,10 +809,10 @@ PetscErrorCode PEPSetTarget(PEP pep,PetscScalar target)
    Output Parameter:
 .  target - the value of the target
 
-   Level: beginner
-
    Note:
    If the target was not set by the user, then zero is returned.
+
+   Level: beginner
 
 .seealso: PEPSetTarget()
 @*/

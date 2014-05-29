@@ -119,7 +119,6 @@ PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
   PetscFunctionBegin;
   ierr = KSPSolve(nep->ksp,b,x);CHKERRQ(ierr);
   ierr = KSPGetIterationNumber(nep->ksp,&lits);CHKERRQ(ierr);
-  nep->linits += lits;
   ierr = PetscInfo2(nep,"iter=%D, linear solve iterations=%D\n",nep->its,lits);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -153,14 +152,14 @@ PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
 @*/
 PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
 {
-  PetscErrorCode ierr;
+/*  PetscErrorCode ierr;
   PetscInt       i,j,k,ld;
   PetscScalar    *G,val;
   Vec            *V = nep->V;
-  PetscBool      isherm,set,flg;
+  PetscBool      isherm,set,flg;*/
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+/*  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,j0,2);
   PetscValidLogicalCollectiveInt(nep,j1,3);
   PetscValidHeaderSpecific(f,VEC_CLASSID,4);
@@ -187,7 +186,7 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
       }
     }
     ierr = DSRestoreArray(nep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
-  }
+  }*/
   PetscFunctionReturn(0);
 }
 
@@ -449,7 +448,7 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eig,Vec V)
   else k = nep->perm[i];
 
   if (eig) *eig = nep->eig[k];
-  if (V) { ierr = VecCopy(nep->V[k],V);CHKERRQ(ierr); }
+  if (V) { ierr = BVCopyVec(nep->V,k,V);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -501,7 +500,7 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,P
   Mat            T=nep->function;
 
   PetscFunctionBegin;
-  ierr = VecDuplicate(nep->V[0],&u);CHKERRQ(ierr);
+  ierr = BVGetVec(nep->V,&u);CHKERRQ(ierr);
   ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
   ierr = MatMult(T,x,u);CHKERRQ(ierr);
   ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
@@ -544,7 +543,7 @@ PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *norm)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   PetscValidPointer(norm,3);
-  ierr = VecDuplicate(nep->V[0],&x);CHKERRQ(ierr);
+  ierr = BVGetVec(nep->V,&x);CHKERRQ(ierr);
   ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
   ierr = NEPComputeResidualNorm_Private(nep,lambda,x,norm);CHKERRQ(ierr);
   ierr = VecDestroy(&x);CHKERRQ(ierr);
@@ -604,7 +603,7 @@ PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   PetscValidPointer(error,3);
-  ierr = VecDuplicate(nep->V[0],&x);CHKERRQ(ierr);
+  ierr = BVGetVec(nep->V,&x);CHKERRQ(ierr);
   ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
   ierr = NEPComputeRelativeError_Private(nep,lambda,x,error);CHKERRQ(ierr);
   ierr = VecDestroy(&x);CHKERRQ(ierr);
@@ -723,16 +722,16 @@ PetscErrorCode NEPCompareEigenvalues(NEP nep,PetscScalar a,PetscScalar b,PetscIn
 @*/
 PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,PetscInt* lits)
 {
-  PetscErrorCode ierr;
+  /*PetscErrorCode ierr;*/
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (nfuncs) *nfuncs = nep->nfuncs;
+  /*if (nfuncs) *nfuncs = nep->nfuncs;
   if (dots) {
     if (!nep->ip) { ierr = NEPGetIP(nep,&nep->ip);CHKERRQ(ierr); }
     ierr = IPGetOperationCounters(nep->ip,dots);CHKERRQ(ierr);
   }
-  if (lits) *lits = nep->linits;
+  if (lits) *lits = nep->linits;*/
   PetscFunctionReturn(0);
 }
 
