@@ -425,8 +425,7 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
    The parameter 'borth' can have one of these values
 
 +   EPS_ORTH_I - orthogonalization of the search subspace
-.   EPS_ORTH_B - B-orthogonalization of the search subspace
--   EPS_ORTH_BOPT - B-orthogonalization of the search subspace with an alternative method
+-   EPS_ORTH_B - B-orthogonalization of the search subspace
 
    Options Database Key:
 .  -eps_gd_borth - Set the orthogonalization used in the search subspace
@@ -434,8 +433,6 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
    Notes:
    If borth is EPS_ORTH_B, the solver uses a variant of Gram-Schmidt (selected in
    IP associated to the EPS) with the inner product defined by the matrix problem B.
-   If borth is EPS_ORTH_BOPT, it uses another variant of Gram-Schmidt that only performs
-   one matrix-vector product although more than one reorthogonalization would be done.
 
    Level: advanced
 

@@ -58,7 +58,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,V
 PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType orth,IP ipI,PetscInt cX_proj,PetscBool harm)
 {
   PetscErrorCode ierr;
-  PetscInt       i,max_cS;
+  PetscInt       max_cS;
   PetscBool      std_probl,her_probl,ind_probl,her_ind_probl;
   DSType         dstype;
   const char     *prefix;
@@ -84,17 +84,14 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
   d->W_shift = d->B?PETSC_TRUE:PETSC_FALSE;
   d->size_real_W = harm?(b->max_size_V+(d->W_shift?b->max_nev:b->max_size_cP)):0;
   d->size_real_AV = b->max_size_V+b->max_size_cP;
-  d->size_BDS = 0;
-  if (d->B && her_ind_probl && (orth == EPS_ORTH_I || orth == EPS_ORTH_BOPT)) {
+  if (d->B && her_ind_probl && orth == EPS_ORTH_I) {
     d->size_real_BV = b->size_V; d->BV_shift = PETSC_TRUE;
-    if (orth == EPS_ORTH_BOPT) d->size_BDS = d->eps->nds;
   } else if (d->B) {
     d->size_real_BV = b->max_size_V + b->max_size_P; d->BV_shift = PETSC_FALSE;
   } else {
     d->size_real_BV = 0; d->BV_shift = PETSC_FALSE;
   }
-  b->own_vecs+= d->size_real_V + d->size_real_W + d->size_real_AV +
-                d->size_real_BV + d->size_BDS;
+  b->own_vecs+= d->size_real_V + d->size_real_W + d->size_real_AV + d->size_real_BV;
   b->own_scalars+= b->max_size_proj*b->max_size_proj*2*(std_probl?1:2) +
                                               /* H, G?, S, T? */
                    b->max_nev*b->max_nev*(her_ind_probl?0:(!d->B?1:2)) +
@@ -148,16 +145,10 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
       if (ind_probl) {
         d->real_nBV = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(d->size_real_V);
         d->nBpX = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(d->max_size_proj);
-      } else d->real_nBV = d->nBDS = d->nBpX = NULL;
+      } else d->real_nBV = d->nBpX = NULL;
     }
     d->ipV = ipI;
     d->ipW = ipI;
-    if (orth == EPS_ORTH_BOPT) {
-      d->BDS = b->free_vecs; b->free_vecs+= d->eps->nds;
-      for (i=0; i<d->eps->nds; i++) {
-        ierr = MatMult(d->B, d->eps->defl[i], d->BDS[i]);CHKERRQ(ierr);
-      }
-    } else d->BDS = NULL;
     if (d->B) {
       d->real_BV = b->free_vecs; b->free_vecs+= d->size_real_BV;
     } else {
@@ -331,7 +322,7 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
   }
   d->size_AV = d->V_new_e;
   /* 4. BV <- [BV B * V(V_new_s:V_new_e-1)] */
-  if (d->B && d->orthoV_type != EPS_ORTH_BOPT) {
+  if (d->B) {
     /* Check consistency */
     if (d->size_BV != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
     for (i=d->V_new_s; i<d->V_new_e; i++) {
@@ -436,10 +427,7 @@ PetscErrorCode dvd_calcpairs_updateV1(dvdDashboard *d)
   if (d->size_V != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
 
   /* V <- gs([cX V(0:V_new_s-1)], V(V_new_s:V_new_e-1)) */
-  if (d->orthoV_type == EPS_ORTH_BOPT) {
-    ierr = dvd_BorthV_faster(d->ipV,d->eps->defl,d->BDS,d->nBDS,d->eps->nds,d->cX,d->real_BV,d->nBcX,d->size_cX,d->V,d->BV,d->nBV,d->V_new_s,d->V_new_e,d->auxS,d->eps->rand);CHKERRQ(ierr);
-    d->size_BV = d->V_new_e;
-  } else if (DVD_IS(d->sEP, DVD_EP_INDEFINITE)) {
+  if (DVD_IS(d->sEP, DVD_EP_INDEFINITE)) {
     ierr = dvd_BorthV_stable(d->ipV,d->eps->defl,d->nBDS,d->eps->nds,d->cX,d->nBcX,d->size_cX,d->V,d->nBV,d->V_new_s,d->V_new_e,d->auxS,d->eps->rand);CHKERRQ(ierr);
   } else {
     ierr = dvd_orthV(d->ipV,d->eps->defl,d->eps->nds,cX,d->size_cX,d->V,d->V_new_s,d->V_new_e,d->auxS,d->eps->rand);CHKERRQ(ierr);
@@ -836,14 +824,7 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,
   else cX = NULL;
 
   if (cX) {
-    if (cX && d->orthoV_type == EPS_ORTH_BOPT) {
-      Vec auxV;
-      ierr = VecDuplicate(d->auxV[0],&auxV);CHKERRQ(ierr);
-      for (i=0; i<r_e-r_s; i++) {
-        ierr = IPBOrthogonalize(d->ipV,d->eps->nds,d->eps->defl,d->BDS,d->nBDS,d->size_cX,NULL,d->cX,d->real_BV,d->nBcX,R[i],auxV,NULL,&d->nR[r_s+i],&lindep);CHKERRQ(ierr);
-      }
-      ierr = VecDestroy(&auxV);CHKERRQ(ierr);
-    } else if (DVD_IS(d->sEP, DVD_EP_INDEFINITE)) {
+    if (DVD_IS(d->sEP, DVD_EP_INDEFINITE)) {
       for (i=0; i<r_e-r_s; i++) {
         ierr = IPPseudoOrthogonalize(d->ipV,d->size_cX,cX,d->nBcX,R[i],NULL,&d->nR[r_s+i],&lindep);CHKERRQ(ierr);
       }
@@ -856,7 +837,7 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,
       ierr = PetscInfo2(d->eps,"The computed eigenvector residual %D is too low, %g!\n",r_s+i,(double)(d->nR[r_s+i]));CHKERRQ(ierr);
     }
   }
-  if (!cX || (cX && d->orthoV_type == EPS_ORTH_BOPT)) {
+  if (!cX) {
     for (i=0;i<r_e-r_s;i++) {
       ierr = VecNormBegin(R[i],NORM_2,&d->nR[r_s+i]);CHKERRQ(ierr);
     }

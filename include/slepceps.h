@@ -339,8 +339,7 @@ PETSC_EXTERN PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method)
 .seealso: EPSGDSetBOrth(), EPSJDSetBOrth()
 E*/
 typedef enum { EPS_ORTH_I=1,
-               EPS_ORTH_B,
-               EPS_ORTH_BOPT } EPSOrthType;
+               EPS_ORTH_B } EPSOrthType;
 
 PETSC_EXTERN PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscBool krylovstart);
 PETSC_EXTERN PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscBool *krylovstart);

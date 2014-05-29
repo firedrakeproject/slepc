@@ -125,8 +125,7 @@ typedef struct _dvdDashboard {
     *AV,            /* A*V */
     *real_AV,       /* original A*V space */
     *BV,            /* B*V */
-    *real_BV,       /* original B*V space */
-    *BDS;           /* B * eps->DV */
+    *real_BV;       /* original B*V space */
   PetscInt size_V,  /* size of V */
     size_real_V,    /* original size of V */
     size_W,         /* size of W */
@@ -134,7 +133,6 @@ typedef struct _dvdDashboard {
     size_AV,        /* size of AV */
     size_real_AV,   /* original size of AV */
     size_BV,        /* size of BV */
-    size_BDS,       /* size of BDS */
     size_real_BV,   /* original size of BV */
     size_cX,        /* size of cX */
     size_cY,        /* size of cY */
@@ -385,7 +383,6 @@ PETSC_INTERN PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b
 
 /* Orthogonalization routines */
 PETSC_INTERN PetscErrorCode dvd_orthV(IP ip,Vec *DS,PetscInt size_DS,Vec *cX,PetscInt size_cX,Vec *V,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
-PETSC_INTERN PetscErrorCode dvd_BorthV_faster(IP ip,Vec *DS,Vec *BDS,PetscReal *BDSn,PetscInt size_DS,Vec *cX,Vec *BcX,PetscReal *BcXn,PetscInt size_cX,Vec *V,Vec *BV,PetscReal *BVn,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
 PETSC_INTERN PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_DS,Vec *cX,PetscReal *BcXn,PetscInt size_cX,Vec *V,PetscReal *BVn,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
 
 /* SLEPc interface routines */

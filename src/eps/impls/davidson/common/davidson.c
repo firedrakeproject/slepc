@@ -389,9 +389,6 @@ PetscErrorCode EPSView_XD(EPS eps,PetscViewer viewer)
     case EPS_ORTH_B:
       ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is B-orthogonalized\n");CHKERRQ(ierr);
       break;
-    case EPS_ORTH_BOPT:
-      ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is B-orthogonalized with an optimized method\n");CHKERRQ(ierr);
-      break;
     }
     ierr = EPSXDGetBlockSize_XD(eps,&opi);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: block size=%D\n",opi);CHKERRQ(ierr);
