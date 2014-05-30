@@ -44,9 +44,13 @@
 
    The matrix Q must be a sequential dense Mat, with all entries equal on
    all processes (otherwise each process will compute a different update).
+   The dimensions of Q must be m,n where m is the number of active columns
+   of X and n is the number of active columns of Y.
 
    The leading columns of Y are not modified. Also, if X has leading
    columns specified, then these columns do not participate in the computation.
+   Hence, only rows (resp. columns) of Q starting from lx (resp. ly) are used,
+   where lx (resp. ly) is the number of leading columns of X (resp. Y).
 
    Level: intermediate
 
