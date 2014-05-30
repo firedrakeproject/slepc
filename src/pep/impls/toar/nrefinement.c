@@ -61,13 +61,11 @@ static PetscErrorCode MatFSMult(Mat M ,Vec x,Vec y)
   c = ctx->work; vals = ctx->work+k;
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(nmat*k,&lda_);CHKERRQ(ierr);
-//  ierr = VecMDot(x,k,ctx->V,c);CHKERRQ(ierr);
   ierr = BVDotVec(ctx->V,x,c);CHKERRQ(ierr);
   ierr = MatMult(A[0],x,y);CHKERRQ(ierr);
   for (i=1;i<nmat;i++) {
     PetscStackCall("BLASgemv",BLASgemv_("N",&k_,&k_,&sone,ctx->Mm+i*k,&lda_,c,&one,&zero,vals,&one));
     ierr = VecCopy(x,ctx->w1);CHKERRQ(ierr);
-//    ierr = SlepcVecMAXPBY(ctx->w1,fih[i],-1.0,k,vals,ctx->V);CHKERRQ(ierr);
     ierr = BVMultVec(ctx->V,-1.0,fih[i],ctx->w1,vals);CHKERRQ(ierr);
     ierr = MatMult(A[i],ctx->w1,ctx->w2);CHKERRQ(ierr);
     ierr = VecAXPY(y,1.0,ctx->w2);CHKERRQ(ierr);
@@ -200,18 +198,15 @@ static PetscErrorCode NRefSysSolve(Mat *A,KSP ksp,PetscInt nmat,Vec Rv,PetscScal
   PetscStackCall("LAPACKgetrs",LAPACKgetrs_("N",&k_,&one,T22,&k_,p22,t0,&k_,&info));
   for (i=1;i<nmat;i++) {
     PetscStackCall("BLASgemv",BLASgemv_("N",&k_,&k_,&sone,T12+i*k,&lda_,t0,&one,&zero,t1,&one));
-//    ierr = SlepcVecMAXPBY(t,0.0,1.0,k,t1,V);CHKERRQ(ierr);
     ierr = BVMultVec(V,1.0,0.0,t,t1);CHKERRQ(ierr);
     ierr = BVGetColumn(W,i,&w);CHKERRQ(ierr);
     ierr = MatMult(A[i],t,w);CHKERRQ(ierr);
     ierr = BVRestoreColumn(W,i,&w);CHKERRQ(ierr);
   }
   for (i=0;i<nmat-1;i++) t1[i]=-1.0;
-//  ierr = VecMAXPY(Rv,nmat-1,t1,W+1);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(W,1,nmat);CHKERRQ(ierr);
   ierr = BVMultVec(W,1.0,1.0,Rv,t1);CHKERRQ(ierr);
   ierr = KSPSolve(ksp,Rv,dVi);CHKERRQ(ierr);
-//  ierr = VecMDot(dVi,k,V,t1);CHKERRQ(ierr);
   ierr = BVDotVec(V,dVi,t1);CHKERRQ(ierr);
   PetscStackCall("BLASgemv",BLASgemv_("N",&k_,&k_,&none,T21,&k_,t1,&one,&zero,dHi,&one));
   for (i=0;i<k;i++) dHi[i] += Rh[i];
@@ -240,9 +235,6 @@ static PetscErrorCode NRefRightside(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(nmat,&nmat_);CHKERRQ(ierr);
   PetscStackCall("BLASgemm",BLASgemm_("N","N",&k_,&nmat_,&k_,&sone,S,&lds_,fH+j*lda,&k_,&zero,h,&k_));
-//  for (i=0;i<nmat;i++) {
-//    ierr = SlepcVecMAXPBY(W[i],0.0,1.0,k,h+i*k,V);CHKERRQ(ierr);
-//  }
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,nmat,h,&M0);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(W,0,nmat);CHKERRQ(ierr);
   ierr = BVMult(W,1.0,0.0,V,M0);CHKERRQ(ierr);
@@ -299,9 +291,7 @@ static PetscErrorCode NRefRightside(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
     for (i=0;i<nmat;i++) {
       PetscStackCall("BLASgemv",BLASgemv_("N",&k2_,&j_,&sone,dVS,&k2_,fH+j*lda+i*k,&one,&zero,h,&one));
       PetscStackCall("BLASgemv",BLASgemv_("N",&k_,&k_,&sone,S,&lds_,DfH+i*k+j*lda,&one,&sone,h,&one));
-//      ierr = SlepcVecMAXPBY(t,0.0,1.0,k,h,V);CHKERRQ(ierr);
       ierr = BVMultVec(V,1.0,0.0,t,h);CHKERRQ(ierr);
-//      ierr = SlepcVecMAXPBY(t,1.0,1.0,j,h+k,dV);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(dV,0,j);CHKERRQ(ierr);
       ierr = BVMultVec(dV,1.0,1.0,t,h+k);CHKERRQ(ierr);
       ierr = BVGetColumn(W,i,&w);CHKERRQ(ierr);
@@ -314,7 +304,6 @@ static PetscErrorCode NRefRightside(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
     }
      
     for (i=0;i<nmat;i++) h[i] = -1.0;
-//    ierr = VecMAXPY(Rv,nmat,h,W);CHKERRQ(ierr);
     ierr = BVMultVec(W,1.0,1.0,Rv,h);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -349,7 +338,6 @@ static PetscErrorCode NRefSysIter_shell(PEP pep,PetscInt k,KSP ksp,PetscScalar *
   PetscFunctionReturn(0);
 }
 
-#if 0
 #undef __FUNCT__
 #define __FUNCT__ "NRefSysIter_explicit"
 static PetscErrorCode NRefSysIter_explicit(PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,Vec Rv,PetscScalar *Rh,BV V,Vec dVi,PetscScalar *dHi,Matexplicitctx *matctx,BV W,PetscScalar *work,PetscInt lwork)
@@ -361,10 +349,12 @@ static PetscErrorCode NRefSysIter_explicit(PEP pep,PetscInt k,KSP ksp,PetscScala
   Mat               M,*A=pep->A,*E=matctx->E;
   PetscReal         *a=pep->pbc,*b=pep->pbc+nmat,*g=pep->pbc+2*nmat;
   PetscScalar       s,ss,*DHii,*T22,*T21,*T12,*Ts,*Tr,*arrayV,*array,*ts,sone=1.0,zero=0.0;
-  PetscBLASInt      lds_,lda_,k_,nn_,nmat1_;
+  PetscBLASInt      lds_,lda_,k_;
   const PetscInt    *rgs0,*rgs1,*idxmc;
   const PetscScalar *valsc;
   MatStructure      str;
+  Vec               vc,vc0;
+  Mat               Mk,Md;
   
   PetscFunctionBegin;
   T22 = work+nwu;
@@ -454,18 +444,18 @@ static PetscErrorCode NRefSysIter_explicit(PEP pep,PetscInt k,KSP ksp,PetscScala
     ss = PetscConj(fh[i]);
     PetscStackCall("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&ss,S,&lds_,fH+i*k,&lda_,&s,T21,&k_));
   }
-  ierr = VecGetArray(V[0],&arrayV);CHKERRQ(ierr);
-  ierr = VecGetArray(W[0],&array);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(m0-n0,&nn_);CHKERRQ(ierr);
-  PetscStackCall("BLASgemm",BLASgemm_("N","N",&nn_,&k_,&k_,&sone,arrayV,&nn_,T21,&k_,&zero,array,&nn_));
-
-  for (i=0;i<(m0-n0)*k;i++) array[i] = PetscConj(array[i]);
+  ierr = BVSetActiveColumns(W,0,k);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,T21,&Mk);CHKERRQ(ierr);
+  ierr = BVMult(W,1.0,0.0,V,Mk);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
+    ierr = BVGetColumn(W,i,&vc);CHKERRQ(ierr);
+    ierr = VecConjugate(vc);CHKERRQ(ierr);
+    ierr = VecGetArray(vc,&array);
     idx = map1[i];
-    ierr = MatSetValues(M,1,&idx,m0-n0,map0+n0,array+i*(m0-n0),INSERT_VALUES);CHKERRQ(ierr);
+    ierr = MatSetValues(M,1,&idx,m0-n0,map0+n0,array,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecRestoreArray(vc,&array);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(W,i,&vc);CHKERRQ(ierr);
   }
-  ierr = VecRestoreArray(V[0],&arrayV);CHKERRQ(ierr);
-  ierr = VecRestoreArray(W[0],&array);CHKERRQ(ierr);
 
   /* T12 */  
   for (i=1;i<nmat;i++) {
@@ -474,21 +464,29 @@ static PetscErrorCode NRefSysIter_explicit(PEP pep,PetscInt k,KSP ksp,PetscScala
       ierr = PetscMemcpy(T12+i*k+j*lda,Ts+j*k,k*sizeof(PetscScalar));CHKERRQ(ierr);
     }  
   }
-  ierr = VecGetArray(V[0],&arrayV);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(nmat-1,&nmat1_);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,nmat-1,NULL,&Md);CHKERRQ(ierr);
   for (i=0;i<nmat;i++) ts[i] = 1.0;
   for (j=0;j<k;j++) {
-    ierr = VecGetArray(W[0],&array);CHKERRQ(ierr);
-    PetscStackCall("BLASgemm",BLASgemm_("N","N",&nn_,&nmat1_,&k_,&sone,arrayV,&nn_,T12+k+j*lda,&k_,&zero,array,&nn_));    
-    ierr = VecRestoreArray(W[0],&array);CHKERRQ(ierr);
-    for (i=nmat-1;i>=1;i--) {
-      ierr = MatMult(A[i],W[i-1],W[i]);
+    ierr = MatDenseGetArray(Md,&array);CHKERRQ(ierr);
+    ierr = PetscMemcpy(array,T12+k+j*lda,(nmat-1)*k*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(Md,&array);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(W,0,nmat-1);CHKERRQ(ierr);
+    ierr = BVMult(W,1.0,0.0,V,Md);CHKERRQ(ierr);
+    for (i=nmat-1;i>0;i--) {
+      ierr = BVGetColumn(W,i-1,&vc0);CHKERRQ(ierr);
+      ierr = BVGetColumn(W,i,&vc);CHKERRQ(ierr);
+      ierr = MatMult(A[i],vc0,vc);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(W,i-1,&vc0);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(W,i,&vc);CHKERRQ(ierr);
     }
-    ierr = SlepcVecMAXPBY(W[0],0.0,1.0,nmat-1,ts,W+1);CHKERRQ(ierr);
-    ierr = VecGetArray(W[0],&array);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(W,1,nmat);CHKERRQ(ierr);
+    ierr = BVGetColumn(W,0,&vc0);CHKERRQ(ierr);
+    ierr = BVMultVec(W,1.0,0.0,vc0,ts);CHKERRQ(ierr);
+    ierr = VecGetArray(vc0,&array);CHKERRQ(ierr);
     idx = map1[j];
     ierr = MatSetValues(M,m0-n0,map0+n0,1,&idx,array,INSERT_VALUES);CHKERRQ(ierr);   
-    ierr = VecRestoreArray(W[0],&array);CHKERRQ(ierr);
+    ierr = VecRestoreArray(vc0,&array);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(W,0,&vc0);CHKERRQ(ierr);
   }
   ierr = MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
@@ -520,9 +518,10 @@ static PetscErrorCode NRefSysIter_explicit(PEP pep,PetscInt k,KSP ksp,PetscScala
   for (i=0;i<k;i++) dHi[i] = array[i];
   ierr = VecRestoreArray(matctx->vseq,&array);CHKERRQ(ierr);
   ierr = PetscFree5(idxp,idxg,ts,map0,map1);CHKERRQ(ierr);
+  ierr = MatDestroy(&Mk);CHKERRQ(ierr);
+  ierr = MatDestroy(&Md);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPNRefForwardSubstitution"
@@ -562,9 +561,6 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
     fh = ctx->fih;
   }
   ierr =  PEPGetDimensions(pep,NULL,&ncv,NULL);CHKERRQ(ierr);
-//  if (ncv-k<PetscMax(k,nmat)) {
-//    ierr = VecDuplicateVecs(pep->t,PetscMax(k,nmat),&W);CHKERRQ(ierr);
-//  } else W = &pep->V[k];
   ierr = BVDuplicate(pep->V,&W);CHKERRQ(ierr);
   ierr = BVResize(W,PetscMax(k,nmat),PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscMemzero(dVS,2*k*k*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -582,27 +578,23 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
     ierr = BVGetColumn(dV,i,&dvi);CHKERRQ(ierr);
     for (j=0;j<nmat;j++) fh[j] = fH[j*k+i+i*lda];
     if (matctx) {
-//      ierr =  NRefSysIter_explicit(pep,k,ksp,fH,S,lds,fh,h,Rv,Rh,pep->V,dvi,dH+i*k,matctx,W,work+nwu,lwork-nwu);CHKERRQ(ierr);
+      ierr =  NRefSysIter_explicit(pep,k,ksp,fH,S,lds,fh,h,Rv,Rh,pep->V,dvi,dH+i*k,matctx,W,work+nwu,lwork-nwu);CHKERRQ(ierr);
       if (i==0) matctx->computedt11 = PETSC_FALSE;
     } else {
       ierr = NRefSysIter_shell(pep,k,ksp,fH,S,lds,fh,h,Rv,Rh,pep->V,dvi,dH+i*k,W,t,work+nwu,lwork-nwu);
     }
     /* Orthogonalize computed solution */
-//    ierr = IPOrthogonalize(pep->ip,0,NULL,k,NULL,V,dV[i],dVS+i*2*k,NULL,NULL);CHKERRQ(ierr);
     ierr = BVOrthogonalizeVec(pep->V,dvi,dVS+i*2*k,NULL,NULL);CHKERRQ(ierr);
     ierr = BVRestoreColumn(dV,i,&dvi);CHKERRQ(ierr);
-//    ierr = IPOrthogonalize(pep->ip,0,NULL,i,NULL,dV,dV[i],dVS+k+i*2*k,&norm,NULL);CHKERRQ(ierr);
     ierr = BVOrthogonalizeColumn(dV,i,dVS+k+i*2*k,&norm,NULL);CHKERRQ(ierr);
     dVS[k+i+i*2*k] = norm;
     if (norm!=0.0) {
       ierr = BVScaleColumn(dV,i,1.0/norm);CHKERRQ(ierr);
     }
   }
+  ierr = BVSetActiveColumns(dV,0,k);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = VecDestroy(&Rv);CHKERRQ(ierr);
-//  if (ncv-k<PetscMax(k,nmat)) {
-//    ierr = VecDestroyVecs(PetscMax(k,nmat),&W);CHKERRQ(ierr);
-//  }
   ierr = BVDestroy(&W);CHKERRQ(ierr);
   if (matctx) {
     ierr = VecDestroy(&matctx->tN);CHKERRQ(ierr);
@@ -658,11 +650,6 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
   }
   PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&k2_,&k_,&k_,dVS,&k2_,tau,work+nwu,&lw_,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
-//  ierr = SlepcUpdateVectors(k,V,0,k,dVS,2*k,PETSC_FALSE);CHKERRQ(ierr);
-//  ierr = SlepcUpdateVectors(k,dV,0,k,dVS+k,2*k,PETSC_FALSE);CHKERRQ(ierr);
-//  for (i=0;i<k;i++) {
-//    ierr = VecAXPY(V[i],1.0,dV[i]);CHKERRQ(ierr);
-//  }
 
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M0);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M0,&array);CHKERRQ(ierr);
@@ -835,8 +822,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
   ierr = PetscObjectGetComm((PetscObject)pep,&comm);CHKERRQ(ierr);
   cnt = k*sizeof(PetscBLASInt)+(lwork+k*k*(nmat+3)+nmat+k)*sizeof(PetscScalar);
   ierr = PetscLogObjectMemory((PetscObject)pep,cnt);CHKERRQ(ierr);
-//  ierr = VecDuplicateVecs(pep->t,k,&dV);CHKERRQ(ierr);
-//  ierr = PetscLogObjectParents(pep,k,dV);CHKERRQ(ierr);  
+  ierr = BVSetActiveColumns(pep->V,0,k);CHKERRQ(ierr);
   ierr = BVDuplicate(pep->V,&dV);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)dV);CHKERRQ(ierr);  
   ierr = KSPCreate(comm,&ksp);

@@ -942,7 +942,7 @@ PetscErrorCode BVAXPY(BV Y,PetscScalar alpha,BV X)
   PetscCheckSameTypeAndComm(Y,1,X,3);
   if (X==Y) SETERRQ(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_WRONG,"X and Y arguments must be different");
   if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
-  if (X->k-X->l!=Y->m-Y->l) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, while X has %D",Y->m-Y->l,X->k-X->l);
+  if (X->k-X->l!=Y->k-Y->l) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, while X has %D",Y->m-Y->l,X->k-X->l);
   if (!X->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_AXPY,X,Y,0,0);CHKERRQ(ierr);
