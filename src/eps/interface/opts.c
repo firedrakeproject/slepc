@@ -672,7 +672,7 @@ $   func(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar
 .   ri     - result of evaluation (imaginary part)
 -   ctx    - optional context, as set by EPSSetArbitrarySelection()
 
-   Note:
+   Notes:
    This provides a mechanism to select eigenpairs by evaluating a user-defined
    function. When a function has been provided, the default selection based on
    sorting the eigenvalues is replaced by the sorting of the results of this
@@ -683,6 +683,10 @@ $   func(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar
    the arguments xr and xi, and return the result in rr. Then set the standard
    sorting by magnitude so that the eigenpair with largest value of rr is
    selected.
+
+   This evaluation function is collective, that is, all processes call it and
+   it can use collective operations; furthermore, the computed result must
+   be the same in all processes.
 
    The result of func is expressed as a complex number so that it is possible to
    use the standard eigenvalue sorting functions, but normally only rr is used.
