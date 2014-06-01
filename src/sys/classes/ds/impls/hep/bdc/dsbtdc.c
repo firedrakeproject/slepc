@@ -276,7 +276,7 @@ PetscErrorCode dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
   PetscBLASInt   ksk, ivt, iend, kchk, kmax, one=1, zero=0;
   PetscBLASInt   ldvt, ksum, kskp1, spneed, nrblks, liwmin, isvals;
   PetscReal      p, d2, eps, dmax, emax, done = 1.0, dzero = 0.0;
-  PetscReal      dnrm, tiny, anorm, exdnrm, dropsv, absdiff;
+  PetscReal      dnrm, tiny, anorm, exdnrm=0, dropsv, absdiff;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
