@@ -21,16 +21,16 @@
 
 ALL: lib
 
+#requiresscalar    real
+
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = ptoar.c nrefinement.c
+SOURCEC  = cutlr.c dibtdc.c dlaed3m.c dmerg2.c dsbtdc.c dsrtdf.c
 SOURCEF  =
 SOURCEH  =
-LIBBASE  = libslepcpep
+LIBBASE  = libslepcsys
 DIRS     =
-MANSEC   = PEP
-LOCDIR   = src/pep/impls/toar/
+MANSEC   = DS
+LOCDIR   = src/sys/classes/ds/impls/hep/bdc/
 
 include ${SLEPC_DIR}/conf/slepc_common
-
-

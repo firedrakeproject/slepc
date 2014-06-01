@@ -126,5 +126,6 @@ PETSC_INTERN PetscErrorCode PEPComputeScaleFactor(PEP);
 PETSC_INTERN PetscErrorCode PEPBuildBalance(PEP);
 PETSC_INTERN PetscErrorCode PEPBasisCoefficients(PEP,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
+PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt);
 
 #endif

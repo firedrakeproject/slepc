@@ -301,4 +301,4 @@ if __name__ == "__main__":
   parser = optparse.OptionParser()
   parser.add_option('--verbose', help='Show mismatches between makefiles and the filesystem', dest='verbose', action='store_true', default=False)
   (opts, extra_args) = parser.parse_args()
-  main(slepcdir=os.environ['SLEPC_DIR'],petscdir=os.environ['PETSC_DIR'],petsdestdir=os.sep.join([os.environ['PETSC_DIR'],os.environ['PETSC_ARCH']]), verbose=opts.verbose)
+  main(slepcdir=os.environ['SLEPC_DIR'],petscdir=os.environ['PETSC_DIR'],petscdestdir=os.sep.join([os.environ['PETSC_DIR'],os.environ['PETSC_ARCH']]), verbose=opts.verbose)
