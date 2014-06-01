@@ -87,6 +87,8 @@ PETSC_EXTERN PetscErrorCode BVView(BV,PetscViewer);
 
 PETSC_EXTERN PetscErrorCode BVGetColumn(BV,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode BVRestoreColumn(BV,PetscInt,Vec*);
+PETSC_EXTERN PetscErrorCode BVGetArray(BV,PetscScalar**);
+PETSC_EXTERN PetscErrorCode BVRestoreArray(BV,PetscScalar**);
 PETSC_EXTERN PetscErrorCode BVGetVec(BV,Vec*);
 PETSC_EXTERN PetscErrorCode BVSetActiveColumns(BV,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVGetActiveColumns(BV,PetscInt*,PetscInt*);

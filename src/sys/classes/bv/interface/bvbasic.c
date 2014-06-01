@@ -772,7 +772,7 @@ PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineTyp
    BVGetColumn - Returns a Vec object that contains the entries of the
    requested column of the basis vectors object.
 
-   Collective on BV
+   Logically Collective on BV
 
    Input Parameters:
 +  bv - the basis vectors context
@@ -870,6 +870,79 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   bv->st[l] = -1;
   bv->id[l] = 0;
   *v = NULL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetArray"
+/*@C
+   BVGetArray - Returns a pointer to a contiguous array that contains this
+   processor's portion of the BV data.
+
+   Logically Collective on BV
+
+   Input Parameters:
+.  bv - the basis vectors context
+
+   Output Parameter:
+.  a  - location to put pointer to the array
+
+   Notes:
+   BVRestoreArray() must be called when access to the array is no longer needed.
+   This operation may imply a data copy, for BV types that do not store
+   data contiguously in memory.
+
+   The pointer will normally point to the first entry of the first column,
+   but if the BV has constraints then these go before the regular columns.
+
+   Level: advanced
+
+.seealso: BVRestoreArray(), BVInsertConstraints()
+@*/
+PetscErrorCode BVGetArray(BV bv,PetscScalar **a)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  ierr = (*bv->ops->getarray)(bv,a);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVRestoreArray"
+/*@C
+   BVRestoreArray - Restore the BV object after BVGetArray() has been called.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  bv - the basis vectors context
+-  a  - location of pointer to array obtained from BVGetArray()
+
+   Note:
+   This operation may imply a data copy, for BV types that do not store
+   data contiguously in memory.
+
+   Level: advanced
+
+.seealso: BVGetColumn()
+@*/
+PetscErrorCode BVRestoreArray(BV bv,PetscScalar **a)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  if (bv->ops->restorearray) {
+    ierr = (*bv->ops->restorearray)(bv,a);CHKERRQ(ierr);
+  }
+  if (a) *a = NULL;
+  ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

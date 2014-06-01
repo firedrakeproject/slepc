@@ -269,6 +269,17 @@ PetscErrorCode BVGetColumn_Contiguous(BV bv,PetscInt j,Vec *v)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVGetArray_Contiguous"
+PetscErrorCode BVGetArray_Contiguous(BV bv,PetscScalar **a)
+{
+  BV_CONTIGUOUS *ctx = (BV_CONTIGUOUS*)bv->data;
+
+  PetscFunctionBegin;
+  *a = ctx->array;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDestroy_Contiguous"
 PetscErrorCode BVDestroy_Contiguous(BV bv)
 {
@@ -336,6 +347,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->copy             = BVCopy_Contiguous;
   bv->ops->resize           = BVResize_Contiguous;
   bv->ops->getcolumn        = BVGetColumn_Contiguous;
+  bv->ops->getarray         = BVGetArray_Contiguous;
   bv->ops->destroy          = BVDestroy_Contiguous;
   PetscFunctionReturn(0);
 }

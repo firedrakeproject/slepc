@@ -322,6 +322,30 @@ PetscErrorCode BVRestoreColumn_Svec(BV bv,PetscInt j,Vec *v)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVGetArray_Svec"
+PetscErrorCode BVGetArray_Svec(BV bv,PetscScalar **a)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *ctx = (BV_SVEC*)bv->data;
+
+  PetscFunctionBegin;
+  ierr = VecGetArray(ctx->v,a);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVRestoreArray_Svec"
+PetscErrorCode BVRestoreArray_Svec(BV bv,PetscScalar **a)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *ctx = (BV_SVEC*)bv->data;
+
+  PetscFunctionBegin;
+  ierr = VecRestoreArray(ctx->v,a);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVView_Svec"
 PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
 {
@@ -416,6 +440,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   bv->ops->resize           = BVResize_Svec;
   bv->ops->getcolumn        = BVGetColumn_Svec;
   bv->ops->restorecolumn    = BVRestoreColumn_Svec;
+  bv->ops->getarray         = BVGetArray_Svec;
+  bv->ops->restorearray     = BVRestoreArray_Svec;
   bv->ops->destroy          = BVDestroy_Svec;
   if (!ctx->mpi) bv->ops->view = BVView_Svec;
   PetscFunctionReturn(0);

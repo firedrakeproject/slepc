@@ -339,6 +339,44 @@ PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVGetArray_Vecs"
+PetscErrorCode BVGetArray_Vecs(BV bv,PetscScalar **a)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *ctx = (BV_VECS*)bv->data;
+  PetscInt       j;
+  PetscScalar    *p;
+
+  PetscFunctionBegin;
+  ierr = PetscMalloc((bv->nc+bv->m)*bv->n*sizeof(PetscScalar),a);CHKERRQ(ierr);
+  for (j=0;j<bv->nc+bv->m;j++) {
+    ierr = VecGetArray(ctx->V[j],&p);CHKERRQ(ierr);
+    ierr = PetscMemcpy(*a+j*bv->n,p,bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = VecRestoreArray(ctx->V[j],&p);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVRestoreArray_Vecs"
+PetscErrorCode BVRestoreArray_Vecs(BV bv,PetscScalar **a)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *ctx = (BV_VECS*)bv->data;
+  PetscInt       j;
+  PetscScalar    *p;
+
+  PetscFunctionBegin;
+  for (j=0;j<bv->nc+bv->m;j++) {
+    ierr = VecGetArray(ctx->V[j],&p);CHKERRQ(ierr);
+    ierr = PetscMemcpy(p,*a+j*bv->n,bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = VecRestoreArray(ctx->V[j],&p);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(*a);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVView_Vecs"
 PetscErrorCode BVView_Vecs(BV bv,PetscViewer viewer)
 {
@@ -415,6 +453,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->copy             = BVCopy_Vecs;
   bv->ops->resize           = BVResize_Vecs;
   bv->ops->getcolumn        = BVGetColumn_Vecs;
+  bv->ops->getarray         = BVGetArray_Vecs;
+  bv->ops->restorearray     = BVRestoreArray_Vecs;
   bv->ops->destroy          = BVDestroy_Vecs;
   bv->ops->view             = BVView_Vecs;
   PetscFunctionReturn(0);
