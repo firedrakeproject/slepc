@@ -878,7 +878,7 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j,PetscRandom rctx)
 
    Level: beginner
 
-.seealso: BVCopy(), BVSetActiveColumns()
+.seealso: BVCopy(), BVSetActiveColumns(), BVMatMultColumn()
 @*/
 PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
 {
@@ -901,6 +901,50 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
   ierr = PetscLogEventBegin(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
   ierr = (*V->ops->matmult)(V,A,Y);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatMultColumn"
+/*@
+   BVMatMultColumn - Computes the matrix-vector product for a specified
+   column, storing the result in the next column: v_{j+1}=A*v_j.
+
+   Neighbor-wise Collective on Mat and BV
+
+   Input Parameters:
++  V - basis vectors context
+.  A - the matrix
+-  j - the column
+
+   Output Parameter:
+.  Y - the result
+
+   Level: beginner
+
+.seealso: BVMatMult()
+@*/
+PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
+{
+  PetscErrorCode ierr;
+  Vec            vj,vj1;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscCheckSameComm(V,1,A,2);
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (j+1>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%D but BV only has %D columns",j+1,V->m);
+
+  ierr = PetscLogEventBegin(BV_MatMult,V,A,0,0);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,j+1,&vj1);CHKERRQ(ierr);
+  ierr = MatMult(A,vj,vj1);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,j+1,&vj1);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_MatMult,V,A,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
