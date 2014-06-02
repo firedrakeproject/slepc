@@ -316,6 +316,42 @@ PetscErrorCode BVMultInPlaceTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVDot_Private"
+/*
+  BVDot for the particular case of non-standard inner product with
+  matrix B, which is assumed to be symmetric (or complex Hermitian)
+*/
+PETSC_STATIC_INLINE PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
+{
+  PetscErrorCode ierr;
+  PetscObjectId  idx,idy;
+  PetscInt       i,j,jend,m;
+  PetscScalar    *marray;
+  PetscBool      symm=PETSC_FALSE;
+  Vec            z;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(M,&m,NULL);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
+  ierr = PetscObjectGetId((PetscObject)X,&idx);CHKERRQ(ierr);
+  ierr = PetscObjectGetId((PetscObject)Y,&idy);CHKERRQ(ierr);
+  if (idx==idy) symm=PETSC_TRUE;  /* M=X'BX is symmetric */
+  jend = X->k;
+  for (j=X->l;j<jend;j++) {
+    if (symm) X->k = j+1;
+    ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
+    ierr = (*X->ops->dotvec)(Y,z,marray+j*m+Y->l);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(X,j,&z);CHKERRQ(ierr);
+    if (symm) {
+      for (i=X->l;i<j;i++)
+        marray[j+i*m] = PetscConj(marray[i+j*m]);
+    }
+  }
+  ierr = MatDenseRestoreArray(M,&marray);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDot"
 /*@
    BVDot - Computes the 'block-dot' product of two basis vectors objects.
@@ -353,9 +389,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
 {
   PetscErrorCode ierr;
   PetscBool      match;
-  PetscInt       j,m,n;
-  PetscScalar    *marray;
-  Vec            z;
+  PetscInt       m,n;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(X,BV_CLASSID,1);
@@ -378,13 +412,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
 
   ierr = PetscLogEventBegin(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
   if (X->matrix) { /* non-standard inner product: cast into dotvec ops */
-    ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
-    for (j=X->l;j<X->k;j++) {
-      ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
-      ierr = (*X->ops->dotvec)(Y,z,marray+j*m+Y->l);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(X,j,&z);CHKERRQ(ierr);
-    }
-    ierr = MatDenseRestoreArray(M,&marray);CHKERRQ(ierr);
+    ierr = BVDot_Private(X,Y,M);CHKERRQ(ierr);
   } else {
     ierr = (*X->ops->dot)(X,Y,M);CHKERRQ(ierr);
   }
