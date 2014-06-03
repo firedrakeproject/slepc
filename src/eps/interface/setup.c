@@ -208,7 +208,7 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = BVInsertConstraints(eps->V,&k,eps->defl);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&eps->nds,&eps->defl);CHKERRQ(ierr);
     eps->nds = k;
-    //ierr = STCheckNullSpace(eps->st,eps->nds,eps->defl);CHKERRQ(ierr);
+    ierr = STCheckNullSpace(eps->st,eps->V);CHKERRQ(ierr);
   }
   if (eps->nini<0) {
     k = -eps->nini;

@@ -354,31 +354,35 @@ PetscErrorCode STResetOperationCounters(ST st)
 
 #undef __FUNCT__
 #define __FUNCT__ "STCheckNullSpace_Default"
-PetscErrorCode STCheckNullSpace_Default(ST st,PetscInt n,const Vec V[])
+PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
 {
   PetscErrorCode ierr;
-  PetscInt       i,c;
+  PetscInt       nc,i,c;
   PetscReal      norm;
-  Vec            *T,w;
+  Vec            *T,w,vi;
   Mat            A;
   PC             pc;
   MatNullSpace   nullsp;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc1(n,&T);CHKERRQ(ierr);
+  ierr = BVGetNumConstraints(V,&nc);CHKERRQ(ierr);
+  ierr = PetscMalloc1(nc,&T);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
   ierr = MatGetVecs(A,NULL,&w);CHKERRQ(ierr);
   c = 0;
-  for (i=0;i<n;i++) {
-    ierr = MatMult(A,V[i],w);CHKERRQ(ierr);
+  for (i=0;i<nc;i++) {
+    ierr = BVGetColumn(V,-nc+i,&vi);CHKERRQ(ierr);
+    ierr = MatMult(A,vi,w);CHKERRQ(ierr);
     ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
     if (norm < 1e-8) {
       ierr = PetscInfo2(st,"Vector %D norm=%g\n",i,(double)norm);CHKERRQ(ierr);
-      T[c] = V[i];
+      ierr = BVGetVec(V,T+c);CHKERRQ(ierr);
+      ierr = VecCopy(vi,T[c]);CHKERRQ(ierr);
       c++;
     }
+    ierr = BVRestoreColumn(V,-nc+i,&vi);CHKERRQ(ierr);
   }
   ierr = VecDestroy(&w);CHKERRQ(ierr);
   if (c>0) {
@@ -386,23 +390,23 @@ PetscErrorCode STCheckNullSpace_Default(ST st,PetscInt n,const Vec V[])
     ierr = KSPSetNullSpace(st->ksp,nullsp);CHKERRQ(ierr);
     ierr = MatNullSpaceDestroy(&nullsp);CHKERRQ(ierr);
   }
-  ierr = PetscFree(T);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(c,&T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "STCheckNullSpace"
 /*@
-   STCheckNullSpace - Given a set of vectors, this function tests each of
-   them to be a nullspace vector of the coefficient matrix of the associated
-   KSP object. All these nullspace vectors are passed to the KSP object.
+   STCheckNullSpace - Given a basis vectors object, this function tests each
+   of its constraint vectors to be a nullspace vector of the coefficient
+   matrix of the associated KSP object. All these nullspace vectors are passed
+   to the KSP object.
 
    Collective on ST
 
    Input Parameters:
 +  st - the spectral transformation context
-.  n  - number of vectors
--  V  - vectors to be checked
+-  V  - basis vectors to be checked
 
    Note:
    This function allows to handle singular pencils and to solve some problems
@@ -412,19 +416,21 @@ PetscErrorCode STCheckNullSpace_Default(ST st,PetscInt n,const Vec V[])
 
 .seealso: EPSSetDeflationSpace()
 @*/
-PetscErrorCode STCheckNullSpace(ST st,PetscInt n,const Vec V[])
+PetscErrorCode STCheckNullSpace(ST st,BV V)
 {
   PetscErrorCode ierr;
+  PetscInt       nc;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidLogicalCollectiveInt(st,n,2);
-  if (n>0 && st->ops->checknullspace) {
-    PetscValidPointer(V,3);
-    PetscValidHeaderSpecific(V[0],VEC_CLASSID,3);
-    ierr = (*st->ops->checknullspace)(st,n,V);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(V,BV_CLASSID,2);
+  PetscValidType(V,2);
+  PetscCheckSameComm(st,1,V,2);
+
+  ierr = BVGetNumConstraints(V,&nc);CHKERRQ(ierr);
+  if (nc && st->ops->checknullspace) {
+    ierr = (*st->ops->checknullspace)(st,V);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
-
 
