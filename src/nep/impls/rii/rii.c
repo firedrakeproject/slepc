@@ -72,7 +72,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 {
   PetscErrorCode     ierr;
   Mat                T=nep->function,Tp=nep->jacobian,Tsigma;
-  Vec                u=nep->V[0],r=nep->work[0],delta=nep->work[1];
+  Vec                u,r=nep->work[0],delta=nep->work[1];
   PetscScalar        lambda,a1,a2;
   PetscReal          relerr;
   PetscBool          hascopy;
@@ -82,8 +82,9 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   /* get initial approximation of eigenvalue and eigenvector */
   ierr = NEPGetDefaultShift(nep,&lambda);CHKERRQ(ierr);
   if (!nep->nini) {
-    ierr = SlepcVecSetRandom(u,nep->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(nep->V,0,nep->rand);CHKERRQ(ierr);
   }
+  ierr = BVGetColumn(nep->V,0,&u);CHKERRQ(ierr);
 
   /* correct eigenvalue approximation: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
   ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
@@ -156,6 +157,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
   }
   ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(nep->V,0,&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

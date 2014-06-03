@@ -93,7 +93,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   PetscErrorCode ierr;
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
   Mat            T=nep->function,Tp=nep->jacobian;
-  Vec            u=nep->V[0],r=nep->work[0];
+  Vec            u,r=nep->work[0];
   PetscScalar    lambda,mu,im;
   PetscReal      relerr;
   PetscInt       nconv;
@@ -102,8 +102,9 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   /* get initial approximation of eigenvalue and eigenvector */
   ierr = NEPGetDefaultShift(nep,&lambda);CHKERRQ(ierr);
   if (!nep->nini) {
-    ierr = SlepcVecSetRandom(u,nep->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(nep->V,0,nep->rand);CHKERRQ(ierr);
   }
+  ierr = BVGetColumn(nep->V,0,&u);CHKERRQ(ierr);
 
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
@@ -145,6 +146,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
     }
     if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
   }
+  ierr = BVRestoreColumn(nep->V,0,&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -218,8 +220,6 @@ static PetscErrorCode NEPSLPGetEPS_SLP(NEP nep,EPS *eps)
     ierr = STSetOptionsPrefix(ctx->eps->st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)nep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->eps);CHKERRQ(ierr);
-    if (!nep->ip) { ierr = NEPGetIP(nep,&nep->ip);CHKERRQ(ierr); }
-    ierr = EPSSetIP(ctx->eps,nep->ip);CHKERRQ(ierr);
   }
   *eps = ctx->eps;
   PetscFunctionReturn(0);
