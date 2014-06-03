@@ -1086,10 +1086,7 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
       }
     }
     if (!symm) {
-      if (!Y->h) {
-        ierr = PetscMalloc2(Y->nc+Y->m,&Y->h,Y->nc+Y->m,&Y->c);CHKERRQ(ierr);
-        ierr = PetscLogObjectMemory((PetscObject)Y,2*Y->m*sizeof(PetscScalar));CHKERRQ(ierr);
-      }
+      ierr = BV_AllocateCoeffs(Y);CHKERRQ(ierr);
       for (j=ly;j<ky;j++) {
         ierr = BVGetColumn(Y,j,&z);CHKERRQ(ierr);
         ierr = MatMultHermitianTranspose(A,z,f);CHKERRQ(ierr);

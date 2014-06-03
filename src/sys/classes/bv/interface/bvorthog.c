@@ -303,14 +303,8 @@ PetscErrorCode BVOrthogonalizeVec(BV bv,Vec v,PetscScalar *H,PetscReal *norm,Pet
   ksave = bv->k;
   lsave = bv->l;
   bv->l = -bv->nc;  /* must also orthogonalize against constraints and leading columns */
-  if (!bv->h) {
-    ierr = PetscMalloc2(bv->nc+bv->m,&bv->h,bv->nc+bv->m,&bv->c);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)bv,2*bv->m*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  if (bv->indef && !bv->omega) {
-    ierr = PetscMalloc1(bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)bv,bv->m*sizeof(PetscReal));CHKERRQ(ierr);
-  }
+  ierr = BV_AllocateCoeffs(bv);CHKERRQ(ierr);
+  ierr = BV_AllocateSignature(bv);CHKERRQ(ierr);
   switch (bv->orthog_type) {
   case BV_ORTHOG_CGS:
     ierr = BVOrthogonalizeCGS(bv,0,v,H,norm,lindep);CHKERRQ(ierr);
@@ -379,14 +373,8 @@ PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *
   ksave = bv->k;
   lsave = bv->l;
   bv->l = -bv->nc;  /* must also orthogonalize against constraints and leading columns */
-  if (!bv->h) {
-    ierr = PetscMalloc2(bv->nc+bv->m,&bv->h,bv->nc+bv->m,&bv->c);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)bv,2*bv->m*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  if (bv->indef && !bv->omega) {
-    ierr = PetscMalloc1(bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)bv,bv->m*sizeof(PetscReal));CHKERRQ(ierr);
-  }
+  ierr = BV_AllocateCoeffs(bv);CHKERRQ(ierr);
+  ierr = BV_AllocateSignature(bv);CHKERRQ(ierr);
   switch (bv->orthog_type) {
   case BV_ORTHOG_CGS:
     ierr = BVOrthogonalizeCGS(bv,j,NULL,H,norm,lindep);CHKERRQ(ierr);
@@ -451,14 +439,8 @@ PetscErrorCode BVOrthogonalizeSomeColumn(BV bv,PetscInt j,PetscBool *which,Petsc
   ksave = bv->k;
   lsave = bv->l;
   bv->l = -bv->nc;  /* must also orthogonalize against constraints and leading columns */
-  if (!bv->h) {
-    ierr = PetscMalloc2(bv->nc+bv->m,&bv->h,bv->nc+bv->m,&bv->c);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)bv,2*bv->m*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  if (bv->indef && !bv->omega) {
-    ierr = PetscMalloc1(bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)bv,bv->m*sizeof(PetscReal));CHKERRQ(ierr);
-  }
+  ierr = BV_AllocateCoeffs(bv);CHKERRQ(ierr);
+  ierr = BV_AllocateSignature(bv);CHKERRQ(ierr);
   ierr = BVOrthogonalizeMGS(bv,j,NULL,which,H,norm,lindep);CHKERRQ(ierr);
   bv->k = ksave;
   bv->l = lsave;

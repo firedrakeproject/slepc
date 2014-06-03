@@ -102,6 +102,40 @@ PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMult(BV bv,Vec x)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "BV_AllocateCoeffs"
+/*
+  BV_AllocateCoeffs - Allocate orthogonalization coefficients if not done already.
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_AllocateCoeffs(BV bv)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (!bv->h) {
+    ierr = PetscMalloc2(bv->nc+bv->m,&bv->h,bv->nc+bv->m,&bv->c);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)bv,2*bv->m*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BV_AllocateSignature"
+/*
+  BV_AllocateSignature - Allocate signature coefficients if not done already.
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (bv->indef && !bv->omega) {
+    ierr = PetscMalloc1(bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)bv,bv->m*sizeof(PetscReal));CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 /*
   BVAvailableVec: First (0) or second (1) vector available for
   getcolumn operation (or -1 if both vectors already fetched).

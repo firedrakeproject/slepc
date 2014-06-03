@@ -561,11 +561,8 @@ PetscErrorCode BVSetSignature(BV bv,Vec omega)
 
   ierr = VecGetSize(omega,&n);CHKERRQ(ierr);
   if (n!=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Vec argument has %D elements, should be %D",n,bv->k);
+  ierr = BV_AllocateSignature(bv);CHKERRQ(ierr);
   if (bv->indef) {
-    if (!bv->omega) {
-      ierr = PetscMalloc1(bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
-      ierr = PetscLogObjectMemory((PetscObject)bv,(bv->nc+bv->m)*sizeof(PetscReal));CHKERRQ(ierr);
-    }
     ierr = VecGetArray(omega,&pomega);CHKERRQ(ierr);
     for (i=0;i<n;i++) bv->omega[bv->nc+i] = PetscRealPart(pomega[i]);
     ierr = VecRestoreArray(omega,&pomega);CHKERRQ(ierr);
@@ -1063,10 +1060,7 @@ PetscErrorCode BVCopy(BV V,BV W)
   ierr = PetscLogEventBegin(BV_Copy,V,W,0,0);CHKERRQ(ierr);
   if (V->indef && V->matrix && V->indef==W->indef && V->matrix==W->matrix) {
     /* copy signature */
-    if (!W->omega) {
-      ierr = PetscMalloc1(W->nc+W->m,&W->omega);CHKERRQ(ierr);
-      ierr = PetscLogObjectMemory((PetscObject)W,W->m*sizeof(PetscReal));CHKERRQ(ierr);
-    }
+    ierr = BV_AllocateSignature(W);CHKERRQ(ierr);
     ierr = PetscMemcpy(W->omega+W->nc+W->l,V->omega+V->nc+V->l,(V->k-V->l)*sizeof(PetscReal));CHKERRQ(ierr);
   }
   ierr = (*V->ops->copy)(V,W);CHKERRQ(ierr);
