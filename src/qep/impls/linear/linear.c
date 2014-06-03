@@ -202,8 +202,8 @@ static PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
       ierr = VecPlaceArray(wi,py);CHKERRQ(ierr);
       ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,NULL);CHKERRQ(ierr);
       ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,wi,&rn1);CHKERRQ(ierr);
-      ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
-      ierr = VecCopy(wi,qep->V[i+1]);CHKERRQ(ierr);
+      ierr = BVInsertVec(qep->V,i,wr);CHKERRQ(ierr);
+      ierr = BVInsertVec(qep->V,i+1,wi);CHKERRQ(ierr);
       ierr = VecResetArray(wr);CHKERRQ(ierr);
       ierr = VecResetArray(wi);CHKERRQ(ierr);
       ierr = VecPlaceArray(wr,px+qep->nloc);CHKERRQ(ierr);
@@ -211,8 +211,8 @@ static PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
       ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,NULL);CHKERRQ(ierr);
       ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,wi,&rn2);CHKERRQ(ierr);
       if (rn1>rn2) {
-        ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
-        ierr = VecCopy(wi,qep->V[i+1]);CHKERRQ(ierr);
+        ierr = BVInsertVec(qep->V,i,wr);CHKERRQ(ierr);
+        ierr = BVInsertVec(qep->V,i+1,wi);CHKERRQ(ierr);
       }
       ierr = VecResetArray(wr);CHKERRQ(ierr);
       ierr = VecResetArray(wi);CHKERRQ(ierr);
@@ -225,13 +225,13 @@ static PetscErrorCode QEPLinearSelect_Norm(QEP qep,EPS eps)
       ierr = VecPlaceArray(wr,px);CHKERRQ(ierr);
       ierr = SlepcVecNormalize(wr,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
       ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,NULL,&rn1);CHKERRQ(ierr);
-      ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
+      ierr = BVInsertVec(qep->V,i,wr);CHKERRQ(ierr);
       ierr = VecResetArray(wr);CHKERRQ(ierr);
       ierr = VecPlaceArray(wr,px+qep->nloc);CHKERRQ(ierr);
       ierr = SlepcVecNormalize(wr,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
       ierr = QEPComputeResidualNorm_Private(qep,qep->eigr[i],qep->eigi[i],wr,NULL,&rn2);CHKERRQ(ierr);
       if (rn1>rn2) {
-        ierr = VecCopy(wr,qep->V[i]);CHKERRQ(ierr);
+        ierr = BVInsertVec(qep->V,i,wr);CHKERRQ(ierr);
       }
       ierr = VecResetArray(wr);CHKERRQ(ierr);
       ierr = VecRestoreArray(xr,&px);CHKERRQ(ierr);
@@ -260,7 +260,7 @@ static PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
   PetscErrorCode ierr;
   PetscInt       i,offset;
   PetscScalar    *px;
-  Vec            xr,xi,w;
+  Vec            xr,xi,w,vi,vi1;
   Mat            A;
 
   PetscFunctionBegin;
@@ -278,24 +278,30 @@ static PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
     if (qep->eigi[i]>0.0) {   /* first eigenvalue of a complex conjugate pair */
       ierr = VecGetArray(xr,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(w,px+offset);CHKERRQ(ierr);
-      ierr = VecCopy(w,qep->V[i]);CHKERRQ(ierr);
+      ierr = BVInsertVec(qep->V,i,w);CHKERRQ(ierr);
       ierr = VecResetArray(w);CHKERRQ(ierr);
       ierr = VecRestoreArray(xr,&px);CHKERRQ(ierr);
       ierr = VecGetArray(xi,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(w,px+offset);CHKERRQ(ierr);
-      ierr = VecCopy(w,qep->V[i+1]);CHKERRQ(ierr);
+      ierr = BVInsertVec(qep->V,i+1,w);CHKERRQ(ierr);
       ierr = VecResetArray(w);CHKERRQ(ierr);
       ierr = VecRestoreArray(xi,&px);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(qep->V[i],qep->V[i+1],PETSC_TRUE,NULL);CHKERRQ(ierr);
+      ierr = BVGetColumn(qep->V,i,&vi);CHKERRQ(ierr);
+      ierr = BVGetColumn(qep->V,i+1,&vi1);CHKERRQ(ierr);
+      ierr = SlepcVecNormalize(vi,vi1,PETSC_TRUE,NULL);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(qep->V,i,&vi);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(qep->V,i+1,&vi1);CHKERRQ(ierr);
     } else if (qep->eigi[i]==0.0)   /* real eigenvalue */
 #endif
     {
       ierr = VecGetArray(xr,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(w,px+offset);CHKERRQ(ierr);
-      ierr = VecCopy(w,qep->V[i]);CHKERRQ(ierr);
+      ierr = BVInsertVec(qep->V,i,w);CHKERRQ(ierr);
       ierr = VecResetArray(w);CHKERRQ(ierr);
       ierr = VecRestoreArray(xr,&px);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(qep->V[i],NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
+      ierr = BVGetColumn(qep->V,i,&vi);CHKERRQ(ierr);
+      ierr = SlepcVecNormalize(vi,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(qep->V,i,&vi);CHKERRQ(ierr);
     }
   }
   ierr = VecDestroy(&w);CHKERRQ(ierr);
@@ -318,12 +324,10 @@ PetscErrorCode QEPSolve_Linear(QEP qep)
   ierr = EPSGetConverged(ctx->eps,&qep->nconv);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(ctx->eps,&qep->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(ctx->eps,(EPSConvergedReason*)&qep->reason);CHKERRQ(ierr);
-  ierr = EPSGetOperationCounters(ctx->eps,&qep->matvecs,NULL,&qep->linits);CHKERRQ(ierr);
   /* restore target */
   ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
   ierr = EPSSetTarget(ctx->eps,sigma*qep->sfactor);CHKERRQ(ierr);
 
-  qep->matvecs *= 2;  /* convention: count one matvec for each non-trivial block in A */
   ierr = PetscOptionsGetBool(((PetscObject)qep)->prefix,"-qep_linear_select_simple",&flg,NULL);CHKERRQ(ierr);
   if (flg) {
     ierr = QEPLinearSelect_Simple(qep,ctx->eps);CHKERRQ(ierr);
@@ -611,8 +615,6 @@ static PetscErrorCode QEPLinearGetEPS_Linear(QEP qep,EPS *eps)
     ierr = STSetOptionsPrefix(ctx->eps->st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)qep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)ctx->eps);CHKERRQ(ierr);
-    if (!qep->ip) { ierr = QEPGetIP(qep,&qep->ip);CHKERRQ(ierr); }
-    ierr = EPSSetIP(ctx->eps,qep->ip);CHKERRQ(ierr);
     ierr = EPSMonitorSet(ctx->eps,EPSMonitor_Linear,qep,NULL);CHKERRQ(ierr);
   }
   *eps = ctx->eps;

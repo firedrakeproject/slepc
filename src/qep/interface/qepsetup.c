@@ -64,8 +64,8 @@ PetscErrorCode QEPSetUp(QEP qep)
     ierr = QEPSetType(qep,QEPLINEAR);CHKERRQ(ierr);
   }
   ierr = PetscObjectTypeCompare((PetscObject)qep,QEPLINEAR,&islinear);CHKERRQ(ierr);
+  if (!qep->st) { ierr = QEPGetST(qep,&qep->st);CHKERRQ(ierr); }
   if (!islinear) {
-    if (!qep->st) { ierr = QEPGetST(qep,&qep->st);CHKERRQ(ierr); }
     if (!((PetscObject)qep->st)->type_name) {
       ierr = STSetType(qep->st,STSHIFT);CHKERRQ(ierr);
     }
@@ -78,12 +78,10 @@ PetscErrorCode QEPSetUp(QEP qep)
 
   /* Check matrices, transfer them to ST */
   if (!qep->M || !qep->C || !qep->K) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_WRONGSTATE,"QEPSetOperators must be called first");
-  if (!islinear) {
-    mat[0] = qep->K;
-    mat[1] = qep->C;
-    mat[2] = qep->M;
-    ierr = STSetOperators(qep->st,3,mat);CHKERRQ(ierr);
-  }
+  mat[0] = qep->K;
+  mat[1] = qep->C;
+  mat[2] = qep->M;
+  ierr = STSetOperators(qep->st,3,mat);CHKERRQ(ierr);
 
   /* Set problem dimensions */
   ierr = MatGetSize(qep->M,&qep->n,NULL);CHKERRQ(ierr);

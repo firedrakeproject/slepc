@@ -22,7 +22,7 @@
 ALL: lib
 
 LIBBASE  = libslepcqep
-DIRS     = 
+DIRS     = linear
 #DIRS     = linear qarnoldi qlanczos toar stoar
 LOCDIR   = src/qep/impls/
 MANSEC   = QEP

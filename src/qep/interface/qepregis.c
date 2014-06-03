@@ -44,7 +44,7 @@ PetscErrorCode QEPRegisterAll(void)
 
   PetscFunctionBegin;
   QEPRegisterAllCalled = PETSC_TRUE;
-//  ierr = QEPRegister(QEPLINEAR,QEPCreate_Linear);CHKERRQ(ierr);
+  ierr = QEPRegister(QEPLINEAR,QEPCreate_Linear);CHKERRQ(ierr);
 //  ierr = QEPRegister(QEPQARNOLDI,QEPCreate_QArnoldi);CHKERRQ(ierr);
 //  ierr = QEPRegister(QEPQLANCZOS,QEPCreate_QLanczos);CHKERRQ(ierr);
 //  ierr = QEPRegister(QEPTOAR,QEPCreate_TOAR);CHKERRQ(ierr);

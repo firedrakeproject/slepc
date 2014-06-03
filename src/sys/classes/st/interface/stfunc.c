@@ -314,6 +314,7 @@ PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *T)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(T,3);
+  if (!st->nmat) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"STSetOperators must be called first");
   if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat-1);
   if (!st->T) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_POINTER,"There are no transformed matrices");
   *T = st->T[k];
