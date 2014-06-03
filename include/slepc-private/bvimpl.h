@@ -127,11 +127,13 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateCoeffs(BV bv)
 PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
 {
   PetscErrorCode ierr;
+  PetscInt       i;
 
   PetscFunctionBegin;
   if (bv->indef && !bv->omega) {
     ierr = PetscMalloc1(bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)bv,bv->m*sizeof(PetscReal));CHKERRQ(ierr);
+    for (i=-bv->nc;i<bv->m;i++) bv->omega[i] = 1.0;
   }
   PetscFunctionReturn(0);
 }
