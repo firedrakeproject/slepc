@@ -56,11 +56,11 @@ static PetscErrorCode EPSFullLanczosIndef(EPS eps,PetscReal *alpha,PetscReal *be
     omega[j+1] = (norm<0.0)? -1.0: 1.0;
     ierr = BVScaleColumn(eps->V,j+1,1.0/norm);CHKERRQ(ierr);
     /* */
-    ierr = BVNormColumn(eps->V,j+1,NORM_2,&norm1);CHKERRQ(ierr);
     ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = VecNorm(vj1,NORM_2,&norm1);CHKERRQ(ierr);
     ierr = BVApplyMatrix(eps->V,vj1,w);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = BVNormVec(eps->V,w,NORM_2,&norm2);CHKERRQ(ierr);
+    ierr = VecNorm(w,NORM_2,&norm2);CHKERRQ(ierr);
     t = 1.0/(norm1*norm2);
     if (cos && *cos>t) *cos = t;
   }
@@ -175,9 +175,15 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     ierr = BVMultInPlace(eps->V,U,eps->nconv,k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
 
-    /* Append u to V */
+    /* Move restart vector and update signature */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = BVCopyColumn(eps->V,nv,k+l);CHKERRQ(ierr);
+      ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+      ierr = VecCreateSeqWithArray(PETSC_COMM_SELF,1,k+l,omega,&vomega);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(eps->V,0,k+l);CHKERRQ(ierr);
+      ierr = BVSetSignature(eps->V,vomega);CHKERRQ(ierr);
+      ierr = VecDestroy(&vomega);CHKERRQ(ierr);
+      ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
     }
 
     ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
