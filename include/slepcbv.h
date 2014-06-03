@@ -87,6 +87,8 @@ PETSC_EXTERN PetscErrorCode BVView(BV,PetscViewer);
 
 PETSC_EXTERN PetscErrorCode BVGetColumn(BV,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode BVRestoreColumn(BV,PetscInt,Vec*);
+PETSC_EXTERN PetscErrorCode BVGetArray(BV,PetscScalar**);
+PETSC_EXTERN PetscErrorCode BVRestoreArray(BV,PetscScalar**);
 PETSC_EXTERN PetscErrorCode BVGetVec(BV,Vec*);
 PETSC_EXTERN PetscErrorCode BVSetActiveColumns(BV,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVGetActiveColumns(BV,PetscInt*,PetscInt*);
@@ -110,6 +112,8 @@ PETSC_EXTERN PetscErrorCode BVMultColumn(BV,PetscScalar,PetscScalar,PetscInt,Pet
 PETSC_EXTERN PetscErrorCode BVMultInPlace(BV,Mat,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVMultInPlaceTranspose(BV,Mat,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVMatMult(BV,Mat,BV);
+PETSC_EXTERN PetscErrorCode BVMatMultColumn(BV,Mat,PetscInt);
+PETSC_EXTERN PetscErrorCode BVMatProject(BV,Mat,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVAXPY(BV,PetscScalar,BV);
 PETSC_EXTERN PetscErrorCode BVDot(BV,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVDotVec(BV,Vec,PetscScalar*);

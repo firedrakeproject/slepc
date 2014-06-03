@@ -563,12 +563,8 @@ PetscErrorCode BVSetSignature(BV bv,Vec omega)
 
   ierr = VecGetSize(omega,&n);CHKERRQ(ierr);
   if (n!=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Vec argument has %D elements, should be %D",n,bv->k);
+  ierr = BV_AllocateSignature(bv);CHKERRQ(ierr);
   if (bv->indef) {
-    if (!bv->omega) {
-      ierr = PetscMalloc1(bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
-      ierr = PetscLogObjectMemory((PetscObject)bv,(bv->nc+bv->m)*sizeof(PetscReal));CHKERRQ(ierr);
-      for (i=-bv->nc;i<bv->m;i++) bv->omega[i] = 1.0;
-    }
     ierr = VecGetArray(omega,&pomega);CHKERRQ(ierr);
     for (i=0;i<n;i++) bv->omega[bv->nc+i] = PetscRealPart(pomega[i]);
     ierr = VecRestoreArray(omega,&pomega);CHKERRQ(ierr);
@@ -775,7 +771,7 @@ PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineTyp
    BVGetColumn - Returns a Vec object that contains the entries of the
    requested column of the basis vectors object.
 
-   Collective on BV
+   Logically Collective on BV
 
    Input Parameters:
 +  bv - the basis vectors context
@@ -873,6 +869,79 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   bv->st[l] = -1;
   bv->id[l] = 0;
   *v = NULL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetArray"
+/*@C
+   BVGetArray - Returns a pointer to a contiguous array that contains this
+   processor's portion of the BV data.
+
+   Logically Collective on BV
+
+   Input Parameters:
+.  bv - the basis vectors context
+
+   Output Parameter:
+.  a  - location to put pointer to the array
+
+   Notes:
+   BVRestoreArray() must be called when access to the array is no longer needed.
+   This operation may imply a data copy, for BV types that do not store
+   data contiguously in memory.
+
+   The pointer will normally point to the first entry of the first column,
+   but if the BV has constraints then these go before the regular columns.
+
+   Level: advanced
+
+.seealso: BVRestoreArray(), BVInsertConstraints()
+@*/
+PetscErrorCode BVGetArray(BV bv,PetscScalar **a)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  ierr = (*bv->ops->getarray)(bv,a);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVRestoreArray"
+/*@C
+   BVRestoreArray - Restore the BV object after BVGetArray() has been called.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  bv - the basis vectors context
+-  a  - location of pointer to array obtained from BVGetArray()
+
+   Note:
+   This operation may imply a data copy, for BV types that do not store
+   data contiguously in memory.
+
+   Level: advanced
+
+.seealso: BVGetColumn()
+@*/
+PetscErrorCode BVRestoreArray(BV bv,PetscScalar **a)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  if (bv->ops->restorearray) {
+    ierr = (*bv->ops->restorearray)(bv,a);CHKERRQ(ierr);
+  }
+  if (a) *a = NULL;
+  ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -993,10 +1062,7 @@ PetscErrorCode BVCopy(BV V,BV W)
   ierr = PetscLogEventBegin(BV_Copy,V,W,0,0);CHKERRQ(ierr);
   if (V->indef && V->matrix && V->indef==W->indef && V->matrix==W->matrix) {
     /* copy signature */
-    if (!W->omega) {
-      ierr = PetscMalloc1(W->nc+W->m,&W->omega);CHKERRQ(ierr);
-      ierr = PetscLogObjectMemory((PetscObject)W,W->m*sizeof(PetscReal));CHKERRQ(ierr);
-    }
+    ierr = BV_AllocateSignature(W);CHKERRQ(ierr);
     ierr = PetscMemcpy(W->omega+W->nc+W->l,V->omega+V->nc+V->l,(V->k-V->l)*sizeof(PetscReal));CHKERRQ(ierr);
   }
   ierr = (*V->ops->copy)(V,W);CHKERRQ(ierr);

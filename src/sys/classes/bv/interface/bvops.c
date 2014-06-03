@@ -320,6 +320,42 @@ PetscErrorCode BVMultInPlaceTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVDot_Private"
+/*
+  BVDot for the particular case of non-standard inner product with
+  matrix B, which is assumed to be symmetric (or complex Hermitian)
+*/
+PETSC_STATIC_INLINE PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
+{
+  PetscErrorCode ierr;
+  PetscObjectId  idx,idy;
+  PetscInt       i,j,jend,m;
+  PetscScalar    *marray;
+  PetscBool      symm=PETSC_FALSE;
+  Vec            z;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(M,&m,NULL);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
+  ierr = PetscObjectGetId((PetscObject)X,&idx);CHKERRQ(ierr);
+  ierr = PetscObjectGetId((PetscObject)Y,&idy);CHKERRQ(ierr);
+  if (idx==idy) symm=PETSC_TRUE;  /* M=X'BX is symmetric */
+  jend = X->k;
+  for (j=X->l;j<jend;j++) {
+    if (symm) Y->k = j+1;
+    ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
+    ierr = (*Y->ops->dotvec)(Y,z,marray+j*m+Y->l);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(X,j,&z);CHKERRQ(ierr);
+    if (symm) {
+      for (i=X->l;i<j;i++)
+        marray[j+i*m] = PetscConj(marray[i+j*m]);
+    }
+  }
+  ierr = MatDenseRestoreArray(M,&marray);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDot"
 /*@
    BVDot - Computes the 'block-dot' product of two basis vectors objects.
@@ -357,9 +393,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
 {
   PetscErrorCode ierr;
   PetscBool      match;
-  PetscInt       j,m,n;
-  PetscScalar    *marray;
-  Vec            z;
+  PetscInt       m,n;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(X,BV_CLASSID,1);
@@ -382,13 +416,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
 
   ierr = PetscLogEventBegin(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
   if (X->matrix) { /* non-standard inner product: cast into dotvec ops */
-    ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
-    for (j=X->l;j<X->k;j++) {
-      ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
-      ierr = (*X->ops->dotvec)(Y,z,marray+j*m+Y->l);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(X,j,&z);CHKERRQ(ierr);
-    }
-    ierr = MatDenseRestoreArray(M,&marray);CHKERRQ(ierr);
+    ierr = BVDot_Private(X,Y,M);CHKERRQ(ierr);
   } else {
     ierr = (*X->ops->dot)(X,Y,M);CHKERRQ(ierr);
   }
@@ -882,7 +910,7 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j,PetscRandom rctx)
 
    Level: beginner
 
-.seealso: BVCopy(), BVSetActiveColumns()
+.seealso: BVCopy(), BVSetActiveColumns(), BVMatMultColumn()
 @*/
 PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
 {
@@ -905,6 +933,212 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
   ierr = PetscLogEventBegin(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
   ierr = (*V->ops->matmult)(V,A,Y);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatMultColumn"
+/*@
+   BVMatMultColumn - Computes the matrix-vector product for a specified
+   column, storing the result in the next column: v_{j+1}=A*v_j.
+
+   Neighbor-wise Collective on Mat and BV
+
+   Input Parameters:
++  V - basis vectors context
+.  A - the matrix
+-  j - the column
+
+   Output Parameter:
+.  Y - the result
+
+   Level: beginner
+
+.seealso: BVMatMult()
+@*/
+PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
+{
+  PetscErrorCode ierr;
+  Vec            vj,vj1;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscCheckSameComm(V,1,A,2);
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (j+1>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%D but BV only has %D columns",j+1,V->m);
+
+  ierr = PetscLogEventBegin(BV_MatMult,V,A,0,0);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,j+1,&vj1);CHKERRQ(ierr);
+  ierr = MatMult(A,vj,vj1);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,j+1,&vj1);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_MatMult,V,A,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatProject"
+/*@
+   BVMatProject - Computes the projection of a matrix onto a subspace.
+
+   Collective on BV
+
+   Input Parameters:
++  X - basis vectors
+.  A - (optional) matrix to be projected
+.  Y - left basis vectors, can be equal to X
+-  M - Mat object where the result must be placed
+
+   Output Parameter:
+.  M - the resulting matrix
+
+   Notes:
+   If A=NULL, then it is assumed that X already contains A*X.
+
+   This operation is similar to BVDot(), with important differences.
+   The goal is to compute the matrix resulting from the orthogonal projection
+   of A onto the subspace spanned by the columns of X, M = X^H*A*X, or the
+   oblique projection onto X along Y, M = Y^H*A*X.
+
+   A difference with respect to BVDot() is that the standard inner product
+   is always used, regardless of a non-standard inner product being specified
+   with BVSetMatrix().
+
+   On entry, M must be a sequential dense Mat with dimensions ky,kx where
+   ky (resp. kx) is the number of active columns of Y (resp. X).
+   Another difference with respect to BVDot() is that all entries of M are
+   computed except the leading ly,lx part, where ly (resp. lx) is the
+   number of leading columns of Y (resp. X). Hence, the leading columns of
+   X and Y participate in the computation, as opposed to BVDot().
+   The leading part of M is assumed to be already available from previous
+   computations.
+
+   In the orthogonal projection case, Y=X, some computation can be saved if
+   A is real symmetric (or complex Hermitian). In order to exploit this
+   property, the symmetry flag of A must be set with MatSetOption().
+
+   Level: intermediate
+
+.seealso: BVDot(), BVSetActiveColumns(), BVSetMatrix()
+@*/
+PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
+{
+  PetscErrorCode ierr;
+  PetscBool      match,set,flg,symm=PETSC_FALSE;
+  PetscInt       i,j,m,n,lx,ly,kx,ky,ulim;
+  PetscScalar    *marray,*harray;
+  Vec            z,f;
+  Mat            matrix,H;
+  PetscObjectId  idx,idy;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscValidHeaderSpecific(Y,BV_CLASSID,3);
+  PetscValidHeaderSpecific(M,MAT_CLASSID,4);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+  if (A) {
+    PetscValidType(A,2);
+    PetscCheckSameComm(X,1,A,2);
+  }
+  PetscValidType(Y,3);
+  BVCheckSizes(Y,3);
+  PetscValidType(M,4);
+  PetscCheckSameTypeAndComm(X,1,Y,3);
+  ierr = PetscObjectTypeCompare((PetscObject)M,MATSEQDENSE,&match);CHKERRQ(ierr);
+  if (!match) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Matrix M must be of type seqdense");
+
+  ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
+  if (m!=Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %D rows, should have %D",m,Y->k);
+  if (n!=X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %D columns, should have %D",n,X->k);
+  if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
+
+  ierr = PetscLogEventBegin(BV_MatProject,X,A,Y,0);CHKERRQ(ierr);
+  matrix = X->matrix;
+  X->matrix = NULL;  /* temporarily set standard inner product */
+
+  ierr = PetscObjectGetId((PetscObject)X,&idx);CHKERRQ(ierr);
+  ierr = PetscObjectGetId((PetscObject)Y,&idy);CHKERRQ(ierr);
+  if (!A && idx==idy) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Cannot set X=Y if A=NULL");
+
+  ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
+  lx = X->l; kx = X->k;
+  ly = Y->l; ky = Y->k;
+
+  if (A && idx==idy) { /* check symmetry of M=X'AX */
+    ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
+    symm = set? flg: PETSC_FALSE;
+  }
+
+  if (A) {  /* perform computation column by column */
+
+    ierr = BVGetVec(X,&f);CHKERRQ(ierr);
+    for (j=lx;j<kx;j++) {
+      ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
+      ierr = MatMult(A,z,f);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(X,j,&z);CHKERRQ(ierr);
+      ulim = PetscMin(ly+(j-lx)+1,ky);
+      Y->l = 0; Y->k = ulim;
+      ierr = (*Y->ops->dotvec)(Y,f,marray+j*m);CHKERRQ(ierr);
+      if (symm) {
+        for (i=0;i<j;i++) marray[j+i*m] = PetscConj(marray[i+j*m]);
+      }
+    }
+    if (!symm) {
+      ierr = BV_AllocateCoeffs(Y);CHKERRQ(ierr);
+      for (j=ly;j<ky;j++) {
+        ierr = BVGetColumn(Y,j,&z);CHKERRQ(ierr);
+        ierr = MatMultHermitianTranspose(A,z,f);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(Y,j,&z);CHKERRQ(ierr);
+        ulim = PetscMin(lx+(j-ly),kx);
+        X->l = 0; X->k = ulim;
+        ierr = (*X->ops->dotvec)(X,f,Y->h);CHKERRQ(ierr);
+        for (i=0;i<ulim;i++) marray[j+i*m] = PetscConj(Y->h[i]);
+      }
+    }
+    ierr = VecDestroy(&f);CHKERRQ(ierr);
+
+  } else {  /* use BVDot on subblocks   AX = [ AX0 AX1 ], Y = [ Y0 Y1 ]
+
+                M = [    M0   | Y0'*AX1 ]
+                    [ Y1'*AX0 | Y1'*AX1 ]
+    */
+
+    /* upper part, Y0'*AX1 */
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,ly,kx,NULL,&H);CHKERRQ(ierr);
+    X->l = lx; X->k = kx;
+    Y->l = 0;  Y->k = ly;
+    ierr = BVDot(X,Y,H);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    for (j=lx;j<kx;j++) {
+      ierr = PetscMemcpy(marray+m*j,harray+j*ly,ly*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDestroy(&H);CHKERRQ(ierr);
+
+    /* lower part, Y1'*AX */
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H);CHKERRQ(ierr);
+    X->l = 0;  X->k = kx;
+    Y->l = ly; Y->k = ky;
+    ierr = BVDot(X,Y,H);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    for (j=0;j<kx;j++) {
+      ierr = PetscMemcpy(marray+m*j+ly,harray+j*ky+ly,(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDestroy(&H);CHKERRQ(ierr);
+  }
+
+  X->l = lx; X->k = kx;
+  Y->l = ly; Y->k = ky;
+  ierr = MatDenseRestoreArray(M,&marray);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_MatProject,X,A,Y,0);CHKERRQ(ierr);
+  X->matrix = matrix;  /* restore non-standard inner product */
   PetscFunctionReturn(0);
 }
 

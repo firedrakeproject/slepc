@@ -25,7 +25,7 @@
 #include <slepcbv.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_Dot,BV_Orthogonalize,BV_Scale,BV_Norm,BV_SetRandom,BV_MatMult,BV_AXPY;
+PETSC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_Dot,BV_Orthogonalize,BV_Scale,BV_Norm,BV_SetRandom,BV_MatMult,BV_MatProject,BV_AXPY;
 
 typedef struct _BVOps *BVOps;
 
@@ -45,6 +45,8 @@ struct _BVOps {
   PetscErrorCode (*resize)(BV,PetscInt,PetscBool);
   PetscErrorCode (*getcolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*restorecolumn)(BV,PetscInt,Vec*);
+  PetscErrorCode (*getarray)(BV,PetscScalar**);
+  PetscErrorCode (*restorearray)(BV,PetscScalar**);
   PetscErrorCode (*setfromoptions)(BV);
   PetscErrorCode (*create)(BV);
   PetscErrorCode (*view)(BV,PetscViewer);
@@ -96,6 +98,40 @@ PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMult(BV bv,Vec x)
     ierr = MatMult(bv->matrix,x,bv->Bx);CHKERRQ(ierr);
     bv->xid = ((PetscObject)x)->id;
     bv->xstate = ((PetscObject)x)->state;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BV_AllocateCoeffs"
+/*
+  BV_AllocateCoeffs - Allocate orthogonalization coefficients if not done already.
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_AllocateCoeffs(BV bv)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (!bv->h) {
+    ierr = PetscMalloc2(bv->nc+bv->m,&bv->h,bv->nc+bv->m,&bv->c);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)bv,2*bv->m*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BV_AllocateSignature"
+/*
+  BV_AllocateSignature - Allocate signature coefficients if not done already.
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (bv->indef && !bv->omega) {
+    ierr = PetscMalloc1(bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)bv,bv->m*sizeof(PetscReal));CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
