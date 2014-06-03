@@ -195,14 +195,14 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
   if (!X->n) PetscFunctionReturn(0);
 
-  ierr = PetscLogEventBegin(BV_Mult,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_Mult,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
   ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
   X->k = ksave;
-  ierr = PetscLogEventEnd(BV_Mult,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Mult,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -519,14 +519,14 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *m)
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
   if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
 
-  ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_Dot,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
   ierr = (*X->ops->dotvec)(X,y,m);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
   X->k = ksave;
-  ierr = PetscLogEventEnd(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Dot,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

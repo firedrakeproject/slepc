@@ -1146,14 +1146,14 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
   PetscValidLogicalCollectiveInt(V,i,3);
   if (j==i) PetscFunctionReturn(0);
 
-  ierr = PetscLogEventBegin(BV_Copy,V,w,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_Copy,V,0,0,0);CHKERRQ(ierr);
   if (V->omega) V->omega[i] = V->omega[j];
   ierr = BVGetColumn(V,j,&z);CHKERRQ(ierr);
   ierr = BVGetColumn(V,i,&w);CHKERRQ(ierr);
   ierr = VecCopy(z,w);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,j,&z);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,i,&w);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(BV_Copy,V,w,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Copy,V,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
