@@ -505,19 +505,14 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
-  Vec            s0;
-  PetscBool      flg;
   PetscInt       i,j,k,local_size;
   PetscReal      *rwork;
   PetscScalar    *work,*temp,*B,*tempB,*s_data,*Q1,*Q2,*temp2,alpha=1,beta=0;
   PetscBLASInt   l,m,n,lda,ldu,ldvt,lwork,info,ldb,ldc;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompareAny((PetscObject)S,&flg,BVSVEC,BVMAT,"");CHKERRQ(ierr);
-  if (!flg) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Must use a BV type with contiguous storage");
-  ierr = BVGetColumn(S,0,&s0);CHKERRQ(ierr);    
-  ierr = VecGetLocalSize(s0,&local_size);CHKERRQ(ierr);    
-  ierr = VecGetArray(s0,&s_data);CHKERRQ(ierr);
+  ierr = BVGetSizes(S,&local_size,NULL,NULL);CHKERRQ(ierr);    
+  ierr = BVGetArray(S,&s_data);CHKERRQ(ierr);
   ierr = PetscMalloc(ml*ml*sizeof(PetscScalar),&temp);CHKERRQ(ierr);
   ierr = PetscMalloc(ml*ml*sizeof(PetscScalar),&temp2);CHKERRQ(ierr);
   ierr = PetscMalloc(local_size*ml*sizeof(PetscScalar),&Q1);CHKERRQ(ierr);
@@ -593,8 +588,7 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
   }
  
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = VecRestoreArray(s0,&s_data);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(S,0,&s0);CHKERRQ(ierr);    
+  ierr = BVRestoreArray(S,&s_data);CHKERRQ(ierr);
   ierr = PetscFree(temp2);CHKERRQ(ierr);
   ierr = PetscFree(Q1);CHKERRQ(ierr);
   ierr = PetscFree(Q2);CHKERRQ(ierr);
