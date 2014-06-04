@@ -40,10 +40,10 @@
 #include <slepcblaslapack.h>
 
 typedef struct {
-  PetscBool    monic;
-  PetscInt     d,ld;
-  PetscScalar  *S,*qK;
-  PetscReal    *qM;
+  PetscBool   monic;
+  PetscInt    d,ld;
+  PetscScalar *S,*qK;
+  PetscReal   *qM;
 } QEP_STOAR;
 
 #undef __FUNCT__
@@ -120,14 +120,14 @@ static PetscErrorCode QEPSTOARNorm(QEP qep,PetscInt j,PetscReal *norm,PetscScala
 #undef __FUNCT__
 #define __FUNCT__ "QEPSTOAROrth2"
 /*
- Computes GS orthogonalization  x = [z;x] - [Sp;Sq]*y,
- where y = Omega\([Sp;Sq]'*[qK zeros(size(qK,1)) ;zeros(size(qK,1)) qM]*[z;x]).
- n: Column from S to be orthogonalized against previous columns.
+  Computes GS orthogonalization  x = [z;x] - [Sp;Sq]*y,
+  where y = Omega\([Sp;Sq]'*[qK zeros(size(qK,1)) ;zeros(size(qK,1)) qM]*[z;x]).
+  n: Column from S to be orthogonalized against previous columns.
 */
 static PetscErrorCode QEPSTOAROrth2(QEP qep,PetscInt k,PetscReal *Omega,PetscScalar *y,PetscScalar *work,PetscInt nw)
 {
   PetscErrorCode ierr;
-  QEP_STOAR      *ctx=(QEP_STOAR*)qep->data;
+  QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
   PetscBLASInt   n_,lds_,k_,one=1,ld_;
   PetscScalar    *S=ctx->S,sonem=-1.0,sone=1.0,szero=0.0,*tp,*tq,*xp,*xq,*c;
   PetscInt       lwa,nwu=0,i,lds=ctx->d*ctx->ld,n;
@@ -172,25 +172,28 @@ static PetscErrorCode QEPSTOAROrth2(QEP qep,PetscInt k,PetscReal *Omega,PetscSca
 static PetscErrorCode QEPSTOARqKupdate(QEP qep,PetscInt j,Vec *wv,PetscInt nwv)
 {
   PetscErrorCode ierr;
-  QEP_STOAR      *ctx=(QEP_STOAR*)qep->data;
+  QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
   PetscInt       i,ld=ctx->ld;
   PetscScalar    *qK=ctx->qK;
-  Vec            *V = qep->V,v1,v2;
+  Vec            vj,v1,v2;
 
   PetscFunctionBegin;
   if (!wv||nwv<2) {
     if (!wv) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",3);
-    else  SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",4);
+    else SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",4);
   }
   v1 = wv[0];
   v2 = wv[1];
-  ierr = STMatMult(qep->st,0,V[j],v1);CHKERRQ(ierr);
+  ierr = BVGetColumn(qep->V,j,&vj);CHKERRQ(ierr);
+  ierr = STMatMult(qep->st,0,vj,v1);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(qep->V,j,&vj);CHKERRQ(ierr);
   if (ctx->monic) {
     ierr = STMatSolve(qep->st,v1,v2);CHKERRQ(ierr);
-    ierr = VecScale(v2,1/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
+    ierr = VecScale(v2,1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
     v1 = v2;
   }
-  ierr = VecMDot(v1,j+1,V,qK+j*ld);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(qep->V,0,j+1);CHKERRQ(ierr);
+  ierr = BVDotVec(qep->V,v1,qK+j*ld);CHKERRQ(ierr);
   for (i=0;i<=j;i++) {
     qK[i+j*ld] = -qK[i+j*ld];
     qK[j+i*ld] = PetscConj(qK[i+ld*j]);
@@ -203,15 +206,15 @@ static PetscErrorCode QEPSTOARqKupdate(QEP qep,PetscInt j,Vec *wv,PetscInt nwv)
 /*
   Compute a run of Lanczos iterations
 */
-static PetscErrorCode QEPSTOARrun(QEP qep,PetscReal *a,PetscReal *b,PetscReal *omega,Vec *V,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscScalar *work,PetscInt nw,Vec *t_,PetscInt nwv)
+static PetscErrorCode QEPSTOARrun(QEP qep,PetscReal *a,PetscReal *b,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscScalar *work,PetscInt nw,Vec *t_,PetscInt nwv)
 {
-  PetscErrorCode     ierr;
-  QEP_STOAR          *ctx=(QEP_STOAR*)qep->data;
-  PetscInt           i,j,m=*M,nwu=0,lwa;
-  PetscInt           lds=ctx->d*ctx->ld,offq=ctx->ld;
-  Vec                v=t_[0],t=t_[1],q=t_[2];
-  PetscReal          norm;
-  PetscScalar        *y,*S=ctx->S;
+  PetscErrorCode ierr;
+  QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
+  PetscInt       i,j,m=*M,nwu=0,lwa;
+  PetscInt       lds=ctx->d*ctx->ld,offq=ctx->ld;
+  Vec            v=t_[0],t=t_[1],q=t_[2];
+  PetscReal      norm;
+  PetscScalar    *y,*S=ctx->S;
 
   PetscFunctionBegin;
   *breakdown = PETSC_FALSE; /* ----- */
@@ -222,26 +225,21 @@ static PetscErrorCode QEPSTOARrun(QEP qep,PetscReal *a,PetscReal *b,PetscReal *o
   nwu += ctx->ld;
   for (j=k;j<m;j++) {
     /* apply operator */
-    ierr = VecZeroEntries(v);CHKERRQ(ierr);
-    ierr = VecMAXPY(v,j+2,S+j*lds,V);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(qep->V,0,j+2);CHKERRQ(ierr);
+    ierr = BVMultVec(qep->V,1.0,0.0,v,S+j*lds);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,0,v,t);CHKERRQ(ierr);
-    ierr = VecZeroEntries(v);CHKERRQ(ierr);
-    ierr = VecMAXPY(v,j+2,S+offq+j*lds,V);CHKERRQ(ierr);
+    ierr = BVMultVec(qep->V,1.0,0.0,v,S+offq+j*lds);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,1,v,q);CHKERRQ(ierr);
     ierr = VecAXPY(t,qep->sfactor,q);CHKERRQ(ierr);
     ierr = STMatSolve(qep->st,t,q);CHKERRQ(ierr);
     ierr = VecScale(q,-1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
 
     /* orthogonalize */
-    if (ctx->monic) {
-      ierr = IPOrthogonalize(qep->ip,0,NULL,j+2,NULL,qep->V,q,S+offq+(j+1)*lds,&norm,NULL);CHKERRQ(ierr);
-    } else {
-      ierr = IPPseudoOrthogonalize(qep->ip,j+2,qep->V,ctx->qM,q,S+offq+(j+1)*lds,&norm,NULL);CHKERRQ(ierr);
-    }
+    ierr = BVOrthogonalizeVec(qep->V,q,S+offq+(j+1)*lds,&norm,NULL);CHKERRQ(ierr);
     for (i=0;i<j+2;i++) *(S+offq+(j+1)*lds+i) *= *(ctx->qM+i);
     *(S+offq+(j+1)*lds+j+2) = norm;
     ierr = VecScale(q,1.0/norm);CHKERRQ(ierr);
-    ierr = VecCopy(q,V[j+2]);CHKERRQ(ierr);
+    ierr = BVInsertVec(qep->V,j+2,q);CHKERRQ(ierr);
     for (i=0;i<=j+1;i++) *(S+(j+1)*lds+i) = *(S+offq+j*lds+i);
    
     /* Update qK and qM */
@@ -311,9 +309,9 @@ static PetscErrorCode IndefOrthog_CGS(PetscInt n,PetscReal *s,PetscInt nv,PetscS
 */
 static PetscErrorCode IndefNorm(PetscInt n,PetscReal *s,PetscScalar *x,PetscReal *norm)
 {
-  PetscInt     i;
-  PetscReal    r=0.0,t,max=0.0;
-  PetscScalar  c;
+  PetscInt    i;
+  PetscReal   r=0.0,t,max=0.0;
+  PetscScalar c;
 
   PetscFunctionBegin;
   for (i=0;i<n;i++) {
@@ -326,9 +324,7 @@ static PetscErrorCode IndefNorm(PetscInt n,PetscReal *s,PetscScalar *x,PetscReal
   }
   if (r<0) r = -max*PetscSqrtReal(-r);
   else r = max*PetscSqrtReal(r);
-  for (i=0;i<n;i++) {
-    x[i] /= r;
-  }
+  for (i=0;i<n;i++) x[i] /= r;
   if (norm) *norm = r;
   PetscFunctionReturn(0);
 }
@@ -338,7 +334,8 @@ static PetscErrorCode IndefNorm(PetscInt n,PetscReal *s,PetscScalar *x,PetscReal
 static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
 {
   PetscErrorCode  ierr;
-  QEP_STOAR       *ctx=(QEP_STOAR*)qep->data;
+  QEP_STOAR       *ctx = (QEP_STOAR*)qep->data;
+  Mat             G;
   PetscInt        lwa,nwu=0,lrwa,nrwu=0;
   PetscInt        j,i,n,lds=2*ctx->ld;
   PetscScalar     *M,*V,*U,*S=ctx->S,*R=NULL,sone=1.0,zero=0.0,t;
@@ -400,7 +397,10 @@ static PetscErrorCode QEPSTOARTrunc(QEP qep,PetscInt rs1,PetscInt cs1,PetscScala
   }
 
   /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-  ierr = SlepcUpdateVectors(rs1,qep->V,0,cs1+1,U,rs1,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,2*cs1,U,&G);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(qep->V,0,rs1);CHKERRQ(ierr);
+  ierr = BVMultInPlace(qep->V,G,0,cs1+1);CHKERRQ(ierr);
+  ierr = MatDestroy(&G);CHKERRQ(ierr);
   
   /* Update S */
   ierr = PetscMemzero(S,lds*ctx->ld*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -470,22 +470,21 @@ static PetscErrorCode QEPSTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,Pet
 PetscErrorCode QEPSolve_STOAR(QEP qep)
 {
   PetscErrorCode ierr;
-  QEP_STOAR      *ctx=(QEP_STOAR*)qep->data;
-  PetscInt       j,k,l,nv=0,ld=ctx->ld,lds=ctx->d*ctx->ld,off,ldds,t;
+  QEP_STOAR      *ctx = (QEP_STOAR*)qep->data;
+  PetscInt       i,j,k,l,nv=0,ld=ctx->ld,lds=ctx->d*ctx->ld,off,ldds,t;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0;
-  Vec            w=qep->work[0],w2=qep->work[1];
-  PetscScalar    *S=ctx->S,*Q,*work;
+  Vec            vomega,w=qep->work[0],w2=qep->work[1];
+  PetscScalar    *S=ctx->S,*Q,*work,*aux;
   PetscReal      beta,norm,t1,t2,*omega,*a,*b,*r,*qM=ctx->qM,*rwork;
   PetscBool      breakdown;
-  Mat            M;
+  Mat            M,G;
 
   PetscFunctionBegin;
   if (ctx->monic) {
-    ierr = IPSetMatrix(qep->ip,NULL,1.0);CHKERRQ(ierr);
+    ierr = BVSetMatrix(qep->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
   } else {
     ierr = STGetBilinearForm(qep->st,&M);CHKERRQ(ierr);
-    ierr = IPSetType(qep->ip,IPINDEFINITE);CHKERRQ(ierr);
-    ierr = IPSetMatrix(qep->ip,M,qep->sfactor*qep->sfactor);CHKERRQ(ierr);
+    ierr = BVSetMatrix(qep->V,M,PETSC_TRUE);CHKERRQ(ierr);
     ierr = MatDestroy(&M);CHKERRQ(ierr);
   }
   lwa = 9*ld*ld+5*ld;
@@ -494,25 +493,17 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
 
   /* Get the starting Lanczos vector */
   if (qep->nini==0) {  
-    ierr = SlepcVecSetRandom(qep->V[0],qep->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(qep->V,0,qep->rand);CHKERRQ(ierr);
   }
-  ierr = SlepcVecSetRandom(qep->V[1],qep->rand);CHKERRQ(ierr);
-  if (ctx->monic) {
-    ierr = VecNorm(qep->V[0],NORM_2,&norm);CHKERRQ(ierr);
-  } else {
-    ierr = IPNorm(qep->ip,qep->V[0],&norm);CHKERRQ(ierr);
-  }
-  ierr = VecScale(qep->V[0],1/norm);CHKERRQ(ierr);
+  ierr = BVSetRandomColumn(qep->V,1,qep->rand);CHKERRQ(ierr);
+  ierr = BVOrthogonalizeColumn(qep->V,0,NULL,&norm,NULL);CHKERRQ(ierr);
+  ierr = BVScaleColumn(qep->V,0,1.0/norm);CHKERRQ(ierr);
   qM[0] = (norm>0)?1.0:-1.0;
   ierr = QEPSTOARqKupdate(qep,0,qep->work,2);CHKERRQ(ierr);
   S[0] = norm;
-  if (ctx->monic) {
-    ierr = IPOrthogonalize(qep->ip,0,NULL,1,NULL,qep->V,qep->V[1],S+ld,&norm,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = IPPseudoOrthogonalize(qep->ip,1,qep->V,qM,qep->V[1],S+ld,&norm,NULL);CHKERRQ(ierr);
-  }
+  ierr = BVOrthogonalizeColumn(qep->V,1,S+ld,&norm,NULL);CHKERRQ(ierr);
   *(S+ld) *= *(ctx->qM);
-  ierr = VecScale(qep->V[1],1/norm);CHKERRQ(ierr);
+  ierr = BVScaleColumn(qep->V,1,1.0/norm);CHKERRQ(ierr);
   qM[1] = (norm>0)?1.0:-1.0;
   ierr = QEPSTOARqKupdate(qep,1,qep->work,2);CHKERRQ(ierr);
   S[1+ld] = norm;
@@ -538,8 +529,9 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(qep->nconv+qep->mpd,qep->ncv);
-    ierr = QEPSTOARrun(qep,a,b,omega,qep->V,qep->nconv+l,&nv,&breakdown,work+nwu,lwa-nwu,qep->work,3);CHKERRQ(ierr);
-    beta = b[nv-1];    ierr = DSRestoreArrayReal(qep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+    ierr = QEPSTOARrun(qep,a,b,omega,qep->nconv+l,&nv,&breakdown,work+nwu,lwa-nwu,qep->work,3);CHKERRQ(ierr);
+    beta = b[nv-1];
+    ierr = DSRestoreArrayReal(qep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     ierr = DSRestoreArrayReal(qep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
     ierr = DSSetDimensions(qep->ds,nv,0,qep->nconv,qep->nconv+l);CHKERRQ(ierr);
     if (l==0) {
@@ -547,13 +539,14 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     } else {
       ierr = DSSetState(qep->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
+
     /* Solve projected problem */
     ierr = DSSolve(qep->ds,qep->eigr,qep->eigi);CHKERRQ(ierr);
     ierr = DSSort(qep->ds,qep->eigr,qep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = VecZeroEntries(w);CHKERRQ(ierr);
-    ierr = VecMAXPY(w,nv+2,S+nv*lds,qep->V);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(qep->V,0,nv+2);CHKERRQ(ierr);
+    ierr = BVMultVec(qep->V,1.0,0.0,w,S+nv*lds);CHKERRQ(ierr);
     ierr = VecNorm(w,NORM_2,&t1);CHKERRQ(ierr);
     ierr = STMatMult(qep->st,0,w,w2);CHKERRQ(ierr);
     if (ctx->monic) {
@@ -563,8 +556,7 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     } else {
       ierr = VecNorm(w2,NORM_2,&t2);CHKERRQ(ierr);
     }
-    ierr = VecZeroEntries(w);CHKERRQ(ierr);
-    ierr = VecMAXPY(w,nv+2,S+ld+nv*lds,qep->V);CHKERRQ(ierr);
+    ierr = BVMultVec(qep->V,1.0,0.0,w,S+ld+nv*lds);CHKERRQ(ierr);
     ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
     t1 = SlepcAbs(norm,t1);
     if (!ctx->monic) {
@@ -575,7 +567,7 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
     t2 = SlepcAbs(norm,t2);
     norm = PetscMax(t1,t2);
     ierr = DSGetDimensions(qep->ds,NULL,NULL,NULL,NULL,&t);CHKERRQ(ierr);    
-    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,t-qep->nconv,nv,beta*norm,&k);CHKERRQ(ierr);
+    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,t-qep->nconv,beta*norm,&k);CHKERRQ(ierr);
     if (qep->its >= qep->max_it) qep->reason = QEP_DIVERGED_ITS;
     if (k >= qep->nev) qep->reason = QEP_CONVERGED_TOL;
 
@@ -613,6 +605,13 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
         ierr = DSGetArrayReal(qep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
         ierr = QEPSTOARTrunc(qep,nv+2,k+l+1,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
         ierr = DSRestoreArrayReal(qep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+        ierr = VecCreateSeq(PETSC_COMM_SELF,k+l+1,&vomega);CHKERRQ(ierr);
+        ierr = VecGetArray(vomega,&aux);CHKERRQ(ierr);
+        for (i=0;i<k+l+1;i++) aux[i] = ctx->qM[i];
+        ierr = VecRestoreArray(vomega,&aux);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(qep->V,0,k+l+1);CHKERRQ(ierr);
+        ierr = BVSetSignature(qep->V,vomega);CHKERRQ(ierr);
+        ierr = VecDestroy(&vomega);CHKERRQ(ierr);
 
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSGetArray(qep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
@@ -635,7 +634,15 @@ PetscErrorCode QEPSolve_STOAR(QEP qep)
   }
 
   /* Update vectors V = V*S */    
-  ierr = SlepcUpdateVectors(nv+2,qep->V,0,qep->nconv,S,lds,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,nv+2,qep->nconv,NULL,&G);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(G,&aux);CHKERRQ(ierr);
+  for (j=0;j<qep->nconv;j++) {
+    ierr = PetscMemcpy(aux+j*(nv+2),S+j*lds,(nv+2)*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(G,&aux);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(qep->V,0,nv+2);CHKERRQ(ierr);
+  ierr = BVMultInPlace(qep->V,G,0,qep->nconv);CHKERRQ(ierr);
+  ierr = MatDestroy(&G);CHKERRQ(ierr);
   for (j=0;j<qep->nconv;j++) {
     qep->eigr[j] *= qep->sfactor;
     qep->eigi[j] *= qep->sfactor;

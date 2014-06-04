@@ -49,8 +49,6 @@ J*/
 typedef const char* QEPType;
 #define QEPLINEAR    "linear"
 #define QEPQARNOLDI  "qarnoldi"
-#define QEPQLANCZOS  "qlanczos"
-#define QEPTOAR      "toar"
 #define QEPSTOAR     "stoar"
 
 /* Logging support */

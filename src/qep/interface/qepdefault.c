@@ -175,7 +175,7 @@ PetscErrorCode QEPComputeVectors_Indefinite(QEP qep)
    - No correction factor
    - No support for true residual
 */
-PetscErrorCode QEPKrylovConvergence(QEP qep,PetscBool getall,PetscInt kini,PetscInt nits,PetscInt nv,PetscReal beta,PetscInt *kout)
+PetscErrorCode QEPKrylovConvergence(QEP qep,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscInt *kout)
 {
   PetscErrorCode ierr;
   PetscInt       k,newk,marker,ld;

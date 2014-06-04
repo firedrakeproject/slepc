@@ -1089,7 +1089,7 @@ PetscErrorCode BVCopy(BV V,BV W)
 
    Level: beginner
 
-.seealso: BVCopy(), BVCopyColumn()
+.seealso: BVCopy(), BVCopyColumn(), BVInsertVec()
 @*/
 PetscErrorCode BVCopyVec(BV V,PetscInt j,Vec w)
 {

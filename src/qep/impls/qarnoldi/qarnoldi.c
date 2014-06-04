@@ -81,7 +81,7 @@ PetscErrorCode QEPSetUp_QArnoldi(QEP qep)
 /*
   Compute a step of Classical Gram-Schmidt orthogonalization
 */
-static PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScalar *h,PetscBLASInt j,Vec *V,Vec t,Vec v,Vec w,PetscReal *onorm,PetscReal *norm,PetscScalar *work)
+static PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,PetscScalar *h,PetscBLASInt j,BV V,Vec t,Vec v,Vec w,PetscReal *onorm,PetscReal *norm,PetscScalar *work)
 {
   PetscErrorCode ierr;
   PetscBLASInt   ione = 1,j_1 = j+1;
@@ -97,18 +97,18 @@ static PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,Pet
   }
 
   /* orthogonalize: compute h */
-  ierr = VecMDot(v,j_1,V,h);CHKERRQ(ierr);
-  ierr = VecMDot(w,j_1,V,work);CHKERRQ(ierr);
+  ierr = BVDotVec(V,v,h);CHKERRQ(ierr);
+  ierr = BVDotVec(V,w,work);CHKERRQ(ierr);
   if (j>0)
     PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&j_1,&j,&one,H,&ldh,work,&ione,&one,h,&ione));
   ierr = VecDot(w,t,&dot);CHKERRQ(ierr);
   h[j] += dot;
 
   /* orthogonalize: update v and w */
-  ierr = SlepcVecMAXPBY(v,1.0,-1.0,j_1,h,V);CHKERRQ(ierr);
+  ierr = BVMultVec(V,-1.0,1.0,v,h);CHKERRQ(ierr);
   if (j>0) {
     PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&j_1,&j,&one,H,&ldh,h,&ione,&zero,work,&ione));
-    ierr = SlepcVecMAXPBY(w,1.0,-1.0,j_1,work,V);CHKERRQ(ierr);
+    ierr = BVMultVec(V,-1.0,1.0,w,work);CHKERRQ(ierr);
   }
   ierr = VecAXPY(w,-h[j],t);CHKERRQ(ierr);
 
@@ -126,19 +126,18 @@ static PetscErrorCode QEPQArnoldiCGS(QEP qep,PetscScalar *H,PetscBLASInt ldh,Pet
 /*
   Compute a run of Q-Arnoldi iterations
 */
-static PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec v,Vec w,PetscReal *beta,PetscBool *breakdown,PetscScalar *work)
+static PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,Vec v,Vec w,PetscReal *beta,PetscBool *breakdown,PetscScalar *work)
 {
   PetscErrorCode     ierr;
   PetscInt           i,j,l,m = *M;
   Vec                t = qep->work[2],u = qep->work[3];
-  IPOrthogRefineType refinement;
+  BVOrthogRefineType refinement;
   PetscReal          norm,onorm,eta;
   PetscScalar        *c = work + m;
 
   PetscFunctionBegin;
-  ierr = IPGetOrthogonalization(qep->ip,NULL,&refinement,&eta);CHKERRQ(ierr);
-  ierr = VecCopy(v,qep->V[k]);CHKERRQ(ierr);
-
+  ierr = BVGetOrthogonalization(qep->V,NULL,&refinement,&eta);CHKERRQ(ierr);
+  ierr = BVInsertVec(qep->V,k,v);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
     /* apply operator */
     ierr = VecCopy(w,t);CHKERRQ(ierr);
@@ -148,28 +147,29 @@ static PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,Pet
     ierr = STMatSolve(qep->st,u,w);CHKERRQ(ierr);
     ierr = VecScale(w,-1.0/(qep->sfactor*qep->sfactor));CHKERRQ(ierr);
     ierr = VecCopy(t,v);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(qep->V,0,j+1);CHKERRQ(ierr);
 
     /* orthogonalize */
     switch (refinement) {
-      case IP_ORTHOG_REFINE_NEVER:
-        ierr = QEPQArnoldiCGS(qep,H,ldh,H+ldh*j,j,V,t,v,w,NULL,&norm,work);CHKERRQ(ierr);
+      case BV_ORTHOG_REFINE_NEVER:
+        ierr = QEPQArnoldiCGS(qep,H,ldh,H+ldh*j,j,qep->V,t,v,w,NULL,&norm,work);CHKERRQ(ierr);
         *breakdown = PETSC_FALSE;
         break;
-      case IP_ORTHOG_REFINE_ALWAYS:
-        ierr = QEPQArnoldiCGS(qep,H,ldh,H+ldh*j,j,V,t,v,w,NULL,NULL,work);CHKERRQ(ierr);
-        ierr = QEPQArnoldiCGS(qep,H,ldh,c,j,V,t,v,w,&onorm,&norm,work);CHKERRQ(ierr);
+      case BV_ORTHOG_REFINE_ALWAYS:
+        ierr = QEPQArnoldiCGS(qep,H,ldh,H+ldh*j,j,qep->V,t,v,w,NULL,NULL,work);CHKERRQ(ierr);
+        ierr = QEPQArnoldiCGS(qep,H,ldh,c,j,qep->V,t,v,w,&onorm,&norm,work);CHKERRQ(ierr);
         for (i=0;i<=j;i++) H[ldh*j+i] += c[i];
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
         else *breakdown = PETSC_FALSE;
         break;
-      case IP_ORTHOG_REFINE_IFNEEDED:
-        ierr = QEPQArnoldiCGS(qep,H,ldh,H+ldh*j,j,V,t,v,w,&onorm,&norm,work);CHKERRQ(ierr);
+      case BV_ORTHOG_REFINE_IFNEEDED:
+        ierr = QEPQArnoldiCGS(qep,H,ldh,H+ldh*j,j,qep->V,t,v,w,&onorm,&norm,work);CHKERRQ(ierr);
         /* ||q|| < eta ||h|| */
         l = 1;
         while (l<3 && norm < eta * onorm) {
           l++;
           onorm = norm;
-          ierr = QEPQArnoldiCGS(qep,H,ldh,c,j,V,t,v,w,NULL,&norm,work);CHKERRQ(ierr);
+          ierr = QEPQArnoldiCGS(qep,H,ldh,c,j,qep->V,t,v,w,NULL,&norm,work);CHKERRQ(ierr);
           for (i=0;i<=j;i++) H[ldh*j+i] += c[i];
         }
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
@@ -182,7 +182,7 @@ static PetscErrorCode QEPQArnoldi(QEP qep,PetscScalar *H,PetscInt ldh,Vec *V,Pet
 
     H[j+1+ldh*j] = norm;
     if (j<m-1) {
-      ierr = VecCopy(v,V[j+1]);CHKERRQ(ierr);
+      ierr = BVInsertVec(qep->V,j+1,v);CHKERRQ(ierr);
     }
   }
   *beta = norm;
@@ -196,7 +196,8 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
   PetscErrorCode ierr;
   PetscInt       j,k,l,lwork,nv,ld,newn;
   Vec            v=qep->work[0],w=qep->work[1];
-  PetscScalar    *S,*Q,*work;
+  Mat            Q;
+  PetscScalar    *S,*work;
   PetscReal      beta=0.0,norm,x,y;
   PetscBool      breakdown=PETSC_FALSE;
 
@@ -206,13 +207,13 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
   ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
-  if (qep->nini>0) {
-    ierr = VecCopy(qep->V[0],v);CHKERRQ(ierr);
-  } else {
-    ierr = SlepcVecSetRandom(v,qep->rand);CHKERRQ(ierr);
+  if (qep->nini==0) {
+    ierr = BVSetRandomColumn(qep->V,0,qep->rand);CHKERRQ(ierr);
   }
   /* w is always a random vector */
-  ierr = SlepcVecSetRandom(w,qep->rand);CHKERRQ(ierr);
+  ierr = BVSetRandomColumn(qep->V,1,qep->rand);CHKERRQ(ierr);
+  ierr = BVCopyVec(qep->V,0,v);CHKERRQ(ierr);
+  ierr = BVCopyVec(qep->V,1,w);CHKERRQ(ierr);
   ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
   ierr = VecNorm(w,NORM_2,&y);CHKERRQ(ierr);
   norm = PetscSqrtReal(x*x+y*y);CHKERRQ(ierr);
@@ -227,7 +228,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(qep->nconv+qep->mpd,qep->ncv);
     ierr = DSGetArray(qep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = QEPQArnoldi(qep,S,ld,qep->V,qep->nconv+l,&nv,v,w,&beta,&breakdown,work);CHKERRQ(ierr);
+    ierr = QEPQArnoldi(qep,S,ld,qep->nconv+l,&nv,v,w,&beta,&breakdown,work);CHKERRQ(ierr);
     ierr = DSRestoreArray(qep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
     ierr = DSSetDimensions(qep->ds,nv,0,qep->nconv,qep->nconv+l);CHKERRQ(ierr);
     if (l==0) {
@@ -235,6 +236,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
     } else {
       ierr = DSSetState(qep->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
+    ierr = BVSetActiveColumns(qep->V,qep->nconv,nv);CHKERRQ(ierr);
 
     /* Solve projected problem */
     ierr = DSSolve(qep->ds,qep->eigr,qep->eigi);CHKERRQ(ierr);
@@ -242,7 +244,7 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
     ierr = DSUpdateExtraRow(qep->ds);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,nv-qep->nconv,nv,beta,&k);CHKERRQ(ierr);
+    ierr = QEPKrylovConvergence(qep,PETSC_FALSE,qep->nconv,nv-qep->nconv,beta,&k);CHKERRQ(ierr);
     if (qep->its >= qep->max_it) qep->reason = QEP_DIVERGED_ITS;
     if (k >= qep->nev) qep->reason = QEP_CONVERGED_TOL;
 
@@ -263,9 +265,9 @@ PetscErrorCode QEPSolve_QArnoldi(QEP qep)
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = DSGetArray(qep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = SlepcUpdateVectors(nv,qep->V,qep->nconv,k+l,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = DSRestoreArray(qep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSGetMat(qep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = BVMultInPlace(qep->V,Q,qep->nconv,k+l);CHKERRQ(ierr);
+    ierr = MatDestroy(&Q);CHKERRQ(ierr);
 
     qep->nconv = k;
     ierr = QEPMonitor(qep,qep->its,qep->nconv,qep->eigr,qep->eigi,qep->errest,nv);CHKERRQ(ierr);
