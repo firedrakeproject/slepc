@@ -260,7 +260,10 @@ static PetscErrorCode QEPLinearSelect_Simple(QEP qep,EPS eps)
   PetscErrorCode ierr;
   PetscInt       i,offset;
   PetscScalar    *px;
-  Vec            xr,xi,w,vi,vi1;
+  Vec            xr,xi,w,vi;
+#if !defined(PETSC_USE_COMPLEX)
+  Vec            vi1;
+#endif
   Mat            A;
 
   PetscFunctionBegin;

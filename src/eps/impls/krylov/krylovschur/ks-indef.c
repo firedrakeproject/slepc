@@ -179,7 +179,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = BVCopyColumn(eps->V,nv,k+l);CHKERRQ(ierr);
       ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-      ierr = VecCreateSeqWithArray(PETSC_COMM_SELF,1,k+l,omega,&vomega);CHKERRQ(ierr);
+      ierr = VecCreateSeq(PETSC_COMM_SELF,k+l,&vomega);CHKERRQ(ierr);
+      ierr = VecGetArray(vomega,&aux);CHKERRQ(ierr);
+      for (i=0;i<k+l;i++) aux[i] = omega[i];
+      ierr = VecRestoreArray(vomega,&aux);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(eps->V,0,k+l);CHKERRQ(ierr);
       ierr = BVSetSignature(eps->V,vomega);CHKERRQ(ierr);
       ierr = VecDestroy(&vomega);CHKERRQ(ierr);

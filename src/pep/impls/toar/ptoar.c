@@ -153,7 +153,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
     else pep->which = PEP_LARGEST_MAGNITUDE;
   }
   ierr = PEPAllocateSolution(pep,pep->nmat-1);CHKERRQ(ierr);
-  ierr = PEPSetWorkVecs(pep,4);CHKERRQ(ierr);
+  ierr = PEPSetWorkVecs(pep,3);CHKERRQ(ierr);
   ierr = DSSetType(pep->ds,DSNHEP);CHKERRQ(ierr);
   ierr = DSSetExtraRow(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(pep->ds,pep->ncv+1);CHKERRQ(ierr);
@@ -260,6 +260,7 @@ static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar s
   PetscBool      flg;
 
   PetscFunctionBegin;
+  if (!t_||nwv<3) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
   ierr = BVSetActiveColumns(pep->V,0,nv);CHKERRQ(ierr);
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (sinvert) {
@@ -361,13 +362,13 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar *S,PetscInt ld,PetscScalar 
   PetscErrorCode ierr;
   PetscInt       i,j,p,m=*M,nwu=0,lwa,deg=pep->nmat-1;
   PetscInt       lds=ld*deg;
-  Vec            t=t_[0];
+  Vec            t;
   PetscReal      norm;
   PetscBool      flg,sinvert=PETSC_FALSE;
   PetscScalar    sigma=0.0,*x;
 
   PetscFunctionBegin;
-  if (!t_||nwv<4) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
+  if (!t_||nwv<3) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
   lwa = ld;
   if (!work||nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
@@ -380,12 +381,13 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar *S,PetscInt ld,PetscScalar 
   }
   for (j=k;j<m;j++) {
     /* apply operator */
-    ierr = PEPTOARExtendBasis(pep,sinvert,sigma,S+j*lds,ld,j+deg,pep->V,t,S+(j+1)*lds,ld,t_+1,2);CHKERRQ(ierr);
+    ierr = BVGetColumn(pep->V,j+deg,&t);CHKERRQ(ierr);
+    ierr = PEPTOARExtendBasis(pep,sinvert,sigma,S+j*lds,ld,j+deg,pep->V,t,S+(j+1)*lds,ld,t_,3);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(pep->V,j+deg,&t);CHKERRQ(ierr);
 
     /* orthogonalize */
     if (sinvert) x = S+(j+1)*lds;
     else x = S+(deg-1)*ld+(j+1)*lds;
-    ierr = BVInsertVec(pep->V,j+deg,t);CHKERRQ(ierr);
     ierr = BVOrthogonalizeColumn(pep->V,j+deg,x,&norm,breakdown);CHKERRQ(ierr);
     x[j+deg] = norm;
     ierr = BVScaleColumn(pep->V,j+deg,1.0/norm);CHKERRQ(ierr);
