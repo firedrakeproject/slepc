@@ -382,7 +382,7 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
 
   PetscFunctionBegin;
   ierr = MPI_Comm_size(ctx->subcomm->comm,&sub_size);CHKERRQ(ierr);
-  ierr = PetscMalloc(ctx->num_solve_point*ctx->L*ctx->L*sizeof(PetscScalar),&temp);CHKERRQ(ierr);
+  ierr = PetscMalloc(ctx->num_solve_point*ctx->L*(ctx->L+1)*sizeof(PetscScalar),&temp);CHKERRQ(ierr);
   ierr = PetscMalloc(2*ctx->M*ctx->L*ctx->L*sizeof(PetscScalar),&temp2);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->num_solve_point*sizeof(PetscScalar),&ppk);CHKERRQ(ierr);
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] = 0;
