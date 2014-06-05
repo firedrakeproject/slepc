@@ -214,7 +214,7 @@ PetscErrorCode dvd_profiler_d(dvdDashboard *d);
 typedef struct {
   PetscErrorCode (*old_initV)(struct _dvdDashboard*);
   PetscErrorCode (*old_calcPairs)(struct _dvdDashboard*);
-  PetscErrorCode (*old_improveX)(struct _dvdDashboard*,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
+  PetscErrorCode (*old_improveX)(struct _dvdDashboard*,BV bv,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
   PetscErrorCode (*old_updateV)(struct _dvdDashboard*);
   PetscErrorCode (*old_orthV)(struct _dvdDashboard*);
 } DvdProfiler;
@@ -554,3 +554,14 @@ PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
   }
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__
+#define __FUNCT__ "dvd_harm_eigs_trans"
+PetscErrorCode dvd_get_aux_vecs(dvdDashboard *d,PetscInt n,Vec **x)
+{
+  PetscErrorCode  ierr;
+  d->aux_vecs_n
+  d->aux_vecs_max
+  PetscFunctionReturn(0);
+}
+

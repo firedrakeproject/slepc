@@ -45,6 +45,8 @@ typedef struct {
 
   /**** Things to destroy ****/
   PetscScalar *wS;
+  Vec         *wV;
+  PetscInt    size_wV;
 } EPS_DAVIDSON;
 
 #undef __FUNCT__
@@ -65,6 +67,8 @@ PetscErrorCode EPSCreate_XD(EPS eps)
   ierr = PetscNewLog(eps,&data);CHKERRQ(ierr);
   eps->data = (void*)data;
   data->wS = NULL;
+  data->wV = NULL;
+  data->size_wV = 0;
 
   /* Set default values */
   ierr = EPSXDSetKrylovStart_XD(eps,PETSC_FALSE);CHKERRQ(ierr);
@@ -86,7 +90,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
   dvdBlackboard  b;
-  PetscInt       nscalars,min_size_V,plusk,bs,initv,i,cX_in_proj,cX_in_impr,nmat;
+  PetscInt       nvecs,nscalars,min_size_V,plusk,bs,initv,i,cX_in_proj,cX_in_impr,nmat;
   Mat            A,B;
   KSP            ksp;
   PetscBool      t,ipB,ispositive,dynamic;
@@ -261,10 +265,14 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   nscalars = b.own_scalars + b.max_size_auxS;
   ierr = PetscMalloc1(nscalars,&data->wS);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,nscalars*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = VecDuplicateVecs(eps->t,nvecs,&data->wV);CHKERRQ(ierr);
+  ierr = PetscLogObjectParents(eps,nvecs,data->wV);CHKERRQ(ierr);
+  data->size_wV = nvecs;
+  b.free_vecs = data->wV;
   b.free_scalars = data->wS;
-  ierr = BVDuplicate(eps->V,&dvd->auxV);CHKERRQ(ierr);
-  ierr = BVResize(dvd->auxV,b.max_size_auxV,PETSC_FALSE);CHKERRQ(ierr);
+  dvd->auxV = data->wV + b.own_vecs;
   dvd->auxS = b.free_scalars + b.own_scalars;
+  dvd->size_auxV = b.max_size_auxV;
   dvd->size_auxS = b.max_size_auxS;
 
   eps->errest_left = NULL;
@@ -338,6 +346,9 @@ PetscErrorCode EPSReset_XD(EPS eps)
   DVD_FL_DEL(dvd->startList);
   DVD_FL_DEL(dvd->endList);
 
+  if (data->size_wV > 0) {
+    ierr = VecDestroyVecs(data->size_wV,&data->wV);CHKERRQ(ierr);
+  }
   ierr = PetscFree(data->wS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

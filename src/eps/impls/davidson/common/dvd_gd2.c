@@ -33,12 +33,6 @@ PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d,PetscScalar *pX,Pet
 
 /**** GD2 update step K*[A*X B*X]  ****/
 
-typedef struct {
-  PetscInt size_X;
-  void         *old_improveX_data;   /* old improveX_data */
-  improveX_type old_improveX;        /* old improveX */
-} dvdImprovex_gd2;
-
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_gd2"
 PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs)
@@ -84,9 +78,7 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
   if (b->state >= DVD_STATE_CONF) {
     ierr = PetscMalloc(sizeof(dvdImprovex_gd2),&data);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdImprovex_gd2));CHKERRQ(ierr);
-    data->old_improveX_data = d->improveX_data;
     d->improveX_data = data;
-    data->old_improveX = d->improveX;
     data->size_X = b->max_size_X;
     d->improveX = dvd_improvex_gd2_gen;
 
@@ -103,9 +95,6 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
   dvdImprovex_gd2 *data = (dvdImprovex_gd2*)d->improveX_data;
 
   PetscFunctionBegin;
-  /* Restore changes in dvdDashboard */
-  d->improveX_data = data->old_improveX_data;
-
   /* Free local data and objects */
   ierr = PetscFree(data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -206,12 +195,6 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   /* Quick exit */
   if (max_size_D == 0 || r_e-r_s <= 0 || n == 0) {
    *size_D = 0;
-   /* Callback old improveX */
-    if (data->old_improveX) {
-      d->improveX_data = data->old_improveX_data;
-      ierr = data->old_improveX(d,NULL,0,0,0,NULL);CHKERRQ(ierr);
-      d->improveX_data = data;
-    }
     PetscFunctionReturn(0);
   }
 
@@ -338,11 +321,5 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
     *size_D = 0;
   }
 
-  /* Callback old improveX */
-  if (data->old_improveX) {
-    d->improveX_data = data->old_improveX_data;
-    ierr = data->old_improveX(d,NULL,0,0,0,NULL);CHKERRQ(ierr);
-    d->improveX_data = data;
-  }
   PetscFunctionReturn(0);
 }

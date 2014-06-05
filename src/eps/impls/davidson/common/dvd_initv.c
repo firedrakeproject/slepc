@@ -96,7 +96,7 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
   dvdInitV       *data = (dvdInitV*)d->initV_data;
   PetscInt       i, user = PetscMin(data->user, d->eps->ncv),
                  k = PetscMin(data->k, d->eps->ncv);
-  Vec            av,v1,v2,*cX = d->BcX? d->BcX : ((d->cY && !d->W)? d->cY : d->cX);
+  Vec            av,v1,v2;
 
   PetscFunctionBegin;
   /* If needed, generate a random vector for starting the arnoldi method */
@@ -114,7 +114,7 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
     ierr = BVGetColumn(d->auxV,0,&av);CHKERRQ(ierr);
     if (d->B) {
       ierr = MatMult(d->A,v2,v1);CHKERRQ(ierr);
-      ierr = MatMult(d->B,v2,d->auxV[0]);CHKERRQ(ierr);
+      ierr = MatMult(d->B,v2,av);CHKERRQ(ierr);
       ierr = VecAXPBY(av,d->target[1],-d->target[0],v1);CHKERRQ(ierr);
     } else {
       ierr = MatMult(d->A,v2,av);CHKERRQ(ierr);

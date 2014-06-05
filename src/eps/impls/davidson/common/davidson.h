@@ -85,7 +85,7 @@ typedef struct _dvdDashboard {
   PetscInt npreconv;
 
   /* Improve the selected eigenpairs */
-  PetscErrorCode (*improveX)(struct _dvdDashboard*,BV D,PetscInt d_s,PetscInt d_e,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
+  PetscErrorCode (*improveX)(struct _dvdDashboard*,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
   void *improveX_data;
 
   /* Check for restarting */
@@ -127,10 +127,11 @@ typedef struct _dvdDashboard {
   EPS eps;          /* Connection to SLEPc */
 
   /**** Auxiliary space ****/
-  BV auxV;          /* auxiliary vectors */
+  Vec *auxV;        /* auxiliary vectors */
   PetscScalar
     *auxS;          /* auxiliary scalars */
   PetscInt
+    size_auxV,      /* max size of auxV */
     size_auxS;      /* max size of auxS */
 
   /**** Eigenvalues and errors ****/
@@ -152,8 +153,8 @@ typedef struct _dvdDashboard {
   PetscErrorCode (*e_Vchanged)(struct _dvdDashboard*,PetscInt s_imm,PetscInt e_imm,PetscInt s_new,PetscInt e_new);
   void *e_Vchanged_data;
 
-  PetscErrorCode (*calcpairs_residual)(struct _dvdDashboard*,PetscInt s,PetscInt e,BV R,PetscInt l);
-  PetscErrorCode (*calcpairs_residual_eig)(struct _dvdDashboard*,PetscInt s,PetscInt e,BV R,PetscInt l);
+  PetscErrorCode (*calcpairs_residual)(struct _dvdDashboard*,PetscInt s,PetscInt e,Vec *R);
+  PetscErrorCode (*calcpairs_residual_eig)(struct _dvdDashboard*,PetscInt s,PetscInt e,Vec *R);
   PetscErrorCode (*calcpairs_selectPairs)(struct _dvdDashboard*,PetscInt n);
   void *calcpairs_residual_data;
   PetscErrorCode (*improvex_precond)(struct _dvdDashboard*,PetscInt i,Vec x,Vec Px);
@@ -165,7 +166,7 @@ typedef struct _dvdDashboard {
   PetscErrorCode (*calcpairs_proj_trans)(struct _dvdDashboard*);
   PetscErrorCode (*calcpairs_eigs_trans)(struct _dvdDashboard*);
   PetscErrorCode (*calcpairs_eig_backtrans)(struct _dvdDashboard*,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
-  PetscErrorCode (*calcpairs_proj_res)(struct _dvdDashboard*,PetscInt r_s,PetscInt r_e,BV R,PetscInt l);
+  PetscErrorCode (*calcpairs_proj_res)(struct _dvdDashboard*,PetscInt r_s,PetscInt r_e,Vec *R);
   PetscErrorCode (*preTestConv)(struct _dvdDashboard*,PetscInt s,PetscInt pre,PetscInt e,Vec *auxV,PetscScalar *auxS,PetscInt *nConv);
 
   PetscErrorCode (*e_newIteration)(struct _dvdDashboard*);
@@ -293,6 +294,7 @@ typedef struct {
     max_size_cX_proj,   /* max converged vectors in the projected problem */
     own_vecs,           /* number of global vecs */
     own_scalars;        /* number of local scalars */
+  Vec *free_vecs;       /* free global vectors */
   PetscScalar
     *free_scalars;      /* free scalars */
   PetscInt state;       /* method states:

@@ -104,7 +104,7 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
     d->eigr = d->eps->eigr;
     d->eigi = d->eps->eigi;
     d->errest = d->eps->errest;
-    d->real_nR = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(b->size_V);
+    ierr = PetscMalloc(sizeof(PetscReal)*d->eps->ncv, &d->real_nR);CHKERRQ(ierr);
     d->real_nX = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(b->size_V);
     if (plusk > 0) {
       data->oldU = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
@@ -378,7 +378,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   }
 
   /* Fill V with D */
-  ierr = d->improveX(d,d->eps->V,k,d->eps->ncv,0,size_D,&size_D);CHKERRQ(ierr);
+  ierr = d->improveX(d,0,size_D,&size_D);CHKERRQ(ierr);
 
   /* If D is empty, exit */
   d->size_D = size_D;

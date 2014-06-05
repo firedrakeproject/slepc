@@ -36,7 +36,7 @@ PetscErrorCode MatGetVecs_dvd_jd(Mat A,Vec *right,Vec *left);
 PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d);
 PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d);
 PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d);
-PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
+PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
 PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec **u,Vec **v,Vec *kr,Vec **auxV,PetscScalar **auxS,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld);
 PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,Vec *auxV,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld);
 PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,Vec *auxV,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld);
@@ -50,10 +50,6 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV,P
 
 typedef struct {
   PetscInt size_X;
-  void
-    *old_improveX_data;   /* old improveX_data */
-  improveX_type
-    old_improveX;         /* old improveX */
   KSP ksp;                /* correction equation solver */
   Vec
     friends,              /* reference vector for composite vectors */
@@ -160,9 +156,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
     data->XKZ = b->free_scalars; b->free_scalars+= size_P*size_P;
     data->ldXKZ = size_P;
     data->size_X = b->max_size_X;
-    data->old_improveX_data = d->improveX_data;
     d->improveX_data = data;
-    data->old_improveX = d->improveX;
     data->ksp = useGD?NULL:ksp;
     data->d = d;
     d->improveX = dvd_improvex_jd_gen;
@@ -185,6 +179,7 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
   Mat             A;
   PetscBool       t;
   PC              pc;
+  Vec             v0;
 
   PetscFunctionBegin;
   data->KZ = data->real_KZ;
@@ -194,7 +189,8 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
   /* Setup the ksp */
   if (data->ksp) {
     /* Create the reference vector */
-    ierr = VecCreateCompWithVecs(d->eps->V,data->ksp_max_size,NULL,&data->friends);CHKERRQ(ierr);
+    ierr = BVGetColumn(d->eps->V,0,&v0);CHKERRQ(ierr);
+    ierr = VecCreateCompWithVecs(&v0,0,NULL,&data->friends);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)d->eps,(PetscObject)data->friends);CHKERRQ(ierr);
 
     /* Save the current pc and set a PCNONE */
@@ -272,9 +268,6 @@ PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
 
   PetscFunctionBegin;
-  /* Restore changes in dvdDashboard */
-  d->improveX_data = data->old_improveX_data;
-
   /* Free local data and objects */
   ierr = VecDestroyVecs(data->size_real_KZ,&data->real_KZ);CHKERRQ(ierr);
   ierr = PetscFree(data);CHKERRQ(ierr);
@@ -283,26 +276,22 @@ PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_jd_gen"
-PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
+PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
 {
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
   PetscErrorCode  ierr;
-  PetscInt        i,j,n,maxits,maxits0,lits,s,ld,l,k;
+  PetscInt        i,j,n,maxits,maxits0,lits,s,ld,l,k,max_size_D;
   PetscScalar     *pX,*pY,*auxS = d->auxS,*auxS0;
   PetscReal       tol,tol0;
   Vec             *u,*v,*kr,kr_comp,D_comp;
   PetscBool       odd_situation = PETSC_FALSE;
 
   PetscFunctionBegin;
+  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
+  max_size_D = d->eps->ncv-k;
   /* Quick exit */
   if ((max_size_D == 0) || r_e-r_s <= 0) {
    *size_D = 0;
-   /* Callback old improveX */
-    if (data->old_improveX) {
-      d->improveX_data = data->old_improveX_data;
-      data->old_improveX(d, NULL, 0, 0, 0, NULL);
-      d->improveX_data = data;
-    }
     PetscFunctionReturn(0);
   }
 
@@ -327,7 +316,6 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
 #endif
       s=1;
 
-    data->auxV = d->auxV;
     data->r_s = r_s+i; data->r_e = r_s+i+s;
     auxS = auxS0;
     data->theta = auxS; auxS+= 2*s;
@@ -415,12 +403,6 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,Pe
   *size_D = i;
   if (data->dynamic) data->lastTol = PetscMax(data->lastTol/2.0,PETSC_MACHINE_EPSILON*10.0);
 
-  /* Callback old improveX */
-  if (data->old_improveX) {
-    d->improveX_data = data->old_improveX_data;
-    data->old_improveX(d, NULL, 0, 0, 0, NULL);
-    d->improveX_data = data;
-  }
   PetscFunctionReturn(0);
 }
 

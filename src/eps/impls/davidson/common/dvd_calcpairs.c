@@ -39,10 +39,10 @@ PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n);
 PetscErrorCode dvd_calcpairs_X(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *X);
 PetscErrorCode dvd_calcpairs_Y(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *Y);
-PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e,BV R,PetscInt l);
-PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e,BV R,PetscInt l);
-PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,BV R,PetscInt l);
-PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d);
+PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *R);
+PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *R);
+PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *R);
+PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d,DvdReduction *r,DvdMult_copy_func **sr);
 PetscErrorCode dvd_calcpairs_updateV1(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_updateW1(dvdDashboard *d);
@@ -124,8 +124,10 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
                    FromRealToScalar(d->eps->ncv)*(ind_probl?1:0) + /* nBV */
                    FromRealToScalar(b->max_size_proj)*(ind_probl?1:0) + /* nBpX */
                    (d->eps->arbitrary? b->size_V*2 : 0); /* rr, ri */
-  b->max_size_auxV = PetscMax(b->max_size_auxV, b->max_size_X);
-                                                /* updateV0 */
+  b->max_size_auxV = PetscMax(PetscMax(b->max_size_auxV,
+                    b->max_size_X),  /* updateV0 */
+                    2);              /* arbitrary */
+ 
   max_cS = PetscMax(b->max_size_X,cX_proj);
   b->max_size_auxS = PetscMax(PetscMax(
     b->max_size_auxS,
@@ -221,6 +223,8 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
     } else d->W = NULL;
     ierr = BVDuplicate(d->eps->V,&d->AX);CHKERRQ(ierr);
     ierr = BVResize(d->AX,d->eps->ncv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVDuplicate(d->eps->V,&d->auxBV);CHKERRQ(ierr);
+    ierr = BVResize(d->auxBV,d->eps->ncv,PETSC_FALSE);CHKERRQ(ierr);
     if (d->B) {
       ierr = BVDuplicate(d->eps->V,&d->BX);CHKERRQ(ierr);
       ierr = BVResize(d->BX,d->eps->ncv,PETSC_FALSE);CHKERRQ(ierr);
@@ -239,6 +243,10 @@ PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d)
   PetscInt  i;
 
   PetscFunctionBegin;
+  ierr = BVSetActiveColumns(d->eps->V,0,0);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->W,0,0);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->AX,0,0);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->BX,0,0);CHKERRQ(ierr);
   d->size_H = 0;
   d->H = d->real_H;
   if (d->cS) for (i=0; i<d->max_size_cS*d->max_size_cS; i++) d->cS[i] = 0.0;
@@ -269,7 +277,7 @@ PetscErrorCode dvd_calcpairs_qz_d(dvdDashboard *d)
 PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
 {
   PetscErrorCode ierr;
-  PetscInt       i,l,k;
+  PetscInt       i,l,k,lv,kv,lax,kax,lbx,kbx,lw,kw;
   Vec            v1,v2;
 
   PetscFunctionBegin;
@@ -326,15 +334,19 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
   }
 
   /* Check consistency */
-  /*if (d->size_V != d->V_new_e || d->size_V+d->cX_in_H != d->size_H || d->cX_in_V != d->cX_in_H ||
-      d->size_V != d->size_AV || d->cX_in_H != d->cX_in_AV ||
+  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(d->AX,&lax,&kax);CHKERRQ(ierr);
+  if (d->BX) { ierr = BVGetActiveColumns(d->BX,&lbx,&kbx);CHKERRQ(ierr); }
+  if (d->W) { ierr = BVGetActiveColumns(d->W,&lw,&kw);CHKERRQ(ierr); }
+  if (kv-lv != d->V_new_e || kv-lv+d->cX_in_H != d->size_H || d->cX_in_V != d->cX_in_H ||
+      kv-lv != kax-lax || d->cX_in_H != d->cX_in_AV ||
         (DVD_ISNOT(d->sEP, DVD_EP_STD) && (
-          d->size_V+d->cX_in_G != d->size_G || d->cX_in_H != d->cX_in_G ||
-          d->size_H != d->size_G || (d->BV && (
-            d->size_V != d->size_BV || d->cX_in_H != d->cX_in_BV)))) ||
-      (d->W && d->size_W != d->size_V)) {
+          kv-lv+d->cX_in_G != d->size_G || d->cX_in_H != d->cX_in_G ||
+          d->size_H != d->size_G || (d->BX && (
+            kv-lv != kbx-lbx || d->cX_in_H != d->cX_in_BV)))) ||
+      (d->W && kw-lw != kv-lv)) {
     SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-  }*/
+  }
   PetscFunctionReturn(0);
 }
 
@@ -372,13 +384,14 @@ PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d)
     /* auxV <- AV * ps.Q(0:V_tra_e-1) */
     ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
     ierr = DSGetMat(d->ps,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = BVMult(d->auxV,1.0,0.0,d->AX,Q);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(d->auxBV,0,d->V_tra_e);CHKERRQ(ierr);
+    ierr = BVMult(d->auxBV,1.0,0.0,d->AX,Q);CHKERRQ(ierr);
     ierr = MatDestroy(&Q);CHKERRQ(ierr);
 
     /* cS(:, size_cS:) <- cX' * auxV */
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,l,l,NULL,&S);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(d->eps->V,0,l);CHKERRQ(ierr);
-    ierr = BVDot(d->auxV,d->eps->V,S);CHKERRQ(ierr);
+    ierr = BVDot(d->auxBV,d->eps->V,S);CHKERRQ(ierr);
     ierr = MatDenseGetArray(S,&array);CHKERRQ(ierr);
     for (j=0;j<l;j++) {
       ierr = PetscMemcpy(&d->cS[d->ldcS*(d->size_cS+j)],array+j*l,l*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -437,12 +450,13 @@ PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d)
     ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
     /* auxV <- AV * ps.Q(0:V_tra_e-1) */
     ierr = DSGetMat(d->ps,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = BVMult(d->auxV,1.0,0.0,d->AX,Q);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(d->auxBV,0,d->V_tra_e);CHKERRQ(ierr);
+    ierr = BVMult(d->auxBV,1.0,0.0,d->AX,Q);CHKERRQ(ierr);
 
     /* cS(:, size_cS:) <- cY' * auxV */
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,l,l,NULL,&S);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(d->W,0,l);CHKERRQ(ierr);
-    ierr = BVDot(d->auxV,d->W,S);CHKERRQ(ierr);
+    ierr = BVDot(d->auxBV,d->W,S);CHKERRQ(ierr);
     ierr = MatDenseGetArray(S,&array);CHKERRQ(ierr);
     for (j=0;j<l;j++) {
       ierr = PetscMemcpy(&d->cS[d->ldcS*(d->size_cS+j)],array+j*l,l*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -450,13 +464,13 @@ PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d)
     ierr = MatDenseRestoreArray(S,&array);CHKERRQ(ierr);
 
     /* auxV <- BV * ps.Q(0:V_tra_e-1) */
-    ierr = BVMult(d->auxV,1.0,0.0,d->BX,Q);CHKERRQ(ierr);
+    ierr = BVMult(d->auxBV,1.0,0.0,d->BX,Q);CHKERRQ(ierr);
     ierr = MatDestroy(&Q);CHKERRQ(ierr);
 
     /* cT(:, size_cS:) <- cY' * auxV */
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,l,l,NULL,&T);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(d->W,0,l);CHKERRQ(ierr);
-    ierr = BVDot(d->auxV,d->W,T);CHKERRQ(ierr);
+    ierr = BVDot(d->auxBV,d->W,T);CHKERRQ(ierr);
     ierr = MatDenseGetArray(T,&array);CHKERRQ(ierr);
     for (j=0;j<l;j++) {
       ierr = PetscMemcpy(&d->cT[d->ldcT*(d->size_cT+j)],array+j*l,l*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -644,7 +658,7 @@ PetscErrorCode dvd_calcpairs_apply_arbitrary(dvdDashboard *d,PetscInt r_s,PetscI
 {
   PetscInt        i,k,ld;
   PetscScalar     *pX,*rr,*ri,ar,ai;
-  Vec             X[2],xr,xi;
+  Vec             *X = d->auxV,xr,xi;
   PetscErrorCode  ierr;
 #if !defined(PETSC_USE_COMPLEX)
   PetscInt        j;
@@ -668,8 +682,6 @@ PetscErrorCode dvd_calcpairs_apply_arbitrary(dvdDashboard *d,PetscInt r_s,PetscI
     PetscFunctionReturn(0);
   }
 
-  ierr = BVGetColumn(d->auxV,0,X);CHKERRQ(ierr);
-  ierr = BVGetColumn(d->auxV,1,X+1);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
   *rr_ = rr = d->eps->rr + d->eps->nconv;
   *ri_ = ri = d->eps->ri + d->eps->nconv;
@@ -713,8 +725,6 @@ PetscErrorCode dvd_calcpairs_apply_arbitrary(dvdDashboard *d,PetscInt r_s,PetscI
     }
 #endif
   }
-  ierr = BVRestoreColumn(d->auxV,0,X);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(d->auxV,1,X+1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
