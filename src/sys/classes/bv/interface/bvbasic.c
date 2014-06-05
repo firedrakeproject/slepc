@@ -251,6 +251,51 @@ PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVSetNumConstraints"
+/*@
+   BVSetNumConstraints - Set the number of constraints.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  V  - basis vectors
+-  nc - number of constraints
+
+   Notes:
+   This function sets the number of constraints to nc and marks all remaining
+   columns as regular. Normal user would call BVInsertConstraints() instead.
+
+   Level: developer
+
+.seealso: BVInsertConstraints()
+@*/
+PetscErrorCode BVSetNumConstraints(BV V,PetscInt nc)
+{
+  PetscErrorCode ierr;
+  PetscInt       total;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(V,nc,2);
+  if (!nc) PetscFunctionReturn(0);
+  if (nc<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %D) cannot be negative",nc);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  if (V->ci[0]!=-V->nc-1 || V->ci[1]!=-V->nc-1) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot call BVSetNumConstraints after BVGetColumn");
+
+  total = V->nc+V->m;
+  V->nc = nc;
+  V->m = total-nc;
+  if (V->m<=0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Not enough columns for the given nc value");
+  V->ci[0] = -V->nc-1;
+  V->ci[1] = -V->nc-1;
+  V->l = 0;
+  V->k = V->m;
+  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetNumConstraints"
 /*@
   BVGetNumConstraints - Returns the number of constraints.

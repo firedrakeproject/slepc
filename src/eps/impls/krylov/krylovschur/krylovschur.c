@@ -78,34 +78,13 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
 PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
   PetscErrorCode  ierr;
-  PetscBool       issinv;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   enum { EPS_KS_DEFAULT,EPS_KS_SYMM,EPS_KS_SLICE,EPS_KS_INDEF } variant;
 
   PetscFunctionBegin;
   /* spectrum slicing requires special treatment of default values */
   if (eps->which==EPS_ALL) {
-    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Must define a computational interval when using EPS_ALL");
-    if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems");
-    if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
-    if (!((PetscObject)(eps->st))->type_name) { /* default to shift-and-invert */
-      ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
-    }
-    ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&issinv,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
-    if (!issinv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for spectrum slicing");
-#if defined(PETSC_USE_REAL_DOUBLE)
-    if (eps->tol==PETSC_DEFAULT) eps->tol = 1e-10;  /* use tighter tolerance */
-#endif
-    if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
-      if (eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
-      ierr = STSetDefaultShift(eps->st,eps->inta);CHKERRQ(ierr);
-    } else {
-      ierr = STSetDefaultShift(eps->st,eps->intb);CHKERRQ(ierr);
-    }
-
-    if (eps->nev==1) eps->nev = 40;  /* nev not set, use default value */
-    if (eps->nev<10) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
-    eps->ops->backtransform = NULL;
+    ierr = EPSSetUp_KrylovSchur_Slice(eps);CHKERRQ(ierr);
   }
 
   if (eps->isgeneralized && eps->ishermitian && !eps->ispositive && eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not implemented for indefinite problems");
@@ -113,10 +92,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   /* proceed with the general case */
   ierr = EPSSetDimensions_Default(eps);CHKERRQ(ierr);
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
-  if (!eps->max_it) {
-    if (eps->which==EPS_ALL) eps->max_it = 100;  /* special case for spectrum slicing */
-    else eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
-  }
+  if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
@@ -130,8 +106,6 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   ierr = EPSAllocateSolution(eps,1);CHKERRQ(ierr);
   if (eps->arbitrary) {
     ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
-  } else if (eps->ishermitian && !eps->ispositive) {
-    ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
   }
 
   /* dispatch solve method */
@@ -168,7 +142,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       ierr = DSSetExtraRow(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       break;
     case EPS_KS_SLICE:
-     /* eps->ops->solve = EPSSolve_KrylovSchur_Slice; */ SETERRQ(PETSC_COMM_SELF,1,"Temporarily disabled");
+      eps->ops->solve = EPSSolve_KrylovSchur_Slice;
       ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       break;
@@ -395,12 +369,119 @@ PetscErrorCode EPSKrylovSchurGetRestart(EPS eps,PetscReal *keep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurSetDimensions_KrylovSchur"
+static PetscErrorCode EPSKrylovSchurSetDimensions_KrylovSchur(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
+{
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+
+  PetscFunctionBegin;
+  if (nev<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+  ctx->nev = nev;
+  eps->setupcalled = 0;
+  if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
+    ctx->ncv = 0;
+  } else {
+    if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+    ctx->ncv = ncv;
+  }
+  eps->setupcalled = 0;
+  if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
+    ctx->mpd = 0;
+  } else {
+    if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
+    ctx->mpd = mpd;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurSetDimensions"
+/*@
+   EPSKrylovSchurSetDimensions - Sets the dimensions used for each subsolve
+   step in case of doing spectrum slicing for a computational interval.
+   The meaning of the parameters is the same as in EPSSetDimensions().
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+.  nev - number of eigenvalues to compute
+.  ncv - the maximum dimension of the subspace to be used by the subsolve
+-  mpd - the maximum dimension allowed for the projected problem
+
+   Options Database Key:
++  -eps_krylovschur_nev <nev> - Sets the number of eigenvalues
+.  -eps_krylovschur_ncv <ncv> - Sets the dimension of the subspace
+-  -eps_krylovschur_mpd <mpd> - Sets the maximum projected dimension
+
+   Level: advanced
+
+.seealso: EPSKrylovSchurGetDimensions(), EPSSetDimensions(), EPSSetInterval()
+@*/
+PetscErrorCode EPSKrylovSchurSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,nev,2);
+  PetscValidLogicalCollectiveInt(eps,ncv,3);
+  PetscValidLogicalCollectiveInt(eps,mpd,4);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurSetDimensions_C",(EPS,PetscInt,PetscInt,PetscInt),(eps,nev,ncv,mpd));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetDimensions_KrylovSchur"
+static PetscErrorCode EPSKrylovSchurGetDimensions_KrylovSchur(EPS eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd)
+{
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+
+  PetscFunctionBegin;
+  if (nev) *nev = ctx->nev;
+  if (ncv) *ncv = ctx->ncv;
+  if (mpd) *mpd = ctx->mpd;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetDimensions"
+/*@
+   EPSKrylovSchurGetDimensions - Gets the dimensions used for each subsolve
+   step in case of doing spectrum slicing for a computational interval.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameters:
++  nev - number of eigenvalues to compute
+.  ncv - the maximum dimension of the subspace to be used by the subsolve
+-  mpd - the maximum dimension allowed for the projected problem
+
+   Level: advanced
+
+.seealso: EPSKrylovSchurSetDimensions()
+@*/
+PetscErrorCode EPSKrylovSchurGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetDimensions_C",(EPS,PetscInt*,PetscInt*,PetscInt*),(eps,nev,ncv,mpd));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_KrylovSchur"
 PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      flg;
   PetscReal      keep;
+  PetscInt       i,j,k;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS Krylov-Schur Options");CHKERRQ(ierr);
@@ -408,6 +489,12 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps)
   if (flg) {
     ierr = EPSKrylovSchurSetRestart(eps,keep);CHKERRQ(ierr);
   }
+  i = 1;
+  j = k = PETSC_DECIDE;
+  ierr = PetscOptionsInt("-eps_krylovschur_nev","Number of eigenvalues to compute in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",40,&i,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_krylovschur_ncv","Number of basis vectors in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&j,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_krylovschur_mpd","Maximum dimension of projected problem in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&k,NULL);CHKERRQ(ierr);
+  ierr = EPSKrylovSchurSetDimensions(eps,i,j,k);CHKERRQ(ierr);
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -424,6 +511,9 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
+    if (eps->which==EPS_ALL) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: doing spectrum slicing with nev=%d, ncv=%d, mpd=%d\n",ctx->nev,ctx->ncv,ctx->mpd);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -434,9 +524,24 @@ PetscErrorCode EPSReset_KrylovSchur(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  shift           s;
+  SR              sr;
 
   PetscFunctionBegin;
   ctx->keep = 0.0;
+  /* Reviewing list of shifts to free memory */
+  sr = ctx->sr;
+  if (sr) {
+    s = sr->s0;
+    if (s) {
+      while (s->neighb[1]) {
+        s = s->neighb[1];
+        ierr = PetscFree(s->neighb[0]);CHKERRQ(ierr);
+      }
+      ierr = PetscFree(s);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(sr);CHKERRQ(ierr);
+  }
   ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -451,6 +556,8 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetRestart_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetRestart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetDimensions_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetDimensions_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -464,6 +571,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   PetscFunctionBegin;
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
+  ctx->nev = 1;
 
   eps->ops->setup          = EPSSetUp_KrylovSchur;
   eps->ops->setfromoptions = EPSSetFromOptions_KrylovSchur;
@@ -474,6 +582,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   eps->ops->computevectors = EPSComputeVectors_Schur;
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetRestart_C",EPSKrylovSchurSetRestart_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetRestart_C",EPSKrylovSchurGetRestart_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetDimensions_C",EPSKrylovSchurSetDimensions_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetDimensions_C",EPSKrylovSchurGetDimensions_KrylovSchur);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

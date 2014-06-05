@@ -235,7 +235,7 @@ PetscErrorCode BVInsertVec(BV V,PetscInt j,Vec w)
   ierr = VecGetSize(w,&N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(w,&n);CHKERRQ(ierr);
   if (N!=V->N || n!=V->n) SETERRQ4(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %D, local %D) do not match BV sizes (global %D, local %D)",N,n,V->N,V->n);
-  if (j<0 || j>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, should be between 0 and %D",j,V->m-1);
+  if (j<-V->nc || j>=V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, should be between %D and %D",j,-V->nc,V->m-1);
 
   ierr = BVGetColumn(V,j,&v);CHKERRQ(ierr);
   ierr = VecCopy(w,v);CHKERRQ(ierr);
@@ -354,7 +354,7 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
 
    Level: advanced
 
-.seealso: BVInsertVecs(), BVOrthogonalizeColumn(), BVGetColumn()
+.seealso: BVInsertVecs(), BVOrthogonalizeColumn(), BVGetColumn(), BVGetNumConstraints()
 @*/
 PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
 {

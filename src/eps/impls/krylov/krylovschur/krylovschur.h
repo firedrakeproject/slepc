@@ -27,6 +27,7 @@
 PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS);
 PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS);
+PETSC_INTERN PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS);
 PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS);
 PETSC_INTERN PetscErrorCode EPSGetArbitraryValues(EPS,PetscScalar*,PetscScalar*);
 
@@ -50,17 +51,13 @@ struct _n_SR {
   PetscInt      dir;        /* Determines the order of values in eig (+1 incr, -1 decr) */
   PetscBool     hasEnd;     /* Tells whether the interval has an end */
   PetscInt      inertia0,inertia1;
-  Vec           *V;
-  PetscScalar   *eig,*eigi,*monit,*back;
-  PetscReal     *errest;
-  PetscInt      *perm;      /* Permutation for keeping the eigenvalues in order */
+  PetscScalar   *monit,*back;
   PetscInt      numEigs;    /* Number of eigenvalues in the interval */
   PetscInt      indexEig;
   shift         sPres;      /* Present shift */
   shift         *pending;   /* Pending shifts array */
   PetscInt      nPend;      /* Number of pending shifts */
   PetscInt      maxPend;    /* Size of "pending" array */
-  Vec           *VDef;      /* Vector for deflation */
   PetscInt      *idxDef;    /* For deflation */
   PetscInt      nMAXCompl;
   PetscInt      iterCompl;
@@ -69,14 +66,23 @@ struct _n_SR {
   shift         s0;         /* Initial shift */
   PetscScalar   *S;         /* Matrix for projected problem */
   PetscInt      nS;
-  PetscReal     beta;
   shift         sPrev;
+  PetscInt      nv;         /* position of restart vector */
 };
 typedef struct _n_SR  *SR;
 
 typedef struct {
-  PetscReal     keep;
-  SR            sr;
+  PetscReal     keep;         /* restart parameter */
+  /* the following are used only in spectrum slicing */
+  SR            sr;           /* spectrum slicing context */
+  BV            V;            /* working basis (for subsolve) */
+  BV            Vnext;        /* temporary working basis during change of shift */
+  PetscInt      nev;          /* number of eigenvalues to compute */
+  PetscInt      ncv;          /* number of basis vectors */
+  PetscInt      mpd;          /* maximum dimension of projected problem */
+  PetscScalar   *eigr,*eigi;  /* eigenvalues (for subsolve) */
+  PetscReal     *errest;      /* error estimates (for subsolve) */
+  PetscInt      *perm;        /* permutation (for subsolve) */
 } EPS_KRYLOVSCHUR;
 
 #endif
