@@ -320,8 +320,8 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscInt        i,conv,k,l,ld,nv,*iwork,j,p;
   Mat             U;
-  PetscScalar     *Q,*A,rtmp,*eigrsave,*eigisave,*errestsave;
-  PetscReal       *a,*b,beta;
+  PetscScalar     *Q,*A,rtmp,*eigrsave,*eigisave;
+  PetscReal       *a,*b,beta,*errestsave;
   PetscBool       breakdown;
   PetscInt        count0,count1;
   PetscReal       lambda;
