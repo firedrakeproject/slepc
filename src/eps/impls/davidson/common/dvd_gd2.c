@@ -26,12 +26,16 @@
 #include "davidson.h"
 
 PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d);
-PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
+PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
 PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d,PetscScalar *pX,PetscScalar *pY,PetscInt ld_,PetscScalar *auxS,PetscInt size_auxS);
 
 #define size_Z (64*4)
 
 /**** GD2 update step K*[A*X B*X]  ****/
+
+typedef struct {
+  PetscInt size_X;
+} dvdImprovex_gd2;
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_gd2"
@@ -170,16 +174,18 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_gd2_gen"
-PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
+PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
 {
   dvdImprovex_gd2 *data = (dvdImprovex_gd2*)d->improveX_data;
   PetscErrorCode  ierr;
-  PetscInt        i,j,n,s,ld,k;
+  PetscInt        i,j,n,s,ld,k,lv,kv,max_size_D;
   PetscScalar     *pX,*pY,b[10],Z[size_Z];
   Vec             *Ax,*Bx,X[4];
 
   PetscFunctionBegin;
   /* Compute the number of pairs to improve */
+  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
+  max_size_D = d->eps->ncv-kv;
   n = PetscMin(PetscMin(PetscMin(data->size_X*2,max_size_D),(r_e-r_s)*2),d->max_size_proj-d->size_H)/2;
 #if !defined(PETSC_USE_COMPLEX)
   /* If the last eigenvalue is a complex conjugate pair, n is increased by one */

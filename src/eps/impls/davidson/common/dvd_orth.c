@@ -23,7 +23,7 @@
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_orthV"
-PetscErrorCode dvd_orthV(BV bv,PetscInt V_new_s,PetscInt V_new_e,PetscRandom rand)
+PetscErrorCode dvd_orthV(BV V,PetscInt V_new_s,PetscInt V_new_e,PetscRandom rand)
 {
   PetscErrorCode ierr;
   PetscInt       i,j;
@@ -35,12 +35,12 @@ PetscErrorCode dvd_orthV(BV bv,PetscInt V_new_s,PetscInt V_new_e,PetscRandom ran
     for (j=0;j<3;j++) {
       if (j>0) {
         ierr = BVSetRandomColumn(V,i,rand);CHKERRQ(ierr);
-        ierr = PetscInfo1(bv,"Orthonormalization problems adding the vector %d to the searching subspace\n",i);CHKERRQ(ierr);
+        ierr = PetscInfo1(V,"Orthonormalization problems adding the vector %d to the searching subspace\n",i);CHKERRQ(ierr);
       }
-      ierr = BVOrthogonalizeColumn(bv,i,NULL,&norm,&lindep);CHKERRQ(ierr);
+      ierr = BVOrthogonalizeColumn(V,i,NULL,&norm,&lindep);CHKERRQ(ierr);
       if (!lindep && (PetscAbsReal(norm) > PETSC_SQRT_MACHINE_EPSILON)) break;
     }
-    if (lindep || (PetscAbsReal(norm) < PETSC_SQRT_MACHINE_EPSILON)) SETERRQ(PetscObjectComm((PetscObject)bv),1, "Error during the orthonormalization of the vectors");
+    if (lindep || (PetscAbsReal(norm) < PETSC_SQRT_MACHINE_EPSILON)) SETERRQ(PetscObjectComm((PetscObject)V),1, "Error during the orthonormalization of the vectors");
     ierr = BVScaleColumn(V,i,1.0/norm);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

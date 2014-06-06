@@ -128,6 +128,7 @@ typedef struct _dvdDashboard {
 
   /**** Auxiliary space ****/
   Vec *auxV;        /* auxiliary vectors */
+  BV  auxBV;        /* auxiliary vectors */
   PetscScalar
     *auxS;          /* auxiliary scalars */
   PetscInt

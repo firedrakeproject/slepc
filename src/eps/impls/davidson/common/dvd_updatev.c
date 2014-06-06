@@ -390,11 +390,12 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 #else
   s = 1;
 #endif
-  ierr = dvd_updateV_testConv(d,s,s,data->allResiduals?d->size_V:size_D,d->auxV,d->auxS,NULL);CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
+  ierr = dvd_updateV_testConv(d,s,s,data->allResiduals?k-l:size_D,d->auxV,d->auxS,NULL);CHKERRQ(ierr);
 
   /* Notify the changes in V */
   d->V_tra_s = 0;                 d->V_tra_e = 0;
-  d->V_new_s = d->size_V;         d->V_new_e = d->size_V+size_D;
+  d->V_new_s = k-l;               d->V_new_e = k-l+size_D;
 
   /* Save the projected eigenvectors */
   if (data->plusk > 0) {
@@ -403,7 +404,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
     ierr = DSGetArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
     ierr = SlepcDenseCopy(data->oldU,data->ldoldU,pQ,ld,d->size_H,d->size_H);CHKERRQ(ierr);
     ierr = DSRestoreArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
-    if (d->cY) {
+    if (d->W) {
       ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
       ierr = SlepcDenseCopy(data->oldV,data->ldoldU,pZ,ld,d->size_H,d->size_H);CHKERRQ(ierr);
       ierr = DSRestoreArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);

@@ -214,7 +214,7 @@ PetscErrorCode dvd_profiler_d(dvdDashboard *d);
 typedef struct {
   PetscErrorCode (*old_initV)(struct _dvdDashboard*);
   PetscErrorCode (*old_calcPairs)(struct _dvdDashboard*);
-  PetscErrorCode (*old_improveX)(struct _dvdDashboard*,BV bv,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
+  PetscErrorCode (*old_improveX)(struct _dvdDashboard*,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
   PetscErrorCode (*old_updateV)(struct _dvdDashboard*);
   PetscErrorCode (*old_orthV)(struct _dvdDashboard*);
 } DvdProfiler;
@@ -270,14 +270,14 @@ PetscErrorCode dvd_calcPairs_prof(dvdDashboard* d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improveX_prof"
-PetscErrorCode dvd_improveX_prof(dvdDashboard* d,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
+PetscErrorCode dvd_improveX_prof(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
 {
   DvdProfiler     *p = (DvdProfiler*)d->prof_data;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   PetscLogStagePush(stages[DVD_STAGE_IMPROVEX]);
-  ierr = p->old_improveX(d, D, max_size_D, r_s, r_e, size_D);CHKERRQ(ierr);
+  ierr = p->old_improveX(d, r_s, r_e, size_D);CHKERRQ(ierr);
   PetscLogStagePop();
   PetscFunctionReturn(0);
 }
@@ -454,7 +454,8 @@ PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
 {
   dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
   PetscErrorCode  ierr;
-  PetscInt        i;
+  PetscInt        l,k;
+  BV              BX = d->BX?d->BX:d->eps->V;
 
   PetscFunctionBegin;
   /* Update the target if it is necessary */
@@ -462,10 +463,17 @@ PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
     ierr = dvd_harm_transf(data,d->eigr[0]);CHKERRQ(ierr);
   }
 
-  for (i=d->V_new_s;i<d->V_new_e;i++) {
-    /* W(i) <- Wa*AV(i) - Wb*BV(i) */
-    ierr = VecAXPBYPCZ(d->W[i],data->Wa,-data->Wb,0.0,d->AV[i],(d->BV?d->BV:d->V)[i]);CHKERRQ(ierr);
-  }
+  /* W(i) <- Wa*AV(i) - Wb*BV(i) */
+  ierr = BVGetActiveColumns(d->W,&l,&k);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->W,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->AX,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(BX,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
+  ierr = BVCopy(d->AX,d->W);CHKERRQ(ierr);
+  ierr = BVScale(d->W,data->Wa);CHKERRQ(ierr);
+  ierr = BVAXPY(d->W,-data->Wb,BX);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->W,l,k);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->AX,l,k);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(BX,l,k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -554,14 +562,3 @@ PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
   }
   PetscFunctionReturn(0);
 }
-
-#undef __FUNCT__
-#define __FUNCT__ "dvd_harm_eigs_trans"
-PetscErrorCode dvd_get_aux_vecs(dvdDashboard *d,PetscInt n,Vec **x)
-{
-  PetscErrorCode  ierr;
-  d->aux_vecs_n
-  d->aux_vecs_max
-  PetscFunctionReturn(0);
-}
-

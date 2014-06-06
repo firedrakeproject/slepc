@@ -87,8 +87,8 @@ typedef struct {
     *iXKZPivots;          /* array of pivots */
 } dvdImprovex_jd;
 
-PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Vec *x,const Vec *y,const Vec *auxV);
-PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,const Vec *x,const Vec *y,const Vec *auxV);
+//PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Vec *x,const Vec *y,const Vec *auxV);
+//PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,const Vec *x,const Vec *y,const Vec *auxV);
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_jd"
@@ -283,7 +283,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pet
   PetscInt        i,j,n,maxits,maxits0,lits,s,ld,l,k,max_size_D;
   PetscScalar     *pX,*pY,*auxS = d->auxS,*auxS0;
   PetscReal       tol,tol0;
-  Vec             *u,*v,*kr,kr_comp,D_comp;
+  Vec             *u,*v,*kr,kr_comp,D_comp,D[2];
   PetscBool       odd_situation = PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -373,7 +373,9 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pet
 
       /* Compose kr and D */
       ierr = VecCreateCompWithVecs(kr,data->ksp_max_size,data->friends,&kr_comp);CHKERRQ(ierr);
-      ierr = VecCreateCompWithVecs(&D[i],data->ksp_max_size,data->friends,&D_comp);CHKERRQ(ierr);
+      ierr = BVGetColumn(d->eps->V,k+i,&D[0]);CHKERRQ(ierr);
+      if (s==2) { ierr = BVGetColumn(d->eps->V,k+i+1,&D[1]);CHKERRQ(ierr);
+      ierr = VecCreateCompWithVecs(D,data->ksp_max_size,data->friends,&D_comp);CHKERRQ(ierr);
       ierr = VecCompSetSubVecs(data->friends,s,NULL);CHKERRQ(ierr);
 
       /* Solve the correction equation */
@@ -1238,6 +1240,6 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV,P
     ierr = SlepcUpdateVectorsZ(V+i,1.0,-1.0,d->V-data->size_KZ,data->size_KZ,&h[ldh*i],ldh,data->size_KZ,1);CHKERRQ(ierr);
     ierr = SlepcUpdateVectorsZ(V+i,1.0,-1.0,data->u,data->size_iXKZ-data->size_KZ,&h[ldh*i+data->size_KZ],ldh,data->size_iXKZ-data->size_KZ,1);CHKERRQ(ierr);
   }
-  PetscFunctionReturn(0);
 #endif
+  PetscFunctionReturn(0);
 }

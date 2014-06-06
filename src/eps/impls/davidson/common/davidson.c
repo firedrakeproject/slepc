@@ -98,6 +98,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   InitType_t     init;
   PetscReal      fix;
   PetscScalar    target;
+  Vec            v1;
 
   PetscFunctionBegin;
   /* Setup EPS options and get the problem specification */
@@ -265,7 +266,9 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   nscalars = b.own_scalars + b.max_size_auxS;
   ierr = PetscMalloc1(nscalars,&data->wS);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,nscalars*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = VecDuplicateVecs(eps->t,nvecs,&data->wV);CHKERRQ(ierr);
+  ierr = BVGetColumn(eps->V,0,&v1);CHKERRQ(ierr);
+  ierr = VecDuplicateVecs(v1,nvecs,&data->wV);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(eps->V,0,&v1);CHKERRQ(ierr);
   ierr = PetscLogObjectParents(eps,nvecs,data->wV);CHKERRQ(ierr);
   data->size_wV = nvecs;
   b.free_vecs = data->wV;

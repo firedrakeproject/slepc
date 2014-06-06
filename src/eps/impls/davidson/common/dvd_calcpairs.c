@@ -42,7 +42,7 @@ PetscErrorCode dvd_calcpairs_Y(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *Y)
 PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *R);
 PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *R);
 PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *R);
-PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d,DvdReduction *r,DvdMult_copy_func **sr);
+PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_updateV1(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_updateW1(dvdDashboard *d);
@@ -240,7 +240,8 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
 #define __FUNCT__ "dvd_calcpairs_qz_start"
 PetscErrorCode dvd_calcpairs_qz_start(dvdDashboard *d)
 {
-  PetscInt  i;
+  PetscErrorCode ierr;
+  PetscInt       i;
 
   PetscFunctionBegin;
   ierr = BVSetActiveColumns(d->eps->V,0,0);CHKERRQ(ierr);
@@ -354,7 +355,7 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_updateV0"
-/* auxV: V_tra_s, DvdMult_copy_func: 1 */
+/* auxV: V_tra_s */
 PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
@@ -765,7 +766,7 @@ PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n)
 /* Compute the residual vectors R(i) <- (AV - BV*eigr(i))*pX(i), and also
    the norm associated to the Schur pair, where i = r_s..r_e
 */
-PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e,BV R,PetscInt l)
+PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *R)
 {
   PetscInt        i,ldpX;
   PetscScalar     *pX;
@@ -791,32 +792,32 @@ PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e,BV 
     ierr = BVRestoreColumn(R,l+i-r_s,&r);CHKERRQ(ierr);
   }
   ierr = DSRestoreArray(d->ps,DS_MAT_Q,&pX);CHKERRQ(ierr);
-  ierr = d->calcpairs_proj_res(d,r_s,r_e,R,l);CHKERRQ(ierr);
+  ierr = d->calcpairs_proj_res(d,r_s,r_e,R);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_proj_res"
-PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,BV R,PetscInt l)
+PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *R)
 {
   PetscInt        i;
   PetscErrorCode  ierr;
   PetscBool       lindep;
-  Vec             r;
 
   PetscFunctionBegin;
   if (!(DVD_IS(d->sEP, DVD_EP_STD) && DVD_IS(d->sEP, DVD_EP_HERMITIAN))) {
     for (i=0; i<r_e-r_s; i++) {
-      ierr = BVGetColumn(R,l+i,&r);CHKERRQ(ierr);
-      ierr = BVOrthogonalizeVec(d->eps->V,r,NULL,&d->nR[r_s+i],&lindep);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(R,l+i,&r);CHKERRQ(ierr);
+      ierr = BVOrthogonalizeVec(d->eps->V,R[i],NULL,&d->nR[r_s+i],&lindep);CHKERRQ(ierr);
     }
     if (lindep || (PetscAbs(d->nR[r_s+i]) < PETSC_MACHINE_EPSILON)) {
       ierr = PetscInfo2(d->eps,"The computed eigenvector residual %D is too low, %g!\n",r_s+i,(double)(d->nR[r_s+i]));CHKERRQ(ierr);
     }
   } else {
+    for (i=0;i<r_e-r_s;i++) {                                                                                        
+      ierr = VecNormBegin(R[i],NORM_2,&d->nR[r_s+i]);CHKERRQ(ierr);
+    }
     for (i=0;i<r_e-r_s;i++) {
-      ierr = BVNormColumn(R,l+i,NORM_2,&d->nR[r_s+i]);CHKERRQ(ierr);
+      ierr = VecNormEnd(R[i],NORM_2,&d->nR[r_s+i]);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
