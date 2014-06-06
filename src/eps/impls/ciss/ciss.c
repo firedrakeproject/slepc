@@ -582,7 +582,7 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
     m = n; lda = l; ldb = m; ldc = l;
     if (k==0) {
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,s_data,&lda,temp2,&ldb,&beta,Q1,&ldc));
-    } else if((k%2)==1) {
+    } else if ((k%2)==1) {
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,Q1,&lda,temp2,&ldb,&beta,Q2,&ldc));
     } else {
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,Q2,&lda,temp2,&ldb,&beta,Q1,&ldc));
@@ -634,53 +634,6 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
   ierr = PetscFree(rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "ProjectMatrix"
-static PetscErrorCode ProjectMatrix(Mat A,Mat B,PetscInt nv,PetscInt ld,BV Q,PetscScalar center,PetscScalar *PA,PetscScalar *PB,Vec w,PetscBool isherm)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,j;
-  Vec            qj;
-
-  PetscFunctionBegin;
-  if (isherm) {
-    for (j=0;j<nv;j++) {
-      ierr = BVGetColumn(Q,j,&qj);CHKERRQ(ierr);
-      if (B) {
-        ierr = MatMult(B,qj,w);CHKERRQ(ierr);
-      } else {
-        ierr = VecCopy(qj,w);CHKERRQ(ierr);
-      }
-      ierr = BVSetActiveColumns(Q,0,j+1);CHKERRQ(ierr);
-      ierr = BVDotVec(Q,w,PB+j*ld);CHKERRQ(ierr);
-      ierr = MatMult(A,qj,w);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(Q,j,&qj);CHKERRQ(ierr);
-      ierr = BVDotVec(Q,w,PA+j*ld);CHKERRQ(ierr);
-      for (i=0;i<j+1;i++) PA[i+j*ld]-= center*PB[i+j*ld];
-      for (i=0;i<j;i++) {
-        PB[j+i*ld] = PetscConj(PB[i+j*ld]);
-        PA[j+i*ld] = PetscConj(PA[i+j*ld]);
-      }
-    }
-  } else {
-    ierr = BVSetActiveColumns(Q,0,nv);CHKERRQ(ierr);
-    for (j=0;j<nv;j++) {
-      ierr = BVGetColumn(Q,j,&qj);CHKERRQ(ierr);
-      if (B) {
-        ierr = MatMult(B,qj,w);CHKERRQ(ierr);
-      } else {
-        ierr = VecCopy(qj,w);CHKERRQ(ierr);
-      }
-      ierr = BVDotVec(Q,w,PB+j*ld);CHKERRQ(ierr);
-      ierr = MatMult(A,qj,w);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(Q,j,&qj);CHKERRQ(ierr);
-      ierr = BVDotVec(Q,w,PA+j*ld);CHKERRQ(ierr);
-      for (i=0;i<nv;i++) PA[i+j*ld] -= center*PB[i+j*ld];
-    }
-  }
-  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
@@ -844,7 +797,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  Mat            A,B,X,M;
+  Mat            A,B,X,M,pA,pB;
   PetscInt       i,ld,nmat,L_add=0,nv=0,L_base=ctx->L,inner,outer,nlocal;
   PetscScalar    *Mu,*H0,*H1,*rr,*temp;
   PetscReal      error,max_error;
@@ -923,11 +876,16 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
     ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
-    ierr = DSGetArray(eps->ds,DS_MAT_B,&H1);CHKERRQ(ierr);
-    ierr = DSGetArray(eps->ds,DS_MAT_A,&H0);CHKERRQ(ierr);
-    ierr = ProjectMatrix(A,B,nv,ld,ctx->S,ctx->center,H0,H1,w,eps->ishermitian);CHKERRQ(ierr);
-    ierr = DSRestoreArray(eps->ds,DS_MAT_A,&H0);CHKERRQ(ierr);
-    ierr = DSRestoreArray(eps->ds,DS_MAT_B,&H1);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
+    ierr = DSGetMat(eps->ds,DS_MAT_A,&pA);CHKERRQ(ierr);
+    ierr = MatZeroEntries(pA);CHKERRQ(ierr);
+    ierr = BVMatProject(ctx->S,A,ctx->S,pA);CHKERRQ(ierr);
+    ierr = DSRestoreMat(eps->ds,DS_MAT_A,&pA);CHKERRQ(ierr);
+    ierr = DSGetMat(eps->ds,DS_MAT_B,&pB);CHKERRQ(ierr);
+    ierr = MatZeroEntries(pB);CHKERRQ(ierr);
+    if (B) { ierr = BVMatProject(ctx->S,B,ctx->S,pB);CHKERRQ(ierr); }
+    else { ierr = MatShift(pB,1);CHKERRQ(ierr); }
+    ierr = DSRestoreMat(eps->ds,DS_MAT_B,&pB);CHKERRQ(ierr);
 
     ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
