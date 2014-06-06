@@ -51,7 +51,7 @@ struct _n_SR {
   PetscInt      dir;        /* Determines the order of values in eig (+1 incr, -1 decr) */
   PetscBool     hasEnd;     /* Tells whether the interval has an end */
   PetscInt      inertia0,inertia1;
-  PetscScalar   *monit,*back;
+  PetscScalar   *back;
   PetscInt      numEigs;    /* Number of eigenvalues in the interval */
   PetscInt      indexEig;
   shift         sPres;      /* Present shift */
@@ -68,6 +68,11 @@ struct _n_SR {
   PetscInt      nS;
   shift         sPrev;
   PetscInt      nv;         /* position of restart vector */
+  BV            V;            /* working basis (for subsolve) */
+  BV            Vnext;        /* temporary working basis during change of shift */
+  PetscScalar   *eigr,*eigi;  /* eigenvalues (for subsolve) */
+  PetscReal     *errest;      /* error estimates (for subsolve) */
+  PetscInt      *perm;        /* permutation (for subsolve) */
 };
 typedef struct _n_SR  *SR;
 
@@ -75,14 +80,9 @@ typedef struct {
   PetscReal     keep;         /* restart parameter */
   /* the following are used only in spectrum slicing */
   SR            sr;           /* spectrum slicing context */
-  BV            V;            /* working basis (for subsolve) */
-  BV            Vnext;        /* temporary working basis during change of shift */
   PetscInt      nev;          /* number of eigenvalues to compute */
   PetscInt      ncv;          /* number of basis vectors */
   PetscInt      mpd;          /* maximum dimension of projected problem */
-  PetscScalar   *eigr,*eigi;  /* eigenvalues (for subsolve) */
-  PetscReal     *errest;      /* error estimates (for subsolve) */
-  PetscInt      *perm;        /* permutation (for subsolve) */
 } EPS_KRYLOVSCHUR;
 
 #endif

@@ -134,26 +134,29 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     case EPS_KS_DEFAULT:
       eps->ops->solve = EPSSolve_KrylovSchur_Default;
       ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
+      ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
       break;
     case EPS_KS_SYMM:
       eps->ops->solve = EPSSolve_KrylovSchur_Symm;
       ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       ierr = DSSetExtraRow(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
+      ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
       break;
     case EPS_KS_SLICE:
       eps->ops->solve = EPSSolve_KrylovSchur_Slice;
       ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
+      ierr = DSAllocate(eps->ds,ctx->ncv+1);CHKERRQ(ierr);
       break;
     case EPS_KS_INDEF:
       eps->ops->solve = EPSSolve_KrylovSchur_Indefinite;
       ierr = DSSetType(eps->ds,DSGHIEP);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
+      ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
       break;
     default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error");
   }
-  ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
