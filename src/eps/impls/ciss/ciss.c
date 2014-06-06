@@ -334,7 +334,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
   PetscInt       i,j,p_id;
   PetscScalar    tmp,m = 1,sum = 0.0;
   PetscReal      eta;
-  Vec            v,vtemp,vj;
+  Vec            v,vtemp,vj,yj;
 
   PetscFunctionBegin;
   ierr = BVGetColumn(ctx->Y,0,&yj);CHKERRQ(ierr);
@@ -481,7 +481,7 @@ static PetscErrorCode ConstructS(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,j,k,vec_local_size,p_id;
-  Vec            v,sj;
+  Vec            v,sj,yj;
   PetscScalar    *ppk, *v_data, m = 1;
 
   PetscFunctionBegin;
