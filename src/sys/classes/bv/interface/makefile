@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = bvbasic.c bvfunc.c bvops.c bvblas.c bvorthog.c bvregis.c
+SOURCEC  = bvbasic.c bvfunc.c bvops.c bvglobal.c bvblas.c bvorthog.c bvregis.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
