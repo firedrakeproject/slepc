@@ -107,7 +107,7 @@ PetscErrorCode BVOrthogonalizeCGS1(BV bv,PetscInt j,Vec v,PetscScalar *H,PetscRe
     if (!v) { ierr = BVNormColumn(bv,j,NORM_2,&nrm);CHKERRQ(ierr); }
     else { ierr = BVNormVec(bv,w,NORM_2,&nrm);CHKERRQ(ierr); }
     if (norm) *norm = nrm;
-    bv->omega[bv->nc+j] = PetscSign(nrm);
+    bv->omega[bv->nc+j] = (nrm<0.0)? -1.0: 1.0;
   } else if (norm) {
     /* estimate |v'| from |v| */
     sum = 0.0;
@@ -192,7 +192,7 @@ static PetscErrorCode BVOrthogonalizeMGS(BV bv,PetscInt j,Vec v,PetscBool *which
   }
   if (bv->indef) {
     ierr = BVNormVec(bv,w,NORM_2,&nrm);CHKERRQ(ierr);
-    bv->omega[bv->nc+j] = PetscSign(nrm);
+    bv->omega[bv->nc+j] = (nrm<0.0)? -1.0: 1.0;
   }
   if (!v) { ierr = BVRestoreColumn(bv,j,&w);CHKERRQ(ierr); }
   if (norm) *norm = nrm;

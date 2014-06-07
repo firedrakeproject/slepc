@@ -251,6 +251,51 @@ PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVSetNumConstraints"
+/*@
+   BVSetNumConstraints - Set the number of constraints.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  V  - basis vectors
+-  nc - number of constraints
+
+   Notes:
+   This function sets the number of constraints to nc and marks all remaining
+   columns as regular. Normal user would call BVInsertConstraints() instead.
+
+   Level: developer
+
+.seealso: BVInsertConstraints()
+@*/
+PetscErrorCode BVSetNumConstraints(BV V,PetscInt nc)
+{
+  PetscErrorCode ierr;
+  PetscInt       total;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(V,nc,2);
+  if (!nc) PetscFunctionReturn(0);
+  if (nc<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %D) cannot be negative",nc);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  if (V->ci[0]!=-V->nc-1 || V->ci[1]!=-V->nc-1) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot call BVSetNumConstraints after BVGetColumn");
+
+  total = V->nc+V->m;
+  V->nc = nc;
+  V->m = total-nc;
+  if (V->m<=0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Not enough columns for the given nc value");
+  V->ci[0] = -V->nc-1;
+  V->ci[1] = -V->nc-1;
+  V->l = 0;
+  V->k = V->m;
+  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetNumConstraints"
 /*@
   BVGetNumConstraints - Returns the number of constraints.
@@ -300,6 +345,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
 {
   PetscErrorCode ierr;
   PetscReal      *omega;
+  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -316,6 +362,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   if (bv->omega) {
     ierr = PetscMalloc1(m,&omega);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)bv,m*sizeof(PetscReal));CHKERRQ(ierr);
+    for (i=0;i<m;i++) omega[i] = 1.0;
     if (copy) {
       ierr = PetscMemcpy(omega,bv->omega,PetscMin(m,bv->m)*sizeof(PetscReal));CHKERRQ(ierr);
     }
@@ -1087,7 +1134,7 @@ PetscErrorCode BVCopy(BV V,BV W)
 
    Level: beginner
 
-.seealso: BVCopy(), BVCopyColumn()
+.seealso: BVCopy(), BVCopyColumn(), BVInsertVec()
 @*/
 PetscErrorCode BVCopyVec(BV V,PetscInt j,Vec w)
 {
@@ -1144,14 +1191,14 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
   PetscValidLogicalCollectiveInt(V,i,3);
   if (j==i) PetscFunctionReturn(0);
 
-  ierr = PetscLogEventBegin(BV_Copy,V,w,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_Copy,V,0,0,0);CHKERRQ(ierr);
   if (V->omega) V->omega[i] = V->omega[j];
   ierr = BVGetColumn(V,j,&z);CHKERRQ(ierr);
   ierr = BVGetColumn(V,i,&w);CHKERRQ(ierr);
   ierr = VecCopy(z,w);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,j,&z);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,i,&w);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(BV_Copy,V,w,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Copy,V,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -44,9 +44,13 @@
 
    The matrix Q must be a sequential dense Mat, with all entries equal on
    all processes (otherwise each process will compute a different update).
+   The dimensions of Q must be m,n where m is the number of active columns
+   of X and n is the number of active columns of Y.
 
    The leading columns of Y are not modified. Also, if X has leading
    columns specified, then these columns do not participate in the computation.
+   Hence, only rows (resp. columns) of Q starting from lx (resp. ly) are used,
+   where lx (resp. ly) is the number of leading columns of X (resp. Y).
 
    Level: intermediate
 
@@ -191,14 +195,14 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
   if (!X->n) PetscFunctionReturn(0);
 
-  ierr = PetscLogEventBegin(BV_Mult,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_Mult,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
   ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
   X->k = ksave;
-  ierr = PetscLogEventEnd(BV_Mult,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Mult,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -515,14 +519,14 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *m)
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
   if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
 
-  ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_Dot,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
   ierr = (*X->ops->dotvec)(X,y,m);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
   X->k = ksave;
-  ierr = PetscLogEventEnd(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Dot,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1176,7 +1180,7 @@ PetscErrorCode BVAXPY(BV Y,PetscScalar alpha,BV X)
   PetscCheckSameTypeAndComm(Y,1,X,3);
   if (X==Y) SETERRQ(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_WRONG,"X and Y arguments must be different");
   if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
-  if (X->k-X->l!=Y->m-Y->l) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, while X has %D",Y->m-Y->l,X->k-X->l);
+  if (X->k-X->l!=Y->k-Y->l) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, while X has %D",Y->m-Y->l,X->k-X->l);
   if (!X->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_AXPY,X,Y,0,0);CHKERRQ(ierr);
