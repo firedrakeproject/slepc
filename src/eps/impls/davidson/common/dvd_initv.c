@@ -111,7 +111,7 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
     /* aux <- theta[1]A*in - theta[0]*B*in */
     ierr = BVGetColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
     ierr = BVGetColumn(d->eps->V,i-user,&v2);CHKERRQ(ierr);
-    ierr = BVGetColumn(d->auxV,0,&av);CHKERRQ(ierr);
+    ierr = BVGetColumn(d->auxBV,0,&av);CHKERRQ(ierr);
     if (d->B) {
       ierr = MatMult(d->A,v2,v1);CHKERRQ(ierr);
       ierr = MatMult(d->B,v2,av);CHKERRQ(ierr);
@@ -123,7 +123,7 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
     ierr = d->improvex_precond(d,0,av,v1);CHKERRQ(ierr);
     ierr = BVRestoreColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
     ierr = BVRestoreColumn(d->eps->V,i-user,&v2);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(d->auxV,0,&av);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(d->auxBV,0,&av);CHKERRQ(ierr);
     ierr = dvd_orthV(d->eps->V,i,i+1,d->eps->rand);CHKERRQ(ierr);
   }
 

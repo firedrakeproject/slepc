@@ -64,7 +64,7 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
     b->max_size_P = PetscMax(b->max_size_P, 1);
   b->max_size_X = PetscMax(b->max_size_X, max_bs);
   b->max_size_auxV = PetscMax(b->max_size_auxV,
-     s +
+     s*2 +
      ((her_probl || !d->eps->trueres)?1:PetscMax(s*2,b->max_size_cX_proj+b->max_size_X))); /* testConv */
 
   b->max_size_auxS = PetscMax(b->max_size_auxS,
@@ -180,7 +180,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pe
   PetscErrorCode  ierr;
   PetscInt        i,j,n,s,ld,k,lv,kv,max_size_D;
   PetscScalar     *pX,*pY,b[10],Z[size_Z];
-  Vec             *Ax,*Bx,X[4];
+  Vec             *Ax,*Bx,X[4],v;
 
   PetscFunctionBegin;
   /* Compute the number of pairs to improve */
@@ -218,23 +218,28 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pe
   ierr = DSGetArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
   ierr = DSGetArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
 
   /* Bx <- B*X(i) */
-  Bx = D+n;
-  if (d->BV) {
+  Bx = d->auxV;
+  if (d->BX) {
     /* Compute the norms of the eigenvectors */
     if (d->correctXnorm) {
       ierr = dvd_improvex_compute_X(d,r_s,r_s+n,Bx,pX,ld);CHKERRQ(ierr);
     } else {
       for (i=0; i<n; i++) d->nX[r_s+i] = 1.0;
     }
-    ierr = SlepcUpdateVectorsZ(Bx,0.0,1.0,d->BV-d->cX_in_H,d->size_BV+d->cX_in_H,&pX[ld*r_s],ld,d->size_H,n);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(d->BX,lv-d->cX_in_H,kv);CHKERRQ(ierr);
+    for (i=0; i<n; ++i) {
+      ierr = BVMultVec(d->BX,1.0,0.0,Bx[i],&pX[ld*(r_s+i)]);CHKERRQ(ierr);
+    }
+    ierr = BVSetActiveColumns(d->BX,lv,kv);CHKERRQ(ierr);
   } else if (d->B) {
     for (i=0;i<n;i++) {
       /* auxV(0) <- X(i) */
-      ierr = dvd_improvex_compute_X(d,r_s+i,r_s+i+1,d->auxV,pX,ld);CHKERRQ(ierr);
+      ierr = dvd_improvex_compute_X(d,r_s+i,r_s+i+1,&d->auxV[n],pX,ld);CHKERRQ(ierr);
       /* Bx(i) <- B*auxV(0) */
-      ierr = MatMult(d->B,d->auxV[0],Bx[i]);CHKERRQ(ierr);
+      ierr = MatMult(d->B,d->auxV[n],Bx[i]);CHKERRQ(ierr);
     }
   } else {
     /* Bx <- X */
@@ -242,23 +247,18 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pe
   }
 
   /* Ax <- A*X(i) */
-  Ax = D;
-  ierr = SlepcUpdateVectorsZ(Ax,0.0,1.0,d->AV-d->cX_in_H,d->size_AV+d->cX_in_H,&pX[ld*r_s],ld,d->size_H,n);CHKERRQ(ierr);
+  Ax = d->auxV+n;
+  ierr = BVSetActiveColumns(d->BX,lv-d->cX_in_H,kv);CHKERRQ(ierr);
+  for (i=0; i<n; ++i) {
+    ierr = BVMultVec(d->AX,1.0,0.0,Ax[i],&pX[ld*(i+r_s)]);CHKERRQ(ierr);
+  }
+
 
 #if !defined(PETSC_USE_COMPLEX)
   s = d->eigi[r_s] == 0.0 ? 1 : 2;
   /* If the available vectors allow the computation of the eigenvalue */
-  if (s <= n) {
 #else
   s = 1;
-#endif
-  /* v <- Y(i) */
-  ierr = SlepcUpdateVectorsZ(d->auxV,0.0,1.0,(d->W?d->W:d->V)-d->cX_in_H,d->size_V+d->cX_in_H,&pY[ld*r_s],ld,d->size_H,s);CHKERRQ(ierr);
-
-  /* Recompute the eigenvalue */
-  DVD_COMPUTE_N_RR(d->eps,i,r_s,1,d->eigr,d->eigi,d->auxV,Ax,Bx,b,ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  }
 #endif
 
   ierr = DSRestoreArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
@@ -305,11 +305,11 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pe
 
   /* D <- K*[Ax Bx] */
   if (d->npreconv == 0) {
-    ierr = VecCopy(D[0],d->auxV[0]);CHKERRQ(ierr);
-    for (i=0;i<2*n-1;i++) {
-      ierr = d->improvex_precond(d,r_s+(i+1)%n,D[i+1],D[i]);CHKERRQ(ierr);
+    for (i=0;i<2*n;i++) {
+      ierr = BVGetColumn(d->eps->V,k+i,&v);CHKERRQ(ierr);
+      ierr = d->improvex_precond(d,r_s+i%n,d->auxV[i],v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(d->eps->V,k+i,&v);CHKERRQ(ierr);
     }
-    ierr = d->improvex_precond(d,r_s,d->auxV[0],D[2*n-1]);CHKERRQ(ierr);
     *size_D = 2*n;
 #if !defined(PETSC_USE_COMPLEX)
     if (d->eigi[r_s] != 0.0) {
@@ -320,7 +320,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pe
     /* Prevent that short vectors are discarded in the orthogonalization */
     if (d->eps->errest[d->nconv+r_s] > PETSC_MACHINE_EPSILON && d->eps->errest[d->nconv+r_s] < PETSC_MAX_REAL) {
       for (i=0; i<s && i<*size_D; i++) {
-        ierr = VecScale(D[i],1.0/d->eps->errest[d->nconv+r_s]);CHKERRQ(ierr);
+        ierr = BVScaleColumn(d->eps->V,i+k,1.0/d->eps->errest[d->nconv+r_s]);CHKERRQ(ierr);
       }
     }
   } else {

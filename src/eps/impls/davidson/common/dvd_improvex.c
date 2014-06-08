@@ -374,7 +374,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pet
       /* Compose kr and D */
       ierr = VecCreateCompWithVecs(kr,data->ksp_max_size,data->friends,&kr_comp);CHKERRQ(ierr);
       ierr = BVGetColumn(d->eps->V,k+i,&D[0]);CHKERRQ(ierr);
-      if (s==2) { ierr = BVGetColumn(d->eps->V,k+i+1,&D[1]);CHKERRQ(ierr);
+      if (s==2) { ierr = BVGetColumn(d->eps->V,k+i+1,&D[1]);CHKERRQ(ierr); }
       ierr = VecCreateCompWithVecs(D,data->ksp_max_size,data->friends,&D_comp);CHKERRQ(ierr);
       ierr = VecCompSetSubVecs(data->friends,s,NULL);CHKERRQ(ierr);
 
@@ -767,12 +767,12 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF - Lapack routine is unavailable");
 #else
   PetscErrorCode    ierr;
-  PetscInt          l,n = i_e - i_s, size_KZ, V_new, rm, i, size_in;
+  PetscInt          l,n = i_e - i_s, size_KZ, V_new, rm, i, size_in,lv,kv;
   dvdImprovex_jd    *data = (dvdImprovex_jd*)d->improveX_data;
   PetscBLASInt      s, ldXKZ, info;
   DvdReduction      r;
-  DvdReductionChunk ops[2];
-  DvdMult_copy_func sr[2];
+  DvdReductionChunk ops[1];
+  DvdMult_copy_func sr[1];
 
   PetscFunctionBegin;
   /* Check consistency */
@@ -803,9 +803,21 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
   /* XKZ <- X'*KZ */
   size_KZ = data->size_KZ+n;
   size_in = 2*n*data->size_KZ+n*n;
-  ierr = SlepcAllReduceSumBegin(ops,2,*auxS,*auxS+size_in,size_in,&r,PetscObjectComm((PetscObject)d->V[0]));CHKERRQ(ierr);
-  ierr = VecsMultS(data->XKZ,0,data->ldXKZ,d->V-data->size_KZ,0,data->size_KZ,data->KZ,data->size_KZ,size_KZ,&r,&sr[0]);CHKERRQ(ierr);
-  ierr = VecsMultS(&data->XKZ[data->size_KZ],0,data->ldXKZ,*u,0,n,data->KZ,0,size_KZ,&r,&sr[1]);CHKERRQ(ierr);
+  ierr = SlepcAllReduceSumBegin(ops,1,*auxS,*auxS+size_in,size_in,&r,PetscObjectComm((PetscObject)d->eps));CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->eps->V,lv-data->size_KZ,lv);CHKERRQ(ierr);
+  for (i=0;i<data->size_KZ;i++) {
+    ierr = BVDotVec(d->eps->V,data->KZ[i],&data->XKZ[i*data->ldXKZ]);CHKERRQ(ierr);
+  }
+#if defined(PETSC_USE_COMPLEX)
+  for (i=0;i<data->size_KZ;i++) {
+    for (j=0;j<data->size_KZ;j++) {
+      data->XKZ[i*data->ldXKZ+j] = PetscConjugate(data->XKZ[i*data->ldXKZ+j]);
+    }
+  }
+#endif
+  ierr = BVSetActiveColumns(d->eps->V,lv,kv);CHKERRQ(ierr);
+  ierr = VecsMultS(&data->XKZ[data->size_KZ],0,data->ldXKZ,*u,0,n,data->KZ,0,size_KZ,&r,&sr[0]);CHKERRQ(ierr);
   ierr = SlepcAllReduceSumEnd(&r);CHKERRQ(ierr);
 
   /* iXKZ <- inv(XKZ) */
@@ -908,8 +920,10 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt
 
   /* Bx <- B*X(i) */
   Bx = kr;
-  if (d->BV) {
-    ierr = SlepcUpdateVectorsZ(Bx, 0.0, 1.0, d->BV-d->cX_in_H, d->size_BV+d->cX_in_H, &pX[ld*i_s], ld, d->size_H, n);CHKERRQ(ierr);
+  if (d->BX) {
+    for (i=i_s; i<i_e; ++i) {
+      ierr = BVMultVec(d->BX,1.0,0.0,Bx[i-i_s],&pX[ld*i]);CHKERRQ(ierr);
+    }
   } else {
     for (i=0;i<n;i++) {
       if (d->B) {
@@ -922,10 +936,14 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt
 
   /* Ax <- A*X(i) */
   Ax = r;
-  ierr = SlepcUpdateVectorsZ(Ax, 0.0, 1.0, d->AV-d->cX_in_H, d->size_AV+d->cX_in_H, &pX[ld*i_s], ld, d->size_H, n);CHKERRQ(ierr);
+  for (i=i_s; i<i_e; ++i) {
+    ierr = BVMultVec(d->AX,1.0,0.0,Ax[i-i_s],&pX[ld*i]);CHKERRQ(ierr);
+  }
 
   /* v <- Y(i) */
-  ierr = SlepcUpdateVectorsZ(v, 0.0, 1.0, (d->W?d->W:d->V)-d->cX_in_H, d->size_V+d->cX_in_H, &pY[ld*i_s], ld, d->size_H, n);CHKERRQ(ierr);
+  for (i=i_s; i<i_e; ++i) {
+    ierr = BVMultVec(d->W?d->W:d->eps->V,1.0,0.0,v[i-i_s],&pY[ld*i]);CHKERRQ(ierr);
+  }
 
   /* Recompute the eigenvalue */
   DVD_COMPUTE_N_RR(d->eps, i, i_s, n, d->eigr, d->eigi, v, Ax, Bx, b, ierr);
@@ -995,12 +1013,16 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d,PetscInt i_s,PetscInt
   PetscFunctionBegin;
   /* [v u] <- X(i) Y(i) */
   ierr = dvd_improvex_compute_X(d,i_s,i_e,v,pX,ld);CHKERRQ(ierr);
-  ierr = SlepcUpdateVectorsZ(u, 0.0, 1.0, (d->W?d->W:d->V)-d->cX_in_H, d->size_V+d->cX_in_H, &pY[ld*i_s], ld, d->size_H, n);CHKERRQ(ierr);
+  for (i=i_s; i<i_e; ++i) {
+    ierr = BVMultVec(d->W?d->W:d->eps->V,1.0,0.0,u[i-i_s],&pY[ld*i]);CHKERRQ(ierr);
+  }
 
   /* Bx <- B*X(i) */
   Bx = r;
-  if (d->BV) {
-    ierr = SlepcUpdateVectorsZ(Bx, 0.0, 1.0, d->BV-d->cX_in_H, d->size_BV+d->cX_in_H, &pX[ld*i_s], ld, d->size_H, n);CHKERRQ(ierr);
+  if (d->BX) {
+    for (i=i_s; i<i_e; ++i) {
+      ierr = BVMultVec(d->BX,1.0,0.0,Bx[i-i_s],&pX[ld*i]);CHKERRQ(ierr);
+    }
   } else {
     if (d->B) {
       for (i=0;i<n;i++) {
@@ -1011,7 +1033,9 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d,PetscInt i_s,PetscInt
 
   /* Ax <- A*X(i) */
   Ax = kr;
-  ierr = SlepcUpdateVectorsZ(Ax, 0.0, 1.0, d->AV-d->cX_in_H, d->size_AV+d->cX_in_H, &pX[ld*i_s], ld, d->size_H, n);CHKERRQ(ierr);
+  for (i=i_s; i<i_e; ++i) {
+    ierr = BVMultVec(d->AX,1.0,0.0,Ax[i-i_s],&pX[ld*i]);CHKERRQ(ierr);
+  }
 
   /* Recompute the eigenvalue */
   DVD_COMPUTE_N_RR(d->eps, i, i_s, n, d->eigr, d->eigi, u, Ax, Bx, b, ierr);
@@ -1153,24 +1177,33 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV,PetscS
 #else
   PetscErrorCode    ierr;
   dvdImprovex_jd    *data = (dvdImprovex_jd*)d->improveX_data;
-  PetscInt          size_in = data->size_iXKZ*cV, i, ldh;
-  PetscScalar       *h, *in, *out;
-  PetscBLASInt      cV_, n, info, ld;
+  PetscInt          size_in = data->size_iXKZ*cV,i,ldh,lv,kv;
+  PetscScalar       *h,*in,*out;
+  PetscBLASInt      cV_,n,info,ld;
   DvdReduction      r;
-  DvdReductionChunk ops[4];
-  DvdMult_copy_func sr[4];
+  DvdReductionChunk ops[2];
+  DvdMult_copy_func sr[2];
+#if defined(PETSC_USE_COMPLEX)
+  PetscInt          j;
+#endif
 
   PetscFunctionBegin;
   if (cV > 2) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
 
   /* h <- X'*V */
   h = auxS; in = h+size_in; out = in+size_in; ldh = data->size_iXKZ;
-  ierr = SlepcAllReduceSumBegin(ops, 4, in, out, size_in, &r,
-                                PetscObjectComm((PetscObject)d->V[0]));CHKERRQ(ierr);
+  ierr = SlepcAllReduceSumBegin(ops, 2, in, out, size_in, &r,
+                                PetscObjectComm((PetscObject)d->eps));CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->eps->V,lv-data->size_KZ,lv);CHKERRQ(ierr);
   for (i=0; i<cV; i++) {
-    ierr = VecsMultS(&h[i*ldh],0,ldh,d->V-data->size_KZ,0,data->size_KZ,V+i,0,1,&r,&sr[i*2]);CHKERRQ(ierr);
-    ierr = VecsMultS(&h[i*ldh+data->size_KZ],0,ldh,data->u,0,data->size_iXKZ-data->size_KZ,V+i,0,1,&r,&sr[i*2+1]);CHKERRQ(ierr);
+    ierr = BVMultVec(d->eps->V,1.0,0.0,V[i],&h[ldh*i]);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    for (j=0; j<data->size_KZ; j++) h[ldh*i+j] = PetscConjugate(h[ldh*i+j]);
+#endif
+    ierr = VecsMultS(&h[i*ldh+data->size_KZ],0,ldh,data->u,0,data->size_iXKZ-data->size_KZ,V+i,0,1,&r,&sr[i]);CHKERRQ(ierr);
   }
+  ierr = BVSetActiveColumns(d->eps->V,lv,kv);CHKERRQ(ierr);
   ierr = SlepcAllReduceSumEnd(&r);CHKERRQ(ierr);
 
   /* h <- iXKZ\h */
@@ -1203,10 +1236,11 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV,P
 #if defined(PETSC_MISSING_LAPACK_GETRS)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable");
+  PetscFunctionReturn(0);
 #else
   PetscErrorCode    ierr;
   dvdImprovex_jd    *data = (dvdImprovex_jd*)d->improveX_data;
-  PetscInt          size_in = data->size_iXKZ*cV, i, ldh;
+  PetscInt          size_in = data->size_iXKZ*cV, i, ldh, kv, lv;
   PetscScalar       *h, *in, *out;
   PetscBLASInt      cV_, n, info, ld;
   DvdReduction      r;
@@ -1219,7 +1253,7 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV,P
   /* h <- KZ'*V */
   h = auxS; in = h+size_in; out = in+size_in; ldh = data->size_iXKZ;
   ierr = SlepcAllReduceSumBegin(ops, 2, in, out, size_in, &r,
-                                PetscObjectComm((PetscObject)d->V[0]));CHKERRQ(ierr);
+                                PetscObjectComm((PetscObject)d->eps));CHKERRQ(ierr);
   for (i=0; i<cV; i++) {
     ierr = VecsMultS(&h[i*ldh],0,ldh,data->KZ,0,data->size_KZ,V+i,0,1,&r,&sr[i]);CHKERRQ(ierr);
   }
@@ -1236,10 +1270,13 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV,P
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack XGETRS %d", info);
 
   /* V <- V - X*h */
+  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->eps->V,lv-data->size_KZ,lv);CHKERRQ(ierr);
   for (i=0; i<cV; i++) {
-    ierr = SlepcUpdateVectorsZ(V+i,1.0,-1.0,d->V-data->size_KZ,data->size_KZ,&h[ldh*i],ldh,data->size_KZ,1);CHKERRQ(ierr);
+    ierr = BVMultVec(d->eps->V,-1.0,1.0,V[i],&h[ldh*i]);CHKERRQ(ierr);
     ierr = SlepcUpdateVectorsZ(V+i,1.0,-1.0,data->u,data->size_iXKZ-data->size_KZ,&h[ldh*i+data->size_KZ],ldh,data->size_iXKZ-data->size_KZ,1);CHKERRQ(ierr);
   }
-#endif
+  ierr = BVSetActiveColumns(d->eps->V,lv,kv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }

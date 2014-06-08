@@ -263,6 +263,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   /* Allocate memory */
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  nvecs = b.max_size_auxV + b.own_vecs;
   nscalars = b.own_scalars + b.max_size_auxS;
   ierr = PetscMalloc1(nscalars,&data->wS);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,nscalars*sizeof(PetscScalar));CHKERRQ(ierr);
