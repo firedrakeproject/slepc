@@ -677,44 +677,6 @@ PetscErrorCode NEPCompareEigenvalues(NEP nep,PetscScalar a,PetscScalar b,PetscIn
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPGetOperationCounters"
-/*@
-   NEPGetOperationCounters - Gets the total number of function evaluations, dot
-   products, and linear solve iterations used by the NEP object during the last
-   NEPSolve() call.
-
-   Not Collective
-
-   Input Parameter:
-.  nep - nonlinear eigensolver context
-
-   Output Parameter:
-+  nfuncs - number of function evaluations
-.  dots   - number of dot product operations
--  lits   - number of linear iterations
-
-   Notes:
-   These counters are reset to zero at each successive call to NEPSolve().
-
-   Level: intermediate
-
-@*/
-PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,PetscInt* lits)
-{
-  /*PetscErrorCode ierr;*/
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  /*if (nfuncs) *nfuncs = nep->nfuncs;
-  if (dots) {
-    if (!nep->ip) { ierr = NEPGetIP(nep,&nep->ip);CHKERRQ(ierr); }
-    ierr = IPGetOperationCounters(nep->ip,dots);CHKERRQ(ierr);
-  }
-  if (lits) *lits = nep->linits;*/
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "NEPComputeFunction"
 /*@
    NEPComputeFunction - Computes the function matrix T(lambda) that has been

@@ -275,49 +275,6 @@ PetscErrorCode EPSGetIterationNumber(EPS eps,PetscInt *its)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSGetOperationCounters"
-/*@
-   EPSGetOperationCounters - Gets the total number of operator applications,
-   inner product operations and linear iterations used by the ST object
-   during the last EPSSolve() call.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - EPS context
-
-   Output Parameter:
-+  ops  - number of operator applications
-.  dots - number of inner product operations
--  lits - number of linear iterations
-
-   Notes:
-   When the eigensolver algorithm invokes STApply() then a linear system
-   must be solved (except in the case of standard eigenproblems and shift
-   transformation). The number of iterations required in this solve is
-   accumulated into a counter whose value is returned by this function.
-
-   These counters are reset to zero at each successive call to EPSSolve().
-
-   Level: intermediate
-
-@*/
-PetscErrorCode EPSGetOperationCounters(EPS eps,PetscInt* ops,PetscInt* dots,PetscInt* lits)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
-  ierr = STGetOperationCounters(eps->st,ops,lits);CHKERRQ(ierr);
-  /*if (dots) {
-    if (!eps->ip) { ierr = EPSGetIP(eps,&eps->ip);CHKERRQ(ierr); }
-    ierr = IPGetOperationCounters(eps->ip,dots);CHKERRQ(ierr);
-  }*/
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSGetConverged"
 /*@
    EPSGetConverged - Gets the number of converged eigenpairs.

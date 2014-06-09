@@ -127,7 +127,6 @@ PETSC_EXTERN PetscErrorCode QEPMonitorSet(QEP,PetscErrorCode (*)(QEP,PetscInt,Pe
 PETSC_EXTERN PetscErrorCode QEPMonitorCancel(QEP);
 PETSC_EXTERN PetscErrorCode QEPGetMonitorContext(QEP,void **);
 PETSC_EXTERN PetscErrorCode QEPGetIterationNumber(QEP,PetscInt*);
-PETSC_EXTERN PetscErrorCode QEPGetOperationCounters(QEP,PetscInt*,PetscInt*,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode QEPSetInitialSpace(QEP,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode QEPSetInitialSpaceLeft(QEP,PetscInt,Vec*);

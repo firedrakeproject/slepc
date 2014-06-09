@@ -123,7 +123,6 @@ PETSC_EXTERN PetscErrorCode SVDGetConverged(SVD,PetscInt*);
 PETSC_EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,PetscInt,PetscReal*,Vec,Vec);
 PETSC_EXTERN PetscErrorCode SVDComputeResidualNorms(SVD,PetscInt,PetscReal*,PetscReal*);
 PETSC_EXTERN PetscErrorCode SVDComputeRelativeError(SVD,PetscInt,PetscReal*);
-PETSC_EXTERN PetscErrorCode SVDGetOperationCounters(SVD,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
 PETSC_EXTERN PetscErrorCode SVDPrintSolution(SVD,PetscViewer);
 PETSC_EXTERN PetscErrorCode SVDDestroy(SVD*);

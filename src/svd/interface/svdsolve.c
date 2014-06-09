@@ -376,37 +376,3 @@ PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetOperationCounters"
-/*@
-   SVDGetOperationCounters - Gets the total number of matrix vector and dot
-   products used by the SVD object during the last SVDSolve() call.
-
-   Not Collective
-
-   Input Parameter:
-.  svd - SVD context
-
-   Output Parameter:
-+  matvecs - number of matrix vector product operations
--  dots    - number of dot product operations
-
-   Notes:
-   These counters are reset to zero at each successive call to SVDSolve().
-
-   Level: intermediate
-
-@*/
-PetscErrorCode SVDGetOperationCounters(SVD svd,PetscInt* matvecs,PetscInt* dots)
-{
-  /*PetscErrorCode ierr;*/
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (matvecs) *matvecs = svd->matvecs;
-  /*if (dots) {
-    if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-    ierr = IPGetOperationCounters(svd->ip,dots);CHKERRQ(ierr);
-  }*/
-  PetscFunctionReturn(0);
-}

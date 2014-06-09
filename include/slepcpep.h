@@ -160,7 +160,6 @@ PETSC_EXTERN PetscErrorCode PEPMonitorSet(PEP,PetscErrorCode (*)(PEP,PetscInt,Pe
 PETSC_EXTERN PetscErrorCode PEPMonitorCancel(PEP);
 PETSC_EXTERN PetscErrorCode PEPGetMonitorContext(PEP,void **);
 PETSC_EXTERN PetscErrorCode PEPGetIterationNumber(PEP,PetscInt*);
-PETSC_EXTERN PetscErrorCode PEPGetOperationCounters(PEP,PetscInt*,PetscInt*,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode PEPSetInitialSpace(PEP,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode PEPSetInitialSpaceLeft(PEP,PetscInt,Vec*);
