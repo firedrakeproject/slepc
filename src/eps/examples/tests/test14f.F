@@ -36,7 +36,6 @@
       Mat                A,B
       EPS                eps
       ST                 st
-      IP                 ip
       DS                 ds
       PetscReal          cut,tol
       PetscScalar        tget,value
@@ -181,8 +180,6 @@
 
       call EPSGetST(eps,st,ierr) 
       call STView(st,PETSC_NULL_OBJECT,ierr) 
-      call EPSGetIP(eps,ip,ierr) 
-      call IPView(ip,PETSC_NULL_OBJECT,ierr) 
       call EPSGetDS(eps,ds,ierr) 
       call DSView(ds,PETSC_NULL_OBJECT,ierr) 
 
