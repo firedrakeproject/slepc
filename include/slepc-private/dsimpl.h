@@ -79,6 +79,28 @@ struct _p_DS {
   PetscInt       lwork,lrwork,liwork;
 };
 
+/*
+    Macros to test valid DS arguments
+*/
+#if !defined(PETSC_USE_DEBUG)
+
+#define DSCheckAlloc(h,arg) do {} while (0)
+#define DSCheckSolved(h,arg) do {} while (0)
+
+#else
+
+#define DSCheckAlloc(h,arg) \
+  do { \
+    if (!h->ld) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call DSAllocate() first: Parameter #%d",arg); \
+  } while (0)
+
+#define DSCheckSolved(h,arg) \
+  do { \
+    if (h->state<DS_STATE_CONDENSED) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call DSSolve() first: Parameter #%d",arg); \
+  } while (0)
+
+#endif
+
 PETSC_INTERN PetscErrorCode DSAllocateMat_Private(DS,DSMatType);
 PETSC_INTERN PetscErrorCode DSAllocateMatReal_Private(DS,DSMatType);
 PETSC_INTERN PetscErrorCode DSAllocateWork_Private(DS,PetscInt,PetscInt,PetscInt);
