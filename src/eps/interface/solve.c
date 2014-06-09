@@ -45,6 +45,18 @@ static PetscErrorCode EPSSortForSTFunc(PetscScalar ar,PetscScalar ai,PetscScalar
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSComputeVectors"
+PETSC_STATIC_INLINE PetscErrorCode EPSComputeVectors(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  if (!eps->evecsavailable) {
+    ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSSolve"
 /*@
    EPSSolve - Solves the eigensystem.
@@ -123,7 +135,7 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = STGetMatMode(eps->st,&matmode);CHKERRQ(ierr);
   if (matmode == ST_MATMODE_INPLACE && eps->ispositive) {
     /* Purify eigenvectors before reverting operator */
-    ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
+    ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
   }
   ierr = STPostSolve(eps->st);CHKERRQ(ierr);
 
@@ -158,10 +170,8 @@ PetscErrorCode EPSSolve(EPS eps)
       if (eps->eigi[i] < 0) {
         eps->eigi[i] = -eps->eigi[i];
         eps->eigi[i+1] = -eps->eigi[i+1];
-        if (!eps->evecsavailable) {
-          /* the next correction only works with eigenvectors */
-          ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
-        }
+        /* the next correction only works with eigenvectors */
+        ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
         ierr = BVScaleColumn(eps->V,i+1,-1.0);CHKERRQ(ierr);
       }
       i++;
@@ -173,7 +183,7 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
   if (iscayley && eps->isgeneralized && eps->ishermitian) {
     ierr = MatGetVecs(B,NULL,&w);CHKERRQ(ierr);
-    if (!eps->evecsavailable) { ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr); }
+    ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
       ierr = BVGetColumn(eps->V,i,&x);CHKERRQ(ierr);
       ierr = MatMult(B,x,w);CHKERRQ(ierr);
@@ -617,9 +627,7 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Vi,4); }
   if (!eps->V) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first");
   if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
-  if (!eps->evecsavailable) {
-    ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
-  }
+  ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
   if (!eps->perm) k = i;
   else k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
@@ -689,9 +697,7 @@ PetscErrorCode EPSGetEigenvectorLeft(EPS eps,PetscInt i,Vec Wr,Vec Wi)
   if (!eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetLeftVectorsWanted");
   if (!eps->W) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first");
   if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
-  if (!eps->evecsavailable) {
-    ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
-  }
+  ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
   if (!eps->perm) k = i;
   else k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
