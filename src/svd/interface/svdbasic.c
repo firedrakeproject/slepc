@@ -261,7 +261,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->its            = 0;
   svd->leftbasis      = PETSC_FALSE;
   svd->lvecsavail     = PETSC_FALSE;
-  svd->matvecs        = 0;
   svd->setupcalled    = 0;
   svd->reason         = SVD_CONVERGED_ITERATING;
 
@@ -306,7 +305,6 @@ PetscErrorCode SVDReset(SVD svd)
   ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
   ierr = BVDestroy(&svd->V);CHKERRQ(ierr);
   svd->transmode   = (SVDTransposeMode)PETSC_DECIDE;
-  svd->matvecs     = 0;
   svd->setupcalled = 0;
   PetscFunctionReturn(0);
 }

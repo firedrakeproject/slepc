@@ -84,7 +84,6 @@ struct _p_SVD {
   PetscInt         its;         /* iteration counter */
   PetscBool        leftbasis;   /* if U is filled by the solver */
   PetscBool        lvecsavail;  /* if U contains left singular vectors */
-  PetscInt         matvecs;
   PetscInt         setupcalled;
   SVDConvergedReason reason;
 };
@@ -96,7 +95,6 @@ PETSC_STATIC_INLINE PetscErrorCode SVDMatMult(SVD svd,PetscBool trans,Vec x,Vec 
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  svd->matvecs++;
   if (trans) {
     if (svd->AT) {
       ierr = MatMult(svd->AT,x,y);CHKERRQ(ierr);
