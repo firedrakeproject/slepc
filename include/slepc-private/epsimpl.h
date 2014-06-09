@@ -115,7 +115,6 @@ struct _p_EPS {
   EPSConvergedReason reason;
 };
 
-PETSC_INTERN PetscErrorCode EPSReset_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSSetWhichEigenpairs_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSAllocateSolution(EPS,PetscInt);
 PETSC_INTERN PetscErrorCode EPSSetDimensions_Default(EPS);

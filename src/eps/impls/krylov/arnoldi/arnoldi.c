@@ -479,7 +479,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
   eps->ops->setup                = EPSSetUp_Arnoldi;
   eps->ops->setfromoptions       = EPSSetFromOptions_Arnoldi;
   eps->ops->destroy              = EPSDestroy_Arnoldi;
-  eps->ops->reset                = EPSReset_Default;
   eps->ops->view                 = EPSView_Arnoldi;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Schur;

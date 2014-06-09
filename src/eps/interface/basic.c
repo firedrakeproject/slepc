@@ -578,6 +578,8 @@ PetscErrorCode EPSReset(EPS eps)
   }
   ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
   ierr = BVDestroy(&eps->W);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
+  eps->nwork = 0;
   eps->setupcalled = 0;
   PetscFunctionReturn(0);
 }

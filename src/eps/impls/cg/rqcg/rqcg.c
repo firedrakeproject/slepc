@@ -398,7 +398,6 @@ PetscErrorCode EPSReset_RQCG(EPS eps)
   ierr = BVDestroy(&ctx->P);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->G);CHKERRQ(ierr);
   ctx->nrest = 0;
-  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

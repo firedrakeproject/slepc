@@ -343,7 +343,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
   eps->ops->setup                = EPSSetUp_Subspace;
   eps->ops->solve                = EPSSolve_Subspace;
   eps->ops->destroy              = EPSDestroy_Subspace;
-  eps->ops->reset                = EPSReset_Default;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Schur;
   PetscFunctionReturn(0);

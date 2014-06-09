@@ -26,18 +26,6 @@
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSReset_Default"
-PetscErrorCode EPSReset_Default(EPS eps)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
-  eps->nwork = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSBackTransform_Default"
 PetscErrorCode EPSBackTransform_Default(EPS eps)
 {

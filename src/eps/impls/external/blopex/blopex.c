@@ -293,7 +293,6 @@ PetscErrorCode EPSReset_BLOPEX(EPS eps)
   mv_MultiVectorDestroy(blopex->eigenvectors);
   mv_MultiVectorDestroy(blopex->Y);
   ierr = VecDestroy(&blopex->w);CHKERRQ(ierr);
-  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

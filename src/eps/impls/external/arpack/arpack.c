@@ -319,7 +319,6 @@ PetscErrorCode EPSReset_ARPACK(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(ar->rwork);CHKERRQ(ierr);
 #endif
-  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

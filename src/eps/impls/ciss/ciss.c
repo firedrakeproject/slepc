@@ -1539,7 +1539,6 @@ PetscErrorCode EPSReset_CISS(EPS eps)
     ierr = MatDestroy(&ctx->pB);CHKERRQ(ierr);
     ierr = BVDestroy(&ctx->pV);CHKERRQ(ierr);
   }
-  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

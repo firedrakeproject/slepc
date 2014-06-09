@@ -866,7 +866,6 @@ PetscErrorCode EPSReset_Lanczos(EPS eps)
 
   PetscFunctionBegin;
   ierr = BVDestroy(&lanczos->AV);CHKERRQ(ierr);
-  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -545,7 +545,6 @@ PetscErrorCode EPSReset_KrylovSchur(EPS eps)
     }
     ierr = PetscFree(sr);CHKERRQ(ierr);
   }
-  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

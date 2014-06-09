@@ -392,7 +392,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->ops->solve                = EPSSolve_Power;
   eps->ops->setfromoptions       = EPSSetFromOptions_Power;
   eps->ops->destroy              = EPSDestroy_Power;
-  eps->ops->reset                = EPSReset_Default;
   eps->ops->view                 = EPSView_Power;
   eps->ops->backtransform        = EPSBackTransform_Power;
   eps->ops->computevectors       = EPSComputeVectors_Default;

@@ -185,7 +185,6 @@ PetscErrorCode EPSReset_FEAST(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree4(ctx->work1,ctx->work2,ctx->Aq,ctx->Bq);CHKERRQ(ierr);
-  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
