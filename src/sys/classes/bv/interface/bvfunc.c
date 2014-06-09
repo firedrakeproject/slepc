@@ -176,13 +176,12 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->orthog_type  = BV_ORTHOG_CGS;
   bv->orthog_ref   = BV_ORTHOG_REFINE_IFNEEDED;
   bv->orthog_eta   = 0.7071;
-
   bv->matrix       = NULL;
   bv->indef        = PETSC_FALSE;
+
+  bv->Bx           = NULL;
   bv->xid          = 0;
   bv->xstate       = 0;
-  bv->Bx           = NULL;
-
   bv->cv[0]        = NULL;
   bv->cv[1]        = NULL;
   bv->ci[0]        = -1;
@@ -196,7 +195,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->omega        = NULL;
   bv->work         = NULL;
   bv->lwork        = 0;
-  bv->data         = 0;
+  bv->data         = NULL;
 
   *newbv = bv;
   PetscFunctionReturn(0);

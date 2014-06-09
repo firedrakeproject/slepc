@@ -47,6 +47,8 @@ struct _DSOps {
 
 struct _p_DS {
   PETSCHEADER(struct _DSOps);
+  /*------------------------- User parameters --------------------------*/
+  DSStateType    state;              /* the current state */
   PetscInt       method;             /* identifies the variant to be used */
   PetscInt       funmethod;          /* to choose among methods for function evaluation */
   PetscBool      compact;            /* whether the matrices are stored in compact form */
@@ -59,20 +61,22 @@ struct _p_DS {
   PetscInt       k;                  /* intermediate dimension (e.g. position of arrow) */
   PetscInt       t;                  /* length of decomposition when it was truncated */
   PetscInt       bs;                 /* block size */
-  DSStateType    state;              /* the current state */
+  PetscInt       nf;                 /* number of functions in f[] */
+  FN             f[DS_NUM_EXTRA];    /* functions provided via DSSetFN() */
+
+  /*-------------- User-provided functions and contexts ----------------*/
+  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+  void           *comparisonctx;
+
+  /*----------------- Status variables and working data ----------------*/
   PetscScalar    *mat[DS_NUM_MAT];   /* the matrices */
   PetscReal      *rmat[DS_NUM_MAT];  /* the matrices (real) */
   Mat            omat[DS_NUM_MAT];   /* the matrices (PETSc object) */
   PetscInt       *perm;              /* permutation */
-  PetscInt       nf;                 /* number of functions in f[] */
-  FN             f[DS_NUM_EXTRA];    /* functions provided via DSSetFN() */
   PetscScalar    *work;
   PetscReal      *rwork;
   PetscBLASInt   *iwork;
   PetscInt       lwork,lrwork,liwork;
-  /*-------------- User-provided functions and contexts -----------------*/
-  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-  void           *comparisonctx;
 };
 
 PETSC_INTERN PetscErrorCode DSAllocateMat_Private(DS,DSMatType);

@@ -64,10 +64,10 @@ struct _p_ST {
   Vec          w;
   Vec          D;                /* diagonal matrix for balancing */
   Vec          wb;               /* balancing requires an extra work vector */
+  PetscInt     linearits;        /* number of linear iterations */
+  PetscInt     applys;           /* number of operator applies */
   void         *data;
   PetscInt     setupcalled;
-  PetscInt     lineariterations;
-  PetscInt     applys;
 };
 
 PETSC_INTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);

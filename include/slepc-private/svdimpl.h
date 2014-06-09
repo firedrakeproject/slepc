@@ -84,8 +84,8 @@ struct _p_SVD {
   PetscInt         its;         /* iteration counter */
   PetscBool        leftbasis;   /* if U is filled by the solver */
   PetscBool        lvecsavail;  /* if U contains left singular vectors */
-  PetscInt         setupcalled;
   PetscInt         matvecs;
+  PetscInt         setupcalled;
   SVDConvergedReason reason;
 };
 

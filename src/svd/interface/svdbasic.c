@@ -231,36 +231,39 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   ierr = SlepcHeaderCreate(svd,_p_SVD,struct _SVDOps,SVD_CLASSID,"SVD","Singular Value Decomposition","SVD",comm,SVDDestroy,SVDView);CHKERRQ(ierr);
 
   svd->OP             = NULL;
-  svd->ds             = NULL;
-  svd->A              = NULL;
-  svd->AT             = NULL;
-  svd->transmode      = (SVDTransposeMode)PETSC_DECIDE;
-  svd->sigma          = NULL;
-  svd->perm           = NULL;
-  svd->U              = NULL;
-  svd->V              = NULL;
-  svd->IS             = NULL;
-  svd->ISL            = NULL;
-  svd->rand           = NULL;
-  svd->which          = SVD_LARGEST;
-  svd->nconv          = 0;
+  svd->max_it         = 0;
   svd->nsv            = 1;
   svd->ncv            = 0;
   svd->mpd            = 0;
   svd->nini           = 0;
   svd->ninil          = 0;
-  svd->its            = 0;
-  svd->max_it         = 0;
   svd->tol            = PETSC_DEFAULT;
+  svd->which          = SVD_LARGEST;
+  svd->transmode      = (SVDTransposeMode)PETSC_DECIDE;
+  svd->trackall       = PETSC_FALSE;
+
+  svd->numbermonitors = 0;
+
+  svd->ds             = NULL;
+  svd->U              = NULL;
+  svd->V              = NULL;
+  svd->rand           = NULL;
+  svd->A              = NULL;
+  svd->AT             = NULL;
+  svd->IS             = NULL;
+  svd->ISL            = NULL;
+  svd->sigma          = NULL;
+  svd->perm           = NULL;
   svd->errest         = NULL;
   svd->data           = NULL;
-  svd->setupcalled    = 0;
-  svd->reason         = SVD_CONVERGED_ITERATING;
-  svd->numbermonitors = 0;
-  svd->matvecs        = 0;
-  svd->trackall       = PETSC_FALSE;
+
+  svd->nconv          = 0;
+  svd->its            = 0;
   svd->leftbasis      = PETSC_FALSE;
   svd->lvecsavail     = PETSC_FALSE;
+  svd->matvecs        = 0;
+  svd->setupcalled    = 0;
+  svd->reason         = SVD_CONVERGED_ITERATING;
 
   ierr = PetscRandomCreate(comm,&svd->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(svd->rand,0x12345678);CHKERRQ(ierr);

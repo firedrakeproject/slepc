@@ -273,7 +273,7 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
 
     ierr = KSPSolve(ops->ksp,x,y);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
     ierr = KSPGetIterationNumber(ops->ksp,&lits);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
-    ops->eps->st->lineariterations+= lits;
+    ops->eps->st->linearits += lits;
 
     ierr = VecResetArray(x);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
     ierr = VecResetArray(y);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);

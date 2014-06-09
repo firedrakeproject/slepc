@@ -135,25 +135,28 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   ierr = MFNInitializePackage();CHKERRQ(ierr);
   ierr = SlepcHeaderCreate(mfn,_p_MFN,struct _MFNOps,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView);CHKERRQ(ierr);
 
+  mfn->A               = NULL;
   mfn->max_it          = 0;
   mfn->ncv             = 0;
   mfn->tol             = PETSC_DEFAULT;
   mfn->function        = (SlepcFunction)0;
   mfn->sfactor         = 1.0;
+  mfn->errorifnotconverged = PETSC_FALSE;
 
-  mfn->A               = 0;
-  mfn->V               = 0;
-  mfn->errest          = 0;
-  mfn->ds              = 0;
-  mfn->rand            = 0;
-  mfn->data            = 0;
-  mfn->its             = 0;
+  mfn->numbermonitors  = 0;
 
+  mfn->ds              = NULL;
+  mfn->V               = NULL;
+  mfn->rand            = NULL;
   mfn->nwork           = 0;
-  mfn->work            = 0;
+  mfn->work            = NULL;
+  mfn->data            = NULL;
+
+  mfn->its             = 0;
+  mfn->nv              = 0;
+  mfn->errest          = 0;
   mfn->setupcalled     = 0;
   mfn->reason          = MFN_CONVERGED_ITERATING;
-  mfn->numbermonitors  = 0;
 
   ierr = PetscRandomCreate(comm,&mfn->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(mfn->rand,0x12345678);CHKERRQ(ierr);

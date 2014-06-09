@@ -148,12 +148,17 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   ds->k             = 0;
   ds->t             = 0;
   ds->bs            = 1;
+  ds->nf            = 0;
+  for (i=0;i<DS_NUM_EXTRA;i++) ds->f[i] = NULL;
+
+  ds->comparison    = NULL;
+  ds->comparisonctx = NULL;
+
   for (i=0;i<DS_NUM_MAT;i++) {
     ds->mat[i]      = NULL;
     ds->rmat[i]     = NULL;
+    ds->omat[i]     = NULL;
   }
-  ds->nf            = 0;
-  for (i=0;i<DS_NUM_EXTRA;i++) ds->f[i] = NULL;
   ds->perm          = NULL;
   ds->work          = NULL;
   ds->rwork         = NULL;
@@ -161,8 +166,6 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   ds->lwork         = 0;
   ds->lrwork        = 0;
   ds->liwork        = 0;
-  ds->comparison    = NULL;
-  ds->comparisonctx = NULL;
 
   *newds = ds;
   PetscFunctionReturn(0);

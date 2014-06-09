@@ -142,7 +142,7 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
   if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
-  st->lineariterations += its;
+  st->linearits += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -188,7 +188,7 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
   if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
-  st->lineariterations += its;
+  st->linearits += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -322,8 +322,8 @@ PetscErrorCode STGetOperationCounters(ST st,PetscInt* ops,PetscInt* lits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (ops) *ops = st->applys;
-  if (lits) *lits = st->lineariterations;
+  if (ops)  *ops  = st->applys;
+  if (lits) *lits = st->linearits;
   PetscFunctionReturn(0);
 }
 
@@ -347,8 +347,8 @@ PetscErrorCode STResetOperationCounters(ST st)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  st->lineariterations = 0;
-  st->applys = 0;
+  st->linearits = 0;
+  st->applys    = 0;
   PetscFunctionReturn(0);
 }
 
