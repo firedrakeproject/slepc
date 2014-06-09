@@ -27,7 +27,7 @@
 #include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
 
 PetscErrorCode dvd_updateV_start(dvdDashboard *d);
-PetscBool dvd_isrestarting_fullV(dvdDashboard *d);
+PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r);
 PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d);
 PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d);
 PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d);
@@ -154,7 +154,7 @@ PetscErrorCode dvd_updateV_start(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_isrestarting_fullV"
-PetscBool dvd_isrestarting_fullV(dvdDashboard *d)
+PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r)
 {
   PetscErrorCode  ierr;
   PetscInt        l,k;
@@ -166,8 +166,11 @@ PetscBool dvd_isrestarting_fullV(dvdDashboard *d)
   restart = (k+2 > d->eps->ncv)?PETSC_TRUE:PETSC_FALSE;
 
   /* Check old isRestarting function */
-  if (!restart && data->old_isRestarting) restart = data->old_isRestarting(d);
-  PetscFunctionReturn(restart);
+  if (!restart && data->old_isRestarting) {
+    ierr = data->old_isRestarting(d,&restart);CHKERRQ(ierr);
+  }
+  *r = restart;
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
@@ -192,13 +195,15 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        i;
+  PetscBool       restart;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   ierr = d->calcpairs_selectPairs(d, data->min_size_V);CHKERRQ(ierr);
 
   /* If the subspaces doesn't need restart, add new vector */
-  if (!d->isRestarting(d)) {
+  ierr = d->isRestarting(d,&restart);CHKERRQ(ierr);
+  if (!restart) {
     d->size_D = 0;
     ierr = dvd_updateV_update_gen(d);CHKERRQ(ierr);
 

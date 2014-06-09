@@ -773,6 +773,9 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
   DvdReduction      r;
   DvdReductionChunk ops[1];
   DvdMult_copy_func sr[1];
+#if defined(PETSC_USE_COMPLEX)
+  PetscInt          j;
+#endif
 
   PetscFunctionBegin;
   /* Check consistency */
@@ -812,7 +815,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
 #if defined(PETSC_USE_COMPLEX)
   for (i=0;i<data->size_KZ;i++) {
     for (j=0;j<data->size_KZ;j++) {
-      data->XKZ[i*data->ldXKZ+j] = PetscConjugate(data->XKZ[i*data->ldXKZ+j]);
+      data->XKZ[i*data->ldXKZ+j] = PetscConj(data->XKZ[i*data->ldXKZ+j]);
     }
   }
 #endif
@@ -1199,7 +1202,7 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV,PetscS
   for (i=0; i<cV; i++) {
     ierr = BVMultVec(d->eps->V,1.0,0.0,V[i],&h[ldh*i]);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    for (j=0; j<data->size_KZ; j++) h[ldh*i+j] = PetscConjugate(h[ldh*i+j]);
+    for (j=0; j<data->size_KZ; j++) h[ldh*i+j] = PetscConj(h[ldh*i+j]);
 #endif
     ierr = VecsMultS(&h[i*ldh+data->size_KZ],0,ldh,data->u,0,data->size_iXKZ-data->size_KZ,V+i,0,1,&r,&sr[i]);CHKERRQ(ierr);
   }

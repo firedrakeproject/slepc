@@ -89,7 +89,7 @@ typedef struct _dvdDashboard {
   void *improveX_data;
 
   /* Check for restarting */
-  PetscBool (*isRestarting)(struct _dvdDashboard*);
+  PetscErrorCode (*isRestarting)(struct _dvdDashboard*,PetscBool*);
   void *isRestarting_data;
 
   /* Perform restarting */
@@ -313,7 +313,7 @@ typedef struct {
 typedef PetscErrorCode (*dvdPrecond)(dvdDashboard*,PetscInt i,Vec x,Vec Px);
 typedef PetscErrorCode (*dvdCallback)(dvdDashboard*);
 typedef PetscErrorCode (*e_Vchanged_type)(dvdDashboard*,PetscInt s_imm,PetscInt e_imm,PetscInt s_new,PetscInt e_new);
-typedef PetscBool (*isRestarting_type)(dvdDashboard*);
+typedef PetscErrorCode (*isRestarting_type)(dvdDashboard*,PetscBool*);
 typedef PetscErrorCode (*e_newIteration_type)(dvdDashboard*);
 typedef PetscErrorCode (*improveX_type)(dvdDashboard*,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
 
