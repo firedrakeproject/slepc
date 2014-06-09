@@ -110,20 +110,6 @@ PetscErrorCode NEPSolve(NEP nep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEP_KSPSolve"
-PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
-{
-  PetscErrorCode ierr;
-  PetscInt       lits;
-
-  PetscFunctionBegin;
-  ierr = KSPSolve(nep->ksp,b,x);CHKERRQ(ierr);
-  ierr = KSPGetIterationNumber(nep->ksp,&lits);CHKERRQ(ierr);
-  ierr = PetscInfo2(nep,"iter=%D, linear solve iterations=%D\n",nep->its,lits);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "NEPProjectOperator"
 /*@
    NEPProjectOperator - Computes the projection of the nonlinear operator.
