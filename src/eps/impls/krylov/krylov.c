@@ -197,3 +197,46 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscInt 
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "EPSPseudoLanczos"
+PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscReal *cos,Vec w)
+{
+  PetscErrorCode ierr;
+  PetscInt       j,m = *M;
+  Vec            vj,vj1;
+  PetscScalar    *hwork,lhwork[100];
+  PetscReal      norm,norm1,norm2,t;
+
+  PetscFunctionBegin;
+  if (cos) *cos = 1.0;
+  if (m > 100) {
+    ierr = PetscMalloc1(m,&hwork);CHKERRQ(ierr);
+  } else hwork = lhwork;
+
+  ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
+  for (j=k;j<m;j++) {
+    ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = STApply(eps->st,vj,vj1);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeColumn(eps->V,j+1,hwork,&norm,breakdown);CHKERRQ(ierr);
+    alpha[j] = PetscRealPart(hwork[j]);
+    beta[j] = PetscAbsReal(norm);
+    omega[j+1] = (norm<0.0)? -1.0: 1.0;
+    ierr = BVScaleColumn(eps->V,j+1,1.0/norm);CHKERRQ(ierr);
+    /* */
+    ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = VecNorm(vj1,NORM_2,&norm1);CHKERRQ(ierr);
+    ierr = BVApplyMatrix(eps->V,vj1,w);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = VecNorm(w,NORM_2,&norm2);CHKERRQ(ierr);
+    t = 1.0/(norm1*norm2);
+    if (cos && *cos>t) *cos = t;
+  }
+  if (m > 100) {
+    ierr = PetscFree(hwork);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
