@@ -21,7 +21,7 @@
 
         module slepcepsdef
         use slepcst
-        use slepcip
+        use slepcbv
         use slepcds
 #include <finclude/slepceps.h>
 #include <finclude/ftn-custom/slepcepsdef.h90>

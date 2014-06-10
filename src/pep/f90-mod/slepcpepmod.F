@@ -20,7 +20,7 @@
 #define PETSC_USE_FORTRAN_MODULES
 
         module slepcpepdef
-        use slepcip
+        use slepcbv
         use slepceps
 #include <finclude/slepcpep.h>
 #include <finclude/ftn-custom/slepcpepdef.h90>
