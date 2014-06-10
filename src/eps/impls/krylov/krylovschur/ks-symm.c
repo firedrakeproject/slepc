@@ -24,8 +24,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
-#include <slepcblaslapack.h>
+#include <slepc-private/epsimpl.h>
 #include "krylovschur.h"
 
 #undef __FUNCT__

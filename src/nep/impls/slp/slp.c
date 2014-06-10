@@ -34,7 +34,6 @@
 */
 
 #include <slepc-private/nepimpl.h>         /*I "slepcnep.h" I*/
-#include <slepc-private/epsimpl.h>         /*I "slepceps.h" I*/
 
 typedef struct {
   EPS       eps;             /* linear eigensolver for T*z = mu*Tp*z */
@@ -209,13 +208,15 @@ static PetscErrorCode NEPSLPGetEPS_SLP(NEP nep,EPS *eps)
 {
   PetscErrorCode ierr;
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
+  ST             st;
 
   PetscFunctionBegin;
   if (!ctx->eps) {
     ierr = EPSCreate(PetscObjectComm((PetscObject)nep),&ctx->eps);CHKERRQ(ierr);
     ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)nep)->prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(ctx->eps,"nep_");CHKERRQ(ierr);
-    ierr = STSetOptionsPrefix(ctx->eps->st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
+    ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
+    ierr = STSetOptionsPrefix(st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)nep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->eps);CHKERRQ(ierr);
   }

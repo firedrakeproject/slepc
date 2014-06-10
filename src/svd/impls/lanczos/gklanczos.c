@@ -40,8 +40,6 @@
 */
 
 #include <slepc-private/svdimpl.h>                /*I "slepcsvd.h" I*/
-#include <slepc-private/ipimpl.h>
-#include <slepcblaslapack.h>
 
 typedef struct {
   PetscBool oneside;

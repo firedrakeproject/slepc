@@ -34,7 +34,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/qepimpl.h>         /*I "slepcqep.h" I*/
+#include <slepc-private/qepimpl.h>
 #include <petscblaslapack.h>
 
 #undef __FUNCT__

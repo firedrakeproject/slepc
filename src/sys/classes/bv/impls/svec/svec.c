@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/bvimpl.h>          /*I "slepcbv.h" I*/
+#include <slepc-private/bvimpl.h>
 
 typedef struct {
   Vec       v;

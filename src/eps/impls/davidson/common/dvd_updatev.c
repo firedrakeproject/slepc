@@ -24,7 +24,7 @@
 */
 
 #include "davidson.h"
-#include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
+#include <slepc-private/dsimpl.h>
 
 PetscErrorCode dvd_updateV_start(dvdDashboard *d);
 PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r);

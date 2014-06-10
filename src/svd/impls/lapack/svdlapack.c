@@ -21,8 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>      /*I "slepcsvd.h" I*/
-#include <slepcblaslapack.h>
+#include <slepc-private/svdimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetUp_LAPACK"

@@ -23,7 +23,6 @@
 */
 
 #include <slepc-private/stimpl.h>            /*I "slepcst.h" I*/
-#include <slepcsys.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "STMatMult"

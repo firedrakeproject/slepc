@@ -34,7 +34,6 @@
 */
 
 #include <slepc-private/qepimpl.h>         /*I "slepcqep.h" I*/
-#include <slepc-private/stimpl.h>
 #include <slepcblaslapack.h>
 
 typedef struct {

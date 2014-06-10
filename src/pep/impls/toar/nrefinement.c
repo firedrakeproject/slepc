@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>        /*I "slepcpep.h" I*/
-#include <slepc-private/stimpl.h>         /*I "slepcst.h" I*/
+#include <slepc-private/pepimpl.h>
+#include <slepc-private/stimpl.h>
 #include <slepcblaslapack.h>
 
 typedef struct {

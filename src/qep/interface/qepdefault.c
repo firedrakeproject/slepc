@@ -22,7 +22,6 @@
 */
 
 #include <slepc-private/qepimpl.h>     /*I "slepcqep.h" I*/
-#include <slepcblaslapack.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "QEPReset_Default"

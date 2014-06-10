@@ -23,7 +23,6 @@
 
 #include <slepc-private/epsimpl.h>   /*I "slepceps.h" I*/
 #include <slepcvec.h>
-#include <slepcblaslapack.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSBackTransform_Default"

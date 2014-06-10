@@ -41,7 +41,6 @@
 */
 
 #include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
-#include <slepcblaslapack.h>
 #include "krylovschur.h"
 
 #undef __FUNCT__

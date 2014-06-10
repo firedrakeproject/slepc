@@ -20,7 +20,6 @@
 */
 
 #include <slepc-private/slepcimpl.h>            /*I "slepcsys.h" I*/
-#include <petsc-private/matimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcMatConvertSeqDense"
@@ -41,6 +40,7 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
   PetscErrorCode ierr;
   PetscInt       m,n;
   PetscMPIInt    size;
+  PetscBool      flg;
   Mat            *M;
   IS             isrow,iscol;
 
@@ -49,7 +49,8 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
   PetscValidPointer(newmat,2);
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)mat),&size);CHKERRQ(ierr);
   if (size > 1) {
-    if (!mat->ops->getsubmatrices) SETERRQ1(PetscObjectComm((PetscObject)mat),PETSC_ERR_SUP,"Mat type %s",((PetscObject)mat)->type_name);
+    ierr = MatHasOperation(mat,MATOP_GET_SUBMATRICES,&flg);CHKERRQ(ierr);
+    if (!flg) SETERRQ1(PetscObjectComm((PetscObject)mat),PETSC_ERR_SUP,"Mat type %s",((PetscObject)mat)->type_name);
 
     /* assemble full matrix on every processor */
     ierr = MatGetSize(mat,&m,&n);CHKERRQ(ierr);

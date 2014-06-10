@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/bvimpl.h>      /*I "slepcbv.h" I*/
+#include <slepc-private/bvimpl.h>
 #include <slepcblaslapack.h>
 
 #define BLOCKSIZE 64

@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/vecimplslepc.h>    /*I "slepcvec.h" I*/
+#include <slepc-private/vecimplslepc.h>
 #include <slepcblaslapack.h>
 
 void dvd_sum_local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *t);

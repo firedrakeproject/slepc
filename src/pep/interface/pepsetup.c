@@ -22,7 +22,6 @@
 */
 
 #include <slepc-private/pepimpl.h>       /*I "slepcpep.h" I*/
-#include <slepc-private/ipimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetUp"

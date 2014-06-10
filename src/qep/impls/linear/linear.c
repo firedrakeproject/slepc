@@ -1,5 +1,4 @@
 /*
-
    Straightforward linearization for quadratic eigenproblems.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +22,6 @@
 */
 
 #include <slepc-private/qepimpl.h>         /*I "slepcqep.h" I*/
-#include <slepc-private/epsimpl.h>         /*I "slepceps.h" I*/
 #include <slepcvec.h>
 #include "linearp.h"
 
@@ -347,6 +345,7 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
 {
   PetscInt       i;
   QEP            qep = (QEP)ctx;
+  ST             st;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -357,7 +356,8 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
     qep->errest[i] = errest[i];
     if (0.0 < errest[i] && errest[i] < qep->tol) nconv++;
   }
-  ierr = STBackTransform(eps->st,nest,qep->eigr,qep->eigi);CHKERRQ(ierr);
+  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
+  ierr = STBackTransform(st,nest,qep->eigr,qep->eigi);CHKERRQ(ierr);
   ierr = QEPMonitor(qep,its,nconv,qep->eigr,qep->eigi,qep->errest,nest);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -610,13 +610,15 @@ static PetscErrorCode QEPLinearGetEPS_Linear(QEP qep,EPS *eps)
 {
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx = (QEP_LINEAR*)qep->data;
+  ST             st;
 
   PetscFunctionBegin;
   if (!ctx->eps) {
     ierr = EPSCreate(PetscObjectComm((PetscObject)qep),&ctx->eps);CHKERRQ(ierr);
     ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)qep)->prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(ctx->eps,"qep_");CHKERRQ(ierr);
-    ierr = STSetOptionsPrefix(ctx->eps->st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
+    ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
+    ierr = STSetOptionsPrefix(st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)qep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)qep,(PetscObject)ctx->eps);CHKERRQ(ierr);
     ierr = EPSMonitorSet(ctx->eps,EPSMonitor_Linear,qep,NULL);CHKERRQ(ierr);
