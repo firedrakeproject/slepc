@@ -54,14 +54,13 @@ struct _p_PEP {
   PetscInt       nev;              /* number of eigenvalues to compute */
   PetscInt       ncv;              /* number of basis vectors */
   PetscInt       mpd;              /* maximum dimension of projected problem */
-  PetscInt       nini,ninil;       /* number of initial vectors (negative means not copied yet) */
+  PetscInt       nini;             /* number of initial vectors (negative means not copied yet) */
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
   PEPConv        conv;             /* convergence test */
   PetscReal      sfactor;          /* scaling factor */
   PEPWhich       which;            /* which part of the spectrum to be sought */
   PEPBasis       basis;            /* polynomial basis used to represent the problem */
-  PetscBool      leftvecs;         /* if left eigenvectors are requested */
   PEPProblemType problem_type;     /* which kind of problem to be solved */
   PetscBool      balance;          /* whether balancing must be performed*/
   PetscInt       balance_its;      /* number of iterations of the balancing method */
@@ -86,7 +85,7 @@ struct _p_PEP {
   Mat            *A;               /* coefficient matrices of the polynomial */
   PetscInt       nmat;             /* number of matrices */
   Vec            Dl,Dr;            /* diagonal matrices for balancing */
-  Vec            *IS,*ISL;         /* references to user-provided initial space */
+  Vec            *IS;              /* references to user-provided initial space */
   PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
   PetscReal      *errest;          /* error estimates */
   PetscInt       *perm;            /* permutation for eigenvalue ordering */

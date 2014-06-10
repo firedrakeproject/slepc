@@ -142,7 +142,6 @@ lrstor*=10;
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_BLZPACK;
   PetscFunctionReturn(0);
 }

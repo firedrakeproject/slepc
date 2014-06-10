@@ -129,11 +129,8 @@ PETSC_EXTERN PetscErrorCode QEPGetMonitorContext(QEP,void **);
 PETSC_EXTERN PetscErrorCode QEPGetIterationNumber(QEP,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode QEPSetInitialSpace(QEP,PetscInt,Vec*);
-PETSC_EXTERN PetscErrorCode QEPSetInitialSpaceLeft(QEP,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode QEPSetWhichEigenpairs(QEP,QEPWhich);
 PETSC_EXTERN PetscErrorCode QEPGetWhichEigenpairs(QEP,QEPWhich*);
-PETSC_EXTERN PetscErrorCode QEPSetLeftVectorsWanted(QEP,PetscBool);
-PETSC_EXTERN PetscErrorCode QEPGetLeftVectorsWanted(QEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode QEPSetEigenvalueComparison(QEP,PetscErrorCode (*func)(QEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
 PETSC_EXTERN PetscErrorCode QEPMonitorAll(QEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);

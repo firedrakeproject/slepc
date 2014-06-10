@@ -61,7 +61,6 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
 
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   if (eps->isgeneralized && eps->ishermitian && !eps->ispositive) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method does not work for indefinite problems");
   PetscFunctionReturn(0);
 }

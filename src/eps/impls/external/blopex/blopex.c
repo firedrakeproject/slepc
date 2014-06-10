@@ -167,7 +167,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   /* blopex only works with BVVECS or BVCONTIGUOUS, if different set to CONTIGUOUS */
-  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V,NULL);CHKERRQ(ierr); }
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompareAny((PetscObject)eps->V,&flg,BVVECS,BVCONTIGUOUS,"");CHKERRQ(ierr);
   if (!flg) {
     ierr = BVSetType(eps->V,BVCONTIGUOUS);CHKERRQ(ierr);
@@ -213,7 +213,6 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_BLOPEX;
   PetscFunctionReturn(0);
 #endif

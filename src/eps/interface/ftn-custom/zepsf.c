@@ -276,9 +276,9 @@ PETSC_EXTERN void PETSC_STDCALL epsgetst_(EPS *eps,ST *st,PetscErrorCode *ierr)
   *ierr = EPSGetST(*eps,st);
 }
 
-PETSC_EXTERN void PETSC_STDCALL epsgetbv_(EPS *eps,BV *V,BV *W,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL epsgetbv_(EPS *eps,BV *V,PetscErrorCode *ierr)
 {
-  *ierr = EPSGetBV(*eps,V,W);
+  *ierr = EPSGetBV(*eps,V);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epsgetds_(EPS *eps,DS *ds,PetscErrorCode *ierr)

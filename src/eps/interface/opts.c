@@ -196,10 +196,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsBoolGroupEnd("-eps_all","compute all eigenvalues in an interval","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsBool("-eps_left_vectors","Compute left eigenvectors also","EPSSetLeftVectorsWanted",eps->leftvecs,&val,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = EPSSetLeftVectorsWanted(eps,val);CHKERRQ(ierr);
-    }
     ierr = PetscOptionsBool("-eps_true_residual","Compute true residuals explicitly","EPSSetTrueResidual",eps->trueres,&val,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = EPSSetTrueResidual(eps,val);CHKERRQ(ierr);
@@ -214,9 +210,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)eps);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
-  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V,&eps->W);CHKERRQ(ierr); }
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
   ierr = BVSetFromOptions(eps->V);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(eps->W);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(eps->ds);CHKERRQ(ierr);
   ierr = STSetFromOptions(eps->st);CHKERRQ(ierr);
@@ -540,68 +535,6 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(which,2);
   *which = eps->which;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetLeftVectorsWanted"
-/*@
-   EPSSetLeftVectorsWanted - Specifies which eigenvectors are required.
-
-   Logically Collective on EPS
-
-   Input Parameters:
-+  eps      - the eigensolver context
--  leftvecs - whether left eigenvectors are required or not
-
-   Options Database Keys:
-.  -eps_left_vectors <boolean> - Sets/resets the boolean flag 'leftvecs'
-
-   Notes:
-   If the user sets leftvecs=PETSC_TRUE then the solver uses a variant of
-   the algorithm that computes both right and left eigenvectors. This is
-   usually much more costly. This option is not available in all solvers.
-
-   Level: intermediate
-
-.seealso: EPSGetLeftVectorsWanted(), EPSGetEigenvectorLeft()
-@*/
-PetscErrorCode EPSSetLeftVectorsWanted(EPS eps,PetscBool leftvecs)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidLogicalCollectiveBool(eps,leftvecs,2);
-  if (eps->leftvecs != leftvecs) {
-    eps->leftvecs = leftvecs;
-    eps->setupcalled = 0;
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetLeftVectorsWanted"
-/*@
-   EPSGetLeftVectorsWanted - Returns the flag indicating whether left
-   eigenvectors are required or not.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigensolver context
-
-   Output Parameter:
-.  leftvecs - the returned flag
-
-   Level: intermediate
-
-.seealso: EPSSetLeftVectorsWanted(), EPSWhich
-@*/
-PetscErrorCode EPSGetLeftVectorsWanted(EPS eps,PetscBool *leftvecs)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(leftvecs,2);
-  *leftvecs = eps->leftvecs;
   PetscFunctionReturn(0);
 }
 
@@ -1264,9 +1197,8 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   ierr = STSetOptionsPrefix(eps->st,prefix);CHKERRQ(ierr);
-  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V,&eps->W);CHKERRQ(ierr); }
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
   ierr = BVSetOptionsPrefix(eps->V,prefix);CHKERRQ(ierr);
-  ierr = BVSetOptionsPrefix(eps->W,prefix);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(eps->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
@@ -1301,9 +1233,8 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   ierr = STAppendOptionsPrefix(eps->st,prefix);CHKERRQ(ierr);
-  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V,&eps->W);CHKERRQ(ierr); }
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
   ierr = BVSetOptionsPrefix(eps->V,prefix);CHKERRQ(ierr);
-  ierr = BVSetOptionsPrefix(eps->W,prefix);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(eps->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);

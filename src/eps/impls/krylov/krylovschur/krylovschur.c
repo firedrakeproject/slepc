@@ -108,7 +108,6 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   }
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   if (eps->ishermitian) {
     if (eps->which==EPS_ALL) {
       if (eps->isgeneralized && !eps->ispositive) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing not implemented for indefinite problems");

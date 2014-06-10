@@ -45,7 +45,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 {
   PetscErrorCode   ierr;
   char             type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool        flg,val;
+  PetscBool        flg;
   PetscReal        r;
   PetscScalar      s;
   PetscInt         i,j,k;
@@ -165,11 +165,6 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_REAL);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-pep_target_imaginary","compute eigenvalues with imaginary parts close to target","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
-
-    ierr = PetscOptionsBool("-pep_left_vectors","Compute left eigenvectors also","PEPSetLeftVectorsWanted",pep->leftvecs,&val,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = PEPSetLeftVectorsWanted(pep,val);CHKERRQ(ierr);
-    }
 
     ierr = PetscOptionsName("-pep_view","Print detailed information on solver used","PEPView",0);CHKERRQ(ierr);
     ierr = PetscOptionsName("-pep_plot_eigs","Make a plot of the computed eigenvalues","PEPSolve",0);CHKERRQ(ierr);
@@ -481,68 +476,6 @@ PetscErrorCode PEPGetWhichEigenpairs(PEP pep,PEPWhich *which)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(which,2);
   *which = pep->which;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetLeftVectorsWanted"
-/*@
-    PEPSetLeftVectorsWanted - Specifies which eigenvectors are required.
-
-    Logically Collective on PEP
-
-    Input Parameters:
-+   pep      - the polynomial eigensolver context
--   leftvecs - whether left eigenvectors are required or not
-
-    Options Database Keys:
-.   -pep_left_vectors <boolean> - Sets/resets the boolean flag 'leftvecs'
-
-    Notes:
-    If the user sets leftvecs=PETSC_TRUE then the solver uses a variant of
-    the algorithm that computes both right and left eigenvectors. This is
-    usually much more costly. This option is not available in all solvers.
-
-    Level: intermediate
-
-.seealso: PEPGetLeftVectorsWanted()
-@*/
-PetscErrorCode PEPSetLeftVectorsWanted(PEP pep,PetscBool leftvecs)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidLogicalCollectiveBool(pep,leftvecs,2);
-  if (pep->leftvecs != leftvecs) {
-    pep->leftvecs = leftvecs;
-    pep->setupcalled = 0;
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetLeftVectorsWanted"
-/*@C
-    PEPGetLeftVectorsWanted - Returns the flag indicating whether left
-    eigenvectors are required or not.
-
-    Not Collective
-
-    Input Parameter:
-.   pep - the eigensolver context
-
-    Output Parameter:
-.   leftvecs - the returned flag
-
-    Level: intermediate
-
-.seealso: PEPSetLeftVectorsWanted()
-@*/
-PetscErrorCode PEPGetLeftVectorsWanted(PEP pep,PetscBool *leftvecs)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(leftvecs,2);
-  *leftvecs = pep->leftvecs;
   PetscFunctionReturn(0);
 }
 

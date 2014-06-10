@@ -151,7 +151,6 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
   OP*V=V*T, the following steps are performed:
       1) compute eigenvectors of T: T*Z=Z*D
       2) compute eigenvectors of OP: X=V*Z
-  If left eigenvectors are required then also do Z'*T=D*Z', Y=W*Z
  */
 PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
@@ -229,16 +228,6 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
         ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
       }
     }
-  }
-
-  /* left eigenvectors */
-  if (eps->leftvecs) {
-    ierr = DSVectors(eps->ds,DS_MAT_Y,NULL,NULL);CHKERRQ(ierr);
-    /* W = W * Z */
-    ierr = DSGetMat(eps->ds,DS_MAT_Y,&Z);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(eps->W,0,n);CHKERRQ(ierr);
-    ierr = BVMultInPlace(eps->W,Z,0,n);CHKERRQ(ierr);
-    ierr = MatDestroy(&Z);CHKERRQ(ierr);
   }
   eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);

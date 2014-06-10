@@ -100,9 +100,8 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
   if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
 #endif
-  if (eps->ishermitian && eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requesting left eigenvectors not allowed in Hermitian problems");
 
-  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V,NULL);CHKERRQ(ierr); }
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
   if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
     ierr = STGetBilinearForm(eps->st,&B);CHKERRQ(ierr);
     ierr = BVSetMatrix(eps->V,B,eps->ispositive?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr);
@@ -215,18 +214,6 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = BVInsertVecs(eps->V,0,&k,eps->IS,PETSC_TRUE);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&eps->nini,&eps->IS);CHKERRQ(ierr);
     eps->nini = k;
-  }
-  if (eps->ninil<0) {
-    k = 0;
-    if (eps->leftvecs) {
-      k = -eps->ninil;
-      if (k>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The number of left initial vectors is larger than ncv");
-      ierr = BVInsertVecs(eps->W,0,&k,eps->ISL,PETSC_TRUE);CHKERRQ(ierr);
-    } else {
-      ierr = PetscInfo(eps,"Ignoring initial left vectors\n");CHKERRQ(ierr);
-    }
-    ierr = SlepcBasisDestroy_Private(&eps->ninil,&eps->ISL);CHKERRQ(ierr);
-    eps->ninil = k;
   }
 
   ierr = PetscLogEventEnd(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
@@ -398,7 +385,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
 
    Level: intermediate
 
-.seealso: EPSSetInitialSpaceLeft(), EPSSetDeflationSpace()
+.seealso: EPSSetDeflationSpace()
 @*/
 PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
 {
@@ -409,50 +396,6 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   PetscValidLogicalCollectiveInt(eps,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&eps->nini,&eps->IS);CHKERRQ(ierr);
-  if (n>0) eps->setupcalled = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetInitialSpaceLeft"
-/*@
-   EPSSetInitialSpaceLeft - Specify a basis of vectors that constitute the initial
-   left space, that is, the subspace from which the solver starts to iterate for
-   building the left subspace (in methods that work with two subspaces).
-
-   Collective on EPS and Vec
-
-   Input Parameter:
-+  eps - the eigenproblem solver context
-.  n   - number of vectors
--  is  - set of basis vectors of the initial left space
-
-   Notes:
-   Some solvers start to iterate on a single vector (initial left vector). In that case,
-   the other vectors are ignored.
-
-   In contrast to EPSSetDeflationSpace(), these vectors do not persist from one
-   EPSSolve() call to the other, so the initial left space should be set every time.
-
-   The vectors do not need to be mutually orthonormal, since they are explicitly
-   orthonormalized internally.
-
-   Common usage of this function is when the user can provide a rough approximation
-   of the wanted left eigenspace. Then, convergence may be faster.
-
-   Level: intermediate
-
-.seealso: EPSSetInitialSpace(), EPSSetDeflationSpace()
-@*/
-PetscErrorCode EPSSetInitialSpaceLeft(EPS eps,PetscInt n,Vec *is)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidLogicalCollectiveInt(eps,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
-  ierr = SlepcBasisReference_Private(n,is,&eps->ninil,&eps->ISL);CHKERRQ(ierr);
   if (n>0) eps->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -506,9 +449,9 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
   /* allocate space for eigenvalues and friends */
   if (requested != oldsize) {
     if (oldsize) {
-      ierr = PetscFree5(eps->eigr,eps->eigi,eps->errest,eps->errest_left,eps->perm);CHKERRQ(ierr);
+      ierr = PetscFree4(eps->eigr,eps->eigi,eps->errest,eps->perm);CHKERRQ(ierr);
     }
-    ierr = PetscMalloc5(requested,&eps->eigr,requested,&eps->eigi,requested,&eps->errest,requested,&eps->errest_left,requested,&eps->perm);CHKERRQ(ierr);
+    ierr = PetscMalloc4(requested,&eps->eigr,requested,&eps->eigi,requested,&eps->errest,requested,&eps->perm);CHKERRQ(ierr);
     cnt = 2*newc*sizeof(PetscScalar) + 2*newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
     ierr = PetscLogObjectMemory((PetscObject)eps,cnt);CHKERRQ(ierr);
   }
@@ -523,7 +466,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
   }
 
   /* allocate V */
-  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V,NULL);CHKERRQ(ierr); }
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
   if (!oldsize) {
     if (!((PetscObject)(eps->V))->type_name) {
       ierr = BVSetType(eps->V,BVSVEC);CHKERRQ(ierr);
@@ -534,22 +477,6 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {
     ierr = BVResize(eps->V,requested,PETSC_FALSE);CHKERRQ(ierr);
-  }
-
-  /* allocate W */
-  if (eps->leftvecs) {
-    if (!eps->W) { ierr = EPSGetBV(eps,&eps->W,NULL);CHKERRQ(ierr); }
-    if (!oldsize) {
-      if (!((PetscObject)(eps->W))->type_name) {
-        ierr = BVSetType(eps->W,BVSVEC);CHKERRQ(ierr);
-      }
-      ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-      ierr = MatGetVecs(A,&t,NULL);CHKERRQ(ierr);
-      ierr = BVSetSizesFromVec(eps->W,t,requested);CHKERRQ(ierr);
-      ierr = VecDestroy(&t);CHKERRQ(ierr);
-    } else {
-      ierr = BVResize(eps->W,requested,PETSC_FALSE);CHKERRQ(ierr);
-    }
   }
   PetscFunctionReturn(0);
 }

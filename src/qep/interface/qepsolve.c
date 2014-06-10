@@ -173,7 +173,6 @@ PetscErrorCode QEPSolve(QEP qep)
 
   /* Remove the initial subspace */
   qep->nini = 0;
-  qep->ninil = 0;
   PetscFunctionReturn(0);
 }
 

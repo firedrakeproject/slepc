@@ -68,7 +68,6 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   if (eps->isgeneralized && eps->ishermitian && !eps->ispositive) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method does not work for indefinite problems");
   eps->ops->solve = EPSSolve_Arnoldi;
   PetscFunctionReturn(0);

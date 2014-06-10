@@ -133,9 +133,6 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
         break;
       default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of pep->which");
     }
-    if (pep->leftvecs) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  computing left eigenvectors also\n");CHKERRQ(ierr);
-    }
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",pep->nev);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",pep->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",pep->mpd);CHKERRQ(ierr);
@@ -161,9 +158,6 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %g\n",(double)pep->sfactor);CHKERRQ(ierr);
     if (pep->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(pep->nini));CHKERRQ(ierr);
-    }
-    if (pep->ninil) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %D\n",PetscAbs(pep->ninil));CHKERRQ(ierr);
     }
   } else {
     if (pep->ops->view) {
@@ -325,14 +319,12 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->ncv             = 0;
   pep->mpd             = 0;
   pep->nini            = 0;
-  pep->ninil           = 0;
   pep->target          = 0.0;
   pep->tol             = PETSC_DEFAULT;
   pep->conv            = PEP_CONV_EIG;
   pep->sfactor         = 0.0;
   pep->which           = (PEPWhich)0;
   pep->basis           = PEP_BASIS_MONOMIAL;
-  pep->leftvecs        = PETSC_FALSE;
   pep->problem_type    = (PEPProblemType)0;
   pep->balance         = PETSC_FALSE;
   pep->balance_its     = 5;
@@ -354,7 +346,6 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->Dl              = NULL;
   pep->Dr              = NULL;
   pep->IS              = NULL;
-  pep->ISL             = NULL;
   pep->eigr            = NULL;
   pep->eigi            = NULL;
   pep->errest          = NULL;
@@ -569,7 +560,6 @@ PetscErrorCode PEPDestroy(PEP *pep)
   ierr = PetscRandomDestroy(&(*pep)->rand);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*pep)->nini,&(*pep)->IS);CHKERRQ(ierr);
-  ierr = SlepcBasisDestroy_Private(&(*pep)->ninil,&(*pep)->ISL);CHKERRQ(ierr);
   ierr = PEPMonitorCancel(*pep);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(pep);CHKERRQ(ierr);
   PetscFunctionReturn(0);

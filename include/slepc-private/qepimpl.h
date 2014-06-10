@@ -54,12 +54,11 @@ struct _p_QEP {
   PetscInt       nev;              /* number of eigenvalues to compute */
   PetscInt       ncv;              /* number of basis vectors */
   PetscInt       mpd;              /* maximum dimension of projected problem */
-  PetscInt       nini,ninil;       /* number of initial vectors (negative means not copied yet) */
+  PetscInt       nini;             /* number of initial vectors (negative means not copied yet) */
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
   PetscReal      sfactor;          /* scaling factor of the quadratic problem */
   QEPWhich       which;            /* which part of the spectrum to be sought */
-  PetscBool      leftvecs;         /* if left eigenvectors are requested */
   QEPProblemType problem_type;     /* which kind of problem to be solved */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
@@ -79,7 +78,7 @@ struct _p_QEP {
   BV             V;                /* set of basis vectors and computed eigenvectors */
   PetscRandom    rand;             /* random number generator */
   Mat            M,C,K;            /* problem matrices */
-  Vec            *IS,*ISL;         /* references to user-provided initial space */
+  Vec            *IS;              /* references to user-provided initial space */
   PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
   PetscReal      *errest;          /* error estimates */
   PetscInt       *perm;            /* permutation for eigenvalue ordering */

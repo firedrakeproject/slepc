@@ -320,8 +320,6 @@ PetscErrorCode PEPGetNumMatrices(PEP pep,PetscInt *nmat)
    of the wanted eigenspace. Then, convergence may be faster.
 
    Level: intermediate
-
-.seealso: PEPSetInitialSpaceLeft()
 @*/
 PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec *is)
 {
@@ -332,50 +330,6 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec *is)
   PetscValidLogicalCollectiveInt(pep,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&pep->nini,&pep->IS);CHKERRQ(ierr);
-  if (n>0) pep->setupcalled = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetInitialSpaceLeft"
-/*@
-   PEPSetInitialSpaceLeft - Specify a basis of vectors that constitute the initial
-   left space, that is, the subspace from which the solver starts to iterate for
-   building the left subspace (in methods that work with two subspaces).
-
-   Collective on PEP and Vec
-
-   Input Parameter:
-+  pep   - the polynomial eigensolver context
-.  n     - number of vectors
--  is    - set of basis vectors of the initial left space
-
-   Notes:
-   Some solvers start to iterate on a single vector (initial left vector). In that case,
-   the other vectors are ignored.
-
-   These vectors do not persist from one PEPSolve() call to the other, so the
-   initial left space should be set every time.
-
-   The vectors do not need to be mutually orthonormal, since they are explicitly
-   orthonormalized internally.
-
-   Common usage of this function is when the user can provide a rough approximation
-   of the wanted left eigenspace. Then, convergence may be faster.
-
-   Level: intermediate
-
-.seealso: PEPSetInitialSpace()
-@*/
-PetscErrorCode PEPSetInitialSpaceLeft(PEP pep,PetscInt n,Vec *is)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidLogicalCollectiveInt(pep,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
-  ierr = SlepcBasisReference_Private(n,is,&pep->ninil,&pep->ISL);CHKERRQ(ierr);
   if (n>0) pep->setupcalled = 0;
   PetscFunctionReturn(0);
 }

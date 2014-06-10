@@ -56,13 +56,12 @@ struct _p_EPS {
   PetscInt       nev;              /* number of eigenvalues to compute */
   PetscInt       ncv;              /* number of basis vectors */
   PetscInt       mpd;              /* maximum dimension of projected problem */
-  PetscInt       nini,ninil;       /* number of initial vectors (negative means not copied yet) */
+  PetscInt       nini;             /* number of initial vectors (negative means not copied yet) */
   PetscInt       nds;              /* number of basis vectors of deflation space */
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
   EPSConv        conv;             /* convergence test */
   EPSWhich       which;            /* which part of the spectrum to be sought */
-  PetscBool      leftvecs;         /* if left eigenvectors are requested */
   PetscReal      inta,intb;        /* interval [a,b] for spectrum slicing */
   EPSProblemType problem_type;     /* which kind of problem to be solved */
   EPSExtraction  extraction;       /* which kind of extraction to be applied */
@@ -88,14 +87,12 @@ struct _p_EPS {
   ST             st;               /* spectral transformation object */
   DS             ds;               /* direct solver object */
   BV             V;                /* set of basis vectors and computed eigenvectors */
-  BV             W;                /* set of left basis vectors and computed left eigenvectors */
   PetscRandom    rand;             /* random number generator */
   Vec            D;                /* diagonal matrix for balancing */
-  Vec            *IS,*ISL;         /* references to user-provided initial space */
+  Vec            *IS;              /* references to user-provided initial space */
   Vec            *defl;            /* references to user-provided deflation space */
   PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
   PetscReal      *errest;          /* error estimates */
-  PetscReal      *errest_left;     /* left error estimates */
   PetscScalar    *rr,*ri;          /* values computed by user's arbitrary selection function */
   PetscInt       *perm;            /* permutation for eigenvalue ordering */
   PetscInt       nwork;            /* number of work vectors */
@@ -126,7 +123,6 @@ PETSC_INTERN PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscScalar,Petsc
 PETSC_INTERN PetscErrorCode EPSComputeRelativeError_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode EPSComputeRitzVector(EPS,PetscScalar*,PetscScalar*,BV,Vec,Vec);
 PETSC_INTERN PetscErrorCode EPSGetStartVector(EPS,PetscInt,PetscBool*);
-PETSC_INTERN PetscErrorCode EPSGetStartVectorLeft(EPS,PetscInt,PetscBool*);
 
 /* Private functions of the solver implementations */
 

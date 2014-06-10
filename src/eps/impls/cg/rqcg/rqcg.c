@@ -88,8 +88,6 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
-
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   PetscFunctionReturn(0);
 }
 

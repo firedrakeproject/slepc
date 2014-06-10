@@ -72,7 +72,6 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_FEAST;
   PetscFunctionReturn(0);
 }

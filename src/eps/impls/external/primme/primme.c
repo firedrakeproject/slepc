@@ -168,7 +168,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ops->y);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_PRIMME;
   PetscFunctionReturn(0);
 }

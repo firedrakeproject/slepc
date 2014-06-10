@@ -172,7 +172,6 @@ PetscErrorCode PEPSolve(PEP pep)
 
   /* Remove the initial subspace */
   pep->nini = 0;
-  pep->ninil = 0;
   PetscFunctionReturn(0);
 }
 

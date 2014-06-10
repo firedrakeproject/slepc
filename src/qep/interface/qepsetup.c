@@ -280,8 +280,6 @@ PetscErrorCode QEPGetOperators(QEP qep,Mat *M,Mat *C,Mat *K)
    of the wanted eigenspace. Then, convergence may be faster.
 
    Level: intermediate
-
-.seealso: QEPSetInitialSpaceLeft()
 @*/
 PetscErrorCode QEPSetInitialSpace(QEP qep,PetscInt n,Vec *is)
 {
@@ -292,50 +290,6 @@ PetscErrorCode QEPSetInitialSpace(QEP qep,PetscInt n,Vec *is)
   PetscValidLogicalCollectiveInt(qep,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&qep->nini,&qep->IS);CHKERRQ(ierr);
-  if (n>0) qep->setupcalled = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "QEPSetInitialSpaceLeft"
-/*@
-   QEPSetInitialSpaceLeft - Specify a basis of vectors that constitute the initial
-   left space, that is, the subspace from which the solver starts to iterate for
-   building the left subspace (in methods that work with two subspaces).
-
-   Collective on QEP and Vec
-
-   Input Parameter:
-+  qep   - the quadratic eigensolver context
-.  n     - number of vectors
--  is    - set of basis vectors of the initial left space
-
-   Notes:
-   Some solvers start to iterate on a single vector (initial left vector). In that case,
-   the other vectors are ignored.
-
-   These vectors do not persist from one QEPSolve() call to the other, so the
-   initial left space should be set every time.
-
-   The vectors do not need to be mutually orthonormal, since they are explicitly
-   orthonormalized internally.
-
-   Common usage of this function is when the user can provide a rough approximation
-   of the wanted left eigenspace. Then, convergence may be faster.
-
-   Level: intermediate
-
-.seealso: QEPSetInitialSpace()
-@*/
-PetscErrorCode QEPSetInitialSpaceLeft(QEP qep,PetscInt n,Vec *is)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(qep,QEP_CLASSID,1);
-  PetscValidLogicalCollectiveInt(qep,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)qep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
-  ierr = SlepcBasisReference_Private(n,is,&qep->ninil,&qep->ISL);CHKERRQ(ierr);
   if (n>0) qep->setupcalled = 0;
   PetscFunctionReturn(0);
 }

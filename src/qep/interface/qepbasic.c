@@ -126,9 +126,6 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
         break;
       default: SETERRQ(PetscObjectComm((PetscObject)qep),1,"Wrong value of qep->which");
     }
-    if (qep->leftvecs) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  computing left eigenvectors also\n");CHKERRQ(ierr);
-    }
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",qep->nev);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",qep->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",qep->mpd);CHKERRQ(ierr);
@@ -137,9 +134,6 @@ PetscErrorCode QEPView(QEP qep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %g\n",(double)qep->sfactor);CHKERRQ(ierr);
     if (qep->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(qep->nini));CHKERRQ(ierr);
-    }
-    if (qep->ninil) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %D\n",PetscAbs(qep->ninil));CHKERRQ(ierr);
     }
   } else {
     if (qep->ops->view) {
@@ -304,7 +298,6 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->ncv             = 0;
   qep->mpd             = 0;
   qep->nini            = 0;
-  qep->ninil           = 0;
   qep->ds              = 0;
   qep->tol             = PETSC_DEFAULT;
   qep->sfactor         = 0.0;
@@ -314,11 +307,9 @@ PetscErrorCode QEPCreate(MPI_Comm comm,QEP *outqep)
   qep->which           = (QEPWhich)0;
   qep->comparison      = NULL;
   qep->comparisonctx   = NULL;
-  qep->leftvecs        = PETSC_FALSE;
   qep->problem_type    = (QEPProblemType)0;
   qep->V               = NULL;
   qep->IS              = NULL;
-  qep->ISL             = NULL;
   qep->eigr            = NULL;
   qep->eigi            = NULL;
   qep->errest          = NULL;
@@ -525,7 +516,6 @@ PetscErrorCode QEPDestroy(QEP *qep)
   ierr = PetscRandomDestroy(&(*qep)->rand);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*qep)->nini,&(*qep)->IS);CHKERRQ(ierr);
-  ierr = SlepcBasisDestroy_Private(&(*qep)->ninil,&(*qep)->ISL);CHKERRQ(ierr);
   ierr = QEPMonitorCancel(*qep);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(qep);CHKERRQ(ierr);
   PetscFunctionReturn(0);

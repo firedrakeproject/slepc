@@ -164,9 +164,6 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         break;
       default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
     }
-    if (eps->leftvecs) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  computing left eigenvectors also\n");CHKERRQ(ierr);
-    }
     if (eps->trueres) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing true residuals explicitly\n");CHKERRQ(ierr);
     }
@@ -198,9 +195,6 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     if (eps->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(eps->nini));CHKERRQ(ierr);
     }
-    if (eps->ninil) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %D\n",PetscAbs(eps->ninil));CHKERRQ(ierr);
-    }
     if (eps->nds) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %D\n",PetscAbs(eps->nds));CHKERRQ(ierr);
     }
@@ -212,7 +206,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   ierr = PetscObjectTypeCompareAny((PetscObject)eps,&isexternal,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
   if (!isexternal) {
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-    if (!eps->V) { ierr = EPSGetBV(eps,&eps->V,NULL);CHKERRQ(ierr); }
+    if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
     ierr = BVView(eps->V,viewer);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)eps,EPSPOWER,&ispower);CHKERRQ(ierr);
     if (!ispower) {
@@ -367,13 +361,11 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->ncv             = 0;
   eps->mpd             = 0;
   eps->nini            = 0;
-  eps->ninil           = 0;
   eps->nds             = 0;
   eps->target          = 0.0;
   eps->tol             = PETSC_DEFAULT;
   eps->conv            = EPS_CONV_EIG;
   eps->which           = (EPSWhich)0;
-  eps->leftvecs        = PETSC_FALSE;
   eps->inta            = 0.0;
   eps->intb            = 0.0;
   eps->problem_type    = (EPSProblemType)0;
@@ -395,16 +387,13 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->st              = NULL;
   eps->ds              = NULL;
   eps->V               = NULL;
-  eps->W               = NULL;
   eps->rand            = NULL;
   eps->D               = NULL;
   eps->IS              = NULL;
-  eps->ISL             = NULL;
   eps->defl            = NULL;
   eps->eigr            = NULL;
   eps->eigi            = NULL;
   eps->errest          = NULL;
-  eps->errest_left     = NULL;
   eps->rr              = NULL;
   eps->ri              = NULL;
   eps->perm            = NULL;
@@ -415,7 +404,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nconv           = 0;
   eps->its             = 0;
   eps->evecsavailable  = PETSC_FALSE;
-  eps->n               = 0;
   eps->nloc            = 0;
   eps->nrma            = 0.0;
   eps->nrmb            = 0.0;
@@ -578,11 +566,10 @@ PetscErrorCode EPSReset(EPS eps)
   ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
   ierr = BVGetSizes(eps->V,NULL,NULL,&ncols);CHKERRQ(ierr);
   if (ncols) {
-    ierr = PetscFree5(eps->eigr,eps->eigi,eps->errest,eps->errest_left,eps->perm);CHKERRQ(ierr);
+    ierr = PetscFree4(eps->eigr,eps->eigi,eps->errest,eps->perm);CHKERRQ(ierr);
     ierr = PetscFree2(eps->rr,eps->ri);CHKERRQ(ierr);
   }
   ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
-  ierr = BVDestroy(&eps->W);CHKERRQ(ierr);
   ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
   eps->nwork = 0;
   eps->setupcalled = 0;
@@ -619,7 +606,6 @@ PetscErrorCode EPSDestroy(EPS *eps)
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*eps)->nds,&(*eps)->defl);CHKERRQ(ierr);
   ierr = SlepcBasisDestroy_Private(&(*eps)->nini,&(*eps)->IS);CHKERRQ(ierr);
-  ierr = SlepcBasisDestroy_Private(&(*eps)->ninil,&(*eps)->ISL);CHKERRQ(ierr);
   ierr = EPSMonitorCancel(*eps);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -840,52 +826,41 @@ PetscErrorCode EPSGetST(EPS eps,ST *st)
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetBV"
 /*@
-   EPSSetBV - Associates basis vectors objects to the eigensolver.
+   EPSSetBV - Associates a basis vectors object to the eigensolver.
 
    Collective on EPS
 
    Input Parameters:
 +  eps - eigensolver context obtained from EPSCreate()
-.  V   - the basis vectors object for right eigenvectors
--  W   - the basis vectors object for left eigenvectors
+-  V   - the basis vectors object
 
    Note:
-   Use EPSGetBV() to retrieve the basis vectors contexts (for example,
+   Use EPSGetBV() to retrieve the basis vectors context (for example,
    to free them at the end of the computations).
 
    Level: advanced
 
 .seealso: EPSGetBV()
 @*/
-PetscErrorCode EPSSetBV(EPS eps,BV V,BV W)
+PetscErrorCode EPSSetBV(EPS eps,BV V)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (V) {
-    PetscValidHeaderSpecific(V,BV_CLASSID,2);
-    PetscCheckSameComm(eps,1,V,2);
-    ierr = PetscObjectReference((PetscObject)V);CHKERRQ(ierr);
-    ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
-    eps->V = V;
-    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->V);CHKERRQ(ierr);
-  }
-  if (W) {
-    PetscValidHeaderSpecific(W,BV_CLASSID,3);
-    PetscCheckSameComm(eps,1,W,3);
-    ierr = PetscObjectReference((PetscObject)W);CHKERRQ(ierr);
-    ierr = BVDestroy(&eps->W);CHKERRQ(ierr);
-    eps->W = W;
-    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->W);CHKERRQ(ierr);
-  }
+  PetscValidHeaderSpecific(V,BV_CLASSID,2);
+  PetscCheckSameComm(eps,1,V,2);
+  ierr = PetscObjectReference((PetscObject)V);CHKERRQ(ierr);
+  ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
+  eps->V = V;
+  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetBV"
 /*@C
-   EPSGetBV - Obtain the basis vectors objects associated to the eigensolver object.
+   EPSGetBV - Obtain the basis vectors object associated to the eigensolver object.
 
    Not Collective
 
@@ -893,33 +868,24 @@ PetscErrorCode EPSSetBV(EPS eps,BV V,BV W)
 .  eps - eigensolver context obtained from EPSCreate()
 
    Output Parameter:
-+  V - basis vectors context for right eigenvectors
--  W - basis vectors context for left eigenvectors
+.  V - basis vectors context
 
    Level: advanced
 
 .seealso: EPSSetBV()
 @*/
-PetscErrorCode EPSGetBV(EPS eps,BV *V,BV *W)
+PetscErrorCode EPSGetBV(EPS eps,BV *V)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (V) {
-    if (!eps->V) {
-      ierr = BVCreate(PetscObjectComm((PetscObject)eps),&eps->V);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->V);CHKERRQ(ierr);
-    }
-    *V = eps->V;
+  PetscValidPointer(V,2);
+  if (!eps->V) {
+    ierr = BVCreate(PetscObjectComm((PetscObject)eps),&eps->V);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->V);CHKERRQ(ierr);
   }
-  if (W) {
-    if (!eps->W) {
-      ierr = BVCreate(PetscObjectComm((PetscObject)eps),&eps->W);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->W);CHKERRQ(ierr);
-    }
-    *W = eps->W;
-  }
+  *V = eps->V;
   PetscFunctionReturn(0);
 }
 
@@ -1069,3 +1035,4 @@ PetscErrorCode EPSIsPositive(EPS eps,PetscBool* is)
   *is = eps->ispositive;
   PetscFunctionReturn(0);
 }
+

@@ -203,12 +203,6 @@ allows the specification of the number of eigenvalues to compute, \texttt{nev}. 
 \end{Verbatim}
 requests 10 eigenvalues and instructs to use 24 column vectors. Note that \texttt{ncv} must be at least equal to \texttt{nev}, although in general it is recommended (depending on the method) to work with a larger subspace, for instance $\mathtt{ncv}\geq2\cdot\mathtt{nev}$ or even more. The case that the user requests a relatively large number of eigenpairs is discussed in \S\ref{sec:large-nev}.
 
-	By default, only right eigenvectors are computed. To compute also left eigenvectors, the user should call the next function. Note that support for left eigenvectors is limited and will be extended in future versions of SLEPc.
-	\findex{EPSSetLeftVectorsWanted}
-	\begin{Verbatim}[fontsize=\small]
-	EPSSetLeftVectorsWanted(EPS eps,PetscBool leftvecs);
-	\end{Verbatim}
-
 \paragraph{Eigenvalues of Interest.}
 
 	For the selection of the portion of the spectrum of interest, there are several alternatives. In real symmetric problems, one may want to compute the largest or smallest eigenvalues in magnitude, or the leftmost or rightmost ones, or even all eigenvalues in a given interval. In other problems, in which the eigenvalues can be complex, then one can select eigenvalues depending on the magnitude, or the real part or even the imaginary part. Sometimes the eigenvalues of interest are those closest to a given target value, $\tau$, measuring the distance either in the ordinary way or along the real (or imaginary) axis. Table \ref{tab:portion} summarizes all the possibilities available for the function
@@ -579,12 +573,6 @@ Finally, the options database key \Verb!-eps_plot_eigs! instructs \slepc to plot
 In some cases, a suitable initial space can accelerate convergence significantly, for instance when the eigenvalue calculation is one of a sequence of closely related problems, where the eigenspace of one problem is fed as the initial guess for the next problem.
 
 Note that if the eigensolver supports only a single initial vector, but several guesses are provided, then all except the first one will be discarded. One could still build a vector that is rich in the directions of all guesses, by taking a linear combination of them, but this is less effective than using a solver that considers all guesses as a subspace.
-
-In cases where the eigensolver works with two bases, we can think of the second one as containing approximations to the left eigenspace. If initial guesses for the left eigenvectors are available, then one can provide them with
-	\findex{EPSSetInitialSpace}
-	\begin{Verbatim}[fontsize=\small]
-	EPSSetInitialSpaceLeft(EPS eps,PetscInt n,Vec *is);
-	\end{Verbatim}
 
 \subsection{Dealing with Deflation Subspaces}
 

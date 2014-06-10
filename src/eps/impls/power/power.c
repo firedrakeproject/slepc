@@ -71,7 +71,6 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
   if (eps->balance!=EPS_BALANCE_NONE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Balancing not supported in this solver");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);

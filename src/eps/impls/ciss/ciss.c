@@ -784,7 +784,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
   
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_CISS;
   PetscFunctionReturn(0);
 }

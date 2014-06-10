@@ -136,7 +136,6 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
       default: SETERRQ(PetscObjectComm((PetscObject)qep),1,"Wrong value of which");
   }
   ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
-  ierr = EPSSetLeftVectorsWanted(ctx->eps,qep->leftvecs);CHKERRQ(ierr);
   ierr = EPSSetDimensions(ctx->eps,qep->nev,qep->ncv,qep->mpd);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,qep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:qep->tol/10.0,qep->max_it);CHKERRQ(ierr);
   /* Transfer the trackall option from qep to eps */
@@ -154,7 +153,7 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   ierr = EPSSetUp(ctx->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(ctx->eps,NULL,&qep->ncv,&qep->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(ctx->eps,NULL,&qep->max_it);CHKERRQ(ierr);
-  if (qep->nini>0 || qep->ninil>0) { ierr = PetscInfo(qep,"Ignoring initial vectors\n");CHKERRQ(ierr); }
+  if (qep->nini>0) { ierr = PetscInfo(qep,"Ignoring initial vectors\n");CHKERRQ(ierr); }
   ierr = QEPAllocateSolution(qep,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

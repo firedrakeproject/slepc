@@ -123,9 +123,6 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   ierr = EPSXDGetInitialSize_XD(eps,&initv);CHKERRQ(ierr);
   if (eps->mpd < initv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The initv has to be less or equal than mpd");
 
-  /* Davidson solvers do not support left eigenvectors */
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
-
   /* Set STPrecond as the default ST */
   if (!((PetscObject)eps->st)->type_name) {
     ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
@@ -279,7 +276,6 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   dvd->size_auxV = b.max_size_auxV;
   dvd->size_auxS = b.max_size_auxS;
 
-  eps->errest_left = NULL;
   for (i=0;i<eps->ncv;i++) eps->perm[i] = i;
 
   /* Configure dvd for a basic GD */
@@ -623,7 +619,6 @@ PetscErrorCode EPSXDGetMethod_XD(EPS eps,Method_t *method)
   Schur decomposition OP*V=V*T, the following steps are performed:
       1) compute eigenvectors of (S,T): S*Z=T*Z*D
       2) compute eigenvectors of OP: X=V*Z
-  If left eigenvectors are required then also do Z'*T=D*Z', Y=W*Z
  */
 PetscErrorCode EPSComputeVectors_XD(EPS eps)
 {
