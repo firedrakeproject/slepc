@@ -410,7 +410,7 @@ PetscErrorCode IPQRDecomposition(IP ip,Vec *V,PetscInt m,PetscInt n,PetscScalar 
         ierr = PetscRandomSetSeed(rctx,0x12345678);CHKERRQ(ierr);
         ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
       }
-      ierr = SlepcVecSetRandom(V[k],rctx);CHKERRQ(ierr);
+      ierr = VecSetRandom(V[k],rctx);CHKERRQ(ierr);
       ierr = IPNorm(ip,V[k],&norm);CHKERRQ(ierr);
     }
     ierr = VecScale(V[k],1.0/norm);CHKERRQ(ierr);

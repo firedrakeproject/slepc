@@ -44,7 +44,6 @@ PETSC_EXTERN PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt
 PETSC_EXTERN PetscErrorCode SlepcVecMAXPBY(Vec,PetscScalar,PetscScalar,PetscInt,PetscScalar*,Vec*);
 
 /* Miscellaneous functions related to Vec */
-PETSC_EXTERN PetscErrorCode SlepcVecSetRandom(Vec,PetscRandom);
 PETSC_EXTERN PetscErrorCode SlepcVecNormalize(Vec,Vec,PetscBool,PetscReal*);
 
 #endif
