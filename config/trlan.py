@@ -34,6 +34,9 @@ def Check(conf,vars,cmake,tmpdir,directory,libs):
   if petscconf.PRECISION != 'double':
     log.Exit('ERROR: TRLAN is supported only in double precision.')
 
+  if petscconf.IND64:
+    log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+
   functions = ['trlan77']
   if libs:
     libs = [libs]
