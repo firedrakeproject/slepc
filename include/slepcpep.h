@@ -24,7 +24,7 @@
 #if !defined(__SLEPCPEP_H)
 #define __SLEPCPEP_H
 #include <slepceps.h>
-#include <slepcip.h>
+#include <slepcbv.h>
 #include <slepcds.h>
 
 PETSC_EXTERN PetscErrorCode PEPInitializePackage(void);

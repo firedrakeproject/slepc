@@ -24,7 +24,7 @@
 #if !defined(__SLEPCQEP_H)
 #define __SLEPCQEP_H
 #include <slepceps.h>
-#include <slepcip.h>
+#include <slepcbv.h>
 #include <slepcds.h>
 
 PETSC_EXTERN PetscErrorCode QEPInitializePackage(void);

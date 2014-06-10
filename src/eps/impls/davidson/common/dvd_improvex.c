@@ -87,9 +87,6 @@ typedef struct {
     *iXKZPivots;          /* array of pivots */
 } dvdImprovex_jd;
 
-//PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Vec *x,const Vec *y,const Vec *auxV);
-//PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,const Vec *x,const Vec *y,const Vec *auxV);
-
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_jd"
 PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs,PetscInt cX_impr,PetscBool dynamic)

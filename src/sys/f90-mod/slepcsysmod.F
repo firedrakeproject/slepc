@@ -27,17 +27,6 @@
         use slepcsysdef
         end module
 
-        module slepcstdef
-        use petscksp
-#include <finclude/slepcst.h>
-#include <finclude/ftn-custom/slepcstdef.h90>
-        end module
-
-        module slepcst
-        use slepcstdef
-#include <finclude/slepcst.h90>
-        end module
-
         module slepcipdef
         use petscsys
 #include <finclude/slepcip.h>
@@ -79,5 +68,16 @@
         module slepcbv
         use slepcbvdef
 #include <finclude/slepcbv.h90>
+        end module
+
+        module slepcstdef
+        use petscksp
+#include <finclude/slepcst.h>
+#include <finclude/ftn-custom/slepcstdef.h90>
+        end module
+
+        module slepcst
+        use slepcstdef
+#include <finclude/slepcst.h90>
         end module
 
