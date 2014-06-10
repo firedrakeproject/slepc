@@ -27,17 +27,6 @@
         use slepcsysdef
         end module
 
-        module slepcipdef
-        use petscsys
-#include <finclude/slepcip.h>
-#include <finclude/ftn-custom/slepcipdef.h90>
-        end module
-
-        module slepcip
-        use slepcipdef
-#include <finclude/slepcip.h90>
-        end module
-
         module slepcfndef
 #include <finclude/slepcfn.h>
 #include <finclude/ftn-custom/slepcfndef.h90>

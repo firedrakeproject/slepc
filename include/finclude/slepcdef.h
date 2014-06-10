@@ -22,7 +22,7 @@
 !
 #include "finclude/slepcsysdef.h"
 #include "finclude/slepcepsdef.h"
-#include "finclude/slepcipdef.h"
+#include "finclude/slepcbvdef.h"
 #include "finclude/slepcstdef.h"
 #include "finclude/slepcsvddef.h"
 #include "finclude/slepcqepdef.h"

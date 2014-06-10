@@ -428,10 +428,6 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
    Options Database Key:
 .  -eps_gd_borth - Set the orthogonalization used in the search subspace
 
-   Notes:
-   If borth is EPS_ORTH_B, the solver uses a variant of Gram-Schmidt (selected in
-   IP associated to the EPS) with the inner product defined by the matrix problem B.
-
    Level: advanced
 
 .seealso: EPSGDGetBOrth()
