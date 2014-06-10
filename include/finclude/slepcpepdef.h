@@ -40,6 +40,8 @@
 #define PEPConvergedReason PetscEnum
 
 #define PEPLINEAR    'linear'
+#define PEPQARNOLDI  'qarnoldi'
 #define PEPTOAR      'toar'
+#define PEPSTOAR     'stoar'
 
 #endif

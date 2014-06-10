@@ -48,7 +48,9 @@ typedef struct _p_PEP* PEP;
 J*/
 typedef const char* PEPType;
 #define PEPLINEAR    "linear"
+#define PEPQARNOLDI  "qarnoldi"
 #define PEPTOAR      "toar"
+#define PEPSTOAR     "stoar"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId PEP_CLASSID;
@@ -208,6 +210,15 @@ PETSC_EXTERN PetscErrorCode PEPSetWorkVecs(PEP,PetscInt);
 
 /* --------- options specific to particular eigensolvers -------- */
 
+PETSC_EXTERN PetscErrorCode PEPLinearSetCompanionForm(PEP,PetscInt);
+PETSC_EXTERN PetscErrorCode PEPLinearGetCompanionForm(PEP,PetscInt*);
+PETSC_EXTERN PetscErrorCode PEPLinearSetExplicitMatrix(PEP,PetscBool);
+PETSC_EXTERN PetscErrorCode PEPLinearGetExplicitMatrix(PEP,PetscBool*);
+PETSC_EXTERN PetscErrorCode PEPLinearSetEPS(PEP,EPS);
+PETSC_EXTERN PetscErrorCode PEPLinearGetEPS(PEP,EPS*);
+
+PETSC_EXTERN PetscErrorCode PEPSTOARSetMonic(PEP,PetscBool);
+PETSC_EXTERN PetscErrorCode PEPSTOARGetMonic(PEP,PetscBool*);
 
 #endif
 

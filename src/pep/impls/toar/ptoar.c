@@ -713,7 +713,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     ierr = DSUpdateExtraRow(pep->ds);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,nv-pep->nconv,nv,beta,&k);CHKERRQ(ierr);
+    ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,nv-pep->nconv,beta,&k);CHKERRQ(ierr);
 /* ///////////// */
     if (withreg && bs==PEP_BASIS_CHEBYSHEV1) {
 #if defined(PETSC_USE_COMPLEX)

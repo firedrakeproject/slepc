@@ -203,7 +203,7 @@ PetscErrorCode PEPComputeVectors_Schur(PEP pep)
    - No correction factor
    - No support for true residual
 */
-PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,PetscInt nits,PetscInt nv,PetscReal beta,PetscInt *kout)
+PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscInt *kout)
 {
   PetscErrorCode ierr;
   PetscInt       k,newk,marker,ld;
