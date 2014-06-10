@@ -13,8 +13,6 @@
        [1] Y. Su, J. Zhang and Z. Bai, "A compact Arnoldi algorithm for
            polynomial eigenvalue problems", talk presented at RANMEP 2008.
 
-   Last update: Apr 2014
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain

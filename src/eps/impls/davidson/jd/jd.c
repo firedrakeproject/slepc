@@ -17,9 +17,7 @@
 
        [2] E. Romero and J.E. Roman, "A parallel implementation of
            Davidson methods for large-scale eigenvalue problems in
-           SLEPc", submitted, 2013.
-
-   Last update: Jul 2012
+           SLEPc", ACM Trans. Math. Software 40(2), Article 13, 2014.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

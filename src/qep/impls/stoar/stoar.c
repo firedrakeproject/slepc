@@ -13,8 +13,6 @@
        [1] C. Campos and J.E. Roman, "A thick-restart Q-Lanczos method
            for quadratic eigenvalue problems", submitted, 2013.
 
-   Last update: Oct 2013
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain

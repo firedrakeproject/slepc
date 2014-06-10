@@ -19,8 +19,6 @@
            bidiagonalization", Elec. Trans. Numer. Anal. 31:68-85,
            2008.
 
-   Last update: Jun 2007
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain

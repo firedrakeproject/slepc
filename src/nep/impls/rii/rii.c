@@ -13,8 +13,6 @@
        [1] A. Neumaier, "Residual inverse iteration for the nonlinear
            eigenvalue problem", SIAM J. Numer. Anal. 22(5):914-923, 1985.
 
-   Last update: Feb 2013
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain

@@ -21,8 +21,6 @@
            contour integral for generalized eigenvalue problems", Hokkaido
            Math. J. 36:745-757, 2007.
 
-   Last update: Jun 2013
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain

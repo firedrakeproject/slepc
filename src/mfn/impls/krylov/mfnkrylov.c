@@ -14,8 +14,6 @@
        [1] R. Sidje, "Expokit: a software package for computing matrix
            exponentials", ACM Trans. Math. Softw. 24(1):130-156, 1998.
 
-   Last update: Feb 2013
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain

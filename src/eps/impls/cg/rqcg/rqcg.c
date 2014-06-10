@@ -15,8 +15,6 @@
            optimization of the Rayleigh quotient for the solution of sparse
            eigenproblems", Appl. Math. Comput. 175(2):1694-1715, 2006.
 
-   Last update: Jul 2012
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain

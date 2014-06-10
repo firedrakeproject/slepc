@@ -13,8 +13,6 @@
        [1] A. Ruhe, "Algorithms for the nonlinear eigenvalue problem", SIAM J.
            Numer. Anal. 10(4):674-689, 1973.
 
-   Last update: Feb 2013
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain

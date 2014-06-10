@@ -14,8 +14,6 @@
            of the quadratic eigenvalue problem", SIAM J. Matrix Anal.
            Appl. 30(4):1462-1482, 2008.
 
-   Last update: Nov 2012
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain

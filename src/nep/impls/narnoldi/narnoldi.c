@@ -13,8 +13,6 @@
        [1] H. Voss, "An Arnoldi method for nonlinear eigenvalue problems",
            BIT 44:387-401, 2004.
 
-   Last update: Mar 2013
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain

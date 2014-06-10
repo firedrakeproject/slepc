@@ -4,8 +4,6 @@
 
    Method: Uses a Hermitian eigensolver for H(A) = [ 0  A ; A^T 0 ]
 
-   Last update: Jun 2007
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
