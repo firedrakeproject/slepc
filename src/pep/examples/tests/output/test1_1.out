@@ -1,0 +1,89 @@
+qep type linear
+
+Quadratic Eigenproblem, N=110 (10x11 grid)
+QEP type: linear
+
+ Solution method: linear
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=100
+ All requested eigenvalues computed up to the required tolerance:
+     0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
+
+qep type qarnoldi
+
+Quadratic Eigenproblem, N=110 (10x11 grid)
+QEP type: qarnoldi
+
+ Solution method: qarnoldi
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=100
+ All requested eigenvalues computed up to the required tolerance:
+     0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
+
+qep type linear, eps type krylovschur
+
+Quadratic Eigenproblem, N=110 (10x11 grid)
+QEP type: linear
+EPS type: krylovschur
+
+ Solution method: linear
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=100
+ All requested eigenvalues computed up to the required tolerance:
+     0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
+
+qep type linear, eps type arnoldi
+
+Quadratic Eigenproblem, N=110 (10x11 grid)
+QEP type: linear
+EPS type: arnoldi
+
+ Solution method: linear
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=100
+ All requested eigenvalues computed up to the required tolerance:
+     0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
+
+qep type linear, eps type gd
+
+Quadratic Eigenproblem, N=110 (10x11 grid)
+QEP type: linear
+EPS type: gd
+
+ Solution method: linear
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=2000
+ All requested eigenvalues computed up to the required tolerance:
+     0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
+
+qep type linear, eps type jd
+
+Quadratic Eigenproblem, N=110 (10x11 grid)
+QEP type: linear
+EPS type: jd
+
+ Solution method: linear
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=2000
+ All requested eigenvalues computed up to the required tolerance:
+     0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
+
+qep type linear, eps type gd2
+
+Quadratic Eigenproblem, N=110 (10x11 grid)
+QEP type: linear
+EPS type: gd2
+
+ Solution method: linear
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=2000
+ All requested eigenvalues computed up to the required tolerance:
+     0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
+

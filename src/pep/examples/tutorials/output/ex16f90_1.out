@@ -1,0 +1,8 @@
+
+Quadratic Eigenproblem, N=   100 (  10x  10 grid)
+ Solution method: linear                                                                          
+ Number of requested eigenvalues:   4
+ Stopping condition: tol=1.0000E-08, maxit= 100
+ All requested eigenvalues computed up to the required tolerance:
+     0.00000+2.79964i, 0.00000-2.79964i, 0.00000+2.75708i, 0.00000-2.75708i
+
