@@ -21,10 +21,15 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = stoar.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepcpep
-DIRS     = qarnoldi toar stoar
-LOCDIR   = src/pep/impls/
+DIRS     =
 MANSEC   = PEP
+LOCDIR   = src/pep/impls/stoar/
 
 include ${SLEPC_DIR}/conf/slepc_common
 

@@ -21,8 +21,10 @@
 
 #include <slepc-private/pepimpl.h>      /*I "slepcpep.h" I*/
 
-PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP);
+PETSC_EXTERN PetscErrorCode PEPCreate_Linear(PEP);
 PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP);
+PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP);
+PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP);
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPRegisterAll"
@@ -41,8 +43,10 @@ PetscErrorCode PEPRegisterAll(void)
 
   PetscFunctionBegin;
   PEPRegisterAllCalled = PETSC_TRUE;
-  ierr = PEPRegister(PEPTOAR,PEPCreate_TOAR);CHKERRQ(ierr);
+/*  ierr = PEPRegister(PEPLINEAR,PEPCreate_Linear);CHKERRQ(ierr);*/
   ierr = PEPRegister(PEPQARNOLDI,PEPCreate_QArnoldi);CHKERRQ(ierr);
+  ierr = PEPRegister(PEPTOAR,PEPCreate_TOAR);CHKERRQ(ierr);
+  ierr = PEPRegister(PEPSTOAR,PEPCreate_STOAR);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
