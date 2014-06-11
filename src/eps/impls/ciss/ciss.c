@@ -184,7 +184,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
     theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
     ctx->pp[i] = PetscCosReal(theta) + PETSC_i*ctx->vscale*PetscSinReal(theta);
     ctx->omega[i] = ctx->center + ctx->radius*ctx->pp[i];
-    ctx->weight[i] = (ctx->vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
+    ctx->weight[i] = ctx->radius*(ctx->vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
   }
   PetscFunctionReturn(0);
 }
@@ -359,7 +359,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
     if (ctx->useconj) sum += PetscRealPart(tmp)*2;
     else sum += tmp;
   }
-  ctx->est_eig = PetscAbsScalar(ctx->radius*sum/(PetscReal)ctx->L);
+  ctx->est_eig = PetscAbsScalar(sum/(PetscReal)ctx->L);
   eta = PetscPowReal(10,-PetscLog10Real(eps->tol)/ctx->N);
   ierr = PetscInfo1(eps,"Estimation_#Eig %f\n",(double)ctx->est_eig);CHKERRQ(ierr);
   *L_add = (PetscInt)PetscCeilReal((ctx->est_eig*eta)/ctx->M) - ctx->L;
