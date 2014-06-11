@@ -95,9 +95,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  polynomial represented in %s basis\n",PEPBasisTypes[pep->basis]);CHKERRQ(ierr);
     if (pep->balance) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled");CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,", with its=%D",pep->balance_its);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer," and lambda=%g\n",(double)pep->balance_lambda);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled, with its=%D and lambda=%g\n",pep->balance_its,(double)pep->balance_lambda);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = SlepcSNPrintfScalar(str,50,pep->target,PETSC_FALSE);CHKERRQ(ierr);
@@ -321,7 +319,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->nini            = 0;
   pep->target          = 0.0;
   pep->tol             = PETSC_DEFAULT;
-  pep->conv            = PEP_CONV_EIG;
+  pep->conv            = PEP_CONV_NORM;
   pep->sfactor         = 0.0;
   pep->which           = (PEPWhich)0;
   pep->basis           = PEP_BASIS_MONOMIAL;

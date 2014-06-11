@@ -38,7 +38,7 @@ PetscErrorCode PEPReset_Default(PEP pep)
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetWorkVecs"
 /*@
-   PEPSetWorkVecs - Sets a number of work vectors into a PEP object
+   PEPSetWorkVecs - Sets a number of work vectors into a PEP object.
 
    Collective on PEP
 

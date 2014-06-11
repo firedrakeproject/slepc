@@ -644,8 +644,8 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
 #undef __FUNCT__
 #define __FUNCT__ "EPSComputeResidualNorm"
 /*@
-   EPSComputeResidualNorm - Computes the norm of the residual vector associated with
-   the i-th computed eigenpair.
+   EPSComputeResidualNorm - Computes the norm of the residual vector associated
+   with the i-th computed eigenpair.
 
    Collective on EPS
 

@@ -56,9 +56,6 @@ static PetscErrorCode PEPSortForSTFunc(PetscScalar ar,PetscScalar ai,PetscScalar
 
    Options Database Keys:
 +  -pep_view - print information about the solver used
-.  -pep_view_mat0 binary - save the first matrix (M) to the default binary viewer
-.  -pep_view_mat1 binary - save the second matrix (C) to the default binary viewer
-.  -pep_view_mat2 binary - save the third matrix (K) to the default binary viewer
 -  -pep_plot_eigs - plot computed eigenvalues
 
    Level: beginner
@@ -447,8 +444,8 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
         }
       }
       if (ivals[i]!=0){
-        ierr =  VecAXPY(u,-ivals[i],wi);CHKERRQ(ierr);
-        ierr =  VecAXPY(ui,ivals[i],w);CHKERRQ(ierr);
+        ierr = VecAXPY(u,-ivals[i],wi);CHKERRQ(ierr);
+        ierr = VecAXPY(ui,ivals[i],w);CHKERRQ(ierr);
       }
       if (vals[i]!=0) {
         ierr = VecAXPY(ui,vals[i],wi);CHKERRQ(ierr);
@@ -483,8 +480,8 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
 #undef __FUNCT__
 #define __FUNCT__ "PEPComputeResidualNorm"
 /*@
-   PEPComputeResidualNorm - Computes the norm of the residual vector associated with
-   the i-th computed eigenpair.
+   PEPComputeResidualNorm - Computes the norm of the residual vector associated
+   with the i-th computed eigenpair.
 
    Collective on PEP
 
@@ -493,9 +490,8 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
 -  i   - the solution index
 
    Output Parameter:
-.  norm - the residual norm, computed as ||(l^2*M+l*C+K)x||_2 where l is the
+.  norm - the residual norm, computed as ||P(l)x||_2 where l is the
    eigenvalue and x is the eigenvector.
-   If l=0 then the residual norm is computed as ||Kx||_2.
 
    Notes:
    The index i should be a value between 0 and nconv-1 (see PEPGetConverged()).
@@ -569,9 +565,8 @@ PetscErrorCode PEPComputeRelativeError_Private(PEP pep,PetscScalar kr,PetscScala
 -  i   - the solution index
 
    Output Parameter:
-.  error - the relative error bound, computed as ||(l^2*M+l*C+K)x||_2/||lx||_2 where
+.  error - the relative error bound, computed as ||P(l)x||_2/||lx||_2 where
    l is the eigenvalue and x is the eigenvector.
-   If l=0 the relative error is computed as ||Kx||_2/||x||_2.
 
    Level: beginner
 

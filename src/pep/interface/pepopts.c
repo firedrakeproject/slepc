@@ -560,8 +560,8 @@ PetscErrorCode PEPSetScaleFactor(PEP pep,PetscReal alpha)
    Logically Collective on PEP
 
    Input Parameters:
-+  pep      - the polynomial eigensolver context
--  type     - a known type of polynomial eigenvalue problem
++  pep  - the polynomial eigensolver context
+-  type - a known type of polynomial eigenvalue problem
 
    Options Database Keys:
 +  -pep_general - general problem with no particular structure
@@ -750,17 +750,19 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
    Logically Collective on PEP
 
    Input Parameters:
-+  pep   - eigensolver context obtained from PEPCreate()
--  conv  - the type of convergence test
++  pep  - eigensolver context obtained from PEPCreate()
+-  conv - the type of convergence test
 
    Options Database Keys:
-+  -pep_conv_abs - Sets the absolute convergence test
--  -pep_conv_eig - Sets the convergence test relative to the eigenvalue
++  -pep_conv_abs  - Sets the absolute convergence test
+.  -pep_conv_eig  - Sets the convergence test relative to the eigenvalue
+-  -pep_conv_norm - Sets the convergence test relative to the matrix norms
 
    Note:
    The parameter 'conv' can have one of these values
-+     PEP_CONV_ABS - absolute error ||r||
--     PEP_CONV_EIG - error relative to the eigenvalue l, ||r||/|l|
++     PEP_CONV_ABS  - absolute error ||r||
+.     PEP_CONV_EIG  - error relative to the eigenvalue l, ||r||/|l|
+-     PEP_CONV_NORM - error relative to the matrix norms
 
    Level: intermediate
 
@@ -865,8 +867,8 @@ PetscErrorCode PEPSetBalance(PEP pep,PetscBool bal,PetscInt its,PetscReal lambda
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetBalance"
 /*@
-   PEPGetBalance - Gets the balancing type used by the PEP object, and the associated
-   parameters.
+   PEPGetBalance - Gets the balancing type used by the PEP object, and the
+   associated parameters.
 
    Not Collective
 
@@ -962,8 +964,8 @@ PetscErrorCode PEPSetOptionsPrefix(PEP pep,const char *prefix)
 PetscErrorCode PEPAppendOptionsPrefix(PEP pep,const char *prefix)
 {
   PetscErrorCode ierr;
-  /*PetscBool      flg;
-  EPS            eps;*/
+  PetscBool      flg;
+  EPS            eps;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -974,12 +976,12 @@ PetscErrorCode PEPAppendOptionsPrefix(PEP pep,const char *prefix)
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(pep->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)pep,prefix);CHKERRQ(ierr);
-  /*ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&flg);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PEPLinearGetEPS(pep,&eps);CHKERRQ(ierr);
     ierr = EPSSetOptionsPrefix(eps,((PetscObject)pep)->prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(eps,"pep_");CHKERRQ(ierr);
-  }*/
+  }
   PetscFunctionReturn(0);
 }
 

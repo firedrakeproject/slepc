@@ -236,7 +236,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetWorkVecs"
 /*@
-   EPSSetWorkVecs - Sets a number of work vectors into a EPS object
+   EPSSetWorkVecs - Sets a number of work vectors into a EPS object.
 
    Collective on EPS
 

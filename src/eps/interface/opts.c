@@ -1005,8 +1005,8 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetBalance"
 /*@
-   EPSGetBalance - Gets the balancing type used by the EPS object, and the associated
-   parameters.
+   EPSGetBalance - Gets the balancing type used by the EPS object, and the
+   associated parameters.
 
    Not Collective
 
