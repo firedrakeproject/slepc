@@ -117,6 +117,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   if (n!=X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should be %D",n,X->k);
   if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
   if (X->matrix!=Y->matrix) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"X and Y must have the same inner product matrix");
+  if (X->l==X->k || Y->l==Y->k) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
   if (X->matrix) { /* non-standard inner product: cast into dotvec ops */
@@ -532,28 +533,32 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
     */
 
     /* upper part, Y0'*AX1 */
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,ly,kx,NULL,&H);CHKERRQ(ierr);
-    X->l = lx; X->k = kx;
-    Y->l = 0;  Y->k = ly;
-    ierr = BVDot(X,Y,H);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
-    for (j=lx;j<kx;j++) {
-      ierr = PetscMemcpy(marray+m*j,harray+j*ly,ly*sizeof(PetscScalar));CHKERRQ(ierr);
+    if (ly>0 && lx<kx) {
+      ierr = MatCreateSeqDense(PETSC_COMM_SELF,ly,kx,NULL,&H);CHKERRQ(ierr);
+      X->l = lx; X->k = kx;
+      Y->l = 0;  Y->k = ly;
+      ierr = BVDot(X,Y,H);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+      for (j=lx;j<kx;j++) {
+        ierr = PetscMemcpy(marray+m*j,harray+j*ly,ly*sizeof(PetscScalar));CHKERRQ(ierr);
+      }
+      ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+      ierr = MatDestroy(&H);CHKERRQ(ierr);
     }
-    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
-    ierr = MatDestroy(&H);CHKERRQ(ierr);
 
     /* lower part, Y1'*AX */
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H);CHKERRQ(ierr);
-    X->l = 0;  X->k = kx;
-    Y->l = ly; Y->k = ky;
-    ierr = BVDot(X,Y,H);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
-    for (j=0;j<kx;j++) {
-      ierr = PetscMemcpy(marray+m*j+ly,harray+j*ky+ly,(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
+    if (kx>0 && ly<ky) {
+      ierr = MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H);CHKERRQ(ierr);
+      X->l = 0;  X->k = kx;
+      Y->l = ly; Y->k = ky;
+      ierr = BVDot(X,Y,H);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+      for (j=0;j<kx;j++) {
+        ierr = PetscMemcpy(marray+m*j+ly,harray+j*ky+ly,(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
+      }
+      ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+      ierr = MatDestroy(&H);CHKERRQ(ierr);
     }
-    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
-    ierr = MatDestroy(&H);CHKERRQ(ierr);
   }
 
   X->l = lx; X->k = kx;
