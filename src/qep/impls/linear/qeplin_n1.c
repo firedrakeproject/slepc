@@ -34,8 +34,8 @@
  */
 
 #undef __FUNCT__
-#define __FUNCT__ "MatMult_Linear_N1A"
-PetscErrorCode MatMult_Linear_N1A(Mat A,Vec x,Vec y)
+#define __FUNCT__ "MatMult_QLinear_N1A"
+PetscErrorCode MatMult_QLinear_N1A(Mat A,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
   QEP_LINEAR        *ctx;
@@ -69,8 +69,8 @@ PetscErrorCode MatMult_Linear_N1A(Mat A,Vec x,Vec y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatMult_Linear_N1B"
-PetscErrorCode MatMult_Linear_N1B(Mat B,Vec x,Vec y)
+#define __FUNCT__ "MatMult_QLinear_N1B"
+PetscErrorCode MatMult_QLinear_N1B(Mat B,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
   QEP_LINEAR        *ctx;
@@ -102,8 +102,8 @@ PetscErrorCode MatMult_Linear_N1B(Mat B,Vec x,Vec y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Linear_N1A"
-PetscErrorCode MatGetDiagonal_Linear_N1A(Mat A,Vec diag)
+#define __FUNCT__ "MatGetDiagonal_QLinear_N1A"
+PetscErrorCode MatGetDiagonal_QLinear_N1A(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx;
@@ -126,8 +126,8 @@ PetscErrorCode MatGetDiagonal_Linear_N1A(Mat A,Vec diag)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Linear_N1B"
-PetscErrorCode MatGetDiagonal_Linear_N1B(Mat B,Vec diag)
+#define __FUNCT__ "MatGetDiagonal_QLinear_N1B"
+PetscErrorCode MatGetDiagonal_QLinear_N1B(Mat B,Vec diag)
 {
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx;
@@ -150,8 +150,8 @@ PetscErrorCode MatGetDiagonal_Linear_N1B(Mat B,Vec diag)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_N1A"
-PetscErrorCode MatCreateExplicit_Linear_N1A(MPI_Comm comm,QEP_LINEAR *ctx,Mat *A)
+#define __FUNCT__ "MatCreateExplicit_QLinear_N1A"
+PetscErrorCode MatCreateExplicit_QLinear_N1A(MPI_Comm comm,QEP_LINEAR *ctx,Mat *A)
 {
   PetscErrorCode ierr;
   PetscInt       M,N,m,n;
@@ -173,8 +173,8 @@ PetscErrorCode MatCreateExplicit_Linear_N1A(MPI_Comm comm,QEP_LINEAR *ctx,Mat *A
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_N1B"
-PetscErrorCode MatCreateExplicit_Linear_N1B(MPI_Comm comm,QEP_LINEAR *ctx,Mat *B)
+#define __FUNCT__ "MatCreateExplicit_QLinear_N1B"
+PetscErrorCode MatCreateExplicit_QLinear_N1B(MPI_Comm comm,QEP_LINEAR *ctx,Mat *B)
 {
   PetscErrorCode ierr;
   PetscInt       M,N,m,n;

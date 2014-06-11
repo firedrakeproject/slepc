@@ -43,7 +43,7 @@ PetscErrorCode PEPRegisterAll(void)
 
   PetscFunctionBegin;
   PEPRegisterAllCalled = PETSC_TRUE;
-/*  ierr = PEPRegister(PEPLINEAR,PEPCreate_Linear);CHKERRQ(ierr);*/
+  ierr = PEPRegister(PEPLINEAR,PEPCreate_Linear);CHKERRQ(ierr);
   ierr = PEPRegister(PEPQARNOLDI,PEPCreate_QArnoldi);CHKERRQ(ierr);
   ierr = PEPRegister(PEPTOAR,PEPCreate_TOAR);CHKERRQ(ierr);
   ierr = PEPRegister(PEPSTOAR,PEPCreate_STOAR);CHKERRQ(ierr);

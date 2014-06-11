@@ -38,28 +38,28 @@ PetscErrorCode QEPSetUp_Linear(QEP qep)
   PetscReal      knorm,mnorm;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,QEP_LINEAR*,Mat*) = {
-    { MatCreateExplicit_Linear_N1A, MatCreateExplicit_Linear_N1B },   /* N1 */
-    { MatCreateExplicit_Linear_N2A, MatCreateExplicit_Linear_N2B },   /* N2 */
-    { MatCreateExplicit_Linear_S1A, MatCreateExplicit_Linear_S1B },   /* S1 */
-    { MatCreateExplicit_Linear_S2A, MatCreateExplicit_Linear_S2B },   /* S2 */
-    { MatCreateExplicit_Linear_H1A, MatCreateExplicit_Linear_H1B },   /* H1 */
-    { MatCreateExplicit_Linear_H2A, MatCreateExplicit_Linear_H2B }    /* H2 */
+    { MatCreateExplicit_QLinear_N1A, MatCreateExplicit_QLinear_N1B },   /* N1 */
+    { MatCreateExplicit_QLinear_N2A, MatCreateExplicit_QLinear_N2B },   /* N2 */
+    { MatCreateExplicit_QLinear_S1A, MatCreateExplicit_QLinear_S1B },   /* S1 */
+    { MatCreateExplicit_QLinear_S2A, MatCreateExplicit_QLinear_S2B },   /* S2 */
+    { MatCreateExplicit_QLinear_H1A, MatCreateExplicit_QLinear_H1B },   /* H1 */
+    { MatCreateExplicit_QLinear_H2A, MatCreateExplicit_QLinear_H2B }    /* H2 */
   };
   PetscErrorCode (*fmult[][2])(Mat,Vec,Vec) = {
-    { MatMult_Linear_N1A, MatMult_Linear_N1B },
-    { MatMult_Linear_N2A, MatMult_Linear_N2B },
-    { MatMult_Linear_S1A, MatMult_Linear_S1B },
-    { MatMult_Linear_S2A, MatMult_Linear_S2B },
-    { MatMult_Linear_H1A, MatMult_Linear_H1B },
-    { MatMult_Linear_H2A, MatMult_Linear_H2B }
+    { MatMult_QLinear_N1A, MatMult_QLinear_N1B },
+    { MatMult_QLinear_N2A, MatMult_QLinear_N2B },
+    { MatMult_QLinear_S1A, MatMult_QLinear_S1B },
+    { MatMult_QLinear_S2A, MatMult_QLinear_S2B },
+    { MatMult_QLinear_H1A, MatMult_QLinear_H1B },
+    { MatMult_QLinear_H2A, MatMult_QLinear_H2B }
   };
   PetscErrorCode (*fgetdiagonal[][2])(Mat,Vec) = {
-    { MatGetDiagonal_Linear_N1A, MatGetDiagonal_Linear_N1B },
-    { MatGetDiagonal_Linear_N2A, MatGetDiagonal_Linear_N2B },
-    { MatGetDiagonal_Linear_S1A, MatGetDiagonal_Linear_S1B },
-    { MatGetDiagonal_Linear_S2A, MatGetDiagonal_Linear_S2B },
-    { MatGetDiagonal_Linear_H1A, MatGetDiagonal_Linear_H1B },
-    { MatGetDiagonal_Linear_H2A, MatGetDiagonal_Linear_H2B }
+    { MatGetDiagonal_QLinear_N1A, MatGetDiagonal_QLinear_N1B },
+    { MatGetDiagonal_QLinear_N2A, MatGetDiagonal_QLinear_N2B },
+    { MatGetDiagonal_QLinear_S1A, MatGetDiagonal_QLinear_S1B },
+    { MatGetDiagonal_QLinear_S2A, MatGetDiagonal_QLinear_S2B },
+    { MatGetDiagonal_QLinear_H1A, MatGetDiagonal_QLinear_H1B },
+    { MatGetDiagonal_QLinear_H2A, MatGetDiagonal_QLinear_H2B }
   };
 
   PetscFunctionBegin;

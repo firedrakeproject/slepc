@@ -21,10 +21,15 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = linear.c qeplin.c
+SOURCEF  =
+SOURCEH  = linearp.h
 LIBBASE  = libslepcpep
-DIRS     = linear qarnoldi toar stoar
-LOCDIR   = src/pep/impls/
+DIRS     =
 MANSEC   = PEP
+LOCDIR   = src/pep/impls/linear/
 
 include ${SLEPC_DIR}/conf/slepc_common
 

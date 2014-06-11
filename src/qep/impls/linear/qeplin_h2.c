@@ -34,8 +34,8 @@
  */
 
 #undef __FUNCT__
-#define __FUNCT__ "MatMult_Linear_H2A"
-PetscErrorCode MatMult_Linear_H2A(Mat A,Vec x,Vec y)
+#define __FUNCT__ "MatMult_QLinear_H2A"
+PetscErrorCode MatMult_QLinear_H2A(Mat A,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
   QEP_LINEAR        *ctx;
@@ -68,8 +68,8 @@ PetscErrorCode MatMult_Linear_H2A(Mat A,Vec x,Vec y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatMult_Linear_H2B"
-PetscErrorCode MatMult_Linear_H2B(Mat B,Vec x,Vec y)
+#define __FUNCT__ "MatMult_QLinear_H2B"
+PetscErrorCode MatMult_QLinear_H2B(Mat B,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
   QEP_LINEAR        *ctx;
@@ -104,8 +104,8 @@ PetscErrorCode MatMult_Linear_H2B(Mat B,Vec x,Vec y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Linear_H2A"
-PetscErrorCode MatGetDiagonal_Linear_H2A(Mat A,Vec diag)
+#define __FUNCT__ "MatGetDiagonal_QLinear_H2A"
+PetscErrorCode MatGetDiagonal_QLinear_H2A(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
 
@@ -115,8 +115,8 @@ PetscErrorCode MatGetDiagonal_Linear_H2A(Mat A,Vec diag)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Linear_H2B"
-PetscErrorCode MatGetDiagonal_Linear_H2B(Mat B,Vec diag)
+#define __FUNCT__ "MatGetDiagonal_QLinear_H2B"
+PetscErrorCode MatGetDiagonal_QLinear_H2B(Mat B,Vec diag)
 {
   PetscErrorCode ierr;
   QEP_LINEAR     *ctx;
@@ -139,8 +139,8 @@ PetscErrorCode MatGetDiagonal_Linear_H2B(Mat B,Vec diag)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_H2A"
-PetscErrorCode MatCreateExplicit_Linear_H2A(MPI_Comm comm,QEP_LINEAR *ctx,Mat *A)
+#define __FUNCT__ "MatCreateExplicit_QLinear_H2A"
+PetscErrorCode MatCreateExplicit_QLinear_H2A(MPI_Comm comm,QEP_LINEAR *ctx,Mat *A)
 {
   PetscErrorCode ierr;
 
@@ -150,8 +150,8 @@ PetscErrorCode MatCreateExplicit_Linear_H2A(MPI_Comm comm,QEP_LINEAR *ctx,Mat *A
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_H2B"
-PetscErrorCode MatCreateExplicit_Linear_H2B(MPI_Comm comm,QEP_LINEAR *ctx,Mat *B)
+#define __FUNCT__ "MatCreateExplicit_QLinear_H2B"
+PetscErrorCode MatCreateExplicit_QLinear_H2B(MPI_Comm comm,QEP_LINEAR *ctx,Mat *B)
 {
   PetscErrorCode ierr;
 
