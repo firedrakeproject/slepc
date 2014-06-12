@@ -101,6 +101,19 @@ typedef enum { PEP_BASIS_MONOMIAL,
 PETSC_EXTERN const char *PEPBasisTypes[];
 
 /*E
+    PEPScale - The scaling strategy
+
+    Level: intermediate
+
+.seealso: PEPSetScale()
+E*/
+typedef enum { PEP_SCALE_NONE,
+               PEP_SCALE_SCALAR,
+               PEP_SCALE_DIAGONAL,
+               PEP_SCALE_BOTH } PEPScale;
+PETSC_EXTERN const char *PEPScaleTypes[];
+
+/*E
     PEPConv - Determines the convergence test
 
     Level: intermediate
@@ -128,8 +141,6 @@ PETSC_EXTERN PetscErrorCode PEPSetUp(PEP);
 PETSC_EXTERN PetscErrorCode PEPSolve(PEP);
 PETSC_EXTERN PetscErrorCode PEPView(PEP,PetscViewer);
 PETSC_EXTERN PetscErrorCode PEPPrintSolution(PEP,PetscViewer);
-PETSC_EXTERN PetscErrorCode PEPSetBalance(PEP,PetscBool,PetscInt,PetscReal);
-PETSC_EXTERN PetscErrorCode PEPGetBalance(PEP,PetscBool*,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPSetBV(PEP,BV);
 PETSC_EXTERN PetscErrorCode PEPGetBV(PEP,BV*);
 PETSC_EXTERN PetscErrorCode PEPSetDS(PEP,DS);
@@ -146,8 +157,8 @@ PETSC_EXTERN PetscErrorCode PEPConvergedNormRelative(PEP,PetscScalar,PetscScalar
 PETSC_EXTERN PetscErrorCode PEPConvergedAbsolute(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode PEPSetDimensions(PEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode PEPGetDimensions(PEP,PetscInt*,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode PEPSetScaleFactor(PEP,PetscReal);
-PETSC_EXTERN PetscErrorCode PEPGetScaleFactor(PEP,PetscReal*);
+PETSC_EXTERN PetscErrorCode PEPSetScale(PEP,PEPScale,PetscReal,PetscInt,PetscReal);
+PETSC_EXTERN PetscErrorCode PEPGetScale(PEP,PEPScale*,PetscReal*,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPSetBasis(PEP,PEPBasis);
 PETSC_EXTERN PetscErrorCode PEPGetBasis(PEP,PEPBasis*);
 

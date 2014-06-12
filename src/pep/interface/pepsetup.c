@@ -156,13 +156,13 @@ PetscErrorCode PEPSetUp(PEP pep)
       ierr = STComputeSolveMat(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr);
     }
     /* compute scale factor if no set by user */
-    if (!pep->sfactor_set) {
+    if ((pep->scale==PEP_SCALE_SCALAR || pep->scale==PEP_SCALE_BOTH) && !pep->sfactor_set) {
       ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
     }
   }
 
   /* build balancing matrix if required */
-  if (pep->balance) {
+  if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) {
     if (!pep->Dl) {
       ierr = BVGetVec(pep->V,&pep->Dl);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dl);CHKERRQ(ierr);
@@ -171,7 +171,7 @@ PetscErrorCode PEPSetUp(PEP pep)
       ierr = BVGetVec(pep->V,&pep->Dr);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dr);CHKERRQ(ierr);
     }
-    ierr = PEPBuildBalance(pep);CHKERRQ(ierr);
+    ierr = PEPBuildDiagonalScaling(pep);CHKERRQ(ierr);
   }
 
   /* process initial vectors */

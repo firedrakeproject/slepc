@@ -58,13 +58,13 @@ struct _p_PEP {
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
   PEPConv        conv;             /* convergence test */
-  PetscReal      sfactor;          /* scaling factor */
   PEPWhich       which;            /* which part of the spectrum to be sought */
   PEPBasis       basis;            /* polynomial basis used to represent the problem */
   PEPProblemType problem_type;     /* which kind of problem to be solved */
-  PetscBool      balance;          /* whether balancing must be performed*/
-  PetscInt       balance_its;      /* number of iterations of the balancing method */
-  PetscReal      balance_lambda;   /* norm eigenvalue approximation for balancing*/
+  PEPScale       scale;            /* scaling strategy to be used */
+  PetscReal      sfactor;          /* scaling factor */
+  PetscInt       sits;             /* number of iterations of the scaling method */
+  PetscReal      slambda;          /* norm eigenvalue approximation for scaling */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
@@ -112,7 +112,7 @@ PETSC_INTERN PetscErrorCode PEPComputeResidualNorm_Private(PEP,PetscScalar,Petsc
 PETSC_INTERN PetscErrorCode PEPComputeRelativeError_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPKrylovConvergence(PEP,PetscBool,PetscInt,PetscInt,PetscReal,PetscInt*);
 PETSC_INTERN PetscErrorCode PEPComputeScaleFactor(PEP);
-PETSC_INTERN PetscErrorCode PEPBuildBalance(PEP);
+PETSC_INTERN PetscErrorCode PEPBuildDiagonalScaling(PEP);
 PETSC_INTERN PetscErrorCode PEPBasisCoefficients(PEP,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt);

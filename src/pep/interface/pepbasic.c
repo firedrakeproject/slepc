@@ -94,8 +94,18 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     } else type = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  polynomial represented in %s basis\n",PEPBasisTypes[pep->basis]);CHKERRQ(ierr);
-    if (pep->balance) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled, with its=%D and lambda=%g\n",pep->balance_its,(double)pep->balance_lambda);CHKERRQ(ierr);
+    switch (pep->scale) {
+      case PEP_SCALE_NONE:
+        break;
+      case PEP_SCALE_SCALAR:
+        ierr = PetscViewerASCIIPrintf(viewer,"  scalar balancing enabled, with scaling factor=%g\n",(double)pep->sfactor);CHKERRQ(ierr);
+        break;
+      case PEP_SCALE_DIAGONAL:
+        ierr = PetscViewerASCIIPrintf(viewer,"  diagonal balancing enabled, with its=%D and lambda=%g\n",pep->sits,(double)pep->slambda);CHKERRQ(ierr);
+        break;
+      case PEP_SCALE_BOTH:
+        ierr = PetscViewerASCIIPrintf(viewer,"  scalar & diagonal balancing enabled, with scaling factor=%g, its=%D and lambda=%g\n",(double)pep->sfactor,pep->sits,(double)pep->slambda);CHKERRQ(ierr);
+        break;
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = SlepcSNPrintfScalar(str,50,pep->target,PETSC_FALSE);CHKERRQ(ierr);
@@ -153,7 +163,6 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       }
       break;
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %g\n",(double)pep->sfactor);CHKERRQ(ierr);
     if (pep->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(pep->nini));CHKERRQ(ierr);
     }
@@ -320,13 +329,13 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->target          = 0.0;
   pep->tol             = PETSC_DEFAULT;
   pep->conv            = PEP_CONV_NORM;
-  pep->sfactor         = 0.0;
   pep->which           = (PEPWhich)0;
   pep->basis           = PEP_BASIS_MONOMIAL;
   pep->problem_type    = (PEPProblemType)0;
-  pep->balance         = PETSC_FALSE;
-  pep->balance_its     = 5;
-  pep->balance_lambda  = 1.0;
+  pep->scale           = PEP_SCALE_NONE;
+  pep->sfactor         = 0.0;
+  pep->sits            = 5;
+  pep->slambda         = 1.0;
   pep->trackall        = PETSC_FALSE;
 
   pep->comparison      = NULL;

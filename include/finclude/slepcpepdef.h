@@ -36,6 +36,7 @@
 #define PEPProblemType     PetscEnum
 #define PEPWhich           PetscEnum
 #define PEPBasis           PetscEnum
+#define PEPScale           PetscEnum
 #define PEPConv            PetscEnum
 #define PEPConvergedReason PetscEnum
 

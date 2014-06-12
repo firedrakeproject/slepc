@@ -146,7 +146,7 @@ PetscErrorCode PEPComputeVectors_Schur(PEP pep)
   ierr = MatDestroy(&Z);CHKERRQ(ierr);
 
   /* Fix eigenvectors if balancing was used */
-  if (pep->balance && pep->Dr) {
+  if ((pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) && pep->Dr) {
     for (i=0;i<n;i++) {
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
       ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
@@ -274,12 +274,12 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPBuildBalance"
+#define __FUNCT__ "PEPBuildDiagonalScaling"
 /*
-  PEPBuildBalance - compute two diagonal matrices to be applied for balancing 
+  PEPBuildDiagonalScaling - compute two diagonal matrices to be applied for balancing 
   in polynomial eigenproblems.
 */
-PetscErrorCode PEPBuildBalance(PEP pep)
+PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
 {
   PetscErrorCode ierr;
   PetscInt       it,i,j,k,nmat,nr,e,nz,lst,lend,nc=0,*cols;
@@ -337,14 +337,14 @@ PetscErrorCode PEPBuildBalance(PEP pep)
       array[i] = t*t;
     }
     ierr = MatSeqAIJRestoreArray(A,&array);CHKERRQ(ierr);
-    w *= pep->balance_lambda*pep->balance_lambda*pep->sfactor;
+    w *= pep->slambda*pep->slambda*pep->sfactor;
     ierr = MatAXPY(M,w,A,str);CHKERRQ(ierr);
     if (flg || str!=SAME_NONZERO_PATTERN || k==nmat-2) {
       ierr = MatDestroy(&A);CHKERRQ(ierr);
     } 
   }
   ierr = MatGetRowIJ(M,0,PETSC_FALSE,PETSC_FALSE,&nr,&ridx,&cidx,&cont);CHKERRQ(ierr);
-  if (!cont) SETERRQ(PetscObjectComm((PetscObject)T[0]), PETSC_ERR_SUP,"It is not possible to compute scaling diagonals to balance the PEP matrices");
+  if (!cont) SETERRQ(PetscObjectComm((PetscObject)T[0]), PETSC_ERR_SUP,"It is not possible to compute scaling diagonals for these PEP matrices");
   ierr = MatGetInfo(M,MAT_LOCAL,&info);CHKERRQ(ierr);
   nz = info.nz_used;
   ierr = VecGetOwnershipRange(pep->Dl,&lst,&lend);CHKERRQ(ierr);
@@ -361,7 +361,7 @@ PetscErrorCode PEPBuildBalance(PEP pep)
     /* Local column sums */
     aux[cidx[j]] += PetscAbsScalar(array[j]);
   }
-  for (it=0;it<pep->balance_its && cont;it++) {
+  for (it=0;it<pep->sits && cont;it++) {
     emaxl = 0; eminl = 0;
     /* Column sum  */    
     if (it>0) { /* it=0 has been already done*/
