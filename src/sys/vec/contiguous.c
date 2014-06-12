@@ -25,7 +25,7 @@
 #include <petsc-private/vecimpl.h>            /*I "petscvec.h" I*/
 #include <petscblaslapack.h>
 
-PetscLogEvent SLEPC_UpdateVectors = 0,SLEPC_VecMAXPBY = 0,SLEPC_SlepcDenseMatProd = 0,SLEPC_SlepcDenseCopy = 0,SLEPC_VecsMult = 0;
+PetscLogEvent SLEPC_UpdateVectors = 0,SLEPC_SlepcDenseMatProd = 0,SLEPC_SlepcDenseCopy = 0,SLEPC_VecsMult = 0;
 
 #undef __FUNCT__
 #define __FUNCT__ "Vecs_ContiguousDestroy"
@@ -414,87 +414,6 @@ PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d
   ierr = PetscFree(work);CHKERRQ(ierr);
   ierr = PetscLogFlops(m*n*2.0*ls);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(SLEPC_UpdateVectors,0,0,0,0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SlepcVecMAXPBY"
-/*@
-   SlepcVecMAXPBY - Computes y = beta*y + sum alpha*a[j]*x[j]
-
-   Logically Collective on Vec
-
-   Input parameters:
-+  beta   - scalar beta
-.  alpha  - scalar alpha
-.  nv     - number of vectors in x and scalars in a
-.  a      - array of scalars
--  x      - set of vectors
-
-   Input/Output parameter:
-.  y      - the vector to update
-
-   Notes:
-   If x are Vec's with contiguous storage, then the operation is done
-   through a call to BLAS. Otherwise, VecMAXPY() is called.
-
-   Level: developer
-
-.seealso: SlepcVecSetTemplate()
-@*/
-PetscErrorCode SlepcVecMAXPBY(Vec y,PetscScalar beta,PetscScalar alpha,PetscInt nv,PetscScalar a[],Vec x[])
-{
-  PetscErrorCode    ierr;
-  PetscBLASInt      i,n,m,one=1;
-  PetscScalar       *py;
-  const PetscScalar *px;
-  PetscContainer    container;
-  Vec               z;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(y,VEC_CLASSID,1);
-  if (!nv) PetscFunctionReturn(0);
-  if (nv < 0) SETERRQ1(PetscObjectComm((PetscObject)y),PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",nv);
-  PetscValidLogicalCollectiveScalar(y,alpha,2);
-  PetscValidLogicalCollectiveScalar(y,beta,3);
-  PetscValidLogicalCollectiveInt(y,nv,4);
-  PetscValidScalarPointer(a,5);
-  PetscValidPointer(x,6);
-  PetscValidHeaderSpecific(*x,VEC_CLASSID,6);
-  PetscValidType(y,1);
-  PetscValidType(*x,6);
-  PetscCheckSameTypeAndComm(y,1,*x,6);
-  if ((*x)->map->N != (y)->map->N) SETERRQ(PetscObjectComm((PetscObject)y),PETSC_ERR_ARG_INCOMP,"Incompatible vector global lengths");
-  if ((*x)->map->n != (y)->map->n) SETERRQ(PetscObjectComm((PetscObject)y),PETSC_ERR_ARG_INCOMP,"Incompatible vector local lengths");
-
-  ierr = PetscObjectQuery((PetscObject)(x[0]),"contiguous",(PetscObject*)&container);CHKERRQ(ierr);
-  if (container) {
-    /* assume x Vecs are contiguous, use BLAS calls */
-    ierr = PetscLogEventBegin(SLEPC_VecMAXPBY,*x,y,0,0);CHKERRQ(ierr);
-    ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-    ierr = VecGetArrayRead(*x,&px);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(nv,&n);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast((y)->map->n,&m);CHKERRQ(ierr);
-    if (m>0) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&m,&n,&alpha,px,&m,a,&one,&beta,py,&one));
-    ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
-    ierr = VecRestoreArrayRead(*x,&px);CHKERRQ(ierr);
-    ierr = PetscLogFlops(nv*2*(y)->map->n);CHKERRQ(ierr);
-    ierr = PetscLogEventEnd(SLEPC_VecMAXPBY,*x,y,0,0);CHKERRQ(ierr);
-  } else {
-    /* use regular Vec operations */
-    if (alpha==-beta) {
-      for (i=0;i<nv;i++) a[i] = -a[i];
-      ierr = VecMAXPY(y,nv,a,x);CHKERRQ(ierr);
-      for (i=0;i<nv;i++) a[i] = -a[i];
-      ierr = VecScale(y,beta);CHKERRQ(ierr);
-    } else {
-      ierr = VecDuplicate(y,&z);CHKERRQ(ierr);
-      ierr = VecCopy(y,z);CHKERRQ(ierr);
-      ierr = VecMAXPY(y,nv,a,x);CHKERRQ(ierr);
-      ierr = VecAXPBY(y,beta-alpha,alpha,z);CHKERRQ(ierr);
-      ierr = VecDestroy(&z);CHKERRQ(ierr);
-    }
-  }
   PetscFunctionReturn(0);
 }
 

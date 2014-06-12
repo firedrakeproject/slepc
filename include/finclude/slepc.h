@@ -21,7 +21,7 @@
 !
 
 #include "finclude/slepcsys.h"
-#include "finclude/slepcip.h"
+#include "finclude/slepcbv.h"
 #include "finclude/slepcfn.h"
 #include "finclude/slepcds.h"
 #include "finclude/slepcst.h"

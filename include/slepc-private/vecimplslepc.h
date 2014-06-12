@@ -25,7 +25,7 @@
 #include <slepcvec.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors,SLEPC_VecMAXPBY,SLEPC_SlepcDenseMatProd,SLEPC_SlepcDenseOrth,SLEPC_SlepcDenseMatInvProd,SLEPC_SlepcDenseCopy,SLEPC_VecsMult;
+PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors,SLEPC_SlepcDenseMatProd,SLEPC_SlepcDenseOrth,SLEPC_SlepcDenseMatInvProd,SLEPC_SlepcDenseCopy,SLEPC_VecsMult;
 
 /* context for the storage of contiguous Vecs */
 typedef struct {
@@ -167,8 +167,6 @@ PETSC_EXTERN PetscErrorCode SlepcDenseCopyTriang(PetscScalar*,MatType_t,PetscInt
 PETSC_EXTERN PetscErrorCode SlepcUpdateVectorsZ(Vec*,PetscScalar,PetscScalar,Vec*,PetscInt,const PetscScalar*,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode SlepcUpdateVectorsD(Vec*,PetscInt,PetscScalar,const PetscScalar*,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscInt);
 PETSC_EXTERN PetscErrorCode VecsMultS(PetscScalar*,MatType_t,PetscInt,Vec*,PetscInt,PetscInt,Vec*,PetscInt,PetscInt,DvdReduction*,DvdMult_copy_func*);
-PETSC_INTERN PetscErrorCode VecsMultIb(PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt,PetscScalar*,Vec);
-PETSC_INTERN PetscErrorCode VecsMultIa(PetscScalar*,MatType_t,PetscInt,Vec*,PetscInt,PetscInt,Vec*,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk*,PetscInt,PetscScalar*,PetscScalar*,PetscInt,DvdReduction*,MPI_Comm);
 PETSC_EXTERN PetscErrorCode SlepcAllReduceSumEnd(DvdReduction*);
 
