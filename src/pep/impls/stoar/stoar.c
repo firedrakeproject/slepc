@@ -818,7 +818,6 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   pep->ops->setup                = PEPSetUp_STOAR;
   pep->ops->setfromoptions       = PEPSetFromOptions_STOAR;
   pep->ops->view                 = PEPView_STOAR;
-  pep->ops->reset                = PEPReset_Default;
   pep->ops->destroy              = PEPDestroy_STOAR;
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetMonic_C",PEPSTOARSetMonic_STOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetMonic_C",PEPSTOARGetMonic_STOAR);CHKERRQ(ierr);

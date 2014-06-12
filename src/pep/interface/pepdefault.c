@@ -24,18 +24,6 @@
 #include <slepc-private/pepimpl.h>     /*I "slepcpep.h" I*/
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPReset_Default"
-PetscErrorCode PEPReset_Default(PEP pep)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = VecDestroyVecs(pep->nwork,&pep->work);CHKERRQ(ierr);
-  pep->nwork = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "PEPSetWorkVecs"
 /*@
    PEPSetWorkVecs - Sets a number of work vectors into a PEP object.

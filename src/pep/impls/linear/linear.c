@@ -689,7 +689,6 @@ PetscErrorCode PEPReset_Linear(PEP pep)
   ierr = VecDestroy(&ctx->x2);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->y1);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->y2);CHKERRQ(ierr);
-  ierr = PEPReset_Default(pep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

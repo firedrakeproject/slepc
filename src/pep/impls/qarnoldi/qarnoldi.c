@@ -301,7 +301,6 @@ PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
   PetscFunctionBegin;
   pep->ops->solve         = PEPSolve_QArnoldi;
   pep->ops->setup         = PEPSetUp_QArnoldi;
-  pep->ops->reset         = PEPReset_Default;
   PetscFunctionReturn(0);
 }
 

@@ -105,7 +105,6 @@ struct _p_PEP {
   PEPConvergedReason reason;
 };
 
-PETSC_INTERN PetscErrorCode PEPReset_Default(PEP);
 PETSC_INTERN PetscErrorCode PEPAllocateSolution(PEP,PetscInt);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Schur(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Indefinite(PEP);

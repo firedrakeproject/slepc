@@ -525,6 +525,8 @@ PetscErrorCode PEPReset(PEP pep)
     ierr = PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm);CHKERRQ(ierr);
   }
   ierr = BVDestroy(&pep->V);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(pep->nwork,&pep->work);CHKERRQ(ierr);
+  pep->nwork = 0;
   pep->setupcalled = 0;
   PetscFunctionReturn(0);
 }

@@ -856,7 +856,6 @@ PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
   PetscFunctionBegin;
   pep->ops->solve                = PEPSolve_TOAR;
   pep->ops->setup                = PEPSetUp_TOAR;
-  pep->ops->reset                = PEPReset_Default;
   PetscFunctionReturn(0);
 }
 

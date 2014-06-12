@@ -397,7 +397,9 @@ PetscErrorCode NEPReset(NEP nep)
     ierr = PetscFree3(nep->eig,nep->errest,nep->perm);CHKERRQ(ierr);
   }
   ierr = BVDestroy(&nep->V);CHKERRQ(ierr);
-  nep->nfuncs      = 0;
+  ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
+  nep->nwork = 0;
+  nep->nfuncs = 0;
   nep->setupcalled = 0;
   PetscFunctionReturn(0);
 }

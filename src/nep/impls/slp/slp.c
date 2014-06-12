@@ -277,7 +277,6 @@ PetscErrorCode NEPReset_SLP(NEP nep)
 
   PetscFunctionBegin;
   if (!ctx->eps) { ierr = EPSReset(ctx->eps);CHKERRQ(ierr); }
-  ierr = NEPReset_Default(nep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
