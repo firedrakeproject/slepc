@@ -1,6 +1,6 @@
 %%
 %
-%  Solves a quadratic eigenvalue problem with SLEPc
+%  Solves a polynomial eigenvalue problem with SLEPc
 %  User creates directly the three PETSc Mat
 %
 
@@ -77,19 +77,19 @@ M.AssemblyEnd(PetscMat.FINAL_ASSEMBLY);
 %%
 %  Create the eigensolver, pass the matrices and solve the problem
 %
-qep = SlepcQEP();
-qep.SetType('qarnoldi');
-qep.SetOperators(M,C,K);
-qep.SetProblemType(SlepcQEP.GENERAL);
-qep.SetFromOptions();
-qep.Solve();
-nconv = qep.GetConverged();
+pep = SlepcPEP();
+pep.SetType('qarnoldi');
+pep.SetOperators({M,C,K});
+pep.SetProblemType(SlepcPEP.GENERAL);
+pep.SetFromOptions();
+pep.Solve();
+nconv = pep.GetConverged();
 if nconv>0
   fprintf('           k          ||Ax-kx||/||kx||\n')
   fprintf('   ----------------- ------------------\n')
   for i=1:nconv
-    [lambda,x] = qep.GetEigenpair(i);
-    relerr = qep.ComputeRelativeError(i);
+    [lambda,x] = pep.GetEigenpair(i);
+    relerr = pep.ComputeRelativeError(i);
     if isreal(lambda)
       fprintf('    %14.2f        %12g\n',lambda,relerr)
     else
@@ -104,5 +104,5 @@ end
 K.Destroy();
 C.Destroy();
 M.Destroy();
-qep.Destroy();
+pep.Destroy();
 SlepcFinalize();

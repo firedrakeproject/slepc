@@ -1,13 +1,12 @@
-classdef SlepcQEP < PetscObject
+classdef SlepcPEP < PetscObject
 %
-%   SlepcQEP - a SLEPc quadratic eigenvalue solver object
+%   SlepcPEP - a SLEPc polynomial eigenvalue solver object
 %
 %   Creation:
-%     eps = SlepcQEP();
-%     QEP.SetType('linear');
-%     QEP.SetOperators(M,C,K);
-%     (optional) QEP.SetProblemType(...);
-%     QEP.SetFromOptions();
+%     eps = SlepcPEP();
+%     PEP.SetType('toar');
+%     PEP.SetOperators(M,C,K);
+%     PEP.SetFromOptions();
 
 %  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 %  SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -39,53 +38,70 @@ classdef SlepcQEP < PetscObject
     SMALLEST_REAL=4;
     LARGEST_IMAGINARY=5;
     SMALLEST_IMAGINARY=6;
+    TARGET_MAGNITUDE=7;
+    TARGET_REAL=8;
+    TARGET_IMAGINARY=9;
+
+    BASIS_MONOMIAL=0;
+    BASIS_CHEBYSHEV1=1;
+    BASIS_CHEBYSHEV2=2;
+    BASIS_LEGENDRE=3;
+    BASIS_LAGUERRE=4;
+    BASIS_HERMITE=5;
   end
   methods
-    function obj = SlepcQEP(pid,flag)
+    function obj = SlepcPEP(pid,flag)
       if (nargin > 1)
-        %  SelpcQEP(pid,'pobj') uses an already existing SLEPc QEP object
+        %  SelpcPEP(pid,'pobj') uses an already existing SLEPc PEP object
         obj.pobj = pid;
         return
       end
       comm =  PETSC_COMM_SELF();
-      [err,obj.pobj] = calllib('libslepc', 'QEPCreate', comm,0);PetscCHKERRQ(err);
+      [err,obj.pobj] = calllib('libslepc', 'PEPCreate', comm,0);PetscCHKERRQ(err);
     end
     function err = SetType(obj,name)
-      err = calllib('libslepc', 'QEPSetType', obj.pobj,name);PetscCHKERRQ(err);
+      err = calllib('libslepc', 'PEPSetType', obj.pobj,name);PetscCHKERRQ(err);
     end
     function err = SetFromOptions(obj)
-      err = calllib('libslepc', 'QEPSetFromOptions', obj.pobj);PetscCHKERRQ(err);
+      err = calllib('libslepc', 'PEPSetFromOptions', obj.pobj);PetscCHKERRQ(err);
     end
     function err = SetUp(obj)
-      err = calllib('libslepc', 'QEPSetUp', obj.pobj);PetscCHKERRQ(err);
+      err = calllib('libslepc', 'PEPSetUp', obj.pobj);PetscCHKERRQ(err);
     end
     function err = Solve(obj)
-      err = calllib('libslepc', 'QEPSolve', obj.pobj);PetscCHKERRQ(err);
+      err = calllib('libslepc', 'PEPSolve', obj.pobj);PetscCHKERRQ(err);
     end
-    function err = SetOperators(obj,M,C,K)
-      err = calllib('libslepc', 'QEPSetOperators', obj.pobj,M.pobj,C.pobj,K.pobj);PetscCHKERRQ(err);
+    function err = SetOperators(obj,C)
+      if ~iscell(C), error('Argument of PEP.SetOperators must be a cell array'), end
+      n = length(C);
+      M = [];
+      for i=1:n, M = [M, C{i}.pobj];
+      err = calllib('libslepc', 'PEPSetOperators', obj.pobj, n, M);PetscCHKERRQ(err);
     end
     function err = SetProblemType(obj,t)
-      err = calllib('libslepc', 'QEPSetProblemType', obj.pobj,t);PetscCHKERRQ(err);
+      err = calllib('libslepc', 'PEPSetProblemType', obj.pobj,t);PetscCHKERRQ(err);
     end
     function err = SetWhichEigenpairs(obj,t)
-      err = calllib('libslepc', 'QEPSetWhichEigenpairs', obj.pobj,t);PetscCHKERRQ(err);
+      err = calllib('libslepc', 'PEPSetWhichEigenpairs', obj.pobj,t);PetscCHKERRQ(err);
+    end
+    function err = SetTarget(obj,t)
+      err = calllib('libslepc', 'PEPSetTarget', obj.pobj,t);PetscCHKERRQ(err);
     end
     function err = SetTolerances(obj,t,mx)
       if (nargin == 2) mx = 0; end
-      err = calllib('libslepc', 'QEPSetTolerances', obj.pobj,t,mx);PetscCHKERRQ(err);
+      err = calllib('libslepc', 'PEPSetTolerances', obj.pobj,t,mx);PetscCHKERRQ(err);
     end
     function err = SetDimensions(obj,nev,ncv,mpd)
       if (nargin < 3) ncv = 0; end
       if (nargin < 4) mpd = 0; end
-      err = calllib('libslepc', 'QEPSetDimensions', obj.pobj,nev,ncv,mpd);PetscCHKERRQ(err);
+      err = calllib('libslepc', 'PEPSetDimensions', obj.pobj,nev,ncv,mpd);PetscCHKERRQ(err);
     end
     function err = SetScaleFactor(obj,t)
-      err = calllib('libslepc', 'QEPSetScaleFactor', obj.pobj,t);PetscCHKERRQ(err);
+      err = calllib('libslepc', 'PEPSetScaleFactor', obj.pobj,t);PetscCHKERRQ(err);
     end
     function [nconv,err] = GetConverged(obj)
       nconv = 0;
-      [err,nconv] = calllib('libslepc', 'QEPGetConverged', obj.pobj,nconv);PetscCHKERRQ(err);
+      [err,nconv] = calllib('libslepc', 'PEPGetConverged', obj.pobj,nconv);PetscCHKERRQ(err);
     end
     function [lambda,v,err] = GetEigenpair(obj,i,xr,xi)
       lambda = 0.0;
@@ -101,7 +117,7 @@ classdef SlepcQEP < PetscObject
         y = xi.pobj;
       end
       if (nargout > 1 && (x==0 || y==0))
-        [err,pid] = calllib('libslepc', 'QEPGetOperators', obj.pobj,0,0,0);PetscCHKERRQ(err);
+        [err,pid] = calllib('libslepc', 'PEPGetOperators', obj.pobj,0,0,0);PetscCHKERRQ(err);
         A = PetscMat(pid,'pobj');
         n = A.GetSize();
       end
@@ -121,7 +137,7 @@ classdef SlepcQEP < PetscObject
         xi.SetSizes(n,n);
         y = xi.pobj;
       end
-      [err,lambda,img] = calllib('libslepc', 'QEPGetEigenpair', obj.pobj,i-1,lambda,img,x,y);PetscCHKERRQ(err);
+      [err,lambda,img] = calllib('libslepc', 'PEPGetEigenpair', obj.pobj,i-1,lambda,img,x,y);PetscCHKERRQ(err);
       if img~=0.0, lambda = lambda+j*img; end
       if (nargout > 1)
         if (x ~= 0)
@@ -145,17 +161,17 @@ classdef SlepcQEP < PetscObject
     end
     function [relerr,err] = ComputeRelativeError(obj,i)
       relerr = 0.0;
-      [err,relerr] = calllib('libslepc', 'QEPComputeRelativeError', obj.pobj,i-1,relerr);PetscCHKERRQ(err);
+      [err,relerr] = calllib('libslepc', 'PEPComputeRelativeError', obj.pobj,i-1,relerr);PetscCHKERRQ(err);
     end
     function err = View(obj,viewer)
       if (nargin == 1)
-        err = calllib('libslepc', 'QEPView', obj.pobj,0);PetscCHKERRQ(err);
+        err = calllib('libslepc', 'PEPView', obj.pobj,0);PetscCHKERRQ(err);
       else
-        err = calllib('libslepc', 'QEPView', obj.pobj,viewer.pobj);PetscCHKERRQ(err);
+        err = calllib('libslepc', 'PEPView', obj.pobj,viewer.pobj);PetscCHKERRQ(err);
       end
     end
     function err = Destroy(obj)
-      err = calllib('libslepc', 'QEPDestroy', obj.pobj);PetscCHKERRQ(err);
+      err = calllib('libslepc', 'PEPDestroy', obj.pobj);PetscCHKERRQ(err);
     end
   end
 end

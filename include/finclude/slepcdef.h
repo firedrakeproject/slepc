@@ -21,10 +21,12 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 #include "finclude/slepcsysdef.h"
-#include "finclude/slepcepsdef.h"
 #include "finclude/slepcbvdef.h"
+#include "finclude/slepcfndef.h"
+#include "finclude/slepcdsdef.h"
 #include "finclude/slepcstdef.h"
+#include "finclude/slepcepsdef.h"
 #include "finclude/slepcsvddef.h"
-#include "finclude/slepcqepdef.h"
+#include "finclude/slepcpepdef.h"
 #include "finclude/slepcnepdef.h"
 #include "finclude/slepcmfndef.h"

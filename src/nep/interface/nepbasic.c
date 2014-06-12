@@ -324,7 +324,7 @@ PetscErrorCode NEPGetType(NEP nep,NEPType *type)
 #undef __FUNCT__
 #define __FUNCT__ "NEPRegister"
 /*@C
-   NEPRegister - Adds a method to the quadratic eigenproblem solver package.
+   NEPRegister - Adds a method to the nonlinear eigenproblem solver package.
 
    Not Collective
 
@@ -341,9 +341,9 @@ PetscErrorCode NEPGetType(NEP nep,NEPType *type)
 .ve
 
    Then, your solver can be chosen with the procedural interface via
-$     NEPSetType(qep,"my_solver")
+$     NEPSetType(nep,"my_solver")
    or at runtime via the option
-$     -qep_type my_solver
+$     -nep_type my_solver
 
    Level: advanced
 

@@ -143,8 +143,6 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
     if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
     ierr = SlepcLoadDynamicLibrary("eps",&found);CHKERRQ(ierr);
     if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
-    ierr = SlepcLoadDynamicLibrary("qep",&found);CHKERRQ(ierr);
-    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
     ierr = SlepcLoadDynamicLibrary("pep",&found);CHKERRQ(ierr);
     if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
     ierr = SlepcLoadDynamicLibrary("nep",&found);CHKERRQ(ierr);

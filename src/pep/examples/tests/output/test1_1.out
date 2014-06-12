@@ -1,7 +1,7 @@
-qep type linear
+pep type linear
 
 Quadratic Eigenproblem, N=110 (10x11 grid)
-QEP type: linear
+PEP type: linear
 
  Solution method: linear
 
@@ -10,10 +10,10 @@ QEP type: linear
  All requested eigenvalues computed up to the required tolerance:
      0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
 
-qep type qarnoldi
+pep type qarnoldi
 
 Quadratic Eigenproblem, N=110 (10x11 grid)
-QEP type: qarnoldi
+PEP type: qarnoldi
 
  Solution method: qarnoldi
 
@@ -22,10 +22,10 @@ QEP type: qarnoldi
  All requested eigenvalues computed up to the required tolerance:
      0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
 
-qep type linear, eps type krylovschur
+pep type linear, eps type krylovschur
 
 Quadratic Eigenproblem, N=110 (10x11 grid)
-QEP type: linear
+PEP type: linear
 EPS type: krylovschur
 
  Solution method: linear
@@ -35,10 +35,10 @@ EPS type: krylovschur
  All requested eigenvalues computed up to the required tolerance:
      0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
 
-qep type linear, eps type arnoldi
+pep type linear, eps type arnoldi
 
 Quadratic Eigenproblem, N=110 (10x11 grid)
-QEP type: linear
+PEP type: linear
 EPS type: arnoldi
 
  Solution method: linear
@@ -48,10 +48,10 @@ EPS type: arnoldi
  All requested eigenvalues computed up to the required tolerance:
      0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
 
-qep type linear, eps type gd
+pep type linear, eps type gd
 
 Quadratic Eigenproblem, N=110 (10x11 grid)
-QEP type: linear
+PEP type: linear
 EPS type: gd
 
  Solution method: linear
@@ -61,10 +61,10 @@ EPS type: gd
  All requested eigenvalues computed up to the required tolerance:
      0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
 
-qep type linear, eps type jd
+pep type linear, eps type jd
 
 Quadratic Eigenproblem, N=110 (10x11 grid)
-QEP type: linear
+PEP type: linear
 EPS type: jd
 
  Solution method: linear
@@ -74,10 +74,10 @@ EPS type: jd
  All requested eigenvalues computed up to the required tolerance:
      0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
 
-qep type linear, eps type gd2
+pep type linear, eps type gd2
 
 Quadratic Eigenproblem, N=110 (10x11 grid)
-QEP type: linear
+PEP type: linear
 EPS type: gd2
 
  Solution method: linear

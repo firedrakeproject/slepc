@@ -258,7 +258,6 @@ def main(slepcdir,petscdir,petscdestdir,log=StdoutLogger(), verbose=False):
     pkglist = [('sys'            , ''),
                ('eps'            , 'sys'),
                ('svd'            , 'eps sys'),
-               ('qep'            , 'eps sys'),
                ('pep'            , 'eps sys'),
                ('nep'            , 'eps sys'),
                ('mfn'            , 'sys')]
