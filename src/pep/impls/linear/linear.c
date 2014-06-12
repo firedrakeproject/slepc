@@ -65,6 +65,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PetscFunctionBegin;
   if (!ctx->cform) ctx->cform = 1;
   if (!pep->which) pep->which = PEP_LARGEST_MAGNITUDE;
+  if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
   if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver only available for quadratic problems");
   ierr = STGetOperators(pep->st,0,&ctx->K);CHKERRQ(ierr);
   ierr = STGetOperators(pep->st,1,&ctx->C);CHKERRQ(ierr);

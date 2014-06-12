@@ -517,7 +517,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscInt k,PetscScalar *S,
   PetscScalar    *At,*Bt,*Hj,*Hp,*T,*t,sone=1.0,g,a;
   PetscBLASInt   k_,sr_,lds_,ldh_,info,*p,lwork,ldt_;
   PetscBool      transf=PETSC_FALSE,flg;
-  PetscReal      *pbc,*ca,*cb,*cg,ex=0.0;
+  PetscReal      *ca,*cb,*cg,ex=0.0;
 
   PetscFunctionBegin;
   if (k==0) PetscFunctionReturn(0);
@@ -527,7 +527,6 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscInt k,PetscScalar *S,
     if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
     if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",9);
   }
-  ierr = PetscMalloc(3*pep->nmat*sizeof(PetscReal),&pbc);CHKERRQ(ierr);
   ca = pep->pbc; cb = pep->pbc+pep->nmat; cg = pep->pbc+2*pep->nmat;
   lds = deg*ld;
   At = work+nwu;
@@ -599,7 +598,6 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscInt k,PetscScalar *S,
       S[i*lds+j] = PetscConj(At[j*k+i]);
     }
   } 
-  ierr = PetscFree(pbc);CHKERRQ(ierr);   
   ierr = PetscFree(p);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
