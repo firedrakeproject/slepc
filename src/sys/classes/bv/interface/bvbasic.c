@@ -151,7 +151,6 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
       if (bv->n!=ma) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Local dimension %D does not match that of matrix given at BVSetMatrix %D",bv->n,ma);
     }
   }
-  if (m > bv->N) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Number of columns %D cannot be larger than global length %D",m,bv->N);
   if (bv->ops->create) {
     ierr = PetscLogEventBegin(BV_Create,bv,0,0,0);CHKERRQ(ierr);
     ierr = (*bv->ops->create)(bv);CHKERRQ(ierr);
@@ -196,7 +195,6 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
     ierr = MatGetLocalSize(bv->matrix,&ma,NULL);CHKERRQ(ierr);
     if (bv->n!=ma) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Local dimension %D does not match that of matrix given at BVSetMatrix %D",bv->n,ma);
   }
-  if (m > bv->N) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Number of columns %D cannot be larger than global length %D",m,bv->N);
   bv->m = m;
   bv->k = m;
   bv->t = t;
