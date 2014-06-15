@@ -78,7 +78,7 @@ M.AssemblyEnd(PetscMat.FINAL_ASSEMBLY);
 %  Create the eigensolver, pass the matrices and solve the problem
 %
 pep = SlepcPEP();
-pep.SetType('qarnoldi');
+pep.SetType('toar');
 pep.SetOperators({M,C,K});
 pep.SetProblemType(SlepcPEP.GENERAL);
 pep.SetFromOptions();
