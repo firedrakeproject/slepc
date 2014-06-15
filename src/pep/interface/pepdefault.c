@@ -439,6 +439,11 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
   PEPBasis       basis;
 
   PetscFunctionBegin;
+  if (pep->scale==PEP_SCALE_NONE || pep->scale==PEP_SCALE_DIAGONAL) {  /* no scalar scaling */
+    pep->sfactor = 1.0;
+    PetscFunctionReturn(0);
+  }
+  if (pep->sfactor_set) PetscFunctionReturn(0);  /* user provided value */
   ierr = PEPGetBasis(pep,&basis);CHKERRQ(ierr);
   if (basis==PEP_BASIS_MONOMIAL) {
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);

@@ -155,11 +155,10 @@ PetscErrorCode PEPSetUp(PEP pep)
     if (!flg) {
       ierr = STComputeSolveMat(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr);
     }
-    /* compute scale factor if no set by user */
-    if ((pep->scale==PEP_SCALE_SCALAR || pep->scale==PEP_SCALE_BOTH) && !pep->sfactor_set) {
-      ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
-    }
   }
+
+  /* compute scale factor if no set by user */
+  ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
 
   /* build balancing matrix if required */
   if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) {
