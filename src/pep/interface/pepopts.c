@@ -72,7 +72,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
     ierr = PetscOptionsEnum("-pep_scale","Scaling strategy","PEPSetScale",PEPScaleTypes,(PetscEnum)pep->scale,(PetscEnum*)&pep->scale,NULL);CHKERRQ(ierr);
 
-    r = j = t = 0;
+    r = j = t = PETSC_DEFAULT;
     ierr = PetscOptionsReal("-pep_scale_factor","Scale factor","PEPSetScale",pep->sfactor,&r,NULL);CHKERRQ(ierr);
     ierr = PetscOptionsInt("-pep_scale_its","Number of iterations in diagonal scaling","PEPSetScale",pep->sits,&j,NULL);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-pep_scale_lambda","Estimate of eigenvalue (modulus) for diagonal scaling","PEPSetScale",pep->slambda,&t,NULL);CHKERRQ(ierr);
@@ -781,27 +781,25 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,PetscInt its,P
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,scale,2);
-  PetscValidLogicalCollectiveReal(pep,alpha,3);
-  PetscValidLogicalCollectiveInt(pep,its,4);
-  PetscValidLogicalCollectiveReal(pep,lambda,5);
   pep->scale = scale;
-  if (alpha) {
+  if (scale==PEP_SCALE_SCALAR || scale==PEP_SCALE_BOTH) {
+    PetscValidLogicalCollectiveReal(pep,alpha,3);
     if (alpha == PETSC_DEFAULT || alpha == PETSC_DECIDE) {
       pep->sfactor = 0.0;
       pep->sfactor_set = PETSC_FALSE;
     } else {
-      if (alpha < 0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of alpha. Must be > 0");
+      if (alpha<=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of alpha. Must be > 0");
       pep->sfactor = alpha;
       pep->sfactor_set = PETSC_TRUE;
     }
   }
-  if (its) {
+  if (scale==PEP_SCALE_DIAGONAL || scale==PEP_SCALE_BOTH) {
+    PetscValidLogicalCollectiveInt(pep,its,4);
+    PetscValidLogicalCollectiveReal(pep,lambda,5);
     if (its==PETSC_DECIDE || its==PETSC_DEFAULT) pep->sits = 5;
     else pep->sits = its;
-  }
-  if (lambda) {
     if (lambda==PETSC_DECIDE || lambda==PETSC_DEFAULT) pep->slambda = 1.0;
-    else if (lambda<0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of lambda. Must be > 0");
+    else if (lambda<=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of lambda. Must be > 0");
     else pep->slambda = lambda;
   }
   PetscFunctionReturn(0);

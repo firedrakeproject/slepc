@@ -333,7 +333,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->basis           = PEP_BASIS_MONOMIAL;
   pep->problem_type    = (PEPProblemType)0;
   pep->scale           = PEP_SCALE_NONE;
-  pep->sfactor         = 0.0;
+  pep->sfactor         = 1.0;
   pep->sits            = 5;
   pep->slambda         = 1.0;
   pep->trackall        = PETSC_FALSE;

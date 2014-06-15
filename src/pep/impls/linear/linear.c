@@ -33,9 +33,8 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
   PetscInt       i=0;
   EPSWhich       which;
-  PetscBool      trackall,khas,mhas;
+  PetscBool      trackall;
   PetscScalar    sigma;
-  PetscReal      knorm,mnorm;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,PEP_LINEAR*,Mat*) = {
     { MatCreateExplicit_Linear_N1A, MatCreateExplicit_Linear_N1B },   /* N1 */
@@ -70,17 +69,6 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ierr = STGetOperators(pep->st,0,&ctx->K);CHKERRQ(ierr);
   ierr = STGetOperators(pep->st,1,&ctx->C);CHKERRQ(ierr);
   ierr = STGetOperators(pep->st,2,&ctx->M);CHKERRQ(ierr);
-
-  /* Compute scaling factor if not set by user */
-  if (pep->sfactor==0.0) {
-    ierr = MatHasOperation(ctx->K,MATOP_NORM,&khas);CHKERRQ(ierr);
-    ierr = MatHasOperation(ctx->M,MATOP_NORM,&mhas);CHKERRQ(ierr);
-    if (khas && mhas) {
-      ierr = MatNorm(ctx->K,NORM_INFINITY,&knorm);CHKERRQ(ierr);
-      ierr = MatNorm(ctx->M,NORM_INFINITY,&mnorm);CHKERRQ(ierr);
-      pep->sfactor = PetscSqrtReal(knorm/mnorm);
-    } else pep->sfactor = 1.0;
-  }
   ctx->sfactor = pep->sfactor;
 
   ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);

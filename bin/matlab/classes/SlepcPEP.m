@@ -75,7 +75,7 @@ classdef SlepcPEP < PetscObject
       if ~iscell(C), error('Argument of PEP.SetOperators must be a cell array'), end
       n = length(C);
       M = [];
-      for i=1:n, M = [M, C{i}.pobj];
+      for i=1:n, M = [M, C{i}.pobj]; end
       err = calllib('libslepc', 'PEPSetOperators', obj.pobj, n, M);PetscCHKERRQ(err);
     end
     function err = SetProblemType(obj,t)
@@ -96,9 +96,6 @@ classdef SlepcPEP < PetscObject
       if (nargin < 4) mpd = 0; end
       err = calllib('libslepc', 'PEPSetDimensions', obj.pobj,nev,ncv,mpd);PetscCHKERRQ(err);
     end
-    function err = SetScaleFactor(obj,t)
-      err = calllib('libslepc', 'PEPSetScaleFactor', obj.pobj,t);PetscCHKERRQ(err);
-    end
     function [nconv,err] = GetConverged(obj)
       nconv = 0;
       [err,nconv] = calllib('libslepc', 'PEPGetConverged', obj.pobj,nconv);PetscCHKERRQ(err);
@@ -117,7 +114,7 @@ classdef SlepcPEP < PetscObject
         y = xi.pobj;
       end
       if (nargout > 1 && (x==0 || y==0))
-        [err,pid] = calllib('libslepc', 'PEPGetOperators', obj.pobj,0,0,0);PetscCHKERRQ(err);
+        [err,pid] = calllib('libslepc', 'PEPGetOperators', obj.pobj,0,0);PetscCHKERRQ(err);
         A = PetscMat(pid,'pobj');
         n = A.GetSize();
       end
