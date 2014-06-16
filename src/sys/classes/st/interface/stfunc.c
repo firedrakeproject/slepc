@@ -508,6 +508,84 @@ PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "STMatGetVecs"
+/*@C
+   STMatGetVecs - Get vector(s) compatible with the ST matrices.
+
+   Collective on ST
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Output Parameters:
++  right - (optional) vector that the matrix can be multiplied against
+-  left  - (optional) vector that the matrix vector product can be stored in
+
+   Level: developer
+@*/
+PetscErrorCode STMatGetVecs(ST st,Vec *right,Vec *left)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  STCheckMatrices(st,1);
+  ierr = MatGetVecs(st->A[0],right,left);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STMatGetSize"
+/*@
+   STMatGetSize - Returns the number of rows and columns of the ST matrices.
+
+   Not Collective
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Output Parameters:
++  m - the number of global rows
+-  n - the number of global columns
+
+   Level: developer
+@*/
+PetscErrorCode STMatGetSize(ST st,PetscInt *m,PetscInt *n)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  STCheckMatrices(st,1);
+  ierr = MatGetSize(st->A[0],m,n);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STMatGetLocalSize"
+/*@
+   STMatGetLocalSize - Returns the number of local rows and columns of the ST matrices.
+
+   Not Collective
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Output Parameters:
++  m - the number of local rows
+-  n - the number of local columns
+
+   Level: developer
+@*/
+PetscErrorCode STMatGetLocalSize(ST st,PetscInt *m,PetscInt *n)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  STCheckMatrices(st,1);
+  ierr = MatGetLocalSize(st->A[0],m,n);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+} 
+
+#undef __FUNCT__
 #define __FUNCT__ "STSetOptionsPrefix"
 /*@C
    STSetOptionsPrefix - Sets the prefix used for searching for all

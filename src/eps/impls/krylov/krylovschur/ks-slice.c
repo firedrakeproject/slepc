@@ -54,7 +54,7 @@ PetscErrorCode EPSAllocateSolutionSlice(EPS eps,PetscInt extra)
   BVType         type;
   BVOrthogType   orthog_type;
   BVOrthogRefineType orthog_ref;
-  Mat            A,matrix;
+  Mat            matrix;
   Vec            t;
   SR             sr = ctx->sr;
 
@@ -75,8 +75,7 @@ PetscErrorCode EPSAllocateSolutionSlice(EPS eps,PetscInt extra)
     ierr = BVGetType(eps->V,&type);CHKERRQ(ierr);
     ierr = BVSetType(sr->V,type);CHKERRQ(ierr);
   }
-  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,&t,NULL);CHKERRQ(ierr);
+  ierr = STMatGetVecs(eps->st,&t,NULL);CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(sr->V,t,requested);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = BVGetMatrix(eps->V,&matrix,NULL);CHKERRQ(ierr);

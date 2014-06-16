@@ -80,9 +80,8 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* Set problem dimensions */
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   if (!nmat) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first");
-  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&eps->n,NULL);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(A,&eps->nloc,NULL);CHKERRQ(ierr);
+  ierr = STMatGetSize(eps->st,&eps->n,NULL);CHKERRQ(ierr);
+  ierr = STMatGetLocalSize(eps->st,&eps->nloc,NULL);CHKERRQ(ierr);
 
   /* Set default problem type */
   if (!eps->problem_type) {
@@ -116,6 +115,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* initialization of matrix norms */
   if (eps->conv==EPS_CONV_NORM) {
     if (!eps->nrma) {
+      ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
       ierr = MatNorm(A,NORM_INFINITY,&eps->nrma);CHKERRQ(ierr);
     }
     if (nmat>1 && !eps->nrmb) {
@@ -436,7 +436,6 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
   PetscErrorCode ierr;
   PetscInt       oldsize,newc,requested;
   PetscLogDouble cnt;
-  Mat            A;
   Vec            t;
 
   PetscFunctionBegin;
@@ -471,8 +470,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
     if (!((PetscObject)(eps->V))->type_name) {
       ierr = BVSetType(eps->V,BVSVEC);CHKERRQ(ierr);
     }
-    ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-    ierr = MatGetVecs(A,&t,NULL);CHKERRQ(ierr);
+    ierr = STMatGetVecs(eps->st,&t,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(eps->V,t,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {
