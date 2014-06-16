@@ -338,12 +338,10 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  nconv = 0;
   for (i=0;i<PetscMin(nest,pep->ncv);i++) {
     pep->eigr[i] = eigr[i];
     pep->eigi[i] = eigi[i];
     pep->errest[i] = errest[i];
-    if (0.0 < errest[i] && errest[i] < pep->tol) nconv++;
   }
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STBackTransform(st,nest,pep->eigr,pep->eigi);CHKERRQ(ierr);
