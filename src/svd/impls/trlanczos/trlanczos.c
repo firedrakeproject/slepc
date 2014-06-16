@@ -274,7 +274,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   ierr = BVGetOrthogonalization(svd->V,&orthog,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld,&w);CHKERRQ(ierr);
   if (lanczos->oneside && orthog == BV_ORTHOG_CGS) {
-    ierr = PetscMalloc1(svd->ncv,&swork);CHKERRQ(ierr);
+    ierr = PetscMalloc1(svd->ncv+1,&swork);CHKERRQ(ierr);
   }
 
   /* normalize start vector */
