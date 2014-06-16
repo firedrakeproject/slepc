@@ -842,11 +842,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   ierr = PetscFree(sr->idxDef);CHKERRQ(ierr);
   ierr = PetscFree(sr->pending);CHKERRQ(ierr);
   ierr = PetscFree(sr->back);CHKERRQ(ierr);
-  eps->nconv = sr->indexEig;
+  eps->nconv  = sr->indexEig;
   eps->reason = EPS_CONVERGED_TOL;
-  eps->its = sr->itsKs;
-  eps->nds = 0;
-  eps->evecsavailable = PETSC_TRUE;
+  eps->its    = sr->itsKs;
+  eps->nds    = 0;
   PetscFunctionReturn(0);
 }
 

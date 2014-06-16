@@ -56,7 +56,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (eps->setupcalled) PetscFunctionReturn(0);
+  if (eps->state) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
 
   /* reset the convergence flag from the previous solves */
@@ -217,7 +217,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
 
   ierr = PetscLogEventEnd(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
-  eps->setupcalled = 1;
+  eps->state = EPS_STATE_SETUP;
   PetscFunctionReturn(0);
 }
 
@@ -264,7 +264,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
     if (m0!=n) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B is a non-square matrix");
     if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Dimensions of A and B do not match");
   }
-  if (eps->setupcalled) { ierr = EPSReset(eps);CHKERRQ(ierr); }
+  if (eps->state) { ierr = EPSReset(eps);CHKERRQ(ierr); }
   eps->nrma = 0.0;
   eps->nrmb = 0.0;
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
@@ -353,7 +353,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
   PetscValidLogicalCollectiveInt(eps,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range");
   ierr = SlepcBasisReference_Private(n,v,&eps->nds,&eps->defl);CHKERRQ(ierr);
-  if (n>0) eps->setupcalled = 0;
+  if (n>0) eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -396,7 +396,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   PetscValidLogicalCollectiveInt(eps,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&eps->nini,&eps->IS);CHKERRQ(ierr);
-  if (n>0) eps->setupcalled = 0;
+  if (n>0) eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

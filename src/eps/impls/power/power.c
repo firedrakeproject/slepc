@@ -391,7 +391,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->ops->destroy              = EPSDestroy_Power;
   eps->ops->view                 = EPSView_Power;
   eps->ops->backtransform        = EPSBackTransform_Power;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C",EPSPowerSetShiftType_Power);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C",EPSPowerGetShiftType_Power);CHKERRQ(ierr);
   PetscFunctionReturn(0);

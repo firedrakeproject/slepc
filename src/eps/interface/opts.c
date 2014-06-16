@@ -294,7 +294,7 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
   if (maxits) {
     if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
       eps->max_it = 0;
-      eps->setupcalled = 0;
+      eps->state  = EPS_STATE_INITIAL;
     } else {
       if (maxits < 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
       eps->max_it = maxits;
@@ -391,7 +391,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
   if (nev) {
     if (nev<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
     eps->nev = nev;
-    eps->setupcalled = 0;
+    eps->state = EPS_STATE_INITIAL;
   }
   if (ncv) {
     if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
@@ -400,7 +400,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
       if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
       eps->ncv = ncv;
     }
-    eps->setupcalled = 0;
+    eps->state = EPS_STATE_INITIAL;
   }
   if (mpd) {
     if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
@@ -497,7 +497,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
       case EPS_ALL:
       case EPS_WHICH_USER:
         if (eps->which != which) {
-          eps->setupcalled = 0;
+          eps->state = EPS_STATE_INITIAL;
           eps->which = which;
         }
         break;
@@ -632,7 +632,7 @@ PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScal
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   eps->arbitrary    = func;
   eps->arbitraryctx = ctx;
-  eps->setupcalled  = 0;
+  eps->state        = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

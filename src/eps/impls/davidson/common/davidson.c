@@ -653,6 +653,5 @@ PetscErrorCode EPSComputeVectors_XD(EPS eps)
     ierr = BVMultInPlace(eps->V,Z,0,eps->nconv);CHKERRQ(ierr);
     ierr = MatDestroy(&Z);CHKERRQ(ierr);
   }
-  eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
 }

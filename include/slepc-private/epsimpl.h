@@ -46,6 +46,11 @@ struct _EPSOps {
 */
 #define MAXEPSMONITORS 5
 
+typedef enum { EPS_STATE_INITIAL,
+               EPS_STATE_SETUP,
+               EPS_STATE_SOLVED,
+               EPS_STATE_EIGENVECTORS } EPSStateType;
+
 /*
    Defines the EPS data structure.
 */
@@ -100,23 +105,37 @@ struct _p_EPS {
   void           *data;            /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables --------------------------*/
+  EPSStateType   state;            /* initial -> setup -> solved -> eigenvectors */
   PetscInt       nconv;            /* number of converged eigenvalues */
   PetscInt       its;              /* number of iterations so far computed */
-  PetscBool      evecsavailable;   /* computed eigenvectors */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
   PetscReal      nrma,nrmb;        /* computed matrix norms */
-  PetscInt       setupcalled;
   PetscBool      isgeneralized;
   PetscBool      ispositive;
   PetscBool      ishermitian;
   EPSConvergedReason reason;
 };
 
+/*
+    Macros to test valid EPS arguments
+*/
+#if !defined(PETSC_USE_DEBUG)
+
+#define EPSCheckSolved(h,arg) do {} while (0)
+
+#else
+
+#define EPSCheckSolved(h,arg) \
+  do { \
+    if (h->state<EPS_STATE_SOLVED) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSolve() first: Parameter #%d",arg); \
+  } while (0)
+
+#endif
+
 PETSC_INTERN PetscErrorCode EPSSetWhichEigenpairs_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSAllocateSolution(EPS,PetscInt);
 PETSC_INTERN PetscErrorCode EPSSetDimensions_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSBackTransform_Default(EPS);
-PETSC_INTERN PetscErrorCode EPSComputeVectors_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Hermitian(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
