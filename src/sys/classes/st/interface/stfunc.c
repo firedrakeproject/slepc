@@ -51,9 +51,9 @@ PetscErrorCode STFinalizePackage(void)
 #undef __FUNCT__
 #define __FUNCT__ "STInitializePackage"
 /*@C
-   STInitializePackage - This function initializes everything in the ST package. It is called
-   from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to STCreate()
-   when using static libraries.
+   STInitializePackage - This function initializes everything in the ST package.
+   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
+   on the first call to STCreate() when using static libraries.
 
    Level: developer
 
@@ -287,7 +287,9 @@ PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveInt(st,k,2);
   PetscValidPointer(A,3);
+  STCheckMatrices(st,1);
   if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat-1);
   if (((PetscObject)st->A[k])->state!=st->Astate[k]) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot retrieve original matrices (have been modified)");
   *A = st->A[k];
@@ -316,8 +318,9 @@ PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *T)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveInt(st,k,2);
   PetscValidPointer(T,3);
-  if (!st->nmat) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"STSetOperators must be called first");
+  STCheckMatrices(st,1);
   if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat-1);
   if (!st->T) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_POINTER,"There are no transformed matrices");
   *T = st->T[k];
@@ -379,6 +382,7 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveScalar(st,shift,2);
+  PetscValidType(st,1);
   if (st->sigma != shift) {
     if (st->ops->setshift) {
       ierr = (*st->ops->setshift)(st,shift);CHKERRQ(ierr);
