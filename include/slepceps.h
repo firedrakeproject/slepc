@@ -247,6 +247,7 @@ PETSC_EXTERN PetscErrorCode EPSRegisterAll(void);
 PETSC_EXTERN PetscErrorCode EPSRegister(const char[],PetscErrorCode(*)(EPS));
 
 PETSC_EXTERN PetscErrorCode EPSSetWorkVecs(EPS,PetscInt);
+PETSC_EXTERN PetscErrorCode EPSAllocateSolution(EPS,PetscInt);
 
 /* --------- options specific to particular eigensolvers -------- */
 

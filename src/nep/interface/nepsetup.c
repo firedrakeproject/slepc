@@ -197,11 +197,23 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec *is)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPAllocateSolution"
-/*
-  NEPAllocateSolution - Allocate memory storage for common variables such
-  as eigenvalues and eigenvectors. The argument extra is used for methods
-  that require a working basis slightly larger than ncv.
-*/
+/*@
+   NEPAllocateSolution - Allocate memory storage for common variables such
+   as eigenvalues and eigenvectors.
+
+   Collective on NEP
+
+   Input Parameters:
++  nep   - eigensolver context
+-  extra - number of additional positions, used for methods that require a
+           working basis slightly larger than ncv
+
+   Developers Note:
+   This is PETSC_EXTERN because it may be required by user plugin NEP
+   implementations.
+
+   Level: developer
+@*/
 PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
 {
   PetscErrorCode ierr;

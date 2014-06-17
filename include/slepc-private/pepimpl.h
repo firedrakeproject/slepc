@@ -128,7 +128,6 @@ struct _p_PEP {
 
 #endif
 
-PETSC_INTERN PetscErrorCode PEPAllocateSolution(PEP,PetscInt);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Schur(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Indefinite(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeResidualNorm_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);

@@ -153,12 +153,23 @@ PetscErrorCode MFNGetOperator(MFN mfn,Mat *A)
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNAllocateSolution"
-/*
-  MFNAllocateSolution - Allocate memory storage for common variables such as
-  the basis vectors. The argument extra is used for methods that require a working
-  basis slightly larger than ncv. This is called at setup after setting the value
-  of ncv.
- */
+/*@
+   MFNAllocateSolution - Allocate memory storage for common variables such
+   as the basis vectors.
+
+   Collective on MFN
+
+   Input Parameters:
++  mfn   - eigensolver context
+-  extra - number of additional positions, used for methods that require a
+           working basis slightly larger than ncv
+
+   Developers Note:
+   This is PETSC_EXTERN because it may be required by user plugin MFN
+   implementations.
+
+   Level: developer
+@*/
 PetscErrorCode MFNAllocateSolution(MFN mfn,PetscInt extra)
 {
   PetscErrorCode ierr;

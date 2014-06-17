@@ -417,11 +417,23 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSAllocateSolution"
-/*
-  EPSAllocateSolution - Allocate memory storage for common variables such
-  as eigenvalues and eigenvectors. The argument extra is used for methods
-  that require a working basis slightly larger than ncv.
-*/
+/*@
+   EPSAllocateSolution - Allocate memory storage for common variables such
+   as eigenvalues and eigenvectors.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps   - eigensolver context
+-  extra - number of additional positions, used for methods that require a
+           working basis slightly larger than ncv
+
+   Developers Note:
+   This is PETSC_EXTERN because it may be required by user plugin EPS
+   implementations.
+
+   Level: developer
+@*/
 PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
 {
   PetscErrorCode ierr;

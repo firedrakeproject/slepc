@@ -126,7 +126,6 @@ PETSC_STATIC_INLINE PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
 }
 
 PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
-PETSC_INTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
 PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode NEPComputeRelativeError_Private(NEP,PetscScalar,Vec,PetscReal*);
 

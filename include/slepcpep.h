@@ -220,6 +220,7 @@ PETSC_EXTERN PetscErrorCode PEPRegisterAll(void);
 PETSC_EXTERN PetscErrorCode PEPRegister(const char[],PetscErrorCode(*)(PEP));
 
 PETSC_EXTERN PetscErrorCode PEPSetWorkVecs(PEP,PetscInt);
+PETSC_EXTERN PetscErrorCode PEPAllocateSolution(PEP,PetscInt);
 
 /* --------- options specific to particular eigensolvers -------- */
 
