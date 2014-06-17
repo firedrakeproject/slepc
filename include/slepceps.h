@@ -127,6 +127,7 @@ typedef enum { EPS_BALANCE_NONE=1,
                EPS_BALANCE_ONESIDE,
                EPS_BALANCE_TWOSIDE,
                EPS_BALANCE_USER } EPSBalance;
+PETSC_EXTERN const char *EPSBalanceTypes[];
 
 /*E
     EPSConv - Determines the convergence test

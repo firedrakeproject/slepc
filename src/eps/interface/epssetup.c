@@ -115,8 +115,6 @@ PetscErrorCode EPSSetUp(EPS eps)
     }
   }
 
-  if (!eps->balance) eps->balance = EPS_BALANCE_NONE;
-
   /* call specific solver setup */
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
 

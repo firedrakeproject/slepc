@@ -108,7 +108,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",extr);CHKERRQ(ierr);
     }
-    if (eps->balance && !eps->ishermitian && eps->balance!=EPS_BALANCE_NONE) {
+    if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE) {
       switch (eps->balance) {
         case EPS_BALANCE_ONESIDE:   bal = "one-sided Krylov"; break;
         case EPS_BALANCE_TWOSIDE:   bal = "two-sided Krylov"; break;
@@ -370,7 +370,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->intb            = 0.0;
   eps->problem_type    = (EPSProblemType)0;
   eps->extraction      = (EPSExtraction)0;
-  eps->balance         = (EPSBalance)0;
+  eps->balance         = EPS_BALANCE_NONE;
   eps->balance_its     = 5;
   eps->balance_cutoff  = 1e-8;
   eps->trueres         = PETSC_FALSE;
