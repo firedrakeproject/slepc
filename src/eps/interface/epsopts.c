@@ -467,30 +467,28 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,which,2);
-  if (which) {
-    if (which==PETSC_DECIDE || which==PETSC_DEFAULT) eps->which = (EPSWhich)0;
-    else switch (which) {
-      case EPS_LARGEST_MAGNITUDE:
-      case EPS_SMALLEST_MAGNITUDE:
-      case EPS_LARGEST_REAL:
-      case EPS_SMALLEST_REAL:
-      case EPS_LARGEST_IMAGINARY:
-      case EPS_SMALLEST_IMAGINARY:
-      case EPS_TARGET_MAGNITUDE:
-      case EPS_TARGET_REAL:
+  if (which==PETSC_DECIDE || which==PETSC_DEFAULT) eps->which = (EPSWhich)0;
+  else switch (which) {
+    case EPS_LARGEST_MAGNITUDE:
+    case EPS_SMALLEST_MAGNITUDE:
+    case EPS_LARGEST_REAL:
+    case EPS_SMALLEST_REAL:
+    case EPS_LARGEST_IMAGINARY:
+    case EPS_SMALLEST_IMAGINARY:
+    case EPS_TARGET_MAGNITUDE:
+    case EPS_TARGET_REAL:
 #if defined(PETSC_USE_COMPLEX)
-      case EPS_TARGET_IMAGINARY:
+    case EPS_TARGET_IMAGINARY:
 #endif
-      case EPS_ALL:
-      case EPS_WHICH_USER:
-        if (eps->which != which) {
-          eps->state = EPS_STATE_INITIAL;
-          eps->which = which;
-        }
-        break;
-      default:
-        SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value");
-    }
+    case EPS_ALL:
+    case EPS_WHICH_USER:
+      if (eps->which != which) {
+        eps->state = EPS_STATE_INITIAL;
+        eps->which = which;
+      }
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value");
   }
   PetscFunctionReturn(0);
 }
