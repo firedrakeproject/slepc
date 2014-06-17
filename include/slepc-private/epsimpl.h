@@ -132,6 +132,28 @@ struct _p_EPS {
 
 #endif
 
+#undef __FUNCT__
+#define __FUNCT__ "EPS_SetInnerProduct"
+/*
+  EPS_SetInnerProduct - set B matrix for inner product if appropriate.
+*/
+PETSC_STATIC_INLINE PetscErrorCode EPS_SetInnerProduct(EPS eps)
+{
+  PetscErrorCode ierr;
+  Mat            B;
+
+  PetscFunctionBegin;
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
+  if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
+    ierr = STGetBilinearForm(eps->st,&B);CHKERRQ(ierr);
+    ierr = BVSetMatrix(eps->V,B,eps->ispositive?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr);
+    ierr = MatDestroy(&B);CHKERRQ(ierr);
+  } else {
+    ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 PETSC_INTERN PetscErrorCode EPSSetWhichEigenpairs_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSAllocateSolution(EPS,PetscInt);
 PETSC_INTERN PetscErrorCode EPSSetDimensions_Default(EPS);

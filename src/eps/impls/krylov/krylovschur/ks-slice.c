@@ -78,6 +78,7 @@ PetscErrorCode EPSAllocateSolutionSlice(EPS eps,PetscInt extra)
   ierr = STMatGetVecs(eps->st,&t,NULL);CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(sr->V,t,requested);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
+  ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = BVGetMatrix(eps->V,&matrix,NULL);CHKERRQ(ierr);
   ierr = BVSetMatrix(sr->V,matrix,PETSC_FALSE);CHKERRQ(ierr);
   ierr = BVGetOrthogonalization(eps->V,&orthog_type,&orthog_ref,&eta);CHKERRQ(ierr);
