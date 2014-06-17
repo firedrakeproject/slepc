@@ -339,7 +339,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->trackall        = PETSC_FALSE;
 
   pep->comparison      = NULL;
-  pep->converged       = PEPConvergedEigRelative;
+  pep->converged       = PEPConvergedNormRelative;
   pep->comparisonctx   = NULL;
   pep->convergedctx    = NULL;
   pep->numbermonitors  = 0;
