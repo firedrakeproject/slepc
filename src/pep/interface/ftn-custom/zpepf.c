@@ -105,7 +105,6 @@ static struct {
 static PetscErrorCode ourmonitor(PEP pep,PetscInt i,PetscInt nc,PetscScalar *er,PetscScalar *ei,PetscReal *d,PetscInt l,void* ctx)
 {
   PetscObjectUseFortranCallback(pep,_cb.monitor,(PEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),(&pep,&i,&nc,er,ei,d,&l,_ctx,&ierr));
-  return 0;
 }
 
 #undef __FUNCT__
@@ -114,7 +113,6 @@ static PetscErrorCode ourdestroy(void** ctx)
 {
   PEP pep = (PEP)*ctx;
   PetscObjectUseFortranCallback(pep,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
-  return 0;
 }
 
 PETSC_EXTERN void PETSC_STDCALL pepdestroy_(PEP *pep,PetscErrorCode *ierr)

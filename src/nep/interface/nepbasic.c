@@ -433,6 +433,9 @@ PetscErrorCode NEPDestroy(NEP *nep)
   ierr = PetscRandomDestroy(&(*nep)->rand);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*nep)->nini,&(*nep)->IS);CHKERRQ(ierr);
+  if ((*nep)->convergeddestroy) {
+    ierr = (*(*nep)->convergeddestroy)((*nep)->convergedctx);CHKERRQ(ierr);
+  }
   ierr = NEPMonitorCancel(*nep);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(nep);CHKERRQ(ierr);
   PetscFunctionReturn(0);

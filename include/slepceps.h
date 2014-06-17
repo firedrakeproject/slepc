@@ -171,7 +171,7 @@ PETSC_EXTERN PetscErrorCode EPSSetDS(EPS,DS);
 PETSC_EXTERN PetscErrorCode EPSGetDS(EPS,DS*);
 PETSC_EXTERN PetscErrorCode EPSSetTolerances(EPS,PetscReal,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSGetTolerances(EPS,PetscReal*,PetscInt*);
-PETSC_EXTERN PetscErrorCode EPSSetConvergenceTestFunction(EPS,PetscErrorCode (*)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*);
+PETSC_EXTERN PetscErrorCode EPSSetConvergenceTestFunction(EPS,PetscErrorCode (*)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*,PetscErrorCode (*)(void*));
 PETSC_EXTERN PetscErrorCode EPSSetConvergenceTest(EPS,EPSConv);
 PETSC_EXTERN PetscErrorCode EPSGetConvergenceTest(EPS,EPSConv*);
 PETSC_EXTERN PetscErrorCode EPSConvergedEigRelative(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);

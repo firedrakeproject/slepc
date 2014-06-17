@@ -79,6 +79,7 @@ struct _p_EPS {
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   PetscErrorCode (*converged)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+  PetscErrorCode (*convergeddestroy)(void*);
   PetscErrorCode (*arbitrary)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*);
   void           *comparisonctx;
   void           *convergedctx;

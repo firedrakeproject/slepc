@@ -645,9 +645,11 @@ PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScal
    Logically Collective on EPS
 
    Input Parameters:
-+  eps  - eigensolver context obtained from EPSCreate()
-.  func - a pointer to the convergence test function
--  ctx  - a context pointer (the last parameter to the convergence test function)
++  eps     - eigensolver context obtained from EPSCreate()
+.  func    - a pointer to the convergence test function
+.  ctx     - [optional] context for private data for the convergence routine
+-  destroy - [optional] destructor for the context (may be NULL;
+             PETSC_NULL_FUNCTION in Fortran)
 
    Calling Sequence of func:
 $   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
@@ -665,14 +667,20 @@ $   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *erre
 
    Level: advanced
 
-.seealso: EPSSetConvergenceTest(),EPSSetTolerances()
+.seealso: EPSSetConvergenceTest(), EPSSetTolerances()
 @*/
-PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx)
+PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  eps->converged    = func;
-  eps->convergedctx = ctx;
+  if (eps->convergeddestroy) {
+    ierr = (*eps->convergeddestroy)(eps->convergedctx);CHKERRQ(ierr);
+  }
+  eps->converged        = func;
+  eps->convergeddestroy = destroy;
+  eps->convergedctx     = ctx;
   if (func == EPSConvergedEigRelative) eps->conv = EPS_CONV_EIG;
   else if (func == EPSConvergedNormRelative) eps->conv = EPS_CONV_NORM;
   else if (func == EPSConvergedAbsolute) eps->conv = EPS_CONV_ABS;

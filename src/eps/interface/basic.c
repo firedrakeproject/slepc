@@ -378,6 +378,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   eps->comparison      = NULL;
   eps->converged       = EPSConvergedEigRelative;
+  eps->convergeddestroy= NULL;
   eps->arbitrary       = NULL;
   eps->comparisonctx   = NULL;
   eps->convergedctx    = NULL;
@@ -605,6 +606,9 @@ PetscErrorCode EPSDestroy(EPS *eps)
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*eps)->nds,&(*eps)->defl);CHKERRQ(ierr);
   ierr = SlepcBasisDestroy_Private(&(*eps)->nini,&(*eps)->IS);CHKERRQ(ierr);
+  if ((*eps)->convergeddestroy) {
+    ierr = (*(*eps)->convergeddestroy)((*eps)->convergedctx);CHKERRQ(ierr);
+  }
   ierr = EPSMonitorCancel(*eps);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
