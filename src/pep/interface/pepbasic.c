@@ -220,7 +220,7 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)pep));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(pep,1,viewer,2);
-  if (!pep->eigr || !pep->eigi || !pep->V) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"PEPSolve must be called first");
+  PEPCheckSolved(pep,1);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
@@ -363,13 +363,13 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->work            = NULL;
   pep->data            = NULL;
 
+  pep->state           = PEP_STATE_INITIAL;
   pep->nconv           = 0;
   pep->its             = 0;
   pep->n               = 0;
   pep->nloc            = 0;
   pep->nrma            = NULL;
   pep->sfactor_set     = PETSC_FALSE;
-  pep->setupcalled     = 0;
   pep->reason          = PEP_CONVERGED_ITERATING;
 
   ierr = PetscRandomCreate(comm,&pep->rand);CHKERRQ(ierr);
@@ -428,7 +428,7 @@ PetscErrorCode PEPSetType(PEP pep,PEPType type)
   if (pep->ops->destroy) { ierr = (*pep->ops->destroy)(pep);CHKERRQ(ierr); }
   ierr = PetscMemzero(pep->ops,sizeof(struct _PEPOps));CHKERRQ(ierr);
 
-  pep->setupcalled = 0;
+  pep->state = PEP_STATE_INITIAL;
   ierr = PetscObjectChangeTypeName((PetscObject)pep,type);CHKERRQ(ierr);
   ierr = (*r)(pep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -500,7 +500,7 @@ PetscErrorCode PEPRegister(const char *name,PetscErrorCode (*function)(PEP))
 #undef __FUNCT__
 #define __FUNCT__ "PEPReset"
 /*@
-   PEPReset - Resets the PEP context to the setupcalled=0 state and removes any
+   PEPReset - Resets the PEP context to the initial state and removes any
    allocated objects.
 
    Collective on PEP
@@ -536,7 +536,7 @@ PetscErrorCode PEPReset(PEP pep)
   ierr = BVDestroy(&pep->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(pep->nwork,&pep->work);CHKERRQ(ierr);
   pep->nwork = 0;
-  pep->setupcalled = 0;
+  pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

@@ -51,7 +51,7 @@ PetscErrorCode PEPSetUp(PEP pep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (pep->setupcalled) PetscFunctionReturn(0);
+  if (pep->state) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(PEP_SetUp,pep,0,0,0);CHKERRQ(ierr);
 
   /* reset the convergence flag from the previous solves */
@@ -182,7 +182,7 @@ PetscErrorCode PEPSetUp(PEP pep)
     pep->nini = k;
   }
   ierr = PetscLogEventEnd(PEP_SetUp,pep,0,0,0);CHKERRQ(ierr);
-  pep->setupcalled = 1;
+  pep->state = PEP_STATE_SETUP;
   PetscFunctionReturn(0);
 }
 
@@ -220,7 +220,7 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   if (nmat <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %D",nmat);
   PetscValidPointer(A,3);
 
-  if (pep->setupcalled) { ierr = PEPReset(pep);CHKERRQ(ierr); }
+  if (pep->state) { ierr = PEPReset(pep);CHKERRQ(ierr); }
   ierr = PetscMalloc1(nmat,&pep->A);CHKERRQ(ierr);
   ierr = PetscCalloc3(3*nmat,&pep->pbc,nmat,&pep->solvematcoeffs,nmat,&pep->nrma);CHKERRQ(ierr);
   for (i=0;i<nmat;i++) pep->pbc[i] = 1.0;  /* default to monomial basis */
@@ -330,7 +330,7 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec *is)
   PetscValidLogicalCollectiveInt(pep,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&pep->nini,&pep->IS);CHKERRQ(ierr);
-  if (n>0) pep->setupcalled = 0;
+  if (n>0) pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

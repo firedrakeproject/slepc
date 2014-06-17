@@ -258,7 +258,7 @@ PetscErrorCode PEPSetTolerances(PEP pep,PetscReal tol,PetscInt maxits)
   if (maxits) {
     if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
       pep->max_it = 0;
-      pep->setupcalled = 0;
+      pep->state  = PEP_STATE_INITIAL;
     } else {
       if (maxits < 0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
       pep->max_it = maxits;
@@ -348,7 +348,7 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   if (nev) {
     if (nev<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
     pep->nev = nev;
-    pep->setupcalled = 0;
+    pep->state = PEP_STATE_INITIAL;
   }
   if (ncv) {
     if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
@@ -357,7 +357,7 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
       if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
       pep->ncv = ncv;
     }
-    pep->setupcalled = 0;
+    pep->state = PEP_STATE_INITIAL;
   }
   if (mpd) {
     if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
@@ -436,7 +436,7 @@ PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
       case PEP_TARGET_IMAGINARY:
 #endif
         if (pep->which != which) {
-          pep->setupcalled = 0;
+          pep->state = PEP_STATE_INITIAL;
           pep->which = which;
         }
         break;
@@ -513,8 +513,7 @@ PetscErrorCode PEPSetProblemType(PEP pep,PEPProblemType type)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,type,2);
-  if (type!=PEP_GENERAL && type!=PEP_HERMITIAN && type!=PEP_GYROSCOPIC)
-    SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
+  if (type!=PEP_GENERAL && type!=PEP_HERMITIAN && type!=PEP_GYROSCOPIC) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
   pep->problem_type = type;
   PetscFunctionReturn(0);
 }
@@ -802,6 +801,7 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,PetscInt its,P
     else if (lambda<=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of lambda. Must be > 0");
     else pep->slambda = lambda;
   }
+  pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

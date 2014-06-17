@@ -559,7 +559,7 @@ static PetscErrorCode PEPLinearSetEPS_Linear(PEP pep,EPS eps)
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   ctx->eps = eps;
   ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->eps);CHKERRQ(ierr);
-  pep->setupcalled = 0;
+  pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
