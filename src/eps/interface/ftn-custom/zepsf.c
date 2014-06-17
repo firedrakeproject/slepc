@@ -227,6 +227,14 @@ PETSC_EXTERN void PETSC_STDCALL epsappendoptionsprefix_(EPS *eps,CHAR prefix PET
   FREECHAR(prefix,t);
 }
 
+PETSC_EXTERN void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  const char *tname;
+
+  *ierr = EPSGetOptionsPrefix(*eps,&tname); if (*ierr) return;
+  *ierr = PetscStrncpy(prefix,tname,len);
+}
+
 PETSC_EXTERN void PETSC_STDCALL epscreate_(MPI_Fint *comm,EPS *eps,PetscErrorCode *ierr)
 {
   *ierr = EPSCreate(MPI_Comm_f2c(*(comm)),eps);
@@ -265,14 +273,6 @@ PETSC_EXTERN void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *mon
       *ierr = EPSMonitorSet(*eps,ourmonitor,*eps,ourdestroy);
     }
   }
-}
-
-PETSC_EXTERN void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
-{
-  const char *tname;
-
-  *ierr = EPSGetOptionsPrefix(*eps,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epsgetst_(EPS *eps,ST *st,PetscErrorCode *ierr)

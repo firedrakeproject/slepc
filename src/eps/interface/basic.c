@@ -189,7 +189,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       break;
-    default:
+    case EPS_CONV_USER:
       ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
     }
     if (eps->nini) {

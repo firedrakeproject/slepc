@@ -162,6 +162,8 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       }
       break;
+    case PEP_CONV_USER:
+      ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
     }
     if (pep->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(pep->nini));CHKERRQ(ierr);
@@ -340,6 +342,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
 
   pep->comparison      = NULL;
   pep->converged       = PEPConvergedNormRelative;
+  pep->convergeddestroy= NULL;
   pep->comparisonctx   = NULL;
   pep->convergedctx    = NULL;
   pep->numbermonitors  = 0;
@@ -569,6 +572,9 @@ PetscErrorCode PEPDestroy(PEP *pep)
   ierr = PetscRandomDestroy(&(*pep)->rand);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*pep)->nini,&(*pep)->IS);CHKERRQ(ierr);
+  if ((*pep)->convergeddestroy) {
+    ierr = (*(*pep)->convergeddestroy)((*pep)->convergedctx);CHKERRQ(ierr);
+  }
   ierr = PEPMonitorCancel(*pep);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(pep);CHKERRQ(ierr);
   PetscFunctionReturn(0);

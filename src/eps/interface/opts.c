@@ -112,8 +112,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) { ierr = EPSSetConvergenceTest(eps,EPS_CONV_EIG);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-eps_conv_norm","Convergence test relative to the eigenvalue and the matrix norms","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetConvergenceTest(eps,EPS_CONV_NORM);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-eps_conv_abs","Absolute error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-eps_conv_abs","Absolute error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetConvergenceTest(eps,EPS_CONV_ABS);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-eps_conv_user","User-defined convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetConvergenceTest(eps,EPS_CONV_USER);CHKERRQ(ierr); }
 
     i = j = k = 0;
     ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&i,NULL);CHKERRQ(ierr);
@@ -703,12 +705,13 @@ PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,
    Options Database Keys:
 +  -eps_conv_abs - Sets the absolute convergence test
 .  -eps_conv_eig - Sets the convergence test relative to the eigenvalue
--  -eps_conv_norm - Sets the convergence test relative to the matrix norms
+.  -eps_conv_norm - Sets the convergence test relative to the matrix norms
+-  -eps_conv_user - Selects the user-defined convergence test
 
    Note:
    The parameter 'conv' can have one of these values
-+     EPS_CONV_ABS - absolute error ||r||
-.     EPS_CONV_EIG - error relative to the eigenvalue l, ||r||/|l|
++     EPS_CONV_ABS  - absolute error ||r||
+.     EPS_CONV_EIG  - error relative to the eigenvalue l, ||r||/|l|
 .     EPS_CONV_NORM - error relative to the matrix norms, ||r||/(||A||+|l|*||B||)
 -     EPS_CONV_USER - function set by EPSSetConvergenceTestFunction()
 
@@ -749,7 +752,7 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
 
    Level: intermediate
 
-.seealso: EPSSetConvergenceTest(), EPSSetConvergenceTestFunction(), EPSConv
+.seealso: EPSSetConvergenceTest(), EPSConv
 @*/
 PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
 {

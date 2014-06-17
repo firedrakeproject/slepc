@@ -118,11 +118,12 @@ PETSC_EXTERN const char *PEPScaleTypes[];
 
     Level: intermediate
 
-.seealso: PEPSetConvergenceTest()
+.seealso: PEPSetConvergenceTest(), PEPSetConvergenceTestFunction()
 E*/
 typedef enum { PEP_CONV_ABS=1,
                PEP_CONV_EIG,
-               PEP_CONV_NORM } PEPConv;
+               PEP_CONV_NORM,
+               PEP_CONV_USER } PEPConv;
 
 PETSC_EXTERN PetscErrorCode PEPCreate(MPI_Comm,PEP*);
 PETSC_EXTERN PetscErrorCode PEPDestroy(PEP*);
@@ -150,6 +151,7 @@ PETSC_EXTERN PetscErrorCode PEPGetST(PEP,ST*);
 
 PETSC_EXTERN PetscErrorCode PEPSetTolerances(PEP,PetscReal,PetscInt);
 PETSC_EXTERN PetscErrorCode PEPGetTolerances(PEP,PetscReal*,PetscInt*);
+PETSC_EXTERN PetscErrorCode PEPSetConvergenceTestFunction(PEP,PetscErrorCode (*)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*,PetscErrorCode (*)(void*));
 PETSC_EXTERN PetscErrorCode PEPSetConvergenceTest(PEP,PEPConv);
 PETSC_EXTERN PetscErrorCode PEPGetConvergenceTest(PEP,PEPConv*);
 PETSC_EXTERN PetscErrorCode PEPConvergedEigRelative(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);

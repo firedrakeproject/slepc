@@ -76,6 +76,7 @@ struct _p_PEP {
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   PetscErrorCode (*converged)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+  PetscErrorCode (*convergeddestroy)(void*);
   void           *comparisonctx;
   void           *convergedctx;
   PetscErrorCode (*monitor[MAXPEPMONITORS])(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);

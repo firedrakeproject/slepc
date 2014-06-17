@@ -86,8 +86,10 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_EIG);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-pep_conv_norm","Convergence test relative to the eigenvalue and the matrix norms","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_NORM);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-pep_conv_abs","Absolute error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-pep_conv_abs","Absolute error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_ABS);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-pep_conv_user","User-defined convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_USER);CHKERRQ(ierr); }
 
     i = j = k = 0;
     ierr = PetscOptionsInt("-pep_nev","Number of eigenvalues to compute","PEPSetDimensions",pep->nev,&i,NULL);CHKERRQ(ierr);
@@ -666,6 +668,58 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPSetConvergenceTestFunction"
+/*@C
+   PEPSetConvergenceTestFunction - Sets a function to compute the error estimate
+   used in the convergence test.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep     - eigensolver context obtained from PEPCreate()
+.  func    - a pointer to the convergence test function
+.  ctx     - [optional] context for private data for the convergence routine
+-  destroy - [optional] destructor for the context (may be NULL;
+             PETSC_NULL_FUNCTION in Fortran)
+
+   Calling Sequence of func:
+$   func(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+
++   pep    - eigensolver context obtained from PEPCreate()
+.   eigr   - real part of the eigenvalue
+.   eigi   - imaginary part of the eigenvalue
+.   res    - residual norm associated to the eigenpair
+.   errest - (output) computed error estimate
+-   ctx    - optional context, as set by PEPSetConvergenceTest()
+
+   Note:
+   If the error estimate returned by the convergence test function is less than
+   the tolerance, then the eigenvalue is accepted as converged.
+
+   Level: advanced
+
+.seealso: PEPSetConvergenceTest(), PEPSetTolerances()
+@*/
+PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  if (pep->convergeddestroy) {
+    ierr = (*pep->convergeddestroy)(pep->convergedctx);CHKERRQ(ierr);
+  }
+  pep->converged        = func;
+  pep->convergeddestroy = destroy;
+  pep->convergedctx     = ctx;
+  if (func == PEPConvergedEigRelative) pep->conv = PEP_CONV_EIG;
+  else if (func == PEPConvergedNormRelative) pep->conv = PEP_CONV_NORM;
+  else if (func == PEPConvergedAbsolute) pep->conv = PEP_CONV_ABS;
+  else pep->conv = PEP_CONV_USER;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPSetConvergenceTest"
 /*@
    PEPSetConvergenceTest - Specifies how to compute the error estimate
@@ -680,17 +734,19 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
    Options Database Keys:
 +  -pep_conv_abs  - Sets the absolute convergence test
 .  -pep_conv_eig  - Sets the convergence test relative to the eigenvalue
--  -pep_conv_norm - Sets the convergence test relative to the matrix norms
+.  -pep_conv_norm - Sets the convergence test relative to the matrix norms
+-  -pep_conv_user - Selects the user-defined convergence test
 
    Note:
    The parameter 'conv' can have one of these values
 +     PEP_CONV_ABS  - absolute error ||r||
 .     PEP_CONV_EIG  - error relative to the eigenvalue l, ||r||/|l|
--     PEP_CONV_NORM - error relative to the matrix norms
+.     PEP_CONV_NORM - error relative to the matrix norms
+-     PEP_CONV_USER - function set by PEPSetConvergenceTestFunction()
 
    Level: intermediate
 
-.seealso: PEPGetConvergenceTest(), PEPConv
+.seealso: PEPGetConvergenceTest(), PEPSetConvergenceTestFunction(), PEPConv
 @*/
 PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
 {
@@ -701,6 +757,7 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
     case PEP_CONV_EIG:   pep->converged = PEPConvergedEigRelative; break;
     case PEP_CONV_ABS:   pep->converged = PEPConvergedAbsolute; break;
     case PEP_CONV_NORM:  pep->converged = PEPConvergedNormRelative; break;
+    case PEP_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
   }
