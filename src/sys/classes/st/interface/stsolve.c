@@ -70,56 +70,6 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STGetBilinearForm"
-/*@
-   STGetBilinearForm - Returns the matrix used in the bilinear form with a
-   generalized problem with semi-definite B.
-
-   Not collective, though a parallel Mat may be returned
-
-   Input Parameters:
-.  st - the spectral transformation context
-
-   Output Parameter:
-.  B - output matrix
-
-   Notes:
-   The output matrix B must be destroyed after use. It will be NULL in
-   case of standard eigenproblems.
-
-   Level: developer
-@*/
-PetscErrorCode STGetBilinearForm(ST st,Mat *B)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(B,2);
-  if (!st->A) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
-  ierr = (*st->ops->getbilinearform)(st,B);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "STGetBilinearForm_Default"
-PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (st->nmat==1) *B = NULL;
-  else if (st->nmat==3) {
-    *B = st->T[2];
-    ierr = PetscObjectReference((PetscObject)*B);CHKERRQ(ierr);
-  } else {
-    *B = st->A[1];
-    ierr = PetscObjectReference((PetscObject)*B);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "STApplyTranspose"
 /*@
    STApplyTranspose - Applies the transpose of the operator to a vector, for
@@ -166,6 +116,53 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "STGetBilinearForm"
+/*@
+   STGetBilinearForm - Returns the matrix used in the bilinear form with a
+   generalized problem with semi-definite B.
+
+   Not collective, though a parallel Mat may be returned
+
+   Input Parameters:
+.  st - the spectral transformation context
+
+   Output Parameter:
+.  B - output matrix
+
+   Notes:
+   The output matrix B must be destroyed after use. It will be NULL in
+   case of standard eigenproblems.
+
+   Level: developer
+@*/
+PetscErrorCode STGetBilinearForm(ST st,Mat *B)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(B,2);
+  if (!st->A) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
+  ierr = (*st->ops->getbilinearform)(st,B);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STGetBilinearForm_Default"
+PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (st->nmat==1) *B = NULL;
+  else {
+    *B = st->A[1];
+    ierr = PetscObjectReference((PetscObject)*B);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "STComputeExplicitOperator"
 /*@
    STComputeExplicitOperator - Computes the explicit operator associated
@@ -204,6 +201,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(mat,2);
   if (!st->A) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
+  if (st->nmat>2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Can only be used with 1 or 2 matrices");
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)st),&size);CHKERRQ(ierr);
 
   ierr = MatGetVecs(st->A[0],&in,&out);CHKERRQ(ierr);
@@ -317,24 +315,19 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
 {
   PetscErrorCode ierr;
   PetscScalar    gamma;
-  PetscInt       matIdx[3],t,i;
+  PetscInt       matIdx[3],i;
 
   PetscFunctionBegin;
-  if (st->nmat==3 && deg==1) t = 1;
-  else t = 0;
   switch (st->shift_matrix) {
   case ST_MATMODE_INPLACE:
     if (initial) {
-      ierr = PetscObjectReference((PetscObject)st->A[t]);CHKERRQ(ierr);
-      st->T[k] = st->A[t];
+      ierr = PetscObjectReference((PetscObject)st->A[0]);CHKERRQ(ierr);
+      st->T[k] = st->A[0];
       gamma = alpha;
     } else gamma = alpha-beta;
     if (gamma != 0.0) {
       if (st->nmat>1) {
-        ierr = MatAXPY(st->T[k],gamma,st->A[t+1],st->str);CHKERRQ(ierr);
-        if (st->nmat==3 && deg==2) {
-          ierr = MatAXPY(st->T[k],gamma*gamma,st->A[2],st->str);CHKERRQ(ierr);
-        }
+        ierr = MatAXPY(st->T[k],gamma,st->A[1],st->str);CHKERRQ(ierr);
       } else {
         ierr = MatShift(st->T[k],gamma);CHKERRQ(ierr);
       }
@@ -343,12 +336,10 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
   case ST_MATMODE_SHELL:
     if (initial) {
       if (st->nmat>1) {
-        for (i=0;i<=deg;i++) {
-          matIdx[i] = t+i;
-        }
-        ierr = STMatShellCreate(st,alpha,deg+1,matIdx,NULL,&st->T[k]);CHKERRQ(ierr);
+        matIdx[0]=0; matIdx[1]=1;
+        ierr = STMatShellCreate(st,alpha,2,matIdx,NULL,&st->T[k]);CHKERRQ(ierr);
       } else {
-        ierr = STMatShellCreate(st,alpha,deg,NULL,NULL,&st->T[k]);CHKERRQ(ierr);
+        ierr = STMatShellCreate(st,alpha,1,NULL,NULL,&st->T[k]);CHKERRQ(ierr);
       }
       ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[k]);CHKERRQ(ierr);
     } else {
@@ -360,33 +351,28 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
       if (!initial) {
         ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
       }
-      ierr = PetscObjectReference((PetscObject)st->A[t]);CHKERRQ(ierr);
-      st->T[k] = st->A[t];
+      ierr = PetscObjectReference((PetscObject)st->A[0]);CHKERRQ(ierr);
+      st->T[k] = st->A[0];
     } else {
       if (initial) {
-        ierr = MatDuplicate(st->A[t],MAT_COPY_VALUES,&st->T[k]);CHKERRQ(ierr);
+        ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&st->T[k]);CHKERRQ(ierr);
         ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[k]);CHKERRQ(ierr);
       } else {
         if (beta==0.0) {
           ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
-          ierr = MatDuplicate(st->A[t],MAT_COPY_VALUES,&st->T[k]);CHKERRQ(ierr);
+          ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&st->T[k]);CHKERRQ(ierr);
           ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[k]);CHKERRQ(ierr);
         } else {
-          ierr = MatCopy(st->A[t],st->T[k],SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
+          ierr = MatCopy(st->A[0],st->T[k],SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
         }
       }
       if (st->nmat>1) {
-        ierr = MatAXPY(st->T[k],alpha,st->A[t+1],st->str);CHKERRQ(ierr);
-        if (st->nmat==3 && deg==2) {
-          ierr = MatAXPY(st->T[k],alpha*alpha,st->A[2],st->str);CHKERRQ(ierr);
-        }
+        ierr = MatAXPY(st->T[k],alpha,st->A[1],st->str);CHKERRQ(ierr);
       } else {
         ierr = MatShift(st->T[k],alpha);CHKERRQ(ierr);
       }
     }
     break;
-  case ST_MATMODE_HYBRID:
-    SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_HYBRID not supported");
   }
   ierr = STMatSetHermitian(st,st->T[k]);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -396,14 +382,19 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
 #define __FUNCT__ "STMatMAXPY_Private"
 /*
    Computes coefficients for the transformed polynomial,
-   and stores the result in one of the T[:] matrices.
+   and stores the result in argument S.
+
+   alpha - value of the parameter of the transformed polynomial
+   k - number of A matrices involved in the computation
+   coeffs - coefficients of the expansion
+   initial - true if this is the first time (only relevant for shell mode)
 */
-PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar *coeffs,PetscBool initial,Mat *S,PetscBool prec)
+PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar *coeffs,PetscBool initial,Mat *S)
 {
   PetscErrorCode ierr;
   PetscInt       *matIdx,nmat,i,ini=0;
   PetscScalar    t=1.0,ta;
-  PetscBool      copy=PETSC_FALSE,nz=PETSC_FALSE;
+  PetscBool      nz=PETSC_FALSE;
 
   PetscFunctionBegin;
   nmat = st->nmat-k;
@@ -411,21 +402,17 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
   case ST_MATMODE_INPLACE:
     SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for polynomial eigenproblems");
     break;
-  case ST_MATMODE_HYBRID:
-    if (prec) copy = PETSC_TRUE;
   case ST_MATMODE_SHELL:
-    if (!copy) {
-      if (initial) {
-        ierr = PetscMalloc(nmat*sizeof(PetscInt),&matIdx);CHKERRQ(ierr);
-        for (i=0;i<nmat;i++) matIdx[i] = k+i;
-        ierr = STMatShellCreate(st,alpha,st->nmat-k,matIdx,coeffs,S);CHKERRQ(ierr);
-        ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
-        ierr = PetscFree(matIdx);CHKERRQ(ierr);
-      } else {
-        ierr = STMatShellShift(*S,alpha);CHKERRQ(ierr);
-      }
-      break;
+    if (initial) {
+      ierr = PetscMalloc(nmat*sizeof(PetscInt),&matIdx);CHKERRQ(ierr);
+      for (i=0;i<nmat;i++) matIdx[i] = k+i;
+      ierr = STMatShellCreate(st,alpha,st->nmat-k,matIdx,coeffs,S);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
+      ierr = PetscFree(matIdx);CHKERRQ(ierr);
+    } else {
+      ierr = STMatShellShift(*S,alpha);CHKERRQ(ierr);
     }
+    break;
   case ST_MATMODE_COPY:
     ierr = MatDestroy(S);CHKERRQ(ierr);
     if (coeffs) {
@@ -445,11 +432,17 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
       if (coeffs && coeffs[ini]!=1.0) {
         ierr = MatScale(*S,coeffs[ini]);CHKERRQ(ierr);
       }
-      for (i=ini+k+1;i<st->nmat;i++) {
+      for (i=ini+k+1;i<PetscMax(2,st->nmat);i++) {
         t *= alpha;
         ta = t;
         if (coeffs) ta *= coeffs[i-k];
-        if (ta!=0.0) {ierr = MatAXPY(*S,ta,st->A[i],st->str);CHKERRQ(ierr);}
+        if (ta!=0.0) {
+          if (st->nmat>1) {
+            ierr = MatAXPY(*S,ta,st->A[i],st->str);CHKERRQ(ierr);
+          } else {
+            ierr = MatShift(*S,ta);CHKERRQ(ierr);
+          }
+        }
       }
     }
   }
@@ -547,7 +540,7 @@ PetscErrorCode  STComputeSolveMat(ST st,PetscScalar sigma,PetscScalar *coeffs)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = STMatMAXPY_Private(st,sigma,0,coeffs,PETSC_TRUE,&st->P,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = STMatMAXPY_Private(st,sigma,0,coeffs,PETSC_TRUE,&st->P);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);

@@ -51,9 +51,9 @@ PetscErrorCode STFinalizePackage(void)
 #undef __FUNCT__
 #define __FUNCT__ "STInitializePackage"
 /*@C
-   STInitializePackage - This function initializes everything in the ST package. It is called
-   from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to STCreate()
-   when using static libraries.
+   STInitializePackage - This function initializes everything in the ST package.
+   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
+   on the first call to STCreate() when using static libraries.
 
    Level: developer
 
@@ -663,9 +663,6 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
       break;
     case ST_MATMODE_SHELL:
       ierr = PetscViewerASCIIPrintf(viewer,"  using a shell matrix\n");CHKERRQ(ierr);
-      break;
-    case ST_MATMODE_HYBRID:
-      ierr = PetscViewerASCIIPrintf(viewer,"  using a hybrid matrix representation\n");CHKERRQ(ierr);
       break;
     }
     if (st->nmat>1 && st->shift_matrix != ST_MATMODE_SHELL) {
