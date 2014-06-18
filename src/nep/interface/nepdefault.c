@@ -137,44 +137,23 @@ PetscErrorCode NEPConvergedDefault(NEP nep,PetscInt it,PetscReal xnorm,PetscReal
 PetscErrorCode NEPComputeVectors_Schur(NEP nep)
 {
   PetscErrorCode ierr;
-  PetscInt       n,ld,i;
-  PetscScalar    *Z;
-/*
-#if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    tmp;
-  PetscReal      norm,normi;
-#endif
-*/
+  PetscInt       n,i;
+  Mat            Z;
+  Vec            v;
 
   PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
   ierr = DSGetDimensions(nep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-
-  /* right eigenvectors */
   ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-
-  /* AV = V * Z */
-  ierr = DSGetArray(nep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  ierr = SlepcUpdateVectors(n,nep->V,0,n,Z,ld,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = DSRestoreArray(nep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = DSGetMat(nep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(nep->V,0,n);CHKERRQ(ierr);
+  ierr = BVMultInPlace(nep->V,Z,0,n);CHKERRQ(ierr);
+  ierr = MatDestroy(&Z);CHKERRQ(ierr);
 
   /* normalization */
   for (i=0;i<n;i++) {
-/*
-#if !defined(PETSC_USE_COMPLEX)
-    if (nep->eigi[i] != 0.0) {
-      ierr = VecNorm(nep->V[i],NORM_2,&norm);CHKERRQ(ierr);
-      ierr = VecNorm(nep->V[i+1],NORM_2,&normi);CHKERRQ(ierr);
-      tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
-      ierr = VecScale(nep->V[i],tmp);CHKERRQ(ierr);
-      ierr = VecScale(nep->V[i+1],tmp);CHKERRQ(ierr);
-      i++;
-    } else
-#endif
-*/
-    {
-      ierr = VecNormalize(nep->V[i],NULL);CHKERRQ(ierr);
-    }
+    ierr = BVGetColumn(nep->V,i,&v);CHKERRQ(ierr);
+    ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(nep->V,i,&v);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

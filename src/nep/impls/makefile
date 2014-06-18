@@ -22,7 +22,7 @@
 ALL: lib
 
 LIBBASE  = libslepcnep
-DIRS     = rii slp narnoldi nleigs
+DIRS     = rii slp narnoldi #nleigs
 LOCDIR   = src/nep/impls/
 MANSEC   = NEP
 
