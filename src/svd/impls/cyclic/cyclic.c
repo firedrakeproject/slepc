@@ -30,7 +30,6 @@
 typedef struct {
   PetscBool explicitmatrix;
   EPS       eps;
-  PetscBool setfromoptionscalled;
   Mat       mat;
   Vec       x1,x2,y1,y2;
 } SVD_CYCLIC;
@@ -183,10 +182,6 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     ierr = SlepcBasisDestroy_Private(&svd->nini,&svd->IS);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&svd->ninil,&svd->ISL);CHKERRQ(ierr);
   }
-  if (cyclic->setfromoptionscalled) {
-    ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
-    cyclic->setfromoptionscalled = PETSC_FALSE;
-  }
   ierr = EPSSetUp(cyclic->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(cyclic->eps,NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
   svd->ncv = PetscMin(svd->ncv,PetscMin(M,N));
@@ -280,7 +275,8 @@ PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
   ST             st;
 
   PetscFunctionBegin;
-  cyclic->setfromoptionscalled = PETSC_TRUE;
+  if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
+  ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
   ierr = PetscOptionsHead("SVD Cyclic Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",cyclic->explicitmatrix,&val,&set);CHKERRQ(ierr);
   if (set) {

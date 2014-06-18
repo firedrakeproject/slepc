@@ -37,7 +37,6 @@
 
 typedef struct {
   EPS       eps;             /* linear eigensolver for T*z = mu*Tp*z */
-  PetscBool setfromoptionscalled;
 } NEP_SLP;
 
 #undef __FUNCT__
@@ -73,10 +72,6 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = EPSSetDimensions(ctx->eps,1,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->rtol/10.0,nep->max_it?nep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
-  if (ctx->setfromoptionscalled) {
-    ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
-    ctx->setfromoptionscalled = PETSC_FALSE;
-  }
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,1);CHKERRQ(ierr);
@@ -151,10 +146,12 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
 #define __FUNCT__ "NEPSetFromOptions_SLP"
 PetscErrorCode NEPSetFromOptions_SLP(NEP nep)
 {
-  NEP_SLP *ctx = (NEP_SLP*)nep->data;
+  PetscErrorCode ierr;
+  NEP_SLP        *ctx = (NEP_SLP*)nep->data;
 
   PetscFunctionBegin;
-  ctx->setfromoptionscalled = PETSC_TRUE;
+  if (!ctx->eps) { ierr = NEPSLPGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
+  ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

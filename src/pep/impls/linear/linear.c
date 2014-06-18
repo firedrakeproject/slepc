@@ -131,10 +131,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   /* Transfer the trackall option from pep to eps */
   ierr = PEPGetTrackAll(pep,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(ctx->eps,trackall);CHKERRQ(ierr);
-  if (ctx->setfromoptionscalled) {
-    ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
-    ctx->setfromoptionscalled = PETSC_FALSE;
-  }
+
   /* temporary change of target */
   if (pep->sfactor!=1.0) {
     ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
@@ -360,7 +357,8 @@ PetscErrorCode PEPSetFromOptions_Linear(PEP pep)
   ST             st;
 
   PetscFunctionBegin;
-  ctx->setfromoptionscalled = PETSC_TRUE;
+  if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
+  ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
   ierr = PetscOptionsHead("PEP Linear Options");CHKERRQ(ierr);
   ierr = PetscOptionsInt("-pep_linear_cform","Number of the companion form","PEPLinearSetCompanionForm",ctx->cform,&i,&set);CHKERRQ(ierr);
   if (set) {
