@@ -27,6 +27,7 @@
 
 PetscErrorCode dvd_static_precond_PC_0(dvdDashboard *d,PetscInt i,Vec x,Vec Px);
 PetscErrorCode dvd_jacobi_precond_0(dvdDashboard *d,PetscInt i,Vec x,Vec Px);
+PetscErrorCode dvd_jacobi_precond_d(dvdDashboard *d);
 PetscErrorCode dvd_precond_none(dvdDashboard *d,PetscInt i,Vec x,Vec Px);
 PetscErrorCode dvd_improvex_precond_d(dvdDashboard *d);
 
@@ -132,29 +133,27 @@ PetscErrorCode dvd_jacobi_precond(dvdDashboard *d,dvdBlackboard *b)
     ierr = MatHasOperation(d->B, MATOP_GET_DIAGONAL, &t);CHKERRQ(ierr);
   }
 
-  /* Setting configuration constrains */
-  b->own_vecs += t?((d->B == 0)?1:2) : 0;
-
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
     if (t) {
       ierr = PetscMalloc(sizeof(dvdJacobiPrecond), &dvdjp);CHKERRQ(ierr);
       ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdJacobiPrecond));CHKERRQ(ierr);
-      dvdjp->diagA = *b->free_vecs;
-      b->free_vecs++;
+      ierr = MatGetVecs(d->A,&dvdjp->diagA,NULL);CHKERRQ(ierr);
       ierr = MatGetDiagonal(d->A,dvdjp->diagA);CHKERRQ(ierr);
       if (d->B) {
-        dvdjp->diagB = *b->free_vecs;
-        b->free_vecs++;
-        ierr = MatGetDiagonal(d->B, dvdjp->diagB);CHKERRQ(ierr);
+        ierr = MatGetVecs(d->B,&dvdjp->diagB,NULL);CHKERRQ(ierr);
+        ierr = MatGetDiagonal(d->B,dvdjp->diagB);CHKERRQ(ierr);
       } else dvdjp->diagB = 0;
       d->improvex_precond_data = dvdjp;
       d->improvex_precond = dvd_jacobi_precond_0;
 
-      DVD_FL_ADD(d->destroyList, dvd_improvex_precond_d);
+      DVD_FL_ADD(d->destroyList, dvd_jacobi_precond_d);
 
     /* Else, use no preconditioner */
-    } else d->improvex_precond = dvd_precond_none;
+    } else {
+      dvdjp->diagA = dvdjp->diagB = 0;
+      d->improvex_precond = dvd_precond_none;
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -179,6 +178,20 @@ PetscErrorCode dvd_jacobi_precond_0(dvdDashboard *d,PetscInt i,Vec x,Vec Px)
 
   /* Px(i) <- x/Px(i) */
   ierr = VecPointwiseDivide(Px, x, Px);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "dvd_jacobi_precond_d"
+PetscErrorCode dvd_jacobi_precond_d(dvdDashboard *d)
+{
+  PetscErrorCode   ierr;
+  dvdJacobiPrecond *dvdjp = (dvdJacobiPrecond*)d->improvex_precond_data;
+
+  PetscFunctionBegin;
+  if (dvdjp->diagA) {ierr = VecDestroy(&dvdjp->diagA);CHKERRQ(ierr);}
+  if (dvdjp->diagB) {ierr = VecDestroy(&dvdjp->diagB);CHKERRQ(ierr);}
+  ierr = PetscFree(d->improvex_precond_data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -562,3 +575,36 @@ PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
   }
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMultS"
+/* H = [H              Y(old)'*X(new);
+        Y(new)'*X(old) Y(new)'*X(new) ],
+     being old=0:l-1, new=l:k-1 */
+PetscErrorCode BVMultS(BV X,BV Y,PetscScalar *H,PetscInt ldh)
+{
+  PetscErrorCode ierr;
+  PetscInt       j,lx,ly,kx,ky;
+  PetscScalar    *array;
+  Mat            M;
+
+  PetscFunctionBegin;
+  ierr = BVGetActiveColumns(X,&lx,&kx);CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(Y,&ly,&ky);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&M);CHKERRQ(ierr);
+  ierr = BVMatProject(X,NULL,Y,M);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(M,&array);CHKERRQ(ierr);
+  /* upper part */
+  for (j=lx;j<kx;j++) {
+    ierr = PetscMemcpy(&H[ldh*j],array+(j-lx)*ky,ly*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  /* lower part */
+  for (j=0;j<kx;j++) {
+    ierr = PetscMemcpy(&H[ldh*j+ly],array+j*ky,(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(M,&array);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+

@@ -33,7 +33,7 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d);
 PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d);
 PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d);
 PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d);
-PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,PetscInt e,Vec *auxV,PetscScalar *auxS,PetscInt *nConv);
+PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,PetscInt e,PetscInt *nConv);
 
 typedef struct {
   PetscInt
@@ -81,7 +81,6 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
 
   b->max_size_V = PetscMax(b->max_size_V, mpd);
   min_size_V = PetscMin(min_size_V, mpd-bs);
-  b->max_size_auxV = PetscMax(b->max_size_auxV, 1); /* dvd_updateV_testConv */
   b->size_V = PetscMax(b->size_V, b->max_size_V + b->max_size_P + b->max_nev);
   b->own_scalars+= b->size_V*2 /* eigr, eigr */ +
                    b->size_V /* nR */   +
@@ -396,7 +395,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   s = 1;
 #endif
   ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-  ierr = dvd_updateV_testConv(d,s,s,data->allResiduals?k-l:size_D,d->auxV,d->auxS,NULL);CHKERRQ(ierr);
+  ierr = dvd_updateV_testConv(d,s,s,data->allResiduals?k-l:size_D,NULL);CHKERRQ(ierr);
 
   /* Notify the changes in V */
   d->V_tra_s = 0;                 d->V_tra_e = 0;
@@ -421,7 +420,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 #undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_testConv"
 /* auxV: (by calcpairs_residual_eig) */
-PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,PetscInt e,Vec *auxV,PetscScalar *auxS,PetscInt *nConv)
+PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,PetscInt e,PetscInt *nConv)
 {
   PetscInt        i,j,b;
   PetscReal       norm;
@@ -440,19 +439,19 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,Pets
     b = 1;
 #endif
     if (i+b-1 >= pre) {
-      ierr = d->calcpairs_residual(d, i, i+b, auxV);CHKERRQ(ierr);
+      ierr = d->calcpairs_residual(d,i,i+b);CHKERRQ(ierr);
     }
     /* Test the Schur vector */
     for (j=0,c=PETSC_TRUE; j<b && c; j++) {
       norm = d->nR[i+j]/d->nX[i+j];
-      c = d->testConv(d, d->eigr[i+j], d->eigi[i+j], norm, &d->errest[i+j]);
+      c = d->testConv(d,d->eigr[i+j],d->eigi[i+j],norm,&d->errest[i+j]);
     }
     /* Test the eigenvector */
     if (d->eps->trueres && conv && c) {
-      ierr = d->calcpairs_residual_eig(d,i,i+b,auxV);CHKERRQ(ierr);
+      ierr = d->calcpairs_residual_eig(d,i,i+b);CHKERRQ(ierr);
       for (j=0,c=PETSC_TRUE; j<b && c; j++) {
         norm = d->nR[i+j]/d->nX[i+j];
-        c = d->testConv(d, d->eigr[i+j], d->eigi[i+j], norm, &d->errest[i+j]);
+        c = d->testConv(d,d->eigr[i+j],d->eigi[i+j],norm,&d->errest[i+j]);
       }
     }
     if (conv && c) { if (nConv) *nConv = i+b; }

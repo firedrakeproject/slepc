@@ -127,12 +127,11 @@ typedef struct _dvdDashboard {
   EPS eps;          /* Connection to SLEPc */
 
   /**** Auxiliary space ****/
-  Vec *auxV;        /* auxiliary vectors */
+  VecPool auxV;     /* auxiliary vectors */
   BV  auxBV;        /* auxiliary vectors */
   PetscScalar
     *auxS;          /* auxiliary scalars */
   PetscInt
-    size_auxV,      /* max size of auxV */
     size_auxS;      /* max size of auxS */
 
   /**** Eigenvalues and errors ****/
@@ -154,13 +153,13 @@ typedef struct _dvdDashboard {
   PetscErrorCode (*e_Vchanged)(struct _dvdDashboard*,PetscInt s_imm,PetscInt e_imm,PetscInt s_new,PetscInt e_new);
   void *e_Vchanged_data;
 
-  PetscErrorCode (*calcpairs_residual)(struct _dvdDashboard*,PetscInt s,PetscInt e,Vec *R);
-  PetscErrorCode (*calcpairs_residual_eig)(struct _dvdDashboard*,PetscInt s,PetscInt e,Vec *R);
+  PetscErrorCode (*calcpairs_residual)(struct _dvdDashboard*,PetscInt s,PetscInt e);
+  PetscErrorCode (*calcpairs_residual_eig)(struct _dvdDashboard*,PetscInt s,PetscInt e);
   PetscErrorCode (*calcpairs_selectPairs)(struct _dvdDashboard*,PetscInt n);
   void *calcpairs_residual_data;
   PetscErrorCode (*improvex_precond)(struct _dvdDashboard*,PetscInt i,Vec x,Vec Px);
   void *improvex_precond_data;
-  PetscErrorCode (*improvex_jd_proj_uv)(struct _dvdDashboard*,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,Vec *auxV,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld);
+  PetscErrorCode (*improvex_jd_proj_uv)(struct _dvdDashboard*,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld);
   PetscErrorCode (*improvex_jd_lit)(struct _dvdDashboard*,PetscInt i,PetscScalar* theta,PetscScalar* thetai,PetscInt *maxits,PetscReal *tol);
   PetscErrorCode (*calcpairs_W)(struct _dvdDashboard*);
   void *calcpairs_W_data;
@@ -168,7 +167,7 @@ typedef struct _dvdDashboard {
   PetscErrorCode (*calcpairs_eigs_trans)(struct _dvdDashboard*);
   PetscErrorCode (*calcpairs_eig_backtrans)(struct _dvdDashboard*,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
   PetscErrorCode (*calcpairs_proj_res)(struct _dvdDashboard*,PetscInt r_s,PetscInt r_e,Vec *R);
-  PetscErrorCode (*preTestConv)(struct _dvdDashboard*,PetscInt s,PetscInt pre,PetscInt e,Vec *auxV,PetscScalar *auxS,PetscInt *nConv);
+  PetscErrorCode (*preTestConv)(struct _dvdDashboard*,PetscInt s,PetscInt pre,PetscInt e,PetscInt *nConv);
 
   PetscErrorCode (*e_newIteration)(struct _dvdDashboard*);
   void *e_newIteration_data;
@@ -293,9 +292,7 @@ typedef struct {
     max_size_cP,        /* number of converged vectors in the projectors */
     max_size_proj,      /* max size projected problem */
     max_size_cX_proj,   /* max converged vectors in the projected problem */
-    own_vecs,           /* number of global vecs */
     own_scalars;        /* number of local scalars */
-  Vec *free_vecs;       /* free global vectors */
   PetscScalar
     *free_scalars;      /* free scalars */
   PetscInt state;       /* method states:
@@ -344,6 +341,7 @@ PETSC_INTERN PetscErrorCode dvd_jacobi_precond(dvdDashboard *d,dvdBlackboard *b)
 PETSC_INTERN PetscErrorCode dvd_profiler(dvdDashboard *d,dvdBlackboard *b);
 PETSC_INTERN PetscErrorCode dvd_prof_init();
 PETSC_INTERN PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmType_t mode,PetscBool fixedTarget,PetscScalar t);
+PETSC_INTERN PetscErrorCode BVMultS(BV X,BV Y,PetscScalar *H,PetscInt ldh);
 
 /* Methods */
 PETSC_INTERN PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,KSP ksp,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,Method_t method);
@@ -381,14 +379,22 @@ PETSC_INTERN PetscErrorCode EPSXDGetMethod_XD(EPS eps,Method_t *method);
 /* Common inline function */
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_compute_X"
-PETSC_STATIC_INLINE PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,PetscScalar *pX,PetscInt ld)
+PETSC_STATIC_INLINE PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u_,PetscScalar *pX,PetscInt ld)
 {
   PetscErrorCode  ierr;
   PetscInt        n = i_e - i_s,i;
+  Vec             *u;
 
   PetscFunctionBegin;
-  for (i=0; i<n; i++) {
-    ierr = BVMultVec(d->eps->V,1.0,0.0,u[i],&pX[ld*(i+i_s)]);CHKERRQ(ierr);
+  if (u_) {
+    u = u_;
+  } else if (d->correctXnorm) {
+    ierr = SlepcVecPoolGetVecs(d->auxV,i_e-i_s,&u);CHKERRQ(ierr);
+  }
+  if (u_ || d->correctXnorm) {
+    for (i=0; i<n; i++) {
+      ierr = BVMultVec(d->eps->V,1.0,0.0,u[i],&pX[ld*(i+i_s)]);CHKERRQ(ierr);
+    }
   }
   /* nX(i) <- ||X(i)|| */
   if (d->correctXnorm) {
@@ -408,6 +414,9 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscI
 #endif
   } else {
     for (i=0; i<n; i++) d->nX[i_s+i] = 1.0;
+  }
+  if (d->correctXnorm && !u_) {
+    ierr = SlepcVecPoolRestoreVecs(d->auxV,i_e-i_s,&u);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

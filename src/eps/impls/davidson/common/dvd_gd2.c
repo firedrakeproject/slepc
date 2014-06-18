@@ -183,149 +183,149 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pe
   Vec             *Ax,*Bx,X[4],v;
 
   PetscFunctionBegin;
-  /* Compute the number of pairs to improve */
-  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
-  max_size_D = d->eps->ncv-kv;
-  n = PetscMin(PetscMin(PetscMin(data->size_X*2,max_size_D),(r_e-r_s)*2),d->max_size_proj-d->size_H)/2;
-#if !defined(PETSC_USE_COMPLEX)
-  /* If the last eigenvalue is a complex conjugate pair, n is increased by one */
-  for (i=0; i<n; i++) {
-    if (d->eigi[i] != 0.0) i++;
-  }
-  if (i > n) {
-    n = PetscMin(PetscMin(PetscMin(data->size_X*2,max_size_D),(n+1)*2),d->max_size_proj-d->size_H)/2;
-    if (i > n) n--;
-  }
-#endif
-
-  /* Quick exit */
-  if (max_size_D == 0 || r_e-r_s <= 0 || n == 0) {
-   *size_D = 0;
-    PetscFunctionReturn(0);
-  }
-
-  /* Compute the eigenvectors of the selected pairs */
-  for (i=0;i<n;) {
-    k = r_s+i+d->cX_in_H;
-    ierr = DSVectors(d->ps,DS_MAT_X,&k,NULL);CHKERRQ(ierr);
-    ierr = DSNormalize(d->ps,DS_MAT_X,r_s+i+d->cX_in_H);CHKERRQ(ierr);
-    k = r_s+i+d->cX_in_H;
-    ierr = DSVectors(d->ps,DS_MAT_Y,&k,NULL);CHKERRQ(ierr);
-    ierr = DSNormalize(d->ps,DS_MAT_Y,r_s+i+d->cX_in_H);CHKERRQ(ierr);
-    /* Jump complex conjugate pairs */
-    i = k+1;
-  }
-  ierr = DSGetArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
-  ierr = DSGetArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
-  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
-
-  /* Bx <- B*X(i) */
-  Bx = d->auxV;
-  if (d->BX) {
-    /* Compute the norms of the eigenvectors */
-    if (d->correctXnorm) {
-      ierr = dvd_improvex_compute_X(d,r_s,r_s+n,Bx,pX,ld);CHKERRQ(ierr);
-    } else {
-      for (i=0; i<n; i++) d->nX[r_s+i] = 1.0;
-    }
-    ierr = BVSetActiveColumns(d->BX,lv-d->cX_in_H,kv);CHKERRQ(ierr);
-    for (i=0; i<n; ++i) {
-      ierr = BVMultVec(d->BX,1.0,0.0,Bx[i],&pX[ld*(r_s+i)]);CHKERRQ(ierr);
-    }
-    ierr = BVSetActiveColumns(d->BX,lv,kv);CHKERRQ(ierr);
-  } else if (d->B) {
-    for (i=0;i<n;i++) {
-      /* auxV(0) <- X(i) */
-      ierr = dvd_improvex_compute_X(d,r_s+i,r_s+i+1,&d->auxV[n],pX,ld);CHKERRQ(ierr);
-      /* Bx(i) <- B*auxV(0) */
-      ierr = MatMult(d->B,d->auxV[n],Bx[i]);CHKERRQ(ierr);
-    }
-  } else {
-    /* Bx <- X */
-    ierr = dvd_improvex_compute_X(d,r_s,r_s+n,Bx,pX,ld);CHKERRQ(ierr);
-  }
-
-  /* Ax <- A*X(i) */
-  Ax = d->auxV+n;
-  ierr = BVSetActiveColumns(d->BX,lv-d->cX_in_H,kv);CHKERRQ(ierr);
-  for (i=0; i<n; ++i) {
-    ierr = BVMultVec(d->AX,1.0,0.0,Ax[i],&pX[ld*(i+r_s)]);CHKERRQ(ierr);
-  }
-
-
-#if !defined(PETSC_USE_COMPLEX)
-  s = d->eigi[r_s] == 0.0 ? 1 : 2;
-  /* If the available vectors allow the computation of the eigenvalue */
-#else
-  s = 1;
-#endif
-
-  ierr = DSRestoreArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
-  ierr = DSRestoreArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
-
-  for (i=0,s=0;i<n;i+=s) {
-#if !defined(PETSC_USE_COMPLEX)
-    if (d->eigi[r_s+i] != 0.0) {
-       /* [Ax_i Ax_i+1 Bx_i Bx_i+1]*= [   1        0
-                                          0        1
-                                       -eigr_i -eigi_i
-                                        eigi_i -eigr_i] */
-      b[0] = b[5] = 1.0/d->nX[r_s+i];
-      b[2] = b[7] = -d->eigr[r_s+i]/d->nX[r_s+i];
-      b[6] = -(b[3] = d->eigi[r_s+i]/d->nX[r_s+i]);
-      b[1] = b[4] = 0.0;
-      X[0] = Ax[i]; X[1] = Ax[i+1]; X[2] = Bx[i]; X[3] = Bx[i+1];
-      ierr = SlepcUpdateVectorsD(X,4,1.0,b,4,4,2,Z,size_Z);CHKERRQ(ierr);
-      s = 2;
-    } else
-#endif
-    {
-      /* [Ax_i Bx_i]*= [ 1/nX_i    conj(eig_i/nX_i)
-                       -eig_i/nX_i     1/nX_i       ] */
-      b[0] = 1.0/d->nX[r_s+i];
-      b[1] = -d->eigr[r_s+i]/d->nX[r_s+i];
-      b[2] = PetscConj(d->eigr[r_s+i]/d->nX[r_s+i]);
-      b[3] = 1.0/d->nX[r_s+i];
-      X[0] = Ax[i]; X[1] = Bx[i];
-      ierr = SlepcUpdateVectorsD(X,2,1.0,b,2,2,2,Z,size_Z);CHKERRQ(ierr);
-      s = 1;
-    }
-    for (j=0; j<s; j++) d->nX[r_s+i+j] = 1.0;
-
-    /* Ax = R <- P*(Ax - eig_i*Bx) */
-    ierr = d->calcpairs_proj_res(d,r_s+i,r_s+i+s,&Ax[i]);CHKERRQ(ierr);
-
-    /* Check if the first eigenpairs are converged */
-    if (i == 0) {
-      ierr = d->preTestConv(d,0,s,s,Ax,NULL,&d->npreconv);CHKERRQ(ierr);
-      if (d->npreconv > 0) break;
-    }
-  }
-
-  /* D <- K*[Ax Bx] */
-  if (d->npreconv == 0) {
-    for (i=0;i<2*n;i++) {
-      ierr = BVGetColumn(d->eps->V,k+i,&v);CHKERRQ(ierr);
-      ierr = d->improvex_precond(d,r_s+i%n,d->auxV[i],v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(d->eps->V,k+i,&v);CHKERRQ(ierr);
-    }
-    *size_D = 2*n;
-#if !defined(PETSC_USE_COMPLEX)
-    if (d->eigi[r_s] != 0.0) {
-      s = 4;
-    } else
-#endif
-    s = 2;
-    /* Prevent that short vectors are discarded in the orthogonalization */
-    if (d->eps->errest[d->nconv+r_s] > PETSC_MACHINE_EPSILON && d->eps->errest[d->nconv+r_s] < PETSC_MAX_REAL) {
-      for (i=0; i<s && i<*size_D; i++) {
-        ierr = BVScaleColumn(d->eps->V,i+k,1.0/d->eps->errest[d->nconv+r_s]);CHKERRQ(ierr);
-      }
-    }
-  } else {
-    *size_D = 0;
-  }
+//  /* Compute the number of pairs to improve */
+//  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
+//  max_size_D = d->eps->ncv-kv;
+//  n = PetscMin(PetscMin(PetscMin(data->size_X*2,max_size_D),(r_e-r_s)*2),d->max_size_proj-d->size_H)/2;
+//#if !defined(PETSC_USE_COMPLEX)
+//  /* If the last eigenvalue is a complex conjugate pair, n is increased by one */
+//  for (i=0; i<n; i++) {
+//    if (d->eigi[i] != 0.0) i++;
+//  }
+//  if (i > n) {
+//    n = PetscMin(PetscMin(PetscMin(data->size_X*2,max_size_D),(n+1)*2),d->max_size_proj-d->size_H)/2;
+//    if (i > n) n--;
+//  }
+//#endif
+//
+//  /* Quick exit */
+//  if (max_size_D == 0 || r_e-r_s <= 0 || n == 0) {
+//   *size_D = 0;
+//    PetscFunctionReturn(0);
+//  }
+//
+//  /* Compute the eigenvectors of the selected pairs */
+//  for (i=0;i<n;) {
+//    k = r_s+i+d->cX_in_H;
+//    ierr = DSVectors(d->ps,DS_MAT_X,&k,NULL);CHKERRQ(ierr);
+//    ierr = DSNormalize(d->ps,DS_MAT_X,r_s+i+d->cX_in_H);CHKERRQ(ierr);
+//    k = r_s+i+d->cX_in_H;
+//    ierr = DSVectors(d->ps,DS_MAT_Y,&k,NULL);CHKERRQ(ierr);
+//    ierr = DSNormalize(d->ps,DS_MAT_Y,r_s+i+d->cX_in_H);CHKERRQ(ierr);
+//    /* Jump complex conjugate pairs */
+//    i = k+1;
+//  }
+//  ierr = DSGetArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
+//  ierr = DSGetArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
+//  ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
+//  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
+//
+//  /* Bx <- B*X(i) */
+//  Bx = d->auxV;
+//  if (d->BX) {
+//    /* Compute the norms of the eigenvectors */
+//    if (d->correctXnorm) {
+//      ierr = dvd_improvex_compute_X(d,r_s,r_s+n,Bx,pX,ld);CHKERRQ(ierr);
+//    } else {
+//      for (i=0; i<n; i++) d->nX[r_s+i] = 1.0;
+//    }
+//    ierr = BVSetActiveColumns(d->BX,lv-d->cX_in_H,kv);CHKERRQ(ierr);
+//    for (i=0; i<n; ++i) {
+//      ierr = BVMultVec(d->BX,1.0,0.0,Bx[i],&pX[ld*(r_s+i)]);CHKERRQ(ierr);
+//    }
+//    ierr = BVSetActiveColumns(d->BX,lv,kv);CHKERRQ(ierr);
+//  } else if (d->B) {
+//    for (i=0;i<n;i++) {
+//      /* auxV(0) <- X(i) */
+//      ierr = dvd_improvex_compute_X(d,r_s+i,r_s+i+1,&d->auxV[n],pX,ld);CHKERRQ(ierr);
+//      /* Bx(i) <- B*auxV(0) */
+//      ierr = MatMult(d->B,d->auxV[n],Bx[i]);CHKERRQ(ierr);
+//    }
+//  } else {
+//    /* Bx <- X */
+//    ierr = dvd_improvex_compute_X(d,r_s,r_s+n,Bx,pX,ld);CHKERRQ(ierr);
+//  }
+//
+//  /* Ax <- A*X(i) */
+//  Ax = d->auxV+n;
+//  ierr = BVSetActiveColumns(d->BX,lv-d->cX_in_H,kv);CHKERRQ(ierr);
+//  for (i=0; i<n; ++i) {
+//    ierr = BVMultVec(d->AX,1.0,0.0,Ax[i],&pX[ld*(i+r_s)]);CHKERRQ(ierr);
+//  }
+//
+//
+//#if !defined(PETSC_USE_COMPLEX)
+//  s = d->eigi[r_s] == 0.0 ? 1 : 2;
+//  /* If the available vectors allow the computation of the eigenvalue */
+//#else
+//  s = 1;
+//#endif
+//
+//  ierr = DSRestoreArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
+//  ierr = DSRestoreArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
+//
+//  for (i=0,s=0;i<n;i+=s) {
+//#if !defined(PETSC_USE_COMPLEX)
+//    if (d->eigi[r_s+i] != 0.0) {
+//       /* [Ax_i Ax_i+1 Bx_i Bx_i+1]*= [   1        0
+//                                          0        1
+//                                       -eigr_i -eigi_i
+//                                        eigi_i -eigr_i] */
+//      b[0] = b[5] = 1.0/d->nX[r_s+i];
+//      b[2] = b[7] = -d->eigr[r_s+i]/d->nX[r_s+i];
+//      b[6] = -(b[3] = d->eigi[r_s+i]/d->nX[r_s+i]);
+//      b[1] = b[4] = 0.0;
+//      X[0] = Ax[i]; X[1] = Ax[i+1]; X[2] = Bx[i]; X[3] = Bx[i+1];
+//      ierr = SlepcUpdateVectorsD(X,4,1.0,b,4,4,2,Z,size_Z);CHKERRQ(ierr);
+//      s = 2;
+//    } else
+//#endif
+//    {
+//      /* [Ax_i Bx_i]*= [ 1/nX_i    conj(eig_i/nX_i)
+//                       -eig_i/nX_i     1/nX_i       ] */
+//      b[0] = 1.0/d->nX[r_s+i];
+//      b[1] = -d->eigr[r_s+i]/d->nX[r_s+i];
+//      b[2] = PetscConj(d->eigr[r_s+i]/d->nX[r_s+i]);
+//      b[3] = 1.0/d->nX[r_s+i];
+//      X[0] = Ax[i]; X[1] = Bx[i];
+//      ierr = SlepcUpdateVectorsD(X,2,1.0,b,2,2,2,Z,size_Z);CHKERRQ(ierr);
+//      s = 1;
+//    }
+//    for (j=0; j<s; j++) d->nX[r_s+i+j] = 1.0;
+//
+//    /* Ax = R <- P*(Ax - eig_i*Bx) */
+//    ierr = d->calcpairs_proj_res(d,r_s+i,r_s+i+s,&Ax[i]);CHKERRQ(ierr);
+//
+//    /* Check if the first eigenpairs are converged */
+//    if (i == 0) {
+//      ierr = d->preTestConv(d,0,s,s,Ax,NULL,&d->npreconv);CHKERRQ(ierr);
+//      if (d->npreconv > 0) break;
+//    }
+//  }
+//
+//  /* D <- K*[Ax Bx] */
+//  if (d->npreconv == 0) {
+//    for (i=0;i<2*n;i++) {
+//      ierr = BVGetColumn(d->eps->V,k+i,&v);CHKERRQ(ierr);
+//      ierr = d->improvex_precond(d,r_s+i%n,d->auxV[i],v);CHKERRQ(ierr);
+//      ierr = BVRestoreColumn(d->eps->V,k+i,&v);CHKERRQ(ierr);
+//    }
+//    *size_D = 2*n;
+//#if !defined(PETSC_USE_COMPLEX)
+//    if (d->eigi[r_s] != 0.0) {
+//      s = 4;
+//    } else
+//#endif
+//    s = 2;
+//    /* Prevent that short vectors are discarded in the orthogonalization */
+//    if (d->eps->errest[d->nconv+r_s] > PETSC_MACHINE_EPSILON && d->eps->errest[d->nconv+r_s] < PETSC_MAX_REAL) {
+//      for (i=0; i<s && i<*size_D; i++) {
+//        ierr = BVScaleColumn(d->eps->V,i+k,1.0/d->eps->errest[d->nconv+r_s]);CHKERRQ(ierr);
+//      }
+//    }
+//  } else {
+//    *size_D = 0;
+//  }
 
   PetscFunctionReturn(0);
 }

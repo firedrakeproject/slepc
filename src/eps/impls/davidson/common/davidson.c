@@ -90,7 +90,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
   dvdBlackboard  b;
-  PetscInt       nvecs,nscalars,min_size_V,plusk,bs,initv,i,cX_in_proj,cX_in_impr,nmat;
+  PetscInt       nscalars,min_size_V,plusk,bs,initv,i,cX_in_proj,cX_in_impr,nmat;
   Mat            A,B;
   KSP            ksp;
   PetscBool      t,ipB,ispositive,dynamic;
@@ -98,7 +98,6 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   InitType_t     init;
   PetscReal      fix;
   PetscScalar    target;
-  Vec            v1;
 
   PetscFunctionBegin;
   /* Setup EPS options and get the problem specification */
@@ -260,20 +259,11 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   /* Allocate memory */
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
-  nvecs = b.max_size_auxV + b.own_vecs;
   nscalars = b.own_scalars + b.max_size_auxS;
   ierr = PetscMalloc1(nscalars,&data->wS);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,nscalars*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = BVGetColumn(eps->V,0,&v1);CHKERRQ(ierr);
-  ierr = VecDuplicateVecs(v1,nvecs,&data->wV);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(eps->V,0,&v1);CHKERRQ(ierr);
-  ierr = PetscLogObjectParents(eps,nvecs,data->wV);CHKERRQ(ierr);
-  data->size_wV = nvecs;
-  b.free_vecs = data->wV;
   b.free_scalars = data->wS;
-  dvd->auxV = data->wV + b.own_vecs;
   dvd->auxS = b.free_scalars + b.own_scalars;
-  dvd->size_auxV = b.max_size_auxV;
   dvd->size_auxS = b.max_size_auxS;
 
   for (i=0;i<eps->ncv;i++) eps->perm[i] = i;
