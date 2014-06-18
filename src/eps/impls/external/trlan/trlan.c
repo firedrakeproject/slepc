@@ -189,7 +189,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
   eps->ops->destroy              = EPSDestroy_TRLAN;
   eps->ops->reset                = EPSReset_TRLAN;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
 

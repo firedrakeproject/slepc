@@ -160,4 +160,6 @@ PETSC_EXTERN PetscBool         SVDRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode SVDRegisterAll(void);
 PETSC_EXTERN PetscErrorCode SVDRegister(const char[],PetscErrorCode(*)(SVD));
 
+PETSC_EXTERN PetscErrorCode SVDAllocateSolution(SVD,PetscInt);
+
 #endif

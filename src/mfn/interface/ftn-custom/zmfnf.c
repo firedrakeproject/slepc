@@ -79,7 +79,6 @@ static struct {
 static PetscErrorCode ourmonitor(MFN mfn,PetscInt i,PetscReal d,void* ctx)
 {
   PetscObjectUseFortranCallback(mfn,_cb.monitor,(MFN*,PetscInt*,PetscReal*,void*,PetscErrorCode*),(&mfn,&i,&d,_ctx,&ierr));
-  return 0;
 }
 
 #undef __FUNCT__
@@ -88,7 +87,6 @@ static PetscErrorCode ourdestroy(void** ctx)
 {
   MFN mfn = (MFN)*ctx;
   PetscObjectUseFortranCallback(mfn,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
-  return 0;
 }
 
 PETSC_EXTERN void PETSC_STDCALL mfndestroy_(MFN *mfn,PetscErrorCode *ierr)

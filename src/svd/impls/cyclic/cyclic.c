@@ -30,7 +30,6 @@
 typedef struct {
   PetscBool explicitmatrix;
   EPS       eps;
-  PetscBool setfromoptionscalled;
   Mat       mat;
   Vec       x1,x2,y1,y2;
 } SVD_CYCLIC;
@@ -146,8 +145,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     ierr = EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPosReal,NULL);CHKERRQ(ierr);
     ierr = EPSSetTarget(cyclic->eps,0.0);CHKERRQ(ierr);
   }
-  ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(cyclic->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
+  ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv?svd->ncv:PETSC_DEFAULT,svd->mpd?svd->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(cyclic->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it?svd->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   /* Transfer the trackall option from svd to eps */
   ierr = SVDGetTrackAll(svd,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(cyclic->eps,trackall);CHKERRQ(ierr);
@@ -182,10 +181,6 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     ierr = EPSSetInitialSpace(cyclic->eps,-svd->nini,svd->IS);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&svd->nini,&svd->IS);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&svd->ninil,&svd->ISL);CHKERRQ(ierr);
-  }
-  if (cyclic->setfromoptionscalled) {
-    ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
-    cyclic->setfromoptionscalled = PETSC_FALSE;
   }
   ierr = EPSSetUp(cyclic->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(cyclic->eps,NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
@@ -280,7 +275,8 @@ PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
   ST             st;
 
   PetscFunctionBegin;
-  cyclic->setfromoptionscalled = PETSC_TRUE;
+  if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
+  ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
   ierr = PetscOptionsHead("SVD Cyclic Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",cyclic->explicitmatrix,&val,&set);CHKERRQ(ierr);
   if (set) {

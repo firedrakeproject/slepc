@@ -654,11 +654,6 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-
-  /* Compute eigenvectors */
-  if (pep->nconv > 0) {
-    ierr = PEPComputeVectors_Indefinite(pep);CHKERRQ(ierr);
-  }
   ierr = PetscFree2(work,rwork);CHKERRQ(ierr);
 
   /* scale back matrices */
@@ -814,11 +809,12 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
   pep->data = (void*)ctx;
 
-  pep->ops->solve                = PEPSolve_STOAR;
-  pep->ops->setup                = PEPSetUp_STOAR;
-  pep->ops->setfromoptions       = PEPSetFromOptions_STOAR;
-  pep->ops->view                 = PEPView_STOAR;
-  pep->ops->destroy              = PEPDestroy_STOAR;
+  pep->ops->solve          = PEPSolve_STOAR;
+  pep->ops->setup          = PEPSetUp_STOAR;
+  pep->ops->setfromoptions = PEPSetFromOptions_STOAR;
+  pep->ops->view           = PEPView_STOAR;
+  pep->ops->destroy        = PEPDestroy_STOAR;
+  pep->ops->computevectors = PEPComputeVectors_Indefinite;
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetMonic_C",PEPSTOARSetMonic_STOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetMonic_C",PEPSTOARGetMonic_STOAR);CHKERRQ(ierr);
   PetscFunctionReturn(0);

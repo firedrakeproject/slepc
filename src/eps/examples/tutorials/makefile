@@ -24,7 +24,7 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tutorials/
-EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex11.c ex13.c \
+EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex12.c ex11.c ex13.c \
              ex18.c ex19.c ex24.c
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
@@ -34,6 +34,7 @@ TESTEXAMPLES_C                 = ex2.PETSc runex2_1 ex2.rm \
                                  ex5.PETSc runex5_1 ex5.rm \
                                  ex9.PETSc runex9_1 ex9.rm \
                                  ex11.PETSc runex11_1 ex11.rm \
+                                 ex12.PETSc runex12_1 ex12.rm \
                                  ex13.PETSc runex13_1 ex13.rm \
                                  ex18.PETSc runex18_1 ex18.rm \
                                  ex24.PETSc runex24_1 ex24.rm
@@ -87,6 +88,10 @@ ex9: ex9.o chkopts
 ex11: ex11.o chkopts
 	-${CLINKER} -o ex11 ex11.o ${SLEPC_EPS_LIB}
 	${RM} ex11.o
+
+ex12: ex12.o chkopts
+	-${CLINKER} -o ex12 ex12.o ${SLEPC_EPS_LIB}
+	${RM} ex12.o
 
 ex13: ex13.o chkopts
 	-${CLINKER} -o ex13 ex13.o ${SLEPC_EPS_LIB}
@@ -172,6 +177,12 @@ runex11_1:
 	   if (${DIFF} output/ex11_1.out ex11_1.tmp) then true; \
 	   else echo "Possible problem with ex11_1, diffs above"; fi; \
 	   ${RM} -f ex11_1.tmp
+
+runex12_1:
+	-@${MPIEXEC} -np 1 ./ex12 -eps_terse > ex12_1.tmp 2>&1; \
+	   if (${DIFF} output/ex12_1.out ex12_1.tmp) then true; \
+	   else echo "Possible problem with ex12_1, diffs above"; fi; \
+	   ${RM} -f ex12_1.tmp
 
 runex13_1:
 	-@${MPIEXEC} -np 1 ./ex13 -eps_nev 4 -eps_terse > ex13_1.tmp 2>&1; \

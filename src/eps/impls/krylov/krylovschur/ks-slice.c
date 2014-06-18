@@ -54,7 +54,7 @@ PetscErrorCode EPSAllocateSolutionSlice(EPS eps,PetscInt extra)
   BVType         type;
   BVOrthogType   orthog_type;
   BVOrthogRefineType orthog_ref;
-  Mat            A,matrix;
+  Mat            matrix;
   Vec            t;
   SR             sr = ctx->sr;
 
@@ -75,10 +75,10 @@ PetscErrorCode EPSAllocateSolutionSlice(EPS eps,PetscInt extra)
     ierr = BVGetType(eps->V,&type);CHKERRQ(ierr);
     ierr = BVSetType(sr->V,type);CHKERRQ(ierr);
   }
-  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,&t,NULL);CHKERRQ(ierr);
+  ierr = STMatGetVecs(eps->st,&t,NULL);CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(sr->V,t,requested);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
+  ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = BVGetMatrix(eps->V,&matrix,NULL);CHKERRQ(ierr);
   ierr = BVSetMatrix(sr->V,matrix,PETSC_FALSE);CHKERRQ(ierr);
   ierr = BVGetOrthogonalization(eps->V,&orthog_type,&orthog_ref,&eta);CHKERRQ(ierr);
@@ -237,7 +237,7 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
 {
   EPS_KRYLOVSCHUR  *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscErrorCode   ierr;
-  PetscInt         dir,i,k,ld;
+  PetscInt         dir,i,k,ld,nv;
   PetscScalar      *A;
   SR               sr = ctx->sr;
   Vec              v;
@@ -267,7 +267,8 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
   }
   sr->nS = k;
   ierr = DSRestoreArray(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = DSSetDimensions(eps->ds,0,0,0,k);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,&nv,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSSetDimensions(eps->ds,nv,0,0,k);CHKERRQ(ierr);
   /* Append u to V */
   ierr = BVGetColumn(sr->Vnext,sr->nS,&v);CHKERRQ(ierr);
   ierr = BVCopyVec(sr->V,sr->nv,v);CHKERRQ(ierr);
@@ -843,11 +844,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   ierr = PetscFree(sr->idxDef);CHKERRQ(ierr);
   ierr = PetscFree(sr->pending);CHKERRQ(ierr);
   ierr = PetscFree(sr->back);CHKERRQ(ierr);
-  eps->nconv = sr->indexEig;
+  eps->nconv  = sr->indexEig;
   eps->reason = EPS_CONVERGED_TOL;
-  eps->its = sr->itsKs;
-  eps->nds = 0;
-  eps->evecsavailable = PETSC_TRUE;
+  eps->its    = sr->itsKs;
+  eps->nds    = 0;
   PetscFunctionReturn(0);
 }
 

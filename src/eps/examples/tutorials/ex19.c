@@ -118,8 +118,8 @@ int main(int argc,char **argv)
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = DMDACreate3d(PETSC_COMM_WORLD,DMDA_BOUNDARY_NONE,DMDA_BOUNDARY_NONE,
-                      DMDA_BOUNDARY_NONE,DMDA_STENCIL_STAR,-10,-10,-10,
+  ierr = DMDACreate3d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,
+                      DM_BOUNDARY_NONE,DMDA_STENCIL_STAR,-10,-10,-10,
                       PETSC_DECIDE,PETSC_DECIDE,PETSC_DECIDE,
                       1,1,NULL,NULL,NULL,&da);CHKERRQ(ierr);
 

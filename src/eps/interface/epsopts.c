@@ -45,11 +45,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 {
   PetscErrorCode   ierr;
   char             type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool        flg,val;
+  PetscBool        flg,flg1,flg2,flg3;
   PetscReal        r,array[2]={0,0};
   PetscScalar      s;
   PetscInt         i,j,k;
-  const char       *bal_list[4] = {"none","oneside","twoside","user"};
   PetscViewer      monviewer;
   SlepcConvMonitor ctx;
 
@@ -96,36 +95,48 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsBoolGroupEnd("-eps_refined_harmonic","refined harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetExtraction(eps,EPS_REFINED_HARMONIC);CHKERRQ(ierr); }
 
-    if (!eps->balance) eps->balance = EPS_BALANCE_NONE;
-    ierr = PetscOptionsEList("-eps_balance","Balancing method","EPSSetBalance",bal_list,4,bal_list[eps->balance-EPS_BALANCE_NONE],&i,&flg);CHKERRQ(ierr);
-    if (flg) eps->balance = (EPSBalance)(i+EPS_BALANCE_NONE);
-    r = j = 0;
-    ierr = PetscOptionsInt("-eps_balance_its","Number of iterations in balancing","EPSSetBalance",eps->balance_its,&j,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-eps_balance_cutoff","Cutoff value in balancing","EPSSetBalance",eps->balance_cutoff,&r,NULL);CHKERRQ(ierr);
-    ierr = EPSSetBalance(eps,(EPSBalance)0,j,r);CHKERRQ(ierr);
+    ierr = PetscOptionsEnum("-eps_balance","Balancing method","EPSSetBalance",EPSBalanceTypes,(PetscEnum)eps->balance,(PetscEnum*)&eps->balance,NULL);CHKERRQ(ierr);
 
-    r = i = 0;
-    ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol,&r,NULL);CHKERRQ(ierr);
-    ierr = EPSSetTolerances(eps,r,i);CHKERRQ(ierr);
+    j = eps->balance_its;
+    ierr = PetscOptionsInt("-eps_balance_its","Number of iterations in balancing","EPSSetBalance",eps->balance_its,&j,&flg1);CHKERRQ(ierr);
+    r = eps->balance_cutoff;
+    ierr = PetscOptionsReal("-eps_balance_cutoff","Cutoff value in balancing","EPSSetBalance",eps->balance_cutoff,&r,&flg2);CHKERRQ(ierr);
+    if (flg1 || flg2) {
+      ierr = EPSSetBalance(eps,(EPSBalance)0,j,r);CHKERRQ(ierr);
+    }
+
+    i = eps->max_it? eps->max_it: PETSC_DEFAULT;
+    ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,&flg1);CHKERRQ(ierr);
+    r = eps->tol;
+    ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol,&r,&flg2);CHKERRQ(ierr);
+    if (flg1 || flg2) {
+      ierr = EPSSetTolerances(eps,r,i);CHKERRQ(ierr);
+    }
+
     ierr = PetscOptionsBoolGroupBegin("-eps_conv_eig","Relative error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetConvergenceTest(eps,EPS_CONV_EIG);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-eps_conv_norm","Convergence test relative to the eigenvalue and the matrix norms","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetConvergenceTest(eps,EPS_CONV_NORM);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-eps_conv_abs","Absolute error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-eps_conv_abs","Absolute error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetConvergenceTest(eps,EPS_CONV_ABS);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-eps_conv_user","User-defined convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetConvergenceTest(eps,EPS_CONV_USER);CHKERRQ(ierr); }
 
-    i = j = k = 0;
-    ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&i,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-eps_ncv","Number of basis vectors","EPSSetDimensions",eps->ncv,&j,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-eps_mpd","Maximum dimension of projected problem","EPSSetDimensions",eps->mpd,&k,NULL);CHKERRQ(ierr);
-    ierr = EPSSetDimensions(eps,i,j,k);CHKERRQ(ierr);
+    i = eps->nev;
+    ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&i,&flg1);CHKERRQ(ierr);
+    j = eps->ncv? eps->ncv: PETSC_DEFAULT;
+    ierr = PetscOptionsInt("-eps_ncv","Number of basis vectors","EPSSetDimensions",eps->ncv,&j,&flg2);CHKERRQ(ierr);
+    k = eps->mpd? eps->mpd: PETSC_DEFAULT;
+    ierr = PetscOptionsInt("-eps_mpd","Maximum dimension of projected problem","EPSSetDimensions",eps->mpd,&k,&flg3);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3) {
+      ierr = EPSSetDimensions(eps,i,j,k);CHKERRQ(ierr);
+    }
 
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to EPSSetFromOptions()
     */
-    flg  = PETSC_FALSE;
+    flg = PETSC_FALSE;
     ierr = PetscOptionsBool("-eps_monitor_cancel","Remove any hardwired monitor routines","EPSMonitorCancel",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = EPSMonitorCancel(eps);CHKERRQ(ierr);
@@ -196,10 +207,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsBoolGroupEnd("-eps_all","compute all eigenvalues in an interval","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsBool("-eps_true_residual","Compute true residuals explicitly","EPSSetTrueResidual",eps->trueres,&val,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = EPSSetTrueResidual(eps,val);CHKERRQ(ierr);
-    }
+    ierr = PetscOptionsBool("-eps_true_residual","Compute true residuals explicitly","EPSSetTrueResidual",eps->trueres,&eps->trueres,NULL);CHKERRQ(ierr);
 
     ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",0);CHKERRQ(ierr);
     ierr = PetscOptionsName("-eps_plot_eigs","Make a plot of the computed eigenvalues","EPSSolve",0);CHKERRQ(ierr);
@@ -268,10 +276,7 @@ PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,PetscInt *maxits)
 -  -eps_max_it <maxits> - Sets the maximum number of iterations allowed
 
    Notes:
-   Pass 0 for an argument that need not be changed.
-
-   Use PETSC_DECIDE for maxits to assign a reasonably good value, which is
-   dependent on the solution method.
+   Use PETSC_DEFAULT for either argument to assign a reasonably good value.
 
    Level: intermediate
 
@@ -283,22 +288,19 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveReal(eps,tol,2);
   PetscValidLogicalCollectiveInt(eps,maxits,3);
-  if (tol) {
-    if (tol == PETSC_DEFAULT) {
-      eps->tol = PETSC_DEFAULT;
-    } else {
-      if (tol < 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
-      eps->tol = tol;
-    }
+  if (tol == PETSC_DEFAULT) {
+    eps->tol   = PETSC_DEFAULT;
+    eps->state = EPS_STATE_INITIAL;
+  } else {
+    if (tol <= 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+    eps->tol = tol;
   }
-  if (maxits) {
-    if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-      eps->max_it = 0;
-      eps->setupcalled = 0;
-    } else {
-      if (maxits < 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
-      eps->max_it = maxits;
-    }
+  if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
+    eps->max_it = 0;
+    eps->state  = EPS_STATE_INITIAL;
+  } else {
+    if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+    eps->max_it = maxits;
   }
   PetscFunctionReturn(0);
 }
@@ -318,9 +320,6 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
 +  nev - number of eigenvalues to compute
 .  ncv - the maximum dimension of the subspace to be used by the solver
 -  mpd - the maximum dimension allowed for the projected problem
-
-   Notes:
-   The user can specify NULL for any parameter that is not needed.
 
    Level: intermediate
 
@@ -356,9 +355,7 @@ PetscErrorCode EPSGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,PetscInt *mp
 -  -eps_mpd <mpd> - Sets the maximum projected dimension
 
    Notes:
-   Pass 0 to retain the previous value of any parameter.
-
-   Use PETSC_DECIDE for ncv and mpd to assign a reasonably good value, which is
+   Use PETSC_DEFAULT for ncv and mpd to assign a reasonably good value, which is
    dependent on the solution method.
 
    The parameters ncv and mpd are intimately related, so that the user is advised
@@ -370,16 +367,13 @@ PetscErrorCode EPSGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,PetscInt *mp
    ncv=nev+mpd. If nev is not too large, mpd=nev is a reasonable choice, otherwise
    a smaller value should be used.
 
-   When computing all eigenvalues in an interval, see EPSSetInterval(), the
-   meaning of nev changes. In that case, the number of eigenvalues in the
-   interval is not known a priori; the meaning of nev is then the number of
-   eigenvalues that are computed at a time when sweeping the interval from one
-   end to the other. The value of nev in this case may have an impact on overall
-   performance. The value of ncv should not be assigned in this case.
+   When computing all eigenvalues in an interval, see EPSSetInterval(), these
+   parameters lose relevance, and tuning must be done with
+   EPSKrylovSchurSetDimensions().
 
    Level: intermediate
 
-.seealso: EPSGetDimensions(), EPSSetInterval()
+.seealso: EPSGetDimensions(), EPSSetInterval(), EPSKrylovSchurSetDimensions()
 @*/
 PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 {
@@ -388,28 +382,21 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(eps,nev,2);
   PetscValidLogicalCollectiveInt(eps,ncv,3);
   PetscValidLogicalCollectiveInt(eps,mpd,4);
-  if (nev) {
-    if (nev<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
-    eps->nev = nev;
-    eps->setupcalled = 0;
+  if (nev<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+  eps->nev = nev;
+  if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
+    eps->ncv = 0;
+  } else {
+    if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+    eps->ncv = ncv;
   }
-  if (ncv) {
-    if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-      eps->ncv = 0;
-    } else {
-      if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
-      eps->ncv = ncv;
-    }
-    eps->setupcalled = 0;
+  if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
+    eps->mpd = 0;
+  } else {
+    if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
+    eps->mpd = mpd;
   }
-  if (mpd) {
-    if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-      eps->mpd = 0;
-    } else {
-      if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
-      eps->mpd = mpd;
-    }
-  }
+  eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -480,30 +467,28 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,which,2);
-  if (which) {
-    if (which==PETSC_DECIDE || which==PETSC_DEFAULT) eps->which = (EPSWhich)0;
-    else switch (which) {
-      case EPS_LARGEST_MAGNITUDE:
-      case EPS_SMALLEST_MAGNITUDE:
-      case EPS_LARGEST_REAL:
-      case EPS_SMALLEST_REAL:
-      case EPS_LARGEST_IMAGINARY:
-      case EPS_SMALLEST_IMAGINARY:
-      case EPS_TARGET_MAGNITUDE:
-      case EPS_TARGET_REAL:
+  if (which==PETSC_DECIDE || which==PETSC_DEFAULT) eps->which = (EPSWhich)0;
+  else switch (which) {
+    case EPS_LARGEST_MAGNITUDE:
+    case EPS_SMALLEST_MAGNITUDE:
+    case EPS_LARGEST_REAL:
+    case EPS_SMALLEST_REAL:
+    case EPS_LARGEST_IMAGINARY:
+    case EPS_SMALLEST_IMAGINARY:
+    case EPS_TARGET_MAGNITUDE:
+    case EPS_TARGET_REAL:
 #if defined(PETSC_USE_COMPLEX)
-      case EPS_TARGET_IMAGINARY:
+    case EPS_TARGET_IMAGINARY:
 #endif
-      case EPS_ALL:
-      case EPS_WHICH_USER:
-        if (eps->which != which) {
-          eps->setupcalled = 0;
-          eps->which = which;
-        }
-        break;
-      default:
-        SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value");
-    }
+    case EPS_ALL:
+    case EPS_WHICH_USER:
+      if (eps->which != which) {
+        eps->state = EPS_STATE_INITIAL;
+        eps->which = which;
+      }
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value");
   }
   PetscFunctionReturn(0);
 }
@@ -632,7 +617,7 @@ PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScal
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   eps->arbitrary    = func;
   eps->arbitraryctx = ctx;
-  eps->setupcalled  = 0;
+  eps->state        = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -645,9 +630,11 @@ PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScal
    Logically Collective on EPS
 
    Input Parameters:
-+  eps  - eigensolver context obtained from EPSCreate()
-.  func - a pointer to the convergence test function
--  ctx  - a context pointer (the last parameter to the convergence test function)
++  eps     - eigensolver context obtained from EPSCreate()
+.  func    - a pointer to the convergence test function
+.  ctx     - [optional] context for private data for the convergence routine
+-  destroy - [optional] destructor for the context (may be NULL;
+             PETSC_NULL_FUNCTION in Fortran)
 
    Calling Sequence of func:
 $   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
@@ -665,14 +652,20 @@ $   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *erre
 
    Level: advanced
 
-.seealso: EPSSetConvergenceTest(),EPSSetTolerances()
+.seealso: EPSSetConvergenceTest(), EPSSetTolerances()
 @*/
-PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx)
+PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  eps->converged    = func;
-  eps->convergedctx = ctx;
+  if (eps->convergeddestroy) {
+    ierr = (*eps->convergeddestroy)(eps->convergedctx);CHKERRQ(ierr);
+  }
+  eps->converged        = func;
+  eps->convergeddestroy = destroy;
+  eps->convergedctx     = ctx;
   if (func == EPSConvergedEigRelative) eps->conv = EPS_CONV_EIG;
   else if (func == EPSConvergedNormRelative) eps->conv = EPS_CONV_NORM;
   else if (func == EPSConvergedAbsolute) eps->conv = EPS_CONV_ABS;
@@ -695,12 +688,13 @@ PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,
    Options Database Keys:
 +  -eps_conv_abs - Sets the absolute convergence test
 .  -eps_conv_eig - Sets the convergence test relative to the eigenvalue
--  -eps_conv_norm - Sets the convergence test relative to the matrix norms
+.  -eps_conv_norm - Sets the convergence test relative to the matrix norms
+-  -eps_conv_user - Selects the user-defined convergence test
 
    Note:
    The parameter 'conv' can have one of these values
-+     EPS_CONV_ABS - absolute error ||r||
-.     EPS_CONV_EIG - error relative to the eigenvalue l, ||r||/|l|
++     EPS_CONV_ABS  - absolute error ||r||
+.     EPS_CONV_EIG  - error relative to the eigenvalue l, ||r||/|l|
 .     EPS_CONV_NORM - error relative to the matrix norms, ||r||/(||A||+|l|*||B||)
 -     EPS_CONV_USER - function set by EPSSetConvergenceTestFunction()
 
@@ -727,7 +721,7 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetConvergenceTest"
-/*@
+/*@C
    EPSGetConvergenceTest - Gets the method used to compute the error estimate
    used in the convergence test.
 
@@ -741,7 +735,7 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
 
    Level: intermediate
 
-.seealso: EPSSetConvergenceTest(), EPSSetConvergenceTestFunction(), EPSConv
+.seealso: EPSSetConvergenceTest(), EPSConv
 @*/
 PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
 {
@@ -961,8 +955,8 @@ PetscErrorCode EPSGetExtraction(EPS eps,EPSExtraction *extr)
    matrices to have the MatMultTranspose operation defined.
 
    The parameter 'its' is the number of iterations performed by the method. The
-   cutoff value is used only in the two-side variant. Pass 0 for an argument
-   that need not be changed. Use PETSC_DECIDE to assign a reasonably good value.
+   cutoff value is used only in the two-side variant. Use PETSC_DEFAULT to assign
+   a reasonably good value.
 
    User-defined balancing is allowed provided that the corresponding matrix
    is set via STSetBalanceMatrix.
@@ -978,33 +972,33 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
   PetscValidLogicalCollectiveEnum(eps,bal,2);
   PetscValidLogicalCollectiveInt(eps,its,3);
   PetscValidLogicalCollectiveReal(eps,cutoff,4);
-  if (bal) {
-    if (bal==PETSC_DECIDE || bal==PETSC_DEFAULT) eps->balance = EPS_BALANCE_TWOSIDE;
-    else switch (bal) {
-      case EPS_BALANCE_NONE:
-      case EPS_BALANCE_ONESIDE:
-      case EPS_BALANCE_TWOSIDE:
-      case EPS_BALANCE_USER:
-        eps->balance = bal;
-        break;
-      default:
-        SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'bal'");
-    }
+  if (bal==PETSC_DECIDE || bal==PETSC_DEFAULT) eps->balance = EPS_BALANCE_NONE;
+  else switch (bal) {
+    case EPS_BALANCE_NONE:
+    case EPS_BALANCE_ONESIDE:
+    case EPS_BALANCE_TWOSIDE:
+    case EPS_BALANCE_USER:
+      eps->balance = bal;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'bal'");
   }
-  if (its) {
-    if (its==PETSC_DECIDE || its==PETSC_DEFAULT) eps->balance_its = 5;
-    else eps->balance_its = its;
+  if (its==PETSC_DECIDE || its==PETSC_DEFAULT) eps->balance_its = 5;
+  else {
+    if (its <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be > 0");
+    eps->balance_its = its;
   }
-  if (cutoff) {
-    if (cutoff==PETSC_DECIDE || cutoff==PETSC_DEFAULT) eps->balance_cutoff = 1e-8;
-    else eps->balance_cutoff = cutoff;
+  if (cutoff==PETSC_DECIDE || cutoff==PETSC_DEFAULT) eps->balance_cutoff = 1e-8;
+  else {
+    if (cutoff <= 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of cutoff. Must be > 0");
+    eps->balance_cutoff = cutoff;
   }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetBalance"
-/*@
+/*@C
    EPSGetBalance - Gets the balancing type used by the EPS object, and the
    associated parameters.
 

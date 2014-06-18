@@ -98,7 +98,7 @@ int main(int argc,char **argv)
      Set solver parameters at runtime
   */
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
-  ierr = SVDSetDimensions(svd,1,0,0);CHKERRQ(ierr);
+  ierr = SVDSetDimensions(svd,1,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the singular value problem

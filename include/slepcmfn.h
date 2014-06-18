@@ -113,5 +113,7 @@ PETSC_EXTERN PetscBool         MFNRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode MFNRegisterAll(void);
 PETSC_EXTERN PetscErrorCode MFNRegister(const char[],PetscErrorCode(*)(MFN));
 
+PETSC_EXTERN PetscErrorCode MFNAllocateSolution(MFN,PetscInt);
+
 #endif
 
