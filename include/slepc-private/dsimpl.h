@@ -47,6 +47,8 @@ struct _DSOps {
 
 struct _p_DS {
   PETSCHEADER(struct _DSOps);
+  /*------------------------- User parameters --------------------------*/
+  DSStateType    state;              /* the current state */
   PetscInt       method;             /* identifies the variant to be used */
   PetscInt       funmethod;          /* to choose among methods for function evaluation */
   PetscBool      compact;            /* whether the matrices are stored in compact form */
@@ -59,20 +61,45 @@ struct _p_DS {
   PetscInt       k;                  /* intermediate dimension (e.g. position of arrow) */
   PetscInt       t;                  /* length of decomposition when it was truncated */
   PetscInt       bs;                 /* block size */
-  DSStateType    state;              /* the current state */
-  PetscScalar    *mat[DS_NUM_MAT];   /* the matrices */
-  PetscReal      *rmat[DS_NUM_MAT];  /* the matrices (real) */
-  PetscInt       *perm;              /* permutation */
   PetscInt       nf;                 /* number of functions in f[] */
   FN             f[DS_NUM_EXTRA];    /* functions provided via DSSetFN() */
+
+  /*-------------- User-provided functions and contexts ----------------*/
+  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
+  void           *comparisonctx;
+
+  /*----------------- Status variables and working data ----------------*/
+  PetscScalar    *mat[DS_NUM_MAT];   /* the matrices */
+  PetscReal      *rmat[DS_NUM_MAT];  /* the matrices (real) */
+  Mat            omat[DS_NUM_MAT];   /* the matrices (PETSc object) */
+  PetscInt       *perm;              /* permutation */
   PetscScalar    *work;
   PetscReal      *rwork;
   PetscBLASInt   *iwork;
   PetscInt       lwork,lrwork,liwork;
-  /*-------------- User-provided functions and contexts -----------------*/
-  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-  void           *comparisonctx;
 };
+
+/*
+    Macros to test valid DS arguments
+*/
+#if !defined(PETSC_USE_DEBUG)
+
+#define DSCheckAlloc(h,arg) do {} while (0)
+#define DSCheckSolved(h,arg) do {} while (0)
+
+#else
+
+#define DSCheckAlloc(h,arg) \
+  do { \
+    if (!h->ld) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call DSAllocate() first: Parameter #%d",arg); \
+  } while (0)
+
+#define DSCheckSolved(h,arg) \
+  do { \
+    if (h->state<DS_STATE_CONDENSED) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call DSSolve() first: Parameter #%d",arg); \
+  } while (0)
+
+#endif
 
 PETSC_INTERN PetscErrorCode DSAllocateMat_Private(DS,DSMatType);
 PETSC_INTERN PetscErrorCode DSAllocateMatReal_Private(DS,DSMatType);

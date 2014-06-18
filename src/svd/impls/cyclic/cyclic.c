@@ -4,8 +4,6 @@
 
    Method: Uses a Hermitian eigensolver for H(A) = [ 0  A ; A^T 0 ]
 
-   Last update: Jun 2007
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
@@ -194,11 +192,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   svd->ncv = PetscMin(svd->ncv,PetscMin(M,N));
   ierr = EPSGetTolerances(cyclic->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
 
-  if (svd->ncv != svd->n) {
-    ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(svd,svd->ncv,svd->U);CHKERRQ(ierr);
-  }
+  svd->leftbasis = PETSC_TRUE;
+  ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -231,10 +226,10 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
       ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
       ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
-      ierr = VecCopy(x1,svd->U[j]);CHKERRQ(ierr);
-      ierr = VecScale(svd->U[j],1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
-      ierr = VecCopy(x2,svd->V[j]);CHKERRQ(ierr);
-      ierr = VecScale(svd->V[j],1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
+      ierr = BVInsertVec(svd->U,j,x1);CHKERRQ(ierr);
+      ierr = BVScaleColumn(svd->U,j,1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
+      ierr = BVInsertVec(svd->V,j,x2);CHKERRQ(ierr);
+      ierr = BVScaleColumn(svd->V,j,1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
       ierr = VecResetArray(x1);CHKERRQ(ierr);
       ierr = VecResetArray(x2);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
@@ -439,8 +434,6 @@ static PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
     ierr = EPSAppendOptionsPrefix(cyclic->eps,"svd_");CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)cyclic->eps,(PetscObject)svd,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->eps);CHKERRQ(ierr);
-    if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-    ierr = EPSSetIP(cyclic->eps,svd->ip);CHKERRQ(ierr);
     ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
     ierr = EPSMonitorSet(cyclic->eps,SVDMonitor_Cyclic,svd,NULL);CHKERRQ(ierr);
   }

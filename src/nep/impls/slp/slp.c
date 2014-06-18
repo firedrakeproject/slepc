@@ -13,8 +13,6 @@
        [1] A. Ruhe, "Algorithms for the nonlinear eigenvalue problem", SIAM J.
            Numer. Anal. 10(4):674-689, 1973.
 
-   Last update: Feb 2013
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
@@ -36,7 +34,6 @@
 */
 
 #include <slepc-private/nepimpl.h>         /*I "slepcnep.h" I*/
-#include <slepc-private/epsimpl.h>         /*I "slepceps.h" I*/
 
 typedef struct {
   EPS       eps;             /* linear eigensolver for T*z = mu*Tp*z */
@@ -93,7 +90,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   PetscErrorCode ierr;
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
   Mat            T=nep->function,Tp=nep->jacobian;
-  Vec            u=nep->V[0],r=nep->work[0];
+  Vec            u,r=nep->work[0];
   PetscScalar    lambda,mu,im;
   PetscReal      relerr;
   PetscInt       nconv;
@@ -102,8 +99,9 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   /* get initial approximation of eigenvalue and eigenvector */
   ierr = NEPGetDefaultShift(nep,&lambda);CHKERRQ(ierr);
   if (!nep->nini) {
-    ierr = SlepcVecSetRandom(u,nep->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(nep->V,0,nep->rand);CHKERRQ(ierr);
   }
+  ierr = BVGetColumn(nep->V,0,&u);CHKERRQ(ierr);
 
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
@@ -145,6 +143,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
     }
     if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
   }
+  ierr = BVRestoreColumn(nep->V,0,&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -209,17 +208,17 @@ static PetscErrorCode NEPSLPGetEPS_SLP(NEP nep,EPS *eps)
 {
   PetscErrorCode ierr;
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
+  ST             st;
 
   PetscFunctionBegin;
   if (!ctx->eps) {
     ierr = EPSCreate(PetscObjectComm((PetscObject)nep),&ctx->eps);CHKERRQ(ierr);
     ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)nep)->prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(ctx->eps,"nep_");CHKERRQ(ierr);
-    ierr = STSetOptionsPrefix(ctx->eps->st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
+    ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
+    ierr = STSetOptionsPrefix(st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)nep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->eps);CHKERRQ(ierr);
-    if (!nep->ip) { ierr = NEPGetIP(nep,&nep->ip);CHKERRQ(ierr); }
-    ierr = EPSSetIP(ctx->eps,nep->ip);CHKERRQ(ierr);
   }
   *eps = ctx->eps;
   PetscFunctionReturn(0);
@@ -278,7 +277,6 @@ PetscErrorCode NEPReset_SLP(NEP nep)
 
   PetscFunctionBegin;
   if (!ctx->eps) { ierr = EPSReset(ctx->eps);CHKERRQ(ierr); }
-  ierr = NEPReset_Default(nep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

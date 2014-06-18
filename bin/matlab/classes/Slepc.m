@@ -11,7 +11,7 @@ classdef Slepc < handle
 %      SlepcEPS    - Eigenvalue solver class
 %      SlepcST     - Spectral transformation class
 %      SlepcSVD    - Singular value solver class
-%      SlepcQEP    - Quadratic eigenvalue solver class
+%      SlepcPEP    - Polynomial eigenvalue solver class
 
 %  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 %  SLEPc - Scalable Library for Eigenvalue Problem Computations

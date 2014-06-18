@@ -21,7 +21,7 @@
 
         module slepcmfndef
         use slepcsys
-        use slepcip
+        use slepcbv
         use slepcds
 #include <finclude/slepcmfn.h>
 #include <finclude/ftn-custom/slepcmfndef.h90>

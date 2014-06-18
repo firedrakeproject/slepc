@@ -46,10 +46,6 @@ ST Object: 1 MPI processes
   PC Object:  (st_)   1 MPI processes
     type not yet set
     PC has not been set up so information may be incomplete
-IP Object: 1 MPI processes
-  type not yet set
-  orthogonalization method: classical Gram-Schmidt
-  orthogonalization refinement: if needed (eta: 0.7071)
 DS Object: 1 MPI processes
   type not yet set
  Finished - converged reason = 2, its=   2

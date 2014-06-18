@@ -41,7 +41,7 @@ struct _STOps {
   PetscErrorCode (*destroy)(ST);
   PetscErrorCode (*reset)(ST);
   PetscErrorCode (*view)(ST,PetscViewer);
-  PetscErrorCode (*checknullspace)(ST,PetscInt,const Vec[]);
+  PetscErrorCode (*checknullspace)(ST,BV);
 };
 
 struct _p_ST {
@@ -64,14 +64,14 @@ struct _p_ST {
   Vec          w;
   Vec          D;                /* diagonal matrix for balancing */
   Vec          wb;               /* balancing requires an extra work vector */
+  PetscInt     linearits;        /* number of linear iterations */
+  PetscInt     applys;           /* number of operator applies */
   void         *data;
   PetscInt     setupcalled;
-  PetscInt     lineariterations;
-  PetscInt     applys;
 };
 
 PETSC_INTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
-PETSC_INTERN PetscErrorCode STCheckNullSpace_Default(ST,PetscInt,const Vec[]);
+PETSC_INTERN PetscErrorCode STCheckNullSpace_Default(ST,BV);
 PETSC_INTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,PetscScalar*,Mat*);
 PETSC_INTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
 PETSC_INTERN PetscErrorCode STMatSetHermitian(ST,Mat);

@@ -49,46 +49,123 @@ struct _SVDOps {
 */
 struct _p_SVD {
   PETSCHEADER(struct _SVDOps);
+  /*------------------------- User parameters ---------------------------*/
   Mat              OP;          /* problem matrix */
-  Mat              A;           /* problem matrix (m>n) */
-  Mat              AT;          /* transposed matrix */
-  SVDTransposeMode transmode;   /* transpose mode */
-  PetscReal        *sigma;      /* singular values */
-  PetscInt         *perm;       /* permutation for singular value ordering */
-  Vec              *U,*V;       /* left and right singular vectors */
-  Vec              *IS,*ISL;    /* placeholder for references to user-provided initial space */
-  PetscInt         n;           /* maximun size of descomposition */
-  SVDWhich         which;       /* which singular values are computed */
-  PetscInt         nconv;       /* number of converged values */
+  PetscInt         max_it;      /* max iterations */
   PetscInt         nsv;         /* number of requested values */
   PetscInt         ncv;         /* basis size */
   PetscInt         mpd;         /* maximum dimension of projected problem */
   PetscInt         nini,ninil;  /* number of initial vectors (negative means not copied yet) */
-  PetscInt         its;         /* iteration counter */
-  PetscInt         max_it;      /* max iterations */
   PetscReal        tol;         /* tolerance */
-  PetscReal        *errest;     /* error estimates */
-  PetscRandom      rand;        /* random number generator */
-  Vec              tl,tr;       /* template vectors */
-  void             *data;       /* placeholder for misc stuff associated
-                                   with a particular solver */
-  PetscInt         setupcalled;
-  SVDConvergedReason reason;
-  IP               ip;          /* innerproduct object */
-  DS               ds;          /* direct solver object */
-  PetscBool        trackall;
-  PetscInt         matvecs;
+  SVDWhich         which;       /* which singular values are computed */
+  SVDTransposeMode transmode;   /* transpose mode */
+  PetscBool        trackall;    /* whether all the residuals must be computed */
 
+  /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode   (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
   PetscErrorCode   (*monitordestroy[MAXSVDMONITORS])(void**);
   void             *monitorcontext[MAXSVDMONITORS];
   PetscInt         numbermonitors;
+
+  /*----------------- Child objects and working data -------------------*/
+  DS               ds;          /* direct solver object */
+  BV               U,V;         /* left and right singular vectors */
+  PetscRandom      rand;        /* random number generator */
+  Mat              A;           /* problem matrix (m>n) */
+  Mat              AT;          /* transposed matrix */
+  Vec              *IS,*ISL;    /* placeholder for references to user-provided initial space */
+  PetscReal        *sigma;      /* singular values */
+  PetscInt         *perm;       /* permutation for singular value ordering */
+  PetscReal        *errest;     /* error estimates */
+  void             *data;       /* placeholder for solver-specific stuff */
+
+  /* ----------------------- Status variables -------------------------- */
+  PetscInt         nconv;       /* number of converged values */
+  PetscInt         its;         /* iteration counter */
+  PetscBool        leftbasis;   /* if U is filled by the solver */
+  PetscBool        lvecsavail;  /* if U contains left singular vectors */
+  PetscInt         setupcalled;
+  SVDConvergedReason reason;
 };
 
-PETSC_INTERN PetscErrorCode SVDMatMult(SVD,PetscBool,Vec,Vec);
-PETSC_INTERN PetscErrorCode SVDMatGetVecs(SVD,Vec*,Vec*);
-PETSC_INTERN PetscErrorCode SVDMatGetSize(SVD,PetscInt*,PetscInt*);
-PETSC_INTERN PetscErrorCode SVDMatGetLocalSize(SVD,PetscInt*,PetscInt*);
-PETSC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,Vec*,Vec,Vec*,PetscInt,PetscInt,PetscScalar*);
+#undef __FUNCT__
+#define __FUNCT__ "SVDMatMult"
+PETSC_STATIC_INLINE PetscErrorCode SVDMatMult(SVD svd,PetscBool trans,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (trans) {
+    if (svd->AT) {
+      ierr = MatMult(svd->AT,x,y);CHKERRQ(ierr);
+    } else {
+#if defined(PETSC_USE_COMPLEX)
+      ierr = MatMultHermitianTranspose(svd->A,x,y);CHKERRQ(ierr);
+#else
+      ierr = MatMultTranspose(svd->A,x,y);CHKERRQ(ierr);
+#endif
+    }
+  } else {
+    if (svd->A) {
+      ierr = MatMult(svd->A,x,y);CHKERRQ(ierr);
+    } else {
+#if defined(PETSC_USE_COMPLEX)
+      ierr = MatMultHermitianTranspose(svd->AT,x,y);CHKERRQ(ierr);
+#else
+      ierr = MatMultTranspose(svd->AT,x,y);CHKERRQ(ierr);
+#endif
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDMatGetVecs"
+PETSC_STATIC_INLINE PetscErrorCode SVDMatGetVecs(SVD svd,Vec *x,Vec *y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (svd->A) {
+    ierr = MatGetVecs(svd->A,x,y);CHKERRQ(ierr);
+  } else {
+    ierr = MatGetVecs(svd->AT,y,x);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDMatGetSize"
+PETSC_STATIC_INLINE PetscErrorCode SVDMatGetSize(SVD svd,PetscInt *m,PetscInt *n)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (svd->A) {
+    ierr = MatGetSize(svd->A,m,n);CHKERRQ(ierr);
+  } else {
+    ierr = MatGetSize(svd->AT,n,m);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDMatGetLocalSize"
+PETSC_STATIC_INLINE PetscErrorCode SVDMatGetLocalSize(SVD svd,PetscInt *m,PetscInt *n)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (svd->A) {
+    ierr = MatGetLocalSize(svd->A,m,n);CHKERRQ(ierr);
+  } else {
+    ierr = MatGetLocalSize(svd->AT,n,m);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+} 
+
+PETSC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,PetscInt,PetscInt);
+PETSC_INTERN PetscErrorCode SVDSetDimensions_Default(SVD);
+PETSC_INTERN PetscErrorCode SVDAllocateSolution(SVD,PetscInt);
 
 #endif

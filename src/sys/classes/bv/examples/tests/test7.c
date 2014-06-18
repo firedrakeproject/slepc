@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test multiplication of a BV times a Mat.\n\n";
+static char help[] = "Test multiplication of a Mat times a BV.\n\n";
 
 #include <slepcbv.h>
 
@@ -30,9 +30,9 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   Vec            t,v;
   Mat            B;
-  BV             X,Y,Z;
+  BV             X,Y,Z,Zcopy;
   PetscInt       i,j,n=10,k=5,Istart,Iend,col[3];
-  PetscScalar    value[3];
+  PetscScalar    value[3],*pZ;
   PetscReal      norm;
   PetscViewer    view;
   PetscBool      verbose,FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
@@ -129,7 +129,36 @@ int main(int argc,char **argv)
     ierr = BVView(Z,view);CHKERRQ(ierr);
   }
 
-  /* Test BVAXPY */
+  /* Save a copy of Z */
+  ierr = BVDuplicate(Z,&Zcopy);CHKERRQ(ierr);
+  ierr = BVCopy(Z,Zcopy);CHKERRQ(ierr);
+
+  /* Test BVAXPY, check result of previous operations */
+  ierr = BVAXPY(Z,-1.0,Y);CHKERRQ(ierr);
+  ierr = BVNorm(Z,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of error: %g\n",(double)norm);CHKERRQ(ierr);
+
+  /* Test BVMatMultColumn, multiply Y(:,2), result in Y(:,3) */
+  ierr = BVMatMultColumn(Y,B,2);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = BVView(Y,view);CHKERRQ(ierr);
+  }
+
+  /* Test BVGetArray, modify Z to match Y */
+  ierr = BVCopy(Zcopy,Z);CHKERRQ(ierr);
+  ierr = BVGetArray(Z,&pZ);CHKERRQ(ierr);
+  if (Istart==0) {
+    if (Iend<3) SETERRQ(PETSC_COMM_SELF,1,"First process must have at least 3 rows");
+    pZ[Iend]   = 5.0;   /* modify 3 first entries of second column */
+    pZ[Iend+1] = -4.0;
+    pZ[Iend+2] = 1.0;
+  }
+  ierr = BVRestoreArray(Z,&pZ);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = BVView(Z,view);CHKERRQ(ierr);
+  }
+
+  /* Check result again with BVAXPY */
   ierr = BVAXPY(Z,-1.0,Y);CHKERRQ(ierr);
   ierr = BVNorm(Z,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of error: %g\n",(double)norm);CHKERRQ(ierr);
@@ -137,6 +166,7 @@ int main(int argc,char **argv)
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);
   ierr = BVDestroy(&Z);CHKERRQ(ierr);
+  ierr = BVDestroy(&Zcopy);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = SlepcFinalize();

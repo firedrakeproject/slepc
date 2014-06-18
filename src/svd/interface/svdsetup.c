@@ -22,7 +22,6 @@
 */
 
 #include <slepc-private/svdimpl.h>      /*I "slepcsvd.h" I*/
-#include <slepc-private/ipimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetOperator"
@@ -119,10 +118,6 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (!((PetscObject)svd)->type_name) {
     ierr = SVDSetType(svd,SVDCROSS);CHKERRQ(ierr);
   }
-  if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-  if (!((PetscObject)svd->ip)->type_name) {
-    ierr = IPSetType_Default(svd->ip);CHKERRQ(ierr);
-  }
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
   ierr = DSReset(svd->ds);CHKERRQ(ierr);
   if (!((PetscObject)svd->rand)->type_name) {
@@ -169,21 +164,15 @@ PetscErrorCode SVDSetUp(SVD svd)
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode");
   }
 
-  ierr = VecDestroy(&svd->tr);CHKERRQ(ierr);
-  ierr = VecDestroy(&svd->tl);CHKERRQ(ierr);
-  if (svd->A) {
-    ierr = SlepcMatGetVecsTemplate(svd->A,&svd->tr,&svd->tl);CHKERRQ(ierr);
-  } else {
-    ierr = SlepcMatGetVecsTemplate(svd->AT,&svd->tl,&svd->tr);CHKERRQ(ierr);
-  }
-  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->tl);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->tr);CHKERRQ(ierr);
-
   /* swap initial vectors if necessary */
   if (M<N) {
     T=svd->ISL; svd->ISL=svd->IS; svd->IS=T;
     k=svd->ninil; svd->ninil=svd->nini; svd->nini=k;
   }
+
+  if (svd->ncv > PetscMin(M,N)) svd->ncv = PetscMin(M,N);
+  if (svd->nsv > PetscMin(M,N)) svd->nsv = PetscMin(M,N);
+  if (svd->ncv && svd->nsv > svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
 
   /* call specific solver setup */
   ierr = (*svd->ops->setup)(svd);CHKERRQ(ierr);
@@ -191,33 +180,25 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* set tolerance if not yet set */
   if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
 
-  if (svd->ncv > M || svd->ncv > N) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"ncv bigger than matrix dimensions");
-  if (svd->nsv > svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
-
-  if (svd->ncv != svd->n) {
-    /* free memory for previous solution  */
-    if (svd->n) {
-      ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
-      ierr = VecDestroyVecs(svd->n,&svd->V);CHKERRQ(ierr);
-    }
-    /* allocate memory for next solution */
-    ierr = PetscMalloc3(svd->ncv,&svd->sigma,svd->ncv,&svd->perm,svd->ncv,&svd->errest);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)svd,PetscMax(0,svd->ncv-svd->n)*(2*sizeof(PetscReal)+sizeof(PetscInt)));CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(svd->tr,svd->ncv,&svd->V);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(svd,svd->ncv,svd->V);CHKERRQ(ierr);
-    svd->n = svd->ncv;
-  }
-
   /* process initial vectors */
   if (svd->nini<0) {
-    svd->nini = -svd->nini;
-    if (svd->nini>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of initial vectors is larger than ncv");
-    ierr = IPOrthonormalizeBasis_Private(svd->ip,&svd->nini,&svd->IS,svd->V);CHKERRQ(ierr);
+    k = -svd->nini;
+    if (k>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of initial vectors is larger than ncv");
+    ierr = BVInsertVecs(svd->V,0,&k,svd->IS,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = SlepcBasisDestroy_Private(&svd->nini,&svd->IS);CHKERRQ(ierr);
+    svd->nini = k;
   }
-  if (svd->ninil<0 && svd->U) { /* skip this if the solver is not using a left basis */
-    svd->ninil = -svd->ninil;
-    if (svd->ninil>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of left initial vectors is larger than ncv");
-    ierr = IPOrthonormalizeBasis_Private(svd->ip,&svd->ninil,&svd->ISL,svd->U);CHKERRQ(ierr);
+  if (svd->ninil<0) {
+    k = 0;
+    if (svd->leftbasis) {
+      k = -svd->ninil;
+      if (k>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of left initial vectors is larger than ncv");
+      ierr = BVInsertVecs(svd->U,0,&k,svd->ISL,PETSC_TRUE);CHKERRQ(ierr);
+    } else {
+      ierr = PetscInfo(svd,"Ignoring initial left vectors\n");CHKERRQ(ierr);
+    }
+    ierr = SlepcBasisDestroy_Private(&svd->ninil,&svd->ISL);CHKERRQ(ierr);
+    svd->ninil = k;
   }
 
   ierr = PetscLogEventEnd(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
@@ -253,6 +234,8 @@ PetscErrorCode SVDSetUp(SVD svd)
    of the wanted singular space. Then, convergence may be faster.
 
    Level: intermediate
+
+.seealso: SVDSetInitialSpaceLeft()
 @*/
 PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
 {
@@ -295,6 +278,8 @@ PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
    of the wanted singular space. Then, convergence may be faster.
 
    Level: intermediate
+
+.seealso: SVDSetInitialSpace()
 @*/
 PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt n,Vec *is)
 {
@@ -306,6 +291,91 @@ PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt n,Vec *is)
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&svd->ninil,&svd->ISL);CHKERRQ(ierr);
   if (n>0) svd->setupcalled = 0;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDSetDimensions_Default"
+/*
+  SVDSetDimensions_Default - Set reasonable values for ncv, mpd if not set
+  by the user. This is called at setup.
+ */
+PetscErrorCode SVDSetDimensions_Default(SVD svd)
+{
+  PetscErrorCode ierr;
+  PetscInt       N;
+
+  PetscFunctionBegin;
+  ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
+  if (svd->ncv) { /* ncv set */
+    if (svd->ncv<svd->nsv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must be at least nsv");
+  } else if (svd->mpd) { /* mpd set */
+    svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
+  } else { /* neither set: defaults depend on nsv being small or large */
+    if (svd->nsv<500) svd->ncv = PetscMin(N,PetscMax(2*svd->nsv,10));
+    else {
+      svd->mpd = 500;
+      svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
+    }
+  }
+  if (!svd->mpd) svd->mpd = svd->ncv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDAllocateSolution"
+/*
+  SVDAllocateSolution - Allocate memory storage for common variables such as
+  the singular values and the basis vectors. The argument extra is used for methods
+  that require a working basis slightly larger than ncv. This is called at setup
+  after setting the value of ncv and the flag leftbasis.
+ */
+PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
+{
+  PetscErrorCode ierr;
+  PetscInt       oldsize,requested;
+  Vec            tr,tl;
+
+  PetscFunctionBegin;
+  requested = svd->ncv + extra;
+
+  /* oldsize is zero if this is the first time setup is called */
+  ierr = BVGetSizes(svd->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
+
+  /* allocate sigma */
+  if (requested != oldsize) {
+    if (oldsize) {
+      ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
+    }
+    ierr = PetscMalloc3(requested,&svd->sigma,requested,&svd->perm,requested,&svd->errest);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)svd,PetscMax(0,requested-oldsize)*(2*sizeof(PetscReal)+sizeof(PetscInt)));CHKERRQ(ierr);
+  }
+  /* allocate V */
+  if (!svd->V) { ierr = SVDGetBV(svd,&svd->V,NULL);CHKERRQ(ierr); }
+  if (!oldsize) {
+    if (!((PetscObject)(svd->V))->type_name) {
+      ierr = BVSetType(svd->V,BVSVEC);CHKERRQ(ierr);
+    }
+    ierr = SVDMatGetVecs(svd,&tr,NULL);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(svd->V,tr,requested);CHKERRQ(ierr);
+    ierr = VecDestroy(&tr);CHKERRQ(ierr);
+  } else {
+    ierr = BVResize(svd->V,requested,PETSC_FALSE);CHKERRQ(ierr);
+  }
+  /* allocate U */
+  if (svd->leftbasis) {
+    if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
+    if (!oldsize) {
+      if (!((PetscObject)(svd->U))->type_name) {
+        ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
+      }
+      ierr = SVDMatGetVecs(svd,NULL,&tl);CHKERRQ(ierr);
+      ierr = BVSetSizesFromVec(svd->U,tl,requested);CHKERRQ(ierr);
+      ierr = VecDestroy(&tl);CHKERRQ(ierr);
+    } else {
+      ierr = BVResize(svd->U,requested,PETSC_FALSE);CHKERRQ(ierr);
+    }
+  }
   PetscFunctionReturn(0);
 }
 

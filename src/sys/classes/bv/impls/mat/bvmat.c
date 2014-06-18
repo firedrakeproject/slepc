@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/bvimpl.h>          /*I "slepcbv.h" I*/
+#include <slepc-private/bvimpl.h>
 
 typedef struct {
   Mat       A;
@@ -320,6 +320,30 @@ PetscErrorCode BVRestoreColumn_Mat(BV bv,PetscInt j,Vec *v)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVGetArray_Mat"
+PetscErrorCode BVGetArray_Mat(BV bv,PetscScalar **a)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *ctx = (BV_MAT*)bv->data;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(ctx->A,a);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVRestoreArray_Mat"
+PetscErrorCode BVRestoreArray_Mat(BV bv,PetscScalar **a)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *ctx = (BV_MAT*)bv->data;
+
+  PetscFunctionBegin;
+  if (a) { ierr = MatDenseRestoreArray(ctx->A,a);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVView_Mat"
 PetscErrorCode BVView_Mat(BV bv,PetscViewer viewer)
 {
@@ -413,6 +437,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->resize           = BVResize_Mat;
   bv->ops->getcolumn        = BVGetColumn_Mat;
   bv->ops->restorecolumn    = BVRestoreColumn_Mat;
+  bv->ops->getarray         = BVGetArray_Mat;
+  bv->ops->restorearray     = BVRestoreArray_Mat;
   bv->ops->destroy          = BVDestroy_Mat;
   if (!ctx->mpi) bv->ops->view = BVView_Mat;
   PetscFunctionReturn(0);

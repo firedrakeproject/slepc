@@ -22,8 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>     /*I "slepceps.h" I*/
-#include <slepcblaslapack.h>
+#include <slepc-private/epsimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_LAPACK"
@@ -137,7 +136,8 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       n=eps->n,i,low,high;
-  PetscScalar    *array,*pX,*pY;
+  PetscScalar    *array,*pX;
+  Vec            v;
 
   PetscFunctionBegin;
   ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
@@ -147,39 +147,18 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
   for (i=0;i<eps->ncv;i++) {
-    ierr = VecGetOwnershipRange(eps->V[i],&low,&high);CHKERRQ(ierr);
-    ierr = VecGetArray(eps->V[i],&array);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
+    ierr = VecGetOwnershipRange(v,&low,&high);CHKERRQ(ierr);
+    ierr = VecGetArray(v,&array);CHKERRQ(ierr);
     ierr = PetscMemcpy(array,pX+i*n+low,(high-low)*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = VecRestoreArray(eps->V[i],&array);CHKERRQ(ierr);
+    ierr = VecRestoreArray(v,&array);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
   }
   ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
 
-  /* left eigenvectors */
-  if (eps->leftvecs) {
-    ierr = DSVectors(eps->ds,DS_MAT_Y,NULL,NULL);CHKERRQ(ierr);
-    ierr = DSGetArray(eps->ds,DS_MAT_Y,&pY);CHKERRQ(ierr);
-    for (i=0;i<eps->ncv;i++) {
-      ierr = VecGetOwnershipRange(eps->W[i],&low,&high);CHKERRQ(ierr);
-      ierr = VecGetArray(eps->W[i],&array);CHKERRQ(ierr);
-      ierr = PetscMemcpy(array,pY+i*n+low,(high-low)*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = VecRestoreArray(eps->W[i],&array);CHKERRQ(ierr);
-    }
-    ierr = DSRestoreArray(eps->ds,DS_MAT_Y,&pY);CHKERRQ(ierr);
-  }
   eps->nconv  = eps->ncv;
   eps->its    = 1;
   eps->reason = EPS_CONVERGED_TOL;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSReset_LAPACK"
-PetscErrorCode EPSReset_LAPACK(EPS eps)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -190,7 +169,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
   PetscFunctionBegin;
   eps->ops->solve                = EPSSolve_LAPACK;
   eps->ops->setup                = EPSSetUp_LAPACK;
-  eps->ops->reset                = EPSReset_LAPACK;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);

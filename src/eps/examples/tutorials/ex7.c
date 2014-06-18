@@ -38,6 +38,7 @@ int main(int argc,char **argv)
 {
   Mat            A,B;             /* matrices */
   EPS            eps;             /* eigenproblem solver context */
+  ST             st;
   EPSType        type;
   PetscReal      tol;
   Vec            xr,xi,*Iv,*Cv;
@@ -151,7 +152,8 @@ int main(int argc,char **argv)
   */
   ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
-  ierr = EPSGetOperationCounters(eps,NULL,NULL,&lits);CHKERRQ(ierr);
+  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
+  ierr = STGetOperationCounters(st,NULL,&lits);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of linear iterations of the method: %D\n",lits);CHKERRQ(ierr);
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);

@@ -22,7 +22,6 @@
 */
 
 #include <slepc-private/mfnimpl.h>       /*I "slepcmfn.h" I*/
-#include <slepc-private/ipimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNSetUp"
@@ -47,6 +46,7 @@
 PetscErrorCode MFNSetUp(MFN mfn)
 {
   PetscErrorCode ierr;
+  PetscInt       N;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
@@ -60,31 +60,21 @@ PetscErrorCode MFNSetUp(MFN mfn)
   if (!((PetscObject)mfn)->type_name) {
     ierr = MFNSetType(mfn,MFNKRYLOV);CHKERRQ(ierr);
   }
-  if (!mfn->ip) { ierr = MFNGetIP(mfn,&mfn->ip);CHKERRQ(ierr); }
-  if (!((PetscObject)mfn->ip)->type_name) {
-    ierr = IPSetType_Default(mfn->ip);CHKERRQ(ierr);
-  }
-  ierr = IPSetMatrix(mfn->ip,NULL,0.0);CHKERRQ(ierr);
   if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = DSReset(mfn->ds);CHKERRQ(ierr);
   if (!((PetscObject)mfn->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(mfn->rand);CHKERRQ(ierr);
   }
 
-  /* Set problem dimensions */
+  /* Check problem dimensions */
   if (!mfn->A) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONGSTATE,"MFNSetOperator must be called first");
-  ierr = MatGetSize(mfn->A,&mfn->n,NULL);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(mfn->A,&mfn->nloc,NULL);CHKERRQ(ierr);
-  ierr = VecDestroy(&mfn->t);CHKERRQ(ierr);
-  ierr = SlepcMatGetVecsTemplate(mfn->A,&mfn->t,NULL);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->t);CHKERRQ(ierr);
+  ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
+  if (mfn->ncv > N) mfn->ncv = N;
 
   /* Set default function */
   if (!mfn->function) {
     ierr = MFNSetFunction(mfn,SLEPC_FUNCTION_EXP);CHKERRQ(ierr);
   }
-
-  if (mfn->ncv > mfn->n) mfn->ncv = mfn->n;
 
   /* call specific solver setup */
   ierr = (*mfn->ops->setup)(mfn);CHKERRQ(ierr);
@@ -158,6 +148,43 @@ PetscErrorCode MFNGetOperator(MFN mfn,Mat *A)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidPointer(A,2);
   *A = mfn->A;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MFNAllocateSolution"
+/*
+  MFNAllocateSolution - Allocate memory storage for common variables such as
+  the basis vectors. The argument extra is used for methods that require a working
+  basis slightly larger than ncv. This is called at setup after setting the value
+  of ncv.
+ */
+PetscErrorCode MFNAllocateSolution(MFN mfn,PetscInt extra)
+{
+  PetscErrorCode ierr;
+  PetscInt       oldsize,requested;
+  Vec            t;
+
+  PetscFunctionBegin;
+  requested = mfn->ncv + extra;
+
+  /* oldsize is zero if this is the first time setup is called */
+  ierr = BVGetSizes(mfn->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
+
+  /* allocate basis vectors */
+  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
+  if (!oldsize) {
+    if (!((PetscObject)(mfn->V))->type_name) {
+      ierr = BVSetType(mfn->V,BVSVEC);CHKERRQ(ierr);
+    }
+    ierr = MatGetVecs(mfn->A,&t,NULL);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(mfn->V,t,requested);CHKERRQ(ierr);
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
+  } else {
+    ierr = BVResize(mfn->V,requested,PETSC_FALSE);CHKERRQ(ierr);
+  }
+  ierr = BVSetMatrix(mfn->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
+
   PetscFunctionReturn(0);
 }
 

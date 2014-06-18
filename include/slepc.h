@@ -22,7 +22,6 @@
 */
 
 #include <slepcsvd.h>
-#include <slepcqep.h>
 #include <slepcpep.h>
 #include <slepcnep.h>
 #include <slepcmfn.h>

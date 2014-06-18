@@ -18,7 +18,7 @@
    along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
-#include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
+#include <slepc-private/dsimpl.h>
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
@@ -975,3 +975,4 @@ PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
   ds->ops->normalize     = DSNormalize_GHIEP;
   PetscFunctionReturn(0);
 }
+

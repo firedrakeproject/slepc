@@ -188,23 +188,26 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   ierr = STInitializePackage();CHKERRQ(ierr);
   ierr = SlepcHeaderCreate(st,_p_ST,struct _STOps,ST_CLASSID,"ST","Spectral Transformation","ST",comm,STDestroy,STView);CHKERRQ(ierr);
 
-  st->A            = 0;
-  st->Astate       = 0;
-  st->T            = 0;
-  st->P            = 0;
+  st->A            = NULL;
+  st->Astate       = NULL;
+  st->T            = NULL;
+  st->P            = NULL;
   st->nmat         = 0;
   st->sigma        = 0.0;
   st->sigma_set    = PETSC_FALSE;
   st->defsigma     = 0.0;
-  st->data         = 0;
-  st->setupcalled  = 0;
-  st->ksp          = 0;
-  st->w            = 0;
-  st->D            = 0;
-  st->wb           = 0;
   st->shift_matrix = ST_MATMODE_COPY;
   st->str          = DIFFERENT_NONZERO_PATTERN;
   st->transform    = PETSC_FALSE;
+
+  st->ksp          = NULL;
+  st->w            = NULL;
+  st->D            = NULL;
+  st->wb           = NULL;
+  st->linearits    = 0;
+  st->applys       = 0;
+  st->data         = NULL;
+  st->setupcalled  = 0;
 
   *newst = st;
   PetscFunctionReturn(0);
@@ -314,6 +317,7 @@ PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *T)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(T,3);
+  if (!st->nmat) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"STSetOperators must be called first");
   if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat-1);
   if (!st->T) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_POINTER,"There are no transformed matrices");
   *T = st->T[k];

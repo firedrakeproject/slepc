@@ -30,7 +30,6 @@ int main(int argc,char **argv)
   Mat                A,B;         /* problem matrix */
   EPS                eps;         /* eigenproblem solver context */
   ST                 st;
-  IP                 ip;
   DS                 ds;
   PetscReal          cut,tol;
   PetscScalar        target;
@@ -117,8 +116,6 @@ int main(int argc,char **argv)
 
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STView(st,NULL);CHKERRQ(ierr);
-  ierr = EPSGetIP(eps,&ip);CHKERRQ(ierr);
-  ierr = IPView(ip,NULL);CHKERRQ(ierr);
   ierr = EPSGetDS(eps,&ds);CHKERRQ(ierr);
   ierr = DSView(ds,NULL);CHKERRQ(ierr);
 
