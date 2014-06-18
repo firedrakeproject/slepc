@@ -37,12 +37,18 @@ struct _NEPOps {
   PetscErrorCode (*destroy)(NEP);
   PetscErrorCode (*reset)(NEP);
   PetscErrorCode (*view)(NEP,PetscViewer);
+  PetscErrorCode (*computevectors)(NEP);
 };
 
 /*
      Maximum number of monitors you can run with a single NEP
 */
 #define MAXNEPMONITORS 5
+
+typedef enum { NEP_STATE_INITIAL,
+               NEP_STATE_SETUP,
+               NEP_STATE_SOLVED,
+               NEP_STATE_EIGENVECTORS } NEPStateType;
 
 /*
    Defines the NEP data structure.
@@ -101,15 +107,31 @@ struct _p_NEP {
   void           *data;            /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables --------------------------*/
+  NEPStateType   state;            /* initial -> setup -> solved -> eigenvectors */
   PetscInt       nconv;            /* number of converged eigenvalues */
   PetscInt       its;              /* number of iterations so far computed */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
   PetscInt       nfuncs;           /* number of function evaluations */
   PetscBool      split;            /* the nonlinear operator has been set in
                                       split form, otherwise user callbacks are used */
-  PetscInt       setupcalled;
   NEPConvergedReason reason;
 };
+
+/*
+    Macros to test valid NEP arguments
+*/
+#if !defined(PETSC_USE_DEBUG)
+
+#define NEPCheckSolved(h,arg) do {} while (0)
+
+#else
+
+#define NEPCheckSolved(h,arg) \
+  do { \
+    if (h->state<NEP_STATE_SOLVED) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call NEPSolve() first: Parameter #%d",arg); \
+  } while (0)
+
+#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "NEP_KSPSolve"

@@ -283,14 +283,14 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
   }
   if (maxit == PETSC_DEFAULT || maxit == PETSC_DECIDE) {
     nep->max_it = 0;
-    nep->setupcalled = 0;
+    nep->state = NEP_STATE_INITIAL;
   } else {
     if (maxit < 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Maximum number of iterations %D must be non-negative",maxit);
     nep->max_it = maxit;
   }
   if (maxf == PETSC_DEFAULT || maxf == PETSC_DECIDE) {
     nep->max_it = 0;
-    nep->setupcalled = 0;
+    nep->state = NEP_STATE_INITIAL;
   } else {
     if (maxf < 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Maximum number of function evaluations %D must be non-negative",maxf);
     nep->max_funcs = maxf;
@@ -388,7 +388,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     nep->mpd = mpd;
   }
-  nep->setupcalled = 0;
+  nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -457,7 +457,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
     case NEP_TARGET_IMAGINARY:
 #endif
       if (nep->which != which) {
-        nep->setupcalled = 0;
+        nep->state = NEP_STATE_INITIAL;
         nep->which = which;
       }
       break;

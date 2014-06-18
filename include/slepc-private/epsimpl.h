@@ -30,15 +30,15 @@ PETSC_EXTERN PetscLogEvent EPS_SetUp,EPS_Solve;
 typedef struct _EPSOps *EPSOps;
 
 struct _EPSOps {
-  PetscErrorCode  (*solve)(EPS);
-  PetscErrorCode  (*setup)(EPS);
-  PetscErrorCode  (*setfromoptions)(EPS);
-  PetscErrorCode  (*publishoptions)(EPS);
-  PetscErrorCode  (*destroy)(EPS);
-  PetscErrorCode  (*reset)(EPS);
-  PetscErrorCode  (*view)(EPS,PetscViewer);
-  PetscErrorCode  (*backtransform)(EPS);
-  PetscErrorCode  (*computevectors)(EPS);
+  PetscErrorCode (*solve)(EPS);
+  PetscErrorCode (*setup)(EPS);
+  PetscErrorCode (*setfromoptions)(EPS);
+  PetscErrorCode (*publishoptions)(EPS);
+  PetscErrorCode (*destroy)(EPS);
+  PetscErrorCode (*reset)(EPS);
+  PetscErrorCode (*view)(EPS,PetscViewer);
+  PetscErrorCode (*backtransform)(EPS);
+  PetscErrorCode (*computevectors)(EPS);
 };
 
 /*

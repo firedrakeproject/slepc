@@ -30,14 +30,14 @@ PETSC_EXTERN PetscLogEvent PEP_SetUp,PEP_Solve;
 typedef struct _PEPOps *PEPOps;
 
 struct _PEPOps {
-  PetscErrorCode  (*solve)(PEP);
-  PetscErrorCode  (*setup)(PEP);
-  PetscErrorCode  (*setfromoptions)(PEP);
-  PetscErrorCode  (*publishoptions)(PEP);
-  PetscErrorCode  (*destroy)(PEP);
-  PetscErrorCode  (*reset)(PEP);
-  PetscErrorCode  (*view)(PEP,PetscViewer);
-  PetscErrorCode  (*computevectors)(PEP);
+  PetscErrorCode (*solve)(PEP);
+  PetscErrorCode (*setup)(PEP);
+  PetscErrorCode (*setfromoptions)(PEP);
+  PetscErrorCode (*publishoptions)(PEP);
+  PetscErrorCode (*destroy)(PEP);
+  PetscErrorCode (*reset)(PEP);
+  PetscErrorCode (*view)(PEP,PetscViewer);
+  PetscErrorCode (*computevectors)(PEP);
 };
 
 /*

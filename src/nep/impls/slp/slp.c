@@ -167,7 +167,7 @@ static PetscErrorCode NEPSLPSetEPS_SLP(NEP nep,EPS eps)
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   ctx->eps = eps;
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->eps);CHKERRQ(ierr);
-  nep->setupcalled = 0;
+  nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
