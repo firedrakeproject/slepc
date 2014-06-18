@@ -45,7 +45,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 {
   PetscErrorCode   ierr;
   char             type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool        flg;
+  PetscBool        flg,flg1,flg2,flg3;
   PetscReal        r,t;
   PetscScalar      s;
   PetscInt         i,j,k;
@@ -72,16 +72,24 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
     ierr = PetscOptionsEnum("-pep_scale","Scaling strategy","PEPSetScale",PEPScaleTypes,(PetscEnum)pep->scale,(PetscEnum*)&pep->scale,NULL);CHKERRQ(ierr);
 
-    r = j = t = PETSC_DEFAULT;
-    ierr = PetscOptionsReal("-pep_scale_factor","Scale factor","PEPSetScale",pep->sfactor,&r,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-pep_scale_its","Number of iterations in diagonal scaling","PEPSetScale",pep->sits,&j,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-pep_scale_lambda","Estimate of eigenvalue (modulus) for diagonal scaling","PEPSetScale",pep->slambda,&t,NULL);CHKERRQ(ierr);
-    ierr = PEPSetScale(pep,pep->scale,r,j,t);CHKERRQ(ierr);
+    r = pep->sfactor;
+    ierr = PetscOptionsReal("-pep_scale_factor","Scale factor","PEPSetScale",pep->sfactor,&r,&flg1);CHKERRQ(ierr);
+    j = pep->sits;
+    ierr = PetscOptionsInt("-pep_scale_its","Number of iterations in diagonal scaling","PEPSetScale",pep->sits,&j,&flg2);CHKERRQ(ierr);
+    t = pep->slambda;
+    ierr = PetscOptionsReal("-pep_scale_lambda","Estimate of eigenvalue (modulus) for diagonal scaling","PEPSetScale",pep->slambda,&t,&flg3);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3) {
+      ierr = PEPSetScale(pep,pep->scale,r,j,t);CHKERRQ(ierr);
+    }
 
-    r = i = 0;
-    ierr = PetscOptionsInt("-pep_max_it","Maximum number of iterations","PEPSetTolerances",pep->max_it,&i,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-pep_tol","Tolerance","PEPSetTolerances",pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:pep->tol,&r,NULL);CHKERRQ(ierr);
-    ierr = PEPSetTolerances(pep,r,i);CHKERRQ(ierr);
+    i = pep->max_it? pep->max_it: PETSC_DEFAULT;
+    ierr = PetscOptionsInt("-pep_max_it","Maximum number of iterations","PEPSetTolerances",pep->max_it,&i,&flg1);CHKERRQ(ierr);
+    r = pep->tol;
+    ierr = PetscOptionsReal("-pep_tol","Tolerance","PEPSetTolerances",pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:pep->tol,&r,&flg2);CHKERRQ(ierr);
+    if (flg1 || flg2) {
+      ierr = PEPSetTolerances(pep,r,i);CHKERRQ(ierr);
+    }
+
     ierr = PetscOptionsBoolGroupBegin("-pep_conv_eig","Relative error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_EIG);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-pep_conv_norm","Convergence test relative to the eigenvalue and the matrix norms","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
@@ -91,11 +99,15 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PetscOptionsBoolGroupEnd("-pep_conv_user","User-defined convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_USER);CHKERRQ(ierr); }
 
-    i = j = k = 0;
-    ierr = PetscOptionsInt("-pep_nev","Number of eigenvalues to compute","PEPSetDimensions",pep->nev,&i,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-pep_ncv","Number of basis vectors","PEPSetDimensions",pep->ncv,&j,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-pep_mpd","Maximum dimension of projected problem","PEPSetDimensions",pep->mpd,&k,NULL);CHKERRQ(ierr);
-    ierr = PEPSetDimensions(pep,i,j,k);CHKERRQ(ierr);
+    i = pep->nev;
+    ierr = PetscOptionsInt("-pep_nev","Number of eigenvalues to compute","PEPSetDimensions",pep->nev,&i,&flg1);CHKERRQ(ierr);
+    j = pep->ncv? pep->ncv: PETSC_DEFAULT;
+    ierr = PetscOptionsInt("-pep_ncv","Number of basis vectors","PEPSetDimensions",pep->ncv,&j,&flg2);CHKERRQ(ierr);
+    k = pep->mpd? pep->mpd: PETSC_DEFAULT;
+    ierr = PetscOptionsInt("-pep_mpd","Maximum dimension of projected problem","PEPSetDimensions",pep->mpd,&k,&flg3);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3) {
+      ierr = PEPSetDimensions(pep,i,j,k);CHKERRQ(ierr);
+    }
 
     ierr = PetscOptionsScalar("-pep_target","Value of the target","PEPSetTarget",pep->target,&s,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -234,10 +246,7 @@ PetscErrorCode PEPGetTolerances(PEP pep,PetscReal *tol,PetscInt *maxits)
 -  -pep_max_it <maxits> - Sets the maximum number of iterations allowed
 
    Notes:
-   Pass 0 for an argument that need not be changed.
-
-   Use PETSC_DECIDE for maxits to assign a reasonably good value, which is
-   dependent on the solution method.
+   Use PETSC_DEFAULT for either argument to assign a reasonably good value.
 
    Level: intermediate
 
@@ -249,22 +258,19 @@ PetscErrorCode PEPSetTolerances(PEP pep,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(pep,tol,2);
   PetscValidLogicalCollectiveInt(pep,maxits,3);
-  if (tol) {
-    if (tol == PETSC_DEFAULT) {
-      pep->tol = PETSC_DEFAULT;
-    } else {
-      if (tol < 0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
-      pep->tol = tol;
-    }
+  if (tol == PETSC_DEFAULT) {
+    pep->tol   = PETSC_DEFAULT;
+    pep->state = PEP_STATE_INITIAL;
+  } else {
+    if (tol <= 0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+    pep->tol = tol;
   }
-  if (maxits) {
-    if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-      pep->max_it = 0;
-      pep->state  = PEP_STATE_INITIAL;
-    } else {
-      if (maxits < 0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
-      pep->max_it = maxits;
-    }
+  if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
+    pep->max_it = 0;
+    pep->state  = PEP_STATE_INITIAL;
+  } else {
+    if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+    pep->max_it = maxits;
   }
   PetscFunctionReturn(0);
 }
@@ -322,9 +328,7 @@ PetscErrorCode PEPGetDimensions(PEP pep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
 -  -pep_mpd <mpd> - Sets the maximum projected dimension
 
    Notes:
-   Pass 0 to retain the previous value of any parameter.
-
-   Use PETSC_DECIDE for ncv and mpd to assign a reasonably good value, which is
+   Use PETSC_DEFAULT for ncv and mpd to assign a reasonably good value, which is
    dependent on the solution method.
 
    The parameters ncv and mpd are intimately related, so that the user is advised
@@ -347,28 +351,21 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(pep,nev,2);
   PetscValidLogicalCollectiveInt(pep,ncv,3);
   PetscValidLogicalCollectiveInt(pep,mpd,4);
-  if (nev) {
-    if (nev<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
-    pep->nev = nev;
-    pep->state = PEP_STATE_INITIAL;
+  if (nev<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+  pep->nev = nev;
+  if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
+    pep->ncv = 0;
+  } else {
+    if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+    pep->ncv = ncv;
   }
-  if (ncv) {
-    if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-      pep->ncv = 0;
-    } else {
-      if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
-      pep->ncv = ncv;
-    }
-    pep->state = PEP_STATE_INITIAL;
+  if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
+    pep->mpd = 0;
+  } else {
+    if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
+    pep->mpd = mpd;
   }
-  if (mpd) {
-    if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-      pep->mpd = 0;
-    } else {
-      if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
-      pep->mpd = mpd;
-    }
-  }
+  pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -423,28 +420,26 @@ PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,which,2);
-  if (which) {
-    if (which==PETSC_DECIDE || which==PETSC_DEFAULT) pep->which = (PEPWhich)0;
-    else switch (which) {
-      case PEP_LARGEST_MAGNITUDE:
-      case PEP_SMALLEST_MAGNITUDE:
-      case PEP_LARGEST_REAL:
-      case PEP_SMALLEST_REAL:
-      case PEP_LARGEST_IMAGINARY:
-      case PEP_SMALLEST_IMAGINARY:
-      case PEP_TARGET_MAGNITUDE:
-      case PEP_TARGET_REAL:
+  if (which==PETSC_DECIDE || which==PETSC_DEFAULT) pep->which = (PEPWhich)0;
+  else switch (which) {
+    case PEP_LARGEST_MAGNITUDE:
+    case PEP_SMALLEST_MAGNITUDE:
+    case PEP_LARGEST_REAL:
+    case PEP_SMALLEST_REAL:
+    case PEP_LARGEST_IMAGINARY:
+    case PEP_SMALLEST_IMAGINARY:
+    case PEP_TARGET_MAGNITUDE:
+    case PEP_TARGET_REAL:
 #if defined(PETSC_USE_COMPLEX)
-      case PEP_TARGET_IMAGINARY:
+    case PEP_TARGET_IMAGINARY:
 #endif
-        if (pep->which != which) {
-          pep->state = PEP_STATE_INITIAL;
-          pep->which = which;
-        }
-        break;
-      default:
-        SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value");
-    }
+      if (pep->which != which) {
+        pep->state = PEP_STATE_INITIAL;
+        pep->which = which;
+      }
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value");
   }
   PetscFunctionReturn(0);
 }
