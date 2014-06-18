@@ -237,7 +237,7 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
 {
   EPS_KRYLOVSCHUR  *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscErrorCode   ierr;
-  PetscInt         dir,i,k,ld;
+  PetscInt         dir,i,k,ld,nv;
   PetscScalar      *A;
   SR               sr = ctx->sr;
   Vec              v;
@@ -267,7 +267,8 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
   }
   sr->nS = k;
   ierr = DSRestoreArray(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = DSSetDimensions(eps->ds,0,0,0,k);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,&nv,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSSetDimensions(eps->ds,nv,0,0,k);CHKERRQ(ierr);
   /* Append u to V */
   ierr = BVGetColumn(sr->Vnext,sr->nS,&v);CHKERRQ(ierr);
   ierr = BVCopyVec(sr->V,sr->nv,v);CHKERRQ(ierr);
