@@ -71,7 +71,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   ierr = EPSSetTarget(ctx->eps,0.0);CHKERRQ(ierr);
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(ctx->eps,1,nep->ncv,nep->mpd);CHKERRQ(ierr);
+  ierr = EPSSetDimensions(ctx->eps,1,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->rtol/10.0,nep->max_it);CHKERRQ(ierr);
   if (ctx->setfromoptionscalled) {
     ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);

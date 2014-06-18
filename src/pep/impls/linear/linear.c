@@ -126,7 +126,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
       default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of which");
   }
   ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(ctx->eps,pep->nev,pep->ncv,pep->mpd);CHKERRQ(ierr);
+  ierr = EPSSetDimensions(ctx->eps,pep->nev,pep->ncv?pep->ncv:PETSC_DEFAULT,pep->mpd?pep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:pep->tol/10.0,pep->max_it);CHKERRQ(ierr);
   /* Transfer the trackall option from pep to eps */
   ierr = PEPGetTrackAll(pep,&trackall);CHKERRQ(ierr);
