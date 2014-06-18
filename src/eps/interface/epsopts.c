@@ -721,7 +721,7 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetConvergenceTest"
-/*@
+/*@C
    EPSGetConvergenceTest - Gets the method used to compute the error estimate
    used in the convergence test.
 
@@ -998,7 +998,7 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetBalance"
-/*@
+/*@C
    EPSGetBalance - Gets the balancing type used by the EPS object, and the
    associated parameters.
 

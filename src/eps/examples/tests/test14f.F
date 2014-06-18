@@ -132,7 +132,7 @@
       cut = 1.0d-6
       bal = EPS_BALANCE_ONESIDE
       call EPSSetBalance(eps,bal,its,cut,ierr)
-!      call EPSGetBalance(eps,bal,its,cut,ierr)
+      call EPSGetBalance(eps,bal,its,cut,ierr)
       if (rank .eq. 0) then
         write(*,160) bal,its,cut
       endif
@@ -149,8 +149,8 @@
  170  format (' Which = ',I2,', target = ',F3.1)
 
       nev = 4
-      call EPSSetDimensions(eps,nev,PETSC_NULL_INTEGER,                 &
-     &                      PETSC_NULL_INTEGER,ierr)
+      call EPSSetDimensions(eps,nev,PETSC_DEFAULT_INTEGER,              &
+     &                      PETSC_DEFAULT_INTEGER,ierr)
       call EPSGetDimensions(eps,nev,ncv,mpd,ierr)
       if (rank .eq. 0) then
         write(*,180) nev,ncv,mpd
@@ -167,8 +167,7 @@
  190  format (' Tolerance =',F7.5,', max_its =',I4)
 
       call EPSSetConvergenceTest(eps,EPS_CONV_ABS,ierr)
-!      call EPSGetConvergenceTest(eps,conv,ierr)
-      conv = 0
+      call EPSGetConvergenceTest(eps,conv,ierr)
       if (rank .eq. 0) then
         write(*,200) conv
       endif

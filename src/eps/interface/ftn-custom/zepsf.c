@@ -42,7 +42,9 @@
 #define epsgetst_                   EPSGETST
 #define epsgetbv_                   EPSGETBV
 #define epsgetds_                   EPSGETDS
+#define epsgetbalance_              EPSGETBALANCE
 #define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
+#define epsgetconvergencetest_      EPSGETCONVERGENCETEST
 #define epsgetproblemtype_          EPSGETPROBLEMTYPE
 #define epsgetextraction_           EPSGETEXTRACTION
 #define epsgetconvergedreason_      EPSGETCONVERGEDREASON
@@ -73,7 +75,9 @@
 #define epsgetst_                   epsgetst
 #define epsgetbv_                   epsgetbv
 #define epsgetds_                   epsgetds
+#define epsgetbalance_              epsgetbalance
 #define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
+#define epsgetconvergencetest_      epsgetconvergencetest
 #define epsgetproblemtype_          epsgetproblemtype
 #define epsgetextraction_           epsgetextraction
 #define epsgetconvergedreason_      epsgetconvergedreason
@@ -290,9 +294,19 @@ PETSC_EXTERN void PETSC_STDCALL epsgetds_(EPS *eps,DS *ds,PetscErrorCode *ierr)
   *ierr = EPSGetDS(*eps,ds);
 }
 
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,PetscErrorCode *ierr)
+{
+  *ierr = EPSGetBalance(*eps,bal,its,cutoff);
+}
+
 PETSC_EXTERN void PETSC_STDCALL epsgetwhicheigenpairs_(EPS *eps,EPSWhich *which,PetscErrorCode *ierr)
 {
   *ierr = EPSGetWhichEigenpairs(*eps,which);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetconvergencetest_(EPS *eps,EPSConv *conv,PetscErrorCode *ierr)
+{
+  *ierr = EPSGetConvergenceTest(*eps,conv);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epsgetproblemtype_(EPS *eps,EPSProblemType *type,PetscErrorCode *ierr)

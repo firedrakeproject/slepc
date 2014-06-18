@@ -72,7 +72,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     r2 = nep->rtol;
     ierr = PetscOptionsReal("-nep_rtol","Relative tolerance for residual norm","NEPSetTolerances",nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->rtol,&r2,&flg4);CHKERRQ(ierr);
     r3 = nep->stol;
-    ierr = PetscOptionsReal("-nep_stol","Relative tolerance for step length","NEPSetTolerances",nep->stol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->stol,&r3,&flg4);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-nep_stol","Relative tolerance for step length","NEPSetTolerances",nep->stol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->stol,&r3,&flg5);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3 || flg4 || flg5) {
       ierr = NEPSetTolerances(nep,r1,r2,r3,i,j);CHKERRQ(ierr);
     }
