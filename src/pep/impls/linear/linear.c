@@ -127,7 +127,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   }
   ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
   ierr = EPSSetDimensions(ctx->eps,pep->nev,pep->ncv?pep->ncv:PETSC_DEFAULT,pep->mpd?pep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(ctx->eps,pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:pep->tol/10.0,pep->max_it);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(ctx->eps,pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:pep->tol/10.0,pep->max_it?pep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   /* Transfer the trackall option from pep to eps */
   ierr = PEPGetTrackAll(pep,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(ctx->eps,trackall);CHKERRQ(ierr);

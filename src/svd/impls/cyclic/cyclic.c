@@ -147,7 +147,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     ierr = EPSSetTarget(cyclic->eps,0.0);CHKERRQ(ierr);
   }
   ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv?svd->ncv:PETSC_DEFAULT,svd->mpd?svd->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(cyclic->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(cyclic->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it?svd->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   /* Transfer the trackall option from svd to eps */
   ierr = SVDGetTrackAll(svd,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(cyclic->eps,trackall);CHKERRQ(ierr);
