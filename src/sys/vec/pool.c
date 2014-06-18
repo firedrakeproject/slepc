@@ -44,7 +44,7 @@
 PetscErrorCode SlepcVecPoolCreate(Vec v,PetscInt init_size,VecPool *p)
 {
   PetscErrorCode ierr;
-  VecPool_       *pool = (VecPool_*)p;
+  VecPool_       *pool;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(v,VEC_CLASSID,1);
@@ -80,7 +80,7 @@ PetscErrorCode SlepcVecPoolCreate(Vec v,PetscInt init_size,VecPool *p)
 PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
 {
   PetscErrorCode ierr;
-  VecPool_       *pool = (VecPool_*)p;
+  VecPool_       *pool = (VecPool_*)*p;
 
   PetscFunctionBegin;
   PetscValidPointer(p,1);
@@ -91,7 +91,7 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
   pool->guess = 0;
   if (pool->next) {ierr=SlepcVecPoolDestroy((VecPool*)&pool->next);CHKERRQ(ierr);}
   ierr = PetscFree(pool);CHKERRQ(ierr);
-  *p = pool;
+  *p = NULL;
   PetscFunctionReturn(0);
 }
 
@@ -135,7 +135,8 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
     pool->n = pool->guess;
     ierr = VecDuplicateVecs(p->v,pool->n,&pool->vecs);CHKERRQ(ierr);
   }
-  *vecs = pool->vecs + (pool->used += n);
+  *vecs = pool->vecs + pool->used;
+  pool->used += n;
   PetscFunctionReturn(0);
 }
 
@@ -157,10 +158,18 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
 @*/
 PetscErrorCode SlepcVecPoolRestoreVecs(VecPool p,PetscInt n,Vec **vecs)
 {
-  VecPool_       *pool = (VecPool_*)p;
+  PetscErrorCode ierr;
+  VecPool_       *pool = (VecPool_*)p, *pool0 = pool;
 
   PetscFunctionBegin;
-  while (pool->next) pool = pool->next;
+  while (pool->next) pool = (pool0 = pool)->next;
+  if (pool->used == 0 && pool0 != pool) {
+    pool0->guess += pool->guess;
+    ierr = SlepcVecPoolDestroy((VecPool*)&pool);CHKERRQ(ierr);
+    pool = pool0;
+    pool->next = NULL;
+  }
   pool->used -= n;
+  if (pool->used < 0) SETERRQ(PetscObjectComm((PetscObject)pool->v),PETSC_ERR_SUP,"Dispaired SlepcVecPoolRestoreVecs.");
   PetscFunctionReturn(0);
 }

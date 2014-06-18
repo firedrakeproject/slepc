@@ -400,7 +400,7 @@ PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d)
   Mat             S,T,Q;
 
   PetscFunctionBegin;
-  if (d->V_tra_s == 0 && d->V_tra_e == 0) PetscFunctionReturn(0);
+  if ((d->V_tra_s == 0 && d->V_tra_e == 0) || !d->W) PetscFunctionReturn(0);
 
   /* cY <- [cY W*ps.Z(0:V_tra_s-1)], W <- W*ps.Z(V_tra_s:V_tra_e) */
   ierr = dvd_calcpairs_updateBV0_gen(d,d->W,DS_MAT_Z);CHKERRQ(ierr);
@@ -539,7 +539,7 @@ PetscErrorCode dvd_calcpairs_updateBV0(dvdDashboard *d)
   PetscScalar     *pQ,*pZ;
 
   PetscFunctionBegin;
-  if (d->V_tra_s == 0 && d->V_tra_e == 0) PetscFunctionReturn(0);
+  if ((d->V_tra_s == 0 && d->V_tra_e == 0) || !d->BX) PetscFunctionReturn(0);
 
   /* BV <- BV*MT */
   ierr = dvd_calcpairs_updateBV0_gen(d,d->BX,DS_MAT_Q);CHKERRQ(ierr);

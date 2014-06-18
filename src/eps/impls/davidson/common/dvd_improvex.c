@@ -271,15 +271,15 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pet
 {
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
   PetscErrorCode  ierr;
-  PetscInt        i,j,n,maxits,maxits0,lits,s,ld,l,k,max_size_D;
+  PetscInt        i,j,n,maxits,maxits0,lits,s,ld,k,max_size_D,lV,kV;
   PetscScalar     *pX,*pY,*auxS = d->auxS,*auxS0;
   PetscReal       tol,tol0;
   Vec             *kr,kr_comp,D_comp,D[2];
   PetscBool       odd_situation = PETSC_FALSE;
 
   PetscFunctionBegin;
-  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-  max_size_D = d->eps->ncv-k;
+  ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
+  max_size_D = d->eps->ncv-kV;
   /* Quick exit */
   if ((max_size_D == 0) || r_e-r_s <= 0) {
    *size_D = 0;
@@ -291,10 +291,9 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pet
   if (data->size_X < r_e-r_s) SETERRQ(PETSC_COMM_SELF,1, "size_X < r_e-r_s");
 
   ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
-  ierr = BVGetActiveColumns(d->eps->V,&l,NULL);CHKERRQ(ierr);
 
   /* Restart lastTol if a new pair converged */
-  if (data->dynamic && data->size_cX < l)
+  if (data->dynamic && data->size_cX < lV)
     data->lastTol = 0.5;
 
   for (i=0,s=0,auxS0=auxS;i<n;i+=s) {
@@ -357,8 +356,8 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pet
 
       /* Compose kr and D */
       ierr = VecCreateCompWithVecs(kr,data->ksp_max_size,data->friends,&kr_comp);CHKERRQ(ierr);
-      ierr = BVGetColumn(d->eps->V,k+i,&D[0]);CHKERRQ(ierr);
-      if (s==2) { ierr = BVGetColumn(d->eps->V,k+i+1,&D[1]);CHKERRQ(ierr); }
+      ierr = BVGetColumn(d->eps->V,lV+r_s+i,&D[0]);CHKERRQ(ierr);
+      if (s==2) { ierr = BVGetColumn(d->eps->V,lV+r_s+i+1,&D[1]);CHKERRQ(ierr); }
       ierr = VecCreateCompWithVecs(D,data->ksp_max_size,data->friends,&D_comp);CHKERRQ(ierr);
       ierr = VecCompSetSubVecs(data->friends,s,NULL);CHKERRQ(ierr);
 
@@ -370,18 +369,24 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pet
       /* Destroy the composed ks and D */
       ierr = VecDestroy(&kr_comp);CHKERRQ(ierr);
       ierr = VecDestroy(&D_comp);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(d->eps->V,lV+r_s+i,&D[0]);CHKERRQ(ierr);
+      if (s==2) { ierr = BVRestoreColumn(d->eps->V,lV+r_s+i+1,&D[1]);CHKERRQ(ierr); }
 
     /* If GD */
     } else {
+      ierr = BVGetColumn(d->eps->V,lV+r_s+i,&D[0]);CHKERRQ(ierr);
+      if (s==2) { ierr = BVGetColumn(d->eps->V,lV+r_s+i+1,&D[1]);CHKERRQ(ierr); }
       for (j=0;j<s;j++) {
-        ierr = d->improvex_precond(d, r_s+i+j, kr[j], D[i+j]);CHKERRQ(ierr);
+        ierr = d->improvex_precond(d,r_s+i+j,kr[j],D[j]);CHKERRQ(ierr);
       }
-      ierr = dvd_improvex_apply_proj(d, &D[i], s, auxS);CHKERRQ(ierr);
+      ierr = dvd_improvex_apply_proj(d,D,s,auxS);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(d->eps->V,lV+r_s+i,&D[0]);CHKERRQ(ierr);
+      if (s==2) { ierr = BVRestoreColumn(d->eps->V,lV+r_s+i+1,&D[1]);CHKERRQ(ierr); }
     }
     /* Prevent that short vectors are discarded in the orthogonalization */
     if (i == 0 && d->eps->errest[d->nconv+r_s] > PETSC_MACHINE_EPSILON && d->eps->errest[d->nconv+r_s] < PETSC_MAX_REAL) {
       for (j=0;j<s;j++) {
-        ierr = VecScale(D[j],1.0/d->eps->errest[d->nconv+r_s]);CHKERRQ(ierr);
+        ierr = BVScaleColumn(d->eps->V,lV+r_s+i+j,1.0/d->eps->errest[d->nconv+r_s]);CHKERRQ(ierr);
       }
     }
     ierr = SlepcVecPoolRestoreVecs(d->auxV,s,&kr);CHKERRQ(ierr);
@@ -783,7 +788,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
   if (n>1) {ierr = BVRestoreColumn(data->KZ,lKZ+1,&v[1]);CHKERRQ(ierr);}
 
   /* XKZ <- U'*KZ */
-  ierr = BVMultS(data->KZ,d->eps->V,data->XKZ,data->ldXKZ);CHKERRQ(ierr);
+  ierr = BVMultS(data->KZ,data->U,data->XKZ,data->ldXKZ);CHKERRQ(ierr);
 
   /* iXKZ <- inv(XKZ) */
   size_KZ = lKZ+n;
@@ -1133,9 +1138,10 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV,PetscS
   /* h <- X'*V */
   h = auxS; ldh = data->size_iXKZ;
   ierr = BVGetActiveColumns(data->U,&l,&k);CHKERRQ(ierr);
+  if (ldh!=k) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
   ierr = BVSetActiveColumns(data->U,0,k);CHKERRQ(ierr);
   for (i=0; i<cV; i++) {
-    ierr = BVMultVec(data->U,1.0,0.0,V[i],&h[ldh*i]);CHKERRQ(ierr);
+    ierr = BVDotVec(data->U,V[i],&h[ldh*i]);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
     for (j=0; j<data->size_KZ; j++) h[ldh*i+j] = PetscConj(h[ldh*i+j]);
 #endif
@@ -1188,9 +1194,10 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV,P
   /* h <- KZ'*V */
   h = auxS; ldh = data->size_iXKZ;
   ierr = BVGetActiveColumns(data->U,&l,&k);CHKERRQ(ierr);
+  if (ldh!=k) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
   ierr = BVSetActiveColumns(data->KZ,0,k);CHKERRQ(ierr);
   for (i=0; i<cV; i++) {
-    ierr = BVMultVec(data->KZ,1.0,0.0,V[i],&h[ldh*i]);CHKERRQ(ierr);
+    ierr = BVDotVec(data->KZ,V[i],&h[ldh*i]);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
     for (j=0; j<data->size_KZ; j++) h[ldh*i+j] = PetscConj(h[ldh*i+j]);
 #endif

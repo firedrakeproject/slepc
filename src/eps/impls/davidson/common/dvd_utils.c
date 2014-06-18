@@ -596,11 +596,11 @@ PetscErrorCode BVMultS(BV X,BV Y,PetscScalar *H,PetscInt ldh)
   ierr = MatDenseGetArray(M,&array);CHKERRQ(ierr);
   /* upper part */
   for (j=lx;j<kx;j++) {
-    ierr = PetscMemcpy(&H[ldh*j],array+(j-lx)*ky,ly*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemcpy(&H[ldh*j],&array[j*ky],ly*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   /* lower part */
   for (j=0;j<kx;j++) {
-    ierr = PetscMemcpy(&H[ldh*j+ly],array+j*ky,(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemcpy(&H[ldh*j+ly],&array[j*ky+ly],(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(M,&array);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);

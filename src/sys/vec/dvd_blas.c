@@ -357,7 +357,6 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X,PetscInt cX,PetscScalar alpha,const Pe
   PetscInt       rX, i, j, rY, rY0, ldY;
 
   PetscFunctionBegin;
-  SlepcValidVecsContiguous(X,cX,1);
   PetscValidScalarPointer(M,4);
   PetscValidScalarPointer(work,8);
 
