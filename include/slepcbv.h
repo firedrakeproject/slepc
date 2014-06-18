@@ -118,6 +118,8 @@ PETSC_EXTERN PetscErrorCode BVMatProject(BV,Mat,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVAXPY(BV,PetscScalar,BV);
 PETSC_EXTERN PetscErrorCode BVDot(BV,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVDotVec(BV,Vec,PetscScalar*);
+PETSC_EXTERN PetscErrorCode BVDotVecBegin(BV,Vec,PetscScalar*);
+PETSC_EXTERN PetscErrorCode BVDotVecEnd(BV,Vec,PetscScalar*);
 PETSC_EXTERN PetscErrorCode BVDotColumn(BV,PetscInt,PetscScalar*);
 PETSC_EXTERN PetscErrorCode BVScale(BV,PetscScalar);
 PETSC_EXTERN PetscErrorCode BVScaleColumn(BV,PetscInt,PetscScalar);

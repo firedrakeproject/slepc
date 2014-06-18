@@ -183,6 +183,110 @@ PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar *m)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVDotVecBegin"
+/*@
+   BVDotVecBegin - Starts a split phase dot product computation.
+
+   Input Parameters:
++  X - basis vectors
+.  y - a vector
+-  m - an array where the result will go (can be NULL)
+
+   Note:
+   Each call to BVDotVecBegin() should be paired with a call to BVDotVecEnd().
+
+   Level: advanced
+
+.seealso: BVDotVecEnd(), BVDotVec()
+@*/
+PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
+{
+  PetscErrorCode      ierr;
+  PetscInt            i,n,nv;
+  PetscSplitReduction *sr;
+  MPI_Comm            comm;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,2);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+  PetscValidType(y,2);
+  PetscCheckSameTypeAndComm(X,1,y,2);
+
+  ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
+  if (X->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, y %D",X->n,n);
+  nv = X->k-X->l;
+
+  ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
+  ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+  if (sr->state != STATE_BEGIN) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
+  for (i=0;i<nv;i++) {
+    if (sr->numopsbegin+i >= sr->maxops) {
+      ierr = PetscSplitReductionExtend(sr);CHKERRQ(ierr);
+    }
+    sr->reducetype[sr->numopsbegin+i] = REDUCE_SUM;
+    sr->invecs[sr->numopsbegin+i]     = (void*)X;
+  }
+
+  ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+  ierr = (*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin);CHKERRQ(ierr);
+  sr->numopsbegin += nv;
+  ierr = PetscLogEventEnd(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVDotVecEnd"
+/*@
+   BVDotVecEnd - Ends a split phase dot product computation.
+
+   Input Parameters:
++  X - basis vectors
+.  y - a vector (can be NULL)
+-  m - an array where the result will go
+
+   Note:
+   Each call to BVDotVecBegin() should be paired with a call to BVDotVecEnd().
+
+   Level: advanced
+
+.seealso: BVDotVecBegin(), BVDotVec()
+@*/
+PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
+{
+  PetscErrorCode      ierr;
+  PetscInt            i,nv;
+  PetscSplitReduction *sr;
+  MPI_Comm            comm;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+  nv = X->k-X->l;
+
+  ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
+  ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+  ierr = PetscSplitReductionEnd(sr);CHKERRQ(ierr);
+
+  if (sr->numopsend >= sr->numopsbegin) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times than VecxxxBegin()");
+  if ((void*)X != sr->invecs[sr->numopsend]) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called BVxxxEnd() in a different order or with a different BV than BVxxxBegin()");
+  if (sr->reducetype[sr->numopsend] != REDUCE_SUM) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Wrong type of reduction");
+  for (i=0;i<nv;i++) m[i] = sr->gvalues[sr->numopsend++];
+
+  /*
+     We are finished getting all the results so reset to no outstanding requests
+  */
+  if (sr->numopsend == sr->numopsbegin) {
+    sr->state       = STATE_BEGIN;
+    sr->numopsend   = 0;
+    sr->numopsbegin = 0;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDotColumn"
 /*@
    BVDotColumn - Computes multiple dot products of a column against all the
