@@ -25,7 +25,7 @@
 #include <slepcpep.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent PEP_SetUp, PEP_Solve, PEP_Dense;
+PETSC_EXTERN PetscLogEvent PEP_SetUp,PEP_Solve;
 
 typedef struct _PEPOps *PEPOps;
 
@@ -49,25 +49,22 @@ struct _PEPOps {
 */
 struct _p_PEP {
   PETSCHEADER(struct _PEPOps);
-  /*------------------------- User parameters --------------------------*/
+  /*------------------------- User parameters ---------------------------*/
   PetscInt       max_it;           /* maximum number of iterations */
   PetscInt       nev;              /* number of eigenvalues to compute */
   PetscInt       ncv;              /* number of basis vectors */
   PetscInt       mpd;              /* maximum dimension of projected problem */
-  PetscInt       nini,ninil;       /* number of initial vectors (negative means not copied yet) */
+  PetscInt       nini;             /* number of initial vectors (negative means not copied yet) */
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
   PEPConv        conv;             /* convergence test */
-  PetscReal      sfactor;          /* scaling factor */
-  PetscBool      sfactor_set;      /* flag to indicate the user gave sfactor */
   PEPWhich       which;            /* which part of the spectrum to be sought */
   PEPBasis       basis;            /* polynomial basis used to represent the problem */
-  PetscReal      *pbc;             /* coefficients defining the polynomial basis */
-  PetscBool      leftvecs;         /* if left eigenvectors are requested */
   PEPProblemType problem_type;     /* which kind of problem to be solved */
-  PetscBool      balance;          /* whether balancing must be performed*/
-  PetscInt       balance_its;      /* number of iterations of the balancing method */
-  PetscReal      balance_w;        /* norm eigenvalue approximation for balancing*/
+  PEPScale       scale;            /* scaling strategy to be used */
+  PetscReal      sfactor;          /* scaling factor */
+  PetscInt       sits;             /* number of iterations of the scaling method */
+  PetscReal      slambda;          /* norm eigenvalue approximation for scaling */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
@@ -75,55 +72,47 @@ struct _p_PEP {
   PetscErrorCode (*converged)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   void           *comparisonctx;
   void           *convergedctx;
-
-  /*------------------------- Working data --------------------------*/
-  Mat            *A;               /* coefficient matrices of the polynomial */
-  PetscInt       nmat;             /* number of matrices */
-  Vec            Dl,Dr;            /* diagonal matrices for balancing */
-  Vec            *V;               /* set of basis vectors and computed eigenvectors */
-  Vec            *W;               /* set of left basis vectors and computed left eigenvectors */
-  Vec            *IS,*ISL;         /* placeholder for references to user-provided initial space */
-  PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
-  PetscReal      *errest;          /* error estimates */
-  IP             ip;               /* innerproduct object */
-  DS             ds;               /* direct solver object */
-  ST             st;               /* spectral transformation object */
-  void           *data;            /* placeholder for misc stuff associated
-                                      with a particular solver */
-  PetscInt       allocated_ncv;    /* number of basis vectors allocated */
-  PetscInt       nconv;            /* number of converged eigenvalues */
-  PetscInt       its;              /* number of iterations so far computed */
-  PetscInt       *perm;            /* permutation for eigenvalue ordering */
-  PetscInt       matvecs,linits;   /* operation counters */
-  PetscInt       n,nloc;           /* problem dimensions (global, local) */
-  PetscRandom    rand;             /* random number generator */
-  Vec            t;                /* template vector */
-  PetscScalar    *solvematcoeffs;  /* coefficients to compute the matrix to be inverted */
-  PetscReal      *nrma;            /* computed matrix norms */
-
-  /* ---------------- Default work-area and status vars -------------------- */
-  PetscInt       nwork;
-  Vec            *work;
-
-  PetscInt       setupcalled;
-  PEPConvergedReason reason;
-
   PetscErrorCode (*monitor[MAXPEPMONITORS])(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXPEPMONITORS])(void**);
   void           *monitorcontext[MAXPEPMONITORS];
   PetscInt        numbermonitors;
+
+  /*----------------- Child objects and working data -------------------*/
+  ST             st;               /* spectral transformation object */
+  DS             ds;               /* direct solver object */
+  BV             V;                /* set of basis vectors and computed eigenvectors */
+  PetscRandom    rand;             /* random number generator */
+  Mat            *A;               /* coefficient matrices of the polynomial */
+  PetscInt       nmat;             /* number of matrices */
+  Vec            Dl,Dr;            /* diagonal matrices for balancing */
+  Vec            *IS;              /* references to user-provided initial space */
+  PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
+  PetscReal      *errest;          /* error estimates */
+  PetscInt       *perm;            /* permutation for eigenvalue ordering */
+  PetscReal      *pbc;             /* coefficients defining the polynomial basis */
+  PetscScalar    *solvematcoeffs;  /* coefficients to compute the matrix to be inverted */
+  PetscInt       nwork;            /* number of work vectors */
+  Vec            *work;            /* work vectors */
+  void           *data;            /* placeholder for solver-specific stuff */
+
+  /* ----------------------- Status variables --------------------------*/
+  PetscInt       nconv;            /* number of converged eigenvalues */
+  PetscInt       its;              /* number of iterations so far computed */
+  PetscInt       n,nloc;           /* problem dimensions (global, local) */
+  PetscReal      *nrma;            /* computed matrix norms */
+  PetscBool      sfactor_set;      /* flag to indicate the user gave sfactor */
+  PetscInt       setupcalled;
+  PEPConvergedReason reason;
 };
 
-PETSC_INTERN PetscErrorCode PEPReset_Default(PEP);
 PETSC_INTERN PetscErrorCode PEPAllocateSolution(PEP,PetscInt);
-PETSC_INTERN PetscErrorCode PEPFreeSolution(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Schur(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Indefinite(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeResidualNorm_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPComputeRelativeError_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-PETSC_INTERN PetscErrorCode PEPKrylovConvergence(PEP,PetscBool,PetscInt,PetscInt,PetscInt,PetscReal,PetscInt*);
+PETSC_INTERN PetscErrorCode PEPKrylovConvergence(PEP,PetscBool,PetscInt,PetscInt,PetscReal,PetscInt*);
 PETSC_INTERN PetscErrorCode PEPComputeScaleFactor(PEP);
-PETSC_INTERN PetscErrorCode PEPBuildBalance(PEP);
+PETSC_INTERN PetscErrorCode PEPBuildDiagonalScaling(PEP);
 PETSC_INTERN PetscErrorCode PEPBasisCoefficients(PEP,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt);

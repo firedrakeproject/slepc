@@ -14,8 +14,6 @@
        [1] R. Sidje, "Expokit: a software package for computing matrix
            exponentials", ACM Trans. Math. Softw. 24(1):130-156, 1998.
 
-   Last update: Feb 2013
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
@@ -36,20 +34,20 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/mfnimpl.h>                /*I "slepcmfn.h" I*/
+#include <slepc-private/mfnimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNSetUp_Krylov"
 PetscErrorCode MFNSetUp_Krylov(MFN mfn)
 {
   PetscErrorCode  ierr;
+  PetscInt        N;
 
   PetscFunctionBegin;
-  if (!mfn->ncv) mfn->ncv = PetscMin(30,mfn->n);
-  if (!mfn->max_it) mfn->max_it = PetscMax(100,2*mfn->n/mfn->ncv);
-  ierr = VecDuplicateVecs(mfn->t,mfn->ncv+1,&mfn->V);CHKERRQ(ierr);
-  ierr = PetscLogObjectParents(mfn,mfn->ncv+1,mfn->V);CHKERRQ(ierr);
-  mfn->allocated_ncv = mfn->ncv+1;
+  ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
+  if (!mfn->ncv) mfn->ncv = PetscMin(30,N);
+  if (!mfn->max_it) mfn->max_it = PetscMax(100,2*N/mfn->ncv);
+  ierr = MFNAllocateSolution(mfn,2);CHKERRQ(ierr);
   ierr = DSAllocate(mfn->ds,mfn->ncv+2);CHKERRQ(ierr);
   ierr = DSSetType(mfn->ds,DSNHEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -57,27 +55,29 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNBasicArnoldi"
-static PetscErrorCode MFNBasicArnoldi(MFN mfn,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscBool *breakdown)
+static PetscErrorCode MFNBasicArnoldi(BV V, Mat A,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
   PetscInt       j,m = *M;
   PetscReal      norm;
+  Vec            vj,vj1;
 
   PetscFunctionBegin;
-  for (j=k;j<m-1;j++) {
-    ierr = MatMult(mfn->A,V[j],V[j+1]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(mfn->ip,0,NULL,j+1,NULL,V,V[j+1],H+ldh*j,&norm,breakdown);CHKERRQ(ierr);
+  for (j=k;j<m;j++) {
+    ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
+    ierr = BVGetColumn(V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = MatMult(A,vj,vj1);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeColumn(V,j+1,H+ldh*j,&norm,breakdown);CHKERRQ(ierr);
     H[j+1+ldh*j] = norm;
     if (*breakdown) {
       *M = j+1;
-      *beta = norm;
       PetscFunctionReturn(0);
     } else {
-      ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
+      ierr = BVScaleColumn(V,j+1,1/norm);CHKERRQ(ierr);
     }
   }
-  ierr = MatMult(mfn->A,V[m-1],f);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(mfn->ip,0,NULL,m,NULL,V,f,H+ldh*(m-1),beta,breakdown);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -87,12 +87,12 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 {
   PetscErrorCode ierr;
   PetscInt       mxstep,mxrej,m,mb,ld,i,j,ireject,mx,k1;
-  Vec            r;
+  Vec            v,r;
   PetscScalar    *H,*B,*F,*betaF;
   PetscReal      anorm,normb,avnorm,tol,err_loc,rndoff;
   PetscReal      t,t_out,t_new,t_now,t_step;
   PetscReal      xm,fact,s,sgn,p1,p2;
-  PetscReal      beta,beta2,gamma,delta;
+  PetscReal      beta,gamma,delta;
   PetscBool      breakdown;
 
   PetscFunctionBegin;
@@ -121,7 +121,6 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   t_new = PetscCeilReal(t_new/s)*s;
   sgn = PetscSign(t);
 
-  ierr = VecDuplicate(mfn->V[0],&r);CHKERRQ(ierr);
   ierr = VecCopy(b,x);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(mfn->ds,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc2(m+1,&betaF,ld*ld,&B);CHKERRQ(ierr);
@@ -130,23 +129,22 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     mfn->its++;
     if (PetscIsInfOrNanReal(t_new)) t_new = PETSC_MAX_REAL;
     t_step = PetscMin(t_out-t_now,t_new);
-
-    ierr = VecCopy(x,mfn->V[0]);CHKERRQ(ierr);
-    ierr = VecScale(mfn->V[0],1.0/beta);CHKERRQ(ierr);
+    ierr = BVInsertVec(mfn->V,0,x);CHKERRQ(ierr);
+    ierr = BVScaleColumn(mfn->V,0,1.0/beta);CHKERRQ(ierr);
     ierr = DSGetArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-    ierr = MFNBasicArnoldi(mfn,H,ld,mfn->V,0,&mb,r,&beta2,&breakdown);CHKERRQ(ierr);
-    H[mb+(mb-1)*ld] = beta2;
-    if (!breakdown) {
-      ierr = VecScale(r,1.0/beta2);CHKERRQ(ierr);
-      ierr = VecCopy(r,mfn->V[m]);CHKERRQ(ierr);
-    } else {
+    ierr = MFNBasicArnoldi(mfn->V,mfn->A,H,ld,0,&mb,&breakdown);CHKERRQ(ierr);
+    if (breakdown) {
       k1 = 0;
       t_step = t_out-t_now;
     }
     if (k1!=0) {
       H[m+1+ld*m] = 1.0;
-      ierr = MatMult(mfn->A,mfn->V[m],r);CHKERRQ(ierr);
-      ierr = VecNorm(r,NORM_2,&avnorm);CHKERRQ(ierr);
+      ierr = BVGetColumn(mfn->V,m,&v);CHKERRQ(ierr);
+      ierr = BVGetColumn(mfn->V,m+1,&r);CHKERRQ(ierr);
+      ierr = MatMult(mfn->A,v,r);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(mfn->V,m,&v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(mfn->V,m+1,&r);CHKERRQ(ierr);
+      ierr = BVNormColumn(mfn->V,m+1,NORM_2,&avnorm);CHKERRQ(ierr);
     }
     ierr = PetscMemcpy(B,H,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = DSRestoreArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
@@ -196,8 +194,8 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     ierr = DSGetArray(mfn->ds,DS_MAT_F,&F);CHKERRQ(ierr);
     for (j=0;j<mx;j++) betaF[j] = beta*F[j];
     ierr = DSRestoreArray(mfn->ds,DS_MAT_F,&F);CHKERRQ(ierr);
-    ierr = VecSet(x,0.0);CHKERRQ(ierr);
-    ierr = VecMAXPY(x,mx,betaF,mfn->V);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(mfn->V,0,mx);CHKERRQ(ierr);
+    ierr = BVMultVec(mfn->V,1.0,0.0,x,betaF);CHKERRQ(ierr);
     ierr = VecNorm(x,NORM_2,&beta);CHKERRQ(ierr);
 
     t_now = t_now+t_step;
@@ -212,22 +210,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     ierr = MFNMonitor(mfn,mfn->its,t_now);CHKERRQ(ierr);
   }
 
-  ierr = VecDestroy(&r);CHKERRQ(ierr);
   ierr = PetscFree2(betaF,B);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "MFNReset_Krylov"
-PetscErrorCode MFNReset_Krylov(MFN mfn)
-{
-  PetscErrorCode  ierr;
-
-  PetscFunctionBegin;
-  if (mfn->allocated_ncv > 0) {
-    ierr = VecDestroyVecs(mfn->allocated_ncv,&mfn->V);CHKERRQ(ierr);
-    mfn->allocated_ncv = 0;
-  }
   PetscFunctionReturn(0);
 }
 
@@ -238,6 +221,5 @@ PETSC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN mfn)
   PetscFunctionBegin;
   mfn->ops->solve          = MFNSolve_Krylov;
   mfn->ops->setup          = MFNSetUp_Krylov;
-  mfn->ops->reset          = MFNReset_Krylov;
   PetscFunctionReturn(0);
 }

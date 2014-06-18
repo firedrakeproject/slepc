@@ -22,7 +22,6 @@
 */
 
 #include <slepc-private/nepimpl.h>       /*I "slepcnep.h" I*/
-#include <slepc-private/ipimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetUp"
@@ -47,6 +46,7 @@
 PetscErrorCode NEPSetUp(NEP nep)
 {
   PetscErrorCode ierr;
+  PetscInt       k;
   Mat            T;
 
   PetscFunctionBegin;
@@ -57,13 +57,9 @@ PetscErrorCode NEPSetUp(NEP nep)
   /* reset the convergence flag from the previous solves */
   nep->reason = NEP_CONVERGED_ITERATING;
 
-  /* Set default solver type (NEPSetFromOptions was not called) */
+  /* set default solver type (NEPSetFromOptions was not called) */
   if (!((PetscObject)nep)->type_name) {
     ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
-  }
-  if (!nep->ip) { ierr = NEPGetIP(nep,&nep->ip);CHKERRQ(ierr); }
-  if (!((PetscObject)nep->ip)->type_name) {
-    ierr = IPSetType_Default(nep->ip);CHKERRQ(ierr);
   }
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSReset(nep->ds);CHKERRQ(ierr);
@@ -79,20 +75,18 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
 
   /* set problem dimensions */
-  ierr = VecDestroy(&nep->t);CHKERRQ(ierr);
   if (nep->split) {
     ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->function);CHKERRQ(ierr);
     ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->jacobian);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->function);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->jacobian);CHKERRQ(ierr);
-    ierr = SlepcMatGetVecsTemplate(nep->A[0],&nep->t,NULL);CHKERRQ(ierr);
+    ierr = MatGetSize(nep->A[0],&nep->n,NULL);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(nep->A[0],&nep->nloc,NULL);CHKERRQ(ierr);
   } else {
     ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
-    ierr = SlepcMatGetVecsTemplate(T,&nep->t,NULL);CHKERRQ(ierr);
+    ierr = MatGetSize(T,&nep->n,NULL);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(T,&nep->nloc,NULL);CHKERRQ(ierr);
   }
-  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->t);CHKERRQ(ierr);
-  ierr = VecGetSize(nep->t,&nep->n);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(nep->t,&nep->nloc);CHKERRQ(ierr);
 
   /* call specific solver setup */
   ierr = (*nep->ops->setup)(nep);CHKERRQ(ierr);
@@ -103,7 +97,6 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (nep->stol==PETSC_DEFAULT) nep->stol = SLEPC_DEFAULT_TOL;
   nep->ktol   = 0.1;
   nep->nfuncs = 0;
-  nep->linits = 0;
 
   /* set eigenvalue comparison */
   switch (nep->which) {
@@ -145,14 +138,16 @@ PetscErrorCode NEPSetUp(NEP nep)
       break;
   }
 
-  if (nep->ncv > 2*nep->n) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be twice the problem size at most");
+  if (nep->ncv > nep->n) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be the problem size at most");
   if (nep->nev > nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
 
   /* process initial vectors */
   if (nep->nini<0) {
-    nep->nini = -nep->nini;
-    if (nep->nini>nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The number of initial vectors is larger than ncv");
-    ierr = IPOrthonormalizeBasis_Private(nep->ip,&nep->nini,&nep->IS,nep->V);CHKERRQ(ierr);
+    k = -nep->nini;
+    if (k>nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The number of initial vectors is larger than ncv");
+    ierr = BVInsertVecs(nep->V,0,&k,nep->IS,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = SlepcBasisDestroy_Private(&nep->nini,&nep->IS);CHKERRQ(ierr);
+    nep->nini = k;
   }
   ierr = PetscLogEventEnd(NEP_SetUp,nep,0,0,0);CHKERRQ(ierr);
   nep->setupcalled = 1;
@@ -210,38 +205,43 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec *is)
 PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
 {
   PetscErrorCode ierr;
-  PetscInt       newc,cnt,requested;
+  PetscInt       oldsize,newc,requested;
+  PetscLogDouble cnt;
+  Mat            T;
+  Vec            t;
 
   PetscFunctionBegin;
   requested = nep->ncv + extra;
-  if (nep->allocated_ncv != requested) {
-    newc = PetscMax(0,requested-nep->allocated_ncv);
-    ierr = NEPFreeSolution(nep);CHKERRQ(ierr);
+
+  /* oldsize is zero if this is the first time setup is called */
+  ierr = BVGetSizes(nep->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
+  newc = PetscMax(0,requested-oldsize);
+
+  /* allocate space for eigenvalues and friends */
+  if (requested != oldsize) {
+    if (oldsize) {
+      ierr = PetscFree3(nep->eig,nep->errest,nep->perm);CHKERRQ(ierr);
+    }
     ierr = PetscMalloc3(requested,&nep->eig,requested,&nep->errest,requested,&nep->perm);CHKERRQ(ierr);
-    cnt = 2*newc*sizeof(PetscScalar) + 2*newc*sizeof(PetscReal);
+    cnt = newc*sizeof(PetscScalar) + newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
     ierr = PetscLogObjectMemory((PetscObject)nep,cnt);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(nep->t,requested,&nep->V);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(nep,requested,nep->V);CHKERRQ(ierr);
-    nep->allocated_ncv = requested;
   }
-  PetscFunctionReturn(0);
-}
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPFreeSolution"
-/*
-  NEPFreeSolution - Free memory storage. This routine is related to
-  NEPAllocateSolution().
-*/
-PetscErrorCode NEPFreeSolution(NEP nep)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (nep->allocated_ncv > 0) {
-    ierr = PetscFree3(nep->eig,nep->errest,nep->perm);CHKERRQ(ierr);
-    ierr = VecDestroyVecs(nep->allocated_ncv,&nep->V);CHKERRQ(ierr);
-    nep->allocated_ncv = 0;
+  /* allocate V */
+  if (!nep->V) { ierr = NEPGetBV(nep,&nep->V);CHKERRQ(ierr); }
+  if (!oldsize) {
+    if (!((PetscObject)(nep->V))->type_name) {
+      ierr = BVSetType(nep->V,BVSVEC);CHKERRQ(ierr);
+    }
+    if (nep->split) T = nep->A[0];
+    else {
+      ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
+    }
+    ierr = MatGetVecs(T,&t,NULL);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(nep->V,t,requested);CHKERRQ(ierr);
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
+  } else {
+    ierr = BVResize(nep->V,requested,PETSC_FALSE);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

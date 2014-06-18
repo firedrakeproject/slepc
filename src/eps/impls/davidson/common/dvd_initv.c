@@ -72,13 +72,13 @@ PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdInitV        *data = (dvdInitV*)d->initV_data;
-  PetscInt        i, user = PetscMin(data->user, d->max_size_V),
-                  k = PetscMin(data->k, d->max_size_V);
+  PetscInt        i, user = PetscMin(data->user, d->eps->ncv),
+                  k = PetscMin(data->k, d->eps->ncv);
 
   PetscFunctionBegin;
   /* Generate a set of random initial vectors and orthonormalize them */
   for (i=user; i<k; i++) {
-    ierr = SlepcVecSetRandom(d->V[i],d->eps->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(d->eps->V,i,d->eps->rand);CHKERRQ(ierr);
   }
   d->V_tra_s = 0; d->V_tra_e = 0;
   d->V_new_s = 0; d->V_new_e = i;
@@ -92,35 +92,39 @@ PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
 #define __FUNCT__ "dvd_initV_krylov_0"
 PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
 {
-  PetscErrorCode  ierr;
-  dvdInitV        *data = (dvdInitV*)d->initV_data;
-  PetscInt        i, user = PetscMin(data->user, d->max_size_V),
-                  k = PetscMin(data->k, d->max_size_V);
-  Vec             *cX = d->BcX? d->BcX : ((d->cY && !d->W)? d->cY : d->cX);
+  PetscErrorCode ierr;
+  dvdInitV       *data = (dvdInitV*)d->initV_data;
+  PetscInt       i, user = PetscMin(data->user, d->eps->ncv),
+                 k = PetscMin(data->k, d->eps->ncv);
+  Vec            av,v1,v2;
 
   PetscFunctionBegin;
   /* If needed, generate a random vector for starting the arnoldi method */
   if (user == 0) {
-    ierr = SlepcVecSetRandom(d->V[0], d->eps->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(d->eps->V,0,d->eps->rand);CHKERRQ(ierr);
     user = 1;
   }
 
   /* Perform k steps of Arnoldi with the operator K^{-1}*(t[1]*A-t[2]*B) */
-  ierr = dvd_orthV(d->ipV, d->eps->defl, d->eps->nds, cX, d->size_cX, d->V, 0,
-                   user, d->auxS, d->eps->rand);CHKERRQ(ierr);
+  ierr = dvd_orthV(d->eps->V,0,user,d->eps->rand);CHKERRQ(ierr);
   for (i=user; i<k; i++) {
     /* aux <- theta[1]A*in - theta[0]*B*in */
+    ierr = BVGetColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
+    ierr = BVGetColumn(d->eps->V,i-user,&v2);CHKERRQ(ierr);
+    ierr = BVGetColumn(d->auxBV,0,&av);CHKERRQ(ierr);
     if (d->B) {
-      ierr = MatMult(d->A, d->V[i-user], d->V[i]);CHKERRQ(ierr);
-      ierr = MatMult(d->B, d->V[i-user], d->auxV[0]);CHKERRQ(ierr);
-      ierr = VecAXPBY(d->auxV[0], d->target[1], -d->target[0], d->V[i]);CHKERRQ(ierr);
+      ierr = MatMult(d->A,v2,v1);CHKERRQ(ierr);
+      ierr = MatMult(d->B,v2,av);CHKERRQ(ierr);
+      ierr = VecAXPBY(av,d->target[1],-d->target[0],v1);CHKERRQ(ierr);
     } else {
-      ierr = MatMult(d->A, d->V[i-user], d->auxV[0]);CHKERRQ(ierr);
-      ierr = VecAXPBY(d->auxV[0], -d->target[0], d->target[1], d->V[i-user]);CHKERRQ(ierr);
+      ierr = MatMult(d->A,v2,av);CHKERRQ(ierr);
+      ierr = VecAXPBY(av,-d->target[0],d->target[1],v2);CHKERRQ(ierr);
     }
-    ierr = d->improvex_precond(d, 0, d->auxV[0], d->V[i]);CHKERRQ(ierr);
-    ierr = dvd_orthV(d->ipV, d->eps->defl, d->eps->nds, cX, d->size_cX, d->V, i,
-                     i+1, d->auxS, d->eps->rand);CHKERRQ(ierr);
+    ierr = d->improvex_precond(d,0,av,v1);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(d->eps->V,i-user,&v2);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(d->auxBV,0,&av);CHKERRQ(ierr);
+    ierr = dvd_orthV(d->eps->V,i,i+1,d->eps->rand);CHKERRQ(ierr);
   }
 
   d->V_tra_s = 0; d->V_tra_e = 0;

@@ -25,7 +25,7 @@
 #include <slepcnep.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Dense,NEP_FunctionEval,NEP_JacobianEval;
+PETSC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_FunctionEval,NEP_JacobianEval;
 
 typedef struct _NEPOps *NEPOps;
 
@@ -49,7 +49,7 @@ struct _NEPOps {
 */
 struct _p_NEP {
   PETSCHEADER(struct _NEPOps);
-  /*------------------------- User parameters --------------------------*/
+  /*------------------------- User parameters ---------------------------*/
   PetscInt       max_it;           /* maximum number of iterations */
   PetscInt       max_funcs;        /* maximum number of function evaluations */
   PetscInt       nev;              /* number of eigenvalues to compute */
@@ -62,66 +62,72 @@ struct _p_NEP {
   PetscReal      ktol;             /* tolerance for linear solver */
   PetscBool      cctol;            /* constant correction tolerance */
   PetscReal      ttol;             /* tolerance used in the convergence criterion */
-  PetscBool      trackall;         /* whether all the residuals must be computed */
   NEPWhich       which;            /* which part of the spectrum to be sought */
-  PetscBool      split;            /* the nonlinear operator has been set in
-                                      split form, otherwise user callbacks are used */
+  PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*computefunction)(NEP,PetscScalar,Mat,Mat,void*);
   PetscErrorCode (*computejacobian)(NEP,PetscScalar,Mat,void*);
+  void           *functionctx;
+  void           *jacobianctx;
   PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   PetscErrorCode (*converged)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
   void           *comparisonctx;
   void           *convergedctx;
-  Mat            function,function_pre;
-  void           *functionctx;
-  Mat            jacobian;
-  void           *jacobianctx;
-  PetscInt       nt;               /* number of terms in split form */
-  MatStructure   mstr;             /* pattern of split matrices */
-  Mat            *A;               /* matrix coefficients of split form */
-  FN             *f;               /* matrix functions of split form */
-
-  /*------------------------- Working data --------------------------*/
-  Vec            *V;               /* set of basis vectors and computed eigenvectors */
-  Vec            *IS;              /* placeholder for references to user-provided initial space */
-  PetscScalar    *eig;             /* computed eigenvalues */
-  PetscReal      *errest;          /* error estimates */
-  IP             ip;               /* innerproduct object */
-  DS             ds;               /* direct solver object */
-  KSP            ksp;              /* linear solver object */
-  void           *data;            /* placeholder for misc stuff associated
-                                      with a particular solver */
-  PetscInt       nconv;            /* number of converged eigenvalues */
-  PetscInt       its;              /* number of iterations so far computed */
-  PetscInt       *perm;            /* permutation for eigenvalue ordering */
-  PetscInt       nfuncs,linits;    /* operation counters */
-  PetscInt       n,nloc;           /* problem dimensions (global, local) */
-  PetscRandom    rand;             /* random number generator */
-  Vec            t;                /* template vector */
-  PetscInt       allocated_ncv;    /* number of basis vectors allocated */
-
-  /* ---------------- Default work-area and status vars -------------------- */
-  PetscInt       nwork;
-  Vec            *work;
-
-  PetscInt       setupcalled;
-  NEPConvergedReason reason;
-
   PetscErrorCode (*monitor[MAXNEPMONITORS])(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXNEPMONITORS])(void**);
   void           *monitorcontext[MAXNEPMONITORS];
   PetscInt       numbermonitors;
+
+  /*----------------- Child objects and working data -------------------*/
+  DS             ds;               /* direct solver object */
+  BV             V;                /* set of basis vectors and computed eigenvectors */
+  PetscRandom    rand;             /* random number generator */
+  KSP            ksp;              /* linear solver object */
+  Mat            function;         /* function matrix */
+  Mat            function_pre;     /* function matrix (preconditioner) */
+  Mat            jacobian;         /* Jacobian matrix */
+  Mat            *A;               /* matrix coefficients of split form */
+  FN             *f;               /* matrix functions of split form */
+  PetscInt       nt;               /* number of terms in split form */
+  MatStructure   mstr;             /* pattern of split matrices */
+  Vec            *IS;              /* references to user-provided initial space */
+  PetscScalar    *eig;             /* computed eigenvalues */
+  PetscReal      *errest;          /* error estimates */
+  PetscInt       *perm;            /* permutation for eigenvalue ordering */
+  PetscInt       nwork;            /* number of work vectors */
+  Vec            *work;            /* work vectors */
+  void           *data;            /* placeholder for solver-specific stuff */
+
+  /* ----------------------- Status variables --------------------------*/
+  PetscInt       nconv;            /* number of converged eigenvalues */
+  PetscInt       its;              /* number of iterations so far computed */
+  PetscInt       n,nloc;           /* problem dimensions (global, local) */
+  PetscInt       nfuncs;           /* number of function evaluations */
+  PetscBool      split;            /* the nonlinear operator has been set in
+                                      split form, otherwise user callbacks are used */
+  PetscInt       setupcalled;
+  NEPConvergedReason reason;
 };
 
-PETSC_INTERN PetscErrorCode NEPReset_Default(NEP);
+#undef __FUNCT__
+#define __FUNCT__ "NEP_KSPSolve"
+PETSC_STATIC_INLINE PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
+{
+  PetscErrorCode ierr;
+  PetscInt       lits;
+
+  PetscFunctionBegin;
+  ierr = KSPSolve(nep->ksp,b,x);CHKERRQ(ierr);
+  ierr = KSPGetIterationNumber(nep->ksp,&lits);CHKERRQ(ierr);
+  ierr = PetscInfo2(nep,"iter=%D, linear solve iterations=%D\n",nep->its,lits);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
 PETSC_INTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
-PETSC_INTERN PetscErrorCode NEPFreeSolution(NEP);
 PETSC_INTERN PetscErrorCode NEPComputeVectors_Schur(NEP);
-PETSC_INTERN PetscErrorCode NEP_KSPSolve(NEP,Vec,Vec);
 PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode NEPComputeRelativeError_Private(NEP,PetscScalar,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode NEPKrylovConvergence(NEP,PetscBool,PetscInt,PetscInt,PetscInt,PetscReal,PetscInt*);

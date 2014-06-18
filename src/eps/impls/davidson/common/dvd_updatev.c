@@ -24,10 +24,10 @@
 */
 
 #include "davidson.h"
-#include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
+#include <slepc-private/dsimpl.h>
 
 PetscErrorCode dvd_updateV_start(dvdDashboard *d);
-PetscBool dvd_isrestarting_fullV(dvdDashboard *d);
+PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r);
 PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d);
 PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d);
 PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d);
@@ -98,16 +98,14 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
     data->mpd = b->max_size_V;
     data->min_size_V = min_size_V;
     d->bs = bs;
-    d->max_size_X = b->max_size_X;
     data->plusk = plusk;
     data->allResiduals = allResiduals;
 
-    d->size_real_eigr = b->size_V;
-    d->real_eigr = b->free_scalars; b->free_scalars+= b->size_V;
-    d->real_eigi = b->free_scalars; b->free_scalars+= b->size_V;
-    d->real_nR = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(b->size_V);
+    d->eigr = d->eps->eigr;
+    d->eigi = d->eps->eigi;
+    d->errest = d->eps->errest;
+    ierr = PetscMalloc(sizeof(PetscReal)*d->eps->ncv, &d->real_nR);CHKERRQ(ierr);
     d->real_nX = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(b->size_V);
-    d->real_errest = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(b->size_V);
     if (plusk > 0) {
       data->oldU = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
     }
@@ -139,15 +137,11 @@ PetscErrorCode dvd_updateV_start(dvdDashboard *d)
   PetscInt        i;
 
   PetscFunctionBegin;
-  d->size_cX = 0;
-  d->eigr = d->ceigr = d->real_eigr;
-  d->eigi = d->ceigi = d->real_eigi;
-  for (i=0;i<d->size_real_V;i++) d->eigi[i] = 0.0;
+  for (i=0;i<d->eps->ncv;i++) d->eigi[i] = 0.0;
   d->nR = d->real_nR;
-  for (i=0;i<d->size_real_V;i++) d->nR[i] = PETSC_MAX_REAL;
+  for (i=0;i<d->eps->ncv;i++) d->nR[i] = PETSC_MAX_REAL;
   d->nX = d->real_nX;
-  d->errest = d->real_errest;
-  for (i=0;i<d->size_real_V;i++) d->errest[i] = PETSC_MAX_REAL;
+  for (i=0;i<d->eps->ncv;i++) d->errest[i] = PETSC_MAX_REAL;
   data->ldoldU = 0;
   data->oldV = NULL;
   data->size_oldU = 0;
@@ -160,19 +154,23 @@ PetscErrorCode dvd_updateV_start(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_isrestarting_fullV"
-PetscBool dvd_isrestarting_fullV(dvdDashboard *d)
+PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r)
 {
+  PetscErrorCode  ierr;
+  PetscInt        l,k;
   PetscBool       restart;
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
 
   PetscFunctionBegin;
-  restart = (d->size_V + d->max_size_X > PetscMin(data->mpd,d->max_size_V))?
-                PETSC_TRUE:PETSC_FALSE;
+  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
+  restart = (k+2 > d->eps->ncv)?PETSC_TRUE:PETSC_FALSE;
 
   /* Check old isRestarting function */
-  if (!restart && data->old_isRestarting)
-    restart = data->old_isRestarting(d);
-  PetscFunctionReturn(restart);
+  if (!restart && data->old_isRestarting) {
+    ierr = data->old_isRestarting(d,&restart);CHKERRQ(ierr);
+  }
+  *r = restart;
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
@@ -197,13 +195,15 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        i;
+  PetscBool       restart;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   ierr = d->calcpairs_selectPairs(d, data->min_size_V);CHKERRQ(ierr);
 
   /* If the subspaces doesn't need restart, add new vector */
-  if (!d->isRestarting(d)) {
+  ierr = d->isRestarting(d,&restart);CHKERRQ(ierr);
+  if (!restart) {
     d->size_D = 0;
     ierr = dvd_updateV_update_gen(d);CHKERRQ(ierr);
 
@@ -256,7 +256,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   cMT = d->size_H - npreconv;
   /* Harmonics restarts wiht right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */
-  if (!(d->W||!d->cY||d->BcX||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
+  if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
     /* ps.Q <- [ps.Q(0:npreconv-1) ps.Z(npreconv:size_H-1)] */
     ierr = DSGetArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
     ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
@@ -298,20 +298,17 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
-  PetscInt        size_plusk,size_X,i,j,ld,cMTX,cMTY;
+  PetscInt        l,k,size_plusk,size_X,i,j,ld,cMTX,cMTY;
   PetscScalar     *pQ,*pZ;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   /* Select size_X desired pairs from V */
-  size_X = PetscMin(PetscMin(data->min_size_V,
-                             d->size_V),
-                             d->max_size_V);
+  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
+  size_X = PetscMin(data->min_size_V,k-l);
 
   /* Add plusk eigenvectors from the previous iteration */
-  size_plusk = PetscMax(0, PetscMin(PetscMin(data->plusk,
-                                    data->size_oldU),
-                                    d->max_size_V - size_X));
+  size_plusk = PetscMax(0,PetscMin(PetscMin(data->plusk,data->size_oldU),d->eps->ncv - size_X));
 
   ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
   d->size_MT = d->size_H;
@@ -319,7 +316,7 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   /* Harmonics restarts wiht right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */
   ierr = DSGetArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
-  if (!(d->W||!d->cY||d->BcX||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
+  if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
     ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
     ierr = SlepcDenseCopy(pQ,ld,pZ,ld,d->size_H,size_X);CHKERRQ(ierr);
     ierr = DSRestoreArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
@@ -371,16 +368,14 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
-  PetscInt        size_D,ld,s;
+  PetscInt        size_D,ld,s,l,k;
   PetscScalar     *pQ,*pZ;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   /* Select the desired pairs */
-  size_D = PetscMin(PetscMin(PetscMin(d->bs,
-                                      d->size_V),
-                                      d->max_size_V-d->size_V),
-                                      d->size_H);
+  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
+  size_D = PetscMin(PetscMin(PetscMin(d->bs,k-l),d->eps->ncv-k+l),d->size_H);
   if (size_D == 0) {
     ierr = PetscInfo2(d->eps, "MON: D:%D H:%D\n", size_D, d->size_H);CHKERRQ(ierr);
     ierr = d->initV(d);CHKERRQ(ierr);
@@ -388,7 +383,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   }
 
   /* Fill V with D */
-  ierr = d->improveX(d, d->V+d->size_V, d->max_size_V-d->size_V, 0, size_D, &size_D);CHKERRQ(ierr);
+  ierr = d->improveX(d,0,size_D,&size_D);CHKERRQ(ierr);
 
   /* If D is empty, exit */
   d->size_D = size_D;
@@ -400,11 +395,12 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 #else
   s = 1;
 #endif
-  ierr = dvd_updateV_testConv(d,s,s,data->allResiduals?d->size_V:size_D,d->auxV,d->auxS,NULL);CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
+  ierr = dvd_updateV_testConv(d,s,s,data->allResiduals?k-l:size_D,d->auxV,d->auxS,NULL);CHKERRQ(ierr);
 
   /* Notify the changes in V */
   d->V_tra_s = 0;                 d->V_tra_e = 0;
-  d->V_new_s = d->size_V;         d->V_new_e = d->size_V+size_D;
+  d->V_new_s = k-l;               d->V_new_e = k-l+size_D;
 
   /* Save the projected eigenvectors */
   if (data->plusk > 0) {
@@ -413,7 +409,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
     ierr = DSGetArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
     ierr = SlepcDenseCopy(data->oldU,data->ldoldU,pQ,ld,d->size_H,d->size_H);CHKERRQ(ierr);
     ierr = DSRestoreArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
-    if (d->cY) {
+    if (d->W) {
       ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
       ierr = SlepcDenseCopy(data->oldV,data->ldoldU,pZ,ld,d->size_H,d->size_H);CHKERRQ(ierr);
       ierr = DSRestoreArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);

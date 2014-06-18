@@ -1,5 +1,5 @@
 /*
-   BV operations.
+   BV operations, except those involving global communication.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -44,9 +44,13 @@
 
    The matrix Q must be a sequential dense Mat, with all entries equal on
    all processes (otherwise each process will compute a different update).
+   The dimensions of Q must be m,n where m is the number of active columns
+   of X and n is the number of active columns of Y.
 
    The leading columns of Y are not modified. Also, if X has leading
    columns specified, then these columns do not participate in the computation.
+   Hence, only rows (resp. columns) of Q starting from lx (resp. ly) are used,
+   where lx (resp. ly) is the number of leading columns of X (resp. Y).
 
    Level: intermediate
 
@@ -191,14 +195,14 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
   if (!X->n) PetscFunctionReturn(0);
 
-  ierr = PetscLogEventBegin(BV_Mult,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_Mult,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
   ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
   X->k = ksave;
-  ierr = PetscLogEventEnd(BV_Mult,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Mult,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -316,189 +320,6 @@ PetscErrorCode BVMultInPlaceTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVDot"
-/*@
-   BVDot - Computes the 'block-dot' product of two basis vectors objects.
-
-   Collective on BV
-
-   Input Parameters:
-+  X, Y - basis vectors
--  M    - Mat object where the result must be placed
-
-   Output Parameter:
-.  M    - the resulting matrix
-
-   Notes:
-   This is the generalization of VecDot() for a collection of vectors, M = Y^H*X.
-   The result is a matrix M whose entry m_ij is equal to y_i^H x_j (where y_i^H
-   denotes the conjugate transpose of y_i).
-
-   If a non-standard inner product has been specified with BVSetMatrix(),
-   then the result is M = Y^H*B*X. In this case, both X and Y must have
-   the same associated matrix.
-
-   On entry, M must be a sequential dense Mat with dimensions m,n where
-   m is the number of active columns of Y and n is the number of active columns of X.
-   Only rows (resp. columns) of M starting from ly (resp. lx) are computed,
-   where ly (resp. lx) is the number of leading columns of Y (resp. X).
-
-   X and Y need not be different objects.
-
-   Level: intermediate
-
-.seealso: BVDotVec(), BVDotColumn(), BVSetActiveColumns(), BVSetMatrix()
-@*/
-PetscErrorCode BVDot(BV X,BV Y,Mat M)
-{
-  PetscErrorCode ierr;
-  PetscBool      match;
-  PetscInt       j,m,n;
-  PetscScalar    *marray;
-  Vec            z;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(X,BV_CLASSID,1);
-  PetscValidHeaderSpecific(Y,BV_CLASSID,2);
-  PetscValidHeaderSpecific(M,MAT_CLASSID,3);
-  PetscValidType(X,1);
-  BVCheckSizes(X,1);
-  PetscValidType(Y,2);
-  BVCheckSizes(Y,2);
-  PetscValidType(M,3);
-  PetscCheckSameTypeAndComm(X,1,Y,2);
-  ierr = PetscObjectTypeCompare((PetscObject)M,MATSEQDENSE,&match);CHKERRQ(ierr);
-  if (!match) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
-
-  ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
-  if (m!=Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should be %D",m,Y->k);
-  if (n!=X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should be %D",n,X->k);
-  if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
-  if (X->matrix!=Y->matrix) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"X and Y must have the same inner product matrix");
-
-  ierr = PetscLogEventBegin(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
-  if (X->matrix) { /* non-standard inner product: cast into dotvec ops */
-    ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
-    for (j=X->l;j<X->k;j++) {
-      ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
-      ierr = (*X->ops->dotvec)(Y,z,marray+j*m+Y->l);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(X,j,&z);CHKERRQ(ierr);
-    }
-    ierr = MatDenseRestoreArray(M,&marray);CHKERRQ(ierr);
-  } else {
-    ierr = (*X->ops->dot)(X,Y,M);CHKERRQ(ierr);
-  }
-  ierr = PetscLogEventEnd(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "BVDotVec"
-/*@
-   BVDotVec - Computes multiple dot products of a vector against all the
-   column vectors of a BV.
-
-   Collective on BV and Vec
-
-   Input Parameters:
-+  X - basis vectors
--  y - a vector
-
-   Output Parameter:
-.  m - an array where the result must be placed
-
-   Notes:
-   This is analogue to VecMDot(), but using BV to represent a collection
-   of vectors. The result is m = X^H*y, so m_i is equal to x_j^H y. Note
-   that here X is transposed as opposed to BVDot().
-
-   If a non-standard inner product has been specified with BVSetMatrix(),
-   then the result is m = X^H*B*y.
-
-   The length of array m must be equal to the number of active columns of X
-   minus the number of leading columns, i.e. the first entry of m is the
-   product of the first non-leading column with y.
-
-   Level: intermediate
-
-.seealso: BVDot(), BVDotColumn(), BVSetActiveColumns(), BVSetMatrix()
-@*/
-PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar *m)
-{
-  PetscErrorCode ierr;
-  PetscInt       n;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(X,BV_CLASSID,1);
-  PetscValidHeaderSpecific(y,VEC_CLASSID,2);
-  PetscValidType(X,1);
-  BVCheckSizes(X,1);
-  PetscValidType(y,2);
-  PetscCheckSameTypeAndComm(X,1,y,2);
-
-  ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
-  if (X->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, y %D",X->n,n);
-
-  ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
-  ierr = (*X->ops->dotvec)(X,y,m);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(BV_Dot,X,y,0,0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "BVDotColumn"
-/*@
-   BVDotColumn - Computes multiple dot products of a column against all the
-   previous columns of a BV.
-
-   Collective on BV
-
-   Input Parameters:
-+  X - basis vectors
--  j - the column index
-
-   Output Parameter:
-.  m - an array where the result must be placed
-
-   Notes:
-   This operation is equivalent to BVDotVec() but it uses column j of X
-   rather than taking a Vec as an argument. The number of active columns of
-   X is set to j before the computation, and restored afterwards.
-   If X has leading columns specified, then these columns do not participate
-   in the computation. Therefore, the length of array m must be equal to j
-   minus the number of leading columns.
-
-   Level: advanced
-
-.seealso: BVDot(), BVDotVec(), BVSetActiveColumns(), BVSetMatrix()
-@*/
-PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *m)
-{
-  PetscErrorCode ierr;
-  PetscInt       ksave;
-  Vec            y;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(X,BV_CLASSID,1);
-  PetscValidLogicalCollectiveInt(X,j,2);
-  PetscValidType(X,1);
-  BVCheckSizes(X,1);
-
-  if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
-
-  ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
-  ksave = X->k;
-  X->k = j;
-  ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
-  ierr = (*X->ops->dotvec)(X,y,m);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
-  X->k = ksave;
-  ierr = PetscLogEventEnd(BV_Dot,X,y,0,0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "BVScale"
 /*@
    BVScale - Scale all columns of a BV.
@@ -568,174 +389,6 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
   ierr = (*bv->ops->scale)(bv,j,alpha);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_Scale,bv,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "BVNorm_Private"
-PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,PetscReal *val)
-{
-  PetscErrorCode ierr;
-  PetscScalar    p;
-
-  PetscFunctionBegin;
-  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
-  ierr = BV_IPMatMult(bv,z);CHKERRQ(ierr);
-  ierr = VecDot(bv->Bx,z,&p);CHKERRQ(ierr);
-  if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
-    ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
-  if (bv->indef) {
-    if (PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
-    if (PetscRealPart(p)<0.0) *val = -PetscSqrtScalar(-PetscRealPart(p));
-    else *val = PetscSqrtScalar(PetscRealPart(p));
-  } else { 
-    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
-    *val = PetscSqrtScalar(PetscRealPart(p));
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "BVNorm"
-/*@
-   BVNorm - Computes the matrix norm of all columns.
-
-   Collective on BV
-
-   Input Parameters:
-+  bv   - basis vectors
--  type - the norm type
-
-   Output Parameter:
-.  val  - the norm
-
-   Notes:
-   All active columns are considered as a matrix. The allowed norms
-   are NORM_1, NORM_FROBENIUS, and NORM_INFINITY.
-
-   This operation fails if a non-standard inner product has been
-   specified with BVSetMatrix().
-
-   Level: intermediate
-
-.seealso: BVNormVec(), BVNormColumn(), BVSetActiveColumns(), BVSetMatrix()
-@*/
-PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidLogicalCollectiveEnum(bv,type,2);
-  PetscValidPointer(val,3);
-  PetscValidType(bv,1);
-  BVCheckSizes(bv,1);
-
-  if (type==NORM_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
-  if (bv->matrix) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Matrix norm not available for non-standard inner product");
-
-  ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
-  ierr = (*bv->ops->norm)(bv,-1,type,val);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "BVNormVec"
-/*@
-   BVNormVec - Computes the norm of a given vector.
-
-   Collective on BV
-
-   Input Parameters:
-+  bv   - basis vectors
--  v    - the vector
--  type - the norm type
-
-   Output Parameter:
-.  val  - the norm
-
-   Notes:
-   This is the analogue of BVNormColumn() but for a vector that is not in the BV.
-   If a non-standard inner product has been specified with BVSetMatrix(),
-   then the returned value is sqrt(v'*B*v), where B is the inner product
-   matrix (argument 'type' is ignored). Otherwise, VecNorm() is called.
-
-   Level: developer
-
-.seealso: BVNorm(), BVNormColumn(), BVSetMatrix()
-@*/
-PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidHeaderSpecific(v,VEC_CLASSID,2);
-  PetscValidLogicalCollectiveEnum(bv,type,3);
-  PetscValidPointer(val,4);
-  PetscValidType(bv,1);
-  BVCheckSizes(bv,1);
-  PetscCheckSameComm(bv,1,v,2);
-
-  ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
-  if (bv->matrix) { /* non-standard inner product */
-    ierr = BVNorm_Private(bv,v,type,val);CHKERRQ(ierr);
-  } else {
-    ierr = VecNorm(v,type,val);CHKERRQ(ierr);
-  }
-  ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "BVNormColumn"
-/*@
-   BVNormColumn - Computes the vector norm of a selected column.
-
-   Collective on BV
-
-   Input Parameters:
-+  bv   - basis vectors
--  j    - column number to be used
--  type - the norm type
-
-   Output Parameter:
-.  val  - the norm
-
-   Notes:
-   The norm of V[j] is computed (NORM_1, NORM_2, or NORM_INFINITY).
-   If a non-standard inner product has been specified with BVSetMatrix(),
-   then the returned value is sqrt(V[j]'*B*V[j]), 
-   where B is the inner product matrix (argument 'type' is ignored).
-
-   Level: intermediate
-
-.seealso: BVNorm(), BVNormVec(), BVSetActiveColumns(), BVSetMatrix()
-@*/
-PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
-{
-  PetscErrorCode ierr;
-  Vec            z;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidLogicalCollectiveInt(bv,j,2);
-  PetscValidLogicalCollectiveEnum(bv,type,3);
-  PetscValidPointer(val,4);
-  PetscValidType(bv,1);
-  BVCheckSizes(bv,1);
-  if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
-
-  ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
-  if (bv->matrix) { /* non-standard inner product */
-    ierr = BVGetColumn(bv,j,&z);CHKERRQ(ierr);
-    ierr = BVNorm_Private(bv,z,type,val);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(bv,j,&z);CHKERRQ(ierr);
-  } else {
-    ierr = (*bv->ops->norm)(bv,j,type,val);CHKERRQ(ierr);
-  }
-  ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -878,7 +531,7 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j,PetscRandom rctx)
 
    Level: beginner
 
-.seealso: BVCopy(), BVSetActiveColumns()
+.seealso: BVCopy(), BVSetActiveColumns(), BVMatMultColumn()
 @*/
 PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
 {
@@ -901,6 +554,50 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
   ierr = PetscLogEventBegin(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
   ierr = (*V->ops->matmult)(V,A,Y);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatMultColumn"
+/*@
+   BVMatMultColumn - Computes the matrix-vector product for a specified
+   column, storing the result in the next column: v_{j+1}=A*v_j.
+
+   Neighbor-wise Collective on Mat and BV
+
+   Input Parameters:
++  V - basis vectors context
+.  A - the matrix
+-  j - the column
+
+   Output Parameter:
+.  Y - the result
+
+   Level: beginner
+
+.seealso: BVMatMult()
+@*/
+PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
+{
+  PetscErrorCode ierr;
+  Vec            vj,vj1;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscCheckSameComm(V,1,A,2);
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (j+1>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%D but BV only has %D columns",j+1,V->m);
+
+  ierr = PetscLogEventBegin(BV_MatMult,V,A,0,0);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,j+1,&vj1);CHKERRQ(ierr);
+  ierr = MatMult(A,vj,vj1);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,j+1,&vj1);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_MatMult,V,A,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -942,7 +639,7 @@ PetscErrorCode BVAXPY(BV Y,PetscScalar alpha,BV X)
   PetscCheckSameTypeAndComm(Y,1,X,3);
   if (X==Y) SETERRQ(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_WRONG,"X and Y arguments must be different");
   if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
-  if (X->k-X->l!=Y->m-Y->l) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, while X has %D",Y->m-Y->l,X->k-X->l);
+  if (X->k-X->l!=Y->k-Y->l) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, while X has %D",Y->m-Y->l,X->k-X->l);
   if (!X->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_AXPY,X,Y,0,0);CHKERRQ(ierr);

@@ -41,10 +41,8 @@ PETSC_EXTERN PetscErrorCode SlepcMatGetVecsTemplate(Mat,Vec*,Vec*);
 /* Vec-related operations that have two versions, for contiguous and regular Vecs */
 PETSC_EXTERN PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscBool);
 PETSC_EXTERN PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscBool qtrans);
-PETSC_EXTERN PetscErrorCode SlepcVecMAXPBY(Vec,PetscScalar,PetscScalar,PetscInt,PetscScalar*,Vec*);
 
 /* Miscellaneous functions related to Vec */
-PETSC_EXTERN PetscErrorCode SlepcVecSetRandom(Vec,PetscRandom);
 PETSC_EXTERN PetscErrorCode SlepcVecNormalize(Vec,Vec,PetscBool,PetscReal*);
 
 #endif

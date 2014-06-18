@@ -23,7 +23,7 @@
 
 #if !defined(__SLEPCMFN_H)
 #define __SLEPCMFN_H
-#include <slepcip.h>
+#include <slepcbv.h>
 #include <slepcds.h>
 
 PETSC_EXTERN PetscErrorCode MFNInitializePackage(void);
@@ -64,8 +64,8 @@ PETSC_EXTERN PetscErrorCode MFNSetUp(MFN);
 PETSC_EXTERN PetscErrorCode MFNSolve(MFN,Vec,Vec);
 PETSC_EXTERN PetscErrorCode MFNView(MFN,PetscViewer);
 
-PETSC_EXTERN PetscErrorCode MFNSetIP(MFN,IP);
-PETSC_EXTERN PetscErrorCode MFNGetIP(MFN,IP*);
+PETSC_EXTERN PetscErrorCode MFNSetBV(MFN,BV);
+PETSC_EXTERN PetscErrorCode MFNGetBV(MFN,BV*);
 PETSC_EXTERN PetscErrorCode MFNSetDS(MFN,DS);
 PETSC_EXTERN PetscErrorCode MFNGetDS(MFN,DS*);
 PETSC_EXTERN PetscErrorCode MFNSetTolerances(MFN,PetscReal,PetscInt);

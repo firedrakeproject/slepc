@@ -24,15 +24,23 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/tutorials/
-EXAMPLESC  = ex23.c
-EXAMPLESF  = 
+EXAMPLESC  = ex16.c ex17.c ex23.c
+EXAMPLESF  = ex16f90.F90
 MANSEC     = PEP
 
-TESTEXAMPLES_C           =
+TESTEXAMPLES_C           = ex16.PETSc runex16_1 ex16.rm
 TESTEXAMPLES_C_NOCOMPLEX = ex23.PETSc runex23_1 ex23.rm
-TESTEXAMPLES_F90         =
+TESTEXAMPLES_F90         = ex16f90.PETSc runex16f90_1 ex16f90.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+ex16: ex16.o chkopts
+	-${CLINKER} -o ex16 ex16.o ${SLEPC_PEP_LIB}
+	${RM} ex16.o
+
+ex16f90: ex16f90.o chkopts
+	-${FLINKER} -o ex16f90 ex16f90.o ${SLEPC_PEP_LIB}
+	${RM} ex16f90.o
 
 ex23: ex23.o chkopts
 	-${CLINKER} -o ex23 ex23.o ${SLEPC_PEP_LIB}
@@ -40,6 +48,18 @@ ex23: ex23.o chkopts
 
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
+
+runex16_1:
+	-@${MPIEXEC} -np 1 ./ex16 -pep_nev 4 -pep_ncv 20 -pep_terse > ex16_1.tmp 2>&1; \
+	   if (${DIFF} output/ex16_1.out ex16_1.tmp) then true; \
+	   else echo "Possible problem with ex16_1, diffs above"; fi; \
+	   ${RM} -f ex16_1.tmp
+
+runex16f90_1:
+	-@${MPIEXEC} -np 1 ./ex16f90 -pep_nev 4 -pep_ncv 20 -pep_terse > ex16f90_1.tmp 2>&1; \
+	   if (${DIFF} output/ex16f90_1.out ex16f90_1.tmp) then true; \
+	   else echo "Possible problem with ex16f90_1, diffs above"; fi; \
+	   ${RM} -f ex16f90_1.tmp
 
 runex23_1:
 	-@${MPIEXEC} -np 1 ./ex23 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_type toar -pep_nev 4 -pep_ncv 20 -pep_tol 1e-9 -pep_terse > ex23_1.tmp 2>&1; \

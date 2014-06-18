@@ -21,8 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>      /*I "slepcsvd.h" I*/
-#include <slepcblaslapack.h>
+#include <slepc-private/svdimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetUp_LAPACK"
@@ -36,10 +35,8 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   svd->ncv = N;
   if (svd->mpd) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   svd->max_it = 1;
-  if (svd->ncv!=svd->n) {
-    ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(svd,svd->ncv,svd->U);CHKERRQ(ierr);
-  }
+  svd->leftbasis = PETSC_TRUE;
+  ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
   ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
   ierr = DSAllocate(svd->ds,PetscMax(M,N));CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -52,6 +49,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   PetscErrorCode ierr;
   PetscInt       M,N,n,i,j,k,ld;
   Mat            mat;
+  Vec            u,v;
   PetscScalar    *pU,*pVT,*pmat,*pu,*pv,*A,*w;
 
   PetscFunctionBegin;
@@ -69,7 +67,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
   n = PetscMin(M,N);
-  ierr = PetscMalloc(sizeof(PetscScalar)*n,&w);CHKERRQ(ierr);
+  ierr = PetscMalloc1(n,&w);CHKERRQ(ierr);
   ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
   ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
 
@@ -80,8 +78,10 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
     if (svd->which == SVD_SMALLEST) k = n - i - 1;
     else k = i;
     svd->sigma[k] = PetscRealPart(w[i]);
-    ierr = VecGetArray(svd->U[k],&pu);CHKERRQ(ierr);
-    ierr = VecGetArray(svd->V[k],&pv);CHKERRQ(ierr);
+    ierr = BVGetColumn(svd->U,k,&u);CHKERRQ(ierr);
+    ierr = BVGetColumn(svd->V,k,&v);CHKERRQ(ierr);
+    ierr = VecGetArray(u,&pu);CHKERRQ(ierr);
+    ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
     if (M>=N) {
       for (j=0;j<M;j++) pu[j] = pU[i*ld+j];
       for (j=0;j<N;j++) pv[j] = PetscConj(pVT[j*ld+i]);
@@ -89,8 +89,10 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
       for (j=0;j<N;j++) pu[j] = PetscConj(pVT[j*ld+i]);
       for (j=0;j<M;j++) pv[j] = pU[i*ld+j];
     }
-    ierr = VecRestoreArray(svd->U[k],&pu);CHKERRQ(ierr);
-    ierr = VecRestoreArray(svd->V[k],&pv);CHKERRQ(ierr);
+    ierr = VecRestoreArray(u,&pu);CHKERRQ(ierr);
+    ierr = VecRestoreArray(v,&pv);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->U,k,&u);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->V,k,&v);CHKERRQ(ierr);
   }
   ierr = DSRestoreArray(svd->ds,DS_MAT_U,&pU);CHKERRQ(ierr);
   ierr = DSRestoreArray(svd->ds,DS_MAT_VT,&pVT);CHKERRQ(ierr);
@@ -104,36 +106,12 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDReset_LAPACK"
-PetscErrorCode SVDReset_LAPACK(SVD svd)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SVDDestroy_LAPACK"
-PetscErrorCode SVDDestroy_LAPACK(SVD svd)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFree(svd->data);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "SVDCreate_LAPACK"
 PETSC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD svd)
 {
   PetscFunctionBegin;
   svd->ops->setup   = SVDSetUp_LAPACK;
   svd->ops->solve   = SVDSolve_LAPACK;
-  svd->ops->destroy = SVDDestroy_LAPACK;
-  svd->ops->reset   = SVDReset_LAPACK;
   if (svd->transmode == PETSC_DECIDE)
     svd->transmode = SVD_TRANSPOSE_IMPLICIT; /* don't build the transpose */
   PetscFunctionReturn(0);

@@ -23,7 +23,7 @@
 #if !defined(__SLEPCSVD_H)
 #define __SLEPCSVD_H
 
-#include "finclude/slepcipdef.h"
+#include "finclude/slepcbvdef.h"
 #include "finclude/slepcdsdef.h"
 #include "finclude/slepcepsdef.h"
 

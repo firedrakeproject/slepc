@@ -24,6 +24,7 @@
 #if !defined(__SLEPCST_H)
 #define __SLEPCST_H
 #include <slepcsys.h>
+#include <slepcbv.h>
 #include <petscksp.h>
 
 PETSC_EXTERN PetscErrorCode STInitializePackage(void);
@@ -95,7 +96,7 @@ PETSC_EXTERN PetscErrorCode STGetOptionsPrefix(ST,const char*[]);
 
 PETSC_EXTERN PetscErrorCode STBackTransform(ST,PetscInt,PetscScalar*,PetscScalar*);
 
-PETSC_EXTERN PetscErrorCode STCheckNullSpace(ST,PetscInt,const Vec[]);
+PETSC_EXTERN PetscErrorCode STCheckNullSpace(ST,BV);
 
 PETSC_EXTERN PetscErrorCode STGetOperationCounters(ST,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode STResetOperationCounters(ST);

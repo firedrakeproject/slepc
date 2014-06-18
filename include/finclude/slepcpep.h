@@ -78,6 +78,16 @@
       parameter (PEP_BASIS_LAGUERRE         =  4)
       parameter (PEP_BASIS_HERMITE          =  5)
 
+      PetscEnum PEP_SCALE_NONE
+      PetscEnum PEP_SCALE_SCALAR
+      PetscEnum PEP_SCALE_DIAGONAL
+      PetscEnum PEP_SCALE_BOTH
+
+      parameter (PEP_SCALE_NONE             =  0)
+      parameter (PEP_SCALE_SCALAR           =  1)
+      parameter (PEP_SCALE_DIAGONAL         =  2)
+      parameter (PEP_SCALE_BOTH             =  3)
+
       PetscEnum PEP_CONV_ABS
       PetscEnum PEP_CONV_EIG
       PetscEnum PEP_CONV_NORM

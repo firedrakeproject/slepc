@@ -381,7 +381,7 @@ If the user knows that the pattern is the same (or a subset), then this can be s
 \caption{\label{fig:abstr}Abstraction used by \slepc solvers.}
 \end{figure}
 
-	Internally, \slepc operates with the abstraction illustrated in Figure \ref{fig:abstr}. The operations indicated by dashed arrows are implemented as virtual functions: \ident{IPInnerProduct} and \ident{STApply}. From the user point of view, all the above explanation is transparent. The only thing he/she has to care about is to set the problem type appropriately with \ident{EPSSetProblemType} (see \S\ref{sec:defprob}).
+	Internally, \slepc operates with the abstraction illustrated in Figure \ref{fig:abstr}. The operations indicated by dashed arrows are implemented as virtual functions. From the user point of view, all the above explanation is transparent. The only thing he/she has to care about is to set the problem type appropriately with \ident{EPSSetProblemType} (see \S\ref{sec:defprob}).
 	In the case of the Cayley transform, \slepc is using $\langle x,y\rangle_{A+\nu B}$ as the inner product for preserving symmetry.
 
 	Using the $B$-inner product may be attractive also in the non-symmetric case ($A$ non-symmetric) as described in the next subsection.

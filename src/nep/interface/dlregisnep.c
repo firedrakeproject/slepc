@@ -47,9 +47,9 @@ PetscErrorCode NEPFinalizePackage(void)
 #undef __FUNCT__
 #define __FUNCT__ "NEPInitializePackage"
 /*@C
-   NEPInitializePackage - This function initializes everything in the NEP package. It is called
-   from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to NEPCreate()
-   when using static libraries.
+   NEPInitializePackage - This function initializes everything in the NEP package.
+   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
+   on the first call to NEPCreate() when using static libraries.
 
    Level: developer
 
@@ -72,7 +72,6 @@ PetscErrorCode NEPInitializePackage(void)
   /* Register Events */
   ierr = PetscLogEventRegister("NEPSetUp",NEP_CLASSID,&NEP_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPSolve",NEP_CLASSID,&NEP_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("NEPDense",NEP_CLASSID,&NEP_Dense);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPFunctionEval",NEP_CLASSID,&NEP_FunctionEval);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPJacobianEval",NEP_CLASSID,&NEP_JacobianEval);CHKERRQ(ierr);
   /* Process info exclusions */

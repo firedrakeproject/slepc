@@ -37,6 +37,9 @@ def Install(conf,vars,cmake,tmpdir,url,archdir):
   if petscconf.PRECISION != 'double':
     log.Exit('ERROR: BLOPEX is supported only in double precision.')
 
+  if petscconf.IND64:
+    log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+
   packagename = 'blopex-1.1.2'
   externdir   = archdir+'/externalpackages'
   builddir    = os.sep.join([externdir,packagename])

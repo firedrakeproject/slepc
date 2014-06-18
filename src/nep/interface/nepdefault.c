@@ -22,20 +22,6 @@
 */
 
 #include <slepc-private/nepimpl.h>     /*I "slepcnep.h" I*/
-#include <slepcblaslapack.h>
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPReset_Default"
-PetscErrorCode NEPReset_Default(NEP nep)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
-  nep->nwork = 0;
-  ierr = NEPFreeSolution(nep);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetWorkVecs"
@@ -57,12 +43,15 @@ PetscErrorCode NEPReset_Default(NEP nep)
 PetscErrorCode NEPSetWorkVecs(NEP nep,PetscInt nw)
 {
   PetscErrorCode ierr;
+  Vec            t;
 
   PetscFunctionBegin;
   if (nep->nwork != nw) {
     ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
     nep->nwork = nw;
-    ierr = VecDuplicateVecs(nep->t,nw,&nep->work);CHKERRQ(ierr);
+    ierr = BVGetColumn(nep->V,0,&t);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(t,nw,&nep->work);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(nep->V,0,&t);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(nep,nw,nep->work);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

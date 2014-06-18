@@ -24,6 +24,7 @@
 static PetscBool PEPPackageInitialized = PETSC_FALSE;
 
 const char *PEPBasisTypes[] = {"MONOMIAL","CHEBYSHEV1","CHEBYSHEV2","LEGENDRE","LAGUERRE","HERMITE","PEPBasis","PEP_BASIS_",0};
+const char *PEPScaleTypes[] = {"NONE","SCALAR","DIAGONAL","BOTH","PEPScale","PEP_SCALE_",0};
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPFinalizePackage"
@@ -49,9 +50,9 @@ PetscErrorCode PEPFinalizePackage(void)
 #undef __FUNCT__
 #define __FUNCT__ "PEPInitializePackage"
 /*@C
-   PEPInitializePackage - This function initializes everything in the PEP package. It is called
-   from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to PEPCreate()
-   when using static libraries.
+   PEPInitializePackage - This function initializes everything in the PEP package.
+   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
+   on the first call to PEPCreate() when using static libraries.
 
    Level: developer
 
@@ -74,7 +75,6 @@ PetscErrorCode PEPInitializePackage(void)
   /* Register Events */
   ierr = PetscLogEventRegister("PEPSetUp",PEP_CLASSID,&PEP_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("PEPSolve",PEP_CLASSID,&PEP_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("PEPDense",PEP_CLASSID,&PEP_Dense);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {

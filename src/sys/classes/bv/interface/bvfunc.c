@@ -24,7 +24,7 @@
 #include <slepc-private/bvimpl.h>            /*I "slepcbv.h" I*/
 
 PetscClassId     BV_CLASSID = 0;
-PetscLogEvent    BV_Create = 0,BV_Copy = 0,BV_Mult = 0,BV_Dot = 0,BV_Orthogonalize = 0,BV_Scale = 0,BV_Norm = 0,BV_SetRandom = 0,BV_MatMult = 0,BV_AXPY = 0;
+PetscLogEvent    BV_Create = 0,BV_Copy = 0,BV_Mult = 0,BV_Dot = 0,BV_Orthogonalize = 0,BV_Scale = 0,BV_Norm = 0,BV_SetRandom = 0,BV_MatMult = 0,BV_MatProject = 0,BV_AXPY = 0;
 static PetscBool BVPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__
@@ -83,6 +83,7 @@ PetscErrorCode BVInitializePackage(void)
   ierr = PetscLogEventRegister("BVNorm",BV_CLASSID,&BV_Norm);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVSetRandom",BV_CLASSID,&BV_SetRandom);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVMatMult",BV_CLASSID,&BV_MatMult);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("BVMatProject",BV_CLASSID,&BV_MatProject);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVAXPY",BV_CLASSID,&BV_AXPY);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
@@ -175,13 +176,12 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->orthog_type  = BV_ORTHOG_CGS;
   bv->orthog_ref   = BV_ORTHOG_REFINE_IFNEEDED;
   bv->orthog_eta   = 0.7071;
-
   bv->matrix       = NULL;
   bv->indef        = PETSC_FALSE;
+
+  bv->Bx           = NULL;
   bv->xid          = 0;
   bv->xstate       = 0;
-  bv->Bx           = NULL;
-
   bv->cv[0]        = NULL;
   bv->cv[1]        = NULL;
   bv->ci[0]        = -1;
@@ -195,7 +195,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->omega        = NULL;
   bv->work         = NULL;
   bv->lwork        = 0;
-  bv->data         = 0;
+  bv->data         = NULL;
 
   *newbv = bv;
   PetscFunctionReturn(0);
@@ -234,7 +234,7 @@ PetscErrorCode BVInsertVec(BV V,PetscInt j,Vec w)
   ierr = VecGetSize(w,&N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(w,&n);CHKERRQ(ierr);
   if (N!=V->N || n!=V->n) SETERRQ4(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %D, local %D) do not match BV sizes (global %D, local %D)",N,n,V->N,V->n);
-  if (j<0 || j>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, should be between 0 and %D",j,V->m-1);
+  if (j<-V->nc || j>=V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, should be between %D and %D",j,-V->nc,V->m-1);
 
   ierr = BVGetColumn(V,j,&v);CHKERRQ(ierr);
   ierr = VecCopy(w,v);CHKERRQ(ierr);
@@ -353,7 +353,7 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
 
    Level: advanced
 
-.seealso: BVInsertVecs(), BVOrthogonalizeColumn(), BVGetColumn()
+.seealso: BVInsertVecs(), BVOrthogonalizeColumn(), BVGetColumn(), BVGetNumConstraints()
 @*/
 PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
 {

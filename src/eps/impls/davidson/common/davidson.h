@@ -85,11 +85,11 @@ typedef struct _dvdDashboard {
   PetscInt npreconv;
 
   /* Improve the selected eigenpairs */
-  PetscErrorCode (*improveX)(struct _dvdDashboard*,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
+  PetscErrorCode (*improveX)(struct _dvdDashboard*,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
   void *improveX_data;
 
   /* Check for restarting */
-  PetscBool (*isRestarting)(struct _dvdDashboard*);
+  PetscErrorCode (*isRestarting)(struct _dvdDashboard*,PetscBool*);
   void *isRestarting_data;
 
   /* Perform restarting */
@@ -115,37 +115,10 @@ typedef struct _dvdDashboard {
     correctXnorm;   /* if true, norm of X are computed */
 
   /**** Subspaces specification ****/
-  Vec *V,           /* searching subspace */
-    *real_V,        /* original V */
-    *W,             /* testing subspace */
-    *real_W,        /* original W */
-    *cX,            /* converged right eigenvectors */
-    *cY,            /* converged left eigenvectors */
-    *BcX,           /* basis of B*cX */
-    *AV,            /* A*V */
-    *real_AV,       /* original A*V space */
-    *BV,            /* B*V */
-    *real_BV,       /* original B*V space */
-    *BDS;           /* B * eps->DV */
-  PetscInt size_V,  /* size of V */
-    size_real_V,    /* original size of V */
-    size_W,         /* size of W */
-    size_real_W,    /* original size of W */
-    size_AV,        /* size of AV */
-    size_real_AV,   /* original size of AV */
-    size_BV,        /* size of BV */
-    size_BDS,       /* size of BDS */
-    size_real_BV,   /* original size of BV */
-    size_cX,        /* size of cX */
-    size_cY,        /* size of cY */
-    size_D,         /* active vectors */
-    size_BcX,       /* size of BcX */
-    size_real_eigr, /* size of original eigr, eigi, nR, errest */
-    max_size_V,     /* max size of V */
-    max_size_W,     /* max size of W */
-    max_size_X,     /* max new vectors in V */
-    max_size_AV,    /* max size of AV */
-    max_size_BV,    /* max size of BV */
+  BV W;             /* left basis for harmonic case */
+  BV AX;            /* A*V */
+  BV BX;            /* B*V */
+  PetscInt size_D,  /* active vectors */
     max_size_proj,  /* max size projected problem */
     max_cX_in_proj, /* max vectors from cX in the projected problem */
     max_cX_in_impr, /* max vectros from cX in the projector */
@@ -155,6 +128,7 @@ typedef struct _dvdDashboard {
 
   /**** Auxiliary space ****/
   Vec *auxV;        /* auxiliary vectors */
+  BV  auxBV;        /* auxiliary vectors */
   PetscScalar
     *auxS;          /* auxiliary scalars */
   PetscInt
@@ -164,17 +138,13 @@ typedef struct _dvdDashboard {
   /**** Eigenvalues and errors ****/
   PetscScalar
     *ceigr, *ceigi, /* converged eigenvalues */
-    *eigr, *eigi,   /* current eigenvalues */
-    *real_eigr,
-    *real_eigi;     /* original eigr and eigi */
+    *eigr, *eigi;   /* current eigenvalues */
   PetscReal
     *nR,            /* residual norm */
     *real_nR,       /* original nR */
     *nX,            /* X norm */
     *real_nX,       /* original nX */
     *errest,        /* relative error eigenpairs */
-    *real_errest,   /* original errest */
-    *nBDS,          /* B-norms of DS */
     *nBV,           /* B-norms of V */
     *nBcX,          /* B-norms of cX */
     *nBpX,          /* B-norms of pX */
@@ -202,10 +172,6 @@ typedef struct _dvdDashboard {
 
   PetscErrorCode (*e_newIteration)(struct _dvdDashboard*);
   void *e_newIteration_data;
-
-  IP ipI;
-  IP ipV,           /* orthogonal routine options for V subspace */
-    ipW;            /* orthogonal routine options for W subspace */
 
   dvdFunctionList
     *startList,     /* starting list */
@@ -347,7 +313,7 @@ typedef struct {
 typedef PetscErrorCode (*dvdPrecond)(dvdDashboard*,PetscInt i,Vec x,Vec Px);
 typedef PetscErrorCode (*dvdCallback)(dvdDashboard*);
 typedef PetscErrorCode (*e_Vchanged_type)(dvdDashboard*,PetscInt s_imm,PetscInt e_imm,PetscInt s_new,PetscInt e_new);
-typedef PetscBool (*isRestarting_type)(dvdDashboard*);
+typedef PetscErrorCode (*isRestarting_type)(dvdDashboard*,PetscBool*);
 typedef PetscErrorCode (*e_newIteration_type)(dvdDashboard*);
 typedef PetscErrorCode (*improveX_type)(dvdDashboard*,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
 
@@ -355,7 +321,7 @@ typedef PetscErrorCode (*improveX_type)(dvdDashboard*,Vec *D,PetscInt max_size_D
 PETSC_INTERN PetscErrorCode dvd_initV(dvdDashboard *d,dvdBlackboard *b,PetscInt k,PetscInt user,PetscBool krylov);
 
 /* Routines for calcPairs step */
-PETSC_INTERN PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType orth,IP ipI,PetscInt cX_proj,PetscBool harm);
+PETSC_INTERN PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType orth,PetscInt cX_proj,PetscBool harm);
 
 /* Routines for improveX step */
 PETSC_INTERN PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs,PetscInt cX_impr,PetscBool dynamic);
@@ -381,12 +347,10 @@ PETSC_INTERN PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmT
 
 /* Methods */
 PETSC_INTERN PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,KSP ksp,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,Method_t method);
-PETSC_INTERN PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,IP ip,HarmType_t harmMode,PetscBool fixedTarget,PetscScalar t,KSP ksp,PetscReal fix,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,PetscBool dynamic,Method_t method);
+PETSC_INTERN PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,PetscBool fixedTarget,PetscScalar t,KSP ksp,PetscReal fix,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,PetscBool dynamic,Method_t method);
 
 /* Orthogonalization routines */
-PETSC_INTERN PetscErrorCode dvd_orthV(IP ip,Vec *DS,PetscInt size_DS,Vec *cX,PetscInt size_cX,Vec *V,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
-PETSC_INTERN PetscErrorCode dvd_BorthV_faster(IP ip,Vec *DS,Vec *BDS,PetscReal *BDSn,PetscInt size_DS,Vec *cX,Vec *BcX,PetscReal *BcXn,PetscInt size_cX,Vec *V,Vec *BV,PetscReal *BVn,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
-PETSC_INTERN PetscErrorCode dvd_BorthV_stable(IP ip,Vec *defl,PetscReal *BDSn,PetscInt size_DS,Vec *cX,PetscReal *BcXn,PetscInt size_cX,Vec *V,PetscReal *BVn,PetscInt V_new_s,PetscInt V_new_e,PetscScalar *auxS,PetscRandom rand);
+PETSC_INTERN PetscErrorCode dvd_orthV(BV bv,PetscInt V_new_s,PetscInt V_new_e,PetscRandom rand);
 
 /* SLEPc interface routines */
 PETSC_INTERN PetscErrorCode SLEPcNotImplemented();
@@ -423,7 +387,9 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscI
   PetscInt        n = i_e - i_s,i;
 
   PetscFunctionBegin;
-  ierr = SlepcUpdateVectorsZ(u,0.0,1.0,d->V-d->cX_in_H,d->size_V+d->cX_in_H,&pX[ld*i_s],ld,d->size_H,n);CHKERRQ(ierr);
+  for (i=0; i<n; i++) {
+    ierr = BVMultVec(d->eps->V,1.0,0.0,u[i],&pX[ld*(i+i_s)]);CHKERRQ(ierr);
+  }
   /* nX(i) <- ||X(i)|| */
   if (d->correctXnorm) {
     for (i=0; i<n; i++) {

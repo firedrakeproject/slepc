@@ -6,7 +6,7 @@ OBJDIR := $(PETSC_ARCH)/obj
 MODDIR := $(PETSC_ARCH)/include
 LIBDIR := $(abspath $(PETSC_ARCH)/lib)
 
-pkgs := sys eps svd qep pep nep mfn
+pkgs := sys eps svd pep nep mfn
 
 # $(call SONAME_FUNCTION,libfoo,abiversion)
 SONAME_FUNCTION ?= $(1).$(SL_LINKER_SUFFIX).$(2)
@@ -126,7 +126,6 @@ endef
 $(foreach pkg,$(pkgs),$(eval $(call pkg_template,$(pkg))))
 $(call libname_function,$(LIBDIR)/libslepceps) : libdep := $(call libpkg,sys)
 $(call libname_function,$(LIBDIR)/libslepcsvd) : libdep := $(call libpkg,eps sys)
-$(call libname_function,$(LIBDIR)/libslepcqep) : libdep := $(call libpkg,eps sys)
 $(call libname_function,$(LIBDIR)/libslepcpep) : libdep := $(call libpkg,eps sys)
 $(call libname_function,$(LIBDIR)/libslepcnep) : libdep := $(call libpkg,eps sys)
 $(call libname_function,$(LIBDIR)/libslepcmfn) : libdep := $(call libpkg,sys)
@@ -174,7 +173,6 @@ endif
 # Hack: manual dependencies on object files
 $(OBJDIR)/src/mfn/f90-mod/slepcmfnmod.o   : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
 $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o   : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
-$(OBJDIR)/src/qep/f90-mod/slepcqepmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
 $(OBJDIR)/src/pep/f90-mod/slepcpepmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
 $(OBJDIR)/src/nep/f90-mod/slepcnepmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
 $(OBJDIR)/src/svd/f90-mod/slepcsvdmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o

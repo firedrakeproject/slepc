@@ -110,21 +110,6 @@ PetscErrorCode NEPSolve(NEP nep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEP_KSPSolve"
-PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
-{
-  PetscErrorCode ierr;
-  PetscInt       lits;
-
-  PetscFunctionBegin;
-  ierr = KSPSolve(nep->ksp,b,x);CHKERRQ(ierr);
-  ierr = KSPGetIterationNumber(nep->ksp,&lits);CHKERRQ(ierr);
-  nep->linits += lits;
-  ierr = PetscInfo2(nep,"iter=%D, linear solve iterations=%D\n",nep->its,lits);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "NEPProjectOperator"
 /*@
    NEPProjectOperator - Computes the projection of the nonlinear operator.
@@ -134,8 +119,7 @@ PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
    Input Parameters:
 +  nep - the nonlinear eigensolver context
 .  j0  - initial index
-.  j1  - final index
--  f   - workspace vector
+-  j1  - final index
 
    Notes:
    This is available for split operator only.
@@ -151,42 +135,22 @@ PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
 
 .seealso: NEPSetSplitOperator()
 @*/
-PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
+PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,k,ld;
-  PetscScalar    *G,val;
-  Vec            *V = nep->V;
-  PetscBool      isherm,set,flg;
+  PetscInt       k;
+  Mat            G;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,j0,2);
   PetscValidLogicalCollectiveInt(nep,j1,3);
-  PetscValidHeaderSpecific(f,VEC_CLASSID,4);
   if (!nep->split) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"This solver requires a split operator");
-  ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(nep->V,j0,j1);CHKERRQ(ierr);
   for (k=0;k<nep->nt;k++) {
-    ierr = DSGetArray(nep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
-    ierr = MatIsHermitianKnown(nep->A[k],&set,&flg);CHKERRQ(ierr);
-    isherm = set? flg: PETSC_FALSE;
-    for (j=j0;j<j1;j++) {
-      if (!isherm) {
-        if (j>0) { ierr = MatMultHermitianTranspose(nep->A[k],V[j],f);CHKERRQ(ierr); }
-        ierr = VecMDot(f,j,V,G+j*ld);CHKERRQ(ierr);
-        for (i=0;i<j;i++)
-          G[j+i*ld] = PetscConj(G[i+j*ld]);
-      }
-      ierr = MatMult(nep->A[k],V[j],f);CHKERRQ(ierr);
-      ierr = VecDot(f,V[j],&val);CHKERRQ(ierr);
-      G[j+j*ld] = val;
-      ierr = VecMDot(f,j,V,G+j*ld);CHKERRQ(ierr);
-      if (isherm) {
-        for (i=0;i<j;i++)
-          G[j+i*ld] = PetscConj(G[i+j*ld]);
-      }
-    }
-    ierr = DSRestoreArray(nep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
+    ierr = DSGetMat(nep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
+    ierr = BVMatProject(nep->V,nep->A[k],nep->V,G);CHKERRQ(ierr);
+    ierr = DSRestoreMat(nep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -449,7 +413,7 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eig,Vec V)
   else k = nep->perm[i];
 
   if (eig) *eig = nep->eig[k];
-  if (V) { ierr = VecCopy(nep->V[k],V);CHKERRQ(ierr); }
+  if (V) { ierr = BVCopyVec(nep->V,k,V);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -501,7 +465,7 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,P
   Mat            T=nep->function;
 
   PetscFunctionBegin;
-  ierr = VecDuplicate(nep->V[0],&u);CHKERRQ(ierr);
+  ierr = BVGetVec(nep->V,&u);CHKERRQ(ierr);
   ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
   ierr = MatMult(T,x,u);CHKERRQ(ierr);
   ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
@@ -544,7 +508,7 @@ PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *norm)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   PetscValidPointer(norm,3);
-  ierr = VecDuplicate(nep->V[0],&x);CHKERRQ(ierr);
+  ierr = BVGetVec(nep->V,&x);CHKERRQ(ierr);
   ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
   ierr = NEPComputeResidualNorm_Private(nep,lambda,x,norm);CHKERRQ(ierr);
   ierr = VecDestroy(&x);CHKERRQ(ierr);
@@ -604,7 +568,7 @@ PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   PetscValidPointer(error,3);
-  ierr = VecDuplicate(nep->V[0],&x);CHKERRQ(ierr);
+  ierr = BVGetVec(nep->V,&x);CHKERRQ(ierr);
   ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
   ierr = NEPComputeRelativeError_Private(nep,lambda,x,error);CHKERRQ(ierr);
   ierr = VecDestroy(&x);CHKERRQ(ierr);
@@ -695,44 +659,6 @@ PetscErrorCode NEPCompareEigenvalues(NEP nep,PetscScalar a,PetscScalar b,PetscIn
   PetscValidIntPointer(result,4);
   if (!nep->comparison) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
   ierr = (*nep->comparison)(a,0.0,b,0.0,result,nep->comparisonctx);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetOperationCounters"
-/*@
-   NEPGetOperationCounters - Gets the total number of function evaluations, dot
-   products, and linear solve iterations used by the NEP object during the last
-   NEPSolve() call.
-
-   Not Collective
-
-   Input Parameter:
-.  nep - nonlinear eigensolver context
-
-   Output Parameter:
-+  nfuncs - number of function evaluations
-.  dots   - number of dot product operations
--  lits   - number of linear iterations
-
-   Notes:
-   These counters are reset to zero at each successive call to NEPSolve().
-
-   Level: intermediate
-
-@*/
-PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,PetscInt* lits)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (nfuncs) *nfuncs = nep->nfuncs;
-  if (dots) {
-    if (!nep->ip) { ierr = NEPGetIP(nep,&nep->ip);CHKERRQ(ierr); }
-    ierr = IPGetOperationCounters(nep->ip,dots);CHKERRQ(ierr);
-  }
-  if (lits) *lits = nep->linits;
   PetscFunctionReturn(0);
 }
 

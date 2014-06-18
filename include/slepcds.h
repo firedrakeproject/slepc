@@ -53,7 +53,6 @@ typedef const char* DSType;
 #define DSGHIEP           "ghiep"
 #define DSGNHEP           "gnhep"
 #define DSSVD             "svd"
-#define DSQEP             "qep"
 #define DSNEP             "nep"
 
 /* Logging support */
@@ -158,10 +157,12 @@ PETSC_EXTERN PetscErrorCode DSSetExtraRow(DS,PetscBool);
 PETSC_EXTERN PetscErrorCode DSGetExtraRow(DS,PetscBool*);
 PETSC_EXTERN PetscErrorCode DSSetRefined(DS,PetscBool);
 PETSC_EXTERN PetscErrorCode DSGetRefined(DS,PetscBool*);
-PETSC_EXTERN PetscErrorCode DSGetArray(DS,DSMatType,PetscScalar *a[]);
-PETSC_EXTERN PetscErrorCode DSRestoreArray(DS,DSMatType,PetscScalar *a[]);
-PETSC_EXTERN PetscErrorCode DSGetArrayReal(DS,DSMatType,PetscReal *a[]);
-PETSC_EXTERN PetscErrorCode DSRestoreArrayReal(DS,DSMatType,PetscReal *a[]);
+PETSC_EXTERN PetscErrorCode DSGetMat(DS,DSMatType,Mat*);
+PETSC_EXTERN PetscErrorCode DSRestoreMat(DS,DSMatType,Mat*);
+PETSC_EXTERN PetscErrorCode DSGetArray(DS,DSMatType,PetscScalar*[]);
+PETSC_EXTERN PetscErrorCode DSRestoreArray(DS,DSMatType,PetscScalar*[]);
+PETSC_EXTERN PetscErrorCode DSGetArrayReal(DS,DSMatType,PetscReal*[]);
+PETSC_EXTERN PetscErrorCode DSRestoreArrayReal(DS,DSMatType,PetscReal*[]);
 PETSC_EXTERN PetscErrorCode DSVectors(DS,DSMatType,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSSolve(DS,PetscScalar*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode DSSort(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);

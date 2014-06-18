@@ -32,7 +32,7 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       ncv;
-  PetscBool      issinv;
+  PetscBool      issinv,flg;
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
   PetscMPIInt    size;
 
@@ -61,16 +61,17 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
 
   if (eps->which!=EPS_ALL || (eps->inta==0.0 && eps->intb==0.0)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"FEAST must be used with a computational interval");
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"FEAST only available for symmetric/Hermitian eigenproblems");
-  if (eps->balance!=EPS_BALANCE_NONE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Balancing not supported in the Arpack interface");
+  if (eps->balance!=EPS_BALANCE_NONE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Balancing not supported in the FEAST interface");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   if (!ctx->npoints) ctx->npoints = 8;
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->V,BVVECS,&flg);CHKERRQ(ierr);
+  if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_FEAST;
   PetscFunctionReturn(0);
 }
@@ -85,7 +86,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
   PetscReal      *evals,epsout;
   PetscInt       i,k,nmat;
   PetscScalar    *pV,Ze;
-  Vec            x,y,w = eps->work[0];
+  Vec            v0,x,y,w = eps->work[0];
   Mat            A,B;
 
   PetscFunctionBegin;
@@ -105,7 +106,8 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
   ierr = PetscMalloc1(eps->ncv,&evals);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
-  ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
+  ierr = BVGetColumn(eps->V,0,&v0);CHKERRQ(ierr);
+  ierr = VecGetArray(v0,&pV);CHKERRQ(ierr);
 
   ijob = -1;           /* first call to reverse communication interface */
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
@@ -165,7 +167,8 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
 
   for (i=0;i<eps->nconv;i++) eps->eigr[i] = evals[i];
 
-  ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
+  ierr = VecRestoreArray(v0,&pV);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(eps->V,0,&v0);CHKERRQ(ierr);
   ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = VecDestroy(&y);CHKERRQ(ierr);
   ierr = PetscFree(evals);CHKERRQ(ierr);
@@ -181,7 +184,6 @@ PetscErrorCode EPSReset_FEAST(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree4(ctx->work1,ctx->work2,ctx->Aq,ctx->Bq);CHKERRQ(ierr);
-  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
