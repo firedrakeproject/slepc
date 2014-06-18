@@ -502,8 +502,8 @@ PetscErrorCode NEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt s
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPDebbugShowResidual"
-PetscErrorCode NEPDebbugShowResidual(NEP nep)
+#define __FUNCT__ "NEPDebugShowResidual"
+PetscErrorCode NEPDebugShowResidual(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
@@ -672,10 +672,6 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   ierr = DSSetDimensions(nep->ds,nep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(nep->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
-  /* Compute eigenvectors */
-  if (nep->nconv > 0) {
-    ierr = NEPComputeVectors_Schur(nep);CHKERRQ(ierr);
-  }
   ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
   /* //  // */
   /* restore comparison function */
@@ -689,7 +685,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   /* For testing, before destroying the solver context 
      the residual for the interpolation is shown */
   if (nep->nconv>0) {
-    ierr = NEPDebbugShowResidual(nep);CHKERRQ(ierr);
+    ierr = NEPDebugShowResidual(nep);CHKERRQ(ierr);
   }
   /* /////// */
   PetscFunctionReturn(0);
@@ -728,6 +724,7 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   nep->ops->setup          = NEPSetUp_NLEIGS;
   nep->ops->reset          = NEPReset_Default;
   nep->ops->destroy        = NEPDestroy_NLEIGS;
+  nep->ops->computevectors = NEPComputeVectors_Schur;
   PetscFunctionReturn(0);
 }
 
