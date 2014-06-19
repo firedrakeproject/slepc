@@ -116,7 +116,7 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
 PetscErrorCode STSetUp_Sinvert(ST st)
 {
   PetscErrorCode ierr;
-  PetscInt       k,nc,nmat=st->nmat;
+  PetscInt       k,nc,nmat=PetscMax(st->nmat,2);
   PetscScalar    *coeffs=NULL;
 
   PetscFunctionBegin;
@@ -133,11 +133,11 @@ PetscErrorCode STSetUp_Sinvert(ST st)
     k = nmat-1;
     ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
     st->T[0] = st->A[k];
-    for (k=1;k<PetscMax(nmat,2);k++) {
-      ierr = STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,PetscMax(nmat,2)-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
+    for (k=1;k<nmat;k++) {
+      ierr = STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
     }
     if (nmat>2) { ierr = PetscFree(coeffs);CHKERRQ(ierr); }
-    st->P = st->T[PetscMax(nmat-1,1)];
+    st->P = st->T[nmat-1];
     ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
   } else {
     for (k=0;k<nmat;k++) {
@@ -158,8 +158,8 @@ PetscErrorCode STSetUp_Sinvert(ST st)
 PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
-  PetscInt       nmat=st->nmat,k,nc;
-  PetscScalar    *coeffs;
+  PetscInt       nmat=PetscMax(st->nmat,2),k,nc;
+  PetscScalar    *coeffs=NULL;
 
   PetscFunctionBegin;
   /* Nothing to be done if STSetUp has not been called yet */
@@ -171,8 +171,8 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
       /* Compute coeffs */
       ierr = STCoeffs_Monomial(st,coeffs);CHKERRQ(ierr);
     }
-    for (k=1;k<PetscMax(nmat,2);k++) {
-      ierr = STMatMAXPY_Private(st,nmat>2?newshift:-newshift,PetscMax(nmat,2)-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
+    for (k=1;k<nmat;k++) {
+      ierr = STMatMAXPY_Private(st,nmat>2?newshift:-newshift,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
     }
     if (st->shift_matrix == ST_MATMODE_COPY && nmat>2) {
       ierr = PetscFree(coeffs);CHKERRQ(ierr);

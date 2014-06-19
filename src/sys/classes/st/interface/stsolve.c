@@ -397,7 +397,7 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
 PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar *coeffs,PetscBool initial,Mat *S)
 {
   PetscErrorCode ierr;
-  PetscInt       *matIdx,nmat,i,ini=0;
+  PetscInt       *matIdx=NULL,nmat,i,ini=-1;
   PetscScalar    t=1.0,ta;
   PetscBool      nz=PETSC_FALSE;
 
@@ -409,11 +409,13 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
     break;
   case ST_MATMODE_SHELL:
     if (initial) {
-      ierr = PetscMalloc(nmat*sizeof(PetscInt),&matIdx);CHKERRQ(ierr);
-      for (i=0;i<nmat;i++) matIdx[i] = k+i;
-      ierr = STMatShellCreate(st,alpha,st->nmat-k,matIdx,coeffs,S);CHKERRQ(ierr);
+      if (st->nmat>2) {
+        ierr = PetscMalloc(nmat*sizeof(PetscInt),&matIdx);CHKERRQ(ierr);
+        for (i=0;i<nmat;i++) matIdx[i] = k+i;
+      }
+      ierr = STMatShellCreate(st,alpha,nmat,matIdx,coeffs,S);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
-      ierr = PetscFree(matIdx);CHKERRQ(ierr);
+      if (st->nmat>2) { ierr = PetscFree(matIdx);CHKERRQ(ierr); }
     } else {
       ierr = STMatShellShift(*S,alpha);CHKERRQ(ierr);
     }
@@ -421,13 +423,13 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar
   case ST_MATMODE_COPY:
     ierr = MatDestroy(S);CHKERRQ(ierr);
     if (coeffs) {
-      for (i=0;i<st->nmat-k && ini==-1;i++) {
+      for (i=0;i<nmat && ini==-1;i++) {
         if (coeffs[i]!=0.0) ini = i;
         else t *= alpha;
       }
       if (coeffs[ini] != 1.0) nz = PETSC_TRUE;
-      for (i=ini+1;i<st->nmat-k&&!nz;i++) if (coeffs[i]!=0.0) nz = PETSC_TRUE;
-    } else nz = PETSC_TRUE;
+      for (i=ini+1;i<nmat&&!nz;i++) if (coeffs[i]!=0.0) nz = PETSC_TRUE;
+    } else { nz = PETSC_TRUE; ini = 0; }
     if ((alpha == 0.0 || !nz) && t==1.0) {
       ierr = PetscObjectReference((PetscObject)st->A[k+ini]);CHKERRQ(ierr);
       *S = st->A[k+ini];
