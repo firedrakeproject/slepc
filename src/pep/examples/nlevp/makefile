@@ -19,10 +19,30 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL:
+CFLAGS     =
+FFLAGS     =
+CPPFLAGS   =
+FPPFLAGS   =
+LOCDIR     = src/pep/examples/nlevp/
+EXAMPLESC  = acoustic_wave_1d.c
+EXAMPLESF  = 
+MANSEC     = PEP
 
-LOCDIR   = src/pep/examples/
-DIRS     = tests tutorials nlevp
+TESTEXAMPLES_C           = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm
+TESTEXAMPLES_C_NOCOMPLEX = 
 
 include ${SLEPC_DIR}/conf/slepc_common
+
+acoustic_wave_1d: acoustic_wave_1d.o chkopts
+	-${CLINKER} -o acoustic_wave_1d acoustic_wave_1d.o ${SLEPC_PEP_LIB}
+	${RM} acoustic_wave_1d.o
+
+#------------------------------------------------------------------------------------
+DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
+
+runacoustic_wave_1d_1:
+	-@${MPIEXEC} -np 1 ./acoustic_wave_1d -pep_nev 4 -n 20 -pep_terse > acoustic_wave_1d_1.tmp 2>&1; \
+	   if (${DIFF} output/acoustic_wave_1d_1.out acoustic_wave_1d_1.tmp) then true; \
+	   else echo "Possible problem with acoustic_wave_1d_1, diffs above"; fi; \
+	   ${RM} -f acoustic_wave_1d_1.tmp
 
