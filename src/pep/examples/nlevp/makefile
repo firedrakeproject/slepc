@@ -24,11 +24,14 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/nlevp/
-EXAMPLESC  = acoustic_wave_1d.c
+EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c sleeper.c spring.c
 EXAMPLESF  = 
 MANSEC     = PEP
 
-TESTEXAMPLES_C           = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm
+TESTEXAMPLES_C           = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
+                           acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
+                           sleeper.PETSc runsleeper sleeper.rm \
+                           spring.PETSc runspring spring.rm
 TESTEXAMPLES_C_NOCOMPLEX = 
 
 include ${SLEPC_DIR}/conf/slepc_common
@@ -36,6 +39,18 @@ include ${SLEPC_DIR}/conf/slepc_common
 acoustic_wave_1d: acoustic_wave_1d.o chkopts
 	-${CLINKER} -o acoustic_wave_1d acoustic_wave_1d.o ${SLEPC_PEP_LIB}
 	${RM} acoustic_wave_1d.o
+
+acoustic_wave_2d: acoustic_wave_2d.o chkopts
+	-${CLINKER} -o acoustic_wave_2d acoustic_wave_2d.o ${SLEPC_PEP_LIB}
+	${RM} acoustic_wave_2d.o
+
+sleeper: sleeper.o chkopts
+	-${CLINKER} -o sleeper sleeper.o ${SLEPC_PEP_LIB}
+	${RM} sleeper.o
+
+spring: spring.o chkopts
+	-${CLINKER} -o spring spring.o ${SLEPC_PEP_LIB}
+	${RM} spring.o
 
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
@@ -45,4 +60,22 @@ runacoustic_wave_1d_1:
 	   if (${DIFF} output/acoustic_wave_1d_1.out acoustic_wave_1d_1.tmp) then true; \
 	   else echo "Possible problem with acoustic_wave_1d_1, diffs above"; fi; \
 	   ${RM} -f acoustic_wave_1d_1.tmp
+
+runacoustic_wave_2d_1:
+	-@${MPIEXEC} -np 1 ./acoustic_wave_2d -pep_nev 4 -n 20 -pep_terse > acoustic_wave_2d_1.tmp 2>&1; \
+	   if (${DIFF} output/acoustic_wave_2d_1.out acoustic_wave_2d_1.tmp) then true; \
+	   else echo "Possible problem with acoustic_wave_2d_1, diffs above"; fi; \
+	   ${RM} -f acoustic_wave_2d_1.tmp
+
+runsleeper:
+	-@${MPIEXEC} -np 1 ./sleeper -pep_nev 4 -n 20 -pep_terse > sleeper_1.tmp 2>&1; \
+	   if (${DIFF} output/sleeper_1.out sleeper_1.tmp) then true; \
+	   else echo "Possible problem with sleeper_1, diffs above"; fi; \
+	   ${RM} -f sleeper_1.tmp
+
+runspring:
+	-@${MPIEXEC} -np 1 ./spring -pep_nev 4 -n 20 -pep_terse > spring_1.tmp 2>&1; \
+	   if (${DIFF} output/spring_1.out spring_1.tmp) then true; \
+	   else echo "Possible problem with spring_1, diffs above"; fi; \
+	   ${RM} -f spring_1.tmp
 

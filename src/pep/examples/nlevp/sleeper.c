@@ -26,16 +26,13 @@
        [1] T. Betcke et al., "NLEVP: A Collection of Nonlinear Eigenvalue
            Problems", ACM Trans. Math. Software 39(2), Article 7, 2013.
 
-   The acoustic_wave_1d problem is a QEP from an acoustics application.
-   Here we solve it with the eigenvalue scaled by the imaginary unit, to be
-   able to use real arithmetic, so the computed eigenvalues should be scaled
-   back.
+   The sleeper problem is a proportionally damped QEP describing the
+   oscillations of a rail track resting on sleepers.
 */
 
-static char help[] = "NLEVP problem: acoustic_wave_1d.\n\n"
+static char help[] = "NLEVP problem: sleeper.\n\n"
   "The command line options are:\n"
-  "  -n <n>, where <n> = dimension of the matrices.\n"
-  "  -z <z>, where <z> = impedance (default 1.0).\n\n";
+  "  -n <n>, where <n> = dimension of the matrices.\n\n";
 
 #include <slepcpep.h>
 
@@ -46,16 +43,12 @@ int main(int argc,char **argv)
   Mat            M,C,K,A[3];      /* problem matrices */
   PEP            pep;             /* polynomial eigenproblem solver context */
   PetscInt       n=10,Istart,Iend,i;
-  PetscScalar    z=1.0;
-  char           str[50];
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,"-z",&z,NULL);CHKERRQ(ierr);
-  ierr = SlepcSNPrintfScalar(str,50,z,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nAcoustic wave 1-D, n=%D z=%s\n\n",n,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nRailtrack resting on sleepers, n=%D\n\n",n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
@@ -69,51 +62,63 @@ int main(int argc,char **argv)
   
   ierr = MatGetOwnershipRange(K,&Istart,&Iend);CHKERRQ(ierr);
   for (i=Istart;i<Iend;i++) {
-    if (i>0) {
-      ierr = MatSetValue(K,i,i-1,-1.0*n,INSERT_VALUES);CHKERRQ(ierr);
+    if (i==0) { 
+      ierr = MatSetValue(K,i,n-1,-3.0,INSERT_VALUES);CHKERRQ(ierr);
+      ierr = MatSetValue(K,i,n-2,1.0,INSERT_VALUES);CHKERRQ(ierr);
     }
-    if (i<n-1) {
-      ierr = MatSetValue(K,i,i,2.0*n,INSERT_VALUES);CHKERRQ(ierr);
-      ierr = MatSetValue(K,i,i+1,-1.0*n,INSERT_VALUES);CHKERRQ(ierr);
-    } else {
-      ierr = MatSetValue(K,i,i,1.0*n,INSERT_VALUES);CHKERRQ(ierr);
+    if (i==1) { ierr = MatSetValue(K,i,n-1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i>0) { ierr = MatSetValue(K,i,i-1,-3.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i>1) { ierr = MatSetValue(K,i,i-2,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    ierr = MatSetValue(K,i,i,5.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i==n-1) { 
+      ierr = MatSetValue(K,i,0,-3.0,INSERT_VALUES);CHKERRQ(ierr);
+      ierr = MatSetValue(K,i,1,1.0,INSERT_VALUES);CHKERRQ(ierr);
     }
+    if (i==n-2) { ierr = MatSetValue(K,i,0,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<n-1) { ierr = MatSetValue(K,i,i+1,-3.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<n-2) { ierr = MatSetValue(K,i,i+2,1.0,INSERT_VALUES);CHKERRQ(ierr); }
   }
 
   ierr = MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
-  /* C is the zero matrix but one element*/
+  /* C is a circulant matrix */
   ierr = MatCreate(PETSC_COMM_WORLD,&C);CHKERRQ(ierr);
   ierr = MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(C);CHKERRQ(ierr);
   ierr = MatSetUp(C);CHKERRQ(ierr);
-
+  
   ierr = MatGetOwnershipRange(C,&Istart,&Iend);CHKERRQ(ierr);
-  if (n-1>=Istart && n-1<Iend) { 
-    ierr = MatSetValue(C,n-1,n-1,-2*PETSC_PI/z,INSERT_VALUES);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    if (i==0) { 
+      ierr = MatSetValue(C,i,n-1,-4.0,INSERT_VALUES);CHKERRQ(ierr);
+      ierr = MatSetValue(C,i,n-2,1.0,INSERT_VALUES);CHKERRQ(ierr);
+    }
+    if (i==1) { ierr = MatSetValue(C,i,n-1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i>0) { ierr = MatSetValue(C,i,i-1,-4.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i>1) { ierr = MatSetValue(C,i,i-2,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    ierr = MatSetValue(C,i,i,7.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i==n-1) { 
+      ierr = MatSetValue(C,i,0,-4.0,INSERT_VALUES);CHKERRQ(ierr);
+      ierr = MatSetValue(C,i,1,1.0,INSERT_VALUES);CHKERRQ(ierr);
+    }
+    if (i==n-2) { ierr = MatSetValue(C,i,0,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<n-1) { ierr = MatSetValue(C,i,i+1,-4.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<n-2) { ierr = MatSetValue(C,i,i+2,1.0,INSERT_VALUES);CHKERRQ(ierr); }
   }
+
   ierr = MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   
-  /* M is a diagonal matrix */
+  /* M is the identity matrix */
   ierr = MatCreate(PETSC_COMM_WORLD,&M);CHKERRQ(ierr);
   ierr = MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(M);CHKERRQ(ierr);
   ierr = MatSetUp(M);CHKERRQ(ierr);
-
-  ierr = MatGetOwnershipRange(M,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=Istart;i<Iend;i++) {
-    if (i<n-1) {
-      ierr = MatSetValue(M,i,i,4*PETSC_PI*PETSC_PI/n,INSERT_VALUES);CHKERRQ(ierr);
-    } else {
-      ierr = MatSetValue(M,i,i,2*PETSC_PI*PETSC_PI/n,INSERT_VALUES);CHKERRQ(ierr);
-    }
-  }
   ierr = MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  ierr = MatShift(M,1.0);CHKERRQ(ierr);
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
