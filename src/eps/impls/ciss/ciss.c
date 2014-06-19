@@ -1536,8 +1536,8 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
   PetscErrorCode ierr;
   PetscScalar    s;
   PetscReal      r1,r2,r3,r4;
-  PetscInt       i1=0,i2=0,i3=0,i4=0,i5=0,i6=0,i7=0,i8=0;
-  PetscBool      b1=PETSC_FALSE,b2=PETSC_FALSE;
+  PetscInt       i1,i2,i3,i4,i5,i6,i7,i8;
+  PetscBool      b1,b2;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS CISS Options");CHKERRQ(ierr);
@@ -1547,6 +1547,7 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
   ierr = PetscOptionsReal("-eps_ciss_vscale","CISS vertical scale of region","EPSCISSSetRegion",r2,&r2,NULL);CHKERRQ(ierr);
   ierr = EPSCISSSetRegion(eps,s,r1,r2);CHKERRQ(ierr);
 
+  ierr = EPSCISSGetSizes(eps,&i1,&i2,&i3,&i4,&i5,&b1);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_ciss_integration_points","CISS number of integration points","EPSCISSSetSizes",i1,&i1,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_ciss_blocksize","CISS block size","EPSCISSSetSizes",i2,&i2,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_ciss_moments","CISS moment size","EPSCISSSetSizes",i3,&i3,NULL);CHKERRQ(ierr);
@@ -1655,7 +1656,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   /* set default values of parameters */
   ctx->center  = 0.0;
   ctx->radius  = 1.0;
-  ctx->vscale  = 0.0;
+  ctx->vscale  = 1.0;
   ctx->N       = 32;
   ctx->L       = 16;
   ctx->M       = ctx->N/4;
