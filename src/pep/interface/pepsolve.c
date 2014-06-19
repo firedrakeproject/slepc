@@ -148,6 +148,8 @@ PetscErrorCode PEPSolve(PEP pep)
       if (pep->eigi[i] < 0) {
         pep->eigi[i] = -pep->eigi[i];
         pep->eigi[i+1] = -pep->eigi[i+1];
+        /* the next correction only works with eigenvectors */
+        ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
         ierr = BVScaleColumn(pep->V,i+1,-1.0);CHKERRQ(ierr);
       }
       i++;
