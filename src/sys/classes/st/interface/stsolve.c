@@ -51,6 +51,8 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidHeaderSpecific(x,VEC_CLASSID,2);
   PetscValidHeaderSpecific(y,VEC_CLASSID,3);
+  PetscValidType(st,1);
+  STCheckMatrices(st,1);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
@@ -97,6 +99,8 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidHeaderSpecific(x,VEC_CLASSID,2);
   PetscValidHeaderSpecific(y,VEC_CLASSID,3);
+  PetscValidType(st,1);
+  STCheckMatrices(st,1);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
@@ -141,8 +145,9 @@ PetscErrorCode STGetBilinearForm(ST st,Mat *B)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidType(st,1);
   PetscValidPointer(B,2);
-  if (!st->A) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
+  STCheckMatrices(st,1);
   ierr = (*st->ops->getbilinearform)(st,B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -200,7 +205,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(mat,2);
-  if (!st->A) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
+  STCheckMatrices(st,1);
   if (st->nmat>2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Can only be used with 1 or 2 matrices");
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)st),&size);CHKERRQ(ierr);
 
@@ -263,7 +268,7 @@ PetscErrorCode STSetUp(ST st)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (!st->A) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Matrices must be set first");
+  STCheckMatrices(st,1);
   if (st->setupcalled) PetscFunctionReturn(0);
   ierr = PetscInfo(st,"Setting up new ST\n");CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
@@ -315,7 +320,7 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
 {
   PetscErrorCode ierr;
   PetscScalar    gamma;
-  PetscInt       matIdx[3],i;
+  PetscInt       matIdx[3];
 
   PetscFunctionBegin;
   switch (st->shift_matrix) {
@@ -494,6 +499,7 @@ PetscErrorCode STPostSolve(ST st)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidType(st,1);
   if (st->ops->postsolve) {
     ierr = (*st->ops->postsolve)(st);CHKERRQ(ierr);
   }
@@ -522,6 +528,7 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidType(st,1);
   if (st->ops->backtransform) {
     ierr = (*st->ops->backtransform)(st,n,eigr,eigi);CHKERRQ(ierr);
   }
@@ -535,11 +542,16 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
     If (coeffs):  st->P = Sum_{i=0:nmat-1} coeffs[i]*sigma^i*A_i.
     else          st->P = Sum_{i=0:nmat-1} sigma^i*A_i
 */
-PetscErrorCode  STComputeSolveMat(ST st,PetscScalar sigma,PetscScalar *coeffs)
+PetscErrorCode STComputeSolveMat(ST st,PetscScalar sigma,PetscScalar *coeffs)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveScalar(st,sigma,2);
+  PetscValidScalarPointer(coeffs,2);
+  STCheckMatrices(st,1);
+
   ierr = STMatMAXPY_Private(st,sigma,0,coeffs,PETSC_TRUE,&st->P);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);

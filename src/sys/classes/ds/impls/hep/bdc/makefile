@@ -25,7 +25,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = cutlr.c dibtdc.c dlaed3m.c dmerg2.c dsbtdc.c dsrtdf.c
+SOURCEC  = dibtdc.c dlaed3m.c dmerg2.c dsbtdc.c dsrtdf.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys

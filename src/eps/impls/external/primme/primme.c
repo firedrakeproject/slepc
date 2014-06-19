@@ -573,7 +573,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
   eps->ops->reset                = EPSReset_PRIMME;
   eps->ops->view                 = EPSView_PRIMME;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
 
   primme_initialize(&primme->primme);
   primme->primme.matrixMatvec = multMatvec_PRIMME;

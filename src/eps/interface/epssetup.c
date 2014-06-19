@@ -56,7 +56,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (eps->setupcalled) PetscFunctionReturn(0);
+  if (eps->state) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
 
   /* reset the convergence flag from the previous solves */
@@ -80,9 +80,8 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* Set problem dimensions */
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   if (!nmat) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first");
-  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&eps->n,NULL);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(A,&eps->nloc,NULL);CHKERRQ(ierr);
+  ierr = STMatGetSize(eps->st,&eps->n,NULL);CHKERRQ(ierr);
+  ierr = STMatGetLocalSize(eps->st,&eps->nloc,NULL);CHKERRQ(ierr);
 
   /* Set default problem type */
   if (!eps->problem_type) {
@@ -101,21 +100,13 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
 #endif
 
-  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
-  if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
-    ierr = STGetBilinearForm(eps->st,&B);CHKERRQ(ierr);
-    ierr = BVSetMatrix(eps->V,B,eps->ispositive?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr);
-    ierr = MatDestroy(&B);CHKERRQ(ierr);
-  } else {
-    ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
-  }
-
   if (eps->nev > eps->n) eps->nev = eps->n;
   if (eps->ncv > eps->n) eps->ncv = eps->n;
 
   /* initialization of matrix norms */
   if (eps->conv==EPS_CONV_NORM) {
     if (!eps->nrma) {
+      ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
       ierr = MatNorm(A,NORM_INFINITY,&eps->nrma);CHKERRQ(ierr);
     }
     if (nmat>1 && !eps->nrmb) {
@@ -123,8 +114,6 @@ PetscErrorCode EPSSetUp(EPS eps)
       ierr = MatNorm(B,NORM_INFINITY,&eps->nrmb);CHKERRQ(ierr);
     }
   }
-
-  if (!eps->balance) eps->balance = EPS_BALANCE_NONE;
 
   /* call specific solver setup */
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
@@ -217,7 +206,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
 
   ierr = PetscLogEventEnd(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
-  eps->setupcalled = 1;
+  eps->state = EPS_STATE_SETUP;
   PetscFunctionReturn(0);
 }
 
@@ -264,7 +253,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
     if (m0!=n) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B is a non-square matrix");
     if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Dimensions of A and B do not match");
   }
-  if (eps->setupcalled) { ierr = EPSReset(eps);CHKERRQ(ierr); }
+  if (eps->state) { ierr = EPSReset(eps);CHKERRQ(ierr); }
   eps->nrma = 0.0;
   eps->nrmb = 0.0;
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
@@ -353,7 +342,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
   PetscValidLogicalCollectiveInt(eps,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range");
   ierr = SlepcBasisReference_Private(n,v,&eps->nds,&eps->defl);CHKERRQ(ierr);
-  if (n>0) eps->setupcalled = 0;
+  if (n>0) eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -396,7 +385,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   PetscValidLogicalCollectiveInt(eps,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&eps->nini,&eps->IS);CHKERRQ(ierr);
-  if (n>0) eps->setupcalled = 0;
+  if (n>0) eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -426,17 +415,28 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSAllocateSolution"
-/*
-  EPSAllocateSolution - Allocate memory storage for common variables such
-  as eigenvalues and eigenvectors. The argument extra is used for methods
-  that require a working basis slightly larger than ncv.
-*/
+/*@
+   EPSAllocateSolution - Allocate memory storage for common variables such
+   as eigenvalues and eigenvectors.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps   - eigensolver context
+-  extra - number of additional positions, used for methods that require a
+           working basis slightly larger than ncv
+
+   Developers Note:
+   This is PETSC_EXTERN because it may be required by user plugin EPS
+   implementations.
+
+   Level: developer
+@*/
 PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
 {
   PetscErrorCode ierr;
   PetscInt       oldsize,newc,requested;
   PetscLogDouble cnt;
-  Mat            A;
   Vec            t;
 
   PetscFunctionBegin;
@@ -471,8 +471,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
     if (!((PetscObject)(eps->V))->type_name) {
       ierr = BVSetType(eps->V,BVSVEC);CHKERRQ(ierr);
     }
-    ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-    ierr = MatGetVecs(A,&t,NULL);CHKERRQ(ierr);
+    ierr = STMatGetVecs(eps->st,&t,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(eps->V,t,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {

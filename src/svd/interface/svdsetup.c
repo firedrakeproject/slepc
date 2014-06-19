@@ -324,12 +324,25 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDAllocateSolution"
-/*
-  SVDAllocateSolution - Allocate memory storage for common variables such as
-  the singular values and the basis vectors. The argument extra is used for methods
-  that require a working basis slightly larger than ncv. This is called at setup
-  after setting the value of ncv and the flag leftbasis.
- */
+/*@
+   SVDAllocateSolution - Allocate memory storage for common variables such
+   as the singular values and the basis vectors.
+
+   Collective on SVD
+
+   Input Parameters:
++  svd   - eigensolver context
+-  extra - number of additional positions, used for methods that require a
+           working basis slightly larger than ncv
+
+   Developers Notes:
+   This is PETSC_EXTERN because it may be required by user plugin SVD
+   implementations.
+
+   This is called at setup after setting the value of ncv and the flag leftbasis.
+
+   Level: developer
+@*/
 PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
 {
   PetscErrorCode ierr;

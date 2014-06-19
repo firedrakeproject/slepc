@@ -136,10 +136,10 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       ierr = (*nep->ops->view)(nep,viewer);CHKERRQ(ierr);
     }
   }
+  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
   if (!nep->V) { ierr = NEPGetBV(nep,&nep->V);CHKERRQ(ierr); }
   ierr = BVView(nep->V,viewer);CHKERRQ(ierr);
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
-  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
   ierr = DSView(nep->ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)nep,NEPSLP,&isslp);CHKERRQ(ierr);
@@ -225,13 +225,13 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->work            = NULL;
   nep->data            = NULL;
 
+  nep->state           = NEP_STATE_INITIAL;
   nep->nconv           = 0;
   nep->its             = 0;
   nep->n               = 0;
   nep->nloc            = 0;
   nep->nfuncs          = 0;
   nep->split           = PETSC_FALSE;
-  nep->setupcalled     = 0;
   nep->reason          = NEP_CONVERGED_ITERATING;
 
   ierr = PetscRandomCreate(comm,&nep->rand);CHKERRQ(ierr);
@@ -289,7 +289,7 @@ PetscErrorCode NEPSetType(NEP nep,NEPType type)
   if (nep->ops->destroy) { ierr = (*nep->ops->destroy)(nep);CHKERRQ(ierr); }
   ierr = PetscMemzero(nep->ops,sizeof(struct _NEPOps));CHKERRQ(ierr);
 
-  nep->setupcalled = 0;
+  nep->state = NEP_STATE_INITIAL;
   ierr = PetscObjectChangeTypeName((PetscObject)nep,type);CHKERRQ(ierr);
   ierr = (*r)(nep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -361,7 +361,7 @@ PetscErrorCode NEPRegister(const char *name,PetscErrorCode (*function)(NEP))
 #undef __FUNCT__
 #define __FUNCT__ "NEPReset"
 /*@
-   NEPReset - Resets the NEP context to the setupcalled=0 state and removes any
+   NEPReset - Resets the NEP context to the initial state and removes any
    allocated objects.
 
    Collective on NEP
@@ -398,9 +398,9 @@ PetscErrorCode NEPReset(NEP nep)
   }
   ierr = BVDestroy(&nep->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
-  nep->nwork = 0;
+  nep->nwork  = 0;
   nep->nfuncs = 0;
-  nep->setupcalled = 0;
+  nep->state  = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -433,6 +433,9 @@ PetscErrorCode NEPDestroy(NEP *nep)
   ierr = PetscRandomDestroy(&(*nep)->rand);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*nep)->nini,&(*nep)->IS);CHKERRQ(ierr);
+  if ((*nep)->convergeddestroy) {
+    ierr = (*(*nep)->convergeddestroy)((*nep)->convergedctx);CHKERRQ(ierr);
+  }
   ierr = NEPMonitorCancel(*nep);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(nep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -895,7 +898,7 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
   PetscCheckSameComm(nep,1,*A,3);
   PetscValidPointer(f,4);
   PetscCheckSameComm(nep,1,*f,4);
-  if (nep->setupcalled) { ierr = NEPReset(nep);CHKERRQ(ierr); }
+  if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
   /* clean previously stored information */
   ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
   ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);

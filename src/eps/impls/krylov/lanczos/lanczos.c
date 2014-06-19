@@ -72,6 +72,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   ierr = EPSAllocateSolution(eps,1);CHKERRQ(ierr);
+  ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   if (lanczos->reorthog != EPS_LANCZOS_REORTHOG_FULL) {
     ierr = BVGetOrthogonalization(eps->V,NULL,&refine,&eta);CHKERRQ(ierr);
     ierr = BVSetOrthogonalization(eps->V,BV_ORTHOG_MGS,refine,eta);CHKERRQ(ierr);

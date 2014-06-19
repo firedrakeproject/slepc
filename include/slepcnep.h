@@ -177,6 +177,7 @@ PETSC_EXTERN PetscErrorCode NEPRegisterAll(void);
 PETSC_EXTERN PetscErrorCode NEPRegister(const char[],PetscErrorCode(*)(NEP));
 
 PETSC_EXTERN PetscErrorCode NEPSetWorkVecs(NEP,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
 
 /* --------- options specific to particular eigensolvers -------- */
 

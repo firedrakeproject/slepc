@@ -41,6 +41,7 @@ int STCreate(MPI_Comm,ST *);
 int STSetType(ST,const char*);
 int STSetFromOptions(ST);
 int STSetUp(ST);
+int STSetOperators(ST,int,Mat*);
 int STView(ST,PetscViewer);
 int STGetKSP(ST,KSP*);
 int STDestroy(ST*);

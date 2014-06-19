@@ -473,7 +473,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS eps)
   eps->ops->reset                = EPSReset_BLZPACK;
   eps->ops->view                 = EPSView_BLZPACK;
   eps->ops->backtransform        = EPSBackTransform_BLZPACK;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetBlockSize_C",EPSBlzpackSetBlockSize_BLZPACK);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetNSteps_C",EPSBlzpackSetNSteps_BLZPACK);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -29,7 +29,6 @@
 
 typedef struct {
   EPS       eps;
-  PetscBool setfromoptionscalled;
   Mat       mat;
   Vec       w,diag;
 } SVD_CROSS;
@@ -125,15 +124,11 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   ierr = EPSSetOperators(cross->eps,cross->mat,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(cross->eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cross->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(cross->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
+  ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv?svd->ncv:PETSC_DEFAULT,svd->mpd?svd->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(cross->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it?svd->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   /* Transfer the trackall option from svd to eps */
   ierr = SVDGetTrackAll(svd,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(cross->eps,trackall);CHKERRQ(ierr);
-  if (cross->setfromoptionscalled) {
-    ierr = EPSSetFromOptions(cross->eps);CHKERRQ(ierr);
-    cross->setfromoptionscalled = PETSC_FALSE;
-  }
   ierr = EPSSetUp(cross->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(cross->eps,NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(cross->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
@@ -196,10 +191,12 @@ static PetscErrorCode SVDMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,Petsc
 #define __FUNCT__ "SVDSetFromOptions_Cross"
 PetscErrorCode SVDSetFromOptions_Cross(SVD svd)
 {
-  SVD_CROSS *cross = (SVD_CROSS*)svd->data;
+  PetscErrorCode ierr;
+  SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
 
   PetscFunctionBegin;
-  cross->setfromoptionscalled = PETSC_TRUE;
+  if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
+  ierr = EPSSetFromOptions(cross->eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -70,6 +70,22 @@ struct _p_ST {
   PetscInt     setupcalled;
 };
 
+/*
+    Macros to test valid ST arguments
+*/
+#if !defined(PETSC_USE_DEBUG)
+
+#define STCheckMatrices(h,arg) do {} while (0)
+
+#else
+
+#define STCheckMatrices(h,arg) \
+  do { \
+    if (!h->A) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"ST matrices have not been set: Parameter #%d",arg); \
+  } while (0)
+
+#endif
+
 PETSC_INTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
 PETSC_INTERN PetscErrorCode STCheckNullSpace_Default(ST,BV);
 PETSC_INTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,PetscScalar*,Mat*);

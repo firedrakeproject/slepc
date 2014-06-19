@@ -25,6 +25,27 @@
 #include <petscdraw.h>
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPComputeVectors"
+PETSC_STATIC_INLINE PetscErrorCode NEPComputeVectors(NEP nep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  NEPCheckSolved(nep,1);
+  switch (nep->state) {
+  case NEP_STATE_SOLVED:
+    if (nep->ops->computevectors) {
+      ierr = (*nep->ops->computevectors)(nep);CHKERRQ(ierr);
+    }
+    break;
+  default:
+    break;
+  }
+  nep->state = NEP_STATE_EIGENVECTORS;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPSolve"
 /*@
    NEPSolve - Solves the nonlinear eigensystem.
@@ -73,6 +94,8 @@ PetscErrorCode NEPSolve(NEP nep)
   ierr = (*nep->ops->solve)(nep);CHKERRQ(ierr);
 
   if (!nep->reason) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
+
+  nep->state = NEP_STATE_SOLVED;
 
   /* sort eigenvalues according to nep->which parameter */
   ierr = NEPSortEigenvalues(nep,nep->nconv,nep->eig,nep->perm);CHKERRQ(ierr);
@@ -324,6 +347,7 @@ PetscErrorCode NEPGetConverged(NEP nep,PetscInt *nconv)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidIntPointer(nconv,2);
+  NEPCheckSolved(nep,1);
   *nconv = nep->nconv;
   PetscFunctionReturn(0);
 }
@@ -364,6 +388,7 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(reason,2);
+  NEPCheckSolved(nep,1);
   *reason = nep->reason;
   PetscFunctionReturn(0);
 }
@@ -406,9 +431,10 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eig,Vec V)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   if (V) { PetscValidHeaderSpecific(V,VEC_CLASSID,4); PetscCheckSameComm(nep,1,V,4); }
-  if (!nep->eig || !nep->V) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first");
+  NEPCheckSolved(nep,1);
   if (i<0 || i>=nep->nconv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
 
+  ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
   if (!nep->perm) k = i;
   else k = nep->perm[i];
 
@@ -445,7 +471,7 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(errest,3);
-  if (!nep->eig) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first");
+  NEPCheckSolved(nep,1);
   if (i<0 || i>=nep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   if (nep->perm) i = nep->perm[i];
   if (errest) *errest = nep->errest[i];
@@ -508,6 +534,7 @@ PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *norm)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   PetscValidPointer(norm,3);
+  NEPCheckSolved(nep,1);
   ierr = BVGetVec(nep->V,&x);CHKERRQ(ierr);
   ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
   ierr = NEPComputeResidualNorm_Private(nep,lambda,x,norm);CHKERRQ(ierr);
@@ -568,6 +595,7 @@ PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   PetscValidPointer(error,3);
+  NEPCheckSolved(nep,1);
   ierr = BVGetVec(nep->V,&x);CHKERRQ(ierr);
   ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
   ierr = NEPComputeRelativeError_Private(nep,lambda,x,error);CHKERRQ(ierr);

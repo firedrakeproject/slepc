@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = stfunc.c stset.c stsolve.c stsles.c stregis.c shellmat.c
+SOURCEC  = stfunc.c stset.c stsolve.c stsles.c stregis.c stshellmat.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys

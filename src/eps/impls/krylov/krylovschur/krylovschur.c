@@ -103,6 +103,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   if (!ctx->keep) ctx->keep = 0.5;
 
   ierr = EPSAllocateSolution(eps,1);CHKERRQ(ierr);
+  ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   if (eps->arbitrary) {
     ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
   } else if (eps->ishermitian && !eps->ispositive){
@@ -380,20 +381,19 @@ static PetscErrorCode EPSKrylovSchurSetDimensions_KrylovSchur(EPS eps,PetscInt n
   PetscFunctionBegin;
   if (nev<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
   ctx->nev = nev;
-  eps->setupcalled = 0;
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
     ctx->ncv = 0;
   } else {
     if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     ctx->ncv = ncv;
   }
-  eps->setupcalled = 0;
   if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
     ctx->mpd = 0;
   } else {
     if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     ctx->mpd = mpd;
   }
+  eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

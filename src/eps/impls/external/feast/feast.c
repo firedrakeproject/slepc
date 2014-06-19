@@ -338,7 +338,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
   eps->ops->destroy              = EPSDestroy_FEAST;
   eps->ops->reset                = EPSReset_FEAST;
   eps->ops->view                 = EPSView_FEAST;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTSetNumPoints_C",EPSFEASTSetNumPoints_FEAST);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTGetNumPoints_C",EPSFEASTGetNumPoints_FEAST);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -108,7 +108,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",extr);CHKERRQ(ierr);
     }
-    if (eps->balance && !eps->ishermitian && eps->balance!=EPS_BALANCE_NONE) {
+    if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE) {
       switch (eps->balance) {
         case EPS_BALANCE_ONESIDE:   bal = "one-sided Krylov"; break;
         case EPS_BALANCE_TWOSIDE:   bal = "two-sided Krylov"; break;
@@ -189,7 +189,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       break;
-    default:
+    case EPS_CONV_USER:
       ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
     }
     if (eps->nini) {
@@ -255,7 +255,7 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(eps,1,viewer,2);
-  if (!eps->eigr || !eps->eigi || !eps->V) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first");
+  EPSCheckSolved(eps,1);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
@@ -370,7 +370,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->intb            = 0.0;
   eps->problem_type    = (EPSProblemType)0;
   eps->extraction      = (EPSExtraction)0;
-  eps->balance         = (EPSBalance)0;
+  eps->balance         = EPS_BALANCE_NONE;
   eps->balance_its     = 5;
   eps->balance_cutoff  = 1e-8;
   eps->trueres         = PETSC_FALSE;
@@ -378,6 +378,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   eps->comparison      = NULL;
   eps->converged       = EPSConvergedEigRelative;
+  eps->convergeddestroy= NULL;
   eps->arbitrary       = NULL;
   eps->comparisonctx   = NULL;
   eps->convergedctx    = NULL;
@@ -401,13 +402,12 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->work            = NULL;
   eps->data            = NULL;
 
+  eps->state           = EPS_STATE_INITIAL;
   eps->nconv           = 0;
   eps->its             = 0;
-  eps->evecsavailable  = PETSC_FALSE;
   eps->nloc            = 0;
   eps->nrma            = 0.0;
   eps->nrmb            = 0.0;
-  eps->setupcalled     = 0;
   eps->isgeneralized   = PETSC_FALSE;
   eps->ispositive      = PETSC_FALSE;
   eps->ishermitian     = PETSC_FALSE;
@@ -469,7 +469,7 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
   if (eps->ops->destroy) { ierr = (*eps->ops->destroy)(eps);CHKERRQ(ierr); }
   ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
 
-  eps->setupcalled = 0;
+  eps->state = EPS_STATE_INITIAL;
   ierr = PetscObjectChangeTypeName((PetscObject)eps,type);CHKERRQ(ierr);
   ierr = (*r)(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -541,7 +541,7 @@ PetscErrorCode EPSRegister(const char *name,PetscErrorCode (*function)(EPS))
 #undef __FUNCT__
 #define __FUNCT__ "EPSReset"
 /*@
-   EPSReset - Resets the EPS context to the setupcalled=0 state and removes any
+   EPSReset - Resets the EPS context to the initial state and removes any
    allocated objects.
 
    Collective on EPS
@@ -572,7 +572,7 @@ PetscErrorCode EPSReset(EPS eps)
   ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
   eps->nwork = 0;
-  eps->setupcalled = 0;
+  eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -606,6 +606,9 @@ PetscErrorCode EPSDestroy(EPS *eps)
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*eps)->nds,&(*eps)->defl);CHKERRQ(ierr);
   ierr = SlepcBasisDestroy_Private(&(*eps)->nini,&(*eps)->IS);CHKERRQ(ierr);
+  if ((*eps)->convergeddestroy) {
+    ierr = (*(*eps)->convergeddestroy)((*eps)->convergedctx);CHKERRQ(ierr);
+  }
   ierr = EPSMonitorCancel(*eps);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -720,7 +723,7 @@ PetscErrorCode EPSSetInterval(EPS eps,PetscReal inta,PetscReal intb)
   if (inta>=intb) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
   eps->inta = inta;
   eps->intb = intb;
-  if (eps->setupcalled) { ierr = EPSReset(eps);CHKERRQ(ierr); }
+  if (eps->state) { ierr = EPSReset(eps);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
