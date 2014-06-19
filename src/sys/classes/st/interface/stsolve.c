@@ -390,22 +390,35 @@ PetscErrorCode STMatGAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
    and stores the result in argument S.
 
    alpha - value of the parameter of the transformed polynomial
+   beta - value of the previous shift (only used in inplace mode)
    k - number of A matrices involved in the computation
    coeffs - coefficients of the expansion
    initial - true if this is the first time (only relevant for shell mode)
 */
-PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscInt k,PetscScalar *coeffs,PetscBool initial,Mat *S)
+PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,PetscInt k,PetscScalar *coeffs,PetscBool initial,Mat *S)
 {
   PetscErrorCode ierr;
   PetscInt       *matIdx=NULL,nmat,i,ini=-1;
-  PetscScalar    t=1.0,ta;
+  PetscScalar    t=1.0,ta,gamma;
   PetscBool      nz=PETSC_FALSE;
 
   PetscFunctionBegin;
   nmat = st->nmat-k;
   switch (st->shift_matrix) {
   case ST_MATMODE_INPLACE:
-    SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for polynomial eigenproblems");
+    if (st->nmat>2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for polynomial eigenproblems");
+    if (initial) {
+      ierr = PetscObjectReference((PetscObject)st->A[0]);CHKERRQ(ierr);
+      *S = st->A[0];
+      gamma = alpha;
+    } else gamma = alpha-beta;
+    if (gamma != 0.0) {
+      if (st->nmat>1) {
+        ierr = MatAXPY(*S,gamma,st->A[1],st->str);CHKERRQ(ierr);
+      } else {
+        ierr = MatShift(*S,gamma);CHKERRQ(ierr);
+      }
+    }
     break;
   case ST_MATMODE_SHELL:
     if (initial) {
@@ -554,7 +567,7 @@ PetscErrorCode STComputeSolveMat(ST st,PetscScalar sigma,PetscScalar *coeffs)
   PetscValidScalarPointer(coeffs,2);
   STCheckMatrices(st,1);
 
-  ierr = STMatMAXPY_Private(st,sigma,0,coeffs,PETSC_TRUE,&st->P);CHKERRQ(ierr);
+  ierr = STMatMAXPY_Private(st,sigma,0.0,0,coeffs,PETSC_TRUE,&st->P);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
