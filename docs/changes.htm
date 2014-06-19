@@ -320,6 +320,14 @@ Changes in Version 3.5</font></b>
 
 <ul>
   <li><font size="2" face="Arial, Helvetica, sans-serif">
+    A new solver class PEP for polynomial eigenvalue problems has been added.
+    It replaces the former QEP class, that has been removed.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    The auxiliary object IP has been removed and a new object BV has been
+    added that subsumes its functionality.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
     Support for requesting left eigenvectors has been removed, since none of the
     solvers were computing them internally.
     </font></li>

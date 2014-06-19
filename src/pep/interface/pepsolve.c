@@ -45,6 +45,27 @@ static PetscErrorCode PEPSortForSTFunc(PetscScalar ar,PetscScalar ai,PetscScalar
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPComputeVectors"
+PETSC_STATIC_INLINE PetscErrorCode PEPComputeVectors(PEP pep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PEPCheckSolved(pep,1);
+  switch (pep->state) {
+  case PEP_STATE_SOLVED:
+    if (pep->ops->computevectors) {
+      ierr = (*pep->ops->computevectors)(pep);CHKERRQ(ierr);
+    }
+    break;
+  default:
+    break;
+  }
+  pep->state = PEP_STATE_EIGENVECTORS;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPSolve"
 /*@
    PEPSolve - Solves the polynomial eigensystem.
@@ -56,9 +77,6 @@ static PetscErrorCode PEPSortForSTFunc(PetscScalar ar,PetscScalar ai,PetscScalar
 
    Options Database Keys:
 +  -pep_view - print information about the solver used
-.  -pep_view_mat0 binary - save the first matrix (M) to the default binary viewer
-.  -pep_view_mat1 binary - save the second matrix (C) to the default binary viewer
-.  -pep_view_mat2 binary - save the third matrix (K) to the default binary viewer
 -  -pep_plot_eigs - plot computed eigenvalues
 
    Level: beginner
@@ -120,6 +138,8 @@ PetscErrorCode PEPSolve(PEP pep)
       ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
     }
   }
+
+  pep->state = PEP_STATE_SOLVED;
 
 #if !defined(PETSC_USE_COMPLEX)
   /* reorder conjugate eigenvalues (positive imaginary first) */
@@ -235,6 +255,7 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidIntPointer(nconv,2);
+  PEPCheckSolved(pep,1);
   *nconv = pep->nconv;
   PetscFunctionReturn(0);
 }
@@ -270,6 +291,7 @@ PetscErrorCode PEPGetConvergedReason(PEP pep,PEPConvergedReason *reason)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(reason,2);
+  PEPCheckSolved(pep,1);
   *reason = pep->reason;
   PetscFunctionReturn(0);
 }
@@ -316,9 +338,10 @@ PetscErrorCode PEPGetEigenpair(PEP pep,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscValidLogicalCollectiveInt(pep,i,2);
   if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,6); PetscCheckSameComm(pep,1,Vr,6); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,7); PetscCheckSameComm(pep,1,Vi,7); }
-  if (!pep->eigr || !pep->eigi || !pep->V) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"PEPSolve must be called first");
+  PEPCheckSolved(pep,1);
   if (i<0 || i>=pep->nconv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
 
+  ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
   if (!pep->perm) k = i;
   else k = pep->perm[i];
 
@@ -382,7 +405,7 @@ PetscErrorCode PEPGetErrorEstimate(PEP pep,PetscInt i,PetscReal *errest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(errest,3);
-  if (!pep->eigr || !pep->eigi) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"PEPSolve must be called first");
+  PEPCheckSolved(pep,1);
   if (i<0 || i>=pep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   if (pep->perm) i = pep->perm[i];
   if (errest) *errest = pep->errest[i];
@@ -447,8 +470,8 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
         }
       }
       if (ivals[i]!=0){
-        ierr =  VecAXPY(u,-ivals[i],wi);CHKERRQ(ierr);
-        ierr =  VecAXPY(ui,ivals[i],w);CHKERRQ(ierr);
+        ierr = VecAXPY(u,-ivals[i],wi);CHKERRQ(ierr);
+        ierr = VecAXPY(ui,ivals[i],w);CHKERRQ(ierr);
       }
       if (vals[i]!=0) {
         ierr = VecAXPY(ui,vals[i],wi);CHKERRQ(ierr);
@@ -483,8 +506,8 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
 #undef __FUNCT__
 #define __FUNCT__ "PEPComputeResidualNorm"
 /*@
-   PEPComputeResidualNorm - Computes the norm of the residual vector associated with
-   the i-th computed eigenpair.
+   PEPComputeResidualNorm - Computes the norm of the residual vector associated
+   with the i-th computed eigenpair.
 
    Collective on PEP
 
@@ -493,9 +516,8 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
 -  i   - the solution index
 
    Output Parameter:
-.  norm - the residual norm, computed as ||(l^2*M+l*C+K)x||_2 where l is the
+.  norm - the residual norm, computed as ||P(l)x||_2 where l is the
    eigenvalue and x is the eigenvector.
-   If l=0 then the residual norm is computed as ||Kx||_2.
 
    Notes:
    The index i should be a value between 0 and nconv-1 (see PEPGetConverged()).
@@ -516,6 +538,7 @@ PetscErrorCode PEPComputeResidualNorm(PEP pep,PetscInt i,PetscReal *norm)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,i,2);
   PetscValidPointer(norm,3);
+  PEPCheckSolved(pep,1);
   ierr = BVGetVec(pep->V,&xr);CHKERRQ(ierr);
   ierr = BVGetVec(pep->V,&xi);CHKERRQ(ierr);
   ierr = PEPGetEigenpair(pep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
@@ -569,9 +592,8 @@ PetscErrorCode PEPComputeRelativeError_Private(PEP pep,PetscScalar kr,PetscScala
 -  i   - the solution index
 
    Output Parameter:
-.  error - the relative error bound, computed as ||(l^2*M+l*C+K)x||_2/||lx||_2 where
+.  error - the relative error bound, computed as ||P(l)x||_2/||lx||_2 where
    l is the eigenvalue and x is the eigenvector.
-   If l=0 the relative error is computed as ||Kx||_2/||x||_2.
 
    Level: beginner
 
@@ -587,6 +609,7 @@ PetscErrorCode PEPComputeRelativeError(PEP pep,PetscInt i,PetscReal *error)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,i,2);
   PetscValidPointer(error,3);
+  PEPCheckSolved(pep,1);
   ierr = BVGetVec(pep->V,&xr);CHKERRQ(ierr);
   ierr = BVGetVec(pep->V,&xi);CHKERRQ(ierr);
   ierr = PEPGetEigenpair(pep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);

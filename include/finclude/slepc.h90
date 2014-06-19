@@ -21,8 +21,12 @@
 !
 
 #include "finclude/slepcsys.h"
-#include "finclude/slepceps.h90"
-#include "finclude/slepcip.h90"
+#include "finclude/slepcbv.h90"
+#include "finclude/slepcfn.h90"
+#include "finclude/slepcds.h90"
 #include "finclude/slepcst.h90"
+#include "finclude/slepceps.h90"
 #include "finclude/slepcsvd.h90"
-#include "finclude/slepcqep.h90"
+#include "finclude/slepcpep.h90"
+#include "finclude/slepcnep.h90"
+#include "finclude/slepcmfn.h90"

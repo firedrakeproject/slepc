@@ -20,7 +20,6 @@
 */
 
 #include <slepcst.h>
-#include <slepcip.h>
 #include <slepcds.h>
 #include <slepcfn.h>
 #include <slepcbv.h>
@@ -31,7 +30,6 @@
 PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepceps(void);
 PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcnep(void);
 PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcpep(void);
-PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcqep(void);
 PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsvd(void);
 PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcmfn(void);
 #endif
@@ -46,7 +44,7 @@ PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcmfn(void);
   PetscDLLibraryRegister - This function is called when the dynamic library
   it is in is opened.
 
-  This one registers all the basic objects IP, ST, FN, DS, BV.
+  This one registers all the basic objects ST, FN, DS, BV.
  */
 #if defined(PETSC_USE_SINGLE_LIBRARY)
 PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepc(void)
@@ -58,7 +56,6 @@ PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsys(void)
 
   PetscFunctionBegin;
   ierr = STInitializePackage();CHKERRQ(ierr);
-  ierr = IPInitializePackage();CHKERRQ(ierr);
   ierr = DSInitializePackage();CHKERRQ(ierr);
   ierr = FNInitializePackage();CHKERRQ(ierr);
   ierr = BVInitializePackage();CHKERRQ(ierr);
@@ -67,7 +64,6 @@ PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsys(void)
   ierr = PetscDLLibraryRegister_slepceps();CHKERRQ(ierr);
   ierr = PetscDLLibraryRegister_slepcnep();CHKERRQ(ierr);
   ierr = PetscDLLibraryRegister_slepcpep();CHKERRQ(ierr);
-  ierr = PetscDLLibraryRegister_slepcqep();CHKERRQ(ierr);
   ierr = PetscDLLibraryRegister_slepcsvd();CHKERRQ(ierr);
   ierr = PetscDLLibraryRegister_slepcmfn();CHKERRQ(ierr);
 #endif

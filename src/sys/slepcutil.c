@@ -503,7 +503,7 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
 #define __FUNCT__ "SlepcConvMonitorDestroy"
 /*
   Clean up context used in monitors of type XXXMonitorConverged.
-  This function is shared by EPS, SVD, QEP
+  This function is shared by EPS, SVD, PEP
 */
 PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx)
 {

@@ -51,7 +51,7 @@ PetscErrorCode NEPSetUp(NEP nep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (nep->setupcalled) PetscFunctionReturn(0);
+  if (nep->state) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(NEP_SetUp,nep,0,0,0);CHKERRQ(ierr);
 
   /* reset the convergence flag from the previous solves */
@@ -150,7 +150,7 @@ PetscErrorCode NEPSetUp(NEP nep)
     nep->nini = k;
   }
   ierr = PetscLogEventEnd(NEP_SetUp,nep,0,0,0);CHKERRQ(ierr);
-  nep->setupcalled = 1;
+  nep->state = NEP_STATE_SETUP;
   PetscFunctionReturn(0);
 }
 
@@ -191,17 +191,29 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec *is)
   PetscValidLogicalCollectiveInt(nep,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&nep->nini,&nep->IS);CHKERRQ(ierr);
-  if (n>0) nep->setupcalled = 0;
+  if (n>0) nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPAllocateSolution"
-/*
-  NEPAllocateSolution - Allocate memory storage for common variables such
-  as eigenvalues and eigenvectors. The argument extra is used for methods
-  that require a working basis slightly larger than ncv.
-*/
+/*@
+   NEPAllocateSolution - Allocate memory storage for common variables such
+   as eigenvalues and eigenvectors.
+
+   Collective on NEP
+
+   Input Parameters:
++  nep   - eigensolver context
+-  extra - number of additional positions, used for methods that require a
+           working basis slightly larger than ncv
+
+   Developers Note:
+   This is PETSC_EXTERN because it may be required by user plugin NEP
+   implementations.
+
+   Level: developer
+@*/
 PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
 {
   PetscErrorCode ierr;

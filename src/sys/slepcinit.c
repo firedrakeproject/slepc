@@ -143,8 +143,6 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
     if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
     ierr = SlepcLoadDynamicLibrary("eps",&found);CHKERRQ(ierr);
     if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
-    ierr = SlepcLoadDynamicLibrary("qep",&found);CHKERRQ(ierr);
-    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
     ierr = SlepcLoadDynamicLibrary("pep",&found);CHKERRQ(ierr);
     if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
     ierr = SlepcLoadDynamicLibrary("nep",&found);CHKERRQ(ierr);
@@ -170,7 +168,6 @@ PetscErrorCode SlepcInitialize_LogEvents(void)
 
   PetscFunctionBegin;
   ierr = PetscLogEventRegister("UpdateVectors",0,&SLEPC_UpdateVectors);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("VecMAXPBY",0,&SLEPC_VecMAXPBY);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("DenseMatProd",0,&SLEPC_SlepcDenseMatProd);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("DenseCopy",0,&SLEPC_SlepcDenseCopy);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("VecsMult",0,&SLEPC_VecsMult);CHKERRQ(ierr);

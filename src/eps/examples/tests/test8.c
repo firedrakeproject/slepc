@@ -77,7 +77,7 @@ int main(int argc,char **argv)
   */
   ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,tol,PETSC_DECIDE);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime

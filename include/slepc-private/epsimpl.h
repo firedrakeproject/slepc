@@ -30,21 +30,26 @@ PETSC_EXTERN PetscLogEvent EPS_SetUp,EPS_Solve;
 typedef struct _EPSOps *EPSOps;
 
 struct _EPSOps {
-  PetscErrorCode  (*solve)(EPS);
-  PetscErrorCode  (*setup)(EPS);
-  PetscErrorCode  (*setfromoptions)(EPS);
-  PetscErrorCode  (*publishoptions)(EPS);
-  PetscErrorCode  (*destroy)(EPS);
-  PetscErrorCode  (*reset)(EPS);
-  PetscErrorCode  (*view)(EPS,PetscViewer);
-  PetscErrorCode  (*backtransform)(EPS);
-  PetscErrorCode  (*computevectors)(EPS);
+  PetscErrorCode (*solve)(EPS);
+  PetscErrorCode (*setup)(EPS);
+  PetscErrorCode (*setfromoptions)(EPS);
+  PetscErrorCode (*publishoptions)(EPS);
+  PetscErrorCode (*destroy)(EPS);
+  PetscErrorCode (*reset)(EPS);
+  PetscErrorCode (*view)(EPS,PetscViewer);
+  PetscErrorCode (*backtransform)(EPS);
+  PetscErrorCode (*computevectors)(EPS);
 };
 
 /*
      Maximum number of monitors you can run with a single EPS
 */
 #define MAXEPSMONITORS 5
+
+typedef enum { EPS_STATE_INITIAL,
+               EPS_STATE_SETUP,
+               EPS_STATE_SOLVED,
+               EPS_STATE_EIGENVECTORS } EPSStateType;
 
 /*
    Defines the EPS data structure.
@@ -74,6 +79,7 @@ struct _p_EPS {
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   PetscErrorCode (*converged)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+  PetscErrorCode (*convergeddestroy)(void*);
   PetscErrorCode (*arbitrary)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*);
   void           *comparisonctx;
   void           *convergedctx;
@@ -100,23 +106,58 @@ struct _p_EPS {
   void           *data;            /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables --------------------------*/
+  EPSStateType   state;            /* initial -> setup -> solved -> eigenvectors */
   PetscInt       nconv;            /* number of converged eigenvalues */
   PetscInt       its;              /* number of iterations so far computed */
-  PetscBool      evecsavailable;   /* computed eigenvectors */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
   PetscReal      nrma,nrmb;        /* computed matrix norms */
-  PetscInt       setupcalled;
   PetscBool      isgeneralized;
   PetscBool      ispositive;
   PetscBool      ishermitian;
   EPSConvergedReason reason;
 };
 
+/*
+    Macros to test valid EPS arguments
+*/
+#if !defined(PETSC_USE_DEBUG)
+
+#define EPSCheckSolved(h,arg) do {} while (0)
+
+#else
+
+#define EPSCheckSolved(h,arg) \
+  do { \
+    if (h->state<EPS_STATE_SOLVED) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSolve() first: Parameter #%d",arg); \
+  } while (0)
+
+#endif
+
+#undef __FUNCT__
+#define __FUNCT__ "EPS_SetInnerProduct"
+/*
+  EPS_SetInnerProduct - set B matrix for inner product if appropriate.
+*/
+PETSC_STATIC_INLINE PetscErrorCode EPS_SetInnerProduct(EPS eps)
+{
+  PetscErrorCode ierr;
+  Mat            B;
+
+  PetscFunctionBegin;
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
+  if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
+    ierr = STGetBilinearForm(eps->st,&B);CHKERRQ(ierr);
+    ierr = BVSetMatrix(eps->V,B,eps->ispositive?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr);
+    ierr = MatDestroy(&B);CHKERRQ(ierr);
+  } else {
+    ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 PETSC_INTERN PetscErrorCode EPSSetWhichEigenpairs_Default(EPS);
-PETSC_INTERN PetscErrorCode EPSAllocateSolution(EPS,PetscInt);
 PETSC_INTERN PetscErrorCode EPSSetDimensions_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSBackTransform_Default(EPS);
-PETSC_INTERN PetscErrorCode EPSComputeVectors_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Hermitian(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);

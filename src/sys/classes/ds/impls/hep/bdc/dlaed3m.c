@@ -24,7 +24,7 @@
 #include <slepc-private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode dlaed3m_(const char *jobz,const char *defl,PetscBLASInt k,PetscBLASInt n,
+PetscErrorCode BDC_dlaed3m_(const char *jobz,const char *defl,PetscBLASInt k,PetscBLASInt n,
         PetscBLASInt n1,PetscReal *d,PetscReal *q,PetscBLASInt ldq,
         PetscReal rho,PetscReal *dlamda,PetscReal *q2,PetscBLASInt *indx, 
         PetscBLASInt *ctot,PetscReal *w,PetscReal *s,PetscBLASInt *info,

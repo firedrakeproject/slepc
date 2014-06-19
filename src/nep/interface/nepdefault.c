@@ -24,18 +24,6 @@
 #include <slepc-private/nepimpl.h>     /*I "slepcnep.h" I*/
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPReset_Default"
-PetscErrorCode NEPReset_Default(NEP nep)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
-  nep->nwork = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "NEPSetWorkVecs"
 /*@
    NEPSetWorkVecs - Sets a number of work vectors into a NEP object

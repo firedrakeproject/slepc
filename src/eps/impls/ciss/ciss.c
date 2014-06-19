@@ -974,18 +974,14 @@ static PetscErrorCode EPSCISSSetRegion_CISS(EPS eps,PetscScalar center,PetscReal
 
   PetscFunctionBegin;
   ctx->center = center;
-  if (radius) {
-    if (radius == PETSC_DEFAULT) {
-      ctx->radius = 1.0;
-    } else {
-      if (radius<0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The radius argument must be > 0.0");
-      ctx->radius = radius;
-    }
+  if (radius == PETSC_DEFAULT) {
+    ctx->radius = 1.0;
+  } else {
+    if (radius<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The radius argument must be > 0.0");
+    ctx->radius = radius;
   }
-  if (vscale) {
-    if (vscale<0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The vscale argument must be > 0.0");
-    ctx->vscale = vscale;
-  }
+  if (vscale<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The vscale argument must be > 0.0");
+  ctx->vscale = vscale;
   PetscFunctionReturn(0);
 }
 
@@ -1076,49 +1072,39 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
-  if (ip) {
-    if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) {
-      if (ctx->N!=32) { ctx->N =32; ctx->M = ctx->N/4; }
-    } else {
-      if (ip<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be > 0");
-      if (ip%2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be an even number");
-      if (ctx->N!=ip) { ctx->N = ip; ctx->M = ctx->N/4; }
-    }
+  if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) {
+    if (ctx->N!=32) { ctx->N =32; ctx->M = ctx->N/4; }
+  } else {
+    if (ip<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be > 0");
+    if (ip%2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be an even number");
+    if (ctx->N!=ip) { ctx->N = ip; ctx->M = ctx->N/4; }
   }
-  if (bs) {
-    if (bs == PETSC_DECIDE || bs == PETSC_DEFAULT) {
-      ctx->L = 16;
-    } else {
-      if (bs<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be > 0");
-      if (bs>ctx->L_max) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be less than or equal to the maximum number of block size");
-      ctx->L = bs;
-    }
+  if (bs == PETSC_DECIDE || bs == PETSC_DEFAULT) {
+    ctx->L = 16;
+  } else {
+    if (bs<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be > 0");
+    if (bs>ctx->L_max) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be less than or equal to the maximum number of block size");
+    ctx->L = bs;
   }
-  if (ms) {
-    if (ms == PETSC_DECIDE || ms == PETSC_DEFAULT) {
-      ctx->M = ctx->N/4;
-    } else {
-      if (ms<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be > 0");
-      if (ms>ctx->N) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be less than or equal to the number of integration points");
-      ctx->M = ms;
-    }
+  if (ms == PETSC_DECIDE || ms == PETSC_DEFAULT) {
+    ctx->M = ctx->N/4;
+  } else {
+    if (ms<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be > 0");
+    if (ms>ctx->N) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be less than or equal to the number of integration points");
+    ctx->M = ms;
   }
-  if (npart) {
-    if (npart == PETSC_DECIDE || npart == PETSC_DEFAULT) {
-      ctx->num_subcomm = 1;
-    } else {
-      if (npart<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The npart argument must be > 0");
-      ctx->num_subcomm = npart;
-    }
+  if (npart == PETSC_DECIDE || npart == PETSC_DEFAULT) {
+    ctx->num_subcomm = 1;
+  } else {
+    if (npart<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The npart argument must be > 0");
+    ctx->num_subcomm = npart;
   }
-  if (bsmax) {
-    if (bsmax == PETSC_DECIDE || bsmax == PETSC_DEFAULT) {
-      ctx->L = 256;
-    } else {
-      if (bsmax<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The bsmax argument must be > 0");
-      if (bsmax<ctx->L) ctx->L_max = ctx->L;
-      else ctx->L_max = bsmax;
-    }
+  if (bsmax == PETSC_DECIDE || bsmax == PETSC_DEFAULT) {
+    ctx->L = 256;
+  } else {
+    if (bsmax<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The bsmax argument must be > 0");
+    if (bsmax<ctx->L) ctx->L_max = ctx->L;
+    else ctx->L_max = bsmax;
   }
   ctx->isreal = isreal;
   ierr = EPSReset(eps);CHKERRQ(ierr);   /* clean allocated arrays and force new setup */
@@ -1229,21 +1215,17 @@ static PetscErrorCode EPSCISSSetThreshold_CISS(EPS eps,PetscReal delta,PetscReal
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
-  if (delta) {
-    if (delta == PETSC_DEFAULT) {
-      ctx->delta = 1e-12;
-    } else {
-      if (delta<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The delta argument must be > 0.0");
-      ctx->delta = delta;
-    }
+  if (delta == PETSC_DEFAULT) {
+    ctx->delta = 1e-12;
+  } else {
+    if (delta<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The delta argument must be > 0.0");
+    ctx->delta = delta;
   }
-  if (spur) {
-    if (spur == PETSC_DEFAULT) {
-      ctx->spurious_threshold = 1e-4;
-    } else {
-      if (spur<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The spurious threshold argument must be > 0.0");
-      ctx->spurious_threshold = spur;
-    }
+  if (spur == PETSC_DEFAULT) {
+    ctx->spurious_threshold = 1e-4;
+  } else {
+    if (spur<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The spurious threshold argument must be > 0.0");
+    ctx->spurious_threshold = spur;
   }
   PetscFunctionReturn(0);
 }

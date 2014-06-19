@@ -170,7 +170,6 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP nep)
   PetscFunctionBegin;
   nep->ops->solve          = NEPSolve_NArnoldi;
   nep->ops->setup          = NEPSetUp_NArnoldi;
-  nep->ops->reset          = NEPReset_Default;
   PetscFunctionReturn(0);
 }
 

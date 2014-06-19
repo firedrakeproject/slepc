@@ -166,7 +166,6 @@ PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
   PetscFunctionBegin;
   nep->ops->solve        = NEPSolve_RII;
   nep->ops->setup        = NEPSetUp_RII;
-  nep->ops->reset        = NEPReset_Default;
   PetscFunctionReturn(0);
 }
 

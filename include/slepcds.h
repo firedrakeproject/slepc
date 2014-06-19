@@ -53,7 +53,6 @@ typedef const char* DSType;
 #define DSGHIEP           "ghiep"
 #define DSGNHEP           "gnhep"
 #define DSSVD             "svd"
-#define DSQEP             "qep"
 #define DSNEP             "nep"
 
 /* Logging support */

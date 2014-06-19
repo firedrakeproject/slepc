@@ -127,6 +127,7 @@ typedef enum { EPS_BALANCE_NONE=1,
                EPS_BALANCE_ONESIDE,
                EPS_BALANCE_TWOSIDE,
                EPS_BALANCE_USER } EPSBalance;
+PETSC_EXTERN const char *EPSBalanceTypes[];
 
 /*E
     EPSConv - Determines the convergence test
@@ -171,7 +172,7 @@ PETSC_EXTERN PetscErrorCode EPSSetDS(EPS,DS);
 PETSC_EXTERN PetscErrorCode EPSGetDS(EPS,DS*);
 PETSC_EXTERN PetscErrorCode EPSSetTolerances(EPS,PetscReal,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSGetTolerances(EPS,PetscReal*,PetscInt*);
-PETSC_EXTERN PetscErrorCode EPSSetConvergenceTestFunction(EPS,PetscErrorCode (*)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*);
+PETSC_EXTERN PetscErrorCode EPSSetConvergenceTestFunction(EPS,PetscErrorCode (*)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*,PetscErrorCode (*)(void*));
 PETSC_EXTERN PetscErrorCode EPSSetConvergenceTest(EPS,EPSConv);
 PETSC_EXTERN PetscErrorCode EPSGetConvergenceTest(EPS,EPSConv*);
 PETSC_EXTERN PetscErrorCode EPSConvergedEigRelative(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
@@ -247,6 +248,7 @@ PETSC_EXTERN PetscErrorCode EPSRegisterAll(void);
 PETSC_EXTERN PetscErrorCode EPSRegister(const char[],PetscErrorCode(*)(EPS));
 
 PETSC_EXTERN PetscErrorCode EPSSetWorkVecs(EPS,PetscInt);
+PETSC_EXTERN PetscErrorCode EPSAllocateSolution(EPS,PetscInt);
 
 /* --------- options specific to particular eigensolvers -------- */
 
