@@ -27,11 +27,12 @@ LOCDIR     = src/pep/examples/nlevp/
 EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c sleeper.c spring.c
 EXAMPLESF  = 
 MANSEC     = PEP
+TESTS      = acoustic_wave_1d acoustic_wave_2d sleeper spring
 
-TESTEXAMPLES_C           = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
-                           acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
-                           sleeper.PETSc runsleeper sleeper.rm \
-                           spring.PETSc runspring spring.rm
+TESTEXAMPLES_C = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
+                 acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
+                 sleeper.PETSc runsleeper sleeper.rm \
+                 spring.PETSc runspring spring.rm
 TESTEXAMPLES_C_NOCOMPLEX = 
 
 include ${SLEPC_DIR}/conf/slepc_common
