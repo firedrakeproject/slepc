@@ -91,17 +91,11 @@ PetscErrorCode STBackTransform_Sinvert(ST st,PetscInt n,PetscScalar *eigr,PetscS
 PetscErrorCode STPostSolve_Sinvert(ST st)
 {
   PetscErrorCode ierr;
-  PetscScalar    s;
 
   PetscFunctionBegin;
   if (st->shift_matrix == ST_MATMODE_INPLACE) {
     if (st->nmat>1) {
-      if (st->nmat==3) {
-        ierr = MatAXPY(st->A[0],-st->sigma*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
-        ierr = MatAXPY(st->A[1],-2.0*st->sigma,st->A[2],st->str);CHKERRQ(ierr);
-        s = -st->sigma;
-      } else s = st->sigma;
-      ierr = MatAXPY(st->A[0],s,st->A[1],st->str);CHKERRQ(ierr);
+      ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
     } else {
       ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
     }
