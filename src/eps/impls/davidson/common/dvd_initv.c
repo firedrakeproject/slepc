@@ -61,7 +61,7 @@ PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,PetscInt 
     } else {
       d->initV = dvd_initV_classic_0;
     }
-    DVD_FL_ADD(d->destroyList, dvd_initV_d);
+    ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_initV_d);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

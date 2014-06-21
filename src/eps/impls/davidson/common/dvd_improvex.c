@@ -151,9 +151,9 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
     ierr = BVResize(data->KZ,size_P,PETSC_FALSE);CHKERRQ(ierr);
     ierr = BVDuplicate(data->KZ,&data->U);CHKERRQ(ierr);
 
-    DVD_FL_ADD(d->startList,dvd_improvex_jd_start);
-    DVD_FL_ADD(d->endList,dvd_improvex_jd_end);
-    DVD_FL_ADD(d->destroyList,dvd_improvex_jd_d);
+    ierr = EPSDavidsonFLAdd(&d->startList,dvd_improvex_jd_start);CHKERRQ(ierr);
+    ierr = EPSDavidsonFLAdd(&d->endList,dvd_improvex_jd_end);CHKERRQ(ierr);
+    ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_improvex_jd_d);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

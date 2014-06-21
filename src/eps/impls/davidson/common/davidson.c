@@ -69,6 +69,7 @@ PetscErrorCode EPSCreate_XD(EPS eps)
   data->wS = NULL;
   data->wV = NULL;
   data->size_wV = 0;
+  ierr = PetscMemzero(&data->ddb,sizeof(dvdDashboard));CHKERRQ(ierr);
 
   /* Set default values */
   ierr = EPSXDSetKrylovStart_XD(eps,PETSC_FALSE);CHKERRQ(ierr);
@@ -291,7 +292,7 @@ PetscErrorCode EPSSolve_XD(EPS eps)
 
   PetscFunctionBegin;
   /* Call the starting routines */
-  DVD_FL_CALL(d->startList,d);
+  ierr = EPSDavidsonFLCall(d->startList,d);CHKERRQ(ierr);
 
   for (eps->its=0;eps->its<eps->max_it;eps->its++) {
     /* Initialize V, if it is needed */
@@ -314,7 +315,7 @@ PetscErrorCode EPSSolve_XD(EPS eps)
   }
 
   /* Call the ending routines */
-  DVD_FL_CALL(d->endList,d);
+  ierr = EPSDavidsonFLCall(d->endList,d);CHKERRQ(ierr);
 
   if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
@@ -331,10 +332,10 @@ PetscErrorCode EPSReset_XD(EPS eps)
 
   PetscFunctionBegin;
   /* Call step destructors and destroys the list */
-  DVD_FL_CALL(dvd->destroyList,dvd);
-  DVD_FL_DEL(dvd->destroyList);
-  DVD_FL_DEL(dvd->startList);
-  DVD_FL_DEL(dvd->endList);
+  ierr = EPSDavidsonFLCall(dvd->destroyList,dvd);CHKERRQ(ierr);
+  ierr = EPSDavidsonFLDestroy(&dvd->destroyList);CHKERRQ(ierr);
+  ierr = EPSDavidsonFLDestroy(&dvd->startList);CHKERRQ(ierr);
+  ierr = EPSDavidsonFLDestroy(&dvd->endList);CHKERRQ(ierr);
 
   if (data->size_wV > 0) {
     ierr = VecDestroyVecs(data->size_wV,&data->wV);CHKERRQ(ierr);

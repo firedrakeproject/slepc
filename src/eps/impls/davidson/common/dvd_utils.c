@@ -77,7 +77,7 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d,dvdBlackboard *b,PC pc)
         d->improvex_precond = dvd_precond_none;
       }
 
-      DVD_FL_ADD(d->destroyList, dvd_improvex_precond_d);
+      ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_improvex_precond_d);CHKERRQ(ierr);
 
     /* Else, use no preconditioner */
     } else d->improvex_precond = dvd_precond_none;
@@ -147,7 +147,7 @@ PetscErrorCode dvd_jacobi_precond(dvdDashboard *d,dvdBlackboard *b)
       d->improvex_precond_data = dvdjp;
       d->improvex_precond = dvd_jacobi_precond_0;
 
-      DVD_FL_ADD(d->destroyList, dvd_jacobi_precond_d);
+      ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_jacobi_precond_d);CHKERRQ(ierr);
 
     /* Else, use no preconditioner */
     } else {
@@ -342,7 +342,7 @@ PetscErrorCode dvd_profiler(dvdDashboard *d,dvdBlackboard *b)
     p->old_improveX = d->improveX; d->improveX = dvd_improveX_prof;
     p->old_updateV = d->updateV; d->updateV = dvd_updateV_prof;
 
-    DVD_FL_ADD(d->destroyList, dvd_profiler_d);
+    ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_profiler_d);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -416,7 +416,7 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmType_t mode,Pe
     d->calcpairs_eigs_trans = dvd_harm_eigs_trans;
     d->calcpairs_eig_backtrans = dvd_harm_eig_backtrans;
 
-    DVD_FL_ADD(d->destroyList, dvd_harm_d);
+    ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_harm_d);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

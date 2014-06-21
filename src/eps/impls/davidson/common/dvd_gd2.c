@@ -86,7 +86,7 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
     data->size_X = b->max_size_X;
     d->improveX = dvd_improvex_gd2_gen;
 
-    DVD_FL_ADD(d->destroyList,dvd_improvex_gd2_d);
+    ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_improvex_gd2_d);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

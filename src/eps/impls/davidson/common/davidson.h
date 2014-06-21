@@ -29,9 +29,10 @@
 #include <slepc-private/stimpl.h>
 #include <slepc-private/vecimplslepc.h>
 
+struct _dvdDashboard;
+typedef PetscErrorCode (*dvdCallback)(struct _dvdDashboard*);
 typedef struct _dvdFunctionList {
-  PetscErrorCode (*f)(void*);
-  void *d;
+  dvdCallback f;
   struct _dvdFunctionList *next;
 } dvdFunctionList;
 
@@ -222,44 +223,47 @@ typedef struct _dvdDashboard {
   void* prof_data;  /* profiler data */
 } dvdDashboard;
 
-/* Add the function fun at the beginning of list */
-#define DVD_FL_ADD_BEGIN(list, fun) { \
-  dvdFunctionList *fl=(list); \
-  PetscErrorCode ierr; \
-  ierr = PetscMalloc(sizeof(dvdFunctionList), &(list));CHKERRQ(ierr); \
-  (list)->f = (PetscErrorCode(*)(void*))(fun); \
-  (list)->next = fl; \
+#undef __FUNCT__
+#define __FUNCT__ "EPSDavidsonFLAdd"
+PETSC_STATIC_INLINE PetscErrorCode EPSDavidsonFLAdd(dvdFunctionList **fl,dvdCallback f)
+{
+  PetscErrorCode ierr;
+  dvdFunctionList *l;
+
+  PetscFunctionBegin;
+  ierr = PetscMalloc(sizeof(dvdFunctionList),&l);CHKERRQ(ierr);
+  l->f = f;
+  l->next = *fl;
+  *fl = l;
+  PetscFunctionReturn(0);
+}
+  
+#undef __FUNCT__
+#define __FUNCT__ "EPSDavidsonFLCall"
+PETSC_STATIC_INLINE PetscErrorCode EPSDavidsonFLCall(dvdFunctionList *fl,dvdDashboard *d)
+{
+  PetscErrorCode ierr;
+  dvdFunctionList *l;
+
+  PetscFunctionBegin;
+  for (l=fl; l; l=l->next) {ierr = (l->f)(d);CHKERRQ(ierr);}
+  PetscFunctionReturn(0);
 }
 
-/* Add the function fun at the end of list */
-#define DVD_FL_ADD_END(list, fun) { \
-  if ((list)) {DVD_FL_ADD_END0(list, fun);} \
-  else {DVD_FL_ADD_BEGIN(list, fun);} }
+#undef __FUNCT__
+#define __FUNCT__ "EPSDavidsonFLDestroy"
+PETSC_STATIC_INLINE PetscErrorCode EPSDavidsonFLDestroy(dvdFunctionList **fl)
+{
+  PetscErrorCode ierr;
+  dvdFunctionList *l,*l0;
 
-#define DVD_FL_ADD_END0(list, fun) { \
-  dvdFunctionList *fl=(list); \
-  PetscErrorCode ierr; \
-  for (;fl->next; fl = fl->next); \
-  ierr = PetscMalloc(sizeof(dvdFunctionList), &fl->next);CHKERRQ(ierr); \
-  fl->next->f = (PetscErrorCode(*)(void*))(fun); \
-  fl->next->next = NULL; \
-}
-
-#define DVD_FL_ADD(list, fun) DVD_FL_ADD_END(list, fun)
-
-#define DVD_FL_CALL(list, arg0) { \
-  dvdFunctionList *fl; \
-  for (fl=(list); fl; fl=fl->next) \
-    if (*(dvdCallback)fl->f) (*(dvdCallback)fl->f)((arg0)); \
-}
-
-#define DVD_FL_DEL(list) { \
-  dvdFunctionList *fl=(list), *oldfl; \
-  PetscErrorCode ierr; \
-  while (fl) { \
-    oldfl = fl; fl = fl->next; ierr = PetscFree(oldfl);CHKERRQ(ierr);\
-  } \
-  (list) = NULL; \
+  PetscFunctionBegin;
+  for (l=*fl; l; l=l0) {
+    l0 = l->next;
+    ierr = PetscFree(l);CHKERRQ(ierr);
+  }
+  *fl = NULL;
+  PetscFunctionReturn(0);
 }
 
 /*
@@ -308,7 +312,6 @@ typedef struct {
 
 /* Shared types */
 typedef PetscErrorCode (*dvdPrecond)(dvdDashboard*,PetscInt i,Vec x,Vec Px);
-typedef PetscErrorCode (*dvdCallback)(dvdDashboard*);
 typedef PetscErrorCode (*e_Vchanged_type)(dvdDashboard*,PetscInt s_imm,PetscInt e_imm,PetscInt s_new,PetscInt e_new);
 typedef PetscErrorCode (*isRestarting_type)(dvdDashboard*,PetscBool*);
 typedef PetscErrorCode (*e_newIteration_type)(dvdDashboard*);

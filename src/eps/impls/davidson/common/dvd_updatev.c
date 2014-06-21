@@ -122,8 +122,8 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
     d->isRestarting = dvd_isrestarting_fullV;
     d->updateV = dvd_updateV_extrapol;
     d->preTestConv = dvd_updateV_testConv;
-    DVD_FL_ADD(d->startList, dvd_updateV_start);
-    DVD_FL_ADD(d->destroyList, dvd_managementV_basic_d);
+    ierr = EPSDavidsonFLAdd(&d->startList,dvd_updateV_start);CHKERRQ(ierr);
+    ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_managementV_basic_d);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

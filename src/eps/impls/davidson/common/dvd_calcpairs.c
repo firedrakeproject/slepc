@@ -193,8 +193,8 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
     ierr = SlepcVecPoolCreate(v1,0,&d->auxV);CHKERRQ(ierr);
     ierr = BVRestoreColumn(d->eps->V,0,&v1);CHKERRQ(ierr);
 
-    DVD_FL_ADD(d->startList, dvd_calcpairs_qz_start);
-    DVD_FL_ADD(d->destroyList, dvd_calcpairs_qz_d);
+    ierr = EPSDavidsonFLAdd(&d->startList,dvd_calcpairs_qz_start);CHKERRQ(ierr);
+    ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_calcpairs_qz_d);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
