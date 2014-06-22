@@ -356,8 +356,8 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pet
 
       /* Compose kr and D */
       ierr = VecCreateCompWithVecs(kr,data->ksp_max_size,data->friends,&kr_comp);CHKERRQ(ierr);
-      ierr = BVGetColumn(d->eps->V,lV+r_s+i,&D[0]);CHKERRQ(ierr);
-      if (s==2) { ierr = BVGetColumn(d->eps->V,lV+r_s+i+1,&D[1]);CHKERRQ(ierr); }
+      ierr = BVGetColumn(d->eps->V,kV+r_s+i,&D[0]);CHKERRQ(ierr);
+      if (s==2) { ierr = BVGetColumn(d->eps->V,kV+r_s+i+1,&D[1]);CHKERRQ(ierr); }
       ierr = VecCreateCompWithVecs(D,data->ksp_max_size,data->friends,&D_comp);CHKERRQ(ierr);
       ierr = VecCompSetSubVecs(data->friends,s,NULL);CHKERRQ(ierr);
 
@@ -369,24 +369,24 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pet
       /* Destroy the composed ks and D */
       ierr = VecDestroy(&kr_comp);CHKERRQ(ierr);
       ierr = VecDestroy(&D_comp);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(d->eps->V,lV+r_s+i,&D[0]);CHKERRQ(ierr);
-      if (s==2) { ierr = BVRestoreColumn(d->eps->V,lV+r_s+i+1,&D[1]);CHKERRQ(ierr); }
+      ierr = BVRestoreColumn(d->eps->V,kV+r_s+i,&D[0]);CHKERRQ(ierr);
+      if (s==2) { ierr = BVRestoreColumn(d->eps->V,kV+r_s+i+1,&D[1]);CHKERRQ(ierr); }
 
     /* If GD */
     } else {
-      ierr = BVGetColumn(d->eps->V,lV+r_s+i,&D[0]);CHKERRQ(ierr);
-      if (s==2) { ierr = BVGetColumn(d->eps->V,lV+r_s+i+1,&D[1]);CHKERRQ(ierr); }
+      ierr = BVGetColumn(d->eps->V,kV+r_s+i,&D[0]);CHKERRQ(ierr);
+      if (s==2) { ierr = BVGetColumn(d->eps->V,kV+r_s+i+1,&D[1]);CHKERRQ(ierr); }
       for (j=0;j<s;j++) {
         ierr = d->improvex_precond(d,r_s+i+j,kr[j],D[j]);CHKERRQ(ierr);
       }
       ierr = dvd_improvex_apply_proj(d,D,s,auxS);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(d->eps->V,lV+r_s+i,&D[0]);CHKERRQ(ierr);
-      if (s==2) { ierr = BVRestoreColumn(d->eps->V,lV+r_s+i+1,&D[1]);CHKERRQ(ierr); }
+      ierr = BVRestoreColumn(d->eps->V,kV+r_s+i,&D[0]);CHKERRQ(ierr);
+      if (s==2) { ierr = BVRestoreColumn(d->eps->V,kV+r_s+i+1,&D[1]);CHKERRQ(ierr); }
     }
     /* Prevent that short vectors are discarded in the orthogonalization */
     if (i == 0 && d->eps->errest[d->nconv+r_s] > PETSC_MACHINE_EPSILON && d->eps->errest[d->nconv+r_s] < PETSC_MAX_REAL) {
       for (j=0;j<s;j++) {
-        ierr = BVScaleColumn(d->eps->V,lV+r_s+i+j,1.0/d->eps->errest[d->nconv+r_s]);CHKERRQ(ierr);
+        ierr = BVScaleColumn(d->eps->V,kV+r_s+i+j,1.0/d->eps->errest[d->nconv+r_s]);CHKERRQ(ierr);
       }
     }
     ierr = SlepcVecPoolRestoreVecs(d->auxV,s,&kr);CHKERRQ(ierr);

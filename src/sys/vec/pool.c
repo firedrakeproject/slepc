@@ -25,7 +25,7 @@
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcVecPoolCreate"
-/*@
+/*@C
    SlepcVecPoolCreate - Create a pool of Vec.
 
    Collective on VecPool
@@ -65,7 +65,7 @@ PetscErrorCode SlepcVecPoolCreate(Vec v,PetscInt init_size,VecPool *p)
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcVecPoolDestroy"
-/*@
+/*@C
    SlepcVecPoolDestroy - Destroy the pool of Vec.
 
    Collective on VecPool
@@ -97,7 +97,7 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcVecPoolGetVecs"
-/*@
+/*@C
    SlepcVecPoolGetVecs - get an array of Vec.
 
    Collective on VecPool
@@ -130,6 +130,7 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
     }
     if (pool->vecs) {
       ierr = SlepcVecPoolCreate(p->v,pool->guess-pool->used,&pool->next);CHKERRQ(ierr);
+      pool->guess = pool->used;
       pool = pool->next;
     }
     pool->n = pool->guess;
@@ -142,7 +143,7 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcVecPoolRestoreVecs"
-/*@
+/*@C
    SlepcVecPoolRestoreVecs - get back an array of Vec previously returned by SlepcVecPoolGetVecs.
 
    Collective on VecPool

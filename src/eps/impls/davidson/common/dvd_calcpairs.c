@@ -258,7 +258,7 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
   /* Check consistency */
   ierr = BVGetActiveColumns(d->AX,&l,&k);CHKERRQ(ierr);
   if (k-l != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-  for (i=d->V_new_s; i<d->V_new_e; i++) {
+  for (i=l+d->V_new_s; i<l+d->V_new_e; i++) {
     ierr = BVGetColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
     ierr = BVGetColumn(d->AX,i,&v2);CHKERRQ(ierr);
     ierr = MatMult(d->A,v1,v2);CHKERRQ(ierr);
@@ -967,7 +967,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,B
   ierr = BVGetActiveColumns(bv,&l,&k);CHKERRQ(ierr);
   ierr = DSGetMat(d->ps,mat,&MT);CHKERRQ(ierr);
   ierr = BVMultInPlace(bv,MT,d->V_tra_s,d->V_tra_e);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(bv,l,d->V_tra_e);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(bv,l+d->V_tra_s,l+d->V_tra_e);CHKERRQ(ierr);
   ierr = MatDestroy(&MT);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
