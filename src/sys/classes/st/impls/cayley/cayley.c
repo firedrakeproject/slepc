@@ -172,11 +172,11 @@ PetscErrorCode STSetUp_Cayley(ST st)
     ierr = MatShellSetOperation(st->T[0],MATOP_MULT,(void(*)(void))MatMult_Cayley);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[0]);CHKERRQ(ierr);
   } else {
-    ierr = STMatGAXPY_Private(st,ctx->nu,0.0,1,0,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = STMatMAXPY_Private(st,ctx->nu,0.0,0,NULL,PETSC_TRUE,&st->T[0]);CHKERRQ(ierr);
   }
 
   /* T[1] = A-sigma*B */
-  ierr = STMatGAXPY_Private(st,-st->sigma,0.0,1,1,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_TRUE,&st->T[1]);CHKERRQ(ierr);
   st->P = st->T[1];
   ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
   if (st->nmat>1) {
@@ -205,12 +205,16 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 
   if (!ctx->nu_set) {
     if (st->shift_matrix!=ST_MATMODE_INPLACE) {
-      ierr = STMatGAXPY_Private(st,newshift,ctx->nu,1,0,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
     }
     ctx->nu = newshift;
   }
-  ierr = STMatGAXPY_Private(st,-newshift,-st->sigma,1,1,PETSC_FALSE);CHKERRQ(ierr);
-
+  ierr = STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
+  if (st->P!=st->T[1]) {
+    ierr = MatDestroy(&st->P);CHKERRQ(ierr);
+    st->P = st->T[1];
+    ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
+  }
   ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -263,7 +267,7 @@ static PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
 
   PetscFunctionBegin;
   if (st->setupcalled && st->shift_matrix!=ST_MATMODE_INPLACE) {
-    ierr = STMatGAXPY_Private(st,newshift,ctx->nu,1,0,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
   }
   ctx->nu     = newshift;
   ctx->nu_set = PETSC_TRUE;
