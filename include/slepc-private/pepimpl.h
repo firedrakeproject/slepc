@@ -30,19 +30,25 @@ PETSC_EXTERN PetscLogEvent PEP_SetUp,PEP_Solve;
 typedef struct _PEPOps *PEPOps;
 
 struct _PEPOps {
-  PetscErrorCode  (*solve)(PEP);
-  PetscErrorCode  (*setup)(PEP);
-  PetscErrorCode  (*setfromoptions)(PEP);
-  PetscErrorCode  (*publishoptions)(PEP);
-  PetscErrorCode  (*destroy)(PEP);
-  PetscErrorCode  (*reset)(PEP);
-  PetscErrorCode  (*view)(PEP,PetscViewer);
+  PetscErrorCode (*solve)(PEP);
+  PetscErrorCode (*setup)(PEP);
+  PetscErrorCode (*setfromoptions)(PEP);
+  PetscErrorCode (*publishoptions)(PEP);
+  PetscErrorCode (*destroy)(PEP);
+  PetscErrorCode (*reset)(PEP);
+  PetscErrorCode (*view)(PEP,PetscViewer);
+  PetscErrorCode (*computevectors)(PEP);
 };
 
 /*
      Maximum number of monitors you can run with a single PEP
 */
 #define MAXPEPMONITORS 5
+
+typedef enum { PEP_STATE_INITIAL,
+               PEP_STATE_SETUP,
+               PEP_STATE_SOLVED,
+               PEP_STATE_EIGENVECTORS } PEPStateType;
 
 /*
    Defines the PEP data structure.
@@ -58,18 +64,19 @@ struct _p_PEP {
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
   PEPConv        conv;             /* convergence test */
-  PetscReal      sfactor;          /* scaling factor */
   PEPWhich       which;            /* which part of the spectrum to be sought */
   PEPBasis       basis;            /* polynomial basis used to represent the problem */
   PEPProblemType problem_type;     /* which kind of problem to be solved */
-  PetscBool      balance;          /* whether balancing must be performed*/
-  PetscInt       balance_its;      /* number of iterations of the balancing method */
-  PetscReal      balance_lambda;   /* norm eigenvalue approximation for balancing*/
+  PEPScale       scale;            /* scaling strategy to be used */
+  PetscReal      sfactor;          /* scaling factor */
+  PetscInt       sits;             /* number of iterations of the scaling method */
+  PetscReal      slambda;          /* norm eigenvalue approximation for scaling */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   PetscErrorCode (*converged)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+  PetscErrorCode (*convergeddestroy)(void*);
   void           *comparisonctx;
   void           *convergedctx;
   PetscErrorCode (*monitor[MAXPEPMONITORS])(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
@@ -96,24 +103,38 @@ struct _p_PEP {
   void           *data;            /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables --------------------------*/
+  PEPStateType   state;            /* initial -> setup -> solved -> eigenvectors */
   PetscInt       nconv;            /* number of converged eigenvalues */
   PetscInt       its;              /* number of iterations so far computed */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
   PetscReal      *nrma;            /* computed matrix norms */
   PetscBool      sfactor_set;      /* flag to indicate the user gave sfactor */
-  PetscInt       setupcalled;
   PEPConvergedReason reason;
 };
 
-PETSC_INTERN PetscErrorCode PEPReset_Default(PEP);
-PETSC_INTERN PetscErrorCode PEPAllocateSolution(PEP,PetscInt);
+/*
+    Macros to test valid PEP arguments
+*/
+#if !defined(PETSC_USE_DEBUG)
+
+#define PEPCheckSolved(h,arg) do {} while (0)
+
+#else
+
+#define PEPCheckSolved(h,arg) \
+  do { \
+    if (h->state<PEP_STATE_SOLVED) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call PEPSolve() first: Parameter #%d",arg); \
+  } while (0)
+
+#endif
+
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Schur(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Indefinite(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeResidualNorm_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPComputeRelativeError_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-PETSC_INTERN PetscErrorCode PEPKrylovConvergence(PEP,PetscBool,PetscInt,PetscInt,PetscInt,PetscReal,PetscInt*);
+PETSC_INTERN PetscErrorCode PEPKrylovConvergence(PEP,PetscBool,PetscInt,PetscInt,PetscReal,PetscInt*);
 PETSC_INTERN PetscErrorCode PEPComputeScaleFactor(PEP);
-PETSC_INTERN PetscErrorCode PEPBuildBalance(PEP);
+PETSC_INTERN PetscErrorCode PEPBuildDiagonalScaling(PEP);
 PETSC_INTERN PetscErrorCode PEPBasisCoefficients(PEP,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt);

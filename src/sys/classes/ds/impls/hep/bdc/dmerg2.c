@@ -24,7 +24,7 @@
 #include <slepc-private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n, 
+PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n, 
         PetscReal *ev,PetscReal *q,PetscBLASInt ldq,PetscBLASInt *indxq, 
         PetscReal *rho,PetscReal *u,PetscBLASInt sbrkp1,PetscReal *v, 
         PetscBLASInt sbrk,PetscBLASInt cutpnt,PetscReal *work,PetscBLASInt lwork, 
@@ -314,7 +314,7 @@ PetscErrorCode dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 
   /* call DSRTDF for deflation */
 
-  ierr = dsrtdf_(&k, n, n1, ev, q, ldq, indxq, rho, &work[iz],
+  ierr = BDC_dsrtdf_(&k, n, n1, ev, q, ldq, indxq, rho, &work[iz],
           &work[idlmda], &work[iw], &work[iq2], &iwork[indx],
           &iwork[indxc], &iwork[indxp], &iwork[coltyp], tol, &dz, &de, info);
           CHKERRQ(ierr);
@@ -352,7 +352,7 @@ PetscErrorCode dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 
     /* calling DLAED3M for solving the secular equation. */
 
-    ierr = dlaed3m_(jobz, defl, k, n, tmpcut, ev, q, ldq, 
+    ierr = BDC_dlaed3m_(jobz, defl, k, n, tmpcut, ev, q, ldq, 
                 *rho, &work[idlmda], &work[iq2], &iwork[indxc], &iwork[coltyp],
                 &work[iw], &work[is], info, 1, 1);CHKERRQ(ierr);
     if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dmerg2: error in dlaed3m, info = %d",*info);

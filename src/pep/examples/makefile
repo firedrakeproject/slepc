@@ -22,7 +22,7 @@
 ALL:
 
 LOCDIR   = src/pep/examples/
-DIRS     = tests tutorials
+DIRS     = tests tutorials nlevp
 
 include ${SLEPC_DIR}/conf/slepc_common
 

@@ -22,7 +22,7 @@
 ALL: lib
 
 LIBBASE  = libslepcpep
-DIRS     = toar
+DIRS     = linear qarnoldi toar stoar
 LOCDIR   = src/pep/impls/
 MANSEC   = PEP
 

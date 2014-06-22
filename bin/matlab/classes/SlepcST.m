@@ -51,6 +51,13 @@ classdef SlepcST < PetscObject
     function err = SetUp(obj)
       err = calllib('libslepc', 'STSetUp', obj.pobj);PetscCHKERRQ(err);
     end
+    function err = SetOperators(obj,C)
+      if ~iscell(C), error('Argument of ST.SetOperators must be a cell array'), end
+      n = length(C);
+      M = [];
+      for i=1:n, M = [M, C{i}.pobj]; end
+      err = calllib('libslepc', 'STSetOperators', obj.pobj, n, M);PetscCHKERRQ(err);
+    end
     function err = View(obj,viewer)
       if (nargin == 1)
         err = calllib('libslepc', 'STView', obj.pobj,0);PetscCHKERRQ(err);

@@ -349,7 +349,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   eps->ops->destroy              = EPSDestroy_BLOPEX;
   eps->ops->reset                = EPSReset_BLOPEX;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
   LOBPCG_InitRandomContext(PetscObjectComm((PetscObject)eps),eps->rand);
   PetscFunctionReturn(0);
 }

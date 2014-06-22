@@ -80,6 +80,4 @@ struct _p_MFN {
   MFNConvergedReason reason;
 };
 
-PETSC_INTERN PetscErrorCode MFNAllocateSolution(MFN,PetscInt);
-
 #endif

@@ -24,7 +24,7 @@
 #include <slepc-private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n, 
+PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n, 
         PetscBLASInt nblks,PetscBLASInt *ksizes,PetscReal *d,PetscBLASInt l1d, 
         PetscBLASInt l2d,PetscReal *e,PetscBLASInt l1e,PetscBLASInt l2e,PetscReal tol,
         PetscReal tau1,PetscReal tau2,PetscReal *ev,PetscReal *z,PetscBLASInt ldz,
@@ -649,7 +649,7 @@ L20:
     /* call the block-tridiagonal divide-and-conquer on the */
     /* irreducible subproblem which has been identified */
 
-    ierr = dibtdc_(jobz, nk, nrblks, &ksizes[start], &d[start*l1d*l2d], l1d, l2d,
+    ierr = BDC_dibtdc_(jobz, nk, nrblks, &ksizes[start], &d[start*l1d*l2d], l1d, l2d,
                 &e[start*l2e*l1e], &iwork[start], l1e, l2e, tau2, &ev[np],
                 &z[np + np*ldz], ldz, work, lwork, &iwork[nblks-1], liwork, info, 1);
                 CHKERRQ(ierr);

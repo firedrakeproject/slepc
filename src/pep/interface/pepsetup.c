@@ -51,7 +51,7 @@ PetscErrorCode PEPSetUp(PEP pep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (pep->setupcalled) PetscFunctionReturn(0);
+  if (pep->state) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(PEP_SetUp,pep,0,0,0);CHKERRQ(ierr);
 
   /* reset the convergence flag from the previous solves */
@@ -154,15 +154,16 @@ PetscErrorCode PEPSetUp(PEP pep)
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
     if (!flg) {
       ierr = STComputeSolveMat(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr);
-    }
-    /* compute scale factor if no set by user */
-    if (!pep->sfactor_set) {
-      ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
+    } else {
+      if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Cannot use ST-transform with non-monomial basis in PEP");
     }
   }
 
+  /* compute scale factor if no set by user */
+  ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
+
   /* build balancing matrix if required */
-  if (pep->balance) {
+  if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) {
     if (!pep->Dl) {
       ierr = BVGetVec(pep->V,&pep->Dl);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dl);CHKERRQ(ierr);
@@ -171,7 +172,7 @@ PetscErrorCode PEPSetUp(PEP pep)
       ierr = BVGetVec(pep->V,&pep->Dr);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dr);CHKERRQ(ierr);
     }
-    ierr = PEPBuildBalance(pep);CHKERRQ(ierr);
+    ierr = PEPBuildDiagonalScaling(pep);CHKERRQ(ierr);
   }
 
   /* process initial vectors */
@@ -183,7 +184,7 @@ PetscErrorCode PEPSetUp(PEP pep)
     pep->nini = k;
   }
   ierr = PetscLogEventEnd(PEP_SetUp,pep,0,0,0);CHKERRQ(ierr);
-  pep->setupcalled = 1;
+  pep->state = PEP_STATE_SETUP;
   PetscFunctionReturn(0);
 }
 
@@ -221,9 +222,10 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   if (nmat <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %D",nmat);
   PetscValidPointer(A,3);
 
-  if (pep->setupcalled) { ierr = PEPReset(pep);CHKERRQ(ierr); }
+  if (pep->state) { ierr = PEPReset(pep);CHKERRQ(ierr); }
   ierr = PetscMalloc1(nmat,&pep->A);CHKERRQ(ierr);
   ierr = PetscCalloc3(3*nmat,&pep->pbc,nmat,&pep->solvematcoeffs,nmat,&pep->nrma);CHKERRQ(ierr);
+  for (i=0;i<nmat;i++) pep->pbc[i] = 1.0;  /* default to monomial basis */
   ierr = PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat)+4*nmat*sizeof(PetscReal)+nmat*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<nmat;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
@@ -330,23 +332,34 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec *is)
   PetscValidLogicalCollectiveInt(pep,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&pep->nini,&pep->IS);CHKERRQ(ierr);
-  if (n>0) pep->setupcalled = 0;
+  if (n>0) pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPAllocateSolution"
-/*
-  PEPAllocateSolution - Allocate memory storage for common variables such
-  as eigenvalues and eigenvectors. The argument extra is used for methods
-  that require a working basis slightly larger than ncv.
-*/
+/*@
+   PEPAllocateSolution - Allocate memory storage for common variables such
+   as eigenvalues and eigenvectors.
+
+   Collective on PEP
+
+   Input Parameters:
++  pep   - eigensolver context
+-  extra - number of additional positions, used for methods that require a
+           working basis slightly larger than ncv
+
+   Developers Note:
+   This is PETSC_EXTERN because it may be required by user plugin PEP
+   implementations.
+
+   Level: developer
+@*/
 PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
 {
   PetscErrorCode ierr;
   PetscInt       oldsize,newc,requested;
   PetscLogDouble cnt;
-  Mat            A;
   Vec            t;
 
   PetscFunctionBegin;
@@ -372,8 +385,7 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
     if (!((PetscObject)(pep->V))->type_name) {
       ierr = BVSetType(pep->V,BVSVEC);CHKERRQ(ierr);
     }
-    ierr = STGetOperators(pep->st,0,&A);CHKERRQ(ierr);
-    ierr = MatGetVecs(A,&t,NULL);CHKERRQ(ierr);
+    ierr = STMatGetVecs(pep->st,&t,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(pep->V,t,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {

@@ -170,7 +170,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
   eps->ops->solve                = EPSSolve_LAPACK;
   eps->ops->setup                = EPSSetUp_LAPACK;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
 

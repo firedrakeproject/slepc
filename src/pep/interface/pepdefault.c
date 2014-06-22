@@ -24,21 +24,9 @@
 #include <slepc-private/pepimpl.h>     /*I "slepcpep.h" I*/
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPReset_Default"
-PetscErrorCode PEPReset_Default(PEP pep)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = VecDestroyVecs(pep->nwork,&pep->work);CHKERRQ(ierr);
-  pep->nwork = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "PEPSetWorkVecs"
 /*@
-   PEPSetWorkVecs - Sets a number of work vectors into a PEP object
+   PEPSetWorkVecs - Sets a number of work vectors into a PEP object.
 
    Collective on PEP
 
@@ -158,13 +146,60 @@ PetscErrorCode PEPComputeVectors_Schur(PEP pep)
   ierr = MatDestroy(&Z);CHKERRQ(ierr);
 
   /* Fix eigenvectors if balancing was used */
-  if (pep->balance && pep->Dr) {
+  if ((pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) && pep->Dr) {
     for (i=0;i<n;i++) {
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
       ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
     }
   }
+
+  /* normalization */
+  for (i=0;i<n;i++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if (pep->eigi[i] != 0.0) {
+      ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
+      ierr = BVGetColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
+      ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
+      ierr = VecNorm(v1,NORM_2,&normi);CHKERRQ(ierr);
+      tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
+      ierr = VecScale(v,tmp);CHKERRQ(ierr);
+      ierr = VecScale(v1,tmp);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
+      i++;
+    } else
+#endif
+    {
+      ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
+      ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPComputeVectors_Indefinite"
+PetscErrorCode PEPComputeVectors_Indefinite(PEP pep)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,i;
+  Mat            Z;
+  Vec            v;
+#if !defined(PETSC_USE_COMPLEX)
+  Vec            v1;
+  PetscScalar    tmp;
+  PetscReal      norm,normi;
+#endif
+
+  PetscFunctionBegin;
+  ierr = DSGetDimensions(pep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSVectors(pep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetMat(pep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(pep->V,0,n);CHKERRQ(ierr);
+  ierr = BVMultInPlace(pep->V,Z,0,n);CHKERRQ(ierr);
+  ierr = MatDestroy(&Z);CHKERRQ(ierr);
 
   /* normalization */
   for (i=0;i<n;i++) {
@@ -203,7 +238,7 @@ PetscErrorCode PEPComputeVectors_Schur(PEP pep)
    - No correction factor
    - No support for true residual
 */
-PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,PetscInt nits,PetscInt nv,PetscReal beta,PetscInt *kout)
+PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscInt *kout)
 {
   PetscErrorCode ierr;
   PetscInt       k,newk,marker,ld;
@@ -239,12 +274,12 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPBuildBalance"
+#define __FUNCT__ "PEPBuildDiagonalScaling"
 /*
-  PEPBuildBalance - compute two diagonal matrices to be applied for balancing 
+  PEPBuildDiagonalScaling - compute two diagonal matrices to be applied for balancing 
   in polynomial eigenproblems.
 */
-PetscErrorCode PEPBuildBalance(PEP pep)
+PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
 {
   PetscErrorCode ierr;
   PetscInt       it,i,j,k,nmat,nr,e,nz,lst,lend,nc=0,*cols;
@@ -302,14 +337,14 @@ PetscErrorCode PEPBuildBalance(PEP pep)
       array[i] = t*t;
     }
     ierr = MatSeqAIJRestoreArray(A,&array);CHKERRQ(ierr);
-    w *= pep->balance_lambda*pep->balance_lambda*pep->sfactor;
+    w *= pep->slambda*pep->slambda*pep->sfactor;
     ierr = MatAXPY(M,w,A,str);CHKERRQ(ierr);
     if (flg || str!=SAME_NONZERO_PATTERN || k==nmat-2) {
       ierr = MatDestroy(&A);CHKERRQ(ierr);
     } 
   }
   ierr = MatGetRowIJ(M,0,PETSC_FALSE,PETSC_FALSE,&nr,&ridx,&cidx,&cont);CHKERRQ(ierr);
-  if (!cont) SETERRQ(PetscObjectComm((PetscObject)T[0]), PETSC_ERR_SUP,"It is not possible to compute scaling diagonals to balance the PEP matrices");
+  if (!cont) SETERRQ(PetscObjectComm((PetscObject)T[0]), PETSC_ERR_SUP,"It is not possible to compute scaling diagonals for these PEP matrices");
   ierr = MatGetInfo(M,MAT_LOCAL,&info);CHKERRQ(ierr);
   nz = info.nz_used;
   ierr = VecGetOwnershipRange(pep->Dl,&lst,&lend);CHKERRQ(ierr);
@@ -326,7 +361,7 @@ PetscErrorCode PEPBuildBalance(PEP pep)
     /* Local column sums */
     aux[cidx[j]] += PetscAbsScalar(array[j]);
   }
-  for (it=0;it<pep->balance_its && cont;it++) {
+  for (it=0;it<pep->sits && cont;it++) {
     emaxl = 0; eminl = 0;
     /* Column sum  */    
     if (it>0) { /* it=0 has been already done*/
@@ -404,6 +439,11 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
   PEPBasis       basis;
 
   PetscFunctionBegin;
+  if (pep->scale==PEP_SCALE_NONE || pep->scale==PEP_SCALE_DIAGONAL) {  /* no scalar scaling */
+    pep->sfactor = 1.0;
+    PetscFunctionReturn(0);
+  }
+  if (pep->sfactor_set) PetscFunctionReturn(0);  /* user provided value */
   ierr = PEPGetBasis(pep,&basis);CHKERRQ(ierr);
   if (basis==PEP_BASIS_MONOMIAL) {
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);

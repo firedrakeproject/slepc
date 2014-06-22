@@ -114,8 +114,8 @@ PetscErrorCode BVOrthogonalizeCGS1(BV bv,PetscInt j,Vec v,PetscScalar *H,PetscRe
     for (i=0;i<bv->nc+j;i++) sum += PetscRealPart(H[i]*PetscConj(H[i]));
     *norm = beta*beta-sum;
     if (*norm <= 0.0) {
-      if (!v) { ierr = BVNormColumn(bv,j,NORM_2,&nrm);CHKERRQ(ierr); }
-      else { ierr = BVNormVec(bv,w,NORM_2,&nrm);CHKERRQ(ierr); }
+      if (!v) { ierr = BVNormColumn(bv,j,NORM_2,norm);CHKERRQ(ierr); }
+      else { ierr = BVNormVec(bv,w,NORM_2,norm);CHKERRQ(ierr); }
     } else *norm = PetscSqrtReal(*norm);
   }
   PetscFunctionReturn(0);

@@ -127,7 +127,7 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscScalar    s;
   char           type[256];
   PetscBool      flg;
-  const char     *mode_list[4] = {"copy","inplace","shell","hybrid"};
+  const char     *mode_list[3] = {"copy","inplace","shell"};
   const char     *structure_list[3] = {"same","different","subset"};
 
   PetscFunctionBegin;
@@ -150,7 +150,7 @@ PetscErrorCode STSetFromOptions(ST st)
       ierr = STSetShift(st,s);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsEList("-st_matmode","Matrix mode for transformed matrices","STSetMatMode",mode_list,4,mode_list[st->shift_matrix],&i,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsEList("-st_matmode","Matrix mode for transformed matrices","STSetMatMode",mode_list,3,mode_list[st->shift_matrix],&i,&flg);CHKERRQ(ierr);
     if (flg) st->shift_matrix = (STMatMode)i;
 
     ierr = PetscOptionsEList("-st_matstructure","Shift nonzero pattern","STSetMatStructure",structure_list,3,structure_list[st->str],&i,&flg);CHKERRQ(ierr);
@@ -178,8 +178,7 @@ PetscErrorCode STSetFromOptions(ST st)
 #define __FUNCT__ "STSetMatStructure"
 /*@
    STSetMatStructure - Sets an internal MatStructure attribute to
-   indicate which is the relation of the sparsity pattern of the two matrices
-   A and B constituting the generalized eigenvalue problem.
+   indicate which is the relation of the sparsity pattern of all ST matrices.
 
    Logically Collective on ST
 
@@ -190,9 +189,9 @@ PetscErrorCode STSetFromOptions(ST st)
 
    Options Database Key:
 .  -st_matstructure <str> - Indicates the structure flag, where <str> is one
-         of 'same' (A and B have the same nonzero pattern), 'different' (A
-         and B have different nonzero pattern) or 'subset' (B's nonzero
-         pattern is a subset of A's).
+         of 'same' (matrices have the same nonzero pattern), 'different'
+         (different nonzero pattern) or 'subset' (pattern is a subset of the
+         first one).
 
    Notes:
    By default, the sparsity patterns are assumed to be different. If the
@@ -226,8 +225,7 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 #define __FUNCT__ "STGetMatStructure"
 /*@
    STGetMatStructure - Gets the internal MatStructure attribute to
-   indicate which is the relation of the sparsity pattern of the two matrices
-   A and B constituting the generalized eigenvalue problem.
+   indicate which is the relation of the sparsity pattern of the matrices.
 
    Not Collective
 
@@ -237,9 +235,6 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
    Output Parameters:
 .  str - either SAME_NONZERO_PATTERN, DIFFERENT_NONZERO_PATTERN or
          SUBSET_NONZERO_PATTERN
-
-   Note:
-   This function has no effect in the case of standard eigenproblems.
 
    Level: advanced
 
@@ -265,18 +260,18 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
    Input Parameters:
 +  st - the spectral transformation context
 -  mode - the mode flag, one of ST_MATMODE_COPY,
-          ST_MATMODE_INPLACE, ST_MATMODE_SHELL or ST_MATMODE_HYBRID
+          ST_MATMODE_INPLACE, or ST_MATMODE_SHELL
 
    Options Database Key:
 .  -st_matmode <mode> - Indicates the mode flag, where <mode> is one of
-          'copy', 'inplace', 'shell', 'hybrid' (see explanation below).
+          'copy', 'inplace', 'shell' (see explanation below).
 
    Notes:
    By default (ST_MATMODE_COPY), a copy of matrix A is made and then
-   this copy is shifted explicitly, e.g. A <- (A - s B).
+   this copy is modified explicitly, e.g. A <- (A - s B).
 
-   With ST_MATMODE_INPLACE, the original matrix A is shifted at
-   STSetUp() and unshifted at the end of the computations. With respect to
+   With ST_MATMODE_INPLACE, the original matrix A is modified at STSetUp()
+   and changes are reverted at the end of the computations. With respect to
    the previous one, this mode avoids a copy of matrix A. However, a
    drawback is that the recovered matrix might be slightly different
    from the original one (due to roundoff).
@@ -287,12 +282,7 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
    linear solves performed in each iteration of the eigensolver (typically,
    only interative solvers with Jacobi preconditioning can be used).
 
-   ST_MATMODE_HYBRID mixes the 'shell' and 'copy' methods, where only
-   one matrix is built explicitly (the one for the linear solves), and
-   hence the previously mentioned limitation disappears. 
-
-   In the case of generalized problems, in the two first modes the matrix
-   A - s B has to be computed explicitly. The efficiency of this computation
+   In the two first modes the efficiency of the computation 
    can be controlled with STSetMatStructure().
 
    Level: intermediate

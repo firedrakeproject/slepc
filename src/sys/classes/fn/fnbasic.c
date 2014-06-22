@@ -52,9 +52,9 @@ PetscErrorCode FNFinalizePackage(void)
 #undef __FUNCT__
 #define __FUNCT__ "FNInitializePackage"
 /*@C
-  FNInitializePackage - This function initializes everything in the FN package. It is called
-  from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to FNCreate()
-  when using static libraries.
+  FNInitializePackage - This function initializes everything in the FN package.
+  It is called from PetscDLLibraryRegister() when using dynamic libraries, and
+  on the first call to FNCreate() when using static libraries.
 
   Level: developer
 

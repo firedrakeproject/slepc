@@ -139,7 +139,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
     if (pep->nev<500) pep->ncv = PetscMin(pep->n,PetscMax(2*pep->nev,pep->nev+15));
     else {
       pep->mpd = 500;
-      pep->ncv = PetscMin(pep->n,pep->nev+pep->mpd);
+      pep->ncv = PetscMin(pep->n-pep->nmat+1,pep->nev+pep->mpd);
     }
   }
   if (!pep->mpd) pep->mpd = pep->ncv;
@@ -517,7 +517,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscInt k,PetscScalar *S,
   PetscScalar    *At,*Bt,*Hj,*Hp,*T,*t,sone=1.0,g,a;
   PetscBLASInt   k_,sr_,lds_,ldh_,info,*p,lwork,ldt_;
   PetscBool      transf=PETSC_FALSE,flg;
-  PetscReal      *pbc,*ca,*cb,*cg,ex=0.0;
+  PetscReal      *ca,*cb,*cg,ex=0.0;
 
   PetscFunctionBegin;
   if (k==0) PetscFunctionReturn(0);
@@ -527,7 +527,6 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscInt k,PetscScalar *S,
     if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
     if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",9);
   }
-  ierr = PetscMalloc(3*pep->nmat*sizeof(PetscReal),&pbc);CHKERRQ(ierr);
   ca = pep->pbc; cb = pep->pbc+pep->nmat; cg = pep->pbc+2*pep->nmat;
   lds = deg*ld;
   At = work+nwu;
@@ -599,7 +598,6 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscInt k,PetscScalar *S,
       S[i*lds+j] = PetscConj(At[j*k+i]);
     }
   } 
-  ierr = PetscFree(pbc);CHKERRQ(ierr);   
   ierr = PetscFree(p);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -713,7 +711,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     ierr = DSUpdateExtraRow(pep->ds);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,nv-pep->nconv,nv,beta,&k);CHKERRQ(ierr);
+    ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,nv-pep->nconv,beta,&k);CHKERRQ(ierr);
 /* ///////////// */
     if (withreg && bs==PEP_BASIS_CHEBYSHEV1) {
 #if defined(PETSC_USE_COMPLEX)
@@ -831,11 +829,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-
-  /* Compute eigenvectors */
-  if (pep->nconv > 0) {
-    ierr = PEPComputeVectors_Schur(pep);CHKERRQ(ierr);
-  }
   ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
   /* ////////// */
   if (withreg && bs==PEP_BASIS_CHEBYSHEV1) {
@@ -856,9 +849,9 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
 {
   PetscFunctionBegin;
-  pep->ops->solve                = PEPSolve_TOAR;
-  pep->ops->setup                = PEPSetUp_TOAR;
-  pep->ops->reset                = PEPReset_Default;
+  pep->ops->solve          = PEPSolve_TOAR;
+  pep->ops->setup          = PEPSetUp_TOAR;
+  pep->ops->computevectors = PEPComputeVectors_Schur;
   PetscFunctionReturn(0);
 }
 
