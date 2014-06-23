@@ -24,13 +24,14 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/nlevp/
-EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c sleeper.c spring.c
+EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c butterfly.c sleeper.c spring.c
 EXAMPLESF  = 
 MANSEC     = PEP
-TESTS      = acoustic_wave_1d acoustic_wave_2d sleeper spring
+TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly sleeper spring
 
 TESTEXAMPLES_C = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
                  acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
+                 butterfly.PETSc runbutterfly butterfly.rm \
                  sleeper.PETSc runsleeper sleeper.rm \
                  spring.PETSc runspring spring.rm
 TESTEXAMPLES_C_NOCOMPLEX = 
@@ -44,6 +45,10 @@ acoustic_wave_1d: acoustic_wave_1d.o chkopts
 acoustic_wave_2d: acoustic_wave_2d.o chkopts
 	-${CLINKER} -o acoustic_wave_2d acoustic_wave_2d.o ${SLEPC_PEP_LIB}
 	${RM} acoustic_wave_2d.o
+
+butterfly: butterfly.o chkopts
+	-${CLINKER} -o butterfly butterfly.o ${SLEPC_PEP_LIB}
+	${RM} butterfly.o
 
 sleeper: sleeper.o chkopts
 	-${CLINKER} -o sleeper sleeper.o ${SLEPC_PEP_LIB}
@@ -73,6 +78,12 @@ runsleeper:
 	   if (${DIFF} output/sleeper_1.out sleeper_1.tmp) then true; \
 	   else echo "Possible problem with sleeper_1, diffs above"; fi; \
 	   ${RM} -f sleeper_1.tmp
+
+runbutterfly:
+	-@${MPIEXEC} -np 1 ./butterfly -pep_nev 4 -n 20 -pep_terse > butterfly_1.tmp 2>&1; \
+	   if (${DIFF} output/butterfly_1.out butterfly_1.tmp) then true; \
+	   else echo "Possible problem with butterfly_1, diffs above"; fi; \
+	   ${RM} -f butterfly_1.tmp
 
 runspring:
 	-@${MPIEXEC} -np 1 ./spring -pep_nev 4 -n 20 -pep_terse > spring_1.tmp 2>&1; \
