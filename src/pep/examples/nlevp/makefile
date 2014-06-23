@@ -24,14 +24,15 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/nlevp/
-EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c butterfly.c sleeper.c spring.c
+EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c butterfly.c damped_beam.c sleeper.c spring.c
 EXAMPLESF  = 
 MANSEC     = PEP
-TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly sleeper spring
+TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam sleeper spring
 
 TESTEXAMPLES_C = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
                  acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
                  butterfly.PETSc runbutterfly butterfly.rm \
+                 damped_beam.PETSc rundamped_beam damped_beam.rm \
                  sleeper.PETSc runsleeper sleeper.rm \
                  spring.PETSc runspring spring.rm
 TESTEXAMPLES_C_NOCOMPLEX = 
@@ -49,6 +50,10 @@ acoustic_wave_2d: acoustic_wave_2d.o chkopts
 butterfly: butterfly.o chkopts
 	-${CLINKER} -o butterfly butterfly.o ${SLEPC_PEP_LIB}
 	${RM} butterfly.o
+
+damped_beam: damped_beam.o chkopts
+	-${CLINKER} -o damped_beam damped_beam.o ${SLEPC_PEP_LIB}
+	${RM} damped_beam.o
 
 sleeper: sleeper.o chkopts
 	-${CLINKER} -o sleeper sleeper.o ${SLEPC_PEP_LIB}
@@ -80,10 +85,16 @@ runsleeper:
 	   ${RM} -f sleeper_1.tmp
 
 runbutterfly:
-	-@${MPIEXEC} -np 1 ./butterfly -pep_nev 4 -n 20 -pep_terse > butterfly_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./butterfly -pep_nev 4 -m 20 -pep_terse > butterfly_1.tmp 2>&1; \
 	   if (${DIFF} output/butterfly_1.out butterfly_1.tmp) then true; \
 	   else echo "Possible problem with butterfly_1, diffs above"; fi; \
 	   ${RM} -f butterfly_1.tmp
+
+rundamped_beam:
+	-@${MPIEXEC} -np 1 ./damped_beam -pep_nev 2 -pep_terse > damped_beam_1.tmp 2>&1; \
+	   if (${DIFF} output/damped_beam_1.out damped_beam_1.tmp) then true; \
+	   else echo "Possible problem with damped_beam_1, diffs above"; fi; \
+	   ${RM} -f damped_beam_1.tmp
 
 runspring:
 	-@${MPIEXEC} -np 1 ./spring -pep_nev 4 -n 20 -pep_terse > spring_1.tmp 2>&1; \

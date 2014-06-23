@@ -29,7 +29,7 @@
    The butterfly problem is a quartic PEP with T-even structure.
 */
 
-static char help[] = "NLEVP problem: sleeper.\n\n"
+static char help[] = "NLEVP problem: butterfly.\n\n"
   "The command line options are:\n"
   "  -m <m>, grid size, the dimension of the matrices is n=m*m.\n"
   "  -c <array>, problem parameters, must be 10 comma-separated real values.\n\n";
