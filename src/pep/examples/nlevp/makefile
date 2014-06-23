@@ -24,15 +24,18 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/nlevp/
-EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c butterfly.c damped_beam.c sleeper.c spring.c
+EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c butterfly.c damped_beam.c \
+             planar_waveguide.c sleeper.c spring.c
 EXAMPLESF  = 
 MANSEC     = PEP
-TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam sleeper spring
+TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
+             planar_waveguide sleeper spring
 
 TESTEXAMPLES_C = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
                  acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
                  butterfly.PETSc runbutterfly butterfly.rm \
                  damped_beam.PETSc rundamped_beam damped_beam.rm \
+                 planar_waveguide.PETSc runplanar_waveguide planar_waveguide.rm \
                  sleeper.PETSc runsleeper sleeper.rm \
                  spring.PETSc runspring spring.rm
 TESTEXAMPLES_C_NOCOMPLEX = 
@@ -54,6 +57,10 @@ butterfly: butterfly.o chkopts
 damped_beam: damped_beam.o chkopts
 	-${CLINKER} -o damped_beam damped_beam.o ${SLEPC_PEP_LIB}
 	${RM} damped_beam.o
+
+planar_waveguide: planar_waveguide.o chkopts
+	-${CLINKER} -o planar_waveguide planar_waveguide.o ${SLEPC_PEP_LIB}
+	${RM} planar_waveguide.o
 
 sleeper: sleeper.o chkopts
 	-${CLINKER} -o sleeper sleeper.o ${SLEPC_PEP_LIB}
@@ -95,6 +102,12 @@ rundamped_beam:
 	   if (${DIFF} output/damped_beam_1.out damped_beam_1.tmp) then true; \
 	   else echo "Possible problem with damped_beam_1, diffs above"; fi; \
 	   ${RM} -f damped_beam_1.tmp
+
+runplanar_waveguide:
+	-@${MPIEXEC} -np 1 ./planar_waveguide -pep_nev 4 -st_type sinvert -pep_terse > planar_waveguide_1.tmp 2>&1; \
+	   if (${DIFF} output/planar_waveguide_1.out planar_waveguide_1.tmp) then true; \
+	   else echo "Possible problem with planar_waveguide_1, diffs above"; fi; \
+	   ${RM} -f planar_waveguide_1.tmp
 
 runspring:
 	-@${MPIEXEC} -np 1 ./spring -pep_nev 4 -n 24 -st_type sinvert -pep_terse > spring_1.tmp 2>&1; \
