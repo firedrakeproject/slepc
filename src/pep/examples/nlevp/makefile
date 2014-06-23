@@ -67,13 +67,13 @@ spring: spring.o chkopts
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runacoustic_wave_1d_1:
-	-@${MPIEXEC} -np 1 ./acoustic_wave_1d -pep_nev 4 -n 20 -pep_terse > acoustic_wave_1d_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./acoustic_wave_1d -pep_nev 4 -n 25 -st_type sinvert -pep_terse > acoustic_wave_1d_1.tmp 2>&1; \
 	   if (${DIFF} output/acoustic_wave_1d_1.out acoustic_wave_1d_1.tmp) then true; \
 	   else echo "Possible problem with acoustic_wave_1d_1, diffs above"; fi; \
 	   ${RM} -f acoustic_wave_1d_1.tmp
 
 runacoustic_wave_2d_1:
-	-@${MPIEXEC} -np 1 ./acoustic_wave_2d -pep_nev 4 -n 20 -pep_terse > acoustic_wave_2d_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./acoustic_wave_2d -pep_nev 2 -pep_terse > acoustic_wave_2d_1.tmp 2>&1; \
 	   if (${DIFF} output/acoustic_wave_2d_1.out acoustic_wave_2d_1.tmp) then true; \
 	   else echo "Possible problem with acoustic_wave_2d_1, diffs above"; fi; \
 	   ${RM} -f acoustic_wave_2d_1.tmp
@@ -85,19 +85,19 @@ runsleeper:
 	   ${RM} -f sleeper_1.tmp
 
 runbutterfly:
-	-@${MPIEXEC} -np 1 ./butterfly -pep_nev 4 -m 20 -pep_terse > butterfly_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./butterfly -pep_nev 4 -pep_terse > butterfly_1.tmp 2>&1; \
 	   if (${DIFF} output/butterfly_1.out butterfly_1.tmp) then true; \
 	   else echo "Possible problem with butterfly_1, diffs above"; fi; \
 	   ${RM} -f butterfly_1.tmp
 
 rundamped_beam:
-	-@${MPIEXEC} -np 1 ./damped_beam -pep_nev 2 -pep_terse > damped_beam_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./damped_beam -pep_nev 2 -pep_ncv 12 -st_type sinvert -pep_target -7 -pep_terse > damped_beam_1.tmp 2>&1; \
 	   if (${DIFF} output/damped_beam_1.out damped_beam_1.tmp) then true; \
 	   else echo "Possible problem with damped_beam_1, diffs above"; fi; \
 	   ${RM} -f damped_beam_1.tmp
 
 runspring:
-	-@${MPIEXEC} -np 1 ./spring -pep_nev 4 -n 20 -pep_terse > spring_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./spring -pep_nev 4 -n 24 -st_type sinvert -pep_terse > spring_1.tmp 2>&1; \
 	   if (${DIFF} output/spring_1.out spring_1.tmp) then true; \
 	   else echo "Possible problem with spring_1, diffs above"; fi; \
 	   ${RM} -f spring_1.tmp
