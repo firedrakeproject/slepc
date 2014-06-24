@@ -89,12 +89,6 @@ runacoustic_wave_2d_1:
 	   else echo "Possible problem with acoustic_wave_2d_1, diffs above"; fi; \
 	   ${RM} -f acoustic_wave_2d_1.tmp
 
-runsleeper:
-	-@${MPIEXEC} -np 1 ./sleeper -pep_nev 4 -n 20 -pep_terse > sleeper_1.tmp 2>&1; \
-	   if (${DIFF} output/sleeper_1.out sleeper_1.tmp) then true; \
-	   else echo "Possible problem with sleeper_1, diffs above"; fi; \
-	   ${RM} -f sleeper_1.tmp
-
 runbutterfly:
 	-@${MPIEXEC} -np 1 ./butterfly -pep_nev 4 -pep_terse > butterfly_1.tmp 2>&1; \
 	   if (${DIFF} output/butterfly_1.out butterfly_1.tmp) then true; \
@@ -118,6 +112,12 @@ runplanar_waveguide:
 	   if (${DIFF} output/planar_waveguide_1.out planar_waveguide_1.tmp) then true; \
 	   else echo "Possible problem with planar_waveguide_1, diffs above"; fi; \
 	   ${RM} -f planar_waveguide_1.tmp
+
+runsleeper:
+	-@${MPIEXEC} -np 1 ./sleeper -pep_nev 4 -n 20 -pep_terse > sleeper_1.tmp 2>&1; \
+	   if (${DIFF} output/sleeper_1.out sleeper_1.tmp) then true; \
+	   else echo "Possible problem with sleeper_1, diffs above"; fi; \
+	   ${RM} -f sleeper_1.tmp
 
 runspring:
 	-@${MPIEXEC} -np 1 ./spring -pep_nev 4 -n 24 -st_type sinvert -pep_terse > spring_1.tmp 2>&1; \
