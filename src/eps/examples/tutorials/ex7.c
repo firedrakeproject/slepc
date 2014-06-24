@@ -20,15 +20,13 @@
 */
 
 static char help[] = "Solves a generalized eigensystem Ax=kBx with matrices loaded from a file.\n"
-  "This example works for both real and complex numbers.\n\n"
   "The command line options are:\n"
-  "  -f1 <filename>, where <filename> = matrix (A) file in PETSc binary form.\n"
-  "  -f2 <filename>, where <filename> = matrix (B) file in PETSc binary form.\n"
+  "  -f1 <filename> -f2 <filename>, PETSc binary files containing A and B.\n"
   "  -evecs <filename>, output file to save computed eigenvectors.\n"
   "  -ninitial <nini>, number of user-provided initial guesses.\n"
-  "  -finitial <filename>, where <filename> contains <nini> vectors (binary).\n"
+  "  -finitial <filename>, binary file containing <nini> vectors.\n"
   "  -nconstr <ncon>, number of user-provided constraints.\n"
-  "  -fconstr <filename>, where <filename> contains <ncon> vectors (binary).\n\n";
+  "  -fconstr <filename>, binary file containing <ncon> vectors.\n\n";
 
 #include <slepceps.h>
 
