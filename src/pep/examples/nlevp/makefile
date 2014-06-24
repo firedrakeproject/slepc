@@ -25,11 +25,11 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/nlevp/
 EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c butterfly.c damped_beam.c \
-             planar_waveguide.c sleeper.c spring.c
+             pdde_stability.c planar_waveguide.c sleeper.c spring.c
 EXAMPLESF  = 
 MANSEC     = PEP
 TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
-             planar_waveguide sleeper spring
+             pdde_stability planar_waveguide sleeper spring
 
 TESTEXAMPLES_C = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
                  acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
@@ -38,7 +38,7 @@ TESTEXAMPLES_C = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.r
                  planar_waveguide.PETSc runplanar_waveguide planar_waveguide.rm \
                  sleeper.PETSc runsleeper sleeper.rm \
                  spring.PETSc runspring spring.rm
-TESTEXAMPLES_C_NOCOMPLEX = 
+TESTEXAMPLES_C_COMPLEX = pdde_stability.PETSc runpdde_stability pdde_stability.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
@@ -57,6 +57,10 @@ butterfly: butterfly.o chkopts
 damped_beam: damped_beam.o chkopts
 	-${CLINKER} -o damped_beam damped_beam.o ${SLEPC_PEP_LIB}
 	${RM} damped_beam.o
+
+pdde_stability: pdde_stability.o chkopts
+	-${CLINKER} -o pdde_stability pdde_stability.o ${SLEPC_PEP_LIB}
+	${RM} pdde_stability.o
 
 planar_waveguide: planar_waveguide.o chkopts
 	-${CLINKER} -o planar_waveguide planar_waveguide.o ${SLEPC_PEP_LIB}
@@ -102,6 +106,12 @@ rundamped_beam:
 	   if (${DIFF} output/damped_beam_1.out damped_beam_1.tmp) then true; \
 	   else echo "Possible problem with damped_beam_1, diffs above"; fi; \
 	   ${RM} -f damped_beam_1.tmp
+
+runpdde_stability:
+	-@${MPIEXEC} -np 1 ./pdde_stability -pep_nev 2 -pep_ncv 40 -st_type sinvert -pep_target 2 -pep_terse > pdde_stability_1.tmp 2>&1; \
+	   if (${DIFF} output/pdde_stability_1.out pdde_stability_1.tmp) then true; \
+	   else echo "Possible problem with pdde_stability_1, diffs above"; fi; \
+	   ${RM} -f pdde_stability_1.tmp
 
 runplanar_waveguide:
 	-@${MPIEXEC} -np 1 ./planar_waveguide -pep_nev 4 -st_type sinvert -pep_terse > planar_waveguide_1.tmp 2>&1; \
