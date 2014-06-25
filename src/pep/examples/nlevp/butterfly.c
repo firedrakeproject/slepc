@@ -56,7 +56,7 @@ int main(int argc,char **argv)
   k = 10;
   ierr = PetscOptionsGetRealArray(NULL,"-c",c,&k,&flg);CHKERRQ(ierr);
   if (flg && k!=10) SETERRQ1(PETSC_COMM_WORLD,1,"The number of parameters -c should be 10, you provided %D",k); 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nButterfly problem, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nButterfly problem, n=%D (m=%D)\n\n",n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                      Compute the polynomial matrices 

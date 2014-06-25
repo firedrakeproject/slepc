@@ -114,7 +114,7 @@ runplanar_waveguide:
 	   ${RM} -f planar_waveguide_1.tmp
 
 runsleeper:
-	-@${MPIEXEC} -np 1 ./sleeper -pep_nev 4 -n 20 -pep_terse > sleeper_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./sleeper -pep_nev 4 -pep_ncv 24 -n 30 -pep_terse > sleeper_1.tmp 2>&1; \
 	   if (${DIFF} output/sleeper_1.out sleeper_1.tmp) then true; \
 	   else echo "Possible problem with sleeper_1, diffs above"; fi; \
 	   ${RM} -f sleeper_1.tmp
