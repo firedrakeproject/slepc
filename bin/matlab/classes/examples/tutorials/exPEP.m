@@ -37,10 +37,12 @@ end
 SlepcInitialize({'-malloc','-malloc_debug','-malloc_dump'});
 
 %%
-%  Create a tridiagonal matrix (1-D Laplacian)
+%  Create problem matrices
 %
 n = 10;
 N = n*n;
+
+%  K is the 2-D Laplacian
 K = PetscMat();
 K.SetType('seqaij');
 K.SetSizes(N,N,N,N);
@@ -57,6 +59,7 @@ end
 K.AssemblyBegin(PetscMat.FINAL_ASSEMBLY);
 K.AssemblyEnd(PetscMat.FINAL_ASSEMBLY);
 
+%  C is the zero matrix
 C = PetscMat();
 C.SetType('seqaij');
 C.SetSizes(N,N,N,N);
@@ -64,6 +67,7 @@ C.SetUp();
 C.AssemblyBegin(PetscMat.FINAL_ASSEMBLY);
 C.AssemblyEnd(PetscMat.FINAL_ASSEMBLY);
 
+%  M is the identity matrix
 M = PetscMat();
 M.SetType('seqaij');
 M.SetSizes(N,N,N,N);
@@ -79,7 +83,7 @@ M.AssemblyEnd(PetscMat.FINAL_ASSEMBLY);
 %
 pep = SlepcPEP();
 pep.SetType('toar');
-pep.SetOperators({M,C,K});
+pep.SetOperators({K,C,M});
 pep.SetProblemType(SlepcPEP.GENERAL);
 pep.SetFromOptions();
 pep.Solve();

@@ -50,9 +50,18 @@ PETSC_STATIC_INLINE PetscErrorCode EPSComputeVectors(EPS eps)
 {
   PetscErrorCode ierr;
 
-  if (!eps->evecsavailable) {
-    ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
+  PetscFunctionBegin;
+  EPSCheckSolved(eps,1);
+  switch (eps->state) {
+  case EPS_STATE_SOLVED:
+    if (eps->ops->computevectors) {
+      ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
+    }
+    break;
+  default:
+    break;
   }
+  eps->state = EPS_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
 }
 
@@ -101,7 +110,6 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
-  eps->evecsavailable = PETSC_FALSE;
   eps->nconv = 0;
   eps->its   = 0;
   for (i=0;i<eps->ncv;i++) {
@@ -130,6 +138,8 @@ PetscErrorCode EPSSolve(EPS eps)
     eps->comparison    = data.comparison;
     eps->comparisonctx = data.comparisonctx;
   }
+
+  eps->state = EPS_STATE_SOLVED;
 
   ierr = STGetMatMode(eps->st,&matmode);CHKERRQ(ierr);
   if (matmode == ST_MATMODE_INPLACE && eps->ispositive) {
@@ -281,6 +291,7 @@ PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(nconv,2);
+  EPSCheckSolved(eps,1);
   *nconv = eps->nconv;
   PetscFunctionReturn(0);
 }
@@ -316,6 +327,7 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(reason,2);
+  EPSCheckSolved(eps,1);
   *reason = eps->reason;
   PetscFunctionReturn(0);
 }
@@ -360,8 +372,8 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec *v)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(v,2);
   PetscValidHeaderSpecific(*v,VEC_CLASSID,2);
-  if (!eps->V) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first");
-  if (!eps->ishermitian && eps->evecsavailable) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector,EPSComputeRelativeError or EPSComputeResidualNorm");
+  EPSCheckSolved(eps,1);
+  if (!eps->ishermitian && eps->state==EPS_STATE_EIGENVECTORS) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector,EPSComputeRelativeError or EPSComputeResidualNorm");
   for (i=0;i<eps->nconv;i++) {
     ierr = BVCopyVec(eps->V,i,v[i]);CHKERRQ(ierr);
     if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
@@ -416,7 +428,7 @@ PetscErrorCode EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
-  if (!eps->eigr || !eps->eigi || !eps->V) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first");
+  EPSCheckSolved(eps,1);
   if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   ierr = EPSGetEigenvalue(eps,i,eigr,eigi);CHKERRQ(ierr);
   if (Vr || Vi) { ierr = EPSGetEigenvector(eps,i,Vr,Vi);CHKERRQ(ierr); }
@@ -457,7 +469,7 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (!eps->eigr || !eps->eigi) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first");
+  EPSCheckSolved(eps,1);
   if (i<0 || i>=eps->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   if (!eps->perm) k = i;
   else k = eps->perm[i];
@@ -514,7 +526,7 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
   PetscValidHeaderSpecific(Vr,VEC_CLASSID,3);
   PetscCheckSameComm(eps,1,Vr,3);
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Vi,4); }
-  if (!eps->V) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first");
+  EPSCheckSolved(eps,1);
   if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
   if (!eps->perm) k = i;
@@ -571,7 +583,7 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(errest,3);
-  if (!eps->eigr || !eps->eigi) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"EPSSolve must be called first");
+  EPSCheckSolved(eps,1);
   if (i<0 || i>=eps->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   if (eps->perm) i = eps->perm[i];
   if (errest) *errest = eps->errest[i];
@@ -677,6 +689,7 @@ PetscErrorCode EPSComputeResidualNorm(EPS eps,PetscInt i,PetscReal *norm)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
   PetscValidPointer(norm,3);
+  EPSCheckSolved(eps,1);
   ierr = BVGetVec(eps->V,&xr);CHKERRQ(ierr);
   ierr = BVGetVec(eps->V,&xi);CHKERRQ(ierr);
   ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
@@ -749,6 +762,7 @@ PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *error)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
   PetscValidPointer(error,3);
+  EPSCheckSolved(eps,1);
   ierr = BVGetVec(eps->V,&xr);CHKERRQ(ierr);
   ierr = BVGetVec(eps->V,&xi);CHKERRQ(ierr);
   ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
@@ -849,13 +863,13 @@ PetscErrorCode EPSSortEigenvalues(EPS eps,PetscInt n,PetscScalar *eigr,PetscScal
 
    Input Parameters:
 +  eps   - the eigensolver context
-.  ar     - real part of the 1st eigenvalue
-.  ai     - imaginary part of the 1st eigenvalue
-.  br     - real part of the 2nd eigenvalue
--  bi     - imaginary part of the 2nd eigenvalue
+.  ar    - real part of the 1st eigenvalue
+.  ai    - imaginary part of the 1st eigenvalue
+.  br    - real part of the 2nd eigenvalue
+-  bi    - imaginary part of the 2nd eigenvalue
 
    Output Parameter:
-.  res    - result of comparison
+.  res   - result of comparison
 
    Notes:
    The returning parameter 'res' can be:

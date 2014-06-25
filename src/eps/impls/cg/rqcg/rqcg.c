@@ -73,6 +73,7 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   if (!ctx->nrest) ctx->nrest = 20;
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = BVDuplicate(eps->V,&ctx->AV);CHKERRQ(ierr);
   ierr = BVResize(ctx->AV,eps->mpd,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->AV);CHKERRQ(ierr);
@@ -461,7 +462,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
   eps->ops->reset          = EPSReset_RQCG;
   eps->ops->view           = EPSView_RQCG;
   eps->ops->backtransform  = EPSBackTransform_Default;
-  eps->ops->computevectors = EPSComputeVectors_Default;
   ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
   ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGSetReset_C",EPSRQCGSetReset_RQCG);CHKERRQ(ierr);

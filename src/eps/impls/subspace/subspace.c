@@ -53,6 +53,7 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   if (eps->ishermitian) {
     ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
   } else {

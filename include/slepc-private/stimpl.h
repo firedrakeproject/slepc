@@ -47,7 +47,7 @@ struct _STOps {
 struct _p_ST {
   PETSCHEADER(struct _STOps);
   /*------------------------- User parameters --------------------------*/
-  Mat          *A;               /* Matrices which define the eigensystem */
+  Mat          *A;               /* Matrices that define the eigensystem */
   PetscInt     *Astate;          /* State (to identify the original matrices) */
   Mat          *T;               /* Matrices resulting from transformation */
   Mat          P;                /* Matrix from which preconditioner is built */
@@ -70,13 +70,28 @@ struct _p_ST {
   PetscInt     setupcalled;
 };
 
+/*
+    Macros to test valid ST arguments
+*/
+#if !defined(PETSC_USE_DEBUG)
+
+#define STCheckMatrices(h,arg) do {} while (0)
+
+#else
+
+#define STCheckMatrices(h,arg) \
+  do { \
+    if (!h->A) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"ST matrices have not been set: Parameter #%d",arg); \
+  } while (0)
+
+#endif
+
 PETSC_INTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
 PETSC_INTERN PetscErrorCode STCheckNullSpace_Default(ST,BV);
 PETSC_INTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,PetscScalar*,Mat*);
 PETSC_INTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
 PETSC_INTERN PetscErrorCode STMatSetHermitian(ST,Mat);
-PETSC_INTERN PetscErrorCode STMatGAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscInt,PetscBool);
-PETSC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscInt,PetscScalar*,PetscBool,Mat*,PetscBool);
+PETSC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscScalar*,PetscBool,Mat*);
 PETSC_INTERN PetscErrorCode STCoeffs_Monomial(ST,PetscScalar*);
 
 #endif

@@ -36,20 +36,6 @@ PetscErrorCode EPSBackTransform_Default(EPS eps)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSComputeVectors_Default"
-/*
-  EPSComputeVectors_Default - Compute eigenvectors from the vectors
-  provided by the eigensolver. This version just copies the vectors
-  and is intended for solvers such as power that provide the eigenvector.
- */
-PetscErrorCode EPSComputeVectors_Default(EPS eps)
-{
-  PetscFunctionBegin;
-  eps->evecsavailable = PETSC_TRUE;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSComputeVectors_Hermitian"
 /*
   EPSComputeVectors_Hermitian - Copies the Lanczos vectors as eigenvectors
@@ -76,7 +62,6 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
     }
     ierr = VecDestroy(&w);CHKERRQ(ierr);
   }
-  eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -138,7 +123,6 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
       ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
     }
   }
-  eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -229,7 +213,6 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
       }
     }
   }
-  eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 

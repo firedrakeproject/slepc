@@ -46,7 +46,6 @@ static struct {
 static PetscErrorCode ourshellapply(ST st,Vec x,Vec y)
 {
   PetscObjectUseFortranCallback(st,_cb.apply,(ST*,Vec*,Vec*,PetscErrorCode*),(&st,&x,&y,&ierr));
-  return 0;
 }
 
 #undef __FUNCT__
@@ -54,7 +53,6 @@ static PetscErrorCode ourshellapply(ST st,Vec x,Vec y)
 static PetscErrorCode ourshellapplytranspose(ST st,Vec x,Vec y)
 {
   PetscObjectUseFortranCallback(st,_cb.applytranspose,(ST*,Vec*,Vec*,PetscErrorCode*),(&st,&x,&y,&ierr));
-  return 0;
 }
 
 #undef __FUNCT__
@@ -62,7 +60,6 @@ static PetscErrorCode ourshellapplytranspose(ST st,Vec x,Vec y)
 static PetscErrorCode ourshellbacktransform(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscObjectUseFortranCallback(st,_cb.backtransform,(ST*,PetscInt*,PetscScalar*,PetscScalar*,PetscErrorCode*),(&st,&n,eigr,eigi,&ierr));
-  return 0;
 }
 
 PETSC_EXTERN void PETSC_STDCALL stshellgetcontext_(ST *st,void **ctx,PetscErrorCode *ierr)

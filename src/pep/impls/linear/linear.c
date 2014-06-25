@@ -123,18 +123,18 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
       case PEP_SMALLEST_REAL:      which = EPS_SMALLEST_REAL; break;
       case PEP_LARGEST_IMAGINARY:  which = EPS_LARGEST_IMAGINARY; break;
       case PEP_SMALLEST_IMAGINARY: which = EPS_SMALLEST_IMAGINARY; break;
+      case PEP_TARGET_MAGNITUDE:   which = EPS_TARGET_MAGNITUDE; break;
+      case PEP_TARGET_REAL:        which = EPS_TARGET_REAL; break;
+      case PEP_TARGET_IMAGINARY:   which = EPS_TARGET_IMAGINARY; break;
       default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of which");
   }
   ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(ctx->eps,pep->nev,pep->ncv,pep->mpd);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(ctx->eps,pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:pep->tol/10.0,pep->max_it);CHKERRQ(ierr);
+  ierr = EPSSetDimensions(ctx->eps,pep->nev,pep->ncv?pep->ncv:PETSC_DEFAULT,pep->mpd?pep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(ctx->eps,pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:pep->tol/10.0,pep->max_it?pep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   /* Transfer the trackall option from pep to eps */
   ierr = PEPGetTrackAll(pep,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(ctx->eps,trackall);CHKERRQ(ierr);
-  if (ctx->setfromoptionscalled) {
-    ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
-    ctx->setfromoptionscalled = PETSC_FALSE;
-  }
+
   /* temporary change of target */
   if (pep->sfactor!=1.0) {
     ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
@@ -338,12 +338,10 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  nconv = 0;
   for (i=0;i<PetscMin(nest,pep->ncv);i++) {
     pep->eigr[i] = eigr[i];
     pep->eigi[i] = eigi[i];
     pep->errest[i] = errest[i];
-    if (0.0 < errest[i] && errest[i] < pep->tol) nconv++;
   }
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STBackTransform(st,nest,pep->eigr,pep->eigi);CHKERRQ(ierr);
@@ -362,7 +360,8 @@ PetscErrorCode PEPSetFromOptions_Linear(PEP pep)
   ST             st;
 
   PetscFunctionBegin;
-  ctx->setfromoptionscalled = PETSC_TRUE;
+  if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
+  ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
   ierr = PetscOptionsHead("PEP Linear Options");CHKERRQ(ierr);
   ierr = PetscOptionsInt("-pep_linear_cform","Number of the companion form","PEPLinearSetCompanionForm",ctx->cform,&i,&set);CHKERRQ(ierr);
   if (set) {
@@ -561,7 +560,7 @@ static PetscErrorCode PEPLinearSetEPS_Linear(PEP pep,EPS eps)
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   ctx->eps = eps;
   ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->eps);CHKERRQ(ierr);
-  pep->setupcalled = 0;
+  pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

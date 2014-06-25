@@ -237,11 +237,6 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   if (min_size_V <= cX_in_proj) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"minv has to be greater than qwindow");
   if (bs > 1 && cX_in_impr > 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported option: pwindow > 0 and bs > 1");
 
-  /* Setup orthogonalization */
-  if (!(ipB && dvd->B)) {
-    ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
-  }
-
   /* Get the fix parameter */
   ierr = EPSXDGetFix_XD(eps,&fix);CHKERRQ(ierr);
 
@@ -275,6 +270,12 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   dvd->auxS = b.free_scalars + b.own_scalars;
   dvd->size_auxV = b.max_size_auxV;
   dvd->size_auxS = b.max_size_auxS;
+
+  /* Setup orthogonalization */
+  ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
+  if (!(ipB && dvd->B)) {
+    ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
+  }
 
   for (i=0;i<eps->ncv;i++) eps->perm[i] = i;
 
@@ -653,6 +654,5 @@ PetscErrorCode EPSComputeVectors_XD(EPS eps)
     ierr = BVMultInPlace(eps->V,Z,0,eps->nconv);CHKERRQ(ierr);
     ierr = MatDestroy(&Z);CHKERRQ(ierr);
   }
-  eps->evecsavailable = PETSC_TRUE;
   PetscFunctionReturn(0);
 }

@@ -139,7 +139,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
     if (pep->nev<500) pep->ncv = PetscMin(pep->n,PetscMax(2*pep->nev,pep->nev+15));
     else {
       pep->mpd = 500;
-      pep->ncv = PetscMin(pep->n,pep->nev+pep->mpd);
+      pep->ncv = PetscMin(pep->n-pep->nmat+1,pep->nev+pep->mpd);
     }
   }
   if (!pep->mpd) pep->mpd = pep->ncv;
@@ -829,11 +829,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-
-  /* Compute eigenvectors */
-  if (pep->nconv > 0) {
-    ierr = PEPComputeVectors_Schur(pep);CHKERRQ(ierr);
-  }
   ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
   /* ////////// */
   if (withreg && bs==PEP_BASIS_CHEBYSHEV1) {
@@ -854,8 +849,9 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
 {
   PetscFunctionBegin;
-  pep->ops->solve                = PEPSolve_TOAR;
-  pep->ops->setup                = PEPSetUp_TOAR;
+  pep->ops->solve          = PEPSolve_TOAR;
+  pep->ops->setup          = PEPSetUp_TOAR;
+  pep->ops->computevectors = PEPComputeVectors_Schur;
   PetscFunctionReturn(0);
 }
 

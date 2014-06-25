@@ -285,11 +285,6 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-
-  /* Compute eigenvectors */
-  if (pep->nconv > 0) {
-    ierr = PEPComputeVectors_Schur(pep);CHKERRQ(ierr);
-  }
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -299,8 +294,9 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
 {
   PetscFunctionBegin;
-  pep->ops->solve         = PEPSolve_QArnoldi;
-  pep->ops->setup         = PEPSetUp_QArnoldi;
+  pep->ops->solve          = PEPSolve_QArnoldi;
+  pep->ops->setup          = PEPSetUp_QArnoldi;
+  pep->ops->computevectors = PEPComputeVectors_Schur;
   PetscFunctionReturn(0);
 }
 

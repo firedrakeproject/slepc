@@ -24,7 +24,7 @@
 #include <slepc-private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1, 
+PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1, 
         PetscReal *d,PetscReal *q,PetscBLASInt ldq,PetscBLASInt *indxq, 
         PetscReal *rho,PetscReal *z,PetscReal *dlamda,PetscReal *w, 
         PetscReal *q2,PetscBLASInt *indx,PetscBLASInt *indxc,PetscBLASInt *indxp, 
