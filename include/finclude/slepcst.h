@@ -25,12 +25,10 @@
       PetscEnum ST_MATMODE_COPY
       PetscEnum ST_MATMODE_INPLACE
       PetscEnum ST_MATMODE_SHELL
-      PetscEnum ST_MATMODE_HYBRID
 
       parameter (ST_MATMODE_COPY          =  0)
       parameter (ST_MATMODE_INPLACE       =  1)
       parameter (ST_MATMODE_SHELL         =  2)
-      parameter (ST_MATMODE_HYBRID        =  3)
 
 !
 !  End of Fortran include file for the ST package in SLEPc

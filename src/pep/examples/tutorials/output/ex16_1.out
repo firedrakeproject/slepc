@@ -1,7 +1,7 @@
 
 Quadratic Eigenproblem, N=100 (10x10 grid)
 
- Solution method: linear
+ Solution method: toar
 
  Number of requested eigenvalues: 4
  All requested eigenvalues computed up to the required tolerance:

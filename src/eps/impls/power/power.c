@@ -72,6 +72,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   if (eps->balance!=EPS_BALANCE_NONE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Balancing not supported in this solver");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -391,7 +392,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->ops->destroy              = EPSDestroy_Power;
   eps->ops->view                 = EPSView_Power;
   eps->ops->backtransform        = EPSBackTransform_Power;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C",EPSPowerSetShiftType_Power);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C",EPSPowerGetShiftType_Power);CHKERRQ(ierr);
   PetscFunctionReturn(0);

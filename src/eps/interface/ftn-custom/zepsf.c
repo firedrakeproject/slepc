@@ -42,7 +42,9 @@
 #define epsgetst_                   EPSGETST
 #define epsgetbv_                   EPSGETBV
 #define epsgetds_                   EPSGETDS
+#define epsgetbalance_              EPSGETBALANCE
 #define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
+#define epsgetconvergencetest_      EPSGETCONVERGENCETEST
 #define epsgetproblemtype_          EPSGETPROBLEMTYPE
 #define epsgetextraction_           EPSGETEXTRACTION
 #define epsgetconvergedreason_      EPSGETCONVERGEDREASON
@@ -73,7 +75,9 @@
 #define epsgetst_                   epsgetst
 #define epsgetbv_                   epsgetbv
 #define epsgetds_                   epsgetds
+#define epsgetbalance_              epsgetbalance
 #define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
+#define epsgetconvergencetest_      epsgetconvergencetest
 #define epsgetproblemtype_          epsgetproblemtype
 #define epsgetextraction_           epsgetextraction
 #define epsgetconvergedreason_      epsgetconvergedreason
@@ -120,6 +124,7 @@ static struct {
   PetscFortranCallbackId monitor;
   PetscFortranCallbackId monitordestroy;
   PetscFortranCallbackId convergence;
+  PetscFortranCallbackId convdestroy;
   PetscFortranCallbackId comparison;
   PetscFortranCallbackId arbitrary;
 } _cb;
@@ -130,7 +135,6 @@ static struct {
 static PetscErrorCode ourmonitor(EPS eps,PetscInt i,PetscInt nc,PetscScalar *er,PetscScalar *ei,PetscReal *d,PetscInt l,void* ctx)
 {
   PetscObjectUseFortranCallback(eps,_cb.monitor,(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),(&eps,&i,&nc,er,ei,d,&l,_ctx,&ierr));
-  return 0;
 }
 
 #undef __FUNCT__
@@ -139,7 +143,6 @@ static PetscErrorCode ourdestroy(void** ctx)
 {
   EPS eps = (EPS)*ctx;
   PetscObjectUseFortranCallback(eps,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
-  return 0;
 }
 
 #undef __FUNCT__
@@ -147,7 +150,14 @@ static PetscErrorCode ourdestroy(void** ctx)
 static PetscErrorCode ourconvergence(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscObjectUseFortranCallback(eps,_cb.convergence,(EPS*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),(&eps,&eigr,&eigi,&res,errest,_ctx,&ierr));
-  return 0;
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "ourconvdestroy"
+static PetscErrorCode ourconvdestroy(void *ctx)
+{
+  EPS eps = (EPS)ctx;
+  PetscObjectUseFortranCallback(eps,_cb.convdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
 #undef __FUNCT__
@@ -156,7 +166,6 @@ static PetscErrorCode oureigenvaluecomparison(PetscScalar ar,PetscScalar ai,Pets
 {
   EPS eps = (EPS)ctx;
   PetscObjectUseFortranCallback(eps,_cb.comparison,(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*),(&ar,&ai,&br,&bi,r,_ctx,&ierr));
-  return 0;
 }
 
 #undef __FUNCT__
@@ -165,7 +174,6 @@ static PetscErrorCode ourarbitraryfunc(PetscScalar er,PetscScalar ei,Vec xr,Vec 
 {
   EPS eps = (EPS)ctx;
   PetscObjectUseFortranCallback(eps,_cb.arbitrary,(PetscScalar*,PetscScalar*,Vec*,Vec*,PetscScalar*,PetscScalar*,void*,PetscErrorCode*),(&er,&ei,&xr,&xi,rr,ri,_ctx,&ierr));
-  return 0;
 }
 
 PETSC_EXTERN void PETSC_STDCALL epsdestroy_(EPS *eps,PetscErrorCode *ierr)
@@ -223,6 +231,14 @@ PETSC_EXTERN void PETSC_STDCALL epsappendoptionsprefix_(EPS *eps,CHAR prefix PET
   FREECHAR(prefix,t);
 }
 
+PETSC_EXTERN void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  const char *tname;
+
+  *ierr = EPSGetOptionsPrefix(*eps,&tname); if (*ierr) return;
+  *ierr = PetscStrncpy(prefix,tname,len);
+}
+
 PETSC_EXTERN void PETSC_STDCALL epscreate_(MPI_Fint *comm,EPS *eps,PetscErrorCode *ierr)
 {
   *ierr = EPSCreate(MPI_Comm_f2c(*(comm)),eps);
@@ -263,14 +279,6 @@ PETSC_EXTERN void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *mon
   }
 }
 
-PETSC_EXTERN void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
-{
-  const char *tname;
-
-  *ierr = EPSGetOptionsPrefix(*eps,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);
-}
-
 PETSC_EXTERN void PETSC_STDCALL epsgetst_(EPS *eps,ST *st,PetscErrorCode *ierr)
 {
   *ierr = EPSGetST(*eps,st);
@@ -286,9 +294,19 @@ PETSC_EXTERN void PETSC_STDCALL epsgetds_(EPS *eps,DS *ds,PetscErrorCode *ierr)
   *ierr = EPSGetDS(*eps,ds);
 }
 
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,PetscErrorCode *ierr)
+{
+  *ierr = EPSGetBalance(*eps,bal,its,cutoff);
+}
+
 PETSC_EXTERN void PETSC_STDCALL epsgetwhicheigenpairs_(EPS *eps,EPSWhich *which,PetscErrorCode *ierr)
 {
   *ierr = EPSGetWhichEigenpairs(*eps,which);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetconvergencetest_(EPS *eps,EPSConv *conv,PetscErrorCode *ierr)
+{
+  *ierr = EPSGetConvergenceTest(*eps,conv);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epsgetproblemtype_(EPS *eps,EPSProblemType *type,PetscErrorCode *ierr)
@@ -331,9 +349,10 @@ PETSC_EXTERN void PETSC_STDCALL epsconvergednormrelative_(EPS *eps,PetscScalar *
   *ierr = EPSConvergedNormRelative(*eps,*eigr,*eigi,*res,errest,ctx);
 }
 
-PETSC_EXTERN void PETSC_STDCALL epssetconvergencetestfunction_(EPS *eps,void (PETSC_STDCALL *func)(EPS*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL epssetconvergencetestfunction_(EPS *eps,void (PETSC_STDCALL *func)(EPS*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(ctx);
+  CHKFORTRANNULLFUNCTION(destroy);
   if ((PetscVoidFunction)func == (PetscVoidFunction)epsconvergedabsolute_) {
     *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_ABS);
   } else if ((PetscVoidFunction)func == (PetscVoidFunction)epsconvergedeigrelative_) {
@@ -342,7 +361,12 @@ PETSC_EXTERN void PETSC_STDCALL epssetconvergencetestfunction_(EPS *eps,void (PE
     *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_NORM);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*eps,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convergence,(PetscVoidFunction)func,ctx); if (*ierr) return;
-    *ierr = EPSSetConvergenceTestFunction(*eps,ourconvergence,NULL);
+    if (!destroy) {
+      *ierr = EPSSetConvergenceTestFunction(*eps,ourconvergence,*eps,NULL);
+    } else {
+      *ierr = PetscObjectSetFortranCallback((PetscObject)*eps,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convdestroy,(PetscVoidFunction)destroy,ctx); if (*ierr) return;
+      *ierr = EPSSetConvergenceTestFunction(*eps,ourconvergence,*eps,ourconvdestroy);
+    }
   }
 }
 

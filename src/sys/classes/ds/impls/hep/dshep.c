@@ -713,7 +713,7 @@ PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
 
   /* Solve the block tridiagonal eigenproblem */
-  dsbtdc_("D","A",n,nblks,ksizes,D,bs,bs,E,lde,lde,tol,tau1,tau2,d,
+  BDC_dsbtdc_("D","A",n,nblks,ksizes,D,bs,bs,E,lde,lde,tol,tau1,tau2,d,
            Q,n,rwork,lrwork,iwork,liwork,&mingap,&mingapi,&info,1,1);
   for (i=0;i<ds->n;i++) wr[i] = d[i];
 

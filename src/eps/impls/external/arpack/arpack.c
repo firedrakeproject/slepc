@@ -347,7 +347,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS eps)
   eps->ops->destroy              = EPSDestroy_ARPACK;
   eps->ops->reset                = EPSReset_ARPACK;
   eps->ops->backtransform        = EPSBackTransform_ARPACK;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
 

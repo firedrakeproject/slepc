@@ -5,7 +5,7 @@ classdef SlepcPEP < PetscObject
 %   Creation:
 %     eps = SlepcPEP();
 %     PEP.SetType('toar');
-%     PEP.SetOperators(M,C,K);
+%     PEP.SetOperators({K,C,M});
 %     PEP.SetFromOptions();
 
 %  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
