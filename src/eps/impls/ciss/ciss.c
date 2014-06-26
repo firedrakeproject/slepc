@@ -895,10 +895,6 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
 
-    for (i=0;i<nv;i++) {
-      eps->eigr[i]+=ctx->center;
-    }
-
     ierr = PetscMalloc(nv*sizeof(PetscBool),&fl1);CHKERRQ(ierr);
     ierr = PetscMalloc(nv*sizeof(PetscBool),&fl2);CHKERRQ(ierr);
     ierr = isGhost(eps,ld,nv,fl1);CHKERRQ(ierr);
