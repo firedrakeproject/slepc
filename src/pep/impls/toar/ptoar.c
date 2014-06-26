@@ -139,7 +139,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
     if (pep->nev<500) pep->ncv = PetscMin(pep->n,PetscMax(2*pep->nev,pep->nev+15));
     else {
       pep->mpd = 500;
-      pep->ncv = PetscMin(pep->n,pep->nev+pep->mpd);
+      pep->ncv = PetscMin(pep->n-pep->nmat+1,pep->nev+pep->mpd);
     }
   }
   if (!pep->mpd) pep->mpd = pep->ncv;
