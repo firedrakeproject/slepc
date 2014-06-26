@@ -37,23 +37,18 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,Pets
 
 typedef struct {
   PetscInt
-    min_size_V,     /* restart with this number of eigenvectors */
-    plusk,          /* when restart, save plusk vectors from last iteration */
-    mpd;            /* max size of the searching subspace */
-  void
-    *old_updateV_data;
-                    /* old updateV data */
-  isRestarting_type
-    old_isRestarting;
-                    /* old isRestarting */
-  PetscScalar
-    *oldU,          /* previous projected right igenvectors */
-    *oldV;          /* previous projected left eigenvectors */
-  PetscInt
-    ldoldU,         /* leading dimension of oldU */
-    size_oldU;      /* size of oldU */
-  PetscBool
-    allResiduals;   /* if computing all the residuals */
+    min_size_V,       /* restart with this number of eigenvectors */
+    plusk,            /* when restart, save plusk vectors from last iteration */
+    mpd;              /* max size of the searching subspace */
+  void *old_updateV_data;
+                      /* old updateV data */
+  isRestarting_type old_isRestarting;
+                      /* old isRestarting */
+  Mat oldU;           /* previous projected right igenvectors */
+  Mat oldV;           /* previous projected left eigenvectors */
+  PetscInt size_oldU; /* size of oldU */
+  PetscBool allResiduals;
+                      /* if computing all the residuals */
 } dvdManagV_basic;
 
 
@@ -82,12 +77,7 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
   b->max_size_V = PetscMax(b->max_size_V, mpd);
   min_size_V = PetscMin(min_size_V, mpd-bs);
   b->size_V = PetscMax(b->size_V, b->max_size_V + b->max_size_P + b->max_nev);
-  b->own_scalars+= b->size_V*2 /* eigr, eigr */ +
-                   b->size_V /* nR */   +
-                   b->size_V /* nX */   +
-                   b->size_V /* errest */ +
-                   b->max_size_V*b->max_size_V*(harm?2:1)*(plusk>0?1:0)
-                                               /* oldU,oldV? */;
+  b->own_scalars+= b->size_V*2; /* nR,nX */
   b->max_size_oldX = plusk;
 
   /* Setup the step */
@@ -105,16 +95,10 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
     d->errest = d->eps->errest;
     ierr = PetscMalloc(sizeof(PetscReal)*d->eps->ncv, &d->real_nR);CHKERRQ(ierr);
     d->real_nX = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(b->size_V);
-    if (plusk > 0) {
-      data->oldU = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
-    }
-    if (harm) {
-      if (plusk > 0) {
-        data->oldV = b->free_scalars; b->free_scalars+= b->max_size_V*b->max_size_V;
-      }
-    } else {
-      data->oldV = NULL;
-    }
+    if (plusk > 0) {ierr = MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&data->oldU);CHKERRQ(ierr);}
+    else data->oldU = NULL;
+    if (harm && plusk>0) {ierr = MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&data->oldV);CHKERRQ(ierr);}
+    else data->oldV = NULL;
 
     data->old_updateV_data = d->updateV_data;
     d->updateV_data = data;
@@ -141,8 +125,6 @@ PetscErrorCode dvd_updateV_start(dvdDashboard *d)
   for (i=0;i<d->eps->ncv;i++) d->nR[i] = PETSC_MAX_REAL;
   d->nX = d->real_nX;
   for (i=0;i<d->eps->ncv;i++) d->errest[i] = PETSC_MAX_REAL;
-  data->ldoldU = 0;
-  data->oldV = NULL;
   data->size_oldU = 0;
   d->nconv = 0;
   d->npreconv = 0;
@@ -184,6 +166,8 @@ PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d)
   d->updateV_data = data->old_updateV_data;
 
   /* Free local data */
+  if (data->oldU) {ierr = MatDestroy(&data->oldU);CHKERRQ(ierr);}
+  if (data->oldV) {ierr = MatDestroy(&data->oldV);CHKERRQ(ierr);}
   ierr = PetscFree(data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -229,9 +213,9 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
 PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
-  PetscInt        npreconv,ld,cMT,cMTX;
+  PetscInt        npreconv,cMT,cMTX,lV,kV,nV;
   PetscErrorCode  ierr;
-  PetscScalar     *pQ,*pZ;
+  Mat             Q,Z;
 #if !defined(PETSC_USE_COMPLEX)
   PetscInt        i;
 #endif
@@ -249,46 +233,45 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   /* Quick exit */
   if (npreconv == 0) PetscFunctionReturn(0);
 
-  npreconv+= d->cX_in_H;
-  ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
-  d->size_MT = d->size_H;
-  cMT = d->size_H - npreconv;
+  ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
+  nV = kV - lV; 
+  cMT = nV - npreconv;
   /* Harmonics restarts wiht right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */
   if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
     /* ps.Q <- [ps.Q(0:npreconv-1) ps.Z(npreconv:size_H-1)] */
-    ierr = DSGetArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
-    ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
-    ierr = SlepcDenseCopy(&pQ[ld*npreconv],ld,&pZ[ld*npreconv],ld,d->size_H,cMT);CHKERRQ(ierr);
-    ierr = DSRestoreArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
-    ierr = DSRestoreArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
+    ierr = DSGetMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSGetMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
+    ierr = SlepcMatDenseCopy(Z,0,npreconv,Q,0,npreconv,nV,cMT);CHKERRQ(ierr);
+    ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
   }
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
-    ierr = DSPseudoOrthogonalize(d->ps,DS_MAT_Q,d->size_H,d->nBV-d->cX_in_H,&cMTX,d->nBpX);CHKERRQ(ierr);
+    ierr = DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,nV,d->nBV,&cMTX,d->nBpX);CHKERRQ(ierr);
   } else {
-    ierr = DSOrthogonalize(d->ps,DS_MAT_Q,d->size_H,&cMTX);CHKERRQ(ierr);
+    ierr = DSOrthogonalize(d->eps->ds,DS_MAT_Q,nV,&cMTX);CHKERRQ(ierr);
   }
   cMT = cMTX - npreconv;
 
   if (d->W) {
-    ierr = DSOrthogonalize(d->ps,DS_MAT_Z,d->size_H,&cMTX);CHKERRQ(ierr);
+    ierr = DSOrthogonalize(d->eps->ds,DS_MAT_Z,nV,&cMTX);CHKERRQ(ierr);
     cMT = PetscMin(cMT,cMTX - npreconv);
   }
 
   /* Lock the converged pairs */
-  d->eigr+= npreconv-d->cX_in_H;
+  d->eigr+= npreconv;
 #if !defined(PETSC_USE_COMPLEX)
-  if (d->eigi) d->eigi+= npreconv-d->cX_in_H;
+  if (d->eigi) d->eigi+= npreconv;
 #endif
-  d->nconv+= npreconv-d->cX_in_H;
-  d->errest+= npreconv-d->cX_in_H;
+  d->nconv+= npreconv;
+  d->errest+= npreconv;
   /* Notify the changes in V and update the other subspaces */
-  d->V_tra_s = npreconv;          d->V_tra_e = d->size_H;
+  d->V_tra_s = npreconv;          d->V_tra_e = nV;
   d->V_new_s = cMT;               d->V_new_e = d->V_new_s;
   /* Remove oldU */
   data->size_oldU = 0;
 
-  d->npreconv-= npreconv-d->cX_in_H;
+  d->npreconv-= npreconv;
   PetscFunctionReturn(0);
 }
 
@@ -297,62 +280,52 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
-  PetscInt        l,k,size_plusk,size_X,i,j,ld,cMTX,cMTY;
-  PetscScalar     *pQ,*pZ;
+  PetscInt        lV,kV,nV,size_plusk,size_X,cMTX,cMTY;
+  Mat             Q,Z;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   /* Select size_X desired pairs from V */
-  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-  size_X = PetscMin(data->min_size_V,k-l);
+  ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
+  nV = kV - lV;
+  size_X = PetscMin(data->min_size_V,nV);
 
   /* Add plusk eigenvectors from the previous iteration */
   size_plusk = PetscMax(0,PetscMin(PetscMin(data->plusk,data->size_oldU),d->eps->ncv - size_X));
 
-  ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
-  d->size_MT = d->size_H;
+  d->size_MT = nV;
   /* ps.Q <- orth([pX(0:size_X-1) [oldU(0:size_plusk-1); 0] ]) */
   /* Harmonics restarts wiht right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */
-  ierr = DSGetArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
+  ierr = DSGetMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
-    ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
-    ierr = SlepcDenseCopy(pQ,ld,pZ,ld,d->size_H,size_X);CHKERRQ(ierr);
-    ierr = DSRestoreArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
+    ierr = DSGetMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
+    ierr = SlepcMatDenseCopy(Z,0,0,Q,0,0,nV,size_X);CHKERRQ(ierr);
+    ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
   }
   if (size_plusk > 0 && DVD_IS(d->sEP,DVD_EP_INDEFINITE)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported plusk>0 in indefinite eigenvalue problems");
   if (size_plusk > 0) {
-    ierr = SlepcDenseCopy(&pQ[ld*size_X],ld,data->oldU,data->ldoldU,data->size_oldU,size_plusk);CHKERRQ(ierr);
-    for (i=size_X;i<size_X+size_plusk;i++) {
-      for (j=data->size_oldU;j<d->size_H;j++) {
-        pQ[j*ld+i] = 0.0;
-      }
-    }
+    ierr = SlepcMatDenseCopy(data->oldU,0,0,Q,0,size_X,nV,size_plusk);CHKERRQ(ierr);
   }
-  ierr = DSRestoreArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
+  ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
-    ierr = DSPseudoOrthogonalize(d->ps,DS_MAT_Q,size_X,d->nBV-d->cX_in_H,&cMTX,d->nBpX);CHKERRQ(ierr);
+    ierr = DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,size_X,d->nBV,&cMTX,d->nBpX);CHKERRQ(ierr);
   } else {
-    ierr = DSOrthogonalize(d->ps,DS_MAT_Q,size_X+size_plusk,&cMTX);CHKERRQ(ierr);
+    ierr = DSOrthogonalize(d->eps->ds,DS_MAT_Q,size_X+size_plusk,&cMTX);CHKERRQ(ierr);
   }
 
   if (d->W && size_plusk > 0) {
     /* ps.Z <- orth([ps.Z(0:size_X-1) [oldV(0:size_plusk-1); 0] ]) */
-    ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
-    ierr = SlepcDenseCopy(&pZ[ld*size_X],ld,data->oldV,data->ldoldU,data->size_oldU,size_plusk);CHKERRQ(ierr);
-    for(i=size_X; i<size_X+size_plusk; i++) {
-      for(j=data->size_oldU; j<d->size_H; j++) {
-        pZ[j*ld+i] = 0.0;
-      }
-    }
-    ierr = DSRestoreArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
-    ierr = DSOrthogonalize(d->ps,DS_MAT_Z,size_X+size_plusk,&cMTY);CHKERRQ(ierr);
+    ierr = DSGetMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
+    ierr = SlepcMatDenseCopy(data->oldV,0,0,Z,0,size_X,nV,size_plusk);CHKERRQ(ierr);
+    ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
+    ierr = DSOrthogonalize(d->eps->ds,DS_MAT_Z,size_X+size_plusk,&cMTY);CHKERRQ(ierr);
     cMTX = PetscMin(cMTX, cMTY);
   }
 
   /* Notify the changes in V and update the other subspaces */
-  d->V_tra_s = d->cX_in_H;            d->V_tra_e = cMTX;
-  d->V_new_s = d->V_tra_e-d->cX_in_H; d->V_new_e = d->V_new_s;
+  d->V_tra_s = 0;                     d->V_tra_e = cMTX;
+  d->V_new_s = d->V_tra_e;            d->V_new_e = d->V_new_s;
 
   /* Remove oldU */
   data->size_oldU = 0;
@@ -367,16 +340,16 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
-  PetscInt        size_D,ld,s,l,k;
-  PetscScalar     *pQ,*pZ;
+  PetscInt        size_D,s,lV,kV,nV;
+  Mat             Q,Z;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   /* Select the desired pairs */
-  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-  size_D = PetscMin(PetscMin(PetscMin(d->bs,k-l),d->eps->ncv-k+l),d->size_H);
+  ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
+  nV = kV - lV;
+  size_D = PetscMin(PetscMin(PetscMin(d->bs,nV),d->eps->ncv-nV),nV);
   if (size_D == 0) {
-    ierr = PetscInfo2(d->eps, "MON: D:%D H:%D\n", size_D, d->size_H);CHKERRQ(ierr);
     ierr = d->initV(d);CHKERRQ(ierr);
     ierr = d->calcPairs(d);CHKERRQ(ierr);
   }
@@ -394,24 +367,26 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 #else
   s = 1;
 #endif
-  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-  ierr = dvd_updateV_testConv(d,s,s,data->allResiduals?k-l:size_D,NULL);CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
+  nV = kV - lV;
+  ierr = dvd_updateV_testConv(d,s,s,data->allResiduals?nV:size_D,NULL);CHKERRQ(ierr);
 
   /* Notify the changes in V */
   d->V_tra_s = 0;                 d->V_tra_e = 0;
-  d->V_new_s = k-l;               d->V_new_e = k-l+size_D;
+  d->V_new_s = nV;                d->V_new_e = nV+size_D;
 
   /* Save the projected eigenvectors */
   if (data->plusk > 0) {
-    data->ldoldU = data->size_oldU = d->size_H;
-    ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
-    ierr = DSGetArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
-    ierr = SlepcDenseCopy(data->oldU,data->ldoldU,pQ,ld,d->size_H,d->size_H);CHKERRQ(ierr);
-    ierr = DSRestoreArray(d->ps,DS_MAT_Q,&pQ);CHKERRQ(ierr);
+    ierr = MatZeroEntries(data->oldU);CHKERRQ(ierr);
+    data->size_oldU = nV;
+    ierr = DSGetMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = SlepcMatDenseCopy(Q,0,0,data->oldU,0,0,nV,nV);CHKERRQ(ierr);
+    ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
     if (d->W) {
-      ierr = DSGetArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
-      ierr = SlepcDenseCopy(data->oldV,data->ldoldU,pZ,ld,d->size_H,d->size_H);CHKERRQ(ierr);
-      ierr = DSRestoreArray(d->ps,DS_MAT_Z,&pZ);CHKERRQ(ierr);
+      ierr = MatZeroEntries(data->oldV);CHKERRQ(ierr);
+      ierr = DSGetMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
+      ierr = SlepcMatDenseCopy(Z,0,0,data->oldV,0,0,nV,nV);CHKERRQ(ierr);
+      ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

@@ -494,28 +494,36 @@ PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
 #define __FUNCT__ "dvd_harm_proj"
 PetscErrorCode dvd_harm_proj(dvdDashboard *d)
 {
-  dvdHarmonic *data = (dvdHarmonic*)d->calcpairs_W_data;
-  PetscInt    i,j;
+  PetscErrorCode  ierr;
+  dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
+  PetscInt        i,j,l,k,ld=d->eps->ncv;
+  PetscScalar     h,g,*H,*G;
 
   PetscFunctionBegin;
-  if (d->sH != d->sG) SETERRQ(PETSC_COMM_SELF,1,"Projected matrices H and G must have the same structure");
-
+  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
+  if (l+d->V_new_e != k) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
+  l += d->V_new_s;
+  ierr = MatDenseGetArray(d->H,&H);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(d->G,&G);CHKERRQ(ierr);
   /* [H G] <- [Pa*H - Pb*G, Wa*H - Wb*G] */
-  if (DVD_ISNOT(d->sH,DVD_MAT_LTRIANG))     /* Upper triangular part */
-    for (i=d->V_new_s+d->cX_in_H;i<d->V_new_e+d->cX_in_H;i++)
-      for (j=0;j<=i;j++) {
-        PetscScalar h = d->H[d->ldH*i+j], g = d->G[d->ldH*i+j];
-        d->H[d->ldH*i+j] = data->Pa*h - data->Pb*g;
-        d->G[d->ldH*i+j] = data->Wa*h - data->Wb*g;
-      }
-  if (DVD_ISNOT(d->sH,DVD_MAT_UTRIANG))     /* Lower triangular part */
-    for (i=0;i<d->V_new_e+d->cX_in_H;i++)
-      for (j=PetscMax(d->V_new_s+d->cX_in_H,i+(DVD_ISNOT(d->sH,DVD_MAT_LTRIANG)?1:0));
-          j<d->V_new_e+d->cX_in_H; j++) {
-        PetscScalar h = d->H[d->ldH*i+j], g = d->G[d->ldH*i+j];
-        d->H[d->ldH*i+j] = data->Pa*h - data->Pb*g;
-        d->G[d->ldH*i+j] = data->Wa*h - data->Wb*g;
-      }
+  /* Upper triangular part */
+  for (i=l; i<k; i++) {
+    for (j=0; j<=i; j++) {
+      h = H[ld*i+j]; g = G[ld*i+j];
+      H[ld*i+j] = data->Pa*h - data->Pb*g;
+      G[ld*i+j] = data->Wa*h - data->Wb*g;
+    }
+  }
+  /* Lower triangular part */
+  for (i=0; i<k; i++) {
+    for (j=PetscMax(l,i+1); j<k; j++) {
+      h = H[ld*i+j]; g = G[ld*i+j];
+      H[ld*i+j] = data->Pa*h - data->Pb*g;
+      G[ld*i+j] = data->Wa*h - data->Wb*g;
+    }
+  }
+  ierr = MatDenseRestoreArray(d->H,&H);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(d->G,&G);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -566,12 +574,13 @@ PetscErrorCode dvd_harm_eig_backtrans(dvdDashboard *d,PetscScalar ar,PetscScalar
 PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
 {
   dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
-  PetscInt        i;
+  PetscInt        i,l,k;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-  for (i=0;i<d->size_H;i++) {
-    ierr = dvd_harm_backtrans(data, &d->eigr[i-d->cX_in_H], &d->eigi[i-d->cX_in_H]);CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
+  for (i=0;i<k-l;i++) {
+    ierr = dvd_harm_backtrans(data,&d->eigr[i],&d->eigi[i]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
