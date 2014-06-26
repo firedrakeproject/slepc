@@ -130,7 +130,6 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
     }
     if (pool->vecs) {
       ierr = SlepcVecPoolCreate(p->v,pool->guess-pool->used,&pool->next);CHKERRQ(ierr);
-      pool->guess = pool->used;
       pool = pool->next;
     }
     pool->n = pool->guess;
@@ -165,7 +164,7 @@ PetscErrorCode SlepcVecPoolRestoreVecs(VecPool p,PetscInt n,Vec **vecs)
   PetscFunctionBegin;
   while (pool->next) pool = (pool0 = pool)->next;
   if (pool->used == 0 && pool0 != pool) {
-    pool0->guess += pool->guess;
+    pool0->guess = pool0->used + pool->guess;
     ierr = SlepcVecPoolDestroy((VecPool*)&pool);CHKERRQ(ierr);
     pool = pool0;
     pool->next = NULL;
