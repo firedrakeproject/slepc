@@ -477,8 +477,8 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   if (!match) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Matrix M must be of type seqdense");
 
   ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
-  if (m!=Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %D rows, should have %D",m,Y->k);
-  if (n!=X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %D columns, should have %D",n,X->k);
+  if (m<Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %D rows, should have %D at least",m,Y->k);
+  if (n<X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %D columns, should have %D at least",n,X->k);
   if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
 
   ierr = PetscLogEventBegin(BV_MatProject,X,A,Y,0);CHKERRQ(ierr);

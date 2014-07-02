@@ -43,16 +43,8 @@ PetscErrorCode dvd_calcpairs_Y(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *Y)
 PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e);
 PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e);
 PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *R);
-PetscErrorCode dvd_calcpairs_updateV0(dvdDashboard *d);
-PetscErrorCode dvd_calcpairs_updateV1(dvdDashboard *d);
-PetscErrorCode dvd_calcpairs_updateW0(dvdDashboard *d);
-PetscErrorCode dvd_calcpairs_updateW1(dvdDashboard *d);
-PetscErrorCode dvd_calcpairs_updateAV0(dvdDashboard *d);
-PetscErrorCode dvd_calcpairs_updateAV1(dvdDashboard *d);
-PetscErrorCode dvd_calcpairs_updateBV0(dvdDashboard *d);
-PetscErrorCode dvd_calcpairs_updateBV1(dvdDashboard *d);
 PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d);
-PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,PetscInt k,Mat A,PetscBool symm,Mat aux);
+PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,PetscInt kA,Mat aux);
 PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,BV bv,DSMatType MT);
 
 /**** Control routines ********************************************************/
@@ -205,117 +197,84 @@ PetscErrorCode dvd_calcpairs_qz_d(dvdDashboard *d)
 PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
 {
   PetscErrorCode ierr;
-  PetscInt       i,l,k,lv,kv,lax,kax,lbx,kbx,lw,kw;
+  PetscInt       i,l,k;
   Vec            v1,v2;
 
   PetscFunctionBegin;
+  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
   /* Update AV, BV, W and the projected matrices */
   /* 1. S <- S*MT */
   if (d->V_tra_s != d->V_tra_e) {
     ierr = dvd_calcpairs_updateBV0_gen(d,d->eps->V,DS_MAT_Q);CHKERRQ(ierr);
-    ierr = dvd_calcpairs_updateBV0_gen(d,d->W,DS_MAT_Z);CHKERRQ(ierr);
+    if (d->W) {ierr = dvd_calcpairs_updateBV0_gen(d,d->W,DS_MAT_Z);CHKERRQ(ierr);}
     ierr = dvd_calcpairs_updateBV0_gen(d,d->AX,DS_MAT_Q);CHKERRQ(ierr);
-    ierr = dvd_calcpairs_updateBV0_gen(d,d->BX,DS_MAT_Q);CHKERRQ(ierr);
+    if (d->BX) {ierr = dvd_calcpairs_updateBV0_gen(d,d->BX,DS_MAT_Q);CHKERRQ(ierr);}
     ierr = dvd_calcpairs_updateproj(d);CHKERRQ(ierr);
-  }
-  /* 2. V <- orth(V, V_new) */
-  ierr = dvd_calcpairs_updateV1(d);CHKERRQ(ierr);
-  /* 3. AV <- [AV A * V(V_new_s:V_new_e-1)] */
-  /* Check consistency */
-  ierr = BVGetActiveColumns(d->AX,&l,&k);CHKERRQ(ierr);
-  if (k-l != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-  for (i=l+d->V_new_s; i<l+d->V_new_e; i++) {
-    ierr = BVGetColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
-    ierr = BVGetColumn(d->AX,i,&v2);CHKERRQ(ierr);
-    ierr = MatMult(d->A,v1,v2);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(d->AX,i,&v2);CHKERRQ(ierr);
-  }
-  ierr = BVSetActiveColumns(d->AX,l,l+d->V_new_e);CHKERRQ(ierr);
-  /* 4. BV <- [BV B * V(V_new_s:V_new_e-1)] */
-  if (d->B) {
+    k = l+d->V_tra_e;
+    l+= d->V_tra_s;
+  } else {
+    /* 2. V <- orth(V, V_new) */
+    ierr = dvd_orthV(d->eps->V,l+d->V_new_s,l+d->V_new_e,d->eps->rand);CHKERRQ(ierr);
+    /* 3. AV <- [AV A * V(V_new_s:V_new_e-1)] */
     /* Check consistency */
-    ierr = BVGetActiveColumns(d->BX,&l,&k);CHKERRQ(ierr);
     if (k-l != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-    for (i=d->V_new_s; i<d->V_new_e; i++) {
+    for (i=l+d->V_new_s; i<l+d->V_new_e; i++) {
       ierr = BVGetColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
-      ierr = BVGetColumn(d->BX,i,&v2);CHKERRQ(ierr);
-      ierr = MatMult(d->B,v1,v2);CHKERRQ(ierr);
+      ierr = BVGetColumn(d->AX,i,&v2);CHKERRQ(ierr);
+      ierr = MatMult(d->A,v1,v2);CHKERRQ(ierr);
       ierr = BVRestoreColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(d->BX,i,&v2);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(d->AX,i,&v2);CHKERRQ(ierr);
     }
-    ierr = BVSetActiveColumns(d->BX,l,l+d->V_new_e);CHKERRQ(ierr);
-  }
-  /* 5. W <- [W f(AV,BV)] */
-  ierr = dvd_calcpairs_updateW1(d);CHKERRQ(ierr);
-  ierr = BVMatProject(d->AX,NULL,d->W?d->W:d->eps->V,d->H);CHKERRQ(ierr);
-  if (d->G) {ierr = BVMatProject(d->BX?d->BX:d->eps->V,NULL,d->W?d->W:d->eps->V,d->G);CHKERRQ(ierr);}
+    /* 4. BV <- [BV B * V(V_new_s:V_new_e-1)] */
+    if (d->BX) {
+      /* Check consistency */
+      if (k-l != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
+      for (i=d->V_new_s; i<d->V_new_e; i++) {
+        ierr = BVGetColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
+        ierr = BVGetColumn(d->BX,i,&v2);CHKERRQ(ierr);
+        ierr = MatMult(d->B,v1,v2);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(d->BX,i,&v2);CHKERRQ(ierr);
+      }
+    }
+    /* 5. W <- [W f(AV,BV)] */
+    if (d->W) {
+      ierr = d->calcpairs_W(d);CHKERRQ(ierr);
+      ierr = dvd_orthV(d->W,l+d->V_new_s,l+d->V_new_e,d->eps->rand);CHKERRQ(ierr);
+    }
+    /* 6. H <- W' * AX; G <- W' * BX */
+    ierr = BVSetActiveColumns(d->eps->V,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(d->AX,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
+    if (d->BX) {ierr = BVSetActiveColumns(d->BX,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);}
+    if (d->W) {ierr = BVSetActiveColumns(d->W,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);}
+    ierr = BVMatProject(d->AX,NULL,d->W?d->W:d->eps->V,d->H);CHKERRQ(ierr);
+    if (d->G) {ierr = BVMatProject(d->BX?d->BX:d->eps->V,NULL,d->W?d->W:d->eps->V,d->G);CHKERRQ(ierr);}
+    ierr = BVSetActiveColumns(d->eps->V,l,k);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(d->AX,l,k);CHKERRQ(ierr);
+    if (d->BX) {ierr = BVSetActiveColumns(d->BX,l,k);CHKERRQ(ierr);}
+    if (d->W) {ierr = BVSetActiveColumns(d->W,l,k);CHKERRQ(ierr);}
 
-  /* Perform the transformation on the projected problem */
-  if (d->calcpairs_proj_trans) {
-    ierr = d->calcpairs_proj_trans(d);CHKERRQ(ierr);
+    /* Perform the transformation on the projected problem */
+    if (d->W) {
+      ierr = d->calcpairs_proj_trans(d);CHKERRQ(ierr);
+    }
+    k = l+d->V_new_e;
   }
+  ierr = BVSetActiveColumns(d->eps->V,l,k);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->AX,l,k);CHKERRQ(ierr);
+  if (d->BX) {ierr = BVSetActiveColumns(d->BX,l,k);CHKERRQ(ierr);}
+  if (d->W) {ierr = BVSetActiveColumns(d->W,l,k);CHKERRQ(ierr);}
+
 
   /* Solve the projected problem */
   ierr = dvd_calcpairs_projeig_solve(d);CHKERRQ(ierr);
 
   d->V_tra_s = d->V_tra_e = 0;
   d->V_new_s = d->V_new_e;
-
-  /* Check consistency */
-  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
-  ierr = BVGetActiveColumns(d->AX,&lax,&kax);CHKERRQ(ierr);
-  if (d->BX) { ierr = BVGetActiveColumns(d->BX,&lbx,&kbx);CHKERRQ(ierr); }
-  if (d->W) { ierr = BVGetActiveColumns(d->W,&lw,&kw);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
 /**** Basic routines **********************************************************/
-
-#undef __FUNCT__
-#define __FUNCT__ "dvd_calcpairs_updateV1"
-/* auxS: size_cX+V_new_e+1 */
-PetscErrorCode dvd_calcpairs_updateV1(dvdDashboard *d)
-{
-  PetscErrorCode ierr;
-  PetscInt       l,k;
-
-  PetscFunctionBegin;
-  if (d->V_new_s == d->V_new_e) PetscFunctionReturn(0);
-
-  /* Check consistency */
-  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-  if (k-l != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-
-  /* V <- gs([cX V(0:V_new_s-1)], V(V_new_s:V_new_e-1)) */
-  ierr = dvd_orthV(d->eps->V,d->V_new_s,d->V_new_e,d->eps->rand);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(d->eps->V,l,l+d->V_new_e);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "dvd_calcpairs_updateW1"
-/* auxS: size_cX+V_new_e+1 */
-PetscErrorCode dvd_calcpairs_updateW1(dvdDashboard *d)
-{
-  PetscErrorCode ierr;
-  PetscInt       l,k;
-
-  PetscFunctionBegin;
-  if (!d->W || d->V_new_s == d->V_new_e) PetscFunctionReturn(0);
-
-  /* Check consistency */
-  ierr = BVGetActiveColumns(d->W,&l,&k);CHKERRQ(ierr);
-  if (k-l != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-
-  /* Update W */
-  ierr = d->calcpairs_W(d);CHKERRQ(ierr);
-
-  /* W <- gs([cY W(0:V_new_s-1)], W(V_new_s:V_new_e-1)) */
-  ierr = dvd_orthV(d->W,d->V_new_s,d->V_new_e,d->eps->rand);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(d->W,l,l+d->V_new_e);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_updateproj"
@@ -323,23 +282,36 @@ PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   PetscBool       symm;
-  DSType          dstype;
   Mat             Q,Z;
   PetscInt        lV,kV;
 
   PetscFunctionBegin;
   if (d->V_tra_s == 0 && d->V_tra_e == 0) PetscFunctionReturn(0);
-  ierr = DSGetType(d->eps->ds,&dstype);CHKERRQ(ierr);
-  ierr = PetscStrncmp(dstype,DSHEP,30,&symm);CHKERRQ(ierr);
-  if (!symm) {ierr = PetscStrncmp(dstype,DSNHEP,30,&symm);CHKERRQ(ierr);}
   ierr = DSGetMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   if (d->W) {ierr = DSGetMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);}
   else Z = Q;
   ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
-  ierr = EPSXDUpdateProj(Q,Z,lV+d->V_tra_s,lV+d->V_tra_e,d->H,symm,d->auxM);CHKERRQ(ierr);
-  if (d->G) {ierr = EPSXDUpdateProj(Q,Z,lV+d->V_tra_s,lV+d->V_tra_e,d->G,symm,d->auxM);CHKERRQ(ierr);}
+  ierr = EPSXDUpdateProj(Q,Z,0,d->H,lV,lV+d->V_tra_e,d->auxM);CHKERRQ(ierr);
+  if (d->G) {ierr = EPSXDUpdateProj(Q,Z,0,d->G,lV,lV+d->V_tra_e,d->auxM);CHKERRQ(ierr);}
   ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   if (d->W) {ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);}
+
+  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSHEP,"");CHKERRQ(ierr);
+  if (d->V_tra_s==0 || symm) PetscFunctionReturn(0);
+  //PetscFunctionReturn(0); //TEMP!!!!
+  /* Compute upper part of H(G): H(0:l-1,l:k-1) <- W(0:l-1)' * AV(l:k-1), where
+     k=l+d->V_tra_s */
+  ierr = BVSetActiveColumns(d->W?d->W:d->eps->V,0,lV);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->AX,lV,lV+d->V_tra_s);CHKERRQ(ierr);
+  ierr = BVMatProject(d->AX,NULL,d->W?d->W:d->eps->V,d->H);CHKERRQ(ierr);
+  if (d->G) {
+    ierr = BVSetActiveColumns(d->BX?d->BX:d->eps->V,lV,lV+d->V_tra_s);CHKERRQ(ierr);
+    ierr = BVMatProject(d->BX?d->BX:d->eps->V,NULL,d->W?d->W:d->eps->V,d->G);CHKERRQ(ierr);
+  }
+  ierr = BVSetActiveColumns(d->eps->V,lV,kV);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->AX,lV,kV);CHKERRQ(ierr);
+  if (d->BX) {ierr = BVSetActiveColumns(d->BX,lV,kV);CHKERRQ(ierr);}
+  if (d->W) {ierr = BVSetActiveColumns(d->W,lV,kV);CHKERRQ(ierr);}
   PetscFunctionReturn(0);
 }
 
@@ -359,11 +331,11 @@ PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
   n = kV-lV;
   ierr = DSSetDimensions(d->eps->ds,n,0,0,0);CHKERRQ(ierr);
   ierr = DSGetMat(d->eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = SlepcMatDenseCopy(A,0,0,d->H,lV,lV,n,n);CHKERRQ(ierr);
+  ierr = SlepcMatDenseCopy(d->H,lV,lV,A,0,0,n,n);CHKERRQ(ierr);
   ierr = DSRestoreMat(d->eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
   if (d->G) {
     ierr = DSGetMat(d->eps->ds,DS_MAT_B,&A);CHKERRQ(ierr);
-    ierr = SlepcMatDenseCopy(A,0,0,d->G,lV,lV,n,n);CHKERRQ(ierr);
+    ierr = SlepcMatDenseCopy(d->G,lV,lV,A,0,0,n,n);CHKERRQ(ierr);
     ierr = DSRestoreMat(d->eps->ds,DS_MAT_B,&A);CHKERRQ(ierr);
   }
   /* Set the signature on projected matrix B */
@@ -724,46 +696,68 @@ PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e
 PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,BV bv,DSMatType mat)
 {
   PetscErrorCode  ierr;
-  PetscInt        ld,l,k;
-  Mat             MT;
+  PetscInt        l,k;
+  Mat             MT,auxM;
 
   PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(d->eps->ds,&ld);CHKERRQ(ierr);
-  ierr = BVGetActiveColumns(bv,&l,&k);CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
   ierr = DSGetMat(d->eps->ds,mat,&MT);CHKERRQ(ierr);
-  ierr = BVMultInPlace(bv,MT,l+d->V_tra_s,l+d->V_tra_e);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(bv,l+d->V_tra_s,l+d->V_tra_e);CHKERRQ(ierr);
-  ierr = MatDestroy(&MT);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&auxM);CHKERRQ(ierr);
+  ierr = MatZeroEntries(auxM);CHKERRQ(ierr);
+  ierr = SlepcMatDenseCopy(MT,0,0,auxM,l,l,k-l,d->V_tra_e);CHKERRQ(ierr);
+  ierr = DSRestoreMat(d->eps->ds,mat,&MT);CHKERRQ(ierr);
+  ierr = BVMultInPlace(bv,auxM,l,l+d->V_tra_e);CHKERRQ(ierr);
+  ierr = MatDestroy(&auxM);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSXDUpdateProj"
-PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,PetscInt k,Mat A,PetscBool symm,Mat aux)
+/* A(lA:kA-1,lA:kA-1) <- Z(l:k-1)'*A(l:k-1,l:k-1)*Q(l,k-1), where k=l+kA-lA */
+PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,PetscInt kA,Mat aux)
 {
   PetscErrorCode ierr;
   PetscScalar    one=1.0,zero=0.0;
-  PetscInt       ld0;
-  PetscBLASInt   n,ld;
+  PetscInt       dA_=kA-lA,m0,n0,ldA_,ldQ_,ldZ_,nQ_;
+  PetscBLASInt   dA,nQ,ldA,ldQ,ldZ;
   PetscScalar    *pA,*pQ,*pZ,*pW;
+  PetscBool      symm=PETSC_FALSE,set,flg;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(A,&ld0,NULL);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(k-l,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ld0,&ld);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m0,&n0);CHKERRQ(ierr); ldA_=m0;
+  if (m0!=n0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"A should be square");
+  if (lA<0 || lA>m0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial row, column in A");
+  if (kA<0 || kA<lA || kA>m0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid final row, column in A");
+  ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
+  symm = set? flg: PETSC_FALSE;
+  ierr = MatGetSize(Q,&m0,&n0);CHKERRQ(ierr); ldQ_=nQ_=m0;
+  if (l<0 || l>n0 || l+dA_>n0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in Q");
+  ierr = MatGetSize(Z,&m0,&n0);CHKERRQ(ierr); ldZ_=m0;
+  if (l<0 || l>n0 || l+dA_>n0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in Z");
+  ierr = MatGetSize(aux,&m0,&n0);CHKERRQ(ierr);
+  if (m0*n0<nQ_*dA_) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"aux should be larger");
+  ierr = PetscBLASIntCast(dA_,&dA);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(nQ_,&nQ);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ldA_,&ldA);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ldQ_,&ldQ);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ldZ_,&ldZ);CHKERRQ(ierr);
   ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&pQ);CHKERRQ(ierr);
   if (Q!=Z) {ierr = MatDenseGetArray(Z,&pZ);CHKERRQ(ierr);}
   else pZ = pQ;
+#if PETSC_USE_DEBUG
+  /* Avoid valgrind warning in xgemm and xsymm */
+  ierr = MatZeroEntries(aux);CHKERRQ(ierr);
+#endif
   ierr = MatDenseGetArray(aux,&pW);CHKERRQ(ierr);
   /* W = A*Q */
   if (symm) {
-    PetscStackCallBLAS("BLASsymm",BLASsymm_("L","U",&n,&n,&one,&pA[ld*l+l],&ld,&pQ[ld*l+l],&ld,&zero,pW,&ld));
+    PetscStackCallBLAS("BLASsymm",BLASsymm_("L","U",&nQ,&dA,&one,&pA[ldA*lA+lA],&ldA,&pQ[ldQ*l+l],&ldQ,&zero,pW,&nQ));
   } else {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,&pA[ld*l+l],&ld,&pQ[ld*l+l],&ld,&zero,pW,&ld));
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nQ,&dA,&nQ,&one,&pA[ldA*lA+lA],&ldA,&pQ[ldQ*l+l],&ldQ,&zero,pW,&nQ));
   }
   /* A = Q'*W */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&n,&n,&n,&one,&pQ[ld*l+l],&ld,pW,&ld,&zero,&pA[ld*l+l],&ld));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&dA,&dA,&nQ,&one,&pZ[ldZ*l+l],&ldZ,pW,&nQ,&zero,&pA[ldA*lA+lA],&ldA));
   ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&pQ);CHKERRQ(ierr);
   if (Q!=Z) {ierr = MatDenseGetArray(Z,&pZ);CHKERRQ(ierr);}

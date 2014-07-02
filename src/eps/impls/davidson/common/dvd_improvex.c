@@ -168,7 +168,7 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
   Mat             A;
   PetscBool       t;
   PC              pc;
-  Vec             v0;
+  Vec             v0[2];
 
   PetscFunctionBegin;
   data->size_cX = data->old_size_X = 0;
@@ -177,8 +177,10 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
   /* Setup the ksp */
   if (data->ksp) {
     /* Create the reference vector */
-    ierr = BVGetColumn(d->eps->V,0,&v0);CHKERRQ(ierr);
-    ierr = VecCreateCompWithVecs(&v0,0,NULL,&data->friends);CHKERRQ(ierr);
+    ierr = BVGetColumn(d->eps->V,0,&v0[0]);CHKERRQ(ierr);
+    v0[1] = v0[0];
+    ierr = VecCreateCompWithVecs(v0,data->ksp_max_size,NULL,&data->friends);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(d->eps->V,0,&v0[0]);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)d->eps,(PetscObject)data->friends);CHKERRQ(ierr);
 
     /* Save the current pc and set a PCNONE */
@@ -274,7 +276,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pet
   PetscInt        i,j,n,maxits,maxits0,lits,s,ld,k,max_size_D,lV,kV;
   PetscScalar     *pX,*pY,*auxS = d->auxS,*auxS0;
   PetscReal       tol,tol0;
-  Vec             *kr,kr_comp,D_comp,D[2];
+  Vec             *kr,kr_comp,D_comp,D[2],kr0[2];
   PetscBool       odd_situation = PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -323,7 +325,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pet
     /* Compute u, v and kr */
     k = r_s+i;
     ierr = DSVectors(d->eps->ds,DS_MAT_X,&k,NULL);CHKERRQ(ierr);
-    ierr = DSNormalize(d->eps->ds,DS_MAT_X,r_s+i+d);CHKERRQ(ierr);
+    ierr = DSNormalize(d->eps->ds,DS_MAT_X,r_s+i);CHKERRQ(ierr);
     k = r_s+i;
     ierr = DSVectors(d->eps->ds,DS_MAT_Y,&k,NULL);CHKERRQ(ierr);
     ierr = DSNormalize(d->eps->ds,DS_MAT_Y,r_s+i);CHKERRQ(ierr);
@@ -355,11 +357,14 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pet
       }
 
       /* Compose kr and D */
-      ierr = VecCreateCompWithVecs(kr,data->ksp_max_size,data->friends,&kr_comp);CHKERRQ(ierr);
+      ierr = VecCompSetSubVecs(data->friends,s,NULL);CHKERRQ(ierr);
+      kr0[0] = kr[0];
+      kr0[1] = (s==2 ? kr[1] : NULL);
+      ierr = VecCreateCompWithVecs(kr0,data->ksp_max_size,data->friends,&kr_comp);CHKERRQ(ierr);
       ierr = BVGetColumn(d->eps->V,kV+r_s+i,&D[0]);CHKERRQ(ierr);
       if (s==2) { ierr = BVGetColumn(d->eps->V,kV+r_s+i+1,&D[1]);CHKERRQ(ierr); }
+      else D[1] = NULL;
       ierr = VecCreateCompWithVecs(D,data->ksp_max_size,data->friends,&D_comp);CHKERRQ(ierr);
-      ierr = VecCompSetSubVecs(data->friends,s,NULL);CHKERRQ(ierr);
 
       /* Solve the correction equation */
       ierr = KSPSetTolerances(data->ksp,tol,PETSC_DEFAULT,PETSC_DEFAULT,maxits);CHKERRQ(ierr);
@@ -759,6 +764,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
   V_new = lv - data->size_cX;
   if (V_new > data->old_size_X) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
   data->old_size_X = n;
+  data->size_cX = lv;
 
   /* KZ <- KZ(rm:rm+max_cX-1) */
   ierr = BVGetActiveColumns(data->KZ,&lKZ,&kKZ);CHKERRQ(ierr);

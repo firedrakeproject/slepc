@@ -467,7 +467,7 @@ PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
 {
   dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
   PetscErrorCode  ierr;
-  PetscInt        l,k;
+  PetscInt        l,k,i;
   BV              BX = d->BX?d->BX:d->eps->V;
 
   PetscFunctionBegin;
@@ -477,12 +477,17 @@ PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
   }
 
   /* W(i) <- Wa*AV(i) - Wb*BV(i) */
-  ierr = BVGetActiveColumns(d->W,&l,&k);CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
+  if (k != l+d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
   ierr = BVSetActiveColumns(d->W,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(d->AX,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(BX,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
   ierr = BVCopy(d->AX,d->W);CHKERRQ(ierr);
-  ierr = BVScale(d->W,data->Wa);CHKERRQ(ierr);
+  /* Work around bug in BVScale
+  ierr = BVScale(d->W,data->Wa);CHKERRQ(ierr); */
+  for (i=l+d->V_new_s;i<l+d->V_new_e; ++i) {
+    ierr = BVScaleColumn(d->W,i,data->Wa);CHKERRQ(ierr);
+  }
   ierr = BVAXPY(d->W,-data->Wb,BX);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(d->W,l,k);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(d->AX,l,k);CHKERRQ(ierr);
@@ -496,13 +501,15 @@ PetscErrorCode dvd_harm_proj(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
-  PetscInt        i,j,l,k,ld=d->eps->ncv;
+  PetscInt        i,j,l,k,ld;
   PetscScalar     h,g,*H,*G;
 
   PetscFunctionBegin;
   ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-  if (l+d->V_new_e != k) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
+  if (k != l+d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
+  k = l + d->V_new_e;
   l += d->V_new_s;
+  ierr = MatGetSize(d->H,&ld,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(d->H,&H);CHKERRQ(ierr);
   ierr = MatDenseGetArray(d->G,&G);CHKERRQ(ierr);
   /* [H G] <- [Pa*H - Pb*G, Wa*H - Wb*G] */

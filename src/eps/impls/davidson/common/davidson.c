@@ -617,33 +617,30 @@ PetscErrorCode EPSComputeVectors_XD(EPS eps)
   PetscErrorCode ierr;
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *d = &data->ddb;
-  PetscScalar    *cS,*cT;
-  PetscInt       ld;
-  Mat            Z;
+  Mat            A,X;
+  PetscBool      symm;
 
   PetscFunctionBegin;
-  //if (d->cS) {
-  //  /* Compute the eigenvectors associated to (cS, cT) */
-  //  ierr = DSSetDimensions(d->conv_ps,d->size_cS,0,0,0);CHKERRQ(ierr);
-  //  ierr = DSGetLeadingDimension(d->conv_ps,&ld);CHKERRQ(ierr);
-  //  ierr = DSGetArray(d->conv_ps,DS_MAT_A,&cS);CHKERRQ(ierr);
-  //  ierr = SlepcDenseCopyTriang(cS,0,ld,d->cS,0,d->ldcS,d->size_cS,d->size_cS);CHKERRQ(ierr);
-  //  ierr = DSRestoreArray(d->conv_ps,DS_MAT_A,&cS);CHKERRQ(ierr);
-  //  if (d->cT) {
-  //    ierr = DSGetArray(d->conv_ps,DS_MAT_B,&cT);CHKERRQ(ierr);
-  //    ierr = SlepcDenseCopyTriang(cT,0,ld,d->cT,0,d->ldcT,d->size_cS,d->size_cS);CHKERRQ(ierr);
-  //    ierr = DSRestoreArray(d->conv_ps,DS_MAT_B,&cT);CHKERRQ(ierr);
-  //  }
-  //  ierr = DSSetState(d->conv_ps,DS_STATE_RAW);CHKERRQ(ierr);
-  //  ierr = DSSolve(d->conv_ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
-  //  ierr = DSVectors(d->conv_ps,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-  //  ierr = DSNormalize(d->conv_ps,DS_MAT_X,-1);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps->ds,&symm,DSHEP,"");CHKERRQ(ierr);
+  if (symm) PetscFunctionReturn(0);
+  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
+  ierr = DSGetMat(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = SlepcMatDenseCopy(d->H,0,0,A,0,0,eps->nconv,eps->nconv);CHKERRQ(ierr);
+  ierr = DSRestoreMat(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  if (d->G) {
+    ierr = DSGetMat(eps->ds,DS_MAT_B,&A);CHKERRQ(ierr);
+    ierr = SlepcMatDenseCopy(d->G,0,0,A,0,0,eps->nconv,eps->nconv);CHKERRQ(ierr);
+    ierr = DSRestoreMat(eps->ds,DS_MAT_B,&A);CHKERRQ(ierr);
+  }
+  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
+  ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSNormalize(eps->ds,DS_MAT_X,-1);CHKERRQ(ierr);
 
-  //  /* V <- V * Z */
-  //  ierr = DSGetMat(d->conv_ps,DS_MAT_X,&Z);CHKERRQ(ierr);
-  //  ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
-  //  ierr = BVMultInPlace(eps->V,Z,0,eps->nconv);CHKERRQ(ierr);
-  //  ierr = MatDestroy(&Z);CHKERRQ(ierr);
-  //}
+  /* V <- V * X */
+  ierr = DSGetMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
+  ierr = BVMultInPlace(eps->V,X,0,eps->nconv);CHKERRQ(ierr);
+  ierr = DSRestoreMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

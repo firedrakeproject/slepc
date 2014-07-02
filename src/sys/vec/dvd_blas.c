@@ -298,13 +298,13 @@ PetscErrorCode SlepcMatDenseCopy(Mat A,PetscInt Ar0,PetscInt Ac0,Mat B,PetscInt 
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr); ldA=m;
   if (Ar0<0 || Ar0>=m) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial row in A");
   if (Ac0<0 || Ac0>=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in A");
-  if (Ar0+rows>=m) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of rows");
-  if (Ac0+cols>=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
+  if (Ar0+rows>m) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of rows");
+  if (Ac0+cols>n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
   ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr); ldB=m;
   if (Br0<0 || Br0>=m) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial row in B");
   if (Bc0<0 || Bc0>=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in B");
-  if (Br0+rows>=m) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of rows");
-  if (Bc0+cols>=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
+  if (Br0+rows>m) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of rows");
+  if (Bc0+cols>n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
   ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&pB);CHKERRQ(ierr);
   ierr = SlepcDenseCopy(&pB[ldB*Bc0+Br0],ldB,&pA[ldA*Ac0+Ar0],ldA,rows,cols);CHKERRQ(ierr);
