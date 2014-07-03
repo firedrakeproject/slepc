@@ -357,7 +357,6 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pet
       }
 
       /* Compose kr and D */
-      ierr = VecCompSetSubVecs(data->friends,s,NULL);CHKERRQ(ierr);
       kr0[0] = kr[0];
       kr0[1] = (s==2 ? kr[1] : NULL);
       ierr = VecCreateCompWithVecs(kr0,data->ksp_max_size,data->friends,&kr_comp);CHKERRQ(ierr);
@@ -365,6 +364,7 @@ PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pet
       if (s==2) { ierr = BVGetColumn(d->eps->V,kV+r_s+i+1,&D[1]);CHKERRQ(ierr); }
       else D[1] = NULL;
       ierr = VecCreateCompWithVecs(D,data->ksp_max_size,data->friends,&D_comp);CHKERRQ(ierr);
+      ierr = VecCompSetSubVecs(data->friends,s,NULL);CHKERRQ(ierr);
 
       /* Solve the correction equation */
       ierr = KSPSetTolerances(data->ksp,tol,PETSC_DEFAULT,PETSC_DEFAULT,maxits);CHKERRQ(ierr);
