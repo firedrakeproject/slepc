@@ -455,7 +455,7 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   PetscInt       i,j,m,n,lx,ly,kx,ky,ulim;
   PetscScalar    *marray,*harray;
   Vec            z,f;
-  Mat            matrix,H;
+  Mat            Xmatrix,Ymatrix,H;
   PetscObjectId  idx,idy;
 
   PetscFunctionBegin;
@@ -482,8 +482,10 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
 
   ierr = PetscLogEventBegin(BV_MatProject,X,A,Y,0);CHKERRQ(ierr);
-  matrix = X->matrix;
-  X->matrix = NULL;  /* temporarily set standard inner product */
+  /* temporarily set standard inner product */
+  Xmatrix = X->matrix;
+  Ymatrix = Y->matrix;
+  X->matrix = Y->matrix = NULL;
 
   ierr = PetscObjectGetId((PetscObject)X,&idx);CHKERRQ(ierr);
   ierr = PetscObjectGetId((PetscObject)Y,&idy);CHKERRQ(ierr);
@@ -565,7 +567,9 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   Y->l = ly; Y->k = ky;
   ierr = MatDenseRestoreArray(M,&marray);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_MatProject,X,A,Y,0);CHKERRQ(ierr);
-  X->matrix = matrix;  /* restore non-standard inner product */
+  /* restore non-standard inner product */
+  X->matrix = Xmatrix;
+  Y->matrix = Ymatrix;
   PetscFunctionReturn(0);
 }
 
