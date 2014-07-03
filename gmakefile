@@ -6,21 +6,49 @@ OBJDIR := $(PETSC_ARCH)/obj
 MODDIR := $(PETSC_ARCH)/include
 LIBDIR := $(abspath $(PETSC_ARCH)/lib)
 
-pkgs := sys vec ip ds fn st eps svd qep pep nep mfn
+pkgs := sys eps svd pep nep mfn
 
-libslepc_shared := $(LIBDIR)/libslepc.$(SL_LINKER_SUFFIX)
-libslepc_static := $(LIBDIR)/libslepc.$(AR_LIB_SUFFIX)
-libslepcpkgs_shared := $(foreach pkg, $(pkgs), $(LIBDIR)/libslepc$(pkg).$(SL_LINKER_SUFFIX))
-libslepcpkgs_static := $(foreach pkg, $(pkgs), $(LIBDIR)/libslepc$(pkg).$(AR_LIB_SUFFIX))
+# $(call SONAME_FUNCTION,libfoo,abiversion)
+SONAME_FUNCTION ?= $(1).$(SL_LINKER_SUFFIX).$(2)
+# $(call SL_LINKER_FUNCTION,libfoo,abiversion,libversion)
+SL_LINKER_FUNCTION ?= -shared -Wl,-soname,$(call SONAME_FUNCTION,$(notdir $(1)),$(2))
+
+SLEPC_VERSION_MAJOR := $(shell awk '/\#define SLEPC_VERSION_MAJOR/{print $$3;}' ./include/slepcversion.h)
+SLEPC_VERSION_MINOR := $(shell awk '/\#define SLEPC_VERSION_MINOR/{print $$3;}' ./include/slepcversion.h)
+SLEPC_VERSION_SUBMINOR := $(shell awk '/\#define SLEPC_VERSION_SUBMINOR/{print $$3;}' ./include/slepcversion.h)
+SLEPC_VERSION_RELEASE := $(shell awk '/\#define SLEPC_VERSION_RELEASE/{print $$3;}' ./include/slepcversion.h)
+ifeq ($(SLEPC_VERSION_RELEASE),0)
+  SLEPC_VERSION_MINOR := 0$(SLEPC_VERSION_MINOR)
+endif
+
+libslepc_abi_version := $(SLEPC_VERSION_MAJOR).$(SLEPC_VERSION_MINOR)
+libslepc_lib_version := $(libslepc_abi_version).$(SLEPC_VERSION_SUBMINOR)
+soname_function = $(call SONAME_FUNCTION,$(1),$(libslepc_abi_version))
+libname_function = $(call SONAME_FUNCTION,$(1),$(libslepc_lib_version))
+basename_all = $(basename $(basename $(basename $(basename $(1)))))
+sl_linker_args = $(call SL_LINKER_FUNCTION,$(call basename_all,$@),$(libslepc_abi_version),$(libslepc_lib_version))
+
+libslepc_shared  := $(LIBDIR)/libslepc.$(SL_LINKER_SUFFIX)
+libslepc_soname  := $(call soname_function,$(LIBDIR)/libslepc)
+libslepc_libname := $(call libname_function,$(LIBDIR)/libslepc)
+libslepc_static  := $(LIBDIR)/libslepc.$(AR_LIB_SUFFIX)
+libslepcpkgs_shared  := $(foreach pkg, $(pkgs), $(LIBDIR)/libslepc$(pkg).$(SL_LINKER_SUFFIX))
+libslepcpkgs_soname  := $(foreach pkg, $(pkgs), $(call soname_function,$(LIBDIR)/libslepc$(pkg)))
+libslepcpkgs_libname := $(foreach pkg, $(pkgs), $(call libname_function,$(LIBDIR)/libslepc$(pkg)))
+libslepcpkgs_static  := $(foreach pkg, $(pkgs), $(LIBDIR)/libslepc$(pkg).$(AR_LIB_SUFFIX))
 
 ifeq ($(PETSC_WITH_EXTERNAL_LIB),)
-  libslepcall_shared := $(libslepcpkgs_shared)
-  libslepcall_static := $(libslepcpkgs_static)
+  libslepcall_shared  := $(libslepcpkgs_shared)
+  libslepcall_soname  := $(libslepcpkgs_soname)
+  libslepcall_libname := $(libslepcpkgs_libname)
+  libslepcall_static  := $(libslepcpkgs_static)
 else
-  libslepcall_shared := $(libslepc_shared)
-  libslepcall_static := $(libslepc_static)
+  libslepcall_shared  := $(libslepc_shared)
+  libslepcall_soname  := $(libslepc_soname)
+  libslepcall_libname := $(libslepc_libname)
+  libslepcall_static  := $(libslepc_static)
 endif
-libslepcall := $(if $(filter-out no,$(BUILDSHAREDLIB)),$(libslepcall_shared),$(libslepcall_static))
+libslepcall := $(if $(filter-out no,$(BUILDSHAREDLIB)),$(libslepcall_shared) $(libslepcall_soname),$(libslepcall_static))
 
 generated := $(PETSC_ARCH)/conf/files
 
@@ -44,7 +72,7 @@ else				# Show the full command line
 endif
 
 $(PETSC_ARCH)/conf/files :
-	$(PYTHON) conf/gmakegen.py --petsc-arch=$(PETSC_ARCH)
+	$(PYTHON) conf/gmakegen.py --petsc-arch=$(PETSC_ARCH) --installed-petsc=$(INSTALLED_PETSC)
 
 -include $(generated)
 
@@ -54,19 +82,19 @@ else
   cc_name := CC
 endif
 
-PETSC_COMPILE.c = $(call quiet,$(cc_name)) -c $(PCC_FLAGS) $(CFLAGS) $(CCPPFLAGS) $(SLEPC_CC_INCLUDES) $(C_DEPFLAGS)
-PETSC_COMPILE.cxx = $(call quiet,CXX) -c $(PCC_FLAGS) $(CFLAGS) $(CCPPFLAGS) $(SLEPC_CC_INCLUDES) $(CXX_DEPFLAGS)
-PETSC_COMPILE.cu = $(call quiet,CUDAC) -c $(CUDAC_FLAGS) --compiler-options="$(PCC_FLAGS) $(CXXFLAGS) $(CCPPFLAGS)"
-PETSC_GENDEPS.cu = $(call quiet,CUDAC,.dep) --generate-dependencies $(CUDAC_FLAGS) --compiler-options="$(PCC_FLAGS) $(CXXFLAGS) $(CCPPFLAGS)"
-PETSC_COMPILE.F = $(call quiet,FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS)
+SLEPC_COMPILE.c = $(call quiet,$(cc_name)) -c $(PCC_FLAGS) $(CFLAGS) $(CCPPFLAGS) $(SLEPC_CC_INCLUDES) $(C_DEPFLAGS)
+SLEPC_COMPILE.cxx = $(call quiet,CXX) -c $(CXX_FLAGS) $(CFLAGS) $(CCPPFLAGS) $(SLEPC_CC_INCLUDES) $(CXX_DEPFLAGS)
+SLEPC_COMPILE.cu = $(call quiet,CUDAC) -c $(CUDAC_FLAGS) --compiler-options="$(PCC_FLAGS) $(CXXFLAGS) $(CCPPFLAGS)"
+SLEPC_GENDEPS.cu = $(call quiet,CUDAC,.dep) --generate-dependencies $(CUDAC_FLAGS) --compiler-options="$(PCC_FLAGS) $(CXXFLAGS) $(CCPPFLAGS)"
+SLEPC_COMPILE.F = $(call quiet,FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS)
 
 langs := c cu cxx F
 concatlang = $(foreach lang, $(langs), $(srcs-$(1).$(lang):%.$(lang)=$(OBJDIR)/%.o))
 srcs.o := $(foreach pkg, $(pkgs), $(call concatlang,$(pkg)))
 
 # with-single-library=1 (default)
-$(libslepc_shared) : $(srcs.o) | $$(@D)/.DIR
-	$(call quiet,CLINKER) -shared -o $@ $^ $(SLEPC_EXTERNAL_LIB) $(PETSC_KSP_LIB)
+$(libslepc_libname) : $(srcs.o) | $$(@D)/.DIR
+	$(call quiet,CLINKER) $(sl_linker_args) -o $@ $^ $(SLEPC_EXTERNAL_LIB) $(PETSC_KSP_LIB)
 ifneq ($(DSYMUTIL),true)
 	$(call quiet,DSYMUTIL) $@
 endif
@@ -91,41 +119,16 @@ endef
 
 # with-single-library=0
 libpkg = $(foreach pkg, $1, $(LIBDIR)/libslepc$(pkg).$(SL_LINKER_SUFFIX))
-$(LIBDIR)/libslepcsys.$(SL_LINKER_SUFFIX)  : obj    := $(call concatlang,sys)
-$(LIBDIR)/libslepcvec.$(SL_LINKER_SUFFIX)  : obj    := $(call concatlang,vec)
-$(LIBDIR)/libslepcvec.$(SL_LINKER_SUFFIX)  : libdep := $(call libpkg,sys)
-$(LIBDIR)/libslepcip.$(SL_LINKER_SUFFIX)   : obj    := $(call concatlang,ip)
-$(LIBDIR)/libslepcip.$(SL_LINKER_SUFFIX)   : libdep := $(call libpkg,sys)
-$(LIBDIR)/libslepcds.$(SL_LINKER_SUFFIX)   : obj    := $(call concatlang,ds)
-$(LIBDIR)/libslepcds.$(SL_LINKER_SUFFIX)   : libdep := $(call libpkg,sys)
-$(LIBDIR)/libslepcfn.$(SL_LINKER_SUFFIX)   : obj    := $(call concatlang,fn)
-$(LIBDIR)/libslepcfn.$(SL_LINKER_SUFFIX)   : libdep := $(call libpkg,sys)
-$(LIBDIR)/libslepcst.$(SL_LINKER_SUFFIX)   : obj    := $(call concatlang,st)
-$(LIBDIR)/libslepcst.$(SL_LINKER_SUFFIX)   : libdep := $(call libpkg,ip sys)
-$(LIBDIR)/libslepceps.$(SL_LINKER_SUFFIX)  : obj    := $(call concatlang,eps)
-$(LIBDIR)/libslepceps.$(SL_LINKER_SUFFIX)  : libdep := $(call libpkg,ip ds st vec sys)
-$(LIBDIR)/libslepcsvd.$(SL_LINKER_SUFFIX)  : obj    := $(call concatlang,svd)
-$(LIBDIR)/libslepcsvd.$(SL_LINKER_SUFFIX)  : libdep := $(call libpkg,eps ip ds sys)
-$(LIBDIR)/libslepcqep.$(SL_LINKER_SUFFIX)  : obj    := $(call concatlang,qep)
-$(LIBDIR)/libslepcqep.$(SL_LINKER_SUFFIX)  : libdep := $(call libpkg,eps st ip ds sys)
-$(LIBDIR)/libslepcpep.$(SL_LINKER_SUFFIX)  : obj    := $(call concatlang,pep)
-$(LIBDIR)/libslepcpep.$(SL_LINKER_SUFFIX)  : libdep := $(call libpkg,eps st ip ds sys)
-$(LIBDIR)/libslepcnep.$(SL_LINKER_SUFFIX)  : obj    := $(call concatlang,nep)
-$(LIBDIR)/libslepcnep.$(SL_LINKER_SUFFIX)  : libdep := $(call libpkg,eps ip ds fn sys)
-$(LIBDIR)/libslepcmfn.$(SL_LINKER_SUFFIX)  : obj    := $(call concatlang,mfn)
-$(LIBDIR)/libslepcmfn.$(SL_LINKER_SUFFIX)  : libdep := $(call libpkg,ip ds fn sys)
-$(LIBDIR)/libslepcsys.$(AR_LIB_SUFFIX)  : $(call concatlang,sys)
-$(LIBDIR)/libslepcvec.$(AR_LIB_SUFFIX)  : $(call concatlang,vec)
-$(LIBDIR)/libslepcip.$(AR_LIB_SUFFIX)   : $(call concatlang,ip)
-$(LIBDIR)/libslepcds.$(AR_LIB_SUFFIX)   : $(call concatlang,ds)
-$(LIBDIR)/libslepcfn.$(AR_LIB_SUFFIX)   : $(call concatlang,fn)
-$(LIBDIR)/libslepcst.$(AR_LIB_SUFFIX)   : $(call concatlang,st)
-$(LIBDIR)/libslepceps.$(AR_LIB_SUFFIX)  : $(call concatlang,eps)
-$(LIBDIR)/libslepcsvd.$(AR_LIB_SUFFIX)  : $(call concatlang,svd)
-$(LIBDIR)/libslepcqep.$(AR_LIB_SUFFIX)  : $(call concatlang,qep)
-$(LIBDIR)/libslepcpep.$(AR_LIB_SUFFIX)  : $(call concatlang,pep)
-$(LIBDIR)/libslepcnep.$(AR_LIB_SUFFIX)  : $(call concatlang,nep)
-$(LIBDIR)/libslepcmfn.$(AR_LIB_SUFFIX)  : $(call concatlang,mfn)
+define pkg_template
+  $(LIBDIR)/libslepc$(1).$(AR_LIB_SUFFIX)  : $(call concatlang,$(1))
+  $(call libname_function,$(LIBDIR)/libslepc$(1)) : $(call concatlang,$(1))
+endef
+$(foreach pkg,$(pkgs),$(eval $(call pkg_template,$(pkg))))
+$(call libname_function,$(LIBDIR)/libslepceps) : libdep := $(call libpkg,sys)
+$(call libname_function,$(LIBDIR)/libslepcsvd) : libdep := $(call libpkg,eps sys)
+$(call libname_function,$(LIBDIR)/libslepcpep) : libdep := $(call libpkg,eps sys)
+$(call libname_function,$(LIBDIR)/libslepcnep) : libdep := $(call libpkg,eps sys)
+$(call libname_function,$(LIBDIR)/libslepcmfn) : libdep := $(call libpkg,sys)
 
 # The package libraries technically depend on each other (not just in an order-only way), but only
 # ABI changes like new or removed symbols requires relinking the dependent libraries.  ABI should
@@ -138,40 +141,41 @@ else
   libdep_true =
   libdep_order = $$(libdep)
 endif
-$(libslepcpkgs_shared) : $$(obj) $(libdep_true) | $(libdep_order) $$(@D)/.DIR
-	$(call quiet,CLINKER) -shared -o $@ $(obj) $(libdep) $(SLEPC_EXTERNAL_LIB)
+$(libslepcpkgs_libname) : $(libdep_true) | $(libdep_order) $$(@D)/.DIR
+	$(call quiet,CLINKER) $(sl_linker_args) -o $@ $^ $(SLEPC_EXTERNAL_LIB)
 ifneq ($(DSYMUTIL),true)
 	$(call quiet,DSYMUTIL) $@
 endif
 
+%.$(SL_LINKER_SUFFIX) : $(call libname_function,%)
+	@ln -sf $(notdir $<) $@
+
+$(call soname_function,%) : $(call libname_function,%)
+	@ln -sf $(notdir $<) $@
+
 $(OBJDIR)/%.o : %.c | $$(@D)/.DIR
-	$(PETSC_COMPILE.c) $< -o $@
+	$(SLEPC_COMPILE.c) $(abspath $<) -o $@
 
 $(OBJDIR)/%.o : %.cxx | $$(@D)/.DIR
-	$(PETSC_COMPILE.cxx) $< -o $@
+	$(SLEPC_COMPILE.cxx) $(abspath $<) -o $@
 
 $(OBJDIR)/%.o : %.cu | $$(@D)/.DIR
-	$(PETSC_COMPILE.cu) $< -o $@ # Compile first so that if there is an error, it comes from a normal compile
-	@$(PETSC_GENDEPS.cu) $< -o $(@:%.o=%.d) # Generate the dependencies for later
+	$(SLEPC_COMPILE.cu) $(abspath $<) -o $@ # Compile first so that if there is an error, it comes from a normal compile
+	@$(SLEPC_GENDEPS.cu) $(abspath $<) -o $(@:%.o=%.d) # Generate the dependencies for later
 
 $(OBJDIR)/%.o : %.F | $$(@D)/.DIR
 ifeq ($(FC_MODULE_OUTPUT_FLAG),)
-	cd $(MODDIR) && $(FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS) ../../$< -o ../../$@
+	cd $(MODDIR) && $(FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS) $(abspath $<) -o $(abspath $@)
 else
-	$(PETSC_COMPILE.F) $< -o $@ $(FC_MODULE_OUTPUT_FLAG)$(MODDIR)
+	$(SLEPC_COMPILE.F) $(abspath $<) -o $@ $(FC_MODULE_OUTPUT_FLAG)$(MODDIR)
 endif
 
 # Hack: manual dependencies on object files
-#ifeq ($(MPI_IS_MPIUNI),1)
-#  MPIUNI_MOD := $(MODDIR)/mpi.mod
-#endif
-#$(OBJDIR)/src/sys/f90-mod/petscsysmod.o   : $(if $(MPIUNI_MOD),$(OBJDIR)/src/sys/mpiuni/f90-mod/mpiunimod.o)
-#$(OBJDIR)/src/vec/f90-mod/petscvecmod.o   : $(OBJDIR)/src/sys/f90-mod/petscsysmod.o
-#$(OBJDIR)/src/mat/f90-mod/petscmatmod.o   : $(OBJDIR)/src/vec/f90-mod/petscvecmod.o
-#$(OBJDIR)/src/dm/f90-mod/petscdmmod.o     : $(OBJDIR)/src/mat/f90-mod/petscmatmod.o
-#$(OBJDIR)/src/ksp/f90-mod/petsckspmod.o   : $(OBJDIR)/src/dm/f90-mod/petscdmmod.o
-#$(OBJDIR)/src/snes/f90-mod/petscsnesmod.o : $(OBJDIR)/src/ksp/f90-mod/petsckspmod.o
-#$(OBJDIR)/src/ts/f90-mod/petsctsmod.o     : $(OBJDIR)/src/snes/f90-mod/petscsnesmod.o
+$(OBJDIR)/src/mfn/f90-mod/slepcmfnmod.o   : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
+$(OBJDIR)/src/eps/f90-mod/slepcepsmod.o   : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
+$(OBJDIR)/src/pep/f90-mod/slepcpepmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
+$(OBJDIR)/src/nep/f90-mod/slepcnepmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
+$(OBJDIR)/src/svd/f90-mod/slepcsvdmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
 
 %/.DIR :
 	@mkdir -p $(@D)

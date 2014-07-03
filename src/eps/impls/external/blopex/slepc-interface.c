@@ -22,16 +22,18 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
+#include <slepcbv.h>
 #include <petscvec.h>
 #include <stdlib.h>
 #include <blopex_interpreter.h>
 #include <blopex_temp_multivector.h>
 #include "slepc-interface.h"
 
-static void* mv_TempMultiVectorCreateFromPETScVector(void* ii_,BlopexInt n,void* sample)
+static void* mv_TempMultiVectorCreateFromBV(void* ii_,BlopexInt n,void* sample)
 {
   int i;
-  Vec *vecs = (Vec*)sample;
+  BV  bv = (BV)sample;
+  Vec v;
 
   mv_TempMultiVector* x;
   mv_InterfaceInterpreter* ii = (mv_InterfaceInterpreter*)ii_;
@@ -50,7 +52,10 @@ static void* mv_TempMultiVectorCreateFromPETScVector(void* ii_,BlopexInt n,void*
   x->ownsMask = 0;
 
   for (i=0;i<n;i++) {
-    x->vector[i] = (void*)vecs[i];
+    BVGetColumn(bv,i,&v);
+    PetscObjectReference((PetscObject)v);
+    x->vector[i] = (void*)v;
+    BVRestoreColumn(bv,i,&v);
   }
   return x;
 }
@@ -74,7 +79,7 @@ static void mv_TempMultiPETSCVectorDestroy(void* x_)
 int SLEPCSetupInterpreter(mv_InterfaceInterpreter *i)
 {
   PETSCSetupInterpreter(i);
-  i->CreateMultiVector = mv_TempMultiVectorCreateFromPETScVector;
+  i->CreateMultiVector = mv_TempMultiVectorCreateFromBV;
 
   return 0;
 }

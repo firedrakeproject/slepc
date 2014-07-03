@@ -22,7 +22,7 @@
 ALL: lib
 
 SOURCEH  = ../../include/slepc-private/nepimpl.h ../../include/slepcnep.h
-DIRS     = interface impls examples
+DIRS     = interface impls examples f90-mod
 LOCDIR   = src/nep/
 MANSEC   = NEP
 

@@ -22,21 +22,6 @@
 */
 
 #include <slepc-private/pepimpl.h>       /*I "slepcpep.h" I*/
-#include <slepc-private/ipimpl.h>
-
-#undef __FUNCT__
-#define __FUNCT__ "EvaluateBasis_PEP"
-/*
-  Gateway to call PEPEvaluateBasis from ST
-*/
-PetscErrorCode EvaluateBasis_PEP(PetscObject obj,PetscScalar sigma,PetscScalar *vals)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PEPEvaluateBasis((PEP)obj,sigma,0,vals,NULL);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetUp"
@@ -62,18 +47,19 @@ PetscErrorCode PEPSetUp(PEP pep)
 {
   PetscErrorCode ierr;
   PetscBool      islinear,flg;
+  PetscInt       i,k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (pep->setupcalled) PetscFunctionReturn(0);
+  if (pep->state) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(PEP_SetUp,pep,0,0,0);CHKERRQ(ierr);
 
   /* reset the convergence flag from the previous solves */
   pep->reason = PEP_CONVERGED_ITERATING;
 
-  /* Set default solver type (PEPSetFromOptions was not called) */
+  /* set default solver type (PEPSetFromOptions was not called) */
   if (!((PetscObject)pep)->type_name) {
-    ierr = PEPSetType(pep,PEPLINEAR);CHKERRQ(ierr);
+    ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
   }
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
@@ -82,35 +68,35 @@ PetscErrorCode PEPSetUp(PEP pep)
       ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
     }
   }
-  if (!pep->ip) { ierr = PEPGetIP(pep,&pep->ip);CHKERRQ(ierr); }
-  if (!((PetscObject)pep->ip)->type_name) {
-    ierr = IPSetType_Default(pep->ip);CHKERRQ(ierr);
-  }
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSReset(pep->ds);CHKERRQ(ierr);
   if (!((PetscObject)pep->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(pep->rand);CHKERRQ(ierr);
   }
 
-  /* Check matrices, transfer them to ST */
+  /* check matrices, transfer them to ST */
   if (!pep->A) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"PEPSetOperators must be called first");
-  if (!islinear) {
-    ierr = STSetOperators(pep->st,pep->nmat,pep->A);CHKERRQ(ierr);
-  }
+  ierr = STSetOperators(pep->st,pep->nmat,pep->A);CHKERRQ(ierr);
 
-  /* Set problem dimensions */
+  /* set problem dimensions */
   ierr = MatGetSize(pep->A[0],&pep->n,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(pep->A[0],&pep->nloc,NULL);CHKERRQ(ierr);
-  ierr = VecDestroy(&pep->t);CHKERRQ(ierr);
-  ierr = SlepcMatGetVecsTemplate(pep->A[0],&pep->t,NULL);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->t);CHKERRQ(ierr);
 
-  /* Set default problem type */
+  /* set default problem type */
   if (!pep->problem_type) {
     ierr = PEPSetProblemType(pep,PEP_GENERAL);CHKERRQ(ierr);
   }
 
-  /* Call specific solver setup */
+  /* initialization of matrix norms */
+  if (pep->conv==PEP_CONV_NORM) {
+    for (i=0;i<pep->nmat;i++) {
+      if (!pep->nrma[i]) {
+        ierr = MatNorm(pep->A[i],NORM_INFINITY,&pep->nrma[i]);CHKERRQ(ierr);
+      }
+    }
+  }
+
+  /* call specific solver setup */
   ierr = (*pep->ops->setup)(pep);CHKERRQ(ierr);
 
   /* set tolerance if not yet set */
@@ -159,48 +145,46 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (pep->ncv > pep->n) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be the problem size at most");
   if (pep->nev > pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
 
-  /* Setup ST */
+  /* setup ST */
   if (!islinear) {
     ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
     if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in PEP");
-    ierr = STSetEvaluateCoeffs(pep->st,EvaluateBasis_PEP,(PetscObject)pep);CHKERRQ(ierr);
     ierr = STSetUp(pep->st);CHKERRQ(ierr);
-    /* Compute scaling factor if not set by user */
+    /* compute matrix coefficients */
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-    if (!pep->sfactor_set && flg) {
-      ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
+    if (!flg) {
+      ierr = STComputeSolveMat(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr);
+    } else {
+      if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Cannot use ST-transform with non-monomial basis in PEP");
     }
   }
 
- /* Build balancing matrix if required */
-  if (pep->balance) {
+  /* compute scale factor if no set by user */
+  ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
+
+  /* build balancing matrix if required */
+  if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) {
     if (!pep->Dl) {
-      ierr = VecDuplicate(pep->V[0],&pep->Dl);CHKERRQ(ierr);
+      ierr = BVGetVec(pep->V,&pep->Dl);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dl);CHKERRQ(ierr);
     }
     if (!pep->Dr) {
-      ierr = VecDuplicate(pep->V[0],&pep->Dr);CHKERRQ(ierr);
+      ierr = BVGetVec(pep->V,&pep->Dr);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dr);CHKERRQ(ierr);
     }
-    ierr = PEPBuildBalance(pep);CHKERRQ(ierr);
+    ierr = PEPBuildDiagonalScaling(pep);CHKERRQ(ierr);
   }
 
   /* process initial vectors */
   if (pep->nini<0) {
-    pep->nini = -pep->nini;
-    if (pep->nini>pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The number of initial vectors is larger than ncv");
-    ierr = IPOrthonormalizeBasis_Private(pep->ip,&pep->nini,&pep->IS,pep->V);CHKERRQ(ierr);
-  }
-  if (pep->ninil<0) {
-    if (!pep->leftvecs) { ierr = PetscInfo(pep,"Ignoring initial left vectors\n");CHKERRQ(ierr); }
-    else {
-      pep->ninil = -pep->ninil;
-      if (pep->ninil>pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The number of initial left vectors is larger than ncv");
-      ierr = IPOrthonormalizeBasis_Private(pep->ip,&pep->ninil,&pep->ISL,pep->W);CHKERRQ(ierr);
-    }
+    k = -pep->nini;
+    if (k>pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The number of initial vectors is larger than ncv");
+    ierr = BVInsertVecs(pep->V,0,&k,pep->IS,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);
+    pep->nini = k;
   }
   ierr = PetscLogEventEnd(PEP_SetUp,pep,0,0,0);CHKERRQ(ierr);
-  pep->setupcalled = 1;
+  pep->state = PEP_STATE_SETUP;
   PetscFunctionReturn(0);
 }
 
@@ -213,37 +197,36 @@ PetscErrorCode PEPSetUp(PEP pep)
    Collective on PEP and Mat
 
    Input Parameters:
-+  pep - the eigenproblem solver context
-.  n  - number of matrices in array A
--  A  - the array of matrices associated with the eigenproblem
++  pep  - the eigenproblem solver context
+.  nmat - number of matrices in array A
+-  A    - the array of matrices associated with the eigenproblem
 
    Notes:
    The polynomial eigenproblem is defined as P(l)*x=0, where l is
    the eigenvalue, x is the eigenvector, and P(l) is defined as
-   P(l) = A_0 + l*A_1 + ... + l^d*A_d, with d=n-1 (the degree of P).
+   P(l) = A_0 + l*A_1 + ... + l^d*A_d, with d=nmat-1 (the degree of P).
+   For non-monomial bases, this expression is different.
 
    Level: beginner
 
-.seealso: PEPSolve(), PEPGetOperators(), PEPGetNumMatrices()
+.seealso: PEPSolve(), PEPGetOperators(), PEPGetNumMatrices(), PEPSetBasis()
 @*/
 PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
 {
   PetscErrorCode ierr;
-  PetscInt       i,n,m,m0;
+  PetscInt       i,n,m,m0=0;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,nmat,2);
   if (nmat <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %D",nmat);
   PetscValidPointer(A,3);
-  PetscCheckSameComm(pep,1,*A,3);
 
-  if (pep->setupcalled) { ierr = PEPReset(pep);CHKERRQ(ierr); }
-  ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
+  if (pep->state) { ierr = PEPReset(pep);CHKERRQ(ierr); }
   ierr = PetscMalloc1(nmat,&pep->A);CHKERRQ(ierr);
-  ierr = PetscFree(pep->pbc);CHKERRQ(ierr);
-  ierr = PetscMalloc(3*nmat*sizeof(PetscReal),&pep->pbc);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat));CHKERRQ(ierr);
+  ierr = PetscCalloc3(3*nmat,&pep->pbc,nmat,&pep->solvematcoeffs,nmat,&pep->nrma);CHKERRQ(ierr);
+  for (i=0;i<nmat;i++) pep->pbc[i] = 1.0;  /* default to monomial basis */
+  ierr = PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat)+4*nmat*sizeof(PetscReal)+nmat*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<nmat;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
     PetscCheckSameComm(pep,1,A[i],3);
@@ -339,8 +322,6 @@ PetscErrorCode PEPGetNumMatrices(PEP pep,PetscInt *nmat)
    of the wanted eigenspace. Then, convergence may be faster.
 
    Level: intermediate
-
-.seealso: PEPSetInitialSpaceLeft()
 @*/
 PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec *is)
 {
@@ -351,96 +332,65 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec *is)
   PetscValidLogicalCollectiveInt(pep,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&pep->nini,&pep->IS);CHKERRQ(ierr);
-  if (n>0) pep->setupcalled = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetInitialSpaceLeft"
-/*@
-   PEPSetInitialSpaceLeft - Specify a basis of vectors that constitute the initial
-   left space, that is, the subspace from which the solver starts to iterate for
-   building the left subspace (in methods that work with two subspaces).
-
-   Collective on PEP and Vec
-
-   Input Parameter:
-+  pep   - the polynomial eigensolver context
-.  n     - number of vectors
--  is    - set of basis vectors of the initial left space
-
-   Notes:
-   Some solvers start to iterate on a single vector (initial left vector). In that case,
-   the other vectors are ignored.
-
-   These vectors do not persist from one PEPSolve() call to the other, so the
-   initial left space should be set every time.
-
-   The vectors do not need to be mutually orthonormal, since they are explicitly
-   orthonormalized internally.
-
-   Common usage of this function is when the user can provide a rough approximation
-   of the wanted left eigenspace. Then, convergence may be faster.
-
-   Level: intermediate
-
-.seealso: PEPSetInitialSpace()
-@*/
-PetscErrorCode PEPSetInitialSpaceLeft(PEP pep,PetscInt n,Vec *is)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidLogicalCollectiveInt(pep,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
-  ierr = SlepcBasisReference_Private(n,is,&pep->ninil,&pep->ISL);CHKERRQ(ierr);
-  if (n>0) pep->setupcalled = 0;
+  if (n>0) pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPAllocateSolution"
-/*
-  PEPAllocateSolution - Allocate memory storage for common variables such
-  as eigenvalues and eigenvectors. The argument extra is used for methods
-  that require a working basis slightly larger than ncv.
-*/
+/*@
+   PEPAllocateSolution - Allocate memory storage for common variables such
+   as eigenvalues and eigenvectors.
+
+   Collective on PEP
+
+   Input Parameters:
++  pep   - eigensolver context
+-  extra - number of additional positions, used for methods that require a
+           working basis slightly larger than ncv
+
+   Developers Note:
+   This is PETSC_EXTERN because it may be required by user plugin PEP
+   implementations.
+
+   Level: developer
+@*/
 PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
 {
   PetscErrorCode ierr;
-  PetscInt       newc,cnt,requested;
+  PetscInt       oldsize,newc,requested;
+  PetscLogDouble cnt;
+  Vec            t;
 
   PetscFunctionBegin;
   requested = pep->ncv + extra;
-  if (pep->allocated_ncv != requested) {
-    newc = PetscMax(0,requested-pep->allocated_ncv);
-    ierr = PEPFreeSolution(pep);CHKERRQ(ierr);
-    cnt = 2*newc*sizeof(PetscScalar) + 2*newc*sizeof(PetscReal);
+
+  /* oldsize is zero if this is the first time setup is called */
+  ierr = BVGetSizes(pep->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
+  newc = PetscMax(0,requested-oldsize);
+
+  /* allocate space for eigenvalues and friends */
+  if (requested != oldsize) {
+    if (oldsize) {
+      ierr = PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm);CHKERRQ(ierr);
+    }
     ierr = PetscMalloc4(requested,&pep->eigr,requested,&pep->eigi,requested,&pep->errest,requested,&pep->perm);CHKERRQ(ierr);
+    cnt = 2*newc*sizeof(PetscScalar) + newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
     ierr = PetscLogObjectMemory((PetscObject)pep,cnt);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(pep->t,requested,&pep->V);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(pep,requested,pep->V);CHKERRQ(ierr);
-    pep->allocated_ncv = requested;
+  }
+
+  /* allocate V */
+  if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
+  if (!oldsize) {
+    if (!((PetscObject)(pep->V))->type_name) {
+      ierr = BVSetType(pep->V,BVSVEC);CHKERRQ(ierr);
+    }
+    ierr = STMatGetVecs(pep->st,&t,NULL);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(pep->V,t,requested);CHKERRQ(ierr);
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
+  } else {
+    ierr = BVResize(pep->V,requested,PETSC_FALSE);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPFreeSolution"
-/*
-  PEPFreeSolution - Free memory storage. This routine is related to
-  PEPAllocateSolution().
-*/
-PetscErrorCode PEPFreeSolution(PEP pep)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (pep->allocated_ncv > 0) {
-    ierr = PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm);CHKERRQ(ierr);
-    ierr = VecDestroyVecs(pep->allocated_ncv,&pep->V);CHKERRQ(ierr);
-    pep->allocated_ncv = 0;
-  }
-  PetscFunctionReturn(0);
-}

@@ -25,6 +25,27 @@
 #include <petscdraw.h>
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPComputeVectors"
+PETSC_STATIC_INLINE PetscErrorCode NEPComputeVectors(NEP nep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  NEPCheckSolved(nep,1);
+  switch (nep->state) {
+  case NEP_STATE_SOLVED:
+    if (nep->ops->computevectors) {
+      ierr = (*nep->ops->computevectors)(nep);CHKERRQ(ierr);
+    }
+    break;
+  default:
+    break;
+  }
+  nep->state = NEP_STATE_EIGENVECTORS;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPSolve"
 /*@
    NEPSolve - Solves the nonlinear eigensystem.
@@ -74,6 +95,8 @@ PetscErrorCode NEPSolve(NEP nep)
 
   if (!nep->reason) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
+  nep->state = NEP_STATE_SOLVED;
+
   /* sort eigenvalues according to nep->which parameter */
   ierr = NEPSortEigenvalues(nep,nep->nconv,nep->eig,nep->perm);CHKERRQ(ierr);
 
@@ -110,21 +133,6 @@ PetscErrorCode NEPSolve(NEP nep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEP_KSPSolve"
-PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
-{
-  PetscErrorCode ierr;
-  PetscInt       lits;
-
-  PetscFunctionBegin;
-  ierr = KSPSolve(nep->ksp,b,x);CHKERRQ(ierr);
-  ierr = KSPGetIterationNumber(nep->ksp,&lits);CHKERRQ(ierr);
-  nep->linits += lits;
-  ierr = PetscInfo2(nep,"iter=%D, linear solve iterations=%D\n",nep->its,lits);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "NEPProjectOperator"
 /*@
    NEPProjectOperator - Computes the projection of the nonlinear operator.
@@ -134,8 +142,7 @@ PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
    Input Parameters:
 +  nep - the nonlinear eigensolver context
 .  j0  - initial index
-.  j1  - final index
--  f   - workspace vector
+-  j1  - final index
 
    Notes:
    This is available for split operator only.
@@ -151,42 +158,22 @@ PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
 
 .seealso: NEPSetSplitOperator()
 @*/
-PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
+PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,k,ld;
-  PetscScalar    *G,val;
-  Vec            *V = nep->V;
-  PetscBool      isherm,set,flg;
+  PetscInt       k;
+  Mat            G;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,j0,2);
   PetscValidLogicalCollectiveInt(nep,j1,3);
-  PetscValidHeaderSpecific(f,VEC_CLASSID,4);
   if (!nep->split) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"This solver requires a split operator");
-  ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(nep->V,j0,j1);CHKERRQ(ierr);
   for (k=0;k<nep->nt;k++) {
-    ierr = DSGetArray(nep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
-    ierr = MatIsHermitianKnown(nep->A[k],&set,&flg);CHKERRQ(ierr);
-    isherm = set? flg: PETSC_FALSE;
-    for (j=j0;j<j1;j++) {
-      if (!isherm) {
-        if (j>0) { ierr = MatMultHermitianTranspose(nep->A[k],V[j],f);CHKERRQ(ierr); }
-        ierr = VecMDot(f,j,V,G+j*ld);CHKERRQ(ierr);
-        for (i=0;i<j;i++)
-          G[j+i*ld] = PetscConj(G[i+j*ld]);
-      }
-      ierr = MatMult(nep->A[k],V[j],f);CHKERRQ(ierr);
-      ierr = VecDot(f,V[j],&val);CHKERRQ(ierr);
-      G[j+j*ld] = val;
-      ierr = VecMDot(f,j,V,G+j*ld);CHKERRQ(ierr);
-      if (isherm) {
-        for (i=0;i<j;i++)
-          G[j+i*ld] = PetscConj(G[i+j*ld]);
-      }
-    }
-    ierr = DSRestoreArray(nep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
+    ierr = DSGetMat(nep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
+    ierr = BVMatProject(nep->V,nep->A[k],nep->V,G);CHKERRQ(ierr);
+    ierr = DSRestoreMat(nep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -207,13 +194,12 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
    Output Parameters:
 +  y   - result vector
 .  A   - Function matrix
-.  B   - optional preconditioning matrix
--  flg - flag indicating matrix structure (see MatStructure enum)
+-  B   - optional preconditioning matrix
 
    Note:
    If the nonlinear operator is represented in split form, the result 
    y = T(lambda)*x is computed without building T(lambda) explicitly. In
-   that case, parameters A, B and flg are not used. Otherwise, the matrix
+   that case, parameters A and B are not used. Otherwise, the matrix
    T(lambda) is built and the effect is the same as a call to
    NEPComputeFunction() followed by a MatMult().
 
@@ -221,7 +207,7 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1,Vec f)
 
 .seealso: NEPSetSplitOperator(), NEPComputeFunction()
 @*/
-PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat *A,Mat *B,MatStructure *flg)
+PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat A,Mat B)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -241,8 +227,8 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
       ierr = VecAXPY(y,alpha,v);CHKERRQ(ierr);
     }
   } else {
-    ierr = NEPComputeFunction(nep,lambda,A,B,flg);CHKERRQ(ierr);
-    ierr = MatMult(*A,x,y);CHKERRQ(ierr);
+    ierr = NEPComputeFunction(nep,lambda,A,B);CHKERRQ(ierr);
+    ierr = MatMult(A,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -262,13 +248,12 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
 
    Output Parameters:
 +  y   - result vector
-.  A   - Jacobian matrix
--  flg - flag indicating matrix structure (see MatStructure enum)
+-  A   - Jacobian matrix
 
    Note:
    If the nonlinear operator is represented in split form, the result 
    y = T'(lambda)*x is computed without building T'(lambda) explicitly. In
-   that case, parameters A and flg are not used. Otherwise, the matrix
+   that case, parameter A is not used. Otherwise, the matrix
    T'(lambda) is built and the effect is the same as a call to
    NEPComputeJacobian() followed by a MatMult().
 
@@ -276,7 +261,7 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
 
 .seealso: NEPSetSplitOperator(), NEPComputeJacobian()
 @*/
-PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat *A,MatStructure *flg)
+PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat A)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -296,8 +281,8 @@ PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
       ierr = VecAXPY(y,alpha,v);CHKERRQ(ierr);
     }
   } else {
-    ierr = NEPComputeJacobian(nep,lambda,A,flg);CHKERRQ(ierr);
-    ierr = MatMult(*A,x,y);CHKERRQ(ierr);
+    ierr = NEPComputeJacobian(nep,lambda,A);CHKERRQ(ierr);
+    ierr = MatMult(A,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -362,6 +347,7 @@ PetscErrorCode NEPGetConverged(NEP nep,PetscInt *nconv)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidIntPointer(nconv,2);
+  NEPCheckSolved(nep,1);
   *nconv = nep->nconv;
   PetscFunctionReturn(0);
 }
@@ -402,6 +388,7 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(reason,2);
+  NEPCheckSolved(nep,1);
   *reason = nep->reason;
   PetscFunctionReturn(0);
 }
@@ -444,14 +431,15 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eig,Vec V)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   if (V) { PetscValidHeaderSpecific(V,VEC_CLASSID,4); PetscCheckSameComm(nep,1,V,4); }
-  if (!nep->eig || !nep->V) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first");
+  NEPCheckSolved(nep,1);
   if (i<0 || i>=nep->nconv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
 
+  ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
   if (!nep->perm) k = i;
   else k = nep->perm[i];
 
   if (eig) *eig = nep->eig[k];
-  if (V) { ierr = VecCopy(nep->V[k],V);CHKERRQ(ierr); }
+  if (V) { ierr = BVCopyVec(nep->V,k,V);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -483,7 +471,7 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(errest,3);
-  if (!nep->eig) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"NEPSolve must be called first");
+  NEPCheckSolved(nep,1);
   if (i<0 || i>=nep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   if (nep->perm) i = nep->perm[i];
   if (errest) *errest = nep->errest[i];
@@ -501,11 +489,10 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,P
   PetscErrorCode ierr;
   Vec            u;
   Mat            T=nep->function;
-  MatStructure   mats;
 
   PetscFunctionBegin;
-  ierr = VecDuplicate(nep->V[0],&u);CHKERRQ(ierr);
-  ierr = NEPComputeFunction(nep,lambda,&T,&T,&mats);CHKERRQ(ierr);
+  ierr = BVGetVec(nep->V,&u);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
   ierr = MatMult(T,x,u);CHKERRQ(ierr);
   ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
@@ -547,7 +534,8 @@ PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *norm)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   PetscValidPointer(norm,3);
-  ierr = VecDuplicate(nep->V[0],&x);CHKERRQ(ierr);
+  NEPCheckSolved(nep,1);
+  ierr = BVGetVec(nep->V,&x);CHKERRQ(ierr);
   ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
   ierr = NEPComputeResidualNorm_Private(nep,lambda,x,norm);CHKERRQ(ierr);
   ierr = VecDestroy(&x);CHKERRQ(ierr);
@@ -607,7 +595,8 @@ PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   PetscValidPointer(error,3);
-  ierr = VecDuplicate(nep->V[0],&x);CHKERRQ(ierr);
+  NEPCheckSolved(nep,1);
+  ierr = BVGetVec(nep->V,&x);CHKERRQ(ierr);
   ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
   ierr = NEPComputeRelativeError_Private(nep,lambda,x,error);CHKERRQ(ierr);
   ierr = VecDestroy(&x);CHKERRQ(ierr);
@@ -702,44 +691,6 @@ PetscErrorCode NEPCompareEigenvalues(NEP nep,PetscScalar a,PetscScalar b,PetscIn
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPGetOperationCounters"
-/*@
-   NEPGetOperationCounters - Gets the total number of function evaluations, dot
-   products, and linear solve iterations used by the NEP object during the last
-   NEPSolve() call.
-
-   Not Collective
-
-   Input Parameter:
-.  nep - nonlinear eigensolver context
-
-   Output Parameter:
-+  nfuncs - number of function evaluations
-.  dots   - number of dot product operations
--  lits   - number of linear iterations
-
-   Notes:
-   These counters are reset to zero at each successive call to NEPSolve().
-
-   Level: intermediate
-
-@*/
-PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,PetscInt* lits)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (nfuncs) *nfuncs = nep->nfuncs;
-  if (dots) {
-    if (!nep->ip) { ierr = NEPGetIP(nep,&nep->ip);CHKERRQ(ierr); }
-    ierr = IPGetOperationCounters(nep->ip,dots);CHKERRQ(ierr);
-  }
-  if (lits) *lits = nep->linits;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "NEPComputeFunction"
 /*@
    NEPComputeFunction - Computes the function matrix T(lambda) that has been
@@ -753,8 +704,7 @@ PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,P
 
    Output Parameters:
 +  A   - Function matrix
-.  B   - optional preconditioning matrix
--  flg - flag indicating matrix structure (see MatStructure enum)
+-  B   - optional preconditioning matrix
 
    Notes:
    NEPComputeFunction() is typically used within nonlinear eigensolvers
@@ -765,7 +715,7 @@ PetscErrorCode NEPGetOperationCounters(NEP nep,PetscInt* nfuncs,PetscInt* dots,P
 
 .seealso: NEPSetFunction(), NEPGetFunction()
 @*/
-PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat *A,Mat *B,MatStructure *flg)
+PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -773,29 +723,27 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat *A,Mat *B,MatSt
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(flg,5);
 
   if (nep->split) {
 
-    ierr = MatZeroEntries(*A);CHKERRQ(ierr);
+    ierr = MatZeroEntries(A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
-      ierr = MatAXPY(*A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
+      ierr = MatAXPY(A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
     }
-    if (*A != *B) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Not implemented");
+    if (A != B) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Not implemented");
 
   } else {
 
     if (!nep->computefunction) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetFunction() first");
 
-    *flg = DIFFERENT_NONZERO_PATTERN;
-    ierr = PetscLogEventBegin(NEP_FunctionEval,nep,*A,*B,0);CHKERRQ(ierr);
+    ierr = PetscLogEventBegin(NEP_FunctionEval,nep,A,B,0);CHKERRQ(ierr);
 
     PetscStackPush("NEP user Function function");
-    ierr = (*nep->computefunction)(nep,lambda,A,B,flg,nep->functionctx);CHKERRQ(ierr);
+    ierr = (*nep->computefunction)(nep,lambda,A,B,nep->functionctx);CHKERRQ(ierr);
     PetscStackPop;
 
-    ierr = PetscLogEventEnd(NEP_FunctionEval,nep,*A,*B,0);CHKERRQ(ierr);
+    ierr = PetscLogEventEnd(NEP_FunctionEval,nep,A,B,0);CHKERRQ(ierr);
     nep->nfuncs++;
 
   }
@@ -815,8 +763,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat *A,Mat *B,MatSt
 -  lambda - the scalar argument
 
    Output Parameters:
-+  A   - Jacobian matrix
--  flg - flag indicating matrix structure (see MatStructure enum)
+.  A   - Jacobian matrix
 
    Notes:
    Most users should not need to explicitly call this routine, as it
@@ -826,7 +773,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat *A,Mat *B,MatSt
 
 .seealso: NEPSetJacobian(), NEPGetJacobian()
 @*/
-PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat *A,MatStructure *flg)
+PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat A)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -834,28 +781,26 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat *A,MatStructure
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(flg,4);
 
   if (nep->split) {
 
-    ierr = MatZeroEntries(*A);CHKERRQ(ierr);
+    ierr = MatZeroEntries(A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateDerivative(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
-      ierr = MatAXPY(*A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
+      ierr = MatAXPY(A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
     }
 
   } else {
 
     if (!nep->computejacobian) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetJacobian() first");
 
-    *flg = DIFFERENT_NONZERO_PATTERN;
-    ierr = PetscLogEventBegin(NEP_JacobianEval,nep,*A,0,0);CHKERRQ(ierr);
+    ierr = PetscLogEventBegin(NEP_JacobianEval,nep,A,0,0);CHKERRQ(ierr);
 
     PetscStackPush("NEP user Jacobian function");
-    ierr = (*nep->computejacobian)(nep,lambda,A,flg,nep->jacobianctx);CHKERRQ(ierr);
+    ierr = (*nep->computejacobian)(nep,lambda,A,nep->jacobianctx);CHKERRQ(ierr);
     PetscStackPop;
 
-    ierr = PetscLogEventEnd(NEP_JacobianEval,nep,*A,0,0);CHKERRQ(ierr);
+    ierr = PetscLogEventEnd(NEP_JacobianEval,nep,A,0,0);CHKERRQ(ierr);
 
   }
   PetscFunctionReturn(0);

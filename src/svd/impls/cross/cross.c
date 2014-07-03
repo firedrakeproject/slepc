@@ -4,8 +4,6 @@
 
    Method: Uses a Hermitian eigensolver for A^T*A
 
-   Last update: Jun 2007
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
@@ -31,7 +29,6 @@
 
 typedef struct {
   EPS       eps;
-  PetscBool setfromoptionscalled;
   Mat       mat;
   Vec       w,diag;
 } SVD_CROSS;
@@ -109,7 +106,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
-  PetscInt       n,i;
+  PetscInt       n;
   PetscBool      trackall;
 
   PetscFunctionBegin;
@@ -127,27 +124,21 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   ierr = EPSSetOperators(cross->eps,cross->mat,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(cross->eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(cross->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(cross->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
+  ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv?svd->ncv:PETSC_DEFAULT,svd->mpd?svd->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(cross->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it?svd->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   /* Transfer the trackall option from svd to eps */
   ierr = SVDGetTrackAll(svd,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(cross->eps,trackall);CHKERRQ(ierr);
-  if (cross->setfromoptionscalled) {
-    ierr = EPSSetFromOptions(cross->eps);CHKERRQ(ierr);
-    cross->setfromoptionscalled = PETSC_FALSE;
-  }
   ierr = EPSSetUp(cross->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(cross->eps,NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(cross->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
   /* Transfer the initial space from svd to eps */
   if (svd->nini < 0) {
     ierr = EPSSetInitialSpace(cross->eps,-svd->nini,svd->IS);CHKERRQ(ierr);
-    for (i=0;i<-svd->nini;i++) {
-      ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(svd->IS);CHKERRQ(ierr);
-    svd->nini = 0;
+    ierr = SlepcBasisDestroy_Private(&svd->nini,&svd->IS);CHKERRQ(ierr);
   }
+  svd->leftbasis = PETSC_FALSE;
+  ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -159,6 +150,7 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
   PetscInt       i;
   PetscScalar    sigma;
+  Vec            v;
 
   PetscFunctionBegin;
   ierr = EPSSolve(cross->eps);CHKERRQ(ierr);
@@ -166,7 +158,9 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   ierr = EPSGetIterationNumber(cross->eps,&svd->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(cross->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
-    ierr = EPSGetEigenpair(cross->eps,i,&sigma,NULL,svd->V[i],NULL);CHKERRQ(ierr);
+    ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
+    ierr = EPSGetEigenpair(cross->eps,i,&sigma,NULL,v,NULL);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
     if (PetscRealPart(sigma)<0.0) SETERRQ(PetscObjectComm((PetscObject)svd),1,"Negative eigenvalue computed by EPS");
     svd->sigma[i] = PetscSqrtReal(PetscRealPart(sigma));
   }
@@ -197,10 +191,12 @@ static PetscErrorCode SVDMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,Petsc
 #define __FUNCT__ "SVDSetFromOptions_Cross"
 PetscErrorCode SVDSetFromOptions_Cross(SVD svd)
 {
-  SVD_CROSS *cross = (SVD_CROSS*)svd->data;
+  PetscErrorCode ierr;
+  SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
 
   PetscFunctionBegin;
-  cross->setfromoptionscalled = PETSC_TRUE;
+  if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
+  ierr = EPSSetFromOptions(cross->eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -263,8 +259,6 @@ static PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
     ierr = EPSAppendOptionsPrefix(cross->eps,"svd_");CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)cross->eps,(PetscObject)svd,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->eps);CHKERRQ(ierr);
-    if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-    ierr = EPSSetIP(cross->eps,svd->ip);CHKERRQ(ierr);
     ierr = EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
     ierr = EPSMonitorSet(cross->eps,SVDMonitor_Cross,svd,NULL);CHKERRQ(ierr);
     ierr = EPSGetST(cross->eps,&st);CHKERRQ(ierr);

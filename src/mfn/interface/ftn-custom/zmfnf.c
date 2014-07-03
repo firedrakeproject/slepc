@@ -34,7 +34,7 @@
 #define mfnmonitordefault_          MFNMONITORDEFAULT
 #define mfnmonitorlg_               MFNMONITORLG
 #define mfnmonitorset_              MFNMONITORSET
-#define mfngetip_                   MFNGETIP
+#define mfngetbv_                   MFNGETBV
 #define mfngetds_                   MFNGETDS
 #define mfngetconvergedreason_      MFNGETCONVERGEDREASON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
@@ -49,7 +49,7 @@
 #define mfnmonitordefault_          mfnmonitordefault
 #define mfnmonitorlg_               mfnmonitorlg
 #define mfnmonitorset_              mfnmonitorset
-#define mfngetip_                   mfngetip
+#define mfngetbv_                   mfngetbv
 #define mfngetds_                   mfngetds
 #define mfngetconvergedreason_      mfngetconvergedreason
 #endif
@@ -79,7 +79,6 @@ static struct {
 static PetscErrorCode ourmonitor(MFN mfn,PetscInt i,PetscReal d,void* ctx)
 {
   PetscObjectUseFortranCallback(mfn,_cb.monitor,(MFN*,PetscInt*,PetscReal*,void*,PetscErrorCode*),(&mfn,&i,&d,_ctx,&ierr));
-  return 0;
 }
 
 #undef __FUNCT__
@@ -88,7 +87,6 @@ static PetscErrorCode ourdestroy(void** ctx)
 {
   MFN mfn = (MFN)*ctx;
   PetscObjectUseFortranCallback(mfn,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
-  return 0;
 }
 
 PETSC_EXTERN void PETSC_STDCALL mfndestroy_(MFN *mfn,PetscErrorCode *ierr)
@@ -171,9 +169,9 @@ PETSC_EXTERN void PETSC_STDCALL mfnmonitorset_(MFN *mfn,void (PETSC_STDCALL *mon
   }
 }
 
-PETSC_EXTERN void PETSC_STDCALL mfngetip_(MFN *mfn,IP *ip,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL mfngetbv_(MFN *mfn,BV *bv,PetscErrorCode *ierr)
 {
-  *ierr = MFNGetIP(*mfn,ip);
+  *ierr = MFNGetBV(*mfn,bv);
 }
 
 PETSC_EXTERN void PETSC_STDCALL mfngetds_(MFN *mfn,DS *ds,PetscErrorCode *ierr)

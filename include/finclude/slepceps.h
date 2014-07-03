@@ -166,11 +166,9 @@
 
       PetscEnum EPS_ORTH_I
       PetscEnum EPS_ORTH_B
-      PetscEnum EPS_ORTH_BOPT
 
       parameter (EPS_ORTH_I                 =  1)
       parameter (EPS_ORTH_B                 =  2)
-      parameter (EPS_ORTH_BOPT              =  3)
 
 !
 !   Possible arguments to EPSMonitorSet()

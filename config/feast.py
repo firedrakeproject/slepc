@@ -34,6 +34,9 @@ def Check(conf,vars,cmake,tmpdir,directory,libs):
   if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
     log.Exit('ERROR: FEAST is supported only in single or double precision.')
 
+  if petscconf.IND64:
+    log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+
   functions = ['feastinit']
   if petscconf.SCALAR == 'real':
     if petscconf.PRECISION == 'single':

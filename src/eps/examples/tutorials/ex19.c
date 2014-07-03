@@ -39,15 +39,15 @@ PetscErrorCode GetExactEigenvalues(PetscInt M,PetscInt N,PetscInt P,PetscInt nco
   ax = PETSC_PI/2/(M+1);
   ay = PETSC_PI/2/(N+1);
   az = PETSC_PI/2/(P+1);
-  n = ceil(PetscPowReal(nconv,0.33333)+1);
+  n = PetscCeilReal(PetscPowReal(nconv,0.33333)+1);
   ierr = PetscMalloc1(n*n*n,&evals);CHKERRQ(ierr);
   l = 0;
   for (i=1;i<=n;i++) {
-    sx = sin(ax*i);
+    sx = PetscSinReal(ax*i);
     for (j=1;j<=n;j++) {
-      sy = sin(ay*j);
+      sy = PetscSinReal(ay*j);
       for (k=1;k<=n;k++) {
-        sz = sin(az*k);
+        sz = PetscSinReal(az*k);
         evals[l++] = 4.0*(sx*sx+sy*sy+sz*sz);
       }
     }
@@ -118,8 +118,8 @@ int main(int argc,char **argv)
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = DMDACreate3d(PETSC_COMM_WORLD,DMDA_BOUNDARY_NONE,DMDA_BOUNDARY_NONE,
-                      DMDA_BOUNDARY_NONE,DMDA_STENCIL_STAR,-10,-10,-10,
+  ierr = DMDACreate3d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,
+                      DM_BOUNDARY_NONE,DMDA_STENCIL_STAR,-10,-10,-10,
                       PETSC_DECIDE,PETSC_DECIDE,PETSC_DECIDE,
                       1,1,NULL,NULL,NULL,&da);CHKERRQ(ierr);
 

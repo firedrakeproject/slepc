@@ -34,6 +34,9 @@ def Check(conf,vars,cmake,tmpdir,directory,libs):
   if petscconf.PRECISION != 'double':
     log.Exit('ERROR: PRIMME is supported only in double precision.')
 
+  if petscconf.IND64:
+    log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+
   functions_base = ['primme_set_method','primme_Free','primme_initialize']
   if directory:
     dirs = [directory]
@@ -50,7 +53,10 @@ def Check(conf,vars,cmake,tmpdir,directory,libs):
 
   for d in dirs:
     if d:
-      l = ['-L' + d] + libs
+      if 'rpath' in petscconf.SLFLAG:
+        l = [petscconf.SLFLAG + d] + ['-L' + d] + libs
+      else:
+        l = ['-L' + d] + libs
       f = ['-I' + d + '/' + include]
     else:
       l =  libs

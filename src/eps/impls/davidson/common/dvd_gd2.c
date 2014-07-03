@@ -24,10 +24,9 @@
 */
 
 #include "davidson.h"
-#include <slepc-private/vecimplslepc.h>         /*I "slepcvec.h" I*/
 
 PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d);
-PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
+PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
 PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d,PetscScalar *pX,PetscScalar *pY,PetscInt ld_,PetscScalar *auxS,PetscInt size_auxS);
 
 #define size_Z (64*4)
@@ -36,8 +35,6 @@ PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d,PetscScalar *pX,Pet
 
 typedef struct {
   PetscInt size_X;
-  void         *old_improveX_data;   /* old improveX_data */
-  improveX_type old_improveX;        /* old improveX */
 } dvdImprovex_gd2;
 
 #undef __FUNCT__
@@ -67,7 +64,7 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
     b->max_size_P = PetscMax(b->max_size_P, 1);
   b->max_size_X = PetscMax(b->max_size_X, max_bs);
   b->max_size_auxV = PetscMax(b->max_size_auxV,
-     s +
+     s*2 +
      ((her_probl || !d->eps->trueres)?1:PetscMax(s*2,b->max_size_cX_proj+b->max_size_X))); /* testConv */
 
   b->max_size_auxS = PetscMax(b->max_size_auxS,
@@ -85,9 +82,7 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
   if (b->state >= DVD_STATE_CONF) {
     ierr = PetscMalloc(sizeof(dvdImprovex_gd2),&data);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdImprovex_gd2));CHKERRQ(ierr);
-    data->old_improveX_data = d->improveX_data;
     d->improveX_data = data;
-    data->old_improveX = d->improveX;
     data->size_X = b->max_size_X;
     d->improveX = dvd_improvex_gd2_gen;
 
@@ -104,9 +99,6 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
   dvdImprovex_gd2 *data = (dvdImprovex_gd2*)d->improveX_data;
 
   PetscFunctionBegin;
-  /* Restore changes in dvdDashboard */
-  d->improveX_data = data->old_improveX_data;
-
   /* Free local data and objects */
   ierr = PetscFree(data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -182,16 +174,18 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_gd2_gen"
-PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
+PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
 {
   dvdImprovex_gd2 *data = (dvdImprovex_gd2*)d->improveX_data;
   PetscErrorCode  ierr;
-  PetscInt        i,j,n,s,ld,k;
+  PetscInt        i,j,n,s,ld,k,lv,kv,max_size_D;
   PetscScalar     *pX,*pY,b[10],Z[size_Z];
-  Vec             *Ax,*Bx,X[4];
+  Vec             *Ax,*Bx,X[4],v;
 
   PetscFunctionBegin;
   /* Compute the number of pairs to improve */
+  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
+  max_size_D = d->eps->ncv-kv;
   n = PetscMin(PetscMin(PetscMin(data->size_X*2,max_size_D),(r_e-r_s)*2),d->max_size_proj-d->size_H)/2;
 #if !defined(PETSC_USE_COMPLEX)
   /* If the last eigenvalue is a complex conjugate pair, n is increased by one */
@@ -207,12 +201,6 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   /* Quick exit */
   if (max_size_D == 0 || r_e-r_s <= 0 || n == 0) {
    *size_D = 0;
-   /* Callback old improveX */
-    if (data->old_improveX) {
-      d->improveX_data = data->old_improveX_data;
-      ierr = data->old_improveX(d,NULL,0,0,0,NULL);CHKERRQ(ierr);
-      d->improveX_data = data;
-    }
     PetscFunctionReturn(0);
   }
 
@@ -230,23 +218,28 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   ierr = DSGetArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
   ierr = DSGetArray(d->ps,DS_MAT_Y,&pY);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(d->ps,&ld);CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
 
   /* Bx <- B*X(i) */
-  Bx = D+n;
-  if (d->BV) {
+  Bx = d->auxV;
+  if (d->BX) {
     /* Compute the norms of the eigenvectors */
     if (d->correctXnorm) {
       ierr = dvd_improvex_compute_X(d,r_s,r_s+n,Bx,pX,ld);CHKERRQ(ierr);
     } else {
       for (i=0; i<n; i++) d->nX[r_s+i] = 1.0;
     }
-    ierr = SlepcUpdateVectorsZ(Bx,0.0,1.0,d->BV-d->cX_in_H,d->size_BV+d->cX_in_H,&pX[ld*r_s],ld,d->size_H,n);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(d->BX,lv-d->cX_in_H,kv);CHKERRQ(ierr);
+    for (i=0; i<n; ++i) {
+      ierr = BVMultVec(d->BX,1.0,0.0,Bx[i],&pX[ld*(r_s+i)]);CHKERRQ(ierr);
+    }
+    ierr = BVSetActiveColumns(d->BX,lv,kv);CHKERRQ(ierr);
   } else if (d->B) {
     for (i=0;i<n;i++) {
       /* auxV(0) <- X(i) */
-      ierr = dvd_improvex_compute_X(d,r_s+i,r_s+i+1,d->auxV,pX,ld);CHKERRQ(ierr);
+      ierr = dvd_improvex_compute_X(d,r_s+i,r_s+i+1,&d->auxV[n],pX,ld);CHKERRQ(ierr);
       /* Bx(i) <- B*auxV(0) */
-      ierr = MatMult(d->B,d->auxV[0],Bx[i]);CHKERRQ(ierr);
+      ierr = MatMult(d->B,d->auxV[n],Bx[i]);CHKERRQ(ierr);
     }
   } else {
     /* Bx <- X */
@@ -254,23 +247,18 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
   }
 
   /* Ax <- A*X(i) */
-  Ax = D;
-  ierr = SlepcUpdateVectorsZ(Ax,0.0,1.0,d->AV-d->cX_in_H,d->size_AV+d->cX_in_H,&pX[ld*r_s],ld,d->size_H,n);CHKERRQ(ierr);
+  Ax = d->auxV+n;
+  ierr = BVSetActiveColumns(d->BX,lv-d->cX_in_H,kv);CHKERRQ(ierr);
+  for (i=0; i<n; ++i) {
+    ierr = BVMultVec(d->AX,1.0,0.0,Ax[i],&pX[ld*(i+r_s)]);CHKERRQ(ierr);
+  }
+
 
 #if !defined(PETSC_USE_COMPLEX)
   s = d->eigi[r_s] == 0.0 ? 1 : 2;
   /* If the available vectors allow the computation of the eigenvalue */
-  if (s <= n) {
 #else
   s = 1;
-#endif
-  /* v <- Y(i) */
-  ierr = SlepcUpdateVectorsZ(d->auxV,0.0,1.0,(d->W?d->W:d->V)-d->cX_in_H,d->size_V+d->cX_in_H,&pY[ld*r_s],ld,d->size_H,s);CHKERRQ(ierr);
-
-  /* Recompute the eigenvalue */
-  DVD_COMPUTE_N_RR(d->eps,i,r_s,1,d->eigr,d->eigi,d->auxV,Ax,Bx,b,ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  }
 #endif
 
   ierr = DSRestoreArray(d->ps,DS_MAT_X,&pX);CHKERRQ(ierr);
@@ -317,11 +305,11 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
 
   /* D <- K*[Ax Bx] */
   if (d->npreconv == 0) {
-    ierr = VecCopy(D[0],d->auxV[0]);CHKERRQ(ierr);
-    for (i=0;i<2*n-1;i++) {
-      ierr = d->improvex_precond(d,r_s+(i+1)%n,D[i+1],D[i]);CHKERRQ(ierr);
+    for (i=0;i<2*n;i++) {
+      ierr = BVGetColumn(d->eps->V,k+i,&v);CHKERRQ(ierr);
+      ierr = d->improvex_precond(d,r_s+i%n,d->auxV[i],v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(d->eps->V,k+i,&v);CHKERRQ(ierr);
     }
-    ierr = d->improvex_precond(d,r_s,d->auxV[0],D[2*n-1]);CHKERRQ(ierr);
     *size_D = 2*n;
 #if !defined(PETSC_USE_COMPLEX)
     if (d->eigi[r_s] != 0.0) {
@@ -332,18 +320,12 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,Vec *D,PetscInt max_size_D,P
     /* Prevent that short vectors are discarded in the orthogonalization */
     if (d->eps->errest[d->nconv+r_s] > PETSC_MACHINE_EPSILON && d->eps->errest[d->nconv+r_s] < PETSC_MAX_REAL) {
       for (i=0; i<s && i<*size_D; i++) {
-        ierr = VecScale(D[i],1.0/d->eps->errest[d->nconv+r_s]);CHKERRQ(ierr);
+        ierr = BVScaleColumn(d->eps->V,i+k,1.0/d->eps->errest[d->nconv+r_s]);CHKERRQ(ierr);
       }
     }
   } else {
     *size_D = 0;
   }
 
-  /* Callback old improveX */
-  if (data->old_improveX) {
-    d->improveX_data = data->old_improveX_data;
-    ierr = data->old_improveX(d,NULL,0,0,0,NULL);CHKERRQ(ierr);
-    d->improveX_data = data;
-  }
   PetscFunctionReturn(0);
 }

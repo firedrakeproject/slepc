@@ -26,80 +26,7 @@
 PetscFunctionList NEPList = 0;
 PetscBool         NEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId      NEP_CLASSID = 0;
-PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_Dense = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0;
-static PetscBool  NEPPackageInitialized = PETSC_FALSE;
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPFinalizePackage"
-/*@C
-   NEPFinalizePackage - This function destroys everything in the Slepc interface
-   to the NEP package. It is called from SlepcFinalize().
-
-   Level: developer
-
-.seealso: SlepcFinalize()
-@*/
-PetscErrorCode NEPFinalizePackage(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&NEPList);CHKERRQ(ierr);
-  NEPPackageInitialized = PETSC_FALSE;
-  NEPRegisterAllCalled  = PETSC_FALSE;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPInitializePackage"
-/*@C
-   NEPInitializePackage - This function initializes everything in the NEP package. It is called
-   from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to NEPCreate()
-   when using static libraries.
-
-   Level: developer
-
-.seealso: SlepcInitialize()
-@*/
-PetscErrorCode NEPInitializePackage(void)
-{
-  char           logList[256];
-  char           *className;
-  PetscBool      opt;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (NEPPackageInitialized) PetscFunctionReturn(0);
-  NEPPackageInitialized = PETSC_TRUE;
-  /* Register Classes */
-  ierr = PetscClassIdRegister("Nonlinear Eigenvalue Problem solver",&NEP_CLASSID);CHKERRQ(ierr);
-  /* Register Constructors */
-  ierr = NEPRegisterAll();CHKERRQ(ierr);
-  /* Register Events */
-  ierr = PetscLogEventRegister("NEPSetUp",NEP_CLASSID,&NEP_SetUp);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("NEPSolve",NEP_CLASSID,&NEP_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("NEPDense",NEP_CLASSID,&NEP_Dense);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("NEPFunctionEval",NEP_CLASSID,&NEP_FunctionEval);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("NEPJacobianEval",NEP_CLASSID,&NEP_JacobianEval);CHKERRQ(ierr);
-  /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
-  if (opt) {
-    ierr = PetscStrstr(logList,"nep",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscInfoDeactivateClass(NEP_CLASSID);CHKERRQ(ierr);
-    }
-  }
-  /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
-  if (opt) {
-    ierr = PetscStrstr(logList,"nep",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscLogEventDeactivateClass(NEP_CLASSID);CHKERRQ(ierr);
-    }
-  }
-  ierr = PetscRegisterFinalize(NEPFinalizePackage);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
+PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0;
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPView"
@@ -209,10 +136,10 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       ierr = (*nep->ops->view)(nep,viewer);CHKERRQ(ierr);
     }
   }
-  if (!nep->ip) { ierr = NEPGetIP(nep,&nep->ip);CHKERRQ(ierr); }
-  ierr = IPView(nep->ip,viewer);CHKERRQ(ierr);
-  if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
+  if (!nep->V) { ierr = NEPGetBV(nep,&nep->V);CHKERRQ(ierr); }
+  ierr = BVView(nep->V,viewer);CHKERRQ(ierr);
+  if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSView(nep->ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)nep,NEPSLP,&isslp);CHKERRQ(ierr);
@@ -258,12 +185,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->mpd             = 0;
   nep->lag             = 1;
   nep->nini            = 0;
-  nep->allocated_ncv   = 0;
-  nep->ip              = 0;
-  nep->ds              = 0;
-  nep->function        = 0;
-  nep->function_pre    = 0;
-  nep->jacobian        = 0;
+  nep->target          = 0.0;
   nep->abstol          = PETSC_DEFAULT;
   nep->rtol            = PETSC_DEFAULT;
   nep->stol            = PETSC_DEFAULT;
@@ -271,38 +193,46 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->cctol           = PETSC_FALSE;
   nep->ttol            = 0.0;
   nep->which           = (NEPWhich)0;
+  nep->trackall        = PETSC_FALSE;
+
   nep->computefunction = NULL;
   nep->computejacobian = NULL;
+  nep->functionctx     = NULL;
+  nep->jacobianctx     = NULL;
   nep->comparison      = NULL;
   nep->converged       = NEPConvergedDefault;
   nep->convergeddestroy= NULL;
   nep->comparisonctx   = NULL;
   nep->convergedctx    = NULL;
-  nep->functionctx     = NULL;
-  nep->jacobianctx     = NULL;
+  nep->numbermonitors  = 0;
+
+  nep->ds              = NULL;
   nep->V               = NULL;
+  nep->rand            = NULL;
+  nep->ksp             = NULL;
+  nep->function        = NULL;
+  nep->function_pre    = NULL;
+  nep->jacobian        = NULL;
+  nep->A               = NULL;
+  nep->f               = NULL;
+  nep->nt              = 0;
+  nep->mstr            = DIFFERENT_NONZERO_PATTERN;
   nep->IS              = NULL;
   nep->eig             = NULL;
   nep->errest          = NULL;
-  nep->data            = NULL;
-  nep->t               = NULL;
-  nep->split           = PETSC_FALSE;
-  nep->nt              = 0;
-  nep->mstr            = DIFFERENT_NONZERO_PATTERN;
-  nep->A               = NULL;
-  nep->f               = NULL;
-  nep->nconv           = 0;
-  nep->its             = 0;
   nep->perm            = NULL;
-  nep->nfuncs          = 0;
-  nep->linits          = 0;
   nep->nwork           = 0;
   nep->work            = NULL;
-  nep->setupcalled     = 0;
+  nep->data            = NULL;
+
+  nep->state           = NEP_STATE_INITIAL;
+  nep->nconv           = 0;
+  nep->its             = 0;
+  nep->n               = 0;
+  nep->nloc            = 0;
+  nep->nfuncs          = 0;
+  nep->split           = PETSC_FALSE;
   nep->reason          = NEP_CONVERGED_ITERATING;
-  nep->numbermonitors  = 0;
-  nep->trackall        = PETSC_FALSE;
-  nep->rand            = 0;
 
   ierr = PetscRandomCreate(comm,&nep->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(nep->rand,0x12345678);CHKERRQ(ierr);
@@ -359,7 +289,7 @@ PetscErrorCode NEPSetType(NEP nep,NEPType type)
   if (nep->ops->destroy) { ierr = (*nep->ops->destroy)(nep);CHKERRQ(ierr); }
   ierr = PetscMemzero(nep->ops,sizeof(struct _NEPOps));CHKERRQ(ierr);
 
-  nep->setupcalled = 0;
+  nep->state = NEP_STATE_INITIAL;
   ierr = PetscObjectChangeTypeName((PetscObject)nep,type);CHKERRQ(ierr);
   ierr = (*r)(nep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -394,7 +324,7 @@ PetscErrorCode NEPGetType(NEP nep,NEPType *type)
 #undef __FUNCT__
 #define __FUNCT__ "NEPRegister"
 /*@C
-   NEPRegister - Adds a method to the quadratic eigenproblem solver package.
+   NEPRegister - Adds a method to the nonlinear eigenproblem solver package.
 
    Not Collective
 
@@ -411,9 +341,9 @@ PetscErrorCode NEPGetType(NEP nep,NEPType *type)
 .ve
 
    Then, your solver can be chosen with the procedural interface via
-$     NEPSetType(qep,"my_solver")
+$     NEPSetType(nep,"my_solver")
    or at runtime via the option
-$     -qep_type my_solver
+$     -nep_type my_solver
 
    Level: advanced
 
@@ -431,7 +361,7 @@ PetscErrorCode NEPRegister(const char *name,PetscErrorCode (*function)(NEP))
 #undef __FUNCT__
 #define __FUNCT__ "NEPReset"
 /*@
-   NEPReset - Resets the NEP context to the setupcalled=0 state and removes any
+   NEPReset - Resets the NEP context to the initial state and removes any
    allocated objects.
 
    Collective on NEP
@@ -446,17 +376,31 @@ PetscErrorCode NEPRegister(const char *name,PetscErrorCode (*function)(NEP))
 PetscErrorCode NEPReset(NEP nep)
 {
   PetscErrorCode ierr;
+  PetscInt       i,ncols;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (nep->ops->reset) { ierr = (nep->ops->reset)(nep);CHKERRQ(ierr); }
-  if (nep->ip) { ierr = IPReset(nep->ip);CHKERRQ(ierr); }
   if (nep->ds) { ierr = DSReset(nep->ds);CHKERRQ(ierr); }
-  ierr = VecDestroy(&nep->t);CHKERRQ(ierr);
-  ierr = NEPFreeSolution(nep);CHKERRQ(ierr);
-  nep->nfuncs      = 0;
-  nep->linits      = 0;
-  nep->setupcalled = 0;
+  ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
+  ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
+  ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
+  if (nep->split) {
+    ierr = MatDestroyMatrices(nep->nt,&nep->A);CHKERRQ(ierr);
+    for (i=0;i<nep->nt;i++) {
+      ierr = FNDestroy(&nep->f[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(nep->f);CHKERRQ(ierr);
+  }
+  ierr = BVGetSizes(nep->V,NULL,NULL,&ncols);CHKERRQ(ierr);
+  if (ncols) {
+    ierr = PetscFree3(nep->eig,nep->errest,nep->perm);CHKERRQ(ierr);
+  }
+  ierr = BVDestroy(&nep->V);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
+  nep->nwork  = 0;
+  nep->nfuncs = 0;
+  nep->state  = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -477,7 +421,6 @@ PetscErrorCode NEPReset(NEP nep)
 PetscErrorCode NEPDestroy(NEP *nep)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
 
   PetscFunctionBegin;
   if (!*nep) PetscFunctionReturn(0);
@@ -486,65 +429,57 @@ PetscErrorCode NEPDestroy(NEP *nep)
   ierr = NEPReset(*nep);CHKERRQ(ierr);
   if ((*nep)->ops->destroy) { ierr = (*(*nep)->ops->destroy)(*nep);CHKERRQ(ierr); }
   ierr = KSPDestroy(&(*nep)->ksp);CHKERRQ(ierr);
-  ierr = IPDestroy(&(*nep)->ip);CHKERRQ(ierr);
   ierr = DSDestroy(&(*nep)->ds);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*nep)->function);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*nep)->function_pre);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*nep)->jacobian);CHKERRQ(ierr);
-  if ((*nep)->split) {
-    ierr = MatDestroyMatrices((*nep)->nt,&(*nep)->A);CHKERRQ(ierr);
-    for (i=0;i<(*nep)->nt;i++) {
-      ierr = FNDestroy(&(*nep)->f[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree((*nep)->f);CHKERRQ(ierr);
-  }
   ierr = PetscRandomDestroy(&(*nep)->rand);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*nep)->nini,&(*nep)->IS);CHKERRQ(ierr);
+  if ((*nep)->convergeddestroy) {
+    ierr = (*(*nep)->convergeddestroy)((*nep)->convergedctx);CHKERRQ(ierr);
+  }
   ierr = NEPMonitorCancel(*nep);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(nep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPSetIP"
+#define __FUNCT__ "NEPSetBV"
 /*@
-   NEPSetIP - Associates an inner product object to the nonlinear eigensolver.
+   NEPSetBV - Associates a basis vectors object to the nonlinear eigensolver.
 
    Collective on NEP
 
    Input Parameters:
 +  nep - eigensolver context obtained from NEPCreate()
--  ip  - the inner product object
+-  bv  - the basis vectors object
 
    Note:
-   Use NEPGetIP() to retrieve the inner product context (for example,
+   Use NEPGetBV() to retrieve the basis vectors context (for example,
    to free it at the end of the computations).
 
    Level: advanced
 
-.seealso: NEPGetIP()
+.seealso: NEPGetBV()
 @*/
-PetscErrorCode NEPSetIP(NEP nep,IP ip)
+PetscErrorCode NEPSetBV(NEP nep,BV bv)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidHeaderSpecific(ip,IP_CLASSID,2);
-  PetscCheckSameComm(nep,1,ip,2);
-  ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
-  ierr = IPDestroy(&nep->ip);CHKERRQ(ierr);
-  nep->ip = ip;
-  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ip);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(bv,BV_CLASSID,2);
+  PetscCheckSameComm(nep,1,bv,2);
+  ierr = PetscObjectReference((PetscObject)bv);CHKERRQ(ierr);
+  ierr = BVDestroy(&nep->V);CHKERRQ(ierr);
+  nep->V = bv;
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPGetIP"
+#define __FUNCT__ "NEPGetBV"
 /*@C
-   NEPGetIP - Obtain the inner product object associated
-   to the nonlinear eigensolver object.
+   NEPGetBV - Obtain the basis vectors object associated to the nonlinear
+   eigensolver object.
 
    Not Collective
 
@@ -552,24 +487,24 @@ PetscErrorCode NEPSetIP(NEP nep,IP ip)
 .  nep - eigensolver context obtained from NEPCreate()
 
    Output Parameter:
-.  ip - inner product context
+.  bv - basis vectors context
 
    Level: advanced
 
-.seealso: NEPSetIP()
+.seealso: NEPSetBV()
 @*/
-PetscErrorCode NEPGetIP(NEP nep,IP *ip)
+PetscErrorCode NEPGetBV(NEP nep,BV *bv)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(ip,2);
-  if (!nep->ip) {
-    ierr = IPCreate(PetscObjectComm((PetscObject)nep),&nep->ip);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ip);CHKERRQ(ierr);
+  PetscValidPointer(bv,2);
+  if (!nep->V) {
+    ierr = BVCreate(PetscObjectComm((PetscObject)nep),&nep->V);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->V);CHKERRQ(ierr);
   }
-  *ip = nep->ip;
+  *bv = nep->V;
   PetscFunctionReturn(0);
 }
 
@@ -751,10 +686,10 @@ PetscErrorCode NEPSetTarget(NEP nep,PetscScalar target)
    Output Parameter:
 .  target - the value of the target
 
-   Level: beginner
-
    Note:
    If the target was not set by the user, then zero is returned.
+
+   Level: beginner
 
 .seealso: NEPSetTarget()
 @*/
@@ -785,18 +720,11 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
          evaluation routine (may be NULL) (if NULL then NEP retains any
          previously set value)
 
-   Notes:
-   The routine fun() takes Mat* as the matrix arguments rather than Mat.
-   This allows the Function evaluation routine to replace A and/or B with a
-   completely new matrix structure (not just different matrix elements)
-   when appropriate, for instance, if the nonzero structure is changing
-   throughout the global iterations.
-
    Level: beginner
 
 .seealso: NEPGetFunction(), NEPSetJacobian()
 @*/
-PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,PetscScalar,Mat*,Mat*,MatStructure*,void*),void *ctx)
+PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,PetscScalar,Mat,Mat,void*),void *ctx)
 {
   PetscErrorCode ierr;
 
@@ -843,7 +771,7 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,Pets
 
 .seealso: NEPSetFunction()
 @*/
-PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,PetscScalar,Mat*,Mat*,MatStructure*,void*),void **ctx)
+PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,PetscScalar,Mat,Mat,void*),void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -871,18 +799,11 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
          evaluation routine (may be NULL) (if NULL then NEP retains any
          previously set value)
 
-   Notes:
-   The routine jac() takes Mat* as the matrix arguments rather than Mat.
-   This allows the Jacobian evaluation routine to replace A with a
-   completely new matrix structure (not just different matrix elements)
-   when appropriate, for instance, if the nonzero structure is changing
-   throughout the global iterations.
-
    Level: beginner
 
 .seealso: NEPSetFunction(), NEPGetJacobian()
 @*/
-PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScalar,Mat*,MatStructure*,void*),void *ctx)
+PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScalar,Mat,void*),void *ctx)
 {
   PetscErrorCode ierr;
 
@@ -921,7 +842,7 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScala
 
 .seealso: NEPSetJacobian()
 @*/
-PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscScalar,Mat*,MatStructure*,void*),void **ctx)
+PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscScalar,Mat,void*),void **ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -977,7 +898,7 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
   PetscCheckSameComm(nep,1,*A,3);
   PetscValidPointer(f,4);
   PetscCheckSameComm(nep,1,*f,4);
-  if (nep->setupcalled) { ierr = NEPReset(nep);CHKERRQ(ierr); }
+  if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
   /* clean previously stored information */
   ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
   ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);

@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = svdregis.c svdbasic.c svdopts.c svdsetup.c svdsolve.c svdmon.c svdmat.c
+SOURCEC  = svdregis.c svdbasic.c svdopts.c svdsetup.c svdsolve.c svdmon.c dlregissvd.c
 SOURCEF  =
 SOURCEH  =
-LIBBASE  = libslepc
+LIBBASE  = libslepcsvd
 DIRS     =
 MANSEC   = SVD
 LOCDIR   = src/svd/interface/

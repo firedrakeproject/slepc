@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>          /*I "slepceps.h" I*/
+#include <slepc-private/epsimpl.h>
 #include <../src/eps/impls/external/trlan/trlanp.h>
 
 PetscErrorCode EPSSolve_TRLAN(EPS);
@@ -66,7 +66,6 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_TRLAN;
   PetscFunctionReturn(0);
 }
@@ -86,7 +85,7 @@ static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin
     ierr = VecPlaceArray(x,(PetscScalar*)xin+i*(*ldx));CHKERRQ(ierr);
     ierr = VecPlaceArray(y,(PetscScalar*)yout+i*(*ldy));CHKERRQ(ierr);
     ierr = STApply(globaleps->st,x,y);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(globaleps->ip,0,NULL,globaleps->nds,NULL,globaleps->defl,y,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeVec(globaleps->V,y,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = VecResetArray(x);CHKERRQ(ierr);
     ierr = VecResetArray(y);CHKERRQ(ierr);
   }
@@ -104,6 +103,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   PetscBLASInt   ipar[32],n,lohi,stat,ncv;
   EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;
   PetscScalar    *pV;
+  Vec            v0;
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(eps->ncv,&ncv);CHKERRQ(ierr);
@@ -132,12 +132,15 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   tr->work[0] = eps->tol;  /* relative tolerance on residual norms */
 
   for (i=0;i<eps->ncv;i++) eps->eigr[i]=0.0;
-  ierr = EPSGetStartVector(eps,0,eps->V[0],NULL);CHKERRQ(ierr);
-  ierr = VecGetArray(eps->V[0],&pV);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->V,0,0);CHKERRQ(ierr);  /* just for deflation space */
+  ierr = BVGetColumn(eps->V,0,&v0);CHKERRQ(ierr);
+  ierr = VecGetArray(v0,&pV);CHKERRQ(ierr);
 
   PetscStackCall("TRLan",TRLan_(MatMult_TRLAN,ipar,&n,&ncv,eps->eigr,pV,&n,tr->work,&tr->lwork));
 
-  ierr = VecRestoreArray(eps->V[0],&pV);CHKERRQ(ierr);
+  ierr = VecRestoreArray(v0,&pV);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(eps->V,0,&v0);CHKERRQ(ierr);
 
   stat        = ipar[0];
   eps->nconv  = ipar[3];
@@ -157,7 +160,6 @@ PetscErrorCode EPSReset_TRLAN(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(tr->work);CHKERRQ(ierr);
-  ierr = EPSFreeSolution(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -187,7 +189,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
   eps->ops->destroy              = EPSDestroy_TRLAN;
   eps->ops->reset                = EPSReset_TRLAN;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
   PetscFunctionReturn(0);
 }
 

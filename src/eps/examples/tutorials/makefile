@@ -24,7 +24,7 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tutorials/
-EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex11.c ex12.c ex13.c \
+EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex12.c ex11.c ex13.c \
              ex18.c ex19.c ex24.c
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
@@ -34,6 +34,7 @@ TESTEXAMPLES_C                 = ex2.PETSc runex2_1 ex2.rm \
                                  ex5.PETSc runex5_1 ex5.rm \
                                  ex9.PETSc runex9_1 ex9.rm \
                                  ex11.PETSc runex11_1 ex11.rm \
+                                 ex12.PETSc runex12_1 ex12.rm \
                                  ex13.PETSc runex13_1 ex13.rm \
                                  ex18.PETSc runex18_1 ex18.rm \
                                  ex24.PETSc runex24_1 ex24.rm
@@ -45,67 +46,67 @@ TESTEXAMPLES_F90               = ex1f90.PETSc runex1f90_1 ex1f90.rm
 include ${SLEPC_DIR}/conf/slepc_common
 
 ex1: ex1.o chkopts
-	-${CLINKER} -o ex1 ex1.o ${SLEPC_LIB}
+	-${CLINKER} -o ex1 ex1.o ${SLEPC_EPS_LIB}
 	${RM} ex1.o
 
 ex1f: ex1f.o chkopts
-	-${FLINKER} -o ex1f ex1f.o ${SLEPC_LIB}
+	-${FLINKER} -o ex1f ex1f.o ${SLEPC_EPS_LIB}
 	${RM} ex1f.o
 
 ex1f90: ex1f90.o chkopts
-	-${FLINKER} -o ex1f90 ex1f90.o ${SLEPC_LIB}
+	-${FLINKER} -o ex1f90 ex1f90.o ${SLEPC_EPS_LIB}
 	${RM} ex1f90.o
 
 ex2: ex2.o chkopts
-	-${CLINKER} -o ex2 ex2.o ${SLEPC_LIB}
+	-${CLINKER} -o ex2 ex2.o ${SLEPC_EPS_LIB}
 	${RM} ex2.o
 
 ex3: ex3.o chkopts
-	-${CLINKER} -o ex3 ex3.o ${SLEPC_LIB}
+	-${CLINKER} -o ex3 ex3.o ${SLEPC_EPS_LIB}
 	${RM} ex3.o
 
 ex4: ex4.o chkopts
-	-${CLINKER} -o ex4 ex4.o ${SLEPC_LIB}
+	-${CLINKER} -o ex4 ex4.o ${SLEPC_EPS_LIB}
 	${RM} ex4.o
 
 ex5: ex5.o chkopts
-	-${CLINKER} -o ex5 ex5.o ${SLEPC_LIB}
+	-${CLINKER} -o ex5 ex5.o ${SLEPC_EPS_LIB}
 	${RM} ex5.o
 
 ex6f: ex6f.o chkopts
-	-${FLINKER} -o ex6f ex6f.o ${SLEPC_LIB}
+	-${FLINKER} -o ex6f ex6f.o ${SLEPC_EPS_LIB}
 	${RM} ex6f.o
 
 ex7: ex7.o chkopts
-	-${CLINKER} -o ex7 ex7.o ${SLEPC_LIB}
+	-${CLINKER} -o ex7 ex7.o ${SLEPC_EPS_LIB}
 	${RM} ex7.o
 
 ex9: ex9.o chkopts
-	-${CLINKER} -o ex9 ex9.o ${SLEPC_LIB}
+	-${CLINKER} -o ex9 ex9.o ${SLEPC_EPS_LIB}
 	${RM} ex9.o
 
 ex11: ex11.o chkopts
-	-${CLINKER} -o ex11 ex11.o ${SLEPC_LIB}
+	-${CLINKER} -o ex11 ex11.o ${SLEPC_EPS_LIB}
 	${RM} ex11.o
 
 ex12: ex12.o chkopts
-	-${CLINKER} -o ex12 ex12.o ${SLEPC_LIB}
+	-${CLINKER} -o ex12 ex12.o ${SLEPC_EPS_LIB}
 	${RM} ex12.o
 
 ex13: ex13.o chkopts
-	-${CLINKER} -o ex13 ex13.o ${SLEPC_LIB}
+	-${CLINKER} -o ex13 ex13.o ${SLEPC_EPS_LIB}
 	${RM} ex13.o
 
 ex18: ex18.o chkopts
-	-${CLINKER} -o ex18 ex18.o ${SLEPC_LIB}
+	-${CLINKER} -o ex18 ex18.o ${SLEPC_EPS_LIB}
 	${RM} ex18.o
 
 ex19: ex19.o chkopts
-	-${CLINKER} -o ex19 ex19.o ${SLEPC_LIB}
+	-${CLINKER} -o ex19 ex19.o ${SLEPC_EPS_LIB}
 	${RM} ex19.o
 
 ex24: ex24.o chkopts
-	-${CLINKER} -o ex24 ex24.o ${SLEPC_LIB}
+	-${CLINKER} -o ex24 ex24.o ${SLEPC_EPS_LIB}
 	${RM} ex24.o
 
 #------------------------------------------------------------------------------------
@@ -178,7 +179,7 @@ runex11_1:
 	   ${RM} -f ex11_1.tmp
 
 runex12_1:
-	-@${MPIEXEC} -np 1 ./ex12 -eps_type power -st_shift 1 -eps_nev 2 > ex12_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex12 -eps_terse > ex12_1.tmp 2>&1; \
 	   if (${DIFF} output/ex12_1.out ex12_1.tmp) then true; \
 	   else echo "Possible problem with ex12_1, diffs above"; fi; \
 	   ${RM} -f ex12_1.tmp

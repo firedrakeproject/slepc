@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = pepmon.c pepbasic.c pepdefault.c pepregis.c pepopts.c pepsetup.c pepsolve.c
+SOURCEC  = pepmon.c pepbasic.c pepdefault.c pepregis.c pepopts.c pepsetup.c pepsolve.c dlregispep.c
 SOURCEF  =
 SOURCEH  =
-LIBBASE  = libslepc
+LIBBASE  = libslepcpep
 DIRS     =
 MANSEC   = PEP
 LOCDIR   = src/pep/interface/

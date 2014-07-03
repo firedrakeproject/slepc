@@ -23,7 +23,7 @@
 #if !defined(__SLEPCPEP_H)
 #define __SLEPCPEP_H
 
-#include "finclude/slepcipdef.h"
+#include "finclude/slepcbvdef.h"
 #include "finclude/slepcstdef.h"
 #include "finclude/slepcdsdef.h"
 #include "finclude/slepcepsdef.h"
@@ -35,11 +35,13 @@
 #define PEPType            character*(80)
 #define PEPProblemType     PetscEnum
 #define PEPWhich           PetscEnum
+#define PEPBasis           PetscEnum
+#define PEPScale           PetscEnum
+#define PEPConv            PetscEnum
 #define PEPConvergedReason PetscEnum
 
 #define PEPLINEAR    'linear'
-#define PEPPARNOLDI  'parnoldi'
-#define PEPPLANCZOS  'planczos'
+#define PEPQARNOLDI  'qarnoldi'
 #define PEPTOAR      'toar'
 #define PEPSTOAR     'stoar'
 

@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = ptoar.c
+SOURCEC  = ptoar.c nrefinement.c
 SOURCEF  =
 SOURCEH  =
-LIBBASE  = libslepc
+LIBBASE  = libslepcpep
 DIRS     =
 MANSEC   = PEP
 LOCDIR   = src/pep/impls/toar/

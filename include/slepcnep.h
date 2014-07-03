@@ -24,6 +24,8 @@
 #if !defined(__SLEPCNEP_H)
 #define __SLEPCNEP_H
 #include <slepceps.h>
+#include <slepcbv.h>
+#include <slepcds.h>
 #include <slepcfn.h>
 
 PETSC_EXTERN PetscErrorCode NEPInitializePackage(void);
@@ -105,16 +107,16 @@ PETSC_EXTERN PetscErrorCode NEPSetUp(NEP);
 PETSC_EXTERN PetscErrorCode NEPSolve(NEP);
 PETSC_EXTERN PetscErrorCode NEPView(NEP,PetscViewer);
 
-PETSC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat*,Mat*,MatStructure*,void*),void*);
-PETSC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat*,Mat*,MatStructure*,void*),void**);
-PETSC_EXTERN PetscErrorCode NEPSetJacobian(NEP,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat*,MatStructure*,void*),void*);
-PETSC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat*,MatStructure*,void*),void**);
+PETSC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat,Mat,void*),void*);
+PETSC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,Mat,void*),void**);
+PETSC_EXTERN PetscErrorCode NEPSetJacobian(NEP,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat,void*),void*);
+PETSC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,void*),void**);
 PETSC_EXTERN PetscErrorCode NEPSetSplitOperator(NEP,PetscInt,Mat*,FN*,MatStructure);
 PETSC_EXTERN PetscErrorCode NEPGetSplitOperatorTerm(NEP,PetscInt,Mat*,FN*);
 PETSC_EXTERN PetscErrorCode NEPGetSplitOperatorInfo(NEP,PetscInt*,MatStructure*);
 
-PETSC_EXTERN PetscErrorCode NEPSetIP(NEP,IP);
-PETSC_EXTERN PetscErrorCode NEPGetIP(NEP,IP*);
+PETSC_EXTERN PetscErrorCode NEPSetBV(NEP,BV);
+PETSC_EXTERN PetscErrorCode NEPGetBV(NEP,BV*);
 PETSC_EXTERN PetscErrorCode NEPSetDS(NEP,DS);
 PETSC_EXTERN PetscErrorCode NEPGetDS(NEP,DS*);
 PETSC_EXTERN PetscErrorCode NEPSetTolerances(NEP,PetscReal,PetscReal,PetscReal,PetscInt,PetscInt);
@@ -135,18 +137,17 @@ PETSC_EXTERN PetscErrorCode NEPComputeRelativeError(NEP,PetscInt,PetscReal*);
 PETSC_EXTERN PetscErrorCode NEPComputeResidualNorm(NEP,PetscInt,PetscReal*);
 PETSC_EXTERN PetscErrorCode NEPGetErrorEstimate(NEP,PetscInt,PetscReal*);
 
-PETSC_EXTERN PetscErrorCode NEPComputeFunction(NEP,PetscScalar,Mat*,Mat*,MatStructure*);
-PETSC_EXTERN PetscErrorCode NEPComputeJacobian(NEP,PetscScalar,Mat*,MatStructure*);
-PETSC_EXTERN PetscErrorCode NEPApplyFunction(NEP,PetscScalar,Vec,Vec,Vec,Mat*,Mat*,MatStructure*);
-PETSC_EXTERN PetscErrorCode NEPApplyJacobian(NEP,PetscScalar,Vec,Vec,Vec,Mat*,MatStructure*);
-PETSC_EXTERN PetscErrorCode NEPProjectOperator(NEP,PetscInt,PetscInt,Vec);
+PETSC_EXTERN PetscErrorCode NEPComputeFunction(NEP,PetscScalar,Mat,Mat);
+PETSC_EXTERN PetscErrorCode NEPComputeJacobian(NEP,PetscScalar,Mat);
+PETSC_EXTERN PetscErrorCode NEPApplyFunction(NEP,PetscScalar,Vec,Vec,Vec,Mat,Mat);
+PETSC_EXTERN PetscErrorCode NEPApplyJacobian(NEP,PetscScalar,Vec,Vec,Vec,Mat);
+PETSC_EXTERN PetscErrorCode NEPProjectOperator(NEP,PetscInt,PetscInt);
 
 PETSC_EXTERN PetscErrorCode NEPMonitor(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPMonitorSet(NEP,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
 PETSC_EXTERN PetscErrorCode NEPMonitorCancel(NEP);
 PETSC_EXTERN PetscErrorCode NEPGetMonitorContext(NEP,void **);
 PETSC_EXTERN PetscErrorCode NEPGetIterationNumber(NEP,PetscInt*);
-PETSC_EXTERN PetscErrorCode NEPGetOperationCounters(NEP,PetscInt*,PetscInt*,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode NEPSetInitialSpace(NEP,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode NEPSetWhichEigenpairs(NEP,NEPWhich);
@@ -177,6 +178,7 @@ PETSC_EXTERN PetscErrorCode NEPRegisterAll(void);
 PETSC_EXTERN PetscErrorCode NEPRegister(const char[],PetscErrorCode(*)(NEP));
 
 PETSC_EXTERN PetscErrorCode NEPSetWorkVecs(NEP,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
 
 /* --------- options specific to particular eigensolvers -------- */
 

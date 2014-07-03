@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = eps st svd qep pep nep mfn ip ds fn sys vec
+DIRS     = sys eps svd pep nep mfn
 
 LOCDIR   = src/
 

@@ -24,6 +24,8 @@
 #if !defined(__SLEPCPEP_H)
 #define __SLEPCPEP_H
 #include <slepceps.h>
+#include <slepcbv.h>
+#include <slepcds.h>
 
 PETSC_EXTERN PetscErrorCode PEPInitializePackage(void);
 
@@ -46,8 +48,7 @@ typedef struct _p_PEP* PEP;
 J*/
 typedef const char* PEPType;
 #define PEPLINEAR    "linear"
-#define PEPPARNOLDI  "parnoldi"
-#define PEPPLANCZOS  "planczos"
+#define PEPQARNOLDI  "qarnoldi"
 #define PEPTOAR      "toar"
 #define PEPSTOAR     "stoar"
 
@@ -100,14 +101,29 @@ typedef enum { PEP_BASIS_MONOMIAL,
 PETSC_EXTERN const char *PEPBasisTypes[];
 
 /*E
+    PEPScale - The scaling strategy
+
+    Level: intermediate
+
+.seealso: PEPSetScale()
+E*/
+typedef enum { PEP_SCALE_NONE,
+               PEP_SCALE_SCALAR,
+               PEP_SCALE_DIAGONAL,
+               PEP_SCALE_BOTH } PEPScale;
+PETSC_EXTERN const char *PEPScaleTypes[];
+
+/*E
     PEPConv - Determines the convergence test
 
     Level: intermediate
 
-.seealso: PEPSetConvergenceTest()
+.seealso: PEPSetConvergenceTest(), PEPSetConvergenceTestFunction()
 E*/
 typedef enum { PEP_CONV_ABS=1,
-               PEP_CONV_EIG } PEPConv;
+               PEP_CONV_EIG,
+               PEP_CONV_NORM,
+               PEP_CONV_USER } PEPConv;
 
 PETSC_EXTERN PetscErrorCode PEPCreate(MPI_Comm,PEP*);
 PETSC_EXTERN PetscErrorCode PEPDestroy(PEP*);
@@ -126,10 +142,8 @@ PETSC_EXTERN PetscErrorCode PEPSetUp(PEP);
 PETSC_EXTERN PetscErrorCode PEPSolve(PEP);
 PETSC_EXTERN PetscErrorCode PEPView(PEP,PetscViewer);
 PETSC_EXTERN PetscErrorCode PEPPrintSolution(PEP,PetscViewer);
-PETSC_EXTERN PetscErrorCode PEPSetBalance(PEP,PetscBool,PetscInt,PetscReal);
-PETSC_EXTERN PetscErrorCode PEPGetBalance(PEP,PetscBool*,PetscInt*,PetscReal*);
-PETSC_EXTERN PetscErrorCode PEPSetIP(PEP,IP);
-PETSC_EXTERN PetscErrorCode PEPGetIP(PEP,IP*);
+PETSC_EXTERN PetscErrorCode PEPSetBV(PEP,BV);
+PETSC_EXTERN PetscErrorCode PEPGetBV(PEP,BV*);
 PETSC_EXTERN PetscErrorCode PEPSetDS(PEP,DS);
 PETSC_EXTERN PetscErrorCode PEPGetDS(PEP,DS*);
 PETSC_EXTERN PetscErrorCode PEPSetST(PEP,ST);
@@ -137,14 +151,16 @@ PETSC_EXTERN PetscErrorCode PEPGetST(PEP,ST*);
 
 PETSC_EXTERN PetscErrorCode PEPSetTolerances(PEP,PetscReal,PetscInt);
 PETSC_EXTERN PetscErrorCode PEPGetTolerances(PEP,PetscReal*,PetscInt*);
+PETSC_EXTERN PetscErrorCode PEPSetConvergenceTestFunction(PEP,PetscErrorCode (*)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*,PetscErrorCode (*)(void*));
 PETSC_EXTERN PetscErrorCode PEPSetConvergenceTest(PEP,PEPConv);
 PETSC_EXTERN PetscErrorCode PEPGetConvergenceTest(PEP,PEPConv*);
 PETSC_EXTERN PetscErrorCode PEPConvergedEigRelative(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+PETSC_EXTERN PetscErrorCode PEPConvergedNormRelative(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode PEPConvergedAbsolute(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode PEPSetDimensions(PEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode PEPGetDimensions(PEP,PetscInt*,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode PEPSetScaleFactor(PEP,PetscReal);
-PETSC_EXTERN PetscErrorCode PEPGetScaleFactor(PEP,PetscReal*);
+PETSC_EXTERN PetscErrorCode PEPSetScale(PEP,PEPScale,PetscReal,PetscInt,PetscReal);
+PETSC_EXTERN PetscErrorCode PEPGetScale(PEP,PEPScale*,PetscReal*,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPSetBasis(PEP,PEPBasis);
 PETSC_EXTERN PetscErrorCode PEPGetBasis(PEP,PEPBasis*);
 
@@ -159,14 +175,10 @@ PETSC_EXTERN PetscErrorCode PEPMonitorSet(PEP,PetscErrorCode (*)(PEP,PetscInt,Pe
 PETSC_EXTERN PetscErrorCode PEPMonitorCancel(PEP);
 PETSC_EXTERN PetscErrorCode PEPGetMonitorContext(PEP,void **);
 PETSC_EXTERN PetscErrorCode PEPGetIterationNumber(PEP,PetscInt*);
-PETSC_EXTERN PetscErrorCode PEPGetOperationCounters(PEP,PetscInt*,PetscInt*,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode PEPSetInitialSpace(PEP,PetscInt,Vec*);
-PETSC_EXTERN PetscErrorCode PEPSetInitialSpaceLeft(PEP,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode PEPSetWhichEigenpairs(PEP,PEPWhich);
 PETSC_EXTERN PetscErrorCode PEPGetWhichEigenpairs(PEP,PEPWhich*);
-PETSC_EXTERN PetscErrorCode PEPSetLeftVectorsWanted(PEP,PetscBool);
-PETSC_EXTERN PetscErrorCode PEPGetLeftVectorsWanted(PEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode PEPSetEigenvalueComparison(PEP,PetscErrorCode (*func)(PEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
 PETSC_EXTERN PetscErrorCode PEPMonitorAll(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
@@ -208,9 +220,19 @@ PETSC_EXTERN PetscErrorCode PEPRegisterAll(void);
 PETSC_EXTERN PetscErrorCode PEPRegister(const char[],PetscErrorCode(*)(PEP));
 
 PETSC_EXTERN PetscErrorCode PEPSetWorkVecs(PEP,PetscInt);
+PETSC_EXTERN PetscErrorCode PEPAllocateSolution(PEP,PetscInt);
 
 /* --------- options specific to particular eigensolvers -------- */
 
+PETSC_EXTERN PetscErrorCode PEPLinearSetCompanionForm(PEP,PetscInt);
+PETSC_EXTERN PetscErrorCode PEPLinearGetCompanionForm(PEP,PetscInt*);
+PETSC_EXTERN PetscErrorCode PEPLinearSetExplicitMatrix(PEP,PetscBool);
+PETSC_EXTERN PetscErrorCode PEPLinearGetExplicitMatrix(PEP,PetscBool*);
+PETSC_EXTERN PetscErrorCode PEPLinearSetEPS(PEP,EPS);
+PETSC_EXTERN PetscErrorCode PEPLinearGetEPS(PEP,EPS*);
+
+PETSC_EXTERN PetscErrorCode PEPSTOARSetMonic(PEP,PetscBool);
+PETSC_EXTERN PetscErrorCode PEPSTOARGetMonic(PEP,PetscBool*);
 
 #endif
 

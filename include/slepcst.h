@@ -24,6 +24,7 @@
 #if !defined(__SLEPCST_H)
 #define __SLEPCST_H
 #include <slepcsys.h>
+#include <slepcbv.h>
 #include <petscksp.h>
 
 PETSC_EXTERN PetscErrorCode STInitializePackage(void);
@@ -76,9 +77,8 @@ PETSC_EXTERN PetscErrorCode STMatSolveTranspose(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STGetBilinearForm(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
+PETSC_EXTERN PetscErrorCode STComputeSolveMat(ST,PetscScalar,PetscScalar*);
 PETSC_EXTERN PetscErrorCode STPostSolve(ST);
-
-PETSC_EXTERN PetscErrorCode STSetEvaluateCoeffs(ST,PetscErrorCode (*)(PetscObject,PetscScalar,PetscScalar*),PetscObject);
 
 PETSC_EXTERN PetscErrorCode STSetKSP(ST,KSP);
 PETSC_EXTERN PetscErrorCode STGetKSP(ST,KSP*);
@@ -96,10 +96,14 @@ PETSC_EXTERN PetscErrorCode STGetOptionsPrefix(ST,const char*[]);
 
 PETSC_EXTERN PetscErrorCode STBackTransform(ST,PetscInt,PetscScalar*,PetscScalar*);
 
-PETSC_EXTERN PetscErrorCode STCheckNullSpace(ST,PetscInt,const Vec[]);
+PETSC_EXTERN PetscErrorCode STCheckNullSpace(ST,BV);
 
 PETSC_EXTERN PetscErrorCode STGetOperationCounters(ST,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode STResetOperationCounters(ST);
+
+PETSC_EXTERN PetscErrorCode STMatGetVecs(ST,Vec*,Vec*);
+PETSC_EXTERN PetscErrorCode STMatGetSize(ST,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode STMatGetLocalSize(ST,PetscInt*,PetscInt*);
 
 /*E
     STMatMode - Determines how to handle the coefficient matrix associated
@@ -111,8 +115,7 @@ PETSC_EXTERN PetscErrorCode STResetOperationCounters(ST);
 E*/
 typedef enum { ST_MATMODE_COPY,
                ST_MATMODE_INPLACE,
-               ST_MATMODE_SHELL,
-               ST_MATMODE_HYBRID } STMatMode;
+               ST_MATMODE_SHELL } STMatMode;
 PETSC_EXTERN PetscErrorCode STSetMatMode(ST,STMatMode);
 PETSC_EXTERN PetscErrorCode STGetMatMode(ST,STMatMode*);
 PETSC_EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);

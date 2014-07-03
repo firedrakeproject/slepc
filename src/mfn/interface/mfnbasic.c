@@ -27,76 +27,6 @@ PetscFunctionList MFNList = 0;
 PetscBool         MFNRegisterAllCalled = PETSC_FALSE;
 PetscClassId      MFN_CLASSID = 0;
 PetscLogEvent     MFN_SetUp = 0,MFN_Solve = 0;
-static PetscBool  MFNPackageInitialized = PETSC_FALSE;
-
-#undef __FUNCT__
-#define __FUNCT__ "MFNFinalizePackage"
-/*@C
-  MFNFinalizePackage - This function destroys everything in the SLEPc interface
-  to the MFN package. It is called from SlepcFinalize().
-
-  Level: developer
-
-.seealso: SlepcFinalize()
-@*/
-PetscErrorCode MFNFinalizePackage(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&MFNList);CHKERRQ(ierr);
-  MFNPackageInitialized = PETSC_FALSE;
-  MFNRegisterAllCalled  = PETSC_FALSE;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "MFNInitializePackage"
-/*@C
-  MFNInitializePackage - This function initializes everything in the MFN package.
-  It is called from PetscDLLibraryRegister() when using dynamic libraries, and
-  on the first call to MFNCreate() when using static libraries.
-
-  Level: developer
-
-.seealso: SlepcInitialize()
-@*/
-PetscErrorCode MFNInitializePackage(void)
-{
-  char           logList[256];
-  char           *className;
-  PetscBool      opt;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (MFNPackageInitialized) PetscFunctionReturn(0);
-  MFNPackageInitialized = PETSC_TRUE;
-  /* Register Classes */
-  ierr = PetscClassIdRegister("Matrix Function",&MFN_CLASSID);CHKERRQ(ierr);
-  /* Register Constructors */
-  ierr = MFNRegisterAll();CHKERRQ(ierr);
-  /* Register Events */
-  ierr = PetscLogEventRegister("MFNSetUp",MFN_CLASSID,&MFN_SetUp);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("MFNSolve",MFN_CLASSID,&MFN_Solve);CHKERRQ(ierr);
-  /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
-  if (opt) {
-    ierr = PetscStrstr(logList,"mfn",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscInfoDeactivateClass(MFN_CLASSID);CHKERRQ(ierr);
-    }
-  }
-  /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
-  if (opt) {
-    ierr = PetscStrstr(logList,"mfn",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscLogEventDeactivateClass(MFN_CLASSID);CHKERRQ(ierr);
-    }
-  }
-  ierr = PetscRegisterFinalize(MFNFinalizePackage);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNView"
@@ -165,10 +95,10 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
       ierr = (*mfn->ops->view)(mfn,viewer);CHKERRQ(ierr);
     }
   }
-  if (!mfn->ip) { ierr = MFNGetIP(mfn,&mfn->ip);CHKERRQ(ierr); }
-  ierr = IPView(mfn->ip,viewer);CHKERRQ(ierr);
-  if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
+  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
+  ierr = BVView(mfn->V,viewer);CHKERRQ(ierr);
+  if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = DSView(mfn->ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -205,28 +135,28 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   ierr = MFNInitializePackage();CHKERRQ(ierr);
   ierr = SlepcHeaderCreate(mfn,_p_MFN,struct _MFNOps,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView);CHKERRQ(ierr);
 
+  mfn->A               = NULL;
   mfn->max_it          = 0;
   mfn->ncv             = 0;
-  mfn->allocated_ncv   = 0;
   mfn->tol             = PETSC_DEFAULT;
   mfn->function        = (SlepcFunction)0;
   mfn->sfactor         = 1.0;
+  mfn->errorifnotconverged = PETSC_FALSE;
 
-  mfn->A               = 0;
-  mfn->V               = 0;
-  mfn->t               = 0;
-  mfn->errest          = 0;
-  mfn->ip              = 0;
-  mfn->ds              = 0;
-  mfn->rand            = 0;
-  mfn->data            = 0;
-  mfn->its             = 0;
+  mfn->numbermonitors  = 0;
 
+  mfn->ds              = NULL;
+  mfn->V               = NULL;
+  mfn->rand            = NULL;
   mfn->nwork           = 0;
-  mfn->work            = 0;
+  mfn->work            = NULL;
+  mfn->data            = NULL;
+
+  mfn->its             = 0;
+  mfn->nv              = 0;
+  mfn->errest          = 0;
   mfn->setupcalled     = 0;
   mfn->reason          = MFN_CONVERGED_ITERATING;
-  mfn->numbermonitors  = 0;
 
   ierr = PetscRandomCreate(comm,&mfn->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(mfn->rand,0x12345678);CHKERRQ(ierr);
@@ -375,9 +305,7 @@ PetscErrorCode MFNReset(MFN mfn)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   if (mfn->ops->reset) { ierr = (mfn->ops->reset)(mfn);CHKERRQ(ierr); }
-  if (mfn->ip) { ierr = IPReset(mfn->ip);CHKERRQ(ierr); }
   if (mfn->ds) { ierr = DSReset(mfn->ds);CHKERRQ(ierr); }
-  ierr = VecDestroy(&mfn->t);CHKERRQ(ierr);
   mfn->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -407,7 +335,7 @@ PetscErrorCode MFNDestroy(MFN *mfn)
   ierr = MFNReset(*mfn);CHKERRQ(ierr);
   if ((*mfn)->ops->destroy) { ierr = (*(*mfn)->ops->destroy)(*mfn);CHKERRQ(ierr); }
   ierr = MatDestroy(&(*mfn)->A);CHKERRQ(ierr);
-  ierr = IPDestroy(&(*mfn)->ip);CHKERRQ(ierr);
+  ierr = BVDestroy(&(*mfn)->V);CHKERRQ(ierr);
   ierr = DSDestroy(&(*mfn)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*mfn)->rand);CHKERRQ(ierr);
   ierr = MFNMonitorCancel(*mfn);CHKERRQ(ierr);
@@ -416,43 +344,43 @@ PetscErrorCode MFNDestroy(MFN *mfn)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MFNSetIP"
+#define __FUNCT__ "MFNSetBV"
 /*@
-   MFNSetIP - Associates an inner product object to the matrix function solver.
+   MFNSetBV - Associates a basis vectors object to the matrix function solver.
 
    Collective on MFN
 
    Input Parameters:
 +  mfn - matrix function context obtained from MFNCreate()
--  ip  - the inner product object
+-  bv  - the basis vectors object
 
    Note:
-   Use MFNGetIP() to retrieve the inner product context (for example,
+   Use MFNGetBV() to retrieve the basis vectors context (for example,
    to free it at the end of the computations).
 
    Level: advanced
 
-.seealso: MFNGetIP()
+.seealso: MFNGetBV()
 @*/
-PetscErrorCode MFNSetIP(MFN mfn,IP ip)
+PetscErrorCode MFNSetBV(MFN mfn,BV bv)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidHeaderSpecific(ip,IP_CLASSID,2);
-  PetscCheckSameComm(mfn,1,ip,2);
-  ierr = PetscObjectReference((PetscObject)ip);CHKERRQ(ierr);
-  ierr = IPDestroy(&mfn->ip);CHKERRQ(ierr);
-  mfn->ip = ip;
-  ierr = PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->ip);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(bv,BV_CLASSID,2);
+  PetscCheckSameComm(mfn,1,bv,2);
+  ierr = PetscObjectReference((PetscObject)bv);CHKERRQ(ierr);
+  ierr = BVDestroy(&mfn->V);CHKERRQ(ierr);
+  mfn->V = bv;
+  ierr = PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MFNGetIP"
+#define __FUNCT__ "MFNGetBV"
 /*@C
-   MFNGetIP - Obtain the inner product object associated to the matrix
+   MFNGetBV - Obtain the basis vectors object associated to the matrix
    function solver.
 
    Not Collective
@@ -461,24 +389,24 @@ PetscErrorCode MFNSetIP(MFN mfn,IP ip)
 .  mfn - matrix function context obtained from MFNCreate()
 
    Output Parameter:
-.  ip - inner product context
+.  bv - basis vectors context
 
    Level: advanced
 
-.seealso: MFNSetIP()
+.seealso: MFNSetBV()
 @*/
-PetscErrorCode MFNGetIP(MFN mfn,IP *ip)
+PetscErrorCode MFNGetBV(MFN mfn,BV *bv)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidPointer(ip,2);
-  if (!mfn->ip) {
-    ierr = IPCreate(PetscObjectComm((PetscObject)mfn),&mfn->ip);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->ip);CHKERRQ(ierr);
+  PetscValidPointer(bv,2);
+  if (!mfn->V) {
+    ierr = BVCreate(PetscObjectComm((PetscObject)mfn),&mfn->V);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->V);CHKERRQ(ierr);
   }
-  *ip = mfn->ip;
+  *bv = mfn->V;
   PetscFunctionReturn(0);
 }
 

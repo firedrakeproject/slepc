@@ -27,6 +27,6 @@ SOURCEC  = zprimmef.c
 SOURCEF  =
 SOURCEH  =
 DIRS     =
-LIBBASE  = libslepc
+LIBBASE  = libslepceps
 LOCDIR   = src/eps/impls/external/primme/ftn-custom/
 include ${SLEPC_DIR}/conf/slepc_common

@@ -32,8 +32,7 @@ typedef struct {
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSortForSTFunc"
-static PetscErrorCode PEPSortForSTFunc(PetscScalar ar,PetscScalar ai,
-                                PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
+static PetscErrorCode PEPSortForSTFunc(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
 {
   PEPSortForSTData *data = (PEPSortForSTData*)ctx;
   PetscErrorCode   ierr;
@@ -42,6 +41,27 @@ static PetscErrorCode PEPSortForSTFunc(PetscScalar ar,PetscScalar ai,
   ierr = STBackTransform(data->st,1,&ar,&ai);CHKERRQ(ierr);
   ierr = STBackTransform(data->st,1,&br,&bi);CHKERRQ(ierr);
   ierr = (*data->comparison)(ar,ai,br,bi,r,data->comparisonctx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPComputeVectors"
+PETSC_STATIC_INLINE PetscErrorCode PEPComputeVectors(PEP pep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PEPCheckSolved(pep,1);
+  switch (pep->state) {
+  case PEP_STATE_SOLVED:
+    if (pep->ops->computevectors) {
+      ierr = (*pep->ops->computevectors)(pep);CHKERRQ(ierr);
+    }
+    break;
+  default:
+    break;
+  }
+  pep->state = PEP_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
 }
 
@@ -57,9 +77,6 @@ static PetscErrorCode PEPSortForSTFunc(PetscScalar ar,PetscScalar ai,
 
    Options Database Keys:
 +  -pep_view - print information about the solver used
-.  -pep_view_mat0 binary - save the first matrix (M) to the default binary viewer
-.  -pep_view_mat1 binary - save the second matrix (C) to the default binary viewer
-.  -pep_view_mat2 binary - save the third matrix (K) to the default binary viewer
 -  -pep_plot_eigs - plot computed eigenvalues
 
    Level: beginner
@@ -122,6 +139,8 @@ PetscErrorCode PEPSolve(PEP pep)
     }
   }
 
+  pep->state = PEP_STATE_SOLVED;
+
 #if !defined(PETSC_USE_COMPLEX)
   /* reorder conjugate eigenvalues (positive imaginary first) */
   for (i=0;i<pep->nconv-1;i++) {
@@ -129,7 +148,9 @@ PetscErrorCode PEPSolve(PEP pep)
       if (pep->eigi[i] < 0) {
         pep->eigi[i] = -pep->eigi[i];
         pep->eigi[i+1] = -pep->eigi[i+1];
-        ierr = VecScale(pep->V[i+1],-1.0);CHKERRQ(ierr);
+        /* the next correction only works with eigenvectors */
+        ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
+        ierr = BVScaleColumn(pep->V,i+1,-1.0);CHKERRQ(ierr);
       }
       i++;
     }
@@ -236,6 +257,7 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidIntPointer(nconv,2);
+  PEPCheckSolved(pep,1);
   *nconv = pep->nconv;
   PetscFunctionReturn(0);
 }
@@ -271,6 +293,7 @@ PetscErrorCode PEPGetConvergedReason(PEP pep,PEPConvergedReason *reason)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(reason,2);
+  PEPCheckSolved(pep,1);
   *reason = pep->reason;
   PetscFunctionReturn(0);
 }
@@ -317,9 +340,10 @@ PetscErrorCode PEPGetEigenpair(PEP pep,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscValidLogicalCollectiveInt(pep,i,2);
   if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,6); PetscCheckSameComm(pep,1,Vr,6); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,7); PetscCheckSameComm(pep,1,Vi,7); }
-  if (!pep->eigr || !pep->eigi || !pep->V) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"PEPSolve must be called first");
+  PEPCheckSolved(pep,1);
   if (i<0 || i>=pep->nconv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
 
+  ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
   if (!pep->perm) k = i;
   else k = pep->perm[i];
 
@@ -334,20 +358,20 @@ PetscErrorCode PEPGetEigenpair(PEP pep,PetscInt i,PetscScalar *eigr,PetscScalar 
 
   /* eigenvector */
 #if defined(PETSC_USE_COMPLEX)
-  if (Vr) { ierr = VecCopy(pep->V[k],Vr);CHKERRQ(ierr); }
+  if (Vr) { ierr = BVCopyVec(pep->V,k,Vr);CHKERRQ(ierr); }
   if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
 #else
   if (pep->eigi[k]>0) { /* first value of conjugate pair */
-    if (Vr) { ierr = VecCopy(pep->V[k],Vr);CHKERRQ(ierr); }
-    if (Vi) { ierr = VecCopy(pep->V[k+1],Vi);CHKERRQ(ierr); }
+    if (Vr) { ierr = BVCopyVec(pep->V,k,Vr);CHKERRQ(ierr); }
+    if (Vi) { ierr = BVCopyVec(pep->V,k+1,Vi);CHKERRQ(ierr); }
   } else if (pep->eigi[k]<0) { /* second value of conjugate pair */
-    if (Vr) { ierr = VecCopy(pep->V[k-1],Vr);CHKERRQ(ierr); }
+    if (Vr) { ierr = BVCopyVec(pep->V,k-1,Vr);CHKERRQ(ierr); }
     if (Vi) {
-      ierr = VecCopy(pep->V[k],Vi);CHKERRQ(ierr);
+      ierr = BVCopyVec(pep->V,k,Vi);CHKERRQ(ierr);
       ierr = VecScale(Vi,-1.0);CHKERRQ(ierr);
     }
   } else { /* real eigenvalue */
-    if (Vr) { ierr = VecCopy(pep->V[k],Vr);CHKERRQ(ierr); }
+    if (Vr) { ierr = BVCopyVec(pep->V,k,Vr);CHKERRQ(ierr); }
     if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
   }
 #endif
@@ -383,7 +407,7 @@ PetscErrorCode PEPGetErrorEstimate(PEP pep,PetscInt i,PetscReal *errest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(errest,3);
-  if (!pep->eigr || !pep->eigi) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"PEPSolve must be called first");
+  PEPCheckSolved(pep,1);
   if (i<0 || i>=pep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   if (pep->perm) i = pep->perm[i];
   if (errest) *errest = pep->errest[i];
@@ -402,21 +426,27 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
   Vec            u,w;
   Mat            *A=pep->A;
   PetscInt       i,nmat=pep->nmat;
-  PetscScalar    vals[nmat],*ivals=NULL;
+  PetscScalar    t[20],*vals=t,*ivals=NULL;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            ui,wi;
   PetscReal      ni;
-  PetscScalar    iv[nmat];
   PetscBool      imag;
+  PetscScalar    it[20];
 #endif
 
   PetscFunctionBegin;
-  ierr = VecDuplicate(pep->V[0],&u);CHKERRQ(ierr);
-  ierr = VecDuplicate(u,&w);CHKERRQ(ierr);
+  ierr = BVGetVec(pep->V,&u);CHKERRQ(ierr);
+  ierr = BVGetVec(pep->V,&w);CHKERRQ(ierr);
   ierr = VecZeroEntries(u);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  ivals = iv;
+  ivals = it; 
 #endif
+  if (nmat>20) {
+    ierr = PetscMalloc(nmat*sizeof(PetscScalar),&vals);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    ierr = PetscMalloc(nmat*sizeof(PetscScalar),&ivals);CHKERRQ(ierr);
+#endif
+  }
   ierr = PEPEvaluateBasis(pep,kr,ki,vals,ivals);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON))
@@ -429,7 +459,7 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
   }
 #endif
   for (i=0;i<nmat;i++) {
-    if (PetscAbsScalar(vals[i])!=0.0) {
+    if (vals[i]!=0.0) {
       ierr = MatMult(A[i],xr,w);CHKERRQ(ierr);
       ierr = VecAXPY(u,vals[i],w);CHKERRQ(ierr);
     }
@@ -442,8 +472,8 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
         }
       }
       if (ivals[i]!=0){
-        ierr =  VecAXPY(u,-ivals[i],wi);CHKERRQ(ierr);
-        ierr =  VecAXPY(ui,ivals[i],w);CHKERRQ(ierr);
+        ierr = VecAXPY(u,-ivals[i],wi);CHKERRQ(ierr);
+        ierr = VecAXPY(ui,ivals[i],w);CHKERRQ(ierr);
       }
       if (vals[i]!=0) {
         ierr = VecAXPY(ui,vals[i],wi);CHKERRQ(ierr);
@@ -460,6 +490,12 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
 #endif
   ierr = VecDestroy(&w);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
+  if (nmat>20) {
+    ierr = PetscFree(vals);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    ierr = PetscFree(ivals);CHKERRQ(ierr);
+#endif
+  }
 #if !defined(PETSC_USE_COMPLEX)
   if (imag) {
     ierr = VecDestroy(&wi);CHKERRQ(ierr);
@@ -472,8 +508,8 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
 #undef __FUNCT__
 #define __FUNCT__ "PEPComputeResidualNorm"
 /*@
-   PEPComputeResidualNorm - Computes the norm of the residual vector associated with
-   the i-th computed eigenpair.
+   PEPComputeResidualNorm - Computes the norm of the residual vector associated
+   with the i-th computed eigenpair.
 
    Collective on PEP
 
@@ -482,9 +518,8 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
 -  i   - the solution index
 
    Output Parameter:
-.  norm - the residual norm, computed as ||(l^2*M+l*C+K)x||_2 where l is the
+.  norm - the residual norm, computed as ||P(l)x||_2 where l is the
    eigenvalue and x is the eigenvector.
-   If l=0 then the residual norm is computed as ||Kx||_2.
 
    Notes:
    The index i should be a value between 0 and nconv-1 (see PEPGetConverged()).
@@ -505,8 +540,9 @@ PetscErrorCode PEPComputeResidualNorm(PEP pep,PetscInt i,PetscReal *norm)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,i,2);
   PetscValidPointer(norm,3);
-  ierr = VecDuplicate(pep->V[0],&xr);CHKERRQ(ierr);
-  ierr = VecDuplicate(pep->V[0],&xi);CHKERRQ(ierr);
+  PEPCheckSolved(pep,1);
+  ierr = BVGetVec(pep->V,&xr);CHKERRQ(ierr);
+  ierr = BVGetVec(pep->V,&xi);CHKERRQ(ierr);
   ierr = PEPGetEigenpair(pep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
   ierr = PEPComputeResidualNorm_Private(pep,kr,ki,xr,xi,norm);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
@@ -531,25 +567,17 @@ PetscErrorCode PEPComputeRelativeError_Private(PEP pep,PetscScalar kr,PetscScala
   PetscFunctionBegin;
   ierr = PEPComputeResidualNorm_Private(pep,kr,ki,xr,xi,&norm);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
+  if (ki == 0) {
 #endif
     ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
-    if (PetscAbsScalar(kr) > norm) {
-      *error = norm/(PetscAbsScalar(kr)*er);
-    } else {
-      *error = norm/er;
-    }
 #if !defined(PETSC_USE_COMPLEX)
   } else {
     ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
     ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);
-    if (SlepcAbsEigenvalue(kr,ki) > norm) {
-      *error = norm/(SlepcAbsEigenvalue(kr,ki)*SlepcAbsEigenvalue(er,ei));
-    } else {
-      *error = norm/SlepcAbsEigenvalue(er,ei);
-    }
+    er = SlepcAbsEigenvalue(er,ei);
   }
 #endif
+  ierr = (*pep->converged)(pep,kr,ki,norm/er,error,pep->convergedctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -566,9 +594,8 @@ PetscErrorCode PEPComputeRelativeError_Private(PEP pep,PetscScalar kr,PetscScala
 -  i   - the solution index
 
    Output Parameter:
-.  error - the relative error bound, computed as ||(l^2*M+l*C+K)x||_2/||lx||_2 where
+.  error - the relative error bound, computed as ||P(l)x||_2/||lx||_2 where
    l is the eigenvalue and x is the eigenvector.
-   If l=0 the relative error is computed as ||Kx||_2/||x||_2.
 
    Level: beginner
 
@@ -584,8 +611,9 @@ PetscErrorCode PEPComputeRelativeError(PEP pep,PetscInt i,PetscReal *error)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,i,2);
   PetscValidPointer(error,3);
-  ierr = VecDuplicate(pep->V[0],&xr);CHKERRQ(ierr);
-  ierr = VecDuplicate(pep->V[0],&xi);CHKERRQ(ierr);
+  PEPCheckSolved(pep,1);
+  ierr = BVGetVec(pep->V,&xr);CHKERRQ(ierr);
+  ierr = BVGetVec(pep->V,&xi);CHKERRQ(ierr);
   ierr = PEPGetEigenpair(pep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
   ierr = PEPComputeRelativeError_Private(pep,kr,ki,xr,xi,error);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
@@ -716,40 +744,3 @@ PetscErrorCode PEPCompareEigenvalues(PEP pep,PetscScalar ar,PetscScalar ai,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetOperationCounters"
-/*@
-   PEPGetOperationCounters - Gets the total number of matrix-vector products, dot
-   products, and linear solve iterations used by the PEP object during the last
-   PEPSolve() call.
-
-   Not Collective
-
-   Input Parameter:
-.  pep - polynomial eigensolver context
-
-   Output Parameter:
-+  matvecs - number of matrix-vector product operations
-.  dots    - number of dot product operations
--  lits    - number of linear iterations
-
-   Notes:
-   These counters are reset to zero at each successive call to PEPSolve().
-
-   Level: intermediate
-
-@*/
-PetscErrorCode PEPGetOperationCounters(PEP pep,PetscInt* matvecs,PetscInt* dots,PetscInt* lits)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (matvecs) *matvecs = pep->matvecs;
-  if (dots) {
-    if (!pep->ip) { ierr = PEPGetIP(pep,&pep->ip);CHKERRQ(ierr); }
-    ierr = IPGetOperationCounters(pep->ip,dots);CHKERRQ(ierr);
-  }
-  if (lits) *lits = pep->linits;
-  PetscFunctionReturn(0);
-}

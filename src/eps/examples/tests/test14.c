@@ -30,7 +30,6 @@ int main(int argc,char **argv)
   Mat                A,B;         /* problem matrix */
   EPS                eps;         /* eigenproblem solver context */
   ST                 st;
-  IP                 ip;
   DS                 ds;
   PetscReal          cut,tol;
   PetscScalar        target;
@@ -103,8 +102,7 @@ int main(int argc,char **argv)
   ierr = EPSGetDimensions(eps,&nev,&ncv,&mpd);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Dimensions: nev=%D, ncv=%D, mpd=%D\n",nev,ncv,mpd);CHKERRQ(ierr);
 
-  ierr = EPSSetTolerances(eps,0,200);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,2.2e-4,0);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,2.2e-4,200);CHKERRQ(ierr);
   ierr = EPSGetTolerances(eps,&tol,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance = %.5f, max_its = %D\n",(double)tol,its);CHKERRQ(ierr);
 
@@ -117,8 +115,6 @@ int main(int argc,char **argv)
 
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STView(st,NULL);CHKERRQ(ierr);
-  ierr = EPSGetIP(eps,&ip);CHKERRQ(ierr);
-  ierr = IPView(ip,NULL);CHKERRQ(ierr);
   ierr = EPSGetDS(eps,&ds);CHKERRQ(ierr);
   ierr = DSView(ds,NULL);CHKERRQ(ierr);
 

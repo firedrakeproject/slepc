@@ -23,10 +23,10 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = monitor.c basic.c default.c itregis.c opts.c setup.c solve.c mem.c
+SOURCEC  = epsmon.c epsbasic.c epsdefault.c epsregis.c epsopts.c epssetup.c epssolve.c dlregiseps.c
 SOURCEF  =
 SOURCEH  =
-LIBBASE  = libslepc
+LIBBASE  = libslepceps
 DIRS     =
 MANSEC   = EPS
 LOCDIR   = src/eps/interface/

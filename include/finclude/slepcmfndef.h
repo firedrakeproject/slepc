@@ -23,8 +23,9 @@
 #if !defined(__SLEPCMFN_H)
 #define __SLEPCMFN_H
 
+#include "finclude/petscmatdef.h"
 #include "finclude/slepcdsdef.h"
-#include "finclude/slepcipdef.h"
+#include "finclude/slepcbvdef.h"
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
 #define MFN                    PetscFortranAddr

@@ -24,6 +24,8 @@
 #if !defined(__SLEPCSVD_H)
 #define __SLEPCSVD_H
 #include <slepceps.h>
+#include <slepcbv.h>
+#include <slepcds.h>
 
 PETSC_EXTERN PetscErrorCode SVDInitializePackage(void);
 
@@ -91,8 +93,8 @@ typedef enum {/* converged */
               SVD_CONVERGED_ITERATING          =  0 } SVDConvergedReason;
 
 PETSC_EXTERN PetscErrorCode SVDCreate(MPI_Comm,SVD*);
-PETSC_EXTERN PetscErrorCode SVDSetIP(SVD,IP);
-PETSC_EXTERN PetscErrorCode SVDGetIP(SVD,IP*);
+PETSC_EXTERN PetscErrorCode SVDSetBV(SVD,BV,BV);
+PETSC_EXTERN PetscErrorCode SVDGetBV(SVD,BV*,BV*);
 PETSC_EXTERN PetscErrorCode SVDSetDS(SVD,DS);
 PETSC_EXTERN PetscErrorCode SVDGetDS(SVD,DS*);
 PETSC_EXTERN PetscErrorCode SVDSetType(SVD,SVDType);
@@ -121,7 +123,6 @@ PETSC_EXTERN PetscErrorCode SVDGetConverged(SVD,PetscInt*);
 PETSC_EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,PetscInt,PetscReal*,Vec,Vec);
 PETSC_EXTERN PetscErrorCode SVDComputeResidualNorms(SVD,PetscInt,PetscReal*,PetscReal*);
 PETSC_EXTERN PetscErrorCode SVDComputeRelativeError(SVD,PetscInt,PetscReal*);
-PETSC_EXTERN PetscErrorCode SVDGetOperationCounters(SVD,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
 PETSC_EXTERN PetscErrorCode SVDPrintSolution(SVD,PetscViewer);
 PETSC_EXTERN PetscErrorCode SVDDestroy(SVD*);
@@ -158,5 +159,7 @@ PETSC_EXTERN PetscFunctionList SVDList;
 PETSC_EXTERN PetscBool         SVDRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode SVDRegisterAll(void);
 PETSC_EXTERN PetscErrorCode SVDRegister(const char[],PetscErrorCode(*)(SVD));
+
+PETSC_EXTERN PetscErrorCode SVDAllocateSolution(SVD,PetscInt);
 
 #endif

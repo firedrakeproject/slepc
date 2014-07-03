@@ -13,8 +13,6 @@
        [1] A. Neumaier, "Residual inverse iteration for the nonlinear
            eigenvalue problem", SIAM J. Numer. Anal. 22(5):914-923, 1985.
 
-   Last update: Feb 2013
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
@@ -35,7 +33,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>         /*I "slepcnep.h" I*/
+#include <slepc-private/nepimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetUp_RII"
@@ -72,25 +70,25 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 {
   PetscErrorCode     ierr;
   Mat                T=nep->function,Tp=nep->jacobian,Tsigma;
-  Vec                u=nep->V[0],r=nep->work[0],delta=nep->work[1];
+  Vec                u,r=nep->work[0],delta=nep->work[1];
   PetscScalar        lambda,a1,a2;
   PetscReal          relerr;
   PetscBool          hascopy;
-  MatStructure       mats;
   KSPConvergedReason kspreason;
 
   PetscFunctionBegin;
   /* get initial approximation of eigenvalue and eigenvector */
   ierr = NEPGetDefaultShift(nep,&lambda);CHKERRQ(ierr);
   if (!nep->nini) {
-    ierr = SlepcVecSetRandom(u,nep->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(nep->V,0,nep->rand);CHKERRQ(ierr);
   }
+  ierr = BVGetColumn(nep->V,0,&u);CHKERRQ(ierr);
 
   /* correct eigenvalue approximation: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
-  ierr = NEPComputeFunction(nep,lambda,&T,&T,&mats);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
   ierr = MatMult(T,u,r);CHKERRQ(ierr);
   ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
-  ierr = NEPApplyJacobian(nep,lambda,u,delta,r,&Tp,&mats);CHKERRQ(ierr);
+  ierr = NEPApplyJacobian(nep,lambda,u,delta,r,Tp);CHKERRQ(ierr);
   ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
   lambda = lambda - a1/a2;
 
@@ -106,7 +104,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     if (nep->lag && !(nep->its%nep->lag) && nep->its>2*nep->lag && relerr<1e-2) {
       ierr = MatHasOperation(T,MATOP_COPY,&hascopy);CHKERRQ(ierr);
       if (hascopy) {
-        ierr = MatCopy(T,Tsigma,mats);CHKERRQ(ierr);
+        ierr = MatCopy(T,Tsigma,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
       } else {
         ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
         ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
@@ -119,7 +117,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     }
 
     /* form residual,  r = T(lambda)*u */
-    ierr = NEPApplyFunction(nep,lambda,u,delta,r,&T,&T,&mats);CHKERRQ(ierr);
+    ierr = NEPApplyFunction(nep,lambda,u,delta,r,T,T);CHKERRQ(ierr);
 
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&relerr);CHKERRQ(ierr);
@@ -148,15 +146,16 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
 
       /* correct eigenvalue: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
-      ierr = NEPApplyFunction(nep,lambda,u,delta,r,&T,&T,&mats);CHKERRQ(ierr);
+      ierr = NEPApplyFunction(nep,lambda,u,delta,r,T,T);CHKERRQ(ierr);
       ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
-      ierr = NEPApplyJacobian(nep,lambda,u,delta,r,&Tp,&mats);CHKERRQ(ierr);
+      ierr = NEPApplyJacobian(nep,lambda,u,delta,r,Tp);CHKERRQ(ierr);
       ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
       lambda = lambda - a1/a2;
     }
     if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
   }
   ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(nep->V,0,&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -167,7 +166,6 @@ PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
   PetscFunctionBegin;
   nep->ops->solve        = NEPSolve_RII;
   nep->ops->setup        = NEPSetUp_RII;
-  nep->ops->reset        = NEPReset_Default;
   PetscFunctionReturn(0);
 }
 

@@ -81,6 +81,7 @@ PetscErrorCode SVDSolve(SVD svd)
     ierr = PetscFree(workperm);CHKERRQ(ierr);
   }
 
+  svd->lvecsavail = (svd->leftbasis)? PETSC_TRUE: PETSC_FALSE;
   ierr = PetscLogEventEnd(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
@@ -94,8 +95,9 @@ PetscErrorCode SVDSolve(SVD svd)
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
-  /* Remove the initial subspace */
+  /* Remove the initial subspaces */
   svd->nini = 0;
+  svd->ninil = 0;
   PetscFunctionReturn(0);
 }
 
@@ -227,7 +229,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   PetscErrorCode ierr;
   PetscReal      norm;
   PetscInt       j,M,N;
-  Vec            w;
+  Vec            w,tl,vj,uj;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -239,19 +241,26 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   if (M<N) { w = u; u = v; v = w; }
   if (u) {
-    if (!svd->U) {
-      ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
-      ierr = PetscLogObjectParents(svd,svd->ncv,svd->U);CHKERRQ(ierr);
+    if (!svd->lvecsavail) {  /* generate left singular vectors on U */
+      if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
+      ierr = SVDMatGetVecs(svd,NULL,&tl);CHKERRQ(ierr);
+      ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
+      ierr = VecDestroy(&tl);CHKERRQ(ierr);
       for (j=0;j<svd->nconv;j++) {
-        ierr = SVDMatMult(svd,PETSC_FALSE,svd->V[j],svd->U[j]);CHKERRQ(ierr);
-        ierr = IPOrthogonalize(svd->ip,0,NULL,j,NULL,svd->U,svd->U[j],NULL,&norm,NULL);CHKERRQ(ierr);
-        ierr = VecScale(svd->U[j],1.0/norm);CHKERRQ(ierr);
+        ierr = BVGetColumn(svd->V,j,&vj);CHKERRQ(ierr);
+        ierr = BVGetColumn(svd->U,j,&uj);CHKERRQ(ierr);
+        ierr = SVDMatMult(svd,PETSC_FALSE,vj,uj);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(svd->V,j,&vj);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(svd->U,j,&uj);CHKERRQ(ierr);
+        ierr = BVOrthogonalizeColumn(svd->U,j,NULL,&norm,NULL);CHKERRQ(ierr);
+        ierr = BVScaleColumn(svd->U,j,1.0/norm);CHKERRQ(ierr);
       }
+      svd->lvecsavail = PETSC_TRUE;
     }
-    ierr = VecCopy(svd->U[svd->perm[i]],u);CHKERRQ(ierr);
+    ierr = BVCopyVec(svd->U,svd->perm[i],u);CHKERRQ(ierr);
   }
   if (v) {
-    ierr = VecCopy(svd->V[svd->perm[i]],v);CHKERRQ(ierr);
+    ierr = BVCopyVec(svd->V,svd->perm[i],v);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -367,37 +376,3 @@ PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetOperationCounters"
-/*@
-   SVDGetOperationCounters - Gets the total number of matrix vector and dot
-   products used by the SVD object during the last SVDSolve() call.
-
-   Not Collective
-
-   Input Parameter:
-.  svd - SVD context
-
-   Output Parameter:
-+  matvecs - number of matrix vector product operations
--  dots    - number of dot product operations
-
-   Notes:
-   These counters are reset to zero at each successive call to SVDSolve().
-
-   Level: intermediate
-
-@*/
-PetscErrorCode SVDGetOperationCounters(SVD svd,PetscInt* matvecs,PetscInt* dots)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (matvecs) *matvecs = svd->matvecs;
-  if (dots) {
-    if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-    ierr = IPGetOperationCounters(svd->ip,dots);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}

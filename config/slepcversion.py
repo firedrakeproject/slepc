@@ -21,26 +21,40 @@
 
 import os
 import sys
+import commands
 
 def Load(slepcdir):
-  global VERSION,RELEASE,PATCHLEVEL,LVERSION
+  global VERSION,RELEASE,LVERSION,ISREPO,GITREV,GITDATE,BRANCH
   try:
     f = open(os.sep.join([slepcdir,'include','slepcversion.h']))
     for l in f.readlines():
       l = l.split()
       if len(l) == 3:
         if l[1] == 'SLEPC_VERSION_RELEASE':
-	  RELEASE = l[2]
-	if l[1] == 'SLEPC_VERSION_MAJOR':
+          RELEASE = l[2]
+        if l[1] == 'SLEPC_VERSION_MAJOR':
           major = l[2]
-	elif l[1] == 'SLEPC_VERSION_MINOR':
+        elif l[1] == 'SLEPC_VERSION_MINOR':
           minor = l[2]
-	elif l[1] == 'SLEPC_VERSION_SUBMINOR':
+        elif l[1] == 'SLEPC_VERSION_SUBMINOR':
           subminor = l[2]
-	elif l[1] == 'SLEPC_VERSION_PATCH':
-          PATCHLEVEL = l[2]
+        elif l[1] == 'SLEPC_VERSION_PATCH':
+          patchlevel = l[2]
     f.close()
     VERSION = major + '.' + minor
     LVERSION = major + '.' + minor + '.' + subminor
   except:
     sys.exit('ERROR: file error while reading SLEPC version')
+
+  # Check whether this is a working copy of the repository
+  ISREPO = 0
+  if os.path.exists(os.sep.join([slepcdir,'src','docs'])) and os.path.exists(os.sep.join([slepcdir,'.git'])):
+    (status, output) = commands.getstatusoutput('git rev-parse')
+    if status:
+      print 'WARNING: SLEPC_DIR appears to be a git working copy, but git is not found in PATH'
+    else:
+      ISREPO = 1
+      (status, GITREV) = commands.getstatusoutput('git log -1 --pretty=format:%H')
+      (status, GITDATE) = commands.getstatusoutput('git log -1 --pretty=format:%ci')
+      (status, BRANCH) = commands.getstatusoutput('git describe --contains --all HEAD')
+

@@ -30,15 +30,15 @@ PETSC_EXTERN PetscLogEvent EPS_SetUp,EPS_Solve;
 typedef struct _EPSOps *EPSOps;
 
 struct _EPSOps {
-  PetscErrorCode  (*solve)(EPS);
-  PetscErrorCode  (*setup)(EPS);
-  PetscErrorCode  (*setfromoptions)(EPS);
-  PetscErrorCode  (*publishoptions)(EPS);
-  PetscErrorCode  (*destroy)(EPS);
-  PetscErrorCode  (*reset)(EPS);
-  PetscErrorCode  (*view)(EPS,PetscViewer);
-  PetscErrorCode  (*backtransform)(EPS);
-  PetscErrorCode  (*computevectors)(EPS);
+  PetscErrorCode (*solve)(EPS);
+  PetscErrorCode (*setup)(EPS);
+  PetscErrorCode (*setfromoptions)(EPS);
+  PetscErrorCode (*publishoptions)(EPS);
+  PetscErrorCode (*destroy)(EPS);
+  PetscErrorCode (*reset)(EPS);
+  PetscErrorCode (*view)(EPS,PetscViewer);
+  PetscErrorCode (*backtransform)(EPS);
+  PetscErrorCode (*computevectors)(EPS);
 };
 
 /*
@@ -46,103 +46,133 @@ struct _EPSOps {
 */
 #define MAXEPSMONITORS 5
 
+typedef enum { EPS_STATE_INITIAL,
+               EPS_STATE_SETUP,
+               EPS_STATE_SOLVED,
+               EPS_STATE_EIGENVECTORS } EPSStateType;
+
 /*
    Defines the EPS data structure.
 */
 struct _p_EPS {
   PETSCHEADER(struct _EPSOps);
-  /*------------------------- User parameters --------------------------*/
+  /*------------------------- User parameters ---------------------------*/
   PetscInt       max_it;           /* maximum number of iterations */
   PetscInt       nev;              /* number of eigenvalues to compute */
   PetscInt       ncv;              /* number of basis vectors */
   PetscInt       mpd;              /* maximum dimension of projected problem */
-  PetscInt       nini,ninil;       /* number of initial vectors (negative means not copied yet) */
+  PetscInt       nini;             /* number of initial vectors (negative means not copied yet) */
   PetscInt       nds;              /* number of basis vectors of deflation space */
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
   EPSConv        conv;             /* convergence test */
   EPSWhich       which;            /* which part of the spectrum to be sought */
-  PetscBool      leftvecs;         /* if left eigenvectors are requested */
   PetscReal      inta,intb;        /* interval [a,b] for spectrum slicing */
   EPSProblemType problem_type;     /* which kind of problem to be solved */
   EPSExtraction  extraction;       /* which kind of extraction to be applied */
   EPSBalance     balance;          /* the balancing method */
   PetscInt       balance_its;      /* number of iterations of the balancing method */
   PetscReal      balance_cutoff;   /* cutoff value for balancing */
-  PetscReal      nrma,nrmb;        /* matrix norms */
-  PetscBool      adaptive;         /* whether matrix norms are adaptively improved */
   PetscBool      trueres;          /* whether the true residual norm must be computed */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   PetscErrorCode (*converged)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+  PetscErrorCode (*convergeddestroy)(void*);
   PetscErrorCode (*arbitrary)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*);
   void           *comparisonctx;
   void           *convergedctx;
   void           *arbitraryctx;
-
-  /*------------------------- Working data --------------------------*/
-  Vec            D;                /* diagonal matrix for balancing */
-  Vec            *V;               /* set of basis vectors and computed eigenvectors */
-  Vec            *W;               /* set of left basis vectors and computed left eigenvectors */
-  Vec            *IS,*ISL;         /* placeholder for references to user-provided initial space */
-  Vec            *defl;            /* deflation space */
-  PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
-  PetscReal      *errest;          /* error estimates */
-  PetscReal      *errest_left;     /* left error estimates */
-  PetscScalar    *rr,*ri;          /* values computed by user's arbitrary selection function */
-  ST             st;               /* spectral transformation object */
-  IP             ip;               /* innerproduct object */
-  DS             ds;               /* direct solver object */
-  void           *data;            /* placeholder for misc stuff associated
-                                      with a particular solver */
-  PetscInt       nconv;            /* number of converged eigenvalues */
-  PetscInt       its;              /* number of iterations so far computed */
-  PetscInt       *perm;            /* permutation for eigenvalue ordering */
-  PetscInt       nv;               /* size of current Schur decomposition */
-  PetscInt       n,nloc;           /* problem dimensions (global, local) */
-  PetscInt       allocated_ncv;    /* number of basis vectors allocated */
-  PetscBool      evecsavailable;   /* computed eigenvectors */
-  PetscRandom    rand;             /* random number generator */
-  Vec            t;                /* template vector */
-
-  /* ---------------- Default work-area and status vars -------------------- */
-  PetscInt       nwork;
-  Vec            *work;
-
-  PetscBool      ds_ortho;         /* if defl vectors have been stored & orthonormalized */
-  PetscInt       setupcalled;
-  PetscBool      isgeneralized;
-  PetscBool      ispositive;
-  PetscBool      ishermitian;
-  EPSConvergedReason reason;
-
   PetscErrorCode (*monitor[MAXEPSMONITORS])(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXEPSMONITORS])(void**);
   void           *monitorcontext[MAXEPSMONITORS];
   PetscInt       numbermonitors;
+
+  /*----------------- Child objects and working data -------------------*/
+  ST             st;               /* spectral transformation object */
+  DS             ds;               /* direct solver object */
+  BV             V;                /* set of basis vectors and computed eigenvectors */
+  PetscRandom    rand;             /* random number generator */
+  Vec            D;                /* diagonal matrix for balancing */
+  Vec            *IS;              /* references to user-provided initial space */
+  Vec            *defl;            /* references to user-provided deflation space */
+  PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
+  PetscReal      *errest;          /* error estimates */
+  PetscScalar    *rr,*ri;          /* values computed by user's arbitrary selection function */
+  PetscInt       *perm;            /* permutation for eigenvalue ordering */
+  PetscInt       nwork;            /* number of work vectors */
+  Vec            *work;            /* work vectors */
+  void           *data;            /* placeholder for solver-specific stuff */
+
+  /* ----------------------- Status variables --------------------------*/
+  EPSStateType   state;            /* initial -> setup -> solved -> eigenvectors */
+  PetscInt       nconv;            /* number of converged eigenvalues */
+  PetscInt       its;              /* number of iterations so far computed */
+  PetscInt       n,nloc;           /* problem dimensions (global, local) */
+  PetscReal      nrma,nrmb;        /* computed matrix norms */
+  PetscBool      isgeneralized;
+  PetscBool      ispositive;
+  PetscBool      ishermitian;
+  EPSConvergedReason reason;
 };
 
-PETSC_INTERN PetscErrorCode EPSReset_Default(EPS);
+/*
+    Macros to test valid EPS arguments
+*/
+#if !defined(PETSC_USE_DEBUG)
+
+#define EPSCheckSolved(h,arg) do {} while (0)
+
+#else
+
+#define EPSCheckSolved(h,arg) \
+  do { \
+    if (h->state<EPS_STATE_SOLVED) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSolve() first: Parameter #%d",arg); \
+  } while (0)
+
+#endif
+
+#undef __FUNCT__
+#define __FUNCT__ "EPS_SetInnerProduct"
+/*
+  EPS_SetInnerProduct - set B matrix for inner product if appropriate.
+*/
+PETSC_STATIC_INLINE PetscErrorCode EPS_SetInnerProduct(EPS eps)
+{
+  PetscErrorCode ierr;
+  Mat            B;
+
+  PetscFunctionBegin;
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
+  if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
+    ierr = STGetBilinearForm(eps->st,&B);CHKERRQ(ierr);
+    ierr = BVSetMatrix(eps->V,B,eps->ispositive?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr);
+    ierr = MatDestroy(&B);CHKERRQ(ierr);
+  } else {
+    ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 PETSC_INTERN PetscErrorCode EPSSetWhichEigenpairs_Default(EPS);
-PETSC_INTERN PetscErrorCode EPSAllocateSolution(EPS,PetscInt);
-PETSC_INTERN PetscErrorCode EPSFreeSolution(EPS);
+PETSC_INTERN PetscErrorCode EPSSetDimensions_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSBackTransform_Default(EPS);
-PETSC_INTERN PetscErrorCode EPSComputeVectors_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Hermitian(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode EPSComputeRelativeError_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-PETSC_INTERN PetscErrorCode EPSComputeRitzVector(EPS,PetscScalar*,PetscScalar*,Vec*,PetscInt,Vec,Vec);
+PETSC_INTERN PetscErrorCode EPSComputeRitzVector(EPS,PetscScalar*,PetscScalar*,BV,Vec,Vec);
+PETSC_INTERN PetscErrorCode EPSGetStartVector(EPS,PetscInt,PetscBool*);
 
 /* Private functions of the solver implementations */
 
-PETSC_INTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscBool,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
+PETSC_INTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscBool,PetscScalar*,PetscInt,PetscInt,PetscInt*,PetscReal*,PetscBool*);
 PETSC_INTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
 PETSC_INTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,PetscInt,Vec*,PetscInt,PetscInt*,Vec,PetscReal*,PetscBool*);
-PETSC_INTERN PetscErrorCode EPSKrylovConvergence(EPS,PetscBool,PetscInt,PetscInt,Vec*,PetscInt,PetscReal,PetscReal,PetscInt*);
-PETSC_INTERN PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,Vec*,PetscInt,PetscInt*,Vec,PetscBool*);
+PETSC_INTERN PetscErrorCode EPSKrylovConvergence(EPS,PetscBool,PetscInt,PetscInt,PetscReal,PetscReal,PetscInt*);
+PETSC_INTERN PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,PetscInt,PetscInt*,PetscBool*);
+PETSC_INTERN PetscErrorCode EPSPseudoLanczos(EPS,PetscReal*,PetscReal*,PetscReal*,PetscInt,PetscInt*,PetscBool*,PetscReal*,Vec);
 PETSC_INTERN PetscErrorCode EPSBuildBalance_Krylov(EPS);
 
 #endif

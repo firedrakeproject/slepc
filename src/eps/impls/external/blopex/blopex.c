@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>      /*I "slepceps.h" I*/
-#include <slepc-private/stimpl.h>       /*I "slepcst.h" I*/
+#include <slepc-private/epsimpl.h>
+#include <slepc-private/stimpl.h>
 #include "slepc-interface.h"
 #include <blopex_lobpcg.h>
 #include <blopex_interpreter.h>
@@ -141,9 +141,10 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF/SYGV - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       i;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
-  PetscBool      isPrecond;
+  PetscBool      isPrecond,flg;
+  BV             Y;
+  PetscInt       k;
 
   PetscFunctionBegin;
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works for hermitian problems");
@@ -151,8 +152,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (eps->which!=EPS_SMALLEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
   /* Change the default sigma to inf if necessary */
-  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
-      eps->which == EPS_LARGEST_IMAGINARY) {
+  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) {
     ierr = STSetDefaultShift(eps->st,3e300);CHKERRQ(ierr);
   }
 
@@ -165,6 +165,13 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+
+  /* blopex only works with BVVECS or BVCONTIGUOUS, if different set to CONTIGUOUS */
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps->V,&flg,BVVECS,BVCONTIGUOUS,"");CHKERRQ(ierr);
+  if (!flg) {
+    ierr = BVSetType(eps->V,BVCONTIGUOUS);CHKERRQ(ierr);
+  }
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
@@ -181,13 +188,18 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 
   SLEPCSetupInterpreter(&blopex->ii);
   blopex->eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->ncv,eps->V);
-  for (i=0;i<eps->ncv;i++) { ierr = PetscObjectReference((PetscObject)eps->V[i]);CHKERRQ(ierr); }
 
-  ierr = VecDuplicate(eps->V[0],&blopex->w);CHKERRQ(ierr);
+  ierr = BVGetVec(eps->V,&blopex->w);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)blopex->w);CHKERRQ(ierr);
-  if (eps->nds > 0) {
-    blopex->Y = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->nds,eps->defl);
-    for (i=0;i<eps->nds;i++) { ierr = PetscObjectReference((PetscObject)eps->defl[i]);CHKERRQ(ierr); }
+  if (eps->nds<0) {
+    k = -eps->nds;
+    ierr = BVCreate(PetscObjectComm((PetscObject)eps),&Y);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(Y,blopex->w,k);CHKERRQ(ierr);
+    ierr = BVSetType(Y,BVVECS);CHKERRQ(ierr);
+    ierr = BVInsertVecs(Y,0,&k,eps->defl,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcBasisDestroy_Private(&eps->nds,&eps->defl);CHKERRQ(ierr);
+    blopex->Y = mv_MultiVectorCreateFromSampleVector(&blopex->ii,k,Y);
+    ierr = BVDestroy(&Y);CHKERRQ(ierr);
   } else blopex->Y = NULL;
 
 #if defined(PETSC_USE_COMPLEX)
@@ -201,7 +213,6 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   eps->ops->solve = EPSSolve_BLOPEX;
   PetscFunctionReturn(0);
 #endif
@@ -225,7 +236,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   PetscFunctionBegin;
   /* Complete the initial basis with random vectors */
   for (i=eps->nini;i<eps->ncv;i++) {
-    ierr = SlepcVecSetRandom(eps->V[i],eps->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(eps->V,i,eps->rand);CHKERRQ(ierr);
   }
 
   if (eps->numbermonitors>0) {
@@ -281,7 +292,6 @@ PetscErrorCode EPSReset_BLOPEX(EPS eps)
   mv_MultiVectorDestroy(blopex->eigenvectors);
   mv_MultiVectorDestroy(blopex->Y);
   ierr = VecDestroy(&blopex->w);CHKERRQ(ierr);
-  ierr = EPSReset_Default(eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -339,7 +349,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   eps->ops->destroy              = EPSDestroy_BLOPEX;
   eps->ops->reset                = EPSReset_BLOPEX;
   eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Default;
   LOBPCG_InitRandomContext(PetscObjectComm((PetscObject)eps),eps->rand);
   PetscFunctionReturn(0);
 }

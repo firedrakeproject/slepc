@@ -23,9 +23,9 @@ CFLAGS   =
 FFLAGS   =
 SOURCEC  =
 SOURCEF  =
-SOURCEH  = epsimpl.h stimpl.h svdimpl.h ipimpl.h qepimpl.h pepimpl.h \
-           nepimpl.h mfnimpl.h dsimpl.h fnimpl.h slepcimpl.h
-LIBBASE  = libslepc
+SOURCEH  = epsimpl.h stimpl.h svdimpl.h pepimpl.h \
+           nepimpl.h mfnimpl.h dsimpl.h fnimpl.h bvimpl.h slepcimpl.h
+LIBBASE  = libslepcsys
 DIRS     = 
 LOCDIR   = include/slepc-private/
 MANSEC   = 

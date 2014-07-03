@@ -13,8 +13,6 @@
        [1] H. Voss, "An Arnoldi method for nonlinear eigenvalue problems",
            BIT 44:387-401, 2004.
 
-   Last update: Mar 2013
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
@@ -35,11 +33,11 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>         /*I "slepcnep.h" I*/
+#include <slepc-private/nepimpl.h>
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPSetUp_NARNOLDI"
-PetscErrorCode NEPSetUp_NARNOLDI(NEP nep)
+#define __FUNCT__ "NEPSetUp_NArnoldi"
+PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
 {
   PetscErrorCode ierr;
 
@@ -72,33 +70,34 @@ PetscErrorCode NEPSetUp_NARNOLDI(NEP nep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPSolve_NARNOLDI"
-PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
+#define __FUNCT__ "NEPSolve_NArnoldi"
+PetscErrorCode NEPSolve_NArnoldi(NEP nep)
 {
   PetscErrorCode     ierr;
   Mat                T=nep->function,Tsigma;
-  Vec                f,u=nep->V[0],r=nep->work[0],x=nep->work[1],w=nep->work[2];
+  Vec                f,r=nep->work[0],x=nep->work[1],w=nep->work[2];
   PetscScalar        *X,lambda;
-  PetscReal          beta,resnorm=0.0;
+  PetscReal          beta,resnorm=0.0,nrm;
   PetscInt           n;
   PetscBool          breakdown;
-  MatStructure       mats;
   KSPConvergedReason kspreason;
 
   PetscFunctionBegin;
   /* get initial space and shift */
   ierr = NEPGetDefaultShift(nep,&lambda);CHKERRQ(ierr);
   if (!nep->nini) {
-    ierr = SlepcVecSetRandom(u,nep->rand);CHKERRQ(ierr);
-    ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(nep->V,0,nep->rand);CHKERRQ(ierr);
+    ierr = BVNormColumn(nep->V,0,NORM_2,&nrm);CHKERRQ(ierr);
+    ierr = BVScaleColumn(nep->V,0,1.0/nrm);CHKERRQ(ierr);
     n = 1;
   } else n = nep->nini;
 
   /* build projected matrices for initial space */
-  ierr = NEPProjectOperator(nep,0,n,r);CHKERRQ(ierr);
+  ierr = DSSetDimensions(nep->ds,n,0,0,0);CHKERRQ(ierr);
+  ierr = NEPProjectOperator(nep,0,n);CHKERRQ(ierr);
 
   /* prepare linear solver */
-  ierr = NEPComputeFunction(nep,lambda,&T,&T,&mats);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
   ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
   ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
 
@@ -114,17 +113,18 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
 
     /* compute Ritz vector, x = V*s */
     ierr = DSGetArray(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-    ierr = SlepcVecMAXPBY(x,0.0,1.0,n,X,nep->V);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(nep->V,0,n);CHKERRQ(ierr);
+    ierr = BVMultVec(nep->V,1.0,0.0,x,X);CHKERRQ(ierr);
     ierr = DSRestoreArray(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
 
     /* compute the residual, r = T(lambda)*x */
-    ierr = NEPApplyFunction(nep,lambda,x,w,r,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = NEPApplyFunction(nep,lambda,x,w,r,NULL,NULL);CHKERRQ(ierr);
 
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
     nep->errest[nep->nconv] = resnorm;
     if (resnorm<=nep->rtol) {
-      ierr = VecCopy(x,nep->V[nep->nconv]);CHKERRQ(ierr);
+      ierr = BVInsertVec(nep->V,nep->nconv,x);CHKERRQ(ierr);
       nep->nconv = nep->nconv + 1;
       nep->reason = NEP_CONVERGED_FNORM_RELATIVE;
     }
@@ -133,8 +133,9 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
     if (nep->reason == NEP_CONVERGED_ITERATING) {
 
       /* continuation vector: f = T(sigma)\r */
-      f = nep->V[n];
+      ierr = BVGetColumn(nep->V,n,&f);CHKERRQ(ierr);
       ierr = NEP_KSPSolve(nep,r,f);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(nep->V,n,&f);CHKERRQ(ierr);
       ierr = KSPGetConvergedReason(nep->ksp,&kspreason);CHKERRQ(ierr);
       if (kspreason<0) {
         ierr = PetscInfo1(nep,"iter=%D, linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
@@ -143,16 +144,17 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
       }
 
       /* orthonormalize */
-      ierr = IPOrthogonalize(nep->ip,0,NULL,n,NULL,nep->V,f,NULL,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = BVOrthogonalizeColumn(nep->V,n,NULL,&beta,&breakdown);CHKERRQ(ierr);
       if (breakdown || beta==0.0) {
         ierr = PetscInfo1(nep,"iter=%D, orthogonalization failed, stopping solve\n",nep->its);CHKERRQ(ierr);
         nep->reason = NEP_DIVERGED_BREAKDOWN;
         break;
       }
-      ierr = VecScale(f,1.0/beta);CHKERRQ(ierr);
+      ierr = BVScaleColumn(nep->V,n,1.0/beta);CHKERRQ(ierr);
 
       /* update projected matrices */
-      ierr = NEPProjectOperator(nep,n,n+1,r);CHKERRQ(ierr);
+      ierr = DSSetDimensions(nep->ds,n+1,0,0,0);CHKERRQ(ierr);
+      ierr = NEPProjectOperator(nep,n,n+1);CHKERRQ(ierr);
       n++;
     }
     if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
@@ -162,13 +164,12 @@ PetscErrorCode NEPSolve_NARNOLDI(NEP nep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPCreate_NARNOLDI"
-PETSC_EXTERN PetscErrorCode NEPCreate_NARNOLDI(NEP nep)
+#define __FUNCT__ "NEPCreate_NArnoldi"
+PETSC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP nep)
 {
   PetscFunctionBegin;
-  nep->ops->solve          = NEPSolve_NARNOLDI;
-  nep->ops->setup          = NEPSetUp_NARNOLDI;
-  nep->ops->reset          = NEPReset_Default;
+  nep->ops->solve          = NEPSolve_NArnoldi;
+  nep->ops->setup          = NEPSetUp_NArnoldi;
   PetscFunctionReturn(0);
 }
 

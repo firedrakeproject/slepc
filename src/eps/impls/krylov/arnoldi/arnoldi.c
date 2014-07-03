@@ -13,8 +13,6 @@
        [1] "Arnoldi Methods in SLEPc", SLEPc Technical Report STR-4,
            available at http://www.grycap.upv.es/slepc.
 
-   Last update: Feb 2009
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
@@ -36,7 +34,6 @@
 */
 
 #include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
-#include <slepcblaslapack.h>
 
 PetscErrorCode EPSSolve_Arnoldi(EPS);
 
@@ -51,18 +48,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
-  } else if (eps->mpd) { /* mpd set */
-    eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
-  } else { /* neither set: defaults depend on nev being small or large */
-    if (eps->nev<500) eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15));
-    else {
-      eps->mpd = 500;
-      eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
-    }
-  }
-  if (!eps->mpd) eps->mpd = eps->ncv;
+  ierr = EPSSetDimensions_Default(eps);CHKERRQ(ierr);
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
@@ -73,22 +59,21 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   }
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
-  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  ierr = EPSAllocateSolution(eps,1);CHKERRQ(ierr);
   ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
   if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
     ierr = DSSetRefined(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
   }
   ierr = DSSetExtraRow(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
-  ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  if (eps->leftvecs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   if (eps->isgeneralized && eps->ishermitian && !eps->ispositive) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method does not work for indefinite problems");
   eps->ops->solve = EPSSolve_Arnoldi;
   PetscFunctionReturn(0);
 }
 
+#if 0
 #undef __FUNCT__
 #define __FUNCT__ "EPSDelayedArnoldi"
 /*
@@ -202,7 +187,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pets
 #undef __FUNCT__
 #define __FUNCT__ "EPSDelayedArnoldi1"
 /*
-   EPSDelayedArnoldi1 - This function is similar to EPSDelayedArnoldi1,
+   EPSDelayedArnoldi1 - This function is similar to EPSDelayedArnoldi,
    but without reorthogonalization (only delayed normalization).
 */
 PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscBool *breakdown)
@@ -250,6 +235,7 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,Pet
   *breakdown = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
+#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSolve_Arnoldi"
@@ -257,21 +243,21 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 {
   PetscErrorCode     ierr;
   PetscInt           k,nv,ld;
-  Vec                f=eps->work[0];
-  PetscScalar        *H,*U,*X;
+  Mat                U;
+  PetscScalar        *H,*X;
   PetscReal          beta,gamma=1.0;
   PetscBool          breakdown,harmonic,refined;
-  IPOrthogRefineType orthog_ref;
+  BVOrthogRefineType orthog_ref;
   EPS_ARNOLDI        *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = DSGetRefined(eps->ds,&refined);CHKERRQ(ierr);
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
-  ierr = IPGetOrthogonalization(eps->ip,NULL,&orthog_ref,NULL);CHKERRQ(ierr);
+  ierr = BVGetOrthogonalization(eps->V,NULL,&orthog_ref,NULL);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
-  ierr = EPSGetStartVector(eps,0,eps->V[0],NULL);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
 
   /* Restart loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
@@ -282,15 +268,16 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,0);CHKERRQ(ierr);
     ierr = DSGetArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     if (!arnoldi->delayed) {
-      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,ld,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
-      H[nv+(nv-1)*ld] = beta;
-    } else if (orthog_ref == IP_ORTHOG_REFINE_NEVER) {
+      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,ld,eps->nconv,&nv,&beta,&breakdown);CHKERRQ(ierr);
+    } else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Not implemented");
+    /*if (orthog_ref == BV_ORTHOG_REFINE_NEVER) {
       ierr = EPSDelayedArnoldi1(eps,H,ld,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
     } else {
       ierr = EPSDelayedArnoldi(eps,H,ld,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
-    }
+    }*/
     ierr = DSRestoreArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
 
     /* Compute translation of Krylov decomposition if harmonic extraction used */
     if (harmonic) {
@@ -303,26 +290,26 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     ierr = DSUpdateExtraRow(eps->ds);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,gamma,&k);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta,gamma,&k);CHKERRQ(ierr);
     if (refined) {
       ierr = DSGetArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-      ierr = SlepcVecMAXPBY(eps->V[k],0.0,1.0,nv,X+k*ld,eps->V);CHKERRQ(ierr);
+      ierr = BVMultColumn(eps->V,1.0,0.0,k,X+k*ld);CHKERRQ(ierr);
       ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-      ierr = DSGetArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
-      ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,PetscMin(k,nv),U,ld,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
-      ierr = IPOrthogonalize(eps->ip,0,NULL,k,NULL,eps->V,eps->V[k],NULL,NULL,NULL);CHKERRQ(ierr);
+      ierr = DSGetMat(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
+      ierr = BVMultInPlace(eps->V,U,eps->nconv,nv);CHKERRQ(ierr);
+      ierr = MatDestroy(&U);CHKERRQ(ierr);
+      ierr = BVOrthogonalizeColumn(eps->V,k,NULL,NULL,NULL);CHKERRQ(ierr);
     } else {
-      ierr = DSGetArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
-      ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,PetscMin(k+1,nv),U,ld,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
+      ierr = DSGetMat(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
+      ierr = BVMultInPlace(eps->V,U,eps->nconv,nv);CHKERRQ(ierr);
+      ierr = MatDestroy(&U);CHKERRQ(ierr);
     }
     eps->nconv = k;
 
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
     if (breakdown && k<eps->nev) {
       ierr = PetscInfo2(eps,"Breakdown in Arnoldi method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
-      ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
+      ierr = EPSGetStartVector(eps,k,&breakdown);CHKERRQ(ierr);
       if (breakdown) {
         eps->reason = EPS_DIVERGED_BREAKDOWN;
         ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
@@ -488,7 +475,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
   eps->ops->setup                = EPSSetUp_Arnoldi;
   eps->ops->setfromoptions       = EPSSetFromOptions_Arnoldi;
   eps->ops->destroy              = EPSDestroy_Arnoldi;
-  eps->ops->reset                = EPSReset_Default;
   eps->ops->view                 = EPSView_Arnoldi;
   eps->ops->backtransform        = EPSBackTransform_Default;
   eps->ops->computevectors       = EPSComputeVectors_Schur;

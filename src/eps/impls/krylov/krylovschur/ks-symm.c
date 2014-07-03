@@ -24,8 +24,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
-#include <slepcblaslapack.h>
+#include <slepc-private/epsimpl.h>
 #include "krylovschur.h"
 
 #undef __FUNCT__
@@ -35,8 +34,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscInt        k,l,ld,nv;
-  Vec             u=eps->work[0];
-  PetscScalar     *Q;
+  Mat             U;
   PetscReal       *a,*b,beta;
   PetscBool       breakdown;
 
@@ -44,7 +42,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
-  ierr = EPSGetStartVector(eps,0,eps->V[0],NULL);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
   l = 0;
 
   /* Restart loop */
@@ -55,7 +53,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     b = a + ld;
-    ierr = EPSFullLanczos(eps,a,b,eps->V,eps->nconv+l,&nv,u,&breakdown);CHKERRQ(ierr);
+    ierr = EPSFullLanczos(eps,a,b,eps->nconv+l,&nv,&breakdown);CHKERRQ(ierr);
     beta = b[nv-1];
     ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
@@ -64,6 +62,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     } else {
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
+    ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
 
     /* Solve projected problem */
     ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
@@ -72,7 +71,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     ierr = DSUpdateExtraRow(eps->ds);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,eps->V,nv,beta,1.0,&k);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta,1.0,&k);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
 
@@ -85,7 +84,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
         /* Start a new Lanczos factorization */
         ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
         if (k<eps->nev) {
-          ierr = EPSGetStartVector(eps,k,eps->V[k],&breakdown);CHKERRQ(ierr);
+          ierr = EPSGetStartVector(eps,k,&breakdown);CHKERRQ(ierr);
           if (breakdown) {
             eps->reason = EPS_DIVERGED_BREAKDOWN;
             ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
@@ -97,12 +96,13 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = SlepcUpdateVectors(nv,eps->V,eps->nconv,k+l,Q,ld,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSGetMat(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
+    ierr = BVMultInPlace(eps->V,U,eps->nconv,k+l);CHKERRQ(ierr);
+    ierr = MatDestroy(&U);CHKERRQ(ierr);
+
     /* Normalize u and append it to V */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
-      ierr = VecAXPBY(eps->V[k+l],1.0/beta,0.0,u);CHKERRQ(ierr);
+      ierr = BVCopyColumn(eps->V,nv,k+l);CHKERRQ(ierr);
     }
 
     ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);

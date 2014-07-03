@@ -4,8 +4,6 @@
 
    Method: Uses a Hermitian eigensolver for H(A) = [ 0  A ; A^T 0 ]
 
-   Last update: Jun 2007
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
@@ -32,7 +30,6 @@
 typedef struct {
   PetscBool explicitmatrix;
   EPS       eps;
-  PetscBool setfromoptionscalled;
   Mat       mat;
   Vec       x1,x2,y1,y2;
 } SVD_CYCLIC;
@@ -86,7 +83,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 {
   PetscErrorCode    ierr;
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
-  PetscInt          M,N,m,n,i,isl;
+  PetscInt          M,N,m,n,i,isl,Istart,Iend;
   const PetscScalar *isa;
   PetscScalar       *va;
   PetscBool         trackall;
@@ -103,15 +100,23 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = MatSetSizes(Zm,m,m,M,M);CHKERRQ(ierr);
       ierr = MatSetFromOptions(Zm);CHKERRQ(ierr);
       ierr = MatSetUp(Zm);CHKERRQ(ierr);
+      ierr = MatGetOwnershipRange(Zm,&Istart,&Iend);CHKERRQ(ierr);
+      for (i=Istart;i<Iend;i++) {
+        ierr = MatSetValue(Zm,i,i,0.0,INSERT_VALUES);CHKERRQ(ierr);
+      }
       ierr = MatAssemblyBegin(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatAssemblyEnd(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Zn);CHKERRQ(ierr);
       ierr = MatSetSizes(Zn,n,n,N,N);CHKERRQ(ierr);
       ierr = MatSetFromOptions(Zn);CHKERRQ(ierr);
       ierr = MatSetUp(Zn);CHKERRQ(ierr);
+      ierr = MatGetOwnershipRange(Zn,&Istart,&Iend);CHKERRQ(ierr);
+      for (i=Istart;i<Iend;i++) {
+        ierr = MatSetValue(Zn,i,i,0.0,INSERT_VALUES);CHKERRQ(ierr);
+      }
       ierr = MatAssemblyBegin(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatAssemblyEnd(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-      ierr = SlepcMatTile(0.0,Zm,1.0,svd->A,1.0,svd->AT,0.0,Zn,&cyclic->mat);CHKERRQ(ierr);
+      ierr = SlepcMatTile(1.0,Zm,1.0,svd->A,1.0,svd->AT,1.0,Zn,&cyclic->mat);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->mat);CHKERRQ(ierr);
       ierr = MatDestroy(&Zm);CHKERRQ(ierr);
       ierr = MatDestroy(&Zn);CHKERRQ(ierr);
@@ -140,8 +145,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     ierr = EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPosReal,NULL);CHKERRQ(ierr);
     ierr = EPSSetTarget(cyclic->eps,0.0);CHKERRQ(ierr);
   }
-  ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(cyclic->eps,svd->tol,svd->max_it);CHKERRQ(ierr);
+  ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv?svd->ncv:PETSC_DEFAULT,svd->mpd?svd->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(cyclic->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it?svd->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   /* Transfer the trackall option from svd to eps */
   ierr = SVDGetTrackAll(svd,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(cyclic->eps,trackall);CHKERRQ(ierr);
@@ -177,20 +182,13 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     ierr = SlepcBasisDestroy_Private(&svd->nini,&svd->IS);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&svd->ninil,&svd->ISL);CHKERRQ(ierr);
   }
-  if (cyclic->setfromoptionscalled) {
-    ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
-    cyclic->setfromoptionscalled = PETSC_FALSE;
-  }
   ierr = EPSSetUp(cyclic->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(cyclic->eps,NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
   svd->ncv = PetscMin(svd->ncv,PetscMin(M,N));
   ierr = EPSGetTolerances(cyclic->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
 
-  if (svd->ncv != svd->n) {
-    ierr = VecDestroyVecs(svd->n,&svd->U);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(svd->tl,svd->ncv,&svd->U);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(svd,svd->ncv,svd->U);CHKERRQ(ierr);
-  }
+  svd->leftbasis = PETSC_TRUE;
+  ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -223,10 +221,10 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
       ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
       ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
-      ierr = VecCopy(x1,svd->U[j]);CHKERRQ(ierr);
-      ierr = VecScale(svd->U[j],1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
-      ierr = VecCopy(x2,svd->V[j]);CHKERRQ(ierr);
-      ierr = VecScale(svd->V[j],1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
+      ierr = BVInsertVec(svd->U,j,x1);CHKERRQ(ierr);
+      ierr = BVScaleColumn(svd->U,j,1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
+      ierr = BVInsertVec(svd->V,j,x2);CHKERRQ(ierr);
+      ierr = BVScaleColumn(svd->V,j,1.0/PetscSqrtReal(2.0));CHKERRQ(ierr);
       ierr = VecResetArray(x1);CHKERRQ(ierr);
       ierr = VecResetArray(x2);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
@@ -277,7 +275,8 @@ PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
   ST             st;
 
   PetscFunctionBegin;
-  cyclic->setfromoptionscalled = PETSC_TRUE;
+  if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
+  ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
   ierr = PetscOptionsHead("SVD Cyclic Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",cyclic->explicitmatrix,&val,&set);CHKERRQ(ierr);
   if (set) {
@@ -431,8 +430,6 @@ static PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
     ierr = EPSAppendOptionsPrefix(cyclic->eps,"svd_");CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)cyclic->eps,(PetscObject)svd,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->eps);CHKERRQ(ierr);
-    if (!svd->ip) { ierr = SVDGetIP(svd,&svd->ip);CHKERRQ(ierr); }
-    ierr = EPSSetIP(cyclic->eps,svd->ip);CHKERRQ(ierr);
     ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
     ierr = EPSMonitorSet(cyclic->eps,SVDMonitor_Cyclic,svd,NULL);CHKERRQ(ierr);
   }
@@ -528,8 +525,7 @@ PETSC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD svd)
 
   PetscFunctionBegin;
   ierr = PetscNewLog(svd,&cyclic);CHKERRQ(ierr);
-  svd->data = (void*)cyclic;
-
+  svd->data                      = (void*)cyclic;
   svd->ops->solve                = SVDSolve_Cyclic;
   svd->ops->setup                = SVDSetUp_Cyclic;
   svd->ops->setfromoptions       = SVDSetFromOptions_Cyclic;

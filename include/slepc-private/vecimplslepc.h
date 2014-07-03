@@ -25,7 +25,7 @@
 #include <slepcvec.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors,SLEPC_VecMAXPBY;
+PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors,SLEPC_SlepcDenseMatProd,SLEPC_SlepcDenseOrth,SLEPC_SlepcDenseMatInvProd,SLEPC_SlepcDenseCopy,SLEPC_VecsMult;
 
 /* context for the storage of contiguous Vecs */
 typedef struct {
@@ -111,5 +111,63 @@ PETSC_INTERN PetscErrorCode VecExp_Comp(Vec);
 PETSC_INTERN PetscErrorCode VecLog_Comp(Vec);
 PETSC_INTERN PetscErrorCode VecShift_Comp(Vec,PetscScalar);
 PETSC_EXTERN PetscErrorCode VecCreate_Comp(Vec);
+
+/* Definitions and structures for BLAS-type operations in Davidson solvers */
+
+typedef PetscInt MatType_t;
+#define DVD_MAT_HERMITIAN (1<<1)
+#define DVD_MAT_NEG_DEF (1<<2)
+#define DVD_MAT_POS_DEF (1<<3)
+#define DVD_MAT_SINGULAR (1<<4)
+#define DVD_MAT_COMPLEX (1<<5)
+#define DVD_MAT_IMPLICIT (1<<6)
+#define DVD_MAT_IDENTITY (1<<7)
+#define DVD_MAT_DIAG (1<<8)
+#define DVD_MAT_TRIANG (1<<9)
+#define DVD_MAT_UTRIANG (1<<9)
+#define DVD_MAT_LTRIANG (1<<10)
+#define DVD_MAT_UNITARY (1<<11)
+
+typedef PetscInt EPType_t;
+#define DVD_EP_STD (1<<1)
+#define DVD_EP_HERMITIAN (1<<2)
+#define DVD_EP_INDEFINITE (1<<3)
+
+#define DVD_IS(T,P) ((T) & (P))
+#define DVD_ISNOT(T,P) (((T) & (P)) ^ (P))
+
+typedef PetscErrorCode (*DvdReductionPostF)(PetscScalar*,PetscInt,void*);
+typedef struct {
+  PetscScalar       *out;          /* final vector */
+  PetscInt          size_out;      /* size of out */
+  DvdReductionPostF f;             /* function called after the reduction */
+  void              *ptr;
+} DvdReductionChunk;
+
+typedef struct {
+  PetscScalar       *in;           /* vector to sum-up with more nodes */
+  PetscScalar       *out;          /* final vector */
+  PetscInt          size_in;       /* size of in */
+  PetscInt          max_size_in;   /* max size of in */
+  DvdReductionChunk *ops;          /* vector of reduction operations */
+  PetscInt          size_ops;      /* size of ops */
+  PetscInt          max_size_ops;  /* max size of ops */
+  MPI_Comm          comm;          /* MPI communicator */
+} DvdReduction;
+
+typedef struct {
+  PetscInt         i0,i1,i2,ld,s0,e0,s1,e1;
+  PetscScalar      *M;
+} DvdMult_copy_func;
+
+/* BLAS-type operations */
+PETSC_EXTERN PetscErrorCode SlepcDenseMatProdTriang(PetscScalar*,MatType_t,PetscInt,const PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt,PetscBool,const PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt,PetscBool);
+PETSC_EXTERN PetscErrorCode SlepcDenseCopy(PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode SlepcDenseCopyTriang(PetscScalar*,MatType_t,PetscInt,PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode SlepcUpdateVectorsZ(Vec*,PetscScalar,PetscScalar,Vec*,PetscInt,const PetscScalar*,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode SlepcUpdateVectorsD(Vec*,PetscInt,PetscScalar,const PetscScalar*,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscInt);
+PETSC_EXTERN PetscErrorCode VecsMultS(PetscScalar*,MatType_t,PetscInt,Vec*,PetscInt,PetscInt,Vec*,PetscInt,PetscInt,DvdReduction*,DvdMult_copy_func*);
+PETSC_EXTERN PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk*,PetscInt,PetscScalar*,PetscScalar*,PetscInt,DvdReduction*,MPI_Comm);
+PETSC_EXTERN PetscErrorCode SlepcAllReduceSumEnd(DvdReduction*);
 
 #endif

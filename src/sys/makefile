@@ -23,13 +23,13 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = slepcinit.c slepcutil.c
+SOURCEC  = slepcinit.c slepcutil.c dlregisslepc.c
 SOURCEF  =
 SOURCEH  =
-LIBBASE  = libslepc
+LIBBASE  = libslepcsys
 MANSEC   = sys
 LOCDIR   = src/sys/
-DIRS     = f90-mod
+DIRS     = classes vec f90-mod
 
 include ${SLEPC_DIR}/conf/slepc_common
 

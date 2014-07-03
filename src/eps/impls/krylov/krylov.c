@@ -32,43 +32,39 @@
    columns are assumed to be locked and therefore they are not modified. On
    exit, the following relation is satisfied:
 
-                    OP * V - V * H = f * e_m^T
+                    OP * V - V * H = beta*v_m * e_m^T
 
    where the columns of V are the Arnoldi vectors (which are B-orthonormal),
-   H is an upper Hessenberg matrix, f is the residual vector and e_m is
-   the m-th vector of the canonical basis. The vector f is B-orthogonal to
-   the columns of V. On exit, beta contains the B-norm of f and the next
-   Arnoldi vector can be computed as v_{m+1} = f / beta.
+   H is an upper Hessenberg matrix, e_m is the m-th vector of the canonical basis.
+   On exit, beta contains the B-norm of V[m] before normalization.
 */
-PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscBool *breakdown)
+PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscReal *beta,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
   PetscInt       j,m = *M;
-  PetscReal      norm;
+  Vec            vj,vj1;
 
   PetscFunctionBegin;
-  for (j=k;j<m-1;j++) {
+  ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
+  for (j=k;j<m;j++) {
+    ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
     if (trans) {
-      ierr = STApplyTranspose(eps->st,V[j],V[j+1]);CHKERRQ(ierr);
+      ierr = STApplyTranspose(eps->st,vj,vj1);CHKERRQ(ierr);
     } else {
-      ierr = STApply(eps->st,V[j],V[j+1]);CHKERRQ(ierr);
+      ierr = STApply(eps->st,vj,vj1);CHKERRQ(ierr);
     }
-    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,NULL,V,V[j+1],H+ldh*j,&norm,breakdown);CHKERRQ(ierr);
-    H[j+1+ldh*j] = norm;
+    ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeColumn(eps->V,j+1,H+ldh*j,beta,breakdown);CHKERRQ(ierr);
+    H[j+1+ldh*j] = *beta;
     if (*breakdown) {
       *M = j+1;
-      *beta = norm;
-      PetscFunctionReturn(0);
+      break;
     } else {
-      ierr = VecScale(V[j+1],1/norm);CHKERRQ(ierr);
+      ierr = BVScaleColumn(eps->V,j+1,1.0/(*beta));CHKERRQ(ierr);
     }
   }
-  if (trans) {
-    ierr = STApplyTranspose(eps->st,V[m-1],f);CHKERRQ(ierr);
-  } else {
-    ierr = STApply(eps->st,V[m-1],f);CHKERRQ(ierr);
-  }
-  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,NULL,V,f,H+ldh*(m-1),beta,breakdown);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -91,7 +87,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
    Output Parameters:
      kout  - the first index where the convergence test failed
 */
-PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,PetscInt nits,Vec *V,PetscInt nv,PetscReal beta,PetscReal corrf,PetscInt *kout)
+PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscReal corrf,PetscInt *kout)
 {
   PetscErrorCode ierr;
   PetscInt       k,newk,marker,ld;
@@ -102,8 +98,8 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
 
   PetscFunctionBegin;
   if (eps->trueres) {
-    ierr = VecDuplicate(eps->t,&x);CHKERRQ(ierr);
-    ierr = VecDuplicate(eps->t,&y);CHKERRQ(ierr);
+    ierr = BVGetVec(eps->V,&x);CHKERRQ(ierr);
+    ierr = BVGetVec(eps->V,&y);CHKERRQ(ierr);
   }
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = DSGetRefined(eps->ds,&refined);CHKERRQ(ierr);
@@ -114,7 +110,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     /* eigenvalue */
     re = eps->eigr[k];
     im = eps->eigi[k];
-    if (eps->trueres || isshift) {
+    if (eps->trueres || isshift || eps->conv==EPS_CONV_NORM) {
       ierr = STBackTransform(eps->st,1,&re,&im);CHKERRQ(ierr);
     }
     newk = k;
@@ -124,7 +120,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
       Zr = X+k*ld;
       if (newk==k+1) Zi = X+newk*ld;
       else Zi = NULL;
-      ierr = EPSComputeRitzVector(eps,Zr,Zi,V,nv,x,y);CHKERRQ(ierr);
+      ierr = EPSComputeRitzVector(eps,Zr,Zi,eps->V,x,y);CHKERRQ(ierr);
       ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
       ierr = EPSComputeResidualNorm_Private(eps,re,im,x,y,&resnorm);CHKERRQ(ierr);
     }
@@ -159,49 +155,85 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
    The first k columns are assumed to be locked and therefore they are
    not modified. On exit, the following relation is satisfied:
 
-                    OP * V - V * T = f * e_m^T
+                    OP * V - V * T = beta_m*v_m * e_m^T
 
    where the columns of V are the Lanczos vectors (which are B-orthonormal),
-   T is a real symmetric tridiagonal matrix, f is the residual vector and e_m
-   is the m-th vector of the canonical basis. The tridiagonal is stored as
-   two arrays: alpha contains the diagonal elements, beta the off-diagonal.
-   The vector f is B-orthogonal to the columns of V. On exit, the last element
-   of beta contains the B-norm of f and the next Lanczos vector can be
-   computed as v_{m+1} = f / beta(end).
-
+   T is a real symmetric tridiagonal matrix, and e_m is the m-th vector of
+   the canonical basis. The tridiagonal is stored as two arrays: alpha
+   contains the diagonal elements, beta the off-diagonal. On exit, the last
+   element of beta contains the B-norm of V[m] before normalization.
 */
-PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscBool *breakdown)
+PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscInt k,PetscInt *M,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
   PetscInt       j,m = *M;
-  PetscReal      norm;
+  Vec            vj,vj1;
   PetscScalar    *hwork,lhwork[100];
 
   PetscFunctionBegin;
   if (m > 100) {
-    ierr = PetscMalloc1((eps->nds+m),&hwork);CHKERRQ(ierr);
+    ierr = PetscMalloc1(m,&hwork);CHKERRQ(ierr);
   } else hwork = lhwork;
 
-  for (j=k;j<m-1;j++) {
-    ierr = STApply(eps->st,V[j],V[j+1]);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,j+1,NULL,V,V[j+1],hwork,&norm,breakdown);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
+  for (j=k;j<m;j++) {
+    ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = STApply(eps->st,vj,vj1);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeColumn(eps->V,j+1,hwork,beta+j,breakdown);CHKERRQ(ierr);
     alpha[j] = PetscRealPart(hwork[j]);
-    beta[j] = norm;
     if (*breakdown) {
       *M = j+1;
-      if (m > 100) {
-        ierr = PetscFree(hwork);CHKERRQ(ierr);
-      }
-      PetscFunctionReturn(0);
+      break;
     } else {
-      ierr = VecScale(V[j+1],1.0/norm);CHKERRQ(ierr);
+      ierr = BVScaleColumn(eps->V,j+1,1.0/beta[j]);CHKERRQ(ierr);
     }
   }
-  ierr = STApply(eps->st,V[m-1],f);CHKERRQ(ierr);
-  ierr = IPOrthogonalize(eps->ip,eps->nds,eps->defl,m,NULL,V,f,hwork,&norm,breakdown);CHKERRQ(ierr);
-  alpha[m-1] = PetscRealPart(hwork[m-1]);
-  beta[m-1] = norm;
+  if (m > 100) {
+    ierr = PetscFree(hwork);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
 
+#undef __FUNCT__
+#define __FUNCT__ "EPSPseudoLanczos"
+PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscReal *cos,Vec w)
+{
+  PetscErrorCode ierr;
+  PetscInt       j,m = *M;
+  Vec            vj,vj1;
+  PetscScalar    *hwork,lhwork[100];
+  PetscReal      norm,norm1,norm2,t;
+
+  PetscFunctionBegin;
+  if (cos) *cos = 1.0;
+  if (m > 100) {
+    ierr = PetscMalloc1(m,&hwork);CHKERRQ(ierr);
+  } else hwork = lhwork;
+
+  ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
+  for (j=k;j<m;j++) {
+    ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = STApply(eps->st,vj,vj1);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeColumn(eps->V,j+1,hwork,&norm,breakdown);CHKERRQ(ierr);
+    alpha[j] = PetscRealPart(hwork[j]);
+    beta[j] = PetscAbsReal(norm);
+    omega[j+1] = (norm<0.0)? -1.0: 1.0;
+    ierr = BVScaleColumn(eps->V,j+1,1.0/norm);CHKERRQ(ierr);
+    /* */
+    ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = VecNorm(vj1,NORM_2,&norm1);CHKERRQ(ierr);
+    ierr = BVApplyMatrix(eps->V,vj1,w);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = VecNorm(w,NORM_2,&norm2);CHKERRQ(ierr);
+    t = 1.0/(norm1*norm2);
+    if (cos && *cos>t) *cos = t;
+  }
   if (m > 100) {
     ierr = PetscFree(hwork);CHKERRQ(ierr);
   }

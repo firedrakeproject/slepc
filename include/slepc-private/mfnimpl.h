@@ -49,46 +49,35 @@ struct _MFNOps {
 */
 struct _p_MFN {
   PETSCHEADER(struct _MFNOps);
-  /*------------------------- User parameters --------------------------*/
-  PetscInt        max_it;         /* maximum number of iterations */
-  PetscInt        ncv;            /* number of basis vectors */
-  PetscReal       tol;            /* tolerance */
-  SlepcFunction   function;       /* which function to compute */
-  PetscScalar     sfactor;        /* scaling factor */
-  PetscBool       errorifnotconverged;    /* error out if MFNSolve() does not converge */
+  /*------------------------- User parameters ---------------------------*/
+  Mat            A;              /* the problem matrix */
+  PetscInt       max_it;         /* maximum number of iterations */
+  PetscInt       ncv;            /* number of basis vectors */
+  PetscReal      tol;            /* tolerance */
+  SlepcFunction  function;       /* which function to compute */
+  PetscScalar    sfactor;        /* scaling factor */
+  PetscBool      errorifnotconverged;    /* error out if MFNSolve() does not converge */
 
-  /*------------------------- Working data --------------------------*/
-  Mat             A;              /* the problem matrix */
-  Vec             *V;             /* set of basis vectors */
-  PetscReal       errest;         /* error estimate */
-  IP              ip;             /* innerproduct object */
-  DS              ds;             /* direct solver object */
-  void            *data;          /* placeholder for misc stuff associated
-                                     with a particular solver */
-  PetscInt        its;            /* number of iterations so far computed */
-  PetscInt        nv;             /* size of current Schur decomposition */
-  PetscInt        n,nloc;         /* problem dimensions (global, local) */
-  PetscInt        allocated_ncv;  /* number of basis vectors allocated */
-  PetscRandom     rand;           /* random number generator */
-  Vec             t;              /* template vector */
-
-  /* ---------------- Default work-area and status vars -------------------- */
-  PetscInt       nwork;
-  Vec            *work;
-
-  PetscInt       setupcalled;
-  MFNConvergedReason reason;
-
+  /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*monitor[MAXMFNMONITORS])(MFN,PetscInt,PetscReal,void*);
   PetscErrorCode (*monitordestroy[MAXMFNMONITORS])(void**);
   void           *monitorcontext[MAXMFNMONITORS];
   PetscInt       numbermonitors;
-};
 
-PETSC_INTERN PetscErrorCode MFNReset_Default(MFN);
-PETSC_INTERN PetscErrorCode MFNDefaultGetWork(MFN,PetscInt);
-PETSC_INTERN PetscErrorCode MFNDefaultFreeWork(MFN);
-PETSC_INTERN PetscErrorCode MFNAllocateSolution(MFN,PetscInt);
-PETSC_INTERN PetscErrorCode MFNFreeSolution(MFN);
+  /*----------------- Child objects and working data -------------------*/
+  DS             ds;             /* direct solver object */
+  BV             V;              /* set of basis vectors */
+  PetscRandom    rand;           /* random number generator */
+  PetscInt       nwork;          /* number of work vectors */
+  Vec            *work;          /* work vectors */
+  void           *data;          /* placeholder for solver-specific stuff */
+
+  /* ----------------------- Status variables -------------------------- */
+  PetscInt       its;            /* number of iterations so far computed */
+  PetscInt       nv;             /* size of current Schur decomposition */
+  PetscReal      errest;         /* error estimate */
+  PetscInt       setupcalled;
+  MFNConvergedReason reason;
+};
 
 #endif

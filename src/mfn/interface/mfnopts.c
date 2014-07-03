@@ -45,7 +45,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
 {
   PetscErrorCode   ierr;
   char             type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool        flg;
+  PetscBool        flg,flg1,flg2;
   PetscReal        r;
   PetscInt         i;
   PetscViewer      monviewer;
@@ -72,14 +72,18 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
 
     ierr = PetscOptionsScalar("-mfn_scale","Scale factor","MFNSetScaleFactor",mfn->sfactor,&mfn->sfactor,NULL);CHKERRQ(ierr);
 
-    r = i = 0;
-    ierr = PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-mfn_tol","Tolerance","MFNSetTolerances",mfn->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:mfn->tol,&r,NULL);CHKERRQ(ierr);
-    ierr = MFNSetTolerances(mfn,r,i);CHKERRQ(ierr);
+    i = mfn->max_it;
+    ierr = PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,&flg1);CHKERRQ(ierr);
+    r = mfn->tol;
+    ierr = PetscOptionsReal("-mfn_tol","Tolerance","MFNSetTolerances",mfn->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:mfn->tol,&r,&flg2);CHKERRQ(ierr);
+    if (flg1 || flg2) {
+      ierr = MFNSetTolerances(mfn,r,i);CHKERRQ(ierr);
+    }
 
-    i = 0;
-    ierr = PetscOptionsInt("-mfn_ncv","Number of basis vectors","MFNSetDimensions",mfn->ncv,&i,NULL);CHKERRQ(ierr);
-    ierr = MFNSetDimensions(mfn,i);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-mfn_ncv","Number of basis vectors","MFNSetDimensions",mfn->ncv,&i,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = MFNSetDimensions(mfn,i);CHKERRQ(ierr);
+    }
 
     ierr = PetscOptionsBool("-mfn_error_if_not_converged","Generate error if solver does not converge","MFNSetErrorIfNotConverged",mfn->errorifnotconverged,&mfn->errorifnotconverged,NULL);CHKERRQ(ierr);
 
@@ -87,7 +91,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     /*
       Cancels all monitors hardwired into code before call to MFNSetFromOptions()
     */
-    flg  = PETSC_FALSE;
+    flg = PETSC_FALSE;
     ierr = PetscOptionsBool("-mfn_monitor_cancel","Remove any hardwired monitor routines","MFNMonitorCancel",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
       ierr = MFNMonitorCancel(mfn);CHKERRQ(ierr);
@@ -115,8 +119,8 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)mfn);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
-  if (!mfn->ip) { ierr = MFNGetIP(mfn,&mfn->ip);CHKERRQ(ierr); }
-  ierr = IPSetFromOptions(mfn->ip);CHKERRQ(ierr);
+  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
+  ierr = BVSetFromOptions(mfn->V);CHKERRQ(ierr);
   if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(mfn->ds);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(mfn->rand);CHKERRQ(ierr);
@@ -172,10 +176,7 @@ PetscErrorCode MFNGetTolerances(MFN mfn,PetscReal *tol,PetscInt *maxits)
 -  -mfn_max_it <maxits> - Sets the maximum number of iterations allowed
 
    Notes:
-   Pass 0 for an argument that need not be changed.
-
-   Use PETSC_DECIDE for maxits to assign a reasonably good value, which is
-   dependent on the solution method.
+   Use PETSC_DEFAULT for either argument to assign a reasonably good value.
 
    Level: intermediate
 
@@ -187,22 +188,19 @@ PetscErrorCode MFNSetTolerances(MFN mfn,PetscReal tol,PetscInt maxits)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidLogicalCollectiveReal(mfn,tol,2);
   PetscValidLogicalCollectiveInt(mfn,maxits,3);
-  if (tol) {
-    if (tol == PETSC_DEFAULT) {
-      mfn->tol = PETSC_DEFAULT;
-    } else {
-      if (tol < 0.0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
-      mfn->tol = tol;
-    }
+  if (tol == PETSC_DEFAULT) {
+    mfn->tol = PETSC_DEFAULT;
+    mfn->setupcalled = 0;
+  } else {
+    if (tol <= 0.0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+    mfn->tol = tol;
   }
-  if (maxits) {
-    if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-      mfn->max_it = 0;
-      mfn->setupcalled = 0;
-    } else {
-      if (maxits < 0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
-      mfn->max_it = maxits;
-    }
+  if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
+    mfn->max_it = 0;
+    mfn->setupcalled = 0;
+  } else {
+    if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+    mfn->max_it = maxits;
   }
   PetscFunctionReturn(0);
 }
@@ -248,7 +246,7 @@ PetscErrorCode MFNGetDimensions(MFN mfn,PetscInt *ncv)
 .  -mfn_ncv <ncv> - Sets the dimension of the subspace
 
    Notes:
-   Use PETSC_DECIDE for ncv to assign a reasonably good value, which is
+   Use PETSC_DEFAULT for ncv to assign a reasonably good value, which is
    dependent on the solution method.
 
    Level: intermediate
@@ -260,15 +258,13 @@ PetscErrorCode MFNSetDimensions(MFN mfn,PetscInt ncv)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidLogicalCollectiveInt(mfn,ncv,2);
-  if (ncv) {
-    if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-      mfn->ncv = 0;
-    } else {
-      if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
-      mfn->ncv = ncv;
-    }
-    mfn->setupcalled = 0;
+  if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
+    mfn->ncv = 0;
+  } else {
+    if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+    mfn->ncv = ncv;
   }
+  mfn->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 
@@ -481,8 +477,8 @@ PetscErrorCode MFNSetOptionsPrefix(MFN mfn,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (!mfn->ip) { ierr = MFNGetIP(mfn,&mfn->ip);CHKERRQ(ierr); }
-  ierr = IPSetOptionsPrefix(mfn->ip,prefix);CHKERRQ(ierr);
+  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
+  ierr = BVSetOptionsPrefix(mfn->V,prefix);CHKERRQ(ierr);
   if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(mfn->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)mfn,prefix);CHKERRQ(ierr);
@@ -515,8 +511,8 @@ PetscErrorCode MFNAppendOptionsPrefix(MFN mfn,const char *prefix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (!mfn->ip) { ierr = MFNGetIP(mfn,&mfn->ip);CHKERRQ(ierr); }
-  ierr = IPSetOptionsPrefix(mfn->ip,prefix);CHKERRQ(ierr);
+  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
+  ierr = BVSetOptionsPrefix(mfn->V,prefix);CHKERRQ(ierr);
   if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(mfn->ds,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)mfn,prefix);CHKERRQ(ierr);

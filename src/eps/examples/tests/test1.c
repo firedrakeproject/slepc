@@ -80,7 +80,7 @@ int main(int argc,char **argv)
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
   ierr = EPSSetOperators(eps,A,B);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_GHEP);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,tol,PETSC_DECIDE);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

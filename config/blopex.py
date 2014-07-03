@@ -37,6 +37,9 @@ def Install(conf,vars,cmake,tmpdir,url,archdir):
   if petscconf.PRECISION != 'double':
     log.Exit('ERROR: BLOPEX is supported only in double precision.')
 
+  if petscconf.IND64:
+    log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+
   packagename = 'blopex-1.1.2'
   externdir   = archdir+'/externalpackages'
   builddir    = os.sep.join([externdir,packagename])
@@ -121,11 +124,16 @@ Unable to download package %s from: %s
     for name in files:
       os.rename(os.path.join(builddir,'include/'+name),os.path.join(incDir,name))
 
+  if 'rpath' in petscconf.SLFLAG:
+    l = petscconf.SLFLAG + libDir + ' -L' + libDir + ' -lBLOPEX'
+  else:
+    l = '-L' + libDir + ' -lBLOPEX'
+
   # Write configuration files
   conf.write('#ifndef SLEPC_HAVE_BLOPEX\n#define SLEPC_HAVE_BLOPEX 1\n#endif\n\n')
-  vars.write('BLOPEX_LIB = -L' + libDir + ' -lBLOPEX\n')
+  vars.write('BLOPEX_LIB = ' + l + '\n')
   cmake.write('set (SLEPC_HAVE_BLOPEX YES)\n')
   cmake.write('find_library (BLOPEX_LIB BLOPEX HINTS '+ libDir +')\n')
 
-  return ['-L' + libDir] + ['-I' + incDir]
+  return [l] + ['-I' + incDir]
 

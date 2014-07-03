@@ -9,7 +9,7 @@ eigenvalue problems on parallel computers. It is an extension of PETSc
 and can be used for either standard or generalized eigenproblems, with
 real or complex arithmetic. It can also be used for computing a
 partial SVD of a large, sparse, rectangular matrix, and to solve
-quadratic eigenvalue problems
+nonlinear eigenvalue problems
 
 .. tip::
 
@@ -96,7 +96,7 @@ def get_petsc_dir():
     return PETSC_DIR
 
 def get_petsc_arch():
-    PETSC_ARCH = os.environ.get('PETSC_ARCH') or 'arch-installed-petsc'
+    PETSC_ARCH = os.environ.get('PETSC_ARCH')
     return PETSC_ARCH
 
 def config(dry_run=False):
@@ -160,7 +160,7 @@ class cmd_build(_build):
 
     def initialize_options(self):
         _build.initialize_options(self)
-        PETSC_ARCH = os.environ.get('PETSC_ARCH', 'arch-installed-petsc')
+        PETSC_ARCH = os.environ.get('PETSC_ARCH')
         self.build_base = os.path.join(PETSC_ARCH, 'build-python')
 
     def run(self):

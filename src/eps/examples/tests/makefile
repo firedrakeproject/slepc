@@ -42,7 +42,7 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test10.PETSc runtest10_1 test10.rm \
                            test11.PETSc runtest11_1 test11.rm \
                            test12.PETSc runtest12_1 test12.rm \
-                           test13.PETSc runtest13_1 test13.rm \
+                           test13.PETSc runtest13_1 runtest13_2 test13.rm \
                            test14.PETSc runtest14_1 test14.rm
 TESTEXAMPLES_C_NOCOMPLEX = test1.PETSc runtest1_2 test1.rm
 TESTEXAMPLES_C_NOF128    = test5.PETSc runtest5_1 test5.rm
@@ -54,67 +54,67 @@ TESTEXAMPLES_BLOPEX      = test5.PETSc runtest5_blopex test5.rm
 include ${SLEPC_DIR}/conf/slepc_common
 
 test1: test1.o chkopts
-	-${CLINKER} -o test1 test1.o ${SLEPC_LIB}
+	-${CLINKER} -o test1 test1.o ${SLEPC_EPS_LIB}
 	${RM} test1.o
 
 test2: test2.o chkopts
-	-${CLINKER} -o test2 test2.o ${SLEPC_LIB}
+	-${CLINKER} -o test2 test2.o ${SLEPC_EPS_LIB}
 	${RM} test2.o
 
 test3: test3.o chkopts
-	-${CLINKER} -o test3 test3.o ${SLEPC_LIB}
+	-${CLINKER} -o test3 test3.o ${SLEPC_EPS_LIB}
 	${RM} test3.o
 
 test4: test4.o chkopts
-	-${CLINKER} -o test4 test4.o ${SLEPC_LIB}
+	-${CLINKER} -o test4 test4.o ${SLEPC_EPS_LIB}
 	${RM} test4.o
 
 test5: test5.o chkopts
-	-${CLINKER} -o test5 test5.o ${SLEPC_LIB}
+	-${CLINKER} -o test5 test5.o ${SLEPC_EPS_LIB}
 	${RM} test5.o
 
 test6: test6.o chkopts
-	-${CLINKER} -o test6 test6.o ${SLEPC_LIB}
+	-${CLINKER} -o test6 test6.o ${SLEPC_EPS_LIB}
 	${RM} test6.o
 
 test7f: test7f.o chkopts
-	-${FLINKER} -o test7f test7f.o ${SLEPC_LIB}
+	-${FLINKER} -o test7f test7f.o ${SLEPC_EPS_LIB}
 	${RM} test7f.o
 
 test8: test8.o chkopts
-	-${CLINKER} -o test8 test8.o ${SLEPC_LIB}
+	-${CLINKER} -o test8 test8.o ${SLEPC_EPS_LIB}
 	${RM} test8.o
 
 test9: test9.o chkopts
-	-${CLINKER} -o test9 test9.o ${SLEPC_LIB}
+	-${CLINKER} -o test9 test9.o ${SLEPC_EPS_LIB}
 	${RM} test9.o
 
 test10: test10.o chkopts
-	-${CLINKER} -o test10 test10.o ${SLEPC_LIB}
+	-${CLINKER} -o test10 test10.o ${SLEPC_EPS_LIB}
 	${RM} test10.o
 
 test11: test11.o chkopts
-	-${CLINKER} -o test11 test11.o ${SLEPC_LIB}
+	-${CLINKER} -o test11 test11.o ${SLEPC_EPS_LIB}
 	${RM} test11.o
 
 test12: test12.o chkopts
-	-${CLINKER} -o test12 test12.o ${SLEPC_LIB}
+	-${CLINKER} -o test12 test12.o ${SLEPC_EPS_LIB}
 	${RM} test12.o
 
 test13: test13.o chkopts
-	-${CLINKER} -o test13 test13.o ${SLEPC_LIB}
+	-${CLINKER} -o test13 test13.o ${SLEPC_EPS_LIB}
 	${RM} test13.o
 
 test14: test14.o chkopts
-	-${CLINKER} -o test14 test14.o ${SLEPC_LIB}
+	-${CLINKER} -o test14 test14.o ${SLEPC_EPS_LIB}
 	${RM} test14.o
 
 test14f: test14f.o chkopts
-	-${FLINKER} -o test14f test14f.o ${SLEPC_LIB}
+	-${FLINKER} -o test14f test14f.o ${SLEPC_EPS_LIB}
 	${RM} test14f.o
 
 test15f: test15f.o chkopts
-	-${FLINKER} -o test15f test15f.o ${SLEPC_LIB}
+	-${FLINKER} -o test15f test15f.o ${SLEPC_EPS_LIB}
 	${RM} test15f.o
 
 #------------------------------------------------------------------------------------
@@ -325,7 +325,7 @@ runtest13_1:
 	${TESTCODE}
 
 runtest13_2:
-	-@test=test13_2; \
+	-@test=test13_1; \
 	for eps in ${EPSAR}; do \
 	   echo "eps type $$eps"; \
 	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
