@@ -298,7 +298,6 @@ PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
 
   ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSHEP,"");CHKERRQ(ierr);
   if (d->V_tra_s==0 || symm) PetscFunctionReturn(0);
-  //PetscFunctionReturn(0); //TEMP!!!!
   /* Compute upper part of H(G): H(0:l-1,l:k-1) <- W(0:l-1)' * AV(l:k-1), where
      k=l+d->V_tra_s */
   ierr = BVSetActiveColumns(d->W?d->W:d->eps->V,0,lV);CHKERRQ(ierr);
@@ -308,13 +307,19 @@ PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
     ierr = BVSetActiveColumns(d->BX?d->BX:d->eps->V,lV,lV+d->V_tra_s);CHKERRQ(ierr);
     ierr = BVMatProject(d->BX?d->BX:d->eps->V,NULL,d->W?d->W:d->eps->V,d->G);CHKERRQ(ierr);
   }
+  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSGHEP,"");CHKERRQ(ierr);
+  if (!symm) {
+    /* H(l:k-1,0:l-1) = G(...) = 0 */
+    ierr = MatZeroEntries(d->auxM);CHKERRQ(ierr);
+    ierr = SlepcMatDenseCopy(d->auxM,0,0,d->H,lV,0,d->V_tra_s,lV);CHKERRQ(ierr);
+    if (d->G) {ierr = SlepcMatDenseCopy(d->auxM,0,0,d->G,lV,0,d->V_tra_s,lV);CHKERRQ(ierr);}
+  }
   ierr = BVSetActiveColumns(d->eps->V,lV,kV);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(d->AX,lV,kV);CHKERRQ(ierr);
   if (d->BX) {ierr = BVSetActiveColumns(d->BX,lV,kV);CHKERRQ(ierr);}
   if (d->W) {ierr = BVSetActiveColumns(d->W,lV,kV);CHKERRQ(ierr);}
   PetscFunctionReturn(0);
 }
-
 
 /* in complex, d->size_H real auxiliar values are needed */
 #undef __FUNCT__
