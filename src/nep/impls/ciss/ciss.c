@@ -134,7 +134,7 @@ static PetscErrorCode CISSVecSetRandom(Vec x,PetscRandom rctx)
   PetscScalar    *vdata;
 
   PetscFunctionBegin;
-  ierr = SlepcVecSetRandom(x,rctx);CHKERRQ(ierr);
+  ierr = VecSetRandom(x,rctx);CHKERRQ(ierr);
   ierr = VecGetLocalSize(x,&nlocal);CHKERRQ(ierr);
   ierr = VecGetArray(x,&vdata);CHKERRQ(ierr);
   for (j=0;j<nlocal;j++) {
@@ -166,7 +166,7 @@ static PetscErrorCode SolveLinearSystem(NEP nep)
   for (i=0;i<ctx->num_solve_point;i++) {
     p_id = ctx->solver_comm_id * ctx->num_solve_point + i;
 
-    ierr = NEPComputeFunction(nep,ctx->omega[p_id],&T,&T,&mats);CHKERRQ(ierr);
+    ierr = NEPComputeFunction(nep,ctx->omega[p_id],T,T);CHKERRQ(ierr);
     if (i == 0){ ierr = MatDuplicate(T,MAT_COPY_VALUES,&Fz);CHKERRQ(ierr); }
     else{ 
       ierr = MatHasOperation(T,MATOP_COPY,&hascopy);CHKERRQ(ierr);
@@ -183,7 +183,7 @@ static PetscErrorCode SolveLinearSystem(NEP nep)
     ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
 
-    ierr = NEPComputeJacobian(nep,ctx->omega[p_id],&dT,&mats);CHKERRQ(ierr);
+    ierr = NEPComputeJacobian(nep,ctx->omega[p_id],dT);CHKERRQ(ierr);
 
     for (j=0;j<ctx->L;j++) {
       ierr = VecDuplicate(ctx->V[0],&ctx->Y[i*ctx->L_max+j]);CHKERRQ(ierr);
@@ -448,7 +448,7 @@ static PetscErrorCode SVD(NEP nep,Vec *Q,PetscInt *K,PetscScalar *V,PetscBool is
 
   if (isqr){
     ierr = PetscMalloc(ml*ml*sizeof(PetscScalar),&s);CHKERRQ(ierr);
-    ierr = IPQRDecomposition(nep->ip,Q,0,ml,s,ml);CHKERRQ(ierr);
+    /*ierr = IPQRDecomposition(nep->ip,Q,0,ml,s,ml);CHKERRQ(ierr);*/
   }
 
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
@@ -533,10 +533,6 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   nep->ncv = ctx->L*ctx->M;
   if (!nep->mpd) nep->mpd = nep->ncv;
   if (!nep->which) nep->which = NEP_LARGEST_MAGNITUDE;
-  //if (ctx->vscale == PETSC_DEFAULT) {
-  //  if (nep->ishermitian && (nep->ispositive || !nep->isgeneralized) && PetscImaginaryPart(ctx->center) == 0.0) ctx->vscale = 0.1;
-  //  else ctx->vscale = 1.0;
-  //}
   if (ctx->isreal && PetscImaginaryPart(ctx->center) == 0.0) ctx->useconj = PETSC_TRUE;
   else ctx->useconj = PETSC_FALSE;
 
@@ -573,7 +569,6 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   ierr = NEPSetWorkVecs(nep,1);CHKERRQ(ierr);
 
   /* dispatch solve method */
-  //if (nep->leftvecs) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Left vectors not supported in this solver");
   nep->ops->solve = NEPSolve_CISS;
   PetscFunctionReturn(0);
 }
@@ -589,6 +584,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   PetscReal      *tau,s1,s2,tau_max=1.0,norm;
   PetscBool      *fl;
   Vec            *S1,*H0,*H1,tempv;
+  Mat            X;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
@@ -712,9 +708,11 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     
     ierr = DSSetEigenvalueComparison(nep->ds,SlepcCompareLargestMagnitude,NULL);CHKERRQ(ierr);
     ierr = DSSort(nep->ds,nep->eig,NULL,rr,NULL,&nep->nconv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(nep->V,0,nv);CHKERRQ(ierr);
     for (i=0;i<nv;i++) {
       nep->eig[i] = nep->eig[i]*ctx->radius+ctx->center;
-      ierr = VecCopy(ctx->S[i],nep->V[i]);CHKERRQ(ierr);
+      ierr = BVInsertVec(nep->V,i,ctx->S[i]);CHKERRQ(ierr);
+      /*ierr = VecCopy(ctx->S[i],nep->V[i]);CHKERRQ(ierr);*/
     }
     ierr = DSSetEigenvalueComparison(nep->ds,nep->comparison,nep->comparisonctx);CHKERRQ(ierr);
     ierr = PetscFree(rr);CHKERRQ(ierr);
@@ -722,13 +720,16 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     
     /* compute eigenvectors */
     ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-    ierr = DSGetArray(nep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
+    ierr = DSGetMat(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+    ierr = BVMultInPlace(nep->V,X,0,nep->nconv);CHKERRQ(ierr);
+    ierr = MatDestroy(&X);CHKERRQ(ierr);
+    /*ierr = DSGetArray(nep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
     ierr = SlepcUpdateVectors(nv,nep->V,0,nep->nconv,pX,ld,PETSC_FALSE);CHKERRQ(ierr);
     ierr = DSRestoreArray(nep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
     for (i=0;i<nep->nconv;i++) {
       ierr = VecNorm(nep->V[i],NORM_2,&norm);CHKERRQ(ierr);
       ierr = VecScale(nep->V[i],1.0/norm);CHKERRQ(ierr);
-    }
+    }*/
   }
   
   ierr = VecDestroyVecs(ctx->L*ctx->M,&H0);CHKERRQ(ierr);
@@ -1105,7 +1106,7 @@ PetscErrorCode NEPReset_CISS(NEP nep)
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
 
   PetscFunctionBegin;
-  if (nep->setupcalled) { ierr = MPI_Comm_free(&ctx->scomm);CHKERRQ(ierr); }
+  if (ctx->scomm) { ierr = MPI_Comm_free(&ctx->scomm);CHKERRQ(ierr); }
   ierr = PetscFree(ctx->weight);CHKERRQ(ierr);
   ierr = PetscFree(ctx->omega);CHKERRQ(ierr);
   ierr = PetscFree(ctx->pp);CHKERRQ(ierr);
@@ -1120,8 +1121,6 @@ PetscErrorCode NEPReset_CISS(NEP nep)
   }
   ierr = PetscFree(ctx->Y);CHKERRQ(ierr);
   ierr = VecDestroyVecs(ctx->M*ctx->L,&ctx->S);CHKERRQ(ierr);
-  //ierr = VecDestroyVecs(ctx->M*ctx->L*2,&ctx->S);CHKERRQ(ierr);
-  ierr = NEPReset_Default(nep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1227,7 +1226,6 @@ PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   /* set default values of parameters */
   ctx->center  = 0.0;
   ctx->radius  = 1.0;
-  // ctx->vscale  = PETSC_DEFAULT;
   ctx->vscale  = 1.0;
   ctx->N       = 32;
   ctx->L       = 16;
