@@ -156,7 +156,6 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   if (sr->hasEnd) {
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     ierr = MatGetInertia(F,&sr->inertia1,NULL,NULL);CHKERRQ(ierr);
-    ierr = PCReset(pc);CHKERRQ(ierr); /* avoiding memory leak */
   }
 
   /* compute inertia0 */
