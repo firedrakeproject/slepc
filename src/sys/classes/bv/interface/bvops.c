@@ -322,7 +322,7 @@ PetscErrorCode BVMultInPlaceTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
 #undef __FUNCT__
 #define __FUNCT__ "BVScale"
 /*@
-   BVScale - Scale all columns of a BV.
+   BVScale - Multiply the BV entries by a scalar value.
 
    Logically Collective on BV
 
@@ -331,7 +331,7 @@ PetscErrorCode BVMultInPlaceTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
 -  alpha - scaling factor
 
    Note:
-   All active columns are scaled.
+   All active columns (except the leading ones) are scaled.
 
    Level: intermediate
 
@@ -395,17 +395,17 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
 #undef __FUNCT__
 #define __FUNCT__ "BVSetRandom"
 /*@
-   BVSetRandom - Set all columns of a BV to random numbers.
+   BVSetRandom - Set the columns of a BV to random numbers.
 
    Logically Collective on BV
 
    Input Parameters:
-+  bv    - basis vectors
++  bv   - basis vectors
 -  rctx - the random number context, formed by PetscRandomCreate(), or NULL and
           it will create one internally.
 
    Note:
-   All active columns are modified.
+   All active columns (except the leading ones) are modified.
 
    Level: advanced
 
@@ -432,7 +432,7 @@ PetscErrorCode BVSetRandom(BV bv,PetscRandom rctx)
   BVCheckSizes(bv,1);
 
   ierr = PetscLogEventBegin(BV_SetRandom,bv,rctx,0,0);CHKERRQ(ierr);
-  for (k=0;k<bv->k;k++) {
+  for (k=bv->l;k<bv->k;k++) {
     ierr = BVGetColumn(bv,k,&x);CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
     ierr = VecGetArray(x,&px);CHKERRQ(ierr);
@@ -457,8 +457,8 @@ PetscErrorCode BVSetRandom(BV bv,PetscRandom rctx)
    Logically Collective on BV
 
    Input Parameters:
-+  bv    - basis vectors
--  j     - column number to be set
++  bv   - basis vectors
+-  j    - column number to be set
 -  rctx - the random number context, formed by PetscRandomCreate(), or NULL and
           it will create one internally.
 

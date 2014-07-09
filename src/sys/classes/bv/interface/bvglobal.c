@@ -262,7 +262,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,Pets
 #undef __FUNCT__
 #define __FUNCT__ "BVNorm"
 /*@
-   BVNorm - Computes the matrix norm of all columns.
+   BVNorm - Computes the matrix norm of the BV.
 
    Collective on BV
 
@@ -274,8 +274,8 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,Pets
 .  val  - the norm
 
    Notes:
-   All active columns are considered as a matrix. The allowed norms
-   are NORM_1, NORM_FROBENIUS, and NORM_INFINITY.
+   All active columns (except the leading ones) are considered as a matrix.
+   The allowed norms are NORM_1, NORM_FROBENIUS, and NORM_INFINITY.
 
    This operation fails if a non-standard inner product has been
    specified with BVSetMatrix().

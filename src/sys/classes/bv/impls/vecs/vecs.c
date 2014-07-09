@@ -200,7 +200,7 @@ PetscErrorCode BVScale_Vecs(BV bv,PetscInt j,PetscScalar alpha)
 
   PetscFunctionBegin;
   if (j<0) {
-    for (i=0;i<bv->k;i++) {
+    for (i=bv->l;i<bv->k;i++) {
       ierr = VecScale(ctx->V[bv->nc+i],alpha);CHKERRQ(ierr);
     }
   } else {
@@ -223,7 +223,7 @@ PetscErrorCode BVNorm_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
     switch (type) {
     case NORM_FROBENIUS:
       *val = 0.0;
-      for (i=0;i<bv->k;i++) {
+      for (i=bv->l;i<bv->k;i++) {
         ierr = VecNorm(ctx->V[bv->nc+i],NORM_2,&nrm);CHKERRQ(ierr);
         *val += nrm*nrm;
       }
