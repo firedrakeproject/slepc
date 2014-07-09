@@ -149,6 +149,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
     /* Create various vector basis */
     ierr = BVDuplicate(d->eps->V,&data->KZ);CHKERRQ(ierr);
     ierr = BVResize(data->KZ,size_P,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVSetMatrix(data->KZ,NULL,PETSC_FALSE);CHKERRQ(ierr);
     ierr = BVDuplicate(data->KZ,&data->U);CHKERRQ(ierr);
 
     ierr = EPSDavidsonFLAdd(&d->startList,dvd_improvex_jd_start);CHKERRQ(ierr);

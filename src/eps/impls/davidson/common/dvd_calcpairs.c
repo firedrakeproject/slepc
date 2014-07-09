@@ -138,11 +138,14 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
     } else d->W = NULL;
     ierr = BVDuplicate(d->eps->V,&d->AX);CHKERRQ(ierr);
     ierr = BVResize(d->AX,d->eps->ncv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVSetMatrix(d->AX,NULL,PETSC_FALSE);CHKERRQ(ierr);
     ierr = BVDuplicate(d->eps->V,&d->auxBV);CHKERRQ(ierr);
     ierr = BVResize(d->auxBV,d->eps->ncv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVSetMatrix(d->auxBV,NULL,PETSC_FALSE);CHKERRQ(ierr);
     if (d->B) {
       ierr = BVDuplicate(d->eps->V,&d->BX);CHKERRQ(ierr);
       ierr = BVResize(d->BX,d->eps->ncv,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = BVSetMatrix(d->BX,NULL,PETSC_FALSE);CHKERRQ(ierr);
     } else d->BX = NULL;
     ierr = BVGetColumn(d->eps->V,0,&v1);CHKERRQ(ierr);
     ierr = SlepcVecPoolCreate(v1,0,&d->auxV);CHKERRQ(ierr);
@@ -286,7 +289,6 @@ PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
   PetscInt        lV,kV;
 
   PetscFunctionBegin;
-  if (d->V_tra_s == 0 && d->V_tra_e == 0) PetscFunctionReturn(0);
   ierr = DSGetMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   if (d->W) {ierr = DSGetMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);}
   else Z = Q;
