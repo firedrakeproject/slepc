@@ -118,7 +118,8 @@ int main(int argc,char **argv)
   ierr = MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatShift(M,1.0);CHKERRQ(ierr);
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
