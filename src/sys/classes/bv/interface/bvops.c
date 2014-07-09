@@ -44,8 +44,8 @@
 
    The matrix Q must be a sequential dense Mat, with all entries equal on
    all processes (otherwise each process will compute a different update).
-   The dimensions of Q must be m,n where m is the number of active columns
-   of X and n is the number of active columns of Y.
+   The dimensions of Q must be at least m,n where m is the number of active
+   columns of X and n is the number of active columns of Y.
 
    The leading columns of Y are not modified. Also, if X has leading
    columns specified, then these columns do not participate in the computation.
@@ -79,8 +79,8 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   if (!match) SETERRQ(PetscObjectComm((PetscObject)Y),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
 
   ierr = MatGetSize(Q,&m,&n);CHKERRQ(ierr);
-  if (m!=X->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, cannot multiply a BV with %D active columns",m,X->k);
-  if (n!=Y->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, result cannot be added to a BV with %D active columns",n,Y->k);
+  if (m<X->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should have at least %D",m,X->k);
+  if (n<Y->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should have at least %D",n,Y->k);
   if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
   if (!X->n) PetscFunctionReturn(0);
 
@@ -254,7 +254,7 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
   if (s<V->l || s>=V->k) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %D, should be between %D and %D",s,V->l,V->k-1);
   if (e<V->l || e>V->k) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %D, should be between %D and %D",e,V->l,V->k);
   ierr = MatGetSize(Q,&m,&n);CHKERRQ(ierr);
-  if (m!=V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, cannot multiply a BV with %D active columns",m,V->k);
+  if (m<V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should have at least %D",m,V->k);
   if (e>n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %D columns, the requested value of e is larger: %D",n,e);
   if (s>=e || !V->n) PetscFunctionReturn(0);
 
@@ -308,8 +308,8 @@ PetscErrorCode BVMultInPlaceTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
   if (s<V->l || s>=V->k) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %D, should be between %D and %D",s,V->l,V->k-1);
   if (e<V->l || e>V->k) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %D, should be between %D and %D",e,V->l,V->k);
   ierr = MatGetSize(Q,&m,&n);CHKERRQ(ierr);
-  if (n!=V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, cannot multiply a BV with %D active columns",n,V->k);
-  if (e>m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %D columns, the requested value of e is larger: %D",m,e);
+  if (n<V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should have at least %D",n,V->k);
+  if (e>m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %D rows, the requested value of e is larger: %D",m,e);
   if (s>=e || !V->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Mult,V,Q,0,0);CHKERRQ(ierr);
@@ -322,7 +322,7 @@ PetscErrorCode BVMultInPlaceTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
 #undef __FUNCT__
 #define __FUNCT__ "BVScale"
 /*@
-   BVScale - Scale all columns of a BV.
+   BVScale - Multiply the BV entries by a scalar value.
 
    Logically Collective on BV
 
@@ -331,7 +331,7 @@ PetscErrorCode BVMultInPlaceTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
 -  alpha - scaling factor
 
    Note:
-   All active columns are scaled.
+   All active columns (except the leading ones) are scaled.
 
    Level: intermediate
 
@@ -395,17 +395,17 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
 #undef __FUNCT__
 #define __FUNCT__ "BVSetRandom"
 /*@
-   BVSetRandom - Set all columns of a BV to random numbers.
+   BVSetRandom - Set the columns of a BV to random numbers.
 
    Logically Collective on BV
 
    Input Parameters:
-+  bv    - basis vectors
++  bv   - basis vectors
 -  rctx - the random number context, formed by PetscRandomCreate(), or NULL and
           it will create one internally.
 
    Note:
-   All active columns are modified.
+   All active columns (except the leading ones) are modified.
 
    Level: advanced
 
@@ -432,7 +432,7 @@ PetscErrorCode BVSetRandom(BV bv,PetscRandom rctx)
   BVCheckSizes(bv,1);
 
   ierr = PetscLogEventBegin(BV_SetRandom,bv,rctx,0,0);CHKERRQ(ierr);
-  for (k=0;k<bv->k;k++) {
+  for (k=bv->l;k<bv->k;k++) {
     ierr = BVGetColumn(bv,k,&x);CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
     ierr = VecGetArray(x,&px);CHKERRQ(ierr);
@@ -457,8 +457,8 @@ PetscErrorCode BVSetRandom(BV bv,PetscRandom rctx)
    Logically Collective on BV
 
    Input Parameters:
-+  bv    - basis vectors
--  j     - column number to be set
++  bv   - basis vectors
+-  j    - column number to be set
 -  rctx - the random number context, formed by PetscRandomCreate(), or NULL and
           it will create one internally.
 

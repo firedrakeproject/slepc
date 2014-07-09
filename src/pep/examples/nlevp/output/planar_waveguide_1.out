@@ -1,5 +1,5 @@
 
-Butterfly problem, n=128
+Planar waveguide, n=128
 
  All requested eigenvalues computed up to the required tolerance:
      -0.00000+0.13912i, -0.00000-0.13912i, 0.00000+0.13923i, 0.00000-0.13923i

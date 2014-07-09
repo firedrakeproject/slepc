@@ -55,7 +55,7 @@ int main(int argc,char **argv)
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nButterfly problem, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nPlanar waveguide, n=%D\n\n",n);CHKERRQ(ierr);
   h = (b-a)/n;
   nlocal = (n/4)-1;
 

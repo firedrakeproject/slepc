@@ -37,7 +37,7 @@ PetscErrorCode BVMult_Vecs(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscInt       i,j,ldq;
 
   PetscFunctionBegin;
-  ldq = X->k;
+  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
   if (alpha!=1.0) {
     ierr = BVAllocateWork_Private(Y,X->k-X->l);CHKERRQ(ierr);
     s = Y->work;
@@ -90,9 +90,10 @@ PetscErrorCode BVMultInPlace_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscErrorCode ierr;
   BV_VECS        *ctx = (BV_VECS*)V->data;
   PetscScalar    *q;
-  PetscInt       i,ldq = V->k;
+  PetscInt       i,ldq;
 
   PetscFunctionBegin;
+  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
   /* V2 := V2*Q2 */
   ierr = BVMultInPlace_Vecs_Private(V,V->n,e-s,V->k,ctx->V+V->nc+s,q+s*ldq+s,PETSC_FALSE);CHKERRQ(ierr);
@@ -101,8 +102,8 @@ PetscErrorCode BVMultInPlace_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
     if (s>V->l) {
       ierr = VecMAXPY(ctx->V[V->nc+i],s-V->l,q+i*ldq+V->l,ctx->V+V->nc+V->l);CHKERRQ(ierr);
     }
-    if (ldq>e) {
-      ierr = VecMAXPY(ctx->V[V->nc+i],ldq-e,q+i*ldq+e,ctx->V+V->nc+e);CHKERRQ(ierr);
+    if (V->k>e) {
+      ierr = VecMAXPY(ctx->V[V->nc+i],V->k-e,q+i*ldq+e,ctx->V+V->nc+e);CHKERRQ(ierr);
     }
   }
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
@@ -164,7 +165,7 @@ PetscErrorCode BVDot_Vecs(BV X,BV Y,Mat M)
   PetscInt       j,ldm;
 
   PetscFunctionBegin;
-  ldm = Y->k;
+  ierr = MatGetSize(M,&ldm,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
   for (j=X->l;j<X->k;j++) {
     ierr = VecMDot(x->V[X->nc+j],Y->k-Y->l,y->V+Y->nc+Y->l,m+j*ldm+Y->l);CHKERRQ(ierr);
@@ -200,7 +201,7 @@ PetscErrorCode BVScale_Vecs(BV bv,PetscInt j,PetscScalar alpha)
 
   PetscFunctionBegin;
   if (j<0) {
-    for (i=0;i<bv->k;i++) {
+    for (i=bv->l;i<bv->k;i++) {
       ierr = VecScale(ctx->V[bv->nc+i],alpha);CHKERRQ(ierr);
     }
   } else {
@@ -223,7 +224,7 @@ PetscErrorCode BVNorm_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
     switch (type) {
     case NORM_FROBENIUS:
       *val = 0.0;
-      for (i=0;i<bv->k;i++) {
+      for (i=bv->l;i<bv->k;i++) {
         ierr = VecNorm(ctx->V[bv->nc+i],NORM_2,&nrm);CHKERRQ(ierr);
         *val += nrm*nrm;
       }
