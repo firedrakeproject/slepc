@@ -164,7 +164,7 @@ PetscErrorCode BVDot_Vecs(BV X,BV Y,Mat M)
   PetscInt       j,ldm;
 
   PetscFunctionBegin;
-  ldm = Y->k;
+  ierr = MatGetSize(M,&ldm,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
   for (j=X->l;j<X->k;j++) {
     ierr = VecMDot(x->V[X->nc+j],Y->k-Y->l,y->V+Y->nc+Y->l,m+j*ldm+Y->l);CHKERRQ(ierr);

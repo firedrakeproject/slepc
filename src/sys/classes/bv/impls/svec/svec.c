@@ -124,12 +124,14 @@ PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
   PetscErrorCode ierr;
   BV_SVEC        *x = (BV_SVEC*)X->data,*y = (BV_SVEC*)Y->data;
   PetscScalar    *px,*py,*m;
+  PetscInt       ldm;
 
   PetscFunctionBegin;
+  ierr = MatGetSize(M,&ldm,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y->v,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  ierr = BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,X->n,Y->k,py+(Y->nc+Y->l)*Y->n,px+(X->nc+X->l)*X->n,m+X->l*Y->k+Y->l,x->mpi);CHKERRQ(ierr);
+  ierr = BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,X->n,ldm,py+(Y->nc+Y->l)*Y->n,px+(X->nc+X->l)*X->n,m+X->l*ldm+Y->l,x->mpi);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y->v,&py);CHKERRQ(ierr);
