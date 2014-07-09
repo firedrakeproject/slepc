@@ -1016,7 +1016,6 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
   FSubctx        *ctx;
   KSP            ksp;
   Matexplicitctx *matctx=NULL;
-  Vec            v;
 
   PetscFunctionBegin;
   if (maxits) its = *maxits;
