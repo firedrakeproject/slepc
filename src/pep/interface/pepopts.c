@@ -45,7 +45,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 {
   PetscErrorCode   ierr;
   char             type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool        flg,flg1,flg2,flg3;
+  PetscBool        flg,flg1,flg2,flg3,flg4;
   PetscReal        r,t;
   PetscScalar      s;
   PetscInt         i,j,k;
@@ -80,6 +80,20 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PetscOptionsReal("-pep_scale_lambda","Estimate of eigenvalue (modulus) for diagonal scaling","PEPSetScale",pep->slambda,&t,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) {
       ierr = PEPSetScale(pep,pep->scale,r,j,t);CHKERRQ(ierr);
+    }
+
+    ierr = PetscOptionsEnum("-pep_refine","Iterative refinement method","PEPSetRefine",PEPRefineTypes,(PetscEnum)pep->refine,(PetscEnum*)&pep->refine,NULL);CHKERRQ(ierr);
+
+    i = pep->npart;
+    ierr = PetscOptionsInt("-pep_refine_partitions","Number of partitions of the communicator for iterative refinement","PEPSetRefine",pep->npart,&i,&flg1);CHKERRQ(ierr);
+    r = pep->rtol;
+    ierr = PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol,&r,&flg2);CHKERRQ(ierr);
+    j = pep->rits;
+    ierr = PetscOptionsInt("-pep_refine_its","Maximum number of iterations for iterative refinement","PEPSetRefine",pep->rits,&j,&flg3);CHKERRQ(ierr);
+    flg = pep->schur;
+    ierr = PetscOptionsBool("-pep_refine_schur","Use Schur complement for iterative refinement","PEPSetRefine",pep->schur,&flg,&flg4);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3 || flg4) {
+      ierr = PEPSetRefine(pep,pep->refine,i,r,j,flg);CHKERRQ(ierr);
     }
 
     i = pep->max_it? pep->max_it: PETSC_DEFAULT;
