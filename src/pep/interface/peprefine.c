@@ -185,6 +185,9 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   /* Loop performing iterative refinements */
   for (i=0;i<*maxits;i++) {
     for (j=0;j<k;j++) {
+#if !defined(PETSC_USE_COMPLEX)
+      if (pep->eigi[j]!=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Simple Refinement not implemented in real scalar for complex eigenvalues");
+#endif
       ierr = PEPNSingRefSetUp(pep,pep->A,j,&M,&T,(j==0&&i==0)?PETSC_TRUE:PETSC_FALSE,t);CHKERRQ(ierr);
       ierr = KSPSetOperators(ksp,M,M);CHKERRQ(ierr);
       if (i==0&&j==0) {
