@@ -338,6 +338,11 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->sfactor         = 1.0;
   pep->sits            = 5;
   pep->slambda         = 1.0;
+  pep->refine          = PEP_REFINE_NONE;
+  pep->npart           = 1;
+  pep->rtol            = PETSC_DEFAULT;
+  pep->rits            = PETSC_DEFAULT;
+  pep->schur           = PETSC_FALSE;
   pep->trackall        = PETSC_FALSE;
 
   pep->comparison      = NULL;
