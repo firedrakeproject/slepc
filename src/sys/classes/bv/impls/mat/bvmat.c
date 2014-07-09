@@ -35,12 +35,14 @@ PetscErrorCode BVMult_Mat(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscErrorCode ierr;
   BV_MAT         *y = (BV_MAT*)Y->data,*x = (BV_MAT*)X->data;
   PetscScalar    *px,*py,*q;
+  PetscInt       ldq;
 
   PetscFunctionBegin;
+  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
   ierr = MatDenseGetArray(y->A,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,X->k,alpha,px+(X->nc+X->l)*X->n,q+Y->l*X->k+X->l,beta,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
+  ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,px+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(y->A,&py);CHKERRQ(ierr);
@@ -71,11 +73,13 @@ PetscErrorCode BVMultInPlace_Mat(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscErrorCode ierr;
   BV_MAT         *ctx = (BV_MAT*)V->data;
   PetscScalar    *pv,*q;
+  PetscInt       ldq;
 
   PetscFunctionBegin;
+  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(ctx->A,&pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,V->k,s-V->l,e-V->l,pv+(V->nc+V->l)*V->n,q+V->l*V->k+V->l,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,pv+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(ctx->A,&pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);

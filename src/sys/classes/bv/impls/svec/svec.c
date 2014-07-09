@@ -35,12 +35,14 @@ PetscErrorCode BVMult_Svec(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscErrorCode ierr;
   BV_SVEC        *y = (BV_SVEC*)Y->data,*x = (BV_SVEC*)X->data;
   PetscScalar    *px,*py,*q;
+  PetscInt       ldq;
 
   PetscFunctionBegin;
+  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y->v,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,X->k,alpha,px+(X->nc+X->l)*X->n,q+Y->l*X->k+X->l,beta,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
+  ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,px+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y->v,&py);CHKERRQ(ierr);
@@ -71,11 +73,13 @@ PetscErrorCode BVMultInPlace_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscErrorCode ierr;
   BV_SVEC        *ctx = (BV_SVEC*)V->data;
   PetscScalar    *pv,*q;
+  PetscInt       ldq;
 
   PetscFunctionBegin;
+  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(ctx->v,&pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,V->k,s-V->l,e-V->l,pv+(V->nc+V->l)*V->n,q+V->l*V->k+V->l,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,pv+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = VecRestoreArray(ctx->v,&pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
