@@ -618,7 +618,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PEPBasis     bs;
   PEPCmpctx    *ctx;
   Reg          *reg;
-  PetscInt     count,newtonRefIt=0;
+  PetscInt     count,newtonRefIt=0,newtonSingRefIt=0;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar  *er,*ei;
 #endif
@@ -725,7 +725,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 #endif
     k = PetscMin(k,count);
     }
-/* ///////////// */
     if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
     if (k >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
 
@@ -778,7 +777,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     }
     }/* ///////////////// */
-
     /* Perform Newton refinement if required */
     ierr = PetscOptionsGetInt(NULL,"-newton_refinement",&newtonRefIt,NULL);CHKERRQ(ierr);
     if (newtonRefIt>0) {
@@ -792,7 +790,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       ierr = DSRestoreArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinvert);CHKERRQ(ierr);
     }
-
     /* Update vectors V = V*S */  
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,pep->nconv,pep->nconv,NULL,&S0);CHKERRQ(ierr);
     ierr = MatDenseGetArray(S0,&pS0);CHKERRQ(ierr);
@@ -808,20 +805,22 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   if (!flg) {
     if (!newtonRefIt) {
       ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+      /* Restore original values */
+      pep->target *= pep->sfactor;
+      pep->st->sigma *= pep->sfactor;
     }
-    /* Restore original values */
-    pep->target *= pep->sfactor;
-    pep->st->sigma *= pep->sfactor;
   }
   if (pep->sfactor!=1.0) {
-    for (j=0;j<pep->nconv;j++) {
-      pep->eigr[j] *= pep->sfactor;
-      pep->eigi[j] *= pep->sfactor;
-    }
-    /* Restore original values */
-    for (i=0;i<pep->nmat;i++){
-      pep->pbc[pep->nmat+i] *= pep->sfactor;
-      pep->pbc[2*pep->nmat+i] *= pep->sfactor*pep->sfactor;
+    if (!newtonRefIt) {
+      for (j=0;j<pep->nconv;j++) {
+        pep->eigr[j] *= pep->sfactor;
+        pep->eigi[j] *= pep->sfactor;
+      }
+      /* Restore original values */
+      for (i=0;i<pep->nmat;i++){
+        pep->pbc[pep->nmat+i] *= pep->sfactor;
+        pep->pbc[2*pep->nmat+i] *= pep->sfactor*pep->sfactor;
+      }
     }
   }
 
@@ -829,6 +828,12 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,"-newton_single_refinement",&newtonSingRefIt,NULL);CHKERRQ(ierr);
+  if (newtonSingRefIt>0) {
+    ierr = PEPComputeVectors_Schur(pep);CHKERRQ(ierr);
+    ierr = PEPNewtonRefinementSimple(pep,&newtonSingRefIt,NULL,pep->nconv);CHKERRQ(ierr);
+    pep->state = PEP_STATE_EIGENVECTORS;
+  } else pep->state = PEP_STATE_SOLVED;
   ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
   /* ////////// */
   if (withreg && bs==PEP_BASIS_CHEBYSHEV1) {

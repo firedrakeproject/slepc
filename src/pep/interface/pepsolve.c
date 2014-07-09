@@ -139,7 +139,7 @@ PetscErrorCode PEPSolve(PEP pep)
     }
   }
 
-  pep->state = PEP_STATE_SOLVED;
+  //pep->state = PEP_STATE_SOLVED;
 
 #if !defined(PETSC_USE_COMPLEX)
   /* reorder conjugate eigenvalues (positive imaginary first) */
