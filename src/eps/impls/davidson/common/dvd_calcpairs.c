@@ -135,6 +135,7 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
     if (harm) {
       ierr = BVDuplicate(d->eps->V,&d->W);CHKERRQ(ierr);
       ierr = BVResize(d->W,d->eps->ncv,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = BVSetMatrix(d->W,NULL,PETSC_FALSE);CHKERRQ(ierr);
     } else d->W = NULL;
     ierr = BVDuplicate(d->eps->V,&d->AX);CHKERRQ(ierr);
     ierr = BVResize(d->AX,d->eps->ncv,PETSC_FALSE);CHKERRQ(ierr);
@@ -147,9 +148,9 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
       ierr = BVResize(d->BX,d->eps->ncv,PETSC_FALSE);CHKERRQ(ierr);
       ierr = BVSetMatrix(d->BX,NULL,PETSC_FALSE);CHKERRQ(ierr);
     } else d->BX = NULL;
-    ierr = BVGetColumn(d->eps->V,0,&v1);CHKERRQ(ierr);
+    ierr = MatGetVecs(d->A,&v1,NULL);CHKERRQ(ierr);
     ierr = SlepcVecPoolCreate(v1,0,&d->auxV);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(d->eps->V,0,&v1);CHKERRQ(ierr);
+    ierr = VecDestroy(&v1);CHKERRQ(ierr);
     /* Create projected problem matrices */
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&d->H);CHKERRQ(ierr);
     if (!std_probl) {
@@ -232,7 +233,7 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
     if (d->BX) {
       /* Check consistency */
       if (k-l != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-      for (i=d->V_new_s; i<d->V_new_e; i++) {
+      for (i=l+d->V_new_s; i<l+d->V_new_e; i++) {
         ierr = BVGetColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
         ierr = BVGetColumn(d->BX,i,&v2);CHKERRQ(ierr);
         ierr = MatMult(d->B,v1,v2);CHKERRQ(ierr);
@@ -703,7 +704,7 @@ PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e
 PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,BV bv,DSMatType mat)
 {
   PetscErrorCode  ierr;
-  PetscInt        l,k;
+  PetscInt        l,k,n;
   Mat             MT,auxM;
 
   PetscFunctionBegin;
@@ -711,7 +712,9 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,B
   ierr = DSGetMat(d->eps->ds,mat,&MT);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&auxM);CHKERRQ(ierr);
   ierr = MatZeroEntries(auxM);CHKERRQ(ierr);
-  ierr = SlepcMatDenseCopy(MT,0,0,auxM,l,l,k-l,d->V_tra_e);CHKERRQ(ierr);
+  ierr = MatGetSize(MT,&n,0);CHKERRQ(ierr);
+  if (k-l!=n) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
+  ierr = SlepcMatDenseCopy(MT,0,0,auxM,l,l,n,d->V_tra_e);CHKERRQ(ierr);
   ierr = DSRestoreMat(d->eps->ds,mat,&MT);CHKERRQ(ierr);
   ierr = BVMultInPlace(bv,auxM,l,l+d->V_tra_e);CHKERRQ(ierr);
   ierr = MatDestroy(&auxM);CHKERRQ(ierr);
