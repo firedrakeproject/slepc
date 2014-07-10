@@ -181,33 +181,6 @@ typedef struct _dvdDashboard {
   Mat H, G;         /* Projected problem matrices */
   Mat auxM;         /* auxiliary dense matrix */
   PetscInt size_MT; /* rows in MT */
-  //  *real_H,        /* original H */
-  //  *G,             /* Projected problem matrix B*/
-  //  *real_G,        /* original G */
-  //  *S,             /* first Schur matrix, S = pY'*H*pX */
-  //  *T,             /* second Schur matrix, T = pY'*G*pX */
-  //  *cS,            /* first Schur matrix of converged pairs */
-  //  *cT;            /* second Schur matrix of converged pairs */
-  //MatType_t
-  //  sH,             /* H properties */
-  //  sG;             /* G properties */
-  //PetscInt ldH,     /* leading dimension of H */
-  //  ldS,            /* leading dimension of S */
-  //  ldT,            /* leading dimension of T */
-  //  ldcS,           /* leading dimension of cS */
-  //  ldcT,           /* leading dimension of cT */
-  //  size_H,         /* rows and columns in H */
-  //  size_G,         /* rows and columns in G */
-  //  size_MT,        /* rows in MT */
-  //  size_cS,        /* dimension of cS */
-  //  size_cT,        /* dimension of cT */
-  //  max_size_cS,    /* max size of cS and cT */
-  //  cX_in_V,        /* number of converged vectors in V */
-  //  cX_in_W,        /* number of converged vectors in W */
-  //  cX_in_AV,       /* number of converged vectors in AV */
-  //  cX_in_BV,       /* number of converged vectors in BV */
-  //  cX_in_H,        /* number of converged vectors in H */
-  //  cX_in_G;        /* number of converged vectors in G */
 
   PetscInt
     V_tra_s,
@@ -217,8 +190,6 @@ typedef struct _dvdDashboard {
   PetscBool
     BV_shift,       /* if true BV is shifted when vectors converge */
     W_shift;        /* if true W is shifted when vectors converge */
-  //DS conv_ps,       /* projected problem with the converged pairs */
-  //  ps;             /* projected problem with the search subspace */
 
   EPSOrthType   orthoV_type;
 

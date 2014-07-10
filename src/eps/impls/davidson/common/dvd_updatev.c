@@ -182,7 +182,7 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
-  //TODO: restrict select pairs to each case
+  /* TODO: restrict select pairs to each case */
   ierr = d->calcpairs_selectPairs(d, data->min_size_V);CHKERRQ(ierr);
 
   /* If the subspaces doesn't need restart, add new vector */
