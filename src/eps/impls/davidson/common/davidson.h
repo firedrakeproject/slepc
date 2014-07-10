@@ -130,10 +130,6 @@ typedef struct _dvdDashboard {
   /**** Auxiliary space ****/
   VecPool auxV;     /* auxiliary vectors */
   BV  auxBV;        /* auxiliary vectors */
-  PetscScalar
-    *auxS;          /* auxiliary scalars */
-  PetscInt
-    size_auxS;      /* max size of auxS */
 
   /**** Eigenvalues and errors ****/
   PetscScalar
@@ -262,16 +258,11 @@ typedef struct {
     max_size_X,         /* max size of X (bs) */
     size_V,             /* real size of V (nev+size_P+mpd) */
     max_size_oldX,      /* max size of oldX */
-    max_size_auxV,      /* max size of auxiliary vecs */
-    max_size_auxS,      /* max size of auxiliary scalars */
     max_nev,            /* max number of converged pairs */
     max_size_P,         /* number of computed vectors for the projector */
     max_size_cP,        /* number of converged vectors in the projectors */
     max_size_proj,      /* max size projected problem */
-    max_size_cX_proj,   /* max converged vectors in the projected problem */
-    own_scalars;        /* number of local scalars */
-  PetscScalar
-    *free_scalars;      /* free scalars */
+    max_size_cX_proj;   /* max converged vectors in the projected problem */
   PetscInt state;       /* method states:
                             0: preconfiguring
                             1: configuring

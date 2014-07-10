@@ -77,7 +77,6 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
   b->max_size_V = PetscMax(b->max_size_V, mpd);
   min_size_V = PetscMin(min_size_V, mpd-bs);
   b->size_V = PetscMax(b->size_V, b->max_size_V + b->max_size_P + b->max_nev);
-  b->own_scalars+= b->size_V*2; /* nR,nX */
   b->max_size_oldX = plusk;
 
   /* Setup the step */
@@ -93,8 +92,8 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
     d->eigr = d->eps->eigr;
     d->eigi = d->eps->eigi;
     d->errest = d->eps->errest;
-    ierr = PetscMalloc(sizeof(PetscReal)*d->eps->ncv, &d->real_nR);CHKERRQ(ierr);
-    d->real_nX = (PetscReal*)b->free_scalars; b->free_scalars+= FromRealToScalar(b->size_V);
+    ierr = PetscMalloc1(d->eps->ncv,&d->real_nR);CHKERRQ(ierr);
+    ierr = PetscMalloc1(d->eps->ncv,&d->real_nX);CHKERRQ(ierr);
     if (plusk > 0) {ierr = MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&data->oldU);CHKERRQ(ierr);}
     else data->oldU = NULL;
     if (harm && plusk>0) {ierr = MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&data->oldV);CHKERRQ(ierr);}
@@ -168,6 +167,8 @@ PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d)
   /* Free local data */
   if (data->oldU) {ierr = MatDestroy(&data->oldU);CHKERRQ(ierr);}
   if (data->oldV) {ierr = MatDestroy(&data->oldV);CHKERRQ(ierr);}
+  ierr = PetscFree(d->real_nR);CHKERRQ(ierr);
+  ierr = PetscFree(d->real_nX);CHKERRQ(ierr);
   ierr = PetscFree(data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

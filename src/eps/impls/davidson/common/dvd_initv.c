@@ -45,8 +45,6 @@ PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,PetscInt 
   PetscFunctionBegin;
   /* Setting configuration constrains */
   b->max_size_V = PetscMax(b->max_size_V, k);
-  if (krylov)
-    b->max_size_auxV = PetscMax(b->max_size_auxV, 1);
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
