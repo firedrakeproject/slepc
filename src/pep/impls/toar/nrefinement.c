@@ -1005,17 +1005,18 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
 {
   PetscErrorCode ierr;
   PetscScalar    *H,*work,*dH,*fH,*dVS;
-  PetscInt       ldh,i,j,its=1,nmat=pep->nmat,nwu=0,lwa=0,nsubc=1;
+  PetscInt       ldh,i,j,its=1,nmat=pep->nmat,nwu=0,lwa=0,nsubc=pep->npart;
   PetscLogDouble cnt;
   PetscBLASInt   k_,ld_,*p,info,lwork=0;
   BV             dV;
-  PetscBool      sinvert,explicitmatrix=PETSC_FALSE;
+  PetscBool      sinvert;
   Mat            P,M;
   MatStructure   str;
   MPI_Comm       comm=NULL;
   FSubctx        *ctx;
   KSP            ksp;
   Matexplicitctx *matctx=NULL;
+  Vec            v;
 
   PetscFunctionBegin;
   if (maxits) its = *maxits;
@@ -1056,7 +1057,6 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
         pep->pbc[2*pep->nmat+i] *= pep->sfactor*pep->sfactor;
       }
   }
-/*
   if ((pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) && pep->Dr) {
     for (i=0;i<k;i++) {
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
@@ -1064,9 +1064,6 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
       ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
     }
   }
-  pep->scale = PEP_SCALE_NONE;  /// cuando esté la opción de refinamiento se tendrá en cuenta 
-  en la funcion PEPComputeVectors  ///
-*/
   /* the input tolerance is not being taken into account (by the moment) */
   if (!maxits) its = 1;
   ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
@@ -1081,17 +1078,15 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
 #endif
     }
   }
-  ierr = PetscOptionsGetBool(NULL,"-newton_refinement_explicitmatrix",&explicitmatrix,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,"-newton_refinement_split",&nsubc,NULL);CHKERRQ(ierr);
-  if (!explicitmatrix && nsubc>1) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Split communicator only allowed for the explicit matrix option");
-  if (explicitmatrix && nsubc>k) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Amount of subcommunicators should not be larger than the invariant pair's dimension");
+  if (pep->schur && nsubc>1) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Split communicator only allowed for the explicit matrix option");
+  if (!pep->schur && nsubc>k) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Amount of subcommunicators should not be larger than the invariant pair's dimension");
   ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
   cnt = k*sizeof(PetscBLASInt)+(lwork+k*k*(nmat+3)+nmat+k)*sizeof(PetscScalar);
   ierr = PetscLogObjectMemory((PetscObject)pep,cnt);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(pep->V,0,k);CHKERRQ(ierr);
   ierr = BVDuplicate(pep->V,&dV);CHKERRQ(ierr);/* //////// Falta Resize ///////// */
   ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)dV);CHKERRQ(ierr);  
-  if (explicitmatrix) {
+  if (!pep->schur) {
     ierr = PetscMalloc1(1,&matctx);CHKERRQ(ierr);
     if (nsubc>1) { /* spliting in subcommunicators */
       ierr = NRefSubcommSetup(pep,k,matctx,nsubc);CHKERRQ(ierr);
@@ -1122,7 +1117,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
   }
   ierr = PetscFree4(dH,dVS,fH,work);CHKERRQ(ierr);
   ierr = BVDestroy(&dV);CHKERRQ(ierr);
-  if (explicitmatrix) {
+  if (!pep->schur) {
     for (i=0;i<2;i++) {
       ierr = MatDestroy(&matctx->E[i]);CHKERRQ(ierr);
     }

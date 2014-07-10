@@ -618,7 +618,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PEPBasis     bs;
   PEPCmpctx    *ctx;
   Reg          *reg;
-  PetscInt     count,newtonRefIt=0,newtonSingRefIt=0;
+  PetscInt     count;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar  *er,*ei;
 #endif
@@ -778,11 +778,10 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     }
     }/* ///////////////// */
     /* Perform Newton refinement if required */
-    ierr = PetscOptionsGetInt(NULL,"-newton_refinement",&newtonRefIt,NULL);CHKERRQ(ierr);
-    if (newtonRefIt>0) {
+    if (pep->refine==PEP_REFINE_MULTIPLE && pep->rits>0) {
       ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
       ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-      ierr = PEPNewtonRefinement_TOAR(pep,&newtonRefIt,NULL,pep->nconv,S,lds);CHKERRQ(ierr);
+      ierr = PEPNewtonRefinement_TOAR(pep,&pep->rits,&pep->rtol,pep->nconv,S,lds);CHKERRQ(ierr);
       ierr = DSSolve(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
       ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);;
       ierr = DSGetArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
@@ -801,17 +800,15 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     ierr = BVMultInPlace(pep->V,S0,0,pep->nconv);CHKERRQ(ierr);
     ierr = MatDestroy(&S0);CHKERRQ(ierr);
   }
-  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-  if (!flg) {
-    if (!newtonRefIt) {
+  if (pep->refine!=PEP_REFINE_MULTIPLE || pep->rits==0) {
+    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+    if (!flg) {
       ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
       /* Restore original values */
       pep->target *= pep->sfactor;
       pep->st->sigma *= pep->sfactor;
     }
-  }
-  if (pep->sfactor!=1.0) {
-    if (!newtonRefIt) {
+    if (pep->sfactor!=1.0) {
       for (j=0;j<pep->nconv;j++) {
         pep->eigr[j] *= pep->sfactor;
         pep->eigi[j] *= pep->sfactor;
@@ -828,12 +825,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,"-newton_single_refinement",&newtonSingRefIt,NULL);CHKERRQ(ierr);
-  if (newtonSingRefIt>0) {
-    ierr = PEPComputeVectors_Schur(pep);CHKERRQ(ierr);
-    ierr = PEPNewtonRefinementSimple(pep,&newtonSingRefIt,NULL,pep->nconv);CHKERRQ(ierr);
-    pep->state = PEP_STATE_EIGENVECTORS;
-  } else pep->state = PEP_STATE_SOLVED;
+
   ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
   /* ////////// */
   if (withreg && bs==PEP_BASIS_CHEBYSHEV1) {

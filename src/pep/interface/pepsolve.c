@@ -122,6 +122,7 @@ PetscErrorCode PEPSolve(PEP pep)
   ierr = DSSetEigenvalueComparison(pep->ds,pep->comparison,pep->comparisonctx);CHKERRQ(ierr);
 
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
+  
   if (!islinear) {
     ierr = STPostSolve(pep->st);CHKERRQ(ierr);
   }
@@ -139,7 +140,13 @@ PetscErrorCode PEPSolve(PEP pep)
     }
   }
 
-  //pep->state = PEP_STATE_SOLVED;
+  pep->state = PEP_STATE_SOLVED;
+
+  if (pep->refine==PEP_REFINE_SIMPLE && pep->rits>0) {
+    ierr = PEPComputeVectors_Schur(pep);CHKERRQ(ierr);
+    ierr = PEPNewtonRefinementSimple(pep,&pep->rits,&pep->rtol,pep->nconv);CHKERRQ(ierr);
+    pep->state = PEP_STATE_EIGENVECTORS;
+  }
 
 #if !defined(PETSC_USE_COMPLEX)
   /* reorder conjugate eigenvalues (positive imaginary first) */
