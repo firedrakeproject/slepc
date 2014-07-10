@@ -107,6 +107,13 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"  scalar & diagonal balancing enabled, with scaling factor=%g, its=%D and lambda=%g\n",(double)pep->sfactor,pep->sits,(double)pep->slambda);CHKERRQ(ierr);
         break;
     }
+    ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s%s\n",PEPRefineTypes[pep->refine],pep->schur?", with a Schur complement approach":"");CHKERRQ(ierr);
+    if (pep->refine) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%D\n",(double)pep->rtol,pep->rits);CHKERRQ(ierr);
+      if (pep->npart>1) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  splitting communicator in %D partitions for refinement\n",pep->npart);CHKERRQ(ierr);
+      }
+    }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = SlepcSNPrintfScalar(str,50,pep->target,PETSC_FALSE);CHKERRQ(ierr);
     if (!pep->which) {
@@ -338,6 +345,11 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->sfactor         = 1.0;
   pep->sits            = 5;
   pep->slambda         = 1.0;
+  pep->refine          = PEP_REFINE_NONE;
+  pep->npart           = 1;
+  pep->rtol            = PETSC_DEFAULT;
+  pep->rits            = PETSC_DEFAULT;
+  pep->schur           = PETSC_FALSE;
   pep->trackall        = PETSC_FALSE;
 
   pep->comparison      = NULL;
