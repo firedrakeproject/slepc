@@ -644,8 +644,7 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
     ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
     fh = ctx->fih;
   }
-  ierr = BVDuplicate(pep->V,&W);CHKERRQ(ierr);
-  ierr = BVResize(W,PetscMax(k,nmat),PETSC_FALSE);CHKERRQ(ierr);  /* //////////////// */
+  ierr = BVDuplicateResize(pep->V,PetscMax(k,nmat),&W);CHKERRQ(ierr);
   ierr = PetscMemzero(dVS,2*k*k*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMemzero(DfH,lda*k*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);

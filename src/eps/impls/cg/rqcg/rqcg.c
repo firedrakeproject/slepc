@@ -74,8 +74,7 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
-  ierr = BVDuplicate(eps->V,&ctx->AV);CHKERRQ(ierr);
-  ierr = BVResize(ctx->AV,eps->mpd,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVDuplicateResize(eps->V,eps->mpd,&ctx->AV);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->AV);CHKERRQ(ierr);
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   if (nmat>1) {
