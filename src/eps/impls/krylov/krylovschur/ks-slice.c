@@ -124,7 +124,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   sr->nS = 0;
 
   /* check presence of ends and finding direction */
-  if (eps->inta > PETSC_MIN_REAL) {
+  if ((eps->inta > PETSC_MIN_REAL && eps->inta != 0.0) || eps->intb >= PETSC_MAX_REAL) {
     sr->int0 = eps->inta;
     sr->int1 = eps->intb;
     sr->dir = 1;
@@ -132,12 +132,14 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       sr->hasEnd = PETSC_FALSE;
       sr->inertia1 = eps->n;
     } else sr->hasEnd = PETSC_TRUE;
-  } else { /* Left-open interval */
+  } else {
     sr->int0 = eps->intb;
     sr->int1 = eps->inta;
     sr->dir = -1;
-    sr->hasEnd = PETSC_FALSE;
-    sr->inertia1 = 0;
+    if (eps->inta <= PETSC_MIN_REAL) { /* Left-open interval */
+      sr->hasEnd = PETSC_FALSE;
+      sr->inertia1 = 0;
+    }
   }
 
   if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
@@ -154,7 +156,6 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   if (sr->hasEnd) {
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     ierr = MatGetInertia(F,&sr->inertia1,NULL,NULL);CHKERRQ(ierr);
-    ierr = PCReset(pc);CHKERRQ(ierr); /* avoiding memory leak */
   }
 
   /* compute inertia0 */
