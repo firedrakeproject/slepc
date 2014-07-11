@@ -1004,8 +1004,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,Matexplicitctx *matctx
   ierr = BVCreate(matctx->subc->comm,&matctx->V);CHKERRQ(ierr);
   ierr = BVSetType(matctx->V,type);CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(matctx->V,matctx->t,k);CHKERRQ(ierr);
-  ierr = BVDuplicate(matctx->V,&matctx->W);CHKERRQ(ierr); /* /////////// */
-  ierr = BVResize(matctx->W,PetscMax(k,pep->nmat),PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVDuplicateResize(matctx->V,PetscMax(k,pep->nmat),&matctx->W);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
     ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
     ierr = VecScatterBegin(matctx->scatter_sub,v,matctx->tg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
@@ -1139,7 +1138,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
   cnt = k*sizeof(PetscBLASInt)+(lwork+k*k*(nmat+3)+nmat+k)*sizeof(PetscScalar);
   ierr = PetscLogObjectMemory((PetscObject)pep,cnt);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(pep->V,0,k);CHKERRQ(ierr);
-  ierr = BVDuplicate(pep->V,&dV);CHKERRQ(ierr);/* //////// Falta Resize ///////// */
+  ierr = BVDuplicateResize(pep->V,k,&dV);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)dV);CHKERRQ(ierr);  
   if (!pep->schur) {
     ierr = PetscMalloc1(1,&matctx);CHKERRQ(ierr);
