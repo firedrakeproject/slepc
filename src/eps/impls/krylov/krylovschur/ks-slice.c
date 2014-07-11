@@ -107,9 +107,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   }
   ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&issinv,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
   if (!issinv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for spectrum slicing");
-#if defined(PETSC_USE_REAL_DOUBLE)
-  if (eps->tol==PETSC_DEFAULT) eps->tol = 1e-10;  /* use tighter tolerance */
-#endif
+  if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
   if (!eps->max_it) eps->max_it = 100;
   if (ctx->nev==1) ctx->nev = 40;  /* nev not set, use default value */
   if (ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");

@@ -93,6 +93,7 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+  ierr = EPSGetTolerances(eps,&tol,NULL);CHKERRQ(ierr);
   ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
   if (nconv>0) {
