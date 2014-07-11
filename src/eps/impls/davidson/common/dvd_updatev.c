@@ -69,7 +69,7 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
      converged */
   her_probl = DVD_IS(d->sEP, DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE;
   std_probl = DVD_IS(d->sEP, DVD_EP_STD)?PETSC_TRUE:PETSC_FALSE;
-  b->max_size_X = PetscMax(b->max_size_X, bs+(her_probl && std_probl)?0:1);
+  b->max_size_X = PetscMax(b->max_size_X, bs+((her_probl && std_probl)?0:1));
 #else
   b->max_size_X = PetscMax(b->max_size_X, bs);
 #endif
