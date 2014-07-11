@@ -143,7 +143,7 @@ PetscErrorCode PEPSolve(PEP pep)
   pep->state = PEP_STATE_SOLVED;
 
   if (pep->refine==PEP_REFINE_SIMPLE && pep->rits>0) {
-    ierr = PEPComputeVectors_Schur(pep);CHKERRQ(ierr);
+    ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
     ierr = PEPNewtonRefinementSimple(pep,&pep->rits,&pep->rtol,pep->nconv);CHKERRQ(ierr);
     pep->state = PEP_STATE_EIGENVECTORS;
   }

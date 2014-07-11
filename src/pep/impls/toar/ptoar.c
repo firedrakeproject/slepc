@@ -614,7 +614,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscBool      breakdown,flg;
   Mat            S0;
 /* /////////// */
-  PetscBool    withreg=PETSC_FALSE,sinvert;
+  PetscBool    withreg=PETSC_FALSE;
   PEPBasis     bs;
   PEPCmpctx    *ctx;
   Reg          *reg;
@@ -781,13 +781,12 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     if (pep->refine==PEP_REFINE_MULTIPLE && pep->rits>0) {
       ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
       ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-      ierr = PEPNewtonRefinement_TOAR(pep,&pep->rits,&pep->rtol,pep->nconv,S,lds);CHKERRQ(ierr);
+      ierr = PEPNewtonRefinement_TOAR(pep,&pep->rits,NULL,pep->nconv,S,lds);CHKERRQ(ierr);
       ierr = DSSolve(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
       ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);;
       ierr = DSGetArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
       ierr = PEPTOARSupdate(S,ld,deg,pep->nconv+deg-1,0,pep->nconv,pep->nconv,Q,ldds,work+nwu,lwa-nwu);CHKERRQ(ierr);
       ierr = DSRestoreArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-      ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinvert);CHKERRQ(ierr);
     }
     /* Update vectors V = V*S */  
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,pep->nconv,pep->nconv,NULL,&S0);CHKERRQ(ierr);
