@@ -748,8 +748,7 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   idx1 = ini+count0+count1;
   k=0;
   for (i=idx0;i<idx1;i++) sr->idxDef[k++]=eps->perm[i];
-  ierr = BVDuplicate(sr->V,&sr->Vnext);CHKERRQ(ierr);
-  ierr = BVResize(sr->Vnext,k+ctx->ncv+1,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVDuplicateResize(sr->V,k+ctx->ncv+1,&sr->Vnext);CHKERRQ(ierr);
   ierr = BVSetNumConstraints(sr->Vnext,k);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
     ierr = BVGetColumn(sr->Vnext,-i-1,&v);CHKERRQ(ierr);

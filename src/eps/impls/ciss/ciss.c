@@ -736,11 +736,9 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscLogObjectMemory((PetscObject)eps,ctx->L_max*ctx->N*sizeof(PetscReal));CHKERRQ(ierr);
 
   /* allocate basis vectors */
-  ierr = BVDuplicate(eps->V,&ctx->S);CHKERRQ(ierr);
-  ierr = BVResize(ctx->S,ctx->L_max*ctx->M,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVDuplicateResize(eps->V,ctx->L_max*ctx->M,&ctx->S);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->S);CHKERRQ(ierr);
-  ierr = BVDuplicate(eps->V,&ctx->V);CHKERRQ(ierr);
-  ierr = BVResize(ctx->V,ctx->L_max,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVDuplicateResize(eps->V,ctx->L_max,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->V);CHKERRQ(ierr);
 
   ierr = CISSRedundantMat(eps);CHKERRQ(ierr);
@@ -777,8 +775,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     ierr = BVSetFromOptions(ctx->Y);CHKERRQ(ierr);
     ierr = BVResize(ctx->Y,ctx->num_solve_point*ctx->L_max,PETSC_FALSE);CHKERRQ(ierr);
   } else {
-    ierr = BVDuplicate(eps->V,&ctx->Y);CHKERRQ(ierr);
-    ierr = BVResize(ctx->Y,ctx->num_solve_point*ctx->L_max,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVDuplicateResize(eps->V,ctx->num_solve_point*ctx->L_max,&ctx->Y);CHKERRQ(ierr);
   }
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->Y);CHKERRQ(ierr);
 
