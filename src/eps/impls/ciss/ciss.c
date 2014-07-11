@@ -184,7 +184,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
     theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
     ctx->pp[i] = PetscCosReal(theta) + PETSC_i*ctx->vscale*PetscSinReal(theta);
     ctx->omega[i] = ctx->center + ctx->radius*ctx->pp[i];
-    ctx->weight[i] = (ctx->vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
+    ctx->weight[i] = ctx->radius*(ctx->vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
   }
   PetscFunctionReturn(0);
 }
@@ -359,7 +359,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
     if (ctx->useconj) sum += PetscRealPart(tmp)*2;
     else sum += tmp;
   }
-  ctx->est_eig = PetscAbsScalar(ctx->radius*sum/(PetscReal)ctx->L);
+  ctx->est_eig = PetscAbsScalar(sum/(PetscReal)ctx->L);
   eta = PetscPowReal(10,-PetscLog10Real(eps->tol)/ctx->N);
   ierr = PetscInfo1(eps,"Estimation_#Eig %f\n",(double)ctx->est_eig);CHKERRQ(ierr);
   *L_add = (PetscInt)PetscCeilReal((ctx->est_eig*eta)/ctx->M) - ctx->L;
@@ -380,27 +380,34 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   PetscErrorCode ierr;
   PetscMPIInt    sub_size;
   PetscInt       i,j,k,s;
-  PetscScalar    *temp,*temp2,*ppk,alp;
+  PetscScalar    *m,*temp,*temp2,*ppk,alp;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  Vec            yj;
+  Mat            M;
 
   PetscFunctionBegin;
   ierr = MPI_Comm_size(ctx->subcomm->comm,&sub_size);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->num_solve_point*ctx->L*(ctx->L+1)*sizeof(PetscScalar),&temp);CHKERRQ(ierr);
   ierr = PetscMalloc(2*ctx->M*ctx->L*ctx->L*sizeof(PetscScalar),&temp2);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->num_solve_point*sizeof(PetscScalar),&ppk);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,ctx->L,ctx->L_max*ctx->num_solve_point,NULL,&M);CHKERRQ(ierr);
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] = 0;
+  ierr = BVSetActiveColumns(ctx->Y,0,ctx->L_max*ctx->num_solve_point);CHKERRQ(ierr);
+  if (ctx->pA) { 
+    ierr = BVSetActiveColumns(ctx->pV,0,ctx->L);CHKERRQ(ierr);
+    ierr = BVDot(ctx->Y,ctx->pV,M);CHKERRQ(ierr);
+  } else { 
+    ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
+    ierr = BVDot(ctx->Y,ctx->V,M);CHKERRQ(ierr);
+  }
+  ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) {
     for (j=0;j<ctx->L;j++) {
-      ierr = BVGetColumn(ctx->Y,i*ctx->L_max+j,&yj);CHKERRQ(ierr);
-      if (ctx->pA) {
-	ierr = BVDotVec(ctx->pV,yj,&temp[(j+i*ctx->L)*ctx->L]);CHKERRQ(ierr);
-      } else {
-        ierr = BVDotVec(ctx->V,yj,&temp[(j+i*ctx->L)*ctx->L]);CHKERRQ(ierr);
+      for (k=0;k<ctx->L;k++) {
+	temp[k+j*ctx->L+i*ctx->L*ctx->L]=m[k+j*ctx->L+i*ctx->L*ctx->L_max];
       }
-      ierr = BVRestoreColumn(ctx->Y,i*ctx->L_max+j,&yj);CHKERRQ(ierr);
     }
   }
+  ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) ppk[i] = 1;
   for (k=0;k<2*ctx->M;k++) {
     for (j=0;j<ctx->L;j++) {
@@ -420,6 +427,7 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   ierr = PetscFree(ppk);CHKERRQ(ierr);
   ierr = PetscFree(temp);CHKERRQ(ierr);
   ierr = PetscFree(temp2);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -887,10 +895,6 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
 
-    for (i=0;i<nv;i++) {
-      eps->eigr[i]+=ctx->center;
-    }
-
     ierr = PetscMalloc(nv*sizeof(PetscBool),&fl1);CHKERRQ(ierr);
     ierr = PetscMalloc(nv*sizeof(PetscBool),&fl2);CHKERRQ(ierr);
     ierr = isGhost(eps,ld,nv,fl1);CHKERRQ(ierr);
@@ -906,9 +910,6 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = PetscFree(fl2);CHKERRQ(ierr);
     ierr = DSSetEigenvalueComparison(eps->ds,SlepcCompareLargestMagnitude,NULL);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eps->eigr,NULL,rr,NULL,&eps->nconv);CHKERRQ(ierr);
-    for (i=0;i<nv;i++) {
-      eps->eigr[i]+=ctx->center;
-    }
     ierr = DSSetEigenvalueComparison(eps->ds,eps->comparison,eps->comparisonctx);CHKERRQ(ierr);
     ierr = PetscFree(rr);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
@@ -1528,8 +1529,8 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
   PetscErrorCode ierr;
   PetscScalar    s;
   PetscReal      r1,r2,r3,r4;
-  PetscInt       i1=0,i2=0,i3=0,i4=0,i5=0,i6=0,i7=0,i8=0;
-  PetscBool      b1=PETSC_FALSE,b2=PETSC_FALSE;
+  PetscInt       i1,i2,i3,i4,i5,i6,i7,i8;
+  PetscBool      b1,b2;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS CISS Options");CHKERRQ(ierr);
@@ -1539,6 +1540,7 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
   ierr = PetscOptionsReal("-eps_ciss_vscale","CISS vertical scale of region","EPSCISSSetRegion",r2,&r2,NULL);CHKERRQ(ierr);
   ierr = EPSCISSSetRegion(eps,s,r1,r2);CHKERRQ(ierr);
 
+  ierr = EPSCISSGetSizes(eps,&i1,&i2,&i3,&i4,&i5,&b1);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_ciss_integration_points","CISS number of integration points","EPSCISSSetSizes",i1,&i1,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_ciss_blocksize","CISS block size","EPSCISSSetSizes",i2,&i2,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_ciss_moments","CISS moment size","EPSCISSSetSizes",i3,&i3,NULL);CHKERRQ(ierr);
@@ -1647,7 +1649,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   /* set default values of parameters */
   ctx->center  = 0.0;
   ctx->radius  = 1.0;
-  ctx->vscale  = 0.0;
+  ctx->vscale  = 1.0;
   ctx->N       = 32;
   ctx->L       = 16;
   ctx->M       = ctx->N/4;
