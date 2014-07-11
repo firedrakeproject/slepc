@@ -76,6 +76,7 @@ PetscErrorCode PEPInitializePackage(void)
   /* Register Events */
   ierr = PetscLogEventRegister("PEPSetUp",PEP_CLASSID,&PEP_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("PEPSolve",PEP_CLASSID,&PEP_Solve);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("PEPRefine",PEP_CLASSID,&PEP_Refine);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {

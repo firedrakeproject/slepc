@@ -171,6 +171,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   PetscReal      norm;
 
   PetscFunctionBegin;
+  ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
   comm = PetscObjectComm((PetscObject)pep);
   ierr = KSPCreate(comm,&ksp);
   ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
@@ -235,5 +236,6 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   ierr = VecDestroy(&dvv);CHKERRQ(ierr);
   ierr = VecDestroy(&r);CHKERRQ(ierr);
   ierr = VecDestroy(&rr);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

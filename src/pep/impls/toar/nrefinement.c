@@ -1072,6 +1072,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
   Vec            v;
 
   PetscFunctionBegin;
+  ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
   /* the input tolerance is not being taken into account (by the moment) */
   its = *maxits;
   lwa = (5+3*nmat)*k*k+2*k;
@@ -1196,6 +1197,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
   }
   ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

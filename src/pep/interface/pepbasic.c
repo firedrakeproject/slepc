@@ -26,7 +26,7 @@
 PetscFunctionList PEPList = 0;
 PetscBool         PEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId      PEP_CLASSID = 0;
-PetscLogEvent     PEP_SetUp = 0,PEP_Solve = 0;
+PetscLogEvent     PEP_SetUp = 0,PEP_Solve = 0,PEP_Refine = 0;
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPView"
