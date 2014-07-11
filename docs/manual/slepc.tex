@@ -213,8 +213,8 @@ The following table provides an overview of the functionality offered by \slepc,
 {\small \begin{tabular}{lccc}
 Problem class                 & Model equation  & Module       & Chapter \\\hline
 Linear eigenvalue problem     & $Ax=\lambda x,\quad Ax=\lambda Bx$ & \texttt{EPS} & \ref{cap:eps} \\
-Quadratic eigenvalue problem  & $(\lambda^2M+\lambda C+K)x=0$ & \texttt{QEP} & \ref{cap:qep} \\
-Polynomial eigenvalue problem & $(\lambda^dA_d+\cdots+\lambda A_1+A_0)x=0$ & -- & -- \\
+Quadratic eigenvalue problem  & $(K+\lambda C+\lambda^2M)x=0$ & -- & -- \\
+Polynomial eigenvalue problem & $(A_0+\lambda A_1+\cdots+\lambda^dA_d)x=0$ & \texttt{PEP} & \ref{cap:pep} \\
 Nonlinear eigenvalue problem  & $T(\lambda)x=0$ & \texttt{NEP} & \ref{cap:nep} \\\hline
 Singular value decomposition  & $Av=\sigma u$   & \texttt{SVD} & \ref{cap:svd} \\
 Matrix function (action of)   & $y=f(A)v$   & \texttt{MFN} & \ref{cap:mfn} \\\hline
@@ -228,8 +228,8 @@ Matrix function (action of)   & $y=f(A)v$   & \texttt{MFN} & \ref{cap:mfn} \\\hl
 \setlength{\itemsep}{-2pt}
 \item Most users are typically interested in linear eigenproblems only.
 \item In each problem class there may exist several subclasses (problem types in \slepc terminology), for instance symmetric-definite generalized eigenproblem in \texttt{EPS}.
-\item There are no polynomial eigensolvers available yet. For future releases, we foresee having a \texttt{PEP} module replacing \texttt{QEP}.
 \item The solver class (module) is named after the problem class. For historical reasons, the one for linear eigenvalue problems is called \texttt{EPS} rather than \texttt{LEP}.
+\item In previous \slepc versions there was a \texttt{QEP} module for quadratic eigenproblems. It has been replaced by \texttt{PEP}. See \S\ref{sec:qeppep} for upgrading application code that used \texttt{QEP}.
 \item For the action of a matrix function (\texttt{MFN}), in \slepc we focus on methods that are closely related to methods for eigenvalue problems.
 \end{itemize}
 

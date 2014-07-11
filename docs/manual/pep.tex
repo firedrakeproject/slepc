@@ -1,26 +1,39 @@
 %-------------------------------------------------------
 % SLEPc Users Manual
 %-------------------------------------------------------
-\chapter{\label{cap:qep}QEP: Quadratic Eigenvalue Problems}
+\chapter{\label{cap:pep}PEP: Polynomial Eigenvalue Problems}
 %-------------------------------------------------------
 
-\noindent The Quadratic Eigenvalue Problem (\ident{QEP}) solver object is intended for addressing polynomial eigenproblems of degree 2. Apart from specific quadratic solvers, it provides the possibility of reducing the problem to a generalized eigenvalue problem via linearization, then solving it with the \ident{EPS} package.
+\begin{center}
+  {\setlength{\fboxsep}{4mm}
+  \framebox{%
+   \begin{minipage}{.8\textwidth}
+   \textbf{Note:} Previous \slepc versions provided specific functionality for quadratic eigenvalue problems (the \texttt{QEP} module). This has been made more general by covering polynomials of arbitrary degree (the \texttt{PEP} module described in this chapter), which of course includes quadratic problems as a particular case. See \S\ref{sec:qeppep} for how to upgrade application code that used \texttt{QEP}.
+   \end{minipage}
+  }}
+\end{center}
 
-As in the case of \ident{SVD}, the user interface of \ident{QEP} is very similar to \ident{EPS}. We highlight the main differences both in usage and theoretical properties.
+\noindent The Polynomial Eigenvalue Problem (\ident{PEP}) solver object is intended for addressing polynomial eigenproblems of arbitrary degree, $P(\lambda)x=0$. A particular instance is the quadratic eigenvalue problem (degree 2), which is the case more often encountered in practice. For this reason, part of the description of this chapter focuses specifically on quadratic eigenproblems.
 
-\section{\label{sec:qep}Overview of Quadratic Eigenproblems}
+Currently, all \ident{PEP} solvers are based on linearization, either implicit or explicit. The case of explicit linearization allows the use of eigensolvers from \ident{EPS} to solve the linearized problem.
 
-In this section, we review some basic properties of quadratic eigenvalue problems. The main goal is to set up the notation as well as to describe the linearization approaches that will be employed for solving via the \ident{EPS} object. For additional background material about the quadratic eigenproblem, the reader is referred to \citep{Tisseur:2001:QEP}. As always, some details of the implemented methods can be found in the \slepc \hyperlink{str}{technical reports}.
+\section{\label{sec:pep}Overview of Polynomial Eigenproblems}
+
+In this section, we review some basic properties of the polynomial eigenvalue problem. The main goal is to set up the notation as well as to describe the linearization approaches that will be employed for solving via an \ident{EPS} object.
+To simplify the description, we initially restrict to the case of quadratic eigenproblems, and then extend to the general case of arbitrary degree.
+For additional background material, the reader is referred to \citep{Tisseur:2001:QEP}. As always, some details of the implemented methods can be found in the \slepc \hyperlink{str}{technical reports}.
+
+\subsection{\label{sec:qep}Quadratic Eigenvalue Problems}
 
 In many applications, e.g., problems arising from second-order differential equations such as the analysis of damped vibrating systems, the eigenproblem to be solved is quadratic,
 \begin{equation}
-(\lambda^2M+\lambda C+K)x=0,\label{eq:eigquad}
+(K+\lambda C+\lambda^2M)x=0,\label{eq:eigquad}
 \end{equation}
-where $M,C,K\in\mathbb{C}^{n\times n}$ are the coefficients of a matrix polynomial of degree 2, $\lambda\in\mathbb{C}$ is the eigenvalue and $x\in\mathbb{C}^n$ is the eigenvector. As in the case of linear eigenproblems, the eigenvalues and eigenvectors can be complex even in the case that all three matrices are real.
+where $K,C,M\in\mathbb{C}^{n\times n}$ are the coefficients of a matrix polynomial of degree 2, $\lambda\in\mathbb{C}$ is the eigenvalue and $x\in\mathbb{C}^n$ is the eigenvector. As in the case of linear eigenproblems, the eigenvalues and eigenvectors can be complex even in the case that all three matrices are real.
 
 It is important to point out some outstanding differences with respect to the linear eigenproblem. In the quadratic eigenproblem, the number of eigenvalues is $2n$, and the corresponding eigenvectors do not form a linearly independent set. If $M$ is singular, some eigenvalues are infinite. Even when the three matrices are symmetric and positive definite, there is no guarantee that the eigenvalues are real, but still methods can exploit symmetry to some extent. Furthermore, numerical difficulties are more likely than in the linear case, so the computed solution can sometimes be untrustworthy.
 
-If Eq.\ \ref{eq:eigquad} is written as $Q(\lambda)x=0$, where $Q$ is the matrix polynomial, then multiplication by $\lambda^{-2}$ results in $R(\lambda^{-1})x=0$, where $R$ is a matrix polynomial with the coefficients in the reverse order. In other words, if a method is available for computing the largest eigenvalues, then reversing the roles of $M$ and $K$ results in the computation of the smallest eigenvalues. In general, it is also possible to formulate different spectral transformations for computing eigenvalues closest to a given target.
+If Eq.\ \ref{eq:eigquad} is written as $P(\lambda)x=0$, where $P$ is the matrix polynomial, then multiplication by $\lambda^{-2}$ results in $R(\lambda^{-1})x=0$, where $R$ is a matrix polynomial with the coefficients in the reverse order. In other words, if a method is available for computing the largest eigenvalues, then reversing the roles of $M$ and $K$ results in the computation of the smallest eigenvalues. In general, it is also possible to formulate different spectral transformations for computing eigenvalues closest to a given target.
 
 \paragraph{Problem Types.}
 
@@ -33,14 +46,17 @@ As in the case of linear eigenproblems, there are some particular properties of 
 \item Gyroscopic problems, when $M$, $K$ are Hermitian, $M>0$, and $C$ is skew-Hermitian, $C=-C^*$. The spectrum is symmetric with respect to the imaginary axis, and in the real case, it has a Hamiltonian structure, i.e., eigenvalues come in quadruples $(\lambda,\bar{\lambda},-\lambda,-\bar{\lambda})$.
 \end{itemize}
 
-\paragraph{Equivalent Eigenvalue Problems.}
+Currently, the problem type is not exploited by \ident{PEP} solvers, but this may change in the future.
 
-It is possible to transform the quadratic eigenvalue problem to a linear generalized eigenproblem $Az=\lambda Bz$ (linearization) by doubling the order of the system, i.e., $A,B\in\mathbb{C}^{2n\times 2n}$. There are many ways of doing this, and all of them are based on defining the eigenvector of the linear problem as 
+\paragraph{Linearization.}
+
+It is possible to transform the quadratic eigenvalue problem to a linear generalized eigenproblem $L_0y=\lambda L_1y$ by doubling the order of the system, i.e., $L_0,L_1\in\mathbb{C}^{2n\times 2n}$. There are many ways of doing this. 
+Below, we show some of the most common linearizations,
+which are based on defining the eigenvector of the linear problem as 
 \begin{equation}
 \label{eq:linevec}
-z=\left[\begin{array}{c}x\\\lambda x\end{array}\right],
+y=\left[\begin{array}{c}x\\x\lambda\end{array}\right].
 \end{equation}
-or a similar way. Below, we show some of the most common linearizations.
 
 \begin{itemize}
 \item Non-symmetric linearizations. The resulting matrix pencil has no particular structure.
@@ -82,7 +98,7 @@ or a similar way. Below, we show some of the most common linearizations.
 \end{equation}
 \end{itemize}
 
-In \slepc, some solvers of the \ident{QEP} class are based on using one of the above linearizations for solving the quadratic eigenproblem. These solvers make use of linear eigensolvers from the \ident{EPS} package.
+In \slepc, the \ident{PEPLINEAR} solver is based on using one of the above linearizations for solving the quadratic eigenproblem. This solver makes use of linear eigensolvers from the \ident{EPS} package.
 
 We could also consider the \emph{reversed} forms, e.g., the reversed form of N2 is
 \begin{equation}
@@ -92,10 +108,63 @@ We could also consider the \emph{reversed} forms, e.g., the reversed form of N2 
 \end{equation}
 which is equivalent to the form N1 for the problem $R(\lambda^{-1})x=0$. These reversed forms are not implemented in \slepc, but the user can use them simply by reversing the roles of $M$ and $K$, and considering the reciprocals of the computed eigenvalues.
 
+\subsection{\label{sec:pep1}Polynomials of Arbitrary Degree}
+
+In general, the polynomial eigenvalue problem can be formulated as
+\begin{equation}
+\label{eq:pep}
+P(\lambda)x=0,
+\end{equation}
+where $P$ is an $n\times n$ matrix polynomial of degree $d$. An $n$-vector $x\neq 0$ satisfying this equation is called an eigenvector associated to the corresponding eigenvalue $\lambda$.
+
+We start by considering the case where $P$ is expressed in terms of the monomial basis,
+\begin{equation}
+\label{eq:pepmon}
+P(\lambda)=A_0+A_1 \lambda+A_2\lambda^2 +  \dotsb + A_d \lambda^d,
+\end{equation}
+where $A_0,\ldots,A_d$ are the $n\times n$ coefficient matrices. As before, the problem can be solved via some kind of linearization. One of the most commonly used one is the first companion form 
+\begin{equation}
+\label{eq:firstcomp}
+L(\lambda)=L_0 -\lambda L_1,
+\end{equation}
+where the related linear eigenproblem is $L(\lambda)y=0$, with
+\begin{equation}
+\label{eq:firstcompfull}
+	L_0 =
+	\begin{bmatrix}
+		  & I \\
+		 &   & \ddots \\
+		 & &    & I \\
+		-A_0 & -A_1 & \cdots  & -A_{d-1}
+	\end{bmatrix},
+	\quad
+	L_1 =
+	\begin{bmatrix}
+		I \\
+		 & \ddots \\
+		 & & I \\
+		 & & & A_d
+	\end{bmatrix},
+        \quad y=
+	\begin{bmatrix}
+        x \\ x\lambda\\ \vdots \\ x\lambda^{d-1}
+	\end{bmatrix}.
+\end{equation}
+This is the generalization of Eq.\ \ref{eq:n1}.
+
+The definition of vector $y$ above contains the successive powers of $\lambda$. For large polynomial degree, these values may produce overflow in finite precision computations, or at least lead to numerical instability of the algorithms due to the wide difference in magnitude of the eigenvector entries. For this reason, it is generally recommended to work with non-monomial polynomial bases whenever the degree is not small, e.g., for $d>5$.
+
+In the most general formulation of the polynomial eigenvalue problem, $P$ is expressed as
+\begin{equation}
+\label{eq:pepnonmon}
+P(\lambda)=A_0\phi_0(\lambda)+A_1\phi_1(\lambda)+\dots+A_d\phi_d(\lambda),
+\end{equation}
+where $\phi_i$ are the members of a given polynomial basis, for instance, some kind of orthogonal polynomials such as Chebyshev polynomials of the first kind. In that case, the expression of $y$ in Eq.\ \ref{eq:firstcompfull} contains $\phi_0(\lambda),\dots,\phi_d(\lambda)$ instead of the powers of $\lambda$. Correspondingly, the form of $L_0$ and $L_1$ is different for each type of polynomial basis.
+
 %---------------------------------------------------
 \section{Basic Usage}
 
-The user interface of the \ident{QEP} package is very similar to \ident{EPS}. For basic usage, the only noteworthy difference is that three matrices have to be supplied.
+The user interface of the \ident{PEP} package is very similar to \ident{EPS}. For basic usage, the most noteworthy difference is that all coefficient matrices $A_i$ have to be supplied in the form of an array of \ident{Mat}.
 
 A basic example code for solving a quadratic eigenproblem with \ident{QEP} is shown in Figure \ref{fig:ex-qep}. The required steps are the same as those described in chapter \ref{cap:eps} for the linear eigenproblem. As always, the solver context is created with \ident{QEPCreate}. The three problem matrices are provided with \ident{QEPSetOperators}, and the problem type is specified with \ident{QEPSetProblemType}. Calling \ident{QEPSetFromOptions} allows the user to set up various options through the command line. The call to \ident{QEPSolve} invokes the actual solver. Then, the solution is retrieved with \ident{QEPGetConverged} and \ident{QEPGetEigenpair}. Finally, \ident{QEPDestroy} destroys the object.
 
@@ -298,3 +367,4 @@ to specify the scaling factor. If not specified, the value $\alpha=\sqrt{\frac{\
 
 As in the case of \ident{EPS}, in \ident{QEP} the number of iterations carried out by the solver can be determined with \ident{QEPGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{QEPSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-qep_monitor!, \Verb!-qep_monitor_all!, \Verb!-qep_monitor_conv!, \Verb!-qep_monitor_lg!, or \Verb!-qep_monitor_lg_all!. See \S\ref{sec:monitor} for additional details.
 
+\section{\label{sec:qeppep}Upgrading from \ident{QEP} to \ident{PEP}}
