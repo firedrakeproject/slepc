@@ -88,12 +88,11 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
-  PetscBool       useGD,her_probl;
+  PetscBool       useGD;
   PC              pc;
   PetscInt        size_P;
 
   PetscFunctionBegin;
-  her_probl = DVD_IS(d->sEP,DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE;
 
   /* Setting configuration constrains */
   ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&useGD);CHKERRQ(ierr);
@@ -101,7 +100,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
   /* If the arithmetic is real and the problem is not Hermitian, then
      the block size is incremented in one */
 #if !defined(PETSC_USE_COMPLEX)
-  if (!her_probl) {
+  if (!DVD_IS(d->sEP,DVD_EP_HERMITIAN)) {
     max_bs++;
     b->max_size_P = PetscMax(b->max_size_P,2);
   } else
@@ -743,9 +742,6 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
   dvdImprovex_jd    *data = (dvdImprovex_jd*)d->improveX_data;
   Vec               u[2],v[2];
   PetscBLASInt      s, ldXKZ, info;
-#if defined(PETSC_USE_COMPLEX)
-  PetscInt          j;
-#endif
 
   PetscFunctionBegin;
   /* Check consistency */
@@ -839,12 +835,13 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,Pets
 {
   PetscErrorCode  ierr;
   PetscInt        i;
-  PetscScalar     eigr0,eigi0,b0,b1;
+  PetscScalar     b0,b1;
 
   PetscFunctionBegin;
   for (i=0; i<n; i++) {
 #if !defined(PETSC_USE_COMPLEX)
     if (eigi[i_s+i] != 0.0) {
+      PetscScalar eigr0,eigi0;
       /* eig_r = [(rAr+iAi)*(rBr+iBi) + (rAi-iAr)*(rBi-iBr)]/k \
          eig_i = [(rAi-iAr)*(rBr+iBi) - (rAr+iAi)*(rBi-iBr)]/k \
          k     =  (rBr+iBi)*(rBr+iBi) + (rBi-iBr)*(rBi-iBr)    */ \
@@ -1135,7 +1132,7 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV)
   for (i=0; i<cV; i++) {
     ierr = BVDotVec(data->U,V[i],&h[ldh*i]);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    for (j=0; j<data->size_KZ; j++) h[ldh*i+j] = PetscConj(h[ldh*i+j]);
+    for (j=0; j<k; j++) h[ldh*i+j] = PetscConj(h[ldh*i+j]);
 #endif
   }
   ierr = BVSetActiveColumns(data->U,l,k);CHKERRQ(ierr);
@@ -1179,6 +1176,9 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV)
   PetscInt          i,ldh,k,l;
   PetscScalar       *h;
   PetscBLASInt      cV_, n, info, ld;
+#if defined(PETSC_USE_COMPLEX)
+  PetscInt          j;
+#endif
 
   PetscFunctionBegin;
   if (cV > 2) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
@@ -1192,7 +1192,7 @@ PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV)
   for (i=0; i<cV; i++) {
     ierr = BVDotVec(data->KZ,V[i],&h[ldh*i]);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    for (j=0; j<data->size_KZ; j++) h[ldh*i+j] = PetscConj(h[ldh*i+j]);
+    for (j=0; j<k; j++) h[ldh*i+j] = PetscConj(h[ldh*i+j]);
 #endif
   }
   ierr = BVSetActiveColumns(data->KZ,l,k);CHKERRQ(ierr);

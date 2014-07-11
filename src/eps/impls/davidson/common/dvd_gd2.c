@@ -43,17 +43,15 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
 {
   PetscErrorCode  ierr;
   dvdImprovex_gd2 *data;
-  PetscBool       her_probl;
   PC              pc;
 
   PetscFunctionBegin;
-  her_probl = DVD_IS(d->sEP, DVD_EP_HERMITIAN)?PETSC_TRUE:PETSC_FALSE;
 
   /* Setting configuration constrains */
   /* If the arithmetic is real and the problem is not Hermitian, then
      the block size is incremented in one */
 #if !defined(PETSC_USE_COMPLEX)
-  if (!her_probl) {
+  if (!DVD_IS(d->sEP, DVD_EP_HERMITIAN)) {
     max_bs++;
     b->max_size_P = PetscMax(b->max_size_P, 2);
   } else
