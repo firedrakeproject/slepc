@@ -99,9 +99,8 @@ int main(int argc,char **argv)
   }
 
   /* Create BV object Y */
-  ierr = BVDuplicate(X,&Y);CHKERRQ(ierr);
+  ierr = BVDuplicateResize(X,k+4,&Y);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)Y,"Y");CHKERRQ(ierr);
-  ierr = BVResize(Y,k+4,PETSC_FALSE);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(Y,2,k+2);CHKERRQ(ierr);
 
   /* Test BVMatMult */

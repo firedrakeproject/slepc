@@ -98,6 +98,7 @@ PETSC_EXTERN PetscErrorCode BVInsertConstraints(BV,PetscInt*,Vec*);
 PETSC_EXTERN PetscErrorCode BVSetNumConstraints(BV,PetscInt);
 PETSC_EXTERN PetscErrorCode BVGetNumConstraints(BV,PetscInt*);
 PETSC_EXTERN PetscErrorCode BVDuplicate(BV,BV*);
+PETSC_EXTERN PetscErrorCode BVDuplicateResize(BV,PetscInt,BV*);
 PETSC_EXTERN PetscErrorCode BVCopy(BV,BV);
 PETSC_EXTERN PetscErrorCode BVCopyVec(BV,PetscInt,Vec);
 PETSC_EXTERN PetscErrorCode BVCopyColumn(BV,PetscInt,PetscInt);

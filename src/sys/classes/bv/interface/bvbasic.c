@@ -43,7 +43,6 @@ PetscFunctionList BVList = 0;
    Level: intermediate
 
 .seealso: BVGetType()
-
 @*/
 PetscErrorCode BVSetType(BV bv,BVType type)
 {
@@ -90,7 +89,6 @@ PetscErrorCode BVSetType(BV bv,BVType type)
    Level: intermediate
 
 .seealso: BVSetType()
-
 @*/
 PetscErrorCode BVGetType(BV bv,BVType *type)
 {
@@ -104,22 +102,22 @@ PetscErrorCode BVGetType(BV bv,BVType *type)
 #undef __FUNCT__
 #define __FUNCT__ "BVSetSizes"
 /*@
-  BVSetSizes - Sets the local and global sizes, and the number of columns.
+   BVSetSizes - Sets the local and global sizes, and the number of columns.
 
-  Collective on BV
+   Collective on BV
 
-  Input Parameters:
-+ bv - the basis vectors
-. n  - the local size (or PETSC_DECIDE to have it set)
-. N  - the global size (or PETSC_DECIDE)
-- m  - the number of columns
+   Input Parameters:
++  bv - the basis vectors
+.  n  - the local size (or PETSC_DECIDE to have it set)
+.  N  - the global size (or PETSC_DECIDE)
+-  m  - the number of columns
 
-  Notes:
-  n and N cannot be both PETSC_DECIDE.
-  If one processor calls this with N of PETSC_DECIDE then all processors must,
-  otherwise the program will hang.
+   Notes:
+   n and N cannot be both PETSC_DECIDE.
+   If one processor calls this with N of PETSC_DECIDE then all processors must,
+   otherwise the program will hang.
 
-  Level: beginner
+   Level: beginner
 
 .seealso: BVSetSizesFromVec(), BVGetSizes(), BVResize()
 @*/
@@ -163,17 +161,17 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
 #undef __FUNCT__
 #define __FUNCT__ "BVSetSizesFromVec"
 /*@
-  BVSetSizesFromVec - Sets the local and global sizes, and the number of columns.
-  Local and global sizes are specified indirectly by passing a template vector.
+   BVSetSizesFromVec - Sets the local and global sizes, and the number of columns.
+   Local and global sizes are specified indirectly by passing a template vector.
 
-  Collective on BV
+   Collective on BV
 
-  Input Parameters:
-+ bv - the basis vectors
-. t  - the template vectors
-- m  - the number of columns
+   Input Parameters:
++  bv - the basis vectors
+.  t  - the template vectors
+-  m  - the number of columns
 
-  Level: beginner
+   Level: beginner
 
 .seealso: BVSetSizes(), BVGetSizes(), BVResize()
 @*/
@@ -209,26 +207,26 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
 #undef __FUNCT__
 #define __FUNCT__ "BVGetSizes"
 /*@
-  BVGetSizes - Returns the local and global sizes, and the number of columns.
+   BVGetSizes - Returns the local and global sizes, and the number of columns.
 
-  Not Collective
+   Not Collective
 
-  Input Parameter:
-. bv - the basis vectors
+   Input Parameter:
+.  bv - the basis vectors
 
-  Output Parameters:
-+ n  - the local size
-. N  - the global size
-- m  - the number of columns
+   Output Parameters:
++  n  - the local size
+.  N  - the global size
+-  m  - the number of columns
 
-  Note:
-  Normal usage requires that bv has already been given its sizes, otherwise
-  the call fails. However, this function can also be used to determine if
-  a BV object has been initialized completely (sizes and type). For this,
-  call with n=NULL and N=NULL, then a return value of m=0 indicates that
-  the BV object is not ready for use yet.
+   Note:
+   Normal usage requires that bv has already been given its sizes, otherwise
+   the call fails. However, this function can also be used to determine if
+   a BV object has been initialized completely (sizes and type). For this,
+   call with n=NULL and N=NULL, then a return value of m=0 indicates that
+   the BV object is not ready for use yet.
 
-  Level: beginner
+   Level: beginner
 
 .seealso: BVSetSizes(), BVSetSizesFromVec()
 @*/
@@ -296,17 +294,17 @@ PetscErrorCode BVSetNumConstraints(BV V,PetscInt nc)
 #undef __FUNCT__
 #define __FUNCT__ "BVGetNumConstraints"
 /*@
-  BVGetNumConstraints - Returns the number of constraints.
+   BVGetNumConstraints - Returns the number of constraints.
 
-  Not Collective
+   Not Collective
 
-  Input Parameter:
-. bv - the basis vectors
+   Input Parameter:
+.  bv - the basis vectors
 
-  Output Parameters:
-. nc - the number of constraints
+   Output Parameters:
+.  nc - the number of constraints
 
-  Level: advanced
+   Level: advanced
 
 .seealso: BVGetSizes(), BVInsertConstraints()
 @*/
@@ -322,20 +320,20 @@ PetscErrorCode BVGetNumConstraints(BV bv,PetscInt *nc)
 #undef __FUNCT__
 #define __FUNCT__ "BVResize"
 /*@
-  BVResize - Change the number of columns.
+   BVResize - Change the number of columns.
 
-  Collective on BV
+   Collective on BV
 
-  Input Parameters:
-+ bv   - the basis vectors
-. m    - the new number of columns
-- copy - a flag indicating whether current values should be kept
+   Input Parameters:
++  bv   - the basis vectors
+.  m    - the new number of columns
+-  copy - a flag indicating whether current values should be kept
 
-  Note:
-  Internal storage is reallocated. If the copy flag is set to true, then
-  the contents are copied to the leading part of the new space.
+   Note:
+   Internal storage is reallocated. If the copy flag is set to true, then
+   the contents are copied to the leading part of the new space.
 
-  Level: advanced
+   Level: advanced
 
 .seealso: BVSetSizes(), BVSetSizesFromVec()
 @*/
@@ -1056,6 +1054,48 @@ PetscErrorCode BVDuplicate(BV V,BV *W)
   PetscValidPointer(W,2);
   ierr = BVCreate(PetscObjectComm((PetscObject)V),W);CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(*W,V->t,V->m);CHKERRQ(ierr);
+  ierr = BVSetType(*W,((PetscObject)V)->type_name);CHKERRQ(ierr);
+  ierr = BVSetMatrix(*W,V->matrix,V->indef);CHKERRQ(ierr);
+  ierr = BVSetOrthogonalization(*W,V->orthog_type,V->orthog_ref,V->orthog_eta);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)*W);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVDuplicateResize"
+/*@
+   BVDuplicateResize - Creates a new basis vector object of the same type and
+   dimensions as an existing one, but with possibly different number of columns.
+
+   Collective on BV
+
+   Input Parameter:
++  V - basis vectors context
+-  m - the new number of columns
+
+   Output Parameter:
+.  W - location to put the new BV
+
+   Note:
+   This is equivalent of a call to BVDuplicate() followed by BVResize(). The
+   contents of V are not copied to W.
+
+   Level: intermediate
+
+.seealso: BVDuplicate(), BVResize()
+@*/
+PetscErrorCode BVDuplicateResize(BV V,PetscInt m,BV *W)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidLogicalCollectiveInt(V,m,2);
+  PetscValidPointer(W,3);
+  ierr = BVCreate(PetscObjectComm((PetscObject)V),W);CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(*W,V->t,m);CHKERRQ(ierr);
   ierr = BVSetType(*W,((PetscObject)V)->type_name);CHKERRQ(ierr);
   ierr = BVSetMatrix(*W,V->matrix,V->indef);CHKERRQ(ierr);
   ierr = BVSetOrthogonalization(*W,V->orthog_type,V->orthog_ref,V->orthog_eta);CHKERRQ(ierr);
