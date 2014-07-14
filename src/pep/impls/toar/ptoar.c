@@ -618,7 +618,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PEPBasis     bs;
   PEPCmpctx    *ctx;
   Reg          *reg;
-  PetscInt     count,newtonRefIt=0;
+  PetscInt     count=PETSC_MAX_INT,newtonRefIt=0;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar  *er,*ei;
 #endif

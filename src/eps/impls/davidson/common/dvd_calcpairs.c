@@ -103,19 +103,15 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
     ierr = DSAllocate(d->eps->ds,d->eps->ncv);CHKERRQ(ierr);
     /* Create various vector basis */
     if (harm) {
-      ierr = BVDuplicate(d->eps->V,&d->W);CHKERRQ(ierr);
-      ierr = BVResize(d->W,d->eps->ncv,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = BVDuplicateResize(d->eps->V,d->eps->ncv,&d->W);CHKERRQ(ierr);
       ierr = BVSetMatrix(d->W,NULL,PETSC_FALSE);CHKERRQ(ierr);
     } else d->W = NULL;
-    ierr = BVDuplicate(d->eps->V,&d->AX);CHKERRQ(ierr);
-    ierr = BVResize(d->AX,d->eps->ncv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVDuplicateResize(d->eps->V,d->eps->ncv,&d->AX);CHKERRQ(ierr);
     ierr = BVSetMatrix(d->AX,NULL,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = BVDuplicate(d->eps->V,&d->auxBV);CHKERRQ(ierr);
-    ierr = BVResize(d->auxBV,d->eps->ncv,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVDuplicateResize(d->eps->V,d->eps->ncv,&d->auxBV);CHKERRQ(ierr);
     ierr = BVSetMatrix(d->auxBV,NULL,PETSC_FALSE);CHKERRQ(ierr);
     if (d->B) {
-      ierr = BVDuplicate(d->eps->V,&d->BX);CHKERRQ(ierr);
-      ierr = BVResize(d->BX,d->eps->ncv,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = BVDuplicateResize(d->eps->V,d->eps->ncv,&d->BX);CHKERRQ(ierr);
       ierr = BVSetMatrix(d->BX,NULL,PETSC_FALSE);CHKERRQ(ierr);
     } else d->BX = NULL;
     ierr = MatGetVecs(d->A,&v1,NULL);CHKERRQ(ierr);
