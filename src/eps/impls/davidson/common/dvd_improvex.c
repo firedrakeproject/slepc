@@ -840,7 +840,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,Pets
   for (i=0; i<n; i++) {
 #if !defined(PETSC_USE_COMPLEX)
     if (eigi[i_s+i] != 0.0) {
-      PetscScalar eigr0,eigi0;
+      PetscScalar eigr0=0.0,eigi0=0.0;
       /* eig_r = [(rAr+iAi)*(rBr+iBi) + (rAi-iAr)*(rBi-iBr)]/k \
          eig_i = [(rAi-iAr)*(rBr+iBi) - (rAr+iAi)*(rBi-iBr)]/k \
          k     =  (rBr+iBi)*(rBr+iBi) + (rBi-iBr)*(rBi-iBr)    */ \
