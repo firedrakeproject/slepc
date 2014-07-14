@@ -714,6 +714,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
 
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
+  ctx->explicitmatrix = PETSC_TRUE;
   pep->data = (void*)ctx;
 
   pep->ops->solve                = PEPSolve_Linear;
