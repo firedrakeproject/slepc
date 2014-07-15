@@ -397,9 +397,17 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
  */
 PetscErrorCode EPSSetDimensions_Default(EPS eps)
 {
+  PetscErrorCode ierr;
+  PetscBool      krylov;
+
   PetscFunctionBegin;
   if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
+    ierr = PetscObjectTypeCompareAny((PetscObject)eps,&krylov,EPSKRYLOVSCHUR,EPSARNOLDI,EPSLANCZOS,"");CHKERRQ(ierr);
+    if (krylov) {
+      if (eps->ncv<eps->nev+1 && !(eps->ncv==eps->nev && eps->ncv==eps->n)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev+1");
+    } else {
+      if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
+    }
   } else if (eps->mpd) { /* mpd set */
     eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
   } else { /* neither set: defaults depend on nev being small or large */
