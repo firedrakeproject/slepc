@@ -82,7 +82,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
    then the result is M = Y^H*B*X. In this case, both X and Y must have
    the same associated matrix.
 
-   On entry, M must be a sequential dense Mat with dimensions m,n where
+   On entry, M must be a sequential dense Mat with dimensions m,n at least, where
    m is the number of active columns of Y and n is the number of active columns of X.
    Only rows (resp. columns) of M starting from ly (resp. lx) are computed,
    where ly (resp. lx) is the number of leading columns of Y (resp. X).
@@ -113,8 +113,8 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   if (!match) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
 
   ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
-  if (m!=Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should be %D",m,Y->k);
-  if (n!=X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should be %D",n,X->k);
+  if (m<Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should have at least %D",m,Y->k);
+  if (n<X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should have at least %D",n,X->k);
   if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
   if (X->matrix!=Y->matrix) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"X and Y must have the same inner product matrix");
   if (X->l==X->k || Y->l==Y->k) PetscFunctionReturn(0);
@@ -262,7 +262,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,Pets
 #undef __FUNCT__
 #define __FUNCT__ "BVNorm"
 /*@
-   BVNorm - Computes the matrix norm of all columns.
+   BVNorm - Computes the matrix norm of the BV.
 
    Collective on BV
 
@@ -274,8 +274,8 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,Pets
 .  val  - the norm
 
    Notes:
-   All active columns are considered as a matrix. The allowed norms
-   are NORM_1, NORM_FROBENIUS, and NORM_INFINITY.
+   All active columns (except the leading ones) are considered as a matrix.
+   The allowed norms are NORM_1, NORM_FROBENIUS, and NORM_INFINITY.
 
    This operation fails if a non-standard inner product has been
    specified with BVSetMatrix().
@@ -431,8 +431,8 @@ PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
    is always used, regardless of a non-standard inner product being specified
    with BVSetMatrix().
 
-   On entry, M must be a sequential dense Mat with dimensions ky,kx where
-   ky (resp. kx) is the number of active columns of Y (resp. X).
+   On entry, M must be a sequential dense Mat with dimensions ky,kx at least,
+   where ky (resp. kx) is the number of active columns of Y (resp. X).
    Another difference with respect to BVDot() is that all entries of M are
    computed except the leading ly,lx part, where ly (resp. lx) is the
    number of leading columns of Y (resp. X). Hence, the leading columns of
@@ -455,7 +455,7 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   PetscInt       i,j,m,n,lx,ly,kx,ky,ulim;
   PetscScalar    *marray,*harray;
   Vec            z,f;
-  Mat            matrix,H;
+  Mat            Xmatrix,Ymatrix,H;
   PetscObjectId  idx,idy;
 
   PetscFunctionBegin;
@@ -477,13 +477,15 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   if (!match) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Matrix M must be of type seqdense");
 
   ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
-  if (m!=Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %D rows, should have %D",m,Y->k);
-  if (n!=X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %D columns, should have %D",n,X->k);
+  if (m<Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %D rows, should have at least %D",m,Y->k);
+  if (n<X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %D columns, should have at least %D",n,X->k);
   if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
 
   ierr = PetscLogEventBegin(BV_MatProject,X,A,Y,0);CHKERRQ(ierr);
-  matrix = X->matrix;
-  X->matrix = NULL;  /* temporarily set standard inner product */
+  /* temporarily set standard inner product */
+  Xmatrix = X->matrix;
+  Ymatrix = Y->matrix;
+  X->matrix = Y->matrix = NULL;
 
   ierr = PetscObjectGetId((PetscObject)X,&idx);CHKERRQ(ierr);
   ierr = PetscObjectGetId((PetscObject)Y,&idy);CHKERRQ(ierr);
@@ -565,7 +567,9 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   Y->l = ly; Y->k = ky;
   ierr = MatDenseRestoreArray(M,&marray);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_MatProject,X,A,Y,0);CHKERRQ(ierr);
-  X->matrix = matrix;  /* restore non-standard inner product */
+  /* restore non-standard inner product */
+  X->matrix = Xmatrix;
+  Y->matrix = Ymatrix;
   PetscFunctionReturn(0);
 }
 

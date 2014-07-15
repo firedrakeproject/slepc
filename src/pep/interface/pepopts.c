@@ -45,7 +45,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 {
   PetscErrorCode   ierr;
   char             type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool        flg,flg1,flg2,flg3;
+  PetscBool        flg,flg1,flg2,flg3,flg4;
   PetscReal        r,t;
   PetscScalar      s;
   PetscInt         i,j,k;
@@ -80,6 +80,20 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PetscOptionsReal("-pep_scale_lambda","Estimate of eigenvalue (modulus) for diagonal scaling","PEPSetScale",pep->slambda,&t,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) {
       ierr = PEPSetScale(pep,pep->scale,r,j,t);CHKERRQ(ierr);
+    }
+
+    ierr = PetscOptionsEnum("-pep_refine","Iterative refinement method","PEPSetRefine",PEPRefineTypes,(PetscEnum)pep->refine,(PetscEnum*)&pep->refine,NULL);CHKERRQ(ierr);
+
+    i = pep->npart;
+    ierr = PetscOptionsInt("-pep_refine_partitions","Number of partitions of the communicator for iterative refinement","PEPSetRefine",pep->npart,&i,&flg1);CHKERRQ(ierr);
+    r = pep->rtol;
+    ierr = PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol,&r,&flg2);CHKERRQ(ierr);
+    j = pep->rits;
+    ierr = PetscOptionsInt("-pep_refine_its","Maximum number of iterations for iterative refinement","PEPSetRefine",pep->rits,&j,&flg3);CHKERRQ(ierr);
+    flg = pep->schur;
+    ierr = PetscOptionsBool("-pep_refine_schur","Use Schur complement for iterative refinement","PEPSetRefine",pep->schur,&flg,&flg4);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3 || flg4) {
+      ierr = PEPSetRefine(pep,pep->refine,i,r,j,flg);CHKERRQ(ierr);
     }
 
     i = pep->max_it? pep->max_it: PETSC_DEFAULT;
@@ -797,12 +811,12 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
    Input Parameters:
 +  pep    - the eigensolver context
 .  scale  - scaling strategy
--  alpha  - the scaling factor used in the scalar strategy
+.  alpha  - the scaling factor used in the scalar strategy
 .  its    - number of iterations of the diagonal scaling algorithm
 -  lambda - approximation to wanted eigenvalues (modulus)
 
    Options Database Keys:
-+  -pep_scale - scaling strategy, one of <none,scalar,diagonal,both>
++  -pep_scale <type> - scaling type, one of <none,scalar,diagonal,both>
 .  -pep_scale_factor <alpha> - the scaling factor
 .  -pep_scale_its <its> - number of iterations
 -  -pep_scale_lambda <lambda> - approximation to eigenvalues
@@ -870,7 +884,7 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,PetscInt its,P
 
    Output Parameters:
 +  scale  - scaling strategy
--  alpha  - the scaling factor used in the scalar strategy
+.  alpha  - the scaling factor used in the scalar strategy
 .  its    - number of iterations of the diagonal scaling algorithm
 -  lambda - approximation to wanted eigenvalues (modulus)
 
@@ -889,6 +903,132 @@ PetscErrorCode PEPGetScale(PEP pep,PEPScale *scale,PetscReal *alpha,PetscInt *it
   if (alpha)  *alpha  = pep->sfactor;
   if (its)    *its    = pep->sits;
   if (lambda) *lambda = pep->slambda;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetRefine"
+/*@
+   PEPSetRefine - Specifies the refinement type (and options) to be used
+   after the solve.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep    - the eigensolver context
+.  refine - refinement type
+.  npart  - number of partitions of the communicator
+.  tol    - the convergence tolerance
+.  its    - maximum number of refinement iterations
+-  schur  - boolean flag to activate the Schur complement approach
+
+   Options Database Keys:
++  -pep_refine <type> - refinement type, one of <none,simple,multiple>
+.  -pep_refine_partitions <n> - the number of partitions
+.  -pep_refine_tol <tol> - the tolerance
+.  -pep_refine_its <its> - number of iterations
+-  -pep_refine_schur - to set the Schur complement approach
+
+   Notes:
+   By default, iterative refinement is disabled, since it may be very
+   costly. There are two possible refinement strategies: simple and multiple.
+   The simple approach performs iterative refinement on each of the
+   converged eigenpairs individually, whereas the multiple strategy works
+   with the invariant pair as a whole, refining all eigenpairs simultaneously.
+   The latter may be required for the case of multiple eigenvalues.
+
+   In some cases, especially when using direct solvers within the
+   iterative refinement method, it may be helpful for improved scalability
+   to split the communicator in several partitions. The npart parameter
+   indicates how many partitions to use (defaults to 1).
+
+   The tol and its parameters specify the stopping criterion. In the simple
+   method, refinement continues until the residual of each eigenpair is
+   below the tolerance (tol defaults to the PEP tol, but may be set to a
+   different value). In contrast, the multiple method simply performs its
+   refinement iterations (just one by default).
+
+   The schur flag is used to change the way in which linear systems are
+   solved, so that a Schur complement approach is used instead of explicitly
+   building the coefficient matrix.
+
+   Level: intermediate
+
+.seealso: PEPGetRefine()
+@*/
+PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal tol,PetscInt its,PetscBool schur)
+{
+  PetscErrorCode ierr;
+  PetscMPIInt    size;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(pep,refine,2);
+  PetscValidLogicalCollectiveInt(pep,npart,3);
+  PetscValidLogicalCollectiveReal(pep,tol,4);
+  PetscValidLogicalCollectiveInt(pep,its,5);
+  PetscValidLogicalCollectiveBool(pep,schur,6);
+  pep->refine = refine;
+  if (refine) {  /* process parameters only if not REFINE_NONE */
+    if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
+      pep->npart = 1;
+    } else {
+      ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&size);CHKERRQ(ierr);
+      if (npart<1 || npart>size) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
+      pep->npart = npart;
+    }
+    if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
+      pep->rtol = pep->tol;
+    } else {
+      if (tol<=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+      pep->rtol = tol;
+    }
+    if (its==PETSC_DECIDE || its==PETSC_DEFAULT) {
+      pep->rits = PETSC_DEFAULT;
+    } else {
+      if (its<=0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be > 0");
+      pep->rits = its;
+    }
+    pep->schur = schur;
+  }
+  pep->state = PEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPGetRefine"
+/*@
+   PEPGetRefine - Gets the refinement strategy used by the PEP object, and the
+   associated parameters.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigensolver context
+
+   Output Parameters:
++  refine - refinement type
+.  npart  - number of partitions of the communicator
+.  tol    - the convergence tolerance
+.  its    - maximum number of refinement iterations
+-  schur  - whether the Schur complement approach is being used
+
+   Level: intermediate
+
+   Note:
+   The user can specify NULL for any parameter that is not needed.
+
+.seealso: PEPSetRefine()
+@*/
+PetscErrorCode PEPGetRefine(PEP pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PetscBool *schur)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  if (refine) *refine = pep->refine;
+  if (npart)  *npart  = pep->npart;
+  if (tol)    *tol    = pep->rtol;
+  if (its)    *its    = pep->rits;
+  if (schur)  *schur  = pep->schur;
   PetscFunctionReturn(0);
 }
 

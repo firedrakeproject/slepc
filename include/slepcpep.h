@@ -114,6 +114,18 @@ typedef enum { PEP_SCALE_NONE,
 PETSC_EXTERN const char *PEPScaleTypes[];
 
 /*E
+    PEPRefine - The refinement type
+
+    Level: intermediate
+
+.seealso: PEPSetRefine()
+E*/
+typedef enum { PEP_REFINE_NONE,
+               PEP_REFINE_SIMPLE,
+               PEP_REFINE_MULTIPLE } PEPRefine;
+PETSC_EXTERN const char *PEPRefineTypes[];
+
+/*E
     PEPConv - Determines the convergence test
 
     Level: intermediate
@@ -161,6 +173,8 @@ PETSC_EXTERN PetscErrorCode PEPSetDimensions(PEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode PEPGetDimensions(PEP,PetscInt*,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode PEPSetScale(PEP,PEPScale,PetscReal,PetscInt,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPGetScale(PEP,PEPScale*,PetscReal*,PetscInt*,PetscReal*);
+PETSC_EXTERN PetscErrorCode PEPSetRefine(PEP,PEPRefine,PetscInt,PetscReal,PetscInt,PetscBool);
+PETSC_EXTERN PetscErrorCode PEPGetRefine(PEP,PEPRefine*,PetscInt*,PetscReal*,PetscInt*,PetscBool*);
 PETSC_EXTERN PetscErrorCode PEPSetBasis(PEP,PEPBasis);
 PETSC_EXTERN PetscErrorCode PEPGetBasis(PEP,PEPBasis*);
 

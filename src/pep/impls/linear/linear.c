@@ -33,7 +33,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
   PetscInt       i=0;
   EPSWhich       which;
-  PetscBool      trackall;
+  PetscBool      trackall,flg;
   PetscScalar    sigma;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,PEP_LINEAR*,Mat*) = {
@@ -66,6 +66,13 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   if (!pep->which) pep->which = PEP_LARGEST_MAGNITUDE;
   if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
   if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver only available for quadratic problems");
+  if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEP linear solver");
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"ST transformation flag not allowed for PEP linear solver");
+
+  /* compute scale factor if no set by user */
+  ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
+ 
   ierr = STGetOperators(pep->st,0,&ctx->K);CHKERRQ(ierr);
   ierr = STGetOperators(pep->st,1,&ctx->C);CHKERRQ(ierr);
   ierr = STGetOperators(pep->st,2,&ctx->M);CHKERRQ(ierr);
@@ -707,6 +714,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
 
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
+  ctx->explicitmatrix = PETSC_TRUE;
   pep->data = (void*)ctx;
 
   pep->ops->solve                = PEPSolve_Linear;

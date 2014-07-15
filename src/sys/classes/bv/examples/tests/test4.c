@@ -171,8 +171,8 @@ int main(int argc,char **argv)
   }
 
   /* Test BVNorm */
-  ierr = BVNormColumn(X,0,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"2-Norm or X[0] = %g\n",(double)nrm);CHKERRQ(ierr);
+  ierr = BVNormColumn(X,lx,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"2-Norm or X[%d] = %g\n",lx,(double)nrm);CHKERRQ(ierr);
   ierr = BVNorm(X,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Frobenius Norm or X = %g\n",(double)nrm);CHKERRQ(ierr);
 

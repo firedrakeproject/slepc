@@ -21,9 +21,7 @@
 
 #include "davidson.h"
 
-#define DVD_CHECKSUM(b) \
-  ((b)->max_size_V + (b)->max_size_auxV + (b)->max_size_auxS + \
-   (b)->own_vecs + (b)->own_scalars + (b)->max_size_oldX)
+#define DVD_CHECKSUM(b) ((b)->max_size_V + (b)->max_size_oldX)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_schm_basic_preconf"
@@ -38,7 +36,6 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt 
 
   for (check_sum0=-1,check_sum1=DVD_CHECKSUM(b); check_sum0 != check_sum1;
        check_sum0 = check_sum1, check_sum1 = DVD_CHECKSUM(b)) {
-    b->own_vecs = b->own_scalars = 0;
 
     /* Setup basic management of V */
     ierr = dvd_managementV_basic(d, b, bs, mpd, min_size_V, plusk,
@@ -80,16 +77,12 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt 
 PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,PetscBool fixedTarget,PetscScalar t,KSP ksp,PetscReal fix,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,PetscBool dynamic,Method_t method)
 {
   PetscInt        check_sum0, check_sum1, maxits;
-  Vec             *fv;
-  PetscScalar     *fs;
   PetscReal       tol;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   b->state = DVD_STATE_CONF;
   check_sum0 = DVD_CHECKSUM(b);
-  b->own_vecs = 0; b->own_scalars = 0;
-  fv = b->free_vecs; fs = b->free_scalars;
 
   /* Setup basic management of V */
   ierr = dvd_managementV_basic(d, b, bs, mpd, min_size_V, plusk,
@@ -125,9 +118,6 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd
   }
 
   check_sum1 = DVD_CHECKSUM(b);
-  if ((check_sum0 != check_sum1) ||
-      (b->free_vecs - fv > b->own_vecs) ||
-      (b->free_scalars - fs > b->own_scalars))
-    SETERRQ(PETSC_COMM_SELF,1, "Something awful happened");
+  if (check_sum0 != check_sum1) SETERRQ(PETSC_COMM_SELF,1, "Something awful happened");
   PetscFunctionReturn(0);
 }

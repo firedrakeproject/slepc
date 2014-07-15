@@ -91,15 +91,15 @@ int main(int argc,char **argv)
   ierr = EPSSetEigenvalueComparison(eps,MyEigenSort,&target);CHKERRQ(ierr);
 
   /*
+     Set solver parameters at runtime
+  */
+  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+
+  /*
      Set the preconditioner based on A - target * I
   */
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STSetShift(st,target);CHKERRQ(ierr);
-
-  /*
-     Set solver parameters at runtime
-  */
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /*
      Set the initial vector. This is optional, if not done the initial
