@@ -130,25 +130,24 @@ L(\lambda)=L_0 -\lambda L_1,
 where the related linear eigenproblem is $L(\lambda)y=0$, with
 \begin{equation}
 \label{eq:firstcompfull}
-	L_0 =
-	\begin{bmatrix}
-		  & I \\
-		 &   & \ddots \\
-		 & &    & I \\
-		-A_0 & -A_1 & \cdots  & -A_{d-1}
-	\end{bmatrix},
-	\quad
-	L_1 =
-	\begin{bmatrix}
-		I \\
-		 & \ddots \\
-		 & & I \\
-		 & & & A_d
-	\end{bmatrix},
-        \quad y=
-	\begin{bmatrix}
-        x \\ x\lambda\\ \vdots \\ x\lambda^{d-1}
-	\end{bmatrix}.
+L_0 =
+\begin{bmatrix}
+  & I \\
+  & & \ddots \\
+  & & & I \\
+  -A_0 & -A_1 & \cdots  & -A_{d-1}
+\end{bmatrix},\quad
+L_1 =
+\begin{bmatrix}
+  I \\
+  & \ddots \\
+  & & I \\
+  & & & A_d
+\end{bmatrix}, \quad
+y=
+\begin{bmatrix}
+  x \\ x\lambda\\ \vdots \\ x\lambda^{d-1}
+\end{bmatrix}.
 \end{equation}
 This is the generalization of Eq.\ \ref{eq:n1}.
 
@@ -242,14 +241,14 @@ Currently, the problem type is ignored in most solvers and it is taken into acco
 
 Apart from the polynomial basis and the problem type, the definition of the problem is completed with the number and location of the eigenvalues to compute. This is done very much like in \ident{EPS}, but with minor differences.
 
-	The number of eigenvalues (and eigenvectors) to compute, \texttt{nev}, is specified with the function%
+The number of eigenvalues (and eigenvectors) to compute, \texttt{nev}, is specified with the function%
 	\findex{PEPSetDimensions}
 	\begin{Verbatim}[fontsize=\small]
 	PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd);
 	\end{Verbatim}
 The default is to compute only one. This function also allows control over the dimension of the subspaces used internally. The second argument, \texttt{ncv}, is the number of column vectors to be used by the solution algorithm, that is, the largest dimension of the working subspace. The third argument, \texttt{mpd}, is the maximum projected dimension. These parameters can also be set from the command line with \Verb!-pep_nev!, \Verb!-pep_ncv! and \Verb!-pep_mpd!.
 
-	For the selection of the portion of the spectrum of interest, there are several alternatives listed in Table~\ref{tab:portionq}, to be selected with the function
+For the selection of the portion of the spectrum of interest, there are several alternatives listed in Table~\ref{tab:portionq}, to be selected with the function
 	\findex{PEPSetWhichEigenpairs}
 	\begin{Verbatim}[fontsize=\small]
 	PEPSetWhichEigenpairs(PEP pep,PEPWhich which);
@@ -291,7 +290,7 @@ The solution method can be specified procedurally with
 	\end{Verbatim}
 or via the options database command \Verb!-pep_type! followed by the name of the method. The methods currently available in \ident{PEP} are listed in Table~\ref{tab:solversp}.
 
-The default solver is \texttt{PEPTOAR}, currently the only solver supporting polynomials of arbitrary degree. TOAR is a stable algorithm for building an Arnoldi factorization of the linearization (\ref{eq:firstcomp}) without explicitly creating matrices $L_0$ and $L_1$. For quadratic polynomials there are other solvers available. Q-Arnoldi and STOAR are related to TOAR, with a similar approach.
+The default solver is \ident{PEPTOAR}, currently the only solver supporting polynomials of arbitrary degree. TOAR is a stable algorithm for building an Arnoldi factorization of the linearization (\ref{eq:firstcomp}) without explicitly creating matrices $L_0$ and $L_1$. For quadratic polynomials there are other solvers available. Q-Arnoldi is related to TOAR and follows a similar approach.
 
 \begin{table}
 \centering
@@ -301,12 +300,13 @@ Method             & \ident{PEPType}      & {\footnotesize Database Name} & {\fo
 Two-level Orthogonal Arnoldi (TOAR) & \texttt{PEPTOAR}     & \texttt{toar} & Arbitrary & Any \\
 Explicit Linearization & \texttt{PEPLINEAR}   & \texttt{linear} & Quadratic & Monomial \\
 Quadratic Arnoldi (Q-Arnoldi) & \texttt{PEPQARNOLDI} & \texttt{qarnoldi} & Quadratic & Monomial \\
-Symmetric TOAR     & \texttt{PEPSTOAR}    & \texttt{stoar} & Quadratic & Monomial \\\hline
+%Symmetric TOAR     & \texttt{PEPSTOAR}    & \texttt{stoar} & Quadratic & Monomial \\
+\hline
 \end{tabular} }
 \caption{\label{tab:solversp}Polynomial eigenvalue solvers available in the \ident{PEP} module.}
 \end{table}
 
-The \texttt{PEPLINEAR} method carries out a explicit linearization of the quadratic eigenproblem, as described in \S\ref{sec:qep}, resulting in a generalized eigenvalue problem that is handled by an \ident{EPS} object created internally. If required, this \ident{EPS} object can be extracted with the operation
+The \ident{PEPLINEAR} method carries out a explicit linearization of the quadratic eigenproblem, as described in \S\ref{sec:qep}, resulting in a generalized eigenvalue problem that is handled by an \ident{EPS} object created internally. If required, this \ident{EPS} object can be extracted with the operation
 	\findex{PEPLinearGetEPS}
 	\begin{Verbatim}[fontsize=\small]
 	PEPLinearGetEPS(PEP pep,EPS *eps);
@@ -323,7 +323,7 @@ The expression used in the linearization is specified by two parameters:
 	\end{Verbatim}
 \end{enumerate}
 
-Another option of the \texttt{PEPLINEAR} solver is whether the matrices of the linearized problem are created explicitly or not. This is set with the function
+Another option of the \ident{PEPLINEAR} solver is whether the matrices of the linearized problem are created explicitly or not. This is set with the function
 	\findex{PEPLinearSetExplicitMatrix}
 	\begin{Verbatim}[fontsize=\small]
 	PEPLinearSetExplicitMatrix(PEP pep,PetscBool exp);
@@ -364,24 +364,24 @@ T_k=\sum_{j=0}^{d-k}\binom{j+k}{k}\sigma^{j}A_{j+k},\qquad k=0,\ldots,d.
 \end{equation}
 The way this is implemented in \slepc is that the \ident{ST} object is in charge of computing the $T_k$ matrices, so that the \ident{PEP} solver operates with these matrices as it would with the original $A_i$ matrices, without changing its behaviour. We say that \ident{ST} performs the transformation.
 
-An alternative would be to apply the shift-and-invert spectral trasformation to the linearization (Eq.\ \ref{eq:firstcomp}) in a smart way, making the polynomial eigensolver aware of this fact so that it can exploit the block structure of the linearization. 
+An alternative would be to apply the shift-and-invert spectral transformation to the linearization (Eq.\ \ref{eq:firstcomp}) in a smart way, making the polynomial eigensolver aware of this fact so that it can exploit the block structure of the linearization. 
 Let $S_\sigma:=(L_0-\sigma L_1)^{-1}L_1$, then when the solver needs to extend the Arnoldi basis with an operation such as $z=S_\sigma w$, a linear solve is required with the form
 \begin{equation}
 \label{eq:sinvpeplin}
-	\begin{bmatrix}
-	-\sigma I  & I \\
-		 & -\sigma I & \ddots \\
-		 & & \ddots   & I  \\
-		 & &    & -\sigma I & I \\
-		-A_0 & -A_1 & \cdots  & -\tilde{A}_{d-2} & -\tilde{A}_{d-1}
-	\end{bmatrix}
-	\begin{bmatrix}
-          z^0\\z^1\\\vdots\\z^{d-2}\\z^{d-1}
-	\end{bmatrix}
-        =
-	\begin{bmatrix}
-          w^0\\w^1\\\vdots\\w^{d-2}\\A_dw^{d-1}
-	\end{bmatrix},
+\begin{bmatrix}
+  -\sigma I  & I \\
+  & -\sigma I & \ddots \\
+  & & \ddots & I \\
+  & & & -\sigma I & I \\
+  -A_0 & -A_1 & \cdots  & -\tilde{A}_{d-2} & -\tilde{A}_{d-1}
+\end{bmatrix}
+\begin{bmatrix}
+  z^0\\z^1\\\vdots\\z^{d-2}\\z^{d-1}
+\end{bmatrix}
+  =
+\begin{bmatrix}
+  w^0\\w^1\\\vdots\\w^{d-2}\\A_dw^{d-1}
+\end{bmatrix},
 \end{equation}
 with $\tilde{A}_{d-2}=A_{d-2}+\sigma I$ and $\tilde{A}_{d-1}=A_{d-1}+\sigma A_d$.
 From the block LU factorization, it is possible to derive a simple recurrence to compute $z^i$, with one of the steps involving a linear solve with $P(\sigma)$.
@@ -465,6 +465,33 @@ As in the case of \ident{EPS}, in \ident{PEP} the number of iterations carried o
 
 \subsection{\label{sec:refine}Iterative Refinement}
 
-\citep{Betcke:2011:PER}
+As mentioned above, scaling can sometimes improve the accuracy of the computed solution considerably, in the case that the coefficient matrices $A_i$ are very different in norm. Still, even when the matrix norms are well balanced the accuracy can sometimes be unacceptably low. The reason is that methods based on linearization are not always backward stable, that is, even if the computation of the eigenpairs of the linearization is done in a stable way, there is no guarantee that the extracted polynomial eigenpairs satisfy the given tolerance.
 
-\section{\label{sec:qeppep}Upgrading from \ident{PEP} to \ident{PEP}}
+If good accuracy is required, one possibility is to perform a few steps of iterative refinement on the solution computed by the polynomial eigensolver algorithm. Iterative refinement can be seen as the Newton method applied to a set of nonlinear equations related to the polynomial eigenvalue problem \citep{Betcke:2011:PER}. It is well known that global convergence of Newton's iteration is guaranteed only if the initial guess is close enough to the exact solution, so we still need an eigensolver such as TOAR to compute this initial guess.
+
+Iterative refinement can be very costly (sometimes a single refinement step is more expensive than the whole iteration to compute the initial guess with TOAR), that is why in \slepc it is deactivated by default. When the user activates it, the computation of Newton iterations will take place within \ident{PEPSolve} as a final stage (identified as \texttt{PEPRefine} in the \Verb!-log_summary! report).
+
+	\findex{PEPSetRefine}
+	\begin{Verbatim}[fontsize=\small]
+	PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,
+                     PetscReal tol,PetscInt its,PetscBool schur);
+	\end{Verbatim}
+
+There are two types of refinement, identified as \emph{simple} and \emph{multiple}. The first one performs refinement on each eigenpair individually, while the second one performs the computed invariant pair as a whole \citep{Betcke:2011:PER}. This latter approach is more costly but it is expected to be more robust in the presence of multiple eigenvalues.
+
+In \ident{PEPSetRefine}, the argument \texttt{npart} indicates the number of partitions in which the communicator must be split. This can sometimes improve the scalability when refining many eigenpairs. See the manual page for additional details.
+
+\section{\label{sec:qeppep}Upgrading from \texttt{QEP} to \texttt{PEP}}
+
+Users of \slepc versions 3.3 and 3.4 that were employing a \texttt{QEP} solver in their application code will have to adapt it to the new \ident{PEP} object. The process is very simple and basically amounts to replacing \texttt{QEP} by \ident{PEP}. The most important change is when setting the matrices, where the call
+	\begin{Verbatim}[fontsize=\small]
+        QEPSetOperators( qep, M, C, K );
+	\end{Verbatim}
+must be replaced with something like this:
+	\begin{Verbatim}[fontsize=\small]
+        A[0] = K; A[1] = C; A[2] = M;
+        PEPSetOperators( pep, 3, A );
+	\end{Verbatim}
+
+Other changes in the user interface may have to be taken into account, e.g., \texttt{QEPSetScaleFactor} is now included in \ident{PEPSetScale}.
+

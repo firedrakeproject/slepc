@@ -5,7 +5,7 @@
 %-------------------------------------------------------
 
 \noindent The Eigenvalue Problem Solver (\ident{EPS}) is the main object provided by \slepc. It is used to specify a linear eigenvalue problem, either in standard or generalized form, and provides uniform and efficient access to all of the linear eigensolvers included in the package. Conceptually, the level of abstraction occupied by \ident{EPS} is similar to other solvers in \petsc\ such as \ident{KSP} for solving linear systems of equations.
-	
+
 \section{\label{sec:eig}Eigenvalue Problems}
 
 	In this section, we briefly present some basic concepts about eigenvalue problems as well as general techniques used to solve them. The description is not intended to be exhaustive. The objective is simply to define terms that will be referred to throughout the rest of the manual. Readers who are familiar with the terminology and the solution approach can skip this section. For a more comprehensive description, we refer the reader to monographs such as \citep{Stewart:2001:MAV}, \citep{Bai:2000:TSA}, \citep{Saad:1992:NML} or \citep{Parlett:1980:SEP}. A historical perspective of the topic can be found in \citep{Golub:2000:EC2}. See also the \slepc \hyperlink{str}{technical reports}.
@@ -31,7 +31,7 @@ where $B\in\mathbb{C}^{n\times n}$, which is known as the generalized eigenvalue
 
 In practical analyses, from the $n$ possible solutions, typically only a few eigenpairs $(\lambda,x)$ are considered relevant, either in the extremities of the spectrum, in an interval, or in a region of the complex plane.
 Depending on the application, either eigenvalues or eigenvectors or both are required. In some cases, left eigenvectors are also of interest.
-	
+
 \paragraph{Projection Methods.}
 
 	Most eigensolvers provided by \slepc perform a Rayleigh-Ritz projection for extracting the spectral approximations, that is, they project the problem onto a low-dimensional subspace that is built appropriately. Suppose that an orthogonal basis of this subspace is given by $V_j=[v_1,v_2,\ldots,v_j]$. If the solutions of the projected (reduced) problem $B_js=\theta s$ (i.e., $V_j^TAV_j=B_j$) are assumed to be $(\theta_i,s_i)$, $i=1,2,\ldots,j$, then the approximate eigenpairs $(\tilde{\lambda}_i,\tilde{x}_i)$ of the original problem (Ritz value and Ritz vector) are obtained as
@@ -394,9 +394,9 @@ returns the $j$-th computed eigenvalue/eigenvector pair. Typically, this functio
 \paragraph{Real \slepc.} In this case, all \texttt{Mat} and \texttt{Vec} objects are real. The computed approximate solution returned by the function \ident{EPSGetEigenpair} is stored in the following way: \texttt{kr} and \texttt{ki} contain the real and imaginary parts of the eigenvalue, respectively, and \texttt{xr} and \texttt{xi} contain the associated eigenvector. Two cases can be distinguished:
 
 \begin{itemize}
-\item	When \texttt{ki} is zero, it means that the $j$-th eigenvalue is a real number. In this case, \texttt{kr} is the eigenvalue and \texttt{xr} is the corresponding eigenvector. The vector \texttt{xi} is set to all zeros.
+\item When \texttt{ki} is zero, it means that the $j$-th eigenvalue is a real number. In this case, \texttt{kr} is the eigenvalue and \texttt{xr} is the corresponding eigenvector. The vector \texttt{xi} is set to all zeros.
 
-\item	If \texttt{ki} is different from zero, then the $j$-th eigenvalue is a complex number and, therefore, it is part of a complex conjugate pair. Thus, the $j$-th eigenvalue is \texttt{kr}$+\,i\cdot$\texttt{ki}.
+\item If \texttt{ki} is different from zero, then the $j$-th eigenvalue is a complex number and, therefore, it is part of a complex conjugate pair. Thus, the $j$-th eigenvalue is \texttt{kr}$+\,i\cdot$\texttt{ki}.
 With respect to the eigenvector, \texttt{xr} stores the real part of the eigenvector and \texttt{xi} the imaginary part, that is, the $j$-th eigenvector is \texttt{xr}$+\,i\cdot$\texttt{xi}. The $(j+1)$-th eigenvalue (and eigenvector) will be the corresponding complex conjugate and will be returned when function \ident{EPSGetEigenpair} is invoked with index \texttt{j}+1. Note that the sign of the imaginary part is returned correctly in all cases (users need not change signs).
 \end{itemize}
 
