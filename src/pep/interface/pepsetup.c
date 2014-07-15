@@ -341,6 +341,40 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec *is)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPSetDimensions_Default"
+/*
+  PEPSetDimensions_Default - Set reasonable values for ncv, mpd if not set
+  by the user. This is called at setup.
+ */
+PetscErrorCode PEPSetDimensions_Default(PEP pep)
+{
+  PetscErrorCode ierr;
+  PetscBool      krylov;
+  PetscInt       dim;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompareAny((PetscObject)pep,&krylov,PEPTOAR,PEPQARNOLDI,PEPSTOAR,"");CHKERRQ(ierr);
+  dim = krylov?(pep->nmat-1)*pep->n:pep->n;
+  if (pep->ncv) { /* ncv set */
+    if (krylov) {
+      if (pep->ncv<pep->nev+1 && !(pep->ncv==pep->nev && pep->ncv==dim)) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev+1");
+    } else {
+      if (pep->ncv<pep->nev) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev");
+    }
+  } else if (pep->mpd) { /* mpd set */
+    pep->ncv = PetscMin(dim,pep->nev+pep->mpd);
+  } else { /* neither set: defaults depend on nev being small or large */
+    if (pep->nev<500) pep->ncv = PetscMin(dim,PetscMax(2*pep->nev,pep->nev+15));
+    else {
+      pep->mpd = 500;
+      pep->ncv = PetscMin(dim,pep->nev+pep->mpd);
+    }
+  }
+  if (!pep->mpd) pep->mpd = pep->ncv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPAllocateSolution"
 /*@
    PEPAllocateSolution - Allocate memory storage for common variables such
