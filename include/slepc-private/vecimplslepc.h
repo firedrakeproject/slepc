@@ -163,6 +163,7 @@ typedef struct {
 /* BLAS-type operations */
 PETSC_EXTERN PetscErrorCode SlepcDenseMatProdTriang(PetscScalar*,MatType_t,PetscInt,const PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt,PetscBool,const PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt,PetscBool);
 PETSC_EXTERN PetscErrorCode SlepcDenseCopy(PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode SlepcMatDenseCopy(Mat,PetscInt,PetscInt,Mat,PetscInt,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode SlepcDenseCopyTriang(PetscScalar*,MatType_t,PetscInt,PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode SlepcUpdateVectorsZ(Vec*,PetscScalar,PetscScalar,Vec*,PetscInt,const PetscScalar*,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode SlepcUpdateVectorsD(Vec*,PetscInt,PetscScalar,const PetscScalar*,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscInt);
@@ -170,4 +171,19 @@ PETSC_EXTERN PetscErrorCode VecsMultS(PetscScalar*,MatType_t,PetscInt,Vec*,Petsc
 PETSC_EXTERN PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk*,PetscInt,PetscScalar*,PetscScalar*,PetscInt,DvdReduction*,MPI_Comm);
 PETSC_EXTERN PetscErrorCode SlepcAllReduceSumEnd(DvdReduction*);
 
+/* VecPool */
+typedef struct VecPool_ {
+  Vec      v;              /* template vector */
+  Vec      *vecs;          /* pool of vectors */
+  PetscInt n;              /* size of vecs */
+  PetscInt used;           /* number of already used vectors */
+  PetscInt guess;          /* expected maximum number of vectors */
+  struct VecPool_ *next;   /* list of pool of vectors */
+} VecPool_;
+typedef VecPool_* VecPool;
+
+PETSC_EXTERN PetscErrorCode SlepcVecPoolCreate(Vec,PetscInt,VecPool*);
+PETSC_EXTERN PetscErrorCode SlepcVecPoolDestroy(VecPool*);
+PETSC_EXTERN PetscErrorCode SlepcVecPoolGetVecs(VecPool,PetscInt,Vec**);
+PETSC_EXTERN PetscErrorCode SlepcVecPoolRestoreVecs(VecPool,PetscInt,Vec**);
 #endif

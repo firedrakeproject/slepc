@@ -25,7 +25,7 @@
 #include <slepcpep.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent PEP_SetUp,PEP_Solve;
+PETSC_EXTERN PetscLogEvent PEP_SetUp,PEP_Solve,PEP_Refine;
 
 typedef struct _PEPOps *PEPOps;
 
@@ -71,6 +71,11 @@ struct _p_PEP {
   PetscReal      sfactor;          /* scaling factor */
   PetscInt       sits;             /* number of iterations of the scaling method */
   PetscReal      slambda;          /* norm eigenvalue approximation for scaling */
+  PEPRefine      refine;           /* type of refinement to be applied after solve */
+  PetscInt       npart;            /* number of partitions of the communicator */
+  PetscReal      rtol;             /* tolerance for refinement */
+  PetscInt       rits;             /* number of iterations of the refinement method */
+  PetscBool      schur;            /* use Schur complement in refinement method */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
@@ -138,5 +143,6 @@ PETSC_INTERN PetscErrorCode PEPBuildDiagonalScaling(PEP);
 PETSC_INTERN PetscErrorCode PEPBasisCoefficients(PEP,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt);
+PETSC_INTERN PetscErrorCode PEPNewtonRefinementSimple(PEP,PetscInt*,PetscReal*,PetscInt);
 
 #endif

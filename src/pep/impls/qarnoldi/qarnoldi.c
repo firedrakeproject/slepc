@@ -144,12 +144,22 @@ static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k
   for (j=k;j<m;j++) {
     /* apply operator */
     ierr = VecCopy(w,t);CHKERRQ(ierr);
+    if (pep->Dr) {
+      ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
+    }
     ierr = STMatMult(pep->st,0,v,u);CHKERRQ(ierr);
+    ierr = VecCopy(t,v);CHKERRQ(ierr);
+    if (pep->Dr) {
+      ierr = VecPointwiseMult(t,t,pep->Dr);CHKERRQ(ierr);
+    }
     ierr = STMatMult(pep->st,1,t,w);CHKERRQ(ierr);
     ierr = VecAXPY(u,pep->sfactor,w);CHKERRQ(ierr);
     ierr = STMatSolve(pep->st,u,w);CHKERRQ(ierr);
     ierr = VecScale(w,-1.0/(pep->sfactor*pep->sfactor));CHKERRQ(ierr);
-    ierr = VecCopy(t,v);CHKERRQ(ierr);
+    if (pep->Dr) {
+      ierr = VecPointwiseDivide(w,w,pep->Dr);CHKERRQ(ierr);
+    }
+    ierr = VecCopy(v,t);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(pep->V,0,j+1);CHKERRQ(ierr);
 
     /* orthogonalize */
