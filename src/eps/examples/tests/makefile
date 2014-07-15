@@ -140,7 +140,7 @@ runtest1_1:
 
 runtest1_2:
 	-@test=test1_2; \
-	${MPIEXEC} -np 1 ./test1  -eps_interval .1,1.1 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky -eps_terse 2>&1 >  $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test1  -eps_interval .1,1.1 -eps_tol 1e-10 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky -eps_terse 2>&1 >  $${test}.tmp; \
 	${TESTCODE}
 
 runtest2_1:

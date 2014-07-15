@@ -746,9 +746,6 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     case ST_MATMODE_SHELL:
       ierr = PetscViewerASCIIPrintf(viewer,"  using a shell matrix\n");CHKERRQ(ierr);
       break;
-    case ST_MATMODE_HYBRID:
-      ierr = PetscViewerASCIIPrintf(viewer,"  using a hybrid matrix representation\n");CHKERRQ(ierr);
-      break;
     }
     if (st->nmat>1 && st->shift_matrix != ST_MATMODE_SHELL) {
       switch (st->str) {

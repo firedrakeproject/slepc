@@ -156,7 +156,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
   if (n==PETSC_DECIDE || n==PETSC_DEFAULT) {
     ds->n = ds->ld;
   } else {
-    if (n<1 || n>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between 1 and ld");
+    if (n<0 || n>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between 0 and ld");
     if (ds->extrarow && n+1>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"A value of n equal to ld leaves no room for extra row");
     ds->n = n;
   }
@@ -165,7 +165,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
     if (m==PETSC_DECIDE || m==PETSC_DEFAULT) {
       ds->m = ds->ld;
     } else {
-      if (m<1 || m>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 1 and ld");
+      if (m<0 || m>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 0 and ld");
       ds->m = m;
     }
   }
@@ -303,7 +303,7 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveEnum(ds,m,2);
   PetscValidPointer(A,3);
-  if (m<0 || m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   if (!ds->mat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
 
   rows = PetscMax(ds->n,ds->t);
@@ -365,7 +365,7 @@ PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveEnum(ds,m,2);
   PetscValidPointer(A,3);
-  if (m<0 || m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   if (!ds->omat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSRestoreMat must match a previous call to DSGetMat");
   if (ds->omat[m]!=*A) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Mat argument is not the same as the one obtained with DSGetMat");
 
@@ -406,7 +406,7 @@ PetscErrorCode DSGetArray(DS ds,DSMatType m,PetscScalar *a[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   PetscValidPointer(a,2);
-  if (m<0 || m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   if (!ds->mat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
   *a = ds->mat[m];
   CHKMEMQ;
@@ -437,7 +437,7 @@ PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   PetscValidPointer(a,2);
-  if (m<0 || m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   CHKMEMQ;
   *a = 0;
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
@@ -470,7 +470,7 @@ PetscErrorCode DSGetArrayReal(DS ds,DSMatType m,PetscReal *a[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   PetscValidPointer(a,2);
-  if (m<0 || m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   if (!ds->rmat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
   *a = ds->rmat[m];
   CHKMEMQ;
@@ -501,7 +501,7 @@ PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   PetscValidPointer(a,2);
-  if (m<0 || m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   CHKMEMQ;
   *a = 0;
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);

@@ -26,7 +26,7 @@
 PetscFunctionList PEPList = 0;
 PetscBool         PEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId      PEP_CLASSID = 0;
-PetscLogEvent     PEP_SetUp = 0,PEP_Solve = 0;
+PetscLogEvent     PEP_SetUp = 0,PEP_Solve = 0,PEP_Refine = 0;
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPView"
@@ -106,6 +106,13 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       case PEP_SCALE_BOTH:
         ierr = PetscViewerASCIIPrintf(viewer,"  scalar & diagonal balancing enabled, with scaling factor=%g, its=%D and lambda=%g\n",(double)pep->sfactor,pep->sits,(double)pep->slambda);CHKERRQ(ierr);
         break;
+    }
+    ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s%s\n",PEPRefineTypes[pep->refine],pep->schur?", with a Schur complement approach":"");CHKERRQ(ierr);
+    if (pep->refine) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%D\n",(double)pep->rtol,pep->rits);CHKERRQ(ierr);
+      if (pep->npart>1) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  splitting communicator in %D partitions for refinement\n",pep->npart);CHKERRQ(ierr);
+      }
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = SlepcSNPrintfScalar(str,50,pep->target,PETSC_FALSE);CHKERRQ(ierr);
@@ -234,7 +241,7 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
       errok = PETSC_TRUE;
       for (i=0;i<pep->nev;i++) {
         ierr = PEPComputeRelativeError(pep,i,&error);CHKERRQ(ierr);
-        errok = (errok && error<pep->tol)? PETSC_TRUE: PETSC_FALSE;
+        errok = (errok && error<5.0*pep->tol)? PETSC_TRUE: PETSC_FALSE;
       }
       if (errok) {
         ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
@@ -338,6 +345,11 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->sfactor         = 1.0;
   pep->sits            = 5;
   pep->slambda         = 1.0;
+  pep->refine          = PEP_REFINE_NONE;
+  pep->npart           = 1;
+  pep->rtol            = PETSC_DEFAULT;
+  pep->rits            = PETSC_DEFAULT;
+  pep->schur           = PETSC_FALSE;
   pep->trackall        = PETSC_FALSE;
 
   pep->comparison      = NULL;

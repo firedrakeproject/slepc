@@ -146,7 +146,7 @@ PetscErrorCode PEPComputeVectors_Schur(PEP pep)
   ierr = MatDestroy(&Z);CHKERRQ(ierr);
 
   /* Fix eigenvectors if balancing was used */
-  if ((pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) && pep->Dr) {
+  if ((pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) && pep->Dr && (pep->refine!=PEP_REFINE_MULTIPLE)) {
     for (i=0;i<n;i++) {
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
       ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);

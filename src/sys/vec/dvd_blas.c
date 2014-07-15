@@ -271,6 +271,49 @@ PetscErrorCode SlepcDenseCopyTriang(PetscScalar *Y,MatType_t sY,PetscInt ldY,Pet
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "SlepcMatDenseCopy"
+/*@C
+   SlepcMatDenseCopy - Copy a submatrix from A to B.
+
+   Not Collective
+
+   Input Parameters:
++  A    - source seq dense matrix
+.  Ar0  - first row to copy from A
+.  Ac0  - first column to copy from A
+.  Br0  - first row to copy on B
+.  Bc0  - first column to copy on B
+.  rows - number of rows to copy
+-  cols - number of columns to copy
+
+   Level: advanced
+@*/
+PetscErrorCode SlepcMatDenseCopy(Mat A,PetscInt Ar0,PetscInt Ac0,Mat B,PetscInt Br0,PetscInt Bc0,PetscInt rows,PetscInt cols)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,m,ldA,ldB;
+  PetscScalar    *pA,*pB;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr); ldA=m;
+  if (Ar0<0 || Ar0>=m) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial row in A");
+  if (Ac0<0 || Ac0>=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in A");
+  if (Ar0+rows>m) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of rows");
+  if (Ac0+cols>n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
+  ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr); ldB=m;
+  if (Br0<0 || Br0>=m) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial row in B");
+  if (Bc0<0 || Bc0>=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in B");
+  if (Br0+rows>m) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of rows");
+  if (Bc0+cols>n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
+  ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&pB);CHKERRQ(ierr);
+  ierr = SlepcDenseCopy(&pB[ldB*Bc0+Br0],ldB,&pA[ldA*Ac0+Ar0],ldA,rows,cols);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&pB);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "SlepcUpdateVectorsS"
 /*
   Compute Y[0:dY:cM*dY-1] <- alpha * X[0:dX:cX-1] * M + beta * Y[0:dY:cM*dY-1],
@@ -357,7 +400,6 @@ PetscErrorCode SlepcUpdateVectorsD(Vec *X,PetscInt cX,PetscScalar alpha,const Pe
   PetscInt       rX, i, j, rY, rY0, ldY;
 
   PetscFunctionBegin;
-  SlepcValidVecsContiguous(X,cX,1);
   PetscValidScalarPointer(M,4);
   PetscValidScalarPointer(work,8);
 
