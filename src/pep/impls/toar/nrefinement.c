@@ -48,7 +48,7 @@ typedef struct {
   BV           V,W;
   Vec          t,tg,Rv,Vi,tp,tpg;
   PetscInt     idx;
-} Matexplicitctx;
+} MatExplicitCtx;
 
 #undef __FUNCT__
 #define __FUNCT__ "MatFSMult"
@@ -63,10 +63,12 @@ static PetscErrorCode MatFSMult(Mat M ,Vec x,Vec y)
   
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
-  fih = ctx->fih;
-  k = ctx->k; nmat = ctx->nmat;
-  A = ctx->A;
-  c = ctx->work; vals = ctx->work+k;
+  fih  = ctx->fih;
+  k    = ctx->k;
+  nmat = ctx->nmat;
+  A    = ctx->A;
+  c    = ctx->work;
+  vals = ctx->work+k;
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(nmat*k,&lda_);CHKERRQ(ierr);
   ierr = BVDotVec(ctx->V,x,c);CHKERRQ(ierr);
@@ -122,8 +124,8 @@ static PetscErrorCode PEPEvaluateBasisforMatrix(PEP pep,PetscInt nm,PetscInt k,P
         H[j+j*ldh] += corr-b[i-1];
       }
     }
-    corr = b[i-1];
-    beta = -g[i-1]/a[i-1];
+    corr  = b[i-1];
+    beta  = -g[i-1]/a[i-1];
     alpha = 1/a[i-1];
     PetscStackCall("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&alpha,H,&ldh_,fH+(i-1)*k,&ldfh_,&beta,fH+off,&ldfh_));
   }
@@ -223,8 +225,11 @@ static PetscErrorCode NRefSysSolve_shell(Mat *A,KSP ksp,PetscInt nmat,Vec Rv,Pet
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NRefRightside"
-static PetscErrorCode NRefRightside(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt k,BV V,PetscScalar *S,PetscInt lds,PetscInt j,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *DfH,PetscScalar *dH,BV dV,PetscScalar *dVS,Vec Rv,PetscScalar *Rh,BV W,Vec t,PetscScalar *work,PetscInt lw)
+#define __FUNCT__ "NRefRightSide"
+/*
+   Computes the residual P(H,V*S)*e_j for the polynomial
+*/
+static PetscErrorCode NRefRightSide(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt k,BV V,PetscScalar *S,PetscInt lds,PetscInt j,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *DfH,PetscScalar *dH,BV dV,PetscScalar *dVS,Vec Rv,PetscScalar *Rh,BV W,Vec t,PetscScalar *work,PetscInt lw)
 {
   PetscErrorCode ierr;
   PetscScalar    *DS0,*DS1,*F,beta=0.0,sone=1.0,none=-1.0,tt=0.0,*h,zero=0.0,*Z,*c0;
@@ -235,7 +240,6 @@ static PetscErrorCode NRefRightside(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
   Vec            w;
   
   PetscFunctionBegin;
-  /* Computes the residual P(H,V*S)*e_j for the polynomial */
   h = work+nwu;
   nwu += k*nmat;
   lda = k*nmat;
@@ -278,7 +282,7 @@ static PetscErrorCode NRefRightside(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
         tt += -b[i-1];
         for (ii=0;ii<k;ii++) H[ii+ii*ldh] += tt;
         tt = b[i-1];
-        beta = 1/a[i-1];
+        beta = 1.0/a[i-1];
         PetscStackCall("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&beta,DS1,&k_,H,&ldh_,&beta,DS0,&k_));
         F = DS0; DS0 = DS1; DS1 = F;
       } else {
@@ -286,8 +290,7 @@ static PetscErrorCode NRefRightside(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
         for (ii=0;ii<k;ii++) DS1[ii+(j-1)*k] = Z[ii+(j-1)*k]/a[0];
       } 
       for (jj=j;jj<k;jj++) {
-        for (ii=0;ii<k;ii++) 
-          DfH[k*i+ii+jj*lda] += DS1[ii+jj*k];
+        for (ii=0;ii<k;ii++) DfH[k*i+ii+jj*lda] += DS1[ii+jj*k];
       }
     }
     for (ii=0;ii<k;ii++) H[ii+ii*ldh] += tt;
@@ -305,7 +308,7 @@ static PetscErrorCode NRefRightside(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
       ierr = BVGetColumn(W,i,&w);CHKERRQ(ierr);
       ierr = MatMult(A[i],t,w);CHKERRQ(ierr);
       ierr = BVRestoreColumn(W,i,&w);CHKERRQ(ierr);
-      if (i>0&&i<nmat-1) {
+      if (i>0 && i<nmat-1) {
         PetscStackCall("BLASgemv",BLASgemv_("C",&k_,&k_,&sone,S,&lds_,h,&one,&zero,c0,&one));
         PetscStackCall("BLASgemv",BLASgemv_("C",&k_,&k_,&none,fH+i*k,&lda_,c0,&one,&sone,Rh,&one));
       }
@@ -359,12 +362,12 @@ static PetscErrorCode NRefSysIter_shell(PEP pep,PetscInt k,KSP ksp,PetscScalar *
 
 #undef __FUNCT__
 #define __FUNCT__ "NRefSysSetup_explicit"
-static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,BV V,Matexplicitctx *matctx,BV W,PetscScalar *work,PetscInt lwork)
+static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,BV V,MatExplicitCtx *matctx,BV W,PetscScalar *work,PetscInt lwork)
 {
   PetscErrorCode    ierr;
-  PetscInt          nwu=0,i,j,d,n,n0,m0,n1,m1;
-  PetscInt          *idxg=matctx->idxg,*idxp=matctx->idxp,idx,ncols,nmat=pep->nmat,lda=nmat*k,deg=nmat-1;
-  Mat               M,*E=matctx->E,*A,*At;
+  PetscInt          nwu=0,i,j,d,n,n0,m0,n1,m1,nmat=pep->nmat,lda=nmat*k,deg=nmat-1;
+  PetscInt          *idxg=matctx->idxg,*idxp=matctx->idxp,idx,ncols;
+  Mat               M,*E=matctx->E,*A,*At,Mk,Md;
   PetscReal         *a=pep->pbc,*b=pep->pbc+nmat,*g=pep->pbc+2*nmat;
   PetscScalar       s,ss,*DHii,*T22,*T21,*T12,*Ts,*Tr,*array,*ts,sone=1.0,zero=0.0;
   PetscBLASInt      lds_,lda_,k_;
@@ -372,7 +375,6 @@ static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScal
   const PetscScalar *valsc;
   MatStructure      str;
   Vec               vc,vc0;
-  Mat               Mk,Md;
   PetscBool         flg;
   
   PetscFunctionBegin;
@@ -408,7 +410,7 @@ static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScal
   for (d=2;d<nmat;d++) {
     for (j=0;j<k;j++) {
       for (i=0;i<k;i++) {
-        DHii[d*k+i+j*lda] = ((h-b[d-1])*DHii[(d-1)*k+i+j*lda]+fH[(d-1)*k+i+j*lda]-g[d-1]*DHii[(d-2)*k+i+j*lda])/(a[d-1]);
+        DHii[d*k+i+j*lda] = ((h-b[d-1])*DHii[(d-1)*k+i+j*lda]+fH[(d-1)*k+i+j*lda]-g[d-1]*DHii[(d-2)*k+i+j*lda])/a[d-1];
       }
     }
   }
@@ -515,7 +517,7 @@ static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScal
  
 #undef __FUNCT__
 #define __FUNCT__ "NRefSysSolve_explicit"
-static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScalar *Rh,Vec dVi,PetscScalar *dHi,Matexplicitctx *matctx)
+static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScalar *Rh,Vec dVi,PetscScalar *dHi,MatExplicitCtx *matctx)
 {
   PetscErrorCode ierr;
   PetscInt       n0,m0,n1,m1,i;
@@ -524,7 +526,7 @@ static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScala
   PetscFunctionBegin;
   ierr = MatGetOwnershipRange(matctx->E[1],&n1,&m1);CHKERRQ(ierr);
   ierr = MatGetOwnershipRange(matctx->E[0],&n0,&m0);CHKERRQ(ierr);
-  /* Rigth side */  
+  /* Right side */  
   ierr = VecGetArray(Rv,&array);CHKERRQ(ierr);
   ierr = VecSetValues(matctx->tN,m0-n0,matctx->map0+n0,array,INSERT_VALUES);CHKERRQ(ierr);
   ierr = VecRestoreArray(Rv,&array);CHKERRQ(ierr);
@@ -556,7 +558,7 @@ static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScala
 
 #undef __FUNCT__
 #define __FUNCT__ "NRefSysIter_explicit"
-static PetscErrorCode NRefSysIter_explicit(PetscInt i,PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar *H,PetscInt ldh,Vec Rv,PetscScalar *Rh,BV V,Vec dVi,PetscScalar *dHi,Matexplicitctx *matctx,BV W,PetscScalar *work,PetscInt lwork)
+static PetscErrorCode NRefSysIter_explicit(PetscInt i,PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar *H,PetscInt ldh,Vec Rv,PetscScalar *Rh,BV V,Vec dVi,PetscScalar *dHi,MatExplicitCtx *matctx,BV W,PetscScalar *work,PetscInt lwork)
 {
   PetscErrorCode ierr;
   PetscInt       j,m,lda=pep->nmat*k,n0,m0,idx;
@@ -566,10 +568,10 @@ static PetscErrorCode NRefSysIter_explicit(PetscInt i,PEP pep,PetscInt k,KSP ksp
   PetscFunctionBegin;
   if (!matctx->subc) {
     for (j=0;j<pep->nmat;j++) fh[j] = fH[j*k+i+i*lda];
-    h = H[i+i*ldh];
+    h   = H[i+i*ldh];
     idx = i;
-    R = Rv;
-    Vi = dVi;
+    R   = Rv;
+    Vi  = dVi;
     ierr = NRefSysSetup_explicit(pep,k,ksp,fH,S,lds,fh,h,V,matctx,W,work,lwork);CHKERRQ(ierr);
   } else {
     if (i%matctx->subc->n==0 && (idx=i+matctx->subc->color)<k) {
@@ -585,7 +587,7 @@ static PetscErrorCode NRefSysIter_explicit(PetscInt i,PEP pep,PetscInt k,KSP ksp
     ierr = VecCopy(matctx->t,matctx->Rv);CHKERRQ(ierr);
     ierr = VecResetArray(matctx->t);CHKERRQ(ierr);
     ierr = VecRestoreArray(matctx->tg,&array);CHKERRQ(ierr);
-    R = matctx->Rv;
+    R  = matctx->Rv;
     Vi = matctx->Vi;
   }
   if (idx==i && idx<k) {
@@ -616,7 +618,7 @@ static PetscErrorCode NRefSysIter_explicit(PetscInt i,PEP pep,PetscInt k,KSP ksp
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPNRefForwardSubstitution"
-static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar *S,PetscInt lds,PetscScalar *H,PetscInt ldh,PetscScalar *fH,BV dV,PetscScalar *dVS,PetscScalar *dH,PetscInt lddh,KSP ksp,PetscScalar *work,PetscInt lw,Matexplicitctx *matctx)
+static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar *S,PetscInt lds,PetscScalar *H,PetscInt ldh,PetscScalar *fH,BV dV,PetscScalar *dVS,PetscScalar *dH,PetscInt lddh,KSP ksp,PetscScalar *work,PetscInt lw,MatExplicitCtx *matctx)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,nmat=pep->nmat,lwork=0,nwu=0,lda=nmat*k;
@@ -661,12 +663,12 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
 
     /* Compute and update i-th column of the right hand side */
     ierr = PetscMemzero(Rh,k*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = NRefRightside(nmat,pep->pbc,At,k,pep->V,S,lds,i,H,ldh,fH,DfH,dH,dV,dVS,Rv,Rh,W,t,work+nwu,lwork-nwu);CHKERRQ(ierr);
+    ierr = NRefRightSide(nmat,pep->pbc,At,k,pep->V,S,lds,i,H,ldh,fH,DfH,dH,dV,dVS,Rv,Rh,W,t,work+nwu,lwork-nwu);CHKERRQ(ierr);
 
     /* Update and solve system */
     ierr = BVGetColumn(dV,i,&dvi);CHKERRQ(ierr);
     if (matctx) {
-      ierr =  NRefSysIter_explicit(i,pep,k,ksp,fH,S,lds,fh,H,ldh,Rv,Rh,pep->V,dvi,dH+i*k,matctx,W,work+nwu,lwork-nwu);CHKERRQ(ierr);
+      ierr = NRefSysIter_explicit(i,pep,k,ksp,fH,S,lds,fh,H,ldh,Rv,Rh,pep->V,dvi,dH+i*k,matctx,W,work+nwu,lwork-nwu);CHKERRQ(ierr);
       if (i==0) matctx->computedt11 = PETSC_FALSE;
     } else {
       for (j=0;j<nmat;j++) fh[j] = fH[j*k+i+i*lda];
@@ -712,18 +714,12 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
   ierr = PetscBLASIntCast(2*k,&k2_);CHKERRQ(ierr);
   /* Update H */
   for (j=0;j<k;j++) {
-    for (i=0;i<k;i++) {
-      H[i+j*ldh] -= dH[i+j*k];
-    }
+    for (i=0;i<k;i++) H[i+j*ldh] -= dH[i+j*k];
   }
   /* Update V */
   for (j=0;j<k;j++) {
-    for (i=0;i<k;i++) {
-      dVS[i+j*2*k] = -dVS[i+j*2*k]+S[i+j*lds];
-    }
-    for (i=k;i<2*k;i++) {
-      dVS[i+j*2*k] = -dVS[i+j*2*k];
-    }
+    for (i=0;i<k;i++) dVS[i+j*2*k] = -dVS[i+j*2*k]+S[i+j*lds];
+    for (i=k;i<2*k;i++) dVS[i+j*2*k] = -dVS[i+j*2*k];
   }
   ierr = PetscBLASIntCast(lwork-nwu,&lw_);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&k2_,&k_,dVS,&k2_,tau,work+nwu,&lw_,&info));
@@ -752,7 +748,7 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
   ierr = MatDestroy(&M0);CHKERRQ(ierr);
   ierr = BVAXPY(pep->V,1.0,dV);CHKERRQ(ierr);
 
-  /* Form auxiliar matrix for the orthogonalization step */
+  /* Form auxiliary matrix for the orthogonalization step */
   ierr = PEPEvaluateBasisforMatrix(pep,nmat,k,H,ldh,fH);CHKERRQ(ierr);
   G = fH;
   for (j=0;j<deg;j++) {
@@ -772,7 +768,7 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPNRefSetUpMatrices"
-static PetscErrorCode PEPNRefSetUpMatrices(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,Mat *M,Mat *P,Matexplicitctx *matctx,PetscBool ini)
+static PetscErrorCode PEPNRefSetUpMatrices(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,Mat *M,Mat *P,MatExplicitCtx *matctx,PetscBool ini)
 {
   PetscErrorCode  ierr;
   FSubctx         *ctx;
@@ -821,7 +817,7 @@ static PetscErrorCode PEPNRefSetUpMatrices(PEP pep,PetscInt k,PetscScalar *H,Pet
       ierr = MatGetOwnershipRangeColumn(E[0],&n0_,&m0_);CHKERRQ(ierr);
       ierr = MatGetOwnershipRangeColumn(E[1],&n1_,&m1_);CHKERRQ(ierr);
       /* T12 and T21 are computed from V and V*, so,
-      they must have the same column and row ranges */
+         they must have the same column and row ranges */
       if (m0_-n0_ != m0-n0) SETERRQ(PETSC_COMM_SELF,1,"Inconsistent dimensions");
       ierr = MatCreateDense(comm,m0-n0,m1_-n1_,PETSC_DECIDE,PETSC_DECIDE,NULL,&B);CHKERRQ(ierr);
       ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
@@ -933,7 +929,7 @@ static PetscErrorCode PEPNRefSetUpMatrices(PEP pep,PetscInt k,PetscScalar *H,Pet
 
 #undef __FUNCT__
 #define __FUNCT__ "NRefSubcommSetup"
-static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,Matexplicitctx *matctx,PetscInt nsubc)
+static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx,PetscInt nsubc)
 {
   PetscErrorCode ierr;
   PetscInt       i,si,j,m0,n0,nloc0,nloc_sub,*idx1,*idx2;
@@ -975,7 +971,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,Matexplicitctx *matctx
   j = 0;
   for (si=0;si<matctx->subc->n;si++) {
     for (i=n0;i<m0;i++) {
-      idx1[j] = i;
+      idx1[j]   = i;
       idx2[j++] = i+pep->n*si;
     }
   }
@@ -1026,7 +1022,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,Matexplicitctx *matctx
 
 #undef __FUNCT__
 #define __FUNCT__ "NRefSubcommDestroy"
-PetscErrorCode NRefSubcommDestroy(PEP pep,Matexplicitctx *matctx)
+PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -1065,10 +1061,10 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
   BV             dV;
   PetscBool      sinvert,flg;
   Mat            P,M;
-  MPI_Comm       comm=NULL;
+  MPI_Comm       comm;
   FSubctx        *ctx;
   KSP            ksp;
-  Matexplicitctx *matctx=NULL;
+  MatExplicitCtx *matctx=NULL;
   Vec            v;
 
   PetscFunctionBegin;
@@ -1099,7 +1095,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
       pep->st->ops->backtransform = NULL;
     }
   }
-  if ( (pep->scale==PEP_SCALE_BOTH || pep->scale==PEP_SCALE_SCALAR) && pep->sfactor!=1) {
+  if ((pep->scale==PEP_SCALE_BOTH || pep->scale==PEP_SCALE_SCALAR) && pep->sfactor!=1.0) {
     ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     for (j=0;j<k;j++) {
       for (i=0;i<k;i++) H[i+j*ldh] *= pep->sfactor;
@@ -1146,9 +1142,11 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
     if (nsubc>1) { /* spliting in subcommunicators */
       ierr = NRefSubcommSetup(pep,k,matctx,nsubc);CHKERRQ(ierr);
       comm = matctx->subc->comm;
-    } else matctx->subc=NULL;
-  }
-  if (!comm) {
+    } else {
+      matctx->subc=NULL;
+      ierr = PetscObjectGetComm((PetscObject)pep,&comm);CHKERRQ(ierr);
+    }
+  } else {
     ierr = PetscObjectGetComm((PetscObject)pep,&comm);CHKERRQ(ierr);
   }
   ierr = KSPCreate(comm,&ksp);
@@ -1163,7 +1161,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
     }
     /* Solve the linear system */
     ierr = PEPNRefForwardSubstitution(pep,k,S,lds,H,ldh,fH,dV,dVS,dH,k,ksp,work+nwu,lwa-nwu,matctx);CHKERRQ(ierr);
-    /* Updates X (=V*S) and H, and orthogonalizes [X;X*fH1;...;XfH(deg-1)] */
+    /* Update X (=V*S) and H, and orthogonalize [X;X*fH1;...;XfH(deg-1)] */
     ierr = PEPNRefUpdateInvPair(pep,k,H,ldh,fH,dH,S,lds,dV,dVS,work+nwu,lwa-nwu);CHKERRQ(ierr);    
   }
   ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);  
