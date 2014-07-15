@@ -51,7 +51,7 @@ typedef struct {
   PetscInt size_X;
   KSP ksp;                /* correction equation solver */
   Vec friends;            /* reference vector for composite vectors */
-  PetscScalar theta[2], thetai[1];
+  PetscScalar theta[4], thetai[2];
                           /* the shifts used in the correction eq. */
   PetscInt maxits,        /* maximum number of iterations */
     r_s, r_e,             /* the selected eigenpairs to improve */
