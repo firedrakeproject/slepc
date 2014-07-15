@@ -802,6 +802,9 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_complex_rayleigh_quotient(Vec ur,Vec ui,V
   PetscScalar     rAr,iAr,rAi,iAi,rBr,iBr,rBi,iBi,b0,b2,b4,b6,b7;
 
   PetscFunctionBegin;
+  /* eigr = [(rAr+iAi)*(rBr+iBi) + (rAi-iAr)*(rBi-iBr)]/k
+     eigi = [(rAi-iAr)*(rBr+iBi) - (rAr+iAi)*(rBi-iBr)]/k
+     k    =  (rBr+iBi)*(rBr+iBi) + (rBi-iBr)*(rBi-iBr)    */
   ierr = VecDotBegin(Axr,ur,&rAr);CHKERRQ(ierr); /* r*A*r */
   ierr = VecDotBegin(Axr,ui,&iAr);CHKERRQ(ierr); /* i*A*r */
   ierr = VecDotBegin(Axi,ur,&rAi);CHKERRQ(ierr); /* r*A*i */
@@ -841,9 +844,6 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,Pets
 #if !defined(PETSC_USE_COMPLEX)
     if (eigi[i_s+i] != 0.0) {
       PetscScalar eigr0=0.0,eigi0=0.0;
-      /* eig_r = [(rAr+iAi)*(rBr+iBi) + (rAi-iAr)*(rBi-iBr)]/k \
-         eig_i = [(rAi-iAr)*(rBr+iBi) - (rAr+iAi)*(rBi-iBr)]/k \
-         k     =  (rBr+iBi)*(rBr+iBi) + (rBi-iBr)*(rBi-iBr)    */ \
       ierr = dvd_complex_rayleigh_quotient(u[i],u[i+1],Ax[i],Ax[i+1],Bx[i],Bx[i+1],&eigr0,&eigi0);CHKERRQ(ierr);
       if (PetscAbsScalar(eigr[i_s+i]-eigr0)/PetscAbsScalar(eigr[i_s+i]) > 1e-10 || PetscAbsScalar(eigi[i_s+i]-eigi0)/PetscAbsScalar(eigi[i_s+i]) > 1e-10) {
         ierr = PetscInfo4(u[0], "The eigenvalue %g+%g is far from its Rayleigh quotient value %g+%g\n",(double)eigr[i_s+i],(double)eigi[i_s+i],(double)eigr0,(double)eigi0);
