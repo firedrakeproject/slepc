@@ -46,6 +46,7 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,
 PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d);
 PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,PetscInt kA,Mat aux);
 PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,BV bv,DSMatType MT);
+PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d);
 
 /**** Control routines ********************************************************/
 #undef __FUNCT__
@@ -122,9 +123,14 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
     if (!std_probl) {
       ierr = MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&d->G);CHKERRQ(ierr);
     } else d->G = NULL;
+    if (her_probl) {
+      ierr = MatSetOption(d->H,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
+      if (d->G) {ierr = MatSetOption(d->G,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);}
+    }
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&d->auxM);CHKERRQ(ierr);
 
     ierr = EPSDavidsonFLAdd(&d->startList,dvd_calcpairs_qz_start);CHKERRQ(ierr);
+    ierr = EPSDavidsonFLAdd(&d->endList,EPSXDComputeDSConv);CHKERRQ(ierr);
     ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_calcpairs_qz_d);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -253,7 +259,6 @@ PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
 PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
-  PetscBool       symm;
   Mat             Q,Z;
   PetscInt        lV,kV;
 
@@ -266,29 +271,6 @@ PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
   if (d->G) {ierr = EPSXDUpdateProj(Q,Z,0,d->G,lV,lV+d->V_tra_e,d->auxM);CHKERRQ(ierr);}
   ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   if (d->W) {ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);}
-
-  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSHEP,"");CHKERRQ(ierr);
-  if (d->V_tra_s==0 || symm) PetscFunctionReturn(0);
-  /* Compute upper part of H(G): H(0:l-1,l:k-1) <- W(0:l-1)' * AV(l:k-1), where
-     k=l+d->V_tra_s */
-  ierr = BVSetActiveColumns(d->W?d->W:d->eps->V,0,lV);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(d->AX,lV,lV+d->V_tra_s);CHKERRQ(ierr);
-  ierr = BVMatProject(d->AX,NULL,d->W?d->W:d->eps->V,d->H);CHKERRQ(ierr);
-  if (d->G) {
-    ierr = BVSetActiveColumns(d->BX?d->BX:d->eps->V,lV,lV+d->V_tra_s);CHKERRQ(ierr);
-    ierr = BVMatProject(d->BX?d->BX:d->eps->V,NULL,d->W?d->W:d->eps->V,d->G);CHKERRQ(ierr);
-  }
-  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSGHEP,"");CHKERRQ(ierr);
-  if (!symm) {
-    /* H(l:k-1,0:l-1) = G(...) = 0 */
-    ierr = MatZeroEntries(d->auxM);CHKERRQ(ierr);
-    ierr = SlepcMatDenseCopy(d->auxM,0,0,d->H,lV,0,d->V_tra_s,lV);CHKERRQ(ierr);
-    if (d->G) {ierr = SlepcMatDenseCopy(d->auxM,0,0,d->G,lV,0,d->V_tra_s,lV);CHKERRQ(ierr);}
-  }
-  ierr = BVSetActiveColumns(d->eps->V,lV,kV);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(d->AX,lV,kV);CHKERRQ(ierr);
-  if (d->BX) {ierr = BVSetActiveColumns(d->BX,lV,kV);CHKERRQ(ierr);}
-  if (d->W) {ierr = BVSetActiveColumns(d->W,lV,kV);CHKERRQ(ierr);}
   PetscFunctionReturn(0);
 }
 
@@ -435,6 +417,37 @@ PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n)
   if (d->eps->arbitrary || d->calcpairs_eig_backtrans) {
     ierr = PetscFree(rr);CHKERRQ(ierr);
     ierr = PetscFree(ri);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSXDComputeDSConv"
+PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  Mat            A;
+  PetscBool      symm;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSHEP,"");CHKERRQ(ierr);
+  if (symm) PetscFunctionReturn(0);
+  ierr = DSSetDimensions(d->eps->ds,d->eps->nconv,0,0,0);CHKERRQ(ierr);
+  ierr = DSGetMat(d->eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = SlepcMatDenseCopy(d->H,0,0,A,0,0,d->eps->nconv,d->eps->nconv);CHKERRQ(ierr);
+  ierr = DSRestoreMat(d->eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  if (d->G) {
+    ierr = DSGetMat(d->eps->ds,DS_MAT_B,&A);CHKERRQ(ierr);
+    ierr = SlepcMatDenseCopy(d->G,0,0,A,0,0,d->eps->nconv,d->eps->nconv);CHKERRQ(ierr);
+    ierr = DSRestoreMat(d->eps->ds,DS_MAT_B,&A);CHKERRQ(ierr);
+  }
+  ierr = DSSetState(d->eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSSolve(d->eps->ds,d->eps->eigr,d->eps->eigi);CHKERRQ(ierr);
+  if (d->W) {
+    for (i=0; i<d->eps->nconv; i++) {
+      ierr = d->calcpairs_eig_backtrans(d,d->eps->eigr[i],d->eps->eigi[i],&d->eps->eigr[i],&d->eps->eigi[i]);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
