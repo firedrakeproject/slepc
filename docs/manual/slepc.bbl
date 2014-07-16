@@ -16,12 +16,12 @@ Bai, Z., J.~Demmel, J.~Dongarra, A.~Ruhe, and H.~van~der Vorst (eds.) (2000).
   Practical Guide\/}.
 \newblock Society for Industrial and Applied Mathematics, Philadelphia, PA.
 
-\bibitem[{Balay {\em et~al.\/}(2013)Balay, Brown, Buschelman, Eijkhout, Gropp,
-  Kaushik, Knepley, McInnes, Smith, and Zhang}]{Balay:2013:PUM}
-Balay, S., J.~Brown, K.~Buschelman, V.~Eijkhout, W.~Gropp, D.~Kaushik,
-  M.~Knepley, L.~C. McInnes, B.~Smith, and H.~Zhang (2013).
+\bibitem[{Balay {\em et~al.\/}(2014)Balay, Abhyankar, Adams, Brown, Brune, Buschelman,
+  Eijkhout, Gropp, Kaushik, Knepley, McInnes, Rupp, Smith, and Zhang}]{Balay:2014:PUM}
+Balay, S., S.~Abhyankar, M.~Adams, J.~Brown, P.~Brune, K.~Buschelman, V.~Eijkhout,
+  W.~Gropp, D.~Kaushik, M.~Knepley, L.~C. McInnes, K.~Rupp, B.~Smith, and H.~Zhang (2014).
 \newblock {PETSc} Users Manual.
-\newblock Technical Report ANL-95/11 - Revision 3.4, Argonne National
+\newblock Technical Report ANL-95/11 - Revision 3.5, Argonne National
   Laboratory.
 
 \bibitem[{Balay {\em et~al.\/}(1997)Balay, Gropp, McInnes, and

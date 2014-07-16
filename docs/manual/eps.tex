@@ -67,7 +67,7 @@ where $h_{i,j}$ are the scalar coefficients obtained in the Gram-Schmidt orthogo
 
 	The \ident{EPS} module in \slepc is used in a similar way as \petsc modules such as \ident{KSP}. All the information related to an eigenvalue problem is handled via a context variable. The usual object management functions are available (\ident{EPSCreate}, \ident{EPSDestroy}, \ident{EPSView}, \ident{EPSSetFromOptions}). In addition, the \ident{EPS} object provides functions for setting several parameters such as the number of eigenvalues to compute, the dimension of the subspace, the portion of the spectrum of interest, the requested tolerance or the maximum number of iterations allowed.
 
-	The solution of the problem is obtained in several steps. First of all, the matrices associated to the eigenproblem are specified via \ident{EPSSetOperators} and \ident{EPSSetProblemType} is used to specify the type of problem. Then, a call to \ident{EPSSolve} is done that invokes the subroutine for the selected eigensolver. \ident{EPSGetConverged} can be used afterwards to determine how many of the requested eigenpairs have converged to working accuracy. \ident{EPSGetEigenpair} is finally used to retrieve the eigenvalues and eigenvectors.
+	The solution of the problem is obtained in several steps. First of all, the matrices associated with the eigenproblem are specified via \ident{EPSSetOperators} and \ident{EPSSetProblemType} is used to specify the type of problem. Then, a call to \ident{EPSSolve} is done that invokes the subroutine for the selected eigensolver. \ident{EPSGetConverged} can be used afterwards to determine how many of the requested eigenpairs have converged to working accuracy. \ident{EPSGetEigenpair} is finally used to retrieve the eigenvalues and eigenvectors.
 
 	In order to illustrate the basic functionality of the \ident{EPS} package, a simple example is shown in Figure \ref{fig:ex-eps}. The example code implements the solution of a simple standard eigenvalue problem. Code for setting up the matrix $A$ is not shown and error-checking code is omitted.
 
@@ -102,7 +102,7 @@ EPSDestroy( &eps );
 	\end{Verbatim}
 	Here \texttt{comm} is the MPI communicator, and \texttt{eps} is the newly formed solver context. The communicator indicates which processes are involved in the \ident{EPS} object. Most of the \ident{EPS} operations are collective, meaning that all the processes collaborate to perform the operation in parallel. 
 
-	Before actually solving an eigenvalue problem with \ident{EPS}, the user must specify the matrices associated to the problem, as in line 9, with the following routine
+	Before actually solving an eigenvalue problem with \ident{EPS}, the user must specify the matrices associated with the problem, as in line 9, with the following routine
 	\findex{EPSSetOperators}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetOperators(EPS eps,Mat A,Mat B);
@@ -124,7 +124,7 @@ EPSDestroy( &eps );
 	\end{Verbatim}
 	The subroutine that is actually invoked depends on which solver has been selected by the user. 
         
-        After the call to \ident{EPSSolve} has finished, all the data associated to the solution of the eigenproblem is kept internally. This information can be retrieved with different function calls, as in lines 13 to 17. This part is described in detail in \S\ref{sec:retrsol}.
+        After the call to \ident{EPSSolve} has finished, all the data associated with the solution of the eigenproblem is kept internally. This information can be retrieved with different function calls, as in lines 13 to 17. This part is described in detail in \S\ref{sec:retrsol}.
 
 	Once the \ident{EPS} context is no longer needed, it should be destroyed with the command
 	\findex{EPSDestroy}
@@ -370,7 +370,7 @@ Method   & \texttt{ncv} & \texttt{max\_it} & Storage \\ \hline
 \section{Retrieving the Solution}
 \label{sec:retrsol}
 
-Once the call to \ident{EPSSolve} is complete, all the data associated to the solution of the eigenproblem is kept internally in the \ident{EPS} object. This information can be obtained by the calling program by means of a set of functions described in this section.
+Once the call to \ident{EPSSolve} is complete, all the data associated with the solution of the eigenproblem is kept internally in the \ident{EPS} object. This information can be obtained by the calling program by means of a set of functions described in this section.
 
 	As explained below, the number of computed solutions depends on the convergence and, therefore, it may be different from the number of solutions requested by the user. So the first task is to find out how many solutions are available, with
 	\findex{EPSGetConverged}
@@ -455,7 +455,7 @@ The way in which it is relativized is the same as the one used for convergence c
 	\end{Verbatim}
 which returns in argument \texttt{its} either the iteration number at which convergence was successfully reached, or the iteration at which a problem was detected. 
 
-The user specifies when a solution should be considered sufficiently accurate by means of a tolerance. An approximate eigenvalue is considered to be converged if the error estimate associated to it is below the specified tolerance. The default value of the tolerance is $10^{-8}$ and can be changed at run time with \Verb!-eps_tol <tol>! or inside the program with the function
+The user specifies when a solution should be considered sufficiently accurate by means of a tolerance. An approximate eigenvalue is considered to be converged if the error estimate associated with it is below the specified tolerance. The default value of the tolerance is $10^{-8}$ and can be changed at run time with \Verb!-eps_tol <tol>! or inside the program with the function
 	\findex{EPSSetTolerances}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetTolerances(EPS eps,PetscReal tol,PetscInt max_it);
@@ -584,7 +584,7 @@ $$l_{ij}=\left\{\begin{array}{cl}
          -1 & \mathrm{if}\;e_{ij}\in E\\
          0&\mathrm{otherwise}
 \end{array}\right.$$
-where $d(v_i)$ is the degree of vertex $v_i$. This matrix is singular since all row sums are equal to zero. The constant vector is an eigenvector with zero eigenvalue, and if the graph is connected then all other eigenvalues are positive. The so-called Fiedler vector is the eigenvector associated to the smallest nonzero eigenvalue and can be used in heuristics for a number of graph manipulations such as partitioning. One possible way of computing this vector with \slepc is to instruct the eigensolver to search for the smallest eigenvalue (with \ident{EPSSetWhichEigenpairs} or by using a spectral transformation as described in next chapter) but preventing it from computing the already known eigenvalue. For this, the user must provide a basis for the invariant subspace (in this case just vector $[1,1,\ldots,1]^T$) so that the eigensolver can \emph{deflate} this subspace. This process is very similar to what eigensolvers normally do with invariant subspaces associated to eigenvalues as they converge. In other words, when a deflation space has been specified, the eigensolver works with the restriction of the problem to the orthogonal complement of this subspace.
+where $d(v_i)$ is the degree of vertex $v_i$. This matrix is singular since all row sums are equal to zero. The constant vector is an eigenvector with zero eigenvalue, and if the graph is connected then all other eigenvalues are positive. The so-called Fiedler vector is the eigenvector associated with the smallest nonzero eigenvalue and can be used in heuristics for a number of graph manipulations such as partitioning. One possible way of computing this vector with \slepc is to instruct the eigensolver to search for the smallest eigenvalue (with \ident{EPSSetWhichEigenpairs} or by using a spectral transformation as described in next chapter) but preventing it from computing the already known eigenvalue. For this, the user must provide a basis for the invariant subspace (in this case just vector $[1,1,\ldots,1]^T$) so that the eigensolver can \emph{deflate} this subspace. This process is very similar to what eigensolvers normally do with invariant subspaces associated with eigenvalues as they converge. In other words, when a deflation space has been specified, the eigensolver works with the restriction of the problem to the orthogonal complement of this subspace.
 
 	The following function can be used to provide the \ident{EPS} object with some basis vectors corresponding to a subspace that should be deflated during the solution process. 
 	\findex{EPSSetDeflationSpace}

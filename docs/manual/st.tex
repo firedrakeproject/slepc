@@ -40,7 +40,7 @@ As explained in the previous chapter, \ident{EPS} contains preconditioned eigens
 	EPSGetST(EPS eps,ST *st);
 	\end{Verbatim}
 	
-	After this, one is able to set any options associated to the \ident{ST} object. For example, to set the value of the shift, the following function is available
+	After this, one is able to set any options associated with the \ident{ST} object. For example, to set the value of the shift, the following function is available
 	\findex{STSetShift}
 	\begin{Verbatim}[fontsize=\small]
 	STSetShift(ST st,PetscScalar shift);
@@ -241,7 +241,7 @@ Using the \ident{ST} object is very straightforward. However, when using spectra
 \begin{Verbatim}[fontsize=\small]
 	$ ./program
 \end{Verbatim}
-In this case, the \ident{ST} object associated to the \ident{EPS} solver creates a \ident{KSP} object whose coefficient matrix is $B$. By default, this \ident{KSP} object is set to use a direct solver\footnote{This is the default since \slepc 3.0.0.}, in particular an LU factorization. However, default settings can be changed, as illustrated below.
+In this case, the \ident{ST} object associated with the \ident{EPS} solver creates a \ident{KSP} object whose coefficient matrix is $B$. By default, this \ident{KSP} object is set to use a direct solver\footnote{This is the default since \slepc 3.0.0.}, in particular an LU factorization. However, default settings can be changed, as illustrated below.
 
 	The following command-line is equivalent to the previous one\footnote{More precisely, the equivalent command would use the \texttt{redundant} \texttt{PC} in order to work in parallel.}:
 \begin{Verbatim}[fontsize=\small]
@@ -298,7 +298,7 @@ If this happens, it is necessary to use a direct method for solving the linear s
 \subsection{Explicit Computation of Coefficient Matrix}
 \label{sec:explicit}
 
-	Three possibilities can be distinguished regarding the form of the coefficient matrix of the linear systems of equations associated to the different spectral transformations. The possible coefficient matrices are:
+	Three possibilities can be distinguished regarding the form of the coefficient matrix of the linear systems of equations associated with the different spectral transformations. The possible coefficient matrices are:
 	\begin{itemize}
 	\item Simple: $B$.
 	\item Shifted: $A-\sigma I$.
@@ -429,12 +429,14 @@ The \slepc interface hides all the complications of the algorithm. However, the 
 
 An example command-line that sets up all the required options is:
 \begin{Verbatim}[fontsize=\small]
-	$ ./ex13 -eps_interval 0.4,0.8 -st_ksp_type preonly -st_pc_type cholesky
+	$ ./ex13 -eps_interval 0.4,0.8 -st_type sinvert
+                 -st_ksp_type preonly -st_pc_type cholesky
 \end{Verbatim}
 
 Note that \petsc's Cholesky factorization is not parallel, so for doing spectrum slicing in parallel it is required to use an external solver that supports inertia, e.g., MUMPS (see \S\ref{sec:lin} on how to use external linear solvers):
 \begin{Verbatim}[fontsize=\small]
-	$ ./ex13 -eps_interval 0.4,0.8 -st_ksp_type preonly -st_pc_type cholesky
+	$ ./ex13 -eps_interval 0.4,0.8 -st_type sinvert
+                 -st_ksp_type preonly -st_pc_type cholesky
                  -st_pc_factor_mat_solver_package mumps -mat_mumps_icntl_13 1
 \end{Verbatim}
 The last option is required by MUMPS to compute the inertia.
