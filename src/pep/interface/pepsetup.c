@@ -350,7 +350,7 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep)
   PetscInt       dim;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompareAny((PetscObject)pep,&krylov,PEPTOAR,PEPQARNOLDI,PEPSTOAR,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)pep,&krylov,PEPTOAR,PEPQARNOLDI,"");CHKERRQ(ierr);
   dim = krylov?(pep->nmat-1)*pep->n:pep->n;
   if (pep->ncv) { /* ncv set */
     if (krylov) {
