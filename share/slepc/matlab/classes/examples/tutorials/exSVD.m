@@ -32,7 +32,7 @@ if ~exist('PetscInitialize','file')
   if isempty(PETSC_DIR)
     error('Must set environment variable PETSC_DIR or add the appropriate dir to Matlab path')
   end
-  path(path,[PETSC_DIR '/bin/matlab/classes'])
+  path(path,[PETSC_DIR '/share/petsc/matlab/classes'])
 end
 SlepcInitialize({'-malloc','-malloc_debug','-malloc_dump'});
 

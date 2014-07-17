@@ -32,7 +32,7 @@ if ~exist('PetscInitialize','file')
   if isempty(PETSC_DIR)
     error('Must set environment variable PETSC_DIR or add the appropriate dir to Matlab path')
   end
-  path(path,[PETSC_DIR '/bin/matlab/classes'])
+  path(path,[PETSC_DIR '/share/petsc/matlab/classes'])
 end
 SlepcInitialize({'-malloc','-malloc_debug','-malloc_dump'});
 
@@ -43,11 +43,11 @@ SLEPC_DIR = getenv('SLEPC_DIR');
 viewer = PetscViewer([SLEPC_DIR '/share/slepc/datafiles/matrices/bfw62a.petsc'],Petsc.FILE_MODE_READ);
 A = PetscMat();
 A.Load(viewer);
-viewer.Destroy;
+viewer.Destroy();
 viewer = PetscViewer([SLEPC_DIR '/share/slepc/datafiles/matrices/bfw62b.petsc'],Petsc.FILE_MODE_READ);
 B = PetscMat();
 B.Load(viewer);
-viewer.Destroy;
+viewer.Destroy();
 
 %%
 %  Create the eigensolver, pass the matrices and solve the problem
