@@ -267,7 +267,7 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
       errok = PETSC_TRUE;
       for (i=0;i<eps->nev;i++) {
         ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
-        errok = (errok && error<eps->tol)? PETSC_TRUE: PETSC_FALSE;
+        errok = (errok && error<5.0*eps->tol)? PETSC_TRUE: PETSC_FALSE;
       }
       if (errok) {
         ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);

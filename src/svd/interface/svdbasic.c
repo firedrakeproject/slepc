@@ -165,7 +165,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
       errok = PETSC_TRUE;
       for (i=0;i<svd->nsv;i++) {
         ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
-        errok = (errok && error<svd->tol)? PETSC_TRUE: PETSC_FALSE;
+        errok = (errok && error<5.0*svd->tol)? PETSC_TRUE: PETSC_FALSE;
       }
       if (errok) {
         ierr = PetscViewerASCIIPrintf(viewer," All requested singular values computed up to the required tolerance:");CHKERRQ(ierr);
