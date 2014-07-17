@@ -131,7 +131,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   PetscScalar    *coeffs=pep->solvematcoeffs;
 
   PetscFunctionBegin;
-  ierr = PEPSetDimensions_Default(pep);CHKERRQ(ierr);
+  ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!pep->max_it) pep->max_it = PetscMax(100,(pep->nmat-1)*pep->n/pep->ncv); 
   if (!pep->which) {
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
