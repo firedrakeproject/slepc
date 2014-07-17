@@ -33,7 +33,7 @@
   pdfkeywords={SLEPc, PETSc, eigenvalue problems}
 }
 
-\newcommand{\slepcversion}{3.4}
+\newcommand{\slepcversion}{3.5}
 \newcommand{\slepchome}{http://www.grycap.upv.es/slepc}
 \newcommand{\pack}[1]{{\sc #1}\index{\textsc{#1}}\xspace}
 \newcommand{\packnoi}[1]{{\sc #1}\xspace}
@@ -112,7 +112,7 @@
 
 \date{
 	To be used with \slepc \slepcversion\\
-	July, 2013
+	July, 2014
 }
 
 {
@@ -139,7 +139,7 @@
 
 	The emphasis of the software is on methods and techniques appropriate for problems in which the associated matrices are large and sparse, for example, those arising after the discretization of partial differential equations. Thus, most of the methods offered by the library are projection methods, including different variants of Krylov and Davidson iterations. In addition to its own solvers, \slepc provides transparent access to some external software packages such as \packnoi{arpack}. These packages are optional and their installation is not required to use \slepc, see \S\ref{sec:wrap} for details. Apart from the solvers, \slepc also provides built-in support for some operations commonly used in the context of eigenvalue computations, such as preconditioning or the shift-and-invert spectral transformation.
 
-	\slepc is built on top of \packnoi{pets\rm c}, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:2013:PUM}. It can be considered an extension of \packnoi{pets\rm c} providing all the functionality necessary for the solution of eigenvalue problems. This means that \packnoi{pets\rm c} must be previously installed in order to use \slepc. \packnoi{pets\rm c} users will find \slepc very easy to use, since it enforces the same programming paradigm. Those readers that are not acquainted with \packnoi{pets\rm c} are highly recommended to familiarize with it before proceeding with \slepc.
+	\slepc is built on top of \packnoi{pets\rm c}, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:2014:PUM}. It can be considered an extension of \packnoi{pets\rm c} providing all the functionality necessary for the solution of eigenvalue problems. This means that \packnoi{pets\rm c} must be previously installed in order to use \slepc. \packnoi{pets\rm c} users will find \slepc very easy to use, since it enforces the same programming paradigm. Those readers that are not acquainted with \packnoi{pets\rm c} are highly recommended to familiarize with it before proceeding with \slepc.
 
 
 \subsubsection*{How to Get \slepc}
@@ -167,9 +167,7 @@
 The major changes in the Users Manual with respect to the previous version are:
 \begin{itemize}
 \setlength{\itemsep}{-2pt}
-\item Added chapter \ref{cap:nep} for nonlinear eigenvalue problems.
-\item Added chapter \ref{cap:mfn} for matrix functions.
-\item Added section \ref{sec:qst} on spectral transformation for quadratic eigenproblems.
+\item Modified chapter \ref{cap:pep} to cover polynomial eigenvalue problems instead of just quadratic eigenvalue problems.
 \end{itemize}
 
 \subsubsection*{\slepc Technical Reports}
@@ -181,7 +179,7 @@ The major changes in the Users Manual with respect to the previous version are:
 
 	We thank all the \packnoi{pets\rm c} team for their help and support. Without their continued effort invested in \packnoi{pets\rm c}, \slepc would not have been possible. We also thank Osni Marques and Tony Drummond for helping us raise awareness of \slepc in the context of the ACTS project.
 
-	The current version contains code contributed by: Tetsuya Sakurai.
+	The current version contains code contributed by: Y.\ Maeda, T.\ Sakurai (CISS solver), M.\ Moldaschl, W.\ Gansterer (BDC subroutines).
 
 	Development of \slepc has been partially funded by the following grants:
 \begin{itemize}
@@ -197,7 +195,7 @@ Starting from version 3.0.0, \slepc is released under the GNU LGPL license. Deta
 
 \begin{quote}
 \begin{sffamily}
-Copyright 2002--2013 Universidad Polit\'ecnica de Valencia, Spain
+Copyright 2002--2014 Universidad Polit\'ecnica de Valencia, Spain
 \end{sffamily}
 \end{quote}
 
@@ -213,8 +211,8 @@ The following table provides an overview of the functionality offered by \slepc,
 {\small \begin{tabular}{lccc}
 Problem class                 & Model equation  & Module       & Chapter \\\hline
 Linear eigenvalue problem     & $Ax=\lambda x,\quad Ax=\lambda Bx$ & \texttt{EPS} & \ref{cap:eps} \\
-Quadratic eigenvalue problem  & $(\lambda^2M+\lambda C+K)x=0$ & \texttt{QEP} & \ref{cap:qep} \\
-Polynomial eigenvalue problem & $(\lambda^dA_d+\cdots+\lambda A_1+A_0)x=0$ & -- & -- \\
+Quadratic eigenvalue problem  & $(K+\lambda C+\lambda^2M)x=0$ & -- & -- \\
+Polynomial eigenvalue problem & $(A_0+\lambda A_1+\cdots+\lambda^dA_d)x=0$ & \texttt{PEP} & \ref{cap:pep} \\
 Nonlinear eigenvalue problem  & $T(\lambda)x=0$ & \texttt{NEP} & \ref{cap:nep} \\\hline
 Singular value decomposition  & $Av=\sigma u$   & \texttt{SVD} & \ref{cap:svd} \\
 Matrix function (action of)   & $y=f(A)v$   & \texttt{MFN} & \ref{cap:mfn} \\\hline
@@ -228,8 +226,8 @@ Matrix function (action of)   & $y=f(A)v$   & \texttt{MFN} & \ref{cap:mfn} \\\hl
 \setlength{\itemsep}{-2pt}
 \item Most users are typically interested in linear eigenproblems only.
 \item In each problem class there may exist several subclasses (problem types in \slepc terminology), for instance symmetric-definite generalized eigenproblem in \texttt{EPS}.
-\item There are no polynomial eigensolvers available yet. For future releases, we foresee having a \texttt{PEP} module replacing \texttt{QEP}.
 \item The solver class (module) is named after the problem class. For historical reasons, the one for linear eigenvalue problems is called \texttt{EPS} rather than \texttt{LEP}.
+\item In previous \slepc versions there was a \texttt{QEP} module for quadratic eigenproblems. It has been replaced by \texttt{PEP}. See \S\ref{sec:qeppep} for upgrading application code that used \texttt{QEP}.
 \item For the action of a matrix function (\texttt{MFN}), in \slepc we focus on methods that are closely related to methods for eigenvalue problems.
 \end{itemize}
 
@@ -253,7 +251,7 @@ Matrix function (action of)   & $y=f(A)v$   & \texttt{MFN} & \ref{cap:mfn} \\\hl
 \include{eps}
 \include{st}
 \include{svd}
-\include{qep}
+\include{pep}
 \include{nep}
 \include{mfn}
 \include{extra}

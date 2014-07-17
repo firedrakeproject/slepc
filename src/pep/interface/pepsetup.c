@@ -146,9 +146,6 @@ PetscErrorCode PEPSetUp(PEP pep)
       break;
   }
 
-  if (pep->ncv > pep->n) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be the problem size at most");
-  if (pep->nev > pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
-
   /* setup ST */
   if (!islinear) {
     ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
@@ -353,7 +350,7 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep)
   PetscInt       dim;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompareAny((PetscObject)pep,&krylov,PEPTOAR,PEPQARNOLDI,PEPSTOAR,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)pep,&krylov,PEPTOAR,PEPQARNOLDI,"");CHKERRQ(ierr);
   dim = krylov?(pep->nmat-1)*pep->n:pep->n;
   if (pep->ncv) { /* ncv set */
     if (krylov) {

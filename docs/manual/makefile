@@ -5,7 +5,7 @@ DOC_TEX	= slepc.tex \
 	eps.tex \
 	st.tex \
 	svd.tex \
-	qep.tex \
+	pep.tex \
 	nep.tex \
 	mfn.tex \
 	extra.tex

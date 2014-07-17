@@ -596,31 +596,12 @@ PetscErrorCode EPSXDGetMethod_XD(EPS eps,Method_t *method)
 PetscErrorCode EPSComputeVectors_XD(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
-  dvdDashboard   *d = &data->ddb;
-  PetscInt       i;
-  Mat            A,X;
+  Mat            X;
   PetscBool      symm;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompareAny((PetscObject)eps->ds,&symm,DSHEP,"");CHKERRQ(ierr);
   if (symm) PetscFunctionReturn(0);
-  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSGetMat(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = SlepcMatDenseCopy(d->H,0,0,A,0,0,eps->nconv,eps->nconv);CHKERRQ(ierr);
-  ierr = DSRestoreMat(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  if (d->G) {
-    ierr = DSGetMat(eps->ds,DS_MAT_B,&A);CHKERRQ(ierr);
-    ierr = SlepcMatDenseCopy(d->G,0,0,A,0,0,eps->nconv,eps->nconv);CHKERRQ(ierr);
-    ierr = DSRestoreMat(eps->ds,DS_MAT_B,&A);CHKERRQ(ierr);
-  }
-  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
-  ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-  if (d->W) {
-    for (i=0; i<eps->nconv; i++) {
-      ierr = d->calcpairs_eig_backtrans(d,eps->eigr[i],eps->eigi[i],&eps->eigr[i],&eps->eigi[i]);CHKERRQ(ierr);
-    }
-  }
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSNormalize(eps->ds,DS_MAT_X,-1);CHKERRQ(ierr);
 

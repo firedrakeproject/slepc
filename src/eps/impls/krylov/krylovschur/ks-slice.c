@@ -168,18 +168,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   eps->nev = sr->numEigs;
   eps->ncv = sr->numEigs;
   eps->mpd = sr->numEigs;
-  if (ctx->ncv) { /* ncv set */
-    if (ctx->ncv<ctx->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
-  } else if (ctx->mpd) { /* mpd set */
-    ctx->ncv = PetscMin(eps->n,ctx->nev+ctx->mpd);
-  } else { /* neither set: defaults depend on nev being small or large */
-    if (ctx->nev<500) ctx->ncv = PetscMin(eps->n,PetscMax(2*ctx->nev,ctx->nev+15));
-    else {
-      ctx->mpd = 500;
-      ctx->ncv = PetscMin(eps->n,ctx->nev+ctx->mpd);
-    }
-  }
-  if (!ctx->mpd) ctx->mpd = ctx->ncv;
+  ierr = EPSSetDimensions_Default(eps,ctx->nev,&ctx->ncv,&ctx->mpd);CHKERRQ(ierr);
 
   /* allocate solution for subsolves */
   if (sr->numEigs) {

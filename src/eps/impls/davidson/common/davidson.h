@@ -141,10 +141,7 @@ typedef struct _dvdDashboard {
     *nX,            /* X norm */
     *real_nX,       /* original nX */
     *errest,        /* relative error eigenpairs */
-    *nBV,           /* B-norms of V */
-    *nBcX,          /* B-norms of cX */
-    *nBpX,          /* B-norms of pX */
-    *real_nBV;      /* original nBDS, nBV and nBcX */
+    *nBds;          /* B-norms of projected problem  */
 
   /**** Shared function and variables ****/
   PetscErrorCode (*e_Vchanged)(struct _dvdDashboard*,PetscInt s_imm,PetscInt e_imm,PetscInt s_new,PetscInt e_new);
@@ -186,8 +183,6 @@ typedef struct _dvdDashboard {
   PetscBool
     BV_shift,       /* if true BV is shifted when vectors converge */
     W_shift;        /* if true W is shifted when vectors converge */
-
-  EPSOrthType   orthoV_type;
 
   void* prof_data;  /* profiler data */
 } dvdDashboard;

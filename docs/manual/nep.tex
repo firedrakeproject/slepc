@@ -21,9 +21,9 @@
 
 In terms of the user interface, \ident{NEP} is very similar to previously discussed solvers. The main difference is how to represent the function $T$. We will show different alternatives for this.
 
-\section{\label{sec:nep}Genuinely Nonlinear Eigenproblems}
+\section{\label{sec:nep}General Nonlinear Eigenproblems}
 
-As in previous chapters, we first set up the notation and briefly review basic properties of the eigenvalue problems to be addressed. In this case, we focus on genuinely nonlinear eigenproblems, that is, those that cannot be expressed in a simpler form such as a polynomial eigenproblem. These problems arise in many applications, such as the discretization of delay differential equations. Many of the methods designed to solve such problems are based on Newton-type iterations, so in some ways \ident{NEP} has similarities to \petsc's nonlinear solvers \ident{SNES}. For background material on the nonlinear eigenproblem, the reader is referred to \citep{Mehrmann:2004:NEP}.
+As in previous chapters, we first set up the notation and briefly review basic properties of the eigenvalue problems to be addressed. In this case, we focus on general nonlinear eigenproblems, that is, those that cannot be expressed in a simpler form such as a polynomial eigenproblem. These problems arise in many applications, such as the discretization of delay differential equations. Many of the methods designed to solve such problems are based on Newton-type iterations, so in some ways \ident{NEP} has similarities to \petsc's nonlinear solvers \ident{SNES}. For background material on the nonlinear eigenproblem, the reader is referred to \citep{Mehrmann:2004:NEP}.
 
 We consider nonlinear eigenvalue problems of the form
 \begin{equation}
