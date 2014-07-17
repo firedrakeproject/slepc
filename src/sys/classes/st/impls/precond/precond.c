@@ -43,7 +43,7 @@ PetscErrorCode STSetFromOptions_Precond(ST st)
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PetscObjectGetType((PetscObject)pc,&pctype);CHKERRQ(ierr);
   ierr = STPrecondGetMatForPC(st,&P);CHKERRQ(ierr);
-  if (!pctype && st->A[0]) {
+  if (!pctype && st->A && st->A[0]) {
     if (P || st->shift_matrix == ST_MATMODE_SHELL) {
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
     } else {

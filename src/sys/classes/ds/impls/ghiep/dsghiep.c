@@ -281,6 +281,7 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
   PetscFunctionBegin;
   switch (mat) {
     case DS_MAT_X:
+    case DS_MAT_Y:
       if (k) {
         ierr = DSVectors_GHIEP_Eigen_Some(ds,k,rnorm);CHKERRQ(ierr);
       } else {
@@ -299,7 +300,6 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
         }
       }
       break;
-    case DS_MAT_Y:
     case DS_MAT_U:
     case DS_MAT_VT:
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
