@@ -249,7 +249,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
     ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
   }
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
-    ierr = DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,nV,d->nBV,&cMTX,d->nBpX);CHKERRQ(ierr);
+    ierr = DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,nV,d->nBds,&cMTX,d->nBds);CHKERRQ(ierr);
   } else {
     ierr = DSOrthogonalize(d->eps->ds,DS_MAT_Q,nV,&cMTX);CHKERRQ(ierr);
   }
@@ -311,7 +311,7 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   }
   ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
-    ierr = DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,size_X,d->nBV,&cMTX,d->nBpX);CHKERRQ(ierr);
+    ierr = DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,size_X,d->nBds,&cMTX,d->nBds);CHKERRQ(ierr);
   } else {
     ierr = DSOrthogonalize(d->eps->ds,DS_MAT_Q,size_X+size_plusk,&cMTX);CHKERRQ(ierr);
   }

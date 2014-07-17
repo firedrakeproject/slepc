@@ -84,15 +84,14 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   /* spectrum slicing requires special treatment of default values */
   if (eps->which==EPS_ALL) {
     ierr = EPSSetUp_KrylovSchur_Slice(eps);CHKERRQ(ierr);
+  } else {
+    ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
+    if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
+    if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+    if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   }
 
   if (eps->isgeneralized && eps->ishermitian && !eps->ispositive && eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not implemented for indefinite problems");
-
-  /* proceed with the general case */
-  ierr = EPSSetDimensions_Default(eps);CHKERRQ(ierr);
-  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
-  if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
-  if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
   if (!eps->extraction) {
