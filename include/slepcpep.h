@@ -131,7 +131,7 @@ PETSC_EXTERN const char *PEPRefineTypes[];
 
 .seealso: PEPSetConvergenceTest(), PEPSetConvergenceTestFunction()
 E*/
-typedef enum { PEP_CONV_ABS=1,
+typedef enum { PEP_CONV_ABS,
                PEP_CONV_EIG,
                PEP_CONV_NORM,
                PEP_CONV_USER } PEPConv;

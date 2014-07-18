@@ -686,12 +686,12 @@ PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,
    Logically Collective on EPS
 
    Input Parameters:
-+  eps   - eigensolver context obtained from EPSCreate()
--  conv  - the type of convergence test
++  eps  - eigensolver context obtained from EPSCreate()
+-  conv - the type of convergence test
 
    Options Database Keys:
-+  -eps_conv_abs - Sets the absolute convergence test
-.  -eps_conv_eig - Sets the convergence test relative to the eigenvalue
++  -eps_conv_abs  - Sets the absolute convergence test
+.  -eps_conv_eig  - Sets the convergence test relative to the eigenvalue
 .  -eps_conv_norm - Sets the convergence test relative to the matrix norms
 -  -eps_conv_user - Selects the user-defined convergence test
 
@@ -712,9 +712,9 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,conv,2);
   switch (conv) {
+    case EPS_CONV_ABS:  eps->converged = EPSConvergedAbsolute; break;
     case EPS_CONV_EIG:  eps->converged = EPSConvergedEigRelative; break;
     case EPS_CONV_NORM: eps->converged = EPSConvergedNormRelative; break;
-    case EPS_CONV_ABS:  eps->converged = EPSConvergedAbsolute; break;
     case EPS_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
