@@ -420,7 +420,7 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
 {
   PetscErrorCode ierr;
   PetscInt       lwa,nwu=0,lrwa,nrwu=0;
-  PetscInt       j,i,n,lds=deg*ld,rs1=*rs1a,rk;
+  PetscInt       j,i,n,lds=deg*ld,rs1=*rs1a,rk=0;
   PetscScalar    *M,*V,*pU,t;
   PetscReal      *sg,tol;
   PetscBLASInt   cs1_,rs1_,cs1tdeg,n_,info,lw_;
@@ -624,7 +624,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,*pS0;
   PetscReal      beta,norm,*rwork;
-  PetscBool      breakdown,flg,lindep;
+  PetscBool      breakdown=PETSC_FALSE,flg,lindep;
   Mat            S0;
 /* /////////// */
   PetscBool    withreg=PETSC_FALSE;
@@ -770,7 +770,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 
     if (pep->reason == PEP_CONVERGED_ITERATING) {
       if (breakdown) {
-
         /* Stop if breakdown */
         ierr = PetscInfo2(pep,"Breakdown TOAR method (it=%D norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
         pep->reason = PEP_DIVERGED_BREAKDOWN;
