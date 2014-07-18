@@ -43,9 +43,8 @@ test2: test2.o chkopts
 	${RM} test2.o
 
 #------------------------------------------------------------------------------------
-PEP = qarnoldi
-PEPEPS = linear
-EPS = krylovschur
+PEP = toar qarnoldi
+EPS = krylovschur gd
 
 TESTCODE = \
 	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${test}.out; \
@@ -55,15 +54,13 @@ TESTCODE = \
 
 runtest1_1:
 	-@test=test1_1; \
-	for pep in ${PEPEPS} ${PEP}; do \
+	for pep in ${PEP}; do \
 	   echo "pep type $$pep"; \
 	   ${MPIEXEC} -np 1 ./test1 -type $$pep -m 11 -pep_terse 2>&1; \
 	done > $${test}.tmp; \
-	for pep in ${PEPEPS}; do \
-	   for eps in ${EPS}; do \
-	      echo "pep type $$pep, eps type $$eps"; \
-	      ${MPIEXEC} -np 1 ./test1 -type $$pep -epstype $$eps -m 11 -pep_terse 2>&1; \
-           done; \
+	for eps in ${EPS}; do \
+	    echo "pep type linear, eps type $$eps"; \
+	    ${MPIEXEC} -np 1 ./test1 -type linear -epstype $$eps -m 11 -pep_terse 2>&1; \
 	done >> $${test}.tmp; \
 	${TESTCODE}
 
@@ -71,15 +68,12 @@ runtest2_1:
 	-@test=test2_1; \
 	for pep in ${PEP}; do \
 	   echo "pep type $$pep"; \
-	   if [ $$pep = qarnoldi ]; then EXTRA="-pep_ncv 30"; else EXTRA=""; fi; \
+	   if [ $$pep = qarnoldi ]; then EXTRA="-pep_ncv 10 -st_transform"; else EXTRA=""; fi; \
 	   ${MPIEXEC} -np 1 ./test2 -pep_type $$pep -pep_nev 4 -pep_terse $$EXTRA 2>&1; \
 	done > $${test}.tmp; \
-	for pep in ${PEPEPS}; do \
-	   for eps in ${EPS}; do \
-	      echo "pep type $$pep, eps type $$eps"; \
-	      if [ $$eps = arnoldi -o $$eps = krylovschur ]; then EXTRA="-pep_ncv 30"; else EXTRA=""; fi; \
-	      ${MPIEXEC} -np 1 ./test2 -pep_type $$pep -pep_eps_type $$eps -pep_nev 4 -pep_terse $$EXTRA 2>&1; \
-           done; \
+	for eps in ${EPS}; do \
+	   echo "pep type linear, eps type $$eps"; \
+	   ${MPIEXEC} -np 1 ./test2 -pep_type linear -pep_eps_type $$eps -pep_nev 4 -pep_terse 2>&1; \
 	done >> $${test}.tmp; \
 	${TESTCODE}
 

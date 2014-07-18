@@ -61,9 +61,9 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (!((PetscObject)pep)->type_name) {
     ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
   }
+  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
-    if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
     if (!((PetscObject)pep->st)->type_name) {
       ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
     }
