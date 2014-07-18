@@ -30,7 +30,7 @@ MANSEC     = PEP
 TESTS      = test1 test2
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
-                       test2.PETSc runtest2_1 test2.rm
+                       test2.PETSc runtest2_1 runtest2_2 test2.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
@@ -75,5 +75,19 @@ runtest2_1:
 	   echo "pep type linear, eps type $$eps"; \
 	   ${MPIEXEC} -np 1 ./test2 -pep_type linear -pep_eps_type $$eps -pep_nev 4 -pep_terse 2>&1; \
 	done >> $${test}.tmp; \
+	${TESTCODE}
+
+runtest2_2:
+	-@test=test2_2; \
+	echo "toar with shift-and-invert" > $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test2 -pep_type toar -st_type sinvert -pep_target -0.4 -pep_nev 4 -pep_terse 2>&1 >> $${test}.tmp; \
+	echo "toar with shift-and-invert (with scale=both)" >> $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test2 -pep_type toar -st_type sinvert -pep_target -0.4 -pep_nev 4 -pep_terse -pep_scale both 2>&1 >> $${test}.tmp; \
+	echo "toar with shift-and-invert (transform)" >> $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test2 -pep_type toar -st_type sinvert -pep_target -0.4 -pep_nev 4 -pep_terse -st_transform 2>&1 >> $${test}.tmp; \
+	echo "qarnoldi with shift-and-invert (transform)" >> $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test2 -pep_type qarnoldi -st_type sinvert -pep_target -0.4 -pep_nev 4 -pep_terse -st_transform 2>&1 >> $${test}.tmp; \
+	echo "linear with shift-and-invert" >> $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test2 -pep_type linear -pep_target -0.4 -pep_nev 4 -pep_terse -pep_type linear -pep_st_type sinvert -pep_eps_target -0.4 2>&1 >> $${test}.tmp; \
 	${TESTCODE}
 
