@@ -45,19 +45,7 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   PetscBool      sinv,flg;
 
   PetscFunctionBegin;
-  if (pep->ncv) { /* ncv set */
-    if (pep->ncv<pep->nev) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev");
-  } else if (pep->mpd) { /* mpd set */
-    pep->ncv = PetscMin(pep->n,pep->nev+pep->mpd);
-  } else { /* neither set: defaults depend on nev being small or large */
-    if (pep->nev<500) pep->ncv = PetscMin(pep->n,PetscMax(2*pep->nev,pep->nev+15));
-    else {
-      pep->mpd = 500;
-      pep->ncv = PetscMin(pep->n,pep->nev+pep->mpd);
-    }
-  }
-  if (!pep->mpd) pep->mpd = pep->ncv;
-  if (pep->ncv>pep->nev+pep->mpd) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must not be larger than nev+mpd");
+  ierr = PEPSetDimensions_Default(pep);CHKERRQ(ierr);
   if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
   if (!pep->which) {
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
