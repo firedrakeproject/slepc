@@ -212,12 +212,16 @@ Hermite              & \texttt{PEP\_BASIS\_HERMITE}    & \texttt{hermite}\\\hlin
 \caption{\label{tab:pepbasis}Polynomial bases available to represent the matrix polynomial in \ident{PEP}.}
 \end{table}
 
-As explained in \S\ref{sec:pep1}, the matrix polynomial $P(\lambda)$ can be expressed in term of the monomials $1$, $\lambda$, $\lambda^2,\ldots$, or in a non-monomial basis as in Eq.\ \ref{eq:pepnonmon}. Hence, when defining the problem we must indicate which is the polynomial basis to be used (note that the coefficient matrices $A_i$ are different for different basis representations). By default, a monomial basis is used. Other possible bases are listed in Table \ref{tab:pepbasis}, and can be set with
+As explained in \S\ref{sec:pep1}, the matrix polynomial $P(\lambda)$ can be expressed in term of the monomials $1$, $\lambda$, $\lambda^2,\ldots$, or in a non-monomial basis as in Eq.\ \ref{eq:pepnonmon}. Hence, when defining the problem we must indicate which is the polynomial basis to be used as well as the coefficient matrices $A_i$ in that basis representation. By default, a monomial basis is used. Other possible bases are listed in Table \ref{tab:pepbasis}, and can be set with
 	\findex{PEPSetBasis}
 	\begin{Verbatim}[fontsize=\small]
 	PEPSetBasis(PEP pep,PEPBasis basis);
 	\end{Verbatim}
-or with the command-line key \Verb!-pep_basis <name>!.
+or with the command-line key \Verb!-pep_basis <name>!. The matrices are passed with
+	\findex{PEPSetOperators}
+	\begin{Verbatim}[fontsize=\small]
+	PEPSetOperators(PEP pep,PetscInt nmat,Mat A[]);
+	\end{Verbatim}
 
 \begin{table}[b]
 \centering
@@ -290,7 +294,7 @@ The solution method can be specified procedurally with
 	\end{Verbatim}
 or via the options database command \Verb!-pep_type! followed by the name of the method. The methods currently available in \ident{PEP} are listed in Table~\ref{tab:solversp}.
 
-The default solver is \ident{PEPTOAR}, currently the only solver supporting polynomials of arbitrary degree. TOAR is a stable algorithm for building an Arnoldi factorization of the linearization (\ref{eq:firstcomp}) without explicitly creating matrices $L_0$ and $L_1$. For quadratic polynomials there are other solvers available. Q-Arnoldi is related to TOAR and follows a similar approach.
+The default solver is \ident{PEPTOAR}, currently the only solver supporting polynomials of arbitrary degree. TOAR is a stable algorithm for building an Arnoldi factorization of the linearization (\ref{eq:firstcomp}) without explicitly creating matrices $L_0,L_1$, and represents the Krylov basis in a compact way. For quadratic polynomials there are other solvers available. Q-Arnoldi is related to TOAR and follows a similar approach.
 
 \begin{table}
 \centering
@@ -341,8 +345,10 @@ The S1 linearization (Eq.\ \ref{eq:s1}) will be used, with shell matrices and a 
 %---------------------------------------------------
 \section{\label{sec:qst}Spectral Transformation}
 
-For computing eigenvalues in the interior of the spectrum (closest to a target $\tau$), it is necessary to use a spectral transformation. Currently, only shift-and-invert is supported in \ident{PEP} solvers, and the way to handle it is via an \ident{ST} object as in the case of linear eigensolvers. Every \ident{PEP} object has an \ident{ST} object internally.
+For computing eigenvalues in the interior of the spectrum (closest to a target $\tau$), it is necessary to use a spectral transformation. In \ident{PEP} solvers this is handled via an \ident{ST} object as in the case of linear eigensolvers. It is possible to proceed with no spectral transformation (shift) or with shift-and-invert. Every \ident{PEP} object has an \ident{ST} object internally.
 %Note that it would also be possible to select a spectral transformation in the \ident{ST} contained in the \ident{EPS} solver for the \texttt{PEPLINEAR} case. However, we do not recommend this approach.
+
+The spectral transformation can be applied either to the polynomial problem or its linearization. We illustrate it first for the quadratic case.
 
 Given the quadratic eigenproblem in Eq.\ \ref{eq:eigquad}, it is possible to define the transformed problem
 \begin{equation}
