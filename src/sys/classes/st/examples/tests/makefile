@@ -54,8 +54,6 @@ test4: test4.o chkopts
 
 #------------------------------------------------------------------------------------
 
-EPS = krylovschur arnoldi gd jd
-
 TESTCODE = \
 	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${test}.out; \
 	${DIFF} output/$${test}.out $${test}.tmp || \
@@ -64,18 +62,12 @@ TESTCODE = \
 
 runtest1_1:
 	-@test=test1_1; \
-	for eps in ${EPS}; do \
-	   echo "eps type $$eps"; \
-	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps -st_shift 1 -eps_smallest_real -st_pc_type jacobi -eps_nev 4 -eps_terse 2>&1; \
-	done > $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test1 -st_matmode inplace 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest1_2:
-	-@test=test1_2; \
-	for eps in ${EPS}; do \
-	   echo "eps type $$eps"; \
-	   ${MPIEXEC} -np 2 ./test1 -eps_type $$eps -st_shift 1 -eps_smallest_real -st_pc_type jacobi -eps_nev 4 -eps_terse 2>&1; \
-	done > $${test}.tmp; \
+	-@test=test1_1; \
+	${MPIEXEC} -np 1 ./test1 -st_matmode shell 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest2_1:
