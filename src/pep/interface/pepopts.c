@@ -82,6 +82,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
       ierr = PEPSetScale(pep,pep->scale,r,j,t);CHKERRQ(ierr);
     }
 
+    ierr = PetscOptionsEnum("-pep_extract","Extraction method","PEPSetExtract",PEPExtractTypes,(PetscEnum)pep->extract,(PetscEnum*)&pep->extract,NULL);CHKERRQ(ierr);
+
     ierr = PetscOptionsEnum("-pep_refine","Iterative refinement method","PEPSetRefine",PEPRefineTypes,(PetscEnum)pep->refine,(PetscEnum*)&pep->refine,NULL);CHKERRQ(ierr);
 
     i = pep->npart;
@@ -903,6 +905,58 @@ PetscErrorCode PEPGetScale(PEP pep,PEPScale *scale,PetscReal *alpha,PetscInt *it
   if (alpha)  *alpha  = pep->sfactor;
   if (its)    *its    = pep->sits;
   if (lambda) *lambda = pep->slambda;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetExtract"
+/*@
+   PEPSetExtract - Specifies the extraction strategy to be used.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep     - the eigensolver context
+-  extract - extraction strategy
+
+   Options Database Keys:
+.  -pep_extract <type> - extraction type, one of <norm,residual,structured>
+
+   Level: intermediate
+
+.seealso: PEPGetExtract()
+@*/
+PetscErrorCode PEPSetExtract(PEP pep,PEPExtract extract)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(pep,extract,2);
+  pep->extract = extract;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPGetExtract"
+/*@
+   PEPGetExtract - Gets the extraction strategy used by the PEP object.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigensolver context
+
+   Output Parameter:
+.  extract - extraction strategy
+
+   Level: intermediate
+
+.seealso: PEPSetExtract()
+@*/
+PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  if (extract) *extract = pep->extract;
   PetscFunctionReturn(0);
 }
 

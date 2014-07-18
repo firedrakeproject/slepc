@@ -26,6 +26,7 @@ static PetscBool PEPPackageInitialized = PETSC_FALSE;
 const char *PEPBasisTypes[] = {"MONOMIAL","CHEBYSHEV1","CHEBYSHEV2","LEGENDRE","LAGUERRE","HERMITE","PEPBasis","PEP_BASIS_",0};
 const char *PEPScaleTypes[] = {"NONE","SCALAR","DIAGONAL","BOTH","PEPScale","PEP_SCALE_",0};
 const char *PEPRefineTypes[] = {"NONE","SIMPLE","MULTIPLE","PEPRefine","PEP_REFINE_",0};
+const char *PEPExtractTypes[] = {"NORM","RESIDUAL","STRUCTURED","PEPExtract","PEP_EXTRACT_",0};
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPFinalizePackage"

@@ -125,6 +125,18 @@ typedef enum { PEP_REFINE_NONE,
 PETSC_EXTERN const char *PEPRefineTypes[];
 
 /*E
+    PEPExtract - The extraction type
+
+    Level: intermediate
+
+.seealso: PEPSetExtract()
+E*/
+typedef enum { PEP_EXTRACT_NORM,
+               PEP_EXTRACT_RESIDUAL,
+               PEP_EXTRACT_STRUCTURED } PEPExtract;
+PETSC_EXTERN const char *PEPExtractTypes[];
+
+/*E
     PEPConv - Determines the convergence test
 
     Level: intermediate
@@ -174,6 +186,8 @@ PETSC_EXTERN PetscErrorCode PEPSetScale(PEP,PEPScale,PetscReal,PetscInt,PetscRea
 PETSC_EXTERN PetscErrorCode PEPGetScale(PEP,PEPScale*,PetscReal*,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPSetRefine(PEP,PEPRefine,PetscInt,PetscReal,PetscInt,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPGetRefine(PEP,PEPRefine*,PetscInt*,PetscReal*,PetscInt*,PetscBool*);
+PETSC_EXTERN PetscErrorCode PEPSetExtract(PEP,PEPExtract);
+PETSC_EXTERN PetscErrorCode PEPGetExtract(PEP,PEPExtract*);
 PETSC_EXTERN PetscErrorCode PEPSetBasis(PEP,PEPBasis);
 PETSC_EXTERN PetscErrorCode PEPGetBasis(PEP,PEPBasis*);
 

@@ -76,6 +76,7 @@ struct _p_PEP {
   PetscReal      rtol;             /* tolerance for refinement */
   PetscInt       rits;             /* number of iterations of the refinement method */
   PetscBool      schur;            /* use Schur complement in refinement method */
+  PEPExtract     extract;          /* type of extraction used */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
