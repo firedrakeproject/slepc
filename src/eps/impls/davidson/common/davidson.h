@@ -140,8 +140,8 @@ typedef struct _dvdDashboard {
     *real_nR,       /* original nR */
     *nX,            /* X norm */
     *real_nX,       /* original nX */
-    *errest,        /* relative error eigenpairs */
-    *nBds;          /* B-norms of projected problem  */
+    *errest;        /* relative error eigenpairs */
+  PetscScalar *nBds;/* B-norms of projected problem  */
 
   /**** Shared function and variables ****/
   PetscErrorCode (*e_Vchanged)(struct _dvdDashboard*,PetscInt s_imm,PetscInt e_imm,PetscInt s_new,PetscInt e_new);
