@@ -131,20 +131,8 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   PetscScalar    *coeffs=pep->solvematcoeffs;
 
   PetscFunctionBegin;
-  if (pep->ncv) { /* ncv set */
-    if (pep->ncv<pep->nev) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev");
-  } else if (pep->mpd) { /* mpd set */
-    pep->ncv = PetscMin(pep->n,pep->nev+pep->mpd);
-  } else { /* neither set: defaults depend on nev being small or large */
-    if (pep->nev<500) pep->ncv = PetscMin(pep->n,PetscMax(2*pep->nev,pep->nev+15));
-    else {
-      pep->mpd = 500;
-      pep->ncv = PetscMin(pep->n-pep->nmat+1,pep->nev+pep->mpd);
-    }
-  }
-  if (!pep->mpd) pep->mpd = pep->ncv;
-  if (pep->ncv>pep->nev+pep->mpd) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must not be larger than nev+mpd");
-  if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv); 
+  ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
+  if (!pep->max_it) pep->max_it = PetscMax(100,(pep->nmat-1)*pep->n/pep->ncv); 
   if (!pep->which) {
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
@@ -782,18 +770,20 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
   }
   if (pep->nconv>0) {
-    /* Extract invariant pair */
-    /* ////////////////////////// */
-    {PetscBool ext=PETSC_FALSE;
-    ierr = PetscOptionsGetBool(NULL,"-extraction",&ext,NULL);CHKERRQ(ierr);
+    /* Truncate S to nconv columns */
     ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,pep->nconv,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
-    if (ext) {
-      /* /////////////////////////// */
+    /* Extract invariant pair */
+    switch (pep->extract) {
+    case PEP_EXTRACT_NORM:
+      break;
+    case PEP_EXTRACT_STRUCTURED:
       ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
       ierr = PEPExtractInvariantPair(pep,pep->nconv,S,ld,deg,H,ldds,work+nwu,lwa-nwu);CHKERRQ(ierr);
       ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Extraction not implemented in this solver");
     }
-    }/* ///////////////// */
     /* Perform Newton refinement if required */
     if (pep->refine==PEP_REFINE_MULTIPLE && pep->rits>0) {
       ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
@@ -837,8 +827,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     }
   }
 
-  /* change the state to raw so that
-     DSVectors() computes eigenvectors from scratch */
+  /* change the state to raw so that DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
 

@@ -156,9 +156,9 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPLinearSelect_Norm"
+#define __FUNCT__ "PEPLinearExtract_Residual"
 /*
-   PEPLinearSelect_Norm - Auxiliary routine that copies the solution of the
+   PEPLinearExtract_Residual - Auxiliary routine that copies the solution of the
    linear eigenproblem to the PEP object. The eigenvector of the generalized
    problem is supposed to be
                                z = [  x  ]
@@ -167,7 +167,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
    computed residual norm.
    Finally, x is normalized so that ||x||_2 = 1.
 */
-static PetscErrorCode PEPLinearSelect_Norm(PEP pep,EPS eps)
+static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -240,9 +240,9 @@ static PetscErrorCode PEPLinearSelect_Norm(PEP pep,EPS eps)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPLinearSelect_Simple"
+#define __FUNCT__ "PEPLinearExtract_Norm"
 /*
-   PEPLinearSelect_Simple - Auxiliary routine that copies the solution of the
+   PEPLinearExtract_Norm - Auxiliary routine that copies the solution of the
    linear eigenproblem to the PEP object. The eigenvector of the generalized
    problem is supposed to be
                                z = [  x  ]
@@ -250,7 +250,7 @@ static PetscErrorCode PEPLinearSelect_Norm(PEP pep,EPS eps)
    If |l|<1.0, the eigenvector is taken from z(1:n), otherwise from z(n+1:2*n).
    Finally, x is normalized so that ||x||_2 = 1.
 */
-static PetscErrorCode PEPLinearSelect_Simple(PEP pep,EPS eps)
+static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,offset;
@@ -314,7 +314,6 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
-  PetscBool      flg=PETSC_FALSE;
   PetscScalar    sigma;
 
   PetscFunctionBegin;
@@ -326,11 +325,15 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
   ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
   ierr = EPSSetTarget(ctx->eps,sigma*pep->sfactor);CHKERRQ(ierr);
 
-  ierr = PetscOptionsGetBool(((PetscObject)pep)->prefix,"-pep_linear_select_simple",&flg,NULL);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PEPLinearSelect_Simple(pep,ctx->eps);CHKERRQ(ierr);
-  } else {
-    ierr = PEPLinearSelect_Norm(pep,ctx->eps);CHKERRQ(ierr);
+  switch (pep->extract) {
+  case PEP_EXTRACT_NORM:
+    ierr = PEPLinearExtract_Norm(pep,ctx->eps);CHKERRQ(ierr);
+    break;
+  case PEP_EXTRACT_RESIDUAL:
+    ierr = PEPLinearExtract_Residual(pep,ctx->eps);CHKERRQ(ierr);
+    break;
+  default:
+    SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Extraction not implemented in this solver");
   }
   PetscFunctionReturn(0);
 }

@@ -107,6 +107,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"  scalar & diagonal balancing enabled, with scaling factor=%g, its=%D and lambda=%g\n",(double)pep->sfactor,pep->sits,(double)pep->slambda);CHKERRQ(ierr);
         break;
     }
+    ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",PEPExtractTypes[pep->extract]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s%s\n",PEPRefineTypes[pep->refine],pep->schur?", with a Schur complement approach":"");CHKERRQ(ierr);
     if (pep->refine) {
       ierr = PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%D\n",(double)pep->rtol,pep->rits);CHKERRQ(ierr);
@@ -350,6 +351,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->rtol            = PETSC_DEFAULT;
   pep->rits            = PETSC_DEFAULT;
   pep->schur           = PETSC_FALSE;
+  pep->extract         = PEP_EXTRACT_NORM;
   pep->trackall        = PETSC_FALSE;
 
   pep->comparison      = NULL;
