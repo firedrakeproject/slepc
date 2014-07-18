@@ -135,6 +135,7 @@ PETSC_EXTERN PetscErrorCode DSAppendOptionsPrefix(DS,const char *);
 PETSC_EXTERN PetscErrorCode DSGetOptionsPrefix(DS,const char *[]);
 PETSC_EXTERN PetscErrorCode DSSetFromOptions(DS);
 PETSC_EXTERN PetscErrorCode DSView(DS,PetscViewer);
+PETSC_EXTERN PetscErrorCode DSViewMat(DS,PetscViewer,DSMatType);
 PETSC_EXTERN PetscErrorCode DSDestroy(DS*);
 PETSC_EXTERN PetscErrorCode DSReset(DS);
 

@@ -165,11 +165,11 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
   } else {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
   }
   if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
