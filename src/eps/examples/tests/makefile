@@ -47,8 +47,7 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
 TESTEXAMPLES_C_NOCOMPLEX = test1.PETSc runtest1_2 test1.rm
 TESTEXAMPLES_C_NOF128    = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN     = test7f.PETSc runtest7f_1 test7f.rm \
-                           test14f.PETSc runtest14f_1 test14f.rm \
-                           test15f.PETSc runtest15f_1 test15f.rm
+                           test14f.PETSc runtest14f_1 test14f.rm
 TESTEXAMPLES_BLOPEX      = test5.PETSc runtest5_blopex test5.rm
 
 include ${SLEPC_DIR}/conf/slepc_common

@@ -148,10 +148,14 @@ runex3_1:
 	   ${RM} -f ex3_1.tmp
 
 runex4_1:
-	-@${MPIEXEC} -np 1 ./ex4 -file ${DATAPATH}/rdb200.petsc -eps_nev 4 -eps_terse > ex4_1.tmp 2>&1; \
+	-@if [ "${PETSC_PRECISION}" != "double" ]; then \
+           echo "Skipping ex4 test"; \
+         else \
+           ${MPIEXEC} -np 1 ./ex4 -file ${DATAPATH}/rdb200.petsc -eps_nev 4 -eps_terse > ex4_1.tmp 2>&1; \
 	   if (${DIFF} output/ex4_1.out ex4_1.tmp) then true; \
 	   else echo "Possible problem with ex4_1, diffs above"; fi; \
-	   ${RM} -f ex4_1.tmp
+	   ${RM} -f ex4_1.tmp; \
+         fi
 
 runex5_1:
 	-@${MPIEXEC} -np 1 ./ex5 -st_shift 1 -eps_nev 4 -eps_terse > ex5_1.tmp 2>&1; \
@@ -166,10 +170,14 @@ runex6f_1:
 	   ${RM} -f ex6f_1.tmp
 
 runex7_1:
-	-@${MPIEXEC} -np 1 ./ex7 -f1 ${DATAPATH}/bfw62a.petsc -f2 ${DATAPATH}/bfw62b.petsc -eps_nev 4 -eps_terse > ex7_1.tmp 2>&1; \
+	-@if [ "${PETSC_PRECISION}" != "double" ]; then \
+           echo "Skipping ex7 test"; \
+         else \
+           ${MPIEXEC} -np 1 ./ex7 -f1 ${DATAPATH}/bfw62a.petsc -f2 ${DATAPATH}/bfw62b.petsc -eps_nev 4 -eps_terse > ex7_1.tmp 2>&1; \
 	   if (${DIFF} output/ex7_1.out ex7_1.tmp) then true; \
 	   else echo "Possible problem with ex7_1, diffs above"; fi; \
-	   ${RM} -f ex7_1.tmp
+	   ${RM} -f ex7_1.tmp; \
+         fi
 
 runex9_1:
 	-@${MPIEXEC} -np 1 ./ex9 -eps_nev 4 -eps_terse > ex9_1.tmp 2>&1; \
