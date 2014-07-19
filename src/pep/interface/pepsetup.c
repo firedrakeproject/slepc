@@ -343,7 +343,7 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec *is)
   PEPSetDimensions_Default - Set reasonable values for ncv, mpd if not set
   by the user. This is called at setup.
  */
-PetscErrorCode PEPSetDimensions_Default(PEP pep)
+PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
 {
   PetscErrorCode ierr;
   PetscBool      krylov;
@@ -352,22 +352,22 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompareAny((PetscObject)pep,&krylov,PEPTOAR,PEPQARNOLDI,"");CHKERRQ(ierr);
   dim = krylov?(pep->nmat-1)*pep->n:pep->n;
-  if (pep->ncv) { /* ncv set */
+  if (*ncv) { /* ncv set */
     if (krylov) {
-      if (pep->ncv<pep->nev+1 && !(pep->ncv==pep->nev && pep->ncv==dim)) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev+1");
+      if (*ncv<nev+1 && !(*ncv==nev && *ncv==dim)) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev+1");
     } else {
-      if (pep->ncv<pep->nev) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev");
+      if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev");
     }
-  } else if (pep->mpd) { /* mpd set */
-    pep->ncv = PetscMin(dim,pep->nev+pep->mpd);
+  } else if (*mpd) { /* mpd set */
+    *ncv = PetscMin(dim,nev+(*mpd));
   } else { /* neither set: defaults depend on nev being small or large */
-    if (pep->nev<500) pep->ncv = PetscMin(dim,PetscMax(2*pep->nev,pep->nev+15));
+    if (nev<500) *ncv = PetscMin(dim,PetscMax(2*nev,nev+15));
     else {
-      pep->mpd = 500;
-      pep->ncv = PetscMin(dim,pep->nev+pep->mpd);
+      *mpd = 500;
+      *ncv = PetscMin(dim,nev+(*mpd));
     }
   }
-  if (!pep->mpd) pep->mpd = pep->ncv;
+  if (!*mpd) *mpd = *ncv;
   PetscFunctionReturn(0);
 }
 
