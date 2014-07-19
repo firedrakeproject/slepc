@@ -258,5 +258,11 @@ PETSC_EXTERN PetscErrorCode PEPLinearGetExplicitMatrix(PEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode PEPLinearSetEPS(PEP,EPS);
 PETSC_EXTERN PetscErrorCode PEPLinearGetEPS(PEP,EPS*);
 
+PETSC_EXTERN PetscErrorCode EPSQArnoldiSetRestart(EPS,PetscReal);
+PETSC_EXTERN PetscErrorCode EPSQArnoldiGetRestart(EPS,PetscReal*);
+
+PETSC_EXTERN PetscErrorCode EPSTOARSetRestart(EPS,PetscReal);
+PETSC_EXTERN PetscErrorCode EPSTOARGetRestart(EPS,PetscReal*);
+
 #endif
 

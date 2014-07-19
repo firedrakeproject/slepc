@@ -37,6 +37,10 @@
 #include <slepc-private/pepimpl.h>
 #include <slepcblaslapack.h>
 
+typedef struct {
+  PetscReal keep;         /* restart parameter */
+} PEP_TOAR;
+
 typedef struct{ /* temporary structure defining a region */
   PetscScalar zr;
   PetscScalar zi;
@@ -126,6 +130,7 @@ static PetscErrorCode TemporaryComparisonFunct(PetscScalar ar,PetscScalar ai,Pet
 PetscErrorCode PEPSetUp_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
+  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   PetscBool      sinv,flg;
   PetscInt       i;
   PetscScalar    *coeffs=pep->solvematcoeffs;
@@ -138,6 +143,9 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
     else pep->which = PEP_LARGEST_MAGNITUDE;
   }
+
+  if (!ctx->keep) ctx->keep = 0.5;
+
   ierr = PEPAllocateSolution(pep,pep->nmat-1);CHKERRQ(ierr);
   ierr = PEPSetWorkVecs(pep,3);CHKERRQ(ierr);
   ierr = DSSetType(pep->ds,DSNHEP);CHKERRQ(ierr);
@@ -608,6 +616,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscInt k,PetscScalar *S,
 PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
+  PEP_TOAR       *pepctx = (PEP_TOAR*)pep->data;
   PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=0;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,*pS0;
@@ -737,7 +746,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* Update l */
     if (pep->reason != PEP_CONVERGED_ITERATING || breakdown) l = 0;
     else {
-      l = PetscMax(1,(PetscInt)((nv-k)/2));
+      l = PetscMax(1,(PetscInt)((nv-k)*pepctx->keep));
       if (withreg && bs==PEP_BASIS_CHEBYSHEV1) k = PetscMax(0,PetscMin(k,count));
       if (!breakdown) {
         /* Prepare the Rayleigh quotient for restart */
@@ -847,13 +856,159 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPTOARSetRestart_TOAR"
+static PetscErrorCode PEPTOARSetRestart_TOAR(PEP pep,PetscReal keep)
+{
+  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+
+  PetscFunctionBegin;
+  if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
+  else {
+    if (keep<0.1 || keep>0.9) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
+    ctx->keep = keep;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPTOARSetRestart"
+/*@
+   PEPTOARSetRestart - Sets the restart parameter for the TOAR
+   method, in particular the proportion of basis vectors that must be kept
+   after restart.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep  - the eigenproblem solver context
+-  keep - the number of vectors to be kept at restart
+
+   Options Database Key:
+.  -pep_toar_restart - Sets the restart parameter
+
+   Notes:
+   Allowed values are in the range [0.1,0.9]. The default is 0.5.
+
+   Level: advanced
+
+.seealso: PEPTOARGetRestart()
+@*/
+PetscErrorCode PEPTOARSetRestart(PEP pep,PetscReal keep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveReal(pep,keep,2);
+  ierr = PetscTryMethod(pep,"PEPTOARSetRestart_C",(PEP,PetscReal),(pep,keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPTOARGetRestart_TOAR"
+static PetscErrorCode PEPTOARGetRestart_TOAR(PEP pep,PetscReal *keep)
+{
+  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+
+  PetscFunctionBegin;
+  *keep = ctx->keep;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPTOARGetRestart"
+/*@
+   PEPTOARGetRestart - Gets the restart parameter used in the TOAR method.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigenproblem solver context
+
+   Output Parameter:
+.  keep - the restart parameter
+
+   Level: advanced
+
+.seealso: PEPTOARSetRestart()
+@*/
+PetscErrorCode PEPTOARGetRestart(PEP pep,PetscReal *keep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(keep,2);
+  ierr = PetscTryMethod(pep,"PEPTOARGetRestart_C",(PEP,PetscReal*),(pep,keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetFromOptions_TOAR"
+PetscErrorCode PEPSetFromOptions_TOAR(PEP pep)
+{
+  PetscErrorCode ierr;
+  PetscBool      flg;
+  PetscReal      keep;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead("PEP TOAR Options");CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-pep_toar_restart","Proportion of vectors kept after restart","PEPTOARSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PEPTOARSetRestart(pep,keep);CHKERRQ(ierr);
+  }
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPView_TOAR"
+PetscErrorCode PEPView_TOAR(PEP pep,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
+  PetscBool      isascii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  TOAR: %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPDestroy_TOAR"
+PetscErrorCode PEPDestroy_TOAR(PEP pep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(pep->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPTOARSetRestart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPTOARGetRestart_C",NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPCreate_TOAR"
 PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
 {
+  PEP_TOAR       *ctx;
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
+  pep->data = (void*)ctx;
+
   pep->ops->solve          = PEPSolve_TOAR;
   pep->ops->setup          = PEPSetUp_TOAR;
+  pep->ops->setfromoptions = PEPSetFromOptions_TOAR;
+  pep->ops->destroy        = PEPDestroy_TOAR;
+  pep->ops->view           = PEPView_TOAR;
   pep->ops->computevectors = PEPComputeVectors_Schur;
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPTOARSetRestart_C",PEPTOARSetRestart_TOAR);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPTOARGetRestart_C",PEPTOARGetRestart_TOAR);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
