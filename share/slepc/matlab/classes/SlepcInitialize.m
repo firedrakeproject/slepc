@@ -3,8 +3,8 @@ function err = SlepcInitialize(args,argfile,arghelp)
 %  In order to use the SLEPc MATLAB classes, PETSc must have been configured with
 %  specific options. See: help PetscInitialize.
 %
-%  Add ${PETSC_DIR}/bin/matlab/classes to your MATLAB path, as well as
-%  ${SLEPC_DIR}/bin/matlab/classes
+%  Add ${PETSC_DIR}/share/petsc/matlab/classes to your MATLAB path, as well as
+%  ${SLEPC_DIR}/share/slepc/matlab/classes
 %
 %  In MATLAB use help Slepc to get started using SLEPc from MATLAB
 
@@ -28,7 +28,7 @@ function err = SlepcInitialize(args,argfile,arghelp)
 %  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if exist('PetscInitialize')~=2
-  error('Must add ${PETSC_DIR}/bin/matlab/classes to your MATLAB path')
+  error('Must add ${PETSC_DIR}/share/petsc/matlab/classes to your MATLAB path')
 end
 
 if ~libisloaded('libslepc')
@@ -40,7 +40,7 @@ if ~libisloaded('libslepc')
   if isempty(PETSC_ARCH)
     disp('Must have environmental variable PETSC_ARCH set')
   end
-  loadlibrary([SLEPC_DIR '/' PETSC_ARCH '/lib/' 'libslepc'], [SLEPC_DIR '/bin/matlab/classes/slepcmatlabheader.h']);
+  loadlibrary([SLEPC_DIR '/' PETSC_ARCH '/lib/' 'libslepc'], [SLEPC_DIR '/share/slepc/matlab/classes/slepcmatlabheader.h']);
 end
 
 if ~libisloaded('libpetsc')
@@ -52,7 +52,7 @@ if ~libisloaded('libpetsc')
   if isempty(PETSC_ARCH)
     disp('Must have environmental variable PETSC_ARCH set')
   end
-  loadlibrary([PETSC_DIR '/' PETSC_ARCH '/lib/' 'libpetsc'], [PETSC_DIR '/bin/matlab/classes/matlabheader.h']);
+  loadlibrary([PETSC_DIR '/' PETSC_ARCH '/lib/' 'libpetsc'], [PETSC_DIR '/share/petsc/matlab/classes/matlabheader.h']);
 end
 
 if (nargin == 0)

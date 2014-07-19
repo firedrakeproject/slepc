@@ -95,12 +95,12 @@ classdef SlepcEPS < PetscObject
       err = calllib('libslepc', 'EPSSetExtraction', obj.pobj,t);PetscCHKERRQ(err);
     end
     function err = SetTolerances(obj,t,mx)
-      if (nargin == 2) mx = 0; end
+      if (nargin == 2) mx = Petsc.DEFAULT; end
       err = calllib('libslepc', 'EPSSetTolerances', obj.pobj,t,mx);PetscCHKERRQ(err);
     end
     function err = SetDimensions(obj,nev,ncv,mpd)
-      if (nargin < 3) ncv = 0; end
-      if (nargin < 4) mpd = 0; end
+      if (nargin < 3) ncv = Petsc.DEFAULT; end
+      if (nargin < 4) mpd = Petsc.DEFAULT; end
       err = calllib('libslepc', 'EPSSetDimensions', obj.pobj,nev,ncv,mpd);PetscCHKERRQ(err);
     end
     function err = SetTarget(obj,t)
