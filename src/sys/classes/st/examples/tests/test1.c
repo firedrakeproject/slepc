@@ -19,9 +19,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test ST with shell matrices as problem matrices.\n\n";
+static char help[] = "Test ST with shell matrices.\n\n";
 
-#include <slepceps.h>
+#include <slepcst.h>
 
 static PetscErrorCode MatGetDiagonal_Shell(Mat S,Vec diag);
 static PetscErrorCode MatMultTranspose_Shell(Mat S,Vec x,Vec y);
@@ -52,21 +52,23 @@ static PetscErrorCode MyShellMatCreate(Mat *A,Mat *M)
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Mat            A,S;         /* problem matrix */
-  EPS            eps;         /* eigenproblem solver context */
-  EPSType        type;
-  PetscScalar    value[3];
-  PetscInt       n=30,i,Istart,Iend,col[3],nev;
+  Mat            A,S,mat[1];
+  ST             st;
+  Vec            v,w;
+  STType         type;
+  KSP            ksp;
+  PC             pc;
+  PetscScalar    value[3],sigma;
+  PetscInt       n=10,i,Istart,Iend,col[3];
   PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
-
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian with shell matrices, n=%D\n\n",n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-     Compute the operator matrix that defines the eigensystem, Ax=kx
+     Compute the operator matrix for the 1-D Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
@@ -94,36 +96,69 @@ int main(int argc,char **argv)
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
-  /* Create the shell version of A */
+  /* create the shell version of A */
   ierr = MyShellMatCreate(&A,&S);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                Create the eigensolver and set various options
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,S,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  /* work vectors */
+  ierr = MatGetVecs(A,&v,&w);CHKERRQ(ierr);
+  ierr = VecSet(v,1.0);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                      Solve the eigensystem
+                Create the spectral transformation object
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
+  ierr = STCreate(PETSC_COMM_WORLD,&st);CHKERRQ(ierr);
+  mat[0] = S;
+  ierr = STSetOperators(st,1,mat);CHKERRQ(ierr);
+  ierr = STSetFromOptions(st);CHKERRQ(ierr);
+
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                    Display solution and clean up
+              Apply the transformed operator for several ST's
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
+  /* shift, sigma=0.0 */
+  ierr = STSetUp(st);CHKERRQ(ierr);
+  ierr = STGetType(st,&type);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
+  ierr = STApply(st,v,w);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
+
+  /* shift, sigma=0.1 */
+  sigma = 0.1;
+  ierr = STSetShift(st,sigma);CHKERRQ(ierr);
+  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
+  ierr = STApply(st,v,w);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
+
+  /* sinvert, sigma=0.1 */
+  ierr = STPostSolve(st);CHKERRQ(ierr);   /* undo changes if inplace */
+  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
+  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
+  ierr = KSPSetType(ksp,KSPGMRES);CHKERRQ(ierr);
+  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+  ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
+  ierr = STGetType(st,&type);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
+  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
+  ierr = STApply(st,v,w);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
+
+  /* sinvert, sigma=-0.5 */
+  sigma = -0.5;
+  ierr = STSetShift(st,sigma);CHKERRQ(ierr);
+  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
+  ierr = STApply(st,v,w);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
+
+  ierr = STDestroy(&st);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&S);CHKERRQ(ierr);
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  ierr = VecDestroy(&w);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return 0;
 }

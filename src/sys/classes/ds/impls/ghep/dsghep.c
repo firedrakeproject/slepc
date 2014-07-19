@@ -45,10 +45,10 @@ PetscErrorCode DSView_GHEP(DS ds,PetscViewer viewer)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = DSViewMat_Private(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
-  ierr = DSViewMat_Private(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
+  ierr = DSViewMat(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
+  ierr = DSViewMat(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
   if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

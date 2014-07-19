@@ -113,10 +113,10 @@
       PetscEnum EPS_CONV_NORM
       PetscEnum EPS_CONV_USER
 
-      parameter (EPS_CONV_ABS               =  1)
-      parameter (EPS_CONV_EIG               =  2)
-      parameter (EPS_CONV_NORM              =  3)
-      parameter (EPS_CONV_USER              =  4)
+      parameter (EPS_CONV_ABS               =  0)
+      parameter (EPS_CONV_EIG               =  1)
+      parameter (EPS_CONV_NORM              =  2)
+      parameter (EPS_CONV_USER              =  3)
 
       PetscEnum EPS_LANCZOS_REORTHOG_LOCAL
       PetscEnum EPS_LANCZOS_REORTHOG_FULL

@@ -765,9 +765,9 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,conv,2);
   switch (conv) {
-    case PEP_CONV_EIG:   pep->converged = PEPConvergedEigRelative; break;
-    case PEP_CONV_ABS:   pep->converged = PEPConvergedAbsolute; break;
-    case PEP_CONV_NORM:  pep->converged = PEPConvergedNormRelative; break;
+    case PEP_CONV_ABS:  pep->converged = PEPConvergedAbsolute; break;
+    case PEP_CONV_EIG:  pep->converged = PEPConvergedEigRelative; break;
+    case PEP_CONV_NORM: pep->converged = PEPConvergedNormRelative; break;
     case PEP_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");

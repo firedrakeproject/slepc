@@ -65,17 +65,17 @@ PetscErrorCode DSView_GNHEP(DS ds,PetscViewer viewer)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = DSViewMat_Private(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
-  ierr = DSViewMat_Private(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
+  ierr = DSViewMat(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
+  ierr = DSViewMat(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
   if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Z);CHKERRQ(ierr);
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_Z);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
   }
   if (ds->mat[DS_MAT_X]) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
   }
   if (ds->mat[DS_MAT_Y]) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Y);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_Y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

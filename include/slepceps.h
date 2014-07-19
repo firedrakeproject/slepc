@@ -136,7 +136,7 @@ PETSC_EXTERN const char *EPSBalanceTypes[];
 
 .seealso: EPSSetConvergenceTest(), EPSSetConvergenceTestFunction()
 E*/
-typedef enum { EPS_CONV_ABS=1,
+typedef enum { EPS_CONV_ABS,
                EPS_CONV_EIG,
                EPS_CONV_NORM,
                EPS_CONV_USER } EPSConv;

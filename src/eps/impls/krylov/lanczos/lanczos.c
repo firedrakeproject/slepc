@@ -233,8 +233,9 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
   ierr = PetscCalloc6(m+1,&d,m,&e,m,&ritz,m*m,&Y,m,&which,m,&hwork);CHKERRQ(ierr);
   for (i=0;i<k;i++) which[i] = PETSC_TRUE;
 
-  ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
+    ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
+
     /* Lanczos step */
     ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
     ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
