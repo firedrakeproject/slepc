@@ -47,6 +47,7 @@ PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d);
 PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,PetscInt kA,Mat aux);
 PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,BV bv,DSMatType MT);
 PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d);
+PetscErrorCode dvd_harm_updateproj(dvdDashboard *d);
 
 /**** Control routines ********************************************************/
 #undef __FUNCT__
@@ -270,6 +271,7 @@ PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
   PetscErrorCode  ierr;
   Mat             Q,Z;
   PetscInt        lV,kV;
+  PetscBool       symm;
 
   PetscFunctionBegin;
   ierr = DSGetMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
@@ -280,6 +282,33 @@ PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
   if (d->G) {ierr = EPSXDUpdateProj(Q,Z,0,d->G,lV,lV+d->V_tra_e,d->auxM);CHKERRQ(ierr);}
   ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   if (d->W) {ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);}
+
+  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSHEP,DSGHIEP,"");CHKERRQ(ierr);
+  if (d->V_tra_s==0 || symm) PetscFunctionReturn(0);
+  /* Compute upper part of H (and G): H(0:l-1,l:k-1) <- W(0:l-1)' * AV(l:k-1), where
+     k=l+d->V_tra_s */
+  ierr = BVSetActiveColumns(d->W?d->W:d->eps->V,0,lV);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->AX,lV,lV+d->V_tra_s);CHKERRQ(ierr);
+  ierr = BVDot(d->AX,d->W?d->W:d->eps->V,d->H);CHKERRQ(ierr);
+  if (d->G) {
+    ierr = BVSetActiveColumns(d->BX?d->BX:d->eps->V,lV,lV+d->V_tra_s);CHKERRQ(ierr);
+    ierr = BVDot(d->BX?d->BX:d->eps->V,d->W?d->W:d->eps->V,d->G);CHKERRQ(ierr);
+  }
+  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSGHEP,"");CHKERRQ(ierr);
+  if (!symm) {
+    ierr = BVSetActiveColumns(d->W?d->W:d->eps->V,lV,lV+d->V_tra_s);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(d->AX,0,lV);CHKERRQ(ierr);
+    ierr = BVDot(d->AX,d->W?d->W:d->eps->V,d->H);CHKERRQ(ierr);
+    if (d->G) {
+      ierr = BVSetActiveColumns(d->BX?d->BX:d->eps->V,0,lV);CHKERRQ(ierr);
+      ierr = BVDot(d->BX?d->BX:d->eps->V,d->W?d->W:d->eps->V,d->G);CHKERRQ(ierr);
+    }
+  }
+  ierr = BVSetActiveColumns(d->eps->V,lV,kV);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(d->AX,lV,kV);CHKERRQ(ierr);
+  if (d->BX) {ierr = BVSetActiveColumns(d->BX,lV,kV);CHKERRQ(ierr);}
+  if (d->W) {ierr = BVSetActiveColumns(d->W,lV,kV);CHKERRQ(ierr);}
+  if (d->W) {ierr = dvd_harm_updateproj(d);CHKERRQ(ierr);}
   PetscFunctionReturn(0);
 }
 

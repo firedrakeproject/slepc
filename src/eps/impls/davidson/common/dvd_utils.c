@@ -501,29 +501,65 @@ PetscErrorCode dvd_harm_proj(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
+  PetscInt        i,j,l0,l,k,ld;
+  PetscScalar     h,g,*H,*G;
+
+  PetscFunctionBegin;
+  ierr = BVGetActiveColumns(d->eps->V,&l0,&k);CHKERRQ(ierr);
+  l = l0 + d->V_new_s;
+  k = l0 + d->V_new_e;
+  ierr = MatGetSize(d->H,&ld,NULL);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(d->H,&H);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(d->G,&G);CHKERRQ(ierr);
+  /* [H G] <- [Pa*H - Pb*G, Wa*H - Wb*G] */
+  /* Right part */
+  for (i=l; i<k; i++) {
+    for (j=l0; j<k; j++) {
+      h = H[ld*i+j]; g = G[ld*i+j];
+      H[ld*i+j] = data->Pa*h - data->Pb*g;
+      G[ld*i+j] = data->Wa*h - data->Wb*g;
+    }
+  }
+  /* Left part */
+  for (i=l0; i<l; i++) {
+    for (j=l; j<k; j++) {
+      h = H[ld*i+j]; g = G[ld*i+j];
+      H[ld*i+j] = data->Pa*h - data->Pb*g;
+      G[ld*i+j] = data->Wa*h - data->Wb*g;
+    }
+  }
+  ierr = MatDenseRestoreArray(d->H,&H);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(d->G,&G);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "dvd_harm_updateproj"
+PetscErrorCode dvd_harm_updateproj(dvdDashboard *d)
+{
+  PetscErrorCode  ierr;
+  dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
   PetscInt        i,j,l,k,ld;
   PetscScalar     h,g,*H,*G;
 
   PetscFunctionBegin;
   ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-  if (k != l+d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-  k = l + d->V_new_e;
-  l += d->V_new_s;
+  k = l + d->V_tra_s;
   ierr = MatGetSize(d->H,&ld,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(d->H,&H);CHKERRQ(ierr);
   ierr = MatDenseGetArray(d->G,&G);CHKERRQ(ierr);
   /* [H G] <- [Pa*H - Pb*G, Wa*H - Wb*G] */
-  /* Upper triangular part */
+  /* Right part */
   for (i=l; i<k; i++) {
-    for (j=0; j<=i; j++) {
+    for (j=0; j<l; j++) {
       h = H[ld*i+j]; g = G[ld*i+j];
       H[ld*i+j] = data->Pa*h - data->Pb*g;
       G[ld*i+j] = data->Wa*h - data->Wb*g;
     }
   }
   /* Lower triangular part */
-  for (i=0; i<k; i++) {
-    for (j=PetscMax(l,i+1); j<k; j++) {
+  for (i=0; i<l; i++) {
+    for (j=l; j<k; j++) {
       h = H[ld*i+j]; g = G[ld*i+j];
       H[ld*i+j] = data->Pa*h - data->Pb*g;
       G[ld*i+j] = data->Wa*h - data->Wb*g;
