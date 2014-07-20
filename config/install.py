@@ -32,7 +32,7 @@ class Installer:
     self.rootConfDir       = os.path.join(self.rootDir, 'conf')
     self.archConfDir       = os.path.join(self.rootDir, self.arch, 'conf')
     self.rootBinDir        = os.path.join(self.rootDir, 'bin')
-    #self.archBinDir        = os.path.join(self.rootDir, self.arch, 'bin')
+    self.archBinDir        = os.path.join(self.rootDir, self.arch, 'bin')
     self.archLibDir        = os.path.join(self.rootDir, self.arch, 'lib')
     self.destIncludeDir    = os.path.join(self.destDir, 'include')
     self.destConfDir       = os.path.join(self.destDir, 'conf')
@@ -175,8 +175,10 @@ for src, dst in copies:
     return
 
   def installBin(self):
-    self.copies.extend(self.copytree(self.rootBinDir, self.destBinDir))
-    #self.copies.extend(self.copytree(self.archBinDir, self.destBinDir))
+    if os.path.exists(self.rootBinDir):
+      self.copies.extend(self.copytree(self.rootBinDir, self.destBinDir))
+    if os.path.exists(self.archBinDir):
+      self.copies.extend(self.copytree(self.archBinDir, self.destBinDir))
     return
 
   def installShare(self):
