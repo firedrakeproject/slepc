@@ -364,9 +364,9 @@ PetscErrorCode dvd_calcpairs_apply_arbitrary(dvdDashboard *d,PetscInt r_s,PetscI
   Vec             *X,xr,xi;
   PetscErrorCode  ierr;
 #if defined(PETSC_USE_COMPLEX)
-  PetscInt        N=2;
+  PetscInt        N=1;
 #else
-  PetscInt        N=1,j;
+  PetscInt        N=2,j;
 #endif
 
   PetscFunctionBegin;
