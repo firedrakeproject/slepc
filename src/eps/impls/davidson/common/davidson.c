@@ -108,6 +108,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Wrong value of eps->which");
   if (!(eps->nev + bs <= eps->ncv)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize");
+  if (eps->trueres) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"-eps_true_residual is temporally disable in this solver.");
 
   ierr = EPSXDGetRestart_XD(eps,&min_size_V,&plusk);CHKERRQ(ierr);
   if (!min_size_V) min_size_V = PetscMin(PetscMax(bs,5),eps->mpd/2);
@@ -226,6 +227,8 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   /* Setup the presence of converged vectors in the projected problem and in the projector */
   ierr = EPSXDGetWindowSizes_XD(eps,&cX_in_impr,&cX_in_proj);CHKERRQ(ierr);
+  if (cX_in_impr>0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The option pwindow is temporally disable in this solver.");
+  if (cX_in_proj>0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The option qwindow is temporally disable in this solver.");
   if (min_size_V <= cX_in_proj) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"minv has to be greater than qwindow");
   if (bs > 1 && cX_in_impr > 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported option: pwindow > 0 and bs > 1");
 
@@ -588,7 +591,7 @@ PetscErrorCode EPSXDGetMethod_XD(EPS eps,Method_t *method)
 /*
   EPSComputeVectors_XD - Compute eigenvectors from the vectors
   provided by the eigensolver. This version is intended for solvers
-  that provide Schur vectors from the QZ decompositon. Given the partial
+  that provide Schur vectors from the QZ decomposition. Given the partial
   Schur decomposition OP*V=V*T, the following steps are performed:
       1) compute eigenvectors of (S,T): S*Z=T*Z*D
       2) compute eigenvectors of OP: X=V*Z

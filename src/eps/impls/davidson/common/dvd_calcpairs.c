@@ -41,7 +41,6 @@ PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n);
 PetscErrorCode dvd_calcpairs_X(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *X);
 PetscErrorCode dvd_calcpairs_Y(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *Y);
 PetscErrorCode dvd_calcpairs_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e);
-PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e);
 PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Vec *R);
 PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d);
 PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,PetscInt kA,Mat aux);
@@ -79,7 +78,6 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType ort
     /* Create a DS if the method works with Schur decompositions */
     d->calcPairs = dvd_calcpairs_proj;
     d->calcpairs_residual = dvd_calcpairs_res_0;
-    d->calcpairs_residual_eig = dvd_calcpairs_eig_res_0;
     d->calcpairs_proj_res = dvd_calcpairs_proj_res;
     d->calcpairs_selectPairs = dvd_calcpairs_selectPairs;
     /* Create and configure a DS for solving the projected problems */
@@ -582,157 +580,6 @@ PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscInt r_e,
       ierr = VecNormEnd(R[i],NORM_2,&d->nR[r_s+i]);CHKERRQ(ierr);
     }
   }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "dvd_calcpairs_eig_res_0"
-/* Compute the residual vectors R(i) <- (AV - BV*eigr(i))*pX(i), and also
-   the norm associated to the eigenpair, where i = r_s..r_e
-   R, vectors of Vec of size r_e-r_s,
-   auxV, PetscMax(r_e+cX_in_H, 2*(r_e-r_s)) vectors,
-   auxS, auxiliar vector of size (d->size_cX+r_e)^2+6(d->size_cX+r_e)+(r_e-r_s)*d->size_H
-*/
-PetscErrorCode dvd_calcpairs_eig_res_0(dvdDashboard *d,PetscInt r_s,PetscInt r_e)
-{
-//  PetscInt        i,n,ld,ldc,l,k,j;
-//  PetscErrorCode  ierr;
-//  Vec             *Bx,auxV;
-//  PetscScalar     *cS,*cT,*pcX,*pX,*pX0,*array;
-//  Mat             Q,S;
-//#if !defined(PETSC_USE_COMPLEX)
-//  PetscScalar     b[8];
-//  Vec             X[4];
-//#endif
-//  Vec             *R;
-//
-  PetscFunctionBegin;
-//  /* Quick return */
-//  if (!d->cS) PetscFunctionReturn(0);
-//
-//  /* Check consistency */
-//  if (d->size_auxS < d->size_H*(r_e-r_s) /* pX0 */) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-//
-//  /*
-//    Compute expanded cS = conv_ps.A, cT = conv_ps.B:
-//    conv_ps.A = [ cX'*A*cX    cX'*A*X ]
-//                [  X'*A*cX     X'*A*X ], where cX'*A*cX = cS and X = V*ps.Q
-//  */ 
-//  ierr = BVGetActiveColumns(d->eps->V,&l,NULL);CHKERRQ(ierr);
-//  n = l+r_e;
-//  ierr = DSSetDimensions(d->conv_ps,n,0,0,0);CHKERRQ(ierr);
-//  ierr = DSGetLeadingDimension(d->conv_ps,&ldc);CHKERRQ(ierr);
-//  ierr = DSGetArray(d->conv_ps,DS_MAT_A,&cS);CHKERRQ(ierr);
-//  ierr = SlepcDenseCopyTriang(cS,0,ldc,d->cS,0,d->ldcS,d->size_cS,d->size_cS);CHKERRQ(ierr);
-//  if (d->cT) {
-//    ierr = DSGetArray(d->conv_ps,DS_MAT_B,&cT);CHKERRQ(ierr);
-//    ierr = SlepcDenseCopyTriang(cT,0,ldc,d->cT,0,d->ldcT,d->size_cS,d->size_cS);CHKERRQ(ierr);
-//  }
-//  /* auxV <- A*X = AV * pX(0:r_e+cX_in_H) */
-//  ierr = SlepcVecPoolGetVecs(d->auxV,r_e-r_s,&R);CHKERRQ(ierr);
-//  ierr = DSGetLeadingDimension(d->eps->ds,&ld);CHKERRQ(ierr);
-//  ierr = DSGetMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-//  ierr = BVSetActiveColumns(d->auxBV,0,d->V_tra_e);CHKERRQ(ierr);
-//  ierr = BVMult(d->auxBV,1.0,0.0,d->AX,Q);CHKERRQ(ierr);
-//  /* cS(:, size_cS:) <- cX' * auxV */
-//  ierr = MatCreateSeqDense(PETSC_COMM_SELF,l,l,NULL,&S);CHKERRQ(ierr);
-//  ierr = BVSetActiveColumns(d->eps->V,0,l);CHKERRQ(ierr);
-//  ierr = BVDot(d->auxBV,d->eps->V,S);CHKERRQ(ierr);
-//  ierr = MatDenseGetArray(S,&array);CHKERRQ(ierr);
-//  for (j=0;j<l;j++) {
-//    ierr = PetscMemcpy(&cS[ld*(d->size_cS+j)],array+j*l,l*sizeof(PetscScalar));CHKERRQ(ierr);
-//  }
-//  ierr = MatDenseRestoreArray(S,&array);CHKERRQ(ierr);
-//
-//  if (d->cT) {
-//    /* R <- BV * pX(0:r_e+cX_in_H) */
-//    ierr = BVMult(d->auxBV,1.0,0.0,d->BX,Q);CHKERRQ(ierr);
-//    /* cT(:, size_cS:) <- cX' * auxV */
-//    ierr = BVDot(d->auxBV,d->eps->V,S);CHKERRQ(ierr);
-//    ierr = MatDenseGetArray(S,&array);CHKERRQ(ierr);
-//    for (j=0;j<l;j++) {
-//      ierr = PetscMemcpy(&cT[ld*(d->size_cS+j)],array+j*l,l*sizeof(PetscScalar));CHKERRQ(ierr);
-//    }
-//    ierr = MatDenseRestoreArray(S,&array);CHKERRQ(ierr);
-//  }
-//  ierr = MatDestroy(&Q);CHKERRQ(ierr);
-//
-//  ierr = DSRestoreArray(d->conv_ps,DS_MAT_A,&cS);CHKERRQ(ierr);
-//  if (d->cT) {
-//    ierr = DSRestoreArray(d->conv_ps,DS_MAT_B,&cT);CHKERRQ(ierr);
-//  }
-//  ierr = DSSetState(d->conv_ps,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-//  /* eig(S,T) */
-//  k = l+r_s;
-//  ierr = DSVectors(d->conv_ps,DS_MAT_X,&k,NULL);CHKERRQ(ierr);
-//  ierr = DSNormalize(d->conv_ps,DS_MAT_X,l+r_s);CHKERRQ(ierr);
-//  /* pX0 <- ps.Q(0:d->cX_in_AV+r_e-1) * conv_ps.X(size_cX-cX_in_H:) */
-//  ierr = MatCreateSeqDense(PETSC_COMM_SELF,d->size_H,l,NULL,&S);CHKERRQ(ierr);
-//  ierr = MatDenseGetArray(S,&pX0);CHKERRQ(ierr);
-//  ierr = DSGetArray(d->conv_ps,DS_MAT_X,&pcX);CHKERRQ(ierr);
-//  ierr = SlepcDenseMatProd(pX0,d->size_H,0.0,1.0,&pX[(d->cX_in_AV+r_s)*ld],ld,d->size_H,r_e-r_s,PETSC_FALSE,&pcX[l+l*ldc],ldc,r_e,r_e-r_s,PETSC_FALSE);CHKERRQ(ierr);
-//  ierr = DSRestoreArray(d->eps->ds,DS_MAT_Q,&pX);CHKERRQ(ierr);
-//  ierr = DSRestoreArray(d->conv_ps,DS_MAT_X,&pcX);CHKERRQ(ierr);
-//  ierr = MatDenseRestoreArray(S,&pX0);CHKERRQ(ierr);
-//  /* auxV <- cX(0:size_cX-cX_in_AV)*conv_ps.X + V*pX0 */
-//  ierr = DSGetMat(d->conv_ps,DS_MAT_X,&Q);CHKERRQ(ierr);
-//  ierr = BVMult(d->auxBV,1.0,0.0,d->eps->V,Q);CHKERRQ(ierr);
-//  ierr = MatDestroy(&Q);CHKERRQ(ierr);
-//  ierr = BVSetActiveColumns(d->eps->V,l,k);CHKERRQ(ierr);
-//  ierr = BVMult(d->auxBV,1.0,1.0,d->eps->V,S);CHKERRQ(ierr);
-//  ierr = MatDestroy(&S);CHKERRQ(ierr);
-//  /* nX <- ||auxV|| */
-//  for (i=0;i<r_e-r_s;i++) {
-//    ierr = BVNormColumn(d->auxBV,i,NORM_2,&d->nX[r_s+i]);CHKERRQ(ierr);
-//  }
-//  /* R <- A*auxV */
-//  for (i=0; i<r_e-r_s; i++) {
-//    ierr = BVGetColumn(d->auxBV,i,&auxV);CHKERRQ(ierr);
-//    ierr = MatMult(d->A,auxV,R[i]);CHKERRQ(ierr);
-//    ierr = BVRestoreColumn(d->auxBV,i,&auxV);CHKERRQ(ierr);
-//  }
-//  /* Bx <- B*auxV */
-//  ierr = SlepcVecPoolGetVecs(d->auxV,r_e-r_s,&Bx);CHKERRQ(ierr);
-//  for (i=0; i<r_e-r_s; i++) {
-//    ierr = BVGetColumn(d->auxBV,i,&auxV);CHKERRQ(ierr);
-//    if (d->B) {
-//      ierr = MatMult(d->B,auxV,Bx[i]);CHKERRQ(ierr);
-//    } else {
-//      ierr = VecCopy(auxV,Bx[i]);CHKERRQ(ierr);
-//    }
-//    ierr = BVRestoreColumn(d->auxBV,i,&auxV);CHKERRQ(ierr);
-//  }
-//  /* R <- (A - eig*B)*V*pX */
-//  for (i=0;i<r_e-r_s;i++) {
-//#if !defined(PETSC_USE_COMPLEX)
-//    if (d->eigi[r_s+i] != 0.0) {
-//      /* [Ax_i Ax_i+1 Bx_i Bx_i+1]*= [   1        0
-//                                         0        1
-//                                      -eigr_i -eigi_i
-//                                       eigi_i -eigr_i] */
-//      b[0] = b[5] = 1.0;
-//      b[2] = b[7] = -d->eigr[r_s+i];
-//      b[6] = -(b[3] = d->eigi[r_s+i]);
-//      b[1] = b[4] = 0.0;
-//      X[0] = R[i]; X[1] = R[i+1]; X[2] = Bx[i]; X[3] = Bx[i+1];
-//      ierr = SlepcUpdateVectorsD(X,4,1.0,b,4,4,2,d->auxS,d->size_auxS);CHKERRQ(ierr);
-//      i++;
-//    } else
-//#endif
-//    {
-//      /* R <- Ax -eig*Bx */
-//      ierr = VecAXPBY(R[i], -d->eigr[r_s+i], 1.0, Bx[i]);CHKERRQ(ierr);
-//    }
-//  }
-//  ierr = SlepcVecPoolGetVecs(d->auxV,r_e-r_s,&Bx);CHKERRQ(ierr);
-//  /* nR <- ||R|| */
-//  for (i=0;i<r_e-r_s;i++) {
-//    ierr = VecNormBegin(R[i],NORM_2,&d->nR[r_s+i]);CHKERRQ(ierr);
-//  }
-//  for (i=0;i<r_e-r_s;i++) {
-//    ierr = VecNormEnd(R[i],NORM_2,&d->nR[r_s+i]);CHKERRQ(ierr);
-//  }
-//  ierr = SlepcVecPoolRestoreVecs(d->auxV,r_e-r_s,&R);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
