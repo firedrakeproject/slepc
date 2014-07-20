@@ -33,7 +33,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
   PetscInt       i=0;
   EPSWhich       which;
-  PetscBool      trackall;
+  PetscBool      trackall,flg;
   PetscScalar    sigma;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,PEP_LINEAR*,Mat*) = {
@@ -66,6 +66,13 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   if (!pep->which) pep->which = PEP_LARGEST_MAGNITUDE;
   if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
   if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver only available for quadratic problems");
+  if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEP linear solver");
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"ST transformation flag not allowed for PEP linear solver");
+
+  /* compute scale factor if no set by user */
+  ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
+ 
   ierr = STGetOperators(pep->st,0,&ctx->K);CHKERRQ(ierr);
   ierr = STGetOperators(pep->st,1,&ctx->C);CHKERRQ(ierr);
   ierr = STGetOperators(pep->st,2,&ctx->M);CHKERRQ(ierr);
@@ -149,9 +156,9 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPLinearSelect_Norm"
+#define __FUNCT__ "PEPLinearExtract_Residual"
 /*
-   PEPLinearSelect_Norm - Auxiliary routine that copies the solution of the
+   PEPLinearExtract_Residual - Auxiliary routine that copies the solution of the
    linear eigenproblem to the PEP object. The eigenvector of the generalized
    problem is supposed to be
                                z = [  x  ]
@@ -160,7 +167,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
    computed residual norm.
    Finally, x is normalized so that ||x||_2 = 1.
 */
-static PetscErrorCode PEPLinearSelect_Norm(PEP pep,EPS eps)
+static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -233,9 +240,9 @@ static PetscErrorCode PEPLinearSelect_Norm(PEP pep,EPS eps)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPLinearSelect_Simple"
+#define __FUNCT__ "PEPLinearExtract_Norm"
 /*
-   PEPLinearSelect_Simple - Auxiliary routine that copies the solution of the
+   PEPLinearExtract_Norm - Auxiliary routine that copies the solution of the
    linear eigenproblem to the PEP object. The eigenvector of the generalized
    problem is supposed to be
                                z = [  x  ]
@@ -243,7 +250,7 @@ static PetscErrorCode PEPLinearSelect_Norm(PEP pep,EPS eps)
    If |l|<1.0, the eigenvector is taken from z(1:n), otherwise from z(n+1:2*n).
    Finally, x is normalized so that ||x||_2 = 1.
 */
-static PetscErrorCode PEPLinearSelect_Simple(PEP pep,EPS eps)
+static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,offset;
@@ -307,7 +314,6 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
-  PetscBool      flg=PETSC_FALSE;
   PetscScalar    sigma;
 
   PetscFunctionBegin;
@@ -319,11 +325,15 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
   ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
   ierr = EPSSetTarget(ctx->eps,sigma*pep->sfactor);CHKERRQ(ierr);
 
-  ierr = PetscOptionsGetBool(((PetscObject)pep)->prefix,"-pep_linear_select_simple",&flg,NULL);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PEPLinearSelect_Simple(pep,ctx->eps);CHKERRQ(ierr);
-  } else {
-    ierr = PEPLinearSelect_Norm(pep,ctx->eps);CHKERRQ(ierr);
+  switch (pep->extract) {
+  case PEP_EXTRACT_NORM:
+    ierr = PEPLinearExtract_Norm(pep,ctx->eps);CHKERRQ(ierr);
+    break;
+  case PEP_EXTRACT_RESIDUAL:
+    ierr = PEPLinearExtract_Residual(pep,ctx->eps);CHKERRQ(ierr);
+    break;
+  default:
+    SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Extraction not implemented in this solver");
   }
   PetscFunctionReturn(0);
 }
@@ -707,6 +717,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
 
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
+  ctx->explicitmatrix = PETSC_TRUE;
   pep->data = (void*)ctx;
 
   pep->ops->solve                = PEPSolve_Linear;

@@ -342,7 +342,7 @@ PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
     ierr = BVGetSignature(d->eps->V,v);CHKERRQ(ierr);
     ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
     for (i=0; i<n; i++) {
-      pA[i+ld*i] = d->nBds[i] = pv[lV+i];
+      pA[i+ld*i] = d->nBds[i] = PetscRealPart(pv[lV+i]);
     }
     ierr = VecRestoreArray(v,&pv);CHKERRQ(ierr);
     ierr = VecDestroy(&v);CHKERRQ(ierr);

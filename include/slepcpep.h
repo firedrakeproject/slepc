@@ -50,7 +50,6 @@ typedef const char* PEPType;
 #define PEPLINEAR    "linear"
 #define PEPQARNOLDI  "qarnoldi"
 #define PEPTOAR      "toar"
-#define PEPSTOAR     "stoar"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId PEP_CLASSID;
@@ -114,13 +113,37 @@ typedef enum { PEP_SCALE_NONE,
 PETSC_EXTERN const char *PEPScaleTypes[];
 
 /*E
+    PEPRefine - The refinement type
+
+    Level: intermediate
+
+.seealso: PEPSetRefine()
+E*/
+typedef enum { PEP_REFINE_NONE,
+               PEP_REFINE_SIMPLE,
+               PEP_REFINE_MULTIPLE } PEPRefine;
+PETSC_EXTERN const char *PEPRefineTypes[];
+
+/*E
+    PEPExtract - The extraction type
+
+    Level: intermediate
+
+.seealso: PEPSetExtract()
+E*/
+typedef enum { PEP_EXTRACT_NORM,
+               PEP_EXTRACT_RESIDUAL,
+               PEP_EXTRACT_STRUCTURED } PEPExtract;
+PETSC_EXTERN const char *PEPExtractTypes[];
+
+/*E
     PEPConv - Determines the convergence test
 
     Level: intermediate
 
 .seealso: PEPSetConvergenceTest(), PEPSetConvergenceTestFunction()
 E*/
-typedef enum { PEP_CONV_ABS=1,
+typedef enum { PEP_CONV_ABS,
                PEP_CONV_EIG,
                PEP_CONV_NORM,
                PEP_CONV_USER } PEPConv;
@@ -161,6 +184,10 @@ PETSC_EXTERN PetscErrorCode PEPSetDimensions(PEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode PEPGetDimensions(PEP,PetscInt*,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode PEPSetScale(PEP,PEPScale,PetscReal,PetscInt,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPGetScale(PEP,PEPScale*,PetscReal*,PetscInt*,PetscReal*);
+PETSC_EXTERN PetscErrorCode PEPSetRefine(PEP,PEPRefine,PetscInt,PetscReal,PetscInt,PetscBool);
+PETSC_EXTERN PetscErrorCode PEPGetRefine(PEP,PEPRefine*,PetscInt*,PetscReal*,PetscInt*,PetscBool*);
+PETSC_EXTERN PetscErrorCode PEPSetExtract(PEP,PEPExtract);
+PETSC_EXTERN PetscErrorCode PEPGetExtract(PEP,PEPExtract*);
 PETSC_EXTERN PetscErrorCode PEPSetBasis(PEP,PEPBasis);
 PETSC_EXTERN PetscErrorCode PEPGetBasis(PEP,PEPBasis*);
 
@@ -230,9 +257,6 @@ PETSC_EXTERN PetscErrorCode PEPLinearSetExplicitMatrix(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPLinearGetExplicitMatrix(PEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode PEPLinearSetEPS(PEP,EPS);
 PETSC_EXTERN PetscErrorCode PEPLinearGetEPS(PEP,EPS*);
-
-PETSC_EXTERN PetscErrorCode PEPSTOARSetMonic(PEP,PetscBool);
-PETSC_EXTERN PetscErrorCode PEPSTOARGetMonic(PEP,PetscBool*);
 
 #endif
 

@@ -61,9 +61,9 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (!((PetscObject)pep)->type_name) {
     ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
   }
+  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
-    if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
     if (!((PetscObject)pep->st)->type_name) {
       ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
     }
@@ -101,6 +101,10 @@ PetscErrorCode PEPSetUp(PEP pep)
 
   /* set tolerance if not yet set */
   if (pep->tol==PETSC_DEFAULT) pep->tol = SLEPC_DEFAULT_TOL;
+  if (pep->refine) {
+    if (pep->rtol==PETSC_DEFAULT) pep->rtol = SLEPC_DEFAULT_TOL;
+    if (pep->rits==PETSC_DEFAULT) pep->rits = (pep->refine==PEP_REFINE_SIMPLE)? 10: 1;
+  }
 
   /* set eigenvalue comparison */
   switch (pep->which) {
@@ -141,9 +145,6 @@ PetscErrorCode PEPSetUp(PEP pep)
       pep->comparisonctx = &pep->target;
       break;
   }
-
-  if (pep->ncv > pep->n) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be the problem size at most");
-  if (pep->nev > pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
 
   /* setup ST */
   if (!islinear) {
@@ -333,6 +334,40 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec *is)
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&pep->nini,&pep->IS);CHKERRQ(ierr);
   if (n>0) pep->state = PEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetDimensions_Default"
+/*
+  PEPSetDimensions_Default - Set reasonable values for ncv, mpd if not set
+  by the user. This is called at setup.
+ */
+PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
+{
+  PetscErrorCode ierr;
+  PetscBool      krylov;
+  PetscInt       dim;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompareAny((PetscObject)pep,&krylov,PEPTOAR,PEPQARNOLDI,"");CHKERRQ(ierr);
+  dim = krylov?(pep->nmat-1)*pep->n:pep->n;
+  if (*ncv) { /* ncv set */
+    if (krylov) {
+      if (*ncv<nev+1 && !(*ncv==nev && *ncv==dim)) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev+1");
+    } else {
+      if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev");
+    }
+  } else if (*mpd) { /* mpd set */
+    *ncv = PetscMin(dim,nev+(*mpd));
+  } else { /* neither set: defaults depend on nev being small or large */
+    if (nev<500) *ncv = PetscMin(dim,PetscMax(2*nev,nev+15));
+    else {
+      *mpd = 500;
+      *ncv = PetscMin(dim,nev+(*mpd));
+    }
+  }
+  if (!*mpd) *mpd = *ncv;
   PetscFunctionReturn(0);
 }
 

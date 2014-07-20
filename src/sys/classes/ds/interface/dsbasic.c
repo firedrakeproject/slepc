@@ -916,7 +916,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
 
    Level: beginner
 
-.seealso: PetscViewerASCIIOpen()
+.seealso: DSViewMat()
 @*/
 PetscErrorCode DSView(DS ds,PetscViewer viewer)
 {

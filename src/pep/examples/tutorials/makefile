@@ -50,20 +50,22 @@ ex17: ex17.o chkopts
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runex16_1:
-	-@${MPIEXEC} -np 1 ./ex16 -pep_nev 4 -pep_ncv 20 -pep_terse > ex16_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex16 -pep_nev 4 -pep_terse > ex16_1.tmp 2>&1; \
 	   if (${DIFF} output/ex16_1.out ex16_1.tmp) then true; \
 	   else echo "Possible problem with ex16_1, diffs above"; fi; \
 	   ${RM} -f ex16_1.tmp
 
 runex16f90_1:
-	-@${MPIEXEC} -np 1 ./ex16f90 -pep_nev 4 -pep_ncv 20 -pep_terse > ex16f90_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex16f90 -pep_nev 4 -pep_terse > ex16f90_1.tmp 2>&1; \
 	   if (${DIFF} output/ex16f90_1.out ex16f90_1.tmp) then true; \
 	   else echo "Possible problem with ex16f90_1, diffs above"; fi; \
 	   ${RM} -f ex16f90_1.tmp
 
 runex17_1:
-	-@${MPIEXEC} -np 1 ./ex17 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_nev 4 -pep_ncv 20 -pep_tol 1e-14 -pep_scale both -pep_terse > ex17_1.tmp 2>&1; \
+	-@if [ "${PETSC_PRECISION}" != "double" ]; then \
+	   ${MPIEXEC} -np 1 ./ex17 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_nev 4 -pep_scale both -pep_terse > ex17_1.tmp 2>&1; \
 	   if (${DIFF} output/ex17_1.out ex17_1.tmp) then true; \
 	   else echo "Possible problem with ex17_1, diffs above"; fi; \
-	   ${RM} -f ex17_1.tmp
+	   ${RM} -f ex17_1.tmp; \
+         fi
 

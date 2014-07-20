@@ -22,7 +22,6 @@
 static char help[] = "Test matrix exponential in DSHEP.\n\n";
 
 #include <slepcds.h>
-#include <slepc-private/dsimpl.h>    /* for DSViewMat_Private() */
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -74,7 +73,7 @@ int main(int argc,char **argv)
   ierr = DSComputeFunction(ds,SLEPC_FUNCTION_EXP);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_F);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_F);CHKERRQ(ierr);
   }
 
   ierr = DSDestroy(&ds);CHKERRQ(ierr);

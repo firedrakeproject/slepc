@@ -37,12 +37,13 @@
 #define PEPWhich           PetscEnum
 #define PEPBasis           PetscEnum
 #define PEPScale           PetscEnum
+#define PEPRefine          PetscEnum
+#define PEPExtract         PetscEnum
 #define PEPConv            PetscEnum
 #define PEPConvergedReason PetscEnum
 
 #define PEPLINEAR    'linear'
 #define PEPQARNOLDI  'qarnoldi'
 #define PEPTOAR      'toar'
-#define PEPSTOAR     'stoar'
 
 #endif

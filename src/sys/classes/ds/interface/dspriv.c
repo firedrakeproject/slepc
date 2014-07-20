@@ -93,8 +93,26 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSViewMat_Private"
-PetscErrorCode DSViewMat_Private(DS ds,PetscViewer viewer,DSMatType m)
+#define __FUNCT__ "DSViewMat"
+/*@C
+   DSViewMat - Prints one of the internal DS matrices.
+
+   Collective on DS
+
+   Input Parameters:
++  ds     - the direct solver context
+.  viewer - visualization context
+-  m      - matrix to display
+
+   Note:
+   Works only for ascii viewers. Set the viewer in Matlab format if
+   want to paste into Matlab.
+
+   Level: developer
+
+.seealso: DSView()
+@*/
+PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,rows,cols;

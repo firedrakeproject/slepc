@@ -95,10 +95,6 @@ PetscErrorCode EPSSetUp(EPS eps)
     eps->isgeneralized = PETSC_FALSE;
     eps->problem_type = eps->ishermitian? EPS_HEP: EPS_NHEP;
   } else if (nmat>1 && !eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state");
-#if defined(PETSC_USE_COMPLEX)
-  ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
-  if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
-#endif
 
   if (eps->nev > eps->n) eps->nev = eps->n;
   if (eps->ncv > eps->n) eps->ncv = eps->n;
@@ -186,6 +182,10 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* Setup ST */
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
 
+#if defined(PETSC_USE_COMPLEX)
+  ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
+  if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
+#endif
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg);CHKERRQ(ierr);
   if (flg && eps->problem_type == EPS_PGNHEP) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
 
@@ -395,21 +395,29 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   EPSSetDimensions_Default - Set reasonable values for ncv, mpd if not set
   by the user. This is called at setup.
  */
-PetscErrorCode EPSSetDimensions_Default(EPS eps)
+PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
 {
+  PetscErrorCode ierr;
+  PetscBool      krylov;
+
   PetscFunctionBegin;
-  if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
-  } else if (eps->mpd) { /* mpd set */
-    eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
+  if (*ncv) { /* ncv set */
+    ierr = PetscObjectTypeCompareAny((PetscObject)eps,&krylov,EPSKRYLOVSCHUR,EPSARNOLDI,EPSLANCZOS,"");CHKERRQ(ierr);
+    if (krylov) {
+      if (*ncv<nev+1 && !(*ncv==nev && *ncv==eps->n)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev+1");
+    } else {
+      if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
+    }
+  } else if (*mpd) { /* mpd set */
+    *ncv = PetscMin(eps->n,nev+(*mpd));
   } else { /* neither set: defaults depend on nev being small or large */
-    if (eps->nev<500) eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15));
+    if (nev<500) *ncv = PetscMin(eps->n,PetscMax(2*nev,nev+15));
     else {
-      eps->mpd = 500;
-      eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
+      *mpd = 500;
+      *ncv = PetscMin(eps->n,nev+(*mpd));
     }
   }
-  if (!eps->mpd) eps->mpd = eps->ncv;
+  if (!*mpd) *mpd = *ncv;
   PetscFunctionReturn(0);
 }
 

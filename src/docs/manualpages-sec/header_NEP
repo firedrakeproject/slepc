@@ -9,7 +9,7 @@
 <h2>Nonlinear Eigenvalue Problem Solvers - NEP: <a href="../../../src/nep/examples/tutorials/index.html">Examples</a></h2>
 
 <p>
-The Nonlinear Eigenvalue Problem (NEP) solver is the object provided by SLEPc for specifying an eigenvalue problem that is nonlinear with respect to the eigenvalue (not the eigenvector). This is intended for genuinely nonlinear problems (rather than polynomial eigenproblems) described as <i>T(&lambda;)x=0</i>.
+The Nonlinear Eigenvalue Problem (NEP) solver is the object provided by SLEPc for specifying an eigenvalue problem that is nonlinear with respect to the eigenvalue (not the eigenvector). This is intended for general nonlinear problems (rather than polynomial eigenproblems) described as <i>T(&lambda;)x=0</i>.
 </p>
 <p>
 As in the other solver objects, users can set various options at runtime via the options database (e.g., <code>-nep_nev 4 -nep_type narnoldi</code>).  

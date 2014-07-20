@@ -1,7 +1,7 @@
 %%
 %
-%  Solves a generalized eigenvalue problem with SLEPc with shift-and-invert
-%  with the matrices loaded from file
+%  Computes a partial SVD of a matrix with SLEPc
+%  User creates directly a PETSc Mat
 %
 
 %  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,55 +32,50 @@ if ~exist('PetscInitialize','file')
   if isempty(PETSC_DIR)
     error('Must set environment variable PETSC_DIR or add the appropriate dir to Matlab path')
   end
-  path(path,[PETSC_DIR '/bin/matlab/classes'])
+  path(path,[PETSC_DIR '/share/petsc/matlab/classes'])
 end
 SlepcInitialize({'-malloc','-malloc_debug','-malloc_dump'});
 
 %%
-%  Load matrices from file
+%  Create the Lauchli matrix
 %
-SLEPC_DIR = getenv('SLEPC_DIR');
-viewer = PetscViewer([SLEPC_DIR '/share/slepc/datafiles/matrices/bfw62a.petsc'],Petsc.FILE_MODE_READ);
-A = PetscMat();
-A.Load(viewer);
-viewer.Destroy;
-viewer = PetscViewer([SLEPC_DIR '/share/slepc/datafiles/matrices/bfw62b.petsc'],Petsc.FILE_MODE_READ);
-B = PetscMat();
-B.Load(viewer);
-viewer.Destroy;
+n = 100;
+mu = 1e-7;
+mat = PetscMat();
+mat.SetType('seqaij');
+mat.SetSizes(n+1,n,n+1,n);
+mat.SetUp();
+for i=1:n
+  mat.SetValues(1,i,1.0);
+end
+for i=2:n+1
+  mat.SetValues(i,i-1,mu);
+end
+mat.AssemblyBegin(PetscMat.FINAL_ASSEMBLY);
+mat.AssemblyEnd(PetscMat.FINAL_ASSEMBLY);
 
 %%
-%  Create the eigensolver, pass the matrices and solve the problem
+%  Create the solver, pass the matrix and solve the problem
 %
-eps = SlepcEPS();
-eps.SetType('krylovschur');
-eps.SetOperators(A,B);
-eps.SetProblemType(SlepcEPS.GNHEP);
-eps.SetDimensions(6);
-eps.SetTolerances(1e-13);
-st = eps.GetST();
-st.SetType('sinvert');
-eps.SetWhichEigenpairs(SlepcEPS.TARGET_MAGNITUDE);
-eps.SetTarget(0.0);
-eps.SetFromOptions();
-eps.Solve();
-nconv = eps.GetConverged();
-fprintf('           k          ||Ax-kx||/||kx||\n')
-fprintf('   ----------------- ------------------\n')
-for i=1:nconv
-  lambda = eps.GetEigenpair(i);
-  relerr = eps.ComputeRelativeError(i);
-  if isreal(lambda)
-    fprintf('    %14.2f        %12g\n',lambda,relerr)
-  else
-    fprintf('  %.2f%+.2f      %12g\n',real(lambda),imag(lambda),relerr)
+svd = SlepcSVD();
+svd.SetOperator(mat);
+svd.SetType('trlanczos');
+svd.SetFromOptions();
+svd.Solve();
+nconv = svd.GetConverged();
+if nconv>0
+  fprintf('         sigma         residual norm\n')
+  fprintf('   ----------------- ------------------\n')
+  for i=1:nconv
+    [sigma,u,v] = svd.GetSingularTriplet(i);
+    relerr = svd.ComputeRelativeError(i);
+    fprintf('   %12f       %12g\n',sigma,relerr)
   end
 end
 
 %%
 %   Free objects and shutdown SLEPc
 %
-A.Destroy();
-B.Destroy();
-eps.Destroy();
+mat.Destroy();
+svd.Destroy();
 SlepcFinalize();

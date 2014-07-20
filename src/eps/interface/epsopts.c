@@ -173,19 +173,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
-    ierr = PetscOptionsScalar("-eps_target","Value of the target","EPSSetTarget",eps->target,&s,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
-      ierr = EPSSetTarget(eps,s);CHKERRQ(ierr);
-    }
-    k = 2;
-    ierr = PetscOptionsRealArray("-eps_interval","Computational interval (two real values separated with a comma without spaces)","EPSSetInterval",array,&k,&flg);CHKERRQ(ierr);
-    if (flg) {
-      if (k<2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_SIZ,"Must pass two values in -eps_interval (comma-separated without spaces)");
-      ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr);
-      ierr = EPSSetInterval(eps,array[0],array[1]);CHKERRQ(ierr);
-    }
-
     ierr = PetscOptionsBoolGroupBegin("-eps_largest_magnitude","compute largest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-eps_smallest_magnitude","compute smallest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
@@ -206,6 +193,19 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_IMAGINARY);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-eps_all","compute all eigenvalues in an interval","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsScalar("-eps_target","Value of the target","EPSSetTarget",eps->target,&s,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
+      ierr = EPSSetTarget(eps,s);CHKERRQ(ierr);
+    }
+    k = 2;
+    ierr = PetscOptionsRealArray("-eps_interval","Computational interval (two real values separated with a comma without spaces)","EPSSetInterval",array,&k,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if (k<2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_SIZ,"Must pass two values in -eps_interval (comma-separated without spaces)");
+      ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr);
+      ierr = EPSSetInterval(eps,array[0],array[1]);CHKERRQ(ierr);
+    }
 
     ierr = PetscOptionsBool("-eps_true_residual","Compute true residuals explicitly","EPSSetTrueResidual",eps->trueres,&eps->trueres,NULL);CHKERRQ(ierr);
 
@@ -591,7 +591,7 @@ $   func(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar
 .   ri     - result of evaluation (imaginary part)
 -   ctx    - optional context, as set by EPSSetArbitrarySelection()
 
-   Note:
+   Notes:
    This provides a mechanism to select eigenpairs by evaluating a user-defined
    function. When a function has been provided, the default selection based on
    sorting the eigenvalues is replaced by the sorting of the results of this
@@ -602,6 +602,10 @@ $   func(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar
    the arguments xr and xi, and return the result in rr. Then set the standard
    sorting by magnitude so that the eigenpair with largest value of rr is
    selected.
+
+   This evaluation function is collective, that is, all processes call it and
+   it can use collective operations; furthermore, the computed result must
+   be the same in all processes.
 
    The result of func is expressed as a complex number so that it is possible to
    use the standard eigenvalue sorting functions, but normally only rr is used.
@@ -682,12 +686,12 @@ PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,
    Logically Collective on EPS
 
    Input Parameters:
-+  eps   - eigensolver context obtained from EPSCreate()
--  conv  - the type of convergence test
++  eps  - eigensolver context obtained from EPSCreate()
+-  conv - the type of convergence test
 
    Options Database Keys:
-+  -eps_conv_abs - Sets the absolute convergence test
-.  -eps_conv_eig - Sets the convergence test relative to the eigenvalue
++  -eps_conv_abs  - Sets the absolute convergence test
+.  -eps_conv_eig  - Sets the convergence test relative to the eigenvalue
 .  -eps_conv_norm - Sets the convergence test relative to the matrix norms
 -  -eps_conv_user - Selects the user-defined convergence test
 
@@ -708,9 +712,9 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,conv,2);
   switch (conv) {
+    case EPS_CONV_ABS:  eps->converged = EPSConvergedAbsolute; break;
     case EPS_CONV_EIG:  eps->converged = EPSConvergedEigRelative; break;
     case EPS_CONV_NORM: eps->converged = EPSConvergedNormRelative; break;
-    case EPS_CONV_ABS:  eps->converged = EPSConvergedAbsolute; break;
     case EPS_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
