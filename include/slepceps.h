@@ -123,7 +123,7 @@ typedef enum { EPS_LARGEST_MAGNITUDE=1,
 
 .seealso: EPSSetBalance()
 E*/
-typedef enum { EPS_BALANCE_NONE=1,
+typedef enum { EPS_BALANCE_NONE,
                EPS_BALANCE_ONESIDE,
                EPS_BALANCE_TWOSIDE,
                EPS_BALANCE_USER } EPSBalance;

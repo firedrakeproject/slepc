@@ -79,10 +79,10 @@
       PetscEnum EPS_BALANCE_TWOSIDE
       PetscEnum EPS_BALANCE_USER
 
-      parameter (EPS_BALANCE_NONE           =  1)
-      parameter (EPS_BALANCE_ONESIDE        =  2)
-      parameter (EPS_BALANCE_TWOSIDE        =  3)
-      parameter (EPS_BALANCE_USER           =  4)
+      parameter (EPS_BALANCE_NONE           =  0)
+      parameter (EPS_BALANCE_ONESIDE        =  1)
+      parameter (EPS_BALANCE_TWOSIDE        =  2)
+      parameter (EPS_BALANCE_USER           =  3)
 
       PetscEnum EPS_POWER_SHIFT_CONSTANT
       PetscEnum EPS_POWER_SHIFT_RAYLEIGH
