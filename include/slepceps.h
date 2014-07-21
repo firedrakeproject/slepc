@@ -89,7 +89,7 @@ typedef enum { EPS_HEP=1,
 
 .seealso: EPSSetExtraction(), EPSGetExtraction()
 E*/
-typedef enum { EPS_RITZ=1,
+typedef enum { EPS_RITZ,
                EPS_HARMONIC,
                EPS_HARMONIC_RELATIVE,
                EPS_HARMONIC_RIGHT,

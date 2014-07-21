@@ -369,7 +369,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->inta            = 0.0;
   eps->intb            = 0.0;
   eps->problem_type    = (EPSProblemType)0;
-  eps->extraction      = (EPSExtraction)0;
+  eps->extraction      = EPS_RITZ;
   eps->balance         = EPS_BALANCE_NONE;
   eps->balance_its     = 5;
   eps->balance_cutoff  = 1e-8;

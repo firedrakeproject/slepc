@@ -100,13 +100,13 @@
       PetscEnum EPS_REFINED
       PetscEnum EPS_REFINED_HARMONIC
 
-      parameter (EPS_RITZ                   =  1)
-      parameter (EPS_HARMONIC               =  2)
-      parameter (EPS_HARMONIC_RELATIVE      =  3)
-      parameter (EPS_HARMONIC_RIGHT         =  4)
-      parameter (EPS_HARMONIC_LARGEST       =  5)
-      parameter (EPS_REFINED                =  6)
-      parameter (EPS_REFINED_HARMONIC       =  7)
+      parameter (EPS_RITZ                   =  0)
+      parameter (EPS_HARMONIC               =  1)
+      parameter (EPS_HARMONIC_RELATIVE      =  2)
+      parameter (EPS_HARMONIC_RIGHT         =  3)
+      parameter (EPS_HARMONIC_LARGEST       =  4)
+      parameter (EPS_REFINED                =  5)
+      parameter (EPS_REFINED_HARMONIC       =  6)
 
       PetscEnum EPS_CONV_ABS
       PetscEnum EPS_CONV_EIG
