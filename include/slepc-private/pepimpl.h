@@ -80,10 +80,8 @@ struct _p_PEP {
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
-  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   PetscErrorCode (*converged)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
-  void           *comparisonctx;
   void           *convergedctx;
   PetscErrorCode (*monitor[MAXPEPMONITORS])(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXPEPMONITORS])(void**);
@@ -95,6 +93,7 @@ struct _p_PEP {
   DS             ds;               /* direct solver object */
   BV             V;                /* set of basis vectors and computed eigenvectors */
   PetscRandom    rand;             /* random number generator */
+  SlepcSC        sc;               /* sorting criterion data */
   Mat            *A;               /* coefficient matrices of the polynomial */
   PetscInt       nmat;             /* number of matrices */
   Vec            Dl,Dr;            /* diagonal matrices for balancing */

@@ -560,9 +560,9 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(PetscSc
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  eps->comparison    = func;
-  eps->comparisonctx = ctx;
-  eps->which         = EPS_WHICH_USER;
+  eps->sc->comparison    = func;
+  eps->sc->comparisonctx = ctx;
+  eps->which             = EPS_WHICH_USER;
   PetscFunctionReturn(0);
 }
 

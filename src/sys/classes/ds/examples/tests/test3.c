@@ -22,7 +22,6 @@
 static char help[] = "Test DSHEP with compact storage.\n\n";
 
 #include <slepcds.h>
-#include <slepc-private/dsimpl.h>    /* for the definition of SlepcCompare* */
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -30,6 +29,7 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   DS             ds;
+  SlepcSC        sc;
   PetscReal      *T;
   PetscScalar    *eig;
   PetscInt       i,n=10,l=2,k=5,ld;
@@ -82,7 +82,11 @@ int main(int argc,char **argv)
 
   /* Solve */
   ierr = PetscMalloc1(n,&eig);CHKERRQ(ierr);
-  ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestMagnitude,NULL);CHKERRQ(ierr);
+  ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
+  sc->compare    = SlepcCompareLargestMagnitude;
+  sc->comparecxt = NULL;
+  sc->map        = NULL;
+  sc->mapobj     = NULL;
   ierr = DSSolve(ds,eig,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,eig,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   if (extrarow) { ierr = DSUpdateExtraRow(ds);CHKERRQ(ierr); }

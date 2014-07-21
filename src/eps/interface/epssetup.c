@@ -48,6 +48,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 {
   PetscErrorCode ierr;
   Mat            A,B;
+  SlepcSC        sc;
   PetscInt       k,nmat;
   PetscBool      flg;
 #if defined(PETSC_USE_COMPLEX)
@@ -121,51 +122,60 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* set tolerance if not yet set */
   if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
 
-  /* set eigenvalue comparison */
+  /* fill sorting criterion context */
   switch (eps->which) {
     case EPS_LARGEST_MAGNITUDE:
-      eps->comparison    = SlepcCompareLargestMagnitude;
-      eps->comparisonctx = NULL;
+      eps->sc->comparison    = SlepcCompareLargestMagnitude;
+      eps->sc->comparisonctx = NULL;
       break;
     case EPS_SMALLEST_MAGNITUDE:
-      eps->comparison    = SlepcCompareSmallestMagnitude;
-      eps->comparisonctx = NULL;
+      eps->sc->comparison    = SlepcCompareSmallestMagnitude;
+      eps->sc->comparisonctx = NULL;
       break;
     case EPS_LARGEST_REAL:
-      eps->comparison    = SlepcCompareLargestReal;
-      eps->comparisonctx = NULL;
+      eps->sc->comparison    = SlepcCompareLargestReal;
+      eps->sc->comparisonctx = NULL;
       break;
     case EPS_SMALLEST_REAL:
-      eps->comparison    = SlepcCompareSmallestReal;
-      eps->comparisonctx = NULL;
+      eps->sc->comparison    = SlepcCompareSmallestReal;
+      eps->sc->comparisonctx = NULL;
       break;
     case EPS_LARGEST_IMAGINARY:
-      eps->comparison    = SlepcCompareLargestImaginary;
-      eps->comparisonctx = NULL;
+      eps->sc->comparison    = SlepcCompareLargestImaginary;
+      eps->sc->comparisonctx = NULL;
       break;
     case EPS_SMALLEST_IMAGINARY:
-      eps->comparison    = SlepcCompareSmallestImaginary;
-      eps->comparisonctx = NULL;
+      eps->sc->comparison    = SlepcCompareSmallestImaginary;
+      eps->sc->comparisonctx = NULL;
       break;
     case EPS_TARGET_MAGNITUDE:
-      eps->comparison    = SlepcCompareTargetMagnitude;
-      eps->comparisonctx = &eps->target;
+      eps->sc->comparison    = SlepcCompareTargetMagnitude;
+      eps->sc->comparisonctx = &eps->target;
       break;
     case EPS_TARGET_REAL:
-      eps->comparison    = SlepcCompareTargetReal;
-      eps->comparisonctx = &eps->target;
+      eps->sc->comparison    = SlepcCompareTargetReal;
+      eps->sc->comparisonctx = &eps->target;
       break;
     case EPS_TARGET_IMAGINARY:
-      eps->comparison    = SlepcCompareTargetImaginary;
-      eps->comparisonctx = &eps->target;
+      eps->sc->comparison    = SlepcCompareTargetImaginary;
+      eps->sc->comparisonctx = &eps->target;
       break;
     case EPS_ALL:
-      eps->comparison    = SlepcCompareSmallestReal;
-      eps->comparisonctx = NULL;
+      eps->sc->comparison    = SlepcCompareSmallestReal;
+      eps->sc->comparisonctx = NULL;
       break;
     case EPS_WHICH_USER:
       break;
   }
+  eps->sc->map    = NULL;
+  eps->sc->mapobj = NULL;
+
+  /* fill sorting criterion for DS */
+  ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
+  sc->comparison    = eps->sc->comparison;
+  sc->comparisonctx = eps->sc->comparisonctx;
+  sc->map           = SlepcMap_ST;
+  sc->mapobj        = (PetscObject)eps->st;
 
   /* Build balancing matrix if required */
   if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {

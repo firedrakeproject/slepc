@@ -46,6 +46,7 @@
 PetscErrorCode PEPSetUp(PEP pep)
 {
   PetscErrorCode ierr;
+  SlepcSC        sc;
   PetscBool      islinear,flg;
   PetscInt       i,k;
 
@@ -106,45 +107,54 @@ PetscErrorCode PEPSetUp(PEP pep)
     if (pep->rits==PETSC_DEFAULT) pep->rits = (pep->refine==PEP_REFINE_SIMPLE)? 10: 1;
   }
 
-  /* set eigenvalue comparison */
+  /* fill sorting criterion context */
   switch (pep->which) {
     case PEP_LARGEST_MAGNITUDE:
-      pep->comparison    = SlepcCompareLargestMagnitude;
-      pep->comparisonctx = NULL;
+      pep->sc->comparison    = SlepcCompareLargestMagnitude;
+      pep->sc->comparisonctx = NULL;
       break;
     case PEP_SMALLEST_MAGNITUDE:
-      pep->comparison    = SlepcCompareSmallestMagnitude;
-      pep->comparisonctx = NULL;
+      pep->sc->comparison    = SlepcCompareSmallestMagnitude;
+      pep->sc->comparisonctx = NULL;
       break;
     case PEP_LARGEST_REAL:
-      pep->comparison    = SlepcCompareLargestReal;
-      pep->comparisonctx = NULL;
+      pep->sc->comparison    = SlepcCompareLargestReal;
+      pep->sc->comparisonctx = NULL;
       break;
     case PEP_SMALLEST_REAL:
-      pep->comparison    = SlepcCompareSmallestReal;
-      pep->comparisonctx = NULL;
+      pep->sc->comparison    = SlepcCompareSmallestReal;
+      pep->sc->comparisonctx = NULL;
       break;
     case PEP_LARGEST_IMAGINARY:
-      pep->comparison    = SlepcCompareLargestImaginary;
-      pep->comparisonctx = NULL;
+      pep->sc->comparison    = SlepcCompareLargestImaginary;
+      pep->sc->comparisonctx = NULL;
       break;
     case PEP_SMALLEST_IMAGINARY:
-      pep->comparison    = SlepcCompareSmallestImaginary;
-      pep->comparisonctx = NULL;
+      pep->sc->comparison    = SlepcCompareSmallestImaginary;
+      pep->sc->comparisonctx = NULL;
       break;
     case PEP_TARGET_MAGNITUDE:
-      pep->comparison    = SlepcCompareTargetMagnitude;
-      pep->comparisonctx = &pep->target;
+      pep->sc->comparison    = SlepcCompareTargetMagnitude;
+      pep->sc->comparisonctx = &pep->target;
       break;
     case PEP_TARGET_REAL:
-      pep->comparison    = SlepcCompareTargetReal;
-      pep->comparisonctx = &pep->target;
+      pep->sc->comparison    = SlepcCompareTargetReal;
+      pep->sc->comparisonctx = &pep->target;
       break;
     case PEP_TARGET_IMAGINARY:
-      pep->comparison    = SlepcCompareTargetImaginary;
-      pep->comparisonctx = &pep->target;
+      pep->sc->comparison    = SlepcCompareTargetImaginary;
+      pep->sc->comparisonctx = &pep->target;
       break;
   }
+  pep->sc->map    = NULL;
+  pep->sc->mapobj = NULL;
+
+  /* fill sorting criterion for DS */
+  ierr = DSGetSlepcSC(pep->ds,&sc);CHKERRQ(ierr);
+  sc->comparison    = pep->sc->comparison;
+  sc->comparisonctx = pep->sc->comparisonctx;
+  sc->map           = SlepcMap_ST;
+  sc->mapobj        = (PetscObject)pep->st;
 
   /* setup ST */
   if (!islinear) {

@@ -104,6 +104,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscErrorCode ierr;
   PetscBool      flg;
   PetscInt       M,N,k;
+  SlepcSC        sc;
   Vec            *T;
 
   PetscFunctionBegin;
@@ -179,6 +180,13 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   /* set tolerance if not yet set */
   if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
+
+  /* fill sorting criterion context */
+  ierr = DSGetSlepcSC(svd->ds,&sc);CHKERRQ(ierr);
+  sc->comparison    = (svd->which==SVD_LARGEST)? SlepcCompareLargestReal: SlepcCompareSmallestReal;
+  sc->comparisonctx = NULL;
+  sc->map           = NULL;
+  sc->mapobj        = NULL;
 
   /* process initial vectors */
   if (svd->nini<0) {

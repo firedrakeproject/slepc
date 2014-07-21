@@ -63,10 +63,7 @@ struct _p_DS {
   PetscInt       bs;                 /* block size */
   PetscInt       nf;                 /* number of functions in f[] */
   FN             f[DS_NUM_EXTRA];    /* functions provided via DSSetFN() */
-
-  /*-------------- User-provided functions and contexts ----------------*/
-  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-  void           *comparisonctx;
+  SlepcSC        sc;                 /* sorting criterion */
 
   /*----------------- Status variables and working data ----------------*/
   PetscScalar    *mat[DS_NUM_MAT];   /* the matrices */

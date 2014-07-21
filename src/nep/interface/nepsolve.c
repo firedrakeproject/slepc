@@ -89,8 +89,6 @@ PetscErrorCode NEPSolve(NEP nep)
   nep->ktol = 0.1;
   ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eig,nep->errest,nep->ncv);CHKERRQ(ierr);
 
-  ierr = DSSetEigenvalueComparison(nep->ds,nep->comparison,nep->comparisonctx);CHKERRQ(ierr);
-
   ierr = (*nep->ops->solve)(nep);CHKERRQ(ierr);
 
   if (!nep->reason) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
@@ -642,51 +640,12 @@ PetscErrorCode NEPSortEigenvalues(NEP nep,PetscInt n,PetscScalar *eig,PetscInt *
   for (i=n-1;i>=0;i--) {
     j = i + 1;
     while (j<n) {
-      ierr = NEPCompareEigenvalues(nep,eig[perm[i]],eig[perm[j]],&result);CHKERRQ(ierr);
+      ierr = SlepcSCCompare(nep->sc,eig[perm[i]],0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
       if (result < 0) break;
       tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = tmp;
       j++;
     }
   }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPCompareEigenvalues"
-/*@
-   NEPCompareEigenvalues - Compares two eigenvalues according to a certain criterion.
-
-   Not Collective
-
-   Input Parameters:
-+  nep - the nonlinear eigensolver context
-.  a   - the 1st eigenvalue
--  b   - the 2nd eigenvalue
-
-   Output Parameter:
-.  res - result of comparison
-
-   Notes:
-   Returns an integer less than, equal to, or greater than zero if the first
-   eigenvalue is considered to be respectively less than, equal to, or greater
-   than the second one.
-
-   The criterion of comparison is related to the 'which' parameter set with
-   NEPSetWhichEigenpairs().
-
-   Level: developer
-
-.seealso: NEPSortEigenvalues(), NEPSetWhichEigenpairs()
-@*/
-PetscErrorCode NEPCompareEigenvalues(NEP nep,PetscScalar a,PetscScalar b,PetscInt *result)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidIntPointer(result,4);
-  if (!nep->comparison) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
-  ierr = (*nep->comparison)(a,0.0,b,0.0,result,nep->comparisonctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

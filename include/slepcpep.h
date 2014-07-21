@@ -239,7 +239,6 @@ typedef enum {/* converged */
 PETSC_EXTERN PetscErrorCode PEPGetConvergedReason(PEP,PEPConvergedReason *);
 
 PETSC_EXTERN PetscErrorCode PEPSortEigenvalues(PEP,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
-PETSC_EXTERN PetscErrorCode PEPCompareEigenvalues(PEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*);
 
 PETSC_EXTERN PetscFunctionList PEPList;
 PETSC_EXTERN PetscBool         PEPRegisterAllCalled;

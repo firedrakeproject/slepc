@@ -24,26 +24,6 @@
 #include <slepc-private/pepimpl.h>       /*I "slepcpep.h" I*/
 #include <petscdraw.h>
 
-typedef struct {
-  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-  void *comparisonctx;
-  ST st;
-} PEPSortForSTData;
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPSortForSTFunc"
-static PetscErrorCode PEPSortForSTFunc(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
-{
-  PEPSortForSTData *data = (PEPSortForSTData*)ctx;
-  PetscErrorCode   ierr;
-
-  PetscFunctionBegin;
-  ierr = STBackTransform(data->st,1,&ar,&ai);CHKERRQ(ierr);
-  ierr = STBackTransform(data->st,1,&br,&bi);CHKERRQ(ierr);
-  ierr = (*data->comparison)(ar,ai,br,bi,r,data->comparisonctx);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 #undef __FUNCT__
 #define __FUNCT__ "PEPComputeVectors"
 PETSC_STATIC_INLINE PetscErrorCode PEPComputeVectors(PEP pep)
@@ -93,7 +73,6 @@ PetscErrorCode PEPSolve(PEP pep)
   PetscViewerFormat format;
   PetscDraw         draw;
   PetscDrawSP       drawsp;
-  PEPSortForSTData  data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -110,19 +89,9 @@ PetscErrorCode PEPSolve(PEP pep)
   }
   ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,pep->ncv);CHKERRQ(ierr);
 
-  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
-  if (!islinear) {
-    /* temporarily change eigenvalue comparison function */
-    data.comparison    = pep->comparison;
-    data.comparisonctx = pep->comparisonctx;
-    data.st            = pep->st;
-    pep->comparison    = PEPSortForSTFunc;
-    pep->comparisonctx = &data;
-  }
-  ierr = DSSetEigenvalueComparison(pep->ds,pep->comparison,pep->comparisonctx);CHKERRQ(ierr);
-
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
   
+  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
     ierr = STPostSolve(pep->st);CHKERRQ(ierr);
   }
@@ -130,9 +99,6 @@ PetscErrorCode PEPSolve(PEP pep)
   if (!pep->reason) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   if (!islinear) {
-    /* restore comparison function */
-    pep->comparison    = data.comparison;
-    pep->comparisonctx = data.comparisonctx;
     /* Map eigenvalues back to the original problem */
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -679,7 +645,7 @@ PetscErrorCode PEPSortEigenvalues(PEP pep,PetscInt n,PetscScalar *eigr,PetscScal
     }
 #endif
     while (j<n) {
-      ierr = PEPCompareEigenvalues(pep,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
+      ierr = SlepcSCCompare(pep->sc,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
       if (result < 0) break;
 #if !defined(PETSC_USE_COMPLEX)
       /* keep together every complex conjugated eigenpair */
@@ -706,48 +672,6 @@ PetscErrorCode PEPSortEigenvalues(PEP pep,PetscInt n,PetscScalar *eigr,PetscScal
 #endif
     }
   }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPCompareEigenvalues"
-/*@
-   PEPCompareEigenvalues - Compares two (possibly complex) eigenvalues according
-   to a certain criterion.
-
-   Not Collective
-
-   Input Parameters:
-+  pep    - the polynomial eigensolver context
-.  ar     - real part of the 1st eigenvalue
-.  ai     - imaginary part of the 1st eigenvalue
-.  br     - real part of the 2nd eigenvalue
--  bi     - imaginary part of the 2nd eigenvalue
-
-   Output Parameter:
-.  res    - result of comparison
-
-   Notes:
-   Returns an integer less than, equal to, or greater than zero if the first
-   eigenvalue is considered to be respectively less than, equal to, or greater
-   than the second one.
-
-   The criterion of comparison is related to the 'which' parameter set with
-   PEPSetWhichEigenpairs().
-
-   Level: developer
-
-.seealso: PEPSortEigenvalues(), PEPSetWhichEigenpairs()
-@*/
-PetscErrorCode PEPCompareEigenvalues(PEP pep,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidIntPointer(result,6);
-  if (!pep->comparison) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
-  ierr = (*pep->comparison)(ar,ai,br,bi,result,pep->comparisonctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

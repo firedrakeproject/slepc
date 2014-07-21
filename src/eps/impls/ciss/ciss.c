@@ -805,8 +805,15 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscReal      error,max_error;
   PetscBool      *fl1,*fl2;
   Vec            si,w=eps->work[0];
+  SlepcSC        sc;
 
   PetscFunctionBegin;
+  /* override SC settings */
+  ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
+  sc->comparison    = SlepcCompareLargestMagnitude;
+  sc->comparisoncxt = NULL;
+  sc->map           = NULL;
+  sc->mapobj        = NULL;
   ierr = VecGetLocalSize(w,&nlocal);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
@@ -905,9 +912,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     }
     ierr = PetscFree(fl1);CHKERRQ(ierr);
     ierr = PetscFree(fl2);CHKERRQ(ierr);
-    ierr = DSSetEigenvalueComparison(eps->ds,SlepcCompareLargestMagnitude,NULL);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eps->eigr,NULL,rr,NULL,&eps->nconv);CHKERRQ(ierr);
-    ierr = DSSetEigenvalueComparison(eps->ds,eps->comparison,eps->comparisonctx);CHKERRQ(ierr);
     ierr = PetscFree(rr);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);

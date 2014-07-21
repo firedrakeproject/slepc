@@ -199,10 +199,8 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->computejacobian = NULL;
   nep->functionctx     = NULL;
   nep->jacobianctx     = NULL;
-  nep->comparison      = NULL;
   nep->converged       = NEPConvergedDefault;
   nep->convergeddestroy= NULL;
-  nep->comparisonctx   = NULL;
   nep->convergedctx    = NULL;
   nep->numbermonitors  = 0;
 
@@ -234,6 +232,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->split           = PETSC_FALSE;
   nep->reason          = NEP_CONVERGED_ITERATING;
 
+  ierr = PetscNewLog(nep,&nep->sc);CHKERRQ(ierr);
   ierr = PetscRandomCreate(comm,&nep->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(nep->rand,0x12345678);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rand);CHKERRQ(ierr);
@@ -431,6 +430,7 @@ PetscErrorCode NEPDestroy(NEP *nep)
   ierr = KSPDestroy(&(*nep)->ksp);CHKERRQ(ierr);
   ierr = DSDestroy(&(*nep)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*nep)->rand);CHKERRQ(ierr);
+  ierr = PetscFree((*nep)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*nep)->nini,&(*nep)->IS);CHKERRQ(ierr);
   if ((*nep)->convergeddestroy) {

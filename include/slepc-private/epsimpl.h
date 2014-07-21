@@ -77,11 +77,9 @@ struct _p_EPS {
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
-  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   PetscErrorCode (*converged)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
   PetscErrorCode (*arbitrary)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*);
-  void           *comparisonctx;
   void           *convergedctx;
   void           *arbitraryctx;
   PetscErrorCode (*monitor[MAXEPSMONITORS])(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
@@ -94,6 +92,7 @@ struct _p_EPS {
   DS             ds;               /* direct solver object */
   BV             V;                /* set of basis vectors and computed eigenvectors */
   PetscRandom    rand;             /* random number generator */
+  SlepcSC        sc;               /* sorting criterion data */
   Vec            D;                /* diagonal matrix for balancing */
   Vec            *IS;              /* references to user-provided initial space */
   Vec            *defl;            /* references to user-provided deflation space */

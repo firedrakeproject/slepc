@@ -376,11 +376,9 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->trueres         = PETSC_FALSE;
   eps->trackall        = PETSC_FALSE;
 
-  eps->comparison      = NULL;
   eps->converged       = EPSConvergedEigRelative;
   eps->convergeddestroy= NULL;
   eps->arbitrary       = NULL;
-  eps->comparisonctx   = NULL;
   eps->convergedctx    = NULL;
   eps->arbitraryctx    = NULL;
   eps->numbermonitors  = 0;
@@ -413,6 +411,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->ishermitian     = PETSC_FALSE;
   eps->reason          = EPS_CONVERGED_ITERATING;
 
+  ierr = PetscNewLog(eps,&eps->sc);CHKERRQ(ierr);
   ierr = PetscRandomCreate(comm,&eps->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(eps->rand,0x12345678);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->rand);CHKERRQ(ierr);
@@ -603,6 +602,7 @@ PetscErrorCode EPSDestroy(EPS *eps)
   ierr = STDestroy(&(*eps)->st);CHKERRQ(ierr);
   ierr = DSDestroy(&(*eps)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*eps)->rand);CHKERRQ(ierr);
+  ierr = PetscFree((*eps)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*eps)->nds,&(*eps)->defl);CHKERRQ(ierr);
   ierr = SlepcBasisDestroy_Private(&(*eps)->nini,&(*eps)->IS);CHKERRQ(ierr);

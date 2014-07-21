@@ -46,6 +46,10 @@
     slepcmath.h contains definition of basic math functions
 */
 #include <slepcmath.h>
+/*
+    slepcsc.h contains definition of sorting criterion
+*/
+#include <slepcsc.h>
 
 /*
     Initialization of SLEPc and other system routines

@@ -435,9 +435,9 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
     /* find minimum eigenvalue */
     for (;j<n;j++) {
 #if !defined(PETSC_USE_COMPLEX)
-      ierr = (*ds->comparison)(re,im,wr[j],wi[j],&result,ds->comparisonctx);CHKERRQ(ierr);
+      ierr = SlepcSCCompare(ds->sc,re,im,wr[j],wi[j],&result);CHKERRQ(ierr);
 #else
-      ierr = (*ds->comparison)(re,0.0,wr[j],0.0,&result,ds->comparisonctx);CHKERRQ(ierr);
+      ierr = SlepcSCCompare(ds->sc,re,0.0,wr[j],0.0,&result);CHKERRQ(ierr);
 #endif
       if (result > 0) {
         re = wr[j];

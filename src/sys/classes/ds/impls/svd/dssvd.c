@@ -180,7 +180,7 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscReal      *d;
 
   PetscFunctionBegin;
-  if (!ds->comparison) PetscFunctionReturn(0);
+  if (!ds->sc) PetscFunctionReturn(0);
   l = ds->l;
   n = PetscMin(ds->n,ds->m);
   A  = ds->mat[DS_MAT_A];

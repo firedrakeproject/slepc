@@ -22,7 +22,6 @@
 static char help[] = "Test DSSVD.\n\n";
 
 #include <slepcds.h>
-#include <slepc-private/dsimpl.h>    /* for the definition of SlepcCompare* */
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -30,6 +29,7 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   DS             ds;
+  SlepcSC        sc;
   PetscReal      sigma;
   PetscScalar    *A,*w;
   PetscInt       i,j,k,n=15,m=10,ld;
@@ -78,7 +78,11 @@ int main(int argc,char **argv)
 
   /* Solve */
   ierr = PetscMalloc1(k,&w);CHKERRQ(ierr);
-  ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestReal,NULL);CHKERRQ(ierr);
+  ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
+  sc->compare    = SlepcCompareLargestReal;
+  sc->comparecxt = NULL;
+  sc->map        = NULL;
+  sc->mapobj     = NULL;
   ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   if (verbose) {

@@ -354,10 +354,8 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->extract         = PEP_EXTRACT_NORM;
   pep->trackall        = PETSC_FALSE;
 
-  pep->comparison      = NULL;
   pep->converged       = PEPConvergedNormRelative;
   pep->convergeddestroy= NULL;
-  pep->comparisonctx   = NULL;
   pep->convergedctx    = NULL;
   pep->numbermonitors  = 0;
 
@@ -389,6 +387,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->sfactor_set     = PETSC_FALSE;
   pep->reason          = PEP_CONVERGED_ITERATING;
 
+  ierr = PetscNewLog(pep,&pep->sc);CHKERRQ(ierr);
   ierr = PetscRandomCreate(comm,&pep->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(pep->rand,0x12345678);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->rand);CHKERRQ(ierr);
@@ -584,6 +583,7 @@ PetscErrorCode PEPDestroy(PEP *pep)
   ierr = STDestroy(&(*pep)->st);CHKERRQ(ierr);
   ierr = DSDestroy(&(*pep)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*pep)->rand);CHKERRQ(ierr);
+  ierr = PetscFree((*pep)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*pep)->nini,&(*pep)->IS);CHKERRQ(ierr);
   if ((*pep)->convergeddestroy) {

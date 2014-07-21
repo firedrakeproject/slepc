@@ -150,9 +150,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   ds->bs            = 1;
   ds->nf            = 0;
   for (i=0;i<DS_NUM_EXTRA;i++) ds->f[i] = NULL;
-
-  ds->comparison    = NULL;
-  ds->comparisonctx = NULL;
+  ds->sc            = NULL;
 
   for (i=0;i<DS_NUM_MAT;i++) {
     ds->mat[i]      = NULL;
@@ -662,88 +660,62 @@ PetscErrorCode DSGetBlockSize(DS ds,PetscInt *bs)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSSetEigenvalueComparison"
+#define __FUNCT__ "DSSetSlepcSC"
 /*@C
-   DSSetEigenvalueComparison - Specifies the eigenvalue comparison function
-   to be used for sorting.
+   DSSetSlepcSC - Sets the sorting criterion context.
 
-   Logically Collective on DS
+   Not Collective
 
    Input Parameters:
-+  ds  - the direct solver context
-.  fun - a pointer to the comparison function
--  ctx - a context pointer (the last parameter to the comparison function)
-
-   Calling Sequence of fun:
-$  func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
-
-+   ar     - real part of the 1st eigenvalue
-.   ai     - imaginary part of the 1st eigenvalue
-.   br     - real part of the 2nd eigenvalue
-.   bi     - imaginary part of the 2nd eigenvalue
-.   res    - result of comparison
--   ctx    - optional context, as set by DSSetEigenvalueComparison()
-
-   Note:
-   The returning parameter 'res' can be
-+  negative - if the 1st eigenvalue is preferred to the 2st one
-.  zero     - if both eigenvalues are equally preferred
--  positive - if the 2st eigenvalue is preferred to the 1st one
++  ds - the direct solver context
+-  sc - a pointer to the sorting criterion context
 
    Level: developer
 
-.seealso: DSSort()
+.seealso: DSGetSlepcSC(), DSSort()
 @*/
-PetscErrorCode DSSetEigenvalueComparison(DS ds,PetscErrorCode (*fun)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
+PetscErrorCode DSSetSlepcSC(DS ds,SlepcSC sc)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  ds->comparison    = fun;
-  ds->comparisonctx = ctx;
+  PetscValidPointer(sc,2);
+  if (ds->sc) {
+    ierr = PetscFree(ds->sc);CHKERRQ(ierr);
+  }
+  ds->sc = sc;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSGetEigenvalueComparison"
+#define __FUNCT__ "DSGetSlepcSC"
 /*@C
-   DSGetEigenvalueComparison - Gets the eigenvalue comparison function
-   used for sorting.
+   DSGetSlepcSC - Gets the sorting criterion context.
 
    Not Collective
 
    Input Parameter:
-.  ds  - the direct solver context
+.  ds - the direct solver context
 
    Output Parameters:
-+  fun - a pointer to the comparison function
--  ctx - a context pointer (the last parameter to the comparison function)
-
-   Calling Sequence of fun:
-$  func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
-
-+   ar     - real part of the 1st eigenvalue
-.   ai     - imaginary part of the 1st eigenvalue
-.   br     - real part of the 2nd eigenvalue
-.   bi     - imaginary part of the 2nd eigenvalue
-.   res    - result of comparison
--   ctx    - optional context, as set by DSSetEigenvalueComparison()
-
-   Note:
-   The returning parameter 'res' can be
-+  negative - if the 1st eigenvalue is preferred to the 2st one
-.  zero     - if both eigenvalues are equally preferred
--  positive - if the 2st eigenvalue is preferred to the 1st one
+.  sc - a pointer to the sorting criterion context
 
    Level: developer
 
-.seealso: DSSort(), DSSetEigenvalueComparison()
+.seealso: DSSetSlepcSC(), DSSort()
 @*/
-PetscErrorCode DSGetEigenvalueComparison(DS ds,PetscErrorCode (**fun)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void** ctx)
+PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (fun) *fun = ds->comparison;
-  if (ctx) *ctx = ds->comparisonctx;
+  PetscValidPointer(sc,2);
+  if (!ds->sc) {
+    ierr = PetscNewLog(ds,&ds->sc);CHKERRQ(ierr);
+  }
+  *sc = ds->sc;
   PetscFunctionReturn(0);
 }
 
@@ -1047,8 +1019,6 @@ PetscErrorCode DSReset(DS ds)
   ds->lwork         = 0;
   ds->lrwork        = 0;
   ds->liwork        = 0;
-  ds->comparison    = NULL;
-  ds->comparisonctx = NULL;
   PetscFunctionReturn(0);
 }
 
@@ -1075,6 +1045,7 @@ PetscErrorCode DSDestroy(DS *ds)
   PetscValidHeaderSpecific(*ds,DS_CLASSID,1);
   if (--((PetscObject)(*ds))->refct > 0) { *ds = 0; PetscFunctionReturn(0); }
   ierr = DSReset(*ds);CHKERRQ(ierr);
+  ierr = PetscFree((*ds)->sc);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

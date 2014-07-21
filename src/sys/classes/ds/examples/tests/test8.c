@@ -22,7 +22,6 @@
 static char help[] = "Test DSSVD with compact storage.\n\n";
 
 #include <slepcds.h>
-#include <slepc-private/dsimpl.h>    /* for the definition of SlepcCompare* */
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -30,6 +29,7 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   DS             ds;
+  SlepcSC        sc;
   PetscReal      *T,sigma;
   PetscScalar    *w;
   PetscInt       i,n=10,m,l=2,k=5,ld;
@@ -80,7 +80,11 @@ int main(int argc,char **argv)
 
   /* Solve */
   ierr = PetscMalloc1(n,&w);CHKERRQ(ierr);
-  ierr = DSSetEigenvalueComparison(ds,SlepcCompareLargestReal,NULL);CHKERRQ(ierr);
+  ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
+  sc->compare    = SlepcCompareLargestReal;
+  sc->comparecxt = NULL;
+  sc->map        = NULL;
+  sc->mapobj     = NULL;
   ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   if (verbose) {
