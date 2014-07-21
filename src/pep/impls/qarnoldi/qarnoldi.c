@@ -34,7 +34,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>
+#include <slepc-private/pepimpl.h>    /*I "slepcpep.h" I*/
 #include <petscblaslapack.h>
 
 typedef struct {

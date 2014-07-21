@@ -34,7 +34,7 @@
 */
 
 #include <slepc-private/stimpl.h>         /* ///////// */
-#include <slepc-private/pepimpl.h>
+#include <slepc-private/pepimpl.h>    /*I "slepcpep.h" I*/
 #include <slepcblaslapack.h>
 
 typedef struct {
