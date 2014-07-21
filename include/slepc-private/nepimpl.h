@@ -98,7 +98,7 @@ struct _p_NEP {
   PetscInt       nt;               /* number of terms in split form */
   MatStructure   mstr;             /* pattern of split matrices */
   Vec            *IS;              /* references to user-provided initial space */
-  PetscScalar    *eig;             /* computed eigenvalues */
+  PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
   PetscReal      *errest;          /* error estimates */
   PetscInt       *perm;            /* permutation for eigenvalue ordering */
   PetscInt       nwork;            /* number of work vectors */

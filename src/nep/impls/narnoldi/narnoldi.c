@@ -108,8 +108,8 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
     /* solve projected problem */
     ierr = DSSetDimensions(nep->ds,n,0,0,0);CHKERRQ(ierr);
     ierr = DSSetState(nep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    ierr = DSSolve(nep->ds,nep->eig,NULL);CHKERRQ(ierr);
-    lambda = nep->eig[0];
+    ierr = DSSolve(nep->ds,nep->eigr,NULL);CHKERRQ(ierr);
+    lambda = nep->eigr[0];
 
     /* compute Ritz vector, x = V*s */
     ierr = DSGetArray(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
@@ -128,7 +128,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
       nep->nconv = nep->nconv + 1;
       nep->reason = NEP_CONVERGED_FNORM_RELATIVE;
     }
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eig,nep->errest,1);CHKERRQ(ierr);
+    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,1);CHKERRQ(ierr);
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
 

@@ -150,7 +150,7 @@ PetscErrorCode EPSSolve(EPS eps)
   }
 
   /* sort eigenvalues according to eps->which parameter */
-  ierr = EPSSortEigenvalues(eps,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
+  ierr = SlepcSortEigenvalues(eps->sc,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
 
   ierr = PetscLogEventEnd(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
 
@@ -731,87 +731,6 @@ PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *error)
   ierr = EPSComputeRelativeError_Private(eps,kr,ki,xr,xi,error);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSSortEigenvalues"
-/*@
-   EPSSortEigenvalues - Sorts a list of eigenvalues according to the criterion
-   specified via EPSSetWhichEigenpairs().
-
-   Not Collective
-
-   Input Parameters:
-+  eps   - the eigensolver context
-.  n     - number of eigenvalues in the list
-.  eigr  - pointer to the array containing the eigenvalues
--  eigi  - imaginary part of the eigenvalues (only when using real numbers)
-
-   Output Parameter:
-.  perm  - resulting permutation
-
-   Note:
-   The result is a list of indices in the original eigenvalue array
-   corresponding to the first nev eigenvalues sorted in the specified
-   criterion.
-
-   Level: developer
-
-.seealso: EPSSetWhichEigenpairs()
-@*/
-PetscErrorCode EPSSortEigenvalues(EPS eps,PetscInt n,PetscScalar *eigr,PetscScalar *eigi,PetscInt *perm)
-{
-  PetscErrorCode ierr;
-  PetscScalar    re,im;
-  PetscInt       i,j,result,tmp;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidScalarPointer(eigr,3);
-  PetscValidScalarPointer(eigi,4);
-  PetscValidIntPointer(perm,5);
-  for (i=0; i<n; i++) { perm[i] = i; }
-  /* insertion sort */
-  for (i=n-1; i>=0; i--) {
-    re = eigr[perm[i]];
-    im = eigi[perm[i]];
-    j = i + 1;
-#if !defined(PETSC_USE_COMPLEX)
-    if (im != 0) {
-      /* complex eigenvalue */
-      i--;
-      im = eigi[perm[i]];
-    }
-#endif
-    while (j<n) {
-      ierr = SlepcSCCompare(eps->sc,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
-      if (result < 0) break;
-#if !defined(PETSC_USE_COMPLEX)
-      /* keep together every complex conjugated eigenpair */
-      if (im == 0) {
-        if (eigi[perm[j]] == 0) {
-#endif
-          tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = tmp;
-          j++;
-#if !defined(PETSC_USE_COMPLEX)
-        } else {
-          tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp;
-          j+=2;
-        }
-      } else {
-        if (eigi[perm[j]] == 0) {
-          tmp = perm[j-2]; perm[j-2] = perm[j]; perm[j] = perm[j-1]; perm[j-1] = tmp;
-          j++;
-        } else {
-          tmp = perm[j-2]; perm[j-2] = perm[j]; perm[j] = tmp;
-          tmp = perm[j-1]; perm[j-1] = perm[j+1]; perm[j+1] = tmp;
-          j+=2;
-        }
-      }
-#endif
-    }
-  }
   PetscFunctionReturn(0);
 }
 

@@ -216,7 +216,8 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->nt              = 0;
   nep->mstr            = DIFFERENT_NONZERO_PATTERN;
   nep->IS              = NULL;
-  nep->eig             = NULL;
+  nep->eigr            = NULL;
+  nep->eigi            = NULL;
   nep->errest          = NULL;
   nep->perm            = NULL;
   nep->nwork           = 0;
@@ -393,7 +394,7 @@ PetscErrorCode NEPReset(NEP nep)
   }
   ierr = BVGetSizes(nep->V,NULL,NULL,&ncols);CHKERRQ(ierr);
   if (ncols) {
-    ierr = PetscFree3(nep->eig,nep->errest,nep->perm);CHKERRQ(ierr);
+    ierr = PetscFree4(nep->eigr,nep->eigi,nep->errest,nep->perm);CHKERRQ(ierr);
   }
   ierr = BVDestroy(&nep->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
