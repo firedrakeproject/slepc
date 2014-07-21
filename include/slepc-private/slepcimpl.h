@@ -62,7 +62,7 @@ struct _n_SlepcConvMonitor {
 typedef struct _n_SlepcConvMonitor* SlepcConvMonitor;
 
 /* Private functions that are shared by several classes */
-PETSC_EXTERN PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx);
+PETSC_EXTERN PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor*);
 
 PETSC_EXTERN PetscErrorCode SlepcCompareLargestMagnitude(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
 PETSC_EXTERN PetscErrorCode SlepcCompareSmallestMagnitude(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
