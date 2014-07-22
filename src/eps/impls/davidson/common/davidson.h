@@ -148,7 +148,6 @@ typedef struct _dvdDashboard {
   void *e_Vchanged_data;
 
   PetscErrorCode (*calcpairs_residual)(struct _dvdDashboard*,PetscInt s,PetscInt e);
-  PetscErrorCode (*calcpairs_residual_eig)(struct _dvdDashboard*,PetscInt s,PetscInt e);
   PetscErrorCode (*calcpairs_selectPairs)(struct _dvdDashboard*,PetscInt n);
   void *calcpairs_residual_data;
   PetscErrorCode (*improvex_precond)(struct _dvdDashboard*,PetscInt i,Vec x,Vec Px);
