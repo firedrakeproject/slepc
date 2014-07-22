@@ -811,7 +811,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   /* override SC settings */
   ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
   sc->comparison    = SlepcCompareLargestMagnitude;
-  sc->comparisoncxt = NULL;
+  sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
   ierr = VecGetLocalSize(w,&nlocal);CHKERRQ(ierr);
