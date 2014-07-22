@@ -251,6 +251,7 @@ PetscErrorCode RGSetType(RG rg,RGType type)
   ierr =  PetscFunctionListFind(RGList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested RG type %s",type);
 
+  if (rg->ops->destroy) { ierr = (*rg->ops->destroy)(rg);CHKERRQ(ierr); }
   ierr = PetscMemzero(rg->ops,sizeof(struct _RGOps));CHKERRQ(ierr);
 
   ierr = PetscObjectChangeTypeName((PetscObject)rg,type);CHKERRQ(ierr);
@@ -564,8 +565,8 @@ PetscErrorCode RGRegister(const char *name,PetscErrorCode (*function)(RG))
   PetscFunctionReturn(0);
 }
 
-/*PETSC_EXTERN PetscErrorCode RGCreate_Interval(RG);
-PETSC_EXTERN PetscErrorCode RGCreate_Polygon(RG);*/
+PETSC_EXTERN PetscErrorCode RGCreate_Interval(RG);
+/*PETSC_EXTERN PetscErrorCode RGCreate_Polygon(RG);*/
 PETSC_EXTERN PetscErrorCode RGCreate_Ellipse(RG);
 
 #undef __FUNCT__
@@ -583,8 +584,8 @@ PetscErrorCode RGRegisterAll(void)
 
   PetscFunctionBegin;
   RGRegisterAllCalled = PETSC_TRUE;
-/*  ierr = RGRegister(RGINTERVAL,RGCreate_Interval);CHKERRQ(ierr);
-  ierr = RGRegister(RGPOLYGON,RGCreate_Polygon);CHKERRQ(ierr);*/
+  ierr = RGRegister(RGINTERVAL,RGCreate_Interval);CHKERRQ(ierr);
+/*  ierr = RGRegister(RGPOLYGON,RGCreate_Polygon);CHKERRQ(ierr);*/
   ierr = RGRegister(RGELLIPSE,RGCreate_Ellipse);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

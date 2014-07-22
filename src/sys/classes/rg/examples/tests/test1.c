@@ -64,6 +64,20 @@ int main(int argc,char **argv)
   }
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");
 
+  /* interval */
+  ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
+  ierr = RGIntervalSetEndpoints(rg,-1,1,-0.1,0.1);CHKERRQ(ierr);
+  ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
+  ierr = RGView(rg,NULL);CHKERRQ(ierr);
+  re = 0.2; im = 0;
+#if defined(PETSC_USE_COMPLEX)
+  ar = re+im*PETSC_i;
+#else
+  ar = re; ai = im;
+#endif
+  ierr = RGCheckInside(rg,1,&ar,&ai,&inside);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside");
+
   ierr = RGDestroy(&rg);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return 0;
