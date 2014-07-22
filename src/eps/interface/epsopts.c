@@ -102,7 +102,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     r = eps->balance_cutoff;
     ierr = PetscOptionsReal("-eps_balance_cutoff","Cutoff value in balancing","EPSSetBalance",eps->balance_cutoff,&r,&flg2);CHKERRQ(ierr);
     if (flg1 || flg2) {
-      ierr = EPSSetBalance(eps,(EPSBalance)0,j,r);CHKERRQ(ierr);
+      ierr = EPSSetBalance(eps,eps->balance,j,r);CHKERRQ(ierr);
     }
 
     i = eps->max_it? eps->max_it: PETSC_DEFAULT;
@@ -976,8 +976,7 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
   PetscValidLogicalCollectiveEnum(eps,bal,2);
   PetscValidLogicalCollectiveInt(eps,its,3);
   PetscValidLogicalCollectiveReal(eps,cutoff,4);
-  if (bal==PETSC_DECIDE || bal==PETSC_DEFAULT) eps->balance = EPS_BALANCE_NONE;
-  else switch (bal) {
+  switch (bal) {
     case EPS_BALANCE_NONE:
     case EPS_BALANCE_ONESIDE:
     case EPS_BALANCE_TWOSIDE:

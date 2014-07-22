@@ -90,7 +90,7 @@ int main(int argc,char **argv)
 
   ierr = EPSSetBalance(eps,EPS_BALANCE_ONESIDE,8,1e-6);CHKERRQ(ierr);
   ierr = EPSGetBalance(eps,&bal,&its,&cut);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Balance: %D, its=%D, cutoff=%g\n",bal,its,(double)cut);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Balance: %s, its=%D, cutoff=%g\n",EPSBalanceTypes[bal],its,(double)cut);CHKERRQ(ierr);
 
   ierr = EPSSetTarget(eps,4.8);CHKERRQ(ierr);
   ierr = EPSGetTarget(eps,&target);CHKERRQ(ierr);
