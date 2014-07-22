@@ -356,6 +356,6 @@ runtest15f_1:
 
 runtest16_1:
 	-@test=test16_1; \
-	${MPIEXEC} -np 1 ./test16 -n 200 -eps_nev 6 -eps_smallest_magnitude -eps_terse 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test16 -n 200 -eps_nev 6 -eps_ncv 24 -eps_smallest_magnitude -eps_terse 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
