@@ -57,9 +57,8 @@
       PEP            solver
 #endif
       PEPType        tname
-      PetscReal      tol
       PetscInt       N, nx, ny, i, j, Istart, Iend, II
-      PetscInt       nev, maxit, ithree
+      PetscInt       nev, ithree
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscBool      flg
@@ -169,11 +168,6 @@
         write(*,130) nev
       endif
  130  format (' Number of requested eigenvalues:',I4)
-      call PEPGetTolerances(solver,tol,maxit,ierr)
-      if (rank .eq. 0) then
-        write(*,140) tol, maxit
-      endif
- 140  format (' Stopping condition: tol=',1P,E10.4,', maxit=',I4)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Display solution and clean up
