@@ -34,14 +34,19 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>
+#include <slepc-private/pepimpl.h>    /*I "slepcpep.h" I*/
 #include <petscblaslapack.h>
+
+typedef struct {
+  PetscReal keep;         /* restart parameter */
+} PEP_QARNOLDI;
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetUp_QArnoldi"
 PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
 {
   PetscErrorCode ierr;
+  PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
   PetscBool      sinv,flg;
 
   PetscFunctionBegin;
@@ -57,6 +62,8 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag set, see STSetTransform()");
+
+  if (!ctx->keep) ctx->keep = 0.5;
 
   ierr = PEPAllocateSolution(pep,0);CHKERRQ(ierr);
   ierr = PEPSetWorkVecs(pep,4);CHKERRQ(ierr);
@@ -195,6 +202,7 @@ static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k
 PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 {
   PetscErrorCode ierr;
+  PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
   PetscInt       j,k,l,lwork,nv,ld,newn;
   Vec            v=pep->work[0],w=pep->work[1];
   Mat            Q;
@@ -251,7 +259,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 
     /* Update l */
     if (pep->reason != PEP_CONVERGED_ITERATING || breakdown) l = 0;
-    else l = (nv-k)/2;
+    else l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
 
     if (pep->reason == PEP_CONVERGED_ITERATING) {
       if (breakdown) {
@@ -288,13 +296,159 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPQArnoldiSetRestart_QArnoldi"
+static PetscErrorCode PEPQArnoldiSetRestart_QArnoldi(PEP pep,PetscReal keep)
+{
+  PEP_QARNOLDI *ctx = (PEP_QARNOLDI*)pep->data;
+
+  PetscFunctionBegin;
+  if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
+  else {
+    if (keep<0.1 || keep>0.9) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
+    ctx->keep = keep;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPQArnoldiSetRestart"
+/*@
+   PEPQArnoldiSetRestart - Sets the restart parameter for the Q-Arnoldi
+   method, in particular the proportion of basis vectors that must be kept
+   after restart.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep  - the eigenproblem solver context
+-  keep - the number of vectors to be kept at restart
+
+   Options Database Key:
+.  -pep_qarnoldi_restart - Sets the restart parameter
+
+   Notes:
+   Allowed values are in the range [0.1,0.9]. The default is 0.5.
+
+   Level: advanced
+
+.seealso: PEPQArnoldiGetRestart()
+@*/
+PetscErrorCode PEPQArnoldiSetRestart(PEP pep,PetscReal keep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveReal(pep,keep,2);
+  ierr = PetscTryMethod(pep,"PEPQArnoldiSetRestart_C",(PEP,PetscReal),(pep,keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPQArnoldiGetRestart_QArnoldi"
+static PetscErrorCode PEPQArnoldiGetRestart_QArnoldi(PEP pep,PetscReal *keep)
+{
+  PEP_QARNOLDI *ctx = (PEP_QARNOLDI*)pep->data;
+
+  PetscFunctionBegin;
+  *keep = ctx->keep;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPQArnoldiGetRestart"
+/*@
+   PEPQArnoldiGetRestart - Gets the restart parameter used in the Q-Arnoldi method.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigenproblem solver context
+
+   Output Parameter:
+.  keep - the restart parameter
+
+   Level: advanced
+
+.seealso: PEPQArnoldiSetRestart()
+@*/
+PetscErrorCode PEPQArnoldiGetRestart(PEP pep,PetscReal *keep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(keep,2);
+  ierr = PetscTryMethod(pep,"PEPQArnoldiGetRestart_C",(PEP,PetscReal*),(pep,keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetFromOptions_QArnoldi"
+PetscErrorCode PEPSetFromOptions_QArnoldi(PEP pep)
+{
+  PetscErrorCode ierr;
+  PetscBool      flg;
+  PetscReal      keep;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead("PEP Q-Arnoldi Options");CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-pep_qarnoldi_restart","Proportion of vectors kept after restart","PEPQArnoldiSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PEPQArnoldiSetRestart(pep,keep);CHKERRQ(ierr);
+  }
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPView_QArnoldi"
+PetscErrorCode PEPView_QArnoldi(PEP pep,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
+  PetscBool      isascii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  Q-Arnoldi: %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPDestroy_QArnoldi"
+PetscErrorCode PEPDestroy_QArnoldi(PEP pep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(pep->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetRestart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetRestart_C",NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPCreate_QArnoldi"
 PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
 {
+  PEP_QARNOLDI   *ctx;
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
+  pep->data = (void*)ctx;
+
   pep->ops->solve          = PEPSolve_QArnoldi;
   pep->ops->setup          = PEPSetUp_QArnoldi;
+  pep->ops->setfromoptions = PEPSetFromOptions_QArnoldi;
+  pep->ops->destroy        = PEPDestroy_QArnoldi;
+  pep->ops->view           = PEPView_QArnoldi;
   pep->ops->computevectors = PEPComputeVectors_Schur;
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetRestart_C",PEPQArnoldiSetRestart_QArnoldi);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetRestart_C",PEPQArnoldiGetRestart_QArnoldi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
