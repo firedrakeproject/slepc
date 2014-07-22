@@ -19,17 +19,10 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
+ALL:
 
-CFLAGS   =
-FFLAGS   =
-SOURCEC  =
-SOURCEF  =
-SOURCEH  =
-LIBBASE  = libslepcsys
-MANSEC   = sys
-LOCDIR   = src/sys/classes/
-DIRS     = ds fn st bv rg
+LOCDIR   = src/sys/classes/rg/examples/
+DIRS     = tests
 
 include ${SLEPC_DIR}/conf/slepc_common
 
