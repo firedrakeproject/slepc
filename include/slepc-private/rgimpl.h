@@ -28,8 +28,8 @@
 typedef struct _RGOps *RGOps;
 
 struct _RGOps {
-  PetscErrorCode (*contour)(RG,PetscInt,PetscScalar*,PetscScalar*);
-  PetscErrorCode (*checkinside)(RG,PetscScalar,PetscScalar,PetscBool*);
+  PetscErrorCode (*computecontour)(RG,PetscInt,PetscScalar*,PetscScalar*);
+  PetscErrorCode (*checkinside)(RG,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
   PetscErrorCode (*setfromoptions)(RG);
   PetscErrorCode (*view)(RG,PetscViewer);
   PetscErrorCode (*destroy)(RG);

@@ -320,6 +320,11 @@ PetscErrorCode RGSetFromOptions(RG rg)
       ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
     }
 
+    ierr = PetscOptionsBool("-rg_complement","Whether region is complemented or not","RGSetComplement",rg->complement,&rg->complement,&flg);CHKERRQ(ierr);
+
+    if (rg->ops->setfromoptions) {
+      ierr = (*rg->ops->setfromoptions)(rg);CHKERRQ(ierr);
+    }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)rg);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -375,6 +380,137 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "RGCheckInside"
+/*@
+   RGCheckInside - Determines if a set of given points are inside the region or not.
+
+   Not Collective
+
+   Input Parameters:
++  rg - the region context
+.  n  - number of points to check
+.  ar - array of real parts
+-  ai - array of imaginary parts
+
+   Output Parameter:
+.  inside - array of results (1=inside, 0=on the contour, -1=outside)
+
+   Note:
+   The point a is expressed as a couple of PetscScalar variables ar,ai.
+   If built with complex scalars, the point is supposed to be stored in ar,
+   otherwise ar,ai contain the real and imaginary parts, respectively.
+
+   Level: intermediate
+@*/
+PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,PetscInt *inside)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidType(rg,1);
+  PetscValidPointer(ar,3);
+#if defined(PETSC_USE_COMPLEX)
+  PetscValidPointer(ai,4);
+#endif
+  PetscValidPointer(inside,5);
+  ierr = (*rg->ops->checkinside)(rg,n,ar,ai,inside);CHKERRQ(ierr);
+  if (rg->complement) {
+    for (i=0;i<n;i++) inside[i] = -inside[i];
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "RGComputeContour"
+/*@
+   RGComputeContour - Computes the coordinates of several points lying in the
+   contour of the region.
+
+   Not Collective
+
+   Input Parameters:
++  rg - the region context
+-  n  - number of points to compute
+
+   Output Parameter:
++  cr - location to store real parts
+-  ci - location to store imaginary parts
+
+   Level: intermediate
+@*/
+PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidType(rg,1);
+  PetscValidPointer(cr,3);
+#if defined(PETSC_USE_COMPLEX)
+  PetscValidPointer(ci,4);
+#endif
+  ierr = (*rg->ops->computecontour)(rg,n,cr,ci);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "RGSetComplement"
+/*@
+   RGSetComplement - Sets a flag to indicate that the region is the complement
+   of the specified one.
+
+   Logically Collective on RG
+
+   Input Parameters:
++  rg  - the region context
+-  flg - the boolean flag
+
+   Options Database Key:
+.  -rg_complement <bool> - Activate/deactivate the complementation of the region.
+
+   Level: intermediate
+
+.seealso: RGGetComplement()
+@*/
+PetscErrorCode RGSetComplement(RG rg,PetscBool flg)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidLogicalCollectiveBool(rg,flg,2);
+  rg->complement = flg;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "RGGetComplement"
+/*@
+   RGGetComplement - Gets a flag that that indicates whether the region
+   is complemented or not.
+
+   Not Collective
+
+   Input Parameter:
+.  rg - the region context
+
+   Output Parameter:
+.  flg - the flag
+
+   Level: intermediate
+
+.seealso: RGSetComplement()
+@*/
+PetscErrorCode RGGetComplement(RG rg,PetscBool *flg)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidPointer(flg,2);
+  *flg = rg->complement;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "RGDestroy"
 /*@C
    RGDestroy - Destroys RG context that was created with RGCreate().
@@ -397,7 +533,6 @@ PetscErrorCode RGDestroy(RG *rg)
   PetscValidHeaderSpecific(*rg,RG_CLASSID,1);
   if (--((PetscObject)(*rg))->refct > 0) { *rg = 0; PetscFunctionReturn(0); }
   if ((*rg)->ops->destroy) { ierr = (*(*rg)->ops->destroy)(*rg);CHKERRQ(ierr); }
-  ierr = PetscFree((*rg)->data);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(rg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -430,8 +565,8 @@ PetscErrorCode RGRegister(const char *name,PetscErrorCode (*function)(RG))
 }
 
 /*PETSC_EXTERN PetscErrorCode RGCreate_Interval(RG);
-PETSC_EXTERN PetscErrorCode RGCreate_Polygon(RG);
-PETSC_EXTERN PetscErrorCode RGCreate_Ellipse(RG);*/
+PETSC_EXTERN PetscErrorCode RGCreate_Polygon(RG);*/
+PETSC_EXTERN PetscErrorCode RGCreate_Ellipse(RG);
 
 #undef __FUNCT__
 #define __FUNCT__ "RGRegisterAll"
@@ -449,8 +584,8 @@ PetscErrorCode RGRegisterAll(void)
   PetscFunctionBegin;
   RGRegisterAllCalled = PETSC_TRUE;
 /*  ierr = RGRegister(RGINTERVAL,RGCreate_Interval);CHKERRQ(ierr);
-  ierr = RGRegister(RGPOLYGON,RGCreate_Polygon);CHKERRQ(ierr);
-  ierr = RGRegister(RGELLIPSE,RGCreate_Ellipse);CHKERRQ(ierr);*/
+  ierr = RGRegister(RGPOLYGON,RGCreate_Polygon);CHKERRQ(ierr);*/
+  ierr = RGRegister(RGELLIPSE,RGCreate_Ellipse);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

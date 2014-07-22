@@ -58,9 +58,17 @@ PETSC_EXTERN PetscErrorCode RGSetFromOptions(RG);
 PETSC_EXTERN PetscErrorCode RGView(RG,PetscViewer);
 PETSC_EXTERN PetscErrorCode RGDestroy(RG*);
 
+PETSC_EXTERN PetscErrorCode RGCheckInside(RG,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
+PETSC_EXTERN PetscErrorCode RGComputeContour(RG,PetscInt,PetscScalar*,PetscScalar*);
+
 PETSC_EXTERN PetscFunctionList RGList;
 PETSC_EXTERN PetscBool         RGRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode RGRegisterAll(void);
 PETSC_EXTERN PetscErrorCode RGRegister(const char[],PetscErrorCode(*)(RG));
+
+/* --------- options specific to particular regions -------- */
+
+PETSC_EXTERN PetscErrorCode RGEllipseSetParameters(RG,PetscScalar,PetscReal,PetscReal);
+PETSC_EXTERN PetscErrorCode RGEllipseGetParameters(RG,PetscScalar*,PetscReal*,PetscReal*);
 
 #endif
