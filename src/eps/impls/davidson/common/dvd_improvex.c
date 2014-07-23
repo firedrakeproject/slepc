@@ -878,12 +878,14 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt
 {
   PetscErrorCode  ierr;
   PetscInt        n = i_e-i_s,i;
-  PetscScalar     b[16];
-  Vec             *Ax,*Bx,*r,X[4];
-  /* The memory manager doen't allow to call a subroutines */
-  PetscScalar     Z[size_Z];
+  PetscScalar     *b;
+  Vec             *Ax,*Bx,*r;
+  Mat             M;
+  BV              X;
 
   PetscFunctionBegin;
+  ierr = BVDuplicateResize(d->eps->V,4,&X);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,4,4,NULL,&M);CHKERRQ(ierr);
   /* u <- X(i) */
   ierr = dvd_improvex_compute_X(d,i_s,i_e,u,pX,ld);CHKERRQ(ierr);
 
@@ -927,6 +929,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt
                                        0         theta_2i'     0        1
                                      theta_2i+1 -thetai_i   -eigr_i -eigi_i
                                      thetai_i    theta_2i+1  eigi_i -eigr_i ] */
+      ierr = MatDenseGetArray(M,&b);CHKERRQ(ierr);
       b[0] = b[5] = PetscConj(theta[2*i]);
       b[2] = b[7] = -theta[2*i+1];
       b[6] = -(b[3] = thetai[i]);
@@ -935,20 +938,35 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt
       b[10] = b[15] = -d->eigr[i_s+i]/d->nX[i_s+i];
       b[14] = -(b[11] = d->eigi[i_s+i]/d->nX[i_s+i]);
       b[9] = b[12] = 0.0;
-      X[0] = Ax[i]; X[1] = Ax[i+1]; X[2] = Bx[i]; X[3] = Bx[i+1];
-      ierr = SlepcUpdateVectorsD(X,4,1.0,b,4,4,4,Z,size_Z);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArray(M,&b);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,0,Ax[i]);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,1,Ax[i+1]);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,2,Bx[i]);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,3,Bx[i+1]);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(X,0,4);CHKERRQ(ierr);
+      ierr = BVMultInPlace(X,M,0,4);CHKERRQ(ierr);
+      ierr = BVCopyVec(X,0,Ax[i]);CHKERRQ(ierr);
+      ierr = BVCopyVec(X,1,Ax[i+1]);CHKERRQ(ierr);
+      ierr = BVCopyVec(X,2,Bx[i]);CHKERRQ(ierr);
+      ierr = BVCopyVec(X,3,Bx[i+1]);CHKERRQ(ierr);
       i++;
     } else
 #endif
     {
       /* [Ax_i Bx_i]*= [ theta_2i'    1/nX_i
                         theta_2i+1  -eig_i/nX_i ] */
+      ierr = MatDenseGetArray(M,&b);CHKERRQ(ierr);
       b[0] = PetscConj(theta[i*2]);
       b[1] = theta[i*2+1];
-      b[2] = 1.0/d->nX[i_s+i];
-      b[3] = -d->eigr[i_s+i]/d->nX[i_s+i];
-      X[0] = Ax[i]; X[1] = Bx[i];
-      ierr = SlepcUpdateVectorsD(X,2,1.0,b,2,2,2,Z,size_Z);CHKERRQ(ierr);
+      b[4] = 1.0/d->nX[i_s+i];
+      b[5] = -d->eigr[i_s+i]/d->nX[i_s+i];
+      ierr = MatDenseRestoreArray(M,&b);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,0,Ax[i]);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,1,Bx[i]);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(X,0,2);CHKERRQ(ierr);
+      ierr = BVMultInPlace(X,M,0,2);CHKERRQ(ierr);
+      ierr = BVCopyVec(X,0,Ax[i]);CHKERRQ(ierr);
+      ierr = BVCopyVec(X,1,Bx[i]);CHKERRQ(ierr);
     }
   }
   for (i=0; i<n; i++) d->nX[i_s+i] = 1.0;
@@ -961,6 +979,8 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt
 
   /* kr <- P*(Ax - eig_i*Bx) */
   ierr = d->calcpairs_proj_res(d,i_s,i_e,kr);CHKERRQ(ierr);
+  ierr = BVDestroy(&X);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -977,12 +997,14 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d,PetscInt i_s,PetscInt
 {
   PetscErrorCode  ierr;
   PetscInt        n = i_e - i_s,i;
-  PetscScalar     b[8];
-  Vec             *Ax,*Bx,*r,X[4];
-  /* The memory manager doen't allow to call a subroutines */
-  PetscScalar     Z[size_Z];
+  PetscScalar     *b;
+  Vec             *Ax,*Bx,*r;
+  Mat             M;
+  BV              X;
 
   PetscFunctionBegin;
+  ierr = BVDuplicateResize(d->eps->V,4,&X);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,4,2,NULL,&M);CHKERRQ(ierr);
   /* [v u] <- X(i) Y(i) */
   ierr = dvd_improvex_compute_X(d,i_s,i_e,v,pX,ld);CHKERRQ(ierr);
   for (i=i_s; i<i_e; ++i) {
@@ -1022,12 +1044,20 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d,PetscInt i_s,PetscInt
                                        0        1
                                     -eigr_i -eigi_i
                                      eigi_i -eigr_i] */
+      ierr = MatDenseGetArray(M,&b);CHKERRQ(ierr);
       b[0] = b[5] = 1.0/d->nX[i_s+i];
       b[2] = b[7] = -d->eigr[i_s+i]/d->nX[i_s+i];
       b[6] = -(b[3] = d->eigi[i_s+i]/d->nX[i_s+i]);
       b[1] = b[4] = 0.0;
-      X[0] = kr[i]; X[1] = kr[i+1]; X[2] = r[i]; X[3] = r[i+1];
-      ierr = SlepcUpdateVectorsD(X,4,1.0,b,4,4,2,Z,size_Z);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArray(M,&b);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,0,kr[i]);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,1,kr[i+1]);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,2,r[i]);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,3,r[i+1]);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(X,0,4);CHKERRQ(ierr);
+      ierr = BVMultInPlace(X,M,0,2);CHKERRQ(ierr);
+      ierr = BVCopyVec(X,0,kr[i]);CHKERRQ(ierr);
+      ierr = BVCopyVec(X,1,kr[i+1]);CHKERRQ(ierr);
       i++;
     }
   }

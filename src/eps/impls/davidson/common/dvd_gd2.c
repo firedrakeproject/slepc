@@ -29,8 +29,6 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d);
 PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
 PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d,PetscScalar *pX,PetscScalar *pY,PetscInt ld_,PetscScalar *auxS,PetscInt size_auxS);
 
-#define size_Z (64*4)
-
 /**** GD2 update step K*[A*X B*X]  ****/
 
 typedef struct {
@@ -102,12 +100,16 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pe
   dvdImprovex_gd2 *data = (dvdImprovex_gd2*)d->improveX_data;
   PetscErrorCode  ierr;
   PetscInt        i,j,n,s,ld,k,lv,kv,max_size_D;
-  PetscScalar     *pX,b[10],Z[size_Z];
-  Vec             *Ax,*Bx,X[4],v,*x;
+  PetscScalar     *pX,*b;
+  Vec             *Ax,*Bx,v,*x;
+  Mat             M;
+  BV              X;
 
   PetscFunctionBegin;
   /* Compute the number of pairs to improve */
   ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
+  ierr = BVDuplicateResize(d->eps->V,4,&X);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,4,2,NULL,&M);CHKERRQ(ierr);
   max_size_D = d->eps->ncv-kv;
   n = PetscMin(PetscMin(data->size_X*2,max_size_D),(r_e-r_s)*2)/2;
 #if !defined(PETSC_USE_COMPLEX)
@@ -180,24 +182,38 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pe
                                           0        1
                                        -eigr_i -eigi_i
                                         eigi_i -eigr_i] */
+      ierr = MatDenseGetArray(M,&b);CHKERRQ(ierr);
       b[0] = b[5] = 1.0/d->nX[r_s+i];
       b[2] = b[7] = -d->eigr[r_s+i]/d->nX[r_s+i];
       b[6] = -(b[3] = d->eigi[r_s+i]/d->nX[r_s+i]);
       b[1] = b[4] = 0.0;
-      X[0] = Ax[i]; X[1] = Ax[i+1]; X[2] = Bx[i]; X[3] = Bx[i+1];
-      ierr = SlepcUpdateVectorsD(X,4,1.0,b,4,4,2,Z,size_Z);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArray(M,&b);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,0,Ax[i]);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,1,Ax[i+1]);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,2,Bx[i]);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,3,Bx[i+1]);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(X,0,4);CHKERRQ(ierr);
+      ierr = BVMultInPlace(X,M,0,2);CHKERRQ(ierr);
+      ierr = BVCopyVec(X,0,Ax[i]);CHKERRQ(ierr);
+      ierr = BVCopyVec(X,1,Ax[i+1]);CHKERRQ(ierr);
       s = 2;
     } else
 #endif
     {
       /* [Ax_i Bx_i]*= [ 1/nX_i    conj(eig_i/nX_i)
                        -eig_i/nX_i     1/nX_i       ] */
+      ierr = MatDenseGetArray(M,&b);CHKERRQ(ierr);
       b[0] = 1.0/d->nX[r_s+i];
       b[1] = -d->eigr[r_s+i]/d->nX[r_s+i];
-      b[2] = PetscConj(d->eigr[r_s+i]/d->nX[r_s+i]);
-      b[3] = 1.0/d->nX[r_s+i];
-      X[0] = Ax[i]; X[1] = Bx[i];
-      ierr = SlepcUpdateVectorsD(X,2,1.0,b,2,2,2,Z,size_Z);CHKERRQ(ierr);
+      b[4] = PetscConj(d->eigr[r_s+i]/d->nX[r_s+i]);
+      b[5] = 1.0/d->nX[r_s+i];
+      ierr = MatDenseRestoreArray(M,&b);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,0,Ax[i]);CHKERRQ(ierr);
+      ierr = BVInsertVec(X,1,Bx[i]);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(X,0,2);CHKERRQ(ierr);
+      ierr = BVMultInPlace(X,M,0,2);CHKERRQ(ierr);
+      ierr = BVCopyVec(X,0,Ax[i]);CHKERRQ(ierr);
+      ierr = BVCopyVec(X,1,Bx[i]);CHKERRQ(ierr);
       s = 1;
     }
     for (j=0; j<s; j++) d->nX[r_s+i+j] = 1.0;
@@ -245,6 +261,7 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pe
 
   ierr = SlepcVecPoolRestoreVecs(d->auxV,n,&Bx);CHKERRQ(ierr);
   ierr = SlepcVecPoolRestoreVecs(d->auxV,n,&Ax);CHKERRQ(ierr);
-
+  ierr = BVDestroy(&X);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
