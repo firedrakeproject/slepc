@@ -82,6 +82,4 @@ PETSC_INTERN PetscErrorCode SlepcInitialize_DynamicLibraries(void);
 PETSC_INTERN PetscErrorCode SlepcInitialize_Packages(void);
 PETSC_INTERN PetscErrorCode SlepcInitialize_LogEvents(void);
 
-PETSC_EXTERN PetscErrorCode SlepcDenseMatProd(PetscScalar *C,PetscInt _ldC,PetscScalar b,PetscScalar a,const PetscScalar *A,PetscInt _ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,PetscInt _ldB,PetscInt rB,PetscInt cB,PetscBool Bt);
-
 #endif

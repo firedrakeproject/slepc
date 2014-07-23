@@ -479,6 +479,54 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "SlepcDenseMatProd"
+/*
+  Compute C <- a*A*B + b*C, where
+    ldC, the leading dimension of C,
+    ldA, the leading dimension of A,
+    rA, cA, rows and columns of A,
+    At, if true use the transpose of A instead,
+    ldB, the leading dimension of B,
+    rB, cB, rows and columns of B,
+    Bt, if true use the transpose of B instead
+*/
+static PetscErrorCode SlepcDenseMatProd(PetscScalar *C,PetscInt _ldC,PetscScalar b,PetscScalar a,const PetscScalar *A,PetscInt _ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,PetscInt _ldB,PetscInt rB,PetscInt cB,PetscBool Bt)
+{
+  PetscErrorCode ierr;
+  PetscInt       tmp;
+  PetscBLASInt   m, n, k, ldA = _ldA, ldB = _ldB, ldC = _ldC;
+  const char     *N = "N", *T = "C", *qA = N, *qB = N;
+
+  PetscFunctionBegin;
+  if ((rA == 0) || (cB == 0)) PetscFunctionReturn(0);
+  PetscValidScalarPointer(C,1);
+  PetscValidScalarPointer(A,5);
+  PetscValidScalarPointer(B,10);
+
+  /* Transpose if needed */
+  if (At) tmp = rA, rA = cA, cA = tmp, qA = T;
+  if (Bt) tmp = rB, rB = cB, cB = tmp, qB = T;
+
+  /* Check size */
+  if (cA != rB) SETERRQ(PETSC_COMM_SELF,1, "Matrix dimensions do not match");
+
+  /* Do stub */
+  if ((rA == 1) && (cA == 1) && (cB == 1)) {
+    if (!At && !Bt) *C = *A * *B;
+    else if (At && !Bt) *C = PetscConj(*A) * *B;
+    else if (!At && Bt) *C = *A * PetscConj(*B);
+    else *C = PetscConj(*A) * PetscConj(*B);
+    m = n = k = 1;
+  } else {
+    m = rA; n = cB; k = cA;
+    PetscStackCallBLAS("BLASgemm",BLASgemm_(qA,qB,&m,&n,&k,&a,(PetscScalar*)A,&ldA,(PetscScalar*)B,&ldB,&b,C,&ldC));
+  }
+
+  ierr = PetscLogFlops(m*n*2*k);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "DSPseudoOrthogonalize"
 /*
    DSPseudoOrthogonalize - Orthogonalize the columns of a matrix with Modified

@@ -760,7 +760,7 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
 
   /* XKZ <- XKZ(rm:rm+max_cX-1,rm:rm+max_cX-1) */
   if (rm > 0) for (i=0; i<lKZ; i++) {
-    ierr = SlepcDenseCopy(&data->XKZ[i*data->ldXKZ+i],data->ldXKZ,&data->XKZ[(i+rm)*data->ldXKZ+i+rm],data->ldXKZ,lKZ,1);CHKERRQ(ierr);
+    ierr = PetscMemcpy(&data->XKZ[i*data->ldXKZ+i],&data->XKZ[(i+rm)*data->ldXKZ+i+rm],sizeof(PetscScalar)*lKZ);CHKERRQ(ierr);
   }
   lKZ = PetscMin(d->max_cX_in_impr,lKZ+V_new);
   ierr = BVSetActiveColumns(data->KZ,lKZ,lKZ+n);CHKERRQ(ierr);
@@ -784,7 +784,9 @@ PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_
   size_KZ = lKZ+n;
   ierr = PetscBLASIntCast(lKZ+n,&s);CHKERRQ(ierr);
   data->ldiXKZ = data->size_iXKZ = size_KZ;
-  ierr = SlepcDenseCopy(data->iXKZ,data->ldiXKZ,data->XKZ,data->ldXKZ,size_KZ,size_KZ);CHKERRQ(ierr);
+  for (i=0;i<size_KZ;i++) {
+    ierr = PetscMemcpy(&data->iXKZ[data->ldiXKZ*i],&data->XKZ[data->ldXKZ*i],sizeof(PetscScalar)*size_KZ);CHKERRQ(ierr);
+  }
   ierr = PetscBLASIntCast(data->ldiXKZ,&ldXKZ);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&s, &s, data->iXKZ, &ldXKZ, data->iXKZPivots, &info));
