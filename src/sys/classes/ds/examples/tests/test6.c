@@ -88,10 +88,10 @@ int main(int argc,char **argv)
   /* Solve */
   ierr = PetscCalloc2(n,&eigr,n,&eigi);CHKERRQ(ierr);
   ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
-  sc->compare    = SlepcCompareLargestMagnitude;
-  sc->comparectx = NULL;
-  sc->map        = NULL;
-  sc->mapobj     = NULL;
+  sc->comparison    = SlepcCompareLargestMagnitude;
+  sc->comparisonctx = NULL;
+  sc->map           = NULL;
+  sc->mapobj        = NULL;
   ierr = DSSolve(ds,eigr,eigi);CHKERRQ(ierr);
   ierr = DSSort(ds,eigr,eigi,NULL,NULL,NULL);CHKERRQ(ierr);
   if (verbose) {

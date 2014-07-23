@@ -79,10 +79,10 @@ int main(int argc,char **argv)
   /* Solve */
   ierr = PetscMalloc1(k,&w);CHKERRQ(ierr);
   ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
-  sc->compare    = SlepcCompareLargestReal;
-  sc->comparectx = NULL;
-  sc->map        = NULL;
-  sc->mapobj     = NULL;
+  sc->comparison    = SlepcCompareLargestReal;
+  sc->comparisonctx = NULL;
+  sc->map           = NULL;
+  sc->mapobj        = NULL;
   ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   if (verbose) {
