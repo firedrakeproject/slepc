@@ -196,7 +196,9 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
     ierr = PetscOptionsScalar("-eps_target","Value of the target","EPSSetTarget",eps->target,&s,&flg);CHKERRQ(ierr);
     if (flg) {
-      ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
+      if (eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_IMAGINARY) {
+        ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
+      }
       ierr = EPSSetTarget(eps,s);CHKERRQ(ierr);
     }
     k = 2;
