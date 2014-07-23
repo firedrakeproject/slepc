@@ -80,7 +80,7 @@ int main(int argc,char **argv)
   ierr = PetscMalloc1(k,&w);CHKERRQ(ierr);
   ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
   sc->compare    = SlepcCompareLargestReal;
-  sc->comparecxt = NULL;
+  sc->comparectx = NULL;
   sc->map        = NULL;
   sc->mapobj     = NULL;
   ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
