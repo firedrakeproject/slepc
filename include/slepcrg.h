@@ -58,6 +58,8 @@ PETSC_EXTERN PetscErrorCode RGSetFromOptions(RG);
 PETSC_EXTERN PetscErrorCode RGView(RG,PetscViewer);
 PETSC_EXTERN PetscErrorCode RGDestroy(RG*);
 
+PETSC_EXTERN PetscErrorCode RGSetComplement(RG,PetscBool);
+PETSC_EXTERN PetscErrorCode RGGetComplement(RG,PetscBool*);
 PETSC_EXTERN PetscErrorCode RGCheckInside(RG,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
 PETSC_EXTERN PetscErrorCode RGComputeContour(RG,PetscInt,PetscScalar*,PetscScalar*);
 
