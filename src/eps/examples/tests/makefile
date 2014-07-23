@@ -151,8 +151,6 @@ runtest2_1:
 	-@test=test2_1; \
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps"; \
-	   if [ "$$eps" = arnoldi -o "$$eps" = lanczos ]; then EXTRA="-eps_ncv 18"; \
-	   elif [ "$$eps" = gd2 ]; then EXTRA="-eps_ncv 30"; else EXTRA=""; fi; \
 	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	   ${MPIEXEC} -np 1 ./test2 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA 2>&1;    \
 	done > $${test}.tmp; \

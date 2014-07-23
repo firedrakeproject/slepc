@@ -78,7 +78,7 @@ spring: spring.o chkopts
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runacoustic_wave_1d_1:
-	-@${MPIEXEC} -np 1 ./acoustic_wave_1d -pep_nev 4 -n 25 -st_type sinvert -pep_terse > acoustic_wave_1d_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./acoustic_wave_1d -pep_nev 4 -pep_tol 1e-7 -n 24 -st_type sinvert -pep_terse > acoustic_wave_1d_1.tmp 2>&1; \
 	   if (${DIFF} output/acoustic_wave_1d_1.out acoustic_wave_1d_1.tmp) then true; \
 	   else echo "Possible problem with acoustic_wave_1d_1, diffs above"; fi; \
 	   ${RM} -f acoustic_wave_1d_1.tmp
