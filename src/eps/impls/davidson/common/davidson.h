@@ -279,7 +279,7 @@ typedef PetscErrorCode (*improveX_type)(dvdDashboard*,Vec *D,PetscInt max_size_D
 PETSC_INTERN PetscErrorCode dvd_initV(dvdDashboard *d,dvdBlackboard *b,PetscInt k,PetscInt user,PetscBool krylov);
 
 /* Routines for calcPairs step */
-PETSC_INTERN PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,EPSOrthType orth,PetscInt cX_proj,PetscBool harm);
+PETSC_INTERN PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,PetscBool orth,PetscInt cX_proj,PetscBool harm);
 
 /* Routines for improveX step */
 PETSC_INTERN PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs,PetscInt cX_impr,PetscBool dynamic);
@@ -305,8 +305,8 @@ PETSC_INTERN PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmT
 PETSC_INTERN PetscErrorCode BVMultS(BV X,BV Y,PetscScalar *H,PetscInt ldh);
 
 /* Methods */
-PETSC_INTERN PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,KSP ksp,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,Method_t method);
-PETSC_INTERN PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,PetscBool fixedTarget,PetscScalar t,KSP ksp,PetscReal fix,InitType_t init,PetscBool allResiduals,EPSOrthType orth,PetscInt cX_proj,PetscInt cX_impr,PetscBool dynamic,Method_t method);
+PETSC_INTERN PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,KSP ksp,InitType_t init,PetscBool allResiduals,PetscBool orth,PetscInt cX_proj,PetscInt cX_impr,Method_t method);
+PETSC_INTERN PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,PetscBool fixedTarget,PetscScalar t,KSP ksp,PetscReal fix,InitType_t init,PetscBool allResiduals,PetscBool orth,PetscInt cX_proj,PetscInt cX_impr,PetscBool dynamic,Method_t method);
 
 /* Orthogonalization routines */
 PETSC_INTERN PetscErrorCode dvd_orthV(BV bv,PetscInt V_new_s,PetscInt V_new_e,PetscRandom rand);
@@ -328,8 +328,8 @@ PETSC_INTERN PetscErrorCode EPSXDGetInitialSize_XD(EPS eps,PetscInt *initialsize
 PETSC_INTERN PetscErrorCode EPSXDSetInitialSize_XD(EPS eps,PetscInt initialsize);
 PETSC_INTERN PetscErrorCode EPSXDGetFix_XD(EPS eps,PetscReal *fix);
 PETSC_INTERN PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix);
-PETSC_INTERN PetscErrorCode EPSXDSetBOrth_XD(EPS eps,EPSOrthType borth);
-PETSC_INTERN PetscErrorCode EPSXDGetBOrth_XD(EPS eps,EPSOrthType *borth);
+PETSC_INTERN PetscErrorCode EPSXDSetBOrth_XD(EPS eps,PetscBool borth);
+PETSC_INTERN PetscErrorCode EPSXDGetBOrth_XD(EPS eps,PetscBool *borth);
 PETSC_INTERN PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant);
 PETSC_INTERN PetscErrorCode EPSJDGetConstCorrectionTol_JD(EPS eps,PetscBool *constant);
 PETSC_INTERN PetscErrorCode EPSXDSetWindowSizes_XD(EPS eps,PetscInt pwindow,PetscInt qwindow);
