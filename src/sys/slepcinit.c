@@ -157,6 +157,8 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
 }
 #endif
 
+PetscLogEvent SLEPC_UpdateVectors = 0,SLEPC_SlepcDenseMatProd = 0,SLEPC_SlepcDenseCopy = 0,SLEPC_VecsMult = 0;
+
 #undef __FUNCT__
 #define __FUNCT__ "SlepcInitialize_LogEvents"
 /*

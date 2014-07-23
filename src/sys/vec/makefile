@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = vecutil.c veccomp.c contiguous.c pool.c
+SOURCEC  = vecutil.c veccomp.c pool.c
 SOURCEF  =
 SOURCEH  = veccomp0.h
 LIBBASE  = libslepcsys
