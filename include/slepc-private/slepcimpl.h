@@ -80,6 +80,5 @@ PETSC_EXTERN PetscErrorCode SlepcBasisDestroy_Private(PetscInt*,Vec**);
 
 PETSC_INTERN PetscErrorCode SlepcInitialize_DynamicLibraries(void);
 PETSC_INTERN PetscErrorCode SlepcInitialize_Packages(void);
-PETSC_INTERN PetscErrorCode SlepcInitialize_LogEvents(void);
 
 #endif

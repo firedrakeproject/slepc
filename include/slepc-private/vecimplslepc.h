@@ -25,8 +25,6 @@
 #include <slepcvec.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors,SLEPC_SlepcDenseMatProd,SLEPC_SlepcDenseOrth,SLEPC_SlepcDenseMatInvProd,SLEPC_SlepcDenseCopy,SLEPC_VecsMult;
-
 #if !defined(PETSC_USE_DEBUG)
 
 #define SlepcValidVecComp(y) do {} while (0)
