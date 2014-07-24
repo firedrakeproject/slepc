@@ -627,7 +627,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
       }
       if (isreal) {
         if (ds->compact) {
-          D[i] = ss1;;
+          D[i] = ss1;
           T[i] = wr1;
           D[i+1] = ss2;
           T[i+1] = wr2;

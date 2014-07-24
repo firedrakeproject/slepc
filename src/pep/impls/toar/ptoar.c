@@ -722,7 +722,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 
     /* Solve projected problem */
     ierr = DSSolve(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
-    ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);;
+    ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(pep->ds);CHKERRQ(ierr);
 
     /* Check convergence */
@@ -799,7 +799,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
       ierr = PEPNewtonRefinement_TOAR(pep,&pep->rits,NULL,pep->nconv,S,lds);CHKERRQ(ierr);
       ierr = DSSolve(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
-      ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);;
+      ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
       ierr = DSGetArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
       ierr = PEPTOARSupdate(S,ld,deg,nq,0,pep->nconv,pep->nconv,Q,ldds,work+nwu,lwa-nwu);CHKERRQ(ierr);
       ierr = DSRestoreArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);

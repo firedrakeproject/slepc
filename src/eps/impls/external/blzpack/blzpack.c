@@ -374,7 +374,7 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
 static PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
 {
   PetscErrorCode ierr;
-  EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) blz->block_size = 3;
