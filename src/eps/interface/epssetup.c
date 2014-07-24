@@ -172,10 +172,17 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* fill sorting criterion for DS */
   ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
-  sc->comparison    = eps->sc->comparison;
-  sc->comparisonctx = eps->sc->comparisonctx;
-  sc->map           = SlepcMap_ST;
-  sc->mapobj        = (PetscObject)eps->st;
+  if (eps->which==EPS_ALL) {
+    sc->comparison    = SlepcCompareLargestMagnitude;
+    sc->comparisonctx = NULL;
+    sc->map           = NULL;
+    sc->mapobj        = NULL;
+  } else {
+    sc->comparison    = eps->sc->comparison;
+    sc->comparisonctx = eps->sc->comparisonctx;
+    sc->map           = SlepcMap_ST;
+    sc->mapobj        = (PetscObject)eps->st;
+  }
 
   /* Build balancing matrix if required */
   if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
