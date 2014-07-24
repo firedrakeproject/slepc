@@ -31,7 +31,7 @@ typedef struct {
     initialsize,          /* initial size of V */
     minv,                 /* size of V after restarting */
     plusk;                /* keep plusk eigenvectors from the last iteration */
-  EPSOrthType ipB;        /* true if B-ortho is used */
+  PetscBool  ipB;        /* true if B-ortho is used */
   PetscInt   method;      /* method for improving the approximate solution */
   PetscReal  fix;         /* the fix parameter */
   PetscBool  krylovstart; /* true if the starting subspace is a Krylov basis */
@@ -69,7 +69,7 @@ PetscErrorCode EPSCreate_XD(EPS eps)
   ierr = EPSXDSetRestart_XD(eps,6,0);CHKERRQ(ierr);
   ierr = EPSXDSetInitialSize_XD(eps,5);CHKERRQ(ierr);
   ierr = EPSJDSetFix_JD(eps,0.01);CHKERRQ(ierr);
-  ierr = EPSXDSetBOrth_XD(eps,EPS_ORTH_B);CHKERRQ(ierr);
+  ierr = EPSXDSetBOrth_XD(eps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = EPSJDSetConstCorrectionTol_JD(eps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = EPSXDSetWindowSizes_XD(eps,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -149,8 +149,8 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   if (!ispositive && !eps->isgeneralized && eps->ishermitian) ispositive = PETSC_TRUE;
   if (!eps->isgeneralized) dvd->sB = DVD_MAT_IMPLICIT | DVD_MAT_HERMITIAN | DVD_MAT_IDENTITY | DVD_MAT_UNITARY | DVD_MAT_POS_DEF;
   else dvd->sB = DVD_MAT_IMPLICIT | (eps->ishermitian? DVD_MAT_HERMITIAN : 0) | (ispositive? DVD_MAT_POS_DEF : 0);
-  ipB = (dvd->B && data->ipB != EPS_ORTH_I && DVD_IS(dvd->sB,DVD_MAT_HERMITIAN))?PETSC_TRUE:PETSC_FALSE;
-  if (data->ipB != EPS_ORTH_I && !ipB) data->ipB = EPS_ORTH_I;
+  ipB = (dvd->B && data->ipB && DVD_IS(dvd->sB,DVD_MAT_HERMITIAN))?PETSC_TRUE:PETSC_FALSE;
+  if (data->ipB && !ipB) data->ipB = PETSC_FALSE;
   dvd->correctXnorm = ipB;
   dvd->sEP = ((!eps->isgeneralized || (eps->isgeneralized && ipB))? DVD_EP_STD : 0) |
              (ispositive? DVD_EP_HERMITIAN : 0) |
@@ -337,7 +337,7 @@ PetscErrorCode EPSView_XD(EPS eps,PetscViewer viewer)
   PetscBool      isascii,opb;
   PetscInt       opi,opi0;
   Method_t       meth;
-  EPSOrthType    borth;
+  PetscBool      borth;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -347,13 +347,10 @@ PetscErrorCode EPSView_XD(EPS eps,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: using double expansion variant (GD2)\n");CHKERRQ(ierr);
     }
     ierr = EPSXDGetBOrth_XD(eps,&borth);CHKERRQ(ierr);
-    switch (borth) {
-    case EPS_ORTH_I:
-      ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is orthogonalized\n");CHKERRQ(ierr);
-      break;
-    case EPS_ORTH_B:
+    if (borth) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is B-orthogonalized\n");CHKERRQ(ierr);
-      break;
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is orthogonalized\n");CHKERRQ(ierr);
     }
     ierr = EPSXDGetBlockSize_XD(eps,&opi);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: block size=%D\n",opi);CHKERRQ(ierr);
@@ -494,7 +491,7 @@ PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSXDSetBOrth_XD"
-PetscErrorCode EPSXDSetBOrth_XD(EPS eps,EPSOrthType borth)
+PetscErrorCode EPSXDSetBOrth_XD(EPS eps,PetscBool borth)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -505,7 +502,7 @@ PetscErrorCode EPSXDSetBOrth_XD(EPS eps,EPSOrthType borth)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSXDGetBOrth_XD"
-PetscErrorCode EPSXDGetBOrth_XD(EPS eps,EPSOrthType *borth)
+PetscErrorCode EPSXDGetBOrth_XD(EPS eps,PetscBool *borth)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 

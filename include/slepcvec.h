@@ -34,14 +34,6 @@ PETSC_EXTERN PetscErrorCode VecCreateCompWithVecs(Vec*,PetscInt,Vec,Vec*);
 PETSC_EXTERN PetscErrorCode VecCompGetSubVecs(Vec,PetscInt*,const Vec**);
 PETSC_EXTERN PetscErrorCode VecCompSetSubVecs(Vec,PetscInt,Vec*);
 
-/* Vecs with contiguous array storage */
-PETSC_EXTERN PetscErrorCode SlepcVecSetTemplate(Vec);
-PETSC_EXTERN PetscErrorCode SlepcMatGetVecsTemplate(Mat,Vec*,Vec*);
-
-/* Vec-related operations that have two versions, for contiguous and regular Vecs */
-PETSC_EXTERN PetscErrorCode SlepcUpdateVectors(PetscInt,Vec*,PetscInt,PetscInt,const PetscScalar*,PetscInt,PetscBool);
-PETSC_EXTERN PetscErrorCode SlepcUpdateStrideVectors(PetscInt n_,Vec *V,PetscInt s,PetscInt d,PetscInt e,const PetscScalar *Q,PetscInt ldq_,PetscBool qtrans);
-
 /* Miscellaneous functions related to Vec */
 PETSC_EXTERN PetscErrorCode SlepcVecNormalize(Vec,Vec,PetscBool,PetscReal*);
 

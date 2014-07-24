@@ -38,7 +38,6 @@
 #define EPSExtraction          PetscEnum
 #define EPSBalance             PetscEnum
 #define EPSConv                PetscEnum
-#define EPSOrthType            PetscEnum
 #define EPSPowerShiftType      PetscEnum
 #define EPSLanczosReorthogType PetscEnum
 #define EPSPRIMMEMethod        PetscEnum
