@@ -108,8 +108,6 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pe
   PetscFunctionBegin;
   /* Compute the number of pairs to improve */
   ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
-  ierr = BVDuplicateResize(d->eps->V,4,&X);CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,4,2,NULL,&M);CHKERRQ(ierr);
   max_size_D = d->eps->ncv-kv;
   n = PetscMin(PetscMin(data->size_X*2,max_size_D),(r_e-r_s)*2)/2;
 #if !defined(PETSC_USE_COMPLEX)
@@ -128,6 +126,9 @@ PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,Pe
    *size_D = 0;
     PetscFunctionReturn(0);
   }
+
+  ierr = BVDuplicateResize(d->eps->V,4,&X);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,4,2,NULL,&M);CHKERRQ(ierr);
 
   /* Compute the eigenvectors of the selected pairs */
   for (i=0;i<n;) {
