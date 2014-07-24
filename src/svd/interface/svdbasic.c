@@ -76,16 +76,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-    switch (svd->transmode) {
-      case SVD_TRANSPOSE_EXPLICIT:
-        ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: explicit\n");CHKERRQ(ierr);
-        break;
-      case SVD_TRANSPOSE_IMPLICIT:
-        ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: implicit\n");CHKERRQ(ierr);
-        break;
-      default:
-        ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: not yet set\n");CHKERRQ(ierr);
-    }
+    ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: %s\n",svd->impltrans?"implicit":"explicit");CHKERRQ(ierr);
     if (svd->which == SVD_LARGEST) {
       ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: largest\n");CHKERRQ(ierr);
     } else {
@@ -239,7 +230,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->ninil          = 0;
   svd->tol            = PETSC_DEFAULT;
   svd->which          = SVD_LARGEST;
-  svd->transmode      = (SVDTransposeMode)PETSC_DECIDE;
+  svd->impltrans      = PETSC_FALSE;
   svd->trackall       = PETSC_FALSE;
 
   svd->numbermonitors = 0;
@@ -305,7 +296,6 @@ PetscErrorCode SVDReset(SVD svd)
   }
   ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
   ierr = BVDestroy(&svd->V);CHKERRQ(ierr);
-  svd->transmode   = (SVDTransposeMode)PETSC_DECIDE;
   svd->setupcalled = 0;
   PetscFunctionReturn(0);
 }

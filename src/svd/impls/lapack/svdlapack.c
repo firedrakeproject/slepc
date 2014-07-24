@@ -112,8 +112,6 @@ PETSC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD svd)
   PetscFunctionBegin;
   svd->ops->setup   = SVDSetUp_LAPACK;
   svd->ops->solve   = SVDSolve_LAPACK;
-  if (svd->transmode == PETSC_DECIDE)
-    svd->transmode = SVD_TRANSPOSE_IMPLICIT; /* don't build the transpose */
   PetscFunctionReturn(0);
 }
 

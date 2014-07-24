@@ -58,7 +58,7 @@ struct _p_SVD {
   PetscInt         nini,ninil;  /* number of initial vectors (negative means not copied yet) */
   PetscReal        tol;         /* tolerance */
   SVDWhich         which;       /* which singular values are computed */
-  SVDTransposeMode transmode;   /* transpose mode */
+  PetscBool        impltrans;   /* implicit transpose mode */
   PetscBool        trackall;    /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
