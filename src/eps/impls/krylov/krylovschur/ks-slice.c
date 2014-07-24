@@ -114,6 +114,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   eps->ops->backtransform = NULL;
 
   /* create spectrum slicing context and initialize it */
+  ierr = EPSReset_KrylovSchur(eps);CHKERRQ(ierr);
   ierr = PetscNewLog(eps,&sr);CHKERRQ(ierr);
   ctx->sr = sr;
   sr->itsKs = 0;
@@ -144,9 +145,9 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 
   if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
     if (eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
-    ierr = STSetDefaultShift(eps->st,eps->inta);CHKERRQ(ierr);
+    ierr = STSetShift(eps->st,eps->inta);CHKERRQ(ierr);
   } else {
-    ierr = STSetDefaultShift(eps->st,eps->intb);CHKERRQ(ierr);
+    ierr = STSetShift(eps->st,eps->intb);CHKERRQ(ierr);
   }
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);

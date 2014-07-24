@@ -24,6 +24,7 @@
 #if !defined(__KRYLOVSCHUR_H)
 #define __KRYLOVSCHUR_H
 
+PETSC_INTERN PetscErrorCode EPSReset_KrylovSchur(EPS);
 PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS);
 PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS);

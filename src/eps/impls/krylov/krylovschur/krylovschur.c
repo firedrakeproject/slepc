@@ -527,14 +527,11 @@ PetscErrorCode EPSReset_KrylovSchur(EPS eps)
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   shift           s;
-  SR              sr;
 
   PetscFunctionBegin;
-  ctx->keep = 0.0;
   /* Reviewing list of shifts to free memory */
-  sr = ctx->sr;
-  if (sr) {
-    s = sr->s0;
+  if (ctx->sr) {
+    s = ctx->sr->s0;
     if (s) {
       while (s->neighb[1]) {
         s = s->neighb[1];
@@ -542,7 +539,7 @@ PetscErrorCode EPSReset_KrylovSchur(EPS eps)
       }
       ierr = PetscFree(s);CHKERRQ(ierr);
     }
-    ierr = PetscFree(sr);CHKERRQ(ierr);
+    ierr = PetscFree(ctx->sr);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
