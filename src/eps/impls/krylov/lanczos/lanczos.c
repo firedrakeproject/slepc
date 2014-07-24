@@ -630,7 +630,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
       } else {
         for (i=restart+1;i<n;i++) {
           if (conv[i] == 'N') {
-            ierr = (*eps->comparison)(ritz[restart],0.0,ritz[i],0.0,&r,eps->comparisonctx);CHKERRQ(ierr);
+            ierr = SlepcSCCompare(eps->sc,ritz[restart],0.0,ritz[i],0.0,&r);CHKERRQ(ierr);
             if (r>0) restart = i;
           }
         }

@@ -658,8 +658,8 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     ctx->reg = reg;
     ierr = PetscOptionsGetReal(NULL,"-delta",&reg->ri,NULL);CHKERRQ(ierr);
     reg->ri /= pep->sfactor; 
-    ierr = DSGetEigenvalueComparison(pep->ds,&ctx->comparison,&ctx->compctx);CHKERRQ(ierr);
-    ierr = DSSetEigenvalueComparison(pep->ds,TemporaryComparisonFunct,ctx);CHKERRQ(ierr);
+/*    ierr = DSGetEigenvalueComparison(pep->ds,&ctx->comparison,&ctx->compctx);CHKERRQ(ierr);
+    ierr = DSSetEigenvalueComparison(pep->ds,TemporaryComparisonFunct,ctx);CHKERRQ(ierr);*/
     ctx->region = TemporaryRegionTest;
 #if defined(PETSC_USE_COMPLEX)
     ierr = PetscMalloc1(pep->ncv,&er);CHKERRQ(ierr);
@@ -843,7 +843,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
   /* ////////// */
   if (withreg && bs==PEP_BASIS_CHEBYSHEV1) {
-    ierr = DSSetEigenvalueComparison(pep->ds,ctx->comparison,ctx->compctx);CHKERRQ(ierr);
+/*    ierr = DSSetEigenvalueComparison(pep->ds,ctx->comparison,ctx->compctx);CHKERRQ(ierr);*/
     ierr = PetscFree(ctx);CHKERRQ(ierr);
     ierr = PetscFree(reg);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)

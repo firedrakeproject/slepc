@@ -24,26 +24,6 @@
 #include <slepc-private/epsimpl.h>   /*I "slepceps.h" I*/
 #include <petscdraw.h>
 
-typedef struct {
-  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-  void *comparisonctx;
-  ST st;
-} EPSSortForSTData;
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSSortForSTFunc"
-static PetscErrorCode EPSSortForSTFunc(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
-{
-  EPSSortForSTData *data = (EPSSortForSTData*)ctx;
-  PetscErrorCode   ierr;
-
-  PetscFunctionBegin;
-  ierr = STBackTransform(data->st,1,&ar,&ai);CHKERRQ(ierr);
-  ierr = STBackTransform(data->st,1,&br,&bi);CHKERRQ(ierr);
-  ierr = (*data->comparison)(ar,ai,br,bi,r,data->comparisonctx);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 #undef __FUNCT__
 #define __FUNCT__ "EPSComputeVectors"
 PETSC_STATIC_INLINE PetscErrorCode EPSComputeVectors(EPS eps)
@@ -97,7 +77,6 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscDraw         draw;
   PetscDrawSP       drawsp;
   STMatMode         matmode;
-  EPSSortForSTData  data;
   Mat               A,B;
   Vec               w,x;
 
@@ -116,26 +95,8 @@ PetscErrorCode EPSSolve(EPS eps)
   }
   ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->ncv);CHKERRQ(ierr);
 
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flg,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
-  if (!flg) {
-    /* temporarily change eigenvalue comparison function */
-    data.comparison    = eps->comparison;
-    data.comparisonctx = eps->comparisonctx;
-    data.st            = eps->st;
-    eps->comparison    = (eps->which==EPS_ALL)? SlepcCompareLargestMagnitude: EPSSortForSTFunc;
-    eps->comparisonctx = (eps->which==EPS_ALL)? NULL: &data;
-  }
-  ierr = DSSetEigenvalueComparison(eps->ds,eps->comparison,eps->comparisonctx);CHKERRQ(ierr);
-
   /* call solver */
   ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);
-
-  if (!flg) {
-    /* restore comparison function */
-    eps->comparison    = data.comparison;
-    eps->comparisonctx = data.comparisonctx;
-  }
-
   eps->state = EPS_STATE_SOLVED;
 
   ierr = STGetMatMode(eps->st,&matmode);CHKERRQ(ierr);
@@ -189,7 +150,7 @@ PetscErrorCode EPSSolve(EPS eps)
   }
 
   /* sort eigenvalues according to eps->which parameter */
-  ierr = EPSSortEigenvalues(eps,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
+  ierr = SlepcSortEigenvalues(eps->sc,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
 
   ierr = PetscLogEventEnd(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
 
@@ -770,130 +731,6 @@ PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *error)
   ierr = EPSComputeRelativeError_Private(eps,kr,ki,xr,xi,error);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSSortEigenvalues"
-/*@
-   EPSSortEigenvalues - Sorts a list of eigenvalues according to the criterion
-   specified via EPSSetWhichEigenpairs().
-
-   Not Collective
-
-   Input Parameters:
-+  eps   - the eigensolver context
-.  n     - number of eigenvalues in the list
-.  eigr  - pointer to the array containing the eigenvalues
--  eigi  - imaginary part of the eigenvalues (only when using real numbers)
-
-   Output Parameter:
-.  perm  - resulting permutation
-
-   Note:
-   The result is a list of indices in the original eigenvalue array
-   corresponding to the first nev eigenvalues sorted in the specified
-   criterion.
-
-   Level: developer
-
-.seealso: EPSSetWhichEigenpairs()
-@*/
-PetscErrorCode EPSSortEigenvalues(EPS eps,PetscInt n,PetscScalar *eigr,PetscScalar *eigi,PetscInt *perm)
-{
-  PetscErrorCode ierr;
-  PetscScalar    re,im;
-  PetscInt       i,j,result,tmp;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidScalarPointer(eigr,3);
-  PetscValidScalarPointer(eigi,4);
-  PetscValidIntPointer(perm,5);
-  for (i=0; i<n; i++) { perm[i] = i; }
-  /* insertion sort */
-  for (i=n-1; i>=0; i--) {
-    re = eigr[perm[i]];
-    im = eigi[perm[i]];
-    j = i + 1;
-#if !defined(PETSC_USE_COMPLEX)
-    if (im != 0) {
-      /* complex eigenvalue */
-      i--;
-      im = eigi[perm[i]];
-    }
-#endif
-    while (j<n) {
-      ierr = EPSCompareEigenvalues(eps,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
-      if (result < 0) break;
-#if !defined(PETSC_USE_COMPLEX)
-      /* keep together every complex conjugated eigenpair */
-      if (im == 0) {
-        if (eigi[perm[j]] == 0) {
-#endif
-          tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = tmp;
-          j++;
-#if !defined(PETSC_USE_COMPLEX)
-        } else {
-          tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp;
-          j+=2;
-        }
-      } else {
-        if (eigi[perm[j]] == 0) {
-          tmp = perm[j-2]; perm[j-2] = perm[j]; perm[j] = perm[j-1]; perm[j-1] = tmp;
-          j++;
-        } else {
-          tmp = perm[j-2]; perm[j-2] = perm[j]; perm[j] = tmp;
-          tmp = perm[j-1]; perm[j-1] = perm[j+1]; perm[j+1] = tmp;
-          j+=2;
-        }
-      }
-#endif
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSCompareEigenvalues"
-/*@
-   EPSCompareEigenvalues - Compares two (possibly complex) eigenvalues according
-   to a certain criterion.
-
-   Not Collective
-
-   Input Parameters:
-+  eps   - the eigensolver context
-.  ar    - real part of the 1st eigenvalue
-.  ai    - imaginary part of the 1st eigenvalue
-.  br    - real part of the 2nd eigenvalue
--  bi    - imaginary part of the 2nd eigenvalue
-
-   Output Parameter:
-.  res   - result of comparison
-
-   Notes:
-   The returning parameter 'res' can be:
-+  negative - if the 1st eigenvalue is preferred to the 2st one
-.  zero     - if both eigenvalues are equally preferred
--  positive - if the 2st eigenvalue is preferred to the 1st one
-
-   The criterion of comparison is related to the 'which' parameter set with
-   EPSSetWhichEigenpairs().
-
-   Level: developer
-
-.seealso: EPSSortEigenvalues(), EPSSetWhichEigenpairs()
-@*/
-PetscErrorCode EPSCompareEigenvalues(EPS eps,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(result,6);
-  if (!eps->comparison) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
-  ierr = (*eps->comparison)(ar,ai,br,bi,result,eps->comparisonctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

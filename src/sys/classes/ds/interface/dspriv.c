@@ -201,7 +201,7 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
     j = i-1;
     if (wi) wi0 = wi[perm[j]];
     else wi0 = 0.0;
-    ierr = (*ds->comparison)(re,im,wr[perm[j]],wi0,&result,ds->comparisonctx);CHKERRQ(ierr);
+    ierr = SlepcSCCompare(ds->sc,re,im,wr[perm[j]],wi0,&result);CHKERRQ(ierr);
     while (result<0 && j>=ds->l) {
       perm[j+d] = perm[j];
       j--;
@@ -215,7 +215,7 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
       if (j>=ds->l) {
         if (wi) wi0 = wi[perm[j]];
         else wi0 = 0.0;
-        ierr = (*ds->comparison)(re,im,wr[perm[j]],wi0,&result,ds->comparisonctx);CHKERRQ(ierr);
+        ierr = SlepcSCCompare(ds->sc,re,im,wr[perm[j]],wi0,&result);CHKERRQ(ierr);
       }
     }
     perm[j+1] = tmp1;
@@ -240,11 +240,11 @@ PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm
   for (i=l+1;i<n;i++) {
     re = eig[perm[i]];
     j = i-1;
-    ierr = (*ds->comparison)(re,0.0,eig[perm[j]],0.0,&result,ds->comparisonctx);CHKERRQ(ierr);
+    ierr = SlepcSCCompare(ds->sc,re,0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
     while (result<0 && j>=l) {
       tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
       if (j>=l) {
-        ierr = (*ds->comparison)(re,0.0,eig[perm[j]],0.0,&result,ds->comparisonctx);CHKERRQ(ierr);
+        ierr = SlepcSCCompare(ds->sc,re,0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
       }
     }
   }

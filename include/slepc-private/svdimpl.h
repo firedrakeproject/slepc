@@ -71,6 +71,7 @@ struct _p_SVD {
   DS               ds;          /* direct solver object */
   BV               U,V;         /* left and right singular vectors */
   PetscRandom      rand;        /* random number generator */
+  SlepcSC          sc;          /* sorting criterion data */
   Mat              A;           /* problem matrix (m>n) */
   Mat              AT;          /* transposed matrix */
   Vec              *IS,*ISL;    /* placeholder for references to user-provided initial space */

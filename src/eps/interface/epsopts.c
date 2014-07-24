@@ -459,8 +459,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
    Level: intermediate
 
 .seealso: EPSGetWhichEigenpairs(), EPSSetTarget(), EPSSetInterval(),
-          EPSSetDimensions(), EPSSetEigenvalueComparison(),
-          EPSSortEigenvalues(), EPSWhich
+          EPSSetDimensions(), EPSSetEigenvalueComparison(), EPSWhich
 @*/
 PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 {
@@ -554,15 +553,15 @@ $   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r
 
    Level: advanced
 
-.seealso: EPSSetWhichEigenpairs(), EPSSortEigenvalues(), EPSWhich
+.seealso: EPSSetWhichEigenpairs(), EPSWhich
 @*/
 PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  eps->comparison    = func;
-  eps->comparisonctx = ctx;
-  eps->which         = EPS_WHICH_USER;
+  eps->sc->comparison    = func;
+  eps->sc->comparisonctx = ctx;
+  eps->which             = EPS_WHICH_USER;
   PetscFunctionReturn(0);
 }
 
@@ -595,7 +594,7 @@ $   func(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar
    This provides a mechanism to select eigenpairs by evaluating a user-defined
    function. When a function has been provided, the default selection based on
    sorting the eigenvalues is replaced by the sorting of the results of this
-   function (with the same sorting criterion given in EPSSortEigenvalues()).
+   function (with the same sorting criterion given in EPSSetWhichEigenpairs()).
 
    For instance, suppose you want to compute those eigenvectors that maximize
    a certain computable expression. Then implement the computation using
@@ -613,7 +612,7 @@ $   func(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar
 
    Level: advanced
 
-.seealso: EPSSetWhichEigenpairs(), EPSSortEigenvalues()
+.seealso: EPSSetWhichEigenpairs()
 @*/
 PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*),void* ctx)
 {

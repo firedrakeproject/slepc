@@ -112,12 +112,12 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&relerr);CHKERRQ(ierr);
     nep->errest[nep->nconv] = relerr;
-    nep->eig[nep->nconv] = lambda;
+    nep->eigr[nep->nconv] = lambda;
     if (relerr<=nep->rtol) {
       nep->nconv = nep->nconv + 1;
       nep->reason = NEP_CONVERGED_FNORM_RELATIVE;
     }
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eig,nep->errest,1);CHKERRQ(ierr);
+    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,1);CHKERRQ(ierr);
 
     if (!nep->nconv) {
       /* compute eigenvalue correction mu and eigenvector approximation u */

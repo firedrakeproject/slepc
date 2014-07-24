@@ -199,10 +199,8 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->computejacobian = NULL;
   nep->functionctx     = NULL;
   nep->jacobianctx     = NULL;
-  nep->comparison      = NULL;
   nep->converged       = NEPConvergedDefault;
   nep->convergeddestroy= NULL;
-  nep->comparisonctx   = NULL;
   nep->convergedctx    = NULL;
   nep->numbermonitors  = 0;
 
@@ -218,7 +216,8 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->nt              = 0;
   nep->mstr            = DIFFERENT_NONZERO_PATTERN;
   nep->IS              = NULL;
-  nep->eig             = NULL;
+  nep->eigr            = NULL;
+  nep->eigi            = NULL;
   nep->errest          = NULL;
   nep->perm            = NULL;
   nep->nwork           = 0;
@@ -234,6 +233,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->split           = PETSC_FALSE;
   nep->reason          = NEP_CONVERGED_ITERATING;
 
+  ierr = PetscNewLog(nep,&nep->sc);CHKERRQ(ierr);
   ierr = PetscRandomCreate(comm,&nep->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(nep->rand,0x12345678);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rand);CHKERRQ(ierr);
@@ -394,7 +394,7 @@ PetscErrorCode NEPReset(NEP nep)
   }
   ierr = BVGetSizes(nep->V,NULL,NULL,&ncols);CHKERRQ(ierr);
   if (ncols) {
-    ierr = PetscFree3(nep->eig,nep->errest,nep->perm);CHKERRQ(ierr);
+    ierr = PetscFree4(nep->eigr,nep->eigi,nep->errest,nep->perm);CHKERRQ(ierr);
   }
   ierr = BVDestroy(&nep->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
@@ -431,6 +431,7 @@ PetscErrorCode NEPDestroy(NEP *nep)
   ierr = KSPDestroy(&(*nep)->ksp);CHKERRQ(ierr);
   ierr = DSDestroy(&(*nep)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*nep)->rand);CHKERRQ(ierr);
+  ierr = PetscFree((*nep)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*nep)->nini,&(*nep)->IS);CHKERRQ(ierr);
   if ((*nep)->convergeddestroy) {

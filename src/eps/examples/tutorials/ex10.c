@@ -113,6 +113,10 @@ int main (int argc,char **argv)
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&isShell);CHKERRQ(ierr);
   if (isShell) {
+    /* Change sorting criterion since this ST example computes values
+       closest to 0 */
+    ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
+
     /* (Optional) Create a context for the user-defined spectral tranform;
        this context can be defined to contain any application-specific data. */
     ierr = STCreate_User(&shell);CHKERRQ(ierr);
@@ -252,13 +256,13 @@ PetscErrorCode STApply_User(ST st,Vec x,Vec y)
    user-provided spectral transformation.
 
    Input Parameters:
-.  ctx  - optional user-defined context, as set by STShellSetContext()
++  ctx  - optional user-defined context, as set by STShellSetContext()
 .  eigr - pointer to real part of eigenvalues
-.  eigi - pointer to imaginary part of eigenvalues
+-  eigi - pointer to imaginary part of eigenvalues
 
    Output Parameters:
-.  eigr - modified real part of eigenvalues
-.  eigi - modified imaginary part of eigenvalues
++  eigr - modified real part of eigenvalues
+-  eigi - modified imaginary part of eigenvalues
 
    Notes:
    This code implements the back transformation of eigenvalues in

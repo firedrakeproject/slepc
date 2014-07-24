@@ -22,7 +22,6 @@
 static char help[] = "Test DSHEP with block size larger than one.\n\n";
 
 #include <slepcds.h>
-#include <slepc-private/dsimpl.h>    /* for the definition of SlepcCompare* */
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -30,6 +29,7 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   DS             ds;
+  SlepcSC        sc;
   PetscScalar    *A,*eig;
   PetscInt       i,j,n,ld,bs,maxbw=3,nblks=8;
   PetscViewer    viewer;
@@ -77,7 +77,11 @@ int main(int argc,char **argv)
 
   /* Solve */
   ierr = PetscMalloc1(n,&eig);CHKERRQ(ierr);
-  ierr = DSSetEigenvalueComparison(ds,SlepcCompareSmallestReal,NULL);CHKERRQ(ierr);
+  ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
+  sc->comparison    = SlepcCompareSmallestReal;
+  sc->comparisonctx = NULL;
+  sc->map           = NULL;
+  sc->mapobj        = NULL;
   ierr = DSSolve(ds,eig,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,eig,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   if (verbose) {
