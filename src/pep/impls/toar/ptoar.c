@@ -41,90 +41,6 @@ typedef struct {
   PetscReal keep;         /* restart parameter */
 } PEP_TOAR;
 
-typedef struct{ /* temporary structure defining a region */
-  PetscScalar zr;
-  PetscScalar zi;
-  PetscReal   rr;
-  PetscReal   ri;
-  PetscErrorCode (*transf)(PetscInt,PetscScalar*,PetscScalar*,void*);
-  void *transfctx;
-} Reg;
-
-typedef struct{ /* temporary comparing structure considering a region */
-  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-  void *compctx;
-  PetscErrorCode (*region)(Reg*,PetscInt,PetscScalar*,PetscScalar*,PetscInt*,PetscBool*);
-  Reg *reg;
-} PEPCmpctx;
-
-#undef __FUNCT__
-#define __FUNCT__ "TemporaryTransf"
-static PetscErrorCode TemporaryTransf(PetscInt n,PetscScalar *ar,PetscScalar *ai,void *ctx)
-{
-  PetscErrorCode ierr;
-  ST             st=(ST)ctx;
-  
-  PetscFunctionBegin;
-  ierr = STBackTransform(st,n,ar,ai);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "TemporaryRegionTest"
-/*
-  zr, real part of the eigenvalue
-  zi, imaginary part of the eigenvalue
-*/
-static PetscErrorCode TemporaryRegionTest(Reg *reg,PetscInt n,PetscScalar *zr,PetscScalar *zi,PetscInt *count,PetscBool *zin)
-{
-  PetscInt    i,c;
-  PetscScalar cr=reg->zr,ci=reg->zi,xr,xi=0.0;
-  PetscReal   rr=reg->rr,ri=reg->ri;
-
-  PetscFunctionBegin;
-  if (count) c = 0;
-  for (i=0;i<n;i++) {
-#if defined(PETSC_USE_COMPLEX)
-    xr = zr[i]+zi[i]*PETSC_i;
-#else
-    xr = zr[i]; xi = zi[i];
-#endif
-    (*reg->transf)(1,&xr,&xi,reg->transfctx); /* backtransform */
-#if defined(PETSC_USE_COMPLEX)
-    xi = PetscImaginaryPart(xr);
-    xr = PetscRealPart(xr);
-#endif
-    if (PetscAbsScalar(xr-cr)<rr && PetscAbsScalar(xi-ci)<ri) {
-      if (zin) zin[i] = PETSC_TRUE;
-      c++;
-    } else if (zin) zin[i] = PETSC_FALSE;
-  }
-  if (count) *count = c;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "TemporaryComparisonFunct"
-static PetscErrorCode TemporaryComparisonFunct(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
-{
-  PetscErrorCode ierr;
-  PetscBool      ain,bin;
-  PEPCmpctx      *cmpctx=(PEPCmpctx*)ctx;
-
-  PetscFunctionBegin;
-  ierr = (*cmpctx->region)(cmpctx->reg,1,&ar,&ai,NULL,&ain);CHKERRQ(ierr);
-  ierr = (*cmpctx->region)(cmpctx->reg,1,&br,&bi,NULL,&bin);CHKERRQ(ierr);
-  if (!(ain||bin)) *res = 0;
-  else {
-    if (!ain) *res = 1;
-    else if (!bin) *res = -1;
-    else {
-      (*cmpctx->comparison)(ar,ai,br,bi,res,cmpctx->compctx);
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetUp_TOAR"
 PetscErrorCode PEPSetUp_TOAR(PEP pep)
@@ -617,22 +533,12 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *pepctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=0;
+  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=0,inside,count;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,*pS0;
   PetscReal      beta,norm,*rwork;
   PetscBool      breakdown=PETSC_FALSE,flg,lindep;
   Mat            S0;
-/* /////////// */
-  PetscBool    withreg=PETSC_FALSE;
-  PEPBasis     bs;
-  PEPCmpctx    *ctx;
-  Reg          *reg;
-  PetscInt     count;
-#if defined(PETSC_USE_COMPLEX)
-  PetscScalar  *er,*ei;
-#endif
-/* /////////// */
 
   PetscFunctionBegin;
   ld = pep->ncv+deg;   /* number of rows of each fragment of S */
@@ -643,30 +549,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   ierr = PetscMemzero(S,lds*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
 
-/* /////////// */
-  ierr = PetscOptionsGetBool(NULL,"-region",&withreg,NULL);CHKERRQ(ierr);
-  ierr = PEPGetBasis(pep,&bs);CHKERRQ(ierr);
-  if (withreg && bs==PEP_BASIS_CHEBYSHEV1) {
-    ierr = PetscMalloc(sizeof(PEPCmpctx),&ctx);CHKERRQ(ierr);
-    ierr = PetscMalloc(sizeof(Reg),&reg);CHKERRQ(ierr);
-    reg->ri = PETSC_MAX_REAL;
-    reg->rr = 1.0/pep->sfactor;
-    reg->zr = 0.0;
-    reg->zi = 0.0;
-    reg->transf = TemporaryTransf;
-    reg->transfctx = pep->st;
-    ctx->reg = reg;
-    ierr = PetscOptionsGetReal(NULL,"-delta",&reg->ri,NULL);CHKERRQ(ierr);
-    reg->ri /= pep->sfactor; 
-/*    ierr = DSGetEigenvalueComparison(pep->ds,&ctx->comparison,&ctx->compctx);CHKERRQ(ierr);
-    ierr = DSSetEigenvalueComparison(pep->ds,TemporaryComparisonFunct,ctx);CHKERRQ(ierr);*/
-    ctx->region = TemporaryRegionTest;
-#if defined(PETSC_USE_COMPLEX)
-    ierr = PetscMalloc1(pep->ncv,&er);CHKERRQ(ierr);
-    ierr = PetscMalloc1(pep->ncv,&ei);CHKERRQ(ierr);
-#endif
-  }
-/* /////////// */
   /* Update polynomial basis coefficients */
   if (pep->sfactor!=1) {
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
@@ -727,19 +609,14 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 
     /* Check convergence */
     ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,nv-pep->nconv,beta,&k);CHKERRQ(ierr);
-/* ///////////// */
-    if (withreg && bs==PEP_BASIS_CHEBYSHEV1) {
-#if defined(PETSC_USE_COMPLEX)
-    for (i=0;i<nv;i++) {
-      er[i] = PetscRealPart(pep->eigr[i]);
-      ei[i] = PetscImaginaryPart(pep->eigr[i]);
+    count = pep->nconv;
+    inside = 1;
+    while (count<k) {
+      ierr = RGCheckInside(pep->rg,1,&pep->eigr[count],&pep->eigi[count],&inside);CHKERRQ(ierr);
+      if (inside<=0) break;
+      count++;
     }
-    ierr = TemporaryRegionTest(reg,nv,er,ei,&count,NULL);CHKERRQ(ierr);
-#else
-    ierr = TemporaryRegionTest(reg,nv,pep->eigr,pep->eigi,&count,NULL);CHKERRQ(ierr);
-#endif
-    k = PetscMin(k,count);
-    }
+    k = count;
     if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
     if (k >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
 
@@ -747,7 +624,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     if (pep->reason != PEP_CONVERGED_ITERATING || breakdown) l = 0;
     else {
       l = PetscMax(1,(PetscInt)((nv-k)*pepctx->keep));
-      if (withreg && bs==PEP_BASIS_CHEBYSHEV1) k = PetscMax(0,PetscMin(k,count));
       if (!breakdown) {
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSTruncate(pep->ds,k+l);CHKERRQ(ierr);
@@ -841,17 +717,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
   ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
-  /* ////////// */
-  if (withreg && bs==PEP_BASIS_CHEBYSHEV1) {
-/*    ierr = DSSetEigenvalueComparison(pep->ds,ctx->comparison,ctx->compctx);CHKERRQ(ierr);*/
-    ierr = PetscFree(ctx);CHKERRQ(ierr);
-    ierr = PetscFree(reg);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-    ierr = PetscFree(er);CHKERRQ(ierr);
-    ierr = PetscFree(ei);CHKERRQ(ierr);
-#endif
-  }
-  /* ////////// */
   PetscFunctionReturn(0);
 }
 

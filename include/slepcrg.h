@@ -22,16 +22,9 @@
 #if !defined(__SLEPCRG_H)
 #define __SLEPCRG_H
 #include <slepcsys.h>
+#include <slepcrgtypes.h>
 
 PETSC_EXTERN PetscErrorCode RGInitializePackage(void);
-/*S
-   RG - Region of the complex plane.
-
-   Level: beginner
-
-.seealso: RGCreate()
-S*/
-typedef struct _p_RG* RG;
 
 /*J
    RGType - String with the name of the region.

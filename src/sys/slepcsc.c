@@ -20,6 +20,7 @@
 */
 
 #include <slepc-private/slepcimpl.h>     /*I "slepcsys.h" I*/
+#include <slepcrg.h>
 #include <slepcst.h>
 
 #undef __FUNCT__
@@ -49,20 +50,35 @@
 
 .seealso: SlepcSortEigenvalues(), SlepcSC
 @*/
-PetscErrorCode SlepcSCCompare(SlepcSC sc,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result)
+PetscErrorCode SlepcSCCompare(SlepcSC sc,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res)
 {
   PetscErrorCode ierr;
+  PetscScalar    re[2],im[2];
+  PetscInt       cin[2];
+  PetscBool      inside[2];
 
   PetscFunctionBegin;
-  PetscValidIntPointer(result,6);
+  PetscValidIntPointer(res,6);
 #if defined(PETSC_USE_DEBUG)
   if (!sc->comparison) SETERRQ(PETSC_COMM_SELF,1,"Undefined comparison function");
 #endif
+  re[0] = ar; re[1] = br;
+  im[0] = ai; im[1] = bi;
   if (sc->map) {
-    ierr = (*sc->map)(sc->mapobj,1,&ar,&ai);CHKERRQ(ierr);
-    ierr = (*sc->map)(sc->mapobj,1,&br,&bi);CHKERRQ(ierr);
+    ierr = (*sc->map)(sc->mapobj,2,re,im);CHKERRQ(ierr);
   }
-  ierr = (*sc->comparison)(ar,ai,br,bi,result,sc->comparisonctx);CHKERRQ(ierr);
+  if (sc->rg) {
+    ierr = RGCheckInside(sc->rg,2,re,im,cin);CHKERRQ(ierr);
+    inside[0] = (cin[0]>0)? PETSC_TRUE: PETSC_FALSE;
+    inside[1] = (cin[1]>0)? PETSC_TRUE: PETSC_FALSE;
+    if (inside[0] && !inside[1]) *res = -1;
+    else if (!inside[0] && inside[1]) *res = 1;
+    else {
+      ierr = (*sc->comparison)(re[0],im[0],re[1],im[1],res,sc->comparisonctx);CHKERRQ(ierr);
+    }
+  } else {
+    ierr = (*sc->comparison)(re[0],im[0],re[1],im[1],res,sc->comparisonctx);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

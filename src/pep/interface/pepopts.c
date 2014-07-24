@@ -205,6 +205,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
   if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
   ierr = BVSetFromOptions(pep->V);CHKERRQ(ierr);
+  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
+  ierr = RGSetFromOptions(pep->rg);CHKERRQ(ierr);
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(pep->ds);CHKERRQ(ierr);
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }

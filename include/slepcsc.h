@@ -25,6 +25,7 @@
 #define __SLEPCSC_H
 
 #include <petscsys.h>
+#include <slepcrgtypes.h>
 
 /*S
     SlepcSC - Data structure (C struct) for storing information about
@@ -63,6 +64,8 @@ struct _n_SlepcSC {
   /* comparison function such as SlepcCompareLargestMagnitude */
   PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   void           *comparisonctx;
+  /* optional region for filtering */
+  RG             rg;
 };
 typedef struct _n_SlepcSC* SlepcSC;
 
