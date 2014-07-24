@@ -476,6 +476,104 @@ PetscErrorCode EPSKrylovSchurGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,P
   PetscFunctionReturn(0);
 }
 
+#define SWAP(a,b,t) {t=a;a=b;b=t;}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetInertias_KrylovSchur"
+static PetscErrorCode EPSKrylovSchurGetInertias_KrylovSchur(EPS eps,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  PetscInt        i=0,j,tmpi;
+  PetscReal       v,tmpr;
+  EPS_shift       s;
+
+  PetscFunctionBegin;
+  if (!eps->state) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSetUp() first");
+  if (!ctx->sr) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see EPSSetInterval()");
+  if (!ctx->sr->s0) {  /* EPSSolve not called yet */
+    *n = 2;
+  } else {
+    *n = 1;
+    s = ctx->sr->s0;
+    while (s) {
+      (*n)++;
+      s = s->neighb[1];
+    }
+  }
+  ierr = PetscMalloc1(*n,shifts);CHKERRQ(ierr);
+  ierr = PetscMalloc1(*n,inertias);CHKERRQ(ierr);
+  if (!ctx->sr->s0) {  /* EPSSolve not called yet */
+    (*shifts)[0]   = ctx->sr->int0;
+    (*shifts)[1]   = ctx->sr->int1;
+    (*inertias)[0] = ctx->sr->inertia0;
+    (*inertias)[1] = ctx->sr->inertia1;
+  } else {
+    s = ctx->sr->s0;
+    while (s) {
+      (*shifts)[i]     = s->value;
+      (*inertias)[i++] = s->inertia;
+      s = s->neighb[1];
+    }
+    (*shifts)[i]   = ctx->sr->int1;
+    (*inertias)[i] = ctx->sr->inertia1;
+  }
+  /* sort result */
+  for (i=0;i<*n;i++) {
+    v = (*shifts)[i];
+    for (j=i+1;j<*n;j++) {
+      if (v > (*shifts)[j]) {
+        SWAP((*shifts)[i],(*shifts)[j],tmpr);
+        SWAP((*inertias)[i],(*inertias)[j],tmpi);
+        v = (*shifts)[i];
+      }
+    }
+  }
+  /* remove possible duplicate in last position */
+  if ((*shifts)[(*n)-1]==(*shifts)[(*n)-2]) (*n)--;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetInertias"
+/*@C
+   EPSKrylovSchurGetInertias - Gets the values of the shifts and their
+   corresponding inertias in case of doing spectrum slicing for a
+   computational interval.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameters:
++  n        - number of shifts, including the endpoints of the interval
+.  shifts   - the values of the shifts used internally in the solver
+-  inertias - the values of the inertia in each shift
+
+   Notes:
+   If called after EPSSolve(), all shifts used internally by the solver are
+   returned (including both endpoints and any intermediate ones). If called
+   before EPSSolve() and after EPSSetUp() then only the information of the
+   endpoints is available.
+
+   This function is only available for spectrum slicing runs, see EPSSetInterval().
+
+   The returned arrays should be freed by the user.
+
+   Level: advanced
+@*/
+PetscErrorCode EPSKrylovSchurGetInertias(EPS eps,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidIntPointer(n,2);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetInertias_C",(EPS,PetscInt*,PetscReal**,PetscInt**),(eps,n,shifts,inertias));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_KrylovSchur"
 PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps)
@@ -526,7 +624,7 @@ PetscErrorCode EPSReset_KrylovSchur(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  shift           s;
+  EPS_shift       s;
 
   PetscFunctionBegin;
   /* Reviewing list of shifts to free memory */
@@ -556,6 +654,7 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetRestart_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetDimensions_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetDimensions_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetInertias_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -582,6 +681,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetRestart_C",EPSKrylovSchurGetRestart_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetDimensions_C",EPSKrylovSchurSetDimensions_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetDimensions_C",EPSKrylovSchurGetDimensions_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetInertias_C",EPSKrylovSchurGetInertias_KrylovSchur);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
