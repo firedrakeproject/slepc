@@ -1,6 +1,6 @@
 
-Acoustic wave 1-D, n=25 z=1
+Acoustic wave 1-D, n=24 z=1
 
  All requested eigenvalues computed up to the required tolerance:
-     0.53142+0.19466i, 0.53142-0.19466i, 0.47999+0.60733i, 0.47999-0.60733i
+     0.52633+0.19430i, 0.52633-0.19430i, 0.47425+0.60655i, 0.47425-0.60655i
 

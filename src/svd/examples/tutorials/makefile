@@ -60,7 +60,7 @@ runex8_1:
 	   ${RM} -f ex8_1.tmp
 
 runex14_1:
-	-@if [ "${PETSC_PRECISION}" != "double" ]; then \
+	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
            echo "Skipping ex14 test"; \
          else \
 	   ${MPIEXEC} -np 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 4 -svd_terse > ex14_1.tmp 2>&1;	  \

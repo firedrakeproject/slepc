@@ -153,7 +153,7 @@ runex3_1:
 	   ${RM} -f ex3_1.tmp
 
 runex4_1:
-	-@if [ "${PETSC_PRECISION}" != "double" ]; then \
+	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
            echo "Skipping ex4 test"; \
          else \
            ${MPIEXEC} -np 1 ./ex4 -file ${DATAPATH}/rdb200.petsc -eps_nev 4 -eps_terse > ex4_1.tmp 2>&1; \
@@ -175,7 +175,7 @@ runex6f_1:
 	   ${RM} -f ex6f_1.tmp
 
 runex7_1:
-	-@if [ "${PETSC_PRECISION}" != "double" ]; then \
+	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
            echo "Skipping ex7 test"; \
          else \
            ${MPIEXEC} -np 1 ./ex7 -f1 ${DATAPATH}/bfw62a.petsc -f2 ${DATAPATH}/bfw62b.petsc -eps_nev 4 -eps_terse > ex7_1.tmp 2>&1; \
