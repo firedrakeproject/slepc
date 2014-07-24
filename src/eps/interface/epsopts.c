@@ -468,8 +468,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,which,2);
-  if (which==PETSC_DECIDE || which==PETSC_DEFAULT) eps->which = (EPSWhich)0;
-  else switch (which) {
+  switch (which) {
     case EPS_LARGEST_MAGNITUDE:
     case EPS_SMALLEST_MAGNITUDE:
     case EPS_LARGEST_REAL:

@@ -436,8 +436,7 @@ PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,which,2);
-  if (which==PETSC_DECIDE || which==PETSC_DEFAULT) pep->which = (PEPWhich)0;
-  else switch (which) {
+  switch (which) {
     case PEP_LARGEST_MAGNITUDE:
     case PEP_SMALLEST_MAGNITUDE:
     case PEP_LARGEST_REAL:
