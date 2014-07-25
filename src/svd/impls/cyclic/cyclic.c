@@ -185,7 +185,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   ierr = EPSSetUp(cyclic->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(cyclic->eps,NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
   svd->ncv = PetscMin(svd->ncv,PetscMin(M,N));
-  ierr = EPSGetTolerances(cyclic->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
+  ierr = EPSGetTolerances(cyclic->eps,NULL,&svd->max_it);CHKERRQ(ierr);
+  if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
 
   svd->leftbasis = PETSC_TRUE;
   ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);

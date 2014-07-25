@@ -37,7 +37,6 @@
 #define svdgetbv_                    SVDGETBV
 #define svdgetds_                    SVDGETDS
 #define svdmonitorset_               SVDMONITORSET
-#define svdgettransposemode_         SVDGETTRANSPOSEMODE
 #define svdgetwhichsingulartriplets_ SVDGETWHICHSINGULARTRIPLETS
 #define svdsetoptionsprefix_         SVDSETOPTIONSPREFIX
 #define svdappendoptionsprefix_      SVDAPPENDOPTIONSPREFIX
@@ -56,7 +55,6 @@
 #define svdgetbv_                    svdgetbv
 #define svdgetds_                    svdgetds
 #define svdmonitorset_               svdmonitorset
-#define svdgettransposemode_         svdgettransposemode
 #define svdgetwhichsingulartriplets_ svdgetwhichsingulartriplets
 #define svdsetoptionsprefix_         svdsetoptionsprefix
 #define svdappendoptionsprefix_      svdappendoptionsprefix
@@ -192,11 +190,6 @@ PETSC_EXTERN void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *mon
       *ierr = SVDMonitorSet(*svd,ourmonitor,*svd,ourdestroy);
     }
   }
-}
-
-PETSC_EXTERN void PETSC_STDCALL svdgettransposemode_(SVD *svd,SVDTransposeMode *mode,PetscErrorCode *ierr)
-{
-  *ierr = SVDGetTransposeMode(*svd,mode);
 }
 
 PETSC_EXTERN void PETSC_STDCALL svdgetwhichsingulartriplets_(SVD *svd,SVDWhich *which,PetscErrorCode *ierr)

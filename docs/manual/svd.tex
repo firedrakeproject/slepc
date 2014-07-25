@@ -91,7 +91,7 @@ Computing the SVD via the cross product approach may be adequate for determining
 \label{eq:cyclic}
 H(A)=\left[\begin{matrix}0&A\\A^*&0\end{matrix}\right],
 \end{equation}
-which is a Hermitian matrix of order $(m+n)$. It can be shown that $\pm\sigma_i$ is a pair of eigenvalues of $H(A)$ for $i=1,\ldots,r$ and the other $m+n-2r$ eigenvalues are zero. The unit eigenvectors associated to $\pm\sigma_i$ are $\frac{1}{\sqrt{2}}\left[\begin{smallmatrix}\pm u_i\\v_i\end{smallmatrix}\right]$. Thus it is possible to extract the singular values and the left and right singular vectors of $A$ directly from the eigenvalues and eigenvectors of $H(A)$. Note that in this case singular values are not squared, and therefore the computed values will be more accurate. The drawback in this case is that small eigenvalues are located in the interior of the spectrum.
+which is a Hermitian matrix of order $(m+n)$. It can be shown that $\pm\sigma_i$ is a pair of eigenvalues of $H(A)$ for $i=1,\ldots,r$ and the other $m+n-2r$ eigenvalues are zero. The unit eigenvectors associated with $\pm\sigma_i$ are $\frac{1}{\sqrt{2}}\left[\begin{smallmatrix}\pm u_i\\v_i\end{smallmatrix}\right]$. Thus it is possible to extract the singular values and the left and right singular vectors of $A$ directly from the eigenvalues and eigenvectors of $H(A)$. Note that in this case singular values are not squared, and therefore the computed values will be more accurate. The drawback in this case is that small eigenvalues are located in the interior of the spectrum.
 
 %---------------------------------------------------
 \section{Basic Usage}
@@ -145,9 +145,9 @@ The problem matrix is provided with the following function
 where \texttt{A} can be any matrix, not necessarily square, stored in any allowed \petsc format including the matrix-free mechanism (see \S\ref{sec:supported} for a detailed discussion).
 
 It is important to note that all SVD solvers in \slepc make use of both $A$ and $A^*$, as suggested by the description in \S\ref{sec:svd}. $A^*$ is not explicitly passed as an argument to \ident{SVDSetOperator}, therefore it will have to stem from $A$. There are two possibilities for this: either $A$ is transposed explicitly and $A^*$ is created as a distinct matrix, or $A^*$ is handled implicitly via \ident{MatMultTranspose} (or \ident{MatMultHermitianTranspose} in the complex case) operations whenever a matrix-vector product is required in the algorithm. The default is to build $A^*$ explicitly, but this behavior can be changed with 
-	\findex{SVDSetTransposeMode}
+	\findex{SVDSetImplicitTranspose}
 	\begin{Verbatim}[fontsize=\small]
-	SVDSetTransposeMode(SVD svd,SVDTransposeMode mode);
+	SVDSetImplicitTranspose(SVD svd,PetscBool impl);
 	\end{Verbatim}
 
 In \S\ref{sec:svd}, it was mentioned that in \slepc the cross product approach chooses the smallest of the two possible cases $A^*A$ or $AA^*$, that is, $A^*A$ is used if $A$ is a tall, thin matrix ($m\geq n$), and $AA^*$ is used if $A$ is a fat, short matrix ($m<n$). In fact, what \slepc does internally is that if $m<n$ the roles of $A$ and $A^*$ are reversed. This is equivalent to transposing all the SVD factorization, so left singular vectors become right singular vectors and vice versa. This is actually done in all singular value solvers, not only the cross product approach. The objective is to simplify the number of cases to be treated internally by \slepc, as well as to reduce the computational cost in some situations. Note that this is done transparently and the user need not worry about transposing the matrix, only to indicate how the transpose has to be handled, as explained above.
@@ -213,7 +213,7 @@ The solution method can be specified procedurally or via the command line. The a
 	\end{Verbatim}
 while the user writes the options database command \Verb!-svd_type! followed by the name of the method (see Table \ref{tab:svdsolvers}).
 
-The \ident{EPS}-based solvers deserve some additional comments. These SVD solvers work by creating an \ident{EPS} object internally and setting up an eigenproblem of type \ident{EPS\_HEP}. These solvers implement the cross product matrix approach, Eq.\ \ref{eq:eigleft}, and the cyclic matrix approach, Eq.\ \ref{eq:cyclic}. Therefore, the operator matrix associated to the \ident{EPS} object will be $A^*A$ in the case of the \texttt{cross} solver and $H(A)$ in the case of the \texttt{cyclic} solver.
+The \ident{EPS}-based solvers deserve some additional comments. These SVD solvers work by creating an \ident{EPS} object internally and setting up an eigenproblem of type \ident{EPS\_HEP}. These solvers implement the cross product matrix approach, Eq.\ \ref{eq:eigleft}, and the cyclic matrix approach, Eq.\ \ref{eq:cyclic}. Therefore, the operator matrix associated with the \ident{EPS} object will be $A^*A$ in the case of the \texttt{cross} solver and $H(A)$ in the case of the \texttt{cyclic} solver.
 
 In the case of the \texttt{cross} solver, the matrix $A^*A$ is not built explicitly, since sparsity would be lost. Instead, a shell matrix is created internally in the \ident{SVD} object and passed to the \ident{EPS} object. In the case of the \texttt{cyclic} solver, the situation is different since $H(A)$ is still a sparse matrix. \slepc gives the possibility to handle it implicitly as a shell matrix (the default), or to create $H(A)$ explicitly, that is, storing its elements in a distinct matrix. The function for setting this option is
 	\findex{SVDCyclicSetExplicitMatrix}
@@ -221,7 +221,7 @@ In the case of the \texttt{cross} solver, the matrix $A^*A$ is not built explici
 	SVDCyclicSetExplicitMatrix(SVD svd,PetscBool explicit);
 	\end{Verbatim}
 
-The \ident{EPS} object associated to the \texttt{cross} and \texttt{cyclic} SVD solvers is created with a set of reasonable default parameters. However, it may sometimes be necessary to change some of the \ident{EPS} options such as the eigensolver. To allow application programmers to set any of the \ident{EPS} options directly within the code, the following routines are provided to extract the \ident{EPS} context from the \ident{SVD} object,
+The \ident{EPS} object associated with the \texttt{cross} and \texttt{cyclic} SVD solvers is created with a set of reasonable default parameters. However, it may sometimes be necessary to change some of the \ident{EPS} options such as the eigensolver. To allow application programmers to set any of the \ident{EPS} options directly within the code, the following routines are provided to extract the \ident{EPS} context from the \ident{SVD} object,
 	\findex{SVDCrossGetEPS}
 	\findex{SVDCyclicGetEPS}
 	\begin{Verbatim}[fontsize=\small]
@@ -233,7 +233,7 @@ A more convenient way of changing \ident{EPS} options is through the command-lin
 	$ ./program -svd_type cross -svd_eps_type gd
 \end{Verbatim}
 
-At this point, one may consider changing also the options of the \ident{ST} object associated to the \ident{EPS} object in \texttt{cross} and \texttt{cyclic} SVD solvers, for example to compute singular values located at the interior of the spectrum via a shift-and-invert transformation. This is indeed possible, but some considerations have to be taken into account. When $A^*A$ or $H(A)$ are managed as shell matrices, then the potential of the spectral transformation is limited seriously, because some of the required operations will not be defined (this is discussed briefly in \S\ref{sec:supported} and \S\ref{sec:explicit}). Therefore, computing interior singular values is more likely to be successful if using the \texttt{cyclic} solver with explicit $H(A)$ matrix. To illustrate this, here is a complicated command-line example for computing singular values close to 12.0:
+At this point, one may consider changing also the options of the \ident{ST} object associated with the \ident{EPS} object in \texttt{cross} and \texttt{cyclic} SVD solvers, for example to compute singular values located at the interior of the spectrum via a shift-and-invert transformation. This is indeed possible, but some considerations have to be taken into account. When $A^*A$ or $H(A)$ are managed as shell matrices, then the potential of the spectral transformation is limited seriously, because some of the required operations will not be defined (this is discussed briefly in \S\ref{sec:supported} and \S\ref{sec:explicit}). Therefore, computing interior singular values is more likely to be successful if using the \texttt{cyclic} solver with explicit $H(A)$ matrix. To illustrate this, here is a complicated command-line example for computing singular values close to 12.0:
 \begin{Verbatim}[fontsize=\small]
 	$ ./program -svd_type cyclic -svd_cyclic_explicitmatrix -svd_st_type sinvert
                     -svd_eps_target 12.0 -svd_st_ksp_type preonly -svd_st_pc_type lu
@@ -242,7 +242,7 @@ At this point, one may consider changing also the options of the \ident{ST} obje
 %---------------------------------------------------
 \section{Retrieving the Solution}
 
-Once the call to \ident{SVDSolve} is complete, all the data associated to the computed partial SVD is kept internally in the \ident{SVD} object. This information can be obtained by the calling program by means of a set of functions described below.
+Once the call to \ident{SVDSolve} is complete, all the data associated with the computed partial SVD is kept internally in the \ident{SVD} object. This information can be obtained by the calling program by means of a set of functions described below.
 
 As in the case of eigenproblems, the number of computed singular triplets depends on the convergence and, therefore, it may be different from the number of solutions requested by the user. So the first task is to find out how many solutions are available, with
 	\findex{SVDGetConverged}

@@ -24,6 +24,7 @@
 #include "finclude/slepcbvdef.h"
 #include "finclude/slepcfndef.h"
 #include "finclude/slepcdsdef.h"
+#include "finclude/slepcrgdef.h"
 #include "finclude/slepcstdef.h"
 #include "finclude/slepcepsdef.h"
 #include "finclude/slepcsvddef.h"

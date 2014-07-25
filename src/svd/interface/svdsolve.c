@@ -48,7 +48,6 @@ PetscErrorCode SVDSolve(SVD svd)
   PetscInt          i,*workperm;
   PetscViewer       viewer;
   PetscViewerFormat format;
-  PetscErrorCode    (*which_func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -63,9 +62,6 @@ PetscErrorCode SVDSolve(SVD svd)
     svd->errest[i] = 0.0;
   }
   ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);CHKERRQ(ierr);
-
-  which_func = (svd->which==SVD_LARGEST)? SlepcCompareLargestReal: SlepcCompareSmallestReal;
-  ierr = DSSetEigenvalueComparison(svd->ds,which_func,NULL);CHKERRQ(ierr);
 
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
 

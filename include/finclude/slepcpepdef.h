@@ -26,6 +26,7 @@
 #include "finclude/slepcbvdef.h"
 #include "finclude/slepcstdef.h"
 #include "finclude/slepcdsdef.h"
+#include "finclude/slepcrgdef.h"
 #include "finclude/slepcepsdef.h"
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
@@ -38,12 +39,12 @@
 #define PEPBasis           PetscEnum
 #define PEPScale           PetscEnum
 #define PEPRefine          PetscEnum
+#define PEPExtract         PetscEnum
 #define PEPConv            PetscEnum
 #define PEPConvergedReason PetscEnum
 
 #define PEPLINEAR    'linear'
 #define PEPQARNOLDI  'qarnoldi'
 #define PEPTOAR      'toar'
-#define PEPSTOAR     'stoar'
 
 #endif

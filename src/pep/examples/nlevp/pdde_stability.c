@@ -97,7 +97,7 @@ int main(int argc,char **argv)
   for (II=Istart;II<Iend;II++) {
     i = II/m; j = II-i*m;
     xi = (i+1)*h; xj = (j+1)*h;
-    alpha = PetscConj(c[4]+c[5]*xi*(PETSC_PI-xi));
+    alpha = c[4]+c[5]*xi*(PETSC_PI-xi);
     beta = c[4]+c[5]*xj*(PETSC_PI-xj);
     ierr = MatSetValue(A[0],II,II,alpha,INSERT_VALUES);CHKERRQ(ierr);
     ierr = MatSetValue(A[2],II,II,beta,INSERT_VALUES);CHKERRQ(ierr);

@@ -24,8 +24,6 @@
 #if !defined(__SLEPCNEP_H)
 #define __SLEPCNEP_H
 #include <slepceps.h>
-#include <slepcbv.h>
-#include <slepcds.h>
 #include <slepcfn.h>
 
 PETSC_EXTERN PetscErrorCode NEPInitializePackage(void);
@@ -116,6 +114,8 @@ PETSC_EXTERN PetscErrorCode NEPGetSplitOperatorInfo(NEP,PetscInt*,MatStructure*)
 
 PETSC_EXTERN PetscErrorCode NEPSetBV(NEP,BV);
 PETSC_EXTERN PetscErrorCode NEPGetBV(NEP,BV*);
+PETSC_EXTERN PetscErrorCode NEPSetRG(NEP,RG);
+PETSC_EXTERN PetscErrorCode NEPGetRG(NEP,RG*);
 PETSC_EXTERN PetscErrorCode NEPSetDS(NEP,DS);
 PETSC_EXTERN PetscErrorCode NEPGetDS(NEP,DS*);
 PETSC_EXTERN PetscErrorCode NEPSetTolerances(NEP,PetscReal,PetscReal,PetscReal,PetscInt,PetscInt);
@@ -167,9 +167,6 @@ PETSC_EXTERN PetscErrorCode NEPAppendOptionsPrefix(NEP,const char*);
 PETSC_EXTERN PetscErrorCode NEPGetOptionsPrefix(NEP,const char*[]);
 
 PETSC_EXTERN PetscErrorCode NEPGetConvergedReason(NEP,NEPConvergedReason *);
-
-PETSC_EXTERN PetscErrorCode NEPSortEigenvalues(NEP,PetscInt,PetscScalar*,PetscInt*);
-PETSC_EXTERN PetscErrorCode NEPCompareEigenvalues(NEP,PetscScalar,PetscScalar,PetscInt*);
 
 PETSC_EXTERN PetscFunctionList NEPList;
 PETSC_EXTERN PetscBool         NEPRegisterAllCalled;

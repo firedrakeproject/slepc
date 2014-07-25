@@ -76,13 +76,12 @@ struct _p_PEP {
   PetscReal      rtol;             /* tolerance for refinement */
   PetscInt       rits;             /* number of iterations of the refinement method */
   PetscBool      schur;            /* use Schur complement in refinement method */
+  PEPExtract     extract;          /* type of extraction used */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
-  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   PetscErrorCode (*converged)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
-  void           *comparisonctx;
   void           *convergedctx;
   PetscErrorCode (*monitor[MAXPEPMONITORS])(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXPEPMONITORS])(void**);
@@ -93,7 +92,9 @@ struct _p_PEP {
   ST             st;               /* spectral transformation object */
   DS             ds;               /* direct solver object */
   BV             V;                /* set of basis vectors and computed eigenvectors */
+  RG             rg;               /* optional region for filtering */
   PetscRandom    rand;             /* random number generator */
+  SlepcSC        sc;               /* sorting criterion data */
   Mat            *A;               /* coefficient matrices of the polynomial */
   PetscInt       nmat;             /* number of matrices */
   Vec            Dl,Dr;            /* diagonal matrices for balancing */
@@ -133,6 +134,7 @@ struct _p_PEP {
 
 #endif
 
+PETSC_INTERN PetscErrorCode PEPSetDimensions_Default(PEP,PetscInt,PetscInt*,PetscInt*);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Schur(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Indefinite(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeResidualNorm_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
