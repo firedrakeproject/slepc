@@ -59,8 +59,8 @@ classdef SlepcSVD < PetscObject
     function err = SetOperator(obj,A)
       err = calllib('libslepc', 'SVDSetOperator', obj.pobj,A.pobj);PetscCHKERRQ(err);
     end
-    function err = SetTransposeMode(obj,t)
-      err = calllib('libslepc', 'SVDSetTransposeMode', obj.pobj,t);PetscCHKERRQ(err);
+    function err = SetImplicitTranspose(obj,t)
+      err = calllib('libslepc', 'SVDSetImplicitTranspose', obj.pobj,t);PetscCHKERRQ(err);
     end
     function err = SetWhichSingularTriplets(obj,t)
       err = calllib('libslepc', 'SVDSetWhichSingularTriplets', obj.pobj,t);PetscCHKERRQ(err);

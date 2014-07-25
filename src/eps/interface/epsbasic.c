@@ -714,8 +714,6 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
 @*/
 PetscErrorCode EPSSetInterval(EPS eps,PetscReal inta,PetscReal intb)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveReal(eps,inta,2);
@@ -723,7 +721,7 @@ PetscErrorCode EPSSetInterval(EPS eps,PetscReal inta,PetscReal intb)
   if (inta>=intb) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
   eps->inta = inta;
   eps->intb = intb;
-  if (eps->state) { ierr = EPSReset(eps);CHKERRQ(ierr); }
+  eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

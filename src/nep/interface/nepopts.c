@@ -443,8 +443,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(nep,which,2);
-  if (which==PETSC_DECIDE || which==PETSC_DEFAULT) nep->which = (NEPWhich)0;
-  else switch (which) {
+  switch (which) {
     case NEP_LARGEST_MAGNITUDE:
     case NEP_SMALLEST_MAGNITUDE:
     case NEP_LARGEST_REAL:

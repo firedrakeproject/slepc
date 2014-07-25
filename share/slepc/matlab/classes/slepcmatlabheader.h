@@ -79,6 +79,7 @@ int SVDSetFromOptions(SVD);
 int SVDSetOperator(SVD,Mat);
 int SVDSetWhichSingularTriplets(SVD,SVDWhich);
 int SVDSetTolerances(SVD,double,int);
+int SVDSetImplicitTranspose(SVD,PetscBool);
 int SVDSetDimensions(SVD,int,int,int);
 int SVDSolve(SVD);
 int SVDSetUp(SVD);
