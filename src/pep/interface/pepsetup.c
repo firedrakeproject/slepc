@@ -71,6 +71,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   }
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSReset(pep->ds);CHKERRQ(ierr);
+  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
   if (!((PetscObject)pep->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(pep->rand);CHKERRQ(ierr);
   }

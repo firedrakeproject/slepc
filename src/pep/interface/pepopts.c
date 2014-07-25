@@ -1128,6 +1128,8 @@ PetscErrorCode PEPSetOptionsPrefix(PEP pep,const char *prefix)
   ierr = BVSetOptionsPrefix(pep->V,prefix);CHKERRQ(ierr);
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(pep->ds,prefix);CHKERRQ(ierr);
+  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
+  ierr = RGSetOptionsPrefix(pep->rg,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)pep,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1166,6 +1168,8 @@ PetscErrorCode PEPAppendOptionsPrefix(PEP pep,const char *prefix)
   ierr = BVSetOptionsPrefix(pep->V,prefix);CHKERRQ(ierr);
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(pep->ds,prefix);CHKERRQ(ierr);
+  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
+  ierr = RGSetOptionsPrefix(pep->rg,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)pep,prefix);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&flg);CHKERRQ(ierr);
   if (flg) {
