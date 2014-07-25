@@ -76,10 +76,8 @@ struct _p_NEP {
   PetscErrorCode (*computejacobian)(NEP,PetscScalar,Mat,void*);
   void           *functionctx;
   void           *jacobianctx;
-  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
   PetscErrorCode (*converged)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
-  void           *comparisonctx;
   void           *convergedctx;
   PetscErrorCode (*monitor[MAXNEPMONITORS])(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXNEPMONITORS])(void**);
@@ -89,7 +87,9 @@ struct _p_NEP {
   /*----------------- Child objects and working data -------------------*/
   DS             ds;               /* direct solver object */
   BV             V;                /* set of basis vectors and computed eigenvectors */
+  RG             rg;               /* optional region for filtering */
   PetscRandom    rand;             /* random number generator */
+  SlepcSC        sc;               /* sorting criterion data */
   KSP            ksp;              /* linear solver object */
   Mat            function;         /* function matrix */
   Mat            function_pre;     /* function matrix (preconditioner) */
@@ -99,7 +99,7 @@ struct _p_NEP {
   PetscInt       nt;               /* number of terms in split form */
   MatStructure   mstr;             /* pattern of split matrices */
   Vec            *IS;              /* references to user-provided initial space */
-  PetscScalar    *eig;             /* computed eigenvalues */
+  PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
   PetscReal      *errest;          /* error estimates */
   PetscInt       *perm;            /* permutation for eigenvalue ordering */
   PetscInt       nwork;            /* number of work vectors */

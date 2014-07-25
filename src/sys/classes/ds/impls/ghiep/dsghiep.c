@@ -165,11 +165,11 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
   } else {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
   }
   if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -281,6 +281,7 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
   PetscFunctionBegin;
   switch (mat) {
     case DS_MAT_X:
+    case DS_MAT_Y:
       if (k) {
         ierr = DSVectors_GHIEP_Eigen_Some(ds,k,rnorm);CHKERRQ(ierr);
       } else {
@@ -299,7 +300,6 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
         }
       }
       break;
-    case DS_MAT_Y:
     case DS_MAT_U:
     case DS_MAT_VT:
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
@@ -627,7 +627,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
       }
       if (isreal) {
         if (ds->compact) {
-          D[i] = ss1;;
+          D[i] = ss1;
           T[i] = wr1;
           D[i+1] = ss2;
           T[i+1] = wr2;

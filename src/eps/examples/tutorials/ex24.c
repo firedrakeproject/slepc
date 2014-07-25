@@ -179,7 +179,7 @@ int main(int argc,char **argv)
 #else
       re = lambda;
 #endif
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",(double)re,(double)error);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12.2g\n",(double)re,(double)error);CHKERRQ(ierr);
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }

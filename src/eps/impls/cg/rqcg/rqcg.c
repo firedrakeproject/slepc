@@ -55,7 +55,7 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
 
   PetscFunctionBegin;
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"RQCG only works for Hermitian problems");
-  ierr = EPSSetDimensions_Default(eps);CHKERRQ(ierr);
+  ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   if (eps->which!=EPS_SMALLEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");

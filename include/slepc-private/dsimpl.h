@@ -63,10 +63,7 @@ struct _p_DS {
   PetscInt       bs;                 /* block size */
   PetscInt       nf;                 /* number of functions in f[] */
   FN             f[DS_NUM_EXTRA];    /* functions provided via DSSetFN() */
-
-  /*-------------- User-provided functions and contexts ----------------*/
-  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-  void           *comparisonctx;
+  SlepcSC        sc;                 /* sorting criterion */
 
   /*----------------- Status variables and working data ----------------*/
   PetscScalar    *mat[DS_NUM_MAT];   /* the matrices */
@@ -104,7 +101,6 @@ struct _p_DS {
 PETSC_INTERN PetscErrorCode DSAllocateMat_Private(DS,DSMatType);
 PETSC_INTERN PetscErrorCode DSAllocateMatReal_Private(DS,DSMatType);
 PETSC_INTERN PetscErrorCode DSAllocateWork_Private(DS,PetscInt,PetscInt,PetscInt);
-PETSC_INTERN PetscErrorCode DSViewMat_Private(DS,PetscViewer,DSMatType);
 PETSC_INTERN PetscErrorCode DSSortEigenvalues_Private(DS,PetscScalar*,PetscScalar*,PetscInt*,PetscBool);
 PETSC_INTERN PetscErrorCode DSSortEigenvaluesReal_Private(DS,PetscReal*,PetscInt*);
 PETSC_INTERN PetscErrorCode DSPermuteColumns_Private(DS,PetscInt,PetscInt,DSMatType,PetscInt*);

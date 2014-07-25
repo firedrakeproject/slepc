@@ -79,10 +79,10 @@
       PetscEnum EPS_BALANCE_TWOSIDE
       PetscEnum EPS_BALANCE_USER
 
-      parameter (EPS_BALANCE_NONE           =  1)
-      parameter (EPS_BALANCE_ONESIDE        =  2)
-      parameter (EPS_BALANCE_TWOSIDE        =  3)
-      parameter (EPS_BALANCE_USER           =  4)
+      parameter (EPS_BALANCE_NONE           =  0)
+      parameter (EPS_BALANCE_ONESIDE        =  1)
+      parameter (EPS_BALANCE_TWOSIDE        =  2)
+      parameter (EPS_BALANCE_USER           =  3)
 
       PetscEnum EPS_POWER_SHIFT_CONSTANT
       PetscEnum EPS_POWER_SHIFT_RAYLEIGH
@@ -100,23 +100,23 @@
       PetscEnum EPS_REFINED
       PetscEnum EPS_REFINED_HARMONIC
 
-      parameter (EPS_RITZ                   =  1)
-      parameter (EPS_HARMONIC               =  2)
-      parameter (EPS_HARMONIC_RELATIVE      =  3)
-      parameter (EPS_HARMONIC_RIGHT         =  4)
-      parameter (EPS_HARMONIC_LARGEST       =  5)
-      parameter (EPS_REFINED                =  6)
-      parameter (EPS_REFINED_HARMONIC       =  7)
+      parameter (EPS_RITZ                   =  0)
+      parameter (EPS_HARMONIC               =  1)
+      parameter (EPS_HARMONIC_RELATIVE      =  2)
+      parameter (EPS_HARMONIC_RIGHT         =  3)
+      parameter (EPS_HARMONIC_LARGEST       =  4)
+      parameter (EPS_REFINED                =  5)
+      parameter (EPS_REFINED_HARMONIC       =  6)
 
       PetscEnum EPS_CONV_ABS
       PetscEnum EPS_CONV_EIG
       PetscEnum EPS_CONV_NORM
       PetscEnum EPS_CONV_USER
 
-      parameter (EPS_CONV_ABS               =  1)
-      parameter (EPS_CONV_EIG               =  2)
-      parameter (EPS_CONV_NORM              =  3)
-      parameter (EPS_CONV_USER              =  4)
+      parameter (EPS_CONV_ABS               =  0)
+      parameter (EPS_CONV_EIG               =  1)
+      parameter (EPS_CONV_NORM              =  2)
+      parameter (EPS_CONV_USER              =  3)
 
       PetscEnum EPS_LANCZOS_REORTHOG_LOCAL
       PetscEnum EPS_LANCZOS_REORTHOG_FULL

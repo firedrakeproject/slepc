@@ -55,7 +55,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   PetscErrorCode     ierr;
 
   PetscFunctionBegin;
-  ierr = EPSSetDimensions_Default(eps);CHKERRQ(ierr);
+  ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
@@ -233,8 +233,9 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
   ierr = PetscCalloc6(m+1,&d,m,&e,m,&ritz,m*m,&Y,m,&which,m,&hwork);CHKERRQ(ierr);
   for (i=0;i<k;i++) which[i] = PETSC_TRUE;
 
-  ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
+    ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
+
     /* Lanczos step */
     ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
     ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
@@ -629,7 +630,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
       } else {
         for (i=restart+1;i<n;i++) {
           if (conv[i] == 'N') {
-            ierr = (*eps->comparison)(ritz[restart],0.0,ritz[i],0.0,&r,eps->comparisonctx);CHKERRQ(ierr);
+            ierr = SlepcSCCompare(eps->sc,ritz[restart],0.0,ritz[i],0.0,&r);CHKERRQ(ierr);
             if (r>0) restart = i;
           }
         }

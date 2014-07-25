@@ -8,7 +8,7 @@
 
 \section{Supported PETSc Features}
 
-\slepc relies on \petsc for all the features that are not directly related to eigenvalue problems. All the functionality associated to vectors and matrices as well as linear systems of equations is provided by \petsc. Also, low level details are inherited directly from \petsc. In particular, the parallelism within \slepc methods is handled completely by \petsc's vector and matrix modules. 
+\slepc relies on \petsc for most features that are not directly related to eigenvalue problems. All functionality associated with vectors and matrices as well as linear systems of equations is provided by \petsc. Also, low level details are inherited directly from \petsc. In particular, the parallelism within \slepc methods is handled almost completely by \petsc's vector and matrix modules. 
 
 	\slepc mainly contains high level objects, as depicted in Figure \ref{fig:slepc}. These object classes have been designed and implemented following the philosophy of other high level objects in \petsc. In this way, \slepc benefits from a number of \petsc's good properties such as the following (see \petsc{} users guide for details):
 \begin{itemize}
@@ -40,7 +40,7 @@
 
 	Methods implemented in \ident{EPS} merely require vector operations and matrix-vector products. In \petsc, mathematical objects such as vectors and matrices have an interface that is independent of the underlying data structures. \slepc manipulates vectors and matrices via this interface and, therefore, it can be used with any of the matrix representations provided by \petsc, including dense, sparse, and symmetric formats, either sequential or parallel.
 
-	The above statement must be reconsidered when using \ident{EPS} in combination with \ident{ST}. As explained in chapter \ref{cap:st}, in many cases the operator associated to a spectral transformation not only consists in pure matrix-vector products but also other operations may be required as well, most notably a linear system solve (see Table \ref{tab:op}). In this case, the limitation is that there must be support for the requested operation for the selected matrix representation. For instance, if one wants to use \texttt{cholesky} for the solution of the linear systems, then it may be necessary to work with a symmetric matrix format such as \texttt{MATSBAIJ}.
+	The above statement must be reconsidered when using \ident{EPS} in combination with \ident{ST}. As explained in chapter \ref{cap:st}, in many cases the operator associated with a spectral transformation not only consists in pure matrix-vector products but also other operations may be required as well, most notably a linear system solve (see Table \ref{tab:op}). In this case, the limitation is that there must be support for the requested operation for the selected matrix representation. For instance, if one wants to use \texttt{cholesky} for the solution of the linear systems, then it may be necessary to work with a symmetric matrix format such as \texttt{MATSBAIJ}.
 
 \paragraph{Shell Matrices.}
 
@@ -61,7 +61,41 @@ where $x$ and $p$ denote the velocity and pressure fields. Similar formulations 
 
 	In the simplest case, defining matrix-vector product operations (\ident{MATOP\_MULT}) is enough for using \ident{EPS} with shell matrices. However, in the case of generalized problems, if matrix $B$ is also a shell matrix then it may be necessary to define other operations in order to be able to solve the linear system successfully, for example \ident{MATOP\_GET\_DIAGONAL} to use an iterative linear solver with Jacobi preconditioning. On the other hand, if the shift-and-invert \ident{ST} is to be used, then in addition it may also be necessary to define \ident{MATOP\_SHIFT} or \ident{MATOP\_AXPY} (see \S\ref{sec:explicit} for discussion).
 
-	In the case of \ident{SVD}, both $A$ and $A^*$ are required to solve the problem. So when computing the SVD, the shell matrix needs to have the \ident{MATOP\_MULT\_TRANSPOSE} operation (or \ident{MATOP\_\-MULT\_HERMITIAN\_TRANSPOSE} in the case of complex scalars) in addition to \ident{MATOP\_MULT}. Alternatively, if $A^*$ is to be built explicitly, \ident{MATOP\_TRANSPOSE} is then the required operation. For details, see the manual page for \ident{SVDSetTransposeMode}.
+	In the case of \ident{SVD}, both $A$ and $A^*$ are required to solve the problem. So when computing the SVD, the shell matrix needs to have the \ident{MATOP\_MULT\_TRANSPOSE} operation (or \ident{MATOP\_\-MULT\_HERMITIAN\_TRANSPOSE} in the case of complex scalars) in addition to \ident{MATOP\_MULT}. Alternatively, if $A^*$ is to be built explicitly, \ident{MATOP\_TRANSPOSE} is then the required operation. For details, see the manual page for \ident{SVDSetImplicitTranspose}.
+
+%---------------------------------------------------
+\section{Auxiliary Classes}
+\label{sec:sys}
+
+Apart from the main solver classes listed on page \pageref{tab:modules}, \slepc contains several auxiliary classes:
+\begin{itemize}
+\item \ident{ST}: Spectral Transformation, fully described in chapter \ref{cap:st}.
+\item \ident{FN}: Mathematical Function. As described in chapter \ref{cap:nep}, it is required in application code to represent the constituent functions of the nonlinear operator in split form.
+\item \ident{DS}: Direct Solver (or Dense System), can be seen as a wrapper to \lapack functions used within \slepc. It is mostly an internal object that need not be called by end users.
+\item \ident{BV}: Basis Vectors, provides the concept of a block of vectors that represent the basis of a subspace.
+\end{itemize}
+
+The \ident{BV} class may be useful for advanced users, so we briefly describe it here for completeness. \ident{BV} is a convenient way of handling a collection of vectors that often operate together, rather than working with an array of \texttt{Vec}. It can be seen as a generalization of \texttt{Vec} to a tall-skinny matrix with several columns.
+
+\begin{table}[t]
+\centering
+{\small \begin{tabular}{llll}
+Operation             & Block version     & Column version          & Vector version \\\hline
+$Y=X$                 & \texttt{BVCopy}   & \texttt{BVCopyColumn}   & \texttt{BVCopyVec} \\
+$Y=\beta Y+\alpha XQ$ & \texttt{BVMult}   & \texttt{BVMultColumn}   & \texttt{BVMultVec} \\
+$M=Y^*\!AX$           & \texttt{BVMatProject} & --                  & -- \\
+$Y=Y+\alpha X$        & \texttt{BVAXPY}   & --                      & -- \\
+$M=Y^*X$              & \texttt{BVDot}    & \texttt{BVDotColumn}    & \texttt{BVDotVec} \\
+$Y=\alpha Y$          & \texttt{BVScale}  & \texttt{BVScaleColumn}  & -- \\
+$r=\|X\|_{type}$      & \texttt{BVNorm}   & \texttt{BVNormColumn}   & \texttt{BVNormVec} \\
+Set to random values  & \texttt{BVSetRandom} & \texttt{BVSetRandomColumn} & -- \\
+Orthogonalize         & \texttt{BVOrthogonalize} & \texttt{BVOrthogonalizeColumn} & \texttt{BVOrthogonalizeVec} \\
+\hline
+\end{tabular} }
+\caption{\label{tab:bv}Operations available for \ident{BV} objects.}
+\end{table}
+
+Table \ref{tab:bv} shows a summary of the operations offered by the \ident{BV} class, with variants that operate on the whole \ident{BV}, on a single column, or on an external \texttt{Vec} object. Missing variants can be achieved simply with \texttt{Vec} and \texttt{Mat} operations. Other available variants not shown in the table are \texttt{BVMultInPlace}, \texttt{BVMultInPlaceTranspose} and \texttt{BVOrthogonalizeSomeColumn}.
 
 %---------------------------------------------------
 \section{GPU Computing}
@@ -100,7 +134,7 @@ has to be invoked after the creation of the \ident{ST} object in order to provid
 	\end{Verbatim}
 can be used optionally to specify the routine for the back-transformation of eigenvalues. The two functions provided by the user can make use of any required user-defined information via a context that can be retrieved with \ident{STShellGetContext}. An example program is provided in the \slepc distribution in order to illustrate the use of shell transformations.
 
-	\slepc further supports extensibility by allowing application programmers to code their own subroutines for unimplemented features such as new eigensolvers or new spectral transformations. It is possible to register these new methods to the system and use them as the rest of standard subroutines. For example, to implement a variant of the Subspace Iteration method, one could copy the \slepc code associated to the \texttt{subspace} solver, modify it and register a new \ident{EPS} type with the following line of code
+	\slepc further supports extensibility by allowing application programmers to code their own subroutines for unimplemented features such as new eigensolvers or new spectral transformations. It is possible to register these new methods to the system and use them as the rest of standard subroutines. For example, to implement a variant of the Subspace Iteration method, one could copy the \slepc code associated with the \texttt{subspace} solver, modify it and register a new \ident{EPS} type with the following line of code
 	\begin{Verbatim}[fontsize=\small]
 	EPSRegister("newsubspace",EPSCreate_NEWSUB);
 	\end{Verbatim}
@@ -134,7 +168,7 @@ After this call, the new solver could be used in the same way as the rest of \sl
 \item[\texttt{eps}] - eigenvalue problem solver.
 \item[\texttt{st}] - spectral transformation.
 \item[\texttt{svd}] - singular value decomposition solver.
-\item[\texttt{qep}] - quadratic eigenvalue problem solver.
+\item[\texttt{pep}] - polynomial eigenvalue problem solver.
 \item[\texttt{nep}] - nonlinear eigenvalue problem solver.
 \item[\texttt{mfn}] - matrix function.
 \item[\texttt{fn}] - mathematical function, used in definition of nonlinear eigenproblems.
@@ -299,6 +333,6 @@ First of all, \petsc must have been configured with the Matlab interface enabled
 	$ ./configure --with-matlab --with-matlab-engine --with-shared-libraries
 	\end{Verbatim}
 
-Once the \petsc and \slepc libraries have been built, one has to set Matlab's path to point to the directories containing Matlab classes: \Verb!$SLEPC_DIR/bin/matlab/classes! and \Verb!$PETSC_DIR/bin/matlab/classes!. Below we show a simple Matlab example (included in \slepc's distribution) that does this, and then solves a simple eigenproblem.
+Once the \petsc and \slepc libraries have been built, one has to set Matlab's path to point to the directories containing Matlab classes: \Verb!$SLEPC_DIR/share/slepc/matlab/classes! and \Verb!$PETSC_DIR/share/slepc/matlab/classes!. Below we show a simple Matlab example (included in \slepc's distribution) that does this, and then solves a simple eigenproblem.
 \MyVerbatimInput{exEPS.m}
 

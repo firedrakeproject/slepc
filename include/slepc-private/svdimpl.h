@@ -58,7 +58,7 @@ struct _p_SVD {
   PetscInt         nini,ninil;  /* number of initial vectors (negative means not copied yet) */
   PetscReal        tol;         /* tolerance */
   SVDWhich         which;       /* which singular values are computed */
-  SVDTransposeMode transmode;   /* transpose mode */
+  PetscBool        impltrans;   /* implicit transpose mode */
   PetscBool        trackall;    /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
@@ -71,6 +71,7 @@ struct _p_SVD {
   DS               ds;          /* direct solver object */
   BV               U,V;         /* left and right singular vectors */
   PetscRandom      rand;        /* random number generator */
+  SlepcSC          sc;          /* sorting criterion data */
   Mat              A;           /* problem matrix (m>n) */
   Mat              AT;          /* transposed matrix */
   Vec              *IS,*ISL;    /* placeholder for references to user-provided initial space */

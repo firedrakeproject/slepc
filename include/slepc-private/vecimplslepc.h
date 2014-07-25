@@ -25,32 +25,11 @@
 #include <slepcvec.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent SLEPC_UpdateVectors,SLEPC_SlepcDenseMatProd,SLEPC_SlepcDenseOrth,SLEPC_SlepcDenseMatInvProd,SLEPC_SlepcDenseCopy,SLEPC_VecsMult;
-
-/* context for the storage of contiguous Vecs */
-typedef struct {
-  PetscScalar *array;    /* pointer to common storage */
-  PetscInt    nvecs;     /* number of vectors that share this array */
-} Vecs_Contiguous;
-
 #if !defined(PETSC_USE_DEBUG)
 
-#define SlepcValidVecsContiguous(V,m,arg) do {} while (0)
 #define SlepcValidVecComp(y) do {} while (0)
 
 #else
-
-#define SlepcValidVecsContiguous(V,m,arg) \
-  do { \
-    PetscErrorCode __ierr; \
-    PetscInt       __i; \
-    PetscContainer __container; \
-    for (__i=0;__i<(m);__i++) { \
-      PetscValidHeaderSpecific((V)[__i],VEC_CLASSID,(arg)); \
-      __ierr = PetscObjectQuery((PetscObject)((V)[__i]),"contiguous",(PetscObject*)&__container);CHKERRQ(__ierr); \
-      if (!__container && (m)>1) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Contiguous check failed in argument # %d",(arg)); \
-    } \
-  } while (0)
 
 #define SlepcValidVecComp(y) \
   do { \
@@ -135,41 +114,6 @@ typedef PetscInt EPType_t;
 
 #define DVD_IS(T,P) ((T) & (P))
 #define DVD_ISNOT(T,P) (((T) & (P)) ^ (P))
-
-typedef PetscErrorCode (*DvdReductionPostF)(PetscScalar*,PetscInt,void*);
-typedef struct {
-  PetscScalar       *out;          /* final vector */
-  PetscInt          size_out;      /* size of out */
-  DvdReductionPostF f;             /* function called after the reduction */
-  void              *ptr;
-} DvdReductionChunk;
-
-typedef struct {
-  PetscScalar       *in;           /* vector to sum-up with more nodes */
-  PetscScalar       *out;          /* final vector */
-  PetscInt          size_in;       /* size of in */
-  PetscInt          max_size_in;   /* max size of in */
-  DvdReductionChunk *ops;          /* vector of reduction operations */
-  PetscInt          size_ops;      /* size of ops */
-  PetscInt          max_size_ops;  /* max size of ops */
-  MPI_Comm          comm;          /* MPI communicator */
-} DvdReduction;
-
-typedef struct {
-  PetscInt         i0,i1,i2,ld,s0,e0,s1,e1;
-  PetscScalar      *M;
-} DvdMult_copy_func;
-
-/* BLAS-type operations */
-PETSC_EXTERN PetscErrorCode SlepcDenseMatProdTriang(PetscScalar*,MatType_t,PetscInt,const PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt,PetscBool,const PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt,PetscBool);
-PETSC_EXTERN PetscErrorCode SlepcDenseCopy(PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscInt);
-PETSC_EXTERN PetscErrorCode SlepcMatDenseCopy(Mat,PetscInt,PetscInt,Mat,PetscInt,PetscInt,PetscInt,PetscInt);
-PETSC_EXTERN PetscErrorCode SlepcDenseCopyTriang(PetscScalar*,MatType_t,PetscInt,PetscScalar*,MatType_t,PetscInt,PetscInt,PetscInt);
-PETSC_EXTERN PetscErrorCode SlepcUpdateVectorsZ(Vec*,PetscScalar,PetscScalar,Vec*,PetscInt,const PetscScalar*,PetscInt,PetscInt,PetscInt);
-PETSC_EXTERN PetscErrorCode SlepcUpdateVectorsD(Vec*,PetscInt,PetscScalar,const PetscScalar*,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscInt);
-PETSC_EXTERN PetscErrorCode VecsMultS(PetscScalar*,MatType_t,PetscInt,Vec*,PetscInt,PetscInt,Vec*,PetscInt,PetscInt,DvdReduction*,DvdMult_copy_func*);
-PETSC_EXTERN PetscErrorCode SlepcAllReduceSumBegin(DvdReductionChunk*,PetscInt,PetscScalar*,PetscScalar*,PetscInt,DvdReduction*,MPI_Comm);
-PETSC_EXTERN PetscErrorCode SlepcAllReduceSumEnd(DvdReduction*);
 
 /* VecPool */
 typedef struct VecPool_ {

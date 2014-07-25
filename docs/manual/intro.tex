@@ -12,7 +12,7 @@
 	
 	The reasons for this situation are diverse. First, new methods are increasingly complex and difficult to implement and therefore robust implementations must be provided by computational specialists, for example as software libraries. The development of such libraries requires to invest a lot of effort but sometimes they do not reach normal users due to a lack of awareness.
 	
-	In the case of eigenproblems, using libraries is not straightforward. It is usually recommended that the user understands how the underlying algorithm works and typically the problem is successfully solved only after several cycles of testing and parameter tuning. Methods are often specific for a certain class of eigenproblems (e.g., complex symmetric) and this leads to an explosion of available algorithms from which the user has to choose. Not all these algorithms are available in the form of software libraries, even less frequently with parallel capabilities.
+	In the case of eigenproblems, using libraries is not straightforward. It is usually recommended that the user understands how the underlying algorithm works and typically the problem is successfully solved only after several cycles of testing and parameter tuning. Methods are often specific for a certain class of eigenproblems and this leads to an explosion of available algorithms from which the user has to choose. Not all these algorithms are available in the form of software libraries, even less frequently with parallel capabilities.
 	
 	Another difficulty resides in how to represent the operator matrix. Unlike in dense methods, there is no widely accepted standard for basic sparse operations in the spirit of \blas. This is due to the fact that sparse storage is more complicated, admitting of more variation, and therefore less standardized. For this reason, sparse libraries have an added level of complexity. This holds even more so in the case of parallel distributed-memory programming, where the data of the problem have to be distributed across the available processors.
 	
@@ -29,7 +29,7 @@
 
 	The \slepc library is an attempt to provide a solution to the situation described in the previous paragraphs. It is intended to be a general library for the solution of eigenvalue problems that arise in different contexts, covering standard and generalized problems, both Hermitian and non-Hermitian, with either real or complex arithmetic. Issues such as usability, portability, efficiency and interoperability are addressed, and special emphasis is put on flexibility, providing data-structure neutral implementations and multitude of run-time options. \slepc offers a growing number of eigensolvers as well as interfaces to integrate well-established eigenvalue packages such as \arpack. In addition to the linear eigenvalue problem, \slepc also includes other solver classes for nonlinear eigenproblems, SVD and the computation of the action of a matrix function.
 
-	\slepc is based on \petsc, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:2013:PUM}, and, therefore, a large percentage of the software complexity is avoided since many \petsc developments are leveraged, including matrix storage formats and linear solvers, to name a few. \slepc focuses on high level features for eigenproblems, structured around a few object classes as described below. 
+	\slepc is based on \petsc, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:2014:PUM}, and, therefore, a large percentage of the software complexity is avoided since many \petsc developments are leveraged, including matrix storage formats and linear solvers, to name a few. \slepc focuses on high level features for eigenproblems, structured around a few object classes as described below. 
 
 	\petsc uses modern programming paradigms to ease the development of large-scale scientific application codes in Fortran, C, and C++ and provides a powerful set of tools for the numerical solution of partial differential equations and related problems on high-performance computers. Its approach is to encapsulate mathematical algorithms using object-oriented programming techniques, which allow to manage the complexity of efficient numerical message-passing codes. All the \petsc software is free and used around the world in a variety of application areas.
 
@@ -37,7 +37,7 @@
 
 	\petsc is built around a variety of data structures and algorithmic objects. The application programmer works directly with these objects rather than concentrating on the underlying data structures. Each component manipulates a particular family of objects (for instance, vectors) and the operations one would like to perform on the objects. The three basic abstract data objects are index sets, vectors and matrices. Built on top of this foundation are various classes of solver objects, which encapsulate virtually all information regarding the solution procedure for a particular class of problems, including the local state and various options such as convergence tolerances, etc. 
 
-	\slepc can be considered an extension of \petsc providing all the functionality necessary for the solution of eigenvalue problems. Figure \ref{fig:slepc} shows a diagram of all the different objects included in \petsc (on the left) and those added by \slepc (on the right). \petsc is a prerequisite for \slepc and users should be familiar with basic concepts such as vectors and matrices in order to use \slepc. Therefore, together with this manual we recommend to use the \petsc Users Manual \citep{Balay:2013:PUM}.
+	\slepc can be considered an extension of \petsc providing all the functionality necessary for the solution of eigenvalue problems. Figure \ref{fig:slepc} shows a diagram of all the different objects included in \petsc (on the left) and those added by \slepc (on the right). \petsc is a prerequisite for \slepc and users should be familiar with basic concepts such as vectors and matrices in order to use \slepc. Therefore, together with this manual we recommend to use the \petsc Users Manual \citep{Balay:2014:PUM}.
 
 \begin{figure}[t]
 \centering
@@ -91,10 +91,11 @@
                 rectangle node[text width=1.8cm] {Pseudo Time Stepping} ++(2.1,1) ++(0,-1) 
                 rectangle node {Other} ++(1.1,1);
   \node[above,text centered,font=\sffamily\bfseries\Large] at (15.1,5*\levsep) {SLEPc};
-  \draw[interface] (11,4*\levsep+\himp) rectangle node {Quadratic Eigensolver} +(4.2,\hint);
-  \draw[implem] (11,4*\levsep) rectangle node[text width=1.2cm] {Linear\-ization} ++(1.2,1) ++(0,-1) 
-                rectangle node[text width=1.7cm] {Q-Arnoldi} ++(1.5,1) ++(0,-1)
-                rectangle node[text width=1.7cm] {Q-Lanczos} ++(1.5,1);
+  \draw[interface] (11,4*\levsep+\himp) rectangle node {Polynomial Eigensolver} +(4.2,\hint);
+  \draw[implem] (11,4*\levsep) rectangle node[text width=1.2cm] {TOAR} ++(1.2,1) ++(0,-1) 
+                rectangle node[text width=1.7cm] {Q-Arnoldi} ++(1.6,1) ++(0,-1)
+                rectangle node[text width=1.7cm] {Linear\-ization} ++(1.4,1);
+
   \draw[interface] (15.5,4*\levsep+\himp) rectangle node {Nonlinear Eigensolver} +(3.7,\hint);
   \draw[implem] (15.5,4*\levsep) rectangle node {SLP} ++(1.1,1) ++(0,-1) 
                 rectangle node {RII} ++(1.1,1) ++(0,-1)
@@ -158,7 +159,8 @@
          3.1   &               3.1   & $\star$ & Aug 2010     \\
          3.2   &               3.2   & $\star$ & Oct 2011     \\
          3.3   &               3.3   & $\star$ & Aug 2012     \\
-         3.4   &               3.4   & $\star$ & Jul 2013     \\ \hline
+         3.4   &               3.4   & $\star$ & Jul 2013     \\
+         3.5   &               3.5   & $\star$ & Jul 2014     \\ \hline
 \end{tabular}
 \end{small}
 \caption{\label{tab:ver} Correspondence between \slepc and \petsc\ releases.}
@@ -174,16 +176,16 @@
 \begin{enumerate}
 	\item Unbundle the distribution file with 
 	\begin{Verbatim}[fontsize=\small]
-	$ tar xzf slepc-3.4.0.tar.gz
+	$ tar xzf slepc-3.5.0.tar.gz
 	\end{Verbatim}
         or an equivalent command. This will create a directory and unpack the software there.
 	\item Set the environment variable \ident{SLEPC\_DIR} to the full path of the \slepc home directory. For example, under the \texttt{bash} shell:
 	\begin{Verbatim}[fontsize=\small]
-	$ export SLEPC_DIR=/home/username/slepc-3.4.0
+	$ export SLEPC_DIR=/home/username/slepc-3.5.0
 	\end{Verbatim}
 	In addition to this variable, \ident{PETSC\_DIR} and \ident{PETSC\_ARCH} must also be set appropriately (see \S\ref{sec:prefix-inst} for a case in which \ident{PETSC\_ARCH} is not required), for example
 	\begin{Verbatim}[fontsize=\small]
-	$ export PETSC_DIR=/home/username/petsc-3.4.0
+	$ export PETSC_DIR=/home/username/petsc-3.5.0
 	$ export PETSC_ARCH=arch-darwin-c-debug
 	\end{Verbatim}
 	\item\label{step-config} Change to the \slepc directory and run the configuration script:
@@ -227,8 +229,8 @@ Additionally, \petsc's configuration script provides a very long list of options
 \item If not detected, use \Verb!--with-blas-lapack-lib! to specify the location of \blas and \lapack. If \slepc's configure complains about some missing \lapack subroutines, reconfigure \petsc with option \Verb!--download-f2cblaslapack!.
 \item Enable external libraries that provide direct linear solvers or preconditioners, such as MUMPS, hypre, or SuperLU; for example, \Verb!--download-mumps!. These are especially relevant for \slepc in the case that a spectral transformation is used, see chapter \ref{cap:st}.
 \item Enable use from C++, \Verb!--with-clanguage=C++!.
-\item Add \Verb!--with-64-bit-indices=1! to use 4 byte integers (\texttt{long long}) for indexing in vectors and matrices. This is only needed when working with over roughly 2 billion unknowns.
-\item Build shared libraries, \Verb!--with-shared-libraries=1!, for smaller executables whose symbols are resolved at run time.
+\item Add \Verb!--with-64-bit-indices=1! to use 8 byte integers (\texttt{long long}) for indexing in vectors and matrices. This is only needed when working with over roughly 2 billion unknowns.
+\item Build static libraries, \Verb!--with-shared-libraries=0!. This is generally not recommended, since shared libraries produce smaller executables and the run time overhead is small.
 \item Error-checking code can be disabled with \Verb!--with-debugging=0!, but this is only recommended in production runs of well-tested applications.
 \item Enable GPU computing setting \Verb!--with-cuda=1! and other options, see \S\ref{sec:gpu} for details.
 \end{itemize}
@@ -248,7 +250,7 @@ In a standard installation, the different configurations are identified by a uni
 	$ ./configure --with-scalar-type=real
 	$ make all test
 	\end{Verbatim}
-Note that if \ident{PETSC\_ARCH} is not given a value, \petsc suggests one for us. After this, a subdirectory named \texttt{\$PETSC\_ARCH} is created within \texttt{\$PETSC\_DIR}, that stores all information associated to that configuration, including the built libraries, configuration files, automatically generated source files, and log files. For the second configuration, proceed similarly:
+Note that if \ident{PETSC\_ARCH} is not given a value, \petsc suggests one for us. After this, a subdirectory named \texttt{\$PETSC\_ARCH} is created within \texttt{\$PETSC\_DIR}, that stores all information associated with that configuration, including the built libraries, configuration files, automatically generated source files, and log files. For the second configuration, proceed similarly:
 	\begin{Verbatim}[fontsize=\small]
 	$ cd $PETSC_DIR
 	$ export PETSC_ARCH=arch-linux-gnu-c-debug-complex
@@ -270,17 +272,17 @@ In \petsc, if an installation directory has been specified during configuration 
 	\end{Verbatim}
 	This is useful for building as a regular user and then copying the libraries and include files to the system directories as root.
 
-To be more precise, suppose that the configuration was done with \texttt{-{}-prefix=/opt/petsc-3.4.0-linux-gnu-c-debug}. Then, \texttt{make install} will create directory \texttt{/opt/petsc-3.4.0-linux-gnu-c-debug} if it does not exist, and create subdirectories \texttt{lib}, \texttt{conf}, and \texttt{include}, that will store the libraries, the configuration files, and the header files, respectively. Note that the source code files are not copied, nor the documentation, so the size of the installed directory will be much smaller than the original one. For that reason, it is no longer necessary to allow for several configurations to share a directory tree. In other words, in a prefix-based installation, variable \ident{PETSC\_ARCH} loses significance and must be unset. To maintain several configurations, one should specify different prefix directories, typically with a name that informs about the configuration options used.
+To be more precise, suppose that the configuration was done with \texttt{-{}-prefix=/opt/petsc-3.5.0-linux-gnu-c-debug}. Then, \texttt{make install} will create directory \texttt{/opt/petsc-3.5.0-linux-gnu-c-debug} if it does not exist, and create subdirectories \texttt{lib}, \texttt{conf}, and \texttt{include}, that will store the libraries, the configuration files, and the header files, respectively. Note that the source code files are not copied, nor the documentation, so the size of the installed directory will be much smaller than the original one. For that reason, it is no longer necessary to allow for several configurations to share a directory tree. In other words, in a prefix-based installation, variable \ident{PETSC\_ARCH} loses significance and must be unset. To maintain several configurations, one should specify different prefix directories, typically with a name that informs about the configuration options used.
 
 In order to prepare a prefix-based installation of \slepc that uses a prefix-based installation of \petsc, start by setting the appropriate value of \ident{PETSC\_DIR}. Then, run \slepc's configure with a prefix directory.
 	\begin{Verbatim}[fontsize=\small,numbers=none]
-	$ export PETSC_DIR=/opt/petsc-3.4.0-linux-gnu-c-debug
+	$ export PETSC_DIR=/opt/petsc-3.5.0-linux-gnu-c-debug
 	$ unset PETSC_ARCH
 	$ cd $SLEPC_DIR
-	$ ./configure --prefix=/opt/slepc-3.4.0-linux-gnu-c-debug
+	$ ./configure --prefix=/opt/slepc-3.5.0-linux-gnu-c-debug
 	$ make
 	$ make install
-	$ export SLEPC_DIR=/opt/slepc-3.4.0-linux-gnu-c-debug
+	$ export SLEPC_DIR=/opt/slepc-3.5.0-linux-gnu-c-debug
 	\end{Verbatim}
 Note that it is important to unset the value of \ident{PETSC\_ARCH} before \slepc's configure. \slepc will use a temporary arch name during the build. Although it is not a common case, it is also possible to configure \slepc without prefix, in which case the \ident{PETSC\_ARCH} variable is again necessary (must be set to the value reported by \slepc's configure).
 
@@ -293,7 +295,7 @@ Note that it is important to unset the value of \ident{PETSC\_ARCH} before \slep
 Before using \slepc, the user must first set the environment variable
 \ident{SLEPC\_DIR}, indicating the full path of the directory containing \slepc. For example, under the \texttt{bash} shell, a command of the form
 	\begin{Verbatim}[fontsize=\small]
-	$ export SLEPC_DIR=/software/slepc-3.4.0
+	$ export SLEPC_DIR=/software/slepc-3.5.0
 	\end{Verbatim}
 can be placed in the user's \Verb!.bashrc! file.
 The \ident{SLEPC\_DIR} directory can be either a standard installation \slepc directory, or a prefix-based installation directory, see \S\ref{sec:prefix-inst}.
@@ -302,12 +304,11 @@ In addition, the user must set the environment variables required by \petsc, tha
 All \petsc programs use the MPI (Message Passing Interface) standard
 for message-passing communication \citep{MPI-Forum:1994:MMI}.  Thus, to execute
 \slepc programs, users must know the procedure for launching MPI jobs
-on their selected computer system(s).  For instance, when using the
-\mpich\ implementation of MPI and many others, the \texttt{mpirun} command can be used to initiate a program as in the following example that uses eight processes:
+on their selected computer system(s).  Usually, the \texttt{mpiexec} command can be used to initiate a program as in the following example that uses eight processes:
 	\begin{Verbatim}[fontsize=\small]
-	$ mpirun -np 8 slepc_program [command-line options]
+	$ mpiexec -np 8 slepc_program [command-line options]
 	\end{Verbatim}
-In MPI-2 compliant systems, the command \texttt{mpiexec} can be used instead. Note that MPI may be deactivated during configuration of \petsc, if one wants to run only serial programs in a laptop, for example.
+Note that MPI may be deactivated during configuration of \petsc, if one wants to run only serial programs in a laptop, for example.
 
 All \petsc-compliant programs support the use of the \Verb!-h!
 or \Verb!-help! option as well as the \Verb!-v! or \Verb!-version! option. In the case of \slepc programs, specific information for \slepc is also displayed.

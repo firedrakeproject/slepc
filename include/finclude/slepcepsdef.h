@@ -26,6 +26,7 @@
 #include "finclude/slepcstdef.h"
 #include "finclude/slepcbvdef.h"
 #include "finclude/slepcdsdef.h"
+#include "finclude/slepcrgdef.h"
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
 #define EPS                    PetscFortranAddr
@@ -38,7 +39,6 @@
 #define EPSExtraction          PetscEnum
 #define EPSBalance             PetscEnum
 #define EPSConv                PetscEnum
-#define EPSOrthType            PetscEnum
 #define EPSPowerShiftType      PetscEnum
 #define EPSLanczosReorthogType PetscEnum
 #define EPSPRIMMEMethod        PetscEnum

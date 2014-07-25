@@ -607,7 +607,7 @@ PetscErrorCode DSComputeFunction(DS ds,SlepcFunction f)
    Notes:
    This routine sorts the arrays provided in eigr and eigi, and also
    sorts the dense system stored inside ds (assumed to be in condensed form).
-   The sorting criterion is specified with DSSetEigenvalueComparison().
+   The sorting criterion is specified with DSSetSlepcSC().
 
    If arrays rr and ri are provided, then a (partial) reordering based on these
    values rather than on the eigenvalues is performed. In symmetric problems
@@ -619,7 +619,7 @@ PetscErrorCode DSComputeFunction(DS ds,SlepcFunction f)
 
    Level: intermediate
 
-.seealso: DSSolve(), DSSetEigenvalueComparison()
+.seealso: DSSolve(), DSSetSlepcSC()
 @*/
 PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
@@ -632,7 +632,7 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
   if (rr) PetscValidPointer(rr,4);
   if (ds->state==DS_STATE_TRUNCATED) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Cannot sort a truncated DS");
   if (!ds->ops->sort) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  if (!ds->comparison) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must provide a sorting criterion with DSSetEigenvalueComparison() first");
+  if (!ds->sc) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must provide a sorting criterion first");
   if (k && !rr) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Argument k can only be used together with rr");
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);

@@ -63,9 +63,6 @@ PETSC_EXTERN void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(l
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing dynamic libraries\n");return; }
 #endif
 
-  *ierr = SlepcInitialize_LogEvents();
-  if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing log events\n");return; }
-
 #if defined(PETSC_HAVE_DRAND48)
   /* work-around for Cygwin drand48() initialization bug */
   srand48(0);

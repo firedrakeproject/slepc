@@ -57,16 +57,6 @@ typedef const char* SVDType;
 PETSC_EXTERN PetscClassId SVD_CLASSID;
 
 /*E
-    SVDTransposeMode - Determines how to handle the transpose of the matrix
-
-    Level: advanced
-
-.seealso: SVDSetTransposeMode(), SVDGetTransposeMode()
-E*/
-typedef enum { SVD_TRANSPOSE_EXPLICIT,
-               SVD_TRANSPOSE_IMPLICIT } SVDTransposeMode;
-
-/*E
     SVDWhich - Determines whether largest or smallest singular triplets
     are to be computed
 
@@ -103,8 +93,8 @@ PETSC_EXTERN PetscErrorCode SVDSetOperator(SVD,Mat);
 PETSC_EXTERN PetscErrorCode SVDGetOperator(SVD,Mat*);
 PETSC_EXTERN PetscErrorCode SVDSetInitialSpace(SVD,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode SVDSetInitialSpaceLeft(SVD,PetscInt,Vec*);
-PETSC_EXTERN PetscErrorCode SVDSetTransposeMode(SVD,SVDTransposeMode);
-PETSC_EXTERN PetscErrorCode SVDGetTransposeMode(SVD,SVDTransposeMode*);
+PETSC_EXTERN PetscErrorCode SVDSetImplicitTranspose(SVD,PetscBool);
+PETSC_EXTERN PetscErrorCode SVDGetImplicitTranspose(SVD,PetscBool*);
 PETSC_EXTERN PetscErrorCode SVDSetDimensions(SVD,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode SVDGetDimensions(SVD,PetscInt*,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode SVDSetTolerances(SVD,PetscReal,PetscInt);
