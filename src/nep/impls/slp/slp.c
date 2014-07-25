@@ -46,6 +46,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   PetscErrorCode ierr;
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
   ST             st;
+  PetscBool      istrivial;
 
   PetscFunctionBegin;
   if (nep->ncv) { /* ncv set */
@@ -64,6 +65,9 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   if (nep->nev>1) { ierr = PetscInfo(nep,"Warning: requested more than one eigenpair but SLP can only compute one\n");CHKERRQ(ierr); }
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->max_funcs) nep->max_funcs = nep->max_it;
+
+  ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support region filtering");
 
   if (!ctx->eps) { ierr = NEPSLPGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSSetWhichEigenpairs(ctx->eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);

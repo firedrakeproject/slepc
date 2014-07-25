@@ -40,6 +40,7 @@
 PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
 {
   PetscErrorCode ierr;
+  PetscBool      istrivial;
 
   PetscFunctionBegin;
   if (nep->ncv) { /* ncv set */
@@ -58,6 +59,9 @@ PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->max_funcs) nep->max_funcs = nep->max_it;
   if (!nep->split) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NARNOLDI only available for split operator");
+
+  ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support region filtering");
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,3);CHKERRQ(ierr);
