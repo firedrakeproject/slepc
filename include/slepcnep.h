@@ -73,6 +73,18 @@ typedef enum { NEP_LARGEST_MAGNITUDE=1,
                NEP_TARGET_IMAGINARY} NEPWhich;
 
 /*E
+    NEPRefine - The refinement type
+
+    Level: intermediate
+
+.seealso: NEPSetRefine()
+E*/
+typedef enum { NEP_REFINE_NONE,
+               NEP_REFINE_SIMPLE,
+               NEP_REFINE_MULTIPLE } NEPRefine;
+PETSC_EXTERN const char *NEPRefineTypes[];
+
+/*E
     NEPConvergedReason - Reason a nonlinear eigensolver was said to
          have converged or diverged
 
@@ -126,6 +138,8 @@ PETSC_EXTERN PetscErrorCode NEPSetConvergenceTest(NEP,PetscErrorCode (*)(NEP,Pet
 PETSC_EXTERN PetscErrorCode NEPConvergedDefault(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
 PETSC_EXTERN PetscErrorCode NEPSetDimensions(NEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetDimensions(NEP,PetscInt*,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPSetRefine(NEP,NEPRefine,PetscReal,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPGetRefine(NEP,NEPRefine*,PetscReal*,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetLagPreconditioner(NEP,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetLagPreconditioner(NEP,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetConstCorrectionTol(NEP,PetscBool);

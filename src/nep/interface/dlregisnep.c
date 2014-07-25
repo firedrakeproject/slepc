@@ -23,6 +23,8 @@
 
 static PetscBool NEPPackageInitialized = PETSC_FALSE;
 
+const char *NEPRefineTypes[] = {"NONE","SIMPLE","MULTIPLE","NEPRefine","NEP_REFINE_",0};
+
 #undef __FUNCT__
 #define __FUNCT__ "NEPFinalizePackage"
 /*@C
@@ -72,6 +74,7 @@ PetscErrorCode NEPInitializePackage(void)
   /* Register Events */
   ierr = PetscLogEventRegister("NEPSetUp",NEP_CLASSID,&NEP_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPSolve",NEP_CLASSID,&NEP_Solve);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("NEPRefine",NEP_CLASSID,&NEP_Refine);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPFunctionEval",NEP_CLASSID,&NEP_FunctionEval);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPJacobianEval",NEP_CLASSID,&NEP_JacobianEval);CHKERRQ(ierr);
   /* Process info exclusions */

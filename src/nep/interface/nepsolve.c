@@ -96,6 +96,12 @@ PetscErrorCode NEPSolve(NEP nep)
 
   nep->state = NEP_STATE_SOLVED;
 
+  if (nep->refine==NEP_REFINE_SIMPLE && nep->rits>0) {
+    ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
+    ierr = NEPNewtonRefinementSimple(nep,&nep->rits,&nep->reftol,nep->nconv);CHKERRQ(ierr);
+    nep->state = NEP_STATE_EIGENVECTORS;
+  }
+
   /* sort eigenvalues according to nep->which parameter */
   ierr = SlepcSortEigenvalues(nep->sc,nep->nconv,nep->eigr,nep->eigi,nep->perm);CHKERRQ(ierr);
 

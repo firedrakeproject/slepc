@@ -102,6 +102,10 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (nep->stol==PETSC_DEFAULT) nep->stol = SLEPC_DEFAULT_TOL;
   nep->ktol   = 0.1;
   nep->nfuncs = 0;
+  if (nep->refine) {
+    if (nep->reftol==PETSC_DEFAULT) nep->reftol = SLEPC_DEFAULT_TOL;
+    if (nep->rits==PETSC_DEFAULT) nep->rits = (nep->refine==NEP_REFINE_SIMPLE)? 10: 1;
+  }
 
   /* fill sorting criterion context */
   switch (nep->which) {
