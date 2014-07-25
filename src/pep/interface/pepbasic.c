@@ -62,7 +62,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   PetscErrorCode ierr;
   const char     *type;
   char           str[50];
-  PetscBool      isascii,islinear;
+  PetscBool      isascii,islinear,istrivial;
   PetscInt       i;
 
   PetscFunctionBegin;
@@ -187,7 +187,8 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
     ierr = BVView(pep->V,viewer);CHKERRQ(ierr);
     if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
-    ierr = RGView(pep->rg,viewer);CHKERRQ(ierr);
+    ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
+    if (!istrivial) { ierr = RGView(pep->rg,viewer);CHKERRQ(ierr); }
     if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
     ierr = DSView(pep->ds,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);

@@ -139,8 +139,20 @@ PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"region: [%g,%g]x[%g,%g]\n",(double)ctx->a,(double)ctx->b,(double)ctx->c,(double)ctx->d);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"region: [%g,%g]x[%g,%g]\n",RGShowReal(ctx->a),RGShowReal(ctx->b),RGShowReal(ctx->c),RGShowReal(ctx->d));CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "RGIsTrivial_Interval"
+PetscErrorCode RGIsTrivial_Interval(RG rg,PetscBool *trivial)
+{
+  RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
+
+  PetscFunctionBegin;
+  if (rg->complement) *trivial = (ctx->a==ctx->b && ctx->c==ctx->d)? PETSC_TRUE: PETSC_FALSE;
+  else *trivial = (ctx->a<=-PETSC_MAX_REAL && ctx->b>=PETSC_MAX_REAL && ctx->c<=-PETSC_MAX_REAL && ctx->d>=PETSC_MAX_REAL)? PETSC_TRUE: PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -236,6 +248,7 @@ PETSC_EXTERN PetscErrorCode RGCreate_Interval(RG rg)
   interval->d = PETSC_MAX_REAL;
   rg->data = (void*)interval;
 
+  rg->ops->istrivial      = RGIsTrivial_Interval;
   rg->ops->computecontour = RGComputeContour_Interval;
   rg->ops->checkinside    = RGCheckInside_Interval;
   rg->ops->setfromoptions = RGSetFromOptions_Interval;

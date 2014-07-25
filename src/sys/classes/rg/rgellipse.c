@@ -141,8 +141,20 @@ PetscErrorCode RGView_Ellipse(RG rg,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = SlepcSNPrintfScalar(str,50,ctx->center,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"center: %s, radius: %g, vscale: %g\n",str,(double)ctx->radius,(double)ctx->vscale);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"center: %s, radius: %g, vscale: %g\n",str,RGShowReal(ctx->radius),RGShowReal(ctx->vscale));CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "RGIsTrivial_Ellipse"
+PetscErrorCode RGIsTrivial_Ellipse(RG rg,PetscBool *trivial)
+{
+  RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
+
+  PetscFunctionBegin;
+  if (rg->complement) *trivial = (ctx->radius==0.0)? PETSC_TRUE: PETSC_FALSE;
+  else *trivial = (ctx->radius>=PETSC_MAX_REAL)? PETSC_TRUE: PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -240,8 +252,12 @@ PETSC_EXTERN PetscErrorCode RGCreate_Ellipse(RG rg)
 
   PetscFunctionBegin;
   ierr = PetscNewLog(rg,&ellipse);CHKERRQ(ierr);
+  ellipse->center = 0.0;
+  ellipse->radius = 1.0;
+  ellipse->vscale = 1.0;
   rg->data = (void*)ellipse;
 
+  rg->ops->istrivial      = RGIsTrivial_Ellipse;
   rg->ops->computecontour = RGComputeContour_Ellipse;
   rg->ops->checkinside    = RGCheckInside_Ellipse;
   rg->ops->setfromoptions = RGSetFromOptions_Ellipse;

@@ -374,9 +374,40 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
     if (rg->complement) {
-      ierr = PetscViewerASCIIPrintf(viewer,"selected region is the complement of the specified one\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  selected region is the complement of the specified one\n");CHKERRQ(ierr);
     }
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "RGIsTrivial"
+/*@
+   RGIsTrivial - Whether it is the trivial region (whole complex plane).
+
+   Not Collective
+
+   Input Parameter:
+.  rg - the region context
+
+   Output Parameter:
+.  trivial - true if the region is equal to the whole complex plane, e.g.,
+             an interval region with all four endpoints unbounded or an
+             ellipse with infinite radius.
+
+   Level: basic
+@*/
+PetscErrorCode RGIsTrivial(RG rg,PetscBool *trivial)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidType(rg,1);
+  PetscValidPointer(trivial,2);
+  if (*rg->ops->istrivial) {
+    ierr = (*rg->ops->istrivial)(rg,trivial);CHKERRQ(ierr);
+  } else *trivial = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

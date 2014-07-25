@@ -28,6 +28,7 @@
 typedef struct _RGOps *RGOps;
 
 struct _RGOps {
+  PetscErrorCode (*istrivial)(RG,PetscBool*);
   PetscErrorCode (*computecontour)(RG,PetscInt,PetscScalar*,PetscScalar*);
   PetscErrorCode (*checkinside)(RG,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
   PetscErrorCode (*setfromoptions)(RG);
@@ -40,5 +41,8 @@ struct _p_RG {
   PetscBool   complement;    /* region is the complement of the specified one */
   void        *data;
 };
+
+/* show an inf instead of PETSC_MAX_REAL */
+#define RGShowReal(r) ((PetscAbsReal(r)>=PETSC_MAX_REAL)?10*(r):(double)(r))
 
 #endif

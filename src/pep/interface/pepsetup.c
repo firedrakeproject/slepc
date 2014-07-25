@@ -47,7 +47,7 @@ PetscErrorCode PEPSetUp(PEP pep)
 {
   PetscErrorCode ierr;
   SlepcSC        sc;
-  PetscBool      islinear,flg;
+  PetscBool      islinear,istrivial,flg;
   PetscInt       i,k;
 
   PetscFunctionBegin;
@@ -152,6 +152,8 @@ PetscErrorCode PEPSetUp(PEP pep)
 
   /* fill sorting criterion for DS */
   ierr = DSGetSlepcSC(pep->ds,&sc);CHKERRQ(ierr);
+  ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
+  sc->rg            = istrivial? NULL: pep->rg;
   sc->comparison    = pep->sc->comparison;
   sc->comparisonctx = pep->sc->comparisonctx;
   sc->map           = SlepcMap_ST;
