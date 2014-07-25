@@ -90,13 +90,14 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
 PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscReal corrf,PetscInt *kout)
 {
   PetscErrorCode ierr;
-  PetscInt       k,newk,marker,ld;
+  PetscInt       k,newk,marker,ld,inside;
   PetscScalar    re,im,*Zr,*Zi,*X;
   PetscReal      resnorm;
-  PetscBool      isshift,refined;
+  PetscBool      isshift,refined,istrivial;
   Vec            x,y;
 
   PetscFunctionBegin;
+  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (eps->trueres) {
     ierr = BVGetVec(eps->V,&x);CHKERRQ(ierr);
     ierr = BVGetVec(eps->V,&y);CHKERRQ(ierr);
@@ -110,8 +111,16 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     /* eigenvalue */
     re = eps->eigr[k];
     im = eps->eigi[k];
-    if (eps->trueres || isshift || eps->conv==EPS_CONV_NORM) {
+    if (!istrivial || eps->trueres || isshift || eps->conv==EPS_CONV_NORM) {
       ierr = STBackTransform(eps->st,1,&re,&im);CHKERRQ(ierr);
+    }
+    if (!istrivial) {
+      ierr = RGCheckInside(eps->rg,1,&re,&im,&inside);CHKERRQ(ierr);
+      if (marker==-1 && inside<=0) marker = k;
+      if (!(eps->trueres || isshift || eps->conv==EPS_CONV_NORM)) {  /* make sure eps->converged below uses the right value */
+        re = eps->eigr[k];
+        im = eps->eigi[k];
+      }
     }
     newk = k;
     ierr = DSVectors(eps->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);

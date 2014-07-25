@@ -62,7 +62,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   PetscErrorCode ierr;
   const char     *type,*extr,*bal;
   char           str[50];
-  PetscBool      isascii,ispower,isexternal;
+  PetscBool      isascii,ispower,isexternal,istrivial;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -208,6 +208,9 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
     if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
     ierr = BVView(eps->V,viewer);CHKERRQ(ierr);
+    if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
+    ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+    if (!istrivial) { ierr = RGView(eps->rg,viewer);CHKERRQ(ierr); }
     ierr = PetscObjectTypeCompare((PetscObject)eps,EPSPOWER,&ispower);CHKERRQ(ierr);
     if (!ispower) {
       if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
@@ -386,6 +389,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->st              = NULL;
   eps->ds              = NULL;
   eps->V               = NULL;
+  eps->rg              = NULL;
   eps->rand            = NULL;
   eps->D               = NULL;
   eps->IS              = NULL;
@@ -600,6 +604,7 @@ PetscErrorCode EPSDestroy(EPS *eps)
   ierr = EPSReset(*eps);CHKERRQ(ierr);
   if ((*eps)->ops->destroy) { ierr = (*(*eps)->ops->destroy)(*eps);CHKERRQ(ierr); }
   ierr = STDestroy(&(*eps)->st);CHKERRQ(ierr);
+  ierr = RGDestroy(&(*eps)->rg);CHKERRQ(ierr);
   ierr = DSDestroy(&(*eps)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*eps)->rand);CHKERRQ(ierr);
   ierr = PetscFree((*eps)->sc);CHKERRQ(ierr);
@@ -887,6 +892,72 @@ PetscErrorCode EPSGetBV(EPS eps,BV *V)
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->V);CHKERRQ(ierr);
   }
   *V = eps->V;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSSetRG"
+/*@
+   EPSSetRG - Associates a region object to the eigensolver.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps - eigensolver context obtained from EPSCreate()
+-  rg  - the region object
+
+   Note:
+   Use EPSGetRG() to retrieve the region context (for example,
+   to free it at the end of the computations).
+
+   Level: advanced
+
+.seealso: EPSGetRG()
+@*/
+PetscErrorCode EPSSetRG(EPS eps,RG rg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidHeaderSpecific(rg,RG_CLASSID,2);
+  PetscCheckSameComm(eps,1,rg,2);
+  ierr = PetscObjectReference((PetscObject)rg);CHKERRQ(ierr);
+  ierr = RGDestroy(&eps->rg);CHKERRQ(ierr);
+  eps->rg = rg;
+  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->rg);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSGetRG"
+/*@C
+   EPSGetRG - Obtain the region object associated to the eigensolver.
+
+   Not Collective
+
+   Input Parameters:
+.  eps - eigensolver context obtained from EPSCreate()
+
+   Output Parameter:
+.  rg - region context
+
+   Level: advanced
+
+.seealso: EPSSetRG()
+@*/
+PetscErrorCode EPSGetRG(EPS eps,RG *rg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(rg,2);
+  if (!eps->rg) {
+    ierr = RGCreate(PetscObjectComm((PetscObject)eps),&eps->rg);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->rg);CHKERRQ(ierr);
+  }
+  *rg = eps->rg;
   PetscFunctionReturn(0);
 }
 

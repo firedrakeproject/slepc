@@ -222,6 +222,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
   if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
   ierr = BVSetFromOptions(eps->V);CHKERRQ(ierr);
+  if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
+  ierr = RGSetFromOptions(eps->rg);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(eps->ds);CHKERRQ(ierr);
   ierr = STSetFromOptions(eps->st);CHKERRQ(ierr);
@@ -1198,6 +1200,8 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
   ierr = BVSetOptionsPrefix(eps->V,prefix);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(eps->ds,prefix);CHKERRQ(ierr);
+  if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
+  ierr = RGSetOptionsPrefix(eps->rg,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1234,6 +1238,8 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
   ierr = BVSetOptionsPrefix(eps->V,prefix);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(eps->ds,prefix);CHKERRQ(ierr);
+  if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
+  ierr = RGSetOptionsPrefix(eps->rg,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

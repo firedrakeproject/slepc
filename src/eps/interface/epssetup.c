@@ -50,7 +50,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   Mat            A,B;
   SlepcSC        sc;
   PetscInt       k,nmat;
-  PetscBool      flg;
+  PetscBool      flg,istrivial;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    sigma;
 #endif
@@ -74,6 +74,10 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSReset(eps->ds);CHKERRQ(ierr);
+  if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
+  if (!((PetscObject)eps->rg)->type_name) {
+    ierr = RGSetType(eps->rg,RGINTERVAL);CHKERRQ(ierr);
+  }
   if (!((PetscObject)eps->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
   }
@@ -172,12 +176,15 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* fill sorting criterion for DS */
   ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
+  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (eps->which==EPS_ALL) {
+    sc->rg            = NULL;
     sc->comparison    = SlepcCompareLargestMagnitude;
     sc->comparisonctx = NULL;
     sc->map           = NULL;
     sc->mapobj        = NULL;
   } else {
+    sc->rg            = istrivial? NULL: eps->rg;
     sc->comparison    = eps->sc->comparison;
     sc->comparisonctx = eps->sc->comparisonctx;
     sc->map           = SlepcMap_ST;

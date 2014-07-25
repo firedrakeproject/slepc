@@ -26,6 +26,7 @@
 #include <slepcst.h>
 #include <slepcbv.h>
 #include <slepcds.h>
+#include <slepcrg.h>
 
 PETSC_EXTERN PetscErrorCode EPSInitializePackage(void);
 
@@ -168,6 +169,8 @@ PETSC_EXTERN PetscErrorCode EPSSetST(EPS,ST);
 PETSC_EXTERN PetscErrorCode EPSGetST(EPS,ST*);
 PETSC_EXTERN PetscErrorCode EPSSetBV(EPS,BV);
 PETSC_EXTERN PetscErrorCode EPSGetBV(EPS,BV*);
+PETSC_EXTERN PetscErrorCode EPSSetRG(EPS,RG);
+PETSC_EXTERN PetscErrorCode EPSGetRG(EPS,RG*);
 PETSC_EXTERN PetscErrorCode EPSSetDS(EPS,DS);
 PETSC_EXTERN PetscErrorCode EPSGetDS(EPS,DS*);
 PETSC_EXTERN PetscErrorCode EPSSetTolerances(EPS,PetscReal,PetscInt);

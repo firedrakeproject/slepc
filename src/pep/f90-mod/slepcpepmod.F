@@ -23,6 +23,7 @@
         use slepcst
         use slepcbv
         use slepcrg
+        use slepcds
         use slepceps
 #include <finclude/slepcpep.h>
 #include <finclude/ftn-custom/slepcpepdef.h90>

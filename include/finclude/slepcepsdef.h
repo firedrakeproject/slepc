@@ -26,6 +26,7 @@
 #include "finclude/slepcstdef.h"
 #include "finclude/slepcbvdef.h"
 #include "finclude/slepcdsdef.h"
+#include "finclude/slepcrgdef.h"
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
 #define EPS                    PetscFortranAddr
