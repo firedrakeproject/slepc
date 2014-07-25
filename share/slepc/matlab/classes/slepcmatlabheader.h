@@ -1,9 +1,9 @@
 
 /*
-   This is used by bin/matlab/classes/SlepcInitialize() to define to Matlab all
-   the functions available in the SLEPc shared library. We cannot simply use
-   the regular SLEPc include files because they are too complicated for Matlab
-   to parse.
+   This is used by share/slepc/matlab/classes/SlepcInitialize() to define to
+   Matlab all the functions available in the SLEPc shared library. We cannot
+   simply use the regular SLEPc include files because they are too complicated
+   for Matlab to parse.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -79,6 +79,7 @@ int SVDSetFromOptions(SVD);
 int SVDSetOperator(SVD,Mat);
 int SVDSetWhichSingularTriplets(SVD,SVDWhich);
 int SVDSetTolerances(SVD,double,int);
+int SVDSetImplicitTranspose(SVD,PetscBool);
 int SVDSetDimensions(SVD,int,int,int);
 int SVDSolve(SVD);
 int SVDSetUp(SVD);

@@ -249,7 +249,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
     ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
   }
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
-    ierr = DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,nV,d->nBV,&cMTX,d->nBpX);CHKERRQ(ierr);
+    ierr = DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,nV,d->nBds,&cMTX,d->nBds);CHKERRQ(ierr);
   } else {
     ierr = DSOrthogonalize(d->eps->ds,DS_MAT_Q,nV,&cMTX);CHKERRQ(ierr);
   }
@@ -311,7 +311,7 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   }
   ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
-    ierr = DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,size_X,d->nBV,&cMTX,d->nBpX);CHKERRQ(ierr);
+    ierr = DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,size_X,d->nBds,&cMTX,d->nBds);CHKERRQ(ierr);
   } else {
     ierr = DSOrthogonalize(d->eps->ds,DS_MAT_Q,size_X+size_plusk,&cMTX);CHKERRQ(ierr);
   }
@@ -396,7 +396,6 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_testConv"
-/* auxV: (by calcpairs_residual_eig) */
 PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,PetscInt e,PetscInt *nConv)
 {
   PetscInt        i,j,b;
@@ -422,14 +421,6 @@ PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,Pets
     for (j=0,c=PETSC_TRUE; j<b && c; j++) {
       norm = d->nR[i+j]/d->nX[i+j];
       c = d->testConv(d,d->eigr[i+j],d->eigi[i+j],norm,&d->errest[i+j]);
-    }
-    /* Test the eigenvector */
-    if (d->eps->trueres && conv && c) {
-      ierr = d->calcpairs_residual_eig(d,i,i+b);CHKERRQ(ierr);
-      for (j=0,c=PETSC_TRUE; j<b && c; j++) {
-        norm = d->nR[i+j]/d->nX[i+j];
-        c = d->testConv(d,d->eigr[i+j],d->eigi[i+j],norm,&d->errest[i+j]);
-      }
     }
     if (conv && c) { if (nConv) *nConv = i+b; }
     else conv = PETSC_FALSE;

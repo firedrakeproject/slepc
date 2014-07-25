@@ -501,29 +501,65 @@ PetscErrorCode dvd_harm_proj(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
+  PetscInt        i,j,l0,l,k,ld;
+  PetscScalar     h,g,*H,*G;
+
+  PetscFunctionBegin;
+  ierr = BVGetActiveColumns(d->eps->V,&l0,&k);CHKERRQ(ierr);
+  l = l0 + d->V_new_s;
+  k = l0 + d->V_new_e;
+  ierr = MatGetSize(d->H,&ld,NULL);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(d->H,&H);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(d->G,&G);CHKERRQ(ierr);
+  /* [H G] <- [Pa*H - Pb*G, Wa*H - Wb*G] */
+  /* Right part */
+  for (i=l; i<k; i++) {
+    for (j=l0; j<k; j++) {
+      h = H[ld*i+j]; g = G[ld*i+j];
+      H[ld*i+j] = data->Pa*h - data->Pb*g;
+      G[ld*i+j] = data->Wa*h - data->Wb*g;
+    }
+  }
+  /* Left part */
+  for (i=l0; i<l; i++) {
+    for (j=l; j<k; j++) {
+      h = H[ld*i+j]; g = G[ld*i+j];
+      H[ld*i+j] = data->Pa*h - data->Pb*g;
+      G[ld*i+j] = data->Wa*h - data->Wb*g;
+    }
+  }
+  ierr = MatDenseRestoreArray(d->H,&H);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(d->G,&G);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "dvd_harm_updateproj"
+PetscErrorCode dvd_harm_updateproj(dvdDashboard *d)
+{
+  PetscErrorCode  ierr;
+  dvdHarmonic     *data = (dvdHarmonic*)d->calcpairs_W_data;
   PetscInt        i,j,l,k,ld;
   PetscScalar     h,g,*H,*G;
 
   PetscFunctionBegin;
   ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-  if (k != l+d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-  k = l + d->V_new_e;
-  l += d->V_new_s;
+  k = l + d->V_tra_s;
   ierr = MatGetSize(d->H,&ld,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(d->H,&H);CHKERRQ(ierr);
   ierr = MatDenseGetArray(d->G,&G);CHKERRQ(ierr);
   /* [H G] <- [Pa*H - Pb*G, Wa*H - Wb*G] */
-  /* Upper triangular part */
+  /* Right part */
   for (i=l; i<k; i++) {
-    for (j=0; j<=i; j++) {
+    for (j=0; j<l; j++) {
       h = H[ld*i+j]; g = G[ld*i+j];
       H[ld*i+j] = data->Pa*h - data->Pb*g;
       G[ld*i+j] = data->Wa*h - data->Wb*g;
     }
   }
   /* Lower triangular part */
-  for (i=0; i<k; i++) {
-    for (j=PetscMax(l,i+1); j<k; j++) {
+  for (i=0; i<l; i++) {
+    for (j=l; j<k; j++) {
       h = H[ld*i+j]; g = G[ld*i+j];
       H[ld*i+j] = data->Pa*h - data->Pb*g;
       G[ld*i+j] = data->Wa*h - data->Wb*g;
@@ -623,4 +659,49 @@ PetscErrorCode BVMultS(BV X,BV Y,PetscScalar *H,PetscInt ldh)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "SlepcMatDenseCopy"
+/*
+   SlepcMatDenseCopy - Copy a submatrix from A to B.
+
+   Not Collective
+
+   Input Parameters:
++  A    - source seq dense matrix
+.  Ar0  - first row to copy from A
+.  Ac0  - first column to copy from A
+.  Br0  - first row to copy on B
+.  Bc0  - first column to copy on B
+.  rows - number of rows to copy
+-  cols - number of columns to copy
+
+   Level: advanced
+*/
+PetscErrorCode SlepcMatDenseCopy(Mat A,PetscInt Ar0,PetscInt Ac0,Mat B,PetscInt Br0,PetscInt Bc0,PetscInt rows,PetscInt cols)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,n,m,ldA,ldB;
+  PetscScalar    *pA,*pB;
+
+  PetscFunctionBegin;
+  if (!rows || !cols) PetscFunctionReturn(0);
+  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr); ldA=m;
+  if (Ar0<0 || Ar0>=m) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial row in A");
+  if (Ac0<0 || Ac0>=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in A");
+  if (Ar0+rows>m) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of rows");
+  if (Ac0+cols>n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
+  ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr); ldB=m;
+  if (Br0<0 || Br0>=m) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial row in B");
+  if (Bc0<0 || Bc0>=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in B");
+  if (Br0+rows>m) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of rows");
+  if (Bc0+cols>n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of columns");
+  ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&pB);CHKERRQ(ierr);
+  for (i=0;i<cols;i++) {
+    ierr = PetscMemcpy(&pB[ldB*(Bc0+i)+Br0],&pA[ldA*(Ac0+i)+Ar0],sizeof(PetscScalar)*rows);CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&pB);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 

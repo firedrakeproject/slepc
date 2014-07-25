@@ -21,6 +21,7 @@
 
 #if !defined(__SLEPCDS_H)
 #define __SLEPCDS_H
+#include <slepcsc.h>
 #include <slepcfn.h>
 
 #define DS_MAX_SOLVE 6
@@ -135,6 +136,7 @@ PETSC_EXTERN PetscErrorCode DSAppendOptionsPrefix(DS,const char *);
 PETSC_EXTERN PetscErrorCode DSGetOptionsPrefix(DS,const char *[]);
 PETSC_EXTERN PetscErrorCode DSSetFromOptions(DS);
 PETSC_EXTERN PetscErrorCode DSView(DS,PetscViewer);
+PETSC_EXTERN PetscErrorCode DSViewMat(DS,PetscViewer,DSMatType);
 PETSC_EXTERN PetscErrorCode DSDestroy(DS*);
 PETSC_EXTERN PetscErrorCode DSReset(DS);
 
@@ -167,8 +169,8 @@ PETSC_EXTERN PetscErrorCode DSVectors(DS,DSMatType,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSSolve(DS,PetscScalar*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode DSSort(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSComputeFunction(DS,SlepcFunction);
-PETSC_EXTERN PetscErrorCode DSSetEigenvalueComparison(DS,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
-PETSC_EXTERN PetscErrorCode DSGetEigenvalueComparison(DS,PetscErrorCode (**)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void**);
+PETSC_EXTERN PetscErrorCode DSSetSlepcSC(DS,SlepcSC);
+PETSC_EXTERN PetscErrorCode DSGetSlepcSC(DS,SlepcSC*);
 PETSC_EXTERN PetscErrorCode DSUpdateExtraRow(DS);
 PETSC_EXTERN PetscErrorCode DSCond(DS,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSTranslateHarmonic(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);

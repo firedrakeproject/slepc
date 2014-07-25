@@ -1,0 +1,40 @@
+toar with shift-and-invert
+ Solution method: toar
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=100
+ All requested eigenvalues computed up to the required tolerance:
+     -0.50511, -0.50515, -0.50520, -0.50528
+
+toar with shift-and-invert (with scale=both)
+ Solution method: toar
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=100
+ All requested eigenvalues computed up to the required tolerance:
+     -0.50511, -0.50515, -0.50520, -0.50528
+
+toar with shift-and-invert (transform)
+ Solution method: toar
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=100
+ All requested eigenvalues computed up to the required tolerance:
+     -0.50511, -0.50515, -0.50520, -0.50528
+
+qarnoldi with shift-and-invert (transform)
+ Solution method: qarnoldi
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=100
+ All requested eigenvalues computed up to the required tolerance:
+     -0.50511, -0.50515, -0.50520, -0.50528
+
+linear with shift-and-invert
+ Solution method: linear
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=100
+ All requested eigenvalues computed up to the required tolerance:
+     -0.50511, -0.50515, -0.50520, -0.50528
+

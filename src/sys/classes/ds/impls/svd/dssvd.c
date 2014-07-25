@@ -146,11 +146,11 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
   } else {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
   }
   if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_U);CHKERRQ(ierr);
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_VT);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_U);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_VT);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -180,7 +180,7 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscReal      *d;
 
   PetscFunctionBegin;
-  if (!ds->comparison) PetscFunctionReturn(0);
+  if (!ds->sc) PetscFunctionReturn(0);
   l = ds->l;
   n = PetscMin(ds->n,ds->m);
   A  = ds->mat[DS_MAT_A];

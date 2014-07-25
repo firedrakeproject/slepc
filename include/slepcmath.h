@@ -47,7 +47,7 @@
 
     Level: beginner
 E*/
-typedef enum { SLEPC_FUNCTION_NONE=0,
+typedef enum { SLEPC_FUNCTION_NONE,
                SLEPC_FUNCTION_EXP,
                SLEPC_FUNCTION_LAST } SlepcFunction;
 

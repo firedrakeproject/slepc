@@ -83,13 +83,12 @@ PetscErrorCode NEPSolve(NEP nep)
   nep->nconv = 0;
   nep->its = 0;
   for (i=0;i<nep->ncv;i++) {
-    nep->eig[i]   = 0.0;
+    nep->eigr[i]   = 0.0;
+    nep->eigi[i]   = 0.0;
     nep->errest[i] = 0.0;
   }
   nep->ktol = 0.1;
-  ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eig,nep->errest,nep->ncv);CHKERRQ(ierr);
-
-  ierr = DSSetEigenvalueComparison(nep->ds,nep->comparison,nep->comparisonctx);CHKERRQ(ierr);
+  ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,nep->ncv);CHKERRQ(ierr);
 
   ierr = (*nep->ops->solve)(nep);CHKERRQ(ierr);
 
@@ -98,7 +97,7 @@ PetscErrorCode NEPSolve(NEP nep)
   nep->state = NEP_STATE_SOLVED;
 
   /* sort eigenvalues according to nep->which parameter */
-  ierr = NEPSortEigenvalues(nep,nep->nconv,nep->eig,nep->perm);CHKERRQ(ierr);
+  ierr = SlepcSortEigenvalues(nep->sc,nep->nconv,nep->eigr,nep->eigi,nep->perm);CHKERRQ(ierr);
 
   ierr = PetscLogEventEnd(NEP_Solve,nep,0,0,0);CHKERRQ(ierr);
 
@@ -118,8 +117,13 @@ PetscErrorCode NEPSolve(NEP nep)
     ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
     ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
     for (i=0;i<nep->nconv;i++) {
-      re = PetscRealPart(nep->eig[i]);
-      im = PetscImaginaryPart(nep->eig[i]);
+#if defined(PETSC_USE_COMPLEX)
+      re = PetscRealPart(nep->eigr[i]);
+      im = PetscImaginaryPart(nep->eigi[i]);
+#else
+      re = nep->eigr[i];
+      im = nep->eigi[i];
+#endif
       ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
     }
     ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
@@ -438,7 +442,7 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eig,Vec V)
   if (!nep->perm) k = i;
   else k = nep->perm[i];
 
-  if (eig) *eig = nep->eig[k];
+  if (eig) *eig = nep->eigr[k];
   if (V) { ierr = BVCopyVec(nep->V,k,V);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
@@ -600,93 +604,6 @@ PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
   ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
   ierr = NEPComputeRelativeError_Private(nep,lambda,x,error);CHKERRQ(ierr);
   ierr = VecDestroy(&x);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPSortEigenvalues"
-/*@
-   NEPSortEigenvalues - Sorts a list of eigenvalues according to the criterion
-   specified via NEPSetWhichEigenpairs().
-
-   Not Collective
-
-   Input Parameters:
-+  nep - the nonlinear eigensolver context
-.  n   - number of eigenvalues in the list
--  eig - pointer to the array containing the eigenvalues
-
-   Output Parameter:
-.  perm - resulting permutation
-
-   Note:
-   The result is a list of indices in the original eigenvalue array
-   corresponding to the first nev eigenvalues sorted in the specified
-   criterion.
-
-   Level: developer
-
-.seealso: NEPSetWhichEigenpairs()
-@*/
-PetscErrorCode NEPSortEigenvalues(NEP nep,PetscInt n,PetscScalar *eig,PetscInt *perm)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,j,result,tmp;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidScalarPointer(eig,3);
-  PetscValidIntPointer(perm,4);
-  for (i=0;i<n;i++) perm[i] = i;
-  /* insertion sort */
-  for (i=n-1;i>=0;i--) {
-    j = i + 1;
-    while (j<n) {
-      ierr = NEPCompareEigenvalues(nep,eig[perm[i]],eig[perm[j]],&result);CHKERRQ(ierr);
-      if (result < 0) break;
-      tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = tmp;
-      j++;
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPCompareEigenvalues"
-/*@
-   NEPCompareEigenvalues - Compares two eigenvalues according to a certain criterion.
-
-   Not Collective
-
-   Input Parameters:
-+  nep - the nonlinear eigensolver context
-.  a   - the 1st eigenvalue
--  b   - the 2nd eigenvalue
-
-   Output Parameter:
-.  res - result of comparison
-
-   Notes:
-   Returns an integer less than, equal to, or greater than zero if the first
-   eigenvalue is considered to be respectively less than, equal to, or greater
-   than the second one.
-
-   The criterion of comparison is related to the 'which' parameter set with
-   NEPSetWhichEigenpairs().
-
-   Level: developer
-
-.seealso: NEPSortEigenvalues(), NEPSetWhichEigenpairs()
-@*/
-PetscErrorCode NEPCompareEigenvalues(NEP nep,PetscScalar a,PetscScalar b,PetscInt *result)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidIntPointer(result,4);
-  if (!nep->comparison) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
-  ierr = (*nep->comparison)(a,0.0,b,0.0,result,nep->comparisonctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

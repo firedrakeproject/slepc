@@ -24,26 +24,6 @@
 #include <slepc-private/pepimpl.h>       /*I "slepcpep.h" I*/
 #include <petscdraw.h>
 
-typedef struct {
-  PetscErrorCode (*comparison)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
-  void *comparisonctx;
-  ST st;
-} PEPSortForSTData;
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPSortForSTFunc"
-static PetscErrorCode PEPSortForSTFunc(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
-{
-  PEPSortForSTData *data = (PEPSortForSTData*)ctx;
-  PetscErrorCode   ierr;
-
-  PetscFunctionBegin;
-  ierr = STBackTransform(data->st,1,&ar,&ai);CHKERRQ(ierr);
-  ierr = STBackTransform(data->st,1,&br,&bi);CHKERRQ(ierr);
-  ierr = (*data->comparison)(ar,ai,br,bi,r,data->comparisonctx);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 #undef __FUNCT__
 #define __FUNCT__ "PEPComputeVectors"
 PETSC_STATIC_INLINE PetscErrorCode PEPComputeVectors(PEP pep)
@@ -93,7 +73,6 @@ PetscErrorCode PEPSolve(PEP pep)
   PetscViewerFormat format;
   PetscDraw         draw;
   PetscDrawSP       drawsp;
-  PEPSortForSTData  data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -110,19 +89,9 @@ PetscErrorCode PEPSolve(PEP pep)
   }
   ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,pep->ncv);CHKERRQ(ierr);
 
-  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
-  if (!islinear) {
-    /* temporarily change eigenvalue comparison function */
-    data.comparison    = pep->comparison;
-    data.comparisonctx = pep->comparisonctx;
-    data.st            = pep->st;
-    pep->comparison    = PEPSortForSTFunc;
-    pep->comparisonctx = &data;
-  }
-  ierr = DSSetEigenvalueComparison(pep->ds,pep->comparison,pep->comparisonctx);CHKERRQ(ierr);
-
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
   
+  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
     ierr = STPostSolve(pep->st);CHKERRQ(ierr);
   }
@@ -130,9 +99,6 @@ PetscErrorCode PEPSolve(PEP pep)
   if (!pep->reason) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   if (!islinear) {
-    /* restore comparison function */
-    pep->comparison    = data.comparison;
-    pep->comparisonctx = data.comparisonctx;
     /* Map eigenvalues back to the original problem */
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -165,7 +131,7 @@ PetscErrorCode PEPSolve(PEP pep)
 #endif
 
   /* sort eigenvalues according to pep->which parameter */
-  ierr = PEPSortEigenvalues(pep,pep->nconv,pep->eigr,pep->eigi,pep->perm);CHKERRQ(ierr);
+  ierr = SlepcSortEigenvalues(pep->sc,pep->nconv,pep->eigr,pep->eigi,pep->perm);CHKERRQ(ierr);
 
   ierr = PetscLogEventEnd(PEP_Solve,pep,0,0,0);CHKERRQ(ierr);
 
@@ -625,129 +591,6 @@ PetscErrorCode PEPComputeRelativeError(PEP pep,PetscInt i,PetscReal *error)
   ierr = PEPComputeRelativeError_Private(pep,kr,ki,xr,xi,error);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPSortEigenvalues"
-/*@
-   PEPSortEigenvalues - Sorts a list of eigenvalues according to the criterion
-   specified via PEPSetWhichEigenpairs().
-
-   Not Collective
-
-   Input Parameters:
-+  pep   - the polynomial eigensolver context
-.  n     - number of eigenvalues in the list
-.  eigr  - pointer to the array containing the eigenvalues
--  eigi  - imaginary part of the eigenvalues (only when using real numbers)
-
-   Output Parameter:
-.  perm  - resulting permutation
-
-   Note:
-   The result is a list of indices in the original eigenvalue array
-   corresponding to the first nev eigenvalues sorted in the specified
-   criterion.
-
-   Level: developer
-
-.seealso: PEPSetWhichEigenpairs()
-@*/
-PetscErrorCode PEPSortEigenvalues(PEP pep,PetscInt n,PetscScalar *eigr,PetscScalar *eigi,PetscInt *perm)
-{
-  PetscErrorCode ierr;
-  PetscScalar    re,im;
-  PetscInt       i,j,result,tmp;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidScalarPointer(eigr,3);
-  PetscValidScalarPointer(eigi,4);
-  PetscValidIntPointer(perm,5);
-  for (i=0;i<n;i++) perm[i] = i;
-  /* insertion sort */
-  for (i=n-1; i>=0; i--) {
-    re = eigr[perm[i]];
-    im = eigi[perm[i]];
-    j = i + 1;
-#if !defined(PETSC_USE_COMPLEX)
-    if (im != 0) {
-      /* complex eigenvalue */
-      i--;
-      im = eigi[perm[i]];
-    }
-#endif
-    while (j<n) {
-      ierr = PEPCompareEigenvalues(pep,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
-      if (result < 0) break;
-#if !defined(PETSC_USE_COMPLEX)
-      /* keep together every complex conjugated eigenpair */
-      if (im == 0) {
-        if (eigi[perm[j]] == 0) {
-#endif
-          tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = tmp;
-          j++;
-#if !defined(PETSC_USE_COMPLEX)
-        } else {
-          tmp = perm[j-1]; perm[j-1] = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp;
-          j+=2;
-        }
-      } else {
-        if (eigi[perm[j]] == 0) {
-          tmp = perm[j-2]; perm[j-2] = perm[j]; perm[j] = perm[j-1]; perm[j-1] = tmp;
-          j++;
-        } else {
-          tmp = perm[j-2]; perm[j-2] = perm[j]; perm[j] = tmp;
-          tmp = perm[j-1]; perm[j-1] = perm[j+1]; perm[j+1] = tmp;
-          j+=2;
-        }
-      }
-#endif
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPCompareEigenvalues"
-/*@
-   PEPCompareEigenvalues - Compares two (possibly complex) eigenvalues according
-   to a certain criterion.
-
-   Not Collective
-
-   Input Parameters:
-+  pep    - the polynomial eigensolver context
-.  ar     - real part of the 1st eigenvalue
-.  ai     - imaginary part of the 1st eigenvalue
-.  br     - real part of the 2nd eigenvalue
--  bi     - imaginary part of the 2nd eigenvalue
-
-   Output Parameter:
-.  res    - result of comparison
-
-   Notes:
-   Returns an integer less than, equal to, or greater than zero if the first
-   eigenvalue is considered to be respectively less than, equal to, or greater
-   than the second one.
-
-   The criterion of comparison is related to the 'which' parameter set with
-   PEPSetWhichEigenpairs().
-
-   Level: developer
-
-.seealso: PEPSortEigenvalues(), PEPSetWhichEigenpairs()
-@*/
-PetscErrorCode PEPCompareEigenvalues(PEP pep,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidIntPointer(result,6);
-  if (!pep->comparison) SETERRQ(PETSC_COMM_SELF,1,"Undefined eigenvalue comparison function");
-  ierr = (*pep->comparison)(ar,ai,br,bi,result,pep->comparisonctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

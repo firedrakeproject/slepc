@@ -1,6 +1,6 @@
 %%
 %
-%  Computes a partial SVD of a matrix with SLEPc
+%  Solves a standard eigenvalue problem with SLEPc
 %  User creates directly a PETSc Mat
 %
 
@@ -32,44 +32,51 @@ if ~exist('PetscInitialize','file')
   if isempty(PETSC_DIR)
     error('Must set environment variable PETSC_DIR or add the appropriate dir to Matlab path')
   end
-  path(path,[PETSC_DIR '/bin/matlab/classes'])
+  path(path,[PETSC_DIR '/share/petsc/matlab/classes'])
 end
-SlepcInitialize({'-malloc','-malloc_debug','-malloc_dump'});
+SlepcInitialize({'-eps_monitor','-malloc','-malloc_debug','-malloc_dump'});
 
 %%
-%  Create the Lauchli matrix
+%  Create a tridiagonal matrix (1-D Laplacian)
 %
-n = 100;
-mu = 1e-7;
+n = 130;
 mat = PetscMat();
 mat.SetType('seqaij');
-mat.SetSizes(n+1,n,n+1,n);
+mat.SetSizes(n,n,n,n);
 mat.SetUp();
 for i=1:n
-  mat.SetValues(1,i,1.0);
+  mat.SetValues(i,i,2.0);
 end
-for i=2:n+1
-  mat.SetValues(i,i-1,mu);
+for i=1:n-1
+  mat.SetValues(i+1,i,-1.0);
+  mat.SetValues(i,i+1,-1.0);
 end
 mat.AssemblyBegin(PetscMat.FINAL_ASSEMBLY);
 mat.AssemblyEnd(PetscMat.FINAL_ASSEMBLY);
 
 %%
-%  Create the solver, pass the matrix and solve the problem
+%  Create the eigensolver, pass the matrix and solve the problem
 %
-svd = SlepcSVD();
-svd.SetOperator(mat);
-svd.SetType('trlanczos');
-svd.SetFromOptions();
-svd.Solve();
-nconv = svd.GetConverged();
+eps = SlepcEPS();
+eps.SetType('krylovschur');
+eps.SetOperators(mat);
+eps.SetProblemType(SlepcEPS.HEP);
+eps.SetWhichEigenpairs(SlepcEPS.SMALLEST_MAGNITUDE);
+eps.SetFromOptions();
+eps.Solve();
+nconv = eps.GetConverged();
 if nconv>0
-  fprintf('         sigma         residual norm\n')
+  fprintf('           k          ||Ax-kx||/||kx||\n')
   fprintf('   ----------------- ------------------\n')
   for i=1:nconv
-    [sigma,u,v] = svd.GetSingularTriplet(i);
-    relerr = svd.ComputeRelativeError(i);
-    fprintf('   %12f       %12g\n',sigma,relerr)
+    [lambda,x] = eps.GetEigenpair(i);
+    figure,plot(x)
+    relerr = eps.ComputeRelativeError(i);
+    if isreal(lambda)
+      fprintf('    %12f        %12g\n',lambda,relerr)
+    else
+      fprintf('  %6f%+6fj      %12g\n',real(lambda),imag(lambda),relerr)
+    end
   end
 end
 
@@ -77,5 +84,5 @@ end
 %   Free objects and shutdown SLEPc
 %
 mat.Destroy();
-svd.Destroy();
+eps.Destroy();
 SlepcFinalize();

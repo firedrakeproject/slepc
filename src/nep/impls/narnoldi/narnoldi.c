@@ -40,6 +40,7 @@
 PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
 {
   PetscErrorCode ierr;
+  PetscBool      istrivial;
 
   PetscFunctionBegin;
   if (nep->ncv) { /* ncv set */
@@ -58,6 +59,9 @@ PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->max_funcs) nep->max_funcs = nep->max_it;
   if (!nep->split) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NARNOLDI only available for split operator");
+
+  ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support region filtering");
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,3);CHKERRQ(ierr);
@@ -108,8 +112,8 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
     /* solve projected problem */
     ierr = DSSetDimensions(nep->ds,n,0,0,0);CHKERRQ(ierr);
     ierr = DSSetState(nep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    ierr = DSSolve(nep->ds,nep->eig,NULL);CHKERRQ(ierr);
-    lambda = nep->eig[0];
+    ierr = DSSolve(nep->ds,nep->eigr,NULL);CHKERRQ(ierr);
+    lambda = nep->eigr[0];
 
     /* compute Ritz vector, x = V*s */
     ierr = DSGetArray(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
@@ -128,7 +132,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
       nep->nconv = nep->nconv + 1;
       nep->reason = NEP_CONVERGED_FNORM_RELATIVE;
     }
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eig,nep->errest,1);CHKERRQ(ierr);
+    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,1);CHKERRQ(ierr);
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
 

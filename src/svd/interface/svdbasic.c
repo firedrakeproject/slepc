@@ -76,16 +76,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-    switch (svd->transmode) {
-      case SVD_TRANSPOSE_EXPLICIT:
-        ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: explicit\n");CHKERRQ(ierr);
-        break;
-      case SVD_TRANSPOSE_IMPLICIT:
-        ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: implicit\n");CHKERRQ(ierr);
-        break;
-      default:
-        ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: not yet set\n");CHKERRQ(ierr);
-    }
+    ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: %s\n",svd->impltrans?"implicit":"explicit");CHKERRQ(ierr);
     if (svd->which == SVD_LARGEST) {
       ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: largest\n");CHKERRQ(ierr);
     } else {
@@ -165,7 +156,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
       errok = PETSC_TRUE;
       for (i=0;i<svd->nsv;i++) {
         ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
-        errok = (errok && error<svd->tol)? PETSC_TRUE: PETSC_FALSE;
+        errok = (errok && error<5.0*svd->tol)? PETSC_TRUE: PETSC_FALSE;
       }
       if (errok) {
         ierr = PetscViewerASCIIPrintf(viewer," All requested singular values computed up to the required tolerance:");CHKERRQ(ierr);
@@ -239,7 +230,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->ninil          = 0;
   svd->tol            = PETSC_DEFAULT;
   svd->which          = SVD_LARGEST;
-  svd->transmode      = (SVDTransposeMode)PETSC_DECIDE;
+  svd->impltrans      = PETSC_FALSE;
   svd->trackall       = PETSC_FALSE;
 
   svd->numbermonitors = 0;
@@ -264,6 +255,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->setupcalled    = 0;
   svd->reason         = SVD_CONVERGED_ITERATING;
 
+  ierr = PetscNewLog(svd,&svd->sc);CHKERRQ(ierr);
   ierr = PetscRandomCreate(comm,&svd->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(svd->rand,0x12345678);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->rand);CHKERRQ(ierr);
@@ -304,7 +296,6 @@ PetscErrorCode SVDReset(SVD svd)
   }
   ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
   ierr = BVDestroy(&svd->V);CHKERRQ(ierr);
-  svd->transmode   = (SVDTransposeMode)PETSC_DECIDE;
   svd->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -335,6 +326,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
   if ((*svd)->ops->destroy) { ierr = (*(*svd)->ops->destroy)(*svd);CHKERRQ(ierr); }
   ierr = DSDestroy(&(*svd)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*svd)->rand);CHKERRQ(ierr);
+  ierr = PetscFree((*svd)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*svd)->nini,&(*svd)->IS);CHKERRQ(ierr);
   ierr = SlepcBasisDestroy_Private(&(*svd)->ninil,&(*svd)->ISL);CHKERRQ(ierr);

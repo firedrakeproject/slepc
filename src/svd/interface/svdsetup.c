@@ -102,8 +102,9 @@ PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
 PetscErrorCode SVDSetUp(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscBool      flg;
+  PetscBool      expltrans,flg;
   PetscInt       M,N,k;
+  SlepcSC        sc;
   Vec            *T;
 
   PetscFunctionBegin;
@@ -127,11 +128,16 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* check matrix */
   if (!svd->OP) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperator must be called first");
 
-  /* determine how to build the transpose */
-  if (svd->transmode == PETSC_DECIDE) {
+  /* determine how to handle the transpose */
+  expltrans = PETSC_TRUE;
+  if (svd->impltrans) expltrans = PETSC_FALSE;
+  else {
     ierr = MatHasOperation(svd->OP,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);
-    if (flg) svd->transmode = SVD_TRANSPOSE_EXPLICIT;
-    else svd->transmode = SVD_TRANSPOSE_IMPLICIT;
+    if (!flg) expltrans = PETSC_FALSE;
+    else {
+      ierr = PetscObjectTypeCompare((PetscObject)svd,SVDLAPACK,&flg);CHKERRQ(ierr);
+      if (flg) expltrans = PETSC_FALSE;
+    }
   }
 
   /* build transpose matrix */
@@ -139,29 +145,24 @@ PetscErrorCode SVDSetUp(SVD svd)
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
   ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)svd->OP);CHKERRQ(ierr);
-  switch (svd->transmode) {
-    case SVD_TRANSPOSE_EXPLICIT:
-      if (M>=N) {
-        svd->A = svd->OP;
-        ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
-        ierr = MatConjugate(svd->AT);CHKERRQ(ierr);
-      } else {
-        ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->A);CHKERRQ(ierr);
-        ierr = MatConjugate(svd->A);CHKERRQ(ierr);
-        svd->AT = svd->OP;
-      }
-      break;
-    case SVD_TRANSPOSE_IMPLICIT:
-      if (M>=N) {
-        svd->A = svd->OP;
-        svd->AT = NULL;
-      } else {
-        svd->A = NULL;
-        svd->AT = svd->OP;
-      }
-      break;
-    default:
-      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode");
+  if (expltrans) {
+    if (M>=N) {
+      svd->A = svd->OP;
+      ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
+      ierr = MatConjugate(svd->AT);CHKERRQ(ierr);
+    } else {
+      ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->A);CHKERRQ(ierr);
+      ierr = MatConjugate(svd->A);CHKERRQ(ierr);
+      svd->AT = svd->OP;
+    }
+  } else {
+    if (M>=N) {
+      svd->A = svd->OP;
+      svd->AT = NULL;
+    } else {
+      svd->A = NULL;
+      svd->AT = svd->OP;
+    }
   }
 
   /* swap initial vectors if necessary */
@@ -179,6 +180,13 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   /* set tolerance if not yet set */
   if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
+
+  /* fill sorting criterion context */
+  ierr = DSGetSlepcSC(svd->ds,&sc);CHKERRQ(ierr);
+  sc->comparison    = (svd->which==SVD_LARGEST)? SlepcCompareLargestReal: SlepcCompareSmallestReal;
+  sc->comparisonctx = NULL;
+  sc->map           = NULL;
+  sc->mapobj        = NULL;
 
   /* process initial vectors */
   if (svd->nini<0) {

@@ -131,7 +131,8 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   ierr = EPSSetTrackAll(cross->eps,trackall);CHKERRQ(ierr);
   ierr = EPSSetUp(cross->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(cross->eps,NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
-  ierr = EPSGetTolerances(cross->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
+  ierr = EPSGetTolerances(cross->eps,NULL,&svd->max_it);CHKERRQ(ierr);
+  if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
   /* Transfer the initial space from svd to eps */
   if (svd->nini < 0) {
     ierr = EPSSetInitialSpace(cross->eps,-svd->nini,svd->IS);CHKERRQ(ierr);

@@ -65,17 +65,17 @@ PetscErrorCode DSView_GNHEP(DS ds,PetscViewer viewer)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = DSViewMat_Private(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
-  ierr = DSViewMat_Private(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
+  ierr = DSViewMat(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
+  ierr = DSViewMat(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
   if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Z);CHKERRQ(ierr);
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_Z);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
   }
   if (ds->mat[DS_MAT_X]) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
   }
   if (ds->mat[DS_MAT_Y]) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Y);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_Y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -285,7 +285,7 @@ PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Pets
   PetscScalar    *S = ds->mat[DS_MAT_A],*T = ds->mat[DS_MAT_B],*Q = ds->mat[DS_MAT_Q],*Z = ds->mat[DS_MAT_Z],*work,*beta;
 
   PetscFunctionBegin;
-  if (!ds->comparison) PetscFunctionReturn(0);
+  if (!ds->sc) PetscFunctionReturn(0);
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
@@ -343,7 +343,7 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
-  if (!ds->comparison) PetscFunctionReturn(0);
+  if (!ds->sc) PetscFunctionReturn(0);
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
@@ -368,9 +368,9 @@ PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
     /* find minimum eigenvalue */
     for (;j<n;j++) {
 #if !defined(PETSC_USE_COMPLEX)
-      ierr = (*ds->comparison)(re,im,wr[j],wi[j],&result,ds->comparisonctx);CHKERRQ(ierr);
+      ierr = SlepcSCCompare(ds->sc,re,im,wr[j],wi[j],&result);CHKERRQ(ierr);
 #else
-      ierr = (*ds->comparison)(re,0.0,wr[j],0.0,&result,ds->comparisonctx);CHKERRQ(ierr);
+      ierr = SlepcSCCompare(ds->sc,re,0.0,wr[j],0.0,&result);CHKERRQ(ierr);
 #endif
       if (result > 0) {
         re = wr[j];

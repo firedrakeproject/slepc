@@ -40,6 +40,7 @@
 PetscErrorCode NEPSetUp_RII(NEP nep)
 {
   PetscErrorCode ierr;
+  PetscBool      istrivial;
 
   PetscFunctionBegin;
   if (nep->ncv) { /* ncv set */
@@ -58,6 +59,9 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
   if (nep->nev>1) { ierr = PetscInfo(nep,"Warning: requested more than one eigenpair but RII can only compute one\n");CHKERRQ(ierr); }
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->max_funcs) nep->max_funcs = nep->max_it;
+
+  ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support region filtering");
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,2);CHKERRQ(ierr);
@@ -122,12 +126,12 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&relerr);CHKERRQ(ierr);
     nep->errest[nep->nconv] = relerr;
-    nep->eig[nep->nconv] = lambda;
+    nep->eigr[nep->nconv] = lambda;
     if (relerr<=nep->rtol) {
       nep->nconv = nep->nconv + 1;
       nep->reason = NEP_CONVERGED_FNORM_RELATIVE;
     }
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eig,nep->errest,1);CHKERRQ(ierr);
+    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,1);CHKERRQ(ierr);
 
     if (!nep->nconv) {
       /* eigenvector correction: delta = T(sigma)\r */

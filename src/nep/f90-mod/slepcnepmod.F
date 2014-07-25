@@ -21,6 +21,9 @@
 
         module slepcnepdef
         use slepcbv
+        use slepcrg
+        use slepcds
+        use slepcfn
         use slepceps
 #include <finclude/slepcnep.h>
 #include <finclude/ftn-custom/slepcnepdef.h90>

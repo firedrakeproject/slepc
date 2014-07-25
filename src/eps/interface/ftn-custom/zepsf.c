@@ -42,6 +42,7 @@
 #define epsgetst_                   EPSGETST
 #define epsgetbv_                   EPSGETBV
 #define epsgetds_                   EPSGETDS
+#define epsgetrg_                   EPSGETRG
 #define epsgetbalance_              EPSGETBALANCE
 #define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
 #define epsgetconvergencetest_      EPSGETCONVERGENCETEST
@@ -75,6 +76,7 @@
 #define epsgetst_                   epsgetst
 #define epsgetbv_                   epsgetbv
 #define epsgetds_                   epsgetds
+#define epsgetrg_                   epsgetrg
 #define epsgetbalance_              epsgetbalance
 #define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
 #define epsgetconvergencetest_      epsgetconvergencetest
@@ -292,6 +294,11 @@ PETSC_EXTERN void PETSC_STDCALL epsgetbv_(EPS *eps,BV *V,PetscErrorCode *ierr)
 PETSC_EXTERN void PETSC_STDCALL epsgetds_(EPS *eps,DS *ds,PetscErrorCode *ierr)
 {
   *ierr = EPSGetDS(*eps,ds);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetrg_(EPS *eps,RG *rg,PetscErrorCode *ierr)
+{
+  *ierr = EPSGetRG(*eps,rg);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epsgetbalance_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,PetscErrorCode *ierr)
