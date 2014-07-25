@@ -24,6 +24,7 @@
 #if !defined(__SLEPCNEP_H)
 #define __SLEPCNEP_H
 #include <slepceps.h>
+#include <slepcpep.h>
 #include <slepcfn.h>
 
 PETSC_EXTERN PetscErrorCode NEPInitializePackage(void);
@@ -49,6 +50,7 @@ typedef const char* NEPType;
 #define NEPRII       "rii"
 #define NEPSLP       "slp"
 #define NEPNARNOLDI  "narnoldi"
+#define NEPINTERPOL  "interpol"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId NEP_CLASSID;
@@ -180,6 +182,11 @@ PETSC_EXTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
 
 PETSC_EXTERN PetscErrorCode NEPSLPSetEPS(NEP,EPS);
 PETSC_EXTERN PetscErrorCode NEPSLPGetEPS(NEP,EPS*);
+
+PETSC_EXTERN PetscErrorCode NEPInterpolSetPEP(NEP,PEP);
+PETSC_EXTERN PetscErrorCode NEPInterpolGetPEP(NEP,PEP*);
+PETSC_EXTERN PetscErrorCode NEPInterpolSetDegree(NEP,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPInterpolGetDegree(NEP,PetscInt*);
 
 #endif
 

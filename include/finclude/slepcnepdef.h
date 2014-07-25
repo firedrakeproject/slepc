@@ -40,5 +40,6 @@
 #define NEPRII       'rii'
 #define NEPSLP       'slp'
 #define NEPNARNOLDI  'narnoldi'
+#define NEPINTERPOL  'interpol'
 
 #endif

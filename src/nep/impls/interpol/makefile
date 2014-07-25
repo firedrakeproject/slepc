@@ -21,10 +21,15 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = interpol.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepcnep
-DIRS     = rii slp narnoldi interpol
-LOCDIR   = src/nep/impls/
+DIRS     =
 MANSEC   = NEP
+LOCDIR   = src/nep/impls/interpol/
 
 include ${SLEPC_DIR}/conf/slepc_common
 
