@@ -241,11 +241,13 @@ PetscErrorCode PEPComputeVectors_Indefinite(PEP pep)
 PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscInt *kout)
 {
   PetscErrorCode ierr;
-  PetscInt       k,newk,marker,ld;
+  PetscInt       k,newk,marker,ld,inside;
   PetscScalar    re,im;
   PetscReal      resnorm;
+  PetscBool      istrivial;
 
   PetscFunctionBegin;
+  ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
   marker = -1;
   if (pep->trackall) getall = PETSC_TRUE;
@@ -253,8 +255,16 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
     /* eigenvalue */
     re = pep->eigr[k];
     im = pep->eigi[k];
-    if (pep->conv==PEP_CONV_NORM) {
+    if (!istrivial || pep->conv==PEP_CONV_NORM) {
       ierr = STBackTransform(pep->st,1,&re,&im);CHKERRQ(ierr);
+    }
+    if (!istrivial) {
+      ierr = RGCheckInside(pep->rg,1,&re,&im,&inside);CHKERRQ(ierr);
+      if (marker==-1 && inside<=0) marker = k;
+      if (!pep->conv==PEP_CONV_NORM) {  /* make sure pep->converged below uses the right value */
+        re = pep->eigr[k];
+        im = pep->eigi[k];
+      }
     }
     newk = k;
     ierr = DSVectors(pep->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);

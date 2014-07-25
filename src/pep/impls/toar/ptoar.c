@@ -533,7 +533,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *pepctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=0,inside,count;
+  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=0;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,*pS0;
   PetscReal      beta,norm,*rwork;
@@ -609,14 +609,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 
     /* Check convergence */
     ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,nv-pep->nconv,beta,&k);CHKERRQ(ierr);
-    count = pep->nconv;
-    inside = 1;
-    while (count<k) {
-      ierr = RGCheckInside(pep->rg,1,&pep->eigr[count],&pep->eigi[count],&inside);CHKERRQ(ierr);
-      if (inside<=0) break;
-      count++;
-    }
-    k = count;
     if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
     if (k >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
 
