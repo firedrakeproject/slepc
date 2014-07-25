@@ -200,7 +200,7 @@ PetscErrorCode RGCheckInside_Ellipse(RG rg,PetscInt n,PetscScalar *ar,PetscScala
     dx = (ar[i]-ctx->center)/ctx->radius;
     dy = ai[i]/ctx->radius;
 #endif
-    r = dx*dx+(dy*dy)/(ctx->vscale*ctx->vscale)-1.0;
+    r = 1.0-dx*dx-(dy*dy)/(ctx->vscale*ctx->vscale);
     inside[i] = PetscSign(r);
   }
   PetscFunctionReturn(0);
