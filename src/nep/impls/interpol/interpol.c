@@ -73,6 +73,7 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   /* transfer PEP options */
   if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
   ierr = PEPSetBV(ctx->pep,nep->V);CHKERRQ(ierr);
+  ierr = PEPSetBasis(ctx->pep,PEP_BASIS_CHEBYSHEV1);CHKERRQ(ierr);
   ierr = PEPSetWhichEigenpairs(ctx->pep,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
   ierr = PEPSetTarget(ctx->pep,0.0);CHKERRQ(ierr);
   ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
