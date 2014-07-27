@@ -53,12 +53,12 @@ PetscErrorCode SlepcVecPoolCreate(Vec v,PetscInt init_size,VecPool *p)
   if (init_size<0) SETERRQ(PetscObjectComm((PetscObject)v),PETSC_ERR_ARG_WRONG,"init_size should be positive");
   ierr = PetscMalloc(sizeof(VecPool_),&pool);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)v);CHKERRQ(ierr);
-  pool->v = v;
-  pool->vecs = NULL;
-  pool->n = 0;
-  pool->used = 0;
+  pool->v     = v;
+  pool->vecs  = NULL;
+  pool->n     = 0;
+  pool->used  = 0;
   pool->guess = init_size;
-  pool->next = NULL;
+  pool->next  = NULL;
   *p = pool;
   PetscFunctionReturn(0);
 }
@@ -85,11 +85,11 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
   PetscFunctionBegin;
   PetscValidPointer(p,1);
   ierr = VecDestroy(&pool->v);CHKERRQ(ierr);
-  if (pool->vecs) {ierr = VecDestroyVecs(pool->n,&pool->vecs);CHKERRQ(ierr);}
-  pool->n = 0;
-  pool->used = 0;
+  if (pool->vecs) { ierr = VecDestroyVecs(pool->n,&pool->vecs);CHKERRQ(ierr); }
+  pool->n     = 0;
+  pool->used  = 0;
   pool->guess = 0;
-  if (pool->next) {ierr=SlepcVecPoolDestroy((VecPool*)&pool->next);CHKERRQ(ierr);}
+  if (pool->next) { ierr = SlepcVecPoolDestroy((VecPool*)&pool->next);CHKERRQ(ierr); }
   ierr = PetscFree(pool);CHKERRQ(ierr);
   *p = NULL;
   PetscFunctionReturn(0);
@@ -98,7 +98,7 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
 #undef __FUNCT__
 #define __FUNCT__ "SlepcVecPoolGetVecs"
 /*@C
-   SlepcVecPoolGetVecs - get an array of Vec.
+   SlepcVecPoolGetVecs - Get an array of Vec from the pool.
 
    Collective on VecPool
 
@@ -121,7 +121,7 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
   PetscFunctionBegin;
   PetscValidPointer(p,1);
   PetscValidPointer(vecs,3);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)pool->v),PETSC_ERR_ARG_WRONG,"n should be positive");
+  if (n<0) SETERRQ(PetscObjectComm((PetscObject)pool->v),PETSC_ERR_ARG_OUTOFRANGE,"n should be positive");
   while (pool->next) pool = pool->next;
   if (pool->n-pool->used < n) {
     pool->guess = PetscMax(p->guess,pool->used+n);
@@ -143,7 +143,8 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
 #undef __FUNCT__
 #define __FUNCT__ "SlepcVecPoolRestoreVecs"
 /*@C
-   SlepcVecPoolRestoreVecs - get back an array of Vec previously returned by SlepcVecPoolGetVecs.
+   SlepcVecPoolRestoreVecs - Get back an array of Vec previously returned by
+   SlepcVecPoolGetVecs().
 
    Collective on VecPool
 
@@ -170,6 +171,6 @@ PetscErrorCode SlepcVecPoolRestoreVecs(VecPool p,PetscInt n,Vec **vecs)
     pool->next = NULL;
   }
   pool->used -= n;
-  if (pool->used < 0) SETERRQ(PetscObjectComm((PetscObject)pool->v),PETSC_ERR_SUP,"Dispaired SlepcVecPoolRestoreVecs.");
+  if (pool->used < 0) SETERRQ(PetscObjectComm((PetscObject)pool->v),PETSC_ERR_ARG_OUTOFRANGE,"Unmatched SlepcVecPoolRestoreVecs");
   PetscFunctionReturn(0);
 }
