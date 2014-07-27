@@ -26,14 +26,14 @@
 #include "davidson.h"
 #include <slepc-private/dsimpl.h>
 
-PetscErrorCode dvd_updateV_start(dvdDashboard *d);
-PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r);
-PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d);
-PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d);
-PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d);
-PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d);
-PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d);
-PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,PetscInt e,PetscInt *nConv);
+static PetscErrorCode dvd_updateV_start(dvdDashboard *d);
+static PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r);
+static PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d);
+static PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d);
+static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d);
+static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d);
+static PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d);
+static PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,PetscInt e,PetscInt *nConv);
 
 typedef struct {
   PetscInt
@@ -113,7 +113,7 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_start"
-PetscErrorCode dvd_updateV_start(dvdDashboard *d)
+static PetscErrorCode dvd_updateV_start(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        i;
@@ -134,7 +134,7 @@ PetscErrorCode dvd_updateV_start(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_isrestarting_fullV"
-PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r)
+static PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r)
 {
   PetscErrorCode  ierr;
   PetscInt        l,k;
@@ -155,7 +155,7 @@ PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_managementV_basic_d"
-PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d)
+static PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
@@ -175,7 +175,7 @@ PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_extrapol"
-PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
+static PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        i;
@@ -212,7 +212,7 @@ PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_conv_gen"
-PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
+static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        npreconv,cMT,cMTX,lV,kV,nV;
@@ -279,7 +279,7 @@ PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_restart_gen"
-PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
+static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        lV,kV,nV,size_plusk,size_X,cMTX,cMTY;
@@ -339,7 +339,7 @@ PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_update_gen"
-PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
+static PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        size_D,s,lV,kV,nV;
@@ -396,7 +396,7 @@ PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_updateV_testConv"
-PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,PetscInt e,PetscInt *nConv)
+static PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt pre,PetscInt e,PetscInt *nConv)
 {
   PetscInt        i,j,b;
   PetscReal       norm;

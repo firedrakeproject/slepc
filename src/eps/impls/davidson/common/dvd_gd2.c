@@ -25,9 +25,8 @@
 
 #include "davidson.h"
 
-PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d);
-PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
-PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d,PetscScalar *pX,PetscScalar *pY,PetscInt ld_,PetscScalar *auxS,PetscInt size_auxS);
+static PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d);
+static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
 
 /**** GD2 update step K*[A*X B*X]  ****/
 
@@ -82,7 +81,7 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_gd2_d"
-PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
+static PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdImprovex_gd2 *data = (dvdImprovex_gd2*)d->improveX_data;
@@ -95,7 +94,7 @@ PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_gd2_gen"
-PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
+static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
 {
   dvdImprovex_gd2 *data = (dvdImprovex_gd2*)d->improveX_data;
   PetscErrorCode  ierr;

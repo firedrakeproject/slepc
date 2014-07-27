@@ -1022,7 +1022,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
 
 #undef __FUNCT__
 #define __FUNCT__ "NRefSubcommDestroy"
-PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
+static PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
 {
   PetscErrorCode ierr;
   PetscInt       i;
