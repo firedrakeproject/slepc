@@ -240,34 +240,6 @@ PetscErrorCode BVNorm_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalize_Vecs"
-PetscErrorCode BVOrthogonalize_Vecs(BV V,Mat R)
-{
-  PetscErrorCode ierr;
-  PetscScalar    *r=NULL;
-  PetscReal      norm;
-  PetscInt       j,ldr;
-
-  PetscFunctionBegin;
-  ldr = V->k;
-  if (R) {
-    ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr);
-    ierr = PetscMemzero(r,ldr*ldr*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  for (j=0;j<V->k;j++) {
-    if (R) {
-      ierr = BVOrthogonalizeColumn(V,j,r+j*ldr,&norm,NULL);CHKERRQ(ierr);
-      r[j+j*ldr] = norm;
-    } else {
-      ierr = BVOrthogonalizeColumn(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
-    }
-    ierr = BVScaleColumn(V,j,1.0/norm);CHKERRQ(ierr);
-  }
-  if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "BVMatMult_Vecs"
 PetscErrorCode BVMatMult_Vecs(BV V,Mat A,BV W)
 {
@@ -449,7 +421,6 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->dotvec           = BVDotVec_Vecs;
   bv->ops->scale            = BVScale_Vecs;
   bv->ops->norm             = BVNorm_Vecs;
-  bv->ops->orthogonalize    = BVOrthogonalize_Vecs;
   bv->ops->matmult          = BVMatMult_Vecs;
   bv->ops->copy             = BVCopy_Vecs;
   bv->ops->resize           = BVResize_Vecs;

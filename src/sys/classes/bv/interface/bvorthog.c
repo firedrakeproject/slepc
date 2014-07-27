@@ -450,10 +450,38 @@ PetscErrorCode BVOrthogonalizeSomeColumn(BV bv,PetscInt j,PetscBool *which,Petsc
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVOrthogonalize_GS"
+static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *r=NULL;
+  PetscReal      norm;
+  PetscInt       j,ldr;
+
+  PetscFunctionBegin;
+  ldr = V->k;
+  if (R) {
+    ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr);
+    ierr = PetscMemzero(r+V->l*ldr,ldr*(ldr-V->l)*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  for (j=V->l;j<V->k;j++) {
+    if (R) {
+      ierr = BVOrthogonalizeColumn(V,j,r+j*ldr,&norm,NULL);CHKERRQ(ierr);
+      r[j+j*ldr] = norm;
+    } else {
+      ierr = BVOrthogonalizeColumn(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
+    }
+    ierr = BVScaleColumn(V,j,1.0/norm);CHKERRQ(ierr);
+  }
+  if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVOrthogonalize"
 /*@
-   BVOrthogonalize - Orthogonalize all columns, that is, compute the
-   QR decomposition.
+   BVOrthogonalize - Orthogonalize all columns (except leading ones), that is,
+   compute the QR decomposition.
 
    Collective on BV
 
@@ -465,9 +493,12 @@ PetscErrorCode BVOrthogonalizeSomeColumn(BV bv,PetscInt j,PetscBool *which,Petsc
 -  R - a sequential dense matrix (or NULL)
 
    Notes:
-   On input, matrix R must be a sequential dense Mat, with number of rows and
-   columns equal to the number of active columns of V. The output satisfies
+   On input, matrix R must be a sequential dense Mat, with at least as many rows
+   and columns as the number of active columns of V. The output satisfies
    V0 = V*R (where V0 represent the input V) and V'*V = I.
+
+   If V has leading columns, then they are not modified (are assumed to be already
+   orthonormal) and the corresponding part of R is not referenced.
 
    Can pass NULL if R is not required.
 
@@ -492,13 +523,17 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
     if (!match) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
     ierr = MatGetSize(R,&m,&n);CHKERRQ(ierr);
     if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument is not square, it has %D rows and %D columns",m,n);
-    if (n!=V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat size %D does not match the number of BV active columns %D",n,V->k);
+    if (n<V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat size %D is smaller than the number of BV active columns %D",n,V->k);
   }
   if (V->matrix) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Not implemented for non-standard inner product, use BVOrthogonalizeColumn() instead");
   if (V->nc) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Not implemented for BV with constraints, use BVOrthogonalizeColumn() instead");
 
   ierr = PetscLogEventBegin(BV_Orthogonalize,V,R,0,0);CHKERRQ(ierr);
-  ierr = (*V->ops->orthogonalize)(V,R);CHKERRQ(ierr);
+  if (*V->ops->orthogonalize) {
+    ierr = (*V->ops->orthogonalize)(V,R);CHKERRQ(ierr);
+  } else { /* no specific QR function available, so proceed column by column with Gram-Schmidt */
+    ierr = BVOrthogonalize_GS(V,R);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(BV_Orthogonalize,V,R,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
