@@ -77,7 +77,7 @@ PETSC_EXTERN PetscErrorCode STMatSolveTranspose(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STGetBilinearForm(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
-PETSC_EXTERN PetscErrorCode STComputeSolveMat(ST,PetscScalar,PetscScalar*);
+PETSC_EXTERN PetscErrorCode STMatSetUp(ST,PetscScalar,PetscScalar*);
 PETSC_EXTERN PetscErrorCode STPostSolve(ST);
 
 PETSC_EXTERN PetscErrorCode STSetKSP(ST,KSP);
