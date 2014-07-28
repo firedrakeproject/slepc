@@ -24,6 +24,7 @@
 #if !defined(__SLEPCNEP_H)
 #define __SLEPCNEP_H
 #include <slepceps.h>
+#include <slepcpep.h>
 #include <slepcfn.h>
 
 PETSC_EXTERN PetscErrorCode NEPInitializePackage(void);
@@ -49,6 +50,7 @@ typedef const char* NEPType;
 #define NEPRII       "rii"
 #define NEPSLP       "slp"
 #define NEPNARNOLDI  "narnoldi"
+#define NEPINTERPOL  "interpol"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId NEP_CLASSID;
@@ -69,6 +71,18 @@ typedef enum { NEP_LARGEST_MAGNITUDE=1,
                NEP_TARGET_MAGNITUDE,
                NEP_TARGET_REAL,
                NEP_TARGET_IMAGINARY} NEPWhich;
+
+/*E
+    NEPRefine - The refinement type
+
+    Level: intermediate
+
+.seealso: NEPSetRefine()
+E*/
+typedef enum { NEP_REFINE_NONE,
+               NEP_REFINE_SIMPLE,
+               NEP_REFINE_MULTIPLE } NEPRefine;
+PETSC_EXTERN const char *NEPRefineTypes[];
 
 /*E
     NEPConvergedReason - Reason a nonlinear eigensolver was said to
@@ -124,6 +138,8 @@ PETSC_EXTERN PetscErrorCode NEPSetConvergenceTest(NEP,PetscErrorCode (*)(NEP,Pet
 PETSC_EXTERN PetscErrorCode NEPConvergedDefault(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
 PETSC_EXTERN PetscErrorCode NEPSetDimensions(NEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetDimensions(NEP,PetscInt*,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPSetRefine(NEP,NEPRefine,PetscReal,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPGetRefine(NEP,NEPRefine*,PetscReal*,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetLagPreconditioner(NEP,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetLagPreconditioner(NEP,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetConstCorrectionTol(NEP,PetscBool);
@@ -180,6 +196,11 @@ PETSC_EXTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
 
 PETSC_EXTERN PetscErrorCode NEPSLPSetEPS(NEP,EPS);
 PETSC_EXTERN PetscErrorCode NEPSLPGetEPS(NEP,EPS*);
+
+PETSC_EXTERN PetscErrorCode NEPInterpolSetPEP(NEP,PEP);
+PETSC_EXTERN PetscErrorCode NEPInterpolGetPEP(NEP,PEP*);
+PETSC_EXTERN PetscErrorCode NEPInterpolSetDegree(NEP,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPInterpolGetDegree(NEP,PetscInt*);
 
 #endif
 

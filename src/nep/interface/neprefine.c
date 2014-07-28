@@ -1,4 +1,6 @@
 /*
+   Newton refinement for NEP, simple version.
+
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
@@ -19,33 +21,18 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>      /*I "slepcnep.h" I*/
-
-PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP);
-PETSC_EXTERN PetscErrorCode NEPCreate_SLP(NEP);
-PETSC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP);
-PETSC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP);
+#include <slepc-private/nepimpl.h>
+#include <slepcblaslapack.h>
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPRegisterAll"
-/*@C
-   NEPRegisterAll - Registers all the solvers in the NEP package.
-
-   Not Collective
-
-   Level: advanced
-
-.seealso:  NEPRegister()
-@*/
-PetscErrorCode NEPRegisterAll(void)
+#define __FUNCT__ "NEPNewtonRefinementSimple"
+PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol,PetscInt k)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  NEPRegisterAllCalled = PETSC_TRUE;
-  ierr = NEPRegister(NEPRII,NEPCreate_RII);CHKERRQ(ierr);
-  ierr = NEPRegister(NEPSLP,NEPCreate_SLP);CHKERRQ(ierr);
-  ierr = NEPRegister(NEPNARNOLDI,NEPCreate_NArnoldi);CHKERRQ(ierr);
-  ierr = NEPRegister(NEPINTERPOL,NEPCreate_Interpol);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(NEP_Refine,nep,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(NEP_Refine,nep,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

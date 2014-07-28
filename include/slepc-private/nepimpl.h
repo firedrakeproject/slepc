@@ -25,7 +25,7 @@
 #include <slepcnep.h>
 #include <slepc-private/slepcimpl.h>
 
-PETSC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_FunctionEval,NEP_JacobianEval;
+PETSC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Refine,NEP_FunctionEval,NEP_JacobianEval;
 
 typedef struct _NEPOps *NEPOps;
 
@@ -69,6 +69,9 @@ struct _p_NEP {
   PetscBool      cctol;            /* constant correction tolerance */
   PetscReal      ttol;             /* tolerance used in the convergence criterion */
   NEPWhich       which;            /* which part of the spectrum to be sought */
+  NEPRefine      refine;           /* type of refinement to be applied after solve */
+  PetscReal      reftol;           /* tolerance for refinement */
+  PetscInt       rits;             /* number of iterations of the refinement method */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
@@ -150,5 +153,6 @@ PETSC_STATIC_INLINE PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
 PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
 PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode NEPComputeRelativeError_Private(NEP,PetscScalar,Vec,PetscReal*);
+PETSC_INTERN PetscErrorCode NEPNewtonRefinementSimple(NEP,PetscInt*,PetscReal*,PetscInt);
 
 #endif
