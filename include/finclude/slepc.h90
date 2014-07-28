@@ -24,6 +24,7 @@
 #include "finclude/slepcbv.h90"
 #include "finclude/slepcfn.h90"
 #include "finclude/slepcds.h90"
+#include "finclude/slepcrg.h90"
 #include "finclude/slepcst.h90"
 #include "finclude/slepceps.h90"
 #include "finclude/slepcsvd.h90"

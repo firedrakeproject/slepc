@@ -1,10 +1,17 @@
-pep type qarnoldi
- Solution method: qarnoldi
+pep type toar
+ Solution method: toar
 
  Number of requested eigenvalues: 4
  Stopping condition: maxit=100
  All requested eigenvalues computed up to the required tolerance:
      -49.39227, -49.08545, -48.57759, -47.87388
+
+pep type qarnoldi
+ Solution method: qarnoldi
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=100
+ Problem: some of the first 4 relative errors are higher than the tolerance
 
 pep type linear, eps type krylovschur
  Solution method: linear
@@ -14,31 +21,7 @@ pep type linear, eps type krylovschur
  All requested eigenvalues computed up to the required tolerance:
      -49.39227, -49.08545, -48.57759, -47.87388
 
-pep type linear, eps type arnoldi
- Solution method: linear
-
- Number of requested eigenvalues: 4
- Stopping condition: maxit=100
- All requested eigenvalues computed up to the required tolerance:
-     -49.39227, -49.08545, -48.57759, -47.87388
-
 pep type linear, eps type gd
- Solution method: linear
-
- Number of requested eigenvalues: 4
- Stopping condition: maxit=2000
- All requested eigenvalues computed up to the required tolerance:
-     -49.39227, -49.08545, -48.57759, -47.87388
-
-pep type linear, eps type jd
- Solution method: linear
-
- Number of requested eigenvalues: 4
- Stopping condition: maxit=2000
- All requested eigenvalues computed up to the required tolerance:
-     -49.39227, -49.08545, -48.57759, -47.87388
-
-pep type linear, eps type gd2
  Solution method: linear
 
  Number of requested eigenvalues: 4

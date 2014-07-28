@@ -38,7 +38,7 @@ static PetscErrorCode BVOrthogonalizeMGS1(BV bv,PetscInt k,Vec v,PetscBool *whic
   PetscFunctionBegin;
   z = v;
   for (i=-bv->nc;i<k;i++) {
-    if (which && i>=0 && !which[bv->nc+i]) continue;
+    if (which && i>=0 && !which[i]) continue;
     ierr = BVGetColumn(bv,i,&vi);CHKERRQ(ierr);
     /* h_i = ( v, v_i ) */
     if (bv->matrix) {

@@ -102,7 +102,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     r = eps->balance_cutoff;
     ierr = PetscOptionsReal("-eps_balance_cutoff","Cutoff value in balancing","EPSSetBalance",eps->balance_cutoff,&r,&flg2);CHKERRQ(ierr);
     if (flg1 || flg2) {
-      ierr = EPSSetBalance(eps,(EPSBalance)0,j,r);CHKERRQ(ierr);
+      ierr = EPSSetBalance(eps,eps->balance,j,r);CHKERRQ(ierr);
     }
 
     i = eps->max_it? eps->max_it: PETSC_DEFAULT;
@@ -173,19 +173,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
-    ierr = PetscOptionsScalar("-eps_target","Value of the target","EPSSetTarget",eps->target,&s,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
-      ierr = EPSSetTarget(eps,s);CHKERRQ(ierr);
-    }
-    k = 2;
-    ierr = PetscOptionsRealArray("-eps_interval","Computational interval (two real values separated with a comma without spaces)","EPSSetInterval",array,&k,&flg);CHKERRQ(ierr);
-    if (flg) {
-      if (k<2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_SIZ,"Must pass two values in -eps_interval (comma-separated without spaces)");
-      ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr);
-      ierr = EPSSetInterval(eps,array[0],array[1]);CHKERRQ(ierr);
-    }
-
     ierr = PetscOptionsBoolGroupBegin("-eps_largest_magnitude","compute largest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-eps_smallest_magnitude","compute smallest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
@@ -207,6 +194,21 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsBoolGroupEnd("-eps_all","compute all eigenvalues in an interval","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr); }
 
+    ierr = PetscOptionsScalar("-eps_target","Value of the target","EPSSetTarget",eps->target,&s,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if (eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_IMAGINARY) {
+        ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
+      }
+      ierr = EPSSetTarget(eps,s);CHKERRQ(ierr);
+    }
+    k = 2;
+    ierr = PetscOptionsRealArray("-eps_interval","Computational interval (two real values separated with a comma without spaces)","EPSSetInterval",array,&k,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if (k<2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_SIZ,"Must pass two values in -eps_interval (comma-separated without spaces)");
+      ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr);
+      ierr = EPSSetInterval(eps,array[0],array[1]);CHKERRQ(ierr);
+    }
+
     ierr = PetscOptionsBool("-eps_true_residual","Compute true residuals explicitly","EPSSetTrueResidual",eps->trueres,&eps->trueres,NULL);CHKERRQ(ierr);
 
     ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",0);CHKERRQ(ierr);
@@ -220,6 +222,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
   if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
   ierr = BVSetFromOptions(eps->V);CHKERRQ(ierr);
+  if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
+  ierr = RGSetFromOptions(eps->rg);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(eps->ds);CHKERRQ(ierr);
   ierr = STSetFromOptions(eps->st);CHKERRQ(ierr);
@@ -459,16 +463,14 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
    Level: intermediate
 
 .seealso: EPSGetWhichEigenpairs(), EPSSetTarget(), EPSSetInterval(),
-          EPSSetDimensions(), EPSSetEigenvalueComparison(),
-          EPSSortEigenvalues(), EPSWhich
+          EPSSetDimensions(), EPSSetEigenvalueComparison(), EPSWhich
 @*/
 PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,which,2);
-  if (which==PETSC_DECIDE || which==PETSC_DEFAULT) eps->which = (EPSWhich)0;
-  else switch (which) {
+  switch (which) {
     case EPS_LARGEST_MAGNITUDE:
     case EPS_SMALLEST_MAGNITUDE:
     case EPS_LARGEST_REAL:
@@ -554,15 +556,15 @@ $   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r
 
    Level: advanced
 
-.seealso: EPSSetWhichEigenpairs(), EPSSortEigenvalues(), EPSWhich
+.seealso: EPSSetWhichEigenpairs(), EPSWhich
 @*/
 PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  eps->comparison    = func;
-  eps->comparisonctx = ctx;
-  eps->which         = EPS_WHICH_USER;
+  eps->sc->comparison    = func;
+  eps->sc->comparisonctx = ctx;
+  eps->which             = EPS_WHICH_USER;
   PetscFunctionReturn(0);
 }
 
@@ -595,7 +597,7 @@ $   func(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar
    This provides a mechanism to select eigenpairs by evaluating a user-defined
    function. When a function has been provided, the default selection based on
    sorting the eigenvalues is replaced by the sorting of the results of this
-   function (with the same sorting criterion given in EPSSortEigenvalues()).
+   function (with the same sorting criterion given in EPSSetWhichEigenpairs()).
 
    For instance, suppose you want to compute those eigenvectors that maximize
    a certain computable expression. Then implement the computation using
@@ -613,7 +615,7 @@ $   func(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar
 
    Level: advanced
 
-.seealso: EPSSetWhichEigenpairs(), EPSSortEigenvalues()
+.seealso: EPSSetWhichEigenpairs()
 @*/
 PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*),void* ctx)
 {
@@ -686,12 +688,12 @@ PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,
    Logically Collective on EPS
 
    Input Parameters:
-+  eps   - eigensolver context obtained from EPSCreate()
--  conv  - the type of convergence test
++  eps  - eigensolver context obtained from EPSCreate()
+-  conv - the type of convergence test
 
    Options Database Keys:
-+  -eps_conv_abs - Sets the absolute convergence test
-.  -eps_conv_eig - Sets the convergence test relative to the eigenvalue
++  -eps_conv_abs  - Sets the absolute convergence test
+.  -eps_conv_eig  - Sets the convergence test relative to the eigenvalue
 .  -eps_conv_norm - Sets the convergence test relative to the matrix norms
 -  -eps_conv_user - Selects the user-defined convergence test
 
@@ -712,9 +714,9 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,conv,2);
   switch (conv) {
+    case EPS_CONV_ABS:  eps->converged = EPSConvergedAbsolute; break;
     case EPS_CONV_EIG:  eps->converged = EPSConvergedEigRelative; break;
     case EPS_CONV_NORM: eps->converged = EPSConvergedNormRelative; break;
-    case EPS_CONV_ABS:  eps->converged = EPSConvergedAbsolute; break;
     case EPS_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
@@ -976,8 +978,7 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
   PetscValidLogicalCollectiveEnum(eps,bal,2);
   PetscValidLogicalCollectiveInt(eps,its,3);
   PetscValidLogicalCollectiveReal(eps,cutoff,4);
-  if (bal==PETSC_DECIDE || bal==PETSC_DEFAULT) eps->balance = EPS_BALANCE_NONE;
-  else switch (bal) {
+  switch (bal) {
     case EPS_BALANCE_NONE:
     case EPS_BALANCE_ONESIDE:
     case EPS_BALANCE_TWOSIDE:
@@ -1199,6 +1200,8 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
   ierr = BVSetOptionsPrefix(eps->V,prefix);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(eps->ds,prefix);CHKERRQ(ierr);
+  if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
+  ierr = RGSetOptionsPrefix(eps->rg,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1235,6 +1238,8 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
   ierr = BVSetOptionsPrefix(eps->V,prefix);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(eps->ds,prefix);CHKERRQ(ierr);
+  if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
+  ierr = RGSetOptionsPrefix(eps->rg,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

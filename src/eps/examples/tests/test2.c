@@ -30,7 +30,7 @@ int main(int argc,char **argv)
   Mat            A;           /* problem matrix */
   EPS            eps;         /* eigenproblem solver context */
   ST             st;
-  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
+  PetscReal      tol=PetscMax(1000*PETSC_MACHINE_EPSILON,1e-9);
   PetscScalar    value[3];
   PetscInt       n=30,i,Istart,Iend,col[3];
   PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE,flg;

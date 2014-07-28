@@ -48,7 +48,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = EPSSetDimensions_Default(eps);CHKERRQ(ierr);
+  ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
@@ -60,6 +60,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   ierr = EPSAllocateSolution(eps,1);CHKERRQ(ierr);
+  ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
   if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
     ierr = DSSetRefined(eps->ds,PETSC_TRUE);CHKERRQ(ierr);

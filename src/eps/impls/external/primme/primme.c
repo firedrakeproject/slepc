@@ -91,13 +91,12 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
   if (eps->converged != EPSConvergedAbsolute) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only supports absolute convergence test");
 
-  /* Change the default sigma to inf if necessary */
+  /* Set default sigma */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) {
     ierr = STSetDefaultShift(eps->st,3e300);CHKERRQ(ierr);
+  } else {
+    ierr = STSetDefaultShift(eps->st,0.0);CHKERRQ(ierr);
   }
-
-  /* Avoid setting the automatic shift when a target is set */
-  ierr = STSetDefaultShift(eps->st,0.0);CHKERRQ(ierr);
 
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&flg);CHKERRQ(ierr);
@@ -116,7 +115,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->printLevel = 0;
   primme->correctionParams.precondition = 1;
 
-  if (!eps->which) eps->which = EPS_LARGEST_REAL;
   switch (eps->which) {
     case EPS_LARGEST_REAL:
       primme->target = primme_largest;

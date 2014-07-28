@@ -177,6 +177,8 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
   if (!nep->V) { ierr = NEPGetBV(nep,&nep->V);CHKERRQ(ierr); }
   ierr = BVSetFromOptions(nep->V);CHKERRQ(ierr);
+  if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
+  ierr = RGSetFromOptions(nep->rg);CHKERRQ(ierr);
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(nep->ds);CHKERRQ(ierr);
   if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
@@ -443,8 +445,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(nep,which,2);
-  if (which==PETSC_DECIDE || which==PETSC_DEFAULT) nep->which = (NEPWhich)0;
-  else switch (which) {
+  switch (which) {
     case NEP_LARGEST_MAGNITUDE:
     case NEP_SMALLEST_MAGNITUDE:
     case NEP_LARGEST_REAL:
@@ -762,6 +763,8 @@ PetscErrorCode NEPSetOptionsPrefix(NEP nep,const char *prefix)
   ierr = BVSetOptionsPrefix(nep->V,prefix);CHKERRQ(ierr);
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(nep->ds,prefix);CHKERRQ(ierr);
+  if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
+  ierr = RGSetOptionsPrefix(nep->rg,prefix);CHKERRQ(ierr);
   if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOptionsPrefix(nep->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);
@@ -799,6 +802,8 @@ PetscErrorCode NEPAppendOptionsPrefix(NEP nep,const char *prefix)
   ierr = BVSetOptionsPrefix(nep->V,prefix);CHKERRQ(ierr);
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(nep->ds,prefix);CHKERRQ(ierr);
+  if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
+  ierr = RGSetOptionsPrefix(nep->rg,prefix);CHKERRQ(ierr);
   if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOptionsPrefix(nep->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);

@@ -46,7 +46,8 @@
 PetscErrorCode PEPSetUp(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscBool      islinear,flg;
+  SlepcSC        sc;
+  PetscBool      islinear,istrivial,flg;
   PetscInt       i,k;
 
   PetscFunctionBegin;
@@ -61,15 +62,19 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (!((PetscObject)pep)->type_name) {
     ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
   }
+  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
-    if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
     if (!((PetscObject)pep->st)->type_name) {
       ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
     }
   }
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSReset(pep->ds);CHKERRQ(ierr);
+  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
+  if (!((PetscObject)pep->rg)->type_name) {
+    ierr = RGSetType(pep->rg,RGINTERVAL);CHKERRQ(ierr);
+  }
   if (!((PetscObject)pep->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(pep->rand);CHKERRQ(ierr);
   }
@@ -106,48 +111,56 @@ PetscErrorCode PEPSetUp(PEP pep)
     if (pep->rits==PETSC_DEFAULT) pep->rits = (pep->refine==PEP_REFINE_SIMPLE)? 10: 1;
   }
 
-  /* set eigenvalue comparison */
+  /* fill sorting criterion context */
   switch (pep->which) {
     case PEP_LARGEST_MAGNITUDE:
-      pep->comparison    = SlepcCompareLargestMagnitude;
-      pep->comparisonctx = NULL;
+      pep->sc->comparison    = SlepcCompareLargestMagnitude;
+      pep->sc->comparisonctx = NULL;
       break;
     case PEP_SMALLEST_MAGNITUDE:
-      pep->comparison    = SlepcCompareSmallestMagnitude;
-      pep->comparisonctx = NULL;
+      pep->sc->comparison    = SlepcCompareSmallestMagnitude;
+      pep->sc->comparisonctx = NULL;
       break;
     case PEP_LARGEST_REAL:
-      pep->comparison    = SlepcCompareLargestReal;
-      pep->comparisonctx = NULL;
+      pep->sc->comparison    = SlepcCompareLargestReal;
+      pep->sc->comparisonctx = NULL;
       break;
     case PEP_SMALLEST_REAL:
-      pep->comparison    = SlepcCompareSmallestReal;
-      pep->comparisonctx = NULL;
+      pep->sc->comparison    = SlepcCompareSmallestReal;
+      pep->sc->comparisonctx = NULL;
       break;
     case PEP_LARGEST_IMAGINARY:
-      pep->comparison    = SlepcCompareLargestImaginary;
-      pep->comparisonctx = NULL;
+      pep->sc->comparison    = SlepcCompareLargestImaginary;
+      pep->sc->comparisonctx = NULL;
       break;
     case PEP_SMALLEST_IMAGINARY:
-      pep->comparison    = SlepcCompareSmallestImaginary;
-      pep->comparisonctx = NULL;
+      pep->sc->comparison    = SlepcCompareSmallestImaginary;
+      pep->sc->comparisonctx = NULL;
       break;
     case PEP_TARGET_MAGNITUDE:
-      pep->comparison    = SlepcCompareTargetMagnitude;
-      pep->comparisonctx = &pep->target;
+      pep->sc->comparison    = SlepcCompareTargetMagnitude;
+      pep->sc->comparisonctx = &pep->target;
       break;
     case PEP_TARGET_REAL:
-      pep->comparison    = SlepcCompareTargetReal;
-      pep->comparisonctx = &pep->target;
+      pep->sc->comparison    = SlepcCompareTargetReal;
+      pep->sc->comparisonctx = &pep->target;
       break;
     case PEP_TARGET_IMAGINARY:
-      pep->comparison    = SlepcCompareTargetImaginary;
-      pep->comparisonctx = &pep->target;
+      pep->sc->comparison    = SlepcCompareTargetImaginary;
+      pep->sc->comparisonctx = &pep->target;
       break;
   }
+  pep->sc->map    = NULL;
+  pep->sc->mapobj = NULL;
 
-  if (pep->ncv > pep->n) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be the problem size at most");
-  if (pep->nev > pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
+  /* fill sorting criterion for DS */
+  ierr = DSGetSlepcSC(pep->ds,&sc);CHKERRQ(ierr);
+  ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
+  sc->rg            = istrivial? NULL: pep->rg;
+  sc->comparison    = pep->sc->comparison;
+  sc->comparisonctx = pep->sc->comparisonctx;
+  sc->map           = SlepcMap_ST;
+  sc->mapobj        = (PetscObject)pep->st;
 
   /* setup ST */
   if (!islinear) {
@@ -337,6 +350,40 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec *is)
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&pep->nini,&pep->IS);CHKERRQ(ierr);
   if (n>0) pep->state = PEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetDimensions_Default"
+/*
+  PEPSetDimensions_Default - Set reasonable values for ncv, mpd if not set
+  by the user. This is called at setup.
+ */
+PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
+{
+  PetscErrorCode ierr;
+  PetscBool      krylov;
+  PetscInt       dim;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompareAny((PetscObject)pep,&krylov,PEPTOAR,PEPQARNOLDI,"");CHKERRQ(ierr);
+  dim = krylov?(pep->nmat-1)*pep->n:pep->n;
+  if (*ncv) { /* ncv set */
+    if (krylov) {
+      if (*ncv<nev+1 && !(*ncv==nev && *ncv==dim)) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev+1");
+    } else {
+      if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev");
+    }
+  } else if (*mpd) { /* mpd set */
+    *ncv = PetscMin(dim,nev+(*mpd));
+  } else { /* neither set: defaults depend on nev being small or large */
+    if (nev<500) *ncv = PetscMin(dim,PetscMax(2*nev,nev+15));
+    else {
+      *mpd = 500;
+      *ncv = PetscMin(dim,nev+(*mpd));
+    }
+  }
+  if (!*mpd) *mpd = *ncv;
   PetscFunctionReturn(0);
 }
 

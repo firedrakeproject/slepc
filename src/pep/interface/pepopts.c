@@ -82,6 +82,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
       ierr = PEPSetScale(pep,pep->scale,r,j,t);CHKERRQ(ierr);
     }
 
+    ierr = PetscOptionsEnum("-pep_extract","Extraction method","PEPSetExtract",PEPExtractTypes,(PetscEnum)pep->extract,(PetscEnum*)&pep->extract,NULL);CHKERRQ(ierr);
+
     ierr = PetscOptionsEnum("-pep_refine","Iterative refinement method","PEPSetRefine",PEPRefineTypes,(PetscEnum)pep->refine,(PetscEnum*)&pep->refine,NULL);CHKERRQ(ierr);
 
     i = pep->npart;
@@ -203,6 +205,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
   if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
   ierr = BVSetFromOptions(pep->V);CHKERRQ(ierr);
+  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
+  ierr = RGSetFromOptions(pep->rg);CHKERRQ(ierr);
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(pep->ds);CHKERRQ(ierr);
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
@@ -434,8 +438,7 @@ PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,which,2);
-  if (which==PETSC_DECIDE || which==PETSC_DEFAULT) pep->which = (PEPWhich)0;
-  else switch (which) {
+  switch (which) {
     case PEP_LARGEST_MAGNITUDE:
     case PEP_SMALLEST_MAGNITUDE:
     case PEP_LARGEST_REAL:
@@ -763,9 +766,9 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,conv,2);
   switch (conv) {
-    case PEP_CONV_EIG:   pep->converged = PEPConvergedEigRelative; break;
-    case PEP_CONV_ABS:   pep->converged = PEPConvergedAbsolute; break;
-    case PEP_CONV_NORM:  pep->converged = PEPConvergedNormRelative; break;
+    case PEP_CONV_ABS:  pep->converged = PEPConvergedAbsolute; break;
+    case PEP_CONV_EIG:  pep->converged = PEPConvergedEigRelative; break;
+    case PEP_CONV_NORM: pep->converged = PEPConvergedNormRelative; break;
     case PEP_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
@@ -903,6 +906,58 @@ PetscErrorCode PEPGetScale(PEP pep,PEPScale *scale,PetscReal *alpha,PetscInt *it
   if (alpha)  *alpha  = pep->sfactor;
   if (its)    *its    = pep->sits;
   if (lambda) *lambda = pep->slambda;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetExtract"
+/*@
+   PEPSetExtract - Specifies the extraction strategy to be used.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep     - the eigensolver context
+-  extract - extraction strategy
+
+   Options Database Keys:
+.  -pep_extract <type> - extraction type, one of <norm,residual,structured>
+
+   Level: intermediate
+
+.seealso: PEPGetExtract()
+@*/
+PetscErrorCode PEPSetExtract(PEP pep,PEPExtract extract)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(pep,extract,2);
+  pep->extract = extract;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPGetExtract"
+/*@
+   PEPGetExtract - Gets the extraction strategy used by the PEP object.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigensolver context
+
+   Output Parameter:
+.  extract - extraction strategy
+
+   Level: intermediate
+
+.seealso: PEPSetExtract()
+@*/
+PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  if (extract) *extract = pep->extract;
   PetscFunctionReturn(0);
 }
 
@@ -1072,6 +1127,8 @@ PetscErrorCode PEPSetOptionsPrefix(PEP pep,const char *prefix)
   ierr = BVSetOptionsPrefix(pep->V,prefix);CHKERRQ(ierr);
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(pep->ds,prefix);CHKERRQ(ierr);
+  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
+  ierr = RGSetOptionsPrefix(pep->rg,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)pep,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1110,6 +1167,8 @@ PetscErrorCode PEPAppendOptionsPrefix(PEP pep,const char *prefix)
   ierr = BVSetOptionsPrefix(pep->V,prefix);CHKERRQ(ierr);
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(pep->ds,prefix);CHKERRQ(ierr);
+  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
+  ierr = RGSetOptionsPrefix(pep->rg,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)pep,prefix);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&flg);CHKERRQ(ierr);
   if (flg) {

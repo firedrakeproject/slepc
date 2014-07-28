@@ -61,7 +61,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   char           str[50];
-  PetscBool      isascii,isslp;
+  PetscBool      isascii,isslp,istrivial;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -139,6 +139,9 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
   if (!nep->V) { ierr = NEPGetBV(nep,&nep->V);CHKERRQ(ierr); }
   ierr = BVView(nep->V,viewer);CHKERRQ(ierr);
+  if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
+  ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) { ierr = RGView(nep->rg,viewer);CHKERRQ(ierr); }
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSView(nep->ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
@@ -199,15 +202,14 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->computejacobian = NULL;
   nep->functionctx     = NULL;
   nep->jacobianctx     = NULL;
-  nep->comparison      = NULL;
   nep->converged       = NEPConvergedDefault;
   nep->convergeddestroy= NULL;
-  nep->comparisonctx   = NULL;
   nep->convergedctx    = NULL;
   nep->numbermonitors  = 0;
 
   nep->ds              = NULL;
   nep->V               = NULL;
+  nep->rg              = NULL;
   nep->rand            = NULL;
   nep->ksp             = NULL;
   nep->function        = NULL;
@@ -218,7 +220,8 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->nt              = 0;
   nep->mstr            = DIFFERENT_NONZERO_PATTERN;
   nep->IS              = NULL;
-  nep->eig             = NULL;
+  nep->eigr            = NULL;
+  nep->eigi            = NULL;
   nep->errest          = NULL;
   nep->perm            = NULL;
   nep->nwork           = 0;
@@ -234,6 +237,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->split           = PETSC_FALSE;
   nep->reason          = NEP_CONVERGED_ITERATING;
 
+  ierr = PetscNewLog(nep,&nep->sc);CHKERRQ(ierr);
   ierr = PetscRandomCreate(comm,&nep->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(nep->rand,0x12345678);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rand);CHKERRQ(ierr);
@@ -394,7 +398,7 @@ PetscErrorCode NEPReset(NEP nep)
   }
   ierr = BVGetSizes(nep->V,NULL,NULL,&ncols);CHKERRQ(ierr);
   if (ncols) {
-    ierr = PetscFree3(nep->eig,nep->errest,nep->perm);CHKERRQ(ierr);
+    ierr = PetscFree4(nep->eigr,nep->eigi,nep->errest,nep->perm);CHKERRQ(ierr);
   }
   ierr = BVDestroy(&nep->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
@@ -429,8 +433,10 @@ PetscErrorCode NEPDestroy(NEP *nep)
   ierr = NEPReset(*nep);CHKERRQ(ierr);
   if ((*nep)->ops->destroy) { ierr = (*(*nep)->ops->destroy)(*nep);CHKERRQ(ierr); }
   ierr = KSPDestroy(&(*nep)->ksp);CHKERRQ(ierr);
+  ierr = RGDestroy(&(*nep)->rg);CHKERRQ(ierr);
   ierr = DSDestroy(&(*nep)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*nep)->rand);CHKERRQ(ierr);
+  ierr = PetscFree((*nep)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*nep)->nini,&(*nep)->IS);CHKERRQ(ierr);
   if ((*nep)->convergeddestroy) {
@@ -505,6 +511,73 @@ PetscErrorCode NEPGetBV(NEP nep,BV *bv)
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->V);CHKERRQ(ierr);
   }
   *bv = nep->V;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetRG"
+/*@
+   NEPSetRG - Associates a region object to the nonlinear eigensolver.
+
+   Collective on NEP
+
+   Input Parameters:
++  nep - eigensolver context obtained from NEPCreate()
+-  rg  - the region object
+
+   Note:
+   Use NEPGetRG() to retrieve the region context (for example,
+   to free it at the end of the computations).
+
+   Level: advanced
+
+.seealso: NEPGetRG()
+@*/
+PetscErrorCode NEPSetRG(NEP nep,RG rg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidHeaderSpecific(rg,RG_CLASSID,2);
+  PetscCheckSameComm(nep,1,rg,2);
+  ierr = PetscObjectReference((PetscObject)rg);CHKERRQ(ierr);
+  ierr = RGDestroy(&nep->rg);CHKERRQ(ierr);
+  nep->rg = rg;
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rg);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPGetRG"
+/*@C
+   NEPGetRG - Obtain the region object associated to the
+   nonlinear eigensolver object.
+
+   Not Collective
+
+   Input Parameters:
+.  nep - eigensolver context obtained from NEPCreate()
+
+   Output Parameter:
+.  rg - region context
+
+   Level: advanced
+
+.seealso: NEPSetRG()
+@*/
+PetscErrorCode NEPGetRG(NEP nep,RG *rg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(rg,2);
+  if (!nep->rg) {
+    ierr = RGCreate(PetscObjectComm((PetscObject)nep),&nep->rg);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rg);CHKERRQ(ierr);
+  }
+  *rg = nep->rg;
   PetscFunctionReturn(0);
 }
 

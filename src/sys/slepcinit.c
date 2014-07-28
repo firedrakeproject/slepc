@@ -158,23 +158,6 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
 #endif
 
 #undef __FUNCT__
-#define __FUNCT__ "SlepcInitialize_LogEvents"
-/*
-    SlepcInitialize_LogEvents - Initialize log events not pertaining to any object class.
-*/
-PetscErrorCode SlepcInitialize_LogEvents(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscLogEventRegister("UpdateVectors",0,&SLEPC_UpdateVectors);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseMatProd",0,&SLEPC_SlepcDenseMatProd);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseCopy",0,&SLEPC_SlepcDenseCopy);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("VecsMult",0,&SLEPC_VecsMult);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "SlepcInitialize"
 /*@C
    SlepcInitialize - Initializes the SLEPc library. SlepcInitialize() calls
@@ -214,7 +197,6 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
   ierr = SlepcInitialize_DynamicLibraries();CHKERRQ(ierr);
 #endif
-  ierr = SlepcInitialize_LogEvents();CHKERRQ(ierr);
 
 #if defined(PETSC_HAVE_DRAND48)
   /* work-around for Cygwin drand48() initialization bug */

@@ -137,10 +137,10 @@ PETSC_EXTERN PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backt
 PETSC_EXTERN PetscErrorCode STCayleyGetAntishift(ST,PetscScalar*);
 PETSC_EXTERN PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
 
-PETSC_EXTERN PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat);
-PETSC_EXTERN PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat);
-PETSC_EXTERN PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *setmat);
-PETSC_EXTERN PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat);
+PETSC_EXTERN PetscErrorCode STPrecondGetMatForPC(ST,Mat*);
+PETSC_EXTERN PetscErrorCode STPrecondSetMatForPC(ST,Mat);
+PETSC_EXTERN PetscErrorCode STPrecondGetKSPHasMat(ST,PetscBool*);
+PETSC_EXTERN PetscErrorCode STPrecondSetKSPHasMat(ST,PetscBool);
 
 #endif
 

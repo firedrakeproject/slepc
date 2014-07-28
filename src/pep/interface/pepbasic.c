@@ -62,7 +62,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   PetscErrorCode ierr;
   const char     *type;
   char           str[50];
-  PetscBool      isascii,islinear;
+  PetscBool      isascii,islinear,istrivial;
   PetscInt       i;
 
   PetscFunctionBegin;
@@ -107,6 +107,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"  scalar & diagonal balancing enabled, with scaling factor=%g, its=%D and lambda=%g\n",(double)pep->sfactor,pep->sits,(double)pep->slambda);CHKERRQ(ierr);
         break;
     }
+    ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",PEPExtractTypes[pep->extract]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s%s\n",PEPRefineTypes[pep->refine],pep->schur?", with a Schur complement approach":"");CHKERRQ(ierr);
     if (pep->refine) {
       ierr = PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%D\n",(double)pep->rtol,pep->rits);CHKERRQ(ierr);
@@ -185,6 +186,9 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
     if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
     ierr = BVView(pep->V,viewer);CHKERRQ(ierr);
+    if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
+    ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
+    if (!istrivial) { ierr = RGView(pep->rg,viewer);CHKERRQ(ierr); }
     if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
     ierr = DSView(pep->ds,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
@@ -350,18 +354,18 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->rtol            = PETSC_DEFAULT;
   pep->rits            = PETSC_DEFAULT;
   pep->schur           = PETSC_FALSE;
+  pep->extract         = PEP_EXTRACT_NORM;
   pep->trackall        = PETSC_FALSE;
 
-  pep->comparison      = NULL;
   pep->converged       = PEPConvergedNormRelative;
   pep->convergeddestroy= NULL;
-  pep->comparisonctx   = NULL;
   pep->convergedctx    = NULL;
   pep->numbermonitors  = 0;
 
   pep->st              = NULL;
   pep->ds              = NULL;
   pep->V               = NULL;
+  pep->rg              = NULL;
   pep->rand            = NULL;
   pep->A               = NULL;
   pep->nmat            = 0;
@@ -387,6 +391,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->sfactor_set     = PETSC_FALSE;
   pep->reason          = PEP_CONVERGED_ITERATING;
 
+  ierr = PetscNewLog(pep,&pep->sc);CHKERRQ(ierr);
   ierr = PetscRandomCreate(comm,&pep->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(pep->rand,0x12345678);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->rand);CHKERRQ(ierr);
@@ -580,8 +585,10 @@ PetscErrorCode PEPDestroy(PEP *pep)
   ierr = PEPReset(*pep);CHKERRQ(ierr);
   if ((*pep)->ops->destroy) { ierr = (*(*pep)->ops->destroy)(*pep);CHKERRQ(ierr); }
   ierr = STDestroy(&(*pep)->st);CHKERRQ(ierr);
+  ierr = RGDestroy(&(*pep)->rg);CHKERRQ(ierr);
   ierr = DSDestroy(&(*pep)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*pep)->rand);CHKERRQ(ierr);
+  ierr = PetscFree((*pep)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*pep)->nini,&(*pep)->IS);CHKERRQ(ierr);
   if ((*pep)->convergeddestroy) {
@@ -656,6 +663,73 @@ PetscErrorCode PEPGetBV(PEP pep,BV *bv)
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->V);CHKERRQ(ierr);
   }
   *bv = pep->V;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetRG"
+/*@
+   PEPSetRG - Associates a region object to the polynomial eigensolver.
+
+   Collective on PEP
+
+   Input Parameters:
++  pep - eigensolver context obtained from PEPCreate()
+-  rg  - the region object
+
+   Note:
+   Use PEPGetRG() to retrieve the region context (for example,
+   to free it at the end of the computations).
+
+   Level: advanced
+
+.seealso: PEPGetRG()
+@*/
+PetscErrorCode PEPSetRG(PEP pep,RG rg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidHeaderSpecific(rg,RG_CLASSID,2);
+  PetscCheckSameComm(pep,1,rg,2);
+  ierr = PetscObjectReference((PetscObject)rg);CHKERRQ(ierr);
+  ierr = RGDestroy(&pep->rg);CHKERRQ(ierr);
+  pep->rg = rg;
+  ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->rg);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPGetRG"
+/*@C
+   PEPGetRG - Obtain the region object associated to the
+   polynomial eigensolver object.
+
+   Not Collective
+
+   Input Parameters:
+.  pep - eigensolver context obtained from PEPCreate()
+
+   Output Parameter:
+.  rg - region context
+
+   Level: advanced
+
+.seealso: PEPSetRG()
+@*/
+PetscErrorCode PEPGetRG(PEP pep,RG *rg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(rg,2);
+  if (!pep->rg) {
+    ierr = RGCreate(PetscObjectComm((PetscObject)pep),&pep->rg);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->rg);CHKERRQ(ierr);
+  }
+  *rg = pep->rg;
   PetscFunctionReturn(0);
 }
 

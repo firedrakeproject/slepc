@@ -36,12 +36,6 @@
       parameter (SVD_DIVERGED_BREAKDOWN     = -4)
       parameter (SVD_CONVERGED_ITERATING    =  0)
 
-      PetscEnum SVD_TRANSPOSE_EXPLICIT
-      PetscEnum SVD_TRANSPOSE_IMPLICIT
-
-      parameter (SVD_TRANSPOSE_EXPLICIT     =  0)
-      parameter (SVD_TRANSPOSE_IMPLICIT     =  1)
-
       integer SVD_LARGEST
       integer SVD_SMALLEST
 

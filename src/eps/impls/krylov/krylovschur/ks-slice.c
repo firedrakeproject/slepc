@@ -48,15 +48,15 @@ PetscErrorCode EPSAllocateSolutionSlice(EPS eps,PetscInt extra)
 {
   PetscErrorCode ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt       requested;
-  PetscReal      eta;
-  PetscLogDouble cnt;
-  BVType         type;
-  BVOrthogType   orthog_type;
+  PetscInt        requested;
+  PetscReal       eta;
+  PetscLogDouble  cnt;
+  BVType          type;
+  BVOrthogType    orthog_type;
   BVOrthogRefineType orthog_ref;
-  Mat            matrix;
-  Vec            t;
-  SR             sr = ctx->sr;
+  Mat             matrix;
+  Vec             t;
+  EPS_SR          sr = ctx->sr;
 
   PetscFunctionBegin;
   requested = ctx->ncv + extra;
@@ -93,7 +93,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscErrorCode  ierr;
   PetscBool       issinv;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  SR              sr;
+  EPS_SR          sr;
   KSP             ksp;
   PC              pc;
   Mat             F;
@@ -114,6 +114,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   eps->ops->backtransform = NULL;
 
   /* create spectrum slicing context and initialize it */
+  ierr = EPSReset_KrylovSchur(eps);CHKERRQ(ierr);
   ierr = PetscNewLog(eps,&sr);CHKERRQ(ierr);
   ctx->sr = sr;
   sr->itsKs = 0;
@@ -144,9 +145,9 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 
   if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
     if (eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
-    ierr = STSetDefaultShift(eps->st,eps->inta);CHKERRQ(ierr);
+    ierr = STSetShift(eps->st,eps->inta);CHKERRQ(ierr);
   } else {
-    ierr = STSetDefaultShift(eps->st,eps->intb);CHKERRQ(ierr);
+    ierr = STSetShift(eps->st,eps->intb);CHKERRQ(ierr);
   }
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
@@ -168,18 +169,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   eps->nev = sr->numEigs;
   eps->ncv = sr->numEigs;
   eps->mpd = sr->numEigs;
-  if (ctx->ncv) { /* ncv set */
-    if (ctx->ncv<ctx->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
-  } else if (ctx->mpd) { /* mpd set */
-    ctx->ncv = PetscMin(eps->n,ctx->nev+ctx->mpd);
-  } else { /* neither set: defaults depend on nev being small or large */
-    if (ctx->nev<500) ctx->ncv = PetscMin(eps->n,PetscMax(2*ctx->nev,ctx->nev+15));
-    else {
-      ctx->mpd = 500;
-      ctx->ncv = PetscMin(eps->n,ctx->nev+ctx->mpd);
-    }
-  }
-  if (!ctx->mpd) ctx->mpd = ctx->ncv;
+  ierr = EPSSetDimensions_Default(eps,ctx->nev,&ctx->ncv,&ctx->mpd);CHKERRQ(ierr);
 
   /* allocate solution for subsolves */
   if (sr->numEigs) {
@@ -193,12 +183,12 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 */
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreateShift"
-static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,shift neighb0,shift neighb1)
+static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,EPS_shift neighb0,EPS_shift neighb1)
 {
   PetscErrorCode  ierr;
-  shift           s,*pending2;
+  EPS_shift       s,*pending2;
   PetscInt        i;
-  SR              sr;
+  EPS_SR          sr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;
@@ -220,7 +210,7 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,shift neighb0,shift n
   if (sr->nPend >= sr->maxPend) {
     sr->maxPend *= 2;
     ierr = PetscMalloc1(sr->maxPend,&pending2);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(shift));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(EPS_shift));CHKERRQ(ierr);
     for (i=0;i<sr->nPend;i++) pending2[i] = sr->pending[i];
     ierr = PetscFree(sr->pending);CHKERRQ(ierr);
     sr->pending = pending2;
@@ -238,7 +228,7 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
   PetscErrorCode   ierr;
   PetscInt         dir,i,k,ld,nv;
   PetscScalar      *A;
-  SR               sr = ctx->sr;
+  EPS_SR           sr = ctx->sr;
   Vec              v;
 
   PetscFunctionBegin;
@@ -286,7 +276,7 @@ static PetscErrorCode EPSExtractShift(EPS eps)
   PC               pc;
   KSP              ksp;
   EPS_KRYLOVSCHUR  *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  SR               sr;
+  EPS_SR           sr;
 
   PetscFunctionBegin;
   sr = ctx->sr;
@@ -324,11 +314,11 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   PetscBool       breakdown;
   PetscInt        count0,count1;
   PetscReal       lambda;
-  shift           sPres;
+  EPS_shift       sPres;
   PetscBool       complIterating;
   PetscBool       sch0,sch1;
   PetscInt        iterCompl=0,n0,n1;
-  SR              sr = ctx->sr;
+  EPS_SR          sr = ctx->sr;
   BV              bvsave;
 
   PetscFunctionBegin;
@@ -552,8 +542,8 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
 {
   PetscReal       lambda,d_prev;
   PetscInt        i,idxP;
-  SR              sr;
-  shift           sPres,s;
+  EPS_SR          sr;
+  EPS_shift       sPres,s;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;
@@ -656,8 +646,8 @@ static PetscErrorCode EPSStoreEigenpairs(EPS eps)
   PetscReal       lambda,err,norm;
   PetscInt        i,count;
   PetscBool       iscayley;
-  SR              sr = ctx->sr;
-  shift           sPres;
+  EPS_SR          sr = ctx->sr;
+  EPS_shift       sPres;
   Vec             v,w;
  
   PetscFunctionBegin;
@@ -703,9 +693,9 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   PetscErrorCode  ierr;
   PetscReal       val;
   PetscInt        i,count0=0,count1=0;
-  shift           sPres;
+  EPS_shift       sPres;
   PetscInt        ini,fin,k,idx0,idx1;
-  SR              sr;
+  EPS_SR          sr;
   Vec             v;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
@@ -775,7 +765,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   PetscErrorCode  ierr;
   PetscInt        i,lds;
   PetscReal       newS;
-  SR              sr;
+  EPS_SR          sr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;
@@ -789,7 +779,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   sr->maxPend = 100; /* Initial size */
   sr->nPend = 0;
   ierr = PetscMalloc1(sr->maxPend,&sr->pending);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,(sr->maxPend)*sizeof(shift));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,(sr->maxPend)*sizeof(EPS_shift));CHKERRQ(ierr);
   ierr = EPSCreateShift(eps,sr->int0,NULL,NULL);CHKERRQ(ierr);
   /* extract first shift */
   sr->sPrev = NULL;

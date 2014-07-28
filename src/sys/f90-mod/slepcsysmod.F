@@ -27,6 +27,16 @@
         use slepcsysdef
         end module
 
+        module slepcrgdef
+#include <finclude/slepcrg.h>
+#include <finclude/ftn-custom/slepcrgdef.h90>
+        end module
+
+        module slepcrg
+        use slepcrgdef
+#include <finclude/slepcrg.h90>
+        end module
+
         module slepcfndef
 #include <finclude/slepcfn.h>
 #include <finclude/ftn-custom/slepcfndef.h90>

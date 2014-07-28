@@ -113,7 +113,7 @@ PetscErrorCode STSetUp_Shift(ST st)
     ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
     st->T[k] = st->A[k];
     for (k=0;k<nmat-1;k++) {
-      ierr = STMatMAXPY_Private(st,0.0,nmat>2?st->sigma:-st->sigma,k,coeffs?coeffs+((nmat-k)*(nmat-k-1))/2:NULL,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
+      ierr = STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,k,coeffs?coeffs+((nmat-k)*(nmat-k-1))/2:NULL,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
     }
      if (nmat>2) { ierr = PetscFree(coeffs);CHKERRQ(ierr); }
   } else {

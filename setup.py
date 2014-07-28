@@ -201,7 +201,7 @@ manifest_in = """\
 include makefile
 recursive-include config *.py
 
-recursive-include bin/matlab *
+recursive-include share/slepc/matlab *
 recursive-include conf *
 recursive-include include *
 recursive-include src *
