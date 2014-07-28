@@ -24,6 +24,7 @@
 #include <slepc-private/pepimpl.h>
 #include <slepcblaslapack.h>
 
+#define NREF_MAXIT 100
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPEvaluateFunctionDerivatives"
@@ -47,8 +48,8 @@ static PetscErrorCode PEPEvaluateFunctionDerivatives(PEP pep,PetscScalar alpha,P
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPNSingRefSetUp"
-PetscErrorCode PEPNSingRefSetUp(PEP pep,Mat *A,PetscInt idx,Mat *M,Mat *T,PetscBool ini,Vec *t)
+#define __FUNCT__ "PEPNSimpleRefSetUp"
+PetscErrorCode PEPNSimpleRefSetUp(PEP pep,Mat *A,PetscInt idx,Mat *M,Mat *T,PetscBool ini,Vec *t)
 {
   PetscErrorCode    ierr;
   PetscInt          i,nmat=pep->nmat,ml,m0,m1,mg;
@@ -161,7 +162,7 @@ PetscErrorCode PEPNSingRefSetUp(PEP pep,Mat *A,PetscInt idx,Mat *M,Mat *T,PetscB
 PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol,PetscInt k)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,n;
+  PetscInt       i,j,n,its;
   PetscMPIInt    rank,size;
   KSP            ksp;
   Mat            M=NULL,T=NULL;
@@ -173,6 +174,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
+  its = (maxits)?*maxits:NREF_MAXIT;
   comm = PetscObjectComm((PetscObject)pep);
   ierr = KSPCreate(comm,&ksp);
   ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
@@ -189,12 +191,14 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
 #if !defined(PETSC_USE_COMPLEX)
       if (pep->eigi[j]!=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Simple Refinement not implemented in real scalar for complex eigenvalues");
 #endif
-    for (i=0;i<*maxits;i++) {
-      ierr = BVGetColumn(pep->V,j,&v);CHKERRQ(ierr);
-      ierr = PEPComputeRelativeError_Private(pep,pep->eigr[j],0.0,v,NULL,&error);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,j,&v);CHKERRQ(ierr);
-      if (tol && error<=*tol) break;
-      ierr = PEPNSingRefSetUp(pep,pep->A,j,&M,&T,ini,t);CHKERRQ(ierr);
+    for (i=0;i<its;i++) {
+      if (tol) {
+        ierr = BVGetColumn(pep->V,j,&v);CHKERRQ(ierr);
+        ierr = PEPComputeRelativeError_Private(pep,pep->eigr[j],0.0,v,NULL,&error);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(pep->V,j,&v);CHKERRQ(ierr);
+        if (error<=*tol) break;
+      }
+      ierr = PEPNSimpleRefSetUp(pep,pep->A,j,&M,&T,ini,t);CHKERRQ(ierr);
       ierr = KSPSetOperators(ksp,M,M);CHKERRQ(ierr);
       if (ini) {
         ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
