@@ -10,7 +10,7 @@
        subspace, with various eigenpair extractions (Rayleigh-Ritz,
        explicit moment).
 
-   Based on code contributed by Tetsuya Sakurai.
+   Based on code contributed by Y. Maeda, T. Sakurai.
 
    References:
 
@@ -48,9 +48,6 @@ PetscErrorCode EPSSolve_CISS(EPS);
 
 typedef struct {
   /* parameters */
-  PetscScalar center;     /* center of the region where to find eigenpairs (default: 0.0) */
-  PetscReal   radius;     /* radius of the region (1.0) */
-  PetscReal   vscale;     /* vertical scale of the region (1.0; 0.1 if spectrum real) */
   PetscInt    N;          /* number of integration points (32) */
   PetscInt    L;          /* block size (16) */
   PetscInt    M;          /* moment degree (N/4 = 4) */
@@ -175,16 +172,19 @@ static PetscErrorCode CISSScatterVec(EPS eps)
 #define __FUNCT__ "SetPathParameter"
 static PetscErrorCode SetPathParameter(EPS eps)
 {
-  EPS_CISS  *ctx = (EPS_CISS*)eps->data;
-  PetscInt  i;
-  PetscReal theta;
+  PetscErrorCode ierr;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  PetscInt       i;
+  PetscScalar    center;
+  PetscReal      theta,radius,vscale;
 
   PetscFunctionBegin;
+  ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
   for (i=0;i<ctx->N;i++) {
     theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
-    ctx->pp[i] = PetscCosReal(theta) + PETSC_i*ctx->vscale*PetscSinReal(theta);
-    ctx->omega[i] = ctx->center + ctx->radius*ctx->pp[i];
-    ctx->weight[i] = ctx->radius*(ctx->vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
+    ctx->pp[i] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
+    ctx->omega[i] = center + radius*ctx->pp[i];
+    ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
   }
   PetscFunctionReturn(0);
 }
@@ -679,26 +679,6 @@ static PetscErrorCode isGhost(EPS eps,PetscInt ld,PetscInt nv,PetscBool *fl)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "isInsideGamma"
-static PetscErrorCode isInsideGamma(EPS eps,PetscInt nv,PetscBool *fl)
-{
-  EPS_CISS    *ctx = (EPS_CISS*)eps->data;
-  PetscInt    i;
-  PetscScalar d;
-  PetscReal   dx,dy;
-
-  PetscFunctionBegin;
-  for (i=0;i<nv;i++) {
-    d = (eps->eigr[i]-ctx->center)/ctx->radius;
-    dx = PetscRealPart(d);
-    dy = PetscImaginaryPart(d);
-    if ((dx*dx+(dy*dy)/(ctx->vscale*ctx->vscale))<=1) fl[i] = PETSC_TRUE;
-    else fl[i] = PETSC_FALSE;
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_CISS"
 PetscErrorCode EPSSetUp_CISS(EPS eps)
 {
@@ -706,7 +686,8 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   const char     *prefix;
   PetscInt       i;
-  PetscBool      issinvert;
+  PetscBool      issinvert,istrivial,flg;
+  PetscScalar    center;
 
   PetscFunctionBegin;
   eps->ncv = PetscMin(eps->n,ctx->L_max*ctx->M);
@@ -716,13 +697,15 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   else if (eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
-  if (ctx->isreal && PetscImaginaryPart(ctx->center) == 0.0) ctx->useconj = PETSC_TRUE;
-  else ctx->useconj = PETSC_FALSE;
+  /* check region */
+  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSCISS requires a nontrivial region, e.g. -rg_type ellipse ...");
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&flg);CHKERRQ(ierr);
+  if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
+  ierr = RGEllipseGetParameters(eps->rg,&center,NULL,NULL);CHKERRQ(ierr);
 
-  if (!ctx->vscale) {
-    if (eps->ishermitian && (eps->ispositive || !eps->isgeneralized) && PetscImaginaryPart(ctx->center) == 0.0) ctx->vscale = 0.1;
-    else ctx->vscale = 1.0;
-  }
+  if (ctx->isreal && PetscImaginaryPart(center) == 0.0) ctx->useconj = PETSC_TRUE;
+  else ctx->useconj = PETSC_FALSE;
 
   /* create split comm */
   ierr = SetSolverComm(eps);CHKERRQ(ierr);
@@ -800,10 +783,10 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   Mat            A,B,X,M,pA,pB;
-  PetscInt       i,ld,nmat,L_add=0,nv=0,L_base=ctx->L,inner,outer,nlocal;
+  PetscInt       i,ld,nmat,L_add=0,nv=0,L_base=ctx->L,inner,outer,nlocal,*inside;
   PetscScalar    *Mu,*H0,*rr,*temp;
   PetscReal      error,max_error;
-  PetscBool      *fl1,*fl2;
+  PetscBool      *fl1;
   Vec            si,w=eps->work[0];
   SlepcSC        sc;
 
@@ -900,18 +883,18 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
 
     ierr = PetscMalloc(nv*sizeof(PetscBool),&fl1);CHKERRQ(ierr);
-    ierr = PetscMalloc(nv*sizeof(PetscBool),&fl2);CHKERRQ(ierr);
+    ierr = PetscMalloc(nv*sizeof(PetscInt),&inside);CHKERRQ(ierr);
     ierr = isGhost(eps,ld,nv,fl1);CHKERRQ(ierr);
-    ierr = isInsideGamma(eps,nv,fl2);CHKERRQ(ierr);
+    ierr = RGCheckInside(eps->rg,nv,eps->eigr,eps->eigi,inside);CHKERRQ(ierr);
     ierr = PetscMalloc(nv*sizeof(PetscScalar),&rr);CHKERRQ(ierr);
     for (i=0;i<nv;i++) {
-      if (fl1[i] && fl2[i]) {
+      if (fl1[i] && inside[i]>0) {
         rr[i] = 1.0;
         eps->nconv++;
       } else rr[i] = 0.0;
     }
     ierr = PetscFree(fl1);CHKERRQ(ierr);
-    ierr = PetscFree(fl2);CHKERRQ(ierr);
+    ierr = PetscFree(inside);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eps->eigr,NULL,rr,NULL,&eps->nconv);CHKERRQ(ierr);
     ierr = PetscFree(rr);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
@@ -958,104 +941,6 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     }
   }
   eps->reason = EPS_CONVERGED_TOL;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetRegion_CISS"
-static PetscErrorCode EPSCISSSetRegion_CISS(EPS eps,PetscScalar center,PetscReal radius,PetscReal vscale)
-{
-  EPS_CISS *ctx = (EPS_CISS*)eps->data;
-
-  PetscFunctionBegin;
-  ctx->center = center;
-  if (radius == PETSC_DEFAULT) {
-    ctx->radius = 1.0;
-  } else {
-    if (radius<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The radius argument must be > 0.0");
-    ctx->radius = radius;
-  }
-  if (vscale<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The vscale argument must be > 0.0");
-  ctx->vscale = vscale;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetRegion"
-/*@
-   EPSCISSSetRegion - Sets the parameters defining the region where eigenvalues
-   must be computed.
-
-   Logically Collective on EPS
-
-   Input Parameters:
-+  eps - the eigenproblem solver context
-.  center - center of the region
-.  radius - radius of the region
--  vscale - vertical scale of the region
-
-   Options Database Keys:
-+  -eps_ciss_center - Sets the center
-.  -eps_ciss_radius - Sets the radius
--  -eps_ciss_vscale - Sets the vertical scale
-
-   Level: advanced
-
-.seealso: EPSCISSGetRegion()
-@*/
-PetscErrorCode EPSCISSSetRegion(EPS eps,PetscScalar center,PetscReal radius,PetscReal vscale)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidLogicalCollectiveScalar(eps,center,2);
-  PetscValidLogicalCollectiveReal(eps,radius,3);
-  PetscValidLogicalCollectiveReal(eps,vscale,4);
-  ierr = PetscTryMethod(eps,"EPSCISSSetRegion_C",(EPS,PetscScalar,PetscReal,PetscReal),(eps,center,radius,vscale));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetRegion_CISS"
-static PetscErrorCode EPSCISSGetRegion_CISS(EPS eps,PetscScalar *center,PetscReal *radius,PetscReal *vscale)
-{
-  EPS_CISS *ctx = (EPS_CISS*)eps->data;
-
-  PetscFunctionBegin;
-  if (center) *center = ctx->center;
-  if (radius) *radius = ctx->radius;
-  if (vscale) *vscale = ctx->vscale;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetRegion"
-/*@
-   EPSCISSGetRegion - Gets the parameters that define the region where eigenvalues
-   must be computed.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigenproblem solver context
-
-   Output Parameters:
-+  center - center of the region
-.  radius - radius of the region
--  vscale - vertical scale of the region
-
-   Level: advanced
-
-.seealso: EPSCISSSetRegion()
-@*/
-PetscErrorCode EPSCISSGetRegion(EPS eps,PetscScalar *center,PetscReal *radius,PetscReal *vscale)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscTryMethod(eps,"EPSCISSGetRegion_C",(EPS,PetscScalar*,PetscReal*,PetscReal*),(eps,center,radius,vscale));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1529,19 +1414,12 @@ PetscErrorCode EPSReset_CISS(EPS eps)
 PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscScalar    s;
-  PetscReal      r1,r2,r3,r4;
+  PetscReal      r3,r4;
   PetscInt       i1,i2,i3,i4,i5,i6,i7,i8;
   PetscBool      b1,b2;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS CISS Options");CHKERRQ(ierr);
-  ierr = EPSCISSGetRegion(eps,&s,&r1,&r2);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-eps_ciss_radius","CISS radius of region","EPSCISSSetRegion",r1,&r1,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsScalar("-eps_ciss_center","CISS center of region","EPSCISSSetRegion",s,&s,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-eps_ciss_vscale","CISS vertical scale of region","EPSCISSSetRegion",r2,&r2,NULL);CHKERRQ(ierr);
-  ierr = EPSCISSSetRegion(eps,s,r1,r2);CHKERRQ(ierr);
-
   ierr = EPSCISSGetSizes(eps,&i1,&i2,&i3,&i4,&i5,&b1);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_ciss_integration_points","CISS number of integration points","EPSCISSSetSizes",i1,&i1,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_ciss_blocksize","CISS block size","EPSCISSSetSizes",i2,&i2,NULL);CHKERRQ(ierr);
@@ -1578,8 +1456,6 @@ PetscErrorCode EPSDestroy_CISS(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRegion_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRegion_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetSizes_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetSizes_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetThreshold_C",NULL);CHKERRQ(ierr);
@@ -1598,13 +1474,10 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscBool      isascii;
-  char           str[50];
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = SlepcSNPrintfScalar(str,50,ctx->center,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: region { center: %s, radius: %g, vscale: %g }\n",str,(double)ctx->radius,(double)ctx->vscale);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: sizes { integration points: %D, block size: %D, moment size: %D, partitions: %D, maximum block size: %D }\n",ctx->N,ctx->L,ctx->M,ctx->num_subcomm,ctx->L_max);CHKERRQ(ierr);
     if (ctx->isreal) {
       ierr = PetscViewerASCIIPrintf(viewer,"  CISS: exploiting symmetry of integration points\n");CHKERRQ(ierr);
@@ -1638,8 +1511,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   eps->ops->view           = EPSView_CISS;
   eps->ops->backtransform  = NULL;
   eps->ops->computevectors = EPSComputeVectors_Schur;
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRegion_C",EPSCISSSetRegion_CISS);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRegion_C",EPSCISSGetRegion_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetSizes_C",EPSCISSSetSizes_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetSizes_C",EPSCISSGetSizes_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetThreshold_C",EPSCISSSetThreshold_CISS);CHKERRQ(ierr);
@@ -1649,9 +1520,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetUseST_C",EPSCISSSetUseST_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetUseST_C",EPSCISSGetUseST_CISS);CHKERRQ(ierr);
   /* set default values of parameters */
-  ctx->center  = 0.0;
-  ctx->radius  = 1.0;
-  ctx->vscale  = 1.0;
   ctx->N       = 32;
   ctx->L       = 16;
   ctx->M       = ctx->N/4;
