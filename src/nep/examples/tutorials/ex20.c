@@ -175,7 +175,7 @@ int main(int argc,char **argv)
       /*
         Get converged eigenpairs (in this example they are always real)
       */
-      ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
+      ierr = NEPGetEigenpair(nep,i,&lambda,NULL,x,NULL);CHKERRQ(ierr);
       ierr = FixSign(x);CHKERRQ(ierr);
       /*
          Compute residual norm and error
