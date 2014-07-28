@@ -32,7 +32,7 @@ As explained in the previous chapter, \ident{EPS} contains preconditioned eigens
 %---------------------------------------------------
 \section{Basic Usage}
 
-	The \ident{ST} module is the analog of some \petsc modules such as \ident{PC}. The user does not usually need to create a stand-alone \ident{ST} object explicitly. Instead, every \ident{EPS} object internally sets up an associated \ident{ST}. Therefore, the usual object management methods such as \ident{STCreate}, \ident{STDestroy}, \ident{STView}, \ident{STSetFromOptions}, are not usually called by the user.
+	The \ident{ST} module is the analog of some \petsc modules such as \texttt{PC}. The user does not usually need to create a stand-alone \ident{ST} object explicitly. Instead, every \ident{EPS} object internally sets up an associated \ident{ST}. Therefore, the usual object management methods such as \ident{STCreate}, \ident{STDestroy}, \ident{STView}, \ident{STSetFromOptions}, are not usually called by the user.
 
 	Although the \ident{ST} context is hidden inside the \ident{EPS} object, the user still has control over all the options, by means of the command line, or also inside the program. To allow application programmers to set any of the spectral transformation options directly within the code, the following routine is provided to extract the \ident{ST} context from the \ident{EPS} object,
 	\findex{EPSGetST}
@@ -391,7 +391,7 @@ If the user knows that the pattern is the same (or a subset), then this can be s
 \subsection{Purification of Eigenvectors}
 \label{sec:purif}
 
-In generalized eigenproblems, the case of singular $B$ deserves especial consideration. Note that in this case the default spectral transformation (\texttt{STSHIFT}) cannot be used since $B^{-1}$ does not exist.
+In generalized eigenproblems, the case of singular $B$ deserves especial consideration. In this case the default spectral transformation (\texttt{STSHIFT}) cannot be used since $B^{-1}$ does not exist.
 
 In shift-and-invert with operator matrix $T=(A-\sigma B)^{-1}B$, when $B$ is singular all the eigenvectors that belong to finite eigenvalues are also eigenvectors of $T$ and belong to the range of $T$, $\mathcal{R}(T)$. In this case, the bilinear form $\langle x,y\rangle_B$ introduced in \S\ref{sec:symm} is a semi-inner product and $\|x\|_B=\sqrt{\langle x,x\rangle_B}$ is a semi-norm. As before, $T$ is self-adjoint with respect to this inner product since $B\,T=T^*B$. Also, $\langle x,y\rangle_B$ is a true inner product on $\mathcal{R}(T)$.
 
@@ -406,6 +406,7 @@ A final comment is that eigenvector corruption happens also in the non-symmetric
 
 In the context of symmetric-definite generalized eigenvalue problems (\ident{EPS\_GHEP}) it is often required to compute all eigenvalues contained in a given interval $[a,b]$. This poses some difficulties, such as:
 \begin{itemize}
+\setlength{\itemsep}{0pt}
 \item The number of eigenvalues in the interval is not known a priori.
 \item There might be many eigenvalues, in some applications a significant percentage of the spectrum (20\%, say).
 \item We must make certain that no eigenvalues are missed, and in particular all eigenvalues must be computed with their correct multiplicity.
@@ -422,6 +423,7 @@ by Sylvester's law of inertia we know that the number of eigenvalues on the left
 A detailed description of the method available in \slepc can be found in \citep{Campos:2012:SSS}.
 The \slepc interface hides all the complications of the algorithm. However, the user must be aware of all the restrictions for this technique to be employed:
 \begin{itemize}
+\setlength{\itemsep}{0pt}
 \item This is currently implemented only in Krylov-Schur.
 \item The method is based on shift-and-invert, so either \ident{STSINVERT} or \ident{STCAYLEY} must be used (\ident{STSINVERT} is selected by default). Furthermore, direct linear solvers are required.
 \item The direct linear solver must provide the matrix inertia (see \petsc's \ident{MatGetInertia}). In particular, a symmetric factorization must be used (\texttt{cholesky}).
@@ -429,13 +431,13 @@ The \slepc interface hides all the complications of the algorithm. However, the 
 
 An example command-line that sets up all the required options is:
 \begin{Verbatim}[fontsize=\small]
-	$ ./ex13 -eps_interval 0.4,0.8 -st_type sinvert
+	$ ./ex12 -eps_interval 0.4,0.8 -st_type sinvert
                  -st_ksp_type preonly -st_pc_type cholesky
 \end{Verbatim}
 
 Note that \petsc's Cholesky factorization is not parallel, so for doing spectrum slicing in parallel it is required to use an external solver that supports inertia, e.g., MUMPS (see \S\ref{sec:lin} on how to use external linear solvers):
 \begin{Verbatim}[fontsize=\small]
-	$ ./ex13 -eps_interval 0.4,0.8 -st_type sinvert
+	$ ./ex12 -eps_interval 0.4,0.8 -st_type sinvert
                  -st_ksp_type preonly -st_pc_type cholesky
                  -st_pc_factor_mat_solver_package mumps -mat_mumps_icntl_13 1
 \end{Verbatim}
@@ -443,8 +445,9 @@ The last option is required by MUMPS to compute the inertia.
 
 Apart from the above recommendations, the following must be taken into account:
 \begin{itemize}
+\setlength{\itemsep}{0pt}
 \item The parameters \texttt{nev} and \texttt{ncv} explained in the previous chapter (see \ident{EPSSetDimensions}) change their meaning in this context: \texttt{ncv} cannot be given by the user but is determined internally, and \texttt{nev} represents in this case the number of eigenvalues that will be computed in each chunk.
-\item Apart from \texttt{nev}, the user can tune the computation by setting different values of \texttt{max\_it} (see \ident{EPSSetTolerances}).
+\item Apart from \texttt{nev}, the user can tune the computation by setting different values of \texttt{max\_it}.
 \end{itemize}
 
 \subsection{Spectrum Folding}

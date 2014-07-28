@@ -163,14 +163,13 @@ where $\phi_i$ are the members of a given polynomial basis, for instance, some k
 %---------------------------------------------------
 \section{Basic Usage}
 
-The user interface of the \ident{PEP} package is very similar to \ident{EPS}. For basic usage, the most noteworthy difference is that all coefficient matrices $A_i$ have to be supplied in the form of an array of \ident{Mat}.
+The user interface of the \ident{PEP} package is very similar to \ident{EPS}. For basic usage, the most noteworthy difference is that all coefficient matrices $A_i$ have to be supplied in the form of an array of \texttt{Mat}.
 
 A basic example code for solving a polynomial eigenproblem with \ident{PEP} is shown in Figure \ref{fig:ex-pep}, where the code for building matrices \texttt{A[0]}, \texttt{A[1]}, \ldots\ is omitted. The required steps are the same as those described in chapter \ref{cap:eps} for the linear eigenproblem. As always, the solver context is created with \ident{PEPCreate}. The coefficient matrices are provided with \ident{PEPSetOperators}, and the problem type is specified with \ident{PEPSetProblemType}. Calling \ident{PEPSetFromOptions} allows the user to set up various options through the command line. The call to \ident{PEPSolve} invokes the actual solver. Then, the solution is retrieved with \ident{PEPGetConverged} and \ident{PEPGetEigenpair}. Finally, \ident{PEPDestroy} destroys the object.
 
 \begin{figure}
 \begin{Verbatim}[fontsize=\small,numbers=left,numbersep=6pt,xleftmargin=15mm]
 #define NMAT 5
-
 PEP         pep;       /*  eigensolver context  */
 Mat         A[NMAT];   /*  coefficient matrices */
 Vec         xr, xi;    /*  eigenvector, x       */
@@ -265,6 +264,8 @@ For the sorting criteria relative to a target value, the scalar $\tau$ must be s
 	\end{Verbatim}
 or in the command-line with \Verb!-pep_target!. As in \ident{EPS}, complex values of $\tau$ are allowed only in complex scalar SLEPc builds. The criteria relative to a target must be used in combination with a spectral transformation as explained in \S\ref{sec:qst}.
 
+Finally, we mention that the use of regions for filtering is also available in \ident{PEP}, see \S\ref{sec:region}.
+
 \begin{table}
 \centering
 {\small \begin{tabular}{lll}
@@ -334,7 +335,7 @@ Another option of the \ident{PEPLINEAR} solver is whether the matrices of the li
 	\end{Verbatim}
 In the case of explicit creation (the default), matrices $L_0$ and $L_1$ are created as true \texttt{Mat}'s, with explicit storage, whereas the implicit option works with \emph{shell} \texttt{Mat}'s that operate only with the constituent blocks $M$, $C$ and $K$. The explicit case requires more memory but gives more flexibility, e.g., for choosing a preconditioner.
 
-As a complete example of how to solve a quadratic eigenproblem via linearization, consider the following command line:
+As a complete example of how to solve a quadratic eigenproblem via explicit linearization, consider the following command line:
 \begin{Verbatim}[fontsize=\small]
 	$ ./program -pep_type linear -pep_hermitian -pep_linear_cform 1
                     -pep_linear_explicitmatrix 0 -pep_eps_type krylovschur
@@ -392,7 +393,7 @@ Let $S_\sigma:=(L_0-\sigma L_1)^{-1}L_1$, then when the solver needs to extend t
 with $\tilde{A}_{d-2}=A_{d-2}+\sigma I$ and $\tilde{A}_{d-1}=A_{d-1}+\sigma A_d$.
 From the block LU factorization, it is possible to derive a simple recurrence to compute $z^i$, with one of the steps involving a linear solve with $P(\sigma)$.
 
-Implementing the latter approach is more difficult (especially if different polynomial bases must be supported), and requires an intimate relation with the \ident{PEP} solver. That is why, it is only available currently in the default solver (TOAR). In order to choose between the two approaches, the user can set a flag with
+Implementing the latter approach is more difficult (especially if different polynomial bases must be supported), and requires an intimate relation with the \ident{PEP} solver. That is why it is only available currently in the default solver (TOAR). In order to choose between the two approaches, the user can set a flag with
 	\findex{STSetTransform}
 	\begin{Verbatim}[fontsize=\small]
 	STSetTransform(ST st,PetscBool flg);
@@ -419,18 +420,6 @@ After the call to \ident{PEPSolve} has finished, the computed results are stored
 
 \paragraph{Reliability of the Computed Solution.}
 
-\begin{table}
-\centering
-{\small \begin{tabular}{llll}
-Convergence criterion    & \texttt{PEPConv}         & Command line key          & Error bound \\\hline
-Absolute                 & \texttt{PEP\_CONV\_ABS}  & \texttt{-pep\_conv\_abs}  & $\|r\|$ \\
-Relative to eigenvalue   & \texttt{PEP\_CONV\_EIG}  & \texttt{-pep\_conv\_eig}  & $\|r\|/|\lambda|$ \\
-Relative to matrix norms & \texttt{PEP\_CONV\_NORM} & \texttt{-pep\_conv\_norm} & $\|r\|/(\sum_j\|A_j\||\lambda_i|^j)$ \\
-\hline
-\end{tabular} }
-\caption{\label{tab:pepconv}Available possibilities for the convergence criterion.}
-\end{table}
-
 As in the case of linear problems, the function
 	\findex{PEPComputeRelativeError}
 	\begin{Verbatim}[fontsize=\small]
@@ -447,6 +436,18 @@ From the residual norm, the error bound can be computed in different ways, see T
 	PEPSetConvergenceTest(PEP pep,PEPConv conv);
 	\end{Verbatim}
 The default is to use the criterion relative to the matrix norms.
+
+\begin{table}
+\centering
+{\small \begin{tabular}{llll}
+Convergence criterion    & \texttt{PEPConv}         & Command line key          & Error bound \\\hline
+Absolute                 & \texttt{PEP\_CONV\_ABS}  & \texttt{-pep\_conv\_abs}  & $\|r\|$ \\
+Relative to eigenvalue   & \texttt{PEP\_CONV\_EIG}  & \texttt{-pep\_conv\_eig}  & $\|r\|/|\lambda|$ \\
+Relative to matrix norms & \texttt{PEP\_CONV\_NORM} & \texttt{-pep\_conv\_norm} & $\|r\|/(\sum_j\|A_j\||\lambda_i|^j)$ \\
+\hline
+\end{tabular} }
+\caption{\label{tab:pepconv}Available possibilities for the convergence criterion.}
+\end{table}
 
 \paragraph{Scaling.}
 
@@ -475,7 +476,7 @@ As mentioned above, scaling can sometimes improve the accuracy of the computed s
 
 If good accuracy is required, one possibility is to perform a few steps of iterative refinement on the solution computed by the polynomial eigensolver algorithm. Iterative refinement can be seen as the Newton method applied to a set of nonlinear equations related to the polynomial eigenvalue problem \citep{Betcke:2011:PER}. It is well known that global convergence of Newton's iteration is guaranteed only if the initial guess is close enough to the exact solution, so we still need an eigensolver such as TOAR to compute this initial guess.
 
-Iterative refinement can be very costly (sometimes a single refinement step is more expensive than the whole iteration to compute the initial guess with TOAR), that is why in \slepc it is deactivated by default. When the user activates it, the computation of Newton iterations will take place within \ident{PEPSolve} as a final stage (identified as \texttt{PEPRefine} in the \Verb!-log_summary! report).
+Iterative refinement can be very costly (sometimes a single refinement step is more expensive than the whole iteration to compute the initial guess with TOAR), that is why in \slepc it is disabled by default. When the user activates it, the computation of Newton iterations will take place within \ident{PEPSolve} as a final stage (identified as \texttt{PEPRefine} in the \Verb!-log_summary! report).
 
 	\findex{PEPSetRefine}
 	\begin{Verbatim}[fontsize=\small]
@@ -483,7 +484,7 @@ Iterative refinement can be very costly (sometimes a single refinement step is m
                      PetscReal tol,PetscInt its,PetscBool schur);
 	\end{Verbatim}
 
-There are two types of refinement, identified as \emph{simple} and \emph{multiple}. The first one performs refinement on each eigenpair individually, while the second one performs the computed invariant pair as a whole \citep{Betcke:2011:PER}. This latter approach is more costly but it is expected to be more robust in the presence of multiple eigenvalues.
+There are two types of refinement, identified as \emph{simple} and \emph{multiple}. The first one performs refinement on each eigenpair individually, while the second one considers the computed invariant pair as a whole \citep{Betcke:2011:PER}. This latter approach is more costly but it is expected to be more robust in the presence of multiple eigenvalues.
 
 In \ident{PEPSetRefine}, the argument \texttt{npart} indicates the number of partitions in which the communicator must be split. This can sometimes improve the scalability when refining many eigenpairs. See the manual page for additional details.
 
