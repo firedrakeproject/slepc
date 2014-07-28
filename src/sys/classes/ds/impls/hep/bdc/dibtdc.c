@@ -114,6 +114,9 @@ static PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkc
 
   PetscFunctionBegin;
   *info = 0;
+  *lblks = 1;
+  *lsum = 1;
+  *cut = start;
 
   if (start < 1) {
     *info = -1;
