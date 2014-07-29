@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -58,7 +58,7 @@ PetscErrorCode SlepcGetVersion(char version[],size_t len)
 
    Collective on MPI_Comm
 */
-PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
+static PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 {
   PetscErrorCode ierr;
   char           version[256];
@@ -80,7 +80,7 @@ PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 
    Collective on MPI_Comm
 */
-PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
+static PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 {
   PetscErrorCode  ierr;
 

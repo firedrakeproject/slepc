@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -95,6 +95,12 @@ PetscErrorCode NEPSolve(NEP nep)
   if (!nep->reason) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   nep->state = NEP_STATE_SOLVED;
+
+  if (nep->refine==NEP_REFINE_SIMPLE && nep->rits>0) {
+    ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
+    ierr = NEPNewtonRefinementSimple(nep,&nep->rits,&nep->reftol,nep->nconv);CHKERRQ(ierr);
+    nep->state = NEP_STATE_EIGENVECTORS;
+  }
 
   /* sort eigenvalues according to nep->which parameter */
   ierr = SlepcSortEigenvalues(nep->sc,nep->nconv,nep->eigr,nep->eigi,nep->perm);CHKERRQ(ierr);
@@ -410,13 +416,16 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
 -  i   - index of the solution
 
    Output Parameters:
-+  eig - eigenvalue
--  V   - eigenvector
++  eigr - real part of eigenvalue
+.  eigi - imaginary part of eigenvalue
+.  Vr   - real part of eigenvector
+-  Vi   - imaginary part of eigenvector
 
    Notes:
-   If PETSc is configured with real scalars, then complex eigenpairs cannot
-   be obtained. Users should use a complex-scalar configuration. This
-   behaviour is different to other SLEPc solvers such as EPS.
+   If the eigenvalue is real, then eigi and Vi are set to zero. If PETSc is
+   configured with complex scalars the eigenvalue is stored
+   directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is
+   set to zero).
 
    The index i should be a value between 0 and nconv-1 (see NEPGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established
@@ -426,7 +435,7 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
 
 .seealso: NEPSolve(), NEPGetConverged(), NEPSetWhichEigenpairs()
 @*/
-PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eig,Vec V)
+PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar *eigi,Vec Vr,Vec Vi)
 {
   PetscInt       k;
   PetscErrorCode ierr;
@@ -434,7 +443,8 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eig,Vec V)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
-  if (V) { PetscValidHeaderSpecific(V,VEC_CLASSID,4); PetscCheckSameComm(nep,1,V,4); }
+  if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,5); PetscCheckSameComm(nep,1,Vr,5); }
+  if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,6); PetscCheckSameComm(nep,1,Vi,6); }
   NEPCheckSolved(nep,1);
   if (i<0 || i>=nep->nconv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
 
@@ -442,8 +452,34 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eig,Vec V)
   if (!nep->perm) k = i;
   else k = nep->perm[i];
 
-  if (eig) *eig = nep->eigr[k];
-  if (V) { ierr = BVCopyVec(nep->V,k,V);CHKERRQ(ierr); }
+  /* eigenvalue */
+#if defined(PETSC_USE_COMPLEX)
+  if (eigr) *eigr = nep->eigr[k];
+  if (eigi) *eigi = 0;
+#else
+  if (eigr) *eigr = nep->eigr[k];
+  if (eigi) *eigi = nep->eigi[k];
+#endif
+
+  /* eigenvector */
+#if defined(PETSC_USE_COMPLEX)
+  if (Vr) { ierr = BVCopyVec(nep->V,k,Vr);CHKERRQ(ierr); }
+  if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
+#else
+  if (nep->eigi[k]>0) { /* first value of conjugate pair */
+    if (Vr) { ierr = BVCopyVec(nep->V,k,Vr);CHKERRQ(ierr); }
+    if (Vi) { ierr = BVCopyVec(nep->V,k+1,Vi);CHKERRQ(ierr); }
+  } else if (nep->eigi[k]<0) { /* second value of conjugate pair */
+    if (Vr) { ierr = BVCopyVec(nep->V,k-1,Vr);CHKERRQ(ierr); }
+    if (Vi) {
+      ierr = BVCopyVec(nep->V,k,Vi);CHKERRQ(ierr);
+      ierr = VecScale(Vi,-1.0);CHKERRQ(ierr);
+    }
+  } else { /* real eigenvalue */
+    if (Vr) { ierr = BVCopyVec(nep->V,k,Vr);CHKERRQ(ierr); }
+    if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
+  }
+#endif
   PetscFunctionReturn(0);
 }
 
@@ -531,18 +567,23 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,P
 PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *norm)
 {
   PetscErrorCode ierr;
-  Vec            x;
-  PetscScalar    lambda;
+  Vec            xr,xi;
+  PetscScalar    kr,ki;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   PetscValidPointer(norm,3);
   NEPCheckSolved(nep,1);
-  ierr = BVGetVec(nep->V,&x);CHKERRQ(ierr);
-  ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
-  ierr = NEPComputeResidualNorm_Private(nep,lambda,x,norm);CHKERRQ(ierr);
-  ierr = VecDestroy(&x);CHKERRQ(ierr);
+  ierr = BVGetVec(nep->V,&xr);CHKERRQ(ierr);
+  ierr = BVGetVec(nep->V,&xi);CHKERRQ(ierr);
+  ierr = NEPGetEigenpair(nep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  if (ki) SETERRQ(PETSC_COMM_SELF,1,"Not implemented for complex eigenvalues with real scalars");
+#endif
+  ierr = NEPComputeResidualNorm_Private(nep,kr,xr,norm);CHKERRQ(ierr);
+  ierr = VecDestroy(&xr);CHKERRQ(ierr);
+  ierr = VecDestroy(&xi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -592,18 +633,23 @@ PetscErrorCode NEPComputeRelativeError_Private(NEP nep,PetscScalar lambda,Vec x,
 PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
 {
   PetscErrorCode ierr;
-  Vec            x;
-  PetscScalar    lambda;
+  Vec            xr,xi;
+  PetscScalar    kr,ki;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,i,2);
   PetscValidPointer(error,3);
   NEPCheckSolved(nep,1);
-  ierr = BVGetVec(nep->V,&x);CHKERRQ(ierr);
-  ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
-  ierr = NEPComputeRelativeError_Private(nep,lambda,x,error);CHKERRQ(ierr);
-  ierr = VecDestroy(&x);CHKERRQ(ierr);
+  ierr = BVGetVec(nep->V,&xr);CHKERRQ(ierr);
+  ierr = BVGetVec(nep->V,&xi);CHKERRQ(ierr);
+  ierr = NEPGetEigenpair(nep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  if (ki) SETERRQ(PETSC_COMM_SELF,1,"Not implemented for complex eigenvalues with real scalars");
+#endif
+  ierr = NEPComputeRelativeError_Private(nep,kr,xr,error);CHKERRQ(ierr);
+  ierr = VecDestroy(&xr);CHKERRQ(ierr);
+  ierr = VecDestroy(&xi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

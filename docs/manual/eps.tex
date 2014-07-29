@@ -60,7 +60,7 @@ where $h_{i,j}$ are the scalar coefficients obtained in the Gram-Schmidt orthogo
 
 \paragraph{Related Problems.}
 
-	In many applications such as the analysis of damped vibrating systems the problem to be solved is a \emph{quadratic eigenvalue problem} (QEP), or more generally a \emph{nonlinear eigenvalue problem} (NEP). For these, the reader is referred to chapters \ref{cap:pep} and \ref{cap:nep}. Another linear algebra problem that is very closely related to the eigenvalue problem is the {\em singular value decomposition\/} (SVD), see chapter \ref{cap:svd}. 
+	In many applications such as the analysis of damped vibrating systems the problem to be solved is a \emph{polynomial eigenvalue problem} (PEP), or more generally a \emph{nonlinear eigenvalue problem} (NEP). For these, the reader is referred to chapters \ref{cap:pep} and \ref{cap:nep}. Another linear algebra problem that is very closely related to the eigenvalue problem is the {\em singular value decomposition\/} (SVD), see chapter \ref{cap:svd}. 
 
 %---------------------------------------------------
 \section{Basic Usage}
@@ -205,7 +205,7 @@ requests 10 eigenvalues and instructs to use 24 column vectors. Note that \textt
 
 \paragraph{Eigenvalues of Interest.}
 
-	For the selection of the portion of the spectrum of interest, there are several alternatives. In real symmetric problems, one may want to compute the largest or smallest eigenvalues in magnitude, or the leftmost or rightmost ones, or even all eigenvalues in a given interval. In other problems, in which the eigenvalues can be complex, then one can select eigenvalues depending on the magnitude, or the real part or even the imaginary part. Sometimes the eigenvalues of interest are those closest to a given target value, $\tau$, measuring the distance either in the ordinary way or along the real (or imaginary) axis. Table \ref{tab:portion} summarizes all the possibilities available for the function
+	For the selection of the portion of the spectrum of interest, there are several alternatives. In real symmetric problems, one may want to compute the largest or smallest eigenvalues in magnitude, or the leftmost or rightmost ones, or even all eigenvalues in a given interval. In other problems, in which the eigenvalues can be complex, then one can select eigenvalues depending on the magnitude, or the real part or even the imaginary part. Sometimes the eigenvalues of interest are those closest to a given target value, $\tau$, measuring the distance either in the ordinary way or along the real (or imaginary) axis. In some other cases, wanted eigenvalues must be found in a given region of the complex plane. Table \ref{tab:portion} summarizes all the possibilities available for the function
 	\findex{EPSSetWhichEigenpairs}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetWhichEigenpairs(EPS eps,EPSWhich which);
@@ -232,6 +232,8 @@ The special case of computing all eigenvalues in an interval is discussed in \S\
 	EPSSetInterval(EPS eps,PetscScalar a,PetscScalar b);
 	\end{Verbatim}
 which is equivalent to \Verb!-eps_interval <a,b>!.
+
+There is also support for specifying a region of the complex plane so that the eigensolver finds eigenvalues within that region only. This possibility is described in \S\ref{sec:region}.
 
 Finally, we mention the possibility of defining an arbitrary sorting criterion by means of \texttt{EPS\_WHICH\_USER} in combination with \ident{EPSSetEigenvalueComparison}.
 
@@ -387,7 +389,6 @@ Usually, the number of converged solutions, \texttt{nconv}, will be equal to \te
 	EPSGetEigenpair(EPS eps,PetscInt j,PetscScalar *kr,PetscScalar *ki,
                         Vec xr,Vec xi);
 	\end{Verbatim}
-	\label{GetEigenpair}
 returns the $j$-th computed eigenvalue/eigenvector pair. Typically, this function is called inside a loop for each value of \texttt{j} from 0 to \texttt{nconv}--1. Note that eigenvalues are ordered according to the same criterion specified with function \ident{EPSSetWhichEigenpairs} for selecting the portion of the spectrum of interest.
 	The meaning of the last 4 parameters depends on whether \slepc has been compiled for real or complex scalars, as detailed below. The eigenvectors are normalized so that they have a unit 2-norm, except for problem type \ident{EPS\_GHEP} in which case returned eigenvectors have a unit $B$-norm.
 
@@ -599,6 +600,34 @@ The value \texttt{n} indicates how many vectors are passed in argument \texttt{d
 \label{sec:orthog}
 
 	Internally, eigensolvers in \ident{EPS} often need to orthogonalize a vector against a set of vectors (for instance, when building an orthonormal basis of a Krylov subspace). This operation is carried out typically by a Gram-Schmidt orthogonalization procedure. The user is able to adjust several options related to this algorithm, although the default behavior is good for most cases, and we strongly suggest not to change any of these settings. This topic is covered in detail in \hyperlink{str}{[STR-1]}.
+
+\subsection{Specifying a Region for Filtering}
+\label{sec:region}
+
+Some solvers in \ident{EPS} (and other solver classes as well) can take into consideration a user-defined region of the complex plane, e.g., an ellipse centered at the origin. A region can be used for two purposes:
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+\item To instruct the eigensolver to compute all eigenvalues lying in that region. This is available only in eigensolvers based on the contour integral technique (\texttt{EPSCISS}).
+\item To filter out eigenvalues outside the region. In this way, eigenvalues lying inside the region get higher priority during the iteration and are more likely to be returned as computed solutions.
+\end{itemize}
+
+Regions are specified by means of an \ident{RG} object. This object is handled internally in the \ident{EPS} solver, as other auxiliary objects, and can be extracted with
+	\findex{EPSGetRG}
+	\begin{Verbatim}[fontsize=\small]
+	EPSGetRG(EPS eps,RG *rg);
+	\end{Verbatim}
+to set the options that define the region. These options can also be set in the command line. The following example computes largest magnitude eigenvalues, but restricting to an ellipse of radius 0.5 centered at the origin (with vertical scale 0.1):
+\begin{Verbatim}[fontsize=\footnotesize,numbers=none]
+        $ ./ex1 -rg_type ellipse -rg_ellipse_center 0 -rg_ellipse_radius 0.5
+                -rg_ellipse_vscale 0.1
+\end{Verbatim}
+If one wants to use the region to specify where eigenvalues should \emph{not} be computed, then the region must be complement of the specified one. The next command line computes the smallest eigenvalues not contained in the ellipse:
+\begin{Verbatim}[fontsize=\footnotesize,numbers=none]
+        $ ./ex1 -eps_smallest_magnitude -rg_type ellipse -rg_ellipse_center 0
+                -rg_ellipse_radius 0.5 -rg_ellipse_vscale 0.1 -rg_complement
+\end{Verbatim}
+
+Additional details of the \ident{RG} class can be found in \S\ref{sec:sys}.
 
 \subsection{Computing a Large Portion of the Spectrum}
 \label{sec:large-nev}

@@ -91,15 +91,16 @@
                 rectangle node[text width=1.8cm] {Pseudo Time Stepping} ++(2.1,1) ++(0,-1) 
                 rectangle node {Other} ++(1.1,1);
   \node[above,text centered,font=\sffamily\bfseries\Large] at (15.1,5*\levsep) {SLEPc};
-  \draw[interface] (11,4*\levsep+\himp) rectangle node {Polynomial Eigensolver} +(4.2,\hint);
+  \draw[interface] (11,4*\levsep+\himp) rectangle node {Polynomial Eigensolver} +(3.8,\hint);
   \draw[implem] (11,4*\levsep) rectangle node[text width=1.2cm] {TOAR} ++(1.2,1) ++(0,-1) 
-                rectangle node[text width=1.7cm] {Q-Arnoldi} ++(1.6,1) ++(0,-1)
+                rectangle node[text width=1.2cm] {Q\-Arnoldi} ++(1.2,1) ++(0,-1)
                 rectangle node[text width=1.7cm] {Linear\-ization} ++(1.4,1);
 
-  \draw[interface] (15.5,4*\levsep+\himp) rectangle node {Nonlinear Eigensolver} +(3.7,\hint);
-  \draw[implem] (15.5,4*\levsep) rectangle node {SLP} ++(1.1,1) ++(0,-1) 
-                rectangle node {RII} ++(1.1,1) ++(0,-1)
-                rectangle node[text width=1.7cm] {N-Arnoldi} ++(1.5,1);
+  \draw[interface] (15,4*\levsep+\himp) rectangle node {Nonlinear Eigensolver} +(4.2,\hint);
+  \draw[implem] (15,4*\levsep) rectangle node {SLP} ++(1,1) ++(0,-1) 
+                rectangle node {RII} ++(.9,1) ++(0,-1)
+                rectangle node[text width=1.2cm] {N\-Arnoldi} ++(1.2,1) ++(0,-1)
+                rectangle node[text width=1.2cm] {Interp.} ++(1.1,1);
   \draw[interface] (11,3*\levsep+\himp) rectangle node {SVD Solver} +(5.2,\hint);
   \draw[implem] (11,3*\levsep) rectangle node[text width=1.2cm] {Cross Product} ++(1.3,1) ++(0,-1) 
                 rectangle node[text width=1.2cm] {Cyclic Matrix} ++(1.2,1) ++(0,-1) 

@@ -4,7 +4,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -970,7 +970,7 @@ PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
    Logically Collective on PEP
 
    Input Parameters:
-+  pep    - the eigensolver context
++  pep    - the polynomial eigensolver context
 .  refine - refinement type
 .  npart  - number of partitions of the communicator
 .  tol    - the convergence tolerance
@@ -1059,7 +1059,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
    Not Collective
 
    Input Parameter:
-.  pep - the eigensolver context
+.  pep - the polynomial eigensolver context
 
    Output Parameters:
 +  refine - refinement type

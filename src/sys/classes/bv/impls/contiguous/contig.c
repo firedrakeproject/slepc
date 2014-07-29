@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -348,7 +348,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->dotvec           = BVDotVec_Contiguous;
   bv->ops->scale            = BVScale_Contiguous;
   bv->ops->norm             = BVNorm_Contiguous;
-  bv->ops->orthogonalize    = BVOrthogonalize_Contiguous;
+  /*bv->ops->orthogonalize    = BVOrthogonalize_Contiguous;*/
   bv->ops->matmult          = BVMatMult_Contiguous;
   bv->ops->copy             = BVCopy_Contiguous;
   bv->ops->resize           = BVResize_Contiguous;

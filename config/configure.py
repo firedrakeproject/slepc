@@ -2,7 +2,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -378,8 +378,8 @@ log.write('='*80)
 log.Println('Checking PETSc installation...')
 if petscversion.VERSION > slepcversion.VERSION:
   log.Println('WARNING: PETSc version '+petscversion.VERSION+' is newer than SLEPc version '+slepcversion.VERSION)
-#if petscversion.RELEASE != slepcversion.RELEASE:
-#  sys.exit('ERROR: Cannot mix release and development versions of SLEPc and PETSc')
+if petscversion.RELEASE != slepcversion.RELEASE:
+  sys.exit('ERROR: Cannot mix release and development versions of SLEPc and PETSc')
 if petscconf.ISINSTALL:
   if os.path.realpath(petscconf.DESTDIR) != os.path.realpath(petscdir):
     log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')

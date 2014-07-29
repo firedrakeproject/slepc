@@ -5,7 +5,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -25,9 +25,9 @@
 
 #include "davidson.h"
 
-PetscErrorCode dvd_initV_classic_0(dvdDashboard *d);
-PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d);
-PetscErrorCode dvd_initV_d(dvdDashboard *d);
+static PetscErrorCode dvd_initV_classic_0(dvdDashboard *d);
+static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d);
+static PetscErrorCode dvd_initV_d(dvdDashboard *d);
 
 typedef struct {
   PetscInt k,           /* desired initial subspace size */
@@ -66,7 +66,7 @@ PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,PetscInt 
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_initV_classic_0"
-PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
+static PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdInitV        *data = (dvdInitV*)d->initV_data;
@@ -88,7 +88,7 @@ PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_initV_krylov_0"
-PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
+static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
 {
   PetscErrorCode ierr;
   dvdInitV       *data = (dvdInitV*)d->initV_data;
@@ -135,7 +135,7 @@ PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_initV_d"
-PetscErrorCode dvd_initV_d(dvdDashboard *d)
+static PetscErrorCode dvd_initV_d(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdInitV        *data = (dvdInitV*)d->initV_data;

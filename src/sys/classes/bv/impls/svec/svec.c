@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -440,7 +440,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   bv->ops->dotvec           = BVDotVec_Svec;
   bv->ops->scale            = BVScale_Svec;
   bv->ops->norm             = BVNorm_Svec;
-  bv->ops->orthogonalize    = BVOrthogonalize_Svec;
+  /*bv->ops->orthogonalize    = BVOrthogonalize_Svec;*/
   bv->ops->matmult          = BVMatMult_Svec;
   bv->ops->copy             = BVCopy_Svec;
   bv->ops->resize           = BVResize_Svec;
