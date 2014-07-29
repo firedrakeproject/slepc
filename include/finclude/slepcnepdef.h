@@ -28,6 +28,7 @@
 #include "finclude/slepcrgdef.h"
 #include "finclude/slepcfndef.h"
 #include "finclude/slepcepsdef.h"
+#include "finclude/slepcpepdef.h"
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
 #define NEP                PetscFortranAddr

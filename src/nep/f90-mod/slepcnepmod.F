@@ -25,6 +25,7 @@
         use slepcds
         use slepcfn
         use slepceps
+        use slepcpep
 #include <finclude/slepcnep.h>
 #include <finclude/ftn-custom/slepcnepdef.h90>
         end module
