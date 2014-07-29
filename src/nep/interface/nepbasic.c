@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -26,7 +26,7 @@
 PetscFunctionList NEPList = 0;
 PetscBool         NEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId      NEP_CLASSID = 0;
-PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0;
+PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_Refine = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0;
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPView"
@@ -81,6 +81,10 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator in split form\n");CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator from user callbacks\n");CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s\n",NEPRefineTypes[nep->refine]);CHKERRQ(ierr);
+    if (nep->refine) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%D\n",(double)nep->reftol,nep->rits);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = SlepcSNPrintfScalar(str,50,nep->target,PETSC_FALSE);CHKERRQ(ierr);
@@ -196,6 +200,9 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->cctol           = PETSC_FALSE;
   nep->ttol            = 0.0;
   nep->which           = (NEPWhich)0;
+  nep->refine          = NEP_REFINE_NONE;
+  nep->reftol          = PETSC_DEFAULT;
+  nep->rits            = PETSC_DEFAULT;
   nep->trackall        = PETSC_FALSE;
 
   nep->computefunction = NULL;

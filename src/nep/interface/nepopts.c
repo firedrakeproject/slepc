@@ -4,7 +4,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -61,6 +61,16 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPSetType(nep,type);CHKERRQ(ierr);
     } else if (!((PetscObject)nep)->type_name) {
       ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
+    }
+
+    ierr = PetscOptionsEnum("-nep_refine","Iterative refinement method","NEPSetRefine",NEPRefineTypes,(PetscEnum)nep->refine,(PetscEnum*)&nep->refine,NULL);CHKERRQ(ierr);
+
+    r1 = nep->reftol;
+    ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->reftol,&r1,&flg1);CHKERRQ(ierr);
+    j = nep->rits;
+    ierr = PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg2);CHKERRQ(ierr);
+    if (flg1 || flg2) {
+      ierr = NEPSetRefine(nep,nep->refine,r1,j);CHKERRQ(ierr);
     }
 
     i = nep->max_it? nep->max_it: PETSC_DEFAULT;
@@ -722,6 +732,102 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(trackall,2);
   *trackall = nep->trackall;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetRefine"
+/*@
+   NEPSetRefine - Specifies the refinement type (and options) to be used
+   after the solve.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep    - the nonlinear eigensolver context
+.  refine - refinement type
+.  tol    - the convergence tolerance
+-  its    - maximum number of refinement iterations
+
+   Options Database Keys:
++  -nep_refine <type> - refinement type, one of <none,simple,multiple>
+.  -nep_refine_tol <tol> - the tolerance
+-  -nep_refine_its <its> - number of iterations
+
+   Notes:
+   By default, iterative refinement is disabled, since it may be very
+   costly. There are two possible refinement strategies: simple and multiple.
+   The simple approach performs iterative refinement on each of the
+   converged eigenpairs individually, whereas the multiple strategy works
+   with the invariant pair as a whole, refining all eigenpairs simultaneously.
+   The latter may be required for the case of multiple eigenvalues.
+
+   The tol and its parameters specify the stopping criterion. In the simple
+   method, refinement continues until the residual of each eigenpair is
+   below the tolerance (tol defaults to the NEP tol, but may be set to a
+   different value). In contrast, the multiple method simply performs its
+   refinement iterations (just one by default).
+
+   Level: intermediate
+
+.seealso: NEPGetRefine()
+@*/
+PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscReal tol,PetscInt its)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(nep,refine,2);
+  PetscValidLogicalCollectiveReal(nep,tol,3);
+  PetscValidLogicalCollectiveInt(nep,its,4);
+  nep->refine = refine;
+  if (refine) {  /* process parameters only if not REFINE_NONE */
+    if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
+      nep->reftol = nep->rtol;
+    } else {
+      if (tol<=0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+      nep->reftol = tol;
+    }
+    if (its==PETSC_DECIDE || its==PETSC_DEFAULT) {
+      nep->rits = PETSC_DEFAULT;
+    } else {
+      if (its<=0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be > 0");
+      nep->rits = its;
+    }
+  }
+  nep->state = NEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPGetRefine"
+/*@
+   NEPGetRefine - Gets the refinement strategy used by the NEP object, and the
+   associated parameters.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameters:
++  refine - refinement type
+.  tol    - the convergence tolerance
+-  its    - maximum number of refinement iterations
+
+   Level: intermediate
+
+   Note:
+   The user can specify NULL for any parameter that is not needed.
+
+.seealso: NEPSetRefine()
+@*/
+PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscReal *tol,PetscInt *its)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  if (refine) *refine = nep->refine;
+  if (tol)    *tol    = nep->reftol;
+  if (its)    *its    = nep->rits;
   PetscFunctionReturn(0);
 }
 

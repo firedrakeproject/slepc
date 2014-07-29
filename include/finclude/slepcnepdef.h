@@ -3,7 +3,7 @@
 !
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
-!  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+!  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
 !
@@ -28,6 +28,7 @@
 #include "finclude/slepcrgdef.h"
 #include "finclude/slepcfndef.h"
 #include "finclude/slepcepsdef.h"
+#include "finclude/slepcpepdef.h"
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
 #define NEP                PetscFortranAddr
@@ -35,10 +36,12 @@
 
 #define NEPType            character*(80)
 #define NEPWhich           PetscEnum
+#define NEPRefine          PetscEnum
 #define NEPConvergedReason PetscEnum
 
 #define NEPRII       'rii'
 #define NEPSLP       'slp'
 #define NEPNARNOLDI  'narnoldi'
+#define NEPINTERPOL  'interpol'
 
 #endif

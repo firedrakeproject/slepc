@@ -17,7 +17,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -512,10 +512,12 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
 {
   PetscErrorCode     ierr;
   EPS_LANCZOS        *lanczos = (EPS_LANCZOS*)eps->data;
-  /*PetscScalar        *T;
+  /*
+  PetscScalar        *T;
   PetscInt           i,n=*m;
   PetscReal          betam;
-  BVOrthogRefineType orthog_ref;*/
+  BVOrthogRefineType orthog_ref;
+  */
 
   PetscFunctionBegin;
   switch (lanczos->reorthog) {
@@ -534,7 +536,8 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
       break;
     case EPS_LANCZOS_REORTHOG_DELAYED:
       SETERRQ(PetscObjectComm((PetscObject)eps),1,"Not implemented");
-      /*ierr = PetscMalloc1(n*n,&T);CHKERRQ(ierr);
+      /*
+      ierr = PetscMalloc1(n*n,&T);CHKERRQ(ierr);
       ierr = BVGetOrthogonalization(eps->ip,NULL,&orthog_ref,NULL);CHKERRQ(ierr);
       if (orthog_ref == BV_ORTHOG_REFINE_NEVER) {
         ierr = EPSDelayedArnoldi1(eps,T,n,V,k,m,f,&betam,breakdown);CHKERRQ(ierr);
@@ -548,7 +551,8 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
       alpha[n-1] = PetscRealPart(T[n*(n-1)+n-1]);
       beta[n-1] = betam;
       ierr = PetscFree(T);CHKERRQ(ierr);
-      break;*/
+      break;
+      */
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid reorthogonalization type");
   }

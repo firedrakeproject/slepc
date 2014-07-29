@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -364,7 +364,7 @@ PetscErrorCode BVScale(BV bv,PetscScalar alpha)
 
    Input Parameters:
 +  bv    - basis vectors
--  j     - column number to be scaled
+.  j     - column number to be scaled
 -  alpha - scaling factor
 
    Level: intermediate
@@ -458,7 +458,7 @@ PetscErrorCode BVSetRandom(BV bv,PetscRandom rctx)
 
    Input Parameters:
 +  bv   - basis vectors
--  j    - column number to be set
+.  j    - column number to be set
 -  rctx - the random number context, formed by PetscRandomCreate(), or NULL and
           it will create one internally.
 

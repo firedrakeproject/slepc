@@ -4,7 +4,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -280,6 +280,32 @@ alldoc1: chk_loc deletemanualpages
 alldoc2: chk_loc
 	-${OMAKE} ACTION=slepc_html PETSC_DIR=${PETSC_DIR} alltree LOC=${LOC}
 	cp ${LOC}/docs/manual.htm ${LOC}/docs/index.html
+
+# modify all generated html files and add in version number, date, canonical URL info.
+docsetdate: chk_petscdir
+	@echo "Updating generated html files with slepc version, date, canonical URL info";\
+        version_release=`grep '^#define SLEPC_VERSION_RELEASE ' include/slepcversion.h |tr -s ' ' | cut -d ' ' -f 3`; \
+        version_major=`grep '^#define SLEPC_VERSION_MAJOR ' include/slepcversion.h |tr -s ' ' | cut -d ' ' -f 3`; \
+        version_minor=`grep '^#define SLEPC_VERSION_MINOR ' include/slepcversion.h |tr -s ' ' | cut -d ' ' -f 3`; \
+        version_subminor=`grep '^#define SLEPC_VERSION_SUBMINOR ' include/slepcversion.h |tr -s ' ' | cut -d ' ' -f 3`; \
+        if  [ $${version_release} = 0 ]; then \
+          slepcversion=slepc-dev; \
+          export slepcversion; \
+        elif [ $${version_release} = 1 ]; then \
+          slepcversion=slepc-$${version_major}.$${version_minor}.$${version_subminor}; \
+          export slepcversion; \
+        else \
+          echo "Unknown SLEPC_VERSION_RELEASE: $${version_release}"; \
+          exit; \
+        fi; \
+        datestr=`git log -1 --pretty=format:%ci | cut -d ' ' -f 1`; \
+        export datestr; \
+        gitver=`git describe`; \
+        export gitver; \
+        find * -type d -wholename 'arch-*' -prune -o -type f -name \*.html \
+          -exec perl -pi -e 's^(<body.*>)^$$1\n   <div id=\"version\" align=right><b>$$ENV{slepcversion} $$ENV{datestr}</b></div>\n   <div id="bugreport" align=right><a href="mailto:slepc-maint\@grycap.upv.es?subject=Typo or Error in Documentation &body=Please describe the typo or error in the documentation: $$ENV{slepcversion} $$ENV{gitver} {} "><small>Report Typos and Errors</small></a></div>^i' {} \; \
+          -exec perl -pi -e 's^(<head>)^$$1 <link rel="canonical" href="http://www.grycap.upv.es/slepc/documentation/current/{}" />^i' {} \; ; \
+        echo "Done fixing version number, date, canonical URL info"
 
 # Deletes documentation
 alldocclean: deletemanualpages allcleanhtml

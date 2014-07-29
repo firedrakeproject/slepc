@@ -5,7 +5,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -26,22 +26,22 @@
 #include "davidson.h"
 #include <slepcblaslapack.h>
 
-PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w);
-PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out);
-PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out);
-PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out);
-PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out);
-PetscErrorCode MatGetVecs_dvd_jd(Mat A,Vec *right,Vec *left);
-PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d);
-PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d);
-PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d);
-PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
-PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld);
-PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld);
-PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld);
-PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d,PetscInt i,PetscScalar* theta,PetscScalar* thetai,PetscInt *maxits,PetscReal *tol);
-PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV);
-PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV);
+static PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w);
+static PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out);
+static PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out);
+static PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out);
+static PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out);
+static PetscErrorCode MatGetVecs_dvd_jd(Mat A,Vec *right,Vec *left);
+static PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d);
+static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d);
+static PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d);
+static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
+static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld);
+static PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld);
+static PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld);
+static PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d,PetscInt i,PetscScalar* theta,PetscScalar* thetai,PetscInt *maxits,PetscReal *tol);
+static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV);
+static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV);
 
 #define size_Z (64*4)
 
@@ -150,7 +150,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_jd_start"
-PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
+static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
@@ -226,7 +226,7 @@ PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_jd_end"
-PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d)
+static PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
@@ -244,7 +244,7 @@ PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_jd_d"
-PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
+static PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
@@ -262,7 +262,7 @@ PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_jd_gen"
-PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
+static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
 {
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
   PetscErrorCode  ierr;
@@ -483,7 +483,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,con
 
 #undef __FUNCT__
 #define __FUNCT__ "PCApplyBA_dvd"
-PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w)
+static PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
@@ -544,7 +544,7 @@ PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w)
 
 #undef __FUNCT__
 #define __FUNCT__ "PCApply_dvd"
-PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out)
+static PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
@@ -569,7 +569,7 @@ PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out)
 
 #undef __FUNCT__
 #define __FUNCT__ "PCApplyTranspose_dvd"
-PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out)
+static PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
@@ -601,7 +601,7 @@ PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out)
 
 #undef __FUNCT__
 #define __FUNCT__ "MatMult_dvd_jd"
-PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out)
+static PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
@@ -626,7 +626,7 @@ PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out)
 
 #undef __FUNCT__
 #define __FUNCT__ "MatMultTranspose_dvd_jd"
-PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out)
+static PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out)
 {
   PetscErrorCode  ierr;
   dvdImprovex_jd  *data;
@@ -663,7 +663,7 @@ PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out)
 
 #undef __FUNCT__
 #define __FUNCT__ "MatGetVecs_dvd_jd"
-PetscErrorCode MatGetVecs_dvd_jd(Mat A,Vec *right,Vec *left)
+static PetscErrorCode MatGetVecs_dvd_jd(Mat A,Vec *right,Vec *left)
 {
   PetscErrorCode  ierr;
   Vec             *r, *l;
@@ -730,7 +730,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d,dvdBlackboard *b,ProjType
   pX,pY, the right and left eigenvectors of the projected system
   ld, the leading dimension of pX and pY
 */
-PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld)
+static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF)
   PetscFunctionBegin;
@@ -876,7 +876,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,Pets
   pX,pY, the right and left eigenvectors of the projected system
   ld, the leading dimension of pX and pY
 */
-PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld)
+static PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld)
 {
   PetscErrorCode  ierr;
   PetscInt        n = i_e-i_s,i;
@@ -995,7 +995,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt
   pX,pY, the right and left eigenvectors of the projected system
   ld, the leading dimension of pX and pY
 */
-PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld)
+static PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld)
 {
   PetscErrorCode  ierr;
   PetscInt        n = i_e - i_s,i;
@@ -1095,7 +1095,7 @@ PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d,dvdBlackboard *b,PetscI
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_jd_lit_const_0"
-PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d,PetscInt i,PetscScalar* theta,PetscScalar* thetai,PetscInt *maxits,PetscReal *tol)
+static PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d,PetscInt i,PetscScalar* theta,PetscScalar* thetai,PetscInt *maxits,PetscReal *tol)
 {
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
   PetscReal       a;
@@ -1136,7 +1136,7 @@ typedef PetscInt (*funcV1_t)(dvdDashboard*,PetscInt,PetscInt,Vec*,PetscScalar*,V
    V, the vectors to apply the projector,
    cV, the number of vectors in V,
 */
-PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV)
+static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRS)
   PetscFunctionBegin;
@@ -1195,7 +1195,7 @@ PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV)
    V, the vectors to apply the projector,
    cV, the number of vectors in V,
 */
-PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV)
+static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRS)
   PetscFunctionBegin;

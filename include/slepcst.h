@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -77,7 +77,7 @@ PETSC_EXTERN PetscErrorCode STMatSolveTranspose(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STGetBilinearForm(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
-PETSC_EXTERN PetscErrorCode STComputeSolveMat(ST,PetscScalar,PetscScalar*);
+PETSC_EXTERN PetscErrorCode STMatSetUp(ST,PetscScalar,PetscScalar*);
 PETSC_EXTERN PetscErrorCode STPostSolve(ST);
 
 PETSC_EXTERN PetscErrorCode STSetKSP(ST,KSP);

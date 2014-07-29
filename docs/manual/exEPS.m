@@ -1,1 +1,1 @@
-../../bin/matlab/classes/examples/tutorials/exEPS.m
+../../share/slepc/matlab/classes/examples/tutorials/exEPS.m
