@@ -814,9 +814,9 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
     }
     ierr = MatDenseRestoreArray(M0,&array);CHKERRQ(ierr);
     ierr = BVMultInPlace(dV,M0,0,k);CHKERRQ(ierr);
-    ierr = MatDestroy(&M0);CHKERRQ(ierr);
     ierr = BVAXPY(pep->V,1.0,dV);CHKERRQ(ierr);
   }
+  ierr = MatDestroy(&M0);CHKERRQ(ierr);
   ierr = NRefOrthogStep(pep,k,H,ldh,fH,S,lds,&k,work,lwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

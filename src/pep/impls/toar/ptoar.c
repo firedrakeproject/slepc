@@ -672,6 +672,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   if (pep->nconv>0) {
     /* Truncate S */
     ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,pep->nconv,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+    nq = PetscMin(pep->nconv,nq);
     /* Extract invariant pair */
     ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = PEPExtractInvariantPair(pep,sigma,nq,pep->nconv,S,ld,deg,H,ldds,work+nwu,lwa-nwu);CHKERRQ(ierr);
@@ -689,15 +690,16 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       ierr = DSRestoreArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
     }
     /* Update vectors V = V*S */  
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,pep->nconv,pep->nconv,NULL,&S0);CHKERRQ(ierr);
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,nq,pep->nconv,NULL,&S0);CHKERRQ(ierr);
     ierr = MatDenseGetArray(S0,&pS0);CHKERRQ(ierr);
     for (j=0;j<pep->nconv;j++) {
-      ierr = PetscMemcpy(pS0+j*pep->nconv,S+j*lds,pep->nconv*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscMemcpy(pS0+j*nq,S+j*lds,nq*sizeof(PetscScalar));CHKERRQ(ierr);
     }
     ierr = MatDenseRestoreArray(S0,&pS0);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pep->V,0,nq);CHKERRQ(ierr);
     ierr = BVMultInPlace(pep->V,S0,0,pep->nconv);CHKERRQ(ierr);
     ierr = MatDestroy(&S0);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
   }
   if (pep->refine!=PEP_REFINE_MULTIPLE || pep->rits==0) {
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
