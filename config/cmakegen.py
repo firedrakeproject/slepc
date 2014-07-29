@@ -259,7 +259,7 @@ def main(slepcdir,petscdir,petscdestdir,log=StdoutLogger(), verbose=False):
                ('eps'            , 'sys'),
                ('svd'            , 'eps sys'),
                ('pep'            , 'eps sys'),
-               ('nep'            , 'eps sys'),
+               ('nep'            , 'pep eps sys'),
                ('mfn'            , 'sys')]
     for pkg,deps in pkglist:
       writePackage(f,pkg,deps.split(),mistakes)
