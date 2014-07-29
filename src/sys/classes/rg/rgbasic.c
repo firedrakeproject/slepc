@@ -597,7 +597,6 @@ PetscErrorCode RGRegister(const char *name,PetscErrorCode (*function)(RG))
 }
 
 PETSC_EXTERN PetscErrorCode RGCreate_Interval(RG);
-/*PETSC_EXTERN PetscErrorCode RGCreate_Polygon(RG);*/
 PETSC_EXTERN PetscErrorCode RGCreate_Ellipse(RG);
 
 #undef __FUNCT__
@@ -616,7 +615,6 @@ PetscErrorCode RGRegisterAll(void)
   PetscFunctionBegin;
   RGRegisterAllCalled = PETSC_TRUE;
   ierr = RGRegister(RGINTERVAL,RGCreate_Interval);CHKERRQ(ierr);
-/*  ierr = RGRegister(RGPOLYGON,RGCreate_Polygon);CHKERRQ(ierr);*/
   ierr = RGRegister(RGELLIPSE,RGCreate_Ellipse);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

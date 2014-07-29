@@ -313,7 +313,7 @@ PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
 
    Input Parameters:
 +  bv   - basis vectors
--  v    - the vector
+.  v    - the vector
 -  type - the norm type
 
    Output Parameter:
@@ -361,7 +361,7 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
 
    Input Parameters:
 +  bv   - basis vectors
--  j    - column number to be used
+.  j    - column number to be used
 -  type - the norm type
 
    Output Parameter:
