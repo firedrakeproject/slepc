@@ -319,6 +319,10 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,PetscInt *nq,PetscSca
         }
       }
       H[j+1+ldh*j] = norm;
+    } else {
+      *M = j;
+      *nq = nqt;
+      PetscFunctionReturn(0);
     }
     *nq = nqt;
   }
