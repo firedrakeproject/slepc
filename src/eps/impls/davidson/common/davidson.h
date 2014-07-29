@@ -7,7 +7,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -280,14 +280,13 @@ PETSC_INTERN PetscErrorCode dvd_initV(dvdDashboard *d,dvdBlackboard *b,PetscInt 
 
 /* Routines for calcPairs step */
 PETSC_INTERN PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,PetscBool orth,PetscInt cX_proj,PetscBool harm);
+PETSC_INTERN PetscErrorCode dvd_harm_updateproj(dvdDashboard *d);
 
 /* Routines for improveX step */
 PETSC_INTERN PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs,PetscInt cX_impr,PetscBool dynamic);
 PETSC_INTERN PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d,dvdBlackboard *b,ProjType_t p);
 PETSC_INTERN PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d,dvdBlackboard *b,PetscInt maxits,PetscReal tol,PetscReal fix);
 PETSC_INTERN PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs);
-PETSC_INTERN PetscErrorCode dvd_improvex_get_eigenvectors(dvdDashboard *d,PetscScalar *pX,
-  PetscScalar *pY,PetscInt ld,PetscScalar *auxS,PetscInt size_auxS);
 
 /* Routines for testConv step */
 PETSC_INTERN PetscErrorCode dvd_testconv_basic(dvdDashboard *d,dvdBlackboard *b);

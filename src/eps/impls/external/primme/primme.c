@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -75,7 +75,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   PetscMPIInt    numProcs,procID;
   EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
   primme_params  *primme = &ops->primme;
-  PetscBool      flg;
+  PetscBool      istrivial,flg;
 
   PetscFunctionBegin;
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&numProcs);CHKERRQ(ierr);
@@ -90,6 +90,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
   if (eps->converged != EPSConvergedAbsolute) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only supports absolute convergence test");
+  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
   /* Set default sigma */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) {

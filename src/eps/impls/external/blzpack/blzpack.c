@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -70,7 +70,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   PetscErrorCode ierr;
   PetscInt       listor,lrstor,ncuv,k1,k2,k3,k4;
   EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
-  PetscBool      issinv,flg;
+  PetscBool      issinv,istrivial,flg;
 
   PetscFunctionBegin;
   if (eps->ncv) {
@@ -140,6 +140,8 @@ lrstor*=10;
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->V,BVVECS,&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
+  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
   /* dispatch solve method */
   eps->ops->solve = EPSSolve_BLZPACK;

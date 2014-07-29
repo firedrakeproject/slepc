@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -175,7 +175,7 @@ int main(int argc,char **argv)
       /*
         Get converged eigenpairs (in this example they are always real)
       */
-      ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
+      ierr = NEPGetEigenpair(nep,i,&lambda,NULL,x,NULL);CHKERRQ(ierr);
       ierr = FixSign(x);CHKERRQ(ierr);
       /*
          Compute residual norm and error

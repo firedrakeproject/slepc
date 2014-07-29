@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -48,7 +48,7 @@ static char help[] = "Delay differential equation.\n\n"
 int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */
-  PetscScalar    lambda;          /* eigenvalue */
+  PetscScalar    kr,ki;           /* eigenvalue */
   Mat            Id,A,B;          /* problem matrices */
   FN             f1,f2,f3;        /* functions to define the nonlinear operator */
   Mat            mats[3];
@@ -206,14 +206,14 @@ int main(int argc,char **argv)
          "           k              ||T(k)x||\n"
          "   ----------------- ------------------\n");CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
-      ierr = NEPGetEigenpair(nep,i,&lambda,NULL);CHKERRQ(ierr);
+      ierr = NEPGetEigenpair(nep,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
       ierr = NEPComputeRelativeError(nep,i,&norm);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(lambda);
-      im = PetscImaginaryPart(lambda);
+      re = PetscRealPart(kr);
+      im = PetscImaginaryPart(kr);
 #else
-      re = lambda;
-      im = 0.0;
+      re = kr;
+      im = ki;
 #endif
       if (im!=0.0) {
         ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12g\n",(double)re,(double)im,(double)norm);CHKERRQ(ierr);
