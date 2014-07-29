@@ -567,8 +567,8 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 
   ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr);
   /* Update polynomial basis coefficients */
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (pep->sfactor!=1) {
-    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
     for (i=0;i<nmat;i++) {
       pep->pbc[nmat+i] /= pep->sfactor;
       pep->pbc[2*nmat+i] /= pep->sfactor*pep->sfactor; 
@@ -579,6 +579,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       sigma /= pep->sfactor;
     }
   }
+  if (flg) sigma = 0.0;
   /* Get the starting Lanczos vector */
   if (pep->nini==0) {  
     ierr = BVSetRandomColumn(pep->V,0,pep->rand);CHKERRQ(ierr);
@@ -684,16 +685,15 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       ierr = DSRestoreArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
     }
     /* Update vectors V = V*S */  
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,nq,pep->nconv,NULL,&S0);CHKERRQ(ierr);
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,pep->nconv,pep->nconv,NULL,&S0);CHKERRQ(ierr);
     ierr = MatDenseGetArray(S0,&pS0);CHKERRQ(ierr);
     for (j=0;j<pep->nconv;j++) {
-      ierr = PetscMemcpy(pS0+j*nq,S+j*lds,nq*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscMemcpy(pS0+j*pep->nconv,S+j*lds,pep->nconv*sizeof(PetscScalar));CHKERRQ(ierr);
     }
     ierr = MatDenseRestoreArray(S0,&pS0);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pep->V,0,nq);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
     ierr = BVMultInPlace(pep->V,S0,0,pep->nconv);CHKERRQ(ierr);
     ierr = MatDestroy(&S0);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
   }
   if (pep->refine!=PEP_REFINE_MULTIPLE || pep->rits==0) {
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
