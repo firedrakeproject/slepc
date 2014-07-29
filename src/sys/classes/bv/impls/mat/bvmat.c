@@ -437,7 +437,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->dotvec           = BVDotVec_Mat;
   bv->ops->scale            = BVScale_Mat;
   bv->ops->norm             = BVNorm_Mat;
-  bv->ops->orthogonalize    = BVOrthogonalize_Mat;
+  /*bv->ops->orthogonalize    = BVOrthogonalize_Mat;*/
   bv->ops->matmult          = BVMatMult_Mat;
   bv->ops->copy             = BVCopy_Mat;
   bv->ops->resize           = BVResize_Mat;

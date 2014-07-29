@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = nepmon.c nepbasic.c nepdefault.c nepregis.c nepopts.c nepsetup.c nepsolve.c dlregisnep.c
+SOURCEC  = nepmon.c nepbasic.c nepdefault.c nepregis.c nepopts.c nepsetup.c nepsolve.c neprefine.c dlregisnep.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcnep

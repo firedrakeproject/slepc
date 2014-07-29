@@ -24,7 +24,7 @@
 #include <slepc-private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkct, 
+static PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkct, 
         PetscBLASInt *bsizes,PetscBLASInt *ranks,PetscBLASInt *cut,
         PetscBLASInt *lsum,PetscBLASInt *lblks,PetscBLASInt *info)
 {
@@ -114,6 +114,9 @@ PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkct,
 
   PetscFunctionBegin;
   *info = 0;
+  *lblks = 1;
+  *lsum = 1;
+  *cut = start;
 
   if (start < 1) {
     *info = -1;

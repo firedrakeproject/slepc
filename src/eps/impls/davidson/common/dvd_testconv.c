@@ -25,18 +25,14 @@
 
 #include "davidson.h"
 
-PetscBool dvd_testconv_basic_0(dvdDashboard *d, PetscScalar eigvr,
-                                PetscScalar eigvi, PetscReal r,
-                                PetscReal *err);
-PetscBool dvd_testconv_slepc_0(dvdDashboard *d, PetscScalar eigvr,
-                                PetscScalar eigvi, PetscReal r,
-                                PetscReal *err);
+static PetscBool dvd_testconv_basic_0(dvdDashboard*,PetscScalar,PetscScalar,PetscReal,PetscReal*);
+static PetscBool dvd_testconv_slepc_0(dvdDashboard*,PetscScalar,PetscScalar,PetscReal,PetscReal*);
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_testconv_basic"
 PetscErrorCode dvd_testconv_basic(dvdDashboard *d, dvdBlackboard *b)
 {
-  PetscErrorCode  ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   /* Setup the step */
@@ -49,12 +45,10 @@ PetscErrorCode dvd_testconv_basic(dvdDashboard *d, dvdBlackboard *b)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_testconv_basic_0"
-PetscBool dvd_testconv_basic_0(dvdDashboard *d, PetscScalar eigvr,
-                                PetscScalar eigvi, PetscReal r,
-                                PetscReal *err)
+static PetscBool dvd_testconv_basic_0(dvdDashboard *d,PetscScalar eigvr,PetscScalar eigvi,PetscReal r,PetscReal *err)
 {
-  PetscBool       conv;
-  PetscReal       eig_norm, errest;
+  PetscBool conv;
+  PetscReal eig_norm, errest;
 
   PetscFunctionBegin;
   eig_norm = SlepcAbsEigenvalue(eigvr, eigvi);
@@ -68,7 +62,7 @@ PetscBool dvd_testconv_basic_0(dvdDashboard *d, PetscScalar eigvr,
 #define __FUNCT__ "dvd_testconv_slepc"
 PetscErrorCode dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b)
 {
-  PetscErrorCode  ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   /* Setup the step */
@@ -81,11 +75,9 @@ PetscErrorCode dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b)
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_testconv_slepc_0"
-PetscBool dvd_testconv_slepc_0(dvdDashboard *d, PetscScalar eigvr,
-                                PetscScalar eigvi, PetscReal r,
-                                PetscReal *err)
+static PetscBool dvd_testconv_slepc_0(dvdDashboard *d,PetscScalar eigvr,PetscScalar eigvi,PetscReal r,PetscReal *err)
 {
-  PetscErrorCode  ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = (*d->eps->converged)(d->eps, eigvr, eigvi, r, err, d->eps->convergedctx);

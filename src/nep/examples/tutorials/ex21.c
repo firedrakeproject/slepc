@@ -182,7 +182,7 @@ int main(int argc,char **argv)
       /*
         Get converged eigenpairs (in this example they are always real)
       */
-      ierr = NEPGetEigenpair(nep,i,&lambda,NULL);CHKERRQ(ierr);
+      ierr = NEPGetEigenpair(nep,i,&lambda,NULL,NULL,NULL);CHKERRQ(ierr);
       /*
          Compute residual norm
       */

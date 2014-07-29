@@ -164,11 +164,12 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   PetscInt       i,j,n;
   PetscMPIInt    rank,size;
   KSP            ksp;
-  Mat            M,T;
+  Mat            M=NULL,T=NULL;
   MPI_Comm       comm;
-  Vec            r,v,dv,rr,dvv,t[2];
+  Vec            r,v,dv,rr=NULL,dvv=NULL,t[2];
   PetscScalar    *array,*array2,dh;
-  PetscReal      norm;
+  PetscReal      norm,error;
+  PetscBool      ini=PETSC_TRUE;
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
@@ -184,17 +185,22 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   ierr = MPI_Comm_rank(comm,&rank);CHKERRQ(ierr);
   ierr = VecGetLocalSize(r,&n);CHKERRQ(ierr);
   /* Loop performing iterative refinements */
-  for (i=0;i<*maxits;i++) {
-    for (j=0;j<k;j++) {
+  for (j=0;j<k;j++) {
 #if !defined(PETSC_USE_COMPLEX)
       if (pep->eigi[j]!=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Simple Refinement not implemented in real scalar for complex eigenvalues");
 #endif
-      ierr = PEPNSingRefSetUp(pep,pep->A,j,&M,&T,(j==0&&i==0)?PETSC_TRUE:PETSC_FALSE,t);CHKERRQ(ierr);
+    for (i=0;i<*maxits;i++) {
+      ierr = BVGetColumn(pep->V,j,&v);CHKERRQ(ierr);
+      ierr = PEPComputeRelativeError_Private(pep,pep->eigr[j],0.0,v,NULL,&error);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(pep->V,j,&v);CHKERRQ(ierr);
+      if (tol && error<=*tol) break;
+      ierr = PEPNSingRefSetUp(pep,pep->A,j,&M,&T,ini,t);CHKERRQ(ierr);
       ierr = KSPSetOperators(ksp,M,M);CHKERRQ(ierr);
-      if (i==0&&j==0) {
+      if (ini) {
         ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
         ierr = MatGetVecs(M,&dvv,NULL);CHKERRQ(ierr);
         ierr = VecDuplicate(dvv,&rr);CHKERRQ(ierr);
+        ini = PETSC_FALSE;
       }
       ierr = BVGetColumn(pep->V,j,&v);CHKERRQ(ierr);
       ierr = MatMult(T,v,r);CHKERRQ(ierr);

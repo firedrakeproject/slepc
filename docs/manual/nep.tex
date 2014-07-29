@@ -59,8 +59,8 @@ A sample code for solving a nonlinear eigenproblem with \ident{NEP} is shown in 
 \begin{Verbatim}[fontsize=\small,numbers=left,numbersep=6pt,xleftmargin=15mm]
 NEP         nep;       /*  eigensolver context */
 Mat         F, J;      /*  Function and Jacobian matrices  */
-Vec         x;         /*  eigenvector */
-PetscScalar lambda;    /*  eigenvalue */
+Vec         xr, xi;    /*  eigenvector, x       */
+PetscScalar kr, ki;    /*  eigenvalue, k        */
 ApplCtx     ctx;       /*  user-defined context */
 PetscInt    j, nconv;
 PetscReal   error;
@@ -73,7 +73,7 @@ NEPSetFromOptions( nep );
 NEPSolve( nep );
 NEPGetConverged( nep, &nconv );
 for (j=0; j<nconv; j++) {
-  NEPGetEigenpair( nep, j, &lambda, x );
+  NEPGetEigenpair( nep, j, &kr, &ki, xr, xi );
   NEPComputeRelativeError( nep, j, &error );
 }
 NEPDestroy( &nep );

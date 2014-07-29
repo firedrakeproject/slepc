@@ -24,7 +24,7 @@
 #include <slepc-private/stimpl.h>            /*I "slepcst.h" I*/
 
 PetscClassId     ST_CLASSID = 0;
-PetscLogEvent    ST_SetUp = 0,ST_Apply = 0,ST_ApplyTranspose = 0;
+PetscLogEvent    ST_SetUp = 0,ST_Apply = 0,ST_ApplyTranspose = 0,ST_MatSetUp = 0,ST_MatMult = 0,ST_MatMultTranspose = 0,ST_MatSolve = 0,ST_MatSolveTranspose = 0;
 static PetscBool STPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__
@@ -77,6 +77,11 @@ PetscErrorCode STInitializePackage(void)
   ierr = PetscLogEventRegister("STSetUp",ST_CLASSID,&ST_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STApply",ST_CLASSID,&ST_Apply);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STApplyTranspose",ST_CLASSID,&ST_ApplyTranspose);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STMatSetUp",ST_CLASSID,&ST_MatSetUp);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STMatMult",ST_CLASSID,&ST_MatMult);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STMatMultTranspose",ST_CLASSID,&ST_MatMultTranspose);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STMatSolve",ST_CLASSID,&ST_MatSolve);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STMatSolveTranspose",ST_CLASSID,&ST_MatSolveTranspose);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {

@@ -440,7 +440,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   bv->ops->dotvec           = BVDotVec_Svec;
   bv->ops->scale            = BVScale_Svec;
   bv->ops->norm             = BVNorm_Svec;
-  bv->ops->orthogonalize    = BVOrthogonalize_Svec;
+  /*bv->ops->orthogonalize    = BVOrthogonalize_Svec;*/
   bv->ops->matmult          = BVMatMult_Svec;
   bv->ops->copy             = BVCopy_Svec;
   bv->ops->resize           = BVResize_Svec;

@@ -170,7 +170,7 @@ PetscErrorCode PEPSetUp(PEP pep)
     /* compute matrix coefficients */
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
     if (!flg) {
-      ierr = STComputeSolveMat(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr);
+      ierr = STMatSetUp(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr);
     } else {
       if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Cannot use ST-transform with non-monomial basis in PEP");
     }

@@ -229,13 +229,13 @@ static PetscErrorCode NRefSysSolve_shell(Mat *A,KSP ksp,PetscInt nmat,Vec Rv,Pet
 /*
    Computes the residual P(H,V*S)*e_j for the polynomial
 */
-static PetscErrorCode NRefRightSide(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt k,BV V,PetscScalar *S,PetscInt lds,PetscInt j,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *DfH,PetscScalar *dH,BV dV,PetscScalar *dVS,Vec Rv,PetscScalar *Rh,BV W,Vec t,PetscScalar *work,PetscInt lw)
+static PetscErrorCode NRefRightSide(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt k,BV V,PetscScalar *S,PetscInt lds,PetscInt j,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *DfH,PetscScalar *dH,BV dV,PetscScalar *dVS,PetscInt rds,Vec Rv,PetscScalar *Rh,BV W,Vec t,PetscScalar *work,PetscInt lw)
 {
   PetscErrorCode ierr;
   PetscScalar    *DS0,*DS1,*F,beta=0.0,sone=1.0,none=-1.0,tt=0.0,*h,zero=0.0,*Z,*c0;
   PetscReal      *a=pcf,*b=pcf+nmat,*g=b+nmat;
   PetscInt       i,ii,jj,nwu=0,lda;
-  PetscBLASInt   lda_,k_,ldh_,lds_,nmat_,k2_,j_,one=1;
+  PetscBLASInt   lda_,k_,ldh_,lds_,nmat_,k2_,krds_,j_,one=1;
   Mat            M0;
   Vec            w;
   
@@ -245,6 +245,7 @@ static PetscErrorCode NRefRightSide(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
   lda = k*nmat;
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(lda,&lda_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(nmat,&nmat_);CHKERRQ(ierr);
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&nmat_,&k_,&sone,S,&lds_,fH+j*lda,&k_,&zero,h,&k_));
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,nmat,h,&M0);CHKERRQ(ierr);
@@ -267,7 +268,6 @@ static PetscErrorCode NRefRightSide(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
     nwu += k*k;
     DS1 = work+nwu;
     nwu += k*k;
-    ierr = PetscBLASIntCast(lda,&lda_);CHKERRQ(ierr); 
     ierr = PetscBLASIntCast(ldh,&ldh_);CHKERRQ(ierr); 
     Z = work+nwu;
     nwu += k*k;
@@ -297,13 +297,14 @@ static PetscErrorCode NRefRightSide(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
     /* Update right-hand side */
     ierr = PetscBLASIntCast(2*k,&k2_);CHKERRQ(ierr); 
     ierr = PetscBLASIntCast(j,&j_);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(k+rds,&krds_);CHKERRQ(ierr);
     c0 = DS0;
     ierr = PetscMemzero(Rh,k*sizeof(PetscScalar));
     for (i=0;i<nmat;i++) {
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&k2_,&j_,&sone,dVS,&k2_,fH+j*lda+i*k,&one,&zero,h,&one));
+      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&krds_,&j_,&sone,dVS,&k2_,fH+j*lda+i*k,&one,&zero,h,&one));
       PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&k_,&k_,&sone,S,&lds_,DfH+i*k+j*lda,&one,&sone,h,&one));
       ierr = BVMultVec(V,1.0,0.0,t,h);CHKERRQ(ierr);
-      ierr = BVSetActiveColumns(dV,0,j);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(dV,0,rds);CHKERRQ(ierr);
       ierr = BVMultVec(dV,1.0,1.0,t,h+k);CHKERRQ(ierr);
       ierr = BVGetColumn(W,i,&w);CHKERRQ(ierr);
       ierr = MatMult(A[i],t,w);CHKERRQ(ierr);
@@ -618,20 +619,20 @@ static PetscErrorCode NRefSysIter_explicit(PetscInt i,PEP pep,PetscInt k,KSP ksp
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPNRefForwardSubstitution"
-static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar *S,PetscInt lds,PetscScalar *H,PetscInt ldh,PetscScalar *fH,BV dV,PetscScalar *dVS,PetscScalar *dH,PetscInt lddh,KSP ksp,PetscScalar *work,PetscInt lw,MatExplicitCtx *matctx)
+static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar *S,PetscInt lds,PetscScalar *H,PetscInt ldh,PetscScalar *fH,BV dV,PetscScalar *dVS,PetscInt *rds,PetscScalar *dH,PetscInt lddh,KSP ksp,PetscScalar *work,PetscInt lw,MatExplicitCtx *matctx)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,nmat=pep->nmat,lwork=0,nwu=0,lda=nmat*k;
+  PetscInt       i,j,nmat=pep->nmat,nwu=0,lda=nmat*k;
   PetscScalar    h,*fh,*Rh,*DfH;
   PetscReal      norm;
   BV             W;
   Vec            Rv,t,dvi;
   FSubctx        *ctx;
   Mat            M,*At;
-  PetscBool      flg;
+  PetscBool      flg,lindep;
 
   PetscFunctionBegin;
-  lwork = (7+3*nmat)*k*k+2*k+nmat;
+  *rds = 0;
   DfH = work+nwu;
   nwu += nmat*k*k;
   Rh = work+nwu;
@@ -663,27 +664,30 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
 
     /* Compute and update i-th column of the right hand side */
     ierr = PetscMemzero(Rh,k*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = NRefRightSide(nmat,pep->pbc,At,k,pep->V,S,lds,i,H,ldh,fH,DfH,dH,dV,dVS,Rv,Rh,W,t,work+nwu,lwork-nwu);CHKERRQ(ierr);
+    ierr = NRefRightSide(nmat,pep->pbc,At,k,pep->V,S,lds,i,H,ldh,fH,DfH,dH,dV,dVS,*rds,Rv,Rh,W,t,work+nwu,lw-nwu);CHKERRQ(ierr);
 
     /* Update and solve system */
     ierr = BVGetColumn(dV,i,&dvi);CHKERRQ(ierr);
     if (matctx) {
-      ierr = NRefSysIter_explicit(i,pep,k,ksp,fH,S,lds,fh,H,ldh,Rv,Rh,pep->V,dvi,dH+i*k,matctx,W,work+nwu,lwork-nwu);CHKERRQ(ierr);
+      ierr = NRefSysIter_explicit(i,pep,k,ksp,fH,S,lds,fh,H,ldh,Rv,Rh,pep->V,dvi,dH+i*k,matctx,W,work+nwu,lw-nwu);CHKERRQ(ierr);
       if (i==0) matctx->computedt11 = PETSC_FALSE;
     } else {
       for (j=0;j<nmat;j++) fh[j] = fH[j*k+i+i*lda];
-      ierr = NRefSysIter_shell(pep,k,ksp,fH,S,lds,fh,h,Rv,Rh,pep->V,dvi,dH+i*k,W,t,work+nwu,lwork-nwu);
+      ierr = NRefSysIter_shell(pep,k,ksp,fH,S,lds,fh,h,Rv,Rh,pep->V,dvi,dH+i*k,W,t,work+nwu,lw-nwu);
     }
     /* Orthogonalize computed solution */
-    ierr = BVOrthogonalizeVec(pep->V,dvi,dVS+i*2*k,NULL,NULL);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeVec(pep->V,dvi,dVS+i*2*k,&norm,&lindep);CHKERRQ(ierr);
     ierr = BVRestoreColumn(dV,i,&dvi);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(dV,i,dVS+k+i*2*k,&norm,NULL);CHKERRQ(ierr);
-    dVS[k+i+i*2*k] = norm;
-    if (norm!=0.0) {
-      ierr = BVScaleColumn(dV,i,1.0/norm);CHKERRQ(ierr);
+    if (!lindep) {
+      ierr = BVOrthogonalizeColumn(dV,i,dVS+k+i*2*k,&norm,&lindep);CHKERRQ(ierr);
+      if (!lindep) {
+        dVS[k+i+i*2*k] = norm;
+        ierr = BVScaleColumn(dV,i,1.0/norm);CHKERRQ(ierr);
+        (*rds)++;
+      }
     }
   }
-  ierr = BVSetActiveColumns(dV,0,k);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(dV,0,*rds);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = VecDestroy(&Rv);CHKERRQ(ierr);
   ierr = BVDestroy(&W);CHKERRQ(ierr);
@@ -694,13 +698,78 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPNRefUpdateInvPair"
-static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *dH,PetscScalar *S,PetscInt lds,BV dV,PetscScalar *dVS,PetscScalar *work,PetscInt lwork)
+#define __FUNCT__ "NRefOrthogStep"
+PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscInt *prs,PetscScalar *work,PetscInt lwork)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,nmat=pep->nmat,deg=nmat-1,lda=nmat*k,nwu=0;
-  PetscScalar    *G,sone=1.0,*tau,*array;
-  PetscBLASInt   lds_,k_,lda_,ldh_,k2_,lw_,info,rG_;
+  PetscInt       i,j,nmat=pep->nmat,deg=nmat-1,lda=nmat*k,nwu=0,rs=*prs,ldg;
+  PetscScalar    *T,*G,*tau,*array,sone=1.0,zero=0.0;
+  PetscBLASInt   rs_,lds_,k_,ldh_,lw_,info,ldg_,lda_;
+  Mat            M0;
+
+  PetscFunctionBegin;
+  T = work+nwu;
+  nwu += rs*k;
+  tau = work+nwu;
+  nwu += k;
+  ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(lda,&lda_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(lwork-nwu,&lw_);CHKERRQ(ierr);
+  if (rs>k) { /* Truncate S to have k columns*/
+    for (j=0;j<k;j++) {
+      ierr = PetscMemcpy(T+j*rs,S+j*lds,rs*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = PetscBLASIntCast(rs,&rs_);CHKERRQ(ierr);
+    PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&rs_,&k_,T,&rs_,tau,work+nwu,&lw_,&info));
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
+    /* Copy triangular matrix in S */
+    ierr = PetscMemzero(S,lds*k*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (j=0;j<k;j++) for (i=0;i<=j;i++) S[j*lds+i] = T[j*rs+i];
+    PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&rs_,&k_,&k_,T,&rs_,tau,work+nwu,&lw_,&info));
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs,k,NULL,&M0);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(M0,&array);CHKERRQ(ierr);
+    for (j=0;j<k;j++) {
+      ierr = PetscMemcpy(array+j*rs,T+j*rs,rs*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(M0,&array);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pep->V,0,rs);CHKERRQ(ierr);
+    ierr = BVMultInPlace(pep->V,M0,0,k);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pep->V,0,k);CHKERRQ(ierr);
+    ierr = MatDestroy(&M0);CHKERRQ(ierr);
+    *prs = rs = k;
+  }
+  /* Form auxiliary matrix for the orthogonalization step */
+  G = work+nwu;
+  ldg = deg*k;
+  nwu += ldg*k;
+  ierr = PEPEvaluateBasisforMatrix(pep,nmat,k,H,ldh,fH);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ldg,&ldg_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(lwork-nwu,&lw_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ldh,&ldh_);CHKERRQ(ierr);
+  for (j=0;j<deg;j++) {
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&sone,S,&lds_,fH+j*k,&lda_,&zero,G+j*k,&ldg_));
+  }
+  /* Orthogonalize and update S */
+  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&ldg_,&k_,G,&ldg_,tau,work+nwu,&lw_,&info));
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
+  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&k_,&k_,&sone,G,&ldg_,S,&lds_));
+
+  /* Update H */
+  PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&k_,&k_,&sone,G,&ldg_,H,&ldh_));
+  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&k_,&k_,&sone,G,&ldg_,H,&ldh_));
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPNRefUpdateInvPair"
+static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *dH,PetscScalar *S,PetscInt lds,BV dV,PetscScalar *dVS,PetscInt rds,PetscScalar *work,PetscInt lwork)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,j,nmat=pep->nmat,lda=nmat*k,nwu=0;
+  PetscScalar    *tau,*array;
+  PetscBLASInt   lds_,k_,lda_,ldh_,kdrs_,lw_,info,k2_;
   Mat            M0;
 
   PetscFunctionBegin;
@@ -709,9 +778,9 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lda,&lda_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldh,&ldh_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast((nmat-1)*k,&rG_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(2*k,&k2_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast((k+rds),&kdrs_);CHKERRQ(ierr);
   /* Update H */
   for (j=0;j<k;j++) {
     for (i=0;i<k;i++) H[i+j*ldh] -= dH[i+j*k];
@@ -722,7 +791,7 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
     for (i=k;i<2*k;i++) dVS[i+j*2*k] = -dVS[i+j*2*k];
   }
   ierr = PetscBLASIntCast(lwork-nwu,&lw_);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&k2_,&k_,dVS,&k2_,tau,work+nwu,&lw_,&info));
+  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&kdrs_,&k_,dVS,&k2_,tau,work+nwu,&lw_,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
   /* Copy triangular matrix in S */
   for (j=0;j<k;j++) {
@@ -731,7 +800,6 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
   }
   PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&k2_,&k_,&k_,dVS,&k2_,tau,work+nwu,&lw_,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
-
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M0);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M0,&array);CHKERRQ(ierr);
   for (j=0;j<k;j++) {
@@ -739,30 +807,17 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
   }
   ierr = MatDenseRestoreArray(M0,&array);CHKERRQ(ierr);
   ierr = BVMultInPlace(pep->V,M0,0,k);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(M0,&array);CHKERRQ(ierr);
-  for (j=0;j<k;j++) {
-    ierr = PetscMemcpy(array+j*k,dVS+k+j*2*k,k*sizeof(PetscScalar));CHKERRQ(ierr);
+  if (rds) {
+    ierr = MatDenseGetArray(M0,&array);CHKERRQ(ierr);
+    for (j=0;j<k;j++) {
+      ierr = PetscMemcpy(array+j*k,dVS+k+j*2*k,rds*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(M0,&array);CHKERRQ(ierr);
+    ierr = BVMultInPlace(dV,M0,0,k);CHKERRQ(ierr);
+    ierr = MatDestroy(&M0);CHKERRQ(ierr);
+    ierr = BVAXPY(pep->V,1.0,dV);CHKERRQ(ierr);
   }
-  ierr = MatDenseRestoreArray(M0,&array);CHKERRQ(ierr);
-  ierr = BVMultInPlace(dV,M0,0,k);CHKERRQ(ierr);
-  ierr = MatDestroy(&M0);CHKERRQ(ierr);
-  ierr = BVAXPY(pep->V,1.0,dV);CHKERRQ(ierr);
-
-  /* Form auxiliary matrix for the orthogonalization step */
-  ierr = PEPEvaluateBasisforMatrix(pep,nmat,k,H,ldh,fH);CHKERRQ(ierr);
-  G = fH;
-  for (j=0;j<deg;j++) {
-    PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&k_,&k_,&sone,S,&lds_,G+j*k,&lda_)); 
-  }
-
-  /* Orthogonalize and update S */
-  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&rG_,&k_,G,&lda_,tau,work+nwu,&lw_,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
-  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&k_,&k_,&sone,G,&lda_,S,&lds_));
-
-  /* Update H */
-  PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&k_,&k_,&sone,G,&lda_,H,&ldh_));
-  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&k_,&k_,&sone,G,&lda_,H,&ldh_));
+  ierr = NRefOrthogStep(pep,k,H,ldh,fH,S,lds,&k,work,lwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1022,7 +1077,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
 
 #undef __FUNCT__
 #define __FUNCT__ "NRefSubcommDestroy"
-PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
+static PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -1051,11 +1106,11 @@ PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPNewtonRefinement_TOAR"
-PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,PetscInt k,PetscScalar *S,PetscInt lds)
+PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxits,PetscReal *tol,PetscInt k,PetscScalar *S,PetscInt lds,PetscInt *prs)
 {
   PetscErrorCode ierr;
   PetscScalar    *H,*work,*dH,*fH,*dVS;
-  PetscInt       ldh,i,j,its=1,nmat=pep->nmat,nwu=0,lwa=0,nsubc=pep->npart;
+  PetscInt       ldh,i,j,its=1,nmat=pep->nmat,nwu=0,lwa=0,nsubc=pep->npart,rds;
   PetscLogDouble cnt;
   PetscBLASInt   k_,ld_,*p,info,lwork=0;
   BV             dV;
@@ -1069,12 +1124,16 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
+  if (k > pep->n) SETERRQ1(PetscObjectComm((PetscObject)pep),1,"Multiple Refinement available only for invariant pairs of dimension smaller than n=%D",pep->n);
   /* the input tolerance is not being taken into account (by the moment) */
   its = *maxits;
   lwa = (5+3*nmat)*k*k+2*k;
-  ierr = PetscMalloc4(k*k,&dH,2*k*k,&dVS,nmat*k*k,&fH,lwa,&work);CHKERRQ(ierr);
-  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  ierr = PetscMalloc3(k*k,&dH,nmat*k*k,&fH,lwa,&work);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(pep->ds,&ldh);CHKERRQ(ierr);
+  ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+  ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+  ierr = PetscMalloc1(2*k*k,&dVS);CHKERRQ(ierr);
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg && pep->st && pep->st->ops->backtransform) { /* STBackTransform */
     ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(ldh,&ld_);CHKERRQ(ierr);
@@ -1088,9 +1147,9 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
       ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
       pep->st->ops->backtransform = NULL;
     }
-    if (pep->target!=0.0) {
+    if (sigma!=0.0) {
       ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-      for (i=0;i<k;i++) H[i+ldh*i] += pep->target;
+      for (i=0;i<k;i++) H[i+ldh*i] += sigma; 
       ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
       pep->st->ops->backtransform = NULL;
     }
@@ -1102,8 +1161,6 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
     }
     ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     if (!flg) {
-      pep->target *= pep->sfactor;
-      pep->st->sigma *= pep->sfactor;
       /* Restore original values */
       for (i=0;i<pep->nmat;i++){
         pep->pbc[pep->nmat+i] *= pep->sfactor;
@@ -1120,6 +1177,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
   }
   ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
 
+  ierr = NRefOrthogStep(pep,k,H,ldh,fH,S,lds,prs,work,lwa);CHKERRQ(ierr);
   /* check if H is in Schur form */
   for (i=0;i<k-1;i++) {
     if (H[i+1+i*ldh]!=0.0) {
@@ -1160,15 +1218,16 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscInt *maxits,PetscReal *tol,
       ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
     }
     /* Solve the linear system */
-    ierr = PEPNRefForwardSubstitution(pep,k,S,lds,H,ldh,fH,dV,dVS,dH,k,ksp,work+nwu,lwa-nwu,matctx);CHKERRQ(ierr);
+    ierr = PEPNRefForwardSubstitution(pep,k,S,lds,H,ldh,fH,dV,dVS,&rds,dH,k,ksp,work+nwu,lwa-nwu,matctx);CHKERRQ(ierr);
     /* Update X (=V*S) and H, and orthogonalize [X;X*fH1;...;XfH(deg-1)] */
-    ierr = PEPNRefUpdateInvPair(pep,k,H,ldh,fH,dH,S,lds,dV,dVS,work+nwu,lwa-nwu);CHKERRQ(ierr);    
+    ierr = PEPNRefUpdateInvPair(pep,k,H,ldh,fH,dH,S,lds,dV,dVS,rds,work+nwu,lwa-nwu);CHKERRQ(ierr);    
   }
   ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);  
   if (!flg && sinvert) {
     ierr = PetscFree(p);CHKERRQ(ierr);
   }
-  ierr = PetscFree4(dH,dVS,fH,work);CHKERRQ(ierr);
+  ierr = PetscFree3(dH,fH,work);CHKERRQ(ierr);
+  ierr = PetscFree(dVS);CHKERRQ(ierr);
   ierr = BVDestroy(&dV);CHKERRQ(ierr);
   if (!pep->schur) {
     for (i=0;i<2;i++) {

@@ -477,13 +477,30 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STComputeSolveMat"
-/*
-  Forces ST to compute the matrix st->P (matrix which is used in the STMatSolve call) 
+#define __FUNCT__ "STMatSetUp"
+/*@
+   STMatSetUp - Build the preconditioner matrix used in STMatSolve().
+
+   Collective on ST
+
+   Input Parameters:
++  st     - the spectral transformation context
+.  sigma  - the shift
+-  coeffs - the coefficients
+
+   Note:
+   This function is not intended to be called by end users, but by SLEPc
+   solvers that use ST. It builds matrix st->P as follows, then calls KSPSetUp().
+.vb
     If (coeffs):  st->P = Sum_{i=0:nmat-1} coeffs[i]*sigma^i*A_i.
     else          st->P = Sum_{i=0:nmat-1} sigma^i*A_i
-*/
-PetscErrorCode STComputeSolveMat(ST st,PetscScalar sigma,PetscScalar *coeffs)
+.ve
+
+   Level: developer
+
+.seealso: STMatSolve()
+@*/
+PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
 {
   PetscErrorCode ierr;
 
@@ -493,10 +510,12 @@ PetscErrorCode STComputeSolveMat(ST st,PetscScalar sigma,PetscScalar *coeffs)
   PetscValidScalarPointer(coeffs,2);
   STCheckMatrices(st,1);
 
+  ierr = PetscLogEventBegin(ST_MatSetUp,st,0,0,0);CHKERRQ(ierr);
   ierr = STMatMAXPY_Private(st,sigma,0.0,0,coeffs,PETSC_TRUE,&st->P);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(ST_MatSetUp,st,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

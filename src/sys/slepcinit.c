@@ -58,7 +58,7 @@ PetscErrorCode SlepcGetVersion(char version[],size_t len)
 
    Collective on MPI_Comm
 */
-PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
+static PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 {
   PetscErrorCode ierr;
   char           version[256];
@@ -80,7 +80,7 @@ PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 
    Collective on MPI_Comm
 */
-PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
+static PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 {
   PetscErrorCode  ierr;
 

@@ -970,7 +970,7 @@ PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
    Logically Collective on PEP
 
    Input Parameters:
-+  pep    - the eigensolver context
++  pep    - the polynomial eigensolver context
 .  refine - refinement type
 .  npart  - number of partitions of the communicator
 .  tol    - the convergence tolerance
@@ -1059,7 +1059,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
    Not Collective
 
    Input Parameter:
-.  pep - the eigensolver context
+.  pep - the polynomial eigensolver context
 
    Output Parameters:
 +  refine - refinement type

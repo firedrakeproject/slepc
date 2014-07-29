@@ -1,5 +1,5 @@
 /*
-   User interface for various vector operations added in SLEPc.
+   Newton refinement for NEP, simple version.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -21,18 +21,18 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(__SLEPCVEC_H)
-#define __SLEPCVEC_H
-#include <slepcsys.h>
-#include <petscmat.h>
+#include <slepc-private/nepimpl.h>
+#include <slepcblaslapack.h>
 
-/* VecComp: Vec composed of several smaller Vecs */
-#define VECCOMP  "comp"
+#undef __FUNCT__
+#define __FUNCT__ "NEPNewtonRefinementSimple"
+PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol,PetscInt k)
+{
+  PetscErrorCode ierr;
 
-PETSC_EXTERN PetscErrorCode VecCreateComp(MPI_Comm,PetscInt*,PetscInt,VecType,Vec,Vec*);
-PETSC_EXTERN PetscErrorCode VecCreateCompWithVecs(Vec*,PetscInt,Vec,Vec*);
-PETSC_EXTERN PetscErrorCode VecCompGetSubVecs(Vec,PetscInt*,const Vec**);
-PETSC_EXTERN PetscErrorCode VecCompSetSubVecs(Vec,PetscInt,Vec*);
-
-#endif
+  PetscFunctionBegin;
+  ierr = PetscLogEventBegin(NEP_Refine,nep,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(NEP_Refine,nep,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 

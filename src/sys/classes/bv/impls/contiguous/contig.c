@@ -348,7 +348,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->dotvec           = BVDotVec_Contiguous;
   bv->ops->scale            = BVScale_Contiguous;
   bv->ops->norm             = BVNorm_Contiguous;
-  bv->ops->orthogonalize    = BVOrthogonalize_Contiguous;
+  /*bv->ops->orthogonalize    = BVOrthogonalize_Contiguous;*/
   bv->ops->matmult          = BVMatMult_Contiguous;
   bv->ops->copy             = BVCopy_Contiguous;
   bv->ops->resize           = BVResize_Contiguous;
