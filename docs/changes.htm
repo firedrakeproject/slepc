@@ -322,14 +322,22 @@ Changes in Version 3.5</font></b>
   <li><font size="2" face="Arial, Helvetica, sans-serif">
     A new solver class PEP for polynomial eigenvalue problems has been added.
     It replaces the former QEP class, that has been removed.
+    PEP contains a new solver TOAR that can handle polynomials of arbitrary
+    degree. Q-Lanczos has been removed since it did not have guaranteed stability.
     </font></li>
   <li><font size="2" face="Arial, Helvetica, sans-serif">
-    The auxiliary object IP has been removed and a new object BV has been
-    added that subsumes its functionality.
+    New NEP solver: polynomial interpolation using PEP.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Added Newton iterative refinement in both PEP and NEP.
     </font></li>
   <li><font size="2" face="Arial, Helvetica, sans-serif">
     A new auxiliary class RG allows the user to define a region in the complex plane.
     This can be used for filtering out unwanted eigenvalues in EPS and PEP.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    The auxiliary object IP has been removed and a new object BV has been
+    added that subsumes its functionality.
     </font></li>
   <li><font size="2" face="Arial, Helvetica, sans-serif">
     Support for requesting left eigenvectors has been removed, since none of the
@@ -342,7 +350,7 @@ Changes in Version 3.5</font></b>
   <li><font size="2" face="Arial, Helvetica, sans-serif">
     Interface changes: SVDSetTransposeMode has been renamed to SVDSetImplicitTranspose;
     in STSHIFT the sign of sigma is the opposite to previous versions.
-    </font></li>
+    EPSJDSetBOrth now takes a boolean argument instead of an enum.</font></li>
 </ul>
 
 <p>
