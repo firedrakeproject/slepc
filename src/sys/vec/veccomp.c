@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -290,7 +290,6 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
     lN = n->lN;
     s->n = n;
     s->n->friends++;
-    s->n->n = nx;
   }
 
   /* Set the virtual sizes as the real sizes of the vector */
@@ -406,7 +405,11 @@ PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V)
   ierr = PetscMalloc1(s->nx,&x);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)*V,s->nx*sizeof(Vec));CHKERRQ(ierr);
   for (i=0;i<s->nx;i++) {
-    ierr = VecDuplicate(s->x[i],&x[i]);CHKERRQ(ierr);
+    if (s->x[i]) {
+      ierr = VecDuplicate(s->x[i],&x[i]);CHKERRQ(ierr);
+    } else {
+      x[i] = NULL;
+    }
   }
   ierr = VecCreate_Comp_Private(*V,x,s->nx,PETSC_TRUE,s->n);CHKERRQ(ierr);
   PetscFunctionReturn(0);

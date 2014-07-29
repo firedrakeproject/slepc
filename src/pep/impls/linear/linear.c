@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -33,7 +33,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
   PetscInt       i=0;
   EPSWhich       which;
-  PetscBool      trackall,flg;
+  PetscBool      trackall,istrivial,flg;
   PetscScalar    sigma;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,PEP_LINEAR*,Mat*) = {
@@ -138,6 +138,8 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
   ierr = EPSSetDimensions(ctx->eps,pep->nev,pep->ncv?pep->ncv:PETSC_DEFAULT,pep->mpd?pep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:pep->tol/10.0,pep->max_it?pep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) { ierr = EPSSetRG(ctx->eps,pep->rg);CHKERRQ(ierr); }
   /* Transfer the trackall option from pep to eps */
   ierr = PEPGetTrackAll(pep,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(ctx->eps,trackall);CHKERRQ(ierr);

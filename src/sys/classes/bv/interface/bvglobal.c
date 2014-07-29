@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -313,7 +313,7 @@ PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
 
    Input Parameters:
 +  bv   - basis vectors
--  v    - the vector
+.  v    - the vector
 -  type - the norm type
 
    Output Parameter:
@@ -361,7 +361,7 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
 
    Input Parameters:
 +  bv   - basis vectors
--  j    - column number to be used
+.  j    - column number to be used
 -  type - the norm type
 
    Output Parameter:

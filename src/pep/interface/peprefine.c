@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -24,6 +24,7 @@
 #include <slepc-private/pepimpl.h>
 #include <slepcblaslapack.h>
 
+#define NREF_MAXIT 100
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPEvaluateFunctionDerivatives"
@@ -47,8 +48,8 @@ static PetscErrorCode PEPEvaluateFunctionDerivatives(PEP pep,PetscScalar alpha,P
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPNSingRefSetUp"
-PetscErrorCode PEPNSingRefSetUp(PEP pep,Mat *A,PetscInt idx,Mat *M,Mat *T,PetscBool ini,Vec *t)
+#define __FUNCT__ "PEPNSimpleRefSetUp"
+PetscErrorCode PEPNSimpleRefSetUp(PEP pep,Mat *A,PetscInt idx,Mat *M,Mat *T,PetscBool ini,Vec *t)
 {
   PetscErrorCode    ierr;
   PetscInt          i,nmat=pep->nmat,ml,m0,m1,mg;
@@ -161,17 +162,19 @@ PetscErrorCode PEPNSingRefSetUp(PEP pep,Mat *A,PetscInt idx,Mat *M,Mat *T,PetscB
 PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol,PetscInt k)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,n;
+  PetscInt       i,j,n,its;
   PetscMPIInt    rank,size;
   KSP            ksp;
-  Mat            M,T;
+  Mat            M=NULL,T=NULL;
   MPI_Comm       comm;
-  Vec            r,v,dv,rr,dvv,t[2];
+  Vec            r,v,dv,rr=NULL,dvv=NULL,t[2];
   PetscScalar    *array,*array2,dh;
-  PetscReal      norm;
+  PetscReal      norm,error;
+  PetscBool      ini=PETSC_TRUE;
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
+  its = (maxits)?*maxits:NREF_MAXIT;
   comm = PetscObjectComm((PetscObject)pep);
   ierr = KSPCreate(comm,&ksp);
   ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
@@ -184,17 +187,24 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   ierr = MPI_Comm_rank(comm,&rank);CHKERRQ(ierr);
   ierr = VecGetLocalSize(r,&n);CHKERRQ(ierr);
   /* Loop performing iterative refinements */
-  for (i=0;i<*maxits;i++) {
-    for (j=0;j<k;j++) {
+  for (j=0;j<k;j++) {
 #if !defined(PETSC_USE_COMPLEX)
       if (pep->eigi[j]!=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Simple Refinement not implemented in real scalar for complex eigenvalues");
 #endif
-      ierr = PEPNSingRefSetUp(pep,pep->A,j,&M,&T,(j==0&&i==0)?PETSC_TRUE:PETSC_FALSE,t);CHKERRQ(ierr);
+    for (i=0;i<its;i++) {
+      if (tol) {
+        ierr = BVGetColumn(pep->V,j,&v);CHKERRQ(ierr);
+        ierr = PEPComputeRelativeError_Private(pep,pep->eigr[j],0.0,v,NULL,&error);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(pep->V,j,&v);CHKERRQ(ierr);
+        if (error<=*tol) break;
+      }
+      ierr = PEPNSimpleRefSetUp(pep,pep->A,j,&M,&T,ini,t);CHKERRQ(ierr);
       ierr = KSPSetOperators(ksp,M,M);CHKERRQ(ierr);
-      if (i==0&&j==0) {
+      if (ini) {
         ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
         ierr = MatGetVecs(M,&dvv,NULL);CHKERRQ(ierr);
         ierr = VecDuplicate(dvv,&rr);CHKERRQ(ierr);
+        ini = PETSC_FALSE;
       }
       ierr = BVGetColumn(pep->V,j,&v);CHKERRQ(ierr);
       ierr = MatMult(T,v,r);CHKERRQ(ierr);

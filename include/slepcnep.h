@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -146,7 +146,7 @@ PETSC_EXTERN PetscErrorCode NEPSetConstCorrectionTol(NEP,PetscBool);
 PETSC_EXTERN PetscErrorCode NEPGetConstCorrectionTol(NEP,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode NEPGetConverged(NEP,PetscInt*);
-PETSC_EXTERN PetscErrorCode NEPGetEigenpair(NEP,PetscInt,PetscScalar*,Vec);
+PETSC_EXTERN PetscErrorCode NEPGetEigenpair(NEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
 
 PETSC_EXTERN PetscErrorCode NEPComputeRelativeError(NEP,PetscInt,PetscReal*);
 PETSC_EXTERN PetscErrorCode NEPComputeResidualNorm(NEP,PetscInt,PetscReal*);
