@@ -578,7 +578,9 @@ PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *norm)
   ierr = BVGetVec(nep->V,&xr);CHKERRQ(ierr);
   ierr = BVGetVec(nep->V,&xi);CHKERRQ(ierr);
   ierr = NEPGetEigenpair(nep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
   if (ki) SETERRQ(PETSC_COMM_SELF,1,"Not implemented for complex eigenvalues with real scalars");
+#endif
   ierr = NEPComputeResidualNorm_Private(nep,kr,xr,norm);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
@@ -642,7 +644,9 @@ PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *error)
   ierr = BVGetVec(nep->V,&xr);CHKERRQ(ierr);
   ierr = BVGetVec(nep->V,&xi);CHKERRQ(ierr);
   ierr = NEPGetEigenpair(nep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
   if (ki) SETERRQ(PETSC_COMM_SELF,1,"Not implemented for complex eigenvalues with real scalars");
+#endif
   ierr = NEPComputeRelativeError_Private(nep,kr,xr,error);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
