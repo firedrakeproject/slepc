@@ -30,6 +30,7 @@ int main(int argc,char **argv)
   Mat                A,B;         /* problem matrix */
   EPS                eps;         /* eigenproblem solver context */
   ST                 st;
+  KSP                ksp;
   DS                 ds;
   PetscReal          cut,tol;
   PetscScalar        target;
@@ -114,6 +115,8 @@ int main(int argc,char **argv)
   ierr = EPSMonitorCancel(eps);CHKERRQ(ierr);
 
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
+  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
+  ierr = KSPSetTolerances(ksp,1e-8,1e-50,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = STView(st,NULL);CHKERRQ(ierr);
   ierr = EPSGetDS(eps,&ds);CHKERRQ(ierr);
   ierr = DSView(ds,NULL);CHKERRQ(ierr);
