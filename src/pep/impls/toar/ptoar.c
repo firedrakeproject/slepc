@@ -502,7 +502,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     if (norm<1) {
       /* Copy last block of S to the first one */
       for (j=0;j<k;j++) {
-        ierr = PetscMemcpy(S+j*lds,S+(d-1)*ld+j*lds,k*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemcpy(S+j*lds,S+(d-1)*ld+j*lds,sr*sizeof(PetscScalar));CHKERRQ(ierr);
       }
     }
     break;
