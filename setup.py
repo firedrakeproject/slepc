@@ -82,7 +82,7 @@ def bootstrap():
     if ('setuptools' in sys.modules):
         metadata['zip_safe'] = False
         if not PETSC_DIR:
-            metadata['install_requires']= ['petsc>=3.4,<3.5']
+            metadata['install_requires']= ['petsc>=3.5,<3.6']
 
 def get_petsc_dir():
     PETSC_DIR = os.environ.get('PETSC_DIR')
@@ -115,11 +115,11 @@ def build(dry_run=False):
     log.info('SLEPc: build')
     if dry_run: return
     # Run SLEPc build
+    PETSC_ARCH = get_petsc_arch() or ''
+    if PETSC_ARCH: PETSC_ARCH = 'PETSC_ARCH=' + PETSC_ARCH
     status = os.system(" ".join((
-            find_executable('make'),
-            'PETSC_DIR='+get_petsc_dir(),
-            'PETSC_ARCH='+get_petsc_arch(),
-            'all',
+            find_executable('make'), 'all',
+            'PETSC_DIR='+get_petsc_dir(), PETSC_ARCH,
             )))
     if status != 0: raise RuntimeError
 
@@ -128,14 +128,13 @@ def install(dest_dir, prefix=None, dry_run=False):
     if dry_run: return
     if prefix is None:
         prefix = dest_dir
-    PETSC_ARCH = get_petsc_arch()
     # Run SLEPc install
+    PETSC_ARCH = get_petsc_arch() or ''
+    if PETSC_ARCH: PETSC_ARCH = 'PETSC_ARCH=' + PETSC_ARCH
     status = os.system(" ".join((
-            find_executable('make'),
-            'PETSC_DIR='+get_petsc_dir(),
-            'PETSC_ARCH='+get_petsc_arch(),
+            find_executable('make'), 'install'
+            'PETSC_DIR='+get_petsc_dir(), PETSC_ARCH,
             'SLEPC_DESTDIR='+dest_dir,
-            'install',
             )))
     if status != 0: raise RuntimeError
     slepcvariables = os.path.join(dest_dir, 'conf', 'slepcvariables')
@@ -160,7 +159,7 @@ class cmd_build(_build):
 
     def initialize_options(self):
         _build.initialize_options(self)
-        PETSC_ARCH = os.environ.get('PETSC_ARCH')
+        PETSC_ARCH = os.environ.get('PETSC_ARCH', '')
         self.build_base = os.path.join(PETSC_ARCH, 'build-python')
 
     def run(self):
@@ -198,7 +197,7 @@ class cmd_install(_install):
             ctx.exit()
 
 manifest_in = """\
-include makefile
+include makefile gmakefile
 recursive-include config *.py
 
 recursive-include share/slepc/matlab *
