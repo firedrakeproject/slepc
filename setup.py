@@ -67,7 +67,7 @@ def bootstrap():
         PETSC_ARCH = None
         try: del os.environ['PETSC_ARCH']
         except KeyError: pass
-    elif not isdir(join(PETSC_DIR, PETSC_ARCH)):
+    elif not (PETSC_ARCH and isdir(join(PETSC_DIR, PETSC_ARCH))):
         PETSC_ARCH = None
         try: del os.environ['PETSC_ARCH']
         except KeyError: pass
@@ -118,8 +118,9 @@ def build(dry_run=False):
     PETSC_ARCH = get_petsc_arch() or ''
     if PETSC_ARCH: PETSC_ARCH = 'PETSC_ARCH=' + PETSC_ARCH
     status = os.system(" ".join((
-            find_executable('make'), 'all',
+            find_executable('make'),
             'PETSC_DIR='+get_petsc_dir(), PETSC_ARCH,
+            'all',
             )))
     if status != 0: raise RuntimeError
 
@@ -132,9 +133,10 @@ def install(dest_dir, prefix=None, dry_run=False):
     PETSC_ARCH = get_petsc_arch() or ''
     if PETSC_ARCH: PETSC_ARCH = 'PETSC_ARCH=' + PETSC_ARCH
     status = os.system(" ".join((
-            find_executable('make'), 'install'
+            find_executable('make'),
             'PETSC_DIR='+get_petsc_dir(), PETSC_ARCH,
             'SLEPC_DESTDIR='+dest_dir,
+            'install',
             )))
     if status != 0: raise RuntimeError
     slepcvariables = os.path.join(dest_dir, 'conf', 'slepcvariables')
