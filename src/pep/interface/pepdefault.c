@@ -292,10 +292,10 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
 PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscInt       it,i,j,k,nmat,nr,e,nz,lst,lend,nc=0,*cols;
+  PetscInt       it,i,j,k,nmat,nr,e,nz,lst,lend,nc=0,*cols,emax,emin,emaxl,eminl;
   const PetscInt *cidx,*ridx;
   Mat            M,*T,A;
-  PetscMPIInt    emax,emin,emaxl,eminl,n;
+  PetscMPIInt    n;
   PetscBool      cont=PETSC_TRUE,flg=PETSC_FALSE;
   PetscScalar    *array,*Dr,*Dl,t;
   PetscReal      l2,d,*rsum,*aux,*csum,w=1.0;
@@ -380,7 +380,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
       for (j=0;j<nz;j++) aux[cidx[j]] += PetscAbsScalar(array[j]);
       ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr); 
     }
-    ierr = MPI_Allreduce(aux,csum,n,MPIU_REAL,MPI_SUM,PetscObjectComm((PetscObject)pep->Dr));
+    ierr = MPI_Allreduce(aux,csum,n,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)pep->Dr));
     /* Update Dr */
     for (j=lst;j<lend;j++) {
       d = PetscLogReal(csum[j])/l2;
@@ -422,8 +422,8 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     }
     ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);  
     /* Compute global max and min */
-    ierr = MPI_Allreduce(&emaxl,&emax,1,MPIU_INT,MPI_MAX,PetscObjectComm((PetscObject)pep->Dl));
-    ierr = MPI_Allreduce(&eminl,&emin,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)pep->Dl));
+    ierr = MPI_Allreduce(&emaxl,&emax,1,MPIU_INT,MPIU_MAX,PetscObjectComm((PetscObject)pep->Dl));
+    ierr = MPI_Allreduce(&eminl,&emin,1,MPIU_INT,MPIU_MIN,PetscObjectComm((PetscObject)pep->Dl));
     if (emax<=emin+2) cont = PETSC_FALSE;
   }
   ierr = VecRestoreArray(pep->Dr,&Dr);CHKERRQ(ierr);

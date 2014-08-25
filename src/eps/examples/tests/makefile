@@ -258,7 +258,7 @@ runtest9_1:
 	-@test=test9_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps"; \
-	   if [ "$$eps" = "krylovschur" ]; then EXTRA="-eps_ncv 7"; \
+	   if [ "$$eps" = "krylovschur" -o "$$eps" = "arnoldi" ]; then EXTRA="-eps_ncv 7 -eps_max_it 300"; \
 	   elif [ "$$eps" = jd ]; then EXTRA="-st_ksp_type cg"; \
            else EXTRA=""; fi; \
 	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
@@ -300,12 +300,11 @@ testtest10: test10.PETSc
 
 runtest11_1:
 	-@test=test11_1; \
-	for eps in ${EPSNS}; do \
+	for eps in krylovschur arnoldi gd jd; do \
 	   echo "eps type $$eps"; \
 	   if [ "$$eps" = krylovschur -o "$$eps" = arnoldi ]; then EXTRA="-st_type sinvert"; \
 	   elif [ "$$eps" = gd ]; then EXTRA="-eps_max_it 5000"; \
-	   elif [ "$$eps" = gd2 ]; then EXTRA="-eps_ncv 60 -eps_gd_minv 10"; else EXTRA=""; fi; \
-	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	   fi; \
 	   ${MPIEXEC} -np 1 ./test11 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA 2>&1; \
 	done > $${test}.tmp;\
 	${TESTCODE}

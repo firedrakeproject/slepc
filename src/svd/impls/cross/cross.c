@@ -88,7 +88,7 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
         ierr = MatRestoreRow(svd->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
       }
     }
-    ierr = MPI_Allreduce(work1,work2,N,MPIU_SCALAR,MPI_SUM,PetscObjectComm((PetscObject)svd));CHKERRQ(ierr);
+    ierr = MPI_Allreduce(work1,work2,N,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)svd));CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(cross->diag,&start,&end);CHKERRQ(ierr);
     ierr = VecGetArray(cross->diag,&diag);CHKERRQ(ierr);
     for (i=start;i<end;i++)
