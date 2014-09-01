@@ -66,7 +66,11 @@ static PetscErrorCode RGEllipseSetParameters_Ellipse(RG rg,PetscScalar center,Pe
 .  -rg_ellipse_radius - Sets the radius
 -  -rg_ellipse_vscale - Sets the vertical scale
 
-   Note:
+   Notes:
+   In the case of complex scalars, a complex center can be provided in the
+   command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
+   -rg_ellipse_center 1.0+2.0i
+
    When PETSc is built with real scalars, the center is restricted to a real value.
 
    Level: advanced

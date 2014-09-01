@@ -340,10 +340,14 @@ PetscErrorCode MFNGetFunction(MFN mfn,SlepcFunction *fun)
 -  alpha - the scaling factor
 
    Options Database Keys:
-.  -mfn_scale <alpha> - Sets the scaling factor
+.  -mfn_scale <alpha> - the scaling factor
 
    Notes:
    The computed result is f(alpha*A)*b. The default is alpha=1.0.
+
+   In the case of complex scalars, a complex value can be provided in the
+   command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
+   -mfn_scale 1.0+2.0i
 
    Level: intermediate
 
