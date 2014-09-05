@@ -65,7 +65,7 @@ int main(int argc,char **argv)
   /* set v = e_1 */
   ierr = MatGetVecs(A,PETSC_NULL,&y);CHKERRQ(ierr);
   ierr = MatGetVecs(A,PETSC_NULL,&v);CHKERRQ(ierr);
-  ierr = VecSetValue(v,1,1.0,INSERT_VALUES);CHKERRQ(ierr);
+  ierr = VecSetValue(v,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
   ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
   ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
 
