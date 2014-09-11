@@ -78,12 +78,22 @@ struct _n_SR {
 typedef struct _n_SR  *EPS_SR;
 
 typedef struct {
-  PetscReal     keep;         /* restart parameter */
+  PetscReal     keep;               /* restart parameter */
   /* the following are used only in spectrum slicing */
-  EPS_SR        sr;           /* spectrum slicing context */
-  PetscInt      nev;          /* number of eigenvalues to compute */
-  PetscInt      ncv;          /* number of basis vectors */
-  PetscInt      mpd;          /* maximum dimension of projected problem */
+  EPS_SR        sr;                 /* spectrum slicing context */
+  PetscInt      nev;                /* number of eigenvalues to compute */
+  PetscInt      ncv;                /* number of basis vectors */
+  PetscInt      mpd;                /* maximum dimension of projected problem */
+  PetscInt      npart;              /* number of partitions of subcommunicator */
+  PetscScalar   *subintervals;      /* partition of global interval */
+  PetscBool     subintset;          /* subintervals sets by user */
+  PetscInt      *nconv_loc;         /* converged eigenpairs for each subinterval */
+  EPS           eps;                /* additional eps for slice runs */
+  PetscBool     global;             /* flag distinguishing global from local eps */
+  PetscScalar   *shifts;            /* array containing global shifts */
+  PetscInt      *inertias;          /* array containing global inertias */
+  PetscSubcomm  subc;               /* context for subcommunicators */
+  MPI_Comm      commrank;           /* group processes with same rank in subcommunicators */
 } EPS_KRYLOVSCHUR;
 
 #endif

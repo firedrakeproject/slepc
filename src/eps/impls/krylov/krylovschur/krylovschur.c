@@ -148,9 +148,6 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     case EPS_KS_SLICE:
       eps->ops->solve = EPSSolve_KrylovSchur_Slice;
       eps->ops->computevectors = NULL;
-      ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
-      ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
-      ierr = DSAllocate(eps->ds,ctx->ncv+1);CHKERRQ(ierr);
       break;
     case EPS_KS_INDEF:
       eps->ops->solve = EPSSolve_KrylovSchur_Indefinite;
@@ -671,8 +668,10 @@ PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
-  eps->data = (void*)ctx;
-  ctx->nev = 1;
+  eps->data   = (void*)ctx;
+  ctx->nev    = 1;
+  ctx->npart  = 1;
+  ctx->global = PETSC_TRUE;
 
   eps->ops->setup          = EPSSetUp_KrylovSchur;
   eps->ops->setfromoptions = EPSSetFromOptions_KrylovSchur;
