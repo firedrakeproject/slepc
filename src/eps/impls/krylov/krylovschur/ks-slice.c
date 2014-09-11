@@ -100,10 +100,9 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   PetscReal          h,a,b;
   PetscMPIInt        rank;
   EPS_SR             sr=ctx->sr;
-/*
   PC                 pc;
   KSP                ksp;
-  const MatSolverPackage   stype;*/
+  const MatSolverPackage stype;
 
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
@@ -144,7 +143,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
     ierr = EPSSetOperators(ctx->eps,Ar,Br);CHKERRQ(ierr);
 
     /* Transfer options for ST, KSP and PC */
-/*
+    ierr = STSetType(ctx->eps->st,STSINVERT);CHKERRQ(ierr);
     ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PCFactorGetMatSolverPackage(pc,&stype);CHKERRQ(ierr);
@@ -153,11 +152,6 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
     ierr = PCFactorSetMatSolverPackage(pc,stype);CHKERRQ(ierr);
-*/
-//////////////////////
-/* temporalmente paso las opciones por línea de comandos */
-ierr = STSetFromOptions(ctx->eps->st);CHKERRQ(ierr);
-/////////////////////
 
     /* Create scatters for sending vectors for deflation  ///// PENDING  ///// */
 
@@ -311,6 +305,7 @@ ierr = PetscOptionsGetInt(NULL,"-slice_npart",&ctx->npart,NULL);   ////////
       nEigs = 0;
       for (i=0;i<ctx->npart;i++) nEigs += ctx->nconv_loc[i];
     } else nEigs = sr_loc->numEigs;
+    sr->numEigs = nEigs;
     eps->nev = nEigs;
     eps->ncv = nEigs;
     eps->mpd = nEigs;
@@ -1027,7 +1022,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     if (ctx->npart>1) {
       /* Gather solution from subsolvers */
       ierr = EPSSliceGatherSolution(eps);CHKERRQ(ierr);
-    } 
+    } else eps->nconv = sr->numEigs; 
   } else {
     if (ctx->npart==1) {
       sr->eigr   = ctx->eps->eigr;
