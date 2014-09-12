@@ -498,9 +498,14 @@ static PetscErrorCode EPSKrylovSchurGetInertias_KrylovSchur(EPS eps,PetscInt *n,
     ierr = PetscMalloc1(*n,inertias);CHKERRQ(ierr);
     (*shifts)[0] = eps->inta;
     (*inertias)[0] = (sr->dir==1)?sr->inertia0:sr->inertia1;
-    for (i=1;i<*n;i++) {
-      (*shifts)[i] = ctx->subintervals[i];
-      (*inertias)[i] = (*inertias)[i-1]+ctx->nconv_loc[i];
+    if (ctx->npart==1) {
+      (*shifts)[1] = eps->intb;
+      (*inertias)[1] = (sr->dir==1)?sr->inertia1:sr->inertia0;
+    } else {
+      for (i=1;i<*n;i++) {
+        (*shifts)[i] = ctx->subintervals[i];
+        (*inertias)[i] = (*inertias)[i-1]+ctx->nconv_loc[i-1];
+      }
     }
     break;
   case EPS_STATE_SOLVED:

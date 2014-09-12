@@ -346,6 +346,8 @@ ierr = PetscOptionsGetInt(NULL,"-slice_npart",&ctx->npart,NULL);   ////////
     ierr = EPSSliceGetEPS(eps);CHKERRQ(ierr);
     sr_loc = ((EPS_KRYLOVSCHUR*)ctx->eps->data)->sr;
     if (ctx->npart>1) {
+      if (ctx->subc->color==0) sr->inertia0 = sr_loc->inertia0;
+      ierr = MPI_Bcast(&sr->inertia0,1,MPIU_INT,0,ctx->commrank);CHKERRQ(ierr);
       ierr = PetscMalloc1(ctx->npart,&ctx->nconv_loc);CHKERRQ(ierr);
       ierr = MPI_Comm_size(((PetscObject)eps)->comm,&nproc);CHKERRQ(ierr);
       if (nproc%ctx->npart==0) { /* subcommunicators with the same size */
@@ -359,7 +361,10 @@ ierr = PetscOptionsGetInt(NULL,"-slice_npart",&ctx->npart,NULL);   ////////
       }
       nEigs = 0;
       for (i=0;i<ctx->npart;i++) nEigs += ctx->nconv_loc[i];
-    } else nEigs = sr_loc->numEigs;
+    } else {
+      nEigs = sr_loc->numEigs;
+      sr->inertia0 = sr_loc->inertia0;
+    }
     sr->numEigs = nEigs;
     eps->nev = nEigs;
     eps->ncv = nEigs;
