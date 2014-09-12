@@ -86,7 +86,7 @@ typedef struct {
   PetscInt      mpd;                /* maximum dimension of projected problem */
   PetscInt      npart;              /* number of partitions of subcommunicator */
   PetscReal     *subintervals;      /* partition of global interval */
-  PetscBool     subintset;          /* subintervals sets by user */
+  PetscBool     subintset;          /* subintervals set by user */
   PetscInt      *nconv_loc;         /* converged eigenpairs for each subinterval */
   EPS           eps;                /* additional eps for slice runs */
   PetscBool     global;             /* flag distinguishing global from local eps */

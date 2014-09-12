@@ -578,6 +578,117 @@ PetscErrorCode EPSKrylovSchurGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,P
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurSetSubintervals_KrylovSchur"
+static PetscErrorCode EPSKrylovSchurSetSubintervals_KrylovSchur(EPS eps,PetscReal* subint)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  PetscInt        i;
+
+  PetscFunctionBegin;
+  if (subint[0]!=eps->inta || subint[ctx->npart]!=eps->intb) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"First and last values must match the endpoints of EPSSetInterval()");
+  for (i=0;i<ctx->npart;i++) if (subint[i]>=subint[i+1]) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Array must contain values in ascending order");
+  if (ctx->subintervals) { ierr = PetscFree(ctx->subintervals);CHKERRQ(ierr); }
+  ierr = PetscMalloc1(ctx->npart+1,&ctx->subintervals);CHKERRQ(ierr);
+  for (i=0;i<ctx->npart+1;i++) ctx->subintervals[i] = subint[i];
+  ctx->subintset = PETSC_TRUE;
+  eps->state = EPS_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurSetSubintervals"
+/*@C
+   EPSKrylovSchurSetSubintervals - Sets the points that delimit the
+   subintervals to be used in spectrum slicing with several partitions.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps    - the eigenproblem solver context
+-  subint - array of real values specifying subintervals
+
+   Notes:
+   This function must be called after EPSKrylovSchurSetPartitions(). For npart
+   partitions, the argument subint must contain npart+1 real values sorted in
+   ascending order: subint_0, subint_1, ..., subint_npart, where the first
+   and last values must coincide with the interval endpoints set with
+   EPSSetInterval().
+
+   The subintervals are then defined by two consecutive points: [subint_0,subint_1],
+   [subint_1,subint_2], and so on.
+
+   Level: advanced
+
+.seealso: EPSKrylovSchurSetPartitions(), EPSKrylovSchurGetSubintervals(), EPSSetInterval()
+@*/
+PetscErrorCode EPSKrylovSchurSetSubintervals(EPS eps,PetscReal *subint)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurSetSubintervals_C",(EPS,PetscReal*),(eps,subint));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetSubintervals_KrylovSchur"
+static PetscErrorCode EPSKrylovSchurGetSubintervals_KrylovSchur(EPS eps,PetscReal **subint)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  PetscInt        i;
+
+  PetscFunctionBegin;
+  if (!ctx->subintset) {
+    if (!eps->state) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSetUp() first");
+    if (!ctx->sr) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see EPSSetInterval()");
+  }
+  ierr = PetscMalloc1(ctx->npart+1,subint);CHKERRQ(ierr);
+  for (i=0;i<=ctx->npart;i++) (*subint)[i] = ctx->subintervals[i];
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetSubintervals"
+/*@C
+   EPSKrylovSchurGetSubintervals - Returns the points that delimit the
+   subintervals used in spectrum slicing with several partitions.
+
+   Logically Collective on EPS
+
+   Input Parameter:
+.  eps    - the eigenproblem solver context
+
+   Output Parameter:
+.  subint - array of real values specifying subintervals
+
+   Notes:
+   If the user passed values with EPSKrylovSchurSetSubintervals(), then the
+   same values are returned. Otherwise, the values computed internally are
+   obtained.
+
+   This function is only available for spectrum slicing runs.
+
+   The returned array has length npart+1 (see EPSKrylovSchurGetPartitions())
+   and should be freed by the user.
+
+   Level: advanced
+
+.seealso: EPSKrylovSchurSetSubintervals(), EPSKrylovSchurGetPartitions(), EPSSetInterval()
+@*/
+PetscErrorCode EPSKrylovSchurGetSubintervals(EPS eps,PetscReal** subint)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetSubintervals_C",(EPS,PetscReal**),(eps,subint));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSKrylovSchurGetInertias_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurGetInertias_KrylovSchur(EPS eps,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
 {
@@ -729,6 +840,8 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetPartitions_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetDimensions_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetDimensions_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetSubintervals_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubintervals_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetInertias_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -771,6 +884,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetPartitions_C",EPSKrylovSchurGetPartitions_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetDimensions_C",EPSKrylovSchurSetDimensions_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetDimensions_C",EPSKrylovSchurGetDimensions_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetSubintervals_C",EPSKrylovSchurSetSubintervals_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubintervals_C",EPSKrylovSchurGetSubintervals_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetInertias_C",EPSKrylovSchurGetInertias_KrylovSchur);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

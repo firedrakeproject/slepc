@@ -276,6 +276,8 @@ PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetPartitions(EPS,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetPartitions(EPS,PetscInt*);
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetDimensions(EPS,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetDimensions(EPS,PetscInt*,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetSubintervals(EPS,PetscReal*);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetSubintervals(EPS,PetscReal**);
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetInertias(EPS,PetscInt*,PetscReal**,PetscInt**);
 
 /*E
