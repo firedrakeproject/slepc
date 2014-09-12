@@ -69,6 +69,7 @@ PetscErrorCode EPSAllocateSolutionSlice(EPS eps,PetscInt extra)
   /* allocate sr->V and transfer options from eps->V */
   ierr = BVCreate(PetscObjectComm((PetscObject)eps),&sr->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)sr->V);CHKERRQ(ierr);
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
   if (!((PetscObject)(eps->V))->type_name) {
     ierr = BVSetType(sr->V,BVSVEC);CHKERRQ(ierr);
   } else {
