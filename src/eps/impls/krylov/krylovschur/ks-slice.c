@@ -38,6 +38,52 @@
 #include "krylovschur.h"
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSReset_KrylovSchur_Slice"
+PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  EPS_SR          sr_loc;
+  EPS_shift       s;
+
+  PetscFunctionBegin;
+  if (!ctx->global) PetscFunctionReturn(0);
+  /* Destroy auxiliary EPS */
+  if (ctx->eps) {
+    sr_loc = ((EPS_KRYLOVSCHUR*)ctx->eps->data)->sr;
+    if (sr_loc) {
+      if (ctx->npart>1) {
+        ierr = BVDestroy(&sr_loc->V);CHKERRQ(ierr);
+        ierr = PetscFree4(sr_loc->eigr,sr_loc->eigi,sr_loc->errest,sr_loc->perm);CHKERRQ(ierr);
+      }
+      /* Reviewing list of shifts to free memory */
+      s = sr_loc->s0;
+      if (s) {
+        while (s->neighb[1]) {
+          s = s->neighb[1];
+          ierr = PetscFree(s->neighb[0]);CHKERRQ(ierr);
+        }
+        ierr = PetscFree(s);CHKERRQ(ierr);
+      }
+      ierr = PetscFree(sr_loc);CHKERRQ(ierr);
+    }
+    ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
+  }
+  if (ctx->npart>1) {
+    ierr = PetscSubcommDestroy(&ctx->subc);CHKERRQ(ierr);
+    if (ctx->commset) {
+      ierr = MPI_Comm_free(&ctx->commrank);CHKERRQ(ierr);
+      ctx->commset = PETSC_FALSE;
+    }
+    ierr = PetscFree(ctx->subintervals);CHKERRQ(ierr);
+    ierr = PetscFree(ctx->nconv_loc);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(ctx->sr);CHKERRQ(ierr);
+  if (ctx->shifts) {ierr = PetscFree2(ctx->shifts,ctx->inertias);CHKERRQ(ierr);}
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSSliceAllocateSolution"
 /*
   EPSSliceAllocateSolution - Allocate memory storage for common variables such
@@ -101,7 +147,10 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   PetscMPIInt        rank;
   EPS_SR             sr=ctx->sr;
   PC                 pc;
+  PCType             pctype;
   KSP                ksp;
+  KSPType            ksptype;
+  STType             sttype;
   const MatSolverPackage stype;
 
   PetscFunctionBegin;
@@ -141,16 +190,21 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
     ierr = EPSCreate(ctx->subc->comm,&ctx->eps);CHKERRQ(ierr);
     ierr = EPSSetType(ctx->eps,((PetscObject)eps)->type_name);CHKERRQ(ierr);
     ierr = EPSSetOperators(ctx->eps,Ar,Br);CHKERRQ(ierr);
+    ierr = MatDestroy(&Ar);CHKERRQ(ierr);
+    ierr = MatDestroy(&Br);CHKERRQ(ierr);
 
     /* Transfer options for ST, KSP and PC */
-    ierr = STSetType(ctx->eps->st,STSINVERT);CHKERRQ(ierr);
+    ierr = STGetType(eps->st,&sttype);CHKERRQ(ierr);
+    ierr = STSetType(ctx->eps->st,sttype);CHKERRQ(ierr);
     ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+    ierr = KSPGetType(ksp,&ksptype);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+    ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
     ierr = PCFactorGetMatSolverPackage(pc,&stype);CHKERRQ(ierr);
     ierr = STGetKSP(ctx->eps->st,&ksp);CHKERRQ(ierr);
-    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+    ierr = KSPSetType(ksp,ksptype);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
+    ierr = PCSetType(pc,pctype);CHKERRQ(ierr);
     ierr = PCFactorSetMatSolverPackage(pc,stype);CHKERRQ(ierr);
 
     /* Create scatters for sending vectors for deflation  ///// PENDING  ///// */
@@ -158,6 +212,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
     /* Create subcommunicator grouping processes with same rank */
     ierr = MPI_Comm_rank(ctx->subc->comm,&rank);CHKERRQ(ierr);
     ierr = MPI_Comm_split(((PetscObject)eps)->comm,rank,ctx->subc->color,&ctx->commrank);CHKERRQ(ierr);
+    ctx->commset = PETSC_TRUE;
   }
   ierr = EPSSetInterval(ctx->eps,a,b);CHKERRQ(ierr);
   ctx_local = (EPS_KRYLOVSCHUR*)ctx->eps->data;
@@ -252,7 +307,7 @@ ierr = PetscOptionsGetInt(NULL,"-slice_npart",&ctx->npart,NULL);   ////////
   eps->ops->backtransform = NULL;
 
   /* create spectrum slicing context and initialize it */
-  ierr = EPSReset_KrylovSchur(eps);CHKERRQ(ierr);
+  ierr = EPSReset_KrylovSchur_Slice(eps);CHKERRQ(ierr);
   ierr = PetscNewLog(eps,&sr);CHKERRQ(ierr);
   ctx->sr = sr;
   sr->itsKs = 0;
@@ -351,26 +406,98 @@ ierr = PetscOptionsGetInt(NULL,"-slice_npart",&ctx->npart,NULL);   ////////
   PetscFunctionReturn(0);
 }
 
+#define SWAP(a,b,t) {t=a;a=b;b=t;}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSSliceGetInertias"
+static PetscErrorCode EPSSliceGetInertias(EPS eps,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  PetscInt        i=0,j,tmpi;
+  PetscReal       v,tmpr;
+  EPS_shift       s;
+
+  PetscFunctionBegin;
+  if (!eps->state) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSetUp() first");
+  if (!ctx->sr) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see EPSSetInterval()");
+  if (!ctx->sr->s0) {  /* EPSSolve not called yet */
+    *n = 2;
+  } else {
+    *n = 1;
+    s = ctx->sr->s0;
+    while (s) {
+      (*n)++;
+      s = s->neighb[1];
+    }
+  }
+  ierr = PetscMalloc1(*n,shifts);CHKERRQ(ierr);
+  ierr = PetscMalloc1(*n,inertias);CHKERRQ(ierr);
+  if (!ctx->sr->s0) {  /* EPSSolve not called yet */
+    (*shifts)[0]   = ctx->sr->int0;
+    (*shifts)[1]   = ctx->sr->int1;
+    (*inertias)[0] = ctx->sr->inertia0;
+    (*inertias)[1] = ctx->sr->inertia1;
+  } else {
+    s = ctx->sr->s0;
+    while (s) {
+      (*shifts)[i]     = s->value;
+      (*inertias)[i++] = s->inertia;
+      s = s->neighb[1];
+    }
+    (*shifts)[i]   = ctx->sr->int1;
+    (*inertias)[i] = ctx->sr->inertia1;
+  }
+  /* sort result */
+  for (i=0;i<*n;i++) {
+    v = (*shifts)[i];
+    for (j=i+1;j<*n;j++) {
+      if (v > (*shifts)[j]) {
+        SWAP((*shifts)[i],(*shifts)[j],tmpr);
+        SWAP((*inertias)[i],(*inertias)[j],tmpi);
+        v = (*shifts)[i];
+      }
+    }
+  }
+  /* remove possible duplicate in last position */
+  if ((*shifts)[(*n)-1]==(*shifts)[(*n)-2]) (*n)--;
+  PetscFunctionReturn(0);
+}
+
 #undef __FUNCT__
 #define __FUNCT__ "EPSSliceGatherSolution"
 static PetscErrorCode EPSSliceGatherSolution(EPS eps)
 {
-  PetscErrorCode ierr;
-  PetscMPIInt    rank,nproc;
-  Vec            v,vg,v_loc;
-  IS             is1,is2;
-  VecScatter     vec_sc;
+  PetscErrorCode  ierr;
+  PetscMPIInt     rank,nproc;
+  Vec             v,vg,v_loc;
+  IS              is1,is2;
+  VecScatter      vec_sc;
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt       nloc,m0,n0,i,si,idx,*idx1,*idx2,j,*disp,*perm_loc,off=0;
-  PetscScalar    *array,*eigr_loc;
-  EPS_SR         sr_loc;
-  BV             V_loc;
+  PetscInt        nloc,m0,n0,i,si,idx,*idx1,*idx2,j,*disp;
+  PetscInt        *perm_loc,off=0,*inertias_loc,*ns_loc,ns;
+  PetscScalar     *array,*eigr_loc;
+  EPS_SR          sr_loc;
+  BV              V_loc;
+  PetscReal       *shifts_loc;
 
   PetscFunctionBegin;
   eps->nconv = 0; 
   for (i=0;i<ctx->npart;i++) eps->nconv += ctx->nconv_loc[i];
-  /* Gather eigenvalues (same ranks have fully set of eigenvalues)*/
   sr_loc = ((EPS_KRYLOVSCHUR*)ctx->eps->data)->sr;
+
+  /* Gather the shifts used and the inertias computed */
+  ierr = EPSSliceGetInertias(ctx->eps,&ns,&shifts_loc,&inertias_loc);CHKERRQ(ierr);
+  if (ctx->subc->color<ctx->npart-1 && shifts_loc[ns-1]==sr_loc->int1) ns--;
+  ierr = PetscMalloc1(ctx->npart,&ns_loc);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(ctx->subc->comm,&rank);CHKERRQ(ierr);
+  if (rank==0) { ierr = MPI_Allgather(&ns,1,MPIU_INT,ns_loc,1,MPIU_INT,ctx->commrank);CHKERRQ(ierr); }
+  ierr = MPI_Bcast(ns_loc,ctx->npart,MPIU_INT,0,ctx->subc->comm);CHKERRQ(ierr);
+  ctx->nshifts = 0;
+  for (i=0;i<ctx->npart;i++) ctx->nshifts += ns_loc[i]; 
+  ierr = PetscMalloc2(ctx->nshifts,&ctx->shifts,ctx->nshifts,&ctx->inertias);CHKERRQ(ierr);
+
+  /* Gather eigenvalues (same ranks have fully set of eigenvalues)*/
   eigr_loc = sr_loc->eigr;
   V_loc = sr_loc->V;
   perm_loc = sr_loc->perm;
@@ -379,23 +506,35 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
   disp[0] = 0;
   for (i=1;i<ctx->npart;i++) disp[i] = disp[i-1]+ctx->nconv_loc[i-1]; 
   if (nproc%ctx->npart==0) { /* subcommunicators with the same size */
-    ierr = MPI_Allgatherv(eigr_loc,sr_loc->numEigs,MPIU_SCALAR,eps->eigr,ctx->nconv_loc,disp,MPIU_SCALAR,ctx->commrank);CHKERRQ(ierr);
-    ierr = MPI_Allgatherv(perm_loc,sr_loc->numEigs,MPIU_INT,eps->perm,ctx->nconv_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr);
-  } else {
+    ierr = MPI_Allgatherv(eigr_loc,sr_loc->numEigs,MPIU_SCALAR,eps->eigr,ctx->nconv_loc,disp,MPIU_SCALAR,ctx->commrank);CHKERRQ(ierr); /* eigenvalues */
+    ierr = MPI_Allgatherv(perm_loc,sr_loc->numEigs,MPIU_INT,eps->perm,ctx->nconv_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr); /* perm */
+    for (i=1;i<ctx->npart;i++) disp[i] = disp[i-1]+ns_loc[i-1]; 
+    ierr = MPI_Allgatherv(shifts_loc,ns,MPIU_REAL,ctx->shifts,ns_loc,disp,MPIU_REAL,ctx->commrank);CHKERRQ(ierr); /* shifts */
+    ierr = MPI_Allgatherv(inertias_loc,ns,MPIU_INT,ctx->inertias,ns_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr); /* inertias */
+    ierr = MPI_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank);CHKERRQ(ierr);
+  } else { /* subcommunicators with different size */
     ierr = MPI_Comm_rank(ctx->subc->comm,&rank);CHKERRQ(ierr);
     if (rank==0) {
-      ierr = MPI_Allgatherv(eigr_loc,sr_loc->numEigs,MPIU_SCALAR,eps->eigr,ctx->nconv_loc,disp,MPIU_SCALAR,ctx->commrank);CHKERRQ(ierr);
-      ierr = MPI_Allgatherv(perm_loc,sr_loc->numEigs,MPIU_INT,eps->perm,ctx->nconv_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr);
-      }
-      ierr = MPI_Bcast(eps->eigr,eps->nconv,MPIU_SCALAR,0,ctx->subc->comm);CHKERRQ(ierr);
-      ierr = MPI_Bcast(eps->perm,eps->nconv,MPIU_INT,0,ctx->subc->comm);CHKERRQ(ierr);
+      ierr = MPI_Allgatherv(eigr_loc,sr_loc->numEigs,MPIU_SCALAR,eps->eigr,ctx->nconv_loc,disp,MPIU_SCALAR,ctx->commrank);CHKERRQ(ierr); /* eigenvalues */
+      ierr = MPI_Allgatherv(perm_loc,sr_loc->numEigs,MPIU_INT,eps->perm,ctx->nconv_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr); /* perm */
+      for (i=1;i<ctx->npart;i++) disp[i] = disp[i-1]+ns_loc[i-1]; 
+      ierr = MPI_Allgatherv(shifts_loc,ns,MPIU_REAL,ctx->shifts,ns_loc,disp,MPIU_REAL,ctx->commrank);CHKERRQ(ierr); /* shifts */
+      ierr = MPI_Allgatherv(inertias_loc,ns,MPIU_INT,ctx->inertias,ns_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr); /* inertias */
+      ierr = MPI_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank);CHKERRQ(ierr);
+    }
+    ierr = MPI_Bcast(eps->eigr,eps->nconv,MPIU_SCALAR,0,ctx->subc->comm);CHKERRQ(ierr);
+    ierr = MPI_Bcast(eps->perm,eps->nconv,MPIU_INT,0,ctx->subc->comm);CHKERRQ(ierr);
+    ierr = MPI_Bcast(ctx->shifts,ctx->nshifts,MPIU_REAL,0,ctx->subc->comm);CHKERRQ(ierr);
+    ierr = MPI_Bcast(ctx->inertias,ctx->nshifts,MPIU_INT,0,ctx->subc->comm);CHKERRQ(ierr);
+    ierr = MPI_Bcast(&eps->its,1,MPIU_INT,0,ctx->subc->comm);CHKERRQ(ierr);
   }
+  /* Update global array eps->perm */
   idx = ctx->nconv_loc[0];
   for (i=1;i<ctx->npart;i++) {
     off += ctx->nconv_loc[i-1];
     for (j=0;j<ctx->nconv_loc[i];j++) eps->perm[idx++] += off;
-   }
-
+  }
+  
   /* Gather parallel eigenvectors */
   ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
   ierr = VecGetOwnershipRange(v,&n0,&m0);CHKERRQ(ierr);
@@ -434,6 +573,11 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
     ierr = VecScatterDestroy(&vec_sc);CHKERRQ(ierr);
   }
   ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);
+  ierr = PetscFree(ns_loc);CHKERRQ(ierr);
+  ierr = PetscFree(disp);CHKERRQ(ierr);
+  ierr = PetscFree(shifts_loc);CHKERRQ(ierr);
+  ierr = PetscFree(inertias_loc);CHKERRQ(ierr);
+  ierr = VecDestroy(&vg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1022,7 +1166,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     if (ctx->npart>1) {
       /* Gather solution from subsolvers */
       ierr = EPSSliceGatherSolution(eps);CHKERRQ(ierr);
-    } else eps->nconv = sr->numEigs; 
+    } else {
+      eps->nconv = sr->numEigs;
+      ierr = EPSSliceGetInertias(ctx->eps,&ctx->nshifts,&ctx->shifts,&ctx->inertias);CHKERRQ(ierr);
+    } 
   } else {
     if (ctx->npart==1) {
       sr->eigr   = ctx->eps->eigr;

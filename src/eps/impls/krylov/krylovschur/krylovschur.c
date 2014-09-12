@@ -477,61 +477,43 @@ PetscErrorCode EPSKrylovSchurGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,P
   PetscFunctionReturn(0);
 }
 
-#define SWAP(a,b,t) {t=a;a=b;b=t;}
-
 #undef __FUNCT__
 #define __FUNCT__ "EPSKrylovSchurGetInertias_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurGetInertias_KrylovSchur(EPS eps,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt        i=0,j,tmpi;
-  PetscReal       v,tmpr;
-  EPS_shift       s;
+  PetscInt        i;
+  EPS_SR          sr = ctx->sr;
 
   PetscFunctionBegin;
   if (!eps->state) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSetUp() first");
   if (!ctx->sr) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see EPSSetInterval()");
-  if (!ctx->sr->s0) {  /* EPSSolve not called yet */
-    *n = 2;
-  } else {
-    *n = 1;
-    s = ctx->sr->s0;
-    while (s) {
-      (*n)++;
-      s = s->neighb[1];
+  switch (eps->state) {
+  case EPS_STATE_INITIAL:
+    break;
+  case EPS_STATE_SETUP:
+    *n = ctx->npart+1;
+    ierr = PetscMalloc1(*n,shifts);CHKERRQ(ierr);
+    ierr = PetscMalloc1(*n,inertias);CHKERRQ(ierr);
+    (*shifts)[0] = eps->inta;
+    (*inertias)[0] = (sr->dir==1)?sr->inertia0:sr->inertia1;
+    for (i=1;i<*n;i++) {
+      (*shifts)[i] = ctx->subintervals[i];
+      (*inertias)[i] = (*inertias)[i-1]+ctx->nconv_loc[i];
     }
-  }
-  ierr = PetscMalloc1(*n,shifts);CHKERRQ(ierr);
-  ierr = PetscMalloc1(*n,inertias);CHKERRQ(ierr);
-  if (!ctx->sr->s0) {  /* EPSSolve not called yet */
-    (*shifts)[0]   = ctx->sr->int0;
-    (*shifts)[1]   = ctx->sr->int1;
-    (*inertias)[0] = ctx->sr->inertia0;
-    (*inertias)[1] = ctx->sr->inertia1;
-  } else {
-    s = ctx->sr->s0;
-    while (s) {
-      (*shifts)[i]     = s->value;
-      (*inertias)[i++] = s->inertia;
-      s = s->neighb[1];
+    break;
+  case EPS_STATE_SOLVED:
+  case EPS_STATE_EIGENVECTORS:
+    *n = ctx->nshifts;
+    ierr = PetscMalloc1(*n,shifts);CHKERRQ(ierr);
+    ierr = PetscMalloc1(*n,inertias);CHKERRQ(ierr);
+    for (i=0;i<*n;i++) {
+      (*shifts)[i] = ctx->shifts[i];
+      (*inertias)[i] = ctx->inertias[i];
     }
-    (*shifts)[i]   = ctx->sr->int1;
-    (*inertias)[i] = ctx->sr->inertia1;
+    break;
   }
-  /* sort result */
-  for (i=0;i<*n;i++) {
-    v = (*shifts)[i];
-    for (j=i+1;j<*n;j++) {
-      if (v > (*shifts)[j]) {
-        SWAP((*shifts)[i],(*shifts)[j],tmpr);
-        SWAP((*inertias)[i],(*inertias)[j],tmpi);
-        v = (*shifts)[i];
-      }
-    }
-  }
-  /* remove possible duplicate in last position */
-  if ((*shifts)[(*n)-1]==(*shifts)[(*n)-2]) (*n)--;
   PetscFunctionReturn(0);
 }
 
@@ -556,13 +538,15 @@ static PetscErrorCode EPSKrylovSchurGetInertias_KrylovSchur(EPS eps,PetscInt *n,
    If called after EPSSolve(), all shifts used internally by the solver are
    returned (including both endpoints and any intermediate ones). If called
    before EPSSolve() and after EPSSetUp() then only the information of the
-   endpoints is available.
+   endpoints of subintervals is available.
 
-   This function is only available for spectrum slicing runs, see EPSSetInterval().
+   This function is only available for spectrum slicing runs.
 
    The returned arrays should be freed by the user.
 
    Level: advanced
+
+.seealso: EPSSetInterval(), EPSKrylovSchurSetSubintervals()
 @*/
 PetscErrorCode EPSKrylovSchurGetInertias(EPS eps,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
 {
@@ -620,30 +604,6 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSReset_KrylovSchur"
-PetscErrorCode EPSReset_KrylovSchur(EPS eps)
-{
-  PetscErrorCode  ierr;
-  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  EPS_shift       s;
-
-  PetscFunctionBegin;
-  /* Reviewing list of shifts to free memory */
-  if (ctx->sr) {
-    s = ctx->sr->s0;
-    if (s) {
-      while (s->neighb[1]) {
-        s = s->neighb[1];
-        ierr = PetscFree(s->neighb[0]);CHKERRQ(ierr);
-      }
-      ierr = PetscFree(s);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(ctx->sr);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSDestroy_KrylovSchur"
 PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
 {
@@ -656,6 +616,18 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetDimensions_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetDimensions_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetInertias_C",NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSReset_KrylovSchur"
+PetscErrorCode EPSReset_KrylovSchur(EPS eps)
+{
+  PetscErrorCode ierr;
+  PetscFunctionBegin;
+  if (eps->which==EPS_ALL) {
+    ierr = EPSReset_KrylovSchur_Slice(eps);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

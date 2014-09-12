@@ -24,7 +24,7 @@
 #if !defined(__KRYLOVSCHUR_H)
 #define __KRYLOVSCHUR_H
 
-PETSC_INTERN PetscErrorCode EPSReset_KrylovSchur(EPS);
+PETSC_INTERN PetscErrorCode EPSReset_KrylovSchur_Slice(EPS);
 PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS);
 PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS);
@@ -85,15 +85,17 @@ typedef struct {
   PetscInt      ncv;                /* number of basis vectors */
   PetscInt      mpd;                /* maximum dimension of projected problem */
   PetscInt      npart;              /* number of partitions of subcommunicator */
-  PetscScalar   *subintervals;      /* partition of global interval */
+  PetscReal     *subintervals;      /* partition of global interval */
   PetscBool     subintset;          /* subintervals sets by user */
   PetscInt      *nconv_loc;         /* converged eigenpairs for each subinterval */
   EPS           eps;                /* additional eps for slice runs */
   PetscBool     global;             /* flag distinguishing global from local eps */
-  PetscScalar   *shifts;            /* array containing global shifts */
+  PetscReal     *shifts;            /* array containing global shifts */
   PetscInt      *inertias;          /* array containing global inertias */
+  PetscInt      nshifts;            /* elements in the arrays of shifts and inertias */
   PetscSubcomm  subc;               /* context for subcommunicators */
   MPI_Comm      commrank;           /* group processes with same rank in subcommunicators */
+  PetscBool     commset;            /* flag indicating that commrank was created */
 } EPS_KRYLOVSCHUR;
 
 #endif
