@@ -373,6 +373,106 @@ PetscErrorCode EPSKrylovSchurGetRestart(EPS eps,PetscReal *keep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurSetPartitions_KrylovSchur"
+static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt npart)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  PetscMPIInt     size;
+
+  PetscFunctionBegin;
+  if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
+    ctx->npart = 1;
+  } else {
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size);CHKERRQ(ierr);
+    if (npart<1 || npart>size) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
+    ctx->npart = npart;
+  }
+  eps->state = EPS_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurSetPartitions"
+/*@
+   EPSKrylovSchurSetPartitions - Sets the number of partitions for the
+   case of doing spectrum slicing for a computational interval with the
+   communicator split in several sub-communicators.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps   - the eigenproblem solver context
+-  npart - number of partitions
+
+   Options Database Key:
+.  -eps_krylovschur_npart <npart> - Sets the number of partitions
+
+   Notes:
+   By default, npart=1 so all processes in the communicator participate in
+   the processing of the whole interval. If npart>1 then the interval is
+   divided into npart subintervals, each of them being processed by a
+   subset of processes.
+
+   The interval is split proportionally unless the separation points are
+   specified with EPSKrylovSchurSetSubintervals().
+
+   Level: advanced
+
+.seealso: EPSKrylovSchurSetSubintervals(), EPSSetInterval()
+@*/
+PetscErrorCode EPSKrylovSchurSetPartitions(EPS eps,PetscInt npart)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,npart,2);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurSetPartitions_C",(EPS,PetscInt),(eps,npart));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetPartitions_KrylovSchur"
+static PetscErrorCode EPSKrylovSchurGetPartitions_KrylovSchur(EPS eps,PetscInt *npart)
+{
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+
+  PetscFunctionBegin;
+  *npart = ctx->npart;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetPartitions"
+/*@
+   EPSKrylovSchurGetPartitions - Gets the number of partitions of the
+   communicator in case of spectrum slicing.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  npart - number of partitions
+
+   Level: advanced
+
+.seealso: EPSKrylovSchurSetPartitions()
+@*/
+PetscErrorCode EPSKrylovSchurGetPartitions(EPS eps,PetscInt *npart)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(npart,2);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetPartitions_C",(EPS,PetscInt*),(eps,npart));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSKrylovSchurSetDimensions_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurSetDimensions_KrylovSchur(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 {
@@ -579,6 +679,10 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps)
   if (flg) {
     ierr = EPSKrylovSchurSetRestart(eps,keep);CHKERRQ(ierr);
   }
+  ierr = PetscOptionsInt("-eps_krylovschur_partitions","Number of partitions of the communicator for spectrum slicing","EPSKrylovSchurSetPartitions",1,&i,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = EPSKrylovSchurSetPartitions(eps,i);CHKERRQ(ierr);
+  }
   i = 1;
   j = k = PETSC_DECIDE;
   ierr = PetscOptionsInt("-eps_krylovschur_nev","Number of eigenvalues to compute in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",40,&i,NULL);CHKERRQ(ierr);
@@ -603,6 +707,9 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
     if (eps->which==EPS_ALL) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: doing spectrum slicing with nev=%d, ncv=%d, mpd=%d\n",ctx->nev,ctx->ncv,ctx->mpd);CHKERRQ(ierr);
+      if (ctx->npart>1) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: multi-communicator spectrum slicing with %d partitions\n",ctx->npart);CHKERRQ(ierr);
+      }
     }
   }
   PetscFunctionReturn(0);
@@ -618,6 +725,8 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetRestart_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetRestart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetPartitions_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetPartitions_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetDimensions_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetDimensions_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetInertias_C",NULL);CHKERRQ(ierr);
@@ -658,6 +767,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   eps->ops->backtransform  = EPSBackTransform_Default;
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetRestart_C",EPSKrylovSchurSetRestart_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetRestart_C",EPSKrylovSchurGetRestart_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetPartitions_C",EPSKrylovSchurSetPartitions_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetPartitions_C",EPSKrylovSchurGetPartitions_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetDimensions_C",EPSKrylovSchurSetDimensions_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetDimensions_C",EPSKrylovSchurGetDimensions_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetInertias_C",EPSKrylovSchurGetInertias_KrylovSchur);CHKERRQ(ierr);
