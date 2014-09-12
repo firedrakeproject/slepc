@@ -108,7 +108,7 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
   ierr = PetscMalloc4(sr->numEigs,&sr->eigr,sr->numEigs,&sr->eigi,sr->numEigs,&sr->errest,sr->numEigs,&sr->perm);CHKERRQ(ierr);
   cnt = 2*sr->numEigs*sizeof(PetscScalar) + 2*sr->numEigs*sizeof(PetscReal) + sr->numEigs*sizeof(PetscInt);
   ierr = PetscLogObjectMemory((PetscObject)eps,cnt);CHKERRQ(ierr);
-  
+
   /* allocate sr->V and transfer options from eps->V */
   ierr = BVCreate(PetscObjectComm((PetscObject)eps),&sr->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)sr->V);CHKERRQ(ierr);
@@ -291,6 +291,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscFunctionBegin;
   if (ctx->global) {
     if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Must define a computational interval when using EPS_ALL");
+    if (eps->intb >= PETSC_MAX_REAL && eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
     if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems");
     if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
     if (!((PetscObject)(eps->st))->type_name) { /* default to shift-and-invert */
