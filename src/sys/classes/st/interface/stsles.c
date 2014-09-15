@@ -414,8 +414,10 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
     ierr = MatNullSpaceCreate(PetscObjectComm((PetscObject)st),PETSC_FALSE,c,T,&nullsp);CHKERRQ(ierr);
     ierr = KSPSetNullSpace(st->ksp,nullsp);CHKERRQ(ierr);
     ierr = MatNullSpaceDestroy(&nullsp);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(c,&T);CHKERRQ(ierr);
+  } else {
+    ierr = PetscFree(T);CHKERRQ(ierr);
   }
-  ierr = VecDestroyVecs(c,&T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
