@@ -281,10 +281,9 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 {
   PetscErrorCode  ierr;
   PetscBool       issinv;
-  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data,*ctx_glob;
   EPS_SR          sr,sr_loc,sr_glob;
   PetscInt        nEigs,dssz=1,i;
-  KSP             ksp;
   PetscMPIInt     nproc,rank;
   MPI_Request     req;
 
@@ -332,20 +331,23 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       sr->dir = -1;
       sr->hasEnd = (eps->inta <= PETSC_MIN_REAL)?PETSC_FALSE:PETSC_TRUE;
     }
-    ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1);CHKERRQ(ierr);
-    if (ctx->npart>1) {
-      ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-      ierr = KSPReset(ksp);CHKERRQ(ierr);
-    }
   }
   if (ctx->global) {
+    if (ctx->npart>1) {
+      /* prevent computation of factorization in global eps unless npart==1 */
+      ierr = STSetTransform(eps->st,PETSC_FALSE);CHKERRQ(ierr);
+    }
     ierr = EPSSetDimensions_Default(eps,ctx->nev,&ctx->ncv,&ctx->mpd);CHKERRQ(ierr);
     /* create subintervals and initialize auxiliary eps for slicing runs */
     ierr = EPSSliceGetEPS(eps);CHKERRQ(ierr);
     sr_loc = ((EPS_KRYLOVSCHUR*)ctx->eps->data)->sr;
     if (ctx->npart>1) {
-      if ((sr->dir>0&&ctx->subc->color==0)||(sr->dir<1&&ctx->subc->color<ctx->npart-1)) sr->inertia0 = sr_loc->inertia0;
-      ierr = MPI_Bcast(&sr->inertia0,1,MPIU_INT,0,ctx->commrank);CHKERRQ(ierr);
+      if ((sr->dir>0&&ctx->subc->color==0)||(sr->dir<0&&ctx->subc->color==ctx->npart-1)) sr->inertia0 = sr_loc->inertia0;
+      ierr = MPI_Comm_rank(ctx->subc->comm,&rank);CHKERRQ(ierr);
+      if (rank==0) {
+        ierr = MPI_Bcast(&sr->inertia0,1,MPIU_INT,(sr->dir>0)?0:ctx->npart-1,ctx->commrank);CHKERRQ(ierr);
+      }
+      ierr = MPI_Bcast(&sr->inertia0,1,MPIU_INT,0,ctx->subc->comm);CHKERRQ(ierr);
       ierr = PetscMalloc1(ctx->npart,&ctx->nconv_loc);CHKERRQ(ierr);
       ierr = MPI_Comm_size(((PetscObject)eps)->comm,&nproc);CHKERRQ(ierr);
       if (nproc%ctx->npart==0) { /* subcommunicators with the same size */
@@ -363,13 +365,15 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       nEigs = sr_loc->numEigs;
       sr->inertia0 = sr_loc->inertia0;
     }
+    sr->inertia1 = sr->inertia0+sr->dir*nEigs;
     sr->numEigs = nEigs;
     eps->nev = nEigs;
     eps->ncv = nEigs;
     eps->mpd = nEigs;
   } else {
     if (ctx->npart>1) {
-      sr_glob = ((EPS_KRYLOVSCHUR*)ctx->eps->data)->sr;
+      ctx_glob = (EPS_KRYLOVSCHUR*)ctx->eps->data;
+      sr_glob = ctx_glob->sr;
       sr->dir = sr_glob->dir;
       sr->int0 = (sr->dir==1)?eps->inta:eps->intb;
       sr->int1 = (sr->dir==1)?eps->intb:eps->inta;
@@ -377,14 +381,18 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       else sr->hasEnd = PETSC_TRUE;
     }
 
-    /* compute inertia0 */
-    ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0);CHKERRQ(ierr);   
+    /* last process in eps comm computes inertia1 */
+    if (ctx->npart==1 || ((sr->dir>0 && ctx->subc->color==ctx->npart-1) || (sr->dir<0 && ctx->subc->color==0))) {
+      ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1);CHKERRQ(ierr);
+    }
 
+    /* compute inertia0 */
+    ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0);CHKERRQ(ierr);
     if (ctx->npart>1) {
       /* inertia1 is received from neighbour */
       ierr = MPI_Comm_rank(ctx->subc->comm,&rank);CHKERRQ(ierr);
       if (!rank) {
-        if ((sr->dir>0 && ctx->subc->color>0) || ((sr->dir<0 && ctx->subc->color<ctx->npart-1))) { /* send inertia0 to neighbour0 */
+        if ((sr->dir>0 && ctx->subc->color>0) || (sr->dir<0 && ctx->subc->color<ctx->npart-1)) { /* send inertia0 to neighbour0 */
           ierr = MPI_Isend(&(sr->inertia0),1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req);CHKERRQ(ierr);
         }
         if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)|| (sr->dir<0 && ctx->subc->color>0)) { /* receive inertia1 from neighbour1 */
@@ -393,8 +401,10 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       }
       if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)||(sr->dir<0 && ctx->subc->color>0)) {
         ierr = MPI_Bcast(&sr->inertia1,1,MPIU_INT,0,ctx->subc->comm);CHKERRQ(ierr);
-      } else sr->inertia1 = sr_glob->inertia1; 
+        ierr = MPI_Bcast(&sr->int1,1,MPIU_REAL,0,ctx->subc->comm);CHKERRQ(ierr);
+      } else sr_glob->inertia1 = sr->inertia1;
     }
+
     /* number of eigenvalues in interval */
     sr->numEigs = (sr->dir)*(sr->inertia1 - sr->inertia0);
     if (ctx->npart>1 && sr->numEigs) {
@@ -451,6 +461,8 @@ static PetscErrorCode EPSSliceGetInertias(EPS eps,PetscInt *n,PetscReal **shifts
     (*shifts)[i]   = ctx->sr->int1;
     (*inertias)[i] = ctx->sr->inertia1;
   }
+  /* remove possible duplicate in last position */
+  if ((*shifts)[(*n)-1]==(*shifts)[(*n)-2]) (*n)--;
   /* sort result */
   for (i=0;i<*n;i++) {
     v = (*shifts)[i];
@@ -462,8 +474,6 @@ static PetscErrorCode EPSSliceGetInertias(EPS eps,PetscInt *n,PetscReal **shifts
       }
     }
   }
-  /* remove possible duplicate in last position */
-  if ((*shifts)[(*n)-1]==(*shifts)[(*n)-2]) (*n)--;
   PetscFunctionReturn(0);
 }
 
