@@ -37,6 +37,8 @@
 #include <slepc-private/epsimpl.h>
 #include "krylovschur.h"
 
+#define SLICE_PTOL PETSC_SQRT_MACHINE_EPSILON
+
 #undef __FUNCT__
 #define __FUNCT__ "EPSReset_KrylovSchur_Slice"
 PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
@@ -95,6 +97,7 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
   PetscErrorCode ierr;
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
   PetscReal       eta;
+  PetscInt        k;
   PetscLogDouble  cnt;
   BVType          type;
   BVOrthogType    orthog_type;
@@ -105,8 +108,9 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
 
   PetscFunctionBegin;
   /* allocate space for eigenvalues and friends */
-  ierr = PetscMalloc4(sr->numEigs,&sr->eigr,sr->numEigs,&sr->eigi,sr->numEigs,&sr->errest,sr->numEigs,&sr->perm);CHKERRQ(ierr);
-  cnt = 2*sr->numEigs*sizeof(PetscScalar) + 2*sr->numEigs*sizeof(PetscReal) + sr->numEigs*sizeof(PetscInt);
+  k = PetscMax(1,sr->numEigs);
+  ierr = PetscMalloc4(k,&sr->eigr,k,&sr->eigi,k,&sr->errest,k,&sr->perm);CHKERRQ(ierr);
+  cnt = 2*k*sizeof(PetscScalar) + 2*k*sizeof(PetscReal) + k*sizeof(PetscInt);
   ierr = PetscLogObjectMemory((PetscObject)eps,cnt);CHKERRQ(ierr);
 
   /* allocate sr->V and transfer options from eps->V */
@@ -120,7 +124,7 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
     ierr = BVSetType(sr->V,type);CHKERRQ(ierr);
   }
   ierr = STMatGetVecs(eps->st,&t,NULL);CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(sr->V,t,cnt);CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(sr->V,t,k);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = BVGetMatrix(eps->V,&matrix,NULL);CHKERRQ(ierr);
@@ -252,7 +256,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSliceGetInertia"
-static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscScalar shift,PetscInt *inertia)
+static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscScalar shift,PetscInt *inertia,PetscInt *zeros)
 {
   PetscErrorCode ierr;
   KSP            ksp;
@@ -264,13 +268,14 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscScalar shift,PetscInt *ine
     *inertia = eps->n;
   } else if (shift <= PETSC_MIN_REAL) {
     *inertia = 0;
+    *zeros = 0;
   } else {
     ierr = STSetShift(eps->st,shift);CHKERRQ(ierr);
     ierr = STSetUp(eps->st);CHKERRQ(ierr);
     ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
-    ierr = MatGetInertia(F,inertia,NULL,NULL);CHKERRQ(ierr);
+    ierr = MatGetInertia(F,inertia,zeros,NULL);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -283,7 +288,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscBool       issinv;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data,*ctx_glob;
   EPS_SR          sr,sr_loc,sr_glob;
-  PetscInt        nEigs,dssz=1,i;
+  PetscInt        nEigs,dssz=1,i,zeros,off=0;
   PetscMPIInt     nproc,rank;
   MPI_Request     req;
 
@@ -350,14 +355,18 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       ierr = MPI_Bcast(&sr->inertia0,1,MPIU_INT,0,ctx->subc->comm);CHKERRQ(ierr);
       ierr = PetscMalloc1(ctx->npart,&ctx->nconv_loc);CHKERRQ(ierr);
       ierr = MPI_Comm_size(((PetscObject)eps)->comm,&nproc);CHKERRQ(ierr);
+      if (sr->dir<0) off = 1;
       if (nproc%ctx->npart==0) { /* subcommunicators with the same size */
         ierr = MPI_Allgather(&sr_loc->numEigs,1,MPIU_INT,ctx->nconv_loc,1,MPIU_INT,ctx->commrank);CHKERRQ(ierr);
+        ierr = MPI_Allgather(&sr_loc->int0,1,MPIU_REAL,ctx->subintervals+off,1,MPIU_REAL,ctx->commrank);CHKERRQ(ierr);
       } else {
         ierr = MPI_Comm_rank(ctx->subc->comm,&rank);CHKERRQ(ierr);
         if (rank==0) {
           ierr = MPI_Allgather(&sr_loc->numEigs,1,MPIU_INT,ctx->nconv_loc,1,MPIU_INT,ctx->commrank);CHKERRQ(ierr);
+          ierr = MPI_Allgather(&sr_loc->int0,1,MPIU_REAL,ctx->subintervals+off,1,MPIU_REAL,ctx->commrank);CHKERRQ(ierr);
         }
         ierr = MPI_Bcast( ctx->nconv_loc,ctx->npart, MPIU_INT,0,ctx->subc->comm);CHKERRQ(ierr);
+        ierr = MPI_Bcast(ctx->subintervals+off,ctx->npart, MPIU_REAL,0,ctx->subc->comm);CHKERRQ(ierr);
       }
       nEigs = 0;
       for (i=0;i<ctx->npart;i++) nEigs += ctx->nconv_loc[i];
@@ -383,20 +392,31 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 
     /* last process in eps comm computes inertia1 */
     if (ctx->npart==1 || ((sr->dir>0 && ctx->subc->color==ctx->npart-1) || (sr->dir<0 && ctx->subc->color==0))) {
-      ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1);CHKERRQ(ierr);
+      ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1,&zeros);CHKERRQ(ierr);
+      if (zeros) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
     }
 
     /* compute inertia0 */
-    ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0);CHKERRQ(ierr);
+    ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,&zeros);CHKERRQ(ierr);
+    if (zeros) { /* error in factorization */
+      if (ctx->npart==1 || ctx_glob->subintset || ((sr->dir>0 && ctx->subc->color==0) || (sr->dir<0 && ctx->subc->color==ctx->npart-1))) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
+      else { /* perturb shift */
+        sr->int0 *= (1.0+SLICE_PTOL);
+        ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,&zeros);CHKERRQ(ierr);
+        if (zeros) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",sr->int1);
+      }
+    }
     if (ctx->npart>1) {
       /* inertia1 is received from neighbour */
       ierr = MPI_Comm_rank(ctx->subc->comm,&rank);CHKERRQ(ierr);
       if (!rank) {
         if ((sr->dir>0 && ctx->subc->color>0) || (sr->dir<0 && ctx->subc->color<ctx->npart-1)) { /* send inertia0 to neighbour0 */
           ierr = MPI_Isend(&(sr->inertia0),1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req);CHKERRQ(ierr);
+          ierr = MPI_Isend(&(sr->int0),1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req);CHKERRQ(ierr);
         }
         if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)|| (sr->dir<0 && ctx->subc->color>0)) { /* receive inertia1 from neighbour1 */
           ierr = MPI_Recv(&(sr->inertia1),1,MPIU_INT,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE);
+          ierr = MPI_Recv(&(sr->int1),1,MPIU_REAL,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE);
         }
       }
       if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)||(sr->dir<0 && ctx->subc->color>0)) {
@@ -407,7 +427,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 
     /* number of eigenvalues in interval */
     sr->numEigs = (sr->dir)*(sr->inertia1 - sr->inertia0);
-    if (ctx->npart>1 && sr->numEigs) {
+    if (ctx->npart>1) {
       /* memory allocate for subinterval eigenpairs */
       ierr = EPSSliceAllocateSolution(eps,1);CHKERRQ(ierr);
     }
@@ -580,14 +600,18 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
     ierr = ISDestroy(&is2);CHKERRQ(ierr);
     for (i=0;i<ctx->nconv_loc[si];i++) {
       ierr = BVGetColumn(eps->V,++idx,&v);CHKERRQ(ierr);
-      ierr = BVGetColumn(V_loc,i,&v_loc);CHKERRQ(ierr);
-      ierr = VecGetArray(v_loc,&array);CHKERRQ(ierr);
-      ierr = VecPlaceArray(vg,array);CHKERRQ(ierr);
+      if (ctx->subc->color==si) {
+        ierr = BVGetColumn(V_loc,i,&v_loc);CHKERRQ(ierr);
+        ierr = VecGetArray(v_loc,&array);CHKERRQ(ierr);
+        ierr = VecPlaceArray(vg,array);CHKERRQ(ierr);
+      }
       ierr = VecScatterBegin(vec_sc,vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
       ierr = VecScatterEnd(vec_sc,vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-      ierr = VecResetArray(vg);CHKERRQ(ierr);
-      ierr = VecRestoreArray(v_loc,&array);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(V_loc,i,&v_loc);CHKERRQ(ierr);
+      if (ctx->subc->color==si) {
+        ierr = VecResetArray(vg);CHKERRQ(ierr);
+        ierr = VecRestoreArray(v_loc,&array);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(V_loc,i,&v_loc);CHKERRQ(ierr);
+      }
       ierr = BVRestoreColumn(eps->V,idx,&v);CHKERRQ(ierr);
     } 
     ierr = VecScatterDestroy(&vec_sc);CHKERRQ(ierr);
@@ -694,23 +718,27 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
 static PetscErrorCode EPSExtractShift(EPS eps)
 {
   PetscErrorCode   ierr;
-  PetscInt         iner;
-  Mat              F;
-  PC               pc;
-  KSP              ksp;
+  PetscInt         iner,zeros;
   EPS_KRYLOVSCHUR  *ctx=(EPS_KRYLOVSCHUR*)eps->data;
   EPS_SR           sr;
+  PetscReal        newShift;
+  EPS_shift        sPres;
 
   PetscFunctionBegin;
   sr = ctx->sr;
   if (sr->nPend > 0) {
     sr->sPrev = sr->sPres;
     sr->sPres = sr->pending[--sr->nPend];
-    ierr = STSetShift(eps->st,sr->sPres->value);CHKERRQ(ierr);
-    ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
-    ierr = MatGetInertia(F,&iner,NULL,NULL);CHKERRQ(ierr);
+    sPres = sr->sPres;
+    ierr = EPSSliceGetInertia(eps,sPres->value,&iner,&zeros);CHKERRQ(ierr);
+    if (zeros) {
+      newShift = sPres->value*(1.0+SLICE_PTOL);
+      if (sr->dir*(sPres->neighb[0] && newShift-sPres->neighb[0]->value) < 0) newShift = (sPres->value+sPres->neighb[0]->value)/2;
+      else if (sPres->neighb[1] && sr->dir*(sPres->neighb[1]->value-newShift) < 0) newShift = (sPres->value+sPres->neighb[1]->value)/2;
+      ierr = EPSSliceGetInertia(eps,newShift,&iner,&zeros);
+      if (zeros) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",newShift);
+      sPres->value = newShift;
+    }
     sr->sPres->inertia = iner;
     eps->target = sr->sPres->value;
     eps->reason = EPS_CONVERGED_ITERATING;
@@ -938,7 +966,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   }
   sPres->comp[0] = (count0 >= sPres->nsch[0])?PETSC_TRUE:PETSC_FALSE;
   sPres->comp[1] = (count1 >= sPres->nsch[1])?PETSC_TRUE:PETSC_FALSE;
-  if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1])SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error in Spectrum Slicing!\nMismatch between number of values found and information from inertia");
+  if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1])SETERRQ(PetscObjectComm((PetscObject)eps),1,"Mismatch between number of values found and information from inertia");
   ierr = PetscFree(iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
