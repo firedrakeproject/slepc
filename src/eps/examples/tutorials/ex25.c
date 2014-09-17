@@ -145,13 +145,19 @@ int main(int argc,char **argv)
   if (show) {
     ierr = EPSKrylovSchurGetInertias(eps,&ns,&shifts,&inertias);  
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Subintervals (after setup):\n");CHKERRQ(ierr);
-    for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %.15g  Inertia %d \n",shifts[i],inertias[i]);CHKERRQ(ierr); }
+    for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %d \n",shifts[i],inertias[i]);CHKERRQ(ierr); }
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+    ierr = PetscFree(shifts);CHKERRQ(ierr);
+    ierr = PetscFree(inertias);CHKERRQ(ierr);
   }
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   if (show) {
     ierr = EPSKrylovSchurGetInertias(eps,&ns,&shifts,&inertias);  
     ierr = PetscPrintf(PETSC_COMM_WORLD,"All shifts (after solve):\n");CHKERRQ(ierr);
-    for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %.15g  Inertia %d \n",shifts[i],inertias[i]);CHKERRQ(ierr); }
+    for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %d \n",shifts[i],inertias[i]);CHKERRQ(ierr); }
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+    ierr = PetscFree(shifts);CHKERRQ(ierr);
+    ierr = PetscFree(inertias);CHKERRQ(ierr);
   }
 
   /*
