@@ -27,6 +27,7 @@
 PetscFunctionList FNList = 0;
 PetscBool         FNRegisterAllCalled = PETSC_FALSE;
 PetscClassId      FN_CLASSID = 0;
+PetscLogEvent     FN_Evaluate = 0;
 static PetscBool  FNPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__
@@ -75,6 +76,8 @@ PetscErrorCode FNInitializePackage(void)
   ierr = PetscClassIdRegister("Math function",&FN_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = FNRegisterAll();CHKERRQ(ierr);
+  /* Register Events */
+  ierr = PetscLogEventRegister("FNEvaluate",FN_CLASSID,&FN_Evaluate);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
@@ -410,7 +413,9 @@ PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
   if (!((PetscObject)fn)->type_name) {
     ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
   }
+  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   ierr = (*fn->ops->evaluatefunction)(fn,x,y);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -443,7 +448,9 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
   if (!((PetscObject)fn)->type_name) {
     ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
   }
+  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   ierr = (*fn->ops->evaluatederivative)(fn,x,y);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -558,6 +565,7 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
   ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
   symm = set? flg: PETSC_FALSE;
 
+  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   if (symm) {
     if (fn->ops->evaluatefunctionmatsym) {
@@ -571,6 +579,7 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
     } else SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in FN type %s",((PetscObject)fn)->type_name);
   }
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

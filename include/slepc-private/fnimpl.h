@@ -25,6 +25,8 @@
 #include <slepcfn.h>
 #include <slepc-private/slepcimpl.h>
 
+PETSC_EXTERN PetscLogEvent FN_Evaluate;
+
 typedef struct _FNOps *FNOps;
 
 struct _FNOps {
