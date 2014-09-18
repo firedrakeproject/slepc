@@ -409,10 +409,8 @@ PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveScalar(fn,x,2);
+  PetscValidType(fn,1);
   PetscValidPointer(y,3);
-  if (!((PetscObject)fn)->type_name) {
-    ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
-  }
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   ierr = (*fn->ops->evaluatefunction)(fn,x,y);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
@@ -444,10 +442,8 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveScalar(fn,x,2);
+  PetscValidType(fn,1);
   PetscValidPointer(y,3);
-  if (!((PetscObject)fn)->type_name) {
-    ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
-  }
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   ierr = (*fn->ops->evaluatederivative)(fn,x,y);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
@@ -545,6 +541,7 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidHeaderSpecific(A,MAT_CLASSID,2);
   PetscValidHeaderSpecific(B,MAT_CLASSID,3);
+  PetscValidType(fn,1);
   PetscValidType(A,2);
   PetscValidType(B,3);
   if (A==B) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_WRONG,"A and B arguments must be different");
@@ -556,10 +553,6 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
   if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %D rows, %D cols)",m,n);
   ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
   if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat B is not square (has %D rows, %D cols)",m,n);
-
-  if (!((PetscObject)fn)->type_name) {
-    ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
-  }
 
   /* check symmetry of A */
   ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
