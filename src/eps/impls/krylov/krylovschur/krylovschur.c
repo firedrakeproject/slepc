@@ -133,11 +133,13 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   switch (variant) {
     case EPS_KS_DEFAULT:
       eps->ops->solve = EPSSolve_KrylovSchur_Default;
+      eps->ops->computevectors = EPSComputeVectors_Schur;
       ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
       ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
       break;
     case EPS_KS_SYMM:
       eps->ops->solve = EPSSolve_KrylovSchur_Symm;
+      eps->ops->computevectors = EPSComputeVectors_Hermitian;
       ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       ierr = DSSetExtraRow(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
@@ -145,12 +147,14 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       break;
     case EPS_KS_SLICE:
       eps->ops->solve = EPSSolve_KrylovSchur_Slice;
+      eps->ops->computevectors = NULL;
       ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       ierr = DSAllocate(eps->ds,ctx->ncv+1);CHKERRQ(ierr);
       break;
     case EPS_KS_INDEF:
       eps->ops->solve = EPSSolve_KrylovSchur_Indefinite;
+      eps->ops->computevectors = EPSComputeVectors_Indefinite;
       ierr = DSSetType(eps->ds,DSGHIEP);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
@@ -676,7 +680,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   eps->ops->reset          = EPSReset_KrylovSchur;
   eps->ops->view           = EPSView_KrylovSchur;
   eps->ops->backtransform  = EPSBackTransform_Default;
-  eps->ops->computevectors = EPSComputeVectors_Schur;
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetRestart_C",EPSKrylovSchurSetRestart_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetRestart_C",EPSKrylovSchurGetRestart_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetDimensions_C",EPSKrylovSchurSetDimensions_KrylovSchur);CHKERRQ(ierr);

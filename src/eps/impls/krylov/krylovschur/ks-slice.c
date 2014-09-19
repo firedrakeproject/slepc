@@ -69,6 +69,7 @@ PetscErrorCode EPSAllocateSolutionSlice(EPS eps,PetscInt extra)
   /* allocate sr->V and transfer options from eps->V */
   ierr = BVCreate(PetscObjectComm((PetscObject)eps),&sr->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)sr->V);CHKERRQ(ierr);
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
   if (!((PetscObject)(eps->V))->type_name) {
     ierr = BVSetType(sr->V,BVSVEC);CHKERRQ(ierr);
   } else {
@@ -99,6 +100,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   Mat             F;
 
   PetscFunctionBegin;
+  if (eps->intb >= PETSC_MAX_REAL && eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
   if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Must define a computational interval when using EPS_ALL");
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
@@ -140,27 +142,22 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     if (eps->inta <= PETSC_MIN_REAL) { /* Left-open interval */
       sr->hasEnd = PETSC_FALSE;
       sr->inertia1 = 0;
-    }
+    } else sr->hasEnd = PETSC_TRUE;
   }
 
-  if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
-    if (eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
-    ierr = STSetShift(eps->st,eps->inta);CHKERRQ(ierr);
-  } else {
-    ierr = STSetShift(eps->st,eps->intb);CHKERRQ(ierr);
-  }
-  ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-
   /* compute inertia1 if necessary */
   if (sr->hasEnd) {
+    ierr = STSetShift(eps->st,sr->int1);CHKERRQ(ierr);
+    ierr = STSetUp(eps->st);CHKERRQ(ierr);
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     ierr = MatGetInertia(F,&sr->inertia1,NULL,NULL);CHKERRQ(ierr);
   }
 
   /* compute inertia0 */
   ierr = STSetShift(eps->st,sr->int0);CHKERRQ(ierr);
+  ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
   ierr = MatGetInertia(F,&sr->inertia0,NULL,NULL);CHKERRQ(ierr);
 
