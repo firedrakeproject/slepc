@@ -38,19 +38,6 @@
 #  define SLEPC_DEFAULT_TOL   1e-7
 #endif
 
-/*E
-    SlepcFunction - Used to specify a mathematical function
-
-    Note:
-    Currently available functions:
-.   SLEPC_FUNCTION_EXP - exponential
-
-    Level: beginner
-E*/
-typedef enum { SLEPC_FUNCTION_NONE,
-               SLEPC_FUNCTION_EXP,
-               SLEPC_FUNCTION_LAST } SlepcFunction;
-
 /*@C
    SlepcAbs - Returns sqrt(x**2+y**2), taking care not to cause unnecessary
    overflow. It is based on LAPACK's DLAPY2.

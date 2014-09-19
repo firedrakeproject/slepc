@@ -757,114 +757,6 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
 #endif
 }
 
-#define MAX_PADE 6
-
-#undef __FUNCT__
-#define __FUNCT__ "DSFunction_EXP_NHEP_PADE"
-PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
-{
-#if defined(PETSC_MISSING_LAPACK_GESV) || defined(SLEPC_MISSING_LAPACK_LANGE)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV/LANGE - Lapack routines are unavailable");
-#else
-  PetscErrorCode ierr;
-  PetscBLASInt   n,ld,ld2,*ipiv,info,inc=1;
-  PetscInt       j,k,odd;
-  const PetscInt p=MAX_PADE;
-  PetscReal      c[MAX_PADE+1],s;
-  PetscScalar    scale,mone=-1.0,one=1.0,two=2.0,zero=0.0;
-  PetscScalar    *A,*A2,*Q,*P,*W,*aux;
-
-  PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ld2 = ld*ld;
-  ierr = DSAllocateWork_Private(ds,0,ld,ld);CHKERRQ(ierr);
-  ipiv = ds->iwork;
-  if (!ds->mat[DS_MAT_W]) { ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr); }
-  if (!ds->mat[DS_MAT_Z]) { ierr = DSAllocateMat_Private(ds,DS_MAT_Z);CHKERRQ(ierr); }
-  A  = ds->mat[DS_MAT_A];
-  A2 = ds->mat[DS_MAT_Z];
-  Q  = ds->mat[DS_MAT_Q];
-  P  = ds->mat[DS_MAT_F];
-  W  = ds->mat[DS_MAT_W];
-
-  /* Pade' coefficients */
-  c[0] = 1.0;
-  for (k=1;k<=p;k++) {
-    c[k] = c[k-1]*(p+1-k)/(k*(2*p+1-k));
-  }
-
-  /* Scaling */
-  s = LAPACKlange_("I",&n,&n,A,&ld,ds->rwork);
-  if (s>0.5) {
-    s = PetscMax(0,(int)(PetscLogReal(s)/PetscLogReal(2.0)) + 2);
-    scale = PetscPowScalar(2,(-1)*s);
-    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&scale,A,&inc));
-  }
-
-  /* Horner evaluation */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,A,&ld,A,&ld,&zero,A2,&ld));
-  ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMemzero(P,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (j=0;j<n;j++) {
-    Q[j+j*ld] = c[p];
-    P[j+j*ld] = c[p-1];
-  }
-
-  odd = 1;
-  for (k=p-1;k>0;k--) {
-    if (odd==1) {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,A2,&ld,&zero,W,&ld));
-      aux = Q;
-      Q = W;
-      W = aux;
-      for (j=0;j<n;j++)
-        Q[j+j*ld] = Q[j+j*ld] + c[k-1];
-    } else {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,A2,&ld,&zero,W,&ld));
-      aux = P;
-      P = W;
-      W = aux;
-      for (j=0;j<n;j++)
-        P[j+j*ld] = P[j+j*ld] + c[k-1];
-    }
-    odd = 1-odd;
-  }
-  if (odd==1) {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,A,&ld,&zero,W,&ld));
-    aux = Q;
-    Q = W;
-    W = aux;
-    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
-    PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
-    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
-    for (j=0;j<n;j++)
-      P[j+j*ld] = P[j+j*ld] + 1.0;
-    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&mone,P,&inc));
-  } else {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,A,&ld,&zero,W,&ld));
-    aux = P;
-    P = W;
-    W = aux;
-    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
-    PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
-    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
-    for (j=0;j<n;j++)
-      P[j+j*ld] = P[j+j*ld] + 1.0;
-  }
-
-  for (k=1;k<=s;k++) {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,P,&ld,&zero,W,&ld));
-    ierr = PetscMemcpy(P,W,ld2*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  if (P!=ds->mat[DS_MAT_F]) {
-    ierr = PetscMemcpy(ds->mat[DS_MAT_F],P,ld2*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-#endif
-}
-
 #undef __FUNCT__
 #define __FUNCT__ "DSCreate_NHEP"
 PETSC_EXTERN PetscErrorCode DSCreate_NHEP(DS ds)
@@ -880,8 +772,6 @@ PETSC_EXTERN PetscErrorCode DSCreate_NHEP(DS ds)
   ds->ops->cond          = DSCond_NHEP;
   ds->ops->transharm     = DSTranslateHarmonic_NHEP;
   ds->ops->normalize     = DSNormalize_NHEP;
-
-  ds->ops->computefun[SLEPC_FUNCTION_EXP][0] = DSFunction_EXP_NHEP_PADE;
   PetscFunctionReturn(0);
 }
 
