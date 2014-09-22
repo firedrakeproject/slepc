@@ -37,10 +37,6 @@
       parameter (MFN_DIVERGED_BREAKDOWN     = -4)
       parameter (MFN_CONVERGED_ITERATING    =  0)
 
-      PetscEnum MFN_EXP
-
-      parameter (MFN_EXP                    =  1)
-
 !
 !   Possible arguments to MFNMonitorSet()
 !

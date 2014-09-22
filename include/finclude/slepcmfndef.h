@@ -24,7 +24,7 @@
 #define __SLEPCMFN_H
 
 #include "finclude/petscmatdef.h"
-#include "finclude/slepcdsdef.h"
+#include "finclude/slepcfndef.h"
 #include "finclude/slepcbvdef.h"
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)

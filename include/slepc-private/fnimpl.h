@@ -25,11 +25,15 @@
 #include <slepcfn.h>
 #include <slepc-private/slepcimpl.h>
 
+PETSC_EXTERN PetscLogEvent FN_Evaluate;
+
 typedef struct _FNOps *FNOps;
 
 struct _FNOps {
   PetscErrorCode (*evaluatefunction)(FN,PetscScalar,PetscScalar*);
   PetscErrorCode (*evaluatederivative)(FN,PetscScalar,PetscScalar*);
+  PetscErrorCode (*evaluatefunctionmat)(FN,Mat,Mat);
+  PetscErrorCode (*evaluatefunctionmatsym)(FN,Mat,Mat);
   PetscErrorCode (*view)(FN,PetscViewer);
 };
 
