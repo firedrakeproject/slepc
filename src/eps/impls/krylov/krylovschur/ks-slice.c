@@ -272,7 +272,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSliceGetInertia"
-static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscScalar shift,PetscInt *inertia,PetscInt *zeros)
+static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inertia,PetscInt *zeros)
 {
   PetscErrorCode ierr;
   KSP            ksp;
