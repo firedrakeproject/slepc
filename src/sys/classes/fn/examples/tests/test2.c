@@ -29,7 +29,8 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   FN             fn;
-  PetscScalar    x,y,yp,tau,eta;
+  PetscScalar    x,y,yp,tau,eta,*alpha,*beta;
+  PetscInt       i,na,nb;
   char           strx[50],str[50];
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -61,6 +62,22 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
+
+  /* test FNGetParameters */
+  ierr = FNGetParameters(fn,&na,&alpha,&nb,&beta);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Parameters:\n - alpha: ");CHKERRQ(ierr);
+  for (i=0;i<na;i++) {
+    ierr = SlepcSNPrintfScalar(str,50,alpha[i],PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"%s ",str);CHKERRQ(ierr);
+  }
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n - beta: ");CHKERRQ(ierr);
+  for (i=0;i<nb;i++) {
+    ierr = SlepcSNPrintfScalar(str,50,beta[i],PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"%s ",str);CHKERRQ(ierr);
+  }
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+  ierr = PetscFree(alpha);CHKERRQ(ierr);
+  ierr = PetscFree(beta);CHKERRQ(ierr);
 
   ierr = FNDestroy(&fn);CHKERRQ(ierr);
   ierr = SlepcFinalize();
