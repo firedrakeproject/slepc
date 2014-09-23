@@ -38,8 +38,8 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,"-eta",&eta,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,"-eta",&eta,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix exponential, n=%D.\n",n);CHKERRQ(ierr);
 
