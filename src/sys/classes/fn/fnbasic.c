@@ -466,8 +466,11 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
   PetscErrorCode ierr;
   PetscInt       i,j,m;
   PetscBLASInt   n,ld,lwork,info;
-  PetscReal      *eig;
   PetscScalar    *As,*Bs,*Q,*W,*work,a,x,y,one=1.0,zero=0.0;
+  PetscReal      *eig;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+#endif
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
@@ -478,13 +481,23 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
 
   /* workspace query and memory allocation */
   lwork = -1;
-  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,&a,&lwork,&info));
-  ierr = PetscBLASIntCast((PetscInt)a,&lwork);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,eig,&a,&lwork,NULL,&info));
+  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
+  ierr = PetscMalloc5(m,&eig,m*m,&Q,m*m,&W,lwork,&work,PetscMax(1,3*m-2),&rwork);CHKERRQ(ierr);
+#else
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,eig,&a,&lwork,&info));
+  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
   ierr = PetscMalloc4(m,&eig,m*m,&Q,m*m,&W,lwork,&work);CHKERRQ(ierr);
+#endif
 
   /* compute eigendecomposition */
   PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L",&n,&n,As,&ld,Q,&ld));
+#if defined(PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,rwork,&info));
+#else
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,&info));
+#endif
   if (info) SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_LIB,"Error in Lapack xSYEV %i",info);
 
   /* W = f(Lambda)*Q' */
@@ -495,7 +508,11 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
   }
   /* Bs = Q*W */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,W,&ld,&zero,Bs,&ld));
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PetscFree5(eig,Q,W,work,rwork);CHKERRQ(ierr);
+#else
   ierr = PetscFree4(eig,Q,W,work);CHKERRQ(ierr);
+#endif
   ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Bs);CHKERRQ(ierr);
   PetscFunctionReturn(0);
