@@ -48,8 +48,6 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
   if (!mfn->ncv) mfn->ncv = PetscMin(30,N);
   if (!mfn->max_it) mfn->max_it = PetscMax(100,2*N/mfn->ncv);
   ierr = MFNAllocateSolution(mfn,2);CHKERRQ(ierr);
-  ierr = DSAllocate(mfn->ds,mfn->ncv+2);CHKERRQ(ierr);
-  ierr = DSSetType(mfn->ds,DSNHEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -82,12 +80,39 @@ static PetscErrorCode MFNBasicArnoldi(BV V, Mat A,PetscScalar *H,PetscInt ldh,Pe
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "CreateDenseMat"
+/*
+   CreateDenseMat - Creates a dense Mat of size k unless it already has that size
+*/
+static PetscErrorCode CreateDenseMat(PetscInt k,Mat *A)
+{
+  PetscErrorCode ierr;
+  PetscBool      create=PETSC_FALSE;
+  PetscInt       m,n;
+
+  PetscFunctionBegin;
+  if (!*A) create=PETSC_TRUE;
+  else {
+    ierr = MatGetSize(*A,&m,&n);CHKERRQ(ierr);
+    if (m!=k || n!=k) {
+      ierr = MatDestroy(A);CHKERRQ(ierr);
+      create=PETSC_TRUE;
+    }
+  }
+  if (create) {
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,A);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "MFNSolve_Krylov"
 PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 {
   PetscErrorCode ierr;
   PetscInt       mxstep,mxrej,m,mb,ld,i,j,ireject,mx,k1;
   Vec            v,r;
+  Mat            M=NULL,K=NULL;
   PetscScalar    *H,*B,*F,*betaF;
   PetscReal      anorm,normb,avnorm,tol,err_loc,rndoff;
   PetscReal      t,t_out,t_new,t_now,t_step;
@@ -122,8 +147,8 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   sgn = PetscSign(t);
 
   ierr = VecCopy(b,x);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(mfn->ds,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc2(m+1,&betaF,ld*ld,&B);CHKERRQ(ierr);
+  ld = m+2;
+  ierr = PetscMalloc3(m+1,&betaF,ld*ld,&H,ld*ld,&B);CHKERRQ(ierr);
 
   while (mfn->reason == MFN_CONVERGED_ITERATING) {
     mfn->its++;
@@ -131,7 +156,6 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     t_step = PetscMin(t_out-t_now,t_new);
     ierr = BVInsertVec(mfn->V,0,x);CHKERRQ(ierr);
     ierr = BVScaleColumn(mfn->V,0,1.0/beta);CHKERRQ(ierr);
-    ierr = DSGetArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = MFNBasicArnoldi(mfn->V,mfn->A,H,ld,0,&mb,&breakdown);CHKERRQ(ierr);
     if (breakdown) {
       k1 = 0;
@@ -147,29 +171,34 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
       ierr = BVNormColumn(mfn->V,m+1,NORM_2,&avnorm);CHKERRQ(ierr);
     }
     ierr = PetscMemcpy(B,H,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = DSRestoreArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
 
     ireject = 0;
     while (ireject <= mxrej) {
       mx = mb + k1;
-      ierr = DSSetDimensions(mfn->ds,mx,0,0,0);CHKERRQ(ierr);
-      ierr = DSGetArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
       for (i=0;i<mx;i++) {
         for (j=0;j<mx;j++) {
           H[i+j*ld] = sgn*B[i+j*ld]*t_step;
         }
       }
-      ierr = DSRestoreArray(mfn->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-      ierr = DSComputeFunction(mfn->ds,mfn->function);CHKERRQ(ierr);
+      ierr = CreateDenseMat(mx,&M);CHKERRQ(ierr);
+      ierr = CreateDenseMat(mx,&K);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(M,&F);CHKERRQ(ierr);
+      for (i=0;i<mx;i++) {
+        for (j=0;j<mx;j++) {
+          F[i+j*mx] = H[i+j*ld];
+        }
+      }
+      ierr = MatDenseRestoreArray(M,&F);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat(mfn->fn,M,K);CHKERRQ(ierr);
 
       if (k1==0) {
         err_loc = tol;
         break;
       } else {
-        ierr = DSGetArray(mfn->ds,DS_MAT_F,&F);CHKERRQ(ierr);
+        ierr = MatDenseGetArray(K,&F);CHKERRQ(ierr);
         p1 = PetscAbsScalar(beta*F[m]);
         p2 = PetscAbsScalar(beta*F[m+1]*avnorm);
-        ierr = DSRestoreArray(mfn->ds,DS_MAT_F,&F);CHKERRQ(ierr);
+        ierr = MatDenseRestoreArray(K,&F);CHKERRQ(ierr);
         if (p1 > 10*p2) {
           err_loc = p2;
           xm = 1.0/(PetscReal)m;
@@ -191,9 +220,9 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     }
 
     mx = mb + PetscMax(0,k1-1);
-    ierr = DSGetArray(mfn->ds,DS_MAT_F,&F);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(K,&F);CHKERRQ(ierr);
     for (j=0;j<mx;j++) betaF[j] = beta*F[j];
-    ierr = DSRestoreArray(mfn->ds,DS_MAT_F,&F);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(K,&F);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(mfn->V,0,mx);CHKERRQ(ierr);
     ierr = BVMultVec(mfn->V,1.0,0.0,x,betaF);CHKERRQ(ierr);
     ierr = VecNorm(x,NORM_2,&beta);CHKERRQ(ierr);
@@ -210,7 +239,9 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     ierr = MFNMonitor(mfn,mfn->its,t_now);CHKERRQ(ierr);
   }
 
-  ierr = PetscFree2(betaF,B);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
+  ierr = MatDestroy(&K);CHKERRQ(ierr);
+  ierr = PetscFree3(betaF,H,B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

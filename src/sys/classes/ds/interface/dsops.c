@@ -549,44 +549,6 @@ PetscErrorCode DSSolve(DS ds,PetscScalar *eigr,PetscScalar *eigi)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSComputeFunction"
-/*@
-   DSComputeFunction - Computes a matrix function.
-
-   Logically Collective on DS
-
-   Input Parameters:
-+  ds - the direct solver context
--  f  - the function to evaluate
-
-   Note:
-   This function evaluates F = f(A), where the input and the result matrices
-   are stored in DS_MAT_A and DS_MAT_F, respectively.
-
-   Level: intermediate
-
-.seealso: DSSetFunctionMethod(), DSMatType, SlepcFunction
-@*/
-PetscErrorCode DSComputeFunction(DS ds,SlepcFunction f)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  DSCheckAlloc(ds,1);
-  PetscValidLogicalCollectiveEnum(ds,f,2);
-  if (!ds->ops->computefun[f][ds->funmethod]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The specified function method number does not exist for this DS");
-  if (!ds->mat[DS_MAT_F]) { ierr = DSAllocateMat_Private(ds,DS_MAT_F);CHKERRQ(ierr); }
-  ierr = PetscLogEventBegin(DS_Function,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ds->ops->computefun[f][ds->funmethod])(ds);CHKERRQ(ierr);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(DS_Function,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "DSSort"
 /*@
    DSSort - Sorts the result of DSSolve() according to a given sorting

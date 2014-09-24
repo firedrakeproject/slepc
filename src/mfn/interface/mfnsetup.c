@@ -60,8 +60,10 @@ PetscErrorCode MFNSetUp(MFN mfn)
   if (!((PetscObject)mfn)->type_name) {
     ierr = MFNSetType(mfn,MFNKRYLOV);CHKERRQ(ierr);
   }
-  if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
-  ierr = DSReset(mfn->ds);CHKERRQ(ierr);
+  if (!mfn->fn) { ierr = MFNGetFN(mfn,&mfn->fn);CHKERRQ(ierr); }
+  if (!((PetscObject)mfn->fn)->type_name) {
+    ierr = FNSetFromOptions(mfn->fn);CHKERRQ(ierr);
+  }
   if (!((PetscObject)mfn->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(mfn->rand);CHKERRQ(ierr);
   }
@@ -70,11 +72,6 @@ PetscErrorCode MFNSetUp(MFN mfn)
   if (!mfn->A) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONGSTATE,"MFNSetOperator must be called first");
   ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
   if (mfn->ncv > N) mfn->ncv = N;
-
-  /* Set default function */
-  if (!mfn->function) {
-    ierr = MFNSetFunction(mfn,SLEPC_FUNCTION_EXP);CHKERRQ(ierr);
-  }
 
   /* call specific solver setup */
   ierr = (*mfn->ops->setup)(mfn);CHKERRQ(ierr);
