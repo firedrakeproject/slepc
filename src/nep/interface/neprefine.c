@@ -31,6 +31,7 @@ typedef struct {
   VecScatter    *scatter_id;
   Mat           *A;
   Vec           vg,v;
+  FN            *fn;
 } NEPSimpNRefctx;
 
 #undef __FUNCT__
@@ -38,10 +39,12 @@ typedef struct {
 static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
 {
   PetscErrorCode ierr;
-  PetscInt       i,si,j,n0,m0,nloc,*idx1,*idx2;
+  PetscInt       i,si,j,n0,m0,nloc,*idx1,*idx2,na,nb;
   IS             is1,is2;
   NEPSimpNRefctx *ctx;
   Vec            v;
+  FNType         type;
+  PetscScalar    *alpha,*beta;
 
   PetscFunctionBegin;
   ierr = PetscMalloc1(1,ctx_);CHKERRQ(ierr);
@@ -50,6 +53,7 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
     ctx->subc = NULL;
     ctx->scatter_id = NULL;
     ctx->A = nep->A;
+    ctx->fn = nep->f;
   } else {
     ierr = PetscMalloc2(nep->nt,&ctx->A,nep->npart,&ctx->scatter_id);CHKERRQ(ierr);
 
@@ -64,6 +68,18 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
       ierr = MatGetRedundantMatrix(nep->A[i],0,ctx->subc->comm,MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
     }
     ierr = MatGetVecs(ctx->A[0],&ctx->v,NULL);CHKERRQ(ierr);
+
+    /* Duplicate FNs */
+    ierr = PetscMalloc1(nep->nt,&ctx->fn);CHKERRQ(ierr);
+    for (i=0;i<nep->nt;i++) {
+      ierr = FNCreate(ctx->subc->comm,&ctx->fn[i]);CHKERRQ(ierr);
+      ierr = FNGetType(nep->f[i],&type);CHKERRQ(ierr);
+      ierr = FNSetType(ctx->fn[i],type);CHKERRQ(ierr);
+      ierr = FNGetParameters(nep->f[i],&na,&alpha,&nb,&beta);CHKERRQ(ierr);
+      ierr = FNSetParameters(ctx->fn[i],na,alpha,nb,beta);CHKERRQ(ierr);
+      ierr = PetscFree(alpha);CHKERRQ(ierr); 
+      ierr = PetscFree(beta);CHKERRQ(ierr); 
+    }
 
     /* Create scatters for sending vectors to each subcommucator */
     ierr = BVGetColumn(nep->V,0,&v);CHKERRQ(ierr);
@@ -157,7 +173,7 @@ PetscErrorCode NEPSimpleNRefScatterEigenvector(NEP nep,NEPSimpNRefctx *ctx,Petsc
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSimpleNRefSetUpSystem"
-static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,Mat *A,PetscInt idx,Mat *M,Mat *T,PetscBool ini,Vec *t,Vec v)
+static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *A,PetscInt idx,Mat *M,Mat *T,PetscBool ini,Vec *t,Vec v)
 {
   PetscErrorCode    ierr;
   PetscInt          i,st,ml,m0,m1,mg;
@@ -180,7 +196,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,Mat *A,PetscInt idx,Mat *
     ierr = MatCopy(A[0],*T,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
   }
   for (i=0;i<nt;i++) {
-    ierr = FNEvaluateFunction(nep->f[i],nep->eigr[idx],coeffs+i);CHKERRQ(ierr);
+    ierr = FNEvaluateFunction(ctx->fn[i],nep->eigr[idx],coeffs+i);CHKERRQ(ierr);
   }
   if (coeffs[0]!=1.0) {
     ierr = MatScale(*T,coeffs[0]);CHKERRQ(ierr);
@@ -227,7 +243,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,Mat *A,PetscInt idx,Mat *
     }
   }
   for (i=0;i<nt;i++) {
-    ierr = FNEvaluateDerivative(nep->f[i],nep->eigr[idx],coeffs+i);CHKERRQ(ierr);
+    ierr = FNEvaluateDerivative(ctx->fn[i],nep->eigr[idx],coeffs+i);CHKERRQ(ierr);
   }
   st = 0;
   for (i=0;i<nt && PetscAbsScalar(coeffs[i])==0.0;i++) st++;
@@ -340,7 +356,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol
       if (nep->npart==1) {
         ierr = BVGetColumn(nep->V,idx_sc[color],&v);CHKERRQ(ierr);
       } else v = ctx->v; 
-      ierr = NEPSimpleNRefSetUpSystem(nep,ctx->A,idx_sc[color],&M,&T,ini,t,v);CHKERRQ(ierr);
+      ierr = NEPSimpleNRefSetUpSystem(nep,ctx,ctx->A,idx_sc[color],&M,&T,ini,t,v);CHKERRQ(ierr);
       ierr = KSPSetOperators(ksp,M,M);CHKERRQ(ierr);
       if (ini) {
         ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
@@ -395,6 +411,8 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol
       ierr = VecScatterDestroy(&ctx->scatter_id[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree2(ctx->A,ctx->scatter_id);CHKERRQ(ierr);
+    for (i=0;i<nep->nt;i++) { ierr = FNDestroy(&ctx->fn[i]);CHKERRQ(ierr); }
+    ierr = PetscFree(ctx->fn);CHKERRQ(ierr);
   }
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(NEP_Refine,nep,0,0,0);CHKERRQ(ierr);
