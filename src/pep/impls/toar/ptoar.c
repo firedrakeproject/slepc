@@ -258,7 +258,7 @@ static PetscErrorCode PEPTOARCoefficients(PEP pep,PetscBool sinvert,PetscScalar 
       for (j=0;j<=nv;j++) r[k*lr+j] += t*x[j];
     }
   } else {
-    for (j=0;j<nv;j++) r[j] = (cb[0]-sigma)*S[j]+ca[0]*S[ls+j];
+    for (j=0;j<=nv;j++) r[j] = (cb[0]-sigma)*S[j]+ca[0]*S[ls+j];
     for (k=1;k<d-1;k++) {
       for (j=0;j<=nv;j++) r[k*lr+j] = (cb[k]-sigma)*S[k*ls+j]+ca[k]*S[(k+1)*ls+j]+cg[k]*S[(k-1)*ls+j];
     }
@@ -309,7 +309,7 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,PetscInt *nq,PetscSca
       nqt++;
     }
 
-    ierr = PEPTOARCoefficients(pep,sinvert,sigma,nqt,S+j*lds,ld,S+(j+1)*lds,ld,x);CHKERRQ(ierr);
+    ierr = PEPTOARCoefficients(pep,sinvert,sigma,nqt-1,S+j*lds,ld,S+(j+1)*lds,ld,x);CHKERRQ(ierr);
     /* Level-2 orthogonalization */
     ierr = PEPTOAROrth2(pep,S,ld,deg,j+1,H+j*ldh,&norm,breakdown,work+nwu,lwa-nwu);CHKERRQ(ierr);
     if (!*breakdown) {
