@@ -88,7 +88,7 @@ int main(int argc,char **argv)
      Set the initial vectors. This is optional, if not done the initial
      vectors are set to random values
   */
-  ierr = MatGetVecs(A,&v0,&w0);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&v0,&w0);CHKERRQ(ierr);
   ierr = VecSet(v0,1.0);CHKERRQ(ierr);
   ierr = VecSet(w0,1.0);CHKERRQ(ierr);
   ierr = SVDSetInitialSpace(svd,1,&v0);CHKERRQ(ierr);

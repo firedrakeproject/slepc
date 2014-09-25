@@ -105,7 +105,7 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,PetscBool borth
       ierr = BVDuplicateResize(d->eps->V,d->eps->ncv,&d->BX);CHKERRQ(ierr);
       ierr = BVSetMatrix(d->BX,NULL,PETSC_FALSE);CHKERRQ(ierr);
     } else d->BX = NULL;
-    ierr = MatGetVecs(d->A,&v1,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(d->A,&v1,NULL);CHKERRQ(ierr);
     ierr = SlepcVecPoolCreate(v1,0,&d->auxV);CHKERRQ(ierr);
     ierr = VecDestroy(&v1);CHKERRQ(ierr);
     /* Create projected problem matrices */

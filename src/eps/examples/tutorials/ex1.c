@@ -73,8 +73,8 @@ int main(int argc,char **argv)
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
-  ierr = MatGetVecs(A,NULL,&xr);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,NULL,&xi);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,NULL,&xr);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,NULL,&xi);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options

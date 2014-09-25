@@ -31,7 +31,7 @@ static PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out);
 static PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out);
 static PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out);
 static PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out);
-static PetscErrorCode MatGetVecs_dvd_jd(Mat A,Vec *right,Vec *left);
+static PetscErrorCode MatCreateVecs_dvd_jd(Mat A,Vec *right,Vec *left);
 static PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d);
 static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d);
 static PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d);
@@ -200,7 +200,7 @@ static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
                           cA*data->ksp_max_size, data, &A);CHKERRQ(ierr);
     ierr = MatShellSetOperation(A, MATOP_MULT,(void(*)(void))MatMult_dvd_jd);CHKERRQ(ierr);
     ierr = MatShellSetOperation(A, MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_dvd_jd);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A, MATOP_GET_VECS,(void(*)(void))MatGetVecs_dvd_jd);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A, MATOP_GET_VECS,(void(*)(void))MatCreateVecs_dvd_jd);CHKERRQ(ierr);
 
     /* Try to avoid KSPReset */
     ierr = KSPGetOperatorsSet(data->ksp,&t,NULL);CHKERRQ(ierr);
@@ -662,8 +662,8 @@ static PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MatGetVecs_dvd_jd"
-static PetscErrorCode MatGetVecs_dvd_jd(Mat A,Vec *right,Vec *left)
+#define __FUNCT__ "MatCreateVecs_dvd_jd"
+static PetscErrorCode MatCreateVecs_dvd_jd(Mat A,Vec *right,Vec *left)
 {
   PetscErrorCode  ierr;
   Vec             *r, *l;
@@ -680,7 +680,7 @@ static PetscErrorCode MatGetVecs_dvd_jd(Mat A,Vec *right,Vec *left)
     ierr = PetscMalloc(sizeof(Vec)*n,&l);CHKERRQ(ierr);
   }
   for (i=0; i<n; i++) {
-    ierr = MatGetVecs(data->d->A,right?&r[i]:NULL,left?&l[i]:NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(data->d->A,right?&r[i]:NULL,left?&l[i]:NULL);CHKERRQ(ierr);
   }
   if (right) {
     ierr = VecCreateCompWithVecs(r,n,data->friends,right);CHKERRQ(ierr);

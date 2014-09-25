@@ -132,7 +132,7 @@ int main(int argc,char **argv)
   /*
      Evaluate initial guess
   */
-  ierr = MatGetVecs(F,&x,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(F,&x,NULL);CHKERRQ(ierr);
   ierr = FormInitialGuess(x);CHKERRQ(ierr);
   ierr = NEPSetInitialSpace(nep,1,&x);CHKERRQ(ierr);
 
