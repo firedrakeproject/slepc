@@ -97,8 +97,8 @@ int main(int argc,char **argv)
                 Solve eigenproblem and store some solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,&sxr,NULL);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,&sxi,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&sxr,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&sxi,NULL);CHKERRQ(ierr);
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
   if (nconv>0) {
     ierr = EPSGetEigenpair(eps,0,&seigr,&seigi,sxr,sxi);CHKERRQ(ierr);

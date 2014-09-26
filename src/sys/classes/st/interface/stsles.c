@@ -395,7 +395,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,NULL,&w);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,NULL,&w);CHKERRQ(ierr);
   c = 0;
   for (i=0;i<nc;i++) {
     ierr = BVGetColumn(V,-nc+i,&vi);CHKERRQ(ierr);

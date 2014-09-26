@@ -183,7 +183,7 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
 
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,&xr,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&xr,NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&wr);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&wi);CHKERRQ(ierr);
@@ -265,7 +265,7 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
 
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,&xr,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&xr,NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&w);CHKERRQ(ierr);
   for (i=0;i<pep->nconv;i++) {

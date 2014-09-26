@@ -500,7 +500,7 @@ PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
   bv->matrix = B;
   bv->indef  = indef;
   if (B && !bv->Bx) {
-    ierr = MatGetVecs(B,&bv->Bx,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(B,&bv->Bx,NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Bx);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

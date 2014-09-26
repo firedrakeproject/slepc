@@ -172,10 +172,10 @@ PetscErrorCode dvd_jacobi_precond(dvdDashboard *d,dvdBlackboard *b)
     ierr = PetscMalloc(sizeof(dvdJacobiPrecond), &dvdjp);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdJacobiPrecond));CHKERRQ(ierr);
     if (t) {
-      ierr = MatGetVecs(d->A,&dvdjp->diagA,NULL);CHKERRQ(ierr);
+      ierr = MatCreateVecs(d->A,&dvdjp->diagA,NULL);CHKERRQ(ierr);
       ierr = MatGetDiagonal(d->A,dvdjp->diagA);CHKERRQ(ierr);
       if (d->B) {
-        ierr = MatGetVecs(d->B,&dvdjp->diagB,NULL);CHKERRQ(ierr);
+        ierr = MatCreateVecs(d->B,&dvdjp->diagB,NULL);CHKERRQ(ierr);
         ierr = MatGetDiagonal(d->B,dvdjp->diagB);CHKERRQ(ierr);
       } else dvdjp->diagB = 0;
       d->improvex_precond_data = dvdjp;

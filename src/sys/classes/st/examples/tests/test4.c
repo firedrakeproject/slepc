@@ -101,7 +101,7 @@ int main(int argc,char **argv)
   ierr = MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyBegin(D,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(D,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,&v,&w);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&v,&w);CHKERRQ(ierr);
   ierr = VecSet(v,1.0);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

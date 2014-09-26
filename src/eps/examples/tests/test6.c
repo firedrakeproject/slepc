@@ -63,7 +63,7 @@ int main(int argc,char **argv)
   ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
   /* set random initial vector */
-  ierr = MatGetVecs(A,&v0,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&v0,NULL);CHKERRQ(ierr);
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rand);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(rand);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,"-seed",&seed,NULL);CHKERRQ(ierr);
