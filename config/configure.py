@@ -456,6 +456,11 @@ if sys.version_info >= (2,5) and not petscconf.ISINSTALL and petscconf.BUILD_USI
     log.Exit('ERROR: Booting CMake in PETSC_ARCH failed:\n' + str(e))
   except (ImportError, KeyError), e:
     log.Exit('ERROR: Importing cmakeboot failed:\n' + str(e))
+  except (AttributeError), e:
+    log.Println('xxx'+'='*73+'xxx')
+    log.Println('WARNING: CMake builds are not available (initialization failed)')
+    log.Println('You can ignore this warning (use default build), or try reconfiguring PETSc')
+    log.Println('xxx'+'='*73+'xxx')
   # remove files created by PETSc's script
   for f in ['build.log','build.log.bkp','RDict.log']:
     try: os.remove(f)

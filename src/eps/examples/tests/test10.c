@@ -102,7 +102,7 @@ int main (int argc,char **argv)
      Attach deflation space: in this case, the matrix has a constant
      nullspace, [1 1 ... 1]^T is the eigenvector of the zero eigenvalue
   */
-  ierr = MatGetVecs(A,&x,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&x,NULL);CHKERRQ(ierr);
   ierr = VecSet(x,1.0);CHKERRQ(ierr);
   ierr = EPSSetDeflationSpace(eps,1,&x);CHKERRQ(ierr);
   ierr = VecDestroy(&x);CHKERRQ(ierr);

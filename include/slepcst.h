@@ -101,7 +101,7 @@ PETSC_EXTERN PetscErrorCode STCheckNullSpace(ST,BV);
 PETSC_EXTERN PetscErrorCode STGetOperationCounters(ST,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode STResetOperationCounters(ST);
 
-PETSC_EXTERN PetscErrorCode STMatGetVecs(ST,Vec*,Vec*);
+PETSC_EXTERN PetscErrorCode STMatCreateVecs(ST,Vec*,Vec*);
 PETSC_EXTERN PetscErrorCode STMatGetSize(ST,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode STMatGetLocalSize(ST,PetscInt*,PetscInt*);
 

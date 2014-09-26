@@ -896,8 +896,8 @@ static PetscErrorCode PEPNRefSetUpMatrices(PEP pep,PetscInt k,PetscScalar *H,Pet
         for (j=rgs0[p];j<rgs0[p+1];j++) matctx->map0[j] = j+rgs1[p];
         for (j=rgs1[p];j<rgs1[p+1];j++) matctx->map1[j] = j+rgs0[p+1];
       }
-      ierr = MatGetVecs(*M,NULL,&matctx->tN);CHKERRQ(ierr);
-      ierr = MatGetVecs(matctx->E[1],NULL,&matctx->t1);CHKERRQ(ierr);
+      ierr = MatCreateVecs(*M,NULL,&matctx->tN);CHKERRQ(ierr);
+      ierr = MatCreateVecs(matctx->E[1],NULL,&matctx->t1);CHKERRQ(ierr);
       ierr = VecDuplicate(matctx->tN,&matctx->ttN);CHKERRQ(ierr);
       if (matctx->subc) {
         ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&np);CHKERRQ(ierr);
@@ -1016,7 +1016,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
   }
 
   /* Create Scatter */
-  ierr = MatGetVecs(matctx->A[0],&matctx->t,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(matctx->A[0],&matctx->t,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(matctx->A[0],&nloc_sub,NULL);CHKERRQ(ierr);
   ierr = VecCreateMPI(matctx->subc->dupparent,nloc_sub,PETSC_DECIDE,&matctx->tg);CHKERRQ(ierr);
   ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);

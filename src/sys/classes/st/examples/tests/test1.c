@@ -100,7 +100,7 @@ int main(int argc,char **argv)
   ierr = MyShellMatCreate(&A,&S);CHKERRQ(ierr);
 
   /* work vectors */
-  ierr = MatGetVecs(A,&v,&w);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&v,&w);CHKERRQ(ierr);
   ierr = VecSet(v,1.0);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -74,7 +74,7 @@ int main(int argc,char **argv)
        Create two matrices by filling the diagonal with rand values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = MatDuplicate(A1,MAT_COPY_VALUES,&A2);CHKERRQ(ierr);
-  ierr = MatGetVecs(A1,NULL,&d);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A1,NULL,&d);CHKERRQ(ierr);
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&myrand);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(myrand);CHKERRQ(ierr);
   ierr = PetscRandomSetInterval(myrand,0.0,1.0);CHKERRQ(ierr);
