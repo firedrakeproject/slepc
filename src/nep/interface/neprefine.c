@@ -67,7 +67,7 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
     for (i=0;i<nep->nt;i++) {
       ierr = MatGetRedundantMatrix(nep->A[i],0,ctx->subc->comm,MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
     }
-    ierr = MatGetVecs(ctx->A[0],&ctx->v,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(ctx->A[0],&ctx->v,NULL);CHKERRQ(ierr);
 
     /* Duplicate FNs */
     ierr = PetscMalloc1(nep->nt,&ctx->fn);CHKERRQ(ierr);
