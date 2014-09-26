@@ -105,6 +105,11 @@ int main(int argc,char **argv)
   ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr);
 
   /*
+     Spectrum slicing requires Krylov-Schur
+  */
+  ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
+
+  /*
      Set shift-and-invert with Cholesky; select MUMPS if available
   */
 
