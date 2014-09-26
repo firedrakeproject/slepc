@@ -246,6 +246,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
 
   /* transfer options from eps->V */
   ierr = EPSGetBV(ctx->eps,&V);CHKERRQ(ierr);
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
   if (!((PetscObject)(eps->V))->type_name) {
     ierr = BVSetType(V,BVSVEC);CHKERRQ(ierr);
   } else {
