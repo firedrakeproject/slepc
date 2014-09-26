@@ -95,10 +95,6 @@ static PetscErrorCode PEPTOARSNorm2(PetscInt n,PetscScalar *S,PetscReal *norm)
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   *norm = BLASnrm2_(&n_,S,&one);
-
-  /* Check that all processes have computed the same value,
-     just in case some optimized BLAS gives slightly different results */
-  PetscValidLogicalCollectiveReal(pep,*norm,0);
   PetscFunctionReturn(0);
 }
 

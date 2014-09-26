@@ -63,7 +63,7 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
     for (i=0;i<pep->nmat;i++) {
       ierr = MatGetRedundantMatrix(pep->A[i],0,ctx->subc->comm,MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
     }
-    ierr = MatGetVecs(ctx->A[0],&ctx->v,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(ctx->A[0],&ctx->v,NULL);CHKERRQ(ierr);
 
     /* Create scatters for sending vectors to each subcommucator */
     ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
