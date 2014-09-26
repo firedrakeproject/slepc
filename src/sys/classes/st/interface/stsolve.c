@@ -209,7 +209,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   if (st->nmat>2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Can only be used with 1 or 2 matrices");
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)st),&size);CHKERRQ(ierr);
 
-  ierr = MatGetVecs(st->A[0],&in,&out);CHKERRQ(ierr);
+  ierr = MatCreateVecs(st->A[0],&in,&out);CHKERRQ(ierr);
   ierr = VecGetSize(out,&M);CHKERRQ(ierr);
   ierr = VecGetLocalSize(out,&m);CHKERRQ(ierr);
   ierr = VecSetOption(in,VEC_IGNORE_OFF_PROC_ENTRIES,PETSC_TRUE);CHKERRQ(ierr);
@@ -286,7 +286,7 @@ PetscErrorCode STSetUp(ST st)
   }
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   if (!st->w) {
-    ierr = MatGetVecs(st->A[0],&st->w,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(st->A[0],&st->w,NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->w);CHKERRQ(ierr);
   }
   if (st->D) {

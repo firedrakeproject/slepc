@@ -153,7 +153,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   /* Transfer the initial subspace from svd to eps */
   if (svd->nini<0 || svd->ninil<0) {
     for (i=0;i<-PetscMin(svd->nini,svd->ninil);i++) {
-      ierr = MatGetVecs(cyclic->mat,&v,NULL);CHKERRQ(ierr);
+      ierr = MatCreateVecs(cyclic->mat,&v,NULL);CHKERRQ(ierr);
       ierr = VecGetArray(v,&va);CHKERRQ(ierr);
       if (i<-svd->ninil) {
         ierr = VecGetSize(svd->ISL[i],&isl);CHKERRQ(ierr);
@@ -210,7 +210,7 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
   ierr = EPSGetIterationNumber(cyclic->eps,&svd->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(cyclic->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
 
-  ierr = MatGetVecs(cyclic->mat,&x,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(cyclic->mat,&x,NULL);CHKERRQ(ierr);
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,m,M,NULL,&x1);CHKERRQ(ierr);

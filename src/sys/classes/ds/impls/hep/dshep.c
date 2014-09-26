@@ -853,40 +853,6 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSFunction_EXP_HEP_DIAG"
-PetscErrorCode DSFunction_EXP_HEP_DIAG(DS ds)
-{
-  PetscErrorCode ierr;
-  PetscScalar    *eig,one=1.0,zero=0.0;
-  PetscInt       i,j;
-  PetscBLASInt   n,ld;
-  PetscScalar    *F,*Q,*W;
-
-  PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc1(n,&eig);CHKERRQ(ierr);
-  ierr = DSSolve(ds,eig,NULL);CHKERRQ(ierr);
-  if (!ds->mat[DS_MAT_W]) {
-    ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
-  }
-  W  = ds->mat[DS_MAT_W];
-  Q  = ds->mat[DS_MAT_Q];
-  F  = ds->mat[DS_MAT_F];
-
-  /* W = exp(Lambda)*Q' */
-  for (i=0;i<n;i++) {
-    for (j=0;j<n;j++) {
-      W[i+j*ld] = Q[j+i*ld]*PetscExpScalar(eig[i]);
-    }
-  }
-  /* F = Q*W */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,W,&ld,&zero,F,&ld));
-  ierr = PetscFree(eig);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "DSCreate_HEP"
 PETSC_EXTERN PetscErrorCode DSCreate_HEP(DS ds)
 {
@@ -906,8 +872,6 @@ PETSC_EXTERN PetscErrorCode DSCreate_HEP(DS ds)
   ds->ops->cond          = DSCond_HEP;
   ds->ops->transrks      = DSTranslateRKS_HEP;
   ds->ops->normalize     = DSNormalize_HEP;
-
-  ds->ops->computefun[SLEPC_FUNCTION_EXP][0] = DSFunction_EXP_HEP_DIAG;
   PetscFunctionReturn(0);
 }
 

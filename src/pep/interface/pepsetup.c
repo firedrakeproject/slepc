@@ -436,7 +436,7 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
     if (!((PetscObject)(pep->V))->type_name) {
       ierr = BVSetType(pep->V,BVSVEC);CHKERRQ(ierr);
     }
-    ierr = STMatGetVecs(pep->st,&t,NULL);CHKERRQ(ierr);
+    ierr = STMatCreateVecs(pep->st,&t,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(pep->V,t,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {

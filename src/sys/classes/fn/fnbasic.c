@@ -22,10 +22,12 @@
 */
 
 #include <slepc-private/fnimpl.h>      /*I "slepcfn.h" I*/
+#include <slepcblaslapack.h>
 
 PetscFunctionList FNList = 0;
 PetscBool         FNRegisterAllCalled = PETSC_FALSE;
 PetscClassId      FN_CLASSID = 0;
+PetscLogEvent     FN_Evaluate = 0;
 static PetscBool  FNPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__
@@ -74,6 +76,8 @@ PetscErrorCode FNInitializePackage(void)
   ierr = PetscClassIdRegister("Math function",&FN_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = FNRegisterAll();CHKERRQ(ierr);
+  /* Register Events */
+  ierr = PetscLogEventRegister("FNEvaluate",FN_CLASSID,&FN_Evaluate);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
@@ -396,7 +400,7 @@ PetscErrorCode FNGetParameters(FN fn,PetscInt *na,PetscScalar *alpha[],PetscInt 
 
    Level: intermediate
 
-.seealso: FNEvaluateDerivative()
+.seealso: FNEvaluateDerivative(), FNEvaluateFunctionMat()
 @*/
 PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
 {
@@ -405,11 +409,11 @@ PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveScalar(fn,x,2);
+  PetscValidType(fn,1);
   PetscValidPointer(y,3);
-  if (!((PetscObject)fn)->type_name) {
-    ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
-  }
+  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   ierr = (*fn->ops->evaluatefunction)(fn,x,y);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -438,11 +442,154 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveScalar(fn,x,2);
+  PetscValidType(fn,1);
   PetscValidPointer(y,3);
-  if (!((PetscObject)fn)->type_name) {
-    ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
-  }
+  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   ierr = (*fn->ops->evaluatederivative)(fn,x,y);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMat_Sym_Default"
+/*
+   FNEvaluateFunctionMat_Sym_Default - given a symmetric matrix A,
+   compute the matrix function as f(A)=Q*f(D)*Q' where the spectral
+   decomposition of A is A=Q*D*Q' 
+*/
+static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
+{
+#if defined(PETSC_MISSING_LAPACK_SYEV)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEV - Lapack routines are unavailable");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i,j,m;
+  PetscBLASInt   n,ld,lwork,info;
+  PetscScalar    *As,*Bs,*Q,*W,*work,a,x,y,one=1.0,zero=0.0;
+  PetscReal      *eig;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+#endif
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&Bs);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ld = n;
+
+  /* workspace query and memory allocation */
+  lwork = -1;
+#if defined(PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,eig,&a,&lwork,NULL,&info));
+  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
+  ierr = PetscMalloc5(m,&eig,m*m,&Q,m*m,&W,lwork,&work,PetscMax(1,3*m-2),&rwork);CHKERRQ(ierr);
+#else
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,eig,&a,&lwork,&info));
+  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
+  ierr = PetscMalloc4(m,&eig,m*m,&Q,m*m,&W,lwork,&work);CHKERRQ(ierr);
+#endif
+
+  /* compute eigendecomposition */
+  PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L",&n,&n,As,&ld,Q,&ld));
+#if defined(PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,rwork,&info));
+#else
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,&info));
+#endif
+  if (info) SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_LIB,"Error in Lapack xSYEV %i",info);
+
+  /* W = f(Lambda)*Q' */
+  for (i=0;i<n;i++) {
+    x = eig[i];
+    ierr = (*fn->ops->evaluatefunction)(fn,x,&y);CHKERRQ(ierr);  /* y = f(x) */
+    for (j=0;j<n;j++) W[i+j*ld] = Q[j+i*ld]*y;
+  }
+  /* Bs = Q*W */
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,W,&ld,&zero,Bs,&ld));
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PetscFree5(eig,Q,W,work,rwork);CHKERRQ(ierr);
+#else
+  ierr = PetscFree4(eig,Q,W,work);CHKERRQ(ierr);
+#endif
+  ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&Bs);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMat"
+/*@
+   FNEvaluateFunctionMat - Computes the value of the function f(A) for a given
+   matrix A, where the result is also a matrix.
+
+   Logically Collective on FN
+
+   Input Parameters:
++  fn - the math function context
+-  A  - matrix on which the function must be evaluated
+
+   Output Parameter:
+.  B  - matrix resulting from evaluating f(A)
+
+   Notes:
+   The matrix A must be a sequential dense Mat, with all entries equal on
+   all processes (otherwise each process will compute different results).
+   Matrix B must also be a sequential dense Mat. Both matrices must be
+   square with the same dimensions.
+
+   If A is known to be real symmetric or complex Hermitian then it is
+   recommended to set the appropriate flag with MatSetOption(), so that
+   a different algorithm that exploits symmetry is used.
+
+   Level: advanced
+
+.seealso: FNEvaluateFunction()
+@*/
+PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscBool      match,set,flg,symm=PETSC_FALSE;
+  PetscInt       m,n;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscValidHeaderSpecific(B,MAT_CLASSID,3);
+  PetscValidType(fn,1);
+  PetscValidType(A,2);
+  PetscValidType(B,3);
+  if (A==B) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_WRONG,"A and B arguments must be different");
+  ierr = PetscObjectTypeCompare((PetscObject)A,MATSEQDENSE,&match);CHKERRQ(ierr);
+  if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat A must be of type seqdense");
+  ierr = PetscObjectTypeCompare((PetscObject)B,MATSEQDENSE,&match);CHKERRQ(ierr);
+  if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat B must be of type seqdense");
+  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
+  if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %D rows, %D cols)",m,n);
+  ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
+  if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat B is not square (has %D rows, %D cols)",m,n);
+
+  /* check symmetry of A */
+  ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
+  symm = set? flg: PETSC_FALSE;
+
+  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  if (symm) {
+    if (fn->ops->evaluatefunctionmatsym) {
+      ierr = (*fn->ops->evaluatefunctionmatsym)(fn,A,B);CHKERRQ(ierr);
+    } else {
+      ierr = FNEvaluateFunctionMat_Sym_Default(fn,A,B);CHKERRQ(ierr);
+    }
+  } else {
+    if (fn->ops->evaluatefunctionmat) {
+      ierr = (*fn->ops->evaluatefunctionmat)(fn,A,B);CHKERRQ(ierr);
+    } else SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in FN type %s",((PetscObject)fn)->type_name);
+  }
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

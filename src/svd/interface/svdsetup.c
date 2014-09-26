@@ -377,7 +377,7 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
     if (!((PetscObject)(svd->V))->type_name) {
       ierr = BVSetType(svd->V,BVSVEC);CHKERRQ(ierr);
     }
-    ierr = SVDMatGetVecs(svd,&tr,NULL);CHKERRQ(ierr);
+    ierr = SVDMatCreateVecs(svd,&tr,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(svd->V,tr,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&tr);CHKERRQ(ierr);
   } else {
@@ -390,7 +390,7 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
       if (!((PetscObject)(svd->U))->type_name) {
         ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
       }
-      ierr = SVDMatGetVecs(svd,NULL,&tl);CHKERRQ(ierr);
+      ierr = SVDMatCreateVecs(svd,NULL,&tl);CHKERRQ(ierr);
       ierr = BVSetSizesFromVec(svd->U,tl,requested);CHKERRQ(ierr);
       ierr = VecDestroy(&tl);CHKERRQ(ierr);
     } else {

@@ -134,7 +134,7 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
     ierr = BVGetType(eps->V,&type);CHKERRQ(ierr);
     ierr = BVSetType(sr->V,type);CHKERRQ(ierr);
   }
-  ierr = STMatGetVecs(eps->st,&t,NULL);CHKERRQ(ierr);
+  ierr = STMatCreateVecs(eps->st,&t,NULL);CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(sr->V,t,k);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
