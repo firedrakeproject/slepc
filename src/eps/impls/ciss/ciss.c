@@ -815,7 +815,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 
   ierr = EstimateNumberEigs(eps,&L_add);CHKERRQ(ierr);
   if (L_add>0) {
-    ierr = PetscInfo2(eps,"Changing L %d -> %d by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = PetscInfo2(eps,"Changing L %D -> %D by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add,eps->rand);CHKERRQ(ierr);
     if (ctx->pA) {
       ierr = VecScatterVecs(eps,ctx->V,ctx->L+L_add);CHKERRQ(ierr);
@@ -834,7 +834,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     if (ctx->sigma[0]<=ctx->delta || nv < ctx->L*ctx->M || ctx->L == ctx->L_max) break;
     L_add = L_base;
     if (ctx->L+L_add>ctx->L_max) L_add = ctx->L_max-ctx->L;
-    ierr = PetscInfo2(eps,"Changing L %d -> %d by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = PetscInfo2(eps,"Changing L %D -> %D by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add,eps->rand);CHKERRQ(ierr);
     if (ctx->pA) {
       ierr = VecScatterVecs(eps,ctx->V,ctx->L+L_add);CHKERRQ(ierr);
