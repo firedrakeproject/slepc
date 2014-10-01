@@ -616,7 +616,7 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
     if (eps->which==EPS_ALL) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: doing spectrum slicing with nev=%d, ncv=%d, mpd=%d\n",ctx->nev,ctx->ncv,ctx->mpd);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: doing spectrum slicing with nev=%D, ncv=%D, mpd=%D\n",ctx->nev,ctx->ncv,ctx->mpd);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

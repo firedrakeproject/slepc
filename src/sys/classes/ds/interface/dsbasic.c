@@ -917,18 +917,18 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",state);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)ds,DSSVD,&issvd);CHKERRQ(ierr);
       if (issvd) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, m=%d, l=%d, k=%d",ds->ld,ds->n,ds->m,ds->l,ds->k);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%D, n=%D, m=%D, l=%D, k=%D",ds->ld,ds->n,ds->m,ds->l,ds->k);CHKERRQ(ierr);
       } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, l=%d, k=%d",ds->ld,ds->n,ds->l,ds->k);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%D, n=%D, l=%D, k=%D",ds->ld,ds->n,ds->l,ds->k);CHKERRQ(ierr);
       }
       if (ds->state==DS_STATE_TRUNCATED) {
-        ierr = PetscViewerASCIIPrintf(viewer,", t=%d\n",ds->t);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,", t=%D\n",ds->t);CHKERRQ(ierr);
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  flags:%s%s%s\n",ds->compact?" compact":"",ds->extrarow?" extrarow":"",ds->refined?" refined":"");CHKERRQ(ierr);
       if (ds->nf) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  number of functions: %d\n",ds->nf);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  number of functions: %D\n",ds->nf);CHKERRQ(ierr);
       }
     }
     if (ds->ops->view) {
