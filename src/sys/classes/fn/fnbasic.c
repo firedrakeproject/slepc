@@ -365,9 +365,14 @@ PetscErrorCode FNSetParameters(FN fn,PetscInt na,PetscScalar *alpha,PetscInt nb,
 
    Output Parameters:
 +  na    - number of parameters in the first group
-.  alpha - first group of parameters (array of scalar values)
+.  alpha - first group of parameters (array of scalar values, length na)
 .  nb    - number of parameters in the second group
--  beta  - second group of parameters (array of scalar values)
+-  beta  - second group of parameters (array of scalar values, length nb)
+
+   Notes:
+   The values passed by user with FNSetParameters() are returned (or null
+   pointers otherwise).
+   The alpha and beta arrays should be freed by the user when no longer needed.
 
    Level: intermediate
 
@@ -375,12 +380,27 @@ PetscErrorCode FNSetParameters(FN fn,PetscInt na,PetscScalar *alpha,PetscInt nb,
 @*/
 PetscErrorCode FNGetParameters(FN fn,PetscInt *na,PetscScalar *alpha[],PetscInt *nb,PetscScalar *beta[])
 {
+  PetscErrorCode ierr;
+  PetscInt       i;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  if (na)    *na = fn->na;
-  if (alpha) *alpha = fn->alpha;
-  if (nb)    *nb = fn->nb;
-  if (beta)  *beta = fn->beta;
+  if (na) *na = fn->na;
+  if (alpha) {
+    if (!fn->na) *alpha = NULL;
+    else {
+      ierr = PetscMalloc1(fn->na,alpha);CHKERRQ(ierr);
+      for (i=0;i<fn->na;i++) (*alpha)[i] = fn->alpha[i];
+    }
+  }
+  if (nb) *nb = fn->nb;
+  if (beta) {
+    if (!fn->nb) *beta = NULL;
+    else {
+      ierr = PetscMalloc1(fn->nb,beta);CHKERRQ(ierr);
+      for (i=0;i<fn->nb;i++) (*beta)[i] = fn->beta[i];
+    }
+  }
   PetscFunctionReturn(0);
 }
 
