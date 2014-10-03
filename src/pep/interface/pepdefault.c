@@ -477,8 +477,8 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
       if (pep->nmat==3) {
         ierr = STGetTOperators(pep->st,2,&T[1]);CHKERRQ(ierr);
         ierr = MatHasOperation(T[1],MATOP_NORM,&has1);CHKERRQ(ierr);
-        ierr = MatNorm(T[1],NORM_INFINITY,&norm1);CHKERRQ(ierr);
         if (has1) {
+          ierr = MatNorm(T[1],NORM_INFINITY,&norm1);CHKERRQ(ierr);
           pep->dsfactor = 2.0/(norm0+pep->sfactor*norm1);
         } else pep->dsfactor = 1.0;
       }
