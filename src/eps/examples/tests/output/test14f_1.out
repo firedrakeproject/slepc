@@ -40,7 +40,7 @@ ST Object: 1 MPI processes
   KSP Object:  (st_)   1 MPI processes
     type not yet set
     maximum iterations=10000, initial guess is zero
-    tolerances:  relative=1e-08, absolute=1e-50, divergence=10000
+    tolerances:  relative=1e-08, absolute=1e-35, divergence=10000
     left preconditioning
     using DEFAULT norm type for convergence test
   PC Object:  (st_)   1 MPI processes
