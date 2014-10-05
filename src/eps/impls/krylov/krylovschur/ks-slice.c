@@ -156,7 +156,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   PetscReal          eta;
   BVOrthogType       orthog_type;
   BVOrthogRefineType orthog_ref;
-  Mat                A,B,Ar,Br;
+  Mat                A,B=NULL,Ar,Br=NULL;
   PetscInt           i;
   PetscReal          h,a,b;
   PetscMPIInt        rank;
@@ -174,7 +174,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
     if (!ctx->eps) { ierr = EPSCreate(((PetscObject)eps)->comm,&ctx->eps);CHKERRQ(ierr); }
     ierr = EPSSetType(ctx->eps,((PetscObject)eps)->type_name);CHKERRQ(ierr);
     ierr = EPSSetST(ctx->eps,eps->st);CHKERRQ(ierr);
-    a = eps->inta; b = eps->intb;    
+    a = eps->inta; b = eps->intb;
   } else {
     if (!ctx->subc) {
     /* Create context for subcommunicators */
@@ -184,8 +184,8 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
       ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(PetscSubcomm));CHKERRQ(ierr);
 
       /* Duplicate matrices */
-      ierr = MatGetRedundantMatrix(A,0,ctx->subc->comm,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);    
-      ierr = MatGetRedundantMatrix(B,0,ctx->subc->comm,MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);    
+      ierr = MatGetRedundantMatrix(A,0,ctx->subc->comm,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
+      if (B) { ierr = MatGetRedundantMatrix(B,0,ctx->subc->comm,MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr); }
     }
 
     /* Determine subintervals */
@@ -279,7 +279,7 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
   KSP            ksp;
   PC             pc;
   Mat            F;
-  
+
   PetscFunctionBegin;
   if (shift >= PETSC_MAX_REAL) { /* Right-open interval */
     *inertia = eps->n;
@@ -533,7 +533,7 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
   PetscReal       *shifts_loc;
 
   PetscFunctionBegin;
-  eps->nconv = 0; 
+  eps->nconv = 0;
   for (i=0;i<ctx->npart;i++) eps->nconv += ctx->nconv_loc[i];
   sr_loc = ((EPS_KRYLOVSCHUR*)ctx->eps->data)->sr;
 
@@ -552,7 +552,7 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
   if (rank==0) { ierr = MPI_Allgather(&ns,1,MPIU_INT,ns_loc,1,MPIU_INT,ctx->commrank);CHKERRQ(ierr); }
   ierr = MPI_Bcast(ns_loc,ctx->npart,MPIU_INT,0,ctx->subc->comm);CHKERRQ(ierr);
   ctx->nshifts = 0;
-  for (i=0;i<ctx->npart;i++) ctx->nshifts += ns_loc[i]; 
+  for (i=0;i<ctx->npart;i++) ctx->nshifts += ns_loc[i];
   ierr = PetscFree(ctx->inertias);CHKERRQ(ierr);
   ierr = PetscFree(ctx->shifts);CHKERRQ(ierr);
   ierr = PetscMalloc1(ctx->nshifts,&ctx->inertias);CHKERRQ(ierr);
@@ -565,11 +565,11 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
   ierr = MPI_Comm_size(((PetscObject)eps)->comm,&nproc);CHKERRQ(ierr);
   ierr = PetscMalloc1(ctx->npart,&disp);CHKERRQ(ierr);
   disp[0] = 0;
-  for (i=1;i<ctx->npart;i++) disp[i] = disp[i-1]+ctx->nconv_loc[i-1]; 
+  for (i=1;i<ctx->npart;i++) disp[i] = disp[i-1]+ctx->nconv_loc[i-1];
   if (nproc%ctx->npart==0) { /* subcommunicators with the same size */
     ierr = MPI_Allgatherv(eigr_loc,sr_loc->numEigs,MPIU_SCALAR,eps->eigr,ctx->nconv_loc,disp,MPIU_SCALAR,ctx->commrank);CHKERRQ(ierr); /* eigenvalues */
     ierr = MPI_Allgatherv(perm_loc,sr_loc->numEigs,MPIU_INT,eps->perm,ctx->nconv_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr); /* perm */
-    for (i=1;i<ctx->npart;i++) disp[i] = disp[i-1]+ns_loc[i-1]; 
+    for (i=1;i<ctx->npart;i++) disp[i] = disp[i-1]+ns_loc[i-1];
     ierr = MPI_Allgatherv(shifts_loc,ns,MPIU_REAL,ctx->shifts,ns_loc,disp,MPIU_REAL,ctx->commrank);CHKERRQ(ierr); /* shifts */
     ierr = MPI_Allgatherv(inertias_loc,ns,MPIU_INT,ctx->inertias,ns_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr); /* inertias */
     ierr = MPI_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank);CHKERRQ(ierr);
@@ -578,7 +578,7 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
     if (rank==0) {
       ierr = MPI_Allgatherv(eigr_loc,sr_loc->numEigs,MPIU_SCALAR,eps->eigr,ctx->nconv_loc,disp,MPIU_SCALAR,ctx->commrank);CHKERRQ(ierr); /* eigenvalues */
       ierr = MPI_Allgatherv(perm_loc,sr_loc->numEigs,MPIU_INT,eps->perm,ctx->nconv_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr); /* perm */
-      for (i=1;i<ctx->npart;i++) disp[i] = disp[i-1]+ns_loc[i-1]; 
+      for (i=1;i<ctx->npart;i++) disp[i] = disp[i-1]+ns_loc[i-1];
       ierr = MPI_Allgatherv(shifts_loc,ns,MPIU_REAL,ctx->shifts,ns_loc,disp,MPIU_REAL,ctx->commrank);CHKERRQ(ierr); /* shifts */
       ierr = MPI_Allgatherv(inertias_loc,ns,MPIU_INT,ctx->inertias,ns_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr); /* inertias */
       ierr = MPI_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank);CHKERRQ(ierr);
@@ -595,7 +595,7 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
     off += ctx->nconv_loc[i-1];
     for (j=0;j<ctx->nconv_loc[i];j++) eps->perm[idx++] += off;
   }
-  
+
   /* Gather parallel eigenvectors */
   ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
   ierr = VecGetOwnershipRange(v,&n0,&m0);CHKERRQ(ierr);
@@ -634,7 +634,7 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
         ierr = BVRestoreColumn(V_loc,i,&v_loc);CHKERRQ(ierr);
       }
       ierr = BVRestoreColumn(eps->V,idx,&v);CHKERRQ(ierr);
-    } 
+    }
     ierr = VecScatterDestroy(&vec_sc);CHKERRQ(ierr);
   }
   ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);
@@ -1108,7 +1108,7 @@ static PetscErrorCode EPSStoreEigenpairs(EPS eps)
   EPS_SR          sr = ctx->sr;
   EPS_shift       sPres;
   Vec             v,w;
- 
+
   PetscFunctionBegin;
   sPres = sr->sPres;
   sPres->index = sr->indexEig;
@@ -1289,7 +1289,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
       ierr = EPSLookForDeflation(eps);CHKERRQ(ierr);
       /* KrylovSchur */
       ierr = EPSKrylovSchur_Slice(eps);CHKERRQ(ierr);
-  
+
       ierr = EPSStoreEigenpairs(eps);CHKERRQ(ierr);
       /* Select new shift */
       if (!sr->sPres->comp[1]) {
@@ -1304,7 +1304,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
       /* Preparing for a new search of values */
       ierr = EPSExtractShift(eps);CHKERRQ(ierr);
     }
-  
+
     /* Updating eps values prior to exit */
     ierr = PetscFree(sr->S);CHKERRQ(ierr);
     ierr = PetscFree(sr->idxDef);CHKERRQ(ierr);
