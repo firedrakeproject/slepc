@@ -85,6 +85,7 @@ typedef struct {
   PetscInt      ncv;                /* number of basis vectors */
   PetscInt      mpd;                /* maximum dimension of projected problem */
   PetscInt      npart;              /* number of partitions of subcommunicator */
+  PetscBool     detect;             /* check for zeros during factorizations */
   PetscReal     *subintervals;      /* partition of global interval */
   PetscBool     subintset;          /* subintervals set by user */
   PetscInt      *nconv_loc;         /* converged eigenpairs for each subinterval */
