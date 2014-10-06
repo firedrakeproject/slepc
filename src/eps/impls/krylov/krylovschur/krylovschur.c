@@ -374,7 +374,7 @@ PetscErrorCode EPSKrylovSchurGetRestart(EPS eps,PetscReal *keep)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSKrylovSchurSetPartitions_KrylovSchur"
-static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt npart,PetscBool detect)
+static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt npart)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
@@ -392,7 +392,6 @@ static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt n
     if (npart<1 || npart>size) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
     ctx->npart = npart;
   }
-  ctx->detect = detect;
   eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -407,14 +406,11 @@ static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt n
    Logically Collective on EPS
 
    Input Parameters:
-+  eps    - the eigenproblem solver context
-.  npart  - number of partitions
--  detect - check for zeros at boundaries of subintervals
++  eps   - the eigenproblem solver context
+-  npart - number of partitions
 
-   Options Database Keys:
-+  -eps_krylovschur_partitions <npart> - Sets the number of partitions
--  -eps_krylovschur_detect_zeros - Check for zeros; this takes an optional
-   bool value (0/1/no/yes/true/false)
+   Options Database Key:
+.  -eps_krylovschur_partitions <npart> - Sets the number of partitions
 
    Notes:
    By default, npart=1 so all processes in the communicator participate in
@@ -425,37 +421,29 @@ static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt n
    The interval is split proportionally unless the separation points are
    specified with EPSKrylovSchurSetSubintervals().
 
-   For npart>1 it could happen that some of the inner boundaries of the
-   subintervals coincide with an eigenvalue. This breaks the algorithm, but
-   can be avoided if detection of zeros is activated during factorization
-   (this requires an external package with support for it, see the details
-   at the users guide).
-
    Level: advanced
 
 .seealso: EPSKrylovSchurSetSubintervals(), EPSSetInterval()
 @*/
-PetscErrorCode EPSKrylovSchurSetPartitions(EPS eps,PetscInt npart,PetscBool detect)
+PetscErrorCode EPSKrylovSchurSetPartitions(EPS eps,PetscInt npart)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,npart,2);
-  PetscValidLogicalCollectiveBool(eps,detect,3);
-  ierr = PetscTryMethod(eps,"EPSKrylovSchurSetPartitions_C",(EPS,PetscInt,PetscBool),(eps,npart,detect));CHKERRQ(ierr);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurSetPartitions_C",(EPS,PetscInt),(eps,npart));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSKrylovSchurGetPartitions_KrylovSchur"
-static PetscErrorCode EPSKrylovSchurGetPartitions_KrylovSchur(EPS eps,PetscInt *npart,PetscBool *detect)
+static PetscErrorCode EPSKrylovSchurGetPartitions_KrylovSchur(EPS eps,PetscInt *npart)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;
-  if (npart)  *npart  = ctx->npart;
-  if (detect) *detect = ctx->detect;
+  *npart  = ctx->npart;
   PetscFunctionReturn(0);
 }
 
@@ -470,21 +458,112 @@ static PetscErrorCode EPSKrylovSchurGetPartitions_KrylovSchur(EPS eps,PetscInt *
    Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Output Parameters:
-+  npart  - number of partitions
--  detect - whether zeros detection is enforced during factorizations
+   Output Parameter:
+.  npart - number of partitions
 
    Level: advanced
 
 .seealso: EPSKrylovSchurSetPartitions()
 @*/
-PetscErrorCode EPSKrylovSchurGetPartitions(EPS eps,PetscInt *npart,PetscBool *detect)
+PetscErrorCode EPSKrylovSchurGetPartitions(EPS eps,PetscInt *npart)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetPartitions_C",(EPS,PetscInt*,PetscBool*),(eps,npart,detect));CHKERRQ(ierr);
+  PetscValidPointer(npart,2);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetPartitions_C",(EPS,PetscInt*),(eps,npart));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurSetDetectZeros_KrylovSchur"
+static PetscErrorCode EPSKrylovSchurSetDetectZeros_KrylovSchur(EPS eps,PetscBool detect)
+{
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+
+  PetscFunctionBegin;
+  ctx->detect = detect;
+  eps->state  = EPS_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurSetDetectZeros"
+/*@
+   EPSKrylovSchurSetDetectZeros - Sets a flag to enforce detection of
+   zeros during the factorizations throughout the spectrum slicing computation.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps    - the eigenproblem solver context
+-  detect - check for zeros
+
+   Options Database Key:
+.  -eps_krylovschur_detect_zeros - Check for zeros; this takes an optional
+   bool value (0/1/no/yes/true/false)
+
+   Notes:
+   A zero in the factorization indicates that a shift coincides with an eigenvalue.
+
+   This flag is turned off by default, and may be necessary in some cases,
+   especially when several partitions are being used. This feature currently
+   requires an external package for factorizations with support for zero
+   detection, e.g. MUMPS.
+
+   Level: advanced
+
+.seealso: EPSKrylovSchurSetPartitions(), EPSSetInterval()
+@*/
+PetscErrorCode EPSKrylovSchurSetDetectZeros(EPS eps,PetscBool detect)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,detect,2);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurSetDetectZeros_C",(EPS,PetscBool),(eps,detect));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetDetectZeros_KrylovSchur"
+static PetscErrorCode EPSKrylovSchurGetDetectZeros_KrylovSchur(EPS eps,PetscBool *detect)
+{
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+
+  PetscFunctionBegin;
+  *detect = ctx->detect;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetDetectZeros"
+/*@
+   EPSKrylovSchurGetDetectZeros - Gets the flag that enforces zero detection
+   in spectrum slicing.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  detect - whether zeros detection is enforced during factorizations
+
+   Level: advanced
+
+.seealso: EPSKrylovSchurSetDetectZeros()
+@*/
+PetscErrorCode EPSKrylovSchurGetDetectZeros(EPS eps,PetscBool *detect)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(detect,2);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetDetectZeros_C",(EPS,PetscBool*),(eps,detect));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -797,7 +876,7 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscBool       flg,flg1,b;
+  PetscBool       flg,b;
   PetscReal       keep;
   PetscInt        i,j,k;
 
@@ -809,10 +888,13 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps)
   }
   i = ctx->npart;
   ierr = PetscOptionsInt("-eps_krylovschur_partitions","Number of partitions of the communicator for spectrum slicing","EPSKrylovSchurSetPartitions",ctx->npart,&i,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = EPSKrylovSchurSetPartitions(eps,i);CHKERRQ(ierr);
+  }
   b = ctx->detect;
-  ierr = PetscOptionsBool("-eps_krylovschur_detect_zeros","Check zeros during factorizations at subinterval boundaries","EPSKrylovSchurSetPartitions",ctx->detect,&b,&flg1);CHKERRQ(ierr);
-  if (flg || flg1) {
-    ierr = EPSKrylovSchurSetPartitions(eps,i,b);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-eps_krylovschur_detect_zeros","Check zeros during factorizations at subinterval boundaries","EPSKrylovSchurSetDetectZeros",ctx->detect,&b,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = EPSKrylovSchurSetDetectZeros(eps,b);CHKERRQ(ierr);
   }
   i = 1;
   j = k = PETSC_DECIDE;
@@ -859,6 +941,8 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetRestart_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetPartitions_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetPartitions_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetDetectZeros_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetDetectZeros_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetDimensions_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetDimensions_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetSubintervals_C",NULL);CHKERRQ(ierr);
@@ -904,6 +988,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetRestart_C",EPSKrylovSchurGetRestart_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetPartitions_C",EPSKrylovSchurSetPartitions_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetPartitions_C",EPSKrylovSchurGetPartitions_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetDetectZeros_C",EPSKrylovSchurSetDetectZeros_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetDetectZeros_C",EPSKrylovSchurGetDetectZeros_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetDimensions_C",EPSKrylovSchurSetDimensions_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetDimensions_C",EPSKrylovSchurGetDimensions_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetSubintervals_C",EPSKrylovSchurSetSubintervals_KrylovSchur);CHKERRQ(ierr);

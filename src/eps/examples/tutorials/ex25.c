@@ -125,10 +125,11 @@ int main(int argc,char **argv)
 #if defined(PETSC_USE_COMPLEX)
   SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"Spectrum slicing with MUMPS is not available for complex scalars");
 #endif
-  ierr = PCFactorSetMatSolverPackage(pc,MATSOLVERMUMPS);CHKERRQ(ierr); 
+  ierr = EPSKrylovSchurSetDetectZeros(eps,PETSC_TRUE);CHKERRQ(ierr);  /* enforce zero detection */
+  ierr = PCFactorSetMatSolverPackage(pc,MATSOLVERMUMPS);CHKERRQ(ierr);
   /*
      Add several MUMPS options (currently there is no better way of setting this in program):
-     '-mat_mumps_icntl_13 1': turn off scaLAPACK for matrix inertia 
+     '-mat_mumps_icntl_13 1': turn off ScaLAPACK for matrix inertia 
      '-mat_mumps_icntl_24 1': detect null pivots in factorization (for the case that a shift is equal to an eigenvalue)
      '-mat_mumps_cntl_3 <tol>': a tolerance used for null pivot detection (must be larger than machine epsilon)
 
