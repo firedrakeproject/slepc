@@ -39,14 +39,3 @@
       parameter(SLEPC_DEFAULT_TOL     =  1e-7)
 #endif
 
-!  SlepcFunction - Used to specify a mathematical function
-
-      PetscEnum SLEPC_FUNCTION_NONE
-      PetscEnum SLEPC_FUNCTION_EXP
-      PetscEnum SLEPC_FUNCTION_LAST
-
-      parameter (SLEPC_FUNCTION_NONE  = 0)
-      parameter (SLEPC_FUNCTION_EXP   = 1)
-      parameter (SLEPC_FUNCTION_LAST  = 2)
-
-

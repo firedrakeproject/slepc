@@ -65,13 +65,6 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
       ierr = MFNSetType(mfn,MFNKRYLOV);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsBoolGroupBegin("-mfn_exp","matrix exponential","MFNSetFunction",&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = MFNSetFunction(mfn,SLEPC_FUNCTION_EXP);CHKERRQ(ierr);
-    }
-
-    ierr = PetscOptionsScalar("-mfn_scale","Scale factor","MFNSetScaleFactor",mfn->sfactor,&mfn->sfactor,NULL);CHKERRQ(ierr);
-
     i = mfn->max_it;
     ierr = PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,&flg1);CHKERRQ(ierr);
     r = mfn->tol;
@@ -121,8 +114,8 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
 
   if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
   ierr = BVSetFromOptions(mfn->V);CHKERRQ(ierr);
-  if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
-  ierr = DSSetFromOptions(mfn->ds);CHKERRQ(ierr);
+  if (!mfn->fn) { ierr = MFNGetFN(mfn,&mfn->fn);CHKERRQ(ierr); }
+  ierr = FNSetFromOptions(mfn->fn);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(mfn->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -269,122 +262,6 @@ PetscErrorCode MFNSetDimensions(MFN mfn,PetscInt ncv)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MFNSetFunction"
-/*@
-   MFNSetFunction - Specifies the function to be computed.
-
-   Logically Collective on MFN
-
-   Input Parameters:
-+  mfn      - the matrix function context
--  fun      - a known function
-
-   Options Database Keys:
-.  -mfn_exp - matrix exponential
-
-   Level: beginner
-
-.seealso: MFNSetOperator(), MFNSetType(), MFNGetFunction(), SlepcFunction
-@*/
-PetscErrorCode MFNSetFunction(MFN mfn,SlepcFunction fun)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidLogicalCollectiveEnum(mfn,fun,2);
-  switch (fun) {
-    case SLEPC_FUNCTION_EXP:
-      break;
-    default:
-      SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONG,"Unknown function");
-  }
-  mfn->function = fun;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "MFNGetFunction"
-/*@C
-   MFNGetFunction - Gets the function from the MFN object.
-
-   Not Collective
-
-   Input Parameter:
-.  mfn - the matrix function context
-
-   Output Parameter:
-.  fun - function
-
-   Level: intermediate
-
-.seealso: MFNSetFunction(), SlepcFunction
-@*/
-PetscErrorCode MFNGetFunction(MFN mfn,SlepcFunction *fun)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidPointer(fun,2);
-  *fun = mfn->function;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "MFNSetScaleFactor"
-/*@
-   MFNSetScaleFactor - Sets the scale factor to multiply the matrix (the
-   argument of the function).
-
-   Logically Collective on MFN
-
-   Input Parameters:
-+  mfn   - the matrix function context
--  alpha - the scaling factor
-
-   Options Database Keys:
-.  -mfn_scale <alpha> - Sets the scaling factor
-
-   Notes:
-   The computed result is f(alpha*A)*b. The default is alpha=1.0.
-
-   Level: intermediate
-
-.seealso: MFNGetScaleFactor(), MFNSolve()
-@*/
-PetscErrorCode MFNSetScaleFactor(MFN mfn,PetscScalar alpha)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidLogicalCollectiveScalar(mfn,alpha,2);
-  mfn->sfactor = alpha;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "MFNGetScaleFactor"
-/*@
-   MFNGetScaleFactor - Gets the factor used for scaling the matrix.
-
-   Not Collective
-
-   Input Parameter:
-.  mfn - the matrix function context
-
-   Output Parameters:
-.  alpha - the scaling factor
-
-   Level: intermediate
-
-.seealso: MFNSetScaleFactor(), MFNSolve()
-@*/
-PetscErrorCode MFNGetScaleFactor(MFN mfn,PetscScalar *alpha)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidPointer(alpha,2);
-  *alpha = mfn->sfactor;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "MFNSetErrorIfNotConverged"
 /*@
    MFNSetErrorIfNotConverged - Causes MFNSolve() to generate an error if the
@@ -479,8 +356,8 @@ PetscErrorCode MFNSetOptionsPrefix(MFN mfn,const char *prefix)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
   ierr = BVSetOptionsPrefix(mfn->V,prefix);CHKERRQ(ierr);
-  if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
-  ierr = DSSetOptionsPrefix(mfn->ds,prefix);CHKERRQ(ierr);
+  if (!mfn->fn) { ierr = MFNGetFN(mfn,&mfn->fn);CHKERRQ(ierr); }
+  ierr = FNSetOptionsPrefix(mfn->fn,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)mfn,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -513,8 +390,8 @@ PetscErrorCode MFNAppendOptionsPrefix(MFN mfn,const char *prefix)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
   ierr = BVSetOptionsPrefix(mfn->V,prefix);CHKERRQ(ierr);
-  if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
-  ierr = DSSetOptionsPrefix(mfn->ds,prefix);CHKERRQ(ierr);
+  if (!mfn->fn) { ierr = MFNGetFN(mfn,&mfn->fn);CHKERRQ(ierr); }
+  ierr = FNSetOptionsPrefix(mfn->fn,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)mfn,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

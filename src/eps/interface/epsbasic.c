@@ -631,15 +631,15 @@ PetscErrorCode EPSDestroy(EPS *eps)
 -  target - the value of the target
 
    Options Database Key:
-.   -eps_target <scalar> - the value of the target
+.  -eps_target <scalar> - the value of the target
 
    Notes:
    The target is a scalar value used to determine the portion of the spectrum
    of interest. It is used in combination with EPSSetWhichEigenpairs().
 
    In the case of complex scalars, a complex value can be provided in the
-   command line with two real values (comma separated, without spaces), e.g.
-   -eps_target 1.0,2.0
+   command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
+   -eps_target 1.0+2.0i
 
    Level: beginner
 

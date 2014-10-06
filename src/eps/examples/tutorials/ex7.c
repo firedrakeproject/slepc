@@ -79,8 +79,8 @@ int main(int argc,char **argv)
     B = NULL;
   }
 
-  ierr = MatGetVecs(A,NULL,&xr);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,NULL,&xi);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,NULL,&xr);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,NULL,&xi);CHKERRQ(ierr);
 
   /*
      Read user constraints if available

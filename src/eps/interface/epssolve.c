@@ -137,7 +137,7 @@ PetscErrorCode EPSSolve(EPS eps)
   /* In the case of Cayley transform, eigenvectors need to be B-normalized */
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
   if (iscayley && eps->isgeneralized && eps->ishermitian) {
-    ierr = MatGetVecs(B,NULL,&w);CHKERRQ(ierr);
+    ierr = MatCreateVecs(B,NULL,&w);CHKERRQ(ierr);
     ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
       ierr = BVGetColumn(eps->V,i,&x);CHKERRQ(ierr);

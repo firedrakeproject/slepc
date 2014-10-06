@@ -425,7 +425,7 @@ The \slepc interface hides all the complications of the algorithm. However, the 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 \item This is currently implemented only in Krylov-Schur.
-\item The method is based on shift-and-invert, so either \ident{STSINVERT} or \ident{STCAYLEY} must be used (\ident{STSINVERT} is selected by default). Furthermore, direct linear solvers are required.
+\item The method is based on shift-and-invert, so \ident{STSINVERT} must be used. Furthermore, direct linear solvers are required.
 \item The direct linear solver must provide the matrix inertia (see \petsc's \ident{MatGetInertia}). In particular, a symmetric factorization must be used (\texttt{cholesky}).
 \end{itemize}
 
@@ -446,8 +446,8 @@ The last option is required by MUMPS to compute the inertia.
 Apart from the above recommendations, the following must be taken into account:
 \begin{itemize}
 \setlength{\itemsep}{0pt}
-\item The parameters \texttt{nev} and \texttt{ncv} explained in the previous chapter (see \ident{EPSSetDimensions}) change their meaning in this context: \texttt{ncv} cannot be given by the user but is determined internally, and \texttt{nev} represents in this case the number of eigenvalues that will be computed in each chunk.
-\item Apart from \texttt{nev}, the user can tune the computation by setting different values of \texttt{max\_it}.
+\item The parameters \texttt{nev} and \texttt{ncv} from \ident{EPSSetDimensions} are determined internally (user-provided values are ignored, and set to the number of eigenvalues in the interval). It is possible for the user to specify the ``local'' \texttt{nev} and \texttt{ncv} parameters that will be used when computing eigenvalues around each shift, with \ident{EPSKrylovSchurSetDimensions}.
+\item The user can also tune the computation by setting different values of \texttt{max\_it}.
 \end{itemize}
 
 \subsection{Spectrum Folding}

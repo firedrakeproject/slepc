@@ -37,7 +37,7 @@ PetscErrorCode dvd_orthV(BV V,PetscInt V_new_s,PetscInt V_new_e,PetscRandom rand
     for (j=0;j<3;j++) {
       if (j>0) {
         ierr = BVSetRandomColumn(V,i,rand);CHKERRQ(ierr);
-        ierr = PetscInfo1(V,"Orthonormalization problems adding the vector %d to the searching subspace\n",i);CHKERRQ(ierr);
+        ierr = PetscInfo1(V,"Orthonormalization problems adding the vector %D to the searching subspace\n",i);CHKERRQ(ierr);
       }
       ierr = BVOrthogonalizeColumn(V,i,NULL,&norm,&lindep);CHKERRQ(ierr);
       if (!lindep && (PetscAbsReal(norm) > PETSC_SQRT_MACHINE_EPSILON)) break;

@@ -513,9 +513,9 @@ PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STMatGetVecs"
+#define __FUNCT__ "STMatCreateVecs"
 /*@C
-   STMatGetVecs - Get vector(s) compatible with the ST matrices.
+   STMatCreateVecs - Get vector(s) compatible with the ST matrices.
 
    Collective on ST
 
@@ -528,13 +528,13 @@ PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
 
    Level: developer
 @*/
-PetscErrorCode STMatGetVecs(ST st,Vec *right,Vec *left)
+PetscErrorCode STMatCreateVecs(ST st,Vec *right,Vec *left)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   STCheckMatrices(st,1);
-  ierr = MatGetVecs(st->A[0],right,left);CHKERRQ(ierr);
+  ierr = MatCreateVecs(st->A[0],right,left);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

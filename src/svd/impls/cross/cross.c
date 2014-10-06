@@ -88,7 +88,7 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
         ierr = MatRestoreRow(svd->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
       }
     }
-    ierr = MPI_Allreduce(work1,work2,N,MPIU_SCALAR,MPI_SUM,PetscObjectComm((PetscObject)svd));CHKERRQ(ierr);
+    ierr = MPI_Allreduce(work1,work2,N,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)svd));CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(cross->diag,&start,&end);CHKERRQ(ierr);
     ierr = VecGetArray(cross->diag,&diag);CHKERRQ(ierr);
     for (i=start;i<end;i++)
@@ -115,7 +115,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
     ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
     ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))MatMult_Cross);CHKERRQ(ierr);
     ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross);CHKERRQ(ierr);
-    ierr = SVDMatGetVecs(svd,NULL,&cross->w);CHKERRQ(ierr);
+    ierr = SVDMatCreateVecs(svd,NULL,&cross->w);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->mat);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->w);CHKERRQ(ierr);
   }

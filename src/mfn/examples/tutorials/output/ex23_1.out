@@ -4,5 +4,5 @@ Markov y=exp(t*A)*e_1, N=120 (m=15)
  Number of iterations of the method: 1
  Subspace dimension: 30
  Stopping condition: tol=1e-07, maxit=100
- Computed vector at time t=2 has norm 2.46752
+ Computed vector at time t=2 has norm 2.47328
 

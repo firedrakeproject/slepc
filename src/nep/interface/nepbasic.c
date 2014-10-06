@@ -736,9 +736,16 @@ PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
 +  nep    - eigensolver context
 -  target - the value of the target
 
+   Options Database Key:
+.  -nep_target <scalar> - the value of the target
+
    Notes:
    The target is a scalar value used to determine the portion of the spectrum
    of interest. It is used in combination with NEPSetWhichEigenpairs().
+
+   In the case of complex scalars, a complex value can be provided in the
+   command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
+   -nep_target 1.0+2.0i
 
    Level: beginner
 

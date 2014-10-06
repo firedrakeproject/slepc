@@ -150,7 +150,7 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
       if (allreal) {
         ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",PetscRealPart(*v));CHKERRQ(ierr);
       } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"%18.16e + %18.16ei ",PetscRealPart(*v),PetscImaginaryPart(*v));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei ",PetscRealPart(*v),PetscImaginaryPart(*v));CHKERRQ(ierr);
       }
 #else
       ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",*v);CHKERRQ(ierr);
