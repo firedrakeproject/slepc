@@ -57,7 +57,7 @@ int main(int argc,char **argv)
   }
   ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatGetVecs(B,&t,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(B,&t,NULL);CHKERRQ(ierr);
 
   /* Create BV object X */
   ierr = BVCreate(PETSC_COMM_WORLD,&X);CHKERRQ(ierr);

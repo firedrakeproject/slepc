@@ -83,7 +83,7 @@ int main(int argc,char **argv)
      Set the initial vector. This is optional, if not done the initial
      vector is set to random values
   */
-  ierr = MatGetVecs(A,&v0,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&v0,NULL);CHKERRQ(ierr);
   ierr = VecSet(v0,1.0);CHKERRQ(ierr);
   ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
 

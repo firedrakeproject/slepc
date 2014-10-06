@@ -24,13 +24,14 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/fn/examples/tests/
-EXAMPLESC  = test1.c test2.c
+EXAMPLESC  = test1.c test2.c test3.c
 EXAMPLESF  =
 MANSEC     = FN
-TESTS      = test1 test2
+TESTS      = test1 test2 test3
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
-                       test2.PETSc runtest2_1 test2.rm
+                       test2.PETSc runtest2_1 test2.rm \
+                       test3.PETSc runtest3_1 test3.rm
 
 include ${SLEPC_DIR}/conf/slepc_common
 
@@ -41,6 +42,10 @@ test1: test1.o chkopts
 test2: test2.o chkopts
 	-${CLINKER} -o test2 test2.o ${SLEPC_SYS_LIB}
 	${RM} test2.o
+
+test3: test3.o chkopts
+	-${CLINKER} -o test3 test3.o ${SLEPC_SYS_LIB}
+	${RM} test3.o
 
 #------------------------------------------------------------------------------------
 
@@ -55,4 +60,10 @@ runtest2_1:
 	  if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
 	  else echo "Possible problem with test2_1, diffs above"; fi; \
 	  ${RM} -f test2_1.tmp
+
+runtest3_1:
+	-@${MPIEXEC} -np 1 ./test3 > test3_1.tmp 2>&1; \
+	  if (${DIFF} output/test3_1.out test3_1.tmp) then true; \
+	  else echo "Possible problem with test3_1, diffs above"; fi; \
+	  ${RM} -f test3_1.tmp
 

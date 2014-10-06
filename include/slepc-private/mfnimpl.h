@@ -51,10 +51,10 @@ struct _p_MFN {
   PETSCHEADER(struct _MFNOps);
   /*------------------------- User parameters ---------------------------*/
   Mat            A;              /* the problem matrix */
+  FN             fn;             /* which function to compute */
   PetscInt       max_it;         /* maximum number of iterations */
   PetscInt       ncv;            /* number of basis vectors */
   PetscReal      tol;            /* tolerance */
-  SlepcFunction  function;       /* which function to compute */
   PetscScalar    sfactor;        /* scaling factor */
   PetscBool      errorifnotconverged;    /* error out if MFNSolve() does not converge */
 
@@ -65,7 +65,6 @@ struct _p_MFN {
   PetscInt       numbermonitors;
 
   /*----------------- Child objects and working data -------------------*/
-  DS             ds;             /* direct solver object */
   BV             V;              /* set of basis vectors */
   PetscRandom    rand;           /* random number generator */
   PetscInt       nwork;          /* number of work vectors */

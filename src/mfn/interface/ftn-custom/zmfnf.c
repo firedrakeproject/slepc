@@ -35,7 +35,7 @@
 #define mfnmonitorlg_               MFNMONITORLG
 #define mfnmonitorset_              MFNMONITORSET
 #define mfngetbv_                   MFNGETBV
-#define mfngetds_                   MFNGETDS
+#define mfngetfn_                   MFNGETFN
 #define mfngetconvergedreason_      MFNGETCONVERGEDREASON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define mfndestroy_                 mfndestroy
@@ -50,7 +50,7 @@
 #define mfnmonitorlg_               mfnmonitorlg
 #define mfnmonitorset_              mfnmonitorset
 #define mfngetbv_                   mfngetbv
-#define mfngetds_                   mfngetds
+#define mfngetfn_                   mfngetfn
 #define mfngetconvergedreason_      mfngetconvergedreason
 #endif
 
@@ -174,9 +174,9 @@ PETSC_EXTERN void PETSC_STDCALL mfngetbv_(MFN *mfn,BV *bv,PetscErrorCode *ierr)
   *ierr = MFNGetBV(*mfn,bv);
 }
 
-PETSC_EXTERN void PETSC_STDCALL mfngetds_(MFN *mfn,DS *ds,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL mfngetfn_(MFN *mfn,FN *fn,PetscErrorCode *ierr)
 {
-  *ierr = MFNGetDS(*mfn,ds);
+  *ierr = MFNGetFN(*mfn,fn);
 }
 
 PETSC_EXTERN void PETSC_STDCALL mfngetconvergedreason_(MFN *mfn,MFNConvergedReason *reason,PetscErrorCode *ierr)

@@ -183,7 +183,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol
       ierr = KSPSetOperators(ksp,M,M);CHKERRQ(ierr);
       if (ini) {
         ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
-        ierr = MatGetVecs(M,&dvv,NULL);CHKERRQ(ierr);
+        ierr = MatCreateVecs(M,&dvv,NULL);CHKERRQ(ierr);
         ierr = VecDuplicate(dvv,&rr);CHKERRQ(ierr);
         ini = PETSC_FALSE;
       }

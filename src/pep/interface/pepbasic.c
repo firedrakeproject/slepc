@@ -878,9 +878,16 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
 +  pep    - eigensolver context
 -  target - the value of the target
 
+   Options Database Key:
+.  -pep_target <scalar> - the value of the target
+
    Notes:
    The target is a scalar value used to determine the portion of the spectrum
    of interest. It is used in combination with PEPSetWhichEigenpairs().
+
+   In the case of complex scalars, a complex value can be provided in the
+   command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
+   -pep_target 1.0+2.0i
 
    Level: beginner
 

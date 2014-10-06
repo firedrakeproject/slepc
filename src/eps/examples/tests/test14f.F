@@ -36,8 +36,9 @@
       Mat                A,B
       EPS                eps
       ST                 st
+      KSP                ksp
       DS                 ds
-      PetscReal          cut,tol
+      PetscReal          cut,tol,tolabs
       PetscScalar        tget,value
       PetscInt           n,i,its,Istart,Iend
       PetscInt           nev,ncv,mpd
@@ -178,6 +179,11 @@
       call EPSMonitorCancel(eps,ierr)
 
       call EPSGetST(eps,st,ierr) 
+      call STGetKSP(st,ksp,ierr) 
+      tol = 1.d-8
+      tolabs = 1.d-50
+      call KSPSetTolerances(ksp,tol,tolabs,PETSC_DEFAULT_REAL,          &
+     &                      PETSC_DEFAULT_INTEGER,ierr)
       call STView(st,PETSC_NULL_OBJECT,ierr) 
       call EPSGetDS(eps,ds,ierr) 
       call DSView(ds,PETSC_NULL_OBJECT,ierr) 

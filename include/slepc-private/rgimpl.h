@@ -43,6 +43,6 @@ struct _p_RG {
 };
 
 /* show an inf instead of PETSC_MAX_REAL */
-#define RGShowReal(r) ((PetscAbsReal(r)>=PETSC_MAX_REAL)?10*(r):(double)(r))
+#define RGShowReal(r) (double)((PetscAbsReal(r)>=PETSC_MAX_REAL)?10*(r):(r))
 
 #endif

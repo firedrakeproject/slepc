@@ -64,6 +64,7 @@ PETSC_EXTERN PetscErrorCode FNGetParameters(FN,PetscInt*,PetscScalar**,PetscInt*
 
 PETSC_EXTERN PetscErrorCode FNEvaluateFunction(FN,PetscScalar,PetscScalar*);
 PETSC_EXTERN PetscErrorCode FNEvaluateDerivative(FN,PetscScalar,PetscScalar*);
+PETSC_EXTERN PetscErrorCode FNEvaluateFunctionMat(FN,Mat,Mat);
 
 PETSC_EXTERN PetscFunctionList FNList;
 PETSC_EXTERN PetscBool         FNRegisterAllCalled;

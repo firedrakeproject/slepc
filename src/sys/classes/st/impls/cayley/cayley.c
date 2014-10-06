@@ -181,7 +181,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
   ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
   if (st->nmat>1) {
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
-    ierr = MatGetVecs(st->A[1],&ctx->w2,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(st->A[1],&ctx->w2,NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)ctx->w2);CHKERRQ(ierr);
   }
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
