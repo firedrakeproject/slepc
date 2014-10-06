@@ -810,7 +810,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
     if (its==PETSC_DECIDE || its==PETSC_DEFAULT) {
       nep->rits = PETSC_DEFAULT;
     } else {
-      if (its<=0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be > 0");
+      if (its<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be >= 0");
       nep->rits = its;
     }
   }
