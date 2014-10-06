@@ -305,7 +305,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscBool       issinv;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data,*ctx_glob;
   EPS_SR          sr,sr_loc,sr_glob;
-  PetscInt        nEigs,dssz=1,i,zeros,off=0;
+  PetscInt        nEigs,dssz=1,i,zeros=0,off=0;
   PetscMPIInt     nproc,rank;
   MPI_Request     req;
 
@@ -410,12 +410,12 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 
     /* last process in eps comm computes inertia1 */
     if (ctx->npart==1 || ((sr->dir>0 && ctx->subc->color==ctx->npart-1) || (sr->dir<0 && ctx->subc->color==0))) {
-      ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1,&zeros);CHKERRQ(ierr);
+      ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
       if (zeros) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
     }
 
     /* compute inertia0 */
-    ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,&zeros);CHKERRQ(ierr);
+    ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
     if (zeros) { /* error in factorization */
       if (ctx->npart==1 || ctx_glob->subintset || ((sr->dir>0 && ctx->subc->color==0) || (sr->dir<0 && ctx->subc->color==ctx->npart-1))) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
       else { /* perturb shift */
@@ -751,7 +751,7 @@ static PetscErrorCode EPSExtractShift(EPS eps)
     sr->sPrev = sr->sPres;
     sr->sPres = sr->pending[--sr->nPend];
     sPres = sr->sPres;
-    ierr = EPSSliceGetInertia(eps,sPres->value,&iner,&zeros);CHKERRQ(ierr);
+    ierr = EPSSliceGetInertia(eps,sPres->value,&iner,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
     if (zeros) {
       newShift = sPres->value*(1.0+SLICE_PTOL);
       if (sr->dir*(sPres->neighb[0] && newShift-sPres->neighb[0]->value) < 0) newShift = (sPres->value+sPres->neighb[0]->value)/2;
