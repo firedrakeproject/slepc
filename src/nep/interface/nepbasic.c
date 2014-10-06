@@ -86,6 +86,9 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     if (nep->refine) {
       ierr = PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%D\n",(double)nep->reftol,nep->rits);CHKERRQ(ierr);
     }
+      if (nep->npart>1) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  splitting communicator in %D partitions for refinement\n",nep->npart);CHKERRQ(ierr);
+      }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = SlepcSNPrintfScalar(str,50,nep->target,PETSC_FALSE);CHKERRQ(ierr);
     if (!nep->which) {
@@ -201,6 +204,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->ttol            = 0.0;
   nep->which           = (NEPWhich)0;
   nep->refine          = NEP_REFINE_NONE;
+  nep->npart           = 1;
   nep->reftol          = PETSC_DEFAULT;
   nep->rits            = PETSC_DEFAULT;
   nep->trackall        = PETSC_FALSE;
