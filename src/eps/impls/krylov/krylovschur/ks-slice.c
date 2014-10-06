@@ -283,10 +283,10 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
 
   PetscFunctionBegin;
   if (shift >= PETSC_MAX_REAL) { /* Right-open interval */
-    *inertia = eps->n;
+    if (inertia) *inertia = eps->n;
   } else if (shift <= PETSC_MIN_REAL) {
-    *inertia = 0;
-    *zeros = 0;
+    if (inertia) *inertia = 0;
+    if (zeros) *zeros = 0;
   } else {
     ierr = STSetShift(eps->st,shift);CHKERRQ(ierr);
     ierr = STSetUp(eps->st);CHKERRQ(ierr);
@@ -740,7 +740,7 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
 static PetscErrorCode EPSExtractShift(EPS eps)
 {
   PetscErrorCode   ierr;
-  PetscInt         iner,zeros;
+  PetscInt         iner,zeros=0;
   EPS_KRYLOVSCHUR  *ctx=(EPS_KRYLOVSCHUR*)eps->data;
   EPS_SR           sr;
   PetscReal        newShift;
