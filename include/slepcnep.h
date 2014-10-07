@@ -103,6 +103,7 @@ typedef enum {/* converged */
               NEP_DIVERGED_BREAKDOWN           = -4,
               NEP_DIVERGED_FNORM_NAN           = -5,
               NEP_CONVERGED_ITERATING          =  0} NEPConvergedReason;
+PETSC_EXTERN const char *const*NEPConvergedReasons;
 
 PETSC_EXTERN PetscErrorCode NEPCreate(MPI_Comm,NEP*);
 PETSC_EXTERN PetscErrorCode NEPDestroy(NEP*);

@@ -117,6 +117,13 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPSetTarget(nep,s);CHKERRQ(ierr);
     }
 
+    /*
+      Prints reason for convergence or divergence of each solve
+    */
+    flg  = PETSC_FALSE;
+    ierr = PetscOptionsBool("-nep_converged_reason","Print reason for converged or diverged","NEPSolve",flg,&flg,NULL);CHKERRQ(ierr);
+    if (flg) nep->printreason = PETSC_TRUE;
+
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to NEPSetFromOptions()
