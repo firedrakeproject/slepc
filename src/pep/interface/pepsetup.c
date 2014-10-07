@@ -236,7 +236,8 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,nmat,2);
-  if (nmat <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %D",nmat);
+  if (nmat <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Non-positive value of nmat: %D",nmat);
+  if (nmat <= 2) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Cannot solve linear eigenproblems with PEP; use EPS instead");
   PetscValidPointer(A,3);
 
   if (pep->state) { ierr = PEPReset(pep);CHKERRQ(ierr); }

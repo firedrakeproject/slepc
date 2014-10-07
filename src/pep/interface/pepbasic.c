@@ -347,6 +347,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->problem_type    = (PEPProblemType)0;
   pep->scale           = PEP_SCALE_NONE;
   pep->sfactor         = 1.0;
+  pep->dsfactor        = 1.0;
   pep->sits            = 5;
   pep->slambda         = 1.0;
   pep->refine          = PEP_REFINE_NONE;
