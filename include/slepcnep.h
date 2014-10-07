@@ -138,8 +138,8 @@ PETSC_EXTERN PetscErrorCode NEPSetConvergenceTest(NEP,PetscErrorCode (*)(NEP,Pet
 PETSC_EXTERN PetscErrorCode NEPConvergedDefault(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
 PETSC_EXTERN PetscErrorCode NEPSetDimensions(NEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetDimensions(NEP,PetscInt*,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode NEPSetRefine(NEP,NEPRefine,PetscReal,PetscInt);
-PETSC_EXTERN PetscErrorCode NEPGetRefine(NEP,NEPRefine*,PetscReal*,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPSetRefine(NEP,NEPRefine,PetscInt,PetscReal,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPGetRefine(NEP,NEPRefine*,PetscInt*,PetscReal*,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetLagPreconditioner(NEP,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetLagPreconditioner(NEP,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetConstCorrectionTol(NEP,PetscBool);
