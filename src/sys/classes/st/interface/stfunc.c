@@ -761,7 +761,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  all matrices have %s\n",pat);CHKERRQ(ierr);
     }
-    if (st->transform) {
+    if (st->transform && st->nmat>2) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing transformed matrices\n");CHKERRQ(ierr);
     }
   } else if (isstring) {

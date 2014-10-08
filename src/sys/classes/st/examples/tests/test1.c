@@ -110,6 +110,7 @@ int main(int argc,char **argv)
   ierr = STCreate(PETSC_COMM_WORLD,&st);CHKERRQ(ierr);
   mat[0] = S;
   ierr = STSetOperators(st,1,mat);CHKERRQ(ierr);
+  ierr = STSetTransform(st,PETSC_TRUE);CHKERRQ(ierr);
   ierr = STSetFromOptions(st);CHKERRQ(ierr);
 
 
