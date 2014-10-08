@@ -323,7 +323,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     if (!issinv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for spectrum slicing");
     if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
     if (!eps->max_it) eps->max_it = 100;
-    if (ctx->nev==1) ctx->nev = 20;  /* nev not set, use default value */
+    if (ctx->nev==1) ctx->nev = 40;  /* nev not set, use default value */
     if (ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   }
   eps->ops->backtransform = NULL;
@@ -334,7 +334,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   ctx->sr = sr;
   sr->itsKs = 0;
   sr->nleap = 0;
-  sr->nMAXCompl = ctx->nev/4;
+  sr->nMAXCompl = eps->nev/4;
   sr->iterCompl = eps->max_it/4;
   sr->sPres = NULL;
   sr->nS = 0;
@@ -1038,7 +1038,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
           } else {
             d_prev = PetscAbsReal(sPres->value - PetscRealPart(sr->eigr[eps->nconv-1]))/(eps->nconv+0.3);
           }
-          *newS = sPres->value + ((sr->dir)*d_prev*ctx->nev)/2;
+          *newS = sPres->value + ((sr->dir)*d_prev*eps->nev)/2;
         } else { /* No values found, no information for next shift */
           SETERRQ(PetscObjectComm((PetscObject)eps),1,"First shift renders no information");
         }
@@ -1062,9 +1062,9 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
       }
       /* Average distance is used for next shift by adding it to value on the right or to shift */
       if ((sr->dir)*(PetscRealPart(sr->eigr[sPres->index + sPres->neigs -1]) - sPres->value)>0) {
-        *newS = PetscRealPart(sr->eigr[sPres->index + sPres->neigs -1])+ ((sr->dir)*d_prev*(ctx->nev))/2;
+        *newS = PetscRealPart(sr->eigr[sPres->index + sPres->neigs -1])+ ((sr->dir)*d_prev*(eps->nev))/2;
       } else { /* Last accepted value is on the left of shift. Adding to shift */
-        *newS = sPres->value + ((sr->dir)*d_prev*(ctx->nev))/2;
+        *newS = sPres->value + ((sr->dir)*d_prev*(eps->nev))/2;
       }
     }
     /* End of interval can not be surpassed */
