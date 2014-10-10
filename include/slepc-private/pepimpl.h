@@ -106,6 +106,8 @@ struct _p_PEP {
   PetscScalar    *solvematcoeffs;  /* coefficients to compute the matrix to be inverted */
   PetscInt       nwork;            /* number of work vectors */
   Vec            *work;            /* work vectors */
+  KSP            refineksp;        /* ksp used in refinement */
+  PetscSubcomm   refinesubc;       /* context for sub-communicators */
   void           *data;            /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables --------------------------*/

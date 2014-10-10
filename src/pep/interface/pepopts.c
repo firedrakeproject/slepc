@@ -211,6 +211,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   ierr = DSSetFromOptions(pep->ds);CHKERRQ(ierr);
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   ierr = STSetFromOptions(pep->st);CHKERRQ(ierr);
+  if (!pep->refineksp) { ierr = PEPRefineGetKSP(pep,&pep->refineksp);CHKERRQ(ierr); }
+  ierr = KSPSetFromOptions(pep->refineksp);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(pep->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1025,6 +1027,10 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
   PetscValidLogicalCollectiveBool(pep,schur,6);
   pep->refine = refine;
   if (refine) {  /* process parameters only if not REFINE_NONE */
+    if (npart!=pep->npart) {
+      ierr = PetscSubcommDestroy(&pep->refinesubc);CHKERRQ(ierr);
+      ierr = KSPDestroy(&pep->refineksp);CHKERRQ(ierr);
+    }
     if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
       pep->npart = 1;
     } else {

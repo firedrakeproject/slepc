@@ -64,6 +64,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   char           str[50];
   PetscBool      isascii,islinear,istrivial;
   PetscInt       i;
+  PetscViewer    sviewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -195,6 +196,16 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
     ierr = STView(pep->st,viewer);CHKERRQ(ierr);
   }
+  if (pep->refine!=PEP_REFINE_NONE) {
+    if (pep->npart>1) {
+      if (pep->refinesubc->color==0) {
+        ierr = PetscViewerASCIIGetStdout(pep->refinesubc->comm,&sviewer);CHKERRQ(ierr);
+        ierr = KSPView(pep->refineksp,sviewer);CHKERRQ(ierr);
+      }
+    } else {
+      ierr = KSPView(pep->refineksp,viewer);CHKERRQ(ierr);
+    }
+  } 
   PetscFunctionReturn(0);
 }
 
@@ -381,6 +392,8 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->solvematcoeffs  = NULL;
   pep->nwork           = 0;
   pep->work            = NULL;
+  pep->refineksp       = NULL;
+  pep->refinesubc      = NULL;
   pep->data            = NULL;
 
   pep->state           = PEP_STATE_INITIAL;
@@ -557,6 +570,8 @@ PetscErrorCode PEPReset(PEP pep)
   }
   ierr = BVDestroy(&pep->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(pep->nwork,&pep->work);CHKERRQ(ierr);
+  ierr = KSPDestroy(&pep->refineksp);CHKERRQ(ierr);
+  ierr = PetscSubcommDestroy(&pep->refinesubc);CHKERRQ(ierr);
   pep->nwork = 0;
   pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -866,6 +881,48 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->st);CHKERRQ(ierr);
   }
   *st = pep->st;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPRefineGetKSP"
+/*@C
+   PEPRefineGetKSP - Obtain the ksp object used by the eigensolver
+   object in the refinement phase.
+
+   Not Collective
+
+   Input Parameters:
+.  pep - eigensolver context obtained from PEPCreate()
+
+   Output Parameter:
+.  ksp - ksp context
+
+   Level: advanced
+
+.seealso: PEPSetRefine()
+@*/
+PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(ksp,2);
+  if (!pep->refineksp) {
+    if (pep->npart>1) {
+      /* Split in subcomunicators */
+      ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)pep),&pep->refinesubc);CHKERRQ(ierr);
+      ierr = PetscSubcommSetNumber(pep->refinesubc,pep->npart);CHKERRQ(ierr);CHKERRQ(ierr);
+      ierr = PetscSubcommSetType(pep->refinesubc,PETSC_SUBCOMM_CONTIGUOUS);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)pep,sizeof(PetscSubcomm));CHKERRQ(ierr);
+    }
+    ierr = KSPCreate((pep->npart==1)?PetscObjectComm((PetscObject)pep):pep->refinesubc->comm,&pep->refineksp);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->refineksp);CHKERRQ(ierr);
+    ierr = KSPSetOptionsPrefix(*ksp,((PetscObject)pep)->prefix);CHKERRQ(ierr);
+    ierr = KSPAppendOptionsPrefix(*ksp,"pep_refine_");CHKERRQ(ierr);
+  }
+  *ksp = pep->refineksp;
   PetscFunctionReturn(0);
 }
 

@@ -171,6 +171,7 @@ PETSC_EXTERN PetscErrorCode PEPSetDS(PEP,DS);
 PETSC_EXTERN PetscErrorCode PEPGetDS(PEP,DS*);
 PETSC_EXTERN PetscErrorCode PEPSetST(PEP,ST);
 PETSC_EXTERN PetscErrorCode PEPGetST(PEP,ST*);
+PETSC_EXTERN PetscErrorCode PEPRefineGetKSP(PEP,KSP*);
 
 PETSC_EXTERN PetscErrorCode PEPSetTolerances(PEP,PetscReal,PetscInt);
 PETSC_EXTERN PetscErrorCode PEPGetTolerances(PEP,PetscReal*,PetscInt*);
