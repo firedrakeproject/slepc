@@ -29,6 +29,7 @@ int main(int argc,char **argv)
 {
   Mat            A,B,C,D,mat[4];
   ST             st;
+  KSP            ksp;
   Vec            v,w;
   STType         type;
   PetscScalar    value[3],sigma;
@@ -113,6 +114,8 @@ int main(int argc,char **argv)
   mat[2] = C;
   mat[3] = D;
   ierr = STSetOperators(st,4,mat);CHKERRQ(ierr);
+  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
+  ierr = KSPSetTolerances(ksp,100*PETSC_MACHINE_EPSILON,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = STSetFromOptions(st);CHKERRQ(ierr);
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
               Apply the transformed operator for several ST's

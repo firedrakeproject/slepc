@@ -133,6 +133,15 @@ PetscErrorCode PEPSolve(PEP pep)
   /* sort eigenvalues according to pep->which parameter */
   ierr = SlepcSortEigenvalues(pep->sc,pep->nconv,pep->eigr,pep->eigi,pep->perm);CHKERRQ(ierr);
 
+  if (pep->printreason) {
+    ierr = PetscViewerASCIIAddTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)pep)),((PetscObject)pep)->tablevel);CHKERRQ(ierr);
+    if (pep->reason > 0) {
+      ierr = PetscViewerASCIIPrintf(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)pep)),"%s Polynomial eigensolve converged due to %s; iterations %D\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",PEPConvergedReasons[pep->reason],pep->its);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)pep)),"%s Polynomial eigensolve did not converge due to %s; iterations %D\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",PEPConvergedReasons[pep->reason],pep->its);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIISubtractTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)pep)),((PetscObject)pep)->tablevel);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(PEP_Solve,pep,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */

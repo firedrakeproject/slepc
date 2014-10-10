@@ -78,6 +78,7 @@ struct _p_PEP {
   PetscBool      schur;            /* use Schur complement in refinement method */
   PEPExtract     extract;          /* type of extraction used */
   PetscBool      trackall;         /* whether all the residuals must be computed */
+  PetscBool      printreason;      /* prints converged reason after solve */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*converged)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);

@@ -366,7 +366,7 @@ PetscErrorCode BVView_Mat(BV bv,PetscViewer viewer)
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
       ierr = PetscViewerASCIIPrintf(viewer,"%s=%s;clear %s\n",((PetscObject)bv)->name,((PetscObject)ctx->A)->name,((PetscObject)ctx->A)->name);CHKERRQ(ierr);
       if (bv->nc) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%d:end);\n",((PetscObject)bv)->name,((PetscObject)bv)->name,bv->nc+1);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%D:end);\n",((PetscObject)bv)->name,((PetscObject)bv)->name,bv->nc+1);CHKERRQ(ierr);
       }
     }
   }

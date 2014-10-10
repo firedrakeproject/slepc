@@ -107,7 +107,7 @@ runtest4_1:
 
 runtest4_2:
 	-@test=test4_1; \
-	${MPIEXEC} -np 1 ./test4 -st_transform -st_matmode shell -st_ksp_rtol 1e-12 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test4 -st_transform -st_matmode shell 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest4_3:

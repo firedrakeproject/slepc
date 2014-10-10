@@ -198,6 +198,7 @@ PetscErrorCode NEPSetFromOptions_Interpol(NEP nep)
   ierr = PEPSetFromOptions(ctx->pep);CHKERRQ(ierr);
   ierr = PetscOptionsHead("NEP Interpol Options");CHKERRQ(ierr);
   ierr = PetscOptionsInt("-nep_interpol_degree","Degree of interpolation polynomial","NEPInterpolSetDegree",ctx->deg,&ctx->deg,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

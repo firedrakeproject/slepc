@@ -450,6 +450,35 @@ Apart from the above recommendations, the following must be taken into account:
 \item The user can also tune the computation by setting different values of \texttt{max\_it}.
 \end{itemize}
 
+\paragraph{Use of multiple communicators}
+Since spectrum slicing requires direct linear solves, parallel runs may suffer from bad scalability in the sense that increasing the number of MPI processes does not imply a performance gain. For this reason, \slepc provides the option of using multiple communicators, that is, splitting the initial MPI communicator in several groups, each of them in charge of processing part of the interval.
+
+The multi-communicator setting is activated with a value of \texttt{npart}>1 in
+	\findex{EPSKrylovSchurSetPartitions}
+	\begin{Verbatim}[fontsize=\small]
+	EPSKrylovSchurSetPartitions(EPS eps,PetscInt npart);
+	\end{Verbatim}
+The interval $[a,b]$ is then divided in \texttt{npart} subintervals of equal size, and the problem of computing all eigenvalues in $[a,b]$ is divided in \texttt{npart} independent subproblems. Each subproblem is solved using only a subset of the initial $p$ processes, with $\lceil p/\texttt{npart}\rceil$ processes at most. A final step will gather all computed solutions so that they are available in the whole \ident{EPS} communicator.
+
+The division of the interval in subintervals is done blindly, and this may result in load imbalance if some subintervals contain much more eigenvalues than others. This can be prevented by passing a list of subinterval boundaries, provided that the user has a priori information to roughly determine the eigenvalue distribution:
+	\findex{EPSKrylovSchurSetSubintervals}
+	\begin{Verbatim}[fontsize=\small]
+	EPSKrylovSchurSetSubintervals(EPS eps,PetscReal *subint);
+	\end{Verbatim}
+
+An additional benefit of multi-communicator support is that it enables parallel spectrum slicing runs without the need to install a parallel direct solver (MUMPS). The following command-line example uses sequential linear solves in 4 partitions, one process each:
+\begin{Verbatim}[fontsize=\small]
+	$ mpirun -np 4 ./ex25 -eps_interval 0.4,0.8 -eps_krylovschur_partitions 4
+                 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
+\end{Verbatim}
+
+The analogue example using MUMPS with 5 processes in each partition:
+\begin{Verbatim}[fontsize=\small]
+	$ mpirun -np 20 ./ex25 -eps_interval 0.4,0.8 -eps_krylovschur_partitions 4
+                 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
+                 -st_pc_factor_mat_solver_package mumps -mat_mumps_icntl_13 1
+\end{Verbatim}
+
 \subsection{Spectrum Folding}
 
 In \slepc versions prior to 3.5, \texttt{ST} had another type intended to perform the spectrum folding technique described below. It it no longer available with \texttt{ST}, but it can be implemented directly in application code as illustrated in example \texttt{ex24.c}.

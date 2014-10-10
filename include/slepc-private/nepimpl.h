@@ -74,6 +74,7 @@ struct _p_NEP {
   PetscReal      reftol;           /* tolerance for refinement */
   PetscInt       rits;             /* number of iterations of the refinement method */
   PetscBool      trackall;         /* whether all the residuals must be computed */
+  PetscBool      printreason;      /* prints converged reason after solve */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*computefunction)(NEP,PetscScalar,Mat,Mat,void*);
