@@ -545,7 +545,8 @@ PetscErrorCode PEPReset(PEP pep)
   if (pep->ds) { ierr = DSReset(pep->ds);CHKERRQ(ierr); }
   if (pep->nmat) {
     ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
-    ierr = PetscFree3(pep->pbc,pep->solvematcoeffs,pep->nrma);CHKERRQ(ierr);
+    ierr = PetscFree2(pep->pbc,pep->nrma);CHKERRQ(ierr);
+    ierr = PetscFree(pep->solvematcoeffs);CHKERRQ(ierr);
     pep->nmat = 0;
   }
   ierr = VecDestroy(&pep->Dl);CHKERRQ(ierr);

@@ -49,7 +49,6 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   PetscBool      sinv,flg;
   PetscInt       i;
-  PetscScalar    *coeffs=pep->solvematcoeffs;
 
   PetscFunctionBegin;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
@@ -71,12 +70,13 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) {
+    ierr = PetscMalloc1(pep->nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv) {
-      ierr = PEPEvaluateBasis(pep,pep->target,0,coeffs,NULL);CHKERRQ(ierr);
+      ierr = PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);
     } else {
-      for (i=0;i<pep->nmat-1;i++) coeffs[i] = 0.0;
-      coeffs[pep->nmat-1] = 1.0;
+      for (i=0;i<pep->nmat-1;i++) pep->solvematcoeffs[i] = 0.0;
+      pep->solvematcoeffs[pep->nmat-1] = 1.0;
     }
   }
   PetscFunctionReturn(0);
