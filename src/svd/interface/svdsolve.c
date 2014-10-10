@@ -78,6 +78,16 @@ PetscErrorCode SVDSolve(SVD svd)
   }
 
   svd->lvecsavail = (svd->leftbasis)? PETSC_TRUE: PETSC_FALSE;
+
+  if (svd->printreason) {
+    ierr = PetscViewerASCIIAddTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd)),((PetscObject)svd)->tablevel);CHKERRQ(ierr);
+    if (svd->reason > 0) {
+      ierr = PetscViewerASCIIPrintf(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd)),"%s SVD solve converged due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd)),"%s SVD solve did not converge due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIISubtractTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd)),((PetscObject)svd)->tablevel);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */

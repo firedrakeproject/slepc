@@ -60,6 +60,7 @@ struct _p_SVD {
   SVDWhich         which;       /* which singular values are computed */
   PetscBool        impltrans;   /* implicit transpose mode */
   PetscBool        trackall;    /* whether all the residuals must be computed */
+  PetscBool        printreason; /* prints converged reason after solve */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode   (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);

@@ -101,6 +101,7 @@ typedef enum {/* converged */
               MFN_DIVERGED_ITS                 = -3,
               MFN_DIVERGED_BREAKDOWN           = -4,
               MFN_CONVERGED_ITERATING          =  0} MFNConvergedReason;
+PETSC_EXTERN const char *const*MFNConvergedReasons;
 
 PETSC_EXTERN PetscErrorCode MFNGetConvergedReason(MFN,MFNConvergedReason *);
 
