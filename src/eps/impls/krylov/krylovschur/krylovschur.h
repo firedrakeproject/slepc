@@ -88,7 +88,7 @@ typedef struct {
   PetscBool     detect;             /* check for zeros during factorizations */
   PetscReal     *subintervals;      /* partition of global interval */
   PetscBool     subintset;          /* subintervals set by user */
-  PetscInt      *nconv_loc;         /* converged eigenpairs for each subinterval */
+  PetscMPIInt   *nconv_loc;         /* converged eigenpairs for each subinterval */
   EPS           eps;                /* additional eps for slice runs */
   PetscBool     global;             /* flag distinguishing global from local eps */
   PetscReal     *shifts;            /* array containing global shifts */
