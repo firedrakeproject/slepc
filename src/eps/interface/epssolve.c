@@ -175,7 +175,7 @@ PetscErrorCode EPSSolve(EPS eps)
     for (i=0;i<eps->nconv;i++) {
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(eps->eigr[i]);
-      im = PetscImaginaryPart(eps->eigi[i]);
+      im = PetscImaginaryPart(eps->eigr[i]);
 #else
       re = eps->eigr[i];
       im = eps->eigi[i];

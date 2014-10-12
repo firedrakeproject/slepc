@@ -153,7 +153,7 @@ PetscErrorCode PEPSolve(PEP pep)
     for (i=0;i<pep->nconv;i++) {
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(pep->eigr[i]);
-      im = PetscImaginaryPart(pep->eigi[i]);
+      im = PetscImaginaryPart(pep->eigr[i]);
 #else
       re = pep->eigr[i];
       im = pep->eigi[i];
