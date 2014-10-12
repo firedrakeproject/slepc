@@ -134,7 +134,7 @@ PetscErrorCode NEPSolve(NEP nep)
     for (i=0;i<nep->nconv;i++) {
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(nep->eigr[i]);
-      im = PetscImaginaryPart(nep->eigi[i]);
+      im = PetscImaginaryPart(nep->eigr[i]);
 #else
       re = nep->eigr[i];
       im = nep->eigi[i];
