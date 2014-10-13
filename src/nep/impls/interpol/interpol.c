@@ -35,6 +35,7 @@
 */
 
 #include <slepc-private/nepimpl.h>         /*I "slepcnep.h" I*/
+#include <slepc-private/pepimpl.h>
 
 typedef struct {
   PEP       pep;
@@ -49,8 +50,9 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
   ST             st;
   RG             rg;
-  PetscReal      a,b,c,d,s;
+  PetscReal      a,b,c,d,s,tol;
   PetscBool      flg,istrivial;
+  PetscInt       its;
 
   PetscFunctionBegin;
   if (nep->ncv) { /* ncv set */
@@ -79,7 +81,11 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = PEPSetDimensions(ctx->pep,nep->nev,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = PEPSetTolerances(ctx->pep,nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->rtol/10.0,nep->max_it?nep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
+  tol=ctx->pep->tol;
+  if (tol==PETSC_DEFAULT) tol = (nep->rtol==PETSC_DEFAULT)?SLEPC_DEFAULT_TOL/10.0:nep->rtol/10.0;
+  its=ctx->pep->max_it;
+  if (!its) its = nep->max_it?nep->max_it:PETSC_DEFAULT;
+  ierr = PEPSetTolerances(ctx->pep,tol,its);CHKERRQ(ierr);
 
   /* transfer region options */
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
