@@ -31,11 +31,11 @@ int main(int argc,char **argv)
   Vec            t,v;
   Mat            B;
   BV             X,Y,Z,Zcopy;
-  PetscInt       i,j,n=10,k=5,Istart,Iend,col[3];
-  PetscScalar    value[3],*pZ;
+  PetscInt       i,j,n=10,k=5,Istart,Iend;
+  PetscScalar    *pZ;
   PetscReal      norm;
   PetscViewer    view;
-  PetscBool      verbose,FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
+  PetscBool      verbose;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -51,20 +51,10 @@ int main(int argc,char **argv)
   ierr = PetscObjectSetName((PetscObject)B,"B");CHKERRQ(ierr);
 
   ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
-  if (Istart==0) FirstBlock=PETSC_TRUE;
-  if (Iend==n) LastBlock=PETSC_TRUE;
-  value[0]=-1.0; value[1]=2.0; value[2]=-1.0;
-  for (i=(FirstBlock? Istart+1: Istart); i<(LastBlock? Iend-1: Iend); i++) {
-    col[0]=i-1; col[1]=i; col[2]=i+1;
-    ierr = MatSetValues(B,1,&i,3,col,value,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  if (LastBlock) {
-    i=n-1; col[0]=n-2; col[1]=n-1;
-    ierr = MatSetValues(B,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  if (FirstBlock) {
-    i=0; col[0]=0; col[1]=1; value[0]=2.0; value[1]=-1.0;
-    ierr = MatSetValues(B,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    if (i>0) { ierr = MatSetValue(B,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<n-1) { ierr = MatSetValue(B,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    ierr = MatSetValue(B,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
