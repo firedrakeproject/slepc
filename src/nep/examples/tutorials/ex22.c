@@ -54,10 +54,9 @@ int main(int argc,char **argv)
   Mat            mats[3];
   FN             funs[3];
   NEPType        type;
-  PetscScalar    value[3],coeffs[2],b;
-  PetscInt       n=128,nev,Istart,Iend,col[3],i,its,nconv;
+  PetscScalar    coeffs[2],b;
+  PetscInt       n=128,nev,Istart,Iend,i,its,nconv;
   PetscReal      tau=0.001,h,a=20,xi,re,im,norm;
-  PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -96,20 +95,10 @@ int main(int argc,char **argv)
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
   ierr = MatSetUp(A);CHKERRQ(ierr);
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
-  if (Istart==0) FirstBlock=PETSC_TRUE;
-  if (Iend==n) LastBlock=PETSC_TRUE;
-  value[0]=1.0/(h*h); value[1]=-2.0/(h*h)+a; value[2]=1.0/(h*h);
-  for (i=(FirstBlock? Istart+1: Istart); i<(LastBlock? Iend-1: Iend); i++) {
-    col[0]=i-1; col[1]=i; col[2]=i+1;
-    ierr = MatSetValues(A,1,&i,3,col,value,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  if (LastBlock) {
-    i=n-1; col[0]=n-2; col[1]=n-1;
-    ierr = MatSetValues(A,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  if (FirstBlock) {
-    i=0; col[0]=0; col[1]=1; value[0]=-2.0/(h*h)+a; value[1]=1.0/(h*h);
-    ierr = MatSetValues(A,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    if (i>0) { ierr = MatSetValue(A,i,i-1,1.0/(h*h),INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<n-1) { ierr = MatSetValue(A,i,i+1,1.0/(h*h),INSERT_VALUES);CHKERRQ(ierr); }
+    ierr = MatSetValue(A,i,i,-2.0/(h*h)+a,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
