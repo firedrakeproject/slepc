@@ -70,9 +70,11 @@ struct _p_NEP {
   PetscReal      ttol;             /* tolerance used in the convergence criterion */
   NEPWhich       which;            /* which part of the spectrum to be sought */
   NEPRefine      refine;           /* type of refinement to be applied after solve */
+  PetscInt       npart;            /* number of partitions of the communicator */
   PetscReal      reftol;           /* tolerance for refinement */
   PetscInt       rits;             /* number of iterations of the refinement method */
   PetscBool      trackall;         /* whether all the residuals must be computed */
+  PetscBool      printreason;      /* prints converged reason after solve */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*computefunction)(NEP,PetscScalar,Mat,Mat,void*);

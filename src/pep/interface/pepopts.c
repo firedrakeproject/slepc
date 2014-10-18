@@ -133,6 +133,13 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
     ierr = PetscOptionsEnum("-pep_basis","Polynomial basis","PEPSetBasis",PEPBasisTypes,(PetscEnum)pep->basis,(PetscEnum*)&pep->basis,NULL);CHKERRQ(ierr);
 
+    /*
+      Prints reason for convergence or divergence of each solve
+    */
+    flg  = PETSC_FALSE;
+    ierr = PetscOptionsBool("-pep_converged_reason","Print reason for converged or diverged","PEPSolve",flg,&flg,NULL);CHKERRQ(ierr);
+    if (flg) pep->printreason = PETSC_TRUE;
+
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to PEPSetFromOptions()
@@ -1041,7 +1048,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
     if (its==PETSC_DECIDE || its==PETSC_DEFAULT) {
       pep->rits = PETSC_DEFAULT;
     } else {
-      if (its<=0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be > 0");
+      if (its<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be >= 0");
       pep->rits = its;
     }
     pep->schur = schur;

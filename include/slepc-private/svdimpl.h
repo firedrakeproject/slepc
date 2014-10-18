@@ -60,6 +60,7 @@ struct _p_SVD {
   SVDWhich         which;       /* which singular values are computed */
   PetscBool        impltrans;   /* implicit transpose mode */
   PetscBool        trackall;    /* whether all the residuals must be computed */
+  PetscBool        printreason; /* prints converged reason after solve */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode   (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
@@ -121,16 +122,16 @@ PETSC_STATIC_INLINE PetscErrorCode SVDMatMult(SVD svd,PetscBool trans,Vec x,Vec 
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDMatGetVecs"
-PETSC_STATIC_INLINE PetscErrorCode SVDMatGetVecs(SVD svd,Vec *x,Vec *y)
+#define __FUNCT__ "SVDMatCreateVecs"
+PETSC_STATIC_INLINE PetscErrorCode SVDMatCreateVecs(SVD svd,Vec *x,Vec *y)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (svd->A) {
-    ierr = MatGetVecs(svd->A,x,y);CHKERRQ(ierr);
+    ierr = MatCreateVecs(svd->A,x,y);CHKERRQ(ierr);
   } else {
-    ierr = MatGetVecs(svd->AT,y,x);CHKERRQ(ierr);
+    ierr = MatCreateVecs(svd->AT,y,x);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

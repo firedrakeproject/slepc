@@ -64,10 +64,8 @@ PetscErrorCode PEPSetUp(PEP pep)
   }
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
-  if (!islinear) {
-    if (!((PetscObject)pep->st)->type_name) {
-      ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
-    }
+  if (!((PetscObject)pep->st)->type_name) {
+    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
   }
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSReset(pep->ds);CHKERRQ(ierr);
@@ -107,7 +105,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   /* set tolerance if not yet set */
   if (pep->tol==PETSC_DEFAULT) pep->tol = SLEPC_DEFAULT_TOL;
   if (pep->refine) {
-    if (pep->rtol==PETSC_DEFAULT) pep->rtol = SLEPC_DEFAULT_TOL;
+    if (pep->rtol==PETSC_DEFAULT) pep->rtol = pep->tol;
     if (pep->rits==PETSC_DEFAULT) pep->rits = (pep->refine==PEP_REFINE_SIMPLE)? 10: 1;
   }
 
@@ -163,17 +161,15 @@ PetscErrorCode PEPSetUp(PEP pep)
   sc->mapobj        = (PetscObject)pep->st;
 
   /* setup ST */
-  if (!islinear) {
-    ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
-    if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in PEP");
-    ierr = STSetUp(pep->st);CHKERRQ(ierr);
-    /* compute matrix coefficients */
-    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-    if (!flg) {
-      ierr = STMatSetUp(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr);
-    } else {
-      if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Cannot use ST-transform with non-monomial basis in PEP");
-    }
+  ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
+  if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in PEP");
+  ierr = STSetUp(pep->st);CHKERRQ(ierr);
+  /* compute matrix coefficients */
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (!flg) {
+    if (pep->solvematcoeffs) { ierr = STMatSetUp(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr); }
+  } else {
+    if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Cannot use ST-transform with non-monomial basis in PEP");
   }
 
   /* compute scale factor if no set by user */
@@ -236,12 +232,13 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,nmat,2);
-  if (nmat <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %D",nmat);
+  if (nmat <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Non-positive value of nmat: %D",nmat);
+  if (nmat <= 2) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Cannot solve linear eigenproblems with PEP; use EPS instead");
   PetscValidPointer(A,3);
 
   if (pep->state) { ierr = PEPReset(pep);CHKERRQ(ierr); }
   ierr = PetscMalloc1(nmat,&pep->A);CHKERRQ(ierr);
-  ierr = PetscCalloc3(3*nmat,&pep->pbc,nmat,&pep->solvematcoeffs,nmat,&pep->nrma);CHKERRQ(ierr);
+  ierr = PetscCalloc2(3*nmat,&pep->pbc,nmat,&pep->nrma);CHKERRQ(ierr);
   for (i=0;i<nmat;i++) pep->pbc[i] = 1.0;  /* default to monomial basis */
   ierr = PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat)+4*nmat*sizeof(PetscReal)+nmat*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<nmat;i++) {
@@ -436,7 +433,7 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
     if (!((PetscObject)(pep->V))->type_name) {
       ierr = BVSetType(pep->V,BVSVEC);CHKERRQ(ierr);
     }
-    ierr = STMatGetVecs(pep->st,&t,NULL);CHKERRQ(ierr);
+    ierr = STMatCreateVecs(pep->st,&t,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(pep->V,t,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {

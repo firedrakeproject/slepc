@@ -23,6 +23,9 @@
 
 static PetscBool SVDPackageInitialized = PETSC_FALSE;
 
+const char *const SVDConvergedReasons_Shifted[] = {"DIVERGED_BREAKDOWN","DIVERGED_ITS","","","CONVERGED_ITERATING","","CONVERGED_TOL","SVDConvergedReason","SVD_",0};
+const char *const*SVDConvergedReasons = SVDConvergedReasons_Shifted + 4;
+
 #undef __FUNCT__
 #define __FUNCT__ "SVDFinalizePackage"
 /*@C

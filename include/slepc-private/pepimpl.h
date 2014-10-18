@@ -68,7 +68,7 @@ struct _p_PEP {
   PEPBasis       basis;            /* polynomial basis used to represent the problem */
   PEPProblemType problem_type;     /* which kind of problem to be solved */
   PEPScale       scale;            /* scaling strategy to be used */
-  PetscReal      sfactor;          /* scaling factor */
+  PetscReal      sfactor,dsfactor; /* scaling factors */
   PetscInt       sits;             /* number of iterations of the scaling method */
   PetscReal      slambda;          /* norm eigenvalue approximation for scaling */
   PEPRefine      refine;           /* type of refinement to be applied after solve */
@@ -78,6 +78,7 @@ struct _p_PEP {
   PetscBool      schur;            /* use Schur complement in refinement method */
   PEPExtract     extract;          /* type of extraction used */
   PetscBool      trackall;         /* whether all the residuals must be computed */
+  PetscBool      printreason;      /* prints converged reason after solve */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*converged)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);

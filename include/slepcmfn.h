@@ -24,7 +24,7 @@
 #if !defined(__SLEPCMFN_H)
 #define __SLEPCMFN_H
 #include <slepcbv.h>
-#include <slepcds.h>
+#include <slepcfn.h>
 
 PETSC_EXTERN PetscErrorCode MFNInitializePackage(void);
 
@@ -55,8 +55,6 @@ PETSC_EXTERN PetscErrorCode MFNDestroy(MFN*);
 PETSC_EXTERN PetscErrorCode MFNReset(MFN);
 PETSC_EXTERN PetscErrorCode MFNSetType(MFN,MFNType);
 PETSC_EXTERN PetscErrorCode MFNGetType(MFN,MFNType*);
-PETSC_EXTERN PetscErrorCode MFNSetFunction(MFN,SlepcFunction);
-PETSC_EXTERN PetscErrorCode MFNGetFunction(MFN,SlepcFunction*);
 PETSC_EXTERN PetscErrorCode MFNSetOperator(MFN,Mat);
 PETSC_EXTERN PetscErrorCode MFNGetOperator(MFN,Mat*);
 PETSC_EXTERN PetscErrorCode MFNSetFromOptions(MFN);
@@ -66,14 +64,12 @@ PETSC_EXTERN PetscErrorCode MFNView(MFN,PetscViewer);
 
 PETSC_EXTERN PetscErrorCode MFNSetBV(MFN,BV);
 PETSC_EXTERN PetscErrorCode MFNGetBV(MFN,BV*);
-PETSC_EXTERN PetscErrorCode MFNSetDS(MFN,DS);
-PETSC_EXTERN PetscErrorCode MFNGetDS(MFN,DS*);
+PETSC_EXTERN PetscErrorCode MFNSetFN(MFN,FN);
+PETSC_EXTERN PetscErrorCode MFNGetFN(MFN,FN*);
 PETSC_EXTERN PetscErrorCode MFNSetTolerances(MFN,PetscReal,PetscInt);
 PETSC_EXTERN PetscErrorCode MFNGetTolerances(MFN,PetscReal*,PetscInt*);
 PETSC_EXTERN PetscErrorCode MFNSetDimensions(MFN,PetscInt);
 PETSC_EXTERN PetscErrorCode MFNGetDimensions(MFN,PetscInt*);
-PETSC_EXTERN PetscErrorCode MFNSetScaleFactor(MFN,PetscScalar);
-PETSC_EXTERN PetscErrorCode MFNGetScaleFactor(MFN,PetscScalar*);
 
 PETSC_EXTERN PetscErrorCode MFNMonitor(MFN,PetscInt,PetscReal);
 PETSC_EXTERN PetscErrorCode MFNMonitorSet(MFN,PetscErrorCode (*)(MFN,PetscInt,PetscReal,void*),void*,PetscErrorCode (*)(void**));
@@ -105,6 +101,7 @@ typedef enum {/* converged */
               MFN_DIVERGED_ITS                 = -3,
               MFN_DIVERGED_BREAKDOWN           = -4,
               MFN_CONVERGED_ITERATING          =  0} MFNConvergedReason;
+PETSC_EXTERN const char *const*MFNConvergedReasons;
 
 PETSC_EXTERN PetscErrorCode MFNGetConvergedReason(MFN,MFNConvergedReason *);
 

@@ -190,8 +190,8 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   ierr = PetscMalloc2(ld,&w,svd->ncv,&swork);CHKERRQ(ierr);
 
   if (lanczos->oneside) {
-    ierr = SVDMatGetVecs(svd,NULL,&u);CHKERRQ(ierr);
-    ierr = SVDMatGetVecs(svd,NULL,&u_1);CHKERRQ(ierr);
+    ierr = SVDMatCreateVecs(svd,NULL,&u);CHKERRQ(ierr);
+    ierr = SVDMatCreateVecs(svd,NULL,&u_1);CHKERRQ(ierr);
   }
 
   /* normalize start vector */

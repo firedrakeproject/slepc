@@ -36,8 +36,9 @@
       Mat                A,B
       EPS                eps
       ST                 st
+      KSP                ksp
       DS                 ds
-      PetscReal          cut,tol
+      PetscReal          cut,tol,tolabs
       PetscScalar        tget,value
       PetscInt           n,i,its,Istart,Iend
       PetscInt           nev,ncv,mpd
@@ -129,7 +130,7 @@
  150  format (' ... changed to ',I2)
 
       its = 8
-      cut = 1.0d-6
+      cut = 1.0e-6
       bal = EPS_BALANCE_ONESIDE
       call EPSSetBalance(eps,bal,its,cut,ierr)
       call EPSGetBalance(eps,bal,its,cut,ierr)
@@ -157,7 +158,7 @@
       endif
  180  format (' Dimensions: nev=',I2,', ncv=',I2,', mpd=',I2)
 
-      tol = 2.2d-4
+      tol = 2.2e-4
       its = 200
       call EPSSetTolerances(eps,tol,its,ierr)
       call EPSGetTolerances(eps,tol,its,ierr)
@@ -178,6 +179,11 @@
       call EPSMonitorCancel(eps,ierr)
 
       call EPSGetST(eps,st,ierr) 
+      call STGetKSP(st,ksp,ierr) 
+      tol = 1.e-8
+      tolabs = 1.e-35
+      call KSPSetTolerances(ksp,tol,tolabs,PETSC_DEFAULT_REAL,          &
+     &                      PETSC_DEFAULT_INTEGER,ierr)
       call STView(st,PETSC_NULL_OBJECT,ierr) 
       call EPSGetDS(eps,ds,ierr) 
       call DSView(ds,PETSC_NULL_OBJECT,ierr) 

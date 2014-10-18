@@ -81,6 +81,7 @@ typedef enum {/* converged */
               SVD_DIVERGED_ITS                 = -3,
               SVD_DIVERGED_BREAKDOWN           = -4,
               SVD_CONVERGED_ITERATING          =  0 } SVDConvergedReason;
+PETSC_EXTERN const char *const*SVDConvergedReasons;
 
 PETSC_EXTERN PetscErrorCode SVDCreate(MPI_Comm,SVD*);
 PETSC_EXTERN PetscErrorCode SVDSetBV(SVD,BV,BV);

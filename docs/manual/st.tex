@@ -425,7 +425,7 @@ The \slepc interface hides all the complications of the algorithm. However, the 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 \item This is currently implemented only in Krylov-Schur.
-\item The method is based on shift-and-invert, so either \ident{STSINVERT} or \ident{STCAYLEY} must be used (\ident{STSINVERT} is selected by default). Furthermore, direct linear solvers are required.
+\item The method is based on shift-and-invert, so \ident{STSINVERT} must be used. Furthermore, direct linear solvers are required.
 \item The direct linear solver must provide the matrix inertia (see \petsc's \ident{MatGetInertia}). In particular, a symmetric factorization must be used (\texttt{cholesky}).
 \end{itemize}
 
@@ -446,9 +446,38 @@ The last option is required by MUMPS to compute the inertia.
 Apart from the above recommendations, the following must be taken into account:
 \begin{itemize}
 \setlength{\itemsep}{0pt}
-\item The parameters \texttt{nev} and \texttt{ncv} explained in the previous chapter (see \ident{EPSSetDimensions}) change their meaning in this context: \texttt{ncv} cannot be given by the user but is determined internally, and \texttt{nev} represents in this case the number of eigenvalues that will be computed in each chunk.
-\item Apart from \texttt{nev}, the user can tune the computation by setting different values of \texttt{max\_it}.
+\item The parameters \texttt{nev} and \texttt{ncv} from \ident{EPSSetDimensions} are determined internally (user-provided values are ignored, and set to the number of eigenvalues in the interval). It is possible for the user to specify the ``local'' \texttt{nev} and \texttt{ncv} parameters that will be used when computing eigenvalues around each shift, with \ident{EPSKrylovSchurSetDimensions}.
+\item The user can also tune the computation by setting different values of \texttt{max\_it}.
 \end{itemize}
+
+\paragraph{Use of multiple communicators}
+Since spectrum slicing requires direct linear solves, parallel runs may suffer from bad scalability in the sense that increasing the number of MPI processes does not imply a performance gain. For this reason, \slepc provides the option of using multiple communicators, that is, splitting the initial MPI communicator in several groups, each of them in charge of processing part of the interval.
+
+The multi-communicator setting is activated with a value of \texttt{npart}>1 in
+	\findex{EPSKrylovSchurSetPartitions}
+	\begin{Verbatim}[fontsize=\small]
+	EPSKrylovSchurSetPartitions(EPS eps,PetscInt npart);
+	\end{Verbatim}
+The interval $[a,b]$ is then divided in \texttt{npart} subintervals of equal size, and the problem of computing all eigenvalues in $[a,b]$ is divided in \texttt{npart} independent subproblems. Each subproblem is solved using only a subset of the initial $p$ processes, with $\lceil p/\texttt{npart}\rceil$ processes at most. A final step will gather all computed solutions so that they are available in the whole \ident{EPS} communicator.
+
+The division of the interval in subintervals is done blindly, and this may result in load imbalance if some subintervals contain much more eigenvalues than others. This can be prevented by passing a list of subinterval boundaries, provided that the user has a priori information to roughly determine the eigenvalue distribution:
+	\findex{EPSKrylovSchurSetSubintervals}
+	\begin{Verbatim}[fontsize=\small]
+	EPSKrylovSchurSetSubintervals(EPS eps,PetscReal *subint);
+	\end{Verbatim}
+
+An additional benefit of multi-communicator support is that it enables parallel spectrum slicing runs without the need to install a parallel direct solver (MUMPS). The following command-line example uses sequential linear solves in 4 partitions, one process each:
+\begin{Verbatim}[fontsize=\small]
+	$ mpirun -np 4 ./ex25 -eps_interval 0.4,0.8 -eps_krylovschur_partitions 4
+                 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
+\end{Verbatim}
+
+The analogue example using MUMPS with 5 processes in each partition:
+\begin{Verbatim}[fontsize=\small]
+	$ mpirun -np 20 ./ex25 -eps_interval 0.4,0.8 -eps_krylovschur_partitions 4
+                 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
+                 -st_pc_factor_mat_solver_package mumps -mat_mumps_icntl_13 1
+\end{Verbatim}
 
 \subsection{Spectrum Folding}
 

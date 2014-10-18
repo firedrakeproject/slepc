@@ -235,6 +235,7 @@ typedef enum {/* converged */
               PEP_DIVERGED_ITS                 = -3,
               PEP_DIVERGED_BREAKDOWN           = -4,
               PEP_CONVERGED_ITERATING          =  0} PEPConvergedReason;
+PETSC_EXTERN const char *const*PEPConvergedReasons;
 
 PETSC_EXTERN PetscErrorCode PEPGetConvergedReason(PEP,PEPConvergedReason *);
 

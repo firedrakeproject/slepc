@@ -26,9 +26,9 @@
 PetscFunctionList DSList = 0;
 PetscBool         DSRegisterAllCalled = PETSC_FALSE;
 PetscClassId      DS_CLASSID = 0;
-PetscLogEvent     DS_Solve = 0,DS_Function = 0,DS_Vectors = 0,DS_Other = 0;
+PetscLogEvent     DS_Solve = 0,DS_Vectors = 0,DS_Other = 0;
 static PetscBool  DSPackageInitialized = PETSC_FALSE;
-const char        *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","F","Q","Z","X","Y","U","VT","W","E0","E1","E2","E3","E4","E5","E6","E7","E8","E9"};
+const char        *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","Q","Z","X","Y","U","VT","W","E0","E1","E2","E3","E4","E5","E6","E7","E8","E9"};
 DSMatType         DSMatExtra[DS_NUM_EXTRA] = {DS_MAT_E0,DS_MAT_E1,DS_MAT_E2,DS_MAT_E3,DS_MAT_E4,DS_MAT_E5,DS_MAT_E6,DS_MAT_E7,DS_MAT_E8,DS_MAT_E9};
 
 #undef __FUNCT__
@@ -79,7 +79,6 @@ PetscErrorCode DSInitializePackage()
   ierr = DSRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("DSSolve",DS_CLASSID,&DS_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DSFunction",DS_CLASSID,&DS_Function);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("DSVectors",DS_CLASSID,&DS_Vectors);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("DSOther",DS_CLASSID,&DS_Other);CHKERRQ(ierr);
   /* Process info exclusions */
@@ -137,7 +136,6 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
 
   ds->state         = DS_STATE_RAW;
   ds->method        = 0;
-  ds->funmethod     = 0;
   ds->compact       = PETSC_FALSE;
   ds->refined       = PETSC_FALSE;
   ds->extrarow      = PETSC_FALSE;
@@ -374,58 +372,6 @@ PetscErrorCode DSGetMethod(DS ds,PetscInt *meth)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(meth,2);
   *meth = ds->method;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "DSSetFunctionMethod"
-/*@
-   DSSetFunctionMethod - Selects the method to be used to compute a matrix function.
-
-   Logically Collective on DS
-
-   Input Parameter:
-+  ds   - the direct solver context
--  meth - an index indentifying the function method
-
-   Level: intermediate
-
-.seealso: DSGetFunctionMethod()
-@*/
-PetscErrorCode DSSetFunctionMethod(DS ds,PetscInt meth)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidLogicalCollectiveInt(ds,meth,2);
-  if (meth<0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
-  if (meth>DS_MAX_FUN) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
-  ds->funmethod = meth;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "DSGetFunctionMethod"
-/*@
-   DSGetFunctionMethod - Gets the method currently used to compute a matrix function.
-
-   Not Collective
-
-   Input Parameter:
-.  ds - the direct solver context
-
-   Output Parameter:
-.  meth - identifier of the function method
-
-   Level: intermediate
-
-.seealso: DSSetFunctionMethod()
-@*/
-PetscErrorCode DSGetFunctionMethod(DS ds,PetscInt *meth)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(meth,2);
-  *meth = ds->funmethod;
   PetscFunctionReturn(0);
 }
 
@@ -857,8 +803,6 @@ PetscErrorCode DSSetFromOptions(DS ds)
     if (flag) { ierr = DSSetBlockSize(ds,bs);CHKERRQ(ierr); }
     ierr = PetscOptionsInt("-ds_method","Method to be used for the dense system","DSSetMethod",ds->method,&meth,&flag);CHKERRQ(ierr);
     if (flag) { ierr = DSSetMethod(ds,meth);CHKERRQ(ierr); }
-    ierr = PetscOptionsInt("-ds_function_method","Method to be used to compute a matrix function","DSSetFunctionMethod",ds->funmethod,&meth,&flag);CHKERRQ(ierr);
-    if (flag) { ierr = DSSetFunctionMethod(ds,meth);CHKERRQ(ierr); }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)ds);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -917,18 +861,18 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",state);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)ds,DSSVD,&issvd);CHKERRQ(ierr);
       if (issvd) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, m=%d, l=%d, k=%d",ds->ld,ds->n,ds->m,ds->l,ds->k);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%D, n=%D, m=%D, l=%D, k=%D",ds->ld,ds->n,ds->m,ds->l,ds->k);CHKERRQ(ierr);
       } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, l=%d, k=%d",ds->ld,ds->n,ds->l,ds->k);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%D, n=%D, l=%D, k=%D",ds->ld,ds->n,ds->l,ds->k);CHKERRQ(ierr);
       }
       if (ds->state==DS_STATE_TRUNCATED) {
-        ierr = PetscViewerASCIIPrintf(viewer,", t=%d\n",ds->t);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,", t=%D\n",ds->t);CHKERRQ(ierr);
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  flags:%s%s%s\n",ds->compact?" compact":"",ds->extrarow?" extrarow":"",ds->refined?" refined":"");CHKERRQ(ierr);
       if (ds->nf) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  number of functions: %d\n",ds->nf);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  number of functions: %D\n",ds->nf);CHKERRQ(ierr);
       }
     }
     if (ds->ops->view) {

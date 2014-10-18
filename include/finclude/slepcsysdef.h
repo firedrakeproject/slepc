@@ -24,7 +24,5 @@
 #if !defined(__SLEPCSYS_H)
 #define __SLEPCSYS_H
 
-#define SlepcFunction PetscEnum
-
 #endif
 

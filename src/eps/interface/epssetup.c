@@ -72,6 +72,7 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flg,EPSGD,EPSJD,EPSRQCG,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
     ierr = STSetType(eps->st,flg?STPRECOND:STSHIFT);CHKERRQ(ierr);
   }
+  ierr = STSetTransform(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSReset(eps->ds);CHKERRQ(ierr);
   if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
@@ -503,7 +504,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
     if (!((PetscObject)(eps->V))->type_name) {
       ierr = BVSetType(eps->V,BVSVEC);CHKERRQ(ierr);
     }
-    ierr = STMatGetVecs(eps->st,&t,NULL);CHKERRQ(ierr);
+    ierr = STMatCreateVecs(eps->st,&t,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(eps->V,t,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {

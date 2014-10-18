@@ -215,6 +215,13 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   lwork = 7*pep->ncv;
   ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
 
+  /* Modify matrix norms so that the scaling affects the convergence test */
+  norm = pep->dsfactor;
+  for (j=0;j<pep->nmat;j++) {
+    pep->nrma[j] *= norm;
+    norm*=pep->sfactor;
+  }
+
   /* Get the starting Arnoldi vector */
   if (pep->nini==0) {
     ierr = BVSetRandomColumn(pep->V,0,pep->rand);CHKERRQ(ierr);
@@ -285,6 +292,13 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   for (j=0;j<pep->nconv;j++) {
     pep->eigr[j] *= pep->sfactor;
     pep->eigi[j] *= pep->sfactor;
+  }
+
+  /* Restore matrix norms */
+  norm = pep->dsfactor;
+  for (j=0;j<pep->nmat;j++) {
+    pep->nrma[j] /= norm;
+    norm*=pep->sfactor;
   }
 
   /* truncate Schur decomposition and change the state to raw so that

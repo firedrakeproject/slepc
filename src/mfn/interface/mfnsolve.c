@@ -27,7 +27,7 @@
 #define __FUNCT__ "MFNSolve"
 /*@
    MFNSolve - Solves the matrix function problem. Given a vector b, the
-   vector x = f(alpha*A)*b is returned.
+   vector x = f(A)*b is returned.
 
    Collective on MFN
 
@@ -46,13 +46,12 @@
 
    Notes:
    The matrix A is specified with MFNSetOperator().
-   The function f is specified with MFNSetFunction().
-   The scalar alpha is specified with MFNSetScaleFactor().
+   The function f is specified with MFNSetFN().
 
    Level: beginner
 
 .seealso: MFNCreate(), MFNSetUp(), MFNDestroy(), MFNSetTolerances(),
-          MFNSetOperator(), MFNSetFunction(), MFNSetScaleFactor()
+          MFNSetOperator(), MFNSetFN()
 @*/
 PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 {
@@ -82,6 +81,16 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   if (!mfn->reason) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   if (mfn->errorifnotconverged && mfn->reason < 0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_NOT_CONVERGED,"MFNSolve has not converged");
+
+  if (mfn->printreason) {
+    ierr = PetscViewerASCIIAddTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)mfn)),((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
+    if (mfn->reason > 0) {
+      ierr = PetscViewerASCIIPrintf(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)mfn)),"%s Matrix function solve converged due to %s; iterations %D\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)mfn)),"%s Matrix function solve did not converge due to %s; iterations %D\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIISubtractTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)mfn)),((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
+  }
 
   /* various viewers */
   ierr = MatViewFromOptions(mfn->A,((PetscObject)mfn)->prefix,"-mfn_view_mat");CHKERRQ(ierr);

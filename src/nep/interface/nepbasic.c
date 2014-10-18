@@ -86,6 +86,9 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     if (nep->refine) {
       ierr = PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%D\n",(double)nep->reftol,nep->rits);CHKERRQ(ierr);
     }
+      if (nep->npart>1) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  splitting communicator in %D partitions for refinement\n",nep->npart);CHKERRQ(ierr);
+      }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = SlepcSNPrintfScalar(str,50,nep->target,PETSC_FALSE);CHKERRQ(ierr);
     if (!nep->which) {
@@ -201,6 +204,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->ttol            = 0.0;
   nep->which           = (NEPWhich)0;
   nep->refine          = NEP_REFINE_NONE;
+  nep->npart           = 1;
   nep->reftol          = PETSC_DEFAULT;
   nep->rits            = PETSC_DEFAULT;
   nep->trackall        = PETSC_FALSE;
@@ -736,9 +740,16 @@ PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
 +  nep    - eigensolver context
 -  target - the value of the target
 
+   Options Database Key:
+.  -nep_target <scalar> - the value of the target
+
    Notes:
    The target is a scalar value used to determine the portion of the spectrum
    of interest. It is used in combination with NEPSetWhichEigenpairs().
+
+   In the case of complex scalars, a complex value can be provided in the
+   command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
+   -nep_target 1.0+2.0i
 
    Level: beginner
 

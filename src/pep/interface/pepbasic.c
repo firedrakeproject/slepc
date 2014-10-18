@@ -347,6 +347,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->problem_type    = (PEPProblemType)0;
   pep->scale           = PEP_SCALE_NONE;
   pep->sfactor         = 1.0;
+  pep->dsfactor        = 1.0;
   pep->sits            = 5;
   pep->slambda         = 1.0;
   pep->refine          = PEP_REFINE_NONE;
@@ -544,7 +545,8 @@ PetscErrorCode PEPReset(PEP pep)
   if (pep->ds) { ierr = DSReset(pep->ds);CHKERRQ(ierr); }
   if (pep->nmat) {
     ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
-    ierr = PetscFree3(pep->pbc,pep->solvematcoeffs,pep->nrma);CHKERRQ(ierr);
+    ierr = PetscFree2(pep->pbc,pep->nrma);CHKERRQ(ierr);
+    ierr = PetscFree(pep->solvematcoeffs);CHKERRQ(ierr);
     pep->nmat = 0;
   }
   ierr = VecDestroy(&pep->Dl);CHKERRQ(ierr);
@@ -878,9 +880,16 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
 +  pep    - eigensolver context
 -  target - the value of the target
 
+   Options Database Key:
+.  -pep_target <scalar> - the value of the target
+
    Notes:
    The target is a scalar value used to determine the portion of the spectrum
    of interest. It is used in combination with PEPSetWhichEigenpairs().
+
+   In the case of complex scalars, a complex value can be provided in the
+   command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
+   -pep_target 1.0+2.0i
 
    Level: beginner
 

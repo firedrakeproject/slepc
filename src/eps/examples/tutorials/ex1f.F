@@ -118,7 +118,7 @@
       call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr)
 
-      call MatGetVecs(A,xr,xi,ierr)
+      call MatCreateVecs(A,xr,xi,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Create the eigensolver and display info

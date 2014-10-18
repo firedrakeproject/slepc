@@ -75,6 +75,7 @@ struct _p_EPS {
   PetscReal      balance_cutoff;   /* cutoff value for balancing */
   PetscBool      trueres;          /* whether the true residual norm must be computed */
   PetscBool      trackall;         /* whether all the residuals must be computed */
+  PetscBool      printreason;      /* prints converged reason after solve */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*converged)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
@@ -160,6 +161,7 @@ PETSC_INTERN PetscErrorCode EPSSetDimensions_Default(EPS,PetscInt,PetscInt*,Pets
 PETSC_INTERN PetscErrorCode EPSBackTransform_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Hermitian(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
+PETSC_INTERN PetscErrorCode EPSComputeVectors_Indefinite(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode EPSComputeRelativeError_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode EPSComputeRitzVector(EPS,PetscScalar*,PetscScalar*,BV,Vec,Vec);

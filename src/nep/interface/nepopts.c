@@ -65,12 +65,14 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
     ierr = PetscOptionsEnum("-nep_refine","Iterative refinement method","NEPSetRefine",NEPRefineTypes,(PetscEnum)nep->refine,(PetscEnum*)&nep->refine,NULL);CHKERRQ(ierr);
 
+    i = nep->npart;
+    ierr = PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","PEPSetRefine",nep->npart,&i,&flg1);CHKERRQ(ierr);
     r1 = nep->reftol;
-    ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->reftol,&r1,&flg1);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->reftol,&r1,&flg2);CHKERRQ(ierr);
     j = nep->rits;
-    ierr = PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg2);CHKERRQ(ierr);
-    if (flg1 || flg2) {
-      ierr = NEPSetRefine(nep,nep->refine,r1,j);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg3);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3) {
+      ierr = NEPSetRefine(nep,nep->refine,i,r1,j);CHKERRQ(ierr);
     }
 
     i = nep->max_it? nep->max_it: PETSC_DEFAULT;
@@ -114,6 +116,13 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
       ierr = NEPSetTarget(nep,s);CHKERRQ(ierr);
     }
+
+    /*
+      Prints reason for convergence or divergence of each solve
+    */
+    flg  = PETSC_FALSE;
+    ierr = PetscOptionsBool("-nep_converged_reason","Print reason for converged or diverged","NEPSolve",flg,&flg,NULL);CHKERRQ(ierr);
+    if (flg) nep->printreason = PETSC_TRUE;
 
     /* -----------------------------------------------------------------------*/
     /*
@@ -746,11 +755,13 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
    Input Parameters:
 +  nep    - the nonlinear eigensolver context
 .  refine - refinement type
+.  npart  - number of partitions of the communicator
 .  tol    - the convergence tolerance
 -  its    - maximum number of refinement iterations
 
    Options Database Keys:
 +  -nep_refine <type> - refinement type, one of <none,simple,multiple>
+.  -nep_refine_partitions <n> - the number of partitions
 .  -nep_refine_tol <tol> - the tolerance
 -  -nep_refine_its <its> - number of iterations
 
@@ -762,6 +773,11 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
    with the invariant pair as a whole, refining all eigenpairs simultaneously.
    The latter may be required for the case of multiple eigenvalues.
 
+   In some cases, especially when using direct solvers within the
+   iterative refinement method, it may be helpful for improved scalability
+   to split the communicator in several partitions. The npart parameter
+   indicates how many partitions to use (defaults to 1).
+
    The tol and its parameters specify the stopping criterion. In the simple
    method, refinement continues until the residual of each eigenpair is
    below the tolerance (tol defaults to the NEP tol, but may be set to a
@@ -772,15 +788,26 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
 
 .seealso: NEPGetRefine()
 @*/
-PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscReal tol,PetscInt its)
+PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal tol,PetscInt its)
 {
+  PetscErrorCode ierr;
+  PetscMPIInt    size;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(nep,refine,2);
-  PetscValidLogicalCollectiveReal(nep,tol,3);
-  PetscValidLogicalCollectiveInt(nep,its,4);
+  PetscValidLogicalCollectiveInt(nep,npart,3);
+  PetscValidLogicalCollectiveReal(nep,tol,4);
+  PetscValidLogicalCollectiveInt(nep,its,5);
   nep->refine = refine;
   if (refine) {  /* process parameters only if not REFINE_NONE */
+    if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
+      nep->npart = 1;
+    } else {
+      ierr = MPI_Comm_size(PetscObjectComm((PetscObject)nep),&size);CHKERRQ(ierr);
+      if (npart<1 || npart>size) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
+      nep->npart = npart;
+    }
     if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
       nep->reftol = nep->rtol;
     } else {
@@ -790,7 +817,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscReal tol,PetscInt its)
     if (its==PETSC_DECIDE || its==PETSC_DEFAULT) {
       nep->rits = PETSC_DEFAULT;
     } else {
-      if (its<=0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be > 0");
+      if (its<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be >= 0");
       nep->rits = its;
     }
   }
@@ -811,6 +838,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscReal tol,PetscInt its)
 
    Output Parameters:
 +  refine - refinement type
+.  npart  - number of partitions of the communicator
 .  tol    - the convergence tolerance
 -  its    - maximum number of refinement iterations
 
@@ -821,11 +849,12 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscReal tol,PetscInt its)
 
 .seealso: NEPSetRefine()
 @*/
-PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscReal *tol,PetscInt *its)
+PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (refine) *refine = nep->refine;
+  if (npart)  *npart  = nep->npart;
   if (tol)    *tol    = nep->reftol;
   if (its)    *its    = nep->rits;
   PetscFunctionReturn(0);

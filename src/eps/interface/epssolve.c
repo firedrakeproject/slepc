@@ -137,7 +137,7 @@ PetscErrorCode EPSSolve(EPS eps)
   /* In the case of Cayley transform, eigenvectors need to be B-normalized */
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
   if (iscayley && eps->isgeneralized && eps->ishermitian) {
-    ierr = MatGetVecs(B,NULL,&w);CHKERRQ(ierr);
+    ierr = MatCreateVecs(B,NULL,&w);CHKERRQ(ierr);
     ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
       ierr = BVGetColumn(eps->V,i,&x);CHKERRQ(ierr);
@@ -152,6 +152,15 @@ PetscErrorCode EPSSolve(EPS eps)
   /* sort eigenvalues according to eps->which parameter */
   ierr = SlepcSortEigenvalues(eps->sc,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
 
+  if (eps->printreason) {
+    ierr = PetscViewerASCIIAddTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps)),((PetscObject)eps)->tablevel);CHKERRQ(ierr);
+    if (eps->reason > 0) {
+      ierr = PetscViewerASCIIPrintf(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps)),"%s Linear eigensolve converged due to %s; iterations %D\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps)),"%s Linear eigensolve did not converge due to %s; iterations %D\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIISubtractTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps)),((PetscObject)eps)->tablevel);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
@@ -175,7 +184,7 @@ PetscErrorCode EPSSolve(EPS eps)
     for (i=0;i<eps->nconv;i++) {
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(eps->eigr[i]);
-      im = PetscImaginaryPart(eps->eigi[i]);
+      im = PetscImaginaryPart(eps->eigr[i]);
 #else
       re = eps->eigr[i];
       im = eps->eigi[i];

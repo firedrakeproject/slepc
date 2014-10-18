@@ -78,6 +78,16 @@ PetscErrorCode SVDSolve(SVD svd)
   }
 
   svd->lvecsavail = (svd->leftbasis)? PETSC_TRUE: PETSC_FALSE;
+
+  if (svd->printreason) {
+    ierr = PetscViewerASCIIAddTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd)),((PetscObject)svd)->tablevel);CHKERRQ(ierr);
+    if (svd->reason > 0) {
+      ierr = PetscViewerASCIIPrintf(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd)),"%s SVD solve converged due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd)),"%s SVD solve did not converge due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIISubtractTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd)),((PetscObject)svd)->tablevel);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
@@ -239,7 +249,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   if (u) {
     if (!svd->lvecsavail) {  /* generate left singular vectors on U */
       if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
-      ierr = SVDMatGetVecs(svd,NULL,&tl);CHKERRQ(ierr);
+      ierr = SVDMatCreateVecs(svd,NULL,&tl);CHKERRQ(ierr);
       ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
       ierr = VecDestroy(&tl);CHKERRQ(ierr);
       for (j=0;j<svd->nconv;j++) {
@@ -299,7 +309,7 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,Petsc
   if (svd->reason == SVD_CONVERGED_ITERATING) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first");
   if (i<0 || i>=svd->nconv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
 
-  ierr = MatGetVecs(svd->OP,&v,&u);CHKERRQ(ierr);
+  ierr = MatCreateVecs(svd->OP,&v,&u);CHKERRQ(ierr);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
   if (norm1) {
     ierr = VecDuplicate(u,&x);CHKERRQ(ierr);
