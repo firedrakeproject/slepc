@@ -378,6 +378,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->balance_cutoff  = 1e-8;
   eps->trueres         = PETSC_FALSE;
   eps->trackall        = PETSC_FALSE;
+  eps->purify          = PETSC_TRUE;
 
   eps->converged       = EPSConvergedEigRelative;
   eps->convergeddestroy= NULL;

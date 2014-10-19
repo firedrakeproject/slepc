@@ -203,6 +203,8 @@ PETSC_EXTERN PetscErrorCode EPSSetWhichEigenpairs(EPS,EPSWhich);
 PETSC_EXTERN PetscErrorCode EPSGetWhichEigenpairs(EPS,EPSWhich*);
 PETSC_EXTERN PetscErrorCode EPSSetTrueResidual(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSGetTrueResidual(EPS,PetscBool*);
+PETSC_EXTERN PetscErrorCode EPSSetPurify(EPS,PetscBool);
+PETSC_EXTERN PetscErrorCode EPSGetPurify(EPS,PetscBool*);
 PETSC_EXTERN PetscErrorCode EPSSetEigenvalueComparison(EPS,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 PETSC_EXTERN PetscErrorCode EPSSetArbitrarySelection(EPS,PetscErrorCode (*func)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*),void*);
 PETSC_EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscBool*);
