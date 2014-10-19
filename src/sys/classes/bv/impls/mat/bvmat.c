@@ -165,6 +165,28 @@ PetscErrorCode BVDotVec_Mat(BV X,Vec y,PetscScalar *m)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVDotVec_Local_Mat"
+PetscErrorCode BVDotVec_Local_Mat(BV X,Vec y,PetscScalar *m)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *x = (BV_MAT*)X->data;
+  PetscScalar    *px,*py;
+  Vec            z = y;
+
+  PetscFunctionBegin;
+  if (X->matrix) {
+    ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
+    z = X->Bx;
+  }
+  ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
+  ierr = VecGetArray(z,&py);CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+(X->nc+X->l)*X->n,py,m,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = VecRestoreArray(z,&py);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVScale_Mat"
 PetscErrorCode BVScale_Mat(BV bv,PetscInt j,PetscScalar alpha)
 {
@@ -435,6 +457,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->axpy             = BVAXPY_Mat;
   bv->ops->dot              = BVDot_Mat;
   bv->ops->dotvec           = BVDotVec_Mat;
+  bv->ops->dotvec_local     = BVDotVec_Local_Mat;
   bv->ops->scale            = BVScale_Mat;
   bv->ops->norm             = BVNorm_Mat;
   /*bv->ops->orthogonalize    = BVOrthogonalize_Mat;*/

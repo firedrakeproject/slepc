@@ -214,25 +214,29 @@ PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
   PetscValidType(y,2);
   PetscCheckSameTypeAndComm(X,1,y,2);
 
-  ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
-  if (X->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, y %D",X->n,n);
-  nv = X->k-X->l;
-
-  ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
-  ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
-  if (sr->state != STATE_BEGIN) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
-  for (i=0;i<nv;i++) {
-    if (sr->numopsbegin+i >= sr->maxops) {
-      ierr = PetscSplitReductionExtend(sr);CHKERRQ(ierr);
+  if (X->ops->dotvec_begin) {
+    ierr = (*X->ops->dotvec_begin)(X,y,m);CHKERRQ(ierr);
+  } else {
+    ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
+    if (X->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, y %D",X->n,n);
+    nv = X->k-X->l;
+  
+    ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    if (sr->state != STATE_BEGIN) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
+    for (i=0;i<nv;i++) {
+      if (sr->numopsbegin+i >= sr->maxops) {
+        ierr = PetscSplitReductionExtend(sr);CHKERRQ(ierr);
+      }
+      sr->reducetype[sr->numopsbegin+i] = REDUCE_SUM;
+      sr->invecs[sr->numopsbegin+i]     = (void*)X;
     }
-    sr->reducetype[sr->numopsbegin+i] = REDUCE_SUM;
-    sr->invecs[sr->numopsbegin+i]     = (void*)X;
+  
+    ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+    ierr = (*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin);CHKERRQ(ierr);
+    sr->numopsbegin += nv;
+    ierr = PetscLogEventEnd(BV_Dot,X,y,0,0);CHKERRQ(ierr);
   }
-
-  ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
-  ierr = (*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin);CHKERRQ(ierr);
-  sr->numopsbegin += nv;
-  ierr = PetscLogEventEnd(BV_Dot,X,y,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -243,7 +247,7 @@ PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
 
    Input Parameters:
 +  X - basis vectors
-.  y - a vector (can be NULL)
+.  y - a vector
 -  m - an array where the result will go
 
    Note:
@@ -264,24 +268,28 @@ PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
   PetscValidHeaderSpecific(X,BV_CLASSID,1);
   PetscValidType(X,1);
   BVCheckSizes(X,1);
-  nv = X->k-X->l;
 
-  ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
-  ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
-  ierr = PetscSplitReductionEnd(sr);CHKERRQ(ierr);
+  if (X->ops->dotvec_end) {
+    ierr = (*X->ops->dotvec_end)(X,y,m);CHKERRQ(ierr);
+  } else {
+    nv = X->k-X->l;
+    ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    ierr = PetscSplitReductionEnd(sr);CHKERRQ(ierr);
 
-  if (sr->numopsend >= sr->numopsbegin) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times than VecxxxBegin()");
-  if ((void*)X != sr->invecs[sr->numopsend]) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called BVxxxEnd() in a different order or with a different BV than BVxxxBegin()");
-  if (sr->reducetype[sr->numopsend] != REDUCE_SUM) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Wrong type of reduction");
-  for (i=0;i<nv;i++) m[i] = sr->gvalues[sr->numopsend++];
+    if (sr->numopsend >= sr->numopsbegin) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times than VecxxxBegin()");
+    if ((void*)X != sr->invecs[sr->numopsend]) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called BVxxxEnd() in a different order or with a different BV than BVxxxBegin()");
+    if (sr->reducetype[sr->numopsend] != REDUCE_SUM) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Wrong type of reduction");
+    for (i=0;i<nv;i++) m[i] = sr->gvalues[sr->numopsend++];
 
-  /*
-     We are finished getting all the results so reset to no outstanding requests
-  */
-  if (sr->numopsend == sr->numopsbegin) {
-    sr->state       = STATE_BEGIN;
-    sr->numopsend   = 0;
-    sr->numopsbegin = 0;
+    /*
+       We are finished getting all the results so reset to no outstanding requests
+    */
+    if (sr->numopsend == sr->numopsbegin) {
+      sr->state       = STATE_BEGIN;
+      sr->numopsend   = 0;
+      sr->numopsbegin = 0;
+    }
   }
   PetscFunctionReturn(0);
 }
