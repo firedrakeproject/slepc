@@ -80,6 +80,11 @@ typedef struct {
   Mat          pA,pB;
   PetscSubcomm subcomm;
   PetscBool    usest;
+  PetscBool   isring;
+  PetscReal   ring_width;
+  PetscBool   isarc;
+  PetscReal   start_ang;
+  PetscReal   end_ang;
 } EPS_CISS;
 
 #undef __FUNCT__
@@ -92,6 +97,7 @@ static PetscErrorCode SetSolverComm(EPS eps)
 
   PetscFunctionBegin;
   if (ctx->useconj) N = N/2;
+  if (ctx->isring) N = N*2;
   if (!ctx->subcomm) {
     ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)eps),&ctx->subcomm);CHKERRQ(ierr);
     ierr = PetscSubcommSetNumber(ctx->subcomm,ctx->num_subcomm);CHKERRQ(ierr);CHKERRQ(ierr);
@@ -183,8 +189,42 @@ static PetscErrorCode SetPathParameter(EPS eps)
   for (i=0;i<ctx->N;i++) {
     theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
     ctx->pp[i] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
-    ctx->omega[i] = center + radius*ctx->pp[i];
-    ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
+    ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/ctx->N;
+    if (ctx->isarc) {
+      theta = 2*PETSC_PI*(ctx->start_ang + ((ctx->end_ang-ctx->start_ang)/ctx->N)*(i+0.5));
+      ctx->omega[i] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
+    } else {
+      ctx->omega[i] = center + radius*ctx->pp[i];
+    }
+  }
+
+  if (ctx->isring) {
+    for (i=0;i<ctx->N/2;i++) {
+      theta = ((2*PETSC_PI)/ctx->N)*i;
+      ctx->pp[i+ctx->N] = ctx->pp[i+ctx->N/2];
+      ctx->pp[i+ctx->N/2] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
+      ctx->weight[i+ctx->N] = ctx->weight[i+ctx->N/2];
+      ctx->weight[i+ctx->N/2+ctx->N] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/ctx->N;
+      ctx->omega[i+ctx->N] = ctx->omega[i+ctx->N/2];
+      if (ctx->isarc) {
+	theta = 2*PETSC_PI*(ctx->start_ang + ((ctx->end_ang-ctx->start_ang)/ctx->N)*i);
+	ctx->omega[i+ctx->N/2] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
+      } else {
+	ctx->omega[i+ctx->N/2] = center + radius*ctx->pp[i+ctx->N/2];
+      }
+    }
+    for (i=ctx->N/2;i<ctx->N;i++) {
+      theta = ((2*PETSC_PI)/ctx->N)*i;
+      ctx->pp[i+ctx->N] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
+      ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/ctx->N;
+      if (ctx->isarc) {
+	theta = 2*PETSC_PI*(ctx->start_ang + ((ctx->end_ang-ctx->start_ang)/ctx->N)*i);
+	ctx->omega[i+ctx->N] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
+      } else {
+	ctx->omega[i+ctx->N] = center + radius*ctx->pp[i+ctx->N];
+      }
+    }
+    ctx->N = ctx->N*2;
   }
   PetscFunctionReturn(0);
 }
@@ -679,6 +719,47 @@ static PetscErrorCode isGhost(EPS eps,PetscInt ld,PetscInt nv,PetscBool *fl)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "CheckInside"
+static PetscErrorCode CheckInside(EPS eps,PetscInt n,PetscScalar *ar,PetscScalar *ai,PetscInt *inside)
+{
+  PetscErrorCode ierr;
+  EPS_CISS    *ctx = (EPS_CISS*)eps->data;
+  PetscInt    i;
+  PetscReal   dx,dy,r,radius,vscale;
+  PetscScalar d,center;
+
+  PetscFunctionBegin;
+  ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    inside[i] = 1;
+    if (ctx->isring) {
+      d = (ar[i]-center)/(radius+ctx->ring_width);
+      dx = PetscRealPart(d);
+      dy = PetscImaginaryPart(d);
+      r = 1.0-dx*dx-(dy*dy)/(vscale*vscale);
+      if (r>0) { inside[i] = 1;
+      } else { inside[i] = 0; }
+      d = (ar[i]-center)/(radius-ctx->ring_width);
+      dx = PetscRealPart(d);
+      dy = PetscImaginaryPart(d);
+      r = dx*dx+(dy*dy)/(vscale*vscale)-1.0;
+      if (r>0 && inside[i]==1) { inside[i] = 1;
+      } else { inside[i] = 0; }
+    }
+    if (ctx->isarc) {
+      d = (ar[i]-center);
+      dx = PetscRealPart(d);
+      dy = PetscImaginaryPart(d);
+      r = PetscAtanReal((dy/vscale)/dx);
+      if (PetscAbsScalar(r)>=ctx->start_ang*2*PETSC_PI && PetscAbsScalar(r)<=ctx->end_ang*2*PETSC_PI && inside[i]==1) { 
+	inside[i] = 1;
+      } else { inside[i] = 0; }
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_CISS"
 PetscErrorCode EPSSetUp_CISS(EPS eps)
 {
@@ -704,17 +785,24 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
   ierr = RGEllipseGetParameters(eps->rg,&center,NULL,NULL);CHKERRQ(ierr);
 
-  if (ctx->isreal && PetscImaginaryPart(center) == 0.0) ctx->useconj = PETSC_TRUE;
+  if (!ctx->isarc && ctx->isreal && PetscImaginaryPart(center) == 0.0) ctx->useconj = PETSC_TRUE;
   else ctx->useconj = PETSC_FALSE;
 
   /* create split comm */
   ierr = SetSolverComm(eps);CHKERRQ(ierr);
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
-  ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->weight);CHKERRQ(ierr);
-  ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->omega);CHKERRQ(ierr);
-  ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->pp);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,3*ctx->N*sizeof(PetscScalar));CHKERRQ(ierr);
+  if (ctx->isring) {
+    ierr = PetscMalloc(ctx->N*2*sizeof(PetscScalar),&ctx->weight);CHKERRQ(ierr);
+    ierr = PetscMalloc(ctx->N*2*sizeof(PetscScalar),&ctx->omega);CHKERRQ(ierr);
+    ierr = PetscMalloc(ctx->N*2*sizeof(PetscScalar),&ctx->pp);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,6*ctx->N*sizeof(PetscScalar));CHKERRQ(ierr);
+  } else {
+    ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->weight);CHKERRQ(ierr);
+    ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->omega);CHKERRQ(ierr);
+    ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->pp);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,3*ctx->N*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
   ierr = PetscMalloc(ctx->L_max*ctx->M*sizeof(PetscReal),&ctx->sigma);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,ctx->L_max*ctx->N*sizeof(PetscReal));CHKERRQ(ierr);
 
@@ -885,7 +973,11 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = PetscMalloc(nv*sizeof(PetscBool),&fl1);CHKERRQ(ierr);
     ierr = PetscMalloc(nv*sizeof(PetscInt),&inside);CHKERRQ(ierr);
     ierr = isGhost(eps,ld,nv,fl1);CHKERRQ(ierr);
-    ierr = RGCheckInside(eps->rg,nv,eps->eigr,eps->eigi,inside);CHKERRQ(ierr);
+    if (ctx->isring || ctx->isarc){
+      ierr = CheckInside(eps,nv,eps->eigr,eps->eigi,inside);CHKERRQ(ierr);
+    } else {
+      ierr = RGCheckInside(eps->rg,nv,eps->eigr,eps->eigi,inside);CHKERRQ(ierr);
+    }
     ierr = PetscMalloc(nv*sizeof(PetscScalar),&rr);CHKERRQ(ierr);
     for (i=0;i<nv;i++) {
       if (fl1[i] && inside[i]>0) {
@@ -1371,6 +1463,200 @@ PetscErrorCode EPSCISSGetUseST(EPS eps, PetscBool *usest)
   PetscFunctionReturn(0);
 }
 
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSSetRing_CISS"
+static PetscErrorCode EPSCISSSetRing_CISS(EPS eps,PetscBool isring,PetscReal ring_width)
+{
+  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+
+  PetscFunctionBegin;
+  ctx->isring = isring;
+  if (ring_width) {
+    if (ring_width == PETSC_DEFAULT) {
+      ctx->ring_width = 0.5;
+    } else {
+      if (ring_width<0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ring_width argument must be > 0.0");
+      ctx->ring_width = ring_width;
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSSetRing"
+/*@
+   EPSCISSSetRing - Sets the parameters that define the unneeded
+   eigenvalues region in ring type CISS solver.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps        - the eigenproblem solver context
+.  isring     - boolean flag to use the ring type CISS solver or not
+-  ring_width - width of the ring
+
+   Options Database Keys:
++  -eps_ciss_isring <bool> - whether the ring type CISS solver will be used or not
+-  -eps_ciss_ring_width <real> - Sets the width of the ring
+   Level: advanced
+
+.seealso: EPSCISSGetRing()
+@*/
+PetscErrorCode EPSCISSSetRing(EPS eps,PetscBool isring,PetscReal ring_width)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,isring,2);
+  PetscValidLogicalCollectiveReal(eps,ring_width,3);
+  ierr = PetscTryMethod(eps,"EPSCISSSetRing_C",(EPS,PetscBool,PetscReal),(eps,isring,ring_width));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSGetRing_CISS"
+static PetscErrorCode EPSCISSGetRing_CISS(EPS eps,PetscBool *isring,PetscReal *ring_width)
+{
+  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+
+  PetscFunctionBegin;
+  *isring = ctx->isring;
+  if (ring_width) *ring_width = ctx->ring_width;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSGetRing"
+/*@
+   EPSCISSGetRing - Gets the parameters that define the unneeded
+   eigenvalues region in ring type CISS solver.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameters:
++  isring     - boolean flag to use the ring type CISS solver or not
+-  ring_width - width of the ring
+
+   Level: advanced
+
+.seealso: EPSCISSSetRing()
+@*/
+PetscErrorCode EPSCISSGetRing(EPS eps, PetscBool *isring, PetscReal *ring_width)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscTryMethod(eps,"EPSCISSGetRing_C",(EPS,PetscBool*,PetscReal*),(eps,isring,ring_width));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSSetArc_CISS"
+static PetscErrorCode EPSCISSSetArc_CISS(EPS eps,PetscBool isarc,PetscReal start_ang, PetscReal end_ang)
+{
+  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+
+  PetscFunctionBegin;
+  ctx->isarc = isarc;
+  if (start_ang) {
+    if (start_ang<0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The right-hand side angle argument must be >= 0.0");
+    if (start_ang>1.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The right-hand side angle argument must be <= 360.0");
+    if (start_ang>end_ang) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The right-hand side angle argument must be smaller than left one");
+    ctx->start_ang = start_ang;
+  }
+  if (end_ang) {
+    if (end_ang<0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The left-hand side angle argument must be >= 0.0");
+    if (end_ang>1.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The left-hand side angle argument must be <= 360.0");
+    if (start_ang>end_ang) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The left-hand side angle argument must be smaller than right one");
+    ctx->end_ang = end_ang;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSSetArc"
+/*@
+   EPSCISSSetArc - Sets the parameters that define the arc where eigenvalues
+   must be computed in arc type CISS solver.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps       - the eigenproblem solver context
+.  start_ang - the right-hand side angle of the arc
+-  end_ang   - the left-hand side angle of the arc
+
+   Options Database Keys:
++  -eps_ciss_isarc <bool> - whether the arc type CISS solver will be used or not
+.  -eps_ciss_startangle <real> - Sets of the right-hand side angle of the arc 
+-  -eps_ciss_endangle <real> - Sets of the left-hand side angle of the arc 
+   Level: advanced
+
+.seealso: EPSCISSGetArc()
+@*/
+PetscErrorCode EPSCISSSetArc(EPS eps,PetscBool isarc,PetscReal start_ang,PetscReal end_ang)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,isarc,2);
+  PetscValidLogicalCollectiveReal(eps,start_ang,3);
+  PetscValidLogicalCollectiveReal(eps,end_ang,4);
+  ierr = PetscTryMethod(eps,"EPSCISSSetArc_C",(EPS,PetscBool,PetscReal,PetscReal),(eps,isarc,start_ang,end_ang));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSGetArc_CISS"
+static PetscErrorCode EPSCISSGetArc_CISS(EPS eps,PetscBool *isarc,PetscReal *start_ang,PetscReal *end_ang)
+{
+  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+
+  PetscFunctionBegin;
+  *isarc = ctx->isarc;
+  if (start_ang) *start_ang = ctx->start_ang;
+  if (end_ang) *end_ang = ctx->end_ang;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSGetArc"
+/*@
+   EPSCISSGetArc - Gets  the parameters that define the arc where eigenvalues
+   must be computed in arc type CISS solver.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameters:
++  isarc   - boolean flag to use the arc type CISS solver or not
+.  start_ang - the right-hand side angle of the arc
+-  end_ang - the left-hand side angle of the arc
+
+   Level: advanced
+
+.seealso: EPSCISSSetArc()
+@*/
+PetscErrorCode EPSCISSGetArc(EPS eps, PetscBool *isarc, PetscReal *start_ang, PetscReal *end_ang)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscTryMethod(eps,"EPSCISSGetArc_C",(EPS,PetscBool*,PetscReal*,PetscReal*),(eps,isarc,start_ang,end_ang));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+
 #undef __FUNCT__
 #define __FUNCT__ "EPSReset_CISS"
 PetscErrorCode EPSReset_CISS(EPS eps)
@@ -1414,9 +1700,9 @@ PetscErrorCode EPSReset_CISS(EPS eps)
 PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscReal      r3,r4;
+  PetscReal      r3,r4,r5,r6,r7;
   PetscInt       i1,i2,i3,i4,i5,i6,i7,i8;
-  PetscBool      b1,b2;
+  PetscBool      b1,b2,b3,b4;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead("EPS CISS Options");CHKERRQ(ierr);
@@ -1444,6 +1730,17 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
   ierr = PetscOptionsBool("-eps_ciss_usest","CISS use ST for linear solves","EPSCISSSetUseST",b2,&b2,NULL);CHKERRQ(ierr);
   ierr = EPSCISSSetUseST(eps,b2);CHKERRQ(ierr);
 
+  ierr = EPSCISSGetRing(eps,&b3,&r5);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-eps_ciss_isring","CISS ring type","EPSCISSSetRing",b3,&b3,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-eps_ciss_ring_width","CISS width of ring","EPSCISSSetRing",r5,&r5,NULL);CHKERRQ(ierr);
+  ierr = EPSCISSSetRing(eps,b3,r5);CHKERRQ(ierr);
+
+  ierr = EPSCISSGetArc(eps,&b4,&r6,&r7);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-eps_ciss_isarc","CISS use arc type solvers","EPSCISSSetArc",b4,&b4,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-eps_ciss_startangle","CISS right-hand side angle of the arc","EPSCISSSetArc",r6,&r6,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-eps_ciss_endangle","CISS left-hand side angle of the arc","EPSCISSSetArc",r7,&r7,NULL);CHKERRQ(ierr);
+  ierr = EPSCISSSetArc(eps,b4,r6,r7);CHKERRQ(ierr);
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1464,6 +1761,11 @@ PetscErrorCode EPSDestroy_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRefinement_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetUseST_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetUseST_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRing_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRing_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetArc_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetArc_C",NULL);CHKERRQ(ierr);
+
   PetscFunctionReturn(0);
 }
 
@@ -1519,6 +1821,10 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRefinement_C",EPSCISSGetRefinement_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetUseST_C",EPSCISSSetUseST_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetUseST_C",EPSCISSGetUseST_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRing_C",EPSCISSSetRing_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRing_C",EPSCISSGetRing_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetArc_C",EPSCISSSetArc_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetArc_C",EPSCISSGetArc_CISS);CHKERRQ(ierr);
   /* set default values of parameters */
   ctx->N       = 32;
   ctx->L       = 16;
@@ -1532,6 +1838,11 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ctx->refine_inner = 1;
   ctx->refine_blocksize = 1;
   ctx->num_subcomm = 1;
+  ctx->isring  = PETSC_FALSE;
+  ctx->ring_width  = 0.1;
+  ctx->isarc  = PETSC_FALSE;
+  ctx->start_ang  = 0.0;
+  ctx->end_ang  = 1.0;
   PetscFunctionReturn(0);
 }
 
