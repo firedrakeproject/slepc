@@ -177,8 +177,8 @@ runtest5_1:
 	-@test=test5_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps" >> test5_1.tmp; \
-	   if [ "$$eps" = gd ]; then EXTRA="-eps_ncv 7 -eps_gd_minv 2"; \
-	   elif [ "$$eps" = jd ]; then EXTRA="-eps_ncv 7 -eps_jd_minv 2"; \
+	   if [ "$$eps" = gd ]; then EXTRA="-eps_gd_minv 2"; \
+	   elif [ "$$eps" = jd ]; then EXTRA="-eps_jd_minv 2"; \
 	   elif [ "$$eps" = "gd2" ]; then eps=gd; EXTRA="-eps_gd_double_expansion"; else EXTRA=""; fi; \
 	   ${MPIEXEC} -np 1 ./test5 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA >> test5_1.tmp 2>&1; \
 	done; \
