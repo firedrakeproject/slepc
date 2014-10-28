@@ -91,11 +91,6 @@ PetscErrorCode PEPSolve(PEP pep)
 
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
   
-  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
-  if (!islinear) {
-    ierr = STPostSolve(pep->st);CHKERRQ(ierr);
-  }
-
   if (!pep->reason) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   if (!islinear) {
