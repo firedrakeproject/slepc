@@ -154,8 +154,10 @@ PetscErrorCode NEPSetFromOptions_SLP(NEP nep)
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
 
   PetscFunctionBegin;
+  ierr = PetscOptionsHead("NEP SLP Options");CHKERRQ(ierr);
   if (!ctx->eps) { ierr = NEPSLPGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
