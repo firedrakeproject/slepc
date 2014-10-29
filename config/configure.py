@@ -239,8 +239,9 @@ if emptyarch:
 # Clean previous configuration if needed
 if os.path.exists(archdir):
   try:
-    with open(os.sep.join([archdir,'conf/slepcvariables']),"r") as f:
-      searchlines = f.readlines()
+    f = open(os.sep.join([archdir,'conf/slepcvariables']),"r")
+    searchlines = f.readlines()
+    f.close()
     found = 0
     for library in ['ARPACK','BLZPACK','TRLAN','PRIMME','FEAST','BLOPEX']:
       if library in ''.join(searchlines):
