@@ -36,6 +36,7 @@ def Load(petscdir):
     PETSCCONF_H = os.sep.join([petscdir,'include','petscconf.h'])
 
   BUILD_USING_CMAKE = 0
+  MAKE_IS_GNUMAKE = 0
   SINGLELIB = 0
   LANGUAGE = 'c'
   try:
