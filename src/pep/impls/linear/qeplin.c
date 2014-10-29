@@ -66,27 +66,29 @@ PetscErrorCode MatMult_Linear_N1A(Mat A,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
+  Vec               x1,x2,y1,y2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];y1=ctx->w[2];y2=ctx->w[3];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y2,py+m);CHKERRQ(ierr);
   /* y2 = -(K*x1 + C*x2) */
-  ierr = MatMult(ctx->K,ctx->x1,ctx->y2);CHKERRQ(ierr);
-  ierr = MatMult(ctx->C,ctx->x2,ctx->y1);CHKERRQ(ierr);
-  ierr = VecAXPY(ctx->y2,ctx->sfactor,ctx->y1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y2,-1.0);CHKERRQ(ierr);
+  ierr = MatMult(ctx->K,x1,y2);CHKERRQ(ierr);
+  ierr = MatMult(ctx->C,x2,y1);CHKERRQ(ierr);
+  ierr = VecAXPY(y2,ctx->sfactor,y1);CHKERRQ(ierr);
+  ierr = VecScale(y2,-1.0);CHKERRQ(ierr);
   /* y1 = x2 */
-  ierr = VecCopy(ctx->x2,ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  ierr = VecCopy(x2,y1);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
+  ierr = VecResetArray(y1);CHKERRQ(ierr);
+  ierr = VecResetArray(y2);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -101,25 +103,27 @@ PetscErrorCode MatMult_Linear_N1B(Mat B,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
+  Vec               x1,x2,y1,y2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];y1=ctx->w[2];y2=ctx->w[3];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y2,py+m);CHKERRQ(ierr);
   /* y1 = x1 */
-  ierr = VecCopy(ctx->x1,ctx->y1);CHKERRQ(ierr);
+  ierr = VecCopy(x1,y1);CHKERRQ(ierr);
   /* y2 = M*x2 */
-  ierr = MatMult(ctx->M,ctx->x2,ctx->y2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  ierr = MatMult(ctx->M,x2,y2);CHKERRQ(ierr);
+  ierr = VecScale(y2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
+  ierr = VecResetArray(y1);CHKERRQ(ierr);
+  ierr = VecResetArray(y2);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -133,18 +137,20 @@ PetscErrorCode MatGetDiagonal_Linear_N1A(Mat A,Vec diag)
   PEP_LINEAR     *ctx;
   PetscScalar    *pd;
   PetscInt       m;
+  Vec            x1,x2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
-  ierr = VecSet(ctx->x1,0.0);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->C,ctx->x2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->x2,-ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,pd);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,pd+m);CHKERRQ(ierr);
+  ierr = VecSet(x1,0.0);CHKERRQ(ierr);
+  ierr = MatGetDiagonal(ctx->C,x2);CHKERRQ(ierr);
+  ierr = VecScale(x2,-ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -157,18 +163,20 @@ PetscErrorCode MatGetDiagonal_Linear_N1B(Mat B,Vec diag)
   PEP_LINEAR     *ctx;
   PetscScalar    *pd;
   PetscInt       m;
+  Vec            x1,x2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
-  ierr = VecSet(ctx->x1,1.0);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->M,ctx->x2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->x2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,pd);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,pd+m);CHKERRQ(ierr);
+  ierr = VecSet(x1,1.0);CHKERRQ(ierr);
+  ierr = MatGetDiagonal(ctx->M,x2);CHKERRQ(ierr);
+  ierr = VecScale(x2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -230,25 +238,27 @@ PetscErrorCode MatMult_Linear_N2A(Mat A,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
+  Vec               x1,x2,y1,y2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];y1=ctx->w[2];y2=ctx->w[3];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y2,py+m);CHKERRQ(ierr);
   /* y1 = -K*x1 */
-  ierr = MatMult(ctx->K,ctx->x1,ctx->y1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y1,-1.0);CHKERRQ(ierr);
+  ierr = MatMult(ctx->K,x1,y1);CHKERRQ(ierr);
+  ierr = VecScale(y1,-1.0);CHKERRQ(ierr);
   /* y2 = x2 */
-  ierr = VecCopy(ctx->x2,ctx->y2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  ierr = VecCopy(x2,y2);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
+  ierr = VecResetArray(y1);CHKERRQ(ierr);
+  ierr = VecResetArray(y2);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -263,27 +273,29 @@ PetscErrorCode MatMult_Linear_N2B(Mat B,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
+  Vec               x1,x2,y1,y2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];y1=ctx->w[2];y2=ctx->w[3];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y2,py+m);CHKERRQ(ierr);
   /* y1 = C*x1 + M*x2 */
-  ierr = MatMult(ctx->C,ctx->x1,ctx->y1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y1,ctx->sfactor);CHKERRQ(ierr);
-  ierr = MatMult(ctx->M,ctx->x2,ctx->y2);CHKERRQ(ierr);
-  ierr = VecAXPY(ctx->y1,ctx->sfactor*ctx->sfactor,ctx->y2);CHKERRQ(ierr);
+  ierr = MatMult(ctx->C,x1,y1);CHKERRQ(ierr);
+  ierr = VecScale(y1,ctx->sfactor);CHKERRQ(ierr);
+  ierr = MatMult(ctx->M,x2,y2);CHKERRQ(ierr);
+  ierr = VecAXPY(y1,ctx->sfactor*ctx->sfactor,y2);CHKERRQ(ierr);
   /* y2 = x1 */
-  ierr = VecCopy(ctx->x1,ctx->y2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  ierr = VecCopy(x1,y2);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
+  ierr = VecResetArray(y1);CHKERRQ(ierr);
+  ierr = VecResetArray(y2);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -297,18 +309,20 @@ PetscErrorCode MatGetDiagonal_Linear_N2A(Mat A,Vec diag)
   PEP_LINEAR     *ctx;
   PetscScalar    *pd;
   PetscInt       m;
+  Vec            x1,x2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->K,ctx->x1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->x1,-1.0);CHKERRQ(ierr);
-  ierr = VecSet(ctx->x2,1.0);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,pd);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,pd+m);CHKERRQ(ierr);
+  ierr = MatGetDiagonal(ctx->K,x1);CHKERRQ(ierr);
+  ierr = VecScale(x1,-1.0);CHKERRQ(ierr);
+  ierr = VecSet(x2,1.0);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -321,18 +335,20 @@ PetscErrorCode MatGetDiagonal_Linear_N2B(Mat B,Vec diag)
   PEP_LINEAR     *ctx;
   PetscScalar    *pd;
   PetscInt       m;
+  Vec            x1,x2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->C,ctx->x1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->x1,ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecSet(ctx->x2,0.0);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,pd);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,pd+m);CHKERRQ(ierr);
+  ierr = MatGetDiagonal(ctx->C,x1);CHKERRQ(ierr);
+  ierr = VecScale(x1,ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecSet(x2,0.0);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -394,28 +410,30 @@ PetscErrorCode MatMult_Linear_S1A(Mat A,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
+  Vec               x1,x2,y1,y2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];y1=ctx->w[2];y2=ctx->w[3];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y2,py+m);CHKERRQ(ierr);
   /* y2 = -(K*x1 + C*x2) */
-  ierr = MatMult(ctx->K,ctx->x1,ctx->y2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y2,-1.0);CHKERRQ(ierr);
-  ierr = MatMult(ctx->C,ctx->x2,ctx->y1);CHKERRQ(ierr);
-  ierr = VecAXPY(ctx->y2,-ctx->sfactor,ctx->y1);CHKERRQ(ierr);
+  ierr = MatMult(ctx->K,x1,y2);CHKERRQ(ierr);
+  ierr = VecScale(y2,-1.0);CHKERRQ(ierr);
+  ierr = MatMult(ctx->C,x2,y1);CHKERRQ(ierr);
+  ierr = VecAXPY(y2,-ctx->sfactor,y1);CHKERRQ(ierr);
   /* y1 = -K*x2 */
-  ierr = MatMult(ctx->K,ctx->x2,ctx->y1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y1,-1.0);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  ierr = MatMult(ctx->K,x2,y1);CHKERRQ(ierr);
+  ierr = VecScale(y1,-1.0);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
+  ierr = VecResetArray(y1);CHKERRQ(ierr);
+  ierr = VecResetArray(y2);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -430,26 +448,28 @@ PetscErrorCode MatMult_Linear_S1B(Mat B,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
+  Vec               x1,x2,y1,y2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];y1=ctx->w[2];y2=ctx->w[3];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y2,py+m);CHKERRQ(ierr);
   /* y1 = -K*x1 */
-  ierr = MatMult(ctx->K,ctx->x1,ctx->y1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y1,-1.0);CHKERRQ(ierr);
+  ierr = MatMult(ctx->K,x1,y1);CHKERRQ(ierr);
+  ierr = VecScale(y1,-1.0);CHKERRQ(ierr);
   /* y2 = M*x2 */
-  ierr = MatMult(ctx->M,ctx->x2,ctx->y2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  ierr = MatMult(ctx->M,x2,y2);CHKERRQ(ierr);
+  ierr = VecScale(y2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
+  ierr = VecResetArray(y1);CHKERRQ(ierr);
+  ierr = VecResetArray(y2);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -463,18 +483,20 @@ PetscErrorCode MatGetDiagonal_Linear_S1A(Mat A,Vec diag)
   PEP_LINEAR     *ctx;
   PetscScalar    *pd;
   PetscInt       m;
+  Vec            x1,x2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
-  ierr = VecSet(ctx->x1,0.0);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->C,ctx->x2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->x2,-ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,pd);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,pd+m);CHKERRQ(ierr);
+  ierr = VecSet(x1,0.0);CHKERRQ(ierr);
+  ierr = MatGetDiagonal(ctx->C,x2);CHKERRQ(ierr);
+  ierr = VecScale(x2,-ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -487,19 +509,21 @@ PetscErrorCode MatGetDiagonal_Linear_S1B(Mat B,Vec diag)
   PEP_LINEAR     *ctx;
   PetscScalar    *pd;
   PetscInt       m;
+  Vec            x1,x2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->K,ctx->x1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->x1,-1.0);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->M,ctx->x2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->x2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,pd);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,pd+m);CHKERRQ(ierr);
+  ierr = MatGetDiagonal(ctx->K,x1);CHKERRQ(ierr);
+  ierr = VecScale(x1,-1.0);CHKERRQ(ierr);
+  ierr = MatGetDiagonal(ctx->M,x2);CHKERRQ(ierr);
+  ierr = VecScale(x2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -537,26 +561,28 @@ PetscErrorCode MatMult_Linear_S2A(Mat A,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
+  Vec               x1,x2,y1,y2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];y1=ctx->w[2];y2=ctx->w[3];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y2,py+m);CHKERRQ(ierr);
   /* y1 = -K*x1 */
-  ierr = MatMult(ctx->K,ctx->x1,ctx->y1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y1,-1.0);CHKERRQ(ierr);
+  ierr = MatMult(ctx->K,x1,y1);CHKERRQ(ierr);
+  ierr = VecScale(y1,-1.0);CHKERRQ(ierr);
   /* y2 = M*x2 */
-  ierr = MatMult(ctx->M,ctx->x2,ctx->y2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  ierr = MatMult(ctx->M,x2,y2);CHKERRQ(ierr);
+  ierr = VecScale(y2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
+  ierr = VecResetArray(y1);CHKERRQ(ierr);
+  ierr = VecResetArray(y2);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -571,28 +597,30 @@ PetscErrorCode MatMult_Linear_S2B(Mat B,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
+  Vec               x1,x2,y1,y2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];y1=ctx->w[2];y2=ctx->w[3];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y2,py+m);CHKERRQ(ierr);
   /* y1 = C*x1 + M*x2 */
-  ierr = MatMult(ctx->C,ctx->x1,ctx->y1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y1,ctx->sfactor);CHKERRQ(ierr);
-  ierr = MatMult(ctx->M,ctx->x2,ctx->y2);CHKERRQ(ierr);
-  ierr = VecAXPY(ctx->y1,ctx->sfactor*ctx->sfactor,ctx->y2);CHKERRQ(ierr);
+  ierr = MatMult(ctx->C,x1,y1);CHKERRQ(ierr);
+  ierr = VecScale(y1,ctx->sfactor);CHKERRQ(ierr);
+  ierr = MatMult(ctx->M,x2,y2);CHKERRQ(ierr);
+  ierr = VecAXPY(y1,ctx->sfactor*ctx->sfactor,y2);CHKERRQ(ierr);
   /* y2 = M*x1 */
-  ierr = MatMult(ctx->M,ctx->x1,ctx->y2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  ierr = MatMult(ctx->M,x1,y2);CHKERRQ(ierr);
+  ierr = VecScale(y2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
+  ierr = VecResetArray(y1);CHKERRQ(ierr);
+  ierr = VecResetArray(y2);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -606,19 +634,21 @@ PetscErrorCode MatGetDiagonal_Linear_S2A(Mat A,Vec diag)
   PEP_LINEAR     *ctx;
   PetscScalar    *pd;
   PetscInt       m;
+  Vec            x1,x2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->K,ctx->x1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->x1,-1.0);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->M,ctx->x2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->x2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,pd);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,pd+m);CHKERRQ(ierr);
+  ierr = MatGetDiagonal(ctx->K,x1);CHKERRQ(ierr);
+  ierr = VecScale(x1,-1.0);CHKERRQ(ierr);
+  ierr = MatGetDiagonal(ctx->M,x2);CHKERRQ(ierr);
+  ierr = VecScale(x2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -631,18 +661,20 @@ PetscErrorCode MatGetDiagonal_Linear_S2B(Mat B,Vec diag)
   PEP_LINEAR     *ctx;
   PetscScalar    *pd;
   PetscInt       m;
+  Vec            x1,x2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->C,ctx->x1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->x1,ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecSet(ctx->x2,0.0);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,pd);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,pd+m);CHKERRQ(ierr);
+  ierr = MatGetDiagonal(ctx->C,x1);CHKERRQ(ierr);
+  ierr = VecScale(x1,ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecSet(x2,0.0);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -680,26 +712,28 @@ PetscErrorCode MatMult_Linear_H1A(Mat A,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
+  Vec               x1,x2,y1,y2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];y1=ctx->w[2];y2=ctx->w[3];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y2,py+m);CHKERRQ(ierr);
   /* y2 = C*x1 + K*x2 */
-  ierr = MatMult(ctx->C,ctx->x1,ctx->y1);CHKERRQ(ierr);
-  ierr = MatMult(ctx->K,ctx->x2,ctx->y2);CHKERRQ(ierr);
-  ierr = VecAXPY(ctx->y2,ctx->sfactor,ctx->y1);CHKERRQ(ierr);
+  ierr = MatMult(ctx->C,x1,y1);CHKERRQ(ierr);
+  ierr = MatMult(ctx->K,x2,y2);CHKERRQ(ierr);
+  ierr = VecAXPY(y2,ctx->sfactor,y1);CHKERRQ(ierr);
   /* y1 = K*x1 */
-  ierr = MatMult(ctx->K,ctx->x1,ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  ierr = MatMult(ctx->K,x1,y1);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
+  ierr = VecResetArray(y1);CHKERRQ(ierr);
+  ierr = VecResetArray(y2);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -714,25 +748,27 @@ PetscErrorCode MatMult_Linear_H1B(Mat B,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
+  Vec               x1,x2,y1,y2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];y1=ctx->w[2];y2=ctx->w[3];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y2,py+m);CHKERRQ(ierr);
   /* y1 = K*x2 */
-  ierr = MatMult(ctx->K,ctx->x2,ctx->y1);CHKERRQ(ierr);
+  ierr = MatMult(ctx->K,x2,y1);CHKERRQ(ierr);
   /* y2 = -M*x1 */
-  ierr = MatMult(ctx->M,ctx->x1,ctx->y2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y2,-ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  ierr = MatMult(ctx->M,x1,y2);CHKERRQ(ierr);
+  ierr = VecScale(y2,-ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
+  ierr = VecResetArray(y1);CHKERRQ(ierr);
+  ierr = VecResetArray(y2);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -746,17 +782,19 @@ PetscErrorCode MatGetDiagonal_Linear_H1A(Mat A,Vec diag)
   PEP_LINEAR     *ctx;
   PetscScalar    *pd;
   PetscInt       m;
+  Vec            x1,x2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->K,ctx->x1);CHKERRQ(ierr);
-  ierr = VecCopy(ctx->x1,ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,pd);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,pd+m);CHKERRQ(ierr);
+  ierr = MatGetDiagonal(ctx->K,x1);CHKERRQ(ierr);
+  ierr = VecCopy(x1,x2);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -805,26 +843,28 @@ PetscErrorCode MatMult_Linear_H2A(Mat A,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
+  Vec               x1,x2,y1,y2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];y1=ctx->w[2];y2=ctx->w[3];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y2,py+m);CHKERRQ(ierr);
   /* y1 = -K*x2 */
-  ierr = MatMult(ctx->K,ctx->x2,ctx->y1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y1,-1.0);CHKERRQ(ierr);
+  ierr = MatMult(ctx->K,x2,y1);CHKERRQ(ierr);
+  ierr = VecScale(y1,-1.0);CHKERRQ(ierr);
   /* y2 = M*x1 */
-  ierr = MatMult(ctx->M,ctx->x1,ctx->y2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  ierr = MatMult(ctx->M,x1,y2);CHKERRQ(ierr);
+  ierr = VecScale(y2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
+  ierr = VecResetArray(y1);CHKERRQ(ierr);
+  ierr = VecResetArray(y2);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -839,28 +879,30 @@ PetscErrorCode MatMult_Linear_H2B(Mat B,Vec x,Vec y)
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
+  Vec               x1,x2,y1,y2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];y1=ctx->w[2];y2=ctx->w[3];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(y2,py+m);CHKERRQ(ierr);
   /* y1 = M*x1 + C*x2 */
-  ierr = MatMult(ctx->M,ctx->x1,ctx->y1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y1,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
-  ierr = MatMult(ctx->C,ctx->x2,ctx->y2);CHKERRQ(ierr);
-  ierr = VecAXPY(ctx->y1,ctx->sfactor,ctx->y2);CHKERRQ(ierr);
+  ierr = MatMult(ctx->M,x1,y1);CHKERRQ(ierr);
+  ierr = VecScale(y1,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
+  ierr = MatMult(ctx->C,x2,y2);CHKERRQ(ierr);
+  ierr = VecAXPY(y1,ctx->sfactor,y2);CHKERRQ(ierr);
   /* y2 = M*x2 */
-  ierr = MatMult(ctx->M,ctx->x2,ctx->y2);CHKERRQ(ierr);
-  ierr = VecScale(ctx->y2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  ierr = MatMult(ctx->M,x2,y2);CHKERRQ(ierr);
+  ierr = VecScale(y2,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
+  ierr = VecResetArray(y1);CHKERRQ(ierr);
+  ierr = VecResetArray(y2);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -885,18 +927,20 @@ PetscErrorCode MatGetDiagonal_Linear_H2B(Mat B,Vec diag)
   PEP_LINEAR     *ctx;
   PetscScalar    *pd;
   PetscInt       m;
+  Vec            x1,x2;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  x1=ctx->w[0];x2=ctx->w[1];
   ierr = MatGetLocalSize(ctx->M,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x1,pd);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ctx->x2,pd+m);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(ctx->M,ctx->x1);CHKERRQ(ierr);
-  ierr = VecScale(ctx->x1,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
-  ierr = VecCopy(ctx->x1,ctx->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x1,pd);CHKERRQ(ierr);
+  ierr = VecPlaceArray(x2,pd+m);CHKERRQ(ierr);
+  ierr = MatGetDiagonal(ctx->M,x1);CHKERRQ(ierr);
+  ierr = VecScale(x1,ctx->sfactor*ctx->sfactor);CHKERRQ(ierr);
+  ierr = VecCopy(x1,x2);CHKERRQ(ierr);
+  ierr = VecResetArray(x1);CHKERRQ(ierr);
+  ierr = VecResetArray(x2);CHKERRQ(ierr);
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
