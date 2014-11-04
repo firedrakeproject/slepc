@@ -184,8 +184,8 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
       ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(PetscSubcomm));CHKERRQ(ierr);
 
       /* Duplicate matrices */
-      ierr = MatGetRedundantMatrix(A,0,ctx->subc->comm,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
-      if (B) { ierr = MatGetRedundantMatrix(B,0,ctx->subc->comm,MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr); }
+      ierr = MatCreateRedundantMatrix(A,0,ctx->subc->comm,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
+      if (B) { ierr = MatCreateRedundantMatrix(B,0,ctx->subc->comm,MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr); }
     }
 
     /* Determine subintervals */
