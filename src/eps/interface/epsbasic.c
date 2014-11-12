@@ -211,9 +211,10 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
     if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
     ierr = BVView(eps->V,viewer);CHKERRQ(ierr);
-    if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
-    ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-    if (!istrivial) { ierr = RGView(eps->rg,viewer);CHKERRQ(ierr); }
+    if (eps->rg) {
+      ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+      if (!istrivial) { ierr = RGView(eps->rg,viewer);CHKERRQ(ierr); }
+    }
     ierr = PetscObjectTypeCompare((PetscObject)eps,EPSPOWER,&ispower);CHKERRQ(ierr);
     if (!ispower) {
       if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }

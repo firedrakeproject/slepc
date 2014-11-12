@@ -545,7 +545,6 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidType(bv,1);
   if (!viewer) {
     ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)bv),&viewer);CHKERRQ(ierr);
   }
