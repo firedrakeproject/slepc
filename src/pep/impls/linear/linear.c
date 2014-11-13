@@ -26,7 +26,7 @@
 
 #undef __FUNCT__
 #define __FUNCT__ "MatMult_Linear_Shift"
-PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
+static PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
   PEP_LINEAR        *ctx;
@@ -36,6 +36,7 @@ PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
   PetscInt          nmat,deg,i,m;
   Vec               x1,x2,x3,y1,aux;
   PetscReal         *ca,*cb,*cg;
+  ST                st;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
@@ -47,7 +48,8 @@ PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
   cb = pep->pbc+nmat;
   cg = pep->pbc+2*nmat;
   x1=ctx->w[0];x2=ctx->w[1];x3=ctx->w[2];y1=ctx->w[3];aux=ctx->w[4];
-  ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr);
+  ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
+  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
   ierr = VecZeroEntries(y);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
@@ -105,7 +107,7 @@ PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
 
 #undef __FUNCT__
 #define __FUNCT__ "MatMult_Linear_Sinvert"
-PetscErrorCode MatMult_Linear_Sinvert(Mat M,Vec x,Vec y)
+static PetscErrorCode MatMult_Linear_Sinvert(Mat M,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
   PEP_LINEAR        *ctx;
@@ -115,6 +117,7 @@ PetscErrorCode MatMult_Linear_Sinvert(Mat M,Vec x,Vec y)
   PetscInt          nmat,deg,i,m;
   Vec               x1,y1,y2,y3,aux,aux2;
   PetscReal         *ca,*cb,*cg;
+  ST                st;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
@@ -126,7 +129,8 @@ PetscErrorCode MatMult_Linear_Sinvert(Mat M,Vec x,Vec y)
   cb = pep->pbc+nmat;
   cg = pep->pbc+2*nmat;
   x1=ctx->w[0];y1=ctx->w[1];y2=ctx->w[2];y3=ctx->w[3];aux=ctx->w[4];aux2=ctx->w[5];
-  ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr);
+  ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
+  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
   ierr = VecZeroEntries(y);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
@@ -218,6 +222,34 @@ PetscErrorCode MatMult_Linear_Sinvert(Mat M,Vec x,Vec y)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BackTransform_Linear"
+static PetscErrorCode BackTransform_Linear(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
+{
+  PetscErrorCode ierr;
+  PEP_LINEAR     *ctx;
+  ST             stctx;
+
+  PetscFunctionBegin;
+  ierr = STShellGetContext(st,(void**)&ctx);CHKERRQ(ierr);
+  ierr = PEPGetST(ctx->pep,&stctx);CHKERRQ(ierr);
+  ierr = STBackTransform(stctx,n,eigr,eigi);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "Apply_Linear"
+static PetscErrorCode Apply_Linear(ST st,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  PEP_LINEAR     *ctx;
+
+  PetscFunctionBegin;
+  ierr = STShellGetContext(st,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatMult(ctx->A,x,y);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPSetUp_Linear"
 PetscErrorCode PEPSetUp_Linear(PEP pep)
 {
@@ -237,41 +269,32 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     { MatCreateExplicit_Linear_H1A, MatCreateExplicit_Linear_H1B },   /* H1 */
     { MatCreateExplicit_Linear_H2A, MatCreateExplicit_Linear_H2B }    /* H2 */
   };
-  PetscErrorCode (*fmult[][2])(Mat,Vec,Vec) = {
-    { MatMult_Linear_N1A, MatMult_Linear_N1B },
-    { MatMult_Linear_N2A, MatMult_Linear_N2B },
-    { MatMult_Linear_S1A, MatMult_Linear_S1B },
-    { MatMult_Linear_S2A, MatMult_Linear_S2B },
-    { MatMult_Linear_H1A, MatMult_Linear_H1B },
-    { MatMult_Linear_H2A, MatMult_Linear_H2B }
-  };
-  PetscErrorCode (*fgetdiagonal[][2])(Mat,Vec) = {
-    { MatGetDiagonal_Linear_N1A, MatGetDiagonal_Linear_N1B },
-    { MatGetDiagonal_Linear_N2A, MatGetDiagonal_Linear_N2B },
-    { MatGetDiagonal_Linear_S1A, MatGetDiagonal_Linear_S1B },
-    { MatGetDiagonal_Linear_S2A, MatGetDiagonal_Linear_S2B },
-    { MatGetDiagonal_Linear_H1A, MatGetDiagonal_Linear_H1B },
-    { MatGetDiagonal_Linear_H2A, MatGetDiagonal_Linear_H2B }
-  };
 
   PetscFunctionBegin;
   if (!ctx->cform) ctx->cform = 1;
-  if (!pep->which) pep->which = PEP_LARGEST_MAGNITUDE;
-
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+  if (!pep->which) {
+    if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
+    else pep->which = PEP_LARGEST_MAGNITUDE;
+  }
+  ierr = STSetUp(pep->st);CHKERRQ(ierr);
+  if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
+  ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
+  ierr = EPSSetTarget(ctx->eps,pep->target);CHKERRQ(ierr);
+  ierr = STSetShift(st,(!sinv||flg)?0.0:pep->target);CHKERRQ(ierr);
   if (ctx->explicitmatrix) {
-
     if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option only available for quadratic problems");
     if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option not implemented for non-monomial bases");
     if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEPLINEAR with explicit matrices");
-    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-    if (flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"ST transformation flag not allowed for PEPLINEAR with explicit matrices");
+    ierr = STSetType(st,flg?STSHIFT:(STType)(((PetscObject)pep->st)->type_name));CHKERRQ(ierr);
 
     /* compute scale factor if not set by user */
     ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
    
-    ierr = STGetOperators(pep->st,0,&ctx->K);CHKERRQ(ierr);
-    ierr = STGetOperators(pep->st,1,&ctx->C);CHKERRQ(ierr);
-    ierr = STGetOperators(pep->st,2,&ctx->M);CHKERRQ(ierr);
+    ierr = STGetTOperators(pep->st,0,&ctx->K);CHKERRQ(ierr);
+    ierr = STGetTOperators(pep->st,1,&ctx->C);CHKERRQ(ierr);
+    ierr = STGetTOperators(pep->st,2,&ctx->M);CHKERRQ(ierr);
     ctx->sfactor = pep->sfactor;
   
     ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
@@ -295,7 +318,9 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->B);CHKERRQ(ierr);
 
   } else {   /* implicit matrix */
-
+    ierr = STSetType(st,STSHELL);CHKERRQ(ierr);
+    ierr = STShellSetContext(st,(PetscObject)ctx);CHKERRQ(ierr);
+    ierr = STShellSetBackTransform(st,BackTransform_Linear);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[0]);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[1]);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[2]);CHKERRQ(ierr);
@@ -304,20 +329,17 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = MatCreateVecs(pep->A[0],&ctx->w[5],NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(pep,6,ctx->w);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),(pep->nmat-1)*pep->nloc,(pep->nmat-1)*pep->nloc,(pep->nmat-1)*pep->n,(pep->nmat-1)*pep->n,ctx,&ctx->A);CHKERRQ(ierr);
-    /*ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))fmult[i][0]);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(ctx->A,MATOP_GET_DIAGONAL,(void(*)(void))fgetdiagonal[i][0]);CHKERRQ(ierr);*/
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
-    if (sinv) {
+    if (sinv && !flg) {
       ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Sinvert);CHKERRQ(ierr);
     } else {
       ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Shift);CHKERRQ(ierr);
     }
+    ierr = STShellSetApply(st,Apply_Linear);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->A);CHKERRQ(ierr);
-    ctx->B = NULL;
     ctx->pep = pep;
 
     ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
-    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
     if (!flg) {
       ierr = PetscMalloc1(pep->nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
       if (sinv) {
@@ -329,7 +351,6 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     }
   }
 
-  if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSSetOperators(ctx->eps,ctx->A,ctx->B);CHKERRQ(ierr);
   if (ctx->explicitmatrix) {
     if (pep->problem_type==PEP_HERMITIAN) {
@@ -340,7 +361,6 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   } else {
     ierr = EPSSetProblemType(ctx->eps,EPS_NHEP);CHKERRQ(ierr);
   }
-
   switch (pep->which) {
       case PEP_LARGEST_MAGNITUDE:  which = EPS_LARGEST_MAGNITUDE; break;
       case PEP_SMALLEST_MAGNITUDE: which = EPS_SMALLEST_MAGNITUDE; break;
@@ -353,12 +373,8 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
       case PEP_TARGET_IMAGINARY:   which = EPS_TARGET_IMAGINARY; break;
       default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of which");
   }
-  if (ctx->explicitmatrix) {
-    ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
-    ierr = STSetTransform(st,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = STSetType(st,((PetscObject)pep->st)->type_name);CHKERRQ(ierr);
-  }
   ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
+
   ierr = EPSSetDimensions(ctx->eps,pep->nev,pep->ncv?pep->ncv:PETSC_DEFAULT,pep->mpd?pep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:pep->tol,pep->max_it?pep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
@@ -368,7 +384,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ierr = EPSSetTrackAll(ctx->eps,trackall);CHKERRQ(ierr);
 
   /* temporary change of target */
-  if (pep->sfactor!=1.0) {
+  if (pep->sfactor!=1.0) {/*///////////////////////////////////////////////////*/
     ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
     ierr = EPSSetTarget(ctx->eps,sigma/pep->sfactor);CHKERRQ(ierr);
   }
@@ -546,6 +562,7 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
   PetscErrorCode ierr;
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
   PetscScalar    sigma;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   ierr = EPSSolve(ctx->eps);CHKERRQ(ierr);
@@ -565,6 +582,10 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
     break;
   default:
     SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Extraction not implemented in this solver");
+  }
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (ctx->explicitmatrix && flg) {
+    ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
