@@ -29,6 +29,7 @@
 #define dsappendoptionsprefix_    DSAPPENDOPTIONSPREFIX
 #define dsgetoptionsprefix_       DSGETOPTIONSPREFIX
 #define dsview_                   DSVIEW
+#define dsvectors_                DSVECTORS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define dscreate_                 dscreate
 #define dsdestroy_                dsdestroy
@@ -36,6 +37,7 @@
 #define dsappendoptionsprefix_    dsappendoptionsprefix
 #define dsgetoptionsprefix_       dsgetoptionsprefix
 #define dsview_                   dsview
+#define dsvectors_                dsvectors
 #endif
 
 PETSC_EXTERN void PETSC_STDCALL dscreate_(MPI_Fint *comm,DS *newds,PetscErrorCode *ierr)
@@ -79,5 +81,12 @@ PETSC_EXTERN void PETSC_STDCALL dsview_(DS *ds,PetscViewer *viewer,PetscErrorCod
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = DSView(*ds,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL dsvectors_(DS *ds,DSMatType *mat,PetscInt *j,PetscReal *rnorm,PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLINTEGER(j);
+  CHKFORTRANNULLREAL(rnorm);
+  *ierr = DSVectors(*ds,*mat,j,rnorm);
 }
 
