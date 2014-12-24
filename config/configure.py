@@ -387,9 +387,6 @@ if petscconf.ISINSTALL:
 if not check.Link(tmpdir,[],[],[]):
   log.Exit('ERROR: Unable to link with PETSc')
 
-if prefixinstall and os.path.isfile(os.sep.join([prefixdir,'include','slepc.h'])):
-  log.Println('WARNING: prefix directory ' + prefixdir + ' contains files from a previous installation')
-
 # Single library installation
 if petscconf.SINGLELIB:
   slepcvars.write('SHLIBS = libslepc\n')
