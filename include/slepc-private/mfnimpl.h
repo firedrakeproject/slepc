@@ -57,7 +57,6 @@ struct _p_MFN {
   PetscReal      tol;            /* tolerance */
   PetscScalar    sfactor;        /* scaling factor */
   PetscBool      errorifnotconverged;    /* error out if MFNSolve() does not converge */
-  PetscBool      printreason;    /* prints converged reason after solve */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*monitor[MAXMFNMONITORS])(MFN,PetscInt,PetscReal,void*);

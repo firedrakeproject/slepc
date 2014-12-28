@@ -116,6 +116,8 @@ PETSC_EXTERN PetscErrorCode SVDComputeResidualNorms(SVD,PetscInt,PetscReal*,Pets
 PETSC_EXTERN PetscErrorCode SVDComputeRelativeError(SVD,PetscInt,PetscReal*);
 PETSC_EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
 PETSC_EXTERN PetscErrorCode SVDPrintSolution(SVD,PetscViewer);
+PETSC_EXTERN PetscErrorCode SVDReasonView(SVD,PetscViewer);
+PETSC_EXTERN PetscErrorCode SVDReasonViewFromOptions(SVD);
 PETSC_EXTERN PetscErrorCode SVDDestroy(SVD*);
 PETSC_EXTERN PetscErrorCode SVDReset(SVD);
 

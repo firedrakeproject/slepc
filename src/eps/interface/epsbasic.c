@@ -245,7 +245,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 
 .seealso: EPSSetConvergenceTest(), EPSSetTolerances(), EPSGetIterationNumber()
 @*/
-PetscErrorCode  EPSReasonView(EPS eps,PetscViewer viewer)
+PetscErrorCode EPSReasonView(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscBool      isAscii;
@@ -268,7 +268,7 @@ PetscErrorCode  EPSReasonView(EPS eps,PetscViewer viewer)
 #define __FUNCT__ "EPSReasonViewFromOptions"
 /*@C
    EPSReasonViewFromOptions - Processes command line options to determine if/how
-   an EPSReason is to be viewed. 
+   the EPS converged reason is to be viewed. 
 
    Collective on EPS
 

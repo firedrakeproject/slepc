@@ -80,13 +80,6 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
 
     ierr = PetscOptionsBool("-mfn_error_if_not_converged","Generate error if solver does not converge","MFNSetErrorIfNotConverged",mfn->errorifnotconverged,&mfn->errorifnotconverged,NULL);CHKERRQ(ierr);
 
-    /*
-      Prints reason for convergence or divergence of each solve
-    */
-    flg  = PETSC_FALSE;
-    ierr = PetscOptionsBool("-mfn_converged_reason","Print reason for converged or diverged","MFNSolve",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) mfn->printreason = PETSC_TRUE;
-
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to MFNSetFromOptions()

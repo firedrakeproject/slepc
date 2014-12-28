@@ -151,11 +151,10 @@ PetscErrorCode EPSSolve(EPS eps)
 
   /* sort eigenvalues according to eps->which parameter */
   ierr = SlepcSortEigenvalues(eps->sc,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
-
-  ierr = EPSReasonViewFromOptions(eps);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
+  ierr = EPSReasonViewFromOptions(eps);CHKERRQ(ierr);
   ierr = MatViewFromOptions(A,((PetscObject)eps)->prefix,"-eps_view_mat0");CHKERRQ(ierr);
   if (nmat>1) { ierr = MatViewFromOptions(B,((PetscObject)eps)->prefix,"-eps_view_mat1");CHKERRQ(ierr); }
 
