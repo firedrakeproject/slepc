@@ -104,19 +104,10 @@ PetscErrorCode NEPSolve(NEP nep)
 
   /* sort eigenvalues according to nep->which parameter */
   ierr = SlepcSortEigenvalues(nep->sc,nep->nconv,nep->eigr,nep->eigi,nep->perm);CHKERRQ(ierr);
-
-  if (nep->printreason) {
-    ierr = PetscViewerASCIIAddTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep)),((PetscObject)nep)->tablevel);CHKERRQ(ierr);
-    if (nep->reason > 0) {
-      ierr = PetscViewerASCIIPrintf(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep)),"%s Nonlinear eigensolve converged due to %s; iterations %D\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",NEPConvergedReasons[nep->reason],nep->its);CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep)),"%s Nonlinear eigensolve did not converge due to %s; iterations %D\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",NEPConvergedReasons[nep->reason],nep->its);CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIISubtractTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep)),((PetscObject)nep)->tablevel);CHKERRQ(ierr);
-  }
   ierr = PetscLogEventEnd(NEP_Solve,nep,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
+  ierr = NEPReasonViewFromOptions(nep);CHKERRQ(ierr);
   ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->prefix,"-nep_view",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg && !PetscPreLoadingOn) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);

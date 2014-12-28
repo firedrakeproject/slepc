@@ -118,6 +118,8 @@ PETSC_EXTERN PetscErrorCode NEPSetFromOptions(NEP);
 PETSC_EXTERN PetscErrorCode NEPSetUp(NEP);
 PETSC_EXTERN PetscErrorCode NEPSolve(NEP);
 PETSC_EXTERN PetscErrorCode NEPView(NEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode NEPReasonView(NEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode NEPReasonViewFromOptions(NEP);
 
 PETSC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat,Mat,void*),void*);
 PETSC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,Mat,void*),void**);

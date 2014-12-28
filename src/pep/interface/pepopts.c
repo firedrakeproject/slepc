@@ -133,13 +133,6 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
     ierr = PetscOptionsEnum("-pep_basis","Polynomial basis","PEPSetBasis",PEPBasisTypes,(PetscEnum)pep->basis,(PetscEnum*)&pep->basis,NULL);CHKERRQ(ierr);
 
-    /*
-      Prints reason for convergence or divergence of each solve
-    */
-    flg  = PETSC_FALSE;
-    ierr = PetscOptionsBool("-pep_converged_reason","Print reason for converged or diverged","PEPSolve",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) pep->printreason = PETSC_TRUE;
-
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to PEPSetFromOptions()
