@@ -55,10 +55,7 @@
 @*/
 PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 {
-  PetscErrorCode    ierr;
-  PetscBool         flg;
-  PetscViewer       viewer;
-  PetscViewerFormat format;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
@@ -72,6 +69,7 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   mfn->its = 0;
 
   ierr = MFNMonitor(mfn,mfn->its,0);CHKERRQ(ierr);
+  ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view_pre");CHKERRQ(ierr);
 
   /* call solver */
   ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
@@ -83,18 +81,11 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   if (mfn->errorifnotconverged && mfn->reason < 0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_NOT_CONVERGED,"MFNSolve has not converged");
 
   /* various viewers */
+  ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view");CHKERRQ(ierr);
   ierr = MFNReasonViewFromOptions(mfn);CHKERRQ(ierr);
   ierr = MatViewFromOptions(mfn->A,((PetscObject)mfn)->prefix,"-mfn_view_mat");CHKERRQ(ierr);
   ierr = VecViewFromOptions(b,((PetscObject)mfn)->prefix,"-mfn_view_rhs");CHKERRQ(ierr);
   ierr = VecViewFromOptions(x,((PetscObject)mfn)->prefix,"-mfn_view_solution");CHKERRQ(ierr);
-
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->prefix,"-mfn_view",&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg && !PetscPreLoadingOn) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = MFNView(mfn,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 

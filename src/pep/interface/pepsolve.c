@@ -65,14 +65,13 @@ PETSC_STATIC_INLINE PetscErrorCode PEPComputeVectors(PEP pep)
 @*/
 PetscErrorCode PEPSolve(PEP pep)
 {
-  PetscErrorCode    ierr;
-  PetscInt          i;
-  PetscReal         re,im;
-  PetscBool         flg,islinear;
-  PetscViewer       viewer;
-  PetscViewerFormat format;
-  PetscDraw         draw;
-  PetscDrawSP       drawsp;
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscReal      re,im;
+  PetscBool      flg,islinear;
+  PetscViewer    viewer;
+  PetscDraw      draw;
+  PetscDrawSP    drawsp;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -88,6 +87,7 @@ PetscErrorCode PEPSolve(PEP pep)
     pep->errest[i] = 0.0;
   }
   ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,pep->ncv);CHKERRQ(ierr);
+  ierr = PEPViewFromOptions(pep,NULL,"-pep_view_pre");CHKERRQ(ierr);
 
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
   
@@ -135,14 +135,8 @@ PetscErrorCode PEPSolve(PEP pep)
   ierr = PetscLogEventEnd(PEP_Solve,pep,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
+  ierr = PEPViewFromOptions(pep,NULL,"-pep_view");CHKERRQ(ierr);
   ierr = PEPReasonViewFromOptions(pep);CHKERRQ(ierr);
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->prefix,"-pep_view",&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg && !PetscPreLoadingOn) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = PEPView(pep,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-  }
 
   flg = PETSC_FALSE;
   ierr = PetscOptionsGetBool(((PetscObject)pep)->prefix,"-pep_plot_eigs",&flg,NULL);CHKERRQ(ierr);

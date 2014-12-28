@@ -118,6 +118,7 @@ PETSC_EXTERN PetscErrorCode NEPSetFromOptions(NEP);
 PETSC_EXTERN PetscErrorCode NEPSetUp(NEP);
 PETSC_EXTERN PetscErrorCode NEPSolve(NEP);
 PETSC_EXTERN PetscErrorCode NEPView(NEP,PetscViewer);
+PETSC_STATIC_INLINE PetscErrorCode NEPViewFromOptions(NEP nep,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)nep,prefix,name);}
 PETSC_EXTERN PetscErrorCode NEPReasonView(NEP,PetscViewer);
 PETSC_EXTERN PetscErrorCode NEPReasonViewFromOptions(NEP);
 
