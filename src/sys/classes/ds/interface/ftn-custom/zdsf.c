@@ -30,6 +30,7 @@
 #define dsgetoptionsprefix_       DSGETOPTIONSPREFIX
 #define dsview_                   DSVIEW
 #define dsvectors_                DSVECTORS
+#define dssort_                   DSSORT
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define dscreate_                 dscreate
 #define dsdestroy_                dsdestroy
@@ -37,7 +38,7 @@
 #define dsappendoptionsprefix_    dsappendoptionsprefix
 #define dsgetoptionsprefix_       dsgetoptionsprefix
 #define dsview_                   dsview
-#define dsvectors_                dsvectors
+#define dssort_                   dssort
 #endif
 
 PETSC_EXTERN void PETSC_STDCALL dscreate_(MPI_Fint *comm,DS *newds,PetscErrorCode *ierr)
@@ -88,5 +89,15 @@ PETSC_EXTERN void PETSC_STDCALL dsvectors_(DS *ds,DSMatType *mat,PetscInt *j,Pet
   CHKFORTRANNULLINTEGER(j);
   CHKFORTRANNULLREAL(rnorm);
   *ierr = DSVectors(*ds,*mat,j,rnorm);
+}
+
+PETSC_EXTERN void PETSC_STDCALL dssort_(DS *ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,PetscScalar *ri,PetscInt *k,PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLSCALAR(eigr);
+  CHKFORTRANNULLSCALAR(eigi);
+  CHKFORTRANNULLSCALAR(rr);
+  CHKFORTRANNULLSCALAR(ri);
+  CHKFORTRANNULLINTEGER(k);
+  *ierr = DSSort(*ds,eigr,eigi,rr,ri,k);
 }
 
