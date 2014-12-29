@@ -38,6 +38,7 @@
       PetscEnum DS_MAT_C
       PetscEnum DS_MAT_T
       PetscEnum DS_MAT_D
+      PetscEnum DS_MAT_F
       PetscEnum DS_MAT_Q
       PetscEnum DS_MAT_Z
       PetscEnum DS_MAT_X

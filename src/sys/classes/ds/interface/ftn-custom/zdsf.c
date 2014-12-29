@@ -25,6 +25,8 @@
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define dscreate_                 DSCREATE
 #define dsdestroy_                DSDESTROY
+#define dssettype_                DSSETTYPE
+#define dsgettype_                DSGETTYPE
 #define dssetoptionsprefix_       DSSETOPTIONSPREFIX
 #define dsappendoptionsprefix_    DSAPPENDOPTIONSPREFIX
 #define dsgetoptionsprefix_       DSGETOPTIONSPREFIX
@@ -34,6 +36,8 @@
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define dscreate_                 dscreate
 #define dsdestroy_                dsdestroy
+#define dssettype_                dssettype
+#define dsgettype_                dsgettype
 #define dssetoptionsprefix_       dssetoptionsprefix
 #define dsappendoptionsprefix_    dsappendoptionsprefix
 #define dsgetoptionsprefix_       dsgetoptionsprefix
@@ -49,6 +53,24 @@ PETSC_EXTERN void PETSC_STDCALL dscreate_(MPI_Fint *comm,DS *newds,PetscErrorCod
 PETSC_EXTERN void PETSC_STDCALL dsdestroy_(DS *ds,PetscErrorCode *ierr)
 {
   *ierr = DSDestroy(ds);
+}
+
+PETSC_EXTERN void PETSC_STDCALL dssettype_(DS *ds,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  char *t;
+
+  FIXCHAR(type,len,t);
+  *ierr = DSSetType(*ds,t);
+  FREECHAR(type,t);
+}
+
+PETSC_EXTERN void PETSC_STDCALL dsgettype_(DS *ds,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  DSType tname;
+
+  *ierr = DSGetType(*ds,&tname);if (*ierr) return;
+  *ierr = PetscStrncpy(name,tname,len);
+  FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
 PETSC_EXTERN void PETSC_STDCALL dssetoptionsprefix_(DS *ds,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
