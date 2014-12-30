@@ -43,7 +43,7 @@
 
       Mat            A
       DS             ds
-      PetscInt       n, i, j, ld
+      PetscInt       n, i, j, ld, zero
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscBool      flg
@@ -55,6 +55,7 @@
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+      zero = 0
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       n = 10
@@ -81,7 +82,7 @@
       call DSSetFromOptions(ds,ierr)
       ld = n
       call DSAllocate(ds,ld,ierr)
-      call DSSetDimensions(ds,n,0,0,0,ierr)
+      call DSSetDimensions(ds,n,zero,zero,zero,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Fill with Grcar matrix
@@ -111,12 +112,12 @@
 #else
           re = wr(i)
           im = wi(i)
+#endif
           if (abs(im).lt.1.d-10) then
             write(*,120) re
           else
             write(*,130) re, im
           endif
-#endif
         end do
       endif
  120  format ('  ',F8.5)
