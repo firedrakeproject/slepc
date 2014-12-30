@@ -588,7 +588,7 @@ PetscErrorCode DSComputeFunction(DS ds,SlepcFunction f)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSSort"
-/*@
+/*@C
    DSSort - Sorts the result of DSSolve() according to a given sorting
    criterion.
 
@@ -645,7 +645,7 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors"
-/*@
+/*@C
    DSVectors - Compute vectors associated to the dense system such
    as eigenvectors.
 
