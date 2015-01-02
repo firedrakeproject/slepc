@@ -194,7 +194,7 @@ if 'SLEPC_DIR' in os.environ:
   if os.path.realpath(os.getcwd()) != os.path.realpath(slepcdir):
     sys.exit('ERROR: SLEPC_DIR is not the current directory')
 else:
-  slepcdir = os.getcwd();
+  slepcdir = os.getcwd()
   if not os.path.exists(os.sep.join([slepcdir,'config'])):
     sys.exit('ERROR: Current directory is not valid')
 
