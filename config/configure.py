@@ -280,7 +280,13 @@ if not os.path.exists(libdir):
     os.mkdir(libdir)
   except:
     sys.exit('ERROR: cannot create lib directory ' + libdir)
-modulesdir = os.sep.join([libdir,'modules'])
+modulesbasedir = os.sep.join([confdir,'modules'])
+if not os.path.exists(modulesbasedir):
+  try:
+    os.mkdir(modulesbasedir)
+  except:
+    sys.exit('ERROR: cannot create modules base directory ' + modulesbasedir)
+modulesdir = os.sep.join([modulesbasedir,'slepc'])
 if not os.path.exists(modulesdir):
   try:
     os.mkdir(modulesdir)
