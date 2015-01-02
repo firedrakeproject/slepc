@@ -248,7 +248,7 @@ Note that the point is represented as two \texttt{PetscScalar}'s, similarly to e
 \begin{description}
 \setlength{\itemsep}{0mm}
 \item[\texttt{datafiles}] - data files used by some examples.
-\item[\texttt{matlab}] - Matlab interface and examples.
+%\item[\texttt{matlab}] - Matlab interface and examples.
 \end{description}
 \item[\texttt{src}] - The source code for all \slepc components, which currently includes:
 \begin{description}
@@ -407,16 +407,16 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 \MyVerbatimInput{ex1f.F}
 
 %---------------------------------------------------
-\section{Matlab Interface}
-\label{sec:matlab}
-
-Since version 3.2, \slepc includes an interface intended to make most of \slepc's functionality available from Matlab. It is experimental and needs further development, so users planning to use it seriously are recommended to contact the authors. Below are some guidelines for using this interface.
-
-First of all, \petsc must have been configured with the Matlab interface enabled. This can be done as follows (check \petsc documentation for details):
-	\begin{Verbatim}[fontsize=\small]
-	$ ./configure --with-matlab --with-matlab-engine --with-shared-libraries
-	\end{Verbatim}
-
-Once the \petsc and \slepc libraries have been built, one has to set Matlab's path to point to the directories containing Matlab classes: \Verb!$SLEPC_DIR/share/slepc/matlab/classes! and \Verb!$PETSC_DIR/share/slepc/matlab/classes!. Below we show a simple Matlab example (included in \slepc's distribution) that does this, and then solves a simple eigenproblem.
-\MyVerbatimInput{exEPS.m}
+%\section{Matlab Interface}
+%\label{sec:matlab}
+%
+%Since version 3.2, \slepc includes an interface intended to make most of \slepc's functionality available from Matlab. It is experimental and needs further development, so users planning to use it seriously are recommended to contact the authors. Below are some guidelines for using this interface.
+%
+%First of all, \petsc must have been configured with the Matlab interface enabled. This can be done as follows (check \petsc documentation for details):
+%	\begin{Verbatim}[fontsize=\small]
+%	$ ./configure --with-matlab --with-matlab-engine --with-shared-libraries
+%	\end{Verbatim}
+%
+%Once the \petsc and \slepc libraries have been built, one has to set Matlab's path to point to the directories containing Matlab classes: \Verb!$SLEPC_DIR/share/slepc/matlab/classes! and \Verb!$PETSC_DIR/share/slepc/matlab/classes!. Below we show a simple Matlab example (included in \slepc's distribution) that does this, and then solves a simple eigenproblem.
+%\MyVerbatimInput{exEPS.m}
 
