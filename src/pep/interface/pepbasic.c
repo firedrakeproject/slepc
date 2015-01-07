@@ -210,6 +210,78 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPReasonView"
+/*@
+   PEPReasonView - Displays the reason a PEP solve converged or diverged.
+
+   Collective on PEP
+
+   Parameter:
++  pep - the eigensolver context
+-  viewer - the viewer to display the reason
+
+   Options Database Keys:
+.  -pep_converged_reason - print reason for convergence, and number of iterations
+
+   Level: beginner
+
+.seealso: PEPSetConvergenceTest(), PEPSetTolerances(), PEPGetIterationNumber()
+@*/
+PetscErrorCode PEPReasonView(PEP pep,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  PetscBool      isAscii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
+  if (isAscii) {
+    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
+    if (pep->reason > 0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve converged due to %s; iterations %D\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",PEPConvergedReasons[pep->reason],pep->its);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve did not converge due to %s; iterations %D\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",PEPConvergedReasons[pep->reason],pep->its);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPReasonViewFromOptions"
+/*@C
+   PEPReasonViewFromOptions - Processes command line options to determine if/how
+   the PEP converged reason is to be viewed. 
+
+   Collective on PEP
+
+   Input Parameters:
+.  pep - the eigensolver context
+
+   Level: intermediate
+@*/
+PetscErrorCode PEPReasonViewFromOptions(PEP pep)
+{
+  PetscErrorCode    ierr;
+  PetscViewer       viewer;
+  PetscBool         flg;
+  static PetscBool  incall = PETSC_FALSE;
+  PetscViewerFormat format;
+
+  PetscFunctionBegin;
+  if (incall) PetscFunctionReturn(0);
+  incall = PETSC_TRUE;
+  ierr   = PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->prefix,"-pep_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
+    ierr = PEPReasonView(pep,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+  incall = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPPrintSolution"
 /*@
    PEPPrintSolution - Prints the computed eigenvalues.

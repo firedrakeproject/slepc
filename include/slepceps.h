@@ -159,7 +159,10 @@ PETSC_EXTERN PetscErrorCode EPSSetFromOptions(EPS);
 PETSC_EXTERN PetscErrorCode EPSSetUp(EPS);
 PETSC_EXTERN PetscErrorCode EPSSolve(EPS);
 PETSC_EXTERN PetscErrorCode EPSView(EPS,PetscViewer);
+PETSC_STATIC_INLINE PetscErrorCode EPSViewFromOptions(EPS eps,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)eps,prefix,name);}
 PETSC_EXTERN PetscErrorCode EPSPrintSolution(EPS,PetscViewer);
+PETSC_EXTERN PetscErrorCode EPSReasonView(EPS,PetscViewer);
+PETSC_EXTERN PetscErrorCode EPSReasonViewFromOptions(EPS);
 
 PETSC_EXTERN PetscErrorCode EPSSetTarget(EPS,PetscScalar);
 PETSC_EXTERN PetscErrorCode EPSGetTarget(EPS,PetscScalar*);
@@ -203,6 +206,8 @@ PETSC_EXTERN PetscErrorCode EPSSetWhichEigenpairs(EPS,EPSWhich);
 PETSC_EXTERN PetscErrorCode EPSGetWhichEigenpairs(EPS,EPSWhich*);
 PETSC_EXTERN PetscErrorCode EPSSetTrueResidual(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSGetTrueResidual(EPS,PetscBool*);
+PETSC_EXTERN PetscErrorCode EPSSetPurify(EPS,PetscBool);
+PETSC_EXTERN PetscErrorCode EPSGetPurify(EPS,PetscBool*);
 PETSC_EXTERN PetscErrorCode EPSSetEigenvalueComparison(EPS,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 PETSC_EXTERN PetscErrorCode EPSSetArbitrarySelection(EPS,PetscErrorCode (*func)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*),void*);
 PETSC_EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscBool*);

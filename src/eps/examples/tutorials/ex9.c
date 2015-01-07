@@ -64,9 +64,8 @@ int main(int argc,char **argv)
   Mat            A;               /* eigenvalue problem matrix */
   EPS            eps;             /* eigenproblem solver context */
   EPSType        type;
-  PetscScalar    delta1,delta2,L,h,value[3];
-  PetscInt       N=30,n,i,col[3],Istart,Iend,nev;
-  PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
+  PetscScalar    delta1,delta2,L,h;
+  PetscInt       N=30,n,i,Istart,Iend,nev;
   CTX_BRUSSEL    *ctx;
   PetscErrorCode ierr;
 
@@ -107,22 +106,11 @@ int main(int argc,char **argv)
   ierr = MatSetUp(ctx->T);CHKERRQ(ierr);
 
   ierr = MatGetOwnershipRange(ctx->T,&Istart,&Iend);CHKERRQ(ierr);
-  if (Istart==0) FirstBlock=PETSC_TRUE;
-  if (Iend==N) LastBlock=PETSC_TRUE;
-  value[0]=1.0; value[1]=-2.0; value[2]=1.0;
-  for (i=(FirstBlock? Istart+1: Istart); i<(LastBlock? Iend-1: Iend); i++) {
-    col[0]=i-1; col[1]=i; col[2]=i+1;
-    ierr = MatSetValues(ctx->T,1,&i,3,col,value,INSERT_VALUES);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    if (i>0) { ierr = MatSetValue(ctx->T,i,i-1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<N-1) { ierr = MatSetValue(ctx->T,i,i+1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    ierr = MatSetValue(ctx->T,i,i,-2.0,INSERT_VALUES);CHKERRQ(ierr);
   }
-  if (LastBlock) {
-    i=N-1; col[0]=N-2; col[1]=N-1;
-    ierr = MatSetValues(ctx->T,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  if (FirstBlock) {
-    i=0; col[0]=0; col[1]=1; value[0]=-2.0; value[1]=1.0;
-    ierr = MatSetValues(ctx->T,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
-  }
-
   ierr = MatAssemblyBegin(ctx->T,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(ctx->T,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->T,&n,NULL);CHKERRQ(ierr);

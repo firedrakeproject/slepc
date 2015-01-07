@@ -118,10 +118,10 @@ static PetscErrorCode CISSRedundantMat(EPS eps)
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   if (ctx->subcomm->n != 1) {
     ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-    ierr = MatGetRedundantMatrix(A,ctx->subcomm->n,ctx->subcomm->comm,MAT_INITIAL_MATRIX,&ctx->pA);CHKERRQ(ierr);
+    ierr = MatCreateRedundantMatrix(A,ctx->subcomm->n,ctx->subcomm->comm,MAT_INITIAL_MATRIX,&ctx->pA);CHKERRQ(ierr);
     if (nmat>1) {
       ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
-      ierr = MatGetRedundantMatrix(B,ctx->subcomm->n,ctx->subcomm->comm,MAT_INITIAL_MATRIX,&ctx->pB);CHKERRQ(ierr); 
+      ierr = MatCreateRedundantMatrix(B,ctx->subcomm->n,ctx->subcomm->comm,MAT_INITIAL_MATRIX,&ctx->pB);CHKERRQ(ierr); 
     } else ctx->pB = NULL;
   } else {
     ctx->pA = NULL;

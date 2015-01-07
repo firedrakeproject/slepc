@@ -94,6 +94,78 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "MFNReasonView"
+/*@
+   MFNReasonView - Displays the reason an MFN solve converged or diverged.
+
+   Collective on MFN
+
+   Parameter:
++  mfn - the matrix function context
+-  viewer - the viewer to display the reason
+
+   Options Database Keys:
+.  -mfn_converged_reason - print reason for convergence, and number of iterations
+
+   Level: beginner
+
+.seealso: MFNSetTolerances(), MFNGetIterationNumber()
+@*/
+PetscErrorCode MFNReasonView(MFN mfn,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  PetscBool      isAscii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
+  if (isAscii) {
+    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
+    if (mfn->reason > 0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Matrix function solve converged due to %s; iterations %D\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Matrix function solve did not converge due to %s; iterations %D\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MFNReasonViewFromOptions"
+/*@C
+   MFNReasonViewFromOptions - Processes command line options to determine if/how
+   the MFN converged reason is to be viewed. 
+
+   Collective on MFN
+
+   Input Parameters:
+.  mfn - the matrix function context
+
+   Level: intermediate
+@*/
+PetscErrorCode MFNReasonViewFromOptions(MFN mfn)
+{
+  PetscErrorCode    ierr;
+  PetscViewer       viewer;
+  PetscBool         flg;
+  static PetscBool  incall = PETSC_FALSE;
+  PetscViewerFormat format;
+
+  PetscFunctionBegin;
+  if (incall) PetscFunctionReturn(0);
+  incall = PETSC_TRUE;
+  ierr   = PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->prefix,"-mfn_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
+    ierr = MFNReasonView(mfn,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+  incall = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "MFNCreate"
 /*@C
    MFNCreate - Creates the default MFN context.

@@ -184,8 +184,8 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
       ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(PetscSubcomm));CHKERRQ(ierr);
 
       /* Duplicate matrices */
-      ierr = MatGetRedundantMatrix(A,0,ctx->subc->comm,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
-      if (B) { ierr = MatGetRedundantMatrix(B,0,ctx->subc->comm,MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr); }
+      ierr = MatCreateRedundantMatrix(A,0,ctx->subc->comm,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
+      if (B) { ierr = MatCreateRedundantMatrix(B,0,ctx->subc->comm,MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr); }
     }
 
     /* Determine subintervals */
@@ -234,6 +234,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
     ierr = MPI_Comm_split(((PetscObject)eps)->comm,rank,ctx->subc->color,&ctx->commrank);CHKERRQ(ierr);
     ctx->commset = PETSC_TRUE;
   }
+  ierr = EPSSetConvergenceTest(ctx->eps,eps->conv);CHKERRQ(ierr);
   ierr = EPSSetInterval(ctx->eps,a,b);CHKERRQ(ierr);
   ctx_local = (EPS_KRYLOVSCHUR*)ctx->eps->data;
   ctx_local->npart = ctx->npart;
@@ -1141,13 +1142,15 @@ static PetscErrorCode EPSStoreEigenpairs(EPS eps)
       sr->eigr[count] = lambda;
       sr->errest[count] = err;
       /* Explicit purification */
-      ierr = BVGetColumn(sr->V,count,&v);CHKERRQ(ierr);
-      ierr = BVGetColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
-      ierr = STApply(eps->st,w,v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(sr->V,count,&v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
-      ierr = BVNormColumn(sr->V,count,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = BVScaleColumn(sr->V,count,1.0/norm);CHKERRQ(ierr);
+      if (eps->purify) {
+        ierr = BVGetColumn(sr->V,count,&v);CHKERRQ(ierr);
+        ierr = BVGetColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
+        ierr = STApply(eps->st,w,v);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(sr->V,count,&v);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
+        ierr = BVNormColumn(sr->V,count,NORM_2,&norm);CHKERRQ(ierr);
+        ierr = BVScaleColumn(sr->V,count,1.0/norm);CHKERRQ(ierr);
+      }
       count++;
     }
   }

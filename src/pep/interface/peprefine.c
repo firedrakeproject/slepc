@@ -27,6 +27,7 @@
 #define NREF_MAXIT 10
 
 typedef struct {
+  PetscSubcomm  subc;
   VecScatter    *scatter_id;
   Mat           *A;
   Vec           vg,v;
@@ -46,14 +47,21 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
   ierr = PetscMalloc1(1,ctx_);CHKERRQ(ierr);
   ctx = *ctx_;
   if (pep->npart==1) {
+    ctx->subc = NULL;
     ctx->scatter_id = NULL;
     ctx->A = pep->A;
   } else {
     ierr = PetscMalloc2(pep->nmat,&ctx->A,pep->npart,&ctx->scatter_id);CHKERRQ(ierr);
 
+    /* Split in subcomunicators */
+    ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)pep),&ctx->subc);CHKERRQ(ierr);
+    ierr = PetscSubcommSetNumber(ctx->subc,pep->npart);CHKERRQ(ierr);CHKERRQ(ierr);
+    ierr = PetscSubcommSetType(ctx->subc,PETSC_SUBCOMM_CONTIGUOUS);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)pep,sizeof(PetscSubcomm));CHKERRQ(ierr);
+
     /* Duplicate matrices */
     for (i=0;i<pep->nmat;i++) {
-      ierr = MatGetRedundantMatrix(pep->A[i],0,pep->refinesubc->comm,MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
+      ierr = MatCreateRedundantMatrix(pep->A[i],0,ctx->subc->comm,MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
     }
     ierr = MatCreateVecs(ctx->A[0],&ctx->v,NULL);CHKERRQ(ierr);
 
@@ -106,13 +114,13 @@ PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,PetscInt
   if (pep->npart>1) {
     /* Gather pep->V[idx] from the subcommuniator sc */
     ierr = BVGetColumn(pep->V,idx,&v);CHKERRQ(ierr);
-    if (pep->refinesubc->color==sc) {
+    if (ctx->subc->color==sc) {
       ierr = VecGetArray(ctx->v,&array);CHKERRQ(ierr);
       ierr = VecPlaceArray(ctx->vg,array);CHKERRQ(ierr);
     }
     ierr = VecScatterBegin(ctx->scatter_id[sc],ctx->vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
     ierr = VecScatterEnd(ctx->scatter_id[sc],ctx->vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-    if (pep->refinesubc->color==sc) {
+    if (ctx->subc->color==sc) {
       ierr = VecResetArray(ctx->vg);CHKERRQ(ierr);
       ierr = VecRestoreArray(ctx->v,&array);CHKERRQ(ierr);
     }
@@ -132,13 +140,13 @@ PetscErrorCode PEPSimpleNRefScatterEigenvector(PEP pep,PEPSimpNRefctx *ctx,Petsc
   PetscFunctionBegin;
   if (pep->npart>1) {
     ierr = BVGetColumn(pep->V,idx,&v);CHKERRQ(ierr);
-    if (pep->refinesubc->color==sc) {
+    if (ctx->subc->color==sc) {
       ierr = VecGetArray(ctx->v,&array);CHKERRQ(ierr);
       ierr = VecPlaceArray(ctx->vg,array);CHKERRQ(ierr);
     }
     ierr = VecScatterBegin(ctx->scatter_id[sc],v,ctx->vg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
     ierr = VecScatterEnd(ctx->scatter_id[sc],v,ctx->vg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    if (pep->refinesubc->color==sc) {
+    if (ctx->subc->color==sc) {
       ierr = VecResetArray(ctx->vg);CHKERRQ(ierr);
       ierr = VecRestoreArray(ctx->v,&array);CHKERRQ(ierr);
     }
@@ -281,6 +289,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   PetscMPIInt    rank,size;
   KSP            ksp;
   Mat            M=NULL,T=NULL;
+  MPI_Comm       comm;
   Vec            r,v,dv,rr=NULL,dvv=NULL,t[2];
   PetscScalar    *array,*array2;
   PetscReal      norm,error;
@@ -291,7 +300,8 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
   ierr = PEPSimpleNRefSetUp(pep,&ctx);CHKERRQ(ierr);
   its = (maxits)?*maxits:NREF_MAXIT;
-  ierr = PEPRefineGetKSP(pep,&ksp);CHKERRQ(ierr);
+  comm = (pep->npart==1)?PetscObjectComm((PetscObject)pep):ctx->subc->comm;
+  ierr = KSPCreate(comm,&ksp);
   if (pep->npart==1) {
     ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
   } else v = ctx->v;
@@ -300,12 +310,12 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   ierr = VecDuplicate(v,&t[0]);CHKERRQ(ierr);
   ierr = VecDuplicate(v,&t[1]);CHKERRQ(ierr);
   if (pep->npart==1) { ierr = BVRestoreColumn(pep->V,0,&v);CHKERRQ(ierr); }
-  ierr = MPI_Comm_size(((PetscObject)ksp)->comm,&size);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(((PetscObject)ksp)->comm,&rank);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(comm,&rank);CHKERRQ(ierr);
   ierr = VecGetLocalSize(r,&n);CHKERRQ(ierr);
   ierr = PetscMalloc2(pep->npart,&idx_sc,pep->npart,&its_sc);CHKERRQ(ierr);
   for (i=0;i<pep->npart;i++) its_sc[i] = 0;
-  color = (pep->npart==1)?0:pep->refinesubc->color;
+  color = (pep->npart==1)?0:ctx->subc->color;
    
   /* Loop performing iterative refinements */
   while (!solved) {
@@ -350,6 +360,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
       ierr = PEPSimpleNRefSetUpSystem(pep,ctx->A,idx_sc[color],&M,&T,ini,t,v);CHKERRQ(ierr);
       ierr = KSPSetOperators(ksp,M,M);CHKERRQ(ierr);
       if (ini) {
+        ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
         ierr = MatCreateVecs(M,&dvv,NULL);CHKERRQ(ierr);
         ierr = VecDuplicate(dvv,&rr);CHKERRQ(ierr);
         ini = PETSC_FALSE;
@@ -380,6 +391,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
       if (pep->npart==1) { ierr = BVRestoreColumn(pep->V,idx_sc[color],&v);CHKERRQ(ierr); } 
     }
   }
+  ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&T);CHKERRQ(ierr);
   ierr = VecDestroy(&t[0]);CHKERRQ(ierr);
@@ -392,6 +404,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   if (pep->npart>1) {
     ierr = VecDestroy(&ctx->vg);CHKERRQ(ierr);
     ierr = VecDestroy(&ctx->v);CHKERRQ(ierr);
+    ierr = PetscSubcommDestroy(&ctx->subc);CHKERRQ(ierr);
     for (i=0;i<pep->nmat;i++) {
       ierr = MatDestroy(&ctx->A[i]);CHKERRQ(ierr);
     }

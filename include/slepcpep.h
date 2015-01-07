@@ -162,7 +162,10 @@ PETSC_EXTERN PetscErrorCode PEPSetFromOptions(PEP);
 PETSC_EXTERN PetscErrorCode PEPSetUp(PEP);
 PETSC_EXTERN PetscErrorCode PEPSolve(PEP);
 PETSC_EXTERN PetscErrorCode PEPView(PEP,PetscViewer);
+PETSC_STATIC_INLINE PetscErrorCode PEPViewFromOptions(PEP pep,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)pep,prefix,name);}
 PETSC_EXTERN PetscErrorCode PEPPrintSolution(PEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode PEPReasonView(PEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode PEPReasonViewFromOptions(PEP);
 PETSC_EXTERN PetscErrorCode PEPSetBV(PEP,BV);
 PETSC_EXTERN PetscErrorCode PEPGetBV(PEP,BV*);
 PETSC_EXTERN PetscErrorCode PEPSetRG(PEP,RG);

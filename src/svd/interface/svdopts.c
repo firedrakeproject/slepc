@@ -412,13 +412,6 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = PetscOptionsBoolGroupEnd("-svd_smallest","compute smallest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
     if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr); }
 
-    /*
-      Prints reason for convergence or divergence of each solve
-    */
-    flg  = PETSC_FALSE;
-    ierr = PetscOptionsBool("-svd_converged_reason","Print reason for converged or diverged","SVDSolve",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) svd->printreason = PETSC_TRUE;
-
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to SVDSetFromOptions()

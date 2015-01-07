@@ -61,6 +61,9 @@ PETSC_EXTERN PetscErrorCode MFNSetFromOptions(MFN);
 PETSC_EXTERN PetscErrorCode MFNSetUp(MFN);
 PETSC_EXTERN PetscErrorCode MFNSolve(MFN,Vec,Vec);
 PETSC_EXTERN PetscErrorCode MFNView(MFN,PetscViewer);
+PETSC_STATIC_INLINE PetscErrorCode MFNViewFromOptions(MFN mfn,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)mfn,prefix,name);}
+PETSC_EXTERN PetscErrorCode MFNReasonView(MFN,PetscViewer);
+PETSC_EXTERN PetscErrorCode MFNReasonViewFromOptions(MFN);
 
 PETSC_EXTERN PetscErrorCode MFNSetBV(MFN,BV);
 PETSC_EXTERN PetscErrorCode MFNGetBV(MFN,BV*);
