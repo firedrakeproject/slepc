@@ -239,8 +239,9 @@ if emptyarch:
 # Clean previous configuration if needed
 if os.path.exists(archdir):
   try:
-    with open(os.sep.join([archdir,'conf/slepcvariables']),"r") as f:
-      searchlines = f.readlines()
+    f = open(os.sep.join([archdir,'conf/slepcvariables']),"r")
+    searchlines = f.readlines()
+    f.close()
     found = 0
     for library in ['ARPACK','BLZPACK','TRLAN','PRIMME','FEAST','BLOPEX']:
       if library in ''.join(searchlines):
@@ -385,9 +386,6 @@ if petscconf.ISINSTALL:
     log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
 if not check.Link(tmpdir,[],[],[]):
   log.Exit('ERROR: Unable to link with PETSc')
-
-if prefixinstall and os.path.isfile(os.sep.join([prefixdir,'include','slepc.h'])):
-  log.Println('WARNING: prefix directory ' + prefixdir + ' contains files from a previous installation')
 
 # Single library installation
 if petscconf.SINGLELIB:

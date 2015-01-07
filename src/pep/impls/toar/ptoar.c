@@ -49,7 +49,6 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   PetscBool      sinv,flg;
   PetscInt       i;
-  PetscScalar    *coeffs=pep->solvematcoeffs;
 
   PetscFunctionBegin;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
@@ -71,12 +70,13 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) {
+    ierr = PetscMalloc1(pep->nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv) {
-      ierr = PEPEvaluateBasis(pep,pep->target,0,coeffs,NULL);CHKERRQ(ierr);
+      ierr = PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);
     } else {
-      for (i=0;i<pep->nmat-1;i++) coeffs[i] = 0.0;
-      coeffs[pep->nmat-1] = 1.0;
+      for (i=0;i<pep->nmat-1;i++) pep->solvematcoeffs[i] = 0.0;
+      pep->solvematcoeffs[pep->nmat-1] = 1.0;
     }
   }
   PetscFunctionReturn(0);
@@ -583,6 +583,14 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       sigma /= pep->sfactor;
     }
   }
+
+  /* Modify matrix norms so that the scaling affects the convergence test */
+  norm = pep->dsfactor;
+  for (i=0;i<pep->nmat;i++) {
+    pep->nrma[i] *= norm;
+    norm*=pep->sfactor;
+  }
+
   if (flg) sigma = 0.0;
   /* Get the starting Lanczos vector */
   if (pep->nini==0) {  
@@ -721,6 +729,10 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       }
     }
   }
+
+  /* Restore original matrix norms */
+  norm = pep->dsfactor;
+  for (i=0;i<pep->nmat;i++) {pep->nrma[i] /= norm; norm*=pep->sfactor;}
 
   /* change the state to raw so that DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);

@@ -65,14 +65,13 @@ PETSC_STATIC_INLINE PetscErrorCode NEPComputeVectors(NEP nep)
 @*/
 PetscErrorCode NEPSolve(NEP nep)
 {
-  PetscErrorCode    ierr;
-  PetscInt          i;
-  PetscReal         re,im;
-  PetscBool         flg;
-  PetscViewer       viewer;
-  PetscViewerFormat format;
-  PetscDraw         draw;
-  PetscDrawSP       drawsp;
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscReal      re,im;
+  PetscBool      flg;
+  PetscViewer    viewer;
+  PetscDraw      draw;
+  PetscDrawSP    drawsp;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -89,6 +88,7 @@ PetscErrorCode NEPSolve(NEP nep)
   }
   nep->ktol = 0.1;
   ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,nep->ncv);CHKERRQ(ierr);
+  ierr = NEPViewFromOptions(nep,NULL,"-nep_view_pre");CHKERRQ(ierr);
 
   ierr = (*nep->ops->solve)(nep);CHKERRQ(ierr);
 
@@ -104,17 +104,11 @@ PetscErrorCode NEPSolve(NEP nep)
 
   /* sort eigenvalues according to nep->which parameter */
   ierr = SlepcSortEigenvalues(nep->sc,nep->nconv,nep->eigr,nep->eigi,nep->perm);CHKERRQ(ierr);
-
   ierr = PetscLogEventEnd(NEP_Solve,nep,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->prefix,"-nep_view",&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg && !PetscPreLoadingOn) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = NEPView(nep,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-  }
+  ierr = NEPViewFromOptions(nep,NULL,"-nep_view");CHKERRQ(ierr);
+  ierr = NEPReasonViewFromOptions(nep);CHKERRQ(ierr);
 
   flg = PETSC_FALSE;
   ierr = PetscOptionsGetBool(((PetscObject)nep)->prefix,"-nep_plot_eigs",&flg,NULL);CHKERRQ(ierr);
@@ -125,7 +119,7 @@ PetscErrorCode NEPSolve(NEP nep)
     for (i=0;i<nep->nconv;i++) {
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(nep->eigr[i]);
-      im = PetscImaginaryPart(nep->eigi[i]);
+      im = PetscImaginaryPart(nep->eigr[i]);
 #else
       re = nep->eigr[i];
       im = nep->eigi[i];

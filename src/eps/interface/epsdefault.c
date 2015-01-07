@@ -49,7 +49,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
   Vec            w,z;
 
   PetscFunctionBegin;
-  if (eps->isgeneralized) {
+  if (eps->isgeneralized && eps->purify) {
     /* Purify eigenvectors */
     ierr = BVGetVec(eps->V,&w);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
@@ -92,14 +92,16 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
   ierr = MatDestroy(&X);CHKERRQ(ierr);
 
   /* purification */
-  ierr = BVGetVec(eps->V,&v);CHKERRQ(ierr);
-  for (i=0;i<eps->nconv;i++) {
-    ierr = BVCopyVec(eps->V,i,v);CHKERRQ(ierr);
-    ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
-    ierr = STApply(eps->st,v,z);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
+  if (eps->purify) {
+    ierr = BVGetVec(eps->V,&v);CHKERRQ(ierr);
+    for (i=0;i<eps->nconv;i++) {
+      ierr = BVCopyVec(eps->V,i,v);CHKERRQ(ierr);
+      ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
+      ierr = STApply(eps->st,v,z);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
+    }
+    ierr = VecDestroy(&v);CHKERRQ(ierr);
   }
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
 
   /* normalization */
   for (i=0;i<n;i++) {
@@ -169,7 +171,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   ierr = MatDestroy(&Z);CHKERRQ(ierr);
 
   /* Purify eigenvectors */
-  if (eps->ispositive) {
+  if (eps->ispositive && eps->purify) {
     ierr = BVGetVec(eps->V,&w);CHKERRQ(ierr);
     for (i=0;i<n;i++) {
       ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);
@@ -190,7 +192,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   }
 
   /* normalize eigenvectors (when using purification or balancing) */
-  if (eps->ispositive || (eps->balance!=EPS_BALANCE_NONE && eps->D)) {
+  if ((eps->ispositive && eps->purify) || (eps->balance!=EPS_BALANCE_NONE && eps->D)) {
     for (i=0;i<n;i++) {
 #if !defined(PETSC_USE_COMPLEX)
       if (eps->eigi[i] != 0.0) {
@@ -335,7 +337,7 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
   ierr = BVMultVec(V,1.0,0.0,x,Zr);CHKERRQ(ierr);
 
   /* purify eigenvector in positive generalized problems */
-  if (eps->ispositive) {
+  if (eps->ispositive && eps->purify) {
     ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
     if (eps->ishermitian) {
       ierr = BVNormVec(eps->V,y,NORM_2,&norm);CHKERRQ(ierr);

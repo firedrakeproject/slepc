@@ -68,7 +68,7 @@ struct _p_PEP {
   PEPBasis       basis;            /* polynomial basis used to represent the problem */
   PEPProblemType problem_type;     /* which kind of problem to be solved */
   PEPScale       scale;            /* scaling strategy to be used */
-  PetscReal      sfactor;          /* scaling factor */
+  PetscReal      sfactor,dsfactor; /* scaling factors */
   PetscInt       sits;             /* number of iterations of the scaling method */
   PetscReal      slambda;          /* norm eigenvalue approximation for scaling */
   PEPRefine      refine;           /* type of refinement to be applied after solve */

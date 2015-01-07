@@ -412,6 +412,10 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = PetscOptionsBoolGroupEnd("-svd_smallest","compute smallest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
     if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr); }
 
+    /* -----------------------------------------------------------------------*/
+    /*
+      Cancels all monitors hardwired into code before call to SVDSetFromOptions()
+    */
     flg = PETSC_FALSE;
     ierr = PetscOptionsBool("-svd_monitor_cancel","Remove any hardwired monitor routines","SVDMonitorCancel",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {

@@ -1012,7 +1012,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
   /* Duplicate pep matrices */
   ierr = PetscMalloc3(pep->nmat,&matctx->A,nsubc,&matctx->scatter_id,nsubc,&matctx->scatterp_id);CHKERRQ(ierr);
   for (i=0;i<pep->nmat;i++) {
-    ierr = MatGetRedundantMatrix(A[i],0,matctx->subc->comm,MAT_INITIAL_MATRIX,&matctx->A[i]);CHKERRQ(ierr);    
+    ierr = MatCreateRedundantMatrix(A[i],0,matctx->subc->comm,MAT_INITIAL_MATRIX,&matctx->A[i]);CHKERRQ(ierr);    
   }
 
   /* Create Scatter */

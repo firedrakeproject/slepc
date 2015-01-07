@@ -105,6 +105,7 @@ typedef enum {/* converged */
               NEP_DIVERGED_BREAKDOWN           = -4,
               NEP_DIVERGED_FNORM_NAN           = -5,
               NEP_CONVERGED_ITERATING          =  0} NEPConvergedReason;
+PETSC_EXTERN const char *const*NEPConvergedReasons;
 
 PETSC_EXTERN PetscErrorCode NEPCreate(MPI_Comm,NEP*);
 PETSC_EXTERN PetscErrorCode NEPDestroy(NEP*);
@@ -119,6 +120,9 @@ PETSC_EXTERN PetscErrorCode NEPSetFromOptions(NEP);
 PETSC_EXTERN PetscErrorCode NEPSetUp(NEP);
 PETSC_EXTERN PetscErrorCode NEPSolve(NEP);
 PETSC_EXTERN PetscErrorCode NEPView(NEP,PetscViewer);
+PETSC_STATIC_INLINE PetscErrorCode NEPViewFromOptions(NEP nep,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)nep,prefix,name);}
+PETSC_EXTERN PetscErrorCode NEPReasonView(NEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode NEPReasonViewFromOptions(NEP);
 
 PETSC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat,Mat,void*),void*);
 PETSC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,Mat,void*),void**);
@@ -140,8 +144,8 @@ PETSC_EXTERN PetscErrorCode NEPSetConvergenceTest(NEP,PetscErrorCode (*)(NEP,Pet
 PETSC_EXTERN PetscErrorCode NEPConvergedDefault(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
 PETSC_EXTERN PetscErrorCode NEPSetDimensions(NEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetDimensions(NEP,PetscInt*,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode NEPSetRefine(NEP,NEPRefine,PetscReal,PetscInt);
-PETSC_EXTERN PetscErrorCode NEPGetRefine(NEP,NEPRefine*,PetscReal*,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPSetRefine(NEP,NEPRefine,PetscInt,PetscReal,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPGetRefine(NEP,NEPRefine*,PetscInt*,PetscReal*,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetLagPreconditioner(NEP,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetLagPreconditioner(NEP,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetConstCorrectionTol(NEP,PetscBool);
