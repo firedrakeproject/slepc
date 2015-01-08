@@ -192,9 +192,9 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
     ierr = DSView(pep->ds,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
-    ierr = STView(pep->st,viewer);CHKERRQ(ierr);
   }
+  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
+  ierr = STView(pep->st,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

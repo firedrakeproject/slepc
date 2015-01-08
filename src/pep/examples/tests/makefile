@@ -73,7 +73,7 @@ runtest2_1:
 	done > $${test}.tmp; \
 	for eps in ${EPS}; do \
 	   echo "pep type linear, eps type $$eps"; \
-	   ${MPIEXEC} -np 1 ./test2 -pep_type linear -pep_eps_type $$eps -pep_nev 4 -pep_terse 2>&1; \
+	   ${MPIEXEC} -np 1 ./test2 -pep_type linear -pep_eps_type $$eps -pep_nev 4 -pep_linear_explicitmatrix -pep_terse 2>&1; \
 	done >> $${test}.tmp; \
 	${TESTCODE}
 
@@ -88,6 +88,6 @@ runtest2_2:
 	echo "qarnoldi with shift-and-invert (transform)" >> $${test}.tmp; \
 	${MPIEXEC} -np 1 ./test2 -pep_type qarnoldi -st_type sinvert -pep_target -0.4 -pep_nev 4 -pep_terse -st_transform 2>&1 >> $${test}.tmp; \
 	echo "linear with shift-and-invert" >> $${test}.tmp; \
-	${MPIEXEC} -np 1 ./test2 -pep_type linear -pep_target -0.4 -pep_nev 4 -pep_terse -pep_type linear -pep_st_type sinvert -pep_eps_target -0.4 2>&1 >> $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test2 -pep_type linear -pep_target -0.4 -pep_nev 4 -pep_terse -st_type sinvert 2>&1 >> $${test}.tmp; \
 	${TESTCODE}
 

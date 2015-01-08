@@ -258,7 +258,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ST             st;
   PetscInt       i=0;
   EPSWhich       which;
-  PetscBool      trackall,istrivial,flg,sinv;
+  PetscBool      trackall,istrivial,flg,sinv,ks;
   PetscScalar    sigma;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,PEP_LINEAR*,Mat*) = {
@@ -282,12 +282,12 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
   ierr = EPSSetTarget(ctx->eps,pep->target);CHKERRQ(ierr);
-  ierr = STSetShift(st,(!sinv||flg)?0.0:pep->target);CHKERRQ(ierr);
+  if (sinv && !flg) { ierr = STSetDefaultShift(st,pep->target);CHKERRQ(ierr); }
   if (ctx->explicitmatrix) {
     if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option only available for quadratic problems");
     if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option not implemented for non-monomial bases");
     if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEPLINEAR with explicit matrices");
-    ierr = STSetType(st,flg?STSHIFT:(STType)(((PetscObject)pep->st)->type_name));CHKERRQ(ierr);
+    if (sinv && !flg) { ierr = STSetType(st,STSINVERT);CHKERRQ(ierr); }
 
     /* compute scale factor if not set by user */
     ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
@@ -318,6 +318,9 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->B);CHKERRQ(ierr);
 
   } else {   /* implicit matrix */
+    ierr = PetscObjectTypeCompare((PetscObject)ctx->eps,EPSKRYLOVSCHUR,&ks);CHKERRQ(ierr);
+    if (!ks) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option only implemented for Krylov-Schur");
+    if (ctx->cform!=1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option not available for 2nd companion form");
     ierr = STSetType(st,STSHELL);CHKERRQ(ierr);
     ierr = STShellSetContext(st,(PetscObject)ctx);CHKERRQ(ierr);
     ierr = STShellSetBackTransform(st,BackTransform_Linear);CHKERRQ(ierr);
