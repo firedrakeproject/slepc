@@ -387,7 +387,6 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveScalar(st,shift,2);
-  PetscValidType(st,1);
   if (st->sigma != shift) {
     if (st->ops->setshift) {
       ierr = (*st->ops->setshift)(st,shift);CHKERRQ(ierr);
