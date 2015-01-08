@@ -132,13 +132,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       ierr = EPSSetDimensions(eps,i,j,k);CHKERRQ(ierr);
     }
 
-    /*
-      Prints reason for convergence or divergence of each solve
-    */
-    flg  = PETSC_FALSE;
-    ierr = PetscOptionsBool("-eps_converged_reason","Print reason for converged or diverged","EPSSolve",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) eps->printreason = PETSC_TRUE;
-
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to EPSSetFromOptions()

@@ -678,9 +678,8 @@ PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
 -  f  - array of functions
 
    Notes:
-   In the basic usage, only one function is used, for instance to
-   evaluate a function of the projected matrix. In the context of nonlinear
-   eigensolvers, there are as many functions as terms in the split
+   This is normally used in the context of nonlinear eigensolvers, where
+   there are as many functions as terms in the split
    nonlinear operator T(lambda) = sum_i A_i*f_i(lambda).
 
    This function must be called before DSAllocate(). Then DSAllocate()
@@ -688,7 +687,7 @@ PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
 
    Level: developer
 
-.seealso: DSGetFN(), DSGetFN(), DSAllocate()
+.seealso: DSGetFN(), DSAllocate()
  @*/
 PetscErrorCode DSSetFN(DS ds,PetscInt n,FN f[])
 {
@@ -723,7 +722,7 @@ PetscErrorCode DSSetFN(DS ds,PetscInt n,FN f[])
    Not collective, though parallel FNs are returned if the DS is parallel
 
    Input Parameter:
-+  ds - the direct olver context
++  ds - the direct solver context
 -  k  - the index of the requested function (starting in 0)
 
    Output Parameter:

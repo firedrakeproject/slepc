@@ -67,18 +67,17 @@ PETSC_STATIC_INLINE PetscErrorCode EPSComputeVectors(EPS eps)
 @*/
 PetscErrorCode EPSSolve(EPS eps)
 {
-  PetscErrorCode    ierr;
-  PetscInt          i,nmat;
-  PetscReal         re,im;
-  PetscScalar       dot;
-  PetscBool         flg,iscayley;
-  PetscViewer       viewer;
-  PetscViewerFormat format;
-  PetscDraw         draw;
-  PetscDrawSP       drawsp;
-  STMatMode         matmode;
-  Mat               A,B;
-  Vec               w,x;
+  PetscErrorCode ierr;
+  PetscInt       i,nmat;
+  PetscReal      re,im;
+  PetscScalar    dot;
+  PetscBool      flg,iscayley;
+  PetscViewer    viewer;
+  PetscDraw      draw;
+  PetscDrawSP    drawsp;
+  STMatMode      matmode;
+  Mat            A,B;
+  Vec            w,x;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -94,6 +93,7 @@ PetscErrorCode EPSSolve(EPS eps)
     eps->errest[i] = 0.0;
   }
   ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->ncv);CHKERRQ(ierr);
+  ierr = EPSViewFromOptions(eps,NULL,"-eps_view_pre");CHKERRQ(ierr);
 
   /* call solver */
   ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);
@@ -151,29 +151,13 @@ PetscErrorCode EPSSolve(EPS eps)
 
   /* sort eigenvalues according to eps->which parameter */
   ierr = SlepcSortEigenvalues(eps->sc,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
-
-  if (eps->printreason) {
-    ierr = PetscViewerASCIIAddTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps)),((PetscObject)eps)->tablevel);CHKERRQ(ierr);
-    if (eps->reason > 0) {
-      ierr = PetscViewerASCIIPrintf(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps)),"%s Linear eigensolve converged due to %s; iterations %D\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps)),"%s Linear eigensolve did not converge due to %s; iterations %D\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIISubtractTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps)),((PetscObject)eps)->tablevel);CHKERRQ(ierr);
-  }
   ierr = PetscLogEventEnd(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
+  ierr = EPSViewFromOptions(eps,NULL,"-eps_view");CHKERRQ(ierr);
+  ierr = EPSReasonViewFromOptions(eps);CHKERRQ(ierr);
   ierr = MatViewFromOptions(A,((PetscObject)eps)->prefix,"-eps_view_mat0");CHKERRQ(ierr);
   if (nmat>1) { ierr = MatViewFromOptions(B,((PetscObject)eps)->prefix,"-eps_view_mat1");CHKERRQ(ierr); }
-
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->prefix,"-eps_view",&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg && !PetscPreLoadingOn) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = EPSView(eps,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-  }
 
   flg = PETSC_FALSE;
   ierr = PetscOptionsGetBool(((PetscObject)eps)->prefix,"-eps_plot_eigs",&flg,NULL);CHKERRQ(ierr);

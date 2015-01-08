@@ -601,7 +601,7 @@ PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
 
 #undef __FUNCT__
 #define __FUNCT__ "BVAXPY"
-/*@
+/*@C
    BVAXPY - Computes Y = Y + alpha*X.
 
    Logically Collective on BV
