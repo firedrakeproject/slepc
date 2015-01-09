@@ -266,5 +266,8 @@ PETSC_EXTERN PetscErrorCode PEPQArnoldiGetRestart(PEP,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPTOARSetRestart(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPTOARGetRestart(PEP,PetscReal*);
 
+PETSC_EXTERN PetscErrorCode PEPJDSetRestart(PEP,PetscReal);
+PETSC_EXTERN PetscErrorCode PEPJDGetRestart(PEP,PetscReal*);
+
 #endif
 
