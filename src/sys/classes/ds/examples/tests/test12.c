@@ -115,7 +115,7 @@ int main(int argc,char **argv)
   }
 
   /* Print first eigenvalue */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalue =\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalue =\n");CHKERRQ(ierr);
   nev = 1;
   for (i=0;i<nev;i++) {
 #if defined(PETSC_USE_COMPLEX)

@@ -51,8 +51,8 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
-  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   ierr = PetscViewerASCIIPrintf(viewer,"  number of functions: %D\n",ds->nf);CHKERRQ(ierr);
+  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   for (i=0;i<ds->nf;i++) {
     ierr = FNView(ds->f[i],viewer);CHKERRQ(ierr);
     ierr = DSViewMat(ds,viewer,DSMatExtra[i]);CHKERRQ(ierr);
