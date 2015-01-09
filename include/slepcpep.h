@@ -48,6 +48,7 @@ typedef const char* PEPType;
 #define PEPLINEAR    "linear"
 #define PEPQARNOLDI  "qarnoldi"
 #define PEPTOAR      "toar"
+#define PEPJD        "jd"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId PEP_CLASSID;

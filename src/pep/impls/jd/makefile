@@ -21,10 +21,15 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = pjd.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepcpep
-DIRS     = linear qarnoldi toar jd
-LOCDIR   = src/pep/impls/
+DIRS     =
 MANSEC   = PEP
+LOCDIR   = src/pep/impls/jd/
 
 include ${SLEPC_DIR}/conf/slepc_common
 
