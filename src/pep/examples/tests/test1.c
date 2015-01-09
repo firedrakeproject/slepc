@@ -138,6 +138,7 @@ int main(int argc,char **argv)
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)eps,EPSGD,&flag);CHKERRQ(ierr);
     }
+    ierr = PEPLinearSetExplicitMatrix(pep,PETSC_TRUE);CHKERRQ(ierr);
   }
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPQARNOLDI,&flag);CHKERRQ(ierr);
   if (flag) {
