@@ -27,10 +27,14 @@
 PetscErrorCode DSAllocate_NEP(DS ds,PetscInt ld)
 {
   PetscErrorCode ierr;
+  PetscInt       i;
 
   PetscFunctionBegin;
   if (!ds->nf) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"DSNEP requires passing some functions via DSSetFN()");
   ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
+  for (i=0;i<ds->nf;i++) {
+    ierr = DSAllocateMat_Private(ds,DSMatExtra[i]);CHKERRQ(ierr);
+  }
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld,&ds->perm);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt));CHKERRQ(ierr);
@@ -48,6 +52,7 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
+  ierr = PetscViewerASCIIPrintf(viewer,"  number of functions: %D\n",ds->nf);CHKERRQ(ierr);
   for (i=0;i<ds->nf;i++) {
     ierr = FNView(ds->f[i],viewer);CHKERRQ(ierr);
     ierr = DSViewMat(ds,viewer,DSMatExtra[i]);CHKERRQ(ierr);

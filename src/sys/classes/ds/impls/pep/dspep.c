@@ -27,12 +27,17 @@
 PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
 {
   PetscErrorCode ierr;
+  PetscInt       i;
 
   PetscFunctionBegin;
+  if (!ds->d) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"DSPEP requires specifying the polynomial degree via DSSetDegree()");
   ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
+  for (i=0;i<=ds->d;i++) {
+    ierr = DSAllocateMat_Private(ds,DSMatExtra[i]);CHKERRQ(ierr);
+  }
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
-  ierr = PetscMalloc1(ld,&ds->perm);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt));CHKERRQ(ierr);
+  ierr = PetscMalloc1(ld*ds->d,&ds->perm);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)ds,ld*ds->d*sizeof(PetscInt));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -47,8 +52,8 @@ PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
-  for (i=0;i<ds->nf;i++) {
-    ierr = FNView(ds->f[i],viewer);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  polynomial degree: %D\n",ds->d);CHKERRQ(ierr);
+  for (i=0;i<ds->d;i++) {
     ierr = DSViewMat(ds,viewer,DSMatExtra[i]);CHKERRQ(ierr);
   }
   if (ds->state>DS_STATE_INTERMEDIATE) {
@@ -79,11 +84,6 @@ PetscErrorCode DSVectors_PEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 #define __FUNCT__ "DSNormalize_PEP"
 PetscErrorCode DSNormalize_PEP(DS ds,DSMatType mat,PetscInt col)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,i0,i1;
-  PetscBLASInt   ld,n,one = 1;
-  PetscScalar    norm,*x;
-
   PetscFunctionBegin;
   switch (mat) {
     case DS_MAT_X:
@@ -94,19 +94,6 @@ PetscErrorCode DSNormalize_PEP(DS ds,DSMatType mat,PetscInt col)
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
   }
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
-  if (col < 0) {
-    i0 = 0; i1 = ds->n;
-  } else {
-    i0 = col; i1 = col+1;
-  }
-  for (i=i0;i<i1;i++) {
-    norm = BLASnrm2_(&n,&x[ld*i],&one);
-    norm = 1.0/norm;
-    PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
-  }
   PetscFunctionReturn(0);
 }
 
@@ -115,24 +102,24 @@ PetscErrorCode DSNormalize_PEP(DS ds,DSMatType mat,PetscInt col)
 PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscErrorCode ierr;
-  PetscInt       n,l,i,*perm,ld=ds->ld;
+  PetscInt       n,i,*perm;
   PetscScalar    *A;
 
   PetscFunctionBegin;
   if (!ds->sc) PetscFunctionReturn(0);
-  n = ds->n;
-  l = ds->l;
+  n = ds->n*ds->d;
   A  = ds->mat[DS_MAT_A];
   perm = ds->perm;
-  for (i=l;i<n;i++) wr[i] = A[i+i*ld];
   if (rr) {
     ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
   } else {
-    ierr = DSSortEigenvalues_Private(ds,wr,NULL,perm,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = DSSortEigenvalues_Private(ds,wr,wi,perm,PETSC_FALSE);CHKERRQ(ierr);
   }
-  for (i=l;i<n;i++) A[i+i*ld] = wr[perm[i]];
-  for (i=l;i<n;i++) wr[i] = A[i+i*ld];
-  ierr = DSPermuteColumns_Private(ds,l,n,DS_MAT_Q,perm);CHKERRQ(ierr);
+  for (i=0;i<n;i++) A[i]  = wr[perm[i]];
+  for (i=0;i<n;i++) wr[i] = A[i];
+  for (i=0;i<n;i++) A[i]  = wi[perm[i]];
+  for (i=0;i<n;i++) wi[i] = A[i];
+  ierr = DSPermuteColumns_Private(ds,0,n,DS_MAT_X,perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -145,12 +132,13 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GGEV - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
-  PetscScalar    *A,*B,*W,*X,*work,*alpha,*beta;
-  PetscBLASInt   info,n,ld,lrwork=0,lwork;
+  PetscInt       i,j,off;
+  PetscScalar    *A,*B,*W,*X,*E,*work,*beta,norm;
+  PetscBLASInt   info,n,ldd,nd,lrwork=0,lwork,one=1;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #else
-  PetscReal      *alphai;
+  PetscScalar    norm0;
 #endif
 
   PetscFunctionBegin;
@@ -163,42 +151,83 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   if (!ds->mat[DS_MAT_W]) {
     ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
   }
+  ierr = PetscBLASIntCast(ds->n*ds->d,&nd);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld*ds->d,&ldd);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscBLASIntCast(2*ds->n+2*ds->n,&lwork);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(8*ds->n,&lrwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(nd+2*nd,&lwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(8*nd,&lrwork);CHKERRQ(ierr);
 #else
-  ierr = PetscBLASIntCast(3*ds->n+8*ds->n,&lwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(nd+8*nd,&lwork);CHKERRQ(ierr);
 #endif
   ierr = DSAllocateWork_Private(ds,lwork,lrwork,0);CHKERRQ(ierr);
-  alpha = ds->work;
-  beta = ds->work + ds->n;
-#if defined(PETSC_USE_COMPLEX)
-  work = ds->work + 2*ds->n;
-  lwork -= 2*ds->n;
-#else
-  alphai = ds->work + 2*ds->n;
-  work = ds->work + 3*ds->n;
-  lwork -= 3*ds->n;
-#endif
+  beta = ds->work;
+  work = ds->work + nd;
+  lwork -= nd;
   A = ds->mat[DS_MAT_A];
   B = ds->mat[DS_MAT_B];
   W = ds->mat[DS_MAT_W];
   X = ds->mat[DS_MAT_X];
+  E = ds->mat[DSMatExtra[ds->d]];
 
   /* build matrices A and B of the linearization */
+  ierr = PetscMemzero(A,ldd*ldd*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<nd-ds->n;i++) A[i+(i+ds->n)*ldd] = -1.0;
+  for (i=0;i<ds->d;i++) {
+    off = i*ds->n*ldd+(ds->d-1)*ds->n;
+    for (j=0;j<ds->n;j++) {
+      ierr = PetscMemcpy(A+off+j*ldd,ds->mat[DSMatExtra[i]]+j*ds->ld,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+  }
+  ierr = PetscMemzero(B,ldd*ldd*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<nd-ds->n;i++) B[i+i*ldd] = -1.0;
+  off = (ds->d-1)*ds->n*(ldd+1);
+  for (j=0;j<ds->n;j++) {
+    for (i=0;i<ds->n;i++) B[off+i+j*ldd] = -E[i+j*ds->ld];
+  }
 
   /* solve generalized eigenproblem */
 #if defined(PETSC_USE_COMPLEX)
   rwork = ds->rwork;
-  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&n,A,&ld,B,&ld,alpha,beta,NULL,&ld,W,&ld,work,&lwork,rwork,&info));
+  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&nd,A,&ldd,B,&ldd,wr,beta,NULL,&ldd,W,&ldd,work,&lwork,rwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack ZGGEV %d",info);
 #else
-  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&n,A,&ld,B,&ld,alpha,alphai,beta,NULL,&ld,W,&ld,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&nd,A,&ldd,B,&ldd,wr,wi,beta,NULL,&ldd,W,&ldd,work,&lwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DGGEV %d",info);
 #endif
 
+  /* copy eigenvalues */
+  for (i=0;i<nd;i++) {
+    if (beta[i]==0.0) wr[i] = (PetscRealPart(wr[i])>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
+    else wr[i] /= beta[i];
+#if !defined(PETSC_USE_COMPLEX)
+    if (beta[i]==0.0) wi[i] = (wi[i]>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
+    else wi[i] /= beta[i];
+#else
+    if (wi) wi[i] = 0.0;
+#endif
+  }
+
+  /* copy and normalize eigenvectors */
+  for (j=0;j<nd;j++) {
+    ierr = PetscMemcpy(X+j*ds->ld,W+j*ldd,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  for (j=0;j<nd;j++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if (wi[j] != 0.0) {
+      norm = BLASnrm2_(&n,X+j*ds->ld,&one);
+      norm0 = BLASnrm2_(&n,X+(j+1)*ds->ld,&one);
+      norm = 1.0/SlepcAbsEigenvalue(norm,norm0);
+      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,X+j*ds->ld,&one));
+      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,X+(j+1)*ds->ld,&one));
+      j++;
+    } else
+#endif
+    {
+      norm = 1.0/BLASnrm2_(&n,X+i*ds->ld,&one);
+      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,X+i*ds->ld,&one));
+    }
+  }
   PetscFunctionReturn(0);
 #endif
 }

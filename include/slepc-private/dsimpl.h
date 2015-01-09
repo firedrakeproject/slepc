@@ -60,6 +60,7 @@ struct _p_DS {
   PetscInt       t;                  /* length of decomposition when it was truncated */
   PetscInt       bs;                 /* block size */
   PetscInt       nf;                 /* number of functions in f[] */
+  PetscInt       d;                  /* polynomial degree in DSPEP */
   FN             f[DS_NUM_EXTRA];    /* functions provided via DSSetFN() */
   SlepcSC        sc;                 /* sorting criterion */
 

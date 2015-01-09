@@ -94,6 +94,9 @@ typedef enum { DS_STATE_RAW,
     DS_MAT_T that has space for 3 x ld elements (ld = leading dimension)
     and DS_MAT_D that has space for just ld elements.
 
+    In DSPEP problems, matrices A, B, W can have space for d*ld x d*ld,
+    where d is the polynomial degree, and X can have ld x d*ld.
+
     Level: advanced
 
 .seealso: DSAllocate(), DSGetArray(), DSGetArrayReal(), DSVectors()
@@ -175,6 +178,8 @@ PETSC_EXTERN PetscErrorCode DSNormalize(DS,DSMatType,PetscInt);
 PETSC_EXTERN PetscErrorCode DSSetFN(DS,PetscInt,FN*);
 PETSC_EXTERN PetscErrorCode DSGetFN(DS,PetscInt,FN*);
 PETSC_EXTERN PetscErrorCode DSGetNumFN(DS,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSSetDegree(DS,PetscInt);
+PETSC_EXTERN PetscErrorCode DSGetDegree(DS,PetscInt*);
 
 PETSC_EXTERN PetscFunctionList DSList;
 PETSC_EXTERN PetscBool         DSRegisterAllCalled;
