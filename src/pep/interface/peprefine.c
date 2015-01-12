@@ -25,12 +25,14 @@
 #include <slepcblaslapack.h>
 
 #define NREF_MAXIT 10
-
+////////////////////
+PetscBool scatter=PETSC_FALSE;
+////////////////////
 typedef struct {
   PetscSubcomm  subc;
-  VecScatter    *scatter_id;
+  VecScatter    *scatter_id,scatterc;
   Mat           *A;
-  Vec           vg,v;
+  Vec           vg,v,vc;
 } PEPSimpNRefctx;
 
 #undef __FUNCT__
@@ -38,13 +40,14 @@ typedef struct {
 static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
 {
   PetscErrorCode ierr;
-  PetscInt       i,si,j,n0,m0,nloc,*idx1,*idx2;
+  PetscInt       i,si,j,n0,m0,nloc,*idx1,*idx2,N;
   IS             is1,is2;
   PEPSimpNRefctx *ctx;
   Vec            v;
+  PetscMPIInt    np,rank;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc1(1,ctx_);CHKERRQ(ierr);
+  ierr = PetscCalloc1(1,ctx_);CHKERRQ(ierr);
   ctx = *ctx_;
   if (pep->npart==1) {
     ctx->subc = NULL;
@@ -86,6 +89,31 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
       ierr = ISDestroy(&is1);CHKERRQ(ierr);
       ierr = ISDestroy(&is2);CHKERRQ(ierr);
     }
+    ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);
+  }
+  /* Create scatter for sending matrix values to the last process */
+  ierr = MPI_Comm_size(((PetscObject)ctx->A[0])->comm,&np);CHKERRQ(ierr);
+  if (np>1) {
+    ierr = MatGetOwnershipRange(ctx->A[0],&n0,&m0);CHKERRQ(ierr);
+    ierr = MPI_Comm_rank(((PetscObject)ctx->A[0])->comm,&rank);CHKERRQ(ierr);
+    ierr = MatGetSize(ctx->A[0],&N,NULL);CHKERRQ(ierr);
+    nloc = (rank==np-1)?N:0;
+    ierr = VecCreateMPI(((PetscObject)ctx->A[0])->comm,nloc,PETSC_DECIDE,&ctx->vc);
+    ierr = PetscMalloc2(m0-n0,&idx1,m0-n0,&idx2);CHKERRQ(ierr);
+    j = 0;
+    for (i=n0;i<m0;i++) {
+      idx1[j]   = i;
+      idx2[j++] = i;
+    }
+    ierr = ISCreateGeneral(PetscObjectComm((PetscObject)ctx->A[0]),(m0-n0),idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
+    ierr = ISCreateGeneral(PetscObjectComm((PetscObject)ctx->A[0]),(m0-n0),idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
+    if (pep->npart==1) {
+      ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
+    } else v = ctx->v;
+    ierr = VecScatterCreate(v,is1,ctx->vc,is2,&ctx->scatterc);CHKERRQ(ierr);
+    if (pep->npart==1) { ierr = BVRestoreColumn(pep->V,0,&v);CHKERRQ(ierr); }
+    ierr = ISDestroy(&is1);CHKERRQ(ierr);
+    ierr = ISDestroy(&is2);CHKERRQ(ierr);
     ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);  
@@ -178,18 +206,18 @@ static PetscErrorCode PEPEvaluateFunctionDerivatives(PEP pep,PetscScalar alpha,P
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSimpleNRefSetUpSystem"
-PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PetscInt idx,Mat *M,Mat *T,PetscBool ini,Vec *t,Vec v)
+PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,PEPSimpNRefctx *ctx,Mat *A,PetscInt idx,Mat *M,Mat *T,PetscBool ini,Vec *t,Vec v)
 {
   PetscErrorCode    ierr;
   PetscInt          i,nmat=pep->nmat,ml,m0,m1,mg;
-  PetscInt          *dnz,*onz,ncols,*cols2,*nnz;
+  PetscInt          *dnz,*onz,ncols,*cols2,*cols1,*nnz;
   PetscScalar       *array,zero=0.0,*coeffs;
   PetscMPIInt       rank,size;
   MPI_Comm          comm;
   const PetscInt    *cols;
   const PetscScalar *vals;
   MatStructure      str;
-  Vec               w=t[1],q=t[0];
+  Vec               w=t[1],q=t[0],v_;
 
   PetscFunctionBegin;
   comm = PetscObjectComm((PetscObject)A[0]);
@@ -268,11 +296,28 @@ PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PetscInt idx,Mat *M,Mat *
   }
   ierr = VecRestoreArray(w,&array);CHKERRQ(ierr);
   ierr = VecConjugate(v);CHKERRQ(ierr);
-  ierr = VecGetArray(v,&array);CHKERRQ(ierr);
-  ierr = MatSetValues(*M,1,&mg,m1-m0,cols2,array,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = MatSetValues(*M,1,&mg,1,&mg,&zero,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecRestoreArray(v,&array);CHKERRQ(ierr);
+  if (scatter) {/////////
+  if (size>1) {
+    ierr = VecScatterBegin(ctx->scatterc,v,ctx->vc,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+    ierr = VecScatterEnd(ctx->scatterc,v,ctx->vc,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+  }
+  if (rank==size-1) {
+    ierr = PetscMalloc1(mg,&cols1);CHKERRQ(ierr);
+    for (i=0;i<mg;i++) cols1[i]=i;
+    v_ = (size==1)?v:ctx->vc;
+    ierr = VecGetArray(v_,&array);CHKERRQ(ierr);
+    ierr = MatSetValues(*M,1,&mg,mg,cols1,array,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecRestoreArray(v_,&array);CHKERRQ(ierr);
+    ierr = PetscFree(cols1);CHKERRQ(ierr);
+  }
+  } else {/////
+    ierr = VecGetArray(v,&array);CHKERRQ(ierr);
+    ierr = MatSetValues(*M,1,&mg,m1-m0,cols2,array,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = MatSetValues(*M,1,&mg,1,&mg,&zero,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecRestoreArray(v,&array);CHKERRQ(ierr);
+  }///////
   ierr = VecConjugate(v);CHKERRQ(ierr);
+  ierr = MatSetValues(*M,1,&mg,1,&mg,&zero,INSERT_VALUES);CHKERRQ(ierr);
   ierr = MatAssemblyBegin(*M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(*M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);  
   ierr = PetscFree(cols2);CHKERRQ(ierr);
@@ -297,6 +342,9 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   PEPSimpNRefctx *ctx;
 
   PetscFunctionBegin;
+////////////////////////
+ierr = PetscOptionsGetBool(NULL,"-scatter",&scatter,NULL);CHKERRQ(ierr);
+////////////////////////
   ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
   ierr = PEPSimpleNRefSetUp(pep,&ctx);CHKERRQ(ierr);
   its = (maxits)?*maxits:NREF_MAXIT;
@@ -357,7 +405,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
       if (pep->npart==1) {
         ierr = BVGetColumn(pep->V,idx_sc[color],&v);CHKERRQ(ierr);
       } else v = ctx->v; 
-      ierr = PEPSimpleNRefSetUpSystem(pep,ctx->A,idx_sc[color],&M,&T,ini,t,v);CHKERRQ(ierr);
+      ierr = PEPSimpleNRefSetUpSystem(pep,ctx,ctx->A,idx_sc[color],&M,&T,ini,t,v);CHKERRQ(ierr);
       ierr = KSPSetOperators(ksp,M,M);CHKERRQ(ierr);
       if (ini) {
         ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
