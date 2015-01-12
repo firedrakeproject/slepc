@@ -512,7 +512,7 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j,PetscRandom rctx)
 #undef __FUNCT__
 #define __FUNCT__ "BVMatMult"
 /*@
-   BVMatMult - Computes the matrix-vector product for each column, Y=A*X.
+   BVMatMult - Computes the matrix-vector product for each column, Y=A*V.
 
    Neighbor-wise Collective on Mat and BV
 

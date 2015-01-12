@@ -26,14 +26,18 @@
 
 typedef struct {
   PetscBool  explicitmatrix;
+  PEP        pep;
   PetscInt   cform;           /* companion form */
   PetscReal  sfactor;         /* scaling factor */
   Mat        A,B;             /* matrices of generalized eigenproblem */
   EPS        eps;             /* linear eigensolver for Az=lBz */
   Mat        M,C,K;           /* copy of PEP coefficient matrices */
-  Vec        x1,x2,y1,y2;     /* work vectors */
+  Vec        w[6];            /* work vectors */
   PetscBool  setfromoptionscalled;
 } PEP_LINEAR;
+
+/* General case for implicit matrices of degree d */
+PETSC_INTERN PetscErrorCode MatMult_Linear(Mat,Vec,Vec);
 
 /* N1 */
 PETSC_INTERN PetscErrorCode MatMult_Linear_N1A(Mat,Vec,Vec);
