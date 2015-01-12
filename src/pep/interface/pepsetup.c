@@ -93,6 +93,8 @@ PetscErrorCode PEPSetUp(PEP pep)
   /* initialization of matrix norms */
   if (pep->conv==PEP_CONV_NORM) {
     for (i=0;i<pep->nmat;i++) {
+      ierr = MatHasOperation(pep->A[i],MATOP_NORM,&flg);CHKERRQ(ierr);
+      if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Norm relative converged criterion require a matrix norm operation");
       if (!pep->nrma[i]) {
         ierr = MatNorm(pep->A[i],NORM_INFINITY,&pep->nrma[i]);CHKERRQ(ierr);
       }
@@ -107,6 +109,11 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (pep->refine) {
     if (pep->rtol==PETSC_DEFAULT) pep->rtol = pep->tol;
     if (pep->rits==PETSC_DEFAULT) pep->rits = (pep->refine==PEP_REFINE_SIMPLE)? 10: 1;
+  }
+
+  /* set default extraction */
+  if (!pep->extract) {
+    pep->extract = (pep->basis==PEP_BASIS_MONOMIAL)? PEP_EXTRACT_NORM: PEP_EXTRACT_NONE;
   }
 
   /* fill sorting criterion context */

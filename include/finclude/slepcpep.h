@@ -88,6 +88,24 @@
       parameter (PEP_SCALE_DIAGONAL         =  2)
       parameter (PEP_SCALE_BOTH             =  3)
 
+      PetscEnum PEP_REFINE_NONE
+      PetscEnum PEP_REFINE_SIMPLE
+      PetscEnum PEP_REFINE_MULTIPLE
+
+      parameter (PEP_REFINE_NONE            =  0)
+      parameter (PEP_REFINE_SIMPLE          =  1)
+      parameter (PEP_REFINE_MULTIPLE        =  2)
+
+      PetscEnum PEP_EXTRACT_NONE
+      PetscEnum PEP_EXTRACT_NORM
+      PetscEnum PEP_EXTRACT_RESIDUAL
+      PetscEnum PEP_EXTRACT_STRUCTURED
+
+      parameter (PEP_EXTRACT_NONE           =  1)
+      parameter (PEP_EXTRACT_NORM           =  2)
+      parameter (PEP_EXTRACT_RESIDUAL       =  3)
+      parameter (PEP_EXTRACT_STRUCTURED     =  4)
+
       PetscEnum PEP_CONV_ABS
       PetscEnum PEP_CONV_EIG
       PetscEnum PEP_CONV_NORM

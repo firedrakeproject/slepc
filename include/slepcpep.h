@@ -129,7 +129,8 @@ PETSC_EXTERN const char *PEPRefineTypes[];
 
 .seealso: PEPSetExtract()
 E*/
-typedef enum { PEP_EXTRACT_NORM,
+typedef enum { PEP_EXTRACT_NONE=1,
+               PEP_EXTRACT_NORM,
                PEP_EXTRACT_RESIDUAL,
                PEP_EXTRACT_STRUCTURED } PEPExtract;
 PETSC_EXTERN const char *PEPExtractTypes[];

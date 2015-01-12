@@ -440,7 +440,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->rtol            = PETSC_DEFAULT;
   pep->rits            = PETSC_DEFAULT;
   pep->schur           = PETSC_FALSE;
-  pep->extract         = PEP_EXTRACT_NORM;
+  pep->extract         = (PEPExtract)0;
   pep->trackall        = PETSC_FALSE;
 
   pep->converged       = PEPConvergedNormRelative;

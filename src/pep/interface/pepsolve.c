@@ -95,6 +95,7 @@ PetscErrorCode PEPSolve(PEP pep)
 
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
+    ierr = STPostSolve(pep->st);CHKERRQ(ierr);
     /* Map eigenvalues back to the original problem */
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
     if (flg) {

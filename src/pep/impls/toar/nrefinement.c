@@ -699,7 +699,7 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
 
 #undef __FUNCT__
 #define __FUNCT__ "NRefOrthogStep"
-PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscInt *prs,PetscScalar *work,PetscInt lwork)
+static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscInt *prs,PetscScalar *work,PetscInt lwork)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,nmat=pep->nmat,deg=nmat-1,lda=nmat*k,nwu=0,rs=*prs,ldg;
@@ -1110,7 +1110,6 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
   BV             dV;
   PetscBool      sinvert,flg;
   Mat            P,M;
-  MPI_Comm       comm;
   FSubctx        *ctx;
   KSP            ksp;
   MatExplicitCtx *matctx=NULL;
