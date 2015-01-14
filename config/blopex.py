@@ -72,7 +72,7 @@ def Install(conf,vars,cmake,tmpdir,url,archdir):
       filename   = os.path.basename(urlparse.urlparse(url)[2])
       failureMessage = '''\
 Unable to download package %s from: %s
-* If your network is disconnected - please reconnect and rerun config/configure.py
+* If your network is disconnected - please reconnect and rerun ./configure.py
 * Alternatively, you can download the above URL manually, to /yourselectedlocation/%s
   and use the configure option:
   --download-%s=/yourselectedlocation/%s

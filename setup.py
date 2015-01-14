@@ -11,14 +11,25 @@ real or complex arithmetic. It can also be used for computing a
 partial SVD of a large, sparse, rectangular matrix, and to solve
 nonlinear eigenvalue problems
 
+.. note::
+
+   To install ``PETSc``, ``SLEPc``, ``petsc4py``, and ``slepc4py``
+   (``mpi4py`` is optional but highly recommended) use::
+
+     $ pip install numpy mpi4py
+     $ pip install petsc petsc4py
+     $ pip install slepc slepc4py
+
 .. tip::
 
-  You can also install `slepc-dev`_ with::
+  You can also install the in-development versions with::
 
-    $ pip install petsc==dev slepc==dev
+    $ pip install Cython numpy mpi4py
+    $ pip install --no-deps https://bitbucket.org/petsc/petsc/get/master.tar.gz
+    $ pip install --no-deps https://bitbucket.org/petsc/petsc4py/get/master.tar.gz
+    $ pip install --no-deps https://bitbucket.org/slepc/slepc/get/master.tar.gz
+    $ pip install --no-deps https://bitbucket.org/slepc/slepc4py/get/master.tar.gz
 
-  .. _slepc-dev: https://bitbucket.org/slepc/
-                 slepc/get/master.tar.gz#egg=slepc-dev
 """
 
 import sys, os
@@ -139,7 +150,7 @@ def install(dest_dir, prefix=None, dry_run=False):
             'install',
             )))
     if status != 0: raise RuntimeError
-    slepcvariables = os.path.join(dest_dir, 'conf', 'slepcvariables')
+    slepcvariables = os.path.join(dest_dir, 'lib', 'slepc-conf', 'slepcvariables')
     fh = open(slepcvariables, 'a')
     fh.write('SLEPC_DESTDIR=%s\n' % prefix)
     fh.close()
@@ -203,12 +214,12 @@ include makefile gmakefile
 recursive-include config *.py
 
 recursive-include share/slepc/matlab *
-recursive-include conf *
+recursive-include lib/slepc-conf *
 recursive-include include *
 recursive-include src *
 
-exclude conf/slepcvariables
-recursive-exclude src *.html 
+exclude lib/slepc-conf/slepcvariables
+recursive-exclude src *.html
 recursive-exclude src/docs *
 recursive-exclude src/*/examples/* *.*
 recursive-exclude pypi *
@@ -250,8 +261,8 @@ def version():
         v = "%d.%d" % (major, minor)
         if micro > 0:
             v += ".%d" % micro
-        if patch > 0:
-            v += ".%d" % patch
+        #if patch > 0:
+        #    v += ".post%d" % patch
     else:
         v = "%d.%d.dev%d" % (major, minor+1, 0)
     return v

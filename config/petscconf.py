@@ -28,11 +28,11 @@ def Load(petscdir):
   if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']:
     ISINSTALL = 0
     ARCH = os.environ['PETSC_ARCH']
-    PETSCVARIABLES = os.sep.join([petscdir,ARCH,'conf','petscvariables'])
+    PETSCVARIABLES = os.sep.join([petscdir,ARCH,'lib','petsc-conf','petscvariables'])
     PETSCCONF_H = os.sep.join([petscdir,ARCH,'include','petscconf.h'])
   else:
     ISINSTALL = 1
-    PETSCVARIABLES = os.sep.join([petscdir,'conf','petscvariables'])
+    PETSCVARIABLES = os.sep.join([petscdir,'lib','petsc-conf','petscvariables'])
     PETSCCONF_H = os.sep.join([petscdir,'include','petscconf.h'])
 
   BUILD_USING_CMAKE = 0

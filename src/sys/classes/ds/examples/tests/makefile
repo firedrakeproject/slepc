@@ -45,7 +45,7 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
 TESTEXAMPLES_C_NOCOMPLEX = test13.PETSc runtest13_1 test13.rm
 TESTEXAMPLES_FORTRAN     = test14f.PETSc runtest14f_1 test14f.rm
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
 
 test1: test1.o chkopts
 	-${CLINKER} -o test1 test1.o ${SLEPC_SYS_LIB}

@@ -20,7 +20,7 @@
 #
 #requiresdefine   'PETSC_USING_F90'
 #
-#   Makes Fortran module functions from *.h90 files in include/finclude
+#   Makes Fortran module functions from *.h90 files in include/slepc-finclude
 #
 ALL: buildmod_slepc
 speciallib: buildmod_slepc
@@ -39,5 +39,5 @@ MANSEC     = SVD
 LOCDIR     = src/svd/f90-mod/
 CLEANFILES = *.mod
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
 

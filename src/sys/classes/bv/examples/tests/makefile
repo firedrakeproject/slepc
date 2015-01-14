@@ -40,7 +40,7 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 runtest1_3 runtest1_4 t
                        test8.PETSc runtest8_1 runtest8_2 runtest8_3 runtest8_4 test8.rm \
                        test9.PETSc runtest9_1 runtest9_2 runtest9_3 runtest9_4 test9.rm
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
 
 test1: test1.o chkopts
 	-${CLINKER} -o test1 test1.o ${SLEPC_SYS_LIB}
