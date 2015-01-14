@@ -227,7 +227,7 @@ archdir = os.sep.join([slepcdir,petscconf.ARCH])
 emptyarch = 1
 if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']: emptyarch = 0
 if emptyarch:
-  globconfdir = os.sep.join([slepcdir,'conf'])
+  globconfdir = os.sep.join([slepcdir,'lib','slepc-conf'])
   try:
     globconf = open(os.sep.join([globconfdir,'slepcvariables']),'w')
     globconf.write('SLEPC_DIR = ' + slepcdir +'\n')
@@ -239,7 +239,7 @@ if emptyarch:
 # Clean previous configuration if needed
 if os.path.exists(archdir):
   try:
-    f = open(os.sep.join([archdir,'conf/slepcvariables']),"r")
+    f = open(os.sep.join([archdir,'lib','slepc-conf','slepcvariables']),"r")
     searchlines = f.readlines()
     f.close()
     found = 0
@@ -262,12 +262,6 @@ if not os.path.exists(archdir):
     os.mkdir(archdir)
   except:
     sys.exit('ERROR: cannot create architecture directory ' + archdir)
-confdir = os.sep.join([archdir,'conf'])
-if not os.path.exists(confdir):
-  try:
-    os.mkdir(confdir)
-  except:
-    sys.exit('ERROR: cannot create configuration directory ' + confdir)
 incdir = os.sep.join([archdir,'include'])
 if not os.path.exists(incdir):
   try:
@@ -280,6 +274,12 @@ if not os.path.exists(libdir):
     os.mkdir(libdir)
   except:
     sys.exit('ERROR: cannot create lib directory ' + libdir)
+confdir = os.sep.join([libdir,'slepc-conf'])
+if not os.path.exists(confdir):
+  try:
+    os.mkdir(confdir)
+  except:
+    sys.exit('ERROR: cannot create configuration directory ' + confdir)
 modulesbasedir = os.sep.join([confdir,'modules'])
 if not os.path.exists(modulesbasedir):
   try:
@@ -357,8 +357,8 @@ try:
   makefile.write('\t${CLINKER} -o checklink checklink.o ${TESTFLAGS} ${PETSC_KSP_LIB}\n')
   makefile.write('\t@${RM} -f checklink checklink.o\n')
   makefile.write('LOCDIR = ./\n')
-  makefile.write('include ${PETSC_DIR}/conf/variables\n')
-  makefile.write('include ${PETSC_DIR}/conf/rules\n')
+  makefile.write('include ${PETSC_DIR}/lib/petsc-conf/variables\n')
+  makefile.write('include ${PETSC_DIR}/lib/petsc-conf/rules\n')
   makefile.close()
 except:
   sys.exit('ERROR: cannot create makefile in temporary directory')

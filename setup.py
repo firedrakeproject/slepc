@@ -139,7 +139,7 @@ def install(dest_dir, prefix=None, dry_run=False):
             'install',
             )))
     if status != 0: raise RuntimeError
-    slepcvariables = os.path.join(dest_dir, 'conf', 'slepcvariables')
+    slepcvariables = os.path.join(dest_dir, 'lib', 'slepc-conf', 'slepcvariables')
     fh = open(slepcvariables, 'a')
     fh.write('SLEPC_DESTDIR=%s\n' % prefix)
     fh.close()
@@ -203,11 +203,11 @@ include makefile gmakefile
 recursive-include config *.py
 
 recursive-include share/slepc/matlab *
-recursive-include conf *
+recursive-include lib/slepc-conf *
 recursive-include include *
 recursive-include src *
 
-exclude conf/slepcvariables
+exclude lib/slepc-conf/slepcvariables
 recursive-exclude src *.html 
 recursive-exclude src/docs *
 recursive-exclude src/*/examples/* *.*

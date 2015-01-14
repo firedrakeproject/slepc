@@ -235,13 +235,13 @@ Note that the point is represented as two \texttt{PetscScalar}'s, similarly to e
 
 	The directory structure of the \slepc software is very similar to that in \petsc. The root directory of \slepc contains the following directories:
 \begin{description}
-\item[\texttt{conf}] - Directory containing the base \slepc makefile, to be included in application makefiles.
+\item[\texttt{lib}] - Directory containing the base \slepc makefile, to be included in application makefiles.
 \item[\texttt{config}] - \slepc configuration scripts. 
 \item[\texttt{docs}] - All documentation for \slepc, including this manual. The subdirectory \texttt{manualpages} contains the on-line manual pages of each \slepc routine.
 \item[\texttt{include}] - All include files for \slepc. The following subdirectories exist:
 \begin{description}
 \setlength{\itemsep}{0mm}
-\item[\texttt{finclude}] - include files for Fortran programmers.
+\item[\texttt{slepc-finclude}] - include files for Fortran programmers.
 \item[\texttt{slepc-private}] - include files containing implementation details, for developer use only.
 \end{description}
 \item[\texttt{shared/slepc}] - Common files, including:
@@ -264,7 +264,7 @@ Note that the point is represented as two \texttt{PetscScalar}'s, similarly to e
 \begin{description}
 \setlength{\itemsep}{0mm}
 \item[\texttt{lib}] - all the generated libraries.
-\item[\texttt{conf}] - configuration parameters and log files.
+\item[\texttt{lib/slepc-conf}] - configuration parameters and log files.
 \item[\texttt{include}] - automatically generated include files, such as Fortran 90 \texttt{*.mod} files.
 \end{description}
 \end{description}

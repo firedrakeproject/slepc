@@ -31,6 +31,6 @@ DIRS     = arnoldi lanczos krylovschur
 LOCDIR   = src/eps/impls/krylov/
 MANSEC   = EPS
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
 
 
