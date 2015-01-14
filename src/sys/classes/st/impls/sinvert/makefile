@@ -31,6 +31,6 @@ DIRS     =
 MANSEC   = ST
 LOCDIR   = src/sys/classes/st/impls/sinvert/
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
 
 

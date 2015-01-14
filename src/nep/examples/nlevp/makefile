@@ -31,7 +31,7 @@ TESTS      = loaded_string
 
 TESTEXAMPLES_C = loaded_string.PETSc runloaded_string loaded_string.rm
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
 
 loaded_string: loaded_string.o chkopts
 	-${CLINKER} -o loaded_string loaded_string.o ${SLEPC_NEP_LIB}

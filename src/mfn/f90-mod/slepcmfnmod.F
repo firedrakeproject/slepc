@@ -23,12 +23,12 @@
         use slepcsys
         use slepcbv
         use slepcfn
-#include <finclude/slepcmfn.h>
-#include <finclude/ftn-custom/slepcmfndef.h90>
+#include <slepc-finclude/slepcmfn.h>
+#include <slepc-finclude/ftn-custom/slepcmfndef.h90>
         end module
 
         module slepcmfn
         use slepcmfndef
-#include <finclude/slepcmfn.h90>
+#include <slepc-finclude/slepcmfn.h90>
         end module
 
