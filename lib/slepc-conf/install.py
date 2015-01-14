@@ -157,20 +157,36 @@ class Installer:
     f.write('copies = '+repr(self.copies).replace(self.destDir,self.installDir))
     f.write('''
 for src, dst in copies:
-  if os.path.exists(dst):
+  try:
     os.remove(dst)
+  except:
+    pass
+''')
+    #TODO: need to delete libXXX.YYY.dylib.dSYM directory on Mac
+    dirs = [os.path.join('include','slepc-finclude'),os.path.join('include','slepc-private'),os.path.join('lib','slepc-conf')]
+    newdirs = []
+    for dir in dirs: newdirs.append(os.path.join(self.installDir,dir))
+    f.write('dirs = '+str(newdirs))
+    f.write('''
+for dir in dirs:
+  import shutil
+  try:
+    shutil.rmtree(dir)
+  except:
+    pass
 ''')
     f.close()
     os.chmod(uninstallscript,0744)
     return
 
   def installIncludes(self):
+    # TODO: should exclude slepc-finclude except for fortran builds
     self.copies.extend(self.copytree(self.rootIncludeDir, self.destIncludeDir,exclude = ['makefile']))
     self.copies.extend(self.copytree(self.archIncludeDir, self.destIncludeDir))
     return
 
   def installConf(self):
-    self.copies.extend(self.copytree(self.rootConfDir, self.destConfDir))
+    self.copies.extend(self.copytree(self.rootConfDir, self.destConfDir, exclude = ['gmakegen.py','install.py']))
     self.copies.extend(self.copytree(self.archConfDir, self.destConfDir))
     return
 
