@@ -406,7 +406,7 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate"
-/*@C
+/*@
    EPSCreate - Creates the default EPS context.
 
    Collective on MPI_Comm
@@ -658,7 +658,7 @@ PetscErrorCode EPSReset(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSDestroy"
-/*@C
+/*@
    EPSDestroy - Destroys the EPS context.
 
    Collective on EPS

@@ -234,7 +234,7 @@ PetscErrorCode NEPReasonViewFromOptions(NEP nep)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPCreate"
-/*@C
+/*@
    NEPCreate - Creates the default NEP context.
 
    Collective on MPI_Comm
@@ -493,7 +493,7 @@ PetscErrorCode NEPReset(NEP nep)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPDestroy"
-/*@C
+/*@
    NEPDestroy - Destroys the NEP context.
 
    Collective on NEP

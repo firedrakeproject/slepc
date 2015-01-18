@@ -100,7 +100,7 @@ PetscErrorCode FNInitializePackage(void)
 
 #undef __FUNCT__
 #define __FUNCT__ "FNCreate"
-/*@C
+/*@
    FNCreate - Creates an FN context.
 
    Collective on MPI_Comm
@@ -693,7 +693,7 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "FNDestroy"
-/*@C
+/*@
    FNDestroy - Destroys FN context that was created with FNCreate().
 
    Collective on FN

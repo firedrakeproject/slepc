@@ -24,14 +24,12 @@
 #include <slepcsvd.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define svddestroy_                  SVDDESTROY
 #define svdmonitorall_               SVDMONITORALL
 #define svdmonitorlg_                SVDMONITORLG
 #define svdmonitorlgall_             SVDMONITORLGALL
 #define svdmonitorconverged_         SVDMONITORCONVERGED
 #define svdmonitorfirst_             SVDMONITORFIRST
 #define svdview_                     SVDVIEW
-#define svdcreate_                   SVDCREATE
 #define svdsettype_                  SVDSETTYPE
 #define svdgettype_                  SVDGETTYPE
 #define svdmonitorset_               SVDMONITORSET
@@ -41,13 +39,11 @@
 #define svdgetoptionsprefix_         SVDGETOPTIONSPREFIX
 #define svdgetconvergedreason_       SVDGETCONVERGEDREASON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define svddestroy_                  svddestroy
 #define svdmonitorall_               svdmonitorall
 #define svdmonitorlgall_             svdmonitorlgall
 #define svdmonitorconverged_         svdmonitorconverged
 #define svdmonitorfirst_             svdmonitorfirst
 #define svdview_                     svdview
-#define svdcreate_                   svdcreate
 #define svdsettype_                  svdsettype
 #define svdgettype_                  svdgettype
 #define svdmonitorset_               svdmonitorset
@@ -108,21 +104,11 @@ static PetscErrorCode ourdestroy(void** ctx)
   PetscObjectUseFortranCallback(svd,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-PETSC_EXTERN void PETSC_STDCALL svddestroy_(SVD *svd,PetscErrorCode *ierr)
-{
-  *ierr = SVDDestroy(svd);
-}
-
 PETSC_EXTERN void PETSC_STDCALL svdview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = SVDView(*svd,v);
-}
-
-PETSC_EXTERN void PETSC_STDCALL svdcreate_(MPI_Fint *comm,SVD *svd,PetscErrorCode *ierr)
-{
-  *ierr = SVDCreate(MPI_Comm_f2c(*(comm)),svd);
 }
 
 PETSC_EXTERN void PETSC_STDCALL svdsettype_(SVD *svd,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))

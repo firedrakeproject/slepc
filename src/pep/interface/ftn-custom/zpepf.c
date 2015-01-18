@@ -24,12 +24,10 @@
 #include <slepc-private/pepimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define pepdestroy_                 PEPDESTROY
 #define pepview_                    PEPVIEW
 #define pepsetoptionsprefix_        PEPSETOPTIONSPREFIX
 #define pepappendoptionsprefix_     PEPAPPENDOPTIONSPREFIX
 #define pepgetoptionsprefix_        PEPGETOPTIONSPREFIX
-#define pepcreate_                  PEPCREATE
 #define pepsettype_                 PEPSETTYPE
 #define pepgettype_                 PEPGETTYPE
 #define pepmonitorall_              PEPMONITORALL
@@ -46,12 +44,10 @@
 #define pepconvergednormrelative_   PEPCONVERGEDNORMRELATIVE
 #define pepsetconvergencetestfunction_ PEPSETCONVERGENCETESTFUNCTION
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define pepdestroy_                 pepdestroy
 #define pepview_                    pepview
 #define pepsetoptionsprefix_        pepsetoptionsprefix
 #define pepappendoptionsprefix_     pepappendoptionsprefix
 #define pepgetoptionsprefix_        pepgetoptionsprefix
-#define pepcreate_                  pepcreate
 #define pepsettype_                 pepsettype
 #define pepgettype_                 pepgettype
 #define pepmonitorall_              pepmonitorall
@@ -136,11 +132,6 @@ static PetscErrorCode ourconvdestroy(void *ctx)
   PetscObjectUseFortranCallback(pep,_cb.convdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-PETSC_EXTERN void PETSC_STDCALL pepdestroy_(PEP *pep,PetscErrorCode *ierr)
-{
-  *ierr = PEPDestroy(pep);
-}
-
 PETSC_EXTERN void PETSC_STDCALL pepview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
@@ -190,11 +181,6 @@ PETSC_EXTERN void PETSC_STDCALL pepgetoptionsprefix_(PEP *pep,CHAR prefix PETSC_
 
   *ierr = PEPGetOptionsPrefix(*pep,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
-}
-
-PETSC_EXTERN void PETSC_STDCALL pepcreate_(MPI_Fint *comm,PEP *pep,PetscErrorCode *ierr)
-{
-  *ierr = PEPCreate(MPI_Comm_f2c(*(comm)),pep);
 }
 
 PETSC_EXTERN void PETSC_STDCALL pepmonitorset_(PEP *pep,void (PETSC_STDCALL *monitor)(PEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

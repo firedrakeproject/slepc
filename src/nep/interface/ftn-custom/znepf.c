@@ -24,12 +24,10 @@
 #include <slepc-private/nepimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define nepdestroy_                 NEPDESTROY
 #define nepview_                    NEPVIEW
 #define nepsetoptionsprefix_        NEPSETOPTIONSPREFIX
 #define nepappendoptionsprefix_     NEPAPPENDOPTIONSPREFIX
 #define nepgetoptionsprefix_        NEPGETOPTIONSPREFIX
-#define nepcreate_                  NEPCREATE
 #define nepsettype_                 NEPSETTYPE
 #define nepgettype_                 NEPGETTYPE
 #define nepmonitorall_              NEPMONITORALL
@@ -42,12 +40,10 @@
 #define nepgetwhicheigenpairs_      NEPGETWHICHEIGENPAIRS
 #define nepgetconvergedreason_      NEPGETCONVERGEDREASON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define nepdestroy_                 nepdestroy
 #define nepview_                    nepview
 #define nepsetoptionsprefix_        nepsetoptionsprefix
 #define nepappendoptionsprefix_     nepappendoptionsprefix
 #define nepgetoptionsprefix_        nepgetoptionsprefix
-#define nepcreate_                  nepcreate
 #define nepsettype_                 nepsettype
 #define nepgettype_                 nepgettype
 #define nepmonitorall_              nepmonitorall
@@ -110,11 +106,6 @@ static PetscErrorCode ourdestroy(void** ctx)
   PetscObjectUseFortranCallback(nep,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-PETSC_EXTERN void PETSC_STDCALL nepdestroy_(NEP *nep,PetscErrorCode *ierr)
-{
-  *ierr = NEPDestroy(nep);
-}
-
 PETSC_EXTERN void PETSC_STDCALL nepview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
@@ -156,11 +147,6 @@ PETSC_EXTERN void PETSC_STDCALL nepappendoptionsprefix_(NEP *nep,CHAR prefix PET
   FIXCHAR(prefix,len,t);
   *ierr = NEPAppendOptionsPrefix(*nep,t);
   FREECHAR(prefix,t);
-}
-
-PETSC_EXTERN void PETSC_STDCALL nepcreate_(MPI_Fint *comm,NEP *nep,PetscErrorCode *ierr)
-{
-  *ierr = NEPCreate(MPI_Comm_f2c(*(comm)),nep);
 }
 
 PETSC_EXTERN void PETSC_STDCALL nepgetoptionsprefix_(NEP *nep,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))

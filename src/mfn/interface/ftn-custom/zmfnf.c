@@ -23,12 +23,10 @@
 #include <slepc-private/mfnimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define mfndestroy_                 MFNDESTROY
 #define mfnview_                    MFNVIEW
 #define mfnsetoptionsprefix_        MFNSETOPTIONSPREFIX
 #define mfnappendoptionsprefix_     MFNAPPENDOPTIONSPREFIX
 #define mfngetoptionsprefix_        MFNGETOPTIONSPREFIX
-#define mfncreate_                  MFNCREATE
 #define mfnsettype_                 MFNSETTYPE
 #define mfngettype_                 MFNGETTYPE
 #define mfnmonitordefault_          MFNMONITORDEFAULT
@@ -36,12 +34,10 @@
 #define mfnmonitorset_              MFNMONITORSET
 #define mfngetconvergedreason_      MFNGETCONVERGEDREASON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define mfndestroy_                 mfndestroy
 #define mfnview_                    mfnview
 #define mfnsetoptionsprefix_        mfnsetoptionsprefix
 #define mfnappendoptionsprefix_     mfnappendoptionsprefix
 #define mfngetoptionsprefix_        mfngetoptionsprefix
-#define mfncreate_                  mfncreate
 #define mfnsettype_                 mfnsettype
 #define mfngettype_                 mfngettype
 #define mfnmonitordefault_          mfnmonitordefault
@@ -83,11 +79,6 @@ static PetscErrorCode ourdestroy(void** ctx)
 {
   MFN mfn = (MFN)*ctx;
   PetscObjectUseFortranCallback(mfn,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
-}
-
-PETSC_EXTERN void PETSC_STDCALL mfndestroy_(MFN *mfn,PetscErrorCode *ierr)
-{
-  *ierr = MFNDestroy(mfn);
 }
 
 PETSC_EXTERN void PETSC_STDCALL mfnview_(MFN *mfn,PetscViewer *viewer,PetscErrorCode *ierr)
@@ -139,11 +130,6 @@ PETSC_EXTERN void PETSC_STDCALL mfngetoptionsprefix_(MFN *mfn,CHAR prefix PETSC_
 
   *ierr = MFNGetOptionsPrefix(*mfn,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
-}
-
-PETSC_EXTERN void PETSC_STDCALL mfncreate_(MPI_Fint *comm,MFN *mfn,PetscErrorCode *ierr)
-{
-  *ierr = MFNCreate(MPI_Comm_f2c(*(comm)),mfn);
 }
 
 PETSC_EXTERN void PETSC_STDCALL mfnmonitorset_(MFN *mfn,void (PETSC_STDCALL *monitor)(MFN*,PetscInt*,PetscReal*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

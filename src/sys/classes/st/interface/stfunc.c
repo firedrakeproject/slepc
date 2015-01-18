@@ -134,7 +134,7 @@ PetscErrorCode STReset(ST st)
 
 #undef __FUNCT__
 #define __FUNCT__ "STDestroy"
-/*@C
+/*@
    STDestroy - Destroys ST context that was created with STCreate().
 
    Collective on ST
@@ -167,7 +167,7 @@ PetscErrorCode STDestroy(ST *st)
 
 #undef __FUNCT__
 #define __FUNCT__ "STCreate"
-/*@C
+/*@
    STCreate - Creates a spectral transformation context.
 
    Collective on MPI_Comm

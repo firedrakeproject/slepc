@@ -24,12 +24,10 @@
 #include <slepc-private/epsimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define epsdestroy_                 EPSDESTROY
 #define epsview_                    EPSVIEW
 #define epssetoptionsprefix_        EPSSETOPTIONSPREFIX
 #define epsappendoptionsprefix_     EPSAPPENDOPTIONSPREFIX
 #define epsgetoptionsprefix_        EPSGETOPTIONSPREFIX
-#define epscreate_                  EPSCREATE
 #define epssettype_                 EPSSETTYPE
 #define epsgettype_                 EPSGETTYPE
 #define epsgetoperators_            EPSGETOPERATORS
@@ -54,12 +52,10 @@
 #define epsseteigenvaluecomparison_ EPSSETEIGENVALUECOMPARISON
 #define epssetarbitraryselection_   EPSSETARBITRARYSELECTION
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define epsdestroy_                 epsdestroy
 #define epsview_                    epsview
 #define epssetoptionsprefix_        epssetoptionsprefix
 #define epsappendoptionsprefix_     epsappendoptionsprefix
 #define epsgetoptionsprefix_        epsgetoptionsprefix
-#define epscreate_                  epscreate
 #define epssettype_                 epssettype
 #define epsgettype_                 epsgettype
 #define epsgetoperators_            epsgetoperators
@@ -170,11 +166,6 @@ static PetscErrorCode ourarbitraryfunc(PetscScalar er,PetscScalar ei,Vec xr,Vec 
   PetscObjectUseFortranCallback(eps,_cb.arbitrary,(PetscScalar*,PetscScalar*,Vec*,Vec*,PetscScalar*,PetscScalar*,void*,PetscErrorCode*),(&er,&ei,&xr,&xi,rr,ri,_ctx,&ierr));
 }
 
-PETSC_EXTERN void PETSC_STDCALL epsdestroy_(EPS *eps,PetscErrorCode *ierr)
-{
-  *ierr = EPSDestroy(eps);
-}
-
 PETSC_EXTERN void PETSC_STDCALL epsview_(EPS *eps,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
@@ -231,11 +222,6 @@ PETSC_EXTERN void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_
 
   *ierr = EPSGetOptionsPrefix(*eps,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
-}
-
-PETSC_EXTERN void PETSC_STDCALL epscreate_(MPI_Fint *comm,EPS *eps,PetscErrorCode *ierr)
-{
-  *ierr = EPSCreate(MPI_Comm_f2c(*(comm)),eps);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

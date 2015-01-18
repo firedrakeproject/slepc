@@ -264,7 +264,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDCreate"
-/*@C
+/*@
    SVDCreate - Creates the default SVD context.
 
    Collective on MPI_Comm
@@ -374,7 +374,7 @@ PetscErrorCode SVDReset(SVD svd)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDDestroy"
-/*@C
+/*@
    SVDDestroy - Destroys the SVD context.
 
    Collective on SVD
