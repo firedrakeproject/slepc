@@ -1,0 +1,13 @@
+nativeptr EPS
+nativeptr PEP
+nativeptr NEP
+nativeptr SVD
+nativeptr MFN
+nativeptr ST
+nativeptr BV
+nativeptr FN
+nativeptr RG
+nativeptr DS
+#
+parm errparm z
+parm errparmlocal __z
