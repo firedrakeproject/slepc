@@ -875,7 +875,7 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetST"
-/*@C
+/*@
    EPSGetST - Obtain the spectral transformation (ST) object associated
    to the eigensolver object.
 
@@ -942,7 +942,7 @@ PetscErrorCode EPSSetBV(EPS eps,BV V)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetBV"
-/*@C
+/*@
    EPSGetBV - Obtain the basis vectors object associated to the eigensolver object.
 
    Not Collective
@@ -1008,7 +1008,7 @@ PetscErrorCode EPSSetRG(EPS eps,RG rg)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetRG"
-/*@C
+/*@
    EPSGetRG - Obtain the region object associated to the eigensolver.
 
    Not Collective
@@ -1074,7 +1074,7 @@ PetscErrorCode EPSSetDS(EPS eps,DS ds)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetDS"
-/*@C
+/*@
    EPSGetDS - Obtain the direct solver object associated to the eigensolver object.
 
    Not Collective

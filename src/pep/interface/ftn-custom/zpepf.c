@@ -38,10 +38,6 @@
 #define pepmonitorset_              PEPMONITORSET
 #define pepmonitorconverged_        PEPMONITORCONVERGED
 #define pepmonitorfirst_            PEPMONITORFIRST
-#define pepgetst_                   PEPGETST
-#define pepgetbv_                   PEPGETBV
-#define pepgetds_                   PEPGETDS
-#define pepgetrg_                   PEPGETRG
 #define pepgetwhicheigenpairs_      PEPGETWHICHEIGENPAIRS
 #define pepgetproblemtype_          PEPGETPROBLEMTYPE
 #define pepgetconvergedreason_      PEPGETCONVERGEDREASON
@@ -64,10 +60,6 @@
 #define pepmonitorset_              pepmonitorset
 #define pepmonitorconverged_        pepmonitorconverged
 #define pepmonitorfirst_            pepmonitorfirst
-#define pepgetst_                   pepgetst
-#define pepgetbv_                   pepgetbv
-#define pepgetds_                   pepgetds
-#define pepgetrg_                   pepgetrg
 #define pepgetwhicheigenpairs_      pepgetwhicheigenpairs
 #define pepgetproblemtype_          pepgetproblemtype
 #define pepgetconvergedreason_      pepgetconvergedreason
@@ -238,26 +230,6 @@ PETSC_EXTERN void PETSC_STDCALL pepmonitorset_(PEP *pep,void (PETSC_STDCALL *mon
       *ierr = PEPMonitorSet(*pep,ourmonitor,*pep,ourdestroy);
     }
   }
-}
-
-PETSC_EXTERN void PETSC_STDCALL pepgetst_(PEP *pep,ST *st,PetscErrorCode *ierr)
-{
-  *ierr = PEPGetST(*pep,st);
-}
-
-PETSC_EXTERN void PETSC_STDCALL pepgetbv_(PEP *pep,BV *bv,PetscErrorCode *ierr)
-{
-  *ierr = PEPGetBV(*pep,bv);
-}
-
-PETSC_EXTERN void PETSC_STDCALL pepgetds_(PEP *pep,DS *ds,PetscErrorCode *ierr)
-{
-  *ierr = PEPGetDS(*pep,ds);
-}
-
-PETSC_EXTERN void PETSC_STDCALL pepgetrg_(PEP *pep,RG *rg,PetscErrorCode *ierr)
-{
-  *ierr = PEPGetRG(*pep,rg);
 }
 
 PETSC_EXTERN void PETSC_STDCALL pepgetwhicheigenpairs_(PEP *pep,PEPWhich *which,PetscErrorCode *ierr)

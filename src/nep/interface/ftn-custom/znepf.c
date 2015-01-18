@@ -38,9 +38,6 @@
 #define nepmonitorset_              NEPMONITORSET
 #define nepmonitorconverged_        NEPMONITORCONVERGED
 #define nepmonitorfirst_            NEPMONITORFIRST
-#define nepgetbv_                   NEPGETBV
-#define nepgetds_                   NEPGETDS
-#define nepgetrg_                   NEPGETRG
 #define nepgetksp                   NEPGETKSP
 #define nepgetwhicheigenpairs_      NEPGETWHICHEIGENPAIRS
 #define nepgetconvergedreason_      NEPGETCONVERGEDREASON
@@ -59,10 +56,6 @@
 #define nepmonitorset_              nepmonitorset
 #define nepmonitorconverged_        nepmonitorconverged
 #define nepmonitorfirst_            nepmonitorfirst
-#define nepgetbv_                   nepgetbv
-#define nepgetds_                   nepgetds
-#define nepgetrg_                   nepgetrg
-#define nepgetksp_                  nepgetksp
 #define nepgetwhicheigenpairs_      nepgetwhicheigenpairs
 #define nepgetconvergedreason_      nepgetconvergedreason
 #endif
@@ -211,26 +204,6 @@ PETSC_EXTERN void PETSC_STDCALL nepmonitorset_(NEP *nep,void (PETSC_STDCALL *mon
       *ierr = NEPMonitorSet(*nep,ourmonitor,*nep,ourdestroy);
     }
   }
-}
-
-PETSC_EXTERN void PETSC_STDCALL nepgetbv_(NEP *nep,BV *bv,PetscErrorCode *ierr)
-{
-  *ierr = NEPGetBV(*nep,bv);
-}
-
-PETSC_EXTERN void PETSC_STDCALL nepgetds_(NEP *nep,DS *ds,PetscErrorCode *ierr)
-{
-  *ierr = NEPGetDS(*nep,ds);
-}
-
-PETSC_EXTERN void PETSC_STDCALL nepgetrg_(NEP *nep,RG *rg,PetscErrorCode *ierr)
-{
-  *ierr = NEPGetRG(*nep,rg);
-}
-
-PETSC_EXTERN void PETSC_STDCALL nepgetksp_(NEP *nep,KSP *ksp,PetscErrorCode *ierr)
-{
-  *ierr = NEPGetKSP(*nep,ksp);
 }
 
 PETSC_EXTERN void PETSC_STDCALL nepgetwhicheigenpairs_(NEP *nep,NEPWhich *which,PetscErrorCode *ierr)

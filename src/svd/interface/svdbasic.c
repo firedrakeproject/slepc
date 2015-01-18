@@ -572,7 +572,7 @@ PetscErrorCode SVDSetBV(SVD svd,BV V,BV U)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetBV"
-/*@C
+/*@
    SVDGetBV - Obtain the basis vectors objects associated to the singular
    value solver object.
 
@@ -648,7 +648,7 @@ PetscErrorCode SVDSetDS(SVD svd,DS ds)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetDS"
-/*@C
+/*@
    SVDGetDS - Obtain the direct solver object associated to the singular value
    solver object.
 

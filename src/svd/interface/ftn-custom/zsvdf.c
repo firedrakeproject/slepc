@@ -34,8 +34,6 @@
 #define svdcreate_                   SVDCREATE
 #define svdsettype_                  SVDSETTYPE
 #define svdgettype_                  SVDGETTYPE
-#define svdgetbv_                    SVDGETBV
-#define svdgetds_                    SVDGETDS
 #define svdmonitorset_               SVDMONITORSET
 #define svdgetwhichsingulartriplets_ SVDGETWHICHSINGULARTRIPLETS
 #define svdsetoptionsprefix_         SVDSETOPTIONSPREFIX
@@ -52,8 +50,6 @@
 #define svdcreate_                   svdcreate
 #define svdsettype_                  svdsettype
 #define svdgettype_                  svdgettype
-#define svdgetbv_                    svdgetbv
-#define svdgetds_                    svdgetds
 #define svdmonitorset_               svdmonitorset
 #define svdgetwhichsingulartriplets_ svdgetwhichsingulartriplets
 #define svdsetoptionsprefix_         svdsetoptionsprefix
@@ -145,16 +141,6 @@ PETSC_EXTERN void PETSC_STDCALL svdgettype_(SVD *svd,CHAR name PETSC_MIXED_LEN(l
   *ierr = SVDGetType(*svd,&tname);if (*ierr) return;
   *ierr = PetscStrncpy(name,tname,len);
   FIXRETURNCHAR(PETSC_TRUE,name,len);
-}
-
-PETSC_EXTERN void PETSC_STDCALL svdgetbv_(SVD *svd,BV *V,BV *U,PetscErrorCode *ierr)
-{
-  *ierr = SVDGetBV(*svd,V,U);
-}
-
-PETSC_EXTERN void PETSC_STDCALL svdgetds_(SVD *svd,DS *ds,PetscErrorCode *ierr)
-{
-  *ierr = SVDGetDS(*svd,ds);
 }
 
 PETSC_EXTERN void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
