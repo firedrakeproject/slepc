@@ -39,6 +39,7 @@
 #define svdgetoptionsprefix_         SVDGETOPTIONSPREFIX
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define svdmonitorall_               svdmonitorall
+#define svdmonitorlg_                svdmonitorlg
 #define svdmonitorlgall_             svdmonitorlgall
 #define svdmonitorconverged_         svdmonitorconverged
 #define svdmonitorfirst_             svdmonitorfirst

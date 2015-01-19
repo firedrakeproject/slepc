@@ -36,7 +36,6 @@
 #define nepmonitorset_              NEPMONITORSET
 #define nepmonitorconverged_        NEPMONITORCONVERGED
 #define nepmonitorfirst_            NEPMONITORFIRST
-#define nepgetksp                   NEPGETKSP
 #define nepgetwhicheigenpairs_      NEPGETWHICHEIGENPAIRS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define nepview_                    nepview
