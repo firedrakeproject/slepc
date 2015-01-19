@@ -33,15 +33,10 @@ nonlinear eigenvalue problems
 """
 
 import sys, os
-from distutils.core import setup
-from distutils.util import get_platform
+from setuptools import setup
+from setuptools.command.install import install as _install
+from distutils.util import get_platform, split_quoted
 from distutils.spawn import find_executable
-from distutils.command.build import build as _build
-if 'setuptools' in sys.modules:
-    from setuptools.command.install import install as _install
-else:
-    from distutils.command.install import install as _install
-from distutils.command.sdist import sdist as _sdist
 from distutils import log
 
 init_py = """\
@@ -60,8 +55,10 @@ def get_config():
 
 metadata = {
     'provides' : ['slepc'],
-    'requires' : [],
+    'zip_safe' : False,
 }
+
+CONFIGURE_OPTIONS = []
 
 def bootstrap():
     from os.path import join, isdir, abspath
@@ -90,10 +87,15 @@ def bootstrap():
     fh = open(pkgfile, 'wt')
     fh.write(init_py)
     fh.close()
-    if ('setuptools' in sys.modules):
-        metadata['zip_safe'] = False
-        if not PETSC_DIR:
-            metadata['install_requires']= ['petsc>=3.5,<3.6']
+    # Configure options
+    options = os.environ.get('PETSC_CONFIGURE_OPTIONS', '')
+    CONFIGURE_OPTIONS.extend(split_quoted(options))
+    #
+    if not PETSC_DIR:
+        vstr = version().split('.')[:2]
+        x, y = int(vstr[0]), int(vstr[1])
+        reqs = ">=%s.%s,<%s.%s" % (x, y, x, y+1)
+        metadata['install_requires'] = ['petsc'+reqs]
 
 def get_petsc_dir():
     PETSC_DIR = os.environ.get('PETSC_DIR')
@@ -107,55 +109,57 @@ def get_petsc_dir():
     return PETSC_DIR
 
 def get_petsc_arch():
-    PETSC_ARCH = os.environ.get('PETSC_ARCH')
+    PETSC_ARCH = os.environ.get('PETSC_ARCH', "")
     return PETSC_ARCH
 
-def config(dry_run=False):
+def config(prefix, dry_run=False):
     log.info('SLEPc: configure')
-    if dry_run: return
-    # PETSc
+    options = [
+        '--prefix=' + prefix,
+        ]
+    options.extend(CONFIGURE_OPTIONS)
+    #
+    log.info('configure options:')
+    for opt in options:
+        log.info(' '*4 + opt)
     # Run SLEPc configure
+    if dry_run: return
     os.environ['PETSC_DIR'] = get_petsc_dir()
-    status = os.system(" ".join((
-            find_executable('python'),
-            os.path.join('config', 'configure.py'),
-            )))
+    python = find_executable('python2') or find_executable('python')
+    command = [python, './configure', '--prefix='+prefix]
+    status = os.system(" ".join(command))
     if status != 0: raise RuntimeError(status)
 
 def build(dry_run=False):
     log.info('SLEPc: build')
-    if dry_run: return
     # Run SLEPc build
-    PETSC_ARCH = get_petsc_arch() or ''
-    if PETSC_ARCH: PETSC_ARCH = 'PETSC_ARCH=' + PETSC_ARCH
-    status = os.system(" ".join((
-            find_executable('make'),
-            'PETSC_DIR='+get_petsc_dir(), PETSC_ARCH,
-            'all',
-            )))
-    if status != 0: raise RuntimeError
-
-def install(dest_dir, prefix=None, dry_run=False):
-    log.info('SLEPc: install')
     if dry_run: return
-    if prefix is None:
-        prefix = dest_dir
-    # Run SLEPc install
-    PETSC_ARCH = get_petsc_arch() or ''
+    PETSC_ARCH = get_petsc_arch()
     if PETSC_ARCH: PETSC_ARCH = 'PETSC_ARCH=' + PETSC_ARCH
-    status = os.system(" ".join((
-            find_executable('make'),
-            'PETSC_DIR='+get_petsc_dir(), PETSC_ARCH,
-            'SLEPC_DESTDIR='+dest_dir,
-            'install',
-            )))
-    if status != 0: raise RuntimeError
+    make = find_executable('make')
+    command = [make, 'all',
+               'PETSC_DIR='+get_petsc_dir(), PETSC_ARCH]
+    status = os.system(" ".join(command))
+    if status != 0: raise RuntimeError(status)
+
+def install(dest_dir, dry_run=False):
+    log.info('SLEPc: install')
+    # Run SLEPc install
+    if dry_run: return
+    PETSC_ARCH = get_petsc_arch()
+    if PETSC_ARCH: PETSC_ARCH = 'PETSC_ARCH=' + PETSC_ARCH
+    make = find_executable('make')
+    command = [make, 'install',
+               'PETSC_DIR='+get_petsc_dir(), PETSC_ARCH,
+               'SLEPC_DESTDIR='+dest_dir]
+    status = os.system(" ".join(command))
+    if status != 0: raise RuntimeError(status)
     slepcvariables = os.path.join(dest_dir, 'lib', 'slepc-conf', 'slepcvariables')
     fh = open(slepcvariables, 'a')
-    fh.write('SLEPC_DESTDIR=%s\n' % prefix)
+    fh.write('SLEPC_DESTDIR=%s\n' % dest_dir)
     fh.close()
 
-class context:
+class context(object):
     def __init__(self):
         self.sys_argv = sys.argv[:]
         self.wdir = os.getcwd()
@@ -168,78 +172,41 @@ class context:
         sys.argv[:] = self.sys_argv
         os.chdir(self.wdir)
 
-class cmd_build(_build):
-
-    def initialize_options(self):
-        _build.initialize_options(self)
-        PETSC_ARCH = os.environ.get('PETSC_ARCH', '')
-        self.build_base = os.path.join(PETSC_ARCH, 'build-python')
-
-    def run(self):
-        _build.run(self)
-        ctx = context().enter()
-        try:
-            config(self.dry_run)
-            build(self.dry_run)
-        finally:
-            ctx.exit()
-
 class cmd_install(_install):
 
     def initialize_options(self):
         _install.initialize_options(self)
         self.optimize = 1
 
+    def finalize_options(self):
+        _install.finalize_options(self)
+        self.install_lib = self.install_platlib
+        self.install_libbase = self.install_lib
+
     def run(self):
-        root_dir = self.install_platlib
-        dest_dir = os.path.join(root_dir, 'slepc')
-        bdist_base = self.get_finalized_command('bdist').bdist_base
-        if dest_dir.startswith(bdist_base):
-            prefix = dest_dir[len(bdist_base)+1:]
-            prefix = prefix[prefix.index(os.path.sep):]
-        else:
-            prefix = dest_dir
-        dest_dir = os.path.abspath(dest_dir)
-        prefix   = os.path.abspath(prefix)
+        root_dir = os.path.abspath(self.install_lib)
+        dest_dir = prefix = os.path.join(root_dir, 'slepc')
         #
-        _install.run(self)
+        #
         ctx = context().enter()
         try:
-            install(dest_dir, prefix, self.dry_run)
+            config(prefix, self.dry_run)
+            build(self.dry_run)
+            install(dest_dir, self.dry_run)
         finally:
             ctx.exit()
+        #
+        self.outputs = []
+        for dirpath, _, filenames in os.walk(dest_dir):
+            for fn in filenames:
+                self.outputs.append(os.path.join(dirpath, fn))
+        #
+        _install.run(self)
 
-manifest_in = """\
-include makefile gmakefile
-recursive-include config *.py
-
-recursive-include share/slepc/matlab *
-recursive-include lib/slepc-conf *
-recursive-include include *
-recursive-include src *
-
-exclude lib/slepc-conf/slepcvariables
-recursive-exclude src *.html
-recursive-exclude src/docs *
-recursive-exclude src/*/examples/* *.*
-recursive-exclude pypi *
-"""
-
-class cmd_sdist(_sdist):
-
-    def initialize_options(self):
-        _sdist.initialize_options(self)
-        self.force_manifest = 1
-        self.template = os.path.join('pypi', 'manifest.in')
-        # Generate manifest.in file
-        SLEPC_DIR = os.environ['SLEPC_DIR']
-        from distutils.dir_util import mkpath
-        pkgdir = os.path.join(SLEPC_DIR, 'pypi')
-        if not os.path.exists(pkgdir): mkpath(pkgdir)
-        template = self.template
-        fh = open(template, 'wt')
-        fh.write(manifest_in)
-        fh.close()
+    def get_outputs(self):
+        outputs = getattr(self, 'outputs', [])
+        outputs += _install.get_outputs(self)
+        return outputs
 
 def version():
     import re
@@ -251,7 +218,7 @@ def version():
         'release': re.compile(r"#define\s+SLEPC_VERSION_RELEASE\s+(\d+)"),
         }
     slepcversion_h = os.path.join('include','slepcversion.h')
-    data = open(slepcversion_h, 'rt').read()
+    data = open(slepcversion_h, 'r').read()
     major = int(version_re['major'].search(data).groups()[0])
     minor = int(version_re['minor'].search(data).groups()[0])
     micro = int(version_re['micro'].search(data).groups()[0])
@@ -279,10 +246,11 @@ def tarball():
 
 description = __doc__.split('\n')[1:-1]; del description[1:3]
 classifiers = """
-License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)
-Operating System :: POSIX
+Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
 Intended Audience :: Science/Research
+License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)
+Operating System :: POSIX
 Programming Language :: C
 Programming Language :: C++
 Programming Language :: Fortran
@@ -311,9 +279,5 @@ setup(name='slepc',
 
       packages = ['slepc'],
       package_dir = {'slepc': 'pypi'},
-      cmdclass={
-        'build': cmd_build,
-        'install': cmd_install,
-        'sdist': cmd_sdist,
-        },
+      cmdclass={'install': cmd_install},
       **metadata)
