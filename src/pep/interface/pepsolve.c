@@ -227,7 +227,7 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetConvergedReason"
-/*@C
+/*@
    PEPGetConvergedReason - Gets the reason why the PEPSolve() iteration was
    stopped.
 

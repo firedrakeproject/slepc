@@ -38,7 +38,6 @@
 #define pepmonitorfirst_            PEPMONITORFIRST
 #define pepgetwhicheigenpairs_      PEPGETWHICHEIGENPAIRS
 #define pepgetproblemtype_          PEPGETPROBLEMTYPE
-#define pepgetconvergedreason_      PEPGETCONVERGEDREASON
 #define pepconvergedabsolute_       PEPCONVERGEDABSOLUTE
 #define pepconvergedeigrelative_    PEPCONVERGEDEIGRELATIVE
 #define pepconvergednormrelative_   PEPCONVERGEDNORMRELATIVE
@@ -58,7 +57,6 @@
 #define pepmonitorfirst_            pepmonitorfirst
 #define pepgetwhicheigenpairs_      pepgetwhicheigenpairs
 #define pepgetproblemtype_          pepgetproblemtype
-#define pepgetconvergedreason_      pepgetconvergedreason
 #define pepconvergedabsolute_       pepconvergedabsolute
 #define pepconvergedeigrelative_    pepconvergedeigrelative
 #define pepconvergednormrelative_   pepconvergednormrelative
@@ -226,11 +224,6 @@ PETSC_EXTERN void PETSC_STDCALL pepgetwhicheigenpairs_(PEP *pep,PEPWhich *which,
 PETSC_EXTERN void PETSC_STDCALL pepgetproblemtype_(PEP *pep,PEPProblemType *type,PetscErrorCode *ierr)
 {
   *ierr = PEPGetProblemType(*pep,type);
-}
-
-PETSC_EXTERN void PETSC_STDCALL pepgetconvergedreason_(PEP *pep,PEPConvergedReason *reason,PetscErrorCode *ierr)
-{
-  *ierr = PEPGetConvergedReason(*pep,reason);
 }
 
 PETSC_EXTERN void PETSC_STDCALL pepconvergedabsolute_(PEP *pep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)

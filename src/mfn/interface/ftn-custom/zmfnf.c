@@ -32,7 +32,6 @@
 #define mfnmonitordefault_          MFNMONITORDEFAULT
 #define mfnmonitorlg_               MFNMONITORLG
 #define mfnmonitorset_              MFNMONITORSET
-#define mfngetconvergedreason_      MFNGETCONVERGEDREASON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define mfnview_                    mfnview
 #define mfnsetoptionsprefix_        mfnsetoptionsprefix
@@ -43,7 +42,6 @@
 #define mfnmonitordefault_          mfnmonitordefault
 #define mfnmonitorlg_               mfnmonitorlg
 #define mfnmonitorset_              mfnmonitorset
-#define mfngetconvergedreason_      mfngetconvergedreason
 #endif
 
 /*
@@ -149,10 +147,5 @@ PETSC_EXTERN void PETSC_STDCALL mfnmonitorset_(MFN *mfn,void (PETSC_STDCALL *mon
       *ierr = MFNMonitorSet(*mfn,ourmonitor,*mfn,ourdestroy);
     }
   }
-}
-
-PETSC_EXTERN void PETSC_STDCALL mfngetconvergedreason_(MFN *mfn,MFNConvergedReason *reason,PetscErrorCode *ierr)
-{
-  *ierr = MFNGetConvergedReason(*mfn,reason);
 }
 

@@ -42,7 +42,6 @@
 #define epsgetconvergencetest_      EPSGETCONVERGENCETEST
 #define epsgetproblemtype_          EPSGETPROBLEMTYPE
 #define epsgetextraction_           EPSGETEXTRACTION
-#define epsgetconvergedreason_      EPSGETCONVERGEDREASON
 #define epspowergetshifttype_       EPSPOWERGETSHIFTTYPE
 #define epslanczosgetreorthog_      EPSLANCZOSGETREORTHOG
 #define epsconvergedabsolute_       EPSCONVERGEDABSOLUTE
@@ -70,7 +69,6 @@
 #define epsgetconvergencetest_      epsgetconvergencetest
 #define epsgetproblemtype_          epsgetproblemtype
 #define epsgetextraction_           epsgetextraction
-#define epsgetconvergedreason_      epsgetconvergedreason
 #define epspowergetshifttype_       epspowergetshifttype
 #define epslanczosgetreorthog_      epslanczosgetreorthog
 #define epsconvergedabsolute_       epsconvergedabsolute
@@ -282,11 +280,6 @@ PETSC_EXTERN void PETSC_STDCALL epsgetproblemtype_(EPS *eps,EPSProblemType *type
 PETSC_EXTERN void PETSC_STDCALL epsgetextraction_(EPS *eps,EPSExtraction *proj,PetscErrorCode *ierr)
 {
   *ierr = EPSGetExtraction(*eps,proj);
-}
-
-PETSC_EXTERN void PETSC_STDCALL epsgetconvergedreason_(EPS *eps,EPSConvergedReason *reason,PetscErrorCode *ierr)
-{
-  *ierr = EPSGetConvergedReason(*eps,reason);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epspowergetshifttype_(EPS *eps,EPSPowerShiftType *shift,PetscErrorCode *ierr)

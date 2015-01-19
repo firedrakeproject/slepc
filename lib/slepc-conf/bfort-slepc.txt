@@ -1,3 +1,9 @@
+native EPSConvergedReason
+native PEPConvergedReason
+native NEPConvergedReason
+native SVDConvergedReason
+native MFNConvergedReason
+#
 nativeptr EPS
 nativeptr PEP
 nativeptr NEP

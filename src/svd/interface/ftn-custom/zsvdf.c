@@ -37,7 +37,6 @@
 #define svdsetoptionsprefix_         SVDSETOPTIONSPREFIX
 #define svdappendoptionsprefix_      SVDAPPENDOPTIONSPREFIX
 #define svdgetoptionsprefix_         SVDGETOPTIONSPREFIX
-#define svdgetconvergedreason_       SVDGETCONVERGEDREASON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define svdmonitorall_               svdmonitorall
 #define svdmonitorlgall_             svdmonitorlgall
@@ -51,7 +50,6 @@
 #define svdsetoptionsprefix_         svdsetoptionsprefix
 #define svdappendoptionsprefix_      svdappendoptionsprefix
 #define svdgetoptionsprefix_         svdgetoptionsprefix
-#define svdgetconvergedreason_       svdgetconvergedreason
 #endif
 
 /*
@@ -193,10 +191,5 @@ PETSC_EXTERN void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,CHAR prefix PETSC_
 
   *ierr = SVDGetOptionsPrefix(*svd,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
-}
-
-PETSC_EXTERN void PETSC_STDCALL svdgetconvergedreason_(SVD *svd,SVDConvergedReason *reason,PetscErrorCode *ierr)
-{
-  *ierr = SVDGetConvergedReason(*svd,reason);
 }
 
