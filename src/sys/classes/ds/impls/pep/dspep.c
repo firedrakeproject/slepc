@@ -99,27 +99,45 @@ PetscErrorCode DSNormalize_PEP(DS ds,DSMatType mat,PetscInt col)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSSort_PEP"
-PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *kout)
 {
   PetscErrorCode ierr;
-  PetscInt       n,i,*perm;
-  PetscScalar    *A;
+  PetscInt       n,i,j,k,p,*perm,told,ld;
+  PetscScalar    *A,*X,rtmp;
 
   PetscFunctionBegin;
   if (!ds->sc) PetscFunctionReturn(0);
   n = ds->n*ds->d;
   A  = ds->mat[DS_MAT_A];
   perm = ds->perm;
+  for (i=0;i<n;i++) perm[i] = i;
+  told = ds->t;
+  ds->t = n;  /* force the sorting routines to consider d*n eigenvalues */
   if (rr) {
     ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
   } else {
     ierr = DSSortEigenvalues_Private(ds,wr,wi,perm,PETSC_FALSE);CHKERRQ(ierr);
   }
+  ds->t = told;  /* restore value of t */
   for (i=0;i<n;i++) A[i]  = wr[perm[i]];
   for (i=0;i<n;i++) wr[i] = A[i];
   for (i=0;i<n;i++) A[i]  = wi[perm[i]];
   for (i=0;i<n;i++) wi[i] = A[i];
-  ierr = DSPermuteColumns_Private(ds,0,n,DS_MAT_X,perm);CHKERRQ(ierr);
+  /* cannot use DSPermuteColumns_Private() since matrix is not square */
+  ld = ds->ld;
+  X  = ds->mat[DS_MAT_X];
+  for (i=0;i<n;i++) {
+    p = perm[i];
+    if (p != i) {
+      j = i + 1;
+      while (perm[j] != i) j++;
+      perm[j] = p; perm[i] = i;
+      /* swap columns i and j */
+      for (k=0;k<ds->n;k++) {
+        rtmp = X[k+p*ld]; X[k+p*ld] = X[k+i*ld]; X[k+i*ld] = rtmp;
+      }
+    }
+  }
   PetscFunctionReturn(0);
 }
 

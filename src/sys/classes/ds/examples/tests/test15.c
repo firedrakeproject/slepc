@@ -29,6 +29,7 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   DS             ds;
+  SlepcSC        sc;
   PetscScalar    *K,*C,*M,*wr,*wi,z=1.0;
   PetscReal      re,im;
   PetscInt       i,n=10,d=2,ld;
@@ -84,7 +85,13 @@ int main(int argc,char **argv)
 
   /* Solve */
   ierr = PetscMalloc2(d*n,&wr,d*n,&wi);CHKERRQ(ierr);
+  ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
+  sc->comparison    = SlepcCompareLargestReal;
+  sc->comparisonctx = NULL;
+  sc->map           = NULL;
+  sc->mapobj        = NULL;
   ierr = DSSolve(ds,wr,wi);CHKERRQ(ierr);
+  ierr = DSSort(ds,wr,wi,NULL,NULL,NULL);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
