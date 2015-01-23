@@ -72,7 +72,7 @@ else				# Show the full command line
 endif
 
 $(PETSC_ARCH)/lib/slepc-conf/files :
-	$(PYTHON) lib/slepc-conf/gmakegen.py --petsc-arch=$(PETSC_ARCH) --installed-petsc=$(INSTALLED_PETSC)
+	$(PYTHON) ./config/gmakegen.py --petsc-arch=$(PETSC_ARCH) --installed-petsc=$(INSTALLED_PETSC)
 
 -include $(generated)
 

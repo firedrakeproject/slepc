@@ -11,7 +11,7 @@ class Installer:
     if len(args)<6:
       print '********************************************************************'
       print 'Installation script error - not enough arguments:'
-      print './lib/slepc-conf/install.py SLEPC_DIR PETSC_DIR PETSC_ARCH DESTDIR LIB_SUFFIX RANLIB'
+      print './config/install.py SLEPC_DIR PETSC_DIR PETSC_ARCH DESTDIR LIB_SUFFIX RANLIB'
       print '********************************************************************'
       sys.exit(1)
     self.rootDir     = args[0]
