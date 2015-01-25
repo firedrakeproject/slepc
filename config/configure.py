@@ -422,6 +422,7 @@ missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
 # Make Fortran stubs if necessary
 if slepcversion.ISREPO and hasattr(petscconf,'FC'):
   try:
+    sys.path.insert(0, os.path.abspath(os.path.join('bin','maint')))
     import generatefortranstubs
     generatefortranstubs.main(slepcdir,petscconf.BFORT,os.getcwd(),0)
     generatefortranstubs.processf90interfaces(slepcdir,0)
