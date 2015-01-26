@@ -40,7 +40,7 @@ TESTEXAMPLES_C = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.r
                  spring.PETSc runspring spring.rm
 TESTEXAMPLES_C_COMPLEX = pdde_stability.PETSc runpdde_stability pdde_stability.rm
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
 
 acoustic_wave_1d: acoustic_wave_1d.o chkopts
 	-${CLINKER} -o acoustic_wave_1d acoustic_wave_1d.o ${SLEPC_PEP_LIB}

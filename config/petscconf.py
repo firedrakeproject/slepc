@@ -28,14 +28,15 @@ def Load(petscdir):
   if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']:
     ISINSTALL = 0
     ARCH = os.environ['PETSC_ARCH']
-    PETSCVARIABLES = os.sep.join([petscdir,ARCH,'conf','petscvariables'])
+    PETSCVARIABLES = os.sep.join([petscdir,ARCH,'lib','petsc-conf','petscvariables'])
     PETSCCONF_H = os.sep.join([petscdir,ARCH,'include','petscconf.h'])
   else:
     ISINSTALL = 1
-    PETSCVARIABLES = os.sep.join([petscdir,'conf','petscvariables'])
+    PETSCVARIABLES = os.sep.join([petscdir,'lib','petsc-conf','petscvariables'])
     PETSCCONF_H = os.sep.join([petscdir,'include','petscconf.h'])
 
   BUILD_USING_CMAKE = 0
+  MAKE_IS_GNUMAKE = 0
   SINGLELIB = 0
   LANGUAGE = 'c'
   try:
@@ -77,8 +78,6 @@ def Load(petscdir):
         BUILD_USING_CMAKE = v
       elif k == 'MAKE_IS_GNUMAKE':
         MAKE_IS_GNUMAKE = v
-      elif k == 'SHLIBS' and v=='libpetsc':
-        SINGLELIB = 1
       elif k == 'PETSC_LANGUAGE' and v=='CXXONLY':
         LANGUAGE = 'c++'
     f.close()
@@ -98,6 +97,8 @@ def Load(petscdir):
         MPIUNI = 1
       elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_DEBUG' and l[2]=='1':
         DEBUG = 1
+      elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_SINGLE_LIBRARY' and l[2]=='1':
+        SINGLELIB = 1
     f.close()
   except:
     if ISINSTALL:

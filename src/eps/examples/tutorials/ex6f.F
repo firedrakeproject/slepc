@@ -32,11 +32,11 @@
       program main
       implicit none
 
-#include <finclude/petscsys.h>
-#include <finclude/petscvec.h>
-#include <finclude/petscmat.h>
-#include <finclude/slepcsys.h>
-#include <finclude/slepceps.h>
+#include <petsc-finclude/petscsys.h>
+#include <petsc-finclude/petscvec.h>
+#include <petsc-finclude/petscmat.h>
+#include <slepc-finclude/slepcsys.h>
+#include <slepc-finclude/slepceps.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Declarations
@@ -164,9 +164,9 @@
       subroutine MatIsing_Mult(A,x,y,ierr)
       implicit none
 
-#include <finclude/petscsys.h>
-#include <finclude/petscvec.h>
-#include <finclude/petscmat.h>
+#include <petsc-finclude/petscsys.h>
+#include <petsc-finclude/petscvec.h>
+#include <petsc-finclude/petscmat.h>
 
       Mat            A
       Vec            x,y
@@ -243,20 +243,19 @@
 !  ===================================================================
 !
 !
-!     .. PARAMETERS ..
-      PetscReal   PI 
-      PARAMETER   ( PI = 3.141592653589793D+00 )
-      PetscReal   ALPHA, BETA
-      PARAMETER   ( ALPHA = PI/4, BETA = PI/4 ) 
-!
+#include <petsc-finclude/petscsys.h>
+
 !     .. Local Variables .. 
       PetscInt    I, K 
+      PetscReal   ALPHA, BETA
       PetscReal   COSA, COSB, SINA
       PetscReal   SINB, TEMP, TEMP1 
 !
 !     .. Intrinsic functions ..
       INTRINSIC   COS, SIN 
 !
+      ALPHA = PETSC_PI/4
+      BETA = PETSC_PI/4
       COSA = COS( ALPHA ) 
       SINA = SIN( ALPHA ) 
       COSB = COS( BETA )

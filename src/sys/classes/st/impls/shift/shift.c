@@ -122,7 +122,7 @@ PetscErrorCode STSetUp_Shift(ST st)
       st->T[k] = st->A[k];
     }
   }
-  if (nmat==2 || (nmat>2 && st->transform)) {
+  if (nmat>=2 && st->transform) {
     st->P = st->T[nmat-1];
     ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
   }
@@ -146,7 +146,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->setupcalled) PetscFunctionReturn(0);
 
-  if (nmat<3 || st->transform) {
+  if (st->transform) {
     if (st->shift_matrix == ST_MATMODE_COPY && nmat>2) {
       nc = (nmat*(nmat+1))/2;
       ierr = PetscMalloc(nc*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);

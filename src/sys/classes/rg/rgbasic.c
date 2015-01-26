@@ -96,7 +96,7 @@ PetscErrorCode RGInitializePackage(void)
 
 #undef __FUNCT__
 #define __FUNCT__ "RGCreate"
-/*@C
+/*@
    RGCreate - Creates an RG context.
 
    Collective on MPI_Comm
@@ -544,7 +544,7 @@ PetscErrorCode RGGetComplement(RG rg,PetscBool *flg)
 
 #undef __FUNCT__
 #define __FUNCT__ "RGDestroy"
-/*@C
+/*@
    RGDestroy - Destroys RG context that was created with RGCreate().
 
    Collective on RG

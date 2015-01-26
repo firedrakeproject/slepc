@@ -43,11 +43,8 @@
 @*/
 PetscErrorCode SVDSolve(SVD svd)
 {
-  PetscErrorCode    ierr;
-  PetscBool         flg;
-  PetscInt          i,*workperm;
-  PetscViewer       viewer;
-  PetscViewerFormat format;
+  PetscErrorCode ierr;
+  PetscInt       i,*workperm;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -62,6 +59,7 @@ PetscErrorCode SVDSolve(SVD svd)
     svd->errest[i] = 0.0;
   }
   ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);CHKERRQ(ierr);
+  ierr = SVDViewFromOptions(svd,NULL,"-svd_view_pre");CHKERRQ(ierr);
 
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
 
@@ -81,15 +79,9 @@ PetscErrorCode SVDSolve(SVD svd)
   ierr = PetscLogEventEnd(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
+  ierr = SVDViewFromOptions(svd,NULL,"-svd_view");CHKERRQ(ierr);
+  ierr = SVDReasonViewFromOptions(svd);CHKERRQ(ierr);
   ierr = MatViewFromOptions(svd->OP,((PetscObject)svd)->prefix,"-svd_view_mat");CHKERRQ(ierr);
-
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->prefix,"-svd_view",&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg && !PetscPreLoadingOn) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = SVDView(svd,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-  }
 
   /* Remove the initial subspaces */
   svd->nini = 0;
@@ -133,7 +125,7 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetConvergedReason"
-/*@C
+/*@
    SVDGetConvergedReason - Gets the reason why the SVDSolve() iteration was
    stopped.
 

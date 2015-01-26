@@ -116,7 +116,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
-  if (nmat<3 || st->transform) {
+  if (st->transform) {
     if (nmat>2) {
       nc = (nmat*(nmat+1))/2;
       ierr = PetscMalloc(nc*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
@@ -158,7 +158,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
   PetscFunctionBegin;
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->setupcalled) PetscFunctionReturn(0);
-  if (nmat<3 || st->transform) {
+  if (st->transform) {
     if (st->shift_matrix == ST_MATMODE_COPY && nmat>2) {
       nc = (nmat*(nmat+1))/2;
       ierr = PetscMalloc(nc*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);

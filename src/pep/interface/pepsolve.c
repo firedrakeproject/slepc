@@ -65,14 +65,13 @@ PETSC_STATIC_INLINE PetscErrorCode PEPComputeVectors(PEP pep)
 @*/
 PetscErrorCode PEPSolve(PEP pep)
 {
-  PetscErrorCode    ierr;
-  PetscInt          i;
-  PetscReal         re,im;
-  PetscBool         flg,islinear;
-  PetscViewer       viewer;
-  PetscViewerFormat format;
-  PetscDraw         draw;
-  PetscDrawSP       drawsp;
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscReal      re,im;
+  PetscBool      flg,islinear;
+  PetscViewer    viewer;
+  PetscDraw      draw;
+  PetscDrawSP    drawsp;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -88,16 +87,13 @@ PetscErrorCode PEPSolve(PEP pep)
     pep->errest[i] = 0.0;
   }
   ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,pep->ncv);CHKERRQ(ierr);
+  ierr = PEPViewFromOptions(pep,NULL,"-pep_view_pre");CHKERRQ(ierr);
 
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
   
-  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
-  if (!islinear) {
-    ierr = STPostSolve(pep->st);CHKERRQ(ierr);
-  }
-
   if (!pep->reason) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
+  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
     /* Map eigenvalues back to the original problem */
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
@@ -132,17 +128,11 @@ PetscErrorCode PEPSolve(PEP pep)
 
   /* sort eigenvalues according to pep->which parameter */
   ierr = SlepcSortEigenvalues(pep->sc,pep->nconv,pep->eigr,pep->eigi,pep->perm);CHKERRQ(ierr);
-
   ierr = PetscLogEventEnd(PEP_Solve,pep,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->prefix,"-pep_view",&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg && !PetscPreLoadingOn) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = PEPView(pep,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-  }
+  ierr = PEPViewFromOptions(pep,NULL,"-pep_view");CHKERRQ(ierr);
+  ierr = PEPReasonViewFromOptions(pep);CHKERRQ(ierr);
 
   flg = PETSC_FALSE;
   ierr = PetscOptionsGetBool(((PetscObject)pep)->prefix,"-pep_plot_eigs",&flg,NULL);CHKERRQ(ierr);
@@ -153,7 +143,7 @@ PetscErrorCode PEPSolve(PEP pep)
     for (i=0;i<pep->nconv;i++) {
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(pep->eigr[i]);
-      im = PetscImaginaryPart(pep->eigi[i]);
+      im = PetscImaginaryPart(pep->eigr[i]);
 #else
       re = pep->eigr[i];
       im = pep->eigi[i];
@@ -237,7 +227,7 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetConvergedReason"
-/*@C
+/*@
    PEPGetConvergedReason - Gets the reason why the PEPSolve() iteration was
    stopped.
 

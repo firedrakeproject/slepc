@@ -27,6 +27,8 @@ const char *PEPBasisTypes[] = {"MONOMIAL","CHEBYSHEV1","CHEBYSHEV2","LEGENDRE","
 const char *PEPScaleTypes[] = {"NONE","SCALAR","DIAGONAL","BOTH","PEPScale","PEP_SCALE_",0};
 const char *PEPRefineTypes[] = {"NONE","SIMPLE","MULTIPLE","PEPRefine","PEP_REFINE_",0};
 const char *PEPExtractTypes[] = {"NORM","RESIDUAL","STRUCTURED","PEPExtract","PEP_EXTRACT_",0};
+const char *const PEPConvergedReasons_Shifted[] = {"DIVERGED_BREAKDOWN","DIVERGED_ITS","","","CONVERGED_ITERATING","","CONVERGED_TOL","PEPConvergedReason","PEP_",0};
+const char *const*PEPConvergedReasons = PEPConvergedReasons_Shifted + 4;
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPFinalizePackage"
