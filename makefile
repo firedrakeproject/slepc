@@ -320,8 +320,8 @@ allcleanhtml:
 # Builds Fortran stub files
 allfortranstubs:
 	-@${RM} -rf include/slepc-finclude/ftn-auto/*-tmpdir
-	-@${PYTHON} ${SLEPC_DIR}/config/generatefortranstubs.py ${BFORT}
-	-@${PYTHON} ${SLEPC_DIR}/config/generatefortranstubs.py -merge  ${VERBOSE}
+	-@${PYTHON} ${SLEPC_DIR}/bin/maint/generatefortranstubs.py ${BFORT}
+	-@${PYTHON} ${SLEPC_DIR}/bin/maint/generatefortranstubs.py -merge  ${VERBOSE}
 	-@${RM} -rf include/slepc-finclude/ftn-auto/*-tmpdir
 deletefortranstubs:
 	-@find . -type d -name ftn-auto | xargs rm -rf
@@ -378,8 +378,8 @@ checkbadfortranstubs:
 	cut -d'(' -f1 | cut -d' ' -f1,4; \
 	done; done
 
-# Generate tags with PETSc's script
+# Generate tags
 alletags:
-	-@${PYTHON} ${PETSC_DIR}/bin/maint/generateetags.py
+	-@${PYTHON} ${SLEPC_DIR}/bin/maint/generateetags.py
 	-@find config -type f -name "*.py" |grep -v SCCS | xargs etags -o TAGS_PYTHON
 
