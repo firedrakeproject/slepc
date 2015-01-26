@@ -23,30 +23,16 @@
 #include <slepcrg.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define rgcreate_                 RGCREATE
-#define rgdestroy_                RGDESTROY
 #define rgsetoptionsprefix_       RGSETOPTIONSPREFIX
 #define rgappendoptionsprefix_    RGAPPENDOPTIONSPREFIX
 #define rggetoptionsprefix_       RGGETOPTIONSPREFIX
 #define rgview_                   RGVIEW
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define rgcreate_                 rgcreate
-#define rgdestroy_                rgdestroy
 #define rgsetoptionsprefix_       rgsetoptionsprefix
 #define rgappendoptionsprefix_    rgappendoptionsprefix
 #define rggetoptionsprefix_       rggetoptionsprefix
 #define rgview_                   rgview
 #endif
-
-PETSC_EXTERN void PETSC_STDCALL rgcreate_(MPI_Fint *comm,RG *newrg,PetscErrorCode *ierr)
-{
-  *ierr = RGCreate(MPI_Comm_f2c(*(comm)),newrg);
-}
-
-PETSC_EXTERN void PETSC_STDCALL rgdestroy_(RG *rg,PetscErrorCode *ierr)
-{
-  *ierr = RGDestroy(rg);
-}
 
 PETSC_EXTERN void PETSC_STDCALL rgsetoptionsprefix_(RG *rg,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {

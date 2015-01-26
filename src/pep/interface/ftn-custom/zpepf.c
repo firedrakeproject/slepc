@@ -24,12 +24,10 @@
 #include <slepc-private/pepimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define pepdestroy_                 PEPDESTROY
 #define pepview_                    PEPVIEW
 #define pepsetoptionsprefix_        PEPSETOPTIONSPREFIX
 #define pepappendoptionsprefix_     PEPAPPENDOPTIONSPREFIX
 #define pepgetoptionsprefix_        PEPGETOPTIONSPREFIX
-#define pepcreate_                  PEPCREATE
 #define pepsettype_                 PEPSETTYPE
 #define pepgettype_                 PEPGETTYPE
 #define pepmonitorall_              PEPMONITORALL
@@ -38,24 +36,17 @@
 #define pepmonitorset_              PEPMONITORSET
 #define pepmonitorconverged_        PEPMONITORCONVERGED
 #define pepmonitorfirst_            PEPMONITORFIRST
-#define pepgetst_                   PEPGETST
-#define pepgetbv_                   PEPGETBV
-#define pepgetds_                   PEPGETDS
-#define pepgetrg_                   PEPGETRG
 #define pepgetwhicheigenpairs_      PEPGETWHICHEIGENPAIRS
 #define pepgetproblemtype_          PEPGETPROBLEMTYPE
-#define pepgetconvergedreason_      PEPGETCONVERGEDREASON
 #define pepconvergedabsolute_       PEPCONVERGEDABSOLUTE
 #define pepconvergedeigrelative_    PEPCONVERGEDEIGRELATIVE
 #define pepconvergednormrelative_   PEPCONVERGEDNORMRELATIVE
 #define pepsetconvergencetestfunction_ PEPSETCONVERGENCETESTFUNCTION
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define pepdestroy_                 pepdestroy
 #define pepview_                    pepview
 #define pepsetoptionsprefix_        pepsetoptionsprefix
 #define pepappendoptionsprefix_     pepappendoptionsprefix
 #define pepgetoptionsprefix_        pepgetoptionsprefix
-#define pepcreate_                  pepcreate
 #define pepsettype_                 pepsettype
 #define pepgettype_                 pepgettype
 #define pepmonitorall_              pepmonitorall
@@ -64,13 +55,8 @@
 #define pepmonitorset_              pepmonitorset
 #define pepmonitorconverged_        pepmonitorconverged
 #define pepmonitorfirst_            pepmonitorfirst
-#define pepgetst_                   pepgetst
-#define pepgetbv_                   pepgetbv
-#define pepgetds_                   pepgetds
-#define pepgetrg_                   pepgetrg
 #define pepgetwhicheigenpairs_      pepgetwhicheigenpairs
 #define pepgetproblemtype_          pepgetproblemtype
-#define pepgetconvergedreason_      pepgetconvergedreason
 #define pepconvergedabsolute_       pepconvergedabsolute
 #define pepconvergedeigrelative_    pepconvergedeigrelative
 #define pepconvergednormrelative_   pepconvergednormrelative
@@ -144,11 +130,6 @@ static PetscErrorCode ourconvdestroy(void *ctx)
   PetscObjectUseFortranCallback(pep,_cb.convdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-PETSC_EXTERN void PETSC_STDCALL pepdestroy_(PEP *pep,PetscErrorCode *ierr)
-{
-  *ierr = PEPDestroy(pep);
-}
-
 PETSC_EXTERN void PETSC_STDCALL pepview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
@@ -200,11 +181,6 @@ PETSC_EXTERN void PETSC_STDCALL pepgetoptionsprefix_(PEP *pep,CHAR prefix PETSC_
   *ierr = PetscStrncpy(prefix,tname,len);
 }
 
-PETSC_EXTERN void PETSC_STDCALL pepcreate_(MPI_Fint *comm,PEP *pep,PetscErrorCode *ierr)
-{
-  *ierr = PEPCreate(MPI_Comm_f2c(*(comm)),pep);
-}
-
 PETSC_EXTERN void PETSC_STDCALL pepmonitorset_(PEP *pep,void (PETSC_STDCALL *monitor)(PEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   SlepcConvMonitor ctx;
@@ -240,26 +216,6 @@ PETSC_EXTERN void PETSC_STDCALL pepmonitorset_(PEP *pep,void (PETSC_STDCALL *mon
   }
 }
 
-PETSC_EXTERN void PETSC_STDCALL pepgetst_(PEP *pep,ST *st,PetscErrorCode *ierr)
-{
-  *ierr = PEPGetST(*pep,st);
-}
-
-PETSC_EXTERN void PETSC_STDCALL pepgetbv_(PEP *pep,BV *bv,PetscErrorCode *ierr)
-{
-  *ierr = PEPGetBV(*pep,bv);
-}
-
-PETSC_EXTERN void PETSC_STDCALL pepgetds_(PEP *pep,DS *ds,PetscErrorCode *ierr)
-{
-  *ierr = PEPGetDS(*pep,ds);
-}
-
-PETSC_EXTERN void PETSC_STDCALL pepgetrg_(PEP *pep,RG *rg,PetscErrorCode *ierr)
-{
-  *ierr = PEPGetRG(*pep,rg);
-}
-
 PETSC_EXTERN void PETSC_STDCALL pepgetwhicheigenpairs_(PEP *pep,PEPWhich *which,PetscErrorCode *ierr)
 {
   *ierr = PEPGetWhichEigenpairs(*pep,which);
@@ -268,11 +224,6 @@ PETSC_EXTERN void PETSC_STDCALL pepgetwhicheigenpairs_(PEP *pep,PEPWhich *which,
 PETSC_EXTERN void PETSC_STDCALL pepgetproblemtype_(PEP *pep,PEPProblemType *type,PetscErrorCode *ierr)
 {
   *ierr = PEPGetProblemType(*pep,type);
-}
-
-PETSC_EXTERN void PETSC_STDCALL pepgetconvergedreason_(PEP *pep,PEPConvergedReason *reason,PetscErrorCode *ierr)
-{
-  *ierr = PEPGetConvergedReason(*pep,reason);
 }
 
 PETSC_EXTERN void PETSC_STDCALL pepconvergedabsolute_(PEP *pep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)

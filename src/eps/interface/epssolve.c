@@ -253,7 +253,7 @@ PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetConvergedReason"
-/*@C
+/*@
    EPSGetConvergedReason - Gets the reason why the EPSSolve() iteration was
    stopped.
 

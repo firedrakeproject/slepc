@@ -264,7 +264,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDCreate"
-/*@C
+/*@
    SVDCreate - Creates the default SVD context.
 
    Collective on MPI_Comm
@@ -374,7 +374,7 @@ PetscErrorCode SVDReset(SVD svd)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDDestroy"
-/*@C
+/*@
    SVDDestroy - Destroys the SVD context.
 
    Collective on SVD
@@ -572,7 +572,7 @@ PetscErrorCode SVDSetBV(SVD svd,BV V,BV U)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetBV"
-/*@C
+/*@
    SVDGetBV - Obtain the basis vectors objects associated to the singular
    value solver object.
 
@@ -648,7 +648,7 @@ PetscErrorCode SVDSetDS(SVD svd,DS ds)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetDS"
-/*@C
+/*@
    SVDGetDS - Obtain the direct solver object associated to the singular value
    solver object.
 

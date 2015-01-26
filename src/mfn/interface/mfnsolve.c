@@ -126,7 +126,7 @@ PetscErrorCode MFNGetIterationNumber(MFN mfn,PetscInt *its)
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNGetConvergedReason"
-/*@C
+/*@
    MFNGetConvergedReason - Gets the reason why the MFNSolve() iteration was
    stopped.
 
