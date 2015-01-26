@@ -107,7 +107,7 @@ PetscErrorCode BVInitializePackage(void)
 
 #undef __FUNCT__
 #define __FUNCT__ "BVDestroy"
-/*@C
+/*@
    BVDestroy - Destroys BV context that was created with BVCreate().
 
    Collective on BV
@@ -140,7 +140,7 @@ PetscErrorCode BVDestroy(BV *bv)
 
 #undef __FUNCT__
 #define __FUNCT__ "BVCreate"
-/*@C
+/*@
    BVCreate - Creates a basis vectors context.
 
    Collective on MPI_Comm
@@ -545,7 +545,6 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidType(bv,1);
   if (!viewer) {
     ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)bv),&viewer);CHKERRQ(ierr);
   }

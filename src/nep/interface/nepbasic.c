@@ -161,8 +161,80 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPCreate"
+#define __FUNCT__ "NEPReasonView"
+/*@
+   NEPReasonView - Displays the reason a NEP solve converged or diverged.
+
+   Collective on NEP
+
+   Parameter:
++  nep - the nonlinear eigensolver context
+-  viewer - the viewer to display the reason
+
+   Options Database Keys:
+.  -nep_converged_reason - print reason for convergence, and number of iterations
+
+   Level: beginner
+
+.seealso: NEPSetConvergenceTest(), NEPSetTolerances(), NEPGetIterationNumber()
+@*/
+PetscErrorCode NEPReasonView(NEP nep,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  PetscBool      isAscii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
+  if (isAscii) {
+    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
+    if (nep->reason > 0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve converged due to %s; iterations %D\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",NEPConvergedReasons[nep->reason],nep->its);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve did not converge due to %s; iterations %D\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",NEPConvergedReasons[nep->reason],nep->its);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPReasonViewFromOptions"
 /*@C
+   NEPReasonViewFromOptions - Processes command line options to determine if/how
+   the NEP converged reason is to be viewed. 
+
+   Collective on NEP
+
+   Input Parameters:
+.  nep - the nonlinear eigensolver context
+
+   Level: intermediate
+@*/
+PetscErrorCode NEPReasonViewFromOptions(NEP nep)
+{
+  PetscErrorCode    ierr;
+  PetscViewer       viewer;
+  PetscBool         flg;
+  static PetscBool  incall = PETSC_FALSE;
+  PetscViewerFormat format;
+
+  PetscFunctionBegin;
+  if (incall) PetscFunctionReturn(0);
+  incall = PETSC_TRUE;
+  ierr   = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->prefix,"-nep_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
+    ierr = NEPReasonView(nep,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+  incall = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPCreate"
+/*@
    NEPCreate - Creates the default NEP context.
 
    Collective on MPI_Comm
@@ -421,7 +493,7 @@ PetscErrorCode NEPReset(NEP nep)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPDestroy"
-/*@C
+/*@
    NEPDestroy - Destroys the NEP context.
 
    Collective on NEP
@@ -494,7 +566,7 @@ PetscErrorCode NEPSetBV(NEP nep,BV bv)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetBV"
-/*@C
+/*@
    NEPGetBV - Obtain the basis vectors object associated to the nonlinear
    eigensolver object.
 
@@ -561,7 +633,7 @@ PetscErrorCode NEPSetRG(NEP nep,RG rg)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetRG"
-/*@C
+/*@
    NEPGetRG - Obtain the region object associated to the
    nonlinear eigensolver object.
 
@@ -628,7 +700,7 @@ PetscErrorCode NEPSetDS(NEP nep,DS ds)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetDS"
-/*@C
+/*@
    NEPGetDS - Obtain the direct solver object associated to the
    nonlinear eigensolver object.
 
@@ -695,7 +767,7 @@ PetscErrorCode NEPSetKSP(NEP nep,KSP ksp)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetKSP"
-/*@C
+/*@
    NEPGetKSP - Obtain the linear solver (KSP) object associated
    to the eigensolver object.
 

@@ -26,6 +26,6 @@ DIRS     = power subspace krylov davidson cg ciss lapack external
 LOCDIR   = src/eps/impls/
 MANSEC   = EPS
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
 
 

@@ -51,7 +51,7 @@ TESTEXAMPLES_FORTRAN     = test7f.PETSc runtest7f_1 test7f.rm \
                            test14f.PETSc runtest14f_1 test14f.rm
 TESTEXAMPLES_BLOPEX      = test5.PETSc runtest5_blopex test5.rm
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
 
 test1: test1.o chkopts
 	-${CLINKER} -o test1 test1.o ${SLEPC_EPS_LIB}
@@ -177,8 +177,8 @@ runtest5_1:
 	-@test=test5_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps" >> test5_1.tmp; \
-	   if [ "$$eps" = gd ]; then EXTRA="-eps_ncv 7 -eps_gd_minv 2"; \
-	   elif [ "$$eps" = jd ]; then EXTRA="-eps_ncv 7 -eps_jd_minv 2"; \
+	   if [ "$$eps" = gd ]; then EXTRA="-eps_gd_minv 2"; \
+	   elif [ "$$eps" = jd ]; then EXTRA="-eps_jd_minv 2"; \
 	   elif [ "$$eps" = "gd2" ]; then eps=gd; EXTRA="-eps_gd_double_expansion"; else EXTRA=""; fi; \
 	   ${MPIEXEC} -np 1 ./test5 -eps_type $$eps -eps_nev 4 -eps_terse $$EXTRA >> test5_1.tmp 2>&1; \
 	done; \

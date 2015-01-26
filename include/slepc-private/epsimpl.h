@@ -75,7 +75,7 @@ struct _p_EPS {
   PetscReal      balance_cutoff;   /* cutoff value for balancing */
   PetscBool      trueres;          /* whether the true residual norm must be computed */
   PetscBool      trackall;         /* whether all the residuals must be computed */
-  PetscBool      printreason;      /* prints converged reason after solve */
+  PetscBool      purify;           /* whether eigenvectors need to be purified */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*converged)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);

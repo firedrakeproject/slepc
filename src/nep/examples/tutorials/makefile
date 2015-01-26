@@ -34,7 +34,7 @@ TESTEXAMPLES_C           = ex20.PETSc runex20_1 ex20.rm \
 TESTEXAMPLES_C_NOCOMPLEX =
 TESTEXAMPLES_F90         =
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
 
 ex20: ex20.o chkopts
 	-${CLINKER} -o ex20 ex20.o ${SLEPC_NEP_LIB}

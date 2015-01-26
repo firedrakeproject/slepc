@@ -31,11 +31,11 @@
       program main
       implicit none
 
-#include <finclude/petscsys.h>
-#include <finclude/petscvec.h>
-#include <finclude/petscmat.h>
-#include <finclude/slepcsys.h>
-#include <finclude/slepceps.h>
+#include <petsc-finclude/petscsys.h>
+#include <petsc-finclude/petscvec.h>
+#include <petsc-finclude/petscmat.h>
+#include <slepc-finclude/slepcsys.h>
+#include <slepc-finclude/slepceps.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Declarations

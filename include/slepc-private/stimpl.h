@@ -47,27 +47,27 @@ struct _STOps {
 struct _p_ST {
   PETSCHEADER(struct _STOps);
   /*------------------------- User parameters --------------------------*/
-  Mat          *A;               /* Matrices that define the eigensystem */
-  PetscInt     *Astate;          /* State (to identify the original matrices) */
-  Mat          *T;               /* Matrices resulting from transformation */
-  Mat          P;                /* Matrix from which preconditioner is built */
-  PetscInt     nmat;             /* Number of matrices */
-  PetscScalar  sigma;            /* Value of the shift */
-  PetscBool    sigma_set;        /* whether the user provided the shift or not */
-  PetscScalar  defsigma;         /* Default value of the shift */
-  STMatMode    shift_matrix;
-  MatStructure str;              /* whether matrices have the same pattern or not */
-  PetscBool    transform;        /* whether transformed matrices are computed */
+  Mat              *A;               /* Matrices that define the eigensystem */
+  PetscObjectState *Astate;          /* State (to identify the original matrices) */
+  Mat              *T;               /* Matrices resulting from transformation */
+  Mat              P;                /* Matrix from which preconditioner is built */
+  PetscInt         nmat;             /* Number of matrices */
+  PetscScalar      sigma;            /* Value of the shift */
+  PetscBool        sigma_set;        /* whether the user provided the shift or not */
+  PetscScalar      defsigma;         /* Default value of the shift */
+  STMatMode        shift_matrix;
+  MatStructure     str;              /* whether matrices have the same pattern or not */
+  PetscBool        transform;        /* whether transformed matrices are computed */
 
   /*------------------------- Misc data --------------------------*/
-  KSP          ksp;
-  Vec          w;
-  Vec          D;                /* diagonal matrix for balancing */
-  Vec          wb;               /* balancing requires an extra work vector */
-  PetscInt     linearits;        /* number of linear iterations */
-  PetscInt     applys;           /* number of operator applies */
-  void         *data;
-  PetscInt     setupcalled;
+  KSP              ksp;
+  Vec              w;
+  Vec              D;                /* diagonal matrix for balancing */
+  Vec              wb;               /* balancing requires an extra work vector */
+  PetscInt         linearits;        /* number of linear iterations */
+  PetscInt         applys;           /* number of operator applies */
+  void             *data;
+  PetscInt         setupcalled;
 };
 
 /*

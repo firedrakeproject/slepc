@@ -295,7 +295,7 @@ The solution method can be specified procedurally with
 	\end{Verbatim}
 or via the options database command \Verb!-pep_type! followed by the name of the method. The methods currently available in \ident{PEP} are listed in Table~\ref{tab:solversp}.
 
-The default solver is \ident{PEPTOAR}, currently the only solver supporting polynomials of arbitrary degree. TOAR is a stable algorithm for building an Arnoldi factorization of the linearization (\ref{eq:firstcomp}) without explicitly creating matrices $L_0,L_1$, and represents the Krylov basis in a compact way. For quadratic polynomials there are other solvers available. Q-Arnoldi is related to TOAR and follows a similar approach.
+The default solver is \ident{PEPTOAR}, currently the only solver supporting different polynomial bases. TOAR is a stable algorithm for building an Arnoldi factorization of the linearization (\ref{eq:firstcomp}) without explicitly creating matrices $L_0,L_1$, and represents the Krylov basis in a compact way. Q-Arnoldi is related to TOAR and follows a similar approach.
 
 \begin{table}
 \centering
@@ -303,7 +303,7 @@ The default solver is \ident{PEPTOAR}, currently the only solver supporting poly
                    &                      & {\footnotesize Options} & {\footnotesize Polynomial} & {\footnotesize Polynomial} \\
 Method             & \ident{PEPType}      & {\footnotesize Database Name} & {\footnotesize Degree} & {\footnotesize Basis} \\\hline
 Two-level Orthogonal Arnoldi (TOAR) & \texttt{PEPTOAR}     & \texttt{toar} & Arbitrary & Any \\
-Explicit Linearization & \texttt{PEPLINEAR}   & \texttt{linear} & Quadratic & Monomial \\
+Explicit Linearization & \texttt{PEPLINEAR}   & \texttt{linear} & Arbitrary & Monomial \\
 Quadratic Arnoldi (Q-Arnoldi) & \texttt{PEPQARNOLDI} & \texttt{qarnoldi} & Quadratic & Monomial \\
 %Symmetric TOAR     & \texttt{PEPSTOAR}    & \texttt{stoar} & Quadratic & Monomial \\
 \hline
@@ -333,15 +333,7 @@ Another option of the \ident{PEPLINEAR} solver is whether the matrices of the li
 	\begin{Verbatim}[fontsize=\small]
 	PEPLinearSetExplicitMatrix(PEP pep,PetscBool exp);
 	\end{Verbatim}
-In the case of explicit creation (the default), matrices $L_0$ and $L_1$ are created as true \texttt{Mat}'s, with explicit storage, whereas the implicit option works with \emph{shell} \texttt{Mat}'s that operate only with the constituent blocks $M$, $C$ and $K$. The explicit case requires more memory but gives more flexibility, e.g., for choosing a preconditioner.
-
-As a complete example of how to solve a quadratic eigenproblem via explicit linearization, consider the following command line:
-\begin{Verbatim}[fontsize=\small]
-	$ ./program -pep_type linear -pep_hermitian -pep_linear_cform 1
-                    -pep_linear_explicitmatrix 0 -pep_eps_type krylovschur
-                    -pep_st_ksp_type gmres -pep_st_pc_type jacobi
-\end{Verbatim}
-The S1 linearization (Eq.\ \ref{eq:s1}) will be used, with shell matrices and a preconditioned iterative method for solving linear systems with matrix $L_1$.
+The explicit matrix option is available only for quadratic eigenproblems (higher degree polynomials are always handled implicitly). In the case of explicit creation, matrices $L_0$ and $L_1$ are created as true \texttt{Mat}'s, with explicit storage, whereas the implicit option works with \emph{shell} \texttt{Mat}'s that operate only with the constituent blocks $M$, $C$ and $K$ (or $A_i$ in the general case). The explicit case requires more memory but gives more flexibility, e.g., for choosing a preconditioner. Some examples of usage via the command line are shown at the end of next section.
 
 %---------------------------------------------------
 \section{\label{sec:qst}Spectral Transformation}
@@ -412,6 +404,20 @@ The example computes 12 eigenpairs closest to the origin with TOAR and shift-and
                  -st_transform
 	\end{Verbatim}
 where in this case \Verb!-st_transform! is required.
+
+As a complete example of how to solve a quadratic eigenproblem via explicit linearization with explicit construction of the $L_0$ and $L_1$ matrices, consider the following command line:
+\begin{Verbatim}[fontsize=\small]
+	$ ./sleeper -pep_type linear -pep_target -10 -st_type sinvert
+                    -pep_st_ksp_type preonly -pep_st_pc_type lu 
+                    -pep_st_pc_factor_mat_solver_package mumps -mat_mumps_icntl_14 100
+                    -pep_linear_explicitmatrix
+\end{Verbatim}
+This example uses MUMPS for solving the associated linear systems, see \S\ref{sec:lin} for details. The following command line example illustrates how to solve the same problem without explicitly forming the matrices. Note that in this case the \ident{ST} options are not prefixed with \texttt{-pep\_} since now they do not refer to the \ident{ST} within the \ident{PEPLINEAR} solver but the general \ident{ST} associated to \ident{PEP}.
+\begin{Verbatim}[fontsize=\small]
+	$ ./sleeper -pep_type linear -pep_target -10 -st_type sinvert
+                    -st_ksp_type preonly -st_pc_type lu
+                    -st_pc_factor_mat_solver_package mumps -mat_mumps_icntl_14 100
+\end{Verbatim}
 
 %---------------------------------------------------
 \section{Retrieving the Solution}

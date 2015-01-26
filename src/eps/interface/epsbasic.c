@@ -164,6 +164,9 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         break;
       default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
     }
+    if (eps->isgeneralized && eps->ishermitian && eps->purify) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  postprocessing eigenvectors with purification\n");CHKERRQ(ierr);
+    }
     if (eps->trueres) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing true residuals explicitly\n");CHKERRQ(ierr);
     }
@@ -208,9 +211,10 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
     if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
     ierr = BVView(eps->V,viewer);CHKERRQ(ierr);
-    if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
-    ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-    if (!istrivial) { ierr = RGView(eps->rg,viewer);CHKERRQ(ierr); }
+    if (eps->rg) {
+      ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+      if (!istrivial) { ierr = RGView(eps->rg,viewer);CHKERRQ(ierr); }
+    }
     ierr = PetscObjectTypeCompare((PetscObject)eps,EPSPOWER,&ispower);CHKERRQ(ierr);
     if (!ispower) {
       if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
@@ -220,6 +224,78 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   }
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   ierr = STView(eps->st,viewer);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSReasonView"
+/*@
+   EPSReasonView - Displays the reason an EPS solve converged or diverged.
+
+   Collective on EPS
+
+   Parameter:
++  eps - the eigensolver context
+-  viewer - the viewer to display the reason
+
+   Options Database Keys:
+.  -eps_converged_reason - print reason for convergence, and number of iterations
+
+   Level: beginner
+
+.seealso: EPSSetConvergenceTest(), EPSSetTolerances(), EPSGetIterationNumber()
+@*/
+PetscErrorCode EPSReasonView(EPS eps,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  PetscBool      isAscii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
+  if (isAscii) {
+    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
+    if (eps->reason > 0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Linear eigensolve converged due to %s; iterations %D\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Linear eigensolve did not converge due to %s; iterations %D\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSReasonViewFromOptions"
+/*@C
+   EPSReasonViewFromOptions - Processes command line options to determine if/how
+   the EPS converged reason is to be viewed. 
+
+   Collective on EPS
+
+   Input Parameters:
+.  eps - the eigensolver context
+
+   Level: intermediate
+@*/
+PetscErrorCode EPSReasonViewFromOptions(EPS eps)
+{
+  PetscErrorCode    ierr;
+  PetscViewer       viewer;
+  PetscBool         flg;
+  static PetscBool  incall = PETSC_FALSE;
+  PetscViewerFormat format;
+
+  PetscFunctionBegin;
+  if (incall) PetscFunctionReturn(0);
+  incall = PETSC_TRUE;
+  ierr   = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->prefix,"-eps_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
+    ierr = EPSReasonView(eps,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+  incall = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -330,7 +406,7 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreate"
-/*@C
+/*@
    EPSCreate - Creates the default EPS context.
 
    Collective on MPI_Comm
@@ -378,6 +454,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->balance_cutoff  = 1e-8;
   eps->trueres         = PETSC_FALSE;
   eps->trackall        = PETSC_FALSE;
+  eps->purify          = PETSC_TRUE;
 
   eps->converged       = EPSConvergedEigRelative;
   eps->convergeddestroy= NULL;
@@ -581,7 +658,7 @@ PetscErrorCode EPSReset(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSDestroy"
-/*@C
+/*@
    EPSDestroy - Destroys the EPS context.
 
    Collective on EPS
@@ -798,7 +875,7 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetST"
-/*@C
+/*@
    EPSGetST - Obtain the spectral transformation (ST) object associated
    to the eigensolver object.
 
@@ -865,7 +942,7 @@ PetscErrorCode EPSSetBV(EPS eps,BV V)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetBV"
-/*@C
+/*@
    EPSGetBV - Obtain the basis vectors object associated to the eigensolver object.
 
    Not Collective
@@ -931,7 +1008,7 @@ PetscErrorCode EPSSetRG(EPS eps,RG rg)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetRG"
-/*@C
+/*@
    EPSGetRG - Obtain the region object associated to the eigensolver.
 
    Not Collective
@@ -997,7 +1074,7 @@ PetscErrorCode EPSSetDS(EPS eps,DS ds)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetDS"
-/*@C
+/*@
    EPSGetDS - Obtain the direct solver object associated to the eigensolver object.
 
    Not Collective

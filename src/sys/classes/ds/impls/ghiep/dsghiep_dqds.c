@@ -457,10 +457,9 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   PetscReal      tolDef=PETSC_MACHINE_EPSILON;  /* Tolerance for deflation eps, 10*eps, 100*eps */
   PetscReal      tolGrowth=100000;
   PetscErrorCode ierr;
-  PetscInt       i,k,nwu=0,nwall,begin,ind,flag,dim,m;
-  PetscReal      norm,gr,gl,sigma,delta,meanEig,*U,*L,*U1,*L1,*split;
+  PetscInt       i,k,nwu=0,nwall,begin,ind,flag,dim,m,*split,lastSplit;
+  PetscReal      norm,gr,gl,sigma,delta,meanEig,*U,*L,*U1,*L1;
   PetscReal      acShift,initialShift,shift=0.0,sum,det,disc,prod,x1,x2;
-  PetscInt       lastSplit;
   PetscBool      test1,test2;
 
   PetscFunctionBegin;
@@ -522,8 +521,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   shift = 0;
   begin = 0;
   lastSplit = 0;
-  split = work+nwu;
-  nwu += n;
+  ierr = PetscMalloc1(n,&split);CHKERRQ(ierr);
   split[lastSplit] = begin;
   while (begin!=-1) {
     while (n-begin>2 && totalIt<maxIt) {
@@ -743,6 +741,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   for (i=0;i<dim;i++) {
     wr[i] = wr[i]+initialShift;
   }
+  ierr = PetscFree(split);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

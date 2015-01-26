@@ -529,7 +529,7 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
   if (V->nc) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Not implemented for BV with constraints, use BVOrthogonalizeColumn() instead");
 
   ierr = PetscLogEventBegin(BV_Orthogonalize,V,R,0,0);CHKERRQ(ierr);
-  if (*V->ops->orthogonalize) {
+  if (V->ops->orthogonalize) {
     ierr = (*V->ops->orthogonalize)(V,R);CHKERRQ(ierr);
   } else { /* no specific QR function available, so proceed column by column with Gram-Schmidt */
     ierr = BVOrthogonalize_GS(V,R);CHKERRQ(ierr);

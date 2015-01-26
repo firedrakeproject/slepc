@@ -73,8 +73,8 @@ struct _p_BV {
 
   /*---------------------- Cached data and workspace -------------------*/
   Vec                Bx;           /* result of matrix times a vector x */
-  PetscInt           xid;          /* object id of vector x */
-  PetscInt           xstate;       /* state of vector x */
+  PetscObjectId      xid;          /* object id of vector x */
+  PetscObjectState   xstate;       /* state of vector x */
   Vec                cv[2];        /* column vectors obtained with BVGetColumn() */
   PetscInt           ci[2];        /* column indices of obtained vectors */
   PetscObjectState   st[2];        /* state of obtained vectors */

@@ -111,6 +111,78 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "SVDReasonView"
+/*@
+   SVDReasonView - Displays the reason an SVD solve converged or diverged.
+
+   Collective on SVD
+
+   Parameter:
++  svd - the singular value solver context
+-  viewer - the viewer to display the reason
+
+   Options Database Keys:
+.  -svd_converged_reason - print reason for convergence, and number of iterations
+
+   Level: beginner
+
+.seealso: SVDSetTolerances(), SVDGetIterationNumber()
+@*/
+PetscErrorCode SVDReasonView(SVD svd,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  PetscBool      isAscii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
+  if (isAscii) {
+    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
+    if (svd->reason > 0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s SVD solve converged due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s SVD solve did not converge due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDReasonViewFromOptions"
+/*@C
+   SVDReasonViewFromOptions - Processes command line options to determine if/how
+   the SVD converged reason is to be viewed. 
+
+   Collective on SVD
+
+   Input Parameters:
+.  svd - the singular value solver context
+
+   Level: intermediate
+@*/
+PetscErrorCode SVDReasonViewFromOptions(SVD svd)
+{
+  PetscErrorCode    ierr;
+  PetscViewer       viewer;
+  PetscBool         flg;
+  static PetscBool  incall = PETSC_FALSE;
+  PetscViewerFormat format;
+
+  PetscFunctionBegin;
+  if (incall) PetscFunctionReturn(0);
+  incall = PETSC_TRUE;
+  ierr   = PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->prefix,"-svd_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
+    ierr = SVDReasonView(svd,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+  incall = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "SVDPrintSolution"
 /*@
    SVDPrintSolution - Prints the computed singular values.
@@ -192,7 +264,7 @@ PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDCreate"
-/*@C
+/*@
    SVDCreate - Creates the default SVD context.
 
    Collective on MPI_Comm
@@ -302,7 +374,7 @@ PetscErrorCode SVDReset(SVD svd)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDDestroy"
-/*@C
+/*@
    SVDDestroy - Destroys the SVD context.
 
    Collective on SVD
@@ -500,7 +572,7 @@ PetscErrorCode SVDSetBV(SVD svd,BV V,BV U)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetBV"
-/*@C
+/*@
    SVDGetBV - Obtain the basis vectors objects associated to the singular
    value solver object.
 
@@ -576,7 +648,7 @@ PetscErrorCode SVDSetDS(SVD svd,DS ds)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetDS"
-/*@C
+/*@
    SVDGetDS - Obtain the direct solver object associated to the singular value
    solver object.
 
