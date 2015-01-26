@@ -23,30 +23,16 @@
 #include <slepcbv.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define bvcreate_                 BVCREATE
-#define bvdestroy_                BVDESTROY
 #define bvsetoptionsprefix_       BVSETOPTIONSPREFIX
 #define bvappendoptionsprefix_    BVAPPENDOPTIONSPREFIX
 #define bvgetoptionsprefix_       BVGETOPTIONSPREFIX
 #define bvview_                   BVVIEW
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define bvcreate_                 bvcreate
-#define bvdestroy_                bvdestroy
 #define bvsetoptionsprefix_       bvsetoptionsprefix
 #define bvappendoptionsprefix_    bvappendoptionsprefix
 #define bvgetoptionsprefix_       bvgetoptionsprefix
 #define bvview_                   bvview
 #endif
-
-PETSC_EXTERN void PETSC_STDCALL bvcreate_(MPI_Fint *comm,BV *newbv,PetscErrorCode *ierr)
-{
-  *ierr = BVCreate(MPI_Comm_f2c(*(comm)),newbv);
-}
-
-PETSC_EXTERN void PETSC_STDCALL bvdestroy_(BV *bv,PetscErrorCode *ierr)
-{
-  *ierr = BVDestroy(bv);
-}
 
 PETSC_EXTERN void PETSC_STDCALL bvsetoptionsprefix_(BV *bv,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {

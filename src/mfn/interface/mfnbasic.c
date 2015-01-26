@@ -167,7 +167,7 @@ PetscErrorCode MFNReasonViewFromOptions(MFN mfn)
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNCreate"
-/*@C
+/*@
    MFNCreate - Creates the default MFN context.
 
    Collective on MPI_Comm
@@ -371,7 +371,7 @@ PetscErrorCode MFNReset(MFN mfn)
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNDestroy"
-/*@C
+/*@
    MFNDestroy - Destroys the MFN context.
 
    Collective on MFN
@@ -438,7 +438,7 @@ PetscErrorCode MFNSetBV(MFN mfn,BV bv)
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNGetBV"
-/*@C
+/*@
    MFNGetBV - Obtain the basis vectors object associated to the matrix
    function solver.
 
@@ -505,7 +505,7 @@ PetscErrorCode MFNSetFN(MFN mfn,FN fn)
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNGetFN"
-/*@C
+/*@
    MFNGetFN - Obtain the math function object associated to the MFN object.
 
    Not Collective

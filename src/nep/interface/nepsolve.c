@@ -358,7 +358,7 @@ PetscErrorCode NEPGetConverged(NEP nep,PetscInt *nconv)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetConvergedReason"
-/*@C
+/*@
    NEPGetConvergedReason - Gets the reason why the NEPSolve() iteration was
    stopped.
 
