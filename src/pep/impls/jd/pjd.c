@@ -41,17 +41,14 @@
 */
 
 #include <slepc-private/pepimpl.h>    /*I "slepcpep.h" I*/
-
-typedef struct {
-  PetscReal keep;         /* restart parameter */
-} PEP_JD;
+#include "pjdp.h"
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetUp_JD"
 PetscErrorCode PEPSetUp_JD(PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_JD         *ctx = (PEP_JD*)pep->data;
+  PEP_JD         *pjd = (PEP_JD*)pep->data;
   PetscBool      precond,flg;
 
   PetscFunctionBegin;
@@ -70,7 +67,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag set, see STSetTransform()");
 
-  if (!ctx->keep) ctx->keep = 0.5;
+  if (!pjd->keep) pjd->keep = 0.5;
 
   ierr = PEPAllocateSolution(pep,0);CHKERRQ(ierr);
   ierr = PEPSetWorkVecs(pep,4);CHKERRQ(ierr);
@@ -85,7 +82,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
 PetscErrorCode PEPSolve_JD(PEP pep)
 {
   PetscErrorCode ierr;
-  /*PEP_JD         *ctx = (PEP_JD*)pep->data;*/
+  /*PEP_JD         *pjd = (PEP_JD*)pep->data;*/
   PetscInt       j,k=0,nv,ld;
   /*Vec            v=pep->work[0],w=pep->work[1];*/
   PetscReal      norm;
@@ -137,128 +134,6 @@ PetscErrorCode PEPSolve_JD(PEP pep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPJDSetRestart_JD"
-static PetscErrorCode PEPJDSetRestart_JD(PEP pep,PetscReal keep)
-{
-  PEP_JD *ctx = (PEP_JD*)pep->data;
-
-  PetscFunctionBegin;
-  if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
-  else {
-    if (keep<0.1 || keep>0.9) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
-    ctx->keep = keep;
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDSetRestart"
-/*@
-   PEPJDSetRestart - Sets the restart parameter for the Jacobi-Davidson
-   method, in particular the proportion of basis vectors that must be kept
-   after restart.
-
-   Logically Collective on PEP
-
-   Input Parameters:
-+  pep  - the eigenproblem solver context
--  keep - the number of vectors to be kept at restart
-
-   Options Database Key:
-.  -pep_jd_restart - Sets the restart parameter
-
-   Notes:
-   Allowed values are in the range [0.1,0.9]. The default is 0.5.
-
-   Level: advanced
-
-.seealso: PEPJDGetRestart()
-@*/
-PetscErrorCode PEPJDSetRestart(PEP pep,PetscReal keep)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidLogicalCollectiveReal(pep,keep,2);
-  ierr = PetscTryMethod(pep,"PEPJDSetRestart_C",(PEP,PetscReal),(pep,keep));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDGetRestart_JD"
-static PetscErrorCode PEPJDGetRestart_JD(PEP pep,PetscReal *keep)
-{
-  PEP_JD *ctx = (PEP_JD*)pep->data;
-
-  PetscFunctionBegin;
-  *keep = ctx->keep;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDGetRestart"
-/*@
-   PEPJDGetRestart - Gets the restart parameter used in the Jacobi-Davidson method.
-
-   Not Collective
-
-   Input Parameter:
-.  pep - the eigenproblem solver context
-
-   Output Parameter:
-.  keep - the restart parameter
-
-   Level: advanced
-
-.seealso: PEPJDSetRestart()
-@*/
-PetscErrorCode PEPJDGetRestart(PEP pep,PetscReal *keep)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(keep,2);
-  ierr = PetscTryMethod(pep,"PEPJDGetRestart_C",(PEP,PetscReal*),(pep,keep));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetFromOptions_JD"
-PetscErrorCode PEPSetFromOptions_JD(PEP pep)
-{
-  PetscErrorCode ierr;
-  PetscBool      flg;
-  PetscReal      keep;
-
-  PetscFunctionBegin;
-  ierr = PetscOptionsHead("PEP JD Options");CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-pep_jd_restart","Proportion of vectors kept after restart","PEPJDSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PEPJDSetRestart(pep,keep);CHKERRQ(ierr);
-  }
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPView_JD"
-PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
-{
-  PetscErrorCode ierr;
-  PEP_JD         *ctx = (PEP_JD*)pep->data;
-  PetscBool      isascii;
-
-  PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  JD: %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "PEPDestroy_JD"
 PetscErrorCode PEPDestroy_JD(PEP pep)
 {
@@ -268,6 +143,8 @@ PetscErrorCode PEPDestroy_JD(PEP pep)
   ierr = PetscFree(pep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetRestart_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetRestart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetTolerances_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetTolerances_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -275,12 +152,17 @@ PetscErrorCode PEPDestroy_JD(PEP pep)
 #define __FUNCT__ "PEPCreate_JD"
 PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
 {
-  PEP_JD         *ctx;
+  PEP_JD         *pjd;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
-  pep->data = (void*)ctx;
+  ierr = PetscNewLog(pep,&pjd);CHKERRQ(ierr);
+  pep->data = (void*)pjd;
+
+  pjd->keep = 0;
+  pjd->mtol = 1e-5;
+  pjd->htol = 1e-2;
+  pjd->stol = 1e-2;
 
   pep->ops->solve          = PEPSolve_JD;
   pep->ops->setup          = PEPSetUp_JD;
@@ -290,6 +172,8 @@ PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   pep->ops->computevectors = PEPComputeVectors_Schur;
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetRestart_C",PEPJDSetRestart_JD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetRestart_C",PEPJDGetRestart_JD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetTolerances_C",PEPJDSetTolerances_JD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetTolerances_C",PEPJDGetTolerances_JD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
