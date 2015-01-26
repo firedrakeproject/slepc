@@ -125,7 +125,7 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetConvergedReason"
-/*@C
+/*@
    SVDGetConvergedReason - Gets the reason why the SVDSolve() iteration was
    stopped.
 

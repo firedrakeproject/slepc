@@ -22,12 +22,12 @@
         module slepcsvddef
         use slepcbv
         use slepceps
-#include <finclude/slepcsvd.h>
-#include <finclude/ftn-custom/slepcsvddef.h90>
+#include <slepc-finclude/slepcsvd.h>
+#include <slepc-finclude/ftn-custom/slepcsvddef.h90>
         end module
 
         module slepcsvd
         use slepcsvddef
-#include <finclude/slepcsvd.h90>
+#include <slepc-finclude/slepcsvd.h90>
         end module
 

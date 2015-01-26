@@ -31,5 +31,5 @@ MANSEC   = sys
 LOCDIR   = src/sys/
 DIRS     = classes vec f90-mod
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
 

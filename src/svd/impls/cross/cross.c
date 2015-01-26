@@ -196,8 +196,10 @@ PetscErrorCode SVDSetFromOptions_Cross(SVD svd)
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
 
   PetscFunctionBegin;
+  ierr = PetscOptionsHead("SVD Cross Options");CHKERRQ(ierr);
   if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
   ierr = EPSSetFromOptions(cross->eps);CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

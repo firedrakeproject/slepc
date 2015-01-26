@@ -91,13 +91,9 @@ PetscErrorCode PEPSolve(PEP pep)
 
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
   
-  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
-  if (!islinear) {
-    ierr = STPostSolve(pep->st);CHKERRQ(ierr);
-  }
-
   if (!pep->reason) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
+  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
     /* Map eigenvalues back to the original problem */
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
@@ -231,7 +227,7 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetConvergedReason"
-/*@C
+/*@
    PEPGetConvergedReason - Gets the reason why the PEPSolve() iteration was
    stopped.
 

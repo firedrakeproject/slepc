@@ -30,7 +30,7 @@ MANSEC     = MFN
 
 TESTEXAMPLES_C = ex23.PETSc runex23_1 ex23.rm
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
 
 ex23: ex23.o chkopts
 	-${CLINKER} -o ex23 ex23.o ${SLEPC_MFN_LIB}
