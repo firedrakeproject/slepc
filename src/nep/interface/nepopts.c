@@ -182,7 +182,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     ierr = PetscOptionsName("-nep_plot_eigs","Make a plot of the computed eigenvalues","NEPSolve",0);CHKERRQ(ierr);
 
     if (nep->ops->setfromoptions) {
-      ierr = (*nep->ops->setfromoptions)(nep);CHKERRQ(ierr);
+      ierr = (*nep->ops->setfromoptions)(PetscOptionsObject,nep);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)nep);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);

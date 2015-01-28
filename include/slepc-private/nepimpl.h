@@ -32,7 +32,7 @@ typedef struct _NEPOps *NEPOps;
 struct _NEPOps {
   PetscErrorCode (*solve)(NEP);
   PetscErrorCode (*setup)(NEP);
-  PetscErrorCode (*setfromoptions)(NEP);
+  PetscErrorCode (*setfromoptions)(PetscOptions*,NEP);
   PetscErrorCode (*publishoptions)(NEP);
   PetscErrorCode (*destroy)(NEP);
   PetscErrorCode (*reset)(NEP);

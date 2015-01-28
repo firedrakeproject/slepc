@@ -29,7 +29,7 @@ typedef struct {
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Precond"
-PetscErrorCode STSetFromOptions_Precond(ST st)
+PetscErrorCode STSetFromOptions_Precond(PetscOptions *PetscOptionsObject,ST st)
 {
   PetscErrorCode ierr;
   PC             pc;
@@ -71,7 +71,7 @@ PetscErrorCode STSetUp_Precond(ST st)
   if (!st->sigma_set) st->sigma = st->defsigma;
 
   /* If either pc is none and no matrix has to be set, or pc is shell , exit */
-  ierr = STSetFromOptions_Precond(st);CHKERRQ(ierr);
+  /*ierr = STSetFromOptions_Precond(st);CHKERRQ(ierr); */  /* TODO: fix this */
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pc,PCSHELL,&t0);CHKERRQ(ierr);

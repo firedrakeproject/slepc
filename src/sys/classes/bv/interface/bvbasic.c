@@ -704,9 +704,6 @@ PetscErrorCode BVSetFromOptions(BV bv)
     ierr = PetscOptionsReal("-bv_orthog_eta","Parameter of iterative refinement during orthogonalization","BVSetOrthogonalization",r,&r,NULL);CHKERRQ(ierr);
     ierr = BVSetOrthogonalization(bv,(BVOrthogType)i,(BVOrthogRefineType)j,r);CHKERRQ(ierr);
 
-    if (bv->ops->setfromoptions) {
-      ierr = (*bv->ops->setfromoptions)(bv);CHKERRQ(ierr);
-    }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)bv);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);

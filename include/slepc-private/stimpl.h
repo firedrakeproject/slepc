@@ -35,7 +35,7 @@ struct _STOps {
   PetscErrorCode (*getbilinearform)(ST,Mat*);
   PetscErrorCode (*applytrans)(ST,Vec,Vec);
   PetscErrorCode (*setshift)(ST,PetscScalar);
-  PetscErrorCode (*setfromoptions)(ST);
+  PetscErrorCode (*setfromoptions)(PetscOptions*,ST);
   PetscErrorCode (*postsolve)(ST);
   PetscErrorCode (*backtransform)(ST,PetscInt,PetscScalar*,PetscScalar*);
   PetscErrorCode (*destroy)(ST);

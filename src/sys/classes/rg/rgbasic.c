@@ -324,7 +324,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
     ierr = PetscOptionsBool("-rg_complement","Whether region is complemented or not","RGSetComplement",rg->complement,&rg->complement,&flg);CHKERRQ(ierr);
 
     if (rg->ops->setfromoptions) {
-      ierr = (*rg->ops->setfromoptions)(rg);CHKERRQ(ierr);
+      ierr = (*rg->ops->setfromoptions)(PetscOptionsObject,rg);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)rg);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);

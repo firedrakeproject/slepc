@@ -250,7 +250,7 @@ PetscErrorCode EPSSetUp(EPS eps)
    Notes:
    To specify a standard eigenproblem, use NULL for parameter B.
 
-   It must be called after EPSSetUp(). If it is called again after EPSSetUp() then
+   It must be called before EPSSetUp(). If it is called again after EPSSetUp() then
    the EPS object is reset.
 
    Level: beginner

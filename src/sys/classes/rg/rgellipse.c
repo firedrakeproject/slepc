@@ -212,7 +212,7 @@ PetscErrorCode RGCheckInside_Ellipse(RG rg,PetscInt n,PetscScalar *ar,PetscScala
 
 #undef __FUNCT__
 #define __FUNCT__ "RGSetFromOptions_Ellipse"
-PetscErrorCode RGSetFromOptions_Ellipse(RG rg)
+PetscErrorCode RGSetFromOptions_Ellipse(PetscOptions *PetscOptionsObject,RG rg)
 {
   PetscErrorCode ierr;
   PetscScalar    s;
@@ -220,7 +220,7 @@ PetscErrorCode RGSetFromOptions_Ellipse(RG rg)
   PetscBool      flg1,flg2,flg3;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("RG Ellipse Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"RG Ellipse Options");CHKERRQ(ierr);
 
   ierr = RGEllipseGetParameters(rg,&s,&r1,&r2);CHKERRQ(ierr);
   ierr = PetscOptionsScalar("-rg_ellipse_center","Center of ellipse","RGEllipseSetParameters",s,&s,&flg1);CHKERRQ(ierr);
