@@ -35,7 +35,7 @@ typedef struct {
 } PEP_JD;
 
 PETSC_INTERN PetscErrorCode PEPView_JD(PEP,PetscViewer);
-PETSC_INTERN PetscErrorCode PEPSetFromOptions_JD(PEP);
+PETSC_INTERN PetscErrorCode PEPSetFromOptions_JD(PetscOptions*,PEP);
 PETSC_INTERN PetscErrorCode PEPJDSetRestart_JD(PEP,PetscReal);
 PETSC_INTERN PetscErrorCode PEPJDGetRestart_JD(PEP,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPJDSetTolerances_JD(PEP,PetscReal,PetscReal,PetscReal);

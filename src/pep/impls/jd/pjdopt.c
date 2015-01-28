@@ -220,7 +220,7 @@ PetscErrorCode PEPJDGetRestart(PEP pep,PetscReal *keep)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetFromOptions_JD"
-PetscErrorCode PEPSetFromOptions_JD(PEP pep)
+PetscErrorCode PEPSetFromOptions_JD(PetscOptions *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
   PEP_JD         *pjd = (PEP_JD*)pep->data;
@@ -228,7 +228,7 @@ PetscErrorCode PEPSetFromOptions_JD(PEP pep)
   PetscReal      r1,r2,r3;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("PEP JD Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"PEP JD Options");CHKERRQ(ierr);
   ierr = PetscOptionsReal("-pep_jd_restart","Proportion of vectors kept after restart","PEPJDSetRestart",0.5,&r1,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PEPJDSetRestart(pep,r1);CHKERRQ(ierr);
