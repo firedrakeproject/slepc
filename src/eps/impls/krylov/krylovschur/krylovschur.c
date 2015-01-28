@@ -872,7 +872,7 @@ PetscErrorCode EPSKrylovSchurGetInertias(EPS eps,PetscInt *n,PetscReal **shifts,
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_KrylovSchur"
-PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps)
+PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
@@ -881,7 +881,7 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps)
   PetscInt        i,j,k;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS Krylov-Schur Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS Krylov-Schur Options");CHKERRQ(ierr);
   ierr = PetscOptionsReal("-eps_krylovschur_restart","Proportion of vectors kept after restart","EPSKrylovSchurSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = EPSKrylovSchurSetRestart(eps,keep);CHKERRQ(ierr);

@@ -750,7 +750,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_Lanczos"
-PetscErrorCode EPSSetFromOptions_Lanczos(EPS eps)
+PetscErrorCode EPSSetFromOptions_Lanczos(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode         ierr;
   EPS_LANCZOS            *lanczos = (EPS_LANCZOS*)eps->data;
@@ -758,7 +758,7 @@ PetscErrorCode EPSSetFromOptions_Lanczos(EPS eps)
   EPSLanczosReorthogType reorthog;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS Lanczos Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS Lanczos Options");CHKERRQ(ierr);
   ierr = PetscOptionsEnum("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",EPSLanczosReorthogTypes,(PetscEnum)lanczos->reorthog,(PetscEnum*)&reorthog,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = EPSLanczosSetReorthog(eps,reorthog);CHKERRQ(ierr);

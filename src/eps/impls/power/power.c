@@ -228,7 +228,7 @@ PetscErrorCode EPSBackTransform_Power(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_Power"
-PetscErrorCode EPSSetFromOptions_Power(EPS eps)
+PetscErrorCode EPSSetFromOptions_Power(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode    ierr;
   EPS_POWER         *power = (EPS_POWER*)eps->data;
@@ -236,7 +236,7 @@ PetscErrorCode EPSSetFromOptions_Power(EPS eps)
   EPSPowerShiftType shift;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS Power Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS Power Options");CHKERRQ(ierr);
   ierr = PetscOptionsEnum("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",EPSPowerShiftTypes,(PetscEnum)power->shift_type,(PetscEnum*)&shift,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = EPSPowerSetShiftType(eps,shift);CHKERRQ(ierr);

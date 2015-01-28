@@ -335,7 +335,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_PRIMME"
-PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
+PetscErrorCode EPSSetFromOptions_PRIMME(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_PRIMME      *ctx = (EPS_PRIMME*)eps->data;
@@ -345,7 +345,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   KSP             ksp;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS PRIMME Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS PRIMME Options");CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_primme_block_size","Maximum block size","EPSPRIMMESetBlockSize",ctx->primme.maxBlockSize,&bs,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = EPSPRIMMESetBlockSize(eps,bs);CHKERRQ(ierr);

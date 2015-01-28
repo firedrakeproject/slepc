@@ -96,7 +96,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
 -  A   - the problem matrix
 
    Notes:
-   It must be called after MFNSetUp(). If it is called again after MFNSetUp() then
+   It must be called before MFNSetUp(). If it is called again after MFNSetUp() then
    the MFN object is reset.
 
    Level: beginner

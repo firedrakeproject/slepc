@@ -279,14 +279,14 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions_Lanczos"
-PetscErrorCode SVDSetFromOptions_Lanczos(SVD svd)
+PetscErrorCode SVDSetFromOptions_Lanczos(PetscOptions *PetscOptionsObject,SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("SVD Lanczos Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"SVD Lanczos Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-svd_lanczos_oneside","Lanczos one-side reorthogonalization","SVDLanczosSetOneSide",lanczos->oneside,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = SVDLanczosSetOneSide(svd,val);CHKERRQ(ierr);

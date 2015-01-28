@@ -32,7 +32,7 @@ typedef struct _SVDOps *SVDOps;
 struct _SVDOps {
   PetscErrorCode (*solve)(SVD);
   PetscErrorCode (*setup)(SVD);
-  PetscErrorCode (*setfromoptions)(SVD);
+  PetscErrorCode (*setfromoptions)(PetscOptions*,SVD);
   PetscErrorCode (*publishoptions)(SVD);
   PetscErrorCode (*destroy)(SVD);
   PetscErrorCode (*reset)(SVD);

@@ -1411,7 +1411,7 @@ PetscErrorCode EPSReset_CISS(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_CISS"
-PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
+PetscErrorCode EPSSetFromOptions_CISS(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscReal      r3,r4;
@@ -1419,7 +1419,7 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
   PetscBool      b1,b2;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS CISS Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS CISS Options");CHKERRQ(ierr);
   ierr = EPSCISSGetSizes(eps,&i1,&i2,&i3,&i4,&i5,&b1);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_ciss_integration_points","CISS number of integration points","EPSCISSSetSizes",i1,&i1,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_ciss_blocksize","CISS block size","EPSCISSSetSizes",i2,&i2,NULL);CHKERRQ(ierr);

@@ -222,7 +222,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Cayley"
-PetscErrorCode STSetFromOptions_Cayley(ST st)
+PetscErrorCode STSetFromOptions_Cayley(PetscOptions *PetscOptionsObject,ST st)
 {
   PetscErrorCode ierr;
   PetscScalar    nu;
@@ -249,7 +249,7 @@ PetscErrorCode STSetFromOptions_Cayley(ST st)
     }
   }
 
-  ierr = PetscOptionsHead("ST Cayley Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"ST Cayley Options");CHKERRQ(ierr);
   ierr = PetscOptionsScalar("-st_cayley_antishift","Value of the antishift","STCayleySetAntishift",ctx->nu,&nu,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = STCayleySetAntishift(st,nu);CHKERRQ(ierr);
