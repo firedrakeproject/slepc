@@ -832,14 +832,14 @@ PetscErrorCode PEPTOARGetRestart(PEP pep,PetscReal *keep)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetFromOptions_TOAR"
-PetscErrorCode PEPSetFromOptions_TOAR(PEP pep)
+PetscErrorCode PEPSetFromOptions_TOAR(PetscOptions *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
   PetscBool      flg;
   PetscReal      keep;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("PEP TOAR Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"PEP TOAR Options");CHKERRQ(ierr);
   ierr = PetscOptionsReal("-pep_toar_restart","Proportion of vectors kept after restart","PEPTOARSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PEPTOARSetRestart(pep,keep);CHKERRQ(ierr);

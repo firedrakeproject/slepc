@@ -165,7 +165,7 @@ PetscErrorCode STSetFromOptions(ST st)
     ierr = PetscOptionsBool("-st_transform","Whether transformed matrices are computed or not","STSetTransform",st->transform,&st->transform,&flg);CHKERRQ(ierr);
 
     if (st->ops->setfromoptions) {
-      ierr = (*st->ops->setfromoptions)(st);CHKERRQ(ierr);
+      ierr = (*st->ops->setfromoptions)(PetscOptionsObject,st);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)st);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);

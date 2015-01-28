@@ -202,7 +202,7 @@ PetscErrorCode RGCheckInside_Interval(RG rg,PetscInt n,PetscScalar *ar,PetscScal
 
 #undef __FUNCT__
 #define __FUNCT__ "RGSetFromOptions_Interval"
-PetscErrorCode RGSetFromOptions_Interval(RG rg)
+PetscErrorCode RGSetFromOptions_Interval(PetscOptions *PetscOptionsObject,RG rg)
 {
   PetscErrorCode ierr;
   PetscBool      flg;
@@ -210,7 +210,7 @@ PetscErrorCode RGSetFromOptions_Interval(RG rg)
   PetscReal      array[4]={0,0,0,0};
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("RG Interval Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"RG Interval Options");CHKERRQ(ierr);
 
   k = 4;
   ierr = PetscOptionsRealArray("-rg_interval_endpoints","Interval endpoints (four real values separated with a comma without spaces)","RGIntervalSetEndpoints",array,&k,&flg);CHKERRQ(ierr);

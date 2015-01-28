@@ -190,13 +190,13 @@ static PetscErrorCode SVDMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,Petsc
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions_Cross"
-PetscErrorCode SVDSetFromOptions_Cross(SVD svd)
+PetscErrorCode SVDSetFromOptions_Cross(PetscOptions *PetscOptionsObject,SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("SVD Cross Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"SVD Cross Options");CHKERRQ(ierr);
   if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
   ierr = EPSSetFromOptions(cross->eps);CHKERRQ(ierr);
   ierr = PetscOptionsTail();CHKERRQ(ierr);

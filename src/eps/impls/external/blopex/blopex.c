@@ -306,13 +306,13 @@ PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_BLOPEX"
-PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps)
+PetscErrorCode EPSSetFromOptions_BLOPEX(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode  ierr;
   KSP             ksp;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS BLOPEX Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS BLOPEX Options");CHKERRQ(ierr);
   LOBPCG_SetFromOptionsRandomContext();
 
   /* Set STPrecond as the default ST */

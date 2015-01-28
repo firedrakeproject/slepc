@@ -107,7 +107,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     ierr = PetscOptionsName("-mfn_view","Print detailed information on solver used","MFNView",0);CHKERRQ(ierr);
 
     if (mfn->ops->setfromoptions) {
-      ierr = (*mfn->ops->setfromoptions)(mfn);CHKERRQ(ierr);
+      ierr = (*mfn->ops->setfromoptions)(PetscOptionsObject,mfn);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)mfn);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
