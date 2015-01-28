@@ -666,14 +666,14 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetFromOptions_STOAR"
-PetscErrorCode PEPSetFromOptions_STOAR(PEP pep)
+PetscErrorCode PEPSetFromOptions_STOAR(PetscOptions *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("PEP STOAR Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"PEP STOAR Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-pep_stoar_monic","Use monic variant of STOAR","PEPSTOARSetMonic",ctx->monic,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = PEPSTOARSetMonic(pep,val);CHKERRQ(ierr);
