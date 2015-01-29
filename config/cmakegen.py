@@ -140,7 +140,7 @@ class Mistakes(object):
         for m in self.mistakes:
             self.log.write(m + '\n')
         if self.mistakes:
-            raise RuntimeError('SLEPc makefiles contain mistakes or files are missing on filesystem.\n%s\nPossible reasons:\n\t1. Files were deleted locally, try "hg revert filename" or "git checkout filename".\n\t2. Files were deleted from repository, but were not removed from makefile. Send mail to slepc-maint@grycap.upv.es.\n\t3. Someone forgot to "add" new files to the repository. Send mail to slepc-maint@grycap.upv.es.' % ('\n'.join(self.mistakes)))
+            raise RuntimeError('SLEPc makefiles contain mistakes or files are missing on filesystem.\n%s\nPossible reasons:\n\t1. Files were deleted locally, try "hg revert filename" or "git checkout filename".\n\t2. Files were deleted from repository, but were not removed from makefile. Send mail to slepc-maint@upv.es.\n\t3. Someone forgot to "add" new files to the repository. Send mail to slepc-maint@upv.es.' % ('\n'.join(self.mistakes)))
 
 def stripsplit(line):
   return line[len('#requires'):].replace("'","").split()

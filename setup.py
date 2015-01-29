@@ -41,7 +41,7 @@ from distutils import log
 
 init_py = """\
 # Author:  SLEPc Team
-# Contact: slepc-maint@grycap.upv.es
+# Contact: slepc-maint@upv.es
 
 def get_slepc_dir():
     import os
@@ -241,7 +241,7 @@ def tarball():
     bits = VERSION.split('.')
     if len(bits) == 2: bits.append('0')
     SLEPC_VERSION = '.'.join(bits[:3])
-    return ('http://www.grycap.upv.es/slepc/download/distrib/'
+    return ('http://slepc.upv.es/download/distrib/'
             'slepc-%s.tar.gz#egg=slepc-%s' % (SLEPC_VERSION, VERSION))
 
 description = __doc__.split('\n')[1:-1]; del description[1:3]
@@ -269,11 +269,11 @@ setup(name='slepc',
       platforms=['POSIX'],
       license='LGPL',
 
-      url='http://www.grycap.upv.es/slepc/',
+      url='http://slepc.upv.es/',
       download_url=tarball(),
 
       author='SLEPc Team',
-      author_email='slepc-maint@grycap.upv.es',
+      author_email='slepc-maint@upv.es',
       maintainer='Lisandro Dalcin',
       maintainer_email='dalcinl@gmail.com',
 

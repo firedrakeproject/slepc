@@ -12,13 +12,13 @@
    References:
 
        [1] "Krylov-Schur Methods in SLEPc", SLEPc Technical Report STR-7,
-           available at http://www.grycap.upv.es/slepc.
+           available at http://slepc.upv.es.
 
        [2] G.W. Stewart, "A Krylov-Schur Algorithm for Large Eigenproblems",
            SIAM J. Matrix Anal. App. 23(3):601-614, 2001.
 
        [3] "Practical Implementation of Harmonic Krylov-Schur", SLEPc Technical
-            Report STR-9, available at http://www.grycap.upv.es/slepc.
+            Report STR-9, available at http://slepc.upv.es.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
