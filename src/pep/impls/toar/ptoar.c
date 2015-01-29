@@ -690,13 +690,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     }
   }
 
-  /* Modify matrix norms so that the scaling affects the convergence test */
-  norm = pep->dsfactor;
-  for (i=0;i<pep->nmat;i++) {
-    pep->nrma[i] *= norm;
-    norm*=pep->sfactor;
-  }
-
   if (flg) sigma = 0.0;
   /* Get the starting Lanczos vector */
   if (pep->nini==0) {  
@@ -834,10 +827,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       }
     }
   }
-
-  /* Restore original matrix norms */
-  norm = pep->dsfactor;
-  for (i=0;i<pep->nmat;i++) {pep->nrma[i] /= norm; norm*=pep->sfactor;}
 
   /* change the state to raw so that DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);

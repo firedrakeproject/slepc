@@ -161,8 +161,8 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
     case PEP_CONV_EIG:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
-    case PEP_CONV_NORM:
-      ierr = PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n");CHKERRQ(ierr);
+    case PEP_CONV_LINEAR:
+      ierr = PetscViewerASCIIPrintf(viewer,"related to the linearized eigenproblem\n");CHKERRQ(ierr);
       if (pep->nrma) {
         ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)pep->nrma[0]);CHKERRQ(ierr);
         for (i=1;i<pep->nmat;i++) {
@@ -426,7 +426,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->nini            = 0;
   pep->target          = 0.0;
   pep->tol             = PETSC_DEFAULT;
-  pep->conv            = PEP_CONV_NORM;
+  pep->conv            = PEP_CONV_LINEAR;
   pep->which           = (PEPWhich)0;
   pep->basis           = PEP_BASIS_MONOMIAL;
   pep->problem_type    = (PEPProblemType)0;
@@ -443,7 +443,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->extract         = (PEPExtract)0;
   pep->trackall        = PETSC_FALSE;
 
-  pep->converged       = PEPConvergedNormRelative;
+  pep->converged       = PEPConvergedLinear;
   pep->convergeddestroy= NULL;
   pep->convergedctx    = NULL;
   pep->numbermonitors  = 0;
