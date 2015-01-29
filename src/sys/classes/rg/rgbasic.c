@@ -96,7 +96,7 @@ PetscErrorCode RGInitializePackage(void)
 
 #undef __FUNCT__
 #define __FUNCT__ "RGCreate"
-/*@C
+/*@
    RGCreate - Creates an RG context.
 
    Collective on MPI_Comm
@@ -324,7 +324,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
     ierr = PetscOptionsBool("-rg_complement","Whether region is complemented or not","RGSetComplement",rg->complement,&rg->complement,&flg);CHKERRQ(ierr);
 
     if (rg->ops->setfromoptions) {
-      ierr = (*rg->ops->setfromoptions)(rg);CHKERRQ(ierr);
+      ierr = (*rg->ops->setfromoptions)(PetscOptionsObject,rg);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)rg);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
@@ -544,7 +544,7 @@ PetscErrorCode RGGetComplement(RG rg,PetscBool *flg)
 
 #undef __FUNCT__
 #define __FUNCT__ "RGDestroy"
-/*@C
+/*@
    RGDestroy - Destroys RG context that was created with RGCreate().
 
    Collective on RG

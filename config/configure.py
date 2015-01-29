@@ -194,7 +194,7 @@ if 'SLEPC_DIR' in os.environ:
   if os.path.realpath(os.getcwd()) != os.path.realpath(slepcdir):
     sys.exit('ERROR: SLEPC_DIR is not the current directory')
 else:
-  slepcdir = os.getcwd();
+  slepcdir = os.getcwd()
   if not os.path.exists(os.sep.join([slepcdir,'config'])):
     sys.exit('ERROR: Current directory is not valid')
 
@@ -227,7 +227,7 @@ archdir = os.sep.join([slepcdir,petscconf.ARCH])
 emptyarch = 1
 if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']: emptyarch = 0
 if emptyarch:
-  globconfdir = os.sep.join([slepcdir,'conf'])
+  globconfdir = os.sep.join([slepcdir,'lib','slepc-conf'])
   try:
     globconf = open(os.sep.join([globconfdir,'slepcvariables']),'w')
     globconf.write('SLEPC_DIR = ' + slepcdir +'\n')
@@ -239,7 +239,7 @@ if emptyarch:
 # Clean previous configuration if needed
 if os.path.exists(archdir):
   try:
-    f = open(os.sep.join([archdir,'conf/slepcvariables']),"r")
+    f = open(os.sep.join([archdir,'lib','slepc-conf','slepcvariables']),"r")
     searchlines = f.readlines()
     f.close()
     found = 0
@@ -262,12 +262,6 @@ if not os.path.exists(archdir):
     os.mkdir(archdir)
   except:
     sys.exit('ERROR: cannot create architecture directory ' + archdir)
-confdir = os.sep.join([archdir,'conf'])
-if not os.path.exists(confdir):
-  try:
-    os.mkdir(confdir)
-  except:
-    sys.exit('ERROR: cannot create configuration directory ' + confdir)
 incdir = os.sep.join([archdir,'include'])
 if not os.path.exists(incdir):
   try:
@@ -280,7 +274,19 @@ if not os.path.exists(libdir):
     os.mkdir(libdir)
   except:
     sys.exit('ERROR: cannot create lib directory ' + libdir)
-modulesdir = os.sep.join([libdir,'modules'])
+confdir = os.sep.join([libdir,'slepc-conf'])
+if not os.path.exists(confdir):
+  try:
+    os.mkdir(confdir)
+  except:
+    sys.exit('ERROR: cannot create configuration directory ' + confdir)
+modulesbasedir = os.sep.join([confdir,'modules'])
+if not os.path.exists(modulesbasedir):
+  try:
+    os.mkdir(modulesbasedir)
+  except:
+    sys.exit('ERROR: cannot create modules base directory ' + modulesbasedir)
+modulesdir = os.sep.join([modulesbasedir,'slepc'])
 if not os.path.exists(modulesdir):
   try:
     os.mkdir(modulesdir)
@@ -351,8 +357,8 @@ try:
   makefile.write('\t${CLINKER} -o checklink checklink.o ${TESTFLAGS} ${PETSC_KSP_LIB}\n')
   makefile.write('\t@${RM} -f checklink checklink.o\n')
   makefile.write('LOCDIR = ./\n')
-  makefile.write('include ${PETSC_DIR}/conf/variables\n')
-  makefile.write('include ${PETSC_DIR}/conf/rules\n')
+  makefile.write('include ${PETSC_DIR}/lib/petsc-conf/variables\n')
+  makefile.write('include ${PETSC_DIR}/lib/petsc-conf/rules\n')
   makefile.close()
 except:
   sys.exit('ERROR: cannot create makefile in temporary directory')
@@ -416,12 +422,10 @@ missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
 # Make Fortran stubs if necessary
 if slepcversion.ISREPO and hasattr(petscconf,'FC'):
   try:
+    sys.path.insert(0, os.path.abspath(os.path.join('bin','maint')))
     import generatefortranstubs
     generatefortranstubs.main(slepcdir,petscconf.BFORT,os.getcwd(),0)
     generatefortranstubs.processf90interfaces(slepcdir,0)
-    for f in os.listdir(os.sep.join([slepcdir,'include/finclude/ftn-auto'])):
-      if '-tmpdir' in f: shutil.rmtree(os.sep.join([slepcdir,'include/finclude/ftn-auto/',f]))
-      if 'petsc' in f: os.remove(os.sep.join([slepcdir,'include/finclude/ftn-auto/',f]))
   except AttributeError:
     sys.exit('ERROR: cannot generate Fortran stubs; try configuring PETSc with --download-sowing or use a mercurial version of PETSc')
 

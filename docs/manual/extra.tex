@@ -235,20 +235,20 @@ Note that the point is represented as two \texttt{PetscScalar}'s, similarly to e
 
 	The directory structure of the \slepc software is very similar to that in \petsc. The root directory of \slepc contains the following directories:
 \begin{description}
-\item[\texttt{conf}] - Directory containing the base \slepc makefile, to be included in application makefiles.
+\item[\texttt{lib}] - Directory containing the base \slepc makefile, to be included in application makefiles.
 \item[\texttt{config}] - \slepc configuration scripts. 
 \item[\texttt{docs}] - All documentation for \slepc, including this manual. The subdirectory \texttt{manualpages} contains the on-line manual pages of each \slepc routine.
 \item[\texttt{include}] - All include files for \slepc. The following subdirectories exist:
 \begin{description}
 \setlength{\itemsep}{0mm}
-\item[\texttt{finclude}] - include files for Fortran programmers.
+\item[\texttt{slepc-finclude}] - include files for Fortran programmers.
 \item[\texttt{slepc-private}] - include files containing implementation details, for developer use only.
 \end{description}
 \item[\texttt{shared/slepc}] - Common files, including:
 \begin{description}
 \setlength{\itemsep}{0mm}
 \item[\texttt{datafiles}] - data files used by some examples.
-\item[\texttt{matlab}] - Matlab interface and examples.
+%\item[\texttt{matlab}] - Matlab interface and examples.
 \end{description}
 \item[\texttt{src}] - The source code for all \slepc components, which currently includes:
 \begin{description}
@@ -264,7 +264,7 @@ Note that the point is represented as two \texttt{PetscScalar}'s, similarly to e
 \begin{description}
 \setlength{\itemsep}{0mm}
 \item[\texttt{lib}] - all the generated libraries.
-\item[\texttt{conf}] - configuration parameters and log files.
+\item[\texttt{lib/slepc-conf}] - configuration parameters and log files.
 \item[\texttt{include}] - automatically generated include files, such as Fortran 90 \texttt{*.mod} files.
 \end{description}
 \end{description}
@@ -407,16 +407,16 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 \MyVerbatimInput{ex1f.F}
 
 %---------------------------------------------------
-\section{Matlab Interface}
-\label{sec:matlab}
-
-Since version 3.2, \slepc includes an interface intended to make most of \slepc's functionality available from Matlab. It is experimental and needs further development, so users planning to use it seriously are recommended to contact the authors. Below are some guidelines for using this interface.
-
-First of all, \petsc must have been configured with the Matlab interface enabled. This can be done as follows (check \petsc documentation for details):
-	\begin{Verbatim}[fontsize=\small]
-	$ ./configure --with-matlab --with-matlab-engine --with-shared-libraries
-	\end{Verbatim}
-
-Once the \petsc and \slepc libraries have been built, one has to set Matlab's path to point to the directories containing Matlab classes: \Verb!$SLEPC_DIR/share/slepc/matlab/classes! and \Verb!$PETSC_DIR/share/slepc/matlab/classes!. Below we show a simple Matlab example (included in \slepc's distribution) that does this, and then solves a simple eigenproblem.
-\MyVerbatimInput{exEPS.m}
+%\section{Matlab Interface}
+%\label{sec:matlab}
+%
+%Since version 3.2, \slepc includes an interface intended to make most of \slepc's functionality available from Matlab. It is experimental and needs further development, so users planning to use it seriously are recommended to contact the authors. Below are some guidelines for using this interface.
+%
+%First of all, \petsc must have been configured with the Matlab interface enabled. This can be done as follows (check \petsc documentation for details):
+%	\begin{Verbatim}[fontsize=\small]
+%	$ ./configure --with-matlab --with-matlab-engine --with-shared-libraries
+%	\end{Verbatim}
+%
+%Once the \petsc and \slepc libraries have been built, one has to set Matlab's path to point to the directories containing Matlab classes: \Verb!$SLEPC_DIR/share/slepc/matlab/classes! and \Verb!$PETSC_DIR/share/slepc/matlab/classes!. Below we show a simple Matlab example (included in \slepc's distribution) that does this, and then solves a simple eigenproblem.
+%\MyVerbatimInput{exEPS.m}
 

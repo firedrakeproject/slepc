@@ -216,7 +216,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsName("-eps_plot_eigs","Make a plot of the computed eigenvalues","EPSSolve",0);CHKERRQ(ierr);
 
     if (eps->ops->setfromoptions) {
-      ierr = (*eps->ops->setfromoptions)(eps);CHKERRQ(ierr);
+      ierr = (*eps->ops->setfromoptions)(PetscOptionsObject,eps);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)eps);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);

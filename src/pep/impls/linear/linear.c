@@ -640,7 +640,7 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetFromOptions_Linear"
-PetscErrorCode PEPSetFromOptions_Linear(PEP pep)
+PetscErrorCode PEPSetFromOptions_Linear(PetscOptions *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
@@ -648,7 +648,7 @@ PetscErrorCode PEPSetFromOptions_Linear(PEP pep)
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("PEP Linear Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"PEP Linear Options");CHKERRQ(ierr);
   ierr = PetscOptionsInt("-pep_linear_cform","Number of the companion form","PEPLinearSetCompanionForm",ctx->cform,&i,&set);CHKERRQ(ierr);
   if (set) {
     ierr = PEPLinearSetCompanionForm(pep,i);CHKERRQ(ierr);

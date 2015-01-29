@@ -31,4 +31,4 @@ DIRS     = examples
 MANSEC   = FN
 LOCDIR   = src/sys/classes/fn/
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common

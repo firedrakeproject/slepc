@@ -103,7 +103,7 @@ PetscErrorCode DSInitializePackage()
 
 #undef __FUNCT__
 #define __FUNCT__ "DSCreate"
-/*@C
+/*@
    DSCreate - Creates a DS context.
 
    Collective on MPI_Comm
@@ -967,7 +967,7 @@ PetscErrorCode DSReset(DS ds)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSDestroy"
-/*@C
+/*@
    DSDestroy - Destroys DS context that was created with DSCreate().
 
    Collective on DS

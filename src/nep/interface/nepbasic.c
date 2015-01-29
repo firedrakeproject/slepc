@@ -234,7 +234,7 @@ PetscErrorCode NEPReasonViewFromOptions(NEP nep)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPCreate"
-/*@C
+/*@
    NEPCreate - Creates the default NEP context.
 
    Collective on MPI_Comm
@@ -493,7 +493,7 @@ PetscErrorCode NEPReset(NEP nep)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPDestroy"
-/*@C
+/*@
    NEPDestroy - Destroys the NEP context.
 
    Collective on NEP
@@ -566,7 +566,7 @@ PetscErrorCode NEPSetBV(NEP nep,BV bv)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetBV"
-/*@C
+/*@
    NEPGetBV - Obtain the basis vectors object associated to the nonlinear
    eigensolver object.
 
@@ -633,7 +633,7 @@ PetscErrorCode NEPSetRG(NEP nep,RG rg)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetRG"
-/*@C
+/*@
    NEPGetRG - Obtain the region object associated to the
    nonlinear eigensolver object.
 
@@ -700,7 +700,7 @@ PetscErrorCode NEPSetDS(NEP nep,DS ds)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetDS"
-/*@C
+/*@
    NEPGetDS - Obtain the direct solver object associated to the
    nonlinear eigensolver object.
 
@@ -767,7 +767,7 @@ PetscErrorCode NEPSetKSP(NEP nep,KSP ksp)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetKSP"
-/*@C
+/*@
    NEPGetKSP - Obtain the linear solver (KSP) object associated
    to the eigensolver object.
 

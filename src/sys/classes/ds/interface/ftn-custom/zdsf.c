@@ -23,8 +23,6 @@
 #include <slepcds.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define dscreate_                 DSCREATE
-#define dsdestroy_                DSDESTROY
 #define dssettype_                DSSETTYPE
 #define dsgettype_                DSGETTYPE
 #define dssetoptionsprefix_       DSSETOPTIONSPREFIX
@@ -34,8 +32,6 @@
 #define dsvectors_                DSVECTORS
 #define dssort_                   DSSORT
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define dscreate_                 dscreate
-#define dsdestroy_                dsdestroy
 #define dssettype_                dssettype
 #define dsgettype_                dsgettype
 #define dssetoptionsprefix_       dssetoptionsprefix
@@ -44,16 +40,6 @@
 #define dsview_                   dsview
 #define dssort_                   dssort
 #endif
-
-PETSC_EXTERN void PETSC_STDCALL dscreate_(MPI_Fint *comm,DS *newds,PetscErrorCode *ierr)
-{
-  *ierr = DSCreate(MPI_Comm_f2c(*(comm)),newds);
-}
-
-PETSC_EXTERN void PETSC_STDCALL dsdestroy_(DS *ds,PetscErrorCode *ierr)
-{
-  *ierr = DSDestroy(ds);
-}
 
 PETSC_EXTERN void PETSC_STDCALL dssettype_(DS *ds,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {

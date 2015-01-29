@@ -375,14 +375,14 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions_TRLanczos"
-PetscErrorCode SVDSetFromOptions_TRLanczos(SVD svd)
+PetscErrorCode SVDSetFromOptions_TRLanczos(PetscOptions *PetscOptionsObject,SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("SVD TRLanczos Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"SVD TRLanczos Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-svd_trlanczos_oneside","Lanczos one-side reorthogonalization","SVDTRLanczosSetOneSide",lanczos->oneside,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = SVDTRLanczosSetOneSide(svd,val);CHKERRQ(ierr);

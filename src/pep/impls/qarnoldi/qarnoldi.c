@@ -399,14 +399,14 @@ PetscErrorCode PEPQArnoldiGetRestart(PEP pep,PetscReal *keep)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetFromOptions_QArnoldi"
-PetscErrorCode PEPSetFromOptions_QArnoldi(PEP pep)
+PetscErrorCode PEPSetFromOptions_QArnoldi(PetscOptions *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
   PetscBool      flg;
   PetscReal      keep;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("PEP Q-Arnoldi Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"PEP Q-Arnoldi Options");CHKERRQ(ierr);
   ierr = PetscOptionsReal("-pep_qarnoldi_restart","Proportion of vectors kept after restart","PEPQArnoldiSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PEPQArnoldiSetRestart(pep,keep);CHKERRQ(ierr);

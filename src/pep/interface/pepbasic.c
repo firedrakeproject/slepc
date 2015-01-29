@@ -390,7 +390,7 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPCreate"
-/*@C
+/*@
    PEPCreate - Creates the default PEP context.
 
    Collective on MPI_Comm
@@ -653,7 +653,7 @@ PetscErrorCode PEPReset(PEP pep)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPDestroy"
-/*@C
+/*@
    PEPDestroy - Destroys the PEP context.
 
    Collective on PEP
@@ -726,7 +726,7 @@ PetscErrorCode PEPSetBV(PEP pep,BV bv)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetBV"
-/*@C
+/*@
    PEPGetBV - Obtain the basis vectors object associated to the polynomial
    eigensolver object.
 
@@ -793,7 +793,7 @@ PetscErrorCode PEPSetRG(PEP pep,RG rg)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetRG"
-/*@C
+/*@
    PEPGetRG - Obtain the region object associated to the
    polynomial eigensolver object.
 
@@ -860,7 +860,7 @@ PetscErrorCode PEPSetDS(PEP pep,DS ds)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetDS"
-/*@C
+/*@
    PEPGetDS - Obtain the direct solver object associated to the
    polynomial eigensolver object.
 
@@ -927,7 +927,7 @@ PetscErrorCode PEPSetST(PEP pep,ST st)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetST"
-/*@C
+/*@
    PEPGetST - Obtain the spectral transformation (ST) object associated
    to the eigensolver object.
 

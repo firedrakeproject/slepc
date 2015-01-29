@@ -452,7 +452,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     }
 
     if (svd->ops->setfromoptions) {
-      ierr = (*svd->ops->setfromoptions)(svd);CHKERRQ(ierr);
+      ierr = (*svd->ops->setfromoptions)(PetscOptionsObject,svd);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)svd);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);

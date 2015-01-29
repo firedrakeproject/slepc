@@ -198,7 +198,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PetscOptionsName("-pep_plot_eigs","Make a plot of the computed eigenvalues","PEPSolve",0);CHKERRQ(ierr);
 
     if (pep->ops->setfromoptions) {
-      ierr = (*pep->ops->setfromoptions)(pep);CHKERRQ(ierr);
+      ierr = (*pep->ops->setfromoptions)(PetscOptionsObject,pep);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)pep);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);

@@ -165,7 +165,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Shift"
-PetscErrorCode STSetFromOptions_Shift(ST st)
+PetscErrorCode STSetFromOptions_Shift(PetscOptions *PetscOptionsObject,ST st)
 {
   PetscErrorCode ierr;
   PC             pc;
