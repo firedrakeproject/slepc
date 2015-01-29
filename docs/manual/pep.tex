@@ -185,7 +185,7 @@ PEPSolve( pep );
 PEPGetConverged( pep, &nconv );
 for (j=0; j<nconv; j++) {
   PEPGetEigenpair( pep, j, &kr, &ki, xr, xi );
-  PEPComputeRelativeError( pep, j, &error );
+  PEPComputeError( pep, j, PEP_ERROR_BACKWARD, &error );
 }
 PEPDestroy( &pep );
 \end{Verbatim}
@@ -427,9 +427,9 @@ After the call to \ident{PEPSolve} has finished, the computed results are stored
 \paragraph{Reliability of the Computed Solution.}
 
 As in the case of linear problems, the function
-	\findex{PEPComputeRelativeError}
+	\findex{PEPComputeError}
 	\begin{Verbatim}[fontsize=\small]
-	PEPComputeRelativeError(PEP pep,PetscInt j,PetscReal *error);
+	PEPComputeError(PEP pep,PetscInt j,PEPErrorType type,PetscReal *error);
 	\end{Verbatim}
 is available to assess the accuracy of the computed solutions. This error is based on the computation of the 2-norm of the residual vector, defined as
 \begin{equation}

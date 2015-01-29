@@ -329,7 +329,7 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
     } else {
       errok = PETSC_TRUE;
       for (i=0;i<pep->nev;i++) {
-        ierr = PEPComputeRelativeError(pep,i,&error);CHKERRQ(ierr);
+        ierr = PEPComputeError(pep,i,PEP_ERROR_BACKWARD,&error);CHKERRQ(ierr);
         errok = (errok && error<5.0*pep->tol)? PETSC_TRUE: PETSC_FALSE;
       }
       if (errok) {
@@ -368,7 +368,7 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
            "   ----------------- -------------------------\n");CHKERRQ(ierr);
       for (i=0;i<pep->nconv;i++) {
         ierr = PEPGetEigenpair(pep,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-        ierr = PEPComputeRelativeError(pep,i,&error);CHKERRQ(ierr);
+        ierr = PEPComputeError(pep,i,PEP_ERROR_BACKWARD,&error);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
         re = PetscRealPart(kr);
         im = PetscImaginaryPart(kr);
