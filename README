@@ -4,8 +4,8 @@ SLEPc: Scalable Library for Eigenvalue Problem Computations
 
 :Authors:      Jose E. Roman, Carmen Campos, Eloy Romero, Andres Tomas
 :Organization: Universitat Politecnica de Valencia, Spain
-:Website:      http://www.grycap.upv.es/slepc
-:Contact:      slepc-maint@grycap.upv.es
+:Website:      http://slepc.upv.es
+:Contact:      slepc-maint@upv.es
 
 
 Overview
@@ -36,7 +36,7 @@ The  Users Manual as well as the HTML man pages for the detailed reference  of
 each individual SLEPc routines are included in the SLEPc distribution and  can
 also be found at the SLEPc `online documentation`_.
 
-.. _online documentation:    http://www.grycap.upv.es/slepc/documentation
+.. _online documentation:    http://slepc.upv.es/documentation
 
 The  main reference for SLEPc is the following paper (see other references  at
 the SLEPc website):
@@ -57,7 +57,7 @@ the script ``configure`` is executed and finally the libraries are built  with
 the command ``make``. More details can be found in the Users Manual or in  the
 online `installation instructions`_.
 
-.. _installation instructions: http://www.grycap.upv.es/slepc/documentation/instal.htm
+.. _installation instructions: http://slepc.upv.es/documentation/instal.htm
 
 
 Funding

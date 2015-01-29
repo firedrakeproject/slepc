@@ -58,7 +58,7 @@ def Install(conf,vars,cmake,tmpdir,url,archdir):
 
     # Download tarball
     if url=='':
-      url = 'http://www.grycap.upv.es/slepc/download/external/'+packagename+'.tar.gz'
+      url = 'http://slepc.upv.es/download/external/'+packagename+'.tar.gz'
     archiveZip = 'blopex.tar.gz'
     localFile = os.sep.join([externdir,archiveZip])
     log.Println('Downloading '+url+' to '+localFile)

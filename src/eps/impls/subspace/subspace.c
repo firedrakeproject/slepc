@@ -12,7 +12,7 @@
    References:
 
        [1] "Subspace Iteration in SLEPc", SLEPc Technical Report STR-3,
-           available at http://www.grycap.upv.es/slepc.
+           available at http://slepc.upv.es.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations

@@ -470,7 +470,7 @@ if cmakeok:
 modules.write('#%Module\n\n')
 modules.write('proc ModulesHelp { } {\n')
 modules.write('    puts stderr "This module sets the path and environment variables for slepc-%s"\n' % slepcversion.LVERSION)
-modules.write('    puts stderr "     see http://www.grycap.upv.es/slepc/ for more information"\n')
+modules.write('    puts stderr "     see http://slepc.upv.es/ for more information"\n')
 modules.write('    puts stderr ""\n}\n')
 modules.write('module-whatis "SLEPc - Scalable Library for Eigenvalue Problem Computations"\n\n')
 modules.write('module load petsc\n')
