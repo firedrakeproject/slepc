@@ -780,6 +780,10 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   if (pep->nconv>0) {
     /* Truncate S */
     ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,pep->nconv,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+
+    /* {V*S_nconv^i}_{i=0}^{d-1} has rank nconv instead of nconv+d-1. Force zeros in each S_nconv^i block */
+    nq = pep->nconv;
+
     /* Extract invariant pair */
     ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = PEPExtractInvariantPair(pep,sigma,nq,pep->nconv,S,ld,deg,H,ldds,work+nwu,lwa-nwu);CHKERRQ(ierr);
