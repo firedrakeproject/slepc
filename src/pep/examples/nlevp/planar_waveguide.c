@@ -143,7 +143,7 @@ int main(int argc,char **argv)
   alpha = -h/6.0;
   for (i=Istart;i<Iend;i++) {
     ierr = MatSetValue(A[2],i,i,md[i]*alpha,ADD_VALUES);CHKERRQ(ierr);
-    if (i>0) { ierr = MatSetValue(A[2],i,i-1,subd[i]*alpha,ADD_VALUES);CHKERRQ(ierr); }
+    if (i>0) { ierr = MatSetValue(A[2],i,i-1,subd[i-1]*alpha,ADD_VALUES);CHKERRQ(ierr); }
     if (i<n) { ierr = MatSetValue(A[2],i,i+1,supd[i+1]*alpha,ADD_VALUES);CHKERRQ(ierr); }
   }
   ierr = PetscFree3(md,supd,subd);CHKERRQ(ierr);
