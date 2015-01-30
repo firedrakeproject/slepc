@@ -211,8 +211,8 @@ PETSC_EXTERN PetscErrorCode PEPGetBasis(PEP,PEPBasis*);
 PETSC_EXTERN PetscErrorCode PEPGetConverged(PEP,PetscInt*);
 PETSC_EXTERN PetscErrorCode PEPGetEigenpair(PEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
 PETSC_EXTERN PetscErrorCode PEPComputeError(PEP,PetscInt,PEPErrorType,PetscReal*);
-PETSC_DEPRECATED("Use PEPComputeError()") PETSC_STATIC_INLINE PetscErrorCode PEPComputeRelativeError(PEP pep,PetscInt i,PetscReal *r) { SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"PEPComputeRelativeError is deprecated, use PEPComputeError()"); }
-PETSC_DEPRECATED("Use PEPComputeError() with PEP_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode PEPComputeResidualNorm(PEP pep,PetscInt i,PetscReal *r) { SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"PEPComputeResidualNorm is deprecated, use PEPComputeError() with PEP_ERROR_ABSOLUTE"); }
+PETSC_DEPRECATED("Use PEPComputeError()") PETSC_STATIC_INLINE PetscErrorCode PEPComputeRelativeError(PEP pep,PetscInt i,PetscReal *r) {return PEPComputeError(pep,i,PEP_ERROR_BACKWARD,r);}
+PETSC_DEPRECATED("Use PEPComputeError() with PEP_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode PEPComputeResidualNorm(PEP pep,PetscInt i,PetscReal *r) {return PEPComputeError(pep,i,PEP_ERROR_ABSOLUTE,r);}
 PETSC_EXTERN PetscErrorCode PEPGetErrorEstimate(PEP,PetscInt,PetscReal*);
 
 PETSC_EXTERN PetscErrorCode PEPMonitor(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
