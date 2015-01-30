@@ -333,9 +333,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
       }
       while (sc_pend) {
         if (tol) {
-          ierr = BVGetColumn(pep->V,idx_sc[i],&v);CHKERRQ(ierr);
-          ierr = PEPComputeRelativeError_Private(pep,pep->eigr[idx_sc[i]],0.0,v,NULL,&error);CHKERRQ(ierr);
-          ierr = BVRestoreColumn(pep->V,idx_sc[i],&v);CHKERRQ(ierr); 
+          ierr = PEPComputeError(pep,idx_sc[i],PEP_ERROR_BACKWARD,&error);CHKERRQ(ierr);
         }
         if (error<=*tol || its_sc[i]>=its) {
           idx_sc[i] = idx++;

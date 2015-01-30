@@ -478,37 +478,6 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPComputeRelativeError_Private"
-/*
-   PEPComputeRelativeError_Private - Computes the relative error bound
-   associated with an eigenpair.
-*/
-PetscErrorCode PEPComputeRelativeError_Private(PEP pep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *error)
-{
-  PetscErrorCode ierr;
-  PetscReal      norm,er;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscReal      ei;
-#endif
-
-  PetscFunctionBegin;
-  ierr = PEPComputeResidualNorm_Private(pep,kr,ki,xr,xi,&norm);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  if (ki == 0) {
-#endif
-    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  } else {
-    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
-    ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);
-    er = SlepcAbsEigenvalue(er,ei);
-  }
-#endif
-  ierr = (*pep->converged)(pep,kr,ki,norm/er,error,pep->convergedctx);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "PEPComputeError"
 /*@
    PEPComputeError - Computes the error (based on the residual norm) associated
