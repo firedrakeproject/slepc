@@ -48,6 +48,7 @@ import feast
 import lapack
 import primme
 import blopex
+import sowing
 
 if not hasattr(sys, 'version_info') or not sys.version_info[0] == 2 or not sys.version_info[1] >= 4:
   print '*****  You must have Python2 version 2.4 or higher to run ./configure.py   ******'
@@ -94,6 +95,8 @@ feastlibs = []
 getblopex = 0
 haveblopex = 0
 blopexurl = ''
+getsowing = 0
+sowingurl = ''
 doclean = 0
 prefixdir = ''
 datafilespath = ''
@@ -143,6 +146,10 @@ for i in sys.argv[1:]:
     getblopex = not i.endswith('=0')
     try: blopexurl = i.split('=')[1]
     except IndexError: pass
+  elif i.startswith('--download-sowing'):
+    getsowing = not i.endswith('=0')
+    try: sowingurl = i.split('=')[1]
+    except IndexError: pass
   elif i.startswith('--with-clean='):
     doclean = not i.endswith('=0')
   elif i.startswith('--prefix='):
@@ -178,6 +185,8 @@ for i in sys.argv[1:]:
     print '  --with-feast-flags=<flags>       : Indicate comma-separated flags for linking FEAST'
     print 'BLOPEX:'
     print '  --download-blopex                : Download and install BLOPEX in SLEPc directory'
+    print 'Sowing:'
+    print '  --download-sowing                : Download and install Sowing in SLEPc directory'
     sys.exit(0)
   else:
     sys.exit('ERROR: Invalid argument ' + i +'. Use -h for help')
@@ -419,12 +428,19 @@ if getblopex:
 # Check for missing LAPACK functions
 missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
 
+# Download sowing if requested
+bfort = petscconf.BFORT
+if getsowing:
+  bfort = sowing.Install(sowingurl,archdir)
+
 # Make Fortran stubs if necessary
 if slepcversion.ISREPO and hasattr(petscconf,'FC'):
   try:
+    if sowing.Missing(bfort,archdir):
+      bfort = sowing.Install(sowingurl,archdir)
     sys.path.insert(0, os.path.abspath(os.path.join('bin','maint')))
     import generatefortranstubs
-    generatefortranstubs.main(slepcdir,petscconf.BFORT,os.getcwd(),0)
+    generatefortranstubs.main(slepcdir,bfort,os.getcwd(),0)
     generatefortranstubs.processf90interfaces(slepcdir,0)
   except AttributeError:
     sys.exit('ERROR: cannot generate Fortran stubs; try configuring PETSc with --download-sowing or use a mercurial version of PETSc')
