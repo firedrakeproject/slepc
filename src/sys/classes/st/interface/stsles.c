@@ -56,8 +56,10 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
   STCheckMatrices(st,1);
   if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  VecLocked(y,3);
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
+  ierr = VecLockPush(x);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_MatMult,st,x,y,0);CHKERRQ(ierr);
   if (!st->T[k]) {
     /* T[k]=NULL means identity matrix */
@@ -66,6 +68,7 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
     ierr = MatMult(st->T[k],x,y);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(ST_MatMult,st,x,y,0);CHKERRQ(ierr);
+  ierr = VecLockPop(x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -101,8 +104,10 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
   STCheckMatrices(st,1);
   if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  VecLocked(y,3);
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
+  ierr = VecLockPush(x);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_MatMultTranspose,st,x,y,0);CHKERRQ(ierr);
   if (!st->T[k]) {
     /* T[k]=NULL means identity matrix */
@@ -111,6 +116,7 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
     ierr = MatMultTranspose(st->T[k],x,y);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(ST_MatMultTranspose,st,x,y,0);CHKERRQ(ierr);
+  ierr = VecLockPop(x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -146,8 +152,10 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   STCheckMatrices(st,1);
   if (x == b) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
+  VecLocked(x,3);
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
+  ierr = VecLockPush(b);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_MatSolve,st,b,x,0);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STPRECOND,STSHELL,"");CHKERRQ(ierr);
   if (!flg && !st->P) {
@@ -163,6 +171,7 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   st->linearits += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_MatSolve,st,b,x,0);CHKERRQ(ierr);
+  ierr = VecLockPop(b);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -198,8 +207,10 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   STCheckMatrices(st,1);
   if (x == b) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
+  VecLocked(x,3);
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
+  ierr = VecLockPush(b);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_MatSolveTranspose,st,b,x,0);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STPRECOND,STSHELL,"");CHKERRQ(ierr);
   if (!flg && !st->P) {
@@ -215,6 +226,7 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   st->linearits += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_MatSolveTranspose,st,b,x,0);CHKERRQ(ierr);
+  ierr = VecLockPop(b);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
