@@ -178,11 +178,11 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
   PetscErrorCode    ierr;
   PetscInt          i,st,ml,m0,m1,mg;
   PetscInt          *dnz,*onz,ncols,*cols2,*nnz,nt=nep->nt;
-  PetscScalar       *array,zero=0.0,*coeffs;
+  PetscScalar       zero=0.0,*coeffs;
   PetscMPIInt       rank,size;
   MPI_Comm          comm;
   const PetscInt    *cols;
-  const PetscScalar *vals;
+  const PetscScalar *vals,*array;
   Vec               w=t[1],q=t[0];
 
   PetscFunctionBegin;
@@ -258,19 +258,19 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
   /* Set values */
   ierr = PetscMalloc1(m1-m0,&cols2);CHKERRQ(ierr);
   for (i=0;i<m1-m0;i++) cols2[i]=m0+i;
-  ierr = VecGetArray(w,&array);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(w,&array);CHKERRQ(ierr);
   for (i=m0;i<m1;i++) {
     ierr = MatGetRow(*T,i,&ncols,&cols,&vals);CHKERRQ(ierr);
     ierr = MatSetValues(*M,1,&i,ncols,cols,vals,INSERT_VALUES);CHKERRQ(ierr);
     ierr = MatRestoreRow(*T,i,&ncols,&cols,&vals);CHKERRQ(ierr);
     ierr = MatSetValues(*M,1,&i,1,&mg,array+i-m0,INSERT_VALUES);CHKERRQ(ierr);
   }
-  ierr = VecRestoreArray(w,&array);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(w,&array);CHKERRQ(ierr);
   ierr = VecConjugate(v);CHKERRQ(ierr);
-  ierr = VecGetArray(v,&array);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(v,&array);CHKERRQ(ierr);
   ierr = MatSetValues(*M,1,&mg,m1-m0,cols2,array,INSERT_VALUES);CHKERRQ(ierr);
   ierr = MatSetValues(*M,1,&mg,1,&mg,&zero,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecRestoreArray(v,&array);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(v,&array);CHKERRQ(ierr);
   ierr = VecConjugate(v);CHKERRQ(ierr);
   ierr = MatAssemblyBegin(*M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(*M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);  
@@ -283,17 +283,18 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
 #define __FUNCT__ "NEPNewtonRefinementSimple"
 PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol,PetscInt k)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,n,its,idx=0,*idx_sc,*its_sc,color;
-  PetscMPIInt    rank,size;
-  KSP            ksp;
-  Mat            M=NULL,T=NULL;
-  MPI_Comm       comm;
-  Vec            r,v,dv,rr=NULL,dvv=NULL,t[2];
-  PetscScalar    *array,*array2;
-  PetscReal      norm,error;
-  PetscBool      ini=PETSC_TRUE,sc_pend,solved=PETSC_FALSE;
-  NEPSimpNRefctx *ctx;
+  PetscErrorCode    ierr;
+  PetscInt          i,n,its,idx=0,*idx_sc,*its_sc,color;
+  PetscMPIInt       rank,size;
+  KSP               ksp;
+  Mat               M=NULL,T=NULL;
+  MPI_Comm          comm;
+  Vec               r,v,dv,rr=NULL,dvv=NULL,t[2];
+  const PetscScalar *array;
+  PetscScalar       *array2;
+  PetscReal         norm,error;
+  PetscBool         ini=PETSC_TRUE,sc_pend,solved=PETSC_FALSE;
+  NEPSimpNRefctx    *ctx;
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(NEP_Refine,nep,0,0,0);CHKERRQ(ierr);
@@ -365,7 +366,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol
         ini = PETSC_FALSE;
       }
       ierr = MatMult(T,v,r);CHKERRQ(ierr);
-      ierr = VecGetArray(r,&array);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(r,&array);CHKERRQ(ierr);
       if (rank==size-1) {
         ierr = VecGetArray(rr,&array2);
         ierr = PetscMemcpy(array2,array,n*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -378,15 +379,15 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol
       if (rank != size-1) {
         ierr = VecResetArray(rr);CHKERRQ(ierr);
       }
-      ierr = VecRestoreArray(r,&array);CHKERRQ(ierr);
-      ierr = VecGetArray(dvv,&array);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(r,&array);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(dvv,&array);CHKERRQ(ierr);
       ierr = VecPlaceArray(dv,array);CHKERRQ(ierr);
       ierr = VecAXPY(v,-1.0,dv);CHKERRQ(ierr);
       ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
       ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
       ierr = VecResetArray(dv);CHKERRQ(ierr);
       if (rank==size-1) nep->eigr[idx_sc[color]] -= array[n];
-      ierr = VecRestoreArray(dvv,&array);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(dvv,&array);CHKERRQ(ierr);
       if (nep->npart==1) { ierr = BVRestoreColumn(nep->V,idx_sc[color],&v);CHKERRQ(ierr); } 
     }
   }

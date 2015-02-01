@@ -91,8 +91,7 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
     ierr = MPI_Allreduce(work1,work2,N,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)svd));CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(cross->diag,&start,&end);CHKERRQ(ierr);
     ierr = VecGetArray(cross->diag,&diag);CHKERRQ(ierr);
-    for (i=start;i<end;i++)
-      diag[i-start] = work2[i];
+    for (i=start;i<end;i++) diag[i-start] = work2[i];
     ierr = VecRestoreArray(cross->diag,&diag);CHKERRQ(ierr);
     ierr = PetscFree2(work1,work2);CHKERRQ(ierr);
   }
