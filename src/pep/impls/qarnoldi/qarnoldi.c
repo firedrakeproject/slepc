@@ -52,6 +52,7 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
 
   PetscFunctionBegin;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
+  if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
   if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
   if (!pep->which) {
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
@@ -264,11 +265,11 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
     ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,nv-pep->nconv,beta,&k);CHKERRQ(ierr);
     if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
     if (k >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
-    else if (!ctx->lock) k = 0;  /* non-locking variant: reset number of converged pairs */
 
     /* Update l */
     if (pep->reason != PEP_CONVERGED_ITERATING || breakdown) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
+    if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     if (pep->reason == PEP_CONVERGED_ITERATING) {
       if (breakdown) {
