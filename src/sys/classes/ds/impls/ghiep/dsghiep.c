@@ -416,23 +416,15 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_TRUE);CHKERRQ(ierr);
   if (!ds->compact) { ierr = DSSwitchFormat_GHIEP(ds,PETSC_TRUE);CHKERRQ(ierr); }
   ierr = PetscMemcpy(ds->work,wr,n*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=ds->l;i<n;i++) {
-    wr[i] = *(ds->work+perm[i]);
-  }
+  for (i=ds->l;i<n;i++) wr[i] = *(ds->work+perm[i]);
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscMemcpy(ds->work,wi,n*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=ds->l;i<n;i++) {
-    wi[i] = *(ds->work+perm[i]);
-  }
+  for (i=ds->l;i<n;i++) wi[i] = *(ds->work+perm[i]);
 #endif
   ierr = PetscMemcpy(ds->rwork,s,n*sizeof(PetscReal));CHKERRQ(ierr);
-  for (i=ds->l;i<n;i++) {
-    s[i] = *(ds->rwork+perm[i]);
-  }
+  for (i=ds->l;i<n;i++) s[i] = *(ds->rwork+perm[i]);
   ierr = PetscMemcpy(ds->rwork,d,n*sizeof(PetscReal));CHKERRQ(ierr);
-  for (i=ds->l;i<n;i++) {
-    d[i] = *(ds->rwork+perm[i]);
-  }
+  for (i=ds->l;i<n;i++) d[i] = *(ds->rwork+perm[i]);
   ierr = PetscMemcpy(ds->rwork,e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
   ierr = PetscMemzero(e+ds->l,(n-1-ds->l)*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=ds->l;i<n-1;i++) {
