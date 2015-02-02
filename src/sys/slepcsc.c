@@ -96,12 +96,12 @@ PetscErrorCode SlepcSCCompare(SlepcSC sc,PetscScalar ar,PetscScalar ai,PetscScal
 .  eigr - pointer to the array containing the eigenvalues
 -  eigi - imaginary part of the eigenvalues (only when using real numbers)
 
-   Output Parameter:
-.  perm - resulting permutation
+   Input/Output Parameter:
+.  perm - permutation array. Must be initialized to 0:n-1 on input.
 
    Note:
    The result is a list of indices in the original eigenvalue array
-   corresponding to the first nev eigenvalues sorted in the specified
+   corresponding to the first n eigenvalues sorted in the specified
    criterion.
 
    Level: developer
@@ -119,7 +119,6 @@ PetscErrorCode SlepcSortEigenvalues(SlepcSC sc,PetscInt n,PetscScalar *eigr,Pets
   PetscValidScalarPointer(eigr,3);
   PetscValidScalarPointer(eigi,4);
   PetscValidIntPointer(perm,5);
-  for (i=0;i<n;i++) perm[i] = i;
   /* insertion sort */
   for (i=n-1;i>=0;i--) {
     re = eigr[perm[i]];

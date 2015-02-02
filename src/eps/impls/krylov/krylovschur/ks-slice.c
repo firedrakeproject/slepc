@@ -103,17 +103,17 @@ PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
 */
 static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
 {
-  PetscErrorCode ierr;
-  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
-  PetscReal       eta;
-  PetscInt        k;
-  PetscLogDouble  cnt;
-  BVType          type;
-  BVOrthogType    orthog_type;
+  PetscErrorCode     ierr;
+  EPS_KRYLOVSCHUR    *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  PetscReal          eta;
+  PetscInt           k;
+  PetscLogDouble     cnt;
+  BVType             type;
+  BVOrthogType       orthog_type;
   BVOrthogRefineType orthog_ref;
-  Mat             matrix;
-  Vec             t;
-  EPS_SR          sr = ctx->sr;
+  Mat                matrix;
+  Vec                t;
+  EPS_SR             sr = ctx->sr;
 
   PetscFunctionBegin;
   /* allocate space for eigenvalues and friends */
@@ -1293,8 +1293,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
       sr->eigr[i]   = 0.0;
       sr->eigi[i]   = 0.0;
       sr->errest[i] = 0.0;
+      sr->perm[i]   = i;
     }
-    for (i=0;i<sr->numEigs;i++) sr->perm[i] = i;
     /* Vectors for deflation */
     ierr = PetscMalloc1(sr->numEigs,&sr->idxDef);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)eps,sr->numEigs*sizeof(PetscInt));CHKERRQ(ierr);
@@ -1329,7 +1329,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     ierr = BVDuplicateResize(eps->V,eps->ncv+1,&sr->Vnext);CHKERRQ(ierr);
     ierr = BVSetNumConstraints(sr->Vnext,0);CHKERRQ(ierr);
     ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
-    eps->V = sr->Vnext;
+    eps->V      = sr->Vnext;
     eps->nconv  = sr->indexEig;
     eps->reason = EPS_CONVERGED_TOL;
     eps->its    = sr->itsKs;
