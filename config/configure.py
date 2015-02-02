@@ -446,6 +446,9 @@ if slepcversion.ISREPO and hasattr(petscconf,'FC'):
   except AttributeError:
     sys.exit('ERROR: cannot generate Fortran stubs; try configuring PETSc with --download-sowing or use a mercurial version of PETSc')
 
+if bfort != petscconf.BFORT:
+  slepcvars.write('BFORT = '+bfort+'\n')
+
 # CMake stuff
 cmake.write('set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}" "${FEAST_LIB}" "${BLOPEX_LIB}" )\n')
 cmake.write('set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")\n')
