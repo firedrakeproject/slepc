@@ -25,18 +25,6 @@ import log
 import petscconf
 import commands
 
-def Missing(petscbfort,archdir):
-  '''
-  Check if bfort already available
-  '''
-  miss = 1
-  if os.path.exists(petscbfort):
-    miss = 0
-  else:
-    slepcbfort = os.path.join(archdir,'bin','bfort')
-    if os.path.exists(slepcbfort): miss = 0
-  return miss
-
 def Install(url,archdir):
   '''
   Download and install Sowing

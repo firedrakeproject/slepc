@@ -428,15 +428,16 @@ if getblopex:
 # Check for missing LAPACK functions
 missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
 
-# Download sowing if requested
+# Download sowing if requested and make Fortran stubs if necessary
 bfort = petscconf.BFORT
 if getsowing:
   bfort = sowing.Install(sowingurl,archdir)
 
-# Make Fortran stubs if necessary
 if slepcversion.ISREPO and hasattr(petscconf,'FC'):
   try:
-    if sowing.Missing(bfort,archdir):
+    if not os.path.exists(bfort):
+      bfort = os.path.join(archdir,'bin','bfort')
+    if not os.path.exists(bfort):
       bfort = sowing.Install(sowingurl,archdir)
     sys.path.insert(0, os.path.abspath(os.path.join('bin','maint')))
     import generatefortranstubs
