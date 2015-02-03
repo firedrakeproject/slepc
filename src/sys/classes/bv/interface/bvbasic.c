@@ -592,9 +592,9 @@ PetscErrorCode BVApplyMatrix(BV bv,Vec x,Vec y)
 @*/
 PetscErrorCode BVSetSignature(BV bv,Vec omega)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,n;
-  PetscScalar    *pomega;
+  PetscErrorCode    ierr;
+  PetscInt          i,n;
+  const PetscScalar *pomega;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -606,9 +606,9 @@ PetscErrorCode BVSetSignature(BV bv,Vec omega)
   if (n!=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Vec argument has %D elements, should be %D",n,bv->k);
   ierr = BV_AllocateSignature(bv);CHKERRQ(ierr);
   if (bv->indef) {
-    ierr = VecGetArray(omega,&pomega);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(omega,&pomega);CHKERRQ(ierr);
     for (i=0;i<n;i++) bv->omega[bv->nc+i] = PetscRealPart(pomega[i]);
-    ierr = VecRestoreArray(omega,&pomega);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(omega,&pomega);CHKERRQ(ierr);
   } else {
     ierr = PetscInfo(bv,"Ignoring signature because BV is not indefinite\n");CHKERRQ(ierr);
   }
