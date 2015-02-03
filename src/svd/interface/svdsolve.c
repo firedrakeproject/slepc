@@ -57,6 +57,7 @@ PetscErrorCode SVDSolve(SVD svd)
   for (i=0;i<svd->ncv;i++) {
     svd->sigma[i]  = 0.0;
     svd->errest[i] = 0.0;
+    svd->perm[i]   = i;
   }
   ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);CHKERRQ(ierr);
   ierr = SVDViewFromOptions(svd,NULL,"-svd_view_pre");CHKERRQ(ierr);
@@ -65,7 +66,6 @@ PetscErrorCode SVDSolve(SVD svd)
 
   /* sort singular triplets */
   if (svd->which == SVD_SMALLEST) {
-    for (i=0;i<svd->nconv;i++) svd->perm[i] = i;
     ierr = PetscSortRealWithPermutation(svd->nconv,svd->sigma,svd->perm);CHKERRQ(ierr);
   } else {
     ierr = PetscMalloc(sizeof(PetscInt)*svd->nconv,&workperm);CHKERRQ(ierr);
