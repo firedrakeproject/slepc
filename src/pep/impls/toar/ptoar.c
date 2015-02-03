@@ -53,6 +53,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
 
   PetscFunctionBegin;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
+  if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
   if (!pep->max_it) pep->max_it = PetscMax(100,(pep->nmat-1)*pep->n/pep->ncv); 
   if (!pep->which) {
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
@@ -794,7 +795,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
 PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_TOAR       *pepctx = (PEP_TOAR*)pep->data;
+  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=0;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,*pS0,sigma;
@@ -881,7 +882,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* Update l */
     if (pep->reason != PEP_CONVERGED_ITERATING || breakdown) l = 0;
     else {
-      l = PetscMax(1,(PetscInt)((nv-k)*pepctx->keep));
+      l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
       if (!breakdown) {
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSTruncate(pep->ds,k+l);CHKERRQ(ierr);
@@ -889,6 +890,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
         l = newn-k;
       }
     }
+    if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     /* Update S */
     off = pep->nconv*ldds;
