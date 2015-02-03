@@ -404,6 +404,141 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPTOARTrunc2"
+static PetscErrorCode PEPTOARTrunc2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt *rs1a,PetscInt cs1,PetscInt lock,PetscInt newc,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
+{
+  PetscErrorCode ierr;
+  PetscInt       lwa,nwu=0,lrwa,nrwu=0,nnc,nrow;
+  PetscInt       j,i,k,n,lds=deg*ld,rs1=*rs1a,rk=0,offu;
+  PetscScalar    *M,*V,*pU,*SS,*SS2,t,sone=1.0,zero=0.0,mone=-1.0,*p;
+  PetscReal      *sg,tol;
+  PetscBLASInt   cs1_,rs1_,cs1tdeg,n_,info,lw_,newc_,newctdeg,nnc_,nrow_,nnctdeg,lds_;
+  Mat            U;
+
+  PetscFunctionBegin;
+  n = (rs1>deg*cs1)?deg*cs1:rs1;
+  lwa = 6*ld*lds;
+  lrwa = 6*n;
+  if (!work||nw<lwa) {
+    if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",6);
+    if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",5);
+  }
+  if (!rwork||nrw<lrwa) {
+    if (nrw<lrwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",8);
+    if (!rwork) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",7);
+  }
+  nnc = cs1-lock-newc;
+  nrow = rs1-lock;
+  ierr = PetscMalloc3(deg*newc*nnc,&SS,newc*nnc,&SS2,(rs1+lock+newc)*n,&pU);
+  offu = lock*(rs1+1);
+  M = work+nwu;
+  nwu += rs1*cs1*deg;
+  sg = rwork+nrwu;
+  nrwu += n;
+  ierr = PetscMemzero(pU,rs1*n*sizeof(PetscScalar));CHKERRQ(ierr);
+  V = work+nwu;
+  nwu += deg*cs1*n;
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(nnc,&nnc_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(cs1,&cs1_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(rs1,&rs1_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(newc,&newc_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(newc*deg,&newctdeg);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(nnc*deg,&nnctdeg);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(cs1*deg,&cs1tdeg);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(lwa-nwu,&lw_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(nrow,&nrow_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
+  if (newc>0) {
+  /* Truncate columns associated to the new converged eigenpairs */
+    for (j=0;j<deg;j++) {
+      for (i=lock;i<lock+newc;i++) {
+        ierr = PetscMemcpy(M+(i-lock+j*newc)*nrow,S+i*lds+j*ld+lock,nrow*sizeof(PetscScalar));CHKERRQ(ierr);
+      } 
+    }
+#if !defined (PETSC_USE_COMPLEX)
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pU+offu,&rs1_,V,&n_,work+nwu,&lw_,&info));
+#else
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pU+offu,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));  
+#endif
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
+    /* SVD has rank newc */
+    for (i=0;i<newc;i++) {
+      t = sg[i];
+      PetscStackCallBLAS("BLASscal",BLASscal_(&newctdeg,&t,V+i,&n_));
+    }
+    for (i=0;i<deg;i++) {
+      for (j=lock;j<lock+newc;j++) {
+        ierr = PetscMemcpy(S+j*lds+i*ld+lock,V+(newc*i+j-lock)*n,newc*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemzero(S+j*lds+i*ld+lock+newc,(ld-lock-newc)*sizeof(PetscScalar));CHKERRQ(ierr);
+      }
+    }
+    /*
+      Update columns associated to non-converged vectors, orthoganlize
+       against pU so that thet next M had rank nnc+d-1 insted of nrow+d-1
+    */
+    for (i=0;i<deg;i++) {
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&newc_,&nnc_,&nrow_,&sone,pU+offu,&rs1_,S+(lock+newc)*lds+i*ld+lock,&lds_,&zero,SS+i*newc*nnc,&newc_));
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nrow_,&nnc_,&newc_,&mone,pU+offu,&rs1_,SS+i*newc*nnc,&newc_,&sone,S+(lock+newc)*lds+i*ld+lock,&lds_));
+      /* Repeat ortogonalization step */
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&newc_,&nnc_,&nrow_,&sone,pU+offu,&rs1_,S+(lock+newc)*lds+i*ld+lock,&lds_,&zero,SS2,&newc_));
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nrow_,&nnc_,&newc_,&mone,pU+offu,&rs1_,SS2,&newc_,&sone,S+(lock+newc)*lds+i*ld+lock,&lds_));
+      for (j=0;j<newc*nnc;j++) *(SS+i*newc*nnc+j) += SS2[j];
+    }
+  }
+  /* Truncate columns associated to non-converged eigenpairs */
+  for (j=0;j<deg;j++) {
+    for (i=lock+newc;i<cs1;i++) {
+      ierr = PetscMemcpy(M+(i-lock-newc+j*nnc)*nrow,S+i*lds+j*ld+lock,nrow*sizeof(PetscScalar));CHKERRQ(ierr);
+    } 
+  }
+#if !defined (PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pU+offu+newc*rs1,&rs1_,V,&n_,work+nwu,&lw_,&info));
+#else
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pU+offu+newc*rs1,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));  
+#endif
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
+  tol = PetscMax(rs1,deg*cs1)*PETSC_MACHINE_EPSILON*sg[0];
+  for (i=0;i<n;i++) if (sg[i]>tol) rk++;
+  rk = PetscMin(nnc+deg-1,rk);
+  /* The SVD has rank (atmost) nnc+deg-1 */
+  for (i=0;i<rk;i++) {
+    t = sg[i];
+    PetscStackCallBLAS("BLASscal",BLASscal_(&nnctdeg,&t,V+i,&n_));
+  }
+  /* Update S */
+  k = ld-lock-newc-rk;
+  for (i=0;i<deg;i++) {
+    for (j=lock+newc;j<cs1;j++) {
+      ierr = PetscMemcpy(S+j*lds+i*ld+lock+newc,V+(nnc*i+j-lock-newc)*n,rk*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscMemzero(S+j*lds+i*ld+lock+newc+rk,k*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+  }
+  if (newc>0) {
+    for (i=0;i<deg;i++) {
+      p = SS+nnc*newc*i;
+      for (j=lock+newc;j<cs1;j++) {
+        for (k=0;k<newc;k++) S[j*lds+i*ld+lock+k] = *(p++);
+      }
+    }
+  }
+
+  /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
+  rk = rk+newc+lock;
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,rk,pU,&U);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(pep->V,lock,rs1);CHKERRQ(ierr);
+  ierr = BVMultInPlace(pep->V,U,lock,rk);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(pep->V,0,rk);CHKERRQ(ierr);
+  ierr = MatDestroy(&U);CHKERRQ(ierr);
+  
+  *rs1a = rk;
+
+  /* Free work space */
+  ierr = PetscFree3(SS,SS2,pU);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPTOARSupdate"
 /*
   S <- S*Q 
@@ -670,7 +805,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscFunctionBegin;
   ld = pep->ncv+deg;   /* number of rows of each fragment of S */
   lds = deg*ld;        /* leading dimension of S */
-  lwa = (deg+5)*ld*lds;
+  lwa = (deg+6)*ld*lds;
   lrwa = 7*lds;
   ierr = PetscMalloc3(lwa,&work,lrwa,&rwork,lds*ld,&S);CHKERRQ(ierr);
   ierr = PetscMemzero(S,lds*ld*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -771,7 +906,17 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
         pep->reason = PEP_DIVERGED_BREAKDOWN;
       } else {
         /* Truncate S */
-        ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+/*////*/
+{
+PetscBool new=PETSC_FALSE;
+ierr = PetscOptionsGetBool(NULL,"-newrestart",&new,NULL);CHKERRQ(ierr);
+        if (new) {
+          ierr = PEPTOARTrunc2(pep,S,ld,deg,&nq,k+l+1,pep->nconv,k-pep->nconv,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+        } else {
+          ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+        }
+}
+/*////*/
       }
     }
     pep->nconv = k;
