@@ -479,7 +479,7 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
 PetscErrorCode PEPComputeLinearNorms(PEP pep)
 {
   PetscErrorCode    ierr;
-  PetscReal         out=0.0,nrmd=0.0,max=0.0,summ,summrow,summd;
+  PetscReal         out=0.0,nrmd=0.0,max=0.0,summ,summrow,summd=0.0;
   PetscReal         *pbc,*a,*b,*g,t;
   PetscInt          i,m0,m1,ncols,j,k;
   const PetscScalar *vals;
