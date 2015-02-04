@@ -88,7 +88,7 @@ EPSSolve( eps );
 EPSGetConverged( eps, &nconv );
 for (j=0; j<nconv; j++) {
   EPSGetEigenpair( eps, j, &kr, &ki, xr, xi );
-  EPSComputeRelativeError( eps, j, &error );
+  EPSComputeError( eps, j, EPS_ERROR_RELATIVE, &error );
 }
 EPSDestroy( &eps );
 \end{Verbatim}
@@ -434,15 +434,10 @@ where $\theta(x,\tilde{x})$ is the angle between the computed and exact eigenvec
 This is sufficient in some applications and is safer from the numerical point of view.
 
 \paragraph{Computation of Bounds.}
-The following \slepc function 
-	\findex{EPSComputeResidualNorm}
+Normally, the norm of the residual $r_j$ is not used directly as a bound in absolute terms, as in Eq.\ \ref{eq:reserr}. Rather, the error is expressed relative to the eigenvalue or to the matrix norms. For this, the following function can be used instead:
+	\findex{EPSComputeError}
 	\begin{Verbatim}[fontsize=\small]
-	EPSComputeResidualNorm(EPS eps,PetscInt j,PetscReal *norm);
-	\end{Verbatim}
-computes the 2-norm of $r_j$. Normally, the residual norm is not used directly as a bound in absolute terms, as in Eq.\ \ref{eq:reserr}. Rather, the error is expressed relative to the eigenvalue or to the matrix norms. For this, the following function can be used instead:
-	\findex{EPSComputeRelativeError}
-	\begin{Verbatim}[fontsize=\small]
-	EPSComputeRelativeError(EPS eps,PetscInt j,PetscReal *error);
+	EPSComputeError(EPS eps,PetscInt j,EPSErrorType type,PetscReal *error);
 	\end{Verbatim}
 The way in which it is relativized is the same as the one used for convergence checking, as described below.
 
@@ -491,7 +486,7 @@ Relative to matrix norms & \texttt{EPS\_CONV\_NORM} & \texttt{-eps\_conv\_norm} 
 	\end{Verbatim}
 The default is to use the criterion relative to the eigenvalue (note: for computing eigenvalues close to the origin this criterion will likely give very poor accuracy, so the user is advised to use \ident{EPS\_CONV\_ABS} in that case). Finally, a custom convergence criterion may be established by specifying a user function (\ident{EPSSetConvergenceTestFunction}).
 
-	Error estimates used internally by eigensolvers for checking convergence may be different from the error bounds provided by \ident{EPSComputeRelativeError}. At the end of the solution process, error estimates are available via
+	Error estimates used internally by eigensolvers for checking convergence may be different from the error bounds provided by \ident{EPSComputeError}. At the end of the solution process, error estimates are available via
 	\findex{EPSGetErrorEstimate}
 	\begin{Verbatim}[fontsize=\small]
 	EPSGetErrorEstimate(EPS eps,PetscInt j,PetscReal *errest);
