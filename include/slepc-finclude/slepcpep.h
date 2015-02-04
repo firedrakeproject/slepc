@@ -110,9 +110,9 @@
       PetscEnum PEP_ERROR_RELATIVE
       PetscEnum PEP_ERROR_BACKWARD
 
-      parameter (PEP_ERROR_ABSOLUTE       =  1)
-      parameter (PEP_ERROR_RELATIVE       =  2)
-      parameter (PEP_ERROR_BACKWARD       =  3)
+      parameter (PEP_ERROR_ABSOLUTE         =  0)
+      parameter (PEP_ERROR_RELATIVE         =  1)
+      parameter (PEP_ERROR_BACKWARD         =  2)
 
       PetscEnum PEP_CONV_ABS
       PetscEnum PEP_CONV_EIG
