@@ -701,7 +701,7 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
 
 #undef __FUNCT__
 #define __FUNCT__ "NRefOrthogStep"
-PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscInt *prs,PetscScalar *work,PetscInt lwork)
+static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscInt *prs,PetscScalar *work,PetscInt lwork)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,nmat=pep->nmat,deg=nmat-1,lda=nmat*k,nwu=0,rs=*prs,ldg;
@@ -998,11 +998,6 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
   PetscBool      flg;
 
   PetscFunctionBegin;
-  ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)pep),&matctx->subc);CHKERRQ(ierr);
-  ierr = PetscSubcommSetNumber(matctx->subc,nsubc);CHKERRQ(ierr);CHKERRQ(ierr);
-  ierr = PetscSubcommSetType(matctx->subc,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)pep,sizeof(PetscSubcomm));CHKERRQ(ierr);
-  ierr = PetscSubcommSetFromOptions(matctx->subc);CHKERRQ(ierr);
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscMalloc1(pep->nmat,&A);CHKERRQ(ierr);
@@ -1102,7 +1097,6 @@ static PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
   ierr = VecDestroy(&matctx->tpg);CHKERRQ(ierr);
   ierr = VecDestroy(&matctx->Rv);CHKERRQ(ierr);
   ierr = VecDestroy(&matctx->Vi);CHKERRQ(ierr);
-  ierr = PetscSubcommDestroy(&matctx->subc);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1118,7 +1112,6 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
   BV             dV;
   PetscBool      sinvert,flg;
   Mat            P,M;
-  MPI_Comm       comm;
   FSubctx        *ctx;
   KSP            ksp;
   MatExplicitCtx *matctx=NULL;
@@ -1197,19 +1190,15 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
   ierr = BVSetActiveColumns(pep->V,0,k);CHKERRQ(ierr);
   ierr = BVDuplicateResize(pep->V,k,&dV);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)dV);CHKERRQ(ierr);  
+  ierr = PEPRefineGetKSP(pep,&ksp);CHKERRQ(ierr);
   if (!pep->schur) {
     ierr = PetscMalloc1(1,&matctx);CHKERRQ(ierr);
     if (nsubc>1) { /* spliting in subcommunicators */
+      matctx->subc = pep->refinesubc;
       ierr = NRefSubcommSetup(pep,k,matctx,nsubc);CHKERRQ(ierr);
-      comm = matctx->subc->comm;
-    } else {
-      matctx->subc=NULL;
-      ierr = PetscObjectGetComm((PetscObject)pep,&comm);CHKERRQ(ierr);
-    }
-  } else {
-    ierr = PetscObjectGetComm((PetscObject)pep,&comm);CHKERRQ(ierr);
+    } else matctx->subc=NULL;
   }
-  ierr = KSPCreate(comm,&ksp);
+
   /* Loop performing iterative refinements */
   for (i=0;i<its;i++) {
     /* Pre-compute the polynomial basis evaluated in H */
@@ -1254,7 +1243,6 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
     ierr = PetscFree(ctx);CHKERRQ(ierr);
     ierr = MatDestroy(&P);CHKERRQ(ierr);
   }
-  ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

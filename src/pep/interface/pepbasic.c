@@ -64,6 +64,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   char           str[50];
   PetscBool      isascii,islinear,istrivial;
   PetscInt       i;
+  PetscViewer    sviewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -160,8 +161,8 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
     case PEP_CONV_EIG:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
-    case PEP_CONV_NORM:
-      ierr = PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n");CHKERRQ(ierr);
+    case PEP_CONV_LINEAR:
+      ierr = PetscViewerASCIIPrintf(viewer,"related to the linearized eigenproblem\n");CHKERRQ(ierr);
       if (pep->nrma) {
         ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)pep->nrma[0]);CHKERRQ(ierr);
         for (i=1;i<pep->nmat;i++) {
@@ -192,9 +193,21 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
     ierr = DSView(pep->ds,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
+    ierr = STView(pep->st,viewer);CHKERRQ(ierr);
   }
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   ierr = STView(pep->st,viewer);CHKERRQ(ierr);
+  if (pep->refine!=PEP_REFINE_NONE) {
+    if (pep->npart>1) {
+      if (pep->refinesubc->color==0) {
+        ierr = PetscViewerASCIIGetStdout(pep->refinesubc->comm,&sviewer);CHKERRQ(ierr);
+        ierr = KSPView(pep->refineksp,sviewer);CHKERRQ(ierr);
+      }
+    } else {
+      ierr = KSPView(pep->refineksp,viewer);CHKERRQ(ierr);
+    }
+  } 
   PetscFunctionReturn(0);
 }
 
@@ -316,7 +329,7 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
     } else {
       errok = PETSC_TRUE;
       for (i=0;i<pep->nev;i++) {
-        ierr = PEPComputeRelativeError(pep,i,&error);CHKERRQ(ierr);
+        ierr = PEPComputeError(pep,i,PEP_ERROR_BACKWARD,&error);CHKERRQ(ierr);
         errok = (errok && error<5.0*pep->tol)? PETSC_TRUE: PETSC_FALSE;
       }
       if (errok) {
@@ -355,7 +368,7 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
            "   ----------------- -------------------------\n");CHKERRQ(ierr);
       for (i=0;i<pep->nconv;i++) {
         ierr = PEPGetEigenpair(pep,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-        ierr = PEPComputeRelativeError(pep,i,&error);CHKERRQ(ierr);
+        ierr = PEPComputeError(pep,i,PEP_ERROR_BACKWARD,&error);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
         re = PetscRealPart(kr);
         im = PetscImaginaryPart(kr);
@@ -413,7 +426,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->nini            = 0;
   pep->target          = 0.0;
   pep->tol             = PETSC_DEFAULT;
-  pep->conv            = PEP_CONV_NORM;
+  pep->conv            = PEP_CONV_LINEAR;
   pep->which           = (PEPWhich)0;
   pep->basis           = PEP_BASIS_MONOMIAL;
   pep->problem_type    = (PEPProblemType)0;
@@ -427,10 +440,10 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->rtol            = PETSC_DEFAULT;
   pep->rits            = PETSC_DEFAULT;
   pep->schur           = PETSC_FALSE;
-  pep->extract         = PEP_EXTRACT_NORM;
+  pep->extract         = (PEPExtract)0;
   pep->trackall        = PETSC_FALSE;
 
-  pep->converged       = PEPConvergedNormRelative;
+  pep->converged       = PEPConvergedLinear;
   pep->convergeddestroy= NULL;
   pep->convergedctx    = NULL;
   pep->numbermonitors  = 0;
@@ -453,6 +466,8 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->solvematcoeffs  = NULL;
   pep->nwork           = 0;
   pep->work            = NULL;
+  pep->refineksp       = NULL;
+  pep->refinesubc      = NULL;
   pep->data            = NULL;
 
   pep->state           = PEP_STATE_INITIAL;
@@ -629,6 +644,8 @@ PetscErrorCode PEPReset(PEP pep)
   }
   ierr = BVDestroy(&pep->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(pep->nwork,&pep->work);CHKERRQ(ierr);
+  ierr = KSPDestroy(&pep->refineksp);CHKERRQ(ierr);
+  ierr = PetscSubcommDestroy(&pep->refinesubc);CHKERRQ(ierr);
   pep->nwork = 0;
   pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -938,6 +955,48 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->st);CHKERRQ(ierr);
   }
   *st = pep->st;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPRefineGetKSP"
+/*@C
+   PEPRefineGetKSP - Obtain the ksp object used by the eigensolver
+   object in the refinement phase.
+
+   Not Collective
+
+   Input Parameters:
+.  pep - eigensolver context obtained from PEPCreate()
+
+   Output Parameter:
+.  ksp - ksp context
+
+   Level: advanced
+
+.seealso: PEPSetRefine()
+@*/
+PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(ksp,2);
+  if (!pep->refineksp) {
+    if (pep->npart>1) {
+      /* Split in subcomunicators */
+      ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)pep),&pep->refinesubc);CHKERRQ(ierr);
+      ierr = PetscSubcommSetNumber(pep->refinesubc,pep->npart);CHKERRQ(ierr);CHKERRQ(ierr);
+      ierr = PetscSubcommSetType(pep->refinesubc,PETSC_SUBCOMM_CONTIGUOUS);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)pep,sizeof(PetscSubcomm));CHKERRQ(ierr);
+    }
+    ierr = KSPCreate((pep->npart==1)?PetscObjectComm((PetscObject)pep):pep->refinesubc->comm,&pep->refineksp);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->refineksp);CHKERRQ(ierr);
+    ierr = KSPSetOptionsPrefix(*ksp,((PetscObject)pep)->prefix);CHKERRQ(ierr);
+    ierr = KSPAppendOptionsPrefix(*ksp,"pep_refine_");CHKERRQ(ierr);
+  }
+  *ksp = pep->refineksp;
   PetscFunctionReturn(0);
 }
 

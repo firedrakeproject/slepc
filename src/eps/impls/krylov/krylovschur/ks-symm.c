@@ -78,6 +78,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
+    if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {

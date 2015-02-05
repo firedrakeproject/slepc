@@ -108,6 +108,14 @@
       parameter (EPS_REFINED                =  5)
       parameter (EPS_REFINED_HARMONIC       =  6)
 
+      PetscEnum EPS_ERROR_ABSOLUTE
+      PetscEnum EPS_ERROR_RELATIVE
+      PetscEnum EPS_ERROR_BACKWARD
+
+      parameter (EPS_ERROR_ABSOLUTE         =  0)
+      parameter (EPS_ERROR_RELATIVE         =  1)
+      parameter (EPS_ERROR_BACKWARD         =  2)
+
       PetscEnum EPS_CONV_ABS
       PetscEnum EPS_CONV_EIG
       PetscEnum EPS_CONV_NORM

@@ -106,6 +106,8 @@ struct _p_PEP {
   PetscScalar    *solvematcoeffs;  /* coefficients to compute the matrix to be inverted */
   PetscInt       nwork;            /* number of work vectors */
   Vec            *work;            /* work vectors */
+  KSP            refineksp;        /* ksp used in refinement */
+  PetscSubcomm   refinesubc;       /* context for sub-communicators */
   void           *data;            /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables --------------------------*/
@@ -114,6 +116,7 @@ struct _p_PEP {
   PetscInt       its;              /* number of iterations so far computed */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
   PetscReal      *nrma;            /* computed matrix norms */
+  PetscReal      nrml[2];          /* computed matrix norms for the linearization */
   PetscBool      sfactor_set;      /* flag to indicate the user gave sfactor */
   PEPConvergedReason reason;
 };
@@ -138,7 +141,6 @@ PETSC_INTERN PetscErrorCode PEPSetDimensions_Default(PEP,PetscInt,PetscInt*,Pets
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Schur(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Indefinite(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeResidualNorm_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-PETSC_INTERN PetscErrorCode PEPComputeRelativeError_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPKrylovConvergence(PEP,PetscBool,PetscInt,PetscInt,PetscReal,PetscInt*);
 PETSC_INTERN PetscErrorCode PEPComputeScaleFactor(PEP);
 PETSC_INTERN PetscErrorCode PEPBuildDiagonalScaling(PEP);
@@ -146,5 +148,6 @@ PETSC_INTERN PetscErrorCode PEPBasisCoefficients(PEP,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscScalar,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt,PetscInt*);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinementSimple(PEP,PetscInt*,PetscReal*,PetscInt);
+PETSC_INTERN PetscErrorCode PEPComputeLinearNorms(PEP);
 
 #endif
