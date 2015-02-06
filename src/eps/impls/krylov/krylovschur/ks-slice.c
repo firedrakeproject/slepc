@@ -103,17 +103,17 @@ PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
 */
 static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
 {
-  PetscErrorCode ierr;
-  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
-  PetscReal       eta;
-  PetscInt        k;
-  PetscLogDouble  cnt;
-  BVType          type;
-  BVOrthogType    orthog_type;
+  PetscErrorCode     ierr;
+  EPS_KRYLOVSCHUR    *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  PetscReal          eta;
+  PetscInt           k;
+  PetscLogDouble     cnt;
+  BVType             type;
+  BVOrthogType       orthog_type;
   BVOrthogRefineType orthog_ref;
-  Mat             matrix;
-  Vec             t;
-  EPS_SR          sr = ctx->sr;
+  Mat                matrix;
+  Vec                t;
+  EPS_SR             sr = ctx->sr;
 
   PetscFunctionBegin;
   /* allocate space for eigenvalues and friends */
@@ -226,8 +226,6 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
     ierr = PCSetType(pc,pctype);CHKERRQ(ierr);
     ierr = PCFactorSetMatSolverPackage(pc,stype);CHKERRQ(ierr);
 
-    /* Create scatters for sending vectors for deflation  ///// PENDING  ///// */
-
     /* Create subcommunicator grouping processes with same rank */
     if (ctx->commrank) { ierr = MPI_Comm_free(&ctx->commrank);CHKERRQ(ierr); }
     ierr = MPI_Comm_rank(ctx->subc->comm,&rank);CHKERRQ(ierr);
@@ -245,6 +243,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   ctx_local->commrank = ctx->commrank;
 
   ierr = EPSSetDimensions(ctx->eps,ctx->nev,ctx->ncv,ctx->mpd);CHKERRQ(ierr);
+  ierr = EPSKrylovSchurSetLocking(ctx->eps,ctx->lock);CHKERRQ(ierr);
 
   /* transfer options from eps->V */
   ierr = EPSGetBV(ctx->eps,&V);CHKERRQ(ierr);
@@ -872,44 +871,46 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     /* Residual */
     ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->nconv,nv-eps->nconv,beta,1.0,&k);CHKERRQ(ierr);
 
-    /* Check convergence */
-    ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-    b = a + ld;
-    conv = 0;
-    j = k = eps->nconv;
-    for (i=eps->nconv;i<nv;i++) if (eps->errest[i] < eps->tol) conv++;
-    for (i=eps->nconv;i<nv;i++) {
-      if (eps->errest[i] < eps->tol) {
-        iwork[j++]=i;
-      } else iwork[conv+k++]=i;
-    }
-    for (i=eps->nconv;i<nv;i++) {
-      a[i]=PetscRealPart(eps->eigr[i]);
-      b[i]=eps->errest[i];
-    }
-    for (i=eps->nconv;i<nv;i++) {
-      eps->eigr[i] = a[iwork[i]];
-      eps->errest[i] = b[iwork[i]];
-    }
-    for (i=eps->nconv;i<nv;i++) {
-      a[i]=PetscRealPart(eps->eigr[i]);
-      b[i]=eps->errest[i];
-    }
-    ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-    ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    for (i=eps->nconv;i<nv;i++) {
-      p=iwork[i];
-      if (p!=i) {
-        j=i+1;
-        while (iwork[j]!=i) j++;
-        iwork[j]=p;iwork[i]=i;
-        for (k=0;k<nv;k++) {
-          rtmp=Q[k+p*ld];Q[k+p*ld]=Q[k+i*ld];Q[k+i*ld]=rtmp;
+    if (ctx->lock) {
+      /* Check convergence */
+      ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+      b = a + ld;
+      conv = 0;
+      j = k = eps->nconv;
+      for (i=eps->nconv;i<nv;i++) if (eps->errest[i] < eps->tol) conv++;
+      for (i=eps->nconv;i<nv;i++) {
+        if (eps->errest[i] < eps->tol) {
+          iwork[j++]=i;
+        } else iwork[conv+k++]=i;
+      }
+      for (i=eps->nconv;i<nv;i++) {
+        a[i]=PetscRealPart(eps->eigr[i]);
+        b[i]=eps->errest[i];
+      }
+      for (i=eps->nconv;i<nv;i++) {
+        eps->eigr[i] = a[iwork[i]];
+        eps->errest[i] = b[iwork[i]];
+      }
+      for (i=eps->nconv;i<nv;i++) {
+        a[i]=PetscRealPart(eps->eigr[i]);
+        b[i]=eps->errest[i];
+      }
+      ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+      ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+      for (i=eps->nconv;i<nv;i++) {
+        p=iwork[i];
+        if (p!=i) {
+          j=i+1;
+          while (iwork[j]!=i) j++;
+          iwork[j]=p;iwork[i]=i;
+          for (k=0;k<nv;k++) {
+            rtmp=Q[k+p*ld];Q[k+p*ld]=Q[k+i*ld];Q[k+i*ld]=rtmp;
+          }
         }
       }
+      ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+      k=eps->nconv+conv;
     }
-    ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    k=eps->nconv+conv;
 
     /* Checking values obtained for completing */
     for (i=0;i<k;i++) {
@@ -947,6 +948,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     /* Update l */
     if (eps->reason == EPS_CONVERGED_ITERATING) l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
     else l = nv-k;
+    if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
     if (breakdown) l=0;
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
@@ -1293,8 +1295,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
       sr->eigr[i]   = 0.0;
       sr->eigi[i]   = 0.0;
       sr->errest[i] = 0.0;
+      sr->perm[i]   = i;
     }
-    for (i=0;i<sr->numEigs;i++) sr->perm[i] = i;
     /* Vectors for deflation */
     ierr = PetscMalloc1(sr->numEigs,&sr->idxDef);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)eps,sr->numEigs*sizeof(PetscInt));CHKERRQ(ierr);
@@ -1329,7 +1331,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     ierr = BVDuplicateResize(eps->V,eps->ncv+1,&sr->Vnext);CHKERRQ(ierr);
     ierr = BVSetNumConstraints(sr->Vnext,0);CHKERRQ(ierr);
     ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
-    eps->V = sr->Vnext;
+    eps->V      = sr->Vnext;
     eps->nconv  = sr->indexEig;
     eps->reason = EPS_CONVERGED_TOL;
     eps->its    = sr->itsKs;

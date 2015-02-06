@@ -426,16 +426,17 @@ PetscErrorCode CheckSolution(PetscScalar lambda,Vec y,PetscReal *error,void *ctx
 */
 PetscErrorCode FixSign(Vec x)
 {
-  PetscErrorCode ierr;
-  PetscMPIInt    rank;
-  PetscScalar    sign,*xx;
+  PetscErrorCode    ierr;
+  PetscMPIInt       rank;
+  PetscScalar       sign;
+  const PetscScalar *xx;
 
   PetscFunctionBeginUser;
   ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
   if (!rank) {
-    ierr = VecGetArray(x,&xx);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(x,&xx);CHKERRQ(ierr);
     sign = *xx/PetscAbsScalar(*xx);
-    ierr = VecRestoreArray(x,&xx);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
   }
   ierr = MPI_Bcast(&sign,1,MPIU_SCALAR,0,PETSC_COMM_WORLD);CHKERRQ(ierr);
   ierr = VecScale(x,1.0/sign);CHKERRQ(ierr);

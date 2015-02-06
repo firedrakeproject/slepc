@@ -41,6 +41,7 @@
 #define PEPRefine          PetscEnum
 #define PEPExtract         PetscEnum
 #define PEPConv            PetscEnum
+#define PEPErrorType       PetscEnum
 #define PEPConvergedReason PetscEnum
 
 #define PEPLINEAR    'linear'

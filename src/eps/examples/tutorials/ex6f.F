@@ -179,14 +179,14 @@
       external mvmisg
 
       call MatGetSize(A,N,PETSC_NULL_INTEGER,ierr)
-      call VecGetArray(x,x_array,i_x,ierr)
+      call VecGetArrayRead(x,x_array,i_x,ierr)
       call VecGetArray(y,y_array,i_y,ierr)
 
       trans = 0
       one = 1
       call mvmisg(trans,N,one,x_array(i_x+1),N,y_array(i_y+1),N)
 
-      call VecRestoreArray(x,x_array,i_x,ierr)
+      call VecRestoreArrayRead(x,x_array,i_x,ierr)
       call VecRestoreArray(y,y_array,i_y,ierr)
 
       return

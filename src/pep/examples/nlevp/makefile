@@ -90,7 +90,7 @@ runacoustic_wave_2d_1:
 	   ${RM} -f acoustic_wave_2d_1.tmp
 
 runbutterfly:
-	-@${MPIEXEC} -np 1 ./butterfly -pep_nev 4 -st_type sinvert -pep_terse > butterfly_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./butterfly -pep_nev 4 -st_type sinvert -pep_target 0.01 -pep_terse > butterfly_1.tmp 2>&1; \
 	   if (${DIFF} output/butterfly_1.out butterfly_1.tmp) then true; \
 	   else echo "Possible problem with butterfly_1, diffs above"; fi; \
 	   ${RM} -f butterfly_1.tmp

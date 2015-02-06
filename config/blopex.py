@@ -41,8 +41,8 @@ def Install(conf,vars,cmake,tmpdir,url,archdir):
     log.Exit('ERROR: cannot use external packages with 64-bit indices.')
 
   packagename = 'blopex-1.1.2'
-  externdir   = archdir+'/externalpackages'
-  builddir    = os.sep.join([externdir,packagename])
+  externdir   = os.path.join(archdir,'externalpackages')
+  builddir    = os.path.join(externdir,packagename)
 
   # Create externalpackages directory
   if not os.path.exists(externdir):
@@ -58,7 +58,7 @@ def Install(conf,vars,cmake,tmpdir,url,archdir):
 
     # Download tarball
     if url=='':
-      url = 'http://www.grycap.upv.es/slepc/download/external/'+packagename+'.tar.gz'
+      url = 'http://slepc.upv.es/download/external/'+packagename+'.tar.gz'
     archiveZip = 'blopex.tar.gz'
     localFile = os.sep.join([externdir,archiveZip])
     log.Println('Downloading '+url+' to '+localFile)
@@ -72,7 +72,7 @@ def Install(conf,vars,cmake,tmpdir,url,archdir):
       filename   = os.path.basename(urlparse.urlparse(url)[2])
       failureMessage = '''\
 Unable to download package %s from: %s
-* If your network is disconnected - please reconnect and rerun ./configure.py
+* If your network is disconnected - please reconnect and rerun ./configure
 * Alternatively, you can download the above URL manually, to /yourselectedlocation/%s
   and use the configure option:
   --download-%s=/yourselectedlocation/%s
