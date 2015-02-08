@@ -149,7 +149,7 @@ PetscErrorCode SVDReasonView(SVD svd,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDReasonViewFromOptions"
-/*@C
+/*@
    SVDReasonViewFromOptions - Processes command line options to determine if/how
    the SVD converged reason is to be viewed. 
 
@@ -196,7 +196,9 @@ PetscErrorCode SVDReasonViewFromOptions(SVD svd)
 -  viewer - optional visualization context
 
    Options Database Key:
-.  -svd_terse - view only minimal information
++  -svd_error_absolute - print absolute errors of each singular triplet
+.  -svd_error_relative - print relative errors of each singular triplet
+-  -svd_terse - view only minimal information
 
    Note:
    By default, this function prints a table with singular values and associated
@@ -261,6 +263,48 @@ PetscErrorCode SVDErrorView(SVD svd,SVDErrorType etype,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     }
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDErrorViewFromOptions"
+/*@
+   SVDErrorViewFromOptions - Processes command line options to determine if/how
+   the errors of the computed solution are to be viewed. 
+
+   Collective on SVD
+
+   Input Parameters:
+.  svd - the eigensolver context
+
+   Level: intermediate
+@*/
+PetscErrorCode SVDErrorViewFromOptions(SVD svd)
+{
+  PetscErrorCode    ierr;
+  PetscViewer       viewer;
+  PetscBool         flg;
+  static PetscBool  incall = PETSC_FALSE;
+  PetscViewerFormat format;
+
+  PetscFunctionBegin;
+  if (incall) PetscFunctionReturn(0);
+  incall = PETSC_TRUE;
+  ierr   = PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->prefix,"-svd_error_absolute",&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
+    ierr = SVDErrorView(svd,SVD_ERROR_ABSOLUTE,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+  ierr   = PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->prefix,"-svd_error_relative",&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
+    ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+  incall = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

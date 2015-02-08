@@ -199,7 +199,7 @@ PetscErrorCode NEPReasonView(NEP nep,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPReasonViewFromOptions"
-/*@C
+/*@
    NEPReasonViewFromOptions - Processes command line options to determine if/how
    the NEP converged reason is to be viewed. 
 

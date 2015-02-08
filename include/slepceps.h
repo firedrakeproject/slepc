@@ -174,6 +174,7 @@ PETSC_EXTERN PetscErrorCode EPSView(EPS,PetscViewer);
 PETSC_STATIC_INLINE PetscErrorCode EPSViewFromOptions(EPS eps,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)eps,prefix,name);}
 PETSC_EXTERN PetscErrorCode EPSErrorView(EPS,EPSErrorType,PetscViewer);
 PETSC_DEPRECATED("Use EPSErrorView()") PETSC_STATIC_INLINE PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer v) {return EPSErrorView(eps,EPS_ERROR_RELATIVE,v);}
+PETSC_EXTERN PetscErrorCode EPSErrorViewFromOptions(EPS);
 PETSC_EXTERN PetscErrorCode EPSReasonView(EPS,PetscViewer);
 PETSC_EXTERN PetscErrorCode EPSReasonViewFromOptions(EPS);
 

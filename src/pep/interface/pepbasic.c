@@ -250,7 +250,7 @@ PetscErrorCode PEPReasonView(PEP pep,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPReasonViewFromOptions"
-/*@C
+/*@
    PEPReasonViewFromOptions - Processes command line options to determine if/how
    the PEP converged reason is to be viewed. 
 
@@ -297,7 +297,10 @@ PetscErrorCode PEPReasonViewFromOptions(PEP pep)
 -  viewer - optional visualization context
 
    Options Database Key:
-.  -pep_terse - print only minimal information
++  -pep_error_absolute - print absolute errors of each eigenpair
+.  -pep_error_relative - print relative errors of each eigenpair
+.  -pep_error_backward - print backward errors of each eigenpair
+-  -pep_terse - print only minimal information
 
    Note:
    By default, this function prints a table with eigenvalues and associated
@@ -387,6 +390,55 @@ PetscErrorCode PEPErrorView(PEP pep,PEPErrorType etype,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     }
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPErrorViewFromOptions"
+/*@
+   PEPErrorViewFromOptions - Processes command line options to determine if/how
+   the errors of the computed solution are to be viewed. 
+
+   Collective on PEP
+
+   Input Parameters:
+.  pep - the eigensolver context
+
+   Level: intermediate
+@*/
+PetscErrorCode PEPErrorViewFromOptions(PEP pep)
+{
+  PetscErrorCode    ierr;
+  PetscViewer       viewer;
+  PetscBool         flg;
+  static PetscBool  incall = PETSC_FALSE;
+  PetscViewerFormat format;
+
+  PetscFunctionBegin;
+  if (incall) PetscFunctionReturn(0);
+  incall = PETSC_TRUE;
+  ierr   = PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->prefix,"-pep_error_absolute",&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
+    ierr = PEPErrorView(pep,PEP_ERROR_ABSOLUTE,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+  ierr   = PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->prefix,"-pep_error_relative",&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
+    ierr = PEPErrorView(pep,PEP_ERROR_RELATIVE,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+  ierr   = PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->prefix,"-pep_error_backward",&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
+    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+  incall = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

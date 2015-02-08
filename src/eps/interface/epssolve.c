@@ -59,6 +59,10 @@ PETSC_STATIC_INLINE PetscErrorCode EPSComputeVectors(EPS eps)
 +  -eps_view - print information about the solver used
 .  -eps_view_mat0 binary - save the first matrix (A) to the default binary viewer
 .  -eps_view_mat1 binary - save the second matrix (B) to the default binary viewer
+.  -eps_converged_reason - print reason for convergence, and number of iterations
+.  -eps_error_absolute - print absolute errors of each eigenpair
+.  -eps_error_relative - print relative errors of each eigenpair
+.  -eps_error_backward - print backward errors of each eigenpair
 -  -eps_plot_eigs - plot computed eigenvalues
 
    Level: beginner
@@ -157,6 +161,7 @@ PetscErrorCode EPSSolve(EPS eps)
   /* various viewers */
   ierr = EPSViewFromOptions(eps,NULL,"-eps_view");CHKERRQ(ierr);
   ierr = EPSReasonViewFromOptions(eps);CHKERRQ(ierr);
+  ierr = EPSErrorViewFromOptions(eps);CHKERRQ(ierr);
   ierr = MatViewFromOptions(A,((PetscObject)eps)->prefix,"-eps_view_mat0");CHKERRQ(ierr);
   if (nmat>1) { ierr = MatViewFromOptions(B,((PetscObject)eps)->prefix,"-eps_view_mat1");CHKERRQ(ierr); }
 

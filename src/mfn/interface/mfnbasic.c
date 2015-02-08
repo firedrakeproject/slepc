@@ -132,7 +132,7 @@ PetscErrorCode MFNReasonView(MFN mfn,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNReasonViewFromOptions"
-/*@C
+/*@
    MFNReasonViewFromOptions - Processes command line options to determine if/how
    the MFN converged reason is to be viewed. 
 

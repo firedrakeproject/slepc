@@ -57,6 +57,7 @@ PETSC_STATIC_INLINE PetscErrorCode NEPComputeVectors(NEP nep)
 
    Options Database Keys:
 +  -nep_view - print information about the solver used
+.  -nep_converged_reason - print reason for convergence, and number of iterations
 -  -nep_plot_eigs - plot computed eigenvalues
 
    Level: beginner

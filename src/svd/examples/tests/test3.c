@@ -98,7 +98,7 @@ int main(int argc,char **argv)
      Compute solution
   */
   ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,NULL);CHKERRQ(ierr);
+  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
 
   /*
      Free work space

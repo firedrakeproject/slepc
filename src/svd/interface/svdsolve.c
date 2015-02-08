@@ -35,7 +35,10 @@
 
    Options Database Keys:
 +  -svd_view - print information about the solver used
--  -svd_view_mat binary - save the matrix to the default binary viewer
+.  -svd_view_mat binary - save the matrix to the default binary viewer
+.  -svd_converged_reason - print reason for convergence, and number of iterations
+.  -svd_error_absolute - print absolute errors of each singular triplet
+-  -svd_error_relative - print relative errors of each singular triplet
 
    Level: beginner
 
@@ -81,6 +84,7 @@ PetscErrorCode SVDSolve(SVD svd)
   /* various viewers */
   ierr = SVDViewFromOptions(svd,NULL,"-svd_view");CHKERRQ(ierr);
   ierr = SVDReasonViewFromOptions(svd);CHKERRQ(ierr);
+  ierr = SVDErrorViewFromOptions(svd);CHKERRQ(ierr);
   ierr = MatViewFromOptions(svd->OP,((PetscObject)svd)->prefix,"-svd_view_mat");CHKERRQ(ierr);
 
   /* Remove the initial subspaces */

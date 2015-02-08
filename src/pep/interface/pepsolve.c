@@ -59,6 +59,10 @@ PETSC_STATIC_INLINE PetscErrorCode PEPComputeVectors(PEP pep)
 +  -pep_view - print information about the solver used
 .  -eps_view_matk binary - save any of the coefficient matrices (Ak) to the
                 default binary viewer (replace k by an integer from 0 to nmat-1)
+.  -pep_converged_reason - print reason for convergence, and number of iterations
+.  -pep_error_absolute - print absolute errors of each eigenpair
+.  -pep_error_relative - print relative errors of each eigenpair
+.  -pep_error_backward - print backward errors of each eigenpair
 -  -pep_plot_eigs - plot computed eigenvalues
 
    Level: beginner
@@ -139,6 +143,7 @@ PetscErrorCode PEPSolve(PEP pep)
   /* various viewers */
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view");CHKERRQ(ierr);
   ierr = PEPReasonViewFromOptions(pep);CHKERRQ(ierr);
+  ierr = PEPErrorViewFromOptions(pep);CHKERRQ(ierr);
   for (i=0;i<pep->nmat;i++) {
     ierr = PetscSNPrintf(str,OPTLEN,"-pep_view_mat%d",(int)i);CHKERRQ(ierr);
     ierr = MatViewFromOptions(pep->A[i],((PetscObject)pep)->prefix,str);CHKERRQ(ierr);
