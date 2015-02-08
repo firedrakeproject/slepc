@@ -239,7 +239,7 @@ PetscErrorCode PEPReasonView(PEP pep,PetscViewer viewer)
   if (isAscii) {
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
     if (pep->reason > 0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve converged due to %s; iterations %D\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",PEPConvergedReasons[pep->reason],pep->its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve converged (%d eigenpair%s) due to %s; iterations %D\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",pep->nconv,(pep->nconv>1)?"s":"",PEPConvergedReasons[pep->reason],pep->its);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve did not converge due to %s; iterations %D\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",PEPConvergedReasons[pep->reason],pep->its);CHKERRQ(ierr);
     }
