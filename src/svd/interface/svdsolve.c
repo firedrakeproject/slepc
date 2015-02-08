@@ -254,31 +254,12 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDComputeResidualNorms"
-/*@
-   SVDComputeResidualNorms - Computes the norms of the residual vectors associated with
-   the i-th computed singular triplet.
-
-   Collective on SVD
-
-   Input Parameters:
-+  svd  - the singular value solver context
--  i    - the solution index
-
-   Output Parameters:
-+  norm1 - the norm ||A*v-sigma*u||_2 where sigma is the
-           singular value, u and v are the left and right singular vectors.
--  norm2 - the norm ||A^T*u-sigma*v||_2 with the same sigma, u and v
-
-   Note:
-   The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
-   Both output parameters can be NULL on input if not needed.
-
-   Level: beginner
-
-.seealso: SVDSolve(), SVDGetConverged(), SVDComputeRelativeError()
+#define __FUNCT__ "SVDComputeResidualNorms_Private"
+/*
+   SVDComputeResidualNorms_Private - Computes the norms of the left and
+   right residuals associated with the i-th computed singular triplet.
 @*/
-PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,PetscReal *norm2)
+static PetscErrorCode SVDComputeResidualNorms_Private(SVD svd,PetscInt i,PetscReal *norm1,PetscReal *norm2)
 {
   PetscErrorCode ierr;
   Vec            u,v,x = NULL,y = NULL;
@@ -293,12 +274,14 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,Petsc
 
   ierr = MatCreateVecs(svd->OP,&v,&u);CHKERRQ(ierr);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
+  /* norm1 = ||A*v-sigma*u||_2 */
   if (norm1) {
     ierr = VecDuplicate(u,&x);CHKERRQ(ierr);
     ierr = MatMult(svd->OP,v,x);CHKERRQ(ierr);
     ierr = VecAXPY(x,-sigma,u);CHKERRQ(ierr);
     ierr = VecNorm(x,NORM_2,norm1);CHKERRQ(ierr);
   }
+  /* norm2 = ||A^T*u-sigma*v||_2 */
   if (norm2) {
     ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
     if (svd->A && svd->AT) {
@@ -327,28 +310,32 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,Petsc
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDComputeRelativeError"
+#define __FUNCT__ "SVDComputeError"
 /*@
-   SVDComputeRelativeError - Computes the relative error bound associated
+   SVDComputeError - Computes the error (based on the residual norm) associated
    with the i-th singular triplet.
 
    Collective on SVD
 
    Input Parameter:
-+  svd - the singular value solver context
--  i   - the solution index
++  svd  - the singular value solver context
+.  i    - the solution index
+-  type - the type of error to compute
 
    Output Parameter:
-.  error - the relative error bound, computed as sqrt(n1^2+n2^2)/sigma
-   where n1 = ||A*v-sigma*u||_2 , n2 = ||A^T*u-sigma*v||_2 , sigma is the singular value,
-   u and v are the left and right singular vectors.
-   If sigma is too small the relative error is computed as sqrt(n1^2+n2^2).
+.  error - the error
+
+   Notes:
+   The error can be computed in various ways, all of them based on the residual
+   norm obtained as sqrt(n1^2+n2^2) with n1 = ||A*v-sigma*u||_2 and
+   n2 = ||A^T*u-sigma*v||_2, where sigma is the singular value, u is the left
+   singular vector and v is the right singular vector.
 
    Level: beginner
 
-.seealso: SVDSolve(), SVDComputeResidualNorms()
+.seealso: SVDErrorType, SVDSolve()
 @*/
-PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
+PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *error)
 {
   PetscErrorCode ierr;
   PetscReal      sigma,norm1,norm2;
@@ -356,11 +343,21 @@ PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,i,2);
-  PetscValidPointer(error,3);
+  PetscValidLogicalCollectiveEnum(svd,type,3);
+  PetscValidPointer(error,4);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,NULL);CHKERRQ(ierr);
-  ierr = SVDComputeResidualNorms(svd,i,&norm1,&norm2);CHKERRQ(ierr);
+  ierr = SVDComputeResidualNorms_Private(svd,i,&norm1,&norm2);CHKERRQ(ierr);
   *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
-  if (sigma>*error) *error /= sigma;
+  if (type==PETSC_DEFAULT) type = SVD_ERROR_RELATIVE;
+  switch (type) {
+    case SVD_ERROR_ABSOLUTE:
+      break;
+    case SVD_ERROR_RELATIVE:
+      *error /= sigma;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
+  }
   PetscFunctionReturn(0);
 }
 

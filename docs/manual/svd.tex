@@ -114,7 +114,7 @@ SVDSolve( svd );
 SVDGetConverged( svd, &nconv );
 for (j=0; j<nconv; j++) {
   SVDGetSingularTriplet( svd, j, &sigma, u, v );
-  SVDComputeRelativeError( svd, j, &error );
+  SVDComputeError( svd, j, SVD_ERROR_RELATIVE, &error );
 }
 SVDDestroy( &svd );
 \end{Verbatim}
@@ -272,15 +272,10 @@ Given the above definition, the following relation holds
 \begin{equation}
 |\sigma-\tilde{\sigma}|\leq \|r\|_2,
 \end{equation}
-where $\sigma$ is an exact singular value. The following \slepc function 
-	\findex{SVDComputeResidualNorms}
+where $\sigma$ is an exact singular value. The associated error can be obtained in terms of $\|r\|_2$ with the following function:
+	\findex{SVDComputeError}
 	\begin{Verbatim}[fontsize=\small]
-	SVDComputeResidualNorms(SVD svd,PetscInt j,PetscReal *norm1,PetscReal *norm2)
-	\end{Verbatim}
-computes the two partial 2-norms separately, $\|A\tilde{v}-\tilde{\sigma}\tilde{u}\|_2$ and $\|A^*\tilde{u}-\tilde{\sigma}\tilde{v}\|_2$. The relative error can be obtained as $\|r\|_2/\left(\tilde{\sigma}\sqrt{2}\right)$ with the following function:
-	\findex{SVDComputeRelativeError}
-	\begin{Verbatim}[fontsize=\small]
-	SVDComputeRelativeError(SVD svd,PetscInt j,PetscReal *error);
+	SVDComputeError(SVD svd,PetscInt j,SVDErrorType type,PetscReal *error);
 	\end{Verbatim}
 
 \paragraph{Controlling and Monitoring Convergence.}

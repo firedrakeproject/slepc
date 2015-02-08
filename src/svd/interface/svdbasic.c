@@ -192,6 +192,7 @@ PetscErrorCode SVDReasonViewFromOptions(SVD svd)
 
    Input Parameters:
 +  svd    - the singular value solver context
+.  etype  - error type
 -  viewer - optional visualization context
 
    Options Database Key:
@@ -205,7 +206,7 @@ PetscErrorCode SVDReasonViewFromOptions(SVD svd)
 
 .seealso: PetscViewerASCIIOpen()
 @*/
-PetscErrorCode SVDErrorView(SVD svd,PetscViewer viewer)
+PetscErrorCode SVDErrorView(SVD svd,SVDErrorType etype,PetscViewer viewer)
 {
   PetscBool      terse,errok,isascii;
   PetscReal      error,sigma;
@@ -228,7 +229,7 @@ PetscErrorCode SVDErrorView(SVD svd,PetscViewer viewer)
     } else {
       errok = PETSC_TRUE;
       for (i=0;i<svd->nsv;i++) {
-        ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
+        ierr = SVDComputeError(svd,i,etype,&error);CHKERRQ(ierr);
         errok = (errok && error<5.0*svd->tol)? PETSC_TRUE: PETSC_FALSE;
       }
       if (errok) {
@@ -254,7 +255,7 @@ PetscErrorCode SVDErrorView(SVD svd,PetscViewer viewer)
            "   --------------------- ------------------\n");CHKERRQ(ierr);
       for (i=0;i<svd->nconv;i++) {
         ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,NULL);CHKERRQ(ierr);
-        ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
+        ierr = SVDComputeError(svd,i,etype,&error);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"       % 6f          %12g\n",(double)sigma,(double)error);CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);

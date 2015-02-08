@@ -68,6 +68,17 @@ typedef enum { SVD_LARGEST,
                SVD_SMALLEST } SVDWhich;
 
 /*E
+    SVDErrorType - The error type used to assess accuracy of computed solutions
+
+    Level: intermediate
+
+.seealso: SVDComputeError()
+E*/
+typedef enum { SVD_ERROR_ABSOLUTE,
+               SVD_ERROR_RELATIVE } SVDErrorType;
+PETSC_EXTERN const char *SVDErrorTypes[];
+
+/*E
     SVDConvergedReason - Reason a singular value solver was said to
          have converged or diverged
 
@@ -112,12 +123,13 @@ PETSC_EXTERN PetscErrorCode SVDGetIterationNumber(SVD,PetscInt*);
 PETSC_EXTERN PetscErrorCode SVDGetConvergedReason(SVD,SVDConvergedReason*);
 PETSC_EXTERN PetscErrorCode SVDGetConverged(SVD,PetscInt*);
 PETSC_EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,PetscInt,PetscReal*,Vec,Vec);
-PETSC_EXTERN PetscErrorCode SVDComputeResidualNorms(SVD,PetscInt,PetscReal*,PetscReal*);
-PETSC_EXTERN PetscErrorCode SVDComputeRelativeError(SVD,PetscInt,PetscReal*);
+PETSC_EXTERN PetscErrorCode SVDComputeError(SVD,PetscInt,SVDErrorType,PetscReal*);
+PETSC_DEPRECATED("Use SVDComputeError()") PETSC_STATIC_INLINE PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *r) {return SVDComputeError(svd,i,SVD_ERROR_RELATIVE,r);}
+PETSC_DEPRECATED("Use SVDComputeError() with SVD_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *r1,PetscReal *r2) {return SVDComputeError(svd,i,SVD_ERROR_ABSOLUTE,r1);}
 PETSC_EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
 PETSC_STATIC_INLINE PetscErrorCode SVDViewFromOptions(SVD svd,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)svd,prefix,name);}
-PETSC_EXTERN PetscErrorCode SVDErrorView(SVD,PetscViewer);
-PETSC_DEPRECATED("Use SVDErrorView()") PETSC_STATIC_INLINE PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer v) {return SVDErrorView(svd,v);}
+PETSC_EXTERN PetscErrorCode SVDErrorView(SVD,SVDErrorType,PetscViewer);
+PETSC_DEPRECATED("Use SVDErrorView()") PETSC_STATIC_INLINE PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer v) {return SVDErrorView(svd,SVD_ERROR_RELATIVE,v);}
 PETSC_EXTERN PetscErrorCode SVDReasonView(SVD,PetscViewer);
 PETSC_EXTERN PetscErrorCode SVDReasonViewFromOptions(SVD);
 PETSC_EXTERN PetscErrorCode SVDDestroy(SVD*);
