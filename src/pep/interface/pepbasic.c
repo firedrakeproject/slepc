@@ -284,14 +284,16 @@ PetscErrorCode PEPReasonViewFromOptions(PEP pep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPPrintSolution"
+#define __FUNCT__ "PEPErrorView"
 /*@
-   PEPPrintSolution - Prints the computed eigenvalues.
+   PEPErrorView - Displays the errors associated with the computed solution
+   (as well as the eigenvalues).
 
    Collective on PEP
 
    Input Parameters:
-+  pep - the eigensolver context
++  pep    - the eigensolver context
+.  etype  - error type
 -  viewer - optional visualization context
 
    Options Database Key:
@@ -305,7 +307,7 @@ PetscErrorCode PEPReasonViewFromOptions(PEP pep)
 
 .seealso: PetscViewerASCIIOpen()
 @*/
-PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
+PetscErrorCode PEPErrorView(PEP pep,PEPErrorType etype,PetscViewer viewer)
 {
   PetscBool      terse,errok,isascii;
   PetscReal      error,re,im;
@@ -329,7 +331,7 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
     } else {
       errok = PETSC_TRUE;
       for (i=0;i<pep->nev;i++) {
-        ierr = PEPComputeError(pep,i,PEP_ERROR_BACKWARD,&error);CHKERRQ(ierr);
+        ierr = PEPComputeError(pep,i,etype,&error);CHKERRQ(ierr);
         errok = (errok && error<5.0*pep->tol)? PETSC_TRUE: PETSC_FALSE;
       }
       if (errok) {
@@ -368,7 +370,7 @@ PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
            "   ----------------- -------------------------\n");CHKERRQ(ierr);
       for (i=0;i<pep->nconv;i++) {
         ierr = PEPGetEigenpair(pep,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-        ierr = PEPComputeError(pep,i,PEP_ERROR_BACKWARD,&error);CHKERRQ(ierr);
+        ierr = PEPComputeError(pep,i,etype,&error);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
         re = PetscRealPart(kr);
         im = PetscImaginaryPart(kr);

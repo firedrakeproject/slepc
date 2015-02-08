@@ -47,14 +47,14 @@
 !
 !  Variables:
 !     M,C,K  problem matrices
-!     solver polynomial eigenproblem solver context
+!     pep    polynomial eigenproblem solver context
 
 #if defined(PETSC_USE_FORTRAN_DATATYPES)
       type(Mat)      M, C, K, A(3)
-      type(PEP)      solver
+      type(PEP)      pep
 #else
       Mat            M, C, K, A(3)
-      PEP            solver
+      PEP            pep
 #endif
       PEPType        tname
       PetscInt       N, nx, ny, i, j, Istart, Iend, II
@@ -137,32 +137,32 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 !     ** Create eigensolver context
-      call PEPCreate(PETSC_COMM_WORLD,solver,ierr)
+      call PEPCreate(PETSC_COMM_WORLD,pep,ierr)
 
 !     ** Set matrices and problem type
       A(1) = K
       A(2) = C
       A(3) = M
       ithree = 3
-      call PEPSetOperators(solver,ithree,A,ierr)
-      call PEPSetProblemType(solver,PEP_GENERAL,ierr)
+      call PEPSetOperators(pep,ithree,A,ierr)
+      call PEPSetProblemType(pep,PEP_GENERAL,ierr)
 
 !     ** Set solver parameters at runtime
-      call PEPSetFromOptions(solver,ierr)
+      call PEPSetFromOptions(pep,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Solve the eigensystem
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call PEPSolve(solver,ierr) 
+      call PEPSolve(pep,ierr) 
 
 !     ** Optional: Get some information from the solver and display it
-      call PEPGetType(solver,tname,ierr)
+      call PEPGetType(pep,tname,ierr)
       if (rank .eq. 0) then
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call PEPGetDimensions(solver,nev,PETSC_NULL_INTEGER,              &
+      call PEPGetDimensions(pep,nev,PETSC_NULL_INTEGER,                 &
      &                      PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
         write(*,130) nev
@@ -173,8 +173,8 @@
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call PEPPrintSolution(solver,PETSC_NULL_OBJECT,ierr)
-      call PEPDestroy(solver,ierr)
+      call PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_NULL_OBJECT,ierr)
+      call PEPDestroy(pep,ierr)
       call MatDestroy(K,ierr)
       call MatDestroy(C,ierr)
       call MatDestroy(M,ierr)

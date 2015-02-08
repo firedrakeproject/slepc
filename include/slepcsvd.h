@@ -116,7 +116,8 @@ PETSC_EXTERN PetscErrorCode SVDComputeResidualNorms(SVD,PetscInt,PetscReal*,Pets
 PETSC_EXTERN PetscErrorCode SVDComputeRelativeError(SVD,PetscInt,PetscReal*);
 PETSC_EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
 PETSC_STATIC_INLINE PetscErrorCode SVDViewFromOptions(SVD svd,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)svd,prefix,name);}
-PETSC_EXTERN PetscErrorCode SVDPrintSolution(SVD,PetscViewer);
+PETSC_EXTERN PetscErrorCode SVDErrorView(SVD,PetscViewer);
+PETSC_DEPRECATED("Use SVDErrorView()") PETSC_STATIC_INLINE PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer v) {return SVDErrorView(svd,v);}
 PETSC_EXTERN PetscErrorCode SVDReasonView(SVD,PetscViewer);
 PETSC_EXTERN PetscErrorCode SVDReasonViewFromOptions(SVD);
 PETSC_EXTERN PetscErrorCode SVDDestroy(SVD*);

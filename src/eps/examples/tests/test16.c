@@ -82,7 +82,7 @@ int main(int argc,char **argv)
                           Solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
+  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
 
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);

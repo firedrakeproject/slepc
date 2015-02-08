@@ -183,18 +183,19 @@ PetscErrorCode SVDReasonViewFromOptions(SVD svd)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDPrintSolution"
+#define __FUNCT__ "SVDErrorView"
 /*@
-   SVDPrintSolution - Prints the computed singular values.
+   SVDErrorView - Displays the errors associated with the computed solution
+   (as well as the singular values).
 
    Collective on SVD
 
    Input Parameters:
-+  svd - the singular value solver context
++  svd    - the singular value solver context
 -  viewer - optional visualization context
 
    Options Database Key:
-.  -svd_terse - print only minimal information
+.  -svd_terse - view only minimal information
 
    Note:
    By default, this function prints a table with singular values and associated
@@ -204,7 +205,7 @@ PetscErrorCode SVDReasonViewFromOptions(SVD svd)
 
 .seealso: PetscViewerASCIIOpen()
 @*/
-PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
+PetscErrorCode SVDErrorView(SVD svd,PetscViewer viewer)
 {
   PetscBool      terse,errok,isascii;
   PetscReal      error,sigma;

@@ -79,7 +79,7 @@ int main(int argc,char **argv)
                 Solve the eigensystem and display solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDPrintSolution(svd,NULL);CHKERRQ(ierr);
+  ierr = SVDErrorView(svd,NULL);CHKERRQ(ierr);
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();

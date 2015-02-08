@@ -141,7 +141,7 @@ int main (int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
+  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
   if (isShell) {
     ierr = STDestroy_User(shell);CHKERRQ(ierr);
   }

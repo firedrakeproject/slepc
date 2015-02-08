@@ -164,7 +164,7 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
+  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
   /*
      Save eigenvectors, if requested
   */

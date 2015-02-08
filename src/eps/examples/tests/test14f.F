@@ -200,7 +200,7 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-      call EPSPrintSolution(eps,PETSC_NULL_OBJECT,ierr)
+      call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
       call EPSDestroy(eps,ierr)
       call MatDestroy(A,ierr)
 

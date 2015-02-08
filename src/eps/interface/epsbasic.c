@@ -300,14 +300,16 @@ PetscErrorCode EPSReasonViewFromOptions(EPS eps)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSPrintSolution"
+#define __FUNCT__ "EPSErrorView"
 /*@
-   EPSPrintSolution - Prints the computed eigenvalues.
+   EPSErrorView - Displays the errors associated with the computed solution
+   (as well as the eigenvalues).
 
    Collective on EPS
 
    Input Parameters:
-+  eps - the eigensolver context
++  eps    - the eigensolver context
+.  etype  - error type
 -  viewer - optional visualization context
 
    Options Database Key:
@@ -321,7 +323,7 @@ PetscErrorCode EPSReasonViewFromOptions(EPS eps)
 
 .seealso: PetscViewerASCIIOpen()
 @*/
-PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
+PetscErrorCode EPSErrorView(EPS eps,EPSErrorType etype,PetscViewer viewer)
 {
   PetscBool      terse,errok,isascii;
   PetscReal      error,re,im;
@@ -345,7 +347,7 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
     } else {
       errok = PETSC_TRUE;
       for (i=0;i<eps->nev;i++) {
-        ierr = EPSComputeError(eps,i,EPS_ERROR_RELATIVE,&error);CHKERRQ(ierr);
+        ierr = EPSComputeError(eps,i,etype,&error);CHKERRQ(ierr);
         errok = (errok && error<5.0*eps->tol)? PETSC_TRUE: PETSC_FALSE;
       }
       if (errok) {
@@ -384,7 +386,7 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
            "   ----------------- ------------------\n",eps->isgeneralized?"B":"");CHKERRQ(ierr);
       for (i=0;i<eps->nconv;i++) {
         ierr = EPSGetEigenpair(eps,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-        ierr = EPSComputeError(eps,i,EPS_ERROR_RELATIVE,&error);CHKERRQ(ierr);
+        ierr = EPSComputeError(eps,i,etype,&error);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
         re = PetscRealPart(kr);
         im = PetscImaginaryPart(kr);

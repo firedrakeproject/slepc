@@ -124,7 +124,7 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   
-  ierr = PEPPrintSolution(pep,NULL);CHKERRQ(ierr);
+  ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
   ierr = PEPDestroy(&pep);CHKERRQ(ierr);
   for (i=0;i<NMAT;i++) {
     ierr = MatDestroy(&A[i]);CHKERRQ(ierr);

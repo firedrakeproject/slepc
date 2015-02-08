@@ -73,7 +73,7 @@ int main(int argc,char **argv)
   ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Largest eigenvalues - - -\n");CHKERRQ(ierr);
-  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
+  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Solve for smallest eigenvalues
@@ -81,7 +81,7 @@ int main(int argc,char **argv)
   ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Smallest eigenvalues - - -\n");CHKERRQ(ierr);
-  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
+  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Solve for interior eigenvalues (target=2.1)
@@ -103,7 +103,7 @@ int main(int argc,char **argv)
   }
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Interior eigenvalues - - -\n");CHKERRQ(ierr);
-  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
+  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
 
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
