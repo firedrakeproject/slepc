@@ -177,6 +177,10 @@ PETSC_DEPRECATED("Use EPSErrorView()") PETSC_STATIC_INLINE PetscErrorCode EPSPri
 PETSC_EXTERN PetscErrorCode EPSErrorViewFromOptions(EPS);
 PETSC_EXTERN PetscErrorCode EPSReasonView(EPS,PetscViewer);
 PETSC_EXTERN PetscErrorCode EPSReasonViewFromOptions(EPS);
+PETSC_EXTERN PetscErrorCode EPSValuesView(EPS,PetscViewer);
+PETSC_EXTERN PetscErrorCode EPSValuesViewFromOptions(EPS);
+PETSC_EXTERN PetscErrorCode EPSVectorsView(EPS,PetscViewer);
+PETSC_EXTERN PetscErrorCode EPSVectorsViewFromOptions(EPS);
 
 PETSC_EXTERN PetscErrorCode EPSSetTarget(EPS,PetscScalar);
 PETSC_EXTERN PetscErrorCode EPSGetTarget(EPS,PetscScalar*);
