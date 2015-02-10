@@ -118,10 +118,10 @@ static PetscErrorCode CISSRedundantMat(EPS eps)
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   if (ctx->subcomm->n != 1) {
     ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-    ierr = MatCreateRedundantMatrix(A,ctx->subcomm->n,ctx->subcomm->comm,MAT_INITIAL_MATRIX,&ctx->pA);CHKERRQ(ierr);
+    ierr = MatCreateRedundantMatrix(A,ctx->subcomm->n,PetscSubcommChild(ctx->subcomm),MAT_INITIAL_MATRIX,&ctx->pA);CHKERRQ(ierr);
     if (nmat>1) {
       ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
-      ierr = MatCreateRedundantMatrix(B,ctx->subcomm->n,ctx->subcomm->comm,MAT_INITIAL_MATRIX,&ctx->pB);CHKERRQ(ierr); 
+      ierr = MatCreateRedundantMatrix(B,ctx->subcomm->n,PetscSubcommChild(ctx->subcomm),MAT_INITIAL_MATRIX,&ctx->pB);CHKERRQ(ierr); 
     } else ctx->pB = NULL;
   } else {
     ctx->pA = NULL;
@@ -259,7 +259,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
     ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Fz);CHKERRQ(ierr);
   }
   if (ctx->usest && ctx->pA) {
-    ierr = KSPCreate(ctx->subcomm->comm,&ksp);CHKERRQ(ierr);
+    ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ksp);CHKERRQ(ierr);
   }
   for (i=0;i<ctx->num_solve_point;i++) {
     p_id = i*ctx->subcomm->n + ctx->subcomm_id;
@@ -385,7 +385,7 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   Mat            M;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_size(ctx->subcomm->comm,&sub_size);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscSubcommChild(ctx->subcomm),&sub_size);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->num_solve_point*ctx->L*(ctx->L+1)*sizeof(PetscScalar),&temp);CHKERRQ(ierr);
   ierr = PetscMalloc(2*ctx->M*ctx->L*ctx->L*sizeof(PetscScalar),&temp2);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->num_solve_point*sizeof(PetscScalar),&ppk);CHKERRQ(ierr);
@@ -743,7 +743,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     ierr = PetscMalloc(ctx->num_solve_point*sizeof(Mat),&ctx->kspMat);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)eps,ctx->num_solve_point*sizeof(Mat));CHKERRQ(ierr);
     for (i=0;i<ctx->num_solve_point;i++) {
-      ierr = KSPCreate(ctx->subcomm->comm,&ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ctx->ksp[i]);CHKERRQ(ierr);
       ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)eps,1);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
       ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"eps_ciss_");CHKERRQ(ierr);
