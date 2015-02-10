@@ -853,7 +853,7 @@ static PetscErrorCode PEPNRefSetUpMatrices(PEP pep,PetscInt k,PetscScalar *H,Pet
     if (ini) {
       if (matctx->subc) {
         A = matctx->A;
-        comm = matctx->subc->comm;
+        comm = PetscSubcommChild(matctx->subc);
       } else {
         A = At;
         ierr = PetscObjectGetComm((PetscObject)pep,&comm);CHKERRQ(ierr);
@@ -1009,7 +1009,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
   /* Duplicate pep matrices */
   ierr = PetscMalloc3(pep->nmat,&matctx->A,nsubc,&matctx->scatter_id,nsubc,&matctx->scatterp_id);CHKERRQ(ierr);
   for (i=0;i<pep->nmat;i++) {
-    ierr = MatCreateRedundantMatrix(A[i],0,matctx->subc->comm,MAT_INITIAL_MATRIX,&matctx->A[i]);CHKERRQ(ierr);    
+    ierr = MatCreateRedundantMatrix(A[i],0,PetscSubcommChild(matctx->subc),MAT_INITIAL_MATRIX,&matctx->A[i]);CHKERRQ(ierr);    
   }
 
   /* Create Scatter */
@@ -1049,7 +1049,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
 
   /* Duplicate pep->V vecs */
   ierr = BVGetType(pep->V,&type);CHKERRQ(ierr);
-  ierr = BVCreate(matctx->subc->comm,&matctx->V);CHKERRQ(ierr);
+  ierr = BVCreate(PetscSubcommChild(matctx->subc),&matctx->V);CHKERRQ(ierr);
   ierr = BVSetType(matctx->V,type);CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(matctx->V,matctx->t,k);CHKERRQ(ierr);
   ierr = BVDuplicateResize(matctx->V,PetscMax(k,pep->nmat),&matctx->W);CHKERRQ(ierr);
