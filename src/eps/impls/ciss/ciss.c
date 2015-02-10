@@ -144,7 +144,7 @@ static PetscErrorCode CISSScatterVec(EPS eps)
   PetscFunctionBegin;
   ierr = MatCreateVecs(ctx->pA,&ctx->xsub,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->pA,&mloc_sub,NULL);CHKERRQ(ierr);
-  ierr = VecCreateMPI(ctx->subcomm->dupparent,mloc_sub,PETSC_DECIDE,&ctx->xdup);CHKERRQ(ierr);
+  ierr = VecCreateMPI(PetscSubcommContiguousParent(ctx->subcomm),mloc_sub,PETSC_DECIDE,&ctx->xdup);CHKERRQ(ierr);
   if (!ctx->scatterin) {
     ierr = BVGetColumn(ctx->V,0,&v0);CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(v0,&mstart,&mend);CHKERRQ(ierr);

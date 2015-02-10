@@ -1015,7 +1015,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
   /* Create Scatter */
   ierr = MatCreateVecs(matctx->A[0],&matctx->t,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(matctx->A[0],&nloc_sub,NULL);CHKERRQ(ierr);
-  ierr = VecCreateMPI(matctx->subc->dupparent,nloc_sub,PETSC_DECIDE,&matctx->tg);CHKERRQ(ierr);
+  ierr = VecCreateMPI(PetscSubcommContiguousParent(matctx->subc),nloc_sub,PETSC_DECIDE,&matctx->tg);CHKERRQ(ierr);
   ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
   ierr = VecGetOwnershipRange(v,&n0,&m0);CHKERRQ(ierr);
   nloc0 = m0-n0;
