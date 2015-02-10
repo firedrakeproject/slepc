@@ -236,11 +236,12 @@ archdir = os.sep.join([slepcdir,petscconf.ARCH])
 emptyarch = 1
 if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']: emptyarch = 0
 if emptyarch:
+  archdir = os.sep.join([slepcdir,'arch-petsc-is-a-prefix-install'])
   globconfdir = os.sep.join([slepcdir,'lib','slepc-conf'])
   try:
     globconf = open(os.sep.join([globconfdir,'slepcvariables']),'w')
     globconf.write('SLEPC_DIR = ' + slepcdir +'\n')
-    globconf.write('PETSC_ARCH = ' + petscconf.ARCH +'\n')
+    globconf.write('PETSC_ARCH = arch-petsc-is-a-prefix-install\n')
     globconf.close()
   except:
     sys.exit('ERROR: cannot create configuration file in ' + globconfdir)
