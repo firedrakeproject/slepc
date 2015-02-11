@@ -201,7 +201,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   if (pep->refine!=PEP_REFINE_NONE) {
     if (pep->npart>1) {
       if (pep->refinesubc->color==0) {
-        ierr = PetscViewerASCIIGetStdout(pep->refinesubc->comm,&sviewer);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIGetStdout(PetscSubcommChild(pep->refinesubc),&sviewer);CHKERRQ(ierr);
         ierr = KSPView(pep->refineksp,sviewer);CHKERRQ(ierr);
       }
     } else {
@@ -1045,7 +1045,7 @@ PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
       ierr = PetscSubcommSetType(pep->refinesubc,PETSC_SUBCOMM_CONTIGUOUS);CHKERRQ(ierr);
       ierr = PetscLogObjectMemory((PetscObject)pep,sizeof(PetscSubcomm));CHKERRQ(ierr);
     }
-    ierr = KSPCreate((pep->npart==1)?PetscObjectComm((PetscObject)pep):pep->refinesubc->comm,&pep->refineksp);CHKERRQ(ierr);
+    ierr = KSPCreate((pep->npart==1)?PetscObjectComm((PetscObject)pep):PetscSubcommChild(pep->refinesubc),&pep->refineksp);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->refineksp);CHKERRQ(ierr);
     ierr = KSPSetOptionsPrefix(*ksp,((PetscObject)pep)->prefix);CHKERRQ(ierr);
     ierr = KSPAppendOptionsPrefix(*ksp,"pep_refine_");CHKERRQ(ierr);

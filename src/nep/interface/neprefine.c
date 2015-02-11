@@ -65,14 +65,14 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
 
     /* Duplicate matrices */
     for (i=0;i<nep->nt;i++) {
-      ierr = MatCreateRedundantMatrix(nep->A[i],0,ctx->subc->comm,MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
+      ierr = MatCreateRedundantMatrix(nep->A[i],0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
     }
     ierr = MatCreateVecs(ctx->A[0],&ctx->v,NULL);CHKERRQ(ierr);
 
     /* Duplicate FNs */
     ierr = PetscMalloc1(nep->nt,&ctx->fn);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
-      ierr = FNCreate(ctx->subc->comm,&ctx->fn[i]);CHKERRQ(ierr);
+      ierr = FNCreate(PetscSubcommChild(ctx->subc),&ctx->fn[i]);CHKERRQ(ierr);
       ierr = FNGetType(nep->f[i],&type);CHKERRQ(ierr);
       ierr = FNSetType(ctx->fn[i],type);CHKERRQ(ierr);
       ierr = FNGetParameters(nep->f[i],&na,&alpha,&nb,&beta);CHKERRQ(ierr);
@@ -300,7 +300,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol
   ierr = PetscLogEventBegin(NEP_Refine,nep,0,0,0);CHKERRQ(ierr);
   ierr = NEPSimpleNRefSetUp(nep,&ctx);CHKERRQ(ierr);
   its = (maxits)?*maxits:NREF_MAXIT;
-  comm = (nep->npart==1)?PetscObjectComm((PetscObject)nep):ctx->subc->comm;
+  comm = (nep->npart==1)?PetscObjectComm((PetscObject)nep):PetscSubcommChild(ctx->subc);
   ierr = KSPCreate(comm,&ksp);
   if (nep->npart==1) {
     ierr = BVGetColumn(nep->V,0,&v);CHKERRQ(ierr);
