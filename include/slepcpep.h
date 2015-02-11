@@ -181,6 +181,10 @@ PETSC_DEPRECATED("Use PEPErrorView()") PETSC_STATIC_INLINE PetscErrorCode PEPPri
 PETSC_EXTERN PetscErrorCode PEPErrorViewFromOptions(PEP);
 PETSC_EXTERN PetscErrorCode PEPReasonView(PEP,PetscViewer);
 PETSC_EXTERN PetscErrorCode PEPReasonViewFromOptions(PEP);
+PETSC_EXTERN PetscErrorCode PEPValuesView(PEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode PEPValuesViewFromOptions(PEP);
+PETSC_EXTERN PetscErrorCode PEPVectorsView(PEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode PEPVectorsViewFromOptions(PEP);
 PETSC_EXTERN PetscErrorCode PEPSetBV(PEP,BV);
 PETSC_EXTERN PetscErrorCode PEPGetBV(PEP,BV*);
 PETSC_EXTERN PetscErrorCode PEPSetRG(PEP,RG);
