@@ -232,19 +232,20 @@ if prefixinstall and not petscconf.ISINSTALL:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
 # Check for empty PETSC_ARCH
-archdir = os.sep.join([slepcdir,petscconf.ARCH])
+archname = petscconf.ARCH
 emptyarch = 1
 if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']: emptyarch = 0
 if emptyarch:
-  archdir = os.sep.join([slepcdir,'arch-petsc-is-a-prefix-install'])
+  archname = 'installed-' + petscconf.ARCH
   globconfdir = os.sep.join([slepcdir,'lib','slepc-conf'])
   try:
     globconf = open(os.sep.join([globconfdir,'slepcvariables']),'w')
     globconf.write('SLEPC_DIR = ' + slepcdir +'\n')
-    globconf.write('PETSC_ARCH = arch-petsc-is-a-prefix-install\n')
+    globconf.write('PETSC_ARCH = ' + archname + '\n')
     globconf.close()
   except:
     sys.exit('ERROR: cannot create configuration file in ' + globconfdir)
+archdir = os.sep.join([slepcdir,archname])
 
 # Clean previous configuration if needed
 if os.path.exists(archdir):
@@ -347,7 +348,7 @@ try:
   if archdir != prefixdir:
     modules = open(os.sep.join([modulesdir,slepcversion.LVERSION]),'w')
   else:
-    modules = open(os.sep.join([modulesdir,slepcversion.LVERSION+'-'+petscconf.ARCH]),'w')
+    modules = open(os.sep.join([modulesdir,slepcversion.LVERSION+'-'+archname]),'w')
 except:
   sys.exit('ERROR: cannot create modules file in ' + modulesdir)
 try:
@@ -556,7 +557,7 @@ if petscversion.ISREPO and slepcversion.ISREPO:
 if emptyarch and archdir != prefixdir:
   log.Println('Prefix install with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
 else:
-  log.Println('Architecture "'+petscconf.ARCH+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
+  log.Println('Architecture "'+archname+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
 if havearpack:
   log.Println('ARPACK library flags:')
   log.Println(' '+str.join(' ',arpacklibs))
@@ -589,9 +590,9 @@ if petscconf.MAKE_IS_GNUMAKE: buildtype = 'gnumake'
 elif cmakeok: buildtype = 'cmake'
 else: buildtype = 'legacy'
 print ' Configure stage complete. Now build the SLEPc library with ('+buildtype+' build):'
-if emptyarch and archdir != prefixdir:
+if emptyarch:
   print '   make SLEPC_DIR=$PWD PETSC_DIR='+petscdir
 else:
-  print '   make SLEPC_DIR=$PWD PETSC_DIR='+petscdir+' PETSC_ARCH='+petscconf.ARCH
+  print '   make SLEPC_DIR=$PWD PETSC_DIR='+petscdir+' PETSC_ARCH='+archname
 print 'xxx'+'='*73+'xxx'
 print

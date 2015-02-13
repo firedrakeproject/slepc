@@ -15,6 +15,7 @@ unix-opt/*
 unix-gcov/*
 package-*/*
 arch-*/*
+installed-arch-*/*
 batch-test
 c_test
 RDict.db

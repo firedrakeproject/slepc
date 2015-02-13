@@ -275,8 +275,6 @@ Before use - please copy/install over to specified prefix: %s
 
   def runfix(self):
     self.fixConf()
-    if self.arch == 'arch-petsc-is-a-prefix-install':
-      shutil.rmtree(os.path.join(self.rootDir,'arch-petsc-is-a-prefix-install'))
     return
 
   def rundone(self):
