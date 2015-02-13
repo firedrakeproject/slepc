@@ -411,9 +411,10 @@ static PetscErrorCode PEPTOARTrunc2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt 
   PetscErrorCode ierr;
   PetscInt       lwa,nwu=0,lrwa,nrwu=0,nnc,nrow;
   PetscInt       j,i,k,n,lds=deg*ld,rs1=*rs1a,rk=0,offu;
-  PetscScalar    *M,*V,*pU,*SS,*SS2,t,sone=1.0,zero=0.0,mone=-1.0,*p;
+  PetscScalar    *M,*V,*pU,*SS,*SS2,t,sone=1.0,zero=0.0,mone=-1.0,*p,*tau,*H,ei;
   PetscReal      *sg,tol;
-  PetscBLASInt   cs1_,rs1_,cs1tdeg,n_,info,lw_,newc_,newctdeg,nnc_,nrow_,nnctdeg,lds_;
+  PetscBLASInt   cs1_,rs1_,cs1tdeg,n_,info,lw_,newc_,newctdeg,nnc_,nrow_,nnctdeg,lds_,ldm_,ldds_;
+  PetscBool      flg=PETSC_FALSE;
   Mat            U;
 
   PetscFunctionBegin;
@@ -430,7 +431,7 @@ static PetscErrorCode PEPTOARTrunc2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt 
   }
   nnc = cs1-lock-newc;
   nrow = rs1-lock;
-  ierr = PetscMalloc3(deg*newc*nnc,&SS,newc*nnc,&SS2,(rs1+lock+newc)*n,&pU);
+  ierr = PetscMalloc4(deg*newc*nnc,&SS,newc*nnc,&SS2,(rs1+lock+newc)*n,&pU,deg*rs1,&tau);
   offu = lock*(rs1+1);
   M = work+nwu;
   nwu += rs1*cs1*deg;
@@ -524,8 +525,46 @@ static PetscErrorCode PEPTOARTrunc2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt 
     }
   }
 
-  /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
+  /* Orthogonalize S */
   rk = rk+newc+lock;
+  for (i=0;i<deg;i++) {
+    for (j=0;j<cs1;j++) {
+      ierr = PetscMemcpy(M+rk*i+j*deg*rk,S+i*ld+j*lds,rk*sizeof(PetscScalar));
+    }
+  }
+  ierr = DSGetLeadingDimension(pep->ds,&k);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(k,&ldds_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(deg*rk,&ldm_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(lwa-nwu,&lw_);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&ldm_,&cs1_,M,&ldm_,tau,work+nwu,&lw_,&info));
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
+  /* Update H <- r*H/r(1:end-1,1:end-1) */
+  ierr = PetscBLASIntCast(cs1-1,&nrow_);
+  ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+  PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&cs1_,&nrow_,&sone,M,&ldm_,H,&ldds_));
+  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&cs1_,&nrow_,&sone,M,&ldm_,H,&ldds_));  
+  for (j=0;j<cs1-2;j++) {
+#if defined(PETSC_USE_COMPLEX)
+    ei = PetscImaginaryPart(pep->eigr[i];
+#else
+    ei = pep->eigi[i];
+#endif
+    if (flg || ei==0.0) {
+      H[j+1+j*k] = 0.0;
+      flg = PETSC_FALSE;
+    } else flg = PETSC_TRUE;
+    for (i=j+2;i<cs1-1;i++) H[i+j*k] = 0.0;
+  }
+  ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+  /* S <- Q */
+  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&ldm_,&cs1_,&cs1_,M,&ldm_,tau,work+nwu,&lw_,&info));
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
+  for (i=0;i<deg;i++) {
+    for (j=0;j<cs1;j++) {
+      ierr = PetscMemcpy(S+i*ld+j*lds,M+rk*i+j*deg*rk,rk*sizeof(PetscScalar));
+    }
+  }
+  /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,rk,pU,&U);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(pep->V,lock,rs1);CHKERRQ(ierr);
   ierr = BVMultInPlace(pep->V,U,lock,rk);CHKERRQ(ierr);
@@ -535,7 +574,7 @@ static PetscErrorCode PEPTOARTrunc2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt 
   *rs1a = rk;
 
   /* Free work space */
-  ierr = PetscFree3(SS,SS2,pU);CHKERRQ(ierr);
+  ierr = PetscFree4(SS,SS2,pU,tau);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
