@@ -189,8 +189,6 @@ PETSC_EXTERN PetscErrorCode NEPGetOptionsPrefix(NEP,const char*[]);
 PETSC_EXTERN PetscErrorCode NEPGetConvergedReason(NEP,NEPConvergedReason *);
 
 PETSC_EXTERN PetscFunctionList NEPList;
-PETSC_EXTERN PetscBool         NEPRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode NEPRegisterAll(void);
 PETSC_EXTERN PetscErrorCode NEPRegister(const char[],PetscErrorCode(*)(NEP));
 
 PETSC_EXTERN PetscErrorCode NEPSetWorkVecs(NEP,PetscInt);

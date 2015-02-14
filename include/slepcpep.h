@@ -258,8 +258,6 @@ PETSC_EXTERN const char *const*PEPConvergedReasons;
 PETSC_EXTERN PetscErrorCode PEPGetConvergedReason(PEP,PEPConvergedReason *);
 
 PETSC_EXTERN PetscFunctionList PEPList;
-PETSC_EXTERN PetscBool         PEPRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode PEPRegisterAll(void);
 PETSC_EXTERN PetscErrorCode PEPRegister(const char[],PetscErrorCode(*)(PEP));
 
 PETSC_EXTERN PetscErrorCode PEPSetWorkVecs(PEP,PetscInt);

@@ -634,7 +634,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  if (!FNRegisterAllCalled) { ierr = FNRegisterAll();CHKERRQ(ierr); }
+  ierr = FNRegisterAll();CHKERRQ(ierr);
   /* Set default type (we do not allow changing it with -fn_type) */
   if (!((PetscObject)fn)->type_name) {
     ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
@@ -763,6 +763,7 @@ PetscErrorCode FNRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (FNRegisterAllCalled) PetscFunctionReturn(0);
   FNRegisterAllCalled = PETSC_TRUE;
   ierr = FNRegister(FNRATIONAL,FNCreate_Rational);CHKERRQ(ierr);
   ierr = FNRegister(FNEXP,FNCreate_Exp);CHKERRQ(ierr);
