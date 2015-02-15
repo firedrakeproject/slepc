@@ -133,6 +133,10 @@ PETSC_DEPRECATED("Use SVDErrorView()") PETSC_STATIC_INLINE PetscErrorCode SVDPri
 PETSC_EXTERN PetscErrorCode SVDErrorViewFromOptions(SVD);
 PETSC_EXTERN PetscErrorCode SVDReasonView(SVD,PetscViewer);
 PETSC_EXTERN PetscErrorCode SVDReasonViewFromOptions(SVD);
+PETSC_EXTERN PetscErrorCode SVDValuesView(SVD,PetscViewer);
+PETSC_EXTERN PetscErrorCode SVDValuesViewFromOptions(SVD);
+PETSC_EXTERN PetscErrorCode SVDVectorsView(SVD,PetscViewer);
+PETSC_EXTERN PetscErrorCode SVDVectorsViewFromOptions(SVD);
 PETSC_EXTERN PetscErrorCode SVDDestroy(SVD*);
 PETSC_EXTERN PetscErrorCode SVDReset(SVD);
 
