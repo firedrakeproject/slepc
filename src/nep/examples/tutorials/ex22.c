@@ -196,7 +196,7 @@ int main(int argc,char **argv)
          "   ----------------- ------------------\n");CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
       ierr = NEPGetEigenpair(nep,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-      ierr = NEPComputeRelativeError(nep,i,&norm);CHKERRQ(ierr);
+      ierr = NEPComputeError(nep,i,NEP_ERROR_RELATIVE,&norm);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(kr);
       im = PetscImaginaryPart(kr);

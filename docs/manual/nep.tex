@@ -74,7 +74,7 @@ NEPSolve( nep );
 NEPGetConverged( nep, &nconv );
 for (j=0; j<nconv; j++) {
   NEPGetEigenpair( nep, j, &kr, &ki, xr, xi );
-  NEPComputeRelativeError( nep, j, &error );
+  NEPComputeError( nep, j, NEP_ERROR_RELATIVE, &error );
 }
 NEPDestroy( &nep );
 \end{Verbatim}
@@ -263,9 +263,9 @@ The procedure for obtaining the computed eigenpairs is similar to previously dis
 \medskip
 
 The function
-	\findex{NEPComputeRelativeError}
+	\findex{NEPComputeError}
 	\begin{Verbatim}[fontsize=\small]
-	NEPComputeRelativeError(NEP nep,PetscInt j,PetscReal *error);
+	NEPComputeError(NEP nep,PetscInt j,NEPErrorType type,PetscReal *error);
 	\end{Verbatim}
 can be used to assess the accuracy of the computed solutions. The error is based on the 2-norm of the residual vector $r$ defined in Eq.\ \ref{eq:nlres}.
 
