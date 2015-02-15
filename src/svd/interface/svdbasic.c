@@ -220,7 +220,7 @@ PetscErrorCode SVDErrorView(SVD svd,SVDErrorType etype,PetscViewer viewer)
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
-  if (!svd->sigma) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first");
+  SVDCheckSolved(svd,1);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);
 
@@ -366,11 +366,10 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->errest         = NULL;
   svd->data           = NULL;
 
+  svd->state          = SVD_STATE_INITIAL;
   svd->nconv          = 0;
   svd->its            = 0;
   svd->leftbasis      = PETSC_FALSE;
-  svd->lvecsavail     = PETSC_FALSE;
-  svd->setupcalled    = 0;
   svd->reason         = SVD_CONVERGED_ITERATING;
 
   ierr = PetscNewLog(svd,&svd->sc);CHKERRQ(ierr);
@@ -384,7 +383,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 #undef __FUNCT__
 #define __FUNCT__ "SVDReset"
 /*@
-   SVDReset - Resets the SVD context to the setupcalled=0 state and removes any
+   SVDReset - Resets the SVD context to the initial state and removes any
    allocated objects.
 
    Collective on SVD
@@ -414,7 +413,7 @@ PetscErrorCode SVDReset(SVD svd)
   }
   ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
   ierr = BVDestroy(&svd->V);CHKERRQ(ierr);
-  svd->setupcalled = 0;
+  svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -502,7 +501,7 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
   if (svd->ops->destroy) { ierr = (*svd->ops->destroy)(svd);CHKERRQ(ierr); }
   ierr = PetscMemzero(svd->ops,sizeof(struct _SVDOps));CHKERRQ(ierr);
 
-  svd->setupcalled = 0;
+  svd->state = SVD_STATE_INITIAL;
   ierr = PetscObjectChangeTypeName((PetscObject)svd,type);CHKERRQ(ierr);
   ierr = (*r)(svd);CHKERRQ(ierr);
   PetscFunctionReturn(0);

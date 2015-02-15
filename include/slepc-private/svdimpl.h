@@ -44,6 +44,11 @@ struct _SVDOps {
 */
 #define MAXSVDMONITORS 5
 
+typedef enum { SVD_STATE_INITIAL,
+               SVD_STATE_SETUP,
+               SVD_STATE_SOLVED,
+               SVD_STATE_VECTORS } SVDStateType;
+
 /*
    Defines the SVD data structure.
 */
@@ -81,13 +86,28 @@ struct _p_SVD {
   void             *data;       /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables -------------------------- */
+  SVDStateType     state;       /* initial -> setup -> solved -> vectors */
   PetscInt         nconv;       /* number of converged values */
   PetscInt         its;         /* iteration counter */
   PetscBool        leftbasis;   /* if U is filled by the solver */
-  PetscBool        lvecsavail;  /* if U contains left singular vectors */
-  PetscInt         setupcalled;
   SVDConvergedReason reason;
 };
+
+/*
+    Macros to test valid SVD arguments
+*/
+#if !defined(PETSC_USE_DEBUG)
+
+#define SVDCheckSolved(h,arg) do {} while (0)
+
+#else
+
+#define SVDCheckSolved(h,arg) \
+  do { \
+    if (h->state<SVD_STATE_SOLVED) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call SVDSolve() first: Parameter #%d",arg); \
+  } while (0)
+
+#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDMatMult"

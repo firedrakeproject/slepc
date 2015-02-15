@@ -51,9 +51,9 @@ PetscErrorCode SVDFinalizePackage(void)
 #undef __FUNCT__
 #define __FUNCT__ "SVDInitializePackage"
 /*@C
-   SVDInitializePackage - This function initializes everything in the SVD package. It is called
-   from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to SVDCreate()
-   when using static libraries.
+   SVDInitializePackage - This function initializes everything in the SVD package.
+   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
+   on the first call to SVDCreate() when using static libraries.
 
    Level: developer
 
