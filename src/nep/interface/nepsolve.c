@@ -26,7 +26,7 @@
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPComputeVectors"
-PETSC_STATIC_INLINE PetscErrorCode NEPComputeVectors(NEP nep)
+PetscErrorCode NEPComputeVectors(NEP nep)
 {
   PetscErrorCode ierr;
 
@@ -57,8 +57,11 @@ PETSC_STATIC_INLINE PetscErrorCode NEPComputeVectors(NEP nep)
 
    Options Database Keys:
 +  -nep_view - print information about the solver used
+.  -nep_view_vectors binary - save the computed eigenvectors to the default binary viewer
+.  -nep_view_values - print computed eigenvalues
 .  -nep_converged_reason - print reason for convergence, and number of iterations
--  -nep_plot_eigs - plot computed eigenvalues
+.  -nep_error_absolute - print absolute errors of each eigenpair
+-  -nep_error_relative - print relative errors of each eigenpair
 
    Level: beginner
 
@@ -68,11 +71,6 @@ PetscErrorCode NEPSolve(NEP nep)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscReal      re,im;
-  PetscBool      flg;
-  PetscViewer    viewer;
-  PetscDraw      draw;
-  PetscDrawSP    drawsp;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -93,10 +91,9 @@ PetscErrorCode NEPSolve(NEP nep)
   ierr = NEPViewFromOptions(nep,NULL,"-nep_view_pre");CHKERRQ(ierr);
 
   ierr = (*nep->ops->solve)(nep);CHKERRQ(ierr);
+  nep->state = NEP_STATE_SOLVED;
 
   if (!nep->reason) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
-
-  nep->state = NEP_STATE_SOLVED;
 
   if (nep->refine==NEP_REFINE_SIMPLE && nep->rits>0) {
     ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
@@ -111,27 +108,9 @@ PetscErrorCode NEPSolve(NEP nep)
   /* various viewers */
   ierr = NEPViewFromOptions(nep,NULL,"-nep_view");CHKERRQ(ierr);
   ierr = NEPReasonViewFromOptions(nep);CHKERRQ(ierr);
-
-  flg = PETSC_FALSE;
-  ierr = PetscOptionsGetBool(((PetscObject)nep)->prefix,"-nep_plot_eigs",&flg,NULL);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
-    ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
-    for (i=0;i<nep->nconv;i++) {
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(nep->eigr[i]);
-      im = PetscImaginaryPart(nep->eigr[i]);
-#else
-      re = nep->eigr[i];
-      im = nep->eigi[i];
-#endif
-      ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
-    }
-    ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-  }
+  ierr = NEPErrorViewFromOptions(nep);CHKERRQ(ierr);
+  ierr = NEPValuesViewFromOptions(nep);CHKERRQ(ierr);
+  ierr = NEPVectorsViewFromOptions(nep);CHKERRQ(ierr);
 
   /* Remove the initial subspace */
   nep->nini = 0;

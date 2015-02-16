@@ -130,8 +130,14 @@ PETSC_EXTERN PetscErrorCode NEPSetUp(NEP);
 PETSC_EXTERN PetscErrorCode NEPSolve(NEP);
 PETSC_EXTERN PetscErrorCode NEPView(NEP,PetscViewer);
 PETSC_STATIC_INLINE PetscErrorCode NEPViewFromOptions(NEP nep,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)nep,prefix,name);}
+PETSC_EXTERN PetscErrorCode NEPErrorView(NEP,NEPErrorType,PetscViewer);
+PETSC_EXTERN PetscErrorCode NEPErrorViewFromOptions(NEP);
 PETSC_EXTERN PetscErrorCode NEPReasonView(NEP,PetscViewer);
 PETSC_EXTERN PetscErrorCode NEPReasonViewFromOptions(NEP);
+PETSC_EXTERN PetscErrorCode NEPValuesView(NEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode NEPValuesViewFromOptions(NEP);
+PETSC_EXTERN PetscErrorCode NEPVectorsView(NEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode NEPVectorsViewFromOptions(NEP);
 
 PETSC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat,Mat,void*),void*);
 PETSC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,Mat,void*),void**);

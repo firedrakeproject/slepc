@@ -179,7 +179,11 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
 
     ierr = PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-nep_plot_eigs","Make a plot of the computed eigenvalues","NEPSolve",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_view_vectors","View computed eigenvectors","NEPVectorsView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_view_values","View computed eigenvalues","NEPValuesView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_converged_reason","Print reason for convergence, and number of iterations","NEPReasonView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_error_absolute","Print absolute errors of each eigenpair","NEPErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_error_relative","Print relative errors of each eigenpair","NEPErrorView",0);CHKERRQ(ierr);
 
     if (nep->ops->setfromoptions) {
       ierr = (*nep->ops->setfromoptions)(PetscOptionsObject,nep);CHKERRQ(ierr);
