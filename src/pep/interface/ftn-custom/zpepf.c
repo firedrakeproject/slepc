@@ -25,6 +25,10 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define pepview_                    PEPVIEW
+#define peperrorview_               PEPERRORVIEW
+#define pepreasonview_              PEPREASONVIEW
+#define pepvaluesview_              PEPVALUESVIEW
+#define pepvectorsview_             PEPVECTORSVIEW
 #define pepsetoptionsprefix_        PEPSETOPTIONSPREFIX
 #define pepappendoptionsprefix_     PEPAPPENDOPTIONSPREFIX
 #define pepgetoptionsprefix_        PEPGETOPTIONSPREFIX
@@ -44,6 +48,10 @@
 #define pepsetconvergencetestfunction_ PEPSETCONVERGENCETESTFUNCTION
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define pepview_                    pepview
+#define peperrorview_               peperrorview
+#define pepreasonview_              pepreasonview
+#define pepvaluesview_              pepvaluesview
+#define pepvectorsview_             pepvectorsview
 #define pepsetoptionsprefix_        pepsetoptionsprefix
 #define pepappendoptionsprefix_     pepappendoptionsprefix
 #define pepgetoptionsprefix_        pepgetoptionsprefix
@@ -135,6 +143,34 @@ PETSC_EXTERN void PETSC_STDCALL pepview_(PEP *pep,PetscViewer *viewer,PetscError
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = PEPView(*pep,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepreasonview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = PEPReasonView(*pep,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL peperrorview_(PEP *pep,PEPErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = PEPErrorView(*pep,*etype,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepvaluesview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = PEPValuesView(*pep,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepvectorsview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = PEPVectorsView(*pep,v);
 }
 
 PETSC_EXTERN void PETSC_STDCALL pepsettype_(PEP *pep,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))

@@ -108,7 +108,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDReasonView"
-/*@
+/*@C
    SVDReasonView - Displays the reason an SVD solve converged or diverged.
 
    Collective on SVD
@@ -266,7 +266,7 @@ static PetscErrorCode SVDErrorView_MATLAB(SVD svd,SVDErrorType etype,PetscViewer
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDErrorView"
-/*@
+/*@C
    SVDErrorView - Displays the errors associated with the computed solution
    (as well as the singular values).
 
@@ -427,7 +427,7 @@ static PetscErrorCode SVDValuesView_MATLAB(SVD svd,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDValuesView"
-/*@
+/*@C
    SVDValuesView - Displays the computed singular values in a viewer.
 
    Collective on SVD
@@ -514,7 +514,7 @@ PetscErrorCode SVDValuesViewFromOptions(SVD svd)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDVectorsView"
-/*@
+/*@C
    SVDVectorsView - Outputs computed singular vectors to a viewer.
 
    Collective on SVD

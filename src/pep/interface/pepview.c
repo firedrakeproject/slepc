@@ -209,7 +209,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPReasonView"
-/*@
+/*@C
    PEPReasonView - Displays the reason a PEP solve converged or diverged.
 
    Collective on PEP
@@ -396,7 +396,7 @@ static PetscErrorCode PEPErrorView_MATLAB(PEP pep,PEPErrorType etype,PetscViewer
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPErrorView"
-/*@
+/*@C
    PEPErrorView - Displays the errors associated with the computed solution
    (as well as the eigenvalues).
 
@@ -597,7 +597,7 @@ static PetscErrorCode PEPValuesView_MATLAB(PEP pep,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPValuesView"
-/*@
+/*@C
    PEPValuesView - Displays the computed eigenvalues in a viewer.
 
    Collective on PEP
@@ -684,7 +684,7 @@ PetscErrorCode PEPValuesViewFromOptions(PEP pep)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPVectorsView"
-/*@
+/*@C
    PEPVectorsView - Outputs computed eigenvectors to a viewer.
 
    Collective on PEP

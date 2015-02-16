@@ -225,7 +225,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSReasonView"
-/*@
+/*@C
    EPSReasonView - Displays the reason an EPS solve converged or diverged.
 
    Collective on EPS
@@ -412,7 +412,7 @@ static PetscErrorCode EPSErrorView_MATLAB(EPS eps,EPSErrorType etype,PetscViewer
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSErrorView"
-/*@
+/*@C
    EPSErrorView - Displays the errors associated with the computed solution
    (as well as the eigenvalues).
 
@@ -613,7 +613,7 @@ static PetscErrorCode EPSValuesView_MATLAB(EPS eps,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSValuesView"
-/*@
+/*@C
    EPSValuesView - Displays the computed eigenvalues in a viewer.
 
    Collective on EPS
@@ -700,7 +700,7 @@ PetscErrorCode EPSValuesViewFromOptions(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSVectorsView"
-/*@
+/*@C
    EPSVectorsView - Outputs computed eigenvectors to a viewer.
 
    Collective on EPS

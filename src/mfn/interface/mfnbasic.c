@@ -95,7 +95,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNReasonView"
-/*@
+/*@C
    MFNReasonView - Displays the reason an MFN solve converged or diverged.
 
    Collective on MFN

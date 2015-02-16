@@ -158,7 +158,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPReasonView"
-/*@
+/*@C
    NEPReasonView - Displays the reason a NEP solve converged or diverged.
 
    Collective on NEP
@@ -342,7 +342,7 @@ static PetscErrorCode NEPErrorView_MATLAB(NEP nep,NEPErrorType etype,PetscViewer
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPErrorView"
-/*@
+/*@C
    NEPErrorView - Displays the errors associated with the computed solution
    (as well as the eigenvalues).
 
@@ -535,7 +535,7 @@ static PetscErrorCode NEPValuesView_MATLAB(NEP nep,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPValuesView"
-/*@
+/*@C
    NEPValuesView - Displays the computed eigenvalues in a viewer.
 
    Collective on NEP
@@ -622,7 +622,7 @@ PetscErrorCode NEPValuesViewFromOptions(NEP nep)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPVectorsView"
-/*@
+/*@C
    NEPVectorsView - Outputs computed eigenvectors to a viewer.
 
    Collective on NEP
