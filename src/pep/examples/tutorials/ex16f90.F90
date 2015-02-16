@@ -61,7 +61,7 @@
       PetscInt       nev, ithree
       PetscMPIInt    rank
       PetscErrorCode ierr
-      PetscBool      flg
+      PetscBool      flg, terse
       PetscScalar    one, mone, four
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -173,7 +173,17 @@
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_NULL_OBJECT,ierr)
+!     ** show detailed info unless -terse option is given by user
+      call PetscOptionsHasName(PETSC_NULL_CHARACTER,'-terse',terse,ierr)
+      if (terse) then
+        call PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_NULL_OBJECT,ierr)
+      else
+        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,           &
+     &                   PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)
+        call PEPErrorView(pep,PEP_ERROR_BACKWARD,                       &
+     &                   PETSC_VIEWER_STDOUT_WORLD,ierr)
+        call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr)
+      endif
       call PEPDestroy(pep,ierr)
       call MatDestroy(K,ierr)
       call MatDestroy(C,ierr)

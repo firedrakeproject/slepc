@@ -67,16 +67,15 @@ typedef struct {
 int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */
-  PetscScalar    lambda;          /* eigenvalue */
   Mat            F,J;             /* Function and Jacobian matrices */
   ApplicationCtx ctx;             /* user-defined context */
   MatCtx         *ctxF,*ctxJ;     /* contexts for shell matrices */
   NEPType        type;
-  PetscInt       n=128,nev,i,its,nconv;
+  PetscInt       n=128,nev,its;
   KSP            ksp;
   PC             pc;
   PetscMPIInt    size;
-  PetscReal      re,im,norm;
+  PetscBool      terse;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -165,45 +164,15 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /*
-     Get number of converged approximate eigenpairs
-  */
-  ierr = NEPGetConverged(nep,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %D\n\n",nconv);CHKERRQ(ierr);
-
-  if (nconv>0) {
-    /*
-       Display eigenvalues and relative errors
-    */
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k              ||T(k)x||\n"
-         "   ----------------- ------------------\n");CHKERRQ(ierr);
-    for (i=0;i<nconv;i++) {
-      /*
-        Get converged eigenpairs (in this example they are always real)
-      */
-      ierr = NEPGetEigenpair(nep,i,&lambda,NULL,NULL,NULL);CHKERRQ(ierr);
-      /*
-         Compute residual norm
-      */
-      ierr = NEPComputeError(nep,i,NEP_ERROR_RELATIVE,&norm);CHKERRQ(ierr);
-
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(lambda);
-      im = PetscImaginaryPart(lambda);
-#else
-      re = lambda;
-      im = 0.0;
-#endif
-      if (im!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12g\n",(double)re,(double)im,(double)norm);CHKERRQ(ierr);
-      } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f         %12g\n",(double)re,(double)norm);CHKERRQ(ierr);
-      }
-    }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+  /* show detailed info unless -terse option is given by user */
+  ierr = PetscOptionsHasName(NULL,"-terse",&terse);CHKERRQ(ierr);
+  if (terse) {
+    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
   }
-
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
   ierr = MatDestroy(&F);CHKERRQ(ierr);
   ierr = MatDestroy(&J);CHKERRQ(ierr);

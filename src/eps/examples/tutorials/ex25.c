@@ -39,7 +39,7 @@ int main(int argc,char **argv)
   EPSType        type;
   PetscInt       N,n=10,m,Istart,Iend,II,nev,i,j,*inertias,ns;
   PetscReal      inta,intb,*shifts;
-  PetscBool      flag,show=PETSC_FALSE;
+  PetscBool      flag,show=PETSC_FALSE,terse;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -174,7 +174,18 @@ int main(int argc,char **argv)
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = EPSGetInterval(eps,&inta,&intb);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," %D eigenvalues found in [%g, %g]\n",nev,(double)inta,(double)intb);CHKERRQ(ierr);
-  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+
+  /*
+     Show detailed info unless -terse option is given by user
+   */
+  ierr = PetscOptionsHasName(NULL,"-terse",&terse);CHKERRQ(ierr);
+  if (terse) {
+    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Clean up

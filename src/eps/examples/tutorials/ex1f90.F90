@@ -62,7 +62,7 @@
       PetscInt       row(1), col(3)
       PetscMPIInt    rank
       PetscErrorCode ierr
-      PetscBool      flg
+      PetscBool      flg, terse
       PetscScalar    value(3)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -161,7 +161,17 @@
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
+!     ** show detailed info unless -terse option is given by user
+      call PetscOptionsHasName(PETSC_NULL_CHARACTER,'-terse',terse,ierr)
+      if (terse) then
+        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
+      else
+        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,           &
+     &                   PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)
+        call EPSErrorView(eps,EPS_ERROR_RELATIVE,                       &
+     &                   PETSC_VIEWER_STDOUT_WORLD,ierr)
+        call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr)
+      endif
       call EPSDestroy(eps,ierr)
       call MatDestroy(A,ierr)
 

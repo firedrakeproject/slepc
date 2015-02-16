@@ -47,9 +47,10 @@ int main(int argc,char **argv)
   Mat            A[NMAT];         /* problem matrices */
   FN             f[NMAT];         /* functions to define the nonlinear operator */
   NEP            nep;             /* nonlinear eigensolver context */
-  PetscInt       n=20,Istart,Iend,i,nconv;
-  PetscReal      kappa=1.0,m=1.0,re,im,norm;
-  PetscScalar    kr,ki,sigma,numer[2],denom[2];
+  PetscInt       n=20,Istart,Iend,i;
+  PetscReal      kappa=1.0,m=1.0;
+  PetscScalar    sigma,numer[2],denom[2];
+  PetscBool      terse;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -137,38 +138,15 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   
-  /*
-     Get number of converged approximate eigenpairs
-  */
-  ierr = NEPGetConverged(nep,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %D\n\n",nconv);CHKERRQ(ierr);
-
-  if (nconv>0) {
-    /*
-       Display eigenvalues and relative errors
-    */
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k              ||T(k)x||\n"
-         "   ----------------- ------------------\n");CHKERRQ(ierr);
-    for (i=0;i<nconv;i++) {
-      ierr = NEPGetEigenpair(nep,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-      ierr = NEPComputeError(nep,i,NEP_ERROR_RELATIVE,&norm);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-      im = PetscImaginaryPart(kr);
-#else
-      re = kr;
-      im = ki;
-#endif
-      if (im!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12g\n",(double)re,(double)im,(double)norm);CHKERRQ(ierr);
-      } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f         %12g\n",(double)re,(double)norm);CHKERRQ(ierr);
-      }
-    }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+  /* show detailed info unless -terse option is given by user */
+  ierr = PetscOptionsHasName(NULL,"-terse",&terse);CHKERRQ(ierr);
+  if (terse) {
+    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
   }
-
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
   for (i=0;i<NMAT;i++) {
     ierr = MatDestroy(&A[i]);CHKERRQ(ierr);

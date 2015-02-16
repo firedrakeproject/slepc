@@ -37,7 +37,7 @@ int main(int argc,char **argv)
   PetscInt       nsv,maxit,its;
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
-  PetscBool      flg;
+  PetscBool      flg,terse;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -102,7 +102,15 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  /* show detailed info unless -terse option is given by user */
+  ierr = PetscOptionsHasName(NULL,"-terse",&terse);CHKERRQ(ierr);
+  if (terse) {
+    ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+    ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  }
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();
