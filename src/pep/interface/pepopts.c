@@ -54,7 +54,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (!PEPRegisterAllCalled) { ierr = PEPRegisterAll();CHKERRQ(ierr); }
+  ierr = PEPRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)pep);CHKERRQ(ierr);
     ierr = PetscOptionsFList("-pep_type","Polynomial Eigenvalue Problem method","PEPSetType",PEPList,(char*)(((PetscObject)pep)->type_name?((PetscObject)pep)->type_name:PEPTOAR),type,256,&flg);CHKERRQ(ierr);
     if (flg) {

@@ -25,6 +25,8 @@
 #include <slepcnep.h>
 #include <slepc-private/slepcimpl.h>
 
+PETSC_EXTERN PetscBool NEPRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode NEPRegisterAll(void);
 PETSC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Refine,NEP_FunctionEval,NEP_JacobianEval;
 
 typedef struct _NEPOps *NEPOps;
