@@ -345,7 +345,7 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
     } else {
       errok = PETSC_TRUE;
       for (i=0;i<eps->nev;i++) {
-        ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
+        ierr = EPSComputeError(eps,i,EPS_ERROR_RELATIVE,&error);CHKERRQ(ierr);
         errok = (errok && error<5.0*eps->tol)? PETSC_TRUE: PETSC_FALSE;
       }
       if (errok) {
@@ -384,7 +384,7 @@ PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
            "   ----------------- ------------------\n",eps->isgeneralized?"B":"");CHKERRQ(ierr);
       for (i=0;i<eps->nconv;i++) {
         ierr = EPSGetEigenpair(eps,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-        ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
+        ierr = EPSComputeError(eps,i,EPS_ERROR_RELATIVE,&error);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
         re = PetscRealPart(kr);
         im = PetscImaginaryPart(kr);

@@ -770,7 +770,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     }
     
     /* Frobenius norm */
-    norm = 0.0;
+    maxnrm = 0.0;
     for (i=0;i<pep->nmat-1;i++) {
       norm = 0.0;
       for (j=0;j<k;j++) {

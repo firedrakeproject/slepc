@@ -42,6 +42,7 @@ PetscErrorCode NEPRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (NEPRegisterAllCalled) PetscFunctionReturn(0);
   NEPRegisterAllCalled = PETSC_TRUE;
   ierr = NEPRegister(NEPRII,NEPCreate_RII);CHKERRQ(ierr);
   ierr = NEPRegister(NEPSLP,NEPCreate_SLP);CHKERRQ(ierr);
@@ -49,3 +50,4 @@ PetscErrorCode NEPRegisterAll(void)
   ierr = NEPRegister(NEPINTERPOL,NEPCreate_Interpol);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

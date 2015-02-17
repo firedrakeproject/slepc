@@ -406,7 +406,7 @@ PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   if (!ds->sc) PetscFunctionReturn(0);
   n = ds->n;
   l = ds->l;
-  A  = ds->mat[DS_MAT_A];
+  A = ds->mat[DS_MAT_A];
   d = ds->rmat[DS_MAT_T];
   perm = ds->perm;
   if (!rr) {

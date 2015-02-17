@@ -59,10 +59,11 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (b) PetscValidHeaderSpecific(b,VEC_CLASSID,2);
-  if (b) PetscCheckSameComm(mfn,1,b,2);
-  if (x) PetscValidHeaderSpecific(x,VEC_CLASSID,3);
-  if (x) PetscCheckSameComm(mfn,1,x,3);
+  PetscValidHeaderSpecific(b,VEC_CLASSID,2);
+  PetscCheckSameComm(mfn,1,b,2);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
+  PetscCheckSameComm(mfn,1,x,3);
+  VecLocked(x,3);
 
   /* call setup */
   ierr = MFNSetUp(mfn);CHKERRQ(ierr);
@@ -73,7 +74,9 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 
   /* call solver */
   ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
+  ierr = VecLockPush(b);CHKERRQ(ierr);
   ierr = (*mfn->ops->solve)(mfn,b,x);CHKERRQ(ierr);
+  ierr = VecLockPop(b);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
 
   if (!mfn->reason) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");

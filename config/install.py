@@ -193,8 +193,8 @@ for dir in dirs:
   def installBin(self):
     #if os.path.exists(self.rootBinDir):
     #  self.copies.extend(self.copytree(self.rootBinDir, self.destBinDir))
-    if os.path.exists(self.archBinDir):
-      self.copies.extend(self.copytree(self.archBinDir, self.destBinDir))
+    #if os.path.exists(self.archBinDir):
+    #  self.copies.extend(self.copytree(self.archBinDir, self.destBinDir))
     return
 
   def installShare(self):

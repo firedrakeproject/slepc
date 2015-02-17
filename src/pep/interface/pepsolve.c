@@ -89,6 +89,7 @@ PetscErrorCode PEPSolve(PEP pep)
     pep->eigr[i]   = 0.0;
     pep->eigi[i]   = 0.0;
     pep->errest[i] = 0.0;
+    pep->perm[i]   = i;
   }
   ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,pep->ncv);CHKERRQ(ierr);
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view_pre");CHKERRQ(ierr);
