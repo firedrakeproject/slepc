@@ -333,7 +333,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol
       }
       while (sc_pend) {
         if (tol) {
-          ierr = NEPComputeError(nep,idx_sc[i],PEP_ERROR_RELATIVE,&error);CHKERRQ(ierr);
+          ierr = NEPComputeError(nep,idx_sc[i],NEP_ERROR_RELATIVE,&error);CHKERRQ(ierr);
         }
         if (error<=*tol || its_sc[i]>=its) {
           idx_sc[i] = idx++;
