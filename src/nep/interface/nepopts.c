@@ -54,7 +54,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!NEPRegisterAllCalled) { ierr = NEPRegisterAll();CHKERRQ(ierr); }
+  ierr = NEPRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)nep);CHKERRQ(ierr);
     ierr = PetscOptionsFList("-nep_type","Nonlinear Eigenvalue Problem method","NEPSetType",NEPList,(char*)(((PetscObject)nep)->type_name?((PetscObject)nep)->type_name:NEPRII),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -179,7 +179,11 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
 
     ierr = PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-nep_plot_eigs","Make a plot of the computed eigenvalues","NEPSolve",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_view_vectors","View computed eigenvectors","NEPVectorsView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_view_values","View computed eigenvalues","NEPValuesView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_converged_reason","Print reason for convergence, and number of iterations","NEPReasonView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_error_absolute","Print absolute errors of each eigenpair","NEPErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_error_relative","Print relative errors of each eigenpair","NEPErrorView",0);CHKERRQ(ierr);
 
     if (nep->ops->setfromoptions) {
       ierr = (*nep->ops->setfromoptions)(PetscOptionsObject,nep);CHKERRQ(ierr);

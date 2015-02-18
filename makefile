@@ -250,13 +250,7 @@ chk_slepc_dir:
 # Install relevant files in the prefix directory
 #
 install:
-	-@if [ "${PETSC_ARCH}" = "" ]; then \
-	  echo "PETSC_ARCH is undefined";\
-	elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
-	  echo "SLEPc is built without prefix option, rerun configure with --prefix";\
-        else \
-	  ${PYTHON} ${SLEPC_DIR}/config/install.py ${SLEPC_DIR} ${PETSC_DIR} ${SLEPC_DESTDIR} ${PETSC_ARCH} ${AR_LIB_SUFFIX} ${RANLIB}; \
-        fi;
+	-@${PYTHON} ./config/install.py ${SLEPC_DIR} ${PETSC_DIR} ${SLEPC_DESTDIR} ${PETSC_ARCH} ${AR_LIB_SUFFIX} ${RANLIB};
 
 # ------------------------------------------------------------------
 #

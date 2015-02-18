@@ -177,9 +177,15 @@ PETSC_EXTERN PetscErrorCode PEPSetUp(PEP);
 PETSC_EXTERN PetscErrorCode PEPSolve(PEP);
 PETSC_EXTERN PetscErrorCode PEPView(PEP,PetscViewer);
 PETSC_STATIC_INLINE PetscErrorCode PEPViewFromOptions(PEP pep,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)pep,prefix,name);}
-PETSC_EXTERN PetscErrorCode PEPPrintSolution(PEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode PEPErrorView(PEP,PEPErrorType,PetscViewer);
+PETSC_DEPRECATED("Use PEPErrorView()") PETSC_STATIC_INLINE PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer v) {return PEPErrorView(pep,PEP_ERROR_BACKWARD,v);}
+PETSC_EXTERN PetscErrorCode PEPErrorViewFromOptions(PEP);
 PETSC_EXTERN PetscErrorCode PEPReasonView(PEP,PetscViewer);
 PETSC_EXTERN PetscErrorCode PEPReasonViewFromOptions(PEP);
+PETSC_EXTERN PetscErrorCode PEPValuesView(PEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode PEPValuesViewFromOptions(PEP);
+PETSC_EXTERN PetscErrorCode PEPVectorsView(PEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode PEPVectorsViewFromOptions(PEP);
 PETSC_EXTERN PetscErrorCode PEPSetBV(PEP,BV);
 PETSC_EXTERN PetscErrorCode PEPGetBV(PEP,BV*);
 PETSC_EXTERN PetscErrorCode PEPSetRG(PEP,RG);
@@ -259,8 +265,6 @@ PETSC_EXTERN const char *const*PEPConvergedReasons;
 PETSC_EXTERN PetscErrorCode PEPGetConvergedReason(PEP,PEPConvergedReason *);
 
 PETSC_EXTERN PetscFunctionList PEPList;
-PETSC_EXTERN PetscBool         PEPRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode PEPRegisterAll(void);
 PETSC_EXTERN PetscErrorCode PEPRegister(const char[],PetscErrorCode(*)(PEP));
 
 PETSC_EXTERN PetscErrorCode PEPSetWorkVecs(PEP,PetscInt);

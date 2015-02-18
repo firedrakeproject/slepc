@@ -42,6 +42,12 @@
       parameter (SVD_LARGEST                =  0)
       parameter (SVD_SMALLEST               =  1)
 
+      PetscEnum SVD_ERROR_ABSOLUTE
+      PetscEnum SVD_ERROR_RELATIVE
+
+      parameter (SVD_ERROR_ABSOLUTE         =  0)
+      parameter (SVD_ERROR_RELATIVE         =  1)
+
 !
 !   Possible arguments to SVDMonitorSet()
 !

@@ -29,6 +29,7 @@
 #define dsappendoptionsprefix_    DSAPPENDOPTIONSPREFIX
 #define dsgetoptionsprefix_       DSGETOPTIONSPREFIX
 #define dsview_                   DSVIEW
+#define dsviewmat_                DSVIEWMAT
 #define dsvectors_                DSVECTORS
 #define dssort_                   DSSORT
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
@@ -38,6 +39,8 @@
 #define dsappendoptionsprefix_    dsappendoptionsprefix
 #define dsgetoptionsprefix_       dsgetoptionsprefix
 #define dsview_                   dsview
+#define dsviewmat_                dsviewmat
+#define dsvectors_                dsvectors
 #define dssort_                   dssort
 #endif
 
@@ -90,6 +93,13 @@ PETSC_EXTERN void PETSC_STDCALL dsview_(DS *ds,PetscViewer *viewer,PetscErrorCod
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = DSView(*ds,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL dsviewmat_(DS *ds,PetscViewer *viewer,DSMatType *m,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = DSViewMat(*ds,v,*m);
 }
 
 PETSC_EXTERN void PETSC_STDCALL dsvectors_(DS *ds,DSMatType *mat,PetscInt *j,PetscReal *rnorm,PetscErrorCode *ierr)

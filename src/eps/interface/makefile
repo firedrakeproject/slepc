@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = epsmon.c epsbasic.c epsdefault.c epsregis.c epsopts.c epssetup.c epssolve.c dlregiseps.c
+SOURCEC  = epsmon.c epsbasic.c epsview.c epsdefault.c epsregis.c epsopts.c epssetup.c epssolve.c dlregiseps.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepceps

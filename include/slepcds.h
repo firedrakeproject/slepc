@@ -182,8 +182,6 @@ PETSC_EXTERN PetscErrorCode DSSetDegree(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSGetDegree(DS,PetscInt*);
 
 PETSC_EXTERN PetscFunctionList DSList;
-PETSC_EXTERN PetscBool         DSRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode DSRegisterAll(void);
 PETSC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));
 
 #endif

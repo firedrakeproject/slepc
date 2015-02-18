@@ -42,7 +42,8 @@
 +  -mfn_view - print information about the solver used
 .  -mfn_view_mat binary - save the matrix to the default binary viewer
 .  -mfn_view_rhs binary - save right hand side vector to the default binary viewer
--  -mfn_view_solution binary - save computed solution vector to the default binary viewer
+.  -mfn_view_solution binary - save computed solution vector to the default binary viewer
+-  -mfn_converged_reason - print reason for convergence, and number of iterations
 
    Notes:
    The matrix A is specified with MFNSetOperator().

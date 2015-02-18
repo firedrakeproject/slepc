@@ -15,12 +15,13 @@ unix-opt/*
 unix-gcov/*
 package-*/*
 arch-*/*
+installed-arch-*/*
 batch-test
 c_test
 RDict.db
 RDict.log
 TAGS*
-conf/slepcvariables
+lib/slepc-conf/slepcvariables
 configure.log*
 externalpackages/*
 ftn-auto

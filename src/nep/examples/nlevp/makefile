@@ -41,7 +41,7 @@ loaded_string: loaded_string.o chkopts
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runloaded_string:
-	-@${MPIEXEC} -np 1 ./loaded_string -nep_type rii -n 100 > loaded_string_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./loaded_string -nep_type rii -n 100 -terse > loaded_string_1.tmp 2>&1; \
 	   if (${DIFF} output/loaded_string_1.out loaded_string_1.tmp) then true; \
 	   else echo "Possible problem with loaded_string_1, diffs above"; fi; \
 	   ${RM} -f loaded_string_1.tmp

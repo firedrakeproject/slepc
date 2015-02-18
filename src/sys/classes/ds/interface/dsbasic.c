@@ -845,7 +845,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (!DSRegisterAllCalled) { ierr = DSRegisterAll();CHKERRQ(ierr); }
+  ierr = DSRegisterAll();CHKERRQ(ierr);
   /* Set default type (we do not allow changing it with -ds_type) */
   if (!((PetscObject)ds)->type_name) {
     ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);
@@ -1091,6 +1091,7 @@ PetscErrorCode DSRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (DSRegisterAllCalled) PetscFunctionReturn(0);
   DSRegisterAllCalled = PETSC_TRUE;
   ierr = DSRegister(DSHEP,DSCreate_HEP);CHKERRQ(ierr);
   ierr = DSRegister(DSNHEP,DSCreate_NHEP);CHKERRQ(ierr);

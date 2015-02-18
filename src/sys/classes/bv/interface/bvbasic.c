@@ -683,7 +683,7 @@ PetscErrorCode BVSetFromOptions(BV bv)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  if (!BVRegisterAllCalled) { ierr = BVRegisterAll();CHKERRQ(ierr); }
+  ierr = BVRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)bv);CHKERRQ(ierr);
     ierr = PetscOptionsFList("-bv_type","Basis Vectors type","BVSetType",BVList,(char*)(((PetscObject)bv)->type_name?((PetscObject)bv)->type_name:BVSVEC),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
