@@ -426,6 +426,18 @@ After the call to \ident{PEPSolve} has finished, the computed results are stored
 
 \paragraph{Reliability of the Computed Solution.}
 
+\begin{table}
+\centering
+{\small \begin{tabular}{llll}
+Error type     & \texttt{PEPErrorType}         & Command line key          & Error bound \\\hline
+Absolute error & \texttt{PEP\_ERROR\_ABSOLUTE} & \texttt{-pep\_error\_absolute} & $\|r\|$ \\
+Relative error & \texttt{PEP\_ERROR\_RELATIVE} & \texttt{-pep\_error\_relative} & $\|r\|/|\lambda|$ \\
+Backward error & \texttt{PEP\_ERROR\_BACKWARD} & \texttt{-pep\_error\_backward} & $\|r\|/(\sum_j\|A_j\||\lambda_i|^j)$ \\
+\hline
+\end{tabular} }
+\caption{\label{tab:peperrors}Possible expressions for computing error bounds.}
+\end{table}
+
 As in the case of linear problems, the function
 	\findex{PEPComputeError}
 	\begin{Verbatim}[fontsize=\small]
@@ -436,14 +448,19 @@ is available to assess the accuracy of the computed solutions. This error is bas
 r=P(\tilde{\lambda})\tilde{x},\label{eq:respol}
 \end{equation}
 where $\tilde{\lambda}$ and $\tilde{x}$ represent any of the \texttt{nconv} computed eigenpairs delivered by \ident{PEPGetEigenpair}.
-From the residual norm, the error bound can be computed in different ways, see Table \ref{tab:pepconv}. This can be set via the corresponding command-line switch or with
+From the residual norm, the error bound can be computed in different ways, see Table \ref{tab:peperrors}. It is usually recommended to assess the accuracy of the solution using the backward error, defined as
+\begin{equation}
+\eta(\tilde{\lambda},\tilde{x})=\frac{\|r\|}{\sum_{j=0}^d\|A_j\||\tilde\lambda|^j\|\tilde{x}\|},\label{eq:backward}
+\end{equation}
+where $d$ is the degree of the polynomial. Note that the eigenvector is always assumed to have unit norm.
+
+Similar expressions can be used in the convergence criterion used to accept converged eigenpairs internally by the solver. The convergence test can be set via the corresponding command-line switch (see Table \ref{tab:pepconv}) or with
 	\findex{PEPSetConvergenceTest}
 	\begin{Verbatim}[fontsize=\small]
 	PEPSetConvergenceTest(PEP pep,PEPConv conv);
 	\end{Verbatim}
-The default is to use the criterion relative to the matrix norms.
 
-\begin{table}
+\begin{table}[b]
 \centering
 {\small \begin{tabular}{llll}
 Convergence criterion    & \texttt{PEPConv}         & Command line key          & Error bound \\\hline
@@ -475,6 +492,10 @@ See the manual page for details.
 \paragraph{Controlling and Monitoring Convergence.}
 
 As in the case of \ident{EPS}, in \ident{PEP} the number of iterations carried out by the solver can be determined with \ident{PEPGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{PEPSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-pep_monitor!, \Verb!-pep_monitor_all!, \Verb!-pep_monitor_conv!, \Verb!-pep_monitor_lg!, or \Verb!-pep_monitor_lg_all!. See \S\ref{sec:monitor} for additional details.
+
+\paragraph{Viewing the Solution.}
+
+Likewise to linear eigensolvers, there is support for various kinds of viewers for the solution. One can for instance use \Verb!-pep_view_values!, \Verb!-pep_view_vectors!, \Verb!-pep_error_relative!, or \Verb!-pep_converged_reason!. See description in \S\ref{sec:epsviewers}.
 
 \subsection{\label{sec:refine}Iterative Refinement}
 

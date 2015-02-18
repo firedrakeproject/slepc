@@ -282,3 +282,7 @@ where $\sigma$ is an exact singular value. The associated error can be obtained 
 
 Similarly to the case of eigensolvers, in \ident{SVD} the number of iterations carried out by the solver can be determined with \ident{SVDGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{SVDSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-svd_monitor!, \Verb!-svd_monitor_all!, \Verb!-svd_monitor_conv!, \Verb!-svd_monitor_lg!, or \Verb!-svd_monitor_lg_all!. See \S\ref{sec:monitor} for additional details.
 
+\paragraph{Viewing the Solution.}
+
+There is support for different kinds of viewers for the solution, as in the case of eigensolvers. One can for instance use \Verb!-svd_view_values!, \Verb!-svd_view_vectors!, \Verb!-svd_error_relative!, or \Verb!-svd_converged_reason!. See description in \S\ref{sec:epsviewers}.
+
