@@ -289,7 +289,7 @@ static PetscErrorCode SVDErrorView_MATLAB(SVD svd,SVDErrorType etype,PetscViewer
 
    Level: intermediate
 
-.seealso: PetscViewerASCIIOpen()
+.seealso: SVDSolve(), SVDValuesView(), SVDVectorsView()
 @*/
 PetscErrorCode SVDErrorView(SVD svd,SVDErrorType etype,PetscViewer viewer)
 {
@@ -441,7 +441,7 @@ static PetscErrorCode SVDValuesView_MATLAB(SVD svd,PetscViewer viewer)
 
    Level: intermediate
 
-.seealso: PetscViewerASCIIOpen()
+.seealso: SVDSolve(), SVDVectorsView(), SVDErrorView()
 @*/
 PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
 {
@@ -528,7 +528,7 @@ PetscErrorCode SVDValuesViewFromOptions(SVD svd)
 
    Level: intermediate
 
-.seealso: SVDSolve()
+.seealso: SVDSolve(), SVDValuesView(), SVDErrorView()
 @*/
 PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
 {

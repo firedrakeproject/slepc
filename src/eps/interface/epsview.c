@@ -436,7 +436,7 @@ static PetscErrorCode EPSErrorView_MATLAB(EPS eps,EPSErrorType etype,PetscViewer
 
    Level: intermediate
 
-.seealso: PetscViewerASCIIOpen()
+.seealso: EPSSolve(), EPSValuesView(), EPSVectorsView()
 @*/
 PetscErrorCode EPSErrorView(EPS eps,EPSErrorType etype,PetscViewer viewer)
 {
@@ -627,7 +627,7 @@ static PetscErrorCode EPSValuesView_MATLAB(EPS eps,PetscViewer viewer)
 
    Level: intermediate
 
-.seealso: PetscViewerASCIIOpen()
+.seealso: EPSSolve(), EPSVectorsView(), EPSErrorView()
 @*/
 PetscErrorCode EPSValuesView(EPS eps,PetscViewer viewer)
 {
@@ -714,7 +714,7 @@ PetscErrorCode EPSValuesViewFromOptions(EPS eps)
 
    Level: intermediate
 
-.seealso: EPSSolve()
+.seealso: EPSSolve(), EPSValuesView(), EPSErrorView()
 @*/
 PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
 {

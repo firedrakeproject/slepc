@@ -365,7 +365,7 @@ static PetscErrorCode NEPErrorView_MATLAB(NEP nep,NEPErrorType etype,PetscViewer
 
    Level: intermediate
 
-.seealso: PetscViewerASCIIOpen()
+.seealso: NEPSolve(), NEPValuesView(), NEPVectorsView()
 @*/
 PetscErrorCode NEPErrorView(NEP nep,NEPErrorType etype,PetscViewer viewer)
 {
@@ -549,7 +549,7 @@ static PetscErrorCode NEPValuesView_MATLAB(NEP nep,PetscViewer viewer)
 
    Level: intermediate
 
-.seealso: PetscViewerASCIIOpen()
+.seealso: NEPSolve(), NEPVectorsView(), NEPErrorView()
 @*/
 PetscErrorCode NEPValuesView(NEP nep,PetscViewer viewer)
 {
@@ -636,7 +636,7 @@ PetscErrorCode NEPValuesViewFromOptions(NEP nep)
 
    Level: intermediate
 
-.seealso: NEPSolve()
+.seealso: NEPSolve(), NEPValuesView(), NEPErrorView()
 @*/
 PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
 {
