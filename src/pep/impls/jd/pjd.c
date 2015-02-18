@@ -50,6 +50,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   PetscErrorCode ierr;
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PetscBool      precond,flg;
+  PetscInt       i;
 
   PetscFunctionBegin;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
@@ -71,6 +72,10 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
 
   ierr = PEPAllocateSolution(pep,0);CHKERRQ(ierr);
   ierr = PEPSetWorkVecs(pep,4);CHKERRQ(ierr);
+  ierr = PetscMalloc1(pep->nmat,&pjd->W);CHKERRQ(ierr);
+  for (i=0;i<pep->nmat;i++) {
+    ierr = BVDuplicate(pep->V,pjd->W+i);CHKERRQ(ierr);
+  }
 
   ierr = DSSetType(pep->ds,DSGNHEP);CHKERRQ(ierr);
   ierr = DSAllocate(pep->ds,pep->ncv);CHKERRQ(ierr);
@@ -82,54 +87,90 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
 PetscErrorCode PEPSolve_JD(PEP pep)
 {
   PetscErrorCode ierr;
-  /*PEP_JD         *pjd = (PEP_JD*)pep->data;*/
-  PetscInt       j,k=0,nv,ld;
+  PEP_JD         *pjd = (PEP_JD*)pep->data;
+  PetscInt       idxI,idxJ,idxK,idxM;
+  PetscInt       j,k,nv,ld;
   /*Vec            v=pep->work[0],w=pep->work[1];*/
   PetscReal      norm;
+  Mat            G;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
-  nv = pep->ncv;
+  if (pep->nini==0) {  
+    nv = 1;
+    ierr = BVSetRandomColumn(pep->V,0,pep->rand);CHKERRQ(ierr);
+    ierr = BVNormColumn(pep->V,0,NORM_2,&norm);CHKERRQ(ierr);
+    ierr = BVScaleColumn(pep->V,0,1.0/norm);CHKERRQ(ierr);
+  } else nv = pep->nini;
 
-  /* Modify matrix norms so that the scaling affects the convergence test */
-  norm = pep->dsfactor;
-  for (j=0;j<pep->nmat;j++) {
-    pep->nrma[j] *= norm;
-    norm*=pep->sfactor;
+  for (idxJ=0;idxJ<pep->nmat;idxJ++) {
+
+    if (pjd->flglk || pjd->flgre) {
+      ierr = BVSetActiveColumns(pep->V,0,nv);CHKERRQ(ierr);
+    } else {
+      ierr = BVSetActiveColumns(pep->V,nv-1,nv);CHKERRQ(ierr);
+    }
+    for (k=0;k<pep->nmat;k++) {
+      ierr = BVMatMult(pep->V,pep->A[k],pjd->W[k]);CHKERRQ(ierr);
+      ierr = DSGetMat(pep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
+      ierr = BVMatProject(pjd->W[k],NULL,pep->V,G);CHKERRQ(ierr);
+      ierr = DSRestoreMat(pep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
+    }
+    ierr = BVSetActiveColumns(pep->V,0,nv);CHKERRQ(ierr);
+
+    /* inner loop */
+    for (idxJ=0;idxJ<pep->ncv;idxJ++) {
+
+      /* Solve projected problem */
+      ierr = DSSolve(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
+      ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+
+
+    }
+
   }
 
-   /* Restart loop */
-  while (pep->reason == PEP_CONVERGED_ITERATING) {
-    pep->its++;
+//   /* Restart loop */
+//  while (pep->reason == PEP_CONVERGED_ITERATING) {
+//    pep->its++;
+//
+//    /* Solve projected problem */
+//    ierr = DSSolve(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
+//    ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+//
+//    /* Check convergence */
+//    if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
+//    if (k >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
+//
+//    pep->nconv = k;
+//    ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
+//  }
 
-    /* Solve projected problem */
-    ierr = DSSolve(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
-    ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
-
-    /* Check convergence */
-    if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
-    if (k >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
-
-    pep->nconv = k;
-    ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
-  }
-
-  for (j=0;j<pep->nconv;j++) {
-    pep->eigr[j] *= pep->sfactor;
-    pep->eigi[j] *= pep->sfactor;
-  }
-
-  /* Restore matrix norms */
-  norm = pep->dsfactor;
-  for (j=0;j<pep->nmat;j++) {
-    pep->nrma[j] /= norm;
-    norm*=pep->sfactor;
-  }
+//  for (j=0;j<pep->nconv;j++) {
+//    pep->eigr[j] *= pep->sfactor;
+//    pep->eigi[j] *= pep->sfactor;
+//  }
 
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPReset_JD"
+PetscErrorCode PEPReset_JD(PEP pep)
+{
+  PetscErrorCode ierr;
+  PEP_JD         *pjd = (PEP_JD*)pep->data;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  for (i=0;i<pep->nmat;i++) {
+    ierr = BVDestroy(pjd->W+i);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(pjd->W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -167,6 +208,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   pep->ops->solve          = PEPSolve_JD;
   pep->ops->setup          = PEPSetUp_JD;
   pep->ops->setfromoptions = PEPSetFromOptions_JD;
+  pep->ops->reset          = PEPReset_JD;
   pep->ops->destroy        = PEPDestroy_JD;
   pep->ops->view           = PEPView_JD;
   pep->ops->computevectors = PEPComputeVectors_Schur;

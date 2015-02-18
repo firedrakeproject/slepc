@@ -32,6 +32,9 @@ typedef struct {
   PetscInt  fnini;           /* first initial search space */
   PetscBool randini;         /* use random initial search space */
   PetscBool custpc;          /* use custom correction equation preconditioner */
+  PetscBool flglk;           /* whether in locking step */
+  PetscBool flgre;           /* whether in restarting step */
+  BV        *W;              /* work basis vectors to store A_i*V */
 } PEP_JD;
 
 PETSC_INTERN PetscErrorCode PEPView_JD(PEP,PetscViewer);
