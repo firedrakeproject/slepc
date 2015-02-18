@@ -161,6 +161,7 @@ PETSC_STATIC_INLINE PetscErrorCode EPS_SetInnerProduct(EPS eps)
 PETSC_INTERN PetscErrorCode EPSSetWhichEigenpairs_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSSetDimensions_Default(EPS,PetscInt,PetscInt*,PetscInt*);
 PETSC_INTERN PetscErrorCode EPSBackTransform_Default(EPS);
+PETSC_INTERN PetscErrorCode EPSComputeVectors(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Hermitian(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Indefinite(EPS);

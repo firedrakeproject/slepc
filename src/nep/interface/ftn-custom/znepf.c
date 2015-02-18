@@ -25,6 +25,10 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define nepview_                    NEPVIEW
+#define neperrorview_               NEPERRORVIEW
+#define nepreasonview_              NEPREASONVIEW
+#define nepvaluesview_              NEPVALUESVIEW
+#define nepvectorsview_             NEPVECTORSVIEW
 #define nepsetoptionsprefix_        NEPSETOPTIONSPREFIX
 #define nepappendoptionsprefix_     NEPAPPENDOPTIONSPREFIX
 #define nepgetoptionsprefix_        NEPGETOPTIONSPREFIX
@@ -39,6 +43,10 @@
 #define nepgetwhicheigenpairs_      NEPGETWHICHEIGENPAIRS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define nepview_                    nepview
+#define neperrorview_               neperrorview
+#define nepreasonview_              nepreasonview
+#define nepvaluesview_              nepvaluesview
+#define nepvectorsview_             nepvectorsview
 #define nepsetoptionsprefix_        nepsetoptionsprefix
 #define nepappendoptionsprefix_     nepappendoptionsprefix
 #define nepgetoptionsprefix_        nepgetoptionsprefix
@@ -108,6 +116,34 @@ PETSC_EXTERN void PETSC_STDCALL nepview_(NEP *nep,PetscViewer *viewer,PetscError
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = NEPView(*nep,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepreasonview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = NEPReasonView(*nep,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL neperrorview_(NEP *nep,NEPErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = NEPErrorView(*nep,*etype,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepvaluesview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = NEPValuesView(*nep,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepvectorsview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = NEPVectorsView(*nep,v);
 }
 
 PETSC_EXTERN void PETSC_STDCALL nepsettype_(NEP *nep,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))

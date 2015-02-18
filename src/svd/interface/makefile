@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = svdregis.c svdbasic.c svdopts.c svdsetup.c svdsolve.c svdmon.c dlregissvd.c
+SOURCEC  = svdregis.c svdbasic.c svdview.c svdopts.c svdsetup.c svdsolve.c svdmon.c dlregissvd.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsvd

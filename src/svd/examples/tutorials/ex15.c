@@ -136,7 +136,7 @@ int main(int argc,char **argv)
       /*
          Compute the error associated to each singular triplet
       */
-      ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
+      ierr = SVDComputeError(svd,i,SVD_ERROR_RELATIVE,&error);CHKERRQ(ierr);
 
       ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",(double)sigma);CHKERRQ(ierr);
       ierr = PetscPrintf(PETSC_COMM_WORLD," % 12g\n",(double)error);CHKERRQ(ierr);

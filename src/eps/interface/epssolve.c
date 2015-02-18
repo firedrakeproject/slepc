@@ -26,7 +26,7 @@
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSComputeVectors"
-PETSC_STATIC_INLINE PetscErrorCode EPSComputeVectors(EPS eps)
+PetscErrorCode EPSComputeVectors(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -59,7 +59,12 @@ PETSC_STATIC_INLINE PetscErrorCode EPSComputeVectors(EPS eps)
 +  -eps_view - print information about the solver used
 .  -eps_view_mat0 binary - save the first matrix (A) to the default binary viewer
 .  -eps_view_mat1 binary - save the second matrix (B) to the default binary viewer
--  -eps_plot_eigs - plot computed eigenvalues
+.  -eps_view_vectors binary - save the computed eigenvectors to the default binary viewer
+.  -eps_view_values - print computed eigenvalues
+.  -eps_converged_reason - print reason for convergence, and number of iterations
+.  -eps_error_absolute - print absolute errors of each eigenpair
+.  -eps_error_relative - print relative errors of each eigenpair
+-  -eps_error_backward - print backward errors of each eigenpair
 
    Level: beginner
 
@@ -69,12 +74,8 @@ PetscErrorCode EPSSolve(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,nmat;
-  PetscReal      re,im;
   PetscScalar    dot;
-  PetscBool      flg,iscayley;
-  PetscViewer    viewer;
-  PetscDraw      draw;
-  PetscDrawSP    drawsp;
+  PetscBool      iscayley;
   STMatMode      matmode;
   Mat            A,B;
   Vec            w,x;
@@ -157,29 +158,11 @@ PetscErrorCode EPSSolve(EPS eps)
   /* various viewers */
   ierr = EPSViewFromOptions(eps,NULL,"-eps_view");CHKERRQ(ierr);
   ierr = EPSReasonViewFromOptions(eps);CHKERRQ(ierr);
+  ierr = EPSErrorViewFromOptions(eps);CHKERRQ(ierr);
+  ierr = EPSValuesViewFromOptions(eps);CHKERRQ(ierr);
+  ierr = EPSVectorsViewFromOptions(eps);CHKERRQ(ierr);
   ierr = MatViewFromOptions(A,((PetscObject)eps)->prefix,"-eps_view_mat0");CHKERRQ(ierr);
   if (nmat>1) { ierr = MatViewFromOptions(B,((PetscObject)eps)->prefix,"-eps_view_mat1");CHKERRQ(ierr); }
-
-  flg = PETSC_FALSE;
-  ierr = PetscOptionsGetBool(((PetscObject)eps)->prefix,"-eps_plot_eigs",&flg,NULL);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
-    ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
-    for (i=0;i<eps->nconv;i++) {
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(eps->eigr[i]);
-      im = PetscImaginaryPart(eps->eigr[i]);
-#else
-      re = eps->eigr[i];
-      im = eps->eigi[i];
-#endif
-      ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
-    }
-    ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-  }
 
   /* Remove deflation and initial subspaces */
   eps->nds = 0;

@@ -172,9 +172,15 @@ PETSC_EXTERN PetscErrorCode EPSSetUp(EPS);
 PETSC_EXTERN PetscErrorCode EPSSolve(EPS);
 PETSC_EXTERN PetscErrorCode EPSView(EPS,PetscViewer);
 PETSC_STATIC_INLINE PetscErrorCode EPSViewFromOptions(EPS eps,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)eps,prefix,name);}
-PETSC_EXTERN PetscErrorCode EPSPrintSolution(EPS,PetscViewer);
+PETSC_EXTERN PetscErrorCode EPSErrorView(EPS,EPSErrorType,PetscViewer);
+PETSC_DEPRECATED("Use EPSErrorView()") PETSC_STATIC_INLINE PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer v) {return EPSErrorView(eps,EPS_ERROR_RELATIVE,v);}
+PETSC_EXTERN PetscErrorCode EPSErrorViewFromOptions(EPS);
 PETSC_EXTERN PetscErrorCode EPSReasonView(EPS,PetscViewer);
 PETSC_EXTERN PetscErrorCode EPSReasonViewFromOptions(EPS);
+PETSC_EXTERN PetscErrorCode EPSValuesView(EPS,PetscViewer);
+PETSC_EXTERN PetscErrorCode EPSValuesViewFromOptions(EPS);
+PETSC_EXTERN PetscErrorCode EPSVectorsView(EPS,PetscViewer);
+PETSC_EXTERN PetscErrorCode EPSVectorsViewFromOptions(EPS);
 
 PETSC_EXTERN PetscErrorCode EPSSetTarget(EPS,PetscScalar);
 PETSC_EXTERN PetscErrorCode EPSGetTarget(EPS,PetscScalar*);

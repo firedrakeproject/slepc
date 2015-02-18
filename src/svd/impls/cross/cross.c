@@ -214,7 +214,7 @@ static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
   ierr = EPSDestroy(&cross->eps);CHKERRQ(ierr);
   cross->eps = eps;
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->eps);CHKERRQ(ierr);
-  svd->setupcalled = 0;
+  svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
