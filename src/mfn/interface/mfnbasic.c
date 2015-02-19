@@ -95,7 +95,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNReasonView"
-/*@
+/*@C
    MFNReasonView - Displays the reason an MFN solve converged or diverged.
 
    Collective on MFN
@@ -132,7 +132,7 @@ PetscErrorCode MFNReasonView(MFN mfn,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNReasonViewFromOptions"
-/*@C
+/*@
    MFNReasonViewFromOptions - Processes command line options to determine if/how
    the MFN converged reason is to be viewed. 
 
@@ -154,7 +154,7 @@ PetscErrorCode MFNReasonViewFromOptions(MFN mfn)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(0);
   incall = PETSC_TRUE;
-  ierr   = PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->prefix,"-mfn_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->prefix,"-mfn_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
     ierr = MFNReasonView(mfn,viewer);CHKERRQ(ierr);

@@ -26,7 +26,7 @@
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPComputeVectors"
-PETSC_STATIC_INLINE PetscErrorCode PEPComputeVectors(PEP pep)
+PetscErrorCode PEPComputeVectors(PEP pep)
 {
   PetscErrorCode ierr;
 
@@ -57,9 +57,14 @@ PETSC_STATIC_INLINE PetscErrorCode PEPComputeVectors(PEP pep)
 
    Options Database Keys:
 +  -pep_view - print information about the solver used
-.  -eps_view_matk binary - save any of the coefficient matrices (Ak) to the
+.  -pep_view_matk binary - save any of the coefficient matrices (Ak) to the
                 default binary viewer (replace k by an integer from 0 to nmat-1)
--  -pep_plot_eigs - plot computed eigenvalues
+.  -pep_view_vectors binary - save the computed eigenvectors to the default binary viewer
+.  -pep_view_values - print computed eigenvalues
+.  -pep_converged_reason - print reason for convergence, and number of iterations
+.  -pep_error_absolute - print absolute errors of each eigenpair
+.  -pep_error_relative - print relative errors of each eigenpair
+-  -pep_error_backward - print backward errors of each eigenpair
 
    Level: beginner
 
@@ -69,11 +74,7 @@ PetscErrorCode PEPSolve(PEP pep)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscReal      re,im;
   PetscBool      flg,islinear;
-  PetscViewer    viewer;
-  PetscDraw      draw;
-  PetscDrawSP    drawsp;
 #define OPTLEN 16
   char           str[OPTLEN];
 
@@ -139,30 +140,12 @@ PetscErrorCode PEPSolve(PEP pep)
   /* various viewers */
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view");CHKERRQ(ierr);
   ierr = PEPReasonViewFromOptions(pep);CHKERRQ(ierr);
+  ierr = PEPErrorViewFromOptions(pep);CHKERRQ(ierr);
+  ierr = PEPValuesViewFromOptions(pep);CHKERRQ(ierr);
+  ierr = PEPVectorsViewFromOptions(pep);CHKERRQ(ierr);
   for (i=0;i<pep->nmat;i++) {
     ierr = PetscSNPrintf(str,OPTLEN,"-pep_view_mat%d",(int)i);CHKERRQ(ierr);
     ierr = MatViewFromOptions(pep->A[i],((PetscObject)pep)->prefix,str);CHKERRQ(ierr);
-  }
-
-  flg = PETSC_FALSE;
-  ierr = PetscOptionsGetBool(((PetscObject)pep)->prefix,"-pep_plot_eigs",&flg,NULL);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
-    ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
-    for (i=0;i<pep->nconv;i++) {
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(pep->eigr[i]);
-      im = PetscImaginaryPart(pep->eigr[i]);
-#else
-      re = pep->eigr[i];
-      im = pep->eigi[i];
-#endif
-      ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
-    }
-    ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
   /* Remove the initial subspace */

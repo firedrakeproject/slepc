@@ -84,14 +84,6 @@
       parameter (EPS_BALANCE_TWOSIDE        =  2)
       parameter (EPS_BALANCE_USER           =  3)
 
-      PetscEnum EPS_POWER_SHIFT_CONSTANT
-      PetscEnum EPS_POWER_SHIFT_RAYLEIGH
-      PetscEnum EPS_POWER_SHIFT_WILKINSON
-
-      parameter (EPS_POWER_SHIFT_CONSTANT   =  0)
-      parameter (EPS_POWER_SHIFT_RAYLEIGH   =  1)
-      parameter (EPS_POWER_SHIFT_WILKINSON  =  2)
-
       PetscEnum EPS_RITZ
       PetscEnum EPS_HARMONIC
       PetscEnum EPS_HARMONIC_RELATIVE
@@ -125,6 +117,14 @@
       parameter (EPS_CONV_EIG               =  1)
       parameter (EPS_CONV_NORM              =  2)
       parameter (EPS_CONV_USER              =  3)
+
+      PetscEnum EPS_POWER_SHIFT_CONSTANT
+      PetscEnum EPS_POWER_SHIFT_RAYLEIGH
+      PetscEnum EPS_POWER_SHIFT_WILKINSON
+
+      parameter (EPS_POWER_SHIFT_CONSTANT   =  0)
+      parameter (EPS_POWER_SHIFT_RAYLEIGH   =  1)
+      parameter (EPS_POWER_SHIFT_WILKINSON  =  2)
 
       PetscEnum EPS_LANCZOS_REORTHOG_LOCAL
       PetscEnum EPS_LANCZOS_REORTHOG_FULL
@@ -171,12 +171,6 @@
       parameter (EPS_PRIMME_SUBSPACE_ITERATION  = 13)
       parameter (EPS_PRIMME_LOBPCG_ORTHOBASIS   = 14)
       parameter (EPS_PRIMME_LOBPCG_ORTHOBASISW  = 15)
-
-      PetscEnum EPS_ORTH_I
-      PetscEnum EPS_ORTH_B
-
-      parameter (EPS_ORTH_I                 =  1)
-      parameter (EPS_ORTH_B                 =  2)
 
 !
 !   Possible arguments to EPSMonitorSet()

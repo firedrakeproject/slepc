@@ -195,7 +195,12 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
 
     ierr = PetscOptionsName("-pep_view","Print detailed information on solver used","PEPView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-pep_plot_eigs","Make a plot of the computed eigenvalues","PEPSolve",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_view_vectors","View computed eigenvectors","PEPVectorsView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_view_values","View computed eigenvalues","PEPValuesView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_converged_reason","Print reason for convergence, and number of iterations","PEPReasonView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_error_absolute","Print absolute errors of each eigenpair","PEPErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_error_relative","Print relative errors of each eigenpair","PEPErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_error_backward","Print backward errors of each eigenpair","PEPErrorView",0);CHKERRQ(ierr);
 
     if (pep->ops->setfromoptions) {
       ierr = (*pep->ops->setfromoptions)(PetscOptionsObject,pep);CHKERRQ(ierr);

@@ -180,7 +180,7 @@ int main(int argc,char **argv)
       /*
          Compute residual norm and error
       */
-      ierr = NEPComputeRelativeError(nep,i,&norm);CHKERRQ(ierr);
+      ierr = NEPComputeError(nep,i,NEP_ERROR_RELATIVE,&norm);CHKERRQ(ierr);
       ierr = CheckSolution(lambda,x,&error,&ctx);CHKERRQ(ierr);
 
 #if defined(PETSC_USE_COMPLEX)
