@@ -43,6 +43,7 @@ PetscErrorCode SVDRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (SVDRegisterAllCalled) PetscFunctionReturn(0);
   SVDRegisterAllCalled = PETSC_TRUE;
   ierr = SVDRegister(SVDCROSS,SVDCreate_Cross);CHKERRQ(ierr);
   ierr = SVDRegister(SVDCYCLIC,SVDCreate_Cyclic);CHKERRQ(ierr);
@@ -51,3 +52,4 @@ PetscErrorCode SVDRegisterAll(void)
   ierr = SVDRegister(SVDTRLANCZOS,SVDCreate_TRLanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

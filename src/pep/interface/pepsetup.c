@@ -48,7 +48,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   PetscErrorCode ierr;
   SlepcSC        sc;
   PetscBool      islinear,istrivial,flg;
-  PetscInt       i,k;
+  PetscInt       k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -88,17 +88,6 @@ PetscErrorCode PEPSetUp(PEP pep)
   /* set default problem type */
   if (!pep->problem_type) {
     ierr = PEPSetProblemType(pep,PEP_GENERAL);CHKERRQ(ierr);
-  }
-
-  /* initialization of matrix norms */
-  if (pep->conv==PEP_CONV_NORM) {
-    for (i=0;i<pep->nmat;i++) {
-      ierr = MatHasOperation(pep->A[i],MATOP_NORM,&flg);CHKERRQ(ierr);
-      if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Norm relative converged criterion require a matrix norm operation");
-      if (!pep->nrma[i]) {
-        ierr = MatNorm(pep->A[i],NORM_INFINITY,&pep->nrma[i]);CHKERRQ(ierr);
-      }
-    }
   }
 
   /* call specific solver setup */
@@ -193,6 +182,10 @@ PetscErrorCode PEPSetUp(PEP pep)
       ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dr);CHKERRQ(ierr);
     }
     ierr = PEPBuildDiagonalScaling(pep);CHKERRQ(ierr);
+  }
+
+  if (pep->conv==PEP_CONV_LINEAR) {
+    ierr = PEPComputeLinearNorms(pep);CHKERRQ(ierr);
   }
 
   /* process initial vectors */

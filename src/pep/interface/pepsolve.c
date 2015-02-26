@@ -26,7 +26,7 @@
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPComputeVectors"
-PETSC_STATIC_INLINE PetscErrorCode PEPComputeVectors(PEP pep)
+PetscErrorCode PEPComputeVectors(PEP pep)
 {
   PetscErrorCode ierr;
 
@@ -57,7 +57,14 @@ PETSC_STATIC_INLINE PetscErrorCode PEPComputeVectors(PEP pep)
 
    Options Database Keys:
 +  -pep_view - print information about the solver used
--  -pep_plot_eigs - plot computed eigenvalues
+.  -pep_view_matk binary - save any of the coefficient matrices (Ak) to the
+                default binary viewer (replace k by an integer from 0 to nmat-1)
+.  -pep_view_vectors binary - save the computed eigenvectors to the default binary viewer
+.  -pep_view_values - print computed eigenvalues
+.  -pep_converged_reason - print reason for convergence, and number of iterations
+.  -pep_error_absolute - print absolute errors of each eigenpair
+.  -pep_error_relative - print relative errors of each eigenpair
+-  -pep_error_backward - print backward errors of each eigenpair
 
    Level: beginner
 
@@ -67,11 +74,9 @@ PetscErrorCode PEPSolve(PEP pep)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscReal      re,im;
   PetscBool      flg,islinear;
-  PetscViewer    viewer;
-  PetscDraw      draw;
-  PetscDrawSP    drawsp;
+#define OPTLEN 16
+  char           str[OPTLEN];
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -85,6 +90,7 @@ PetscErrorCode PEPSolve(PEP pep)
     pep->eigr[i]   = 0.0;
     pep->eigi[i]   = 0.0;
     pep->errest[i] = 0.0;
+    pep->perm[i]   = i;
   }
   ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,pep->ncv);CHKERRQ(ierr);
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view_pre");CHKERRQ(ierr);
@@ -134,26 +140,12 @@ PetscErrorCode PEPSolve(PEP pep)
   /* various viewers */
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view");CHKERRQ(ierr);
   ierr = PEPReasonViewFromOptions(pep);CHKERRQ(ierr);
-
-  flg = PETSC_FALSE;
-  ierr = PetscOptionsGetBool(((PetscObject)pep)->prefix,"-pep_plot_eigs",&flg,NULL);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
-    ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
-    for (i=0;i<pep->nconv;i++) {
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(pep->eigr[i]);
-      im = PetscImaginaryPart(pep->eigr[i]);
-#else
-      re = pep->eigr[i];
-      im = pep->eigi[i];
-#endif
-      ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
-    }
-    ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  ierr = PEPErrorViewFromOptions(pep);CHKERRQ(ierr);
+  ierr = PEPValuesViewFromOptions(pep);CHKERRQ(ierr);
+  ierr = PEPVectorsViewFromOptions(pep);CHKERRQ(ierr);
+  for (i=0;i<pep->nmat;i++) {
+    ierr = PetscSNPrintf(str,OPTLEN,"-pep_view_mat%d",(int)i);CHKERRQ(ierr);
+    ierr = MatViewFromOptions(pep->A[i],((PetscObject)pep)->prefix,str);CHKERRQ(ierr);
   }
 
   /* Remove the initial subspace */
@@ -359,12 +351,12 @@ PetscErrorCode PEPGetEigenpair(PEP pep,PetscInt i,PetscScalar *eigr,PetscScalar 
 
    Notes:
    This is the error estimate used internally by the eigensolver. The actual
-   error bound can be computed with PEPComputeRelativeError(). See also the users
+   error bound can be computed with PEPComputeError(). See also the users
    manual for details.
 
    Level: advanced
 
-.seealso: PEPComputeRelativeError()
+.seealso: PEPComputeError()
 @*/
 PetscErrorCode PEPGetErrorEstimate(PEP pep,PetscInt i,PetscReal *errest)
 {
@@ -470,116 +462,74 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPComputeResidualNorm"
+#define __FUNCT__ "PEPComputeError"
 /*@
-   PEPComputeResidualNorm - Computes the norm of the residual vector associated
+   PEPComputeError - Computes the error (based on the residual norm) associated
    with the i-th computed eigenpair.
 
    Collective on PEP
 
    Input Parameter:
-+  pep - the polynomial eigensolver context
--  i   - the solution index
++  pep  - the polynomial eigensolver context
+.  i    - the solution index
+-  type - the type of error to compute
 
    Output Parameter:
-.  norm - the residual norm, computed as ||P(l)x||_2 where l is the
-   eigenvalue and x is the eigenvector.
+.  error - the error
 
    Notes:
-   The index i should be a value between 0 and nconv-1 (see PEPGetConverged()).
-   Eigenpairs are indexed according to the ordering criterion established
-   with PEPSetWhichEigenpairs().
+   The error can be computed in various ways, all of them based on the residual
+   norm ||P(l)x||_2 where l is the eigenvalue and x is the eigenvector.
+   See the users guide for additional details.
 
    Level: beginner
 
-.seealso: PEPSolve(), PEPGetConverged(), PEPSetWhichEigenpairs()
+.seealso: PEPErrorType, PEPSolve(), PEPGetErrorEstimate()
 @*/
-PetscErrorCode PEPComputeResidualNorm(PEP pep,PetscInt i,PetscReal *norm)
+PetscErrorCode PEPComputeError(PEP pep,PetscInt i,PEPErrorType type,PetscReal *error)
 {
   PetscErrorCode ierr;
   Vec            xr,xi;
   PetscScalar    kr,ki;
+  PetscReal      t,z=0.0;
+  PetscInt       j;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,i,2);
-  PetscValidPointer(norm,3);
+  PetscValidLogicalCollectiveEnum(pep,type,3);
+  PetscValidPointer(error,4);
   PEPCheckSolved(pep,1);
   ierr = BVGetVec(pep->V,&xr);CHKERRQ(ierr);
   ierr = BVGetVec(pep->V,&xi);CHKERRQ(ierr);
   ierr = PEPGetEigenpair(pep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
-  ierr = PEPComputeResidualNorm_Private(pep,kr,ki,xr,xi,norm);CHKERRQ(ierr);
-  ierr = VecDestroy(&xr);CHKERRQ(ierr);
-  ierr = VecDestroy(&xi);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPComputeRelativeError_Private"
-/*
-   PEPComputeRelativeError_Private - Computes the relative error bound
-   associated with an eigenpair.
-*/
-PetscErrorCode PEPComputeRelativeError_Private(PEP pep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *error)
-{
-  PetscErrorCode ierr;
-  PetscReal      norm,er;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscReal      ei;
-#endif
-
-  PetscFunctionBegin;
-  ierr = PEPComputeResidualNorm_Private(pep,kr,ki,xr,xi,&norm);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  if (ki == 0) {
-#endif
-    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  } else {
-    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
-    ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);
-    er = SlepcAbsEigenvalue(er,ei);
+  ierr = PEPComputeResidualNorm_Private(pep,kr,ki,xr,xi,error);CHKERRQ(ierr);
+  if (type==PETSC_DEFAULT) type = PEP_ERROR_BACKWARD;
+  switch (type) {
+    case PEP_ERROR_ABSOLUTE:
+      break;
+    case PEP_ERROR_RELATIVE:
+      *error /= SlepcAbsEigenvalue(kr,ki);
+      break;
+    case PEP_ERROR_BACKWARD:
+      /* initialization of matrix norms */
+      if (!pep->nrma[pep->nmat-1]) {
+        for (j=0;j<pep->nmat;j++) {
+          ierr = MatHasOperation(pep->A[j],MATOP_NORM,&flg);CHKERRQ(ierr);
+          if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
+          ierr = MatNorm(pep->A[j],NORM_INFINITY,&pep->nrma[j]);CHKERRQ(ierr);
+        }
+      }
+      t = SlepcAbsEigenvalue(kr,ki);
+      for (j=pep->nmat-1;j>=0;j--) {
+        z = z*t+pep->nrma[j];
+      }
+      *error /= z;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
   }
-#endif
-  ierr = (*pep->converged)(pep,kr,ki,norm/er,error,pep->convergedctx);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPComputeRelativeError"
-/*@
-   PEPComputeRelativeError - Computes the relative error bound associated
-   with the i-th computed eigenpair.
-
-   Collective on PEP
-
-   Input Parameter:
-+  pep - the polynomial eigensolver context
--  i   - the solution index
-
-   Output Parameter:
-.  error - the relative error bound, computed as ||P(l)x||_2/||lx||_2 where
-   l is the eigenvalue and x is the eigenvector.
-
-   Level: beginner
-
-.seealso: PEPSolve(), PEPComputeResidualNorm(), PEPGetErrorEstimate()
-@*/
-PetscErrorCode PEPComputeRelativeError(PEP pep,PetscInt i,PetscReal *error)
-{
-  PetscErrorCode ierr;
-  Vec            xr,xi;
-  PetscScalar    kr,ki;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidLogicalCollectiveInt(pep,i,2);
-  PetscValidPointer(error,3);
-  PEPCheckSolved(pep,1);
-  ierr = BVGetVec(pep->V,&xr);CHKERRQ(ierr);
-  ierr = BVGetVec(pep->V,&xi);CHKERRQ(ierr);
-  ierr = PEPGetEigenpair(pep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
-  ierr = PEPComputeRelativeError_Private(pep,kr,ki,xr,xi,error);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
   PetscFunctionReturn(0);

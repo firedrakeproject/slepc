@@ -48,6 +48,7 @@ import feast
 import lapack
 import primme
 import blopex
+import sowing
 
 if not hasattr(sys, 'version_info') or not sys.version_info[0] == 2 or not sys.version_info[1] >= 4:
   print '*****  You must have Python2 version 2.4 or higher to run ./configure.py   ******'
@@ -94,6 +95,8 @@ feastlibs = []
 getblopex = 0
 haveblopex = 0
 blopexurl = ''
+getsowing = 0
+sowingurl = ''
 doclean = 0
 prefixdir = ''
 datafilespath = ''
@@ -143,6 +146,10 @@ for i in sys.argv[1:]:
     getblopex = not i.endswith('=0')
     try: blopexurl = i.split('=')[1]
     except IndexError: pass
+  elif i.startswith('--download-sowing'):
+    getsowing = not i.endswith('=0')
+    try: sowingurl = i.split('=')[1]
+    except IndexError: pass
   elif i.startswith('--with-clean='):
     doclean = not i.endswith('=0')
   elif i.startswith('--prefix='):
@@ -178,6 +185,8 @@ for i in sys.argv[1:]:
     print '  --with-feast-flags=<flags>       : Indicate comma-separated flags for linking FEAST'
     print 'BLOPEX:'
     print '  --download-blopex                : Download and install BLOPEX in SLEPc directory'
+    print 'Sowing:'
+    print '  --download-sowing                : Download and install Sowing in SLEPc directory'
     sys.exit(0)
   else:
     sys.exit('ERROR: Invalid argument ' + i +'. Use -h for help')
@@ -223,18 +232,20 @@ if prefixinstall and not petscconf.ISINSTALL:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
 # Check for empty PETSC_ARCH
-archdir = os.sep.join([slepcdir,petscconf.ARCH])
+archname = petscconf.ARCH
 emptyarch = 1
 if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']: emptyarch = 0
 if emptyarch:
+  archname = 'installed-' + petscconf.ARCH
   globconfdir = os.sep.join([slepcdir,'lib','slepc-conf'])
   try:
     globconf = open(os.sep.join([globconfdir,'slepcvariables']),'w')
     globconf.write('SLEPC_DIR = ' + slepcdir +'\n')
-    globconf.write('PETSC_ARCH = ' + petscconf.ARCH +'\n')
+    globconf.write('PETSC_ARCH = ' + archname + '\n')
     globconf.close()
   except:
     sys.exit('ERROR: cannot create configuration file in ' + globconfdir)
+archdir = os.sep.join([slepcdir,archname])
 
 # Clean previous configuration if needed
 if os.path.exists(archdir):
@@ -337,7 +348,7 @@ try:
   if archdir != prefixdir:
     modules = open(os.sep.join([modulesdir,slepcversion.LVERSION]),'w')
   else:
-    modules = open(os.sep.join([modulesdir,slepcversion.LVERSION+'-'+petscconf.ARCH]),'w')
+    modules = open(os.sep.join([modulesdir,slepcversion.LVERSION+'-'+archname]),'w')
 except:
   sys.exit('ERROR: cannot create modules file in ' + modulesdir)
 try:
@@ -419,15 +430,26 @@ if getblopex:
 # Check for missing LAPACK functions
 missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
 
-# Make Fortran stubs if necessary
+# Download sowing if requested and make Fortran stubs if necessary
+bfort = petscconf.BFORT
+if getsowing:
+  bfort = sowing.Install(sowingurl,archdir)
+
 if slepcversion.ISREPO and hasattr(petscconf,'FC'):
   try:
+    if not os.path.exists(bfort):
+      bfort = os.path.join(archdir,'bin','bfort')
+    if not os.path.exists(bfort):
+      bfort = sowing.Install(sowingurl,archdir)
     sys.path.insert(0, os.path.abspath(os.path.join('bin','maint')))
     import generatefortranstubs
-    generatefortranstubs.main(slepcdir,petscconf.BFORT,os.getcwd(),0)
+    generatefortranstubs.main(slepcdir,bfort,os.getcwd(),0)
     generatefortranstubs.processf90interfaces(slepcdir,0)
   except AttributeError:
     sys.exit('ERROR: cannot generate Fortran stubs; try configuring PETSc with --download-sowing or use a mercurial version of PETSc')
+
+if bfort != petscconf.BFORT:
+  slepcvars.write('BFORT = '+bfort+'\n')
 
 # CMake stuff
 cmake.write('set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}" "${FEAST_LIB}" "${BLOPEX_LIB}" )\n')
@@ -474,7 +496,7 @@ if cmakeok:
 modules.write('#%Module\n\n')
 modules.write('proc ModulesHelp { } {\n')
 modules.write('    puts stderr "This module sets the path and environment variables for slepc-%s"\n' % slepcversion.LVERSION)
-modules.write('    puts stderr "     see http://www.grycap.upv.es/slepc/ for more information"\n')
+modules.write('    puts stderr "     see http://slepc.upv.es/ for more information"\n')
 modules.write('    puts stderr ""\n}\n')
 modules.write('module-whatis "SLEPc - Scalable Library for Eigenvalue Problem Computations"\n\n')
 modules.write('module load petsc\n')
@@ -535,7 +557,7 @@ if petscversion.ISREPO and slepcversion.ISREPO:
 if emptyarch and archdir != prefixdir:
   log.Println('Prefix install with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
 else:
-  log.Println('Architecture "'+petscconf.ARCH+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
+  log.Println('Architecture "'+archname+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
 if havearpack:
   log.Println('ARPACK library flags:')
   log.Println(' '+str.join(' ',arpacklibs))
@@ -568,9 +590,9 @@ if petscconf.MAKE_IS_GNUMAKE: buildtype = 'gnumake'
 elif cmakeok: buildtype = 'cmake'
 else: buildtype = 'legacy'
 print ' Configure stage complete. Now build the SLEPc library with ('+buildtype+' build):'
-if emptyarch and archdir != prefixdir:
+if emptyarch:
   print '   make SLEPC_DIR=$PWD PETSC_DIR='+petscdir
 else:
-  print '   make SLEPC_DIR=$PWD PETSC_DIR='+petscdir+' PETSC_ARCH='+petscconf.ARCH
+  print '   make SLEPC_DIR=$PWD PETSC_DIR='+petscdir+' PETSC_ARCH='+archname
 print 'xxx'+'='*73+'xxx'
 print

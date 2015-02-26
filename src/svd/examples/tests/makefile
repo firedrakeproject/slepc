@@ -70,7 +70,7 @@ runtest2_1:
 	-@touch test2_1.tmp; \
 	for svd in ${SVDEPS} ${SVD}; do \
 	   echo "svd type $$svd" >> test2_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test2 -svd_type $$svd -svd_nsv 7 -svd_terse >> test2_1.tmp 2>&1;    \
+	   ${MPIEXEC} -np 1 ./test2 -svd_type $$svd -svd_nsv 7 >> test2_1.tmp 2>&1;    \
 	done; \
 	if (${GREP} USE_COMPLEX ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
 	  [ x${SAVE_OUTPUT} = xyes ] && cp test2_1.tmp output/test2_1_complex.out; \
@@ -87,7 +87,7 @@ runtest3_1:
 	-@touch test3_1.tmp; \
 	for svd in ${SVDEPS} ${SVD}; do \
 	   echo "svd type $$svd" >> test3_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test3 -svd_type $$svd -svd_nsv 4 -svd_terse >> test3_1.tmp 2>&1; \
+	   ${MPIEXEC} -np 1 ./test3 -svd_type $$svd -svd_nsv 4 >> test3_1.tmp 2>&1; \
 	done; \
 	[ x${SAVE_OUTPUT} = xyes ] && cp test3_1.tmp output/test3_1.out; \
 	if (${DIFF} output/test3_1.out test3_1.tmp) then true; \

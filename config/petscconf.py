@@ -99,6 +99,8 @@ def Load(petscdir):
         DEBUG = 1
       elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_SINGLE_LIBRARY' and l[2]=='1':
         SINGLELIB = 1
+      elif ISINSTALL and len(l)==3 and l[0]=='#define' and l[1]=='PETSC_ARCH':
+        ARCH = l[2].strip('"')
     f.close()
   except:
     if ISINSTALL:
@@ -107,7 +109,7 @@ def Load(petscdir):
       sys.exit('ERROR: cannot process file ' + PETSCCONF_H)
 
   # empty PETSC_ARCH, guess an arch name
-  if ISINSTALL:
+  if ISINSTALL and not ARCH:
     ARCH = 'arch-' + sys.platform.replace('cygwin','mswin')+ '-' + LANGUAGE
     if DEBUG:
       ARCH += '-debug'

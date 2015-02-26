@@ -106,14 +106,22 @@
       parameter (PEP_EXTRACT_RESIDUAL       =  3)
       parameter (PEP_EXTRACT_STRUCTURED     =  4)
 
+      PetscEnum PEP_ERROR_ABSOLUTE
+      PetscEnum PEP_ERROR_RELATIVE
+      PetscEnum PEP_ERROR_BACKWARD
+
+      parameter (PEP_ERROR_ABSOLUTE         =  0)
+      parameter (PEP_ERROR_RELATIVE         =  1)
+      parameter (PEP_ERROR_BACKWARD         =  2)
+
       PetscEnum PEP_CONV_ABS
       PetscEnum PEP_CONV_EIG
-      PetscEnum PEP_CONV_NORM
+      PetscEnum PEP_CONV_LINEAR
       PetscEnum PEP_CONV_USER
 
       parameter (PEP_CONV_ABS               =  0)
       parameter (PEP_CONV_EIG               =  1)
-      parameter (PEP_CONV_NORM              =  2)
+      parameter (PEP_CONV_LINEAR            =  2)
       parameter (PEP_CONV_USER              =  3)
 
 !

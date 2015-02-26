@@ -41,6 +41,7 @@ PetscErrorCode PEPRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (PEPRegisterAllCalled) PetscFunctionReturn(0);
   PEPRegisterAllCalled = PETSC_TRUE;
   ierr = PEPRegister(PEPLINEAR,PEPCreate_Linear);CHKERRQ(ierr);
   ierr = PEPRegister(PEPQARNOLDI,PEPCreate_QArnoldi);CHKERRQ(ierr);

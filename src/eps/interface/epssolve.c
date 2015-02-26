@@ -26,7 +26,7 @@
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSComputeVectors"
-PETSC_STATIC_INLINE PetscErrorCode EPSComputeVectors(EPS eps)
+PetscErrorCode EPSComputeVectors(EPS eps)
 {
   PetscErrorCode ierr;
 
@@ -59,7 +59,12 @@ PETSC_STATIC_INLINE PetscErrorCode EPSComputeVectors(EPS eps)
 +  -eps_view - print information about the solver used
 .  -eps_view_mat0 binary - save the first matrix (A) to the default binary viewer
 .  -eps_view_mat1 binary - save the second matrix (B) to the default binary viewer
--  -eps_plot_eigs - plot computed eigenvalues
+.  -eps_view_vectors binary - save the computed eigenvectors to the default binary viewer
+.  -eps_view_values - print computed eigenvalues
+.  -eps_converged_reason - print reason for convergence, and number of iterations
+.  -eps_error_absolute - print absolute errors of each eigenpair
+.  -eps_error_relative - print relative errors of each eigenpair
+-  -eps_error_backward - print backward errors of each eigenpair
 
    Level: beginner
 
@@ -69,12 +74,8 @@ PetscErrorCode EPSSolve(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i,nmat;
-  PetscReal      re,im;
   PetscScalar    dot;
-  PetscBool      flg,iscayley;
-  PetscViewer    viewer;
-  PetscDraw      draw;
-  PetscDrawSP    drawsp;
+  PetscBool      iscayley;
   STMatMode      matmode;
   Mat            A,B;
   Vec            w,x;
@@ -91,6 +92,7 @@ PetscErrorCode EPSSolve(EPS eps)
     eps->eigr[i]   = 0.0;
     eps->eigi[i]   = 0.0;
     eps->errest[i] = 0.0;
+    eps->perm[i]   = i;
   }
   ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->ncv);CHKERRQ(ierr);
   ierr = EPSViewFromOptions(eps,NULL,"-eps_view_pre");CHKERRQ(ierr);
@@ -156,29 +158,11 @@ PetscErrorCode EPSSolve(EPS eps)
   /* various viewers */
   ierr = EPSViewFromOptions(eps,NULL,"-eps_view");CHKERRQ(ierr);
   ierr = EPSReasonViewFromOptions(eps);CHKERRQ(ierr);
+  ierr = EPSErrorViewFromOptions(eps);CHKERRQ(ierr);
+  ierr = EPSValuesViewFromOptions(eps);CHKERRQ(ierr);
+  ierr = EPSVectorsViewFromOptions(eps);CHKERRQ(ierr);
   ierr = MatViewFromOptions(A,((PetscObject)eps)->prefix,"-eps_view_mat0");CHKERRQ(ierr);
   if (nmat>1) { ierr = MatViewFromOptions(B,((PetscObject)eps)->prefix,"-eps_view_mat1");CHKERRQ(ierr); }
-
-  flg = PETSC_FALSE;
-  ierr = PetscOptionsGetBool(((PetscObject)eps)->prefix,"-eps_plot_eigs",&flg,NULL);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
-    ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
-    for (i=0;i<eps->nconv;i++) {
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(eps->eigr[i]);
-      im = PetscImaginaryPart(eps->eigr[i]);
-#else
-      re = eps->eigr[i];
-      im = eps->eigi[i];
-#endif
-      ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
-    }
-    ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-  }
 
   /* Remove deflation and initial subspaces */
   eps->nds = 0;
@@ -328,7 +312,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec *v)
   PetscValidPointer(v,2);
   PetscValidHeaderSpecific(*v,VEC_CLASSID,2);
   EPSCheckSolved(eps,1);
-  if (!eps->ishermitian && eps->state==EPS_STATE_EIGENVECTORS) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector,EPSComputeRelativeError or EPSComputeResidualNorm");
+  if (!eps->ishermitian && eps->state==EPS_STATE_EIGENVECTORS) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector or EPSComputeError");
   for (i=0;i<eps->nconv;i++) {
     ierr = BVCopyVec(eps->V,i,v[i]);CHKERRQ(ierr);
     if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
@@ -526,12 +510,12 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
 
    Notes:
    This is the error estimate used internally by the eigensolver. The actual
-   error bound can be computed with EPSComputeRelativeError(). See also the users
+   error bound can be computed with EPSComputeError(). See also the users
    manual for details.
 
    Level: advanced
 
-.seealso: EPSComputeRelativeError()
+.seealso: EPSComputeError()
 @*/
 PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
 {
@@ -609,119 +593,77 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSComputeResidualNorm"
+#define __FUNCT__ "EPSComputeError"
 /*@
-   EPSComputeResidualNorm - Computes the norm of the residual vector associated
+   EPSComputeError - Computes the error (based on the residual norm) associated
    with the i-th computed eigenpair.
 
    Collective on EPS
 
    Input Parameter:
-+  eps - the eigensolver context
--  i   - the solution index
++  eps  - the eigensolver context
+.  i    - the solution index
+-  type - the type of error to compute
 
    Output Parameter:
-.  norm - the residual norm, computed as ||Ax-kBx||_2 where k is the
-   eigenvalue and x is the eigenvector.
-   If k=0 then the residual norm is computed as ||Ax||_2.
+.  error - the error
 
    Notes:
-   The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
-   Eigenpairs are indexed according to the ordering criterion established
-   with EPSSetWhichEigenpairs().
+   The error can be computed in various ways, all of them based on the residual
+   norm ||Ax-kBx||_2 where k is the eigenvalue and x is the eigenvector.
 
    Level: beginner
 
-.seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs()
+.seealso: EPSErrorType, EPSSolve(), EPSGetErrorEstimate()
 @*/
-PetscErrorCode EPSComputeResidualNorm(EPS eps,PetscInt i,PetscReal *norm)
+PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *error)
 {
   PetscErrorCode ierr;
+  Mat            A,B;
   Vec            xr,xi;
+  PetscReal      t;
   PetscScalar    kr,ki;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
-  PetscValidPointer(norm,3);
+  PetscValidLogicalCollectiveEnum(eps,type,3);
+  PetscValidPointer(error,4);
   EPSCheckSolved(eps,1);
   ierr = BVGetVec(eps->V,&xr);CHKERRQ(ierr);
   ierr = BVGetVec(eps->V,&xi);CHKERRQ(ierr);
   ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
-  ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,norm);CHKERRQ(ierr);
-  ierr = VecDestroy(&xr);CHKERRQ(ierr);
-  ierr = VecDestroy(&xi);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSComputeRelativeError_Private"
-/*
-   EPSComputeRelativeError_Private - Computes the relative error bound
-   associated with an eigenpair.
-*/
-PetscErrorCode EPSComputeRelativeError_Private(EPS eps,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *error)
-{
-  PetscErrorCode ierr;
-  PetscReal      norm,er;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscReal      ei;
-#endif
-
-  PetscFunctionBegin;
-  ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,&norm);CHKERRQ(ierr);
-
-#if !defined(PETSC_USE_COMPLEX)
-  if (ki == 0) {
-#endif
-    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  } else {
-    ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
-    ierr = VecNorm(xi,NORM_2,&ei);CHKERRQ(ierr);
-    er = SlepcAbsEigenvalue(er,ei);
+  ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,error);CHKERRQ(ierr);
+  if (type==PETSC_DEFAULT) type = EPS_ERROR_BACKWARD;
+  switch (type) {
+    case EPS_ERROR_ABSOLUTE:
+      break;
+    case EPS_ERROR_RELATIVE:
+      *error /= SlepcAbsEigenvalue(kr,ki);
+      break;
+    case EPS_ERROR_BACKWARD:
+      /* initialization of matrix norms */
+      if (!eps->nrma) {
+        ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+        ierr = MatHasOperation(A,MATOP_NORM,&flg);CHKERRQ(ierr);
+        if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
+        ierr = MatNorm(A,NORM_INFINITY,&eps->nrma);CHKERRQ(ierr);
+      }
+      if (eps->isgeneralized) {
+        if (!eps->nrmb) {
+          ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
+          ierr = MatHasOperation(B,MATOP_NORM,&flg);CHKERRQ(ierr);
+          if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
+          ierr = MatNorm(B,NORM_INFINITY,&eps->nrmb);CHKERRQ(ierr);
+        }
+      } else eps->nrmb = 1.0;
+      t = SlepcAbsEigenvalue(kr,ki);
+      *error /= eps->nrma+t*eps->nrmb;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
   }
-#endif
-  ierr = (*eps->converged)(eps,kr,ki,norm/er,error,eps->convergedctx);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSComputeRelativeError"
-/*@
-   EPSComputeRelativeError - Computes the relative error bound associated
-   with the i-th computed eigenpair.
-
-   Collective on EPS
-
-   Input Parameter:
-+  eps - the eigensolver context
--  i   - the solution index
-
-   Output Parameter:
-.  error - the relative error bound, computed as ||Ax-kBx||_2/||kx||_2 where
-   k is the eigenvalue and x is the eigenvector.
-   If k=0 the relative error is computed as ||Ax||_2/||x||_2.
-
-   Level: beginner
-
-.seealso: EPSSolve(), EPSComputeResidualNorm(), EPSGetErrorEstimate()
-@*/
-PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *error)
-{
-  PetscErrorCode ierr;
-  Vec            xr,xi;
-  PetscScalar    kr,ki;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidLogicalCollectiveInt(eps,i,2);
-  PetscValidPointer(error,3);
-  EPSCheckSolved(eps,1);
-  ierr = BVGetVec(eps->V,&xr);CHKERRQ(ierr);
-  ierr = BVGetVec(eps->V,&xi);CHKERRQ(ierr);
-  ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
-  ierr = EPSComputeRelativeError_Private(eps,kr,ki,xr,xi,error);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
   PetscFunctionReturn(0);

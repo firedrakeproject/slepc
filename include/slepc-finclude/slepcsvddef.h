@@ -32,9 +32,9 @@
 #endif
 
 #define SVDType            character*(80)
-#define SVDTransposeMode   PetscEnum
-#define SVDWhich           PetscEnum
 #define SVDConvergedReason PetscEnum
+#define SVDErrorType       PetscEnum
+#define SVDWhich           PetscEnum
 
 #define SVDCROSS     'cross'
 #define SVDCYCLIC    'cyclic'
