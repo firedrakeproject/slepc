@@ -96,7 +96,7 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
 */
 #undef __FUNCT__
 #define __FUNCT__ "PEPSimpleNRefGatherEigenpair"
-PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx)
+static PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx)
 {
   PetscErrorCode    ierr;
   PetscMPIInt       nproc,p;
@@ -131,7 +131,7 @@ PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,PetscInt
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSimpleNRefScatterEigenvector"
-PetscErrorCode PEPSimpleNRefScatterEigenvector(PEP pep,PEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx)
+static PetscErrorCode PEPSimpleNRefScatterEigenvector(PEP pep,PEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx)
 {
   PetscErrorCode    ierr;
   Vec               v;
@@ -178,7 +178,7 @@ static PetscErrorCode PEPEvaluateFunctionDerivatives(PEP pep,PetscScalar alpha,P
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSimpleNRefSetUpSystem"
-PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PetscInt idx,Mat *M,Mat *T,PetscBool ini,Vec *t,Vec v)
+static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PetscInt idx,Mat *M,Mat *T,PetscBool ini,Vec *t,Vec v)
 {
   PetscErrorCode    ierr;
   PetscInt          i,nmat=pep->nmat,ml,m0,m1,mg;
@@ -302,7 +302,8 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   ierr = PEPSimpleNRefSetUp(pep,&ctx);CHKERRQ(ierr);
   its = (maxits)?*maxits:NREF_MAXIT;
   comm = (pep->npart==1)?PetscObjectComm((PetscObject)pep):PetscSubcommChild(ctx->subc);
-  ierr = KSPCreate(comm,&ksp);
+  ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
+  ierr = PEPRefineGetKSP(pep,&ksp);CHKERRQ(ierr);
   if (pep->npart==1) {
     ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
   } else v = ctx->v;
@@ -390,7 +391,6 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
       if (pep->npart==1) { ierr = BVRestoreColumn(pep->V,idx_sc[color],&v);CHKERRQ(ierr); } 
     }
   }
-  ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&T);CHKERRQ(ierr);
   ierr = VecDestroy(&t[0]);CHKERRQ(ierr);
