@@ -228,12 +228,6 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   PetscBool          ini=PETSC_TRUE,sc_pend,solved=PETSC_FALSE;
   PEPSimpNRefctx     *ctx;
   KSPConvergedReason reason;
-/*
-
-Array con residuos de todos los pares, calculados con PEPComputeError
-Los que se tienen que refinar calcularan el nuevo error con la matriz T que se calcula
-
-*/
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
