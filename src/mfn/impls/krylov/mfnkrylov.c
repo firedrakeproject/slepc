@@ -88,10 +88,10 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscErrorCode ierr;
   PetscInt       mxstep,mxrej,m,mb,ld,i,j,ireject,mx,k1;
   Vec            v,r;
-  PetscScalar    *H,*B,*F,*betaF;
+  PetscScalar    *H,*B,*F,*betaF,t,sgn;
   PetscReal      anorm,normb,avnorm,tol,err_loc,rndoff;
-  PetscReal      t,t_out,t_new,t_now,t_step;
-  PetscReal      xm,fact,s,sgn,p1,p2;
+  PetscReal      t_out,t_new,t_now,t_step;
+  PetscReal      xm,fact,s,p1,p2;
   PetscReal      beta,gamma,delta;
   PetscBool      breakdown;
 
@@ -103,8 +103,8 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   gamma = 0.9;
   delta = 1.2;
   mb    = m;
-  t     = PetscRealPart(mfn->sfactor);
-  t_out = PetscAbsReal(t);
+  t     = mfn->sfactor;
+  t_out = PetscAbsScalar(t);
   t_new = 0.0;
   t_now = 0.0;
   ierr = MatNorm(mfn->A,NORM_INFINITY,&anorm);CHKERRQ(ierr);
@@ -119,7 +119,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   t_new = (1.0/anorm)*PetscPowReal((fact*tol)/(4.0*beta*anorm),xm);
   s = PetscPowReal(10,PetscFloorReal(PetscLog10Real(t_new))-1);
   t_new = PetscCeilReal(t_new/s)*s;
-  sgn = PetscSign(t);
+  sgn = t/PetscAbsScalar(t);
 
   ierr = VecCopy(b,x);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(mfn->ds,&ld);CHKERRQ(ierr);
