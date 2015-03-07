@@ -24,42 +24,44 @@ import sys
 
 import petscconf
 import log
-import check
+import package
 
-def Check(conf,vars,cmake,tmpdir,directory,libs):
+class Feast(package.Package):
 
-  if petscconf.SCALAR != 'complex':
-    log.Exit('ERROR: FEAST is supported only with complex numbers.')
-
-  if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
-    log.Exit('ERROR: FEAST is supported only in single or double precision.')
-
-  if petscconf.IND64:
-    log.Exit('ERROR: cannot use external packages with 64-bit indices.')
-
-  functions = ['feastinit']
-  if petscconf.SCALAR == 'real':
-    if petscconf.PRECISION == 'single':
-      functions += ['sfeast_srci']
+  def Check(self,conf,vars,cmake,tmpdir,directory,libs):
+  
+    if petscconf.SCALAR != 'complex':
+      log.Exit('ERROR: FEAST is supported only with complex numbers.')
+  
+    if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
+      log.Exit('ERROR: FEAST is supported only in single or double precision.')
+  
+    if petscconf.IND64:
+      log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+  
+    functions = ['feastinit']
+    if petscconf.SCALAR == 'real':
+      if petscconf.PRECISION == 'single':
+        functions += ['sfeast_srci']
+      else:
+        functions += ['dfeast_srci']
     else:
-      functions += ['dfeast_srci']
-  else:
-    if petscconf.PRECISION == 'single':
-      functions += ['cfeast_hrci']
+      if petscconf.PRECISION == 'single':
+        functions += ['cfeast_hrci']
+      else:
+        functions += ['zfeast_hrci']
+  
+    if libs:
+      libs = [libs]
     else:
-      functions += ['zfeast_hrci']
-
-  if libs:
-    libs = [libs]
-  else:
-    if petscconf.MPIUNI:
-      libs = [['-lpfeast']]
+      if petscconf.MPIUNI:
+        libs = [['-lpfeast']]
+      else:
+        libs = [['-lfeast']]
+  
+    if directory:
+      dirs = [directory]
     else:
-      libs = [['-lfeast']]
-
-  if directory:
-    dirs = [directory]
-  else:
-    dirs = check.GenerateGuesses('Feast')
-
-  return check.FortranLib(tmpdir,conf,vars,cmake,'FEAST',dirs,libs,functions)
+      dirs = self.GenerateGuesses('Feast')
+  
+    return self.FortranLib(tmpdir,conf,vars,cmake,'FEAST',dirs,libs,functions)

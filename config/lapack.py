@@ -24,87 +24,89 @@ import sys
 
 import petscconf
 import log
-import check
+import package
 
-def Check(conf,vars,cmake,tmpdir):
-  log.write('='*80)
-  log.Println('Checking LAPACK library...')
+class Lapack(package.Package):
 
-  # LAPACK standard functions
-  l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf','stedc','hsein','larfg','larf','trsen','tgsen','lacpy','lascl','lansy','laset']
-
-  # LAPACK functions with different real and complex versions
-  if petscconf.SCALAR == 'real':
-    l += ['orghr','syevr','syevd','sytrd','sygvd','ormlq','orgqr','orgtr']
-    if petscconf.PRECISION == 'single':
-      prefix = 's'
-    elif petscconf.PRECISION == '__float128':
-      prefix = 'q'
-    else:
-      prefix = 'd'
-  else:
-    l += ['unghr','heevr','heevd','hetrd','hegvd','unmlq','ungqr','ungtr']
-    if petscconf.PRECISION == 'single':
-      prefix = 'c'
-    elif petscconf.PRECISION == '__float128':
-      prefix = 'w'
-    else:
-      prefix = 'z'
-
-  # add prefix to LAPACK names
-  functions = []
-  for i in l:
-    functions.append(prefix + i)
-
-  # in this case, the real name represents both versions
-  namesubst = {'unghr':'orghr', 'heevr':'syevr', 'heevd':'syevd', 'hetrd':'sytrd', 'hegvd':'sygvd', 'unmlq':'ormlq', 'ungqr':'orgqr', 'ungtr':'orgtr'}
-
-  # LAPACK functions which are always used in real version
-  if petscconf.PRECISION == 'single':
-    functions += ['sstevr','sbdsdc','slamch','slag2','slasv2','slartg','slaln2','slaed4','slamrg','slapy2']
-  elif petscconf.PRECISION == '__float128':
-    functions += ['qstevr','qbdsdc','qlamch','qlag2','qlasv2','qlartg','qlaln2','qlaed4','qlamrg','qlapy2']
-  else:
-    functions += ['dstevr','dbdsdc','dlamch','dlag2','dlasv2','dlartg','dlaln2','dlaed4','dlamrg','dlapy2']
-
-  # check for all functions at once
-  all = []
-  for i in functions:
-    f =  '#if defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
-    f += i + '_\n'
-    f += '#elif defined(PETSC_BLASLAPACK_CAPS) || defined(PETSC_BLASLAPACK_STDCALL)\n'
-    f += i.upper() + '\n'
-    f += '#else\n'
-    f += i + '\n'
-    f += '#endif\n'
-    all.append(f)
-
-  log.write('=== Checking all LAPACK functions...')
-  if check.Link(tmpdir,all,[],[]):
-    return []
-
-  # check functions one by one
-  missing = []
-  for i in functions:
-    f =  '#if defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
-    f += i + '_\n'
-    f += '#elif defined(PETSC_BLASLAPACK_CAPS) || defined(PETSC_BLASLAPACK_STDCALL)\n'
-    f += i.upper() + '\n'
-    f += '#else\n'
-    f += i + '\n'
-    f += '#endif\n'
-
-    log.write('=== Checking LAPACK '+i+' function...')
-    if not check.Link(tmpdir,[f],[],[]):
-      missing.append(i)
-      # some complex functions are represented by their real names
-      if i[1:] in namesubst:
-        nf = namesubst[i[1:]]
+  def Check(self,conf,vars,cmake,tmpdir):
+    log.write('='*80)
+    log.Println('Checking LAPACK library...')
+  
+    # LAPACK standard functions
+    l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf','stedc','hsein','larfg','larf','trsen','tgsen','lacpy','lascl','lansy','laset']
+  
+    # LAPACK functions with different real and complex versions
+    if petscconf.SCALAR == 'real':
+      l += ['orghr','syevr','syevd','sytrd','sygvd','ormlq','orgqr','orgtr']
+      if petscconf.PRECISION == 'single':
+        prefix = 's'
+      elif petscconf.PRECISION == '__float128':
+        prefix = 'q'
       else:
-        nf = i[1:]
-      conf.write('#ifndef SLEPC_MISSING_LAPACK_' + nf.upper() + '\n#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n#endif\n\n')
-      cmake.write('set (SLEPC_MISSING_LAPACK_' + nf.upper() + ' YES)\n')
-
-  if missing:
-    cmake.write('mark_as_advanced (' + ''.join([s.upper()+' ' for s in missing]) + ')\n')
-  return missing
+        prefix = 'd'
+    else:
+      l += ['unghr','heevr','heevd','hetrd','hegvd','unmlq','ungqr','ungtr']
+      if petscconf.PRECISION == 'single':
+        prefix = 'c'
+      elif petscconf.PRECISION == '__float128':
+        prefix = 'w'
+      else:
+        prefix = 'z'
+  
+    # add prefix to LAPACK names
+    functions = []
+    for i in l:
+      functions.append(prefix + i)
+  
+    # in this case, the real name represents both versions
+    namesubst = {'unghr':'orghr', 'heevr':'syevr', 'heevd':'syevd', 'hetrd':'sytrd', 'hegvd':'sygvd', 'unmlq':'ormlq', 'ungqr':'orgqr', 'ungtr':'orgtr'}
+  
+    # LAPACK functions which are always used in real version
+    if petscconf.PRECISION == 'single':
+      functions += ['sstevr','sbdsdc','slamch','slag2','slasv2','slartg','slaln2','slaed4','slamrg','slapy2']
+    elif petscconf.PRECISION == '__float128':
+      functions += ['qstevr','qbdsdc','qlamch','qlag2','qlasv2','qlartg','qlaln2','qlaed4','qlamrg','qlapy2']
+    else:
+      functions += ['dstevr','dbdsdc','dlamch','dlag2','dlasv2','dlartg','dlaln2','dlaed4','dlamrg','dlapy2']
+  
+    # check for all functions at once
+    all = []
+    for i in functions:
+      f =  '#if defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
+      f += i + '_\n'
+      f += '#elif defined(PETSC_BLASLAPACK_CAPS) || defined(PETSC_BLASLAPACK_STDCALL)\n'
+      f += i.upper() + '\n'
+      f += '#else\n'
+      f += i + '\n'
+      f += '#endif\n'
+      all.append(f)
+  
+    log.write('=== Checking all LAPACK functions...')
+    if self.Link(tmpdir,all,[],[]):
+      return []
+  
+    # check functions one by one
+    missing = []
+    for i in functions:
+      f =  '#if defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
+      f += i + '_\n'
+      f += '#elif defined(PETSC_BLASLAPACK_CAPS) || defined(PETSC_BLASLAPACK_STDCALL)\n'
+      f += i.upper() + '\n'
+      f += '#else\n'
+      f += i + '\n'
+      f += '#endif\n'
+  
+      log.write('=== Checking LAPACK '+i+' function...')
+      if not self.Link(tmpdir,[f],[],[]):
+        missing.append(i)
+        # some complex functions are represented by their real names
+        if i[1:] in namesubst:
+          nf = namesubst[i[1:]]
+        else:
+          nf = i[1:]
+        conf.write('#ifndef SLEPC_MISSING_LAPACK_' + nf.upper() + '\n#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n#endif\n\n')
+        cmake.write('set (SLEPC_MISSING_LAPACK_' + nf.upper() + ' YES)\n')
+  
+    if missing:
+      cmake.write('mark_as_advanced (' + ''.join([s.upper()+' ' for s in missing]) + ')\n')
+    return missing

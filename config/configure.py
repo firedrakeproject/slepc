@@ -40,7 +40,7 @@ import petscversion
 import slepcversion
 import petscconf
 import log
-import check
+import package
 import arpack
 import blzpack
 import trlan
@@ -401,7 +401,8 @@ if petscversion.RELEASE != slepcversion.RELEASE:
 if petscconf.ISINSTALL:
   if os.path.realpath(petscconf.DESTDIR) != os.path.realpath(petscdir):
     log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
-if not check.Link(tmpdir,[],[],[]):
+petsc = package.Package()
+if not petsc.Link(tmpdir,[],[],[]):
   log.Exit('ERROR: Unable to link with PETSc')
 
 # Single library installation
@@ -414,20 +415,26 @@ if petscconf.SINGLELIB:
 
 # Check for external packages
 if havearpack:
+  arpack = arpack.Arpack()
   arpacklibs = arpack.Check(slepcconf,slepcvars,cmake,tmpdir,arpackdir,arpacklibs)
 if haveblzpack:
+  blzpack = blzpack.Blzpack()
   blzpacklibs = blzpack.Check(slepcconf,slepcvars,cmake,tmpdir,blzpackdir,blzpacklibs)
 if havetrlan:
+  trlan = trlan.Trlan()
   trlanlibs = trlan.Check(slepcconf,slepcvars,cmake,tmpdir,trlandir,trlanlibs)
 if haveprimme:
+  primme = primme.Primme()
   primmelibs = primme.Check(slepcconf,slepcvars,cmake,tmpdir,primmedir,primmelibs)
 if havefeast:
+  feast = feast.Feast()
   feastlibs = feast.Check(slepcconf,slepcvars,cmake,tmpdir,feastdir,feastlibs)
 if getblopex:
   blopexlibs = blopex.Install(slepcconf,slepcvars,cmake,tmpdir,blopexurl,archdir)
   haveblopex = 1
 
 # Check for missing LAPACK functions
+lapack = lapack.Lapack()
 missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
 
 # Download sowing if requested and make Fortran stubs if necessary

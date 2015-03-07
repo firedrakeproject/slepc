@@ -24,50 +24,52 @@ import sys
 
 import petscconf
 import log
-import check
+import package
 
-def Check(conf,vars,cmake,tmpdir,directory,libs):
+class Arpack(package.Package):
 
-  if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
-    log.Exit('ERROR: ARPACK is supported only in single or double precision.')
-
-  if petscconf.IND64:
-    log.Exit('ERROR: cannot use external packages with 64-bit indices.')
-
-  if petscconf.MPIUNI:
-    if petscconf.SCALAR == 'real':
-      if petscconf.PRECISION == 'single':
-        functions = ['snaupd','sneupd','ssaupd','sseupd']
-      else:
-        functions = ['dnaupd','dneupd','dsaupd','dseupd']
-    else:
-      if petscconf.PRECISION == 'single':
-        functions = ['cnaupd','cneupd']
-      else:
-        functions = ['znaupd','zneupd']
-  else:
-    if petscconf.SCALAR == 'real':
-      if petscconf.PRECISION == 'single':
-        functions = ['psnaupd','psneupd','pssaupd','psseupd']
-      else:
-        functions = ['pdnaupd','pdneupd','pdsaupd','pdseupd']
-    else:
-      if petscconf.PRECISION == 'single':
-        functions = ['pcnaupd','pcneupd']
-      else:
-        functions = ['pznaupd','pzneupd']
-
-  if libs:
-    libs = [libs]
-  else:
+  def Check(self,conf,vars,cmake,tmpdir,directory,libs):
+  
+    if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
+      log.Exit('ERROR: ARPACK is supported only in single or double precision.')
+  
+    if petscconf.IND64:
+      log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+  
     if petscconf.MPIUNI:
-      libs = [['-larpack'],['-larpack_LINUX'],['-larpack_SUN4']]
+      if petscconf.SCALAR == 'real':
+        if petscconf.PRECISION == 'single':
+          functions = ['snaupd','sneupd','ssaupd','sseupd']
+        else:
+          functions = ['dnaupd','dneupd','dsaupd','dseupd']
+      else:
+        if petscconf.PRECISION == 'single':
+          functions = ['cnaupd','cneupd']
+        else:
+          functions = ['znaupd','zneupd']
     else:
-      libs = [['-lparpack','-larpack'],['-lparpack_MPI','-larpack'],['-lparpack_MPI-LINUX','-larpack_LINUX'],['-lparpack_MPI-SUN4','-larpack_SUN4']]
-
-  if directory:
-    dirs = [directory]
-  else:
-    dirs = check.GenerateGuesses('Arpack')
-
-  return check.FortranLib(tmpdir,conf,vars,cmake,'ARPACK',dirs,libs,functions)
+      if petscconf.SCALAR == 'real':
+        if petscconf.PRECISION == 'single':
+          functions = ['psnaupd','psneupd','pssaupd','psseupd']
+        else:
+          functions = ['pdnaupd','pdneupd','pdsaupd','pdseupd']
+      else:
+        if petscconf.PRECISION == 'single':
+          functions = ['pcnaupd','pcneupd']
+        else:
+          functions = ['pznaupd','pzneupd']
+  
+    if libs:
+      libs = [libs]
+    else:
+      if petscconf.MPIUNI:
+        libs = [['-larpack'],['-larpack_LINUX'],['-larpack_SUN4']]
+      else:
+        libs = [['-lparpack','-larpack'],['-lparpack_MPI','-larpack'],['-lparpack_MPI-LINUX','-larpack_LINUX'],['-lparpack_MPI-SUN4','-larpack_SUN4']]
+  
+    if directory:
+      dirs = [directory]
+    else:
+      dirs = self.GenerateGuesses('Arpack')
+  
+    return self.FortranLib(tmpdir,conf,vars,cmake,'ARPACK',dirs,libs,functions)

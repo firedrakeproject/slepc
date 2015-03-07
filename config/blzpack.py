@@ -24,32 +24,34 @@ import sys
 
 import petscconf
 import log
-import check
+import package
 
-def Check(conf,vars,cmake,tmpdir,directory,libs):
+class Blzpack(package.Package):
 
-  if petscconf.SCALAR == 'complex':
-    log.Exit('ERROR: BLZPACK does not support complex numbers.')
-
-  if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
-    log.Exit('ERROR: BLZPACK is supported only in single or double precision.')
-
-  if petscconf.IND64:
-    log.Exit('ERROR: cannot use external packages with 64-bit indices.')
-
-  if petscconf.PRECISION == 'single':
-    functions = ['blzdrs']
-  else:
-    functions = ['blzdrd']
-
-  if libs:
-    libs = [libs]
-  else:
-    libs = [['-lblzpack']]
-
-  if directory:
-    dirs = [directory]
-  else:
-    dirs = check.GenerateGuesses('Blzpack')
-
-  return check.FortranLib(tmpdir,conf,vars,cmake,'BLZPACK',dirs,libs,functions)
+  def Check(self,conf,vars,cmake,tmpdir,directory,libs):
+  
+    if petscconf.SCALAR == 'complex':
+      log.Exit('ERROR: BLZPACK does not support complex numbers.')
+  
+    if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
+      log.Exit('ERROR: BLZPACK is supported only in single or double precision.')
+  
+    if petscconf.IND64:
+      log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+  
+    if petscconf.PRECISION == 'single':
+      functions = ['blzdrs']
+    else:
+      functions = ['blzdrd']
+  
+    if libs:
+      libs = [libs]
+    else:
+      libs = [['-lblzpack']]
+  
+    if directory:
+      dirs = [directory]
+    else:
+      dirs = self.GenerateGuesses('Blzpack')
+  
+    return self.FortranLib(tmpdir,conf,vars,cmake,'BLZPACK',dirs,libs,functions)
