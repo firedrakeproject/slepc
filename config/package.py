@@ -47,6 +47,16 @@ class Package:
       self.packageurl = url
       self.downloadpackage = flag
 
+  def ShowHelp(self):
+    if hasattr(self,'downloadpackage'):
+      print self.packagename.upper()+':'
+      print ('  --download-'+self.packagename).ljust(35)+': Download and install '+self.packagename.upper()+' in SLEPc directory'
+    else:
+      print self.packagename.upper()+':'
+      print ('  --with-'+self.packagename).ljust(35)+': Indicate if you wish to test for '+self.packagename.upper()
+      print ('  --with-'+self.packagename+'-dir=<dir>').ljust(35)+': Indicate the directory for '+self.packagename.upper()+' libraries'
+      print ('  --with-'+self.packagename+'-flags=<flags>').ljust(35)+': Indicate comma-separated flags for linking '+self.packagename.upper()
+
   def LinkWithOutput(self,tmpdir,functions,callbacks,flags):
     code = '#include "petscksp.h"\n'
     for f in functions:

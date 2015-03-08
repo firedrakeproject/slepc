@@ -80,30 +80,8 @@ if argdb.PopHelp():
   print '  --with-clean=<bool>              : Delete prior build files including externalpackages'
   print '  --prefix=<dir>                   : Specify location to install SLEPc (e.g., /usr/local)'
   print '  --DATAFILESPATH=<dir>            : Specify location of datafiles (for SLEPc developers)'
-  print 'ARPACK:'
-  print '  --with-arpack                    : Indicate if you wish to test for ARPACK (PARPACK)'
-  print '  --with-arpack-dir=<dir>          : Indicate the directory for ARPACK libraries'
-  print '  --with-arpack-flags=<flags>      : Indicate comma-separated flags for linking ARPACK'
-  print 'BLZPACK:'
-  print '  --with-blzpack                   : Indicate if you wish to test for BLZPACK'
-  print '  --with-blzpack-dir=<dir>         : Indicate the directory for BLZPACK libraries'
-  print '  --with-blzpack-flags=<flags>     : Indicate comma-separated flags for linking BLZPACK'
-  print 'TRLAN:'
-  print '  --with-trlan                     : Indicate if you wish to test for TRLAN'
-  print '  --with-trlan-dir=<dir>           : Indicate the directory for TRLAN libraries'
-  print '  --with-trlan-flags=<flags>       : Indicate comma-separated flags for linking TRLAN'
-  print 'PRIMME:'
-  print '  --with-primme                    : Indicate if you wish to test for PRIMME'
-  print '  --with-primme-dir=<dir>          : Indicate the directory for PRIMME libraries'
-  print '  --with-primme-flags=<flags>      : Indicate comma-separated flags for linking PRIMME'
-  print 'FEAST:'
-  print '  --with-feast                     : Indicate if you wish to test for FEAST'
-  print '  --with-feast-dir=<dir>           : Indicate the directory for FEAST libraries'
-  print '  --with-feast-flags=<flags>       : Indicate comma-separated flags for linking FEAST'
-  print 'BLOPEX:'
-  print '  --download-blopex                : Download and install BLOPEX in SLEPc directory'
-  print 'Sowing:'
-  print '  --download-sowing                : Download and install Sowing in SLEPc directory'
+  for pk in [ arpack, blzpack, trlan, primme, feast, blopex, sowing ]:
+    pk.ShowHelp()
   sys.exit(0)
 
 argdb.ErrorIfNotEmpty()
