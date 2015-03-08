@@ -71,7 +71,7 @@ class Blopex(package.Package):
       if url=='':
         url = 'http://slepc.upv.es/download/external/'+packagename+'.tar.gz'
       archiveZip = 'blopex.tar.gz'
-      localFile = os.sep.join([externdir,archiveZip])
+      localFile = os.path.join(externdir,archiveZip)
       log.Println('Downloading '+url+' to '+localFile)
     
       if os.path.exists(localFile):
@@ -95,9 +95,9 @@ Unable to download package %s from: %s
       if os.path.exists(builddir):
         for root, dirs, files in os.walk(builddir, topdown=False):
           for name in files:
-            os.remove(os.path.join(root, name))
+            os.remove(os.path.join(root,name))
           for name in dirs:
-            os.rmdir(os.path.join(root, name))
+            os.rmdir(os.path.join(root,name))
       try:
         if sys.version_info >= (2,5):
           import tarfile
@@ -128,12 +128,12 @@ Unable to download package %s from: %s
     log.write(output)
   
     # Move files
-    incDir = os.sep.join([archdir,'include'])
-    libDir = os.sep.join([archdir,'lib'])
-    os.rename(os.path.join(builddir,'lib/libBLOPEX.'+petscconf.AR_LIB_SUFFIX),os.path.join(libDir,'libBLOPEX.'+petscconf.AR_LIB_SUFFIX))
+    incDir = os.path.join(archdir,'include')
+    libDir = os.path.join(archdir,'lib')
+    os.rename(os.path.join(builddir,'lib','libBLOPEX.'+petscconf.AR_LIB_SUFFIX),os.path.join(libDir,'libBLOPEX.'+petscconf.AR_LIB_SUFFIX))
     for root, dirs, files in os.walk(os.path.join(builddir,'include')):
       for name in files:
-        os.rename(os.path.join(builddir,'include/'+name),os.path.join(incDir,name))
+        os.rename(os.path.join(builddir,'include',name),os.path.join(incDir,name))
   
     if 'rpath' in petscconf.SLFLAG:
       l = petscconf.SLFLAG + libDir + ' -L' + libDir + ' -lBLOPEX'

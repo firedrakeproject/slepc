@@ -58,6 +58,22 @@ class ArgDB:
         break
     return string,numhits
 
+  def PopPath(self,keyword):
+    string = ''
+    numhits = 0
+    while True:
+      found = 0
+      for i, s in enumerate(self.argdb):
+        if s.startswith('--'+keyword+'='):
+          string = s.split('=')[1].rstrip('/')
+          found = 1
+          numhits = numhits + 1
+          del self.argdb[i]
+          break
+      if not found:
+        break
+    return string,numhits
+
   def PopUrl(self,keyword):
     value = False
     string = ''

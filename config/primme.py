@@ -73,8 +73,8 @@ class Primme(package.Package):
         f = []
       if self.Link(tmpdir,functions,[],l+f):
         conf.write('#ifndef SLEPC_HAVE_PRIMME\n#define SLEPC_HAVE_PRIMME 1\n#endif\n\n')
-        vars.write('PRIMME_LIB = ' + str.join(' ', l) + '\n')
-        vars.write('PRIMME_FLAGS = ' + str.join(' ', f) + '\n')
+        vars.write('PRIMME_LIB = ' + ' '.join(l) + '\n')
+        vars.write('PRIMME_FLAGS = ' + ' '.join(f) + '\n')
         cmake.write('set (SLEPC_HAVE_PRIMME YES)\n')
         cmake.write('find_library (PRIMME_LIB primme HINTS '+ d +')\n')
         cmake.write('find_path (PRIMME_INCLUDE primme.h ' + d + '/PRIMMESRC/COMMONSRC)\n')
@@ -82,6 +82,6 @@ class Primme(package.Package):
         return
   
     log.Println('ERROR: Unable to link with PRIMME library')
-    log.Println('ERROR: In directories '+''.join([s+' ' for s in dirs]))
-    log.Println('ERROR: With flags '+''.join([s+' ' for s in libs]))
+    log.Println('ERROR: In directories '+' '.join(dirs))
+    log.Println('ERROR: With flags '+' '.join(libs))
     log.Exit('')

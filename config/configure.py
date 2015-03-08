@@ -70,8 +70,8 @@ feast = feast.Feast(argdb)
 blopex = blopex.Blopex(argdb)
 sowing = sowing.Sowing(argdb)
 doclean = argdb.PopBool('with-clean')
-prefixdir = argdb.PopString('prefix')[0]
-datafilespath = argdb.PopString('DATAFILESPATH')[0]
+prefixdir = argdb.PopPath('prefix')[0]
+datafilespath = argdb.PopPath('DATAFILESPATH')[0]
 
 if argdb.PopHelp():
   print 'SLEPc Configure Help'
@@ -93,13 +93,13 @@ prefixinstall = not prefixdir==''
 print 'Checking environment...'
 if 'SLEPC_DIR' in os.environ:
   slepcdir = os.environ['SLEPC_DIR']
-  if not os.path.exists(slepcdir) or not os.path.exists(os.sep.join([slepcdir,'config'])):
+  if not os.path.exists(slepcdir) or not os.path.exists(os.path.join(slepcdir,'config')):
     sys.exit('ERROR: SLEPC_DIR enviroment variable is not valid')
   if os.path.realpath(os.getcwd()) != os.path.realpath(slepcdir):
     sys.exit('ERROR: SLEPC_DIR is not the current directory')
 else:
   slepcdir = os.getcwd()
-  if not os.path.exists(os.sep.join([slepcdir,'config'])):
+  if not os.path.exists(os.path.join(slepcdir,'config')):
     sys.exit('ERROR: Current directory is not valid')
 
 if 'PETSC_DIR' in os.environ:
@@ -132,20 +132,20 @@ emptyarch = 1
 if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']: emptyarch = 0
 if emptyarch:
   archname = 'installed-' + petscconf.ARCH
-  globconfdir = os.sep.join([slepcdir,'lib','slepc-conf'])
+  globconfdir = os.path.join(slepcdir,'lib','slepc-conf')
   try:
-    globconf = open(os.sep.join([globconfdir,'slepcvariables']),'w')
+    globconf = open(os.path.join(globconfdir,'slepcvariables'),'w')
     globconf.write('SLEPC_DIR = ' + slepcdir +'\n')
     globconf.write('PETSC_ARCH = ' + archname + '\n')
     globconf.close()
   except:
     sys.exit('ERROR: cannot create configuration file in ' + globconfdir)
-archdir = os.sep.join([slepcdir,archname])
+archdir = os.path.join(slepcdir,archname)
 
 # Clean previous configuration if needed
 if os.path.exists(archdir):
   try:
-    f = open(os.sep.join([archdir,'lib','slepc-conf','slepcvariables']),"r")
+    f = open(os.path.join(archdir,'lib','slepc-conf','slepcvariables'),"r")
     searchlines = f.readlines()
     f.close()
     found = 0
@@ -168,44 +168,44 @@ if not os.path.exists(archdir):
     os.mkdir(archdir)
   except:
     sys.exit('ERROR: cannot create architecture directory ' + archdir)
-incdir = os.sep.join([archdir,'include'])
+incdir = os.path.join(archdir,'include')
 if not os.path.exists(incdir):
   try:
     os.mkdir(incdir)
   except:
     sys.exit('ERROR: cannot create include directory ' + incdir)
-libdir = os.sep.join([archdir,'lib'])
+libdir = os.path.join(archdir,'lib')
 if not os.path.exists(libdir):
   try:
     os.mkdir(libdir)
   except:
     sys.exit('ERROR: cannot create lib directory ' + libdir)
-confdir = os.sep.join([libdir,'slepc-conf'])
+confdir = os.path.join(libdir,'slepc-conf')
 if not os.path.exists(confdir):
   try:
     os.mkdir(confdir)
   except:
     sys.exit('ERROR: cannot create configuration directory ' + confdir)
-modulesbasedir = os.sep.join([confdir,'modules'])
+modulesbasedir = os.path.join(confdir,'modules')
 if not os.path.exists(modulesbasedir):
   try:
     os.mkdir(modulesbasedir)
   except:
     sys.exit('ERROR: cannot create modules base directory ' + modulesbasedir)
-modulesdir = os.sep.join([modulesbasedir,'slepc'])
+modulesdir = os.path.join(modulesbasedir,'slepc')
 if not os.path.exists(modulesdir):
   try:
     os.mkdir(modulesdir)
   except:
     sys.exit('ERROR: cannot create modules directory ' + modulesdir)
-pkgconfigdir = os.sep.join([libdir,'pkgconfig'])
+pkgconfigdir = os.path.join(libdir,'pkgconfig')
 if not os.path.exists(pkgconfigdir):
   try:
     os.mkdir(pkgconfigdir)
   except:
     sys.exit('ERROR: cannot create pkgconfig directory ' + pkgconfigdir)
 try:
-  slepcvars = open(os.sep.join([confdir,'slepcvariables']),'w')
+  slepcvars = open(os.path.join(confdir,'slepcvariables'),'w')
   if not prefixdir:
     prefixdir = archdir
   slepcvars.write('SLEPC_DESTDIR = ' + prefixdir +'\n')
@@ -222,11 +222,11 @@ try:
 except:
   sys.exit('ERROR: cannot create configuration file in ' + confdir)
 try:
-  slepcrules = open(os.sep.join([confdir,'slepcrules']),'w')
+  slepcrules = open(os.path.join(confdir,'slepcrules'),'w')
 except:
   sys.exit('ERROR: cannot create rules file in ' + confdir)
 try:
-  slepcconf = open(os.sep.join([incdir,'slepcconf.h']),'w')
+  slepcconf = open(os.path.join(incdir,'slepcconf.h'),'w')
   slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
   slepcconf.write('#define __SLEPCCONF_H\n\n')
   if slepcversion.ISREPO:
@@ -236,18 +236,18 @@ try:
 except:
   sys.exit('ERROR: cannot create configuration header in ' + confdir)
 try:
-  cmake = open(os.sep.join([confdir,'SLEPcConfig.cmake']),'w')
+  cmake = open(os.path.join(confdir,'SLEPcConfig.cmake'),'w')
 except:
   sys.exit('ERROR: cannot create CMake configuration file in ' + confdir)
 try:
   if archdir != prefixdir:
-    modules = open(os.sep.join([modulesdir,slepcversion.LVERSION]),'w')
+    modules = open(os.path.join(modulesdir,slepcversion.LVERSION),'w')
   else:
-    modules = open(os.sep.join([modulesdir,slepcversion.LVERSION+'-'+archname]),'w')
+    modules = open(os.path.join(modulesdir,slepcversion.LVERSION+'-'+archname),'w')
 except:
   sys.exit('ERROR: cannot create modules file in ' + modulesdir)
 try:
-  pkgconfig = open(os.sep.join([pkgconfigdir,'SLEPc.pc']),'w')
+  pkgconfig = open(os.path.join(pkgconfigdir,'SLEPc.pc'),'w')
 except:
   sys.exit('ERROR: cannot create pkgconfig file in ' + pkgconfigdir)
 
@@ -258,7 +258,7 @@ try:
 except:
   sys.exit('ERROR: cannot create temporary directory')
 try:
-  makefile = open(os.sep.join([tmpdir,'makefile']),'w')
+  makefile = open(os.path.join(tmpdir,'makefile'),'w')
   makefile.write('checklink: checklink.o chkopts\n')
   makefile.write('\t${CLINKER} -o checklink checklink.o ${TESTFLAGS} ${PETSC_KSP_LIB}\n')
   makefile.write('\t@${RM} -f checklink checklink.o\n')
@@ -270,10 +270,10 @@ except:
   sys.exit('ERROR: cannot create makefile in temporary directory')
 
 # Open log file
-log.Open(os.sep.join([confdir,'configure.log']))
+log.Open(os.path.join(confdir,'configure.log'))
 log.write('='*80)
 log.write('Starting Configure Run at '+time.ctime(time.time()))
-log.write('Configure Options: '+str.join(' ',sys.argv))
+log.write('Configure Options: '+' '.join(sys.argv))
 log.write('Working directory: '+os.getcwd())
 log.write('Python version:\n' + sys.version)
 log.write('make: ' + petscconf.MAKE)
@@ -456,22 +456,22 @@ else:
   log.Println('Architecture "'+archname+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
 if arpack.havepackage:
   log.Println('ARPACK library flags:')
-  log.Println(' '+str.join(' ',arpack.packagelibs))
+  log.Println(' '+' '.join(arpack.packagelibs))
 if blzpack.havepackage:
   log.Println('BLZPACK library flags:')
-  log.Println(' '+str.join(' ',blzpack.packagelibs))
+  log.Println(' '+' '.join(blzpack.packagelibs))
 if trlan.havepackage:
   log.Println('TRLAN library flags:')
-  log.Println(' '+str.join(' ',trlan.packagelibs))
+  log.Println(' '+' '.join(trlan.packagelibs))
 if primme.havepackage:
   log.Println('PRIMME library flags:')
-  log.Println(' '+str.join(' ',primme.packagelibs))
+  log.Println(' '+' '.join(primme.packagelibs))
 if feast.havepackage:
   log.Println('FEAST library flags:')
-  log.Println(' '+str.join(' ',feast.packagelibs))
+  log.Println(' '+' '.join(feast.packagelibs))
 if blopex.havepackage:
   log.Println('BLOPEX library flags:')
-  log.Println(' '+str.join(' ',blopex.packagelibs))
+  log.Println(' '+' '.join(blopex.packagelibs))
 if missing:
   log.Println('LAPACK missing functions:')
   log.Print('  ')

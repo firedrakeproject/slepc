@@ -26,7 +26,7 @@ import commands
 def Load(petscdir):
   global VERSION,RELEASE,LVERSION,ISREPO,GITREV,GITDATE,BRANCH
   try:
-    f = open(os.sep.join([petscdir,'include','petscversion.h']))
+    f = open(os.path.join(petscdir,'include','petscversion.h'))
     for l in f.readlines():
       l = l.split()
       if len(l) == 3:
@@ -48,7 +48,7 @@ def Load(petscdir):
 
   # Check whether this is a working copy of the repository
   ISREPO = 0
-  if os.path.exists(os.sep.join([petscdir,'.git'])):
+  if os.path.exists(os.path.join(petscdir,'.git')):
     (status, output) = commands.getstatusoutput('cd '+petscdir+';git rev-parse')
     if not status:
       ISREPO = 1

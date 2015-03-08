@@ -108,5 +108,5 @@ class Lapack(package.Package):
         cmake.write('set (SLEPC_MISSING_LAPACK_' + nf.upper() + ' YES)\n')
   
     if missing:
-      cmake.write('mark_as_advanced (' + ''.join([s.upper()+' ' for s in missing]) + ')\n')
+      cmake.write('mark_as_advanced (' + ' '.join([s.upper() for s in missing]) + ')\n')
     return missing

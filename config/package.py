@@ -30,7 +30,7 @@ import argdb
 class Package:
 
   def ProcessArgs(self,argdb):
-    string,found = argdb.PopString('with-'+self.packagename+'-dir')
+    string,found = argdb.PopPath('with-'+self.packagename+'-dir')
     if found:
       self.packagedir = string
       self.havepackage = 1
@@ -75,10 +75,10 @@ class Package:
       code += f + '();\n'
     code += 'return 0;\n}\n'
   
-    cfile = open(os.sep.join([tmpdir,'checklink.c']),'w')
+    cfile = open(os.path.join(tmpdir,'checklink.c'),'w')
     cfile.write(code)
     cfile.close()
-    (result, output) = commands.getstatusoutput('cd ' + tmpdir + ';' + petscconf.MAKE + ' checklink TESTFLAGS="'+str.join(' ',flags)+'"')
+    (result, output) = commands.getstatusoutput('cd ' + tmpdir + ';' + petscconf.MAKE + ' checklink TESTFLAGS="'+' '.join(flags)+'"')
     try: os.remove('checklink.c')
     except OSError: pass
     if result:
@@ -92,7 +92,7 @@ class Package:
     return result
   
   def FortranLink(self,tmpdir,functions,callbacks,flags):
-    output =  '\n=== With linker flags: '+str.join(' ',flags)
+    output =  '\n=== With linker flags: '+' '.join(flags)
   
     f = []
     for i in functions:
@@ -164,13 +164,13 @@ class Package:
     else:
       log.write(error)
       log.Println('ERROR: Unable to link with library '+ name)
-      log.Println('ERROR: In directories '+''.join([s+' ' for s in dirs]))
-      log.Println('ERROR: With flags '+''.join([s+' ' for s in flags]))
+      log.Println('ERROR: In directories '+' '.join(dirs))
+      log.Println('ERROR: With flags '+' '.join(flags))
       log.Exit('')
   
     conf.write('#ifndef SLEPC_HAVE_' + name + '\n#define SLEPC_HAVE_' + name + ' 1\n#define SLEPC_' + name + '_HAVE_'+mangling+' 1\n#endif\n\n')
-    vars.write(name + '_LIB = '+str.join(' ',flags)+'\n')
+    vars.write(name + '_LIB = '+' '.join(flags)+'\n')
     cmake.write('set (SLEPC_HAVE_' + name + ' YES)\n')
-    libname = ''.join([s.lstrip('-l')+' ' for s in l])
+    libname = ' '.join([s.lstrip('-l') for s in l])
     cmake.write('set (' + name + '_LIB "")\nforeach (libname ' + libname + ')\n  string (TOUPPER ${libname} LIBNAME)\n  find_library (${LIBNAME}LIB ${libname} HINTS '+ d +')\n  list (APPEND ' + name + '_LIB "${${LIBNAME}LIB}")\nendforeach()\n')
     return flags
