@@ -35,6 +35,7 @@ configDir = os.path.abspath('config')
 if not os.path.isdir(configDir):
   raise RuntimeError('Run configure from $SLEPC_DIR, not '+os.path.abspath('.'))
 sys.path.insert(0, configDir)
+sys.path.insert(0, os.path.join(configDir,'packages'))
 
 import argdb
 import petscversion
