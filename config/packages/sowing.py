@@ -19,12 +19,8 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os
-import sys
-import log
-import petscconf
-import commands
-import package
+import os, sys, commands
+import petscconf, log, package
 
 class Sowing(package.Package):
 

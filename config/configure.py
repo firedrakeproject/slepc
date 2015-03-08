@@ -20,11 +20,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os
-import sys
-import time
-import tempfile
-import shutil
+import os, sys, time, tempfile, shutil
 
 # Use en_US as language so that compiler messages are in English
 if 'LC_LOCAL' in os.environ and os.environ['LC_LOCAL'] != '' and os.environ['LC_LOCAL'] != 'en_US' and os.environ['LC_LOCAL']!= 'en_US.UTF-8': os.environ['LC_LOCAL'] = 'en_US.UTF-8'
@@ -37,21 +33,6 @@ if not os.path.isdir(configDir):
 sys.path.insert(0, configDir)
 sys.path.insert(0, os.path.join(configDir,'packages'))
 
-import argdb
-import petscversion
-import slepcversion
-import petscconf
-import log
-import package
-import arpack
-import blzpack
-import trlan
-import feast
-import lapack
-import primme
-import blopex
-import sowing
-
 if not hasattr(sys, 'version_info') or not sys.version_info[0] == 2 or not sys.version_info[1] >= 4:
   print '*****  You must have Python2 version 2.4 or higher to run ./configure.py   ******'
   print '*           Python is easy to install for end users or sys-admin.               *'
@@ -61,8 +42,11 @@ if not hasattr(sys, 'version_info') or not sys.version_info[0] == 2 or not sys.v
   print '*********************************************************************************'
   sys.exit(4)
 
+import argdb
 argdb = argdb.ArgDB(sys.argv)
 
+import petsc, arpack, blzpack, trlan, feast, primme, blopex, sowing
+petsc = petsc.Petsc()
 arpack = arpack.Arpack(argdb)
 blzpack = blzpack.Blzpack(argdb)
 trlan = trlan.Trlan(argdb)
@@ -115,12 +99,14 @@ else:
     sys.exit('ERROR: PETSC_DIR enviroment variable is not set')
 
 # Check PETSc version
+import petscversion, slepcversion
 petscversion.Load(petscdir)
 slepcversion.Load(slepcdir)
 if petscversion.VERSION < slepcversion.VERSION:
   sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscversion.VERSION)
 
 # Check some information about PETSc configuration
+import petscconf
 petscconf.Load(petscdir)
 if not petscconf.PRECISION in ['double','single','__float128']:
   sys.exit('ERROR: This SLEPc version does not work with '+petscconf.PRECISION+' precision')
@@ -271,6 +257,7 @@ except:
   sys.exit('ERROR: cannot create makefile in temporary directory')
 
 # Open log file
+import log
 log.Open(os.path.join(confdir,'configure.log'))
 log.write('='*80)
 log.write('Starting Configure Run at '+time.ctime(time.time()))
@@ -297,8 +284,8 @@ if petscversion.RELEASE != slepcversion.RELEASE:
 if petscconf.ISINSTALL:
   if os.path.realpath(petscconf.DESTDIR) != os.path.realpath(petscdir):
     log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
-petsc = package.Package()
-if not petsc.Link(tmpdir,[],[],[]):
+petsc.Check(tmpdir)
+if not petsc.havepackage:
   log.Exit('ERROR: Unable to link with PETSc')
 
 # Single library installation
@@ -324,6 +311,7 @@ if blopex.downloadpackage:
   blopex.Install(slepcconf,slepcvars,cmake,tmpdir,archdir)
 
 # Check for missing LAPACK functions
+import lapack
 lapack = lapack.Lapack()
 missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
 

@@ -19,8 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os
-import sys
+import os, sys
 
 def Load(petscdir):
   global ARCH,DIR,MAKE,SCALAR,PRECISION,ISINSTALL,DESTDIR,BFORT,TEST_RUNS,CC,CC_FLAGS,FC,AR,AR_FLAGS,AR_LIB_SUFFIX,RANLIB,IND64,BUILD_USING_CMAKE,MAKE_IS_GNUMAKE,MPIUNI,SINGLELIB,SLFLAG,LANGUAGE,DEBUG

@@ -19,13 +19,8 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os
-import sys
-import commands
-
-import petscconf
-import log
-import argdb
+import os, commands
+import petscconf, log, argdb
 
 class Package:
 

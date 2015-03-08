@@ -19,9 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os
-import sys
-import commands
+import os, sys, commands
 
 def Load(petscdir):
   global VERSION,RELEASE,LVERSION,ISREPO,GITREV,GITDATE,BRANCH

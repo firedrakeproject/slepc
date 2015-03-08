@@ -19,12 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os
-import sys
-
-import petscconf
-import log
-import package
+import petscconf, log, package
 
 class Trlan(package.Package):
 

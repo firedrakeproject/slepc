@@ -19,14 +19,9 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os
-import sys
-import log
-import petscconf
-import urllib
-import urlparse
-import commands
-import package
+import os, sys, commands
+import urllib, urlparse
+import petscconf, log, package
 
 class Blopex(package.Package):
 

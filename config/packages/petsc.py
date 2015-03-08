@@ -19,30 +19,13 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import sys, petscconf
+import package
 
-def Open(filename):
-  global f
-  f = open(filename,'w')
-  return
+class Petsc(package.Package):
 
-def Println(string):
-  print string
-  f.write(string)
-  f.write('\n')
+  def __init__(self):
+    self.packagename = 'petsc'
 
-def Print(string):
-  print string,
-  f.write(string+' ')
-
-def write(string):
-  f.write(string)
-  f.write('\n')
-
-def Exit(string):
-  f.write(string)
-  f.write('\n')
-  f.close()
-  print string
-  sys.exit('ERROR: See "' + petscconf.ARCH + '/lib/slepc-conf/configure.log" file for details')
+  def Check(self,tmpdir):
+    self.havepackage = self.Link(tmpdir,[],[],[])
 
