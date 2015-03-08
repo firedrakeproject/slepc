@@ -23,24 +23,25 @@ import petscconf, log, package
 
 class Feast(package.Package):
 
-  def __init__(self,argdb):
+  def __init__(self,argdb,log):
     self.packagename = 'feast'
     self.havepackage = 0
     self.packagedir  = ''
     self.packagelibs = []
+    self.log         = log
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake,tmpdir):
-  
+
     if petscconf.SCALAR != 'complex':
-      log.Exit('ERROR: FEAST is supported only with complex numbers.')
-  
+      self.log.Exit('ERROR: FEAST is supported only with complex numbers.')
+
     if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
-      log.Exit('ERROR: FEAST is supported only in single or double precision.')
-  
+      self.log.Exit('ERROR: FEAST is supported only in single or double precision.')
+
     if petscconf.IND64:
-      log.Exit('ERROR: cannot use external packages with 64-bit indices.')
-  
+      self.log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+
     functions = ['feastinit']
     if petscconf.SCALAR == 'real':
       if petscconf.PRECISION == 'single':
@@ -52,7 +53,7 @@ class Feast(package.Package):
         functions += ['cfeast_hrci']
       else:
         functions += ['zfeast_hrci']
-  
+
     if self.packagelibs:
       libs = [self.packagelibs]
     else:
@@ -60,10 +61,10 @@ class Feast(package.Package):
         libs = [['-lpfeast']]
       else:
         libs = [['-lfeast']]
-  
+
     if self.packagedir:
       dirs = [self.packagedir]
     else:
       dirs = self.GenerateGuesses('Feast')
-  
+
     self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,'FEAST',dirs,libs,functions)

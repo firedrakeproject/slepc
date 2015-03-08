@@ -42,18 +42,19 @@ if not hasattr(sys, 'version_info') or not sys.version_info[0] == 2 or not sys.v
   print '*********************************************************************************'
   sys.exit(4)
 
-import argdb
+import argdb, log
 argdb = argdb.ArgDB(sys.argv)
+log = log.Log()
 
 import petsc, arpack, blzpack, trlan, feast, primme, blopex, sowing
-petsc = petsc.Petsc()
-arpack = arpack.Arpack(argdb)
-blzpack = blzpack.Blzpack(argdb)
-trlan = trlan.Trlan(argdb)
-primme = primme.Primme(argdb)
-feast = feast.Feast(argdb)
-blopex = blopex.Blopex(argdb)
-sowing = sowing.Sowing(argdb)
+petsc = petsc.Petsc(log)
+arpack = arpack.Arpack(argdb,log)
+blzpack = blzpack.Blzpack(argdb,log)
+trlan = trlan.Trlan(argdb,log)
+primme = primme.Primme(argdb,log)
+feast = feast.Feast(argdb,log)
+blopex = blopex.Blopex(argdb,log)
+sowing = sowing.Sowing(argdb,log)
 doclean = argdb.PopBool('with-clean')
 prefixdir = argdb.PopPath('prefix')[0]
 datafilespath = argdb.PopPath('DATAFILESPATH')[0]
@@ -257,11 +258,10 @@ except:
   sys.exit('ERROR: cannot create makefile in temporary directory')
 
 # Open log file
-import log
 log.Open(os.path.join(confdir,'configure.log'))
 log.write('='*80)
 log.write('Starting Configure Run at '+time.ctime(time.time()))
-log.write('Configure Options: '+' '.join(sys.argv))
+log.write('Configure Options: '+' '.join(sys.argv[1:]))
 log.write('Working directory: '+os.getcwd())
 log.write('Python version:\n' + sys.version)
 log.write('make: ' + petscconf.MAKE)
@@ -312,7 +312,7 @@ if blopex.downloadpackage:
 
 # Check for missing LAPACK functions
 import lapack
-lapack = lapack.Lapack()
+lapack = lapack.Lapack(log)
 missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
 
 # Download sowing if requested and make Fortran stubs if necessary

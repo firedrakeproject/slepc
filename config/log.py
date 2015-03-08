@@ -19,30 +19,31 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import sys, petscconf
+import os, sys
 
-def Open(filename):
-  global f
-  f = open(filename,'w')
-  return
+class Log:
 
-def Println(string):
-  print string
-  f.write(string)
-  f.write('\n')
+  def Open(self,filename):
+    self.fd = open(filename,'w')
+    try:
+      self.filename = os.path.relpath(filename)  # needs python-2.6
+    except AttributeError:
+      self.filename = filename
 
-def Print(string):
-  print string,
-  f.write(string+' ')
+  def Println(self,string):
+    print string
+    self.fd.write(string+'\n')
 
-def write(string):
-  f.write(string)
-  f.write('\n')
+  def Print(self,string):
+    print string,
+    self.fd.write(string+' ')
 
-def Exit(string):
-  f.write(string)
-  f.write('\n')
-  f.close()
-  print string
-  sys.exit('ERROR: See "' + petscconf.ARCH + '/lib/slepc-conf/configure.log" file for details')
+  def write(self,string):
+    self.fd.write(string+'\n')
+
+  def Exit(self,string):
+    self.fd.write(string+'\n')
+    self.fd.close()
+    print string
+    sys.exit('ERROR: See "' + self.filename + '" file for details')
 

@@ -23,37 +23,38 @@ import petscconf, log, package
 
 class Blzpack(package.Package):
 
-  def __init__(self,argdb):
+  def __init__(self,argdb,log):
     self.packagename = 'blzpack'
     self.havepackage = 0
     self.packagedir  = ''
     self.packagelibs = []
+    self.log         = log
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake,tmpdir):
-  
+
     if petscconf.SCALAR == 'complex':
-      log.Exit('ERROR: BLZPACK does not support complex numbers.')
-  
+      self.log.Exit('ERROR: BLZPACK does not support complex numbers.')
+
     if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
-      log.Exit('ERROR: BLZPACK is supported only in single or double precision.')
-  
+      self.log.Exit('ERROR: BLZPACK is supported only in single or double precision.')
+
     if petscconf.IND64:
-      log.Exit('ERROR: cannot use external packages with 64-bit indices.')
-  
+      self.log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+
     if petscconf.PRECISION == 'single':
       functions = ['blzdrs']
     else:
       functions = ['blzdrd']
-  
+
     if self.packagelibs:
       libs = [self.packagelibs]
     else:
       libs = [['-lblzpack']]
-  
+
     if self.packagedir:
       dirs = [self.packagedir]
     else:
       dirs = self.GenerateGuesses('Blzpack')
-  
+
     self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,'BLZPACK',dirs,libs,functions)

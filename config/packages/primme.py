@@ -24,30 +24,31 @@ import petscconf, log, package
 
 class Primme(package.Package):
 
-  def __init__(self,argdb):
+  def __init__(self,argdb,log):
     self.packagename = 'primme'
     self.havepackage = 0
     self.packagedir  = ''
     self.packagelibs = []
+    self.log         = log
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake,tmpdir):
-  
-    log.write('='*80)
-    log.Println('Checking PRIMME library...')
-  
+
+    self.log.write('='*80)
+    self.log.Println('Checking PRIMME library...')
+
     if petscconf.PRECISION != 'double':
-      log.Exit('ERROR: PRIMME is supported only in double precision.')
-  
+      self.log.Exit('ERROR: PRIMME is supported only in double precision.')
+
     if petscconf.IND64:
-      log.Exit('ERROR: cannot use external packages with 64-bit indices.')
-  
+      self.log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+
     functions_base = ['primme_set_method','primme_Free','primme_initialize']
     if self.packagedir:
       dirs = [self.packagedir]
     else:
       dirs = self.GenerateGuesses('Primme')
-  
+
     libs = self.packagelibs
     if not libs:
       libs = ['-lprimme']
@@ -55,7 +56,7 @@ class Primme(package.Package):
       functions = functions_base + ['dprimme']
     else:
       functions = functions_base + ['zprimme']
-  
+
     for d in dirs:
       if d:
         if 'rpath' in petscconf.SLFLAG:
@@ -75,8 +76,8 @@ class Primme(package.Package):
         cmake.write('find_path (PRIMME_INCLUDE primme.h ' + d + '/PRIMMESRC/COMMONSRC)\n')
         self.packagelibs = l+f
         return
-  
-    log.Println('ERROR: Unable to link with PRIMME library')
-    log.Println('ERROR: In directories '+' '.join(dirs))
-    log.Println('ERROR: With flags '+' '.join(libs))
-    log.Exit('')
+
+    self.log.Println('ERROR: Unable to link with PRIMME library')
+    self.log.Println('ERROR: In directories '+' '.join(dirs))
+    self.log.Println('ERROR: With flags '+' '.join(libs))
+    self.log.Exit('')

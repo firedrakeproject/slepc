@@ -25,50 +25,51 @@ import petscconf, log, package
 
 class Blopex(package.Package):
 
-  def __init__(self,argdb):
-    self.packagename = 'blopex'
-    self.havepackage = 0
+  def __init__(self,argdb,log):
+    self.packagename     = 'blopex'
+    self.havepackage     = 0
     self.downloadpackage = 0
-    self.packageurl  = ''
+    self.packageurl      = ''
+    self.log             = log
     self.ProcessDownloadArgs(argdb)
 
   def Install(self,conf,vars,cmake,tmpdir,archdir):
     '''
     Download and uncompress the BLOPEX tarball
     '''
-    log.write('='*80)
-    log.Println('Installing BLOPEX...')
-  
+    self.log.write('='*80)
+    self.log.Println('Installing BLOPEX...')
+
     if petscconf.PRECISION != 'double':
-      log.Exit('ERROR: BLOPEX is supported only in double precision.')
-  
+      self.log.Exit('ERROR: BLOPEX is supported only in double precision.')
+
     if petscconf.IND64:
-      log.Exit('ERROR: cannot use external packages with 64-bit indices.')
-  
+      self.log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+
     packagename = 'blopex-1.1.2'
     externdir   = os.path.join(archdir,'externalpackages')
     builddir    = os.path.join(externdir,packagename)
-  
+
     # Create externalpackages directory
     if not os.path.exists(externdir):
       try:
         os.mkdir(externdir)
       except:
         sys.exit('ERROR: cannot create directory ' + externdir)
-  
+
     # Check if source is already available
     if os.path.exists(builddir):
-      log.Println('Using '+builddir)
+      self.log.Println('Using '+builddir)
     else:
-  
+
       # Download tarball
       url = self.packageurl
       if url=='':
         url = 'http://slepc.upv.es/download/external/'+packagename+'.tar.gz'
       archiveZip = 'blopex.tar.gz'
       localFile = os.path.join(externdir,archiveZip)
-      log.Println('Downloading '+url+' to '+localFile)
-    
+      self.log.Println('Downloading '+url+' to '+localFile)
+
       if os.path.exists(localFile):
         os.remove(localFile)
       try:
@@ -84,9 +85,9 @@ Unable to download package %s from: %s
   --download-%s=/yourselectedlocation/%s
 ''' % (name, url, filename, name, filename)
         raise RuntimeError(failureMessage)
-    
+
       # Uncompress tarball
-      log.Println('Uncompressing '+localFile+' to directory '+builddir)
+      self.log.Println('Uncompressing '+localFile+' to directory '+builddir)
       if os.path.exists(builddir):
         for root, dirs, files in os.walk(builddir, topdown=False):
           for name in files:
@@ -105,7 +106,7 @@ Unable to download package %s from: %s
           os.remove(localFile.split('.gz')[0])
       except RuntimeError, e:
         raise RuntimeError('Error uncompressing '+archiveZip+': '+str(e))
-  
+
     # Configure
     g = open(os.path.join(builddir,'Makefile.inc'),'w')
     g.write('CC          = '+petscconf.CC+'\n')
@@ -117,11 +118,11 @@ Unable to download package %s from: %s
     g.write('RANLIB      = '+petscconf.RANLIB+'\n')
     g.write('TARGET_ARCH = \n')
     g.close()
-  
+
     # Build package
     result,output = commands.getstatusoutput('cd '+builddir+'&&'+petscconf.MAKE+' clean &&'+petscconf.MAKE)
-    log.write(output)
-  
+    self.log.write(output)
+
     # Move files
     incDir = os.path.join(archdir,'include')
     libDir = os.path.join(archdir,'lib')
@@ -129,18 +130,18 @@ Unable to download package %s from: %s
     for root, dirs, files in os.walk(os.path.join(builddir,'include')):
       for name in files:
         os.rename(os.path.join(builddir,'include',name),os.path.join(incDir,name))
-  
+
     if 'rpath' in petscconf.SLFLAG:
       l = petscconf.SLFLAG + libDir + ' -L' + libDir + ' -lBLOPEX'
     else:
       l = '-L' + libDir + ' -lBLOPEX'
-  
+
     # Write configuration files
     conf.write('#ifndef SLEPC_HAVE_BLOPEX\n#define SLEPC_HAVE_BLOPEX 1\n#endif\n\n')
     vars.write('BLOPEX_LIB = ' + l + '\n')
     cmake.write('set (SLEPC_HAVE_BLOPEX YES)\n')
     cmake.write('find_library (BLOPEX_LIB BLOPEX HINTS '+ libDir +')\n')
-  
+
     self.packagelibs = [l] + ['-I' + incDir]
     self.havepackage = 1
-  
+

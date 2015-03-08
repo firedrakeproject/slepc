@@ -23,21 +23,22 @@ import petscconf, log, package
 
 class Arpack(package.Package):
 
-  def __init__(self,argdb):
+  def __init__(self,argdb,log):
     self.packagename = 'arpack'
     self.havepackage = 0
     self.packagedir  = ''
     self.packagelibs = []
+    self.log         = log
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake,tmpdir):
-  
+
     if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
-      log.Exit('ERROR: ARPACK is supported only in single or double precision.')
-  
+      self.log.Exit('ERROR: ARPACK is supported only in single or double precision.')
+
     if petscconf.IND64:
-      log.Exit('ERROR: cannot use external packages with 64-bit indices.')
-  
+      self.log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+
     if petscconf.MPIUNI:
       if petscconf.SCALAR == 'real':
         if petscconf.PRECISION == 'single':
@@ -60,7 +61,7 @@ class Arpack(package.Package):
           functions = ['pcnaupd','pcneupd']
         else:
           functions = ['pznaupd','pzneupd']
-  
+
     if self.packagelibs:
       libs = [self.packagelibs]
     else:
@@ -68,10 +69,10 @@ class Arpack(package.Package):
         libs = [['-larpack'],['-larpack_LINUX'],['-larpack_SUN4']]
       else:
         libs = [['-lparpack','-larpack'],['-lparpack_MPI','-larpack'],['-lparpack_MPI-LINUX','-larpack_LINUX'],['-lparpack_MPI-SUN4','-larpack_SUN4']]
-  
+
     if self.packagedir:
       dirs = [self.packagedir]
     else:
       dirs = self.GenerateGuesses('Arpack')
-  
+
     self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,'ARPACK',dirs,libs,functions)

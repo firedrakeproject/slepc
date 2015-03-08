@@ -128,7 +128,7 @@ class PETScMaker(script.Script):
    options.append('CMAKE_RANLIB '+ranlib + " CACHE FILEPATH")
    if win32fe:
      options.append('PETSC_WIN32FE %s' % win32fe)
-     
+
    archdir = os.path.join(self.slepcdir, self.arch.arch)
    initial_cache_filename = os.path.join(archdir, 'initial_cache_file.cmake')  
    cmd = [self.cmake.cmake, '--trace', '--debug-output', '-C' + str(initial_cache_filename), '-DPETSC_CMAKE_ARCH:STRING='+str(self.arch.arch), self.slepcdir] + args

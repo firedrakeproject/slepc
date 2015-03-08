@@ -23,13 +23,17 @@ import petscconf, log, package
 
 class Lapack(package.Package):
 
+  def __init__(self,log):
+    self.packagename = 'lapack'
+    self.log         = log
+
   def Check(self,conf,vars,cmake,tmpdir):
-    log.write('='*80)
-    log.Println('Checking LAPACK library...')
-  
+    self.log.write('='*80)
+    self.log.Println('Checking LAPACK library...')
+
     # LAPACK standard functions
     l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf','stedc','hsein','larfg','larf','trsen','tgsen','lacpy','lascl','lansy','laset']
-  
+
     # LAPACK functions with different real and complex versions
     if petscconf.SCALAR == 'real':
       l += ['orghr','syevr','syevd','sytrd','sygvd','ormlq','orgqr','orgtr']
@@ -47,15 +51,15 @@ class Lapack(package.Package):
         prefix = 'w'
       else:
         prefix = 'z'
-  
+
     # add prefix to LAPACK names
     functions = []
     for i in l:
       functions.append(prefix + i)
-  
+
     # in this case, the real name represents both versions
     namesubst = {'unghr':'orghr', 'heevr':'syevr', 'heevd':'syevd', 'hetrd':'sytrd', 'hegvd':'sygvd', 'unmlq':'ormlq', 'ungqr':'orgqr', 'ungtr':'orgtr'}
-  
+
     # LAPACK functions which are always used in real version
     if petscconf.PRECISION == 'single':
       functions += ['sstevr','sbdsdc','slamch','slag2','slasv2','slartg','slaln2','slaed4','slamrg','slapy2']
@@ -63,7 +67,7 @@ class Lapack(package.Package):
       functions += ['qstevr','qbdsdc','qlamch','qlag2','qlasv2','qlartg','qlaln2','qlaed4','qlamrg','qlapy2']
     else:
       functions += ['dstevr','dbdsdc','dlamch','dlag2','dlasv2','dlartg','dlaln2','dlaed4','dlamrg','dlapy2']
-  
+
     # check for all functions at once
     all = []
     for i in functions:
@@ -75,11 +79,11 @@ class Lapack(package.Package):
       f += i + '\n'
       f += '#endif\n'
       all.append(f)
-  
-    log.write('=== Checking all LAPACK functions...')
+
+    self.log.write('=== Checking all LAPACK functions...')
     if self.Link(tmpdir,all,[],[]):
       return []
-  
+
     # check functions one by one
     missing = []
     for i in functions:
@@ -90,8 +94,8 @@ class Lapack(package.Package):
       f += '#else\n'
       f += i + '\n'
       f += '#endif\n'
-  
-      log.write('=== Checking LAPACK '+i+' function...')
+
+      self.log.write('=== Checking LAPACK '+i+' function...')
       if not self.Link(tmpdir,[f],[],[]):
         missing.append(i)
         # some complex functions are represented by their real names
@@ -101,7 +105,7 @@ class Lapack(package.Package):
           nf = i[1:]
         conf.write('#ifndef SLEPC_MISSING_LAPACK_' + nf.upper() + '\n#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n#endif\n\n')
         cmake.write('set (SLEPC_MISSING_LAPACK_' + nf.upper() + ' YES)\n')
-  
+
     if missing:
       cmake.write('mark_as_advanced (' + ' '.join([s.upper() for s in missing]) + ')\n')
     return missing

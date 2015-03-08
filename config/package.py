@@ -56,10 +56,10 @@ class Package:
     code = '#include "petscksp.h"\n'
     for f in functions:
       code += 'PETSC_EXTERN int\n' + f + '();\n'
-  
+
     for c in callbacks:
       code += 'int '+ c + '() { return 0; } \n'
-  
+
     code += 'int main() {\n'
     code += 'Vec v; Mat m; KSP k;\n'
     code += 'PetscInitializeNoArguments();\n'
@@ -69,7 +69,7 @@ class Package:
     for f in functions:
       code += f + '();\n'
     code += 'return 0;\n}\n'
-  
+
     cfile = open(os.path.join(tmpdir,'checklink.c'),'w')
     cfile.write(code)
     cfile.close()
@@ -80,15 +80,15 @@ class Package:
       return (0,code + output)
     else:
       return (1,code + output)
-  
+
   def Link(self,tmpdir,functions,callbacks,flags):
     (result, output) = self.LinkWithOutput(tmpdir,functions,callbacks,flags)
-    log.write(output)
+    self.log.write(output)
     return result
-  
+
   def FortranLink(self,tmpdir,functions,callbacks,flags):
     output = '\n=== With linker flags: '+' '.join(flags)
-  
+
     f = []
     for i in functions:
       f.append(i+'_')
@@ -98,7 +98,7 @@ class Package:
     (result, output1) = self.LinkWithOutput(tmpdir,f,c,flags)
     output1 = '\n====== With underscore Fortran names\n' + output1
     if result: return ('UNDERSCORE',output1)
-  
+
     f = []
     for i in functions:
       f.append(i.upper())
@@ -108,18 +108,18 @@ class Package:
     (result, output2) = self.LinkWithOutput(tmpdir,f,c,flags)
     output2 = '\n====== With capital Fortran names\n' + output2
     if result: return ('CAPS',output2)
-  
+
     (result, output3) = self.LinkWithOutput(tmpdir,functions,callbacks,flags)
     output3 = '\n====== With unmodified Fortran names\n' + output3
     if result: return ('STDCALL',output3)
-  
+
     return ('',output + output1 + output2 + output3)
-  
+
   def GenerateGuesses(self,name):
     installdirs = [os.path.join(os.path.sep,'usr','local'),os.path.join(os.path.sep,'opt')]
     if 'HOME' in os.environ:
       installdirs.insert(0,os.environ['HOME'])
-  
+
     dirs = []
     for i in installdirs:
       dirs = dirs + [os.path.join(i,'lib')]
@@ -127,17 +127,17 @@ class Package:
         dirs = dirs + [os.path.join(i,d)]
         dirs = dirs + [os.path.join(i,d,'lib')]
         dirs = dirs + [os.path.join(i,'lib',d)]
-  
+
     for d in dirs[:]:
       if not os.path.exists(d):
         dirs.remove(d)
     dirs = [''] + dirs
     return dirs
-  
+
   def FortranLib(self,tmpdir,conf,vars,cmake,name,dirs,libs,functions,callbacks = []):
-    log.write('='*80)
-    log.Println('Checking '+name+' library...')
-  
+    self.log.write('='*80)
+    self.log.Println('Checking '+name+' library...')
+
     error = ''
     mangling = ''
     for d in dirs:
@@ -153,16 +153,16 @@ class Package:
         error += output
         if mangling: break
       if mangling: break
-  
+
     if mangling:
-      log.write(output)
+      self.log.write(output)
     else:
-      log.write(error)
-      log.Println('ERROR: Unable to link with library '+ name)
-      log.Println('ERROR: In directories '+' '.join(dirs))
-      log.Println('ERROR: With flags '+' '.join(flags))
-      log.Exit('')
-  
+      self.log.write(error)
+      self.log.Println('ERROR: Unable to link with library '+ name)
+      self.log.Println('ERROR: In directories '+' '.join(dirs))
+      self.log.Println('ERROR: With flags '+' '.join(flags))
+      self.log.Exit('')
+
     conf.write('#ifndef SLEPC_HAVE_' + name + '\n#define SLEPC_HAVE_' + name + ' 1\n#define SLEPC_' + name + '_HAVE_'+mangling+' 1\n#endif\n\n')
     vars.write(name + '_LIB = '+' '.join(flags)+'\n')
     cmake.write('set (SLEPC_HAVE_' + name + ' YES)\n')

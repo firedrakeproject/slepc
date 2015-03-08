@@ -23,8 +23,9 @@ import package
 
 class Petsc(package.Package):
 
-  def __init__(self):
+  def __init__(self,log):
     self.packagename = 'petsc'
+    self.log         = log
 
   def Check(self,tmpdir):
     self.havepackage = self.Link(tmpdir,[],[],[])
