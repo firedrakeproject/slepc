@@ -52,7 +52,6 @@ class Primme(package.Package):
     else:
       dirs = self.GenerateGuesses('Primme')
   
-    include = 'PRIMMESRC/COMMONSRC'
     libs = self.packagelibs
     if not libs:
       libs = ['-lprimme']
@@ -67,7 +66,7 @@ class Primme(package.Package):
           l = [petscconf.SLFLAG + d] + ['-L' + d] + libs
         else:
           l = ['-L' + d] + libs
-        f = ['-I' + d + '/' + include]
+        f = ['-I' + os.path.join(d,'PRIMMESRC','COMMONSRC')]
       else:
         l =  libs
         f = []

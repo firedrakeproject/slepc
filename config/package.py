@@ -92,7 +92,7 @@ class Package:
     return result
   
   def FortranLink(self,tmpdir,functions,callbacks,flags):
-    output =  '\n=== With linker flags: '+' '.join(flags)
+    output = '\n=== With linker flags: '+' '.join(flags)
   
     f = []
     for i in functions:
@@ -121,17 +121,17 @@ class Package:
     return ('',output + output1 + output2 + output3)
   
   def GenerateGuesses(self,name):
-    installdirs = ['/usr/local','/opt']
+    installdirs = [os.path.join(os.path.sep,'usr','local'),os.path.join(os.path.sep,'opt')]
     if 'HOME' in os.environ:
       installdirs.insert(0,os.environ['HOME'])
   
     dirs = []
     for i in installdirs:
-      dirs = dirs + [i + '/lib']
+      dirs = dirs + [os.path.join(i,'lib')]
       for d in [name,name.upper(),name.lower()]:
-        dirs = dirs + [i + '/' + d]
-        dirs = dirs + [i + '/' + d + '/lib']
-        dirs = dirs + [i + '/lib/' + d]
+        dirs = dirs + [os.path.join(i,d)]
+        dirs = dirs + [os.path.join(i,d,'lib')]
+        dirs = dirs + [os.path.join(i,'lib',d)]
   
     for d in dirs[:]:
       if not os.path.exists(d):

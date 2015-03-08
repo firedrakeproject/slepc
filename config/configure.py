@@ -232,7 +232,7 @@ try:
   if slepcversion.ISREPO:
     slepcconf.write('#ifndef SLEPC_VERSION_GIT\n#define SLEPC_VERSION_GIT "' + slepcversion.GITREV + '"\n#endif\n\n')
     slepcconf.write('#ifndef SLEPC_VERSION_DATE_GIT\n#define SLEPC_VERSION_DATE_GIT "' + slepcversion.GITDATE + '"\n#endif\n\n')
-  slepcconf.write('#ifndef SLEPC_LIB_DIR\n#define SLEPC_LIB_DIR "' + prefixdir + '/lib"\n#endif\n\n')
+  slepcconf.write('#ifndef SLEPC_LIB_DIR\n#define SLEPC_LIB_DIR "' + os.path.join(prefixdir,'lib') + '"\n#endif\n\n')
 except:
   sys.exit('ERROR: cannot create configuration header in ' + confdir)
 try:
@@ -263,8 +263,8 @@ try:
   makefile.write('\t${CLINKER} -o checklink checklink.o ${TESTFLAGS} ${PETSC_KSP_LIB}\n')
   makefile.write('\t@${RM} -f checklink checklink.o\n')
   makefile.write('LOCDIR = ./\n')
-  makefile.write('include ${PETSC_DIR}/lib/petsc-conf/variables\n')
-  makefile.write('include ${PETSC_DIR}/lib/petsc-conf/rules\n')
+  makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc-conf','variables')+'\n')
+  makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc-conf','rules')+'\n')
   makefile.close()
 except:
   sys.exit('ERROR: cannot create makefile in temporary directory')
@@ -303,7 +303,7 @@ if not petsc.Link(tmpdir,[],[],[]):
 # Single library installation
 if petscconf.SINGLELIB:
   slepcvars.write('SHLIBS = libslepc\n')
-  slepcvars.write('LIBNAME = ${INSTALL_LIB_DIR}/libslepc.${AR_LIB_SUFFIX}\n')
+  slepcvars.write('LIBNAME = '+os.path.join('${INSTALL_LIB_DIR}','libslepc.${AR_LIB_SUFFIX}')+'\n')
   for module in ['SYS','MFN','EPS','SVD','PEP','NEP']:
     slepcvars.write('SLEPC_'+module+'_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}\n')
   slepcvars.write('SLEPC_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}\n')
@@ -407,10 +407,10 @@ pkgconfig.write('Name: SLEPc, the Scalable Library for Eigenvalue Problem Comput
 pkgconfig.write('Description: A parallel library to compute eigenvalues and eigenvectors of large, sparse matrices with iterative methods. It is based on PETSc.\n')
 pkgconfig.write('Version: %s\n' % slepcversion.LVERSION)
 pkgconfig.write('Requires: PETSc = %s\n' % petscversion.LVERSION)
-pkgconfig.write('Cflags: -I%s/include' % prefixdir)
+pkgconfig.write('Cflags: -I' + os.path.join(prefixdir,'include'))
 if not prefixinstall:
-  pkgconfig.write(' -I%s/include' % slepcdir)
-pkgconfig.write('\nLibs: -L%s/lib -lslepc\n' % prefixdir)
+  pkgconfig.write(' -I' + os.path.join(slepcdir,'include'))
+pkgconfig.write('\nLibs: -L%s -lslepc\n' % os.path.join(prefixdir,'lib'))
 
 # Finish with configuration files
 slepcvars.close()
