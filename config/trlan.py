@@ -28,7 +28,14 @@ import package
 
 class Trlan(package.Package):
 
-  def Check(self,conf,vars,cmake,tmpdir,directory,libs):
+  def __init__(self,argdb):
+    self.packagename = 'trlan'
+    self.havepackage = 0
+    self.packagedir  = ''
+    self.packagelibs = []
+    self.ProcessArgs(argdb)
+
+  def Check(self,conf,vars,cmake,tmpdir):
   
     if petscconf.SCALAR == 'complex':
       log.Exit('ERROR: TRLAN is not available for complex scalars.')
@@ -40,14 +47,14 @@ class Trlan(package.Package):
       log.Exit('ERROR: cannot use external packages with 64-bit indices.')
   
     functions = ['trlan77']
-    if libs:
-      libs = [libs]
+    if self.packagelibs:
+      libs = [self.packagelibs]
     else:
       libs = [['-ltrlan_mpi']]
   
-    if directory:
-      dirs = [directory]
+    if self.packagedir:
+      dirs = [self.packagedir]
     else:
       dirs = self.GenerateGuesses('TRLan')
   
-    return self.FortranLib(tmpdir,conf,vars,cmake,'TRLAN',dirs,libs,functions)
+    self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,'TRLAN',dirs,libs,functions)

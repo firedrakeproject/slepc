@@ -25,8 +25,27 @@ import commands
 
 import petscconf
 import log
+import argdb
 
 class Package:
+
+  def ProcessArgs(self,argdb):
+    string,found = argdb.PopString('with-'+self.packagename+'-dir')
+    if found:
+      self.packagedir = string
+      self.havepackage = 1
+    string,found = argdb.PopString('with-'+self.packagename+'-flags')
+    if found:
+      self.packagelibs = string.split(',')
+      self.havepackage = 1
+    if argdb.PopBool('with-'+self.packagename):
+      self.havepackage = 1
+
+  def ProcessDownloadArgs(self,argdb):
+    url,flag,found = argdb.PopUrl('download-'+self.packagename)
+    if found:
+      self.packageurl = url
+      self.downloadpackage = flag
 
   def LinkWithOutput(self,tmpdir,functions,callbacks,flags):
     code = '#include "petscksp.h"\n'

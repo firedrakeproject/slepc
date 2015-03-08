@@ -36,6 +36,7 @@ if not os.path.isdir(configDir):
   raise RuntimeError('Run configure from $SLEPC_DIR, not '+os.path.abspath('.'))
 sys.path.insert(0, configDir)
 
+import argdb
 import petscversion
 import slepcversion
 import petscconf
@@ -59,139 +60,55 @@ if not hasattr(sys, 'version_info') or not sys.version_info[0] == 2 or not sys.v
   print '*********************************************************************************'
   sys.exit(4)
 
-# support a few standard configure option types
-for l in range(1,len(sys.argv)):
-  name = sys.argv[l]
-  if name.startswith('--enable'):
-    sys.argv[l] = name.replace('--enable','--with')
-    if name.find('=') == -1: sys.argv[l] += '=1'
-  if name.startswith('--disable'):
-    sys.argv[l] = name.replace('--disable','--with')
-    if name.find('=') == -1: sys.argv[l] += '=0'
-    elif name.endswith('=1'): sys.argv[l].replace('=1','=0')
-  if name.startswith('--without'):
-    sys.argv[l] = name.replace('--without','--with')
-    if name.find('=') == -1: sys.argv[l] += '=0'
-    elif name.endswith('=1'): sys.argv[l].replace('=1','=0')
-  if name.startswith('--with'):
-    if name.find('=') == -1: sys.argv[l] += '=1'
+argdb = argdb.ArgDB(sys.argv)
 
-# Check configure parameters
-havearpack = 0
-arpackdir = ''
-arpacklibs = []
-haveblzpack = 0
-blzpackdir = ''
-blzpacklibs = []
-havetrlan = 0
-trlandir = ''
-trlanlibs = []
-haveprimme = 0
-primmedir = ''
-primmelibs = []
-havefeast = 0
-feastdir = ''
-feastlibs = []
-getblopex = 0
-haveblopex = 0
-blopexurl = ''
-getsowing = 0
-sowingurl = ''
-doclean = 0
-prefixdir = ''
-datafilespath = ''
+arpack = arpack.Arpack(argdb)
+blzpack = blzpack.Blzpack(argdb)
+trlan = trlan.Trlan(argdb)
+primme = primme.Primme(argdb)
+feast = feast.Feast(argdb)
+blopex = blopex.Blopex(argdb)
+sowing = sowing.Sowing(argdb)
+doclean = argdb.PopBool('with-clean')
+prefixdir = argdb.PopString('prefix')[0]
+datafilespath = argdb.PopString('DATAFILESPATH')[0]
 
-for i in sys.argv[1:]:
-  if   i.startswith('--with-arpack-dir='):
-    arpackdir = i.split('=')[1]
-    havearpack = 1
-  elif i.startswith('--with-arpack-flags='):
-    arpacklibs = i.split('=')[1].split(',')
-    havearpack = 1
-  elif i.startswith('--with-arpack='):
-    havearpack = not i.endswith('=0')
-  elif i.startswith('--with-blzpack-dir='):
-    blzpackdir = i.split('=')[1]
-    haveblzpack = 1
-  elif i.startswith('--with-blzpack-flags='):
-    blzpacklibs = i.split('=')[1].split(',')
-    haveblzpack = 1
-  elif i.startswith('--with-blzpack='):
-    haveblzpack = not i.endswith('=0')
-  elif i.startswith('--with-trlan-dir='):
-    trlandir = i.split('=')[1]
-    havetrlan = 1
-  elif i.startswith('--with-trlan-flags='):
-    trlanlibs = i.split('=')[1].split(',')
-    havetrlan = 1
-  elif i.startswith('--with-trlan='):
-    havetrlan = not i.endswith('=0')
-  elif i.startswith('--with-primme-dir='):
-    primmedir = i.split('=')[1]
-    haveprimme = 1
-  elif i.startswith('--with-primme-flags='):
-    primmelibs = i.split('=')[1].split(',')
-    haveprimme = 1
-  elif i.startswith('--with-primme='):
-    haveprimme = not i.endswith('=0')
-  elif i.startswith('--with-feast-dir='):
-    feastdir = i.split('=')[1]
-    havefeast = 1
-  elif i.startswith('--with-feast-flags='):
-    feastlibs = i.split('=')[1].split(',')
-    havefeast = 1
-  elif i.startswith('--with-feast='):
-    havefeast = not i.endswith('=0')
-  elif i.startswith('--download-blopex'):
-    getblopex = not i.endswith('=0')
-    try: blopexurl = i.split('=')[1]
-    except IndexError: pass
-  elif i.startswith('--download-sowing'):
-    getsowing = not i.endswith('=0')
-    try: sowingurl = i.split('=')[1]
-    except IndexError: pass
-  elif i.startswith('--with-clean='):
-    doclean = not i.endswith('=0')
-  elif i.startswith('--prefix='):
-    prefixdir = i.split('=')[1]
-  elif i.startswith('--DATAFILESPATH='):
-    datafilespath = i.split('=')[1]
-  elif i.startswith('--h') or i.startswith('-h') or i.startswith('-?'):
-    print 'SLEPc Configure Help'
-    print '-'*80
-    print 'SLEPc:'
-    print '  --with-clean=<bool>              : Delete prior build files including externalpackages'
-    print '  --prefix=<dir>                   : Specify location to install SLEPc (e.g., /usr/local)'
-    print '  --DATAFILESPATH=<dir>            : Specify location of datafiles (for SLEPc developers)'
-    print 'ARPACK:'
-    print '  --with-arpack                    : Indicate if you wish to test for ARPACK (PARPACK)'
-    print '  --with-arpack-dir=<dir>          : Indicate the directory for ARPACK libraries'
-    print '  --with-arpack-flags=<flags>      : Indicate comma-separated flags for linking ARPACK'
-    print 'BLZPACK:'
-    print '  --with-blzpack                   : Indicate if you wish to test for BLZPACK'
-    print '  --with-blzpack-dir=<dir>         : Indicate the directory for BLZPACK libraries'
-    print '  --with-blzpack-flags=<flags>     : Indicate comma-separated flags for linking BLZPACK'
-    print 'TRLAN:'
-    print '  --with-trlan                     : Indicate if you wish to test for TRLAN'
-    print '  --with-trlan-dir=<dir>           : Indicate the directory for TRLAN libraries'
-    print '  --with-trlan-flags=<flags>       : Indicate comma-separated flags for linking TRLAN'
-    print 'PRIMME:'
-    print '  --with-primme                    : Indicate if you wish to test for PRIMME'
-    print '  --with-primme-dir=<dir>          : Indicate the directory for PRIMME libraries'
-    print '  --with-primme-flags=<flags>      : Indicate comma-separated flags for linking PRIMME'
-    print 'FEAST:'
-    print '  --with-feast                     : Indicate if you wish to test for FEAST'
-    print '  --with-feast-dir=<dir>           : Indicate the directory for FEAST libraries'
-    print '  --with-feast-flags=<flags>       : Indicate comma-separated flags for linking FEAST'
-    print 'BLOPEX:'
-    print '  --download-blopex                : Download and install BLOPEX in SLEPc directory'
-    print 'Sowing:'
-    print '  --download-sowing                : Download and install Sowing in SLEPc directory'
-    sys.exit(0)
-  else:
-    sys.exit('ERROR: Invalid argument ' + i +'. Use -h for help')
+if argdb.PopHelp():
+  print 'SLEPc Configure Help'
+  print '-'*80
+  print 'SLEPc:'
+  print '  --with-clean=<bool>              : Delete prior build files including externalpackages'
+  print '  --prefix=<dir>                   : Specify location to install SLEPc (e.g., /usr/local)'
+  print '  --DATAFILESPATH=<dir>            : Specify location of datafiles (for SLEPc developers)'
+  print 'ARPACK:'
+  print '  --with-arpack                    : Indicate if you wish to test for ARPACK (PARPACK)'
+  print '  --with-arpack-dir=<dir>          : Indicate the directory for ARPACK libraries'
+  print '  --with-arpack-flags=<flags>      : Indicate comma-separated flags for linking ARPACK'
+  print 'BLZPACK:'
+  print '  --with-blzpack                   : Indicate if you wish to test for BLZPACK'
+  print '  --with-blzpack-dir=<dir>         : Indicate the directory for BLZPACK libraries'
+  print '  --with-blzpack-flags=<flags>     : Indicate comma-separated flags for linking BLZPACK'
+  print 'TRLAN:'
+  print '  --with-trlan                     : Indicate if you wish to test for TRLAN'
+  print '  --with-trlan-dir=<dir>           : Indicate the directory for TRLAN libraries'
+  print '  --with-trlan-flags=<flags>       : Indicate comma-separated flags for linking TRLAN'
+  print 'PRIMME:'
+  print '  --with-primme                    : Indicate if you wish to test for PRIMME'
+  print '  --with-primme-dir=<dir>          : Indicate the directory for PRIMME libraries'
+  print '  --with-primme-flags=<flags>      : Indicate comma-separated flags for linking PRIMME'
+  print 'FEAST:'
+  print '  --with-feast                     : Indicate if you wish to test for FEAST'
+  print '  --with-feast-dir=<dir>           : Indicate the directory for FEAST libraries'
+  print '  --with-feast-flags=<flags>       : Indicate comma-separated flags for linking FEAST'
+  print 'BLOPEX:'
+  print '  --download-blopex                : Download and install BLOPEX in SLEPc directory'
+  print 'Sowing:'
+  print '  --download-sowing                : Download and install Sowing in SLEPc directory'
+  sys.exit(0)
 
-external = havearpack or haveblzpack or havetrlan or haveprimme or havefeast or getblopex
+argdb.ErrorIfNotEmpty()
+
+external = arpack.havepackage or blzpack.havepackage or trlan.havepackage or primme.havepackage or feast.havepackage or blopex.downloadpackage
 prefixinstall = not prefixdir==''
 
 # Check if enviroment is ok
@@ -414,24 +331,18 @@ if petscconf.SINGLELIB:
   slepcvars.write('SLEPC_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}\n')
 
 # Check for external packages
-if havearpack:
-  arpack = arpack.Arpack()
-  arpacklibs = arpack.Check(slepcconf,slepcvars,cmake,tmpdir,arpackdir,arpacklibs)
-if haveblzpack:
-  blzpack = blzpack.Blzpack()
-  blzpacklibs = blzpack.Check(slepcconf,slepcvars,cmake,tmpdir,blzpackdir,blzpacklibs)
-if havetrlan:
-  trlan = trlan.Trlan()
-  trlanlibs = trlan.Check(slepcconf,slepcvars,cmake,tmpdir,trlandir,trlanlibs)
-if haveprimme:
-  primme = primme.Primme()
-  primmelibs = primme.Check(slepcconf,slepcvars,cmake,tmpdir,primmedir,primmelibs)
-if havefeast:
-  feast = feast.Feast()
-  feastlibs = feast.Check(slepcconf,slepcvars,cmake,tmpdir,feastdir,feastlibs)
-if getblopex:
-  blopexlibs = blopex.Install(slepcconf,slepcvars,cmake,tmpdir,blopexurl,archdir)
-  haveblopex = 1
+if arpack.havepackage:
+  arpack.Check(slepcconf,slepcvars,cmake,tmpdir)
+if blzpack.havepackage:
+  blzpack.Check(slepcconf,slepcvars,cmake,tmpdir)
+if trlan.havepackage:
+  trlan.Check(slepcconf,slepcvars,cmake,tmpdir)
+if primme.havepackage:
+  primme.Check(slepcconf,slepcvars,cmake,tmpdir)
+if feast.havepackage:
+  feast.Check(slepcconf,slepcvars,cmake,tmpdir)
+if blopex.downloadpackage:
+  blopex.Install(slepcconf,slepcvars,cmake,tmpdir,archdir)
 
 # Check for missing LAPACK functions
 lapack = lapack.Lapack()
@@ -439,15 +350,15 @@ missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
 
 # Download sowing if requested and make Fortran stubs if necessary
 bfort = petscconf.BFORT
-if getsowing:
-  bfort = sowing.Install(sowingurl,archdir)
+if sowing.downloadpackage:
+  bfort = sowing.Install(archdir)
 
 if slepcversion.ISREPO and hasattr(petscconf,'FC'):
   try:
     if not os.path.exists(bfort):
       bfort = os.path.join(archdir,'bin','bfort')
     if not os.path.exists(bfort):
-      bfort = sowing.Install(sowingurl,archdir)
+      bfort = sowing.Install(archdir)
     sys.path.insert(0, os.path.abspath(os.path.join('bin','maint')))
     import generatefortranstubs
     generatefortranstubs.main(slepcdir,bfort,os.getcwd(),0)
@@ -565,24 +476,24 @@ if emptyarch and archdir != prefixdir:
   log.Println('Prefix install with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
 else:
   log.Println('Architecture "'+archname+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
-if havearpack:
+if arpack.havepackage:
   log.Println('ARPACK library flags:')
-  log.Println(' '+str.join(' ',arpacklibs))
-if haveblzpack:
+  log.Println(' '+str.join(' ',arpack.packagelibs))
+if blzpack.havepackage:
   log.Println('BLZPACK library flags:')
-  log.Println(' '+str.join(' ',blzpacklibs))
-if havetrlan:
+  log.Println(' '+str.join(' ',blzpack.packagelibs))
+if trlan.havepackage:
   log.Println('TRLAN library flags:')
-  log.Println(' '+str.join(' ',trlanlibs))
-if haveprimme:
+  log.Println(' '+str.join(' ',trlan.packagelibs))
+if primme.havepackage:
   log.Println('PRIMME library flags:')
-  log.Println(' '+str.join(' ',primmelibs))
-if havefeast:
+  log.Println(' '+str.join(' ',primme.packagelibs))
+if feast.havepackage:
   log.Println('FEAST library flags:')
-  log.Println(' '+str.join(' ',feastlibs))
-if haveblopex:
+  log.Println(' '+str.join(' ',feast.packagelibs))
+if blopex.havepackage:
   log.Println('BLOPEX library flags:')
-  log.Println(' '+str.join(' ',blopexlibs))
+  log.Println(' '+str.join(' ',blopex.packagelibs))
 if missing:
   log.Println('LAPACK missing functions:')
   log.Print('  ')

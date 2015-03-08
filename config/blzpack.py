@@ -28,7 +28,14 @@ import package
 
 class Blzpack(package.Package):
 
-  def Check(self,conf,vars,cmake,tmpdir,directory,libs):
+  def __init__(self,argdb):
+    self.packagename = 'blzpack'
+    self.havepackage = 0
+    self.packagedir  = ''
+    self.packagelibs = []
+    self.ProcessArgs(argdb)
+
+  def Check(self,conf,vars,cmake,tmpdir):
   
     if petscconf.SCALAR == 'complex':
       log.Exit('ERROR: BLZPACK does not support complex numbers.')
@@ -44,14 +51,14 @@ class Blzpack(package.Package):
     else:
       functions = ['blzdrd']
   
-    if libs:
-      libs = [libs]
+    if self.packagelibs:
+      libs = [self.packagelibs]
     else:
       libs = [['-lblzpack']]
   
-    if directory:
-      dirs = [directory]
+    if self.packagedir:
+      dirs = [self.packagedir]
     else:
       dirs = self.GenerateGuesses('Blzpack')
   
-    return self.FortranLib(tmpdir,conf,vars,cmake,'BLZPACK',dirs,libs,functions)
+    self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,'BLZPACK',dirs,libs,functions)

@@ -28,7 +28,14 @@ import package
 
 class Feast(package.Package):
 
-  def Check(self,conf,vars,cmake,tmpdir,directory,libs):
+  def __init__(self,argdb):
+    self.packagename = 'feast'
+    self.havepackage = 0
+    self.packagedir  = ''
+    self.packagelibs = []
+    self.ProcessArgs(argdb)
+
+  def Check(self,conf,vars,cmake,tmpdir):
   
     if petscconf.SCALAR != 'complex':
       log.Exit('ERROR: FEAST is supported only with complex numbers.')
@@ -51,17 +58,17 @@ class Feast(package.Package):
       else:
         functions += ['zfeast_hrci']
   
-    if libs:
-      libs = [libs]
+    if self.packagelibs:
+      libs = [self.packagelibs]
     else:
       if petscconf.MPIUNI:
         libs = [['-lpfeast']]
       else:
         libs = [['-lfeast']]
   
-    if directory:
-      dirs = [directory]
+    if self.packagedir:
+      dirs = [self.packagedir]
     else:
       dirs = self.GenerateGuesses('Feast')
   
-    return self.FortranLib(tmpdir,conf,vars,cmake,'FEAST',dirs,libs,functions)
+    self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,'FEAST',dirs,libs,functions)

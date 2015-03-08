@@ -28,7 +28,14 @@ import package
 
 class Primme(package.Package):
 
-  def Check(self,conf,vars,cmake,tmpdir,directory,libs):
+  def __init__(self,argdb):
+    self.packagename = 'primme'
+    self.havepackage = 0
+    self.packagedir  = ''
+    self.packagelibs = []
+    self.ProcessArgs(argdb)
+
+  def Check(self,conf,vars,cmake,tmpdir):
   
     log.write('='*80)
     log.Println('Checking PRIMME library...')
@@ -40,12 +47,13 @@ class Primme(package.Package):
       log.Exit('ERROR: cannot use external packages with 64-bit indices.')
   
     functions_base = ['primme_set_method','primme_Free','primme_initialize']
-    if directory:
-      dirs = [directory]
+    if self.packagedir:
+      dirs = [self.packagedir]
     else:
       dirs = self.GenerateGuesses('Primme')
   
     include = 'PRIMMESRC/COMMONSRC'
+    libs = self.packagelibs
     if not libs:
       libs = ['-lprimme']
     if petscconf.SCALAR == 'real':
@@ -70,7 +78,8 @@ class Primme(package.Package):
         cmake.write('set (SLEPC_HAVE_PRIMME YES)\n')
         cmake.write('find_library (PRIMME_LIB primme HINTS '+ d +')\n')
         cmake.write('find_path (PRIMME_INCLUDE primme.h ' + d + '/PRIMMESRC/COMMONSRC)\n')
-        return l+f
+        self.packagelibs = l+f
+        return
   
     log.Println('ERROR: Unable to link with PRIMME library')
     log.Println('ERROR: In directories '+''.join([s+' ' for s in dirs]))

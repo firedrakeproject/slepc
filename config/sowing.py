@@ -24,37 +24,48 @@ import sys
 import log
 import petscconf
 import commands
+import package
 
-def Install(url,archdir):
-  '''
-  Download and install Sowing
-  '''
-  log.write('='*80)
-  log.Println('Installing Sowing...')
+class Sowing(package.Package):
 
-  # Create externalpackages directory
-  externdir = os.path.join(archdir,'externalpackages')
-  if not os.path.exists(externdir):
-    try:
-      os.mkdir(externdir)
-    except:
-      sys.exit('ERROR: cannot create directory ' + externdir)
+  def __init__(self,argdb):
+    self.packagename = 'sowing'
+    self.havepackage = 0
+    self.downloadpackage = 0
+    self.packageurl  = ''
+    self.ProcessDownloadArgs(argdb)
 
-  # Check if source is already available
-  builddir = os.path.join(externdir,'pkg-sowing')
-  if os.path.exists(builddir):
-    log.Println('Using '+builddir)
-  else: # clone Sowing repo
-    if url=='':
-      url = 'https://bitbucket.org/petsc/pkg-sowing.git'
-    try:
-      result,output = commands.getstatusoutput('cd '+externdir+'&& git clone '+url)
-      log.write(output)
-    except RuntimeError, e:
-      raise RuntimeError('Error cloning '+url+': '+str(e))
-
-  # Configure, build and install package
-  result,output = commands.getstatusoutput('cd '+builddir+'&& ./configure --prefix='+archdir+'&&'+petscconf.MAKE+'&&'+petscconf.MAKE+' install')
-  log.write(output)
-
-  return os.path.join(archdir,'bin','bfort')
+  def Install(self,archdir):
+    '''
+    Download and install Sowing
+    '''
+    log.write('='*80)
+    log.Println('Installing Sowing...')
+  
+    # Create externalpackages directory
+    externdir = os.path.join(archdir,'externalpackages')
+    if not os.path.exists(externdir):
+      try:
+        os.mkdir(externdir)
+      except:
+        sys.exit('ERROR: cannot create directory ' + externdir)
+  
+    # Check if source is already available
+    builddir = os.path.join(externdir,'pkg-sowing')
+    if os.path.exists(builddir):
+      log.Println('Using '+builddir)
+    else: # clone Sowing repo
+      url = self.packageurl
+      if url=='':
+        url = 'https://bitbucket.org/petsc/pkg-sowing.git'
+      try:
+        result,output = commands.getstatusoutput('cd '+externdir+'&& git clone '+url)
+        log.write(output)
+      except RuntimeError, e:
+        raise RuntimeError('Error cloning '+url+': '+str(e))
+  
+    # Configure, build and install package
+    result,output = commands.getstatusoutput('cd '+builddir+'&& ./configure --prefix='+archdir+'&&'+petscconf.MAKE+'&&'+petscconf.MAKE+' install')
+    log.write(output)
+  
+    return os.path.join(archdir,'bin','bfort')
