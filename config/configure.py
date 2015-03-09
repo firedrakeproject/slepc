@@ -46,7 +46,7 @@ import argdb, log
 argdb = argdb.ArgDB(sys.argv)
 log = log.Log()
 
-import petsc, arpack, blzpack, trlan, feast, primme, blopex, sowing
+import petsc, arpack, blzpack, trlan, feast, primme, blopex, sowing, lapack
 petsc = petsc.Petsc(log)
 arpack = arpack.Arpack(argdb,log)
 blzpack = blzpack.Blzpack(argdb,log)
@@ -55,6 +55,7 @@ primme = primme.Primme(argdb,log)
 feast = feast.Feast(argdb,log)
 blopex = blopex.Blopex(argdb,log)
 sowing = sowing.Sowing(argdb,log)
+lapack = lapack.Lapack(log)
 doclean = argdb.PopBool('with-clean')
 prefixdir = argdb.PopPath('prefix')[0]
 datafilespath = argdb.PopPath('DATAFILESPATH')[0]
@@ -296,24 +297,9 @@ if petscconf.SINGLELIB:
     slepcvars.write('SLEPC_'+module+'_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}\n')
   slepcvars.write('SLEPC_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}\n')
 
-# Check for external packages
-if arpack.havepackage:
-  arpack.Check(slepcconf,slepcvars,cmake,tmpdir)
-if blzpack.havepackage:
-  blzpack.Check(slepcconf,slepcvars,cmake,tmpdir)
-if trlan.havepackage:
-  trlan.Check(slepcconf,slepcvars,cmake,tmpdir)
-if primme.havepackage:
-  primme.Check(slepcconf,slepcvars,cmake,tmpdir)
-if feast.havepackage:
-  feast.Check(slepcconf,slepcvars,cmake,tmpdir)
-if blopex.downloadpackage:
-  blopex.Install(slepcconf,slepcvars,cmake,tmpdir,archdir)
-
-# Check for missing LAPACK functions
-import lapack
-lapack = lapack.Lapack(log)
-missing = lapack.Check(slepcconf,slepcvars,cmake,tmpdir)
+# Check for external packages and for missing LAPACK functions
+for pk in [ arpack, blzpack, trlan, primme, feast, blopex, lapack ]:
+  pk.Process(slepcconf,slepcvars,cmake,tmpdir,archdir)
 
 # Download sowing if requested and make Fortran stubs if necessary
 bfort = petscconf.BFORT
@@ -443,32 +429,8 @@ if emptyarch and archdir != prefixdir:
   log.Println('Prefix install with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
 else:
   log.Println('Architecture "'+archname+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
-if arpack.havepackage:
-  log.Println('ARPACK library flags:')
-  log.Println(' '+' '.join(arpack.packagelibs))
-if blzpack.havepackage:
-  log.Println('BLZPACK library flags:')
-  log.Println(' '+' '.join(blzpack.packagelibs))
-if trlan.havepackage:
-  log.Println('TRLAN library flags:')
-  log.Println(' '+' '.join(trlan.packagelibs))
-if primme.havepackage:
-  log.Println('PRIMME library flags:')
-  log.Println(' '+' '.join(primme.packagelibs))
-if feast.havepackage:
-  log.Println('FEAST library flags:')
-  log.Println(' '+' '.join(feast.packagelibs))
-if blopex.havepackage:
-  log.Println('BLOPEX library flags:')
-  log.Println(' '+' '.join(blopex.packagelibs))
-if missing:
-  log.Println('LAPACK missing functions:')
-  log.Print('  ')
-  for i in missing: log.Print(i)
-  log.Println('')
-  log.Println('')
-  log.Println('WARNING: Some SLEPc functionality will not be available')
-  log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
+for pk in [ arpack, blzpack, trlan, primme, feast, blopex, lapack ]:
+  pk.ShowInfo()
 print
 print 'xxx'+'='*73+'xxx'
 if petscconf.MAKE_IS_GNUMAKE: buildtype = 'gnumake'

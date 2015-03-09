@@ -37,9 +37,6 @@ class Blopex(package.Package):
     '''
     Download and uncompress the BLOPEX tarball
     '''
-    self.log.write('='*80)
-    self.log.Println('Installing BLOPEX...')
-
     if petscconf.PRECISION != 'double':
       self.log.Exit('ERROR: BLOPEX is supported only in double precision.')
 

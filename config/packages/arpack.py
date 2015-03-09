@@ -75,4 +75,4 @@ class Arpack(package.Package):
     else:
       dirs = self.GenerateGuesses('Arpack')
 
-    self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,'ARPACK',dirs,libs,functions)
+    self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,dirs,libs,functions)

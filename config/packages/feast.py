@@ -67,4 +67,4 @@ class Feast(package.Package):
     else:
       dirs = self.GenerateGuesses('Feast')
 
-    self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,'FEAST',dirs,libs,functions)
+    self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,dirs,libs,functions)

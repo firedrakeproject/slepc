@@ -36,9 +36,6 @@ class Sowing(package.Package):
     '''
     Download and install Sowing
     '''
-    self.log.write('='*80)
-    self.log.Println('Installing Sowing...')
-
     # Create externalpackages directory
     externdir = os.path.join(archdir,'externalpackages')
     if not os.path.exists(externdir):

@@ -56,4 +56,4 @@ class Trlan(package.Package):
     else:
       dirs = self.GenerateGuesses('TRLan')
 
-    self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,'TRLAN',dirs,libs,functions)
+    self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,dirs,libs,functions)

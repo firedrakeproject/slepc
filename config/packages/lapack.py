@@ -27,9 +27,22 @@ class Lapack(package.Package):
     self.packagename = 'lapack'
     self.log         = log
 
-  def Check(self,conf,vars,cmake,tmpdir):
+  def ShowInfo(self):
+    if hasattr(self,'missing'):
+      log.Println('LAPACK missing functions:')
+      log.Print('  ')
+      for i in self.missing: log.Print(i)
+      log.Println('')
+      log.Println('')
+      log.Println('WARNING: Some SLEPc functionality will not be available')
+      log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
+
+  def Process(self,conf,vars,cmake,tmpdir,archdir=''):
     self.log.write('='*80)
     self.log.Println('Checking LAPACK library...')
+    self.Check(conf,vars,cmake,tmpdir)
+
+  def Check(self,conf,vars,cmake,tmpdir):
 
     # LAPACK standard functions
     l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf','stedc','hsein','larfg','larf','trsen','tgsen','lacpy','lascl','lansy','laset']
@@ -82,10 +95,10 @@ class Lapack(package.Package):
 
     self.log.write('=== Checking all LAPACK functions...')
     if self.Link(tmpdir,all,[],[]):
-      return []
+      return
 
     # check functions one by one
-    missing = []
+    self.missing = []
     for i in functions:
       f =  '#if defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
       f += i + '_\n'
@@ -97,7 +110,7 @@ class Lapack(package.Package):
 
       self.log.write('=== Checking LAPACK '+i+' function...')
       if not self.Link(tmpdir,[f],[],[]):
-        missing.append(i)
+        self.missing.append(i)
         # some complex functions are represented by their real names
         if i[1:] in namesubst:
           nf = namesubst[i[1:]]
@@ -106,6 +119,6 @@ class Lapack(package.Package):
         conf.write('#ifndef SLEPC_MISSING_LAPACK_' + nf.upper() + '\n#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n#endif\n\n')
         cmake.write('set (SLEPC_MISSING_LAPACK_' + nf.upper() + ' YES)\n')
 
-    if missing:
-      cmake.write('mark_as_advanced (' + ' '.join([s.upper() for s in missing]) + ')\n')
-    return missing
+    if self.missing:
+      cmake.write('mark_as_advanced (' + ' '.join([s.upper() for s in self.missing]) + ')\n')
+

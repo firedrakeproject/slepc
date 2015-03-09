@@ -57,4 +57,4 @@ class Blzpack(package.Package):
     else:
       dirs = self.GenerateGuesses('Blzpack')
 
-    self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,'BLZPACK',dirs,libs,functions)
+    self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,dirs,libs,functions)

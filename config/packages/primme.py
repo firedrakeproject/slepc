@@ -34,9 +34,6 @@ class Primme(package.Package):
 
   def Check(self,conf,vars,cmake,tmpdir):
 
-    self.log.write('='*80)
-    self.log.Println('Checking PRIMME library...')
-
     if petscconf.PRECISION != 'double':
       self.log.Exit('ERROR: PRIMME is supported only in double precision.')
 

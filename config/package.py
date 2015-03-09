@@ -42,6 +42,18 @@ class Package:
       self.packageurl = url
       self.downloadpackage = flag
 
+  def Process(self,conf,vars,cmake,tmpdir,archdir=''):
+    name = self.packagename.upper()
+    self.log.write('='*80)
+    if hasattr(self,'downloadpackage'):
+      if self.downloadpackage:
+        self.log.Println('Installing '+name+'...')
+        self.Install(conf,vars,cmake,tmpdir,archdir)
+    else:
+      if self.havepackage:
+        self.log.Println('Checking '+name+' library...')
+        self.Check(conf,vars,cmake,tmpdir)
+
   def ShowHelp(self):
     if hasattr(self,'downloadpackage'):
       print self.packagename.upper()+':'
@@ -51,6 +63,11 @@ class Package:
       print ('  --with-'+self.packagename).ljust(35)+': Indicate if you wish to test for '+self.packagename.upper()
       print ('  --with-'+self.packagename+'-dir=<dir>').ljust(35)+': Indicate the directory for '+self.packagename.upper()+' libraries'
       print ('  --with-'+self.packagename+'-flags=<flags>').ljust(35)+': Indicate comma-separated flags for linking '+self.packagename.upper()
+
+  def ShowInfo(self):
+    if self.havepackage:
+      self.log.Println(self.packagename.upper()+' library flags:')
+      self.log.Println(' '+' '.join(self.packagelibs))
 
   def LinkWithOutput(self,tmpdir,functions,callbacks,flags):
     code = '#include "petscksp.h"\n'
@@ -134,10 +151,8 @@ class Package:
     dirs = [''] + dirs
     return dirs
 
-  def FortranLib(self,tmpdir,conf,vars,cmake,name,dirs,libs,functions,callbacks = []):
-    self.log.write('='*80)
-    self.log.Println('Checking '+name+' library...')
-
+  def FortranLib(self,tmpdir,conf,vars,cmake,dirs,libs,functions,callbacks = []):
+    name = self.packagename.upper()
     error = ''
     mangling = ''
     for d in dirs:
