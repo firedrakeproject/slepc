@@ -46,7 +46,10 @@ class Trlan(package.Package):
     if self.packagelibs:
       libs = [self.packagelibs]
     else:
-      libs = [['-ltrlan_mpi']]
+      if petscconf.MPIUNI:
+        libs = [['-ltrlan']]
+      else:
+        libs = [['-ltrlan_mpi']]
 
     if self.packagedir:
       dirs = [self.packagedir]
