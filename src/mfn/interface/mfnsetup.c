@@ -62,6 +62,9 @@ PetscErrorCode MFNSetUp(MFN mfn)
   }
   if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
   ierr = DSReset(mfn->ds);CHKERRQ(ierr);
+  if (!((PetscObject)mfn->ds)->type_name) {
+    ierr = DSSetType(mfn->ds,DSNHEP);CHKERRQ(ierr);
+  }
   if (!((PetscObject)mfn->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(mfn->rand);CHKERRQ(ierr);
   }
