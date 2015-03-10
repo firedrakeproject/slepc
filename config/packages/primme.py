@@ -25,11 +25,11 @@ import petscconf, log, package
 class Primme(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename = 'primme'
-    self.havepackage = 0
-    self.packagedir  = ''
-    self.packagelibs = []
-    self.log         = log
+    self.packagename  = 'primme'
+    self.downloadable = False
+    self.packagedir   = ''
+    self.packagelibs  = []
+    self.log          = log
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake):
@@ -71,7 +71,8 @@ class Primme(package.Package):
         cmake.write('set (SLEPC_HAVE_PRIMME YES)\n')
         cmake.write('find_library (PRIMME_LIB primme HINTS '+ d +')\n')
         cmake.write('find_path (PRIMME_INCLUDE primme.h ' + d + '/PRIMMESRC/COMMONSRC)\n')
-        self.packagelibs = l+f
+        self.havepackage = True
+        self.packageflags = l+f
         return
 
     self.log.Println('ERROR: Unable to link with PRIMME library')

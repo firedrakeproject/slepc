@@ -27,11 +27,11 @@ class Blopex(package.Package):
 
   def __init__(self,argdb,log):
     self.packagename     = 'blopex'
-    self.havepackage     = 0
+    self.downloadable    = True
     self.downloadpackage = 0
     self.packageurl      = ''
     self.log             = log
-    self.ProcessDownloadArgs(argdb)
+    self.ProcessArgs(argdb)
 
   def Install(self,conf,vars,cmake,archdir):
     '''
@@ -139,6 +139,6 @@ Unable to download package %s from: %s
     cmake.write('set (SLEPC_HAVE_BLOPEX YES)\n')
     cmake.write('find_library (BLOPEX_LIB BLOPEX HINTS '+ libDir +')\n')
 
-    self.packagelibs = [l] + ['-I' + incDir]
-    self.havepackage = 1
+    self.havepackage = True
+    self.packageflags = [l] + ['-I' + incDir]
 

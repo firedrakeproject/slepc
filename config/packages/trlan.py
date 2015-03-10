@@ -24,11 +24,11 @@ import petscconf, log, package
 class Trlan(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename = 'trlan'
-    self.havepackage = 0
-    self.packagedir  = ''
-    self.packagelibs = []
-    self.log         = log
+    self.packagename  = 'trlan'
+    self.downloadable = False
+    self.packagedir   = ''
+    self.packagelibs  = []
+    self.log          = log
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake):
@@ -56,4 +56,4 @@ class Trlan(package.Package):
     else:
       dirs = self.GenerateGuesses('TRLan')
 
-    self.packagelibs = self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+    self.FortranLib(conf,vars,cmake,dirs,libs,functions)

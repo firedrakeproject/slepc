@@ -24,11 +24,11 @@ import petscconf, log, package
 class Feast(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename = 'feast'
-    self.havepackage = 0
-    self.packagedir  = ''
-    self.packagelibs = []
-    self.log         = log
+    self.packagename  = 'feast'
+    self.downloadable = False
+    self.packagedir   = ''
+    self.packagelibs  = []
+    self.log          = log
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake):
@@ -67,5 +67,5 @@ class Feast(package.Package):
     else:
       dirs = self.GenerateGuesses('Feast')
 
-    self.packagelibs = self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+    self.FortranLib(conf,vars,cmake,dirs,libs,functions)
 

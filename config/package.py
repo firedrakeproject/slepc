@@ -25,37 +25,40 @@ import petscconf, log, argdb
 class Package:
 
   def ProcessArgs(self,argdb):
-    string,found = argdb.PopPath('with-'+self.packagename+'-dir')
-    if found:
-      self.packagedir = string
-      self.havepackage = 1
-    string,found = argdb.PopString('with-'+self.packagename+'-flags')
-    if found:
-      self.packagelibs = string.split(',')
-      self.havepackage = 1
-    if argdb.PopBool('with-'+self.packagename):
-      self.havepackage = 1
-
-  def ProcessDownloadArgs(self,argdb):
-    url,flag,found = argdb.PopUrl('download-'+self.packagename)
-    if found:
-      self.packageurl = url
-      self.downloadpackage = flag
+    self.requested = False
+    self.havepackage = False
+    if self.downloadable:
+      url,flag,found = argdb.PopUrl('download-'+self.packagename)
+      if found:
+        self.requested = True
+        self.packageurl = url
+        self.downloadpackage = flag
+    else:
+      string,found = argdb.PopPath('with-'+self.packagename+'-dir')
+      if found:
+        self.requested = True
+        self.packagedir = string
+      string,found = argdb.PopString('with-'+self.packagename+'-flags')
+      if found:
+        self.requested = True
+        self.packagelibs = string.split(',')
+      if argdb.PopBool('with-'+self.packagename):
+        self.requested = True
 
   def Process(self,conf,vars,cmake,archdir=''):
-    name = self.packagename.upper()
-    self.log.write('='*80)
-    if hasattr(self,'downloadpackage'):
-      if self.downloadpackage:
-        self.log.Println('Installing '+name+'...')
-        self.Install(conf,vars,cmake,archdir)
-    else:
-      if self.havepackage:
+    if self.requested:
+      name = self.packagename.upper()
+      self.log.write('='*80)
+      if self.downloadable:
+        if self.downloadpackage:
+          self.log.Println('Installing '+name+'...')
+          self.Install(conf,vars,cmake,archdir)
+      else:
         self.log.Println('Checking '+name+' library...')
         self.Check(conf,vars,cmake)
 
   def ShowHelp(self):
-    if hasattr(self,'downloadpackage'):
+    if self.downloadable:
       print self.packagename.upper()+':'
       print ('  --download-'+self.packagename).ljust(35)+': Download and install '+self.packagename.upper()+' in SLEPc directory'
     else:
@@ -67,7 +70,7 @@ class Package:
   def ShowInfo(self):
     if self.havepackage:
       self.log.Println(self.packagename.upper()+' library flags:')
-      self.log.Println(' '+' '.join(self.packagelibs))
+      self.log.Println(' '+' '.join(self.packageflags))
 
   def LinkWithOutput(self,functions,callbacks,flags):
 
@@ -205,4 +208,7 @@ class Package:
     cmake.write('set (SLEPC_HAVE_' + name + ' YES)\n')
     libname = ' '.join([s.lstrip('-l') for s in l])
     cmake.write('set (' + name + '_LIB "")\nforeach (libname ' + libname + ')\n  string (TOUPPER ${libname} LIBNAME)\n  find_library (${LIBNAME}LIB ${libname} HINTS '+ d +')\n  list (APPEND ' + name + '_LIB "${${LIBNAME}LIB}")\nendforeach()\n')
-    return flags
+
+    self.havepackage = True
+    self.packageflags = flags
+

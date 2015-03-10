@@ -24,8 +24,9 @@ import petscconf, log, package
 class Lapack(package.Package):
 
   def __init__(self,log):
-    self.packagename = 'lapack'
-    self.log         = log
+    self.packagename  = 'lapack'
+    self.downloadable = False
+    self.log          = log
 
   def ShowInfo(self):
     if hasattr(self,'missing'):

@@ -24,8 +24,9 @@ import package
 class Petsc(package.Package):
 
   def __init__(self,log):
-    self.packagename = 'petsc'
-    self.log         = log
+    self.packagename  = 'petsc'
+    self.downloadable = False
+    self.log          = log
 
   def Check(self):
     self.havepackage = self.Link([],[],[])

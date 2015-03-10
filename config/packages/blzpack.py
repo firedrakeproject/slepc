@@ -24,11 +24,11 @@ import petscconf, log, package
 class Blzpack(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename = 'blzpack'
-    self.havepackage = 0
-    self.packagedir  = ''
-    self.packagelibs = []
-    self.log         = log
+    self.packagename  = 'blzpack'
+    self.downloadable = False
+    self.packagedir   = ''
+    self.packagelibs  = []
+    self.log          = log
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake):
@@ -57,5 +57,5 @@ class Blzpack(package.Package):
     else:
       dirs = self.GenerateGuesses('Blzpack')
 
-    self.packagelibs = self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+    self.FortranLib(conf,vars,cmake,dirs,libs,functions)
 

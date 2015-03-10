@@ -26,11 +26,11 @@ class Sowing(package.Package):
 
   def __init__(self,argdb,log):
     self.packagename     = 'sowing'
-    self.havepackage     = 0
+    self.downloadable    = True
     self.downloadpackage = 0
     self.packageurl      = ''
     self.log             = log
-    self.ProcessDownloadArgs(argdb)
+    self.ProcessArgs(argdb)
 
   def Install(self,archdir):
     '''
@@ -62,4 +62,5 @@ class Sowing(package.Package):
     result,output = commands.getstatusoutput('cd '+builddir+'&& ./configure --prefix='+archdir+'&&'+petscconf.MAKE+'&&'+petscconf.MAKE+' install')
     self.log.write(output)
 
+    self.havepackage = True
     return os.path.join(archdir,'bin','bfort')

@@ -58,7 +58,12 @@ sowing = sowing.Sowing(argdb,log)
 lapack = lapack.Lapack(log)
 doclean = argdb.PopBool('with-clean')
 prefixdir = argdb.PopPath('prefix')[0]
+prefixinstall = not prefixdir==''
 datafilespath = argdb.PopPath('DATAFILESPATH')[0]
+
+externalpackages = [arpack, blopex, blzpack, feast, primme, trlan]
+optionalpackages = [arpack, blopex, blzpack, feast, primme, trlan, sowing]
+checkpackages    = [arpack, blopex, blzpack, feast, primme, trlan, lapack]
 
 if argdb.PopHelp():
   print 'SLEPc Configure Help'
@@ -67,14 +72,11 @@ if argdb.PopHelp():
   print '  --with-clean=<bool>              : Delete prior build files including externalpackages'
   print '  --prefix=<dir>                   : Specify location to install SLEPc (e.g., /usr/local)'
   print '  --DATAFILESPATH=<dir>            : Specify location of datafiles (for SLEPc developers)'
-  for pk in [ arpack, blzpack, trlan, primme, feast, blopex, sowing ]:
+  for pk in optionalpackages:
     pk.ShowHelp()
   sys.exit(0)
 
 argdb.ErrorIfNotEmpty()
-
-external = arpack.havepackage or blzpack.havepackage or trlan.havepackage or primme.havepackage or feast.havepackage or blopex.downloadpackage
-prefixinstall = not prefixdir==''
 
 # Check if enviroment is ok
 print 'Checking environment...'
@@ -141,7 +143,7 @@ if os.path.exists(archdir):
     for library in ['ARPACK','BLZPACK','TRLAN','PRIMME','FEAST','BLOPEX']:
       if library in ''.join(searchlines):
         found = 1
-    if found and not external:
+    if found and not any(pk.requested for pk in externalpackages):
       print 'WARNING: forcing --with-clean=1 because previous configuration had external packages'
       doclean = 1
   except: pass
@@ -280,7 +282,7 @@ if petscconf.SINGLELIB:
   slepcvars.write('SLEPC_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}\n')
 
 # Check for external packages and for missing LAPACK functions
-for pk in [ arpack, blzpack, trlan, primme, feast, blopex, lapack ]:
+for pk in checkpackages:
   pk.Process(slepcconf,slepcvars,cmake,archdir)
 
 # Download sowing if requested and make Fortran stubs if necessary
@@ -410,8 +412,10 @@ if emptyarch and archdir != prefixdir:
   log.Println('Prefix install with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
 else:
   log.Println('Architecture "'+archname+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
-for pk in [ arpack, blzpack, trlan, primme, feast, blopex, lapack ]:
+for pk in checkpackages:
   pk.ShowInfo()
+log.write('\nFinishing Configure Run at '+time.ctime(time.time()))
+log.write('='*79)
 print
 print 'xxx'+'='*73+'xxx'
 if petscconf.MAKE_IS_GNUMAKE: buildtype = 'gnumake'
