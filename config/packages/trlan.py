@@ -31,7 +31,7 @@ class Trlan(package.Package):
     self.log         = log
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake,tmpdir):
+  def Check(self,conf,vars,cmake):
 
     if petscconf.SCALAR == 'complex':
       self.log.Exit('ERROR: TRLAN is not available for complex scalars.')
@@ -56,4 +56,4 @@ class Trlan(package.Package):
     else:
       dirs = self.GenerateGuesses('TRLan')
 
-    self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,dirs,libs,functions)
+    self.packagelibs = self.FortranLib(conf,vars,cmake,dirs,libs,functions)

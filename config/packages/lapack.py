@@ -37,12 +37,12 @@ class Lapack(package.Package):
       log.Println('WARNING: Some SLEPc functionality will not be available')
       log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
 
-  def Process(self,conf,vars,cmake,tmpdir,archdir=''):
+  def Process(self,conf,vars,cmake,archdir=''):
     self.log.write('='*80)
     self.log.Println('Checking LAPACK library...')
-    self.Check(conf,vars,cmake,tmpdir)
+    self.Check(conf,vars,cmake)
 
-  def Check(self,conf,vars,cmake,tmpdir):
+  def Check(self,conf,vars,cmake):
 
     # LAPACK standard functions
     l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf','stedc','hsein','larfg','larf','trsen','tgsen','lacpy','lascl','lansy','laset']
@@ -94,7 +94,7 @@ class Lapack(package.Package):
       all.append(f)
 
     self.log.write('=== Checking all LAPACK functions...')
-    if self.Link(tmpdir,all,[],[]):
+    if self.Link(all,[],[]):
       return
 
     # check functions one by one
@@ -109,7 +109,7 @@ class Lapack(package.Package):
       f += '#endif\n'
 
       self.log.write('=== Checking LAPACK '+i+' function...')
-      if not self.Link(tmpdir,[f],[],[]):
+      if not self.Link([f],[],[]):
         self.missing.append(i)
         # some complex functions are represented by their real names
         if i[1:] in namesubst:

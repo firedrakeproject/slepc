@@ -27,6 +27,6 @@ class Petsc(package.Package):
     self.packagename = 'petsc'
     self.log         = log
 
-  def Check(self,tmpdir):
-    self.havepackage = self.Link(tmpdir,[],[],[])
+  def Check(self):
+    self.havepackage = self.Link([],[],[])
 

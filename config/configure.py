@@ -20,7 +20,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os, sys, time, tempfile, shutil
+import os, sys, time, shutil
 
 # Use en_US as language so that compiler messages are in English
 if 'LC_LOCAL' in os.environ and os.environ['LC_LOCAL'] != '' and os.environ['LC_LOCAL'] != 'en_US' and os.environ['LC_LOCAL']!= 'en_US.UTF-8': os.environ['LC_LOCAL'] = 'en_US.UTF-8'
@@ -240,24 +240,6 @@ try:
 except:
   sys.exit('ERROR: cannot create pkgconfig file in ' + pkgconfigdir)
 
-# Create temporary directory and makefile for running tests
-try:
-  tmpdir = tempfile.mkdtemp(prefix='slepc-')
-  if not os.path.isdir(tmpdir): os.mkdir(tmpdir)
-except:
-  sys.exit('ERROR: cannot create temporary directory')
-try:
-  makefile = open(os.path.join(tmpdir,'makefile'),'w')
-  makefile.write('checklink: checklink.o chkopts\n')
-  makefile.write('\t${CLINKER} -o checklink checklink.o ${TESTFLAGS} ${PETSC_KSP_LIB}\n')
-  makefile.write('\t@${RM} -f checklink checklink.o\n')
-  makefile.write('LOCDIR = ./\n')
-  makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc-conf','variables')+'\n')
-  makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc-conf','rules')+'\n')
-  makefile.close()
-except:
-  sys.exit('ERROR: cannot create makefile in temporary directory')
-
 # Open log file
 log.Open(os.path.join(confdir,'configure.log'))
 log.write('='*80)
@@ -285,7 +267,7 @@ if petscversion.RELEASE != slepcversion.RELEASE:
 if petscconf.ISINSTALL:
   if os.path.realpath(petscconf.DESTDIR) != os.path.realpath(petscdir):
     log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
-petsc.Check(tmpdir)
+petsc.Check()
 if not petsc.havepackage:
   log.Exit('ERROR: Unable to link with PETSc')
 
@@ -299,7 +281,7 @@ if petscconf.SINGLELIB:
 
 # Check for external packages and for missing LAPACK functions
 for pk in [ arpack, blzpack, trlan, primme, feast, blopex, lapack ]:
-  pk.Process(slepcconf,slepcvars,cmake,tmpdir,archdir)
+  pk.Process(slepcconf,slepcvars,cmake,archdir)
 
 # Download sowing if requested and make Fortran stubs if necessary
 bfort = petscconf.BFORT
@@ -394,7 +376,6 @@ slepcconf.write('#endif\n')
 slepcconf.close()
 modules.close()
 pkgconfig.close()
-shutil.rmtree(tmpdir)
 
 # Print summary
 log.Println('')

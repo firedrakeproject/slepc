@@ -33,7 +33,7 @@ class Blopex(package.Package):
     self.log             = log
     self.ProcessDownloadArgs(argdb)
 
-  def Install(self,conf,vars,cmake,tmpdir,archdir):
+  def Install(self,conf,vars,cmake,archdir):
     '''
     Download and uncompress the BLOPEX tarball
     '''

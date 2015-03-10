@@ -32,7 +32,7 @@ class Primme(package.Package):
     self.log         = log
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake,tmpdir):
+  def Check(self,conf,vars,cmake):
 
     if petscconf.PRECISION != 'double':
       self.log.Exit('ERROR: PRIMME is supported only in double precision.')
@@ -64,7 +64,7 @@ class Primme(package.Package):
       else:
         l =  libs
         f = []
-      if self.Link(tmpdir,functions,[],l+f):
+      if self.Link(functions,[],l+f):
         conf.write('#ifndef SLEPC_HAVE_PRIMME\n#define SLEPC_HAVE_PRIMME 1\n#endif\n\n')
         vars.write('PRIMME_LIB = ' + ' '.join(l) + '\n')
         vars.write('PRIMME_FLAGS = ' + ' '.join(f) + '\n')

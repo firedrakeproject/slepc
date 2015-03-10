@@ -31,7 +31,7 @@ class Blzpack(package.Package):
     self.log         = log
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake,tmpdir):
+  def Check(self,conf,vars,cmake):
 
     if petscconf.SCALAR == 'complex':
       self.log.Exit('ERROR: BLZPACK does not support complex numbers.')
@@ -57,4 +57,5 @@ class Blzpack(package.Package):
     else:
       dirs = self.GenerateGuesses('Blzpack')
 
-    self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,dirs,libs,functions)
+    self.packagelibs = self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+

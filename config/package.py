@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os, commands
+import os, commands, tempfile, shutil
 import petscconf, log, argdb
 
 class Package:
@@ -42,17 +42,17 @@ class Package:
       self.packageurl = url
       self.downloadpackage = flag
 
-  def Process(self,conf,vars,cmake,tmpdir,archdir=''):
+  def Process(self,conf,vars,cmake,archdir=''):
     name = self.packagename.upper()
     self.log.write('='*80)
     if hasattr(self,'downloadpackage'):
       if self.downloadpackage:
         self.log.Println('Installing '+name+'...')
-        self.Install(conf,vars,cmake,tmpdir,archdir)
+        self.Install(conf,vars,cmake,archdir)
     else:
       if self.havepackage:
         self.log.Println('Checking '+name+' library...')
-        self.Check(conf,vars,cmake,tmpdir)
+        self.Check(conf,vars,cmake)
 
   def ShowHelp(self):
     if hasattr(self,'downloadpackage'):
@@ -69,7 +69,27 @@ class Package:
       self.log.Println(self.packagename.upper()+' library flags:')
       self.log.Println(' '+' '.join(self.packagelibs))
 
-  def LinkWithOutput(self,tmpdir,functions,callbacks,flags):
+  def LinkWithOutput(self,functions,callbacks,flags):
+
+    # Create temporary directory and makefile
+    try:
+      tmpdir = tempfile.mkdtemp(prefix='slepc-')
+      if not os.path.isdir(tmpdir): os.mkdir(tmpdir)
+    except:
+      self.log.Exit('ERROR: cannot create temporary directory')
+    try:
+      makefile = open(os.path.join(tmpdir,'makefile'),'w')
+      makefile.write('checklink: checklink.o chkopts\n')
+      makefile.write('\t${CLINKER} -o checklink checklink.o ${TESTFLAGS} ${PETSC_KSP_LIB}\n')
+      makefile.write('\t@${RM} -f checklink checklink.o\n')
+      makefile.write('LOCDIR = ./\n')
+      makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc-conf','variables')+'\n')
+      makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc-conf','rules')+'\n')
+      makefile.close()
+    except:
+      self.log.Exit('ERROR: cannot create makefile in temporary directory')
+
+    # Create source file
     code = '#include "petscksp.h"\n'
     for f in functions:
       code += 'PETSC_EXTERN int\n' + f + '();\n'
@@ -90,20 +110,22 @@ class Package:
     cfile = open(os.path.join(tmpdir,'checklink.c'),'w')
     cfile.write(code)
     cfile.close()
+
+    # Try to compile test program
     (result, output) = commands.getstatusoutput('cd ' + tmpdir + ';' + petscconf.MAKE + ' checklink TESTFLAGS="'+' '.join(flags)+'"')
-    try: os.remove('checklink.c')
-    except OSError: pass
+    shutil.rmtree(tmpdir)
+
     if result:
       return (0,code + output)
     else:
       return (1,code + output)
 
-  def Link(self,tmpdir,functions,callbacks,flags):
-    (result, output) = self.LinkWithOutput(tmpdir,functions,callbacks,flags)
+  def Link(self,functions,callbacks,flags):
+    (result, output) = self.LinkWithOutput(functions,callbacks,flags)
     self.log.write(output)
     return result
 
-  def FortranLink(self,tmpdir,functions,callbacks,flags):
+  def FortranLink(self,functions,callbacks,flags):
     output = '\n=== With linker flags: '+' '.join(flags)
 
     f = []
@@ -112,7 +134,7 @@ class Package:
     c = []
     for i in callbacks:
       c.append(i+'_')
-    (result, output1) = self.LinkWithOutput(tmpdir,f,c,flags)
+    (result, output1) = self.LinkWithOutput(f,c,flags)
     output1 = '\n====== With underscore Fortran names\n' + output1
     if result: return ('UNDERSCORE',output1)
 
@@ -122,11 +144,11 @@ class Package:
     c = []
     for i in callbacks:
       c.append(i.upper())
-    (result, output2) = self.LinkWithOutput(tmpdir,f,c,flags)
+    (result, output2) = self.LinkWithOutput(f,c,flags)
     output2 = '\n====== With capital Fortran names\n' + output2
     if result: return ('CAPS',output2)
 
-    (result, output3) = self.LinkWithOutput(tmpdir,functions,callbacks,flags)
+    (result, output3) = self.LinkWithOutput(functions,callbacks,flags)
     output3 = '\n====== With unmodified Fortran names\n' + output3
     if result: return ('STDCALL',output3)
 
@@ -151,7 +173,7 @@ class Package:
     dirs = [''] + dirs
     return dirs
 
-  def FortranLib(self,tmpdir,conf,vars,cmake,dirs,libs,functions,callbacks = []):
+  def FortranLib(self,conf,vars,cmake,dirs,libs,functions,callbacks = []):
     name = self.packagename.upper()
     error = ''
     mangling = ''
@@ -164,7 +186,7 @@ class Package:
             flags = ['-L' + d] + l
         else:
           flags = l
-        (mangling, output) = self.FortranLink(tmpdir,functions,callbacks,flags)
+        (mangling, output) = self.FortranLink(functions,callbacks,flags)
         error += output
         if mangling: break
       if mangling: break

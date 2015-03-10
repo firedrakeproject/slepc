@@ -31,7 +31,7 @@ class Arpack(package.Package):
     self.log         = log
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake,tmpdir):
+  def Check(self,conf,vars,cmake):
 
     if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
       self.log.Exit('ERROR: ARPACK is supported only in single or double precision.')
@@ -75,4 +75,5 @@ class Arpack(package.Package):
     else:
       dirs = self.GenerateGuesses('Arpack')
 
-    self.packagelibs = self.FortranLib(tmpdir,conf,vars,cmake,dirs,libs,functions)
+    self.packagelibs = self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+
