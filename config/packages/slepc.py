@@ -19,47 +19,41 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import package, os, commands
+import os, commands
 
-class PETSc(package.Package):
+class SLEPc():
 
-  def __init__(self,log):
-    self.packagename  = 'petsc'
-    self.downloadable = False
-    self.log          = log
-
-  def Check(self):
-    self.havepackage = self.Link([],[],[])
-
-  def LoadVersion(self,petscdir):
+  def LoadVersion(self,slepcdir):
     try:
-      f = open(os.path.join(petscdir,'include','petscversion.h'))
+      f = open(os.path.join(slepcdir,'include','slepcversion.h'))
       for l in f.readlines():
         l = l.split()
         if len(l) == 3:
-          if l[1] == 'PETSC_VERSION_RELEASE':
+          if l[1] == 'SLEPC_VERSION_RELEASE':
             self.release = l[2]
-          if l[1] == 'PETSC_VERSION_MAJOR':
+          if l[1] == 'SLEPC_VERSION_MAJOR':
             major = l[2]
-          elif l[1] == 'PETSC_VERSION_MINOR':
+          elif l[1] == 'SLEPC_VERSION_MINOR':
             minor = l[2]
-          elif l[1] == 'PETSC_VERSION_SUBMINOR':
+          elif l[1] == 'SLEPC_VERSION_SUBMINOR':
             subminor = l[2]
-          elif l[1] == 'PETSC_VERSION_PATCH':
+          elif l[1] == 'SLEPC_VERSION_PATCH':
             patchlevel = l[2]
       f.close()
       self.version = major + '.' + minor
       self.lversion = major + '.' + minor + '.' + subminor
     except:
-      self.log.Exit('ERROR: file error while reading PETSc version')
+      self.log.Exit('ERROR: file error while reading SLEPc version')
 
     # Check whether this is a working copy of the repository
     self.isrepo = False
-    if os.path.exists(os.path.join(petscdir,'.git')):
-      (status, output) = commands.getstatusoutput('cd '+petscdir+';git rev-parse')
-      if not status:
+    if os.path.exists(os.path.join(slepcdir,'src','docs')) and os.path.exists(os.path.join(slepcdir,'.git')):
+      (status, output) = commands.getstatusoutput('git rev-parse')
+      if status:
+        print 'WARNING: SLEPC_DIR appears to be a git working copy, but git is not found in PATH'
+      else:
         self.isrepo = True
-        (status, self.gitrev) = commands.getstatusoutput('cd '+petscdir+';git log -1 --pretty=format:%H')
-        (status, self.gitdate) = commands.getstatusoutput('cd '+petscdir+';git log -1 --pretty=format:%ci')
-        (status, self.branch) = commands.getstatusoutput('cd '+petscdir+';git describe --contains --all HEAD')
+        (status, self.gitrev) = commands.getstatusoutput('git log -1 --pretty=format:%H')
+        (status, self.gitdate) = commands.getstatusoutput('git log -1 --pretty=format:%ci')
+        (status, self.branch) = commands.getstatusoutput('git describe --contains --all HEAD')
 

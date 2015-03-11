@@ -46,8 +46,9 @@ import argdb, log
 argdb = argdb.ArgDB(sys.argv)
 log = log.Log()
 
-import petsc, arpack, blzpack, trlan, feast, primme, blopex, sowing, lapack
-petsc = petsc.Petsc(log)
+import slepc, petsc, arpack, blzpack, trlan, feast, primme, blopex, sowing, lapack
+slepc = slepc.SLEPc()
+petsc = petsc.PETSc(log)
 arpack = arpack.Arpack(argdb,log)
 blzpack = blzpack.Blzpack(argdb,log)
 trlan = trlan.Trlan(argdb,log)
@@ -103,11 +104,10 @@ else:
     sys.exit('ERROR: PETSC_DIR enviroment variable is not set')
 
 # Check PETSc version
-import petscversion, slepcversion
-petscversion.Load(petscdir)
-slepcversion.Load(slepcdir)
-if petscversion.VERSION < slepcversion.VERSION:
-  sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petscversion.VERSION)
+petsc.LoadVersion(petscdir)
+slepc.LoadVersion(slepcdir)
+if petsc.version < slepc.version:
+  sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petsc.version)
 
 # Check some information about PETSc configuration
 import petscconf
@@ -220,9 +220,9 @@ try:
   slepcconf = open(os.path.join(incdir,'slepcconf.h'),'w')
   slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
   slepcconf.write('#define __SLEPCCONF_H\n\n')
-  if slepcversion.ISREPO:
-    slepcconf.write('#ifndef SLEPC_VERSION_GIT\n#define SLEPC_VERSION_GIT "' + slepcversion.GITREV + '"\n#endif\n\n')
-    slepcconf.write('#ifndef SLEPC_VERSION_DATE_GIT\n#define SLEPC_VERSION_DATE_GIT "' + slepcversion.GITDATE + '"\n#endif\n\n')
+  if slepc.isrepo:
+    slepcconf.write('#ifndef SLEPC_VERSION_GIT\n#define SLEPC_VERSION_GIT "' + slepc.gitrev + '"\n#endif\n\n')
+    slepcconf.write('#ifndef SLEPC_VERSION_DATE_GIT\n#define SLEPC_VERSION_DATE_GIT "' + slepc.gitdate + '"\n#endif\n\n')
   slepcconf.write('#ifndef SLEPC_LIB_DIR\n#define SLEPC_LIB_DIR "' + os.path.join(prefixdir,'lib') + '"\n#endif\n\n')
 except:
   sys.exit('ERROR: cannot create configuration header in ' + confdir)
@@ -232,9 +232,9 @@ except:
   sys.exit('ERROR: cannot create CMake configuration file in ' + confdir)
 try:
   if archdir != prefixdir:
-    modules = open(os.path.join(modulesdir,slepcversion.LVERSION),'w')
+    modules = open(os.path.join(modulesdir,slepc.lversion),'w')
   else:
-    modules = open(os.path.join(modulesdir,slepcversion.LVERSION+'-'+archname),'w')
+    modules = open(os.path.join(modulesdir,slepc.lversion+'-'+archname),'w')
 except:
   sys.exit('ERROR: cannot create modules file in ' + modulesdir)
 try:
@@ -252,19 +252,19 @@ log.write('Python version:\n' + sys.version)
 log.write('make: ' + petscconf.MAKE)
 log.write('PETSc source directory: ' + petscdir)
 log.write('PETSc install directory: ' + petscconf.DESTDIR)
-log.write('PETSc version: ' + petscversion.LVERSION)
+log.write('PETSc version: ' + petsc.lversion)
 if not emptyarch:
   log.write('PETSc architecture: ' + petscconf.ARCH)
 log.write('SLEPc source directory: ' + slepcdir)
 log.write('SLEPc install directory: ' + prefixdir)
-log.write('SLEPc version: ' + slepcversion.LVERSION)
+log.write('SLEPc version: ' + slepc.lversion)
 log.write('='*80)
 
 # Check if PETSc is working
 log.Println('Checking PETSc installation...')
-if petscversion.VERSION > slepcversion.VERSION:
-  log.Println('WARNING: PETSc version '+petscversion.VERSION+' is newer than SLEPc version '+slepcversion.VERSION)
-if petscversion.RELEASE != slepcversion.RELEASE:
+if petsc.version > slepc.version:
+  log.Println('WARNING: PETSc version '+petsc.version+' is newer than SLEPc version '+slepc.version)
+if petsc.release != slepc.release:
   sys.exit('ERROR: Cannot mix release and development versions of SLEPc and PETSc')
 if petscconf.ISINSTALL:
   if os.path.realpath(petscconf.DESTDIR) != os.path.realpath(petscdir):
@@ -290,7 +290,7 @@ bfort = petscconf.BFORT
 if sowing.downloadpackage:
   bfort = sowing.Install(archdir)
 
-if slepcversion.ISREPO and hasattr(petscconf,'FC'):
+if slepc.isrepo and hasattr(petscconf,'FC'):
   try:
     if not os.path.exists(bfort):
       bfort = os.path.join(archdir,'bin','bfort')
@@ -350,7 +350,7 @@ if cmakeok:
 # Modules file
 modules.write('#%Module\n\n')
 modules.write('proc ModulesHelp { } {\n')
-modules.write('    puts stderr "This module sets the path and environment variables for slepc-%s"\n' % slepcversion.LVERSION)
+modules.write('    puts stderr "This module sets the path and environment variables for slepc-%s"\n' % slepc.lversion)
 modules.write('    puts stderr "     see http://slepc.upv.es/ for more information"\n')
 modules.write('    puts stderr ""\n}\n')
 modules.write('module-whatis "SLEPc - Scalable Library for Eigenvalue Problem Computations"\n\n')
@@ -364,8 +364,8 @@ modules.write('setenv SLEPC_DIR $slepc_dir\n')
 # pkg-config file
 pkgconfig.write('Name: SLEPc, the Scalable Library for Eigenvalue Problem Computations\n')
 pkgconfig.write('Description: A parallel library to compute eigenvalues and eigenvectors of large, sparse matrices with iterative methods. It is based on PETSc.\n')
-pkgconfig.write('Version: %s\n' % slepcversion.LVERSION)
-pkgconfig.write('Requires: PETSc = %s\n' % petscversion.LVERSION)
+pkgconfig.write('Version: %s\n' % slepc.lversion)
+pkgconfig.write('Requires: PETSc = %s\n' % petsc.lversion)
 pkgconfig.write('Cflags: -I' + os.path.join(prefixdir,'include'))
 if not prefixinstall:
   pkgconfig.write(' -I' + os.path.join(slepcdir,'include'))
@@ -387,22 +387,22 @@ log.Println('='*79)
 log.Println('')
 log.Println('SLEPc directory:')
 log.Println(' '+slepcdir)
-if slepcversion.ISREPO:
-  log.Println('  It is a git repository on branch: '+slepcversion.BRANCH)
+if slepc.isrepo:
+  log.Println('  It is a git repository on branch: '+slepc.branch)
 if archdir != prefixdir:
   log.Println('SLEPc prefix directory:')
   log.Println(' '+prefixdir)
 log.Println('PETSc directory:')
 log.Println(' '+petscdir)
-if petscversion.ISREPO:
-  log.Println('  It is a git repository on branch: '+petscversion.BRANCH)
-if petscversion.ISREPO and slepcversion.ISREPO:
-  if petscversion.BRANCH!='maint' and slepcversion.BRANCH!='maint':
+if petsc.isrepo:
+  log.Println('  It is a git repository on branch: '+petsc.branch)
+if petsc.isrepo and slepc.isrepo:
+  if petsc.branch!='maint' and slepc.branch!='maint':
     try:
       import dateutil.parser
       import datetime
-      petscdate = dateutil.parser.parse(petscversion.GITDATE)
-      slepcdate = dateutil.parser.parse(slepcversion.GITDATE)
+      petscdate = dateutil.parser.parse(petsc.gitdate)
+      slepcdate = dateutil.parser.parse(slepc.gitdate)
       if abs(petscdate-slepcdate)>datetime.timedelta(days=30):
         log.Println('xxx'+'='*73+'xxx')
         log.Println('WARNING: your PETSc and SLEPc repos may not be in sync (more than 30 days apart)')
