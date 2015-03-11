@@ -158,6 +158,7 @@ if argdb.PopHelp():
   print '-'*80
   print '''SLEPc:
   --with-clean=<bool>          : Delete prior build files including externalpackages
+  --with-cmake=<bool>          : Enable builds with CMake (disabled by default)
   --prefix=<dir>               : Specify location to install SLEPc (e.g., /usr/local)
   --DATAFILESPATH=<dir>        : Specify location of datafiles (for SLEPc developers)'''
   for pk in optionalpackages:
@@ -360,9 +361,9 @@ if bfort != petsc.bfort:
   slepcvars.write('BFORT = '+bfort+'\n')
 
 # CMake stuff
-log.NewSection('Creating CMake files...')
 cmakeok = False
-if sys.version_info >= (2,5) and not petsc.isinstall and petsc.build_using_cmake:
+if sys.version_info >= (2,5) and slepc.cmake and not petsc.isinstall and petsc.build_using_cmake:
+  log.NewSection('Configuring CMake builds...')
   import cmakegen
   try:
     cmakegen.main(slepcdir,petscdir,petscdestdir=petsc.destdir)
