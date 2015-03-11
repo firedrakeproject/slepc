@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import petscconf, log, package
+import log, package
 
 class Trlan(package.Package):
 
@@ -31,22 +31,22 @@ class Trlan(package.Package):
     self.log          = log
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake):
+  def Check(self,conf,vars,cmake,petsc):
 
-    if petscconf.SCALAR == 'complex':
+    if petsc.scalar == 'complex':
       self.log.Exit('ERROR: TRLAN is not available for complex scalars.')
 
-    if petscconf.PRECISION != 'double':
+    if petsc.precision != 'double':
       self.log.Exit('ERROR: TRLAN is supported only in double precision.')
 
-    if petscconf.IND64:
+    if petsc.ind64:
       self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
 
     functions = ['trlan77']
     if self.packagelibs:
       libs = [self.packagelibs]
     else:
-      if petscconf.MPIUNI:
+      if petsc.mpiuni:
         libs = [['-ltrlan']]
       else:
         libs = [['-ltrlan_mpi']]

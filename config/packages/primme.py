@@ -20,7 +20,7 @@
 #
 
 import os
-import petscconf, log, package
+import log, package
 
 class Primme(package.Package):
 
@@ -32,12 +32,12 @@ class Primme(package.Package):
     self.log          = log
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake):
+  def Check(self,conf,vars,cmake,petsc):
 
-    if petscconf.PRECISION != 'double':
+    if petsc.precision != 'double':
       self.log.Exit('ERROR: PRIMME is supported only in double precision.')
 
-    if petscconf.IND64:
+    if petsc.ind64:
       self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
 
     functions_base = ['primme_set_method','primme_Free','primme_initialize']
@@ -49,15 +49,15 @@ class Primme(package.Package):
     libs = self.packagelibs
     if not libs:
       libs = ['-lprimme']
-    if petscconf.SCALAR == 'real':
+    if petsc.scalar == 'real':
       functions = functions_base + ['dprimme']
     else:
       functions = functions_base + ['zprimme']
 
     for d in dirs:
       if d:
-        if 'rpath' in petscconf.SLFLAG:
-          l = [petscconf.SLFLAG + d] + ['-L' + d] + libs
+        if 'rpath' in petsc.slflag:
+          l = [petsc.slflag + d] + ['-L' + d] + libs
         else:
           l = ['-L' + d] + libs
         f = ['-I' + os.path.join(d,'PRIMMESRC','COMMONSRC')]

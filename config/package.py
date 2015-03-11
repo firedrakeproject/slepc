@@ -20,7 +20,7 @@
 #
 
 import os, commands, tempfile, shutil
-import petscconf, log, argdb
+import log, argdb
 
 class Package:
 
@@ -45,16 +45,18 @@ class Package:
       if argdb.PopBool('with-'+self.packagename):
         self.requested = True
 
-  def Process(self,conf,vars,cmake,archdir=''):
+  def Process(self,conf,vars,cmake,petsc,archdir=''):
+    self.make = petsc.make
+    self.slflag = petsc.slflag
     if self.requested:
       name = self.packagename.upper()
       if self.downloadable:
         if self.downloadpackage:
           self.log.NewSection('Installing '+name+'...')
-          self.Install(conf,vars,cmake,archdir)
+          self.Install(conf,vars,cmake,petsc,archdir)
       else:
         self.log.NewSection('Checking '+name+' library...')
-        self.Check(conf,vars,cmake)
+        self.Check(conf,vars,cmake,petsc)
 
   def ShowHelp(self):
     wd = 31
@@ -115,7 +117,7 @@ class Package:
     cfile.close()
 
     # Try to compile test program
-    (result, output) = commands.getstatusoutput('cd ' + tmpdir + ';' + petscconf.MAKE + ' checklink TESTFLAGS="'+' '.join(flags)+'"')
+    (result, output) = commands.getstatusoutput('cd ' + tmpdir + ';' + self.make + ' checklink TESTFLAGS="'+' '.join(flags)+'"')
     shutil.rmtree(tmpdir)
 
     if result:
@@ -183,8 +185,8 @@ class Package:
     for d in dirs:
       for l in libs:
         if d:
-          if 'rpath' in petscconf.SLFLAG:
-            flags = [petscconf.SLFLAG + d] + ['-L' + d] + l
+          if 'rpath' in self.slflag:
+            flags = [self.slflag + d] + ['-L' + d] + l
           else:
             flags = ['-L' + d] + l
         else:

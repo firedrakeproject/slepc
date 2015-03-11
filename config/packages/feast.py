@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import petscconf, log, package
+import log, package
 
 class Feast(package.Package):
 
@@ -31,25 +31,25 @@ class Feast(package.Package):
     self.log          = log
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake):
+  def Check(self,conf,vars,cmake,petsc):
 
-    if petscconf.SCALAR != 'complex':
+    if petsc.scalar != 'complex':
       self.log.Exit('ERROR: FEAST is supported only with complex numbers.')
 
-    if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
+    if (petsc.precision != 'single') & (petsc.precision != 'double'):
       self.log.Exit('ERROR: FEAST is supported only in single or double precision.')
 
-    if petscconf.IND64:
+    if petsc.ind64:
       self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
 
     functions = ['feastinit']
-    if petscconf.SCALAR == 'real':
-      if petscconf.PRECISION == 'single':
+    if petsc.scalar == 'real':
+      if petsc.precision == 'single':
         functions += ['sfeast_srci']
       else:
         functions += ['dfeast_srci']
     else:
-      if petscconf.PRECISION == 'single':
+      if petsc.precision == 'single':
         functions += ['cfeast_hrci']
       else:
         functions += ['zfeast_hrci']
@@ -57,7 +57,7 @@ class Feast(package.Package):
     if self.packagelibs:
       libs = [self.packagelibs]
     else:
-      if petscconf.MPIUNI:
+      if petsc.mpiuni:
         libs = [['-lpfeast']]
       else:
         libs = [['-lfeast']]

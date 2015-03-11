@@ -20,7 +20,7 @@
 #
 
 import os, sys, commands
-import petscconf, log, package
+import log, package
 
 class Sowing(package.Package):
 
@@ -32,7 +32,7 @@ class Sowing(package.Package):
     self.log             = log
     self.ProcessArgs(argdb)
 
-  def Install(self,archdir):
+  def Install(self,archdir,make):
     '''
     Download and install Sowing
     '''
@@ -59,7 +59,7 @@ class Sowing(package.Package):
         raise RuntimeError('Error cloning '+url+': '+str(e))
 
     # Configure, build and install package
-    result,output = commands.getstatusoutput('cd '+builddir+'&& ./configure --prefix='+archdir+'&&'+petscconf.MAKE+'&&'+petscconf.MAKE+' install')
+    result,output = commands.getstatusoutput('cd '+builddir+'&& ./configure --prefix='+archdir+'&&'+make+'&&'+make+' install')
     self.log.write(output)
 
     self.havepackage = True

@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import petscconf, log, package
+import log, package
 
 class Lapack(package.Package):
 
@@ -38,29 +38,31 @@ class Lapack(package.Package):
       log.Println('WARNING: Some SLEPc functionality will not be available')
       log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
 
-  def Process(self,conf,vars,cmake,archdir=''):
+  def Process(self,conf,vars,cmake,petsc,archdir=''):
+    self.make = petsc.make
+    self.slflag = petsc.slflag
     self.log.NewSection('Checking LAPACK library...')
-    self.Check(conf,vars,cmake)
+    self.Check(conf,vars,cmake,petsc)
 
-  def Check(self,conf,vars,cmake):
+  def Check(self,conf,vars,cmake,petsc):
 
     # LAPACK standard functions
     l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf','stedc','hsein','larfg','larf','trsen','tgsen','lacpy','lascl','lansy','laset']
 
     # LAPACK functions with different real and complex versions
-    if petscconf.SCALAR == 'real':
+    if petsc.scalar == 'real':
       l += ['orghr','syevr','syevd','sytrd','sygvd','ormlq','orgqr','orgtr']
-      if petscconf.PRECISION == 'single':
+      if petsc.precision == 'single':
         prefix = 's'
-      elif petscconf.PRECISION == '__float128':
+      elif petsc.precision == '__float128':
         prefix = 'q'
       else:
         prefix = 'd'
     else:
       l += ['unghr','heevr','heevd','hetrd','hegvd','unmlq','ungqr','ungtr']
-      if petscconf.PRECISION == 'single':
+      if petsc.precision == 'single':
         prefix = 'c'
-      elif petscconf.PRECISION == '__float128':
+      elif petsc.precision == '__float128':
         prefix = 'w'
       else:
         prefix = 'z'
@@ -74,9 +76,9 @@ class Lapack(package.Package):
     namesubst = {'unghr':'orghr', 'heevr':'syevr', 'heevd':'syevd', 'hetrd':'sytrd', 'hegvd':'sygvd', 'unmlq':'ormlq', 'ungqr':'orgqr', 'ungtr':'orgtr'}
 
     # LAPACK functions which are always used in real version
-    if petscconf.PRECISION == 'single':
+    if petsc.precision == 'single':
       functions += ['sstevr','sbdsdc','slamch','slag2','slasv2','slartg','slaln2','slaed4','slamrg','slapy2']
-    elif petscconf.PRECISION == '__float128':
+    elif petsc.precision == '__float128':
       functions += ['qstevr','qbdsdc','qlamch','qlag2','qlasv2','qlartg','qlaln2','qlaed4','qlamrg','qlapy2']
     else:
       functions += ['dstevr','dbdsdc','dlamch','dlag2','dlasv2','dlartg','dlaln2','dlaed4','dlamrg','dlapy2']

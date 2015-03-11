@@ -21,7 +21,7 @@
 
 import os, sys, commands
 import urllib, urlparse
-import petscconf, log, package
+import log, package
 
 class Blopex(package.Package):
 
@@ -33,14 +33,14 @@ class Blopex(package.Package):
     self.log             = log
     self.ProcessArgs(argdb)
 
-  def Install(self,conf,vars,cmake,archdir):
+  def Install(self,conf,vars,cmake,petsc,archdir):
     '''
     Download and uncompress the BLOPEX tarball
     '''
-    if petscconf.PRECISION != 'double':
+    if petsc.precision != 'double':
       self.log.Exit('ERROR: BLOPEX is supported only in double precision.')
 
-    if petscconf.IND64:
+    if petsc.ind64:
       self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
 
     packagename = 'blopex-1.1.2'
@@ -106,30 +106,30 @@ Unable to download package %s from: %s
 
     # Configure
     g = open(os.path.join(builddir,'Makefile.inc'),'w')
-    g.write('CC          = '+petscconf.CC+'\n')
-    if petscconf.IND64: blopexint = ' -DBlopexInt="long long" '
+    g.write('CC          = '+petsc.cc+'\n')
+    if petsc.ind64: blopexint = ' -DBlopexInt="long long" '
     else: blopexint = ''
-    g.write('CFLAGS      = '+petscconf.CC_FLAGS.replace('-Wall','').replace('-Wshadow','')+blopexint+'\n')
-    g.write('AR          = '+petscconf.AR+' '+petscconf.AR_FLAGS+'\n')
-    g.write('AR_LIB_SUFFIX = '+petscconf.AR_LIB_SUFFIX+'\n')
-    g.write('RANLIB      = '+petscconf.RANLIB+'\n')
+    g.write('CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','')+blopexint+'\n')
+    g.write('AR          = '+petsc.ar+' '+petsc.ar_flags+'\n')
+    g.write('AR_LIB_SUFFIX = '+petsc.ar_lib_suffix+'\n')
+    g.write('RANLIB      = '+petsc.ranlib+'\n')
     g.write('TARGET_ARCH = \n')
     g.close()
 
     # Build package
-    result,output = commands.getstatusoutput('cd '+builddir+'&&'+petscconf.MAKE+' clean &&'+petscconf.MAKE)
+    result,output = commands.getstatusoutput('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make)
     self.log.write(output)
 
     # Move files
     incDir = os.path.join(archdir,'include')
     libDir = os.path.join(archdir,'lib')
-    os.rename(os.path.join(builddir,'lib','libBLOPEX.'+petscconf.AR_LIB_SUFFIX),os.path.join(libDir,'libBLOPEX.'+petscconf.AR_LIB_SUFFIX))
+    os.rename(os.path.join(builddir,'lib','libBLOPEX.'+petsc.ar_lib_suffix),os.path.join(libDir,'libBLOPEX.'+petsc.ar_lib_suffix))
     for root, dirs, files in os.walk(os.path.join(builddir,'include')):
       for name in files:
         os.rename(os.path.join(builddir,'include',name),os.path.join(incDir,name))
 
-    if 'rpath' in petscconf.SLFLAG:
-      l = petscconf.SLFLAG + libDir + ' -L' + libDir + ' -lBLOPEX'
+    if 'rpath' in petsc.slflag:
+      l = petsc.slflag + libDir + ' -L' + libDir + ' -lBLOPEX'
     else:
       l = '-L' + libDir + ' -lBLOPEX'
 

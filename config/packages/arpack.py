@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import petscconf, log, package
+import log, package
 
 class Arpack(package.Package):
 
@@ -31,33 +31,33 @@ class Arpack(package.Package):
     self.log          = log
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake):
+  def Check(self,conf,vars,cmake,petsc):
 
-    if (petscconf.PRECISION != 'single') & (petscconf.PRECISION != 'double'):
+    if (petsc.precision != 'single') & (petsc.precision != 'double'):
       self.log.Exit('ERROR: ARPACK is supported only in single or double precision.')
 
-    if petscconf.IND64:
+    if petsc.ind64:
       self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
 
-    if petscconf.MPIUNI:
-      if petscconf.SCALAR == 'real':
-        if petscconf.PRECISION == 'single':
+    if petsc.mpiuni:
+      if petsc.scalar == 'real':
+        if petsc.precision == 'single':
           functions = ['snaupd','sneupd','ssaupd','sseupd']
         else:
           functions = ['dnaupd','dneupd','dsaupd','dseupd']
       else:
-        if petscconf.PRECISION == 'single':
+        if petsc.precision == 'single':
           functions = ['cnaupd','cneupd']
         else:
           functions = ['znaupd','zneupd']
     else:
-      if petscconf.SCALAR == 'real':
-        if petscconf.PRECISION == 'single':
+      if petsc.scalar == 'real':
+        if petsc.precision == 'single':
           functions = ['psnaupd','psneupd','pssaupd','psseupd']
         else:
           functions = ['pdnaupd','pdneupd','pdsaupd','pdseupd']
       else:
-        if petscconf.PRECISION == 'single':
+        if petsc.precision == 'single':
           functions = ['pcnaupd','pcneupd']
         else:
           functions = ['pznaupd','pzneupd']
@@ -65,7 +65,7 @@ class Arpack(package.Package):
     if self.packagelibs:
       libs = [self.packagelibs]
     else:
-      if petscconf.MPIUNI:
+      if petsc.mpiuni:
         libs = [['-larpack'],['-larpack_LINUX'],['-larpack_SUN4']]
       else:
         libs = [['-lparpack','-larpack'],['-lparpack_MPI','-larpack'],['-lparpack_MPI-LINUX','-larpack_LINUX'],['-lparpack_MPI-SUN4','-larpack_SUN4']]

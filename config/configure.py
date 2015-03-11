@@ -148,19 +148,18 @@ if petsc.version < slepc.version:
   sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petsc.version)
 
 # Check some information about PETSc configuration
-import petscconf
-petscconf.Load(petscdir)
-if not petscconf.PRECISION in ['double','single','__float128']:
-  sys.exit('ERROR: This SLEPc version does not work with '+petscconf.PRECISION+' precision')
-if slepc.isinstall and not petscconf.ISINSTALL:
+petsc.LoadConf(petscdir)
+if not petsc.precision in ['double','single','__float128']:
+  sys.exit('ERROR: This SLEPc version does not work with '+petsc.precision+' precision')
+if slepc.isinstall and not petsc.isinstall:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
 # Check for empty PETSC_ARCH
 emptyarch = not ('PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH'])
 if emptyarch:
-  archname = 'installed-' + petscconf.ARCH
+  archname = 'installed-' + petsc.arch
 else:
-  archname = petscconf.ARCH
+  archname = petsc.arch
 
 # Create directories for configuration files
 archdir, archdirexisted = CreateDirTest(slepcdir,archname,log)
@@ -174,12 +173,12 @@ log.write('Starting Configure Run at '+time.ctime(time.time()))
 log.write('Configure Options: '+' '.join(sys.argv[1:]))
 log.write('Working directory: '+os.getcwd())
 log.write('Python version:\n' + sys.version)
-log.write('make: ' + petscconf.MAKE)
+log.write('make: ' + petsc.make)
 log.write('PETSc source directory: ' + petscdir)
-log.write('PETSc install directory: ' + petscconf.DESTDIR)
+log.write('PETSc install directory: ' + petsc.destdir)
 log.write('PETSc version: ' + petsc.lversion)
 if not emptyarch:
-  log.write('PETSc architecture: ' + petscconf.ARCH)
+  log.write('PETSc architecture: ' + petsc.arch)
 log.write('SLEPc source directory: ' + slepcdir)
 log.write('SLEPc install directory: ' + slepc.prefixdir)
 log.write('SLEPc version: ' + slepc.lversion)
@@ -195,7 +194,7 @@ if archdirexisted:
       if library in ''.join(searchlines):
         found = 1
     if found and not any(pk.requested for pk in externalpackages):
-      print 'WARNING: forcing --with-clean=1 because previous configuration had external packages'
+      log.write('WARNING: forcing --with-clean=1 because previous configuration had external packages')
       slepc.clean = True
   except: pass
   if slepc.clean:
@@ -218,9 +217,9 @@ try:
   slepcvars.write('SLEPC_DESTDIR = ' + slepc.prefixdir +'\n')
   if emptyarch:
     slepcvars.write('INSTALLED_PETSC = 1\n')
-  testruns = set(petscconf.TEST_RUNS.split())
+  testruns = set(petsc.test_runs.split())
   testruns = testruns.intersection(set(['C','F90','Fortran','C_Complex','Fortran_Complex','C_NoComplex','Fortran_NoComplex']))
-  if petscconf.PRECISION != '__float128':
+  if petsc.precision != '__float128':
     testruns = testruns.union(set(['C_NoF128']))
   if slepc.datadir:
     slepcvars.write('DATAFILESPATH = ' + slepc.datadir +'\n')
@@ -275,15 +274,15 @@ if petsc.version > slepc.version:
   log.Println('WARNING: PETSc version '+petsc.version+' is newer than SLEPc version '+slepc.version)
 if petsc.release != slepc.release:
   log.Exit('ERROR: Cannot mix release and development versions of SLEPc and PETSc')
-if petscconf.ISINSTALL:
-  if os.path.realpath(petscconf.DESTDIR) != os.path.realpath(petscdir):
+if petsc.isinstall:
+  if os.path.realpath(petsc.destdir) != os.path.realpath(petscdir):
     log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
 petsc.Check()
 if not petsc.havepackage:
   log.Exit('ERROR: Unable to link with PETSc')
 
 # Single library installation
-if petscconf.SINGLELIB:
+if petsc.singlelib:
   slepcvars.write('SHLIBS = libslepc\n')
   slepcvars.write('LIBNAME = '+os.path.join('${INSTALL_LIB_DIR}','libslepc.${AR_LIB_SUFFIX}')+'\n')
   for module in ['SYS','MFN','EPS','SVD','PEP','NEP']:
@@ -292,28 +291,28 @@ if petscconf.SINGLELIB:
 
 # Check for external packages and for missing LAPACK functions
 for pk in checkpackages:
-  pk.Process(slepcconf,slepcvars,cmake,archdir)
+  pk.Process(slepcconf,slepcvars,cmake,petsc,archdir)
 
 # Download sowing if requested and make Fortran stubs if necessary
-bfort = petscconf.BFORT
+bfort = petsc.bfort
 if sowing.downloadpackage:
-  bfort = sowing.Install(archdir)
+  bfort = sowing.Install(archdir,petsc.make)
 
-if slepc.isrepo and hasattr(petscconf,'FC'):
+if slepc.isrepo and hasattr(petsc,'fc'):
+  log.NewSection('Generating Fortran stubs...')
   try:
-    log.NewSection('Generating Fortran stubs...')
     if not os.path.exists(bfort):
       bfort = os.path.join(archdir,'bin','bfort')
     if not os.path.exists(bfort):
-      bfort = sowing.Install(archdir)
+      bfort = sowing.Install(archdir,petsc.make)
     sys.path.insert(0, os.path.abspath(os.path.join('bin','maint')))
     import generatefortranstubs
     generatefortranstubs.main(slepcdir,bfort,os.getcwd(),0)
     generatefortranstubs.processf90interfaces(slepcdir,0)
   except AttributeError:
-    log.Exit('ERROR: Cannot generate Fortran stubs; try configuring PETSc with --download-sowing or use a mercurial version of PETSc')
+    log.Exit('ERROR: Try configuring with --download-sowing or use a git version of PETSc')
 
-if bfort != petscconf.BFORT:
+if bfort != petsc.bfort:
   slepcvars.write('BFORT = '+bfort+'\n')
 
 # CMake stuff
@@ -333,10 +332,10 @@ endif ()
 ''')
 cmake.close()
 cmakeok = False
-if sys.version_info >= (2,5) and not petscconf.ISINSTALL and petscconf.BUILD_USING_CMAKE:
+if sys.version_info >= (2,5) and not petsc.isinstall and petsc.build_using_cmake:
   import cmakegen
   try:
-    cmakegen.main(slepcdir,petscdir,petscdestdir=petscconf.DESTDIR)
+    cmakegen.main(slepcdir,petscdir,petscdestdir=petsc.destdir)
   except (OSError), e:
     log.Exit('ERROR: Generating CMakeLists.txt failed:\n' + str(e))
   import cmakeboot
@@ -420,16 +419,16 @@ if petsc.isrepo and slepc.isrepo:
         log.Println('xxx'+'='*73+'xxx')
     except ImportError: pass
 if emptyarch and archdir != slepc.prefixdir:
-  log.Println('Prefix install with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
+  log.Println('Prefix install with '+petsc.precision+' precision '+petsc.scalar+' numbers')
 else:
-  log.Println('Architecture "'+archname+'" with '+petscconf.PRECISION+' precision '+petscconf.SCALAR+' numbers')
+  log.Println('Architecture "'+archname+'" with '+petsc.precision+' precision '+petsc.scalar+' numbers')
 for pk in checkpackages:
   pk.ShowInfo()
 log.write('\nFinishing Configure Run at '+time.ctime(time.time()))
 log.write('='*79)
 print
 print 'xxx'+'='*73+'xxx'
-if petscconf.MAKE_IS_GNUMAKE: buildtype = 'gnumake'
+if petsc.make_is_gnumake: buildtype = 'gnumake'
 elif cmakeok: buildtype = 'cmake'
 else: buildtype = 'legacy'
 print ' Configure stage complete. Now build the SLEPc library with ('+buildtype+' build):'

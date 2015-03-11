@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import package, os, commands
+import package, os, sys, commands
 
 class PETSc(package.Package):
 
@@ -62,4 +62,98 @@ class PETSc(package.Package):
         (status, self.gitrev) = commands.getstatusoutput('cd '+petscdir+';git log -1 --pretty=format:%H')
         (status, self.gitdate) = commands.getstatusoutput('cd '+petscdir+';git log -1 --pretty=format:%ci')
         (status, self.branch) = commands.getstatusoutput('cd '+petscdir+';git describe --contains --all HEAD')
+
+  def LoadConf(self,petscdir):
+    if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']:
+      self.isinstall = 0
+      self.arch = os.environ['PETSC_ARCH']
+      petscvariables = os.path.join(petscdir,self.arch,'lib','petsc-conf','petscvariables')
+      petscconf_h = os.path.join(petscdir,self.arch,'include','petscconf.h')
+    else:
+      self.isinstall = 1
+      petscvariables = os.path.join(petscdir,'lib','petsc-conf','petscvariables')
+      petscconf_h = os.path.join(petscdir,'include','petscconf.h')
+
+    self.build_using_cmake = 0
+    self.make_is_gnumake = 0
+    self.language = 'c'
+    try:
+      f = open(petscvariables)
+      for l in f.readlines():
+        r = l.split('=',1)
+        if len(r)!=2: continue
+        k = r[0].strip()
+        v = r[1].strip()
+        if k == 'PETSC_SCALAR':
+          self.scalar = v
+        elif k == 'PETSC_PRECISION':
+          self.precision = v
+        elif k == 'MAKE':
+          self.make = v
+        elif k == 'DESTDIR':
+          self.destdir = v
+        elif k == 'BFORT':
+          self.bfort = v
+        elif k == 'TEST_RUNS':
+          self.test_runs = v
+        elif k == 'CC':
+          self.cc = v
+        elif k == 'CC_FLAGS':
+          self.cc_flags = v
+        elif k == 'FC' and not v=='':
+          self.fc = v
+        elif k == 'AR':
+          self.ar = v
+        elif k == 'AR_FLAGS':
+          self.ar_flags = v
+        elif k == 'AR_LIB_SUFFIX':
+          self.ar_lib_suffix = v
+        elif k == 'CC_LINKER_SLFLAG':
+          self.slflag = v
+        elif k == 'RANLIB':
+          self.ranlib = v
+        elif k == 'PETSC_BUILD_USING_CMAKE':
+          self.build_using_cmake = v
+        elif k == 'MAKE_IS_GNUMAKE':
+          self.make_is_gnumake = v
+        elif k == 'PETSC_LANGUAGE' and v=='CXXONLY':
+          self.language = 'c++'
+      f.close()
+    except:
+      self.log.Exit('ERROR: cannot process file ' + petscvariables)
+
+    self.ind64 = False
+    self.mpiuni = False
+    self.debug = False
+    self.singlelib = False
+    try:
+      f = open(petscconf_h)
+      for l in f.readlines():
+        l = l.split()
+        if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_64BIT_INDICES' and l[2]=='1':
+          self.ind64 = True
+        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_MPIUNI' and l[2]=='1':
+          self.mpiuni = True
+        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_DEBUG' and l[2]=='1':
+          self.debug = True
+        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_SINGLE_LIBRARY' and l[2]=='1':
+          self.singlelib = True
+        elif self.isinstall and len(l)==3 and l[0]=='#define' and l[1]=='PETSC_ARCH':
+          self.arch = l[2].strip('"')
+      f.close()
+    except:
+      if self.isinstall:
+        self.log.Exit('ERROR: cannot process file ' + petscconf_h + ', maybe you forgot to set PETSC_ARCH')
+      else:
+        self.log.Exit('ERROR: cannot process file ' + petscconf_h)
+
+    # empty PETSC_ARCH, guess an arch name
+    if self.isinstall and not self.arch:
+      self.arch = 'arch-' + sys.platform.replace('cygwin','mswin')+ '-' + self.language
+      if self.debug:
+        self.arch += '-debug'
+      else:
+        self.arch += '-opt'
+      if not 'real' in self.scalar:
+        self.arch += '-' + self.scalar
 
