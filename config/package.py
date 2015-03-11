@@ -58,14 +58,15 @@ class Package:
         self.Check(conf,vars,cmake)
 
   def ShowHelp(self):
+    wd = 31
     if self.downloadable:
       print self.packagename.upper()+':'
-      print ('  --download-'+self.packagename).ljust(35)+': Download and install '+self.packagename.upper()+' in SLEPc directory'
+      print ('  --download-'+self.packagename+'[=<fname>]').ljust(wd)+': Download and install '+self.packagename.upper()+' in SLEPc directory'
     else:
       print self.packagename.upper()+':'
-      print ('  --with-'+self.packagename).ljust(35)+': Indicate if you wish to test for '+self.packagename.upper()
-      print ('  --with-'+self.packagename+'-dir=<dir>').ljust(35)+': Indicate the directory for '+self.packagename.upper()+' libraries'
-      print ('  --with-'+self.packagename+'-flags=<flags>').ljust(35)+': Indicate comma-separated flags for linking '+self.packagename.upper()
+      print ('  --with-'+self.packagename+'=<bool>').ljust(wd)+': Indicate if you wish to test for '+self.packagename.upper()
+      print ('  --with-'+self.packagename+'-dir=<dir>').ljust(wd)+': Indicate the directory for '+self.packagename.upper()+' libraries'
+      print ('  --with-'+self.packagename+'-flags=<flags>').ljust(wd)+': Indicate comma-separated flags for linking '+self.packagename.upper()
 
   def ShowInfo(self):
     if self.havepackage:
@@ -79,7 +80,7 @@ class Package:
       tmpdir = tempfile.mkdtemp(prefix='slepc-')
       if not os.path.isdir(tmpdir): os.mkdir(tmpdir)
     except:
-      self.log.Exit('ERROR: cannot create temporary directory')
+      self.log.Exit('ERROR: Cannot create temporary directory')
     try:
       makefile = open(os.path.join(tmpdir,'makefile'),'w')
       makefile.write('checklink: checklink.o chkopts\n')
@@ -90,7 +91,7 @@ class Package:
       makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc-conf','rules')+'\n')
       makefile.close()
     except:
-      self.log.Exit('ERROR: cannot create makefile in temporary directory')
+      self.log.Exit('ERROR: Cannot create makefile in temporary directory')
 
     # Create source file
     code = '#include "petscksp.h"\n'

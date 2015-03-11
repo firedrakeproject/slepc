@@ -40,7 +40,7 @@ class Feast(package.Package):
       self.log.Exit('ERROR: FEAST is supported only in single or double precision.')
 
     if petscconf.IND64:
-      self.log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
 
     functions = ['feastinit']
     if petscconf.SCALAR == 'real':

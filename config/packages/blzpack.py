@@ -40,7 +40,7 @@ class Blzpack(package.Package):
       self.log.Exit('ERROR: BLZPACK is supported only in single or double precision.')
 
     if petscconf.IND64:
-      self.log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
 
     if petscconf.PRECISION == 'single':
       functions = ['blzdrs']

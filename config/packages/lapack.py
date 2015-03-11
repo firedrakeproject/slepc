@@ -23,7 +23,7 @@ import petscconf, log, package
 
 class Lapack(package.Package):
 
-  def __init__(self,log):
+  def __init__(self,argdb,log):
     self.packagename  = 'lapack'
     self.downloadable = False
     self.log          = log

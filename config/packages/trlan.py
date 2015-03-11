@@ -40,7 +40,7 @@ class Trlan(package.Package):
       self.log.Exit('ERROR: TRLAN is supported only in double precision.')
 
     if petscconf.IND64:
-      self.log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
 
     functions = ['trlan77']
     if self.packagelibs:

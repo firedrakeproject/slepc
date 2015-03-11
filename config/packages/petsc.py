@@ -23,7 +23,7 @@ import package, os, commands
 
 class PETSc(package.Package):
 
-  def __init__(self,log):
+  def __init__(self,argdb,log):
     self.packagename  = 'petsc'
     self.downloadable = False
     self.log          = log
@@ -51,7 +51,7 @@ class PETSc(package.Package):
       self.version = major + '.' + minor
       self.lversion = major + '.' + minor + '.' + subminor
     except:
-      self.log.Exit('ERROR: file error while reading PETSc version')
+      self.log.Exit('ERROR: File error while reading PETSc version')
 
     # Check whether this is a working copy of the repository
     self.isrepo = False

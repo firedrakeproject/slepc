@@ -19,9 +19,16 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os, commands
+import argdb, os, commands
 
 class SLEPc():
+
+  def __init__(self,argdb,log):
+    self.log       = log
+    self.clean     = argdb.PopBool('with-clean')
+    self.prefixdir = argdb.PopPath('prefix')[0]
+    self.isinstall = not self.prefixdir==''
+    self.datadir   = argdb.PopPath('DATAFILESPATH')[0]
 
   def LoadVersion(self,slepcdir):
     try:

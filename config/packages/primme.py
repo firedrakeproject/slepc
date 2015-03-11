@@ -38,7 +38,7 @@ class Primme(package.Package):
       self.log.Exit('ERROR: PRIMME is supported only in double precision.')
 
     if petscconf.IND64:
-      self.log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
 
     functions_base = ['primme_set_method','primme_Free','primme_initialize']
     if self.packagedir:

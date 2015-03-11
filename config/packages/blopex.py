@@ -41,7 +41,7 @@ class Blopex(package.Package):
       self.log.Exit('ERROR: BLOPEX is supported only in double precision.')
 
     if petscconf.IND64:
-      self.log.Exit('ERROR: cannot use external packages with 64-bit indices.')
+      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
 
     packagename = 'blopex-1.1.2'
     externdir   = os.path.join(archdir,'externalpackages')
@@ -52,7 +52,7 @@ class Blopex(package.Package):
       try:
         os.mkdir(externdir)
       except:
-        sys.exit('ERROR: cannot create directory ' + externdir)
+        sys.exit('ERROR: Cannot create directory ' + externdir)
 
     # Check if source is already available
     if os.path.exists(builddir):
