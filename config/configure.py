@@ -22,6 +22,15 @@
 
 import os, sys, time, shutil
 
+def CreateFile(basedir,fname,log):
+  ''' Create file basedir/fname and return path string '''
+  newfile = os.path.join(basedir,fname)
+  try:
+    newfile = open(newfile,'w')
+  except:
+    log.Exit('ERROR: Cannot create '+fname+' file in '+basedir)
+  return newfile
+
 def CreateDir(basedir,dirname,log):
   ''' Create directory basedir/dirname and return path string '''
   newdir = os.path.join(basedir,dirname)
@@ -61,6 +70,45 @@ def CreateDirTest(basedir,dirname,log):
     existed = True
   return newdir, existed
 
+def WriteModulesFile(modules,version,sdir):
+  ''' Write the contents of the Modules file '''
+  modules.write('#%Module\n\n')
+  modules.write('proc ModulesHelp { } {\n')
+  modules.write('    puts stderr "This module sets the path and environment variables for slepc-%s"\n' % version)
+  modules.write('    puts stderr "     see http://slepc.upv.es/ for more information"\n')
+  modules.write('    puts stderr ""\n}\n')
+  modules.write('module-whatis "SLEPc - Scalable Library for Eigenvalue Problem Computations"\n\n')
+  modules.write('module load petsc\n')
+  modules.write('set slepc_dir %s\n' % sdir)
+  modules.write('setenv SLEPC_DIR $slepc_dir\n')
+
+def WritePkgconfigFile(pkgconfig,version,pversion,sdir,isinstall,prefixdir):
+  ''' Write the contents of the pkg-config file '''
+  pkgconfig.write('Name: SLEPc, the Scalable Library for Eigenvalue Problem Computations\n')
+  pkgconfig.write('Description: A parallel library to compute eigenvalues and eigenvectors of large, sparse matrices with iterative methods. It is based on PETSc.\n')
+  pkgconfig.write('Version: %s\n' % version)
+  pkgconfig.write('Requires: PETSc = %s\n' % pversion)
+  pkgconfig.write('Cflags: -I'+os.path.join(prefixdir,'include'))
+  if not isinstall:
+    pkgconfig.write(' -I'+os.path.join(sdir,'include'))
+  pkgconfig.write('\nLibs: -L%s -lslepc\n' % os.path.join(prefixdir,'lib'))
+
+def WriteCMakeConfigFile(cmakeconf):
+  ''' Write the contents of the CMake configuration file '''
+  cmakeconf.write('''
+set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}" "${FEAST_LIB}" "${BLOPEX_LIB}" )
+set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")
+find_library (PETSC_LIB petsc HINTS ${PETSc_BINARY_DIR}/lib )
+if (NOT PETSC_LIB) # Interpret missing libpetsc to mean that PETSc was built --with-single-library=0
+  set (PETSC_LIB "")
+  foreach (pkg sys vec mat dm ksp snes ts tao)
+    string (TOUPPER ${pkg} PKG)
+    find_library (PETSC${PKG}_LIB "petsc${pkg}" HINTS ${PETSc_BINARY_DIR}/lib)
+    list (APPEND PETSC_LIB "${PETSC${PKG}_LIB}")
+  endforeach ()
+endif ()
+''')
+
 # Use en_US as language so that compiler messages are in English
 if 'LC_LOCAL' in os.environ and os.environ['LC_LOCAL'] != '' and os.environ['LC_LOCAL'] != 'en_US' and os.environ['LC_LOCAL']!= 'en_US.UTF-8': os.environ['LC_LOCAL'] = 'en_US.UTF-8'
 if 'LANG' in os.environ and os.environ['LANG'] != '' and os.environ['LANG'] != 'en_US' and os.environ['LANG'] != 'en_US.UTF-8': os.environ['LANG'] = 'en_US.UTF-8'
@@ -85,20 +133,20 @@ sys.path.insert(0,os.path.join(configdir,'packages'))
 # Load auxiliary classes
 import argdb, log
 argdb = argdb.ArgDB(sys.argv)
-log = log.Log()
+log   = log.Log()
 
 # Load classes for packages and process command-line options
 import slepc, petsc, arpack, blzpack, trlan, feast, primme, blopex, sowing, lapack
-slepc = slepc.SLEPc(argdb,log)
-petsc = petsc.PETSc(argdb,log)
-arpack = arpack.Arpack(argdb,log)
+slepc   = slepc.SLEPc(argdb,log)
+petsc   = petsc.PETSc(argdb,log)
+arpack  = arpack.Arpack(argdb,log)
+blopex  = blopex.Blopex(argdb,log)
 blzpack = blzpack.Blzpack(argdb,log)
-trlan = trlan.Trlan(argdb,log)
-primme = primme.Primme(argdb,log)
-feast = feast.Feast(argdb,log)
-blopex = blopex.Blopex(argdb,log)
-sowing = sowing.Sowing(argdb,log)
-lapack = lapack.Lapack(argdb,log)
+feast   = feast.Feast(argdb,log)
+primme  = primme.Primme(argdb,log)
+trlan   = trlan.Trlan(argdb,log)
+sowing  = sowing.Sowing(argdb,log)
+lapack  = lapack.Lapack(argdb,log)
 
 externalpackages = [arpack, blopex, blzpack, feast, primme, trlan]
 optionalpackages = [arpack, blopex, blzpack, feast, primme, trlan, sowing]
@@ -157,13 +205,13 @@ if slepc.isinstall and not petsc.isinstall:
 # Check for empty PETSC_ARCH
 emptyarch = not ('PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH'])
 if emptyarch:
-  archname = 'installed-' + petsc.arch
+  archname = 'installed-'+petsc.arch
 else:
   archname = petsc.arch
 
 # Create directories for configuration files
 archdir, archdirexisted = CreateDirTest(slepcdir,archname,log)
-libdir = CreateDir(archdir,'lib',log)
+libdir  = CreateDir(archdir,'lib',log)
 confdir = CreateDir(libdir,'slepc-conf',log)
 
 # Open log file
@@ -172,21 +220,21 @@ log.write('='*80)
 log.write('Starting Configure Run at '+time.ctime(time.time()))
 log.write('Configure Options: '+' '.join(sys.argv[1:]))
 log.write('Working directory: '+os.getcwd())
-log.write('Python version:\n' + sys.version)
-log.write('make: ' + petsc.make)
-log.write('PETSc source directory: ' + petscdir)
-log.write('PETSc install directory: ' + petsc.destdir)
-log.write('PETSc version: ' + petsc.lversion)
+log.write('Python version:\n'+sys.version)
+log.write('make: '+petsc.make)
+log.write('PETSc source directory: '+petscdir)
+log.write('PETSc install directory: '+petsc.destdir)
+log.write('PETSc version: '+petsc.lversion)
 if not emptyarch:
-  log.write('PETSc architecture: ' + petsc.arch)
-log.write('SLEPc source directory: ' + slepcdir)
-log.write('SLEPc install directory: ' + slepc.prefixdir)
-log.write('SLEPc version: ' + slepc.lversion)
+  log.write('PETSc architecture: '+petsc.arch)
+log.write('SLEPc source directory: '+slepcdir)
+log.write('SLEPc install directory: '+slepc.prefixdir)
+log.write('SLEPc version: '+slepc.lversion)
 
 # Clean previous configuration if needed
 if archdirexisted:
   try:
-    f = open(os.path.join(confdir,'slepcvariables'),"r")
+    f = open(os.path.join(confdir,'slepcvariables'),'r')
     searchlines = f.readlines()
     f.close()
     if any(pk.packagename.upper() in ''.join(searchlines) for pk in externalpackages) and not any(pk.requested for pk in externalpackages):
@@ -200,83 +248,65 @@ if archdirexisted:
           if name!='configure.log':
             os.remove(os.path.join(root,name))
     except:
-      log.Exit('ERROR: Cannot remove existing files in ' + archdir)
+      log.Exit('ERROR: Cannot remove existing files in '+archdir)
     for rdir in ['CMakeFiles','obj','externalpackages']:
       try:
         shutil.rmtree(os.path.join(archdir,rdir))
       except: pass
 
 # Create other directories and configuration files
-incdir = CreateDir(archdir,'include',log)
+if not slepc.prefixdir:
+  slepc.prefixdir = archdir
+includedir = CreateDir(archdir,'include',log)
 modulesdir = CreateDirTwo(confdir,'modules','slepc',log)
-pkgconfigdir = CreateDir(libdir,'pkgconfig',log)
-try:
-  slepcvars = open(os.path.join(confdir,'slepcvariables'),'w')
-  if not slepc.prefixdir:
-    slepc.prefixdir = archdir
-  slepcvars.write('SLEPC_DESTDIR = ' + slepc.prefixdir +'\n')
-  if emptyarch:
-    slepcvars.write('INSTALLED_PETSC = 1\n')
-  testruns = set(petsc.test_runs.split())
-  testruns = testruns.intersection(set(['C','F90','Fortran','C_Complex','Fortran_Complex','C_NoComplex','Fortran_NoComplex']))
-  if petsc.precision != '__float128':
-    testruns = testruns.union(set(['C_NoF128']))
-  if slepc.datadir:
-    slepcvars.write('DATAFILESPATH = ' + slepc.datadir +'\n')
-    testruns = testruns.union(set(['DATAFILESPATH']))
-  slepcvars.write('TEST_RUNS = ' + ' '.join(testruns) +'\n')
-except:
-  log.Exit('ERROR: Cannot create configuration file in ' + confdir)
-try:
-  slepcrules = open(os.path.join(confdir,'slepcrules'),'w')
-except:
-  log.Exit('ERROR: Cannot create rules file in ' + confdir)
-try:
-  slepcconf = open(os.path.join(incdir,'slepcconf.h'),'w')
-  slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
-  slepcconf.write('#define __SLEPCCONF_H\n\n')
-  if slepc.isrepo:
-    slepcconf.write('#ifndef SLEPC_VERSION_GIT\n#define SLEPC_VERSION_GIT "' + slepc.gitrev + '"\n#endif\n\n')
-    slepcconf.write('#ifndef SLEPC_VERSION_DATE_GIT\n#define SLEPC_VERSION_DATE_GIT "' + slepc.gitdate + '"\n#endif\n\n')
-  slepcconf.write('#ifndef SLEPC_LIB_DIR\n#define SLEPC_LIB_DIR "' + os.path.join(slepc.prefixdir,'lib') + '"\n#endif\n\n')
-except:
-  log.Exit('ERROR: Cannot create configuration header in ' + confdir)
-try:
-  cmake = open(os.path.join(confdir,'SLEPcConfig.cmake'),'w')
-except:
-  log.Exit('ERROR: Cannot create CMake configuration file in ' + confdir)
-try:
-  if archdir != slepc.prefixdir:
-    modules = open(os.path.join(modulesdir,slepc.lversion),'w')
-  else:
-    modules = open(os.path.join(modulesdir,slepc.lversion+'-'+archname),'w')
-except:
-  log.Exit('ERROR: Cannot create modules file in ' + modulesdir)
-try:
-  pkgconfig = open(os.path.join(pkgconfigdir,'SLEPc.pc'),'w')
-except:
-  log.Exit('ERROR: Cannot create pkgconfig file in ' + pkgconfigdir)
+pkgconfdir = CreateDir(libdir,'pkgconfig',log)
+slepcvars  = CreateFile(confdir,'slepcvariables',log)
+slepcrules = CreateFile(confdir,'slepcrules',log)
+slepcconf  = CreateFile(includedir,'slepcconf.h',log)
+cmakeconf  = CreateFile(confdir,'SLEPcConfig.cmake',log)
+pkgconfig  = CreateFile(pkgconfdir,'SLEPc.pc',log)
+if archdir != slepc.prefixdir:
+  modules  = CreateFile(modulesdir,slepc.lversion,log)
+else:
+  modules  = CreateFile(modulesdir,slepc.lversion+'-'+archname,log)
+
+# Write initial part of file slepcvariables
+slepcvars.write('SLEPC_DESTDIR = '+slepc.prefixdir+'\n')
+if emptyarch:
+  slepcvars.write('INSTALLED_PETSC = 1\n')
+testruns = set(petsc.test_runs.split())
+testruns = testruns.intersection(set(['C','F90','Fortran','C_Complex','Fortran_Complex','C_NoComplex','Fortran_NoComplex']))
+if petsc.precision != '__float128':
+  testruns = testruns.union(set(['C_NoF128']))
+if slepc.datadir:
+  slepcvars.write('DATAFILESPATH = '+slepc.datadir+'\n')
+  testruns = testruns.union(set(['DATAFILESPATH']))
+slepcvars.write('TEST_RUNS = '+' '.join(testruns)+'\n')
+
+# Write initial part of file slepcconf.h
+slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
+slepcconf.write('#define __SLEPCCONF_H\n\n')
+if slepc.isrepo:
+  slepcconf.write('#ifndef SLEPC_VERSION_GIT\n#define SLEPC_VERSION_GIT "'+slepc.gitrev+'"\n#endif\n\n')
+  slepcconf.write('#ifndef SLEPC_VERSION_DATE_GIT\n#define SLEPC_VERSION_DATE_GIT "'+slepc.gitdate+'"\n#endif\n\n')
+slepcconf.write('#ifndef SLEPC_LIB_DIR\n#define SLEPC_LIB_DIR "'+os.path.join(slepc.prefixdir,'lib')+'"\n#endif\n\n')
 
 # Create global configuration file for the case of empty PETSC_ARCH
 if emptyarch:
-  globconfdir = os.path.join(slepcdir,'lib','slepc-conf')
-  try:
-    globconf = open(os.path.join(globconfdir,'slepcvariables'),'w')
-    globconf.write('SLEPC_DIR = ' + slepcdir +'\n')
-    globconf.write('PETSC_ARCH = ' + archname + '\n')
-    globconf.close()
-  except:
-    log.Exit('ERROR: Cannot create configuration file in ' + globconfdir)
+  globconf = CreateFile(os.path.join(slepcdir,'lib','slepc-conf'),'slepcvariables',log)
+  globconf.write('SLEPC_DIR = '+slepcdir+'\n')
+  globconf.write('PETSC_ARCH = '+archname+'\n')
+  globconf.close()
 
 # Check if PETSc is working
 log.NewSection('Checking PETSc installation...')
 if petsc.version > slepc.version:
-  log.Println('WARNING: PETSc version '+petsc.version+' is newer than SLEPc version '+slepc.version)
+  log.Println('\nWARNING: PETSc version '+petsc.version+' is newer than SLEPc version '+slepc.version)
 if petsc.release != slepc.release:
   log.Exit('ERROR: Cannot mix release and development versions of SLEPc and PETSc')
 if petsc.isinstall:
   if os.path.realpath(petsc.destdir) != os.path.realpath(petscdir):
-    log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
+    log.Println('\nWARNING: PETSC_DIR does not point to PETSc installation path')
 petsc.Check()
 if not petsc.havepackage:
   log.Exit('ERROR: Unable to link with PETSc')
@@ -291,7 +321,21 @@ if petsc.singlelib:
 
 # Check for external packages and for missing LAPACK functions
 for pk in checkpackages:
-  pk.Process(slepcconf,slepcvars,cmake,petsc,archdir)
+  pk.Process(slepcconf,slepcvars,cmakeconf,petsc,archdir)
+
+# Write Modules, pkg-config and CMake configuration files
+log.NewSection('Writing various configuration files...')
+WriteModulesFile(modules,slepc.lversion,slepc.prefixdir if slepc.isinstall else slepcdir)
+WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.lversion,slepcdir,slepc.isinstall,slepc.prefixdir)
+WriteCMakeConfigFile(cmakeconf)
+
+# Finish with configuration files (except slepcvars)
+slepcrules.close()
+slepcconf.write('#endif\n')
+slepcconf.close()
+modules.close()
+pkgconfig.close()
+cmakeconf.close()
 
 # Download sowing if requested and make Fortran stubs if necessary
 bfort = petsc.bfort
@@ -317,34 +361,20 @@ if bfort != petsc.bfort:
 
 # CMake stuff
 log.NewSection('Creating CMake files...')
-cmake.write('set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}" "${FEAST_LIB}" "${BLOPEX_LIB}" )\n')
-cmake.write('set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")\n')
-cmake.write('find_library (PETSC_LIB petsc HINTS ${PETSc_BINARY_DIR}/lib )\n')
-cmake.write('''
-if (NOT PETSC_LIB) # Interpret missing libpetsc to mean that PETSc was built --with-single-library=0
-  set (PETSC_LIB "")
-  foreach (pkg sys vec mat dm ksp snes ts tao)
-    string (TOUPPER ${pkg} PKG)
-    find_library (PETSC${PKG}_LIB "petsc${pkg}" HINTS ${PETSc_BINARY_DIR}/lib)
-    list (APPEND PETSC_LIB "${PETSC${PKG}_LIB}")
-  endforeach ()
-endif ()
-''')
-cmake.close()
 cmakeok = False
 if sys.version_info >= (2,5) and not petsc.isinstall and petsc.build_using_cmake:
   import cmakegen
   try:
     cmakegen.main(slepcdir,petscdir,petscdestdir=petsc.destdir)
   except (OSError), e:
-    log.Exit('ERROR: Generating CMakeLists.txt failed:\n' + str(e))
+    log.Exit('ERROR: Generating CMakeLists.txt failed:\n'+str(e))
   import cmakeboot
   try:
     cmakeok = cmakeboot.main(slepcdir,petscdir,log=log)
   except (OSError), e:
-    log.Exit('ERROR: Booting CMake in PETSC_ARCH failed:\n' + str(e))
+    log.Exit('ERROR: Booting CMake in PETSC_ARCH failed:\n'+str(e))
   except (ImportError, KeyError), e:
-    log.Exit('ERROR: Importing cmakeboot failed:\n' + str(e))
+    log.Exit('ERROR: Importing cmakeboot failed:\n'+str(e))
   except (AttributeError), e:
     log.Println('xxx'+'='*73+'xxx')
     log.Println('WARNING: CMake builds are not available (initialization failed)')
@@ -357,37 +387,8 @@ if sys.version_info >= (2,5) and not petsc.isinstall and petsc.build_using_cmake
 if cmakeok:
   slepcvars.write('SLEPC_BUILD_USING_CMAKE = 1\n')
 
-# Modules file
-modules.write('#%Module\n\n')
-modules.write('proc ModulesHelp { } {\n')
-modules.write('    puts stderr "This module sets the path and environment variables for slepc-%s"\n' % slepc.lversion)
-modules.write('    puts stderr "     see http://slepc.upv.es/ for more information"\n')
-modules.write('    puts stderr ""\n}\n')
-modules.write('module-whatis "SLEPc - Scalable Library for Eigenvalue Problem Computations"\n\n')
-modules.write('module load petsc\n')
-if slepc.isinstall:
-  modules.write('set slepc_dir %s\n' % slepc.prefixdir)
-else:
-  modules.write('set slepc_dir %s\n' % slepcdir)
-modules.write('setenv SLEPC_DIR $slepc_dir\n')
-
-# pkg-config file
-pkgconfig.write('Name: SLEPc, the Scalable Library for Eigenvalue Problem Computations\n')
-pkgconfig.write('Description: A parallel library to compute eigenvalues and eigenvectors of large, sparse matrices with iterative methods. It is based on PETSc.\n')
-pkgconfig.write('Version: %s\n' % slepc.lversion)
-pkgconfig.write('Requires: PETSc = %s\n' % petsc.lversion)
-pkgconfig.write('Cflags: -I' + os.path.join(slepc.prefixdir,'include'))
-if not slepc.isinstall:
-  pkgconfig.write(' -I' + os.path.join(slepcdir,'include'))
-pkgconfig.write('\nLibs: -L%s -lslepc\n' % os.path.join(slepc.prefixdir,'lib'))
-
-# Finish with configuration files
+# Finally we can close the slepcvariables file
 slepcvars.close()
-slepcrules.close()
-slepcconf.write('#endif\n')
-slepcconf.close()
-modules.close()
-pkgconfig.close()
 
 # Print summary
 log.NewSection('\n')

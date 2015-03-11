@@ -94,7 +94,7 @@ Unable to download package %s from: %s
       try:
         if sys.version_info >= (2,5):
           import tarfile
-          tar = tarfile.open(localFile, "r:gz")
+          tar = tarfile.open(localFile, 'r:gz')
           tar.extractall(path=externdir)
           tar.close()
           os.remove(localFile)

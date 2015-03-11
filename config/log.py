@@ -40,6 +40,7 @@ class Log:
 
   def NewSection(self,string):
     print 'done\n'+string,
+    sys.stdout.flush()
     self.fd.write('='*80+'\n'+string+'\n')
 
   def write(self,string):
