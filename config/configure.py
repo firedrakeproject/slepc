@@ -189,22 +189,22 @@ if archdirexisted:
     f = open(os.path.join(confdir,'slepcvariables'),"r")
     searchlines = f.readlines()
     f.close()
-    found = 0
-    for library in ['ARPACK','BLZPACK','TRLAN','PRIMME','FEAST','BLOPEX']:
-      if library in ''.join(searchlines):
-        found = 1
-    if found and not any(pk.requested for pk in externalpackages):
-      log.write('WARNING: forcing --with-clean=1 because previous configuration had external packages')
+    if any(pk.packagename.upper() in ''.join(searchlines) for pk in externalpackages) and not any(pk.requested for pk in externalpackages):
+      log.Print('\nWARNING: forcing --with-clean=1 because previous configuration had external packages')
       slepc.clean = True
   except: pass
   if slepc.clean:
     try:
-      shutil.rmtree(archdir)
+      for root, dirs, files in os.walk(archdir,topdown=False):
+        for name in files:
+          if name!='configure.log':
+            os.remove(os.path.join(root,name))
     except:
-      log.Exit('ERROR: Cannot remove existing directory ' + archdir)
-    archdir = CreateDir(slepcdir,archname,log)
-    libdir  = CreateDir(archdir,'lib',log)
-    confdir = CreateDir(libdir,'slepc-conf',log)
+      log.Exit('ERROR: Cannot remove existing files in ' + archdir)
+    for rdir in ['CMakeFiles','obj','externalpackages']:
+      try:
+        shutil.rmtree(os.path.join(archdir,rdir))
+      except: pass
 
 # Create other directories and configuration files
 incdir = CreateDir(archdir,'include',log)
