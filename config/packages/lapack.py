@@ -39,8 +39,7 @@ class Lapack(package.Package):
       log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
 
   def Process(self,conf,vars,cmake,archdir=''):
-    self.log.write('='*80)
-    self.log.Println('Checking LAPACK library...')
+    self.log.NewSection('Checking LAPACK library...')
     self.Check(conf,vars,cmake)
 
   def Check(self,conf,vars,cmake):

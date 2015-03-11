@@ -56,7 +56,7 @@ class Blopex(package.Package):
 
     # Check if source is already available
     if os.path.exists(builddir):
-      self.log.Println('Using '+builddir)
+      self.log.write('Using '+builddir)
     else:
 
       # Download tarball
@@ -65,7 +65,7 @@ class Blopex(package.Package):
         url = 'http://slepc.upv.es/download/external/'+packagename+'.tar.gz'
       archiveZip = 'blopex.tar.gz'
       localFile = os.path.join(externdir,archiveZip)
-      self.log.Println('Downloading '+url+' to '+localFile)
+      self.log.write('Downloading '+url+' to '+localFile)
 
       if os.path.exists(localFile):
         os.remove(localFile)
@@ -84,7 +84,7 @@ Unable to download package %s from: %s
         raise RuntimeError(failureMessage)
 
       # Uncompress tarball
-      self.log.Println('Uncompressing '+localFile+' to directory '+builddir)
+      self.log.write('Uncompressing '+localFile+' to directory '+builddir)
       if os.path.exists(builddir):
         for root, dirs, files in os.walk(builddir, topdown=False):
           for name in files:

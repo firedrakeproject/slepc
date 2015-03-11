@@ -22,6 +22,45 @@
 
 import os, sys, time, shutil
 
+def CreateDir(basedir,dirname,log):
+  ''' Create directory basedir/dirname and return path string '''
+  newdir = os.path.join(basedir,dirname)
+  if not os.path.exists(newdir):
+    try:
+      os.mkdir(newdir)
+    except:
+      log.Exit('ERROR: Cannot create '+dirname+' directory: '+newdir)
+  return newdir
+
+def CreateDirTwo(basedir,dir1,dir2,log):
+  ''' Create directory basedir/dir1/dir2 and return path string '''
+  newbasedir = os.path.join(basedir,dir1)
+  if not os.path.exists(newbasedir):
+    try:
+      os.mkdir(newbasedir)
+    except:
+      log.Exit('ERROR: Cannot create '+dir1+' directory: '+newbasedir)
+  newdir = os.path.join(newbasedir,dir2)
+  if not os.path.exists(newdir):
+    try:
+      os.mkdir(newdir)
+    except:
+      log.Exit('ERROR: Cannot create '+dirname+' directory: '+newdir)
+  return newdir
+
+def CreateDirTest(basedir,dirname,log):
+  ''' Create directory, return path string and flag indicating if already existed '''
+  newdir = os.path.join(basedir,dirname)
+  if not os.path.exists(newdir):
+    existed = False
+    try:
+      os.mkdir(newdir)
+    except:
+      log.Exit('ERROR: Cannot create '+dirname+' directory: '+newdir)
+  else:
+    existed = True
+  return newdir, existed
+
 # Use en_US as language so that compiler messages are in English
 if 'LC_LOCAL' in os.environ and os.environ['LC_LOCAL'] != '' and os.environ['LC_LOCAL'] != 'en_US' and os.environ['LC_LOCAL']!= 'en_US.UTF-8': os.environ['LC_LOCAL'] = 'en_US.UTF-8'
 if 'LANG' in os.environ and os.environ['LANG'] != '' and os.environ['LANG'] != 'en_US' and os.environ['LANG'] != 'en_US.UTF-8': os.environ['LANG'] = 'en_US.UTF-8'
@@ -79,7 +118,7 @@ if argdb.PopHelp():
 argdb.ErrorIfNotEmpty()
 
 # Check if enviroment is ok
-print 'Checking environment...'
+print 'Checking environment...',
 if 'SLEPC_DIR' in os.environ:
   slepcdir = os.environ['SLEPC_DIR']
   if not os.path.exists(slepcdir) or not os.path.exists(os.path.join(slepcdir,'config')):
@@ -117,129 +156,16 @@ if slepc.isinstall and not petscconf.ISINSTALL:
   sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
 # Check for empty PETSC_ARCH
-archname = petscconf.ARCH
-emptyarch = 1
-if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']: emptyarch = 0
+emptyarch = not ('PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH'])
 if emptyarch:
   archname = 'installed-' + petscconf.ARCH
-  globconfdir = os.path.join(slepcdir,'lib','slepc-conf')
-  try:
-    globconf = open(os.path.join(globconfdir,'slepcvariables'),'w')
-    globconf.write('SLEPC_DIR = ' + slepcdir +'\n')
-    globconf.write('PETSC_ARCH = ' + archname + '\n')
-    globconf.close()
-  except:
-    sys.exit('ERROR: Cannot create configuration file in ' + globconfdir)
-archdir = os.path.join(slepcdir,archname)
+else:
+  archname = petscconf.ARCH
 
-# Clean previous configuration if needed
-if os.path.exists(archdir):
-  try:
-    f = open(os.path.join(archdir,'lib','slepc-conf','slepcvariables'),"r")
-    searchlines = f.readlines()
-    f.close()
-    found = 0
-    for library in ['ARPACK','BLZPACK','TRLAN','PRIMME','FEAST','BLOPEX']:
-      if library in ''.join(searchlines):
-        found = 1
-    if found and not any(pk.requested for pk in externalpackages):
-      print 'WARNING: forcing --with-clean=1 because previous configuration had external packages'
-      slepc.clean = True
-  except: pass
-  if slepc.clean:
-    try:
-      shutil.rmtree(archdir)
-    except:
-      sys.exit('ERROR: Cannot remove existing directory ' + archdir)
-
-# Create architecture directory and configuration files
-if not os.path.exists(archdir):
-  try:
-    os.mkdir(archdir)
-  except:
-    sys.exit('ERROR: Cannot create architecture directory ' + archdir)
-incdir = os.path.join(archdir,'include')
-if not os.path.exists(incdir):
-  try:
-    os.mkdir(incdir)
-  except:
-    sys.exit('ERROR: Cannot create include directory ' + incdir)
-libdir = os.path.join(archdir,'lib')
-if not os.path.exists(libdir):
-  try:
-    os.mkdir(libdir)
-  except:
-    sys.exit('ERROR: Cannot create lib directory ' + libdir)
-confdir = os.path.join(libdir,'slepc-conf')
-if not os.path.exists(confdir):
-  try:
-    os.mkdir(confdir)
-  except:
-    sys.exit('ERROR: Cannot create configuration directory ' + confdir)
-modulesbasedir = os.path.join(confdir,'modules')
-if not os.path.exists(modulesbasedir):
-  try:
-    os.mkdir(modulesbasedir)
-  except:
-    sys.exit('ERROR: Cannot create modules base directory ' + modulesbasedir)
-modulesdir = os.path.join(modulesbasedir,'slepc')
-if not os.path.exists(modulesdir):
-  try:
-    os.mkdir(modulesdir)
-  except:
-    sys.exit('ERROR: Cannot create modules directory ' + modulesdir)
-pkgconfigdir = os.path.join(libdir,'pkgconfig')
-if not os.path.exists(pkgconfigdir):
-  try:
-    os.mkdir(pkgconfigdir)
-  except:
-    sys.exit('ERROR: Cannot create pkgconfig directory ' + pkgconfigdir)
-try:
-  slepcvars = open(os.path.join(confdir,'slepcvariables'),'w')
-  if not slepc.prefixdir:
-    slepc.prefixdir = archdir
-  slepcvars.write('SLEPC_DESTDIR = ' + slepc.prefixdir +'\n')
-  if emptyarch:
-    slepcvars.write('INSTALLED_PETSC = 1\n')
-  testruns = set(petscconf.TEST_RUNS.split())
-  testruns = testruns.intersection(set(['C','F90','Fortran','C_Complex','Fortran_Complex','C_NoComplex','Fortran_NoComplex']))
-  if petscconf.PRECISION != '__float128':
-    testruns = testruns.union(set(['C_NoF128']))
-  if slepc.datadir:
-    slepcvars.write('DATAFILESPATH = ' + slepc.datadir +'\n')
-    testruns = testruns.union(set(['DATAFILESPATH']))
-  slepcvars.write('TEST_RUNS = ' + ' '.join(testruns) +'\n')
-except:
-  sys.exit('ERROR: Cannot create configuration file in ' + confdir)
-try:
-  slepcrules = open(os.path.join(confdir,'slepcrules'),'w')
-except:
-  sys.exit('ERROR: Cannot create rules file in ' + confdir)
-try:
-  slepcconf = open(os.path.join(incdir,'slepcconf.h'),'w')
-  slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
-  slepcconf.write('#define __SLEPCCONF_H\n\n')
-  if slepc.isrepo:
-    slepcconf.write('#ifndef SLEPC_VERSION_GIT\n#define SLEPC_VERSION_GIT "' + slepc.gitrev + '"\n#endif\n\n')
-    slepcconf.write('#ifndef SLEPC_VERSION_DATE_GIT\n#define SLEPC_VERSION_DATE_GIT "' + slepc.gitdate + '"\n#endif\n\n')
-  slepcconf.write('#ifndef SLEPC_LIB_DIR\n#define SLEPC_LIB_DIR "' + os.path.join(slepc.prefixdir,'lib') + '"\n#endif\n\n')
-except:
-  sys.exit('ERROR: Cannot create configuration header in ' + confdir)
-try:
-  cmake = open(os.path.join(confdir,'SLEPcConfig.cmake'),'w')
-except:
-  sys.exit('ERROR: Cannot create CMake configuration file in ' + confdir)
-try:
-  if archdir != slepc.prefixdir:
-    modules = open(os.path.join(modulesdir,slepc.lversion),'w')
-  else:
-    modules = open(os.path.join(modulesdir,slepc.lversion+'-'+archname),'w')
-except:
-  sys.exit('ERROR: Cannot create modules file in ' + modulesdir)
-try:
-  pkgconfig = open(os.path.join(pkgconfigdir,'SLEPc.pc'),'w')
-except:
-  sys.exit('ERROR: Cannot create pkgconfig file in ' + pkgconfigdir)
+# Create directories for configuration files
+archdir, archdirexisted = CreateDirTest(slepcdir,archname,log)
+libdir = CreateDir(archdir,'lib',log)
+confdir = CreateDir(libdir,'slepc-conf',log)
 
 # Open log file
 log.Open(os.path.join(confdir,'configure.log'))
@@ -257,14 +183,98 @@ if not emptyarch:
 log.write('SLEPc source directory: ' + slepcdir)
 log.write('SLEPc install directory: ' + slepc.prefixdir)
 log.write('SLEPc version: ' + slepc.lversion)
-log.write('='*80)
+
+# Clean previous configuration if needed
+if archdirexisted:
+  try:
+    f = open(os.path.join(confdir,'slepcvariables'),"r")
+    searchlines = f.readlines()
+    f.close()
+    found = 0
+    for library in ['ARPACK','BLZPACK','TRLAN','PRIMME','FEAST','BLOPEX']:
+      if library in ''.join(searchlines):
+        found = 1
+    if found and not any(pk.requested for pk in externalpackages):
+      print 'WARNING: forcing --with-clean=1 because previous configuration had external packages'
+      slepc.clean = True
+  except: pass
+  if slepc.clean:
+    try:
+      shutil.rmtree(archdir)
+    except:
+      log.Exit('ERROR: Cannot remove existing directory ' + archdir)
+    archdir = CreateDir(slepcdir,archname,log)
+    libdir  = CreateDir(archdir,'lib',log)
+    confdir = CreateDir(libdir,'slepc-conf',log)
+
+# Create other directories and configuration files
+incdir = CreateDir(archdir,'include',log)
+modulesdir = CreateDirTwo(confdir,'modules','slepc',log)
+pkgconfigdir = CreateDir(libdir,'pkgconfig',log)
+try:
+  slepcvars = open(os.path.join(confdir,'slepcvariables'),'w')
+  if not slepc.prefixdir:
+    slepc.prefixdir = archdir
+  slepcvars.write('SLEPC_DESTDIR = ' + slepc.prefixdir +'\n')
+  if emptyarch:
+    slepcvars.write('INSTALLED_PETSC = 1\n')
+  testruns = set(petscconf.TEST_RUNS.split())
+  testruns = testruns.intersection(set(['C','F90','Fortran','C_Complex','Fortran_Complex','C_NoComplex','Fortran_NoComplex']))
+  if petscconf.PRECISION != '__float128':
+    testruns = testruns.union(set(['C_NoF128']))
+  if slepc.datadir:
+    slepcvars.write('DATAFILESPATH = ' + slepc.datadir +'\n')
+    testruns = testruns.union(set(['DATAFILESPATH']))
+  slepcvars.write('TEST_RUNS = ' + ' '.join(testruns) +'\n')
+except:
+  log.Exit('ERROR: Cannot create configuration file in ' + confdir)
+try:
+  slepcrules = open(os.path.join(confdir,'slepcrules'),'w')
+except:
+  log.Exit('ERROR: Cannot create rules file in ' + confdir)
+try:
+  slepcconf = open(os.path.join(incdir,'slepcconf.h'),'w')
+  slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
+  slepcconf.write('#define __SLEPCCONF_H\n\n')
+  if slepc.isrepo:
+    slepcconf.write('#ifndef SLEPC_VERSION_GIT\n#define SLEPC_VERSION_GIT "' + slepc.gitrev + '"\n#endif\n\n')
+    slepcconf.write('#ifndef SLEPC_VERSION_DATE_GIT\n#define SLEPC_VERSION_DATE_GIT "' + slepc.gitdate + '"\n#endif\n\n')
+  slepcconf.write('#ifndef SLEPC_LIB_DIR\n#define SLEPC_LIB_DIR "' + os.path.join(slepc.prefixdir,'lib') + '"\n#endif\n\n')
+except:
+  log.Exit('ERROR: Cannot create configuration header in ' + confdir)
+try:
+  cmake = open(os.path.join(confdir,'SLEPcConfig.cmake'),'w')
+except:
+  log.Exit('ERROR: Cannot create CMake configuration file in ' + confdir)
+try:
+  if archdir != slepc.prefixdir:
+    modules = open(os.path.join(modulesdir,slepc.lversion),'w')
+  else:
+    modules = open(os.path.join(modulesdir,slepc.lversion+'-'+archname),'w')
+except:
+  log.Exit('ERROR: Cannot create modules file in ' + modulesdir)
+try:
+  pkgconfig = open(os.path.join(pkgconfigdir,'SLEPc.pc'),'w')
+except:
+  log.Exit('ERROR: Cannot create pkgconfig file in ' + pkgconfigdir)
+
+# Create global configuration file for the case of empty PETSC_ARCH
+if emptyarch:
+  globconfdir = os.path.join(slepcdir,'lib','slepc-conf')
+  try:
+    globconf = open(os.path.join(globconfdir,'slepcvariables'),'w')
+    globconf.write('SLEPC_DIR = ' + slepcdir +'\n')
+    globconf.write('PETSC_ARCH = ' + archname + '\n')
+    globconf.close()
+  except:
+    log.Exit('ERROR: Cannot create configuration file in ' + globconfdir)
 
 # Check if PETSc is working
-log.Println('Checking PETSc installation...')
+log.NewSection('Checking PETSc installation...')
 if petsc.version > slepc.version:
   log.Println('WARNING: PETSc version '+petsc.version+' is newer than SLEPc version '+slepc.version)
 if petsc.release != slepc.release:
-  sys.exit('ERROR: Cannot mix release and development versions of SLEPc and PETSc')
+  log.Exit('ERROR: Cannot mix release and development versions of SLEPc and PETSc')
 if petscconf.ISINSTALL:
   if os.path.realpath(petscconf.DESTDIR) != os.path.realpath(petscdir):
     log.Println('WARNING: PETSC_DIR does not point to PETSc installation path')
@@ -291,6 +301,7 @@ if sowing.downloadpackage:
 
 if slepc.isrepo and hasattr(petscconf,'FC'):
   try:
+    log.NewSection('Generating Fortran stubs...')
     if not os.path.exists(bfort):
       bfort = os.path.join(archdir,'bin','bfort')
     if not os.path.exists(bfort):
@@ -300,12 +311,13 @@ if slepc.isrepo and hasattr(petscconf,'FC'):
     generatefortranstubs.main(slepcdir,bfort,os.getcwd(),0)
     generatefortranstubs.processf90interfaces(slepcdir,0)
   except AttributeError:
-    sys.exit('ERROR: Cannot generate Fortran stubs; try configuring PETSc with --download-sowing or use a mercurial version of PETSc')
+    log.Exit('ERROR: Cannot generate Fortran stubs; try configuring PETSc with --download-sowing or use a mercurial version of PETSc')
 
 if bfort != petscconf.BFORT:
   slepcvars.write('BFORT = '+bfort+'\n')
 
 # CMake stuff
+log.NewSection('Creating CMake files...')
 cmake.write('set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}" "${FEAST_LIB}" "${BLOPEX_LIB}" )\n')
 cmake.write('set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")\n')
 cmake.write('find_library (PETSC_LIB petsc HINTS ${PETSc_BINARY_DIR}/lib )\n')
@@ -379,7 +391,7 @@ modules.close()
 pkgconfig.close()
 
 # Print summary
-log.Println('')
+log.NewSection('\n')
 log.Println('='*79)
 log.Println('SLEPc Configuration')
 log.Println('='*79)

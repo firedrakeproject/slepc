@@ -47,7 +47,7 @@ class Sowing(package.Package):
     # Check if source is already available
     builddir = os.path.join(externdir,'pkg-sowing')
     if os.path.exists(builddir):
-      self.log.Println('Using '+builddir)
+      self.log.write('Using '+builddir)
     else: # clone Sowing repo
       url = self.packageurl
       if url=='':

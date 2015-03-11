@@ -48,13 +48,12 @@ class Package:
   def Process(self,conf,vars,cmake,archdir=''):
     if self.requested:
       name = self.packagename.upper()
-      self.log.write('='*80)
       if self.downloadable:
         if self.downloadpackage:
-          self.log.Println('Installing '+name+'...')
+          self.log.NewSection('Installing '+name+'...')
           self.Install(conf,vars,cmake,archdir)
       else:
-        self.log.Println('Checking '+name+' library...')
+        self.log.NewSection('Checking '+name+' library...')
         self.Check(conf,vars,cmake)
 
   def ShowHelp(self):
