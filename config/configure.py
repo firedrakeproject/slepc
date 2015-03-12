@@ -399,7 +399,7 @@ if cmakeok:
 slepcvars.close()
 
 # Print summary
-log.Println('')
+log.NewSection('\n')
 log.Println('='*79)
 log.Println('SLEPc Configuration')
 log.Println('='*79)
