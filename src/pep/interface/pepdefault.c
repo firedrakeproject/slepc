@@ -502,6 +502,7 @@ PetscErrorCode PEPComputeLinearNorms(PEP pep)
       summ = 0.0;
       ierr = MatGetRow(T[j],i,&ncols,NULL,&vals);CHKERRQ(ierr);
       for (k=0;k<ncols;k++) summ += PetscAbsScalar(vals[k]);
+      ierr = MatRestoreRow(T[j],i,&ncols,NULL,&vals);CHKERRQ(ierr);
       summ *= t;
       if (j==pep->nmat-1) {
         summd = summ;
