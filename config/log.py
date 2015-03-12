@@ -47,13 +47,10 @@ class Log:
     self.fd.write(string+'\n')
 
   def Exit(self,string):
-    try:
-      self.fd.write(string+'\n')
-      self.fd.close()
-    except AttributeError:
-      pass
-    print string
+    print '\n'+string
     if hasattr(self,'fd'):
+      self.fd.write('\n'+string+'\n')
+      self.fd.close()
       msg = 'ERROR: See "' + self.filename + '" file for details'
     else:
       msg = 'ERROR during configure (log file not open yet)'

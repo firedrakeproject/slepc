@@ -200,7 +200,7 @@ class Package:
       self.log.write(output)
     else:
       self.log.write(error)
-      self.log.Println('ERROR: Unable to link with library '+ name)
+      self.log.Println('\nERROR: Unable to link with library '+ name)
       self.log.Println('ERROR: In directories '+' '.join(dirs))
       self.log.Println('ERROR: With flags '+' '.join(flags))
       self.log.Exit('')

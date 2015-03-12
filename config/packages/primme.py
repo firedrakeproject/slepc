@@ -75,7 +75,7 @@ class Primme(package.Package):
         self.packageflags = l+f
         return
 
-    self.log.Println('ERROR: Unable to link with PRIMME library')
+    self.log.Println('\nERROR: Unable to link with PRIMME library')
     self.log.Println('ERROR: In directories '+' '.join(dirs))
     self.log.Println('ERROR: With flags '+' '.join(libs))
     self.log.Exit('')

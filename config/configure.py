@@ -363,6 +363,7 @@ if bfort != petsc.bfort:
 # CMake stuff
 cmakeok = False
 if slepc.cmake:
+  log.NewSection('Configuring CMake builds...')
   if sys.version_info < (2,5):
     log.Exit('ERROR: python version should be 2.5 or higher')
   elif petsc.isinstall:
@@ -370,7 +371,6 @@ if slepc.cmake:
   elif not petsc.build_using_cmake:
     log.Exit('ERROR: CMake builds need a PETSc configured --with-cmake')
   else:
-    log.NewSection('Configuring CMake builds...')
     import cmakegen
     try:
       cmakegen.main(slepcdir,petscdir,petscdestdir=petsc.destdir)
@@ -384,7 +384,7 @@ if slepc.cmake:
     except (ImportError, KeyError), e:
       log.Exit('ERROR: Importing cmakeboot failed:\n'+str(e))
     except (AttributeError), e:
-      log.Println('xxx'+'='*73+'xxx')
+      log.Println('\nxxx'+'='*73+'xxx')
       log.Println('WARNING: CMake builds are not available (initialization failed)')
       log.Println('You can ignore this warning (use default build), or try reconfiguring PETSc')
       log.Println('xxx'+'='*73+'xxx')
@@ -399,7 +399,7 @@ if cmakeok:
 slepcvars.close()
 
 # Print summary
-log.NewSection('\n')
+log.Println('')
 log.Println('='*79)
 log.Println('SLEPc Configuration')
 log.Println('='*79)
