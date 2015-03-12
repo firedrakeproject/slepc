@@ -68,7 +68,7 @@ int main(int argc,char **argv)
   /* Fill X entries */
   for (j=0;j<kx+2;j++) {
     ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
-    ierr = VecZeroEntries(v);CHKERRQ(ierr);
+    ierr = VecSet(v,0.0);CHKERRQ(ierr);
     for (i=0;i<4;i++) {
       if (i+j<n) {
         ierr = VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES);CHKERRQ(ierr);

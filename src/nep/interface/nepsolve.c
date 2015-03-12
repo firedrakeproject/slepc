@@ -205,7 +205,7 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
   PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   PetscValidHeaderSpecific(y,VEC_CLASSID,5);
   if (nep->split) {
-    ierr = VecZeroEntries(y);CHKERRQ(ierr);
+    ierr = VecSet(y,0.0);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
       ierr = MatMult(nep->A[i],x,v);CHKERRQ(ierr);
@@ -259,7 +259,7 @@ PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
   PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   PetscValidHeaderSpecific(y,VEC_CLASSID,5);
   if (nep->split) {
-    ierr = VecZeroEntries(y);CHKERRQ(ierr);
+    ierr = VecSet(y,0.0);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateDerivative(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
       ierr = MatMult(nep->A[i],x,v);CHKERRQ(ierr);

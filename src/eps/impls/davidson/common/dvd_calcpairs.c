@@ -395,7 +395,7 @@ static PetscErrorCode dvd_calcpairs_apply_arbitrary(dvdDashboard *d,PetscInt r_s
     xr = X[0];
     xi = X[1];
     if (i == k) {
-      ierr = VecZeroEntries(xi);CHKERRQ(ierr);
+      ierr = VecSet(xi,0.0);CHKERRQ(ierr);
     }
 #else
     xr = X[0];

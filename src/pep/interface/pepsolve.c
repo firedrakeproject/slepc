@@ -393,7 +393,7 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
   PetscFunctionBegin;
   ierr = BVGetVec(pep->V,&u);CHKERRQ(ierr);
   ierr = BVGetVec(pep->V,&w);CHKERRQ(ierr);
-  ierr = VecZeroEntries(u);CHKERRQ(ierr);
+  ierr = VecSet(u,0.0);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   ivals = it; 
 #endif
@@ -411,7 +411,7 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
     imag = PETSC_TRUE;
     ierr = VecDuplicate(u,&ui);CHKERRQ(ierr);
     ierr = VecDuplicate(u,&wi);CHKERRQ(ierr);
-    ierr = VecZeroEntries(ui);CHKERRQ(ierr);
+    ierr = VecSet(ui,0.0);CHKERRQ(ierr);
   }
 #endif
   for (i=0;i<nmat;i++) {
