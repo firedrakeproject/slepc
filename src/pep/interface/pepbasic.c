@@ -66,7 +66,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->nini            = 0;
   pep->target          = 0.0;
   pep->tol             = PETSC_DEFAULT;
-  pep->conv            = PEP_CONV_LINEAR;
+  pep->conv            = PEP_CONV_EIG;
   pep->which           = (PEPWhich)0;
   pep->basis           = PEP_BASIS_MONOMIAL;
   pep->problem_type    = (PEPProblemType)0;
@@ -83,7 +83,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->extract         = (PEPExtract)0;
   pep->trackall        = PETSC_FALSE;
 
-  pep->converged       = PEPConvergedLinear;
+  pep->converged       = PEPConvergedEigRelative;
   pep->convergeddestroy= NULL;
   pep->convergedctx    = NULL;
   pep->numbermonitors  = 0;
