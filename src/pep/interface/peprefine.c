@@ -25,8 +25,8 @@
 #include <slepcblaslapack.h>
 
 #define NREF_MAXIT 10
+
 typedef struct {
-  PetscSubcomm  subc;
   VecScatter    *scatter_id;
   Mat           *A;
   Vec           vg,v,w;
@@ -46,21 +46,15 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
   ierr = PetscCalloc1(1,ctx_);CHKERRQ(ierr);
   ctx = *ctx_;
   if (pep->npart==1) {
-    ctx->subc = NULL;
+    pep->refinesubc = NULL;
     ctx->scatter_id = NULL;
     ctx->A = pep->A;
   } else {
     ierr = PetscMalloc2(pep->nmat,&ctx->A,pep->npart,&ctx->scatter_id);CHKERRQ(ierr);
 
-    /* Split in subcomunicators */
-    ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)pep),&ctx->subc);CHKERRQ(ierr);
-    ierr = PetscSubcommSetNumber(ctx->subc,pep->npart);CHKERRQ(ierr);CHKERRQ(ierr);
-    ierr = PetscSubcommSetType(ctx->subc,PETSC_SUBCOMM_CONTIGUOUS);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)pep,sizeof(PetscSubcomm));CHKERRQ(ierr);
-
     /* Duplicate matrices */
     for (i=0;i<pep->nmat;i++) {
-      ierr = MatCreateRedundantMatrix(pep->A[i],0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
+      ierr = MatCreateRedundantMatrix(pep->A[i],0,PetscSubcommChild(pep->refinesubc),MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
     }
     ierr = MatCreateVecs(ctx->A[0],&ctx->v,NULL);CHKERRQ(ierr);
 
@@ -98,9 +92,9 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
 static PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx,PetscInt *fail)
 {
   PetscErrorCode    ierr;
-  Vec               v;
   PetscMPIInt       nproc,p;
   MPI_Comm          comm=((PetscObject)pep)->comm;
+  Vec               v;
   const PetscScalar *array;
 
   PetscFunctionBegin;
@@ -114,13 +108,13 @@ static PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,P
       ierr = MPI_Bcast(&pep->eigr[idx],1,MPIU_SCALAR,p,comm);CHKERRQ(ierr);
       /* Gather pep->V[idx] from the subcommuniator sc */
       ierr = BVGetColumn(pep->V,idx,&v);CHKERRQ(ierr);
-      if (ctx->subc->color==sc) {
+      if (pep->refinesubc->color==sc) {
         ierr = VecGetArrayRead(ctx->v,&array);CHKERRQ(ierr);
         ierr = VecPlaceArray(ctx->vg,array);CHKERRQ(ierr);
       }
       ierr = VecScatterBegin(ctx->scatter_id[sc],ctx->vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
       ierr = VecScatterEnd(ctx->scatter_id[sc],ctx->vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-      if (ctx->subc->color==sc) {
+      if (pep->refinesubc->color==sc) {
         ierr = VecResetArray(ctx->vg);CHKERRQ(ierr);
         ierr = VecRestoreArrayRead(ctx->v,&array);CHKERRQ(ierr);
       }
@@ -141,13 +135,13 @@ static PetscErrorCode PEPSimpleNRefScatterEigenvector(PEP pep,PEPSimpNRefctx *ct
   PetscFunctionBegin;
   if (pep->npart>1) {
     ierr = BVGetColumn(pep->V,idx,&v);CHKERRQ(ierr);
-    if (ctx->subc->color==sc) {
+    if (pep->refinesubc->color==sc) {
       ierr = VecGetArrayRead(ctx->v,&array);CHKERRQ(ierr);
       ierr = VecPlaceArray(ctx->vg,array);CHKERRQ(ierr);
     }
     ierr = VecScatterBegin(ctx->scatter_id[sc],v,ctx->vg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
     ierr = VecScatterEnd(ctx->scatter_id[sc],v,ctx->vg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    if (ctx->subc->color==sc) {
+    if (pep->refinesubc->color==sc) {
       ierr = VecResetArray(ctx->vg);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(ctx->v,&array);CHKERRQ(ierr);
     }
@@ -246,7 +240,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   ierr = PetscMalloc3(pep->npart,&idx_sc,pep->npart,&its_sc,pep->npart,&fail_sc);CHKERRQ(ierr);
   for (i=0;i<pep->npart;i++) fail_sc[i] = 0;
   for (i=0;i<pep->npart;i++) its_sc[i] = 0;
-  color = (pep->npart==1)?0:ctx->subc->color;
+  color = (pep->npart==1)?0:pep->refinesubc->color;
 
   /* Loop performing iterative refinements */
   while (!solved) {
@@ -342,7 +336,6 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   if (pep->npart>1) {
     ierr = VecDestroy(&ctx->vg);CHKERRQ(ierr);
     ierr = VecDestroy(&ctx->v);CHKERRQ(ierr);
-    ierr = PetscSubcommDestroy(&ctx->subc);CHKERRQ(ierr);
     for (i=0;i<pep->nmat;i++) {
       ierr = MatDestroy(&ctx->A[i]);CHKERRQ(ierr);
     }
