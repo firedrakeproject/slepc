@@ -58,8 +58,6 @@ PETSC_EXTERN PetscErrorCode RGCheckInside(RG,PetscInt,PetscScalar*,PetscScalar*,
 PETSC_EXTERN PetscErrorCode RGComputeContour(RG,PetscInt,PetscScalar*,PetscScalar*);
 
 PETSC_EXTERN PetscFunctionList RGList;
-PETSC_EXTERN PetscBool         RGRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode RGRegisterAll(void);
 PETSC_EXTERN PetscErrorCode RGRegister(const char[],PetscErrorCode(*)(RG));
 
 /* --------- options specific to particular regions -------- */

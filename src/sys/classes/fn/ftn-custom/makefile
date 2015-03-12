@@ -19,33 +19,14 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os
-import sys
-
-import petscconf
-import log
-import check
-
-def Check(conf,vars,cmake,tmpdir,directory,libs):
-
-  if petscconf.SCALAR == 'complex':
-    log.Exit('ERROR: TRLAN is not available for complex scalars.')
-
-  if petscconf.PRECISION != 'double':
-    log.Exit('ERROR: TRLAN is supported only in double precision.')
-
-  if petscconf.IND64:
-    log.Exit('ERROR: cannot use external packages with 64-bit indices.')
-
-  functions = ['trlan77']
-  if libs:
-    libs = [libs]
-  else:
-    libs = [['-ltrlan_mpi']]
-
-  if directory:
-    dirs = [directory]
-  else:
-    dirs = check.GenerateGuesses('TRLan')
-
-  return check.FortranLib(tmpdir,conf,vars,cmake,'TRLAN',dirs,libs,functions)
+#requiresdefine   'PETSC_HAVE_FORTRAN'
+ALL: lib
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = zfnf.c
+SOURCEF  =
+SOURCEH  =
+DIRS     =
+LIBBASE  = libslepcsys
+LOCDIR   = src/sys/classes/fn/ftn-custom/
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common

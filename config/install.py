@@ -51,7 +51,7 @@ class Installer:
         sys.exit(1)
       if os.path.samefile(self.destDir, os.path.join(self.rootDir,self.arch)):
         print '********************************************************************'
-        print 'Incorrect prefix usage. Specified destDir same as current SLEPC_DIR/SLEPC_ARCH'
+        print 'Incorrect prefix usage. Specified destDir same as current SLEPC_DIR/PETSC_ARCH'
         print '********************************************************************'
         sys.exit(1)
       if not os.path.isdir(os.path.realpath(self.destDir)):
@@ -193,8 +193,8 @@ for dir in dirs:
   def installBin(self):
     #if os.path.exists(self.rootBinDir):
     #  self.copies.extend(self.copytree(self.rootBinDir, self.destBinDir))
-    if os.path.exists(self.archBinDir):
-      self.copies.extend(self.copytree(self.archBinDir, self.destBinDir))
+    #if os.path.exists(self.archBinDir):
+    #  self.copies.extend(self.copytree(self.archBinDir, self.destBinDir))
     return
 
   def installShare(self):

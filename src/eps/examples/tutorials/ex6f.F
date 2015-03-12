@@ -35,6 +35,7 @@
 #include <petsc-finclude/petscsys.h>
 #include <petsc-finclude/petscvec.h>
 #include <petsc-finclude/petscmat.h>
+#include <petsc-finclude/petscviewer.h>
 #include <slepc-finclude/slepcsys.h>
 #include <slepc-finclude/slepceps.h>
 
@@ -54,7 +55,7 @@
       PetscInt       nev, maxit, its
       PetscMPIInt    sz, rank
       PetscErrorCode ierr
-      PetscBool      flg
+      PetscBool      flg, terse
 
 !     This is the routine to use for matrix-free approach
 !
@@ -140,7 +141,17 @@
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call EPSPrintSolution(eps,PETSC_NULL_OBJECT,ierr)
+!     ** show detailed info unless -terse option is given by user
+      call PetscOptionsHasName(PETSC_NULL_CHARACTER,'-terse',terse,ierr)
+      if (terse) then
+        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
+      else
+        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,           &
+     &                   PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)
+        call EPSErrorView(eps,EPS_ERROR_RELATIVE,                       &
+     &                   PETSC_VIEWER_STDOUT_WORLD,ierr)
+        call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr)
+      endif
       call EPSDestroy(eps,ierr)
       call MatDestroy(A,ierr)
 
@@ -179,14 +190,14 @@
       external mvmisg
 
       call MatGetSize(A,N,PETSC_NULL_INTEGER,ierr)
-      call VecGetArray(x,x_array,i_x,ierr)
+      call VecGetArrayRead(x,x_array,i_x,ierr)
       call VecGetArray(y,y_array,i_y,ierr)
 
       trans = 0
       one = 1
       call mvmisg(trans,N,one,x_array(i_x+1),N,y_array(i_y+1),N)
 
-      call VecRestoreArray(x,x_array,i_x,ierr)
+      call VecRestoreArrayRead(x,x_array,i_x,ierr)
       call VecRestoreArray(y,y_array,i_y,ierr)
 
       return

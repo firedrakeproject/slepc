@@ -50,6 +50,7 @@ int main(int argc,char **argv)
   PetscReal      w=9.92918,a=0.0,b=2.0,h,deltasq;
   PetscReal      nref[NL],K2[NL],q[NL],*md,*supd,*subd;
   PetscScalar    v,alpha;
+  PetscBool      terse;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -143,7 +144,7 @@ int main(int argc,char **argv)
   alpha = -h/6.0;
   for (i=Istart;i<Iend;i++) {
     ierr = MatSetValue(A[2],i,i,md[i]*alpha,ADD_VALUES);CHKERRQ(ierr);
-    if (i>0) { ierr = MatSetValue(A[2],i,i-1,subd[i]*alpha,ADD_VALUES);CHKERRQ(ierr); }
+    if (i>0) { ierr = MatSetValue(A[2],i,i-1,subd[i-1]*alpha,ADD_VALUES);CHKERRQ(ierr); }
     if (i<n) { ierr = MatSetValue(A[2],i,i+1,supd[i+1]*alpha,ADD_VALUES);CHKERRQ(ierr); }
   }
   ierr = PetscFree3(md,supd,subd);CHKERRQ(ierr);
@@ -183,7 +184,15 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   
-  ierr = PEPPrintSolution(pep,NULL);CHKERRQ(ierr);
+  /* show detailed info unless -terse option is given by user */
+  ierr = PetscOptionsHasName(NULL,"-terse",&terse);CHKERRQ(ierr);
+  if (terse) {
+    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  }
   ierr = PEPDestroy(&pep);CHKERRQ(ierr);
   for (i=0;i<NMAT;i++) {
     ierr = MatDestroy(&A[i]);CHKERRQ(ierr);

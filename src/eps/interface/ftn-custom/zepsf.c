@@ -25,6 +25,10 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define epsview_                    EPSVIEW
+#define epserrorview_               EPSERRORVIEW
+#define epsreasonview_              EPSREASONVIEW
+#define epsvaluesview_              EPSVALUESVIEW
+#define epsvectorsview_             EPSVECTORSVIEW
 #define epssetoptionsprefix_        EPSSETOPTIONSPREFIX
 #define epsappendoptionsprefix_     EPSAPPENDOPTIONSPREFIX
 #define epsgetoptionsprefix_        EPSGETOPTIONSPREFIX
@@ -52,6 +56,10 @@
 #define epssetarbitraryselection_   EPSSETARBITRARYSELECTION
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                    epsview
+#define epserrorview_               epserrorview
+#define epsreasonview_              epsreasonview
+#define epsvaluesview_              epsvaluesview
+#define epsvectorsview_             epsvectorsview
 #define epssetoptionsprefix_        epssetoptionsprefix
 #define epsappendoptionsprefix_     epsappendoptionsprefix
 #define epsgetoptionsprefix_        epsgetoptionsprefix
@@ -169,6 +177,34 @@ PETSC_EXTERN void PETSC_STDCALL epsview_(EPS *eps,PetscViewer *viewer,PetscError
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = EPSView(*eps,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsreasonview_(EPS *eps,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = EPSReasonView(*eps,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epserrorview_(EPS *eps,EPSErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = EPSErrorView(*eps,*etype,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsvaluesview_(EPS *eps,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = EPSValuesView(*eps,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsvectorsview_(EPS *eps,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = EPSVectorsView(*eps,v);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epssettype_(EPS *eps,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))

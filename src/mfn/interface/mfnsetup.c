@@ -50,11 +50,12 @@ PetscErrorCode MFNSetUp(MFN mfn)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (mfn->setupcalled) PetscFunctionReturn(0);
-  ierr = PetscLogEventBegin(MFN_SetUp,mfn,0,0,0);CHKERRQ(ierr);
 
   /* reset the convergence flag from the previous solves */
   mfn->reason = MFN_CONVERGED_ITERATING;
+
+  if (mfn->setupcalled) PetscFunctionReturn(0);
+  ierr = PetscLogEventBegin(MFN_SetUp,mfn,0,0,0);CHKERRQ(ierr);
 
   /* Set default solver type (MFNSetFromOptions was not called) */
   if (!((PetscObject)mfn)->type_name) {

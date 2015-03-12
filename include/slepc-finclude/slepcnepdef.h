@@ -35,9 +35,10 @@
 #endif
 
 #define NEPType            character*(80)
+#define NEPConvergedReason PetscEnum
+#define NEPErrorType       PetscEnum
 #define NEPWhich           PetscEnum
 #define NEPRefine          PetscEnum
-#define NEPConvergedReason PetscEnum
 
 #define NEPRII       'rii'
 #define NEPSLP       'slp'

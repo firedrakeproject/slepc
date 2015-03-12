@@ -131,6 +131,18 @@ typedef enum { EPS_BALANCE_NONE,
 PETSC_EXTERN const char *EPSBalanceTypes[];
 
 /*E
+    EPSErrorType - The error type used to assess accuracy of computed solutions
+
+    Level: intermediate
+
+.seealso: EPSComputeError()
+E*/
+typedef enum { EPS_ERROR_ABSOLUTE,
+               EPS_ERROR_RELATIVE,
+               EPS_ERROR_BACKWARD } EPSErrorType;
+PETSC_EXTERN const char *EPSErrorTypes[];
+
+/*E
     EPSConv - Determines the convergence test
 
     Level: intermediate
@@ -160,9 +172,15 @@ PETSC_EXTERN PetscErrorCode EPSSetUp(EPS);
 PETSC_EXTERN PetscErrorCode EPSSolve(EPS);
 PETSC_EXTERN PetscErrorCode EPSView(EPS,PetscViewer);
 PETSC_STATIC_INLINE PetscErrorCode EPSViewFromOptions(EPS eps,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)eps,prefix,name);}
-PETSC_EXTERN PetscErrorCode EPSPrintSolution(EPS,PetscViewer);
+PETSC_EXTERN PetscErrorCode EPSErrorView(EPS,EPSErrorType,PetscViewer);
+PETSC_DEPRECATED("Use EPSErrorView()") PETSC_STATIC_INLINE PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer v) {return EPSErrorView(eps,EPS_ERROR_RELATIVE,v);}
+PETSC_EXTERN PetscErrorCode EPSErrorViewFromOptions(EPS);
 PETSC_EXTERN PetscErrorCode EPSReasonView(EPS,PetscViewer);
 PETSC_EXTERN PetscErrorCode EPSReasonViewFromOptions(EPS);
+PETSC_EXTERN PetscErrorCode EPSValuesView(EPS,PetscViewer);
+PETSC_EXTERN PetscErrorCode EPSValuesViewFromOptions(EPS);
+PETSC_EXTERN PetscErrorCode EPSVectorsView(EPS,PetscViewer);
+PETSC_EXTERN PetscErrorCode EPSVectorsViewFromOptions(EPS);
 
 PETSC_EXTERN PetscErrorCode EPSSetTarget(EPS,PetscScalar);
 PETSC_EXTERN PetscErrorCode EPSGetTarget(EPS,PetscScalar*);
@@ -191,8 +209,10 @@ PETSC_EXTERN PetscErrorCode EPSGetConverged(EPS,PetscInt*);
 PETSC_EXTERN PetscErrorCode EPSGetEigenpair(EPS,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
 PETSC_EXTERN PetscErrorCode EPSGetEigenvalue(EPS,PetscInt,PetscScalar*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode EPSGetEigenvector(EPS,PetscInt,Vec,Vec);
-PETSC_EXTERN PetscErrorCode EPSComputeRelativeError(EPS,PetscInt,PetscReal*);
-PETSC_EXTERN PetscErrorCode EPSComputeResidualNorm(EPS,PetscInt,PetscReal*);
+
+PETSC_EXTERN PetscErrorCode EPSComputeError(EPS,PetscInt,EPSErrorType,PetscReal*);
+PETSC_DEPRECATED("Use EPSComputeError()") PETSC_STATIC_INLINE PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_RELATIVE,r);}
+PETSC_DEPRECATED("Use EPSComputeError() with EPS_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode EPSComputeResidualNorm(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_ABSOLUTE,r);}
 PETSC_EXTERN PetscErrorCode EPSGetInvariantSubspace(EPS,Vec*);
 PETSC_EXTERN PetscErrorCode EPSGetErrorEstimate(EPS,PetscInt,PetscReal*);
 
@@ -249,8 +269,6 @@ PETSC_EXTERN const char *const*EPSConvergedReasons;
 PETSC_EXTERN PetscErrorCode EPSGetConvergedReason(EPS,EPSConvergedReason *);
 
 PETSC_EXTERN PetscFunctionList EPSList;
-PETSC_EXTERN PetscBool         EPSRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode EPSRegisterAll(void);
 PETSC_EXTERN PetscErrorCode EPSRegister(const char[],PetscErrorCode(*)(EPS));
 
 PETSC_EXTERN PetscErrorCode EPSSetWorkVecs(EPS,PetscInt);
@@ -278,6 +296,8 @@ PETSC_EXTERN PetscErrorCode EPSArnoldiGetDelayed(EPS,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetRestart(EPS,PetscReal);
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetRestart(EPS,PetscReal*);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetLocking(EPS,PetscBool);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetLocking(EPS,PetscBool*);
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetPartitions(EPS,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetPartitions(EPS,PetscInt*);
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetDetectZeros(EPS,PetscBool);

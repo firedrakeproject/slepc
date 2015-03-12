@@ -406,7 +406,7 @@ PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   if (!ds->sc) PetscFunctionReturn(0);
   n = ds->n;
   l = ds->l;
-  A  = ds->mat[DS_MAT_A];
+  A = ds->mat[DS_MAT_A];
   d = ds->rmat[DS_MAT_T];
   perm = ds->perm;
   if (!rr) {
@@ -441,14 +441,14 @@ PetscErrorCode DSUpdateExtraRow_HEP(DS ds)
   e  = ds->rmat[DS_MAT_T]+ld;
 
   if (ds->compact) {
-    beta = e[n-1];
+    beta = e[n-1];   /* in compact, we assume all entries are zero except the last one */
     for (i=0;i<n;i++) e[i] = PetscRealPart(beta*Q[n-1+i*ld]);
     ds->k = n;
   } else {
     ierr = DSAllocateWork_Private(ds,2*ld,0,0);CHKERRQ(ierr);
     x = ds->work;
     y = ds->work+ld;
-    for (i=0;i<n;i++) x[i] = A[n+i*ld];
+    for (i=0;i<n;i++) x[i] = PetscConj(A[n+i*ld]);
     PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
     for (i=0;i<n;i++) A[n+i*ld] = PetscConj(y[i]);
     ds->k = n;

@@ -1,5 +1,5 @@
 /*
-     The basic SVD routines, Create, View, etc. are here.
+   The basic SVD routines, Create, Destroy, etc. are here.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -27,240 +27,6 @@ PetscFunctionList SVDList = 0;
 PetscBool         SVDRegisterAllCalled = PETSC_FALSE;
 PetscClassId      SVD_CLASSID = 0;
 PetscLogEvent     SVD_SetUp = 0,SVD_Solve = 0;
-
-#undef __FUNCT__
-#define __FUNCT__ "SVDView"
-/*@C
-   SVDView - Prints the SVD data structure.
-
-   Collective on SVD
-
-   Input Parameters:
-+  svd - the singular value solver context
--  viewer - optional visualization context
-
-   Options Database Key:
-.  -svd_view -  Calls SVDView() at end of SVDSolve()
-
-   Note:
-   The available visualization contexts include
-+     PETSC_VIEWER_STDOUT_SELF - standard output (default)
--     PETSC_VIEWER_STDOUT_WORLD - synchronized standard
-         output where only the first processor opens
-         the file.  All other processors send their
-         data to the first processor to print.
-
-   The user can open an alternative visualization context with
-   PetscViewerASCIIOpen() - output to a specified file.
-
-   Level: beginner
-
-.seealso: STView(), PetscViewerASCIIOpen()
-@*/
-PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
-{
-  PetscErrorCode ierr;
-  PetscBool      isascii,isshell;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
-  PetscCheckSameComm(svd,1,viewer,2);
-
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)svd,viewer);CHKERRQ(ierr);
-    if (svd->ops->view) {
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: %s\n",svd->impltrans?"implicit":"explicit");CHKERRQ(ierr);
-    if (svd->which == SVD_LARGEST) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: largest\n");CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: smallest\n");CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of singular values (nsv): %D\n",svd->nsv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",svd->ncv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",svd->mpd);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",svd->max_it);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)svd->tol);CHKERRQ(ierr);
-    if (svd->nini) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(svd->nini));CHKERRQ(ierr);
-    }
-    if (svd->ninil) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %D\n",PetscAbs(svd->ninil));CHKERRQ(ierr);
-    }
-  } else {
-    if (svd->ops->view) {
-      ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
-    }
-  }
-  ierr = PetscObjectTypeCompareAny((PetscObject)svd,&isshell,SVDCROSS,SVDCYCLIC,"");CHKERRQ(ierr);
-  if (!isshell) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-    if (!svd->V) { ierr = SVDGetBV(svd,&svd->V,NULL);CHKERRQ(ierr); }
-    ierr = BVView(svd->V,viewer);CHKERRQ(ierr);
-    if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
-    ierr = DSView(svd->ds,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SVDReasonView"
-/*@
-   SVDReasonView - Displays the reason an SVD solve converged or diverged.
-
-   Collective on SVD
-
-   Parameter:
-+  svd - the singular value solver context
--  viewer - the viewer to display the reason
-
-   Options Database Keys:
-.  -svd_converged_reason - print reason for convergence, and number of iterations
-
-   Level: beginner
-
-.seealso: SVDSetTolerances(), SVDGetIterationNumber()
-@*/
-PetscErrorCode SVDReasonView(SVD svd,PetscViewer viewer)
-{
-  PetscErrorCode ierr;
-  PetscBool      isAscii;
-
-  PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
-  if (isAscii) {
-    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
-    if (svd->reason > 0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s SVD solve converged due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s SVD solve did not converge due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SVDReasonViewFromOptions"
-/*@C
-   SVDReasonViewFromOptions - Processes command line options to determine if/how
-   the SVD converged reason is to be viewed. 
-
-   Collective on SVD
-
-   Input Parameters:
-.  svd - the singular value solver context
-
-   Level: intermediate
-@*/
-PetscErrorCode SVDReasonViewFromOptions(SVD svd)
-{
-  PetscErrorCode    ierr;
-  PetscViewer       viewer;
-  PetscBool         flg;
-  static PetscBool  incall = PETSC_FALSE;
-  PetscViewerFormat format;
-
-  PetscFunctionBegin;
-  if (incall) PetscFunctionReturn(0);
-  incall = PETSC_TRUE;
-  ierr   = PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->prefix,"-svd_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = SVDReasonView(svd,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-  }
-  incall = PETSC_FALSE;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SVDPrintSolution"
-/*@
-   SVDPrintSolution - Prints the computed singular values.
-
-   Collective on SVD
-
-   Input Parameters:
-+  svd - the singular value solver context
--  viewer - optional visualization context
-
-   Options Database Key:
-.  -svd_terse - print only minimal information
-
-   Note:
-   By default, this function prints a table with singular values and associated
-   relative errors. With -svd_terse only the singular values are printed.
-
-   Level: intermediate
-
-.seealso: PetscViewerASCIIOpen()
-@*/
-PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer viewer)
-{
-  PetscBool      terse,errok,isascii;
-  PetscReal      error,sigma;
-  PetscInt       i,j;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
-  PetscCheckSameComm(svd,1,viewer,2);
-  if (!svd->sigma) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first");
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (!isascii) PetscFunctionReturn(0);
-
-  ierr = PetscOptionsHasName(NULL,"-svd_terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    if (svd->nconv<svd->nsv) {
-      ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D singular values converged\n\n",svd->nsv);CHKERRQ(ierr);
-    } else {
-      errok = PETSC_TRUE;
-      for (i=0;i<svd->nsv;i++) {
-        ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
-        errok = (errok && error<5.0*svd->tol)? PETSC_TRUE: PETSC_FALSE;
-      }
-      if (errok) {
-        ierr = PetscViewerASCIIPrintf(viewer," All requested singular values computed up to the required tolerance:");CHKERRQ(ierr);
-        for (i=0;i<=(svd->nsv-1)/8;i++) {
-          ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
-          for (j=0;j<PetscMin(8,svd->nsv-8*i);j++) {
-            ierr = SVDGetSingularTriplet(svd,8*i+j,&sigma,NULL,NULL);CHKERRQ(ierr);
-            ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)sigma);CHKERRQ(ierr);
-            if (8*i+j+1<svd->nsv) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
-          }
-        }
-        ierr = PetscViewerASCIIPrintf(viewer,"\n\n");CHKERRQ(ierr);
-      } else {
-        ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",svd->nsv);CHKERRQ(ierr);
-      }
-    }
-  } else {
-    ierr = PetscViewerASCIIPrintf(viewer," Number of converged approximate singular triplets: %D\n\n",svd->nconv);CHKERRQ(ierr);
-    if (svd->nconv>0) {
-      ierr = PetscViewerASCIIPrintf(viewer,
-           "          sigma            relative error\n"
-           "   --------------------- ------------------\n");CHKERRQ(ierr);
-      for (i=0;i<svd->nconv;i++) {
-        ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,NULL);CHKERRQ(ierr);
-        ierr = SVDComputeRelativeError(svd,i,&error);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"       % 6f          %12g\n",(double)sigma,(double)error);CHKERRQ(ierr);
-      }
-      ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
-    }
-  }
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDCreate"
@@ -320,11 +86,10 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->errest         = NULL;
   svd->data           = NULL;
 
+  svd->state          = SVD_STATE_INITIAL;
   svd->nconv          = 0;
   svd->its            = 0;
   svd->leftbasis      = PETSC_FALSE;
-  svd->lvecsavail     = PETSC_FALSE;
-  svd->setupcalled    = 0;
   svd->reason         = SVD_CONVERGED_ITERATING;
 
   ierr = PetscNewLog(svd,&svd->sc);CHKERRQ(ierr);
@@ -338,7 +103,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 #undef __FUNCT__
 #define __FUNCT__ "SVDReset"
 /*@
-   SVDReset - Resets the SVD context to the setupcalled=0 state and removes any
+   SVDReset - Resets the SVD context to the initial state and removes any
    allocated objects.
 
    Collective on SVD
@@ -368,7 +133,7 @@ PetscErrorCode SVDReset(SVD svd)
   }
   ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
   ierr = BVDestroy(&svd->V);CHKERRQ(ierr);
-  svd->setupcalled = 0;
+  svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -456,7 +221,7 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
   if (svd->ops->destroy) { ierr = (*svd->ops->destroy)(svd);CHKERRQ(ierr); }
   ierr = PetscMemzero(svd->ops,sizeof(struct _SVDOps));CHKERRQ(ierr);
 
-  svd->setupcalled = 0;
+  svd->state = SVD_STATE_INITIAL;
   ierr = PetscObjectChangeTypeName((PetscObject)svd,type);CHKERRQ(ierr);
   ierr = (*r)(svd);CHKERRQ(ierr);
   PetscFunctionReturn(0);

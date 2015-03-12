@@ -376,6 +376,8 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 
 	\trlan{} requires the user to provide a matrix-vector multiplication routine. The parallel version uses MPI as the message passing layer. 
 	\item[Installation.] To install this package, it is necessary to have access to a Fortran 90 compiler. The compiler name and the options used are specified in the file called \texttt{Make.inc}. To generate the library, type \texttt{make plib} in the \texttt{TRLan} directory.
+
+	It is possible to configure \slepc with the serial version of \trlan (built with \texttt{make lib}). For this, you have to configure \petsc with the option \texttt{-{}-with-mpi=0}.
 	\end{description}
 
 \subsection*{\underline{\blopex}}
