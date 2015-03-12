@@ -344,12 +344,12 @@ if sowing.downloadpackage:
   bfort = sowing.Install(archdir,petsc.make)
 
 if slepc.isrepo and hasattr(petsc,'fc'):
-  log.NewSection('Generating Fortran stubs...')
   try:
     if not os.path.exists(bfort):
       bfort = os.path.join(archdir,'bin','bfort')
     if not os.path.exists(bfort):
       bfort = sowing.Install(archdir,petsc.make)
+    log.NewSection('Generating Fortran stubs...')
     sys.path.insert(0, os.path.abspath(os.path.join('bin','maint')))
     import generatefortranstubs
     generatefortranstubs.main(slepcdir,bfort,os.getcwd(),0)
@@ -362,29 +362,36 @@ if bfort != petsc.bfort:
 
 # CMake stuff
 cmakeok = False
-if sys.version_info >= (2,5) and slepc.cmake and not petsc.isinstall and petsc.build_using_cmake:
-  log.NewSection('Configuring CMake builds...')
-  import cmakegen
-  try:
-    cmakegen.main(slepcdir,petscdir,petscdestdir=petsc.destdir)
-  except (OSError), e:
-    log.Exit('ERROR: Generating CMakeLists.txt failed:\n'+str(e))
-  import cmakeboot
-  try:
-    cmakeok = cmakeboot.main(slepcdir,petscdir,log=log)
-  except (OSError), e:
-    log.Exit('ERROR: Booting CMake in PETSC_ARCH failed:\n'+str(e))
-  except (ImportError, KeyError), e:
-    log.Exit('ERROR: Importing cmakeboot failed:\n'+str(e))
-  except (AttributeError), e:
-    log.Println('xxx'+'='*73+'xxx')
-    log.Println('WARNING: CMake builds are not available (initialization failed)')
-    log.Println('You can ignore this warning (use default build), or try reconfiguring PETSc')
-    log.Println('xxx'+'='*73+'xxx')
-  # remove files created by PETSc's script
-  for f in ['build.log','build.log.bkp','RDict.log']:
-    try: os.remove(f)
-    except OSError: pass
+if slepc.cmake:
+  if sys.version_info < (2,5):
+    log.Exit('ERROR: python version should be 2.5 or higher')
+  elif petsc.isinstall:
+    log.Exit('ERROR: CMake builds cannot be used with prefix-installed PETSc')
+  elif not petsc.build_using_cmake:
+    log.Exit('ERROR: CMake builds need a PETSc configured --with-cmake')
+  else:
+    log.NewSection('Configuring CMake builds...')
+    import cmakegen
+    try:
+      cmakegen.main(slepcdir,petscdir,petscdestdir=petsc.destdir)
+    except (OSError), e:
+      log.Exit('ERROR: Generating CMakeLists.txt failed:\n'+str(e))
+    import cmakeboot
+    try:
+      cmakeok = cmakeboot.main(slepcdir,petscdir,log=log)
+    except (OSError), e:
+      log.Exit('ERROR: Booting CMake in PETSC_ARCH failed:\n'+str(e))
+    except (ImportError, KeyError), e:
+      log.Exit('ERROR: Importing cmakeboot failed:\n'+str(e))
+    except (AttributeError), e:
+      log.Println('xxx'+'='*73+'xxx')
+      log.Println('WARNING: CMake builds are not available (initialization failed)')
+      log.Println('You can ignore this warning (use default build), or try reconfiguring PETSc')
+      log.Println('xxx'+'='*73+'xxx')
+    # remove files created by PETSc's script
+    for f in ['build.log','build.log.bkp','RDict.log']:
+      try: os.remove(f)
+      except OSError: pass
 if cmakeok:
   slepcvars.write('SLEPC_BUILD_USING_CMAKE = 1\n')
 
