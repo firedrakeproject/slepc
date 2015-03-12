@@ -293,6 +293,8 @@ PETSC_EXTERN PetscErrorCode PEPTOARGetLocking(PEP,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode PEPSTOARSetMonic(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPSTOARGetMonic(PEP,PetscBool*);
+PETSC_EXTERN PetscErrorCode PEPSTOARSetLocking(PEP,PetscBool);
+PETSC_EXTERN PetscErrorCode PEPSTOARGetLocking(PEP,PetscBool*);
 
 #endif
 
