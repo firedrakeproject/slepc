@@ -22,6 +22,9 @@
 
 import os, sys, time, shutil
 
+def AddDefine(conffile,name,value):
+  conffile.write('#ifndef SLEPC_'+name+'\n#define SLEPC_'+name+' "'+value+'"\n#endif\n\n')
+
 def CreateFile(basedir,fname,log):
   ''' Create file basedir/fname and return path string '''
   newfile = os.path.join(basedir,fname)
@@ -288,9 +291,10 @@ slepcvars.write('TEST_RUNS = '+' '.join(testruns)+'\n')
 slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
 slepcconf.write('#define __SLEPCCONF_H\n\n')
 if slepc.isrepo:
-  slepcconf.write('#ifndef SLEPC_VERSION_GIT\n#define SLEPC_VERSION_GIT "'+slepc.gitrev+'"\n#endif\n\n')
-  slepcconf.write('#ifndef SLEPC_VERSION_DATE_GIT\n#define SLEPC_VERSION_DATE_GIT "'+slepc.gitdate+'"\n#endif\n\n')
-slepcconf.write('#ifndef SLEPC_LIB_DIR\n#define SLEPC_LIB_DIR "'+os.path.join(slepc.prefixdir,'lib')+'"\n#endif\n\n')
+  AddDefine(slepcconf,'VERSION_GIT',slepc.gitrev)
+  AddDefine(slepcconf,'VERSION_DATE_GIT',slepc.gitdate)
+  AddDefine(slepcconf,'VERSION_BRANCH_GIT',slepc.branch)
+  AddDefine(slepcconf,'LIB_DIR',os.path.join(slepc.prefixdir,'lib'))
 
 # Create global configuration file for the case of empty PETSC_ARCH
 if emptyarch:

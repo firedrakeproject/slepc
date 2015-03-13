@@ -61,7 +61,9 @@ class SLEPc():
         print 'WARNING: SLEPC_DIR appears to be a git working copy, but git is not found in PATH'
       else:
         self.isrepo = True
-        (status, self.gitrev) = commands.getstatusoutput('git log -1 --pretty=format:%H')
+        (status, self.gitrev) = commands.getstatusoutput('git describe')
+        if not self.gitrev:
+          (status, self.gitrev) = commands.getstatusoutput('git log -1 --pretty=format:%H')
         (status, self.gitdate) = commands.getstatusoutput('git log -1 --pretty=format:%ci')
         (status, self.branch) = commands.getstatusoutput('git describe --contains --all HEAD')
 
