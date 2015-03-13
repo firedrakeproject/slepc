@@ -184,11 +184,14 @@ static PetscErrorCode PEPSTOARqKupdate(PEP pep,PetscInt j,Vec *wv,PetscInt nwv)
     ierr = STMatSolve(pep->st,v1,v2);CHKERRQ(ierr);
     v1 = v2;
   }
-  ierr = BVSetActiveColumns(pep->V,0,j+1);CHKERRQ(ierr);
-  ierr = BVDotVec(pep->V,v1,qK+j*ld);CHKERRQ(ierr);
   for (i=0;i<=j;i++) {
-    qK[i+j*ld] = -qK[i+j*ld];
-    qK[j+i*ld] = PetscConj(qK[i+ld*j]);
+    ierr = BVGetColumn(pep->V,i,&vj);CHKERRQ(ierr);
+    ierr = VecDot(v1,vj,qK+j*ld+i);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(pep->V,i,&vj);CHKERRQ(ierr);
+  }
+  for (i=0;i<=j;i++) {
+    qK[i+j*ld] = -PetscConj(qK[i+ld*j]);
+    qK[j+i*ld] = qK[i+j*ld];
   }
   PetscFunctionReturn(0);
 }
@@ -598,11 +601,12 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
         ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
         ierr = PEPSTOARTrunc(pep,nv+2,k+l+1,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
         ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-        ierr = VecCreateSeq(PETSC_COMM_SELF,k+l+1,&vomega);CHKERRQ(ierr);
+
+        ierr = VecCreateSeq(PETSC_COMM_SELF,k+l+2,&vomega);CHKERRQ(ierr);
         ierr = VecGetArray(vomega,&aux);CHKERRQ(ierr);
-        for (i=0;i<k+l+1;i++) aux[i] = ctx->qM[i];
+        for (i=0;i<=k+l+1;i++) aux[i] = ctx->qM[i];
         ierr = VecRestoreArray(vomega,&aux);CHKERRQ(ierr);
-        ierr = BVSetActiveColumns(pep->V,0,k+l+1);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(pep->V,0,k+l+2);CHKERRQ(ierr);
         ierr = BVSetSignature(pep->V,vomega);CHKERRQ(ierr);
         ierr = VecDestroy(&vomega);CHKERRQ(ierr);
 
