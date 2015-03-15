@@ -52,7 +52,7 @@ class Blopex(package.Package):
       try:
         os.mkdir(externdir)
       except:
-        sys.exit('ERROR: Cannot create directory ' + externdir)
+        self.log.Exit('ERROR: Cannot create directory ' + externdir)
 
     # Check if source is already available
     if os.path.exists(builddir):
@@ -81,7 +81,7 @@ Unable to download package %s from: %s
   and use the configure option:
   --download-%s=/yourselectedlocation/%s
 ''' % (name, url, filename, name, filename)
-        raise RuntimeError(failureMessage)
+        self.log.Exit(failureMessage)
 
       # Uncompress tarball
       self.log.write('Uncompressing '+localFile+' to directory '+builddir)
@@ -102,7 +102,7 @@ Unable to download package %s from: %s
           result,output = commands.getstatusoutput('cd '+externdir+'; gunzip '+archiveZip+'; tar -xf '+archiveZip.split('.gz')[0])
           os.remove(localFile.split('.gz')[0])
       except RuntimeError, e:
-        raise RuntimeError('Error uncompressing '+archiveZip+': '+str(e))
+        self.log.Exit('Error uncompressing '+archiveZip+': '+str(e))
 
     # Configure
     g = open(os.path.join(builddir,'Makefile.inc'),'w')
