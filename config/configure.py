@@ -305,8 +305,11 @@ for pkg in checkpackages:
 
 # Write Modules, pkg-config and CMake configuration files
 log.NewSection('Writing various configuration files...')
+log.write('Modules file in '+modulesdir)
 WriteModulesFile(modules,slepc.lversion,slepc.prefixdir if slepc.isinstall else slepc.dir)
+log.write('pkg-config file in '+pkgconfdir)
 WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.lversion,slepc.dir,slepc.isinstall,slepc.prefixdir)
+log.write('CMake configure file in '+confdir)
 WriteCMakeConfigFile(cmakeconf)
 
 # Finish with configuration files (except slepcvars)
@@ -329,6 +332,7 @@ if slepc.isrepo and hasattr(petsc,'fc'):
     if not os.path.exists(bfort):
       bfort = sowing.Install(archdir,petsc.make)
     log.NewSection('Generating Fortran stubs...')
+    log.write('Using BFORT='+bfort)
     sys.path.insert(0, os.path.abspath(os.path.join('bin','maint')))
     import generatefortranstubs
     generatefortranstubs.main(slepc.dir,bfort,os.getcwd(),0)
