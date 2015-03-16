@@ -54,6 +54,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   PetscInt       i;
 
   PetscFunctionBegin;
+  pep->lineariz = PETSC_FALSE;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
   if (!pep->which) pep->which = PEP_LARGEST_MAGNITUDE;
@@ -204,11 +205,16 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       ierr = PCShellSetName(pjd->pcshell,"PCPEPJD");
       ierr = PCShellSetApply(pjd->pcshell,PCShellApply_PEPJD);CHKERRQ(ierr);
       ierr = PetscNew(&pcctx);CHKERRQ(ierr);
-      ierr = PCShellSetContext(pjd->pcshell,&pcctx);CHKERRQ(ierr);
+      ierr = PCShellSetContext(pjd->pcshell,pcctx);CHKERRQ(ierr);
+      ierr = PCSetOperators(pjd->pcshell,Ptheta,Ptheta);CHKERRQ(ierr);
+      ierr = VecDuplicate(u,&pcctx->Bp);CHKERRQ(ierr);
+      ierr = KSPGetPC(ksp,&pcctx->pc);CHKERRQ(ierr);
+      ierr = PetscObjectReference((PetscObject)pcctx->pc);CHKERRQ(ierr);
+    } else {
+      ierr = KSPGetPC(ksp,&pcctx->pc);CHKERRQ(ierr);
     }
-    pcctx->u = u;
-    ierr = KSPGetPC(ksp,&pcctx->pc);CHKERRQ(ierr);
     ierr = KSPSetPC(ksp,pjd->pcshell);CHKERRQ(ierr);
+    pcctx->u = u;
 
     /* Check convergence */
     ierr = VecNorm(r,NORM_2,&norm);CHKERRQ(ierr);
@@ -252,16 +258,16 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       nv++;
 
       /* Restore preconditioner */
+      ierr = KSPGetPC(ksp,&pjd->pcshell);CHKERRQ(ierr);
       ierr = KSPSetPC(ksp,pcctx->pc);CHKERRQ(ierr);
     }
 
     ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
   }
 
-  /* truncate Schur decomposition and change the state to raw so that
-     DSVectors() computes eigenvectors from scratch */
-  ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  ierr = VecDestroy(&pcctx->Bp);CHKERRQ(ierr);
+  ierr = PetscFree(pcctx);CHKERRQ(ierr);
+  ierr = PCDestroy(&pjd->pcshell);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

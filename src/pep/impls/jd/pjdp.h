@@ -25,7 +25,7 @@
 #define __PJDP_H
 
 typedef struct {
-  PetscInt    keep;          /* restart parameter */
+  PetscReal   keep;          /* restart parameter */
   PetscReal   mtol;          /* tolerance for eigenvalue multiplicity */
   PetscReal   htol;          /* tolerance for harmonic JD */
   PetscReal   stol;          /* tolerance for harmonic shift */

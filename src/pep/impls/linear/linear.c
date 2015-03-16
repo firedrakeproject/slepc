@@ -275,6 +275,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   };
 
   PetscFunctionBegin;
+  pep->lineariz = PETSC_TRUE;
   if (!ctx->cform) ctx->cform = 1;
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);

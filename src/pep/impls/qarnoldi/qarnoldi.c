@@ -51,6 +51,7 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   PetscBool      sinv,flg;
 
   PetscFunctionBegin;
+  pep->lineariz = PETSC_TRUE;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
   if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);

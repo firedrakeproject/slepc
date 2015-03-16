@@ -117,6 +117,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->nloc            = 0;
   pep->nrma            = NULL;
   pep->sfactor_set     = PETSC_FALSE;
+  pep->lineariz        = PETSC_FALSE;
   pep->reason          = PEP_CONVERGED_ITERATING;
 
   ierr = PetscNewLog(pep,&pep->sc);CHKERRQ(ierr);
