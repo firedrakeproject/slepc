@@ -25,17 +25,25 @@
 #define __PJDP_H
 
 typedef struct {
-  PetscInt  keep;            /* restart parameter */
-  PetscReal mtol;            /* tolerance for eigenvalue multiplicity */
-  PetscReal htol;            /* tolerance for harmonic JD */
-  PetscReal stol;            /* tolerance for harmonic shift */
-  PetscInt  fnini;           /* first initial search space */
-  PetscBool randini;         /* use random initial search space */
-  PetscBool custpc;          /* use custom correction equation preconditioner */
-  PetscBool flglk;           /* whether in locking step */
-  PetscBool flgre;           /* whether in restarting step */
-  BV        *W;              /* work basis vectors to store A_i*V */
+  PetscInt    keep;          /* restart parameter */
+  PetscReal   mtol;          /* tolerance for eigenvalue multiplicity */
+  PetscReal   htol;          /* tolerance for harmonic JD */
+  PetscReal   stol;          /* tolerance for harmonic shift */
+  PetscInt    fnini;         /* first initial search space */
+  PetscBool   randini;       /* use random initial search space */
+  PetscBool   custpc;        /* use custom correction equation preconditioner */
+  PetscBool   flglk;         /* whether in locking step */
+  PetscBool   flgre;         /* whether in restarting step */
+  BV          *W;            /* work basis vectors to store A_i*V */
+  PC          pcshell;       /* preconditioner including basic precond+projector */
 } PEP_JD;
+
+typedef struct {
+  PC          pc;            /* basic preconditioner */
+  Vec         Bp;            /* preconditioned residual of derivative polynomial, B\p */
+  Vec         u;             /* Ritz vector */
+  PetscScalar gamma;         /* precomputed scalar u'*B\p */
+} PEP_JD_PCSHELL;
 
 PETSC_INTERN PetscErrorCode PEPView_JD(PEP,PetscViewer);
 PETSC_INTERN PetscErrorCode PEPSetFromOptions_JD(PetscOptions*,PEP);
