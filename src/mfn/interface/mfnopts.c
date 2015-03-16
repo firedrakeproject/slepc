@@ -67,6 +67,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
 
     i = mfn->max_it;
     ierr = PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,&flg1);CHKERRQ(ierr);
+    if (!flg1) i = PETSC_DEFAULT;
     r = mfn->tol;
     ierr = PetscOptionsReal("-mfn_tol","Tolerance","MFNSetTolerances",mfn->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:mfn->tol,&r,&flg2);CHKERRQ(ierr);
     if (flg1 || flg2) {

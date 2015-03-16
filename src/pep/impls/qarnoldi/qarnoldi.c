@@ -413,10 +413,12 @@ static PetscErrorCode PEPQArnoldiSetLocking_QArnoldi(PEP pep,PetscBool lock)
 .  -pep_qarnoldi_locking - Sets the locking flag
 
    Notes:
-   The default is to lock converged eigenpairs when the method restarts.
-   This behaviour can be changed so that all directions are kept in the
-   working subspace even if already converged to working accuracy (the
-   non-locking variant).
+   The default is to keep all directions in the working subspace even if
+   already converged to working accuracy (the non-locking variant).
+   This behaviour can be changed so that converged eigenpairs are locked
+   when the method restarts.
+
+   Note that the default behaviour is the opposite to Krylov solvers in EPS.
 
    Level: advanced
 
@@ -536,7 +538,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
   pep->data = (void*)ctx;
-  ctx->lock = PETSC_TRUE;
+  ctx->lock = PETSC_FALSE;
 
   pep->ops->solve          = PEPSolve_QArnoldi;
   pep->ops->setup          = PEPSetUp_QArnoldi;

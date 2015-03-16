@@ -157,13 +157,13 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
 #define __FUNCT__ "PEPTOARExtendBasis"
 /*
   Extend the TOAR basis by applying the the matrix operator
-  over a vector which is decomposed on the TOAR way
+  over a vector which is decomposed in the TOAR way
   Input:
     - pbc: array containing the polynomial basis coefficients
     - S,V: define the latest Arnoldi vector (nv vectors in V)
   Output:
     - t: new vector extending the TOAR basis
-    - r: temporally coefficients to compute the TOAR coefficients
+    - r: temporary coefficients to compute the TOAR coefficients
          for the new Arnoldi vector
   Workspace: t_ (two vectors)
 */
@@ -333,19 +333,21 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,PetscInt *nq,PetscSca
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPTOARTrunc"
-static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt *rs1a,PetscInt cs1,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
+static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt *rs1a,PetscInt cs1,PetscInt lock,PetscInt newc,PetscBool final,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
 {
   PetscErrorCode ierr;
-  PetscInt       lwa,nwu=0,lrwa,nrwu=0;
-  PetscInt       j,i,n,lds=deg*ld,rs1=*rs1a,rk=0;
-  PetscScalar    *M,*V,*pU,t;
+  PetscInt       lwa,nwu=0,lrwa,nrwu=0,nnc,nrow;
+  PetscInt       j,i,k,n,lds=deg*ld,rs1=*rs1a,rk=0,offu;
+  PetscScalar    *M,*V,*pU,*SS,*SS2,t,sone=1.0,zero=0.0,mone=-1.0,*p,*tau,*H,*Q;
   PetscReal      *sg,tol;
-  PetscBLASInt   cs1_,rs1_,cs1tdeg,n_,info,lw_;
+  PetscBLASInt   cs1_,rs1_,cs1tdeg,n_,info,lw_,newc_,newctdeg,nnc_,nrow_,nnctdeg,lds_,ldm_,ldds_;
   Mat            U;
+  PetscBool      reorth=PETSC_TRUE;
 
   PetscFunctionBegin;
+  if (cs1==0) PetscFunctionReturn(0);
   n = (rs1>deg*cs1)?deg*cs1:rs1;
-  lwa = 5*ld*lds;
+  lwa = 6*ld*lds;
   lrwa = 6*n;
   if (!work||nw<lwa) {
     if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",6);
@@ -355,52 +357,161 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
     if (nrw<lrwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",8);
     if (!rwork) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",7);
   }
+  nnc = cs1-lock-newc;
+  nrow = rs1-lock;
+  ierr = PetscMalloc4(deg*newc*nnc,&SS,newc*nnc,&SS2,(rs1+lock+newc)*n,&pU,deg*rs1,&tau);
+  offu = lock*(rs1+1);
   M = work+nwu;
   nwu += rs1*cs1*deg;
   sg = rwork+nrwu;
   nrwu += n;
-  pU = work+nwu;
-  nwu += rs1*n;
+  ierr = PetscMemzero(pU,rs1*n*sizeof(PetscScalar));CHKERRQ(ierr);
   V = work+nwu;
   nwu += deg*cs1*n;
-  for (i=0;i<cs1;i++) {
-    for (j=0;j<deg;j++) {
-      ierr = PetscMemcpy(M+(i+j*cs1)*rs1,S+i*lds+j*ld,rs1*sizeof(PetscScalar));CHKERRQ(ierr);
-    } 
-  }
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(nnc,&nnc_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(cs1,&cs1_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(rs1,&rs1_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(newc,&newc_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(newc*deg,&newctdeg);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(nnc*deg,&nnctdeg);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(cs1*deg,&cs1tdeg);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lwa-nwu,&lw_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(nrow,&nrow_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
+  if (newc>0) {
+  /* Truncate columns associated with new converged eigenpairs */
+    for (j=0;j<deg;j++) {
+      for (i=lock;i<lock+newc;i++) {
+        ierr = PetscMemcpy(M+(i-lock+j*newc)*nrow,S+i*lds+j*ld+lock,nrow*sizeof(PetscScalar));CHKERRQ(ierr);
+      } 
+    }
 #if !defined (PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1tdeg,M,&rs1_,sg,pU,&rs1_,V,&n_,work+nwu,&lw_,&info));
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pU+offu,&rs1_,V,&n_,work+nwu,&lw_,&info));
 #else
-  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1tdeg,M,&rs1_,sg,pU,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));  
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pU+offu,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));  
+#endif
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
+    /* SVD has rank newc */
+    for (i=0;i<newc;i++) {
+      t = sg[i];
+      PetscStackCallBLAS("BLASscal",BLASscal_(&newctdeg,&t,V+i,&n_));
+    }
+    for (i=0;i<deg;i++) {
+      for (j=lock;j<lock+newc;j++) {
+        ierr = PetscMemcpy(S+j*lds+i*ld+lock,V+(newc*i+j-lock)*n,newc*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemzero(S+j*lds+i*ld+lock+newc,(ld-lock-newc)*sizeof(PetscScalar));CHKERRQ(ierr);
+      }
+    }
+    /*
+      Update columns associated with non-converged vectors, orthogonalize
+       against pU so that next M has rank nnc+d-1 insted of nrow+d-1
+    */
+    for (i=0;i<deg;i++) {
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&newc_,&nnc_,&nrow_,&sone,pU+offu,&rs1_,S+(lock+newc)*lds+i*ld+lock,&lds_,&zero,SS+i*newc*nnc,&newc_));
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nrow_,&nnc_,&newc_,&mone,pU+offu,&rs1_,SS+i*newc*nnc,&newc_,&sone,S+(lock+newc)*lds+i*ld+lock,&lds_));
+      /* Repeat orthogonalization step */
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&newc_,&nnc_,&nrow_,&sone,pU+offu,&rs1_,S+(lock+newc)*lds+i*ld+lock,&lds_,&zero,SS2,&newc_));
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nrow_,&nnc_,&newc_,&mone,pU+offu,&rs1_,SS2,&newc_,&sone,S+(lock+newc)*lds+i*ld+lock,&lds_));
+      for (j=0;j<newc*nnc;j++) *(SS+i*newc*nnc+j) += SS2[j];
+    }
+  }
+  /* Truncate columns associated with non-converged eigenpairs */
+  for (j=0;j<deg;j++) {
+    for (i=lock+newc;i<cs1;i++) {
+      ierr = PetscMemcpy(M+(i-lock-newc+j*nnc)*nrow,S+i*lds+j*ld+lock,nrow*sizeof(PetscScalar));CHKERRQ(ierr);
+    } 
+  }
+#if !defined (PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pU+offu+newc*rs1,&rs1_,V,&n_,work+nwu,&lw_,&info));
+#else
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pU+offu+newc*rs1,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));  
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
   tol = PetscMax(rs1,deg*cs1)*PETSC_MACHINE_EPSILON*sg[0];
   for (i=0;i<n;i++) if (sg[i]>tol) rk++;
-  rk = PetscMin(cs1+deg-1,rk); 
-  /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,rk,pU,&U);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(pep->V,0,rs1);CHKERRQ(ierr);
-  ierr = BVMultInPlace(pep->V,U,0,rk);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(pep->V,0,rk);CHKERRQ(ierr);
-  ierr = MatDestroy(&U);CHKERRQ(ierr);
-  
-  /* Update S */
-  ierr = PetscMemzero(S,lds*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  rk = PetscMin(nnc+deg-1,rk);
+  /* The SVD has rank (atmost) nnc+deg-1 */
   for (i=0;i<rk;i++) {
     t = sg[i];
-    PetscStackCallBLAS("BLASscal",BLASscal_(&cs1tdeg,&t,V+i,&n_));
+    PetscStackCallBLAS("BLASscal",BLASscal_(&nnctdeg,&t,V+i,&n_));
   }
-  for (j=0;j<cs1;j++) {
-    for (i=0;i<deg;i++) {
-      ierr = PetscMemcpy(S+j*lds+i*ld,V+(cs1*i+j)*n,rk*sizeof(PetscScalar));CHKERRQ(ierr);
+  /* Update S */
+  ierr = PetscMemzero(S+cs1*lds,(ld-cs1)*lds*sizeof(PetscScalar));CHKERRQ(ierr);
+  k = ld-lock-newc-rk;
+  for (i=0;i<deg;i++) {
+    for (j=lock+newc;j<cs1;j++) {
+      ierr = PetscMemcpy(S+j*lds+i*ld+lock+newc,V+(nnc*i+j-lock-newc)*n,rk*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscMemzero(S+j*lds+i*ld+lock+newc+rk,k*sizeof(PetscScalar));CHKERRQ(ierr);
     }
   }
+  if (newc>0) {
+    for (i=0;i<deg;i++) {
+      p = SS+nnc*newc*i;
+      for (j=lock+newc;j<cs1;j++) {
+        for (k=0;k<newc;k++) S[j*lds+i*ld+lock+k] = *(p++);
+      }
+    }
+  }
+
+  /* Orthogonalize S */
+  rk = rk+newc+lock;
+  ierr = PetscOptionsGetBool(NULL,"-pep_toar_orthrestart",&reorth,NULL);CHKERRQ(ierr);
+  if (reorth && cs1>pep->nconv){
+    for (i=0;i<deg;i++) {
+      for (j=pep->nconv;j<cs1;j++) {
+        ierr = PetscMemcpy(M+rk*i+(j-pep->nconv)*deg*rk,S+i*ld+j*lds,rk*sizeof(PetscScalar));
+      }
+    }
+    ierr = DSGetLeadingDimension(pep->ds,&k);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(k,&ldds_);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(deg*rk,&ldm_);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(lwa-nwu,&lw_);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(cs1-pep->nconv,&nnc_);CHKERRQ(ierr);
+    PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&ldm_,&nnc_,M,&ldm_,tau,work+nwu,&lw_,&info));
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
+    /* Update H <- r*H/r(1:end-1,1:end-1) */
+    ierr = PetscBLASIntCast(cs1-pep->nconv,&nrow_);
+    if (final) nnc_ = nrow_;
+    else { ierr = PetscBLASIntCast(cs1-pep->nconv-1,&nnc_);CHKERRQ(ierr); }
+    ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+    PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&cs1_,&nnc_,&sone,M,&ldm_,H+pep->nconv*(ldds_),&ldds_));
+    PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&nrow_,&nnc_,&sone,M,&ldm_,H+pep->nconv*(ldds_+1),&ldds_));
+  
+    ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+    /* S <- Q */
+    PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&ldm_,&nrow_,&nrow_,M,&ldm_,tau,work+nwu,&lw_,&info));
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
+    ierr = DSSetDimensions(pep->ds,(final)?cs1:cs1-1,0,pep->nconv,0);CHKERRQ(ierr);
+    ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  
+    /* Solve projected problem */
+    ierr = DSSolve(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
+    ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSUpdateExtraRow(pep->ds);CHKERRQ(ierr);
+    ierr = DSGetArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&ldm_,&nnc_,&nnc_,&sone,M,&ldm_,Q+pep->nconv*(ldds_+1),&ldds_,&zero,S+pep->nconv*lds,&ldm_));
+    ierr = DSRestoreArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = PetscMemcpy(M,S+pep->nconv*lds,ldm_*nnc_*sizeof(PetscScalar));
+    ierr = PetscMemzero(S+pep->nconv*lds,(ld-pep->nconv)*lds*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<deg;i++) {
+      for (j=pep->nconv;j<cs1;j++) {
+        ierr = PetscMemcpy(S+i*ld+j*lds,M+rk*i+(j-pep->nconv)*deg*rk,rk*sizeof(PetscScalar));
+      }
+    }
+  }
+
+  /* Update vectors V(:,idx) = V*Q(:,idx) */
+  for (i=0;i<lock;i++) pU[(i+1)*rs1] = 1.0;
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,rk,pU,&U);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(pep->V,lock,rs1);CHKERRQ(ierr);
+  ierr = BVMultInPlace(pep->V,U,lock,rk);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(pep->V,0,rk);CHKERRQ(ierr);
+  ierr = MatDestroy(&U);CHKERRQ(ierr);  
   *rs1a = rk;
+
+  /* Free work space */
+  ierr = PetscFree4(SS,SS2,pU,tau);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -665,19 +776,22 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,*pS0,sigma;
   PetscReal      beta,norm,*rwork;
-  PetscBool      breakdown=PETSC_FALSE,flg,lindep;
+  PetscBool      breakdown=PETSC_FALSE,flg,lindep,falselock=PETSC_FALSE;
   Mat            S0;
 
   PetscFunctionBegin;
+  if (ctx->lock) {
+    ierr = PetscOptionsGetBool(NULL,"-pep_toar_falselocking",&falselock,NULL);CHKERRQ(ierr);
+  }
   ld = pep->ncv+deg;   /* number of rows of each fragment of S */
   lds = deg*ld;        /* leading dimension of S */
-  lwa = (deg+5)*ld*lds;
+  lwa = (deg+6)*ld*lds;
   lrwa = 7*lds;
   ierr = PetscMalloc3(lwa,&work,lrwa,&rwork,lds*ld,&S);CHKERRQ(ierr);
   ierr = PetscMemzero(S,lds*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
-
+  ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr); 
   ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr);
+
   /* Update polynomial basis coefficients */
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (pep->sfactor!=1) {
@@ -766,23 +880,23 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* Copy last column of S */
     ierr = PetscMemcpy(S+lds*(k+l),S+lds*nv,lds*sizeof(PetscScalar));CHKERRQ(ierr);
 
-    if (pep->reason == PEP_CONVERGED_ITERATING) {
-      if (breakdown) {
-        /* Stop if breakdown */
-        ierr = PetscInfo2(pep,"Breakdown TOAR method (it=%D norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
-        pep->reason = PEP_DIVERGED_BREAKDOWN;
-      } else {
-        /* Truncate S */
-        ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
-      }
+    if (breakdown) {
+      /* Stop if breakdown */
+      ierr = PetscInfo2(pep,"Breakdown TOAR method (it=%D norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
+      pep->reason = PEP_DIVERGED_BREAKDOWN;
+    }
+    if (pep->reason != PEP_CONVERGED_ITERATING) {l--; flg = PETSC_TRUE;}
+    else flg = PETSC_FALSE;
+    /* Truncate S */
+    if (!falselock && ctx->lock) {
+      ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,pep->nconv,k-pep->nconv,flg,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+    } else {
+      ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,0,0,flg,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
     }
     pep->nconv = k;
     ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
   }
   if (pep->nconv>0) {
-    /* Truncate S */
-    ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,pep->nconv,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
-
     /* {V*S_nconv^i}_{i=0}^{d-1} has rank nconv instead of nconv+d-1. Force zeros in each S_nconv^i block */
     nq = pep->nconv;
 
@@ -958,10 +1072,12 @@ static PetscErrorCode PEPTOARSetLocking_TOAR(PEP pep,PetscBool lock)
 .  -pep_toar_locking - Sets the locking flag
 
    Notes:
-   The default is to lock converged eigenpairs when the method restarts.
-   This behaviour can be changed so that all directions are kept in the
-   working subspace even if already converged to working accuracy (the
-   non-locking variant).
+   The default is to keep all directions in the working subspace even if
+   already converged to working accuracy (the non-locking variant).
+   This behaviour can be changed so that converged eigenpairs are locked
+   when the method restarts.
+
+   Note that the default behaviour is the opposite to Krylov solvers in EPS.
 
    Level: advanced
 
@@ -1081,7 +1197,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
   pep->data = (void*)ctx;
-  ctx->lock = PETSC_TRUE;
+  ctx->lock = PETSC_FALSE;
 
   pep->ops->solve          = PEPSolve_TOAR;
   pep->ops->setup          = PEPSetUp_TOAR;

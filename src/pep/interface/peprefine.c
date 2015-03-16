@@ -27,7 +27,6 @@
 #define NREF_MAXIT 10
 
 typedef struct {
-  PetscSubcomm  subc;
   VecScatter    *scatter_id;
   Mat           *A;
   Vec           vg,v;
@@ -47,21 +46,15 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
   ierr = PetscMalloc1(1,ctx_);CHKERRQ(ierr);
   ctx = *ctx_;
   if (pep->npart==1) {
-    ctx->subc = NULL;
+    pep->refinesubc = NULL;
     ctx->scatter_id = NULL;
     ctx->A = pep->A;
   } else {
     ierr = PetscMalloc2(pep->nmat,&ctx->A,pep->npart,&ctx->scatter_id);CHKERRQ(ierr);
 
-    /* Split in subcomunicators */
-    ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)pep),&ctx->subc);CHKERRQ(ierr);
-    ierr = PetscSubcommSetNumber(ctx->subc,pep->npart);CHKERRQ(ierr);CHKERRQ(ierr);
-    ierr = PetscSubcommSetType(ctx->subc,PETSC_SUBCOMM_CONTIGUOUS);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)pep,sizeof(PetscSubcomm));CHKERRQ(ierr);
-
     /* Duplicate matrices */
     for (i=0;i<pep->nmat;i++) {
-      ierr = MatCreateRedundantMatrix(pep->A[i],0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
+      ierr = MatCreateRedundantMatrix(pep->A[i],0,PetscSubcommChild(pep->refinesubc),MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
     }
     ierr = MatCreateVecs(ctx->A[0],&ctx->v,NULL);CHKERRQ(ierr);
 
@@ -96,7 +89,7 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
 */
 #undef __FUNCT__
 #define __FUNCT__ "PEPSimpleNRefGatherEigenpair"
-PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx)
+static PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx)
 {
   PetscErrorCode    ierr;
   PetscMPIInt       nproc,p;
@@ -114,13 +107,13 @@ PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,PetscInt
   if (pep->npart>1) {
     /* Gather pep->V[idx] from the subcommuniator sc */
     ierr = BVGetColumn(pep->V,idx,&v);CHKERRQ(ierr);
-    if (ctx->subc->color==sc) {
+    if (pep->refinesubc->color==sc) {
       ierr = VecGetArrayRead(ctx->v,&array);CHKERRQ(ierr);
       ierr = VecPlaceArray(ctx->vg,array);CHKERRQ(ierr);
     }
     ierr = VecScatterBegin(ctx->scatter_id[sc],ctx->vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
     ierr = VecScatterEnd(ctx->scatter_id[sc],ctx->vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-    if (ctx->subc->color==sc) {
+    if (pep->refinesubc->color==sc) {
       ierr = VecResetArray(ctx->vg);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(ctx->v,&array);CHKERRQ(ierr);
     }
@@ -131,7 +124,7 @@ PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,PetscInt
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSimpleNRefScatterEigenvector"
-PetscErrorCode PEPSimpleNRefScatterEigenvector(PEP pep,PEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx)
+static PetscErrorCode PEPSimpleNRefScatterEigenvector(PEP pep,PEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx)
 {
   PetscErrorCode    ierr;
   Vec               v;
@@ -140,13 +133,13 @@ PetscErrorCode PEPSimpleNRefScatterEigenvector(PEP pep,PEPSimpNRefctx *ctx,Petsc
   PetscFunctionBegin;
   if (pep->npart>1) {
     ierr = BVGetColumn(pep->V,idx,&v);CHKERRQ(ierr);
-    if (ctx->subc->color==sc) {
+    if (pep->refinesubc->color==sc) {
       ierr = VecGetArrayRead(ctx->v,&array);CHKERRQ(ierr);
       ierr = VecPlaceArray(ctx->vg,array);CHKERRQ(ierr);
     }
     ierr = VecScatterBegin(ctx->scatter_id[sc],v,ctx->vg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
     ierr = VecScatterEnd(ctx->scatter_id[sc],v,ctx->vg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    if (ctx->subc->color==sc) {
+    if (pep->refinesubc->color==sc) {
       ierr = VecResetArray(ctx->vg);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(ctx->v,&array);CHKERRQ(ierr);
     }
@@ -178,7 +171,7 @@ static PetscErrorCode PEPEvaluateFunctionDerivatives(PEP pep,PetscScalar alpha,P
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSimpleNRefSetUpSystem"
-PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PetscInt idx,Mat *M,Mat *T,PetscBool ini,Vec *t,Vec v)
+static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PetscInt idx,Mat *M,Mat *T,PetscBool ini,Vec *t,Vec v)
 {
   PetscErrorCode    ierr;
   PetscInt          i,nmat=pep->nmat,ml,m0,m1,mg;
@@ -301,8 +294,9 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
   ierr = PEPSimpleNRefSetUp(pep,&ctx);CHKERRQ(ierr);
   its = (maxits)?*maxits:NREF_MAXIT;
-  comm = (pep->npart==1)?PetscObjectComm((PetscObject)pep):PetscSubcommChild(ctx->subc);
-  ierr = KSPCreate(comm,&ksp);
+  comm = (pep->npart==1)?PetscObjectComm((PetscObject)pep):PetscSubcommChild(pep->refinesubc);
+  ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
+  ierr = PEPRefineGetKSP(pep,&ksp);CHKERRQ(ierr);
   if (pep->npart==1) {
     ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
   } else v = ctx->v;
@@ -316,7 +310,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   ierr = VecGetLocalSize(r,&n);CHKERRQ(ierr);
   ierr = PetscMalloc2(pep->npart,&idx_sc,pep->npart,&its_sc);CHKERRQ(ierr);
   for (i=0;i<pep->npart;i++) its_sc[i] = 0;
-  color = (pep->npart==1)?0:ctx->subc->color;
+  color = (pep->npart==1)?0:pep->refinesubc->color;
    
   /* Loop performing iterative refinements */
   while (!solved) {
@@ -390,7 +384,6 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
       if (pep->npart==1) { ierr = BVRestoreColumn(pep->V,idx_sc[color],&v);CHKERRQ(ierr); } 
     }
   }
-  ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&T);CHKERRQ(ierr);
   ierr = VecDestroy(&t[0]);CHKERRQ(ierr);
@@ -403,7 +396,6 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   if (pep->npart>1) {
     ierr = VecDestroy(&ctx->vg);CHKERRQ(ierr);
     ierr = VecDestroy(&ctx->v);CHKERRQ(ierr);
-    ierr = PetscSubcommDestroy(&ctx->subc);CHKERRQ(ierr);
     for (i=0;i<pep->nmat;i++) {
       ierr = MatDestroy(&ctx->A[i]);CHKERRQ(ierr);
     }
