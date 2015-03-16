@@ -242,8 +242,8 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
     } else
 #endif
     {
-      norm = 1.0/BLASnrm2_(&n,X+i*ds->ld,&one);
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,X+i*ds->ld,&one));
+      norm = 1.0/BLASnrm2_(&n,X+j*ds->ld,&one);
+      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,X+j*ds->ld,&one));
     }
   }
   PetscFunctionReturn(0);
