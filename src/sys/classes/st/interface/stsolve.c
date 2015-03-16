@@ -492,7 +492,7 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
    Input Parameters:
 +  st     - the spectral transformation context
 .  sigma  - the shift
--  coeffs - the coefficients
+-  coeffs - the coefficients (may be NULL)
 
    Note:
    This function is not intended to be called by end users, but by SLEPc
@@ -513,7 +513,6 @@ PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveScalar(st,sigma,2);
-  PetscValidScalarPointer(coeffs,2);
   STCheckMatrices(st,1);
 
   ierr = PetscLogEventBegin(ST_MatSetUp,st,0,0,0);CHKERRQ(ierr);
