@@ -54,7 +54,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (!EPSRegisterAllCalled) { ierr = EPSRegisterAll();CHKERRQ(ierr); }
+  ierr = EPSRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)eps);CHKERRQ(ierr);
     ierr = PetscOptionsFList("-eps_type","Eigenvalue Problem Solver method","EPSSetType",EPSList,(char*)(((PetscObject)eps)->type_name?((PetscObject)eps)->type_name:EPSKRYLOVSCHUR),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -213,10 +213,15 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsBool("-eps_purify","Postprocess eigenvectors for purification","EPSSetPurify",eps->purify,&eps->purify,NULL);CHKERRQ(ierr);
 
     ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-eps_plot_eigs","Make a plot of the computed eigenvalues","EPSSolve",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_view_vectors","View computed eigenvectors","EPSVectorsView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_view_values","View computed eigenvalues","EPSValuesView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_converged_reason","Print reason for convergence, and number of iterations","EPSReasonView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_error_absolute","Print absolute errors of each eigenpair","EPSErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_error_relative","Print relative errors of each eigenpair","EPSErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_error_backward","Print backward errors of each eigenpair","EPSErrorView",0);CHKERRQ(ierr);
 
     if (eps->ops->setfromoptions) {
-      ierr = (*eps->ops->setfromoptions)(eps);CHKERRQ(ierr);
+      ierr = (*eps->ops->setfromoptions)(PetscOptionsObject,eps);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)eps);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);

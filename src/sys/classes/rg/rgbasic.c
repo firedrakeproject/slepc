@@ -308,7 +308,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  if (!RGRegisterAllCalled) { ierr = RGRegisterAll();CHKERRQ(ierr); }
+  ierr = RGRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)rg);CHKERRQ(ierr);
     ierr = PetscOptionsFList("-rg_type","Region type","RGSetType",RGList,(char*)(((PetscObject)rg)->type_name?((PetscObject)rg)->type_name:RGINTERVAL),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -324,7 +324,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
     ierr = PetscOptionsBool("-rg_complement","Whether region is complemented or not","RGSetComplement",rg->complement,&rg->complement,&flg);CHKERRQ(ierr);
 
     if (rg->ops->setfromoptions) {
-      ierr = (*rg->ops->setfromoptions)(rg);CHKERRQ(ierr);
+      ierr = (*rg->ops->setfromoptions)(PetscOptionsObject,rg);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)rg);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
@@ -613,6 +613,7 @@ PetscErrorCode RGRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (RGRegisterAllCalled) PetscFunctionReturn(0);
   RGRegisterAllCalled = PETSC_TRUE;
   ierr = RGRegister(RGINTERVAL,RGCreate_Interval);CHKERRQ(ierr);
   ierr = RGRegister(RGELLIPSE,RGCreate_Ellipse);CHKERRQ(ierr);

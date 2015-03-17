@@ -142,8 +142,6 @@ PETSC_EXTERN PetscErrorCode BVAppendOptionsPrefix(BV,const char*);
 PETSC_EXTERN PetscErrorCode BVGetOptionsPrefix(BV,const char*[]);
 
 PETSC_EXTERN PetscFunctionList BVList;
-PETSC_EXTERN PetscBool         BVRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode BVRegisterAll(void);
 PETSC_EXTERN PetscErrorCode BVRegister(const char[],PetscErrorCode(*)(BV));
 
 #endif

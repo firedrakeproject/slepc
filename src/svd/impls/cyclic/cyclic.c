@@ -268,7 +268,7 @@ static PetscErrorCode SVDMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,Pets
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions_Cyclic"
-PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
+PetscErrorCode SVDSetFromOptions_Cyclic(PetscOptions *PetscOptionsObject,SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
@@ -276,7 +276,7 @@ PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
   ST             st;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("SVD Cyclic Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"SVD Cyclic Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",cyclic->explicitmatrix,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = SVDCyclicSetExplicitMatrix(svd,val);CHKERRQ(ierr);
@@ -384,7 +384,7 @@ static PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
   ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);
   cyclic->eps = eps;
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->eps);CHKERRQ(ierr);
-  svd->setupcalled = 0;
+  svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

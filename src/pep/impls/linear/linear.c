@@ -322,8 +322,12 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->B);CHKERRQ(ierr);
 
   } else {   /* implicit matrix */
-    ierr = PetscObjectTypeCompare((PetscObject)ctx->eps,EPSKRYLOVSCHUR,&ks);CHKERRQ(ierr);
-    if (!ks) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option only implemented for Krylov-Schur");
+    if (!((PetscObject)(ctx->eps))->type_name) {
+      ierr = EPSSetType(ctx->eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
+    } else {
+      ierr = PetscObjectTypeCompare((PetscObject)ctx->eps,EPSKRYLOVSCHUR,&ks);CHKERRQ(ierr);
+      if (!ks) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option only implemented for Krylov-Schur");
+    }
     if (ctx->cform!=1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option not available for 2nd companion form");
     ierr = STSetType(st,STSHELL);CHKERRQ(ierr);
     ierr = STShellSetContext(st,(PetscObject)ctx);CHKERRQ(ierr);
@@ -427,14 +431,14 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
 */
 static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,k;
-  PetscScalar    *px;
-  PetscReal      rn1,rn2;
-  Vec            xr,xi,wr,wi;
-  Mat            A;
+  PetscErrorCode    ierr;
+  PetscInt          i,k;
+  const PetscScalar *px;
+  PetscReal         rn1,rn2;
+  Vec               xr,xi,wr,wi;
+  Mat               A;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    *py;
+  const PetscScalar *py;
 #endif
 
   PetscFunctionBegin;
@@ -449,8 +453,8 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
     pep->eigi[i] *= pep->sfactor;
 #if !defined(PETSC_USE_COMPLEX)
     if (pep->eigi[i]>0.0) {   /* first eigenvalue of a complex conjugate pair */
-      ierr = VecGetArray(xr,&px);CHKERRQ(ierr);
-      ierr = VecGetArray(xi,&py);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(xi,&py);CHKERRQ(ierr);
       ierr = VecPlaceArray(wr,px);CHKERRQ(ierr);
       ierr = VecPlaceArray(wi,py);CHKERRQ(ierr);
       ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,NULL);CHKERRQ(ierr);
@@ -472,12 +476,12 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
       }
       ierr = VecResetArray(wr);CHKERRQ(ierr);
       ierr = VecResetArray(wi);CHKERRQ(ierr);
-      ierr = VecRestoreArray(xr,&px);CHKERRQ(ierr);
-      ierr = VecRestoreArray(xi,&py);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(xr,&px);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(xi,&py);CHKERRQ(ierr);
     } else if (pep->eigi[i]==0.0)   /* real eigenvalue */
 #endif
     {
-      ierr = VecGetArray(xr,&px);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(wr,px);CHKERRQ(ierr);
       ierr = SlepcVecNormalize(wr,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
       ierr = PEPComputeResidualNorm_Private(pep,pep->eigr[i],pep->eigi[i],wr,NULL,&rn1);CHKERRQ(ierr);
@@ -493,7 +497,7 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
         }
       }
       ierr = VecResetArray(wr);CHKERRQ(ierr);
-      ierr = VecRestoreArray(xr,&px);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(xr,&px);CHKERRQ(ierr);
     }
   }
   ierr = VecDestroy(&wr);CHKERRQ(ierr);
@@ -516,14 +520,14 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
 */
 static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,offset;
-  PetscScalar    *px;
-  Vec            xr,xi,w,vi;
+  PetscErrorCode    ierr;
+  PetscInt          i,offset;
+  const PetscScalar *px;
+  Mat               A;
+  Vec               xr,xi,w,vi;
 #if !defined(PETSC_USE_COMPLEX)
-  Vec            vi1;
+  Vec               vi1;
 #endif
-  Mat            A;
 
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
@@ -538,16 +542,16 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
     else offset = 0;
 #if !defined(PETSC_USE_COMPLEX)
     if (pep->eigi[i]>0.0) {   /* first eigenvalue of a complex conjugate pair */
-      ierr = VecGetArray(xr,&px);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(w,px+offset);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,i,w);CHKERRQ(ierr);
       ierr = VecResetArray(w);CHKERRQ(ierr);
-      ierr = VecRestoreArray(xr,&px);CHKERRQ(ierr);
-      ierr = VecGetArray(xi,&px);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(xr,&px);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(xi,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(w,px+offset);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,i+1,w);CHKERRQ(ierr);
       ierr = VecResetArray(w);CHKERRQ(ierr);
-      ierr = VecRestoreArray(xi,&px);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(xi,&px);CHKERRQ(ierr);
       ierr = BVGetColumn(pep->V,i,&vi);CHKERRQ(ierr);
       ierr = BVGetColumn(pep->V,i+1,&vi1);CHKERRQ(ierr);
       ierr = SlepcVecNormalize(vi,vi1,PETSC_TRUE,NULL);CHKERRQ(ierr);
@@ -556,11 +560,11 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
     } else if (pep->eigi[i]==0.0)   /* real eigenvalue */
 #endif
     {
-      ierr = VecGetArray(xr,&px);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(w,px+offset);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,i,w);CHKERRQ(ierr);
       ierr = VecResetArray(w);CHKERRQ(ierr);
-      ierr = VecRestoreArray(xr,&px);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(xr,&px);CHKERRQ(ierr);
       ierr = BVGetColumn(pep->V,i,&vi);CHKERRQ(ierr);
       ierr = SlepcVecNormalize(vi,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i,&vi);CHKERRQ(ierr);
@@ -640,7 +644,7 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetFromOptions_Linear"
-PetscErrorCode PEPSetFromOptions_Linear(PEP pep)
+PetscErrorCode PEPSetFromOptions_Linear(PetscOptions *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
@@ -648,7 +652,7 @@ PetscErrorCode PEPSetFromOptions_Linear(PEP pep)
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("PEP Linear Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"PEP Linear Options");CHKERRQ(ierr);
   ierr = PetscOptionsInt("-pep_linear_cform","Number of the companion form","PEPLinearSetCompanionForm",ctx->cform,&i,&set);CHKERRQ(ierr);
   if (set) {
     ierr = PEPLinearSetCompanionForm(pep,i);CHKERRQ(ierr);

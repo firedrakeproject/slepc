@@ -25,13 +25,16 @@
 #include <slepcrg.h>
 #include <slepc-private/slepcimpl.h>
 
+PETSC_EXTERN PetscBool RGRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode RGRegisterAll(void);
+
 typedef struct _RGOps *RGOps;
 
 struct _RGOps {
   PetscErrorCode (*istrivial)(RG,PetscBool*);
   PetscErrorCode (*computecontour)(RG,PetscInt,PetscScalar*,PetscScalar*);
   PetscErrorCode (*checkinside)(RG,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
-  PetscErrorCode (*setfromoptions)(RG);
+  PetscErrorCode (*setfromoptions)(PetscOptions*,RG);
   PetscErrorCode (*view)(RG,PetscViewer);
   PetscErrorCode (*destroy)(RG);
 };

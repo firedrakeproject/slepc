@@ -132,7 +132,7 @@ PetscErrorCode STSetFromOptions(ST st)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (!STRegisterAllCalled) { ierr = STRegisterAll();CHKERRQ(ierr); }
+  ierr = STRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)st);CHKERRQ(ierr);
     ierr = PetscOptionsFList("-st_type","Spectral Transformation type","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -165,7 +165,7 @@ PetscErrorCode STSetFromOptions(ST st)
     ierr = PetscOptionsBool("-st_transform","Whether transformed matrices are computed or not","STSetTransform",st->transform,&st->transform,&flg);CHKERRQ(ierr);
 
     if (st->ops->setfromoptions) {
-      ierr = (*st->ops->setfromoptions)(st);CHKERRQ(ierr);
+      ierr = (*st->ops->setfromoptions)(PetscOptionsObject,st);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)st);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);

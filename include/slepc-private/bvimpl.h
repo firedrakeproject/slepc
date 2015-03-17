@@ -25,6 +25,9 @@
 #include <slepcbv.h>
 #include <slepc-private/slepcimpl.h>
 
+PETSC_EXTERN PetscBool BVRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode BVRegisterAll(void);
+
 PETSC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_Dot,BV_Orthogonalize,BV_Scale,BV_Norm,BV_SetRandom,BV_MatMult,BV_MatProject,BV_AXPY;
 
 typedef struct _BVOps *BVOps;
@@ -50,7 +53,6 @@ struct _BVOps {
   PetscErrorCode (*restorecolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*getarray)(BV,PetscScalar**);
   PetscErrorCode (*restorearray)(BV,PetscScalar**);
-  PetscErrorCode (*setfromoptions)(BV);
   PetscErrorCode (*create)(BV);
   PetscErrorCode (*view)(BV,PetscViewer);
   PetscErrorCode (*destroy)(BV);

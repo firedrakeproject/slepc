@@ -24,6 +24,7 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define mfnview_                    MFNVIEW
+#define mfnreasonview_              MFNREASONVIEW
 #define mfnsetoptionsprefix_        MFNSETOPTIONSPREFIX
 #define mfnappendoptionsprefix_     MFNAPPENDOPTIONSPREFIX
 #define mfngetoptionsprefix_        MFNGETOPTIONSPREFIX
@@ -34,6 +35,7 @@
 #define mfnmonitorset_              MFNMONITORSET
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define mfnview_                    mfnview
+#define mfnreasonview_              mfnreasonview
 #define mfnsetoptionsprefix_        mfnsetoptionsprefix
 #define mfnappendoptionsprefix_     mfnappendoptionsprefix
 #define mfngetoptionsprefix_        mfngetoptionsprefix
@@ -84,6 +86,13 @@ PETSC_EXTERN void PETSC_STDCALL mfnview_(MFN *mfn,PetscViewer *viewer,PetscError
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = MFNView(*mfn,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL mfnreasonview_(MFN *mfn,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = MFNReasonView(*mfn,v);
 }
 
 PETSC_EXTERN void PETSC_STDCALL mfnsettype_(MFN *mfn,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))

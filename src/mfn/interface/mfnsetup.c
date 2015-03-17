@@ -50,11 +50,12 @@ PetscErrorCode MFNSetUp(MFN mfn)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (mfn->setupcalled) PetscFunctionReturn(0);
-  ierr = PetscLogEventBegin(MFN_SetUp,mfn,0,0,0);CHKERRQ(ierr);
 
   /* reset the convergence flag from the previous solves */
   mfn->reason = MFN_CONVERGED_ITERATING;
+
+  if (mfn->setupcalled) PetscFunctionReturn(0);
+  ierr = PetscLogEventBegin(MFN_SetUp,mfn,0,0,0);CHKERRQ(ierr);
 
   /* Set default solver type (MFNSetFromOptions was not called) */
   if (!((PetscObject)mfn)->type_name) {
@@ -96,7 +97,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
 -  A   - the problem matrix
 
    Notes:
-   It must be called after MFNSetUp(). If it is called again after MFNSetUp() then
+   It must be called before MFNSetUp(). If it is called again after MFNSetUp() then
    the MFN object is reset.
 
    Level: beginner

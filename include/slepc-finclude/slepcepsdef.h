@@ -34,6 +34,7 @@
 
 #define EPSType                character*(80)
 #define EPSConvergedReason     PetscEnum
+#define EPSErrorType           PetscEnum
 #define EPSProblemType         PetscEnum
 #define EPSWhich               PetscEnum
 #define EPSExtraction          PetscEnum

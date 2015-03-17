@@ -43,6 +43,7 @@ PetscErrorCode STRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (STRegisterAllCalled) PetscFunctionReturn(0);
   STRegisterAllCalled = PETSC_TRUE;
   ierr = STRegister(STSHELL,STCreate_Shell);CHKERRQ(ierr);
   ierr = STRegister(STSHIFT,STCreate_Shift);CHKERRQ(ierr);

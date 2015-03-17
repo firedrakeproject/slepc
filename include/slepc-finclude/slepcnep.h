@@ -66,6 +66,12 @@
       parameter (NEP_TARGET_REAL            =  8)
       parameter (NEP_TARGET_IMAGINARY       =  9)
 
+      PetscEnum NEP_ERROR_ABSOLUTE
+      PetscEnum NEP_ERROR_RELATIVE
+
+      parameter (NEP_ERROR_ABSOLUTE         =  0)
+      parameter (NEP_ERROR_RELATIVE         =  1)
+
 !
 !   Possible arguments to NEPMonitorSet()
 !

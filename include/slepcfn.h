@@ -67,8 +67,6 @@ PETSC_EXTERN PetscErrorCode FNEvaluateDerivative(FN,PetscScalar,PetscScalar*);
 PETSC_EXTERN PetscErrorCode FNEvaluateFunctionMat(FN,Mat,Mat);
 
 PETSC_EXTERN PetscFunctionList FNList;
-PETSC_EXTERN PetscBool         FNRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode FNRegisterAll(void);
 PETSC_EXTERN PetscErrorCode FNRegister(const char[],PetscErrorCode(*)(FN));
 
 #endif

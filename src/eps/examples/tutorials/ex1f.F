@@ -186,7 +186,7 @@
           call EPSGetEigenpair(eps,i,kr,ki,xr,xi,ierr)
 
 !         ** Compute the relative error associated to each eigenpair
-          call EPSComputeRelativeError(eps,i,error,ierr)
+          call EPSComputeError(eps,i,EPS_ERROR_RELATIVE,error,ierr)
           if (rank .eq. 0) then
             write(*,160) PetscRealPart(kr), error
           endif

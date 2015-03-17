@@ -2,7 +2,7 @@
 Polynomial eigenproblem stored in file.
 
  Reading REAL matrices from binary files...
- Number of iterations of the method: 10
+ Number of iterations of the method: 11
  Solution method: toar
 
  Number of requested eigenvalues: 4

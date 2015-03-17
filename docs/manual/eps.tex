@@ -88,7 +88,7 @@ EPSSolve( eps );
 EPSGetConverged( eps, &nconv );
 for (j=0; j<nconv; j++) {
   EPSGetEigenpair( eps, j, &kr, &ki, xr, xi );
-  EPSComputeRelativeError( eps, j, &error );
+  EPSComputeError( eps, j, EPS_ERROR_RELATIVE, &error );
 }
 EPSDestroy( &eps );
 \end{Verbatim}
@@ -434,17 +434,25 @@ where $\theta(x,\tilde{x})$ is the angle between the computed and exact eigenvec
 This is sufficient in some applications and is safer from the numerical point of view.
 
 \paragraph{Computation of Bounds.}
-The following \slepc function 
-	\findex{EPSComputeResidualNorm}
+It is sometimes useful to compute error bounds based on the norm of the residual $r_j$, to assess the accuracy of the computed solution. The bound can be made in absolute terms, as in Eq.\ \ref{eq:reserr}, or alternatively the error can be expressed relative to the eigenvalue or to the matrix norms. For this, the following function can be used:
+	\findex{EPSComputeError}
 	\begin{Verbatim}[fontsize=\small]
-	EPSComputeResidualNorm(EPS eps,PetscInt j,PetscReal *norm);
+	EPSComputeError(EPS eps,PetscInt j,EPSErrorType type,PetscReal *error);
 	\end{Verbatim}
-computes the 2-norm of $r_j$. Normally, the residual norm is not used directly as a bound in absolute terms, as in Eq.\ \ref{eq:reserr}. Rather, the error is expressed relative to the eigenvalue or to the matrix norms. For this, the following function can be used instead:
-	\findex{EPSComputeRelativeError}
-	\begin{Verbatim}[fontsize=\small]
-	EPSComputeRelativeError(EPS eps,PetscInt j,PetscReal *error);
-	\end{Verbatim}
-The way in which it is relativized is the same as the one used for convergence checking, as described below.
+The types of errors that can be computed are summarized in Table \ref{tab:errors}.
+The way in which the error is computed is unrelated to the error estimation used internally in the solver for convergence checking, as described below.
+
+\begin{table}
+\centering
+{\small \begin{tabular}{llll}
+Error type     & \texttt{EPSErrorType}         & Command line key               & Error bound \\\hline
+Absolute error & \texttt{EPS\_ERROR\_ABSOLUTE} & \texttt{-eps\_error\_absolute} & $\|r\|$ \\
+Relative error & \texttt{EPS\_ERROR\_RELATIVE} & \texttt{-eps\_error\_relative} & $\|r\|/|\lambda|$ \\
+Backward error & \texttt{EPS\_ERROR\_BACKWARD} & \texttt{-eps\_error\_backward} & $\|r\|/(\|A\|+|\lambda|\|B\|)$ \\
+\hline
+\end{tabular} }
+\caption{\label{tab:errors}Available expressions for computing error bounds.}
+\end{table}
 
 \subsection{Controlling and Monitoring Convergence}
 \label{sec:monitor}
@@ -456,7 +464,7 @@ The way in which it is relativized is the same as the one used for convergence c
 	\end{Verbatim}
 which returns in argument \texttt{its} either the iteration number at which convergence was successfully reached, or the iteration at which a problem was detected. 
 
-The user specifies when a solution should be considered sufficiently accurate by means of a tolerance. An approximate eigenvalue is considered to be converged if the error estimate associated with it is below the specified tolerance. The default value of the tolerance is $10^{-8}$ and can be changed at run time with \Verb!-eps_tol <tol>! or inside the program with the function
+The user specifies when a solution should be considered sufficiently accurate by means of a tolerance. An approximate eigenvalue is considered to be converged if the error estimate associated with it is below the specified tolerance. The default value of the tolerance is $10^{-8}$ and can be changed at run time with \Verb!-eps_tol <tol>! or inside the program with the function%
 	\findex{EPSSetTolerances}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetTolerances(EPS eps,PetscReal tol,PetscInt max_it);
@@ -491,7 +499,7 @@ Relative to matrix norms & \texttt{EPS\_CONV\_NORM} & \texttt{-eps\_conv\_norm} 
 	\end{Verbatim}
 The default is to use the criterion relative to the eigenvalue (note: for computing eigenvalues close to the origin this criterion will likely give very poor accuracy, so the user is advised to use \ident{EPS\_CONV\_ABS} in that case). Finally, a custom convergence criterion may be established by specifying a user function (\ident{EPSSetConvergenceTestFunction}).
 
-	Error estimates used internally by eigensolvers for checking convergence may be different from the error bounds provided by \ident{EPSComputeRelativeError}. At the end of the solution process, error estimates are available via
+	Error estimates used internally by eigensolvers for checking convergence may be different from the error bounds provided by \ident{EPSComputeError}. At the end of the solution process, error estimates are available via
 	\findex{EPSGetErrorEstimate}
 	\begin{Verbatim}[fontsize=\small]
 	EPSGetErrorEstimate(EPS eps,PetscInt j,PetscReal *errest);
@@ -535,7 +543,8 @@ Again, only the error estimate of one eigenvalue is drawn. The spikes in the las
 
 	The two previously mentioned monitors have an alternative version (\Verb!*_all!) that processes all eigenvalues instead of just the first one. Figure \ref{fig:plot} (middle) corresponds to the same example but with \Verb!-eps_monitor_lg_all!. Note that these variants have a side effect: they force the computation of all error estimates even if the method would not normally do so. 
 
-	A less verbose textual monitor is \Verb!-eps_monitor_conv!, which simply displays the iteration number at which convergence takes places.
+	A less verbose textual monitor is \Verb!-eps_monitor_conv!, which simply displays the iteration number at which convergence takes place.
+Note that several monitors can be used at the same time.
 \begin{Verbatim}[fontsize=\footnotesize,numbers=none]
    $ ./ex9 -n 200 -eps_nev 12 -eps_tol 1e-12 -eps_monitor_conv
 
@@ -553,9 +562,58 @@ Again, only the error estimate of one eigenvalue is drawn. The spikes in the las
     77 EPS converged value (error) #11 -7.86906-4.41229i (9.08070733e-13)
 \end{Verbatim}
 
-Note that several monitors can be used at the same time.
+\subsection{Viewing the Solution}
+\label{sec:epsviewers}
 
-Finally, the options database key \Verb!-eps_plot_eigs! instructs \slepc to plot the computed approximations of the eigenvalues at the end of the process. See Figure \ref{fig:plot} (right) for an example.
+The computed solution (eigenvalues and eigenvectors) can be viewed in different ways, exploiting the flexibility of \ident{PetscViewer}s. The API functions for this are \ident{EPSValuesView} and \ident{EPSVectorsView}. We next illustrate their usage via the command line.
+
+The command-line option \Verb!-eps_view_values! shows the computed eigenvalues on the standard output after \ident{EPSSolve}. It admits an argument to specify \ident{PetscViewer} options, for instance the following will create a Matlab command file \texttt{myeigenvalues.m} to load the eigenvalues in Matlab:
+\begin{Verbatim}[fontsize=\footnotesize,numbers=none]
+   $ ./ex1 -n 120 -eps_nev 8 -eps_view_values :myeigenvalues.m:ascii_matlab
+\end{Verbatim}
+
+\begin{Verbatim}[fontsize=\footnotesize,numbers=none]
+    Lambda_EPS_0xb430f0_0 = [
+    3.9993259306070224e+00
+    3.9973041767976509e+00
+    3.9939361013742269e+00
+    3.9892239746533216e+00
+    3.9831709729353331e+00
+    3.9757811763634532e+00
+    3.9670595661733632e+00
+    3.9570120213355646e+00
+    ];
+\end{Verbatim}
+
+One particular instance of this option is \Verb!-eps_view_values draw!, that will plot the computed approximations of the eigenvalues on an X window. See Figure \ref{fig:plot} (right) for an example.
+
+Similarly, eigenvectors may be viewed with \Verb!-eps_view_vectors!, either in text form, in Matlab format, in binary format, or as a draw. All eigenvectors are viewed, one after the other. As an example, the next line will dump eigenvectors to the binary file \texttt{evec.bin}:
+\begin{Verbatim}[fontsize=\footnotesize,numbers=none]
+   $ ./ex1 -n 120 -eps_nev 8 -eps_view_vectors binary:evec.bin
+\end{Verbatim}
+
+Two more related functions are available: \ident{EPSErrorView} and \ident{EPSReasonView}. These will show computed errors and the converged reason (plus number of iterations), respectively. Again, we illustrate its use via the command line. The option \Verb!-eps_error_relative! will show eigenvalues whose relative error are below the tolerance. The different types of errors have their corresponding options, see Table \ref{tab:errors}. A more detailed output can be obtained as follows:
+\begin{Verbatim}[fontsize=\footnotesize,numbers=none]
+   $ ./ex1 -n 120 -eps_nev 8 -eps_error_relative ::ascii_info_detail
+      ---------------------- --------------------
+                 k             ||Ax-kx||/||kx||
+      ---------------------- --------------------
+             3.999326            1.26221e-09
+             3.997304            3.82982e-10
+             3.993936            2.76971e-09
+             3.989224            4.94104e-10
+             3.983171            6.19307e-10
+             3.975781             5.9628e-10
+             3.967060            2.32347e-09
+             3.957012            6.12436e-09
+      ---------------------- --------------------
+\end{Verbatim}
+
+Finally, the option for showing the converged reason is:
+\begin{Verbatim}[fontsize=\footnotesize,numbers=none]
+   $ ./ex1 -n 120 -eps_nev 8 -eps_converged_reason
+      Linear eigensolve converged (8 eigenpairs) due to CONVERGED_TOL; iterations 14
+\end{Verbatim}
 
 %---------------------------------------------------
 \section{Advanced Usage}

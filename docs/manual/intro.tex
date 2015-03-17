@@ -286,7 +286,7 @@ In order to prepare a prefix-based installation of \slepc that uses a prefix-bas
 	$ make install
 	$ export SLEPC_DIR=/opt/slepc-3.5.0-linux-gnu-c-debug
 	\end{Verbatim}
-Note that it is important to unset the value of \ident{PETSC\_ARCH} before \slepc's configure. \slepc will use a temporary arch name during the build. Although it is not a common case, it is also possible to configure \slepc without prefix, in which case the \ident{PETSC\_ARCH} variable is again necessary (must be set to the value reported by \slepc's configure).
+Note that it is important to unset the value of \ident{PETSC\_ARCH} before \slepc's configure. \slepc will use a temporary arch name during the build (this temporary arch is named \texttt{installed-\$PETSC\_ARCH}, where \texttt{\$PETSC\_ARCH} is the one used to configure the installed PETSc version). Although it is not a common case, it is also possible to configure \slepc without prefix, in which case the \ident{PETSC\_ARCH} variable must still be empty and the arch directory \texttt{installed-\$PETSC\_ARCH} is picked automatically (it is hardwired in file \texttt{\$SLEPC\_DIR/lib/slepc-conf/slepcvariables}).
 
 %\subsection{Building Python Interfaces}
 %\label{sec:py-inst}

@@ -11,7 +11,7 @@
    References:
 
        [1] "Arnoldi Methods in SLEPc", SLEPc Technical Report STR-4,
-           available at http://www.grycap.upv.es/slepc.
+           available at http://slepc.upv.es.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -329,14 +329,14 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_Arnoldi"
-PetscErrorCode EPSSetFromOptions_Arnoldi(EPS eps)
+PetscErrorCode EPSSetFromOptions_Arnoldi(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS Arnoldi Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS Arnoldi Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_arnoldi_delayed","Arnoldi with delayed reorthogonalization","EPSArnoldiSetDelayed",arnoldi->delayed,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = EPSArnoldiSetDelayed(eps,val);CHKERRQ(ierr);
