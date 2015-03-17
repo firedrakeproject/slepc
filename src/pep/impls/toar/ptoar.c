@@ -1072,10 +1072,12 @@ static PetscErrorCode PEPTOARSetLocking_TOAR(PEP pep,PetscBool lock)
 .  -pep_toar_locking - Sets the locking flag
 
    Notes:
-   The default is to lock converged eigenpairs when the method restarts.
-   This behaviour can be changed so that all directions are kept in the
-   working subspace even if already converged to working accuracy (the
-   non-locking variant).
+   The default is to keep all directions in the working subspace even if
+   already converged to working accuracy (the non-locking variant).
+   This behaviour can be changed so that converged eigenpairs are locked
+   when the method restarts.
+
+   Note that the default behaviour is the opposite to Krylov solvers in EPS.
 
    Level: advanced
 
@@ -1145,7 +1147,7 @@ PetscErrorCode PEPSetFromOptions_TOAR(PetscOptions *PetscOptionsObject,PEP pep)
   if (flg) {
     ierr = PEPTOARSetRestart(pep,keep);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsBool("-pep_toar_locking","Choose between locking and non-locking variants","PEPTOARSetLocking",PETSC_TRUE,&lock,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-pep_toar_locking","Choose between locking and non-locking variants","PEPTOARSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PEPTOARSetLocking(pep,lock);CHKERRQ(ierr);
   }
@@ -1195,7 +1197,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
   pep->data = (void*)ctx;
-  ctx->lock = PETSC_TRUE;
+  ctx->lock = PETSC_FALSE;
 
   pep->ops->solve          = PEPSolve_TOAR;
   pep->ops->setup          = PEPSetUp_TOAR;
