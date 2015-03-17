@@ -212,15 +212,17 @@ log.write('SLEPc version: '+slepc.lversion)
 
 # Clean previous configuration if needed
 if archdirexisted:
-  try:
-    f = open(os.path.join(confdir,'slepcvariables'),'r')
-    searchlines = f.readlines()
-    f.close()
-    if any(pkg.packagename.upper() in ''.join(searchlines) for pkg in externalpackages) and not any(pkg.requested for pkg in externalpackages):
-      log.Print('\nWARNING: forcing --with-clean=1 because previous configuration had external packages')
-      slepc.clean = True
-  except: pass
+  if not slepc.clean:
+    try:
+      f = open(os.path.join(confdir,'slepcvariables'),'r')
+      searchlines = f.readlines()
+      f.close()
+      if any(pkg.packagename.upper() in ''.join(searchlines) for pkg in externalpackages) and not any(pkg.requested for pkg in externalpackages):
+        log.Print('\nWARNING: forcing --with-clean=1 because previous configuration had external packages')
+        slepc.clean = True
+    except: pass
   if slepc.clean:
+    log.Print('\nCleaning arch dir '+archdir+'...')
     try:
       for root, dirs, files in os.walk(archdir,topdown=False):
         for name in files:
