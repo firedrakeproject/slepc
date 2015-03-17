@@ -45,7 +45,7 @@ class Sowing(package.Package):
       try:
         os.mkdir(externdir)
       except:
-        sys.exit('ERROR: cannot create directory ' + externdir)
+        self.log.Exit('ERROR: cannot create directory ' + externdir)
 
     # Check if source is already available
     builddir = os.path.join(externdir,'pkg-sowing')
@@ -59,7 +59,7 @@ class Sowing(package.Package):
         result,output = commands.getstatusoutput('cd '+externdir+'&& git clone '+url)
         self.log.write(output)
       except RuntimeError, e:
-        raise RuntimeError('Error cloning '+url+': '+str(e))
+        self.log.Exit('Error cloning '+url+': '+str(e))
 
     # Configure, build and install package
     result,output = commands.getstatusoutput('cd '+builddir+'&& ./configure --prefix='+archdir+'&&'+make+'&&'+make+' install')
