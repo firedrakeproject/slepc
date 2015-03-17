@@ -85,6 +85,28 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPJDPurgeDuplicates"
+/*
+   Check for multiple eigenvalues.
+*/
+static PetscErrorCode PEPJDPurgeDuplicates(PEP pep)
+{
+  PEP_JD   *pjd = (PEP_JD*)pep->data;
+  PetscInt i,k;
+
+  PetscFunctionBegin;
+  k = pep->nconv;  /* TODO: should have a while loop here */
+  for (i=0;i<pep->nconv;i++) {
+    if (SlepcAbsEigenvalue(pep->eigr[i]-pep->eigr[k],pep->eigi[i]-pep->eigi[k])<pjd->mtol) {
+      pep->eigr[k] = PETSC_INFINITY;
+      pep->eigi[k] = PETSC_INFINITY;
+      break;
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPJDDiffMatMult"
 /*
    Multiplication of derivative of P, i.e.
@@ -178,6 +200,8 @@ PetscErrorCode PEPSolve_JD(PEP pep)
     ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
     ierr = DSSolve(pep->ds,pep->eigr+pep->nconv,pep->eigi+pep->nconv);CHKERRQ(ierr);
     ierr = DSSort(pep->ds,pep->eigr+pep->nconv,pep->eigi+pep->nconv,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = PEPJDPurgeDuplicates(pep);CHKERRQ(ierr);
+    ierr = DSSort(pep->ds,pep->eigr+pep->nconv,pep->eigi+pep->nconv,NULL,NULL,NULL);CHKERRQ(ierr);
     theta = pep->eigr[pep->nconv];
 #if !defined(PETSC_USE_COMPLEX)
     if (PetscAbsScalar(pep->eigi[pep->nconv])!=0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"PJD solver not implemented for complex Ritz values in real arithmetic");
@@ -232,6 +256,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       pep->nconv++;
       if (pep->nconv >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
       else nv = minv + pep->nconv;
+      pjd->flglk = PETSC_TRUE;
 
     } else if (nv==pep->ncv-1) {
 
@@ -242,6 +267,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       ierr = BVMultInPlace(pep->V,X,pep->nconv,minv);CHKERRQ(ierr);
       ierr = DSRestoreMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
       nv = minv + pep->nconv;
+      pjd->flgre = PETSC_TRUE;
 
     } else {
 
@@ -256,18 +282,53 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       if (lindep) SETERRQ(PETSC_COMM_SELF,1,"Linearly dependent continuation vector");
       ierr = BVScaleColumn(pep->V,nv,1.0/norm);CHKERRQ(ierr);
       nv++;
-
-      /* Restore preconditioner */
-      ierr = KSPGetPC(ksp,&pjd->pcshell);CHKERRQ(ierr);
-      ierr = KSPSetPC(ksp,pcctx->pc);CHKERRQ(ierr);
+      pjd->flglk = PETSC_FALSE;
+      pjd->flgre = PETSC_FALSE;
     }
+
+    /* Restore preconditioner */
+    ierr = KSPGetPC(ksp,&pjd->pcshell);CHKERRQ(ierr);
+    ierr = KSPSetPC(ksp,pcctx->pc);CHKERRQ(ierr);
 
     ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
   }
 
   ierr = VecDestroy(&pcctx->Bp);CHKERRQ(ierr);
+  ierr = PCDestroy(&pcctx->pc);CHKERRQ(ierr);
   ierr = PetscFree(pcctx);CHKERRQ(ierr);
   ierr = PCDestroy(&pjd->pcshell);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPComputeVectors_JD"
+PetscErrorCode PEPComputeVectors_JD(PEP pep)
+{
+  PetscErrorCode ierr;
+  PetscInt       k;
+  PEP_JD         *pjd = (PEP_JD*)pep->data;
+  Mat            G,X;
+
+  PetscFunctionBegin;
+  ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
+  for (k=0;k<pep->nmat;k++) {
+    ierr = BVSetActiveColumns(pjd->W[k],0,pep->nconv);CHKERRQ(ierr);
+    ierr = BVMatMult(pep->V,pep->A[k],pjd->W[k]);CHKERRQ(ierr);
+    ierr = DSGetMat(pep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
+    ierr = BVMatProject(pjd->W[k],NULL,pep->V,G);CHKERRQ(ierr);
+    ierr = DSRestoreMat(pep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
+  }
+
+  /* Solve projected problem */
+  ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSSolve(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
+  ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+
+  /* Compute Ritz vectors */
+  ierr = DSGetMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = BVMultInPlace(pep->V,X,0,pep->nconv);CHKERRQ(ierr);
+  ierr = DSRestoreMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -324,6 +385,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   pep->ops->reset          = PEPReset_JD;
   pep->ops->destroy        = PEPDestroy_JD;
   pep->ops->view           = PEPView_JD;
+  pep->ops->computevectors = PEPComputeVectors_JD;
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetRestart_C",PEPJDSetRestart_JD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetRestart_C",PEPJDGetRestart_JD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetTolerances_C",PEPJDSetTolerances_JD);CHKERRQ(ierr);
