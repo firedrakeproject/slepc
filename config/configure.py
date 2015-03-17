@@ -337,7 +337,7 @@ if slepc.isrepo and hasattr(petsc,'fc'):
     import generatefortranstubs
     generatefortranstubs.main(slepc.dir,bfort,os.getcwd(),0)
     generatefortranstubs.processf90interfaces(slepc.dir,0)
-  except AttributeError:
+  except:
     log.Exit('ERROR: Try configuring with --download-sowing or use a git version of PETSc')
 
 if bfort != petsc.bfort:

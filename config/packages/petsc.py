@@ -77,18 +77,19 @@ class PETSc(package.Package):
 
   def LoadConf(self):
     if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']:
-      self.isinstall = 0
+      self.isinstall = False
       self.arch = os.environ['PETSC_ARCH']
       petscvariables = os.path.join(self.dir,self.arch,'lib','petsc-conf','petscvariables')
       petscconf_h = os.path.join(self.dir,self.arch,'include','petscconf.h')
     else:
-      self.isinstall = 1
+      self.isinstall = True
       petscvariables = os.path.join(self.dir,'lib','petsc-conf','petscvariables')
       petscconf_h = os.path.join(self.dir,'include','petscconf.h')
 
     self.build_using_cmake = 0
     self.make_is_gnumake = 0
     self.language = 'c'
+    self.bfort = 'nobfortinpetsc'
     try:
       f = open(petscvariables)
       for l in f.readlines():
