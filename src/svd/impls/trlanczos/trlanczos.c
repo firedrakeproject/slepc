@@ -195,16 +195,22 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
     ierr = SVDMatMult(svd,PETSC_TRUE,ui1,vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U,i-1,&ui1);CHKERRQ(ierr);
-    ierr = BVNormColumn(U,i-1,NORM_2,&a);CHKERRQ(ierr);
+    ierr = BVNormColumnBegin(U,i-1,NORM_2,&a);CHKERRQ(ierr);
     if (refine == BV_ORTHOG_REFINE_IFNEEDED) {
       ierr = BVSetActiveColumns(V,0,i+1);CHKERRQ(ierr);
       ierr = BVGetColumn(V,i,&vi);CHKERRQ(ierr);
-      ierr = BVDotVec(V,vi,work);CHKERRQ(ierr);
+      ierr = BVDotVecBegin(V,vi,work);CHKERRQ(ierr);
+    } else {
+      ierr = BVSetActiveColumns(V,0,i);CHKERRQ(ierr);
+      ierr = BVDotColumnBegin(V,i,work);CHKERRQ(ierr);
+    }
+    ierr = BVNormColumnEnd(U,i-1,NORM_2,&a);CHKERRQ(ierr);
+    if (refine == BV_ORTHOG_REFINE_IFNEEDED) {
+      ierr = BVDotVecEnd(V,vi,work);CHKERRQ(ierr);
       ierr = BVRestoreColumn(V,i,&vi);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(V,0,i);CHKERRQ(ierr);
     } else {
-      ierr = BVSetActiveColumns(V,0,i);CHKERRQ(ierr);
-      ierr = BVDotColumn(V,i,work);CHKERRQ(ierr);
+      ierr = BVDotColumnEnd(V,i,work);CHKERRQ(ierr);
     }
 
     ierr = BVScaleColumn(U,i-1,1.0/a);CHKERRQ(ierr);
@@ -232,15 +238,21 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   ierr = BVRestoreColumn(V,n,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,n-1,&ui1);CHKERRQ(ierr);
 
-  ierr = BVNormColumn(svd->U,n-1,NORM_2,&a);CHKERRQ(ierr);
+  ierr = BVNormColumnBegin(svd->U,n-1,NORM_2,&a);CHKERRQ(ierr);
   if (refine == BV_ORTHOG_REFINE_IFNEEDED) {
     ierr = BVSetActiveColumns(V,0,n+1);CHKERRQ(ierr);
     ierr = BVGetColumn(V,n,&vi);CHKERRQ(ierr);
-    ierr = BVDotVec(V,vi,work);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(V,n,&vi);CHKERRQ(ierr);
+    ierr = BVDotVecBegin(V,vi,work);CHKERRQ(ierr);
   } else {
     ierr = BVSetActiveColumns(V,0,n);CHKERRQ(ierr);
-    ierr = BVDotColumn(V,n,work);CHKERRQ(ierr);
+    ierr = BVDotColumnBegin(V,n,work);CHKERRQ(ierr);
+  }
+  ierr = BVNormColumnEnd(svd->U,n-1,NORM_2,&a);CHKERRQ(ierr);
+  if (refine == BV_ORTHOG_REFINE_IFNEEDED) {
+    ierr = BVDotVecEnd(V,vi,work);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,n,&vi);CHKERRQ(ierr);
+  } else {
+    ierr = BVDotColumnEnd(V,n,work);CHKERRQ(ierr);
   }
 
   ierr = BVScaleColumn(U,n-1,1.0/a);CHKERRQ(ierr);
