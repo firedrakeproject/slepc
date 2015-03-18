@@ -122,6 +122,8 @@ PETSC_EXTERN PetscErrorCode BVDotVec(BV,Vec,PetscScalar*);
 PETSC_EXTERN PetscErrorCode BVDotVecBegin(BV,Vec,PetscScalar*);
 PETSC_EXTERN PetscErrorCode BVDotVecEnd(BV,Vec,PetscScalar*);
 PETSC_EXTERN PetscErrorCode BVDotColumn(BV,PetscInt,PetscScalar*);
+PETSC_EXTERN PetscErrorCode BVDotColumnBegin(BV,PetscInt,PetscScalar*);
+PETSC_EXTERN PetscErrorCode BVDotColumnEnd(BV,PetscInt,PetscScalar*);
 PETSC_EXTERN PetscErrorCode BVScale(BV,PetscScalar);
 PETSC_EXTERN PetscErrorCode BVScaleColumn(BV,PetscInt,PetscScalar);
 PETSC_EXTERN PetscErrorCode BVNorm(BV,NormType,PetscReal*);

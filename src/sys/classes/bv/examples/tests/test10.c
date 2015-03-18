@@ -37,6 +37,7 @@ int main(int argc,char **argv)
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,"-k",&k,NULL);CHKERRQ(ierr);
+  if (k<3) SETERRQ(PETSC_COMM_SELF,1,"Should specify at least k=3 columns");
   ierr = PetscPrintf(PETSC_COMM_WORLD,"BV split ops (%D columns of dimension %D).\n",k,n);CHKERRQ(ierr);
 
   /* Create template vector */
@@ -67,23 +68,26 @@ int main(int argc,char **argv)
   }
 
   /* Use regular operations */
-  ierr = VecCreateSeq(PETSC_COMM_SELF,k+1,&z);CHKERRQ(ierr);
+  ierr = VecCreateSeq(PETSC_COMM_SELF,k+3,&z);CHKERRQ(ierr);
   ierr = VecGetArray(z,&zarray);CHKERRQ(ierr);
   ierr = BVGetColumn(X,0,&w);CHKERRQ(ierr);
   ierr = VecDot(w,v,zarray);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,0,&w);CHKERRQ(ierr);
   ierr = BVDotVec(X,v,zarray+1);CHKERRQ(ierr);
+  ierr = BVDotColumn(X,2,zarray+1+k);CHKERRQ(ierr);
   ierr = VecRestoreArray(z,&zarray);CHKERRQ(ierr);
 
   /* Use split operations */
-  ierr = VecCreateSeq(PETSC_COMM_SELF,k+1,&zsplit);CHKERRQ(ierr);
+  ierr = VecCreateSeq(PETSC_COMM_SELF,k+3,&zsplit);CHKERRQ(ierr);
   ierr = VecGetArray(zsplit,&zarray);CHKERRQ(ierr);
   ierr = BVGetColumn(X,0,&w);CHKERRQ(ierr);
   ierr = VecDotBegin(w,v,zarray);CHKERRQ(ierr);
   ierr = BVDotVecBegin(X,v,zarray+1);CHKERRQ(ierr);
+  ierr = BVDotColumnBegin(X,2,zarray+1+k);CHKERRQ(ierr);
   ierr = VecDotEnd(w,v,zarray);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,0,&w);CHKERRQ(ierr);
   ierr = BVDotVecEnd(X,v,zarray+1);CHKERRQ(ierr);
+  ierr = BVDotColumnEnd(X,2,zarray+1+k);CHKERRQ(ierr);
   ierr = VecRestoreArray(zsplit,&zarray);CHKERRQ(ierr);
 
   /* Show difference */

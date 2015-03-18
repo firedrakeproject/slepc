@@ -214,13 +214,13 @@ PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
   PetscValidType(y,2);
   PetscCheckSameTypeAndComm(X,1,y,2);
 
+  ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
+  if (X->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, y %D",X->n,n);
+
   if (X->ops->dotvec_begin) {
     ierr = (*X->ops->dotvec_begin)(X,y,m);CHKERRQ(ierr);
   } else {
-    ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
-    if (X->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, y %D",X->n,n);
     nv = X->k-X->l;
-  
     ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
     ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
     if (sr->state != STATE_BEGIN) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
@@ -231,7 +231,6 @@ PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
       sr->reducetype[sr->numopsbegin+i] = REDUCE_SUM;
       sr->invecs[sr->numopsbegin+i]     = (void*)X;
     }
-  
     ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
     ierr = (*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin);CHKERRQ(ierr);
     sr->numopsbegin += nv;
@@ -282,9 +281,7 @@ PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
     if (sr->reducetype[sr->numopsend] != REDUCE_SUM) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Wrong type of reduction");
     for (i=0;i<nv;i++) m[i] = sr->gvalues[sr->numopsend++];
 
-    /*
-       We are finished getting all the results so reset to no outstanding requests
-    */
+    /* Finished getting all the results so reset to no outstanding requests */
     if (sr->numopsend == sr->numopsbegin) {
       sr->state       = STATE_BEGIN;
       sr->numopsend   = 0;
@@ -344,6 +341,129 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *m)
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
   X->k = ksave;
   ierr = PetscLogEventEnd(BV_Dot,X,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVDotColumnBegin"
+/*@
+   BVDotColumnBegin - Starts a split phase dot product computation.
+
+   Input Parameters:
++  X - basis vectors
+-  j - the column index
+-  m - an array where the result will go (can be NULL)
+
+   Note:
+   Each call to BVDotColumnBegin() should be paired with a call to BVDotColumnEnd().
+
+   Level: advanced
+
+.seealso: BVDotColumnEnd(), BVDotColumn()
+@*/
+PetscErrorCode BVDotColumnBegin(BV X,PetscInt j,PetscScalar *m)
+{
+  PetscErrorCode      ierr;
+  PetscInt            i,nv,ksave;
+  PetscSplitReduction *sr;
+  MPI_Comm            comm;
+  Vec                 y;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(X,j,2);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
+  ksave = X->k;
+  X->k = j;
+  ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
+
+  if (X->ops->dotvec_begin) {
+    ierr = (*X->ops->dotvec_begin)(X,y,m);CHKERRQ(ierr);
+  } else {
+    nv = X->k-X->l;
+    ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    if (sr->state != STATE_BEGIN) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
+    for (i=0;i<nv;i++) {
+      if (sr->numopsbegin+i >= sr->maxops) {
+        ierr = PetscSplitReductionExtend(sr);CHKERRQ(ierr);
+      }
+      sr->reducetype[sr->numopsbegin+i] = REDUCE_SUM;
+      sr->invecs[sr->numopsbegin+i]     = (void*)X;
+    }
+    ierr = PetscLogEventBegin(BV_Dot,X,0,0,0);CHKERRQ(ierr);
+    ierr = (*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin);CHKERRQ(ierr);
+    sr->numopsbegin += nv;
+    ierr = PetscLogEventEnd(BV_Dot,X,0,0,0);CHKERRQ(ierr);
+  }
+  ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
+  X->k = ksave;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVDotColumnEnd"
+/*@
+   BVDotColumnEnd - Ends a split phase dot product computation.
+
+   Input Parameters:
++  X - basis vectors
+-  j - the column index
+-  m - an array where the result will go
+
+   Note:
+   Each call to BVDotColumnBegin() should be paired with a call to BVDotColumnEnd().
+
+   Level: advanced
+
+.seealso: BVDotColumnBegin(), BVDotColumn()
+@*/
+PetscErrorCode BVDotColumnEnd(BV X,PetscInt j,PetscScalar *m)
+{
+  PetscErrorCode      ierr;
+  PetscInt            i,nv,ksave;
+  PetscSplitReduction *sr;
+  MPI_Comm            comm;
+  Vec                 y;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(X,j,2);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
+  ksave = X->k;
+  X->k = j;
+
+  if (X->ops->dotvec_end) {
+    ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
+    ierr = (*X->ops->dotvec_end)(X,y,m);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
+  } else {
+    nv = X->k-X->l;
+    ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    ierr = PetscSplitReductionEnd(sr);CHKERRQ(ierr);
+
+    if (sr->numopsend >= sr->numopsbegin) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times than VecxxxBegin()");
+    if ((void*)X != sr->invecs[sr->numopsend]) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called BVxxxEnd() in a different order or with a different BV than BVxxxBegin()");
+    if (sr->reducetype[sr->numopsend] != REDUCE_SUM) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Wrong type of reduction");
+    for (i=0;i<nv;i++) m[i] = sr->gvalues[sr->numopsend++];
+
+    /* Finished getting all the results so reset to no outstanding requests */
+    if (sr->numopsend == sr->numopsbegin) {
+      sr->state       = STATE_BEGIN;
+      sr->numopsend   = 0;
+      sr->numopsbegin = 0;
+    }
+  }
+  X->k = ksave;
   PetscFunctionReturn(0);
 }
 
