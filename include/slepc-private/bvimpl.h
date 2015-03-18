@@ -45,6 +45,9 @@ struct _BVOps {
   PetscErrorCode (*dotvec_end)(BV,Vec,PetscScalar*);
   PetscErrorCode (*scale)(BV,PetscInt,PetscScalar);
   PetscErrorCode (*norm)(BV,PetscInt,NormType,PetscReal*);
+  PetscErrorCode (*norm_local)(BV,PetscInt,NormType,PetscReal*);
+  PetscErrorCode (*norm_begin)(BV,PetscInt,NormType,PetscReal*);
+  PetscErrorCode (*norm_end)(BV,PetscInt,NormType,PetscReal*);
   PetscErrorCode (*orthogonalize)(BV,Mat);
   PetscErrorCode (*matmult)(BV,Mat,BV);
   PetscErrorCode (*copy)(BV,BV);

@@ -269,6 +269,44 @@ PetscErrorCode BVNorm_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVNorm_Begin_Vecs"
+PetscErrorCode BVNorm_Begin_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *ctx = (BV_VECS*)bv->data;
+
+  PetscFunctionBegin;
+  if (j<0) {
+    switch (type) {
+    default:
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
+    }
+  } else {
+    ierr = VecNormBegin(ctx->V[bv->nc+j],type,val);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNorm_End_Vecs"
+PetscErrorCode BVNorm_End_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *ctx = (BV_VECS*)bv->data;
+
+  PetscFunctionBegin;
+  if (j<0) {
+    switch (type) {
+    default:
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
+    }
+  } else {
+    ierr = VecNormEnd(ctx->V[bv->nc+j],type,val);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVMatMult_Vecs"
 PetscErrorCode BVMatMult_Vecs(BV V,Mat A,BV W)
 {
@@ -452,6 +490,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->dotvec_end       = BVDotVec_End_Vecs;
   bv->ops->scale            = BVScale_Vecs;
   bv->ops->norm             = BVNorm_Vecs;
+  bv->ops->norm_begin       = BVNorm_Begin_Vecs;
+  bv->ops->norm_end         = BVNorm_End_Vecs;
   bv->ops->matmult          = BVMatMult_Vecs;
   bv->ops->copy             = BVCopy_Vecs;
   bv->ops->resize           = BVResize_Vecs;
