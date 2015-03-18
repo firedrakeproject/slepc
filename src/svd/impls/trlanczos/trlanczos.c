@@ -67,11 +67,10 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDOneSideTRLanczosMGS"
-static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,BV U,PetscInt nconv,PetscInt l,PetscInt n)
+static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,BV U,PetscInt nconv,PetscInt l,PetscInt n,PetscScalar* work)
 {
   PetscErrorCode ierr;
   PetscReal      a,b;
-  PetscScalar    gamma;
   PetscInt       i,k=nconv+l;
   Vec            ui,ui1,vi;
 
@@ -82,8 +81,8 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
   ierr = BVRestoreColumn(V,k,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,k,&ui);CHKERRQ(ierr);
   if (l>0) {
-    ierr = BVMultColumn(U,-1.0,1.0,k,&gamma);CHKERRQ(ierr);
-    beta[nconv] = PetscRealPart(gamma);
+    for (i=0;i<l;i++) work[i]=beta[i+nconv];
+    ierr = BVMultColumn(U,-1.0,1.0,k,work);CHKERRQ(ierr);
   }
   ierr = BVNormColumn(U,k,NORM_2,&a);CHKERRQ(ierr);
   ierr = BVScaleColumn(U,k,1.0/a);CHKERRQ(ierr);
@@ -174,7 +173,6 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
 {
   PetscErrorCode     ierr;
   PetscReal          a,b,eta;
-  PetscScalar        gamma;
   PetscInt           i,j,k=nconv+l;
   Vec                ui,ui1,vi;
   BVOrthogRefineType refine;
@@ -186,8 +184,8 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   ierr = BVRestoreColumn(V,k,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,k,&ui);CHKERRQ(ierr);
   if (l>0) {
-    ierr = BVMultColumn(U,-1.0,1.0,k,&gamma);CHKERRQ(ierr);
-    beta[nconv] = PetscRealPart(gamma);
+    for (i=0;i<l;i++) work[i]=beta[i+nconv];
+    ierr = BVMultColumn(U,-1.0,1.0,k,work);CHKERRQ(ierr);
   }
   ierr = BVGetOrthogonalization(V,NULL,&refine,&eta);CHKERRQ(ierr);
 
@@ -273,7 +271,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
   ierr = BVGetOrthogonalization(svd->V,&orthog,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld,&w);CHKERRQ(ierr);
-  if (lanczos->oneside && orthog == BV_ORTHOG_CGS) {
+  if (lanczos->oneside) {
     ierr = PetscMalloc1(svd->ncv+1,&swork);CHKERRQ(ierr);
   }
 
@@ -296,7 +294,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     beta = alpha + ld;
     if (lanczos->oneside) {
       if (orthog == BV_ORTHOG_MGS) {
-        ierr = SVDOneSideTRLanczosMGS(svd,alpha,beta,svd->V,svd->U,svd->nconv,l,nv);CHKERRQ(ierr);
+        ierr = SVDOneSideTRLanczosMGS(svd,alpha,beta,svd->V,svd->U,svd->nconv,l,nv,swork);CHKERRQ(ierr);
       } else {
         ierr = SVDOneSideTRLanczosCGS(svd,alpha,beta,svd->V,svd->U,svd->nconv,l,nv,swork);CHKERRQ(ierr);
       }
