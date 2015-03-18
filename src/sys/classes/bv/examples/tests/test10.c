@@ -28,7 +28,7 @@ static char help[] = "Test split reductions in BV.\n\n";
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
-  Vec            t,v,w,z,zsplit;
+  Vec            t,v,w,y,z,zsplit;
   BV             X;
   PetscInt       i,j,n=10,k=5;
   PetscScalar    *zarray;
@@ -68,26 +68,40 @@ int main(int argc,char **argv)
   }
 
   /* Use regular operations */
-  ierr = VecCreateSeq(PETSC_COMM_SELF,k+3,&z);CHKERRQ(ierr);
+  ierr = VecCreateSeq(PETSC_COMM_SELF,k+5,&z);CHKERRQ(ierr);
   ierr = VecGetArray(z,&zarray);CHKERRQ(ierr);
   ierr = BVGetColumn(X,0,&w);CHKERRQ(ierr);
   ierr = VecDot(w,v,zarray);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,0,&w);CHKERRQ(ierr);
   ierr = BVDotVec(X,v,zarray+1);CHKERRQ(ierr);
   ierr = BVDotColumn(X,2,zarray+1+k);CHKERRQ(ierr);
+  ierr = BVGetColumn(X,1,&y);CHKERRQ(ierr);
+  ierr = VecNorm(y,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(X,1,&y);CHKERRQ(ierr);
+  zarray[k+3] = nrm;
+  ierr = BVNormVec(X,v,NORM_2,&nrm);CHKERRQ(ierr);
+  zarray[k+4] = nrm;
   ierr = VecRestoreArray(z,&zarray);CHKERRQ(ierr);
 
   /* Use split operations */
-  ierr = VecCreateSeq(PETSC_COMM_SELF,k+3,&zsplit);CHKERRQ(ierr);
+  ierr = VecCreateSeq(PETSC_COMM_SELF,k+5,&zsplit);CHKERRQ(ierr);
   ierr = VecGetArray(zsplit,&zarray);CHKERRQ(ierr);
   ierr = BVGetColumn(X,0,&w);CHKERRQ(ierr);
   ierr = VecDotBegin(w,v,zarray);CHKERRQ(ierr);
   ierr = BVDotVecBegin(X,v,zarray+1);CHKERRQ(ierr);
   ierr = BVDotColumnBegin(X,2,zarray+1+k);CHKERRQ(ierr);
+  ierr = BVGetColumn(X,1,&y);CHKERRQ(ierr);
+  ierr = VecNormBegin(y,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = BVNormVecBegin(X,v,NORM_2,&nrm);CHKERRQ(ierr);
   ierr = VecDotEnd(w,v,zarray);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,0,&w);CHKERRQ(ierr);
   ierr = BVDotVecEnd(X,v,zarray+1);CHKERRQ(ierr);
   ierr = BVDotColumnEnd(X,2,zarray+1+k);CHKERRQ(ierr);
+  ierr = VecNormEnd(y,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(X,1,&y);CHKERRQ(ierr);
+  zarray[k+3] = nrm;
+  ierr = BVNormVecEnd(X,v,NORM_2,&nrm);CHKERRQ(ierr);
+  zarray[k+4] = nrm;
   ierr = VecRestoreArray(zsplit,&zarray);CHKERRQ(ierr);
 
   /* Show difference */

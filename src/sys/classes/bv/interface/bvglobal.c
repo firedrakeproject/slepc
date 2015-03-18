@@ -492,6 +492,42 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,Pets
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVNorm_Begin_Private"
+PETSC_STATIC_INLINE PetscErrorCode BVNorm_Begin_Private(BV bv,Vec z,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+  ierr = BV_IPMatMult(bv,z);CHKERRQ(ierr);
+  ierr = VecDotBegin(bv->Bx,z,&p);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNorm_End_Private"
+PETSC_STATIC_INLINE PetscErrorCode BVNorm_End_Private(BV bv,Vec z,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  ierr = VecDotEnd(bv->Bx,z,&p);CHKERRQ(ierr);
+  if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
+    ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
+  if (bv->indef) {
+    if (PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
+    if (PetscRealPart(p)<0.0) *val = -PetscSqrtScalar(-PetscRealPart(p));
+    else *val = PetscSqrtScalar(PetscRealPart(p));
+  } else { 
+    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
+    *val = PetscSqrtScalar(PetscRealPart(p));
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVNorm"
 /*@
    BVNorm - Computes the matrix norm of the BV.
@@ -564,6 +600,7 @@ PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
 PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
+  PetscInt       n;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -572,15 +609,100 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
   PetscValidPointer(val,4);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
+  PetscValidType(v,2);
   PetscCheckSameComm(bv,1,v,2);
 
   ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
+    ierr = VecGetLocalSize(v,&n);CHKERRQ(ierr);
+    if (bv->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension bv %D, v %D",bv->n,n);
     ierr = BVNorm_Private(bv,v,type,val);CHKERRQ(ierr);
   } else {
     ierr = VecNorm(v,type,val);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNormVecBegin"
+/*@
+   BVNormVecBegin - Starts a split phase norm computation.
+
+   Input Parameters:
++  bv   - basis vectors
+.  v    - the vector
+.  type - the norm type
+-  val  - the norm
+
+   Note:
+   Each call to BVNormVecBegin() should be paired with a call to BVNormVecEnd().
+
+   Level: advanced
+
+.seealso: BVNormVecEnd(), BVNormVec()
+@*/
+PetscErrorCode BVNormVecBegin(BV bv,Vec v,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  PetscInt       n;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidHeaderSpecific(v,VEC_CLASSID,2);
+  PetscValidLogicalCollectiveEnum(bv,type,3);
+  PetscValidPointer(val,4);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  PetscValidType(v,2);
+  PetscCheckSameTypeAndComm(bv,1,v,2);
+
+  ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  if (bv->matrix) { /* non-standard inner product */
+    ierr = VecGetLocalSize(v,&n);CHKERRQ(ierr);
+    if (bv->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension bv %D, v %D",bv->n,n);
+    ierr = BVNorm_Begin_Private(bv,v,type,val);CHKERRQ(ierr);
+  } else {
+    ierr = VecNormBegin(v,type,val);CHKERRQ(ierr);
+  }
+  ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNormVecEnd"
+/*@
+   BVNormVecEnd - Ends a split phase norm computation.
+
+   Input Parameters:
++  bv   - basis vectors
+.  v    - the vector
+.  type - the norm type
+-  val  - the norm
+
+   Note:
+   Each call to BVNormVecBegin() should be paired with a call to BVNormVecEnd().
+
+   Level: advanced
+
+.seealso: BVNormVecBegin(), BVNormVec()
+@*/
+PetscErrorCode BVNormVecEnd(BV bv,Vec v,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(bv,type,3);
+  PetscValidPointer(val,4);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+
+  if (bv->matrix) { /* non-standard inner product */
+    ierr = BVNorm_End_Private(bv,v,type,val);CHKERRQ(ierr);
+  } else {
+    ierr = VecNormEnd(v,type,val);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
