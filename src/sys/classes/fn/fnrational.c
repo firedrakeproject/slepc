@@ -1,6 +1,5 @@
 /*
-   Rational function  r(x) = p(x)/q(x), where p(x) is a polynomial of
-   degree na and q(x) is a polynomial of degree nb (can be 0).
+   Rational function  r(x) = p(x)/q(x), where p(x) and q(x) are polynomials
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -24,25 +23,33 @@
 
 #include <slepc-private/fnimpl.h>
 
+typedef struct {
+  PetscScalar *pcoeff;    /* numerator coefficients */
+  PetscInt    np;         /* length of array pcoeff, p(x) has degree np-1 */
+  PetscScalar *qcoeff;    /* denominator coefficients */
+  PetscInt    nq;         /* length of array qcoeff, q(x) has degree nq-1 */
+} FN_RATIONAL;
+
 #undef __FUNCT__
 #define __FUNCT__ "FNEvaluateFunction_Rational"
 PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
 {
+  FN_RATIONAL *ctx = (FN_RATIONAL*)fn->data;
   PetscInt    i;
   PetscScalar p,q;
 
   PetscFunctionBegin;
-  if (!fn->na) p = 1.0;
+  if (!ctx->np) p = 1.0;
   else {
-    p = fn->nu[0];
-    for (i=1;i<fn->na;i++)
-      p = fn->nu[i]+x*p;
+    p = ctx->pcoeff[0];
+    for (i=1;i<ctx->np;i++)
+      p = ctx->pcoeff[i]+x*p;
   }
-  if (!fn->nb) *y = p;
+  if (!ctx->nq) *y = p;
   else {
-    q = fn->delta[0];
-    for (i=1;i<fn->nb;i++)
-      q = fn->delta[i]+x*q;
+    q = ctx->qcoeff[0];
+    for (i=1;i<ctx->nq;i++)
+      q = ctx->qcoeff[i]+x*q;
     *y = p/q;
   }
   PetscFunctionReturn(0);
@@ -52,28 +59,29 @@ PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
 #define __FUNCT__ "FNEvaluateDerivative_Rational"
 PetscErrorCode FNEvaluateDerivative_Rational(FN fn,PetscScalar x,PetscScalar *yp)
 {
+  FN_RATIONAL *ctx = (FN_RATIONAL*)fn->data;
   PetscInt    i;
   PetscScalar p,q,pp,qp;
 
   PetscFunctionBegin;
-  if (!fn->na) {
+  if (!ctx->np) {
     p = 1.0;
     pp = 0.0;
   } else {
-    p = fn->nu[0];
+    p = ctx->pcoeff[0];
     pp = 0.0;
-    for (i=1;i<fn->na;i++) {
+    for (i=1;i<ctx->np;i++) {
       pp = p+x*pp;
-      p = fn->nu[i]+x*p;
+      p = ctx->pcoeff[i]+x*p;
     }
   }
-  if (!fn->nb) *yp = pp;
+  if (!ctx->nq) *yp = pp;
   else {
-    q = fn->delta[0];
+    q = ctx->qcoeff[0];
     qp = 0.0;
-    for (i=1;i<fn->nb;i++) {
+    for (i=1;i<ctx->nq;i++) {
       qp = q+x*qp;
-      q = fn->delta[i]+x*q;
+      q = ctx->qcoeff[i]+x*q;
     }
     *yp = (pp*q-p*qp)/(q*q);
   }
@@ -85,6 +93,7 @@ PetscErrorCode FNEvaluateDerivative_Rational(FN fn,PetscScalar x,PetscScalar *yp
 PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
+  FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
   PetscBool      isascii;
   PetscInt       i;
   char           str[50];
@@ -92,42 +101,42 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    if (!fn->nb) {
-      if (!fn->na) {
+    if (!ctx->nq) {
+      if (!ctx->np) {
         ierr = PetscViewerASCIIPrintf(viewer,"  Constant: 1.0\n");CHKERRQ(ierr);
-      } else if (fn->na==1) {
-        ierr = SlepcSNPrintfScalar(str,50,fn->nu[0],PETSC_FALSE);CHKERRQ(ierr);
+      } else if (ctx->np==1) {
+        ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[0],PETSC_FALSE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"  Constant: %s\n",str);CHKERRQ(ierr);
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"  Polynomial: ");CHKERRQ(ierr);
-        for (i=0;i<fn->na-1;i++) {
-          ierr = SlepcSNPrintfScalar(str,50,fn->nu[i],PETSC_TRUE);CHKERRQ(ierr);
-          ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,fn->na-i-1);CHKERRQ(ierr);
+        for (i=0;i<ctx->np-1;i++) {
+          ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,ctx->np-i-1);CHKERRQ(ierr);
         }
-        ierr = SlepcSNPrintfScalar(str,50,fn->nu[fn->na-1],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[ctx->np-1],PETSC_TRUE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"%s\n",str);CHKERRQ(ierr);
       }
-    } else if (!fn->na) {
+    } else if (!ctx->np) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Inverse polinomial: 1 / (");CHKERRQ(ierr);
-      for (i=0;i<fn->nb-1;i++) {
-        ierr = SlepcSNPrintfScalar(str,50,fn->delta[i],PETSC_TRUE);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,fn->nb-i-1);CHKERRQ(ierr);
+      for (i=0;i<ctx->nq-1;i++) {
+        ierr = SlepcSNPrintfScalar(str,50,ctx->qcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,ctx->nq-i-1);CHKERRQ(ierr);
       }
-      ierr = SlepcSNPrintfScalar(str,50,fn->delta[fn->nb-1],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,50,ctx->qcoeff[ctx->nq-1],PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s)\n",str);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  Rational function: (");CHKERRQ(ierr);
-      for (i=0;i<fn->na-1;i++) {
-        ierr = SlepcSNPrintfScalar(str,50,fn->nu[i],PETSC_TRUE);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,fn->na-i-1);CHKERRQ(ierr);
+      for (i=0;i<ctx->np-1;i++) {
+        ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,ctx->np-i-1);CHKERRQ(ierr);
       }
-        ierr = SlepcSNPrintfScalar(str,50,fn->nu[fn->na-1],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[ctx->np-1],PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s) / (",str);CHKERRQ(ierr);
-      for (i=0;i<fn->nb-1;i++) {
-        ierr = SlepcSNPrintfScalar(str,50,fn->delta[i],PETSC_TRUE);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,fn->nb-i-1);CHKERRQ(ierr);
+      for (i=0;i<ctx->nq-1;i++) {
+        ierr = SlepcSNPrintfScalar(str,50,ctx->qcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,ctx->nq-i-1);CHKERRQ(ierr);
       }
-      ierr = SlepcSNPrintfScalar(str,50,fn->delta[fn->nb-1],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,50,ctx->qcoeff[ctx->nq-1],PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s)\n",str);CHKERRQ(ierr);
     }
   }
@@ -135,13 +144,293 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "FNRationalSetNumerator_Rational"
+static PetscErrorCode FNRationalSetNumerator_Rational(FN fn,PetscInt np,PetscScalar *pcoeff)
+{
+  PetscErrorCode ierr;
+  FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  ctx->np = np;
+  ierr = PetscFree(ctx->pcoeff);CHKERRQ(ierr);
+  if (np) {
+    ierr = PetscMalloc1(np,&ctx->pcoeff);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)fn,np*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<np;i++) ctx->pcoeff[i] = pcoeff[i];
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNRationalSetNumerator"
+/*@
+   FNRationalSetNumerator - Sets the parameters defining the numerator of the
+   rational function.
+
+   Logically Collective on FN
+
+   Input Parameters:
++  fn     - the math function context
+.  np     - number of coefficients
+-  pcoeff - coefficients (array of scalar values)
+
+   Notes:
+   Let the rational function r(x) = p(x)/q(x), where p(x) and q(x) are polynomials.
+   This function provides the coefficients of the numerator p(x).
+   Hence, p(x) is of degree np-1.
+   If np is zero, then the numerator is assumed to be p(x)=1.
+
+   In polynomials, high order coefficients are stored in the first positions
+   of the array, e.g. to represent x^2-3 use {1,0,-3}.
+
+   Level: intermediate
+
+.seealso: FNRationalSetDenominator(), FNRationalGetNumerator()
+@*/
+PetscErrorCode FNRationalSetNumerator(FN fn,PetscInt np,PetscScalar *pcoeff)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  PetscValidLogicalCollectiveInt(fn,np,2);
+  if (np<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument np cannot be negative");
+  if (np) PetscValidPointer(pcoeff,3);
+  ierr = PetscTryMethod(fn,"FNRationalSetNumerator_C",(FN,PetscInt,PetscScalar*),(fn,np,pcoeff));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNRationalGetNumerator_Rational"
+static PetscErrorCode FNRationalGetNumerator_Rational(FN fn,PetscInt *np,PetscScalar *pcoeff[])
+{
+  PetscErrorCode ierr;
+  FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  if (np) *np = ctx->np;
+  if (pcoeff) {
+    if (!ctx->np) *pcoeff = NULL;
+    else {
+      ierr = PetscMalloc1(ctx->np,pcoeff);CHKERRQ(ierr);
+      for (i=0;i<ctx->np;i++) (*pcoeff)[i] = ctx->pcoeff[i];
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNRationalGetNumerator"
+/*@
+   FNRationalGetNumerator - Gets the parameters that define the numerator of the
+   rational function.
+
+   Not Collective
+
+   Input Parameter:
+.  fn     - the math function context
+
+   Output Parameters:
++  np     - number of coefficients
+-  pcoeff - coefficients (array of scalar values, length nq)
+
+   Notes:
+   The values passed by user with FNRationalSetNumerator() are returned (or null
+   pointers otherwise).
+   The pcoeff array should be freed by the user when no longer needed.
+
+   Level: intermediate
+
+.seealso: FNRationalSetNumerator()
+@*/
+PetscErrorCode FNRationalGetNumerator(FN fn,PetscInt *np,PetscScalar *pcoeff[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  ierr = PetscTryMethod(fn,"FNRationalGetNumerator_C",(FN,PetscInt*,PetscScalar**),(fn,np,pcoeff));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNRationalSetDenominator_Rational"
+static PetscErrorCode FNRationalSetDenominator_Rational(FN fn,PetscInt nq,PetscScalar *qcoeff)
+{
+  PetscErrorCode ierr;
+  FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  ctx->nq = nq;
+  ierr = PetscFree(ctx->qcoeff);CHKERRQ(ierr);
+  if (nq) {
+    ierr = PetscMalloc1(nq,&ctx->qcoeff);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)fn,nq*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<nq;i++) ctx->qcoeff[i] = qcoeff[i];
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNRationalSetDenominator"
+/*@
+   FNRationalSetDenominator - Sets the parameters defining the denominator of the
+   rational function.
+
+   Logically Collective on FN
+
+   Input Parameters:
++  fn     - the math function context
+.  nq     - number of coefficients
+-  qcoeff - coefficients (array of scalar values)
+
+   Notes:
+   Let the rational function r(x) = p(x)/q(x), where p(x) and q(x) are polynomials.
+   This function provides the coefficients of the denominator q(x).
+   Hence, q(x) is of degree nq-1.
+   If nq is zero, then the function is assumed to be polynomial, r(x) = p(x).
+
+   In polynomials, high order coefficients are stored in the first positions
+   of the array, e.g. to represent x^2-3 use {1,0,-3}.
+
+   Level: intermediate
+
+.seealso: FNRationalSetNumerator(), FNRationalGetDenominator()
+@*/
+PetscErrorCode FNRationalSetDenominator(FN fn,PetscInt nq,PetscScalar *qcoeff)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  PetscValidLogicalCollectiveInt(fn,nq,2);
+  if (nq<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument nq cannot be negative");
+  if (nq) PetscValidPointer(qcoeff,3);
+  ierr = PetscTryMethod(fn,"FNRationalSetDenominator_C",(FN,PetscInt,PetscScalar*),(fn,nq,qcoeff));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNRationalGetDenominator_Rational"
+static PetscErrorCode FNRationalGetDenominator_Rational(FN fn,PetscInt *nq,PetscScalar *qcoeff[])
+{
+  PetscErrorCode ierr;
+  FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  if (nq) *nq = ctx->nq;
+  if (qcoeff) {
+    if (!ctx->nq) *qcoeff = NULL;
+    else {
+      ierr = PetscMalloc1(ctx->nq,qcoeff);CHKERRQ(ierr);
+      for (i=0;i<ctx->nq;i++) (*qcoeff)[i] = ctx->qcoeff[i];
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNRationalGetDenominator"
+/*@
+   FNRationalGetDenominator - Gets the parameters that define the denominator of the
+   rational function.
+
+   Not Collective
+
+   Input Parameter:
+.  fn     - the math function context
+
+   Output Parameters:
++  nq     - number of coefficients
+-  qcoeff - coefficients (array of scalar values, length nq)
+
+   Notes:
+   The values passed by user with FNRationalSetDenominator() are returned (or null
+   pointers otherwise).
+   The qcoeff array should be freed by the user when no longer needed.
+
+   Level: intermediate
+
+.seealso: FNRationalSetDenominator()
+@*/
+PetscErrorCode FNRationalGetDenominator(FN fn,PetscInt *nq,PetscScalar *qcoeff[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  ierr = PetscTryMethod(fn,"FNRationalGetDenominator_C",(FN,PetscInt*,PetscScalar**),(fn,nq,qcoeff));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNDuplicate_Rational"
+PetscErrorCode FNDuplicate_Rational(FN fn,MPI_Comm comm,FN *newfn)
+{
+  PetscErrorCode ierr;
+  FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data,*ctx2;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  ierr = PetscNewLog(*newfn,&ctx2);CHKERRQ(ierr);
+  (*newfn)->data = (void*)ctx2;
+  ctx2->np = ctx->np;
+  if (ctx->np) {
+    ierr = PetscMalloc1(ctx->np,&ctx2->pcoeff);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)(*newfn),ctx->np*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<ctx->np;i++) ctx2->pcoeff[i] = ctx->pcoeff[i];
+  }
+  ctx2->nq = ctx->nq;
+  if (ctx->nq) {
+    ierr = PetscMalloc1(ctx->nq,&ctx2->qcoeff);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)(*newfn),ctx->nq*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<ctx->nq;i++) ctx2->qcoeff[i] = ctx->qcoeff[i];
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNDestroy_Rational"
+PetscErrorCode FNDestroy_Rational(FN fn)
+{
+  PetscErrorCode ierr;
+  FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(ctx->pcoeff);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->qcoeff);CHKERRQ(ierr);
+  ierr = PetscFree(fn->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetNumerator_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetNumerator_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetDenominator_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetDenominator_C",NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "FNCreate_Rational"
 PETSC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
 {
+  PetscErrorCode ierr;
+  FN_RATIONAL    *ctx;
+
   PetscFunctionBegin;
+  ierr = PetscNewLog(fn,&ctx);CHKERRQ(ierr);
+  fn->data = (void*)ctx;
+
   fn->ops->evaluatefunction   = FNEvaluateFunction_Rational;
   fn->ops->evaluatederivative = FNEvaluateDerivative_Rational;
   fn->ops->view               = FNView_Rational;
+  fn->ops->duplicate          = FNDuplicate_Rational;
+  fn->ops->destroy            = FNDestroy_Rational;
+  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetNumerator_C",FNRationalSetNumerator_Rational);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetNumerator_C",FNRationalGetNumerator_Rational);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetDenominator_C",FNRationalSetDenominator_Rational);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetDenominator_C",FNRationalGetDenominator_Rational);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

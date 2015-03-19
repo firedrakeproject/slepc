@@ -51,16 +51,16 @@ int main(int argc,char **argv)
   ierr = FNCreate(PETSC_COMM_WORLD,&f1);CHKERRQ(ierr);
   ierr = FNSetType(f1,FNRATIONAL);CHKERRQ(ierr);
   coeffs[0] = -1.0; coeffs[1] = 0.0;
-  ierr = FNSetParameters(f1,2,coeffs,0,NULL);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(f1,2,coeffs);CHKERRQ(ierr);
 
   ierr = FNCreate(PETSC_COMM_WORLD,&f2);CHKERRQ(ierr);
   ierr = FNSetType(f2,FNRATIONAL);CHKERRQ(ierr);
   coeffs[0] = 1.0;
-  ierr = FNSetParameters(f2,1,coeffs,0,NULL);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(f2,1,coeffs);CHKERRQ(ierr);
 
   ierr = FNCreate(PETSC_COMM_WORLD,&f3);CHKERRQ(ierr);
   ierr = FNSetType(f3,FNEXP);CHKERRQ(ierr);
-  ierr = FNSetParameters(f3,-tau,1.0);CHKERRQ(ierr);
+  ierr = FNSetScale(f3,-tau,1.0);CHKERRQ(ierr);
 
   funs[0] = f1;
   funs[1] = f2;

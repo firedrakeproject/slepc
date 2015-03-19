@@ -37,17 +37,19 @@ struct _FNOps {
   PetscErrorCode (*evaluatefunctionmat)(FN,Mat,Mat);
   PetscErrorCode (*evaluatefunctionmatsym)(FN,Mat,Mat);
   PetscErrorCode (*view)(FN,PetscViewer);
+  PetscErrorCode (*duplicate)(FN,MPI_Comm,FN*);
+  PetscErrorCode (*destroy)(FN);
 };
 
 struct _p_FN {
   PETSCHEADER(struct _FNOps);
-  PetscInt    na;
-  PetscScalar *nu;     /* first group of parameters */
-  PetscInt    nb;
-  PetscScalar *delta;  /* second group of parameters */
-  PetscScalar alpha;   /* inner scaling (argument) */
-  PetscScalar beta;    /* outer scaling (result) */
-  Mat         W;       /* workspace matrix */
+  /*------------------------- User parameters --------------------------*/
+  PetscScalar        alpha;   /* inner scaling (argument) */
+  PetscScalar        beta;    /* outer scaling (result) */
+
+  /*---------------------- Cached data and workspace -------------------*/
+  Mat                W;       /* workspace matrix */
+  void               *data;
 };
 
 #undef __FUNCT__

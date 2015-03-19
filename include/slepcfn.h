@@ -62,8 +62,6 @@ PETSC_EXTERN PetscErrorCode FNDuplicate(FN,MPI_Comm,FN*);
 
 PETSC_EXTERN PetscErrorCode FNSetScale(FN,PetscScalar,PetscScalar);
 PETSC_EXTERN PetscErrorCode FNGetScale(FN,PetscScalar*,PetscScalar*);
-PETSC_EXTERN PetscErrorCode FNSetParameters(FN,PetscInt,PetscScalar*,PetscInt,PetscScalar*);
-PETSC_EXTERN PetscErrorCode FNGetParameters(FN,PetscInt*,PetscScalar**,PetscInt*,PetscScalar**);
 
 PETSC_EXTERN PetscErrorCode FNEvaluateFunction(FN,PetscScalar,PetscScalar*);
 PETSC_EXTERN PetscErrorCode FNEvaluateDerivative(FN,PetscScalar,PetscScalar*);
@@ -71,5 +69,12 @@ PETSC_EXTERN PetscErrorCode FNEvaluateFunctionMat(FN,Mat,Mat);
 
 PETSC_EXTERN PetscFunctionList FNList;
 PETSC_EXTERN PetscErrorCode FNRegister(const char[],PetscErrorCode(*)(FN));
+
+/* --------- options specific to particular functions -------- */
+
+PETSC_EXTERN PetscErrorCode FNRationalSetNumerator(FN,PetscInt,PetscScalar*);
+PETSC_EXTERN PetscErrorCode FNRationalGetNumerator(FN,PetscInt*,PetscScalar**);
+PETSC_EXTERN PetscErrorCode FNRationalSetDenominator(FN,PetscInt,PetscScalar*);
+PETSC_EXTERN PetscErrorCode FNRationalGetDenominator(FN,PetscInt*,PetscScalar**);
 
 #endif

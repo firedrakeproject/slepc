@@ -125,13 +125,12 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
   *newfn = 0;
   ierr = FNInitializePackage();CHKERRQ(ierr);
   ierr = SlepcHeaderCreate(fn,_p_FN,struct _FNOps,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView);CHKERRQ(ierr);
-  fn->na       = 0;
-  fn->nu       = NULL;
-  fn->nb       = 0;
-  fn->delta    = NULL;
+
   fn->alpha    = 1.0;
   fn->beta     = 1.0;
+
   fn->W        = NULL;
+  fn->data     = NULL;
 
   *newfn = fn;
   PetscFunctionReturn(0);
@@ -358,116 +357,6 @@ PetscErrorCode FNGetScale(FN fn,PetscScalar *alpha,PetscScalar *beta)
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   if (alpha) *alpha = fn->alpha;
   if (beta)  *beta  = fn->beta;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "FNSetParameters"
-/*@
-   FNSetParameters - Sets the parameters that define the matematical function.
-
-   Logically Collective on FN
-
-   Input Parameters:
-+  fn    - the math function context
-.  na    - number of parameters in the first group
-.  nu    - first group of parameters (array of scalar values)
-.  nb    - number of parameters in the second group
--  delta - second group of parameters (array of scalar values)
-
-   Notes:
-   In a rational function r(x) = p(x)/q(x), where p(x) and q(x) are polynomials,
-   the parameters nu and delta represent the coefficients of p(x) and q(x),
-   respectively. Hence, p(x) is of degree na-1 and q(x) of degree nb-1.
-   If nb is zero, then the function is assumed to be polynomial, r(x) = p(x).
-
-   In other functions the parameters have other meanings.
-
-   In polynomials, high order coefficients are stored in the first positions
-   of the array, e.g. to represent x^2-3 use {1,0,-3}.
-
-   Level: intermediate
-
-.seealso: FNGetParameters()
-@*/
-PetscErrorCode FNSetParameters(FN fn,PetscInt na,PetscScalar *nu,PetscInt nb,PetscScalar *delta)
-{
-  PetscErrorCode ierr;
-  PetscInt       i;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  PetscValidLogicalCollectiveInt(fn,na,2);
-  if (na<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument na cannot be negative");
-  if (na) PetscValidPointer(nu,3);
-  PetscValidLogicalCollectiveInt(fn,nb,4);
-  if (nb<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument nb cannot be negative");
-  if (nb) PetscValidPointer(delta,5);
-  fn->na = na;
-  ierr = PetscFree(fn->nu);CHKERRQ(ierr);
-  if (na) {
-    ierr = PetscMalloc1(na,&fn->nu);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)fn,na*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<na;i++) fn->nu[i] = nu[i];
-  }
-  fn->nb = nb;
-  ierr = PetscFree(fn->delta);CHKERRQ(ierr);
-  if (nb) {
-    ierr = PetscMalloc1(nb,&fn->delta);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)fn,nb*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<nb;i++) fn->delta[i] = delta[i];
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "FNGetParameters"
-/*@
-   FNGetParameters - Returns the parameters that define the matematical function.
-
-   Not Collective
-
-   Input Parameter:
-.  fn    - the math function context
-
-   Output Parameters:
-+  na    - number of parameters in the first group
-.  nu    - first group of parameters (array of scalar values, length na)
-.  nb    - number of parameters in the second group
--  delta - second group of parameters (array of scalar values, length nb)
-
-   Notes:
-   The values passed by user with FNSetParameters() are returned (or null
-   pointers otherwise).
-   The nu and delta arrays should be freed by the user when no longer needed.
-
-   Level: intermediate
-
-.seealso: FNSetParameters()
-@*/
-PetscErrorCode FNGetParameters(FN fn,PetscInt *na,PetscScalar *nu[],PetscInt *nb,PetscScalar *delta[])
-{
-  PetscErrorCode ierr;
-  PetscInt       i;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  if (na) *na = fn->na;
-  if (nu) {
-    if (!fn->na) *nu = NULL;
-    else {
-      ierr = PetscMalloc1(fn->na,nu);CHKERRQ(ierr);
-      for (i=0;i<fn->na;i++) (*nu)[i] = fn->nu[i];
-    }
-  }
-  if (nb) *nb = fn->nb;
-  if (delta) {
-    if (!fn->nb) *delta = NULL;
-    else {
-      ierr = PetscMalloc1(fn->nb,delta);CHKERRQ(ierr);
-      for (i=0;i<fn->nb;i++) (*delta)[i] = fn->delta[i];
-    }
-  }
   PetscFunctionReturn(0);
 }
 
@@ -812,8 +701,7 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
 {
   PetscErrorCode ierr;
   FNType         type;
-  PetscInt       na,nb;
-  PetscScalar    alpha,beta,*nu,*delta;
+  PetscScalar    alpha,beta;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
@@ -823,12 +711,11 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
   ierr = FNCreate(comm,newfn);CHKERRQ(ierr);
   ierr = FNGetType(fn,&type);CHKERRQ(ierr);
   ierr = FNSetType(*newfn,type);CHKERRQ(ierr);
-  ierr = FNGetParameters(fn,&na,&nu,&nb,&delta);CHKERRQ(ierr);
-  ierr = FNSetParameters(*newfn,na,nu,nb,delta);CHKERRQ(ierr);
-  ierr = PetscFree(nu);CHKERRQ(ierr); 
-  ierr = PetscFree(delta);CHKERRQ(ierr); 
   ierr = FNGetScale(fn,&alpha,&beta);CHKERRQ(ierr);
   ierr = FNSetScale(*newfn,alpha,beta);CHKERRQ(ierr);
+  if (fn->ops->duplicate) {
+    ierr = (*fn->ops->duplicate)(fn,comm,newfn);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -854,8 +741,7 @@ PetscErrorCode FNDestroy(FN *fn)
   if (!*fn) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*fn,FN_CLASSID,1);
   if (--((PetscObject)(*fn))->refct > 0) { *fn = 0; PetscFunctionReturn(0); }
-  ierr = PetscFree((*fn)->nu);CHKERRQ(ierr);
-  ierr = PetscFree((*fn)->delta);CHKERRQ(ierr);
+  if ((*fn)->ops->destroy) { ierr = (*(*fn)->ops->destroy)(*fn);CHKERRQ(ierr); }
   ierr = MatDestroy(&(*fn)->W);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(fn);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -137,25 +137,31 @@ Exponential             & \texttt{FNEXP}      & $e^x$ \\\hline
 \caption{\label{tab:fn}Mathematical functions available as \ident{FN} objects.}
 \end{table}
 
-The \ident{FN} class provides a few predefined mathematical functions, including rational functions (of which polynomials are a particular case) and exponentials. Objects of this class are instantiated by providing the values of the relevant coefficients. \ident{FN} objects are created with \ident{FNCreate} and it is necessary to select the type of function (rational, exponential, etc.)\ before specifying the parameters with
-	\findex{FNSetParameters}
+The \ident{FN} class provides a few predefined mathematical functions, including rational functions (of which polynomials are a particular case) and exponentials. Objects of this class are instantiated by providing the values of the relevant parameters. \ident{FN} objects are created with \ident{FNCreate} and it is necessary to select the type of function (rational, exponential, etc.)\ with \ident{FNSetType}.
+
+Parameters common to all \ident{FN} types are the scaling factors, which are set with
+	\findex{FNSetScale}
 	\begin{Verbatim}[fontsize=\small]
-     FNSetParameters(FN fn,PetscInt n,PetscScalar *nu,PetscInt m,PetscScalar *delta);
+     FNSetScale(FN fn,PetscScalar alpha,PetscScalar beta);
 	\end{Verbatim}
-Parameters are organized in two groups, $\nu_i,i=1,\ldots,n$ and $\delta_j,j=1,\ldots,m$.
-
-In a rational function, the parameters are the coefficients of the numerator and denominator, respectively,
-\begin{equation}
-r(x)=\frac{p(x)}{q(x)}
-=\frac{\nu_1x^{n-1}+\cdots+\nu_{n-1}x+\nu_{n}}{\delta_1x^{m-1}+\cdots+\delta_{m-1}x+\delta_m}.
-\end{equation}
-If $m=0$ then the function is just a polynomial $p(x)$. If $n=0$ then the function is $1/q(x)$.
-
-In an exponential function, the first parameter in each group is a scaling factor for the exponent and the exponential, respectively,
+where \texttt{alpha} multiplies the argument and \texttt{beta} multiplies the result. With this, the actual function is $\beta\cdot f(\alpha\cdot x)$ for a given function $f(\cdot)$. For instance, an exponential function $f(x)=e^x$ will turn into
 \begin{equation}
 g(x)=\beta e^{\alpha x}.
 \end{equation}
-If $n=0$ or $m=0$ then the corresponding scaling factors are set to 1.
+
+In a rational function there are specific parameters, namely the coefficients of the numerator and denominator,
+\begin{equation}
+r(x)=\frac{p(x)}{q(x)}
+=\frac{\nu_{n-1}x^{n-1}+\cdots+\nu_1x+\nu_0}{\delta_{m-1}x^{m-1}+\cdots+\delta_1x+\delta_0}.
+\end{equation}
+These parameters are specified with
+	\findex{FNRationalSetNumerator}
+	\findex{FNRationalSetDenominator}
+	\begin{Verbatim}[fontsize=\small]
+     FNRationalSetNumerator(FN fn,PetscInt np,PetscScalar *pcoeff);
+     FNRationalSetDenominator(FN fn,PetscInt nq,PetscScalar *qcoeff);
+	\end{Verbatim}
+Here, polynomials are passed as an array with high order coefficients appearing in low indices.
 
 Whenever the solvers need to compute $f(x)$ or $f'(x)$ on a given scalar $x$, the following functions are invoked:
 	\findex{FNEvaluateFunction}\findex{FNEvaluateDerivative}
