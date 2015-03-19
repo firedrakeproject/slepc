@@ -132,7 +132,7 @@ Apart from the main solver classes listed on page \pageref{tab:modules}, \slepc 
 {\small \begin{tabular}{lll}
 Function                & \ident{FNType}      & Expression\\\hline
 Polynomial and rational & \texttt{FNRATIONAL} & $p(x)/q(x)$ \\
-Exponential             & \texttt{FNEXP}      & $\beta_1e^{\alpha_1x}$ \\\hline
+Exponential             & \texttt{FNEXP}      & $e^x$ \\\hline
 \end{tabular} }
 \caption{\label{tab:fn}Mathematical functions available as \ident{FN} objects.}
 \end{table}
@@ -140,20 +140,20 @@ Exponential             & \texttt{FNEXP}      & $\beta_1e^{\alpha_1x}$ \\\hline
 The \ident{FN} class provides a few predefined mathematical functions, including rational functions (of which polynomials are a particular case) and exponentials. Objects of this class are instantiated by providing the values of the relevant coefficients. \ident{FN} objects are created with \ident{FNCreate} and it is necessary to select the type of function (rational, exponential, etc.)\ before specifying the parameters with
 	\findex{FNSetParameters}
 	\begin{Verbatim}[fontsize=\small]
-     FNSetParameters(FN fn,PetscInt n,PetscScalar *alpha,PetscInt m,PetscScalar *beta);
+     FNSetParameters(FN fn,PetscInt n,PetscScalar *nu,PetscInt m,PetscScalar *delta);
 	\end{Verbatim}
-Parameters are organized in two groups, $\alpha_i,i=1,\ldots,n$ and $\beta_j,j=1,\ldots,m$.
+Parameters are organized in two groups, $\nu_i,i=1,\ldots,n$ and $\delta_j,j=1,\ldots,m$.
 
 In a rational function, the parameters are the coefficients of the numerator and denominator, respectively,
 \begin{equation}
 r(x)=\frac{p(x)}{q(x)}
-=\frac{\alpha_1x^{n-1}+\cdots+\alpha_{n-1}x+\alpha_{n}}{\beta_1x^{m-1}+\cdots+\beta_{m-1}x+\beta_{m}}.
+=\frac{\nu_1x^{n-1}+\cdots+\nu_{n-1}x+\nu_{n}}{\delta_1x^{m-1}+\cdots+\delta_{m-1}x+\delta_m}.
 \end{equation}
 If $m=0$ then the function is just a polynomial $p(x)$. If $n=0$ then the function is $1/q(x)$.
 
 In an exponential function, the first parameter in each group is a scaling factor for the exponent and the exponential, respectively,
 \begin{equation}
-g(x)=\beta_1e^{\alpha_1x}.
+g(x)=\beta e^{\alpha x}.
 \end{equation}
 If $n=0$ or $m=0$ then the corresponding scaling factors are set to 1.
 

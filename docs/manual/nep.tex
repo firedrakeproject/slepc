@@ -156,8 +156,7 @@ Instead of implementing callback functions for $T(\lambda)$ and $T'(\lambda)$, a
 
   FNCreate(PETSC_COMM_WORLD,&f3);  /* f3 = exp(-tau*lambda) */
   FNSetType(f3,FNEXP);
-  coeffs[0] = -tau;
-  FNSetParameters(f3,1,coeffs,0,NULL);
+  FNSetScale(f3,-tau,1.0);
 
   mats[0] = A;  funs[0] = f2;
   mats[1] = Id; funs[1] = f1;

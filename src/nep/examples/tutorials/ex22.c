@@ -136,8 +136,7 @@ int main(int argc,char **argv)
 
   ierr = FNCreate(PETSC_COMM_WORLD,&f3);CHKERRQ(ierr);
   ierr = FNSetType(f3,FNEXP);CHKERRQ(ierr);
-  coeffs[0] = -tau;
-  ierr = FNSetParameters(f3,1,coeffs,0,NULL);CHKERRQ(ierr);
+  ierr = FNSetScale(f3,-tau,1.0);CHKERRQ(ierr);
 
   /*
      Set the split operator. Note that A is passed first so that

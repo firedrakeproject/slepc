@@ -51,7 +51,7 @@ MFNCreate( PETSC_COMM_WORLD, &mfn );
 MFNSetOperator( mfn, A );
 MFNGetFN( mfn, &f );
 FNSetType( f, FNEXP );
-FNSetParameters( f, 1, &alpha, 0, NULL );
+FNSetScale( f, alpha, 1.0 );
 MFNSetFromOptions( mfn );
 MFNSolve( mfn, v, y );
 MFNDestroy( &mfn );

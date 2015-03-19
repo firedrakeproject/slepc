@@ -34,15 +34,15 @@ PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionBegin;
   if (!fn->na) p = 1.0;
   else {
-    p = fn->alpha[0];
+    p = fn->nu[0];
     for (i=1;i<fn->na;i++)
-      p = fn->alpha[i]+x*p;
+      p = fn->nu[i]+x*p;
   }
   if (!fn->nb) *y = p;
   else {
-    q = fn->beta[0];
+    q = fn->delta[0];
     for (i=1;i<fn->nb;i++)
-      q = fn->beta[i]+x*q;
+      q = fn->delta[i]+x*q;
     *y = p/q;
   }
   PetscFunctionReturn(0);
@@ -60,20 +60,20 @@ PetscErrorCode FNEvaluateDerivative_Rational(FN fn,PetscScalar x,PetscScalar *yp
     p = 1.0;
     pp = 0.0;
   } else {
-    p = fn->alpha[0];
+    p = fn->nu[0];
     pp = 0.0;
     for (i=1;i<fn->na;i++) {
       pp = p+x*pp;
-      p = fn->alpha[i]+x*p;
+      p = fn->nu[i]+x*p;
     }
   }
   if (!fn->nb) *yp = pp;
   else {
-    q = fn->beta[0];
+    q = fn->delta[0];
     qp = 0.0;
     for (i=1;i<fn->nb;i++) {
       qp = q+x*qp;
-      q = fn->beta[i]+x*q;
+      q = fn->delta[i]+x*q;
     }
     *yp = (pp*q-p*qp)/(q*q);
   }
@@ -96,38 +96,38 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
       if (!fn->na) {
         ierr = PetscViewerASCIIPrintf(viewer,"  Constant: 1.0\n");CHKERRQ(ierr);
       } else if (fn->na==1) {
-        ierr = SlepcSNPrintfScalar(str,50,fn->alpha[0],PETSC_FALSE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->nu[0],PETSC_FALSE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"  Constant: %s\n",str);CHKERRQ(ierr);
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"  Polynomial: ");CHKERRQ(ierr);
         for (i=0;i<fn->na-1;i++) {
-          ierr = SlepcSNPrintfScalar(str,50,fn->alpha[i],PETSC_TRUE);CHKERRQ(ierr);
+          ierr = SlepcSNPrintfScalar(str,50,fn->nu[i],PETSC_TRUE);CHKERRQ(ierr);
           ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,fn->na-i-1);CHKERRQ(ierr);
         }
-        ierr = SlepcSNPrintfScalar(str,50,fn->alpha[fn->na-1],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->nu[fn->na-1],PETSC_TRUE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"%s\n",str);CHKERRQ(ierr);
       }
     } else if (!fn->na) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Inverse polinomial: 1 / (");CHKERRQ(ierr);
       for (i=0;i<fn->nb-1;i++) {
-        ierr = SlepcSNPrintfScalar(str,50,fn->beta[i],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->delta[i],PETSC_TRUE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,fn->nb-i-1);CHKERRQ(ierr);
       }
-      ierr = SlepcSNPrintfScalar(str,50,fn->beta[fn->nb-1],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,50,fn->delta[fn->nb-1],PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s)\n",str);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  Rational function: (");CHKERRQ(ierr);
       for (i=0;i<fn->na-1;i++) {
-        ierr = SlepcSNPrintfScalar(str,50,fn->alpha[i],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->nu[i],PETSC_TRUE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,fn->na-i-1);CHKERRQ(ierr);
       }
-        ierr = SlepcSNPrintfScalar(str,50,fn->alpha[fn->na-1],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->nu[fn->na-1],PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s) / (",str);CHKERRQ(ierr);
       for (i=0;i<fn->nb-1;i++) {
-        ierr = SlepcSNPrintfScalar(str,50,fn->beta[i],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->delta[i],PETSC_TRUE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,fn->nb-i-1);CHKERRQ(ierr);
       }
-      ierr = SlepcSNPrintfScalar(str,50,fn->beta[fn->nb-1],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,50,fn->delta[fn->nb-1],PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s)\n",str);CHKERRQ(ierr);
     }
   }

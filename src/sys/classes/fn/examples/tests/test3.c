@@ -46,7 +46,7 @@ int main(int argc,char **argv)
   /* Create exponential function eta*exp(tau*x) */
   ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
   ierr = FNSetType(fn,FNEXP);CHKERRQ(ierr);
-  ierr = FNSetParameters(fn,1,&tau,1,&eta);CHKERRQ(ierr);
+  ierr = FNSetScale(fn,tau,eta);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);

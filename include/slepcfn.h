@@ -60,6 +60,8 @@ PETSC_EXTERN PetscErrorCode FNView(FN,PetscViewer);
 PETSC_EXTERN PetscErrorCode FNDestroy(FN*);
 PETSC_EXTERN PetscErrorCode FNDuplicate(FN,MPI_Comm,FN*);
 
+PETSC_EXTERN PetscErrorCode FNSetScale(FN,PetscScalar,PetscScalar);
+PETSC_EXTERN PetscErrorCode FNGetScale(FN,PetscScalar*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode FNSetParameters(FN,PetscInt,PetscScalar*,PetscInt,PetscScalar*);
 PETSC_EXTERN PetscErrorCode FNGetParameters(FN,PetscInt*,PetscScalar**,PetscInt*,PetscScalar**);
 

@@ -1,5 +1,5 @@
 /*
-   Exponential function  f(x) = beta*exp(alpha*x).
+   Exponential function  exp(x)
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -28,32 +28,17 @@
 #define __FUNCT__ "FNEvaluateFunction_Exp"
 PetscErrorCode FNEvaluateFunction_Exp(FN fn,PetscScalar x,PetscScalar *y)
 {
-  PetscScalar arg;
-
   PetscFunctionBegin;
-  if (!fn->na) arg = x;
-  else arg = fn->alpha[0]*x;
-  if (!fn->nb) *y = PetscExpScalar(arg);
-  else *y = fn->beta[0]*PetscExpScalar(arg);
+  *y = PetscExpScalar(x);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "FNEvaluateDerivative_Exp"
-PetscErrorCode FNEvaluateDerivative_Exp(FN fn,PetscScalar x,PetscScalar *yp)
+PetscErrorCode FNEvaluateDerivative_Exp(FN fn,PetscScalar x,PetscScalar *y)
 {
-  PetscScalar arg,scal;
-
   PetscFunctionBegin;
-  if (!fn->na) {
-    arg = x;
-    scal = 1.0;
-  } else {
-    arg = fn->alpha[0]*x;
-    scal = fn->alpha[0];
-  }
-  if (fn->nb) scal *= fn->beta[0];
-  *yp = scal*PetscExpScalar(arg);
+  *y = PetscExpScalar(x);
   PetscFunctionReturn(0);
 }
 
@@ -93,7 +78,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp(FN fn,Mat A,Mat B)
   for (k=1;k<=p;k++) c[k] = c[k-1]*(p+1-k)/(k*(2*p+1-k));
 
   /* Scaling */
-  if (fn->na) PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,fn->alpha,As,&inc));
   s = LAPACKlange_("I",&n,&n,As,&ld,rwork);
   if (s>0.5) {
     s = PetscMax(0,(int)(PetscLogReal(s)/PetscLogReal(2.0))+2);
@@ -147,7 +131,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp(FN fn,Mat A,Mat B)
   }
   if (P!=Ba) { ierr = PetscMemcpy(Ba,P,ld2*sizeof(PetscScalar));CHKERRQ(ierr); }
 
-  if (fn->nb) PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,fn->beta,Ba,&inc));
   ierr = PetscFree6(Q,W,As,A2,rwork,ipiv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
@@ -166,20 +149,20 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    if (!fn->nb) {
-      if (!fn->na) {
+    if (fn->beta==(PetscScalar)1.0) {
+      if (fn->alpha==(PetscScalar)1.0) {
         ierr = PetscViewerASCIIPrintf(viewer,"  Exponential: exp(x)\n");CHKERRQ(ierr);
       } else {
-        ierr = SlepcSNPrintfScalar(str,50,fn->alpha[0],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->alpha,PETSC_TRUE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"  Exponential: exp(%s*x)\n",str);CHKERRQ(ierr);
       }
     } else {
-      ierr = SlepcSNPrintfScalar(str,50,fn->beta[0],PETSC_TRUE);CHKERRQ(ierr);
-      if (!fn->na) {
+      ierr = SlepcSNPrintfScalar(str,50,fn->beta,PETSC_TRUE);CHKERRQ(ierr);
+      if (fn->alpha==(PetscScalar)1.0) {
         ierr = PetscViewerASCIIPrintf(viewer,"  Exponential: %s*exp(x)\n",str);CHKERRQ(ierr);
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"  Exponential: %s",str);CHKERRQ(ierr);
-        ierr = SlepcSNPrintfScalar(str,50,fn->alpha[0],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,50,fn->alpha,PETSC_TRUE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"*exp(%s*x)\n",str);CHKERRQ(ierr);
       }
     }

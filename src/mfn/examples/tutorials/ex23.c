@@ -85,7 +85,7 @@ int main(int argc,char **argv)
   ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
   ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
   ierr = FNSetType(f,FNEXP);CHKERRQ(ierr);
-  ierr = FNSetParameters(f,1,&t,0,NULL);CHKERRQ(ierr);  
+  ierr = FNSetScale(f,t,1.0);CHKERRQ(ierr);  
   ierr = MFNSetTolerances(mfn,1e-07,PETSC_DEFAULT);CHKERRQ(ierr);
 
   /*

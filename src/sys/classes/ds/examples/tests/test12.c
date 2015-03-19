@@ -60,8 +60,7 @@ int main(int argc,char **argv)
 
   ierr = FNCreate(PETSC_COMM_WORLD,&f3);CHKERRQ(ierr);
   ierr = FNSetType(f3,FNEXP);CHKERRQ(ierr);
-  coeffs[0] = -tau;
-  ierr = FNSetParameters(f3,1,coeffs,0,NULL);CHKERRQ(ierr);
+  ierr = FNSetParameters(f3,-tau,1.0);CHKERRQ(ierr);
 
   funs[0] = f1;
   funs[1] = f2;
