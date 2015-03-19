@@ -692,6 +692,47 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "FNDuplicate"
+/*@
+   FNDuplicate - Duplicates a math function, copying all parameters, possibly with a
+   different communicator.
+
+   Collective on FN
+
+   Input Parameters:
++  fn   - the math function context
+-  comm - MPI communicator (may be NULL)
+
+   Output Parameter:
+.  newfn - location to put the new FN context
+
+   Level: developer
+
+.seealso: FNCreate()
+@*/
+PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
+{
+  PetscErrorCode ierr;
+  FNType         type;
+  PetscInt       na,nb;
+  PetscScalar    *alpha,*beta;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  PetscValidType(fn,1);
+  PetscValidPointer(newfn,3);
+  if (!comm) comm = PetscObjectComm((PetscObject)fn);
+  ierr = FNCreate(comm,newfn);CHKERRQ(ierr);
+  ierr = FNGetType(fn,&type);CHKERRQ(ierr);
+  ierr = FNSetType(*newfn,type);CHKERRQ(ierr);
+  ierr = FNGetParameters(fn,&na,&alpha,&nb,&beta);CHKERRQ(ierr);
+  ierr = FNSetParameters(*newfn,na,alpha,nb,beta);CHKERRQ(ierr);
+  ierr = PetscFree(alpha);CHKERRQ(ierr); 
+  ierr = PetscFree(beta);CHKERRQ(ierr); 
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "FNDestroy"
 /*@
    FNDestroy - Destroys FN context that was created with FNCreate().
