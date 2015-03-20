@@ -119,7 +119,7 @@ Apart from the main solver classes listed on page \pageref{tab:modules}, \slepc 
 \begin{itemize}
 \setlength\itemsep{0pt}
 \item \ident{ST}: Spectral Transformation, fully described in chapter \ref{cap:st}.
-\item \ident{FN}: Mathematical Function, required in application code to represent the constituent functions of the nonlinear operator in split form, as described in chapter \ref{cap:nep}.
+\item \ident{FN}: Mathematical Function, required in application code to represent the constituent functions of the nonlinear operator in split form, as described in chapter \ref{cap:nep}, as well as to specify the function to be used when computing the action of a matrix function on a vector (see chapter \ref{cap:mfn}).
 \item \ident{DS}: Direct Solver (or Dense System), can be seen as a wrapper to \lapack functions used within \slepc. It is mostly an internal object that need not be called by end users.
 \item \ident{BV}: Basis Vectors, provides the concept of a block of vectors that represent the basis of a subspace.
 \item \ident{RG}: Region, a way to define a region of the complex plane and perform simple operations on it.
@@ -132,17 +132,21 @@ Apart from the main solver classes listed on page \pageref{tab:modules}, \slepc 
 {\small \begin{tabular}{lll}
 Function                & \ident{FNType}      & Expression\\\hline
 Polynomial and rational & \texttt{FNRATIONAL} & $p(x)/q(x)$ \\
-Exponential             & \texttt{FNEXP}      & $e^x$ \\\hline
+Exponential             & \texttt{FNEXP}      & $e^x$ \\
+Logarithm               & \texttt{FNLOG}      & $\log x$ \\
+$\varphi_1$ function    & \texttt{FNPHI}      & $(e^x-1)/x$ \\
+Square root             & \texttt{FNSQRT}     & $\sqrt{x}$ \\\hline
+Combine two functions   & \texttt{FNCOMBINE}  & See text\\\hline
 \end{tabular} }
 \caption{\label{tab:fn}Mathematical functions available as \ident{FN} objects.}
 \end{table}
 
-The \ident{FN} class provides a few predefined mathematical functions, including rational functions (of which polynomials are a particular case) and exponentials. Objects of this class are instantiated by providing the values of the relevant parameters. \ident{FN} objects are created with \ident{FNCreate} and it is necessary to select the type of function (rational, exponential, etc.)\ with \ident{FNSetType}.
+The \ident{FN} class provides a few predefined mathematical functions, including rational functions (of which polynomials are a particular case) and exponentials. Objects of this class are instantiated by providing the values of the relevant parameters. \ident{FN} objects are created with \ident{FNCreate} and it is necessary to select the type of function (rational, exponential, etc.)\ with \ident{FNSetType}. Table \ref{tab:fn} lists available functions.
 
 Parameters common to all \ident{FN} types are the scaling factors, which are set with
 	\findex{FNSetScale}
 	\begin{Verbatim}[fontsize=\small]
-     FNSetScale(FN fn,PetscScalar alpha,PetscScalar beta);
+        FNSetScale(FN fn,PetscScalar alpha,PetscScalar beta);
 	\end{Verbatim}
 where \texttt{alpha} multiplies the argument and \texttt{beta} multiplies the result. With this, the actual function is $\beta\cdot f(\alpha\cdot x)$ for a given function $f(\cdot)$. For instance, an exponential function $f(x)=e^x$ will turn into
 \begin{equation}
@@ -155,11 +159,10 @@ r(x)=\frac{p(x)}{q(x)}
 =\frac{\nu_{n-1}x^{n-1}+\cdots+\nu_1x+\nu_0}{\delta_{m-1}x^{m-1}+\cdots+\delta_1x+\delta_0}.
 \end{equation}
 These parameters are specified with
-	\findex{FNRationalSetNumerator}
-	\findex{FNRationalSetDenominator}
+	\findex{FNRationalSetNumerator}\findex{FNRationalSetDenominator}
 	\begin{Verbatim}[fontsize=\small]
-     FNRationalSetNumerator(FN fn,PetscInt np,PetscScalar *pcoeff);
-     FNRationalSetDenominator(FN fn,PetscInt nq,PetscScalar *qcoeff);
+        FNRationalSetNumerator(FN fn,PetscInt np,PetscScalar *pcoeff);
+        FNRationalSetDenominator(FN fn,PetscInt nq,PetscScalar *qcoeff);
 	\end{Verbatim}
 Here, polynomials are passed as an array with high order coefficients appearing in low indices.
 
@@ -169,7 +172,17 @@ Whenever the solvers need to compute $f(x)$ or $f'(x)$ on a given scalar $x$, th
         FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
         FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
 	\end{Verbatim}
+The function can also be evaluated as a matrix function, $B=f(A)$, where $A,B$ are small, dense, square matrices. This is done with \ident{FNEvaluateFunctionMat}.
 
+Finally, there is a mechanism to combine simple functions in order to create more complicated functions. For instance, the function
+\begin{equation}
+f(x) = (1-x^2) \exp\left( \frac{-x}{1+x^2} \right)
+\end{equation}
+can be represented with an expression tree with three leaves (one exponential function and two rational functions) and two interior nodes (one of them is the root, $f(x)$). Interior nodes are simply \ident{FN} objects of type \texttt{FNCOMBINE} that specify how the two children must be combined (with either addition, multiplication or function composition):
+	\findex{FNCombineSetChildren}
+	\begin{Verbatim}[fontsize=\small]
+        FNCombineSetChildren(FN fn,FNCombineType comb,FN f1,FN f2)
+	\end{Verbatim}
 
 \paragraph{BV: Basis Vectors}
 
@@ -199,13 +212,13 @@ Most \slepc solvers use a \ident{BV} object to represent the working subspace ba
 
 \paragraph{RG: Region}
 
-The \ident{RG} object defines a region of the complex plane, which can be used to specify where eigenvalues must sought. Currently, the following types of regions are available:
+The \ident{RG} object defines a region of the complex plane, that can be used to specify where eigenvalues must be sought. Currently, the following types of regions are available:
 \begin{itemize}
 \item A (generalized) interval, defined as $[a,b]\times[c,d]$, where the four parameters can be set with \ident{RGIntervalSetEndpoints}. This covers the particular cases of an interval on the real axis (setting $c=d=0$), the left halfplane $[-\infty,0]\times[-\infty,+\infty]$, a quadrant, etc.
 \item An ellipse defined by its center, radius and vertical scale (1 by default), see \ident{RGEllipseSetParameters}).
 \end{itemize}
 
-\begin{table}
+\begin{table}[b]
 \centering
 {\small \begin{tabular}{lll}
                        &                     & {\footnotesize Options} \\
