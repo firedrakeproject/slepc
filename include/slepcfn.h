@@ -41,6 +41,7 @@ typedef struct _p_FN* FN;
 .seealso: FNSetType(), FN
 J*/
 typedef const char* FNType;
+#define FNCOMBINE  "combine"
 #define FNRATIONAL "rational"
 #define FNEXP      "exp"
 #define FNLOG      "log"
@@ -49,6 +50,17 @@ typedef const char* FNType;
 
 /* Logging support */
 PETSC_EXTERN PetscClassId FN_CLASSID;
+
+/*E
+    FNCombineType - Determines how two functions are combined
+
+    Level: advanced
+
+.seealso: FNCombineSetChildren()
+E*/
+typedef enum { FN_COMBINE_ADD,
+               FN_COMBINE_MULTIPLY,
+               FN_COMBINE_COMPOSE } FNCombineType;
 
 PETSC_EXTERN PetscErrorCode FNCreate(MPI_Comm,FN*);
 PETSC_EXTERN PetscErrorCode FNSetType(FN,FNType);
@@ -77,5 +89,8 @@ PETSC_EXTERN PetscErrorCode FNRationalSetNumerator(FN,PetscInt,PetscScalar*);
 PETSC_EXTERN PetscErrorCode FNRationalGetNumerator(FN,PetscInt*,PetscScalar**);
 PETSC_EXTERN PetscErrorCode FNRationalSetDenominator(FN,PetscInt,PetscScalar*);
 PETSC_EXTERN PetscErrorCode FNRationalGetDenominator(FN,PetscInt*,PetscScalar**);
+
+PETSC_EXTERN PetscErrorCode FNCombineSetChildren(FN,FNCombineType,FN,FN);
+PETSC_EXTERN PetscErrorCode FNCombineGetChildren(FN,FNCombineType*,FN*,FN*);
 
 #endif

@@ -23,6 +23,14 @@
 !
 #include "slepc-finclude/slepcfndef.h"
 
+      PetscEnum FN_COMBINE_ADD
+      PetscEnum FN_COMBINE_MULTIPLY
+      PetscEnum FN_COMBINE_COMPOSE
+
+      parameter (FN_COMBINE_ADD           =  0)
+      parameter (FN_COMBINE_MULTIPLY      =  1)
+      parameter (FN_COMBINE_COMPOSE       =  2)
+
 !
 !  End of Fortran include file for the FN package in SLEPc
 !

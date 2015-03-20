@@ -795,6 +795,7 @@ PetscErrorCode FNRegister(const char *name,PetscErrorCode (*function)(FN))
   PetscFunctionReturn(0);
 }
 
+PETSC_EXTERN PetscErrorCode FNCreate_Combine(FN);
 PETSC_EXTERN PetscErrorCode FNCreate_Rational(FN);
 PETSC_EXTERN PetscErrorCode FNCreate_Exp(FN);
 PETSC_EXTERN PetscErrorCode FNCreate_Log(FN);
@@ -817,6 +818,7 @@ PetscErrorCode FNRegisterAll(void)
   PetscFunctionBegin;
   if (FNRegisterAllCalled) PetscFunctionReturn(0);
   FNRegisterAllCalled = PETSC_TRUE;
+  ierr = FNRegister(FNCOMBINE,FNCreate_Combine);CHKERRQ(ierr);
   ierr = FNRegister(FNRATIONAL,FNCreate_Rational);CHKERRQ(ierr);
   ierr = FNRegister(FNEXP,FNCreate_Exp);CHKERRQ(ierr);
   ierr = FNRegister(FNLOG,FNCreate_Log);CHKERRQ(ierr);
