@@ -618,15 +618,36 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
 PetscErrorCode FNSetFromOptions(FN fn)
 {
   PetscErrorCode ierr;
+  char           type[256];
+  PetscReal      array[2]={0,0};
+  PetscInt       k;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   ierr = FNRegisterAll();CHKERRQ(ierr);
-  /* Set default type (we do not allow changing it with -fn_type) */
-  if (!((PetscObject)fn)->type_name) {
-    ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
-  }
   ierr = PetscObjectOptionsBegin((PetscObject)fn);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-fn_type","Math function type","FNSetType",FNList,(char*)(((PetscObject)fn)->type_name?((PetscObject)fn)->type_name:FNRATIONAL),type,256,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = FNSetType(fn,type);CHKERRQ(ierr);
+    }
+    /*
+      Set the type if it was never set.
+    */
+    if (!((PetscObject)fn)->type_name) {
+      ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
+    }
+
+    k = 2;
+    ierr = PetscOptionsRealArray("-fn_scale","Scale factors (one or two scalar values separated with a comma without spaces)","FNSetScale",array,&k,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if (k<2) array[1] = 1.0;
+      ierr = FNSetScale(fn,array[0],array[1]);CHKERRQ(ierr);
+    }
+
+    if (fn->ops->setfromoptions) {
+      ierr = (*fn->ops->setfromoptions)(PetscOptionsObject,fn);CHKERRQ(ierr);
+    }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)fn);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);

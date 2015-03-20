@@ -101,6 +101,12 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
+    if (fn->alpha!=(PetscScalar)1.0 || fn->beta!=(PetscScalar)1.0) {
+      ierr = SlepcSNPrintfScalar(str,50,fn->alpha,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  Scale factors: alpha=%s,",str);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,50,fn->beta,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," beta=%s\n",str);CHKERRQ(ierr);
+    }
     if (!ctx->nq) {
       if (!ctx->np) {
         ierr = PetscViewerASCIIPrintf(viewer,"  Constant: 1.0\n");CHKERRQ(ierr);
@@ -368,6 +374,37 @@ PetscErrorCode FNRationalGetDenominator(FN fn,PetscInt *nq,PetscScalar *qcoeff[]
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "FNSetFromOptions_Rational"
+PetscErrorCode FNSetFromOptions_Rational(PetscOptions *PetscOptionsObject,FN fn)
+{
+  PetscErrorCode ierr;
+#define PARMAX 10
+  PetscReal      array[PARMAX];
+  PetscInt       i,k;
+  PetscBool      flg;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead(PetscOptionsObject,"FN Rational Options");CHKERRQ(ierr);
+
+  k = PARMAX;
+  for (i=0;i<k;i++) array[i] = 0;
+  ierr = PetscOptionsRealArray("-fn_rational_numerator","Numerator coefficients (one or more scalar values separated with a comma without spaces)","FNRationalSetNumerator",array,&k,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = FNRationalSetNumerator(fn,k,array);CHKERRQ(ierr);
+  }
+
+  k = PARMAX;
+  for (i=0;i<k;i++) array[i] = 0;
+  ierr = PetscOptionsRealArray("-fn_rational_denominator","Denominator coefficients (one or more scalar values separated with a comma without spaces)","FNRationalSetDenominator",array,&k,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = FNRationalSetDenominator(fn,k,array);CHKERRQ(ierr);
+  }
+
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "FNDuplicate_Rational"
 PetscErrorCode FNDuplicate_Rational(FN fn,MPI_Comm comm,FN *newfn)
 {
@@ -424,6 +461,7 @@ PETSC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
 
   fn->ops->evaluatefunction   = FNEvaluateFunction_Rational;
   fn->ops->evaluatederivative = FNEvaluateDerivative_Rational;
+  fn->ops->setfromoptions     = FNSetFromOptions_Rational;
   fn->ops->view               = FNView_Rational;
   fn->ops->duplicate          = FNDuplicate_Rational;
   fn->ops->destroy            = FNDestroy_Rational;
