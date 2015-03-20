@@ -1,3 +1,4 @@
+Combined function, n=10.
 FN Object: 1 MPI processes
   type: combine
     Two multiplied functions f1*f2
@@ -15,3 +16,5 @@ FN Object: 1 MPI processes
             Exponential: exp(x)
   f(2.2)=-2.63468
   f'(2.2)=-3.31554
+The 1-norm of f(A) is 29.7466
+The 1-norm of f(A) is 29.7466

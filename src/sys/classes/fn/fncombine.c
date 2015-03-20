@@ -27,6 +27,7 @@
 */
 
 #include <slepc-private/fnimpl.h>      /*I "slepcfn.h" I*/
+#include <slepcblaslapack.h>
 
 typedef struct {
   FN            f1,f2;    /* functions */
@@ -88,6 +89,53 @@ PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
       *yp *= ap;
       break;
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMat_Combine"
+PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
+  PetscScalar    *Aa,*Ba,*Wa,*Za,one=1.0,zero=0.0;
+  PetscBLASInt   n,ld,ld2,inc=1;
+  PetscInt       m;
+  Mat            W,Z;
+
+  PetscFunctionBegin;
+  ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&W);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ld  = n;
+  ld2 = ld*ld;
+
+  ierr = FNEvaluateFunctionMat(ctx->f1,A,W);CHKERRQ(ierr);
+  switch (ctx->comb) {
+    case FN_COMBINE_ADD:
+      ierr = FNEvaluateFunctionMat(ctx->f2,A,B);CHKERRQ(ierr);
+      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&one,Wa,&inc,Ba,&inc));
+      break;
+    case FN_COMBINE_MULTIPLY:
+      ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Z);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(Z,&Za);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat(ctx->f2,A,Z);CHKERRQ(ierr);
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Wa,&ld,Za,&ld,&zero,Ba,&ld));
+      ierr = MatDenseRestoreArray(Z,&Za);CHKERRQ(ierr);
+      ierr = MatDestroy(&Z);CHKERRQ(ierr);
+      break;
+    case FN_COMBINE_COMPOSE:
+      ierr = FNEvaluateFunctionMat(ctx->f2,W,B);CHKERRQ(ierr);
+      break;
+  }
+
+  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
+  ierr = MatDestroy(&W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -273,6 +321,7 @@ PETSC_EXTERN PetscErrorCode FNCreate_Combine(FN fn)
 
   fn->ops->evaluatefunction    = FNEvaluateFunction_Combine;
   fn->ops->evaluatederivative  = FNEvaluateDerivative_Combine;
+  fn->ops->evaluatefunctionmat = FNEvaluateFunctionMat_Combine;
   fn->ops->view                = FNView_Combine;
   fn->ops->duplicate           = FNDuplicate_Combine;
   fn->ops->destroy             = FNDestroy_Combine;
