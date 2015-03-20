@@ -797,6 +797,9 @@ PetscErrorCode FNRegister(const char *name,PetscErrorCode (*function)(FN))
 
 PETSC_EXTERN PetscErrorCode FNCreate_Rational(FN);
 PETSC_EXTERN PetscErrorCode FNCreate_Exp(FN);
+PETSC_EXTERN PetscErrorCode FNCreate_Log(FN);
+PETSC_EXTERN PetscErrorCode FNCreate_Phi(FN);
+PETSC_EXTERN PetscErrorCode FNCreate_Sqrt(FN);
 
 #undef __FUNCT__
 #define __FUNCT__ "FNRegisterAll"
@@ -816,6 +819,9 @@ PetscErrorCode FNRegisterAll(void)
   FNRegisterAllCalled = PETSC_TRUE;
   ierr = FNRegister(FNRATIONAL,FNCreate_Rational);CHKERRQ(ierr);
   ierr = FNRegister(FNEXP,FNCreate_Exp);CHKERRQ(ierr);
+  ierr = FNRegister(FNLOG,FNCreate_Log);CHKERRQ(ierr);
+  ierr = FNRegister(FNPHI,FNCreate_Phi);CHKERRQ(ierr);
+  ierr = FNRegister(FNSQRT,FNCreate_Sqrt);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
