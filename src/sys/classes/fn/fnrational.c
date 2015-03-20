@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/fnimpl.h>
+#include <slepc-private/fnimpl.h>      /*I "slepcfn.h" I*/
 
 typedef struct {
   PetscScalar *pcoeff;    /* numerator coefficients */
