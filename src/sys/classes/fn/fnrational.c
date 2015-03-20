@@ -22,6 +22,7 @@
 */
 
 #include <slepc-private/fnimpl.h>      /*I "slepcfn.h" I*/
+#include <slepcblaslapack.h>
 
 typedef struct {
   PetscScalar *pcoeff;    /* numerator coefficients */
@@ -53,6 +54,57 @@ PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
     *y = p/q;
   }
   PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMat_Rational"
+PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
+{
+#if defined(PETSC_MISSING_LAPACK_GESV)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routines are unavailable");
+#else
+  PetscErrorCode ierr;
+  FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
+  PetscBLASInt   n,ld,*ipiv,info;
+  PetscInt       i,j,m;
+  PetscScalar    *Aa,*Ba,*W,*P,*Q,one=1.0,zero=0.0;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ld  = n;
+  P   = Ba;
+  ierr = PetscMalloc3(m*m,&Q,m*m,&W,ld,&ipiv);CHKERRQ(ierr);
+  ierr = PetscMemzero(P,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
+  if (!ctx->np) {
+    for (i=0;i<m;i++) P[i+i*ld] = 1.0;
+  } else {
+    for (i=0;i<m;i++) P[i+i*ld] = ctx->pcoeff[0];
+    for (j=1;j<ctx->np;j++) {
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,Aa,&ld,&zero,W,&ld));
+      ierr = PetscMemcpy(P,W,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
+      for (i=0;i<m;i++) P[i+i*ld] += ctx->pcoeff[j];
+    }
+  }
+  if (ctx->nq) {
+    ierr = PetscMemzero(Q,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<m;i++) Q[i+i*ld] = ctx->qcoeff[0];
+    for (j=1;j<ctx->nq;j++) {
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,Aa,&ld,&zero,W,&ld));
+      ierr = PetscMemcpy(Q,W,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
+      for (i=0;i<m;i++) Q[i+i*ld] += ctx->qcoeff[j];
+    }
+    PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+  }
+  ierr = PetscFree3(Q,W,ipiv);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__
@@ -459,12 +511,13 @@ PETSC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
   ierr = PetscNewLog(fn,&ctx);CHKERRQ(ierr);
   fn->data = (void*)ctx;
 
-  fn->ops->evaluatefunction   = FNEvaluateFunction_Rational;
-  fn->ops->evaluatederivative = FNEvaluateDerivative_Rational;
-  fn->ops->setfromoptions     = FNSetFromOptions_Rational;
-  fn->ops->view               = FNView_Rational;
-  fn->ops->duplicate          = FNDuplicate_Rational;
-  fn->ops->destroy            = FNDestroy_Rational;
+  fn->ops->evaluatefunction    = FNEvaluateFunction_Rational;
+  fn->ops->evaluatederivative  = FNEvaluateDerivative_Rational;
+  fn->ops->evaluatefunctionmat = FNEvaluateFunctionMat_Rational;
+  fn->ops->setfromoptions      = FNSetFromOptions_Rational;
+  fn->ops->view                = FNView_Rational;
+  fn->ops->duplicate           = FNDuplicate_Rational;
+  fn->ops->destroy             = FNDestroy_Rational;
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetNumerator_C",FNRationalSetNumerator_Rational);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetNumerator_C",FNRationalGetNumerator_Rational);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetDenominator_C",FNRationalSetDenominator_Rational);CHKERRQ(ierr);
