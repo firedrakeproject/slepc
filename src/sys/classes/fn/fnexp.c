@@ -113,6 +113,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp(FN fn,Mat A,Mat B)
     SWAP(Q,W,aux);
     PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
     PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
     PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
     for (j=0;j<n;j++) P[j+j*ld] += 1.0;
     PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&mone,P,&inc));
@@ -121,6 +122,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp(FN fn,Mat A,Mat B)
     SWAP(P,W,aux);
     PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
     PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
     PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
     for (j=0;j<n;j++) P[j+j*ld] += 1.0;
   }

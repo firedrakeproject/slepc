@@ -77,6 +77,8 @@ PETSC_STATIC_INLINE PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A)
   if (create) {
     ierr = MatDuplicate(A,MAT_COPY_VALUES,&fn->W);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)fn,(PetscObject)fn->W);CHKERRQ(ierr);
+  } else {
+    ierr = MatCopy(A,fn->W,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
