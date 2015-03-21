@@ -263,6 +263,7 @@ PetscErrorCode FNSetType(FN fn,FNType type)
   ierr =  PetscFunctionListFind(FNList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested FN type %s",type);
 
+  if (fn->ops->destroy) { ierr = (*fn->ops->destroy)(fn);CHKERRQ(ierr); }
   ierr = PetscMemzero(fn->ops,sizeof(struct _FNOps));CHKERRQ(ierr);
 
   ierr = PetscObjectChangeTypeName((PetscObject)fn,type);CHKERRQ(ierr);
