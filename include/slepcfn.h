@@ -60,6 +60,7 @@ PETSC_EXTERN PetscClassId FN_CLASSID;
 E*/
 typedef enum { FN_COMBINE_ADD,
                FN_COMBINE_MULTIPLY,
+               FN_COMBINE_DIVIDE,
                FN_COMBINE_COMPOSE } FNCombineType;
 
 PETSC_EXTERN PetscErrorCode FNCreate(MPI_Comm,FN*);

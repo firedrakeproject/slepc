@@ -134,7 +134,7 @@ Function                & \ident{FNType}      & Expression\\\hline
 Polynomial and rational & \texttt{FNRATIONAL} & $p(x)/q(x)$ \\
 Exponential             & \texttt{FNEXP}      & $e^x$ \\
 Logarithm               & \texttt{FNLOG}      & $\log x$ \\
-$\varphi_1$ function    & \texttt{FNPHI}      & $(e^x-1)/x$ \\
+$\varphi$-functions     & \texttt{FNPHI}      & $\varphi_0(x)$, $\varphi_1(x)$, \dots \\
 Square root             & \texttt{FNSQRT}     & $\sqrt{x}$ \\\hline
 Combine two functions   & \texttt{FNCOMBINE}  & See text\\\hline
 \end{tabular} }
@@ -166,23 +166,30 @@ These parameters are specified with
 	\end{Verbatim}
 Here, polynomials are passed as an array with high order coefficients appearing in low indices.
 
+The $\varphi$-functions are given by
+\begin{equation}
+\varphi_0(x)=e^x,\qquad \varphi_1(x)=\frac{e^x-1}{x},\qquad \varphi_k(x)=\frac{\varphi_{k-1}(x)-1/(k-1)!}{x},
+\end{equation}
+where the index $k$ must be specified with \ident{FNPhiSetIndex}.
+
 Whenever the solvers need to compute $f(x)$ or $f'(x)$ on a given scalar $x$, the following functions are invoked:
 	\findex{FNEvaluateFunction}\findex{FNEvaluateDerivative}
 	\begin{Verbatim}[fontsize=\small]
         FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
         FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
 	\end{Verbatim}
-The function can also be evaluated as a matrix function, $B=f(A)$, where $A,B$ are small, dense, square matrices. This is done with \ident{FNEvaluateFunctionMat}.
+The function can also be evaluated as a matrix function, $B=f(A)$, where $A,B$ are small, dense, square matrices. This is done with \ident{FNEvaluateFunctionMat}. Note that for a rational function, the corresponding expression would be $q(A)^{-1}p(A)$.
 
 Finally, there is a mechanism to combine simple functions in order to create more complicated functions. For instance, the function
 \begin{equation}
 f(x) = (1-x^2) \exp\left( \frac{-x}{1+x^2} \right)
 \end{equation}
-can be represented with an expression tree with three leaves (one exponential function and two rational functions) and two interior nodes (one of them is the root, $f(x)$). Interior nodes are simply \ident{FN} objects of type \texttt{FNCOMBINE} that specify how the two children must be combined (with either addition, multiplication or function composition):
+can be represented with an expression tree with three leaves (one exponential function and two rational functions) and two interior nodes (one of them is the root, $f(x)$). Interior nodes are simply \ident{FN} objects of type \texttt{FNCOMBINE} that specify how the two children must be combined (with either addition, multiplication, division or function composition):
 	\findex{FNCombineSetChildren}
 	\begin{Verbatim}[fontsize=\small]
         FNCombineSetChildren(FN fn,FNCombineType comb,FN f1,FN f2)
 	\end{Verbatim}
+The combination of $f_1$ and $f_2$ with division will result in $f_1(x)/f_2(x)$ and $f_2(A)^{-1}f_1(A)$ in the case of matrices.
 
 \paragraph{BV: Basis Vectors}
 
@@ -218,17 +225,6 @@ The \ident{RG} object defines a region of the complex plane, that can be used to
 \item An ellipse defined by its center, radius and vertical scale (1 by default), see \ident{RGEllipseSetParameters}).
 \end{itemize}
 
-\begin{table}[b]
-\centering
-{\small \begin{tabular}{lll}
-                       &                     & {\footnotesize Options} \\
-Region Type            & \ident{RGType}      & {\footnotesize Database Name}\\\hline
-(Generalized) Interval & \texttt{RGINTERVAL} & \texttt{interval} \\
-Ellipse                & \texttt{RGELLIPSE}  & \texttt{ellipse} \\\hline
-\end{tabular} }
-\caption{\label{tab:rg}Regions available as \ident{RG} objects.}
-\end{table}
-
 Sometimes it is useful to specify the complement of a certain region, e.g., the part of the complex plane outside an ellipse. This can be achieved with
 	\findex{RGSetComplement}
 	\begin{Verbatim}[fontsize=\small]
@@ -248,6 +244,17 @@ Another useful operation is to check whether a given point of the complex plane 
         RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,PetscInt *inside)
 	\end{Verbatim}
 Note that the point is represented as two \texttt{PetscScalar}'s, similarly to eigenvalues in \slepc.
+
+\begin{table}
+\centering
+{\small \begin{tabular}{lll}
+                       &                     & {\footnotesize Options} \\
+Region Type            & \ident{RGType}      & {\footnotesize Database Name}\\\hline
+(Generalized) Interval & \texttt{RGINTERVAL} & \texttt{interval} \\
+Ellipse                & \texttt{RGELLIPSE}  & \texttt{ellipse} \\\hline
+\end{tabular} }
+\caption{\label{tab:rg}Regions available as \ident{RG} objects.}
+\end{table}
 
 %---------------------------------------------------
 \section{Directory Structure}

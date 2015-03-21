@@ -1,9 +1,10 @@
 /*
    A function that is obtained by combining two other functions (either by
-   addition, multiplication or composition)
+   addition, multiplication, division or composition)
 
       addition:          f(x) = f1(x)+f2(x)
       multiplication:    f(x) = f1(x)*f2(x)
+      division:          f(x) = f1(x)/f2(x)      f(A) = f2(A)\f1(A)
       composition:       f(x) = f2(f1(x))
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -53,6 +54,10 @@ PetscErrorCode FNEvaluateFunction_Combine(FN fn,PetscScalar x,PetscScalar *y)
       ierr = FNEvaluateFunction(ctx->f2,x,&b);CHKERRQ(ierr);
       *y = a*b;
       break;
+    case FN_COMBINE_DIVIDE:
+      ierr = FNEvaluateFunction(ctx->f2,x,&b);CHKERRQ(ierr);
+      *y = a/b;
+      break;
     case FN_COMBINE_COMPOSE:
       ierr = FNEvaluateFunction(ctx->f2,a,y);CHKERRQ(ierr);
       break;
@@ -82,6 +87,13 @@ PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
       ierr = FNEvaluateFunction(ctx->f2,x,&b);CHKERRQ(ierr);
       *yp = ap*b+a*bp;
       break;
+    case FN_COMBINE_DIVIDE:
+      ierr = FNEvaluateDerivative(ctx->f1,x,&ap);CHKERRQ(ierr);
+      ierr = FNEvaluateDerivative(ctx->f2,x,&bp);CHKERRQ(ierr);
+      ierr = FNEvaluateFunction(ctx->f1,x,&a);CHKERRQ(ierr);
+      ierr = FNEvaluateFunction(ctx->f2,x,&b);CHKERRQ(ierr);
+      *yp = (ap*b-a*bp)/(b*b);
+      break;
     case FN_COMBINE_COMPOSE:
       ierr = FNEvaluateFunction(ctx->f1,x,&a);CHKERRQ(ierr);
       ierr = FNEvaluateDerivative(ctx->f1,x,&ap);CHKERRQ(ierr);
@@ -96,10 +108,14 @@ PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
 #define __FUNCT__ "FNEvaluateFunctionMat_Combine"
 PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
 {
+#if defined(PETSC_MISSING_LAPACK_GESV)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routines are unavailable");
+#else
   PetscErrorCode ierr;
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
   PetscScalar    *Aa,*Ba,*Wa,*Za,one=1.0,zero=0.0;
-  PetscBLASInt   n,ld,ld2,inc=1;
+  PetscBLASInt   n,ld,ld2,inc=1,*ipiv,info;
   PetscInt       m;
   Mat            W,Z;
 
@@ -113,21 +129,31 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
   ld  = n;
   ld2 = ld*ld;
 
-  ierr = FNEvaluateFunctionMat(ctx->f1,A,W);CHKERRQ(ierr);
   switch (ctx->comb) {
     case FN_COMBINE_ADD:
+      ierr = FNEvaluateFunctionMat(ctx->f1,A,W);CHKERRQ(ierr);
       ierr = FNEvaluateFunctionMat(ctx->f2,A,B);CHKERRQ(ierr);
       PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&one,Wa,&inc,Ba,&inc));
       break;
     case FN_COMBINE_MULTIPLY:
       ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Z);CHKERRQ(ierr);
       ierr = MatDenseGetArray(Z,&Za);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat(ctx->f1,A,W);CHKERRQ(ierr);
       ierr = FNEvaluateFunctionMat(ctx->f2,A,Z);CHKERRQ(ierr);
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Wa,&ld,Za,&ld,&zero,Ba,&ld));
       ierr = MatDenseRestoreArray(Z,&Za);CHKERRQ(ierr);
       ierr = MatDestroy(&Z);CHKERRQ(ierr);
       break;
+    case FN_COMBINE_DIVIDE:
+      ierr = FNEvaluateFunctionMat(ctx->f1,A,B);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat(ctx->f2,A,W);CHKERRQ(ierr);
+      ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
+      PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
+      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+      ierr = PetscFree(ipiv);CHKERRQ(ierr);
+      break;
     case FN_COMBINE_COMPOSE:
+      ierr = FNEvaluateFunctionMat(ctx->f1,A,W);CHKERRQ(ierr);
       ierr = FNEvaluateFunctionMat(ctx->f2,W,B);CHKERRQ(ierr);
       break;
   }
@@ -137,6 +163,7 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
   ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
   ierr = MatDestroy(&W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__
@@ -156,6 +183,9 @@ PetscErrorCode FNView_Combine(FN fn,PetscViewer viewer)
         break;
       case FN_COMBINE_MULTIPLY:
         ierr = PetscViewerASCIIPrintf(viewer,"  Two multiplied functions f1*f2\n");CHKERRQ(ierr);
+        break;
+      case FN_COMBINE_DIVIDE:
+        ierr = PetscViewerASCIIPrintf(viewer,"  A quotient of two functions f1/f2\n");CHKERRQ(ierr);
         break;
       case FN_COMBINE_COMPOSE:
         ierr = PetscViewerASCIIPrintf(viewer,"  Two composed functions f2(f1(.))\n");CHKERRQ(ierr);
@@ -199,7 +229,7 @@ static PetscErrorCode FNCombineSetChildren_Combine(FN fn,FNCombineType comb,FN f
 
    Input Parameters:
 +  fn   - the math function context
-.  comb - how to combine the functions (addition, multiplication or composition)
+.  comb - how to combine the functions (addition, multiplication, division or composition)
 .  f1   - first function
 -  f2   - second function
 
@@ -258,7 +288,7 @@ static PetscErrorCode FNCombineGetChildren_Combine(FN fn,FNCombineType *comb,FN 
 .  fn   - the math function context
 
    Output Parameters:
--  comb - how to combine the functions (addition, multiplication or composition)
+-  comb - how to combine the functions (addition, multiplication, division or composition)
 .  f1   - first function
 -  f2   - second function
 
