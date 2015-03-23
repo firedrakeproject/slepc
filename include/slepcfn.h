@@ -94,4 +94,7 @@ PETSC_EXTERN PetscErrorCode FNRationalGetDenominator(FN,PetscInt*,PetscScalar**)
 PETSC_EXTERN PetscErrorCode FNCombineSetChildren(FN,FNCombineType,FN,FN);
 PETSC_EXTERN PetscErrorCode FNCombineGetChildren(FN,FNCombineType*,FN*,FN*);
 
+PETSC_EXTERN PetscErrorCode FNPhiSetIndex(FN,PetscInt);
+PETSC_EXTERN PetscErrorCode FNPhiGetIndex(FN,PetscInt*);
+
 #endif
