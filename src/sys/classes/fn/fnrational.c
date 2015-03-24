@@ -431,7 +431,7 @@ PetscErrorCode FNSetFromOptions_Rational(PetscOptions *PetscOptionsObject,FN fn)
 {
   PetscErrorCode ierr;
 #define PARMAX 10
-  PetscReal      array[PARMAX];
+  PetscScalar    array[PARMAX];
   PetscInt       i,k;
   PetscBool      flg;
 
@@ -440,14 +440,14 @@ PetscErrorCode FNSetFromOptions_Rational(PetscOptions *PetscOptionsObject,FN fn)
 
   k = PARMAX;
   for (i=0;i<k;i++) array[i] = 0;
-  ierr = PetscOptionsRealArray("-fn_rational_numerator","Numerator coefficients (one or more scalar values separated with a comma without spaces)","FNRationalSetNumerator",array,&k,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsScalarArray("-fn_rational_numerator","Numerator coefficients (one or more scalar values separated with a comma without spaces)","FNRationalSetNumerator",array,&k,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = FNRationalSetNumerator(fn,k,array);CHKERRQ(ierr);
   }
 
   k = PARMAX;
   for (i=0;i<k;i++) array[i] = 0;
-  ierr = PetscOptionsRealArray("-fn_rational_denominator","Denominator coefficients (one or more scalar values separated with a comma without spaces)","FNRationalSetDenominator",array,&k,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsScalarArray("-fn_rational_denominator","Denominator coefficients (one or more scalar values separated with a comma without spaces)","FNRationalSetDenominator",array,&k,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = FNRationalSetDenominator(fn,k,array);CHKERRQ(ierr);
   }

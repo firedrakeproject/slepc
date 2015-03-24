@@ -620,7 +620,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
 {
   PetscErrorCode ierr;
   char           type[256];
-  PetscReal      array[2]={0,0};
+  PetscScalar    array[2];
   PetscInt       k;
   PetscBool      flg;
 
@@ -640,7 +640,8 @@ PetscErrorCode FNSetFromOptions(FN fn)
     }
 
     k = 2;
-    ierr = PetscOptionsRealArray("-fn_scale","Scale factors (one or two scalar values separated with a comma without spaces)","FNSetScale",array,&k,&flg);CHKERRQ(ierr);
+    array[0] = 0.0; array[1] = 0.0;
+    ierr = PetscOptionsScalarArray("-fn_scale","Scale factors (one or two scalar values separated with a comma without spaces)","FNSetScale",array,&k,&flg);CHKERRQ(ierr);
     if (flg) {
       if (k<2) array[1] = 1.0;
       ierr = FNSetScale(fn,array[0],array[1]);CHKERRQ(ierr);
