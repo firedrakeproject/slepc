@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   na = 5;
   p[0] = -3.1; p[1] = 1.1; p[2] = 1.0; p[3] = -2.0; p[4] = 3.5;
   ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
-  ierr = FNSetParameters(fn,na,p,0,NULL);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(fn,na,p);CHKERRQ(ierr);
   ierr = FNView(fn,NULL);CHKERRQ(ierr);
   x = 2.2;
   ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);
@@ -55,7 +55,8 @@ int main(int argc,char **argv)
   nb = 3;
   q[0] = -3.1; q[1] = 1.1; q[2] = 1.0;
   ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
-  ierr = FNSetParameters(fn,0,NULL,nb,q);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(fn,0,NULL);CHKERRQ(ierr);  /* reset previous values */
+  ierr = FNRationalSetDenominator(fn,nb,q);CHKERRQ(ierr);
   ierr = FNView(fn,NULL);CHKERRQ(ierr);
   x = 2.2;
   ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);
@@ -71,7 +72,8 @@ int main(int argc,char **argv)
   p[0] = -3.1; p[1] = 1.1;
   q[0] = 1.0; q[1] = -2.0; q[2] = 3.5;
   ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
-  ierr = FNSetParameters(fn,na,p,nb,q);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(fn,na,p);CHKERRQ(ierr);
+  ierr = FNRationalSetDenominator(fn,nb,q);CHKERRQ(ierr);
   ierr = FNView(fn,NULL);CHKERRQ(ierr);
   x = 2.2;
   ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);
@@ -84,7 +86,8 @@ int main(int argc,char **argv)
 
   /* constant */
   ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
-  ierr = FNSetParameters(fn,1,&five,0,NULL);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(fn,1,&five);CHKERRQ(ierr);
+  ierr = FNRationalSetDenominator(fn,0,NULL);CHKERRQ(ierr);  /* reset previous values */
   ierr = FNView(fn,NULL);CHKERRQ(ierr);
   x = 2.2;
   ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);

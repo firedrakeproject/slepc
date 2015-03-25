@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test matrix exponential.\n\n";
+static char help[] = "Test matrix rational function.\n\n";
 
 #include <slepcfn.h>
 
@@ -30,23 +30,26 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   FN             fn;
   Mat            A,B;
-  PetscInt       i,j,n=10;
+  PetscInt       i,j,n=10,np,nq;
   PetscReal      nrm;
-  PetscScalar    *As,tau=1.0,eta=1.0;
+  PetscScalar    *As,p[10],q[10];
   PetscViewer    viewer;
   PetscBool      verbose;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,"-eta",&eta,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix exponential, n=%D.\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix rational function, n=%D.\n",n);CHKERRQ(ierr);
 
-  /* Create exponential function eta*exp(tau*x) */
+  /* Create rational function r(x)=p(x)/q(x) */
   ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
-  ierr = FNSetType(fn,FNEXP);CHKERRQ(ierr);
-  ierr = FNSetScale(fn,tau,eta);CHKERRQ(ierr);
+  ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
+  np = 2; nq = 3;
+  p[0] = -3.1; p[1] = 1.1;
+  q[0] = 1.0; q[1] = -2.0; q[2] = 3.5;
+  ierr = FNRationalSetNumerator(fn,np,p);CHKERRQ(ierr);
+  ierr = FNRationalSetDenominator(fn,nq,q);CHKERRQ(ierr);
+  ierr = FNSetFromOptions(fn);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
@@ -74,7 +77,7 @@ int main(int argc,char **argv)
     ierr = MatView(A,viewer);CHKERRQ(ierr);
   }
 
-  /* Compute matrix exponential */
+  /* Evaluate matrix function */
   ierr = FNEvaluateFunctionMat(fn,A,B);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
@@ -83,19 +86,10 @@ int main(int argc,char **argv)
   ierr = MatNorm(B,NORM_1,&nrm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %g\n",(double)nrm);CHKERRQ(ierr);
 
-  /* Repeat with non-symmetric A */
-  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
-  for (j=1;j<3;j++) {
-    for (i=0;i<n-j;i++) { As[(i+j)+i*n]=-1.0; }
-  }
-  ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
+  /* Repeat with same matrix as non-symmetric */
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = MatView(A,viewer);CHKERRQ(ierr);
-  }
 
-  /* Compute matrix exponential */
+  /* Evaluate matrix function */
   ierr = FNEvaluateFunctionMat(fn,A,B);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
