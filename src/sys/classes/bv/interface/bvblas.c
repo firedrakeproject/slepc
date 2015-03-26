@@ -133,11 +133,12 @@ PetscErrorCode BVMultInPlace_BLAS_Private(BV bv,PetscInt m_,PetscInt k_,PetscInt
 */
 PetscErrorCode BVMultInPlace_Vecs_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,Vec *V,PetscScalar *B,PetscBool btrans)
 {
-  PetscErrorCode ierr;
-  PetscScalar    zero=0.0,one=1.0,*out,*pv;
-  PetscBLASInt   m,n,k,l,bs=BLOCKSIZE;
-  PetscInt       j;
-  const char     *bt;
+  PetscErrorCode    ierr;
+  PetscScalar       zero=0.0,one=1.0,*out,*pout;
+  const PetscScalar *pin;
+  PetscBLASInt      m,n,k,l,bs=BLOCKSIZE;
+  PetscInt          j;
+  const char        *bt;
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
@@ -150,28 +151,28 @@ PetscErrorCode BVMultInPlace_Vecs_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt
   l = m % bs;
   if (l) {
     for (j=0;j<n;j++) {
-      ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
-      ierr = PetscMemcpy(bv->work+j*l,pv,l*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(V[j],&pin);CHKERRQ(ierr);
+      ierr = PetscMemcpy(bv->work+j*l,pin,l*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(V[j],&pin);CHKERRQ(ierr);
     }
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N",bt,&l,&n,&n,&one,bv->work,&l,B,&k,&zero,out,&l));
     for (j=0;j<n;j++) {
-      ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
-      ierr = PetscMemcpy(pv,out+j*l,l*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);
+      ierr = VecGetArray(V[j],&pout);CHKERRQ(ierr);
+      ierr = PetscMemcpy(pout,out+j*l,l*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = VecRestoreArray(V[j],&pout);CHKERRQ(ierr);
     }
   }
   for (;l<m;l+=bs) {
     for (j=0;j<n;j++) {
-      ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
-      ierr = PetscMemcpy(bv->work+j*bs,pv+l,bs*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(V[j],&pin);CHKERRQ(ierr);
+      ierr = PetscMemcpy(bv->work+j*bs,pin+l,bs*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(V[j],&pin);CHKERRQ(ierr);
     }
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N",bt,&bs,&n,&n,&one,bv->work,&bs,B,&k,&zero,out,&bs));
     for (j=0;j<n;j++) {
-      ierr = VecGetArray(V[j],&pv);CHKERRQ(ierr);
-      ierr = PetscMemcpy(pv+l,out+j*bs,bs*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = VecRestoreArray(V[j],&pv);CHKERRQ(ierr);
+      ierr = VecGetArray(V[j],&pout);CHKERRQ(ierr);
+      ierr = PetscMemcpy(pout+l,out+j*bs,bs*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = VecRestoreArray(V[j],&pout);CHKERRQ(ierr);
     }
   }
   ierr = PetscLogFlops(2.0*n*n*k);CHKERRQ(ierr);
@@ -243,7 +244,7 @@ PetscErrorCode BVDot_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,Pets
 
     A is nxk (ld=n)
 */
-PetscErrorCode BVDotVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,PetscScalar *A,PetscScalar *x,PetscScalar *y,PetscBool mpi)
+PetscErrorCode BVDotVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,const PetscScalar *A,const PetscScalar *x,PetscScalar *y,PetscBool mpi)
 {
   PetscErrorCode ierr;
   PetscScalar    zero=0.0,done=1.0;

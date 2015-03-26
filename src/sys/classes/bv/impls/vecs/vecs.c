@@ -315,17 +315,17 @@ PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
 #define __FUNCT__ "BVGetArray_Vecs"
 PetscErrorCode BVGetArray_Vecs(BV bv,PetscScalar **a)
 {
-  PetscErrorCode ierr;
-  BV_VECS        *ctx = (BV_VECS*)bv->data;
-  PetscInt       j;
-  PetscScalar    *p;
+  PetscErrorCode    ierr;
+  BV_VECS           *ctx = (BV_VECS*)bv->data;
+  PetscInt          j;
+  const PetscScalar *p;
 
   PetscFunctionBegin;
   ierr = PetscMalloc((bv->nc+bv->m)*bv->n*sizeof(PetscScalar),a);CHKERRQ(ierr);
   for (j=0;j<bv->nc+bv->m;j++) {
-    ierr = VecGetArray(ctx->V[j],&p);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(ctx->V[j],&p);CHKERRQ(ierr);
     ierr = PetscMemcpy(*a+j*bv->n,p,bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = VecRestoreArray(ctx->V[j],&p);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(ctx->V[j],&p);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

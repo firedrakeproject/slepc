@@ -128,19 +128,19 @@ PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
 #define __FUNCT__ "BVDotVec_Contiguous"
 PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *m)
 {
-  PetscErrorCode ierr;
-  BV_CONTIGUOUS  *x = (BV_CONTIGUOUS*)X->data;
-  PetscScalar    *py;
-  Vec            z = y;
+  PetscErrorCode    ierr;
+  BV_CONTIGUOUS     *x = (BV_CONTIGUOUS*)X->data;
+  const PetscScalar *py;
+  Vec               z = y;
 
   PetscFunctionBegin;
   if (X->matrix) {
     ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
-  ierr = VecGetArray(z,&py);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(z,&py);CHKERRQ(ierr);
   ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,x->array+(X->nc+X->l)*X->n,py,m,x->mpi);CHKERRQ(ierr);
-  ierr = VecRestoreArray(z,&py);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(z,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
