@@ -432,7 +432,7 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
   tol = PetscMax(rs1,deg*cs1)*PETSC_MACHINE_EPSILON*sg[0];
-  for (i=0;i<n;i++) if (sg[i]>tol) rk++;
+  for (i=0;i<PetscMin(n_,nnctdeg);i++) if (sg[i]>tol) rk++;
   rk = PetscMin(nnc+deg-1,rk);
   /* the SVD has rank (atmost) nnc+deg-1 */
   for (i=0;i<rk;i++) {
@@ -781,9 +781,9 @@ static PetscErrorCode PEPLookfordeflation(PEP pep,PetscInt *nl)
   PetscScalar    *H;
 
   PetscFunctionBegin;
+  *nl = 0;
   ierr = DSGetDimensions(pep->ds,&n,NULL,&l,&k,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
-  *nl = 0;
   ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
   for (i=l;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
