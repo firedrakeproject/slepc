@@ -308,7 +308,10 @@ for pkg in checkpackages:
 # Write Modules, pkg-config and CMake configuration files
 log.NewSection('Writing various configuration files...')
 log.write('Modules file in '+modulesdir)
-WriteModulesFile(modules,slepc.lversion,slepc.prefixdir if slepc.isinstall else slepc.dir)
+if slepc.isinstall:
+  WriteModulesFile(modules,slepc.lversion,slepc.prefixdir)
+else:
+  WriteModulesFile(modules,slepc.lversion,slepc.dir)
 log.write('pkg-config file in '+pkgconfdir)
 WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.lversion,slepc.dir,slepc.isinstall,slepc.prefixdir)
 log.write('CMake configure file in '+confdir)

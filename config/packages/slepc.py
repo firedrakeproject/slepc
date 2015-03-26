@@ -21,7 +21,7 @@
 
 import argdb, os, sys, commands
 
-class SLEPc():
+class SLEPc:
 
   def __init__(self,argdb,log):
     self.log       = log
