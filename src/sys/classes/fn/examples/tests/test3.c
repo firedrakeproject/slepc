@@ -46,7 +46,7 @@ int main(int argc,char **argv)
   /* Create exponential function eta*exp(tau*x) */
   ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
   ierr = FNSetType(fn,FNEXP);CHKERRQ(ierr);
-  ierr = FNSetParameters(fn,1,&tau,1,&eta);CHKERRQ(ierr);
+  ierr = FNSetScale(fn,tau,eta);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
@@ -69,6 +69,27 @@ int main(int argc,char **argv)
   }
   ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n");CHKERRQ(ierr);
+    ierr = MatView(A,viewer);CHKERRQ(ierr);
+  }
+
+  /* Compute matrix exponential */
+  ierr = FNEvaluateFunctionMat(fn,A,B);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
+    ierr = MatView(B,viewer);CHKERRQ(ierr);
+  }
+  ierr = MatNorm(B,NORM_1,&nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %g\n",(double)nrm);CHKERRQ(ierr);
+
+  /* Repeat with non-symmetric A */
+  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+  for (j=1;j<3;j++) {
+    for (i=0;i<n-j;i++) { As[(i+j)+i*n]=-1.0; }
+  }
+  ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
+  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n");CHKERRQ(ierr);
     ierr = MatView(A,viewer);CHKERRQ(ierr);

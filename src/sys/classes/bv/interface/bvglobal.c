@@ -183,6 +183,115 @@ PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar *m)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVDotVecBegin"
+/*@
+   BVDotVecBegin - Starts a split phase dot product computation.
+
+   Input Parameters:
++  X - basis vectors
+.  y - a vector
+-  m - an array where the result will go (can be NULL)
+
+   Note:
+   Each call to BVDotVecBegin() should be paired with a call to BVDotVecEnd().
+
+   Level: advanced
+
+.seealso: BVDotVecEnd(), BVDotVec()
+@*/
+PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
+{
+  PetscErrorCode      ierr;
+  PetscInt            i,n,nv;
+  PetscSplitReduction *sr;
+  MPI_Comm            comm;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,2);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+  PetscValidType(y,2);
+  PetscCheckSameTypeAndComm(X,1,y,2);
+
+  ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
+  if (X->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, y %D",X->n,n);
+
+  if (X->ops->dotvec_begin) {
+    ierr = (*X->ops->dotvec_begin)(X,y,m);CHKERRQ(ierr);
+  } else {
+    nv = X->k-X->l;
+    ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    if (sr->state != STATE_BEGIN) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
+    for (i=0;i<nv;i++) {
+      if (sr->numopsbegin+i >= sr->maxops) {
+        ierr = PetscSplitReductionExtend(sr);CHKERRQ(ierr);
+      }
+      sr->reducetype[sr->numopsbegin+i] = REDUCE_SUM;
+      sr->invecs[sr->numopsbegin+i]     = (void*)X;
+    }
+    ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+    ierr = (*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin);CHKERRQ(ierr);
+    sr->numopsbegin += nv;
+    ierr = PetscLogEventEnd(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVDotVecEnd"
+/*@
+   BVDotVecEnd - Ends a split phase dot product computation.
+
+   Input Parameters:
++  X - basis vectors
+.  y - a vector
+-  m - an array where the result will go
+
+   Note:
+   Each call to BVDotVecBegin() should be paired with a call to BVDotVecEnd().
+
+   Level: advanced
+
+.seealso: BVDotVecBegin(), BVDotVec()
+@*/
+PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
+{
+  PetscErrorCode      ierr;
+  PetscInt            i,nv;
+  PetscSplitReduction *sr;
+  MPI_Comm            comm;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+
+  if (X->ops->dotvec_end) {
+    ierr = (*X->ops->dotvec_end)(X,y,m);CHKERRQ(ierr);
+  } else {
+    nv = X->k-X->l;
+    ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    ierr = PetscSplitReductionEnd(sr);CHKERRQ(ierr);
+
+    if (sr->numopsend >= sr->numopsbegin) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times than VecxxxBegin()");
+    if ((void*)X != sr->invecs[sr->numopsend]) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called BVxxxEnd() in a different order or with a different BV than BVxxxBegin()");
+    if (sr->reducetype[sr->numopsend] != REDUCE_SUM) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Wrong type of reduction");
+    for (i=0;i<nv;i++) m[i] = sr->gvalues[sr->numopsend++];
+
+    /* Finished getting all the results so reset to no outstanding requests */
+    if (sr->numopsend == sr->numopsbegin) {
+      sr->state       = STATE_BEGIN;
+      sr->numopsend   = 0;
+      sr->numopsbegin = 0;
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDotColumn"
 /*@
    BVDotColumn - Computes multiple dot products of a column against all the
@@ -236,6 +345,129 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *m)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVDotColumnBegin"
+/*@
+   BVDotColumnBegin - Starts a split phase dot product computation.
+
+   Input Parameters:
++  X - basis vectors
+-  j - the column index
+-  m - an array where the result will go (can be NULL)
+
+   Note:
+   Each call to BVDotColumnBegin() should be paired with a call to BVDotColumnEnd().
+
+   Level: advanced
+
+.seealso: BVDotColumnEnd(), BVDotColumn()
+@*/
+PetscErrorCode BVDotColumnBegin(BV X,PetscInt j,PetscScalar *m)
+{
+  PetscErrorCode      ierr;
+  PetscInt            i,nv,ksave;
+  PetscSplitReduction *sr;
+  MPI_Comm            comm;
+  Vec                 y;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(X,j,2);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
+  ksave = X->k;
+  X->k = j;
+  ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
+
+  if (X->ops->dotvec_begin) {
+    ierr = (*X->ops->dotvec_begin)(X,y,m);CHKERRQ(ierr);
+  } else {
+    nv = X->k-X->l;
+    ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    if (sr->state != STATE_BEGIN) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
+    for (i=0;i<nv;i++) {
+      if (sr->numopsbegin+i >= sr->maxops) {
+        ierr = PetscSplitReductionExtend(sr);CHKERRQ(ierr);
+      }
+      sr->reducetype[sr->numopsbegin+i] = REDUCE_SUM;
+      sr->invecs[sr->numopsbegin+i]     = (void*)X;
+    }
+    ierr = PetscLogEventBegin(BV_Dot,X,0,0,0);CHKERRQ(ierr);
+    ierr = (*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin);CHKERRQ(ierr);
+    sr->numopsbegin += nv;
+    ierr = PetscLogEventEnd(BV_Dot,X,0,0,0);CHKERRQ(ierr);
+  }
+  ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
+  X->k = ksave;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVDotColumnEnd"
+/*@
+   BVDotColumnEnd - Ends a split phase dot product computation.
+
+   Input Parameters:
++  X - basis vectors
+-  j - the column index
+-  m - an array where the result will go
+
+   Note:
+   Each call to BVDotColumnBegin() should be paired with a call to BVDotColumnEnd().
+
+   Level: advanced
+
+.seealso: BVDotColumnBegin(), BVDotColumn()
+@*/
+PetscErrorCode BVDotColumnEnd(BV X,PetscInt j,PetscScalar *m)
+{
+  PetscErrorCode      ierr;
+  PetscInt            i,nv,ksave;
+  PetscSplitReduction *sr;
+  MPI_Comm            comm;
+  Vec                 y;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(X,j,2);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
+  ksave = X->k;
+  X->k = j;
+
+  if (X->ops->dotvec_end) {
+    ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
+    ierr = (*X->ops->dotvec_end)(X,y,m);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
+  } else {
+    nv = X->k-X->l;
+    ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    ierr = PetscSplitReductionEnd(sr);CHKERRQ(ierr);
+
+    if (sr->numopsend >= sr->numopsbegin) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times than VecxxxBegin()");
+    if ((void*)X != sr->invecs[sr->numopsend]) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called BVxxxEnd() in a different order or with a different BV than BVxxxBegin()");
+    if (sr->reducetype[sr->numopsend] != REDUCE_SUM) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Wrong type of reduction");
+    for (i=0;i<nv;i++) m[i] = sr->gvalues[sr->numopsend++];
+
+    /* Finished getting all the results so reset to no outstanding requests */
+    if (sr->numopsend == sr->numopsbegin) {
+      sr->state       = STATE_BEGIN;
+      sr->numopsend   = 0;
+      sr->numopsbegin = 0;
+    }
+  }
+  X->k = ksave;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVNorm_Private"
 PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,PetscReal *val)
 {
@@ -243,9 +475,43 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,Pets
   PetscScalar    p;
 
   PetscFunctionBegin;
-  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
   ierr = BV_IPMatMult(bv,z);CHKERRQ(ierr);
   ierr = VecDot(bv->Bx,z,&p);CHKERRQ(ierr);
+  if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
+    ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
+  if (bv->indef) {
+    if (PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
+    if (PetscRealPart(p)<0.0) *val = -PetscSqrtScalar(-PetscRealPart(p));
+    else *val = PetscSqrtScalar(PetscRealPart(p));
+  } else { 
+    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
+    *val = PetscSqrtScalar(PetscRealPart(p));
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNorm_Begin_Private"
+PETSC_STATIC_INLINE PetscErrorCode BVNorm_Begin_Private(BV bv,Vec z,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  ierr = BV_IPMatMult(bv,z);CHKERRQ(ierr);
+  ierr = VecDotBegin(bv->Bx,z,&p);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNorm_End_Private"
+PETSC_STATIC_INLINE PetscErrorCode BVNorm_End_Private(BV bv,Vec z,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  ierr = VecDotEnd(bv->Bx,z,&p);CHKERRQ(ierr);
   if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
     ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
   if (bv->indef) {
@@ -295,7 +561,7 @@ PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  if (type==NORM_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+  if (type==NORM_2 || type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
   if (bv->matrix) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Matrix norm not available for non-standard inner product");
 
   ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
@@ -332,6 +598,7 @@ PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
 PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
+  PetscInt       n;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -340,15 +607,106 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
   PetscValidPointer(val,4);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
+  PetscValidType(v,2);
   PetscCheckSameComm(bv,1,v,2);
+
+  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
   ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
+    ierr = VecGetLocalSize(v,&n);CHKERRQ(ierr);
+    if (bv->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension bv %D, v %D",bv->n,n);
     ierr = BVNorm_Private(bv,v,type,val);CHKERRQ(ierr);
   } else {
     ierr = VecNorm(v,type,val);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNormVecBegin"
+/*@
+   BVNormVecBegin - Starts a split phase norm computation.
+
+   Input Parameters:
++  bv   - basis vectors
+.  v    - the vector
+.  type - the norm type
+-  val  - the norm
+
+   Note:
+   Each call to BVNormVecBegin() should be paired with a call to BVNormVecEnd().
+
+   Level: advanced
+
+.seealso: BVNormVecEnd(), BVNormVec()
+@*/
+PetscErrorCode BVNormVecBegin(BV bv,Vec v,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  PetscInt       n;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidHeaderSpecific(v,VEC_CLASSID,2);
+  PetscValidLogicalCollectiveEnum(bv,type,3);
+  PetscValidPointer(val,4);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  PetscValidType(v,2);
+  PetscCheckSameTypeAndComm(bv,1,v,2);
+
+  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+
+  ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  if (bv->matrix) { /* non-standard inner product */
+    ierr = VecGetLocalSize(v,&n);CHKERRQ(ierr);
+    if (bv->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension bv %D, v %D",bv->n,n);
+    ierr = BVNorm_Begin_Private(bv,v,type,val);CHKERRQ(ierr);
+  } else {
+    ierr = VecNormBegin(v,type,val);CHKERRQ(ierr);
+  }
+  ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNormVecEnd"
+/*@
+   BVNormVecEnd - Ends a split phase norm computation.
+
+   Input Parameters:
++  bv   - basis vectors
+.  v    - the vector
+.  type - the norm type
+-  val  - the norm
+
+   Note:
+   Each call to BVNormVecBegin() should be paired with a call to BVNormVecEnd().
+
+   Level: advanced
+
+.seealso: BVNormVecBegin(), BVNormVec()
+@*/
+PetscErrorCode BVNormVecEnd(BV bv,Vec v,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(bv,type,3);
+  PetscValidPointer(val,4);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+
+  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+
+  if (bv->matrix) { /* non-standard inner product */
+    ierr = BVNorm_End_Private(bv,v,type,val);CHKERRQ(ierr);
+  } else {
+    ierr = VecNormEnd(v,type,val);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -389,7 +747,9 @@ PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscValidPointer(val,4);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
+
   if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
+  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
   ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
@@ -400,6 +760,128 @@ PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
     ierr = (*bv->ops->norm)(bv,j,type,val);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNormColumnBegin"
+/*@
+   BVNormColumnBegin - Starts a split phase norm computation.
+
+   Input Parameters:
++  bv   - basis vectors
+.  j    - column number to be used
+.  type - the norm type
+-  val  - the norm
+
+   Note:
+   Each call to BVNormColumnBegin() should be paired with a call to BVNormColumnEnd().
+
+   Level: advanced
+
+.seealso: BVNormColumnEnd(), BVNormColumn()
+@*/
+PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  PetscErrorCode      ierr;
+  PetscSplitReduction *sr;
+  PetscReal           lresult;
+  MPI_Comm            comm;
+  Vec                 z;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(bv,j,2);
+  PetscValidLogicalCollectiveEnum(bv,type,3);
+  PetscValidPointer(val,4);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+
+  if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
+  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+
+  ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  ierr = BVGetColumn(bv,j,&z);CHKERRQ(ierr);
+  if (bv->matrix) { /* non-standard inner product */
+    ierr = BVNorm_Begin_Private(bv,z,type,val);CHKERRQ(ierr);
+  } else if (bv->ops->norm_begin) {
+    ierr = (*bv->ops->norm_begin)(bv,j,type,val);CHKERRQ(ierr);
+  } else {
+    ierr = PetscObjectGetComm((PetscObject)z,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    if (sr->state != STATE_BEGIN) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
+    if (sr->numopsbegin >= sr->maxops) {
+      ierr = PetscSplitReductionExtend(sr);CHKERRQ(ierr);
+    }
+    sr->invecs[sr->numopsbegin] = (void*)bv;
+    ierr = (*bv->ops->norm_local)(bv,j,type,&lresult);CHKERRQ(ierr);
+    if (type == NORM_2) lresult = lresult*lresult;
+    else if (type == NORM_MAX) sr->reducetype[sr->numopsbegin] = REDUCE_MAX;
+    else sr->reducetype[sr->numopsbegin] = REDUCE_SUM;
+    sr->lvalues[sr->numopsbegin++] = lresult;
+  }
+  ierr = BVRestoreColumn(bv,j,&z);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNormColumnEnd"
+/*@
+   BVNormColumnEnd - Ends a split phase norm computation.
+
+   Input Parameters:
++  bv   - basis vectors
+.  j    - column number to be used
+.  type - the norm type
+-  val  - the norm
+
+   Note:
+   Each call to BVNormColumnBegin() should be paired with a call to BVNormColumnEnd().
+
+   Level: advanced
+
+.seealso: BVNormColumnBegin(), BVNormColumn()
+@*/
+PetscErrorCode BVNormColumnEnd(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  PetscErrorCode      ierr;
+  PetscSplitReduction *sr;
+  MPI_Comm            comm;
+  Vec                 z;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(bv,j,2);
+  PetscValidLogicalCollectiveEnum(bv,type,3);
+  PetscValidPointer(val,4);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+
+  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+
+  ierr = BVGetColumn(bv,j,&z);CHKERRQ(ierr);
+  if (bv->matrix) { /* non-standard inner product */
+    ierr = BVNorm_End_Private(bv,z,type,val);CHKERRQ(ierr);
+  } else if (bv->ops->norm_end) {
+    ierr = (*bv->ops->norm_end)(bv,j,type,val);CHKERRQ(ierr);
+  } else {
+    ierr = PetscObjectGetComm((PetscObject)z,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    ierr = PetscSplitReductionEnd(sr);CHKERRQ(ierr);
+
+    if (sr->numopsend >= sr->numopsbegin) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times then VecxxxBegin()");
+    if ((void*)bv != sr->invecs[sr->numopsend]) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() in a different order or with a different vector than VecxxxBegin()");
+    if (sr->reducetype[sr->numopsend] != REDUCE_MAX && type == NORM_MAX) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called BVNormEnd(,NORM_MAX,) on a reduction started with VecDotBegin() or NORM_1 or NORM_2");
+    *val = PetscRealPart(sr->gvalues[sr->numopsend++]);
+    if (type == NORM_2) *val = PetscSqrtReal(*val);
+    if (sr->numopsend == sr->numopsbegin) {
+      sr->state       = STATE_BEGIN;
+      sr->numopsend   = 0;
+      sr->numopsbegin = 0;
+    }
+  }
+  ierr = BVRestoreColumn(bv,j,&z);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

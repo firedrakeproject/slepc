@@ -287,7 +287,7 @@ testtest10: test10.PETSc
            echo "C/C++ example src/eps/examples/tests/test10 run successfully with 1 MPI process"; \
 	   else echo "Possible error running C/C++ src/eps/examples/tests/test10 with 1 MPI process"; \
            cat test10_1.tmp; ok=1; fi; \
-	   if [ "${MPIEXEC}" != "${PETSC_DIR}/bin/mpiexec.uni" ]; then \
+	   if [ "${MPIEXEC}" != "${PETSC_DIR}/bin/petsc-mpiexec.uni" ]; then \
            ${MPIEXEC} -np 2 ./test10 -eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude > test10_1.tmp 2>&1; \
 	   if (${DIFF} output/test10_1_ks.out test10_1.tmp > /dev/null 2>&1) then \
            echo "C/C++ example src/eps/examples/tests/test10 run successfully with 2 MPI process"; \

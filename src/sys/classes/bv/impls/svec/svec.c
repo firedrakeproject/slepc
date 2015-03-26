@@ -165,6 +165,28 @@ PetscErrorCode BVDotVec_Svec(BV X,Vec y,PetscScalar *m)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVDotVec_Local_Svec"
+PetscErrorCode BVDotVec_Local_Svec(BV X,Vec y,PetscScalar *m)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *x = (BV_SVEC*)X->data;
+  PetscScalar    *px,*py;
+  Vec            z = y;
+
+  PetscFunctionBegin;
+  if (X->matrix) {
+    ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
+    z = X->Bx;
+  }
+  ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
+  ierr = VecGetArray(z,&py);CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+(X->nc+X->l)*X->n,py,m,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = VecRestoreArray(z,&py);CHKERRQ(ierr);
+  ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVScale_Svec"
 PetscErrorCode BVScale_Svec(BV bv,PetscInt j,PetscScalar alpha)
 {
@@ -197,6 +219,25 @@ PetscErrorCode BVNorm_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
     ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
   } else {
     ierr = BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
+  }
+  ierr = VecRestoreArray(ctx->v,&array);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNorm_Local_Svec"
+PetscErrorCode BVNorm_Local_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *ctx = (BV_SVEC*)bv->data;
+  PetscScalar    *array;
+
+  PetscFunctionBegin;
+  ierr = VecGetArray(ctx->v,&array);CHKERRQ(ierr);
+  if (j<0) {
+    ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE);CHKERRQ(ierr);
+  } else {
+    ierr = BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE);CHKERRQ(ierr);
   }
   ierr = VecRestoreArray(ctx->v,&array);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -438,8 +479,10 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   bv->ops->axpy             = BVAXPY_Svec;
   bv->ops->dot              = BVDot_Svec;
   bv->ops->dotvec           = BVDotVec_Svec;
+  bv->ops->dotvec_local     = BVDotVec_Local_Svec;
   bv->ops->scale            = BVScale_Svec;
   bv->ops->norm             = BVNorm_Svec;
+  bv->ops->norm_local       = BVNorm_Local_Svec;
   /*bv->ops->orthogonalize    = BVOrthogonalize_Svec;*/
   bv->ops->matmult          = BVMatMult_Svec;
   bv->ops->copy             = BVCopy_Svec;

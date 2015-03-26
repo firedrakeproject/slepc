@@ -40,8 +40,14 @@ struct _BVOps {
   PetscErrorCode (*axpy)(BV,PetscScalar,BV);
   PetscErrorCode (*dot)(BV,BV,Mat);
   PetscErrorCode (*dotvec)(BV,Vec,PetscScalar*);
+  PetscErrorCode (*dotvec_local)(BV,Vec,PetscScalar*);
+  PetscErrorCode (*dotvec_begin)(BV,Vec,PetscScalar*);
+  PetscErrorCode (*dotvec_end)(BV,Vec,PetscScalar*);
   PetscErrorCode (*scale)(BV,PetscInt,PetscScalar);
   PetscErrorCode (*norm)(BV,PetscInt,NormType,PetscReal*);
+  PetscErrorCode (*norm_local)(BV,PetscInt,NormType,PetscReal*);
+  PetscErrorCode (*norm_begin)(BV,PetscInt,NormType,PetscReal*);
+  PetscErrorCode (*norm_end)(BV,PetscInt,NormType,PetscReal*);
   PetscErrorCode (*orthogonalize)(BV,Mat);
   PetscErrorCode (*matmult)(BV,Mat,BV);
   PetscErrorCode (*copy)(BV,BV);
