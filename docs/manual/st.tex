@@ -243,7 +243,7 @@ Using the \ident{ST} object is very straightforward. However, when using spectra
 \end{Verbatim}
 In this case, the \ident{ST} object associated with the \ident{EPS} solver creates a \ident{KSP} object whose coefficient matrix is $B$. By default, this \ident{KSP} object is set to use a direct solver\footnote{This is the default since \slepc 3.0.0.}, in particular an LU factorization. However, default settings can be changed, as illustrated below.
 
-	The following command-line is equivalent to the previous one\footnote{More precisely, the equivalent command would use the \texttt{redundant} \texttt{PC} in order to work in parallel.}:
+	The following command-line is equivalent to the previous one:
 \begin{Verbatim}[fontsize=\small]
 	$ ./program -st_ksp_type preonly -st_pc_type lu
 \end{Verbatim}
@@ -252,7 +252,7 @@ The two options specify the type of the linear solver and preconditioner to be u
 	$ ./program -st_ksp_type preonly -st_pc_type lu
                     -st_pc_factor_mat_solver_package mumps
 \end{Verbatim}
-In this case, an external linear solver package is used (MUMPS, see \petsc's documentation for other available packages). Note that an external package is required for a truly parallel direct linear solver.
+In this case, an external linear solver package is used (MUMPS, see \petsc's documentation for other available packages). Note that an external package is required for computing a matrix factorization in parallel, since \petsc itself only provides sequential direct linear solvers.
 
 	Instead of a direct linear solver, it is possible to use an iterative solver. This may be necessary in some cases, specially for very large problems. However, the user is warned that using an iterative linear solver makes the overall solution process less robust (see also the discussion of preconditioned eigensolvers below). As an example, the command-line
 \begin{Verbatim}[fontsize=\small]

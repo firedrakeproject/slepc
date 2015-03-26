@@ -326,7 +326,7 @@ PetscErrorCode STSetFromOptions_Shell(PetscOptions *PetscOptionsObject,ST st)
     } else {
       /* use direct solver as default */
       ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
