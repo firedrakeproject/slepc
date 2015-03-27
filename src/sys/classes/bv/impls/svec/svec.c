@@ -32,19 +32,20 @@ typedef struct {
 #define __FUNCT__ "BVMult_Svec"
 PetscErrorCode BVMult_Svec(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
-  PetscErrorCode ierr;
-  BV_SVEC        *y = (BV_SVEC*)Y->data,*x = (BV_SVEC*)X->data;
-  PetscScalar    *px,*py,*q;
-  PetscInt       ldq;
+  PetscErrorCode    ierr;
+  BV_SVEC           *y = (BV_SVEC*)Y->data,*x = (BV_SVEC*)X->data;
+  const PetscScalar *px;
+  PetscScalar       *py,*q;
+  PetscInt          ldq;
 
   PetscFunctionBegin;
   ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
-  ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y->v,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
   ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,px+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
-  ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(x->v,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y->v,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -125,20 +126,21 @@ PetscErrorCode BVAXPY_Svec(BV Y,PetscScalar alpha,BV X)
 #define __FUNCT__ "BVDot_Svec"
 PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
 {
-  PetscErrorCode ierr;
-  BV_SVEC        *x = (BV_SVEC*)X->data,*y = (BV_SVEC*)Y->data;
-  PetscScalar    *px,*py,*m;
-  PetscInt       ldm;
+  PetscErrorCode    ierr;
+  BV_SVEC           *x = (BV_SVEC*)X->data,*y = (BV_SVEC*)Y->data;
+  const PetscScalar *px,*py;
+  PetscScalar       *m;
+  PetscInt          ldm;
 
   PetscFunctionBegin;
   ierr = MatGetSize(M,&ldm,NULL);CHKERRQ(ierr);
-  ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
-  ierr = VecGetArray(y->v,&py);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(x->v,&px);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(y->v,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
   ierr = BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,X->n,ldm,py+(Y->nc+Y->l)*Y->n,px+(X->nc+X->l)*X->n,m+X->l*ldm+Y->l,x->mpi);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
-  ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
-  ierr = VecRestoreArray(y->v,&py);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(x->v,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(y->v,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -146,21 +148,21 @@ PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
 #define __FUNCT__ "BVDotVec_Svec"
 PetscErrorCode BVDotVec_Svec(BV X,Vec y,PetscScalar *m)
 {
-  PetscErrorCode ierr;
-  BV_SVEC        *x = (BV_SVEC*)X->data;
-  PetscScalar    *px,*py;
-  Vec            z = y;
+  PetscErrorCode    ierr;
+  BV_SVEC           *x = (BV_SVEC*)X->data;
+  const PetscScalar *px,*py;
+  Vec               z = y;
 
   PetscFunctionBegin;
   if (X->matrix) {
     ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
-  ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
-  ierr = VecGetArray(z,&py);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(x->v,&px);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(z,&py);CHKERRQ(ierr);
   ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+(X->nc+X->l)*X->n,py,m,x->mpi);CHKERRQ(ierr);
-  ierr = VecRestoreArray(z,&py);CHKERRQ(ierr);
-  ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(z,&py);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(x->v,&px);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

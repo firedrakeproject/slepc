@@ -141,6 +141,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   } 
   if (st->P) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+    ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   }
@@ -207,7 +208,7 @@ PetscErrorCode STSetFromOptions_Sinvert(PetscOptions *PetscOptionsObject,ST st)
     } else {
       /* use direct solver as default */
       ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

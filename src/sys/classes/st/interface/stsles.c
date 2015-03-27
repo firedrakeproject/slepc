@@ -263,6 +263,28 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "STCheckFactorPackage"
+PetscErrorCode STCheckFactorPackage(ST st)
+{
+  PetscErrorCode         ierr;
+  PC                     pc;
+  PetscMPIInt            size;
+  PetscBool              flg;
+  const MatSolverPackage stype;
+
+  PetscFunctionBegin;
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)st),&size);CHKERRQ(ierr);
+  if (size==1) PetscFunctionReturn(0);
+  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
+  ierr = PCFactorGetMatSolverPackage(pc,&stype);CHKERRQ(ierr);
+  if (stype) {   /* currently selected PC is a factorization */
+    ierr = PetscStrcmp(stype,MATSOLVERPETSC,&flg);CHKERRQ(ierr);
+    if (flg) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"You chose to solve linear systems with a factorization, but in parallel runs you need to select an external package; see the users guide for details");
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "STSetKSP"
 /*@
    STSetKSP - Sets the KSP object associated with the spectral

@@ -146,10 +146,11 @@ PetscErrorCode BVDot_Mat(BV X,BV Y,Mat M)
 #define __FUNCT__ "BVDotVec_Mat"
 PetscErrorCode BVDotVec_Mat(BV X,Vec y,PetscScalar *m)
 {
-  PetscErrorCode ierr;
-  BV_MAT         *x = (BV_MAT*)X->data;
-  PetscScalar    *px,*py;
-  Vec            z = y;
+  PetscErrorCode    ierr;
+  BV_MAT            *x = (BV_MAT*)X->data;
+  PetscScalar       *px;
+  const PetscScalar *py;
+  Vec               z = y;
 
   PetscFunctionBegin;
   if (X->matrix) {
@@ -157,9 +158,9 @@ PetscErrorCode BVDotVec_Mat(BV X,Vec y,PetscScalar *m)
     z = X->Bx;
   }
   ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
-  ierr = VecGetArray(z,&py);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(z,&py);CHKERRQ(ierr);
   ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+(X->nc+X->l)*X->n,py,m,x->mpi);CHKERRQ(ierr);
-  ierr = VecRestoreArray(z,&py);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(z,&py);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
