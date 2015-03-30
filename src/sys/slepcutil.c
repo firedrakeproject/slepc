@@ -460,7 +460,7 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcCheckOrthogonality"
-/*@
+/*@C
    SlepcCheckOrthogonality - Checks (or prints) the level of orthogonality
    of a set of vectors.
 

@@ -48,15 +48,15 @@ static char help[] = "Delay differential equation.\n\n"
 int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */
-  PetscScalar    kr,ki;           /* eigenvalue */
   Mat            Id,A,B;          /* problem matrices */
   FN             f1,f2,f3;        /* functions to define the nonlinear operator */
   Mat            mats[3];
   FN             funs[3];
   NEPType        type;
   PetscScalar    coeffs[2],b;
-  PetscInt       n=128,nev,Istart,Iend,i,its,nconv;
-  PetscReal      tau=0.001,h,a=20,xi,re,im,norm;
+  PetscInt       n=128,nev,Istart,Iend,i,its;
+  PetscReal      tau=0.001,h,a=20,xi;
+  PetscBool      terse;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -127,17 +127,16 @@ int main(int argc,char **argv)
   ierr = FNCreate(PETSC_COMM_WORLD,&f1);CHKERRQ(ierr);
   ierr = FNSetType(f1,FNRATIONAL);CHKERRQ(ierr);
   coeffs[0] = -1.0; coeffs[1] = 0.0;
-  ierr = FNSetParameters(f1,2,coeffs,0,NULL);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(f1,2,coeffs);CHKERRQ(ierr);
 
   ierr = FNCreate(PETSC_COMM_WORLD,&f2);CHKERRQ(ierr);
   ierr = FNSetType(f2,FNRATIONAL);CHKERRQ(ierr);
   coeffs[0] = 1.0;
-  ierr = FNSetParameters(f2,1,coeffs,0,NULL);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(f2,1,coeffs);CHKERRQ(ierr);
 
   ierr = FNCreate(PETSC_COMM_WORLD,&f3);CHKERRQ(ierr);
   ierr = FNSetType(f3,FNEXP);CHKERRQ(ierr);
-  coeffs[0] = -tau;
-  ierr = FNSetParameters(f3,1,coeffs,0,NULL);CHKERRQ(ierr);
+  ierr = FNSetScale(f3,-tau,1.0);CHKERRQ(ierr);
 
   /*
      Set the split operator. Note that A is passed first so that
@@ -181,38 +180,15 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /*
-     Get number of converged approximate eigenpairs
-  */
-  ierr = NEPGetConverged(nep,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %D\n\n",nconv);CHKERRQ(ierr);
-
-  if (nconv>0) {
-    /*
-       Display eigenvalues and relative errors
-    */
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k              ||T(k)x||\n"
-         "   ----------------- ------------------\n");CHKERRQ(ierr);
-    for (i=0;i<nconv;i++) {
-      ierr = NEPGetEigenpair(nep,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-      ierr = NEPComputeRelativeError(nep,i,&norm);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-      im = PetscImaginaryPart(kr);
-#else
-      re = kr;
-      im = ki;
-#endif
-      if (im!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12g\n",(double)re,(double)im,(double)norm);CHKERRQ(ierr);
-      } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f         %12g\n",(double)re,(double)norm);CHKERRQ(ierr);
-      }
-    }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+  /* show detailed info unless -terse option is given by user */
+  ierr = PetscOptionsHasName(NULL,"-terse",&terse);CHKERRQ(ierr);
+  if (terse) {
+    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
   }
-
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
   ierr = MatDestroy(&Id);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);

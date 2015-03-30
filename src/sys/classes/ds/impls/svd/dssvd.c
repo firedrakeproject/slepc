@@ -183,7 +183,7 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   if (!ds->sc) PetscFunctionReturn(0);
   l = ds->l;
   n = PetscMin(ds->n,ds->m);
-  A  = ds->mat[DS_MAT_A];
+  A = ds->mat[DS_MAT_A];
   d = ds->rmat[DS_MAT_T];
   perm = ds->perm;
   if (!rr) {

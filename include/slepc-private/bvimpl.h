@@ -25,6 +25,9 @@
 #include <slepcbv.h>
 #include <slepc-private/slepcimpl.h>
 
+PETSC_EXTERN PetscBool BVRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode BVRegisterAll(void);
+
 PETSC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_Dot,BV_Orthogonalize,BV_Scale,BV_Norm,BV_SetRandom,BV_MatMult,BV_MatProject,BV_AXPY;
 
 typedef struct _BVOps *BVOps;
@@ -37,8 +40,14 @@ struct _BVOps {
   PetscErrorCode (*axpy)(BV,PetscScalar,BV);
   PetscErrorCode (*dot)(BV,BV,Mat);
   PetscErrorCode (*dotvec)(BV,Vec,PetscScalar*);
+  PetscErrorCode (*dotvec_local)(BV,Vec,PetscScalar*);
+  PetscErrorCode (*dotvec_begin)(BV,Vec,PetscScalar*);
+  PetscErrorCode (*dotvec_end)(BV,Vec,PetscScalar*);
   PetscErrorCode (*scale)(BV,PetscInt,PetscScalar);
   PetscErrorCode (*norm)(BV,PetscInt,NormType,PetscReal*);
+  PetscErrorCode (*norm_local)(BV,PetscInt,NormType,PetscReal*);
+  PetscErrorCode (*norm_begin)(BV,PetscInt,NormType,PetscReal*);
+  PetscErrorCode (*norm_end)(BV,PetscInt,NormType,PetscReal*);
   PetscErrorCode (*orthogonalize)(BV,Mat);
   PetscErrorCode (*matmult)(BV,Mat,BV);
   PetscErrorCode (*copy)(BV,BV);
@@ -47,7 +56,6 @@ struct _BVOps {
   PetscErrorCode (*restorecolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*getarray)(BV,PetscScalar**);
   PetscErrorCode (*restorearray)(BV,PetscScalar**);
-  PetscErrorCode (*setfromoptions)(BV);
   PetscErrorCode (*create)(BV);
   PetscErrorCode (*view)(BV,PetscViewer);
   PetscErrorCode (*destroy)(BV);
@@ -70,8 +78,8 @@ struct _p_BV {
 
   /*---------------------- Cached data and workspace -------------------*/
   Vec                Bx;           /* result of matrix times a vector x */
-  PetscInt           xid;          /* object id of vector x */
-  PetscInt           xstate;       /* state of vector x */
+  PetscObjectId      xid;          /* object id of vector x */
+  PetscObjectState   xstate;       /* state of vector x */
   Vec                cv[2];        /* column vectors obtained with BVGetColumn() */
   PetscInt           ci[2];        /* column indices of obtained vectors */
   PetscObjectState   st[2];        /* state of obtained vectors */
@@ -164,15 +172,15 @@ PETSC_INTERN PetscErrorCode BVView_Vecs(BV,PetscViewer);
 
 PETSC_INTERN PetscErrorCode BVAllocateWork_Private(BV,PetscInt);
 
-PETSC_INTERN PetscErrorCode BVMult_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*,PetscScalar,PetscScalar*);
-PETSC_INTERN PetscErrorCode BVMultVec_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*,PetscScalar,PetscScalar*);
-PETSC_INTERN PetscErrorCode BVMultInPlace_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscBool);
-PETSC_INTERN PetscErrorCode BVMultInPlace_Vecs_Private(BV,PetscInt,PetscInt,PetscInt,Vec*,PetscScalar*,PetscBool);
-PETSC_INTERN PetscErrorCode BVAXPY_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,PetscScalar*,PetscScalar*);
-PETSC_INTERN PetscErrorCode BVDot_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscBool);
-PETSC_INTERN PetscErrorCode BVDotVec_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*,PetscBool);
+PETSC_INTERN PetscErrorCode BVMult_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar,const PetscScalar*,const PetscScalar*,PetscScalar,PetscScalar*);
+PETSC_INTERN PetscErrorCode BVMultVec_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,const PetscScalar*,PetscScalar,PetscScalar*);
+PETSC_INTERN PetscErrorCode BVMultInPlace_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,const PetscScalar*,PetscBool);
+PETSC_INTERN PetscErrorCode BVMultInPlace_Vecs_Private(BV,PetscInt,PetscInt,PetscInt,Vec*,const PetscScalar*,PetscBool);
+PETSC_INTERN PetscErrorCode BVAXPY_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscScalar*);
+PETSC_INTERN PetscErrorCode BVDot_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,const PetscScalar*,const PetscScalar*,PetscScalar*,PetscBool);
+PETSC_INTERN PetscErrorCode BVDotVec_BLAS_Private(BV,PetscInt,PetscInt,const PetscScalar*,const PetscScalar*,PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode BVScale_BLAS_Private(BV,PetscInt,PetscScalar*,PetscScalar);
-PETSC_INTERN PetscErrorCode BVNorm_LAPACK_Private(BV,PetscInt,PetscInt,PetscScalar*,NormType,PetscReal*,PetscBool);
+PETSC_INTERN PetscErrorCode BVNorm_LAPACK_Private(BV,PetscInt,PetscInt,const PetscScalar*,NormType,PetscReal*,PetscBool);
 PETSC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_Private(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscBool);
 
 #endif

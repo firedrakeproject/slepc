@@ -42,6 +42,7 @@ PetscErrorCode BVRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (BVRegisterAllCalled) PetscFunctionReturn(0);
   BVRegisterAllCalled = PETSC_TRUE;
   ierr = BVRegister(BVVECS,BVCreate_Vecs);CHKERRQ(ierr);
   ierr = BVRegister(BVCONTIGUOUS,BVCreate_Contiguous);CHKERRQ(ierr);

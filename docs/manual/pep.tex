@@ -185,7 +185,7 @@ PEPSolve( pep );
 PEPGetConverged( pep, &nconv );
 for (j=0; j<nconv; j++) {
   PEPGetEigenpair( pep, j, &kr, &ki, xr, xi );
-  PEPComputeRelativeError( pep, j, &error );
+  PEPComputeError( pep, j, PEP_ERROR_BACKWARD, &error );
 }
 PEPDestroy( &pep );
 \end{Verbatim}
@@ -295,7 +295,7 @@ The solution method can be specified procedurally with
 	\end{Verbatim}
 or via the options database command \Verb!-pep_type! followed by the name of the method. The methods currently available in \ident{PEP} are listed in Table~\ref{tab:solversp}.
 
-The default solver is \ident{PEPTOAR}, currently the only solver supporting polynomials of arbitrary degree. TOAR is a stable algorithm for building an Arnoldi factorization of the linearization (\ref{eq:firstcomp}) without explicitly creating matrices $L_0,L_1$, and represents the Krylov basis in a compact way. For quadratic polynomials there are other solvers available. Q-Arnoldi is related to TOAR and follows a similar approach.
+The default solver is \ident{PEPTOAR}, currently the only solver supporting different polynomial bases. TOAR is a stable algorithm for building an Arnoldi factorization of the linearization (\ref{eq:firstcomp}) without explicitly creating matrices $L_0,L_1$, and represents the Krylov basis in a compact way. Q-Arnoldi is related to TOAR and follows a similar approach.
 
 \begin{table}
 \centering
@@ -303,7 +303,7 @@ The default solver is \ident{PEPTOAR}, currently the only solver supporting poly
                    &                      & {\footnotesize Options} & {\footnotesize Polynomial} & {\footnotesize Polynomial} \\
 Method             & \ident{PEPType}      & {\footnotesize Database Name} & {\footnotesize Degree} & {\footnotesize Basis} \\\hline
 Two-level Orthogonal Arnoldi (TOAR) & \texttt{PEPTOAR}     & \texttt{toar} & Arbitrary & Any \\
-Explicit Linearization & \texttt{PEPLINEAR}   & \texttt{linear} & Quadratic & Monomial \\
+Explicit Linearization & \texttt{PEPLINEAR}   & \texttt{linear} & Arbitrary & Monomial \\
 Quadratic Arnoldi (Q-Arnoldi) & \texttt{PEPQARNOLDI} & \texttt{qarnoldi} & Quadratic & Monomial \\
 %Symmetric TOAR     & \texttt{PEPSTOAR}    & \texttt{stoar} & Quadratic & Monomial \\
 \hline
@@ -333,15 +333,7 @@ Another option of the \ident{PEPLINEAR} solver is whether the matrices of the li
 	\begin{Verbatim}[fontsize=\small]
 	PEPLinearSetExplicitMatrix(PEP pep,PetscBool exp);
 	\end{Verbatim}
-In the case of explicit creation (the default), matrices $L_0$ and $L_1$ are created as true \texttt{Mat}'s, with explicit storage, whereas the implicit option works with \emph{shell} \texttt{Mat}'s that operate only with the constituent blocks $M$, $C$ and $K$. The explicit case requires more memory but gives more flexibility, e.g., for choosing a preconditioner.
-
-As a complete example of how to solve a quadratic eigenproblem via explicit linearization, consider the following command line:
-\begin{Verbatim}[fontsize=\small]
-	$ ./program -pep_type linear -pep_hermitian -pep_linear_cform 1
-                    -pep_linear_explicitmatrix 0 -pep_eps_type krylovschur
-                    -pep_st_ksp_type gmres -pep_st_pc_type jacobi
-\end{Verbatim}
-The S1 linearization (Eq.\ \ref{eq:s1}) will be used, with shell matrices and a preconditioned iterative method for solving linear systems with matrix $L_1$.
+The explicit matrix option is available only for quadratic eigenproblems (higher degree polynomials are always handled implicitly). In the case of explicit creation, matrices $L_0$ and $L_1$ are created as true \texttt{Mat}'s, with explicit storage, whereas the implicit option works with \emph{shell} \texttt{Mat}'s that operate only with the constituent blocks $M$, $C$ and $K$ (or $A_i$ in the general case). The explicit case requires more memory but gives more flexibility, e.g., for choosing a preconditioner. Some examples of usage via the command line are shown at the end of next section.
 
 %---------------------------------------------------
 \section{\label{sec:qst}Spectral Transformation}
@@ -413,6 +405,20 @@ The example computes 12 eigenpairs closest to the origin with TOAR and shift-and
 	\end{Verbatim}
 where in this case \Verb!-st_transform! is required.
 
+As a complete example of how to solve a quadratic eigenproblem via explicit linearization with explicit construction of the $L_0$ and $L_1$ matrices, consider the following command line:
+\begin{Verbatim}[fontsize=\small]
+	$ ./sleeper -pep_type linear -pep_target -10 -st_type sinvert
+                    -pep_st_ksp_type preonly -pep_st_pc_type lu 
+                    -pep_st_pc_factor_mat_solver_package mumps -mat_mumps_icntl_14 100
+                    -pep_linear_explicitmatrix
+\end{Verbatim}
+This example uses MUMPS for solving the associated linear systems, see \S\ref{sec:lin} for details. The following command line example illustrates how to solve the same problem without explicitly forming the matrices. Note that in this case the \ident{ST} options are not prefixed with \texttt{-pep\_} since now they do not refer to the \ident{ST} within the \ident{PEPLINEAR} solver but the general \ident{ST} associated to \ident{PEP}.
+\begin{Verbatim}[fontsize=\small]
+	$ ./sleeper -pep_type linear -pep_target -10 -st_type sinvert
+                    -st_ksp_type preonly -st_pc_type lu
+                    -st_pc_factor_mat_solver_package mumps -mat_mumps_icntl_14 100
+\end{Verbatim}
+
 %---------------------------------------------------
 \section{Retrieving the Solution}
 
@@ -420,24 +426,41 @@ After the call to \ident{PEPSolve} has finished, the computed results are stored
 
 \paragraph{Reliability of the Computed Solution.}
 
+\begin{table}
+\centering
+{\small \begin{tabular}{llll}
+Error type     & \texttt{PEPErrorType}         & Command line key          & Error bound \\\hline
+Absolute error & \texttt{PEP\_ERROR\_ABSOLUTE} & \texttt{-pep\_error\_absolute} & $\|r\|$ \\
+Relative error & \texttt{PEP\_ERROR\_RELATIVE} & \texttt{-pep\_error\_relative} & $\|r\|/|\lambda|$ \\
+Backward error & \texttt{PEP\_ERROR\_BACKWARD} & \texttt{-pep\_error\_backward} & $\|r\|/(\sum_j\|A_j\||\lambda_i|^j)$ \\
+\hline
+\end{tabular} }
+\caption{\label{tab:peperrors}Possible expressions for computing error bounds.}
+\end{table}
+
 As in the case of linear problems, the function
-	\findex{PEPComputeRelativeError}
+	\findex{PEPComputeError}
 	\begin{Verbatim}[fontsize=\small]
-	PEPComputeRelativeError(PEP pep,PetscInt j,PetscReal *error);
+	PEPComputeError(PEP pep,PetscInt j,PEPErrorType type,PetscReal *error);
 	\end{Verbatim}
 is available to assess the accuracy of the computed solutions. This error is based on the computation of the 2-norm of the residual vector, defined as
 \begin{equation}
 r=P(\tilde{\lambda})\tilde{x},\label{eq:respol}
 \end{equation}
 where $\tilde{\lambda}$ and $\tilde{x}$ represent any of the \texttt{nconv} computed eigenpairs delivered by \ident{PEPGetEigenpair}.
-From the residual norm, the error bound can be computed in different ways, see Table \ref{tab:pepconv}. This can be set via the corresponding command-line switch or with
+From the residual norm, the error bound can be computed in different ways, see Table \ref{tab:peperrors}. It is usually recommended to assess the accuracy of the solution using the backward error, defined as
+\begin{equation}
+\eta(\tilde{\lambda},\tilde{x})=\frac{\|r\|}{\sum_{j=0}^d\|A_j\||\tilde\lambda|^j\|\tilde{x}\|},\label{eq:backward}
+\end{equation}
+where $d$ is the degree of the polynomial. Note that the eigenvector is always assumed to have unit norm.
+
+Similar expressions can be used in the convergence criterion used to accept converged eigenpairs internally by the solver. The convergence test can be set via the corresponding command-line switch (see Table \ref{tab:pepconv}) or with
 	\findex{PEPSetConvergenceTest}
 	\begin{Verbatim}[fontsize=\small]
 	PEPSetConvergenceTest(PEP pep,PEPConv conv);
 	\end{Verbatim}
-The default is to use the criterion relative to the matrix norms.
 
-\begin{table}
+\begin{table}[b]
 \centering
 {\small \begin{tabular}{llll}
 Convergence criterion    & \texttt{PEPConv}         & Command line key          & Error bound \\\hline
@@ -469,6 +492,10 @@ See the manual page for details.
 \paragraph{Controlling and Monitoring Convergence.}
 
 As in the case of \ident{EPS}, in \ident{PEP} the number of iterations carried out by the solver can be determined with \ident{PEPGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{PEPSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-pep_monitor!, \Verb!-pep_monitor_all!, \Verb!-pep_monitor_conv!, \Verb!-pep_monitor_lg!, or \Verb!-pep_monitor_lg_all!. See \S\ref{sec:monitor} for additional details.
+
+\paragraph{Viewing the Solution.}
+
+Likewise to linear eigensolvers, there is support for various kinds of viewers for the solution. One can for instance use \Verb!-pep_view_values!, \Verb!-pep_view_vectors!, \Verb!-pep_error_relative!, or \Verb!-pep_converged_reason!. See description in \S\ref{sec:epsviewers}.
 
 \subsection{\label{sec:refine}Iterative Refinement}
 

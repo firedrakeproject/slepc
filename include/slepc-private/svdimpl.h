@@ -25,6 +25,8 @@
 #include <slepcsvd.h>
 #include <slepc-private/slepcimpl.h>
 
+PETSC_EXTERN PetscBool SVDRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode SVDRegisterAll(void);
 PETSC_EXTERN PetscLogEvent SVD_SetUp,SVD_Solve;
 
 typedef struct _SVDOps *SVDOps;
@@ -32,7 +34,7 @@ typedef struct _SVDOps *SVDOps;
 struct _SVDOps {
   PetscErrorCode (*solve)(SVD);
   PetscErrorCode (*setup)(SVD);
-  PetscErrorCode (*setfromoptions)(SVD);
+  PetscErrorCode (*setfromoptions)(PetscOptions*,SVD);
   PetscErrorCode (*publishoptions)(SVD);
   PetscErrorCode (*destroy)(SVD);
   PetscErrorCode (*reset)(SVD);
@@ -43,6 +45,11 @@ struct _SVDOps {
      Maximum number of monitors you can run with a single SVD
 */
 #define MAXSVDMONITORS 5
+
+typedef enum { SVD_STATE_INITIAL,
+               SVD_STATE_SETUP,
+               SVD_STATE_SOLVED,
+               SVD_STATE_VECTORS } SVDStateType;
 
 /*
    Defines the SVD data structure.
@@ -60,7 +67,6 @@ struct _p_SVD {
   SVDWhich         which;       /* which singular values are computed */
   PetscBool        impltrans;   /* implicit transpose mode */
   PetscBool        trackall;    /* whether all the residuals must be computed */
-  PetscBool        printreason; /* prints converged reason after solve */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode   (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
@@ -82,13 +88,28 @@ struct _p_SVD {
   void             *data;       /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables -------------------------- */
+  SVDStateType     state;       /* initial -> setup -> solved -> vectors */
   PetscInt         nconv;       /* number of converged values */
   PetscInt         its;         /* iteration counter */
   PetscBool        leftbasis;   /* if U is filled by the solver */
-  PetscBool        lvecsavail;  /* if U contains left singular vectors */
-  PetscInt         setupcalled;
   SVDConvergedReason reason;
 };
+
+/*
+    Macros to test valid SVD arguments
+*/
+#if !defined(PETSC_USE_DEBUG)
+
+#define SVDCheckSolved(h,arg) do {} while (0)
+
+#else
+
+#define SVDCheckSolved(h,arg) \
+  do { \
+    if (h->state<SVD_STATE_SOLVED) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call SVDSolve() first: Parameter #%d",arg); \
+  } while (0)
+
+#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDMatMult"
@@ -168,5 +189,6 @@ PETSC_STATIC_INLINE PetscErrorCode SVDMatGetLocalSize(SVD svd,PetscInt *m,PetscI
 
 PETSC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,PetscInt,PetscInt);
 PETSC_INTERN PetscErrorCode SVDSetDimensions_Default(SVD);
+PETSC_INTERN PetscErrorCode SVDComputeVectors(SVD);
 
 #endif

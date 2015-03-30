@@ -134,7 +134,7 @@ PetscErrorCode STReset(ST st)
 
 #undef __FUNCT__
 #define __FUNCT__ "STDestroy"
-/*@C
+/*@
    STDestroy - Destroys ST context that was created with STCreate().
 
    Collective on ST
@@ -167,7 +167,7 @@ PetscErrorCode STDestroy(ST *st)
 
 #undef __FUNCT__
 #define __FUNCT__ "STCreate"
-/*@C
+/*@
    STCreate - Creates a spectral transformation context.
 
    Collective on MPI_Comm
@@ -254,7 +254,7 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
   ierr = PetscMalloc(PetscMax(2,n)*sizeof(Mat),&st->A);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(Mat));CHKERRQ(ierr);
   ierr = PetscFree(st->Astate);CHKERRQ(ierr);
-  ierr = PetscMalloc(PetscMax(2,n)*sizeof(PetscInt),&st->Astate);CHKERRQ(ierr);
+  ierr = PetscMalloc(PetscMax(2,n)*sizeof(PetscObjectState),&st->Astate);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(PetscInt));CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
@@ -387,7 +387,6 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveScalar(st,shift,2);
-  PetscValidType(st,1);
   if (st->sigma != shift) {
     if (st->ops->setshift) {
       ierr = (*st->ops->setshift)(st,shift);CHKERRQ(ierr);

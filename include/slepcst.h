@@ -122,8 +122,6 @@ PETSC_EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);
 PETSC_EXTERN PetscErrorCode STGetMatStructure(ST,MatStructure*);
 
 PETSC_EXTERN PetscFunctionList STList;
-PETSC_EXTERN PetscBool         STRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode STRegisterAll(void);
 PETSC_EXTERN PetscErrorCode STRegister(const char[],PetscErrorCode(*)(ST));
 
 /* --------- options specific to particular spectral transformations-------- */

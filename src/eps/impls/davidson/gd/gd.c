@@ -43,7 +43,7 @@
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_GD"
-PetscErrorCode EPSSetFromOptions_GD(EPS eps)
+PetscErrorCode EPSSetFromOptions_GD(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      flg,op;
@@ -53,7 +53,7 @@ PetscErrorCode EPSSetFromOptions_GD(EPS eps)
   const char     *orth_list[2] = {"I","B"};
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS Generalized Davidson (GD) Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS Generalized Davidson (GD) Options");CHKERRQ(ierr);
 
   ierr = EPSGDGetKrylovStart(eps,&op);CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_gd_krylov_start","Start the searching subspace with a krylov basis","EPSGDSetKrylovStart",op,&op,&flg);CHKERRQ(ierr);

@@ -24,12 +24,14 @@
 #include <slepc-private/epsimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define epsdestroy_                 EPSDESTROY
 #define epsview_                    EPSVIEW
+#define epserrorview_               EPSERRORVIEW
+#define epsreasonview_              EPSREASONVIEW
+#define epsvaluesview_              EPSVALUESVIEW
+#define epsvectorsview_             EPSVECTORSVIEW
 #define epssetoptionsprefix_        EPSSETOPTIONSPREFIX
 #define epsappendoptionsprefix_     EPSAPPENDOPTIONSPREFIX
 #define epsgetoptionsprefix_        EPSGETOPTIONSPREFIX
-#define epscreate_                  EPSCREATE
 #define epssettype_                 EPSSETTYPE
 #define epsgettype_                 EPSGETTYPE
 #define epsgetoperators_            EPSGETOPERATORS
@@ -39,16 +41,11 @@
 #define epsmonitorset_              EPSMONITORSET
 #define epsmonitorconverged_        EPSMONITORCONVERGED
 #define epsmonitorfirst_            EPSMONITORFIRST
-#define epsgetst_                   EPSGETST
-#define epsgetbv_                   EPSGETBV
-#define epsgetds_                   EPSGETDS
-#define epsgetrg_                   EPSGETRG
 #define epsgetbalance_              EPSGETBALANCE
 #define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
 #define epsgetconvergencetest_      EPSGETCONVERGENCETEST
 #define epsgetproblemtype_          EPSGETPROBLEMTYPE
 #define epsgetextraction_           EPSGETEXTRACTION
-#define epsgetconvergedreason_      EPSGETCONVERGEDREASON
 #define epspowergetshifttype_       EPSPOWERGETSHIFTTYPE
 #define epslanczosgetreorthog_      EPSLANCZOSGETREORTHOG
 #define epsconvergedabsolute_       EPSCONVERGEDABSOLUTE
@@ -58,12 +55,14 @@
 #define epsseteigenvaluecomparison_ EPSSETEIGENVALUECOMPARISON
 #define epssetarbitraryselection_   EPSSETARBITRARYSELECTION
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define epsdestroy_                 epsdestroy
 #define epsview_                    epsview
+#define epserrorview_               epserrorview
+#define epsreasonview_              epsreasonview
+#define epsvaluesview_              epsvaluesview
+#define epsvectorsview_             epsvectorsview
 #define epssetoptionsprefix_        epssetoptionsprefix
 #define epsappendoptionsprefix_     epsappendoptionsprefix
 #define epsgetoptionsprefix_        epsgetoptionsprefix
-#define epscreate_                  epscreate
 #define epssettype_                 epssettype
 #define epsgettype_                 epsgettype
 #define epsgetoperators_            epsgetoperators
@@ -73,16 +72,11 @@
 #define epsmonitorset_              epsmonitorset
 #define epsmonitorconverged_        epsmonitorconverged
 #define epsmonitorfirst_            epsmonitorfirst
-#define epsgetst_                   epsgetst
-#define epsgetbv_                   epsgetbv
-#define epsgetds_                   epsgetds
-#define epsgetrg_                   epsgetrg
 #define epsgetbalance_              epsgetbalance
 #define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
 #define epsgetconvergencetest_      epsgetconvergencetest
 #define epsgetproblemtype_          epsgetproblemtype
 #define epsgetextraction_           epsgetextraction
-#define epsgetconvergedreason_      epsgetconvergedreason
 #define epspowergetshifttype_       epspowergetshifttype
 #define epslanczosgetreorthog_      epslanczosgetreorthog
 #define epsconvergedabsolute_       epsconvergedabsolute
@@ -178,16 +172,39 @@ static PetscErrorCode ourarbitraryfunc(PetscScalar er,PetscScalar ei,Vec xr,Vec 
   PetscObjectUseFortranCallback(eps,_cb.arbitrary,(PetscScalar*,PetscScalar*,Vec*,Vec*,PetscScalar*,PetscScalar*,void*,PetscErrorCode*),(&er,&ei,&xr,&xi,rr,ri,_ctx,&ierr));
 }
 
-PETSC_EXTERN void PETSC_STDCALL epsdestroy_(EPS *eps,PetscErrorCode *ierr)
-{
-  *ierr = EPSDestroy(eps);
-}
-
 PETSC_EXTERN void PETSC_STDCALL epsview_(EPS *eps,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = EPSView(*eps,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsreasonview_(EPS *eps,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = EPSReasonView(*eps,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epserrorview_(EPS *eps,EPSErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = EPSErrorView(*eps,*etype,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsvaluesview_(EPS *eps,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = EPSValuesView(*eps,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsvectorsview_(EPS *eps,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = EPSVectorsView(*eps,v);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epssettype_(EPS *eps,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
@@ -241,11 +258,6 @@ PETSC_EXTERN void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_
   *ierr = PetscStrncpy(prefix,tname,len);
 }
 
-PETSC_EXTERN void PETSC_STDCALL epscreate_(MPI_Fint *comm,EPS *eps,PetscErrorCode *ierr)
-{
-  *ierr = EPSCreate(MPI_Comm_f2c(*(comm)),eps);
-}
-
 PETSC_EXTERN void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   SlepcConvMonitor ctx;
@@ -281,26 +293,6 @@ PETSC_EXTERN void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *mon
   }
 }
 
-PETSC_EXTERN void PETSC_STDCALL epsgetst_(EPS *eps,ST *st,PetscErrorCode *ierr)
-{
-  *ierr = EPSGetST(*eps,st);
-}
-
-PETSC_EXTERN void PETSC_STDCALL epsgetbv_(EPS *eps,BV *V,PetscErrorCode *ierr)
-{
-  *ierr = EPSGetBV(*eps,V);
-}
-
-PETSC_EXTERN void PETSC_STDCALL epsgetds_(EPS *eps,DS *ds,PetscErrorCode *ierr)
-{
-  *ierr = EPSGetDS(*eps,ds);
-}
-
-PETSC_EXTERN void PETSC_STDCALL epsgetrg_(EPS *eps,RG *rg,PetscErrorCode *ierr)
-{
-  *ierr = EPSGetRG(*eps,rg);
-}
-
 PETSC_EXTERN void PETSC_STDCALL epsgetbalance_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,PetscErrorCode *ierr)
 {
   *ierr = EPSGetBalance(*eps,bal,its,cutoff);
@@ -324,11 +316,6 @@ PETSC_EXTERN void PETSC_STDCALL epsgetproblemtype_(EPS *eps,EPSProblemType *type
 PETSC_EXTERN void PETSC_STDCALL epsgetextraction_(EPS *eps,EPSExtraction *proj,PetscErrorCode *ierr)
 {
   *ierr = EPSGetExtraction(*eps,proj);
-}
-
-PETSC_EXTERN void PETSC_STDCALL epsgetconvergedreason_(EPS *eps,EPSConvergedReason *reason,PetscErrorCode *ierr)
-{
-  *ierr = EPSGetConvergedReason(*eps,reason);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epspowergetshifttype_(EPS *eps,EPSPowerShiftType *shift,PetscErrorCode *ierr)
@@ -381,7 +368,7 @@ PETSC_EXTERN void PETSC_STDCALL epsseteigenvaluecomparison_(EPS *eps,void (PETSC
 {
   CHKFORTRANNULLOBJECT(ctx);
   *ierr = PetscObjectSetFortranCallback((PetscObject)*eps,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.comparison,(PetscVoidFunction)func,ctx); if (*ierr) return;
-  *ierr = EPSSetEigenvalueComparison(*eps,oureigenvaluecomparison,eps);
+  *ierr = EPSSetEigenvalueComparison(*eps,oureigenvaluecomparison,*eps);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epssetarbitraryselection_(EPS *eps,void (PETSC_STDCALL *func)(PetscScalar*,PetscScalar*,Vec*,Vec*,PetscScalar*,PetscScalar*,void*,PetscErrorCode*),void *ctx,PetscErrorCode *ierr)

@@ -128,6 +128,7 @@ PetscErrorCode STSetUp_Shift(ST st)
   }
   if (st->P) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+    ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   }
@@ -165,7 +166,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Shift"
-PetscErrorCode STSetFromOptions_Shift(ST st)
+PetscErrorCode STSetFromOptions_Shift(PetscOptions *PetscOptionsObject,ST st)
 {
   PetscErrorCode ierr;
   PC             pc;
@@ -185,7 +186,7 @@ PetscErrorCode STSetFromOptions_Shift(ST st)
     } else {
       /* use direct solver as default */
       ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

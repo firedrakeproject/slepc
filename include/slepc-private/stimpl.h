@@ -25,6 +25,8 @@
 #include <slepcst.h>
 #include <slepc-private/slepcimpl.h>
 
+PETSC_EXTERN PetscBool STRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode STRegisterAll(void);
 PETSC_EXTERN PetscLogEvent ST_SetUp,ST_Apply,ST_ApplyTranspose,ST_MatSetUp,ST_MatMult,ST_MatMultTranspose,ST_MatSolve,ST_MatSolveTranspose;
 
 typedef struct _STOps *STOps;
@@ -35,7 +37,7 @@ struct _STOps {
   PetscErrorCode (*getbilinearform)(ST,Mat*);
   PetscErrorCode (*applytrans)(ST,Vec,Vec);
   PetscErrorCode (*setshift)(ST,PetscScalar);
-  PetscErrorCode (*setfromoptions)(ST);
+  PetscErrorCode (*setfromoptions)(PetscOptions*,ST);
   PetscErrorCode (*postsolve)(ST);
   PetscErrorCode (*backtransform)(ST,PetscInt,PetscScalar*,PetscScalar*);
   PetscErrorCode (*destroy)(ST);
@@ -47,27 +49,27 @@ struct _STOps {
 struct _p_ST {
   PETSCHEADER(struct _STOps);
   /*------------------------- User parameters --------------------------*/
-  Mat          *A;               /* Matrices that define the eigensystem */
-  PetscInt     *Astate;          /* State (to identify the original matrices) */
-  Mat          *T;               /* Matrices resulting from transformation */
-  Mat          P;                /* Matrix from which preconditioner is built */
-  PetscInt     nmat;             /* Number of matrices */
-  PetscScalar  sigma;            /* Value of the shift */
-  PetscBool    sigma_set;        /* whether the user provided the shift or not */
-  PetscScalar  defsigma;         /* Default value of the shift */
-  STMatMode    shift_matrix;
-  MatStructure str;              /* whether matrices have the same pattern or not */
-  PetscBool    transform;        /* whether transformed matrices are computed */
+  Mat              *A;               /* Matrices that define the eigensystem */
+  PetscObjectState *Astate;          /* State (to identify the original matrices) */
+  Mat              *T;               /* Matrices resulting from transformation */
+  Mat              P;                /* Matrix from which preconditioner is built */
+  PetscInt         nmat;             /* Number of matrices */
+  PetscScalar      sigma;            /* Value of the shift */
+  PetscBool        sigma_set;        /* whether the user provided the shift or not */
+  PetscScalar      defsigma;         /* Default value of the shift */
+  STMatMode        shift_matrix;
+  MatStructure     str;              /* whether matrices have the same pattern or not */
+  PetscBool        transform;        /* whether transformed matrices are computed */
 
   /*------------------------- Misc data --------------------------*/
-  KSP          ksp;
-  Vec          w;
-  Vec          D;                /* diagonal matrix for balancing */
-  Vec          wb;               /* balancing requires an extra work vector */
-  PetscInt     linearits;        /* number of linear iterations */
-  PetscInt     applys;           /* number of operator applies */
-  void         *data;
-  PetscInt     setupcalled;
+  KSP              ksp;
+  Vec              w;
+  Vec              D;                /* diagonal matrix for balancing */
+  Vec              wb;               /* balancing requires an extra work vector */
+  PetscInt         linearits;        /* number of linear iterations */
+  PetscInt         applys;           /* number of operator applies */
+  void             *data;
+  PetscInt         setupcalled;
 };
 
 /*
@@ -91,6 +93,7 @@ PETSC_INTERN PetscErrorCode STCheckNullSpace_Default(ST,BV);
 PETSC_INTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,PetscScalar*,Mat*);
 PETSC_INTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
 PETSC_INTERN PetscErrorCode STMatSetHermitian(ST,Mat);
+PETSC_INTERN PetscErrorCode STCheckFactorPackage(ST);
 PETSC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscScalar*,PetscBool,Mat*);
 PETSC_INTERN PetscErrorCode STCoeffs_Monomial(ST,PetscScalar*);
 

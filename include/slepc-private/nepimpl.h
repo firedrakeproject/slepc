@@ -25,6 +25,8 @@
 #include <slepcnep.h>
 #include <slepc-private/slepcimpl.h>
 
+PETSC_EXTERN PetscBool NEPRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode NEPRegisterAll(void);
 PETSC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Refine,NEP_FunctionEval,NEP_JacobianEval;
 
 typedef struct _NEPOps *NEPOps;
@@ -32,7 +34,7 @@ typedef struct _NEPOps *NEPOps;
 struct _NEPOps {
   PetscErrorCode (*solve)(NEP);
   PetscErrorCode (*setup)(NEP);
-  PetscErrorCode (*setfromoptions)(NEP);
+  PetscErrorCode (*setfromoptions)(PetscOptions*,NEP);
   PetscErrorCode (*publishoptions)(NEP);
   PetscErrorCode (*destroy)(NEP);
   PetscErrorCode (*reset)(NEP);
@@ -74,7 +76,6 @@ struct _p_NEP {
   PetscReal      reftol;           /* tolerance for refinement */
   PetscInt       rits;             /* number of iterations of the refinement method */
   PetscBool      trackall;         /* whether all the residuals must be computed */
-  PetscBool      printreason;      /* prints converged reason after solve */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*computefunction)(NEP,PetscScalar,Mat,Mat,void*);
@@ -152,9 +153,9 @@ PETSC_STATIC_INLINE PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
+PETSC_INTERN PetscErrorCode NEPComputeVectors(NEP);
 PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
 PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,PetscReal*);
-PETSC_INTERN PetscErrorCode NEPComputeRelativeError_Private(NEP,PetscScalar,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode NEPNewtonRefinementSimple(NEP,PetscInt*,PetscReal*,PetscInt);
 
 #endif

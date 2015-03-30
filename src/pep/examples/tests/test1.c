@@ -138,6 +138,7 @@ int main(int argc,char **argv)
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)eps,EPSGD,&flag);CHKERRQ(ierr);
     }
+    ierr = PEPLinearSetExplicitMatrix(pep,PETSC_TRUE);CHKERRQ(ierr);
   }
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPQARNOLDI,&flag);CHKERRQ(ierr);
   if (flag) {
@@ -165,7 +166,7 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PEPPrintSolution(pep,NULL);CHKERRQ(ierr);
+  ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
   ierr = PEPDestroy(&pep);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&C);CHKERRQ(ierr);

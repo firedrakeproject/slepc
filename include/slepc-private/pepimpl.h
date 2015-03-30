@@ -25,6 +25,8 @@
 #include <slepcpep.h>
 #include <slepc-private/slepcimpl.h>
 
+PETSC_EXTERN PetscBool PEPRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode PEPRegisterAll(void);
 PETSC_EXTERN PetscLogEvent PEP_SetUp,PEP_Solve,PEP_Refine;
 
 typedef struct _PEPOps *PEPOps;
@@ -32,7 +34,7 @@ typedef struct _PEPOps *PEPOps;
 struct _PEPOps {
   PetscErrorCode (*solve)(PEP);
   PetscErrorCode (*setup)(PEP);
-  PetscErrorCode (*setfromoptions)(PEP);
+  PetscErrorCode (*setfromoptions)(PetscOptions*,PEP);
   PetscErrorCode (*publishoptions)(PEP);
   PetscErrorCode (*destroy)(PEP);
   PetscErrorCode (*reset)(PEP);
@@ -78,7 +80,6 @@ struct _p_PEP {
   PetscBool      schur;            /* use Schur complement in refinement method */
   PEPExtract     extract;          /* type of extraction used */
   PetscBool      trackall;         /* whether all the residuals must be computed */
-  PetscBool      printreason;      /* prints converged reason after solve */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*converged)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
@@ -107,6 +108,8 @@ struct _p_PEP {
   PetscScalar    *solvematcoeffs;  /* coefficients to compute the matrix to be inverted */
   PetscInt       nwork;            /* number of work vectors */
   Vec            *work;            /* work vectors */
+  KSP            refineksp;        /* ksp used in refinement */
+  PetscSubcomm   refinesubc;       /* context for sub-communicators */
   void           *data;            /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables --------------------------*/
@@ -115,6 +118,7 @@ struct _p_PEP {
   PetscInt       its;              /* number of iterations so far computed */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
   PetscReal      *nrma;            /* computed matrix norms */
+  PetscReal      nrml[2];          /* computed matrix norms for the linearization */
   PetscBool      sfactor_set;      /* flag to indicate the user gave sfactor */
   PEPConvergedReason reason;
 };
@@ -136,10 +140,10 @@ struct _p_PEP {
 #endif
 
 PETSC_INTERN PetscErrorCode PEPSetDimensions_Default(PEP,PetscInt,PetscInt*,PetscInt*);
+PETSC_INTERN PetscErrorCode PEPComputeVectors(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Schur(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Indefinite(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeResidualNorm_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
-PETSC_INTERN PetscErrorCode PEPComputeRelativeError_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPKrylovConvergence(PEP,PetscBool,PetscInt,PetscInt,PetscReal,PetscInt*);
 PETSC_INTERN PetscErrorCode PEPComputeScaleFactor(PEP);
 PETSC_INTERN PetscErrorCode PEPBuildDiagonalScaling(PEP);
@@ -147,5 +151,6 @@ PETSC_INTERN PetscErrorCode PEPBasisCoefficients(PEP,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscScalar,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt,PetscInt*);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinementSimple(PEP,PetscInt*,PetscReal*,PetscInt);
+PETSC_INTERN PetscErrorCode PEPComputeLinearNorms(PEP);
 
 #endif

@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = epsmon.c epsbasic.c epsdefault.c epsregis.c epsopts.c epssetup.c epssolve.c dlregiseps.c
+SOURCEC  = epsmon.c epsbasic.c epsview.c epsdefault.c epsregis.c epsopts.c epssetup.c epssolve.c dlregiseps.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepceps
@@ -31,6 +31,6 @@ DIRS     =
 MANSEC   = EPS
 LOCDIR   = src/eps/interface/
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
 
 

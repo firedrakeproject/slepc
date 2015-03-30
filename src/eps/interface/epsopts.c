@@ -54,7 +54,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (!EPSRegisterAllCalled) { ierr = EPSRegisterAll();CHKERRQ(ierr); }
+  ierr = EPSRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)eps);CHKERRQ(ierr);
     ierr = PetscOptionsFList("-eps_type","Eigenvalue Problem Solver method","EPSSetType",EPSList,(char*)(((PetscObject)eps)->type_name?((PetscObject)eps)->type_name:EPSKRYLOVSCHUR),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -131,13 +131,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg1 || flg2 || flg3) {
       ierr = EPSSetDimensions(eps,i,j,k);CHKERRQ(ierr);
     }
-
-    /*
-      Prints reason for convergence or divergence of each solve
-    */
-    flg  = PETSC_FALSE;
-    ierr = PetscOptionsBool("-eps_converged_reason","Print reason for converged or diverged","EPSSolve",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) eps->printreason = PETSC_TRUE;
 
     /* -----------------------------------------------------------------------*/
     /*
@@ -217,12 +210,18 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     }
 
     ierr = PetscOptionsBool("-eps_true_residual","Compute true residuals explicitly","EPSSetTrueResidual",eps->trueres,&eps->trueres,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-eps_purify","Postprocess eigenvectors for purification","EPSSetPurify",eps->purify,&eps->purify,NULL);CHKERRQ(ierr);
 
     ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-eps_plot_eigs","Make a plot of the computed eigenvalues","EPSSolve",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_view_vectors","View computed eigenvectors","EPSVectorsView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_view_values","View computed eigenvalues","EPSValuesView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_converged_reason","Print reason for convergence, and number of iterations","EPSReasonView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_error_absolute","Print absolute errors of each eigenpair","EPSErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_error_relative","Print relative errors of each eigenpair","EPSErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_error_backward","Print backward errors of each eigenpair","EPSErrorView",0);CHKERRQ(ierr);
 
     if (eps->ops->setfromoptions) {
-      ierr = (*eps->ops->setfromoptions)(eps);CHKERRQ(ierr);
+      ierr = (*eps->ops->setfromoptions)(PetscOptionsObject,eps);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)eps);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
@@ -1081,7 +1080,7 @@ PetscErrorCode EPSSetTrueResidual(EPS eps,PetscBool trueres)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetTrueResidual"
-/*@C
+/*@
    EPSGetTrueResidual - Returns the flag indicating whether true
    residuals must be computed explicitly or not.
 
@@ -1164,6 +1163,66 @@ PetscErrorCode EPSGetTrackAll(EPS eps,PetscBool *trackall)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(trackall,2);
   *trackall = eps->trackall;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSSetPurify"
+/*@
+   EPSSetPurify - Deactivate eigenvector purification (which is activated by default).
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps    - the eigensolver context
+-  purify - whether purification is required or not
+
+   Options Database Keys:
+.  -eps_purify <boolean> - Sets/resets the boolean flag 'purify'
+
+   Notes:
+   By default, eigenvectors of generalized symmetric eigenproblems are purified
+   in order to purge directions in the nullspace of matrix B. If the user knows
+   that B is non-singular, then purification can be safely deactivated and some
+   computational cost is avoided (this is particularly important in interval computations).
+
+   Level: intermediate
+
+.seealso: EPSGetPurify(), EPSSetInterval()
+@*/
+PetscErrorCode EPSSetPurify(EPS eps,PetscBool purify)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,purify,2);
+  eps->purify = purify;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSGetPurify"
+/*@
+   EPSGetPurify - Returns the flag indicating whether purification is activated
+   or not.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context
+
+   Output Parameter:
+.  purify - the returned flag
+
+   Level: intermediate
+
+.seealso: EPSSetPurify()
+@*/
+PetscErrorCode EPSGetPurify(EPS eps,PetscBool *purify)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(purify,2);
+  *purify = eps->purify;
   PetscFunctionReturn(0);
 }
 

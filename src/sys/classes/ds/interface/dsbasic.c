@@ -103,7 +103,7 @@ PetscErrorCode DSInitializePackage()
 
 #undef __FUNCT__
 #define __FUNCT__ "DSCreate"
-/*@C
+/*@
    DSCreate - Creates a DS context.
 
    Collective on MPI_Comm
@@ -678,9 +678,8 @@ PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
 -  f  - array of functions
 
    Notes:
-   In the basic usage, only one function is used, for instance to
-   evaluate a function of the projected matrix. In the context of nonlinear
-   eigensolvers, there are as many functions as terms in the split
+   This is normally used in the context of nonlinear eigensolvers, where
+   there are as many functions as terms in the split
    nonlinear operator T(lambda) = sum_i A_i*f_i(lambda).
 
    This function must be called before DSAllocate(). Then DSAllocate()
@@ -688,7 +687,7 @@ PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
 
    Level: developer
 
-.seealso: DSGetFN(), DSGetFN(), DSAllocate()
+.seealso: DSGetFN(), DSAllocate()
  @*/
 PetscErrorCode DSSetFN(DS ds,PetscInt n,FN f[])
 {
@@ -723,7 +722,7 @@ PetscErrorCode DSSetFN(DS ds,PetscInt n,FN f[])
    Not collective, though parallel FNs are returned if the DS is parallel
 
    Input Parameter:
-+  ds - the direct olver context
++  ds - the direct solver context
 -  k  - the index of the requested function (starting in 0)
 
    Output Parameter:
@@ -793,7 +792,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (!DSRegisterAllCalled) { ierr = DSRegisterAll();CHKERRQ(ierr); }
+  ierr = DSRegisterAll();CHKERRQ(ierr);
   /* Set default type (we do not allow changing it with -ds_type) */
   if (!((PetscObject)ds)->type_name) {
     ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);
@@ -968,7 +967,7 @@ PetscErrorCode DSReset(DS ds)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSDestroy"
-/*@C
+/*@
    DSDestroy - Destroys DS context that was created with DSCreate().
 
    Collective on DS
@@ -1044,6 +1043,7 @@ PetscErrorCode DSRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (DSRegisterAllCalled) PetscFunctionReturn(0);
   DSRegisterAllCalled = PETSC_TRUE;
   ierr = DSRegister(DSHEP,DSCreate_HEP);CHKERRQ(ierr);
   ierr = DSRegister(DSNHEP,DSCreate_NHEP);CHKERRQ(ierr);

@@ -54,7 +54,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (!PEPRegisterAllCalled) { ierr = PEPRegisterAll();CHKERRQ(ierr); }
+  ierr = PEPRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)pep);CHKERRQ(ierr);
     ierr = PetscOptionsFList("-pep_type","Polynomial Eigenvalue Problem method","PEPSetType",PEPList,(char*)(((PetscObject)pep)->type_name?((PetscObject)pep)->type_name:PEPTOAR),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -108,8 +108,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
     ierr = PetscOptionsBoolGroupBegin("-pep_conv_eig","Relative error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_EIG);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-pep_conv_norm","Convergence test relative to the eigenvalue and the matrix norms","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_NORM);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-pep_conv_linear","Convergence test related to the linearized eigenproblem","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_LINEAR);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-pep_conv_abs","Absolute error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_ABS);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-pep_conv_user","User-defined convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
@@ -132,13 +132,6 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     }
 
     ierr = PetscOptionsEnum("-pep_basis","Polynomial basis","PEPSetBasis",PEPBasisTypes,(PetscEnum)pep->basis,(PetscEnum*)&pep->basis,NULL);CHKERRQ(ierr);
-
-    /*
-      Prints reason for convergence or divergence of each solve
-    */
-    flg  = PETSC_FALSE;
-    ierr = PetscOptionsBool("-pep_converged_reason","Print reason for converged or diverged","PEPSolve",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) pep->printreason = PETSC_TRUE;
 
     /* -----------------------------------------------------------------------*/
     /*
@@ -202,10 +195,15 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
 
     ierr = PetscOptionsName("-pep_view","Print detailed information on solver used","PEPView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-pep_plot_eigs","Make a plot of the computed eigenvalues","PEPSolve",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_view_vectors","View computed eigenvectors","PEPVectorsView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_view_values","View computed eigenvalues","PEPValuesView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_converged_reason","Print reason for convergence, and number of iterations","PEPReasonView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_error_absolute","Print absolute errors of each eigenpair","PEPErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_error_relative","Print relative errors of each eigenpair","PEPErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_error_backward","Print backward errors of each eigenpair","PEPErrorView",0);CHKERRQ(ierr);
 
     if (pep->ops->setfromoptions) {
-      ierr = (*pep->ops->setfromoptions)(pep);CHKERRQ(ierr);
+      ierr = (*pep->ops->setfromoptions)(PetscOptionsObject,pep);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)pep);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
@@ -218,6 +216,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   ierr = DSSetFromOptions(pep->ds);CHKERRQ(ierr);
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   ierr = STSetFromOptions(pep->st);CHKERRQ(ierr);
+  if (!pep->refineksp) { ierr = PEPRefineGetKSP(pep,&pep->refineksp);CHKERRQ(ierr); }
+  ierr = KSPSetFromOptions(pep->refineksp);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(pep->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -732,7 +732,7 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
   pep->convergeddestroy = destroy;
   pep->convergedctx     = ctx;
   if (func == PEPConvergedEigRelative) pep->conv = PEP_CONV_EIG;
-  else if (func == PEPConvergedNormRelative) pep->conv = PEP_CONV_NORM;
+  else if (func == PEPConvergedLinear) pep->conv = PEP_CONV_LINEAR;
   else if (func == PEPConvergedAbsolute) pep->conv = PEP_CONV_ABS;
   else pep->conv = PEP_CONV_USER;
   PetscFunctionReturn(0);
@@ -751,17 +751,17 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
 -  conv - the type of convergence test
 
    Options Database Keys:
-+  -pep_conv_abs  - Sets the absolute convergence test
-.  -pep_conv_eig  - Sets the convergence test relative to the eigenvalue
-.  -pep_conv_norm - Sets the convergence test relative to the matrix norms
--  -pep_conv_user - Selects the user-defined convergence test
++  -pep_conv_abs    - Sets the absolute convergence test
+.  -pep_conv_eig    - Sets the convergence test relative to the eigenvalue
+.  -pep_conv_linear - Sets the convergence test related to the linearized eigenproblem
+-  -pep_conv_user   - Selects the user-defined convergence test
 
    Note:
    The parameter 'conv' can have one of these values
-+     PEP_CONV_ABS  - absolute error ||r||
-.     PEP_CONV_EIG  - error relative to the eigenvalue l, ||r||/|l|
-.     PEP_CONV_NORM - error relative to the matrix norms
--     PEP_CONV_USER - function set by PEPSetConvergenceTestFunction()
++     PEP_CONV_ABS    - absolute error ||r||
+.     PEP_CONV_EIG    - error relative to the eigenvalue l, ||r||/|l|
+.     PEP_CONV_LINEAR - error related to the linearized eigenproblem
+-     PEP_CONV_USER   - function set by PEPSetConvergenceTestFunction()
 
    Level: intermediate
 
@@ -773,9 +773,9 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,conv,2);
   switch (conv) {
-    case PEP_CONV_ABS:  pep->converged = PEPConvergedAbsolute; break;
-    case PEP_CONV_EIG:  pep->converged = PEPConvergedEigRelative; break;
-    case PEP_CONV_NORM: pep->converged = PEPConvergedNormRelative; break;
+    case PEP_CONV_ABS:    pep->converged = PEPConvergedAbsolute; break;
+    case PEP_CONV_EIG:    pep->converged = PEPConvergedEigRelative; break;
+    case PEP_CONV_LINEAR: pep->converged = PEPConvergedLinear; break;
     case PEP_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
@@ -1032,6 +1032,10 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
   PetscValidLogicalCollectiveBool(pep,schur,6);
   pep->refine = refine;
   if (refine) {  /* process parameters only if not REFINE_NONE */
+    if (npart!=pep->npart) {
+      ierr = PetscSubcommDestroy(&pep->refinesubc);CHKERRQ(ierr);
+      ierr = KSPDestroy(&pep->refineksp);CHKERRQ(ierr);
+    }
     if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
       pep->npart = 1;
     } else {
