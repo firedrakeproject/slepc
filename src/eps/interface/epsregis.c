@@ -48,6 +48,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS);
 PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps);
+PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps);
 
 #undef __FUNCT__
@@ -76,6 +77,7 @@ PetscErrorCode EPSRegisterAll(void)
   ierr = EPSRegister(EPSGD,EPSCreate_GD);CHKERRQ(ierr);
   ierr = EPSRegister(EPSJD,EPSCreate_JD);CHKERRQ(ierr);
   ierr = EPSRegister(EPSRQCG,EPSCreate_RQCG);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSLOBPCG,EPSCreate_LOBPCG);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = EPSRegister(EPSCISS,EPSCreate_CISS);CHKERRQ(ierr);
 #endif
