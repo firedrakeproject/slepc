@@ -83,9 +83,12 @@ int main(int argc,char **argv)
   ierr = MatSetSizes(Id,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(Id);CHKERRQ(ierr);
   ierr = MatSetUp(Id);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(Id,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    ierr = MatSetValue(Id,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
+  }
   ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatShift(Id,1.0);CHKERRQ(ierr);
   ierr = MatSetOption(Id,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
 
   /*

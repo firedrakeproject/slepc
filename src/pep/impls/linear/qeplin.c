@@ -178,7 +178,7 @@ PetscErrorCode MatGetDiagonal_Linear_N1B(Mat B,Vec diag)
 PetscErrorCode MatCreateExplicit_Linear_N1A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
 {
   PetscErrorCode ierr;
-  PetscInt       M,N,m,n;
+  PetscInt       M,N,m,n,i,Istart,Iend;
   Mat            Id;
 
   PetscFunctionBegin;
@@ -188,9 +188,12 @@ PetscErrorCode MatCreateExplicit_Linear_N1A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
   ierr = MatSetSizes(Id,m,n,M,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(Id);CHKERRQ(ierr);
   ierr = MatSetUp(Id);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(Id,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    ierr = MatSetValue(Id,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
+  }
   ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatShift(Id,1.0);CHKERRQ(ierr);
   ierr = SlepcMatTile(0.0,Id,1.0,Id,-1.0,ctx->K,-ctx->sfactor,ctx->C,A);CHKERRQ(ierr);
   ierr = MatDestroy(&Id);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -201,7 +204,7 @@ PetscErrorCode MatCreateExplicit_Linear_N1A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
 PetscErrorCode MatCreateExplicit_Linear_N1B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
 {
   PetscErrorCode ierr;
-  PetscInt       M,N,m,n;
+  PetscInt       M,N,m,n,i,Istart,Iend;
   Mat            Id;
 
   PetscFunctionBegin;
@@ -211,9 +214,12 @@ PetscErrorCode MatCreateExplicit_Linear_N1B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B
   ierr = MatSetSizes(Id,m,n,M,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(Id);CHKERRQ(ierr);
   ierr = MatSetUp(Id);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(Id,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    ierr = MatSetValue(Id,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
+  }
   ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatShift(Id,1.0);CHKERRQ(ierr);
   ierr = SlepcMatTile(1.0,Id,0.0,Id,0.0,Id,ctx->sfactor*ctx->sfactor,ctx->M,B);CHKERRQ(ierr);
   ierr = MatDestroy(&Id);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -342,7 +348,7 @@ PetscErrorCode MatGetDiagonal_Linear_N2B(Mat B,Vec diag)
 PetscErrorCode MatCreateExplicit_Linear_N2A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
 {
   PetscErrorCode ierr;
-  PetscInt       M,N,m,n;
+  PetscInt       M,N,m,n,i,Istart,Iend;
   Mat            Id;
 
   PetscFunctionBegin;
@@ -352,9 +358,12 @@ PetscErrorCode MatCreateExplicit_Linear_N2A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
   ierr = MatSetSizes(Id,m,n,M,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(Id);CHKERRQ(ierr);
   ierr = MatSetUp(Id);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(Id,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    ierr = MatSetValue(Id,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
+  }
   ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatShift(Id,1.0);CHKERRQ(ierr);
   ierr = SlepcMatTile(-1.0,ctx->K,0.0,Id,0.0,Id,1.0,Id,A);CHKERRQ(ierr);
   ierr = MatDestroy(&Id);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -365,7 +374,7 @@ PetscErrorCode MatCreateExplicit_Linear_N2A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
 PetscErrorCode MatCreateExplicit_Linear_N2B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
 {
   PetscErrorCode ierr;
-  PetscInt       M,N,m,n;
+  PetscInt       M,N,m,n,i,Istart,Iend;
   Mat            Id;
 
   PetscFunctionBegin;
@@ -375,9 +384,12 @@ PetscErrorCode MatCreateExplicit_Linear_N2B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B
   ierr = MatSetSizes(Id,m,n,M,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(Id);CHKERRQ(ierr);
   ierr = MatSetUp(Id);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(Id,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    ierr = MatSetValue(Id,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
+  }
   ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatShift(Id,1.0);CHKERRQ(ierr);
   ierr = SlepcMatTile(ctx->sfactor,ctx->C,ctx->sfactor*ctx->sfactor,ctx->M,1.0,Id,0.0,Id,B);CHKERRQ(ierr);
   ierr = MatDestroy(&Id);CHKERRQ(ierr);
   PetscFunctionReturn(0);
