@@ -188,7 +188,10 @@ PetscErrorCode EPSSolve(EPS eps)
   }
 
   /* Remove deflation and initial subspaces */
-  eps->nds = 0;
+  if (eps->nds) {
+    ierr = BVSetNumConstraints(eps->V,0);CHKERRQ(ierr);
+    eps->nds = 0;
+  }
   eps->nini = 0;
   PetscFunctionReturn(0);
 }
