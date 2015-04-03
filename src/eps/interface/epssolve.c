@@ -165,7 +165,10 @@ PetscErrorCode EPSSolve(EPS eps)
   if (nmat>1) { ierr = MatViewFromOptions(B,((PetscObject)eps)->prefix,"-eps_view_mat1");CHKERRQ(ierr); }
 
   /* Remove deflation and initial subspaces */
-  eps->nds = 0;
+  if (eps->nds) {
+    ierr = BVSetNumConstraints(eps->V,0);CHKERRQ(ierr);
+    eps->nds = 0;
+  }
   eps->nini = 0;
   PetscFunctionReturn(0);
 }
