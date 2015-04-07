@@ -315,7 +315,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   else eps->reason = EPS_DIVERGED_ITS;
   ierr = BVDestroy(&AV);CHKERRQ(ierr);
   /* truncate Schur decomposition and change the state to raw so that
-     PSVectors() computes eigenvectors from scratch */
+     DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
