@@ -87,6 +87,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   PetscReal      norm;
   PetscBool      breakdown;
   Mat            A,B,M;
+  Vec            v,w=eps->work[0];
   BV             X,R,P,AX,AR,AP,BX,BR,BP;
 
   PetscFunctionBegin;
@@ -119,40 +120,44 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       kini++;
     }
   }
-  ierr = BVSetActiveColumns(eps->V,0,ctx->bs);CHKERRQ(ierr);
+  nv = ctx->bs;
+  ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
   ierr = BVCopy(eps->V,X);CHKERRQ(ierr);
 
   /* 3. B-orthogonalize initial vectors */
   /* TODO: X already B-orthogonal but need to store B*X in BX */
+  if (B) {
+    ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);
+  }
 
   /* 4. Compute initial Ritz vectors */
   ierr = BVMatMult(eps->V,A,AX);CHKERRQ(ierr);
-  ierr = DSSetDimensions(eps->ds,ctx->bs,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
   ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
-  ierr = BVDot(AX,X,M);CHKERRQ(ierr);
+  ierr = BVMatProject(AX,NULL,X,M);CHKERRQ(ierr);
   ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
   ierr = DSSetIdentity(eps->ds,DS_MAT_B);CHKERRQ(ierr);
+  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
   ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
-  ierr = BVMultInPlace(X,M,0,ctx->bs);CHKERRQ(ierr);
-  ierr = BVMultInPlace(AX,M,0,ctx->bs);CHKERRQ(ierr);
+  ierr = BVMultInPlace(X,M,0,nv);CHKERRQ(ierr);
+  ierr = BVMultInPlace(AX,M,0,nv);CHKERRQ(ierr);
   ierr = DSRestoreMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
 
   /* 5. Initialize index set of active iterates TODO */
 
   /* 6. Main loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
-    eps->its++;
 
     /* 7. Compute residuals */
     ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
+    ierr = BVCopy(AX,R);CHKERRQ(ierr);
     if (B) {
-      /* TODO */
+      ierr = BVMult(R,-1.0,1.0,BX,M);CHKERRQ(ierr);
     } else {
-      ierr = BVCopy(AX,R);CHKERRQ(ierr);
-      ierr = BVMult(R,-1.0,0.0,X,M);CHKERRQ(ierr);
+      ierr = BVMult(R,-1.0,1.0,X,M);CHKERRQ(ierr);
     }
     ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
 
@@ -163,13 +168,26 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = (*eps->converged)(eps,eps->eigr[j],eps->eigi[j],norm,&eps->errest[j],eps->convergedctx);CHKERRQ(ierr);
       if (eps->errest[k]<eps->tol) k++;
     }
-    if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
-    if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     eps->nconv = k;
+    if (eps->its) {
+      ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
+    }
+    if (k >= eps->nev) {
+      ierr = BVSetActiveColumns(eps->V,0,ctx->bs);CHKERRQ(ierr);  /* TODO: avoid copies */
+      ierr = BVCopy(X,eps->V);CHKERRQ(ierr);
+      eps->reason = EPS_CONVERGED_TOL;
+    }
+    if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (eps->reason != EPS_CONVERGED_ITERATING) break;
+    eps->its++;
 
     /* 9. Apply preconditioner to the residuals */
-    /* TODO */
+    for (j=0;j<ctx->bs;j++) {
+      ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
+      ierr = STMatSolve(eps->st,v,w);CHKERRQ(ierr);
+      ierr = VecCopy(w,v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(R,j,&v);CHKERRQ(ierr);
+    }
 
     /* 10. Enforce the constraints on the preconditioned residuals */
     /* TODO */
@@ -210,15 +228,16 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);  /* TODO: optimize following lines */
     ierr = BVMatProject(eps->V,A,eps->V,M);CHKERRQ(ierr);
     ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
+    ierr = DSGetMat(eps->ds,DS_MAT_B,&M);CHKERRQ(ierr);
     if (B) {
-      ierr = DSGetMat(eps->ds,DS_MAT_B,&M);CHKERRQ(ierr);
       ierr = BVMatProject(eps->V,B,eps->V,M);CHKERRQ(ierr);
-      ierr = DSRestoreMat(eps->ds,DS_MAT_B,&M);CHKERRQ(ierr);
     } else {
-      ierr = DSSetIdentity(eps->ds,DS_MAT_B);CHKERRQ(ierr);
+      ierr = BVDot(eps->V,eps->V,M);CHKERRQ(ierr);
     }
+    ierr = DSRestoreMat(eps->ds,DS_MAT_B,&M);CHKERRQ(ierr);
     
     /* 24. Solve the generalized eigenvalue problem */
+    ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
@@ -255,8 +274,6 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       }
     }
     ierr = DSRestoreMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
-
-    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
   }
 
   ierr = BVDestroy(&X);CHKERRQ(ierr);
