@@ -342,10 +342,14 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec *v)
 -  Vi   - imaginary part of eigenvector
 
    Notes:
+   It is allowed to pass NULL for Vr and Vi, if the eigenvector is not
+   required. Otherwise, the caller must provide valid Vec objects, i.e.,
+   they must be created by the calling program with e.g. MatCreateVecs().
+
    If the eigenvalue is real, then eigi and Vi are set to zero. If PETSc is
    configured with complex scalars the eigenvalue is stored
    directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is
-   set to zero).
+   set to zero). In both cases, the user can pass NULL in eigi and Vi.
 
    The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established
@@ -438,9 +442,12 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
 -  Vi   - imaginary part of eigenvector
 
    Notes:
+   The caller must provide valid Vec objects, i.e., they must be created
+   by the calling program with e.g. MatCreateVecs().
+
    If the corresponding eigenvalue is real, then Vi is set to zero. If PETSc is
    configured with complex scalars the eigenvector is stored
-   directly in Vr (Vi is set to zero).
+   directly in Vr (Vi is set to zero). In both cases, the user can pass NULL in Vi.
 
    The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established
