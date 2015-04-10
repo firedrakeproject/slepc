@@ -276,12 +276,16 @@ PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
   ierr = VecGetArray(v->v,&pv);CHKERRQ(ierr);
   ierr = VecGetArray(w->v,&pw);CHKERRQ(ierr);
   ierr = MatHasOperation(A,MATOP_MAT_MULT,&flg);CHKERRQ(ierr);
-  if (flg) {
+  if (V->vmm && flg) {
     m = V->k-V->l;
-    ierr = BV_AllocateMatMult(V,A,m);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(V->B,&pb);CHKERRQ(ierr);
-    ierr = PetscMemcpy(pb,pv+(V->nc+V->l)*V->n,m*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = MatDenseRestoreArray(V->B,&pb);CHKERRQ(ierr);
+    if (V->vmm==BV_MATMULT_MAT_SAVE) {
+      ierr = BV_AllocateMatMult(V,A,m);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(V->B,&pb);CHKERRQ(ierr);
+      ierr = PetscMemcpy(pb,pv+(V->nc+V->l)*V->n,m*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = MatDenseRestoreArray(V->B,&pb);CHKERRQ(ierr);
+    } else {  /* BV_MATMULT_MAT */
+      ierr = MatCreateDense(PetscObjectComm((PetscObject)V),V->n,PETSC_DECIDE,V->N,m,pv+(V->nc+V->l)*V->n,&V->B);CHKERRQ(ierr);
+    }
     if (!V->C) {
       ierr = MatMatMultSymbolic(A,V->B,PETSC_DEFAULT,&V->C);CHKERRQ(ierr);
     }
@@ -289,6 +293,10 @@ PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
     ierr = MatDenseGetArray(V->C,&pc);CHKERRQ(ierr);
     ierr = PetscMemcpy(pw+(W->nc+W->l)*W->n,pc,m*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = MatDenseRestoreArray(V->C,&pc);CHKERRQ(ierr);
+    if (V->vmm==BV_MATMULT_MAT) {
+      ierr = MatDestroy(&V->B);CHKERRQ(ierr);
+      ierr = MatDestroy(&V->C);CHKERRQ(ierr);
+    }
   } else {
     for (j=0;j<V->k-V->l;j++) {
       ierr = VecPlaceArray(V->cv[1],pv+(V->nc+V->l+j)*V->n);CHKERRQ(ierr);

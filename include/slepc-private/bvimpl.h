@@ -87,6 +87,7 @@ struct _p_BV {
   PetscObjectId      id[2];        /* object id of obtained vectors */
   PetscScalar        *h,*c;        /* orthogonalization coefficients */
   PetscReal          *omega;       /* signature matrix values for indefinite case */
+  BVMatMultType      vmm;          /* version of matmult operation */
   Mat                B,C;          /* auxiliary dense matrices for matmult operation */
   PetscObjectId      Aid;          /* object id of matrix A of matmult operation */
   PetscBool          defersfo;     /* deferred call to setfromoptions */
