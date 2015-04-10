@@ -300,8 +300,7 @@ PetscErrorCode PEPGetEigenpair(PEP pep,PetscInt i,PetscScalar *eigr,PetscScalar 
   if (i<0 || i>=pep->nconv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
 
   ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
-  if (!pep->perm) k = i;
-  else k = pep->perm[i];
+  k = pep->perm[i];
 
   /* eigenvalue */
 #if defined(PETSC_USE_COMPLEX)
@@ -365,8 +364,7 @@ PetscErrorCode PEPGetErrorEstimate(PEP pep,PetscInt i,PetscReal *errest)
   PetscValidPointer(errest,3);
   PEPCheckSolved(pep,1);
   if (i<0 || i>=pep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
-  if (pep->perm) i = pep->perm[i];
-  if (errest) *errest = pep->errest[i];
+  if (errest) *errest = pep->errest[pep->perm[i]];
   PetscFunctionReturn(0);
 }
 
