@@ -378,16 +378,16 @@ static PetscErrorCode SVDValuesView_DRAW(SVD svd,PetscViewer viewer)
 
   PetscFunctionBegin;
   if (!svd->nconv) PetscFunctionReturn(0);
-    ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed singular values",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
-    ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
-    for (i=0;i<svd->nconv;i++) {
-      re = svd->sigma[i];
-      ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
-    }
-    ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed singular values",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
+  ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+  ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
+  for (i=0;i<svd->nconv;i++) {
+    re = svd->sigma[svd->perm[i]];
+    ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
+  }
+  ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
+  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -401,7 +401,7 @@ static PetscErrorCode SVDValuesView_ASCII(SVD svd,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscViewerASCIIPrintf(viewer,"Singular values = \n");CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
-    ierr = PetscViewerASCIIPrintf(viewer,"   %.5f\n",(double)svd->sigma[i]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"   %.5f\n",(double)svd->sigma[svd->perm[i]]);CHKERRQ(ierr);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -419,7 +419,7 @@ static PetscErrorCode SVDValuesView_MATLAB(SVD svd,PetscViewer viewer)
   ierr = PetscObjectGetName((PetscObject)svd,&name);CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"Sigma_%s = [\n",name);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
-    ierr = PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)svd->sigma[i]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)svd->sigma[svd->perm[i]]);CHKERRQ(ierr);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"];\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -533,7 +533,7 @@ PetscErrorCode SVDValuesViewFromOptions(SVD svd)
 PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,k;
   Vec            x;
 #define NMLEN 30
   char           vname[NMLEN];
@@ -549,16 +549,17 @@ PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
     ierr = PetscObjectGetName((PetscObject)svd,&ename);CHKERRQ(ierr);
     ierr = SVDComputeVectors(svd);CHKERRQ(ierr);
     for (i=0;i<svd->nconv;i++) {
+      k = svd->perm[i];
       ierr = PetscSNPrintf(vname,NMLEN,"V%d_%s",i,ename);CHKERRQ(ierr);
-      ierr = BVGetColumn(svd->V,i,&x);CHKERRQ(ierr);
+      ierr = BVGetColumn(svd->V,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(svd->V,i,&x);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(svd->V,k,&x);CHKERRQ(ierr);
       ierr = PetscSNPrintf(vname,NMLEN,"U%d_%s",i,ename);CHKERRQ(ierr);
-      ierr = BVGetColumn(svd->U,i,&x);CHKERRQ(ierr);
+      ierr = BVGetColumn(svd->U,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(svd->U,i,&x);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(svd->U,k,&x);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
