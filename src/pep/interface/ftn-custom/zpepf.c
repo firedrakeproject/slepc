@@ -46,6 +46,7 @@
 #define pepconvergedeigrelative_    PEPCONVERGEDEIGRELATIVE
 #define pepconvergedlinear_         PEPCONVERGEDLINEAR
 #define pepsetconvergencetestfunction_ PEPSETCONVERGENCETESTFUNCTION
+#define pepseteigenvaluecomparison_ PEPSETEIGENVALUECOMPARISON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define pepview_                    pepview
 #define peperrorview_               peperrorview
@@ -67,8 +68,9 @@
 #define pepgetproblemtype_          pepgetproblemtype
 #define pepconvergedabsolute_       pepconvergedabsolute
 #define pepconvergedeigrelative_    pepconvergedeigrelative
-#define pepconvergedlinear_	        pepconvergedlinear
+#define pepconvergedlinear_	    pepconvergedlinear
 #define pepsetconvergencetestfunction_ pepsetconvergencetestfunction
+#define pepseteigenvaluecomparison_ pepseteigenvaluecomparison
 #endif
 
 /*
@@ -105,6 +107,7 @@ static struct {
   PetscFortranCallbackId monitordestroy;
   PetscFortranCallbackId convergence;
   PetscFortranCallbackId convdestroy;
+  PetscFortranCallbackId comparison;
 } _cb;
 
 /* These are not extern C because they are passed into non-extern C user level functions */
@@ -136,6 +139,14 @@ static PetscErrorCode ourconvdestroy(void *ctx)
 {
   PEP pep = (PEP)ctx;
   PetscObjectUseFortranCallback(pep,_cb.convdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "oureigenvaluecomparison"
+static PetscErrorCode oureigenvaluecomparison(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
+{
+  PEP eps = (PEP)ctx;
+  PetscObjectUseFortranCallback(eps,_cb.comparison,(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*),(&ar,&ai,&br,&bi,r,_ctx,&ierr));
 }
 
 PETSC_EXTERN void PETSC_STDCALL pepview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
@@ -296,5 +307,12 @@ PETSC_EXTERN void PETSC_STDCALL pepsetconvergencetestfunction_(PEP *pep,void (PE
       *ierr = PEPSetConvergenceTestFunction(*pep,ourconvergence,*pep,ourconvdestroy);
     }
   }
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepseteigenvaluecomparison_(PEP *pep,void (PETSC_STDCALL *func)(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*),void* ctx,PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLOBJECT(ctx);
+  *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.comparison,(PetscVoidFunction)func,ctx); if (*ierr) return;
+  *ierr = PEPSetEigenvalueComparison(*pep,oureigenvaluecomparison,*pep);
 }
 

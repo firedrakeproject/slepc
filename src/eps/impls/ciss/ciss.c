@@ -219,11 +219,11 @@ static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1,PetscRandom 
 #define __FUNCT__ "VecScatterVecs"
 static PetscErrorCode VecScatterVecs(EPS eps,BV Vin,PetscInt n)
 {
-  PetscErrorCode ierr;
-  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i;
-  Vec            vi,pvi;
-  PetscScalar    *array;
+  PetscErrorCode    ierr;
+  EPS_CISS          *ctx = (EPS_CISS*)eps->data;
+  PetscInt          i;
+  Vec               vi,pvi;
+  const PetscScalar *array;
 
   PetscFunctionBegin;
   for (i=0;i<n;i++) {
@@ -231,12 +231,13 @@ static PetscErrorCode VecScatterVecs(EPS eps,BV Vin,PetscInt n)
     ierr = VecScatterBegin(ctx->scatterin,vi,ctx->xdup,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
     ierr = VecScatterEnd(ctx->scatterin,vi,ctx->xdup,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
     ierr = BVRestoreColumn(Vin,i,&vi);CHKERRQ(ierr);
-    ierr = VecGetArray(ctx->xdup,&array);CHKERRQ(ierr);
-    ierr = VecPlaceArray(ctx->xsub,(const PetscScalar*)array);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(ctx->xdup,&array);CHKERRQ(ierr);
+    ierr = VecPlaceArray(ctx->xsub,array);CHKERRQ(ierr);
     ierr = BVGetColumn(ctx->pV,i,&pvi);CHKERRQ(ierr);
     ierr = VecCopy(ctx->xsub,pvi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(ctx->pV,i,&pvi);CHKERRQ(ierr);
     ierr = VecResetArray(ctx->xsub);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(ctx->xdup,&array);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

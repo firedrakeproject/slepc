@@ -232,6 +232,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   ierr = RGSetFromOptions(eps->rg);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(eps->ds);CHKERRQ(ierr);
+  if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   ierr = STSetFromOptions(eps->st);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -230,7 +230,6 @@ Additionally, \petsc's configuration script provides a very long list of options
 \item Enable use from Fortran. By default, \petsc's configure looks for an appropriate Fortran compiler. If not required, this can be disabled: \Verb!--with-fortran=0!. If required but not correctly detected, the compiler to be used can be specified with a configure option. In the case of Fortran 90, additional options are available for building interfaces and datatypes.
 \item If not detected, use \Verb!--with-blas-lapack-lib! to specify the location of \blas and \lapack. If \slepc's configure complains about some missing \lapack subroutines, reconfigure \petsc with option \Verb!--download-f2cblaslapack!.
 \item Enable external libraries that provide direct linear solvers or preconditioners, such as MUMPS, hypre, or SuperLU; for example, \Verb!--download-mumps!. These are especially relevant for \slepc in the case that a spectral transformation is used, see chapter \ref{cap:st}.
-\item Enable use from C++, \Verb!--with-clanguage=C++!.
 \item Add \Verb!--with-64-bit-indices=1! to use 8 byte integers (\texttt{long long}) for indexing in vectors and matrices. This is only needed when working with over roughly 2 billion unknowns.
 \item Build static libraries, \Verb!--with-shared-libraries=0!. This is generally not recommended, since shared libraries produce smaller executables and the run time overhead is small.
 \item Error-checking code can be disabled with \Verb!--with-debugging=0!, but this is only recommended in production runs of well-tested applications.
