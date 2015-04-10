@@ -154,6 +154,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
     ierr = (*bv->ops->create)(bv);CHKERRQ(ierr);
     ierr = PetscLogEventEnd(BV_Create,bv,0,0,0);CHKERRQ(ierr);
     bv->ops->create = 0;
+    bv->defersfo = PETSC_FALSE;
   }
   PetscFunctionReturn(0);
 }
@@ -719,6 +720,10 @@ PetscErrorCode BVSetFromOptions(BV bv)
     ierr = PetscOptionsReal("-bv_orthog_eta","Parameter of iterative refinement during orthogonalization","BVSetOrthogonalization",r,&r,NULL);CHKERRQ(ierr);
     ierr = BVSetOrthogonalization(bv,(BVOrthogType)i,(BVOrthogRefineType)j,r);CHKERRQ(ierr);
 
+    if (bv->ops->create) bv->defersfo = PETSC_TRUE;   /* defer call to setfromoptions */
+    else if (bv->ops->setfromoptions) {
+      ierr = (*bv->ops->setfromoptions)(PetscOptionsObject,bv);CHKERRQ(ierr);
+    }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)bv);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);

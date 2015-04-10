@@ -57,6 +57,7 @@ struct _BVOps {
   PetscErrorCode (*getarray)(BV,PetscScalar**);
   PetscErrorCode (*restorearray)(BV,PetscScalar**);
   PetscErrorCode (*create)(BV);
+  PetscErrorCode (*setfromoptions)(PetscOptions*,BV);
   PetscErrorCode (*view)(BV,PetscViewer);
   PetscErrorCode (*destroy)(BV);
 };
@@ -88,6 +89,7 @@ struct _p_BV {
   PetscReal          *omega;       /* signature matrix values for indefinite case */
   Mat                B,C;          /* auxiliary dense matrices for matmult operation */
   PetscObjectId      Aid;          /* object id of matrix A of matmult operation */
+  PetscBool          defersfo;     /* deferred call to setfromoptions */
   PetscScalar        *work;
   PetscInt           lwork;
   void               *data;

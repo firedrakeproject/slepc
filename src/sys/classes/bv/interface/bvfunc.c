@@ -198,6 +198,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->B            = NULL;
   bv->C            = NULL;
   bv->Aid          = 0;
+  bv->defersfo     = PETSC_FALSE;
   bv->work         = NULL;
   bv->lwork        = 0;
   bv->data         = NULL;
