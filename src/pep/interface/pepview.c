@@ -117,6 +117,9 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     if (!pep->which) {
       ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
     } else switch (pep->which) {
+      case PEP_WHICH_USER:
+        ierr = PetscViewerASCIIPrintf(viewer,"user defined\n");CHKERRQ(ierr);
+        break;
       case PEP_TARGET_MAGNITUDE:
         ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (in magnitude)\n",str);CHKERRQ(ierr);
         break;
