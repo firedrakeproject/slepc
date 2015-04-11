@@ -350,6 +350,7 @@ PetscErrorCode BVMatMult_Vecs(BV V,Mat A,BV W)
   PetscInt       j;
 
   PetscFunctionBegin;
+  if (V->vmm) { ierr = PetscInfo(V,"BVMatMult_Vecs: ignoring method\n");CHKERRQ(ierr); }
   for (j=0;j<V->k-V->l;j++) {
     ierr = MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]);CHKERRQ(ierr);
   }

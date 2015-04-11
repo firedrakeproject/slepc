@@ -233,11 +233,37 @@ PetscErrorCode BVMatMult_Contiguous(BV V,Mat A,BV W)
 {
   PetscErrorCode ierr;
   BV_CONTIGUOUS  *v = (BV_CONTIGUOUS*)V->data,*w = (BV_CONTIGUOUS*)W->data;
-  PetscInt       j;
+  PetscScalar    *pb,*pc;
+  PetscInt       j,m;
+  PetscBool      flg;
 
   PetscFunctionBegin;
-  for (j=0;j<V->k-V->l;j++) {
-    ierr = MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]);CHKERRQ(ierr);
+  ierr = MatHasOperation(A,MATOP_MAT_MULT,&flg);CHKERRQ(ierr);
+  if (V->vmm && flg) {
+    m = V->k-V->l;
+    if (V->vmm==BV_MATMULT_MAT_SAVE) {
+      ierr = BV_AllocateMatMult(V,A,m);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(V->B,&pb);CHKERRQ(ierr);
+      ierr = PetscMemcpy(pb,v->array+(V->nc+V->l)*V->n,m*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = MatDenseRestoreArray(V->B,&pb);CHKERRQ(ierr);
+    } else {  /* BV_MATMULT_MAT */
+      ierr = MatCreateDense(PetscObjectComm((PetscObject)V),V->n,PETSC_DECIDE,V->N,m,v->array+(V->nc+V->l)*V->n,&V->B);CHKERRQ(ierr);
+    }
+    if (!V->C) {
+      ierr = MatMatMultSymbolic(A,V->B,PETSC_DEFAULT,&V->C);CHKERRQ(ierr);
+    }
+    ierr = MatMatMultNumeric(A,V->B,V->C);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(V->C,&pc);CHKERRQ(ierr);
+    ierr = PetscMemcpy(w->array+(W->nc+W->l)*W->n,pc,m*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(V->C,&pc);CHKERRQ(ierr);
+    if (V->vmm==BV_MATMULT_MAT) {
+      ierr = MatDestroy(&V->B);CHKERRQ(ierr);
+      ierr = MatDestroy(&V->C);CHKERRQ(ierr);
+    }
+  } else {
+    for (j=0;j<V->k-V->l;j++) {
+      ierr = MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
