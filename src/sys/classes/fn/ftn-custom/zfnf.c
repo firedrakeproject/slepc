@@ -19,9 +19,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <petsc-private/fortranimpl.h>
-#include <slepc-private/slepcimpl.h>
-#include <slepc-private/fnimpl.h>
+#include <petsc/private/fortranimpl.h>
+#include <slepc/private/slepcimpl.h>
+#include <slepc/private/fnimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define fnview_                    FNVIEW

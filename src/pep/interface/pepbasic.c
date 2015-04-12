@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>      /*I "slepcpep.h" I*/
+#include <slepc/private/pepimpl.h>      /*I "slepcpep.h" I*/
 
 PetscFunctionList PEPList = 0;
 PetscBool         PEPRegisterAllCalled = PETSC_FALSE;

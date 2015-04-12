@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/fnimpl.h>      /*I "slepcfn.h" I*/
+#include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
 #include <slepcblaslapack.h>
 
 PetscFunctionList FNList = 0;

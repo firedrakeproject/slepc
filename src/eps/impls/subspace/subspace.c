@@ -34,7 +34,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>
+#include <slepc/private/epsimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_Subspace"

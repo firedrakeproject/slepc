@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h> 
-#include <slepc-private/pepimpl.h>         /*I "slepcpep.h" I*/
+#include <slepc/private/stimpl.h> 
+#include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
 #include "linearp.h"
 
 #undef __FUNCT__

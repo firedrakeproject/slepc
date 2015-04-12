@@ -22,7 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>   /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>   /*I "slepceps.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions"

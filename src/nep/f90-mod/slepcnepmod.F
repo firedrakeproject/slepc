@@ -26,12 +26,12 @@
         use slepcfn
         use slepceps
         use slepcpep
-#include <slepc-finclude/slepcnep.h>
-#include <slepc-finclude/ftn-custom/slepcnepdef.h90>
+#include <slepc/finclude/slepcnep.h>
+#include <slepc/finclude/ftn-custom/slepcnepdef.h90>
         end module
 
         module slepcnep
         use slepcnepdef
-#include <slepc-finclude/slepcnep.h90>
+#include <slepc/finclude/slepcnep.h90>
         end module
 

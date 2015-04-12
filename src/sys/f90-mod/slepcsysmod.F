@@ -20,7 +20,7 @@
 #define PETSC_USE_FORTRAN_MODULES
 
         module slepcsysdef
-#include <slepc-finclude/slepcsys.h>
+#include <slepc/finclude/slepcsys.h>
         end module
 
         module slepcsys
@@ -28,55 +28,55 @@
         end module
 
         module slepcrgdef
-#include <slepc-finclude/slepcrg.h>
-#include <slepc-finclude/ftn-custom/slepcrgdef.h90>
+#include <slepc/finclude/slepcrg.h>
+#include <slepc/finclude/ftn-custom/slepcrgdef.h90>
         end module
 
         module slepcrg
         use slepcrgdef
-#include <slepc-finclude/slepcrg.h90>
+#include <slepc/finclude/slepcrg.h90>
         end module
 
         module slepcfndef
-#include <slepc-finclude/slepcfn.h>
-#include <slepc-finclude/ftn-custom/slepcfndef.h90>
+#include <slepc/finclude/slepcfn.h>
+#include <slepc/finclude/ftn-custom/slepcfndef.h90>
         end module
 
         module slepcfn
         use slepcfndef
-#include <slepc-finclude/slepcfn.h90>
+#include <slepc/finclude/slepcfn.h90>
         end module
 
         module slepcdsdef
         use slepcsys
         use slepcfn
-#include <slepc-finclude/slepcds.h>
-#include <slepc-finclude/ftn-custom/slepcdsdef.h90>
+#include <slepc/finclude/slepcds.h>
+#include <slepc/finclude/ftn-custom/slepcdsdef.h90>
         end module
 
         module slepcds
         use slepcdsdef
-#include <slepc-finclude/slepcds.h90>
+#include <slepc/finclude/slepcds.h90>
         end module
 
         module slepcbvdef
-#include <slepc-finclude/slepcbv.h>
-#include <slepc-finclude/ftn-custom/slepcbvdef.h90>
+#include <slepc/finclude/slepcbv.h>
+#include <slepc/finclude/ftn-custom/slepcbvdef.h90>
         end module
 
         module slepcbv
         use slepcbvdef
-#include <slepc-finclude/slepcbv.h90>
+#include <slepc/finclude/slepcbv.h90>
         end module
 
         module slepcstdef
         use petscksp
-#include <slepc-finclude/slepcst.h>
-#include <slepc-finclude/ftn-custom/slepcstdef.h90>
+#include <slepc/finclude/slepcst.h>
+#include <slepc/finclude/ftn-custom/slepcstdef.h90>
         end module
 
         module slepcst
         use slepcstdef
-#include <slepc-finclude/slepcst.h90>
+#include <slepc/finclude/slepcst.h90>
         end module
 

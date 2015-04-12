@@ -31,4 +31,4 @@ DIRS     =
 MANSEC   = SVD
 LOCDIR   = src/svd/impls/cross/
 
-include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

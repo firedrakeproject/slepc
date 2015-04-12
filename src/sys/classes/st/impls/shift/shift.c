@@ -22,7 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>
+#include <slepc/private/stimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "STApply_Shift"

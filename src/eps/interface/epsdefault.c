@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>   /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>   /*I "slepceps.h" I*/
 #include <slepcvec.h>
 
 #undef __FUNCT__

@@ -19,8 +19,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <petsc-private/fortranimpl.h>
-#include <slepc-private/mfnimpl.h>
+#include <petsc/private/fortranimpl.h>
+#include <slepc/private/mfnimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define mfnview_                    MFNVIEW
