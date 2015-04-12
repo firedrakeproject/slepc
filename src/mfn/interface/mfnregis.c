@@ -39,7 +39,9 @@ PetscErrorCode MFNRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (MFNRegisterAllCalled) PetscFunctionReturn(0);
   MFNRegisterAllCalled = PETSC_TRUE;
   ierr = MFNRegister(MFNKRYLOV,MFNCreate_Krylov);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

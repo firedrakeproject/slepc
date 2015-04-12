@@ -25,6 +25,8 @@
 #include <slepcst.h>
 #include <slepc-private/slepcimpl.h>
 
+PETSC_EXTERN PetscBool STRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode STRegisterAll(void);
 PETSC_EXTERN PetscLogEvent ST_SetUp,ST_Apply,ST_ApplyTranspose,ST_MatSetUp,ST_MatMult,ST_MatMultTranspose,ST_MatSolve,ST_MatSolveTranspose;
 
 typedef struct _STOps *STOps;
@@ -35,7 +37,7 @@ struct _STOps {
   PetscErrorCode (*getbilinearform)(ST,Mat*);
   PetscErrorCode (*applytrans)(ST,Vec,Vec);
   PetscErrorCode (*setshift)(ST,PetscScalar);
-  PetscErrorCode (*setfromoptions)(ST);
+  PetscErrorCode (*setfromoptions)(PetscOptions*,ST);
   PetscErrorCode (*postsolve)(ST);
   PetscErrorCode (*backtransform)(ST,PetscInt,PetscScalar*,PetscScalar*);
   PetscErrorCode (*destroy)(ST);
@@ -91,6 +93,7 @@ PETSC_INTERN PetscErrorCode STCheckNullSpace_Default(ST,BV);
 PETSC_INTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,PetscScalar*,Mat*);
 PETSC_INTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
 PETSC_INTERN PetscErrorCode STMatSetHermitian(ST,Mat);
+PETSC_INTERN PetscErrorCode STCheckFactorPackage(ST);
 PETSC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscScalar*,PetscBool,Mat*);
 PETSC_INTERN PetscErrorCode STCoeffs_Monomial(ST,PetscScalar*);
 

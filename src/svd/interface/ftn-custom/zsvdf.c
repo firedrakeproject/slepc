@@ -30,6 +30,10 @@
 #define svdmonitorconverged_         SVDMONITORCONVERGED
 #define svdmonitorfirst_             SVDMONITORFIRST
 #define svdview_                     SVDVIEW
+#define svderrorview_                SVDERRORVIEW
+#define svdreasonview_               SVDREASONVIEW
+#define svdvaluesview_               SVDVALUESVIEW
+#define svdvectorsview_              SVDVECTORSVIEW
 #define svdsettype_                  SVDSETTYPE
 #define svdgettype_                  SVDGETTYPE
 #define svdmonitorset_               SVDMONITORSET
@@ -44,6 +48,10 @@
 #define svdmonitorconverged_         svdmonitorconverged
 #define svdmonitorfirst_             svdmonitorfirst
 #define svdview_                     svdview
+#define svderrorview_                svderrorview
+#define svdreasonview_               svdreasonview
+#define svdvaluesview_               svdvaluesview
+#define svdvectorsview_              svdvectorsview
 #define svdsettype_                  svdsettype
 #define svdgettype_                  svdgettype
 #define svdmonitorset_               svdmonitorset
@@ -108,6 +116,34 @@ PETSC_EXTERN void PETSC_STDCALL svdview_(SVD *svd,PetscViewer *viewer,PetscError
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = SVDView(*svd,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdreasonview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = SVDReasonView(*svd,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svderrorview_(SVD *svd,SVDErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = SVDErrorView(*svd,*etype,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdvaluesview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = SVDValuesView(*svd,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdvectorsview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = SVDVectorsView(*svd,v);
 }
 
 PETSC_EXTERN void PETSC_STDCALL svdsettype_(SVD *svd,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))

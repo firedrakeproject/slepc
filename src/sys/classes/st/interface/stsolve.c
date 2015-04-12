@@ -54,10 +54,12 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   PetscValidType(st,1);
   STCheckMatrices(st,1);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  VecLocked(y,3);
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
 
   if (!st->ops->apply) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have apply");
+  ierr = VecLockPush(x);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_Apply,st,x,y,0);CHKERRQ(ierr);
   st->applys++;
   if (st->D) { /* with balancing */
@@ -68,6 +70,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
     ierr = (*st->ops->apply)(st,x,y);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(ST_Apply,st,x,y,0);CHKERRQ(ierr);
+  ierr = VecLockPop(x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -102,10 +105,12 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   PetscValidType(st,1);
   STCheckMatrices(st,1);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  VecLocked(y,3);
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
 
   if (!st->ops->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
+  ierr = VecLockPush(x);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
   st->applys++;
   if (st->D) { /* with balancing */
@@ -116,6 +121,7 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
     ierr = (*st->ops->applytrans)(st,x,y);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
+  ierr = VecLockPop(x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -486,7 +492,7 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
    Input Parameters:
 +  st     - the spectral transformation context
 .  sigma  - the shift
--  coeffs - the coefficients
+-  coeffs - the coefficients (may be NULL)
 
    Note:
    This function is not intended to be called by end users, but by SLEPc
@@ -507,12 +513,12 @@ PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveScalar(st,sigma,2);
-  PetscValidScalarPointer(coeffs,2);
   STCheckMatrices(st,1);
 
   ierr = PetscLogEventBegin(ST_MatSetUp,st,0,0,0);CHKERRQ(ierr);
   ierr = STMatMAXPY_Private(st,sigma,0.0,0,coeffs,PETSC_TRUE,&st->P);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+  ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
   ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_MatSetUp,st,0,0,0);CHKERRQ(ierr);

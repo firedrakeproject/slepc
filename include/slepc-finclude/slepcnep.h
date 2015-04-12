@@ -26,6 +26,14 @@
 !  Convergence flags.
 !  They should match the flags in $SLEPC_DIR/include/slepcnep.h
 
+      PetscEnum NEP_REFINE_NONE
+      PetscEnum NEP_REFINE_SIMPLE
+      PetscEnum NEP_REFINE_MULTIPLE
+
+      parameter (NEP_REFINE_NONE            =  0)
+      parameter (NEP_REFINE_SIMPLE          =  1)
+      parameter (NEP_REFINE_MULTIPLE        =  2)
+
       PetscEnum NEP_CONVERGED_FNORM_ABS
       PetscEnum NEP_CONVERGED_FNORM_RELATIVE
       PetscEnum NEP_CONVERGED_SNORM_RELATIVE
@@ -65,6 +73,12 @@
       parameter (NEP_TARGET_MAGNITUDE       =  7)
       parameter (NEP_TARGET_REAL            =  8)
       parameter (NEP_TARGET_IMAGINARY       =  9)
+
+      PetscEnum NEP_ERROR_ABSOLUTE
+      PetscEnum NEP_ERROR_RELATIVE
+
+      parameter (NEP_ERROR_ABSOLUTE         =  0)
+      parameter (NEP_ERROR_RELATIVE         =  1)
 
 !
 !   Possible arguments to NEPMonitorSet()

@@ -202,7 +202,7 @@ PetscErrorCode EPSDestroy_FEAST(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_FEAST"
-PetscErrorCode EPSSetFromOptions_FEAST(EPS eps)
+PetscErrorCode EPSSetFromOptions_FEAST(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
@@ -210,7 +210,7 @@ PetscErrorCode EPSSetFromOptions_FEAST(EPS eps)
   PetscBool      flg;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS FEAST Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS FEAST Options");CHKERRQ(ierr);
 
   n = ctx->npoints;
   ierr = PetscOptionsInt("-eps_feast_num_points","Number of contour integration points","EPSFEASTSetNumPoints",n,&n,&flg);CHKERRQ(ierr);

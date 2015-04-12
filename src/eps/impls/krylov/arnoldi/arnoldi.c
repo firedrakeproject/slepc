@@ -11,7 +11,7 @@
    References:
 
        [1] "Arnoldi Methods in SLEPc", SLEPc Technical Report STR-4,
-           available at http://www.grycap.upv.es/slepc.
+           available at http://slepc.upv.es.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -74,170 +74,6 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#if 0
-#undef __FUNCT__
-#define __FUNCT__ "EPSDelayedArnoldi"
-/*
-   EPSDelayedArnoldi - This function is equivalent to EPSBasicArnoldi but
-   performs the computation in a different way. The main idea is that
-   reorthogonalization is delayed to the next Arnoldi step. This version is
-   more scalable but in some cases convergence may stagnate.
-*/
-PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscBool *breakdown)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,j,m=*M;
-  Vec            u,t;
-  PetscScalar    shh[100],*lhh,dot,dot2;
-  PetscReal      norm1=0.0,norm2;
-
-  PetscFunctionBegin;
-  if (m<=100) lhh = shh;
-  else {
-    ierr = PetscMalloc1(m,&lhh);CHKERRQ(ierr);
-  }
-  ierr = VecDuplicate(f,&u);CHKERRQ(ierr);
-  ierr = VecDuplicate(f,&t);CHKERRQ(ierr);
-
-  for (j=k;j<m;j++) {
-    ierr = STApply(eps->st,V[j],f);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,0,NULL,eps->nds,NULL,eps->defl,f,NULL,NULL,NULL);CHKERRQ(ierr);
-
-    ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
-    if (j>k) {
-      ierr = IPMInnerProductBegin(eps->ip,V[j],j,V,lhh);CHKERRQ(ierr);
-      ierr = IPInnerProductBegin(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr);
-    }
-    if (j>k+1) {
-      ierr = IPNormBegin(eps->ip,u,&norm2);CHKERRQ(ierr);
-      ierr = VecDotBegin(u,V[j-2],&dot2);CHKERRQ(ierr);
-    }
-
-    ierr = IPMInnerProductEnd(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
-    if (j>k) {
-      ierr = IPMInnerProductEnd(eps->ip,V[j],j,V,lhh);CHKERRQ(ierr);
-      ierr = IPInnerProductEnd(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr);
-    }
-    if (j>k+1) {
-      ierr = IPNormEnd(eps->ip,u,&norm2);CHKERRQ(ierr);
-      ierr = VecDotEnd(u,V[j-2],&dot2);CHKERRQ(ierr);
-      if (PetscAbsScalar(dot2/norm2) > PETSC_MACHINE_EPSILON) {
-        *breakdown = PETSC_TRUE;
-        *M = j-1;
-        *beta = norm2;
-
-        if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
-        ierr = VecDestroy(&u);CHKERRQ(ierr);
-        ierr = VecDestroy(&t);CHKERRQ(ierr);
-        PetscFunctionReturn(0);
-      }
-    }
-
-    if (j>k) {
-      norm1 = PetscSqrtReal(PetscRealPart(dot));
-      for (i=0;i<j;i++)
-        H[ldh*j+i] = H[ldh*j+i]/norm1;
-      H[ldh*j+j] = H[ldh*j+j]/dot;
-
-      ierr = VecCopy(V[j],t);CHKERRQ(ierr);
-      ierr = VecScale(V[j],1.0/norm1);CHKERRQ(ierr);
-      ierr = VecScale(f,1.0/norm1);CHKERRQ(ierr);
-    }
-
-    ierr = SlepcVecMAXPBY(f,1.0,-1.0,j+1,H+ldh*j,V);CHKERRQ(ierr);
-
-    if (j>k) {
-      ierr = SlepcVecMAXPBY(t,1.0,-1.0,j,lhh,V);CHKERRQ(ierr);
-      for (i=0;i<j;i++)
-        H[ldh*(j-1)+i] += lhh[i];
-    }
-
-    if (j>k+1) {
-      ierr = VecCopy(u,V[j-1]);CHKERRQ(ierr);
-      ierr = VecScale(V[j-1],1.0/norm2);CHKERRQ(ierr);
-      H[ldh*(j-2)+j-1] = norm2;
-    }
-
-    if (j<m-1) {
-      ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
-      ierr = VecCopy(t,u);CHKERRQ(ierr);
-    }
-  }
-
-  ierr = IPNorm(eps->ip,t,&norm2);CHKERRQ(ierr);
-  ierr = VecScale(t,1.0/norm2);CHKERRQ(ierr);
-  ierr = VecCopy(t,V[m-1]);CHKERRQ(ierr);
-  H[ldh*(m-2)+m-1] = norm2;
-
-  ierr = IPMInnerProduct(eps->ip,f,m,V,lhh);CHKERRQ(ierr);
-
-  ierr = SlepcVecMAXPBY(f,1.0,-1.0,m,lhh,V);CHKERRQ(ierr);
-  for (i=0;i<m;i++)
-    H[ldh*(m-1)+i] += lhh[i];
-
-  ierr = IPNorm(eps->ip,f,beta);CHKERRQ(ierr);
-  ierr = VecScale(f,1.0 / *beta);CHKERRQ(ierr);
-  *breakdown = PETSC_FALSE;
-
-  if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSDelayedArnoldi1"
-/*
-   EPSDelayedArnoldi1 - This function is similar to EPSDelayedArnoldi,
-   but without reorthogonalization (only delayed normalization).
-*/
-PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,Vec *V,PetscInt k,PetscInt *M,Vec f,PetscReal *beta,PetscBool *breakdown)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,j,m=*M;
-  PetscScalar    dot;
-  PetscReal      norm=0.0;
-
-  PetscFunctionBegin;
-  for (j=k;j<m;j++) {
-    ierr = STApply(eps->st,V[j],f);CHKERRQ(ierr);
-    ierr = IPOrthogonalize(eps->ip,0,NULL,eps->nds,NULL,eps->defl,f,NULL,NULL,NULL);CHKERRQ(ierr);
-
-    ierr = IPMInnerProductBegin(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
-    if (j>k) {
-      ierr = IPInnerProductBegin(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr);
-    }
-
-    ierr = IPMInnerProductEnd(eps->ip,f,j+1,V,H+ldh*j);CHKERRQ(ierr);
-    if (j>k) {
-      ierr = IPInnerProductEnd(eps->ip,V[j],V[j],&dot);CHKERRQ(ierr);
-    }
-
-    if (j>k) {
-      norm = PetscSqrtReal(PetscRealPart(dot));
-      ierr = VecScale(V[j],1.0/norm);CHKERRQ(ierr);
-      H[ldh*(j-1)+j] = norm;
-
-      for (i=0;i<j;i++)
-        H[ldh*j+i] = H[ldh*j+i]/norm;
-      H[ldh*j+j] = H[ldh*j+j]/dot;
-      ierr = VecScale(f,1.0/norm);CHKERRQ(ierr);
-    }
-
-    ierr = SlepcVecMAXPBY(f,1.0,-1.0,j+1,H+ldh*j,V);CHKERRQ(ierr);
-
-    if (j<m-1) {
-      ierr = VecCopy(f,V[j+1]);CHKERRQ(ierr);
-    }
-  }
-
-  ierr = IPNorm(eps->ip,f,beta);CHKERRQ(ierr);
-  ierr = VecScale(f,1.0 / *beta);CHKERRQ(ierr);
-  *breakdown = PETSC_FALSE;
-  PetscFunctionReturn(0);
-}
-#endif
-
 #undef __FUNCT__
 #define __FUNCT__ "EPSSolve_Arnoldi"
 PetscErrorCode EPSSolve_Arnoldi(EPS eps)
@@ -270,12 +106,11 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     ierr = DSGetArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     if (!arnoldi->delayed) {
       ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,ld,eps->nconv,&nv,&beta,&breakdown);CHKERRQ(ierr);
-    } else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Not implemented");
-    /*if (orthog_ref == BV_ORTHOG_REFINE_NEVER) {
-      ierr = EPSDelayedArnoldi1(eps,H,ld,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
+    } else if (orthog_ref == BV_ORTHOG_REFINE_NEVER) {
+      ierr = EPSDelayedArnoldi1(eps,H,ld,eps->nconv,&nv,&beta,&breakdown);CHKERRQ(ierr);
     } else {
-      ierr = EPSDelayedArnoldi(eps,H,ld,eps->V,eps->nconv,&nv,f,&beta,&breakdown);CHKERRQ(ierr);
-    }*/
+      ierr = EPSDelayedArnoldi(eps,H,ld,eps->nconv,&nv,&beta,&breakdown);CHKERRQ(ierr);
+    }
     ierr = DSRestoreArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
@@ -329,14 +164,14 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_Arnoldi"
-PetscErrorCode EPSSetFromOptions_Arnoldi(EPS eps)
+PetscErrorCode EPSSetFromOptions_Arnoldi(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS Arnoldi Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS Arnoldi Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_arnoldi_delayed","Arnoldi with delayed reorthogonalization","EPSArnoldiSetDelayed",arnoldi->delayed,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = EPSArnoldiSetDelayed(eps,val);CHKERRQ(ierr);

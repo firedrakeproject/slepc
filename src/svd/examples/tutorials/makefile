@@ -63,7 +63,7 @@ runex14_1:
 	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
            echo "Skipping ex14 test"; \
          else \
-	   ${MPIEXEC} -np 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 4 -svd_terse > ex14_1.tmp 2>&1;	  \
+	   ${MPIEXEC} -np 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 4 -terse > ex14_1.tmp 2>&1;	  \
 	   if (${DIFF} output/ex14_1.out ex14_1.tmp) then true; \
 	   else echo "Possible problem with ex14_1, diffs above"; fi; \
 	   ${RM} -f ex14_1.tmp; \

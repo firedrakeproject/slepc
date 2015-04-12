@@ -78,49 +78,49 @@ spring: spring.o chkopts
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runacoustic_wave_1d_1:
-	-@${MPIEXEC} -np 1 ./acoustic_wave_1d -pep_nev 4 -pep_tol 1e-7 -n 24 -st_type sinvert -pep_terse > acoustic_wave_1d_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./acoustic_wave_1d -pep_nev 4 -pep_tol 1e-7 -n 24 -st_type sinvert -terse > acoustic_wave_1d_1.tmp 2>&1; \
 	   if (${DIFF} output/acoustic_wave_1d_1.out acoustic_wave_1d_1.tmp) then true; \
 	   else echo "Possible problem with acoustic_wave_1d_1, diffs above"; fi; \
 	   ${RM} -f acoustic_wave_1d_1.tmp
 
 runacoustic_wave_2d_1:
-	-@${MPIEXEC} -np 1 ./acoustic_wave_2d -pep_nev 2 -pep_terse > acoustic_wave_2d_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./acoustic_wave_2d -pep_nev 2 -terse > acoustic_wave_2d_1.tmp 2>&1; \
 	   if (${DIFF} output/acoustic_wave_2d_1.out acoustic_wave_2d_1.tmp) then true; \
 	   else echo "Possible problem with acoustic_wave_2d_1, diffs above"; fi; \
 	   ${RM} -f acoustic_wave_2d_1.tmp
 
 runbutterfly:
-	-@${MPIEXEC} -np 1 ./butterfly -pep_nev 4 -st_type sinvert -pep_terse > butterfly_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./butterfly -pep_nev 4 -st_type sinvert -pep_target 0.01 -terse > butterfly_1.tmp 2>&1; \
 	   if (${DIFF} output/butterfly_1.out butterfly_1.tmp) then true; \
 	   else echo "Possible problem with butterfly_1, diffs above"; fi; \
 	   ${RM} -f butterfly_1.tmp
 
 rundamped_beam:
-	-@${MPIEXEC} -np 1 ./damped_beam -pep_nev 2 -pep_ncv 12 -st_type sinvert -pep_target -7 -pep_terse > damped_beam_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./damped_beam -pep_nev 2 -pep_ncv 12 -st_type sinvert -pep_target -7 -terse > damped_beam_1.tmp 2>&1; \
 	   if (${DIFF} output/damped_beam_1.out damped_beam_1.tmp) then true; \
 	   else echo "Possible problem with damped_beam_1, diffs above"; fi; \
 	   ${RM} -f damped_beam_1.tmp
 
 runpdde_stability:
-	-@${MPIEXEC} -np 1 ./pdde_stability -pep_nev 2 -pep_ncv 40 -st_type sinvert -pep_target 2 -pep_terse > pdde_stability_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./pdde_stability -terse > pdde_stability_1.tmp 2>&1; \
 	   if (${DIFF} output/pdde_stability_1.out pdde_stability_1.tmp) then true; \
 	   else echo "Possible problem with pdde_stability_1, diffs above"; fi; \
 	   ${RM} -f pdde_stability_1.tmp
 
 runplanar_waveguide:
-	-@${MPIEXEC} -np 1 ./planar_waveguide -pep_nev 4 -st_type sinvert -pep_terse > planar_waveguide_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./planar_waveguide -pep_nev 4 -st_type sinvert -terse > planar_waveguide_1.tmp 2>&1; \
 	   if (${DIFF} output/planar_waveguide_1.out planar_waveguide_1.tmp) then true; \
 	   else echo "Possible problem with planar_waveguide_1, diffs above"; fi; \
 	   ${RM} -f planar_waveguide_1.tmp
 
 runsleeper:
-	-@${MPIEXEC} -np 1 ./sleeper -pep_nev 4 -pep_ncv 24 -st_type sinvert -n 100 -pep_terse > sleeper_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./sleeper -pep_nev 4 -pep_ncv 24 -st_type sinvert -n 100 -terse > sleeper_1.tmp 2>&1; \
 	   if (${DIFF} output/sleeper_1.out sleeper_1.tmp) then true; \
 	   else echo "Possible problem with sleeper_1, diffs above"; fi; \
 	   ${RM} -f sleeper_1.tmp
 
 runspring:
-	-@${MPIEXEC} -np 1 ./spring -pep_nev 4 -n 24 -st_type sinvert -pep_terse > spring_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./spring -pep_nev 4 -n 24 -st_type sinvert -terse > spring_1.tmp 2>&1; \
 	   if (${DIFF} output/spring_1.out spring_1.tmp) then true; \
 	   else echo "Possible problem with spring_1, diffs above"; fi; \
 	   ${RM} -f spring_1.tmp

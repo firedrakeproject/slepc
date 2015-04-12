@@ -25,6 +25,8 @@
 #include <slepcmfn.h>
 #include <slepc-private/slepcimpl.h>
 
+PETSC_EXTERN PetscBool MFNRegisterAllCalled;
+PETSC_EXTERN PetscErrorCode MFNRegisterAll(void);
 PETSC_EXTERN PetscLogEvent MFN_SetUp, MFN_Solve;
 
 typedef struct _MFNOps *MFNOps;
@@ -32,7 +34,7 @@ typedef struct _MFNOps *MFNOps;
 struct _MFNOps {
   PetscErrorCode (*solve)(MFN,Vec,Vec);
   PetscErrorCode (*setup)(MFN);
-  PetscErrorCode (*setfromoptions)(MFN);
+  PetscErrorCode (*setfromoptions)(PetscOptions*,MFN);
   PetscErrorCode (*publishoptions)(MFN);
   PetscErrorCode (*destroy)(MFN);
   PetscErrorCode (*reset)(MFN);

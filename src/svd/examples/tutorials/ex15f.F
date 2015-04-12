@@ -163,7 +163,7 @@
      &         PETSC_NULL_OBJECT,ierr)
 
 !         ** Compute the relative error associated to each eigenpair
-          call SVDComputeRelativeError(svd,i,error,ierr)
+          call SVDComputeError(svd,i,SVD_ERROR_RELATIVE,error,ierr)
           if (rank .eq. 0) then
             write(*,160) sigma, error
           endif

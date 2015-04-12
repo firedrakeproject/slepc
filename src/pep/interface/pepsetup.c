@@ -48,7 +48,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   PetscErrorCode ierr;
   SlepcSC        sc;
   PetscBool      islinear,istrivial,flg;
-  PetscInt       i,k;
+  PetscInt       k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -90,15 +90,6 @@ PetscErrorCode PEPSetUp(PEP pep)
     ierr = PEPSetProblemType(pep,PEP_GENERAL);CHKERRQ(ierr);
   }
 
-  /* initialization of matrix norms */
-  if (pep->conv==PEP_CONV_NORM) {
-    for (i=0;i<pep->nmat;i++) {
-      if (!pep->nrma[i]) {
-        ierr = MatNorm(pep->A[i],NORM_INFINITY,&pep->nrma[i]);CHKERRQ(ierr);
-      }
-    }
-  }
-
   /* call specific solver setup */
   ierr = (*pep->ops->setup)(pep);CHKERRQ(ierr);
 
@@ -107,6 +98,11 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (pep->refine) {
     if (pep->rtol==PETSC_DEFAULT) pep->rtol = pep->tol;
     if (pep->rits==PETSC_DEFAULT) pep->rits = (pep->refine==PEP_REFINE_SIMPLE)? 10: 1;
+  }
+
+  /* set default extraction */
+  if (!pep->extract) {
+    pep->extract = (pep->basis==PEP_BASIS_MONOMIAL)? PEP_EXTRACT_NORM: PEP_EXTRACT_NONE;
   }
 
   /* fill sorting criterion context */
@@ -147,6 +143,8 @@ PetscErrorCode PEPSetUp(PEP pep)
       pep->sc->comparison    = SlepcCompareTargetImaginary;
       pep->sc->comparisonctx = &pep->target;
       break;
+    case PEP_WHICH_USER:
+      break;
   }
   pep->sc->map    = NULL;
   pep->sc->mapobj = NULL;
@@ -186,6 +184,10 @@ PetscErrorCode PEPSetUp(PEP pep)
       ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dr);CHKERRQ(ierr);
     }
     ierr = PEPBuildDiagonalScaling(pep);CHKERRQ(ierr);
+  }
+
+  if (pep->conv==PEP_CONV_LINEAR) {
+    ierr = PEPComputeLinearNorms(pep);CHKERRQ(ierr);
   }
 
   /* process initial vectors */

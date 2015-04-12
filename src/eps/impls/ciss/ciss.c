@@ -118,10 +118,10 @@ static PetscErrorCode CISSRedundantMat(EPS eps)
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   if (ctx->subcomm->n != 1) {
     ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-    ierr = MatCreateRedundantMatrix(A,ctx->subcomm->n,ctx->subcomm->comm,MAT_INITIAL_MATRIX,&ctx->pA);CHKERRQ(ierr);
+    ierr = MatCreateRedundantMatrix(A,ctx->subcomm->n,PetscSubcommChild(ctx->subcomm),MAT_INITIAL_MATRIX,&ctx->pA);CHKERRQ(ierr);
     if (nmat>1) {
       ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
-      ierr = MatCreateRedundantMatrix(B,ctx->subcomm->n,ctx->subcomm->comm,MAT_INITIAL_MATRIX,&ctx->pB);CHKERRQ(ierr); 
+      ierr = MatCreateRedundantMatrix(B,ctx->subcomm->n,PetscSubcommChild(ctx->subcomm),MAT_INITIAL_MATRIX,&ctx->pB);CHKERRQ(ierr); 
     } else ctx->pB = NULL;
   } else {
     ctx->pA = NULL;
@@ -144,7 +144,7 @@ static PetscErrorCode CISSScatterVec(EPS eps)
   PetscFunctionBegin;
   ierr = MatCreateVecs(ctx->pA,&ctx->xsub,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->pA,&mloc_sub,NULL);CHKERRQ(ierr);
-  ierr = VecCreateMPI(ctx->subcomm->dupparent,mloc_sub,PETSC_DECIDE,&ctx->xdup);CHKERRQ(ierr);
+  ierr = VecCreateMPI(PetscSubcommContiguousParent(ctx->subcomm),mloc_sub,PETSC_DECIDE,&ctx->xdup);CHKERRQ(ierr);
   if (!ctx->scatterin) {
     ierr = BVGetColumn(ctx->V,0,&v0);CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(v0,&mstart,&mend);CHKERRQ(ierr);
@@ -219,11 +219,11 @@ static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1,PetscRandom 
 #define __FUNCT__ "VecScatterVecs"
 static PetscErrorCode VecScatterVecs(EPS eps,BV Vin,PetscInt n)
 {
-  PetscErrorCode ierr;
-  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i;
-  Vec            vi,pvi;
-  PetscScalar    *array;
+  PetscErrorCode    ierr;
+  EPS_CISS          *ctx = (EPS_CISS*)eps->data;
+  PetscInt          i;
+  Vec               vi,pvi;
+  const PetscScalar *array;
 
   PetscFunctionBegin;
   for (i=0;i<n;i++) {
@@ -231,12 +231,13 @@ static PetscErrorCode VecScatterVecs(EPS eps,BV Vin,PetscInt n)
     ierr = VecScatterBegin(ctx->scatterin,vi,ctx->xdup,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
     ierr = VecScatterEnd(ctx->scatterin,vi,ctx->xdup,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
     ierr = BVRestoreColumn(Vin,i,&vi);CHKERRQ(ierr);
-    ierr = VecGetArray(ctx->xdup,&array);CHKERRQ(ierr);
-    ierr = VecPlaceArray(ctx->xsub,(const PetscScalar*)array);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(ctx->xdup,&array);CHKERRQ(ierr);
+    ierr = VecPlaceArray(ctx->xsub,array);CHKERRQ(ierr);
     ierr = BVGetColumn(ctx->pV,i,&pvi);CHKERRQ(ierr);
     ierr = VecCopy(ctx->xsub,pvi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(ctx->pV,i,&pvi);CHKERRQ(ierr);
     ierr = VecResetArray(ctx->xsub);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(ctx->xdup,&array);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -259,7 +260,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
     ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Fz);CHKERRQ(ierr);
   }
   if (ctx->usest && ctx->pA) {
-    ierr = KSPCreate(ctx->subcomm->comm,&ksp);CHKERRQ(ierr);
+    ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ksp);CHKERRQ(ierr);
   }
   for (i=0;i<ctx->num_solve_point;i++) {
     p_id = i*ctx->subcomm->n + ctx->subcomm_id;
@@ -385,7 +386,7 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   Mat            M;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_size(ctx->subcomm->comm,&sub_size);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscSubcommChild(ctx->subcomm),&sub_size);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->num_solve_point*ctx->L*(ctx->L+1)*sizeof(PetscScalar),&temp);CHKERRQ(ierr);
   ierr = PetscMalloc(2*ctx->M*ctx->L*ctx->L*sizeof(PetscScalar),&temp2);CHKERRQ(ierr);
   ierr = PetscMalloc(ctx->num_solve_point*sizeof(PetscScalar),&ppk);CHKERRQ(ierr);
@@ -743,7 +744,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     ierr = PetscMalloc(ctx->num_solve_point*sizeof(Mat),&ctx->kspMat);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)eps,ctx->num_solve_point*sizeof(Mat));CHKERRQ(ierr);
     for (i=0;i<ctx->num_solve_point;i++) {
-      ierr = KSPCreate(ctx->subcomm->comm,&ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ctx->ksp[i]);CHKERRQ(ierr);
       ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)eps,1);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
       ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"eps_ciss_");CHKERRQ(ierr);
@@ -912,7 +913,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     for (i=0;i<eps->nconv;i++) {
       ierr = BVGetColumn(ctx->S,i,&si);CHKERRQ(ierr);
       ierr = VecNormalize(si,NULL);CHKERRQ(ierr);
-      ierr = EPSComputeRelativeError_Private(eps,eps->eigr[i],0,si,NULL,&error);CHKERRQ(ierr);
+      ierr = EPSComputeResidualNorm_Private(eps,eps->eigr[i],0,si,NULL,&error);CHKERRQ(ierr);
+      ierr = (*eps->converged)(eps,eps->eigr[i],0,error,&error,eps->convergedctx);CHKERRQ(ierr);
       ierr = BVRestoreColumn(ctx->S,i,&si);CHKERRQ(ierr);
       max_error = PetscMax(max_error,error);
     }
@@ -1411,7 +1413,7 @@ PetscErrorCode EPSReset_CISS(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_CISS"
-PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
+PetscErrorCode EPSSetFromOptions_CISS(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscReal      r3,r4;
@@ -1419,7 +1421,7 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps)
   PetscBool      b1,b2;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS CISS Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS CISS Options");CHKERRQ(ierr);
   ierr = EPSCISSGetSizes(eps,&i1,&i2,&i3,&i4,&i5,&b1);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_ciss_integration_points","CISS number of integration points","EPSCISSSetSizes",i1,&i1,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_ciss_blocksize","CISS block size","EPSCISSSetSizes",i2,&i2,NULL);CHKERRQ(ierr);

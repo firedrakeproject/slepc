@@ -126,7 +126,7 @@ int main(int argc,char **argv)
       /*
          Compute the relative error associated to each eigenpair
       */
-      ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
+      ierr = EPSComputeError(eps,i,EPS_ERROR_RELATIVE,&error);CHKERRQ(ierr);
 
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(kr);

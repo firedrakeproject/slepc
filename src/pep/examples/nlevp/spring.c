@@ -50,6 +50,7 @@ int main(int argc,char **argv)
   PEP            pep;             /* polynomial eigenproblem solver context */
   PetscInt       n=5,Istart,Iend,i;
   PetscReal      mu=1,tau=10,kappa=5;
+  PetscBool      terse;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -109,9 +110,12 @@ int main(int argc,char **argv)
   ierr = MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(M);CHKERRQ(ierr);
   ierr = MatSetUp(M);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(M,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    ierr = MatSetValue(M,i,i,mu,INSERT_VALUES);CHKERRQ(ierr);
+  }
   ierr = MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatShift(M,mu);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                 Create the eigensolver and solve the problem
@@ -127,7 +131,15 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   
-  ierr = PEPPrintSolution(pep,NULL);CHKERRQ(ierr);
+  /* show detailed info unless -terse option is given by user */
+  ierr = PetscOptionsHasName(NULL,"-terse",&terse);CHKERRQ(ierr);
+  if (terse) {
+    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  }
   ierr = PEPDestroy(&pep);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&C);CHKERRQ(ierr);

@@ -1,6 +1,6 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
-!  Copyright (c) 2002-2011, Universitat Politecnica de Valencia, Spain
+!  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
 !     
@@ -186,7 +186,7 @@
           call EPSGetEigenpair(eps,i,kr,ki,xr,xi,ierr)
 
 !         ** Compute the relative error associated to each eigenpair
-          call EPSComputeRelativeError(eps,i,error,ierr)
+          call EPSComputeError(eps,i,EPS_ERROR_RELATIVE,error,ierr)
           if (rank .eq. 0) then
             write(*,160) PetscRealPart(kr), error
           endif

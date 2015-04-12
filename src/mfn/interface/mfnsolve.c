@@ -36,13 +36,15 @@
 -  b   - the right hand side vector
 
    Output Parameter:
-.  x   - the solution
+.  x   - the solution (this may be the same vector as b, then b will be
+         overwritten with the answer)
 
    Options Database Keys:
 +  -mfn_view - print information about the solver used
 .  -mfn_view_mat binary - save the matrix to the default binary viewer
 .  -mfn_view_rhs binary - save right hand side vector to the default binary viewer
--  -mfn_view_solution binary - save computed solution vector to the default binary viewer
+.  -mfn_view_solution binary - save computed solution vector to the default binary viewer
+-  -mfn_converged_reason - print reason for convergence, and number of iterations
 
    Notes:
    The matrix A is specified with MFNSetOperator().
@@ -59,10 +61,11 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (b) PetscValidHeaderSpecific(b,VEC_CLASSID,2);
-  if (b) PetscCheckSameComm(mfn,1,b,2);
-  if (x) PetscValidHeaderSpecific(x,VEC_CLASSID,3);
-  if (x) PetscCheckSameComm(mfn,1,x,3);
+  PetscValidHeaderSpecific(b,VEC_CLASSID,2);
+  PetscCheckSameComm(mfn,1,b,2);
+  if (b!=x) PetscValidHeaderSpecific(x,VEC_CLASSID,3);
+  if (b!=x) PetscCheckSameComm(mfn,1,x,3);
+  VecLocked(x,3);
 
   /* call setup */
   ierr = MFNSetUp(mfn);CHKERRQ(ierr);
@@ -73,7 +76,9 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 
   /* call solver */
   ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
+  ierr = VecLockPush(b);CHKERRQ(ierr);
   ierr = (*mfn->ops->solve)(mfn,b,x);CHKERRQ(ierr);
+  ierr = VecLockPop(b);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
 
   if (!mfn->reason) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");

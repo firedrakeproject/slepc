@@ -119,12 +119,20 @@ PETSC_EXTERN PetscErrorCode BVMatProject(BV,Mat,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVAXPY(BV,PetscScalar,BV);
 PETSC_EXTERN PetscErrorCode BVDot(BV,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVDotVec(BV,Vec,PetscScalar*);
+PETSC_EXTERN PetscErrorCode BVDotVecBegin(BV,Vec,PetscScalar*);
+PETSC_EXTERN PetscErrorCode BVDotVecEnd(BV,Vec,PetscScalar*);
 PETSC_EXTERN PetscErrorCode BVDotColumn(BV,PetscInt,PetscScalar*);
+PETSC_EXTERN PetscErrorCode BVDotColumnBegin(BV,PetscInt,PetscScalar*);
+PETSC_EXTERN PetscErrorCode BVDotColumnEnd(BV,PetscInt,PetscScalar*);
 PETSC_EXTERN PetscErrorCode BVScale(BV,PetscScalar);
 PETSC_EXTERN PetscErrorCode BVScaleColumn(BV,PetscInt,PetscScalar);
 PETSC_EXTERN PetscErrorCode BVNorm(BV,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVNormVec(BV,Vec,NormType,PetscReal*);
+PETSC_EXTERN PetscErrorCode BVNormVecBegin(BV,Vec,NormType,PetscReal*);
+PETSC_EXTERN PetscErrorCode BVNormVecEnd(BV,Vec,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVNormColumn(BV,PetscInt,NormType,PetscReal*);
+PETSC_EXTERN PetscErrorCode BVNormColumnBegin(BV,PetscInt,NormType,PetscReal*);
+PETSC_EXTERN PetscErrorCode BVNormColumnEnd(BV,PetscInt,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVSetRandom(BV,PetscRandom);
 PETSC_EXTERN PetscErrorCode BVSetRandomColumn(BV,PetscInt,PetscRandom);
 
@@ -140,8 +148,6 @@ PETSC_EXTERN PetscErrorCode BVAppendOptionsPrefix(BV,const char*);
 PETSC_EXTERN PetscErrorCode BVGetOptionsPrefix(BV,const char*[]);
 
 PETSC_EXTERN PetscFunctionList BVList;
-PETSC_EXTERN PetscBool         BVRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode BVRegisterAll(void);
 PETSC_EXTERN PetscErrorCode BVRegister(const char[],PetscErrorCode(*)(BV));
 
 #endif

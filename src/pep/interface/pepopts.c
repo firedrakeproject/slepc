@@ -54,7 +54,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (!PEPRegisterAllCalled) { ierr = PEPRegisterAll();CHKERRQ(ierr); }
+  ierr = PEPRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)pep);CHKERRQ(ierr);
     ierr = PetscOptionsFList("-pep_type","Polynomial Eigenvalue Problem method","PEPSetType",PEPList,(char*)(((PetscObject)pep)->type_name?((PetscObject)pep)->type_name:PEPTOAR),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -108,8 +108,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
     ierr = PetscOptionsBoolGroupBegin("-pep_conv_eig","Relative error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_EIG);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-pep_conv_norm","Convergence test relative to the eigenvalue and the matrix norms","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_NORM);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-pep_conv_linear","Convergence test related to the linearized eigenproblem","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_LINEAR);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-pep_conv_abs","Absolute error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_ABS);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-pep_conv_user","User-defined convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
@@ -195,10 +195,15 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
 
     ierr = PetscOptionsName("-pep_view","Print detailed information on solver used","PEPView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-pep_plot_eigs","Make a plot of the computed eigenvalues","PEPSolve",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_view_vectors","View computed eigenvectors","PEPVectorsView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_view_values","View computed eigenvalues","PEPValuesView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_converged_reason","Print reason for convergence, and number of iterations","PEPReasonView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_error_absolute","Print absolute errors of each eigenpair","PEPErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_error_relative","Print relative errors of each eigenpair","PEPErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_error_backward","Print backward errors of each eigenpair","PEPErrorView",0);CHKERRQ(ierr);
 
     if (pep->ops->setfromoptions) {
-      ierr = (*pep->ops->setfromoptions)(pep);CHKERRQ(ierr);
+      ierr = (*pep->ops->setfromoptions)(PetscOptionsObject,pep);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)pep);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
@@ -211,6 +216,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   ierr = DSSetFromOptions(pep->ds);CHKERRQ(ierr);
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   ierr = STSetFromOptions(pep->st);CHKERRQ(ierr);
+  if (!pep->refineksp) { ierr = PEPRefineGetKSP(pep,&pep->refineksp);CHKERRQ(ierr); }
+  ierr = KSPSetFromOptions(pep->refineksp);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(pep->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -390,17 +397,17 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetWhichEigenpairs"
 /*@
-    PEPSetWhichEigenpairs - Specifies which portion of the spectrum is
-    to be sought.
+   PEPSetWhichEigenpairs - Specifies which portion of the spectrum is
+   to be sought.
 
-    Logically Collective on PEP
+   Logically Collective on PEP
 
-    Input Parameters:
-+   pep   - eigensolver context obtained from PEPCreate()
--   which - the portion of the spectrum to be sought
+   Input Parameters:
++  pep   - eigensolver context obtained from PEPCreate()
+-  which - the portion of the spectrum to be sought
 
-    Possible values:
-    The parameter 'which' can have one of these values
+   Possible values:
+   The parameter 'which' can have one of these values
 
 +     PEP_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
 .     PEP_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
@@ -410,9 +417,10 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     PEP_SMALLEST_IMAGINARY - smallest imaginary parts
 .     PEP_TARGET_MAGNITUDE - eigenvalues closest to the target (in magnitude)
 .     PEP_TARGET_REAL - eigenvalues with real part closest to target
--     PEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
+.     PEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
+-     PEP_WHICH_USER - user defined ordering set with PEPSetEigenvalueComparison()
 
-    Options Database Keys:
+   Options Database Keys:
 +   -pep_largest_magnitude - Sets largest eigenvalues in magnitude
 .   -pep_smallest_magnitude - Sets smallest eigenvalues in magnitude
 .   -pep_largest_real - Sets largest real parts
@@ -423,15 +431,20 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .   -pep_target_real - Sets real parts closest to target
 -   -pep_target_imaginary - Sets imaginary parts closest to target
 
-    Notes:
-    Not all eigensolvers implemented in PEP account for all the possible values
-    stated above. If SLEPc is compiled for real numbers PEP_LARGEST_IMAGINARY
-    and PEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part
-    for eigenvalue selection.
+   Notes:
+   Not all eigensolvers implemented in PEP account for all the possible values
+   stated above. If SLEPc is compiled for real numbers PEP_LARGEST_IMAGINARY
+   and PEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part
+   for eigenvalue selection.
 
-    Level: intermediate
+   The target is a scalar value provided with PEPSetTarget().
 
-.seealso: PEPGetWhichEigenpairs(), PEPWhich
+   The criterion PEP_TARGET_IMAGINARY is available only in case PETSc and
+   SLEPc have been built with complex scalars.
+
+   Level: intermediate
+
+.seealso: PEPGetWhichEigenpairs(), PEPSetTarget(), PEPSetEigenvalueComparison(), PEPWhich
 @*/
 PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
 {
@@ -450,6 +463,7 @@ PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
 #if defined(PETSC_USE_COMPLEX)
     case PEP_TARGET_IMAGINARY:
 #endif
+    case PEP_WHICH_USER:
       if (pep->which != which) {
         pep->state = PEP_STATE_INITIAL;
         pep->which = which;
@@ -488,6 +502,49 @@ PetscErrorCode PEPGetWhichEigenpairs(PEP pep,PEPWhich *which)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(which,2);
   *which = pep->which;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetEigenvalueComparison"
+/*@C
+   PEPSetEigenvalueComparison - Specifies the eigenvalue comparison function
+   when PEPSetWhichEigenpairs() is set to PEP_WHICH_USER.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep  - eigensolver context obtained from PEPCreate()
+.  func - a pointer to the comparison function
+-  ctx  - a context pointer (the last parameter to the comparison function)
+
+   Calling Sequence of func:
+$   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
+
++   ar     - real part of the 1st eigenvalue
+.   ai     - imaginary part of the 1st eigenvalue
+.   br     - real part of the 2nd eigenvalue
+.   bi     - imaginary part of the 2nd eigenvalue
+.   res    - result of comparison
+-   ctx    - optional context, as set by PEPSetEigenvalueComparison()
+
+   Note:
+   The returning parameter 'res' can be:
++  negative - if the 1st eigenvalue is preferred to the 2st one
+.  zero     - if both eigenvalues are equally preferred
+-  positive - if the 2st eigenvalue is preferred to the 1st one
+
+   Level: advanced
+
+.seealso: PEPSetWhichEigenpairs(), PEPWhich
+@*/
+PetscErrorCode PEPSetEigenvalueComparison(PEP pep,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  pep->sc->comparison    = func;
+  pep->sc->comparisonctx = ctx;
+  pep->which             = PEP_WHICH_USER;
   PetscFunctionReturn(0);
 }
 
@@ -725,7 +782,7 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
   pep->convergeddestroy = destroy;
   pep->convergedctx     = ctx;
   if (func == PEPConvergedEigRelative) pep->conv = PEP_CONV_EIG;
-  else if (func == PEPConvergedNormRelative) pep->conv = PEP_CONV_NORM;
+  else if (func == PEPConvergedLinear) pep->conv = PEP_CONV_LINEAR;
   else if (func == PEPConvergedAbsolute) pep->conv = PEP_CONV_ABS;
   else pep->conv = PEP_CONV_USER;
   PetscFunctionReturn(0);
@@ -744,17 +801,17 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
 -  conv - the type of convergence test
 
    Options Database Keys:
-+  -pep_conv_abs  - Sets the absolute convergence test
-.  -pep_conv_eig  - Sets the convergence test relative to the eigenvalue
-.  -pep_conv_norm - Sets the convergence test relative to the matrix norms
--  -pep_conv_user - Selects the user-defined convergence test
++  -pep_conv_abs    - Sets the absolute convergence test
+.  -pep_conv_eig    - Sets the convergence test relative to the eigenvalue
+.  -pep_conv_linear - Sets the convergence test related to the linearized eigenproblem
+-  -pep_conv_user   - Selects the user-defined convergence test
 
    Note:
    The parameter 'conv' can have one of these values
-+     PEP_CONV_ABS  - absolute error ||r||
-.     PEP_CONV_EIG  - error relative to the eigenvalue l, ||r||/|l|
-.     PEP_CONV_NORM - error relative to the matrix norms
--     PEP_CONV_USER - function set by PEPSetConvergenceTestFunction()
++     PEP_CONV_ABS    - absolute error ||r||
+.     PEP_CONV_EIG    - error relative to the eigenvalue l, ||r||/|l|
+.     PEP_CONV_LINEAR - error related to the linearized eigenproblem
+-     PEP_CONV_USER   - function set by PEPSetConvergenceTestFunction()
 
    Level: intermediate
 
@@ -766,9 +823,9 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,conv,2);
   switch (conv) {
-    case PEP_CONV_ABS:  pep->converged = PEPConvergedAbsolute; break;
-    case PEP_CONV_EIG:  pep->converged = PEPConvergedEigRelative; break;
-    case PEP_CONV_NORM: pep->converged = PEPConvergedNormRelative; break;
+    case PEP_CONV_ABS:    pep->converged = PEPConvergedAbsolute; break;
+    case PEP_CONV_EIG:    pep->converged = PEPConvergedEigRelative; break;
+    case PEP_CONV_LINEAR: pep->converged = PEPConvergedLinear; break;
     case PEP_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
@@ -1025,6 +1082,10 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
   PetscValidLogicalCollectiveBool(pep,schur,6);
   pep->refine = refine;
   if (refine) {  /* process parameters only if not REFINE_NONE */
+    if (npart!=pep->npart) {
+      ierr = PetscSubcommDestroy(&pep->refinesubc);CHKERRQ(ierr);
+      ierr = KSPDestroy(&pep->refineksp);CHKERRQ(ierr);
+    }
     if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
       pep->npart = 1;
     } else {

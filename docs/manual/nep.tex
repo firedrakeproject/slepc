@@ -74,7 +74,7 @@ NEPSolve( nep );
 NEPGetConverged( nep, &nconv );
 for (j=0; j<nconv; j++) {
   NEPGetEigenpair( nep, j, &kr, &ki, xr, xi );
-  NEPComputeRelativeError( nep, j, &error );
+  NEPComputeError( nep, j, NEP_ERROR_RELATIVE, &error );
 }
 NEPDestroy( &nep );
 \end{Verbatim}
@@ -147,17 +147,16 @@ Instead of implementing callback functions for $T(\lambda)$ and $T'(\lambda)$, a
   FNCreate(PETSC_COMM_WORLD,&f1);  /* f1 = -lambda */
   FNSetType(f1,FNRATIONAL);
   coeffs[0] = -1.0; coeffs[1] = 0.0;
-  FNSetParameters(f1,2,coeffs,0,NULL);
+  FNRationalSetNumerator(f1,2,coeffs);
 
   FNCreate(PETSC_COMM_WORLD,&f2);  /* f2 = 1 */
   FNSetType(f2,FNRATIONAL);
   coeffs[0] = 1.0;
-  FNSetParameters(f2,1,coeffs,0,NULL);
+  FNRationalSetNumerator(f2,1,coeffs);
 
   FNCreate(PETSC_COMM_WORLD,&f3);  /* f3 = exp(-tau*lambda) */
   FNSetType(f3,FNEXP);
-  coeffs[0] = -tau;
-  FNSetParameters(f3,1,coeffs,0,NULL);
+  FNSetScale(f3,-tau,1.0);
 
   mats[0] = A;  funs[0] = f2;
   mats[1] = Id; funs[1] = f1;
@@ -263,13 +262,14 @@ The procedure for obtaining the computed eigenpairs is similar to previously dis
 \medskip
 
 The function
-	\findex{NEPComputeRelativeError}
+	\findex{NEPComputeError}
 	\begin{Verbatim}[fontsize=\small]
-	NEPComputeRelativeError(NEP nep,PetscInt j,PetscReal *error);
+	NEPComputeError(NEP nep,PetscInt j,NEPErrorType type,PetscReal *error);
 	\end{Verbatim}
 can be used to assess the accuracy of the computed solutions. The error is based on the 2-norm of the residual vector $r$ defined in Eq.\ \ref{eq:nlres}.
 
-As in the case of \ident{EPS}, in \ident{NEP} the number of iterations carried out by the solver can be determined with \ident{NEPGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{NEPSetTolerances}. Also, convergence can be monitored with either textual monitors \Verb!-nep_monitor!, \Verb!-nep_monitor_all!, \Verb!-nep_monitor_conv!, or graphical monitors \Verb!-nep_monitor_lg!, \Verb!-nep_monitor_lg_all!. See \S\ref{sec:monitor} for additional details.
+As in the case of \ident{EPS}, in \ident{NEP} the number of iterations carried out by the solver can be determined with \ident{NEPGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{NEPSetTolerances}. Also, convergence can be monitored with either textual monitors \Verb!-nep_monitor!, \Verb!-nep_monitor_all!, \Verb!-nep_monitor_conv!, or graphical monitors \Verb!-nep_monitor_lg!, \Verb!-nep_monitor_lg_all!. See \S\ref{sec:monitor} for additional details. Similarly, there is support for viewing the computed solution as explained in \S\ref{sec:epsviewers}.
+
 
 The \ident{NEP} class also provides some kind of iterative refinement, similar to the one available in \ident{PEP}, see \S\ref{sec:refine}. The parameters can be set with
 	\findex{NEPSetRefine}

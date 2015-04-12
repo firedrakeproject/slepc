@@ -46,7 +46,7 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
   PetscCheckSameComm(svd,1,mat,2);
-  if (svd->setupcalled) { ierr = SVDReset(svd);CHKERRQ(ierr); }
+  if (svd->state) { ierr = SVDReset(svd);CHKERRQ(ierr); }
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
   svd->OP = mat;
@@ -109,7 +109,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (svd->setupcalled) PetscFunctionReturn(0);
+  if (svd->state) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
 
   /* reset the convergence flag from the previous solves */
@@ -210,7 +210,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
 
   ierr = PetscLogEventEnd(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
-  svd->setupcalled = 1;
+  svd->state = SVD_STATE_SETUP;
   PetscFunctionReturn(0);
 }
 
@@ -254,7 +254,7 @@ PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
   PetscValidLogicalCollectiveInt(svd,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&svd->nini,&svd->IS);CHKERRQ(ierr);
-  if (n>0) svd->setupcalled = 0;
+  if (n>0) svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -298,7 +298,7 @@ PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt n,Vec *is)
   PetscValidLogicalCollectiveInt(svd,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&svd->ninil,&svd->ISL);CHKERRQ(ierr);
-  if (n>0) svd->setupcalled = 0;
+  if (n>0) svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

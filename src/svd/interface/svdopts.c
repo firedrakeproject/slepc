@@ -58,8 +58,8 @@ PetscErrorCode SVDSetImplicitTranspose(SVD svd,PetscBool impl)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveBool(svd,impl,2);
   if (svd->impltrans!=impl) {
-    svd->impltrans   = impl;
-    svd->setupcalled = 0;
+    svd->impltrans = impl;
+    svd->state     = SVD_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
 }
@@ -123,15 +123,15 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
   PetscValidLogicalCollectiveReal(svd,tol,2);
   PetscValidLogicalCollectiveInt(svd,maxits,3);
   if (tol == PETSC_DEFAULT) {
-    tol = PETSC_DEFAULT;
-    svd->setupcalled = 0;
+    svd->tol   = PETSC_DEFAULT;
+    svd->state = SVD_STATE_INITIAL;
   } else {
     if (tol <= 0.0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     svd->tol = tol;
   }
   if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
     svd->max_it = 0;
-    svd->setupcalled = 0;
+    svd->state  = SVD_STATE_INITIAL;
   } else {
     if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     svd->max_it = maxits;
@@ -227,7 +227,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
     if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     svd->mpd = mpd;
   }
-  svd->setupcalled = 0;
+  svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -301,7 +301,7 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
     case SVD_LARGEST:
     case SVD_SMALLEST:
       if (svd->which != which) {
-        svd->setupcalled = 0;
+        svd->state = SVD_STATE_INITIAL;
         svd->which = which;
       }
       break;
@@ -372,8 +372,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  svd->setupcalled = 0;
-  if (!SVDRegisterAllCalled) { ierr = SVDRegisterAll();CHKERRQ(ierr); }
+  ierr = SVDRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)svd);CHKERRQ(ierr);
     ierr = PetscOptionsFList("-svd_type","Singular Value Solver method","SVDSetType",SVDList,(char*)(((PetscObject)svd)->type_name?((PetscObject)svd)->type_name:SVDCROSS),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -383,6 +382,11 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     }
 
     ierr = PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_view_vectors","View computed singular vectors","SVDVectorsView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_view_values","View computed singular values","SVDValuesView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_converged_reason","Print reason for convergence, and number of iterations","SVDReasonView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_error_absolute","Print absolute errors of each singular triplet","SVDErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",0);CHKERRQ(ierr);
 
     ierr = PetscOptionsBool("-svd_implicittranspose","Handle matrix transpose implicitly","SVDSetImplicitTranspose",svd->impltrans,&val,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -452,7 +456,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     }
 
     if (svd->ops->setfromoptions) {
-      ierr = (*svd->ops->setfromoptions)(svd);CHKERRQ(ierr);
+      ierr = (*svd->ops->setfromoptions)(PetscOptionsObject,svd);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)svd);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);

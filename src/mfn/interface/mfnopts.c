@@ -52,7 +52,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (!MFNRegisterAllCalled) { ierr = MFNRegisterAll();CHKERRQ(ierr); }
+  ierr = MFNRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)mfn);CHKERRQ(ierr);
     ierr = PetscOptionsFList("-mfn_type","Matrix Function method","MFNSetType",MFNList,(char*)(((PetscObject)mfn)->type_name?((PetscObject)mfn)->type_name:MFNKRYLOV),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -67,6 +67,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
 
     i = mfn->max_it;
     ierr = PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,&flg1);CHKERRQ(ierr);
+    if (!flg1) i = PETSC_DEFAULT;
     r = mfn->tol;
     ierr = PetscOptionsReal("-mfn_tol","Tolerance","MFNSetTolerances",mfn->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:mfn->tol,&r,&flg2);CHKERRQ(ierr);
     if (flg1 || flg2) {
@@ -107,7 +108,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     ierr = PetscOptionsName("-mfn_view","Print detailed information on solver used","MFNView",0);CHKERRQ(ierr);
 
     if (mfn->ops->setfromoptions) {
-      ierr = (*mfn->ops->setfromoptions)(mfn);CHKERRQ(ierr);
+      ierr = (*mfn->ops->setfromoptions)(PetscOptionsObject,mfn);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)mfn);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);

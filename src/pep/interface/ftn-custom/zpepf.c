@@ -25,6 +25,10 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define pepview_                    PEPVIEW
+#define peperrorview_               PEPERRORVIEW
+#define pepreasonview_              PEPREASONVIEW
+#define pepvaluesview_              PEPVALUESVIEW
+#define pepvectorsview_             PEPVECTORSVIEW
 #define pepsetoptionsprefix_        PEPSETOPTIONSPREFIX
 #define pepappendoptionsprefix_     PEPAPPENDOPTIONSPREFIX
 #define pepgetoptionsprefix_        PEPGETOPTIONSPREFIX
@@ -40,10 +44,15 @@
 #define pepgetproblemtype_          PEPGETPROBLEMTYPE
 #define pepconvergedabsolute_       PEPCONVERGEDABSOLUTE
 #define pepconvergedeigrelative_    PEPCONVERGEDEIGRELATIVE
-#define pepconvergednormrelative_   PEPCONVERGEDNORMRELATIVE
+#define pepconvergedlinear_         PEPCONVERGEDLINEAR
 #define pepsetconvergencetestfunction_ PEPSETCONVERGENCETESTFUNCTION
+#define pepseteigenvaluecomparison_ PEPSETEIGENVALUECOMPARISON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define pepview_                    pepview
+#define peperrorview_               peperrorview
+#define pepreasonview_              pepreasonview
+#define pepvaluesview_              pepvaluesview
+#define pepvectorsview_             pepvectorsview
 #define pepsetoptionsprefix_        pepsetoptionsprefix
 #define pepappendoptionsprefix_     pepappendoptionsprefix
 #define pepgetoptionsprefix_        pepgetoptionsprefix
@@ -59,8 +68,9 @@
 #define pepgetproblemtype_          pepgetproblemtype
 #define pepconvergedabsolute_       pepconvergedabsolute
 #define pepconvergedeigrelative_    pepconvergedeigrelative
-#define pepconvergednormrelative_   pepconvergednormrelative
+#define pepconvergedlinear_	    pepconvergedlinear
 #define pepsetconvergencetestfunction_ pepsetconvergencetestfunction
+#define pepseteigenvaluecomparison_ pepseteigenvaluecomparison
 #endif
 
 /*
@@ -97,6 +107,7 @@ static struct {
   PetscFortranCallbackId monitordestroy;
   PetscFortranCallbackId convergence;
   PetscFortranCallbackId convdestroy;
+  PetscFortranCallbackId comparison;
 } _cb;
 
 /* These are not extern C because they are passed into non-extern C user level functions */
@@ -130,11 +141,47 @@ static PetscErrorCode ourconvdestroy(void *ctx)
   PetscObjectUseFortranCallback(pep,_cb.convdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "oureigenvaluecomparison"
+static PetscErrorCode oureigenvaluecomparison(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
+{
+  PEP eps = (PEP)ctx;
+  PetscObjectUseFortranCallback(eps,_cb.comparison,(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*),(&ar,&ai,&br,&bi,r,_ctx,&ierr));
+}
+
 PETSC_EXTERN void PETSC_STDCALL pepview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = PEPView(*pep,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepreasonview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = PEPReasonView(*pep,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL peperrorview_(PEP *pep,PEPErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = PEPErrorView(*pep,*etype,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepvaluesview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = PEPValuesView(*pep,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepvectorsview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = PEPVectorsView(*pep,v);
 }
 
 PETSC_EXTERN void PETSC_STDCALL pepsettype_(PEP *pep,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
@@ -236,9 +283,9 @@ PETSC_EXTERN void PETSC_STDCALL pepconvergedeigrelative_(PEP *pep,PetscScalar *e
   *ierr = PEPConvergedEigRelative(*pep,*eigr,*eigi,*res,errest,ctx);
 }
 
-PETSC_EXTERN void PETSC_STDCALL pepconvergednormrelative_(PEP *pep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL pepconvergedlinear_(PEP *pep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
 {
-  *ierr = PEPConvergedNormRelative(*pep,*eigr,*eigi,*res,errest,ctx);
+  *ierr = PEPConvergedLinear(*pep,*eigr,*eigi,*res,errest,ctx);
 }
 
 PETSC_EXTERN void PETSC_STDCALL pepsetconvergencetestfunction_(PEP *pep,void (PETSC_STDCALL *func)(PEP*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
@@ -249,8 +296,8 @@ PETSC_EXTERN void PETSC_STDCALL pepsetconvergencetestfunction_(PEP *pep,void (PE
     *ierr = PEPSetConvergenceTest(*pep,PEP_CONV_ABS);
   } else if ((PetscVoidFunction)func == (PetscVoidFunction)pepconvergedeigrelative_) {
     *ierr = PEPSetConvergenceTest(*pep,PEP_CONV_EIG);
-  } else if ((PetscVoidFunction)func == (PetscVoidFunction)pepconvergednormrelative_) {
-    *ierr = PEPSetConvergenceTest(*pep,PEP_CONV_NORM);
+  } else if ((PetscVoidFunction)func == (PetscVoidFunction)pepconvergedlinear_) {
+    *ierr = PEPSetConvergenceTest(*pep,PEP_CONV_LINEAR);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convergence,(PetscVoidFunction)func,ctx); if (*ierr) return;
     if (!destroy) {
@@ -260,5 +307,12 @@ PETSC_EXTERN void PETSC_STDCALL pepsetconvergencetestfunction_(PEP *pep,void (PE
       *ierr = PEPSetConvergenceTestFunction(*pep,ourconvergence,*pep,ourconvdestroy);
     }
   }
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepseteigenvaluecomparison_(PEP *pep,void (PETSC_STDCALL *func)(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*),void* ctx,PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLOBJECT(ctx);
+  *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.comparison,(PetscVoidFunction)func,ctx); if (*ierr) return;
+  *ierr = PEPSetEigenvalueComparison(*pep,oureigenvaluecomparison,*pep);
 }
 

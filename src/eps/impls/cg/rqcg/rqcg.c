@@ -398,14 +398,14 @@ PetscErrorCode EPSReset_RQCG(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_RQCG"
-PetscErrorCode EPSSetFromOptions_RQCG(EPS eps)
+PetscErrorCode EPSSetFromOptions_RQCG(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      flg;
   PetscInt       nrest;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS RQCG Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS RQCG Options");CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_rqcg_reset","RQCG reset parameter","EPSRQCGSetReset",20,&nrest,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = EPSRQCGSetReset(eps,nrest);CHKERRQ(ierr);

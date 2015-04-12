@@ -66,6 +66,7 @@ PetscErrorCode EPSRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (EPSRegisterAllCalled) PetscFunctionReturn(0);
   EPSRegisterAllCalled = PETSC_TRUE;
   ierr = EPSRegister(EPSKRYLOVSCHUR,EPSCreate_KrylovSchur);CHKERRQ(ierr);
   ierr = EPSRegister(EPSPOWER,EPSCreate_Power);CHKERRQ(ierr);
