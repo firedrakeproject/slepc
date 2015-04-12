@@ -31,7 +31,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>         /*I "slepcnep.h" I*/
+#include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
 #include <slepcblaslapack.h>
 
 #define  MAX_LBPOINTS  100
