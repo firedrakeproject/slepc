@@ -88,8 +88,8 @@ class Package:
       makefile.write('\t${CLINKER} -o checklink checklink.o ${TESTFLAGS} ${PETSC_KSP_LIB}\n')
       makefile.write('\t@${RM} -f checklink checklink.o\n')
       makefile.write('LOCDIR = ./\n')
-      makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc-conf','variables')+'\n')
-      makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc-conf','rules')+'\n')
+      makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','variables')+'\n')
+      makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','rules')+'\n')
       makefile.close()
     except:
       self.log.Exit('ERROR: Cannot create makefile in temporary directory')

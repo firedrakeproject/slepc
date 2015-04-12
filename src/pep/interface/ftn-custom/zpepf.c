@@ -19,9 +19,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <petsc-private/fortranimpl.h>
-#include <slepc-private/slepcimpl.h>
-#include <slepc-private/pepimpl.h>
+#include <petsc/private/fortranimpl.h>
+#include <slepc/private/slepcimpl.h>
+#include <slepc/private/pepimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define pepview_                    PEPVIEW

@@ -25,9 +25,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>
-#include <slepc-private/stimpl.h>
-#include <slepc-private/vecimplslepc.h>
+#include <slepc/private/epsimpl.h>
+#include <slepc/private/stimpl.h>
+#include <slepc/private/vecimplslepc.h>
 
 struct _dvdDashboard;
 typedef PetscErrorCode (*dvdCallback)(struct _dvdDashboard*);

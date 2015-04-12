@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>     /*I "slepcnep.h" I*/
+#include <slepc/private/nepimpl.h>     /*I "slepcnep.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetWorkVecs"

@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>
+#include <slepc/private/svdimpl.h>
 
 static PetscBool SVDPackageInitialized = PETSC_FALSE;
 

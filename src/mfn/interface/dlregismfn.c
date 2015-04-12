@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/mfnimpl.h>
+#include <slepc/private/mfnimpl.h>
 
 static PetscBool MFNPackageInitialized = PETSC_FALSE;
 

@@ -27,8 +27,8 @@ SOURCEH  = slepc.h slepcsys.h slepcmath.h slepcversion.h slepcblaslapack.h \
            slepceps.h slepcpep.h slepcnep.h slepcmfn.h slepcsvd.h \
            slepcst.h slepcds.h slepcfn.h slepcrg.h slepcbv.h slepcvec.h
 LIBBASE  = libslepcsys
-DIRS     = slepc-finclude slepc-private
+DIRS     = slepc/finclude slepc/private
 LOCDIR   = include/
 MANSEC   = 
 
-include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

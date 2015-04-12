@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>      /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>      /*I "slepceps.h" I*/
 
 PetscFunctionList EPSList = 0;
 PetscBool         EPSRegisterAllCalled = PETSC_FALSE;
