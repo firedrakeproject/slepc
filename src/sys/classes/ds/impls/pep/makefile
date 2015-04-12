@@ -31,4 +31,4 @@ DIRS     =
 MANSEC   = DS
 LOCDIR   = src/sys/classes/ds/impls/pep/
 
-include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

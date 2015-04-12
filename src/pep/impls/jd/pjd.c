@@ -40,8 +40,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>    /*I "slepcpep.h" I*/
-#include <slepc-private/dsimpl.h>
+#include <slepc/private/pepimpl.h>    /*I "slepcpep.h" I*/
+#include <slepc/private/dsimpl.h>
 #include "pjdp.h"
 
 #undef __FUNCT__
