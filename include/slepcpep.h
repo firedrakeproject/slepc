@@ -80,7 +80,8 @@ typedef enum { PEP_LARGEST_MAGNITUDE=1,
                PEP_SMALLEST_IMAGINARY,
                PEP_TARGET_MAGNITUDE,
                PEP_TARGET_REAL,
-               PEP_TARGET_IMAGINARY} PEPWhich;
+               PEP_TARGET_IMAGINARY,
+               PEP_WHICH_USER } PEPWhich;
 
 /*E
     PEPBasis - The type of polynomial basis used to represent the polynomial
@@ -231,7 +232,7 @@ PETSC_EXTERN PetscErrorCode PEPGetIterationNumber(PEP,PetscInt*);
 PETSC_EXTERN PetscErrorCode PEPSetInitialSpace(PEP,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode PEPSetWhichEigenpairs(PEP,PEPWhich);
 PETSC_EXTERN PetscErrorCode PEPGetWhichEigenpairs(PEP,PEPWhich*);
-PETSC_EXTERN PetscErrorCode PEPSetEigenvalueComparison(PEP,PetscErrorCode (*func)(PEP,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
+PETSC_EXTERN PetscErrorCode PEPSetEigenvalueComparison(PEP,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
 PETSC_EXTERN PetscErrorCode PEPMonitorAll(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
 PETSC_EXTERN PetscErrorCode PEPMonitorFirst(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);

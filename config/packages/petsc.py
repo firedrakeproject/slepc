@@ -31,9 +31,21 @@ class PETSc(package.Package):
   def Check(self):
     self.havepackage = self.Link([],[],[])
 
-  def LoadVersion(self,petscdir):
+  def InitDir(self):
+    if 'PETSC_DIR' in os.environ:
+      self.dir = os.environ['PETSC_DIR']
+      if not os.path.exists(self.dir):
+        sys.exit('ERROR: PETSC_DIR enviroment variable is not valid')
+    else:
+      if slepc.prefixdir:
+        self.dir = slepc.prefixdir
+        os.environ['PETSC_DIR'] = self.dir
+      else:
+        sys.exit('ERROR: PETSC_DIR enviroment variable is not set')
+
+  def LoadVersion(self):
     try:
-      f = open(os.path.join(petscdir,'include','petscversion.h'))
+      f = open(os.path.join(self.dir,'include','petscversion.h'))
       for l in f.readlines():
         l = l.split()
         if len(l) == 3:
@@ -55,28 +67,29 @@ class PETSc(package.Package):
 
     # Check whether this is a working copy of the repository
     self.isrepo = False
-    if os.path.exists(os.path.join(petscdir,'.git')):
-      (status, output) = commands.getstatusoutput('cd '+petscdir+';git rev-parse')
+    if os.path.exists(os.path.join(self.dir,'.git')):
+      (status, output) = commands.getstatusoutput('cd '+self.dir+';git rev-parse')
       if not status:
         self.isrepo = True
-        (status, self.gitrev) = commands.getstatusoutput('cd '+petscdir+';git log -1 --pretty=format:%H')
-        (status, self.gitdate) = commands.getstatusoutput('cd '+petscdir+';git log -1 --pretty=format:%ci')
-        (status, self.branch) = commands.getstatusoutput('cd '+petscdir+';git describe --contains --all HEAD')
+        (status, self.gitrev) = commands.getstatusoutput('cd '+self.dir+';git log -1 --pretty=format:%H')
+        (status, self.gitdate) = commands.getstatusoutput('cd '+self.dir+';git log -1 --pretty=format:%ci')
+        (status, self.branch) = commands.getstatusoutput('cd '+self.dir+';git describe --contains --all HEAD')
 
-  def LoadConf(self,petscdir):
+  def LoadConf(self):
     if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']:
-      self.isinstall = 0
+      self.isinstall = False
       self.arch = os.environ['PETSC_ARCH']
-      petscvariables = os.path.join(petscdir,self.arch,'lib','petsc-conf','petscvariables')
-      petscconf_h = os.path.join(petscdir,self.arch,'include','petscconf.h')
+      petscvariables = os.path.join(self.dir,self.arch,'lib','petsc-conf','petscvariables')
+      petscconf_h = os.path.join(self.dir,self.arch,'include','petscconf.h')
     else:
-      self.isinstall = 1
-      petscvariables = os.path.join(petscdir,'lib','petsc-conf','petscvariables')
-      petscconf_h = os.path.join(petscdir,'include','petscconf.h')
+      self.isinstall = True
+      petscvariables = os.path.join(self.dir,'lib','petsc-conf','petscvariables')
+      petscconf_h = os.path.join(self.dir,'include','petscconf.h')
 
     self.build_using_cmake = 0
     self.make_is_gnumake = 0
     self.language = 'c'
+    self.bfort = 'nobfortinpetsc'
     try:
       f = open(petscvariables)
       for l in f.readlines():

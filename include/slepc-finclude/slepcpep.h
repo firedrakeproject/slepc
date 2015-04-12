@@ -53,6 +53,7 @@
       PetscEnum PEP_TARGET_MAGNITUDE
       PetscEnum PEP_TARGET_REAL
       PetscEnum PEP_TARGET_IMAGINARY
+      PetscEnum PEP_WHICH_USER
 
       parameter (PEP_LARGEST_MAGNITUDE      =  1)
       parameter (PEP_SMALLEST_MAGNITUDE     =  2)
@@ -63,6 +64,7 @@
       parameter (PEP_TARGET_MAGNITUDE       =  7)
       parameter (PEP_TARGET_REAL            =  8)
       parameter (PEP_TARGET_IMAGINARY       =  9)
+      parameter (PEP_WHICH_USER             = 10)
 
       PetscEnum PEP_BASIS_MONOMIAL
       PetscEnum PEP_BASIS_CHEBYSHEV1

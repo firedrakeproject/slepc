@@ -143,6 +143,8 @@ PetscErrorCode PEPSetUp(PEP pep)
       pep->sc->comparison    = SlepcCompareTargetImaginary;
       pep->sc->comparisonctx = &pep->target;
       break;
+    case PEP_WHICH_USER:
+      break;
   }
   pep->sc->map    = NULL;
   pep->sc->mapobj = NULL;

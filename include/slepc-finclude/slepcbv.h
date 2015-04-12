@@ -22,6 +22,20 @@
 !
 #include "slepc-finclude/slepcbvdef.h"
 
+      PetscEnum BV_ORTHOG_CGS
+      PetscEnum BV_ORTHOG_MGS
+
+      parameter (BV_ORTHOG_CGS             =  0)
+      parameter (BV_ORTHOG_MGS             =  1)
+
+      PetscEnum BV_ORTHOG_REFINE_IFNEEDED
+      PetscEnum BV_ORTHOG_REFINE_NEVER
+      PetscEnum BV_ORTHOG_REFINE_ALWAYS
+
+      parameter (BV_ORTHOG_REFINE_IFNEEDED =  0)
+      parameter (BV_ORTHOG_REFINE_NEVER    =  1)
+      parameter (BV_ORTHOG_REFINE_ALWAYS   =  2)
+
 !
 !  End of Fortran include file for the BV package in SLEPc
 !

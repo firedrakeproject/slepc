@@ -110,20 +110,21 @@ int main(int argc,char **argv)
   ierr = FNCreate(PETSC_COMM_WORLD,&f[0]);CHKERRQ(ierr);
   ierr = FNSetType(f[0],FNRATIONAL);CHKERRQ(ierr);
   numer[0] = 1.0;
-  ierr = FNSetParameters(f[0],1,numer,0,NULL);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(f[0],1,numer);CHKERRQ(ierr);
 
   /* f2=-lambda */
   ierr = FNCreate(PETSC_COMM_WORLD,&f[1]);CHKERRQ(ierr);
   ierr = FNSetType(f[1],FNRATIONAL);CHKERRQ(ierr);
   numer[0] = -1.0; numer[1] = 0.0;
-  ierr = FNSetParameters(f[1],2,numer,0,NULL);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(f[1],2,numer);CHKERRQ(ierr);
 
   /* f3=lambda/(lambda-sigma) */
   ierr = FNCreate(PETSC_COMM_WORLD,&f[2]);CHKERRQ(ierr);
   ierr = FNSetType(f[2],FNRATIONAL);CHKERRQ(ierr);
   numer[0] = 1.0; numer[1] = 0.0;
   denom[0] = 1.0; denom[1] = -sigma;
-  ierr = FNSetParameters(f[2],2,numer,2,denom);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(f[2],2,numer);CHKERRQ(ierr);
+  ierr = FNRationalSetDenominator(f[2],2,denom);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                 Create the eigensolver and solve the problem

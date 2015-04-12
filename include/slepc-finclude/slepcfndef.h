@@ -28,10 +28,13 @@
 #endif
 
 #define FNType             character*(80)
+#define FNCombineType      PetscEnum
 
+#define FNCOMBINE  'combine'
 #define FNRATIONAL 'rational'
 #define FNEXP      'exp'
 #define FNLOG      'log'
 #define FNPHI      'phi'
+#define FNSQRT     'sqrt'
 
 #endif

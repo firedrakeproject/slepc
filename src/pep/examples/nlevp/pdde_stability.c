@@ -41,6 +41,26 @@ static char help[] = "NLEVP problem: pdde_stability.\n\n"
 #define NMAT 3
 
 #undef __FUNCT__
+#define __FUNCT__ "MyEigenSort"
+/*
+    Function for user-defined eigenvalue ordering criterion.
+
+    Given two eigenvalues ar+i*ai and br+i*bi, the subroutine must choose
+    one of them as the preferred one according to the criterion.
+    In this example, the preferred value is the one with absolute value closest to 1.
+*/
+PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
+{
+  PetscReal aa,ab;
+
+  PetscFunctionBeginUser;
+  aa = PetscAbsReal(SlepcAbsEigenvalue(ar,ai)-1.0);
+  ab = PetscAbsReal(SlepcAbsEigenvalue(br,bi)-1.0);
+  *r = aa > ab ? 1 : (aa < ab ? -1 : 0);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
@@ -117,6 +137,8 @@ int main(int argc,char **argv)
 
   ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
   ierr = PEPSetOperators(pep,NMAT,A);CHKERRQ(ierr);
+  ierr = PEPSetEigenvalueComparison(pep,MyEigenSort,NULL);CHKERRQ(ierr);
+  ierr = PEPSetDimensions(pep,4,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
   ierr = PEPSolve(pep);CHKERRQ(ierr);
 
