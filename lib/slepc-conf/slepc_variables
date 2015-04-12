@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-include ${PETSC_DIR}/lib/petsc-conf/variables
+include ${PETSC_DIR}/lib/petsc/conf/variables
 
 # Variables specific to SLEPc that can be employed in user makefiles
 SLEPC_LIB_DIR	    = ${SLEPC_DIR}/${PETSC_ARCH}/lib

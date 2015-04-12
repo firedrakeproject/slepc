@@ -215,5 +215,5 @@ slepc_gnumake: chk_makej
 	@cd ${SLEPC_DIR} && ${OMAKE_PRINTDIR} -f gmakefile -j ${MAKE_NP} V=${V}
 	@echo "========================================="
 
-include ${PETSC_DIR}/lib/petsc-conf/rules
+include ${PETSC_DIR}/lib/petsc/conf/rules
 include ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc-conf/slepcrules

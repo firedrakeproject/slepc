@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-include ${PETSC_DIR}/lib/petsc-conf/test
+include ${PETSC_DIR}/lib/petsc/conf/test
 
 testexamples_BLOPEX: ${TESTEXAMPLES_BLOPEX}
 testexamples_C_NoF128: ${TESTEXAMPLES_C_NOF128}

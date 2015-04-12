@@ -22,7 +22,7 @@
 !
 
 #include "petscconf.h"
-#include "petsc-finclude/petscdef.h"
+#include "petsc/finclude/petscdef.h"
 #include "slepcversion.h"
 #include "slepc-finclude/slepcsysdef.h"
 

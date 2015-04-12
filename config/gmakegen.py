@@ -91,7 +91,7 @@ class Slepc(object):
                 key = define[:space]
                 val = define[space+1:]
                 self.conf[key] = val
-        self.conf.update(parse_makefile(self.petsc_path('lib','petsc-conf', 'petscvariables')))
+        self.conf.update(parse_makefile(self.petsc_path('lib','petsc','conf', 'petscvariables')))
         for line in open(self.arch_path('include', 'slepcconf.h')):
             if line.startswith('#define '):
                 define = line[len('#define '):]

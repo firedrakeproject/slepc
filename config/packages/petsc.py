@@ -79,11 +79,11 @@ class PETSc(package.Package):
     if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']:
       self.isinstall = False
       self.arch = os.environ['PETSC_ARCH']
-      petscvariables = os.path.join(self.dir,self.arch,'lib','petsc-conf','petscvariables')
+      petscvariables = os.path.join(self.dir,self.arch,'lib','petsc','conf','petscvariables')
       petscconf_h = os.path.join(self.dir,self.arch,'include','petscconf.h')
     else:
       self.isinstall = True
-      petscvariables = os.path.join(self.dir,'lib','petsc-conf','petscvariables')
+      petscvariables = os.path.join(self.dir,'lib','petsc','conf','petscvariables')
       petscconf_h = os.path.join(self.dir,'include','petscconf.h')
 
     self.build_using_cmake = 0

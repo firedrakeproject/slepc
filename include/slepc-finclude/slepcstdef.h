@@ -23,7 +23,7 @@
 #if !defined(__SLEPCST_H)
 #define __SLEPCST_H
 
-#include "petsc-finclude/petsckspdef.h"
+#include "petsc/finclude/petsckspdef.h"
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
 #define ST        PetscFortranAddr

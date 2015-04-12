@@ -184,7 +184,7 @@ project (SLEPc C)
 set (PETSc_SOURCE_DIR %s)
 set (PETSc_BINARY_DIR %s)
 
-include (${PETSc_BINARY_DIR}/lib/petsc-conf/PETScConfig.cmake)
+include (${PETSc_BINARY_DIR}/lib/petsc/conf/PETScConfig.cmake)
 include (${PETSC_CMAKE_ARCH}/lib/slepc-conf/SLEPcConfig.cmake)
 
 if (PETSC_HAVE_FORTRAN)
