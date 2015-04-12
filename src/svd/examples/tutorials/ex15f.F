@@ -33,8 +33,8 @@
 #include <petsc/finclude/petscsys.h>
 #include <petsc/finclude/petscvec.h>
 #include <petsc/finclude/petscmat.h>
-#include <slepc-finclude/slepcsys.h>
-#include <slepc-finclude/slepcsvd.h>
+#include <slepc/finclude/slepcsys.h>
+#include <slepc/finclude/slepcsvd.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Declarations

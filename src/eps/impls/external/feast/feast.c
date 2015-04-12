@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>        /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>        /*I "slepceps.h" I*/
 #include <../src/eps/impls/external/feast/feastp.h>
 
 PetscErrorCode EPSSolve_FEAST(EPS);

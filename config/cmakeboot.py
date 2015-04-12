@@ -7,7 +7,7 @@
 # flags should have been written to
 #
 #     $PETSC_DIR/$PETSC_ARCH/lib/petsc/conf/PETScConfig.cmake
-#     $SLEPC_DIR/$PETSC_ARCH/lib/slepc-conf/SLEPcConfig.cmake
+#     $SLEPC_DIR/$PETSC_ARCH/lib/slepc/conf/SLEPcConfig.cmake
 #
 # by configure before running this script.
 

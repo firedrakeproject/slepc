@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/bvimpl.h>          /*I   "slepcbv.h"   I*/
+#include <slepc/private/bvimpl.h>          /*I   "slepcbv.h"   I*/
 
 PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV);
 PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV);

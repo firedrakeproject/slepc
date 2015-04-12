@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/slepcimpl.h>     /*I "slepcsys.h" I*/
+#include <slepc/private/slepcimpl.h>     /*I "slepcsys.h" I*/
 #include <slepcrg.h>
 #include <slepcst.h>
 

@@ -20,8 +20,8 @@
 */
 
 #include <petsc/private/fortranimpl.h>
-#include <slepc-private/slepcimpl.h>
-#include <slepc-private/nepimpl.h>
+#include <slepc/private/slepcimpl.h>
+#include <slepc/private/nepimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define nepview_                    NEPVIEW

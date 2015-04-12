@@ -27,13 +27,13 @@ class Installer:
     self.installDir        = self.destDir
     self.rootIncludeDir    = os.path.join(self.rootDir, 'include')
     self.archIncludeDir    = os.path.join(self.rootDir, self.arch, 'include')
-    self.rootConfDir       = os.path.join(self.rootDir, 'lib','slepc-conf')
-    self.archConfDir       = os.path.join(self.rootDir, self.arch, 'lib','slepc-conf')
+    self.rootConfDir       = os.path.join(self.rootDir, 'lib','slepc','conf')
+    self.archConfDir       = os.path.join(self.rootDir, self.arch, 'lib','slepc','conf')
     self.rootBinDir        = os.path.join(self.rootDir, 'bin')
     self.archBinDir        = os.path.join(self.rootDir, self.arch, 'bin')
     self.archLibDir        = os.path.join(self.rootDir, self.arch, 'lib')
     self.destIncludeDir    = os.path.join(self.destDir, 'include')
-    self.destConfDir       = os.path.join(self.destDir, 'lib','slepc-conf')
+    self.destConfDir       = os.path.join(self.destDir, 'lib','slepc','conf')
     self.destLibDir        = os.path.join(self.destDir, 'lib')
     self.destBinDir        = os.path.join(self.destDir, 'bin')
     self.installIncludeDir = os.path.join(self.installDir, 'include')
@@ -163,7 +163,7 @@ for src, dst in copies:
     pass
 ''')
     #TODO: need to delete libXXX.YYY.dylib.dSYM directory on Mac
-    dirs = [os.path.join('include','slepc-finclude'),os.path.join('include','slepc-private'),os.path.join('lib','slepc-conf')]
+    dirs = [os.path.join('include','slepc','finclude'),os.path.join('include','slepc','private'),os.path.join('lib','slepc','conf')]
     newdirs = []
     for dir in dirs: newdirs.append(os.path.join(self.installDir,dir))
     f.write('dirs = '+str(newdirs))
@@ -180,7 +180,7 @@ for dir in dirs:
     return
 
   def installIncludes(self):
-    # TODO: should exclude slepc-finclude except for fortran builds
+    # TODO: should exclude slepc/finclude except for fortran builds
     self.copies.extend(self.copytree(self.rootIncludeDir, self.destIncludeDir,exclude = ['makefile']))
     self.copies.extend(self.copytree(self.archIncludeDir, self.destIncludeDir))
     return

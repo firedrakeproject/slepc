@@ -30,7 +30,7 @@
 !
       program main
 
-#include <slepc-finclude/slepcpepdef.h>
+#include <slepc/finclude/slepcpepdef.h>
       use slepcpep
 
       implicit none
@@ -39,7 +39,7 @@
 ! the previous lines between 'program main' and 'implicit none'
 !
 !#include <petsc/finclude/petsc.h>
-!#include <slepc-finclude/slepc.h>
+!#include <slepc/finclude/slepc.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Declarations

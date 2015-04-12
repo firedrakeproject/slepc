@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/rgimpl.h>      /*I "slepcrg.h" I*/
+#include <slepc/private/rgimpl.h>      /*I "slepcrg.h" I*/
 
 typedef struct {
   PetscScalar center;     /* center of the ellipse */

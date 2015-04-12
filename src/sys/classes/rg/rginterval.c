@@ -22,7 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/rgimpl.h>      /*I "slepcrg.h" I*/
+#include <slepc/private/rgimpl.h>      /*I "slepcrg.h" I*/
 
 typedef struct {
   PetscReal   a,b;     /* interval in the real axis */

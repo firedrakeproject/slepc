@@ -33,7 +33,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>
+#include <slepc/private/nepimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetUp_RII"

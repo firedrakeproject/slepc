@@ -29,4 +29,4 @@ SOURCEH  =
 DIRS     =
 LIBBASE  = libslepcmfn
 LOCDIR   = src/mfn/interface/ftn-custom/
-include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

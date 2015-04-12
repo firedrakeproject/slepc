@@ -25,10 +25,10 @@ CFLAGS   =
 FFLAGS   =
 SOURCEC  = rgbasic.c rginterval.c rgpolygon.c rgellipse.c
 SOURCEF  =
-SOURCEH  = ../../../../include/slepc-private/rgimpl.h ../../../../include/slepcrg.h
+SOURCEH  = ../../../../include/slepc/private/rgimpl.h ../../../../include/slepcrg.h
 LIBBASE  = libslepcsys
 DIRS     = examples
 MANSEC   = RG
 LOCDIR   = src/sys/classes/rg/
 
-include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
