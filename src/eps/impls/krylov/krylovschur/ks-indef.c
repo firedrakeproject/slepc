@@ -23,7 +23,7 @@
    along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
-#include <slepc-private/epsimpl.h>
+#include <slepc/private/epsimpl.h>
 #include "krylovschur.h"
 
 #undef __FUNCT__

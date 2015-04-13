@@ -31,5 +31,5 @@ MANSEC   = sys
 LOCDIR   = src/sys/classes/
 DIRS     = ds fn st bv rg
 
-include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

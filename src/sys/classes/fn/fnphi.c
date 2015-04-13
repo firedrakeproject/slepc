@@ -24,7 +24,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/fnimpl.h>      /*I "slepcfn.h" I*/
+#include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
 
 typedef struct {
   PetscInt k;    /* index of the phi-function, defaults to k=1 */

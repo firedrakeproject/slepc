@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/bvimpl.h>      /*I "slepcbv.h" I*/
+#include <slepc/private/bvimpl.h>      /*I "slepcbv.h" I*/
 
 PetscBool         BVRegisterAllCalled = PETSC_FALSE;
 PetscFunctionList BVList = 0;

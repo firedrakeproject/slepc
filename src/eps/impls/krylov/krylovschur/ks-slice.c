@@ -34,7 +34,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>
+#include <slepc/private/epsimpl.h>
 #include "krylovschur.h"
 
 #define SLICE_PTOL PETSC_SQRT_MACHINE_EPSILON

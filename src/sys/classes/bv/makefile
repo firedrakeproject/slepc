@@ -21,11 +21,11 @@
 
 ALL: lib
 
-SOURCEH  = ../../../../include/slepc-private/bvimpl.h ../../../../include/slepcbv.h
+SOURCEH  = ../../../../include/slepc/private/bvimpl.h ../../../../include/slepcbv.h
 DIRS     = interface impls examples
 LOCDIR   = src/sys/classes/bv/
 MANSEC   = BV
 
-include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

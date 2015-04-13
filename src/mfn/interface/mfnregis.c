@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/mfnimpl.h>  /*I "slepcmfn.h" I*/
+#include <slepc/private/mfnimpl.h>  /*I "slepcmfn.h" I*/
 
 PETSC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN);
 

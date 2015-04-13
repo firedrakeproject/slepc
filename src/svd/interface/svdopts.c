@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>      /*I "slepcsvd.h" I*/
+#include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetImplicitTranspose"
