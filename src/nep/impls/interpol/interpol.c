@@ -34,8 +34,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>         /*I "slepcnep.h" I*/
-#include <slepc-private/pepimpl.h>
+#include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
+#include <slepc/private/pepimpl.h>
 
 typedef struct {
   PEP       pep;

@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>       /*I "slepcpep.h" I*/
+#include <slepc/private/pepimpl.h>       /*I "slepcpep.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetUp"
@@ -142,6 +142,8 @@ PetscErrorCode PEPSetUp(PEP pep)
     case PEP_TARGET_IMAGINARY:
       pep->sc->comparison    = SlepcCompareTargetImaginary;
       pep->sc->comparisonctx = &pep->target;
+      break;
+    case PEP_WHICH_USER:
       break;
   }
   pep->sc->map    = NULL;

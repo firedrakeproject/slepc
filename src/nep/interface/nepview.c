@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>      /*I "slepcnep.h" I*/
+#include <slepc/private/nepimpl.h>      /*I "slepcnep.h" I*/
 #include <petscdraw.h>
 
 #undef __FUNCT__
@@ -450,26 +450,27 @@ static PetscErrorCode NEPValuesView_DRAW(NEP nep,PetscViewer viewer)
   PetscDraw      draw;
   PetscDrawSP    drawsp;
   PetscReal      re,im;
-  PetscInt       i;
+  PetscInt       i,k;
 
   PetscFunctionBegin;
   if (!nep->nconv) PetscFunctionReturn(0);
-    ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
-    ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
-    for (i=0;i<nep->nconv;i++) {
+  ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
+  ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+  ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
+  for (i=0;i<nep->nconv;i++) {
+    k = nep->perm[i];
 #if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(nep->eigr[i]);
-      im = PetscImaginaryPart(nep->eigr[i]);
+    re = PetscRealPart(nep->eigr[k]);
+    im = PetscImaginaryPart(nep->eigr[k]);
 #else
-      re = nep->eigr[i];
-      im = nep->eigi[i];
+    re = nep->eigr[k];
+    im = nep->eigi[k];
 #endif
-      ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
-    }
-    ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
+  }
+  ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
+  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -478,18 +479,19 @@ static PetscErrorCode NEPValuesView_DRAW(NEP nep,PetscViewer viewer)
 static PetscErrorCode NEPValuesView_ASCII(NEP nep,PetscViewer viewer)
 {
   PetscReal      re,im;
-  PetscInt       i;
+  PetscInt       i,k;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = PetscViewerASCIIPrintf(viewer,"Eigenvalues = \n");CHKERRQ(ierr);
   for (i=0;i<nep->nconv;i++) {
+    k = nep->perm[i];
 #if defined(PETSC_USE_COMPLEX)
-    re = PetscRealPart(nep->eigr[i]);
-    im = PetscImaginaryPart(nep->eigr[i]);
+    re = PetscRealPart(nep->eigr[k]);
+    im = PetscImaginaryPart(nep->eigr[k]);
 #else
-    re = nep->eigr[i];
-    im = nep->eigi[i];
+    re = nep->eigr[k];
+    im = nep->eigi[k];
 #endif
     if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
     if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
@@ -508,7 +510,7 @@ static PetscErrorCode NEPValuesView_ASCII(NEP nep,PetscViewer viewer)
 static PetscErrorCode NEPValuesView_MATLAB(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,k;
   PetscReal      re,im;
   const char     *name;
 
@@ -516,12 +518,13 @@ static PetscErrorCode NEPValuesView_MATLAB(NEP nep,PetscViewer viewer)
   ierr = PetscObjectGetName((PetscObject)nep,&name);CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"Lambda_%s = [\n",name);CHKERRQ(ierr);
   for (i=0;i<nep->nconv;i++) {
+    k = nep->perm[i];
 #if defined(PETSC_USE_COMPLEX)
-    re = PetscRealPart(nep->eigr[i]);
-    im = PetscImaginaryPart(nep->eigr[i]);
+    re = PetscRealPart(nep->eigr[k]);
+    im = PetscImaginaryPart(nep->eigr[k]);
 #else
-    re = nep->eigr[i];
-    im = nep->eigi[i];
+    re = nep->eigr[k];
+    im = nep->eigi[k];
 #endif
     if (im!=0.0) {
       ierr = PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei\n",(double)re,(double)im);CHKERRQ(ierr);
@@ -641,7 +644,7 @@ PetscErrorCode NEPValuesViewFromOptions(NEP nep)
 PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,k;
   Vec            x;
 #define NMLEN 30
   char           vname[NMLEN];
@@ -657,11 +660,12 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
     ierr = PetscObjectGetName((PetscObject)nep,&ename);CHKERRQ(ierr);
     ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
     for (i=0;i<nep->nconv;i++) {
+      k = nep->perm[i];
       ierr = PetscSNPrintf(vname,NMLEN,"V%d_%s",i,ename);CHKERRQ(ierr);
-      ierr = BVGetColumn(nep->V,i,&x);CHKERRQ(ierr);
+      ierr = BVGetColumn(nep->V,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(nep->V,i,&x);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(nep->V,k,&x);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

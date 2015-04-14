@@ -38,7 +38,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <../src/eps/impls/davidson/common/davidson.h>
 
 #undef __FUNCT__

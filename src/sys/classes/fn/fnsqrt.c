@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/fnimpl.h>      /*I "slepcfn.h" I*/
+#include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "FNEvaluateFunction_Sqrt"

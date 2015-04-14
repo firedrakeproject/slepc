@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>
-#include <slepc-private/slepcimpl.h>
+#include <slepc/private/epsimpl.h>
+#include <slepc/private/slepcimpl.h>
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__

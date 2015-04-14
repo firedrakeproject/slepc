@@ -104,7 +104,7 @@ def processDir(flist,dirname,names):
   # check for configure generated PETSC_ARCHes
   rmnames=[]
   for name in names:
-    if os.path.isdir(os.path.join(dirname,name,'slepc-conf')):
+    if os.path.isdir(os.path.join(dirname,name,'slepc','conf')):
       rmnames.append(name)
   for rmname in rmnames:
     names.remove(rmname)
@@ -114,7 +114,7 @@ def processFiles(dirname,flist):
   # list files that can't be done with global match [as above] with complete paths
   import glob
   files= []
-  lists=['slepc-conf/*']
+  lists=['slepc/conf/*']
 
   for glist in lists:
     gfiles = glob.glob(glist)

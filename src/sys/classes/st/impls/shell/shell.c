@@ -23,7 +23,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>        /*I "slepcst.h" I*/
+#include <slepc/private/stimpl.h>        /*I "slepcst.h" I*/
 
 typedef struct {
   void           *ctx;                       /* user provided context */

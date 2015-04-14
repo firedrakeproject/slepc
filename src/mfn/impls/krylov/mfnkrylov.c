@@ -34,7 +34,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/mfnimpl.h>
+#include <slepc/private/mfnimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNSetUp_Krylov"

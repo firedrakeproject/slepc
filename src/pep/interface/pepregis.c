@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>      /*I "slepcpep.h" I*/
+#include <slepc/private/pepimpl.h>      /*I "slepcpep.h" I*/
 
 PETSC_EXTERN PetscErrorCode PEPCreate_Linear(PEP);
 PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP);
