@@ -22,7 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/mfnimpl.h>   /*I "slepcmfn.h" I*/
+#include <slepc/private/mfnimpl.h>   /*I "slepcmfn.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNSetFromOptions"

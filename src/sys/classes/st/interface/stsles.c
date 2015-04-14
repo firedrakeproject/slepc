@@ -22,7 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>            /*I "slepcst.h" I*/
+#include <slepc/private/stimpl.h>            /*I "slepcst.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "STMatMult"
@@ -259,6 +259,28 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
   mherm = (mherm && PetscImaginaryPart(st->sigma)==0.0)? PETSC_TRUE: PETSC_FALSE;
   ierr = MatSetOption(M,MAT_HERMITIAN,mherm);CHKERRQ(ierr);
 #endif
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STCheckFactorPackage"
+PetscErrorCode STCheckFactorPackage(ST st)
+{
+  PetscErrorCode         ierr;
+  PC                     pc;
+  PetscMPIInt            size;
+  PetscBool              flg;
+  const MatSolverPackage stype;
+
+  PetscFunctionBegin;
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)st),&size);CHKERRQ(ierr);
+  if (size==1) PetscFunctionReturn(0);
+  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
+  ierr = PCFactorGetMatSolverPackage(pc,&stype);CHKERRQ(ierr);
+  if (stype) {   /* currently selected PC is a factorization */
+    ierr = PetscStrcmp(stype,MATSOLVERPETSC,&flg);CHKERRQ(ierr);
+    if (flg) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"You chose to solve linear systems with a factorization, but in parallel runs you need to select an external package; see the users guide for details");
+  }
   PetscFunctionReturn(0);
 }
 

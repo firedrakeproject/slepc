@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
+#include <slepc/private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
@@ -234,7 +234,6 @@ PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm
   PetscFunctionBegin;
   n = ds->t;   /* sort only first t pairs if truncated */
   l = ds->l;
-  for (i=0;i<n;i++) perm[i] = i;
   /* insertion sort */
   for (i=l+1;i<n;i++) {
     re = eig[perm[i]];

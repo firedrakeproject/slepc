@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/bvimpl.h>      /*I "slepcbv.h" I*/
+#include <slepc/private/bvimpl.h>      /*I "slepcbv.h" I*/
 
 PetscBool         BVRegisterAllCalled = PETSC_FALSE;
 PetscFunctionList BVList = 0;
@@ -261,6 +261,10 @@ PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
    This function sets the number of constraints to nc and marks all remaining
    columns as regular. Normal user would call BVInsertConstraints() instead.
 
+   If nc is smaller than the previously set value, then some of the constraints
+   are discarded. In particular, using nc=0 removes all constraints preserving
+   the content of regular columns.
+
    Level: developer
 
 .seealso: BVInsertConstraints()
@@ -268,24 +272,35 @@ PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
 PetscErrorCode BVSetNumConstraints(BV V,PetscInt nc)
 {
   PetscErrorCode ierr;
-  PetscInt       total;
+  PetscInt       total,diff,i;
+  Vec            x,y;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(V,nc,2);
-  if (!nc) PetscFunctionReturn(0);
   if (nc<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %D) cannot be negative",nc);
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   if (V->ci[0]!=-V->nc-1 || V->ci[1]!=-V->nc-1) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot call BVSetNumConstraints after BVGetColumn");
 
+  diff = nc-V->nc;
+  if (!diff) PetscFunctionReturn(0);
   total = V->nc+V->m;
+  if (total-nc<=0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Not enough columns for the given nc value");
+  if (diff<0) {  /* lessen constraints, shift contents of BV */
+    for (i=0;i<V->m;i++) {
+      ierr = BVGetColumn(V,i,&x);CHKERRQ(ierr);
+      ierr = BVGetColumn(V,i+diff,&y);CHKERRQ(ierr);
+      ierr = VecCopy(x,y);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(V,i,&x);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(V,i+diff,&y);CHKERRQ(ierr);
+    }
+  }
   V->nc = nc;
-  V->m = total-nc;
-  if (V->m<=0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Not enough columns for the given nc value");
   V->ci[0] = -V->nc-1;
   V->ci[1] = -V->nc-1;
   V->l = 0;
+  V->m = total-nc;
   V->k = V->m;
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -32,12 +32,12 @@
       program main
       implicit none
 
-#include <petsc-finclude/petscsys.h>
-#include <petsc-finclude/petscvec.h>
-#include <petsc-finclude/petscmat.h>
-#include <petsc-finclude/petscviewer.h>
-#include <slepc-finclude/slepcsys.h>
-#include <slepc-finclude/slepceps.h>
+#include <petsc/finclude/petscsys.h>
+#include <petsc/finclude/petscvec.h>
+#include <petsc/finclude/petscmat.h>
+#include <petsc/finclude/petscviewer.h>
+#include <slepc/finclude/slepcsys.h>
+#include <slepc/finclude/slepceps.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Declarations
@@ -175,9 +175,9 @@
       subroutine MatIsing_Mult(A,x,y,ierr)
       implicit none
 
-#include <petsc-finclude/petscsys.h>
-#include <petsc-finclude/petscvec.h>
-#include <petsc-finclude/petscmat.h>
+#include <petsc/finclude/petscsys.h>
+#include <petsc/finclude/petscvec.h>
+#include <petsc/finclude/petscmat.h>
 
       Mat            A
       Vec            x,y
@@ -254,7 +254,7 @@
 !  ===================================================================
 !
 !
-#include <petsc-finclude/petscsys.h>
+#include <petsc/finclude/petscsys.h>
 
 !     .. Local Variables .. 
       PetscInt    I, K 

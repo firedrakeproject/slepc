@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>       /*I "slepcpep.h" I*/
+#include <slepc/private/pepimpl.h>       /*I "slepcpep.h" I*/
 #include <petscdraw.h>
 
 #undef __FUNCT__
@@ -300,8 +300,7 @@ PetscErrorCode PEPGetEigenpair(PEP pep,PetscInt i,PetscScalar *eigr,PetscScalar 
   if (i<0 || i>=pep->nconv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
 
   ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
-  if (!pep->perm) k = i;
-  else k = pep->perm[i];
+  k = pep->perm[i];
 
   /* eigenvalue */
 #if defined(PETSC_USE_COMPLEX)
@@ -365,8 +364,7 @@ PetscErrorCode PEPGetErrorEstimate(PEP pep,PetscInt i,PetscReal *errest)
   PetscValidPointer(errest,3);
   PEPCheckSolved(pep,1);
   if (i<0 || i>=pep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
-  if (pep->perm) i = pep->perm[i];
-  if (errest) *errest = pep->errest[i];
+  if (errest) *errest = pep->errest[pep->perm[i]];
   PetscFunctionReturn(0);
 }
 
@@ -393,7 +391,7 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
   PetscFunctionBegin;
   ierr = BVGetVec(pep->V,&u);CHKERRQ(ierr);
   ierr = BVGetVec(pep->V,&w);CHKERRQ(ierr);
-  ierr = VecZeroEntries(u);CHKERRQ(ierr);
+  ierr = VecSet(u,0.0);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   ivals = it; 
 #endif
@@ -411,7 +409,7 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
     imag = PETSC_TRUE;
     ierr = VecDuplicate(u,&ui);CHKERRQ(ierr);
     ierr = VecDuplicate(u,&wi);CHKERRQ(ierr);
-    ierr = VecZeroEntries(ui);CHKERRQ(ierr);
+    ierr = VecSet(ui,0.0);CHKERRQ(ierr);
   }
 #endif
   for (i=0;i<nmat;i++) {

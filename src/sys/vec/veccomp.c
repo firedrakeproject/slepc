@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/vecimplslepc.h>     /*I "slepcvec.h" I*/
+#include <slepc/private/vecimplslepc.h>     /*I "slepcvec.h" I*/
 
 /* Private MPI datatypes and operators */
 static MPI_Datatype MPIU_NORM2=0, MPIU_NORM1_AND_2=0;

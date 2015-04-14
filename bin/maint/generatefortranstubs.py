@@ -30,7 +30,7 @@ def FixFile(filename):
   data = match.sub(r'',data)
 
   ff = open(filename, 'w')
-  ff.write('#include "petscsys.h"\n#include "petscfix.h"\n#include "petsc-private/fortranimpl.h"\n'+data)
+  ff.write('#include "petscsys.h"\n#include "petscfix.h"\n#include "petsc/private/fortranimpl.h"\n'+data)
   ff.close()
 
 def FindSource(filename):
@@ -100,7 +100,7 @@ def FixDir(petscdir,dir,verbose):
     outbuf +=  'DIRS     =\n'
     outbuf +=  libbase + '\n'
     outbuf +=  locdir + '\n'
-    outbuf +=  'include ${SLEPC_DIR}/lib/slepc-conf/slepc_common\n'
+    outbuf +=  'include ${SLEPC_DIR}/lib/slepc/conf/slepc_common\n'
 
     ff = open(os.path.join(dir, 'makefile'), 'w')
     ff.write(outbuf)
@@ -118,9 +118,9 @@ def FixDir(petscdir,dir,verbose):
     txt = fd.read()
     fd.close()
     if txt:
-      if not os.path.isdir(os.path.join(petscdir,'include','slepc-finclude','ftn-auto')): os.mkdir(os.path.join(petscdir,'include','slepc-finclude','ftn-auto'))
-      if not os.path.isdir(os.path.join(petscdir,'include','slepc-finclude','ftn-auto',mansec+'-tmpdir')): os.mkdir(os.path.join(petscdir,'include','slepc-finclude','ftn-auto',mansec+'-tmpdir'))
-      fname =  os.path.join(petscdir,'include','slepc-finclude','ftn-auto',mansec+'-tmpdir',parentdir.replace('/','_')+'.h90')
+      if not os.path.isdir(os.path.join(petscdir,'include','slepc','finclude','ftn-auto')): os.mkdir(os.path.join(petscdir,'include','slepc','finclude','ftn-auto'))
+      if not os.path.isdir(os.path.join(petscdir,'include','slepc','finclude','ftn-auto',mansec+'-tmpdir')): os.mkdir(os.path.join(petscdir,'include','slepc','finclude','ftn-auto',mansec+'-tmpdir'))
+      fname =  os.path.join(petscdir,'include','slepc','finclude','ftn-auto',mansec+'-tmpdir',parentdir.replace('/','_')+'.h90')
       fd =open(fname,'w')
       fd.write(txt)
       fd.close()
@@ -159,7 +159,7 @@ def processDir(arg,dirname,names):
                '-mpi', '-mpi2', '-ferr', '-ptrprefix Petsc', '-ptr64 PETSC_USE_POINTER_CONVERSION',
                '-fcaps PETSC_HAVE_FORTRAN_CAPS', '-fuscore PETSC_HAVE_FORTRAN_UNDERSCORE',
                '-f90mod_skip_header','-f90modfile','f90module.f90']
-    cmd = 'cd '+dirname+'; BFORT_CONFIG_PATH='+os.path.join(petscdir,'lib','slepc-conf')+' '+bfort+' '+' '.join(options+newls)
+    cmd = 'cd '+dirname+'; BFORT_CONFIG_PATH='+os.path.join(petscdir,'lib','slepc','conf')+' '+bfort+' '+' '.join(options+newls)
     (status,output) = commands.getstatusoutput(cmd)
     if status:
       raise RuntimeError('Error running bfort\n'+cmd+'\n'+output)
@@ -171,13 +171,13 @@ def processDir(arg,dirname,names):
   # remove from list of subdirectories all directories without source code
   rmnames=[]
   for name in names:
-    if name in ['.hg','SCCS', 'output', 'BitKeeper', 'examples', 'externalpackages', 'bilinear', 'ftn-auto','fortran','bin','maint','ftn-custom','config','f90-custom','ftn-kernels']:
+    if name in ['.git','.hg','SCCS', 'output', 'BitKeeper', 'examples', 'externalpackages', 'bilinear', 'ftn-auto','fortran','bin','maint','ftn-custom','config','f90-custom','ftn-kernels']:
       rmnames.append(name)
     # skip for ./configure generated $PETSC_ARCH directories
-    if os.path.isdir(os.path.join(dirname,name,'slepc-conf')):
+    if os.path.isdir(os.path.join(dirname,name,'lib','slepc','conf')):
       rmnames.append(name)
-    # skip include/slepc-finclude directory
-    if name == 'slepc-finclude':
+    # skip include/slepc directory
+    if name == 'slepc':
       rmnames.append(name)
   for rmname in rmnames:
     if rmname in names: names.remove(rmname)
@@ -186,22 +186,22 @@ def processDir(arg,dirname,names):
 
 def processf90interfaces(petscdir,verbose):
   ''' Takes all the individually generated fortran interface files and merges them into one for each mansec'''
-  for mansec in os.listdir(os.path.join(petscdir,'include','slepc-finclude','ftn-auto')):
+  for mansec in os.listdir(os.path.join(petscdir,'include','slepc','finclude','ftn-auto')):
     if verbose: print 'Processing F90 interface for '+mansec
-    if os.path.isdir(os.path.join(petscdir,'include','slepc-finclude','ftn-auto',mansec)):
+    if os.path.isdir(os.path.join(petscdir,'include','slepc','finclude','ftn-auto',mansec)):
       mansec = mansec[:-7]
-      f90inc = os.path.join(petscdir,'include','slepc-finclude','ftn-auto','slepc'+mansec+'.h90')
+      f90inc = os.path.join(petscdir,'include','slepc','finclude','ftn-auto','slepc'+mansec+'.h90')
       fd = open(f90inc,'w')
-      for sfile in os.listdir(os.path.join(petscdir,'include','slepc-finclude','ftn-auto',mansec+'-tmpdir')):
+      for sfile in os.listdir(os.path.join(petscdir,'include','slepc','finclude','ftn-auto',mansec+'-tmpdir')):
         if verbose: print '  Copying in '+sfile
-        fdr = open(os.path.join(petscdir,'include','slepc-finclude','ftn-auto',mansec+'-tmpdir',sfile))
+        fdr = open(os.path.join(petscdir,'include','slepc','finclude','ftn-auto',mansec+'-tmpdir',sfile))
         txt = fdr.read()
         fd.write(txt)
         fdr.close()
       fd.close()
       import shutil
-      shutil.rmtree(os.path.join(petscdir,'include','slepc-finclude','ftn-auto',mansec+'-tmpdir'))
-  FixDir(petscdir,os.path.join(petscdir,'include','slepc-finclude','ftn-auto'),verbose)
+      shutil.rmtree(os.path.join(petscdir,'include','slepc','finclude','ftn-auto',mansec+'-tmpdir'))
+  FixDir(petscdir,os.path.join(petscdir,'include','slepc','finclude','ftn-auto'),verbose)
   return
 
 def main(petscdir,bfort,dir,verbose):

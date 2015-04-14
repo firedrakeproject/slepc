@@ -75,7 +75,7 @@ int main(int argc,char **argv)
   /* Fill X entries */
   for (j=0;j<k;j++) {
     ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
-    ierr = VecZeroEntries(v);CHKERRQ(ierr);
+    ierr = VecSet(v,0.0);CHKERRQ(ierr);
     for (i=Istart;i<PetscMin(j+1,Iend);i++) {
       ierr = VecSetValue(v,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
     }
@@ -106,7 +106,7 @@ int main(int argc,char **argv)
   /* Fill Z entries */
   for (j=0;j<k;j++) {
     ierr = BVGetColumn(Z,j,&v);CHKERRQ(ierr);
-    ierr = VecZeroEntries(v);CHKERRQ(ierr);
+    ierr = VecSet(v,0.0);CHKERRQ(ierr);
     if (!Istart) { ierr = VecSetValue(v,0,1.0,ADD_VALUES);CHKERRQ(ierr); }
     if (j<n && j>=Istart && j<Iend) { ierr = VecSetValue(v,j,1.0,ADD_VALUES);CHKERRQ(ierr); }
     if (j+1<n && j>=Istart && j<Iend) { ierr = VecSetValue(v,j+1,-1.0,ADD_VALUES);CHKERRQ(ierr); }

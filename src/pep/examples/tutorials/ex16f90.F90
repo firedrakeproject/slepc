@@ -30,7 +30,7 @@
 !
       program main
 
-#include <slepc-finclude/slepcpepdef.h>
+#include <slepc/finclude/slepcpepdef.h>
       use slepcpep
 
       implicit none
@@ -38,8 +38,8 @@
 ! For usage without modules, uncomment the following lines and remove 
 ! the previous lines between 'program main' and 'implicit none'
 !
-!#include <petsc-finclude/petsc.h>
-!#include <slepc-finclude/slepc.h>
+!#include <petsc/finclude/petsc.h>
+!#include <slepc/finclude/slepc.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Declarations
@@ -127,10 +127,13 @@
       call MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr)
       call MatSetFromOptions(M,ierr)
       call MatSetUp(M,ierr)
+      call MatGetOwnershipRange(M,Istart,Iend,ierr)
+      one = 1.0
+      do II=Istart,Iend-1
+        call MatSetValue(M,II,II,one,INSERT_VALUES,ierr)
+      end do
       call MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY,ierr)
-      one = 1.0
-      call MatShift(M,one,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Create the eigensolver and set various options

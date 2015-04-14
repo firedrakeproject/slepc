@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>      /*I "slepcnep.h" I*/
+#include <slepc/private/nepimpl.h>      /*I "slepcnep.h" I*/
 
 PetscFunctionList NEPList = 0;
 PetscBool         NEPRegisterAllCalled = PETSC_FALSE;

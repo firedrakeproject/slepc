@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>   /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>   /*I "slepceps.h" I*/
 #include <petscdraw.h>
 
 #undef __FUNCT__
@@ -165,7 +165,10 @@ PetscErrorCode EPSSolve(EPS eps)
   if (nmat>1) { ierr = MatViewFromOptions(B,((PetscObject)eps)->prefix,"-eps_view_mat1");CHKERRQ(ierr); }
 
   /* Remove deflation and initial subspaces */
-  eps->nds = 0;
+  if (eps->nds) {
+    ierr = BVSetNumConstraints(eps->V,0);CHKERRQ(ierr);
+    eps->nds = 0;
+  }
   eps->nini = 0;
   PetscFunctionReturn(0);
 }
@@ -404,14 +407,13 @@ PetscErrorCode EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar 
 @*/
 PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar *eigi)
 {
-  PetscInt       k;
+  PetscInt k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   EPSCheckSolved(eps,1);
   if (i<0 || i>=eps->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
-  if (!eps->perm) k = i;
-  else k = eps->perm[i];
+  k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
   if (eigr) *eigr = eps->eigr[k];
   if (eigi) *eigi = 0;
@@ -468,8 +470,7 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
   EPSCheckSolved(eps,1);
   if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
-  if (!eps->perm) k = i;
-  else k = eps->perm[i];
+  k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
   ierr = BVCopyVec(eps->V,k,Vr);CHKERRQ(ierr);
   if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
@@ -524,8 +525,7 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
   PetscValidPointer(errest,3);
   EPSCheckSolved(eps,1);
   if (i<0 || i>=eps->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
-  if (eps->perm) i = eps->perm[i];
-  if (errest) *errest = eps->errest[i];
+  if (errest) *errest = eps->errest[eps->perm[i]];
   PetscFunctionReturn(0);
 }
 

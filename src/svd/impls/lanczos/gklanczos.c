@@ -39,7 +39,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>                /*I "slepcsvd.h" I*/
+#include <slepc/private/svdimpl.h>                /*I "slepcsvd.h" I*/
 
 typedef struct {
   PetscBool oneside;
@@ -129,9 +129,11 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
     ierr = BVGetColumn(V,i,&z);CHKERRQ(ierr);
     ierr = SVDMatMult(svd,PETSC_TRUE,u,z);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&z);CHKERRQ(ierr);
-    ierr = VecNorm(u,NORM_2,&a);CHKERRQ(ierr);
+    ierr = VecNormBegin(u,NORM_2,&a);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(V,0,i);CHKERRQ(ierr);
-    ierr = BVDotColumn(V,i,work);CHKERRQ(ierr);
+    ierr = BVDotColumnBegin(V,i,work);CHKERRQ(ierr);
+    ierr = VecNormEnd(u,NORM_2,&a);CHKERRQ(ierr);
+    ierr = BVDotColumnEnd(V,i,work);CHKERRQ(ierr);
     ierr = VecScale(u,1.0/a);CHKERRQ(ierr);
     ierr = BVMultColumn(V,-1.0/a,1.0/a,i,work);CHKERRQ(ierr);
 
@@ -155,8 +157,10 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
   ierr = BVGetColumn(V,n,&z);CHKERRQ(ierr);
   ierr = SVDMatMult(svd,PETSC_TRUE,u,z);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,n,&z);CHKERRQ(ierr);
-  ierr = VecNorm(u,NORM_2,&a);CHKERRQ(ierr);
-  ierr = BVDotColumn(V,n,work);CHKERRQ(ierr);
+  ierr = VecNormBegin(u,NORM_2,&a);CHKERRQ(ierr);
+  ierr = BVDotColumnBegin(V,n,work);CHKERRQ(ierr);
+  ierr = VecNormEnd(u,NORM_2,&a);CHKERRQ(ierr);
+  ierr = BVDotColumnEnd(V,n,work);CHKERRQ(ierr);
   ierr = VecScale(u,1.0/a);CHKERRQ(ierr);
   ierr = BVMultColumn(V,-1.0/a,1.0/a,n,work);CHKERRQ(ierr);
 

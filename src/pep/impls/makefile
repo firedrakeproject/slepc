@@ -26,6 +26,6 @@ DIRS     = linear qarnoldi toar stoar
 LOCDIR   = src/pep/impls/
 MANSEC   = PEP
 
-include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

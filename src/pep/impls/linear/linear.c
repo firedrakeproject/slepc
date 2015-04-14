@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h> 
-#include <slepc-private/pepimpl.h>         /*I "slepcpep.h" I*/
+#include <slepc/private/stimpl.h> 
+#include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
 #include "linearp.h"
 
 #undef __FUNCT__
@@ -54,7 +54,7 @@ static PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
   cg = pep->pbc+2*nmat;
   x1=ctx->w[0];x2=ctx->w[1];x3=ctx->w[2];y1=ctx->w[3];aux=ctx->w[4];
   
-  ierr = VecZeroEntries(y);CHKERRQ(ierr);
+  ierr = VecSet(y,0.0);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   a = 1.0;
@@ -133,7 +133,7 @@ static PetscErrorCode MatMult_Linear_Sinvert(Mat M,Vec x,Vec y)
   cg = pep->pbc+2*nmat;
   x1=ctx->w[0];y1=ctx->w[1];y2=ctx->w[2];y3=ctx->w[3];aux=ctx->w[4];aux2=ctx->w[5];
   ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
-  ierr = VecZeroEntries(y);CHKERRQ(ierr);
+  ierr = VecSet(y,0.0);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   a = pep->sfactor;

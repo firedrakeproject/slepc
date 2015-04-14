@@ -1,6 +1,6 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
-!  Copyright (c) 2002-2011, Universitat Politecnica de Valencia, Spain
+!  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
 !     
@@ -31,11 +31,11 @@
       program main
       implicit none
 
-#include <petsc-finclude/petscsys.h>
-#include <petsc-finclude/petscvec.h>
-#include <petsc-finclude/petscmat.h>
-#include <slepc-finclude/slepcsys.h>
-#include <slepc-finclude/slepceps.h>
+#include <petsc/finclude/petscsys.h>
+#include <petsc/finclude/petscvec.h>
+#include <petsc/finclude/petscmat.h>
+#include <slepc/finclude/slepcsys.h>
+#include <slepc/finclude/slepceps.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Declarations

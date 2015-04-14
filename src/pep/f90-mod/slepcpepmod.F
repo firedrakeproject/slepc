@@ -25,12 +25,12 @@
         use slepcrg
         use slepcds
         use slepceps
-#include <slepc-finclude/slepcpep.h>
-#include <slepc-finclude/ftn-custom/slepcpepdef.h90>
+#include <slepc/finclude/slepcpep.h>
+#include <slepc/finclude/ftn-custom/slepcpepdef.h90>
         end module
 
         module slepcpep
         use slepcpepdef
-#include <slepc-finclude/slepcpep.h90>
+#include <slepc/finclude/slepcpep.h90>
         end module
 

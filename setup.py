@@ -154,7 +154,7 @@ def install(dest_dir, dry_run=False):
                'SLEPC_DESTDIR='+dest_dir]
     status = os.system(" ".join(command))
     if status != 0: raise RuntimeError(status)
-    slepcvariables = os.path.join(dest_dir, 'lib', 'slepc-conf', 'slepcvariables')
+    slepcvariables = os.path.join(dest_dir, 'lib', 'slepc', 'conf', 'slepcvariables')
     fh = open(slepcvariables, 'a')
     fh.write('SLEPC_DESTDIR=%s\n' % dest_dir)
     fh.close()

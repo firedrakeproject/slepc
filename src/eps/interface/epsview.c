@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>      /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>      /*I "slepceps.h" I*/
 #include <petscdraw.h>
 
 #undef __FUNCT__
@@ -528,26 +528,27 @@ static PetscErrorCode EPSValuesView_DRAW(EPS eps,PetscViewer viewer)
   PetscDraw      draw;
   PetscDrawSP    drawsp;
   PetscReal      re,im;
-  PetscInt       i;
+  PetscInt       i,k;
 
   PetscFunctionBegin;
   if (!eps->nconv) PetscFunctionReturn(0);
-    ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
-    ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
-    for (i=0;i<eps->nconv;i++) {
+  ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
+  ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+  ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
+  for (i=0;i<eps->nconv;i++) {
+    k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(eps->eigr[i]);
-      im = PetscImaginaryPart(eps->eigr[i]);
+    re = PetscRealPart(eps->eigr[k]);
+    im = PetscImaginaryPart(eps->eigr[k]);
 #else
-      re = eps->eigr[i];
-      im = eps->eigi[i];
+    re = eps->eigr[k];
+    im = eps->eigi[k];
 #endif
-      ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
-    }
-    ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
+  }
+  ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
+  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -556,18 +557,19 @@ static PetscErrorCode EPSValuesView_DRAW(EPS eps,PetscViewer viewer)
 static PetscErrorCode EPSValuesView_ASCII(EPS eps,PetscViewer viewer)
 {
   PetscReal      re,im;
-  PetscInt       i;
+  PetscInt       i,k;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = PetscViewerASCIIPrintf(viewer,"Eigenvalues = \n");CHKERRQ(ierr);
   for (i=0;i<eps->nconv;i++) {
+    k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
-    re = PetscRealPart(eps->eigr[i]);
-    im = PetscImaginaryPart(eps->eigr[i]);
+    re = PetscRealPart(eps->eigr[k]);
+    im = PetscImaginaryPart(eps->eigr[k]);
 #else
-    re = eps->eigr[i];
-    im = eps->eigi[i];
+    re = eps->eigr[k];
+    im = eps->eigi[k];
 #endif
     if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
     if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
@@ -586,7 +588,7 @@ static PetscErrorCode EPSValuesView_ASCII(EPS eps,PetscViewer viewer)
 static PetscErrorCode EPSValuesView_MATLAB(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,k;
   PetscReal      re,im;
   const char     *name;
 
@@ -594,12 +596,13 @@ static PetscErrorCode EPSValuesView_MATLAB(EPS eps,PetscViewer viewer)
   ierr = PetscObjectGetName((PetscObject)eps,&name);CHKERRQ(ierr);
   ierr = PetscViewerASCIIPrintf(viewer,"Lambda_%s = [\n",name);CHKERRQ(ierr);
   for (i=0;i<eps->nconv;i++) {
+    k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
-    re = PetscRealPart(eps->eigr[i]);
-    im = PetscImaginaryPart(eps->eigr[i]);
+    re = PetscRealPart(eps->eigr[k]);
+    im = PetscImaginaryPart(eps->eigr[k]);
 #else
-    re = eps->eigr[i];
-    im = eps->eigi[i];
+    re = eps->eigr[k];
+    im = eps->eigi[k];
 #endif
     if (im!=0.0) {
       ierr = PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei\n",(double)re,(double)im);CHKERRQ(ierr);
@@ -719,7 +722,7 @@ PetscErrorCode EPSValuesViewFromOptions(EPS eps)
 PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,k;
   Vec            x;
 #define NMLEN 30
   char           vname[NMLEN];
@@ -735,11 +738,12 @@ PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
     ierr = PetscObjectGetName((PetscObject)eps,&ename);CHKERRQ(ierr);
     ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
+      k = eps->perm[i];
       ierr = PetscSNPrintf(vname,NMLEN,"V%d_%s",i,ename);CHKERRQ(ierr);
-      ierr = BVGetColumn(eps->V,i,&x);CHKERRQ(ierr);
+      ierr = BVGetColumn(eps->V,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,i,&x);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(eps->V,k,&x);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

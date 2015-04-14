@@ -22,7 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>       /*I "slepcpep.h" I*/
+#include <slepc/private/pepimpl.h>       /*I "slepcpep.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetFromOptions"
@@ -397,17 +397,17 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetWhichEigenpairs"
 /*@
-    PEPSetWhichEigenpairs - Specifies which portion of the spectrum is
-    to be sought.
+   PEPSetWhichEigenpairs - Specifies which portion of the spectrum is
+   to be sought.
 
-    Logically Collective on PEP
+   Logically Collective on PEP
 
-    Input Parameters:
-+   pep   - eigensolver context obtained from PEPCreate()
--   which - the portion of the spectrum to be sought
+   Input Parameters:
++  pep   - eigensolver context obtained from PEPCreate()
+-  which - the portion of the spectrum to be sought
 
-    Possible values:
-    The parameter 'which' can have one of these values
+   Possible values:
+   The parameter 'which' can have one of these values
 
 +     PEP_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
 .     PEP_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
@@ -417,9 +417,10 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     PEP_SMALLEST_IMAGINARY - smallest imaginary parts
 .     PEP_TARGET_MAGNITUDE - eigenvalues closest to the target (in magnitude)
 .     PEP_TARGET_REAL - eigenvalues with real part closest to target
--     PEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
+.     PEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
+-     PEP_WHICH_USER - user defined ordering set with PEPSetEigenvalueComparison()
 
-    Options Database Keys:
+   Options Database Keys:
 +   -pep_largest_magnitude - Sets largest eigenvalues in magnitude
 .   -pep_smallest_magnitude - Sets smallest eigenvalues in magnitude
 .   -pep_largest_real - Sets largest real parts
@@ -430,15 +431,20 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .   -pep_target_real - Sets real parts closest to target
 -   -pep_target_imaginary - Sets imaginary parts closest to target
 
-    Notes:
-    Not all eigensolvers implemented in PEP account for all the possible values
-    stated above. If SLEPc is compiled for real numbers PEP_LARGEST_IMAGINARY
-    and PEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part
-    for eigenvalue selection.
+   Notes:
+   Not all eigensolvers implemented in PEP account for all the possible values
+   stated above. If SLEPc is compiled for real numbers PEP_LARGEST_IMAGINARY
+   and PEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part
+   for eigenvalue selection.
 
-    Level: intermediate
+   The target is a scalar value provided with PEPSetTarget().
 
-.seealso: PEPGetWhichEigenpairs(), PEPWhich
+   The criterion PEP_TARGET_IMAGINARY is available only in case PETSc and
+   SLEPc have been built with complex scalars.
+
+   Level: intermediate
+
+.seealso: PEPGetWhichEigenpairs(), PEPSetTarget(), PEPSetEigenvalueComparison(), PEPWhich
 @*/
 PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
 {
@@ -457,6 +463,7 @@ PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
 #if defined(PETSC_USE_COMPLEX)
     case PEP_TARGET_IMAGINARY:
 #endif
+    case PEP_WHICH_USER:
       if (pep->which != which) {
         pep->state = PEP_STATE_INITIAL;
         pep->which = which;
@@ -495,6 +502,49 @@ PetscErrorCode PEPGetWhichEigenpairs(PEP pep,PEPWhich *which)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(which,2);
   *which = pep->which;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetEigenvalueComparison"
+/*@C
+   PEPSetEigenvalueComparison - Specifies the eigenvalue comparison function
+   when PEPSetWhichEigenpairs() is set to PEP_WHICH_USER.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep  - eigensolver context obtained from PEPCreate()
+.  func - a pointer to the comparison function
+-  ctx  - a context pointer (the last parameter to the comparison function)
+
+   Calling Sequence of func:
+$   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
+
++   ar     - real part of the 1st eigenvalue
+.   ai     - imaginary part of the 1st eigenvalue
+.   br     - real part of the 2nd eigenvalue
+.   bi     - imaginary part of the 2nd eigenvalue
+.   res    - result of comparison
+-   ctx    - optional context, as set by PEPSetEigenvalueComparison()
+
+   Note:
+   The returning parameter 'res' can be:
++  negative - if the 1st eigenvalue is preferred to the 2st one
+.  zero     - if both eigenvalues are equally preferred
+-  positive - if the 2st eigenvalue is preferred to the 1st one
+
+   Level: advanced
+
+.seealso: PEPSetWhichEigenpairs(), PEPWhich
+@*/
+PetscErrorCode PEPSetEigenvalueComparison(PEP pep,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  pep->sc->comparison    = func;
+  pep->sc->comparisonctx = ctx;
+  pep->which             = PEP_WHICH_USER;
   PetscFunctionReturn(0);
 }
 

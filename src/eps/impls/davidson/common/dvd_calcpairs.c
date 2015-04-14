@@ -313,11 +313,12 @@ static PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
 #define __FUNCT__ "dvd_calcpairs_projeig_solve"
 static PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
 {
-  PetscErrorCode  ierr;
-  Mat             A;
-  Vec             v;
-  PetscScalar     *pA,*pv;
-  PetscInt        i,lV,kV,n,ld;
+  PetscErrorCode    ierr;
+  Mat               A;
+  Vec               v;
+  PetscScalar       *pA;
+  const PetscScalar *pv;
+  PetscInt          i,lV,kV,n,ld;
 
   PetscFunctionBegin;
   ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
@@ -338,11 +339,11 @@ static PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
     ierr = PetscMemzero(pA,sizeof(PetscScalar)*n*ld);CHKERRQ(ierr);
     ierr = VecCreateSeq(PETSC_COMM_SELF,kV,&v);CHKERRQ(ierr);
     ierr = BVGetSignature(d->eps->V,v);CHKERRQ(ierr);
-    ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(v,&pv);CHKERRQ(ierr);
     for (i=0; i<n; i++) {
       pA[i+ld*i] = d->nBds[i] = PetscRealPart(pv[lV+i]);
     }
-    ierr = VecRestoreArray(v,&pv);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(v,&pv);CHKERRQ(ierr);
     ierr = VecDestroy(&v);CHKERRQ(ierr);
     ierr = DSRestoreArray(d->eps->ds,DS_MAT_B,&pA);CHKERRQ(ierr);
   }
@@ -395,7 +396,7 @@ static PetscErrorCode dvd_calcpairs_apply_arbitrary(dvdDashboard *d,PetscInt r_s
     xr = X[0];
     xi = X[1];
     if (i == k) {
-      ierr = VecZeroEntries(xi);CHKERRQ(ierr);
+      ierr = VecSet(xi,0.0);CHKERRQ(ierr);
     }
 #else
     xr = X[0];
@@ -465,12 +466,13 @@ static PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n)
 #define __FUNCT__ "EPSXDComputeDSConv"
 static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,ld;
-  Mat            A;
-  Vec            v;
-  PetscScalar    *pA,*pv;
-  PetscBool      symm;
+  PetscErrorCode    ierr;
+  PetscInt          i,ld;
+  Mat               A;
+  Vec               v;
+  PetscScalar       *pA;
+  const PetscScalar *pv;
+  PetscBool         symm;
 
   PetscFunctionBegin;
   ierr = BVSetActiveColumns(d->eps->V,0,d->eps->nconv);CHKERRQ(ierr);
@@ -492,11 +494,11 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
     ierr = PetscMemzero(pA,sizeof(PetscScalar)*d->eps->nconv*ld);CHKERRQ(ierr);
     ierr = VecCreateSeq(PETSC_COMM_SELF,d->eps->nconv,&v);CHKERRQ(ierr);
     ierr = BVGetSignature(d->eps->V,v);CHKERRQ(ierr);
-    ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(v,&pv);CHKERRQ(ierr);
     for (i=0; i<d->eps->nconv; i++) {
       pA[i+ld*i] = pv[i];
     }
-    ierr = VecRestoreArray(v,&pv);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(v,&pv);CHKERRQ(ierr);
     ierr = VecDestroy(&v);CHKERRQ(ierr);
     ierr = DSRestoreArray(d->eps->ds,DS_MAT_B,&pA);CHKERRQ(ierr);
   }
