@@ -401,8 +401,8 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     }
     ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);  
     /* Compute global max and min */
-    ierr = MPI_Allreduce(&emaxl,&emax,1,MPIU_INT,MPIU_MAX,PetscObjectComm((PetscObject)pep->Dl));
-    ierr = MPI_Allreduce(&eminl,&emin,1,MPIU_INT,MPIU_MIN,PetscObjectComm((PetscObject)pep->Dl));
+    ierr = MPI_Allreduce(&emaxl,&emax,1,MPIU_INT,MPI_MAX,PetscObjectComm((PetscObject)pep->Dl));
+    ierr = MPI_Allreduce(&eminl,&emin,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)pep->Dl));
     if (emax<=emin+2) cont = PETSC_FALSE;
   }
   ierr = VecRestoreArray(pep->Dr,&Dr);CHKERRQ(ierr);
