@@ -34,8 +34,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
-#include <slepc-private/dsimpl.h>                 /*I "slepcds.h" I*/
+#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepc/private/dsimpl.h>                 /*I "slepcds.h" I*/
 
 PetscErrorCode EPSSolve_LOBPCG(EPS);
 
