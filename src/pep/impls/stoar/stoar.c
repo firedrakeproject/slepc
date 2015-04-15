@@ -365,6 +365,34 @@ static PetscErrorCode PEPSTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,Pet
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPSTOARpreKConvergence"
+static PetscErrorCode PEPSTOARpreKConvergence(PEP pep,PetscInt nv,PetscReal *norm,Vec *w)
+{
+  PetscErrorCode ierr;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
+  PetscBLASInt   n_,one=1;
+  PetscInt       lds=2*ctx->ld;
+  PetscReal      t1,t2;
+  PetscScalar    *S=ctx->S;
+
+  PetscFunctionBegin;
+  ierr = PetscBLASIntCast(nv+2,&n_);CHKERRQ(ierr);
+  t1 = BLASnrm2_(&n_,S+nv*2*ctx->ld,&one);
+  t2 = BLASnrm2_(&n_,S+(nv*2+1)*ctx->ld,&one);
+  *norm = SlepcAbs(t1,t2);
+  ierr = BVSetActiveColumns(pep->V,0,nv+2);CHKERRQ(ierr);
+  ierr = BVMultVec(pep->V,1.0,0.0,w[1],S+nv*lds);CHKERRQ(ierr);
+  ierr = STMatMult(pep->st,0,w[1],w[2]);CHKERRQ(ierr);
+  ierr = VecNorm(w[2],NORM_2,&t1);CHKERRQ(ierr);
+  ierr = BVMultVec(pep->V,1.0,0.0,w[1],S+ctx->ld+nv*lds);CHKERRQ(ierr);
+  ierr = STMatMult(pep->st,2,w[1],w[2]);CHKERRQ(ierr);
+  ierr = VecNorm(w[2],NORM_2,&t2);CHKERRQ(ierr);
+  t2 *= pep->sfactor*pep->sfactor; 
+  *norm = PetscMax(*norm,SlepcAbs(t1,t2));
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPSolve_STOAR"
 PetscErrorCode PEPSolve_STOAR(PEP pep)
 {
@@ -372,9 +400,8 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscInt       j,k,l,nv=0,ld=ctx->ld,lds=ctx->d*ctx->ld,off,ldds,t;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0;
-  Vec            w=pep->work[0],w2=pep->work[1];
   PetscScalar    *S=ctx->S,*Q,*work,*aux;
-  PetscReal      beta,norm,t1,t2,*omega,*a,*b,*r,*rwork;
+  PetscReal      beta,norm,*omega,*a,*b,*r,*rwork;
   PetscBool      breakdown;
   Mat            G;
 
@@ -435,19 +462,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = BVSetActiveColumns(pep->V,0,nv+2);CHKERRQ(ierr);
-    ierr = BVMultVec(pep->V,1.0,0.0,w,S+nv*lds);CHKERRQ(ierr);
-    ierr = VecNorm(w,NORM_2,&t1);CHKERRQ(ierr);
-    ierr = STMatMult(pep->st,0,w,w2);CHKERRQ(ierr);
-    ierr = VecNorm(w2,NORM_2,&t2);CHKERRQ(ierr);
-    ierr = BVMultVec(pep->V,1.0,0.0,w,S+ld+nv*lds);CHKERRQ(ierr);
-    ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
-    t1 = SlepcAbs(norm,t1);
-    ierr = STMatMult(pep->st,2,w,w2);CHKERRQ(ierr);
-    ierr = VecNorm(w2,NORM_2,&norm);CHKERRQ(ierr);
-    norm *= pep->sfactor*pep->sfactor; 
-    t2 = SlepcAbs(norm,t2);
-    norm = PetscMax(t1,t2);
+    ierr = PEPSTOARpreKConvergence(pep,nv,&norm,pep->work);CHKERRQ(ierr);
     ierr = DSGetDimensions(pep->ds,NULL,NULL,NULL,NULL,&t);CHKERRQ(ierr);    
     ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,t-pep->nconv,beta*norm,&k);CHKERRQ(ierr);
     if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
