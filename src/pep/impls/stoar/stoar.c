@@ -179,6 +179,7 @@ static PetscErrorCode PEPSTOARqKqMupdates(PEP pep,PetscInt j,Vec *wv,PetscInt nw
     ierr = BVGetColumn(pep->V,i,&vj);CHKERRQ(ierr);
     ierr = VecDot(v1,vj,qK+j*ld+i);CHKERRQ(ierr);
     ierr = VecDot(v2,vj,qM+j*ld+i);CHKERRQ(ierr);
+    *(qM+j*ld+i) *= pep->sfactor*pep->sfactor;
     ierr = BVRestoreColumn(pep->V,i,&vj);CHKERRQ(ierr);
   }
   for (i=0;i<j;i++) {
@@ -220,9 +221,9 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
     ierr = STMatMult(pep->st,0,v,t);CHKERRQ(ierr);
     ierr = BVMultVec(pep->V,1.0,0.0,v,S+offq+j*lds);CHKERRQ(ierr);
     ierr = STMatMult(pep->st,1,v,q);CHKERRQ(ierr);
-    ierr = VecAXPY(t,1.0,q);CHKERRQ(ierr);
+    ierr = VecAXPY(t,pep->sfactor,q);CHKERRQ(ierr);
     ierr = STMatSolve(pep->st,t,q);CHKERRQ(ierr);
-    ierr = VecScale(q,-1.0);CHKERRQ(ierr);
+    ierr = VecScale(q,-1.0/(pep->sfactor*pep->sfactor));CHKERRQ(ierr);
 
     /* orthogonalize */
     ierr = BVOrthogonalizeVec(pep->V,q,S+offq+(j+1)*lds,&norm,NULL);CHKERRQ(ierr);
@@ -375,15 +376,9 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   PetscScalar    *S=ctx->S,*Q,*work,*aux;
   PetscReal      beta,norm,t1,t2,*omega,*a,*b,*r,*rwork;
   PetscBool      breakdown;
-  Mat            M,G;
+  Mat            G;
 
   PetscFunctionBegin;
-  ierr = STGetTOperators(pep->st,0,&M);CHKERRQ(ierr);
-  ierr = MatScale(M,pep->dsfactor);CHKERRQ(ierr);
-  ierr = STGetTOperators(pep->st,1,&M);CHKERRQ(ierr);
-  ierr = MatScale(M,pep->dsfactor*pep->sfactor);CHKERRQ(ierr);
-  ierr = STGetTOperators(pep->st,2,&M);CHKERRQ(ierr);
-  ierr = MatScale(M,pep->dsfactor*pep->sfactor*pep->sfactor);CHKERRQ(ierr);/* MODIFY */
   ierr = BVSetMatrix(pep->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
   lwa = 9*ld*ld+5*ld;
   lrwa = 8*ld;
@@ -444,19 +439,13 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     ierr = BVMultVec(pep->V,1.0,0.0,w,S+nv*lds);CHKERRQ(ierr);
     ierr = VecNorm(w,NORM_2,&t1);CHKERRQ(ierr);
     ierr = STMatMult(pep->st,0,w,w2);CHKERRQ(ierr);
-    if (ctx->monic) {
-      ierr = STMatSolve(pep->st,w2,w);CHKERRQ(ierr);
-      ierr = VecNorm(w,NORM_2,&t2);CHKERRQ(ierr);
-    } else {
-      ierr = VecNorm(w2,NORM_2,&t2);CHKERRQ(ierr);
-    }
+    ierr = VecNorm(w2,NORM_2,&t2);CHKERRQ(ierr);
     ierr = BVMultVec(pep->V,1.0,0.0,w,S+ld+nv*lds);CHKERRQ(ierr);
     ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
     t1 = SlepcAbs(norm,t1);
-    if (!ctx->monic) {
-      ierr = STMatMult(pep->st,2,w,w2);CHKERRQ(ierr);
-      ierr = VecNorm(w2,NORM_2,&norm);CHKERRQ(ierr);
-    }
+    ierr = STMatMult(pep->st,2,w,w2);CHKERRQ(ierr);
+    ierr = VecNorm(w2,NORM_2,&norm);CHKERRQ(ierr);
+    norm *= pep->sfactor*pep->sfactor; 
     t2 = SlepcAbs(norm,t2);
     norm = PetscMax(t1,t2);
     ierr = DSGetDimensions(pep->ds,NULL,NULL,NULL,NULL,&t);CHKERRQ(ierr);    
@@ -541,14 +530,6 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
   ierr = PetscFree2(work,rwork);CHKERRQ(ierr);
-
-  /* scale back matrices */
-  ierr = STGetTOperators(pep->st,0,&M);CHKERRQ(ierr);
-  ierr = MatScale(M,1/pep->dsfactor);CHKERRQ(ierr);
-  ierr = STGetTOperators(pep->st,1,&M);CHKERRQ(ierr);
-  ierr = MatScale(M,1/(pep->dsfactor*pep->sfactor));CHKERRQ(ierr);
-  ierr = STGetTOperators(pep->st,2,&M);CHKERRQ(ierr);
-  ierr = MatScale(M,1/(pep->dsfactor*pep->sfactor*pep->sfactor));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
