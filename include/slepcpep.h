@@ -291,9 +291,6 @@ PETSC_EXTERN PetscErrorCode PEPTOARSetRestart(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPTOARGetRestart(PEP,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPTOARSetLocking(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPTOARGetLocking(PEP,PetscBool*);
-
-PETSC_EXTERN PetscErrorCode PEPSTOARSetMonic(PEP,PetscBool);
-PETSC_EXTERN PetscErrorCode PEPSTOARGetMonic(PEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode PEPSTOARSetLocking(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPSTOARGetLocking(PEP,PetscBool*);
 

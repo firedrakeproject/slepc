@@ -38,7 +38,6 @@
 
 typedef struct {
   PetscBool   lock;         /* locking/non-locking variant */
-  PetscBool   monic;
   PetscInt    d,ld;
   PetscScalar *S,*qK,*qM;
 } PEP_STOAR;
@@ -553,15 +552,10 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
 PetscErrorCode PEPSetFromOptions_STOAR(PetscOptions *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
-  PetscBool      flg,val,lock;
-  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
+  PetscBool      flg,lock;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP STOAR Options");CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-pep_stoar_monic","Use monic variant of STOAR","PEPSTOARSetMonic",ctx->monic,&val,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PEPSTOARSetMonic(pep,val);CHKERRQ(ierr);
-  }
   ierr = PetscOptionsBool("-pep_stoar_locking","Choose between locking and non-locking variants","PEPSTOARSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PEPSTOARSetLocking(pep,lock);CHKERRQ(ierr);
@@ -659,93 +653,6 @@ PetscErrorCode PEPSTOARGetLocking(PEP pep,PetscBool *lock)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPSTOARSetMonic_STOAR"
-static PetscErrorCode PEPSTOARSetMonic_STOAR(PEP pep,PetscBool monic)
-{
-  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
-
-  PetscFunctionBegin;
-  ctx->monic = monic;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPSTOARSetMonic"
-/*@
-   PEPSTOARSetMonic - Set the monic variant of the STOAR solver.
-
-   Logically Collective on PEP
-
-   Input Parameters:
-+  pep   - polynomial eigenvalue solver
--  monic - boolean flag to set the monic variant
-
-   Options Database Key:
-.  -pep_stoar_monic <boolean> - Indicates the boolean flag
-
-   Note:
-   The monic variant can be used only if the coefficient matrices
-   after the spectral transformation, M_sigma, C_sigma and K_sigma,
-   satisfy that M_sigma commutes with the other two. In this case,
-   the solver implicitly transforms the problem to use a monic
-   polynomial by multiplying with inv(M_sigma).
-
-   Level: advanced
-
-.seealso: PEPSTOARGetMonic()
-@*/
-PetscErrorCode PEPSTOARSetMonic(PEP pep,PetscBool monic)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidLogicalCollectiveBool(pep,monic,2);
-  ierr = PetscTryMethod(pep,"PEPSTOARSetMonic_C",(PEP,PetscBool),(pep,monic));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPSTOARGetMonic_STOAR"
-static PetscErrorCode PEPSTOARGetMonic_STOAR(PEP pep,PetscBool *monic)
-{
-  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
-
-  PetscFunctionBegin;
-  *monic = ctx->monic;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPSTOARGetMonic"
-/*@
-   PEPSTOARGetMonic - Returns the flag indicating that the monic variant
-   is being used.
-
-   Not Collective
-
-   Input Parameter:
-.  pep  - polynomial eigenvalue solver
-
-   Output Parameter:
-.  monic - the flag
-
-   Level: advanced
-
-.seealso: PEPSTOARSetMonic()
-@*/
-PetscErrorCode PEPSTOARGetMonic(PEP pep,PetscBool *monic)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(monic,2);
-  ierr = PetscTryMethod(pep,"PEPSTOARGetMonic_C",(PEP,PetscBool*),(pep,monic));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "PEPView_STOAR"
 PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
 {
@@ -756,9 +663,6 @@ PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    if (ctx->monic) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  STOAR: using the monic variant\n");CHKERRQ(ierr);
-    }
     ierr = PetscViewerASCIIPrintf(viewer,"  STOAR: using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -774,8 +678,6 @@ PetscErrorCode PEPDestroy_STOAR(PEP pep)
   PetscFunctionBegin;
   ierr = PetscFree3(ctx->S,ctx->qM,ctx->qK);CHKERRQ(ierr);
   ierr = PetscFree(pep->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetMonic_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetMonic_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetLocking_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetLocking_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -799,8 +701,6 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   pep->ops->view           = PEPView_STOAR;
   pep->ops->destroy        = PEPDestroy_STOAR;
   pep->ops->computevectors = PEPComputeVectors_Indefinite;
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetMonic_C",PEPSTOARSetMonic_STOAR);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetMonic_C",PEPSTOARGetMonic_STOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetLocking_C",PEPSTOARSetLocking_STOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetLocking_C",PEPSTOARGetLocking_STOAR);CHKERRQ(ierr);
   PetscFunctionReturn(0);
