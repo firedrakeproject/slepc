@@ -720,7 +720,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
   if (i>0 || eps->nini==0) {
     ierr = BVSetRandomColumn(eps->V,i,eps->rand);CHKERRQ(ierr);
   }
-  ierr = BVGetVec(eps->V,&w);CHKERRQ(ierr);
+  ierr = BVCreateVec(eps->V,&w);CHKERRQ(ierr);
   ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);
 
   /* Force the vector to be in the range of OP for definite generalized problems */

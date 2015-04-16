@@ -90,8 +90,8 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k,
   else {
     ierr = PetscMalloc1(m,&lhh);CHKERRQ(ierr);
   }
-  ierr = BVGetVec(eps->V,&u);CHKERRQ(ierr);
-  ierr = BVGetVec(eps->V,&t);CHKERRQ(ierr);
+  ierr = BVCreateVec(eps->V,&u);CHKERRQ(ierr);
+  ierr = BVCreateVec(eps->V,&t);CHKERRQ(ierr);
 
   ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
@@ -262,12 +262,12 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
   PetscFunctionBegin;
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (eps->trueres) {
-    ierr = BVGetVec(eps->V,&x);CHKERRQ(ierr);
-    ierr = BVGetVec(eps->V,&y);CHKERRQ(ierr);
-    ierr = BVGetVec(eps->V,&u);CHKERRQ(ierr);
-    ierr = BVGetVec(eps->V,&w);CHKERRQ(ierr);
+    ierr = BVCreateVec(eps->V,&x);CHKERRQ(ierr);
+    ierr = BVCreateVec(eps->V,&y);CHKERRQ(ierr);
+    ierr = BVCreateVec(eps->V,&u);CHKERRQ(ierr);
+    ierr = BVCreateVec(eps->V,&w);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-    ierr = BVGetVec(eps->V,&v);CHKERRQ(ierr);
+    ierr = BVCreateVec(eps->V,&v);CHKERRQ(ierr);
 #endif
   }
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);

@@ -978,7 +978,7 @@ PetscErrorCode PEPGetScale(PEP pep,PEPScale *scale,PetscReal *alpha,PetscInt *it
 -  extract - extraction strategy
 
    Options Database Keys:
-.  -pep_extract <type> - extraction type, one of <norm,residual,structured>
+.  -pep_extract <type> - extraction type, one of <none,norm,residual,structured>
 
    Level: intermediate
 

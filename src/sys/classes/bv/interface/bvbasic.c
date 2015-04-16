@@ -999,9 +999,9 @@ PetscErrorCode BVRestoreArray(BV bv,PetscScalar **a)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVGetVec"
+#define __FUNCT__ "BVCreateVec"
 /*@
-   BVGetVec - Creates a new Vec object with the same type and dimensions
+   BVCreateVec - Creates a new Vec object with the same type and dimensions
    as the columns of the basis vectors object.
 
    Collective on BV
@@ -1017,7 +1017,7 @@ PetscErrorCode BVRestoreArray(BV bv,PetscScalar **a)
 
    Level: beginner
 @*/
-PetscErrorCode BVGetVec(BV bv,Vec *v)
+PetscErrorCode BVCreateVec(BV bv,Vec *v)
 {
   PetscErrorCode ierr;
 

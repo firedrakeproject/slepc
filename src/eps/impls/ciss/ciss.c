@@ -255,7 +255,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
   KSP            ksp;
 
   PetscFunctionBegin;
-  ierr = BVGetVec(V,&Bvj);CHKERRQ(ierr);
+  ierr = BVCreateVec(V,&Bvj);CHKERRQ(ierr);
   if (ctx->usest) {
     ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Fz);CHKERRQ(ierr);
   }
@@ -339,7 +339,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
   ierr = BVGetColumn(ctx->Y,0,&yj);CHKERRQ(ierr);
   ierr = VecDuplicate(yj,&v);CHKERRQ(ierr);
   ierr = BVRestoreColumn(ctx->Y,0,&yj);CHKERRQ(ierr);
-  ierr = BVGetVec(ctx->V,&vtemp);CHKERRQ(ierr);
+  ierr = BVCreateVec(ctx->V,&vtemp);CHKERRQ(ierr);
   for (j=0;j<ctx->L;j++) {
     ierr = VecSet(v,0);CHKERRQ(ierr);
     for (i=0;i<ctx->num_solve_point; i++) {
