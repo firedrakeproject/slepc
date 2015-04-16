@@ -164,7 +164,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   PetscValidPointer(newbv,2);
   *newbv = 0;
   ierr = BVInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(bv,_p_BV,struct _BVOps,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(bv,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView);CHKERRQ(ierr);
 
   bv->t            = NULL;
   bv->n            = -1;

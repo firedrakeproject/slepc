@@ -57,7 +57,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   PetscValidPointer(outpep,2);
   *outpep = 0;
   ierr = PEPInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(pep,_p_PEP,struct _PEPOps,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(pep,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView);CHKERRQ(ierr);
 
   pep->max_it          = 0;
   pep->nev             = 1;
