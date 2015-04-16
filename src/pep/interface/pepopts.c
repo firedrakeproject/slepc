@@ -79,7 +79,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     t = pep->slambda;
     ierr = PetscOptionsReal("-pep_scale_lambda","Estimate of eigenvalue (modulus) for diagonal scaling","PEPSetScale",pep->slambda,&t,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) {
-      ierr = PEPSetScale(pep,pep->scale,r,j,t);CHKERRQ(ierr);
+      ierr = PEPSetScale(pep,pep->scale,r,NULL,NULL,j,t);CHKERRQ(ierr);
     }
 
     ierr = PetscOptionsEnum("-pep_extract","Extraction method","PEPSetExtract",PEPExtractTypes,(PetscEnum)pep->extract,(PetscEnum*)&pep->extract,NULL);CHKERRQ(ierr);
@@ -872,6 +872,8 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
 +  pep    - the eigensolver context
 .  scale  - scaling strategy
 .  alpha  - the scaling factor used in the scalar strategy
+.  Dl     - the left diagonal matrix of the diagonal scaling algorithm
+.  Dr     - the right diagonal matrix of the diagonal scaling algorithm
 .  its    - number of iterations of the diagonal scaling algorithm
 -  lambda - approximation to wanted eigenvalues (modulus)
 
@@ -890,19 +892,24 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
    recovered. Parameter 'alpha' must be positive. Use PETSC_DECIDE to let
    the solver compute a reasonable scaling factor.
 
-   In the diagonal strategy, the solver works implicitly with matrix Dr*A*Dl,
-   where Dr and Dl are appropriate diagonal matrices. This improves the accuracy
-   of the computed results in some cases. This option requires MATAIJ matrices.
+   In the diagonal strategy, the solver works implicitly with matrix Dl*A*Dr,
+   where Dl and Dr are appropriate diagonal matrices. This improves the accuracy
+   of the computed results in some cases. The user may provide the Dr and Dl
+   matrices represented as Vec objects storing diagonal elements. If not
+   provided, these matrices are computed internally. This option requires
+   that the polynomial coefficient matrices are of MATAIJ type.
    The parameter 'its' is the number of iterations performed by the method.
-   Parameter 'lambda' must be positive. Use PETSC_DECIDE or set lambda = 1.0 if no
-   information about eigenvalues is available.
+   Parameter 'lambda' must be positive. Use PETSC_DECIDE or set lambda = 1.0 if
+   no information about eigenvalues is available.
 
    Level: intermediate
 
 .seealso: PEPGetScale()
 @*/
-PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,PetscInt its,PetscReal lambda)
+PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,PetscInt its,PetscReal lambda)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,scale,2);
@@ -919,8 +926,22 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,PetscInt its,P
     }
   }
   if (scale==PEP_SCALE_DIAGONAL || scale==PEP_SCALE_BOTH) {
-    PetscValidLogicalCollectiveInt(pep,its,4);
-    PetscValidLogicalCollectiveReal(pep,lambda,5);
+    if (Dl) {
+      PetscValidHeaderSpecific(Dl,VEC_CLASSID,4);
+      PetscCheckSameComm(pep,1,Dl,4);
+      ierr = PetscObjectReference((PetscObject)Dl);CHKERRQ(ierr);
+      ierr = VecDestroy(&pep->Dl);CHKERRQ(ierr);
+      pep->Dl = Dl;
+    }
+    if (Dr) {
+      PetscValidHeaderSpecific(Dr,VEC_CLASSID,5);
+      PetscCheckSameComm(pep,1,Dr,5);
+      ierr = PetscObjectReference((PetscObject)Dr);CHKERRQ(ierr);
+      ierr = VecDestroy(&pep->Dr);CHKERRQ(ierr);
+      pep->Dr = Dr;
+    }
+    PetscValidLogicalCollectiveInt(pep,its,6);
+    PetscValidLogicalCollectiveReal(pep,lambda,7);
     if (its==PETSC_DECIDE || its==PETSC_DEFAULT) pep->sits = 5;
     else pep->sits = its;
     if (lambda==PETSC_DECIDE || lambda==PETSC_DEFAULT) pep->slambda = 1.0;
@@ -937,7 +958,7 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,PetscInt its,P
    PEPGetScale - Gets the scaling strategy used by the PEP object, and the
    associated parameters.
 
-   Not Collective
+   Not Collectiv, but vectors are shared by all processors that share the PEP
 
    Input Parameter:
 .  pep - the eigensolver context
@@ -945,6 +966,8 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,PetscInt its,P
    Output Parameters:
 +  scale  - scaling strategy
 .  alpha  - the scaling factor used in the scalar strategy
+.  Dl     - the left diagonal matrix of the diagonal scaling algorithm
+.  Dr     - the right diagonal matrix of the diagonal scaling algorithm
 .  its    - number of iterations of the diagonal scaling algorithm
 -  lambda - approximation to wanted eigenvalues (modulus)
 
@@ -953,14 +976,19 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,PetscInt its,P
    Note:
    The user can specify NULL for any parameter that is not needed.
 
-.seealso: PEPSetScale()
+   If Dl or Dr were not set by the user, then the ones computed internally are
+   returned (or a null pointer if called before PEPSetUp).
+
+.seealso: PEPSetScale(), PEPSetUp()
 @*/
-PetscErrorCode PEPGetScale(PEP pep,PEPScale *scale,PetscReal *alpha,PetscInt *its,PetscReal *lambda)
+PetscErrorCode PEPGetScale(PEP pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   if (scale)  *scale  = pep->scale;
   if (alpha)  *alpha  = pep->sfactor;
+  if (Dl)     *Dl     = pep->Dl;
+  if (Dr)     *Dr     = pep->Dr;
   if (its)    *its    = pep->sits;
   if (lambda) *lambda = pep->slambda;
   PetscFunctionReturn(0);
