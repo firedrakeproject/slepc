@@ -221,7 +221,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetWorkVecs"
 /*@
-   EPSSetWorkVecs - Sets a number of work vectors into a EPS object.
+   EPSSetWorkVecs - Sets a number of work vectors into an EPS object.
 
    Collective on EPS
 
@@ -241,7 +241,7 @@ PetscErrorCode EPSSetWorkVecs(EPS eps,PetscInt nw)
   Vec            t;
 
   PetscFunctionBegin;
-  if (eps->nwork != nw) {
+  if (eps->nwork < nw) {
     ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
     eps->nwork = nw;
     ierr = BVGetColumn(eps->V,0,&t);CHKERRQ(ierr);

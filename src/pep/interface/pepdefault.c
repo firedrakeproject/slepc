@@ -46,7 +46,7 @@ PetscErrorCode PEPSetWorkVecs(PEP pep,PetscInt nw)
   Vec            t;
 
   PetscFunctionBegin;
-  if (pep->nwork != nw) {
+  if (pep->nwork < nw) {
     ierr = VecDestroyVecs(pep->nwork,&pep->work);CHKERRQ(ierr);
     pep->nwork = nw;
     ierr = BVGetColumn(pep->V,0,&t);CHKERRQ(ierr);
