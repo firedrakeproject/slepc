@@ -257,13 +257,18 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
   PetscScalar    re,im,*Zr,*Zi,*X;
   PetscReal      resnorm;
   PetscBool      isshift,refined,istrivial;
-  Vec            x,y;
+  Vec            x,y,u,v=NULL,w;
 
   PetscFunctionBegin;
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (eps->trueres) {
     ierr = BVGetVec(eps->V,&x);CHKERRQ(ierr);
     ierr = BVGetVec(eps->V,&y);CHKERRQ(ierr);
+    ierr = BVGetVec(eps->V,&u);CHKERRQ(ierr);
+    ierr = BVGetVec(eps->V,&w);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    ierr = BVGetVec(eps->V,&v);CHKERRQ(ierr);
+#endif
   }
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = DSGetRefined(eps->ds,&refined);CHKERRQ(ierr);
@@ -294,7 +299,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
       else Zi = NULL;
       ierr = EPSComputeRitzVector(eps,Zr,Zi,eps->V,x,y);CHKERRQ(ierr);
       ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-      ierr = EPSComputeResidualNorm_Private(eps,re,im,x,y,&resnorm);CHKERRQ(ierr);
+      ierr = EPSComputeResidualNorm_Private(eps,re,im,x,y,u,v,w,&resnorm);CHKERRQ(ierr);
     }
     else if (!refined) resnorm *= beta*corrf;
     /* error estimate */
@@ -311,6 +316,11 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
   if (eps->trueres) {
     ierr = VecDestroy(&x);CHKERRQ(ierr);
     ierr = VecDestroy(&y);CHKERRQ(ierr);
+    ierr = VecDestroy(&u);CHKERRQ(ierr);
+    ierr = VecDestroy(&w);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    ierr = VecDestroy(&v);CHKERRQ(ierr);
+#endif
   }
   PetscFunctionReturn(0);
 }
