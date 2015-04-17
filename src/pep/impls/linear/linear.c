@@ -391,6 +391,9 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
         case PEP_TARGET_MAGNITUDE:   which = EPS_TARGET_MAGNITUDE; break;
         case PEP_TARGET_REAL:        which = EPS_TARGET_REAL; break;
         case PEP_TARGET_IMAGINARY:   which = EPS_TARGET_IMAGINARY; break;
+        case PEP_WHICH_USER:         which = EPS_WHICH_USER;
+          ierr = EPSSetEigenvalueComparison(ctx->eps,pep->sc->comparison,pep->sc->comparisonctx);CHKERRQ(ierr);
+          break;
         default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of which");
     }
   }
