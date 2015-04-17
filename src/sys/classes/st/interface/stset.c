@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>      /*I "slepcst.h" I*/
+#include <slepc/private/stimpl.h>      /*I "slepcst.h" I*/
 
 PetscBool         STRegisterAllCalled = PETSC_FALSE;
 PetscFunctionList STList = 0;

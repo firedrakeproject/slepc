@@ -24,8 +24,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>                /*I "slepcsvd.h" I*/
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepc/private/svdimpl.h>                /*I "slepcsvd.h" I*/
+#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 
 typedef struct {
   EPS       eps;

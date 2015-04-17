@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>          /*I   "slepcst.h"   I*/
+#include <slepc/private/stimpl.h>          /*I   "slepcst.h"   I*/
 
 PETSC_EXTERN PetscErrorCode STCreate_Shell(ST);
 PETSC_EXTERN PetscErrorCode STCreate_Shift(ST);

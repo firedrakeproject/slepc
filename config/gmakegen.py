@@ -68,7 +68,7 @@ class Slepc(object):
         self.petsc_arch = petsc_arch
         self.installed_petsc = installed_petsc
         self.read_conf()
-        logging.basicConfig(filename=self.arch_path('lib','slepc-conf', 'gmake.log'), level=logging.DEBUG)
+        logging.basicConfig(filename=self.arch_path('lib','slepc','conf', 'gmake.log'), level=logging.DEBUG)
         self.log = logging.getLogger('gmakegen')
         self.mistakes = Mistakes(debuglogger(self.log), verbose=verbose)
         self.gendeps = []
@@ -91,7 +91,7 @@ class Slepc(object):
                 key = define[:space]
                 val = define[space+1:]
                 self.conf[key] = val
-        self.conf.update(parse_makefile(self.petsc_path('lib','petsc-conf', 'petscvariables')))
+        self.conf.update(parse_makefile(self.petsc_path('lib','petsc','conf', 'petscvariables')))
         for line in open(self.arch_path('include', 'slepcconf.h')):
             if line.startswith('#define '):
                 define = line[len('#define '):]
@@ -99,7 +99,7 @@ class Slepc(object):
                 key = define[:space]
                 val = define[space+1:]
                 self.conf[key] = val
-        self.conf.update(parse_makefile(self.arch_path('lib','slepc-conf', 'slepcvariables')))
+        self.conf.update(parse_makefile(self.arch_path('lib','slepc','conf', 'slepcvariables')))
         self.have_fortran = int(self.conf.get('PETSC_HAVE_FORTRAN', '0'))
 
     def inconf(self, key, val):
@@ -169,7 +169,7 @@ class Slepc(object):
         self.mistakes.summary()
 
 def WriteGnuMake(slepc):
-    arch_files = slepc.arch_path('lib','slepc-conf', 'files')
+    arch_files = slepc.arch_path('lib','slepc','conf', 'files')
     fd = open(arch_files, 'w')
     gendeps = slepc.gen_gnumake(fd)
     fd.write('\n')

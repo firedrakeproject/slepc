@@ -23,7 +23,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>
+#include <slepc/private/stimpl.h>
 
 typedef struct {
   PetscScalar alpha;

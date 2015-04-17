@@ -22,7 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>            /*I "slepcst.h" I*/
+#include <slepc/private/stimpl.h>            /*I "slepcst.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "STMatMult"
@@ -437,7 +437,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
     ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
     if (norm < 1e-8) {
       ierr = PetscInfo2(st,"Vector %D norm=%g\n",i,(double)norm);CHKERRQ(ierr);
-      ierr = BVGetVec(V,T+c);CHKERRQ(ierr);
+      ierr = BVCreateVec(V,T+c);CHKERRQ(ierr);
       ierr = VecCopy(vi,T[c]);CHKERRQ(ierr);
       c++;
     }

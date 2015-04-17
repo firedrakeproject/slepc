@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/bvimpl.h>      /*I "slepcbv.h" I*/
+#include <slepc/private/bvimpl.h>      /*I "slepcbv.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "BVMult"
@@ -541,6 +541,7 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscValidType(A,2);
   PetscValidHeaderSpecific(Y,BV_CLASSID,3);
   PetscValidType(Y,3);
   BVCheckSizes(Y,3);

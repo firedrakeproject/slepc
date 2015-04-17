@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h> 
-#include <slepc-private/pepimpl.h>         /*I "slepcpep.h" I*/
+#include <slepc/private/stimpl.h> 
+#include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
 #include "linearp.h"
 
 #undef __FUNCT__
@@ -435,18 +435,26 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
   PetscInt          i,k;
   const PetscScalar *px;
   PetscReal         rn1,rn2;
-  Vec               xr,xi,wr,wi;
+  Vec               xr,xi=NULL,wr;
   Mat               A;
 #if !defined(PETSC_USE_COMPLEX)
+  Vec               wi;
   const PetscScalar *py;
 #endif
 
   PetscFunctionBegin;
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PEPSetWorkVecs(pep,2);CHKERRQ(ierr);
+#else
+  ierr = PEPSetWorkVecs(pep,4);CHKERRQ(ierr);
+#endif
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
   ierr = MatCreateVecs(A,&xr,NULL);CHKERRQ(ierr);
-  ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&wr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&wi);CHKERRQ(ierr);
+#endif
   for (i=0;i<pep->nconv;i++) {
     ierr = EPSGetEigenpair(eps,i,&pep->eigr[i],&pep->eigi[i],xr,xi);CHKERRQ(ierr);
     pep->eigr[i] *= pep->sfactor;
@@ -458,7 +466,7 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
       ierr = VecPlaceArray(wr,px);CHKERRQ(ierr);
       ierr = VecPlaceArray(wi,py);CHKERRQ(ierr);
       ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,NULL);CHKERRQ(ierr);
-      ierr = PEPComputeResidualNorm_Private(pep,pep->eigr[i],pep->eigi[i],wr,wi,&rn1);CHKERRQ(ierr);
+      ierr = PEPComputeResidualNorm_Private(pep,pep->eigr[i],pep->eigi[i],wr,wi,pep->work,&rn1);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,i,wr);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,i+1,wi);CHKERRQ(ierr);
       for (k=1;k<pep->nmat-1;k++) {
@@ -467,7 +475,7 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
         ierr = VecPlaceArray(wr,px+k*pep->nloc);CHKERRQ(ierr);
         ierr = VecPlaceArray(wi,py+k*pep->nloc);CHKERRQ(ierr);
         ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,NULL);CHKERRQ(ierr);
-        ierr = PEPComputeResidualNorm_Private(pep,pep->eigr[i],pep->eigi[i],wr,wi,&rn2);CHKERRQ(ierr);
+        ierr = PEPComputeResidualNorm_Private(pep,pep->eigr[i],pep->eigi[i],wr,wi,pep->work,&rn2);CHKERRQ(ierr);
         if (rn1>rn2) {
           ierr = BVInsertVec(pep->V,i,wr);CHKERRQ(ierr);
           ierr = BVInsertVec(pep->V,i+1,wi);CHKERRQ(ierr);
@@ -484,13 +492,13 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
       ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(wr,px);CHKERRQ(ierr);
       ierr = SlepcVecNormalize(wr,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
-      ierr = PEPComputeResidualNorm_Private(pep,pep->eigr[i],pep->eigi[i],wr,NULL,&rn1);CHKERRQ(ierr);
+      ierr = PEPComputeResidualNorm_Private(pep,pep->eigr[i],pep->eigi[i],wr,NULL,pep->work,&rn1);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,i,wr);CHKERRQ(ierr);
       for (k=1;k<pep->nmat-1;k++) {
         ierr = VecResetArray(wr);CHKERRQ(ierr);
         ierr = VecPlaceArray(wr,px+k*pep->nloc);CHKERRQ(ierr);
         ierr = SlepcVecNormalize(wr,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
-        ierr = PEPComputeResidualNorm_Private(pep,pep->eigr[i],pep->eigi[i],wr,NULL,&rn2);CHKERRQ(ierr);
+        ierr = PEPComputeResidualNorm_Private(pep,pep->eigr[i],pep->eigi[i],wr,NULL,pep->work,&rn2);CHKERRQ(ierr);
         if (rn1>rn2) {
           ierr = BVInsertVec(pep->V,i,wr);CHKERRQ(ierr);
           rn1 = rn2;
@@ -501,9 +509,11 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
     }
   }
   ierr = VecDestroy(&wr);CHKERRQ(ierr);
-  ierr = VecDestroy(&wi);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = VecDestroy(&wi);CHKERRQ(ierr);
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 
@@ -524,7 +534,7 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
   PetscInt          i,offset;
   const PetscScalar *px;
   Mat               A;
-  Vec               xr,xi,w,vi;
+  Vec               xr,xi=NULL,w,vi;
 #if !defined(PETSC_USE_COMPLEX)
   Vec               vi1;
 #endif
@@ -532,7 +542,9 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
   ierr = MatCreateVecs(A,&xr,NULL);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
+#endif
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&w);CHKERRQ(ierr);
   for (i=0;i<pep->nconv;i++) {
     ierr = EPSGetEigenpair(eps,i,&pep->eigr[i],&pep->eigi[i],xr,xi);CHKERRQ(ierr);
@@ -572,7 +584,9 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
   }
   ierr = VecDestroy(&w);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 

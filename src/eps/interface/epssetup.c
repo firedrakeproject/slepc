@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>       /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>       /*I "slepceps.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetUp"
@@ -195,7 +195,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* Build balancing matrix if required */
   if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
     if (!eps->D) {
-      ierr = BVGetVec(eps->V,&eps->D);CHKERRQ(ierr);
+      ierr = BVCreateVec(eps->V,&eps->D);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->D);CHKERRQ(ierr);
     } else {
       ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);

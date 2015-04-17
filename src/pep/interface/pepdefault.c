@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>     /*I "slepcpep.h" I*/
+#include <slepc/private/pepimpl.h>     /*I "slepcpep.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetWorkVecs"
@@ -46,7 +46,7 @@ PetscErrorCode PEPSetWorkVecs(PEP pep,PetscInt nw)
   Vec            t;
 
   PetscFunctionBegin;
-  if (pep->nwork != nw) {
+  if (pep->nwork < nw) {
     ierr = VecDestroyVecs(pep->nwork,&pep->work);CHKERRQ(ierr);
     pep->nwork = nw;
     ierr = BVGetColumn(pep->V,0,&t);CHKERRQ(ierr);
@@ -401,8 +401,8 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     }
     ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);  
     /* Compute global max and min */
-    ierr = MPI_Allreduce(&emaxl,&emax,1,MPIU_INT,MPIU_MAX,PetscObjectComm((PetscObject)pep->Dl));
-    ierr = MPI_Allreduce(&eminl,&emin,1,MPIU_INT,MPIU_MIN,PetscObjectComm((PetscObject)pep->Dl));
+    ierr = MPI_Allreduce(&emaxl,&emax,1,MPIU_INT,MPI_MAX,PetscObjectComm((PetscObject)pep->Dl));
+    ierr = MPI_Allreduce(&eminl,&emin,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)pep->Dl));
     if (emax<=emin+2) cont = PETSC_FALSE;
   }
   ierr = VecRestoreArray(pep->Dr,&Dr);CHKERRQ(ierr);

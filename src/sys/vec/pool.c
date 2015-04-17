@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/vecimplslepc.h>       /*I "slepcvec.h" I*/
+#include <slepc/private/vecimplslepc.h>       /*I "slepcvec.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcVecPoolCreate"
