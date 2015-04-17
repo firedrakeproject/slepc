@@ -154,6 +154,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
     ierr = (*bv->ops->create)(bv);CHKERRQ(ierr);
     ierr = PetscLogEventEnd(BV_Create,bv,0,0,0);CHKERRQ(ierr);
     bv->ops->create = 0;
+    bv->defersfo = PETSC_FALSE;
   }
   PetscFunctionReturn(0);
 }
@@ -719,6 +720,17 @@ PetscErrorCode BVSetFromOptions(BV bv)
     ierr = PetscOptionsReal("-bv_orthog_eta","Parameter of iterative refinement during orthogonalization","BVSetOrthogonalization",r,&r,NULL);CHKERRQ(ierr);
     ierr = BVSetOrthogonalization(bv,(BVOrthogType)i,(BVOrthogRefineType)j,r);CHKERRQ(ierr);
 
+    ierr = PetscOptionsBoolGroupBegin("-bv_matmult_vecs","Do matmult as matrix-vector products","BVSetMatMultMethod",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = BVSetMatMultMethod(bv,BV_MATMULT_VECS);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-bv_matmult_mat","Do matmult as a single matrix-matrix product","BVSetMatMultMethod",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = BVSetMatMultMethod(bv,BV_MATMULT_MAT);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-bv_matmult_mat_save","Do matmult as a single matrix-matrix product and save auxiliary matrices","BVSetMatMultMethod",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = BVSetMatMultMethod(bv,BV_MATMULT_MAT_SAVE);CHKERRQ(ierr); }
+
+    if (bv->ops->create) bv->defersfo = PETSC_TRUE;   /* defer call to setfromoptions */
+    else if (bv->ops->setfromoptions) {
+      ierr = (*bv->ops->setfromoptions)(PetscOptionsObject,bv);CHKERRQ(ierr);
+    }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)bv);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -815,6 +827,72 @@ PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineTyp
   if (type)   *type   = bv->orthog_type;
   if (refine) *refine = bv->orthog_ref;
   if (eta)    *eta    = bv->orthog_eta;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVSetMatMultMethod"
+/*@
+   BVSetMatMultMethod - Specifies the method used for the BVMatMult() operation.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  bv     - the basis vectors context
+-  method - the method for the BVMatMult() operation
+
+   Options Database Keys:
++  -bv_matmult_vecs - perform a matrix-vector multiply per each column
+.  -bv_matmult_mat - carry out a MatMatMult() product with a dense matrix
+-  -bv_matmult_mat_save - call MatMatMult() and keep auxiliary matrices
+
+   Note:
+   The default is BV_MATMULT_MAT.
+
+   Level: advanced
+
+.seealso: BVGetMatMultMethod(), BVMatMultType
+@*/
+PetscErrorCode BVSetMatMultMethod(BV bv,BVMatMultType method)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(bv,method,2);
+  switch (method) {
+    case BV_MATMULT_VECS:
+    case BV_MATMULT_MAT:
+    case BV_MATMULT_MAT_SAVE:
+      bv->vmm = method;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Unknown matmult method");
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetMatMultMethod"
+/*@C
+   BVGetMatMultMethod - Gets the method used for the BVMatMult() operation.
+
+   Not Collective
+
+   Input Parameter:
+.  bv - basis vectors context
+
+   Output Parameter:
+.  method - the method for the BVMatMult() operation
+
+   Level: advanced
+
+.seealso: BVSetMatMultMethod(), BVMatMultType
+@*/
+PetscErrorCode BVGetMatMultMethod(BV bv,BVMatMultType *method)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidPointer(bv,method);
+  *method = bv->vmm;
   PetscFunctionReturn(0);
 }
 
