@@ -53,6 +53,11 @@ Campos, C. and J.~E. Roman (2012).
 \newblock Strategies for spectrum slicing based on restarted {Lanczos} methods.
 \newblock {\em Numer. Algorithms\/}, 60(2):279--295.
 
+\bibitem[{Campos and Roman(2015)}]{Campos:2015:PKS}
+Campos, C. and J.~E. Roman (2015).
+\newblock Parallel Krylov solvers for the polynomial eigenvalue problem in {SLEPc}.
+\newblock Submitted.
+
 \bibitem[{Canning {\em et~al.\/}(2000)Canning, Wang, Williamson, and
   Zunger}]{Canning:2000:PEP}
 Canning, A., L.~W. Wang, A.~Williamson, and A.~Zunger (2000).

@@ -984,7 +984,7 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
 
   if (A) {  /* perform computation column by column */
 
-    ierr = BVGetVec(X,&f);CHKERRQ(ierr);
+    ierr = BVCreateVec(X,&f);CHKERRQ(ierr);
     for (j=lx;j<kx;j++) {
       ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
       ierr = MatMult(A,z,f);CHKERRQ(ierr);

@@ -534,26 +534,31 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
 /*
    EPSComputeResidualNorm_Private - Computes the norm of the residual vector
    associated with an eigenpair.
+
+   Input Parameters:
+     kr,ki - eigenvalue
+     xr,xi - eigenvector
+     z     - three work vectors (the second one not referenced in complex scalars)
 */
-PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *norm)
+PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,Vec *z,PetscReal *norm)
 {
   PetscErrorCode ierr;
   PetscInt       nmat;
-  Vec            u,w;
   Mat            A,B;
+  Vec            u,w;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            v;
   PetscReal      ni,nr;
 #endif
 
   PetscFunctionBegin;
+  u = z[0]; w = z[2];
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
-  ierr = BVGetVec(eps->V,&u);CHKERRQ(ierr);
-  ierr = BVGetVec(eps->V,&w);CHKERRQ(ierr);
 
 #if !defined(PETSC_USE_COMPLEX)
+  v = z[1]; 
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
     ierr = MatMult(A,xr,u);CHKERRQ(ierr);                             /* u=A*x */
@@ -565,7 +570,6 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
     ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   } else {
-    ierr = BVGetVec(eps->V,&v);CHKERRQ(ierr);
     ierr = MatMult(A,xr,u);CHKERRQ(ierr);                             /* u=A*xr */
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
       if (eps->isgeneralized) { ierr = MatMult(B,xr,v);CHKERRQ(ierr); }
@@ -583,12 +587,8 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
     }
     ierr = VecNorm(u,NORM_2,&ni);CHKERRQ(ierr);
     *norm = SlepcAbsEigenvalue(nr,ni);
-    ierr = VecDestroy(&v);CHKERRQ(ierr);
   }
 #endif
-
-  ierr = VecDestroy(&w);CHKERRQ(ierr);
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -620,7 +620,7 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
 {
   PetscErrorCode ierr;
   Mat            A,B;
-  Vec            xr,xi;
+  Vec            xr,xi,w[3];
   PetscReal      t;
   PetscScalar    kr,ki;
   PetscBool      flg;
@@ -631,10 +631,26 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
   PetscValidLogicalCollectiveEnum(eps,type,3);
   PetscValidPointer(error,4);
   EPSCheckSolved(eps,1);
-  ierr = BVGetVec(eps->V,&xr);CHKERRQ(ierr);
-  ierr = BVGetVec(eps->V,&xi);CHKERRQ(ierr);
+
+  /* allocate work vectors */
+#if defined(PETSC_USE_COMPLEX)
+  ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
+  xi   = NULL;
+  w[1] = NULL;
+#else
+  ierr = EPSSetWorkVecs(eps,5);CHKERRQ(ierr);
+  xi   = eps->work[3];
+  w[1] = eps->work[4];
+#endif
+  xr   = eps->work[0];
+  w[0] = eps->work[1];
+  w[2] = eps->work[2];
+
+  /* compute residual norms */
   ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
-  ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,error);CHKERRQ(ierr);
+  ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,w,error);CHKERRQ(ierr);
+
+  /* compute error */
   if (type==PETSC_DEFAULT) type = EPS_ERROR_BACKWARD;
   switch (type) {
     case EPS_ERROR_ABSOLUTE:
@@ -664,8 +680,6 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
   }
-  ierr = VecDestroy(&xr);CHKERRQ(ierr);
-  ierr = VecDestroy(&xi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -710,7 +724,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
   if (i>0 || eps->nini==0) {
     ierr = BVSetRandomColumn(eps->V,i,eps->rand);CHKERRQ(ierr);
   }
-  ierr = BVGetVec(eps->V,&w);CHKERRQ(ierr);
+  ierr = BVCreateVec(eps->V,&w);CHKERRQ(ierr);
   ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);
 
   /* Force the vector to be in the range of OP for definite generalized problems */
