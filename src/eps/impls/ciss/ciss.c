@@ -788,17 +788,20 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscScalar    *Mu,*H0,*rr,*temp;
   PetscReal      error,max_error;
   PetscBool      *fl1;
-  Vec            si,w=eps->work[0];
+  Vec            si,w[3];
   SlepcSC        sc;
 
   PetscFunctionBegin;
+  w[0] = eps->work[0];
+  w[1] = NULL;
+  w[2] = eps->work[1];
   /* override SC settings */
   ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
   sc->comparison    = SlepcCompareLargestMagnitude;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
-  ierr = VecGetLocalSize(w,&nlocal);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(w[0],&nlocal);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
@@ -913,7 +916,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     for (i=0;i<eps->nconv;i++) {
       ierr = BVGetColumn(ctx->S,i,&si);CHKERRQ(ierr);
       ierr = VecNormalize(si,NULL);CHKERRQ(ierr);
-      ierr = EPSComputeResidualNorm_Private(eps,eps->eigr[i],0,si,NULL,eps->work[0],NULL,eps->work[1],&error);CHKERRQ(ierr);
+      ierr = EPSComputeResidualNorm_Private(eps,eps->eigr[i],0,si,NULL,w,&error);CHKERRQ(ierr);
       ierr = (*eps->converged)(eps,eps->eigr[i],0,error,&error,eps->convergedctx);CHKERRQ(ierr);
       ierr = BVRestoreColumn(ctx->S,i,&si);CHKERRQ(ierr);
       max_error = PetscMax(max_error,error);

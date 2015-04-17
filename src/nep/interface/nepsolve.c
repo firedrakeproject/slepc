@@ -500,17 +500,17 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
    Input Parameters:
      lambda - eigenvalue
      x      - eigenvector
-     w      - work vector
+     w      - array of work vectors (only one vector)
 */
-PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,Vec w,PetscReal *norm)
+PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,Vec *w,PetscReal *norm)
 {
   PetscErrorCode ierr;
   Mat            T=nep->function;
 
   PetscFunctionBegin;
   ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
-  ierr = MatMult(T,x,w);CHKERRQ(ierr);
-  ierr = VecNorm(w,NORM_2,norm);CHKERRQ(ierr);
+  ierr = MatMult(T,x,*w);CHKERRQ(ierr);
+  ierr = VecNorm(*w,NORM_2,norm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -568,7 +568,7 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
 #if !defined(PETSC_USE_COMPLEX)
   if (ki) SETERRQ(PETSC_COMM_SELF,1,"Not implemented for complex eigenvalues with real scalars");
 #endif
-  ierr = NEPComputeResidualNorm_Private(nep,kr,xr,w,error);CHKERRQ(ierr);
+  ierr = NEPComputeResidualNorm_Private(nep,kr,xr,&w,error);CHKERRQ(ierr);
   ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
 
   /* compute error */

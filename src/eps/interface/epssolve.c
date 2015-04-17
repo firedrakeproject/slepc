@@ -538,23 +538,27 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
    Input Parameters:
      kr,ki - eigenvalue
      xr,xi - eigenvector
-     u,v,w - work vectors (v not referenced in complex scalars)
+     z     - three work vectors (the second one not referenced in complex scalars)
 */
-PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,Vec u,Vec v,Vec w,PetscReal *norm)
+PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,Vec *z,PetscReal *norm)
 {
   PetscErrorCode ierr;
   PetscInt       nmat;
   Mat            A,B;
+  Vec            u,w;
 #if !defined(PETSC_USE_COMPLEX)
+  Vec            v;
   PetscReal      ni,nr;
 #endif
 
   PetscFunctionBegin;
+  u = z[0]; w = z[2];
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
 
 #if !defined(PETSC_USE_COMPLEX)
+  v = z[1]; 
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
     ierr = MatMult(A,xr,u);CHKERRQ(ierr);                             /* u=A*x */
@@ -616,7 +620,7 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
 {
   PetscErrorCode ierr;
   Mat            A,B;
-  Vec            xr,xi,u,v,w;
+  Vec            xr,xi,w[3];
   PetscReal      t;
   PetscScalar    kr,ki;
   PetscBool      flg;
@@ -631,20 +635,20 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
   /* allocate work vectors */
 #if defined(PETSC_USE_COMPLEX)
   ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
-  xi = NULL;
-  v  = NULL;
+  xi   = NULL;
+  w[1] = NULL;
 #else
   ierr = EPSSetWorkVecs(eps,5);CHKERRQ(ierr);
-  xi = eps->work[3];
-  v  = eps->work[4];
+  xi   = eps->work[3];
+  w[1] = eps->work[4];
 #endif
-  xr = eps->work[0];
-  u  = eps->work[1];
-  w  = eps->work[2];
+  xr   = eps->work[0];
+  w[0] = eps->work[1];
+  w[2] = eps->work[2];
 
   /* compute residual norms */
   ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
-  ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,u,v,w,error);CHKERRQ(ierr);
+  ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,w,error);CHKERRQ(ierr);
 
   /* compute error */
   if (type==PETSC_DEFAULT) type = EPS_ERROR_BACKWARD;
