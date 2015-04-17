@@ -391,6 +391,9 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
         case PEP_TARGET_MAGNITUDE:   which = EPS_TARGET_MAGNITUDE; break;
         case PEP_TARGET_REAL:        which = EPS_TARGET_REAL; break;
         case PEP_TARGET_IMAGINARY:   which = EPS_TARGET_IMAGINARY; break;
+        case PEP_WHICH_USER:         which = EPS_WHICH_USER;
+          ierr = EPSSetEigenvalueComparison(ctx->eps,pep->sc->comparison,pep->sc->comparisonctx);CHKERRQ(ierr);
+          break;
         default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of which");
     }
   }
@@ -518,6 +521,68 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPLinearExtract_None"
+/*
+   PEPLinearExtract_None - Same as PEPLinearExtract_Norm but always takes
+   the first block.
+*/
+static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
+{
+  PetscErrorCode    ierr;
+  PetscInt          i;
+  const PetscScalar *px;
+  Mat               A;
+  Vec               xr,xi,w,vi;
+#if !defined(PETSC_USE_COMPLEX)
+  Vec               vi1;
+#endif
+
+  PetscFunctionBegin;
+  ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&xr,NULL);CHKERRQ(ierr);
+  ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
+  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&w);CHKERRQ(ierr);
+  for (i=0;i<pep->nconv;i++) {
+    ierr = EPSGetEigenpair(eps,i,&pep->eigr[i],&pep->eigi[i],xr,xi);CHKERRQ(ierr);
+    pep->eigr[i] *= pep->sfactor;
+    pep->eigi[i] *= pep->sfactor;
+#if !defined(PETSC_USE_COMPLEX)
+    if (pep->eigi[i]>0.0) {   /* first eigenvalue of a complex conjugate pair */
+      ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
+      ierr = VecPlaceArray(w,px);CHKERRQ(ierr);
+      ierr = BVInsertVec(pep->V,i,w);CHKERRQ(ierr);
+      ierr = VecResetArray(w);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(xr,&px);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(xi,&px);CHKERRQ(ierr);
+      ierr = VecPlaceArray(w,px);CHKERRQ(ierr);
+      ierr = BVInsertVec(pep->V,i+1,w);CHKERRQ(ierr);
+      ierr = VecResetArray(w);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(xi,&px);CHKERRQ(ierr);
+      ierr = BVGetColumn(pep->V,i,&vi);CHKERRQ(ierr);
+      ierr = BVGetColumn(pep->V,i+1,&vi1);CHKERRQ(ierr);
+      ierr = SlepcVecNormalize(vi,vi1,PETSC_TRUE,NULL);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(pep->V,i,&vi);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(pep->V,i+1,&vi1);CHKERRQ(ierr);
+    } else if (pep->eigi[i]==0.0)   /* real eigenvalue */
+#endif
+    {
+      ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
+      ierr = VecPlaceArray(w,px);CHKERRQ(ierr);
+      ierr = BVInsertVec(pep->V,i,w);CHKERRQ(ierr);
+      ierr = VecResetArray(w);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(xr,&px);CHKERRQ(ierr);
+      ierr = BVGetColumn(pep->V,i,&vi);CHKERRQ(ierr);
+      ierr = SlepcVecNormalize(vi,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(pep->V,i,&vi);CHKERRQ(ierr);
+    }
+  }
+  ierr = VecDestroy(&w);CHKERRQ(ierr);
+  ierr = VecDestroy(&xr);CHKERRQ(ierr);
+  ierr = VecDestroy(&xi);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPLinearExtract_Norm"
 /*
    PEPLinearExtract_Norm - Auxiliary routine that copies the solution of the
@@ -610,6 +675,9 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
   ierr = EPSSetTarget(ctx->eps,sigma*pep->sfactor);CHKERRQ(ierr);
 
   switch (pep->extract) {
+  case PEP_EXTRACT_NONE:
+    ierr = PEPLinearExtract_None(pep,ctx->eps);CHKERRQ(ierr);
+    break;
   case PEP_EXTRACT_NORM:
     ierr = PEPLinearExtract_Norm(pep,ctx->eps);CHKERRQ(ierr);
     break;
