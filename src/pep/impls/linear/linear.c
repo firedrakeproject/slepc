@@ -300,6 +300,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = STGetTOperators(pep->st,1,&ctx->C);CHKERRQ(ierr);
     ierr = STGetTOperators(pep->st,2,&ctx->M);CHKERRQ(ierr);
     ctx->sfactor = pep->sfactor;
+    ctx->dsfactor = pep->dsfactor;
   
     ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
     ierr = MatDestroy(&ctx->B);CHKERRQ(ierr);
