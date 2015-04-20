@@ -397,6 +397,8 @@ PETSC_EXTERN PetscErrorCode EPSRQCGGetReset(EPS,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode EPSLOBPCGSetBlockSize(EPS,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSLOBPCGGetBlockSize(EPS,PetscInt*);
+PETSC_EXTERN PetscErrorCode EPSLOBPCGSetLocking(EPS,PetscBool);
+PETSC_EXTERN PetscErrorCode EPSLOBPCGGetLocking(EPS,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode EPSCISSSetRegion(EPS,PetscScalar,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode EPSCISSGetRegion(EPS,PetscScalar*,PetscReal*,PetscReal*);

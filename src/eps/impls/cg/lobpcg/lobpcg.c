@@ -6,13 +6,18 @@
 
    Algorithm:
 
-       LOBPCG with soft and hard locking.
+       LOBPCG with soft and hard locking. Follows the implementation
+       in BLOPEX [2].
 
    References:
 
        [1] A. V. Knyazev, "Toward the optimal preconditioned eigensolver:
            locally optimal block preconditioned conjugate gradient method",
            SIAM J. Sci. Comput. 23(2):517-541, 2001.
+
+       [2] A. V. Knyazev et al., "Block Locally Optimal Preconditioned
+           Eigenvalue Xolvers (BLOPEX) in Hypre and PETSc", SIAM J. Sci.
+           Comput. 29(5):2224-2239, 2007.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -40,7 +45,8 @@
 PetscErrorCode EPSSolve_LOBPCG(EPS);
 
 typedef struct {
-  PetscInt bs;
+  PetscInt  bs;     /* block size */
+  PetscBool lock;   /* soft locking active/inactive */
 } EPS_LOBPCG;
 
 #undef __FUNCT__
@@ -83,7 +89,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
-  PetscInt       j,k,ld,nv,kini,nmat;
+  PetscInt       j,k,ld,nv,ini,kini,nmat;
   PetscReal      norm;
   PetscBool      breakdown;
   Mat            A,B,M;
@@ -151,6 +157,14 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   /* 6. Main loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
 
+    if (ctx->lock) {
+      ierr = BVSetActiveColumns(R,eps->nconv,ctx->bs);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(AX,eps->nconv,ctx->bs);CHKERRQ(ierr);
+      if (B) {
+        ierr = BVSetActiveColumns(BX,eps->nconv,ctx->bs);CHKERRQ(ierr);
+      }
+    }
+
     /* 7. Compute residuals */
     ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
     ierr = BVCopy(AX,R);CHKERRQ(ierr);
@@ -162,18 +176,22 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
 
     /* 8. Compute residual norms and (TODO) update index set of active iterates */
-    k = 0;
-    for (j=0;j<ctx->bs;j++) {   /* TODO: optimize computation of norms */
-      ierr = BVNormColumn(R,j,NORM_2,&norm);CHKERRQ(ierr);
+    ini = (ctx->lock)? eps->nconv: 0;
+    k = ini;
+    for (j=ini;j<ctx->bs;j++) {   /* TODO: optimize computation of norms */
+      ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
+      ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(R,j,&v);CHKERRQ(ierr);
       ierr = (*eps->converged)(eps,eps->eigr[j],eps->eigi[j],norm,&eps->errest[j],eps->convergedctx);CHKERRQ(ierr);
       if (eps->errest[k]<eps->tol) k++;
     }
     eps->nconv = k;
     if (eps->its) {
-      ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
+      ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,ctx->bs);CHKERRQ(ierr);
     }
-    if (k >= eps->nev) {
+    if (eps->nconv >= eps->nev) {
       ierr = BVSetActiveColumns(eps->V,0,ctx->bs);CHKERRQ(ierr);  /* TODO: avoid copies */
+      ierr = BVSetActiveColumns(X,0,ctx->bs);CHKERRQ(ierr);
       ierr = BVCopy(X,eps->V);CHKERRQ(ierr);
       eps->reason = EPS_CONVERGED_TOL;
     }
@@ -181,8 +199,22 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     if (eps->reason != EPS_CONVERGED_ITERATING) break;
     eps->its++;
 
+    ini = (ctx->lock)? eps->nconv: 0;
+    if (ctx->lock) {
+      ierr = BVSetActiveColumns(R,eps->nconv,ctx->bs);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(P,eps->nconv,ctx->bs);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(AX,eps->nconv,ctx->bs);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(AR,eps->nconv,ctx->bs);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(AP,eps->nconv,ctx->bs);CHKERRQ(ierr);
+      if (B) {
+        ierr = BVSetActiveColumns(BX,eps->nconv,ctx->bs);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(BR,eps->nconv,ctx->bs);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(BP,eps->nconv,ctx->bs);CHKERRQ(ierr);
+      }
+    }
+
     /* 9. Apply preconditioner to the residuals */
-    for (j=0;j<ctx->bs;j++) {
+    for (j=ini;j<ctx->bs;j++) {
       ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
       ierr = STMatSolve(eps->st,v,w);CHKERRQ(ierr);
       ierr = VecCopy(w,v);CHKERRQ(ierr);
@@ -212,16 +244,17 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 
     /* 17-23. Compute symmetric Gram matrices */
     ierr = BVSetActiveColumns(eps->V,0,ctx->bs);CHKERRQ(ierr);  /* TODO: avoid copies */
+    ierr = BVSetActiveColumns(X,0,ctx->bs);CHKERRQ(ierr);
     ierr = BVCopy(X,eps->V);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(eps->V,ctx->bs,2*ctx->bs);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(eps->V,ctx->bs,2*ctx->bs-ini);CHKERRQ(ierr);
     ierr = BVCopy(R,eps->V);CHKERRQ(ierr);
     if (eps->its>1) {
-      ierr = BVSetActiveColumns(eps->V,2*ctx->bs,3*ctx->bs);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(eps->V,2*ctx->bs-ini,3*ctx->bs-2*ini);CHKERRQ(ierr);
       ierr = BVCopy(P,eps->V);CHKERRQ(ierr);
     }
 
-    if (eps->its>1) nv = 3*ctx->bs;
-    else nv = 2*ctx->bs;
+    if (eps->its>1) nv = 3*ctx->bs-2*ini;
+    else nv = 2*ctx->bs-ini;
 
     ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
@@ -246,28 +279,46 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = DSGetMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
     if (eps->its>1) {
       ierr = BVSetActiveColumns(eps->V,ctx->bs,nv);CHKERRQ(ierr);
+      if (ctx->lock) {
+        ierr = BVSetActiveColumns(P,0,ctx->bs);CHKERRQ(ierr);
+      }
       ierr = BVMult(P,1.0,0.0,eps->V,M);CHKERRQ(ierr);
+      ierr = BVCopy(P,X);CHKERRQ(ierr);
+      if (ctx->lock) {
+        ierr = BVSetActiveColumns(P,eps->nconv,ctx->bs);CHKERRQ(ierr);
+      }
       ierr = BVMatMult(P,A,AP);CHKERRQ(ierr);  /* TODO: avoid this, instead use AR,AP */
       if (B) {
         ierr = BVMatMult(P,B,BP);CHKERRQ(ierr);  /* TODO: avoid this, instead use BR,BP */
       }
-      ierr = BVCopy(P,X);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(eps->V,0,ctx->bs);CHKERRQ(ierr);
       ierr = BVMult(X,1.0,1.0,eps->V,M);CHKERRQ(ierr);
+      if (ctx->lock) {
+        ierr = BVSetActiveColumns(X,eps->nconv,ctx->bs);CHKERRQ(ierr);
+      }
       ierr = BVMatMult(X,A,AX);CHKERRQ(ierr);  /* TODO: avoid this, instead use AX,AP */
       if (B) {
         ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);  /* TODO: avoid this, instead use BX,BP */
       }
     } else {  /* TODO: move redundant code out of if */
       ierr = BVSetActiveColumns(eps->V,ctx->bs,nv);CHKERRQ(ierr);
+      if (ctx->lock) {
+        ierr = BVSetActiveColumns(P,0,ctx->bs);CHKERRQ(ierr);
+      }
       ierr = BVMult(P,1.0,0.0,eps->V,M);CHKERRQ(ierr);
+      ierr = BVCopy(P,X);CHKERRQ(ierr);
+      if (ctx->lock) {
+        ierr = BVSetActiveColumns(P,eps->nconv,ctx->bs);CHKERRQ(ierr);
+      }
       ierr = BVMatMult(P,A,AP);CHKERRQ(ierr);  /* TODO: avoid this, instead use AR */
       if (B) {
         ierr = BVMatMult(P,B,BP);CHKERRQ(ierr);  /* TODO: avoid this, instead use BR */
       }
-      ierr = BVCopy(P,X);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(eps->V,0,ctx->bs);CHKERRQ(ierr);
       ierr = BVMult(X,1.0,1.0,eps->V,M);CHKERRQ(ierr);
+      if (ctx->lock) {
+        ierr = BVSetActiveColumns(X,eps->nconv,ctx->bs);CHKERRQ(ierr);
+      }
       ierr = BVMatMult(X,A,AX);CHKERRQ(ierr);  /* TODO: avoid this, instead use AX */
       if (B) {
         ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);  /* TODO: avoid this, instead use BX */
@@ -375,6 +426,91 @@ PetscErrorCode EPSLOBPCGGetBlockSize(EPS eps,PetscInt *bs)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSLOBPCGSetLocking_LOBPCG"
+static PetscErrorCode EPSLOBPCGSetLocking_LOBPCG(EPS eps,PetscBool lock)
+{
+  EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
+
+  PetscFunctionBegin;
+  ctx->lock = lock;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSLOBPCGSetLocking"
+/*@
+   EPSLOBPCGSetLocking - Choose between locking and non-locking variants of
+   the LOBPCG method.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps  - the eigenproblem solver context
+-  lock - true if the locking variant must be selected
+
+   Options Database Key:
+.  -eps_lobpcg_locking - Sets the locking flag
+
+   Notes:
+   This flag refers to soft locking (converged vectors within the current
+   block iterate), since hard locking is always used (when nev is larger
+   than the block size).
+
+   Level: advanced
+
+.seealso: EPSLOBPCGGetLocking()
+@*/
+PetscErrorCode EPSLOBPCGSetLocking(EPS eps,PetscBool lock)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,lock,2);
+  ierr = PetscTryMethod(eps,"EPSLOBPCGSetLocking_C",(EPS,PetscBool),(eps,lock));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSLOBPCGGetLocking_LOBPCG"
+static PetscErrorCode EPSLOBPCGGetLocking_LOBPCG(EPS eps,PetscBool *lock)
+{
+  EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
+
+  PetscFunctionBegin;
+  *lock = ctx->lock;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSLOBPCGGetLocking"
+/*@
+   EPSLOBPCGGetLocking - Gets the locking flag used in the LOBPCG method.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  lock - the locking flag
+
+   Level: advanced
+
+.seealso: EPSLOBPCGSetLocking()
+@*/
+PetscErrorCode EPSLOBPCGGetLocking(EPS eps,PetscBool *lock)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(lock,2);
+  ierr = PetscTryMethod(eps,"EPSLOBPCGGetLocking_C",(EPS,PetscBool*),(eps,lock));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSView_LOBPCG"
 PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
 {
@@ -386,6 +522,7 @@ PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  LOBPCG: block size %D\n",ctx->bs);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  LOBPCG: soft locking %sactivated\n",ctx->lock?"":"de");CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -395,7 +532,7 @@ PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
 PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
-  PetscBool      flg;
+  PetscBool      lock,flg;
   PetscInt       bs;
 
   PetscFunctionBegin;
@@ -403,6 +540,10 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptions *PetscOptionsObject,EPS eps
   ierr = PetscOptionsInt("-eps_lobpcg_blocksize","LOBPCG block size","EPSLOBPCGSetBlockSize",20,&bs,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = EPSLOBPCGSetBlockSize(eps,bs);CHKERRQ(ierr);
+  }
+  ierr = PetscOptionsBool("-eps_lobpcg_locking","Choose between locking and non-locking variants","EPSLOBPCGSetLocking",PETSC_TRUE,&lock,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = EPSLOBPCGSetLocking(eps,lock);CHKERRQ(ierr);
   }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -418,6 +559,8 @@ PetscErrorCode EPSDestroy_LOBPCG(EPS eps)
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetBlockSize_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetBlockSize_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetLocking_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetLocking_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -431,7 +574,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps)
   PetscFunctionBegin;
   ierr = PetscNewLog(eps,&lobpcg);CHKERRQ(ierr);
   eps->data = (void*)lobpcg;
-  lobpcg->bs = 1;
+  lobpcg->bs   = 1;
+  lobpcg->lock = PETSC_TRUE;
 
   eps->ops->setup          = EPSSetUp_LOBPCG;
   eps->ops->solve          = EPSSolve_LOBPCG;
@@ -443,6 +587,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps)
   ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetBlockSize_C",EPSLOBPCGSetBlockSize_LOBPCG);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetBlockSize_C",EPSLOBPCGGetBlockSize_LOBPCG);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetLocking_C",EPSLOBPCGSetLocking_LOBPCG);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetLocking_C",EPSLOBPCGGetLocking_LOBPCG);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
