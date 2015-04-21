@@ -816,7 +816,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,*pS0,sigma;
   PetscReal      beta,norm,*rwork;
-  PetscBool      breakdown=PETSC_FALSE,flg,lindep,falselock=PETSC_FALSE,def=PETSC_FALSE;
+  PetscBool      breakdown=PETSC_FALSE,flg,lindep,falselock=PETSC_FALSE,def=PETSC_TRUE;
   Mat            S0;
 
   PetscFunctionBegin;
