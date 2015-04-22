@@ -291,7 +291,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     ierr = STGetTOperators(pep->st,k,&T[k]);CHKERRQ(ierr);
   }
   /* Form local auxiliar matrix M */
-  ierr = PetscObjectTypeCompareAny((PetscObject)T[0],&cont,MATMPIAIJ,MATSEQAIJ);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)T[0],&cont,MATMPIAIJ,MATSEQAIJ,"");CHKERRQ(ierr);
   if (!cont) SETERRQ(PetscObjectComm((PetscObject)T[0]),PETSC_ERR_SUP,"Only for MPIAIJ or SEQAIJ matrix types");
   ierr = PetscObjectTypeCompare((PetscObject)T[0],MATMPIAIJ,&cont);CHKERRQ(ierr);
   if (cont) {
@@ -429,12 +429,14 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
   PetscInt       i;
 
   PetscFunctionBegin;
-  pep->sfactor = 1.0;
-  pep->dsfactor = 1.0;
   if (pep->scale==PEP_SCALE_NONE || pep->scale==PEP_SCALE_DIAGONAL) {  /* no scalar scaling */
+    pep->sfactor = 1.0;
+    pep->dsfactor = 1.0;
     PetscFunctionReturn(0);
   }
   if (pep->sfactor_set) PetscFunctionReturn(0);  /* user provided value */
+  pep->sfactor = 1.0;
+  pep->dsfactor = 1.0;
   ierr = PEPGetBasis(pep,&basis);CHKERRQ(ierr);
   if (basis==PEP_BASIS_MONOMIAL) {
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
