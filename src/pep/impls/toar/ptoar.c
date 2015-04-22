@@ -594,7 +594,7 @@ static PetscErrorCode PEPEvaluateBasisM(PEP pep,PetscInt k,PetscScalar *T,PetscI
 static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt sr,PetscInt k,PetscScalar *S,PetscInt ld,PetscInt deg,PetscScalar *H,PetscInt ldh,PetscScalar *work,PetscInt nw)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,nwu=0,lwa,lds,ldt,d=pep->nmat-1,idxcpy=0;
+  PetscInt       i,j,jj,nwu=0,lwa,lds,ldt,d=pep->nmat-1,idxcpy=0;
   PetscScalar    *At,*Bt,*Hj,*Hp,*T,sone=1.0,g,a,*pM;
   PetscBLASInt   k_,sr_,lds_,ldh_,info,*p,lwork,ldt_;
   PetscBool      transf=PETSC_FALSE,flg;
@@ -701,8 +701,8 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
       for (i=0;i<pep->nmat-1;i++) {
         PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&sr_,&k_,&k_,&a,S+i*ld,&lds_,Hj,&k_,&g,At,&sr_));
         ierr = MatDenseGetArray(M,&pM);CHKERRQ(ierr);
-        for (j=0;j<k;j++) {
-          ierr = PetscMemcpy(pM+j*sr,At+j*sr,sr*sizeof(PetscScalar));CHKERRQ(ierr);
+        for (jj=0;jj<k;jj++) {
+          ierr = PetscMemcpy(pM+jj*sr,At+jj*sr,sr*sizeof(PetscScalar));CHKERRQ(ierr);
         }
         ierr = MatDenseRestoreArray(M,&pM);CHKERRQ(ierr);
         ierr = BVMult(R[i],1.0,(i==0)?0.0:1.0,Y,M);CHKERRQ(ierr);
