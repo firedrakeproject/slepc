@@ -184,7 +184,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   SLEPCSetupInterpreter(&blopex->ii);
   blopex->eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->ncv,eps->V);
 
-  ierr = BVGetVec(eps->V,&blopex->w);CHKERRQ(ierr);
+  ierr = BVCreateVec(eps->V,&blopex->w);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)blopex->w);CHKERRQ(ierr);
   if (eps->nds<0) {
     k = -eps->nds;
