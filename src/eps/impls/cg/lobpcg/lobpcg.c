@@ -50,6 +50,23 @@ typedef struct {
 } EPS_LOBPCG;
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSSetDimensions_LOBPCG"
+PetscErrorCode EPSSetDimensions_LOBPCG(EPS eps,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
+{
+  EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
+  PetscInt   k;
+
+  PetscFunctionBegin;
+  k = PetscMax(3*ctx->bs,((eps->nev-1)/ctx->bs+3)*ctx->bs);
+  if (*ncv) { /* ncv set */
+    if (*ncv<k) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv is not sufficiently large");
+  } else *ncv = k;
+  if (!*mpd) *mpd = 3*ctx->bs;
+  else if (*mpd!=3*ctx->bs) SETERRQ(PetscObjectComm((PetscObject)eps),1,"This solver does not allow a value of mpd different from 3*blocksize");
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_LOBPCG"
 PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
 {
@@ -58,8 +75,9 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   PetscBool      precond;
 
   PetscFunctionBegin;
-  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"LOBPCG only works for Hermitian problems");
-  ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
+  if (!eps->ishermitian || (eps->isgeneralized && !eps->ispositive)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"LOBPCG only works for Hermitian problems");
+  if (eps->nev>ctx->bs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Block size smaller than nev not supported yet");
+  ierr = EPSSetDimensions_LOBPCG(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   if (eps->n-eps->nds<5*ctx->bs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The problem size is too small relative to the block size");
