@@ -96,7 +96,7 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);
-  ierr = DSAllocate(eps->ds,3*ctx->bs);CHKERRQ(ierr);
+  ierr = DSAllocate(eps->ds,eps->mpd);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -107,12 +107,12 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
-  PetscInt       j,k,ld,nv,ini,kini,nmat;
+  PetscInt       j,k,ld,nv,ini,kini,nmat,nc;
   PetscReal      norm;
   PetscBool      breakdown;
   Mat            A,B,M;
   Vec            v,w=eps->work[0];
-  BV             X,R,P,AX,AR,AP,BX,BR,BP;
+  BV             X,Y,R,P,AX,AR,AP,BX,BR,BP;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -132,6 +132,15 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = BVDuplicateResize(eps->V,ctx->bs,&BX);CHKERRQ(ierr);
     ierr = BVDuplicateResize(eps->V,ctx->bs,&BR);CHKERRQ(ierr);
     ierr = BVDuplicateResize(eps->V,ctx->bs,&BP);CHKERRQ(ierr);
+  }
+  nc = eps->nds;
+  if (nc>0) {
+    ierr = BVDuplicateResize(eps->V,nc,&Y);CHKERRQ(ierr);
+    for (j=0;j<nc;j++) {
+      ierr = BVGetColumn(eps->V,-nc+j,&v);CHKERRQ(ierr);
+      ierr = BVInsertVec(Y,j,v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(eps->V,-nc+j,&v);CHKERRQ(ierr);
+    }
   }
 
   /* 2. Apply the constraints to the initial vectors */
@@ -235,6 +244,10 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     for (j=ini;j<ctx->bs;j++) {
       ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
       ierr = STMatSolve(eps->st,v,w);CHKERRQ(ierr);
+      if (nc>0) {
+        ierr = BVOrthogonalizeVec(Y,w,NULL,NULL,NULL);CHKERRQ(ierr);
+        ierr = VecNormalize(w,NULL);CHKERRQ(ierr);
+      }
       ierr = VecCopy(w,v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(R,j,&v);CHKERRQ(ierr);
     }
@@ -355,6 +368,9 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = BVDestroy(&BX);CHKERRQ(ierr);
     ierr = BVDestroy(&BR);CHKERRQ(ierr);
     ierr = BVDestroy(&BP);CHKERRQ(ierr);
+  }
+  if (nc>0) {
+    ierr = BVDestroy(&Y);CHKERRQ(ierr);
   }
 
   /* truncate Schur decomposition and change the state to raw so that
