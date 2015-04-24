@@ -420,7 +420,7 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
   newc = PetscMax(0,requested-oldsize);
 
   /* allocate space for eigenvalues and friends */
-  if (requested != oldsize) {
+  if (requested != oldsize || !pep->eigr) {
     if (oldsize) {
       ierr = PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm);CHKERRQ(ierr);
     }
