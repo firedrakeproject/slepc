@@ -42,8 +42,6 @@
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepc/private/dsimpl.h>                 /*I "slepcds.h" I*/
 
-PetscErrorCode EPSSolve_LOBPCG(EPS);
-
 typedef struct {
   PetscInt  bs;     /* block size */
   PetscBool lock;   /* soft locking active/inactive */
@@ -77,10 +75,10 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   PetscFunctionBegin;
   if (!eps->ishermitian || (eps->isgeneralized && !eps->ispositive)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"LOBPCG only works for Hermitian problems");
   if (eps->nev>ctx->bs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Block size smaller than nev not supported yet");
+  if (eps->n-eps->nds<5*ctx->bs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The problem size is too small relative to the block size");
   ierr = EPSSetDimensions_LOBPCG(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
-  if (eps->n-eps->nds<5*ctx->bs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The problem size is too small relative to the block size");
   if (eps->which!=EPS_SMALLEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
