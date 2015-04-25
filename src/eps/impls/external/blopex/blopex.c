@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc/private/epsimpl.h>
+#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepc/private/stimpl.h>
 #include "slepc-interface.h"
 #include <blopex_lobpcg.h>
@@ -40,6 +40,7 @@ typedef struct {
   BV                         X,Y;
   Vec                        w;
   PetscInt                   bs;     /* block size */
+  PetscInt                   nc;     /* number of constraints */
 } EPS_BLOPEX;
 
 #undef __FUNCT__
@@ -162,13 +163,10 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   PetscErrorCode ierr;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
   PetscBool      isPrecond,istrivial;
-  PetscInt       k;
 
   PetscFunctionBegin;
   if (!eps->ishermitian || (eps->isgeneralized && !eps->ispositive)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works for Hermitian problems");
   if (!blopex->bs) blopex->bs = eps->nev;
-  if (eps->nev>blopex->bs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Block size smaller than nev not supported yet");
-  if (eps->n-eps->nds<5*blopex->bs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The problem size is too small relative to the block size");
   ierr = EPSSetDimensions_BLOPEX(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
@@ -211,14 +209,14 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 
   /* allocate storage for constraints */
   if (eps->nds<0) {
-    k = -eps->nds;
+    blopex->nc = -eps->nds;
     ierr = BVCreate(PetscObjectComm((PetscObject)eps),&blopex->Y);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(blopex->Y,blopex->w,k);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(blopex->Y,blopex->w,blopex->nc);CHKERRQ(ierr);
     ierr = BVSetType(blopex->Y,BVCONTIGUOUS);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)blopex->Y);CHKERRQ(ierr);
-    ierr = BVInsertVecs(blopex->Y,0,&k,eps->defl,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVInsertVecs(blopex->Y,0,&blopex->nc,eps->defl,PETSC_FALSE);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&eps->nds,&eps->defl);CHKERRQ(ierr);
-    blopex->constraints = mv_MultiVectorCreateFromSampleVector(&blopex->ii,k,blopex->Y);
+    blopex->constraints = mv_MultiVectorCreateFromSampleVector(&blopex->ii,blopex->nc,blopex->Y);
   } else blopex->constraints = NULL;
 
 #if defined(PETSC_USE_COMPLEX)
@@ -240,7 +238,8 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 {
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
-  PetscScalar    sigma;
+  PetscScalar    sigma,*eigr;
+  PetscReal      *errest;
   Vec            v;
   int            i,j,info,its,nconv;
   double         *residhist=NULL;
@@ -252,65 +251,93 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 #endif
 
   PetscFunctionBegin;
-  /*ierr = BVCopy(eps->V,blopex->X);CHKERRQ(ierr);*/
-  for (i=0;i<eps->nini;i++) {
-    ierr = BVGetColumn(blopex->X,i,&v);CHKERRQ(ierr);
-    ierr = BVCopyVec(eps->V,i,v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(blopex->X,i,&v);CHKERRQ(ierr);
-  }
-  /* Complete the initial basis with random vectors */
-  for (i=eps->nini;i<blopex->bs;i++) {
-    ierr = BVSetRandomColumn(blopex->X,i,eps->rand);CHKERRQ(ierr);
+  ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
+  if (eps->numbermonitors>0) {
+    ierr = PetscMalloc4(blopex->bs*(eps->max_it+1),&lambdahist,eps->ncv,&eigr,blopex->bs*(eps->max_it+1),&residhist,eps->ncv,&errest);CHKERRQ(ierr);
   }
 
-  if (eps->numbermonitors>0) {
-    ierr = PetscMalloc2(blopex->bs*(eps->max_it+1),&lambdahist,blopex->bs*(eps->max_it+1),&residhist);CHKERRQ(ierr);
+  /* Complete the initial basis with random vectors */
+  for (i=eps->nini;i<eps->ncv;i++) {
+    ierr = BVSetRandomColumn(eps->V,i,eps->rand);CHKERRQ(ierr);
   }
+
+  while (eps->reason == EPS_CONVERGED_ITERATING) {
+
+    /* Fill X with initial vectors */
+    for (i=0;i<blopex->bs;i++) {
+      ierr = BVGetColumn(blopex->X,i,&v);CHKERRQ(ierr);
+      ierr = BVCopyVec(eps->V,eps->nconv+i,v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(blopex->X,i,&v);CHKERRQ(ierr);
+    }
 
 #if defined(PETSC_USE_COMPLEX)
-  info = lobpcg_solve_complex(blopex->eigenvectors,eps,OperatorAMultiVector,
-        eps->isgeneralized?eps:NULL,eps->isgeneralized?OperatorBMultiVector:NULL,
-        eps,Precond_FnMultiVector,blopex->constraints,
-        blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
-        (komplex*)eps->eigr,lambdahist,blopex->bs,eps->errest,residhist,blopex->bs);
+    info = lobpcg_solve_complex(blopex->eigenvectors,eps,OperatorAMultiVector,
+          eps->isgeneralized?eps:NULL,eps->isgeneralized?OperatorBMultiVector:NULL,
+          eps,Precond_FnMultiVector,blopex->constraints,
+          blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
+          (komplex*)eps->eigr+eps->nconv,lambdahist,blopex->bs,
+          eps->errest+eps->nconv,residhist,blopex->bs);
 #else
-  info = lobpcg_solve_double(blopex->eigenvectors,eps,OperatorAMultiVector,
-        eps->isgeneralized?eps:NULL,eps->isgeneralized?OperatorBMultiVector:NULL,
-        eps,Precond_FnMultiVector,blopex->constraints,
-        blopex->blap_fn,blopex->tol,eps->max_it,2,&its,
-        eps->eigr,lambdahist,blopex->bs,eps->errest,residhist,blopex->bs);
+    info = lobpcg_solve_double(blopex->eigenvectors,eps,OperatorAMultiVector,
+          eps->isgeneralized?eps:NULL,eps->isgeneralized?OperatorBMultiVector:NULL,
+          eps,Precond_FnMultiVector,blopex->constraints,
+          blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
+          eps->eigr+eps->nconv,lambdahist,blopex->bs,
+          eps->errest+eps->nconv,residhist,blopex->bs);
 #endif
-  if (info>0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"BLOPEX failed with exit code=%d",info);
+   if (info>0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"BLOPEX failed with exit code=%d",info);
 
-  if (eps->numbermonitors>0) {
-    for (i=0;i<its;i++) {
-      nconv = 0;
-      for (j=0;j<eps->nev;j++) {
-        if (residhist[j+i*blopex->bs]>eps->tol) break;
-        else nconv++;
+    if (eps->numbermonitors>0) {
+      for (i=0;i<its;i++) {
+        nconv = 0;
+        for (j=0;j<blopex->bs;j++) {
+          eigr[eps->nconv+j]   = lambdahist[j+i*blopex->bs];
+          errest[eps->nconv+j] = residhist[j+i*blopex->bs];
+          if (residhist[j+i*blopex->bs]<=eps->tol) nconv++;
+        }
+        ierr = EPSMonitor(eps,eps->its+i,eps->nconv+nconv,eigr,eps->eigi,errest,eps->nconv+blopex->bs);CHKERRQ(ierr);
       }
-      ierr = EPSMonitor(eps,i,nconv,(PetscScalar*)lambdahist+i*blopex->bs,eps->eigi,residhist+i*blopex->bs,blopex->bs);CHKERRQ(ierr);
     }
-    ierr = PetscFree2(lambdahist,residhist);CHKERRQ(ierr);
+
+    eps->its += its;
+    if (info==-1) {
+      eps->reason = EPS_DIVERGED_ITS;
+      break;
+    } else {
+      nconv = blopex->bs;
+      /* copy X eigenvectors to basis eps->V */
+      for (i=0;i<nconv;i++) {
+        if (sigma != 0.0) eps->eigr[eps->nconv+i] += sigma;
+        ierr = BVGetColumn(eps->V,eps->nconv+i,&v);CHKERRQ(ierr);
+        ierr = BVCopyVec(blopex->X,i,v);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(eps->V,eps->nconv+i,&v);CHKERRQ(ierr);
+      }
+      eps->nconv += nconv;
+      if (eps->nconv>=eps->nev) eps->reason = EPS_CONVERGED_TOL;
+      else {
+        /* add eigenvectors to basis of constraints Y */
+        if (blopex->constraints) {
+          mv_MultiVectorDestroy(blopex->constraints);
+          ierr = BVResize(blopex->Y,blopex->nc+nconv,PETSC_TRUE);CHKERRQ(ierr);
+        } else {
+          ierr = BVCreate(PetscObjectComm((PetscObject)eps),&blopex->Y);CHKERRQ(ierr);
+          ierr = BVSetSizesFromVec(blopex->Y,blopex->w,blopex->nc+nconv);CHKERRQ(ierr);
+          ierr = BVSetType(blopex->Y,BVCONTIGUOUS);CHKERRQ(ierr);
+          ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)blopex->Y);CHKERRQ(ierr);
+        }
+        for (i=0;i<nconv;i++) {
+          ierr = BVGetColumn(blopex->Y,blopex->nc+i,&v);CHKERRQ(ierr);
+          ierr = BVCopyVec(blopex->X,i,v);CHKERRQ(ierr);
+          ierr = BVRestoreColumn(blopex->Y,blopex->nc+i,&v);CHKERRQ(ierr);
+        }
+        blopex->nc += nconv;
+        blopex->constraints = mv_MultiVectorCreateFromSampleVector(&blopex->ii,blopex->nc,blopex->Y);
+      }
+    }
   }
 
-  eps->its = its;
-  if (info==-1) {
-    eps->reason = EPS_DIVERGED_ITS;
-    eps->nconv = 0;
-  } else {
-    eps->reason = EPS_CONVERGED_TOL;
-    eps->nconv = eps->nev;
-    ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
-    if (sigma != 0.0) {
-      for (i=0;i<eps->nconv;i++) eps->eigr[i]+=sigma;
-    }
-    /*ierr = BVCopy(blopex->X,eps->V);CHKERRQ(ierr);*/
-    for (i=0;i<blopex->bs;i++) {
-      ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
-      ierr = BVCopyVec(blopex->X,i,v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
-    }
+  if (eps->numbermonitors>0) {
+    ierr = PetscFree4(lambdahist,eigr,residhist,errest);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
