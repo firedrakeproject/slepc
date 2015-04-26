@@ -45,11 +45,11 @@ typedef struct {
 static void Precond_FnSingleVector(void *data,void *x,void *y)
 {
   PetscErrorCode ierr;
-  EPS            eps = (EPS)data;
-  EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
+  EPS_BLOPEX     *blopex = (EPS_BLOPEX*)data;
+  MPI_Comm       comm = PetscObjectComm((PetscObject)blopex->st);
 
   PetscFunctionBegin;
-  ierr = KSPSolve(blopex->st->ksp,(Vec)x,(Vec)y);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+  ierr = KSPSolve(blopex->st->ksp,(Vec)x,(Vec)y);CHKERRABORT(comm,ierr);
   PetscFunctionReturnVoid();
 }
 
@@ -57,8 +57,7 @@ static void Precond_FnSingleVector(void *data,void *x,void *y)
 #define __FUNCT__ "Precond_FnMultiVector"
 static void Precond_FnMultiVector(void *data,void *x,void *y)
 {
-  EPS        eps = (EPS)data;
-  EPS_BLOPEX *blopex = (EPS_BLOPEX*)eps->data;
+  EPS_BLOPEX *blopex = (EPS_BLOPEX*)data;
 
   PetscFunctionBegin;
   blopex->ii.Eval(Precond_FnSingleVector,data,x,y);
@@ -70,25 +69,25 @@ static void Precond_FnMultiVector(void *data,void *x,void *y)
 static void OperatorASingleVector(void *data,void *x,void *y)
 {
   PetscErrorCode ierr;
-  EPS            eps = (EPS)data;
-  EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
+  EPS_BLOPEX     *blopex = (EPS_BLOPEX*)data;
+  MPI_Comm       comm = PetscObjectComm((PetscObject)blopex->st);
   Mat            A,B;
   PetscScalar    sigma;
   PetscInt       nmat;
 
   PetscFunctionBegin;
-  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
-  ierr = STGetOperators(eps->st,0,&A);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
-  if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr); }
-  ierr = MatMult(A,(Vec)x,(Vec)y);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
-  ierr = STGetShift(eps->st,&sigma);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+  ierr = STGetNumMatrices(blopex->st,&nmat);CHKERRABORT(comm,ierr);
+  ierr = STGetOperators(blopex->st,0,&A);CHKERRABORT(comm,ierr);
+  if (nmat>1) { ierr = STGetOperators(blopex->st,1,&B);CHKERRABORT(comm,ierr); }
+  ierr = MatMult(A,(Vec)x,(Vec)y);CHKERRABORT(comm,ierr);
+  ierr = STGetShift(blopex->st,&sigma);CHKERRABORT(comm,ierr);
   if (sigma != 0.0) {
     if (nmat>1) {
-      ierr = MatMult(B,(Vec)x,blopex->w);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+      ierr = MatMult(B,(Vec)x,blopex->w);CHKERRABORT(comm,ierr);
     } else {
-      ierr = VecCopy((Vec)x,blopex->w);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+      ierr = VecCopy((Vec)x,blopex->w);CHKERRABORT(comm,ierr);
     }
-    ierr = VecAXPY((Vec)y,-sigma,blopex->w);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+    ierr = VecAXPY((Vec)y,-sigma,blopex->w);CHKERRABORT(comm,ierr);
   }
   PetscFunctionReturnVoid();
 }
@@ -97,8 +96,7 @@ static void OperatorASingleVector(void *data,void *x,void *y)
 #define __FUNCT__ "OperatorAMultiVector"
 static void OperatorAMultiVector(void *data,void *x,void *y)
 {
-  EPS        eps = (EPS)data;
-  EPS_BLOPEX *blopex = (EPS_BLOPEX*)eps->data;
+  EPS_BLOPEX *blopex = (EPS_BLOPEX*)data;
 
   PetscFunctionBegin;
   blopex->ii.Eval(OperatorASingleVector,data,x,y);
@@ -110,12 +108,13 @@ static void OperatorAMultiVector(void *data,void *x,void *y)
 static void OperatorBSingleVector(void *data,void *x,void *y)
 {
   PetscErrorCode ierr;
-  EPS            eps = (EPS)data;
+  EPS_BLOPEX     *blopex = (EPS_BLOPEX*)data;
+  MPI_Comm       comm = PetscObjectComm((PetscObject)blopex->st);
   Mat            B;
 
   PetscFunctionBegin;
-  ierr = STGetOperators(eps->st,1,&B);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
-  ierr = MatMult(B,(Vec)x,(Vec)y);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+  ierr = STGetOperators(blopex->st,1,&B);CHKERRABORT(comm,ierr);
+  ierr = MatMult(B,(Vec)x,(Vec)y);CHKERRABORT(comm,ierr);
   PetscFunctionReturnVoid();
 }
 
@@ -123,8 +122,7 @@ static void OperatorBSingleVector(void *data,void *x,void *y)
 #define __FUNCT__ "OperatorBMultiVector"
 static void OperatorBMultiVector(void *data,void *x,void *y)
 {
-  EPS        eps = (EPS)data;
-  EPS_BLOPEX *blopex = (EPS_BLOPEX*)eps->data;
+  EPS_BLOPEX *blopex = (EPS_BLOPEX*)data;
 
   PetscFunctionBegin;
   blopex->ii.Eval(OperatorBSingleVector,data,x,y);
@@ -255,16 +253,16 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
     eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,blopex->bs,eps->V);
 
 #if defined(PETSC_USE_COMPLEX)
-    info = lobpcg_solve_complex(eigenvectors,eps,OperatorAMultiVector,
-          eps->isgeneralized?eps:NULL,eps->isgeneralized?OperatorBMultiVector:NULL,
-          eps,Precond_FnMultiVector,constraints,
+    info = lobpcg_solve_complex(eigenvectors,blopex,OperatorAMultiVector,
+          eps->isgeneralized?blopex:NULL,eps->isgeneralized?OperatorBMultiVector:NULL,
+          blopex,Precond_FnMultiVector,constraints,
           blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
           (komplex*)eps->eigr+eps->nconv,lambdahist,blopex->bs,
           eps->errest+eps->nconv,residhist,blopex->bs);
 #else
-    info = lobpcg_solve_double(eigenvectors,eps,OperatorAMultiVector,
-          eps->isgeneralized?eps:NULL,eps->isgeneralized?OperatorBMultiVector:NULL,
-          eps,Precond_FnMultiVector,constraints,
+    info = lobpcg_solve_double(eigenvectors,blopex,OperatorAMultiVector,
+          eps->isgeneralized?blopex:NULL,eps->isgeneralized?OperatorBMultiVector:NULL,
+          blopex,Precond_FnMultiVector,constraints,
           blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
           eps->eigr+eps->nconv,lambdahist,blopex->bs,
           eps->errest+eps->nconv,residhist,blopex->bs);
