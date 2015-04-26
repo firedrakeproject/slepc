@@ -34,13 +34,10 @@ PetscErrorCode EPSSolve_BLOPEX(EPS);
 typedef struct {
   lobpcg_Tolerance           tol;
   lobpcg_BLASLAPACKFunctions blap_fn;
-  mv_MultiVectorPtr          eigenvectors, constraints;
   mv_InterfaceInterpreter    ii;
   ST                         st;
-  BV                         X,Y;
   Vec                        w;
   PetscInt                   bs;     /* block size */
-  PetscInt                   nc;     /* number of constraints */
 } EPS_BLOPEX;
 
 #undef __FUNCT__
@@ -162,11 +159,11 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 #else
   PetscErrorCode ierr;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
-  PetscBool      isPrecond,istrivial;
+  PetscBool      isPrecond,istrivial,flg;
 
   PetscFunctionBegin;
   if (!eps->ishermitian || (eps->isgeneralized && !eps->ispositive)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works for Hermitian problems");
-  if (!blopex->bs) blopex->bs = eps->nev;
+  if (!blopex->bs) blopex->bs = PetscMin(16,eps->nev);
   ierr = EPSSetDimensions_BLOPEX(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
@@ -181,9 +178,6 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (!isPrecond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works with STPRECOND");
   blopex->st = eps->st;
 
-  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
-  ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
-
   if (eps->converged == EPSConvergedEigRelative) {
     blopex->tol.absolute = 0.0;
     blopex->tol.relative = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
@@ -196,28 +190,15 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 
   SLEPCSetupInterpreter(&blopex->ii);
 
-  /* allocate work vector */
+  /* allocate memory */
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps->V,&flg,BVVECS,BVCONTIGUOUS,"");CHKERRQ(ierr);
+  if (!flg) {  /* blopex only works with BVVECS or BVCONTIGUOUS */
+    ierr = BVSetType(eps->V,BVCONTIGUOUS);CHKERRQ(ierr);
+  }
+  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = BVCreateVec(eps->V,&blopex->w);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)blopex->w);CHKERRQ(ierr);
-
-  /* allocate storage for bs eigenvectors */
-  ierr = BVCreate(PetscObjectComm((PetscObject)eps),&blopex->X);CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(blopex->X,blopex->w,blopex->bs);CHKERRQ(ierr);
-  ierr = BVSetType(blopex->X,BVCONTIGUOUS);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)blopex->X);CHKERRQ(ierr);
-  blopex->eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,blopex->bs,blopex->X);
-
-  /* allocate storage for constraints */
-  if (eps->nds<0) {
-    blopex->nc = -eps->nds;
-    ierr = BVCreate(PetscObjectComm((PetscObject)eps),&blopex->Y);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(blopex->Y,blopex->w,blopex->nc);CHKERRQ(ierr);
-    ierr = BVSetType(blopex->Y,BVCONTIGUOUS);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)blopex->Y);CHKERRQ(ierr);
-    ierr = BVInsertVecs(blopex->Y,0,&blopex->nc,eps->defl,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = SlepcBasisDestroy_Private(&eps->nds,&eps->defl);CHKERRQ(ierr);
-    blopex->constraints = mv_MultiVectorCreateFromSampleVector(&blopex->ii,blopex->nc,blopex->Y);
-  } else blopex->constraints = NULL;
 
 #if defined(PETSC_USE_COMPLEX)
   blopex->blap_fn.zpotrf = PETSC_zpotrf_interface;
@@ -237,17 +218,17 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 #define __FUNCT__ "EPSSolve_BLOPEX"
 PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 {
-  EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
-  PetscScalar    sigma,*eigr;
-  PetscReal      *errest;
-  Vec            v;
-  int            i,j,info,its,nconv;
-  double         *residhist=NULL;
-  PetscErrorCode ierr;
+  EPS_BLOPEX        *blopex = (EPS_BLOPEX*)eps->data;
+  PetscScalar       sigma,*eigr;
+  PetscReal         *errest;
+  int               i,j,info,its,nconv;
+  double            *residhist=NULL;
+  PetscErrorCode    ierr;
+  mv_MultiVectorPtr eigenvectors,constraints;
 #if defined(PETSC_USE_COMPLEX)
-  komplex        *lambdahist=NULL;
+  komplex           *lambdahist=NULL;
 #else
-  double         *lambdahist=NULL;
+  double            *lambdahist=NULL;
 #endif
 
   PetscFunctionBegin;
@@ -263,29 +244,34 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
 
-    /* Fill X with initial vectors */
-    for (i=0;i<blopex->bs;i++) {
-      ierr = BVGetColumn(blopex->X,i,&v);CHKERRQ(ierr);
-      ierr = BVCopyVec(eps->V,eps->nconv+i,v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(blopex->X,i,&v);CHKERRQ(ierr);
-    }
+    /* Create multivector of constraints from leading columns of V */
+    ierr = PetscObjectComposedDataSetInt((PetscObject)eps->V,SLEPC_BLOPEX_USECONSTR,1);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
+    constraints = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->nds+eps->nconv,eps->V);
+
+    /* Create multivector where eigenvectors of this run will be stored */
+    ierr = PetscObjectComposedDataSetInt((PetscObject)eps->V,SLEPC_BLOPEX_USECONSTR,0);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(eps->V,eps->nconv,eps->nconv+blopex->bs);CHKERRQ(ierr);
+    eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,blopex->bs,eps->V);
 
 #if defined(PETSC_USE_COMPLEX)
-    info = lobpcg_solve_complex(blopex->eigenvectors,eps,OperatorAMultiVector,
+    info = lobpcg_solve_complex(eigenvectors,eps,OperatorAMultiVector,
           eps->isgeneralized?eps:NULL,eps->isgeneralized?OperatorBMultiVector:NULL,
-          eps,Precond_FnMultiVector,blopex->constraints,
+          eps,Precond_FnMultiVector,constraints,
           blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
           (komplex*)eps->eigr+eps->nconv,lambdahist,blopex->bs,
           eps->errest+eps->nconv,residhist,blopex->bs);
 #else
-    info = lobpcg_solve_double(blopex->eigenvectors,eps,OperatorAMultiVector,
+    info = lobpcg_solve_double(eigenvectors,eps,OperatorAMultiVector,
           eps->isgeneralized?eps:NULL,eps->isgeneralized?OperatorBMultiVector:NULL,
-          eps,Precond_FnMultiVector,blopex->constraints,
+          eps,Precond_FnMultiVector,constraints,
           blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
           eps->eigr+eps->nconv,lambdahist,blopex->bs,
           eps->errest+eps->nconv,residhist,blopex->bs);
 #endif
-   if (info>0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"BLOPEX failed with exit code=%d",info);
+    if (info>0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"BLOPEX failed with exit code=%d",info);
+    mv_MultiVectorDestroy(constraints);
+    mv_MultiVectorDestroy(eigenvectors);
 
     if (eps->numbermonitors>0) {
       for (i=0;i<its;i++) {
@@ -304,35 +290,11 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
       eps->reason = EPS_DIVERGED_ITS;
       break;
     } else {
-      nconv = blopex->bs;
-      /* copy X eigenvectors to basis eps->V */
-      for (i=0;i<nconv;i++) {
+      for (i=0;i<blopex->bs;i++) {
         if (sigma != 0.0) eps->eigr[eps->nconv+i] += sigma;
-        ierr = BVGetColumn(eps->V,eps->nconv+i,&v);CHKERRQ(ierr);
-        ierr = BVCopyVec(blopex->X,i,v);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(eps->V,eps->nconv+i,&v);CHKERRQ(ierr);
       }
-      eps->nconv += nconv;
+      eps->nconv += blopex->bs;
       if (eps->nconv>=eps->nev) eps->reason = EPS_CONVERGED_TOL;
-      else {
-        /* add eigenvectors to basis of constraints Y */
-        if (blopex->constraints) {
-          mv_MultiVectorDestroy(blopex->constraints);
-          ierr = BVResize(blopex->Y,blopex->nc+nconv,PETSC_TRUE);CHKERRQ(ierr);
-        } else {
-          ierr = BVCreate(PetscObjectComm((PetscObject)eps),&blopex->Y);CHKERRQ(ierr);
-          ierr = BVSetSizesFromVec(blopex->Y,blopex->w,blopex->nc+nconv);CHKERRQ(ierr);
-          ierr = BVSetType(blopex->Y,BVCONTIGUOUS);CHKERRQ(ierr);
-          ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)blopex->Y);CHKERRQ(ierr);
-        }
-        for (i=0;i<nconv;i++) {
-          ierr = BVGetColumn(blopex->Y,blopex->nc+i,&v);CHKERRQ(ierr);
-          ierr = BVCopyVec(blopex->X,i,v);CHKERRQ(ierr);
-          ierr = BVRestoreColumn(blopex->Y,blopex->nc+i,&v);CHKERRQ(ierr);
-        }
-        blopex->nc += nconv;
-        blopex->constraints = mv_MultiVectorCreateFromSampleVector(&blopex->ii,blopex->nc,blopex->Y);
-      }
     }
   }
 
@@ -429,11 +391,7 @@ PetscErrorCode EPSReset_BLOPEX(EPS eps)
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
 
   PetscFunctionBegin;
-  mv_MultiVectorDestroy(blopex->eigenvectors);
-  mv_MultiVectorDestroy(blopex->constraints);
   ierr = VecDestroy(&blopex->w);CHKERRQ(ierr);
-  ierr = BVDestroy(&blopex->X);CHKERRQ(ierr);
-  ierr = BVDestroy(&blopex->Y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
