@@ -395,15 +395,16 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
     PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pU+offu,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));  
 #endif
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
-    /* SVD has rank newc */
-    for (i=0;i<newc;i++) {
+    /* SVD has rank min(newc,nrow) */
+    rk = PetscMin(newc,nrow);
+    for (i=0;i<rk;i++) {
       t = sg[i];
       PetscStackCallBLAS("BLASscal",BLASscal_(&newctdeg,&t,V+i,&n_));
     }
     for (i=0;i<deg;i++) {
       for (j=lock;j<lock+newc;j++) {
-        ierr = PetscMemcpy(S+j*lds+i*ld+lock,V+(newc*i+j-lock)*n,newc*sizeof(PetscScalar));CHKERRQ(ierr);
-        ierr = PetscMemzero(S+j*lds+i*ld+lock+newc,(ld-lock-newc)*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemcpy(S+j*lds+i*ld+lock,V+(newc*i+j-lock)*n,rk*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemzero(S+j*lds+i*ld+lock+rk,(ld-lock-rk)*sizeof(PetscScalar));CHKERRQ(ierr);
       }
     }
     /*
@@ -812,11 +813,11 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=0,nl,nconv;
+  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=0,nl,nconv=0;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,*pS0,sigma;
   PetscReal      beta,norm,*rwork;
-  PetscBool      breakdown=PETSC_FALSE,flg,lindep,falselock=PETSC_FALSE,def=PETSC_TRUE;
+  PetscBool      breakdown=PETSC_FALSE,flg,lindep,falselock=PETSC_FALSE,def=PETSC_FALSE;
   Mat            S0;
 
   PetscFunctionBegin;
@@ -877,7 +878,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     pep->its++;
     
     /* compute an nv-step Lanczos factorization */
-    nv = PetscMin(pep->nconv+pep->mpd,pep->ncv);
+    nv = PetscMax(PetscMin(nconv+pep->mpd,pep->ncv),nv);
     ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = PEPTOARrun(pep,sigma,&nq,S,ld,H,ldds,pep->nconv+l,&nv,&breakdown,work+nwu,lwa-nwu,pep->work,4);CHKERRQ(ierr);
     beta = PetscAbsScalar(H[(nv-1)*ldds+nv]);
@@ -902,7 +903,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* update l */
     if (pep->reason != PEP_CONVERGED_ITERATING || breakdown) l = 0;
     else {
-      l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
+      l = (nv==k)?0:PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
       if (!breakdown) {
         /* prepare the Rayleigh quotient for restart */
         ierr = DSTruncate(pep->ds,k+l);CHKERRQ(ierr);
@@ -910,18 +911,17 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
         l = newn-k;
       }
     }
-
+    nconv = k;
     /* decide on deflating Krylov vectors */
     if (def) {
       ierr = PEPLookfordeflation(pep,&nl);CHKERRQ(ierr);
       nl = PetscMin(nl,k);
-      if (ctx->lock && l>0) { 
-        nconv = k;
-        k = pep->nconv+nl; l = l+nconv-k;
+      if (ctx->lock && pep->reason == PEP_CONVERGED_ITERATING && !breakdown) { 
+        k = pep->nconv+nl; l = newn-k;
       }
     } else nl = k-pep->nconv;
 
-    if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
+    if (!ctx->lock && pep->reason == PEP_CONVERGED_ITERATING && !breakdown) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     /* update S */
     off = pep->nconv*ldds;
@@ -940,10 +940,12 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     if (pep->reason != PEP_CONVERGED_ITERATING) {l--; flg = PETSC_TRUE;}
     else flg = PETSC_FALSE;
     /* truncate S */
-    if (!falselock && ctx->lock) {
-      ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,pep->nconv,(flg)?k-pep->nconv:nl,flg,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
-    } else {
-      ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,0,0,flg,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+    if (k+l+deg<nq) {
+      if (!falselock && ctx->lock) {
+        ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,pep->nconv,(flg)?k-pep->nconv:nl,flg,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+      } else {
+        ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,0,0,flg,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+      }
     }
     pep->nconv = k;
     ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
