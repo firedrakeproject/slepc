@@ -29,9 +29,9 @@
       program main
       implicit none
 
-#include <petsc-finclude/petscsys.h>
-#include <petsc-finclude/petscmat.h>
-#include <slepc-finclude/slepcds.h>
+#include <petsc/finclude/petscsys.h>
+#include <petsc/finclude/petscmat.h>
+#include <slepc/finclude/slepcds.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Declarations

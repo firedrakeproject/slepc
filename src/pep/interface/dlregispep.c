@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>
+#include <slepc/private/pepimpl.h>
 
 static PetscBool PEPPackageInitialized = PETSC_FALSE;
 

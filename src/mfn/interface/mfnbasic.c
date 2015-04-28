@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/mfnimpl.h>      /*I "slepcmfn.h" I*/
+#include <slepc/private/mfnimpl.h>      /*I "slepcmfn.h" I*/
 
 PetscFunctionList MFNList = 0;
 PetscBool         MFNRegisterAllCalled = PETSC_FALSE;
@@ -194,7 +194,7 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   PetscValidPointer(outmfn,2);
   *outmfn = 0;
   ierr = MFNInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(mfn,_p_MFN,struct _MFNOps,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(mfn,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView);CHKERRQ(ierr);
 
   mfn->A               = NULL;
   mfn->fn              = NULL;

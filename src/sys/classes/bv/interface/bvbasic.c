@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/bvimpl.h>      /*I "slepcbv.h" I*/
+#include <slepc/private/bvimpl.h>      /*I "slepcbv.h" I*/
 
 PetscBool         BVRegisterAllCalled = PETSC_FALSE;
 PetscFunctionList BVList = 0;
@@ -154,6 +154,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
     ierr = (*bv->ops->create)(bv);CHKERRQ(ierr);
     ierr = PetscLogEventEnd(BV_Create,bv,0,0,0);CHKERRQ(ierr);
     bv->ops->create = 0;
+    bv->defersfo = PETSC_FALSE;
   }
   PetscFunctionReturn(0);
 }
@@ -261,6 +262,10 @@ PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
    This function sets the number of constraints to nc and marks all remaining
    columns as regular. Normal user would call BVInsertConstraints() instead.
 
+   If nc is smaller than the previously set value, then some of the constraints
+   are discarded. In particular, using nc=0 removes all constraints preserving
+   the content of regular columns.
+
    Level: developer
 
 .seealso: BVInsertConstraints()
@@ -268,24 +273,35 @@ PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
 PetscErrorCode BVSetNumConstraints(BV V,PetscInt nc)
 {
   PetscErrorCode ierr;
-  PetscInt       total;
+  PetscInt       total,diff,i;
+  Vec            x,y;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(V,nc,2);
-  if (!nc) PetscFunctionReturn(0);
   if (nc<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %D) cannot be negative",nc);
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   if (V->ci[0]!=-V->nc-1 || V->ci[1]!=-V->nc-1) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot call BVSetNumConstraints after BVGetColumn");
 
+  diff = nc-V->nc;
+  if (!diff) PetscFunctionReturn(0);
   total = V->nc+V->m;
+  if (total-nc<=0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Not enough columns for the given nc value");
+  if (diff<0) {  /* lessen constraints, shift contents of BV */
+    for (i=0;i<V->m;i++) {
+      ierr = BVGetColumn(V,i,&x);CHKERRQ(ierr);
+      ierr = BVGetColumn(V,i+diff,&y);CHKERRQ(ierr);
+      ierr = VecCopy(x,y);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(V,i,&x);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(V,i+diff,&y);CHKERRQ(ierr);
+    }
+  }
   V->nc = nc;
-  V->m = total-nc;
-  if (V->m<=0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Not enough columns for the given nc value");
   V->ci[0] = -V->nc-1;
   V->ci[1] = -V->nc-1;
   V->l = 0;
+  V->m = total-nc;
   V->k = V->m;
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -704,6 +720,17 @@ PetscErrorCode BVSetFromOptions(BV bv)
     ierr = PetscOptionsReal("-bv_orthog_eta","Parameter of iterative refinement during orthogonalization","BVSetOrthogonalization",r,&r,NULL);CHKERRQ(ierr);
     ierr = BVSetOrthogonalization(bv,(BVOrthogType)i,(BVOrthogRefineType)j,r);CHKERRQ(ierr);
 
+    ierr = PetscOptionsBoolGroupBegin("-bv_matmult_vecs","Do matmult as matrix-vector products","BVSetMatMultMethod",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = BVSetMatMultMethod(bv,BV_MATMULT_VECS);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-bv_matmult_mat","Do matmult as a single matrix-matrix product","BVSetMatMultMethod",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = BVSetMatMultMethod(bv,BV_MATMULT_MAT);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-bv_matmult_mat_save","Do matmult as a single matrix-matrix product and save auxiliary matrices","BVSetMatMultMethod",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = BVSetMatMultMethod(bv,BV_MATMULT_MAT_SAVE);CHKERRQ(ierr); }
+
+    if (bv->ops->create) bv->defersfo = PETSC_TRUE;   /* defer call to setfromoptions */
+    else if (bv->ops->setfromoptions) {
+      ierr = (*bv->ops->setfromoptions)(PetscOptionsObject,bv);CHKERRQ(ierr);
+    }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)bv);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -804,6 +831,72 @@ PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineTyp
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVSetMatMultMethod"
+/*@
+   BVSetMatMultMethod - Specifies the method used for the BVMatMult() operation.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  bv     - the basis vectors context
+-  method - the method for the BVMatMult() operation
+
+   Options Database Keys:
++  -bv_matmult_vecs - perform a matrix-vector multiply per each column
+.  -bv_matmult_mat - carry out a MatMatMult() product with a dense matrix
+-  -bv_matmult_mat_save - call MatMatMult() and keep auxiliary matrices
+
+   Note:
+   The default is BV_MATMULT_MAT.
+
+   Level: advanced
+
+.seealso: BVGetMatMultMethod(), BVMatMultType
+@*/
+PetscErrorCode BVSetMatMultMethod(BV bv,BVMatMultType method)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(bv,method,2);
+  switch (method) {
+    case BV_MATMULT_VECS:
+    case BV_MATMULT_MAT:
+    case BV_MATMULT_MAT_SAVE:
+      bv->vmm = method;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Unknown matmult method");
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetMatMultMethod"
+/*@C
+   BVGetMatMultMethod - Gets the method used for the BVMatMult() operation.
+
+   Not Collective
+
+   Input Parameter:
+.  bv - basis vectors context
+
+   Output Parameter:
+.  method - the method for the BVMatMult() operation
+
+   Level: advanced
+
+.seealso: BVSetMatMultMethod(), BVMatMultType
+@*/
+PetscErrorCode BVGetMatMultMethod(BV bv,BVMatMultType *method)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidPointer(bv,method);
+  *method = bv->vmm;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVGetColumn"
 /*@
    BVGetColumn - Returns a Vec object that contains the entries of the
@@ -848,7 +941,7 @@ PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
   if (j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %D but only %D are available",j,bv->m);
   if (j==bv->ci[0] || j==bv->ci[1]) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Column %D already fetched in a previous call to BVGetColumn",j);
   l = BVAvailableVec;
-  if (l==-1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Too many requested columns; you must call BVReleaseColumn for one of the previously fetched columns");
+  if (l==-1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Too many requested columns; you must call BVRestoreColumn for one of the previously fetched columns");
   ierr = (*bv->ops->getcolumn)(bv,j,v);CHKERRQ(ierr);
   bv->ci[l] = j;
   ierr = PetscObjectStateGet((PetscObject)bv->cv[l],&bv->st[l]);CHKERRQ(ierr);
@@ -984,9 +1077,9 @@ PetscErrorCode BVRestoreArray(BV bv,PetscScalar **a)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVGetVec"
+#define __FUNCT__ "BVCreateVec"
 /*@
-   BVGetVec - Creates a new Vec object with the same type and dimensions
+   BVCreateVec - Creates a new Vec object with the same type and dimensions
    as the columns of the basis vectors object.
 
    Collective on BV
@@ -1002,7 +1095,7 @@ PetscErrorCode BVRestoreArray(BV bv,PetscScalar **a)
 
    Level: beginner
 @*/
-PetscErrorCode BVGetVec(BV bv,Vec *v)
+PetscErrorCode BVCreateVec(BV bv,Vec *v)
 {
   PetscErrorCode ierr;
 

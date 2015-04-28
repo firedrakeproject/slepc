@@ -21,6 +21,6 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/rgimpl.h>      /*I "slepcrg.h" I*/
+#include <slepc/private/rgimpl.h>      /*I "slepcrg.h" I*/
 
 

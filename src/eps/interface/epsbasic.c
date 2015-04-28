@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>      /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>      /*I "slepceps.h" I*/
 
 PetscFunctionList EPSList = 0;
 PetscBool         EPSRegisterAllCalled = PETSC_FALSE;
@@ -57,7 +57,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   PetscValidPointer(outeps,2);
   *outeps = 0;
   ierr = EPSInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(eps,_p_EPS,struct _EPSOps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(eps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView);CHKERRQ(ierr);
 
   eps->max_it          = 0;
   eps->nev             = 1;

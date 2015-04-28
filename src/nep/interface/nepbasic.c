@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>      /*I "slepcnep.h" I*/
+#include <slepc/private/nepimpl.h>      /*I "slepcnep.h" I*/
 
 PetscFunctionList NEPList = 0;
 PetscBool         NEPRegisterAllCalled = PETSC_FALSE;
@@ -54,7 +54,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   PetscValidPointer(outnep,2);
   *outnep = 0;
   ierr = NEPInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(nep,_p_NEP,struct _NEPOps,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(nep,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView);CHKERRQ(ierr);
 
   nep->max_it          = 0;
   nep->max_funcs       = 0;

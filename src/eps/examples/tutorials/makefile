@@ -45,7 +45,7 @@ TESTEXAMPLES_C_NOCOMPLEX       = ex4.PETSc runex4_1 ex4.rm \
 TESTEXAMPLES_FORTRAN_NOCOMPLEX = ex6f.PETSc runex6f_1 ex6f.rm
 TESTEXAMPLES_F90               = ex1f90.PETSc runex1f90_1 ex1f90.rm
 
-include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 ex1: ex1.o chkopts
 	-${CLINKER} -o ex1 ex1.o ${SLEPC_EPS_LIB}

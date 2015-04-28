@@ -190,7 +190,7 @@ else:
 # Create directories for configuration files
 archdir, archdirexisted = CreateDirTest(slepc.dir,archname,log)
 libdir  = CreateDir(archdir,'lib',log)
-confdir = CreateDir(libdir,'slepc-conf',log)
+confdir = CreateDirTwo(libdir,'slepc','conf',log)
 
 # Open log file
 log.Open(os.path.join(confdir,'configure.log'))
@@ -275,7 +275,7 @@ if slepc.isrepo:
 
 # Create global configuration file for the case of empty PETSC_ARCH
 if emptyarch:
-  globconf = CreateFile(os.path.join(slepc.dir,'lib','slepc-conf'),'slepcvariables',log)
+  globconf = CreateFile(os.path.join(slepc.dir,'lib','slepc','conf'),'slepcvariables',log)
   globconf.write('SLEPC_DIR = '+slepc.dir+'\n')
   globconf.write('PETSC_ARCH = '+archname+'\n')
   globconf.close()

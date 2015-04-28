@@ -21,7 +21,7 @@ c_test
 RDict.db
 RDict.log
 TAGS*
-lib/slepc-conf/slepcvariables
+lib/slepc/conf/slepcvariables
 configure.log*
 externalpackages/*
 ftn-auto

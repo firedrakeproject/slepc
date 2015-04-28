@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>
-#include <slepc-private/stimpl.h>
+#include <slepc/private/pepimpl.h>
+#include <slepc/private/stimpl.h>
 #include <slepcblaslapack.h>
 
 typedef struct {
@@ -639,8 +639,8 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
   nwu += nmat*k*k;
   Rh = work+nwu;
   nwu += k;
-  ierr = BVGetVec(pep->V,&t);CHKERRQ(ierr);
-  ierr = BVGetVec(pep->V,&Rv);CHKERRQ(ierr);
+  ierr = BVCreateVec(pep->V,&t);CHKERRQ(ierr);
+  ierr = BVCreateVec(pep->V,&Rv);CHKERRQ(ierr);
   ierr = KSPGetOperators(ksp,&M,NULL);CHKERRQ(ierr);
   if (matctx) {
     fh = work+nwu;
@@ -960,8 +960,8 @@ static PetscErrorCode PEPNRefSetUpMatrices(PEP pep,PetscInt k,PetscScalar *H,Pet
       ctx->k = k; ctx->nmat = nmat;
       ierr = PetscMalloc3(k*k*nmat,&ctx->Mm,2*k*k,&ctx->work,nmat,&ctx->fih);CHKERRQ(ierr);
       ierr = PetscMemzero(ctx->Mm,k*k*nmat*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = BVGetVec(pep->V,&ctx->w1);CHKERRQ(ierr);
-      ierr = BVGetVec(pep->V,&ctx->w2);CHKERRQ(ierr);
+      ierr = BVCreateVec(pep->V,&ctx->w1);CHKERRQ(ierr);
+      ierr = BVCreateVec(pep->V,&ctx->w2);CHKERRQ(ierr);
       ierr = MatCreateShell(comm,PETSC_DECIDE,PETSC_DECIDE,m0,n0,ctx,M);CHKERRQ(ierr);
       ierr = MatShellSetOperation(*M,MATOP_MULT,(void(*)(void))MatFSMult);CHKERRQ(ierr);
     }

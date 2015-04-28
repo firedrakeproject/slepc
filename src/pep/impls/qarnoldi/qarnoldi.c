@@ -34,7 +34,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>    /*I "slepcpep.h" I*/
+#include <slepc/private/pepimpl.h>    /*I "slepcpep.h" I*/
 #include <petscblaslapack.h>
 
 typedef struct {
@@ -502,7 +502,7 @@ PetscErrorCode PEPSetFromOptions_QArnoldi(PetscOptions *PetscOptionsObject,PEP p
   if (flg) {
     ierr = PEPQArnoldiSetRestart(pep,keep);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsBool("-pep_qarnoldi_locking","Choose between locking and non-locking variants","PEPQArnoldiSetLocking",PETSC_TRUE,&lock,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-pep_qarnoldi_locking","Choose between locking and non-locking variants","PEPQArnoldiSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PEPQArnoldiSetLocking(pep,lock);CHKERRQ(ierr);
   }

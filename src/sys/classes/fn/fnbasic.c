@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/fnimpl.h>      /*I "slepcfn.h" I*/
+#include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
 #include <slepcblaslapack.h>
 
 PetscFunctionList FNList = 0;
@@ -124,7 +124,7 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
   PetscValidPointer(newfn,2);
   *newfn = 0;
   ierr = FNInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(fn,_p_FN,struct _FNOps,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(fn,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView);CHKERRQ(ierr);
 
   fn->alpha    = 1.0;
   fn->beta     = 1.0;

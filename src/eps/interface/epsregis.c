@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>  /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>  /*I "slepceps.h" I*/
 
 PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS);
 PETSC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS);
