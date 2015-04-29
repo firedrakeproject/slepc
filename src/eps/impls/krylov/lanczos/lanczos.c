@@ -35,7 +35,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
 PetscErrorCode EPSSolve_Lanczos(EPS);
@@ -512,12 +512,10 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
 {
   PetscErrorCode     ierr;
   EPS_LANCZOS        *lanczos = (EPS_LANCZOS*)eps->data;
-  /*
   PetscScalar        *T;
   PetscInt           i,n=*m;
   PetscReal          betam;
   BVOrthogRefineType orthog_ref;
-  */
 
   PetscFunctionBegin;
   switch (lanczos->reorthog) {
@@ -535,14 +533,12 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
       ierr = EPSPartialLanczos(eps,alpha,beta,k,m,breakdown,anorm);CHKERRQ(ierr);
       break;
     case EPS_LANCZOS_REORTHOG_DELAYED:
-      SETERRQ(PetscObjectComm((PetscObject)eps),1,"Not implemented");
-      /*
       ierr = PetscMalloc1(n*n,&T);CHKERRQ(ierr);
-      ierr = BVGetOrthogonalization(eps->ip,NULL,&orthog_ref,NULL);CHKERRQ(ierr);
+      ierr = BVGetOrthogonalization(eps->V,NULL,&orthog_ref,NULL);CHKERRQ(ierr);
       if (orthog_ref == BV_ORTHOG_REFINE_NEVER) {
-        ierr = EPSDelayedArnoldi1(eps,T,n,V,k,m,f,&betam,breakdown);CHKERRQ(ierr);
+        ierr = EPSDelayedArnoldi1(eps,T,n,k,m,&betam,breakdown);CHKERRQ(ierr);
       } else {
-        ierr = EPSDelayedArnoldi(eps,T,n,V,k,m,f,&betam,breakdown);CHKERRQ(ierr);
+        ierr = EPSDelayedArnoldi(eps,T,n,k,m,&betam,breakdown);CHKERRQ(ierr);
       }
       for (i=k;i<n-1;i++) {
         alpha[i] = PetscRealPart(T[n*i+i]);
@@ -552,7 +548,6 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
       beta[n-1] = betam;
       ierr = PetscFree(T);CHKERRQ(ierr);
       break;
-      */
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid reorthogonalization type");
   }

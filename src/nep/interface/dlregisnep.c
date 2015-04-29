@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>
+#include <slepc/private/nepimpl.h>
 
 static PetscBool NEPPackageInitialized = PETSC_FALSE;
 

@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>
+#include <slepc/private/epsimpl.h>
 
 static PetscBool EPSPackageInitialized = PETSC_FALSE;
 

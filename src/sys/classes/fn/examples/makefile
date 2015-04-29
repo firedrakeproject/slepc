@@ -24,5 +24,5 @@ ALL:
 LOCDIR   = src/sys/classes/fn/examples/
 DIRS     = tests
 
-include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

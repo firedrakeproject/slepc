@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>
+#include <slepc/private/nepimpl.h>
 #include <slepcblaslapack.h>
 
 #define NREF_MAXIT 10
@@ -39,12 +39,10 @@ typedef struct {
 static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
 {
   PetscErrorCode ierr;
-  PetscInt       i,si,j,n0,m0,nloc,*idx1,*idx2,na,nb;
+  PetscInt       i,si,j,n0,m0,nloc,*idx1,*idx2;
   IS             is1,is2;
   NEPSimpNRefctx *ctx;
   Vec            v;
-  FNType         type;
-  PetscScalar    *alpha,*beta;
 
   PetscFunctionBegin;
   ierr = PetscMalloc1(1,ctx_);CHKERRQ(ierr);
@@ -72,13 +70,7 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
     /* Duplicate FNs */
     ierr = PetscMalloc1(nep->nt,&ctx->fn);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
-      ierr = FNCreate(PetscSubcommChild(ctx->subc),&ctx->fn[i]);CHKERRQ(ierr);
-      ierr = FNGetType(nep->f[i],&type);CHKERRQ(ierr);
-      ierr = FNSetType(ctx->fn[i],type);CHKERRQ(ierr);
-      ierr = FNGetParameters(nep->f[i],&na,&alpha,&nb,&beta);CHKERRQ(ierr);
-      ierr = FNSetParameters(ctx->fn[i],na,alpha,nb,beta);CHKERRQ(ierr);
-      ierr = PetscFree(alpha);CHKERRQ(ierr); 
-      ierr = PetscFree(beta);CHKERRQ(ierr); 
+      ierr = FNDuplicate(nep->f[i],PetscSubcommChild(ctx->subc),&ctx->fn[i]);CHKERRQ(ierr);
     }
 
     /* Create scatters for sending vectors to each subcommucator */

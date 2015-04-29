@@ -34,6 +34,6 @@ DIRS     =
 MANSEC   = EPS
 LOCDIR   = src/eps/impls/external/blzpack/
 
-include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

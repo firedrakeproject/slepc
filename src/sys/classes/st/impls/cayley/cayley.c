@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>          /*I "slepcst.h" I*/
+#include <slepc/private/stimpl.h>          /*I "slepcst.h" I*/
 
 typedef struct {
   PetscScalar nu;
@@ -185,6 +185,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)ctx->w2);CHKERRQ(ierr);
   }
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+  ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
   ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -245,7 +246,7 @@ PetscErrorCode STSetFromOptions_Cayley(PetscOptions *PetscOptionsObject,ST st)
     } else {
       /* use direct solver as default */
       ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
     }
   }
 

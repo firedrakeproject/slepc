@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>
-#include <slepc-private/stimpl.h>
+#include <slepc/private/pepimpl.h>
+#include <slepc/private/stimpl.h>
 #include <slepcblaslapack.h>
 
 typedef struct {
@@ -458,9 +458,9 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
   PetscFunctionBegin;
   ierr = PetscMalloc3(nmat*k*k,&DfH,k,&Rh,nmat,&fh);CHKERRQ(ierr);
   *rds = 0;
-  ierr = BVGetVec(pep->V,&Rv);CHKERRQ(ierr);
+  ierr = BVCreateVec(pep->V,&Rv);CHKERRQ(ierr);
   if (matctx->subc) {
-    ierr = BVGetVec(pep->V,&t);CHKERRQ(ierr);
+    ierr = BVCreateVec(pep->V,&t);CHKERRQ(ierr);
     ierr = BVDuplicateResize(pep->V,PetscMax(k,nmat),&W);CHKERRQ(ierr);    
   } else {
     W = matctx->W;
@@ -636,14 +636,14 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
 #define __FUNCT__ "PEPNRefSetUp"
 static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,MatExplicitCtx *matctx,PetscBool ini)
 {
-  PetscErrorCode  ierr;
-  PetscScalar     *coef,*array; 
-  MatStructure    str;
-  PetscInt        j,nmat=pep->nmat,i;
-  MPI_Comm        comm;
-  Mat             *A,*At;
-  Vec             v;
-  PetscBool       flg;
+  PetscErrorCode    ierr;
+  PetscScalar       *coef,*array;
+  MatStructure      str;
+  PetscInt          j,nmat=pep->nmat,i;
+  MPI_Comm          comm;
+  Mat               *A,*At;
+  Vec               v;
+  PetscBool         flg;
 
   PetscFunctionBegin;
   ierr = PetscMalloc1(nmat,&coef);CHKERRQ(ierr);
@@ -707,14 +707,14 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
 #define __FUNCT__ "NRefSubcommSetup"
 static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx,PetscInt nsubc)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,si,j,m0,n0,nloc0,nloc_sub,*idx1,*idx2;
-  IS             is1,is2;
-  BVType         type;
-  Vec            v;
-  PetscScalar    *array;
-  Mat            *A;
-  PetscBool      flg;
+  PetscErrorCode    ierr;
+  PetscInt          i,si,j,m0,n0,nloc0,nloc_sub,*idx1,*idx2;
+  IS                is1,is2;
+  BVType            type;
+  Vec               v;
+  const PetscScalar *array;
+  Mat               *A;
+  PetscBool         flg;
 
   PetscFunctionBegin;
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
@@ -776,10 +776,11 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
     ierr = VecScatterBegin(matctx->scatter_sub,v,matctx->tg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
     ierr = VecScatterEnd(matctx->scatter_sub,v,matctx->tg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
     ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
-    ierr = VecGetArray(matctx->tg,&array);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(matctx->tg,&array);CHKERRQ(ierr);
     ierr = VecPlaceArray(matctx->t,(const PetscScalar*)array);CHKERRQ(ierr);
     ierr = BVInsertVec(matctx->V,i,matctx->t);CHKERRQ(ierr);
     ierr = VecResetArray(matctx->t);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(matctx->tg,&array);CHKERRQ(ierr);
   }
 
   ierr = VecDuplicate(matctx->t,&matctx->Rv);CHKERRQ(ierr);

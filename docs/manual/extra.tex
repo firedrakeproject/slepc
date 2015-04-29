@@ -119,7 +119,7 @@ Apart from the main solver classes listed on page \pageref{tab:modules}, \slepc 
 \begin{itemize}
 \setlength\itemsep{0pt}
 \item \ident{ST}: Spectral Transformation, fully described in chapter \ref{cap:st}.
-\item \ident{FN}: Mathematical Function, required in application code to represent the constituent functions of the nonlinear operator in split form, as described in chapter \ref{cap:nep}.
+\item \ident{FN}: Mathematical Function, required in application code to represent the constituent functions of the nonlinear operator in split form, as described in chapter \ref{cap:nep}, as well as to specify the function to be used when computing the action of a matrix function on a vector (see chapter \ref{cap:mfn}).
 \item \ident{DS}: Direct Solver (or Dense System), can be seen as a wrapper to \lapack functions used within \slepc. It is mostly an internal object that need not be called by end users.
 \item \ident{BV}: Basis Vectors, provides the concept of a block of vectors that represent the basis of a subspace.
 \item \ident{RG}: Region, a way to define a region of the complex plane and perform simple operations on it.
@@ -132,30 +132,45 @@ Apart from the main solver classes listed on page \pageref{tab:modules}, \slepc 
 {\small \begin{tabular}{lll}
 Function                & \ident{FNType}      & Expression\\\hline
 Polynomial and rational & \texttt{FNRATIONAL} & $p(x)/q(x)$ \\
-Exponential             & \texttt{FNEXP}      & $\beta_1e^{\alpha_1x}$ \\\hline
+Exponential             & \texttt{FNEXP}      & $e^x$ \\
+Logarithm               & \texttt{FNLOG}      & $\log x$ \\
+$\varphi$-functions     & \texttt{FNPHI}      & $\varphi_0(x)$, $\varphi_1(x)$, \dots \\
+Square root             & \texttt{FNSQRT}     & $\sqrt{x}$ \\\hline
+Combine two functions   & \texttt{FNCOMBINE}  & See text\\\hline
 \end{tabular} }
 \caption{\label{tab:fn}Mathematical functions available as \ident{FN} objects.}
 \end{table}
 
-The \ident{FN} class provides a few predefined mathematical functions, including rational functions (of which polynomials are a particular case) and exponentials. Objects of this class are instantiated by providing the values of the relevant coefficients. \ident{FN} objects are created with \ident{FNCreate} and it is necessary to select the type of function (rational, exponential, etc.)\ before specifying the parameters with
-	\findex{FNSetParameters}
-	\begin{Verbatim}[fontsize=\small]
-     FNSetParameters(FN fn,PetscInt n,PetscScalar *alpha,PetscInt m,PetscScalar *beta);
-	\end{Verbatim}
-Parameters are organized in two groups, $\alpha_i,i=1,\ldots,n$ and $\beta_j,j=1,\ldots,m$.
+The \ident{FN} class provides a few predefined mathematical functions, including rational functions (of which polynomials are a particular case) and exponentials. Objects of this class are instantiated by providing the values of the relevant parameters. \ident{FN} objects are created with \ident{FNCreate} and it is necessary to select the type of function (rational, exponential, etc.)\ with \ident{FNSetType}. Table \ref{tab:fn} lists available functions.
 
-In a rational function, the parameters are the coefficients of the numerator and denominator, respectively,
+Parameters common to all \ident{FN} types are the scaling factors, which are set with
+	\findex{FNSetScale}
+	\begin{Verbatim}[fontsize=\small]
+        FNSetScale(FN fn,PetscScalar alpha,PetscScalar beta);
+	\end{Verbatim}
+where \texttt{alpha} multiplies the argument and \texttt{beta} multiplies the result. With this, the actual function is $\beta\cdot f(\alpha\cdot x)$ for a given function $f(\cdot)$. For instance, an exponential function $f(x)=e^x$ will turn into
+\begin{equation}
+g(x)=\beta e^{\alpha x}.
+\end{equation}
+
+In a rational function there are specific parameters, namely the coefficients of the numerator and denominator,
 \begin{equation}
 r(x)=\frac{p(x)}{q(x)}
-=\frac{\alpha_1x^{n-1}+\cdots+\alpha_{n-1}x+\alpha_{n}}{\beta_1x^{m-1}+\cdots+\beta_{m-1}x+\beta_{m}}.
+=\frac{\nu_{n-1}x^{n-1}+\cdots+\nu_1x+\nu_0}{\delta_{m-1}x^{m-1}+\cdots+\delta_1x+\delta_0}.
 \end{equation}
-If $m=0$ then the function is just a polynomial $p(x)$. If $n=0$ then the function is $1/q(x)$.
+These parameters are specified with
+	\findex{FNRationalSetNumerator}\findex{FNRationalSetDenominator}
+	\begin{Verbatim}[fontsize=\small]
+        FNRationalSetNumerator(FN fn,PetscInt np,PetscScalar *pcoeff);
+        FNRationalSetDenominator(FN fn,PetscInt nq,PetscScalar *qcoeff);
+	\end{Verbatim}
+Here, polynomials are passed as an array with high order coefficients appearing in low indices.
 
-In an exponential function, the first parameter in each group is a scaling factor for the exponent and the exponential, respectively,
+The $\varphi$-functions are given by
 \begin{equation}
-g(x)=\beta_1e^{\alpha_1x}.
+\varphi_0(x)=e^x,\qquad \varphi_1(x)=\frac{e^x-1}{x},\qquad \varphi_k(x)=\frac{\varphi_{k-1}(x)-1/(k-1)!}{x},
 \end{equation}
-If $n=0$ or $m=0$ then the corresponding scaling factors are set to 1.
+where the index $k$ must be specified with \ident{FNPhiSetIndex}.
 
 Whenever the solvers need to compute $f(x)$ or $f'(x)$ on a given scalar $x$, the following functions are invoked:
 	\findex{FNEvaluateFunction}\findex{FNEvaluateDerivative}
@@ -163,7 +178,18 @@ Whenever the solvers need to compute $f(x)$ or $f'(x)$ on a given scalar $x$, th
         FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
         FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
 	\end{Verbatim}
+The function can also be evaluated as a matrix function, $B=f(A)$, where $A,B$ are small, dense, square matrices. This is done with \ident{FNEvaluateFunctionMat}. Note that for a rational function, the corresponding expression would be $q(A)^{-1}p(A)$.
 
+Finally, there is a mechanism to combine simple functions in order to create more complicated functions. For instance, the function
+\begin{equation}
+f(x) = (1-x^2) \exp\left( \frac{-x}{1+x^2} \right)
+\end{equation}
+can be represented with an expression tree with three leaves (one exponential function and two rational functions) and two interior nodes (one of them is the root, $f(x)$). Interior nodes are simply \ident{FN} objects of type \texttt{FNCOMBINE} that specify how the two children must be combined (with either addition, multiplication, division or function composition):
+	\findex{FNCombineSetChildren}
+	\begin{Verbatim}[fontsize=\small]
+        FNCombineSetChildren(FN fn,FNCombineType comb,FN f1,FN f2)
+	\end{Verbatim}
+The combination of $f_1$ and $f_2$ with division will result in $f_1(x)/f_2(x)$ and $f_2(A)^{-1}f_1(A)$ in the case of matrices.
 
 \paragraph{BV: Basis Vectors}
 
@@ -193,22 +219,11 @@ Most \slepc solvers use a \ident{BV} object to represent the working subspace ba
 
 \paragraph{RG: Region}
 
-The \ident{RG} object defines a region of the complex plane, which can be used to specify where eigenvalues must sought. Currently, the following types of regions are available:
+The \ident{RG} object defines a region of the complex plane, that can be used to specify where eigenvalues must be sought. Currently, the following types of regions are available:
 \begin{itemize}
 \item A (generalized) interval, defined as $[a,b]\times[c,d]$, where the four parameters can be set with \ident{RGIntervalSetEndpoints}. This covers the particular cases of an interval on the real axis (setting $c=d=0$), the left halfplane $[-\infty,0]\times[-\infty,+\infty]$, a quadrant, etc.
 \item An ellipse defined by its center, radius and vertical scale (1 by default), see \ident{RGEllipseSetParameters}).
 \end{itemize}
-
-\begin{table}
-\centering
-{\small \begin{tabular}{lll}
-                       &                     & {\footnotesize Options} \\
-Region Type            & \ident{RGType}      & {\footnotesize Database Name}\\\hline
-(Generalized) Interval & \texttt{RGINTERVAL} & \texttt{interval} \\
-Ellipse                & \texttt{RGELLIPSE}  & \texttt{ellipse} \\\hline
-\end{tabular} }
-\caption{\label{tab:rg}Regions available as \ident{RG} objects.}
-\end{table}
 
 Sometimes it is useful to specify the complement of a certain region, e.g., the part of the complex plane outside an ellipse. This can be achieved with
 	\findex{RGSetComplement}
@@ -230,6 +245,17 @@ Another useful operation is to check whether a given point of the complex plane 
 	\end{Verbatim}
 Note that the point is represented as two \texttt{PetscScalar}'s, similarly to eigenvalues in \slepc.
 
+\begin{table}
+\centering
+{\small \begin{tabular}{lll}
+                       &                     & {\footnotesize Options} \\
+Region Type            & \ident{RGType}      & {\footnotesize Database Name}\\\hline
+(Generalized) Interval & \texttt{RGINTERVAL} & \texttt{interval} \\
+Ellipse                & \texttt{RGELLIPSE}  & \texttt{ellipse} \\\hline
+\end{tabular} }
+\caption{\label{tab:rg}Regions available as \ident{RG} objects.}
+\end{table}
+
 %---------------------------------------------------
 \section{Directory Structure}
 
@@ -241,8 +267,8 @@ Note that the point is represented as two \texttt{PetscScalar}'s, similarly to e
 \item[\texttt{include}] - All include files for \slepc. The following subdirectories exist:
 \begin{description}
 \setlength{\itemsep}{0mm}
-\item[\texttt{slepc-finclude}] - include files for Fortran programmers.
-\item[\texttt{slepc-private}] - include files containing implementation details, for developer use only.
+\item[\texttt{slepc/finclude}] - include files for Fortran programmers.
+\item[\texttt{slepc/private}] - include files containing implementation details, for developer use only.
 \end{description}
 \item[\texttt{shared/slepc}] - Common files, including:
 \begin{description}
@@ -264,7 +290,7 @@ Note that the point is represented as two \texttt{PetscScalar}'s, similarly to e
 \begin{description}
 \setlength{\itemsep}{0mm}
 \item[\texttt{lib}] - all the generated libraries.
-\item[\texttt{lib/slepc-conf}] - configuration parameters and log files.
+\item[\texttt{lib/slepc/conf}] - configuration parameters and log files.
 \item[\texttt{include}] - automatically generated include files, such as Fortran 90 \texttt{*.mod} files.
 \end{description}
 \end{description}
@@ -376,13 +402,15 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 
 	\trlan{} requires the user to provide a matrix-vector multiplication routine. The parallel version uses MPI as the message passing layer. 
 	\item[Installation.] To install this package, it is necessary to have access to a Fortran 90 compiler. The compiler name and the options used are specified in the file called \texttt{Make.inc}. To generate the library, type \texttt{make plib} in the \texttt{TRLan} directory.
+
+	It is possible to configure \slepc with the serial version of \trlan (built with \texttt{make lib}). For this, you have to configure \petsc with the option \texttt{-{}-with-mpi=0}.
 	\end{description}
 
 \subsection*{\underline{\blopex}}
 	\begin{description}
 	\setlength{\itemsep}{0pt}
 	\item[References.]\citep{Knyazev:2007:BLO}.
-	\item[Website.] \url{http://code.google.com/p/blopex}.
+	\item[Website.] \url{http://bitbucket.org/joseroman/blopex}.
 	\item[Summary.] \blopex is a package that implements the Locally Optimal Block Preconditioned Conjugate Gradient (LOBPCG) method for computing several extreme eigenpairs of symmetric positive generalized eigenproblems. Numerical comparisons suggest that this method is a genuine analog for eigenproblems of the standard preconditioned conjugate gradient method for symmetric linear systems.
 	\item[Installation.] In order to use \blopex from \slepc, it necessary to install it during \slepc's configuration: \Verb!./configure --download-blopex!.
 	\item[Specific options.] Since BLOPEX contains preconditioned solvers, the \slepc interface uses \ident{STPRECOND}, as described in \ref{sec:precond}.

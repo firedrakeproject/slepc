@@ -51,7 +51,7 @@ TESTEXAMPLES_FORTRAN     = test7f.PETSc runtest7f_1 test7f.rm \
                            test14f.PETSc runtest14f_1 test14f.rm
 TESTEXAMPLES_BLOPEX      = test5.PETSc runtest5_blopex test5.rm
 
-include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 test1: test1.o chkopts
 	-${CLINKER} -o test1 test1.o ${SLEPC_EPS_LIB}
@@ -287,7 +287,7 @@ testtest10: test10.PETSc
            echo "C/C++ example src/eps/examples/tests/test10 run successfully with 1 MPI process"; \
 	   else echo "Possible error running C/C++ src/eps/examples/tests/test10 with 1 MPI process"; \
            cat test10_1.tmp; ok=1; fi; \
-	   if [ "${MPIEXEC}" != "${PETSC_DIR}/bin/mpiexec.uni" ]; then \
+	   if [ "${MPIEXEC}" != "${PETSC_DIR}/bin/petsc-mpiexec.uni" ]; then \
            ${MPIEXEC} -np 2 ./test10 -eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude > test10_1.tmp 2>&1; \
 	   if (${DIFF} output/test10_1_ks.out test10_1.tmp > /dev/null 2>&1) then \
            echo "C/C++ example src/eps/examples/tests/test10 run successfully with 2 MPI process"; \

@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/mfnimpl.h>   /*I "slepcmfn.h" I*/
+#include <slepc/private/mfnimpl.h>   /*I "slepcmfn.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNSolve"
@@ -36,7 +36,8 @@
 -  b   - the right hand side vector
 
    Output Parameter:
-.  x   - the solution
+.  x   - the solution (this may be the same vector as b, then b will be
+         overwritten with the answer)
 
    Options Database Keys:
 +  -mfn_view - print information about the solver used
@@ -62,8 +63,8 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidHeaderSpecific(b,VEC_CLASSID,2);
   PetscCheckSameComm(mfn,1,b,2);
-  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
-  PetscCheckSameComm(mfn,1,x,3);
+  if (b!=x) PetscValidHeaderSpecific(x,VEC_CLASSID,3);
+  if (b!=x) PetscCheckSameComm(mfn,1,x,3);
   VecLocked(x,3);
 
   /* call setup */

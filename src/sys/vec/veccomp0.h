@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <petsc-private/vecimpl.h>
+#include <petsc/private/vecimpl.h>
 
 #if defined(__WITH_MPI__)
 #define __SUF__(A) A##_MPI

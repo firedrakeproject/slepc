@@ -82,9 +82,12 @@ int main(int argc,char **argv)
   ierr = MatSetSizes(Id,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(Id);CHKERRQ(ierr);
   ierr = MatSetUp(Id);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(Id,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    ierr = MatSetValue(Id,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
+  }
   ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatShift(Id,1.0);CHKERRQ(ierr);
   ierr = MatSetOption(Id,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
 
   /*
@@ -127,17 +130,16 @@ int main(int argc,char **argv)
   ierr = FNCreate(PETSC_COMM_WORLD,&f1);CHKERRQ(ierr);
   ierr = FNSetType(f1,FNRATIONAL);CHKERRQ(ierr);
   coeffs[0] = -1.0; coeffs[1] = 0.0;
-  ierr = FNSetParameters(f1,2,coeffs,0,NULL);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(f1,2,coeffs);CHKERRQ(ierr);
 
   ierr = FNCreate(PETSC_COMM_WORLD,&f2);CHKERRQ(ierr);
   ierr = FNSetType(f2,FNRATIONAL);CHKERRQ(ierr);
   coeffs[0] = 1.0;
-  ierr = FNSetParameters(f2,1,coeffs,0,NULL);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(f2,1,coeffs);CHKERRQ(ierr);
 
   ierr = FNCreate(PETSC_COMM_WORLD,&f3);CHKERRQ(ierr);
   ierr = FNSetType(f3,FNEXP);CHKERRQ(ierr);
-  coeffs[0] = -tau;
-  ierr = FNSetParameters(f3,1,coeffs,0,NULL);CHKERRQ(ierr);
+  ierr = FNSetScale(f3,-tau,1.0);CHKERRQ(ierr);
 
   /*
      Set the split operator. Note that A is passed first so that

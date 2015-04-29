@@ -26,6 +26,6 @@ DIRS     = cross cyclic lapack lanczos trlanczos
 LOCDIR   = src/svd/impls/
 MANSEC   = SVD
 
-include ${SLEPC_DIR}/lib/slepc-conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

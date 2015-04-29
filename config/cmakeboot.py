@@ -6,8 +6,8 @@
 # but it can also be run as a stand-alone program. The library paths and
 # flags should have been written to
 #
-#     $PETSC_DIR/$PETSC_ARCH/lib/petsc-conf/PETScConfig.cmake
-#     $SLEPC_DIR/$PETSC_ARCH/lib/slepc-conf/SLEPcConfig.cmake
+#     $PETSC_DIR/$PETSC_ARCH/lib/petsc/conf/PETScConfig.cmake
+#     $SLEPC_DIR/$PETSC_ARCH/lib/slepc/conf/SLEPcConfig.cmake
 #
 # by configure before running this script.
 
@@ -38,7 +38,7 @@ class PETScMaker(script.Script):
 
    if not argDB:
      argDB = RDict.RDict(None, None, 0, 0, readonly = True)
-     argDB.saveFilename = os.path.join(petscdir,petscarch,'lib','petsc-conf','RDict.db')
+     argDB.saveFilename = os.path.join(petscdir,petscarch,'lib','petsc','conf','RDict.db')
      argDB.load()
    script.Script.__init__(self, argDB = argDB)
    self.framework = framework
@@ -128,7 +128,7 @@ class PETScMaker(script.Script):
    options.append('CMAKE_RANLIB '+ranlib + " CACHE FILEPATH")
    if win32fe:
      options.append('PETSC_WIN32FE %s' % win32fe)
-     
+
    archdir = os.path.join(self.slepcdir, self.arch.arch)
    initial_cache_filename = os.path.join(archdir, 'initial_cache_file.cmake')  
    cmd = [self.cmake.cmake, '--trace', '--debug-output', '-C' + str(initial_cache_filename), '-DPETSC_CMAKE_ARCH:STRING='+str(self.arch.arch), self.slepcdir] + args

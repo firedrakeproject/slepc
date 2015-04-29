@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>
+#include <slepc/private/pepimpl.h>
 #include <slepcblaslapack.h>
 
 #define NREF_MAXIT 10

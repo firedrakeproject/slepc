@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>       /*I "slepcpep.h" I*/
+#include <slepc/private/pepimpl.h>       /*I "slepcpep.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetUp"
@@ -143,6 +143,8 @@ PetscErrorCode PEPSetUp(PEP pep)
       pep->sc->comparison    = SlepcCompareTargetImaginary;
       pep->sc->comparisonctx = &pep->target;
       break;
+    case PEP_WHICH_USER:
+      break;
   }
   pep->sc->map    = NULL;
   pep->sc->mapobj = NULL;
@@ -174,11 +176,11 @@ PetscErrorCode PEPSetUp(PEP pep)
   /* build balancing matrix if required */
   if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) {
     if (!pep->Dl) {
-      ierr = BVGetVec(pep->V,&pep->Dl);CHKERRQ(ierr);
+      ierr = BVCreateVec(pep->V,&pep->Dl);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dl);CHKERRQ(ierr);
     }
     if (!pep->Dr) {
-      ierr = BVGetVec(pep->V,&pep->Dr);CHKERRQ(ierr);
+      ierr = BVCreateVec(pep->V,&pep->Dr);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dr);CHKERRQ(ierr);
     }
     ierr = PEPBuildDiagonalScaling(pep);CHKERRQ(ierr);
@@ -418,7 +420,7 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
   newc = PetscMax(0,requested-oldsize);
 
   /* allocate space for eigenvalues and friends */
-  if (requested != oldsize) {
+  if (requested != oldsize || !pep->eigr) {
     if (oldsize) {
       ierr = PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm);CHKERRQ(ierr);
     }

@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/bvimpl.h>
+#include <slepc/private/bvimpl.h>
 
 typedef struct {
   Vec         *V;
@@ -128,6 +128,26 @@ PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
 #define __FUNCT__ "BVDotVec_Contiguous"
 PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *m)
 {
+  PetscErrorCode    ierr;
+  BV_CONTIGUOUS     *x = (BV_CONTIGUOUS*)X->data;
+  const PetscScalar *py;
+  Vec               z = y;
+
+  PetscFunctionBegin;
+  if (X->matrix) {
+    ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
+    z = X->Bx;
+  }
+  ierr = VecGetArrayRead(z,&py);CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,x->array+(X->nc+X->l)*X->n,py,m,x->mpi);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(z,&py);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVDotVec_Local_Contiguous"
+PetscErrorCode BVDotVec_Local_Contiguous(BV X,Vec y,PetscScalar *m)
+{
   PetscErrorCode ierr;
   BV_CONTIGUOUS  *x = (BV_CONTIGUOUS*)X->data;
   PetscScalar    *py;
@@ -139,7 +159,7 @@ PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *m)
     z = X->Bx;
   }
   ierr = VecGetArray(z,&py);CHKERRQ(ierr);
-  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,x->array+(X->nc+X->l)*X->n,py,m,x->mpi);CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,x->array+(X->nc+X->l)*X->n,py,m,PETSC_FALSE);CHKERRQ(ierr);
   ierr = VecRestoreArray(z,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -177,6 +197,22 @@ PetscErrorCode BVNorm_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVNorm_Local_Contiguous"
+PetscErrorCode BVNorm_Local_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
+
+  PetscFunctionBegin;
+  if (j<0) {
+    ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE);CHKERRQ(ierr);
+  } else {
+    ierr = BVNorm_LAPACK_Private(bv,bv->n,1,ctx->array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVOrthogonalize_Contiguous"
 PetscErrorCode BVOrthogonalize_Contiguous(BV V,Mat R)
 {
@@ -197,11 +233,37 @@ PetscErrorCode BVMatMult_Contiguous(BV V,Mat A,BV W)
 {
   PetscErrorCode ierr;
   BV_CONTIGUOUS  *v = (BV_CONTIGUOUS*)V->data,*w = (BV_CONTIGUOUS*)W->data;
-  PetscInt       j;
+  PetscScalar    *pb,*pc;
+  PetscInt       j,m;
+  PetscBool      flg;
 
   PetscFunctionBegin;
-  for (j=0;j<V->k-V->l;j++) {
-    ierr = MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]);CHKERRQ(ierr);
+  ierr = MatHasOperation(A,MATOP_MAT_MULT,&flg);CHKERRQ(ierr);
+  if (V->vmm && flg) {
+    m = V->k-V->l;
+    if (V->vmm==BV_MATMULT_MAT_SAVE) {
+      ierr = BV_AllocateMatMult(V,A,m);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(V->B,&pb);CHKERRQ(ierr);
+      ierr = PetscMemcpy(pb,v->array+(V->nc+V->l)*V->n,m*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = MatDenseRestoreArray(V->B,&pb);CHKERRQ(ierr);
+    } else {  /* BV_MATMULT_MAT */
+      ierr = MatCreateDense(PetscObjectComm((PetscObject)V),V->n,PETSC_DECIDE,V->N,m,v->array+(V->nc+V->l)*V->n,&V->B);CHKERRQ(ierr);
+    }
+    if (!V->C) {
+      ierr = MatMatMultSymbolic(A,V->B,PETSC_DEFAULT,&V->C);CHKERRQ(ierr);
+    }
+    ierr = MatMatMultNumeric(A,V->B,V->C);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(V->C,&pc);CHKERRQ(ierr);
+    ierr = PetscMemcpy(w->array+(W->nc+W->l)*W->n,pc,m*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(V->C,&pc);CHKERRQ(ierr);
+    if (V->vmm==BV_MATMULT_MAT) {
+      ierr = MatDestroy(&V->B);CHKERRQ(ierr);
+      ierr = MatDestroy(&V->C);CHKERRQ(ierr);
+    }
+  } else {
+    for (j=0;j<V->k-V->l;j++) {
+      ierr = MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -346,8 +408,10 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->axpy             = BVAXPY_Contiguous;
   bv->ops->dot              = BVDot_Contiguous;
   bv->ops->dotvec           = BVDotVec_Contiguous;
+  bv->ops->dotvec_local     = BVDotVec_Local_Contiguous;
   bv->ops->scale            = BVScale_Contiguous;
   bv->ops->norm             = BVNorm_Contiguous;
+  bv->ops->norm_local       = BVNorm_Local_Contiguous;
   /*bv->ops->orthogonalize    = BVOrthogonalize_Contiguous;*/
   bv->ops->matmult          = BVMatMult_Contiguous;
   bv->ops->copy             = BVCopy_Contiguous;
