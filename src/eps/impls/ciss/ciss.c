@@ -80,10 +80,6 @@ typedef struct {
   Mat          pA,pB;
   PetscSubcomm subcomm;
   PetscBool    usest;
-  PetscReal    arc_width;
-  PetscBool    isarc;
-  PetscReal    start_ang;
-  PetscReal    end_ang;
 } EPS_CISS;
 
 #undef __FUNCT__
@@ -180,16 +176,24 @@ static PetscErrorCode SetPathParameter(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i;
   PetscScalar    center;
-  PetscReal      theta,radius,vscale;
+  PetscReal      theta,radius,vscale,start_ang,end_ang,width;
+  PetscBool      isarc=PETSC_FALSE,isellipse=PETSC_FALSE;
 
   PetscFunctionBegin;
-  ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
+  if (isellipse) {
+    ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
+  } else {
+    ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGARC,&isarc);CHKERRQ(ierr);
+    if (!isarc) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Region must be Ellipse or Arc");
+    ierr = RGArcGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,&width);CHKERRQ(ierr);
+  }
   for (i=0;i<ctx->N;i++) {
-    if (ctx->isarc) {
+    if (isarc) {
       theta = (PETSC_PI/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta);
       ctx->weight[i] = PetscCosReal((ctx->N-1)*PetscAcosReal(ctx->pp[i]))/ctx->N;
-      theta = (ctx->start_ang*2+(ctx->end_ang-ctx->start_ang)*(ctx->pp[i]+1))*PETSC_PI;
+      theta = (start_ang*2+(end_ang-start_ang)*(ctx->pp[i]+1))*PETSC_PI;
       ctx->omega[i] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
 
     }  else {
@@ -693,57 +697,6 @@ static PetscErrorCode isGhost(EPS eps,PetscInt ld,PetscInt nv,PetscBool *fl)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "CheckInside"
-static PetscErrorCode CheckInside(EPS eps,PetscInt n,PetscScalar *ar,PetscScalar *ai,PetscInt *inside)
-{
-  PetscErrorCode ierr;
-  EPS_CISS    *ctx = (EPS_CISS*)eps->data;
-  PetscInt    i;
-  PetscReal   dx,dy,r,radius,vscale;
-  PetscScalar center,d;
-
-  PetscFunctionBegin;
-  ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-    d = (ar[i]-center);
-    dx = PetscRealPart(d)/(radius+ctx->arc_width);
-    dy = PetscImaginaryPart(d)/(radius+ctx->arc_width);
-    r = 1.0-dx*dx-(dy*dy)/(vscale*vscale);
-    inside[i] = PetscSign(r);
-    dx = PetscRealPart(d)/(radius-ctx->arc_width);
-    dy = PetscImaginaryPart(d)/(radius-ctx->arc_width);
-    r = dx*dx-(dy*dy)/(vscale*vscale)-1.0;
-    inside[i] = inside[i] * PetscSign(r);
-    dx = PetscRealPart(d);
-    dy = PetscImaginaryPart(d);
-    if (dx == 0) {
-      if (dy == 0) {
-	r = -1;
-      } else if (dy > 0) {
-	r = 0.25;
-      } else { 
-	r = 0.75;
-      }
-    } else if (dx > 0) {
-      r = PetscAtanReal((dy/vscale)/dx);
-      if (dy >= 0) {
-	r /= 2*PETSC_PI;
-      } else {
-	r = r/(2*PETSC_PI)+1;
-      }
-    } else {
-      r = PetscAtanReal((dy/vscale)/dx)/(2*PETSC_PI)+0.5;
-    }
-    if (r>=ctx->start_ang && r<=ctx->end_ang && inside[i] == 1) { 
-      inside[i] = 1;
-    } else { 
-      inside[i] = 0;
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_CISS"
 PetscErrorCode EPSSetUp_CISS(EPS eps)
 {
@@ -769,7 +722,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
   ierr = RGEllipseGetParameters(eps->rg,&center,NULL,NULL);CHKERRQ(ierr);
 
-  if (!ctx->isarc && PetscImaginaryPart(center) == 0.0) ctx->useconj = PETSC_TRUE;
+  if (ctx->isreal && PetscImaginaryPart(center) == 0.0) ctx->useconj = PETSC_TRUE;
   else ctx->useconj = PETSC_FALSE;
 
   /* create split comm */
@@ -953,11 +906,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = PetscMalloc(nv*sizeof(PetscBool),&fl1);CHKERRQ(ierr);
     ierr = PetscMalloc(nv*sizeof(PetscInt),&inside);CHKERRQ(ierr);
     ierr = isGhost(eps,ld,nv,fl1);CHKERRQ(ierr);
-    if (ctx->isarc){
-      ierr = CheckInside(eps,nv,eps->eigr,eps->eigi,inside);CHKERRQ(ierr);
-    } else {
-      ierr = RGCheckInside(eps->rg,nv,eps->eigr,eps->eigi,inside);CHKERRQ(ierr);
-    }
+    ierr = RGCheckInside(eps->rg,nv,eps->eigr,eps->eigi,inside);CHKERRQ(ierr);
     ierr = PetscMalloc(nv*sizeof(PetscScalar),&rr);CHKERRQ(ierr);
     for (i=0;i<nv;i++) {
       if (fl1[i] && inside[i]>0) {
@@ -1445,118 +1394,6 @@ PetscErrorCode EPSCISSGetUseST(EPS eps, PetscBool *usest)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetArc_CISS"
-static PetscErrorCode EPSCISSSetArc_CISS(EPS eps,PetscBool isarc,PetscReal start_ang, PetscReal end_ang, PetscReal arc_width)
-{
-  EPS_CISS *ctx = (EPS_CISS*)eps->data;
-
-  PetscFunctionBegin;
-  ctx->isarc = isarc;
-  if (start_ang) {
-    if (start_ang<0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The right-hand side angle argument must be >= 0.0");
-    if (start_ang>1.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The right-hand side angle argument must be <= 1.0");
-    if (start_ang>end_ang) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The right-hand side angle argument must be smaller than left one");
-    ctx->start_ang = start_ang;
-  }
-  if (end_ang) {
-    if (end_ang<0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The left-hand side angle argument must be >= 0.0");
-    if (end_ang>1.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The left-hand side angle argument must be <= 1.0");
-    if (start_ang>end_ang) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The left-hand side angle argument must be smaller than right one");
-    ctx->end_ang = end_ang;
-  }
-  if (arc_width == PETSC_DEFAULT) {
-    ctx->arc_width = 0.1;
-  } else {
-    if (arc_width<=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The arc_width argument must be > 0.0");
-    ctx->arc_width = arc_width;
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetArc"
-/*@
-   EPSCISSSetArc - Sets the parameters that define the arc where eigenvalues
-   must be computed in arc type CISS solver.
-
-   Logically Collective on EPS
-
-   Input Parameters:
-+  eps       - the eigenproblem solver context
-.  start_ang - the right-hand side angle of the arc
-.  end_ang   - the left-hand side angle of the arc
--  arc_width - width of the arc
-
-   Options Database Keys:
-+  -eps_ciss_isarc <bool> - whether the arc type CISS solver will be used or not
-.  -eps_ciss_startangle <real> - Sets of the right-hand side angle of the arc 
-.  -eps_ciss_endangle <real> - Sets of the left-hand side angle of the arc 
--  -eps_ciss_arc_width <real> - Sets the width of the arc
-   Level: advanced
-
-.seealso: EPSCISSGetArc()
-@*/
-PetscErrorCode EPSCISSSetArc(EPS eps,PetscBool isarc,PetscReal start_ang,PetscReal end_ang,PetscReal arc_width)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidLogicalCollectiveBool(eps,isarc,2);
-  PetscValidLogicalCollectiveReal(eps,start_ang,3);
-  PetscValidLogicalCollectiveReal(eps,end_ang,4);
-  PetscValidLogicalCollectiveReal(eps,arc_width,5);
-  ierr = PetscTryMethod(eps,"EPSCISSSetArc_C",(EPS,PetscBool,PetscReal,PetscReal,PetscReal),(eps,isarc,start_ang,end_ang,arc_width));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetArc_CISS"
-static PetscErrorCode EPSCISSGetArc_CISS(EPS eps,PetscBool *isarc,PetscReal *start_ang,PetscReal *end_ang,PetscReal *arc_width)
-{
-  EPS_CISS *ctx = (EPS_CISS*)eps->data;
-
-  PetscFunctionBegin;
-  *isarc = ctx->isarc;
-  if (start_ang) *start_ang = ctx->start_ang;
-  if (end_ang) *end_ang = ctx->end_ang;
-  if (arc_width) *arc_width = ctx->arc_width;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetArc"
-/*@
-   EPSCISSGetArc - Gets  the parameters that define the arc where eigenvalues
-   must be computed in arc type CISS solver.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigenproblem solver context
-
-   Output Parameters:
-+  isarc   - boolean flag to use the arc type CISS solver or not
-.  start_ang - the right-hand side angle of the arc
-.  end_ang - the left-hand side angle of the arc
--  arc_width - width of the arc
-
-   Level: advanced
-
-.seealso: EPSCISSSetArc()
-@*/
-PetscErrorCode EPSCISSGetArc(EPS eps, PetscBool *isarc, PetscReal *start_ang, PetscReal *end_ang,PetscReal *arc_width)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscTryMethod(eps,"EPSCISSGetArc_C",(EPS,PetscBool*,PetscReal*,PetscReal*,PetscReal*),(eps,isarc,start_ang,end_ang,arc_width));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSReset_CISS"
 PetscErrorCode EPSReset_CISS(EPS eps)
 {
@@ -1599,9 +1436,9 @@ PetscErrorCode EPSReset_CISS(EPS eps)
 PetscErrorCode EPSSetFromOptions_CISS(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
-  PetscReal      r3,r4,r5,r6,r7;
+  PetscReal      r3,r4;
   PetscInt       i1,i2,i3,i4,i5,i6,i7,i8;
-  PetscBool      b1,b2,b3;
+  PetscBool      b1,b2;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS CISS Options");CHKERRQ(ierr);
@@ -1629,13 +1466,6 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptions *PetscOptionsObject,EPS eps)
   ierr = PetscOptionsBool("-eps_ciss_usest","CISS use ST for linear solves","EPSCISSSetUseST",b2,&b2,NULL);CHKERRQ(ierr);
   ierr = EPSCISSSetUseST(eps,b2);CHKERRQ(ierr);
 
-  ierr = EPSCISSGetArc(eps,&b3,&r5,&r6,&r7);CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-eps_ciss_isarc","CISS use arc type solvers","EPSCISSSetArc",b3,&b3,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-eps_ciss_startangle","CISS right-hand side angle of the arc","EPSCISSSetArc",r5,&r5,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-eps_ciss_endangle","CISS left-hand side angle of the arc","EPSCISSSetArc",r6,&r6,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-eps_ciss_arc_width","CISS width of arc","EPSCISSSetArc",r7,&r7,NULL);CHKERRQ(ierr);
-  ierr = EPSCISSSetArc(eps,b3,r5,r6,r7);CHKERRQ(ierr);
-
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1656,9 +1486,6 @@ PetscErrorCode EPSDestroy_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRefinement_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetUseST_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetUseST_C",NULL);CHKERRQ(ierr);
-   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetArc_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetArc_C",NULL);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -1681,9 +1508,6 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: iterative refinement  { inner: %D, outer: %D, blocksize: %D }\n",ctx->refine_inner,ctx->refine_outer, ctx->refine_blocksize);CHKERRQ(ierr);
     if (ctx->usest) {
       ierr = PetscViewerASCIIPrintf(viewer,"  CISS: using ST for linear solves\n");CHKERRQ(ierr);
-    }
-    if (ctx->isarc) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  CISS: arc region { start angle: %g, end angle: %g, arc width: %g }\n",ctx->start_ang,ctx->end_ang,ctx->arc_width);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     /*ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);*/
@@ -1717,8 +1541,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRefinement_C",EPSCISSGetRefinement_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetUseST_C",EPSCISSSetUseST_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetUseST_C",EPSCISSGetUseST_CISS);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetArc_C",EPSCISSSetArc_CISS);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetArc_C",EPSCISSGetArc_CISS);CHKERRQ(ierr);
   /* set default values of parameters */
   ctx->N       = 32;
   ctx->L       = 16;
@@ -1732,10 +1554,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ctx->refine_inner = 1;
   ctx->refine_blocksize = 1;
   ctx->num_subcomm = 1;
-  ctx->isarc  = PETSC_FALSE;
-  ctx->start_ang  = 0.0;
-  ctx->end_ang  = 1.0;
-  ctx->arc_width  = 0.1;
   PetscFunctionReturn(0);
 }
 
