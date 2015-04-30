@@ -74,7 +74,7 @@ PetscErrorCode PEPInitializePackage(void)
   if (PEPPackageInitialized) PetscFunctionReturn(0);
   PEPPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Polynomial Eigenvalue Problem solver",&PEP_CLASSID);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("PEP Solver",&PEP_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = PEPRegisterAll();CHKERRQ(ierr);
   /* Register Events */

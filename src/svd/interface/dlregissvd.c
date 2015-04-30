@@ -70,7 +70,7 @@ PetscErrorCode SVDInitializePackage(void)
   if (SVDPackageInitialized) PetscFunctionReturn(0);
   SVDPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Singular Value Solver",&SVD_CLASSID);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("SVD Solver",&SVD_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = SVDRegisterAll();CHKERRQ(ierr);
   /* Register Events */
