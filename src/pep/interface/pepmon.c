@@ -163,6 +163,28 @@ PetscErrorCode PEPGetMonitorContext(PEP pep,void **ctx)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPMonitorGetTrueEig"
+/*
+   Helper function to compute eigenvalue that must be viewed in monitor
+ */
+static PetscErrorCode PEPMonitorGetTrueEig(PEP pep,PetscScalar *er,PetscScalar *ei)
+{
+  PetscErrorCode ierr;
+  PetscBool      flg;
+
+  PetscFunctionBegin;
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (flg) {
+    *er *= pep->sfactor; *ei *= pep->sfactor;
+  }
+  ierr = STBackTransform(pep->st,1,er,ei);CHKERRQ(ierr);
+  if (!flg) {
+    *er *= pep->sfactor; *ei *= pep->sfactor;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPMonitorAll"
 /*@C
    PEPMonitorAll - Print the current approximate values and
@@ -197,7 +219,7 @@ PetscErrorCode PEPMonitorAll(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *ei
     ierr = PetscViewerASCIIPrintf(viewer,"%3D PEP nconv=%D Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
       er = eigr[i]; ei = eigi[i];
-      ierr = STBackTransform(pep->st,1,&er,&ei);CHKERRQ(ierr);
+      ierr = PEPMonitorGetTrueEig(pep,&er,&ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
       ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
@@ -245,7 +267,7 @@ PetscErrorCode PEPMonitorFirst(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%3D PEP nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
     er = eigr[nconv]; ei = eigi[nconv];
-    ierr = STBackTransform(pep->st,1,&er,&ei);CHKERRQ(ierr);
+    ierr = PEPMonitorGetTrueEig(pep,&er,&ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
     ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
@@ -302,7 +324,7 @@ PetscErrorCode PEPMonitorConverged(PEP pep,PetscInt its,PetscInt nconv,PetscScal
       ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%3D PEP converged value (error) #%D",its,i);CHKERRQ(ierr);
       er = eigr[i]; ei = eigi[i];
-      ierr = STBackTransform(pep->st,1,&er,&ei);CHKERRQ(ierr);
+      ierr = PEPMonitorGetTrueEig(pep,&er,&ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
       ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
