@@ -181,10 +181,17 @@ static PetscErrorCode SetPathParameter(EPS eps)
   PetscFunctionBegin;
   ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
   for (i=0;i<ctx->N;i++) {
+#if defined(PETSC_USE_COMPLEX)
+    theta = (PETSC_PI/ctx->N)*(i+0.5);
+    ctx->pp[i] = PetscCosReal(theta);
+    ctx->weight[i] = PetscCosReal((ctx->N-1)*PetscAcosReal(ctx->pp[i]))/ctx->N;
+    ctx->omega[i] = center + radius*ctx->pp[i];
+#else
     theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
     ctx->pp[i] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
     ctx->omega[i] = center + radius*ctx->pp[i];
     ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
+#endif
   }
   PetscFunctionReturn(0);
 }
@@ -459,16 +466,24 @@ static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,ml=ctx->L*ctx->M;
   PetscBLASInt   m,n,lda,ldu,ldvt,lwork,info;
-  PetscReal      *rwork;
   PetscScalar    *work;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+#endif
 
   PetscFunctionBegin;
-  ierr = PetscMalloc(3*ml*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(5*ml*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc(5*ml*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+#endif
   ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
-  n = m; lda = m; ldu = m; ldvt = m; lwork = 3*m;
+  n = m; lda = m; ldu = m; ldvt = m; lwork = 5*m;
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&m,&n,S,&lda,ctx->sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
+#else
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&m,&n,S,&lda,ctx->sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,&info));
+#endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   (*K) = 0;
@@ -476,7 +491,9 @@ static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
     if (ctx->sigma[i]/PetscMax(ctx->sigma[0],1)>ctx->delta) (*K)++;
   }
   ierr = PetscFree(work);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(rwork);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 #endif
 }
@@ -541,9 +558,11 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
 #else
   PetscErrorCode ierr;
   PetscInt       i,j,k,local_size;
-  PetscReal      *rwork;
   PetscScalar    *work,*temp,*B,*tempB,*s_data,*Q1,*Q2,*temp2,alpha=1,beta=0;
   PetscBLASInt   l,m,n,lda,ldu,ldvt,lwork,info,ldb,ldc;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+#endif
 
   PetscFunctionBegin;
   ierr = BVGetSizes(S,&local_size,NULL,NULL);CHKERRQ(ierr);    
@@ -554,8 +573,10 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
   ierr = PetscMalloc(local_size*ml*sizeof(PetscScalar),&Q2);CHKERRQ(ierr);
   ierr = PetscMalloc(ml*ml*sizeof(PetscScalar),&B);CHKERRQ(ierr);
   ierr = PetscMemzero(B,ml*ml*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(3*ml*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc(5*ml*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc(5*ml*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+#endif
   ierr = PetscMalloc(ml*ml*sizeof(PetscScalar),&tempB);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 
@@ -578,8 +599,12 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
     ierr = MPI_Allreduce(temp,temp2,ml*ml,MPIU_SCALAR,MPIU_SUM,(PetscObjectComm((PetscObject)S)));CHKERRQ(ierr);
 
     ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
-    n = m; lda = m; lwork = 3*m, ldu = 1; ldvt = 1;
+    n = m; lda = m; lwork = 5*m, ldu = 1; ldvt = 1;
+#if defined(PETSC_USE_COMPLEX)
     PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("O","N",&m,&n,temp2,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
+#else
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("O","N",&m,&n,temp2,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,&info));
+#endif
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
 
     ierr = PetscBLASIntCast(local_size,&l);CHKERRQ(ierr);
@@ -610,7 +635,11 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
 
   ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
   n = m; lda = m; ldu=1; ldvt=1;
+#if defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","O",&m,&n,B,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
+#else
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","O",&m,&n,B,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,&info));
+#endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
 
   ierr = PetscBLASIntCast(local_size,&l);CHKERRQ(ierr);
@@ -636,7 +665,9 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
   ierr = PetscFree(B);CHKERRQ(ierr);
   ierr = PetscFree(tempB);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(rwork);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 #endif
 }
@@ -705,8 +736,12 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
   ierr = RGEllipseGetParameters(eps->rg,&center,NULL,NULL);CHKERRQ(ierr);
 
+#if defined(PETSC_USE_COMPLEX)
   if (ctx->isreal && PetscImaginaryPart(center) == 0.0) ctx->useconj = PETSC_TRUE;
   else ctx->useconj = PETSC_FALSE;
+#else
+  ctx->useconj = PETSC_FALSE;
+#endif
 
   /* create split comm */
   ierr = SetSolverComm(eps);CHKERRQ(ierr);
@@ -816,8 +851,11 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   } else {
     ierr = SolveLinearSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
   }
-
+#if defined(PETSC_USE_COMPLEX)
   ierr = EstimateNumberEigs(eps,&L_add);CHKERRQ(ierr);
+#else
+  L_add = 0;
+#endif
   if (L_add>0) {
     ierr = PetscInfo2(eps,"Changing L %D -> %D by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add,eps->rand);CHKERRQ(ierr);
@@ -883,7 +921,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     else { ierr = MatShift(pB,1);CHKERRQ(ierr); }
     ierr = DSRestoreMat(eps->ds,DS_MAT_B,&pB);CHKERRQ(ierr);
 
-    ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
+    ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
 
     ierr = PetscMalloc(nv*sizeof(PetscBool),&fl1);CHKERRQ(ierr);
@@ -899,7 +937,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     }
     ierr = PetscFree(fl1);CHKERRQ(ierr);
     ierr = PetscFree(inside);CHKERRQ(ierr);
-    ierr = DSSort(eps->ds,eps->eigr,NULL,rr,NULL,&eps->nconv);CHKERRQ(ierr);
+    ierr = DSSort(eps->ds,eps->eigr,eps->eigi,rr,NULL,&eps->nconv);CHKERRQ(ierr);
     ierr = PetscFree(rr);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
