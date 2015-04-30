@@ -205,7 +205,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
-  PetscInt       j,k,l,lwork,nv,ld,newn;
+  PetscInt       j,k,l,lwork,nv,ld,newn,nconv;
   Vec            v=pep->work[0],w=pep->work[1];
   Mat            Q;
   PetscScalar    *S,*work;
@@ -265,6 +265,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
     ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,nv-pep->nconv,beta,&k);CHKERRQ(ierr);
     if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
     if (k >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
+    nconv = k;
 
     /* Update l */
     if (pep->reason != PEP_CONVERGED_ITERATING || breakdown) l = 0;
@@ -289,7 +290,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
     ierr = MatDestroy(&Q);CHKERRQ(ierr);
 
     pep->nconv = k;
-    ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
+    ierr = PEPMonitor(pep,pep->its,nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
   }
 
   for (j=0;j<pep->nconv;j++) {
