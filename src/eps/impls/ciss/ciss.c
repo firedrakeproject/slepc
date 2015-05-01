@@ -182,15 +182,15 @@ static PetscErrorCode SetPathParameter(EPS eps)
   ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
   for (i=0;i<ctx->N;i++) {
 #if defined(PETSC_USE_COMPLEX)
-    theta = (PETSC_PI/ctx->N)*(i+0.5);
-    ctx->pp[i] = PetscCosReal(theta);
-    ctx->weight[i] = PetscCosReal((ctx->N-1)*PetscAcosReal(ctx->pp[i]))/ctx->N;
-    ctx->omega[i] = center + radius*ctx->pp[i];
-#else
     theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
     ctx->pp[i] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
     ctx->omega[i] = center + radius*ctx->pp[i];
     ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
+#else
+    theta = (PETSC_PI/ctx->N)*(i+0.5);
+    ctx->pp[i] = PetscCosReal(theta);
+    ctx->weight[i] = PetscCosReal((ctx->N-1)*PetscAcosReal(ctx->pp[i]))/ctx->N;
+    ctx->omega[i] = center + radius*ctx->pp[i];
 #endif
   }
   PetscFunctionReturn(0);
