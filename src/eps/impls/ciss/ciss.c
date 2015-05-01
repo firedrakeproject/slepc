@@ -689,6 +689,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   PetscInt       i;
   PetscBool      issinvert,istrivial,flg;
   PetscScalar    center;
+  Mat            A;
 
   PetscFunctionBegin;
   eps->ncv = PetscMin(eps->n,ctx->L_max*ctx->M);
@@ -724,6 +725,12 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->S);CHKERRQ(ierr);
   ierr = BVDuplicateResize(eps->V,ctx->L_max,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->V);CHKERRQ(ierr);
+
+  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)A,MATSHELL,&flg);CHKERRQ(ierr);
+  if (flg) {
+    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell not supported in this solver");
+  }
 
   ierr = CISSRedundantMat(eps);CHKERRQ(ierr);
   if (ctx->pA) {
