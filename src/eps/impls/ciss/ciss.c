@@ -176,22 +176,38 @@ static PetscErrorCode SetPathParameter(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i;
   PetscScalar    center;
-  PetscReal      theta,radius,vscale;
+  PetscReal      theta,radius,vscale,start_ang,end_ang,width;
+  PetscBool      isarc=PETSC_FALSE,isellipse=PETSC_FALSE;
 
   PetscFunctionBegin;
-  ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
+  if (isellipse) {
+    ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
+  } else {
+    ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGARC,&isarc);CHKERRQ(ierr);
+    if (!isarc) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Region must be Ellipse or Arc");
+    ierr = RGArcGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,&width);CHKERRQ(ierr);
+  }
   for (i=0;i<ctx->N;i++) {
+    if (isarc) {
+      theta = (PETSC_PI/ctx->N)*(i+0.5);
+      ctx->pp[i] = PetscCosReal(theta);
+      ctx->weight[i] = PetscCosReal((ctx->N-1)*PetscAcosReal(ctx->pp[i]))/ctx->N;
+      theta = (start_ang*2+(end_ang-start_ang)*(ctx->pp[i]+1))*PETSC_PI;
+      ctx->omega[i] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
+    } else {
 #if defined(PETSC_USE_COMPLEX)
-    theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
-    ctx->pp[i] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
-    ctx->omega[i] = center + radius*ctx->pp[i];
-    ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
+      theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
+      ctx->pp[i] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
+      ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/ctx->N;
+      ctx->omega[i] = center + radius*ctx->pp[i];
 #else
-    theta = (PETSC_PI/ctx->N)*(i+0.5);
-    ctx->pp[i] = PetscCosReal(theta);
-    ctx->weight[i] = PetscCosReal((ctx->N-1)*PetscAcosReal(ctx->pp[i]))/ctx->N;
-    ctx->omega[i] = center + radius*ctx->pp[i];
+      theta = (PETSC_PI/ctx->N)*(i+0.5);
+      ctx->pp[i] = PetscCosReal(theta);
+      ctx->weight[i] = PetscCosReal((ctx->N-1)*PetscAcosReal(ctx->pp[i]))/ctx->N;
+      ctx->omega[i] = center + radius*ctx->pp[i];
 #endif
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -718,7 +734,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   const char     *prefix;
   PetscInt       i;
-  PetscBool      issinvert,istrivial,flg;
+  PetscBool      issinvert,istrivial,isarc,isellipse;
   PetscScalar    center;
   Mat            A;
 
@@ -733,16 +749,23 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   /* check region */
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSCISS requires a nontrivial region, e.g. -rg_type ellipse ...");
-  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&flg);CHKERRQ(ierr);
-  if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
-  ierr = RGEllipseGetParameters(eps->rg,&center,NULL,NULL);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGARC,&isarc);CHKERRQ(ierr);
+  if (!isellipse && !isarc) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic or arc regions");
+  if (isarc) {
 #if defined(PETSC_USE_COMPLEX)
-  if (ctx->isreal && PetscImaginaryPart(center) == 0.0) ctx->useconj = PETSC_TRUE;
-  else ctx->useconj = PETSC_FALSE;
-#else
-  ctx->useconj = PETSC_FALSE;
+    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
 #endif
-
+    ctx->useconj = PETSC_FALSE;
+  } else {
+    ierr = RGEllipseGetParameters(eps->rg,&center,NULL,NULL);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    if (ctx->isreal && PetscImaginaryPart(center) == 0.0) ctx->useconj = PETSC_TRUE;
+    else ctx->useconj = PETSC_FALSE;
+#else
+    ctx->useconj = PETSC_FALSE;
+#endif
+  }
   /* create split comm */
   ierr = SetSolverComm(eps);CHKERRQ(ierr);
 
