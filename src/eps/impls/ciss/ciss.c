@@ -704,7 +704,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   const char     *prefix;
   PetscInt       i;
-  PetscBool      issinvert,istrivial,flg;
+  PetscBool      issinvert,istrivial,isarc,isellipse;
   PetscScalar    center;
 
   PetscFunctionBegin;
@@ -718,13 +718,16 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   /* check region */
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSCISS requires a nontrivial region, e.g. -rg_type ellipse ...");
-  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&flg);CHKERRQ(ierr);
-  if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
-  ierr = RGEllipseGetParameters(eps->rg,&center,NULL,NULL);CHKERRQ(ierr);
-
-  if (ctx->isreal && PetscImaginaryPart(center) == 0.0) ctx->useconj = PETSC_TRUE;
-  else ctx->useconj = PETSC_FALSE;
-
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGARC,&isarc);CHKERRQ(ierr);
+  if (!isellipse && !isarc) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic or arc regions");
+  if (isarc) {
+    ctx->useconj = PETSC_FALSE;
+  } else {
+    ierr = RGEllipseGetParameters(eps->rg,&center,NULL,NULL);CHKERRQ(ierr);
+    if (ctx->isreal && PetscImaginaryPart(center) == 0.0) ctx->useconj = PETSC_TRUE;
+    else ctx->useconj = PETSC_FALSE;
+  }
   /* create split comm */
   ierr = SetSolverComm(eps);CHKERRQ(ierr);
 
