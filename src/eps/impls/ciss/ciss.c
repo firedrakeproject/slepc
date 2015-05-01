@@ -735,7 +735,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&flg);CHKERRQ(ierr);
   if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
   ierr = RGEllipseGetParameters(eps->rg,&center,NULL,NULL);CHKERRQ(ierr);
-
 #if defined(PETSC_USE_COMPLEX)
   if (ctx->isreal && PetscImaginaryPart(center) == 0.0) ctx->useconj = PETSC_TRUE;
   else ctx->useconj = PETSC_FALSE;
@@ -798,7 +797,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   }
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->Y);CHKERRQ(ierr);
 
-
   if (eps->ishermitian && eps->ispositive) {
     ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);
   } else {
@@ -806,7 +804,11 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
-  
+
+#if !defined(PETSC_USE_COMPLEX)
+  if (!eps->ishermitian) { ierr = PetscInfo(eps,"Warning: complex eigenvalue is not calculated exactly without --with-scalar-type=complex in PETSc \n");CHKERRQ(ierr); }
+#endif
+
   /* dispatch solve method */
   eps->ops->solve = EPSSolve_CISS;
   PetscFunctionReturn(0);
