@@ -753,7 +753,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGARC,&isarc);CHKERRQ(ierr);
   if (!isellipse && !isarc) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic or arc regions");
   if (isarc) {
-#if defined(PETSC_USE_COMPLEX)
+#if !defined(PETSC_USE_COMPLEX)
     SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
 #endif
     ctx->useconj = PETSC_FALSE;
