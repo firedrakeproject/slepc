@@ -734,7 +734,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   const char     *prefix;
   PetscInt       i;
-  PetscBool      issinvert,istrivial,isarc,isellipse;
+  PetscBool      issinvert,istrivial,isarc,isellipse,flg;
   PetscScalar    center;
   Mat            A;
 
