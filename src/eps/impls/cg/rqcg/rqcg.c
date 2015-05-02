@@ -293,10 +293,6 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   }
 
   ierr = PetscFree(gamma);CHKERRQ(ierr);
-  /* truncate Schur decomposition and change the state to raw so that
-     DSVectors() computes eigenvectors from scratch */
-  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
