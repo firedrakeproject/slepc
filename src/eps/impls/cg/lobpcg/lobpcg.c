@@ -108,7 +108,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
   PetscInt       i,j,k,ld,nv,ini,kini,nmat,nc,nconv,bdone,its;
   PetscReal      norm;
-  PetscBool      breakdown;
+  PetscBool      breakdown,countc;
   Mat            A,B,M;
   Vec            v,w=eps->work[0];
   BV             X,Y,Z,R,P,AX,AR,AP,BX,BR,BP;
@@ -210,16 +210,21 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     }
     ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
 
-    /* 8. Compute residual norms and (TODO) update index set of active iterates */
+    /* 8. Compute residual norms and update index set of active iterates */
     ini = (ctx->lock)? nconv: 0;
     k = ini;
-    for (j=ini;j<ctx->bs;j++) {   /* TODO: optimize computation of norms */
+    countc = PETSC_TRUE;
+    for (j=ini;j<ctx->bs;j++) {
       i = bdone*ctx->bs+j;
       ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
       ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
       ierr = BVRestoreColumn(R,j,&v);CHKERRQ(ierr);
       ierr = (*eps->converged)(eps,eps->eigr[i],eps->eigi[i],norm,&eps->errest[i],eps->convergedctx);CHKERRQ(ierr);
-      if (eps->errest[bdone*ctx->bs+k]<eps->tol) k++;
+      if (countc) {
+        if (eps->errest[i] < eps->tol) k++;
+        else countc = PETSC_FALSE;
+      }
+      if (!countc && !eps->trackall) break;
     }
     nconv = k;
     eps->nconv = bdone*ctx->bs + nconv;
