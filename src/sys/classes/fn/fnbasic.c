@@ -73,7 +73,7 @@ PetscErrorCode FNInitializePackage(void)
   if (FNPackageInitialized) PetscFunctionReturn(0);
   FNPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Math function",&FN_CLASSID);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("Math Function",&FN_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = FNRegisterAll();CHKERRQ(ierr);
   /* Register Events */
