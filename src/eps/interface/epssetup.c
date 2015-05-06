@@ -480,7 +480,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
   newc = PetscMax(0,requested-oldsize);
 
   /* allocate space for eigenvalues and friends */
-  if (requested != oldsize) {
+  if (requested != oldsize || !eps->eigr) {
     if (oldsize) {
       ierr = PetscFree4(eps->eigr,eps->eigi,eps->errest,eps->perm);CHKERRQ(ierr);
     }

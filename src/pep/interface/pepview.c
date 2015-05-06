@@ -58,7 +58,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   PetscErrorCode ierr;
   const char     *type;
   char           str[50];
-  PetscBool      isascii,islinear,istrivial;
+  PetscBool      isascii,istrivial;
   PetscInt       i;
   PetscViewer    sviewer;
 
@@ -181,20 +181,17 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       ierr = (*pep->ops->view)(pep,viewer);CHKERRQ(ierr);
     }
   }
-  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
-  if (!islinear) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-    if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
-    ierr = BVView(pep->V,viewer);CHKERRQ(ierr);
-    if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
-    ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
-    if (!istrivial) { ierr = RGView(pep->rg,viewer);CHKERRQ(ierr); }
-    if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
-    ierr = DSView(pep->ds,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
-    ierr = STView(pep->st,viewer);CHKERRQ(ierr);
-  }
+  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
+  if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
+  ierr = BVView(pep->V,viewer);CHKERRQ(ierr);
+  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
+  ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) { ierr = RGView(pep->rg,viewer);CHKERRQ(ierr); }
+  if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
+  ierr = DSView(pep->ds,viewer);CHKERRQ(ierr);
+  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
+  ierr = STView(pep->st,viewer);CHKERRQ(ierr);
   if (pep->refine!=PEP_REFINE_NONE) {
     if (pep->npart>1) {
       if (pep->refinesubc->color==0) {

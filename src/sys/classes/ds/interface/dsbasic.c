@@ -74,7 +74,7 @@ PetscErrorCode DSInitializePackage()
   if (DSPackageInitialized) PetscFunctionReturn(0);
   DSPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Direct solver",&DS_CLASSID);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("Direct Solver",&DS_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = DSRegisterAll();CHKERRQ(ierr);
   /* Register Events */
