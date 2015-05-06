@@ -553,7 +553,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
   pep->data = (void*)ctx;
-  ctx->lock = PETSC_FALSE;
+  ctx->lock = PETSC_TRUE;
 
   pep->ops->solve          = PEPSolve_QArnoldi;
   pep->ops->setup          = PEPSetUp_QArnoldi;
