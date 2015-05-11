@@ -36,6 +36,14 @@
       parameter (BV_ORTHOG_REFINE_NEVER    =  1)
       parameter (BV_ORTHOG_REFINE_ALWAYS   =  2)
 
+      PetscEnum BV_MATMULT_VECS
+      PetscEnum BV_MATMULT_MAT
+      PetscEnum BV_MATMULT_MAT_SAVE
+
+      parameter (BV_MATMULT_VECS           =  0)
+      parameter (BV_MATMULT_MAT            =  1)
+      parameter (BV_MATMULT_MAT_SAVE       =  2)
+
 !
 !  End of Fortran include file for the BV package in SLEPc
 !

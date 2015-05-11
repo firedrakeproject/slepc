@@ -483,12 +483,22 @@ When the norm of $M$, $C$ and $K$ vary widely, \cite{Tisseur:2000:BEC} recommend
 \end{equation}
 with $\mu=\lambda/\alpha$, $M_\alpha=\alpha^2M$ and $C_\alpha=\alpha C$, where $\alpha$ is a scaling factor. Ideally, $\alpha$ should be chosen in such a way that the norms of $M_\alpha$, $C_\alpha$ and $K$ have similar magnitude. A tentative value would be $\alpha=\sqrt{\frac{\|K\|_\infty}{\|M\|_\infty}}$.
 
-In the general case of polynomials of arbitrary degree, a similar scheme is also possible, but it is not clear how to choose $\alpha$ to achieve the same goal. \cite{Betcke:2008:OSG} proposes such a scaling scheme as well as more general diagonal scalings $D_1P(\lambda)D_2$. In \slepc, we provide these types of scalings, whose settings can be tuned with
+In the general case of polynomials of arbitrary degree, a similar scheme is also possible, but it is not clear how to choose $\alpha$ to achieve the same goal. \cite{Betcke:2008:OSG} proposes such a scaling scheme as well as more general diagonal scalings $D_\ell P(\lambda)D_r$. In \slepc, we provide these types of scalings, whose settings can be tuned with
 	\findex{PEPSetScale}
 	\begin{Verbatim}[fontsize=\small]
-	PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,PetscInt its,PetscReal w);
+	PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,
+                    PetscInt its,PetscReal w);
 	\end{Verbatim}
 See the manual page for details.
+
+\paragraph{Extraction.}
+
+Some of the eigensolvers provided in the \texttt{PEP} package are based on solving the linearized eigenproblem of Eq.\ \ref{eq:firstcompfull}. From the eigenvector $y$ of the linearization, it is possible to extract the eigenvector $x$ of the polynomial eigenproblem. The most straightforward way is to take the first block of $y$, but there are other, more elaborate extraction strategies. For instance, one may compute the norm of the residual (\ref{eq:respol}) for every block of $y$, and take the one that gives the smallest residual. The different extraction techniques may be selected with
+	\findex{PEPSetExtract}
+	\begin{Verbatim}[fontsize=\small]
+	PEPSetExtract(PEP pep,PEPExtract extract);
+	\end{Verbatim}
+For additional information, see \citep{Campos:2015:PKS}.
 
 \paragraph{Controlling and Monitoring Convergence.}
 

@@ -209,8 +209,8 @@ PETSC_EXTERN PetscErrorCode PEPConvergedLinear(PEP,PetscScalar,PetscScalar,Petsc
 PETSC_EXTERN PetscErrorCode PEPConvergedAbsolute(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode PEPSetDimensions(PEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode PEPGetDimensions(PEP,PetscInt*,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode PEPSetScale(PEP,PEPScale,PetscReal,PetscInt,PetscReal);
-PETSC_EXTERN PetscErrorCode PEPGetScale(PEP,PEPScale*,PetscReal*,PetscInt*,PetscReal*);
+PETSC_EXTERN PetscErrorCode PEPSetScale(PEP,PEPScale,PetscReal,Vec,Vec,PetscInt,PetscReal);
+PETSC_EXTERN PetscErrorCode PEPGetScale(PEP,PEPScale*,PetscReal*,Vec*,Vec*,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPSetRefine(PEP,PEPRefine,PetscInt,PetscReal,PetscInt,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPGetRefine(PEP,PEPRefine*,PetscInt*,PetscReal*,PetscInt*,PetscBool*);
 PETSC_EXTERN PetscErrorCode PEPSetExtract(PEP,PEPExtract);

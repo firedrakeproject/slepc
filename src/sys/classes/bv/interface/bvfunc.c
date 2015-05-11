@@ -134,6 +134,8 @@ PetscErrorCode BVDestroy(BV *bv)
   ierr = PetscFree((*bv)->work);CHKERRQ(ierr);
   ierr = PetscFree2((*bv)->h,(*bv)->c);CHKERRQ(ierr);
   ierr = PetscFree((*bv)->omega);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*bv)->B);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*bv)->C);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -164,7 +166,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   PetscValidPointer(newbv,2);
   *newbv = 0;
   ierr = BVInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(bv,_p_BV,struct _BVOps,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(bv,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView);CHKERRQ(ierr);
 
   bv->t            = NULL;
   bv->n            = -1;
@@ -193,6 +195,11 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->h            = NULL;
   bv->c            = NULL;
   bv->omega        = NULL;
+  bv->vmm          = BV_MATMULT_MAT;
+  bv->B            = NULL;
+  bv->C            = NULL;
+  bv->Aid          = 0;
+  bv->defersfo     = PETSC_FALSE;
   bv->work         = NULL;
   bv->lwork        = 0;
   bv->data         = NULL;
@@ -579,6 +586,17 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
         ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
         ierr = MatView(bv->matrix,viewer);CHKERRQ(ierr);
         ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+      }
+      switch (bv->vmm) {
+        case BV_MATMULT_VECS:
+          ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as matrix-vector products\n");CHKERRQ(ierr);
+          break;
+        case BV_MATMULT_MAT:
+          ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as a single matrix-matrix product\n");CHKERRQ(ierr);
+          break;
+        case BV_MATMULT_MAT_SAVE:
+          ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as a single matrix-matrix product, saving aux matrices\n");CHKERRQ(ierr);
+          break;
       }
     } else {
       if (bv->ops->view) { ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr); }

@@ -51,7 +51,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
   PetscFunctionBegin;
   if (eps->isgeneralized && eps->purify) {
     /* Purify eigenvectors */
-    ierr = BVGetVec(eps->V,&w);CHKERRQ(ierr);
+    ierr = BVCreateVec(eps->V,&w);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
       ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);
       ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
@@ -93,7 +93,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 
   /* purification */
   if (eps->purify) {
-    ierr = BVGetVec(eps->V,&v);CHKERRQ(ierr);
+    ierr = BVCreateVec(eps->V,&v);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
       ierr = BVCopyVec(eps->V,i,v);CHKERRQ(ierr);
       ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
@@ -172,7 +172,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 
   /* Purify eigenvectors */
   if (eps->ispositive && eps->purify) {
-    ierr = BVGetVec(eps->V,&w);CHKERRQ(ierr);
+    ierr = BVCreateVec(eps->V,&w);CHKERRQ(ierr);
     for (i=0;i<n;i++) {
       ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);
       ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
@@ -221,7 +221,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetWorkVecs"
 /*@
-   EPSSetWorkVecs - Sets a number of work vectors into a EPS object.
+   EPSSetWorkVecs - Sets a number of work vectors into an EPS object.
 
    Collective on EPS
 
@@ -241,7 +241,7 @@ PetscErrorCode EPSSetWorkVecs(EPS eps,PetscInt nw)
   Vec            t;
 
   PetscFunctionBegin;
-  if (eps->nwork != nw) {
+  if (eps->nwork < nw) {
     ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
     eps->nwork = nw;
     ierr = BVGetColumn(eps->V,0,&t);CHKERRQ(ierr);
@@ -357,7 +357,7 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
   if (Zi) {
     ierr = BVMultVec(V,1.0,0.0,y,Zi);CHKERRQ(ierr);
     if (eps->ispositive) {
-      ierr = BVGetVec(V,&z);CHKERRQ(ierr);
+      ierr = BVCreateVec(V,&z);CHKERRQ(ierr);
       ierr = STApply(eps->st,y,z);CHKERRQ(ierr);
       ierr = VecNorm(z,NORM_2,&norm);CHKERRQ(ierr);
       ierr = VecScale(z,1.0/norm);CHKERRQ(ierr);
@@ -390,9 +390,10 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
   PetscErrorCode    ierr;
 
   PetscFunctionBegin;
-  ierr = BVGetVec(eps->V,&r);CHKERRQ(ierr);
-  ierr = BVGetVec(eps->V,&p);CHKERRQ(ierr);
-  ierr = BVGetVec(eps->V,&z);CHKERRQ(ierr);
+  ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
+  r = eps->work[0];
+  p = eps->work[1];
+  z = eps->work[2];
   ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
 
   for (j=0;j<eps->balance_its;j++) {
@@ -438,10 +439,6 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
     ierr = VecRestoreArrayRead(p,&pp);CHKERRQ(ierr);
     ierr = VecRestoreArray(eps->D,&pD);CHKERRQ(ierr);
   }
-
-  ierr = VecDestroy(&r);CHKERRQ(ierr);
-  ierr = VecDestroy(&p);CHKERRQ(ierr);
-  ierr = VecDestroy(&z);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

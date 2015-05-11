@@ -496,19 +496,21 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
 /*
    NEPComputeResidualNorm_Private - Computes the norm of the residual vector
    associated with an eigenpair.
+
+   Input Parameters:
+     lambda - eigenvalue
+     x      - eigenvector
+     w      - array of work vectors (only one vector)
 */
-PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,PetscReal *norm)
+PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,Vec *w,PetscReal *norm)
 {
   PetscErrorCode ierr;
-  Vec            u;
   Mat            T=nep->function;
 
   PetscFunctionBegin;
-  ierr = BVGetVec(nep->V,&u);CHKERRQ(ierr);
   ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
-  ierr = MatMult(T,x,u);CHKERRQ(ierr);
-  ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
+  ierr = MatMult(T,x,*w);CHKERRQ(ierr);
+  ierr = VecNorm(*w,NORM_2,norm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -540,7 +542,7 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,P
 PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *error)
 {
   PetscErrorCode ierr;
-  Vec            xr,xi;
+  Vec            xr,xi=NULL,w;
   PetscScalar    kr,ki;
   PetscReal      er;
 
@@ -550,14 +552,26 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
   PetscValidLogicalCollectiveEnum(nep,type,3);
   PetscValidPointer(error,4);
   NEPCheckSolved(nep,1);
-  ierr = BVGetVec(nep->V,&xr);CHKERRQ(ierr);
-  ierr = BVGetVec(nep->V,&xi);CHKERRQ(ierr);
+
+  /* allocate work vectors */
+#if defined(PETSC_USE_COMPLEX)
+  ierr = NEPSetWorkVecs(nep,2);CHKERRQ(ierr);
+#else
+  ierr = NEPSetWorkVecs(nep,3);CHKERRQ(ierr);
+  xi = nep->work[2];
+#endif
+  xr = nep->work[0];
+  w  = nep->work[1];
+
+  /* compute residual norms */
   ierr = NEPGetEigenpair(nep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   if (ki) SETERRQ(PETSC_COMM_SELF,1,"Not implemented for complex eigenvalues with real scalars");
 #endif
-  ierr = NEPComputeResidualNorm_Private(nep,kr,xr,error);CHKERRQ(ierr);
+  ierr = NEPComputeResidualNorm_Private(nep,kr,xr,&w,error);CHKERRQ(ierr);
   ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
+
+  /* compute error */
   if (type==PETSC_DEFAULT) type = NEP_ERROR_RELATIVE;
   switch (type) {
     case NEP_ERROR_ABSOLUTE:
@@ -568,8 +582,6 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
     default:
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
   }
-  ierr = VecDestroy(&xr);CHKERRQ(ierr);
-  ierr = VecDestroy(&xi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

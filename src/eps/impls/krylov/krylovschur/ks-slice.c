@@ -792,7 +792,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt        i,conv,k,l,ld,nv,*iwork,j,p;
+  PetscInt        i,conv,k,l,ld,nv,*iwork,j,p,nconv;
   Mat             U;
   PetscScalar     *Q,*A,rtmp;
   PetscReal       *a,*b,beta;
@@ -950,6 +950,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     else l = nv-k;
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
     if (breakdown) l=0;
+    nconv = k;
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
@@ -984,7 +985,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     }
     /* Monitor */
     eps->nconv = k;
-    ierr = EPSMonitor(eps,ctx->sr->itsKs,eps->nconv,sr->eigr,sr->eigi,sr->errest,nv);CHKERRQ(ierr);
+    ierr = EPSMonitor(eps,ctx->sr->itsKs,nconv,sr->eigr,sr->eigi,sr->errest,nv);CHKERRQ(ierr);
     if (eps->reason != EPS_CONVERGED_ITERATING) {
       /* Store approximated values for next shift */
       ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);

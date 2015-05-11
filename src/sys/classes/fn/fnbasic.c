@@ -73,7 +73,7 @@ PetscErrorCode FNInitializePackage(void)
   if (FNPackageInitialized) PetscFunctionReturn(0);
   FNPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Math function",&FN_CLASSID);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("Math Function",&FN_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = FNRegisterAll();CHKERRQ(ierr);
   /* Register Events */
@@ -124,7 +124,7 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
   PetscValidPointer(newfn,2);
   *newfn = 0;
   ierr = FNInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(fn,_p_FN,struct _FNOps,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(fn,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView);CHKERRQ(ierr);
 
   fn->alpha    = 1.0;
   fn->beta     = 1.0;

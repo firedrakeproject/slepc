@@ -52,7 +52,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
-  if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
+  if (eps->ishermitian && eps->ispositive && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);

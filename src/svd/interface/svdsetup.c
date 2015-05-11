@@ -364,7 +364,7 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
   ierr = BVGetSizes(svd->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
 
   /* allocate sigma */
-  if (requested != oldsize) {
+  if (requested != oldsize || !svd->sigma) {
     if (oldsize) {
       ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
     }
