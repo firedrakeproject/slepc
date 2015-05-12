@@ -996,7 +996,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscSca
   Second stage: resize BV to accomodate A'*Y1, then call BVDot for transpose of
   bottom-left part; result placed in marray[*,ldm]
 */
-PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm)
+PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm,PetscBool symm)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,lx,ly,kx,ky;
@@ -1025,20 +1025,27 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscS
 
   /* bottom-left part, Y1'*AX0 */
   if (lx>0 && ly<ky) {
-    ierr = BVResize(W,ky-ly,PETSC_FALSE);CHKERRQ(ierr);
-    Y->l = ly; Y->k = ky;
-    ierr = BVMatMultHermitianTranspose(Y,A,W);CHKERRQ(ierr);
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,lx,ky-ly,NULL,&H);CHKERRQ(ierr);
-    X->l = 0; X->k = lx;
-    ierr = BVDot(W,X,H);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
-    for (i=0;i<ky-ly;i++) {
-      for (j=0;j<lx;j++) {
-        marray[i+j*ldm+ly] = PetscConj(harray[j+i*(ky-ly)]);
+    if (symm) {
+      /* do not compute, just copy symmetric elements */
+      for (i=ly;i<ky;i++) {
+        for (j=0;j<lx;j++) marray[i+j*ldm] = PetscConj(marray[j+i*ldm]);
       }
+    } else {
+      ierr = BVResize(W,ky-ly,PETSC_FALSE);CHKERRQ(ierr);
+      Y->l = ly; Y->k = ky;
+      ierr = BVMatMultHermitianTranspose(Y,A,W);CHKERRQ(ierr);
+      ierr = MatCreateSeqDense(PETSC_COMM_SELF,lx,ky-ly,NULL,&H);CHKERRQ(ierr);
+      X->l = 0; X->k = lx;
+      ierr = BVDot(W,X,H);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+      for (i=0;i<ky-ly;i++) {
+        for (j=0;j<lx;j++) {
+          marray[i+j*ldm+ly] = PetscConj(harray[j+i*(ky-ly)]);
+        }
+      }
+      ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+      ierr = MatDestroy(&H);CHKERRQ(ierr);
     }
-    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
-    ierr = MatDestroy(&H);CHKERRQ(ierr);
   }
   ierr = BVDestroy(&W);CHKERRQ(ierr);
   X->l = lx; X->k = kx;
@@ -1197,7 +1204,12 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
       ierr = BVMatProject_Vec(X,A,Y,marray,m,symm);CHKERRQ(ierr);
     } else {
       /* use BVMatMult, then BVDot */
-      ierr = BVMatProject_MatMult_2(X,A,Y,marray,m);CHKERRQ(ierr);
+      ierr = MatHasOperation(A,MATOP_MULT_TRANSPOSE,&flg);CHKERRQ(ierr);
+      if (symm || (flg && X->l>=X->k/2 && Y->l>=Y->k/2)) {
+        ierr = BVMatProject_MatMult_2(X,A,Y,marray,m,symm);CHKERRQ(ierr);
+      } else {
+        ierr = BVMatProject_MatMult(X,A,Y,marray,m);CHKERRQ(ierr);
+      }
     }
   } else {
     /* use BVDot on subblocks */
