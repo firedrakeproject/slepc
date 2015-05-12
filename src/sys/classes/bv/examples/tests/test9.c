@@ -142,6 +142,11 @@ int main(int argc,char **argv)
   /* Fill Y entries */
   for (j=0;j<ky+1;j++) {
     ierr = BVGetColumn(Y,j,&v);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    alpha = (j+1)/4.0-PETSC_i*j;
+#else
+    alpha = (j+1)/4.0;
+#endif
     ierr = VecSet(v,(PetscScalar)(j+1)/4.0);CHKERRQ(ierr);
     ierr = BVRestoreColumn(Y,j,&v);CHKERRQ(ierr);
   }
