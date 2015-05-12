@@ -495,6 +495,7 @@ static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
   Vec               v;
   PetscViewerFormat format;
   PetscBool         isascii,ismatlab=PETSC_FALSE;
+  const char        *bvname,*name;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -503,13 +504,15 @@ static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
     if (format == PETSC_VIEWER_ASCII_MATLAB) ismatlab = PETSC_TRUE;
   }
   if (ismatlab) {
-    ierr = PetscViewerASCIIPrintf(viewer,"%s=[];\n",((PetscObject)bv)->name);CHKERRQ(ierr);
+    ierr = PetscObjectGetName((PetscObject)bv,&bvname);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%s=[];\n",bvname);CHKERRQ(ierr);
   }
   for (j=bv->nc;j<bv->nc+bv->m;j++) {
     ierr = BVGetColumn(bv,j,&v);CHKERRQ(ierr);
     ierr = VecView(v,viewer);CHKERRQ(ierr);
     if (ismatlab) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",((PetscObject)bv)->name,((PetscObject)bv)->name,((PetscObject)v)->name,((PetscObject)v)->name);CHKERRQ(ierr);
+      ierr = PetscObjectGetName((PetscObject)v,&name);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",bvname,bvname,name,name);CHKERRQ(ierr);
     }
     ierr = BVRestoreColumn(bv,j,&v);CHKERRQ(ierr);
   }

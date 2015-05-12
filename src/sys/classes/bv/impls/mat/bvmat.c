@@ -424,6 +424,7 @@ PetscErrorCode BVView_Mat(BV bv,PetscViewer viewer)
   BV_MAT            *ctx = (BV_MAT*)bv->data;
   PetscViewerFormat format;
   PetscBool         isascii;
+  const char        *bvname,*name;
 
   PetscFunctionBegin;
   ierr = MatView(ctx->A,viewer);CHKERRQ(ierr);
@@ -431,9 +432,11 @@ PetscErrorCode BVView_Mat(BV bv,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s=%s;clear %s\n",((PetscObject)bv)->name,((PetscObject)ctx->A)->name,((PetscObject)ctx->A)->name);CHKERRQ(ierr);
+      ierr = PetscObjectGetName((PetscObject)bv,&bvname);CHKERRQ(ierr);
+      ierr = PetscObjectGetName((PetscObject)ctx->A,&name);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=%s;clear %s\n",bvname,name,name);CHKERRQ(ierr);
       if (bv->nc) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%D:end);\n",((PetscObject)bv)->name,((PetscObject)bv)->name,bv->nc+1);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%D:end);\n",bvname,bvname,bv->nc+1);CHKERRQ(ierr);
       }
     }
   }
