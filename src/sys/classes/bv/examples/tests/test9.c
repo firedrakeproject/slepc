@@ -32,7 +32,7 @@ int main(int argc,char **argv)
   Mat            B,G,H0,H1;
   BV             X,Y,Z;
   PetscInt       i,j,n=20,kx=6,lx=3,ky=5,ly=2,Istart,Iend,col[5];
-  PetscScalar    value[] = { -1, 1, 1, 1, 1 };
+  PetscScalar    alpha,value[] = { -1, 1, 1, 1, 1 };
   PetscViewer    view;
   PetscReal      norm;
   PetscBool      verbose;
@@ -108,7 +108,12 @@ int main(int argc,char **argv)
     ierr = VecSet(v,0.0);CHKERRQ(ierr);
     for (i=0;i<4;i++) {
       if (i+j<n) {
-        ierr = VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+        alpha = 3*i+j-2+PETSC_i*2*i;
+#else
+        alpha = 3*i+j-2;
+#endif
+        ierr = VecSetValue(v,i+j,alpha,INSERT_VALUES);CHKERRQ(ierr);
       }
     }
     ierr = VecAssemblyBegin(v);CHKERRQ(ierr);

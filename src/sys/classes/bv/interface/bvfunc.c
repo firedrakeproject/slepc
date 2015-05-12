@@ -180,6 +180,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->orthog_eta   = 0.7071;
   bv->matrix       = NULL;
   bv->indef        = PETSC_FALSE;
+  bv->vmm          = BV_MATMULT_MAT;
 
   bv->Bx           = NULL;
   bv->xid          = 0;
@@ -195,7 +196,6 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->h            = NULL;
   bv->c            = NULL;
   bv->omega        = NULL;
-  bv->vmm          = BV_MATMULT_MAT;
   bv->B            = NULL;
   bv->C            = NULL;
   bv->Aid          = 0;

@@ -886,6 +886,159 @@ PetscErrorCode BVNormColumnEnd(BV bv,PetscInt j,NormType type,PetscReal *val)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVMatProject_Vec"
+/*
+  Compute Y^H*A*X: right part column by column (with MatMult) and bottom
+  part row by row (with MatMultTranspose); result placed in marray[*,ldm]
+*/
+PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Vec(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm,PetscBool symm)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,j,lx,ly,kx,ky,ulim;
+  Vec            z,f;
+
+  PetscFunctionBegin;
+  lx = X->l; kx = X->k;
+  ly = Y->l; ky = Y->k;
+  ierr = BVCreateVec(X,&f);CHKERRQ(ierr);
+  for (j=lx;j<kx;j++) {
+    ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
+    ierr = MatMult(A,z,f);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(X,j,&z);CHKERRQ(ierr);
+    ulim = PetscMin(ly+(j-lx)+1,ky);
+    Y->l = 0; Y->k = ulim;
+    ierr = (*Y->ops->dotvec)(Y,f,marray+j*ldm);CHKERRQ(ierr);
+    if (symm) {
+      for (i=0;i<j;i++) marray[j+i*ldm] = PetscConj(marray[i+j*ldm]);
+    }
+  }
+  if (!symm) {
+    ierr = BV_AllocateCoeffs(Y);CHKERRQ(ierr);
+    for (j=ly;j<ky;j++) {
+      ierr = BVGetColumn(Y,j,&z);CHKERRQ(ierr);
+      ierr = MatMultHermitianTranspose(A,z,f);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(Y,j,&z);CHKERRQ(ierr);
+      ulim = PetscMin(lx+(j-ly),kx);
+      X->l = 0; X->k = ulim;
+      ierr = (*X->ops->dotvec)(X,f,Y->h);CHKERRQ(ierr);
+      for (i=0;i<ulim;i++) marray[j+i*ldm] = PetscConj(Y->h[i]);
+    }
+  }
+  ierr = VecDestroy(&f);CHKERRQ(ierr);
+  X->l = lx; X->k = kx;
+  Y->l = ly; Y->k = ky;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatProject_MatMult"
+/*
+  Compute Y^H*A*X= [   --   | Y0'*W1 ]
+                   [ Y1'*W0 | Y1'*W1 ]
+  Allocates auxiliary BV to store the result of A*X, then one BVDot
+  call for top-right part and another one for bottom part;
+  result placed in marray[*,ldm]
+*/
+PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm)
+{
+  PetscErrorCode ierr;
+  PetscInt       j,lx,ly,kx,ky;
+  PetscScalar    *harray;
+  Mat            H;
+  BV             W;
+
+  PetscFunctionBegin;
+  lx = X->l; kx = X->k;
+  ly = Y->l; ky = Y->k;
+  ierr = BVDuplicate(X,&W);CHKERRQ(ierr);
+  X->l = 0; X->k = kx;
+  ierr = BVMatMult(X,A,W);CHKERRQ(ierr);
+
+  /* top-right part, Y0'*AX1 */
+  if (ly>0 && lx<kx) {
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,ly,kx,NULL,&H);CHKERRQ(ierr);
+    W->l = lx; W->k = kx;
+    Y->l = 0;  Y->k = ly;
+    ierr = BVDot(W,Y,H);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    for (j=lx;j<kx;j++) {
+      ierr = PetscMemcpy(marray+j*ldm,harray+j*ly,ly*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDestroy(&H);CHKERRQ(ierr);
+  }
+
+  /* bottom part, Y1'*AX */
+  if (kx>0 && ly<ky) {
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H);CHKERRQ(ierr);
+    W->l = 0;  W->k = kx;
+    Y->l = ly; Y->k = ky;
+    ierr = BVDot(W,Y,H);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    for (j=0;j<kx;j++) {
+      ierr = PetscMemcpy(marray+j*ldm+ly,harray+j*ky+ly,(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDestroy(&H);CHKERRQ(ierr);
+  }
+  ierr = BVDestroy(&W);CHKERRQ(ierr);
+  X->l = lx; X->k = kx;
+  Y->l = ly; Y->k = ky;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatProject_Dot"
+/*
+  Compute Y^H*X = [   --   | Y0'*X1 ]     (X contains A*X):
+                  [ Y1'*X0 | Y1'*X1 ]
+  one BVDot call for top-right part and another one for bottom part;
+  result placed in marray[*,ldm]
+*/
+PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marray,PetscInt ldm)
+{
+  PetscErrorCode ierr;
+  PetscInt       j,lx,ly,kx,ky;
+  PetscScalar    *harray;
+  Mat            H;
+
+  PetscFunctionBegin;
+  lx = X->l; kx = X->k;
+  ly = Y->l; ky = Y->k;
+
+  /* top-right part, Y0'*X1 */
+  if (ly>0 && lx<kx) {
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,ly,kx,NULL,&H);CHKERRQ(ierr);
+    X->l = lx; X->k = kx;
+    Y->l = 0;  Y->k = ly;
+    ierr = BVDot(X,Y,H);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    for (j=lx;j<kx;j++) {
+      ierr = PetscMemcpy(marray+j*ldm,harray+j*ly,ly*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDestroy(&H);CHKERRQ(ierr);
+  }
+
+  /* bottom part, Y1'*X */
+  if (kx>0 && ly<ky) {
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H);CHKERRQ(ierr);
+    X->l = 0;  X->k = kx;
+    Y->l = ly; Y->k = ky;
+    ierr = BVDot(X,Y,H);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    for (j=0;j<kx;j++) {
+      ierr = PetscMemcpy(marray+j*ldm+ly,harray+j*ky+ly,(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDestroy(&H);CHKERRQ(ierr);
+  }
+  X->l = lx; X->k = kx;
+  Y->l = ly; Y->k = ky;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVMatProject"
 /*@
    BVMatProject - Computes the projection of a matrix onto a subspace.
@@ -934,10 +1087,9 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
 {
   PetscErrorCode ierr;
   PetscBool      match,set,flg,symm=PETSC_FALSE;
-  PetscInt       i,j,m,n,lx,ly,kx,ky,ulim;
-  PetscScalar    *marray,*harray;
-  Vec            z,f;
-  Mat            Xmatrix,Ymatrix,H;
+  PetscInt       m,n;
+  PetscScalar    *marray;
+  Mat            Xmatrix,Ymatrix;
   PetscObjectId  idx,idy;
 
   PetscFunctionBegin;
@@ -974,79 +1126,25 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   if (!A && idx==idy) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Cannot set X=Y if A=NULL");
 
   ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
-  lx = X->l; kx = X->k;
-  ly = Y->l; ky = Y->k;
 
   if (A && idx==idy) { /* check symmetry of M=X'AX */
     ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
     symm = set? flg: PETSC_FALSE;
   }
 
-  if (A) {  /* perform computation column by column */
-
-    ierr = BVCreateVec(X,&f);CHKERRQ(ierr);
-    for (j=lx;j<kx;j++) {
-      ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
-      ierr = MatMult(A,z,f);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(X,j,&z);CHKERRQ(ierr);
-      ulim = PetscMin(ly+(j-lx)+1,ky);
-      Y->l = 0; Y->k = ulim;
-      ierr = (*Y->ops->dotvec)(Y,f,marray+j*m);CHKERRQ(ierr);
-      if (symm) {
-        for (i=0;i<j;i++) marray[j+i*m] = PetscConj(marray[i+j*m]);
-      }
+  if (A) { 
+    if (X->vmm==BV_MATMULT_VECS) {
+      /* perform computation column by column */
+      ierr = BVMatProject_Vec(X,A,Y,marray,m,symm);CHKERRQ(ierr);
+    } else {
+      /* use BVMatMult, then BVDot */
+      ierr = BVMatProject_MatMult(X,A,Y,marray,m);CHKERRQ(ierr);
     }
-    if (!symm) {
-      ierr = BV_AllocateCoeffs(Y);CHKERRQ(ierr);
-      for (j=ly;j<ky;j++) {
-        ierr = BVGetColumn(Y,j,&z);CHKERRQ(ierr);
-        ierr = MatMultHermitianTranspose(A,z,f);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(Y,j,&z);CHKERRQ(ierr);
-        ulim = PetscMin(lx+(j-ly),kx);
-        X->l = 0; X->k = ulim;
-        ierr = (*X->ops->dotvec)(X,f,Y->h);CHKERRQ(ierr);
-        for (i=0;i<ulim;i++) marray[j+i*m] = PetscConj(Y->h[i]);
-      }
-    }
-    ierr = VecDestroy(&f);CHKERRQ(ierr);
-
-  } else {  /* use BVDot on subblocks   AX = [ AX0 AX1 ], Y = [ Y0 Y1 ]
-
-                M = [    M0   | Y0'*AX1 ]
-                    [ Y1'*AX0 | Y1'*AX1 ]
-    */
-
-    /* upper part, Y0'*AX1 */
-    if (ly>0 && lx<kx) {
-      ierr = MatCreateSeqDense(PETSC_COMM_SELF,ly,kx,NULL,&H);CHKERRQ(ierr);
-      X->l = lx; X->k = kx;
-      Y->l = 0;  Y->k = ly;
-      ierr = BVDot(X,Y,H);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
-      for (j=lx;j<kx;j++) {
-        ierr = PetscMemcpy(marray+m*j,harray+j*ly,ly*sizeof(PetscScalar));CHKERRQ(ierr);
-      }
-      ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
-      ierr = MatDestroy(&H);CHKERRQ(ierr);
-    }
-
-    /* lower part, Y1'*AX */
-    if (kx>0 && ly<ky) {
-      ierr = MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H);CHKERRQ(ierr);
-      X->l = 0;  X->k = kx;
-      Y->l = ly; Y->k = ky;
-      ierr = BVDot(X,Y,H);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
-      for (j=0;j<kx;j++) {
-        ierr = PetscMemcpy(marray+m*j+ly,harray+j*ky+ly,(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
-      }
-      ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
-      ierr = MatDestroy(&H);CHKERRQ(ierr);
-    }
+  } else {
+    /* use BVDot on subblocks */
+    ierr = BVMatProject_Dot(X,Y,marray,m);CHKERRQ(ierr);
   }
 
-  X->l = lx; X->k = kx;
-  Y->l = ly; Y->k = ky;
   ierr = MatDenseRestoreArray(M,&marray);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_MatProject,X,A,Y,0);CHKERRQ(ierr);
   /* restore non-standard inner product */
