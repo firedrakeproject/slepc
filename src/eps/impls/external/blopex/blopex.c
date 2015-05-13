@@ -215,8 +215,8 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 {
   EPS_BLOPEX        *blopex = (EPS_BLOPEX*)eps->data;
-  PetscScalar       sigma,*eigr;
-  PetscReal         *errest;
+  PetscScalar       sigma,*eigr=NULL;
+  PetscReal         *errest=NULL;
   int               i,j,info,its,nconv;
   double            *residhist=NULL;
   PetscErrorCode    ierr;

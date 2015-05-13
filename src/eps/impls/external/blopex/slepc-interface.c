@@ -33,7 +33,7 @@ static void* mv_TempMultiVectorCreateFromBV(void* ii_,BlopexInt n,void* sample)
   PetscErrorCode          ierr;
   BV                      bv = (BV)sample;
   Vec                     v;
-  PetscInt                i,l,k,nc,useconstr,flg;
+  PetscInt                i,l,k,nc,useconstr=PETSC_FALSE,flg;
   mv_TempMultiVector      *x;
   mv_InterfaceInterpreter *ii = (mv_InterfaceInterpreter*)ii_;
 
