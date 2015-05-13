@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <petsc-private/vecimpl.h>
+#include <petsc/private/vecimpl.h>
 
 #if defined(__WITH_MPI__)
 #define __SUF__(A) A##_MPI
@@ -285,13 +285,14 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
 #define __FUNCT__ __SUF_C__(VecDotNorm2_Comp)
 PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar *nm)
 {
-  PetscScalar    *vx,*wx,dp0,nm0,dp1,nm1;
-  PetscErrorCode ierr;
-  Vec_Comp       *vs = (Vec_Comp*)v->data,*ws = (Vec_Comp*)w->data;
-  PetscInt       i,n;
-  PetscBool      t0,t1;
+  PetscErrorCode    ierr;
+  PetscScalar       dp0,nm0,dp1,nm1;
+  const PetscScalar *vx,*wx;
+  Vec_Comp          *vs = (Vec_Comp*)v->data,*ws = (Vec_Comp*)w->data;
+  PetscInt          i,n;
+  PetscBool         t0,t1;
 #if defined(__WITH_MPI__)
-  PetscScalar    work[4];
+  PetscScalar       work[4];
 #endif
 
   PetscFunctionBegin;
@@ -309,14 +310,14 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar
     }
   } else if (!t0 && !t1) {
     ierr = VecGetLocalSize(v,&n);CHKERRQ(ierr);
-    ierr = VecGetArray(v,&vx);CHKERRQ(ierr);
-    ierr = VecGetArray(w,&wx);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(v,&vx);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(w,&wx);CHKERRQ(ierr);
     for (i=0;i<n;i++) {
       dp0 += vx[i]*PetscConj(wx[i]);
       nm0 += wx[i]*PetscConj(wx[i]);
     }
-    ierr = VecRestoreArray(v,&vx);CHKERRQ(ierr);
-    ierr = VecRestoreArray(w,&wx);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(v,&vx);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(w,&wx);CHKERRQ(ierr);
   } else SETERRQ(PetscObjectComm((PetscObject)v),PETSC_ERR_ARG_INCOMP,"Incompatible vector types");
 
 #if defined(__WITH_MPI__)

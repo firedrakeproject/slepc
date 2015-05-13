@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>    /*I "slepceps.h" I*/
-#include <slepc-private/stimpl.h>
+#include <slepc/private/epsimpl.h>    /*I "slepceps.h" I*/
+#include <slepc/private/stimpl.h>
 #include <../src/eps/impls/external/blzpack/blzpackp.h>
 
 PetscErrorCode EPSSolve_BLZPACK(EPS);
@@ -70,7 +70,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   PetscErrorCode ierr;
   PetscInt       listor,lrstor,ncuv,k1,k2,k3,k4;
   EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
-  PetscBool      issinv,flg;
+  PetscBool      issinv,istrivial,flg;
 
   PetscFunctionBegin;
   if (eps->ncv) {
@@ -140,6 +140,8 @@ lrstor*=10;
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->V,BVVECS,&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
+  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
   /* dispatch solve method */
   eps->ops->solve = EPSSolve_BLZPACK;
@@ -343,7 +345,7 @@ PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_BLZPACK"
-PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
+PetscErrorCode EPSSetFromOptions_BLZPACK(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
@@ -351,7 +353,7 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
   PetscBool      flg;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS BLZPACK Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS BLZPACK Options");CHKERRQ(ierr);
 
   bs = blz->block_size;
   ierr = PetscOptionsInt("-eps_blzpack_block_size","Block size","EPSBlzpackSetBlockSize",bs,&bs,&flg);CHKERRQ(ierr);
@@ -374,7 +376,7 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
 static PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
 {
   PetscErrorCode ierr;
-  EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;;
+  EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) blz->block_size = 3;

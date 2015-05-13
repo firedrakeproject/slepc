@@ -8,3 +8,6 @@ FN Object: 1 MPI processes
     Exponential: +1.3  *exp(-0.2*x)
   f(2.2)=0.837247
   f'(2.2)=-0.167449
+Parameters:
+ - alpha: -0.2 
+ - beta: 1.3 

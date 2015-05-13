@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/mfnimpl.h>  /*I "slepcmfn.h" I*/
+#include <slepc/private/mfnimpl.h>  /*I "slepcmfn.h" I*/
 
 PETSC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN);
 
@@ -39,7 +39,9 @@ PetscErrorCode MFNRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (MFNRegisterAllCalled) PetscFunctionReturn(0);
   MFNRegisterAllCalled = PETSC_TRUE;
   ierr = MFNRegister(MFNKRYLOV,MFNCreate_Krylov);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

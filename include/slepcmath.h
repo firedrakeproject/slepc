@@ -4,7 +4,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -37,19 +37,6 @@
 #else
 #  define SLEPC_DEFAULT_TOL   1e-7
 #endif
-
-/*E
-    SlepcFunction - Used to specify a mathematical function
-
-    Note:
-    Currently available functions:
-.   SLEPC_FUNCTION_EXP - exponential
-
-    Level: beginner
-E*/
-typedef enum { SLEPC_FUNCTION_NONE=0,
-               SLEPC_FUNCTION_EXP,
-               SLEPC_FUNCTION_LAST } SlepcFunction;
 
 /*@C
    SlepcAbs - Returns sqrt(x**2+y**2), taking care not to cause unnecessary

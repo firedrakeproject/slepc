@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>            /*I "slepcst.h" I*/
+#include <slepc/private/stimpl.h>            /*I "slepcst.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "STApply"
@@ -54,10 +54,12 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   PetscValidType(st,1);
   STCheckMatrices(st,1);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  VecLocked(y,3);
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
 
   if (!st->ops->apply) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have apply");
+  ierr = VecLockPush(x);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_Apply,st,x,y,0);CHKERRQ(ierr);
   st->applys++;
   if (st->D) { /* with balancing */
@@ -68,6 +70,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
     ierr = (*st->ops->apply)(st,x,y);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(ST_Apply,st,x,y,0);CHKERRQ(ierr);
+  ierr = VecLockPop(x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -102,10 +105,12 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   PetscValidType(st,1);
   STCheckMatrices(st,1);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  VecLocked(y,3);
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
 
   if (!st->ops->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
+  ierr = VecLockPush(x);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
   st->applys++;
   if (st->D) { /* with balancing */
@@ -116,6 +121,7 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
     ierr = (*st->ops->applytrans)(st,x,y);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
+  ierr = VecLockPop(x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -209,7 +215,7 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   if (st->nmat>2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Can only be used with 1 or 2 matrices");
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)st),&size);CHKERRQ(ierr);
 
-  ierr = MatGetVecs(st->A[0],&in,&out);CHKERRQ(ierr);
+  ierr = MatCreateVecs(st->A[0],&in,&out);CHKERRQ(ierr);
   ierr = VecGetSize(out,&M);CHKERRQ(ierr);
   ierr = VecGetLocalSize(out,&m);CHKERRQ(ierr);
   ierr = VecSetOption(in,VEC_IGNORE_OFF_PROC_ENTRIES,PETSC_TRUE);CHKERRQ(ierr);
@@ -286,7 +292,7 @@ PetscErrorCode STSetUp(ST st)
   }
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   if (!st->w) {
-    ierr = MatGetVecs(st->A[0],&st->w,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(st->A[0],&st->w,NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->w);CHKERRQ(ierr);
   }
   if (st->D) {
@@ -355,7 +361,6 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
     }
     break;
   case ST_MATMODE_COPY:
-    ierr = MatDestroy(S);CHKERRQ(ierr);
     if (coeffs) {
       for (i=0;i<nmat && ini==-1;i++) {
         if (coeffs[i]!=0.0) ini = i;
@@ -365,11 +370,17 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
       for (i=ini+1;i<nmat&&!nz;i++) if (coeffs[i]!=0.0) nz = PETSC_TRUE;
     } else { nz = PETSC_TRUE; ini = 0; }
     if ((alpha == 0.0 || !nz) && t==1.0) {
+      ierr = MatDestroy(S);CHKERRQ(ierr);
       ierr = PetscObjectReference((PetscObject)st->A[k+ini]);CHKERRQ(ierr);
       *S = st->A[k+ini];
     } else {
-      ierr = MatDuplicate(st->A[k+ini],MAT_COPY_VALUES,S);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
+      if (*S && *S!=st->A[k+ini]) {
+        ierr = MatCopy(st->A[k+ini],*S,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+      } else {
+        ierr = MatDestroy(S);CHKERRQ(ierr);
+        ierr = MatDuplicate(st->A[k+ini],MAT_COPY_VALUES,S);CHKERRQ(ierr);
+        ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*S);CHKERRQ(ierr);
+      }
       if (coeffs && coeffs[ini]!=1.0) {
         ierr = MatScale(*S,coeffs[ini]);CHKERRQ(ierr);
       }
@@ -472,26 +483,45 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STComputeSolveMat"
-/*
-  Forces ST to compute the matrix st->P (matrix which is used in the STMatSolve call) 
+#define __FUNCT__ "STMatSetUp"
+/*@
+   STMatSetUp - Build the preconditioner matrix used in STMatSolve().
+
+   Collective on ST
+
+   Input Parameters:
++  st     - the spectral transformation context
+.  sigma  - the shift
+-  coeffs - the coefficients (may be NULL)
+
+   Note:
+   This function is not intended to be called by end users, but by SLEPc
+   solvers that use ST. It builds matrix st->P as follows, then calls KSPSetUp().
+.vb
     If (coeffs):  st->P = Sum_{i=0:nmat-1} coeffs[i]*sigma^i*A_i.
     else          st->P = Sum_{i=0:nmat-1} sigma^i*A_i
-*/
-PetscErrorCode STComputeSolveMat(ST st,PetscScalar sigma,PetscScalar *coeffs)
+.ve
+
+   Level: developer
+
+.seealso: STMatSolve()
+@*/
+PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveScalar(st,sigma,2);
-  PetscValidScalarPointer(coeffs,2);
   STCheckMatrices(st,1);
 
+  ierr = PetscLogEventBegin(ST_MatSetUp,st,0,0,0);CHKERRQ(ierr);
   ierr = STMatMAXPY_Private(st,sigma,0.0,0,coeffs,PETSC_TRUE,&st->P);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+  ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
   ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(ST_MatSetUp,st,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

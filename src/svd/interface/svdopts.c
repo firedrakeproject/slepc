@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,67 +21,53 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>      /*I "slepcsvd.h" I*/
+#include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDSetTransposeMode"
+#define __FUNCT__ "SVDSetImplicitTranspose"
 /*@
-   SVDSetTransposeMode - Sets how to handle the transpose of the matrix
+   SVDSetImplicitTranspose - Indicates how to handle the transpose of the matrix
    associated with the singular value problem.
 
    Logically Collective on SVD
 
    Input Parameters:
 +  svd  - the singular value solver context
--  mode - how to compute the transpose, one of SVD_TRANSPOSE_EXPLICIT
-          or SVD_TRANSPOSE_IMPLICIT (see notes below)
+-  impl - how to handle the transpose (implicitly or not)
 
    Options Database Key:
-.  -svd_transpose_mode <mode> - Indicates the mode flag, where <mode>
-    is one of 'explicit' or 'implicit'.
+.  -svd_implicittranspose - Activate the implicit transpose mode.
 
    Notes:
-   In the SVD_TRANSPOSE_EXPLICIT mode, the transpose of the matrix is
-   explicitly built.
+   By default, the transpose of the matrix is explicitly built (if the matrix
+   has defined the MatTranspose operation).
 
-   The option SVD_TRANSPOSE_IMPLICIT does not build the transpose, but
+   If this flag is set to true, the solver does not build the transpose, but
    handles it implicitly via MatMultTranspose() (or MatMultHermitianTranspose()
-   in the complex case) operations. This is
-   likely to be more inefficient than SVD_TRANSPOSE_EXPLICIT, both in
-   sequential and in parallel, but requires less storage.
-
-   The default is SVD_TRANSPOSE_EXPLICIT if the matrix has defined the
-   MatTranspose operation, and SVD_TRANSPOSE_IMPLICIT otherwise.
+   in the complex case) operations. This is likely to be more inefficient
+   than the default behaviour, both in sequential and in parallel, but
+   requires less storage.
 
    Level: advanced
 
-.seealso: SVDGetTransposeMode(), SVDSolve(), SVDSetOperator(),
-   SVDGetOperator(), SVDTransposeMode
+.seealso: SVDGetImplicitTranspose(), SVDSolve(), SVDSetOperator()
 @*/
-PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
+PetscErrorCode SVDSetImplicitTranspose(SVD svd,PetscBool impl)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidLogicalCollectiveEnum(svd,mode,2);
-  if (mode == PETSC_DEFAULT || mode == PETSC_DECIDE) mode = (SVDTransposeMode)PETSC_DECIDE;
-  else switch (mode) {
-    case SVD_TRANSPOSE_EXPLICIT:
-    case SVD_TRANSPOSE_IMPLICIT:
-      if (svd->transmode!=mode) {
-        svd->transmode = mode;
-        svd->setupcalled = 0;
-      }
-      break;
-    default:
-      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode");
+  PetscValidLogicalCollectiveBool(svd,impl,2);
+  if (svd->impltrans!=impl) {
+    svd->impltrans = impl;
+    svd->state     = SVD_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDGetTransposeMode"
-/*@C
-   SVDGetTransposeMode - Gets the mode used to compute the transpose
+#define __FUNCT__ "SVDGetImplicitTranspose"
+/*@
+   SVDGetImplicitTranspose - Gets the mode used to handle the transpose
    of the matrix associated with the singular value problem.
 
    Not Collective
@@ -90,20 +76,18 @@ PetscErrorCode SVDSetTransposeMode(SVD svd,SVDTransposeMode mode)
 .  svd  - the singular value solver context
 
    Output paramter:
-.  mode - how to compute the transpose, one of SVD_TRANSPOSE_EXPLICIT
-          or SVD_TRANSPOSE_IMPLICIT
+.  impl - how to handle the transpose (implicitly or not)
 
    Level: advanced
 
-.seealso: SVDSetTransposeMode(), SVDSolve(), SVDSetOperator(),
-   SVDGetOperator(), SVDTransposeMode
+.seealso: SVDSetImplicitTranspose(), SVDSolve(), SVDSetOperator()
 @*/
-PetscErrorCode SVDGetTransposeMode(SVD svd,SVDTransposeMode *mode)
+PetscErrorCode SVDGetImplicitTranspose(SVD svd,PetscBool *impl)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(mode,2);
-  *mode = svd->transmode;
+  PetscValidPointer(impl,2);
+  *impl = svd->impltrans;
   PetscFunctionReturn(0);
 }
 
@@ -139,15 +123,15 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
   PetscValidLogicalCollectiveReal(svd,tol,2);
   PetscValidLogicalCollectiveInt(svd,maxits,3);
   if (tol == PETSC_DEFAULT) {
-    tol = PETSC_DEFAULT;
-    svd->setupcalled = 0;
+    svd->tol   = PETSC_DEFAULT;
+    svd->state = SVD_STATE_INITIAL;
   } else {
     if (tol <= 0.0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     svd->tol = tol;
   }
   if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
     svd->max_it = 0;
-    svd->setupcalled = 0;
+    svd->state  = SVD_STATE_INITIAL;
   } else {
     if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     svd->max_it = maxits;
@@ -243,7 +227,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
     if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     svd->mpd = mpd;
   }
-  svd->setupcalled = 0;
+  svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -317,7 +301,7 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
     case SVD_LARGEST:
     case SVD_SMALLEST:
       if (svd->which != which) {
-        svd->setupcalled = 0;
+        svd->state = SVD_STATE_INITIAL;
         svd->which = which;
       }
       break;
@@ -380,8 +364,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 {
   PetscErrorCode   ierr;
   char             type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool        flg,flg1,flg2,flg3;
-  const char       *mode_list[2] = {"explicit","implicit"};
+  PetscBool        flg,val,flg1,flg2,flg3;
   PetscInt         i,j,k;
   PetscReal        r;
   PetscViewer      monviewer;
@@ -389,8 +372,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  svd->setupcalled = 0;
-  if (!SVDRegisterAllCalled) { ierr = SVDRegisterAll();CHKERRQ(ierr); }
+  ierr = SVDRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)svd);CHKERRQ(ierr);
     ierr = PetscOptionsFList("-svd_type","Singular Value Solver method","SVDSetType",SVDList,(char*)(((PetscObject)svd)->type_name?((PetscObject)svd)->type_name:SVDCROSS),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -400,10 +382,15 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     }
 
     ierr = PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_view_vectors","View computed singular vectors","SVDVectorsView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_view_values","View computed singular values","SVDValuesView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_converged_reason","Print reason for convergence, and number of iterations","SVDReasonView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_error_absolute","Print absolute errors of each singular triplet","SVDErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",0);CHKERRQ(ierr);
 
-    ierr = PetscOptionsEList("-svd_transpose_mode","Transpose SVD mode","SVDSetTransposeMode",mode_list,2,svd->transmode == PETSC_DECIDE ? "decide" : mode_list[svd->transmode],&i,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-svd_implicittranspose","Handle matrix transpose implicitly","SVDSetImplicitTranspose",svd->impltrans,&val,&flg);CHKERRQ(ierr);
     if (flg) {
-      ierr = SVDSetTransposeMode(svd,(SVDTransposeMode)i);CHKERRQ(ierr);
+      ierr = SVDSetImplicitTranspose(svd,val);CHKERRQ(ierr);
     }
 
     i = svd->max_it? svd->max_it: PETSC_DEFAULT;
@@ -429,6 +416,10 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = PetscOptionsBoolGroupEnd("-svd_smallest","compute smallest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
     if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr); }
 
+    /* -----------------------------------------------------------------------*/
+    /*
+      Cancels all monitors hardwired into code before call to SVDSetFromOptions()
+    */
     flg = PETSC_FALSE;
     ierr = PetscOptionsBool("-svd_monitor_cancel","Remove any hardwired monitor routines","SVDMonitorCancel",flg,&flg,NULL);CHKERRQ(ierr);
     if (flg) {
@@ -465,7 +456,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     }
 
     if (svd->ops->setfromoptions) {
-      ierr = (*svd->ops->setfromoptions)(svd);CHKERRQ(ierr);
+      ierr = (*svd->ops->setfromoptions)(PetscOptionsObject,svd);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)svd);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);

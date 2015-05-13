@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -77,7 +77,7 @@ PETSC_EXTERN PetscErrorCode STMatSolveTranspose(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STGetBilinearForm(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
-PETSC_EXTERN PetscErrorCode STComputeSolveMat(ST,PetscScalar,PetscScalar*);
+PETSC_EXTERN PetscErrorCode STMatSetUp(ST,PetscScalar,PetscScalar*);
 PETSC_EXTERN PetscErrorCode STPostSolve(ST);
 
 PETSC_EXTERN PetscErrorCode STSetKSP(ST,KSP);
@@ -101,7 +101,7 @@ PETSC_EXTERN PetscErrorCode STCheckNullSpace(ST,BV);
 PETSC_EXTERN PetscErrorCode STGetOperationCounters(ST,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode STResetOperationCounters(ST);
 
-PETSC_EXTERN PetscErrorCode STMatGetVecs(ST,Vec*,Vec*);
+PETSC_EXTERN PetscErrorCode STMatCreateVecs(ST,Vec*,Vec*);
 PETSC_EXTERN PetscErrorCode STMatGetSize(ST,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode STMatGetLocalSize(ST,PetscInt*,PetscInt*);
 
@@ -122,8 +122,6 @@ PETSC_EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);
 PETSC_EXTERN PetscErrorCode STGetMatStructure(ST,MatStructure*);
 
 PETSC_EXTERN PetscFunctionList STList;
-PETSC_EXTERN PetscBool         STRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode STRegisterAll(void);
 PETSC_EXTERN PetscErrorCode STRegister(const char[],PetscErrorCode(*)(ST));
 
 /* --------- options specific to particular spectral transformations-------- */
@@ -137,10 +135,10 @@ PETSC_EXTERN PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backt
 PETSC_EXTERN PetscErrorCode STCayleyGetAntishift(ST,PetscScalar*);
 PETSC_EXTERN PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
 
-PETSC_EXTERN PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat);
-PETSC_EXTERN PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat);
-PETSC_EXTERN PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *setmat);
-PETSC_EXTERN PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat);
+PETSC_EXTERN PetscErrorCode STPrecondGetMatForPC(ST,Mat*);
+PETSC_EXTERN PetscErrorCode STPrecondSetMatForPC(ST,Mat);
+PETSC_EXTERN PetscErrorCode STPrecondGetKSPHasMat(ST,PetscBool*);
+PETSC_EXTERN PetscErrorCode STPrecondSetKSPHasMat(ST,PetscBool);
 
 #endif
 

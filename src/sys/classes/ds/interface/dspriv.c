@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
+#include <slepc/private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
@@ -93,8 +93,26 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSViewMat_Private"
-PetscErrorCode DSViewMat_Private(DS ds,PetscViewer viewer,DSMatType m)
+#define __FUNCT__ "DSViewMat"
+/*@C
+   DSViewMat - Prints one of the internal DS matrices.
+
+   Collective on DS
+
+   Input Parameters:
++  ds     - the direct solver context
+.  viewer - visualization context
+-  m      - matrix to display
+
+   Note:
+   Works only for ascii viewers. Set the viewer in Matlab format if
+   want to paste into Matlab.
+
+   Level: developer
+
+.seealso: DSView()
+@*/
+PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,rows,cols;
@@ -132,7 +150,7 @@ PetscErrorCode DSViewMat_Private(DS ds,PetscViewer viewer,DSMatType m)
       if (allreal) {
         ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",PetscRealPart(*v));CHKERRQ(ierr);
       } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"%18.16e + %18.16ei ",PetscRealPart(*v),PetscImaginaryPart(*v));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei ",PetscRealPart(*v),PetscImaginaryPart(*v));CHKERRQ(ierr);
       }
 #else
       ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",*v);CHKERRQ(ierr);
@@ -160,7 +178,6 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
 
   PetscFunctionBegin;
   n = ds->t;   /* sort only first t pairs if truncated */
-  for (i=0;i<ds->n;i++) perm[i] = i;
   /* insertion sort */
   i=ds->l+1;
 #if !defined(PETSC_USE_COMPLEX)
@@ -183,7 +200,7 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
     j = i-1;
     if (wi) wi0 = wi[perm[j]];
     else wi0 = 0.0;
-    ierr = (*ds->comparison)(re,im,wr[perm[j]],wi0,&result,ds->comparisonctx);CHKERRQ(ierr);
+    ierr = SlepcSCCompare(ds->sc,re,im,wr[perm[j]],wi0,&result);CHKERRQ(ierr);
     while (result<0 && j>=ds->l) {
       perm[j+d] = perm[j];
       j--;
@@ -197,7 +214,7 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
       if (j>=ds->l) {
         if (wi) wi0 = wi[perm[j]];
         else wi0 = 0.0;
-        ierr = (*ds->comparison)(re,im,wr[perm[j]],wi0,&result,ds->comparisonctx);CHKERRQ(ierr);
+        ierr = SlepcSCCompare(ds->sc,re,im,wr[perm[j]],wi0,&result);CHKERRQ(ierr);
       }
     }
     perm[j+1] = tmp1;
@@ -217,16 +234,15 @@ PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm
   PetscFunctionBegin;
   n = ds->t;   /* sort only first t pairs if truncated */
   l = ds->l;
-  for (i=0;i<n;i++) perm[i] = i;
   /* insertion sort */
   for (i=l+1;i<n;i++) {
     re = eig[perm[i]];
     j = i-1;
-    ierr = (*ds->comparison)(re,0.0,eig[perm[j]],0.0,&result,ds->comparisonctx);CHKERRQ(ierr);
+    ierr = SlepcSCCompare(ds->sc,re,0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
     while (result<0 && j>=l) {
       tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
       if (j>=l) {
-        ierr = (*ds->comparison)(re,0.0,eig[perm[j]],0.0,&result,ds->comparisonctx);CHKERRQ(ierr);
+        ierr = SlepcSCCompare(ds->sc,re,0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
       }
     }
   }
@@ -458,6 +474,54 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   if (lindcols) *lindcols = ltau;
   PetscFunctionReturn(0);
 #endif
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SlepcDenseMatProd"
+/*
+  Compute C <- a*A*B + b*C, where
+    ldC, the leading dimension of C,
+    ldA, the leading dimension of A,
+    rA, cA, rows and columns of A,
+    At, if true use the transpose of A instead,
+    ldB, the leading dimension of B,
+    rB, cB, rows and columns of B,
+    Bt, if true use the transpose of B instead
+*/
+static PetscErrorCode SlepcDenseMatProd(PetscScalar *C,PetscInt _ldC,PetscScalar b,PetscScalar a,const PetscScalar *A,PetscInt _ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,PetscInt _ldB,PetscInt rB,PetscInt cB,PetscBool Bt)
+{
+  PetscErrorCode ierr;
+  PetscInt       tmp;
+  PetscBLASInt   m, n, k, ldA = _ldA, ldB = _ldB, ldC = _ldC;
+  const char     *N = "N", *T = "C", *qA = N, *qB = N;
+
+  PetscFunctionBegin;
+  if ((rA == 0) || (cB == 0)) PetscFunctionReturn(0);
+  PetscValidScalarPointer(C,1);
+  PetscValidScalarPointer(A,5);
+  PetscValidScalarPointer(B,10);
+
+  /* Transpose if needed */
+  if (At) tmp = rA, rA = cA, cA = tmp, qA = T;
+  if (Bt) tmp = rB, rB = cB, cB = tmp, qB = T;
+
+  /* Check size */
+  if (cA != rB) SETERRQ(PETSC_COMM_SELF,1, "Matrix dimensions do not match");
+
+  /* Do stub */
+  if ((rA == 1) && (cA == 1) && (cB == 1)) {
+    if (!At && !Bt) *C = *A * *B;
+    else if (At && !Bt) *C = PetscConj(*A) * *B;
+    else if (!At && Bt) *C = *A * PetscConj(*B);
+    else *C = PetscConj(*A) * PetscConj(*B);
+    m = n = k = 1;
+  } else {
+    m = rA; n = cB; k = cA;
+    PetscStackCallBLAS("BLASgemm",BLASgemm_(qA,qB,&m,&n,&k,&a,(PetscScalar*)A,&ldA,(PetscScalar*)B,&ldB,&b,C,&ldC));
+  }
+
+  ierr = PetscLogFlops(m*n*2*k);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__

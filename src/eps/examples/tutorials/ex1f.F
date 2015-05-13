@@ -1,6 +1,6 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
-!  Copyright (c) 2002-2011, Universitat Politecnica de Valencia, Spain
+!  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
 !     
@@ -31,11 +31,11 @@
       program main
       implicit none
 
-#include <finclude/petscsys.h>
-#include <finclude/petscvec.h>
-#include <finclude/petscmat.h>
-#include <finclude/slepcsys.h>
-#include <finclude/slepceps.h>
+#include <petsc/finclude/petscsys.h>
+#include <petsc/finclude/petscvec.h>
+#include <petsc/finclude/petscmat.h>
+#include <slepc/finclude/slepcsys.h>
+#include <slepc/finclude/slepceps.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Declarations
@@ -118,7 +118,7 @@
       call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr)
 
-      call MatGetVecs(A,xr,xi,ierr)
+      call MatCreateVecs(A,xr,xi,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Create the eigensolver and display info
@@ -186,7 +186,7 @@
           call EPSGetEigenpair(eps,i,kr,ki,xr,xi,ierr)
 
 !         ** Compute the relative error associated to each eigenpair
-          call EPSComputeRelativeError(eps,i,error,ierr)
+          call EPSComputeError(eps,i,EPS_ERROR_RELATIVE,error,ierr)
           if (rank .eq. 0) then
             write(*,160) PetscRealPart(kr), error
           endif

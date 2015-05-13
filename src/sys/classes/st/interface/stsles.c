@@ -4,7 +4,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -22,7 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>            /*I "slepcst.h" I*/
+#include <slepc/private/stimpl.h>            /*I "slepcst.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "STMatMult"
@@ -56,14 +56,19 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
   STCheckMatrices(st,1);
   if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  VecLocked(y,3);
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
+  ierr = VecLockPush(x);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(ST_MatMult,st,x,y,0);CHKERRQ(ierr);
   if (!st->T[k]) {
     /* T[k]=NULL means identity matrix */
     ierr = VecCopy(x,y);CHKERRQ(ierr);
   } else {
     ierr = MatMult(st->T[k],x,y);CHKERRQ(ierr);
   }
+  ierr = PetscLogEventEnd(ST_MatMult,st,x,y,0);CHKERRQ(ierr);
+  ierr = VecLockPop(x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -99,14 +104,19 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
   STCheckMatrices(st,1);
   if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  VecLocked(y,3);
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
+  ierr = VecLockPush(x);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(ST_MatMultTranspose,st,x,y,0);CHKERRQ(ierr);
   if (!st->T[k]) {
     /* T[k]=NULL means identity matrix */
     ierr = VecCopy(x,y);CHKERRQ(ierr);
   } else {
     ierr = MatMultTranspose(st->T[k],x,y);CHKERRQ(ierr);
   }
+  ierr = PetscLogEventEnd(ST_MatMultTranspose,st,x,y,0);CHKERRQ(ierr);
+  ierr = VecLockPop(x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -142,8 +152,11 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   STCheckMatrices(st,1);
   if (x == b) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
+  VecLocked(x,3);
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
+  ierr = VecLockPush(b);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(ST_MatSolve,st,b,x,0);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STPRECOND,STSHELL,"");CHKERRQ(ierr);
   if (!flg && !st->P) {
     /* P=NULL means identity matrix */
@@ -157,6 +170,8 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
   st->linearits += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(ST_MatSolve,st,b,x,0);CHKERRQ(ierr);
+  ierr = VecLockPop(b);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -192,8 +207,11 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   STCheckMatrices(st,1);
   if (x == b) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
+  VecLocked(x,3);
 
   if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
+  ierr = VecLockPush(b);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(ST_MatSolveTranspose,st,b,x,0);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STPRECOND,STSHELL,"");CHKERRQ(ierr);
   if (!flg && !st->P) {
     /* P=NULL means identity matrix */
@@ -207,6 +225,8 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
   st->linearits += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(ST_MatSolveTranspose,st,b,x,0);CHKERRQ(ierr);
+  ierr = VecLockPop(b);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -239,6 +259,28 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
   mherm = (mherm && PetscImaginaryPart(st->sigma)==0.0)? PETSC_TRUE: PETSC_FALSE;
   ierr = MatSetOption(M,MAT_HERMITIAN,mherm);CHKERRQ(ierr);
 #endif
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STCheckFactorPackage"
+PetscErrorCode STCheckFactorPackage(ST st)
+{
+  PetscErrorCode         ierr;
+  PC                     pc;
+  PetscMPIInt            size;
+  PetscBool              flg;
+  const MatSolverPackage stype;
+
+  PetscFunctionBegin;
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)st),&size);CHKERRQ(ierr);
+  if (size==1) PetscFunctionReturn(0);
+  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
+  ierr = PCFactorGetMatSolverPackage(pc,&stype);CHKERRQ(ierr);
+  if (stype) {   /* currently selected PC is a factorization */
+    ierr = PetscStrcmp(stype,MATSOLVERPETSC,&flg);CHKERRQ(ierr);
+    if (flg) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"You chose to solve linear systems with a factorization, but in parallel runs you need to select an external package; see the users guide for details");
+  }
   PetscFunctionReturn(0);
 }
 
@@ -387,7 +429,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,NULL,&w);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,NULL,&w);CHKERRQ(ierr);
   c = 0;
   for (i=0;i<nc;i++) {
     ierr = BVGetColumn(V,-nc+i,&vi);CHKERRQ(ierr);
@@ -395,7 +437,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
     ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
     if (norm < 1e-8) {
       ierr = PetscInfo2(st,"Vector %D norm=%g\n",i,(double)norm);CHKERRQ(ierr);
-      ierr = BVGetVec(V,T+c);CHKERRQ(ierr);
+      ierr = BVCreateVec(V,T+c);CHKERRQ(ierr);
       ierr = VecCopy(vi,T[c]);CHKERRQ(ierr);
       c++;
     }
@@ -406,8 +448,10 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
     ierr = MatNullSpaceCreate(PetscObjectComm((PetscObject)st),PETSC_FALSE,c,T,&nullsp);CHKERRQ(ierr);
     ierr = KSPSetNullSpace(st->ksp,nullsp);CHKERRQ(ierr);
     ierr = MatNullSpaceDestroy(&nullsp);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(c,&T);CHKERRQ(ierr);
+  } else {
+    ierr = PetscFree(T);CHKERRQ(ierr);
   }
-  ierr = VecDestroyVecs(c,&T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -32,7 +32,7 @@ TESTEXAMPLES_C           = ex8.PETSc runex8_1 ex8.rm
 TESTEXAMPLES_C_NOCOMPLEX = ex14.PETSc runex14_1 ex14.rm
 TESTEXAMPLES_FORTRAN     =
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 ex8: ex8.o chkopts
 	-${CLINKER} -o ex8 ex8.o ${SLEPC_SVD_LIB}
@@ -60,10 +60,14 @@ runex8_1:
 	   ${RM} -f ex8_1.tmp
 
 runex14_1:
-	-@${MPIEXEC} -np 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 4 -svd_terse > ex14_1.tmp 2>&1;	  \
+	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
+           echo "Skipping ex14 test"; \
+         else \
+	   ${MPIEXEC} -np 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 4 -terse > ex14_1.tmp 2>&1;	  \
 	   if (${DIFF} output/ex14_1.out ex14_1.tmp) then true; \
 	   else echo "Possible problem with ex14_1, diffs above"; fi; \
-	   ${RM} -f ex14_1.tmp
+	   ${RM} -f ex14_1.tmp; \
+         fi
 
 runex15_1:
 	-@${MPIEXEC} -np 1 ./ex15 > ex15_1.tmp 2>&1; \

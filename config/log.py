@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -19,32 +19,40 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import sys
+import os, sys
 
-import petscconf
+class Log:
 
-def Open(filename):
-  global f
-  f = open(filename,'w')
-  return
+  def Open(self,filename):
+    self.fd = open(filename,'w')
+    try:
+      self.filename = os.path.relpath(filename)  # needs python-2.6
+    except AttributeError:
+      self.filename = filename
 
-def Println(string):
-  print string
-  f.write(string)
-  f.write('\n')
+  def Println(self,string):
+    print string
+    self.fd.write(string+'\n')
 
-def Print(string):
-  print string,
-  f.write(string+' ')
+  def Print(self,string):
+    print string,
+    self.fd.write(string+' ')
 
-def write(string):
-  f.write(string)
-  f.write('\n')
+  def NewSection(self,string):
+    print 'done\n'+string,
+    sys.stdout.flush()
+    self.fd.write('='*80+'\n'+string+'\n')
 
-def Exit(string):
-  f.write(string)
-  f.write('\n')
-  f.close()
-  print string
-  sys.exit('ERROR: See "' + petscconf.ARCH + '/conf/configure.log" file for details')
+  def write(self,string):
+    self.fd.write(string+'\n')
+
+  def Exit(self,string):
+    print '\n'+string
+    if hasattr(self,'fd'):
+      self.fd.write('\n'+string+'\n')
+      self.fd.close()
+      msg = 'ERROR: See "' + self.filename + '" file for details'
+    else:
+      msg = 'ERROR during configure (log file not open yet)'
+    sys.exit(msg)
 

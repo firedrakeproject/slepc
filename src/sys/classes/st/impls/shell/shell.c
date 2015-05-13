@@ -5,7 +5,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -23,7 +23,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>        /*I "slepcst.h" I*/
+#include <slepc/private/stimpl.h>        /*I "slepcst.h" I*/
 
 typedef struct {
   void           *ctx;                       /* user provided context */
@@ -306,7 +306,7 @@ PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscIn
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Shell"
-PetscErrorCode STSetFromOptions_Shell(ST st)
+PetscErrorCode STSetFromOptions_Shell(PetscOptions *PetscOptionsObject,ST st)
 {
   PetscErrorCode ierr;
   PC             pc;
@@ -326,7 +326,7 @@ PetscErrorCode STSetFromOptions_Shell(ST st)
     } else {
       /* use direct solver as default */
       ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

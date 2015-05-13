@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>
-#include <slepc-private/stimpl.h>
+#include <slepc/private/epsimpl.h>
+#include <slepc/private/stimpl.h>
 #include "slepc-interface.h"
 #include <blopex_lobpcg.h>
 #include <blopex_interpreter.h>
@@ -142,7 +142,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 #else
   PetscErrorCode ierr;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
-  PetscBool      isPrecond,flg;
+  PetscBool      isPrecond,istrivial,flg;
   BV             Y;
   PetscInt       k;
 
@@ -150,11 +150,6 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works for hermitian problems");
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   if (eps->which!=EPS_SMALLEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
-
-  /* Change the default sigma to inf if necessary */
-  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) {
-    ierr = STSetDefaultShift(eps->st,3e300);CHKERRQ(ierr);
-  }
 
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&isPrecond);CHKERRQ(ierr);
@@ -189,7 +184,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   SLEPCSetupInterpreter(&blopex->ii);
   blopex->eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->ncv,eps->V);
 
-  ierr = BVGetVec(eps->V,&blopex->w);CHKERRQ(ierr);
+  ierr = BVCreateVec(eps->V,&blopex->w);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)blopex->w);CHKERRQ(ierr);
   if (eps->nds<0) {
     k = -eps->nds;
@@ -211,6 +206,8 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 #endif
 
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
+  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
   /* dispatch solve method */
   eps->ops->solve = EPSSolve_BLOPEX;
@@ -309,13 +306,13 @@ PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_BLOPEX"
-PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps)
+PetscErrorCode EPSSetFromOptions_BLOPEX(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode  ierr;
   KSP             ksp;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS BLOPEX Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS BLOPEX Options");CHKERRQ(ierr);
   LOBPCG_SetFromOptionsRandomContext();
 
   /* Set STPrecond as the default ST */

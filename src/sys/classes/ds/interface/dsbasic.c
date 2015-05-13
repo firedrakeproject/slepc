@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,14 +21,14 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
+#include <slepc/private/dsimpl.h>      /*I "slepcds.h" I*/
 
 PetscFunctionList DSList = 0;
 PetscBool         DSRegisterAllCalled = PETSC_FALSE;
 PetscClassId      DS_CLASSID = 0;
-PetscLogEvent     DS_Solve = 0,DS_Function = 0,DS_Vectors = 0,DS_Other = 0;
+PetscLogEvent     DS_Solve = 0,DS_Vectors = 0,DS_Other = 0;
 static PetscBool  DSPackageInitialized = PETSC_FALSE;
-const char        *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","F","Q","Z","X","Y","U","VT","W","E0","E1","E2","E3","E4","E5","E6","E7","E8","E9"};
+const char        *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","Q","Z","X","Y","U","VT","W","E0","E1","E2","E3","E4","E5","E6","E7","E8","E9"};
 DSMatType         DSMatExtra[DS_NUM_EXTRA] = {DS_MAT_E0,DS_MAT_E1,DS_MAT_E2,DS_MAT_E3,DS_MAT_E4,DS_MAT_E5,DS_MAT_E6,DS_MAT_E7,DS_MAT_E8,DS_MAT_E9};
 
 #undef __FUNCT__
@@ -79,7 +79,6 @@ PetscErrorCode DSInitializePackage()
   ierr = DSRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("DSSolve",DS_CLASSID,&DS_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DSFunction",DS_CLASSID,&DS_Function);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("DSVectors",DS_CLASSID,&DS_Vectors);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("DSOther",DS_CLASSID,&DS_Other);CHKERRQ(ierr);
   /* Process info exclusions */
@@ -104,7 +103,7 @@ PetscErrorCode DSInitializePackage()
 
 #undef __FUNCT__
 #define __FUNCT__ "DSCreate"
-/*@C
+/*@
    DSCreate - Creates a DS context.
 
    Collective on MPI_Comm
@@ -133,11 +132,10 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   PetscValidPointer(newds,2);
   *newds = 0;
   ierr = DSInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(ds,_p_DS,struct _DSOps,DS_CLASSID,"DS","Direct Solver (or Dense System)","DS",comm,DSDestroy,DSView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(ds,DS_CLASSID,"DS","Direct Solver (or Dense System)","DS",comm,DSDestroy,DSView);CHKERRQ(ierr);
 
   ds->state         = DS_STATE_RAW;
   ds->method        = 0;
-  ds->funmethod     = 0;
   ds->compact       = PETSC_FALSE;
   ds->refined       = PETSC_FALSE;
   ds->extrarow      = PETSC_FALSE;
@@ -150,9 +148,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   ds->bs            = 1;
   ds->nf            = 0;
   for (i=0;i<DS_NUM_EXTRA;i++) ds->f[i] = NULL;
-
-  ds->comparison    = NULL;
-  ds->comparisonctx = NULL;
+  ds->sc            = NULL;
 
   for (i=0;i<DS_NUM_MAT;i++) {
     ds->mat[i]      = NULL;
@@ -376,58 +372,6 @@ PetscErrorCode DSGetMethod(DS ds,PetscInt *meth)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(meth,2);
   *meth = ds->method;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "DSSetFunctionMethod"
-/*@
-   DSSetFunctionMethod - Selects the method to be used to compute a matrix function.
-
-   Logically Collective on DS
-
-   Input Parameter:
-+  ds   - the direct solver context
--  meth - an index indentifying the function method
-
-   Level: intermediate
-
-.seealso: DSGetFunctionMethod()
-@*/
-PetscErrorCode DSSetFunctionMethod(DS ds,PetscInt meth)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidLogicalCollectiveInt(ds,meth,2);
-  if (meth<0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
-  if (meth>DS_MAX_FUN) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
-  ds->funmethod = meth;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "DSGetFunctionMethod"
-/*@
-   DSGetFunctionMethod - Gets the method currently used to compute a matrix function.
-
-   Not Collective
-
-   Input Parameter:
-.  ds - the direct solver context
-
-   Output Parameter:
-.  meth - identifier of the function method
-
-   Level: intermediate
-
-.seealso: DSSetFunctionMethod()
-@*/
-PetscErrorCode DSGetFunctionMethod(DS ds,PetscInt *meth)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(meth,2);
-  *meth = ds->funmethod;
   PetscFunctionReturn(0);
 }
 
@@ -662,88 +606,62 @@ PetscErrorCode DSGetBlockSize(DS ds,PetscInt *bs)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSSetEigenvalueComparison"
+#define __FUNCT__ "DSSetSlepcSC"
 /*@C
-   DSSetEigenvalueComparison - Specifies the eigenvalue comparison function
-   to be used for sorting.
+   DSSetSlepcSC - Sets the sorting criterion context.
 
-   Logically Collective on DS
+   Not Collective
 
    Input Parameters:
-+  ds  - the direct solver context
-.  fun - a pointer to the comparison function
--  ctx - a context pointer (the last parameter to the comparison function)
-
-   Calling Sequence of fun:
-$  func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
-
-+   ar     - real part of the 1st eigenvalue
-.   ai     - imaginary part of the 1st eigenvalue
-.   br     - real part of the 2nd eigenvalue
-.   bi     - imaginary part of the 2nd eigenvalue
-.   res    - result of comparison
--   ctx    - optional context, as set by DSSetEigenvalueComparison()
-
-   Note:
-   The returning parameter 'res' can be
-+  negative - if the 1st eigenvalue is preferred to the 2st one
-.  zero     - if both eigenvalues are equally preferred
--  positive - if the 2st eigenvalue is preferred to the 1st one
++  ds - the direct solver context
+-  sc - a pointer to the sorting criterion context
 
    Level: developer
 
-.seealso: DSSort()
+.seealso: DSGetSlepcSC(), DSSort()
 @*/
-PetscErrorCode DSSetEigenvalueComparison(DS ds,PetscErrorCode (*fun)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
+PetscErrorCode DSSetSlepcSC(DS ds,SlepcSC sc)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  ds->comparison    = fun;
-  ds->comparisonctx = ctx;
+  PetscValidPointer(sc,2);
+  if (ds->sc) {
+    ierr = PetscFree(ds->sc);CHKERRQ(ierr);
+  }
+  ds->sc = sc;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSGetEigenvalueComparison"
+#define __FUNCT__ "DSGetSlepcSC"
 /*@C
-   DSGetEigenvalueComparison - Gets the eigenvalue comparison function
-   used for sorting.
+   DSGetSlepcSC - Gets the sorting criterion context.
 
    Not Collective
 
    Input Parameter:
-.  ds  - the direct solver context
+.  ds - the direct solver context
 
    Output Parameters:
-+  fun - a pointer to the comparison function
--  ctx - a context pointer (the last parameter to the comparison function)
-
-   Calling Sequence of fun:
-$  func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
-
-+   ar     - real part of the 1st eigenvalue
-.   ai     - imaginary part of the 1st eigenvalue
-.   br     - real part of the 2nd eigenvalue
-.   bi     - imaginary part of the 2nd eigenvalue
-.   res    - result of comparison
--   ctx    - optional context, as set by DSSetEigenvalueComparison()
-
-   Note:
-   The returning parameter 'res' can be
-+  negative - if the 1st eigenvalue is preferred to the 2st one
-.  zero     - if both eigenvalues are equally preferred
--  positive - if the 2st eigenvalue is preferred to the 1st one
+.  sc - a pointer to the sorting criterion context
 
    Level: developer
 
-.seealso: DSSort(), DSSetEigenvalueComparison()
+.seealso: DSSetSlepcSC(), DSSort()
 @*/
-PetscErrorCode DSGetEigenvalueComparison(DS ds,PetscErrorCode (**fun)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void** ctx)
+PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (fun) *fun = ds->comparison;
-  if (ctx) *ctx = ds->comparisonctx;
+  PetscValidPointer(sc,2);
+  if (!ds->sc) {
+    ierr = PetscNewLog(ds,&ds->sc);CHKERRQ(ierr);
+  }
+  *sc = ds->sc;
   PetscFunctionReturn(0);
 }
 
@@ -760,9 +678,8 @@ PetscErrorCode DSGetEigenvalueComparison(DS ds,PetscErrorCode (**fun)(PetscScala
 -  f  - array of functions
 
    Notes:
-   In the basic usage, only one function is used, for instance to
-   evaluate a function of the projected matrix. In the context of nonlinear
-   eigensolvers, there are as many functions as terms in the split
+   This is normally used in the context of nonlinear eigensolvers, where
+   there are as many functions as terms in the split
    nonlinear operator T(lambda) = sum_i A_i*f_i(lambda).
 
    This function must be called before DSAllocate(). Then DSAllocate()
@@ -770,7 +687,7 @@ PetscErrorCode DSGetEigenvalueComparison(DS ds,PetscErrorCode (**fun)(PetscScala
 
    Level: developer
 
-.seealso: DSGetFN(), DSGetFN(), DSAllocate()
+.seealso: DSGetFN(), DSAllocate()
  @*/
 PetscErrorCode DSSetFN(DS ds,PetscInt n,FN f[])
 {
@@ -805,7 +722,7 @@ PetscErrorCode DSSetFN(DS ds,PetscInt n,FN f[])
    Not collective, though parallel FNs are returned if the DS is parallel
 
    Input Parameter:
-+  ds - the direct olver context
++  ds - the direct solver context
 -  k  - the index of the requested function (starting in 0)
 
    Output Parameter:
@@ -875,7 +792,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (!DSRegisterAllCalled) { ierr = DSRegisterAll();CHKERRQ(ierr); }
+  ierr = DSRegisterAll();CHKERRQ(ierr);
   /* Set default type (we do not allow changing it with -ds_type) */
   if (!((PetscObject)ds)->type_name) {
     ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);
@@ -885,8 +802,6 @@ PetscErrorCode DSSetFromOptions(DS ds)
     if (flag) { ierr = DSSetBlockSize(ds,bs);CHKERRQ(ierr); }
     ierr = PetscOptionsInt("-ds_method","Method to be used for the dense system","DSSetMethod",ds->method,&meth,&flag);CHKERRQ(ierr);
     if (flag) { ierr = DSSetMethod(ds,meth);CHKERRQ(ierr); }
-    ierr = PetscOptionsInt("-ds_function_method","Method to be used to compute a matrix function","DSSetFunctionMethod",ds->funmethod,&meth,&flag);CHKERRQ(ierr);
-    if (flag) { ierr = DSSetFunctionMethod(ds,meth);CHKERRQ(ierr); }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)ds);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -916,7 +831,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
 
    Level: beginner
 
-.seealso: PetscViewerASCIIOpen()
+.seealso: DSViewMat()
 @*/
 PetscErrorCode DSView(DS ds,PetscViewer viewer)
 {
@@ -945,18 +860,18 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",state);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)ds,DSSVD,&issvd);CHKERRQ(ierr);
       if (issvd) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, m=%d, l=%d, k=%d",ds->ld,ds->n,ds->m,ds->l,ds->k);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%D, n=%D, m=%D, l=%D, k=%D",ds->ld,ds->n,ds->m,ds->l,ds->k);CHKERRQ(ierr);
       } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%d, n=%d, l=%d, k=%d",ds->ld,ds->n,ds->l,ds->k);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%D, n=%D, l=%D, k=%D",ds->ld,ds->n,ds->l,ds->k);CHKERRQ(ierr);
       }
       if (ds->state==DS_STATE_TRUNCATED) {
-        ierr = PetscViewerASCIIPrintf(viewer,", t=%d\n",ds->t);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,", t=%D\n",ds->t);CHKERRQ(ierr);
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  flags:%s%s%s\n",ds->compact?" compact":"",ds->extrarow?" extrarow":"",ds->refined?" refined":"");CHKERRQ(ierr);
       if (ds->nf) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  number of functions: %d\n",ds->nf);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  number of functions: %D\n",ds->nf);CHKERRQ(ierr);
       }
     }
     if (ds->ops->view) {
@@ -1047,14 +962,12 @@ PetscErrorCode DSReset(DS ds)
   ds->lwork         = 0;
   ds->lrwork        = 0;
   ds->liwork        = 0;
-  ds->comparison    = NULL;
-  ds->comparisonctx = NULL;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "DSDestroy"
-/*@C
+/*@
    DSDestroy - Destroys DS context that was created with DSCreate().
 
    Collective on DS
@@ -1075,6 +988,7 @@ PetscErrorCode DSDestroy(DS *ds)
   PetscValidHeaderSpecific(*ds,DS_CLASSID,1);
   if (--((PetscObject)(*ds))->refct > 0) { *ds = 0; PetscFunctionReturn(0); }
   ierr = DSReset(*ds);CHKERRQ(ierr);
+  ierr = PetscFree((*ds)->sc);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1129,6 +1043,7 @@ PetscErrorCode DSRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (DSRegisterAllCalled) PetscFunctionReturn(0);
   DSRegisterAllCalled = PETSC_TRUE;
   ierr = DSRegister(DSHEP,DSCreate_HEP);CHKERRQ(ierr);
   ierr = DSRegister(DSNHEP,DSCreate_NHEP);CHKERRQ(ierr);

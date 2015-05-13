@@ -1,6 +1,6 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
-!  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+!  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
 !     
@@ -30,7 +30,7 @@
 !
       program main
 
-#include <finclude/slepcepsdef.h>
+#include <slepc/finclude/slepcepsdef.h>
       use slepceps
 
       implicit none
@@ -38,8 +38,8 @@
 ! For usage without modules, uncomment the following lines and remove 
 ! the previous lines between 'program main' and 'implicit none'
 !
-!#include <finclude/petsc.h>
-!#include <finclude/slepc.h>
+!#include <petsc/finclude/petsc.h>
+!#include <slepc/finclude/slepc.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Declarations
@@ -47,14 +47,14 @@
 !
 !  Variables:
 !     A      operator matrix
-!     solver eigenproblem solver context
+!     eps    eigenproblem solver context
 
 #if defined(PETSC_USE_FORTRAN_DATATYPES)
       type(Mat)      A
-      type(EPS)      solver
+      type(EPS)      eps
 #else
       Mat            A
-      EPS            solver
+      EPS            eps
 #endif
       EPSType        tname
       PetscInt       n, i, Istart, Iend, one, two, three
@@ -62,7 +62,7 @@
       PetscInt       row(1), col(3)
       PetscMPIInt    rank
       PetscErrorCode ierr
-      PetscBool      flg
+      PetscBool      flg, terse
       PetscScalar    value(3)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -129,28 +129,28 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 !     ** Create eigensolver context
-      call EPSCreate(PETSC_COMM_WORLD,solver,ierr)
+      call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
 
 !     ** Set operators. In this case, it is a standard eigenvalue problem
-      call EPSSetOperators(solver,A,PETSC_NULL_OBJECT,ierr)
-      call EPSSetProblemType(solver,EPS_HEP,ierr)
+      call EPSSetOperators(eps,A,PETSC_NULL_OBJECT,ierr)
+      call EPSSetProblemType(eps,EPS_HEP,ierr)
 
 !     ** Set solver parameters at runtime
-      call EPSSetFromOptions(solver,ierr)
+      call EPSSetFromOptions(eps,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Solve the eigensystem
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call EPSSolve(solver,ierr) 
+      call EPSSolve(eps,ierr) 
 
 !     ** Optional: Get some information from the solver and display it
-      call EPSGetType(solver,tname,ierr)
+      call EPSGetType(eps,tname,ierr)
       if (rank .eq. 0) then
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call EPSGetDimensions(solver,nev,PETSC_NULL_INTEGER,              &
+      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,                 &
      &                      PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
         write(*,130) nev
@@ -161,8 +161,18 @@
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call EPSPrintSolution(solver,PETSC_NULL_OBJECT,ierr)
-      call EPSDestroy(solver,ierr)
+!     ** show detailed info unless -terse option is given by user
+      call PetscOptionsHasName(PETSC_NULL_CHARACTER,'-terse',terse,ierr)
+      if (terse) then
+        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
+      else
+        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,           &
+     &                   PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)
+        call EPSErrorView(eps,EPS_ERROR_RELATIVE,                       &
+     &                   PETSC_VIEWER_STDOUT_WORLD,ierr)
+        call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr)
+      endif
+      call EPSDestroy(eps,ierr)
       call MatDestroy(A,ierr)
 
       call SlepcFinalize(ierr)

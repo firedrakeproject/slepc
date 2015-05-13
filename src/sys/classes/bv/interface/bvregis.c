@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/bvimpl.h>          /*I   "slepcbv.h"   I*/
+#include <slepc/private/bvimpl.h>          /*I   "slepcbv.h"   I*/
 
 PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV);
 PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV);
@@ -42,6 +42,7 @@ PetscErrorCode BVRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (BVRegisterAllCalled) PetscFunctionReturn(0);
   BVRegisterAllCalled = PETSC_TRUE;
   ierr = BVRegister(BVVECS,BVCreate_Vecs);CHKERRQ(ierr);
   ierr = BVRegister(BVCONTIGUOUS,BVCreate_Contiguous);CHKERRQ(ierr);

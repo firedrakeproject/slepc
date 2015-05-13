@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -36,8 +36,9 @@ int main(int argc,char **argv)
 {
   Mat                A;           /* problem matrix */
   MFN                mfn;
+  FN                 f;
   PetscReal          tol,norm;
-  PetscScalar        t;
+  PetscScalar        t=2.0;
   Vec                v,y;
   PetscInt           N,m=15,ncv,maxit,its;
   PetscErrorCode     ierr;
@@ -47,6 +48,7 @@ int main(int argc,char **argv)
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
   ierr = PetscOptionsGetInt(NULL,"-m",&m,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,"-t",&t,NULL);CHKERRQ(ierr);
   N = m*(m+1)/2;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov y=exp(t*A)*e_1, N=%D (m=%D)\n\n",N,m);CHKERRQ(ierr);
 
@@ -63,9 +65,9 @@ int main(int argc,char **argv)
   ierr = MatMarkovModel(m,A);CHKERRQ(ierr);
 
   /* set v = e_1 */
-  ierr = MatGetVecs(A,PETSC_NULL,&y);CHKERRQ(ierr);
-  ierr = MatGetVecs(A,PETSC_NULL,&v);CHKERRQ(ierr);
-  ierr = VecSetValue(v,1,1.0,INSERT_VALUES);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,PETSC_NULL,&y);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,PETSC_NULL,&v);CHKERRQ(ierr);
+  ierr = VecSetValue(v,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
   ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
   ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
 
@@ -81,7 +83,9 @@ int main(int argc,char **argv)
      Set operator matrix, the function to compute, and other options
   */
   ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
-  ierr = MFNSetFunction(mfn,SLEPC_FUNCTION_EXP);CHKERRQ(ierr);
+  ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
+  ierr = FNSetType(f,FNEXP);CHKERRQ(ierr);
+  ierr = FNSetScale(f,t,1.0);CHKERRQ(ierr);  
   ierr = MFNSetTolerances(mfn,1e-07,PETSC_DEFAULT);CHKERRQ(ierr);
 
   /*
@@ -111,7 +115,6 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = MFNGetScaleFactor(mfn,&t);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm);CHKERRQ(ierr);
   if (draw_sol) {
     ierr = PetscViewerDrawSetPause(PETSC_VIEWER_DRAW_WORLD,-1);CHKERRQ(ierr);

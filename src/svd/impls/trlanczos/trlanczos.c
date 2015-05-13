@@ -21,7 +21,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -39,7 +39,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>          /*I "slepcsvd.h" I*/
+#include <slepc/private/svdimpl.h>          /*I "slepcsvd.h" I*/
 
 typedef struct {
   PetscBool oneside;
@@ -67,11 +67,10 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDOneSideTRLanczosMGS"
-static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,BV U,PetscInt nconv,PetscInt l,PetscInt n)
+static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,BV U,PetscInt nconv,PetscInt l,PetscInt n,PetscScalar* work)
 {
   PetscErrorCode ierr;
   PetscReal      a,b;
-  PetscScalar    gamma;
   PetscInt       i,k=nconv+l;
   Vec            ui,ui1,vi;
 
@@ -82,8 +81,8 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
   ierr = BVRestoreColumn(V,k,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,k,&ui);CHKERRQ(ierr);
   if (l>0) {
-    ierr = BVMultColumn(U,-1.0,1.0,k,&gamma);CHKERRQ(ierr);
-    beta[nconv] = PetscRealPart(gamma);
+    for (i=0;i<l;i++) work[i]=beta[i+nconv];
+    ierr = BVMultColumn(U,-1.0,1.0,k,work);CHKERRQ(ierr);
   }
   ierr = BVNormColumn(U,k,NORM_2,&a);CHKERRQ(ierr);
   ierr = BVScaleColumn(U,k,1.0/a);CHKERRQ(ierr);
@@ -174,7 +173,6 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
 {
   PetscErrorCode     ierr;
   PetscReal          a,b,eta;
-  PetscScalar        gamma;
   PetscInt           i,j,k=nconv+l;
   Vec                ui,ui1,vi;
   BVOrthogRefineType refine;
@@ -186,8 +184,8 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   ierr = BVRestoreColumn(V,k,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,k,&ui);CHKERRQ(ierr);
   if (l>0) {
-    ierr = BVMultColumn(U,-1.0,1.0,k,&gamma);CHKERRQ(ierr);
-    beta[nconv] = PetscRealPart(gamma);
+    for (i=0;i<l;i++) work[i]=beta[i+nconv];
+    ierr = BVMultColumn(U,-1.0,1.0,k,work);CHKERRQ(ierr);
   }
   ierr = BVGetOrthogonalization(V,NULL,&refine,&eta);CHKERRQ(ierr);
 
@@ -197,16 +195,22 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
     ierr = SVDMatMult(svd,PETSC_TRUE,ui1,vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U,i-1,&ui1);CHKERRQ(ierr);
-    ierr = BVNormColumn(U,i-1,NORM_2,&a);CHKERRQ(ierr);
+    ierr = BVNormColumnBegin(U,i-1,NORM_2,&a);CHKERRQ(ierr);
     if (refine == BV_ORTHOG_REFINE_IFNEEDED) {
       ierr = BVSetActiveColumns(V,0,i+1);CHKERRQ(ierr);
       ierr = BVGetColumn(V,i,&vi);CHKERRQ(ierr);
-      ierr = BVDotVec(V,vi,work);CHKERRQ(ierr);
+      ierr = BVDotVecBegin(V,vi,work);CHKERRQ(ierr);
+    } else {
+      ierr = BVSetActiveColumns(V,0,i);CHKERRQ(ierr);
+      ierr = BVDotColumnBegin(V,i,work);CHKERRQ(ierr);
+    }
+    ierr = BVNormColumnEnd(U,i-1,NORM_2,&a);CHKERRQ(ierr);
+    if (refine == BV_ORTHOG_REFINE_IFNEEDED) {
+      ierr = BVDotVecEnd(V,vi,work);CHKERRQ(ierr);
       ierr = BVRestoreColumn(V,i,&vi);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(V,0,i);CHKERRQ(ierr);
     } else {
-      ierr = BVSetActiveColumns(V,0,i);CHKERRQ(ierr);
-      ierr = BVDotColumn(V,i,work);CHKERRQ(ierr);
+      ierr = BVDotColumnEnd(V,i,work);CHKERRQ(ierr);
     }
 
     ierr = BVScaleColumn(U,i-1,1.0/a);CHKERRQ(ierr);
@@ -234,15 +238,21 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   ierr = BVRestoreColumn(V,n,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,n-1,&ui1);CHKERRQ(ierr);
 
-  ierr = BVNormColumn(svd->U,n-1,NORM_2,&a);CHKERRQ(ierr);
+  ierr = BVNormColumnBegin(svd->U,n-1,NORM_2,&a);CHKERRQ(ierr);
   if (refine == BV_ORTHOG_REFINE_IFNEEDED) {
     ierr = BVSetActiveColumns(V,0,n+1);CHKERRQ(ierr);
     ierr = BVGetColumn(V,n,&vi);CHKERRQ(ierr);
-    ierr = BVDotVec(V,vi,work);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(V,n,&vi);CHKERRQ(ierr);
+    ierr = BVDotVecBegin(V,vi,work);CHKERRQ(ierr);
   } else {
     ierr = BVSetActiveColumns(V,0,n);CHKERRQ(ierr);
-    ierr = BVDotColumn(V,n,work);CHKERRQ(ierr);
+    ierr = BVDotColumnBegin(V,n,work);CHKERRQ(ierr);
+  }
+  ierr = BVNormColumnEnd(svd->U,n-1,NORM_2,&a);CHKERRQ(ierr);
+  if (refine == BV_ORTHOG_REFINE_IFNEEDED) {
+    ierr = BVDotVecEnd(V,vi,work);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,n,&vi);CHKERRQ(ierr);
+  } else {
+    ierr = BVDotColumnEnd(V,n,work);CHKERRQ(ierr);
   }
 
   ierr = BVScaleColumn(U,n-1,1.0/a);CHKERRQ(ierr);
@@ -273,7 +283,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
   ierr = BVGetOrthogonalization(svd->V,&orthog,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld,&w);CHKERRQ(ierr);
-  if (lanczos->oneside && orthog == BV_ORTHOG_CGS) {
+  if (lanczos->oneside) {
     ierr = PetscMalloc1(svd->ncv+1,&swork);CHKERRQ(ierr);
   }
 
@@ -296,7 +306,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     beta = alpha + ld;
     if (lanczos->oneside) {
       if (orthog == BV_ORTHOG_MGS) {
-        ierr = SVDOneSideTRLanczosMGS(svd,alpha,beta,svd->V,svd->U,svd->nconv,l,nv);CHKERRQ(ierr);
+        ierr = SVDOneSideTRLanczosMGS(svd,alpha,beta,svd->V,svd->U,svd->nconv,l,nv,swork);CHKERRQ(ierr);
       } else {
         ierr = SVDOneSideTRLanczosCGS(svd,alpha,beta,svd->V,svd->U,svd->nconv,l,nv,swork);CHKERRQ(ierr);
       }
@@ -375,14 +385,14 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions_TRLanczos"
-PetscErrorCode SVDSetFromOptions_TRLanczos(SVD svd)
+PetscErrorCode SVDSetFromOptions_TRLanczos(PetscOptions *PetscOptionsObject,SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("SVD TRLanczos Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"SVD TRLanczos Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-svd_trlanczos_oneside","Lanczos one-side reorthogonalization","SVDTRLanczosSetOneSide",lanczos->oneside,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = SVDTRLanczosSetOneSide(svd,val);CHKERRQ(ierr);

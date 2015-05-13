@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -88,7 +88,7 @@ int main(int argc,char **argv)
      Set the initial vectors. This is optional, if not done the initial
      vectors are set to random values
   */
-  ierr = MatGetVecs(A,&v0,&w0);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&v0,&w0);CHKERRQ(ierr);
   ierr = VecSet(v0,1.0);CHKERRQ(ierr);
   ierr = VecSet(w0,1.0);CHKERRQ(ierr);
   ierr = SVDSetInitialSpace(svd,1,&v0);CHKERRQ(ierr);
@@ -98,7 +98,7 @@ int main(int argc,char **argv)
      Compute solution
   */
   ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDPrintSolution(svd,NULL);CHKERRQ(ierr);
+  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
 
   /*
      Free work space

@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/mfnimpl.h>       /*I "slepcmfn.h" I*/
+#include <slepc/private/mfnimpl.h>       /*I "slepcmfn.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNSetUp"
@@ -50,18 +50,21 @@ PetscErrorCode MFNSetUp(MFN mfn)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (mfn->setupcalled) PetscFunctionReturn(0);
-  ierr = PetscLogEventBegin(MFN_SetUp,mfn,0,0,0);CHKERRQ(ierr);
 
   /* reset the convergence flag from the previous solves */
   mfn->reason = MFN_CONVERGED_ITERATING;
+
+  if (mfn->setupcalled) PetscFunctionReturn(0);
+  ierr = PetscLogEventBegin(MFN_SetUp,mfn,0,0,0);CHKERRQ(ierr);
 
   /* Set default solver type (MFNSetFromOptions was not called) */
   if (!((PetscObject)mfn)->type_name) {
     ierr = MFNSetType(mfn,MFNKRYLOV);CHKERRQ(ierr);
   }
-  if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
-  ierr = DSReset(mfn->ds);CHKERRQ(ierr);
+  if (!mfn->fn) { ierr = MFNGetFN(mfn,&mfn->fn);CHKERRQ(ierr); }
+  if (!((PetscObject)mfn->fn)->type_name) {
+    ierr = FNSetFromOptions(mfn->fn);CHKERRQ(ierr);
+  }
   if (!((PetscObject)mfn->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(mfn->rand);CHKERRQ(ierr);
   }
@@ -70,11 +73,6 @@ PetscErrorCode MFNSetUp(MFN mfn)
   if (!mfn->A) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONGSTATE,"MFNSetOperator must be called first");
   ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
   if (mfn->ncv > N) mfn->ncv = N;
-
-  /* Set default function */
-  if (!mfn->function) {
-    ierr = MFNSetFunction(mfn,SLEPC_FUNCTION_EXP);CHKERRQ(ierr);
-  }
 
   /* call specific solver setup */
   ierr = (*mfn->ops->setup)(mfn);CHKERRQ(ierr);
@@ -99,7 +97,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
 -  A   - the problem matrix
 
    Notes:
-   It must be called after MFNSetUp(). If it is called again after MFNSetUp() then
+   It must be called before MFNSetUp(). If it is called again after MFNSetUp() then
    the MFN object is reset.
 
    Level: beginner
@@ -188,7 +186,7 @@ PetscErrorCode MFNAllocateSolution(MFN mfn,PetscInt extra)
     if (!((PetscObject)(mfn->V))->type_name) {
       ierr = BVSetType(mfn->V,BVSVEC);CHKERRQ(ierr);
     }
-    ierr = MatGetVecs(mfn->A,&t,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(mfn->A,&t,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(mfn->V,t,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {

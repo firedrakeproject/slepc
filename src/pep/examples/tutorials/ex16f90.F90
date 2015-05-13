@@ -1,6 +1,6 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
-!  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+!  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
 !     
@@ -30,7 +30,7 @@
 !
       program main
 
-#include <finclude/slepcpepdef.h>
+#include <slepc/finclude/slepcpepdef.h>
       use slepcpep
 
       implicit none
@@ -38,8 +38,8 @@
 ! For usage without modules, uncomment the following lines and remove 
 ! the previous lines between 'program main' and 'implicit none'
 !
-!#include <finclude/petsc.h>
-!#include <finclude/slepc.h>
+!#include <petsc/finclude/petsc.h>
+!#include <slepc/finclude/slepc.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Declarations
@@ -47,22 +47,21 @@
 !
 !  Variables:
 !     M,C,K  problem matrices
-!     solver polynomial eigenproblem solver context
+!     pep    polynomial eigenproblem solver context
 
 #if defined(PETSC_USE_FORTRAN_DATATYPES)
       type(Mat)      M, C, K, A(3)
-      type(PEP)      solver
+      type(PEP)      pep
 #else
       Mat            M, C, K, A(3)
-      PEP            solver
+      PEP            pep
 #endif
       PEPType        tname
-      PetscReal      tol
       PetscInt       N, nx, ny, i, j, Istart, Iend, II
-      PetscInt       nev, maxit, ithree
+      PetscInt       nev, ithree
       PetscMPIInt    rank
       PetscErrorCode ierr
-      PetscBool      flg
+      PetscBool      flg, terse
       PetscScalar    one, mone, four
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -128,59 +127,67 @@
       call MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr)
       call MatSetFromOptions(M,ierr)
       call MatSetUp(M,ierr)
+      call MatGetOwnershipRange(M,Istart,Iend,ierr)
+      one = 1.0
+      do II=Istart,Iend-1
+        call MatSetValue(M,II,II,one,INSERT_VALUES,ierr)
+      end do
       call MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY,ierr)
-      one = 1.0
-      call MatShift(M,one,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Create the eigensolver and set various options
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 !     ** Create eigensolver context
-      call PEPCreate(PETSC_COMM_WORLD,solver,ierr)
+      call PEPCreate(PETSC_COMM_WORLD,pep,ierr)
 
 !     ** Set matrices and problem type
       A(1) = K
       A(2) = C
       A(3) = M
       ithree = 3
-      call PEPSetOperators(solver,ithree,A,ierr)
-      call PEPSetProblemType(solver,PEP_GENERAL,ierr)
+      call PEPSetOperators(pep,ithree,A,ierr)
+      call PEPSetProblemType(pep,PEP_GENERAL,ierr)
 
 !     ** Set solver parameters at runtime
-      call PEPSetFromOptions(solver,ierr)
+      call PEPSetFromOptions(pep,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Solve the eigensystem
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call PEPSolve(solver,ierr) 
+      call PEPSolve(pep,ierr) 
 
 !     ** Optional: Get some information from the solver and display it
-      call PEPGetType(solver,tname,ierr)
+      call PEPGetType(pep,tname,ierr)
       if (rank .eq. 0) then
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call PEPGetDimensions(solver,nev,PETSC_NULL_INTEGER,              &
+      call PEPGetDimensions(pep,nev,PETSC_NULL_INTEGER,                 &
      &                      PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
         write(*,130) nev
       endif
  130  format (' Number of requested eigenvalues:',I4)
-      call PEPGetTolerances(solver,tol,maxit,ierr)
-      if (rank .eq. 0) then
-        write(*,140) tol, maxit
-      endif
- 140  format (' Stopping condition: tol=',1P,E10.4,', maxit=',I4)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call PEPPrintSolution(solver,PETSC_NULL_OBJECT,ierr)
-      call PEPDestroy(solver,ierr)
+!     ** show detailed info unless -terse option is given by user
+      call PetscOptionsHasName(PETSC_NULL_CHARACTER,'-terse',terse,ierr)
+      if (terse) then
+        call PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_NULL_OBJECT,ierr)
+      else
+        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,           &
+     &                   PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)
+        call PEPErrorView(pep,PEP_ERROR_BACKWARD,                       &
+     &                   PETSC_VIEWER_STDOUT_WORLD,ierr)
+        call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr)
+      endif
+      call PEPDestroy(pep,ierr)
       call MatDestroy(K,ierr)
       call MatDestroy(C,ierr)
       call MatDestroy(M,ierr)

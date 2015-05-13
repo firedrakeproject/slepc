@@ -1,6 +1,6 @@
 # -*- mode: makefile-gmake -*-
 
-include ./conf/slepc_variables
+include ./lib/slepc/conf/slepc_variables
 
 OBJDIR := $(PETSC_ARCH)/obj
 MODDIR := $(PETSC_ARCH)/include
@@ -50,7 +50,7 @@ else
 endif
 libslepcall := $(if $(filter-out no,$(BUILDSHAREDLIB)),$(libslepcall_shared) $(libslepcall_soname),$(libslepcall_static))
 
-generated := $(PETSC_ARCH)/conf/files
+generated := $(PETSC_ARCH)/lib/slepc/conf/files
 
 all : $(generated) $(libslepcall)
 
@@ -71,8 +71,8 @@ else				# Show the full command line
   quiet = $($1)
 endif
 
-$(PETSC_ARCH)/conf/files :
-	$(PYTHON) conf/gmakegen.py --petsc-arch=$(PETSC_ARCH) --installed-petsc=$(INSTALLED_PETSC)
+$(PETSC_ARCH)/lib/slepc/conf/files :
+	$(PYTHON) ./config/gmakegen.py --petsc-arch=$(PETSC_ARCH) --installed-petsc=$(INSTALLED_PETSC)
 
 -include $(generated)
 
@@ -127,7 +127,7 @@ $(foreach pkg,$(pkgs),$(eval $(call pkg_template,$(pkg))))
 $(call libname_function,$(LIBDIR)/libslepceps) : libdep := $(call libpkg,sys)
 $(call libname_function,$(LIBDIR)/libslepcsvd) : libdep := $(call libpkg,eps sys)
 $(call libname_function,$(LIBDIR)/libslepcpep) : libdep := $(call libpkg,eps sys)
-$(call libname_function,$(LIBDIR)/libslepcnep) : libdep := $(call libpkg,eps sys)
+$(call libname_function,$(LIBDIR)/libslepcnep) : libdep := $(call libpkg,pep eps sys)
 $(call libname_function,$(LIBDIR)/libslepcmfn) : libdep := $(call libpkg,sys)
 
 # The package libraries technically depend on each other (not just in an order-only way), but only
@@ -174,7 +174,7 @@ endif
 $(OBJDIR)/src/mfn/f90-mod/slepcmfnmod.o   : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
 $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o   : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
 $(OBJDIR)/src/pep/f90-mod/slepcpepmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
-$(OBJDIR)/src/nep/f90-mod/slepcnepmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
+$(OBJDIR)/src/nep/f90-mod/slepcnepmod.o   : $(OBJDIR)/src/pep/f90-mod/slepcpepmod.o
 $(OBJDIR)/src/svd/f90-mod/slepcsvdmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
 
 %/.DIR :
@@ -189,7 +189,7 @@ $(OBJDIR)/src/svd/f90-mod/slepcsvdmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmo
 .PHONY: clean all print
 
 clean:
-	rm -rf $(OBJDIR) $(LIBDIR)/libslepc* $(MODDIR)/slepc*.mod $(MPIUNI_MOD) $(generated)
+	$(RM) -rf $(OBJDIR) $(LIBDIR)/libslepc* $(MODDIR)/slepc*.mod $(MPIUNI_MOD) $(generated)
 
 # make print VAR=the-variable
 print:

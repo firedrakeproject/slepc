@@ -4,7 +4,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -22,7 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>       /*I "slepcnep.h" I*/
+#include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetFromOptions"
@@ -54,13 +54,25 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!NEPRegisterAllCalled) { ierr = NEPRegisterAll();CHKERRQ(ierr); }
+  ierr = NEPRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)nep);CHKERRQ(ierr);
     ierr = PetscOptionsFList("-nep_type","Nonlinear Eigenvalue Problem method","NEPSetType",NEPList,(char*)(((PetscObject)nep)->type_name?((PetscObject)nep)->type_name:NEPRII),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = NEPSetType(nep,type);CHKERRQ(ierr);
     } else if (!((PetscObject)nep)->type_name) {
       ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
+    }
+
+    ierr = PetscOptionsEnum("-nep_refine","Iterative refinement method","NEPSetRefine",NEPRefineTypes,(PetscEnum)nep->refine,(PetscEnum*)&nep->refine,NULL);CHKERRQ(ierr);
+
+    i = nep->npart;
+    ierr = PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","PEPSetRefine",nep->npart,&i,&flg1);CHKERRQ(ierr);
+    r1 = nep->reftol;
+    ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->reftol,&r1,&flg2);CHKERRQ(ierr);
+    j = nep->rits;
+    ierr = PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg3);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3) {
+      ierr = NEPSetRefine(nep,nep->refine,i,r1,j);CHKERRQ(ierr);
     }
 
     i = nep->max_it? nep->max_it: PETSC_DEFAULT;
@@ -167,16 +179,22 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
 
     ierr = PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-nep_plot_eigs","Make a plot of the computed eigenvalues","NEPSolve",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_view_vectors","View computed eigenvectors","NEPVectorsView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_view_values","View computed eigenvalues","NEPValuesView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_converged_reason","Print reason for convergence, and number of iterations","NEPReasonView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_error_absolute","Print absolute errors of each eigenpair","NEPErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_error_relative","Print relative errors of each eigenpair","NEPErrorView",0);CHKERRQ(ierr);
 
     if (nep->ops->setfromoptions) {
-      ierr = (*nep->ops->setfromoptions)(nep);CHKERRQ(ierr);
+      ierr = (*nep->ops->setfromoptions)(PetscOptionsObject,nep);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)nep);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
   if (!nep->V) { ierr = NEPGetBV(nep,&nep->V);CHKERRQ(ierr); }
   ierr = BVSetFromOptions(nep->V);CHKERRQ(ierr);
+  if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
+  ierr = RGSetFromOptions(nep->rg);CHKERRQ(ierr);
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(nep->ds);CHKERRQ(ierr);
   if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
@@ -443,8 +461,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(nep,which,2);
-  if (which==PETSC_DECIDE || which==PETSC_DEFAULT) nep->which = (NEPWhich)0;
-  else switch (which) {
+  switch (which) {
     case NEP_LARGEST_MAGNITUDE:
     case NEP_SMALLEST_MAGNITUDE:
     case NEP_LARGEST_REAL:
@@ -725,6 +742,122 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPSetRefine"
+/*@
+   NEPSetRefine - Specifies the refinement type (and options) to be used
+   after the solve.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep    - the nonlinear eigensolver context
+.  refine - refinement type
+.  npart  - number of partitions of the communicator
+.  tol    - the convergence tolerance
+-  its    - maximum number of refinement iterations
+
+   Options Database Keys:
++  -nep_refine <type> - refinement type, one of <none,simple,multiple>
+.  -nep_refine_partitions <n> - the number of partitions
+.  -nep_refine_tol <tol> - the tolerance
+-  -nep_refine_its <its> - number of iterations
+
+   Notes:
+   By default, iterative refinement is disabled, since it may be very
+   costly. There are two possible refinement strategies: simple and multiple.
+   The simple approach performs iterative refinement on each of the
+   converged eigenpairs individually, whereas the multiple strategy works
+   with the invariant pair as a whole, refining all eigenpairs simultaneously.
+   The latter may be required for the case of multiple eigenvalues.
+
+   In some cases, especially when using direct solvers within the
+   iterative refinement method, it may be helpful for improved scalability
+   to split the communicator in several partitions. The npart parameter
+   indicates how many partitions to use (defaults to 1).
+
+   The tol and its parameters specify the stopping criterion. In the simple
+   method, refinement continues until the residual of each eigenpair is
+   below the tolerance (tol defaults to the NEP tol, but may be set to a
+   different value). In contrast, the multiple method simply performs its
+   refinement iterations (just one by default).
+
+   Level: intermediate
+
+.seealso: NEPGetRefine()
+@*/
+PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal tol,PetscInt its)
+{
+  PetscErrorCode ierr;
+  PetscMPIInt    size;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(nep,refine,2);
+  PetscValidLogicalCollectiveInt(nep,npart,3);
+  PetscValidLogicalCollectiveReal(nep,tol,4);
+  PetscValidLogicalCollectiveInt(nep,its,5);
+  nep->refine = refine;
+  if (refine) {  /* process parameters only if not REFINE_NONE */
+    if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
+      nep->npart = 1;
+    } else {
+      ierr = MPI_Comm_size(PetscObjectComm((PetscObject)nep),&size);CHKERRQ(ierr);
+      if (npart<1 || npart>size) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
+      nep->npart = npart;
+    }
+    if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
+      nep->reftol = nep->rtol;
+    } else {
+      if (tol<=0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+      nep->reftol = tol;
+    }
+    if (its==PETSC_DECIDE || its==PETSC_DEFAULT) {
+      nep->rits = PETSC_DEFAULT;
+    } else {
+      if (its<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be >= 0");
+      nep->rits = its;
+    }
+  }
+  nep->state = NEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPGetRefine"
+/*@
+   NEPGetRefine - Gets the refinement strategy used by the NEP object, and the
+   associated parameters.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameters:
++  refine - refinement type
+.  npart  - number of partitions of the communicator
+.  tol    - the convergence tolerance
+-  its    - maximum number of refinement iterations
+
+   Level: intermediate
+
+   Note:
+   The user can specify NULL for any parameter that is not needed.
+
+.seealso: NEPSetRefine()
+@*/
+PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  if (refine) *refine = nep->refine;
+  if (npart)  *npart  = nep->npart;
+  if (tol)    *tol    = nep->reftol;
+  if (its)    *its    = nep->rits;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetOptionsPrefix"
 /*@C
    NEPSetOptionsPrefix - Sets the prefix used for searching for all
@@ -762,6 +895,8 @@ PetscErrorCode NEPSetOptionsPrefix(NEP nep,const char *prefix)
   ierr = BVSetOptionsPrefix(nep->V,prefix);CHKERRQ(ierr);
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(nep->ds,prefix);CHKERRQ(ierr);
+  if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
+  ierr = RGSetOptionsPrefix(nep->rg,prefix);CHKERRQ(ierr);
   if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOptionsPrefix(nep->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);
@@ -799,6 +934,8 @@ PetscErrorCode NEPAppendOptionsPrefix(NEP nep,const char *prefix)
   ierr = BVSetOptionsPrefix(nep->V,prefix);CHKERRQ(ierr);
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(nep->ds,prefix);CHKERRQ(ierr);
+  if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
+  ierr = RGSetOptionsPrefix(nep->rg,prefix);CHKERRQ(ierr);
   if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOptionsPrefix(nep->ksp,prefix);CHKERRQ(ierr);
   ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);

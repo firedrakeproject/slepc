@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -26,6 +26,7 @@
 #include <slepcst.h>
 #include <slepcbv.h>
 #include <slepcds.h>
+#include <slepcrg.h>
 
 PETSC_EXTERN PetscErrorCode EPSInitializePackage(void);
 
@@ -89,7 +90,7 @@ typedef enum { EPS_HEP=1,
 
 .seealso: EPSSetExtraction(), EPSGetExtraction()
 E*/
-typedef enum { EPS_RITZ=1,
+typedef enum { EPS_RITZ,
                EPS_HARMONIC,
                EPS_HARMONIC_RELATIVE,
                EPS_HARMONIC_RIGHT,
@@ -123,11 +124,23 @@ typedef enum { EPS_LARGEST_MAGNITUDE=1,
 
 .seealso: EPSSetBalance()
 E*/
-typedef enum { EPS_BALANCE_NONE=1,
+typedef enum { EPS_BALANCE_NONE,
                EPS_BALANCE_ONESIDE,
                EPS_BALANCE_TWOSIDE,
                EPS_BALANCE_USER } EPSBalance;
 PETSC_EXTERN const char *EPSBalanceTypes[];
+
+/*E
+    EPSErrorType - The error type used to assess accuracy of computed solutions
+
+    Level: intermediate
+
+.seealso: EPSComputeError()
+E*/
+typedef enum { EPS_ERROR_ABSOLUTE,
+               EPS_ERROR_RELATIVE,
+               EPS_ERROR_BACKWARD } EPSErrorType;
+PETSC_EXTERN const char *EPSErrorTypes[];
 
 /*E
     EPSConv - Determines the convergence test
@@ -136,7 +149,7 @@ PETSC_EXTERN const char *EPSBalanceTypes[];
 
 .seealso: EPSSetConvergenceTest(), EPSSetConvergenceTestFunction()
 E*/
-typedef enum { EPS_CONV_ABS=1,
+typedef enum { EPS_CONV_ABS,
                EPS_CONV_EIG,
                EPS_CONV_NORM,
                EPS_CONV_USER } EPSConv;
@@ -158,7 +171,16 @@ PETSC_EXTERN PetscErrorCode EPSSetFromOptions(EPS);
 PETSC_EXTERN PetscErrorCode EPSSetUp(EPS);
 PETSC_EXTERN PetscErrorCode EPSSolve(EPS);
 PETSC_EXTERN PetscErrorCode EPSView(EPS,PetscViewer);
-PETSC_EXTERN PetscErrorCode EPSPrintSolution(EPS,PetscViewer);
+PETSC_STATIC_INLINE PetscErrorCode EPSViewFromOptions(EPS eps,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)eps,prefix,name);}
+PETSC_EXTERN PetscErrorCode EPSErrorView(EPS,EPSErrorType,PetscViewer);
+PETSC_DEPRECATED("Use EPSErrorView()") PETSC_STATIC_INLINE PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer v) {return EPSErrorView(eps,EPS_ERROR_RELATIVE,v);}
+PETSC_EXTERN PetscErrorCode EPSErrorViewFromOptions(EPS);
+PETSC_EXTERN PetscErrorCode EPSReasonView(EPS,PetscViewer);
+PETSC_EXTERN PetscErrorCode EPSReasonViewFromOptions(EPS);
+PETSC_EXTERN PetscErrorCode EPSValuesView(EPS,PetscViewer);
+PETSC_EXTERN PetscErrorCode EPSValuesViewFromOptions(EPS);
+PETSC_EXTERN PetscErrorCode EPSVectorsView(EPS,PetscViewer);
+PETSC_EXTERN PetscErrorCode EPSVectorsViewFromOptions(EPS);
 
 PETSC_EXTERN PetscErrorCode EPSSetTarget(EPS,PetscScalar);
 PETSC_EXTERN PetscErrorCode EPSGetTarget(EPS,PetscScalar*);
@@ -168,6 +190,8 @@ PETSC_EXTERN PetscErrorCode EPSSetST(EPS,ST);
 PETSC_EXTERN PetscErrorCode EPSGetST(EPS,ST*);
 PETSC_EXTERN PetscErrorCode EPSSetBV(EPS,BV);
 PETSC_EXTERN PetscErrorCode EPSGetBV(EPS,BV*);
+PETSC_EXTERN PetscErrorCode EPSSetRG(EPS,RG);
+PETSC_EXTERN PetscErrorCode EPSGetRG(EPS,RG*);
 PETSC_EXTERN PetscErrorCode EPSSetDS(EPS,DS);
 PETSC_EXTERN PetscErrorCode EPSGetDS(EPS,DS*);
 PETSC_EXTERN PetscErrorCode EPSSetTolerances(EPS,PetscReal,PetscInt);
@@ -185,8 +209,10 @@ PETSC_EXTERN PetscErrorCode EPSGetConverged(EPS,PetscInt*);
 PETSC_EXTERN PetscErrorCode EPSGetEigenpair(EPS,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
 PETSC_EXTERN PetscErrorCode EPSGetEigenvalue(EPS,PetscInt,PetscScalar*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode EPSGetEigenvector(EPS,PetscInt,Vec,Vec);
-PETSC_EXTERN PetscErrorCode EPSComputeRelativeError(EPS,PetscInt,PetscReal*);
-PETSC_EXTERN PetscErrorCode EPSComputeResidualNorm(EPS,PetscInt,PetscReal*);
+
+PETSC_EXTERN PetscErrorCode EPSComputeError(EPS,PetscInt,EPSErrorType,PetscReal*);
+PETSC_DEPRECATED("Use EPSComputeError()") PETSC_STATIC_INLINE PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_RELATIVE,r);}
+PETSC_DEPRECATED("Use EPSComputeError() with EPS_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode EPSComputeResidualNorm(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_ABSOLUTE,r);}
 PETSC_EXTERN PetscErrorCode EPSGetInvariantSubspace(EPS,Vec*);
 PETSC_EXTERN PetscErrorCode EPSGetErrorEstimate(EPS,PetscInt,PetscReal*);
 
@@ -200,6 +226,8 @@ PETSC_EXTERN PetscErrorCode EPSSetWhichEigenpairs(EPS,EPSWhich);
 PETSC_EXTERN PetscErrorCode EPSGetWhichEigenpairs(EPS,EPSWhich*);
 PETSC_EXTERN PetscErrorCode EPSSetTrueResidual(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSGetTrueResidual(EPS,PetscBool*);
+PETSC_EXTERN PetscErrorCode EPSSetPurify(EPS,PetscBool);
+PETSC_EXTERN PetscErrorCode EPSGetPurify(EPS,PetscBool*);
 PETSC_EXTERN PetscErrorCode EPSSetEigenvalueComparison(EPS,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 PETSC_EXTERN PetscErrorCode EPSSetArbitrarySelection(EPS,PetscErrorCode (*func)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*),void*);
 PETSC_EXTERN PetscErrorCode EPSIsGeneralized(EPS,PetscBool*);
@@ -236,15 +264,11 @@ typedef enum {/* converged */
               EPS_DIVERGED_ITS                 = -3,
               EPS_DIVERGED_BREAKDOWN           = -4,
               EPS_CONVERGED_ITERATING          =  0} EPSConvergedReason;
+PETSC_EXTERN const char *const*EPSConvergedReasons;
 
 PETSC_EXTERN PetscErrorCode EPSGetConvergedReason(EPS,EPSConvergedReason *);
 
-PETSC_EXTERN PetscErrorCode EPSSortEigenvalues(EPS,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
-PETSC_EXTERN PetscErrorCode EPSCompareEigenvalues(EPS,PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*);
-
 PETSC_EXTERN PetscFunctionList EPSList;
-PETSC_EXTERN PetscBool         EPSRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode EPSRegisterAll(void);
 PETSC_EXTERN PetscErrorCode EPSRegister(const char[],PetscErrorCode(*)(EPS));
 
 PETSC_EXTERN PetscErrorCode EPSSetWorkVecs(EPS,PetscInt);
@@ -272,8 +296,17 @@ PETSC_EXTERN PetscErrorCode EPSArnoldiGetDelayed(EPS,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetRestart(EPS,PetscReal);
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetRestart(EPS,PetscReal*);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetLocking(EPS,PetscBool);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetLocking(EPS,PetscBool*);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetPartitions(EPS,PetscInt);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetPartitions(EPS,PetscInt*);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetDetectZeros(EPS,PetscBool);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetDetectZeros(EPS,PetscBool*);
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetDimensions(EPS,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetDimensions(EPS,PetscInt*,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetSubintervals(EPS,PetscReal*);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetSubintervals(EPS,PetscReal**);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetInertias(EPS,PetscInt*,PetscReal**,PetscInt**);
 
 /*E
     EPSLanczosReorthogType - determines the type of reorthogonalization
@@ -326,16 +359,6 @@ PETSC_EXTERN PetscErrorCode EPSPRIMMESetMethod(EPS eps, EPSPRIMMEMethod method);
 PETSC_EXTERN PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,PetscInt *bs);
 PETSC_EXTERN PetscErrorCode EPSPRIMMEGetMethod(EPS eps, EPSPRIMMEMethod *method);
 
-/*E
-    EPSOrthType - determines the orthogonalization used in the search subspace
-
-    Level: advanced
-
-.seealso: EPSGDSetBOrth(), EPSJDSetBOrth()
-E*/
-typedef enum { EPS_ORTH_I=1,
-               EPS_ORTH_B } EPSOrthType;
-
 PETSC_EXTERN PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscBool krylovstart);
 PETSC_EXTERN PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscBool *krylovstart);
 PETSC_EXTERN PetscErrorCode EPSGDSetBlockSize(EPS eps,PetscInt blocksize);
@@ -344,8 +367,8 @@ PETSC_EXTERN PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk
 PETSC_EXTERN PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk);
 PETSC_EXTERN PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize);
 PETSC_EXTERN PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize);
-PETSC_EXTERN PetscErrorCode EPSGDSetBOrth(EPS eps,EPSOrthType borth);
-PETSC_EXTERN PetscErrorCode EPSGDGetBOrth(EPS eps,EPSOrthType *borth);
+PETSC_EXTERN PetscErrorCode EPSGDSetBOrth(EPS eps,PetscBool borth);
+PETSC_EXTERN PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth);
 PETSC_EXTERN PetscErrorCode EPSGDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow);
 PETSC_EXTERN PetscErrorCode EPSGDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow);
 PETSC_EXTERN PetscErrorCode EPSGDSetDoubleExpansion(EPS eps,PetscBool use_gd2);
@@ -363,8 +386,8 @@ PETSC_EXTERN PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix);
 PETSC_EXTERN PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix);
 PETSC_EXTERN PetscErrorCode EPSJDSetConstCorrectionTol(EPS eps,PetscBool dynamic);
 PETSC_EXTERN PetscErrorCode EPSJDGetConstCorrectionTol(EPS eps,PetscBool *dynamic);
-PETSC_EXTERN PetscErrorCode EPSJDSetBOrth(EPS eps,EPSOrthType borth);
-PETSC_EXTERN PetscErrorCode EPSJDGetBOrth(EPS eps,EPSOrthType *borth);
+PETSC_EXTERN PetscErrorCode EPSJDSetBOrth(EPS eps,PetscBool borth);
+PETSC_EXTERN PetscErrorCode EPSJDGetBOrth(EPS eps,PetscBool *borth);
 PETSC_EXTERN PetscErrorCode EPSJDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow);
 PETSC_EXTERN PetscErrorCode EPSJDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow);
 

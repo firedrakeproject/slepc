@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/bvimpl.h>            /*I "slepcbv.h" I*/
+#include <slepc/private/bvimpl.h>            /*I "slepcbv.h" I*/
 
 PetscClassId     BV_CLASSID = 0;
 PetscLogEvent    BV_Create = 0,BV_Copy = 0,BV_Mult = 0,BV_Dot = 0,BV_Orthogonalize = 0,BV_Scale = 0,BV_Norm = 0,BV_SetRandom = 0,BV_MatMult = 0,BV_MatProject = 0,BV_AXPY = 0;
@@ -107,7 +107,7 @@ PetscErrorCode BVInitializePackage(void)
 
 #undef __FUNCT__
 #define __FUNCT__ "BVDestroy"
-/*@C
+/*@
    BVDestroy - Destroys BV context that was created with BVCreate().
 
    Collective on BV
@@ -134,13 +134,15 @@ PetscErrorCode BVDestroy(BV *bv)
   ierr = PetscFree((*bv)->work);CHKERRQ(ierr);
   ierr = PetscFree2((*bv)->h,(*bv)->c);CHKERRQ(ierr);
   ierr = PetscFree((*bv)->omega);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*bv)->B);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*bv)->C);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "BVCreate"
-/*@C
+/*@
    BVCreate - Creates a basis vectors context.
 
    Collective on MPI_Comm
@@ -164,7 +166,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   PetscValidPointer(newbv,2);
   *newbv = 0;
   ierr = BVInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(bv,_p_BV,struct _BVOps,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(bv,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView);CHKERRQ(ierr);
 
   bv->t            = NULL;
   bv->n            = -1;
@@ -193,6 +195,11 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->h            = NULL;
   bv->c            = NULL;
   bv->omega        = NULL;
+  bv->vmm          = BV_MATMULT_MAT;
+  bv->B            = NULL;
+  bv->C            = NULL;
+  bv->Aid          = 0;
+  bv->defersfo     = PETSC_FALSE;
   bv->work         = NULL;
   bv->lwork        = 0;
   bv->data         = NULL;
@@ -545,7 +552,6 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidType(bv,1);
   if (!viewer) {
     ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)bv),&viewer);CHKERRQ(ierr);
   }
@@ -580,6 +586,17 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
         ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
         ierr = MatView(bv->matrix,viewer);CHKERRQ(ierr);
         ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+      }
+      switch (bv->vmm) {
+        case BV_MATMULT_VECS:
+          ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as matrix-vector products\n");CHKERRQ(ierr);
+          break;
+        case BV_MATMULT_MAT:
+          ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as a single matrix-matrix product\n");CHKERRQ(ierr);
+          break;
+        case BV_MATMULT_MAT_SAVE:
+          ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as a single matrix-matrix product, saving aux matrices\n");CHKERRQ(ierr);
+          break;
       }
     } else {
       if (bv->ops->view) { ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr); }

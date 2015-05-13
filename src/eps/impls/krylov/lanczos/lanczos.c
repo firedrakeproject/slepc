@@ -13,11 +13,11 @@
    References:
 
        [1] "Lanczos Methods in SLEPc", SLEPc Technical Report STR-5,
-           available at http://www.grycap.upv.es/slepc.
+           available at http://slepc.upv.es.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -35,7 +35,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
 PetscErrorCode EPSSolve_Lanczos(EPS);
@@ -55,7 +55,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   PetscErrorCode     ierr;
 
   PetscFunctionBegin;
-  ierr = EPSSetDimensions_Default(eps);CHKERRQ(ierr);
+  ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
@@ -233,8 +233,9 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
   ierr = PetscCalloc6(m+1,&d,m,&e,m,&ritz,m*m,&Y,m,&which,m,&hwork);CHKERRQ(ierr);
   for (i=0;i<k;i++) which[i] = PETSC_TRUE;
 
-  ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
+    ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
+
     /* Lanczos step */
     ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
     ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
@@ -511,10 +512,10 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
 {
   PetscErrorCode     ierr;
   EPS_LANCZOS        *lanczos = (EPS_LANCZOS*)eps->data;
-  /*PetscScalar        *T;
+  PetscScalar        *T;
   PetscInt           i,n=*m;
   PetscReal          betam;
-  BVOrthogRefineType orthog_ref;*/
+  BVOrthogRefineType orthog_ref;
 
   PetscFunctionBegin;
   switch (lanczos->reorthog) {
@@ -532,13 +533,12 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
       ierr = EPSPartialLanczos(eps,alpha,beta,k,m,breakdown,anorm);CHKERRQ(ierr);
       break;
     case EPS_LANCZOS_REORTHOG_DELAYED:
-      SETERRQ(PetscObjectComm((PetscObject)eps),1,"Not implemented");
-      /*ierr = PetscMalloc1(n*n,&T);CHKERRQ(ierr);
-      ierr = BVGetOrthogonalization(eps->ip,NULL,&orthog_ref,NULL);CHKERRQ(ierr);
+      ierr = PetscMalloc1(n*n,&T);CHKERRQ(ierr);
+      ierr = BVGetOrthogonalization(eps->V,NULL,&orthog_ref,NULL);CHKERRQ(ierr);
       if (orthog_ref == BV_ORTHOG_REFINE_NEVER) {
-        ierr = EPSDelayedArnoldi1(eps,T,n,V,k,m,f,&betam,breakdown);CHKERRQ(ierr);
+        ierr = EPSDelayedArnoldi1(eps,T,n,k,m,&betam,breakdown);CHKERRQ(ierr);
       } else {
-        ierr = EPSDelayedArnoldi(eps,T,n,V,k,m,f,&betam,breakdown);CHKERRQ(ierr);
+        ierr = EPSDelayedArnoldi(eps,T,n,k,m,&betam,breakdown);CHKERRQ(ierr);
       }
       for (i=k;i<n-1;i++) {
         alpha[i] = PetscRealPart(T[n*i+i]);
@@ -547,7 +547,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
       alpha[n-1] = PetscRealPart(T[n*(n-1)+n-1]);
       beta[n-1] = betam;
       ierr = PetscFree(T);CHKERRQ(ierr);
-      break;*/
+      break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid reorthogonalization type");
   }
@@ -629,7 +629,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
       } else {
         for (i=restart+1;i<n;i++) {
           if (conv[i] == 'N') {
-            ierr = (*eps->comparison)(ritz[restart],0.0,ritz[i],0.0,&r,eps->comparisonctx);CHKERRQ(ierr);
+            ierr = SlepcSCCompare(eps->sc,ritz[restart],0.0,ritz[i],0.0,&r);CHKERRQ(ierr);
             if (r>0) restart = i;
           }
         }
@@ -745,7 +745,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_Lanczos"
-PetscErrorCode EPSSetFromOptions_Lanczos(EPS eps)
+PetscErrorCode EPSSetFromOptions_Lanczos(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode         ierr;
   EPS_LANCZOS            *lanczos = (EPS_LANCZOS*)eps->data;
@@ -753,7 +753,7 @@ PetscErrorCode EPSSetFromOptions_Lanczos(EPS eps)
   EPSLanczosReorthogType reorthog;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS Lanczos Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS Lanczos Options");CHKERRQ(ierr);
   ierr = PetscOptionsEnum("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",EPSLanczosReorthogTypes,(PetscEnum)lanczos->reorthog,(PetscEnum*)&reorthog,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = EPSLanczosSetReorthog(eps,reorthog);CHKERRQ(ierr);

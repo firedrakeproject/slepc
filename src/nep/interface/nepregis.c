@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,12 +19,16 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>      /*I "slepcnep.h" I*/
+#include <slepc/private/nepimpl.h>      /*I "slepcnep.h" I*/
 
 PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP);
 PETSC_EXTERN PetscErrorCode NEPCreate_SLP(NEP);
 PETSC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP);
+<<<<<<< HEAD
 PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP);
+=======
+PETSC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP);
+>>>>>>> maeda/ciss
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPRegisterAll"
@@ -42,12 +46,18 @@ PetscErrorCode NEPRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (NEPRegisterAllCalled) PetscFunctionReturn(0);
   NEPRegisterAllCalled = PETSC_TRUE;
   ierr = NEPRegister(NEPRII,NEPCreate_RII);CHKERRQ(ierr);
   ierr = NEPRegister(NEPSLP,NEPCreate_SLP);CHKERRQ(ierr);
   ierr = NEPRegister(NEPNARNOLDI,NEPCreate_NArnoldi);CHKERRQ(ierr);
+<<<<<<< HEAD
 #if defined(PETSC_USE_COMPLEX)
   ierr = NEPRegister(NEPCISS,NEPCreate_CISS);CHKERRQ(ierr);
 #endif
+=======
+  ierr = NEPRegister(NEPINTERPOL,NEPCreate_Interpol);CHKERRQ(ierr);
+>>>>>>> maeda/ciss
   PetscFunctionReturn(0);
 }
+

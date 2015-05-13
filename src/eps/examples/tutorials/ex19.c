@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -135,7 +135,7 @@ int main(int argc,char **argv)
   seed = 1;
   ierr = PetscOptionsGetInt(NULL,"-seed",&seed,NULL);CHKERRQ(ierr);
   if (seed<0) SETERRQ(PETSC_COMM_WORLD,1,"Seed must be >=0");
-  ierr = MatGetVecs(A,&v0,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&v0,NULL);CHKERRQ(ierr);
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
   for (i=0;i<seed;i++) {   /* simulate different seeds in the random generator */
@@ -220,7 +220,7 @@ int main(int argc,char **argv)
       /*
          Compute the relative error associated to each eigenpair
       */
-      ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
+      ierr = EPSComputeError(eps,i,EPS_ERROR_RELATIVE,&error);CHKERRQ(ierr);
 
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(kr);

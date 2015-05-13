@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>       /*I "slepcnep.h" I*/
+#include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetUp"
@@ -47,6 +47,7 @@ PetscErrorCode NEPSetUp(NEP nep)
 {
   PetscErrorCode ierr;
   PetscInt       k;
+  SlepcSC        sc;
   Mat            T;
 
   PetscFunctionBegin;
@@ -63,6 +64,10 @@ PetscErrorCode NEPSetUp(NEP nep)
   }
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSReset(nep->ds);CHKERRQ(ierr);
+  if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
+  if (!((PetscObject)nep->rg)->type_name) {
+    ierr = RGSetType(nep->rg,RGINTERVAL);CHKERRQ(ierr);
+  }
   if (!((PetscObject)nep->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(nep->rand);CHKERRQ(ierr);
   }
@@ -97,46 +102,60 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (nep->stol==PETSC_DEFAULT) nep->stol = SLEPC_DEFAULT_TOL;
   nep->ktol   = 0.1;
   nep->nfuncs = 0;
+  if (nep->refine) {
+    if (nep->reftol==PETSC_DEFAULT) nep->reftol = SLEPC_DEFAULT_TOL;
+    if (nep->rits==PETSC_DEFAULT) nep->rits = (nep->refine==NEP_REFINE_SIMPLE)? 10: 1;
+  }
 
-  /* set eigenvalue comparison */
+  /* fill sorting criterion context */
   switch (nep->which) {
     case NEP_LARGEST_MAGNITUDE:
-      nep->comparison    = SlepcCompareLargestMagnitude;
-      nep->comparisonctx = NULL;
+      nep->sc->comparison    = SlepcCompareLargestMagnitude;
+      nep->sc->comparisonctx = NULL;
       break;
     case NEP_SMALLEST_MAGNITUDE:
-      nep->comparison    = SlepcCompareSmallestMagnitude;
-      nep->comparisonctx = NULL;
+      nep->sc->comparison    = SlepcCompareSmallestMagnitude;
+      nep->sc->comparisonctx = NULL;
       break;
     case NEP_LARGEST_REAL:
-      nep->comparison    = SlepcCompareLargestReal;
-      nep->comparisonctx = NULL;
+      nep->sc->comparison    = SlepcCompareLargestReal;
+      nep->sc->comparisonctx = NULL;
       break;
     case NEP_SMALLEST_REAL:
-      nep->comparison    = SlepcCompareSmallestReal;
-      nep->comparisonctx = NULL;
+      nep->sc->comparison    = SlepcCompareSmallestReal;
+      nep->sc->comparisonctx = NULL;
       break;
     case NEP_LARGEST_IMAGINARY:
-      nep->comparison    = SlepcCompareLargestImaginary;
-      nep->comparisonctx = NULL;
+      nep->sc->comparison    = SlepcCompareLargestImaginary;
+      nep->sc->comparisonctx = NULL;
       break;
     case NEP_SMALLEST_IMAGINARY:
-      nep->comparison    = SlepcCompareSmallestImaginary;
-      nep->comparisonctx = NULL;
+      nep->sc->comparison    = SlepcCompareSmallestImaginary;
+      nep->sc->comparisonctx = NULL;
       break;
     case NEP_TARGET_MAGNITUDE:
-      nep->comparison    = SlepcCompareTargetMagnitude;
-      nep->comparisonctx = &nep->target;
+      nep->sc->comparison    = SlepcCompareTargetMagnitude;
+      nep->sc->comparisonctx = &nep->target;
       break;
     case NEP_TARGET_REAL:
-      nep->comparison    = SlepcCompareTargetReal;
-      nep->comparisonctx = &nep->target;
+      nep->sc->comparison    = SlepcCompareTargetReal;
+      nep->sc->comparisonctx = &nep->target;
       break;
     case NEP_TARGET_IMAGINARY:
-      nep->comparison    = SlepcCompareTargetImaginary;
-      nep->comparisonctx = &nep->target;
+      nep->sc->comparison    = SlepcCompareTargetImaginary;
+      nep->sc->comparisonctx = &nep->target;
       break;
   }
+
+  nep->sc->map    = NULL;
+  nep->sc->mapobj = NULL;
+
+  /* fill sorting criterion for DS */
+  ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
+  sc->comparison    = nep->sc->comparison;
+  sc->comparisonctx = nep->sc->comparisonctx;
+  sc->map           = NULL;
+  sc->mapobj        = NULL;
 
   if (nep->ncv > nep->n) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be the problem size at most");
   if (nep->nev > nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
@@ -232,9 +251,9 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
   /* allocate space for eigenvalues and friends */
   if (requested != oldsize) {
     if (oldsize) {
-      ierr = PetscFree3(nep->eig,nep->errest,nep->perm);CHKERRQ(ierr);
+      ierr = PetscFree4(nep->eigr,nep->eigi,nep->errest,nep->perm);CHKERRQ(ierr);
     }
-    ierr = PetscMalloc3(requested,&nep->eig,requested,&nep->errest,requested,&nep->perm);CHKERRQ(ierr);
+    ierr = PetscMalloc4(requested,&nep->eigr,requested,&nep->eigi,requested,&nep->errest,requested,&nep->perm);CHKERRQ(ierr);
     cnt = newc*sizeof(PetscScalar) + newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
     ierr = PetscLogObjectMemory((PetscObject)nep,cnt);CHKERRQ(ierr);
   }
@@ -249,7 +268,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
     else {
       ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
     }
-    ierr = MatGetVecs(T,&t,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(T,&t,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(nep->V,t,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {

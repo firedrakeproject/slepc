@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -41,13 +41,27 @@ typedef struct _p_FN* FN;
 .seealso: FNSetType(), FN
 J*/
 typedef const char* FNType;
+#define FNCOMBINE  "combine"
 #define FNRATIONAL "rational"
 #define FNEXP      "exp"
 #define FNLOG      "log"
 #define FNPHI      "phi"
+#define FNSQRT     "sqrt"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId FN_CLASSID;
+
+/*E
+    FNCombineType - Determines how two functions are combined
+
+    Level: advanced
+
+.seealso: FNCombineSetChildren()
+E*/
+typedef enum { FN_COMBINE_ADD,
+               FN_COMBINE_MULTIPLY,
+               FN_COMBINE_DIVIDE,
+               FN_COMBINE_COMPOSE } FNCombineType;
 
 PETSC_EXTERN PetscErrorCode FNCreate(MPI_Comm,FN*);
 PETSC_EXTERN PetscErrorCode FNSetType(FN,FNType);
@@ -58,16 +72,29 @@ PETSC_EXTERN PetscErrorCode FNGetOptionsPrefix(FN,const char *[]);
 PETSC_EXTERN PetscErrorCode FNSetFromOptions(FN);
 PETSC_EXTERN PetscErrorCode FNView(FN,PetscViewer);
 PETSC_EXTERN PetscErrorCode FNDestroy(FN*);
+PETSC_EXTERN PetscErrorCode FNDuplicate(FN,MPI_Comm,FN*);
 
-PETSC_EXTERN PetscErrorCode FNSetParameters(FN,PetscInt,PetscScalar*,PetscInt,PetscScalar*);
-PETSC_EXTERN PetscErrorCode FNGetParameters(FN,PetscInt*,PetscScalar**,PetscInt*,PetscScalar**);
+PETSC_EXTERN PetscErrorCode FNSetScale(FN,PetscScalar,PetscScalar);
+PETSC_EXTERN PetscErrorCode FNGetScale(FN,PetscScalar*,PetscScalar*);
 
 PETSC_EXTERN PetscErrorCode FNEvaluateFunction(FN,PetscScalar,PetscScalar*);
 PETSC_EXTERN PetscErrorCode FNEvaluateDerivative(FN,PetscScalar,PetscScalar*);
+PETSC_EXTERN PetscErrorCode FNEvaluateFunctionMat(FN,Mat,Mat);
 
 PETSC_EXTERN PetscFunctionList FNList;
-PETSC_EXTERN PetscBool         FNRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode FNRegisterAll(void);
 PETSC_EXTERN PetscErrorCode FNRegister(const char[],PetscErrorCode(*)(FN));
+
+/* --------- options specific to particular functions -------- */
+
+PETSC_EXTERN PetscErrorCode FNRationalSetNumerator(FN,PetscInt,PetscScalar*);
+PETSC_EXTERN PetscErrorCode FNRationalGetNumerator(FN,PetscInt*,PetscScalar**);
+PETSC_EXTERN PetscErrorCode FNRationalSetDenominator(FN,PetscInt,PetscScalar*);
+PETSC_EXTERN PetscErrorCode FNRationalGetDenominator(FN,PetscInt*,PetscScalar**);
+
+PETSC_EXTERN PetscErrorCode FNCombineSetChildren(FN,FNCombineType,FN,FN);
+PETSC_EXTERN PetscErrorCode FNCombineGetChildren(FN,FNCombineType*,FN*,FN*);
+
+PETSC_EXTERN PetscErrorCode FNPhiSetIndex(FN,PetscInt);
+PETSC_EXTERN PetscErrorCode FNPhiGetIndex(FN,PetscInt*);
 
 #endif

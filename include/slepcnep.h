@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -24,8 +24,7 @@
 #if !defined(__SLEPCNEP_H)
 #define __SLEPCNEP_H
 #include <slepceps.h>
-#include <slepcbv.h>
-#include <slepcds.h>
+#include <slepcpep.h>
 #include <slepcfn.h>
 
 PETSC_EXTERN PetscErrorCode NEPInitializePackage(void);
@@ -51,7 +50,11 @@ typedef const char* NEPType;
 #define NEPRII       "rii"
 #define NEPSLP       "slp"
 #define NEPNARNOLDI  "narnoldi"
+<<<<<<< HEAD
 #define NEPCISS      "ciss"
+=======
+#define NEPINTERPOL  "interpol"
+>>>>>>> maeda/ciss
 
 /* Logging support */
 PETSC_EXTERN PetscClassId NEP_CLASSID;
@@ -74,6 +77,29 @@ typedef enum { NEP_LARGEST_MAGNITUDE=1,
                NEP_TARGET_IMAGINARY} NEPWhich;
 
 /*E
+    NEPErrorType - The error type used to assess accuracy of computed solutions
+
+    Level: intermediate
+
+.seealso: NEPComputeError()
+E*/
+typedef enum { NEP_ERROR_ABSOLUTE,
+               NEP_ERROR_RELATIVE } NEPErrorType;
+PETSC_EXTERN const char *NEPErrorTypes[];
+
+/*E
+    NEPRefine - The refinement type
+
+    Level: intermediate
+
+.seealso: NEPSetRefine()
+E*/
+typedef enum { NEP_REFINE_NONE,
+               NEP_REFINE_SIMPLE,
+               NEP_REFINE_MULTIPLE } NEPRefine;
+PETSC_EXTERN const char *NEPRefineTypes[];
+
+/*E
     NEPConvergedReason - Reason a nonlinear eigensolver was said to
          have converged or diverged
 
@@ -92,6 +118,7 @@ typedef enum {/* converged */
               NEP_DIVERGED_BREAKDOWN           = -4,
               NEP_DIVERGED_FNORM_NAN           = -5,
               NEP_CONVERGED_ITERATING          =  0} NEPConvergedReason;
+PETSC_EXTERN const char *const*NEPConvergedReasons;
 
 PETSC_EXTERN PetscErrorCode NEPCreate(MPI_Comm,NEP*);
 PETSC_EXTERN PetscErrorCode NEPDestroy(NEP*);
@@ -106,6 +133,15 @@ PETSC_EXTERN PetscErrorCode NEPSetFromOptions(NEP);
 PETSC_EXTERN PetscErrorCode NEPSetUp(NEP);
 PETSC_EXTERN PetscErrorCode NEPSolve(NEP);
 PETSC_EXTERN PetscErrorCode NEPView(NEP,PetscViewer);
+PETSC_STATIC_INLINE PetscErrorCode NEPViewFromOptions(NEP nep,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)nep,prefix,name);}
+PETSC_EXTERN PetscErrorCode NEPErrorView(NEP,NEPErrorType,PetscViewer);
+PETSC_EXTERN PetscErrorCode NEPErrorViewFromOptions(NEP);
+PETSC_EXTERN PetscErrorCode NEPReasonView(NEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode NEPReasonViewFromOptions(NEP);
+PETSC_EXTERN PetscErrorCode NEPValuesView(NEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode NEPValuesViewFromOptions(NEP);
+PETSC_EXTERN PetscErrorCode NEPVectorsView(NEP,PetscViewer);
+PETSC_EXTERN PetscErrorCode NEPVectorsViewFromOptions(NEP);
 
 PETSC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat,Mat,void*),void*);
 PETSC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,Mat,void*),void**);
@@ -117,6 +153,8 @@ PETSC_EXTERN PetscErrorCode NEPGetSplitOperatorInfo(NEP,PetscInt*,MatStructure*)
 
 PETSC_EXTERN PetscErrorCode NEPSetBV(NEP,BV);
 PETSC_EXTERN PetscErrorCode NEPGetBV(NEP,BV*);
+PETSC_EXTERN PetscErrorCode NEPSetRG(NEP,RG);
+PETSC_EXTERN PetscErrorCode NEPGetRG(NEP,RG*);
 PETSC_EXTERN PetscErrorCode NEPSetDS(NEP,DS);
 PETSC_EXTERN PetscErrorCode NEPGetDS(NEP,DS*);
 PETSC_EXTERN PetscErrorCode NEPSetTolerances(NEP,PetscReal,PetscReal,PetscReal,PetscInt,PetscInt);
@@ -125,16 +163,19 @@ PETSC_EXTERN PetscErrorCode NEPSetConvergenceTest(NEP,PetscErrorCode (*)(NEP,Pet
 PETSC_EXTERN PetscErrorCode NEPConvergedDefault(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
 PETSC_EXTERN PetscErrorCode NEPSetDimensions(NEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetDimensions(NEP,PetscInt*,PetscInt*,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPSetRefine(NEP,NEPRefine,PetscInt,PetscReal,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPGetRefine(NEP,NEPRefine*,PetscInt*,PetscReal*,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetLagPreconditioner(NEP,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetLagPreconditioner(NEP,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetConstCorrectionTol(NEP,PetscBool);
 PETSC_EXTERN PetscErrorCode NEPGetConstCorrectionTol(NEP,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode NEPGetConverged(NEP,PetscInt*);
-PETSC_EXTERN PetscErrorCode NEPGetEigenpair(NEP,PetscInt,PetscScalar*,Vec);
+PETSC_EXTERN PetscErrorCode NEPGetEigenpair(NEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
 
-PETSC_EXTERN PetscErrorCode NEPComputeRelativeError(NEP,PetscInt,PetscReal*);
-PETSC_EXTERN PetscErrorCode NEPComputeResidualNorm(NEP,PetscInt,PetscReal*);
+PETSC_EXTERN PetscErrorCode NEPComputeError(NEP,PetscInt,NEPErrorType,PetscReal*);
+PETSC_DEPRECATED("Use NEPComputeError()") PETSC_STATIC_INLINE PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_RELATIVE,r);}
+PETSC_DEPRECATED("Use NEPComputeError() with NEP_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_ABSOLUTE,r);}
 PETSC_EXTERN PetscErrorCode NEPGetErrorEstimate(NEP,PetscInt,PetscReal*);
 
 PETSC_EXTERN PetscErrorCode NEPComputeFunction(NEP,PetscScalar,Mat,Mat);
@@ -152,7 +193,6 @@ PETSC_EXTERN PetscErrorCode NEPGetIterationNumber(NEP,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetInitialSpace(NEP,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode NEPSetWhichEigenpairs(NEP,NEPWhich);
 PETSC_EXTERN PetscErrorCode NEPGetWhichEigenpairs(NEP,NEPWhich*);
-PETSC_EXTERN PetscErrorCode NEPSetEigenvalueComparison(NEP,PetscErrorCode (*func)(NEP,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
 PETSC_EXTERN PetscErrorCode NEPMonitorAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
 PETSC_EXTERN PetscErrorCode NEPMonitorFirst(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
@@ -169,12 +209,7 @@ PETSC_EXTERN PetscErrorCode NEPGetOptionsPrefix(NEP,const char*[]);
 
 PETSC_EXTERN PetscErrorCode NEPGetConvergedReason(NEP,NEPConvergedReason *);
 
-PETSC_EXTERN PetscErrorCode NEPSortEigenvalues(NEP,PetscInt,PetscScalar*,PetscInt*);
-PETSC_EXTERN PetscErrorCode NEPCompareEigenvalues(NEP,PetscScalar,PetscScalar,PetscInt*);
-
 PETSC_EXTERN PetscFunctionList NEPList;
-PETSC_EXTERN PetscBool         NEPRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode NEPRegisterAll(void);
 PETSC_EXTERN PetscErrorCode NEPRegister(const char[],PetscErrorCode(*)(NEP));
 
 PETSC_EXTERN PetscErrorCode NEPSetWorkVecs(NEP,PetscInt);
@@ -185,12 +220,19 @@ PETSC_EXTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPSLPSetEPS(NEP,EPS);
 PETSC_EXTERN PetscErrorCode NEPSLPGetEPS(NEP,EPS*);
 
+<<<<<<< HEAD
 PETSC_EXTERN PetscErrorCode NEPCISSSetRegion(NEP,PetscScalar,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode NEPCISSGetRegion(NEP,PetscScalar*,PetscReal*,PetscReal*);
 PETSC_EXTERN PetscErrorCode NEPCISSSetSizes(NEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
 PETSC_EXTERN PetscErrorCode NEPCISSGetSizes(NEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*);
 PETSC_EXTERN PetscErrorCode NEPCISSSetThreshold(NEP,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode NEPCISSGetThreshold(NEP,PetscReal*,PetscReal*);
+=======
+PETSC_EXTERN PetscErrorCode NEPInterpolSetPEP(NEP,PEP);
+PETSC_EXTERN PetscErrorCode NEPInterpolGetPEP(NEP,PEP*);
+PETSC_EXTERN PetscErrorCode NEPInterpolSetDegree(NEP,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPInterpolGetDegree(NEP,PetscInt*);
+>>>>>>> maeda/ciss
 
 #endif
 

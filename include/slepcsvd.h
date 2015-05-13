@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -57,16 +57,6 @@ typedef const char* SVDType;
 PETSC_EXTERN PetscClassId SVD_CLASSID;
 
 /*E
-    SVDTransposeMode - Determines how to handle the transpose of the matrix
-
-    Level: advanced
-
-.seealso: SVDSetTransposeMode(), SVDGetTransposeMode()
-E*/
-typedef enum { SVD_TRANSPOSE_EXPLICIT,
-               SVD_TRANSPOSE_IMPLICIT } SVDTransposeMode;
-
-/*E
     SVDWhich - Determines whether largest or smallest singular triplets
     are to be computed
 
@@ -76,6 +66,17 @@ typedef enum { SVD_TRANSPOSE_EXPLICIT,
 E*/
 typedef enum { SVD_LARGEST,
                SVD_SMALLEST } SVDWhich;
+
+/*E
+    SVDErrorType - The error type used to assess accuracy of computed solutions
+
+    Level: intermediate
+
+.seealso: SVDComputeError()
+E*/
+typedef enum { SVD_ERROR_ABSOLUTE,
+               SVD_ERROR_RELATIVE } SVDErrorType;
+PETSC_EXTERN const char *SVDErrorTypes[];
 
 /*E
     SVDConvergedReason - Reason a singular value solver was said to
@@ -91,6 +92,7 @@ typedef enum {/* converged */
               SVD_DIVERGED_ITS                 = -3,
               SVD_DIVERGED_BREAKDOWN           = -4,
               SVD_CONVERGED_ITERATING          =  0 } SVDConvergedReason;
+PETSC_EXTERN const char *const*SVDConvergedReasons;
 
 PETSC_EXTERN PetscErrorCode SVDCreate(MPI_Comm,SVD*);
 PETSC_EXTERN PetscErrorCode SVDSetBV(SVD,BV,BV);
@@ -103,8 +105,8 @@ PETSC_EXTERN PetscErrorCode SVDSetOperator(SVD,Mat);
 PETSC_EXTERN PetscErrorCode SVDGetOperator(SVD,Mat*);
 PETSC_EXTERN PetscErrorCode SVDSetInitialSpace(SVD,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode SVDSetInitialSpaceLeft(SVD,PetscInt,Vec*);
-PETSC_EXTERN PetscErrorCode SVDSetTransposeMode(SVD,SVDTransposeMode);
-PETSC_EXTERN PetscErrorCode SVDGetTransposeMode(SVD,SVDTransposeMode*);
+PETSC_EXTERN PetscErrorCode SVDSetImplicitTranspose(SVD,PetscBool);
+PETSC_EXTERN PetscErrorCode SVDGetImplicitTranspose(SVD,PetscBool*);
 PETSC_EXTERN PetscErrorCode SVDSetDimensions(SVD,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode SVDGetDimensions(SVD,PetscInt*,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode SVDSetTolerances(SVD,PetscReal,PetscInt);
@@ -121,10 +123,20 @@ PETSC_EXTERN PetscErrorCode SVDGetIterationNumber(SVD,PetscInt*);
 PETSC_EXTERN PetscErrorCode SVDGetConvergedReason(SVD,SVDConvergedReason*);
 PETSC_EXTERN PetscErrorCode SVDGetConverged(SVD,PetscInt*);
 PETSC_EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,PetscInt,PetscReal*,Vec,Vec);
-PETSC_EXTERN PetscErrorCode SVDComputeResidualNorms(SVD,PetscInt,PetscReal*,PetscReal*);
-PETSC_EXTERN PetscErrorCode SVDComputeRelativeError(SVD,PetscInt,PetscReal*);
+PETSC_EXTERN PetscErrorCode SVDComputeError(SVD,PetscInt,SVDErrorType,PetscReal*);
+PETSC_DEPRECATED("Use SVDComputeError()") PETSC_STATIC_INLINE PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *r) {return SVDComputeError(svd,i,SVD_ERROR_RELATIVE,r);}
+PETSC_DEPRECATED("Use SVDComputeError() with SVD_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *r1,PetscReal *r2) {return SVDComputeError(svd,i,SVD_ERROR_ABSOLUTE,r1);}
 PETSC_EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
-PETSC_EXTERN PetscErrorCode SVDPrintSolution(SVD,PetscViewer);
+PETSC_STATIC_INLINE PetscErrorCode SVDViewFromOptions(SVD svd,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)svd,prefix,name);}
+PETSC_EXTERN PetscErrorCode SVDErrorView(SVD,SVDErrorType,PetscViewer);
+PETSC_DEPRECATED("Use SVDErrorView()") PETSC_STATIC_INLINE PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer v) {return SVDErrorView(svd,SVD_ERROR_RELATIVE,v);}
+PETSC_EXTERN PetscErrorCode SVDErrorViewFromOptions(SVD);
+PETSC_EXTERN PetscErrorCode SVDReasonView(SVD,PetscViewer);
+PETSC_EXTERN PetscErrorCode SVDReasonViewFromOptions(SVD);
+PETSC_EXTERN PetscErrorCode SVDValuesView(SVD,PetscViewer);
+PETSC_EXTERN PetscErrorCode SVDValuesViewFromOptions(SVD);
+PETSC_EXTERN PetscErrorCode SVDVectorsView(SVD,PetscViewer);
+PETSC_EXTERN PetscErrorCode SVDVectorsViewFromOptions(SVD);
 PETSC_EXTERN PetscErrorCode SVDDestroy(SVD*);
 PETSC_EXTERN PetscErrorCode SVDReset(SVD);
 
@@ -156,8 +168,6 @@ PETSC_EXTERN PetscErrorCode SVDTRLanczosSetOneSide(SVD,PetscBool);
 PETSC_EXTERN PetscErrorCode SVDTRLanczosGetOneSide(SVD,PetscBool*);
 
 PETSC_EXTERN PetscFunctionList SVDList;
-PETSC_EXTERN PetscBool         SVDRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode SVDRegisterAll(void);
 PETSC_EXTERN PetscErrorCode SVDRegister(const char[],PetscErrorCode(*)(SVD));
 
 PETSC_EXTERN PetscErrorCode SVDAllocateSolution(SVD,PetscInt);

@@ -20,7 +20,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -38,30 +38,30 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <../src/eps/impls/davidson/common/davidson.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_GD"
-PetscErrorCode EPSSetFromOptions_GD(EPS eps)
+PetscErrorCode EPSSetFromOptions_GD(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      flg,op;
   PetscInt       opi,opi0;
   KSP            ksp;
-  EPSOrthType    orth;
-  const char     *orth_list[3] = {"I","B","B_opt"};
+  PetscBool      orth;
+  const char     *orth_list[2] = {"I","B"};
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS Generalized Davidson (GD) Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS Generalized Davidson (GD) Options");CHKERRQ(ierr);
 
   ierr = EPSGDGetKrylovStart(eps,&op);CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_gd_krylov_start","Start the searching subspace with a krylov basis","EPSGDSetKrylovStart",op,&op,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSGDSetKrylovStart(eps,op);CHKERRQ(ierr); }
 
   ierr = EPSGDGetBOrth(eps,&orth);CHKERRQ(ierr);
-  ierr = PetscOptionsEList("-eps_gd_borth","orthogonalization used in the search subspace","EPSGDSetBOrth",orth_list,3,orth_list[orth-1],&opi,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = EPSGDSetBOrth(eps,(EPSOrthType)(opi+1));CHKERRQ(ierr); }
+  ierr = PetscOptionsEList("-eps_gd_borth","orthogonalization used in the search subspace","EPSGDSetBOrth",orth_list,2,orth_list[orth?1:0],&opi,&flg);CHKERRQ(ierr);
+  if (flg) { ierr = EPSGDSetBOrth(eps,opi==1?PETSC_TRUE:PETSC_FALSE);CHKERRQ(ierr); }
 
   ierr = EPSGDGetBlockSize(eps,&opi);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_gd_blocksize","Number vectors add to the searching subspace","EPSGDSetBlockSize",opi,&opi,&flg);CHKERRQ(ierr);
@@ -417,13 +417,7 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
 
    Input Parameters:
 +  eps   - the eigenproblem solver context
--  borth - the kind of orthogonalization
-
-   Possible values:
-   The parameter 'borth' can have one of these values
-
-+   EPS_ORTH_I - orthogonalization of the search subspace
--   EPS_ORTH_B - B-orthogonalization of the search subspace
+-  borth - whether to B-orthogonalize the search subspace
 
    Options Database Key:
 .  -eps_gd_borth - Set the orthogonalization used in the search subspace
@@ -432,14 +426,14 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
 
 .seealso: EPSGDGetBOrth()
 @*/
-PetscErrorCode EPSGDSetBOrth(EPS eps,EPSOrthType borth)
+PetscErrorCode EPSGDSetBOrth(EPS eps,PetscBool borth)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,borth,2);
-  ierr = PetscTryMethod(eps,"EPSGDSetBOrth_C",(EPS,EPSOrthType),(eps,borth));CHKERRQ(ierr);
+  ierr = PetscTryMethod(eps,"EPSGDSetBOrth_C",(EPS,PetscBool),(eps,borth));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -455,23 +449,20 @@ PetscErrorCode EPSGDSetBOrth(EPS eps,EPSOrthType borth)
 .  eps - the eigenproblem solver context
 
    Output Parameters:
-.  borth - the kind of orthogonalization
-
-   Notes:
-   See EPSGDSetBOrth() for possible values of 'borth'.
+.  borth - whether to B-orthogonalize the search subspace
 
    Level: advanced
 
-.seealso: EPSGDSetBOrth(), EPSOrthType
+.seealso: EPSGDSetBOrth()
 @*/
-PetscErrorCode EPSGDGetBOrth(EPS eps,EPSOrthType *borth)
+PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(borth,2);
-  ierr = PetscTryMethod(eps,"EPSGDGetBOrth_C",(EPS,EPSOrthType*),(eps,borth));CHKERRQ(ierr);
+  ierr = PetscTryMethod(eps,"EPSGDGetBOrth_C",(EPS,PetscBool*),(eps,borth));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

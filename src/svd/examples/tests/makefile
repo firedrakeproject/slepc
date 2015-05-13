@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -33,7 +33,7 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test3.PETSc runtest3_1 test3.rm
 TESTEXAMPLES_C_NOF128= test2.PETSc runtest2_1 test2.rm
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 test1: test1.o chkopts
 	-${CLINKER} -o test1 test1.o ${SLEPC_SVD_LIB}
@@ -70,18 +70,24 @@ runtest2_1:
 	-@touch test2_1.tmp; \
 	for svd in ${SVDEPS} ${SVD}; do \
 	   echo "svd type $$svd" >> test2_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test2 -svd_type $$svd -svd_nsv 7 -svd_terse >> test2_1.tmp 2>&1;    \
+	   ${MPIEXEC} -np 1 ./test2 -svd_type $$svd -svd_nsv 7 >> test2_1.tmp 2>&1;    \
 	done; \
-	[ x${SAVE_OUTPUT} = xyes ] && cp test2_1.tmp output/test2_1.out; \
-	if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
-	else echo "Possible problem with test2_1, diffs above"; fi; \
+	if (${GREP} USE_COMPLEX ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
+	  [ x${SAVE_OUTPUT} = xyes ] && cp test2_1.tmp output/test2_1_complex.out; \
+	  if (${DIFF} output/test2_1_complex.out test2_1.tmp) then true; \
+	  else echo "Possible problem with test2_1, diffs above"; fi; \
+	else \
+	  [ x${SAVE_OUTPUT} = xyes ] && cp test2_1.tmp output/test2_1.out; \
+	  if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
+	  else echo "Possible problem with test2_1, diffs above"; fi; \
+	fi; \
 	${RM} -f test2_1.tmp;
 
 runtest3_1:
 	-@touch test3_1.tmp; \
 	for svd in ${SVDEPS} ${SVD}; do \
 	   echo "svd type $$svd" >> test3_1.tmp; \
-	   ${MPIEXEC} -np 1 ./test3 -svd_type $$svd -svd_nsv 4 -svd_terse >> test3_1.tmp 2>&1; \
+	   ${MPIEXEC} -np 1 ./test3 -svd_type $$svd -svd_nsv 4 >> test3_1.tmp 2>&1; \
 	done; \
 	[ x${SAVE_OUTPUT} = xyes ] && cp test3_1.tmp output/test3_1.out; \
 	if (${DIFF} output/test3_1.out test3_1.tmp) then true; \

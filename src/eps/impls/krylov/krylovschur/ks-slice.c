@@ -16,7 +16,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -34,49 +34,108 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>
+#include <slepc/private/epsimpl.h>
 #include "krylovschur.h"
 
+#define SLICE_PTOL PETSC_SQRT_MACHINE_EPSILON
+
 #undef __FUNCT__
-#define __FUNCT__ "EPSAllocateSolutionSlice"
+#define __FUNCT__ "EPSSliceResetSR"
+static PetscErrorCode EPSSliceResetSR(EPS eps) {
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  EPS_SR          sr=ctx->sr;
+  EPS_shift       s;
+
+  PetscFunctionBegin;
+  if (sr) {
+    if (ctx->npart>1) {
+      ierr = BVDestroy(&sr->V);CHKERRQ(ierr);
+      ierr = PetscFree4(sr->eigr,sr->eigi,sr->errest,sr->perm);CHKERRQ(ierr);
+    }
+    /* Reviewing list of shifts to free memory */
+    s = sr->s0;
+    if (s) {
+      while (s->neighb[1]) {
+        s = s->neighb[1];
+        ierr = PetscFree(s->neighb[0]);CHKERRQ(ierr);
+      }
+      ierr = PetscFree(s);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(sr);CHKERRQ(ierr);
+  }
+  ctx->sr = PETSC_NULL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSReset_KrylovSchur_Slice"
+PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+
+  PetscFunctionBegin;
+  if (!ctx->global) PetscFunctionReturn(0);
+  /* Destroy auxiliary EPS */
+  ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
+  if (ctx->npart>1) {
+    ierr = PetscSubcommDestroy(&ctx->subc);CHKERRQ(ierr);
+    if (ctx->commset) {
+      ierr = MPI_Comm_free(&ctx->commrank);CHKERRQ(ierr);
+      ctx->commset = PETSC_FALSE;
+    }
+  }
+  ierr = PetscFree(ctx->subintervals);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->nconv_loc);CHKERRQ(ierr);
+  ierr = EPSSliceResetSR(eps);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->inertias);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->shifts);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSSliceAllocateSolution"
 /*
-  EPSAllocateSolutionSlice - Allocate memory storage for common variables such
+  EPSSliceAllocateSolution - Allocate memory storage for common variables such
   as eigenvalues and eigenvectors. The argument extra is used for methods
   that require a working basis slightly larger than ncv.
 */
-PetscErrorCode EPSAllocateSolutionSlice(EPS eps,PetscInt extra)
+static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
 {
-  PetscErrorCode ierr;
-  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt       requested;
-  PetscReal      eta;
-  PetscLogDouble cnt;
-  BVType         type;
-  BVOrthogType   orthog_type;
+  PetscErrorCode     ierr;
+  EPS_KRYLOVSCHUR    *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  PetscReal          eta;
+  PetscInt           k;
+  PetscLogDouble     cnt;
+  BVType             type;
+  BVOrthogType       orthog_type;
   BVOrthogRefineType orthog_ref;
-  Mat            matrix;
-  Vec            t;
-  SR             sr = ctx->sr;
+  Mat                matrix;
+  Vec                t;
+  EPS_SR             sr = ctx->sr;
 
   PetscFunctionBegin;
-  requested = ctx->ncv + extra;
-
   /* allocate space for eigenvalues and friends */
-  ierr = PetscMalloc4(requested,&sr->eigr,requested,&sr->eigi,requested,&sr->errest,requested,&sr->perm);CHKERRQ(ierr);
-  cnt = 2*requested*sizeof(PetscScalar) + 2*requested*sizeof(PetscReal) + requested*sizeof(PetscInt);
+  k = PetscMax(1,sr->numEigs);
+  ierr = PetscFree4(sr->eigr,sr->eigi,sr->errest,sr->perm);CHKERRQ(ierr);
+  ierr = PetscMalloc4(k,&sr->eigr,k,&sr->eigi,k,&sr->errest,k,&sr->perm);CHKERRQ(ierr);
+  cnt = 2*k*sizeof(PetscScalar) + 2*k*sizeof(PetscReal) + k*sizeof(PetscInt);
   ierr = PetscLogObjectMemory((PetscObject)eps,cnt);CHKERRQ(ierr);
 
   /* allocate sr->V and transfer options from eps->V */
+  ierr = BVDestroy(&sr->V);CHKERRQ(ierr);
   ierr = BVCreate(PetscObjectComm((PetscObject)eps),&sr->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)sr->V);CHKERRQ(ierr);
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
   if (!((PetscObject)(eps->V))->type_name) {
     ierr = BVSetType(sr->V,BVSVEC);CHKERRQ(ierr);
   } else {
     ierr = BVGetType(eps->V,&type);CHKERRQ(ierr);
     ierr = BVSetType(sr->V,type);CHKERRQ(ierr);
   }
-  ierr = STMatGetVecs(eps->st,&t,NULL);CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(sr->V,t,requested);CHKERRQ(ierr);
+  ierr = STMatCreateVecs(eps->st,&t,NULL);CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(sr->V,t,k);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = BVGetMatrix(eps->V,&matrix,NULL);CHKERRQ(ierr);
@@ -87,105 +146,516 @@ PetscErrorCode EPSAllocateSolutionSlice(EPS eps,PetscInt extra)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSSliceGetEPS"
+static PetscErrorCode EPSSliceGetEPS(EPS eps)
+{
+  PetscErrorCode     ierr;
+  EPS_KRYLOVSCHUR    *ctx=(EPS_KRYLOVSCHUR*)eps->data,*ctx_local;
+  BV                 V;
+  BVType             type;
+  PetscReal          eta;
+  BVOrthogType       orthog_type;
+  BVOrthogRefineType orthog_ref;
+  Mat                A,B=NULL,Ar,Br=NULL;
+  PetscInt           i;
+  PetscReal          h,a,b;
+  PetscMPIInt        rank;
+  EPS_SR             sr=ctx->sr;
+  PC                 pc;
+  PCType             pctype;
+  KSP                ksp;
+  KSPType            ksptype;
+  STType             sttype;
+  const MatSolverPackage stype;
+
+  PetscFunctionBegin;
+  ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
+  if (ctx->npart==1) {
+    if (!ctx->eps) { ierr = EPSCreate(((PetscObject)eps)->comm,&ctx->eps);CHKERRQ(ierr); }
+    ierr = EPSSetType(ctx->eps,((PetscObject)eps)->type_name);CHKERRQ(ierr);
+    ierr = EPSSetST(ctx->eps,eps->st);CHKERRQ(ierr);
+    a = eps->inta; b = eps->intb;
+  } else {
+    if (!ctx->subc) {
+      /* Create context for subcommunicators */
+      ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)eps),&ctx->subc);CHKERRQ(ierr);
+      ierr = PetscSubcommSetNumber(ctx->subc,ctx->npart);CHKERRQ(ierr);CHKERRQ(ierr);
+      ierr = PetscSubcommSetType(ctx->subc,PETSC_SUBCOMM_CONTIGUOUS);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(PetscSubcomm));CHKERRQ(ierr);
+
+      /* Duplicate matrices */
+      ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
+      if (B) { ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr); }
+    }
+
+    /* Determine subintervals */
+    if (!ctx->subintset) { /* uniform distribution if no set by user */
+      if (!sr->hasEnd) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Global interval must be bounded for splitting it in uniform subintervals");
+      h = (eps->intb-eps->inta)/ctx->npart;
+      a = eps->inta+ctx->subc->color*h;
+      b = (ctx->subc->color==ctx->npart-1)?eps->intb:eps->inta+(ctx->subc->color+1)*h;
+      ierr = PetscFree(ctx->subintervals);CHKERRQ(ierr);
+      ierr = PetscMalloc1(ctx->npart+1,&ctx->subintervals);CHKERRQ(ierr);
+      for (i=0;i<ctx->npart;i++) ctx->subintervals[i] = eps->inta+h*i;
+      ctx->subintervals[ctx->npart] = eps->intb;
+    } else {
+      a = ctx->subintervals[ctx->subc->color];
+      b = ctx->subintervals[ctx->subc->color+1];
+    }
+
+    if (!ctx->eps) {
+      /* Create auxiliary EPS */
+      ierr = EPSCreate(PetscSubcommChild(ctx->subc),&ctx->eps);CHKERRQ(ierr);
+      ierr = EPSSetOperators(ctx->eps,Ar,Br);CHKERRQ(ierr);
+      ierr = MatDestroy(&Ar);CHKERRQ(ierr);
+      ierr = MatDestroy(&Br);CHKERRQ(ierr);
+    }
+    ierr = EPSSetType(ctx->eps,((PetscObject)eps)->type_name);CHKERRQ(ierr);
+
+    /* Transfer options for ST, KSP and PC */
+    ierr = STGetType(eps->st,&sttype);CHKERRQ(ierr);
+    ierr = STSetType(ctx->eps->st,sttype);CHKERRQ(ierr);
+    ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+    ierr = KSPGetType(ksp,&ksptype);CHKERRQ(ierr);
+    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+    ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
+    ierr = PCFactorGetMatSolverPackage(pc,&stype);CHKERRQ(ierr);
+    ierr = STGetKSP(ctx->eps->st,&ksp);CHKERRQ(ierr);
+    ierr = KSPSetType(ksp,ksptype);CHKERRQ(ierr);
+    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+    ierr = PCSetType(pc,pctype);CHKERRQ(ierr);
+    ierr = PCFactorSetMatSolverPackage(pc,stype);CHKERRQ(ierr);
+
+    /* Create subcommunicator grouping processes with same rank */
+    if (ctx->commrank) { ierr = MPI_Comm_free(&ctx->commrank);CHKERRQ(ierr); }
+    ierr = MPI_Comm_rank(PetscSubcommChild(ctx->subc),&rank);CHKERRQ(ierr);
+    ierr = MPI_Comm_split(((PetscObject)eps)->comm,rank,ctx->subc->color,&ctx->commrank);CHKERRQ(ierr);
+    ctx->commset = PETSC_TRUE;
+  }
+  ierr = EPSSetConvergenceTest(ctx->eps,eps->conv);CHKERRQ(ierr);
+  ierr = EPSSetInterval(ctx->eps,a,b);CHKERRQ(ierr);
+  ctx_local = (EPS_KRYLOVSCHUR*)ctx->eps->data;
+  ctx_local->npart = ctx->npart;
+  ctx_local->detect = ctx->detect;
+  ctx_local->global = PETSC_FALSE;
+  ctx_local->eps = eps;
+  ctx_local->subc = ctx->subc;
+  ctx_local->commrank = ctx->commrank;
+
+  ierr = EPSSetDimensions(ctx->eps,ctx->nev,ctx->ncv,ctx->mpd);CHKERRQ(ierr);
+  ierr = EPSKrylovSchurSetLocking(ctx->eps,ctx->lock);CHKERRQ(ierr);
+
+  /* transfer options from eps->V */
+  ierr = EPSGetBV(ctx->eps,&V);CHKERRQ(ierr);
+  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
+  if (!((PetscObject)(eps->V))->type_name) {
+    ierr = BVSetType(V,BVSVEC);CHKERRQ(ierr);
+  } else {
+    ierr = BVGetType(eps->V,&type);CHKERRQ(ierr);
+    ierr = BVSetType(V,type);CHKERRQ(ierr);
+  }
+  ierr = BVGetOrthogonalization(eps->V,&orthog_type,&orthog_ref,&eta);CHKERRQ(ierr);
+  ierr = BVSetOrthogonalization(V,orthog_type,orthog_ref,eta);CHKERRQ(ierr);
+  ctx->eps->which = eps->which;
+  ctx->eps->max_it = eps->max_it;
+  ctx->eps->tol = eps->tol;
+  if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
+  ierr = EPSSetProblemType(ctx->eps,eps->problem_type);CHKERRQ(ierr);
+  ierr = EPSSetUp(ctx->eps);CHKERRQ(ierr);
+  ctx->eps->nconv = 0;
+  ctx->eps->its   = 0;
+  for (i=0;i<ctx->eps->ncv;i++) {
+    ctx->eps->eigr[i]   = 0.0;
+    ctx->eps->eigi[i]   = 0.0;
+    ctx->eps->errest[i] = 0.0;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSSliceGetInertia"
+static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inertia,PetscInt *zeros)
+{
+  PetscErrorCode ierr;
+  KSP            ksp;
+  PC             pc;
+  Mat            F;
+
+  PetscFunctionBegin;
+  if (shift >= PETSC_MAX_REAL) { /* Right-open interval */
+    if (inertia) *inertia = eps->n;
+  } else if (shift <= PETSC_MIN_REAL) {
+    if (inertia) *inertia = 0;
+    if (zeros) *zeros = 0;
+  } else {
+    ierr = STSetShift(eps->st,shift);CHKERRQ(ierr);
+    ierr = STSetUp(eps->st);CHKERRQ(ierr);
+    ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+    ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
+    ierr = MatGetInertia(F,inertia,zeros,NULL);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_KrylovSchur_Slice"
 PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 {
   PetscErrorCode  ierr;
   PetscBool       issinv;
-  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  SR              sr;
-  KSP             ksp;
-  PC              pc;
-  Mat             F;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data,*ctx_glob;
+  EPS_SR          sr,sr_loc,sr_glob;
+  PetscInt        nEigs,dssz=1,i,zeros=0,off=0;
+  PetscMPIInt     nproc,rank,aux;
+  MPI_Request     req;
 
   PetscFunctionBegin;
-  if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Must define a computational interval when using EPS_ALL");
-  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems");
-  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
-  if (!((PetscObject)(eps->st))->type_name) { /* default to shift-and-invert */
-    ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
+  if (ctx->global) {
+    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Must define a computational interval when using EPS_ALL");
+    if (eps->intb >= PETSC_MAX_REAL && eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
+    if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems");
+    if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
+    if (!((PetscObject)(eps->st))->type_name) { /* default to shift-and-invert */
+      ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
+    }
+    ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&issinv,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
+    if (!issinv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for spectrum slicing");
+    if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
+    if (!eps->max_it) eps->max_it = 100;
+    if (ctx->nev==1) ctx->nev = 40;  /* nev not set, use default value */
+    if (ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   }
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&issinv,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
-  if (!issinv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for spectrum slicing");
-#if defined(PETSC_USE_REAL_DOUBLE)
-  if (eps->tol==PETSC_DEFAULT) eps->tol = 1e-10;  /* use tighter tolerance */
-#endif
-  if (!eps->max_it) eps->max_it = 100;
-  if (ctx->nev==1) ctx->nev = 40;  /* nev not set, use default value */
-  if (ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   eps->ops->backtransform = NULL;
 
   /* create spectrum slicing context and initialize it */
+  ierr = EPSSliceResetSR(eps);CHKERRQ(ierr);
   ierr = PetscNewLog(eps,&sr);CHKERRQ(ierr);
   ctx->sr = sr;
   sr->itsKs = 0;
   sr->nleap = 0;
-  sr->nMAXCompl = ctx->nev/4;
+  sr->nMAXCompl = eps->nev/4;
   sr->iterCompl = eps->max_it/4;
   sr->sPres = NULL;
   sr->nS = 0;
 
-  /* check presence of ends and finding direction */
-  if (eps->inta > PETSC_MIN_REAL) {
-    sr->int0 = eps->inta;
-    sr->int1 = eps->intb;
-    sr->dir = 1;
-    if (eps->intb >= PETSC_MAX_REAL) { /* Right-open interval */
-      sr->hasEnd = PETSC_FALSE;
-      sr->inertia1 = eps->n;
-    } else sr->hasEnd = PETSC_TRUE;
-  } else { /* Left-open interval */
-    sr->int0 = eps->intb;
-    sr->int1 = eps->inta;
-    sr->dir = -1;
-    sr->hasEnd = PETSC_FALSE;
-    sr->inertia1 = 0;
-  }
-
-  if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
-    if (eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
-    ierr = STSetDefaultShift(eps->st,eps->inta);CHKERRQ(ierr);
-  } else {
-    ierr = STSetDefaultShift(eps->st,eps->intb);CHKERRQ(ierr);
-  }
-  ierr = STSetUp(eps->st);CHKERRQ(ierr);
-  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-
-  /* compute inertia1 if necessary */
-  if (sr->hasEnd) {
-    ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
-    ierr = MatGetInertia(F,&sr->inertia1,NULL,NULL);CHKERRQ(ierr);
-    ierr = PCReset(pc);CHKERRQ(ierr); /* avoiding memory leak */
-  }
-
-  /* compute inertia0 */
-  ierr = STSetShift(eps->st,sr->int0);CHKERRQ(ierr);
-  ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
-  ierr = MatGetInertia(F,&sr->inertia0,NULL,NULL);CHKERRQ(ierr);
-
-  /* number of eigenvalues in interval */
-  sr->numEigs = (sr->dir)*(sr->inertia1 - sr->inertia0);
-  eps->nev = sr->numEigs;
-  eps->ncv = sr->numEigs;
-  eps->mpd = sr->numEigs;
-  if (ctx->ncv) { /* ncv set */
-    if (ctx->ncv<ctx->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
-  } else if (ctx->mpd) { /* mpd set */
-    ctx->ncv = PetscMin(eps->n,ctx->nev+ctx->mpd);
-  } else { /* neither set: defaults depend on nev being small or large */
-    if (ctx->nev<500) ctx->ncv = PetscMin(eps->n,PetscMax(2*ctx->nev,ctx->nev+15));
-    else {
-      ctx->mpd = 500;
-      ctx->ncv = PetscMin(eps->n,ctx->nev+ctx->mpd);
+  if (ctx->npart==1 || ctx->global) {
+    /* check presence of ends and finding direction */
+    if ((eps->inta > PETSC_MIN_REAL && eps->inta != 0.0) || eps->intb >= PETSC_MAX_REAL) {
+      sr->int0 = eps->inta;
+      sr->int1 = eps->intb;
+      sr->dir = 1;
+      if (eps->intb >= PETSC_MAX_REAL) { /* Right-open interval */
+        sr->hasEnd = PETSC_FALSE;
+      } else sr->hasEnd = PETSC_TRUE;
+    } else {
+      sr->int0 = eps->intb;
+      sr->int1 = eps->inta;
+      sr->dir = -1;
+      sr->hasEnd = (eps->inta <= PETSC_MIN_REAL)?PETSC_FALSE:PETSC_TRUE;
     }
   }
-  if (!ctx->mpd) ctx->mpd = ctx->ncv;
+  if (ctx->global) {
+    if (ctx->npart>1) {
+      /* prevent computation of factorization in global eps unless npart==1 */
+      ierr = STSetTransform(eps->st,PETSC_FALSE);CHKERRQ(ierr);
+    }
+    ierr = EPSSetDimensions_Default(eps,ctx->nev,&ctx->ncv,&ctx->mpd);CHKERRQ(ierr);
+    /* create subintervals and initialize auxiliary eps for slicing runs */
+    ierr = EPSSliceGetEPS(eps);CHKERRQ(ierr);
+    sr_loc = ((EPS_KRYLOVSCHUR*)ctx->eps->data)->sr;
+    if (ctx->npart>1) {
+      if ((sr->dir>0&&ctx->subc->color==0)||(sr->dir<0&&ctx->subc->color==ctx->npart-1)) sr->inertia0 = sr_loc->inertia0;
+      ierr = MPI_Comm_rank(PetscSubcommChild(ctx->subc),&rank);CHKERRQ(ierr);
+      if (rank==0) {
+        ierr = MPI_Bcast(&sr->inertia0,1,MPIU_INT,(sr->dir>0)?0:ctx->npart-1,ctx->commrank);CHKERRQ(ierr);
+      }
+      ierr = MPI_Bcast(&sr->inertia0,1,MPIU_INT,0,PetscSubcommChild(ctx->subc));CHKERRQ(ierr);
+      ierr = PetscFree(ctx->nconv_loc);CHKERRQ(ierr);
+      ierr = PetscMalloc1(ctx->npart,&ctx->nconv_loc);CHKERRQ(ierr);
+      ierr = MPI_Comm_size(((PetscObject)eps)->comm,&nproc);CHKERRQ(ierr);
+      if (sr->dir<0) off = 1;
+      if (nproc%ctx->npart==0) { /* subcommunicators with the same size */
+        ierr = PetscMPIIntCast(sr_loc->numEigs,&aux);CHKERRQ(ierr);
+        ierr = MPI_Allgather(&aux,1,MPI_INT,ctx->nconv_loc,1,MPI_INT,ctx->commrank);CHKERRQ(ierr);
+        ierr = MPI_Allgather(&sr_loc->int0,1,MPIU_REAL,ctx->subintervals+off,1,MPIU_REAL,ctx->commrank);CHKERRQ(ierr);
+      } else {
+        ierr = MPI_Comm_rank(PetscSubcommChild(ctx->subc),&rank);CHKERRQ(ierr);
+        if (!rank) {
+          ierr = PetscMPIIntCast(sr_loc->numEigs,&aux);CHKERRQ(ierr);
+          ierr = MPI_Allgather(&aux,1,MPI_INT,ctx->nconv_loc,1,MPI_INT,ctx->commrank);CHKERRQ(ierr);
+          ierr = MPI_Allgather(&sr_loc->int0,1,MPIU_REAL,ctx->subintervals+off,1,MPIU_REAL,ctx->commrank);CHKERRQ(ierr);
+        }
+        ierr = PetscMPIIntCast(ctx->npart,&aux);CHKERRQ(ierr);
+        ierr = MPI_Bcast(ctx->nconv_loc,aux,MPI_INT,0,PetscSubcommChild(ctx->subc));CHKERRQ(ierr);
+        ierr = MPI_Bcast(ctx->subintervals+off,aux,MPIU_REAL,0,PetscSubcommChild(ctx->subc));CHKERRQ(ierr);
+      }
+      nEigs = 0;
+      for (i=0;i<ctx->npart;i++) nEigs += ctx->nconv_loc[i];
+    } else {
+      nEigs = sr_loc->numEigs;
+      sr->inertia0 = sr_loc->inertia0;
+    }
+    sr->inertia1 = sr->inertia0+sr->dir*nEigs;
+    sr->numEigs = nEigs;
+    eps->nev = nEigs;
+    eps->ncv = nEigs;
+    eps->mpd = nEigs;
+  } else {
+    ctx_glob = (EPS_KRYLOVSCHUR*)ctx->eps->data;
+    sr_glob = ctx_glob->sr;
+    if (ctx->npart>1) {
+      sr->dir = sr_glob->dir;
+      sr->int0 = (sr->dir==1)?eps->inta:eps->intb;
+      sr->int1 = (sr->dir==1)?eps->intb:eps->inta;
+      if ((sr->dir>0&&ctx->subc->color==ctx->npart-1)||(sr->dir<0&&ctx->subc->color==0)) sr->hasEnd = sr_glob->hasEnd;
+      else sr->hasEnd = PETSC_TRUE;
+    }
 
-  /* allocate solution for subsolves */
-  if (sr->numEigs) {
-    ierr = EPSAllocateSolutionSlice(eps,1);CHKERRQ(ierr);
+    /* last process in eps comm computes inertia1 */
+    if (ctx->npart==1 || ((sr->dir>0 && ctx->subc->color==ctx->npart-1) || (sr->dir<0 && ctx->subc->color==0))) {
+      ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
+      if (zeros) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
+    }
+
+    /* compute inertia0 */
+    ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
+    if (zeros) { /* error in factorization */
+      if (ctx->npart==1 || ctx_glob->subintset || ((sr->dir>0 && ctx->subc->color==0) || (sr->dir<0 && ctx->subc->color==ctx->npart-1))) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
+      else { /* perturb shift */
+        sr->int0 *= (1.0+SLICE_PTOL);
+        ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,&zeros);CHKERRQ(ierr);
+        if (zeros) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",sr->int1);
+      }
+    }
+    if (ctx->npart>1) {
+      /* inertia1 is received from neighbour */
+      ierr = MPI_Comm_rank(PetscSubcommChild(ctx->subc),&rank);CHKERRQ(ierr);
+      if (!rank) {
+        if ((sr->dir>0 && ctx->subc->color>0) || (sr->dir<0 && ctx->subc->color<ctx->npart-1)) { /* send inertia0 to neighbour0 */
+          ierr = MPI_Isend(&(sr->inertia0),1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req);CHKERRQ(ierr);
+          ierr = MPI_Isend(&(sr->int0),1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req);CHKERRQ(ierr);
+        }
+        if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)|| (sr->dir<0 && ctx->subc->color>0)) { /* receive inertia1 from neighbour1 */
+          ierr = MPI_Recv(&(sr->inertia1),1,MPIU_INT,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE);
+          ierr = MPI_Recv(&(sr->int1),1,MPIU_REAL,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE);
+        }
+      }
+      if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)||(sr->dir<0 && ctx->subc->color>0)) {
+        ierr = MPI_Bcast(&sr->inertia1,1,MPIU_INT,0,PetscSubcommChild(ctx->subc));CHKERRQ(ierr);
+        ierr = MPI_Bcast(&sr->int1,1,MPIU_REAL,0,PetscSubcommChild(ctx->subc));CHKERRQ(ierr);
+      } else sr_glob->inertia1 = sr->inertia1;
+    }
+
+    /* number of eigenvalues in interval */
+    sr->numEigs = (sr->dir)*(sr->inertia1 - sr->inertia0);
+    if (ctx->npart>1) {
+      /* memory allocate for subinterval eigenpairs */
+      ierr = EPSSliceAllocateSolution(eps,1);CHKERRQ(ierr);
+    }
+    dssz = eps->ncv+1;
   }
+  ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
+  ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = DSAllocate(eps->ds,dssz);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#define SWAP(a,b,t) {t=a;a=b;b=t;}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSSliceGetInertias"
+static PetscErrorCode EPSSliceGetInertias(EPS eps,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  PetscInt        i=0,j,tmpi;
+  PetscReal       v,tmpr;
+  EPS_shift       s;
+
+  PetscFunctionBegin;
+  if (!eps->state) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSetUp() first");
+  if (!ctx->sr) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see EPSSetInterval()");
+  if (!ctx->sr->s0) {  /* EPSSolve not called yet */
+    *n = 2;
+  } else {
+    *n = 1;
+    s = ctx->sr->s0;
+    while (s) {
+      (*n)++;
+      s = s->neighb[1];
+    }
+  }
+  ierr = PetscMalloc1(*n,shifts);CHKERRQ(ierr);
+  ierr = PetscMalloc1(*n,inertias);CHKERRQ(ierr);
+  if (!ctx->sr->s0) {  /* EPSSolve not called yet */
+    (*shifts)[0]   = ctx->sr->int0;
+    (*shifts)[1]   = ctx->sr->int1;
+    (*inertias)[0] = ctx->sr->inertia0;
+    (*inertias)[1] = ctx->sr->inertia1;
+  } else {
+    s = ctx->sr->s0;
+    while (s) {
+      (*shifts)[i]     = s->value;
+      (*inertias)[i++] = s->inertia;
+      s = s->neighb[1];
+    }
+    (*shifts)[i]   = ctx->sr->int1;
+    (*inertias)[i] = ctx->sr->inertia1;
+  }
+  /* remove possible duplicate in last position */
+  if ((*shifts)[(*n)-1]==(*shifts)[(*n)-2]) (*n)--;
+  /* sort result */
+  for (i=0;i<*n;i++) {
+    v = (*shifts)[i];
+    for (j=i+1;j<*n;j++) {
+      if (v > (*shifts)[j]) {
+        SWAP((*shifts)[i],(*shifts)[j],tmpr);
+        SWAP((*inertias)[i],(*inertias)[j],tmpi);
+        v = (*shifts)[i];
+      }
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSSliceGatherSolution"
+static PetscErrorCode EPSSliceGatherSolution(EPS eps)
+{
+  PetscErrorCode  ierr;
+  PetscMPIInt     rank,nproc;
+  Vec             v,vg,v_loc;
+  IS              is1,is2;
+  VecScatter      vec_sc;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  PetscInt        nloc,m0,n0,i,si,idx,*idx1,*idx2,j;
+  PetscInt        *perm_loc,off=0,*inertias_loc,ns;
+  PetscScalar     *array,*eigr_loc;
+  EPS_SR          sr_loc;
+  BV              V_loc;
+  PetscReal       *shifts_loc;
+  PetscMPIInt     *disp,*ns_loc,aux;
+
+  PetscFunctionBegin;
+  eps->nconv = 0;
+  for (i=0;i<ctx->npart;i++) eps->nconv += ctx->nconv_loc[i];
+  sr_loc = ((EPS_KRYLOVSCHUR*)ctx->eps->data)->sr;
+
+  /* Gather the shifts used and the inertias computed */
+  ierr = EPSSliceGetInertias(ctx->eps,&ns,&shifts_loc,&inertias_loc);CHKERRQ(ierr);
+  if (ctx->sr->dir>0 && shifts_loc[ns-1]==sr_loc->int1 && ctx->subc->color<ctx->npart-1) ns--;
+  if (ctx->sr->dir<0 && shifts_loc[ns-1]==sr_loc->int0 && ctx->subc->color>0) {
+    ns--;
+    for (i=0;i<ns;i++) {
+      inertias_loc[i] = inertias_loc[i+1];
+      shifts_loc[i] = shifts_loc[i+1];
+    }
+  }
+  ierr = PetscMalloc1(ctx->npart,&ns_loc);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscSubcommChild(ctx->subc),&rank);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(ns,&aux);CHKERRQ(ierr);
+  if (rank==0) { ierr = MPI_Allgather(&aux,1,MPI_INT,ns_loc,1,MPI_INT,ctx->commrank);CHKERRQ(ierr); }
+  ierr = PetscMPIIntCast(ctx->npart,&aux);CHKERRQ(ierr);
+  ierr = MPI_Bcast(ns_loc,aux,MPI_INT,0,PetscSubcommChild(ctx->subc));CHKERRQ(ierr);
+  ctx->nshifts = 0;
+  for (i=0;i<ctx->npart;i++) ctx->nshifts += ns_loc[i];
+  ierr = PetscFree(ctx->inertias);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->shifts);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ctx->nshifts,&ctx->inertias);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ctx->nshifts,&ctx->shifts);CHKERRQ(ierr);
+
+  /* Gather eigenvalues (same ranks have fully set of eigenvalues)*/
+  eigr_loc = sr_loc->eigr;
+  V_loc = sr_loc->V;
+  perm_loc = sr_loc->perm;
+  ierr = MPI_Comm_size(((PetscObject)eps)->comm,&nproc);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ctx->npart,&disp);CHKERRQ(ierr);
+  disp[0] = 0;
+  for (i=1;i<ctx->npart;i++) disp[i] = disp[i-1]+ctx->nconv_loc[i-1];
+  if (nproc%ctx->npart==0) { /* subcommunicators with the same size */
+    ierr = PetscMPIIntCast(sr_loc->numEigs,&aux);CHKERRQ(ierr);
+    ierr = MPI_Allgatherv(eigr_loc,aux,MPIU_SCALAR,eps->eigr,ctx->nconv_loc,disp,MPIU_SCALAR,ctx->commrank);CHKERRQ(ierr); /* eigenvalues */
+    ierr = MPI_Allgatherv(perm_loc,aux,MPIU_INT,eps->perm,ctx->nconv_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr); /* perm */
+    for (i=1;i<ctx->npart;i++) disp[i] = disp[i-1]+ns_loc[i-1];
+    ierr = PetscMPIIntCast(ns,&aux);CHKERRQ(ierr);
+    ierr = MPI_Allgatherv(shifts_loc,aux,MPIU_REAL,ctx->shifts,ns_loc,disp,MPIU_REAL,ctx->commrank);CHKERRQ(ierr); /* shifts */
+    ierr = MPI_Allgatherv(inertias_loc,aux,MPIU_INT,ctx->inertias,ns_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr); /* inertias */
+    ierr = MPI_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank);CHKERRQ(ierr);
+  } else { /* subcommunicators with different size */
+    ierr = MPI_Comm_rank(PetscSubcommChild(ctx->subc),&rank);CHKERRQ(ierr);
+    if (rank==0) {
+      ierr = PetscMPIIntCast(sr_loc->numEigs,&aux);CHKERRQ(ierr);
+      ierr = MPI_Allgatherv(eigr_loc,aux,MPIU_SCALAR,eps->eigr,ctx->nconv_loc,disp,MPIU_SCALAR,ctx->commrank);CHKERRQ(ierr); /* eigenvalues */
+      ierr = MPI_Allgatherv(perm_loc,aux,MPIU_INT,eps->perm,ctx->nconv_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr); /* perm */
+      for (i=1;i<ctx->npart;i++) disp[i] = disp[i-1]+ns_loc[i-1];
+      ierr = PetscMPIIntCast(ns,&aux);CHKERRQ(ierr);
+      ierr = MPI_Allgatherv(shifts_loc,aux,MPIU_REAL,ctx->shifts,ns_loc,disp,MPIU_REAL,ctx->commrank);CHKERRQ(ierr); /* shifts */
+      ierr = MPI_Allgatherv(inertias_loc,aux,MPIU_INT,ctx->inertias,ns_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr); /* inertias */
+      ierr = MPI_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank);CHKERRQ(ierr);
+    }
+    ierr = PetscMPIIntCast(eps->nconv,&aux);CHKERRQ(ierr);
+    ierr = MPI_Bcast(eps->eigr,aux,MPIU_SCALAR,0,PetscSubcommChild(ctx->subc));CHKERRQ(ierr);
+    ierr = MPI_Bcast(eps->perm,aux,MPIU_INT,0,PetscSubcommChild(ctx->subc));CHKERRQ(ierr);
+    ierr = MPI_Bcast(ctx->shifts,ctx->nshifts,MPIU_REAL,0,PetscSubcommChild(ctx->subc));CHKERRQ(ierr);
+    ierr = PetscMPIIntCast(ctx->nshifts,&aux);CHKERRQ(ierr);
+    ierr = MPI_Bcast(ctx->inertias,aux,MPIU_INT,0,PetscSubcommChild(ctx->subc));CHKERRQ(ierr);
+    ierr = MPI_Bcast(&eps->its,1,MPIU_INT,0,PetscSubcommChild(ctx->subc));CHKERRQ(ierr);
+  }
+  /* Update global array eps->perm */
+  idx = ctx->nconv_loc[0];
+  for (i=1;i<ctx->npart;i++) {
+    off += ctx->nconv_loc[i-1];
+    for (j=0;j<ctx->nconv_loc[i];j++) eps->perm[idx++] += off;
+  }
+
+  /* Gather parallel eigenvectors */
+  ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
+  ierr = VecGetOwnershipRange(v,&n0,&m0);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(eps->V,0,&v);CHKERRQ(ierr);
+  ierr = BVGetColumn(ctx->eps->V,0,&v);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(v,&nloc);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(ctx->eps->V,0,&v);CHKERRQ(ierr);
+  ierr = PetscMalloc2(m0-n0,&idx1,m0-n0,&idx2);CHKERRQ(ierr);
+  ierr = VecCreateMPI(PetscObjectComm((PetscObject)eps),nloc,PETSC_DECIDE,&vg);CHKERRQ(ierr);
+  idx = -1;
+  for (si=0;si<ctx->npart;si++) {
+    j = 0;
+    for (i=n0;i<m0;i++) {
+      idx1[j]   = i;
+      idx2[j++] = i+eps->n*si;
+    }
+    ierr = ISCreateGeneral(PetscObjectComm((PetscObject)eps),(m0-n0),idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
+    ierr = ISCreateGeneral(PetscObjectComm((PetscObject)eps),(m0-n0),idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
+    ierr = VecScatterCreate(v,is1,vg,is2,&vec_sc);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,0,&v);CHKERRQ(ierr);
+    ierr = ISDestroy(&is1);CHKERRQ(ierr);
+    ierr = ISDestroy(&is2);CHKERRQ(ierr);
+    for (i=0;i<ctx->nconv_loc[si];i++) {
+      ierr = BVGetColumn(eps->V,++idx,&v);CHKERRQ(ierr);
+      if (ctx->subc->color==si) {
+        ierr = BVGetColumn(V_loc,i,&v_loc);CHKERRQ(ierr);
+        ierr = VecGetArray(v_loc,&array);CHKERRQ(ierr);
+        ierr = VecPlaceArray(vg,array);CHKERRQ(ierr);
+      }
+      ierr = VecScatterBegin(vec_sc,vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
+      ierr = VecScatterEnd(vec_sc,vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
+      if (ctx->subc->color==si) {
+        ierr = VecResetArray(vg);CHKERRQ(ierr);
+        ierr = VecRestoreArray(v_loc,&array);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(V_loc,i,&v_loc);CHKERRQ(ierr);
+      }
+      ierr = BVRestoreColumn(eps->V,idx,&v);CHKERRQ(ierr);
+    }
+    ierr = VecScatterDestroy(&vec_sc);CHKERRQ(ierr);
+  }
+  ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);
+  ierr = PetscFree(ns_loc);CHKERRQ(ierr);
+  ierr = PetscFree(disp);CHKERRQ(ierr);
+  ierr = PetscFree(shifts_loc);CHKERRQ(ierr);
+  ierr = PetscFree(inertias_loc);CHKERRQ(ierr);
+  ierr = VecDestroy(&vg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -194,13 +664,13 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 */
 #undef __FUNCT__
 #define __FUNCT__ "EPSCreateShift"
-static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,shift neighb0,shift neighb1)
+static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,EPS_shift neighb0,EPS_shift neighb1)
 {
   PetscErrorCode  ierr;
-  shift           s,*pending2;
+  EPS_shift       s,*pending2;
   PetscInt        i;
-  SR              sr;
-  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  EPS_SR          sr;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;
   sr = ctx->sr;
@@ -221,7 +691,7 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,shift neighb0,shift n
   if (sr->nPend >= sr->maxPend) {
     sr->maxPend *= 2;
     ierr = PetscMalloc1(sr->maxPend,&pending2);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(shift));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(EPS_shift));CHKERRQ(ierr);
     for (i=0;i<sr->nPend;i++) pending2[i] = sr->pending[i];
     ierr = PetscFree(sr->pending);CHKERRQ(ierr);
     sr->pending = pending2;
@@ -235,11 +705,11 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,shift neighb0,shift n
 #define __FUNCT__ "EPSPrepareRational"
 static PetscErrorCode EPSPrepareRational(EPS eps)
 {
-  EPS_KRYLOVSCHUR  *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  EPS_KRYLOVSCHUR  *ctx=(EPS_KRYLOVSCHUR*)eps->data;
   PetscErrorCode   ierr;
   PetscInt         dir,i,k,ld,nv;
   PetscScalar      *A;
-  SR               sr = ctx->sr;
+  EPS_SR           sr = ctx->sr;
   Vec              v;
 
   PetscFunctionBegin;
@@ -252,7 +722,7 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
       sr->S[k] = sr->S[i];
       sr->S[sr->nS+k] = sr->S[sr->nS+i];
       ierr = BVGetColumn(sr->Vnext,k,&v);CHKERRQ(ierr);
-      ierr = BVCopyVec(sr->V,eps->nconv+i,v);CHKERRQ(ierr);
+      ierr = BVCopyVec(eps->V,eps->nconv+i,v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(sr->Vnext,k,&v);CHKERRQ(ierr);
       k++;
       if (k>=sr->nS/2)break;
@@ -271,7 +741,7 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
   ierr = DSSetDimensions(eps->ds,nv,0,0,k);CHKERRQ(ierr);
   /* Append u to V */
   ierr = BVGetColumn(sr->Vnext,sr->nS,&v);CHKERRQ(ierr);
-  ierr = BVCopyVec(sr->V,sr->nv,v);CHKERRQ(ierr);
+  ierr = BVCopyVec(eps->V,sr->nv,v);CHKERRQ(ierr);
   ierr = BVRestoreColumn(sr->Vnext,sr->nS,&v);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -282,23 +752,27 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
 static PetscErrorCode EPSExtractShift(EPS eps)
 {
   PetscErrorCode   ierr;
-  PetscInt         iner;
-  Mat              F;
-  PC               pc;
-  KSP              ksp;
-  EPS_KRYLOVSCHUR  *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  SR               sr;
+  PetscInt         iner,zeros=0;
+  EPS_KRYLOVSCHUR  *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  EPS_SR           sr;
+  PetscReal        newShift;
+  EPS_shift        sPres;
 
   PetscFunctionBegin;
   sr = ctx->sr;
   if (sr->nPend > 0) {
     sr->sPrev = sr->sPres;
     sr->sPres = sr->pending[--sr->nPend];
-    ierr = STSetShift(eps->st,sr->sPres->value);CHKERRQ(ierr);
-    ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
-    ierr = MatGetInertia(F,&iner,NULL,NULL);CHKERRQ(ierr);
+    sPres = sr->sPres;
+    ierr = EPSSliceGetInertia(eps,sPres->value,&iner,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
+    if (zeros) {
+      newShift = sPres->value*(1.0+SLICE_PTOL);
+      if (sr->dir*(sPres->neighb[0] && newShift-sPres->neighb[0]->value) < 0) newShift = (sPres->value+sPres->neighb[0]->value)/2;
+      else if (sPres->neighb[1] && sr->dir*(sPres->neighb[1]->value-newShift) < 0) newShift = (sPres->value+sPres->neighb[1]->value)/2;
+      ierr = EPSSliceGetInertia(eps,newShift,&iner,&zeros);
+      if (zeros) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",newShift);
+      sPres->value = newShift;
+    }
     sr->sPres->inertia = iner;
     eps->target = sr->sPres->value;
     eps->reason = EPS_CONVERGED_ITERATING;
@@ -317,30 +791,21 @@ static PetscErrorCode EPSExtractShift(EPS eps)
 static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
 {
   PetscErrorCode  ierr;
-  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
   PetscInt        i,conv,k,l,ld,nv,*iwork,j,p;
   Mat             U;
-  PetscScalar     *Q,*A,rtmp,*eigrsave,*eigisave;
-  PetscReal       *a,*b,beta,*errestsave;
+  PetscScalar     *Q,*A,rtmp;
+  PetscReal       *a,*b,beta;
   PetscBool       breakdown;
   PetscInt        count0,count1;
   PetscReal       lambda;
-  shift           sPres;
+  EPS_shift       sPres;
   PetscBool       complIterating;
   PetscBool       sch0,sch1;
   PetscInt        iterCompl=0,n0,n1;
-  SR              sr = ctx->sr;
-  BV              bvsave;
+  EPS_SR          sr = ctx->sr;
 
   PetscFunctionBegin;
-  bvsave = eps->V;  /* temporarily swap basis vectors */
-  eps->V = sr->V;
-  eigrsave = eps->eigr;
-  eps->eigr = sr->eigr;
-  eigisave = eps->eigi;
-  eps->eigi = sr->eigi;
-  errestsave = eps->errest;
-  eps->errest = sr->errest;
   /* Spectrum slicing data */
   sPres = sr->sPres;
   complIterating =PETSC_FALSE;
@@ -353,9 +818,9 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     ierr = DSTranslateRKS(eps->ds,sr->sPrev->value-sPres->value);CHKERRQ(ierr);
     ierr = DSGetDimensions(eps->ds,NULL,NULL,NULL,&l,NULL);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->ds,l+1,0,0,0);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(sr->V,0,l+1);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(eps->V,0,l+1);CHKERRQ(ierr);
     ierr = DSGetMat(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
-    ierr = BVMultInPlace(sr->V,U,0,l+1);CHKERRQ(ierr);
+    ierr = BVMultInPlace(eps->V,U,0,l+1);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
   } else {
     /* Get the starting Lanczos vector */
@@ -366,7 +831,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++; sr->itsKs++;
     /* Compute an nv-step Lanczos factorization */
-    nv = PetscMin(eps->nconv+ctx->mpd,ctx->ncv);
+    nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     b = a + ld;
     ierr = EPSFullLanczos(eps,a,b,eps->nconv+l,&nv,&breakdown);CHKERRQ(ierr);
@@ -379,7 +844,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     } else {
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
-    ierr = BVSetActiveColumns(sr->V,eps->nconv,nv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
 
     /* Solve projected problem and compute residual norm estimates */
     if (eps->its == 1 && l > 0) {/* After rational update */
@@ -396,67 +861,69 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
       }
       ierr = DSRestoreArray(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
       ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-      ierr = DSSolve(eps->ds,sr->eigr,NULL);CHKERRQ(ierr);
-      ierr = DSSort(eps->ds,sr->eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+      ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
+      ierr = DSSort(eps->ds,eps->eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
     } else { /* Restart */
-      ierr = DSSolve(eps->ds,sr->eigr,NULL);CHKERRQ(ierr);
-      ierr = DSSort(eps->ds,sr->eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+      ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
+      ierr = DSSort(eps->ds,eps->eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     }
     /* Residual */
     ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->nconv,nv-eps->nconv,beta,1.0,&k);CHKERRQ(ierr);
 
-    /* Check convergence */
-    ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-    b = a + ld;
-    conv = 0;
-    j = k = eps->nconv;
-    for (i=eps->nconv;i<nv;i++) if (sr->errest[i] < eps->tol) conv++;
-    for (i=eps->nconv;i<nv;i++) {
-      if (sr->errest[i] < eps->tol) {
-        iwork[j++]=i;
-      } else iwork[conv+k++]=i;
-    }
-    for (i=eps->nconv;i<nv;i++) {
-      a[i]=PetscRealPart(sr->eigr[i]);
-      b[i]=sr->errest[i];
-    }
-    for (i=eps->nconv;i<nv;i++) {
-      sr->eigr[i] = a[iwork[i]];
-      sr->errest[i] = b[iwork[i]];
-    }
-    for (i=eps->nconv;i<nv;i++) {
-      a[i]=PetscRealPart(sr->eigr[i]);
-      b[i]=sr->errest[i];
-    }
-    ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-    ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    for (i=eps->nconv;i<nv;i++) {
-      p=iwork[i];
-      if (p!=i) {
-        j=i+1;
-        while (iwork[j]!=i) j++;
-        iwork[j]=p;iwork[i]=i;
-        for (k=0;k<nv;k++) {
-          rtmp=Q[k+p*ld];Q[k+p*ld]=Q[k+i*ld];Q[k+i*ld]=rtmp;
+    if (ctx->lock) {
+      /* Check convergence */
+      ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+      b = a + ld;
+      conv = 0;
+      j = k = eps->nconv;
+      for (i=eps->nconv;i<nv;i++) if (eps->errest[i] < eps->tol) conv++;
+      for (i=eps->nconv;i<nv;i++) {
+        if (eps->errest[i] < eps->tol) {
+          iwork[j++]=i;
+        } else iwork[conv+k++]=i;
+      }
+      for (i=eps->nconv;i<nv;i++) {
+        a[i]=PetscRealPart(eps->eigr[i]);
+        b[i]=eps->errest[i];
+      }
+      for (i=eps->nconv;i<nv;i++) {
+        eps->eigr[i] = a[iwork[i]];
+        eps->errest[i] = b[iwork[i]];
+      }
+      for (i=eps->nconv;i<nv;i++) {
+        a[i]=PetscRealPart(eps->eigr[i]);
+        b[i]=eps->errest[i];
+      }
+      ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+      ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+      for (i=eps->nconv;i<nv;i++) {
+        p=iwork[i];
+        if (p!=i) {
+          j=i+1;
+          while (iwork[j]!=i) j++;
+          iwork[j]=p;iwork[i]=i;
+          for (k=0;k<nv;k++) {
+            rtmp=Q[k+p*ld];Q[k+p*ld]=Q[k+i*ld];Q[k+i*ld]=rtmp;
+          }
         }
       }
+      ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+      k=eps->nconv+conv;
     }
-    ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    k=eps->nconv+conv;
 
     /* Checking values obtained for completing */
     for (i=0;i<k;i++) {
-      sr->back[i]=sr->eigr[i];
+      sr->back[i]=eps->eigr[i];
     }
-    ierr = STBackTransform(eps->st,k,sr->back,sr->eigi);CHKERRQ(ierr);
+    ierr = STBackTransform(eps->st,k,sr->back,eps->eigi);CHKERRQ(ierr);
     count0=count1=0;
     for (i=0;i<k;i++) {
       lambda = PetscRealPart(sr->back[i]);
       if (((sr->dir)*(sPres->value - lambda) > 0) && ((sr->dir)*(lambda - sPres->ext[0]) > 0)) count0++;
       if (((sr->dir)*(lambda - sPres->value) > 0) && ((sr->dir)*(sPres->ext[1] - lambda) > 0)) count1++;
     }
-    if (k>ctx->nev && ctx->ncv-k<5) eps->reason = EPS_CONVERGED_TOL;
+    if (k>eps->nev && eps->ncv-k<5) eps->reason = EPS_CONVERGED_TOL;
     else {
       /* Checks completion */
       if ((!sch0||count0 >= sPres->nsch[0]) && (!sch1 ||count1 >= sPres->nsch[1])) {
@@ -465,7 +932,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
         if (!complIterating && eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
         if (complIterating) {
           if (--iterCompl <= 0) eps->reason = EPS_DIVERGED_ITS;
-        } else if (k >= ctx->nev) {
+        } else if (k >= eps->nev) {
           n0 = sPres->nsch[0]-count0;
           n1 = sPres->nsch[1]-count1;
           if (sr->iterCompl>0 && ((n0>0 && n0<= sr->nMAXCompl)||(n1>0&&n1<=sr->nMAXCompl))) {
@@ -481,6 +948,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     /* Update l */
     if (eps->reason == EPS_CONVERGED_ITERATING) l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
     else l = nv-k;
+    if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
     if (breakdown) l=0;
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
@@ -498,7 +966,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
         ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
         b = a + ld;
         for (i=k;i<k+l;i++) {
-          a[i] = PetscRealPart(sr->eigr[i]);
+          a[i] = PetscRealPart(eps->eigr[i]);
           b[i] = PetscRealPart(Q[nv-1+i*ld]*beta);
         }
         ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
@@ -512,17 +980,17 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
 
     /* Normalize u and append it to V */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
-      ierr = BVCopyColumn(sr->V,nv,k+l);CHKERRQ(ierr);
+      ierr = BVCopyColumn(eps->V,nv,k+l);CHKERRQ(ierr);
     }
     /* Monitor */
     eps->nconv = k;
-    ierr = EPSMonitor(eps,ctx->sr->itsKs,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
+    ierr = EPSMonitor(eps,ctx->sr->itsKs,eps->nconv,sr->eigr,sr->eigi,sr->errest,nv);CHKERRQ(ierr);
     if (eps->reason != EPS_CONVERGED_ITERATING) {
       /* Store approximated values for next shift */
       ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
       sr->nS = l;
       for (i=0;i<l;i++) {
-        sr->S[i] = sr->eigr[i+k];/* Diagonal elements */
+        sr->S[i] = eps->eigr[i+k];/* Diagonal elements */
         sr->S[i+l] = Q[nv-1+(i+k)*ld]*beta; /* Out of diagonal elements */
       }
       ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
@@ -530,17 +998,13 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   }
   /* Check for completion */
   for (i=0;i< eps->nconv; i++) {
-    if ((sr->dir)*PetscRealPart(sr->eigr[i])>0) sPres->nconv[1]++;
+    if ((sr->dir)*PetscRealPart(eps->eigr[i])>0) sPres->nconv[1]++;
     else sPres->nconv[0]++;
   }
   sPres->comp[0] = (count0 >= sPres->nsch[0])?PETSC_TRUE:PETSC_FALSE;
   sPres->comp[1] = (count1 >= sPres->nsch[1])?PETSC_TRUE:PETSC_FALSE;
-  if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1])SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error in Spectrum Slicing!\nMismatch between number of values found and information from inertia");
+  if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1])SETERRQ(PetscObjectComm((PetscObject)eps),1,"Mismatch between number of values found and information from inertia, consider using EPSKrylovSchurSetDetectZeros()");
   ierr = PetscFree(iwork);CHKERRQ(ierr);
-  eps->V = bvsave;   /* restore basis */
-  eps->eigr = eigrsave;
-  eps->eigi = eigisave;
-  eps->errest = errestsave;
   PetscFunctionReturn(0);
 }
 
@@ -553,9 +1017,9 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
 {
   PetscReal       lambda,d_prev;
   PetscInt        i,idxP;
-  SR              sr;
-  shift           sPres,s;
-  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  EPS_SR          sr;
+  EPS_shift       sPres,s;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;
   sr = ctx->sr;
@@ -563,8 +1027,8 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
   if (sPres->neighb[side]) {
   /* Completing a previous interval */
     if (!sPres->neighb[side]->neighb[side] && sPres->neighb[side]->nconv[side]==0) { /* One of the ends might be too far from eigenvalues */
-      if (side) *newS = (sPres->value + PetscRealPart(eps->eigr[eps->perm[sr->indexEig-1]]))/2;
-      else *newS = (sPres->value + PetscRealPart(eps->eigr[eps->perm[0]]))/2;
+      if (side) *newS = (sPres->value + PetscRealPart(sr->eigr[sr->perm[sr->indexEig-1]]))/2;
+      else *newS = (sPres->value + PetscRealPart(sr->eigr[sr->perm[0]]))/2;
     } else *newS=(sPres->value + sPres->neighb[side]->value)/2;
   } else { /* (Only for side=1). Creating a new interval. */
     if (sPres->neigs==0) {/* No value has been accepted*/
@@ -589,7 +1053,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
           } else {
             d_prev = PetscAbsReal(sPres->value - PetscRealPart(sr->eigr[eps->nconv-1]))/(eps->nconv+0.3);
           }
-          *newS = sPres->value + ((sr->dir)*d_prev*ctx->nev)/2;
+          *newS = sPres->value + ((sr->dir)*d_prev*eps->nev)/2;
         } else { /* No values found, no information for next shift */
           SETERRQ(PetscObjectComm((PetscObject)eps),1,"First shift renders no information");
         }
@@ -605,17 +1069,17 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
         d_prev = PetscAbsReal((sPres->value - s->value)/(sPres->inertia - s->inertia));
       } else { /* First shift. Average distance obtained with values in this shift */
         /* first shift might be too far from first wanted eigenvalue (no values found outside the interval)*/
-        if ((sr->dir)*(PetscRealPart(eps->eigr[0])-sPres->value)>0 && PetscAbsReal((PetscRealPart(eps->eigr[sr->indexEig-1]) - PetscRealPart(eps->eigr[0]))/PetscRealPart(eps->eigr[0])) > PetscSqrtReal(eps->tol)) {
-          d_prev =  PetscAbsReal((PetscRealPart(eps->eigr[sr->indexEig-1]) - PetscRealPart(eps->eigr[0])))/(sPres->neigs+0.3);
+        if ((sr->dir)*(PetscRealPart(sr->eigr[0])-sPres->value)>0 && PetscAbsReal((PetscRealPart(sr->eigr[sr->indexEig-1]) - PetscRealPart(sr->eigr[0]))/PetscRealPart(sr->eigr[0])) > PetscSqrtReal(eps->tol)) {
+          d_prev =  PetscAbsReal((PetscRealPart(sr->eigr[sr->indexEig-1]) - PetscRealPart(sr->eigr[0])))/(sPres->neigs+0.3);
         } else {
-          d_prev = PetscAbsReal(PetscRealPart(eps->eigr[sr->indexEig-1]) - sPres->value)/(sPres->neigs+0.3);
+          d_prev = PetscAbsReal(PetscRealPart(sr->eigr[sr->indexEig-1]) - sPres->value)/(sPres->neigs+0.3);
         }
       }
       /* Average distance is used for next shift by adding it to value on the right or to shift */
-      if ((sr->dir)*(PetscRealPart(eps->eigr[sPres->index + sPres->neigs -1]) - sPres->value)>0) {
-        *newS = PetscRealPart(eps->eigr[sPres->index + sPres->neigs -1])+ ((sr->dir)*d_prev*(ctx->nev))/2;
+      if ((sr->dir)*(PetscRealPart(sr->eigr[sPres->index + sPres->neigs -1]) - sPres->value)>0) {
+        *newS = PetscRealPart(sr->eigr[sPres->index + sPres->neigs -1])+ ((sr->dir)*d_prev*(eps->nev))/2;
       } else { /* Last accepted value is on the left of shift. Adding to shift */
-        *newS = sPres->value + ((sr->dir)*d_prev*(ctx->nev))/2;
+        *newS = sPres->value + ((sr->dir)*d_prev*(eps->nev))/2;
       }
     }
     /* End of interval can not be surpassed */
@@ -653,47 +1117,49 @@ static PetscErrorCode sortRealEigenvalues(PetscScalar *r,PetscInt *perm,PetscInt
 static PetscErrorCode EPSStoreEigenpairs(EPS eps)
 {
   PetscErrorCode  ierr;
-  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
   PetscReal       lambda,err,norm;
   PetscInt        i,count;
   PetscBool       iscayley;
-  SR              sr = ctx->sr;
-  shift           sPres;
+  EPS_SR          sr = ctx->sr;
+  EPS_shift       sPres;
   Vec             v,w;
- 
+
   PetscFunctionBegin;
   sPres = sr->sPres;
   sPres->index = sr->indexEig;
   count = sr->indexEig;
   /* Back-transform */
-  ierr = STBackTransform(eps->st,eps->nconv,sr->eigr,sr->eigi);CHKERRQ(ierr);
+  ierr = STBackTransform(eps->st,eps->nconv,eps->eigr,eps->eigi);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
   /* Sort eigenvalues */
-  ierr = sortRealEigenvalues(sr->eigr,sr->perm,eps->nconv,PETSC_FALSE,sr->dir);CHKERRQ(ierr);
+  ierr = sortRealEigenvalues(eps->eigr,eps->perm,eps->nconv,PETSC_FALSE,sr->dir);CHKERRQ(ierr);
   /* Values stored in global array */
   for (i=0;i<eps->nconv;i++) {
-    lambda = PetscRealPart(sr->eigr[sr->perm[i]]);
-    err = sr->errest[sr->perm[i]];
+    lambda = PetscRealPart(eps->eigr[eps->perm[i]]);
+    err = eps->errest[eps->perm[i]];
 
     if ((sr->dir)*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0) {/* Valid value */
       if (count>=sr->numEigs) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error in Spectrum Slicing");
-      eps->eigr[count] = lambda;
-      eps->errest[count] = err;
+      sr->eigr[count] = lambda;
+      sr->errest[count] = err;
       /* Explicit purification */
-      ierr = BVGetColumn(eps->V,count,&v);CHKERRQ(ierr);
-      ierr = BVGetColumn(sr->V,sr->perm[i],&w);CHKERRQ(ierr);
-      ierr = STApply(eps->st,w,v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,count,&v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(sr->V,sr->perm[i],&w);CHKERRQ(ierr);
-      ierr = BVNormColumn(eps->V,count,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = BVScaleColumn(eps->V,count,1.0/norm);CHKERRQ(ierr);
+      if (eps->purify) {
+        ierr = BVGetColumn(sr->V,count,&v);CHKERRQ(ierr);
+        ierr = BVGetColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
+        ierr = STApply(eps->st,w,v);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(sr->V,count,&v);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
+        ierr = BVNormColumn(sr->V,count,NORM_2,&norm);CHKERRQ(ierr);
+        ierr = BVScaleColumn(sr->V,count,1.0/norm);CHKERRQ(ierr);
+      }
       count++;
     }
   }
   sPres->neigs = count - sr->indexEig;
   sr->indexEig = count;
   /* Global ordering array updating */
-  ierr = sortRealEigenvalues(eps->eigr,eps->perm,count,PETSC_TRUE,sr->dir);CHKERRQ(ierr);
+  ierr = sortRealEigenvalues(sr->eigr,sr->perm,count,PETSC_TRUE,sr->dir);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -704,11 +1170,11 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   PetscErrorCode  ierr;
   PetscReal       val;
   PetscInt        i,count0=0,count1=0;
-  shift           sPres;
+  EPS_shift       sPres;
   PetscInt        ini,fin,k,idx0,idx1;
-  SR              sr;
+  EPS_SR          sr;
   Vec             v;
-  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;
   sr = ctx->sr;
@@ -726,7 +1192,7 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   } else sPres->ext[1] = sPres->neighb[1]->value;
   /* Selection of values between right and left ends */
   for (i=ini;i<fin;i++) {
-    val=PetscRealPart(eps->eigr[eps->perm[i]]);
+    val=PetscRealPart(sr->eigr[sr->perm[i]]);
     /* Values to the right of left shift */
     if ((sr->dir)*(val - sPres->ext[1]) < 0) {
       if ((sr->dir)*(val - sPres->value) < 0) count0++;
@@ -736,25 +1202,24 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   /* The number of values on each side are found */
   if (sPres->neighb[0]) {
     sPres->nsch[0] = (sr->dir)*(sPres->inertia - sPres->neighb[0]->inertia)-count0;
-    if (sPres->nsch[0]<0)SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error in Spectrum Slicing!\nMismatch between number of values found and information from inertia");
+    if (sPres->nsch[0]<0)SETERRQ(PetscObjectComm((PetscObject)eps),1,"Mismatch between number of values found and information from inertia, consider using EPSKrylovSchurSetDetectZeros()");
   } else sPres->nsch[0] = 0;
 
   if (sPres->neighb[1]) {
     sPres->nsch[1] = (sr->dir)*(sPres->neighb[1]->inertia - sPres->inertia) - count1;
-    if (sPres->nsch[1]<0)SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error in Spectrum Slicing!\nMismatch between number of values found and information from inertia");
+    if (sPres->nsch[1]<0)SETERRQ(PetscObjectComm((PetscObject)eps),1,"Mismatch between number of values found and information from inertia, consider using EPSKrylovSchurSetDetectZeros()");
   } else sPres->nsch[1] = (sr->dir)*(sr->inertia1 - sPres->inertia);
 
   /* Completing vector of indexes for deflation */
   idx0 = ini;
   idx1 = ini+count0+count1;
   k=0;
-  for (i=idx0;i<idx1;i++) sr->idxDef[k++]=eps->perm[i];
-  ierr = BVDuplicate(sr->V,&sr->Vnext);CHKERRQ(ierr);
-  ierr = BVResize(sr->Vnext,k+ctx->ncv+1,PETSC_FALSE);CHKERRQ(ierr);
+  for (i=idx0;i<idx1;i++) sr->idxDef[k++]=sr->perm[i];
+  ierr = BVDuplicateResize(eps->V,k+eps->ncv+1,&sr->Vnext);CHKERRQ(ierr);
   ierr = BVSetNumConstraints(sr->Vnext,k);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
     ierr = BVGetColumn(sr->Vnext,-i-1,&v);CHKERRQ(ierr);
-    ierr = BVCopyVec(eps->V,sr->idxDef[i],v);CHKERRQ(ierr);
+    ierr = BVCopyVec(sr->V,sr->idxDef[i],v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(sr->Vnext,-i-1,&v);CHKERRQ(ierr);
   }
 
@@ -764,8 +1229,8 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   }
   eps->nconv = 0;
   /* Get rid of temporary Vnext */
-  ierr = BVDestroy(&sr->V);CHKERRQ(ierr);
-  sr->V = sr->Vnext;
+  ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
+  eps->V = sr->Vnext;
   sr->Vnext = NULL;
   PetscFunctionReturn(0);
 }
@@ -777,77 +1242,101 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   PetscErrorCode  ierr;
   PetscInt        i,lds;
   PetscReal       newS;
-  SR              sr;
-  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  EPS_SR          sr=ctx->sr;
 
   PetscFunctionBegin;
-  sr = ctx->sr;
-  /* Only with eigenvalues present in the interval ...*/
-  if (sr->numEigs==0) {
+  if (ctx->global) {
+    ierr = EPSSolve_KrylovSchur_Slice(ctx->eps);CHKERRQ(ierr);
+    ctx->eps->state = EPS_STATE_SOLVED;
     eps->reason = EPS_CONVERGED_TOL;
-    PetscFunctionReturn(0);
-  }
-  /* Array of pending shifts */
-  sr->maxPend = 100; /* Initial size */
-  sr->nPend = 0;
-  ierr = PetscMalloc1(sr->maxPend,&sr->pending);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,(sr->maxPend)*sizeof(shift));CHKERRQ(ierr);
-  ierr = EPSCreateShift(eps,sr->int0,NULL,NULL);CHKERRQ(ierr);
-  /* extract first shift */
-  sr->sPrev = NULL;
-  sr->sPres = sr->pending[--sr->nPend];
-  sr->sPres->inertia = sr->inertia0;
-  eps->target = sr->sPres->value;
-  sr->s0 = sr->sPres;
-  sr->indexEig = 0;
-  /* Memory reservation for auxiliary variables */
-  lds = PetscMin(ctx->mpd,ctx->ncv);
-  ierr = PetscCalloc1(lds*lds,&sr->S);CHKERRQ(ierr);
-  ierr = PetscMalloc1(ctx->ncv,&sr->back);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,(sr->numEigs+2*ctx->ncv)*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=0;i<ctx->ncv;i++) {
-    sr->eigr[i]    = 0.0;
-    sr->eigi[i]   = 0.0;
-    sr->errest[i] = 0.0;
-  }
-  for (i=0;i<sr->numEigs;i++) eps->perm[i] = i;
-  /* Vectors for deflation */
-  ierr = PetscMalloc1(sr->numEigs,&sr->idxDef);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,sr->numEigs*sizeof(PetscInt));CHKERRQ(ierr);
-  sr->indexEig = 0;
-  /* Main loop */
-  while (sr->sPres) {
-    /* Search for deflation */
-    ierr = EPSLookForDeflation(eps);CHKERRQ(ierr);
-    /* KrylovSchur */
-    ierr = EPSKrylovSchur_Slice(eps);CHKERRQ(ierr);
-
-    ierr = EPSStoreEigenpairs(eps);CHKERRQ(ierr);
-    /* Select new shift */
-    if (!sr->sPres->comp[1]) {
-      ierr = EPSGetNewShiftValue(eps,1,&newS);CHKERRQ(ierr);
-      ierr = EPSCreateShift(eps,newS,sr->sPres,sr->sPres->neighb[1]);CHKERRQ(ierr);
+    if (ctx->npart>1) {
+      /* Gather solution from subsolvers */
+      ierr = EPSSliceGatherSolution(eps);CHKERRQ(ierr);
+    } else {
+      eps->nconv = sr->numEigs;
+      ierr = PetscFree(ctx->inertias);CHKERRQ(ierr);
+      ierr = PetscFree(ctx->shifts);CHKERRQ(ierr);
+      ierr = EPSSliceGetInertias(ctx->eps,&ctx->nshifts,&ctx->shifts,&ctx->inertias);CHKERRQ(ierr);
     }
-    if (!sr->sPres->comp[0]) {
-      /* Completing earlier interval */
-      ierr = EPSGetNewShiftValue(eps,0,&newS);CHKERRQ(ierr);
-      ierr = EPSCreateShift(eps,newS,sr->sPres->neighb[0],sr->sPres);CHKERRQ(ierr);
+    ierr = EPSSliceResetSR(ctx->eps);CHKERRQ(ierr);
+  } else {
+    if (ctx->npart==1) {
+      sr->eigr   = ctx->eps->eigr;
+      sr->eigi   = ctx->eps->eigi;
+      sr->perm   = ctx->eps->perm;
+      sr->errest = ctx->eps->errest;
+      sr->V      = ctx->eps->V;
     }
-    /* Preparing for a new search of values */
-    ierr = EPSExtractShift(eps);CHKERRQ(ierr);
-  }
+    /* Only with eigenvalues present in the interval ...*/
+    if (sr->numEigs==0) {
+      eps->reason = EPS_CONVERGED_TOL;
+      PetscFunctionReturn(0);
+    }
+    /* Array of pending shifts */
+    sr->maxPend = 100; /* Initial size */
+    sr->nPend = 0;
+    ierr = PetscMalloc1(sr->maxPend,&sr->pending);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,(sr->maxPend)*sizeof(EPS_shift));CHKERRQ(ierr);
+    ierr = EPSCreateShift(eps,sr->int0,NULL,NULL);CHKERRQ(ierr);
+    /* extract first shift */
+    sr->sPrev = NULL;
+    sr->sPres = sr->pending[--sr->nPend];
+    sr->sPres->inertia = sr->inertia0;
+    eps->target = sr->sPres->value;
+    sr->s0 = sr->sPres;
+    sr->indexEig = 0;
+    /* Memory reservation for auxiliary variables */
+    lds = PetscMin(eps->mpd,eps->ncv);
+    ierr = PetscCalloc1(lds*lds,&sr->S);CHKERRQ(ierr);
+    ierr = PetscMalloc1(eps->ncv,&sr->back);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,(sr->numEigs+2*eps->ncv)*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<sr->numEigs;i++) {
+      sr->eigr[i]   = 0.0;
+      sr->eigi[i]   = 0.0;
+      sr->errest[i] = 0.0;
+      sr->perm[i]   = i;
+    }
+    /* Vectors for deflation */
+    ierr = PetscMalloc1(sr->numEigs,&sr->idxDef);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,sr->numEigs*sizeof(PetscInt));CHKERRQ(ierr);
+    sr->indexEig = 0;
+    /* Main loop */
+    while (sr->sPres) {
+      /* Search for deflation */
+      ierr = EPSLookForDeflation(eps);CHKERRQ(ierr);
+      /* KrylovSchur */
+      ierr = EPSKrylovSchur_Slice(eps);CHKERRQ(ierr);
 
-  /* Updating eps values prior to exit */
-  ierr = BVDestroy(&sr->V);CHKERRQ(ierr);
-  ierr = PetscFree4(sr->eigr,sr->eigi,sr->errest,sr->perm);CHKERRQ(ierr);
-  ierr = PetscFree(sr->S);CHKERRQ(ierr);
-  ierr = PetscFree(sr->idxDef);CHKERRQ(ierr);
-  ierr = PetscFree(sr->pending);CHKERRQ(ierr);
-  ierr = PetscFree(sr->back);CHKERRQ(ierr);
-  eps->nconv  = sr->indexEig;
-  eps->reason = EPS_CONVERGED_TOL;
-  eps->its    = sr->itsKs;
-  eps->nds    = 0;
+      ierr = EPSStoreEigenpairs(eps);CHKERRQ(ierr);
+      /* Select new shift */
+      if (!sr->sPres->comp[1]) {
+        ierr = EPSGetNewShiftValue(eps,1,&newS);CHKERRQ(ierr);
+        ierr = EPSCreateShift(eps,newS,sr->sPres,sr->sPres->neighb[1]);CHKERRQ(ierr);
+      }
+      if (!sr->sPres->comp[0]) {
+        /* Completing earlier interval */
+        ierr = EPSGetNewShiftValue(eps,0,&newS);CHKERRQ(ierr);
+        ierr = EPSCreateShift(eps,newS,sr->sPres->neighb[0],sr->sPres);CHKERRQ(ierr);
+      }
+      /* Preparing for a new search of values */
+      ierr = EPSExtractShift(eps);CHKERRQ(ierr);
+    }
+
+    /* Updating eps values prior to exit */
+    ierr = PetscFree(sr->S);CHKERRQ(ierr);
+    ierr = PetscFree(sr->idxDef);CHKERRQ(ierr);
+    ierr = PetscFree(sr->pending);CHKERRQ(ierr);
+    ierr = PetscFree(sr->back);CHKERRQ(ierr);
+    ierr = BVDuplicateResize(eps->V,eps->ncv+1,&sr->Vnext);CHKERRQ(ierr);
+    ierr = BVSetNumConstraints(sr->Vnext,0);CHKERRQ(ierr);
+    ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
+    eps->V      = sr->Vnext;
+    eps->nconv  = sr->indexEig;
+    eps->reason = EPS_CONVERGED_TOL;
+    eps->its    = sr->itsKs;
+    eps->nds    = 0;
+  }
   PetscFunctionReturn(0);
 }
 

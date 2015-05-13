@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>
+#include <slepc/private/stimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "STApply_Sinvert"
@@ -116,7 +116,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
-  if (nmat<3 || st->transform) {
+  if (st->transform) {
     if (nmat>2) {
       nc = (nmat*(nmat+1))/2;
       ierr = PetscMalloc(nc*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
@@ -141,6 +141,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   } 
   if (st->P) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+    ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
     ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   }
@@ -158,7 +159,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
   PetscFunctionBegin;
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->setupcalled) PetscFunctionReturn(0);
-  if (nmat<3 || st->transform) {
+  if (st->transform) {
     if (st->shift_matrix == ST_MATMODE_COPY && nmat>2) {
       nc = (nmat*(nmat+1))/2;
       ierr = PetscMalloc(nc*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
@@ -187,7 +188,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Sinvert"
-PetscErrorCode STSetFromOptions_Sinvert(ST st)
+PetscErrorCode STSetFromOptions_Sinvert(PetscOptions *PetscOptionsObject,ST st)
 {
   PetscErrorCode ierr;
   PC             pc;
@@ -207,7 +208,7 @@ PetscErrorCode STSetFromOptions_Sinvert(ST st)
     } else {
       /* use direct solver as default */
       ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

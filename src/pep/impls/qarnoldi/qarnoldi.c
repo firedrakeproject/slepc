@@ -16,7 +16,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -34,30 +34,25 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>
+#include <slepc/private/pepimpl.h>    /*I "slepcpep.h" I*/
 #include <petscblaslapack.h>
+
+typedef struct {
+  PetscReal keep;         /* restart parameter */
+  PetscBool lock;         /* locking/non-locking variant */
+} PEP_QARNOLDI;
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetUp_QArnoldi"
 PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
 {
   PetscErrorCode ierr;
+  PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
   PetscBool      sinv,flg;
 
   PetscFunctionBegin;
-  if (pep->ncv) { /* ncv set */
-    if (pep->ncv<pep->nev) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev");
-  } else if (pep->mpd) { /* mpd set */
-    pep->ncv = PetscMin(pep->n,pep->nev+pep->mpd);
-  } else { /* neither set: defaults depend on nev being small or large */
-    if (pep->nev<500) pep->ncv = PetscMin(pep->n,PetscMax(2*pep->nev,pep->nev+15));
-    else {
-      pep->mpd = 500;
-      pep->ncv = PetscMin(pep->n,pep->nev+pep->mpd);
-    }
-  }
-  if (!pep->mpd) pep->mpd = pep->ncv;
-  if (pep->ncv>pep->nev+pep->mpd) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must not be larger than nev+mpd");
+  ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
+  if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
   if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
   if (!pep->which) {
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
@@ -69,6 +64,8 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag set, see STSetTransform()");
+
+  if (!ctx->keep) ctx->keep = 0.5;
 
   ierr = PEPAllocateSolution(pep,0);CHKERRQ(ierr);
   ierr = PEPSetWorkVecs(pep,4);CHKERRQ(ierr);
@@ -144,12 +141,22 @@ static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k
   for (j=k;j<m;j++) {
     /* apply operator */
     ierr = VecCopy(w,t);CHKERRQ(ierr);
+    if (pep->Dr) {
+      ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
+    }
     ierr = STMatMult(pep->st,0,v,u);CHKERRQ(ierr);
+    ierr = VecCopy(t,v);CHKERRQ(ierr);
+    if (pep->Dr) {
+      ierr = VecPointwiseMult(t,t,pep->Dr);CHKERRQ(ierr);
+    }
     ierr = STMatMult(pep->st,1,t,w);CHKERRQ(ierr);
     ierr = VecAXPY(u,pep->sfactor,w);CHKERRQ(ierr);
     ierr = STMatSolve(pep->st,u,w);CHKERRQ(ierr);
     ierr = VecScale(w,-1.0/(pep->sfactor*pep->sfactor));CHKERRQ(ierr);
-    ierr = VecCopy(t,v);CHKERRQ(ierr);
+    if (pep->Dr) {
+      ierr = VecPointwiseDivide(w,w,pep->Dr);CHKERRQ(ierr);
+    }
+    ierr = VecCopy(v,t);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(pep->V,0,j+1);CHKERRQ(ierr);
 
     /* orthogonalize */
@@ -197,6 +204,7 @@ static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k
 PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 {
   PetscErrorCode ierr;
+  PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
   PetscInt       j,k,l,lwork,nv,ld,newn;
   Vec            v=pep->work[0],w=pep->work[1];
   Mat            Q;
@@ -208,6 +216,13 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
   lwork = 7*pep->ncv;
   ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
+
+  /* Modify matrix norms so that the scaling affects the convergence test */
+  norm = pep->dsfactor;
+  for (j=0;j<pep->nmat;j++) {
+    pep->nrma[j] *= norm;
+    norm*=pep->sfactor;
+  }
 
   /* Get the starting Arnoldi vector */
   if (pep->nini==0) {
@@ -253,7 +268,8 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 
     /* Update l */
     if (pep->reason != PEP_CONVERGED_ITERATING || breakdown) l = 0;
-    else l = (nv-k)/2;
+    else l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
+    if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     if (pep->reason == PEP_CONVERGED_ITERATING) {
       if (breakdown) {
@@ -281,6 +297,13 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
     pep->eigi[j] *= pep->sfactor;
   }
 
+  /* Restore matrix norms */
+  norm = pep->dsfactor;
+  for (j=0;j<pep->nmat;j++) {
+    pep->nrma[j] /= norm;
+    norm*=pep->sfactor;
+  }
+
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
@@ -290,13 +313,257 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPQArnoldiSetRestart_QArnoldi"
+static PetscErrorCode PEPQArnoldiSetRestart_QArnoldi(PEP pep,PetscReal keep)
+{
+  PEP_QARNOLDI *ctx = (PEP_QARNOLDI*)pep->data;
+
+  PetscFunctionBegin;
+  if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
+  else {
+    if (keep<0.1 || keep>0.9) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
+    ctx->keep = keep;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPQArnoldiSetRestart"
+/*@
+   PEPQArnoldiSetRestart - Sets the restart parameter for the Q-Arnoldi
+   method, in particular the proportion of basis vectors that must be kept
+   after restart.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep  - the eigenproblem solver context
+-  keep - the number of vectors to be kept at restart
+
+   Options Database Key:
+.  -pep_qarnoldi_restart - Sets the restart parameter
+
+   Notes:
+   Allowed values are in the range [0.1,0.9]. The default is 0.5.
+
+   Level: advanced
+
+.seealso: PEPQArnoldiGetRestart()
+@*/
+PetscErrorCode PEPQArnoldiSetRestart(PEP pep,PetscReal keep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveReal(pep,keep,2);
+  ierr = PetscTryMethod(pep,"PEPQArnoldiSetRestart_C",(PEP,PetscReal),(pep,keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPQArnoldiGetRestart_QArnoldi"
+static PetscErrorCode PEPQArnoldiGetRestart_QArnoldi(PEP pep,PetscReal *keep)
+{
+  PEP_QARNOLDI *ctx = (PEP_QARNOLDI*)pep->data;
+
+  PetscFunctionBegin;
+  *keep = ctx->keep;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPQArnoldiGetRestart"
+/*@
+   PEPQArnoldiGetRestart - Gets the restart parameter used in the Q-Arnoldi method.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigenproblem solver context
+
+   Output Parameter:
+.  keep - the restart parameter
+
+   Level: advanced
+
+.seealso: PEPQArnoldiSetRestart()
+@*/
+PetscErrorCode PEPQArnoldiGetRestart(PEP pep,PetscReal *keep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(keep,2);
+  ierr = PetscTryMethod(pep,"PEPQArnoldiGetRestart_C",(PEP,PetscReal*),(pep,keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPQArnoldiSetLocking_QArnoldi"
+static PetscErrorCode PEPQArnoldiSetLocking_QArnoldi(PEP pep,PetscBool lock)
+{
+  PEP_QARNOLDI *ctx = (PEP_QARNOLDI*)pep->data;
+
+  PetscFunctionBegin;
+  ctx->lock = lock;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPQArnoldiSetLocking"
+/*@
+   PEPQArnoldiSetLocking - Choose between locking and non-locking variants of
+   the Q-Arnoldi method.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep  - the eigenproblem solver context
+-  lock - true if the locking variant must be selected
+
+   Options Database Key:
+.  -pep_qarnoldi_locking - Sets the locking flag
+
+   Notes:
+   The default is to keep all directions in the working subspace even if
+   already converged to working accuracy (the non-locking variant).
+   This behaviour can be changed so that converged eigenpairs are locked
+   when the method restarts.
+
+   Note that the default behaviour is the opposite to Krylov solvers in EPS.
+
+   Level: advanced
+
+.seealso: PEPQArnoldiGetLocking()
+@*/
+PetscErrorCode PEPQArnoldiSetLocking(PEP pep,PetscBool lock)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveBool(pep,lock,2);
+  ierr = PetscTryMethod(pep,"PEPQArnoldiSetLocking_C",(PEP,PetscBool),(pep,lock));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPQArnoldiGetLocking_QArnoldi"
+static PetscErrorCode PEPQArnoldiGetLocking_QArnoldi(PEP pep,PetscBool *lock)
+{
+  PEP_QARNOLDI *ctx = (PEP_QARNOLDI*)pep->data;
+
+  PetscFunctionBegin;
+  *lock = ctx->lock;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPQArnoldiGetLocking"
+/*@
+   PEPQArnoldiGetLocking - Gets the locking flag used in the Q-Arnoldi method.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigenproblem solver context
+
+   Output Parameter:
+.  lock - the locking flag
+
+   Level: advanced
+
+.seealso: PEPQArnoldiSetLocking()
+@*/
+PetscErrorCode PEPQArnoldiGetLocking(PEP pep,PetscBool *lock)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(lock,2);
+  ierr = PetscTryMethod(pep,"PEPQArnoldiGetLocking_C",(PEP,PetscBool*),(pep,lock));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetFromOptions_QArnoldi"
+PetscErrorCode PEPSetFromOptions_QArnoldi(PetscOptions *PetscOptionsObject,PEP pep)
+{
+  PetscErrorCode ierr;
+  PetscBool      flg,lock;
+  PetscReal      keep;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead(PetscOptionsObject,"PEP Q-Arnoldi Options");CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-pep_qarnoldi_restart","Proportion of vectors kept after restart","PEPQArnoldiSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PEPQArnoldiSetRestart(pep,keep);CHKERRQ(ierr);
+  }
+  ierr = PetscOptionsBool("-pep_qarnoldi_locking","Choose between locking and non-locking variants","PEPQArnoldiSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PEPQArnoldiSetLocking(pep,lock);CHKERRQ(ierr);
+  }
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPView_QArnoldi"
+PetscErrorCode PEPView_QArnoldi(PEP pep,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
+  PetscBool      isascii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  Q-Arnoldi: %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Q-Arnoldi: using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPDestroy_QArnoldi"
+PetscErrorCode PEPDestroy_QArnoldi(PEP pep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(pep->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetRestart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetRestart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetLocking_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetLocking_C",NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPCreate_QArnoldi"
 PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
 {
+  PEP_QARNOLDI   *ctx;
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
+  pep->data = (void*)ctx;
+  ctx->lock = PETSC_FALSE;
+
   pep->ops->solve          = PEPSolve_QArnoldi;
   pep->ops->setup          = PEPSetUp_QArnoldi;
+  pep->ops->setfromoptions = PEPSetFromOptions_QArnoldi;
+  pep->ops->destroy        = PEPDestroy_QArnoldi;
+  pep->ops->view           = PEPView_QArnoldi;
   pep->ops->computevectors = PEPComputeVectors_Schur;
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetRestart_C",PEPQArnoldiSetRestart_QArnoldi);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetRestart_C",PEPQArnoldiGetRestart_QArnoldi);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetLocking_C",PEPQArnoldiSetLocking_QArnoldi);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetLocking_C",PEPQArnoldiGetLocking_QArnoldi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

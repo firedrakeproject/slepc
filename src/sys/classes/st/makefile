@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -21,11 +21,11 @@
 
 ALL: lib
 
-SOURCEH  = ../../../../include/slepc-private/stimpl.h ../../../../include/slepcst.h
+SOURCEH  = ../../../../include/slepc/private/stimpl.h ../../../../include/slepcst.h
 DIRS     = interface impls examples
 LOCDIR   = src/sys/classes/st/
 MANSEC   = ST
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

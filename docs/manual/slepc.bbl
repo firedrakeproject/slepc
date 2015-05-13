@@ -16,12 +16,12 @@ Bai, Z., J.~Demmel, J.~Dongarra, A.~Ruhe, and H.~van~der Vorst (eds.) (2000).
   Practical Guide\/}.
 \newblock Society for Industrial and Applied Mathematics, Philadelphia, PA.
 
-\bibitem[{Balay {\em et~al.\/}(2013)Balay, Brown, Buschelman, Eijkhout, Gropp,
-  Kaushik, Knepley, McInnes, Smith, and Zhang}]{Balay:2013:PUM}
-Balay, S., J.~Brown, K.~Buschelman, V.~Eijkhout, W.~Gropp, D.~Kaushik,
-  M.~Knepley, L.~C. McInnes, B.~Smith, and H.~Zhang (2013).
+\bibitem[{Balay {\em et~al.\/}(2014)Balay, Abhyankar, Adams, Brown, Brune, Buschelman,
+  Eijkhout, Gropp, Kaushik, Knepley, McInnes, Rupp, Smith, and Zhang}]{Balay:2014:PUM}
+Balay, S., S.~Abhyankar, M.~Adams, J.~Brown, P.~Brune, K.~Buschelman, V.~Eijkhout,
+  W.~Gropp, D.~Kaushik, M.~Knepley, L.~C. McInnes, K.~Rupp, B.~Smith, and H.~Zhang (2014).
 \newblock {PETSc} Users Manual.
-\newblock Technical Report ANL-95/11 - Revision 3.4, Argonne National
+\newblock Technical Report ANL-95/11 - Revision 3.5, Argonne National
   Laboratory.
 
 \bibitem[{Balay {\em et~al.\/}(1997)Balay, Gropp, McInnes, and
@@ -32,6 +32,17 @@ Balay, S., W.~D. Gropp, L.~C. McInnes, and B.~F. Smith (1997).
 \newblock In {\em Modern Software Tools in Scientific Computing\/} (edited by
   E.~Arge, A.~M. Bruaset, and H.~P. Langtangen), pp. 163--202. Birkha{\"u}ser.
 
+\bibitem[{Betcke(2008)}]{Betcke:2008:OSG}
+Betcke, T. (2008).
+\newblock Optimal scaling of generalized and polynomial eigenvalue problems.
+\newblock {\em {SIAM} J. Matrix Anal. Appl.\/}, 30(4):1320--1338.
+
+\bibitem[{Betcke and Kressner(2011)}]{Betcke:2011:PER}
+Betcke, T. and D.~Kressner (2011).
+\newblock Perturbation, extraction and refinement of invariant pairs for matrix
+  polynomials.
+\newblock {\em Linear Algebra and its Applications\/}, 435(3):514--536.
+
 \bibitem[{Bj{\"o}rck(1996)}]{Bjorck:1996:NML}
 Bj{\"o}rck, {\AA}. (1996).
 \newblock {\em Numerical Methods for Least Squares Problems\/}.
@@ -41,6 +52,11 @@ Bj{\"o}rck, {\AA}. (1996).
 Campos, C. and J.~E. Roman (2012).
 \newblock Strategies for spectrum slicing based on restarted {Lanczos} methods.
 \newblock {\em Numer. Algorithms\/}, 60(2):279--295.
+
+\bibitem[{Campos and Roman(2015)}]{Campos:2015:PKS}
+Campos, C. and J.~E. Roman (2015).
+\newblock Parallel Krylov solvers for the polynomial eigenvalue problem in {SLEPc}.
+\newblock Submitted.
 
 \bibitem[{Canning {\em et~al.\/}(2000)Canning, Wang, Williamson, and
   Zunger}]{Canning:2000:PEP}

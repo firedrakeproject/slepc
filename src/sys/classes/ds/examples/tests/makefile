@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -25,10 +25,10 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/ds/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c \
-             test10.c test11.c test12.c test13.c
-EXAMPLESF  =
+             test12.c test13.c
+EXAMPLESF  = test14f.F
 MANSEC     = DS
-TESTS      = test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test13
+TESTS      = test1 test2 test3 test4 test5 test6 test7 test8 test9 test12 test13 test14f
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test2.PETSc runtest2_1 test2.rm \
@@ -39,12 +39,11 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test7.PETSc runtest7_1 test7.rm \
                            test8.PETSc runtest8_1 test8.rm \
                            test9.PETSc runtest9_1 test9.rm \
-                           test10.PETSc runtest10_1 test10.rm \
-                           test11.PETSc runtest11_1 test11.rm \
                            test12.PETSc runtest12_1 test12.rm
 TESTEXAMPLES_C_NOCOMPLEX = test13.PETSc runtest13_1 test13.rm
+TESTEXAMPLES_FORTRAN     = test14f.PETSc runtest14f_1 test14f.rm
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 test1: test1.o chkopts
 	-${CLINKER} -o test1 test1.o ${SLEPC_SYS_LIB}
@@ -82,14 +81,6 @@ test9: test9.o chkopts
 	-${CLINKER} -o test9 test9.o ${SLEPC_SYS_LIB}
 	${RM} test9.o
 
-test10: test10.o chkopts
-	-${CLINKER} -o test10 test10.o ${SLEPC_SYS_LIB}
-	${RM} test10.o
-
-test11: test11.o chkopts
-	-${CLINKER} -o test11 test11.o ${SLEPC_SYS_LIB}
-	${RM} test11.o
-
 test12: test12.o chkopts
 	-${CLINKER} -o test12 test12.o ${SLEPC_SYS_LIB}
 	${RM} test12.o
@@ -97,6 +88,10 @@ test12: test12.o chkopts
 test13: test13.o chkopts
 	-${CLINKER} -o test13 test13.o ${SLEPC_SYS_LIB}
 	${RM} test13.o
+
+test14f: test14f.o chkopts
+	-${FLINKER} -o test14f test14f.o ${SLEPC_SYS_LIB}
+	${RM} test14f.o
 
 #------------------------------------------------------------------------------------
 
@@ -154,18 +149,6 @@ runtest9_1:
 	  else echo "Possible problem with test9_1, diffs above"; fi; \
 	  ${RM} -f test9_1.tmp
 
-runtest10_1:
-	-@${MPIEXEC} -np 1 ./test10 > test10_1.tmp 2>&1; \
-	  if (${DIFF} output/test10_1.out test10_1.tmp) then true; \
-	  else echo "Possible problem with test10_1, diffs above"; fi; \
-	  ${RM} -f test10_1.tmp
-
-runtest11_1:
-	-@${MPIEXEC} -np 1 ./test11 > test11_1.tmp 2>&1; \
-	  if (${DIFF} output/test11_1.out test11_1.tmp) then true; \
-	  else echo "Possible problem with test11_1, diffs above"; fi; \
-	  ${RM} -f test11_1.tmp
-
 runtest12_1:
 	-@${MPIEXEC} -np 1 ./test12 > test12_1.tmp 2>&1; \
 	  if (${DIFF} output/test12_1.out test12_1.tmp) then true; \
@@ -177,4 +160,10 @@ runtest13_1:
 	  if (${DIFF} output/test13_1.out test13_1.tmp) then true; \
 	  else echo "Possible problem with test13_1, diffs above"; fi; \
 	  ${RM} -f test13_1.tmp
+
+runtest14f_1:
+	-@${MPIEXEC} -np 1 ./test14f > test14f_1.tmp 2>&1; \
+	  if (${DIFF} output/test14f_1.out test14f_1.tmp) then true; \
+	  else echo "Possible problem with test14f_1, diffs above"; fi; \
+	  ${RM} -f test14f_1.tmp
 

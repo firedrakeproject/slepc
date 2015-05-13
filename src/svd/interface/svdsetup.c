@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>      /*I "slepcsvd.h" I*/
+#include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetOperator"
@@ -46,7 +46,7 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
   PetscCheckSameComm(svd,1,mat,2);
-  if (svd->setupcalled) { ierr = SVDReset(svd);CHKERRQ(ierr); }
+  if (svd->state) { ierr = SVDReset(svd);CHKERRQ(ierr); }
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
   svd->OP = mat;
@@ -102,13 +102,14 @@ PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
 PetscErrorCode SVDSetUp(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscBool      flg;
+  PetscBool      expltrans,flg;
   PetscInt       M,N,k;
+  SlepcSC        sc;
   Vec            *T;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (svd->setupcalled) PetscFunctionReturn(0);
+  if (svd->state) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
 
   /* reset the convergence flag from the previous solves */
@@ -127,11 +128,16 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* check matrix */
   if (!svd->OP) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperator must be called first");
 
-  /* determine how to build the transpose */
-  if (svd->transmode == PETSC_DECIDE) {
+  /* determine how to handle the transpose */
+  expltrans = PETSC_TRUE;
+  if (svd->impltrans) expltrans = PETSC_FALSE;
+  else {
     ierr = MatHasOperation(svd->OP,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);
-    if (flg) svd->transmode = SVD_TRANSPOSE_EXPLICIT;
-    else svd->transmode = SVD_TRANSPOSE_IMPLICIT;
+    if (!flg) expltrans = PETSC_FALSE;
+    else {
+      ierr = PetscObjectTypeCompare((PetscObject)svd,SVDLAPACK,&flg);CHKERRQ(ierr);
+      if (flg) expltrans = PETSC_FALSE;
+    }
   }
 
   /* build transpose matrix */
@@ -139,29 +145,24 @@ PetscErrorCode SVDSetUp(SVD svd)
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
   ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)svd->OP);CHKERRQ(ierr);
-  switch (svd->transmode) {
-    case SVD_TRANSPOSE_EXPLICIT:
-      if (M>=N) {
-        svd->A = svd->OP;
-        ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
-        ierr = MatConjugate(svd->AT);CHKERRQ(ierr);
-      } else {
-        ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->A);CHKERRQ(ierr);
-        ierr = MatConjugate(svd->A);CHKERRQ(ierr);
-        svd->AT = svd->OP;
-      }
-      break;
-    case SVD_TRANSPOSE_IMPLICIT:
-      if (M>=N) {
-        svd->A = svd->OP;
-        svd->AT = NULL;
-      } else {
-        svd->A = NULL;
-        svd->AT = svd->OP;
-      }
-      break;
-    default:
-      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid transpose mode");
+  if (expltrans) {
+    if (M>=N) {
+      svd->A = svd->OP;
+      ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
+      ierr = MatConjugate(svd->AT);CHKERRQ(ierr);
+    } else {
+      ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->A);CHKERRQ(ierr);
+      ierr = MatConjugate(svd->A);CHKERRQ(ierr);
+      svd->AT = svd->OP;
+    }
+  } else {
+    if (M>=N) {
+      svd->A = svd->OP;
+      svd->AT = NULL;
+    } else {
+      svd->A = NULL;
+      svd->AT = svd->OP;
+    }
   }
 
   /* swap initial vectors if necessary */
@@ -179,6 +180,13 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   /* set tolerance if not yet set */
   if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
+
+  /* fill sorting criterion context */
+  ierr = DSGetSlepcSC(svd->ds,&sc);CHKERRQ(ierr);
+  sc->comparison    = (svd->which==SVD_LARGEST)? SlepcCompareLargestReal: SlepcCompareSmallestReal;
+  sc->comparisonctx = NULL;
+  sc->map           = NULL;
+  sc->mapobj        = NULL;
 
   /* process initial vectors */
   if (svd->nini<0) {
@@ -202,7 +210,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
 
   ierr = PetscLogEventEnd(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
-  svd->setupcalled = 1;
+  svd->state = SVD_STATE_SETUP;
   PetscFunctionReturn(0);
 }
 
@@ -246,7 +254,7 @@ PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
   PetscValidLogicalCollectiveInt(svd,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&svd->nini,&svd->IS);CHKERRQ(ierr);
-  if (n>0) svd->setupcalled = 0;
+  if (n>0) svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -290,7 +298,7 @@ PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt n,Vec *is)
   PetscValidLogicalCollectiveInt(svd,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&svd->ninil,&svd->ISL);CHKERRQ(ierr);
-  if (n>0) svd->setupcalled = 0;
+  if (n>0) svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -369,7 +377,7 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
     if (!((PetscObject)(svd->V))->type_name) {
       ierr = BVSetType(svd->V,BVSVEC);CHKERRQ(ierr);
     }
-    ierr = SVDMatGetVecs(svd,&tr,NULL);CHKERRQ(ierr);
+    ierr = SVDMatCreateVecs(svd,&tr,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(svd->V,tr,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&tr);CHKERRQ(ierr);
   } else {
@@ -382,7 +390,7 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
       if (!((PetscObject)(svd->U))->type_name) {
         ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
       }
-      ierr = SVDMatGetVecs(svd,NULL,&tl);CHKERRQ(ierr);
+      ierr = SVDMatCreateVecs(svd,NULL,&tl);CHKERRQ(ierr);
       ierr = BVSetSizesFromVec(svd->U,tl,requested);CHKERRQ(ierr);
       ierr = VecDestroy(&tl);CHKERRQ(ierr);
     } else {

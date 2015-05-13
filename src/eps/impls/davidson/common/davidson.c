@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -31,7 +31,7 @@ typedef struct {
     initialsize,          /* initial size of V */
     minv,                 /* size of V after restarting */
     plusk;                /* keep plusk eigenvectors from the last iteration */
-  EPSOrthType ipB;        /* true if B-ortho is used */
+  PetscBool  ipB;        /* true if B-ortho is used */
   PetscInt   method;      /* method for improving the approximate solution */
   PetscReal  fix;         /* the fix parameter */
   PetscBool  krylovstart; /* true if the starting subspace is a Krylov basis */
@@ -42,11 +42,6 @@ typedef struct {
 
   /**** Solver data ****/
   dvdDashboard ddb;
-
-  /**** Things to destroy ****/
-  PetscScalar *wS;
-  Vec         *wV;
-  PetscInt    size_wV;
 } EPS_DAVIDSON;
 
 #undef __FUNCT__
@@ -66,9 +61,7 @@ PetscErrorCode EPSCreate_XD(EPS eps)
 
   ierr = PetscNewLog(eps,&data);CHKERRQ(ierr);
   eps->data = (void*)data;
-  data->wS = NULL;
-  data->wV = NULL;
-  data->size_wV = 0;
+  ierr = PetscMemzero(&data->ddb,sizeof(dvdDashboard));CHKERRQ(ierr);
 
   /* Set default values */
   ierr = EPSXDSetKrylovStart_XD(eps,PETSC_FALSE);CHKERRQ(ierr);
@@ -76,7 +69,7 @@ PetscErrorCode EPSCreate_XD(EPS eps)
   ierr = EPSXDSetRestart_XD(eps,6,0);CHKERRQ(ierr);
   ierr = EPSXDSetInitialSize_XD(eps,5);CHKERRQ(ierr);
   ierr = EPSJDSetFix_JD(eps,0.01);CHKERRQ(ierr);
-  ierr = EPSXDSetBOrth_XD(eps,EPS_ORTH_B);CHKERRQ(ierr);
+  ierr = EPSXDSetBOrth_XD(eps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = EPSJDSetConstCorrectionTol_JD(eps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = EPSXDSetWindowSizes_XD(eps,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -90,7 +83,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
   dvdBlackboard  b;
-  PetscInt       nvecs,nscalars,min_size_V,plusk,bs,initv,i,cX_in_proj,cX_in_impr,nmat;
+  PetscInt       min_size_V,plusk,bs,initv,i,cX_in_proj,cX_in_impr,nmat;
   Mat            A,B;
   KSP            ksp;
   PetscBool      t,ipB,ispositive,dynamic;
@@ -98,7 +91,6 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   InitType_t     init;
   PetscReal      fix;
   PetscScalar    target;
-  Vec            v1;
 
   PetscFunctionBegin;
   /* Setup EPS options and get the problem specification */
@@ -116,6 +108,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Wrong value of eps->which");
   if (!(eps->nev + bs <= eps->ncv)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize");
+  if (eps->trueres) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"-eps_true_residual is temporally disable in this solver.");
 
   ierr = EPSXDGetRestart_XD(eps,&min_size_V,&plusk);CHKERRQ(ierr);
   if (!min_size_V) min_size_V = PetscMin(PetscMax(bs,5),eps->mpd/2);
@@ -156,8 +149,8 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   if (!ispositive && !eps->isgeneralized && eps->ishermitian) ispositive = PETSC_TRUE;
   if (!eps->isgeneralized) dvd->sB = DVD_MAT_IMPLICIT | DVD_MAT_HERMITIAN | DVD_MAT_IDENTITY | DVD_MAT_UNITARY | DVD_MAT_POS_DEF;
   else dvd->sB = DVD_MAT_IMPLICIT | (eps->ishermitian? DVD_MAT_HERMITIAN : 0) | (ispositive? DVD_MAT_POS_DEF : 0);
-  ipB = (dvd->B && data->ipB != EPS_ORTH_I && DVD_IS(dvd->sB,DVD_MAT_HERMITIAN))?PETSC_TRUE:PETSC_FALSE;
-  if (data->ipB != EPS_ORTH_I && !ipB) data->ipB = EPS_ORTH_I;
+  ipB = (dvd->B && data->ipB && DVD_IS(dvd->sB,DVD_MAT_HERMITIAN))?PETSC_TRUE:PETSC_FALSE;
+  if (data->ipB && !ipB) data->ipB = PETSC_FALSE;
   dvd->correctXnorm = ipB;
   dvd->sEP = ((!eps->isgeneralized || (eps->isgeneralized && ipB))? DVD_EP_STD : 0) |
              (ispositive? DVD_EP_HERMITIAN : 0) |
@@ -234,6 +227,8 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   /* Setup the presence of converged vectors in the projected problem and in the projector */
   ierr = EPSXDGetWindowSizes_XD(eps,&cX_in_impr,&cX_in_proj);CHKERRQ(ierr);
+  if (cX_in_impr>0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The option pwindow is temporally disable in this solver.");
+  if (cX_in_proj>0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The option qwindow is temporally disable in this solver.");
   if (min_size_V <= cX_in_proj) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"minv has to be greater than qwindow");
   if (bs > 1 && cX_in_impr > 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported option: pwindow > 0 and bs > 1");
 
@@ -255,21 +250,6 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   /* Allocate memory */
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
-  nvecs = b.max_size_auxV + b.own_vecs;
-  nscalars = b.own_scalars + b.max_size_auxS;
-  ierr = PetscMalloc1(nscalars,&data->wS);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,nscalars*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = BVGetColumn(eps->V,0,&v1);CHKERRQ(ierr);
-  ierr = VecDuplicateVecs(v1,nvecs,&data->wV);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(eps->V,0,&v1);CHKERRQ(ierr);
-  ierr = PetscLogObjectParents(eps,nvecs,data->wV);CHKERRQ(ierr);
-  data->size_wV = nvecs;
-  b.free_vecs = data->wV;
-  b.free_scalars = data->wS;
-  dvd->auxV = data->wV + b.own_vecs;
-  dvd->auxS = b.free_scalars + b.own_scalars;
-  dvd->size_auxV = b.max_size_auxV;
-  dvd->size_auxS = b.max_size_auxS;
 
   /* Setup orthogonalization */
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
@@ -302,7 +282,7 @@ PetscErrorCode EPSSolve_XD(EPS eps)
 
   PetscFunctionBegin;
   /* Call the starting routines */
-  DVD_FL_CALL(d->startList,d);
+  ierr = EPSDavidsonFLCall(d->startList,d);CHKERRQ(ierr);
 
   for (eps->its=0;eps->its<eps->max_it;eps->its++) {
     /* Initialize V, if it is needed */
@@ -325,7 +305,7 @@ PetscErrorCode EPSSolve_XD(EPS eps)
   }
 
   /* Call the ending routines */
-  DVD_FL_CALL(d->endList,d);
+  ierr = EPSDavidsonFLCall(d->endList,d);CHKERRQ(ierr);
 
   if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
@@ -342,15 +322,10 @@ PetscErrorCode EPSReset_XD(EPS eps)
 
   PetscFunctionBegin;
   /* Call step destructors and destroys the list */
-  DVD_FL_CALL(dvd->destroyList,dvd);
-  DVD_FL_DEL(dvd->destroyList);
-  DVD_FL_DEL(dvd->startList);
-  DVD_FL_DEL(dvd->endList);
-
-  if (data->size_wV > 0) {
-    ierr = VecDestroyVecs(data->size_wV,&data->wV);CHKERRQ(ierr);
-  }
-  ierr = PetscFree(data->wS);CHKERRQ(ierr);
+  ierr = EPSDavidsonFLCall(dvd->destroyList,dvd);CHKERRQ(ierr);
+  ierr = EPSDavidsonFLDestroy(&dvd->destroyList);CHKERRQ(ierr);
+  ierr = EPSDavidsonFLDestroy(&dvd->startList);CHKERRQ(ierr);
+  ierr = EPSDavidsonFLDestroy(&dvd->endList);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -362,7 +337,7 @@ PetscErrorCode EPSView_XD(EPS eps,PetscViewer viewer)
   PetscBool      isascii,opb;
   PetscInt       opi,opi0;
   Method_t       meth;
-  EPSOrthType    borth;
+  PetscBool      borth;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -372,13 +347,10 @@ PetscErrorCode EPSView_XD(EPS eps,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: using double expansion variant (GD2)\n");CHKERRQ(ierr);
     }
     ierr = EPSXDGetBOrth_XD(eps,&borth);CHKERRQ(ierr);
-    switch (borth) {
-    case EPS_ORTH_I:
-      ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is orthogonalized\n");CHKERRQ(ierr);
-      break;
-    case EPS_ORTH_B:
+    if (borth) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is B-orthogonalized\n");CHKERRQ(ierr);
-      break;
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: search subspace is orthogonalized\n");CHKERRQ(ierr);
     }
     ierr = EPSXDGetBlockSize_XD(eps,&opi);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  Davidson: block size=%D\n",opi);CHKERRQ(ierr);
@@ -519,7 +491,7 @@ PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSXDSetBOrth_XD"
-PetscErrorCode EPSXDSetBOrth_XD(EPS eps,EPSOrthType borth)
+PetscErrorCode EPSXDSetBOrth_XD(EPS eps,PetscBool borth)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -530,7 +502,7 @@ PetscErrorCode EPSXDSetBOrth_XD(EPS eps,EPSOrthType borth)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSXDGetBOrth_XD"
-PetscErrorCode EPSXDGetBOrth_XD(EPS eps,EPSOrthType *borth)
+PetscErrorCode EPSXDGetBOrth_XD(EPS eps,PetscBool *borth)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
@@ -616,7 +588,7 @@ PetscErrorCode EPSXDGetMethod_XD(EPS eps,Method_t *method)
 /*
   EPSComputeVectors_XD - Compute eigenvectors from the vectors
   provided by the eigensolver. This version is intended for solvers
-  that provide Schur vectors from the QZ decompositon. Given the partial
+  that provide Schur vectors from the QZ decomposition. Given the partial
   Schur decomposition OP*V=V*T, the following steps are performed:
       1) compute eigenvectors of (S,T): S*Z=T*Z*D
       2) compute eigenvectors of OP: X=V*Z
@@ -624,35 +596,19 @@ PetscErrorCode EPSXDGetMethod_XD(EPS eps,Method_t *method)
 PetscErrorCode EPSComputeVectors_XD(EPS eps)
 {
   PetscErrorCode ierr;
-  EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
-  dvdDashboard   *d = &data->ddb;
-  PetscScalar    *cS,*cT;
-  PetscInt       ld;
-  Mat            Z;
+  Mat            X;
+  PetscBool      symm;
 
   PetscFunctionBegin;
-  if (d->cS) {
-    /* Compute the eigenvectors associated to (cS, cT) */
-    ierr = DSSetDimensions(d->conv_ps,d->size_cS,0,0,0);CHKERRQ(ierr);
-    ierr = DSGetLeadingDimension(d->conv_ps,&ld);CHKERRQ(ierr);
-    ierr = DSGetArray(d->conv_ps,DS_MAT_A,&cS);CHKERRQ(ierr);
-    ierr = SlepcDenseCopyTriang(cS,0,ld,d->cS,0,d->ldcS,d->size_cS,d->size_cS);CHKERRQ(ierr);
-    ierr = DSRestoreArray(d->conv_ps,DS_MAT_A,&cS);CHKERRQ(ierr);
-    if (d->cT) {
-      ierr = DSGetArray(d->conv_ps,DS_MAT_B,&cT);CHKERRQ(ierr);
-      ierr = SlepcDenseCopyTriang(cT,0,ld,d->cT,0,d->ldcT,d->size_cS,d->size_cS);CHKERRQ(ierr);
-      ierr = DSRestoreArray(d->conv_ps,DS_MAT_B,&cT);CHKERRQ(ierr);
-    }
-    ierr = DSSetState(d->conv_ps,DS_STATE_RAW);CHKERRQ(ierr);
-    ierr = DSSolve(d->conv_ps,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = DSVectors(d->conv_ps,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-    ierr = DSNormalize(d->conv_ps,DS_MAT_X,-1);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps->ds,&symm,DSHEP,"");CHKERRQ(ierr);
+  if (symm) PetscFunctionReturn(0);
+  ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSNormalize(eps->ds,DS_MAT_X,-1);CHKERRQ(ierr);
 
-    /* V <- V * Z */
-    ierr = DSGetMat(d->conv_ps,DS_MAT_X,&Z);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
-    ierr = BVMultInPlace(eps->V,Z,0,eps->nconv);CHKERRQ(ierr);
-    ierr = MatDestroy(&Z);CHKERRQ(ierr);
-  }
+  /* V <- V * X */
+  ierr = DSGetMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
+  ierr = BVMultInPlace(eps->V,X,0,eps->nconv);CHKERRQ(ierr);
+  ierr = DSRestoreMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

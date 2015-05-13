@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #     
@@ -25,10 +25,10 @@ SOURCEC  =
 SOURCEF  =
 SOURCEH  = slepc.h slepcsys.h slepcmath.h slepcversion.h slepcblaslapack.h \
            slepceps.h slepcpep.h slepcnep.h slepcmfn.h slepcsvd.h \
-           slepcst.h slepcds.h slepcfn.h slepcbv.h slepcvec.h
+           slepcst.h slepcds.h slepcfn.h slepcrg.h slepcbv.h slepcvec.h
 LIBBASE  = libslepcsys
-DIRS     = finclude slepc-private
+DIRS     = slepc/finclude slepc/private
 LOCDIR   = include/
 MANSEC   = 
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

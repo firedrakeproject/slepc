@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>  /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>  /*I "slepceps.h" I*/
 
 PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS);
 PETSC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS);
@@ -66,6 +66,7 @@ PetscErrorCode EPSRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (EPSRegisterAllCalled) PetscFunctionReturn(0);
   EPSRegisterAllCalled = PETSC_TRUE;
   ierr = EPSRegister(EPSKRYLOVSCHUR,EPSCreate_KrylovSchur);CHKERRQ(ierr);
   ierr = EPSRegister(EPSPOWER,EPSCreate_Power);CHKERRQ(ierr);
@@ -75,9 +76,7 @@ PetscErrorCode EPSRegisterAll(void)
   ierr = EPSRegister(EPSGD,EPSCreate_GD);CHKERRQ(ierr);
   ierr = EPSRegister(EPSJD,EPSCreate_JD);CHKERRQ(ierr);
   ierr = EPSRegister(EPSRQCG,EPSCreate_RQCG);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
   ierr = EPSRegister(EPSCISS,EPSCreate_CISS);CHKERRQ(ierr);
-#endif
   ierr = EPSRegister(EPSLAPACK,EPSCreate_LAPACK);CHKERRQ(ierr);
 #if defined(SLEPC_HAVE_ARPACK)
   ierr = EPSRegister(EPSARPACK,EPSCreate_ARPACK);CHKERRQ(ierr);

@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/dsimpl.h>
+#include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
@@ -44,15 +44,15 @@ PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = DSViewMat_Private(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
+  ierr = DSViewMat(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
   if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
   }
   if (ds->mat[DS_MAT_X]) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
   }
   if (ds->mat[DS_MAT_Y]) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Y);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_Y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -435,9 +435,9 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
     /* find minimum eigenvalue */
     for (;j<n;j++) {
 #if !defined(PETSC_USE_COMPLEX)
-      ierr = (*ds->comparison)(re,im,wr[j],wi[j],&result,ds->comparisonctx);CHKERRQ(ierr);
+      ierr = SlepcSCCompare(ds->sc,re,im,wr[j],wi[j],&result);CHKERRQ(ierr);
 #else
-      ierr = (*ds->comparison)(re,0.0,wr[j],0.0,&result,ds->comparisonctx);CHKERRQ(ierr);
+      ierr = SlepcSCCompare(ds->sc,re,0.0,wr[j],0.0,&result);CHKERRQ(ierr);
 #endif
       if (result > 0) {
         re = wr[j];
@@ -517,7 +517,7 @@ PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
   ierr = DSAllocateWork_Private(ds,2*ld,0,0);CHKERRQ(ierr);
   x = ds->work;
   y = ds->work+ld;
-  for (i=0;i<n;i++) x[i] = A[n+i*ld];
+  for (i=0;i<n;i++) x[i] = PetscConj(A[n+i*ld]);
   PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
   for (i=0;i<n;i++) A[n+i*ld] = PetscConj(y[i]);
   ds->k = n;
@@ -757,114 +757,6 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
 #endif
 }
 
-#define MAX_PADE 6
-
-#undef __FUNCT__
-#define __FUNCT__ "DSFunction_EXP_NHEP_PADE"
-PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
-{
-#if defined(PETSC_MISSING_LAPACK_GESV) || defined(SLEPC_MISSING_LAPACK_LANGE)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV/LANGE - Lapack routines are unavailable");
-#else
-  PetscErrorCode ierr;
-  PetscBLASInt   n,ld,ld2,*ipiv,info,inc=1;
-  PetscInt       j,k,odd;
-  const PetscInt p=MAX_PADE;
-  PetscReal      c[MAX_PADE+1],s;
-  PetscScalar    scale,mone=-1.0,one=1.0,two=2.0,zero=0.0;
-  PetscScalar    *A,*A2,*Q,*P,*W,*aux;
-
-  PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ld2 = ld*ld;
-  ierr = DSAllocateWork_Private(ds,0,ld,ld);CHKERRQ(ierr);
-  ipiv = ds->iwork;
-  if (!ds->mat[DS_MAT_W]) { ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr); }
-  if (!ds->mat[DS_MAT_Z]) { ierr = DSAllocateMat_Private(ds,DS_MAT_Z);CHKERRQ(ierr); }
-  A  = ds->mat[DS_MAT_A];
-  A2 = ds->mat[DS_MAT_Z];
-  Q  = ds->mat[DS_MAT_Q];
-  P  = ds->mat[DS_MAT_F];
-  W  = ds->mat[DS_MAT_W];
-
-  /* Pade' coefficients */
-  c[0] = 1.0;
-  for (k=1;k<=p;k++) {
-    c[k] = c[k-1]*(p+1-k)/(k*(2*p+1-k));
-  }
-
-  /* Scaling */
-  s = LAPACKlange_("I",&n,&n,A,&ld,ds->rwork);
-  if (s>0.5) {
-    s = PetscMax(0,(int)(PetscLogReal(s)/PetscLogReal(2.0)) + 2);
-    scale = PetscPowScalar(2,(-1)*s);
-    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&scale,A,&inc));
-  }
-
-  /* Horner evaluation */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,A,&ld,A,&ld,&zero,A2,&ld));
-  ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMemzero(P,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (j=0;j<n;j++) {
-    Q[j+j*ld] = c[p];
-    P[j+j*ld] = c[p-1];
-  }
-
-  odd = 1;
-  for (k=p-1;k>0;k--) {
-    if (odd==1) {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,A2,&ld,&zero,W,&ld));
-      aux = Q;
-      Q = W;
-      W = aux;
-      for (j=0;j<n;j++)
-        Q[j+j*ld] = Q[j+j*ld] + c[k-1];
-    } else {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,A2,&ld,&zero,W,&ld));
-      aux = P;
-      P = W;
-      W = aux;
-      for (j=0;j<n;j++)
-        P[j+j*ld] = P[j+j*ld] + c[k-1];
-    }
-    odd = 1-odd;
-  }
-  if (odd==1) {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,A,&ld,&zero,W,&ld));
-    aux = Q;
-    Q = W;
-    W = aux;
-    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
-    PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
-    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
-    for (j=0;j<n;j++)
-      P[j+j*ld] = P[j+j*ld] + 1.0;
-    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&mone,P,&inc));
-  } else {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,A,&ld,&zero,W,&ld));
-    aux = P;
-    P = W;
-    W = aux;
-    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
-    PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
-    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
-    for (j=0;j<n;j++)
-      P[j+j*ld] = P[j+j*ld] + 1.0;
-  }
-
-  for (k=1;k<=s;k++) {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,P,&ld,&zero,W,&ld));
-    ierr = PetscMemcpy(P,W,ld2*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  if (P!=ds->mat[DS_MAT_F]) {
-    ierr = PetscMemcpy(ds->mat[DS_MAT_F],P,ld2*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-#endif
-}
-
 #undef __FUNCT__
 #define __FUNCT__ "DSCreate_NHEP"
 PETSC_EXTERN PetscErrorCode DSCreate_NHEP(DS ds)
@@ -880,8 +772,6 @@ PETSC_EXTERN PetscErrorCode DSCreate_NHEP(DS ds)
   ds->ops->cond          = DSCond_NHEP;
   ds->ops->transharm     = DSTranslateHarmonic_NHEP;
   ds->ops->normalize     = DSNormalize_NHEP;
-
-  ds->ops->computefun[SLEPC_FUNCTION_EXP][0] = DSFunction_EXP_NHEP_PADE;
   PetscFunctionReturn(0);
 }
 

@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/dsimpl.h>
+#include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
@@ -167,10 +167,10 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
   } else {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
   }
   if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -403,10 +403,10 @@ PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscReal      *d;
 
   PetscFunctionBegin;
-  if (!ds->comparison) PetscFunctionReturn(0);
+  if (!ds->sc) PetscFunctionReturn(0);
   n = ds->n;
   l = ds->l;
-  A  = ds->mat[DS_MAT_A];
+  A = ds->mat[DS_MAT_A];
   d = ds->rmat[DS_MAT_T];
   perm = ds->perm;
   if (!rr) {
@@ -441,14 +441,14 @@ PetscErrorCode DSUpdateExtraRow_HEP(DS ds)
   e  = ds->rmat[DS_MAT_T]+ld;
 
   if (ds->compact) {
-    beta = e[n-1];
+    beta = e[n-1];   /* in compact, we assume all entries are zero except the last one */
     for (i=0;i<n;i++) e[i] = PetscRealPart(beta*Q[n-1+i*ld]);
     ds->k = n;
   } else {
     ierr = DSAllocateWork_Private(ds,2*ld,0,0);CHKERRQ(ierr);
     x = ds->work;
     y = ds->work+ld;
-    for (i=0;i<n;i++) x[i] = A[n+i*ld];
+    for (i=0;i<n;i++) x[i] = PetscConj(A[n+i*ld]);
     PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
     for (i=0;i<n;i++) A[n+i*ld] = PetscConj(y[i]);
     ds->k = n;
@@ -853,40 +853,6 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSFunction_EXP_HEP_DIAG"
-PetscErrorCode DSFunction_EXP_HEP_DIAG(DS ds)
-{
-  PetscErrorCode ierr;
-  PetscScalar    *eig,one=1.0,zero=0.0;
-  PetscInt       i,j;
-  PetscBLASInt   n,ld;
-  PetscScalar    *F,*Q,*W;
-
-  PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc1(n,&eig);CHKERRQ(ierr);
-  ierr = DSSolve(ds,eig,NULL);CHKERRQ(ierr);
-  if (!ds->mat[DS_MAT_W]) {
-    ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
-  }
-  W  = ds->mat[DS_MAT_W];
-  Q  = ds->mat[DS_MAT_Q];
-  F  = ds->mat[DS_MAT_F];
-
-  /* W = exp(Lambda)*Q' */
-  for (i=0;i<n;i++) {
-    for (j=0;j<n;j++) {
-      W[i+j*ld] = Q[j+i*ld]*PetscExpScalar(eig[i]);
-    }
-  }
-  /* F = Q*W */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,W,&ld,&zero,F,&ld));
-  ierr = PetscFree(eig);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "DSCreate_HEP"
 PETSC_EXTERN PetscErrorCode DSCreate_HEP(DS ds)
 {
@@ -906,8 +872,6 @@ PETSC_EXTERN PetscErrorCode DSCreate_HEP(DS ds)
   ds->ops->cond          = DSCond_HEP;
   ds->ops->transrks      = DSTranslateRKS_HEP;
   ds->ops->normalize     = DSNormalize_HEP;
-
-  ds->ops->computefun[SLEPC_FUNCTION_EXP][0] = DSFunction_EXP_HEP_DIAG;
   PetscFunctionReturn(0);
 }
 

@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,8 +19,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/slepcimpl.h>           /*I "slepcsys.h" I*/
-#include <slepc-private/vecimplslepc.h>
+#include <slepc/private/slepcimpl.h>           /*I "slepcsys.h" I*/
+#include <slepc/private/vecimplslepc.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcGetVersion"
@@ -58,7 +58,7 @@ PetscErrorCode SlepcGetVersion(char version[],size_t len)
 
    Collective on MPI_Comm
 */
-PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
+static PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 {
   PetscErrorCode ierr;
   char           version[256];
@@ -80,7 +80,7 @@ PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 
    Collective on MPI_Comm
 */
-PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
+static PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 {
   PetscErrorCode  ierr;
 
@@ -153,26 +153,22 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
     if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
 #endif
   }
+
+#if defined(PETSC_HAVE_THREADSAFETY)
+  ierr = STInitializePackage();CHKERRQ(ierr);
+  ierr = DSInitializePackage();CHKERRQ(ierr);
+  ierr = FNInitializePackage();CHKERRQ(ierr);
+  ierr = BVInitializePackage();CHKERRQ(ierr);
+  ierr = RGInitializePackage();CHKERRQ(ierr);
+  ierr = EPSInitializePackage();CHKERRQ(ierr);
+  ierr = SVDInitializePackage();CHKERRQ(ierr);
+  ierr = PEPInitializePackage();CHKERRQ(ierr);
+  ierr = NEPInitializePackage();CHKERRQ(ierr);
+  ierr = MFNInitializePackage();CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 #endif
-
-#undef __FUNCT__
-#define __FUNCT__ "SlepcInitialize_LogEvents"
-/*
-    SlepcInitialize_LogEvents - Initialize log events not pertaining to any object class.
-*/
-PetscErrorCode SlepcInitialize_LogEvents(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscLogEventRegister("UpdateVectors",0,&SLEPC_UpdateVectors);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseMatProd",0,&SLEPC_SlepcDenseMatProd);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("DenseCopy",0,&SLEPC_SlepcDenseCopy);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("VecsMult",0,&SLEPC_VecsMult);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcInitialize"
@@ -214,7 +210,6 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
   ierr = SlepcInitialize_DynamicLibraries();CHKERRQ(ierr);
 #endif
-  ierr = SlepcInitialize_LogEvents();CHKERRQ(ierr);
 
 #if defined(PETSC_HAVE_DRAND48)
   /* work-around for Cygwin drand48() initialization bug */

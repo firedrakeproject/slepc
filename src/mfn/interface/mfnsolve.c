@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,13 +21,13 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/mfnimpl.h>   /*I "slepcmfn.h" I*/
+#include <slepc/private/mfnimpl.h>   /*I "slepcmfn.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNSolve"
 /*@
    MFNSolve - Solves the matrix function problem. Given a vector b, the
-   vector x = f(alpha*A)*b is returned.
+   vector x = f(A)*b is returned.
 
    Collective on MFN
 
@@ -36,47 +36,49 @@
 -  b   - the right hand side vector
 
    Output Parameter:
-.  x   - the solution
+.  x   - the solution (this may be the same vector as b, then b will be
+         overwritten with the answer)
 
    Options Database Keys:
 +  -mfn_view - print information about the solver used
 .  -mfn_view_mat binary - save the matrix to the default binary viewer
 .  -mfn_view_rhs binary - save right hand side vector to the default binary viewer
--  -mfn_view_solution binary - save computed solution vector to the default binary viewer
+.  -mfn_view_solution binary - save computed solution vector to the default binary viewer
+-  -mfn_converged_reason - print reason for convergence, and number of iterations
 
    Notes:
    The matrix A is specified with MFNSetOperator().
-   The function f is specified with MFNSetFunction().
-   The scalar alpha is specified with MFNSetScaleFactor().
+   The function f is specified with MFNSetFN().
 
    Level: beginner
 
 .seealso: MFNCreate(), MFNSetUp(), MFNDestroy(), MFNSetTolerances(),
-          MFNSetOperator(), MFNSetFunction(), MFNSetScaleFactor()
+          MFNSetOperator(), MFNSetFN()
 @*/
 PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 {
-  PetscErrorCode    ierr;
-  PetscBool         flg;
-  PetscViewer       viewer;
-  PetscViewerFormat format;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (b) PetscValidHeaderSpecific(b,VEC_CLASSID,2);
-  if (b) PetscCheckSameComm(mfn,1,b,2);
-  if (x) PetscValidHeaderSpecific(x,VEC_CLASSID,3);
-  if (x) PetscCheckSameComm(mfn,1,x,3);
+  PetscValidHeaderSpecific(b,VEC_CLASSID,2);
+  PetscCheckSameComm(mfn,1,b,2);
+  if (b!=x) PetscValidHeaderSpecific(x,VEC_CLASSID,3);
+  if (b!=x) PetscCheckSameComm(mfn,1,x,3);
+  VecLocked(x,3);
 
   /* call setup */
   ierr = MFNSetUp(mfn);CHKERRQ(ierr);
   mfn->its = 0;
 
   ierr = MFNMonitor(mfn,mfn->its,0);CHKERRQ(ierr);
+  ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view_pre");CHKERRQ(ierr);
 
   /* call solver */
   ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
+  ierr = VecLockPush(b);CHKERRQ(ierr);
   ierr = (*mfn->ops->solve)(mfn,b,x);CHKERRQ(ierr);
+  ierr = VecLockPop(b);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
 
   if (!mfn->reason) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
@@ -84,17 +86,11 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   if (mfn->errorifnotconverged && mfn->reason < 0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_NOT_CONVERGED,"MFNSolve has not converged");
 
   /* various viewers */
+  ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view");CHKERRQ(ierr);
+  ierr = MFNReasonViewFromOptions(mfn);CHKERRQ(ierr);
   ierr = MatViewFromOptions(mfn->A,((PetscObject)mfn)->prefix,"-mfn_view_mat");CHKERRQ(ierr);
   ierr = VecViewFromOptions(b,((PetscObject)mfn)->prefix,"-mfn_view_rhs");CHKERRQ(ierr);
   ierr = VecViewFromOptions(x,((PetscObject)mfn)->prefix,"-mfn_view_solution");CHKERRQ(ierr);
-
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->prefix,"-mfn_view",&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg && !PetscPreLoadingOn) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = MFNView(mfn,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -135,7 +131,7 @@ PetscErrorCode MFNGetIterationNumber(MFN mfn,PetscInt *its)
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNGetConvergedReason"
-/*@C
+/*@
    MFNGetConvergedReason - Gets the reason why the MFNSolve() iteration was
    stopped.
 

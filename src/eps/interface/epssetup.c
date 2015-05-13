@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>       /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>       /*I "slepceps.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetUp"
@@ -48,8 +48,9 @@ PetscErrorCode EPSSetUp(EPS eps)
 {
   PetscErrorCode ierr;
   Mat            A,B;
+  SlepcSC        sc;
   PetscInt       k,nmat;
-  PetscBool      flg;
+  PetscBool      flg,istrivial;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    sigma;
 #endif
@@ -71,8 +72,13 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flg,EPSGD,EPSJD,EPSRQCG,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
     ierr = STSetType(eps->st,flg?STPRECOND:STSHIFT);CHKERRQ(ierr);
   }
+  ierr = STSetTransform(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSReset(eps->ds);CHKERRQ(ierr);
+  if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
+  if (!((PetscObject)eps->rg)->type_name) {
+    ierr = RGSetType(eps->rg,RGINTERVAL);CHKERRQ(ierr);
+  }
   if (!((PetscObject)eps->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
   }
@@ -95,10 +101,6 @@ PetscErrorCode EPSSetUp(EPS eps)
     eps->isgeneralized = PETSC_FALSE;
     eps->problem_type = eps->ishermitian? EPS_HEP: EPS_NHEP;
   } else if (nmat>1 && !eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state");
-#if defined(PETSC_USE_COMPLEX)
-  ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
-  if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
-#endif
 
   if (eps->nev > eps->n) eps->nev = eps->n;
   if (eps->ncv > eps->n) eps->ncv = eps->n;
@@ -125,56 +127,75 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* set tolerance if not yet set */
   if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
 
-  /* set eigenvalue comparison */
+  /* fill sorting criterion context */
   switch (eps->which) {
     case EPS_LARGEST_MAGNITUDE:
-      eps->comparison    = SlepcCompareLargestMagnitude;
-      eps->comparisonctx = NULL;
+      eps->sc->comparison    = SlepcCompareLargestMagnitude;
+      eps->sc->comparisonctx = NULL;
       break;
     case EPS_SMALLEST_MAGNITUDE:
-      eps->comparison    = SlepcCompareSmallestMagnitude;
-      eps->comparisonctx = NULL;
+      eps->sc->comparison    = SlepcCompareSmallestMagnitude;
+      eps->sc->comparisonctx = NULL;
       break;
     case EPS_LARGEST_REAL:
-      eps->comparison    = SlepcCompareLargestReal;
-      eps->comparisonctx = NULL;
+      eps->sc->comparison    = SlepcCompareLargestReal;
+      eps->sc->comparisonctx = NULL;
       break;
     case EPS_SMALLEST_REAL:
-      eps->comparison    = SlepcCompareSmallestReal;
-      eps->comparisonctx = NULL;
+      eps->sc->comparison    = SlepcCompareSmallestReal;
+      eps->sc->comparisonctx = NULL;
       break;
     case EPS_LARGEST_IMAGINARY:
-      eps->comparison    = SlepcCompareLargestImaginary;
-      eps->comparisonctx = NULL;
+      eps->sc->comparison    = SlepcCompareLargestImaginary;
+      eps->sc->comparisonctx = NULL;
       break;
     case EPS_SMALLEST_IMAGINARY:
-      eps->comparison    = SlepcCompareSmallestImaginary;
-      eps->comparisonctx = NULL;
+      eps->sc->comparison    = SlepcCompareSmallestImaginary;
+      eps->sc->comparisonctx = NULL;
       break;
     case EPS_TARGET_MAGNITUDE:
-      eps->comparison    = SlepcCompareTargetMagnitude;
-      eps->comparisonctx = &eps->target;
+      eps->sc->comparison    = SlepcCompareTargetMagnitude;
+      eps->sc->comparisonctx = &eps->target;
       break;
     case EPS_TARGET_REAL:
-      eps->comparison    = SlepcCompareTargetReal;
-      eps->comparisonctx = &eps->target;
+      eps->sc->comparison    = SlepcCompareTargetReal;
+      eps->sc->comparisonctx = &eps->target;
       break;
     case EPS_TARGET_IMAGINARY:
-      eps->comparison    = SlepcCompareTargetImaginary;
-      eps->comparisonctx = &eps->target;
+      eps->sc->comparison    = SlepcCompareTargetImaginary;
+      eps->sc->comparisonctx = &eps->target;
       break;
     case EPS_ALL:
-      eps->comparison    = SlepcCompareSmallestReal;
-      eps->comparisonctx = NULL;
+      eps->sc->comparison    = SlepcCompareSmallestReal;
+      eps->sc->comparisonctx = NULL;
       break;
     case EPS_WHICH_USER:
       break;
+  }
+  eps->sc->map    = NULL;
+  eps->sc->mapobj = NULL;
+
+  /* fill sorting criterion for DS */
+  ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
+  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+  if (eps->which==EPS_ALL) {
+    sc->rg            = NULL;
+    sc->comparison    = SlepcCompareLargestMagnitude;
+    sc->comparisonctx = NULL;
+    sc->map           = NULL;
+    sc->mapobj        = NULL;
+  } else {
+    sc->rg            = istrivial? NULL: eps->rg;
+    sc->comparison    = eps->sc->comparison;
+    sc->comparisonctx = eps->sc->comparisonctx;
+    sc->map           = SlepcMap_ST;
+    sc->mapobj        = (PetscObject)eps->st;
   }
 
   /* Build balancing matrix if required */
   if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
     if (!eps->D) {
-      ierr = BVGetVec(eps->V,&eps->D);CHKERRQ(ierr);
+      ierr = BVCreateVec(eps->V,&eps->D);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->D);CHKERRQ(ierr);
     } else {
       ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
@@ -186,6 +207,10 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* Setup ST */
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
 
+#if defined(PETSC_USE_COMPLEX)
+  ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
+  if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
+#endif
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg);CHKERRQ(ierr);
   if (flg && eps->problem_type == EPS_PGNHEP) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
 
@@ -225,7 +250,7 @@ PetscErrorCode EPSSetUp(EPS eps)
    Notes:
    To specify a standard eigenproblem, use NULL for parameter B.
 
-   It must be called after EPSSetUp(). If it is called again after EPSSetUp() then
+   It must be called before EPSSetUp(). If it is called again after EPSSetUp() then
    the EPS object is reset.
 
    Level: beginner
@@ -395,21 +420,29 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   EPSSetDimensions_Default - Set reasonable values for ncv, mpd if not set
   by the user. This is called at setup.
  */
-PetscErrorCode EPSSetDimensions_Default(EPS eps)
+PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
 {
+  PetscErrorCode ierr;
+  PetscBool      krylov;
+
   PetscFunctionBegin;
-  if (eps->ncv) { /* ncv set */
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
-  } else if (eps->mpd) { /* mpd set */
-    eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
+  if (*ncv) { /* ncv set */
+    ierr = PetscObjectTypeCompareAny((PetscObject)eps,&krylov,EPSKRYLOVSCHUR,EPSARNOLDI,EPSLANCZOS,"");CHKERRQ(ierr);
+    if (krylov) {
+      if (*ncv<nev+1 && !(*ncv==nev && *ncv==eps->n)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev+1");
+    } else {
+      if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
+    }
+  } else if (*mpd) { /* mpd set */
+    *ncv = PetscMin(eps->n,nev+(*mpd));
   } else { /* neither set: defaults depend on nev being small or large */
-    if (eps->nev<500) eps->ncv = PetscMin(eps->n,PetscMax(2*eps->nev,eps->nev+15));
+    if (nev<500) *ncv = PetscMin(eps->n,PetscMax(2*nev,nev+15));
     else {
-      eps->mpd = 500;
-      eps->ncv = PetscMin(eps->n,eps->nev+eps->mpd);
+      *mpd = 500;
+      *ncv = PetscMin(eps->n,nev+(*mpd));
     }
   }
-  if (!eps->mpd) eps->mpd = eps->ncv;
+  if (!*mpd) *mpd = *ncv;
   PetscFunctionReturn(0);
 }
 
@@ -471,7 +504,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
     if (!((PetscObject)(eps->V))->type_name) {
       ierr = BVSetType(eps->V,BVSVEC);CHKERRQ(ierr);
     }
-    ierr = STMatGetVecs(eps->st,&t,NULL);CHKERRQ(ierr);
+    ierr = STMatCreateVecs(eps->st,&t,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(eps->V,t,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {

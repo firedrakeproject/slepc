@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,7 +19,53 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/slepcimpl.h>            /*I "slepcsys.h" I*/
+#include <slepc/private/slepcimpl.h>            /*I "slepcsys.h" I*/
+
+#undef __FUNCT__
+#define __FUNCT__ "SlepcVecNormalize"
+/*@C
+   SlepcVecNormalize - Normalizes a possibly complex vector by the 2-norm.
+
+   Collective on Vec
+
+   Input parameters:
++  xr - the real part of the vector (overwritten on output)
+.  xi - the imaginary part of the vector (not referenced if iscomplex is false)
+-  iscomplex - a flag indicating if the vector is complex
+
+   Output parameter:
+.  norm - the vector norm before normalization (can be set to NULL)
+
+   Level: developer
+@*/
+PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscReal      normr,normi,alpha;
+#endif
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(xr,VEC_CLASSID,1);
+#if !defined(PETSC_USE_COMPLEX)
+  if (iscomplex) {
+    PetscValidHeaderSpecific(xi,VEC_CLASSID,2);
+    ierr = VecNormBegin(xr,NORM_2,&normr);CHKERRQ(ierr);
+    ierr = VecNormBegin(xi,NORM_2,&normi);CHKERRQ(ierr);
+    ierr = VecNormEnd(xr,NORM_2,&normr);CHKERRQ(ierr);
+    ierr = VecNormEnd(xi,NORM_2,&normi);CHKERRQ(ierr);
+    alpha = SlepcAbsEigenvalue(normr,normi);
+    if (norm) *norm = alpha;
+    alpha = 1.0 / alpha;
+    ierr = VecScale(xr,alpha);CHKERRQ(ierr);
+    ierr = VecScale(xi,alpha);CHKERRQ(ierr);
+  } else
+#endif
+  {
+    ierr = VecNormalize(xr,norm);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcMatConvertSeqDense"
@@ -414,7 +460,7 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcCheckOrthogonality"
-/*@
+/*@C
    SlepcCheckOrthogonality - Checks (or prints) the level of orthogonality
    of a set of vectors.
 
@@ -513,190 +559,6 @@ PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx)
   if (!*ctx) PetscFunctionReturn(0);
   ierr = PetscViewerDestroy(&(*ctx)->viewer);CHKERRQ(ierr);
   ierr = PetscFree(*ctx);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareLargestMagnitude"
-PetscErrorCode SlepcCompareLargestMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
-{
-  PetscReal a,b;
-
-  PetscFunctionBegin;
-  a = SlepcAbsEigenvalue(ar,ai);
-  b = SlepcAbsEigenvalue(br,bi);
-  if (a<b) *result = 1;
-  else if (a>b) *result = -1;
-  else *result = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareSmallestMagnitude"
-PetscErrorCode SlepcCompareSmallestMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
-{
-  PetscReal a,b;
-
-  PetscFunctionBegin;
-  a = SlepcAbsEigenvalue(ar,ai);
-  b = SlepcAbsEigenvalue(br,bi);
-  if (a>b) *result = 1;
-  else if (a<b) *result = -1;
-  else *result = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareLargestReal"
-PetscErrorCode SlepcCompareLargestReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
-{
-  PetscReal a,b;
-
-  PetscFunctionBegin;
-  a = PetscRealPart(ar);
-  b = PetscRealPart(br);
-  if (a<b) *result = 1;
-  else if (a>b) *result = -1;
-  else *result = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareSmallestReal"
-PetscErrorCode SlepcCompareSmallestReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
-{
-  PetscReal a,b;
-
-  PetscFunctionBegin;
-  a = PetscRealPart(ar);
-  b = PetscRealPart(br);
-  if (a>b) *result = 1;
-  else if (a<b) *result = -1;
-  else *result = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareLargestImaginary"
-PetscErrorCode SlepcCompareLargestImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
-{
-  PetscReal a,b;
-
-  PetscFunctionBegin;
-#if defined(PETSC_USE_COMPLEX)
-  a = PetscImaginaryPart(ar);
-  b = PetscImaginaryPart(br);
-#else
-  a = PetscAbsReal(ai);
-  b = PetscAbsReal(bi);
-#endif
-  if (a<b) *result = 1;
-  else if (a>b) *result = -1;
-  else *result = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareSmallestImaginary"
-PetscErrorCode SlepcCompareSmallestImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
-{
-  PetscReal a,b;
-
-  PetscFunctionBegin;
-#if defined(PETSC_USE_COMPLEX)
-  a = PetscImaginaryPart(ar);
-  b = PetscImaginaryPart(br);
-#else
-  a = PetscAbsReal(ai);
-  b = PetscAbsReal(bi);
-#endif
-  if (a>b) *result = 1;
-  else if (a<b) *result = -1;
-  else *result = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareTargetMagnitude"
-PetscErrorCode SlepcCompareTargetMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
-{
-  PetscReal   a,b;
-  PetscScalar *target = (PetscScalar*)ctx;
-
-  PetscFunctionBegin;
-  /* complex target only allowed if scalartype=complex */
-  a = SlepcAbsEigenvalue(ar-(*target),ai);
-  b = SlepcAbsEigenvalue(br-(*target),bi);
-  if (a>b) *result = 1;
-  else if (a<b) *result = -1;
-  else *result = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareTargetReal"
-PetscErrorCode SlepcCompareTargetReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
-{
-  PetscReal   a,b;
-  PetscScalar *target = (PetscScalar*)ctx;
-
-  PetscFunctionBegin;
-  a = PetscAbsReal(PetscRealPart(ar-(*target)));
-  b = PetscAbsReal(PetscRealPart(br-(*target)));
-  if (a>b) *result = 1;
-  else if (a<b) *result = -1;
-  else *result = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareTargetImaginary"
-PetscErrorCode SlepcCompareTargetImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
-{
-  PetscReal   a,b;
-#if defined(PETSC_USE_COMPLEX)
-  PetscScalar *target = (PetscScalar*)ctx;
-#endif
-
-  PetscFunctionBegin;
-#if !defined(PETSC_USE_COMPLEX)
-  /* complex target only allowed if scalartype=complex */
-  a = PetscAbsReal(ai);
-  b = PetscAbsReal(bi);
-#else
-  a = PetscAbsReal(PetscImaginaryPart(ar-(*target)));
-  b = PetscAbsReal(PetscImaginaryPart(br-(*target)));
-#endif
-  if (a>b) *result = 1;
-  else if (a<b) *result = -1;
-  else *result = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareSmallestPosReal"
-/*
-   Used in the SVD for computing smallest singular values
-   from the cyclic matrix.
-*/
-PetscErrorCode SlepcCompareSmallestPosReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
-{
-  PetscReal a,b;
-  PetscBool aisright,bisright;
-
-  PetscFunctionBegin;
-  if (PetscRealPart(ar)>0.0) aisright = PETSC_TRUE;
-  else aisright = PETSC_FALSE;
-  if (PetscRealPart(br)>0.0) bisright = PETSC_TRUE;
-  else bisright = PETSC_FALSE;
-  if (aisright == bisright) { /* same sign */
-    a = SlepcAbsEigenvalue(ar,ai);
-    b = SlepcAbsEigenvalue(br,bi);
-    if (a>b) *result = 1;
-    else if (a<b) *result = -1;
-    else *result = 0;
-  } else if (aisright && !bisright) *result = -1; /* 'a' is on the right */
-  else *result = 1;  /* 'b' is on the right */
   PetscFunctionReturn(0);
 }
 

@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -26,14 +26,18 @@
 
 typedef struct {
   PetscBool  explicitmatrix;
-  PetscInt   cform;           /* companion form */
-  PetscReal  sfactor;         /* scaling factor */
-  Mat        A,B;             /* matrices of generalized eigenproblem */
-  EPS        eps;             /* linear eigensolver for Az=lBz */
-  Mat        M,C,K;           /* copy of PEP coefficient matrices */
-  Vec        x1,x2,y1,y2;     /* work vectors */
+  PEP        pep;
+  PetscInt   cform;            /* companion form */
+  PetscReal  sfactor,dsfactor; /* scaling factors */
+  Mat        A,B;              /* matrices of generalized eigenproblem */
+  EPS        eps;              /* linear eigensolver for Az=lBz */
+  Mat        M,C,K;            /* copy of PEP coefficient matrices */
+  Vec        w[6];             /* work vectors */
   PetscBool  setfromoptionscalled;
 } PEP_LINEAR;
+
+/* General case for implicit matrices of degree d */
+PETSC_INTERN PetscErrorCode MatMult_Linear(Mat,Vec,Vec);
 
 /* N1 */
 PETSC_INTERN PetscErrorCode MatMult_Linear_N1A(Mat,Vec,Vec);

@@ -306,12 +306,48 @@
       </font>
     </td>
   </tr>
+  <tr valign="middle" bgcolor="#fff0d0"> 
+    <td width="138" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      3.5
+      </font>
+    </td>
+    <td width="175" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      3.5
+      </font>
+    </td>
+    <td width="75" height="21" align="center"> * </td>
+    <td width="146" height="21" align="center">
+      <font face="Arial, Helvetica, sans-serif" size="2">
+      Jul 2014
+      </font>
+    </td>
+  </tr>
 </table>
 
 <p>&nbsp;</p>
 </tr></td>
 
 <tr><td>
+
+<p>
+<font size="3" face="Arial, Helvetica, sans-serif"><b>
+Changes in Version 3.6</font></b>
+</p>
+
+<ul>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    User makefiles must now include <code>${SLEPC_DIR}/lib/slepc/conf/slepc_common</code>.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Interface changes: EPSComputeRelativeError and EPSComputeResidualNorm have
+    been deprecated (use EPSComputeError instead); the same for PEP, NEP and SVD;
+    PEPSetScale now allows to pass two Vecs for diagonal scaling;
+    XXXPrintSolution has been replaced with XXXErrorView; BVGetVec has been renamed
+    to BVCreateVec.
+    </font></li>
+</ul>
 
 <p>
 <font size="3" face="Arial, Helvetica, sans-serif"><b>
@@ -322,6 +358,18 @@ Changes in Version 3.5</font></b>
   <li><font size="2" face="Arial, Helvetica, sans-serif">
     A new solver class PEP for polynomial eigenvalue problems has been added.
     It replaces the former QEP class, that has been removed.
+    PEP contains a new solver TOAR that can handle polynomials of arbitrary
+    degree. Q-Lanczos has been removed since it did not have guaranteed stability.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    New NEP solver: polynomial interpolation using PEP.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Added Newton iterative refinement in both PEP and NEP.
+    </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    A new auxiliary class RG allows the user to define a region in the complex plane.
+    This can be used for filtering out unwanted eigenvalues in EPS and PEP.
     </font></li>
   <li><font size="2" face="Arial, Helvetica, sans-serif">
     The auxiliary object IP has been removed and a new object BV has been
@@ -332,8 +380,13 @@ Changes in Version 3.5</font></b>
     solvers were computing them internally.
     </font></li>
   <li><font size="2" face="Arial, Helvetica, sans-serif">
-    The STFOLD spectral transformation has been removed.
+    The STFOLD spectral transformation has been removed. Example ex24.c reproduces
+    this functionality.
     </font></li>
+  <li><font size="2" face="Arial, Helvetica, sans-serif">
+    Interface changes: SVDSetTransposeMode has been renamed to SVDSetImplicitTranspose;
+    in STSHIFT the sign of sigma is the opposite to previous versions.
+    EPSJDSetBOrth now takes a boolean argument instead of an enum.</font></li>
 </ul>
 
 <p>

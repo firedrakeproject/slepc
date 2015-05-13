@@ -6,7 +6,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -24,8 +24,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>                /*I "slepcsvd.h" I*/
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepc/private/svdimpl.h>                /*I "slepcsvd.h" I*/
+#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 
 typedef struct {
   EPS       eps;
@@ -88,11 +88,10 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
         ierr = MatRestoreRow(svd->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
       }
     }
-    ierr = MPI_Allreduce(work1,work2,N,MPIU_SCALAR,MPI_SUM,PetscObjectComm((PetscObject)svd));CHKERRQ(ierr);
+    ierr = MPI_Allreduce(work1,work2,N,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)svd));CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(cross->diag,&start,&end);CHKERRQ(ierr);
     ierr = VecGetArray(cross->diag,&diag);CHKERRQ(ierr);
-    for (i=start;i<end;i++)
-      diag[i-start] = work2[i];
+    for (i=start;i<end;i++) diag[i-start] = work2[i];
     ierr = VecRestoreArray(cross->diag,&diag);CHKERRQ(ierr);
     ierr = PetscFree2(work1,work2);CHKERRQ(ierr);
   }
@@ -115,7 +114,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
     ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
     ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))MatMult_Cross);CHKERRQ(ierr);
     ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross);CHKERRQ(ierr);
-    ierr = SVDMatGetVecs(svd,NULL,&cross->w);CHKERRQ(ierr);
+    ierr = SVDMatCreateVecs(svd,NULL,&cross->w);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->mat);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->w);CHKERRQ(ierr);
   }
@@ -131,7 +130,8 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   ierr = EPSSetTrackAll(cross->eps,trackall);CHKERRQ(ierr);
   ierr = EPSSetUp(cross->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(cross->eps,NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
-  ierr = EPSGetTolerances(cross->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
+  ierr = EPSGetTolerances(cross->eps,NULL,&svd->max_it);CHKERRQ(ierr);
+  if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
   /* Transfer the initial space from svd to eps */
   if (svd->nini < 0) {
     ierr = EPSSetInitialSpace(cross->eps,-svd->nini,svd->IS);CHKERRQ(ierr);
@@ -189,14 +189,16 @@ static PetscErrorCode SVDMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,Petsc
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions_Cross"
-PetscErrorCode SVDSetFromOptions_Cross(SVD svd)
+PetscErrorCode SVDSetFromOptions_Cross(PetscOptions *PetscOptionsObject,SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
 
   PetscFunctionBegin;
+  ierr = PetscOptionsHead(PetscOptionsObject,"SVD Cross Options");CHKERRQ(ierr);
   if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
   ierr = EPSSetFromOptions(cross->eps);CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -212,7 +214,7 @@ static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
   ierr = EPSDestroy(&cross->eps);CHKERRQ(ierr);
   cross->eps = eps;
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->eps);CHKERRQ(ierr);
-  svd->setupcalled = 0;
+  svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

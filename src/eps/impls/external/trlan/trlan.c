@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>
+#include <slepc/private/epsimpl.h>
 #include <../src/eps/impls/external/trlan/trlanp.h>
 
 PetscErrorCode EPSSolve_TRLAN(EPS);
@@ -34,6 +34,7 @@ static EPS globaleps;
 PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
+  PetscBool      istrivial;
   EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;
 
   PetscFunctionBegin;
@@ -62,6 +63,8 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   ierr = PetscLogObjectMemory((PetscObject)eps,tr->lwork*sizeof(PetscReal));CHKERRQ(ierr);
 
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
+  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
 
@@ -122,7 +125,9 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   ipar[4]  = tr->maxlan;   /* maximum Lanczos basis size */
   ipar[5]  = tr->restart;  /* restarting scheme */
   ierr = PetscBLASIntCast(eps->max_it,&ipar[6]);CHKERRQ(ierr); /* maximum number of MATVECs */
+#if !defined(PETSC_HAVE_MPIUNI)
   ierr = PetscBLASIntCast(MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&ipar[7]);CHKERRQ(ierr);
+#endif
   ipar[8]  = 0;            /* verboseness */
   ipar[9]  = 99;           /* Fortran IO unit number used to write log messages */
   ipar[10] = 1;            /* use supplied starting vector */

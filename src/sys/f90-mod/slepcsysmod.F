@@ -1,6 +1,6 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
-!  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+!  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
 !     
@@ -20,53 +20,63 @@
 #define PETSC_USE_FORTRAN_MODULES
 
         module slepcsysdef
-#include <finclude/slepcsys.h>
+#include <slepc/finclude/slepcsys.h>
         end module
 
         module slepcsys
         use slepcsysdef
         end module
 
+        module slepcrgdef
+#include <slepc/finclude/slepcrg.h>
+#include <slepc/finclude/ftn-custom/slepcrgdef.h90>
+        end module
+
+        module slepcrg
+        use slepcrgdef
+#include <slepc/finclude/slepcrg.h90>
+        end module
+
         module slepcfndef
-#include <finclude/slepcfn.h>
-#include <finclude/ftn-custom/slepcfndef.h90>
+#include <slepc/finclude/slepcfn.h>
+#include <slepc/finclude/ftn-custom/slepcfndef.h90>
         end module
 
         module slepcfn
         use slepcfndef
-#include <finclude/slepcfn.h90>
+#include <slepc/finclude/slepcfn.h90>
         end module
 
         module slepcdsdef
         use slepcsys
         use slepcfn
-#include <finclude/slepcds.h>
-#include <finclude/ftn-custom/slepcdsdef.h90>
+#include <slepc/finclude/slepcds.h>
+#include <slepc/finclude/ftn-custom/slepcdsdef.h90>
         end module
 
         module slepcds
         use slepcdsdef
-#include <finclude/slepcds.h90>
+#include <slepc/finclude/slepcds.h90>
         end module
 
         module slepcbvdef
-#include <finclude/slepcbv.h>
-#include <finclude/ftn-custom/slepcbvdef.h90>
+#include <slepc/finclude/slepcbv.h>
+#include <slepc/finclude/ftn-custom/slepcbvdef.h90>
         end module
 
         module slepcbv
         use slepcbvdef
-#include <finclude/slepcbv.h90>
+#include <slepc/finclude/slepcbv.h90>
         end module
 
         module slepcstdef
         use petscksp
-#include <finclude/slepcst.h>
-#include <finclude/ftn-custom/slepcstdef.h90>
+#include <slepc/finclude/slepcst.h>
+#include <slepc/finclude/ftn-custom/slepcstdef.h90>
         end module
 
         module slepcst
         use slepcstdef
-#include <finclude/slepcst.h90>
+#include <slepc/finclude/slepcst.h90>
         end module
 

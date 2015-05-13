@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>       /*I "slepcpep.h" I*/
+#include <slepc/private/pepimpl.h>       /*I "slepcpep.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetUp"
@@ -46,8 +46,9 @@
 PetscErrorCode PEPSetUp(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscBool      islinear,flg;
-  PetscInt       i,k;
+  SlepcSC        sc;
+  PetscBool      islinear,istrivial,flg;
+  PetscInt       k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -61,15 +62,17 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (!((PetscObject)pep)->type_name) {
     ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
   }
+  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
-  if (!islinear) {
-    if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
-    if (!((PetscObject)pep->st)->type_name) {
-      ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
-    }
+  if (!((PetscObject)pep->st)->type_name) {
+    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
   }
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSReset(pep->ds);CHKERRQ(ierr);
+  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
+  if (!((PetscObject)pep->rg)->type_name) {
+    ierr = RGSetType(pep->rg,RGINTERVAL);CHKERRQ(ierr);
+  }
   if (!((PetscObject)pep->rand)->type_name) {
     ierr = PetscRandomSetFromOptions(pep->rand);CHKERRQ(ierr);
   }
@@ -87,76 +90,84 @@ PetscErrorCode PEPSetUp(PEP pep)
     ierr = PEPSetProblemType(pep,PEP_GENERAL);CHKERRQ(ierr);
   }
 
-  /* initialization of matrix norms */
-  if (pep->conv==PEP_CONV_NORM) {
-    for (i=0;i<pep->nmat;i++) {
-      if (!pep->nrma[i]) {
-        ierr = MatNorm(pep->A[i],NORM_INFINITY,&pep->nrma[i]);CHKERRQ(ierr);
-      }
-    }
-  }
-
   /* call specific solver setup */
   ierr = (*pep->ops->setup)(pep);CHKERRQ(ierr);
 
   /* set tolerance if not yet set */
   if (pep->tol==PETSC_DEFAULT) pep->tol = SLEPC_DEFAULT_TOL;
-
-  /* set eigenvalue comparison */
-  switch (pep->which) {
-    case PEP_LARGEST_MAGNITUDE:
-      pep->comparison    = SlepcCompareLargestMagnitude;
-      pep->comparisonctx = NULL;
-      break;
-    case PEP_SMALLEST_MAGNITUDE:
-      pep->comparison    = SlepcCompareSmallestMagnitude;
-      pep->comparisonctx = NULL;
-      break;
-    case PEP_LARGEST_REAL:
-      pep->comparison    = SlepcCompareLargestReal;
-      pep->comparisonctx = NULL;
-      break;
-    case PEP_SMALLEST_REAL:
-      pep->comparison    = SlepcCompareSmallestReal;
-      pep->comparisonctx = NULL;
-      break;
-    case PEP_LARGEST_IMAGINARY:
-      pep->comparison    = SlepcCompareLargestImaginary;
-      pep->comparisonctx = NULL;
-      break;
-    case PEP_SMALLEST_IMAGINARY:
-      pep->comparison    = SlepcCompareSmallestImaginary;
-      pep->comparisonctx = NULL;
-      break;
-    case PEP_TARGET_MAGNITUDE:
-      pep->comparison    = SlepcCompareTargetMagnitude;
-      pep->comparisonctx = &pep->target;
-      break;
-    case PEP_TARGET_REAL:
-      pep->comparison    = SlepcCompareTargetReal;
-      pep->comparisonctx = &pep->target;
-      break;
-    case PEP_TARGET_IMAGINARY:
-      pep->comparison    = SlepcCompareTargetImaginary;
-      pep->comparisonctx = &pep->target;
-      break;
+  if (pep->refine) {
+    if (pep->rtol==PETSC_DEFAULT) pep->rtol = pep->tol;
+    if (pep->rits==PETSC_DEFAULT) pep->rits = (pep->refine==PEP_REFINE_SIMPLE)? 10: 1;
   }
 
-  if (pep->ncv > pep->n) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be the problem size at most");
-  if (pep->nev > pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
+  /* set default extraction */
+  if (!pep->extract) {
+    pep->extract = (pep->basis==PEP_BASIS_MONOMIAL)? PEP_EXTRACT_NORM: PEP_EXTRACT_NONE;
+  }
+
+  /* fill sorting criterion context */
+  switch (pep->which) {
+    case PEP_LARGEST_MAGNITUDE:
+      pep->sc->comparison    = SlepcCompareLargestMagnitude;
+      pep->sc->comparisonctx = NULL;
+      break;
+    case PEP_SMALLEST_MAGNITUDE:
+      pep->sc->comparison    = SlepcCompareSmallestMagnitude;
+      pep->sc->comparisonctx = NULL;
+      break;
+    case PEP_LARGEST_REAL:
+      pep->sc->comparison    = SlepcCompareLargestReal;
+      pep->sc->comparisonctx = NULL;
+      break;
+    case PEP_SMALLEST_REAL:
+      pep->sc->comparison    = SlepcCompareSmallestReal;
+      pep->sc->comparisonctx = NULL;
+      break;
+    case PEP_LARGEST_IMAGINARY:
+      pep->sc->comparison    = SlepcCompareLargestImaginary;
+      pep->sc->comparisonctx = NULL;
+      break;
+    case PEP_SMALLEST_IMAGINARY:
+      pep->sc->comparison    = SlepcCompareSmallestImaginary;
+      pep->sc->comparisonctx = NULL;
+      break;
+    case PEP_TARGET_MAGNITUDE:
+      pep->sc->comparison    = SlepcCompareTargetMagnitude;
+      pep->sc->comparisonctx = &pep->target;
+      break;
+    case PEP_TARGET_REAL:
+      pep->sc->comparison    = SlepcCompareTargetReal;
+      pep->sc->comparisonctx = &pep->target;
+      break;
+    case PEP_TARGET_IMAGINARY:
+      pep->sc->comparison    = SlepcCompareTargetImaginary;
+      pep->sc->comparisonctx = &pep->target;
+      break;
+    case PEP_WHICH_USER:
+      break;
+  }
+  pep->sc->map    = NULL;
+  pep->sc->mapobj = NULL;
+
+  /* fill sorting criterion for DS */
+  ierr = DSGetSlepcSC(pep->ds,&sc);CHKERRQ(ierr);
+  ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
+  sc->rg            = istrivial? NULL: pep->rg;
+  sc->comparison    = pep->sc->comparison;
+  sc->comparisonctx = pep->sc->comparisonctx;
+  sc->map           = SlepcMap_ST;
+  sc->mapobj        = (PetscObject)pep->st;
 
   /* setup ST */
-  if (!islinear) {
-    ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
-    if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in PEP");
-    ierr = STSetUp(pep->st);CHKERRQ(ierr);
-    /* compute matrix coefficients */
-    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-    if (!flg) {
-      ierr = STComputeSolveMat(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr);
-    } else {
-      if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Cannot use ST-transform with non-monomial basis in PEP");
-    }
+  ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
+  if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in PEP");
+  ierr = STSetUp(pep->st);CHKERRQ(ierr);
+  /* compute matrix coefficients */
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (!flg) {
+    if (pep->solvematcoeffs) { ierr = STMatSetUp(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr); }
+  } else {
+    if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Cannot use ST-transform with non-monomial basis in PEP");
   }
 
   /* compute scale factor if no set by user */
@@ -165,14 +176,18 @@ PetscErrorCode PEPSetUp(PEP pep)
   /* build balancing matrix if required */
   if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) {
     if (!pep->Dl) {
-      ierr = BVGetVec(pep->V,&pep->Dl);CHKERRQ(ierr);
+      ierr = BVCreateVec(pep->V,&pep->Dl);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dl);CHKERRQ(ierr);
     }
     if (!pep->Dr) {
-      ierr = BVGetVec(pep->V,&pep->Dr);CHKERRQ(ierr);
+      ierr = BVCreateVec(pep->V,&pep->Dr);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dr);CHKERRQ(ierr);
     }
     ierr = PEPBuildDiagonalScaling(pep);CHKERRQ(ierr);
+  }
+
+  if (pep->conv==PEP_CONV_LINEAR) {
+    ierr = PEPComputeLinearNorms(pep);CHKERRQ(ierr);
   }
 
   /* process initial vectors */
@@ -219,12 +234,13 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,nmat,2);
-  if (nmat <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %D",nmat);
+  if (nmat <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Non-positive value of nmat: %D",nmat);
+  if (nmat <= 2) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Cannot solve linear eigenproblems with PEP; use EPS instead");
   PetscValidPointer(A,3);
 
   if (pep->state) { ierr = PEPReset(pep);CHKERRQ(ierr); }
   ierr = PetscMalloc1(nmat,&pep->A);CHKERRQ(ierr);
-  ierr = PetscCalloc3(3*nmat,&pep->pbc,nmat,&pep->solvematcoeffs,nmat,&pep->nrma);CHKERRQ(ierr);
+  ierr = PetscCalloc2(3*nmat,&pep->pbc,nmat,&pep->nrma);CHKERRQ(ierr);
   for (i=0;i<nmat;i++) pep->pbc[i] = 1.0;  /* default to monomial basis */
   ierr = PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat)+4*nmat*sizeof(PetscReal)+nmat*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<nmat;i++) {
@@ -337,6 +353,40 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec *is)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPSetDimensions_Default"
+/*
+  PEPSetDimensions_Default - Set reasonable values for ncv, mpd if not set
+  by the user. This is called at setup.
+ */
+PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
+{
+  PetscErrorCode ierr;
+  PetscBool      krylov;
+  PetscInt       dim;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompareAny((PetscObject)pep,&krylov,PEPTOAR,PEPQARNOLDI,"");CHKERRQ(ierr);
+  dim = krylov?(pep->nmat-1)*pep->n:pep->n;
+  if (*ncv) { /* ncv set */
+    if (krylov) {
+      if (*ncv<nev+1 && !(*ncv==nev && *ncv==dim)) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev+1");
+    } else {
+      if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev");
+    }
+  } else if (*mpd) { /* mpd set */
+    *ncv = PetscMin(dim,nev+(*mpd));
+  } else { /* neither set: defaults depend on nev being small or large */
+    if (nev<500) *ncv = PetscMin(dim,PetscMax(2*nev,nev+15));
+    else {
+      *mpd = 500;
+      *ncv = PetscMin(dim,nev+(*mpd));
+    }
+  }
+  if (!*mpd) *mpd = *ncv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPAllocateSolution"
 /*@
    PEPAllocateSolution - Allocate memory storage for common variables such
@@ -385,7 +435,7 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
     if (!((PetscObject)(pep->V))->type_name) {
       ierr = BVSetType(pep->V,BVSVEC);CHKERRQ(ierr);
     }
-    ierr = STMatGetVecs(pep->st,&t,NULL);CHKERRQ(ierr);
+    ierr = STMatCreateVecs(pep->st,&t,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(pep->V,t,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {

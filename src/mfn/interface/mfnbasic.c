@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/mfnimpl.h>      /*I "slepcmfn.h" I*/
+#include <slepc/private/mfnimpl.h>      /*I "slepcmfn.h" I*/
 
 PetscFunctionList MFNList = 0;
 PetscBool         MFNRegisterAllCalled = PETSC_FALSE;
@@ -60,8 +60,6 @@ PetscLogEvent     MFN_SetUp = 0,MFN_Solve = 0;
 PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  const char     *fun;
-  char           str[50];
   PetscBool      isascii;
 
   PetscFunctionBegin;
@@ -78,35 +76,98 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
       ierr = (*mfn->ops->view)(mfn,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-    if (mfn->function) {
-      switch (mfn->function) {
-        case SLEPC_FUNCTION_EXP: fun = "exponential"; break;
-        default: SETERRQ(PetscObjectComm((PetscObject)mfn),1,"Wrong value of mfn->function");
-      }
-    } else fun = "not yet set";
-    ierr = PetscViewerASCIIPrintf(viewer,"  function: %s\n",fun);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",mfn->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",mfn->max_it);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)mfn->tol);CHKERRQ(ierr);
-    ierr = SlepcSNPrintfScalar(str,50,mfn->sfactor,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor: %s\n",str);CHKERRQ(ierr);
   } else {
     if (mfn->ops->view) {
       ierr = (*mfn->ops->view)(mfn,viewer);CHKERRQ(ierr);
     }
   }
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
+  if (!mfn->V) { ierr = MFNGetFN(mfn,&mfn->fn);CHKERRQ(ierr); }
+  ierr = FNView(mfn->fn,viewer);CHKERRQ(ierr);
   if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
   ierr = BVView(mfn->V,viewer);CHKERRQ(ierr);
-  if (!mfn->ds) { ierr = MFNGetDS(mfn,&mfn->ds);CHKERRQ(ierr); }
-  ierr = DSView(mfn->ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MFNCreate"
+#define __FUNCT__ "MFNReasonView"
 /*@C
+   MFNReasonView - Displays the reason an MFN solve converged or diverged.
+
+   Collective on MFN
+
+   Parameter:
++  mfn - the matrix function context
+-  viewer - the viewer to display the reason
+
+   Options Database Keys:
+.  -mfn_converged_reason - print reason for convergence, and number of iterations
+
+   Level: beginner
+
+.seealso: MFNSetTolerances(), MFNGetIterationNumber()
+@*/
+PetscErrorCode MFNReasonView(MFN mfn,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  PetscBool      isAscii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
+  if (isAscii) {
+    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
+    if (mfn->reason > 0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Matrix function solve converged due to %s; iterations %D\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Matrix function solve did not converge due to %s; iterations %D\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MFNReasonViewFromOptions"
+/*@
+   MFNReasonViewFromOptions - Processes command line options to determine if/how
+   the MFN converged reason is to be viewed. 
+
+   Collective on MFN
+
+   Input Parameters:
+.  mfn - the matrix function context
+
+   Level: intermediate
+@*/
+PetscErrorCode MFNReasonViewFromOptions(MFN mfn)
+{
+  PetscErrorCode    ierr;
+  PetscViewer       viewer;
+  PetscBool         flg;
+  static PetscBool  incall = PETSC_FALSE;
+  PetscViewerFormat format;
+
+  PetscFunctionBegin;
+  if (incall) PetscFunctionReturn(0);
+  incall = PETSC_TRUE;
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->prefix,"-mfn_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
+    ierr = MFNReasonView(mfn,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+  incall = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MFNCreate"
+/*@
    MFNCreate - Creates the default MFN context.
 
    Collective on MPI_Comm
@@ -133,19 +194,18 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   PetscValidPointer(outmfn,2);
   *outmfn = 0;
   ierr = MFNInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(mfn,_p_MFN,struct _MFNOps,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(mfn,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView);CHKERRQ(ierr);
 
   mfn->A               = NULL;
+  mfn->fn              = NULL;
   mfn->max_it          = 0;
   mfn->ncv             = 0;
   mfn->tol             = PETSC_DEFAULT;
-  mfn->function        = (SlepcFunction)0;
   mfn->sfactor         = 1.0;
   mfn->errorifnotconverged = PETSC_FALSE;
 
   mfn->numbermonitors  = 0;
 
-  mfn->ds              = NULL;
   mfn->V               = NULL;
   mfn->rand            = NULL;
   mfn->nwork           = 0;
@@ -305,14 +365,13 @@ PetscErrorCode MFNReset(MFN mfn)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   if (mfn->ops->reset) { ierr = (mfn->ops->reset)(mfn);CHKERRQ(ierr); }
-  if (mfn->ds) { ierr = DSReset(mfn->ds);CHKERRQ(ierr); }
   mfn->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNDestroy"
-/*@C
+/*@
    MFNDestroy - Destroys the MFN context.
 
    Collective on MFN
@@ -336,7 +395,7 @@ PetscErrorCode MFNDestroy(MFN *mfn)
   if ((*mfn)->ops->destroy) { ierr = (*(*mfn)->ops->destroy)(*mfn);CHKERRQ(ierr); }
   ierr = MatDestroy(&(*mfn)->A);CHKERRQ(ierr);
   ierr = BVDestroy(&(*mfn)->V);CHKERRQ(ierr);
-  ierr = DSDestroy(&(*mfn)->ds);CHKERRQ(ierr);
+  ierr = FNDestroy(&(*mfn)->fn);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*mfn)->rand);CHKERRQ(ierr);
   ierr = MFNMonitorCancel(*mfn);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(mfn);CHKERRQ(ierr);
@@ -379,7 +438,7 @@ PetscErrorCode MFNSetBV(MFN mfn,BV bv)
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNGetBV"
-/*@C
+/*@
    MFNGetBV - Obtain the basis vectors object associated to the matrix
    function solver.
 
@@ -411,43 +470,43 @@ PetscErrorCode MFNGetBV(MFN mfn,BV *bv)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MFNSetDS"
+#define __FUNCT__ "MFNSetFN"
 /*@
-   MFNSetDS - Associates a direct solver object to the matrix function solver.
+   MFNSetFN - Specifies the function to be computed.
 
    Collective on MFN
 
    Input Parameters:
 +  mfn - matrix function context obtained from MFNCreate()
--  ds  - the direct solver object
+-  fn  - the math function object
 
    Note:
-   Use MFNGetDS() to retrieve the direct solver context (for example,
+   Use MFNGetFN() to retrieve the math function context (for example,
    to free it at the end of the computations).
 
    Level: advanced
 
-.seealso: MFNGetDS()
+.seealso: MFNGetFN()
 @*/
-PetscErrorCode MFNSetDS(MFN mfn,DS ds)
+PetscErrorCode MFNSetFN(MFN mfn,FN fn)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidHeaderSpecific(ds,DS_CLASSID,2);
-  PetscCheckSameComm(mfn,1,ds,2);
-  ierr = PetscObjectReference((PetscObject)ds);CHKERRQ(ierr);
-  ierr = DSDestroy(&mfn->ds);CHKERRQ(ierr);
-  mfn->ds = ds;
-  ierr = PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->ds);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(fn,FN_CLASSID,2);
+  PetscCheckSameComm(mfn,1,fn,2);
+  ierr = PetscObjectReference((PetscObject)fn);CHKERRQ(ierr);
+  ierr = FNDestroy(&mfn->fn);CHKERRQ(ierr);
+  mfn->fn = fn;
+  ierr = PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->fn);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MFNGetDS"
-/*@C
-   MFNGetDS - Obtain the direct solver object associated to the matrix function object.
+#define __FUNCT__ "MFNGetFN"
+/*@
+   MFNGetFN - Obtain the math function object associated to the MFN object.
 
    Not Collective
 
@@ -455,24 +514,24 @@ PetscErrorCode MFNSetDS(MFN mfn,DS ds)
 .  mfn - matrix function context obtained from MFNCreate()
 
    Output Parameter:
-.  ds - direct solver context
+.  fn - math function context
 
    Level: advanced
 
-.seealso: MFNSetDS()
+.seealso: MFNSetFN()
 @*/
-PetscErrorCode MFNGetDS(MFN mfn,DS *ds)
+PetscErrorCode MFNGetFN(MFN mfn,FN *fn)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidPointer(ds,2);
-  if (!mfn->ds) {
-    ierr = DSCreate(PetscObjectComm((PetscObject)mfn),&mfn->ds);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->ds);CHKERRQ(ierr);
+  PetscValidPointer(fn,2);
+  if (!mfn->fn) {
+    ierr = FNCreate(PetscObjectComm((PetscObject)mfn),&mfn->fn);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->fn);CHKERRQ(ierr);
   }
-  *ds = mfn->ds;
+  *fn = mfn->fn;
   PetscFunctionReturn(0);
 }
 

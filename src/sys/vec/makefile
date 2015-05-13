@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = vecutil.c veccomp.c contiguous.c dvd_blas.c
+SOURCEC  = veccomp.c pool.c
 SOURCEF  =
 SOURCEH  = veccomp0.h
 LIBBASE  = libslepcsys
@@ -31,6 +31,6 @@ DIRS     =
 MANSEC   = sys
 LOCDIR   = src/sys/vec/
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

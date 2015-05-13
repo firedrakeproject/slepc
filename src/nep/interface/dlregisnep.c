@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,9 +19,14 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>
+#include <slepc/private/nepimpl.h>
 
 static PetscBool NEPPackageInitialized = PETSC_FALSE;
+
+const char *NEPErrorTypes[] = {"ABSOLUTE","RELATIVE","NEPErrorType","NEP_ERROR_",0};
+const char *NEPRefineTypes[] = {"NONE","SIMPLE","MULTIPLE","NEPRefine","NEP_REFINE_",0};
+const char *const NEPConvergedReasons_Shifted[] = {"DIVERGED_FNORM_NAN","DIVERGED_BREAKDOWN","DIVERGED_MAX_IT","DIVERGED_FUNCTION_COUNT","DIVERGED_LINEAR_SOLVE","CONVERGED_ITERATING","","CONVERGED_FNORM_ABS","CONVERGED_FNORM_RELATIVE","CONVERGED_SNORM_RELATIVE","NEPConvergedReason","NEP_",0};
+const char *const*NEPConvergedReasons = NEPConvergedReasons_Shifted + 5;
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPFinalizePackage"
@@ -72,6 +77,7 @@ PetscErrorCode NEPInitializePackage(void)
   /* Register Events */
   ierr = PetscLogEventRegister("NEPSetUp",NEP_CLASSID,&NEP_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPSolve",NEP_CLASSID,&NEP_Solve);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("NEPRefine",NEP_CLASSID,&NEP_Refine);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPFunctionEval",NEP_CLASSID,&NEP_FunctionEval);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPJacobianEval",NEP_CLASSID,&NEP_JacobianEval);CHKERRQ(ierr);
   /* Process info exclusions */

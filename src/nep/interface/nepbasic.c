@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,138 +21,16 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>      /*I "slepcnep.h" I*/
+#include <slepc/private/nepimpl.h>      /*I "slepcnep.h" I*/
 
 PetscFunctionList NEPList = 0;
 PetscBool         NEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId      NEP_CLASSID = 0;
-PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0;
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPView"
-/*@C
-   NEPView - Prints the NEP data structure.
-
-   Collective on NEP
-
-   Input Parameters:
-+  nep - the nonlinear eigenproblem solver context
--  viewer - optional visualization context
-
-   Options Database Key:
-.  -nep_view -  Calls NEPView() at end of NEPSolve()
-
-   Note:
-   The available visualization contexts include
-+     PETSC_VIEWER_STDOUT_SELF - standard output (default)
--     PETSC_VIEWER_STDOUT_WORLD - synchronized standard
-         output where only the first processor opens
-         the file.  All other processors send their
-         data to the first processor to print.
-
-   The user can open an alternative visualization context with
-   PetscViewerASCIIOpen() - output to a specified file.
-
-   Level: beginner
-
-.seealso: PetscViewerASCIIOpen()
-@*/
-PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
-{
-  PetscErrorCode ierr;
-  char           str[50];
-  PetscBool      isascii,isslp;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep));
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
-  PetscCheckSameComm(nep,1,viewer,2);
-
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)nep,viewer);CHKERRQ(ierr);
-    if (nep->ops->view) {
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = (*nep->ops->view)(nep,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
-    }
-    if (nep->split) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator in split form\n");CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator from user callbacks\n");CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
-    ierr = SlepcSNPrintfScalar(str,50,nep->target,PETSC_FALSE);CHKERRQ(ierr);
-    if (!nep->which) {
-      ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
-    } else switch (nep->which) {
-      case NEP_TARGET_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (in magnitude)\n",str);CHKERRQ(ierr);
-        break;
-      case NEP_TARGET_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the real axis)\n",str);CHKERRQ(ierr);
-        break;
-      case NEP_TARGET_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the imaginary axis)\n",str);CHKERRQ(ierr);
-        break;
-      case NEP_LARGEST_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest eigenvalues in magnitude\n");CHKERRQ(ierr);
-        break;
-      case NEP_SMALLEST_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest eigenvalues in magnitude\n");CHKERRQ(ierr);
-        break;
-      case NEP_LARGEST_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest real parts\n");CHKERRQ(ierr);
-        break;
-      case NEP_SMALLEST_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest real parts\n");CHKERRQ(ierr);
-        break;
-      case NEP_LARGEST_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest imaginary parts\n");CHKERRQ(ierr);
-        break;
-      case NEP_SMALLEST_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
-        break;
-      default: SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of nep->which");
-    }
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",nep->nev);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",nep->ncv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",nep->mpd);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",nep->max_it);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of function evaluations: %D\n",nep->max_funcs);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerances: relative=%g, absolute=%g, solution=%g\n",(double)nep->rtol,(double)nep->abstol,(double)nep->stol);CHKERRQ(ierr);
-    if (nep->lag) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %D iterations\n",nep->lag);CHKERRQ(ierr);
-    }
-    if (nep->cctol) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  using a constant tolerance for the linear solver\n");CHKERRQ(ierr);
-    }
-    if (nep->nini) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(nep->nini));CHKERRQ(ierr);
-    }
-  } else {
-    if (nep->ops->view) {
-      ierr = (*nep->ops->view)(nep,viewer);CHKERRQ(ierr);
-    }
-  }
-  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-  if (!nep->V) { ierr = NEPGetBV(nep,&nep->V);CHKERRQ(ierr); }
-  ierr = BVView(nep->V,viewer);CHKERRQ(ierr);
-  if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
-  ierr = DSView(nep->ds,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)nep,NEPSLP,&isslp);CHKERRQ(ierr);
-  if (!isslp) {
-    if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
-    ierr = KSPView(nep->ksp,viewer);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
+PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_Refine = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0;
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPCreate"
-/*@C
+/*@
    NEPCreate - Creates the default NEP context.
 
    Collective on MPI_Comm
@@ -176,7 +54,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   PetscValidPointer(outnep,2);
   *outnep = 0;
   ierr = NEPInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(nep,_p_NEP,struct _NEPOps,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(nep,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView);CHKERRQ(ierr);
 
   nep->max_it          = 0;
   nep->max_funcs       = 0;
@@ -193,21 +71,24 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->cctol           = PETSC_FALSE;
   nep->ttol            = 0.0;
   nep->which           = (NEPWhich)0;
+  nep->refine          = NEP_REFINE_NONE;
+  nep->npart           = 1;
+  nep->reftol          = PETSC_DEFAULT;
+  nep->rits            = PETSC_DEFAULT;
   nep->trackall        = PETSC_FALSE;
 
   nep->computefunction = NULL;
   nep->computejacobian = NULL;
   nep->functionctx     = NULL;
   nep->jacobianctx     = NULL;
-  nep->comparison      = NULL;
   nep->converged       = NEPConvergedDefault;
   nep->convergeddestroy= NULL;
-  nep->comparisonctx   = NULL;
   nep->convergedctx    = NULL;
   nep->numbermonitors  = 0;
 
   nep->ds              = NULL;
   nep->V               = NULL;
+  nep->rg              = NULL;
   nep->rand            = NULL;
   nep->ksp             = NULL;
   nep->function        = NULL;
@@ -218,7 +99,8 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->nt              = 0;
   nep->mstr            = DIFFERENT_NONZERO_PATTERN;
   nep->IS              = NULL;
-  nep->eig             = NULL;
+  nep->eigr            = NULL;
+  nep->eigi            = NULL;
   nep->errest          = NULL;
   nep->perm            = NULL;
   nep->nwork           = 0;
@@ -234,6 +116,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->split           = PETSC_FALSE;
   nep->reason          = NEP_CONVERGED_ITERATING;
 
+  ierr = PetscNewLog(nep,&nep->sc);CHKERRQ(ierr);
   ierr = PetscRandomCreate(comm,&nep->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(nep->rand,0x12345678);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rand);CHKERRQ(ierr);
@@ -394,7 +277,7 @@ PetscErrorCode NEPReset(NEP nep)
   }
   ierr = BVGetSizes(nep->V,NULL,NULL,&ncols);CHKERRQ(ierr);
   if (ncols) {
-    ierr = PetscFree3(nep->eig,nep->errest,nep->perm);CHKERRQ(ierr);
+    ierr = PetscFree4(nep->eigr,nep->eigi,nep->errest,nep->perm);CHKERRQ(ierr);
   }
   ierr = BVDestroy(&nep->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
@@ -406,7 +289,7 @@ PetscErrorCode NEPReset(NEP nep)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPDestroy"
-/*@C
+/*@
    NEPDestroy - Destroys the NEP context.
 
    Collective on NEP
@@ -429,8 +312,10 @@ PetscErrorCode NEPDestroy(NEP *nep)
   ierr = NEPReset(*nep);CHKERRQ(ierr);
   if ((*nep)->ops->destroy) { ierr = (*(*nep)->ops->destroy)(*nep);CHKERRQ(ierr); }
   ierr = KSPDestroy(&(*nep)->ksp);CHKERRQ(ierr);
+  ierr = RGDestroy(&(*nep)->rg);CHKERRQ(ierr);
   ierr = DSDestroy(&(*nep)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*nep)->rand);CHKERRQ(ierr);
+  ierr = PetscFree((*nep)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*nep)->nini,&(*nep)->IS);CHKERRQ(ierr);
   if ((*nep)->convergeddestroy) {
@@ -477,7 +362,7 @@ PetscErrorCode NEPSetBV(NEP nep,BV bv)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetBV"
-/*@C
+/*@
    NEPGetBV - Obtain the basis vectors object associated to the nonlinear
    eigensolver object.
 
@@ -505,6 +390,73 @@ PetscErrorCode NEPGetBV(NEP nep,BV *bv)
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->V);CHKERRQ(ierr);
   }
   *bv = nep->V;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetRG"
+/*@
+   NEPSetRG - Associates a region object to the nonlinear eigensolver.
+
+   Collective on NEP
+
+   Input Parameters:
++  nep - eigensolver context obtained from NEPCreate()
+-  rg  - the region object
+
+   Note:
+   Use NEPGetRG() to retrieve the region context (for example,
+   to free it at the end of the computations).
+
+   Level: advanced
+
+.seealso: NEPGetRG()
+@*/
+PetscErrorCode NEPSetRG(NEP nep,RG rg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidHeaderSpecific(rg,RG_CLASSID,2);
+  PetscCheckSameComm(nep,1,rg,2);
+  ierr = PetscObjectReference((PetscObject)rg);CHKERRQ(ierr);
+  ierr = RGDestroy(&nep->rg);CHKERRQ(ierr);
+  nep->rg = rg;
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rg);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPGetRG"
+/*@
+   NEPGetRG - Obtain the region object associated to the
+   nonlinear eigensolver object.
+
+   Not Collective
+
+   Input Parameters:
+.  nep - eigensolver context obtained from NEPCreate()
+
+   Output Parameter:
+.  rg - region context
+
+   Level: advanced
+
+.seealso: NEPSetRG()
+@*/
+PetscErrorCode NEPGetRG(NEP nep,RG *rg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(rg,2);
+  if (!nep->rg) {
+    ierr = RGCreate(PetscObjectComm((PetscObject)nep),&nep->rg);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rg);CHKERRQ(ierr);
+  }
+  *rg = nep->rg;
   PetscFunctionReturn(0);
 }
 
@@ -544,7 +496,7 @@ PetscErrorCode NEPSetDS(NEP nep,DS ds)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetDS"
-/*@C
+/*@
    NEPGetDS - Obtain the direct solver object associated to the
    nonlinear eigensolver object.
 
@@ -611,7 +563,7 @@ PetscErrorCode NEPSetKSP(NEP nep,KSP ksp)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetKSP"
-/*@C
+/*@
    NEPGetKSP - Obtain the linear solver (KSP) object associated
    to the eigensolver object.
 
@@ -656,9 +608,16 @@ PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
 +  nep    - eigensolver context
 -  target - the value of the target
 
+   Options Database Key:
+.  -nep_target <scalar> - the value of the target
+
    Notes:
    The target is a scalar value used to determine the portion of the spectrum
    of interest. It is used in combination with NEPSetWhichEigenpairs().
+
+   In the case of complex scalars, a complex value can be provided in the
+   command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
+   -nep_target 1.0+2.0i
 
    Level: beginner
 

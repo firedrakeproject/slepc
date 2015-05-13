@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>          /*I "slepcst.h" I*/
+#include <slepc/private/stimpl.h>          /*I "slepcst.h" I*/
 
 typedef struct {
   PetscScalar nu;
@@ -181,10 +181,11 @@ PetscErrorCode STSetUp_Cayley(ST st)
   ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
   if (st->nmat>1) {
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
-    ierr = MatGetVecs(st->A[1],&ctx->w2,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(st->A[1],&ctx->w2,NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)ctx->w2);CHKERRQ(ierr);
   }
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+  ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
   ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -222,7 +223,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Cayley"
-PetscErrorCode STSetFromOptions_Cayley(ST st)
+PetscErrorCode STSetFromOptions_Cayley(PetscOptions *PetscOptionsObject,ST st)
 {
   PetscErrorCode ierr;
   PetscScalar    nu;
@@ -245,11 +246,11 @@ PetscErrorCode STSetFromOptions_Cayley(ST st)
     } else {
       /* use direct solver as default */
       ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
     }
   }
 
-  ierr = PetscOptionsHead("ST Cayley Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"ST Cayley Options");CHKERRQ(ierr);
   ierr = PetscOptionsScalar("-st_cayley_antishift","Value of the antishift","STCayleySetAntishift",ctx->nu,&nu,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = STCayleySetAntishift(st,nu);CHKERRQ(ierr);

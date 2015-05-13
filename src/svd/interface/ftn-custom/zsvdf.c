@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,49 +19,46 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <petsc-private/fortranimpl.h>
-#include <slepc-private/slepcimpl.h>
+#include <petsc/private/fortranimpl.h>
+#include <slepc/private/slepcimpl.h>
 #include <slepcsvd.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define svddestroy_                  SVDDESTROY
 #define svdmonitorall_               SVDMONITORALL
 #define svdmonitorlg_                SVDMONITORLG
 #define svdmonitorlgall_             SVDMONITORLGALL
 #define svdmonitorconverged_         SVDMONITORCONVERGED
 #define svdmonitorfirst_             SVDMONITORFIRST
 #define svdview_                     SVDVIEW
-#define svdcreate_                   SVDCREATE
+#define svderrorview_                SVDERRORVIEW
+#define svdreasonview_               SVDREASONVIEW
+#define svdvaluesview_               SVDVALUESVIEW
+#define svdvectorsview_              SVDVECTORSVIEW
 #define svdsettype_                  SVDSETTYPE
 #define svdgettype_                  SVDGETTYPE
-#define svdgetbv_                    SVDGETBV
-#define svdgetds_                    SVDGETDS
 #define svdmonitorset_               SVDMONITORSET
-#define svdgettransposemode_         SVDGETTRANSPOSEMODE
 #define svdgetwhichsingulartriplets_ SVDGETWHICHSINGULARTRIPLETS
 #define svdsetoptionsprefix_         SVDSETOPTIONSPREFIX
 #define svdappendoptionsprefix_      SVDAPPENDOPTIONSPREFIX
 #define svdgetoptionsprefix_         SVDGETOPTIONSPREFIX
-#define svdgetconvergedreason_       SVDGETCONVERGEDREASON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define svddestroy_                  svddestroy
 #define svdmonitorall_               svdmonitorall
+#define svdmonitorlg_                svdmonitorlg
 #define svdmonitorlgall_             svdmonitorlgall
 #define svdmonitorconverged_         svdmonitorconverged
 #define svdmonitorfirst_             svdmonitorfirst
 #define svdview_                     svdview
-#define svdcreate_                   svdcreate
+#define svderrorview_                svderrorview
+#define svdreasonview_               svdreasonview
+#define svdvaluesview_               svdvaluesview
+#define svdvectorsview_              svdvectorsview
 #define svdsettype_                  svdsettype
 #define svdgettype_                  svdgettype
-#define svdgetbv_                    svdgetbv
-#define svdgetds_                    svdgetds
 #define svdmonitorset_               svdmonitorset
-#define svdgettransposemode_         svdgettransposemode
 #define svdgetwhichsingulartriplets_ svdgetwhichsingulartriplets
 #define svdsetoptionsprefix_         svdsetoptionsprefix
 #define svdappendoptionsprefix_      svdappendoptionsprefix
 #define svdgetoptionsprefix_         svdgetoptionsprefix
-#define svdgetconvergedreason_       svdgetconvergedreason
 #endif
 
 /*
@@ -114,11 +111,6 @@ static PetscErrorCode ourdestroy(void** ctx)
   PetscObjectUseFortranCallback(svd,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-PETSC_EXTERN void PETSC_STDCALL svddestroy_(SVD *svd,PetscErrorCode *ierr)
-{
-  *ierr = SVDDestroy(svd);
-}
-
 PETSC_EXTERN void PETSC_STDCALL svdview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
@@ -126,9 +118,32 @@ PETSC_EXTERN void PETSC_STDCALL svdview_(SVD *svd,PetscViewer *viewer,PetscError
   *ierr = SVDView(*svd,v);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdcreate_(MPI_Fint *comm,SVD *svd,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL svdreasonview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
 {
-  *ierr = SVDCreate(MPI_Comm_f2c(*(comm)),svd);
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = SVDReasonView(*svd,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svderrorview_(SVD *svd,SVDErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = SVDErrorView(*svd,*etype,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdvaluesview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = SVDValuesView(*svd,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdvectorsview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = SVDVectorsView(*svd,v);
 }
 
 PETSC_EXTERN void PETSC_STDCALL svdsettype_(SVD *svd,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
@@ -147,16 +162,6 @@ PETSC_EXTERN void PETSC_STDCALL svdgettype_(SVD *svd,CHAR name PETSC_MIXED_LEN(l
   *ierr = SVDGetType(*svd,&tname);if (*ierr) return;
   *ierr = PetscStrncpy(name,tname,len);
   FIXRETURNCHAR(PETSC_TRUE,name,len);
-}
-
-PETSC_EXTERN void PETSC_STDCALL svdgetbv_(SVD *svd,BV *V,BV *U,PetscErrorCode *ierr)
-{
-  *ierr = SVDGetBV(*svd,V,U);
-}
-
-PETSC_EXTERN void PETSC_STDCALL svdgetds_(SVD *svd,DS *ds,PetscErrorCode *ierr)
-{
-  *ierr = SVDGetDS(*svd,ds);
 }
 
 PETSC_EXTERN void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
@@ -194,11 +199,6 @@ PETSC_EXTERN void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *mon
   }
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgettransposemode_(SVD *svd,SVDTransposeMode *mode,PetscErrorCode *ierr)
-{
-  *ierr = SVDGetTransposeMode(*svd,mode);
-}
-
 PETSC_EXTERN void PETSC_STDCALL svdgetwhichsingulartriplets_(SVD *svd,SVDWhich *which,PetscErrorCode *ierr)
 {
   *ierr = SVDGetWhichSingularTriplets(*svd,which);
@@ -228,10 +228,5 @@ PETSC_EXTERN void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,CHAR prefix PETSC_
 
   *ierr = SVDGetOptionsPrefix(*svd,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
-}
-
-PETSC_EXTERN void PETSC_STDCALL svdgetconvergedreason_(SVD *svd,SVDConvergedReason *reason,PetscErrorCode *ierr)
-{
-  *ierr = SVDGetConvergedReason(*svd,reason);
 }
 

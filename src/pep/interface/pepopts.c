@@ -4,7 +4,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -22,7 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>       /*I "slepcpep.h" I*/
+#include <slepc/private/pepimpl.h>       /*I "slepcpep.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetFromOptions"
@@ -45,7 +45,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 {
   PetscErrorCode   ierr;
   char             type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool        flg,flg1,flg2,flg3;
+  PetscBool        flg,flg1,flg2,flg3,flg4;
   PetscReal        r,t;
   PetscScalar      s;
   PetscInt         i,j,k;
@@ -54,7 +54,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (!PEPRegisterAllCalled) { ierr = PEPRegisterAll();CHKERRQ(ierr); }
+  ierr = PEPRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)pep);CHKERRQ(ierr);
     ierr = PetscOptionsFList("-pep_type","Polynomial Eigenvalue Problem method","PEPSetType",PEPList,(char*)(((PetscObject)pep)->type_name?((PetscObject)pep)->type_name:PEPTOAR),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -79,7 +79,23 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     t = pep->slambda;
     ierr = PetscOptionsReal("-pep_scale_lambda","Estimate of eigenvalue (modulus) for diagonal scaling","PEPSetScale",pep->slambda,&t,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) {
-      ierr = PEPSetScale(pep,pep->scale,r,j,t);CHKERRQ(ierr);
+      ierr = PEPSetScale(pep,pep->scale,r,NULL,NULL,j,t);CHKERRQ(ierr);
+    }
+
+    ierr = PetscOptionsEnum("-pep_extract","Extraction method","PEPSetExtract",PEPExtractTypes,(PetscEnum)pep->extract,(PetscEnum*)&pep->extract,NULL);CHKERRQ(ierr);
+
+    ierr = PetscOptionsEnum("-pep_refine","Iterative refinement method","PEPSetRefine",PEPRefineTypes,(PetscEnum)pep->refine,(PetscEnum*)&pep->refine,NULL);CHKERRQ(ierr);
+
+    i = pep->npart;
+    ierr = PetscOptionsInt("-pep_refine_partitions","Number of partitions of the communicator for iterative refinement","PEPSetRefine",pep->npart,&i,&flg1);CHKERRQ(ierr);
+    r = pep->rtol;
+    ierr = PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol,&r,&flg2);CHKERRQ(ierr);
+    j = pep->rits;
+    ierr = PetscOptionsInt("-pep_refine_its","Maximum number of iterations for iterative refinement","PEPSetRefine",pep->rits,&j,&flg3);CHKERRQ(ierr);
+    flg = pep->schur;
+    ierr = PetscOptionsBool("-pep_refine_schur","Use Schur complement for iterative refinement","PEPSetRefine",pep->schur,&flg,&flg4);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3 || flg4) {
+      ierr = PEPSetRefine(pep,pep->refine,i,r,j,flg);CHKERRQ(ierr);
     }
 
     i = pep->max_it? pep->max_it: PETSC_DEFAULT;
@@ -92,8 +108,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
     ierr = PetscOptionsBoolGroupBegin("-pep_conv_eig","Relative error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_EIG);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-pep_conv_norm","Convergence test relative to the eigenvalue and the matrix norms","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_NORM);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-pep_conv_linear","Convergence test related to the linearized eigenproblem","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_LINEAR);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-pep_conv_abs","Absolute error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_ABS);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-pep_conv_user","User-defined convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
@@ -179,20 +195,29 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
 
     ierr = PetscOptionsName("-pep_view","Print detailed information on solver used","PEPView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-pep_plot_eigs","Make a plot of the computed eigenvalues","PEPSolve",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_view_vectors","View computed eigenvectors","PEPVectorsView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_view_values","View computed eigenvalues","PEPValuesView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_converged_reason","Print reason for convergence, and number of iterations","PEPReasonView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_error_absolute","Print absolute errors of each eigenpair","PEPErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_error_relative","Print relative errors of each eigenpair","PEPErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_error_backward","Print backward errors of each eigenpair","PEPErrorView",0);CHKERRQ(ierr);
 
     if (pep->ops->setfromoptions) {
-      ierr = (*pep->ops->setfromoptions)(pep);CHKERRQ(ierr);
+      ierr = (*pep->ops->setfromoptions)(PetscOptionsObject,pep);CHKERRQ(ierr);
     }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)pep);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
   if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
   ierr = BVSetFromOptions(pep->V);CHKERRQ(ierr);
+  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
+  ierr = RGSetFromOptions(pep->rg);CHKERRQ(ierr);
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(pep->ds);CHKERRQ(ierr);
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   ierr = STSetFromOptions(pep->st);CHKERRQ(ierr);
+  if (!pep->refineksp) { ierr = PEPRefineGetKSP(pep,&pep->refineksp);CHKERRQ(ierr); }
+  ierr = KSPSetFromOptions(pep->refineksp);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(pep->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -372,17 +397,17 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetWhichEigenpairs"
 /*@
-    PEPSetWhichEigenpairs - Specifies which portion of the spectrum is
-    to be sought.
+   PEPSetWhichEigenpairs - Specifies which portion of the spectrum is
+   to be sought.
 
-    Logically Collective on PEP
+   Logically Collective on PEP
 
-    Input Parameters:
-+   pep   - eigensolver context obtained from PEPCreate()
--   which - the portion of the spectrum to be sought
+   Input Parameters:
++  pep   - eigensolver context obtained from PEPCreate()
+-  which - the portion of the spectrum to be sought
 
-    Possible values:
-    The parameter 'which' can have one of these values
+   Possible values:
+   The parameter 'which' can have one of these values
 
 +     PEP_LARGEST_MAGNITUDE - largest eigenvalues in magnitude (default)
 .     PEP_SMALLEST_MAGNITUDE - smallest eigenvalues in magnitude
@@ -392,9 +417,10 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     PEP_SMALLEST_IMAGINARY - smallest imaginary parts
 .     PEP_TARGET_MAGNITUDE - eigenvalues closest to the target (in magnitude)
 .     PEP_TARGET_REAL - eigenvalues with real part closest to target
--     PEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
+.     PEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
+-     PEP_WHICH_USER - user defined ordering set with PEPSetEigenvalueComparison()
 
-    Options Database Keys:
+   Options Database Keys:
 +   -pep_largest_magnitude - Sets largest eigenvalues in magnitude
 .   -pep_smallest_magnitude - Sets smallest eigenvalues in magnitude
 .   -pep_largest_real - Sets largest real parts
@@ -405,23 +431,27 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .   -pep_target_real - Sets real parts closest to target
 -   -pep_target_imaginary - Sets imaginary parts closest to target
 
-    Notes:
-    Not all eigensolvers implemented in PEP account for all the possible values
-    stated above. If SLEPc is compiled for real numbers PEP_LARGEST_IMAGINARY
-    and PEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part
-    for eigenvalue selection.
+   Notes:
+   Not all eigensolvers implemented in PEP account for all the possible values
+   stated above. If SLEPc is compiled for real numbers PEP_LARGEST_IMAGINARY
+   and PEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part
+   for eigenvalue selection.
 
-    Level: intermediate
+   The target is a scalar value provided with PEPSetTarget().
 
-.seealso: PEPGetWhichEigenpairs(), PEPWhich
+   The criterion PEP_TARGET_IMAGINARY is available only in case PETSc and
+   SLEPc have been built with complex scalars.
+
+   Level: intermediate
+
+.seealso: PEPGetWhichEigenpairs(), PEPSetTarget(), PEPSetEigenvalueComparison(), PEPWhich
 @*/
 PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,which,2);
-  if (which==PETSC_DECIDE || which==PETSC_DEFAULT) pep->which = (PEPWhich)0;
-  else switch (which) {
+  switch (which) {
     case PEP_LARGEST_MAGNITUDE:
     case PEP_SMALLEST_MAGNITUDE:
     case PEP_LARGEST_REAL:
@@ -433,6 +463,7 @@ PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
 #if defined(PETSC_USE_COMPLEX)
     case PEP_TARGET_IMAGINARY:
 #endif
+    case PEP_WHICH_USER:
       if (pep->which != which) {
         pep->state = PEP_STATE_INITIAL;
         pep->which = which;
@@ -471,6 +502,49 @@ PetscErrorCode PEPGetWhichEigenpairs(PEP pep,PEPWhich *which)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(which,2);
   *which = pep->which;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetEigenvalueComparison"
+/*@C
+   PEPSetEigenvalueComparison - Specifies the eigenvalue comparison function
+   when PEPSetWhichEigenpairs() is set to PEP_WHICH_USER.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep  - eigensolver context obtained from PEPCreate()
+.  func - a pointer to the comparison function
+-  ctx  - a context pointer (the last parameter to the comparison function)
+
+   Calling Sequence of func:
+$   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
+
++   ar     - real part of the 1st eigenvalue
+.   ai     - imaginary part of the 1st eigenvalue
+.   br     - real part of the 2nd eigenvalue
+.   bi     - imaginary part of the 2nd eigenvalue
+.   res    - result of comparison
+-   ctx    - optional context, as set by PEPSetEigenvalueComparison()
+
+   Note:
+   The returning parameter 'res' can be:
++  negative - if the 1st eigenvalue is preferred to the 2st one
+.  zero     - if both eigenvalues are equally preferred
+-  positive - if the 2st eigenvalue is preferred to the 1st one
+
+   Level: advanced
+
+.seealso: PEPSetWhichEigenpairs(), PEPWhich
+@*/
+PetscErrorCode PEPSetEigenvalueComparison(PEP pep,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  pep->sc->comparison    = func;
+  pep->sc->comparisonctx = ctx;
+  pep->which             = PEP_WHICH_USER;
   PetscFunctionReturn(0);
 }
 
@@ -708,7 +782,7 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
   pep->convergeddestroy = destroy;
   pep->convergedctx     = ctx;
   if (func == PEPConvergedEigRelative) pep->conv = PEP_CONV_EIG;
-  else if (func == PEPConvergedNormRelative) pep->conv = PEP_CONV_NORM;
+  else if (func == PEPConvergedLinear) pep->conv = PEP_CONV_LINEAR;
   else if (func == PEPConvergedAbsolute) pep->conv = PEP_CONV_ABS;
   else pep->conv = PEP_CONV_USER;
   PetscFunctionReturn(0);
@@ -727,17 +801,17 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
 -  conv - the type of convergence test
 
    Options Database Keys:
-+  -pep_conv_abs  - Sets the absolute convergence test
-.  -pep_conv_eig  - Sets the convergence test relative to the eigenvalue
-.  -pep_conv_norm - Sets the convergence test relative to the matrix norms
--  -pep_conv_user - Selects the user-defined convergence test
++  -pep_conv_abs    - Sets the absolute convergence test
+.  -pep_conv_eig    - Sets the convergence test relative to the eigenvalue
+.  -pep_conv_linear - Sets the convergence test related to the linearized eigenproblem
+-  -pep_conv_user   - Selects the user-defined convergence test
 
    Note:
    The parameter 'conv' can have one of these values
-+     PEP_CONV_ABS  - absolute error ||r||
-.     PEP_CONV_EIG  - error relative to the eigenvalue l, ||r||/|l|
-.     PEP_CONV_NORM - error relative to the matrix norms
--     PEP_CONV_USER - function set by PEPSetConvergenceTestFunction()
++     PEP_CONV_ABS    - absolute error ||r||
+.     PEP_CONV_EIG    - error relative to the eigenvalue l, ||r||/|l|
+.     PEP_CONV_LINEAR - error related to the linearized eigenproblem
+-     PEP_CONV_USER   - function set by PEPSetConvergenceTestFunction()
 
    Level: intermediate
 
@@ -749,9 +823,9 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,conv,2);
   switch (conv) {
-    case PEP_CONV_EIG:   pep->converged = PEPConvergedEigRelative; break;
-    case PEP_CONV_ABS:   pep->converged = PEPConvergedAbsolute; break;
-    case PEP_CONV_NORM:  pep->converged = PEPConvergedNormRelative; break;
+    case PEP_CONV_ABS:    pep->converged = PEPConvergedAbsolute; break;
+    case PEP_CONV_EIG:    pep->converged = PEPConvergedEigRelative; break;
+    case PEP_CONV_LINEAR: pep->converged = PEPConvergedLinear; break;
     case PEP_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
@@ -797,12 +871,14 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
    Input Parameters:
 +  pep    - the eigensolver context
 .  scale  - scaling strategy
--  alpha  - the scaling factor used in the scalar strategy
+.  alpha  - the scaling factor used in the scalar strategy
+.  Dl     - the left diagonal matrix of the diagonal scaling algorithm
+.  Dr     - the right diagonal matrix of the diagonal scaling algorithm
 .  its    - number of iterations of the diagonal scaling algorithm
 -  lambda - approximation to wanted eigenvalues (modulus)
 
    Options Database Keys:
-+  -pep_scale - scaling strategy, one of <none,scalar,diagonal,both>
++  -pep_scale <type> - scaling type, one of <none,scalar,diagonal,both>
 .  -pep_scale_factor <alpha> - the scaling factor
 .  -pep_scale_its <its> - number of iterations
 -  -pep_scale_lambda <lambda> - approximation to eigenvalues
@@ -816,19 +892,24 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
    recovered. Parameter 'alpha' must be positive. Use PETSC_DECIDE to let
    the solver compute a reasonable scaling factor.
 
-   In the diagonal strategy, the solver works implicitly with matrix Dr*A*Dl,
-   where Dr and Dl are appropriate diagonal matrices. This improves the accuracy
-   of the computed results in some cases. This option requires MATAIJ matrices.
+   In the diagonal strategy, the solver works implicitly with matrix Dl*A*Dr,
+   where Dl and Dr are appropriate diagonal matrices. This improves the accuracy
+   of the computed results in some cases. The user may provide the Dr and Dl
+   matrices represented as Vec objects storing diagonal elements. If not
+   provided, these matrices are computed internally. This option requires
+   that the polynomial coefficient matrices are of MATAIJ type.
    The parameter 'its' is the number of iterations performed by the method.
-   Parameter 'lambda' must be positive. Use PETSC_DECIDE or set lambda = 1.0 if no
-   information about eigenvalues is available.
+   Parameter 'lambda' must be positive. Use PETSC_DECIDE or set lambda = 1.0 if
+   no information about eigenvalues is available.
 
    Level: intermediate
 
 .seealso: PEPGetScale()
 @*/
-PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,PetscInt its,PetscReal lambda)
+PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,PetscInt its,PetscReal lambda)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,scale,2);
@@ -845,8 +926,22 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,PetscInt its,P
     }
   }
   if (scale==PEP_SCALE_DIAGONAL || scale==PEP_SCALE_BOTH) {
-    PetscValidLogicalCollectiveInt(pep,its,4);
-    PetscValidLogicalCollectiveReal(pep,lambda,5);
+    if (Dl) {
+      PetscValidHeaderSpecific(Dl,VEC_CLASSID,4);
+      PetscCheckSameComm(pep,1,Dl,4);
+      ierr = PetscObjectReference((PetscObject)Dl);CHKERRQ(ierr);
+      ierr = VecDestroy(&pep->Dl);CHKERRQ(ierr);
+      pep->Dl = Dl;
+    }
+    if (Dr) {
+      PetscValidHeaderSpecific(Dr,VEC_CLASSID,5);
+      PetscCheckSameComm(pep,1,Dr,5);
+      ierr = PetscObjectReference((PetscObject)Dr);CHKERRQ(ierr);
+      ierr = VecDestroy(&pep->Dr);CHKERRQ(ierr);
+      pep->Dr = Dr;
+    }
+    PetscValidLogicalCollectiveInt(pep,its,6);
+    PetscValidLogicalCollectiveReal(pep,lambda,7);
     if (its==PETSC_DECIDE || its==PETSC_DEFAULT) pep->sits = 5;
     else pep->sits = its;
     if (lambda==PETSC_DECIDE || lambda==PETSC_DEFAULT) pep->slambda = 1.0;
@@ -863,14 +958,16 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,PetscInt its,P
    PEPGetScale - Gets the scaling strategy used by the PEP object, and the
    associated parameters.
 
-   Not Collective
+   Not Collectiv, but vectors are shared by all processors that share the PEP
 
    Input Parameter:
 .  pep - the eigensolver context
 
    Output Parameters:
 +  scale  - scaling strategy
--  alpha  - the scaling factor used in the scalar strategy
+.  alpha  - the scaling factor used in the scalar strategy
+.  Dl     - the left diagonal matrix of the diagonal scaling algorithm
+.  Dr     - the right diagonal matrix of the diagonal scaling algorithm
 .  its    - number of iterations of the diagonal scaling algorithm
 -  lambda - approximation to wanted eigenvalues (modulus)
 
@@ -879,16 +976,203 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,PetscInt its,P
    Note:
    The user can specify NULL for any parameter that is not needed.
 
-.seealso: PEPSetScale()
+   If Dl or Dr were not set by the user, then the ones computed internally are
+   returned (or a null pointer if called before PEPSetUp).
+
+.seealso: PEPSetScale(), PEPSetUp()
 @*/
-PetscErrorCode PEPGetScale(PEP pep,PEPScale *scale,PetscReal *alpha,PetscInt *its,PetscReal *lambda)
+PetscErrorCode PEPGetScale(PEP pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   if (scale)  *scale  = pep->scale;
   if (alpha)  *alpha  = pep->sfactor;
+  if (Dl)     *Dl     = pep->Dl;
+  if (Dr)     *Dr     = pep->Dr;
   if (its)    *its    = pep->sits;
   if (lambda) *lambda = pep->slambda;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetExtract"
+/*@
+   PEPSetExtract - Specifies the extraction strategy to be used.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep     - the eigensolver context
+-  extract - extraction strategy
+
+   Options Database Keys:
+.  -pep_extract <type> - extraction type, one of <none,norm,residual,structured>
+
+   Level: intermediate
+
+.seealso: PEPGetExtract()
+@*/
+PetscErrorCode PEPSetExtract(PEP pep,PEPExtract extract)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(pep,extract,2);
+  pep->extract = extract;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPGetExtract"
+/*@
+   PEPGetExtract - Gets the extraction strategy used by the PEP object.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigensolver context
+
+   Output Parameter:
+.  extract - extraction strategy
+
+   Level: intermediate
+
+.seealso: PEPSetExtract()
+@*/
+PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  if (extract) *extract = pep->extract;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetRefine"
+/*@
+   PEPSetRefine - Specifies the refinement type (and options) to be used
+   after the solve.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep    - the polynomial eigensolver context
+.  refine - refinement type
+.  npart  - number of partitions of the communicator
+.  tol    - the convergence tolerance
+.  its    - maximum number of refinement iterations
+-  schur  - boolean flag to activate the Schur complement approach
+
+   Options Database Keys:
++  -pep_refine <type> - refinement type, one of <none,simple,multiple>
+.  -pep_refine_partitions <n> - the number of partitions
+.  -pep_refine_tol <tol> - the tolerance
+.  -pep_refine_its <its> - number of iterations
+-  -pep_refine_schur - to set the Schur complement approach
+
+   Notes:
+   By default, iterative refinement is disabled, since it may be very
+   costly. There are two possible refinement strategies: simple and multiple.
+   The simple approach performs iterative refinement on each of the
+   converged eigenpairs individually, whereas the multiple strategy works
+   with the invariant pair as a whole, refining all eigenpairs simultaneously.
+   The latter may be required for the case of multiple eigenvalues.
+
+   In some cases, especially when using direct solvers within the
+   iterative refinement method, it may be helpful for improved scalability
+   to split the communicator in several partitions. The npart parameter
+   indicates how many partitions to use (defaults to 1).
+
+   The tol and its parameters specify the stopping criterion. In the simple
+   method, refinement continues until the residual of each eigenpair is
+   below the tolerance (tol defaults to the PEP tol, but may be set to a
+   different value). In contrast, the multiple method simply performs its
+   refinement iterations (just one by default).
+
+   The schur flag is used to change the way in which linear systems are
+   solved, so that a Schur complement approach is used instead of explicitly
+   building the coefficient matrix.
+
+   Level: intermediate
+
+.seealso: PEPGetRefine()
+@*/
+PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal tol,PetscInt its,PetscBool schur)
+{
+  PetscErrorCode ierr;
+  PetscMPIInt    size;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(pep,refine,2);
+  PetscValidLogicalCollectiveInt(pep,npart,3);
+  PetscValidLogicalCollectiveReal(pep,tol,4);
+  PetscValidLogicalCollectiveInt(pep,its,5);
+  PetscValidLogicalCollectiveBool(pep,schur,6);
+  pep->refine = refine;
+  if (refine) {  /* process parameters only if not REFINE_NONE */
+    if (npart!=pep->npart) {
+      ierr = PetscSubcommDestroy(&pep->refinesubc);CHKERRQ(ierr);
+      ierr = KSPDestroy(&pep->refineksp);CHKERRQ(ierr);
+    }
+    if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
+      pep->npart = 1;
+    } else {
+      ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&size);CHKERRQ(ierr);
+      if (npart<1 || npart>size) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
+      pep->npart = npart;
+    }
+    if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
+      pep->rtol = pep->tol;
+    } else {
+      if (tol<=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+      pep->rtol = tol;
+    }
+    if (its==PETSC_DECIDE || its==PETSC_DEFAULT) {
+      pep->rits = PETSC_DEFAULT;
+    } else {
+      if (its<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be >= 0");
+      pep->rits = its;
+    }
+    pep->schur = schur;
+  }
+  pep->state = PEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPGetRefine"
+/*@
+   PEPGetRefine - Gets the refinement strategy used by the PEP object, and the
+   associated parameters.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the polynomial eigensolver context
+
+   Output Parameters:
++  refine - refinement type
+.  npart  - number of partitions of the communicator
+.  tol    - the convergence tolerance
+.  its    - maximum number of refinement iterations
+-  schur  - whether the Schur complement approach is being used
+
+   Level: intermediate
+
+   Note:
+   The user can specify NULL for any parameter that is not needed.
+
+.seealso: PEPSetRefine()
+@*/
+PetscErrorCode PEPGetRefine(PEP pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PetscBool *schur)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  if (refine) *refine = pep->refine;
+  if (npart)  *npart  = pep->npart;
+  if (tol)    *tol    = pep->rtol;
+  if (its)    *its    = pep->rits;
+  if (schur)  *schur  = pep->schur;
   PetscFunctionReturn(0);
 }
 
@@ -932,6 +1216,8 @@ PetscErrorCode PEPSetOptionsPrefix(PEP pep,const char *prefix)
   ierr = BVSetOptionsPrefix(pep->V,prefix);CHKERRQ(ierr);
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(pep->ds,prefix);CHKERRQ(ierr);
+  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
+  ierr = RGSetOptionsPrefix(pep->rg,prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)pep,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -970,6 +1256,8 @@ PetscErrorCode PEPAppendOptionsPrefix(PEP pep,const char *prefix)
   ierr = BVSetOptionsPrefix(pep->V,prefix);CHKERRQ(ierr);
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSSetOptionsPrefix(pep->ds,prefix);CHKERRQ(ierr);
+  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
+  ierr = RGSetOptionsPrefix(pep->rg,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)pep,prefix);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&flg);CHKERRQ(ierr);
   if (flg) {

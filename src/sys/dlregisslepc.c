@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -23,6 +23,7 @@
 #include <slepcds.h>
 #include <slepcfn.h>
 #include <slepcbv.h>
+#include <slepcrg.h>
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
 
@@ -44,7 +45,7 @@ PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcmfn(void);
   PetscDLLibraryRegister - This function is called when the dynamic library
   it is in is opened.
 
-  This one registers all the basic objects ST, FN, DS, BV.
+  This one registers all the basic objects ST, FN, DS, BV, RG.
  */
 #if defined(PETSC_USE_SINGLE_LIBRARY)
 PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepc(void)
@@ -59,6 +60,7 @@ PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsys(void)
   ierr = DSInitializePackage();CHKERRQ(ierr);
   ierr = FNInitializePackage();CHKERRQ(ierr);
   ierr = BVInitializePackage();CHKERRQ(ierr);
+  ierr = RGInitializePackage();CHKERRQ(ierr);
 
 #if defined(PETSC_USE_SINGLE_LIBRARY)
   ierr = PetscDLLibraryRegister_slepceps();CHKERRQ(ierr);

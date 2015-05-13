@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -22,10 +22,14 @@
 ALL: lib
 
 LIBBASE  = libslepcnep
+<<<<<<< HEAD
 DIRS     = rii slp narnoldi ciss
+=======
+DIRS     = rii slp narnoldi interpol
+>>>>>>> maeda/ciss
 LOCDIR   = src/nep/impls/
 MANSEC   = NEP
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

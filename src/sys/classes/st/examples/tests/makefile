@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -34,7 +34,7 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 test1.rm \
                        test3.PETSc runtest3_1 runtest3_2 runtest3_3 test3.rm \
                        test4.PETSc runtest4_1 runtest4_2 runtest4_3 runtest4_4 test4.rm
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 test1: test1.o chkopts
 	-${CLINKER} -o test1 test1.o ${SLEPC_SYS_LIB}
@@ -54,8 +54,6 @@ test4: test4.o chkopts
 
 #------------------------------------------------------------------------------------
 
-EPS = krylovschur arnoldi gd jd
-
 TESTCODE = \
 	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${test}.out; \
 	${DIFF} output/$${test}.out $${test}.tmp || \
@@ -64,18 +62,12 @@ TESTCODE = \
 
 runtest1_1:
 	-@test=test1_1; \
-	for eps in ${EPS}; do \
-	   echo "eps type $$eps"; \
-	   ${MPIEXEC} -np 1 ./test1 -eps_type $$eps -st_shift 1 -eps_smallest_real -st_pc_type jacobi -eps_nev 4 -eps_terse 2>&1; \
-	done > $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test1 -st_matmode inplace 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest1_2:
-	-@test=test1_2; \
-	for eps in ${EPS}; do \
-	   echo "eps type $$eps"; \
-	   ${MPIEXEC} -np 2 ./test1 -eps_type $$eps -st_shift 1 -eps_smallest_real -st_pc_type jacobi -eps_nev 4 -eps_terse 2>&1; \
-	done > $${test}.tmp; \
+	-@test=test1_1; \
+	${MPIEXEC} -np 1 ./test1 -st_matmode shell 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest2_1:
@@ -115,7 +107,7 @@ runtest4_1:
 
 runtest4_2:
 	-@test=test4_1; \
-	${MPIEXEC} -np 1 ./test4 -st_transform -st_matmode shell -st_ksp_rtol 1e-12 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -np 1 ./test4 -st_transform -st_matmode shell 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest4_3:

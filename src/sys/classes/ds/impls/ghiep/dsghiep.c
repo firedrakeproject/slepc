@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -18,7 +18,7 @@
    along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
-#include <slepc-private/dsimpl.h>
+#include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
@@ -165,11 +165,11 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
   } else {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
   }
   if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -281,6 +281,7 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
   PetscFunctionBegin;
   switch (mat) {
     case DS_MAT_X:
+    case DS_MAT_Y:
       if (k) {
         ierr = DSVectors_GHIEP_Eigen_Some(ds,k,rnorm);CHKERRQ(ierr);
       } else {
@@ -299,7 +300,6 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
         }
       }
       break;
-    case DS_MAT_Y:
     case DS_MAT_U:
     case DS_MAT_VT:
       SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
@@ -416,27 +416,19 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_TRUE);CHKERRQ(ierr);
   if (!ds->compact) { ierr = DSSwitchFormat_GHIEP(ds,PETSC_TRUE);CHKERRQ(ierr); }
   ierr = PetscMemcpy(ds->work,wr,n*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=ds->l;i<n;i++) {
-    wr[i] = *(ds->work + perm[i]);
-  }
+  for (i=ds->l;i<n;i++) wr[i] = *(ds->work+perm[i]);
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscMemcpy(ds->work,wi,n*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=ds->l;i<n;i++) {
-    wi[i] = *(ds->work + perm[i]);
-  }
+  for (i=ds->l;i<n;i++) wi[i] = *(ds->work+perm[i]);
 #endif
   ierr = PetscMemcpy(ds->rwork,s,n*sizeof(PetscReal));CHKERRQ(ierr);
-  for (i=ds->l;i<n;i++) {
-    s[i] = *(ds->rwork+perm[i]);
-  }
+  for (i=ds->l;i<n;i++) s[i] = *(ds->rwork+perm[i]);
   ierr = PetscMemcpy(ds->rwork,d,n*sizeof(PetscReal));CHKERRQ(ierr);
-  for (i=ds->l;i<n;i++) {
-    d[i] = *(ds->rwork  + perm[i]);
-  }
+  for (i=ds->l;i<n;i++) d[i] = *(ds->rwork+perm[i]);
   ierr = PetscMemcpy(ds->rwork,e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
   ierr = PetscMemzero(e+ds->l,(n-1-ds->l)*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=ds->l;i<n-1;i++) {
-    if (perm[i]<n-1) e[i] = *(ds->rwork + perm[i]);
+    if (perm[i]<n-1) e[i] = *(ds->rwork+perm[i]);
   }
   if (!ds->compact) { ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr); }
   ierr = DSPermuteColumns_Private(ds,ds->l,n,DS_MAT_Q,perm);CHKERRQ(ierr);
@@ -627,7 +619,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
       }
       if (isreal) {
         if (ds->compact) {
-          D[i] = ss1;;
+          D[i] = ss1;
           T[i] = wr1;
           D[i+1] = ss2;
           T[i+1] = wr2;

@@ -4,7 +4,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -35,7 +35,7 @@
     slepcversion.h contains version info
 */
 #include <slepcversion.h>
-#define SLEPC_AUTHOR_INFO "       The SLEPc Team\n    slepc-maint@grycap.upv.es\n http://www.grycap.upv.es/slepc\n"
+#define SLEPC_AUTHOR_INFO "       The SLEPc Team\n    slepc-maint@upv.es\n http://slepc.upv.es\n"
 
 /* ========================================================================== */
 /*
@@ -46,6 +46,10 @@
     slepcmath.h contains definition of basic math functions
 */
 #include <slepcmath.h>
+/*
+    slepcsc.h contains definition of sorting criterion
+*/
+#include <slepcsc.h>
 
 /*
     Initialization of SLEPc and other system routines
@@ -62,6 +66,7 @@ PETSC_EXTERN PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
 PETSC_EXTERN PetscErrorCode SlepcMatTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);
 PETSC_EXTERN PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec*,PetscInt,Mat,PetscViewer,PetscReal*);
 PETSC_EXTERN PetscErrorCode SlepcSNPrintfScalar(char*,size_t,PetscScalar,PetscBool);
+PETSC_EXTERN PetscErrorCode SlepcVecNormalize(Vec,Vec,PetscBool,PetscReal*);
 
 PETSC_EXTERN PetscBool SlepcInitializeCalled;
 

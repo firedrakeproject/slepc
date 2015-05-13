@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -47,9 +47,10 @@ int main(int argc,char **argv)
   Mat            A[NMAT];         /* problem matrices */
   FN             f[NMAT];         /* functions to define the nonlinear operator */
   NEP            nep;             /* nonlinear eigensolver context */
-  PetscInt       n=20,Istart,Iend,i,nconv;
-  PetscReal      kappa=1.0,m=1.0,re,im,norm;
-  PetscScalar    lambda,sigma,numer[2],denom[2];
+  PetscInt       n=20,Istart,Iend,i;
+  PetscReal      kappa=1.0,m=1.0;
+  PetscScalar    sigma,numer[2],denom[2];
+  PetscBool      terse;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -109,20 +110,21 @@ int main(int argc,char **argv)
   ierr = FNCreate(PETSC_COMM_WORLD,&f[0]);CHKERRQ(ierr);
   ierr = FNSetType(f[0],FNRATIONAL);CHKERRQ(ierr);
   numer[0] = 1.0;
-  ierr = FNSetParameters(f[0],1,numer,0,NULL);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(f[0],1,numer);CHKERRQ(ierr);
 
   /* f2=-lambda */
   ierr = FNCreate(PETSC_COMM_WORLD,&f[1]);CHKERRQ(ierr);
   ierr = FNSetType(f[1],FNRATIONAL);CHKERRQ(ierr);
   numer[0] = -1.0; numer[1] = 0.0;
-  ierr = FNSetParameters(f[1],2,numer,0,NULL);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(f[1],2,numer);CHKERRQ(ierr);
 
   /* f3=lambda/(lambda-sigma) */
   ierr = FNCreate(PETSC_COMM_WORLD,&f[2]);CHKERRQ(ierr);
   ierr = FNSetType(f[2],FNRATIONAL);CHKERRQ(ierr);
   numer[0] = 1.0; numer[1] = 0.0;
   denom[0] = 1.0; denom[1] = -sigma;
-  ierr = FNSetParameters(f[2],2,numer,2,denom);CHKERRQ(ierr);
+  ierr = FNRationalSetNumerator(f[2],2,numer);CHKERRQ(ierr);
+  ierr = FNRationalSetDenominator(f[2],2,denom);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                 Create the eigensolver and solve the problem
@@ -137,38 +139,15 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   
-  /*
-     Get number of converged approximate eigenpairs
-  */
-  ierr = NEPGetConverged(nep,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %D\n\n",nconv);CHKERRQ(ierr);
-
-  if (nconv>0) {
-    /*
-       Display eigenvalues and relative errors
-    */
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k              ||T(k)x||\n"
-         "   ----------------- ------------------\n");CHKERRQ(ierr);
-    for (i=0;i<nconv;i++) {
-      ierr = NEPGetEigenpair(nep,i,&lambda,NULL);CHKERRQ(ierr);
-      ierr = NEPComputeRelativeError(nep,i,&norm);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(lambda);
-      im = PetscImaginaryPart(lambda);
-#else
-      re = lambda;
-      im = 0.0;
-#endif
-      if (im!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12g\n",(double)re,(double)im,(double)norm);CHKERRQ(ierr);
-      } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f         %12g\n",(double)re,(double)norm);CHKERRQ(ierr);
-      }
-    }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+  /* show detailed info unless -terse option is given by user */
+  ierr = PetscOptionsHasName(NULL,"-terse",&terse);CHKERRQ(ierr);
+  if (terse) {
+    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
   }
-
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
   for (i=0;i<NMAT;i++) {
     ierr = MatDestroy(&A[i]);CHKERRQ(ierr);

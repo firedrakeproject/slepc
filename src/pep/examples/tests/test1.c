@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   PEP            pep;             /* polynomial eigenproblem solver context */
   PEPType        type;
   PetscInt       N,n=10,m,Istart,Iend,II,nev,maxit,i,j;
-  PetscBool      flag,isgd2;
+  PetscBool      flag,isgd2,epsgiven;
   char           peptype[30] = "linear",epstype[30] = "";
   EPS            eps;
   ST             st;
@@ -51,10 +51,10 @@ int main(int argc,char **argv)
   if (!flag) m=n;
   N = n*m;
   ierr = PetscOptionsGetString(NULL,"-type",peptype,30,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetString(NULL,"-epstype",epstype,30,&flag);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,"-epstype",epstype,30,&epsgiven);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nQuadratic Eigenproblem, N=%D (%Dx%D grid)",N,n,m);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nPEP type: %s",peptype);CHKERRQ(ierr);
-  if (flag) {
+  if (epsgiven) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEPS type: %s",epstype);CHKERRQ(ierr);
   }
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n\n");CHKERRQ(ierr);
@@ -95,9 +95,12 @@ int main(int argc,char **argv)
   ierr = MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(M);CHKERRQ(ierr);
   ierr = MatSetUp(M);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(M,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    ierr = MatSetValue(M,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
+  }
   ierr = MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatShift(M,1.0);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
@@ -121,7 +124,7 @@ int main(int argc,char **argv)
      Set solver type at runtime
   */
   ierr = PEPSetType(pep,peptype);CHKERRQ(ierr);
-/*  if (flag) {
+  if (epsgiven) {
     ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&flag);CHKERRQ(ierr);
     if (flag) {
       ierr = PEPLinearGetEPS(pep,&eps);CHKERRQ(ierr);
@@ -138,7 +141,13 @@ int main(int argc,char **argv)
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)eps,EPSGD,&flag);CHKERRQ(ierr);
     }
-  }*/
+    ierr = PEPLinearSetExplicitMatrix(pep,PETSC_TRUE);CHKERRQ(ierr);
+  }
+  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPQARNOLDI,&flag);CHKERRQ(ierr);
+  if (flag) {
+    ierr = PEPGetST(pep,&st);CHKERRQ(ierr);
+    ierr = STSetTransform(st,PETSC_TRUE);CHKERRQ(ierr);
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
@@ -160,7 +169,7 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PEPPrintSolution(pep,NULL);CHKERRQ(ierr);
+  ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
   ierr = PEPDestroy(&pep);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&C);CHKERRQ(ierr);

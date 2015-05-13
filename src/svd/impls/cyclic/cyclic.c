@@ -6,7 +6,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -24,8 +24,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>                /*I "slepcsvd.h" I*/
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepc/private/svdimpl.h>                /*I "slepcsvd.h" I*/
+#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 
 typedef struct {
   PetscBool explicitmatrix;
@@ -153,7 +153,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   /* Transfer the initial subspace from svd to eps */
   if (svd->nini<0 || svd->ninil<0) {
     for (i=0;i<-PetscMin(svd->nini,svd->ninil);i++) {
-      ierr = MatGetVecs(cyclic->mat,&v,NULL);CHKERRQ(ierr);
+      ierr = MatCreateVecs(cyclic->mat,&v,NULL);CHKERRQ(ierr);
       ierr = VecGetArray(v,&va);CHKERRQ(ierr);
       if (i<-svd->ninil) {
         ierr = VecGetSize(svd->ISL[i],&isl);CHKERRQ(ierr);
@@ -185,7 +185,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   ierr = EPSSetUp(cyclic->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(cyclic->eps,NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
   svd->ncv = PetscMin(svd->ncv,PetscMin(M,N));
-  ierr = EPSGetTolerances(cyclic->eps,&svd->tol,&svd->max_it);CHKERRQ(ierr);
+  ierr = EPSGetTolerances(cyclic->eps,NULL,&svd->max_it);CHKERRQ(ierr);
+  if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
 
   svd->leftbasis = PETSC_TRUE;
   ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
@@ -209,7 +210,7 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
   ierr = EPSGetIterationNumber(cyclic->eps,&svd->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(cyclic->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
 
-  ierr = MatGetVecs(cyclic->mat,&x,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(cyclic->mat,&x,NULL);CHKERRQ(ierr);
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,m,M,NULL,&x1);CHKERRQ(ierr);
@@ -267,7 +268,7 @@ static PetscErrorCode SVDMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,Pets
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions_Cyclic"
-PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
+PetscErrorCode SVDSetFromOptions_Cyclic(PetscOptions *PetscOptionsObject,SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
@@ -275,16 +276,15 @@ PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
   ST             st;
 
   PetscFunctionBegin;
-  if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
-  ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
-  ierr = PetscOptionsHead("SVD Cyclic Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"SVD Cyclic Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",cyclic->explicitmatrix,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = SVDCyclicSetExplicitMatrix(svd,val);CHKERRQ(ierr);
   }
+  if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
+  ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
   if (!cyclic->explicitmatrix) {
     /* use as default an ST with shell matrix and Jacobi */
-    if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
     ierr = EPSGetST(cyclic->eps,&st);CHKERRQ(ierr);
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
@@ -384,7 +384,7 @@ static PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
   ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);
   cyclic->eps = eps;
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->eps);CHKERRQ(ierr);
-  svd->setupcalled = 0;
+  svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

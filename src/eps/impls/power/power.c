@@ -16,11 +16,11 @@
    References:
 
        [1] "Single Vector Iteration Methods in SLEPc", SLEPc Technical Report
-           STR-2, available at http://www.grycap.upv.es/slepc.
+           STR-2, available at http://slepc.upv.es.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -38,7 +38,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
 typedef struct {
@@ -51,7 +51,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER*)eps->data;
-  PetscBool      flg;
+  PetscBool      flg,istrivial;
   STMatMode      mode;
 
   PetscFunctionBegin;
@@ -71,6 +71,8 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
   if (eps->balance!=EPS_BALANCE_NONE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Balancing not supported in this solver");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
@@ -226,7 +228,7 @@ PetscErrorCode EPSBackTransform_Power(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_Power"
-PetscErrorCode EPSSetFromOptions_Power(EPS eps)
+PetscErrorCode EPSSetFromOptions_Power(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode    ierr;
   EPS_POWER         *power = (EPS_POWER*)eps->data;
@@ -234,7 +236,7 @@ PetscErrorCode EPSSetFromOptions_Power(EPS eps)
   EPSPowerShiftType shift;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS Power Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS Power Options");CHKERRQ(ierr);
   ierr = PetscOptionsEnum("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",EPSPowerShiftTypes,(PetscEnum)power->shift_type,(PetscEnum*)&shift,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = EPSPowerSetShiftType(eps,shift);CHKERRQ(ierr);

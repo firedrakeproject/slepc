@@ -1,9 +1,9 @@
 /*
-     The basic PEP routines, Create, View, etc. are here.
+   The basic PEP routines, Create, Destroy, etc. are here.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,280 +21,16 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>      /*I "slepcpep.h" I*/
+#include <slepc/private/pepimpl.h>      /*I "slepcpep.h" I*/
 
 PetscFunctionList PEPList = 0;
 PetscBool         PEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId      PEP_CLASSID = 0;
-PetscLogEvent     PEP_SetUp = 0,PEP_Solve = 0;
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPView"
-/*@C
-   PEPView - Prints the PEP data structure.
-
-   Collective on PEP
-
-   Input Parameters:
-+  pep - the polynomial eigenproblem solver context
--  viewer - optional visualization context
-
-   Options Database Key:
-.  -pep_view -  Calls PEPView() at end of PEPSolve()
-
-   Note:
-   The available visualization contexts include
-+     PETSC_VIEWER_STDOUT_SELF - standard output (default)
--     PETSC_VIEWER_STDOUT_WORLD - synchronized standard
-         output where only the first processor opens
-         the file.  All other processors send their
-         data to the first processor to print.
-
-   The user can open an alternative visualization context with
-   PetscViewerASCIIOpen() - output to a specified file.
-
-   Level: beginner
-
-.seealso: PetscViewerASCIIOpen()
-@*/
-PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
-{
-  PetscErrorCode ierr;
-  const char     *type;
-  char           str[50];
-  PetscBool      isascii,islinear;
-  PetscInt       i;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)pep));
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
-  PetscCheckSameComm(pep,1,viewer,2);
-
-#if defined(PETSC_USE_COMPLEX)
-#define HERM "hermitian"
-#else
-#define HERM "symmetric"
-#endif
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)pep,viewer);CHKERRQ(ierr);
-    if (pep->ops->view) {
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = (*pep->ops->view)(pep,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
-    }
-    if (pep->problem_type) {
-      switch (pep->problem_type) {
-        case PEP_GENERAL:    type = "general polynomial eigenvalue problem"; break;
-        case PEP_HERMITIAN:  type = HERM " polynomial eigenvalue problem"; break;
-        case PEP_GYROSCOPIC: type = "gyroscopic polynomial eigenvalue problem"; break;
-        default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of pep->problem_type");
-      }
-    } else type = "not yet set";
-    ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  polynomial represented in %s basis\n",PEPBasisTypes[pep->basis]);CHKERRQ(ierr);
-    switch (pep->scale) {
-      case PEP_SCALE_NONE:
-        break;
-      case PEP_SCALE_SCALAR:
-        ierr = PetscViewerASCIIPrintf(viewer,"  scalar balancing enabled, with scaling factor=%g\n",(double)pep->sfactor);CHKERRQ(ierr);
-        break;
-      case PEP_SCALE_DIAGONAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"  diagonal balancing enabled, with its=%D and lambda=%g\n",pep->sits,(double)pep->slambda);CHKERRQ(ierr);
-        break;
-      case PEP_SCALE_BOTH:
-        ierr = PetscViewerASCIIPrintf(viewer,"  scalar & diagonal balancing enabled, with scaling factor=%g, its=%D and lambda=%g\n",(double)pep->sfactor,pep->sits,(double)pep->slambda);CHKERRQ(ierr);
-        break;
-    }
-    ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
-    ierr = SlepcSNPrintfScalar(str,50,pep->target,PETSC_FALSE);CHKERRQ(ierr);
-    if (!pep->which) {
-      ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
-    } else switch (pep->which) {
-      case PEP_TARGET_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (in magnitude)\n",str);CHKERRQ(ierr);
-        break;
-      case PEP_TARGET_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the real axis)\n",str);CHKERRQ(ierr);
-        break;
-      case PEP_TARGET_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the imaginary axis)\n",str);CHKERRQ(ierr);
-        break;
-      case PEP_LARGEST_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest eigenvalues in magnitude\n");CHKERRQ(ierr);
-        break;
-      case PEP_SMALLEST_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest eigenvalues in magnitude\n");CHKERRQ(ierr);
-        break;
-      case PEP_LARGEST_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest real parts\n");CHKERRQ(ierr);
-        break;
-      case PEP_SMALLEST_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest real parts\n");CHKERRQ(ierr);
-        break;
-      case PEP_LARGEST_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest imaginary parts\n");CHKERRQ(ierr);
-        break;
-      case PEP_SMALLEST_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
-        break;
-      default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of pep->which");
-    }
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",pep->nev);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",pep->ncv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",pep->mpd);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",pep->max_it);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)pep->tol);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
-    switch (pep->conv) {
-    case PEP_CONV_ABS:
-      ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
-    case PEP_CONV_EIG:
-      ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
-    case PEP_CONV_NORM:
-      ierr = PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n");CHKERRQ(ierr);
-      if (pep->nrma) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)pep->nrma[0]);CHKERRQ(ierr);
-        for (i=1;i<pep->nmat;i++) {
-          ierr = PetscViewerASCIIPrintf(viewer,", %g",(double)pep->nrma[i]);CHKERRQ(ierr);
-        }
-        ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
-      }
-      break;
-    case PEP_CONV_USER:
-      ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
-    }
-    if (pep->nini) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(pep->nini));CHKERRQ(ierr);
-    }
-  } else {
-    if (pep->ops->view) {
-      ierr = (*pep->ops->view)(pep,viewer);CHKERRQ(ierr);
-    }
-  }
-  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
-  if (!islinear) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-    if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
-    ierr = BVView(pep->V,viewer);CHKERRQ(ierr);
-    if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
-    ierr = DSView(pep->ds,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
-    ierr = STView(pep->st,viewer);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPPrintSolution"
-/*@
-   PEPPrintSolution - Prints the computed eigenvalues.
-
-   Collective on PEP
-
-   Input Parameters:
-+  pep - the eigensolver context
--  viewer - optional visualization context
-
-   Options Database Key:
-.  -pep_terse - print only minimal information
-
-   Note:
-   By default, this function prints a table with eigenvalues and associated
-   relative errors. With -pep_terse only the eigenvalues are printed.
-
-   Level: intermediate
-
-.seealso: PetscViewerASCIIOpen()
-@*/
-PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer viewer)
-{
-  PetscBool      terse,errok,isascii;
-  PetscReal      error,re,im;
-  PetscScalar    kr,ki;
-  PetscInt       i,j;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)pep));
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
-  PetscCheckSameComm(pep,1,viewer,2);
-  PEPCheckSolved(pep,1);
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (!isascii) PetscFunctionReturn(0);
-
-  ierr = PetscOptionsHasName(NULL,"-pep_terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    if (pep->nconv<pep->nev) {
-      ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D eigenvalues converged\n\n",pep->nev);CHKERRQ(ierr);
-    } else {
-      errok = PETSC_TRUE;
-      for (i=0;i<pep->nev;i++) {
-        ierr = PEPComputeRelativeError(pep,i,&error);CHKERRQ(ierr);
-        errok = (errok && error<5.0*pep->tol)? PETSC_TRUE: PETSC_FALSE;
-      }
-      if (errok) {
-        ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
-        for (i=0;i<=(pep->nev-1)/8;i++) {
-          ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
-          for (j=0;j<PetscMin(8,pep->nev-8*i);j++) {
-            ierr = PEPGetEigenpair(pep,8*i+j,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-            re = PetscRealPart(kr);
-            im = PetscImaginaryPart(kr);
-#else
-            re = kr;
-            im = ki;
-#endif
-            if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
-            if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
-            if (im!=0.0) {
-              ierr = PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im);CHKERRQ(ierr);
-            } else {
-              ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)re);CHKERRQ(ierr);
-            }
-            if (8*i+j+1<pep->nev) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
-          }
-        }
-        ierr = PetscViewerASCIIPrintf(viewer,"\n\n");CHKERRQ(ierr);
-      } else {
-        ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",pep->nev);CHKERRQ(ierr);
-      }
-    }
-  } else {
-    ierr = PetscViewerASCIIPrintf(viewer," Number of converged approximate eigenpairs: %D\n\n",pep->nconv);CHKERRQ(ierr);
-    if (pep->nconv>0) {
-      ierr = PetscViewerASCIIPrintf(viewer,
-           "           k             ||P(k)x||/||kx||\n"
-           "   ----------------- -------------------------\n");CHKERRQ(ierr);
-      for (i=0;i<pep->nconv;i++) {
-        ierr = PEPGetEigenpair(pep,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-        ierr = PEPComputeRelativeError(pep,i,&error);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-        re = PetscRealPart(kr);
-        im = PetscImaginaryPart(kr);
-#else
-        re = kr;
-        im = ki;
-#endif
-        if (im!=0.0) {
-          ierr = PetscViewerASCIIPrintf(viewer," % 9f%+9f i     %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
-        } else {
-          ierr = PetscViewerASCIIPrintf(viewer,"   % 12f           %12g\n",(double)re,(double)error);CHKERRQ(ierr);
-        }
-      }
-      ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
-    }
-  }
-  PetscFunctionReturn(0);
-}
+PetscLogEvent     PEP_SetUp = 0,PEP_Solve = 0,PEP_Refine = 0;
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPCreate"
-/*@C
+/*@
    PEPCreate - Creates the default PEP context.
 
    Collective on MPI_Comm
@@ -321,7 +57,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   PetscValidPointer(outpep,2);
   *outpep = 0;
   ierr = PEPInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(pep,_p_PEP,struct _PEPOps,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(pep,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView);CHKERRQ(ierr);
 
   pep->max_it          = 0;
   pep->nev             = 1;
@@ -330,26 +66,32 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->nini            = 0;
   pep->target          = 0.0;
   pep->tol             = PETSC_DEFAULT;
-  pep->conv            = PEP_CONV_NORM;
+  pep->conv            = PEP_CONV_EIG;
   pep->which           = (PEPWhich)0;
   pep->basis           = PEP_BASIS_MONOMIAL;
   pep->problem_type    = (PEPProblemType)0;
   pep->scale           = PEP_SCALE_NONE;
   pep->sfactor         = 1.0;
+  pep->dsfactor        = 1.0;
   pep->sits            = 5;
   pep->slambda         = 1.0;
+  pep->refine          = PEP_REFINE_NONE;
+  pep->npart           = 1;
+  pep->rtol            = PETSC_DEFAULT;
+  pep->rits            = PETSC_DEFAULT;
+  pep->schur           = PETSC_FALSE;
+  pep->extract         = (PEPExtract)0;
   pep->trackall        = PETSC_FALSE;
 
-  pep->comparison      = NULL;
-  pep->converged       = PEPConvergedNormRelative;
+  pep->converged       = PEPConvergedEigRelative;
   pep->convergeddestroy= NULL;
-  pep->comparisonctx   = NULL;
   pep->convergedctx    = NULL;
   pep->numbermonitors  = 0;
 
   pep->st              = NULL;
   pep->ds              = NULL;
   pep->V               = NULL;
+  pep->rg              = NULL;
   pep->rand            = NULL;
   pep->A               = NULL;
   pep->nmat            = 0;
@@ -364,6 +106,8 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->solvematcoeffs  = NULL;
   pep->nwork           = 0;
   pep->work            = NULL;
+  pep->refineksp       = NULL;
+  pep->refinesubc      = NULL;
   pep->data            = NULL;
 
   pep->state           = PEP_STATE_INITIAL;
@@ -375,6 +119,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->sfactor_set     = PETSC_FALSE;
   pep->reason          = PEP_CONVERGED_ITERATING;
 
+  ierr = PetscNewLog(pep,&pep->sc);CHKERRQ(ierr);
   ierr = PetscRandomCreate(comm,&pep->rand);CHKERRQ(ierr);
   ierr = PetscRandomSetSeed(pep->rand,0x12345678);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->rand);CHKERRQ(ierr);
@@ -527,7 +272,8 @@ PetscErrorCode PEPReset(PEP pep)
   if (pep->ds) { ierr = DSReset(pep->ds);CHKERRQ(ierr); }
   if (pep->nmat) {
     ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
-    ierr = PetscFree3(pep->pbc,pep->solvematcoeffs,pep->nrma);CHKERRQ(ierr);
+    ierr = PetscFree2(pep->pbc,pep->nrma);CHKERRQ(ierr);
+    ierr = PetscFree(pep->solvematcoeffs);CHKERRQ(ierr);
     pep->nmat = 0;
   }
   ierr = VecDestroy(&pep->Dl);CHKERRQ(ierr);
@@ -538,6 +284,8 @@ PetscErrorCode PEPReset(PEP pep)
   }
   ierr = BVDestroy(&pep->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(pep->nwork,&pep->work);CHKERRQ(ierr);
+  ierr = KSPDestroy(&pep->refineksp);CHKERRQ(ierr);
+  ierr = PetscSubcommDestroy(&pep->refinesubc);CHKERRQ(ierr);
   pep->nwork = 0;
   pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -545,7 +293,7 @@ PetscErrorCode PEPReset(PEP pep)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPDestroy"
-/*@C
+/*@
    PEPDestroy - Destroys the PEP context.
 
    Collective on PEP
@@ -568,8 +316,10 @@ PetscErrorCode PEPDestroy(PEP *pep)
   ierr = PEPReset(*pep);CHKERRQ(ierr);
   if ((*pep)->ops->destroy) { ierr = (*(*pep)->ops->destroy)(*pep);CHKERRQ(ierr); }
   ierr = STDestroy(&(*pep)->st);CHKERRQ(ierr);
+  ierr = RGDestroy(&(*pep)->rg);CHKERRQ(ierr);
   ierr = DSDestroy(&(*pep)->ds);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*pep)->rand);CHKERRQ(ierr);
+  ierr = PetscFree((*pep)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*pep)->nini,&(*pep)->IS);CHKERRQ(ierr);
   if ((*pep)->convergeddestroy) {
@@ -616,7 +366,7 @@ PetscErrorCode PEPSetBV(PEP pep,BV bv)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetBV"
-/*@C
+/*@
    PEPGetBV - Obtain the basis vectors object associated to the polynomial
    eigensolver object.
 
@@ -644,6 +394,73 @@ PetscErrorCode PEPGetBV(PEP pep,BV *bv)
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->V);CHKERRQ(ierr);
   }
   *bv = pep->V;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetRG"
+/*@
+   PEPSetRG - Associates a region object to the polynomial eigensolver.
+
+   Collective on PEP
+
+   Input Parameters:
++  pep - eigensolver context obtained from PEPCreate()
+-  rg  - the region object
+
+   Note:
+   Use PEPGetRG() to retrieve the region context (for example,
+   to free it at the end of the computations).
+
+   Level: advanced
+
+.seealso: PEPGetRG()
+@*/
+PetscErrorCode PEPSetRG(PEP pep,RG rg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidHeaderSpecific(rg,RG_CLASSID,2);
+  PetscCheckSameComm(pep,1,rg,2);
+  ierr = PetscObjectReference((PetscObject)rg);CHKERRQ(ierr);
+  ierr = RGDestroy(&pep->rg);CHKERRQ(ierr);
+  pep->rg = rg;
+  ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->rg);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPGetRG"
+/*@
+   PEPGetRG - Obtain the region object associated to the
+   polynomial eigensolver object.
+
+   Not Collective
+
+   Input Parameters:
+.  pep - eigensolver context obtained from PEPCreate()
+
+   Output Parameter:
+.  rg - region context
+
+   Level: advanced
+
+.seealso: PEPSetRG()
+@*/
+PetscErrorCode PEPGetRG(PEP pep,RG *rg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(rg,2);
+  if (!pep->rg) {
+    ierr = RGCreate(PetscObjectComm((PetscObject)pep),&pep->rg);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->rg);CHKERRQ(ierr);
+  }
+  *rg = pep->rg;
   PetscFunctionReturn(0);
 }
 
@@ -683,7 +500,7 @@ PetscErrorCode PEPSetDS(PEP pep,DS ds)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetDS"
-/*@C
+/*@
    PEPGetDS - Obtain the direct solver object associated to the
    polynomial eigensolver object.
 
@@ -750,7 +567,7 @@ PetscErrorCode PEPSetST(PEP pep,ST st)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetST"
-/*@C
+/*@
    PEPGetST - Obtain the spectral transformation (ST) object associated
    to the eigensolver object.
 
@@ -782,6 +599,48 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPRefineGetKSP"
+/*@C
+   PEPRefineGetKSP - Obtain the ksp object used by the eigensolver
+   object in the refinement phase.
+
+   Not Collective
+
+   Input Parameters:
+.  pep - eigensolver context obtained from PEPCreate()
+
+   Output Parameter:
+.  ksp - ksp context
+
+   Level: advanced
+
+.seealso: PEPSetRefine()
+@*/
+PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(ksp,2);
+  if (!pep->refineksp) {
+    if (pep->npart>1) {
+      /* Split in subcomunicators */
+      ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)pep),&pep->refinesubc);CHKERRQ(ierr);
+      ierr = PetscSubcommSetNumber(pep->refinesubc,pep->npart);CHKERRQ(ierr);CHKERRQ(ierr);
+      ierr = PetscSubcommSetType(pep->refinesubc,PETSC_SUBCOMM_CONTIGUOUS);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)pep,sizeof(PetscSubcomm));CHKERRQ(ierr);
+    }
+    ierr = KSPCreate((pep->npart==1)?PetscObjectComm((PetscObject)pep):PetscSubcommChild(pep->refinesubc),&pep->refineksp);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->refineksp);CHKERRQ(ierr);
+    ierr = KSPSetOptionsPrefix(*ksp,((PetscObject)pep)->prefix);CHKERRQ(ierr);
+    ierr = KSPAppendOptionsPrefix(*ksp,"pep_refine_");CHKERRQ(ierr);
+  }
+  *ksp = pep->refineksp;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPSetTarget"
 /*@
    PEPSetTarget - Sets the value of the target.
@@ -792,9 +651,16 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
 +  pep    - eigensolver context
 -  target - the value of the target
 
+   Options Database Key:
+.  -pep_target <scalar> - the value of the target
+
    Notes:
    The target is a scalar value used to determine the portion of the spectrum
    of interest. It is used in combination with PEPSetWhichEigenpairs().
+
+   In the case of complex scalars, a complex value can be provided in the
+   command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
+   -pep_target 1.0+2.0i
 
    Level: beginner
 

@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>        /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>        /*I "slepceps.h" I*/
 #include <../src/eps/impls/external/feast/feastp.h>
 
 PetscErrorCode EPSSolve_FEAST(EPS);
@@ -202,7 +202,7 @@ PetscErrorCode EPSDestroy_FEAST(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_FEAST"
-PetscErrorCode EPSSetFromOptions_FEAST(EPS eps)
+PetscErrorCode EPSSetFromOptions_FEAST(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
@@ -210,7 +210,7 @@ PetscErrorCode EPSSetFromOptions_FEAST(EPS eps)
   PetscBool      flg;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS FEAST Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS FEAST Options");CHKERRQ(ierr);
 
   n = ctx->npoints;
   ierr = PetscOptionsInt("-eps_feast_num_points","Number of contour integration points","EPSFEASTSetNumPoints",n,&n,&flg);CHKERRQ(ierr);

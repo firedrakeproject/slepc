@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/dsimpl.h>
+#include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
@@ -50,10 +50,10 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   for (i=0;i<ds->nf;i++) {
     ierr = FNView(ds->f[i],viewer);CHKERRQ(ierr);
-    ierr = DSViewMat_Private(ds,viewer,DSMatExtra[i]);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DSMatExtra[i]);CHKERRQ(ierr);
   }
   if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat_Private(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -120,7 +120,7 @@ PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscScalar    *A;
 
   PetscFunctionBegin;
-  if (!ds->comparison) PetscFunctionReturn(0);
+  if (!ds->sc) PetscFunctionReturn(0);
   n = ds->n;
   l = ds->l;
   A  = ds->mat[DS_MAT_A];

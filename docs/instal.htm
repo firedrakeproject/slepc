@@ -14,47 +14,37 @@
 | <a href="faq.htm">FAQ</a>
 | <a href="mail_list.htm">Contact</a>
 ] </div>
-<table width="700" border="0" cellpadding="0" cellspacing="0">
-  <tr> 
-    <td width="700" height="35"><p>&nbsp;</p>
-      <p>&nbsp;</p></td>
-  </tr>
-  <tr> 
-    <td valign="top" height="984"> <div align="left"> 
-        <p align="left"><font face="Arial, Helvetica, sans-serif"><font size="3">
-        <b>Basic Installation Instructions</b></font> </font></p>
-        <div align="left"> 
-          <p><font size="2" face="Arial, Helvetica, sans-serif">The following is 
+ 
+        <p>
+        <b>Basic Installation Instructions</b></p>
+          <p>The following is 
             a quick-start guide for installing SLEPc. For further details,
             the user is referred to the SLEPc Users Manual.</p>
-          <p><font size="2" face="Arial, Helvetica, sans-serif">Previously to 
+          <p>Previously to 
             the installation of SLEPc, the system must have an appropriate version 
             of PETSc installed (see the <a href="http://www-unix.mcs.anl.gov/petsc/documentation/installation.html" target="_blank">PETSc installation documentation</a> for details). Check the <a href="changes.htm">Changes</a> 
             section for a list of SLEPc versions and their corresponding PETSc 
-            versions. </font></p>
-        </div>
-        <font face="Arial, Helvetica, sans-serif"> 
-        <p><font size="2">
-	The installation process for SLEPc is very similar to PETSc, with two main stages: configuration and compilation. SLEPc configuration is much simpler because most of the configuration information is taken from PETSc, including compiler options and scalar type (real or complex). Several configurations can coexist in the same directory tree, being selected by different values of <code>PETSC_ARCH</code>, so that one can, for instance, have a SLEPc compiled with real scalars and another one with complex scalars.</font></p>
+            versions. </p>
+        <p>
+	The installation process for SLEPc is very similar to PETSc, with two main stages: configuration and compilation. SLEPc configuration is much simpler because most of the configuration information is taken from PETSc, including compiler options and scalar type (real or complex). Several configurations can coexist in the same directory tree, being selected by different values of <code>PETSC_ARCH</code>, so that one can, for instance, have a SLEPc compiled with real scalars and another one with complex scalars.</p>
 
-        <p><font size="2">
-	The main steps for the installation are:</font></p> 
-        </font></div>
+        <p>
+	The main steps for the installation are:</p> 
       <ol>
-        <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"> 
-          Unbundle the distribution file <strong>slepc-3.4.0.tgz</strong> with a usual 
-    command such as <code>tar xzf slepc-3.4.0.tgz</code>. 
+        <li style="padding-top: 0.5em">
+          Unbundle the distribution file <strong>slepc-3.5.0.tgz</strong> with a usual 
+    command such as <code>tar xzf slepc-3.5.0.tgz</code>. 
     This will create a directory and unpack the software there.<br>
-          </font></font></li>
-        <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">Set the environment variable <code>SLEPC_DIR</code> 
+          </li>
+        <li style="padding-top: 0.5em">Set the environment variable <code>SLEPC_DIR</code> 
     to the full path of the SLEPc home directory, for example,<br>
     <div style="padding-top: 0.4em; padding-bottom: 0.4em;">
-      <code style="margin-left: 1cm">export SLEPC_DIR=/home/username/slepc-3.4.0</code><br>
+      <code style="margin-left: 1cm">export SLEPC_DIR=/home/username/slepc-3.5.0</code><br>
     </div>
     In addition to this variable, <code>PETSC_DIR</code> 
     and <code>PETSC_ARCH</code> must also be set appropriately.<br>
-          </font></font></li>
-        <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"> 
+          </li>
+        <li style="padding-top: 0.5em">
           In the SLEPc directory, execute<br>
     <div style="padding-top: 0.4em; padding-bottom: 0.4em;">
       <code style="margin-left: 1cm">./configure</code><br>
@@ -62,98 +52,82 @@
     Note that in order to enable external packages (see below), this command must be 
     run with appropiate options. To see all available options use 
     <code>./configure --help</code><br>
-          </font></font></li>
-        <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"> 
+          </li>
+        <li style="padding-top: 0.5em">
           In the SLEPc home directory, type<br>
     <div style="padding-top: 0.4em; padding-bottom: 0em;">
       <code style="margin-left: 1cm">make</code>
     </div>
-          </font></font></li>
-        <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2"> 
+          </li>
+        <li style="padding-top: 0.5em">
           Optionally, if an installation directory has been specified during configuration (with option <code>--prefix</code> in step 3 above), then type<br>
     <div style="padding-top: 0.4em; padding-bottom: 0.4em;">
       <code style="margin-left: 1cm">make install</code>
     </div>
     This is useful for building as a regular user and then copying the libraries and include files to the system directories as root.
-          </font></font></li>
-        <li style="padding-top: 0.5em"><font face="Arial, Helvetica, sans-serif" align="left"><font size="2">If the installation went smoothly, then try running some test examples with <br>
+          </li>
+        <li style="padding-top: 0.5em">If the installation went smoothly, then try running some test examples with <br>
     <div style="padding-top: 0.4em; padding-bottom: 0.4em;">
       <code style="margin-left: 1cm">make test</code><br>
     </div>
     Examine the output for any obvious errors or problems.<br>
-          </font></font></li>
+          </li>
       </ol>
-      <div align="left"><font face="Arial, Helvetica, sans-serif"> 
         <p>&nbsp;</p>
 
-        <p><font size="3"><b>Optional Software</b></font></p>
-        <p><font size="2">SLEPc provides an interface to several software packages. 
+        <p><b>Optional Software</b></p>
+        <p>SLEPc provides an interface to several software packages. 
           These should be installed before installing SLEPc. These packages are 
           not developed, maintained, or supported by the SLEPc team; we merely 
           provide an interface to them. To integrate one of these libraries in 
-          SLEPc:</font></p>
-        </font></div>
+          SLEPc:</p>
       <ul>
         <li> 
-          <div align="left"><font face="Arial, Helvetica, sans-serif"><font size="2">First 
+          First 
             install the external package following its instructions. Make sure 
             you use the same compilers and MPI that you plan to use with PETSc/SLEPc.
-            <br>
-            </font></font></div>
         </li>
         <li> 
-          <div align="left"><font face="Arial, Helvetica, sans-serif"><font size="2">Enable 
-            the utilization of the external software from SLEPc by adding specific command-line parameters when executing <font face="Courier New, Courier, mono">configure</font>. For example, to use ARPACK, specify the following options (with the appropriate paths):<br>
-            <br>
-            <font face="Courier New, Courier, mono">&nbsp;&nbsp;&nbsp;
-	./configure --with-arpack-dir=/usr/software/ARPACK <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--with-arpack-flags=-lparpack,-larpack
-            </font></font></font></div>
+          Enable 
+            the utilization of the external software from SLEPc by adding specific command-line parameters when executing <code>configure</code>. For example, to use ARPACK, specify the following options (with the appropriate paths):<br>
+    <div style="padding-top: 0.4em; padding-bottom: 0.4em;">
+      <code style="margin-left: 1cm">./configure --with-arpack-dir=/usr/software/ARPACK --with-arpack-flags=-lparpack,-larpack</code><br>
+    </div>
         </li>
         <li> 
-          <div align="left"><font face="Arial, Helvetica, sans-serif"><font size="2">
-            Build the SLEPc libraries.  <br>
-            </font></font></div>
+            Build the SLEPc libraries.
         </li>
       </ul>
-      <div align="left"> 
-        <p><font size="2" face="Arial, Helvetica, sans-serif">SLEPc currently 
-          interfaces to the following libraries:</font></p>
-      </div>
+        <p>SLEPc currently interfaces to the following libraries:</p>
       <ul>
         <li> 
-          <div align="left"><font size="2" face="Arial, Helvetica, sans-serif"><a href="http://www.caam.rice.edu/software/ARPACK" target="_blank">ARPACK</a> 
-            (Implicitly Restarted Arnoldi/Lanczos solver).</font></div>
+          <a href="http://www.caam.rice.edu/software/ARPACK" target="_blank">ARPACK</a> 
+            (Implicitly Restarted Arnoldi/Lanczos solver).
         </li>
         <li> 
-          <div align="left"><font size="2" face="Arial, Helvetica, sans-serif"><a href="http://www.cs.wm.edu/~andreas/software" target="_blank">PRIMME</a> 
-            (PReconditioned Iterative MultiMethod Eigensolver).</font></div>
+          <a href="http://www.cs.wm.edu/~andreas/software" target="_blank">PRIMME</a> 
+            (PReconditioned Iterative MultiMethod Eigensolver).
         </li>
         <li> 
-          <div align="left"><font size="2" face="Arial, Helvetica, sans-serif"><a href="http://www.nersc.gov/%7Eosni/#Software" target="_blank">BLZPACK</a> 
-            (Block Lanczos with selective and partial reorthogonalization). </font></div>
+          <a href="http://www.nersc.gov/%7Eosni/#Software" target="_blank">BLZPACK</a> 
+            (Block Lanczos with selective and partial reorthogonalization).
         </li>
         <li> 
-          <div align="left"><font size="2" face="Arial, Helvetica, sans-serif"><a href="http://crd.lbl.gov/%7Ekewu/trlan.html" target="_blank">TRLAN</a> 
-            (Dynamic Thick Restart Lanczos solver).</font></div>
+          <a href="http://crd.lbl.gov/%7Ekewu/trlan.html" target="_blank">TRLAN</a> 
+            (Dynamic Thick Restart Lanczos solver).
         </li>
         <li> 
-          <div align="left"><font size="2" face="Arial, Helvetica, sans-serif"><a href="http://code.google.com/p/blopex" target="_blank">BLOPEX</a> 
-            (Block Locally Optimal Preconditioned Eigenvalue Xolvers).</font></div>
+          <a href="http://bitbucket.org/joseroman/blopex" target="_blank">BLOPEX</a> 
+            (Block Locally Optimal Preconditioned Eigenvalue Xolvers).
         </li>
         <li> 
-          <div align="left"><font size="2" face="Arial, Helvetica, sans-serif"><a href="http://www.ecs.umass.edu/~polizzi/feast" target="_blank">FEAST</a> 
-            eigensolver.</font></div>
+          <a href="http://www.ecs.umass.edu/~polizzi/feast" target="_blank">FEAST</a> 
+            eigensolver.
         </li>
       </ul>
-      <div align="left">
-        <p><font size="2" face="Arial, Helvetica, sans-serif">Additional information 
-          about these packages can be found in the SLEPc Users Manual.</font> 
+        <p>Additional information 
+          about these packages can be found in the SLEPc Users Manual.
         </p>
         <p>&nbsp;</p>
-        <p>&nbsp;</p>
-      </div></td>
-  </tr>
-</table>
 </body>
 </html>

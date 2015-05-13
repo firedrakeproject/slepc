@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,9 +19,13 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>
+#include <slepc/private/svdimpl.h>
 
 static PetscBool SVDPackageInitialized = PETSC_FALSE;
+
+const char *SVDErrorTypes[] = {"ABSOLUTE","RELATIVE","SVDErrorType","SVD_ERROR_",0};
+const char *const SVDConvergedReasons_Shifted[] = {"DIVERGED_BREAKDOWN","DIVERGED_ITS","","","CONVERGED_ITERATING","","CONVERGED_TOL","SVDConvergedReason","SVD_",0};
+const char *const*SVDConvergedReasons = SVDConvergedReasons_Shifted + 4;
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDFinalizePackage"
@@ -47,9 +51,9 @@ PetscErrorCode SVDFinalizePackage(void)
 #undef __FUNCT__
 #define __FUNCT__ "SVDInitializePackage"
 /*@C
-   SVDInitializePackage - This function initializes everything in the SVD package. It is called
-   from PetscDLLibraryRegister() when using dynamic libraries, and on the first call to SVDCreate()
-   when using static libraries.
+   SVDInitializePackage - This function initializes everything in the SVD package.
+   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
+   on the first call to SVDCreate() when using static libraries.
 
    Level: developer
 

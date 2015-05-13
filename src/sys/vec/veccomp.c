@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/vecimplslepc.h>     /*I "slepcvec.h" I*/
+#include <slepc/private/vecimplslepc.h>     /*I "slepcvec.h" I*/
 
 /* Private MPI datatypes and operators */
 static MPI_Datatype MPIU_NORM2=0, MPIU_NORM1_AND_2=0;
@@ -236,7 +236,7 @@ PetscErrorCode VecDestroyVecs_Comp(PetscInt m,Vec v[])
   PetscFunctionBegin;
   PetscValidPointer(v,1);
   if (m<=0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %D",m);
-  for (i=0;i<m;i++) { ierr = VecDestroy(&v[i]);CHKERRQ(ierr); }
+  for (i=0;i<m;i++) if (v[i]) { ierr = VecDestroy(&v[i]);CHKERRQ(ierr); }
   ierr = PetscFree(v);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -270,15 +270,15 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
   } else s->x = x;
 
   s->nx = nx;
-  for (i=0;i<nx;i++) {
-    ierr = VecGetSize(x[i],&k);CHKERRQ(ierr);
-    N+= k;
-    ierr = VecGetLocalSize(x[i],&k);CHKERRQ(ierr);
-    lN+= k;
-  }
 
   /* Allocate the shared structure, if it is not given */
   if (!n) {
+    for (i=0;i<nx;i++) {
+      ierr = VecGetSize(x[i],&k);CHKERRQ(ierr);
+      N+= k;
+      ierr = VecGetLocalSize(x[i],&k);CHKERRQ(ierr);
+      lN+= k;
+    }
     ierr = PetscNewLog(v,&n);CHKERRQ(ierr);
     s->n = n;
     n->n = nx;
@@ -286,9 +286,10 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
     n->lN = lN;
     n->friends = 1;
   } else { /* If not, check in the vector in the shared structure */
+    N = n->N;
+    lN = n->lN;
     s->n = n;
     s->n->friends++;
-    s->n->n = nx;
   }
 
   /* Set the virtual sizes as the real sizes of the vector */
@@ -404,7 +405,11 @@ PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V)
   ierr = PetscMalloc1(s->nx,&x);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)*V,s->nx*sizeof(Vec));CHKERRQ(ierr);
   for (i=0;i<s->nx;i++) {
-    ierr = VecDuplicate(s->x[i],&x[i]);CHKERRQ(ierr);
+    if (s->x[i]) {
+      ierr = VecDuplicate(s->x[i],&x[i]);CHKERRQ(ierr);
+    } else {
+      x[i] = NULL;
+    }
   }
   ierr = VecCreate_Comp_Private(*V,x,s->nx,PETSC_TRUE,s->n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -462,7 +467,6 @@ PetscErrorCode VecCompSetSubVecs(Vec win,PetscInt n,Vec *x)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  SlepcValidVecComp(win);
   if (x) {
     if (n > s->nx) {
       ierr = PetscFree(s->x);CHKERRQ(ierr);

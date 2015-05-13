@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -23,12 +23,12 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = fnbasic.c fnrational.c fnexp.c
+SOURCEC  = fnbasic.c fnrational.c fnexp.c fnlog.c fnphi.c fnsqrt.c fncombine.c
 SOURCEF  =
-SOURCEH  = ../../../../include/slepc-private/fnimpl.h ../../../../include/slepcfn.h
+SOURCEH  = ../../../../include/slepc/private/fnimpl.h ../../../../include/slepcfn.h
 LIBBASE  = libslepcsys
 DIRS     = examples
 MANSEC   = FN
 LOCDIR   = src/sys/classes/fn/
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

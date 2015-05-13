@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -32,7 +32,7 @@ TESTEXAMPLES_C           = ex16.PETSc runex16_1 ex16.rm
 TESTEXAMPLES_C_NOCOMPLEX = ex17.PETSc runex17_1 ex17.rm
 TESTEXAMPLES_F90         = ex16f90.PETSc runex16f90_1 ex16f90.rm
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 ex16: ex16.o chkopts
 	-${CLINKER} -o ex16 ex16.o ${SLEPC_PEP_LIB}
@@ -50,20 +50,24 @@ ex17: ex17.o chkopts
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runex16_1:
-	-@${MPIEXEC} -np 1 ./ex16 -pep_nev 4 -pep_ncv 20 -pep_terse > ex16_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex16 -pep_nev 4 -terse > ex16_1.tmp 2>&1; \
 	   if (${DIFF} output/ex16_1.out ex16_1.tmp) then true; \
 	   else echo "Possible problem with ex16_1, diffs above"; fi; \
 	   ${RM} -f ex16_1.tmp
 
 runex16f90_1:
-	-@${MPIEXEC} -np 1 ./ex16f90 -pep_nev 4 -pep_ncv 20 -pep_terse > ex16f90_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex16f90 -pep_nev 4 -terse > ex16f90_1.tmp 2>&1; \
 	   if (${DIFF} output/ex16f90_1.out ex16f90_1.tmp) then true; \
 	   else echo "Possible problem with ex16f90_1, diffs above"; fi; \
 	   ${RM} -f ex16f90_1.tmp
 
 runex17_1:
-	-@${MPIEXEC} -np 1 ./ex17 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_nev 4 -pep_ncv 20 -pep_tol 1e-14 -pep_scale both -pep_terse > ex17_1.tmp 2>&1; \
+	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
+           echo "Skipping ex17 test"; \
+         else \
+	   ${MPIEXEC} -np 1 ./ex17 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_nev 4 -pep_ncv 20 -pep_tol 1e-14 -pep_scale both -terse > ex17_1.tmp 2>&1; \
 	   if (${DIFF} output/ex17_1.out ex17_1.tmp) then true; \
 	   else echo "Possible problem with ex17_1, diffs above"; fi; \
-	   ${RM} -f ex17_1.tmp
+	   ${RM} -f ex17_1.tmp; \
+         fi
 

@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -21,11 +21,11 @@
 
 ALL: lib
 
-SOURCEH  = ../../include/slepc-private/mfnimpl.h ../../include/slepcmfn.h
+SOURCEH  = ../../include/slepc/private/mfnimpl.h ../../include/slepcmfn.h
 DIRS     = interface impls examples f90-mod
 LOCDIR   = src/mfn/
 MANSEC   = MFN
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

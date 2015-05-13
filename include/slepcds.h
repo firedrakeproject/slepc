@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,10 +21,10 @@
 
 #if !defined(__SLEPCDS_H)
 #define __SLEPCDS_H
+#include <slepcsc.h>
 #include <slepcfn.h>
 
 #define DS_MAX_SOLVE 6
-#define DS_MAX_FUN   6
 
 PETSC_EXTERN PetscErrorCode DSInitializePackage(void);
 /*S
@@ -80,7 +80,6 @@ typedef enum { DS_STATE_RAW,
 .   DS_MAT_C  - third matrix of a quadratic eigenproblem
 .   DS_MAT_T  - tridiagonal matrix
 .   DS_MAT_D  - diagonal matrix
-.   DS_MAT_F  - result of matrix function
 .   DS_MAT_Q  - orthogonal matrix of (right) Schur vectors
 .   DS_MAT_Z  - orthogonal matrix of left Schur vectors
 .   DS_MAT_X  - right eigenvectors
@@ -103,7 +102,6 @@ typedef enum { DS_MAT_A,
                DS_MAT_C,
                DS_MAT_T,
                DS_MAT_D,
-               DS_MAT_F,
                DS_MAT_Q,
                DS_MAT_Z,
                DS_MAT_X,
@@ -135,6 +133,7 @@ PETSC_EXTERN PetscErrorCode DSAppendOptionsPrefix(DS,const char *);
 PETSC_EXTERN PetscErrorCode DSGetOptionsPrefix(DS,const char *[]);
 PETSC_EXTERN PetscErrorCode DSSetFromOptions(DS);
 PETSC_EXTERN PetscErrorCode DSView(DS,PetscViewer);
+PETSC_EXTERN PetscErrorCode DSViewMat(DS,PetscViewer,DSMatType);
 PETSC_EXTERN PetscErrorCode DSDestroy(DS*);
 PETSC_EXTERN PetscErrorCode DSReset(DS);
 
@@ -149,8 +148,6 @@ PETSC_EXTERN PetscErrorCode DSGetBlockSize(DS,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSTruncate(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSSetMethod(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSGetMethod(DS,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSSetFunctionMethod(DS,PetscInt);
-PETSC_EXTERN PetscErrorCode DSGetFunctionMethod(DS,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSSetCompact(DS,PetscBool);
 PETSC_EXTERN PetscErrorCode DSGetCompact(DS,PetscBool*);
 PETSC_EXTERN PetscErrorCode DSSetExtraRow(DS,PetscBool);
@@ -166,9 +163,8 @@ PETSC_EXTERN PetscErrorCode DSRestoreArrayReal(DS,DSMatType,PetscReal*[]);
 PETSC_EXTERN PetscErrorCode DSVectors(DS,DSMatType,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSSolve(DS,PetscScalar*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode DSSort(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSComputeFunction(DS,SlepcFunction);
-PETSC_EXTERN PetscErrorCode DSSetEigenvalueComparison(DS,PetscErrorCode (*)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
-PETSC_EXTERN PetscErrorCode DSGetEigenvalueComparison(DS,PetscErrorCode (**)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void**);
+PETSC_EXTERN PetscErrorCode DSSetSlepcSC(DS,SlepcSC);
+PETSC_EXTERN PetscErrorCode DSGetSlepcSC(DS,SlepcSC*);
 PETSC_EXTERN PetscErrorCode DSUpdateExtraRow(DS);
 PETSC_EXTERN PetscErrorCode DSCond(DS,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSTranslateHarmonic(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
@@ -180,8 +176,6 @@ PETSC_EXTERN PetscErrorCode DSGetFN(DS,PetscInt,FN*);
 PETSC_EXTERN PetscErrorCode DSGetNumFN(DS,PetscInt*);
 
 PETSC_EXTERN PetscFunctionList DSList;
-PETSC_EXTERN PetscBool         DSRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode DSRegisterAll(void);
 PETSC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));
 
 #endif

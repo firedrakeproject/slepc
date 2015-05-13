@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -132,7 +132,7 @@ int main(int argc,char **argv)
   /*
      Evaluate initial guess
   */
-  ierr = MatGetVecs(F,&x,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(F,&x,NULL);CHKERRQ(ierr);
   ierr = FormInitialGuess(x);CHKERRQ(ierr);
   ierr = NEPSetInitialSpace(nep,1,&x);CHKERRQ(ierr);
 
@@ -175,12 +175,12 @@ int main(int argc,char **argv)
       /*
         Get converged eigenpairs (in this example they are always real)
       */
-      ierr = NEPGetEigenpair(nep,i,&lambda,x);CHKERRQ(ierr);
+      ierr = NEPGetEigenpair(nep,i,&lambda,NULL,x,NULL);CHKERRQ(ierr);
       ierr = FixSign(x);CHKERRQ(ierr);
       /*
          Compute residual norm and error
       */
-      ierr = NEPComputeRelativeError(nep,i,&norm);CHKERRQ(ierr);
+      ierr = NEPComputeError(nep,i,NEP_ERROR_RELATIVE,&norm);CHKERRQ(ierr);
       ierr = CheckSolution(lambda,x,&error,&ctx);CHKERRQ(ierr);
 
 #if defined(PETSC_USE_COMPLEX)
@@ -426,16 +426,17 @@ PetscErrorCode CheckSolution(PetscScalar lambda,Vec y,PetscReal *error,void *ctx
 */
 PetscErrorCode FixSign(Vec x)
 {
-  PetscErrorCode ierr;
-  PetscMPIInt    rank;
-  PetscScalar    sign,*xx;
+  PetscErrorCode    ierr;
+  PetscMPIInt       rank;
+  PetscScalar       sign;
+  const PetscScalar *xx;
 
   PetscFunctionBeginUser;
   ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
   if (!rank) {
-    ierr = VecGetArray(x,&xx);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(x,&xx);CHKERRQ(ierr);
     sign = *xx/PetscAbsScalar(*xx);
-    ierr = VecRestoreArray(x,&xx);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
   }
   ierr = MPI_Bcast(&sign,1,MPIU_SCALAR,0,PETSC_COMM_WORLD);CHKERRQ(ierr);
   ierr = VecScale(x,1.0/sign);CHKERRQ(ierr);

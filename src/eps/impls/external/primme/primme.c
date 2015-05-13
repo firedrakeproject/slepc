@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>    /*I "slepceps.h" I*/
-#include <slepc-private/stimpl.h>
+#include <slepc/private/epsimpl.h>    /*I "slepceps.h" I*/
+#include <slepc/private/stimpl.h>
 
 PetscErrorCode EPSSolve_PRIMME(EPS);
 
@@ -75,7 +75,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   PetscMPIInt    numProcs,procID;
   EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
   primme_params  *primme = &ops->primme;
-  PetscBool      flg;
+  PetscBool      istrivial,flg;
 
   PetscFunctionBegin;
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&numProcs);CHKERRQ(ierr);
@@ -90,14 +90,15 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
   if (eps->converged != EPSConvergedAbsolute) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only supports absolute convergence test");
+  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
-  /* Change the default sigma to inf if necessary */
+  /* Set default sigma */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) {
     ierr = STSetDefaultShift(eps->st,3e300);CHKERRQ(ierr);
+  } else {
+    ierr = STSetDefaultShift(eps->st,0.0);CHKERRQ(ierr);
   }
-
-  /* Avoid setting the automatic shift when a target is set */
-  ierr = STSetDefaultShift(eps->st,0.0);CHKERRQ(ierr);
 
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&flg);CHKERRQ(ierr);
@@ -116,7 +117,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->printLevel = 0;
   primme->correctionParams.precondition = 1;
 
-  if (!eps->which) eps->which = EPS_LARGEST_REAL;
   switch (eps->which) {
     case EPS_LARGEST_REAL:
       primme->target = primme_largest;
@@ -335,7 +335,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_PRIMME"
-PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
+PetscErrorCode EPSSetFromOptions_PRIMME(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_PRIMME      *ctx = (EPS_PRIMME*)eps->data;
@@ -345,7 +345,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps)
   KSP             ksp;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS PRIMME Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS PRIMME Options");CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_primme_block_size","Maximum block size","EPSPRIMMESetBlockSize",ctx->primme.maxBlockSize,&bs,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = EPSPRIMMESetBlockSize(eps,bs);CHKERRQ(ierr);

@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -21,11 +21,13 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/fnimpl.h>      /*I "slepcfn.h" I*/
+#include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
+#include <slepcblaslapack.h>
 
 PetscFunctionList FNList = 0;
 PetscBool         FNRegisterAllCalled = PETSC_FALSE;
 PetscClassId      FN_CLASSID = 0;
+PetscLogEvent     FN_Evaluate = 0;
 static PetscBool  FNPackageInitialized = PETSC_FALSE;
 
 #undef __FUNCT__
@@ -74,6 +76,8 @@ PetscErrorCode FNInitializePackage(void)
   ierr = PetscClassIdRegister("Math function",&FN_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = FNRegisterAll();CHKERRQ(ierr);
+  /* Register Events */
+  ierr = PetscLogEventRegister("FNEvaluate",FN_CLASSID,&FN_Evaluate);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
@@ -96,7 +100,7 @@ PetscErrorCode FNInitializePackage(void)
 
 #undef __FUNCT__
 #define __FUNCT__ "FNCreate"
-/*@C
+/*@
    FNCreate - Creates an FN context.
 
    Collective on MPI_Comm
@@ -120,11 +124,13 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
   PetscValidPointer(newfn,2);
   *newfn = 0;
   ierr = FNInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(fn,_p_FN,struct _FNOps,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView);CHKERRQ(ierr);
-  fn->na       = 0;
-  fn->alpha    = NULL;
-  fn->nb       = 0;
-  fn->beta     = NULL;
+  ierr = SlepcHeaderCreate(fn,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView);CHKERRQ(ierr);
+
+  fn->alpha    = 1.0;
+  fn->beta     = 1.0;
+
+  fn->W        = NULL;
+  fn->data     = NULL;
 
   *newfn = fn;
   PetscFunctionReturn(0);
@@ -257,6 +263,7 @@ PetscErrorCode FNSetType(FN fn,FNType type)
   ierr =  PetscFunctionListFind(FNList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested FN type %s",type);
 
+  if (fn->ops->destroy) { ierr = (*fn->ops->destroy)(fn);CHKERRQ(ierr); }
   ierr = PetscMemzero(fn->ops,sizeof(struct _FNOps));CHKERRQ(ierr);
 
   ierr = PetscObjectChangeTypeName((PetscObject)fn,type);CHKERRQ(ierr);
@@ -291,68 +298,46 @@ PetscErrorCode FNGetType(FN fn,FNType *type)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "FNSetParameters"
+#define __FUNCT__ "FNSetScale"
 /*@
-   FNSetParameters - Sets the parameters that define the matematical function.
+   FNSetScale - Sets the scaling parameters that define the matematical function.
 
    Logically Collective on FN
 
    Input Parameters:
 +  fn    - the math function context
-.  na    - number of parameters in the first group
-.  alpha - first group of parameters (array of scalar values)
-.  nb    - number of parameters in the second group
--  beta  - second group of parameters (array of scalar values)
+.  alpha - inner scaling (argument)
+-  beta  - outer scaling (result)
 
    Notes:
-   In a rational function r(x) = p(x)/q(x), where p(x) and q(x) are polynomials,
-   the parameters alpha and beta represent the coefficients of p(x) and q(x),
-   respectively. Hence, p(x) is of degree na-1 and q(x) of degree nb-1.
-   If nb is zero, then the function is assumed to be polynomial, r(x) = p(x).
+   Given a function f(x) specified by the FN type, the scaling parameters can
+   be used to realize the function beta*f(alpha*x). So when these values are given,
+   the procedure for function evaluation will first multiply the argument by alpha,
+   then evaluate the function itself, and finally scale the result by beta.
+   Likewise, these values are also considered when evaluating the derivative.
 
-   In other functions the parameters have other meanings.
-
-   In polynomials, high order coefficients are stored in the first positions
-   of the array, e.g. to represent x^2-3 use {1,0,-3}.
+   If you want to provide only one of the two scaling factors, set the other
+   one to 1.0.
 
    Level: intermediate
 
-.seealso: FNGetParameters()
+.seealso: FNGetScale(), FNEvaluateFunction()
 @*/
-PetscErrorCode FNSetParameters(FN fn,PetscInt na,PetscScalar *alpha,PetscInt nb,PetscScalar *beta)
+PetscErrorCode FNSetScale(FN fn,PetscScalar alpha,PetscScalar beta)
 {
-  PetscErrorCode ierr;
-  PetscInt       i;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  PetscValidLogicalCollectiveInt(fn,na,2);
-  if (na<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument na cannot be negative");
-  if (na) PetscValidPointer(alpha,3);
-  PetscValidLogicalCollectiveInt(fn,nb,4);
-  if (nb<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument nb cannot be negative");
-  if (nb) PetscValidPointer(beta,5);
-  fn->na = na;
-  ierr = PetscFree(fn->alpha);CHKERRQ(ierr);
-  if (na) {
-    ierr = PetscMalloc1(na,&fn->alpha);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)fn,na*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<na;i++) fn->alpha[i] = alpha[i];
-  }
-  fn->nb = nb;
-  ierr = PetscFree(fn->beta);CHKERRQ(ierr);
-  if (nb) {
-    ierr = PetscMalloc1(nb,&fn->beta);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)fn,nb*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<nb;i++) fn->beta[i] = beta[i];
-  }
+  PetscValidLogicalCollectiveScalar(fn,alpha,2);
+  PetscValidLogicalCollectiveScalar(fn,beta,2);
+  fn->alpha = alpha;
+  fn->beta  = beta;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "FNGetParameters"
+#define __FUNCT__ "FNGetScale"
 /*@
-   FNGetParameters - Returns the parameters that define the matematical function.
+   FNGetScale - Gets the scaling parameters that define the matematical function.
 
    Not Collective
 
@@ -360,23 +345,19 @@ PetscErrorCode FNSetParameters(FN fn,PetscInt na,PetscScalar *alpha,PetscInt nb,
 .  fn    - the math function context
 
    Output Parameters:
-+  na    - number of parameters in the first group
-.  alpha - first group of parameters (array of scalar values)
-.  nb    - number of parameters in the second group
--  beta  - second group of parameters (array of scalar values)
++  alpha - inner scaling (argument)
+-  beta  - outer scaling (result)
 
    Level: intermediate
 
-.seealso: FNSetParameters()
+.seealso: FNSetScale()
 @*/
-PetscErrorCode FNGetParameters(FN fn,PetscInt *na,PetscScalar *alpha[],PetscInt *nb,PetscScalar *beta[])
+PetscErrorCode FNGetScale(FN fn,PetscScalar *alpha,PetscScalar *beta)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  if (na)    *na = fn->na;
   if (alpha) *alpha = fn->alpha;
-  if (nb)    *nb = fn->nb;
-  if (beta)  *beta = fn->beta;
+  if (beta)  *beta  = fn->beta;
   PetscFunctionReturn(0);
 }
 
@@ -394,22 +375,29 @@ PetscErrorCode FNGetParameters(FN fn,PetscInt *na,PetscScalar *alpha[],PetscInt 
    Output Parameter:
 .  y  - the result of f(x)
 
+   Note:
+   Scaling factors are taken into account, so the actual function evaluation
+   will return beta*f(alpha*x).
+
    Level: intermediate
 
-.seealso: FNEvaluateDerivative()
+.seealso: FNEvaluateDerivative(), FNEvaluateFunctionMat(), FNSetScale()
 @*/
 PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscErrorCode ierr;
+  PetscScalar    xf,yf;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveScalar(fn,x,2);
+  PetscValidType(fn,1);
   PetscValidPointer(y,3);
-  if (!((PetscObject)fn)->type_name) {
-    ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
-  }
-  ierr = (*fn->ops->evaluatefunction)(fn,x,y);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+  xf = fn->alpha*x;
+  ierr = (*fn->ops->evaluatefunction)(fn,xf,&yf);CHKERRQ(ierr);
+  *y = fn->beta*yf;
+  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -427,6 +415,10 @@ PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
    Output Parameter:
 .  y  - the result of f'(x)
 
+   Note:
+   Scaling factors are taken into account, so the actual derivative evaluation will
+   return alpha*beta*f'(alpha*x).
+
    Level: intermediate
 
 .seealso: FNEvaluateFunction()
@@ -434,15 +426,178 @@ PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
 PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscErrorCode ierr;
+  PetscScalar    xf,yf;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveScalar(fn,x,2);
+  PetscValidType(fn,1);
   PetscValidPointer(y,3);
-  if (!((PetscObject)fn)->type_name) {
-    ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+  xf = fn->alpha*x;
+  ierr = (*fn->ops->evaluatederivative)(fn,xf,&yf);CHKERRQ(ierr);
+  *y = fn->alpha*fn->beta*yf;
+  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMat_Sym_Default"
+/*
+   FNEvaluateFunctionMat_Sym_Default - given a symmetric matrix A,
+   compute the matrix function as f(A)=Q*f(D)*Q' where the spectral
+   decomposition of A is A=Q*D*Q' 
+*/
+static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
+{
+#if defined(PETSC_MISSING_LAPACK_SYEV)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEV - Lapack routines are unavailable");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i,j,m;
+  PetscBLASInt   n,ld,lwork,info;
+  PetscScalar    *As,*Bs,*Q,*W,*work,a,x,y,one=1.0,zero=0.0;
+  PetscReal      *eig;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+#endif
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&Bs);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ld = n;
+
+  /* workspace query and memory allocation */
+  lwork = -1;
+#if defined(PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,eig,&a,&lwork,NULL,&info));
+  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
+  ierr = PetscMalloc5(m,&eig,m*m,&Q,m*m,&W,lwork,&work,PetscMax(1,3*m-2),&rwork);CHKERRQ(ierr);
+#else
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,eig,&a,&lwork,&info));
+  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
+  ierr = PetscMalloc4(m,&eig,m*m,&Q,m*m,&W,lwork,&work);CHKERRQ(ierr);
+#endif
+
+  /* compute eigendecomposition */
+  PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L",&n,&n,As,&ld,Q,&ld));
+#if defined(PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,rwork,&info));
+#else
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,&info));
+#endif
+  if (info) SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_LIB,"Error in Lapack xSYEV %i",info);
+
+  /* W = f(Lambda)*Q' */
+  for (i=0;i<n;i++) {
+    x = eig[i];
+    ierr = (*fn->ops->evaluatefunction)(fn,x,&y);CHKERRQ(ierr);  /* y = f(x) */
+    for (j=0;j<n;j++) W[i+j*ld] = Q[j+i*ld]*y;
   }
-  ierr = (*fn->ops->evaluatederivative)(fn,x,y);CHKERRQ(ierr);
+  /* Bs = Q*W */
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,W,&ld,&zero,Bs,&ld));
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PetscFree5(eig,Q,W,work,rwork);CHKERRQ(ierr);
+#else
+  ierr = PetscFree4(eig,Q,W,work);CHKERRQ(ierr);
+#endif
+  ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&Bs);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMat"
+/*@
+   FNEvaluateFunctionMat - Computes the value of the function f(A) for a given
+   matrix A, where the result is also a matrix.
+
+   Logically Collective on FN
+
+   Input Parameters:
++  fn - the math function context
+-  A  - matrix on which the function must be evaluated
+
+   Output Parameter:
+.  B  - matrix resulting from evaluating f(A)
+
+   Notes:
+   The matrix A must be a sequential dense Mat, with all entries equal on
+   all processes (otherwise each process will compute different results).
+   Matrix B must also be a sequential dense Mat. Both matrices must be
+   square with the same dimensions.
+
+   If A is known to be real symmetric or complex Hermitian then it is
+   recommended to set the appropriate flag with MatSetOption(), so that
+   a different algorithm that exploits symmetry is used.
+
+   Scaling factors are taken into account, so the actual function evaluation
+   will return beta*f(alpha*A).
+
+   Level: advanced
+
+.seealso: FNEvaluateFunction()
+@*/
+PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscBool      match,set,flg,symm=PETSC_FALSE;
+  PetscInt       m,n,n1;
+  Mat            M;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscValidHeaderSpecific(B,MAT_CLASSID,3);
+  PetscValidType(fn,1);
+  PetscValidType(A,2);
+  PetscValidType(B,3);
+  if (A==B) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_WRONG,"A and B arguments must be different");
+  ierr = PetscObjectTypeCompare((PetscObject)A,MATSEQDENSE,&match);CHKERRQ(ierr);
+  if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat A must be of type seqdense");
+  ierr = PetscObjectTypeCompare((PetscObject)B,MATSEQDENSE,&match);CHKERRQ(ierr);
+  if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat B must be of type seqdense");
+  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
+  if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %D rows, %D cols)",m,n);
+  n1 = n;
+  ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
+  if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat B is not square (has %D rows, %D cols)",m,n);
+  if (n1!=n) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrices A and B must have the same dimension");
+
+  /* check symmetry of A */
+  ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
+  symm = set? flg: PETSC_FALSE;
+
+  /* scale argument */
+  if (fn->alpha!=(PetscScalar)1.0) {
+    ierr = FN_AllocateWorkMat(fn,A);CHKERRQ(ierr);
+    M = fn->W;
+    ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
+  } else M = A;
+
+  /* evaluate matrix function */
+  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  if (symm) {
+    if (fn->ops->evaluatefunctionmatsym) {
+      ierr = (*fn->ops->evaluatefunctionmatsym)(fn,M,B);CHKERRQ(ierr);
+    } else {
+      ierr = FNEvaluateFunctionMat_Sym_Default(fn,M,B);CHKERRQ(ierr);
+    }
+  } else {
+    if (fn->ops->evaluatefunctionmat) {
+      ierr = (*fn->ops->evaluatefunctionmat)(fn,M,B);CHKERRQ(ierr);
+    } else SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in FN type %s",((PetscObject)fn)->type_name);
+  }
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+
+  /* scale result */
+  ierr = MatScale(B,fn->beta);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -464,15 +619,37 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
 PetscErrorCode FNSetFromOptions(FN fn)
 {
   PetscErrorCode ierr;
+  char           type[256];
+  PetscScalar    array[2];
+  PetscInt       k;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  if (!FNRegisterAllCalled) { ierr = FNRegisterAll();CHKERRQ(ierr); }
-  /* Set default type (we do not allow changing it with -fn_type) */
-  if (!((PetscObject)fn)->type_name) {
-    ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
-  }
+  ierr = FNRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)fn);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-fn_type","Math function type","FNSetType",FNList,(char*)(((PetscObject)fn)->type_name?((PetscObject)fn)->type_name:FNRATIONAL),type,256,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = FNSetType(fn,type);CHKERRQ(ierr);
+    }
+    /*
+      Set the type if it was never set.
+    */
+    if (!((PetscObject)fn)->type_name) {
+      ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
+    }
+
+    k = 2;
+    array[0] = 0.0; array[1] = 0.0;
+    ierr = PetscOptionsScalarArray("-fn_scale","Scale factors (one or two scalar values separated with a comma without spaces)","FNSetScale",array,&k,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if (k<2) array[1] = 1.0;
+      ierr = FNSetScale(fn,array[0],array[1]);CHKERRQ(ierr);
+    }
+
+    if (fn->ops->setfromoptions) {
+      ierr = (*fn->ops->setfromoptions)(PetscOptionsObject,fn);CHKERRQ(ierr);
+    }
     ierr = PetscObjectProcessOptionsHandlers((PetscObject)fn);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -525,8 +702,49 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "FNDuplicate"
+/*@
+   FNDuplicate - Duplicates a math function, copying all parameters, possibly with a
+   different communicator.
+
+   Collective on FN
+
+   Input Parameters:
++  fn   - the math function context
+-  comm - MPI communicator (may be NULL)
+
+   Output Parameter:
+.  newfn - location to put the new FN context
+
+   Level: developer
+
+.seealso: FNCreate()
+@*/
+PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
+{
+  PetscErrorCode ierr;
+  FNType         type;
+  PetscScalar    alpha,beta;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  PetscValidType(fn,1);
+  PetscValidPointer(newfn,3);
+  if (!comm) comm = PetscObjectComm((PetscObject)fn);
+  ierr = FNCreate(comm,newfn);CHKERRQ(ierr);
+  ierr = FNGetType(fn,&type);CHKERRQ(ierr);
+  ierr = FNSetType(*newfn,type);CHKERRQ(ierr);
+  ierr = FNGetScale(fn,&alpha,&beta);CHKERRQ(ierr);
+  ierr = FNSetScale(*newfn,alpha,beta);CHKERRQ(ierr);
+  if (fn->ops->duplicate) {
+    ierr = (*fn->ops->duplicate)(fn,comm,newfn);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "FNDestroy"
-/*@C
+/*@
    FNDestroy - Destroys FN context that was created with FNCreate().
 
    Collective on FN
@@ -546,8 +764,8 @@ PetscErrorCode FNDestroy(FN *fn)
   if (!*fn) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*fn,FN_CLASSID,1);
   if (--((PetscObject)(*fn))->refct > 0) { *fn = 0; PetscFunctionReturn(0); }
-  ierr = PetscFree((*fn)->alpha);CHKERRQ(ierr);
-  ierr = PetscFree((*fn)->beta);CHKERRQ(ierr);
+  if ((*fn)->ops->destroy) { ierr = (*(*fn)->ops->destroy)(*fn);CHKERRQ(ierr); }
+  ierr = MatDestroy(&(*fn)->W);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(fn);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -579,8 +797,12 @@ PetscErrorCode FNRegister(const char *name,PetscErrorCode (*function)(FN))
   PetscFunctionReturn(0);
 }
 
+PETSC_EXTERN PetscErrorCode FNCreate_Combine(FN);
 PETSC_EXTERN PetscErrorCode FNCreate_Rational(FN);
 PETSC_EXTERN PetscErrorCode FNCreate_Exp(FN);
+PETSC_EXTERN PetscErrorCode FNCreate_Log(FN);
+PETSC_EXTERN PetscErrorCode FNCreate_Phi(FN);
+PETSC_EXTERN PetscErrorCode FNCreate_Sqrt(FN);
 
 #undef __FUNCT__
 #define __FUNCT__ "FNRegisterAll"
@@ -596,9 +818,14 @@ PetscErrorCode FNRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (FNRegisterAllCalled) PetscFunctionReturn(0);
   FNRegisterAllCalled = PETSC_TRUE;
+  ierr = FNRegister(FNCOMBINE,FNCreate_Combine);CHKERRQ(ierr);
   ierr = FNRegister(FNRATIONAL,FNCreate_Rational);CHKERRQ(ierr);
   ierr = FNRegister(FNEXP,FNCreate_Exp);CHKERRQ(ierr);
+  ierr = FNRegister(FNLOG,FNCreate_Log);CHKERRQ(ierr);
+  ierr = FNRegister(FNPHI,FNCreate_Phi);CHKERRQ(ierr);
+  ierr = FNRegister(FNSQRT,FNCreate_Sqrt);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
