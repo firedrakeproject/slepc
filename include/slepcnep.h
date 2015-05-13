@@ -50,11 +50,8 @@ typedef const char* NEPType;
 #define NEPRII       "rii"
 #define NEPSLP       "slp"
 #define NEPNARNOLDI  "narnoldi"
-<<<<<<< HEAD
 #define NEPCISS      "ciss"
-=======
 #define NEPINTERPOL  "interpol"
->>>>>>> maeda/ciss
 
 /* Logging support */
 PETSC_EXTERN PetscClassId NEP_CLASSID;
@@ -220,19 +217,17 @@ PETSC_EXTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPSLPSetEPS(NEP,EPS);
 PETSC_EXTERN PetscErrorCode NEPSLPGetEPS(NEP,EPS*);
 
-<<<<<<< HEAD
 PETSC_EXTERN PetscErrorCode NEPCISSSetRegion(NEP,PetscScalar,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode NEPCISSGetRegion(NEP,PetscScalar*,PetscReal*,PetscReal*);
 PETSC_EXTERN PetscErrorCode NEPCISSSetSizes(NEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
 PETSC_EXTERN PetscErrorCode NEPCISSGetSizes(NEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*);
 PETSC_EXTERN PetscErrorCode NEPCISSSetThreshold(NEP,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode NEPCISSGetThreshold(NEP,PetscReal*,PetscReal*);
-=======
+
 PETSC_EXTERN PetscErrorCode NEPInterpolSetPEP(NEP,PEP);
 PETSC_EXTERN PetscErrorCode NEPInterpolGetPEP(NEP,PEP*);
 PETSC_EXTERN PetscErrorCode NEPInterpolSetDegree(NEP,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPInterpolGetDegree(NEP,PetscInt*);
->>>>>>> maeda/ciss
 
 #endif
 

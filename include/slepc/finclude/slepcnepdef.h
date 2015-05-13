@@ -43,10 +43,6 @@
 #define NEPRII       'rii'
 #define NEPSLP       'slp'
 #define NEPNARNOLDI  'narnoldi'
-<<<<<<< HEAD:include/finclude/slepcnepdef.h
 #define NEPCISS      'ciss'
-=======
 #define NEPINTERPOL  'interpol'
->>>>>>> maeda/ciss:include/slepc/finclude/slepcnepdef.h
-
 #endif
