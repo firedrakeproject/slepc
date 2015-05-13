@@ -427,6 +427,7 @@ PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
   BV_SVEC           *ctx = (BV_SVEC*)bv->data;
   PetscViewerFormat format;
   PetscBool         isascii;
+  const char        *bvname,*name;
 
   PetscFunctionBegin;
   ierr = VecView(ctx->v,viewer);CHKERRQ(ierr);
@@ -434,9 +435,11 @@ PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s=reshape(%s,%D,%D);clear %s\n",((PetscObject)bv)->name,((PetscObject)ctx->v)->name,bv->N,bv->nc+bv->m,((PetscObject)ctx->v)->name);CHKERRQ(ierr);
+      ierr = PetscObjectGetName((PetscObject)bv,&bvname);CHKERRQ(ierr);
+      ierr = PetscObjectGetName((PetscObject)ctx->v,&name);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=reshape(%s,%D,%D);clear %s\n",bvname,name,bv->N,bv->nc+bv->m,name);CHKERRQ(ierr);
       if (bv->nc) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%D:end);\n",((PetscObject)bv)->name,((PetscObject)bv)->name,bv->nc+1);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%D:end);\n",bvname,bvname,bv->nc+1);CHKERRQ(ierr);
       }
     }
   }

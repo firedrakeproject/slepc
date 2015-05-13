@@ -168,7 +168,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt        i,j,*pj,k,l,nv,ld;
+  PetscInt        i,j,*pj,k,l,nv,ld,nconv;
   Mat             U;
   PetscScalar     *S,*Q,*g;
   PetscReal       beta,gamma=1.0;
@@ -219,6 +219,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta,gamma,&k);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
+    nconv = k;
 
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
@@ -274,7 +275,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       ierr = BVCopyColumn(eps->V,nv,k+l);CHKERRQ(ierr);
     }
     eps->nconv = k;
-    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
+    ierr = EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
   }
 
   if (harmonic) { ierr = PetscFree(g);CHKERRQ(ierr); }

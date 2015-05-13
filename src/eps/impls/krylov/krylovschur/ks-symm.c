@@ -33,7 +33,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt        k,l,ld,nv;
+  PetscInt        k,l,ld,nv,nconv;
   Mat             U;
   PetscReal       *a,*b,beta;
   PetscBool       breakdown;
@@ -74,6 +74,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta,1.0,&k);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
+    nconv = k;
 
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
@@ -106,8 +107,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
       ierr = BVCopyColumn(eps->V,nv,k+l);CHKERRQ(ierr);
     }
 
-    ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
     eps->nconv = k;
+    ierr = EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
