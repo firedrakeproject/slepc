@@ -109,9 +109,9 @@ int main(int argc,char **argv)
     for (i=0;i<4;i++) {
       if (i+j<n) {
 #if defined(PETSC_USE_COMPLEX)
-        alpha = 3*i+j-2+PETSC_i*2*i;
+        alpha = (PetscReal)(3*i+j-2)+(PetscReal)(2*i)*PETSC_i;
 #else
-        alpha = 3*i+j-2;
+        alpha = (PetscReal)(3*i+j-2);
 #endif
         ierr = VecSetValue(v,i+j,alpha,INSERT_VALUES);CHKERRQ(ierr);
       }
@@ -143,9 +143,9 @@ int main(int argc,char **argv)
   for (j=0;j<ky+1;j++) {
     ierr = BVGetColumn(Y,j,&v);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    alpha = (j+1)/4.0-PETSC_i*j;
+    alpha = (PetscReal)(j+1)/4.0-(PetscReal)j*PETSC_i;
 #else
-    alpha = (j+1)/4.0;
+    alpha = (PetscReal)(j+1)/4.0;
 #endif
     ierr = VecSet(v,(PetscScalar)(j+1)/4.0);CHKERRQ(ierr);
     ierr = BVRestoreColumn(Y,j,&v);CHKERRQ(ierr);
