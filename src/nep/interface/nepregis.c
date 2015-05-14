@@ -48,10 +48,10 @@ PetscErrorCode NEPRegisterAll(void)
   ierr = NEPRegister(NEPRII,NEPCreate_RII);CHKERRQ(ierr);
   ierr = NEPRegister(NEPSLP,NEPCreate_SLP);CHKERRQ(ierr);
   ierr = NEPRegister(NEPNARNOLDI,NEPCreate_NArnoldi);CHKERRQ(ierr);
+  ierr = NEPRegister(NEPINTERPOL,NEPCreate_Interpol);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = NEPRegister(NEPCISS,NEPCreate_CISS);CHKERRQ(ierr);
 #endif
-  ierr = NEPRegister(NEPINTERPOL,NEPCreate_Interpol);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

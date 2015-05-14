@@ -28,11 +28,10 @@ FFLAGS   =
 SOURCEC  = ciss.c
 SOURCEF  =
 SOURCEH  =
-LIBBASE  = libslepc
+LIBBASE  = libslepcnep
 DIRS     =
-MANSEC   = EPS
+MANSEC   = NEP
 LOCDIR   = src/nep/impls/ciss/
 
-include ${SLEPC_DIR}/conf/slepc_common
-
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
