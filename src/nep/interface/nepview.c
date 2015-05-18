@@ -296,7 +296,7 @@ static PetscErrorCode NEPErrorView_DETAIL(NEP nep,NEPErrorType etype,PetscViewer
       ierr = PetscSNPrintf(ex,EXLEN,"    ||T(k)x||");CHKERRQ(ierr);
       break;
     case NEP_ERROR_RELATIVE:
-      ierr = PetscSNPrintf(ex,EXLEN," ||T(x)x||/||kx||");CHKERRQ(ierr);
+      ierr = PetscSNPrintf(ex,EXLEN," ||T(k)x||/||kx||");CHKERRQ(ierr);
       break;
   }
   ierr = PetscViewerASCIIPrintf(viewer,"%s            k             %s\n%s",sep,ex,sep);CHKERRQ(ierr);

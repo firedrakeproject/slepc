@@ -615,7 +615,7 @@ static PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,P
 {
   PetscErrorCode ierr;
   PetscScalar    one=1.0,zero=0.0;
-  PetscInt       dA_=kA-lA,m0,n0,ldA_,ldQ_,ldZ_,nQ_;
+  PetscInt       i,j,dA_=kA-lA,m0,n0,ldA_,ldQ_,ldZ_,nQ_;
   PetscBLASInt   dA,nQ,ldA,ldQ,ldZ;
   PetscScalar    *pA,*pQ,*pZ,*pW;
   PetscBool      symm=PETSC_FALSE,set,flg;
@@ -649,10 +649,12 @@ static PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,P
   ierr = MatDenseGetArray(aux,&pW);CHKERRQ(ierr);
   /* W = A*Q */
   if (symm) {
-    PetscStackCallBLAS("BLASsymm",BLASsymm_("L","U",&nQ,&dA,&one,&pA[ldA*lA+lA],&ldA,&pQ[ldQ*l+l],&ldQ,&zero,pW,&nQ));
-  } else {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nQ,&dA,&nQ,&one,&pA[ldA*lA+lA],&ldA,&pQ[ldQ*l+l],&ldQ,&zero,pW,&nQ));
+    /* symmetrize before multiplying */
+    for (i=lA+1;i<lA+nQ;i++) {
+      for (j=lA;j<i;j++) pA[i+j*ldA] = PetscConj(pA[j+i*ldA]);
+    }
   }
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nQ,&dA,&nQ,&one,&pA[ldA*lA+lA],&ldA,&pQ[ldQ*l+l],&ldQ,&zero,pW,&nQ));
   /* A = Q'*W */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&dA,&dA,&nQ,&one,&pZ[ldZ*l+l],&ldZ,pW,&nQ,&zero,&pA[ldA*lA+lA],&ldA));
   ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);

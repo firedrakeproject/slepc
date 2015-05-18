@@ -295,7 +295,6 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   ierr = PEPSimpleNRefSetUp(pep,&ctx);CHKERRQ(ierr);
   its = (maxits)?*maxits:NREF_MAXIT;
   comm = (pep->npart==1)?PetscObjectComm((PetscObject)pep):PetscSubcommChild(pep->refinesubc);
-  ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
   ierr = PEPRefineGetKSP(pep,&ksp);CHKERRQ(ierr);
   if (pep->npart==1) {
     ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
@@ -345,7 +344,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
     for (i=0;i<pep->npart&&solved;i++) solved = (idx_sc[i]<k)?PETSC_FALSE:PETSC_TRUE;
     if (idx_sc[color]<k) {
 #if !defined(PETSC_USE_COMPLEX)
-      if (pep->eigi[idx_sc[color]]!=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Simple Refinement not implemented in real scalar for complex eigenvalues");
+      if (pep->eigi[idx_sc[color]]!=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Simple Refinement not implemented in real scalars for complex eigenvalues");
 #endif
       if (pep->npart==1) {
         ierr = BVGetColumn(pep->V,idx_sc[color],&v);CHKERRQ(ierr);

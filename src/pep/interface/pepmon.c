@@ -163,6 +163,28 @@ PetscErrorCode PEPGetMonitorContext(PEP pep,void **ctx)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPMonitorGetTrueEig"
+/*
+   Helper function to compute eigenvalue that must be viewed in monitor
+ */
+static PetscErrorCode PEPMonitorGetTrueEig(PEP pep,PetscScalar *er,PetscScalar *ei)
+{
+  PetscErrorCode ierr;
+  PetscBool      flg;
+
+  PetscFunctionBegin;
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (flg) {
+    *er *= pep->sfactor; *ei *= pep->sfactor;
+  }
+  ierr = STBackTransform(pep->st,1,er,ei);CHKERRQ(ierr);
+  if (!flg) {
+    *er *= pep->sfactor; *ei *= pep->sfactor;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPMonitorAll"
 /*@C
    PEPMonitorAll - Print the current approximate values and
@@ -188,6 +210,7 @@ PetscErrorCode PEPMonitorAll(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *ei
 {
   PetscErrorCode ierr;
   PetscInt       i;
+  PetscScalar    er,ei;
   PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)pep));
 
   PetscFunctionBegin;
@@ -195,11 +218,13 @@ PetscErrorCode PEPMonitorAll(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *ei
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%3D PEP nconv=%D Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
+      er = eigr[i]; ei = eigi[i];
+      ierr = PEPMonitorGetTrueEig(pep,&er,&ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(eigr[i]),(double)PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIPrintf(viewer," %g",(double)eigr[i]);CHKERRQ(ierr);
-      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)eigi[i]);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIPrintf(viewer," %g",(double)er);CHKERRQ(ierr);
+      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)ei);CHKERRQ(ierr); }
 #endif
       ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)",(double)errest[i]);CHKERRQ(ierr);
     }
@@ -234,17 +259,20 @@ PetscErrorCode PEPMonitorAll(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *ei
 PetscErrorCode PEPMonitorFirst(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *monctx)
 {
   PetscErrorCode ierr;
+  PetscScalar    er,ei;
   PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)pep));
 
   PetscFunctionBegin;
   if (its && nconv<nest) {
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%3D PEP nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
+    er = eigr[nconv]; ei = eigi[nconv];
+    ierr = PEPMonitorGetTrueEig(pep,&er,&ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(eigr[nconv]),(double)PetscImaginaryPart(eigr[nconv]));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
-    ierr = PetscViewerASCIIPrintf(viewer," %g",(double)eigr[nconv]);CHKERRQ(ierr);
-    if (eigi[nconv]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)eigi[nconv]);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPrintf(viewer," %g",(double)er);CHKERRQ(ierr);
+    if (eigi[nconv]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)ei);CHKERRQ(ierr); }
 #endif
     ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[nconv]);CHKERRQ(ierr);
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
@@ -282,6 +310,7 @@ PetscErrorCode PEPMonitorConverged(PEP pep,PetscInt its,PetscInt nconv,PetscScal
 {
   PetscErrorCode   ierr;
   PetscInt         i;
+  PetscScalar      er,ei;
   PetscViewer      viewer;
   SlepcConvMonitor ctx = (SlepcConvMonitor)monctx;
 
@@ -294,11 +323,13 @@ PetscErrorCode PEPMonitorConverged(PEP pep,PetscInt its,PetscInt nconv,PetscScal
     for (i=ctx->oldnconv;i<nconv;i++) {
       ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%3D PEP converged value (error) #%D",its,i);CHKERRQ(ierr);
+      er = eigr[i]; ei = eigi[i];
+      ierr = PEPMonitorGetTrueEig(pep,&er,&ei);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(eigr[i]),(double)PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er));CHKERRQ(ierr);
 #else
-      ierr = PetscViewerASCIIPrintf(viewer," %g",(double)eigr[i]);CHKERRQ(ierr);
-      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)eigi[i]);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIPrintf(viewer," %g",(double)er);CHKERRQ(ierr);
+      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)ei);CHKERRQ(ierr); }
 #endif
       ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[i]);CHKERRQ(ierr);
       ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
