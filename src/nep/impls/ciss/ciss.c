@@ -602,7 +602,6 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
 
     nep->nconv = 0;
     if (nv == 0) break;
-    printf("nv: %d\n",nv);
     ierr = BlockHankel(nep,Mu,0,H0);CHKERRQ(ierr);
     ierr = BlockHankel(nep,Mu,1,H1);CHKERRQ(ierr);
     ierr = DSSetDimensions(nep->ds,nv,0,0,0);CHKERRQ(ierr);
@@ -621,7 +620,6 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
     ierr = RGEllipseGetParameters(nep->rg,&center,&radius,NULL);CHKERRQ(ierr);
     for (i=0;i<nv;i++){
-      printf("eig[%d]: %f, %f\n",i,nep->eigr[i]);
       nep->eigr[i] = nep->eigr[i]*radius+center;
 #if !defined(PETSC_USE_COMPLEX)
       nep->eigi[i] = nep->eigi[i]*radius;
@@ -660,10 +658,10 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     ierr = MatDestroy(&X);CHKERRQ(ierr);
     max_error = 0.0;
     for (i=0;i<nep->nconv;i++) {
-      ierr = BVGetColumn(ctx->S,i,&si);CHKERRQ(ierr);
+      ierr = BVGetColumn(nep->V,i,&si);CHKERRQ(ierr);
       ierr = VecNormalize(si,NULL);CHKERRQ(ierr);
       ierr = NEPComputeResidualNorm_Private(nep,nep->eigr[i],si,w,&error);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(ctx->S,i,&si);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(nep->V,i,&si);CHKERRQ(ierr);
       max_error = PetscMax(max_error,error);
     }
     if (max_error <= nep->rtol || outer == ctx->refine_outer) break;
