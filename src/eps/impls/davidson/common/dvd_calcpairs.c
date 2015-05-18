@@ -651,7 +651,7 @@ static PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,P
   if (symm) {
     /* symmetrize before multiplying */
     for (i=lA+1;i<lA+nQ;i++) {
-      for (j=lA;j<i;j++) pA[i+j*ldA] = pA[j+i*ldA];
+      for (j=lA;j<i;j++) pA[i+j*ldA] = PetscConj(pA[j+i*ldA]);
     }
   }
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nQ,&dA,&nQ,&one,&pA[ldA*lA+lA],&ldA,&pQ[ldQ*l+l],&ldQ,&zero,pW,&nQ));
