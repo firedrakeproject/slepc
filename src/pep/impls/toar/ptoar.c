@@ -624,7 +624,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
       ierr = PetscMalloc1(k,&rwork);CHKERRQ(ierr);
       norm = LAPACKlange_("F",&k_,&k_,T,&ldt_,rwork);
       PetscFree(rwork);CHKERRQ(ierr);
-      if (norm<1) idxcpy = d-1;
+      if (norm>1.0) idxcpy = d-1;
     } else {
       ierr = PetscBLASIntCast(ldt,&ldt_);CHKERRQ(ierr);
       ierr = PetscMalloc1(k,&rwork);CHKERRQ(ierr);
@@ -705,7 +705,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     ierr = PetscFree(R);CHKERRQ(ierr);
     ierr = BVDestroy(&Y);CHKERRQ(ierr);
     ierr = MatDestroy(&M);CHKERRQ(ierr);
-    
+    break;
   case PEP_EXTRACT_STRUCTURED:
     for (j=0;j<k;j++) {
       Bt[j+j*k] = 1.0;
