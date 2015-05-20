@@ -134,6 +134,8 @@ PetscErrorCode BVDestroy(BV *bv)
   ierr = PetscFree((*bv)->work);CHKERRQ(ierr);
   ierr = PetscFree2((*bv)->h,(*bv)->c);CHKERRQ(ierr);
   ierr = PetscFree((*bv)->omega);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*bv)->B);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*bv)->C);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -164,7 +166,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   PetscValidPointer(newbv,2);
   *newbv = 0;
   ierr = BVInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(bv,_p_BV,struct _BVOps,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(bv,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView);CHKERRQ(ierr);
 
   bv->t            = NULL;
   bv->n            = -1;
@@ -178,6 +180,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->orthog_eta   = 0.7071;
   bv->matrix       = NULL;
   bv->indef        = PETSC_FALSE;
+  bv->vmm          = BV_MATMULT_MAT;
 
   bv->Bx           = NULL;
   bv->xid          = 0;
@@ -193,6 +196,10 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->h            = NULL;
   bv->c            = NULL;
   bv->omega        = NULL;
+  bv->B            = NULL;
+  bv->C            = NULL;
+  bv->Aid          = 0;
+  bv->defersfo     = PETSC_FALSE;
   bv->work         = NULL;
   bv->lwork        = 0;
   bv->data         = NULL;
@@ -488,6 +495,7 @@ static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
   Vec               v;
   PetscViewerFormat format;
   PetscBool         isascii,ismatlab=PETSC_FALSE;
+  const char        *bvname,*name;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -496,13 +504,15 @@ static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
     if (format == PETSC_VIEWER_ASCII_MATLAB) ismatlab = PETSC_TRUE;
   }
   if (ismatlab) {
-    ierr = PetscViewerASCIIPrintf(viewer,"%s=[];\n",((PetscObject)bv)->name);CHKERRQ(ierr);
+    ierr = PetscObjectGetName((PetscObject)bv,&bvname);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%s=[];\n",bvname);CHKERRQ(ierr);
   }
   for (j=bv->nc;j<bv->nc+bv->m;j++) {
     ierr = BVGetColumn(bv,j,&v);CHKERRQ(ierr);
     ierr = VecView(v,viewer);CHKERRQ(ierr);
     if (ismatlab) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",((PetscObject)bv)->name,((PetscObject)bv)->name,((PetscObject)v)->name,((PetscObject)v)->name);CHKERRQ(ierr);
+      ierr = PetscObjectGetName((PetscObject)v,&name);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",bvname,bvname,name,name);CHKERRQ(ierr);
     }
     ierr = BVRestoreColumn(bv,j,&v);CHKERRQ(ierr);
   }
@@ -579,6 +589,17 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
         ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
         ierr = MatView(bv->matrix,viewer);CHKERRQ(ierr);
         ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+      }
+      switch (bv->vmm) {
+        case BV_MATMULT_VECS:
+          ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as matrix-vector products\n");CHKERRQ(ierr);
+          break;
+        case BV_MATMULT_MAT:
+          ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as a single matrix-matrix product\n");CHKERRQ(ierr);
+          break;
+        case BV_MATMULT_MAT_SAVE:
+          ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as a single matrix-matrix product, saving aux matrices\n");CHKERRQ(ierr);
+          break;
       }
     } else {
       if (bv->ops->view) { ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr); }

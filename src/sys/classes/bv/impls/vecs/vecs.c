@@ -24,7 +24,10 @@
 #include <slepc/private/bvimpl.h>
 
 typedef struct {
-  Vec *V;
+  Vec      *V;
+  PetscInt vmip;   /* Version of BVMultInPlace:
+       0: memory-efficient version, uses VecGetArray (default in CPU)
+       1: version that allocates (e-s) work vectors in every call (default in GPU) */
 } BV_VECS;
 
 #undef __FUNCT__
@@ -347,6 +350,7 @@ PetscErrorCode BVMatMult_Vecs(BV V,Mat A,BV W)
   PetscInt       j;
 
   PetscFunctionBegin;
+  if (V->vmm) { ierr = PetscInfo(V,"BVMatMult_Vecs: ignoring method\n");CHKERRQ(ierr); }
   for (j=0;j<V->k-V->l;j++) {
     ierr = MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]);CHKERRQ(ierr);
   }
@@ -449,6 +453,21 @@ PetscErrorCode BVRestoreArray_Vecs(BV bv,PetscScalar **a)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVSetFromOptions_Vecs"
+PetscErrorCode BVSetFromOptions_Vecs(PetscOptions *PetscOptionsObject,BV bv)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *ctx = (BV_VECS*)bv->data;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead(PetscOptionsObject,"BV Vecs Options");CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-bv_vecs_vmip","Version of BVMultInPlace operation","",ctx->vmip,&ctx->vmip,NULL);CHKERRQ(ierr);
+    if (ctx->vmip<0 || ctx->vmip>1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Wrong version of BVMultInPlace");
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVView_Vecs"
 PetscErrorCode BVView_Vecs(BV bv,PetscViewer viewer)
 {
@@ -457,6 +476,7 @@ PetscErrorCode BVView_Vecs(BV bv,PetscViewer viewer)
   PetscInt          j;
   PetscViewerFormat format;
   PetscBool         isascii,ismatlab=PETSC_FALSE;
+  const char        *bvname,*name;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -465,12 +485,14 @@ PetscErrorCode BVView_Vecs(BV bv,PetscViewer viewer)
     if (format == PETSC_VIEWER_ASCII_MATLAB) ismatlab = PETSC_TRUE;
   }
   if (ismatlab) {
-    ierr = PetscViewerASCIIPrintf(viewer,"%s=[];\n",((PetscObject)bv)->name);CHKERRQ(ierr);
+    ierr = PetscObjectGetName((PetscObject)bv,&bvname);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%s=[];\n",bvname);CHKERRQ(ierr);
   }
   for (j=bv->nc;j<bv->nc+bv->m;j++) {
     ierr = VecView(ctx->V[j],viewer);CHKERRQ(ierr);
     if (ismatlab) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",((PetscObject)bv)->name,((PetscObject)bv)->name,((PetscObject)ctx->V[j])->name,((PetscObject)ctx->V[j])->name);CHKERRQ(ierr);
+      ierr = PetscObjectGetName((PetscObject)ctx->V[j],&name);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",bvname,bvname,name,name);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
@@ -495,7 +517,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
 {
   PetscErrorCode ierr;
   BV_VECS        *ctx;
-  PetscInt       j,vmip;
+  PetscInt       j;
   PetscBool      iscusp;
   char           str[50];
   typedef PetscErrorCode (*fmultinplace)(BV,Mat,PetscInt,PetscInt);
@@ -504,15 +526,6 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   PetscFunctionBegin;
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
   bv->data = (void*)ctx;
-
-  /* Choose between several versions of BVMultInPlace:
-     0: memory-efficient version, uses VecGetArray (default in CPU)
-     1: version that allocates (e-s) work vectors in every call (default in GPU)
-   */
-  ierr = PetscObjectTypeCompareAny((PetscObject)bv->t,&iscusp,VECSEQCUSP,VECMPICUSP,"");CHKERRQ(ierr);
-  vmip = iscusp? 1: 0;
-  ierr = PetscOptionsGetInt(((PetscObject)bv)->prefix,"-bv_vecs_vmip",&vmip,NULL);CHKERRQ(ierr);
-  if (vmip<0 || vmip>1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Wrong version of BVMultInPlace");
 
   ierr = VecDuplicateVecs(bv->t,bv->m,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParents(bv,bv->m,ctx->V);CHKERRQ(ierr);
@@ -523,9 +536,20 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
     }
   }
 
+  /* Default version of BVMultInPlace */
+  ierr = PetscObjectTypeCompareAny((PetscObject)bv->t,&iscusp,VECSEQCUSP,VECMPICUSP,"");CHKERRQ(ierr);
+  ctx->vmip = iscusp? 1: 0;
+
+  /* Deferred call to setfromoptions */
+  if (bv->defersfo) {
+    ierr = PetscObjectOptionsBegin((PetscObject)bv);CHKERRQ(ierr);
+    ierr = BVSetFromOptions_Vecs(PetscOptionsObject,bv);CHKERRQ(ierr);
+    ierr = PetscOptionsEnd();CHKERRQ(ierr);
+  }
+
   bv->ops->mult             = BVMult_Vecs;
   bv->ops->multvec          = BVMultVec_Vecs;
-  bv->ops->multinplace      = multinplace[vmip];
+  bv->ops->multinplace      = multinplace[ctx->vmip];
   bv->ops->multinplacetrans = BVMultInPlaceTranspose_Vecs;
   bv->ops->axpy             = BVAXPY_Vecs;
   bv->ops->dot              = BVDot_Vecs;
@@ -543,6 +567,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->getarray         = BVGetArray_Vecs;
   bv->ops->restorearray     = BVRestoreArray_Vecs;
   bv->ops->destroy          = BVDestroy_Vecs;
+  bv->ops->setfromoptions   = BVSetFromOptions_Vecs;
   bv->ops->view             = BVView_Vecs;
   PetscFunctionReturn(0);
 }

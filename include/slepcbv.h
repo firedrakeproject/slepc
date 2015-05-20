@@ -74,6 +74,21 @@ typedef enum { BV_ORTHOG_REFINE_IFNEEDED,
                BV_ORTHOG_REFINE_NEVER,
                BV_ORTHOG_REFINE_ALWAYS } BVOrthogRefineType;
 
+/*E
+    BVMatMultType - Determines how to perform the BVMatMult() operation:
+       BV_MATMULT_VECS: perform a matrix-vector multiply per each column;
+       BV_MATMULT_MAT: carry out a MatMatMult() product with a dense matrix (default);
+       BV_MATMULT_MAT_SAVE: call MatMatMult() and keep auxiliary matrices
+         (more efficient but needs more memory)
+
+    Level: advanced
+
+.seealso: BVMatMult()
+E*/
+typedef enum { BV_MATMULT_VECS,
+               BV_MATMULT_MAT,
+               BV_MATMULT_MAT_SAVE } BVMatMultType;
+
 PETSC_EXTERN PetscErrorCode BVCreate(MPI_Comm,BV*);
 PETSC_EXTERN PetscErrorCode BVDestroy(BV*);
 PETSC_EXTERN PetscErrorCode BVSetType(BV,BVType);
@@ -89,7 +104,7 @@ PETSC_EXTERN PetscErrorCode BVGetColumn(BV,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode BVRestoreColumn(BV,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode BVGetArray(BV,PetscScalar**);
 PETSC_EXTERN PetscErrorCode BVRestoreArray(BV,PetscScalar**);
-PETSC_EXTERN PetscErrorCode BVGetVec(BV,Vec*);
+PETSC_EXTERN PetscErrorCode BVCreateVec(BV,Vec*);
 PETSC_EXTERN PetscErrorCode BVSetActiveColumns(BV,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVGetActiveColumns(BV,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode BVInsertVec(BV,PetscInt,Vec);
@@ -114,6 +129,7 @@ PETSC_EXTERN PetscErrorCode BVMultColumn(BV,PetscScalar,PetscScalar,PetscInt,Pet
 PETSC_EXTERN PetscErrorCode BVMultInPlace(BV,Mat,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVMultInPlaceTranspose(BV,Mat,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVMatMult(BV,Mat,BV);
+PETSC_EXTERN PetscErrorCode BVMatMultHermitianTranspose(BV,Mat,BV);
 PETSC_EXTERN PetscErrorCode BVMatMultColumn(BV,Mat,PetscInt);
 PETSC_EXTERN PetscErrorCode BVMatProject(BV,Mat,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVAXPY(BV,PetscScalar,BV);
@@ -142,6 +158,8 @@ PETSC_EXTERN PetscErrorCode BVOrthogonalize(BV,Mat);
 PETSC_EXTERN PetscErrorCode BVOrthogonalizeVec(BV,Vec,PetscScalar*,PetscReal*,PetscBool*);
 PETSC_EXTERN PetscErrorCode BVOrthogonalizeColumn(BV,PetscInt,PetscScalar*,PetscReal*,PetscBool*);
 PETSC_EXTERN PetscErrorCode BVOrthogonalizeSomeColumn(BV,PetscInt,PetscBool*,PetscScalar*,PetscReal*,PetscBool*);
+PETSC_EXTERN PetscErrorCode BVSetMatMultMethod(BV,BVMatMultType);
+PETSC_EXTERN PetscErrorCode BVGetMatMultMethod(BV,BVMatMultType*);
 
 PETSC_EXTERN PetscErrorCode BVSetOptionsPrefix(BV,const char*);
 PETSC_EXTERN PetscErrorCode BVAppendOptionsPrefix(BV,const char*);

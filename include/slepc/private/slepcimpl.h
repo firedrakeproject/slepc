@@ -31,13 +31,13 @@ PETSC_INTERN PetscBool SlepcBeganPetsc;
     SlepcHeaderCreate - Creates a SLEPc object
 
     Input Parameters:
-+   tp - the data structure type of the object
-.   pops - the data structure type of the objects operations (for example VecOps)
-.   classid - the classid associated with this object
++   classid - the classid associated with this object
 .   class_name - string name of class; should be static
-.   com - the MPI Communicator
-.   des - the destroy routine for this object
--   vie - the view routine for this object
+.   descr - string containing short description; should be static
+.   mansec - string indicating section in manual pages; should be static
+.   comm - the MPI Communicator
+.   destroy - the destroy routine for this object
+-   view - the view routine for this object
 
     Output Parameter:
 .   h - the newly created object
@@ -48,11 +48,11 @@ PETSC_INTERN PetscBool SlepcBeganPetsc;
 
     Level: developer
 @*/
-#define SlepcHeaderCreate(h,tp,pops,classid,class_name,descr,mansec,com,des,vie) \
+#define SlepcHeaderCreate(h,classid,class_name,descr,mansec,comm,destroy,view) \
     ((!SlepcInitializeCalled && \
     PetscError(comm,__LINE__,PETSC_FUNCTION_NAME,__FILE__,1,PETSC_ERROR_INITIAL, \
     "Must call SlepcInitialize instead of PetscInitialize to use SLEPc classes")) ||  \
-    PetscHeaderCreate(h,tp,pops,classid,class_name,descr,mansec,com,des,vie))
+    PetscHeaderCreate(h,classid,class_name,descr,mansec,comm,destroy,view))
 
 /* context for monitors of type XXXMonitorConverged */
 struct _n_SlepcConvMonitor {

@@ -528,9 +528,12 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j,PetscRandom rctx)
    (excluding the leading ones) are processed.
    In the result Y, columns are overwritten starting from the leading ones.
 
+   It is possible to choose whether the computation is done column by column
+   or as a Mat-Mat product, see BVSetMatMultMethod().
+
    Level: beginner
 
-.seealso: BVCopy(), BVSetActiveColumns(), BVMatMultColumn()
+.seealso: BVCopy(), BVSetActiveColumns(), BVMatMultColumn(), BVMatMultHermitianTranspose(), BVSetMatMultMethod()
 @*/
 PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
 {
@@ -541,6 +544,7 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscValidType(A,2);
   PetscValidHeaderSpecific(Y,BV_CLASSID,3);
   PetscValidType(Y,3);
   BVCheckSizes(Y,3);
@@ -551,6 +555,65 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
 
   ierr = PetscLogEventBegin(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
   ierr = (*V->ops->matmult)(V,A,Y);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatMultHermitianTranspose"
+/*@
+   BVMatMultHermitianTranspose - Computes the matrix-vector product with the
+   conjugate transpose of a matrix for each column, Y=A^H*V.
+
+   Neighbor-wise Collective on Mat and BV
+
+   Input Parameters:
++  V - basis vectors context
+-  A - the matrix
+
+   Output Parameter:
+.  Y - the result
+
+   Note:
+   Both V and Y must be distributed in the same manner. Only active columns
+   (excluding the leading ones) are processed.
+   In the result Y, columns are overwritten starting from the leading ones.
+
+   As opposed to BVMatMult(), this operation is always done column by column,
+   with a sequence of calls to MatMultHermitianTranspose().
+
+   Level: beginner
+
+.seealso: BVCopy(), BVSetActiveColumns(), BVMatMult(), BVMatMultColumn()
+@*/
+PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
+{
+  PetscErrorCode ierr;
+  PetscInt       j;
+  Vec            z,f;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscValidType(A,2);
+  PetscValidHeaderSpecific(Y,BV_CLASSID,3);
+  PetscValidType(Y,3);
+  BVCheckSizes(Y,3);
+  PetscCheckSameComm(V,1,A,2);
+  PetscCheckSameTypeAndComm(V,1,Y,3);
+  if (V->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, Y %D",V->n,Y->n);
+  if (V->k-V->l>Y->m-Y->l) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, not enough to store %D columns",Y->m-Y->l,V->k-V->l);
+
+  ierr = PetscLogEventBegin(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
+  for (j=0;j<V->k-V->l;j++) {
+    ierr = BVGetColumn(V,V->l+j,&z);CHKERRQ(ierr);
+    ierr = BVGetColumn(Y,Y->l+j,&f);CHKERRQ(ierr);
+    ierr = MatMultHermitianTranspose(A,z,f);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,V->l+j,&z);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(Y,Y->l+j,&f);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

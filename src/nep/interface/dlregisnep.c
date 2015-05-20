@@ -71,7 +71,7 @@ PetscErrorCode NEPInitializePackage(void)
   if (NEPPackageInitialized) PetscFunctionReturn(0);
   NEPPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Nonlinear Eigenvalue Problem solver",&NEP_CLASSID);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("NEP Solver",&NEP_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = NEPRegisterAll();CHKERRQ(ierr);
   /* Register Events */

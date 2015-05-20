@@ -54,7 +54,7 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   pep->lineariz = PETSC_TRUE;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
-  if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
+  if (!pep->max_it) pep->max_it = PetscMax(100,4*pep->n/pep->ncv);
   if (!pep->which) {
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
@@ -206,7 +206,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
-  PetscInt       j,k,l,lwork,nv,ld,newn;
+  PetscInt       j,k,l,lwork,nv,ld,newn,nconv;
   Vec            v=pep->work[0],w=pep->work[1];
   Mat            Q;
   PetscScalar    *S,*work;
@@ -259,6 +259,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
     ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,nv-pep->nconv,beta,&k);CHKERRQ(ierr);
     if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
     if (k >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
+    nconv = k;
 
     /* Update l */
     if (pep->reason != PEP_CONVERGED_ITERATING || breakdown) l = 0;
@@ -283,7 +284,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
     ierr = MatDestroy(&Q);CHKERRQ(ierr);
 
     pep->nconv = k;
-    ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
+    ierr = PEPMonitor(pep,pep->its,nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
   }
 
   for (j=0;j<pep->nconv;j++) {
@@ -489,7 +490,7 @@ PetscErrorCode PEPSetFromOptions_QArnoldi(PetscOptions *PetscOptionsObject,PEP p
   if (flg) {
     ierr = PEPQArnoldiSetRestart(pep,keep);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsBool("-pep_qarnoldi_locking","Choose between locking and non-locking variants","PEPQArnoldiSetLocking",PETSC_TRUE,&lock,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-pep_qarnoldi_locking","Choose between locking and non-locking variants","PEPQArnoldiSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PEPQArnoldiSetLocking(pep,lock);CHKERRQ(ierr);
   }
@@ -539,7 +540,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
   pep->data = (void*)ctx;
-  ctx->lock = PETSC_FALSE;
+  ctx->lock = PETSC_TRUE;
 
   pep->ops->solve          = PEPSolve_QArnoldi;
   pep->ops->setup          = PEPSetUp_QArnoldi;

@@ -120,7 +120,7 @@ PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
   PetscValidPointer(newrg,2);
   *newrg = 0;
   ierr = RGInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(rg,_p_RG,struct _RGOps,RG_CLASSID,"RG","Region","RG",comm,RGDestroy,RGView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(rg,RG_CLASSID,"RG","Region","RG",comm,RGDestroy,RGView);CHKERRQ(ierr);
   rg->complement = PETSC_FALSE;
   rg->data       = NULL;
 

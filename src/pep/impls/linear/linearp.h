@@ -27,12 +27,12 @@
 typedef struct {
   PetscBool  explicitmatrix;
   PEP        pep;
-  PetscInt   cform;           /* companion form */
-  PetscReal  sfactor;         /* scaling factor */
-  Mat        A,B;             /* matrices of generalized eigenproblem */
-  EPS        eps;             /* linear eigensolver for Az=lBz */
-  Mat        M,C,K;           /* copy of PEP coefficient matrices */
-  Vec        w[6];            /* work vectors */
+  PetscInt   cform;            /* companion form */
+  PetscReal  sfactor,dsfactor; /* scaling factors */
+  Mat        A,B;              /* matrices of generalized eigenproblem */
+  EPS        eps;              /* linear eigensolver for Az=lBz */
+  Mat        M,C,K;            /* copy of PEP coefficient matrices */
+  Vec        w[6];             /* work vectors */
   PetscBool  setfromoptionscalled;
 } PEP_LINEAR;
 
