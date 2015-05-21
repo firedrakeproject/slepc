@@ -799,7 +799,7 @@ PetscErrorCode DSFunction_EXP_NHEP_PADE(DS ds)
   s = LAPACKlange_("I",&n,&n,A,&ld,ds->rwork);
   if (s>0.5) {
     s = PetscMax(0,(int)(PetscLogReal(s)/PetscLogReal(2.0)) + 2);
-    scale = PetscPowScalar(2,(-1)*s);
+    scale = PetscPowReal(2.0,(-1)*s);
     PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&scale,A,&inc));
   }
 

@@ -385,7 +385,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     for (j=lst;j<lend;j++) {
       d = PetscLogReal(csum[j])/l2;
       e = -(PetscInt)((d < 0)?(d-0.5):(d+0.5));
-      d = PetscPowReal(2,e);
+      d = PetscPowReal(2.0,e);
       Dr[j-lst] *= d;
       aux[j] = d*d;
       emaxl = PetscMax(emaxl,e);
@@ -394,7 +394,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     for (j=0;j<nc;j++) {
       d = PetscLogReal(csum[cols[j]])/l2;
       e = -(PetscInt)((d < 0)?(d-0.5):(d+0.5));
-      d = PetscPowReal(2,e);
+      d = PetscPowReal(2.0,e);
       aux[cols[j]] = d*d;
       emaxl = PetscMax(emaxl,e);
       eminl = PetscMin(eminl,e);
@@ -413,7 +413,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
       /* Update Dl */
       d = PetscLogReal(rsum[i])/l2;
       e = -(PetscInt)((d < 0)?(d-0.5):(d+0.5));
-      d = PetscPowReal(2,e);
+      d = PetscPowReal(2.0,e);
       Dl[i] *= d;
       /* Scale M */
       for (j=ridx[i];j<ridx[i+1];j++) array[j] *= d*d;
