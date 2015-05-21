@@ -134,8 +134,14 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
     data->ksp = useGD?NULL:ksp;
     data->d = d;
     d->improveX = dvd_improvex_jd_gen;
-    data->ksp_max_size = max_bs;
-
+#if !defined(PETSC_USE_COMPLEX)
+    if (!DVD_IS(d->sEP,DVD_EP_HERMITIAN)) {
+      data->ksp_max_size = 2;
+    } else
+#endif
+    {
+      data->ksp_max_size = 1;
+    }
     /* Create various vector basis */
     ierr = BVDuplicateResize(d->eps->V,size_P,&data->KZ);CHKERRQ(ierr);
     ierr = BVSetMatrix(data->KZ,NULL,PETSC_FALSE);CHKERRQ(ierr);
