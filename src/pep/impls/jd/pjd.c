@@ -58,6 +58,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
   if (!pep->which) pep->which = PEP_LARGEST_MAGNITUDE;
+  if (pep->nev>1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Polynomial JD does not support nev>1 yet");
 
   /* Set STSHIFT as the default ST */
   if (!((PetscObject)pep->st)->type_name) {
