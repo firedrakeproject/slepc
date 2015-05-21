@@ -19,25 +19,30 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc/private/dsimpl.h>
+#include <slepc/private/dsimpl.h>       /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
+
+typedef struct {
+  PetscInt d;              /* polynomial degree */
+} DS_PEP;
 
 #undef __FUNCT__
 #define __FUNCT__ "DSAllocate_PEP"
 PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
 {
   PetscErrorCode ierr;
+  DS_PEP         *ctx = (DS_PEP*)ds->data;
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (!ds->d) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"DSPEP requires specifying the polynomial degree via DSSetDegree()");
+  if (!ctx->d) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"DSPEP requires specifying the polynomial degree via DSPEPSetDegree()");
   ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
-  for (i=0;i<=ds->d;i++) {
+  for (i=0;i<=ctx->d;i++) {
     ierr = DSAllocateMat_Private(ds,DSMatExtra[i]);CHKERRQ(ierr);
   }
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
-  ierr = PetscMalloc1(ld*ds->d,&ds->perm);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)ds,ld*ds->d*sizeof(PetscInt));CHKERRQ(ierr);
+  ierr = PetscMalloc1(ld*ctx->d,&ds->perm);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)ds,ld*ctx->d*sizeof(PetscInt));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -46,14 +51,15 @@ PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
 PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
+  DS_PEP            *ctx = (DS_PEP*)ds->data;
   PetscViewerFormat format;
   PetscInt          i;
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"  polynomial degree: %D\n",ds->d);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  polynomial degree: %D\n",ctx->d);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
-  for (i=0;i<=ds->d;i++) {
+  for (i=0;i<=ctx->d;i++) {
     ierr = DSViewMat(ds,viewer,DSMatExtra[i]);CHKERRQ(ierr);
   }
   if (ds->state>DS_STATE_INTERMEDIATE) {
@@ -102,12 +108,13 @@ PetscErrorCode DSNormalize_PEP(DS ds,DSMatType mat,PetscInt col)
 PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *kout)
 {
   PetscErrorCode ierr;
+  DS_PEP         *ctx = (DS_PEP*)ds->data;
   PetscInt       n,i,j,k,p,*perm,told,ld;
   PetscScalar    *A,*X,rtmp;
 
   PetscFunctionBegin;
   if (!ds->sc) PetscFunctionReturn(0);
-  n = ds->n*ds->d;
+  n = ds->n*ctx->d;
   A  = ds->mat[DS_MAT_A];
   perm = ds->perm;
   for (i=0;i<n;i++) perm[i] = i;
@@ -150,6 +157,7 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GGEV - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
+  DS_PEP         *ctx = (DS_PEP*)ds->data;
   PetscInt       i,j,off;
   PetscScalar    *A,*B,*W,*X,*E,*work,*beta,norm;
   PetscBLASInt   info,n,ldd,nd,lrwork=0,lwork,one=1;
@@ -169,9 +177,9 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   if (!ds->mat[DS_MAT_W]) {
     ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
   }
-  ierr = PetscBLASIntCast(ds->n*ds->d,&nd);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->n*ctx->d,&nd);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld*ds->d,&ldd);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld*ctx->d,&ldd);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscBLASIntCast(nd+2*nd,&lwork);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(8*nd,&lrwork);CHKERRQ(ierr);
@@ -186,20 +194,20 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   B = ds->mat[DS_MAT_B];
   W = ds->mat[DS_MAT_W];
   X = ds->mat[DS_MAT_X];
-  E = ds->mat[DSMatExtra[ds->d]];
+  E = ds->mat[DSMatExtra[ctx->d]];
 
   /* build matrices A and B of the linearization */
   ierr = PetscMemzero(A,ldd*ldd*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<nd-ds->n;i++) A[i+(i+ds->n)*ldd] = -1.0;
-  for (i=0;i<ds->d;i++) {
-    off = i*ds->n*ldd+(ds->d-1)*ds->n;
+  for (i=0;i<ctx->d;i++) {
+    off = i*ds->n*ldd+(ctx->d-1)*ds->n;
     for (j=0;j<ds->n;j++) {
       ierr = PetscMemcpy(A+off+j*ldd,ds->mat[DSMatExtra[i]]+j*ds->ld,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
     }
   }
   ierr = PetscMemzero(B,ldd*ldd*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<nd-ds->n;i++) B[i+i*ldd] = -1.0;
-  off = (ds->d-1)*ds->n*(ldd+1);
+  off = (ctx->d-1)*ds->n*(ldd+1);
   for (j=0;j<ds->n;j++) {
     for (i=0;i<ds->n;i++) B[off+i+j*ldd] = -E[i+j*ds->ld];
   }
@@ -251,16 +259,116 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "DSPEPSetDegree_PEP"
+static PetscErrorCode DSPEPSetDegree_PEP(DS ds,PetscInt d)
+{
+  DS_PEP *ctx = (DS_PEP*)ds->data;
+
+  PetscFunctionBegin;
+  if (d<0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The degree must be a non-negative integer");
+  if (d>=DS_NUM_EXTRA) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Only implemented for polynomials of degree at most %d",DS_NUM_EXTRA-1);
+  ctx->d = d;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSPEPSetDegree"
+/*@
+   DSPEPSetDegree - Sets the polynomial degree for a DSPEP.
+
+   Logically Collective on DS
+
+   Input Parameters:
++  ds - the direct solver context
+-  d  - the degree
+
+   Level: intermediate
+
+.seealso: DSPEPGetDegree()
+@*/
+PetscErrorCode DSPEPSetDegree(DS ds,PetscInt d)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ds,d,2);
+  ierr = PetscTryMethod(ds,"DSPEPSetDegree_C",(DS,PetscInt),(ds,d));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSPEPGetDegree_PEP"
+static PetscErrorCode DSPEPGetDegree_PEP(DS ds,PetscInt *d)
+{
+  DS_PEP *ctx = (DS_PEP*)ds->data;
+
+  PetscFunctionBegin;
+  *d = ctx->d;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSPEPGetDegree"
+/*@
+   DSPEPGetDegree - Returns the polynomial degree for a DSPEP.
+
+   Not collective
+
+   Input Parameter:
+.  ds - the direct solver context
+
+   Output Parameters:
+.  d - the degree
+
+   Level: intermediate
+
+.seealso: DSPEPSetDegree()
+@*/
+PetscErrorCode DSPEPGetDegree(DS ds,PetscInt *d)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidPointer(d,2);
+  ierr = PetscTryMethod(ds,"DSPEPGetDegree_C",(DS,PetscInt*),(ds,d));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSDestroy_PEP"
+PetscErrorCode DSDestroy_PEP(DS ds)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(ds->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetDegree_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetDegree_C",NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "DSCreate_PEP"
 PETSC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
 {
+  DS_PEP         *ctx;
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscNewLog(ds,&ctx);CHKERRQ(ierr);
+  ds->data = (void*)ctx;
+
   ds->ops->allocate      = DSAllocate_PEP;
   ds->ops->view          = DSView_PEP;
   ds->ops->vectors       = DSVectors_PEP;
   ds->ops->solve[0]      = DSSolve_PEP_QZ;
   ds->ops->sort          = DSSort_PEP;
   ds->ops->normalize     = DSNormalize_PEP;
+  ds->ops->destroy       = DSDestroy_PEP;
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetDegree_C",DSPEPSetDegree_PEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetDegree_C",DSPEPGetDegree_PEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

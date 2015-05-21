@@ -44,6 +44,7 @@ struct _DSOps {
   PetscErrorCode (*transharm)(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
   PetscErrorCode (*transrks)(DS,PetscScalar);
   PetscErrorCode (*normalize)(DS,DSMatType,PetscInt);
+  PetscErrorCode (*destroy)(DS);
 };
 
 struct _p_DS {
@@ -62,7 +63,6 @@ struct _p_DS {
   PetscInt       t;                  /* length of decomposition when it was truncated */
   PetscInt       bs;                 /* block size */
   PetscInt       nf;                 /* number of functions in f[] */
-  PetscInt       d;                  /* polynomial degree in DSPEP */
   FN             f[DS_NUM_EXTRA];    /* functions provided via DSSetFN() */
   SlepcSC        sc;                 /* sorting criterion */
 
@@ -71,6 +71,7 @@ struct _p_DS {
   PetscReal      *rmat[DS_NUM_MAT];  /* the matrices (real) */
   Mat            omat[DS_NUM_MAT];   /* the matrices (PETSc object) */
   PetscInt       *perm;              /* permutation */
+  void           *data;              /* placeholder for solver-specific stuff */
   PetscScalar    *work;
   PetscReal      *rwork;
   PetscBLASInt   *iwork;

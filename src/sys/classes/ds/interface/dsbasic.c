@@ -147,7 +147,6 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   ds->t             = 0;
   ds->bs            = 1;
   ds->nf            = 0;
-  ds->d             = 0;
   for (i=0;i<DS_NUM_EXTRA;i++) ds->f[i] = NULL;
   ds->sc            = NULL;
 
@@ -157,6 +156,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
     ds->omat[i]     = NULL;
   }
   ds->perm          = NULL;
+  ds->data          = NULL;
   ds->work          = NULL;
   ds->rwork         = NULL;
   ds->iwork         = NULL;
@@ -771,58 +771,6 @@ PetscErrorCode DSGetNumFN(DS ds,PetscInt *n)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSSetDegree"
-/*@
-   DSSetDegree - Sets the polynomial degree for a DSPEP.
-
-   Logically Collective on DS
-
-   Input Parameters:
-+  ds - the direct solver context
--  d  - the degree
-
-   Level: intermediate
-
-.seealso: DSSetDegree()
-@*/
-PetscErrorCode DSSetDegree(DS ds,PetscInt d)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidLogicalCollectiveInt(ds,d,2);
-  if (d<0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The degree must be a non-negative integer");
-  if (d>=DS_NUM_EXTRA) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Only implemented for polynomials of degree at most %d",DS_NUM_EXTRA-1);
-  ds->d = d;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "DSGetDegree"
-/*@
-   DSGetDegree - Returns the polynomial degree for a DSPEP.
-
-   Not collective
-
-   Input Parameter:
-.  ds - the direct solver context
-
-   Output Parameters:
-.  d - the degree
-
-   Level: intermediate
-
-.seealso: DSSetDegree()
-@*/
-PetscErrorCode DSGetDegree(DS ds,PetscInt *d)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(d,2);
-  *d = ds->d;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "DSSetFromOptions"
 /*@
    DSSetFromOptions - Sets DS options from the options database.
@@ -1001,7 +949,6 @@ PetscErrorCode DSReset(DS ds)
     ierr = FNDestroy(&ds->f[i]);CHKERRQ(ierr);
   }
   ds->nf            = 0;
-  ds->d             = 0;
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
   ierr = PetscFree(ds->work);CHKERRQ(ierr);
   ierr = PetscFree(ds->rwork);CHKERRQ(ierr);
@@ -1035,6 +982,7 @@ PetscErrorCode DSDestroy(DS *ds)
   PetscValidHeaderSpecific(*ds,DS_CLASSID,1);
   if (--((PetscObject)(*ds))->refct > 0) { *ds = 0; PetscFunctionReturn(0); }
   ierr = DSReset(*ds);CHKERRQ(ierr);
+  if ((*ds)->ops->destroy) { ierr = (*(*ds)->ops->destroy)(*ds);CHKERRQ(ierr); }
   ierr = PetscFree((*ds)->sc);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);

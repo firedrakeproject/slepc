@@ -29,11 +29,16 @@
 PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
 {
   size_t         sz;
-  PetscInt       n;
+  PetscInt       n,d;
+  PetscBool      ispep;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (ds->d && (m==DS_MAT_A || m==DS_MAT_B || m==DS_MAT_W || m==DS_MAT_X)) n = ds->d*ds->ld;
+  ierr = PetscObjectTypeCompare((PetscObject)ds,DSPEP,&ispep);CHKERRQ(ierr);
+  if (ispep) {
+    ierr = DSPEPGetDegree(ds,&d);CHKERRQ(ierr);
+  }
+  if (ispep && (m==DS_MAT_A || m==DS_MAT_B || m==DS_MAT_W || m==DS_MAT_X)) n = d*ds->ld;
   else n = ds->ld;
   switch (m) {
     case DS_MAT_T:

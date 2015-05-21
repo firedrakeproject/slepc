@@ -80,7 +80,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
     ierr = BVDuplicate(pep->V,pjd->W+i);CHKERRQ(ierr);
   }
   ierr = DSSetType(pep->ds,DSPEP);CHKERRQ(ierr);
-  ierr = DSSetDegree(pep->ds,pep->nmat-1);CHKERRQ(ierr);
+  ierr = DSPEPSetDegree(pep->ds,pep->nmat-1);CHKERRQ(ierr);
   ierr = DSAllocate(pep->ds,pep->ncv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -45,7 +45,7 @@ int main(int argc,char **argv)
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
   ierr = DSSetType(ds,DSPEP);CHKERRQ(ierr);
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
-  ierr = DSSetDegree(ds,d);CHKERRQ(ierr);
+  ierr = DSPEPSetDegree(ds,d);CHKERRQ(ierr);
 
   /* Set dimensions */
   ld = n+2;  /* test leading dimension larger than n */
