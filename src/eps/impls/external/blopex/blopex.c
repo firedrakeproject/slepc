@@ -222,13 +222,14 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   PetscErrorCode    ierr;
   mv_MultiVectorPtr eigenvectors,constraints;
 #if defined(PETSC_USE_COMPLEX)
-  komplex           *lambdahist=NULL;
+  komplex           *lambda=NULL,*lambdahist=NULL;
 #else
-  double            *lambdahist=NULL;
+  double            *lambda=NULL,*lambdahist=NULL;
 #endif
 
   PetscFunctionBegin;
   ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
+  ierr = PetscMalloc1(blopex->bs,&lambda);CHKERRQ(ierr);
   if (eps->numbermonitors>0) {
     ierr = PetscMalloc4(blopex->bs*(eps->max_it+1),&lambdahist,eps->ncv,&eigr,blopex->bs*(eps->max_it+1),&residhist,eps->ncv,&errest);CHKERRQ(ierr);
   }
@@ -255,25 +256,35 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
           eps->isgeneralized?blopex:NULL,eps->isgeneralized?OperatorBMultiVector:NULL,
           blopex,Precond_FnMultiVector,constraints,
           blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
-          (komplex*)eps->eigr+eps->nconv,lambdahist,blopex->bs,
-          eps->errest+eps->nconv,residhist,blopex->bs);
+          lambda,lambdahist,blopex->bs,eps->errest+eps->nconv,residhist,blopex->bs);
 #else
     info = lobpcg_solve_double(eigenvectors,blopex,OperatorAMultiVector,
           eps->isgeneralized?blopex:NULL,eps->isgeneralized?OperatorBMultiVector:NULL,
           blopex,Precond_FnMultiVector,constraints,
           blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
-          eps->eigr+eps->nconv,lambdahist,blopex->bs,
-          eps->errest+eps->nconv,residhist,blopex->bs);
+          lambda,lambdahist,blopex->bs,eps->errest+eps->nconv,residhist,blopex->bs);
 #endif
     if (info>0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"BLOPEX failed with exit code=%d",info);
     mv_MultiVectorDestroy(constraints);
     mv_MultiVectorDestroy(eigenvectors);
 
+    for (j=0;j<blopex->bs;j++) {
+#if defined(PETSC_USE_COMPLEX)
+      eps->eigr[eps->nconv+j] = lambda[j].real+PETSC_i*lambda[j].imag;
+#else
+      eps->eigr[eps->nconv+j] = lambda[j];
+#endif
+    }
+
     if (eps->numbermonitors>0) {
       for (i=0;i<its;i++) {
         nconv = 0;
         for (j=0;j<blopex->bs;j++) {
-          eigr[eps->nconv+j]   = lambdahist[j+i*blopex->bs];
+#if defined(PETSC_USE_COMPLEX)
+          eigr[eps->nconv+j] = lambdahist[j+i*blopex->bs].real+PETSC_i*lambdahist[j+i*blopex->bs].imag;
+#else
+          eigr[eps->nconv+j] = lambdahist[j+i*blopex->bs];
+#endif
           errest[eps->nconv+j] = residhist[j+i*blopex->bs];
           if (residhist[j+i*blopex->bs]<=eps->tol) nconv++;
         }
@@ -294,6 +305,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
     }
   }
 
+  ierr = PetscFree(lambda);CHKERRQ(ierr);
   if (eps->numbermonitors>0) {
     ierr = PetscFree4(lambdahist,eigr,residhist,errest);CHKERRQ(ierr);
   }
