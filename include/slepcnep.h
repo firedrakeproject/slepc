@@ -221,6 +221,8 @@ PETSC_EXTERN PetscErrorCode NEPCISSSetSizes(NEP,PetscInt,PetscInt,PetscInt,Petsc
 PETSC_EXTERN PetscErrorCode NEPCISSGetSizes(NEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*);
 PETSC_EXTERN PetscErrorCode NEPCISSSetThreshold(NEP,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode NEPCISSGetThreshold(NEP,PetscReal*,PetscReal*);
+PETSC_EXTERN PetscErrorCode NEPCISSSetRefinement(NEP,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPCISSGetRefinement(NEP,PetscInt*,PetscInt*,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode NEPInterpolSetPEP(NEP,PEP);
 PETSC_EXTERN PetscErrorCode NEPInterpolGetPEP(NEP,PEP*);

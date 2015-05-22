@@ -1,4 +1,5 @@
 /*
+
    SLEPc eigensolver: "ciss"
 
    Method: Contour Integral Spectral Slicing
@@ -9,7 +10,7 @@
        subspace, with various eigenpair extractions (Rayleigh-Ritz,
        explicit moment).
 
-   Based on code contributed by Tetsuya Sakurai.
+   Based on code contributed by Y. Maeda, T. Sakurai.
 
    References:
 
@@ -20,11 +21,9 @@
            contour integral for generalized eigenvalue problems", Hokkaido
            Math. J. 36:745-757, 2007.
 
-   Last update: Jun 2013
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -69,16 +68,11 @@ typedef struct {
   PetscScalar  *pp;
   BV           V;
   BV           S;
-  BV           pV;
   BV           Y;
-  Vec          xsub;
-  Vec          xdup;
   KSP          *ksp;
   Mat          *kspMat;
   PetscBool    useconj;
   PetscReal    est_eig;
-  VecScatter   scatterin;
-  Mat          pA,pB;
   PetscSubcomm subcomm;
   PetscBool    usest;
 } NEP_CISS;
@@ -243,14 +237,7 @@ static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
       ierr = BVMultVec(ctx->Y,ctx->weight[p_id],1,v,&m);CHKERRQ(ierr);
     }
     ierr = BVGetColumn(ctx->V,j,&vj);CHKERRQ(ierr);
-    if (ctx->pA) {
-      ierr = VecSet(vtemp,0);CHKERRQ(ierr);
-      ierr = VecScatterBegin(ctx->scatterin,v,vtemp,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-      ierr = VecScatterEnd(ctx->scatterin,v,vtemp,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-      ierr = VecDot(vj,vtemp,&tmp);CHKERRQ(ierr);
-    } else {
-      ierr = VecDot(vj,v,&tmp);CHKERRQ(ierr);
-    }
+    ierr = VecDot(vj,v,&tmp);CHKERRQ(ierr);
     ierr = BVRestoreColumn(ctx->V,j,&vj);CHKERRQ(ierr);
     if (ctx->useconj) sum += PetscRealPart(tmp)*2;
     else sum += tmp;
@@ -489,6 +476,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   else ctx->useconj = PETSC_FALSE;
 
   /* create split comm */
+  ctx->num_subcomm = 1;
   ierr = SetSolverComm(nep);CHKERRQ(ierr);
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
@@ -837,6 +825,8 @@ PetscErrorCode NEPCISSGetSizes(NEP nep,PetscInt *ip,PetscInt *bs,PetscInt *ms,Pe
 static PetscErrorCode NEPCISSSetThreshold_CISS(NEP nep,PetscReal delta,PetscReal spur)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
+
+  PetscFunctionBegin;
   if (delta == PETSC_DEFAULT) {
     ctx->delta = 1e-12;
   } else {
@@ -925,6 +915,113 @@ PetscErrorCode NEPCISSGetThreshold(NEP nep,PetscReal *delta,PetscReal *spur)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPCISSSetRefinement_CISS"
+static PetscErrorCode NEPCISSSetRefinement_CISS(NEP nep,PetscInt inner,PetscInt outer,PetscInt blsize)
+{
+  NEP_CISS *ctx = (NEP_CISS*)nep->data;
+
+  PetscFunctionBegin;
+  if (inner == PETSC_DEFAULT) {
+    ctx->refine_inner = 0;
+  } else {
+    if (inner<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The refine inner argument must be >= 0");
+    ctx->refine_inner = inner;
+  }
+  if (outer == PETSC_DEFAULT) {
+    ctx->refine_outer = 0;
+  } else {
+    if (outer<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The refine outer argument must be >= 0");
+    ctx->refine_outer = outer;
+  }
+  if (blsize == PETSC_DEFAULT) {
+    ctx->refine_blocksize = 0;
+  } else {
+    if (blsize<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The refine blocksize argument must be >= 0");
+    ctx->refine_blocksize = blsize;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPCISSSetRefinement"
+/*@
+   NEPCISSSetRefinement - Sets the values of various refinement parameters
+   in the CISS solver.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep    - the eigenproblem solver context
+.  inner  - number of iterative refinement iterations (inner loop)
+.  outer  - number of iterative refinement iterations (outer loop)
+-  blsize - number of iterative refinement iterations (blocksize loop)
+
+   Options Database Keys:
++  -nep_ciss_refine_inner - Sets number of inner iterations
+.  -nep_ciss_refine_outer - Sets number of outer iterations
+-  -nep_ciss_refine_blocksize - Sets number of blocksize iterations
+
+   Level: advanced
+
+.seealso: NEPCISSGetRefinement()
+@*/
+PetscErrorCode NEPCISSSetRefinement(NEP nep,PetscInt inner,PetscInt outer,PetscInt blsize)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(nep,inner,2);
+  PetscValidLogicalCollectiveInt(nep,outer,3);
+  PetscValidLogicalCollectiveInt(nep,blsize,4);
+  ierr = PetscTryMethod(nep,"NEPCISSSetRefinement_C",(NEP,PetscInt,PetscInt,PetscInt),(nep,inner,outer,blsize));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPCISSGetRefinement_CISS"
+static PetscErrorCode NEPCISSGetRefinement_CISS(NEP nep,PetscInt *inner,PetscInt *outer,PetscInt *blsize)
+{
+  NEP_CISS *ctx = (NEP_CISS*)nep->data;
+
+  PetscFunctionBegin;
+  if (inner)  *inner = ctx->refine_inner;
+  if (outer)  *outer = ctx->refine_outer;
+  if (blsize) *blsize = ctx->refine_blocksize;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPCISSGetRefinement"
+/*@
+   NEPCISSGetRefinement - Gets the values of various refinement parameters
+   in the CISS solver.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - the eigenproblem solver context
+
+   Output Parameters:
++  inner  - number of iterative refinement iterations (inner loop)
+.  outer  - number of iterative refinement iterations (outer loop)
+-  blsize - number of iterative refinement iterations (blocksize loop)
+
+   Level: advanced
+
+.seealso: NEPCISSSetRefinement()
+@*/
+PetscErrorCode NEPCISSGetRefinement(NEP nep, PetscInt *inner, PetscInt *outer,PetscInt *blsize)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  ierr = PetscTryMethod(nep,"NEPCISSGetRefinement_C",(NEP,PetscInt*,PetscInt*,PetscInt*),(nep,inner,outer,blsize));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPReset_CISS"
 PetscErrorCode NEPReset_CISS(NEP nep)
 {
@@ -960,8 +1057,8 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptions *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
   PetscReal      r1,r2;
-  PetscInt       i1=0,i2=0,i3=0,i4=0,i5=0;
-  PetscBool      b1=PETSC_FALSE;
+  PetscInt       i1,i2,i3,i4,i5,i6,i7,i8;
+  PetscBool      b1;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP CISS Options");CHKERRQ(ierr);
@@ -981,6 +1078,12 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptions *PetscOptionsObject,NEP nep)
   ierr = NEPCISSSetThreshold(nep,r1,r2);CHKERRQ(ierr);
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
+  ierr = NEPCISSGetRefinement(nep,&i6,&i7,&i8);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-nep_ciss_refine_inner","CISS number of inner iterative refinement iterations","NEPCISSSetRefinement",i6,&i6,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-nep_ciss_refine_outer","CISS number of outer iterative refinement iterations","NEPCISSSetRefinement",i7,&i7,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-nep_ciss_refine_blocksize","CISS number of blocksize iterative refinement iterations","NEPCISSSetRefinement",i8,&i8,NULL);CHKERRQ(ierr);
+  ierr = NEPCISSSetRefinement(nep,i6,i7,i8);CHKERRQ(ierr);
+
   PetscFunctionReturn(0);
 }
 
@@ -996,6 +1099,8 @@ PetscErrorCode NEPDestroy_CISS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetSizes_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetThreshold_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetThreshold_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetRefinement_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetRefinement_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1014,7 +1119,8 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
     if (ctx->isreal) {
       ierr = PetscViewerASCIIPrintf(viewer,"  CISS: exploiting symmetry of integration points\n");CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: threshold { delta: %g, spurious threshold: %g }\n",ctx->delta,ctx->spurious_threshold);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: iterative refinement  { inner: %D, outer: %D, blocksize: %D }\n",ctx->refine_inner,ctx->refine_outer, ctx->refine_blocksize);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     //ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
@@ -1042,6 +1148,8 @@ PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetSizes_C",NEPCISSGetSizes_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetThreshold_C",NEPCISSSetThreshold_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetThreshold_C",NEPCISSGetThreshold_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetRefinement_C",NEPCISSSetRefinement_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetRefinement_C",NEPCISSGetRefinement_CISS);CHKERRQ(ierr);
   /* set default values of parameters */
   ctx->N       = 32;
   ctx->L       = 16;
