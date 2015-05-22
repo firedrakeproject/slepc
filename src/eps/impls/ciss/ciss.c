@@ -347,6 +347,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
   PetscFunctionReturn(0);
 }
 
+#if defined(PETSC_USE_COMPLEX)
 #undef __FUNCT__
 #define __FUNCT__ "EstimateNumberEigs"
 static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
@@ -396,6 +397,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
   ierr = VecDestroy(&vtemp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "CalcMu"
@@ -785,9 +787,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)A,MATSHELL,&flg);CHKERRQ(ierr);
-  if (flg) {
-    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell not supported in this solver");
-  }
+  if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell not supported in this solver");
 
   ierr = CISSRedundantMat(eps);CHKERRQ(ierr);
   if (ctx->pA) {
@@ -836,7 +836,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
 
 #if !defined(PETSC_USE_COMPLEX)
-  if (!eps->ishermitian) { ierr = PetscInfo(eps,"Warning: complex eigenvalue is not calculated exactly without --with-scalar-type=complex in PETSc \n");CHKERRQ(ierr); }
+  if (!eps->ishermitian) { ierr = PetscInfo(eps,"Warning: complex eigenvalues are not calculated exactly without --with-scalar-type=complex in PETSc\n");CHKERRQ(ierr); }
 #endif
 
   /* dispatch solve method */
