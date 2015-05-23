@@ -190,11 +190,14 @@ static PetscErrorCode SetPathParameter(EPS eps)
   }
   for (i=0;i<ctx->N;i++) {
     if (isarc) {
+      /* Arc region only supported for complex scalars */
+#if defined(PETSC_USE_COMPLEX)
       theta = (PETSC_PI/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta);
       ctx->weight[i] = PetscCosReal((ctx->N-1)*PetscAcosReal(ctx->pp[i]))/ctx->N;
       theta = (start_ang*2+(end_ang-start_ang)*(ctx->pp[i]+1))*PETSC_PI;
       ctx->omega[i] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
+#endif
     } else {
 #if defined(PETSC_USE_COMPLEX)
       theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
