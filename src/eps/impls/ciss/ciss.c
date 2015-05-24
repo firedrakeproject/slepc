@@ -194,20 +194,20 @@ static PetscErrorCode SetPathParameter(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
       theta = (PETSC_PI/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta);
-      ctx->weight[i] = PetscCosReal((ctx->N-1)*PetscAcosReal(ctx->pp[i]))/ctx->N;
-      theta = (start_ang*2+(end_ang-start_ang)*(ctx->pp[i]+1))*PETSC_PI;
+      ctx->weight[i] = PetscCosReal((ctx->N-1)*theta)/ctx->N;
+      theta = (start_ang*2+(end_ang-start_ang)*(PetscCosReal(theta)+1.0))*PETSC_PI;
       ctx->omega[i] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
 #endif
     } else {
 #if defined(PETSC_USE_COMPLEX)
       theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
-      ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/ctx->N;
+      ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
       ctx->omega[i] = center + radius*ctx->pp[i];
 #else
       theta = (PETSC_PI/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta);
-      ctx->weight[i] = PetscCosReal((ctx->N-1)*PetscAcosReal(ctx->pp[i]))/ctx->N;
+      ctx->weight[i] = PetscCosReal((ctx->N-1)*theta)/ctx->N;
       ctx->omega[i] = center + radius*ctx->pp[i];
 #endif
     }
