@@ -190,21 +190,24 @@ static PetscErrorCode SetPathParameter(EPS eps)
   }
   for (i=0;i<ctx->N;i++) {
     if (isarc) {
+      /* Arc region only supported for complex scalars */
+#if defined(PETSC_USE_COMPLEX)
       theta = (PETSC_PI/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta);
-      ctx->weight[i] = PetscCosReal((ctx->N-1)*PetscAcosReal(ctx->pp[i]))/ctx->N;
-      theta = (start_ang*2+(end_ang-start_ang)*(ctx->pp[i]+1))*PETSC_PI;
+      ctx->weight[i] = PetscCosReal((ctx->N-1)*theta)/ctx->N;
+      theta = (start_ang*2+(end_ang-start_ang)*(PetscCosReal(theta)+1.0))*PETSC_PI;
       ctx->omega[i] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
+#endif
     } else {
 #if defined(PETSC_USE_COMPLEX)
       theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
-      ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/ctx->N;
+      ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
       ctx->omega[i] = center + radius*ctx->pp[i];
 #else
       theta = (PETSC_PI/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta);
-      ctx->weight[i] = PetscCosReal((ctx->N-1)*PetscAcosReal(ctx->pp[i]))/ctx->N;
+      ctx->weight[i] = PetscCosReal((ctx->N-1)*theta)/ctx->N;
       ctx->omega[i] = center + radius*ctx->pp[i];
 #endif
     }
@@ -347,6 +350,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
   PetscFunctionReturn(0);
 }
 
+#if defined(PETSC_USE_COMPLEX)
 #undef __FUNCT__
 #define __FUNCT__ "EstimateNumberEigs"
 static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
@@ -384,7 +388,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
     else sum += tmp;
   }
   ctx->est_eig = PetscAbsScalar(sum/(PetscReal)ctx->L);
-  eta = PetscPowReal(10,-PetscLog10Real(eps->tol)/ctx->N);
+  eta = PetscPowReal(10.0,-PetscLog10Real(eps->tol)/ctx->N);
   ierr = PetscInfo1(eps,"Estimation_#Eig %f\n",(double)ctx->est_eig);CHKERRQ(ierr);
   *L_add = (PetscInt)PetscCeilReal((ctx->est_eig*eta)/ctx->M) - ctx->L;
   if (*L_add < 0) *L_add = 0;
@@ -396,6 +400,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
   ierr = VecDestroy(&vtemp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "CalcMu"
@@ -707,8 +712,8 @@ static PetscErrorCode isGhost(EPS eps,PetscInt ld,PetscInt nv,PetscBool *fl)
     s1 = 0;
     s2 = 0;
     for (j=0;j<nv;j++) {
-      s1 += PetscAbsScalar(PetscPowScalar(pX[i*ld+j],2));
-      s2 += PetscPowReal(PetscAbsScalar(pX[i*ld+j]),2)/ctx->sigma[j];
+      s1 += PetscAbsScalar(PetscPowScalarInt(pX[i*ld+j],2));
+      s2 += PetscPowRealInt(PetscAbsScalar(pX[i*ld+j]),2)/ctx->sigma[j];
     }
     tau[i] = s1/s2;
     tau_max = PetscMax(tau_max,tau[i]);
@@ -785,9 +790,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)A,MATSHELL,&flg);CHKERRQ(ierr);
-  if (flg) {
-    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell not supported in this solver");
-  }
+  if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell not supported in this solver");
 
   ierr = CISSRedundantMat(eps);CHKERRQ(ierr);
   if (ctx->pA) {
@@ -836,7 +839,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
 
 #if !defined(PETSC_USE_COMPLEX)
-  if (!eps->ishermitian) { ierr = PetscInfo(eps,"Warning: complex eigenvalue is not calculated exactly without --with-scalar-type=complex in PETSc \n");CHKERRQ(ierr); }
+  if (!eps->ishermitian) { ierr = PetscInfo(eps,"Warning: complex eigenvalues are not calculated exactly without --with-scalar-type=complex in PETSc\n");CHKERRQ(ierr); }
 #endif
 
   /* dispatch solve method */
