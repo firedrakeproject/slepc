@@ -25,7 +25,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = ciss.c
+SOURCEC  = nciss.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcnep
