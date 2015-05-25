@@ -415,9 +415,7 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
 
   PetscFunctionBegin;
   ierr = MPI_Comm_size(PetscSubcommChild(ctx->subcomm),&sub_size);CHKERRQ(ierr);
-  ierr = PetscMalloc(ctx->num_solve_point*ctx->L*(ctx->L+1)*sizeof(PetscScalar),&temp);CHKERRQ(ierr);
-  ierr = PetscMalloc(2*ctx->M*ctx->L*ctx->L*sizeof(PetscScalar),&temp2);CHKERRQ(ierr);
-  ierr = PetscMalloc(ctx->num_solve_point*sizeof(PetscScalar),&ppk);CHKERRQ(ierr);
+  ierr = PetscMalloc3(ctx->num_solve_point*ctx->L*(ctx->L+1),&temp,2*ctx->M*ctx->L*ctx->L,&temp2,ctx->num_solve_point,&ppk);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,ctx->L,ctx->L_max*ctx->num_solve_point,NULL,&M);CHKERRQ(ierr);
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] = 0;
   ierr = BVSetActiveColumns(ctx->Y,0,ctx->L_max*ctx->num_solve_point);CHKERRQ(ierr);
@@ -453,9 +451,7 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   }
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] /= sub_size;
   ierr = MPI_Allreduce(temp2,Mu,2*ctx->M*ctx->L*ctx->L,MPIU_SCALAR,MPIU_SUM,(PetscObjectComm((PetscObject)eps)));CHKERRQ(ierr);
-  ierr = PetscFree(ppk);CHKERRQ(ierr);
-  ierr = PetscFree(temp);CHKERRQ(ierr);
-  ierr = PetscFree(temp2);CHKERRQ(ierr);
+  ierr = PetscFree3(temp,temp2,ppk);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -493,9 +489,9 @@ static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscMalloc(5*ml*sizeof(PetscScalar),&work);CHKERRQ(ierr);
+  ierr = PetscMalloc1(5*ml,&work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc(5*ml*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+  ierr = PetscMalloc1(5*ml,&rwork);CHKERRQ(ierr);
 #endif
   ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
   n = m; lda = m; ldu = m; ldvt = m; lwork = 5*m;
@@ -531,7 +527,7 @@ static PetscErrorCode ConstructS(EPS eps)
 
   PetscFunctionBegin;
   ierr = BVGetSizes(ctx->Y,&vec_local_size,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscMalloc(ctx->num_solve_point*sizeof(PetscScalar),&ppk);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ctx->num_solve_point,&ppk);CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) ppk[i] = 1;
   ierr = BVGetColumn(ctx->Y,0,&yj);CHKERRQ(ierr);
   ierr = VecDuplicate(yj,&v);CHKERRQ(ierr);
@@ -588,17 +584,11 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
   PetscFunctionBegin;
   ierr = BVGetSizes(S,&local_size,NULL,NULL);CHKERRQ(ierr);    
   ierr = BVGetArray(S,&s_data);CHKERRQ(ierr);
-  ierr = PetscMalloc(ml*ml*sizeof(PetscScalar),&temp);CHKERRQ(ierr);
-  ierr = PetscMalloc(ml*ml*sizeof(PetscScalar),&temp2);CHKERRQ(ierr);
-  ierr = PetscMalloc(local_size*ml*sizeof(PetscScalar),&Q1);CHKERRQ(ierr);
-  ierr = PetscMalloc(local_size*ml*sizeof(PetscScalar),&Q2);CHKERRQ(ierr);
-  ierr = PetscMalloc(ml*ml*sizeof(PetscScalar),&B);CHKERRQ(ierr);
+  ierr = PetscMalloc7(ml*ml,&temp,ml*ml,&temp2,local_size*ml,&Q1,local_size*ml,&Q2,ml*ml,&B,ml*ml,&tempB,5*ml,&work);CHKERRQ(ierr);
   ierr = PetscMemzero(B,ml*ml*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(5*ml*sizeof(PetscScalar),&work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc(5*ml*sizeof(PetscReal),&rwork);CHKERRQ(ierr);
+  ierr = PetscMalloc1(5*ml,&rwork);CHKERRQ(ierr);
 #endif
-  ierr = PetscMalloc(ml*ml*sizeof(PetscScalar),&tempB);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 
   for (i=0;i<ml;i++) {
@@ -674,18 +664,12 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
  
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = BVRestoreArray(S,&s_data);CHKERRQ(ierr);
-  ierr = PetscFree(temp2);CHKERRQ(ierr);
-  ierr = PetscFree(Q1);CHKERRQ(ierr);
-  ierr = PetscFree(Q2);CHKERRQ(ierr);
 
   (*K) = 0;
   for (i=0;i<ml;i++) {
     if (sigma[i]/PetscMax(sigma[0],1)>delta) (*K)++;
   }
-  ierr = PetscFree(temp);CHKERRQ(ierr);
-  ierr = PetscFree(B);CHKERRQ(ierr);
-  ierr = PetscFree(tempB);CHKERRQ(ierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
+  ierr = PetscFree7(temp,temp2,Q1,Q2,B,tempB,work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #endif
@@ -704,7 +688,7 @@ static PetscErrorCode isGhost(EPS eps,PetscInt ld,PetscInt nv,PetscBool *fl)
   PetscReal      *tau,s1,s2,tau_max=0.0;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc(nv*sizeof(PetscReal),&tau);CHKERRQ(ierr);
+  ierr = PetscMalloc1(nv,&tau);CHKERRQ(ierr);
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
 
@@ -774,12 +758,8 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = SetSolverComm(eps);CHKERRQ(ierr);
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
-  ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->weight);CHKERRQ(ierr);
-  ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->omega);CHKERRQ(ierr);
-  ierr = PetscMalloc(ctx->N*sizeof(PetscScalar),&ctx->pp);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,3*ctx->N*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc(ctx->L_max*ctx->M*sizeof(PetscReal),&ctx->sigma);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,ctx->L_max*ctx->N*sizeof(PetscReal));CHKERRQ(ierr);
+  ierr = PetscMalloc4(ctx->N,&ctx->weight,ctx->N,&ctx->omega,ctx->N,&ctx->pp,ctx->L_max*ctx->M,&ctx->sigma);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,3*ctx->N*sizeof(PetscScalar)+ctx->L_max*ctx->N*sizeof(PetscReal));CHKERRQ(ierr);
 
   /* allocate basis vectors */
   ierr = BVDuplicateResize(eps->V,ctx->L_max*ctx->M,&ctx->S);CHKERRQ(ierr);
@@ -805,10 +785,8 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&issinvert);CHKERRQ(ierr);
     if (!issinvert) { ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr); }
   } else {
-    ierr = PetscMalloc(ctx->num_solve_point*sizeof(KSP),&ctx->ksp);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)eps,ctx->num_solve_point*sizeof(KSP));CHKERRQ(ierr);
-    ierr = PetscMalloc(ctx->num_solve_point*sizeof(Mat),&ctx->kspMat);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)eps,ctx->num_solve_point*sizeof(Mat));CHKERRQ(ierr);
+    ierr = PetscMalloc2(ctx->num_solve_point,&ctx->ksp,ctx->num_solve_point,&ctx->kspMat);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,ctx->num_solve_point*sizeof(KSP)+ctx->num_solve_point*sizeof(Mat));CHKERRQ(ierr);
     for (i=0;i<ctx->num_solve_point;i++) {
       ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ctx->ksp[i]);CHKERRQ(ierr);
       ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)eps,1);CHKERRQ(ierr);
@@ -901,8 +879,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     }
     ctx->L += L_add;
   }
-  ierr = PetscMalloc(ctx->L*ctx->L*ctx->M*2*sizeof(PetscScalar),&Mu);CHKERRQ(ierr);
-  ierr = PetscMalloc(ctx->L*ctx->M*ctx->L*ctx->M*sizeof(PetscScalar),&H0);CHKERRQ(ierr);
+  ierr = PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0);CHKERRQ(ierr);
   for (i=0;i<ctx->refine_blocksize;i++) {
     ierr = CalcMu(eps,Mu);CHKERRQ(ierr);
     ierr = BlockHankel(eps,Mu,0,H0);CHKERRQ(ierr);
@@ -920,8 +897,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     }
     ctx->L += L_add;
   }
-  ierr = PetscFree(Mu);CHKERRQ(ierr);
-  ierr = PetscFree(H0);CHKERRQ(ierr);
+  ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
 
   for (outer=0;outer<=ctx->refine_outer;outer++) {
     for (inner=0;inner<=ctx->refine_inner;inner++) {
@@ -958,21 +934,17 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
 
-    ierr = PetscMalloc(nv*sizeof(PetscBool),&fl1);CHKERRQ(ierr);
-    ierr = PetscMalloc(nv*sizeof(PetscInt),&inside);CHKERRQ(ierr);
+    ierr = PetscMalloc3(nv,&fl1,nv,&inside,nv,&rr);CHKERRQ(ierr);
     ierr = isGhost(eps,ld,nv,fl1);CHKERRQ(ierr);
     ierr = RGCheckInside(eps->rg,nv,eps->eigr,eps->eigi,inside);CHKERRQ(ierr);
-    ierr = PetscMalloc(nv*sizeof(PetscScalar),&rr);CHKERRQ(ierr);
     for (i=0;i<nv;i++) {
       if (fl1[i] && inside[i]>0) {
         rr[i] = 1.0;
         eps->nconv++;
       } else rr[i] = 0.0;
     }
-    ierr = PetscFree(fl1);CHKERRQ(ierr);
-    ierr = PetscFree(inside);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eps->eigr,eps->eigi,rr,NULL,&eps->nconv);CHKERRQ(ierr);
-    ierr = PetscFree(rr);CHKERRQ(ierr);
+    ierr = PetscFree3(fl1,inside,rr);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
     ierr = BVCopy(ctx->S,eps->V);CHKERRQ(ierr);
@@ -1458,22 +1430,18 @@ PetscErrorCode EPSReset_CISS(EPS eps)
 
   PetscFunctionBegin;
   ierr = PetscSubcommDestroy(&ctx->subcomm);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->weight);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->omega);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->pp);CHKERRQ(ierr);
+  ierr = PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->S);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->sigma);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
   if (!ctx->usest) {
     for (i=0;i<ctx->num_solve_point;i++) {
       ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
     }
-    ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
     for (i=0;i<ctx->num_solve_point;i++) {
       ierr = MatDestroy(&ctx->kspMat[i]);CHKERRQ(ierr);
     }
-    ierr = PetscFree(ctx->kspMat);CHKERRQ(ierr);
+    ierr = PetscFree2(ctx->ksp,ctx->kspMat);CHKERRQ(ierr);
   }
   ierr = VecScatterDestroy(&ctx->scatterin);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->xsub);CHKERRQ(ierr);
