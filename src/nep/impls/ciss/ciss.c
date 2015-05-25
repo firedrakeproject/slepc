@@ -115,13 +115,11 @@ static PetscErrorCode SetPathParameter(NEP nep)
   ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (isellipse) {
     ierr = RGEllipseGetParameters(nep->rg,&center,&radius,&vscale);CHKERRQ(ierr);
-  } else {
-    SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Region must be Ellipse");
-  }
+  } else SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Region must be Ellipse");
   for (i=0;i<ctx->N;i++) {
     theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
     ctx->pp[i] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
-    ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/ctx->N;
+    ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
     ctx->omega[i] = center + radius*ctx->pp[i];
   }
   PetscFunctionReturn(0);
@@ -442,9 +440,8 @@ static PetscErrorCode isGhost(NEP nep,PetscInt ld,PetscInt nv,PetscBool *fl)
     tau[i] /= tau_max;
   }
   for (i=0;i<nv;i++) {
-    if (tau[i]>=ctx->spurious_threshold) {
-      fl[i] = PETSC_TRUE;
-    } else fl[i] = PETSC_FALSE;
+    if (tau[i]>=ctx->spurious_threshold) fl[i] = PETSC_TRUE;
+    else fl[i] = PETSC_FALSE;
   }
   ierr = PetscFree(tau);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -681,8 +678,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
 #define __FUNCT__ "NEPCISSSetSizes_CISS"
 static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool isreal)
 {
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
+  NEP_CISS *ctx = (NEP_CISS*)nep->data;
 
   PetscFunctionBegin;
   if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) {
@@ -845,7 +841,8 @@ static PetscErrorCode NEPCISSSetThreshold_CISS(NEP nep,PetscReal delta,PetscReal
 #undef __FUNCT__
 #define __FUNCT__ "NEPCISSSetThreshold"
 /*@
-   NEPCISSSetThreshold - Sets the values of various threshold parameters in the CISS solver.
+   NEPCISSSetThreshold - Sets the values of various threshold parameters in
+   the CISS solver.
 
    Logically Collective on NEP
 
@@ -889,7 +886,8 @@ static PetscErrorCode NEPCISSGetThreshold_CISS(NEP nep,PetscReal *delta,PetscRea
 #undef __FUNCT__
 #define __FUNCT__ "NEPCISSGetThreshold"
 /*@
-   NEPCISSGetThreshold - Gets the values of various threshold parameters in the CISS solver.
+   NEPCISSGetThreshold - Gets the values of various threshold parameters in
+   the CISS solver.
 
    Not Collective
 
@@ -1122,7 +1120,7 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: iterative refinement  { inner: %D, outer: %D, blocksize: %D }\n",ctx->refine_inner,ctx->refine_outer, ctx->refine_blocksize);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    //ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
+    /*ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);*/
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

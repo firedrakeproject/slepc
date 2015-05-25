@@ -723,9 +723,8 @@ static PetscErrorCode isGhost(EPS eps,PetscInt ld,PetscInt nv,PetscBool *fl)
     tau[i] /= tau_max;
   }
   for (i=0;i<nv;i++) {
-    if (tau[i]>=ctx->spurious_threshold) {
-      fl[i] = PETSC_TRUE;
-    } else fl[i] = PETSC_FALSE;
+    if (tau[i]>=ctx->spurious_threshold) fl[i] = PETSC_TRUE;
+    else fl[i] = PETSC_FALSE;
   }
   ierr = PetscFree(tau);CHKERRQ(ierr);
   PetscFunctionReturn(0);
