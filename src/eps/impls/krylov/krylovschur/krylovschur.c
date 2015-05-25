@@ -77,6 +77,8 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
 PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
   PetscErrorCode  ierr;
+  PetscReal       eta;
+  BVOrthogType    otype;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   enum { EPS_KS_DEFAULT,EPS_KS_SYMM,EPS_KS_SLICE,EPS_KS_INDEF } variant;
 
@@ -156,6 +158,9 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       ierr = DSSetType(eps->ds,DSGHIEP);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
+      /* force reorthogonalization for pseudo-Lanczos */
+      ierr = BVGetOrthogonalization(eps->V,&otype,NULL,&eta);CHKERRQ(ierr);
+      ierr = BVSetOrthogonalization(eps->V,otype,BV_ORTHOG_REFINE_ALWAYS,eta);CHKERRQ(ierr);
       break;
     default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error");
   }
