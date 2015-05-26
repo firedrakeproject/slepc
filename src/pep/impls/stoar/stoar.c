@@ -122,7 +122,7 @@ static PetscErrorCode PEPSTOAROrth2(PEP pep,PetscInt k,PetscReal *Omega,PetscSca
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscBLASInt   n_,lds_,k_,one=1,ld_;
   PetscScalar    *S=ctx->S,sonem=-1.0,sone=1.0,szero=0.0,*tp,*tq,*xp,*xq,*c;
-  PetscInt       i,lds=ctx->d*ctx->ld,n;
+  PetscInt       i,lds=ctx->d*ctx->ld,n,j;
   
   PetscFunctionBegin;
   n = k+2;
@@ -140,15 +140,17 @@ static PetscErrorCode PEPSTOAROrth2(PEP pep,PetscInt k,PetscReal *Omega,PetscSca
   for (i=0;i<k;i++) y[i] /= Omega[i];
   PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&k_,&sonem,S,&lds_,y,&one,&sone,xp,&one));
   PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&k_,&sonem,S+ctx->ld,&lds_,y,&one,&sone,xq,&one));
-  /* twice */
-  PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&n_,&sone,ctx->qK,&ld_,xp,&one,&szero,tp,&one));
-  PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&n_,&sone,ctx->qM,&ld_,xq,&one,&szero,tq,&one));
-  PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,ctx->S,&lds_,tp,&one,&szero,c,&one));
-  PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,S+ctx->ld,&lds_,tq,&one,&sone,c,&one));
-  for (i=0;i<k;i++) c[i] /= Omega[i];
-  PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&k_,&sonem,S,&lds_,c,&one,&sone,xp,&one));
-  PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&k_,&sonem,S+ctx->ld,&lds_,c,&one,&sone,xq,&one));
-  for (i=0;i<k;i++) y[i] += c[i];
+  /* three times */
+  for (j=0;j<2;j++) {
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&n_,&sone,ctx->qK,&ld_,xp,&one,&szero,tp,&one));
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&n_,&sone,ctx->qM,&ld_,xq,&one,&szero,tq,&one));
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,ctx->S,&lds_,tp,&one,&szero,c,&one));
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,S+ctx->ld,&lds_,tq,&one,&sone,c,&one));
+    for (i=0;i<k;i++) c[i] /= Omega[i];
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&k_,&sonem,S,&lds_,c,&one,&sone,xp,&one));
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&k_,&sonem,S+ctx->ld,&lds_,c,&one,&sone,xq,&one));
+    for (i=0;i<k;i++) y[i] += c[i];
+  }
   ierr = PetscFree3(tp,tq,c);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
