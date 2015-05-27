@@ -264,6 +264,7 @@ typedef enum {/* converged */
               /* diverged */
               EPS_DIVERGED_ITS                 = -3,
               EPS_DIVERGED_BREAKDOWN           = -4,
+              EPS_DIVERGED_SYMMETRY_LOST       = -5,
               EPS_CONVERGED_ITERATING          =  0} EPSConvergedReason;
 PETSC_EXTERN const char *const*EPSConvergedReasons;
 

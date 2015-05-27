@@ -50,6 +50,7 @@ typedef const char* NEPType;
 #define NEPRII       "rii"
 #define NEPSLP       "slp"
 #define NEPNARNOLDI  "narnoldi"
+#define NEPCISS      "ciss"
 #define NEPINTERPOL  "interpol"
 
 /* Logging support */
@@ -215,6 +216,13 @@ PETSC_EXTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
 
 PETSC_EXTERN PetscErrorCode NEPSLPSetEPS(NEP,EPS);
 PETSC_EXTERN PetscErrorCode NEPSLPGetEPS(NEP,EPS*);
+
+PETSC_EXTERN PetscErrorCode NEPCISSSetSizes(NEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
+PETSC_EXTERN PetscErrorCode NEPCISSGetSizes(NEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*);
+PETSC_EXTERN PetscErrorCode NEPCISSSetThreshold(NEP,PetscReal,PetscReal);
+PETSC_EXTERN PetscErrorCode NEPCISSGetThreshold(NEP,PetscReal*,PetscReal*);
+PETSC_EXTERN PetscErrorCode NEPCISSSetRefinement(NEP,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPCISSGetRefinement(NEP,PetscInt*,PetscInt*,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode NEPInterpolSetPEP(NEP,PEP);
 PETSC_EXTERN PetscErrorCode NEPInterpolGetPEP(NEP,PEP*);
