@@ -517,7 +517,6 @@ PetscErrorCode PEPComputeError(PEP pep,PetscInt i,PEPErrorType type,PetscReal *e
   ierr = PEPComputeResidualNorm_Private(pep,kr,ki,xr,xi,w,error);CHKERRQ(ierr);
 
   /* compute error */
-  if (type==PETSC_DEFAULT) type = PEP_ERROR_BACKWARD;
   switch (type) {
     case PEP_ERROR_ABSOLUTE:
       break;

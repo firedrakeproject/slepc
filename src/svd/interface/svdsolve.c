@@ -374,7 +374,6 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,NULL);CHKERRQ(ierr);
   ierr = SVDComputeResidualNorms_Private(svd,i,&norm1,&norm2);CHKERRQ(ierr);
   *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
-  if (type==PETSC_DEFAULT) type = SVD_ERROR_RELATIVE;
   switch (type) {
     case SVD_ERROR_ABSOLUTE:
       break;
