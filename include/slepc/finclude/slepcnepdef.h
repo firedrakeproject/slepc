@@ -43,6 +43,6 @@
 #define NEPRII       'rii'
 #define NEPSLP       'slp'
 #define NEPNARNOLDI  'narnoldi'
+#define NEPCISS      'ciss'
 #define NEPINTERPOL  'interpol'
-
 #endif

@@ -802,6 +802,7 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
 #endif
 }
 
+#if !defined(PETSC_USE_COMPLEX)
 #undef __FUNCT__
 #define __FUNCT__ "dvd_complex_rayleigh_quotient"
 PETSC_STATIC_INLINE PetscErrorCode dvd_complex_rayleigh_quotient(Vec ur,Vec ui,Vec Axr,Vec Axi,Vec Bxr,Vec Bxi,PetscScalar *eigr,PetscScalar *eigi)
@@ -838,6 +839,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_complex_rayleigh_quotient(Vec ur,Vec ui,V
   *eigi = (b2*b4 - b0*b6) / b7; /* eig_i */
   PetscFunctionReturn(0);
 }
+#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_compute_n_rr"

@@ -235,7 +235,8 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
    Possible values for reason:
 +  PEP_CONVERGED_TOL - converged up to tolerance
 .  PEP_DIVERGED_ITS - required more than its to reach convergence
--  PEP_DIVERGED_BREAKDOWN - generic breakdown in method
+.  PEP_DIVERGED_BREAKDOWN - generic breakdown in method
+-  PEP_DIVERGED_SYMMETRY_LOST - pseudo-Lanczos was not able to keep symmetry
 
    Note:
    Can only be called after the call to PEPSolve() is complete.
@@ -516,7 +517,6 @@ PetscErrorCode PEPComputeError(PEP pep,PetscInt i,PEPErrorType type,PetscReal *e
   ierr = PEPComputeResidualNorm_Private(pep,kr,ki,xr,xi,w,error);CHKERRQ(ierr);
 
   /* compute error */
-  if (type==PETSC_DEFAULT) type = PEP_ERROR_BACKWARD;
   switch (type) {
     case PEP_ERROR_ABSOLUTE:
       break;

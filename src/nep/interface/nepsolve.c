@@ -572,7 +572,6 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
   ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
 
   /* compute error */
-  if (type==PETSC_DEFAULT) type = NEP_ERROR_RELATIVE;
   switch (type) {
     case NEP_ERROR_ABSOLUTE:
       break;
