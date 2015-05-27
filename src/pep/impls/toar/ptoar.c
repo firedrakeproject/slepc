@@ -13,6 +13,9 @@
        [1] Y. Su, J. Zhang and Z. Bai, "A compact Arnoldi algorithm for
            polynomial eigenvalue problems", talk presented at RANMEP 2008.
 
+       [2] C. Campos and J.E. Roman, "Parallel Krylov solvers for the
+           polynomial eigenvalue problem in SLEPc", submitted, 2015.
+
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
@@ -1239,12 +1242,10 @@ static PetscErrorCode PEPTOARSetLocking_TOAR(PEP pep,PetscBool lock)
 .  -pep_toar_locking - Sets the locking flag
 
    Notes:
-   The default is to keep all directions in the working subspace even if
-   already converged to working accuracy (the non-locking variant).
-   This behaviour can be changed so that converged eigenpairs are locked
-   when the method restarts.
-
-   Note that the default behaviour is the opposite to Krylov solvers in EPS.
+   The default is to lock converged eigenpairs when the method restarts.
+   This behaviour can be changed so that all directions are kept in the
+   working subspace even if already converged to working accuracy (the
+   non-locking variant).
 
    Level: advanced
 
