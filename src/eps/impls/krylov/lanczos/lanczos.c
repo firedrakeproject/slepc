@@ -445,7 +445,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
       if (j>k) {
         update_omega(omega,omega_old,j,alpha,beta-1,eps1,anorm);
         for (i=0;i<j-k;i++) {
-          if (PetscAbsScalar(omega[i]) > delta) reorth = PETSC_TRUE;
+          if (PetscAbsReal(omega[i]) > delta) reorth = PETSC_TRUE;
         }
       }
       if (reorth || force_reorth) {

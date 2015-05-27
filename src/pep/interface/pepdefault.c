@@ -122,11 +122,13 @@ PetscErrorCode PEPComputeVectors_Schur(PEP pep)
 
   PetscFunctionBegin;
   ierr = DSGetDimensions(pep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSVectors(pep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetMat(pep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(pep->V,0,n);CHKERRQ(ierr);
-  ierr = BVMultInPlace(pep->V,Z,0,n);CHKERRQ(ierr);
-  ierr = MatDestroy(&Z);CHKERRQ(ierr);
+  if (pep->refine==PEP_REFINE_MULTIPLE || pep->extract==PEP_EXTRACT_NONE) { 
+    ierr = DSVectors(pep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSGetMat(pep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pep->V,0,n);CHKERRQ(ierr);
+    ierr = BVMultInPlace(pep->V,Z,0,n);CHKERRQ(ierr);
+    ierr = MatDestroy(&Z);CHKERRQ(ierr);
+  }
 
   /* Fix eigenvectors if balancing was used */
   if ((pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) && pep->Dr && (pep->refine!=PEP_REFINE_MULTIPLE)) {

@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = rgbasic.c rginterval.c rgpolygon.c rgellipse.c
+SOURCEC  = rgbasic.c rginterval.c rgpolygon.c rgellipse.c rgarc.c
 SOURCEF  =
 SOURCEH  = ../../../../include/slepc/private/rgimpl.h ../../../../include/slepcrg.h
 LIBBASE  = libslepcsys

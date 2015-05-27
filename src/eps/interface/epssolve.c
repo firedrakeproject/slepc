@@ -652,7 +652,6 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
   ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,w,error);CHKERRQ(ierr);
 
   /* compute error */
-  if (type==PETSC_DEFAULT) type = EPS_ERROR_BACKWARD;
   switch (type) {
     case EPS_ERROR_ABSOLUTE:
       break;
