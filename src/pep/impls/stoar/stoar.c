@@ -528,11 +528,6 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
         ierr = PetscInfo2(pep,"Breakdown STOAR method (it=%D norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
         pep->reason = PEP_DIVERGED_BREAKDOWN;
       } else {
-        /* Truncate S */
-        ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-        ierr = PEPSTOARTrunc(pep,nv+2,k+l+1,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
-        ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSGetArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
         ierr = DSGetArrayReal(pep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
@@ -549,18 +544,24 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
         ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
       }
     }
+
+    /* Truncate S */
+    ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+    ierr = PEPSTOARTrunc(pep,nv+2,(pep->reason == PEP_CONVERGED_ITERATING)?k+l+1:k+l,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+    ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+
     pep->nconv = k;
     ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
   }
 
-  /* Update vectors V = V*S */    
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,nv+2,pep->nconv,NULL,&G);CHKERRQ(ierr);
+  /* Update vectors V = V*S */
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,pep->nconv,pep->nconv,NULL,&G);CHKERRQ(ierr);
   ierr = MatDenseGetArray(G,&aux);CHKERRQ(ierr);
   for (j=0;j<pep->nconv;j++) {
-    ierr = PetscMemcpy(aux+j*(nv+2),S+j*lds,(nv+2)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemcpy(aux+j*pep->nconv,S+j*lds,pep->nconv*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(G,&aux);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(pep->V,0,nv+2);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
   ierr = BVMultInPlace(pep->V,G,0,pep->nconv);CHKERRQ(ierr);
   ierr = MatDestroy(&G);CHKERRQ(ierr);
   for (j=0;j<pep->nconv;j++) {
