@@ -81,7 +81,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp(FN fn,Mat A,Mat B)
   s = LAPACKlange_("I",&n,&n,As,&ld,rwork);
   if (s>0.5) {
     s = PetscMax(0,(int)(PetscLogReal(s)/PetscLogReal(2.0))+2);
-    scale = PetscPowScalar(2,-s);
+    scale = PetscPowReal(2.0,-s);
     PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&scale,As,&inc));
   }
 

@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2012, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -21,11 +21,17 @@
 
 ALL: lib
 
-LIBBASE  = libslepcpep
-DIRS     = linear qarnoldi toar stoar jd
-LOCDIR   = src/pep/impls/
-MANSEC   = PEP
+#requiresscalar    complex
+
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = nciss.c
+SOURCEF  =
+SOURCEH  =
+LIBBASE  = libslepcnep
+DIRS     =
+MANSEC   = NEP
+LOCDIR   = src/nep/impls/ciss/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
 

@@ -48,6 +48,7 @@ typedef const char* PEPType;
 #define PEPLINEAR    "linear"
 #define PEPQARNOLDI  "qarnoldi"
 #define PEPTOAR      "toar"
+#define PEPSTOAR     "stoar"
 #define PEPJD        "jd"
 
 /* Logging support */
@@ -260,6 +261,7 @@ typedef enum {/* converged */
               /* diverged */
               PEP_DIVERGED_ITS                 = -3,
               PEP_DIVERGED_BREAKDOWN           = -4,
+              PEP_DIVERGED_SYMMETRY_LOST       = -5,
               PEP_CONVERGED_ITERATING          =  0} PEPConvergedReason;
 PETSC_EXTERN const char *const*PEPConvergedReasons;
 
@@ -289,6 +291,9 @@ PETSC_EXTERN PetscErrorCode PEPTOARSetRestart(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPTOARGetRestart(PEP,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPTOARSetLocking(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPTOARGetLocking(PEP,PetscBool*);
+
+PETSC_EXTERN PetscErrorCode PEPSTOARSetLocking(PEP,PetscBool);
+PETSC_EXTERN PetscErrorCode PEPSTOARGetLocking(PEP,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode PEPJDSetRestart(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPJDGetRestart(PEP,PetscReal*);
