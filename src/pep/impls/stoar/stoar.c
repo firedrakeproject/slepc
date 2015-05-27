@@ -254,7 +254,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
     ierr = DSGetArrayReal(pep->ds,DS_MAT_T,&f);CHKERRQ(ierr);
     if (j==k) for (i=0;i<j-1;i++) y[i] = PetscAbsScalar(y[i])-PetscAbsReal(f[2*ctx->ld+i]);
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_T,&f);CHKERRQ(ierr);
-    if (j>0) y[j-1] = PetscAbsScalar(y[j-1])-PetscAbsScalar(b[j-1]);
+    if (j>0) y[j-1] = PetscAbsScalar(y[j-1])-PetscAbsReal(b[j-1]);
     ierr = PetscBLASIntCast(j,&j_);CHKERRQ(ierr);
     sym = SlepcAbs(BLASnrm2_(&j_,y,&one),sym);
     fro = SlepcAbs(fro,SlepcAbs(a[j],b[j]));

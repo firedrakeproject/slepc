@@ -336,7 +336,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     for (i=svd->nconv;i<nv;i++) {
       svd->sigma[i] = PetscRealPart(w[i]);
       beta[i] = PetscRealPart(Q[nv-1+i*ld])*lastbeta;
-      svd->errest[i] = PetscAbsScalar(beta[i]);
+      svd->errest[i] = PetscAbsReal(beta[i]);
       if (svd->sigma[i] > svd->tol) svd->errest[i] /= svd->sigma[i];
       if (conv) {
         if (svd->errest[i] < svd->tol) k++;
