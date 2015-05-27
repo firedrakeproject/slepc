@@ -198,15 +198,16 @@ static PetscErrorCode PEPSTOARqKqMupdates(PEP pep,PetscInt j,Vec *wv,PetscInt nw
 /*
   Compute a run of Lanczos iterations
 */
-static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscScalar *work,PetscInt nw,Vec *t_,PetscInt nwv)
+static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscBool *symmlost,PetscScalar *work,PetscInt nw,Vec *t_,PetscInt nwv)
 {
   PetscErrorCode ierr;
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscInt       i,j,m=*M,nwu=0,lwa;
   PetscInt       lds=ctx->d*ctx->ld,offq=ctx->ld;
   Vec            v=t_[0],t=t_[1],q=t_[2];
-  PetscReal      norm;
+  PetscReal      norm,sym=0.0,fro=0.0,*f;
   PetscScalar    *y,*S=ctx->S;
+  PetscBLASInt   j_,one=1;
 
   PetscFunctionBegin;
   *breakdown = PETSC_FALSE; /* ----- */
@@ -246,6 +247,15 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
       S[i+offq+(j+1)*lds] /= norm;
     }
     b[j] = PetscAbsReal(norm);
+    ierr = DSGetArrayReal(pep->ds,DS_MAT_T,&f);CHKERRQ(ierr);
+    if (j==k) for (i=0;i<j-1;i++) y[i] = PetscAbsScalar(y[i])-PetscAbsReal(f[2*ctx->ld+i]);
+    ierr = DSRestoreArrayReal(pep->ds,DS_MAT_T,&f);CHKERRQ(ierr);
+    if (j>0) y[j-1] = PetscAbsScalar(y[j-1])-PetscAbsScalar(b[j-1]);
+    ierr = PetscBLASIntCast(j,&j_);CHKERRQ(ierr);
+    sym = SlepcAbs(BLASnrm2_(&j_,y,&one),sym);
+    fro = SlepcAbs(fro,SlepcAbs(a[j],b[j]));
+    if (j>0) fro = SlepcAbs(fro,PetscRealPart(y[j-1]));
+    if (sym/fro>PetscMax(PETSC_SQRT_MACHINE_EPSILON,10*pep->tol)) { *symmlost = PETSC_TRUE; *M=j+1; break; }
   }
   PetscFunctionReturn(0);
 }
@@ -365,6 +375,7 @@ static PetscErrorCode PEPSTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,Pet
   PetscFunctionReturn(0);
 }
 
+#if 0
 #undef __FUNCT__
 #define __FUNCT__ "PEPSTOARpreKConvergence"
 static PetscErrorCode PEPSTOARpreKConvergence(PEP pep,PetscInt nv,PetscReal *norm,Vec *w)
@@ -392,6 +403,7 @@ static PetscErrorCode PEPSTOARpreKConvergence(PEP pep,PetscInt nv,PetscReal *nor
   *norm = PetscMax(*norm,SlepcAbs(t1,t2));
   PetscFunctionReturn(0);
 }
+#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSolve_STOAR"
@@ -400,10 +412,10 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   PetscErrorCode ierr;
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscInt       j,k,l,nv=0,ld=ctx->ld,lds=ctx->d*ctx->ld,off,ldds,t;
-  PetscInt       lwa,lrwa,nwu=0,nrwu=0;
+  PetscInt       lwa,lrwa,nwu=0,nrwu=0,nconv=0;
   PetscScalar    *S=ctx->S,*Q,*work,*aux;
-  PetscReal      beta,norm,*omega,*a,*b,*r,*rwork;
-  PetscBool      breakdown;
+  PetscReal      beta,norm=1.0,*omega,*a,*b,*r,*rwork;
+  PetscBool      breakdown,symmlost=PETSC_FALSE;
   Mat            G;
 
   PetscFunctionBegin;
@@ -447,8 +459,12 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(pep->nconv+pep->mpd,pep->ncv);
-    ierr = PEPSTOARrun(pep,a,b,omega,pep->nconv+l,&nv,&breakdown,work+nwu,lwa-nwu,pep->work,3);CHKERRQ(ierr);
+    ierr = PEPSTOARrun(pep,a,b,omega,pep->nconv+l,&nv,&breakdown,&symmlost,work+nwu,lwa-nwu,pep->work,3);CHKERRQ(ierr);
     beta = b[nv-1];
+    if (symmlost) {
+      pep->reason = EPS_DIVERGED_SYMMETRY_LOST;
+      if (nv==pep->nconv+l+1) { pep->nconv = nconv; break; }
+    }
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
     ierr = DSSetDimensions(pep->ds,nv,0,pep->nconv,pep->nconv+l);CHKERRQ(ierr);
@@ -463,9 +479,11 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = PEPSTOARpreKConvergence(pep,nv,&norm,pep->work);CHKERRQ(ierr);
+    /* ierr = PEPSTOARpreKConvergence(pep,nv,&norm,pep->work);CHKERRQ(ierr);*/
+    norm = 1.0;
     ierr = DSGetDimensions(pep->ds,NULL,NULL,NULL,NULL,&t);CHKERRQ(ierr);    
-    ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,t-pep->nconv,beta*norm,&k);CHKERRQ(ierr);
+    ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,t-pep->nconv,PetscAbsReal(beta)*norm,&k);CHKERRQ(ierr);
+    nconv = k;
     if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
     if (k >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
 
@@ -695,7 +713,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
   pep->data = (void*)ctx;
-  ctx->lock = PETSC_FALSE;
+  ctx->lock = PETSC_TRUE;
 
   pep->ops->solve          = PEPSolve_STOAR;
   pep->ops->setup          = PEPSetUp_STOAR;

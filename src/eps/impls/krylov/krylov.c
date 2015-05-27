@@ -417,7 +417,7 @@ PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscRe
     sym = SlepcAbs(BLASnrm2_(&j_,hwork,&one),sym);
     fro = SlepcAbs(fro,SlepcAbs(alpha[j],beta[j]));
     if (j>0) fro = SlepcAbs(fro,PetscRealPart(hwork[j-1]));
-    if (sym/fro>PETSC_SQRT_MACHINE_EPSILON) { *symmlost = PETSC_TRUE; *M=j+1; break; }
+    if (sym/fro>PetscMax(PETSC_SQRT_MACHINE_EPSILON,10*eps->tol)) { *symmlost = PETSC_TRUE; *M=j+1; break; }
     omega[j+1] = (norm<0.0)? -1.0: 1.0;
     ierr = BVScaleColumn(eps->V,j+1,1.0/norm);CHKERRQ(ierr);
     /* */

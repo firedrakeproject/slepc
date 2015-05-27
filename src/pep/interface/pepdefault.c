@@ -516,7 +516,7 @@ PetscErrorCode PEPComputeLinearNorms(PEP pep)
     nrmd = PetscMax(nrmd,summd);
     max = PetscMax(max,summrow);
   }
-  max = PetscMax(max,out)*pep->dsfactor;
+  max = PetscMax(max*pep->dsfactor,out);
   ierr = MPI_Allreduce(&max,&pep->nrml[0],1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)pep));CHKERRQ(ierr);
   ierr = MPI_Allreduce(&nrmd,&pep->nrml[1],1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)pep));CHKERRQ(ierr);
   pep->nrml[1] = PetscMax(1.0,pep->nrml[1]*pep->dsfactor);
