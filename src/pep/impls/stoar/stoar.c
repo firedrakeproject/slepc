@@ -10,8 +10,9 @@
 
    References:
 
-       [1] C. Campos and J.E. Roman, "A thick-restart Q-Lanczos method
-           for quadratic eigenvalue problems", submitted, 2013.
+       [1] C. Campos and J.E. Roman, " Restarted Q-Arnoldi-type methods
+           exploiting symmetry in quadratic eigenvalue problems",
+           submitted, 2015.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -38,8 +39,9 @@
 
 typedef struct {
   PetscBool   lock;         /* locking/non-locking variant */
-  PetscInt    d,ld;
-  PetscScalar *S,*qK,*qM;
+  PetscInt    d;            /* polynomial degree */
+  PetscInt    ld;           /* leading dimension of auxiliary matrices */
+  PetscScalar *S,*qK,*qM;   /* auxiliary matrices */
 } PEP_STOAR;
 
 #undef __FUNCT__
@@ -130,7 +132,7 @@ static PetscErrorCode PEPSTOAROrth2(PEP pep,PetscInt k,PetscReal *Omega,PetscSca
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr); /* Size of qK and qM */
   ierr = PetscBLASIntCast(ctx->ld,&ld_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr); /* Number of vectors to orthogonalize against them */
+  ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr); /* Number of vectors to orthogonalize against */
   xp = S+k*lds;
   xq = S+ctx->ld+k*lds;
   PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&n_,&sone,ctx->qK,&ld_,xp,&one,&szero,tp,&one));
@@ -234,10 +236,10 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
     ierr = BVInsertVec(pep->V,j+2,q);CHKERRQ(ierr);
     for (i=0;i<=j+1;i++) *(S+(j+1)*lds+i) = *(S+offq+j*lds+i);
    
-    /* Update qK and qM */
+    /* update qK and qM */
     ierr = PEPSTOARqKqMupdates(pep,j+2,t_,2);CHKERRQ(ierr);
 
-    /* Level-2 orthogonalization */
+    /* level-2 orthogonalization */
     ierr = PEPSTOAROrth2(pep,j+1,omega,y);CHKERRQ(ierr);
     a[j] = PetscRealPart(y[j])/omega[j];
     ierr = PEPSTOARNorm(pep,j+1,&norm);CHKERRQ(ierr);
@@ -247,6 +249,8 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
       S[i+offq+(j+1)*lds] /= norm;
     }
     b[j] = PetscAbsReal(norm);
+
+    /* check symmetry */
     ierr = DSGetArrayReal(pep->ds,DS_MAT_T,&f);CHKERRQ(ierr);
     if (j==k) for (i=0;i<j-1;i++) y[i] = PetscAbsScalar(y[i])-PetscAbsReal(f[2*ctx->ld+i]);
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_T,&f);CHKERRQ(ierr);
@@ -255,7 +259,11 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
     sym = SlepcAbs(BLASnrm2_(&j_,y,&one),sym);
     fro = SlepcAbs(fro,SlepcAbs(a[j],b[j]));
     if (j>0) fro = SlepcAbs(fro,PetscRealPart(y[j-1]));
-    if (sym/fro>PetscMax(PETSC_SQRT_MACHINE_EPSILON,10*pep->tol)) { *symmlost = PETSC_TRUE; *M=j+1; break; }
+    if (sym/fro>PetscMax(PETSC_SQRT_MACHINE_EPSILON,10*pep->tol)) {
+      *symmlost = PETSC_TRUE;
+      *M=j+1;
+      break;
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -264,14 +272,14 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
 #define __FUNCT__ "PEPSTOARTrunc"
 static PetscErrorCode PEPSTOARTrunc(PEP pep,PetscInt rs1,PetscInt cs1,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
 {
-  PetscErrorCode  ierr;
-  PEP_STOAR       *ctx = (PEP_STOAR*)pep->data;
-  Mat             G;
-  PetscInt        lwa,nwu=0,lrwa,nrwu=0;
-  PetscInt        i,n,lds=2*ctx->ld;
-  PetscScalar     *M,*V,*U,*S=ctx->S,sone=1.0,zero=0.0,t;
-  PetscReal       *sg;
-  PetscBLASInt    cs1_,rs1_,cs1t2,cs1p1,n_,info,lw_,lds_,ld_;
+  PetscErrorCode ierr;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
+  Mat            G;
+  PetscInt       lwa,nwu=0,lrwa,nrwu=0;
+  PetscInt       i,n,lds=2*ctx->ld;
+  PetscScalar    *M,*V,*U,*S=ctx->S,sone=1.0,zero=0.0,t;
+  PetscReal      *sg;
+  PetscBLASInt   cs1_,rs1_,cs1t2,cs1p1,n_,info,lw_,lds_,ld_;
 
   PetscFunctionBegin;
   n = (rs1>2*cs1)?2*cs1:rs1;
@@ -512,17 +520,14 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
 
     if (pep->reason == PEP_CONVERGED_ITERATING) {
       if (breakdown) {
-
         /* Stop if breakdown */
         ierr = PetscInfo2(pep,"Breakdown STOAR method (it=%D norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
         pep->reason = PEP_DIVERGED_BREAKDOWN;
       } else {
-
         /* Truncate S */
         ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
         ierr = PEPSTOARTrunc(pep,nv+2,k+l+1,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
         ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-
 
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSGetArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);

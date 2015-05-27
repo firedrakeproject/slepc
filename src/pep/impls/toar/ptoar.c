@@ -13,6 +13,9 @@
        [1] Y. Su, J. Zhang and Z. Bai, "A compact Arnoldi algorithm for
            polynomial eigenvalue problems", talk presented at RANMEP 2008.
 
+       [2] C. Campos and J.E. Roman, "Parallel Krylov solvers for the
+           polynomial eigenvalue problem in SLEPc", submitted, 2015.
+
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
