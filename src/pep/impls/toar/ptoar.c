@@ -839,7 +839,7 @@ static PetscErrorCode PEPExtractEigenPairs(PEP pep,PetscInt k,PetscInt sr,PetscS
       t = 0.0;
       ierr = PEPEvaluateBasis(pep,er[i],ei[i],vals,ivals);CHKERRQ(ierr);
       yr = X+i*ldds; yi = NULL;
-      for (j=0;j<deg;j++) { // falta para valores complejos en reales
+      for (j=0;j<deg;j++) {
         alpha = PetscConj(vals[j]);
 #if !defined(PETSC_USE_COMPLEX)
         if (ei[i]!=0.0) {
