@@ -735,11 +735,11 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
 static PetscErrorCode PEPExtractEigenPairs(PEP pep,PetscInt k,PetscInt sr,PetscScalar *S,PetscInt ld)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,deg=pep->nmat-1,lds,idxcpy,ldds;
-  PetscScalar    *X,*er,*ei,*SS,*vals,*ivals,sone=1.0,szero=0.0,*yi,*yr,*tr,*ti,alpha;
+  PetscInt       i,j,deg=pep->nmat-1,lds,idxcpy=0,ldds;
+  PetscScalar    *X,*er,*ei,*SS,*vals,*ivals,sone=1.0,szero=0.0,*yi,*yr,*tr,*ti,alpha,t;
   PetscBLASInt   k_,sr_,lds_,one=1;
   PetscBool      flg;
-  PetscReal      norm,max,t;
+  PetscReal      norm,max;
   Vec            xr,xi,w[4];
 
   PetscFunctionBegin;
@@ -808,7 +808,7 @@ static PetscErrorCode PEPExtractEigenPairs(PEP pep,PetscInt k,PetscInt sr,PetscS
         ierr = BVMultVec(pep->V,1.0,0.0,xi,SS+i*sr);CHKERRQ(ierr);
 #endif
         ierr = PEPComputeResidualNorm_Private(pep,er[i],ei[i],xr,xi,w,&norm);CHKERRQ(ierr);
-        if (norm>max) { max = norm; idxcpy=j;}
+        if (norm>max) { max = norm; idxcpy=j; }
       }
       PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&sr_,&k_,&sone,S+idxcpy*ld,&lds_,X+i*ldds,&one,&szero,SS+i*sr,&one));
 #if !defined(PETSC_USE_COMPLEX)
@@ -861,7 +861,7 @@ static PetscErrorCode PEPExtractEigenPairs(PEP pep,PetscInt k,PetscInt sr,PetscS
           PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&sr_,&k_,&alpha,S+j*ld,&lds_,yi,&one,&sone,SS+(i+1)*sr,&one));
         }
       }
-      t = 1/t;
+      t = 1.0/t;
       PetscStackCallBLAS("BLASscal",BLASscal_(&sr_,&t,SS+i*sr,&one));
       if (yi) {
         PetscStackCallBLAS("BLASscal",BLASscal_(&sr_,&t,SS+(i+1)*sr,&one));
