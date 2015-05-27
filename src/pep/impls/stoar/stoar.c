@@ -204,7 +204,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
 {
   PetscErrorCode ierr;
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
-  PetscInt       i,j,m=*M,nwu=0,lwa;
+  PetscInt       i,j,m=*M,nwu=0,lwa,l;
   PetscInt       lds=ctx->d*ctx->ld,offq=ctx->ld;
   Vec            v=t_[0],t=t_[1],q=t_[2];
   PetscReal      norm,sym=0.0,fro=0.0,*f;
@@ -216,6 +216,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
   if (!t_||nwv<3) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
   lwa = (ctx->ld)*4;
   if (!work||nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
+  ierr = DSGetDimensions(pep->ds,NULL,NULL,&l,NULL,NULL);CHKERRQ(ierr);
   y = work;
   nwu += ctx->ld;
   for (j=k;j<m;j++) {
@@ -252,7 +253,10 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
 
     /* check symmetry */
     ierr = DSGetArrayReal(pep->ds,DS_MAT_T,&f);CHKERRQ(ierr);
-    if (j==k) for (i=0;i<j-1;i++) y[i] = PetscAbsScalar(y[i])-PetscAbsReal(f[2*ctx->ld+i]);
+    if (j==k) {
+      for (i=l;i<j-1;i++) y[i] = PetscAbsScalar(y[i])-PetscAbsReal(f[2*ctx->ld+i]);
+      for (i=0;i<l;i++) y[i] = 0.0;
+    }
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_T,&f);CHKERRQ(ierr);
     if (j>0) y[j-1] = PetscAbsScalar(y[j-1])-PetscAbsScalar(b[j-1]);
     ierr = PetscBLASIntCast(j,&j_);CHKERRQ(ierr);
