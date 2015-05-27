@@ -474,7 +474,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     ierr = PEPSTOARrun(pep,a,b,omega,pep->nconv+l,&nv,&breakdown,&symmlost,work+nwu,lwa-nwu,pep->work,3);CHKERRQ(ierr);
     beta = b[nv-1];
     if (symmlost) {
-      pep->reason = EPS_DIVERGED_SYMMETRY_LOST;
+      pep->reason = PEP_DIVERGED_SYMMETRY_LOST;
       if (nv==pep->nconv+l+1) { pep->nconv = nconv; break; }
     }
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
