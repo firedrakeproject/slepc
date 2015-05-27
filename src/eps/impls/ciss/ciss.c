@@ -361,7 +361,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
     else sum += tmp;
   }
   ctx->est_eig = PetscAbsScalar(sum/(PetscReal)ctx->L);
-  eta = PetscPowReal(10,-PetscLog10Real(eps->tol)/ctx->N);
+  eta = PetscPowReal(10.0,-PetscLog10Real(eps->tol)/ctx->N);
   ierr = PetscInfo1(eps,"Estimation_#Eig %f\n",(double)ctx->est_eig);CHKERRQ(ierr);
   *L_add = (PetscInt)PetscCeilReal((ctx->est_eig*eta)/ctx->M) - ctx->L;
   if (*L_add < 0) *L_add = 0;
@@ -660,8 +660,8 @@ static PetscErrorCode isGhost(EPS eps,PetscInt ld,PetscInt nv,PetscBool *fl)
     s1 = 0;
     s2 = 0;
     for (j=0;j<nv;j++) {
-      s1 += PetscAbsScalar(PetscPowScalar(pX[i*ld+j],2));
-      s2 += PetscPowReal(PetscAbsScalar(pX[i*ld+j]),2)/ctx->sigma[j];
+      s1 += PetscAbsScalar(PetscPowScalarInt(pX[i*ld+j],2));
+      s2 += PetscPowRealInt(PetscAbsScalar(pX[i*ld+j]),2)/ctx->sigma[j];
     }
     tau[i] = s1/s2;
     tau_max = PetscMax(tau_max,tau[i]);

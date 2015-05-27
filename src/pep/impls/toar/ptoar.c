@@ -1364,7 +1364,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
   pep->data = (void*)ctx;
-  ctx->lock = PETSC_FALSE;
+  ctx->lock = PETSC_TRUE;
 
   pep->ops->solve          = PEPSolve_TOAR;
   pep->ops->setup          = PEPSetUp_TOAR;
