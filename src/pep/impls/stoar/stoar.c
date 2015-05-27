@@ -554,6 +554,11 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
   }
 
+  /* Extraction */
+  ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  ierr = PEPExtractEigenPairs(pep,k,k,S,ld);CHKERRQ(ierr);
+
   /* Update vectors V = V*S */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,pep->nconv,pep->nconv,NULL,&G);CHKERRQ(ierr);
   ierr = MatDenseGetArray(G,&aux);CHKERRQ(ierr);

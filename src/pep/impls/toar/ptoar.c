@@ -735,7 +735,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPExtractEigenPairs"
-static PetscErrorCode PEPExtractEigenPairs(PEP pep,PetscInt k,PetscInt sr,PetscScalar *S,PetscInt ld)
+PetscErrorCode PEPExtractEigenPairs(PEP pep,PetscInt k,PetscInt sr,PetscScalar *S,PetscInt ld)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,deg=pep->nmat-1,lds,idxcpy=0,ldds;
