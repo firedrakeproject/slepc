@@ -386,7 +386,7 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscInt 
 PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscBool *symmlost,PetscReal *cos,Vec w)
 {
   PetscErrorCode ierr;
-  PetscInt       j,m = *M,i,ld;
+  PetscInt       j,m = *M,i,ld,l;
   Vec            vj,vj1;
   PetscScalar    *hwork,lhwork[100];
   PetscReal      norm,norm1,norm2,t,*f,sym=0.0,fro=0.0;
@@ -394,6 +394,7 @@ PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscRe
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,NULL,NULL,&l,NULL,NULL);CHKERRQ(ierr);
   if (cos) *cos = 1.0;
   if (m > 100) {
     ierr = PetscMalloc1(m,&hwork);CHKERRQ(ierr);
@@ -410,7 +411,10 @@ PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscRe
     alpha[j] = PetscRealPart(hwork[j]);
     beta[j] = PetscAbsReal(norm);
     ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&f);CHKERRQ(ierr);
-    if (j==k) for (i=0;i<j-1;i++) hwork[i]-= f[2*ld+i];
+    if (j==k) { 
+      for (i=l;i<j-1;i++) hwork[i]-= f[2*ld+i];
+      for (i=0;i<l;i++) hwork[i] = 0.0;
+    }
     ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&f);CHKERRQ(ierr);
     hwork[j-1] -= beta[j-1];
     ierr = PetscBLASIntCast(j,&j_);CHKERRQ(ierr);
