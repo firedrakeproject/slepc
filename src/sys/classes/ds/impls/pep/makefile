@@ -21,11 +21,14 @@
 
 ALL: lib
 
-LIBBASE  = libslepcpep
-DIRS     = linear qarnoldi toar stoar jd
-LOCDIR   = src/pep/impls/
-MANSEC   = PEP
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = dspep.c
+SOURCEF  =
+SOURCEH  =
+LIBBASE  = libslepcsys
+DIRS     =
+MANSEC   = DS
+LOCDIR   = src/sys/classes/ds/impls/pep/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

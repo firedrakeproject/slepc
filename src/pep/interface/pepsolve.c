@@ -73,7 +73,7 @@ PetscErrorCode PEPComputeVectors(PEP pep)
 PetscErrorCode PEPSolve(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,k;
   PetscBool      flg,islinear;
 #define OPTLEN 16
   char           str[OPTLEN];
@@ -86,13 +86,14 @@ PetscErrorCode PEPSolve(PEP pep)
   ierr = PEPSetUp(pep);CHKERRQ(ierr);
   pep->nconv = 0;
   pep->its   = 0;
-  for (i=0;i<pep->ncv;i++) {
+  k = pep->lineariz? pep->ncv: pep->ncv*(pep->nmat-1);
+  for (i=0;i<k;i++) {
     pep->eigr[i]   = 0.0;
     pep->eigi[i]   = 0.0;
     pep->errest[i] = 0.0;
     pep->perm[i]   = i;
   }
-  ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,pep->ncv);CHKERRQ(ierr);
+  ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,k);CHKERRQ(ierr);
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view_pre");CHKERRQ(ierr);
 
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);

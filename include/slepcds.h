@@ -53,6 +53,7 @@ typedef const char* DSType;
 #define DSGHIEP           "ghiep"
 #define DSGNHEP           "gnhep"
 #define DSSVD             "svd"
+#define DSPEP             "pep"
 #define DSNEP             "nep"
 
 /* Logging support */
@@ -92,6 +93,9 @@ typedef enum { DS_STATE_RAW,
     All matrices can have space to hold ld x ld elements, except for
     DS_MAT_T that has space for 3 x ld elements (ld = leading dimension)
     and DS_MAT_D that has space for just ld elements.
+
+    In DSPEP problems, matrices A, B, W can have space for d*ld x d*ld,
+    where d is the polynomial degree, and X can have ld x d*ld.
 
     Level: advanced
 
@@ -174,6 +178,11 @@ PETSC_EXTERN PetscErrorCode DSNormalize(DS,DSMatType,PetscInt);
 PETSC_EXTERN PetscErrorCode DSSetFN(DS,PetscInt,FN*);
 PETSC_EXTERN PetscErrorCode DSGetFN(DS,PetscInt,FN*);
 PETSC_EXTERN PetscErrorCode DSGetNumFN(DS,PetscInt*);
+
+/* --------- options specific to particular solvers -------- */
+
+PETSC_EXTERN PetscErrorCode DSPEPSetDegree(DS,PetscInt);
+PETSC_EXTERN PetscErrorCode DSPEPGetDegree(DS,PetscInt*);
 
 PETSC_EXTERN PetscFunctionList DSList;
 PETSC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));

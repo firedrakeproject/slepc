@@ -29,12 +29,30 @@
 PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
 {
   size_t         sz;
+  PetscInt       n,d;
+  PetscBool      ispep;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (m==DS_MAT_T) sz = 3*ds->ld*sizeof(PetscScalar);
-  else if (m==DS_MAT_D) sz = ds->ld*sizeof(PetscScalar);
-  else sz = ds->ld*ds->ld*sizeof(PetscScalar);
+  ierr = PetscObjectTypeCompare((PetscObject)ds,DSPEP,&ispep);CHKERRQ(ierr);
+  if (ispep) {
+    ierr = DSPEPGetDegree(ds,&d);CHKERRQ(ierr);
+  }
+  if (ispep && (m==DS_MAT_A || m==DS_MAT_B || m==DS_MAT_W || m==DS_MAT_X)) n = d*ds->ld;
+  else n = ds->ld;
+  switch (m) {
+    case DS_MAT_T:
+      sz = 3*ds->ld*sizeof(PetscScalar);
+      break;
+    case DS_MAT_D:
+      sz = ds->ld*sizeof(PetscScalar);
+      break;
+    case DS_MAT_X:
+      sz = ds->ld*n*sizeof(PetscScalar);
+      break;
+    default:
+      sz = n*n*sizeof(PetscScalar);
+  }
   if (ds->mat[m]) {
     ierr = PetscFree(ds->mat[m]);CHKERRQ(ierr);
   } else {

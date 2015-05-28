@@ -49,6 +49,7 @@ typedef const char* PEPType;
 #define PEPQARNOLDI  "qarnoldi"
 #define PEPTOAR      "toar"
 #define PEPSTOAR     "stoar"
+#define PEPJD        "jd"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId PEP_CLASSID;
@@ -290,8 +291,14 @@ PETSC_EXTERN PetscErrorCode PEPTOARSetRestart(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPTOARGetRestart(PEP,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPTOARSetLocking(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPTOARGetLocking(PEP,PetscBool*);
+
 PETSC_EXTERN PetscErrorCode PEPSTOARSetLocking(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPSTOARGetLocking(PEP,PetscBool*);
+
+PETSC_EXTERN PetscErrorCode PEPJDSetRestart(PEP,PetscReal);
+PETSC_EXTERN PetscErrorCode PEPJDGetRestart(PEP,PetscReal*);
+PETSC_EXTERN PetscErrorCode PEPJDSetTolerances(PEP,PetscReal,PetscReal,PetscReal);
+PETSC_EXTERN PetscErrorCode PEPJDGetTolerances(PEP,PetscReal*,PetscReal*,PetscReal*);
 
 #endif
 

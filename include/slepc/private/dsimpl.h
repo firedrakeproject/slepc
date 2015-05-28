@@ -44,6 +44,7 @@ struct _DSOps {
   PetscErrorCode (*transharm)(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
   PetscErrorCode (*transrks)(DS,PetscScalar);
   PetscErrorCode (*normalize)(DS,DSMatType,PetscInt);
+  PetscErrorCode (*destroy)(DS);
 };
 
 struct _p_DS {
@@ -70,6 +71,7 @@ struct _p_DS {
   PetscReal      *rmat[DS_NUM_MAT];  /* the matrices (real) */
   Mat            omat[DS_NUM_MAT];   /* the matrices (PETSc object) */
   PetscInt       *perm;              /* permutation */
+  void           *data;              /* placeholder for solver-specific stuff */
   PetscScalar    *work;
   PetscReal      *rwork;
   PetscBLASInt   *iwork;

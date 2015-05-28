@@ -22,7 +22,7 @@
 ALL: lib
 
 LIBBASE  = libslepcsys
-DIRS     = hep nhep ghep ghiep gnhep svd nep
+DIRS     = hep nhep ghep ghiep gnhep svd pep nep
 LOCDIR   = src/sys/classes/ds/impls/
 MANSEC   = DS
 

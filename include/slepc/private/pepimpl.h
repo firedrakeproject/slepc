@@ -120,6 +120,7 @@ struct _p_PEP {
   PetscReal      *nrma;            /* computed matrix norms */
   PetscReal      nrml[2];          /* computed matrix norms for the linearization */
   PetscBool      sfactor_set;      /* flag to indicate the user gave sfactor */
+  PetscBool      lineariz;         /* current solver is based on linearization */
   PEPConvergedReason reason;
 };
 

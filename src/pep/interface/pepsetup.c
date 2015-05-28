@@ -408,16 +408,16 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,Petsc
 PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
 {
   PetscErrorCode ierr;
-  PetscInt       oldsize,newc,requested;
+  PetscInt       oldsize,newc,requested,requestedbv;
   PetscLogDouble cnt;
   Vec            t;
 
   PetscFunctionBegin;
-  requested = pep->ncv + extra;
+  requested = (pep->lineariz? pep->ncv: pep->ncv*(pep->nmat-1)) + extra;
+  requestedbv = pep->ncv + extra;
 
   /* oldsize is zero if this is the first time setup is called */
   ierr = BVGetSizes(pep->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
-  newc = PetscMax(0,requested-oldsize);
 
   /* allocate space for eigenvalues and friends */
   if (requested != oldsize || !pep->eigr) {
@@ -425,6 +425,7 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
       ierr = PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm);CHKERRQ(ierr);
     }
     ierr = PetscMalloc4(requested,&pep->eigr,requested,&pep->eigi,requested,&pep->errest,requested,&pep->perm);CHKERRQ(ierr);
+    newc = PetscMax(0,requested-oldsize);
     cnt = 2*newc*sizeof(PetscScalar) + newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
     ierr = PetscLogObjectMemory((PetscObject)pep,cnt);CHKERRQ(ierr);
   }
@@ -436,10 +437,10 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
       ierr = BVSetType(pep->V,BVSVEC);CHKERRQ(ierr);
     }
     ierr = STMatCreateVecs(pep->st,&t,NULL);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(pep->V,t,requested);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(pep->V,t,requestedbv);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {
-    ierr = BVResize(pep->V,requested,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVResize(pep->V,requestedbv,PETSC_FALSE);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
