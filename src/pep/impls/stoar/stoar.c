@@ -542,36 +542,43 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
         ierr = DSRestoreArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
         ierr = DSRestoreArrayReal(pep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
         ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+        /* Truncate S */
+        ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+        ierr = PEPSTOARTrunc(pep,nv+2,k+l+1,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+        ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
       }
     }
 
-    /* Truncate S */
-    ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-    ierr = PEPSTOARTrunc(pep,nv+2,(pep->reason == PEP_CONVERGED_ITERATING)?k+l+1:k+l,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
-    ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
 
     pep->nconv = k;
     ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
   }
 
-  /* Extraction */
-  ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-  ierr = PEPExtractEigenPairs(pep,k,k,S,ld);CHKERRQ(ierr);
-
-  /* Update vectors V = V*S */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,pep->nconv,pep->nconv,NULL,&G);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(G,&aux);CHKERRQ(ierr);
-  for (j=0;j<pep->nconv;j++) {
-    ierr = PetscMemcpy(aux+j*pep->nconv,S+j*lds,pep->nconv*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  ierr = MatDenseRestoreArray(G,&aux);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
-  ierr = BVMultInPlace(pep->V,G,0,pep->nconv);CHKERRQ(ierr);
-  ierr = MatDestroy(&G);CHKERRQ(ierr);
-  for (j=0;j<pep->nconv;j++) {
-    pep->eigr[j] *= pep->sfactor;
-    pep->eigi[j] *= pep->sfactor;
+  if (pep->nconv>0) {
+    /* Truncate S */
+    ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+    ierr = PEPSTOARTrunc(pep,nv+2,pep->nconv,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+    ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+  
+    /* Extraction */
+    ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
+    ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
+    ierr = PEPExtractEigenPairs(pep,k,k,S,ld);CHKERRQ(ierr);
+  
+    /* Update vectors V = V*S */
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,pep->nconv,pep->nconv,NULL,&G);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(G,&aux);CHKERRQ(ierr);
+    for (j=0;j<pep->nconv;j++) {
+      ierr = PetscMemcpy(aux+j*pep->nconv,S+j*lds,pep->nconv*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(G,&aux);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
+    ierr = BVMultInPlace(pep->V,G,0,pep->nconv);CHKERRQ(ierr);
+    ierr = MatDestroy(&G);CHKERRQ(ierr);
+    for (j=0;j<pep->nconv;j++) {
+      pep->eigr[j] *= pep->sfactor;
+      pep->eigi[j] *= pep->sfactor;
+    }
   }
 
   /* truncate Schur decomposition and change the state to raw so that
