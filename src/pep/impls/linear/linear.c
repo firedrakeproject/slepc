@@ -262,6 +262,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ST             st;
   PetscInt       i=0;
   EPSWhich       which;
+  EPSProblemType ptype;
   PetscBool      trackall,istrivial,flg,sinv,ks;
   PetscScalar    sigma;
   /* function tables */
@@ -371,14 +372,17 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   }
 
   ierr = EPSSetOperators(ctx->eps,ctx->A,ctx->B);CHKERRQ(ierr);
-  if (ctx->explicitmatrix) {
-    if (pep->problem_type==PEP_HERMITIAN) {
-      ierr = EPSSetProblemType(ctx->eps,EPS_GHIEP);CHKERRQ(ierr);
+  ierr = EPSGetProblemType(ctx->eps,&ptype);CHKERRQ(ierr);
+  if (!ptype) {
+    if (ctx->explicitmatrix) {
+      if (pep->problem_type==PEP_HERMITIAN) {
+        ierr = EPSSetProblemType(ctx->eps,EPS_GHIEP);CHKERRQ(ierr);
+      } else {
+        ierr = EPSSetProblemType(ctx->eps,EPS_GNHEP);CHKERRQ(ierr);
+      }
     } else {
-      ierr = EPSSetProblemType(ctx->eps,EPS_GNHEP);CHKERRQ(ierr);
+      ierr = EPSSetProblemType(ctx->eps,EPS_NHEP);CHKERRQ(ierr);
     }
-  } else {
-    ierr = EPSSetProblemType(ctx->eps,EPS_NHEP);CHKERRQ(ierr);
   }
   if (flg)  which = EPS_LARGEST_MAGNITUDE;
   else {
