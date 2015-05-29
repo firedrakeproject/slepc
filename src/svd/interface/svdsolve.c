@@ -123,7 +123,7 @@ PetscErrorCode SVDSolve(SVD svd)
   ierr = SVDErrorViewFromOptions(svd);CHKERRQ(ierr);
   ierr = SVDValuesViewFromOptions(svd);CHKERRQ(ierr);
   ierr = SVDVectorsViewFromOptions(svd);CHKERRQ(ierr);
-  ierr = MatViewFromOptions(svd->OP,((PetscObject)svd)->prefix,"-svd_view_mat");CHKERRQ(ierr);
+  ierr = MatViewFromOptions(svd->OP,(PetscObject)svd,"-svd_view_mat");CHKERRQ(ierr);
 
   /* Remove the initial subspaces */
   svd->nini = 0;

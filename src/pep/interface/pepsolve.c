@@ -146,7 +146,7 @@ PetscErrorCode PEPSolve(PEP pep)
   ierr = PEPVectorsViewFromOptions(pep);CHKERRQ(ierr);
   for (i=0;i<pep->nmat;i++) {
     ierr = PetscSNPrintf(str,OPTLEN,"-pep_view_mat%d",(int)i);CHKERRQ(ierr);
-    ierr = MatViewFromOptions(pep->A[i],((PetscObject)pep)->prefix,str);CHKERRQ(ierr);
+    ierr = MatViewFromOptions(pep->A[i],(PetscObject)pep,str);CHKERRQ(ierr);
   }
 
   /* Remove the initial subspace */

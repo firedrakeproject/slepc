@@ -178,7 +178,7 @@ PETSC_EXTERN PetscErrorCode PEPSetFromOptions(PEP);
 PETSC_EXTERN PetscErrorCode PEPSetUp(PEP);
 PETSC_EXTERN PetscErrorCode PEPSolve(PEP);
 PETSC_EXTERN PetscErrorCode PEPView(PEP,PetscViewer);
-PETSC_STATIC_INLINE PetscErrorCode PEPViewFromOptions(PEP pep,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)pep,prefix,name);}
+PETSC_STATIC_INLINE PetscErrorCode PEPViewFromOptions(PEP pep,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)pep,obj,name);}
 PETSC_EXTERN PetscErrorCode PEPErrorView(PEP,PEPErrorType,PetscViewer);
 PETSC_DEPRECATED("Use PEPErrorView()") PETSC_STATIC_INLINE PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer v) {return PEPErrorView(pep,PEP_ERROR_BACKWARD,v);}
 PETSC_EXTERN PetscErrorCode PEPErrorViewFromOptions(PEP);

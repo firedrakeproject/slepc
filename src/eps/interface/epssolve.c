@@ -161,8 +161,8 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = EPSErrorViewFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSValuesViewFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSVectorsViewFromOptions(eps);CHKERRQ(ierr);
-  ierr = MatViewFromOptions(A,((PetscObject)eps)->prefix,"-eps_view_mat0");CHKERRQ(ierr);
-  if (nmat>1) { ierr = MatViewFromOptions(B,((PetscObject)eps)->prefix,"-eps_view_mat1");CHKERRQ(ierr); }
+  ierr = MatViewFromOptions(A,(PetscObject)eps,"-eps_view_mat0");CHKERRQ(ierr);
+  if (nmat>1) { ierr = MatViewFromOptions(B,(PetscObject)eps,"-eps_view_mat1");CHKERRQ(ierr); }
 
   /* Remove deflation and initial subspaces */
   if (eps->nds) {
