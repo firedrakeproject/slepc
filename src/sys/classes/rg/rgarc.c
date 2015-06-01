@@ -262,7 +262,7 @@ PetscErrorCode RGCheckInside_Arc(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *a
     dx = (ar[i]-ctx->center)/(ctx->radius-ctx->width);
     dy = ai[i]/(ctx->radius-ctx->width);
 #endif
-    r = -1.0+dx*dx-(dy*dy)/(ctx->vscale*ctx->vscale);
+    r = -1.0+dx*dx+(dy*dy)/(ctx->vscale*ctx->vscale);
     inside[i] *= PetscSign(r);
     /* check angles */
 #if defined(PETSC_USE_COMPLEX)
