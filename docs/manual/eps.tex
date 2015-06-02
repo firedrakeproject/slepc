@@ -268,14 +268,19 @@ The selection criteria discussed above are based solely on the eigenvalue. In so
 	The available methods for solving the eigenvalue problems are the following:
 \begin{itemize}
 \setlength{\itemsep}{0pt}
+\item Basic methods
+\begin{itemize}
+\setlength{\itemsep}{-1pt}
 \item Power Iteration with deflation. When combined with shift-and-invert (see chapter \ref{cap:st}), it is equivalent to the Inverse Iteration. Also, this solver embeds the Rayleigh Quotient Iteration (RQI) by allowing variable shifts.
 \item Subspace Iteration with Rayleigh-Ritz projection and locking.
 \item Arnoldi method with explicit restart and deflation.
-\item Lanczos with explicit restart and deflation, using different reorthogonalization strategies.
+\item Lanczos with explicit restart, deflation, and different reorthogonalization strategies.
+\end{itemize}
 \item Krylov-Schur, a variation of Arnoldi with a very effective restarting technique. In the case of symmetric problems, this is equivalent to the thick-restart Lanczos method.
 \item Generalized Davidson, a simple iteration based on the subspace expansion by the preconditioned residual.
 \item Jacobi-Davidson, a preconditioned eigensolver with an effective correction equation.
 \item RQCG, a basic conjugate gradient iteration for the minimization of the Rayleigh quotient.
+\item LOBPCG, the locally-optimal block preconditioned conjugate gradient.
 \item CISS, a contour-integral solver that allows computing all eigenvalues in a given region.
 \end{itemize}
 
@@ -292,6 +297,7 @@ Krylov-Schur               & \texttt{EPSKRYLOVSCHUR} & \texttt{krylovschur} & $\
 Generalized Davidson       & \texttt{EPSGD}       & \texttt{gd} \\
 Jacobi-Davidson            & \texttt{EPSJD}       & \texttt{jd} \\
 Rayleigh quotient CG       & \texttt{EPSRQCG}     & \texttt{rqcg} \\
+LOBPCG                     & \texttt{EPSLOBPCG}   & \texttt{lobpcg} \\
 Contour integral SS        & \texttt{EPSCISS}     & \texttt{ciss} \\
 \hline
 \lapack solver             & \texttt{EPSLAPACK}   & \texttt{lapack} \\
@@ -316,7 +322,7 @@ The solution method can be specified procedurally or via the command line. The a
 	\end{Verbatim}
 while the user writes the options database command \Verb!-eps_type! followed by the name of the method (see Table \ref{tab:solvers}).
 
-	Not all the methods can be used for all problem types. Table \ref{tab:support} summarizes the scope of each eigensolver by listing which portion of the spectrum can be selected (as defined in Table \ref{tab:portion}), which problem types are supported (as defined in Table \ref{tab:ptype}) and whether they are available or not in the complex version of \slepc. Also, the default value of some parameters differ from one solver to the other, as shown in Table \ref{tab:defaults}. This table also illustrates the different storage requirements. All solvers need memory at least for storing $ncv$ vectors, but in addition some extra work storage such as auxiliary vectors is necessary. The last columns of Table \ref{tab:defaults} indicates the number of auxiliary vectors required in each case.
+	Not all the methods can be used for all problem types. Table \ref{tab:support} summarizes the scope of each eigensolver by listing which portion of the spectrum can be selected (as defined in Table \ref{tab:portion}), which problem types are supported (as defined in Table \ref{tab:ptype}) and whether they are available or not in the complex version of \slepc. %Also, the default value of some parameters differ from one solver to the other, as shown in Table \ref{tab:defaults}. This table also illustrates the different storage requirements. All solvers need memory at least for storing $ncv$ vectors, but in addition some extra work storage such as auxiliary vectors is necessary. The last columns of Table \ref{tab:defaults} indicates the number of auxiliary vectors required in each case.
 
 \begin{table}
 \centering
@@ -324,16 +330,17 @@ while the user writes the options database command \Verb!-eps_type! followed by 
 Method   &  Portion of spectrum & Problem type & Real/Complex \\ \hline
 \texttt{power}       & Largest $|\lambda|$ & any & both \\ 
 \texttt{subspace}    & Largest $|\lambda|$ & any & both \\ 
-\texttt{arnoldi}     & any\footnotemark    & any & both\addtocounter{footnote}{-1} \\ 
-\texttt{lanczos}     & any\footnotemark    & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both\addtocounter{footnote}{-1} \\ 
+\texttt{arnoldi}     & any    & any & both \\ 
+\texttt{lanczos}     & any    & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\ 
 \texttt{krylovschur} & any                 & any & both \\ 
-\texttt{gd}          & any\footnotemark    & any & both\addtocounter{footnote}{-1} \\ 
-\texttt{jd}          & any\footnotemark    & any & both\addtocounter{footnote}{-1} \\ 
+\texttt{gd}          & any    & any & both \\ 
+\texttt{jd}          & any    & any & both \\ 
 \texttt{rqcg}        & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\ 
+\texttt{lobpcg}      & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\ 
 \texttt{ciss}        & All $\lambda$ in region & any & both \\ 
 \hline
 \texttt{lapack}      & any                 & any & both \\ 
-\texttt{arpack}      & any\footnotemark    & any & both \\ 
+\texttt{arpack}      & any    & any & both \\ 
 \texttt{primme}      & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & both \\ 
 \texttt{blzpack}     & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP!  & real \\ 
 \texttt{trlan}       & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & real \\
@@ -343,30 +350,30 @@ Method   &  Portion of spectrum & Problem type & Real/Complex \\ \hline
 \caption{\label{tab:support}Supported problem types for all eigensolvers available in \slepc.}
 \end{table}
 
-\footnotetext{Any of the selection criteria except for \texttt{EPS\_ALL}, which is supported only by Krylov-Schur; see \S\ref{sec:slice}.}
+%\footnotetext{Any of the selection criteria except for \texttt{EPS\_ALL}, which is supported only by Krylov-Schur; see \S\ref{sec:slice}.}
 
-\begin{table}[t!]
-\centering
-\begin{tabular}{cccc} \hline
-Method   & \texttt{ncv} & \texttt{max\_it} & Storage \\ \hline
-\texttt{power}    &  $nev$ & $\max(2000,100N)$ & $2$ \\ 
-\texttt{subspace} &  $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $ncv$ \\ 
-\texttt{arnoldi}  &  $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
-\texttt{lanczos}  &  $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
-\texttt{krylovschur} & $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
-\texttt{gd}       & $\max(2\cdot nev,nev+15)+1$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv+1$ \\ 
-\texttt{jd}       & $\max(2\cdot nev,nev+15)+1$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv+1$ \\ 
-\texttt{rqcg} & $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv$ \\ 
-\hline
-\texttt{lapack}   &  $N$ &         -         & $N$  \\ 
-\texttt{arpack}   &  $\max(20,2\!\cdot\!nev\!+\!\!1)$ & $\max(300,\lceil 2N/ncv\rceil)$ & $4$ \\ 
-\texttt{primme}   &  $\max(20,2\!\cdot\!nev\!+\!\!1)$ & $\max(1000,N)$ & $3$ \\ 
-\texttt{blzpack}  &  $\min(nev\!+\!\!10,2\!\cdot\!nev)$ & $\max(1000,N)$ & $>187$ \\ 
-\texttt{trlan}    &  $nev$ & $\max(1000,N)$ & $nev+1$ \\
-\texttt{blopex}   &  $nev$ & $\max(100,\lceil 2N/ncv \rceil)$ & $nev$ \\ \hline
-\end{tabular}
-\caption{\label{tab:defaults}Default parameter values for all eigensolvers available in \slepc.}
-\end{table}
+%\begin{table}[t!]
+%\centering
+%\begin{tabular}{cccc} \hline
+%Method   & \texttt{ncv} & \texttt{max\_it} & Storage \\ \hline
+%\texttt{power}    &  $nev$ & $\max(2000,100N)$ & $2$ \\ 
+%\texttt{subspace} &  $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $ncv$ \\ 
+%\texttt{arnoldi}  &  $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
+%\texttt{lanczos}  &  $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
+%\texttt{krylovschur} & $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
+%\texttt{gd}       & $\max(2\cdot nev,nev+15)+1$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv+1$ \\ 
+%\texttt{jd}       & $\max(2\cdot nev,nev+15)+1$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv+1$ \\ 
+%\texttt{rqcg} & $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv$ \\ 
+%\hline
+%\texttt{lapack}   &  $N$ &         -         & $N$  \\ 
+%\texttt{arpack}   &  $\max(20,2\!\cdot\!nev\!+\!\!1)$ & $\max(300,\lceil 2N/ncv\rceil)$ & $4$ \\ 
+%\texttt{primme}   &  $\max(20,2\!\cdot\!nev\!+\!\!1)$ & $\max(1000,N)$ & $3$ \\ 
+%\texttt{blzpack}  &  $\min(nev\!+\!\!10,2\!\cdot\!nev)$ & $\max(1000,N)$ & $>187$ \\ 
+%\texttt{trlan}    &  $nev$ & $\max(1000,N)$ & $nev+1$ \\
+%\texttt{blopex}   &  $nev$ & $\max(100,\lceil 2N/ncv \rceil)$ & $nev$ \\ \hline
+%\end{tabular}
+%\caption{\label{tab:defaults}Default parameter values for all eigensolvers available in \slepc.}
+%\end{table}
 
 %---------------------------------------------------
 \section{Retrieving the Solution}
@@ -487,6 +494,7 @@ Convergence criterion    & \texttt{EPSConv}         & Command line key          
 Absolute                 & \texttt{EPS\_CONV\_ABS}  & \texttt{-eps\_conv\_abs}  & $\|r\|$ \\
 Relative to eigenvalue   & \texttt{EPS\_CONV\_EIG}  & \texttt{-eps\_conv\_eig}  & $\|r\|/|\lambda|$ \\
 Relative to matrix norms & \texttt{EPS\_CONV\_NORM} & \texttt{-eps\_conv\_norm} & $\|r\|/(\|A\|+|\lambda|\|B\|)$ \\
+User-defined             & \texttt{EPS\_USER}       & \texttt{-eps\_conv\_user} & user function \\
 \hline
 \end{tabular} }
 \caption{\label{tab:convergence}Available possibilities for the convergence criterion.}
@@ -652,7 +660,7 @@ where $d(v_i)$ is the degree of vertex $v_i$. This matrix is singular since all 
 	\end{Verbatim}
 The value \texttt{n} indicates how many vectors are passed in argument \texttt{defl}.
 
-	The deflation space can be any subspace but typically it is most useful in the case of an invariant subspace or a null-space. In any case, \slepc internally checks to see if all (or part of) the provided subspace is a null-space of the associated linear system (see \S\ref{sec:lin}). In this case, this null-space is passed to the linear solver (see \petsc's function \texttt{KSPSetNullSpace}) to enable the solution of singular systems. In practice, this allows the computation of eigenvalues of singular pencils (i.e., when $A$ and $B$ share a common null-space).
+	The deflation space can be any subspace but typically it is most useful in the case of an invariant subspace or a null-space. In any case, \slepc internally checks to see if all (or part of) the provided subspace is a null-space of the associated linear system (see \S\ref{sec:lin}). In this case, this null-space is attached to coefficient matrix of the linear solver (see \petsc's function \texttt{MatSetNullSpace}) to enable the solution of singular systems. In practice, this allows the computation of eigenvalues of singular pencils (i.e., when $A$ and $B$ share a common null-space).
 
 \subsection{Orthogonalization}
 \label{sec:orthog}
@@ -679,7 +687,7 @@ to set the options that define the region. These options can also be set in the 
         $ ./ex1 -rg_type ellipse -rg_ellipse_center 0 -rg_ellipse_radius 0.5
                 -rg_ellipse_vscale 0.1
 \end{Verbatim}
-If one wants to use the region to specify where eigenvalues should \emph{not} be computed, then the region must be complement of the specified one. The next command line computes the smallest eigenvalues not contained in the ellipse:
+If one wants to use the region to specify where eigenvalues should \emph{not} be computed, then the region must be the complement of the specified one. The next command line computes the smallest eigenvalues not contained in the ellipse:
 \begin{Verbatim}[fontsize=\footnotesize,numbers=none]
         $ ./ex1 -eps_smallest_magnitude -rg_type ellipse -rg_ellipse_center 0
                 -rg_ellipse_radius 0.5 -rg_ellipse_vscale 0.1 -rg_complement
