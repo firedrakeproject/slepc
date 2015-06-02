@@ -246,21 +246,21 @@ PetscErrorCode RGCheckInside_Arc(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *a
     /* outer ellipse */
 #if defined(PETSC_USE_COMPLEX)
     d = ar[i]-ctx->center;
-    dx = PetscRealPart(d)/(ctx->radius+ctx->width);
-    dy = PetscImaginaryPart(d)/(ctx->radius+ctx->width);
+    dx = PetscRealPart(d)/(ctx->radius+ctx->width/2.0);
+    dy = PetscImaginaryPart(d)/(ctx->radius+ctx->width/2.0);
 #else
-    dx = (ar[i]-ctx->center)/(ctx->radius+ctx->width);
-    dy = ai[i]/(ctx->radius+ctx->width);
+    dx = (ar[i]-ctx->center)/(ctx->radius+ctx->width/2.0);
+    dy = ai[i]/(ctx->radius+ctx->width/2.0);
 #endif
     r = 1.0-dx*dx-(dy*dy)/(ctx->vscale*ctx->vscale);
     inside[i] = PetscSign(r);
     /* inner ellipse */
 #if defined(PETSC_USE_COMPLEX)
-    dx = PetscRealPart(d)/(ctx->radius-ctx->width);
-    dy = PetscImaginaryPart(d)/(ctx->radius-ctx->width);
+    dx = PetscRealPart(d)/(ctx->radius-ctx->width/2.0);
+    dy = PetscImaginaryPart(d)/(ctx->radius-ctx->width/2.0);
 #else
-    dx = (ar[i]-ctx->center)/(ctx->radius-ctx->width);
-    dy = ai[i]/(ctx->radius-ctx->width);
+    dx = (ar[i]-ctx->center)/(ctx->radius-ctx->width/2.0);
+    dy = ai[i]/(ctx->radius-ctx->width/2.0);
 #endif
     r = -1.0+dx*dx+(dy*dy)/(ctx->vscale*ctx->vscale);
     inside[i] *= PetscSign(r);
