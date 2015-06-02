@@ -56,6 +56,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   PetscInt       i;
 
   PetscFunctionBegin;
+  pep->lineariz = PETSC_TRUE;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
   if (!pep->max_it) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv); 
@@ -735,7 +736,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPExtractEigenPairs"
-static PetscErrorCode PEPExtractEigenPairs(PEP pep,PetscInt k,PetscInt sr,PetscScalar *S,PetscInt ld)
+PetscErrorCode PEPExtractEigenPairs(PEP pep,PetscInt k,PetscInt sr,PetscScalar *S,PetscInt ld)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,deg=pep->nmat-1,lds,idxcpy=0,ldds;

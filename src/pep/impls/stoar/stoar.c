@@ -204,7 +204,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
 {
   PetscErrorCode ierr;
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
-  PetscInt       i,j,m=*M,nwu=0,lwa;
+  PetscInt       i,j,m=*M,nwu=0,lwa,l;
   PetscInt       lds=ctx->d*ctx->ld,offq=ctx->ld;
   Vec            v=t_[0],t=t_[1],q=t_[2];
   PetscReal      norm,sym=0.0,fro=0.0,*f;
@@ -216,6 +216,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
   if (!t_||nwv<3) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
   lwa = (ctx->ld)*4;
   if (!work||nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
+  ierr = DSGetDimensions(pep->ds,NULL,NULL,&l,NULL,NULL);CHKERRQ(ierr);
   y = work;
   nwu += ctx->ld;
   for (j=k;j<m;j++) {
@@ -252,9 +253,12 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
 
     /* check symmetry */
     ierr = DSGetArrayReal(pep->ds,DS_MAT_T,&f);CHKERRQ(ierr);
-    if (j==k) for (i=0;i<j-1;i++) y[i] = PetscAbsScalar(y[i])-PetscAbsReal(f[2*ctx->ld+i]);
+    if (j==k) {
+      for (i=l;i<j-1;i++) y[i] = PetscAbsScalar(y[i])-PetscAbsReal(f[2*ctx->ld+i]);
+      for (i=0;i<l;i++) y[i] = 0.0;
+    }
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_T,&f);CHKERRQ(ierr);
-    if (j>0) y[j-1] = PetscAbsScalar(y[j-1])-PetscAbsScalar(b[j-1]);
+    if (j>0) y[j-1] = PetscAbsScalar(y[j-1])-PetscAbsReal(b[j-1]);
     ierr = PetscBLASIntCast(j,&j_);CHKERRQ(ierr);
     sym = SlepcAbs(BLASnrm2_(&j_,y,&one),sym);
     fro = SlepcAbs(fro,SlepcAbs(a[j],b[j]));
@@ -524,11 +528,6 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
         ierr = PetscInfo2(pep,"Breakdown STOAR method (it=%D norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
         pep->reason = PEP_DIVERGED_BREAKDOWN;
       } else {
-        /* Truncate S */
-        ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-        ierr = PEPSTOARTrunc(pep,nv+2,k+l+1,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
-        ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSGetArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
         ierr = DSGetArrayReal(pep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
@@ -543,25 +542,43 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
         ierr = DSRestoreArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
         ierr = DSRestoreArrayReal(pep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
         ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+        /* Truncate S */
+        ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+        ierr = PEPSTOARTrunc(pep,nv+2,k+l+1,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+        ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
       }
     }
+
+
     pep->nconv = k;
     ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
   }
 
-  /* Update vectors V = V*S */    
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,nv+2,pep->nconv,NULL,&G);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(G,&aux);CHKERRQ(ierr);
-  for (j=0;j<pep->nconv;j++) {
-    ierr = PetscMemcpy(aux+j*(nv+2),S+j*lds,(nv+2)*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  ierr = MatDenseRestoreArray(G,&aux);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(pep->V,0,nv+2);CHKERRQ(ierr);
-  ierr = BVMultInPlace(pep->V,G,0,pep->nconv);CHKERRQ(ierr);
-  ierr = MatDestroy(&G);CHKERRQ(ierr);
-  for (j=0;j<pep->nconv;j++) {
-    pep->eigr[j] *= pep->sfactor;
-    pep->eigi[j] *= pep->sfactor;
+  if (pep->nconv>0) {
+    /* Truncate S */
+    ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+    ierr = PEPSTOARTrunc(pep,nv+2,pep->nconv,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+    ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+  
+    /* Extraction */
+    ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
+    ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
+    ierr = PEPExtractEigenPairs(pep,k,k,S,ld);CHKERRQ(ierr);
+  
+    /* Update vectors V = V*S */
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,pep->nconv,pep->nconv,NULL,&G);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(G,&aux);CHKERRQ(ierr);
+    for (j=0;j<pep->nconv;j++) {
+      ierr = PetscMemcpy(aux+j*pep->nconv,S+j*lds,pep->nconv*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(G,&aux);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
+    ierr = BVMultInPlace(pep->V,G,0,pep->nconv);CHKERRQ(ierr);
+    ierr = MatDestroy(&G);CHKERRQ(ierr);
+    for (j=0;j<pep->nconv;j++) {
+      pep->eigr[j] *= pep->sfactor;
+      pep->eigi[j] *= pep->sfactor;
+    }
   }
 
   /* truncate Schur decomposition and change the state to raw so that

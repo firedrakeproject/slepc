@@ -161,8 +161,8 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = EPSErrorViewFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSValuesViewFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSVectorsViewFromOptions(eps);CHKERRQ(ierr);
-  ierr = MatViewFromOptions(A,((PetscObject)eps)->prefix,"-eps_view_mat0");CHKERRQ(ierr);
-  if (nmat>1) { ierr = MatViewFromOptions(B,((PetscObject)eps)->prefix,"-eps_view_mat1");CHKERRQ(ierr); }
+  ierr = MatViewFromOptions(A,(PetscObject)eps,"-eps_view_mat0");CHKERRQ(ierr);
+  if (nmat>1) { ierr = MatViewFromOptions(B,(PetscObject)eps,"-eps_view_mat1");CHKERRQ(ierr); }
 
   /* Remove deflation and initial subspaces */
   if (eps->nds) {
@@ -659,7 +659,6 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
   ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,w,error);CHKERRQ(ierr);
 
   /* compute error */
-  if (type==PETSC_DEFAULT) type = EPS_ERROR_BACKWARD;
   switch (type) {
     case EPS_ERROR_ABSOLUTE:
       break;

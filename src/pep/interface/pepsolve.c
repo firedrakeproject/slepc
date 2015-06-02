@@ -73,7 +73,7 @@ PetscErrorCode PEPComputeVectors(PEP pep)
 PetscErrorCode PEPSolve(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,k;
   PetscBool      flg,islinear;
 #define OPTLEN 16
   char           str[OPTLEN];
@@ -86,13 +86,14 @@ PetscErrorCode PEPSolve(PEP pep)
   ierr = PEPSetUp(pep);CHKERRQ(ierr);
   pep->nconv = 0;
   pep->its   = 0;
-  for (i=0;i<pep->ncv;i++) {
+  k = pep->lineariz? pep->ncv: pep->ncv*(pep->nmat-1);
+  for (i=0;i<k;i++) {
     pep->eigr[i]   = 0.0;
     pep->eigi[i]   = 0.0;
     pep->errest[i] = 0.0;
     pep->perm[i]   = i;
   }
-  ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,pep->ncv);CHKERRQ(ierr);
+  ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,k);CHKERRQ(ierr);
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view_pre");CHKERRQ(ierr);
 
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
@@ -145,7 +146,7 @@ PetscErrorCode PEPSolve(PEP pep)
   ierr = PEPVectorsViewFromOptions(pep);CHKERRQ(ierr);
   for (i=0;i<pep->nmat;i++) {
     ierr = PetscSNPrintf(str,OPTLEN,"-pep_view_mat%d",(int)i);CHKERRQ(ierr);
-    ierr = MatViewFromOptions(pep->A[i],((PetscObject)pep)->prefix,str);CHKERRQ(ierr);
+    ierr = MatViewFromOptions(pep->A[i],(PetscObject)pep,str);CHKERRQ(ierr);
   }
 
   /* Remove the initial subspace */
@@ -521,7 +522,6 @@ PetscErrorCode PEPComputeError(PEP pep,PetscInt i,PEPErrorType type,PetscReal *e
   ierr = PEPComputeResidualNorm_Private(pep,kr,ki,xr,xi,w,error);CHKERRQ(ierr);
 
   /* compute error */
-  if (type==PETSC_DEFAULT) type = PEP_ERROR_BACKWARD;
   switch (type) {
     case PEP_ERROR_ABSOLUTE:
       break;

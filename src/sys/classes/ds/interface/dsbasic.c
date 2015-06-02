@@ -156,6 +156,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
     ds->omat[i]     = NULL;
   }
   ds->perm          = NULL;
+  ds->data          = NULL;
   ds->work          = NULL;
   ds->rwork         = NULL;
   ds->iwork         = NULL;
@@ -870,9 +871,6 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  flags:%s%s%s\n",ds->compact?" compact":"",ds->extrarow?" extrarow":"",ds->refined?" refined":"");CHKERRQ(ierr);
-      if (ds->nf) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  number of functions: %D\n",ds->nf);CHKERRQ(ierr);
-      }
     }
     if (ds->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
@@ -902,7 +900,6 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
 PetscErrorCode DSAllocate(DS ds,PetscInt ld)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
@@ -910,9 +907,6 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
   if (ld<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
   ds->ld = ld;
   ierr = (*ds->ops->allocate)(ds,ld);CHKERRQ(ierr);
-  for (i=0;i<ds->nf;i++) {
-    ierr = DSAllocateMat_Private(ds,DSMatExtra[i]);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -988,6 +982,7 @@ PetscErrorCode DSDestroy(DS *ds)
   PetscValidHeaderSpecific(*ds,DS_CLASSID,1);
   if (--((PetscObject)(*ds))->refct > 0) { *ds = 0; PetscFunctionReturn(0); }
   ierr = DSReset(*ds);CHKERRQ(ierr);
+  if ((*ds)->ops->destroy) { ierr = (*(*ds)->ops->destroy)(*ds);CHKERRQ(ierr); }
   ierr = PetscFree((*ds)->sc);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1027,6 +1022,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_GHEP(DS);
 PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS);
 PETSC_EXTERN PetscErrorCode DSCreate_GNHEP(DS);
 PETSC_EXTERN PetscErrorCode DSCreate_SVD(DS);
+PETSC_EXTERN PetscErrorCode DSCreate_PEP(DS);
 PETSC_EXTERN PetscErrorCode DSCreate_NEP(DS);
 
 #undef __FUNCT__
@@ -1051,6 +1047,7 @@ PetscErrorCode DSRegisterAll(void)
   ierr = DSRegister(DSGHIEP,DSCreate_GHIEP);CHKERRQ(ierr);
   ierr = DSRegister(DSGNHEP,DSCreate_GNHEP);CHKERRQ(ierr);
   ierr = DSRegister(DSSVD,DSCreate_SVD);CHKERRQ(ierr);
+  ierr = DSRegister(DSPEP,DSCreate_PEP);CHKERRQ(ierr);
   ierr = DSRegister(DSNEP,DSCreate_NEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

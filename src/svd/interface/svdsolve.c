@@ -123,7 +123,7 @@ PetscErrorCode SVDSolve(SVD svd)
   ierr = SVDErrorViewFromOptions(svd);CHKERRQ(ierr);
   ierr = SVDValuesViewFromOptions(svd);CHKERRQ(ierr);
   ierr = SVDVectorsViewFromOptions(svd);CHKERRQ(ierr);
-  ierr = MatViewFromOptions(svd->OP,((PetscObject)svd)->prefix,"-svd_view_mat");CHKERRQ(ierr);
+  ierr = MatViewFromOptions(svd->OP,(PetscObject)svd,"-svd_view_mat");CHKERRQ(ierr);
 
   /* Remove the initial subspaces */
   svd->nini = 0;
@@ -379,7 +379,6 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,NULL);CHKERRQ(ierr);
   ierr = SVDComputeResidualNorms_Private(svd,i,&norm1,&norm2);CHKERRQ(ierr);
   *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
-  if (type==PETSC_DEFAULT) type = SVD_ERROR_RELATIVE;
   switch (type) {
     case SVD_ERROR_ABSOLUTE:
       break;

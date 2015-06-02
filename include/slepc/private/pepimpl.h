@@ -120,6 +120,7 @@ struct _p_PEP {
   PetscReal      *nrma;            /* computed matrix norms */
   PetscReal      nrml[2];          /* computed matrix norms for the linearization */
   PetscBool      sfactor_set;      /* flag to indicate the user gave sfactor */
+  PetscBool      lineariz;         /* current solver is based on linearization */
   PEPConvergedReason reason;
 };
 
@@ -152,5 +153,6 @@ PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscSc
 PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscScalar,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt,PetscInt*);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinementSimple(PEP,PetscInt*,PetscReal*,PetscInt);
 PETSC_INTERN PetscErrorCode PEPComputeLinearNorms(PEP);
+PETSC_INTERN PetscErrorCode PEPExtractEigenPairs(PEP,PetscInt,PetscInt,PetscScalar*,PetscInt);
 
 #endif
