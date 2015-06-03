@@ -837,6 +837,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscBool      *fl1;
   Vec            si,w[3];
   SlepcSC        sc;
+#if defined(PETSC_USE_COMPLEX)
+  PetscBool      isellipse;
+#endif
 
   PetscFunctionBegin;
   w[0] = eps->work[0];
@@ -864,7 +867,12 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = SolveLinearSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
   }
 #if defined(PETSC_USE_COMPLEX)
-  ierr = EstimateNumberEigs(eps,&L_add);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
+  if (isellipse) {
+    ierr = EstimateNumberEigs(eps,&L_add);CHKERRQ(ierr);
+  } else {
+    L_add = 0;
+  }
 #else
   L_add = 0;
 #endif

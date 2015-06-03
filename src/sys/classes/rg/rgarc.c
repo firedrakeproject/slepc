@@ -102,7 +102,9 @@ static PetscErrorCode RGArcSetParameters_Arc(RG rg,PetscScalar center,PetscReal 
    ellipse region. The startangle and endangle define the span of the arc
    (by default it is the whole ring), while the width is the separation
    between the two concentric ellipses (above and below the radius by
-   width/2).
+   width/2). The start and end angles are expressed as a fraction of the
+   circumference: the allowed range is [0..1], with 0 corresponding to 0
+   radians, 0.25 to pi/2 radians, and so on.
 
    In the case of complex scalars, a complex center can be provided in the
    command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
@@ -246,23 +248,23 @@ PetscErrorCode RGCheckInside_Arc(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *a
     /* outer ellipse */
 #if defined(PETSC_USE_COMPLEX)
     d = ar[i]-ctx->center;
-    dx = PetscRealPart(d)/(ctx->radius+ctx->width);
-    dy = PetscImaginaryPart(d)/(ctx->radius+ctx->width);
+    dx = PetscRealPart(d)/(ctx->radius+ctx->width/2.0);
+    dy = PetscImaginaryPart(d)/(ctx->radius+ctx->width/2.0);
 #else
-    dx = (ar[i]-ctx->center)/(ctx->radius+ctx->width);
-    dy = ai[i]/(ctx->radius+ctx->width);
+    dx = (ar[i]-ctx->center)/(ctx->radius+ctx->width/2.0);
+    dy = ai[i]/(ctx->radius+ctx->width/2.0);
 #endif
     r = 1.0-dx*dx-(dy*dy)/(ctx->vscale*ctx->vscale);
     inside[i] = PetscSign(r);
     /* inner ellipse */
 #if defined(PETSC_USE_COMPLEX)
-    dx = PetscRealPart(d)/(ctx->radius-ctx->width);
-    dy = PetscImaginaryPart(d)/(ctx->radius-ctx->width);
+    dx = PetscRealPart(d)/(ctx->radius-ctx->width/2.0);
+    dy = PetscImaginaryPart(d)/(ctx->radius-ctx->width/2.0);
 #else
-    dx = (ar[i]-ctx->center)/(ctx->radius-ctx->width);
-    dy = ai[i]/(ctx->radius-ctx->width);
+    dx = (ar[i]-ctx->center)/(ctx->radius-ctx->width/2.0);
+    dy = ai[i]/(ctx->radius-ctx->width/2.0);
 #endif
-    r = -1.0+dx*dx-(dy*dy)/(ctx->vscale*ctx->vscale);
+    r = -1.0+dx*dx+(dy*dy)/(ctx->vscale*ctx->vscale);
     inside[i] *= PetscSign(r);
     /* check angles */
 #if defined(PETSC_USE_COMPLEX)
