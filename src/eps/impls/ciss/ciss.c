@@ -834,9 +834,12 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscInt       i,ld,nmat,L_add=0,nv=0,L_base=ctx->L,inner,outer,nlocal,*inside;
   PetscScalar    *Mu,*H0,*rr,*temp;
   PetscReal      error,max_error;
-  PetscBool      *fl1,isellipse;
+  PetscBool      *fl1;
   Vec            si,w[3];
   SlepcSC        sc;
+#if defined(PETSC_USE_COMPLEX)
+  PetscBool      isellipse;
+#endif
 
   PetscFunctionBegin;
   w[0] = eps->work[0];
