@@ -262,7 +262,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
     ierr = PetscBLASIntCast(j,&j_);CHKERRQ(ierr);
     sym = SlepcAbs(BLASnrm2_(&j_,y,&one),sym);
     fro = SlepcAbs(fro,SlepcAbs(a[j],b[j]));
-    if (j>0) fro = SlepcAbs(fro,PetscRealPart(y[j-1]));
+    if (j>0) fro = SlepcAbs(fro,PetscRealPart(b[j-1]));
     if (sym/fro>PetscMax(PETSC_SQRT_MACHINE_EPSILON,10*pep->tol)) {
       *symmlost = PETSC_TRUE;
       *M=j+1;
