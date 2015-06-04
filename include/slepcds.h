@@ -150,6 +150,7 @@ PETSC_EXTERN PetscErrorCode DSGetDimensions(DS,PetscInt*,PetscInt*,PetscInt*,Pet
 PETSC_EXTERN PetscErrorCode DSSetBlockSize(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSGetBlockSize(DS,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSTruncate(DS,PetscInt);
+PETSC_EXTERN PetscErrorCode DSSetIdentity(DS,DSMatType);
 PETSC_EXTERN PetscErrorCode DSSetMethod(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSGetMethod(DS,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSSetCompact(DS,PetscBool);

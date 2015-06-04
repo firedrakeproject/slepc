@@ -375,10 +375,18 @@ PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat1,
 
 #undef __FUNCT__
 #define __FUNCT__ "DSSetIdentity"
-/*
+/*@C
    DSSetIdentity - Copy the identity (a diagonal matrix with ones) on the
    active part of a matrix.
-*/
+
+   Logically Collective on DS
+
+   Input Parameters:
++  ds     - the direct solver context
+-  mat    - the matrix to modify
+
+   Level: intermediate
+@*/
 PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
 {
   PetscErrorCode ierr;
