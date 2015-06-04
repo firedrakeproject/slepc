@@ -84,7 +84,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   /* Check some constraints and set some default values */
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
   ierr = STGetOperators(eps->st,0,&ops->A);CHKERRQ(ierr);
-  if (!ops->A) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"The problem matrix has to be specified first");
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
   if (eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
@@ -92,13 +91,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (eps->converged != EPSConvergedAbsolute) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only supports absolute convergence test");
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
-
-  /* Set default sigma */
-  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) {
-    ierr = STSetDefaultShift(eps->st,3e300);CHKERRQ(ierr);
-  } else {
-    ierr = STSetDefaultShift(eps->st,0.0);CHKERRQ(ierr);
-  }
 
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&flg);CHKERRQ(ierr);
@@ -132,7 +124,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
       primme->targetShifts = &ops->target;
       break;
     default:
-      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"'which' value does not supported by PRIMME");
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"'which' value not supported by PRIMME");
       break;
   }
 
@@ -195,34 +187,18 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   ierr = BVGetColumn(eps->V,0,&v0);CHKERRQ(ierr);
   ierr = VecGetArray(v0,&a);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = dprimme(eps->eigr,a,eps->errest,&ops->primme);CHKERRQ(ierr);
+  ierr = dprimme(eps->eigr,a,eps->errest,&ops->primme);
+  if (ierr) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d",ierr);
 #else
   /* PRIMME returns real eigenvalues, but SLEPc works with complex ones */
   ierr = PetscMalloc1(eps->ncv,&evals);CHKERRQ(ierr);
-  ierr = zprimme(evals,(Complex_Z*)a,eps->errest,&ops->primme);CHKERRQ(ierr);
-  for (i=0;i<eps->ncv;i++)
-    eps->eigr[i] = evals[i];
+  ierr = zprimme(evals,(Complex_Z*)a,eps->errest,&ops->primme);
+  if (ierr) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d",ierr);
+  for (i=0;i<eps->ncv;i++) eps->eigr[i] = evals[i];
   ierr = PetscFree(evals);CHKERRQ(ierr);
 #endif
   ierr = VecRestoreArray(v0,&a);CHKERRQ(ierr);
   ierr = BVRestoreColumn(eps->V,0,&v0);CHKERRQ(ierr);
-
-  switch (ierr) {
-    case 0: /* Successful */
-      break;
-    case -1:
-      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME: Failed to open output file");
-      break;
-    case -2:
-      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME: Insufficient integer or real workspace allocated");
-      break;
-    case -3:
-      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME: main_iter encountered a problem");
-      break;
-    default:
-      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME: some parameters wrong configured");
-      break;
-  }
 
   eps->nconv      = ops->primme.initSize >= 0 ? ops->primme.initSize : 0;
   eps->reason     = eps->ncv >= eps->nev ? EPS_CONVERGED_TOL: EPS_DIVERGED_ITS;
@@ -567,12 +543,12 @@ PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
   ierr = PetscNewLog(eps,&primme);CHKERRQ(ierr);
   eps->data = (void*)primme;
 
-  eps->ops->setup                = EPSSetUp_PRIMME;
-  eps->ops->setfromoptions       = EPSSetFromOptions_PRIMME;
-  eps->ops->destroy              = EPSDestroy_PRIMME;
-  eps->ops->reset                = EPSReset_PRIMME;
-  eps->ops->view                 = EPSView_PRIMME;
-  eps->ops->backtransform        = EPSBackTransform_Default;
+  eps->ops->setup          = EPSSetUp_PRIMME;
+  eps->ops->setfromoptions = EPSSetFromOptions_PRIMME;
+  eps->ops->destroy        = EPSDestroy_PRIMME;
+  eps->ops->reset          = EPSReset_PRIMME;
+  eps->ops->view           = EPSView_PRIMME;
+  eps->ops->backtransform  = EPSBackTransform_Default;
 
   primme_initialize(&primme->primme);
   primme->primme.matrixMatvec = multMatvec_PRIMME;
