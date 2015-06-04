@@ -221,7 +221,6 @@ Similarly, \texttt{NEPINTERPOL} works with a \ident{PEP} object internally, that
 	\begin{Verbatim}[fontsize=\small]
 	NEPInterpolSetDegree(NEP nep,PetscInt deg);
 	\end{Verbatim}
-Note that \texttt{NEPINTERPOL} is currently the only \ident{NEP} solver that is able to compute more than one eigenpair.
 The polynomial interpolation solver currently uses Chebyshev polynomials of the 1st kind and requires the user to specify an interval of the real line where the eigenvalues must be computed, e.g.
 \begin{Verbatim}[fontsize=\small]
 	$ ./ex22 -nep_type interpol -rg_interval_endpoints 0.1,14,-.1,.1
@@ -229,7 +228,7 @@ The polynomial interpolation solver currently uses Chebyshev polynomials of the 
 \end{Verbatim}
 For details about specifying a region, see \S\ref{sec:sys}.
 
-The rest of the \ident{NEP} solvers (\texttt{NEPRII} and \texttt{NEPNARNOLDI}) need a \ident{KSP} object to handle the solution of linear systems of equations. This \ident{KSP} is present in all \ident{NEP} instances, and can be retrieved with
+The \texttt{NEPRII} and \texttt{NEPNARNOLDI} solvers need a \ident{KSP} object to handle the solution of linear systems of equations. This \ident{KSP} is present in all \ident{NEP} instances, and can be retrieved with
 	\findex{NEPGetKSP}
 	\begin{Verbatim}[fontsize=\small]
 	NEPGetKSP(NEP nep,KSP *ksp);
@@ -242,9 +241,9 @@ This \ident{KSP} object is typically used to compute the action of $T(\sigma)^{-
 	\end{Verbatim}
 Recomputing the preconditioner every 2 iterations, say, will introduce a considerable overhead, but may reduce the number of iterations significantly. Another related comment is that, when using an iterative linear solver, the requested accuracy is adapted as the outer iteration progresses, being the tolerance higher in the first solves. Again, the user can modify this behaviour with \ident{NEPSetConstCorrectionTol}. Both options can also be changed at run time. As an example, consider the following command line:
 \begin{Verbatim}[fontsize=\small]
-	$ ./program -nep_type narnoldi -nep_lag_preconditioner 2
-                    -nep_ksp_type bcgs -nep_pc_type ilu
-                    -nep_const_correction_tol 1 -nep_ksp_rtol 1e-3
+	$ ./ex22 -nep_type narnoldi -nep_lag_preconditioner 2
+                 -nep_ksp_type bcgs -nep_pc_type ilu
+                 -nep_const_correction_tol 1 -nep_ksp_rtol 1e-3
 \end{Verbatim}
 The example uses nonlinear Arnoldi with BiCGStab plus ILU, where the preconditioner is updated every two outer iterations and linear systems are solved up to a tolerance of $10^{-3}$.
 
