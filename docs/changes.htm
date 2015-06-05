@@ -2,7 +2,34 @@
 <head>
 <title>SLEPc - Changes</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-
+<style>
+table.version {
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  margin: 4em;
+  border: 1px solid blue;
+}
+table.version th, table.version td {
+  padding-top: 0.25em;
+  padding-bottom: 0.25em;
+}
+table.version th {
+  background-color: #99CCFF;
+}
+table.version td {
+  background-color: #EBF5FF;
+}
+ul.changes {
+  margin-left: 0em;
+  list-style: bullet;
+}
+ul.changes li {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  margin-top: 0.3em;
+}
+</style>
 </head>
 
 <body bgcolor="#FFFFFF" text="#000000">
@@ -15,319 +42,124 @@
 ] </div>
 <table width="700" border="0" cellpadding="0" cellspacing="0">
   <tr> 
-    <td width="700" height="28"><p>&nbsp;</p>
+    <td width="700" height="18"><p>&nbsp;</p>
       <p>&nbsp;</p></td>
   </tr>
   <tr> 
-    <td valign="top" height="48">
+    <td valign="top" height="18">
       <p><font face="Arial, Helvetica, sans-serif" size="2">The following table 
         lists the versions of SLEPc and shows the correspondence between SLEPc 
         and PETSc releases. Versions marked as major releases are those which 
         incorporate some new functionality. The rest are just adaptations required 
         for a new PETSc release and may also include bug fixes.</font></p>
-      <p>&nbsp;</p>
-    </td>
-  </tr>
-
-<tr><td>
-
-<table border="0" cellpadding="0" cellspacing="0" align="center">
-  <tr valign="middle" bgcolor="#FAD863"> 
-    <td width="138" height="25" align="center"><strong>
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      SLEPc version 
-      </font></strong>
-    </td>
-    <td width="175" height="25" align="center"><strong>
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      PETSc versions
-      </font></strong>
-    </td>
-    <td width="75" height="25" align="center"><strong>
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Major 
-      </font></strong>
-    </td>
-    <td width="146" height="25" align="center"><strong>
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Release date
-      </font></strong>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.1.0 
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.1.0 
-      </font>
-    </td>
-    <td width="75" height="21" align="center"> * </td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Not released
-      </font>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.1.1 
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.1.1, 2.1.2, 2.1.3
-      </font>
-    </td>
-    <td width="75" height="21"></td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Dec 2002
-      </font>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.1.5 
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.1.5, 2.1.6 
-      </font>
-    </td>
-    <td width="75" height="21"></td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      May 2003
-      </font>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.2.0 
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.2.0 
-      </font>
-    </td>
-    <td width="75" height="21" align="center"> * </td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Apr 2004
-      </font>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.2.1 
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.2.1 
-      </font>
-    </td>
-    <td width="75" height="21" align="center"> * </td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Aug 2004
-      </font>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.3.0 
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.3.0 
-      </font>
-    </td>
-    <td width="75" height="21" align="center"> * </td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Jun 2005
-      </font>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.3.1 
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.3.1 
-      </font>
-    </td>
-    <td width="75" height="21" align="center"> </td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Mar 2006
-      </font>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.3.2 
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.3.1, 2.3.2 
-      </font>
-    </td>
-    <td width="75" height="21" align="center"> * </td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Oct 2006
-      </font>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.3.3 
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      2.3.3
-      </font>
-    </td>
-    <td width="75" height="21" align="center"> * </td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Jun 2007
-      </font>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      3.0.0 
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      3.0.0
-      </font>
-    </td>
-    <td width="75" height="21" align="center"> * </td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Feb 2009
-      </font>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      3.1
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      3.1
-      </font>
-    </td>
-    <td width="75" height="21" align="center"> * </td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Aug 2010
-      </font>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      3.2
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      3.2
-      </font>
-    </td>
-    <td width="75" height="21" align="center"> * </td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Oct 2011
-      </font>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      3.3
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      3.3
-      </font>
-    </td>
-    <td width="75" height="21" align="center"> * </td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Aug 2012
-      </font>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      3.4
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      3.4
-      </font>
-    </td>
-    <td width="75" height="21" align="center"> * </td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Jul 2013
-      </font>
-    </td>
-  </tr>
-  <tr valign="middle" bgcolor="#fff0d0"> 
-    <td width="138" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      3.5
-      </font>
-    </td>
-    <td width="175" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      3.5
-      </font>
-    </td>
-    <td width="75" height="21" align="center"> * </td>
-    <td width="146" height="21" align="center">
-      <font face="Arial, Helvetica, sans-serif" size="2">
-      Jul 2014
-      </font>
     </td>
   </tr>
 </table>
 
-<p>&nbsp;</p>
-</tr></td>
+<table class=version cellpadding=0 cellspacing=0 align=center>
+  <tr> 
+    <th width="138"> SLEPc version </th>
+    <th width="175"> PETSc versions </th>
+    <th width="75"> Major </th>
+    <th width="146"> Release date </th>
+  </tr>
+  <tr>
+    <td> 2.1.0 </td>
+    <td> 2.1.0 </td>
+    <td> * </td>
+    <td> Not released </td>
+  </tr>
+  <tr>
+    <td> 2.1.1 </td>
+    <td> 2.1.1, 2.1.2, 2.1.3 </td>
+    <td> </td>
+    <td> Dec 2002 </td>
+  </tr>
+  <tr>
+    <td> 2.1.5 </td>
+    <td> 2.1.5, 2.1.6 </td>
+    <td> </td>
+    <td> May 2003 </td>
+  </tr>
+  <tr>
+    <td> 2.2.0 </td>
+    <td> 2.2.0 </td>
+    <td> * </td>
+    <td> Apr 2004 </td>
+  </tr>
+  <tr>
+    <td> 2.2.1 </td>
+    <td> 2.2.1 </td>
+    <td> * </td>
+    <td> Aug 2004 </td>
+  </tr>
+  <tr>
+    <td> 2.3.0 </td>
+    <td> 2.3.0 </td>
+    <td> * </td>
+    <td> Jun 2005 </td>
+  </tr>
+  <tr>
+    <td> 2.3.1 </td>
+    <td> 2.3.1 </td>
+    <td> </td>
+    <td> Mar 2006 </td>
+  </tr>
+  <tr>
+    <td> 2.3.2 </td>
+    <td> 2.3.1, 2.3.2 </td>
+    <td> * </td>
+    <td> Oct 2006 </td>
+  </tr>
+  <tr>
+    <td> 2.3.3 </td>
+    <td> 2.3.3 </td>
+    <td> * </td>
+    <td> Jun 2007 </td>
+  </tr>
+  <tr>
+    <td> 3.0.0 </td>
+    <td> 3.0.0 </td>
+    <td> * </td>
+    <td> Feb 2009 </td>
+  </tr>
+  <tr>
+    <td> 3.1 </td>
+    <td> 3.1 </td>
+    <td> * </td>
+    <td> Aug 2010 </td>
+  </tr>
+  <tr>
+    <td> 3.2 </td>
+    <td> 3.2 </td>
+    <td> * </td>
+    <td> Oct 2011 </td>
+  </tr>
+  <tr>
+    <td> 3.3 </td>
+    <td> 3.3 </td>
+    <td> * </td>
+    <td> Aug 2012 </td>
+  </tr>
+  <tr>
+    <td> 3.4 </td>
+    <td> 3.4 </td>
+    <td> * </td>
+    <td> Jul 2013 </td>
+  </tr>
+  <tr>
+    <td> 3.5 </td>
+    <td> 3.5 </td>
+    <td> * </td>
+    <td> Jul 2014 </td>
+  </tr>
+  <tr>
+    <td> 3.6 </td>
+    <td> 3.6 </td>
+    <td> * </td>
+    <td> Jun 2015 </td>
+  </tr>
+</table>
 
 <tr><td>
 
@@ -336,17 +168,32 @@
 Changes in Version 3.6</font></b>
 </p>
 
-<ul>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
-    User makefiles must now include <code>${SLEPC_DIR}/lib/slepc/conf/slepc_common</code>.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
-    Interface changes: EPSComputeRelativeError and EPSComputeResidualNorm have
-    been deprecated (use EPSComputeError instead); the same for PEP, NEP and SVD;
-    PEPSetScale now allows to pass two Vecs for diagonal scaling;
-    XXXPrintSolution has been replaced with XXXErrorView; BVGetVec has been renamed
-    to BVCreateVec.
-    </font></li>
+<ul class=changes>
+  <li> New EPS solver: locally optimal block preconditioned conjugate gradient
+       (LOBPCG).
+  <li> New PEP solvers: Jacobi-Davidson (JD), and symmetric TOAR (STOAR).
+  <li> New NEP solver: contour integral spectrum slice (CISS).
+  <li> Improved BLOPEX interface by adding hard locking. Now the user can specify
+       the block size. 
+  <li> Spectrum slicing in EPS can now be run in multi-communicator mode, where
+       each process group computes a sub-interval.
+  <li> Added functions and command-line options to view the computed solution
+       after solve, e.g. -eps_view_vectors binary:myvecs.bin
+  <li> The MFN solver class now takes an FN object to define the function.
+       The functionality for computing functions of small, dense matrices has
+       been moved from DS to FN. MFNSetScaleFactor has been removed, now this
+       scale factor must be specified in FN.
+  <li> FN now allows the definition of functions by combining two other functions.
+  <li> Added a new RG region &quot;arc&quot; consisting on a stripe along an
+       ellipse with optional start and end angles.
+  <li> User makefiles must now include 
+       <code>${SLEPC_DIR}/lib/slepc/conf/slepc_common</code>.
+  <li> Interface changes: EPSComputeRelativeError and EPSComputeResidualNorm have
+       been deprecated (use EPSComputeError instead); the same for PEP, NEP and SVD;
+       PEPSetScale now allows to pass two Vecs for diagonal scaling;
+       XXXPrintSolution has been replaced with XXXErrorView;
+       BVGetVec has been renamed to BVCreateVec;
+       the interface for defining FN functions of rational type has changed.
 </ul>
 
 <p>
@@ -354,39 +201,32 @@ Changes in Version 3.6</font></b>
 Changes in Version 3.5</font></b>
 </p>
 
-<ul>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+<ul class=changes>
+  <li>
     A new solver class PEP for polynomial eigenvalue problems has been added.
     It replaces the former QEP class, that has been removed.
     PEP contains a new solver TOAR that can handle polynomials of arbitrary
     degree. Q-Lanczos has been removed since it did not have guaranteed stability.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     New NEP solver: polynomial interpolation using PEP.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added Newton iterative refinement in both PEP and NEP.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     A new auxiliary class RG allows the user to define a region in the complex plane.
     This can be used for filtering out unwanted eigenvalues in EPS and PEP.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     The auxiliary object IP has been removed and a new object BV has been
     added that subsumes its functionality.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Support for requesting left eigenvectors has been removed, since none of the
     solvers were computing them internally.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     The STFOLD spectral transformation has been removed. Example ex24.c reproduces
     this functionality.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Interface changes: SVDSetTransposeMode has been renamed to SVDSetImplicitTranspose;
     in STSHIFT the sign of sigma is the opposite to previous versions.
-    EPSJDSetBOrth now takes a boolean argument instead of an enum.</font></li>
+    EPSJDSetBOrth now takes a boolean argument instead of an enum.</font>
 </ul>
 
 <p>
@@ -394,36 +234,28 @@ Changes in Version 3.5</font></b>
 Changes in Version 3.4</font></b>
 </p>
 
-<ul>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+<ul class=changes>
+  <li>
     Added new class of solvers NEP for the nonlinear eigenvalue problem.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added new class of solvers MFN for computing the action of a matrix
     function on a vector.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     New EPS solver: Contour integral spectrum slice (CISS). Allows to compute
     all eigenvalues inside a region.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     New QEP solver: Q-Lanczos is a specialized variant of Q-Arnoldi for
     problems with symmetric matrices.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added support for shift-and-invert in QEP.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added a new auxiliary class FN: Mathematical Function, to be used in
     the definition of nonlinear eigenproblems.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added interface to external solver FEAST.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Changed options -xxx_monitor_draw to -xxx_monitor_lg, and similarly for 
     -xxx_monitor_draw_all.
-    </font></li>
 </ul>
  
 <p>
@@ -431,37 +263,31 @@ Changes in Version 3.4</font></b>
 Changes in Version 3.3</font></b>
 </p>
 
-<ul>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+<ul class=changes>
+  <li>
     New EPS solver: Rayleigh quotient conjugate gradient (RQCG).
     This is the first CG-type eigensolver in SLEPc. It can be used for computing
     smallest eigenvalues of symmetric-definite matrix pairs without inverting
     any matrix (a preconditioner can be used instead).
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added a customizable parameter to specify how to restart in Krylov-Schur, see
     EPSKrylovSchurSetRestart.
     Tunning this parameter may speed up convergence significantly in some cases.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added support for generalized symmetric-indefinite eigenproblems in
     Krylov-Schur and the Davidson solvers. 
     To use this, set the problem type to EPS_GHIEP.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     New variant of Generalized Davidson for generalized eigenproblems that
     expands the subspace with two vectors (GD2). It can be activated with
     -eps_gd_double_expansion.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added experimental support for arbitrary selection of eigenpairs, where the
     solver chooses the most wanted ones based on a user-defined function of
     the eigenvectors rather than simply sorting the eigenvalues.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added a new auxiliary class DS: Direct Solver (or Dense System), which is
     intended for developers rather than normal users.
-    </font></li>
 </ul>
 
 <p>
@@ -469,32 +295,24 @@ Changes in Version 3.3</font></b>
 Changes in Version 3.2</font></b>
 </p>
 
-<ul>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+<ul class=changes>
+  <li>
     Computational intervals for symmetric eigenproblems, that activate a spectrum slicing mechanism to obtain all eigenvalues in a given interval, see EPSSetInterval.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Partial support (experimental) for GPU computing via PETSc's VECCUSP and MATAIJCUSP.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Improved performance and robustness of GD and JD solvers in (generalized) Hermitian problems.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Performance improvement of solvers with explicit matrix such as SVDCYCLIC and QEPLINEAR
     (now use matrix preallocation).
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added Matlab interface.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added support for parallel builds with CMake.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added support for quad precision (configure PETSc --with-precision=__float128 with gcc-4.6 or later).
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Interface changes: now all XXXDestroy() routines take a pointer to the object.
-    </font></li>
 </ul>
 
 <p>
@@ -502,44 +320,36 @@ Changes in Version 3.2</font></b>
 Changes in Version 3.1</font></b>
 </p>
 
-<ul>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+<ul class=changes>
+  <li>
     New EPS solvers: Generalized Davidson (GD) and Jacobi-Davidson (JD). These are the first
     eigensolvers in SLEPc that belong to the class of preconditioned eigensolvers.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added a new instance of ST called STPRECOND. This is not really a spectral transformation
     but rather a convenient way of handling the preconditioners in the new eigensolvers.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added a new class QEP for solving quadratic eigenvalue problems. Currently, it contains
     two solvers: the Q-Arnoldi method and another one that provides a linearization of the
     problem and then invokes an eigensolver from EPS.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added support for balancing of non-Hermitian problems, see EPSSetBalance.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Improved sorting of eigenvalues, now with the possibility of sorting with respect to
     a target value. With shift-and-invert, now the ordering
     of eigenvalues is the expected one, relative to the target.
     Also added support for user-defined orderings. For details, see EPSSetWhichEigenpairs.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added support for user-defined convergence tests, see EPSSetConvergenceTest.
     Several predefined convergence criteria are available. Also, there is a new
     flag for computing the true residual for the convergence test, see EPSSetTrueResidual.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Monitors have been reorganized and now more possibilities are available. See the Users
     Manual for details.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Changes in user interface: EPSAttachDeflationSpace has been renamed to EPSSetDeflationSpace,
     EPSSetLeftVectorsWanted replaces EPSSetClass for requesting left eigenvectors;
     Change in arguments: EPSSetDeflationSpace; Deprecated function: EPSSetInitialVector, 
     replaced by EPSSetInitialSpace; STSINV has been renamed to STSINVERT.
-    </font></li>
 </ul>
 
 <p>
@@ -547,38 +357,31 @@ Changes in Version 3.1</font></b>
 Changes in Version 3.0.0</font></b>
 </p>
 
-<ul>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+<ul class=changes>
+  <li>
       Released under GNU LGPL license.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
       Improved support for the case that many eigenpairs are to be
       computed. This is especially so in the default eigensolver (Krylov-Schur)
       for symmetric problems, as well as for SVD computations. The user
       can control the behaviour of the solver with a new parameter, mpd
       (see EPSSetDimensions).
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
       Support for harmonic projection in the default eigensolver (Krylov-Schur),
       see EPSSetExtraction. This can be useful for computing interior or 
       rightmost eigenvalues without the need of a spectral transformation.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
       Memory usage has been optimized in most solvers. In some cases,
       memory requirements have been halved with respect to the previous
       versions.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
       In the spectral transformations (ST) the linear solver used internally
       has been changed to a direct solver by default. The user can still
       employ an iterative linear solver by setting the appropriate options.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
       Added better support for Fortran 90.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
       Improved support for 'make install', see the Users Manual for details.
-    </font></li>
 </ul>
 
 <p>
@@ -586,24 +389,21 @@ Changes in Version 3.0.0</font></b>
 Changes in Version 2.3.3</font></b>
 </p>
 
-<ul>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+<ul class=changes>
+  <li>
     A new solver class, SVD, has been introduced for computing the singular
     value decomposition of a rectangular matrix. The structure of this new
     type is very similar to that of EPS, and it simplifies the computation
     of singular values and vectors. A complete chapter in the users manual
     is devoted to SVD.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Better support for generalized problems. Eigenvector purification has
     been added to improve accuracy in the case of generalized eigenproblems
     with singular B. Also, a new problem type (EPS_PGNHEP) has been added
     for better addressing generalized problems in which A is non-Hermitian
     but B is Hermitian and positive definite.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Now 'make install' is available thus facilitating system-wide installation.
-    </font></li>
 </ul>
 
 <p>
@@ -611,41 +411,33 @@ Changes in Version 2.3.3</font></b>
 Changes in Version 2.3.2</font></b>
 </p>
 
-<ul>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+<ul class=changes>
+  <li>
     A new 'krylovschur' eigensolver has been added, that implements the
     Krylov-Schur method. This method is related to the Arnoldi and Lanczos
     algorithms, but incorporates a new restarting scheme that makes it
     competitive with respect to implicit restart. This eigensolver is now 
     the default for both symmetric and non-symmetric problems.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     A new wrapper has been developed to interface with the PRIMME library.
     This library provides Davidson-type eigensolvers.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     The 'lanczos' solver has been improved, in particular, the different
     reorthogonalization strategies are now more robust.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Now the 'arnoldi' eigensolver supports the computation of eigenvalues
     other than those of largest magnitude.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     EPSGetLinearIterations has been replaced with EPSGetOperationCounters,
     providing more statistics about the solution process.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     EPSGetIterationNumber now returns the number corresponding to outer
     iterations.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     The 'lobpcg' wrapper has been renamed to 'blopex'.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     The 'planso' wrapper has been removed since PLANSO is no longer being
     distributed.
-    </font></li>
 </ul>
 
 <p>
@@ -653,15 +445,13 @@ Changes in Version 2.3.2</font></b>
 Changes in Version 2.3.1</font></b>
 </p>
 
-<ul>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+<ul class=changes>
+  <li>
     New variant of the Arnoldi method added to the 'arnoldi' eigensolver 
     (with delayed reorthogonalization, see EPSArnoldiSetDelayed).
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Several optimizations for improving performance and scalability, in particular
     the orthogonalization steps.
-    </font></li>
 </ul>
 
 <p>
@@ -669,65 +459,85 @@ Changes in Version 2.3.1</font></b>
 Changes in Version 2.3.0</font></b>
 </p>
 
-<ul>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+<ul class=changes>
+  <li>
     New 'lanczos' eigensolver, an explicitly restarted version of the Lanczos method
     for symmetric eigenproblems. Allows the user to choose among 5 reorthogonalization
     strategies.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     New spectrum folding spectral transformation.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     New configuration system, similar to PETSc's configure.py.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     New interface to an external eigensolver: LOBPCG implemented in Hypre.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Added graphical convergence monitor (with -eps_xmonitor).
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Improvement of Arnoldi solver in terms of efficiency and robustness.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Now the 'lapack' solver uses specific Lapack routines for symmetric and generalized problems.
-    </font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif">
+  <li>
     Bug fix in the ARPACK interface.
-    </font></li>
 </ul>
 
-<p><font size="2" face="Arial, Helvetica, sans-serif"><b><font size="3"><br>
-  Changes in Version 2.2.1</font></b></font></p>
-<ul>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> The 'power' eigensolver has been replaced by a simpler implementation.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> The 'rqi' eigensolver has been removed. Now the Rayleigh Quotient Iteration is embedded in the 'power' method.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> The 'subspace' eigensolver has been rewritten. Now it follows the SRRIT implementation, which is much faster than the old one.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> The 'arnoldi' eigensolver has been re-implemented as well. The new implementation is much more robust and efficient.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> A new Spectral Tranformation (ST) has been added: the generalized Cayley transform.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> Support for user-provided deflation subspaces has been added (see EPSAttachDeflationSpace).</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> Support for preservation of symmetry in eigensolvers. For this feature, the user must explicitly call EPSSetProblemType in symmetric problems.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> The two types of monitors (error estimates and values) have been merged in a single one.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> New function EPSGetInvariantSubspace.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> Better support for spectrum slicing in 'blzpack'.</font></li>
+<p>
+<font size="3" face="Arial, Helvetica, sans-serif"><b>
+Changes in Version 2.2.1</font></b>
+</p>
+
+<ul class=changes>
+  <li>
+    The 'power' eigensolver has been replaced by a simpler implementation.
+  <li>
+    The 'rqi' eigensolver has been removed. Now the Rayleigh Quotient Iteration is embedded in the 'power' method.
+  <li>
+    The 'subspace' eigensolver has been rewritten. Now it follows the SRRIT implementation, which is much faster than the old one.
+  <li>
+    The 'arnoldi' eigensolver has been re-implemented as well. The new implementation is much more robust and efficient.
+  <li>
+    A new Spectral Tranformation (ST) has been added: the generalized Cayley transform.
+  <li>
+    Support for user-provided deflation subspaces has been added (see EPSAttachDeflationSpace).
+  <li>
+    Support for preservation of symmetry in eigensolvers. For this feature, the user must explicitly call EPSSetProblemType in symmetric problems.
+  <li>
+    The two types of monitors (error estimates and values) have been merged in a single one.
+  <li>
+    New function EPSGetInvariantSubspace.
+  <li>
+    Better support for spectrum slicing in 'blzpack'.
   </ul>
-<p><font size="2" face="Arial, Helvetica, sans-serif"><b><font size="3"><br>
-  Changes in Version 2.2.0</font></b></font></p>
-<ul>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> EPSSolve does not return the number of iterations. Use EPSGetIterationNumber for this purpose.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> EPSGetSolution has been replaced by EPSGetEigenpair with a cleaner interface.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> EPSComputeError has been replaced by EPSComputeRelativeError and EPSComputeResidualNorm with better error computing for zero eigenvalues. These functions now are oriented to single eigenpairs, as well as EPSGetErrorEstimate.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> The possibilities of EPSSetWhichEigenpairs have been reduced and now are more coherent across problem types.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> Removed STNONE spectral transformation. The default of STSHIFT with 0 shift is equivalent.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> Added STSinvertSetMatStructure to optimize performance of MatAXPY in shift-and-invert transformation.</font></li>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> Classical and modified Gram-Schmidt orthogonalization use iterative refinement, with user options for parameter adjustment.</font></li>
+
+<p>
+<font size="3" face="Arial, Helvetica, sans-serif"><b>
+Changes in Version 2.2.0</font></b>
+</p>
+
+<ul class=changes>
+  <li>
+    EPSSolve does not return the number of iterations. Use EPSGetIterationNumber for this purpose.
+  <li>
+    EPSGetSolution has been replaced by EPSGetEigenpair with a cleaner interface.
+  <li>
+    EPSComputeError has been replaced by EPSComputeRelativeError and EPSComputeResidualNorm with better error computing for zero eigenvalues. These functions now are oriented to single eigenpairs, as well as EPSGetErrorEstimate.
+  <li>
+    The possibilities of EPSSetWhichEigenpairs have been reduced and now are more coherent across problem types.
+  <li>
+    Removed STNONE spectral transformation. The default of STSHIFT with 0 shift is equivalent.
+  <li>
+    Added STSinvertSetMatStructure to optimize performance of MatAXPY in shift-and-invert transformation.
+  <li>
+    Classical and modified Gram-Schmidt orthogonalization use iterative refinement, with user options for parameter adjustment.
   </ul>
-<p><font size="2" face="Arial, Helvetica, sans-serif"><b><font size="3"><br>
-  Changes in Version 2.1.5</font></b></font></p>
-<ul>
-  <li><font size="2" face="Arial, Helvetica, sans-serif"> Added call to MatGetInertia 
-    in BLZPACK interface.</font></li>
+
+<p>
+<font size="3" face="Arial, Helvetica, sans-serif"><b>
+Changes in Version 2.1.5</font></b>
+</p>
+
+<ul class=changes>
+  <li>
+    Added call to MatGetInertia in BLZPACK interface.
 </ul>
 <p>&nbsp;</p>
 <p><b><font size="3" face="Arial, Helvetica, sans-serif"></font></b></p>
