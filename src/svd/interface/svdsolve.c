@@ -250,12 +250,17 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
 -  v     - right singular vector
 
    Note:
-   The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
    Both U or V can be NULL if singular vectors are not required.
+   Otherwise, the caller must provide valid Vec objects, i.e.,
+   they must be created by the calling program with e.g. MatCreateVecs().
+
+   The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
+   Singular triplets are indexed according to the ordering criterion established
+   with SVDSetWhichSingularTriplets().
 
    Level: beginner
 
-.seealso: SVDSolve(),  SVDGetConverged()
+.seealso: SVDSolve(), SVDGetConverged(), SVDSetWhichSingularTriplets()
 @*/
 PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,Vec v)
 {

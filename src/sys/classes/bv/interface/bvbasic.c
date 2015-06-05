@@ -1131,7 +1131,7 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
 
    Level: intermediate
 
-.seealso: BVCreate(), BVSetSizesFromVec(), BVCopy()
+.seealso: BVDuplicateResize(), BVCreate(), BVSetSizesFromVec(), BVCopy()
 @*/
 PetscErrorCode BVDuplicate(BV V,BV *W)
 {
