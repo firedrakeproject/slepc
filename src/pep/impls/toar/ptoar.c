@@ -926,7 +926,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=0,nl,nconv=0;
+  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=0,nl,nconv=0,locked=0,newc;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,*pS0,sigma;
   PetscReal      beta,norm,*rwork;
@@ -1055,7 +1055,8 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* truncate S */
     if (k+l+deg<nq) {
       if (!falselock && ctx->lock) {
-        ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,pep->nconv,(flg)?k-pep->nconv:nl,flg,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+        ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,locked,newc=(flg)?k-pep->nconv:nl,flg,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+        locked += newc;
       } else {
         ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,0,0,flg,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
       }
@@ -1066,7 +1067,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   if (pep->nconv>0) {
     /* {V*S_nconv^i}_{i=0}^{d-1} has rank nconv instead of nconv+d-1. Force zeros in each S_nconv^i block */
     nq = pep->nconv;
-
 
     /* perform Newton refinement if required */
     if (pep->refine==PEP_REFINE_MULTIPLE && pep->rits>0) {
