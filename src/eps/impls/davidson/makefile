@@ -23,11 +23,12 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  =
+SOURCEC  = davidson.c dvdcalcpairs.c dvdimprovex.c dvdinitv.c \
+           dvdschm.c dvdtestconv.c dvdupdatev.c dvdutils.c dvdgd2.c dvdorth.c
 SOURCEF  =
-SOURCEH  =
+SOURCEH  = davidson.h
 LIBBASE  = libslepceps
-DIRS     = common gd jd
+DIRS     = gd jd
 LOCDIR   = src/eps/impls/davidson/
 MANSEC   = EPS
 
