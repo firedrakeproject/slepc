@@ -19,14 +19,18 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-#requiresdefine   'PETSC_HAVE_FORTRAN'
 ALL: lib
+
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = zrgf.c
+SOURCEC  = rgellipse.c
 SOURCEF  =
 SOURCEH  =
-DIRS     =
 LIBBASE  = libslepcsys
-LOCDIR   = src/sys/classes/rg/ftn-custom/
+DIRS     =
+MANSEC   = RG
+LOCDIR   = src/sys/classes/rg/impls/ellipse/
+
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
+
+

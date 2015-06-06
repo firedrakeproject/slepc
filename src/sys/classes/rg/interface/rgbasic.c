@@ -596,29 +596,3 @@ PetscErrorCode RGRegister(const char *name,PetscErrorCode (*function)(RG))
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode RGCreate_Interval(RG);
-PETSC_EXTERN PetscErrorCode RGCreate_Ellipse(RG);
-PETSC_EXTERN PetscErrorCode RGCreate_Arc(RG);
-
-#undef __FUNCT__
-#define __FUNCT__ "RGRegisterAll"
-/*@C
-   RGRegisterAll - Registers all of the regions in the RG package.
-
-   Not Collective
-
-   Level: advanced
-@*/
-PetscErrorCode RGRegisterAll(void)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (RGRegisterAllCalled) PetscFunctionReturn(0);
-  RGRegisterAllCalled = PETSC_TRUE;
-  ierr = RGRegister(RGINTERVAL,RGCreate_Interval);CHKERRQ(ierr);
-  ierr = RGRegister(RGELLIPSE,RGCreate_Ellipse);CHKERRQ(ierr);
-  ierr = RGRegister(RGARC,RGCreate_Arc);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-

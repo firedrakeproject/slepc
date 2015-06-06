@@ -19,12 +19,14 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+#requiresdefine   'PETSC_HAVE_FORTRAN'
 ALL: lib
-
-SOURCEH  = ../../../../include/slepc/private/rgimpl.h ../../../../include/slepcrg.h ../../../../include/slepcrgtypes.h
-DIRS     = interface impls examples
-LOCDIR   = src/sys/classes/rg/
-MANSEC   = RG
-
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = zrgf.c
+SOURCEF  =
+SOURCEH  =
+DIRS     =
+LIBBASE  = libslepcsys
+LOCDIR   = src/sys/classes/rg/interface/ftn-custom/
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

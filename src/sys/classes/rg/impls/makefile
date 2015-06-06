@@ -21,9 +21,9 @@
 
 ALL: lib
 
-SOURCEH  = ../../../../include/slepc/private/rgimpl.h ../../../../include/slepcrg.h ../../../../include/slepcrgtypes.h
-DIRS     = interface impls examples
-LOCDIR   = src/sys/classes/rg/
+LIBBASE  = libslepcsys
+DIRS     = arc ellipse interval polygon
+LOCDIR   = src/sys/classes/rg/impls/
 MANSEC   = RG
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
