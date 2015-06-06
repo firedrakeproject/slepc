@@ -21,9 +21,9 @@
 
 ALL: lib
 
-SOURCEH  = ../../../../include/slepc/private/fnimpl.h ../../../../include/slepcfn.h
-DIRS     = interface impls examples
-LOCDIR   = src/sys/classes/fn/
+LIBBASE  = libslepcsys
+DIRS     = combine exp log phi rational sqrt
+LOCDIR   = src/sys/classes/fn/impls/
 MANSEC   = FN
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
