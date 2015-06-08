@@ -78,6 +78,7 @@ PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
   PetscFunctionBegin;
   if (!ctx->global) PetscFunctionReturn(0);
   /* Destroy auxiliary EPS */
+  ierr = EPSSliceResetSR(ctx->eps);CHKERRQ(ierr);
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   if (ctx->npart>1) {
     ierr = PetscSubcommDestroy(&ctx->subc);CHKERRQ(ierr);
@@ -461,6 +462,88 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "EPSSliceGatherEigenVectors"
+static PetscErrorCode EPSSliceGatherEigenVectors(EPS eps)
+{
+  PetscErrorCode  ierr;
+  Vec             v,vg,v_loc;
+  IS              is1,is2;
+  VecScatter      vec_sc;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  PetscInt        nloc,m0,n0,i,si,idx,*idx1,*idx2,j;
+  PetscScalar     *array;
+  EPS_SR          sr_loc;
+  BV              V_loc;
+
+  PetscFunctionBegin;
+  sr_loc = ((EPS_KRYLOVSCHUR*)ctx->eps->data)->sr;
+  V_loc = sr_loc->V;
+
+  /* Gather parallel eigenvectors */
+  ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
+  ierr = VecGetOwnershipRange(v,&n0,&m0);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(eps->V,0,&v);CHKERRQ(ierr);
+  ierr = BVGetColumn(ctx->eps->V,0,&v);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(v,&nloc);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(ctx->eps->V,0,&v);CHKERRQ(ierr);
+  ierr = PetscMalloc2(m0-n0,&idx1,m0-n0,&idx2);CHKERRQ(ierr);
+  ierr = VecCreateMPI(PetscObjectComm((PetscObject)eps),nloc,PETSC_DECIDE,&vg);CHKERRQ(ierr);
+  idx = -1;
+  for (si=0;si<ctx->npart;si++) {
+    j = 0;
+    for (i=n0;i<m0;i++) {
+      idx1[j]   = i;
+      idx2[j++] = i+eps->n*si;
+    }
+    ierr = ISCreateGeneral(PetscObjectComm((PetscObject)eps),(m0-n0),idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
+    ierr = ISCreateGeneral(PetscObjectComm((PetscObject)eps),(m0-n0),idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
+    ierr = VecScatterCreate(v,is1,vg,is2,&vec_sc);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,0,&v);CHKERRQ(ierr);
+    ierr = ISDestroy(&is1);CHKERRQ(ierr);
+    ierr = ISDestroy(&is2);CHKERRQ(ierr);
+    for (i=0;i<ctx->nconv_loc[si];i++) {
+      ierr = BVGetColumn(eps->V,++idx,&v);CHKERRQ(ierr);
+      if (ctx->subc->color==si) {
+        ierr = BVGetColumn(V_loc,i,&v_loc);CHKERRQ(ierr);
+        ierr = VecGetArray(v_loc,&array);CHKERRQ(ierr);
+        ierr = VecPlaceArray(vg,array);CHKERRQ(ierr);
+      }
+      ierr = VecScatterBegin(vec_sc,vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
+      ierr = VecScatterEnd(vec_sc,vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
+      if (ctx->subc->color==si) {
+        ierr = VecResetArray(vg);CHKERRQ(ierr);
+        ierr = VecRestoreArray(v_loc,&array);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(V_loc,i,&v_loc);CHKERRQ(ierr);
+      }
+      ierr = BVRestoreColumn(eps->V,idx,&v);CHKERRQ(ierr);
+    }
+    ierr = VecScatterDestroy(&vec_sc);CHKERRQ(ierr);
+  }
+  ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);
+  ierr = VecDestroy(&vg);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSComputeVectors_Slice"
+/*
+  EPSComputeVectors_Slice - Recover Eigenvectors from subcomunicators
+ */
+PetscErrorCode EPSComputeVectors_Slice(EPS eps)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+
+  PetscFunctionBegin;
+  if (ctx->global && ctx->npart>1) {
+    ierr = EPSComputeVectors(ctx->eps);CHKERRQ(ierr);
+    ierr = EPSSliceGatherEigenVectors(eps);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 #define SWAP(a,b,t) {t=a;a=b;b=t;}
 
 #undef __FUNCT__
@@ -525,15 +608,11 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
 {
   PetscErrorCode  ierr;
   PetscMPIInt     rank,nproc;
-  Vec             v,vg,v_loc;
-  IS              is1,is2;
-  VecScatter      vec_sc;
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt        nloc,m0,n0,i,si,idx,*idx1,*idx2,j;
+  PetscInt        i,idx,j;
   PetscInt        *perm_loc,off=0,*inertias_loc,ns;
-  PetscScalar     *array,*eigr_loc;
+  PetscScalar     *eigr_loc;
   EPS_SR          sr_loc;
-  BV              V_loc;
   PetscReal       *shifts_loc;
   PetscMPIInt     *disp,*ns_loc,aux;
 
@@ -567,7 +646,6 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
 
   /* Gather eigenvalues (same ranks have fully set of eigenvalues)*/
   eigr_loc = sr_loc->eigr;
-  V_loc = sr_loc->V;
   perm_loc = sr_loc->perm;
   ierr = MPI_Comm_size(((PetscObject)eps)->comm,&nproc);CHKERRQ(ierr);
   ierr = PetscMalloc1(ctx->npart,&disp);CHKERRQ(ierr);
@@ -610,52 +688,10 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
   }
 
   /* Gather parallel eigenvectors */
-  ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
-  ierr = VecGetOwnershipRange(v,&n0,&m0);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(eps->V,0,&v);CHKERRQ(ierr);
-  ierr = BVGetColumn(ctx->eps->V,0,&v);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(v,&nloc);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(ctx->eps->V,0,&v);CHKERRQ(ierr);
-  ierr = PetscMalloc2(m0-n0,&idx1,m0-n0,&idx2);CHKERRQ(ierr);
-  ierr = VecCreateMPI(PetscObjectComm((PetscObject)eps),nloc,PETSC_DECIDE,&vg);CHKERRQ(ierr);
-  idx = -1;
-  for (si=0;si<ctx->npart;si++) {
-    j = 0;
-    for (i=n0;i<m0;i++) {
-      idx1[j]   = i;
-      idx2[j++] = i+eps->n*si;
-    }
-    ierr = ISCreateGeneral(PetscObjectComm((PetscObject)eps),(m0-n0),idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
-    ierr = ISCreateGeneral(PetscObjectComm((PetscObject)eps),(m0-n0),idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
-    ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
-    ierr = VecScatterCreate(v,is1,vg,is2,&vec_sc);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,0,&v);CHKERRQ(ierr);
-    ierr = ISDestroy(&is1);CHKERRQ(ierr);
-    ierr = ISDestroy(&is2);CHKERRQ(ierr);
-    for (i=0;i<ctx->nconv_loc[si];i++) {
-      ierr = BVGetColumn(eps->V,++idx,&v);CHKERRQ(ierr);
-      if (ctx->subc->color==si) {
-        ierr = BVGetColumn(V_loc,i,&v_loc);CHKERRQ(ierr);
-        ierr = VecGetArray(v_loc,&array);CHKERRQ(ierr);
-        ierr = VecPlaceArray(vg,array);CHKERRQ(ierr);
-      }
-      ierr = VecScatterBegin(vec_sc,vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-      ierr = VecScatterEnd(vec_sc,vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-      if (ctx->subc->color==si) {
-        ierr = VecResetArray(vg);CHKERRQ(ierr);
-        ierr = VecRestoreArray(v_loc,&array);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(V_loc,i,&v_loc);CHKERRQ(ierr);
-      }
-      ierr = BVRestoreColumn(eps->V,idx,&v);CHKERRQ(ierr);
-    }
-    ierr = VecScatterDestroy(&vec_sc);CHKERRQ(ierr);
-  }
-  ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);
   ierr = PetscFree(ns_loc);CHKERRQ(ierr);
   ierr = PetscFree(disp);CHKERRQ(ierr);
   ierr = PetscFree(shifts_loc);CHKERRQ(ierr);
   ierr = PetscFree(inertias_loc);CHKERRQ(ierr);
-  ierr = VecDestroy(&vg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1260,7 +1296,6 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
       ierr = PetscFree(ctx->shifts);CHKERRQ(ierr);
       ierr = EPSSliceGetInertias(ctx->eps,&ctx->nshifts,&ctx->shifts,&ctx->inertias);CHKERRQ(ierr);
     }
-    ierr = EPSSliceResetSR(ctx->eps);CHKERRQ(ierr);
   } else {
     if (ctx->npart==1) {
       sr->eigr   = ctx->eps->eigr;

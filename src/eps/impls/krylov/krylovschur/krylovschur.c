@@ -150,7 +150,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       break;
     case EPS_KS_SLICE:
       eps->ops->solve = EPSSolve_KrylovSchur_Slice;
-      eps->ops->computevectors = NULL;
+      eps->ops->computevectors = EPSComputeVectors_Slice;
       break;
     case EPS_KS_INDEF:
       eps->ops->solve = EPSSolve_KrylovSchur_Indefinite;

@@ -31,6 +31,7 @@ PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS);
 PETSC_INTERN PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS);
 PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS);
 PETSC_INTERN PetscErrorCode EPSGetArbitraryValues(EPS,PetscScalar*,PetscScalar*);
+PETSC_INTERN PetscErrorCode EPSComputeVectors_Slice(EPS);
 
 /* Structure characterizing a shift in spectrum slicing */
 typedef struct _n_shift *EPS_shift;
