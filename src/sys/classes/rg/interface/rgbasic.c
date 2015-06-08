@@ -480,7 +480,7 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
   PetscValidPointer(cr,3);
-#if defined(PETSC_USE_COMPLEX)
+#if !defined(PETSC_USE_COMPLEX)
   PetscValidPointer(ci,4);
 #endif
   ierr = (*rg->ops->computecontour)(rg,n,cr,ci);CHKERRQ(ierr);
