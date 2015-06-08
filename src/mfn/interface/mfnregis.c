@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/mfnimpl.h>  /*I "slepcmfn.h" I*/
+#include <slepc/private/mfnimpl.h>  /*I "slepcmfn.h" I*/
 
 PETSC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN);
 
@@ -39,7 +39,9 @@ PetscErrorCode MFNRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (MFNRegisterAllCalled) PetscFunctionReturn(0);
   MFNRegisterAllCalled = PETSC_TRUE;
   ierr = MFNRegister(MFNKRYLOV,MFNCreate_Krylov);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

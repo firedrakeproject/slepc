@@ -21,8 +21,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>    /*I "slepceps.h" I*/
-#include <slepc-private/stimpl.h>
+#include <slepc/private/epsimpl.h>    /*I "slepceps.h" I*/
+#include <slepc/private/stimpl.h>
 #include <../src/eps/impls/external/blzpack/blzpackp.h>
 
 PetscErrorCode EPSSolve_BLZPACK(EPS);
@@ -345,7 +345,7 @@ PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_BLZPACK"
-PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
+PetscErrorCode EPSSetFromOptions_BLZPACK(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
@@ -353,7 +353,7 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(EPS eps)
   PetscBool      flg;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS BLZPACK Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS BLZPACK Options");CHKERRQ(ierr);
 
   bs = blz->block_size;
   ierr = PetscOptionsInt("-eps_blzpack_block_size","Block size","EPSBlzpackSetBlockSize",bs,&bs,&flg);CHKERRQ(ierr);

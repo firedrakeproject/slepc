@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = dsghiep_ivit.c dsghiep.c dsghiep_hz.c dsghiep_dqds.c
+SOURCEC  = dsghiep.c invit.c hz.c dqds.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
@@ -31,4 +31,4 @@ DIRS     =
 MANSEC   = DS
 LOCDIR   = src/sys/classes/ds/impls/ghiep/
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

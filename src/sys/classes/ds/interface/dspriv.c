@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
+#include <slepc/private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
@@ -29,12 +29,30 @@
 PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
 {
   size_t         sz;
+  PetscInt       n,d;
+  PetscBool      ispep;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (m==DS_MAT_T) sz = 3*ds->ld*sizeof(PetscScalar);
-  else if (m==DS_MAT_D) sz = ds->ld*sizeof(PetscScalar);
-  else sz = ds->ld*ds->ld*sizeof(PetscScalar);
+  ierr = PetscObjectTypeCompare((PetscObject)ds,DSPEP,&ispep);CHKERRQ(ierr);
+  if (ispep) {
+    ierr = DSPEPGetDegree(ds,&d);CHKERRQ(ierr);
+  }
+  if (ispep && (m==DS_MAT_A || m==DS_MAT_B || m==DS_MAT_W || m==DS_MAT_X)) n = d*ds->ld;
+  else n = ds->ld;
+  switch (m) {
+    case DS_MAT_T:
+      sz = 3*ds->ld*sizeof(PetscScalar);
+      break;
+    case DS_MAT_D:
+      sz = ds->ld*sizeof(PetscScalar);
+      break;
+    case DS_MAT_X:
+      sz = ds->ld*n*sizeof(PetscScalar);
+      break;
+    default:
+      sz = n*n*sizeof(PetscScalar);
+  }
   if (ds->mat[m]) {
     ierr = PetscFree(ds->mat[m]);CHKERRQ(ierr);
   } else {
@@ -150,7 +168,7 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
       if (allreal) {
         ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",PetscRealPart(*v));CHKERRQ(ierr);
       } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"%18.16e + %18.16ei ",PetscRealPart(*v),PetscImaginaryPart(*v));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei ",PetscRealPart(*v),PetscImaginaryPart(*v));CHKERRQ(ierr);
       }
 #else
       ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",*v);CHKERRQ(ierr);
@@ -178,7 +196,6 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
 
   PetscFunctionBegin;
   n = ds->t;   /* sort only first t pairs if truncated */
-  for (i=0;i<ds->n;i++) perm[i] = i;
   /* insertion sort */
   i=ds->l+1;
 #if !defined(PETSC_USE_COMPLEX)
@@ -235,7 +252,6 @@ PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm
   PetscFunctionBegin;
   n = ds->t;   /* sort only first t pairs if truncated */
   l = ds->l;
-  for (i=0;i<n;i++) perm[i] = i;
   /* insertion sort */
   for (i=l+1;i<n;i++) {
     re = eig[perm[i]];
@@ -359,10 +375,18 @@ PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat1,
 
 #undef __FUNCT__
 #define __FUNCT__ "DSSetIdentity"
-/*
+/*@C
    DSSetIdentity - Copy the identity (a diagonal matrix with ones) on the
    active part of a matrix.
-*/
+
+   Logically Collective on DS
+
+   Input Parameters:
++  ds     - the direct solver context
+-  mat    - the matrix to modify
+
+   Level: intermediate
+@*/
 PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
 {
   PetscErrorCode ierr;

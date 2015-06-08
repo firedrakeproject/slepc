@@ -43,7 +43,7 @@ int main(int argc,char **argv)
   PetscInt       nev,maxit,i,its,lits,nconv,nini=0,ncon=0;
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
-  PetscBool      flg,evecs,ishermitian;
+  PetscBool      flg,evecs,ishermitian,terse;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -164,7 +164,19 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
+  /*
+     Show detailed info unless -terse option is given by user
+   */
+  ierr = PetscOptionsHasName(NULL,"-terse",&terse);CHKERRQ(ierr);
+  if (terse) {
+    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+    ierr = EPSReasonView(eps,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  }
+
   /*
      Save eigenvectors, if requested
   */

@@ -31,6 +31,6 @@ DIRS     =
 MANSEC   = PEP
 LOCDIR   = src/pep/impls/qarnoldi/
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

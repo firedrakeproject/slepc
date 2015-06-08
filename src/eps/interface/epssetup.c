@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>       /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>       /*I "slepceps.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetUp"
@@ -195,7 +195,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* Build balancing matrix if required */
   if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
     if (!eps->D) {
-      ierr = BVGetVec(eps->V,&eps->D);CHKERRQ(ierr);
+      ierr = BVCreateVec(eps->V,&eps->D);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->D);CHKERRQ(ierr);
     } else {
       ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
@@ -250,7 +250,7 @@ PetscErrorCode EPSSetUp(EPS eps)
    Notes:
    To specify a standard eigenproblem, use NULL for parameter B.
 
-   It must be called after EPSSetUp(). If it is called again after EPSSetUp() then
+   It must be called before EPSSetUp(). If it is called again after EPSSetUp() then
    the EPS object is reset.
 
    Level: beginner
@@ -480,7 +480,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
   newc = PetscMax(0,requested-oldsize);
 
   /* allocate space for eigenvalues and friends */
-  if (requested != oldsize) {
+  if (requested != oldsize || !eps->eigr) {
     if (oldsize) {
       ierr = PetscFree4(eps->eigr,eps->eigi,eps->errest,eps->perm);CHKERRQ(ierr);
     }

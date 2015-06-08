@@ -19,14 +19,17 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>
+#include <slepc/private/epsimpl.h>
 
 static PetscBool EPSPackageInitialized = PETSC_FALSE;
 
 const char *EPSBalanceTypes[] = {"NONE","ONESIDE","TWOSIDE","USER","EPSBalance","EPS_BALANCE_",0};
+const char *EPSErrorTypes[] = {"ABSOLUTE","RELATIVE","BACKWARD","EPSErrorType","EPS_ERROR_",0};
 const char *EPSPowerShiftTypes[] = {"CONSTANT","RAYLEIGH","WILKINSON","EPSPowerShiftType","EPS_POWER_SHIFT_",0};
 const char *EPSLanczosReorthogTypes[] = {"LOCAL","FULL","SELECTIVE","PERIODIC","PARTIAL","DELAYED","EPSLanczosReorthogType","EPS_LANCZOS_REORTHOG_",0};
 const char *EPSPRIMMEMethods[] = {"DYNAMIC","DEFAULT_MIN_TIME","DEFAULT_MIN_MATVECS","ARNOLDI","GD","GD_PLUSK","GD_OLSEN_PLUSK","JD_OLSEN_PLUSK","RQI","JDQR","JDQMR","JDQMR_ETOL","SUBSPACE_ITERATION","LOBPCG_ORTHOBASIS","LOBPCG_ORTHOBASISW","EPSPRIMMEMethod","EPS_PRIMME_",0};
+const char *const EPSConvergedReasons_Shifted[] = {"DIVERGED_SYMMETRY_LOST","DIVERGED_BREAKDOWN","DIVERGED_ITS","","","CONVERGED_ITERATING","","CONVERGED_TOL","EPSConvergedReason","EPS_",0};
+const char *const*EPSConvergedReasons = EPSConvergedReasons_Shifted + 5;
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSFinalizePackage"
@@ -71,7 +74,7 @@ PetscErrorCode EPSInitializePackage()
   if (EPSPackageInitialized) PetscFunctionReturn(0);
   EPSPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Eigenvalue Problem Solver",&EPS_CLASSID);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("EPS Solver",&EPS_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = EPSRegisterAll();CHKERRQ(ierr);
   /* Register Events */

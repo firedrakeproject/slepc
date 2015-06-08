@@ -1,5 +1,5 @@
 /*
-     The basic EPS routines, Create, View, etc. are here.
+   The basic EPS routines, Create, Destroy, etc. are here.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>      /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>      /*I "slepceps.h" I*/
 
 PetscFunctionList EPSList = 0;
 PetscBool         EPSRegisterAllCalled = PETSC_FALSE;
@@ -29,308 +29,8 @@ PetscClassId      EPS_CLASSID = 0;
 PetscLogEvent     EPS_SetUp = 0,EPS_Solve = 0;
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSView"
-/*@C
-   EPSView - Prints the EPS data structure.
-
-   Collective on EPS
-
-   Input Parameters:
-+  eps - the eigenproblem solver context
--  viewer - optional visualization context
-
-   Options Database Key:
-.  -eps_view -  Calls EPSView() at end of EPSSolve()
-
-   Note:
-   The available visualization contexts include
-+     PETSC_VIEWER_STDOUT_SELF - standard output (default)
--     PETSC_VIEWER_STDOUT_WORLD - synchronized standard
-         output where only the first processor opens
-         the file.  All other processors send their
-         data to the first processor to print.
-
-   The user can open an alternative visualization context with
-   PetscViewerASCIIOpen() - output to a specified file.
-
-   Level: beginner
-
-.seealso: STView(), PetscViewerASCIIOpen()
-@*/
-PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
-{
-  PetscErrorCode ierr;
-  const char     *type,*extr,*bal;
-  char           str[50];
-  PetscBool      isascii,ispower,isexternal,istrivial;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps));
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
-  PetscCheckSameComm(eps,1,viewer,2);
-
-#if defined(PETSC_USE_COMPLEX)
-#define HERM "hermitian"
-#else
-#define HERM "symmetric"
-#endif
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)eps,viewer);CHKERRQ(ierr);
-    if (eps->ops->view) {
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
-    }
-    if (eps->problem_type) {
-      switch (eps->problem_type) {
-        case EPS_HEP:   type = HERM " eigenvalue problem"; break;
-        case EPS_GHEP:  type = "generalized " HERM " eigenvalue problem"; break;
-        case EPS_NHEP:  type = "non-" HERM " eigenvalue problem"; break;
-        case EPS_GNHEP: type = "generalized non-" HERM " eigenvalue problem"; break;
-        case EPS_PGNHEP: type = "generalized non-" HERM " eigenvalue problem with " HERM " positive definite B"; break;
-        case EPS_GHIEP: type = "generalized " HERM "-indefinite eigenvalue problem"; break;
-        default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->problem_type");
-      }
-    } else type = "not yet set";
-    ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
-    if (eps->extraction) {
-      switch (eps->extraction) {
-        case EPS_RITZ:             extr = "Rayleigh-Ritz"; break;
-        case EPS_HARMONIC:         extr = "harmonic Ritz"; break;
-        case EPS_HARMONIC_RELATIVE:extr = "relative harmonic Ritz"; break;
-        case EPS_HARMONIC_RIGHT:   extr = "right harmonic Ritz"; break;
-        case EPS_HARMONIC_LARGEST: extr = "largest harmonic Ritz"; break;
-        case EPS_REFINED:          extr = "refined Ritz"; break;
-        case EPS_REFINED_HARMONIC: extr = "refined harmonic Ritz"; break;
-        default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->extraction");
-      }
-      ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",extr);CHKERRQ(ierr);
-    }
-    if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE) {
-      switch (eps->balance) {
-        case EPS_BALANCE_ONESIDE:   bal = "one-sided Krylov"; break;
-        case EPS_BALANCE_TWOSIDE:   bal = "two-sided Krylov"; break;
-        case EPS_BALANCE_USER:      bal = "user-defined matrix"; break;
-        default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->balance");
-      }
-      ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled: %s",bal);CHKERRQ(ierr);
-      if (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE) {
-        ierr = PetscViewerASCIIPrintf(viewer,", with its=%D",eps->balance_its);CHKERRQ(ierr);
-      }
-      if (eps->balance==EPS_BALANCE_TWOSIDE && eps->balance_cutoff!=0.0) {
-        ierr = PetscViewerASCIIPrintf(viewer," and cutoff=%g",(double)eps->balance_cutoff);CHKERRQ(ierr);
-      }
-      ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
-    ierr = SlepcSNPrintfScalar(str,50,eps->target,PETSC_FALSE);CHKERRQ(ierr);
-    if (!eps->which) {
-      ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
-    } else switch (eps->which) {
-      case EPS_WHICH_USER:
-        ierr = PetscViewerASCIIPrintf(viewer,"user defined\n");CHKERRQ(ierr);
-        break;
-      case EPS_TARGET_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (in magnitude)\n",str);CHKERRQ(ierr);
-        break;
-      case EPS_TARGET_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the real axis)\n",str);CHKERRQ(ierr);
-        break;
-      case EPS_TARGET_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the imaginary axis)\n",str);CHKERRQ(ierr);
-        break;
-      case EPS_LARGEST_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest eigenvalues in magnitude\n");CHKERRQ(ierr);
-        break;
-      case EPS_SMALLEST_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest eigenvalues in magnitude\n");CHKERRQ(ierr);
-        break;
-      case EPS_LARGEST_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest real parts\n");CHKERRQ(ierr);
-        break;
-      case EPS_SMALLEST_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest real parts\n");CHKERRQ(ierr);
-        break;
-      case EPS_LARGEST_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest imaginary parts\n");CHKERRQ(ierr);
-        break;
-      case EPS_SMALLEST_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
-        break;
-      case EPS_ALL:
-        ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in interval [%g,%g]\n",(double)eps->inta,(double)eps->intb);CHKERRQ(ierr);
-        break;
-      default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
-    }
-    if (eps->trueres) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  computing true residuals explicitly\n");CHKERRQ(ierr);
-    }
-    if (eps->trackall) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  computing all residuals (for tracking convergence)\n");CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",eps->nev);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",eps->ncv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",eps->mpd);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",eps->max_it);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)eps->tol);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
-    switch (eps->conv) {
-    case EPS_CONV_ABS:
-      ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
-    case EPS_CONV_EIG:
-      ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
-    case EPS_CONV_NORM:
-      ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue and matrix norms\n");CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: norm(A)=%g",(double)eps->nrma);CHKERRQ(ierr);
-      if (eps->isgeneralized) {
-        ierr = PetscViewerASCIIPrintf(viewer,", norm(B)=%g",(double)eps->nrmb);CHKERRQ(ierr);
-      }
-      ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
-      break;
-    case EPS_CONV_USER:
-      ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
-    }
-    if (eps->nini) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(eps->nini));CHKERRQ(ierr);
-    }
-    if (eps->nds) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %D\n",PetscAbs(eps->nds));CHKERRQ(ierr);
-    }
-  } else {
-    if (eps->ops->view) {
-      ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
-    }
-  }
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&isexternal,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
-  if (!isexternal) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-    if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
-    ierr = BVView(eps->V,viewer);CHKERRQ(ierr);
-    if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
-    ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-    if (!istrivial) { ierr = RGView(eps->rg,viewer);CHKERRQ(ierr); }
-    ierr = PetscObjectTypeCompare((PetscObject)eps,EPSPOWER,&ispower);CHKERRQ(ierr);
-    if (!ispower) {
-      if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
-      ierr = DSView(eps->ds,viewer);CHKERRQ(ierr);
-    }
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-  }
-  if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
-  ierr = STView(eps->st,viewer);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSPrintSolution"
-/*@
-   EPSPrintSolution - Prints the computed eigenvalues.
-
-   Collective on EPS
-
-   Input Parameters:
-+  eps - the eigensolver context
--  viewer - optional visualization context
-
-   Options Database Key:
-.  -eps_terse - print only minimal information
-
-   Note:
-   By default, this function prints a table with eigenvalues and associated
-   relative errors. With -eps_terse only the eigenvalues are printed.
-
-   Level: intermediate
-
-.seealso: PetscViewerASCIIOpen()
-@*/
-PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer viewer)
-{
-  PetscBool      terse,errok,isascii;
-  PetscReal      error,re,im;
-  PetscScalar    kr,ki;
-  PetscInt       i,j;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps));
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
-  PetscCheckSameComm(eps,1,viewer,2);
-  EPSCheckSolved(eps,1);
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (!isascii) PetscFunctionReturn(0);
-
-  ierr = PetscOptionsHasName(NULL,"-eps_terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    if (eps->nconv<eps->nev) {
-      ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D eigenvalues converged\n\n",eps->nev);CHKERRQ(ierr);
-    } else {
-      errok = PETSC_TRUE;
-      for (i=0;i<eps->nev;i++) {
-        ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
-        errok = (errok && error<5.0*eps->tol)? PETSC_TRUE: PETSC_FALSE;
-      }
-      if (errok) {
-        ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
-        for (i=0;i<=(eps->nev-1)/8;i++) {
-          ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
-          for (j=0;j<PetscMin(8,eps->nev-8*i);j++) {
-            ierr = EPSGetEigenpair(eps,8*i+j,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-            re = PetscRealPart(kr);
-            im = PetscImaginaryPart(kr);
-#else
-            re = kr;
-            im = ki;
-#endif
-            if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
-            if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
-            if (im!=0.0) {
-              ierr = PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im);CHKERRQ(ierr);
-            } else {
-              ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)re);CHKERRQ(ierr);
-            }
-            if (8*i+j+1<eps->nev) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
-          }
-        }
-        ierr = PetscViewerASCIIPrintf(viewer,"\n\n");CHKERRQ(ierr);
-      } else {
-        ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",eps->nev);CHKERRQ(ierr);
-      }
-    }
-  } else {
-    ierr = PetscViewerASCIIPrintf(viewer," Number of converged approximate eigenpairs: %D\n\n",eps->nconv);CHKERRQ(ierr);
-    if (eps->nconv>0) {
-      ierr = PetscViewerASCIIPrintf(viewer,
-           "           k          ||Ax-k%sx||/||kx||\n"
-           "   ----------------- ------------------\n",eps->isgeneralized?"B":"");CHKERRQ(ierr);
-      for (i=0;i<eps->nconv;i++) {
-        ierr = EPSGetEigenpair(eps,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-        ierr = EPSComputeRelativeError(eps,i,&error);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-        re = PetscRealPart(kr);
-        im = PetscImaginaryPart(kr);
-#else
-        re = kr;
-        im = ki;
-#endif
-        if (im!=0.0) {
-          ierr = PetscViewerASCIIPrintf(viewer," % 9f%+9f i %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
-        } else {
-          ierr = PetscViewerASCIIPrintf(viewer,"   % 12f       %12g\n",(double)re,(double)error);CHKERRQ(ierr);
-        }
-      }
-      ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSCreate"
-/*@C
+/*@
    EPSCreate - Creates the default EPS context.
 
    Collective on MPI_Comm
@@ -357,7 +57,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   PetscValidPointer(outeps,2);
   *outeps = 0;
   ierr = EPSInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(eps,_p_EPS,struct _EPSOps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(eps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView);CHKERRQ(ierr);
 
   eps->max_it          = 0;
   eps->nev             = 1;
@@ -378,6 +78,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->balance_cutoff  = 1e-8;
   eps->trueres         = PETSC_FALSE;
   eps->trackall        = PETSC_FALSE;
+  eps->purify          = PETSC_TRUE;
 
   eps->converged       = EPSConvergedEigRelative;
   eps->convergeddestroy= NULL;
@@ -581,7 +282,7 @@ PetscErrorCode EPSReset(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSDestroy"
-/*@C
+/*@
    EPSDestroy - Destroys the EPS context.
 
    Collective on EPS
@@ -798,7 +499,7 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetST"
-/*@C
+/*@
    EPSGetST - Obtain the spectral transformation (ST) object associated
    to the eigensolver object.
 
@@ -865,7 +566,7 @@ PetscErrorCode EPSSetBV(EPS eps,BV V)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetBV"
-/*@C
+/*@
    EPSGetBV - Obtain the basis vectors object associated to the eigensolver object.
 
    Not Collective
@@ -931,7 +632,7 @@ PetscErrorCode EPSSetRG(EPS eps,RG rg)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetRG"
-/*@C
+/*@
    EPSGetRG - Obtain the region object associated to the eigensolver.
 
    Not Collective
@@ -997,7 +698,7 @@ PetscErrorCode EPSSetDS(EPS eps,DS ds)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetDS"
-/*@C
+/*@
    EPSGetDS - Obtain the direct solver object associated to the eigensolver object.
 
    Not Collective

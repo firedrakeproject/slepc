@@ -32,7 +32,7 @@ so, in principle, the vector $y$ can be approximated by an element of the Krylov
 \begin{equation}
 \tilde y=\beta V_{m+1}\exp(H_m)e_1,
 \end{equation}
-where $\beta=\|v\|_2$ and $e_1$ is the first coordinate vector. Hence, the problem of computing the exponential of a large matrix $A$ of order $n$ is reduced to computing the exponential of a small matrix $H_m$ of order $m$. For the latter task, several methods are available. Currently, in \slepc we compute it using the eigendecomposition $H_m=Q\Lambda Q^*$ whenever $H_m$ is symmetric (Lanczos methods), as $\exp(H_m)=Q\,\mathrm{diag}(e^{\lambda_i})Q^*$, or using a rational Pad\'e method combined with scaling-and-squaring for the non-symmetric case. See \citep{Higham:2010:CMF} for details.
+where $\beta=\|v\|_2$ and $e_1$ is the first coordinate vector. Hence, the problem of computing the exponential of a large matrix $A$ of order $n$ is reduced to computing the exponential of a small matrix $H_m$ of order $m$. For the latter task, we employ algorithms implemented in the \ident{FN} auxiliary class, see \S\ref{sec:sys}.
 
 %---------------------------------------------------
 \section{Basic Usage}
@@ -51,7 +51,7 @@ MFNCreate( PETSC_COMM_WORLD, &mfn );
 MFNSetOperator( mfn, A );
 MFNGetFN( mfn, &f );
 FNSetType( f, FNEXP );
-FNSetParameters( f, 1, &alpha, 0, NULL );
+FNSetScale( f, alpha, 1.0 );
 MFNSetFromOptions( mfn );
 MFNSolve( mfn, v, y );
 MFNDestroy( &mfn );
@@ -69,7 +69,7 @@ Defining the problem consists in specifying the matrix, $A$, and the function to
 	\begin{Verbatim}[fontsize=\small]
 	MFNSetOperator(MFN mfn,Mat A);
 	\end{Verbatim}
-where \texttt{A} should be a square matrix, stored in any allowed \petsc format including the matrix-free mechanism (see \S\ref{sec:supported}). The function $f(\cdot)$ is defined with an \ident{FN} object. One possibility is to get the \ident{FN} object handled internally by \ident{MFN}:
+where \texttt{A} should be a square matrix, stored in any allowed \petsc format including the matrix-free mechanism (see \S\ref{sec:supported}). The function $f(\cdot)$ is defined with an \ident{FN} object. One possibility is to extract the \ident{FN} object handled internally by \ident{MFN}:
 	\findex{MFNGetFN}
 	\begin{Verbatim}[fontsize=\small]
 	MFNGetFN(MFN mfn,FN *f);
@@ -106,7 +106,7 @@ or via the options database command \Verb!-mfn_type! followed by the method name
 
 \paragraph{Accuracy and Monitors.}
 
-Currently, there is no way of assessing the accuracy of the computed solution. The user can provide a tolerance and maximum number of iterations with \ident{MFNSetTolerances}, but there is no guarantee that an analogue of the residual is below the tolerance.
+Currently, there is no way of assessing the accuracy of the computed solution. The user can provide a tolerance and maximum number of iterations with \ident{MFNSetTolerances}, but there is no guarantee that an analog of the residual is below the tolerance.
 
 After the solver has finished, the number of performed (outer) iterations can be obtained with \ident{MFNGetIterationNumber}. There are also monitors that display the (time) evolution of the solver (not the error), which can be activated with command-line keys \Verb!-mfn_monitor!, or \Verb!-mfn_monitor_lg!. See \S\ref{sec:monitor} for additional details.
 

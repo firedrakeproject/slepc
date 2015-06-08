@@ -5,9 +5,6 @@
 
  Solution method: rii
  Number of requested eigenvalues: 1
- Number of converged approximate eigenpairs: 1
-
-           k              ||T(k)x||
-   ----------------- ------------------
-       0.808885          8.87388e-10
+ All requested eigenvalues computed up to the required tolerance:
+     0.80889
 

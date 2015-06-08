@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/bvimpl.h>
+#include <slepc/private/bvimpl.h>
 
 typedef struct {
   Mat       A;
@@ -146,6 +146,29 @@ PetscErrorCode BVDot_Mat(BV X,BV Y,Mat M)
 #define __FUNCT__ "BVDotVec_Mat"
 PetscErrorCode BVDotVec_Mat(BV X,Vec y,PetscScalar *m)
 {
+  PetscErrorCode    ierr;
+  BV_MAT            *x = (BV_MAT*)X->data;
+  PetscScalar       *px;
+  const PetscScalar *py;
+  Vec               z = y;
+
+  PetscFunctionBegin;
+  if (X->matrix) {
+    ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
+    z = X->Bx;
+  }
+  ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(z,&py);CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+(X->nc+X->l)*X->n,py,m,x->mpi);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(z,&py);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVDotVec_Local_Mat"
+PetscErrorCode BVDotVec_Local_Mat(BV X,Vec y,PetscScalar *m)
+{
   PetscErrorCode ierr;
   BV_MAT         *x = (BV_MAT*)X->data;
   PetscScalar    *px,*py;
@@ -158,7 +181,7 @@ PetscErrorCode BVDotVec_Mat(BV X,Vec y,PetscScalar *m)
   }
   ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
   ierr = VecGetArray(z,&py);CHKERRQ(ierr);
-  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+(X->nc+X->l)*X->n,py,m,x->mpi);CHKERRQ(ierr);
+  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+(X->nc+X->l)*X->n,py,m,PETSC_FALSE);CHKERRQ(ierr);
   ierr = VecRestoreArray(z,&py);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -203,6 +226,25 @@ PetscErrorCode BVNorm_Mat(BV bv,PetscInt j,NormType type,PetscReal *val)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVNorm_Local_Mat"
+PetscErrorCode BVNorm_Local_Mat(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *ctx = (BV_MAT*)bv->data;
+  PetscScalar    *array;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(ctx->A,&array);CHKERRQ(ierr);
+  if (j<0) {
+    ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE);CHKERRQ(ierr);
+  } else {
+    ierr = BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE);CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(ctx->A,&array);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVOrthogonalize_Mat"
 PetscErrorCode BVOrthogonalize_Mat(BV V,Mat R)
 {
@@ -225,18 +267,43 @@ PetscErrorCode BVMatMult_Mat(BV V,Mat A,BV W)
 {
   PetscErrorCode ierr;
   BV_MAT         *v = (BV_MAT*)V->data,*w = (BV_MAT*)W->data;
-  PetscScalar    *pv,*pw;
-  PetscInt       j;
+  PetscScalar    *pv,*pw,*pb,*pc;
+  PetscInt       j,m;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(v->A,&pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(w->A,&pw);CHKERRQ(ierr);
-  for (j=0;j<V->k-V->l;j++) {
-    ierr = VecPlaceArray(V->cv[1],pv+(V->nc+V->l+j)*V->n);CHKERRQ(ierr);
-    ierr = VecPlaceArray(W->cv[1],pw+(W->nc+W->l+j)*W->n);CHKERRQ(ierr);
-    ierr = MatMult(A,V->cv[1],W->cv[1]);CHKERRQ(ierr);
-    ierr = VecResetArray(V->cv[1]);CHKERRQ(ierr);
-    ierr = VecResetArray(W->cv[1]);CHKERRQ(ierr);
+  ierr = MatHasOperation(A,MATOP_MAT_MULT,&flg);CHKERRQ(ierr);
+  if (V->vmm && flg) {
+    m = V->k-V->l;
+    if (V->vmm==BV_MATMULT_MAT_SAVE) {
+      ierr = BV_AllocateMatMult(V,A,m);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(V->B,&pb);CHKERRQ(ierr);
+      ierr = PetscMemcpy(pb,pv+(V->nc+V->l)*V->n,m*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = MatDenseRestoreArray(V->B,&pb);CHKERRQ(ierr);
+    } else {  /* BV_MATMULT_MAT */
+      ierr = MatCreateDense(PetscObjectComm((PetscObject)V),V->n,PETSC_DECIDE,V->N,m,pv+(V->nc+V->l)*V->n,&V->B);CHKERRQ(ierr);
+    }
+    if (!V->C) {
+      ierr = MatMatMultSymbolic(A,V->B,PETSC_DEFAULT,&V->C);CHKERRQ(ierr);
+    }
+    ierr = MatMatMultNumeric(A,V->B,V->C);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(V->C,&pc);CHKERRQ(ierr);
+    ierr = PetscMemcpy(pw+(W->nc+W->l)*W->n,pc,m*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(V->C,&pc);CHKERRQ(ierr);
+    if (V->vmm==BV_MATMULT_MAT) {
+      ierr = MatDestroy(&V->B);CHKERRQ(ierr);
+      ierr = MatDestroy(&V->C);CHKERRQ(ierr);
+    }
+  } else {
+    for (j=0;j<V->k-V->l;j++) {
+      ierr = VecPlaceArray(V->cv[1],pv+(V->nc+V->l+j)*V->n);CHKERRQ(ierr);
+      ierr = VecPlaceArray(W->cv[1],pw+(W->nc+W->l+j)*W->n);CHKERRQ(ierr);
+      ierr = MatMult(A,V->cv[1],W->cv[1]);CHKERRQ(ierr);
+      ierr = VecResetArray(V->cv[1]);CHKERRQ(ierr);
+      ierr = VecResetArray(W->cv[1]);CHKERRQ(ierr);
+    }
   }
   ierr = MatDenseRestoreArray(v->A,&pv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(w->A,&pw);CHKERRQ(ierr);
@@ -357,6 +424,7 @@ PetscErrorCode BVView_Mat(BV bv,PetscViewer viewer)
   BV_MAT            *ctx = (BV_MAT*)bv->data;
   PetscViewerFormat format;
   PetscBool         isascii;
+  const char        *bvname,*name;
 
   PetscFunctionBegin;
   ierr = MatView(ctx->A,viewer);CHKERRQ(ierr);
@@ -364,9 +432,11 @@ PetscErrorCode BVView_Mat(BV bv,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s=%s;clear %s\n",((PetscObject)bv)->name,((PetscObject)ctx->A)->name,((PetscObject)ctx->A)->name);CHKERRQ(ierr);
+      ierr = PetscObjectGetName((PetscObject)bv,&bvname);CHKERRQ(ierr);
+      ierr = PetscObjectGetName((PetscObject)ctx->A,&name);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=%s;clear %s\n",bvname,name,name);CHKERRQ(ierr);
       if (bv->nc) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%d:end);\n",((PetscObject)bv)->name,((PetscObject)bv)->name,bv->nc+1);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%D:end);\n",bvname,bvname,bv->nc+1);CHKERRQ(ierr);
       }
     }
   }
@@ -435,8 +505,10 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->axpy             = BVAXPY_Mat;
   bv->ops->dot              = BVDot_Mat;
   bv->ops->dotvec           = BVDotVec_Mat;
+  bv->ops->dotvec_local     = BVDotVec_Local_Mat;
   bv->ops->scale            = BVScale_Mat;
   bv->ops->norm             = BVNorm_Mat;
+  bv->ops->norm_local       = BVNorm_Local_Mat;
   /*bv->ops->orthogonalize    = BVOrthogonalize_Mat;*/
   bv->ops->matmult          = BVMatMult_Mat;
   bv->ops->copy             = BVCopy_Mat;

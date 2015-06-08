@@ -34,7 +34,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/mfnimpl.h>
+#include <slepc/private/mfnimpl.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNSetUp_Krylov"
@@ -113,10 +113,10 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscInt       mxstep,mxrej,m,mb,ld,i,j,ireject,mx,k1;
   Vec            v,r;
   Mat            M=NULL,K=NULL;
-  PetscScalar    *H,*B,*F,*betaF;
+  PetscScalar    *H,*B,*F,*betaF,t,sgn;
   PetscReal      anorm,normb,avnorm,tol,err_loc,rndoff;
-  PetscReal      t,t_out,t_new,t_now,t_step;
-  PetscReal      xm,fact,s,sgn,p1,p2;
+  PetscReal      t_out,t_new,t_now,t_step;
+  PetscReal      xm,fact,s,p1,p2;
   PetscReal      beta,gamma,delta;
   PetscBool      breakdown;
 
@@ -128,8 +128,8 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   gamma = 0.9;
   delta = 1.2;
   mb    = m;
-  t     = PetscRealPart(mfn->sfactor);
-  t_out = PetscAbsReal(t);
+  t     = mfn->sfactor;
+  t_out = PetscAbsScalar(t);
   t_new = 0.0;
   t_now = 0.0;
   ierr = MatNorm(mfn->A,NORM_INFINITY,&anorm);CHKERRQ(ierr);
@@ -142,9 +142,9 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   beta = normb;
   fact = PetscPowRealInt((m+1)/2.72,m+1)*PetscSqrtReal(2*PETSC_PI*(m+1));
   t_new = (1.0/anorm)*PetscPowReal((fact*tol)/(4.0*beta*anorm),xm);
-  s = PetscPowReal(10,PetscFloorReal(PetscLog10Real(t_new))-1);
+  s = PetscPowReal(10.0,PetscFloorReal(PetscLog10Real(t_new))-1);
   t_new = PetscCeilReal(t_new/s)*s;
-  sgn = PetscSign(t);
+  sgn = t/PetscAbsScalar(t);
 
   ierr = VecCopy(b,x);CHKERRQ(ierr);
   ld = m+2;
@@ -213,7 +213,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
       if (err_loc <= delta*t_step*tol) break;
       else {
         t_step = gamma*t_step*PetscPowReal(t_step*tol/err_loc,xm);
-        s = PetscPowReal(10,PetscFloorReal(PetscLog10Real(t_step))-1);
+        s = PetscPowReal(10.0,PetscFloorReal(PetscLog10Real(t_step))-1);
         t_step = PetscCeilReal(t_step/s)*s;
         ireject = ireject+1;
       }
@@ -231,7 +231,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     if (t_now>=t_out) mfn->reason = MFN_CONVERGED_TOL;
     else {
       t_new = gamma*t_step*PetscPowReal((t_step*tol)/err_loc,xm);
-      s = PetscPowReal(10,PetscFloorReal(PetscLog10Real(t_new))-1);
+      s = PetscPowReal(10.0,PetscFloorReal(PetscLog10Real(t_new))-1);
       t_new = PetscCeilReal(t_new/s)*s;
     }
     err_loc = PetscMax(err_loc,rndoff);

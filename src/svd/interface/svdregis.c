@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>       /*I "slepcsvd.h" I*/
+#include <slepc/private/svdimpl.h>       /*I "slepcsvd.h" I*/
 
 PETSC_EXTERN PetscErrorCode SVDCreate_Cross(SVD);
 PETSC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD);
@@ -43,6 +43,7 @@ PetscErrorCode SVDRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (SVDRegisterAllCalled) PetscFunctionReturn(0);
   SVDRegisterAllCalled = PETSC_TRUE;
   ierr = SVDRegister(SVDCROSS,SVDCreate_Cross);CHKERRQ(ierr);
   ierr = SVDRegister(SVDCYCLIC,SVDCreate_Cyclic);CHKERRQ(ierr);
@@ -51,3 +52,4 @@ PetscErrorCode SVDRegisterAll(void)
   ierr = SVDRegister(SVDTRLANCZOS,SVDCreate_TRLanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

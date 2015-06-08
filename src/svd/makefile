@@ -21,11 +21,11 @@
 
 ALL: lib
 
-SOURCEH  = ../../include/slepc-private/svdimpl.h ../../include/slepcsvd.h
+SOURCEH  = ../../include/slepc/private/svdimpl.h ../../include/slepcsvd.h
 DIRS     = interface impls examples f90-mod
 LOCDIR   = src/svd/
 MANSEC   = SVD
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

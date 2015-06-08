@@ -94,7 +94,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSGetTolerances(eps,&tol,NULL);CHKERRQ(ierr);
-  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
+  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
   if (nconv>0) {
     ierr = VecDuplicateVecs(v,nconv,&X);CHKERRQ(ierr);

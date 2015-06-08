@@ -21,7 +21,42 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>   /*I "slepcsvd.h" I*/
+#include <slepc/private/svdimpl.h>   /*I "slepcsvd.h" I*/
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDComputeVectors"
+PetscErrorCode SVDComputeVectors(SVD svd)
+{
+  PetscErrorCode ierr;
+  Vec            tl,uj,vj;
+  PetscInt       j;
+  PetscReal      norm;
+
+  PetscFunctionBegin;
+  SVDCheckSolved(svd,1);
+  switch (svd->state) {
+  case SVD_STATE_SOLVED:
+    /* generate left singular vectors on U */
+    if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
+    ierr = SVDMatCreateVecs(svd,NULL,&tl);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
+    ierr = VecDestroy(&tl);CHKERRQ(ierr);
+    for (j=0;j<svd->nconv;j++) {
+      ierr = BVGetColumn(svd->V,j,&vj);CHKERRQ(ierr);
+      ierr = BVGetColumn(svd->U,j,&uj);CHKERRQ(ierr);
+      ierr = SVDMatMult(svd,PETSC_FALSE,vj,uj);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(svd->V,j,&vj);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(svd->U,j,&uj);CHKERRQ(ierr);
+      ierr = BVOrthogonalizeColumn(svd->U,j,NULL,&norm,NULL);CHKERRQ(ierr);
+      ierr = BVScaleColumn(svd->U,j,1.0/norm);CHKERRQ(ierr);
+    }
+    break;
+  default:
+    break;
+  }
+  svd->state = SVD_STATE_VECTORS;
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSolve"
@@ -35,7 +70,12 @@
 
    Options Database Keys:
 +  -svd_view - print information about the solver used
--  -svd_view_mat binary - save the matrix to the default binary viewer
+.  -svd_view_mat binary - save the matrix to the default binary viewer
+.  -svd_view_vectors binary - save the computed singular vectors to the default binary viewer
+.  -svd_view_values - print computed singular values
+.  -svd_converged_reason - print reason for convergence, and number of iterations
+.  -svd_error_absolute - print absolute errors of each singular triplet
+-  -svd_error_relative - print relative errors of each singular triplet
 
    Level: beginner
 
@@ -43,11 +83,8 @@
 @*/
 PetscErrorCode SVDSolve(SVD svd)
 {
-  PetscErrorCode    ierr;
-  PetscBool         flg;
-  PetscInt          i,*workperm;
-  PetscViewer       viewer;
-  PetscViewerFormat format;
+  PetscErrorCode ierr;
+  PetscInt       i,*workperm;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -60,14 +97,16 @@ PetscErrorCode SVDSolve(SVD svd)
   for (i=0;i<svd->ncv;i++) {
     svd->sigma[i]  = 0.0;
     svd->errest[i] = 0.0;
+    svd->perm[i]   = i;
   }
   ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);CHKERRQ(ierr);
+  ierr = SVDViewFromOptions(svd,NULL,"-svd_view_pre");CHKERRQ(ierr);
 
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
+  svd->state = (svd->leftbasis)? SVD_STATE_VECTORS: SVD_STATE_SOLVED;
 
   /* sort singular triplets */
   if (svd->which == SVD_SMALLEST) {
-    for (i=0;i<svd->nconv;i++) svd->perm[i] = i;
     ierr = PetscSortRealWithPermutation(svd->nconv,svd->sigma,svd->perm);CHKERRQ(ierr);
   } else {
     ierr = PetscMalloc(sizeof(PetscInt)*svd->nconv,&workperm);CHKERRQ(ierr);
@@ -76,20 +115,15 @@ PetscErrorCode SVDSolve(SVD svd)
     for (i=0;i<svd->nconv;i++) svd->perm[i] = workperm[svd->nconv-i-1];
     ierr = PetscFree(workperm);CHKERRQ(ierr);
   }
-
-  svd->lvecsavail = (svd->leftbasis)? PETSC_TRUE: PETSC_FALSE;
   ierr = PetscLogEventEnd(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
 
   /* various viewers */
-  ierr = MatViewFromOptions(svd->OP,((PetscObject)svd)->prefix,"-svd_view_mat");CHKERRQ(ierr);
-
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->prefix,"-svd_view",&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg && !PetscPreLoadingOn) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = SVDView(svd,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-  }
+  ierr = SVDViewFromOptions(svd,NULL,"-svd_view");CHKERRQ(ierr);
+  ierr = SVDReasonViewFromOptions(svd);CHKERRQ(ierr);
+  ierr = SVDErrorViewFromOptions(svd);CHKERRQ(ierr);
+  ierr = SVDValuesViewFromOptions(svd);CHKERRQ(ierr);
+  ierr = SVDVectorsViewFromOptions(svd);CHKERRQ(ierr);
+  ierr = MatViewFromOptions(svd->OP,(PetscObject)svd,"-svd_view_mat");CHKERRQ(ierr);
 
   /* Remove the initial subspaces */
   svd->nini = 0;
@@ -114,13 +148,14 @@ PetscErrorCode SVDSolve(SVD svd)
 
    Level: intermediate
 
-   Notes:
-      During the i-th iteration this call returns i-1. If SVDSolve() is
-      complete, then parameter "its" contains either the iteration number at
-      which convergence was successfully reached, or failure was detected.
-      Call SVDGetConvergedReason() to determine if the solver converged or
-      failed and why.
+   Note:
+   During the i-th iteration this call returns i-1. If SVDSolve() is
+   complete, then parameter "its" contains either the iteration number at
+   which convergence was successfully reached, or failure was detected.
+   Call SVDGetConvergedReason() to determine if the solver converged or
+   failed and why.
 
+.seealso: SVDGetConvergedReason(), SVDSetTolerances()
 @*/
 PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 {
@@ -133,7 +168,7 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetConvergedReason"
-/*@C
+/*@
    SVDGetConvergedReason - Gets the reason why the SVDSolve() iteration was
    stopped.
 
@@ -162,6 +197,7 @@ PetscErrorCode SVDGetConvergedReason(SVD svd,SVDConvergedReason *reason)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidIntPointer(reason,2);
+  SVDCheckSolved(svd,1);
   *reason = svd->reason;
   PetscFunctionReturn(0);
 }
@@ -190,6 +226,7 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidIntPointer(nconv,2);
+  SVDCheckSolved(svd,1);
   *nconv = svd->nconv;
   PetscFunctionReturn(0);
 }
@@ -213,46 +250,36 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
 -  v     - right singular vector
 
    Note:
-   The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
    Both U or V can be NULL if singular vectors are not required.
+   Otherwise, the caller must provide valid Vec objects, i.e.,
+   they must be created by the calling program with e.g. MatCreateVecs().
+
+   The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
+   Singular triplets are indexed according to the ordering criterion established
+   with SVDSetWhichSingularTriplets().
 
    Level: beginner
 
-.seealso: SVDSolve(),  SVDGetConverged()
+.seealso: SVDSolve(), SVDGetConverged(), SVDSetWhichSingularTriplets()
 @*/
 PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,Vec v)
 {
   PetscErrorCode ierr;
-  PetscReal      norm;
-  PetscInt       j,M,N;
-  Vec            w,tl,vj,uj;
+  PetscInt       M,N;
+  Vec            w;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveInt(svd,i,2);
+  SVDCheckSolved(svd,1);
   if (u) { PetscValidHeaderSpecific(u,VEC_CLASSID,4); PetscCheckSameComm(svd,1,u,4); }
   if (v) { PetscValidHeaderSpecific(v,VEC_CLASSID,5); PetscCheckSameComm(svd,1,v,5); }
-  if (svd->reason == SVD_CONVERGED_ITERATING) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first");
   if (i<0 || i>=svd->nconv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   *sigma = svd->sigma[svd->perm[i]];
   ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   if (M<N) { w = u; u = v; v = w; }
   if (u) {
-    if (!svd->lvecsavail) {  /* generate left singular vectors on U */
-      if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
-      ierr = SVDMatCreateVecs(svd,NULL,&tl);CHKERRQ(ierr);
-      ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
-      ierr = VecDestroy(&tl);CHKERRQ(ierr);
-      for (j=0;j<svd->nconv;j++) {
-        ierr = BVGetColumn(svd->V,j,&vj);CHKERRQ(ierr);
-        ierr = BVGetColumn(svd->U,j,&uj);CHKERRQ(ierr);
-        ierr = SVDMatMult(svd,PETSC_FALSE,vj,uj);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(svd->V,j,&vj);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(svd->U,j,&uj);CHKERRQ(ierr);
-        ierr = BVOrthogonalizeColumn(svd->U,j,NULL,&norm,NULL);CHKERRQ(ierr);
-        ierr = BVScaleColumn(svd->U,j,1.0/norm);CHKERRQ(ierr);
-      }
-      svd->lvecsavail = PETSC_TRUE;
-    }
+    ierr = SVDComputeVectors(svd);CHKERRQ(ierr);
     ierr = BVCopyVec(svd->U,svd->perm[i],u);CHKERRQ(ierr);
   }
   if (v) {
@@ -262,31 +289,12 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDComputeResidualNorms"
-/*@
-   SVDComputeResidualNorms - Computes the norms of the residual vectors associated with
-   the i-th computed singular triplet.
-
-   Collective on SVD
-
-   Input Parameters:
-+  svd  - the singular value solver context
--  i    - the solution index
-
-   Output Parameters:
-+  norm1 - the norm ||A*v-sigma*u||_2 where sigma is the
-           singular value, u and v are the left and right singular vectors.
--  norm2 - the norm ||A^T*u-sigma*v||_2 with the same sigma, u and v
-
-   Note:
-   The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
-   Both output parameters can be NULL on input if not needed.
-
-   Level: beginner
-
-.seealso: SVDSolve(), SVDGetConverged(), SVDComputeRelativeError()
+#define __FUNCT__ "SVDComputeResidualNorms_Private"
+/*
+   SVDComputeResidualNorms_Private - Computes the norms of the left and
+   right residuals associated with the i-th computed singular triplet.
 @*/
-PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,PetscReal *norm2)
+static PetscErrorCode SVDComputeResidualNorms_Private(SVD svd,PetscInt i,PetscReal *norm1,PetscReal *norm2)
 {
   PetscErrorCode ierr;
   Vec            u,v,x = NULL,y = NULL;
@@ -294,19 +302,16 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,Petsc
   PetscInt       M,N;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidLogicalCollectiveInt(svd,i,2);
-  if (svd->reason == SVD_CONVERGED_ITERATING) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSolve must be called first");
-  if (i<0 || i>=svd->nconv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
-
   ierr = MatCreateVecs(svd->OP,&v,&u);CHKERRQ(ierr);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
+  /* norm1 = ||A*v-sigma*u||_2 */
   if (norm1) {
     ierr = VecDuplicate(u,&x);CHKERRQ(ierr);
     ierr = MatMult(svd->OP,v,x);CHKERRQ(ierr);
     ierr = VecAXPY(x,-sigma,u);CHKERRQ(ierr);
     ierr = VecNorm(x,NORM_2,norm1);CHKERRQ(ierr);
   }
+  /* norm2 = ||A^T*u-sigma*v||_2 */
   if (norm2) {
     ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
     if (svd->A && svd->AT) {
@@ -335,28 +340,32 @@ PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *norm1,Petsc
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDComputeRelativeError"
+#define __FUNCT__ "SVDComputeError"
 /*@
-   SVDComputeRelativeError - Computes the relative error bound associated
+   SVDComputeError - Computes the error (based on the residual norm) associated
    with the i-th singular triplet.
 
    Collective on SVD
 
    Input Parameter:
-+  svd - the singular value solver context
--  i   - the solution index
++  svd  - the singular value solver context
+.  i    - the solution index
+-  type - the type of error to compute
 
    Output Parameter:
-.  error - the relative error bound, computed as sqrt(n1^2+n2^2)/sigma
-   where n1 = ||A*v-sigma*u||_2 , n2 = ||A^T*u-sigma*v||_2 , sigma is the singular value,
-   u and v are the left and right singular vectors.
-   If sigma is too small the relative error is computed as sqrt(n1^2+n2^2).
+.  error - the error
+
+   Notes:
+   The error can be computed in various ways, all of them based on the residual
+   norm obtained as sqrt(n1^2+n2^2) with n1 = ||A*v-sigma*u||_2 and
+   n2 = ||A^T*u-sigma*v||_2, where sigma is the singular value, u is the left
+   singular vector and v is the right singular vector.
 
    Level: beginner
 
-.seealso: SVDSolve(), SVDComputeResidualNorms()
+.seealso: SVDErrorType, SVDSolve()
 @*/
-PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
+PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *error)
 {
   PetscErrorCode ierr;
   PetscReal      sigma,norm1,norm2;
@@ -364,11 +373,21 @@ PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *error)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,i,2);
-  PetscValidPointer(error,3);
+  PetscValidLogicalCollectiveEnum(svd,type,3);
+  PetscValidPointer(error,4);
+  SVDCheckSolved(svd,1);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,NULL);CHKERRQ(ierr);
-  ierr = SVDComputeResidualNorms(svd,i,&norm1,&norm2);CHKERRQ(ierr);
+  ierr = SVDComputeResidualNorms_Private(svd,i,&norm1,&norm2);CHKERRQ(ierr);
   *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
-  if (sigma>*error) *error /= sigma;
+  switch (type) {
+    case SVD_ERROR_ABSOLUTE:
+      break;
+    case SVD_ERROR_RELATIVE:
+      *error /= sigma;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
+  }
   PetscFunctionReturn(0);
 }
 

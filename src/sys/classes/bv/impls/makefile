@@ -26,6 +26,6 @@ DIRS     = vecs contiguous svec mat
 LOCDIR   = src/sys/classes/bv/impls/
 MANSEC   = BV
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

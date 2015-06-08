@@ -27,30 +27,30 @@ LOCDIR = .
 DIRS   = src include docs
 
 # Include the rest of makefiles
-include ./${PETSC_ARCH}/conf/slepcvariables
-include ${SLEPC_DIR}/conf/slepc_common
+include ./${PETSC_ARCH}/lib/slepc/conf/slepcvariables
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 #
 # Basic targets to build SLEPc library
 all: chk_makej
-	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ./${PETSC_ARCH}/conf/make.log
+	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ./${PETSC_ARCH}/lib/slepc/conf/make.log
 	@if [ "${MAKE_IS_GNUMAKE}" != "" ]; then \
-	   ${OMAKE_PRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-gnumake-local 2>&1 | tee -a ./${PETSC_ARCH}/conf/make.log; \
+	   ${OMAKE_PRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-gnumake-local 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
 	elif [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
 	   if [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
 	     ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} cmakegen; \
 	   fi; \
-	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-cmake-local 2>&1 | tee ./${PETSC_ARCH}/conf/make.log \
+	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-cmake-local 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/make.log \
 	          | egrep -v '( --check-build-system |cmake -E | -o CMakeFiles/slepc[[:lower:]]*.dir/| -o lib/libslepc|CMakeFiles/slepc[[:lower:]]*\.dir/(build|depend|requires)|-f CMakeFiles/Makefile2|Dependee .* is newer than depender |provides\.build. is up to date)'; \
 	 else \
-	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-legacy-local 2>&1 | tee ./${PETSC_ARCH}/conf/make.log | ${GREP} -v "has no symbols"; \
+	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-legacy-local 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/make.log | ${GREP} -v "has no symbols"; \
 	 fi
-	@egrep -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/conf/make.log | tee ./${PETSC_ARCH}/conf/error.log > /dev/null
-	@if test -s ./${PETSC_ARCH}/conf/error.log; then \
-           printf ${PETSC_TEXT_HILIGHT}"*******************************ERROR************************************\n" 2>&1 | tee -a ./${PETSC_ARCH}/conf/make.log; \
-           echo "  Error during compile, check ./${PETSC_ARCH}/conf/make.log" 2>&1 | tee -a ./${PETSC_ARCH}/conf/make.log; \
-           echo "  Send all contents of ./${PETSC_ARCH}/conf to slepc-maint@grycap.upv.es" 2>&1 | tee -a ./${PETSC_ARCH}/conf/make.log;\
-           printf "************************************************************************"${PETSC_TEXT_NORMAL}"\n" 2>&1 | tee -a ./${PETSC_ARCH}/conf/make.log; \
+	@egrep -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/lib/slepc/conf/make.log | tee ./${PETSC_ARCH}/lib/slepc/conf/error.log > /dev/null
+	@if test -s ./${PETSC_ARCH}/lib/slepc/conf/error.log; then \
+           printf ${PETSC_TEXT_HILIGHT}"*******************************ERROR************************************\n" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
+           echo "  Error during compile, check ./${PETSC_ARCH}/lib/slepc/conf/make.log" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
+           echo "  Send all contents of ./${PETSC_ARCH}/lib/slepc/conf to slepc-maint@upv.es" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log;\
+           printf "************************************************************************"${PETSC_TEXT_NORMAL}"\n" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
 	 elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
            echo "Now to check if the library is working do: make test";\
            echo "=========================================";\
@@ -59,7 +59,7 @@ all: chk_makej
 	   echo "make SLEPC_DIR=${PWD} PETSC_DIR=${PETSC_DIR} install";\
 	   echo "=========================================";\
 	 fi
-	@if test -s ./${PETSC_ARCH}/conf/error.log; then exit 1; fi
+	@if test -s ./${PETSC_ARCH}/lib/slepc/conf/error.log; then exit 1; fi
 
 cmakegen:
 	-@${PYTHON} config/cmakegen.py
@@ -90,7 +90,7 @@ all-legacy-local: chk_makej chk_petsc_dir chk_slepc_dir chklib_dir info deleteli
 #
 info: chk_makej
 	-@echo "=========================================="
-	-@echo On `date` on `hostname`
+	-@echo Starting on `hostname` at `date`
 	-@echo Machine characteristics: `uname -a`
 	-@echo "-----------------------------------------"
 	-@echo "Using SLEPc directory: ${SLEPC_DIR}"
@@ -103,7 +103,7 @@ info: chk_makej
 	-@echo "-----------------------------------------"
 	-@echo "Using PETSc configure options: ${CONFIGURE_OPTIONS}"
 	-@echo "Using SLEPc configuration flags:"
-	-@cat ${SLEPC_DIR}/${PETSC_ARCH}/conf/slepcvariables
+	-@cat ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/slepcvariables
 	-@grep "\#define " ${SLEPC_DIR}/${PETSC_ARCH}/include/slepcconf.h
 	-@echo "Using PETSc configuration flags:"
 	-@if [ "${INSTALLED_PETSC}" != "" ]; then \
@@ -145,7 +145,7 @@ build: chk_makej
 # Simple test examples for checking a correct installation
 check: test
 test:
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} test_build 2>&1 | tee ./${PETSC_ARCH}/conf/test.log
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} test_build 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/test.log
 test_build:
 	-@echo "Running test examples to verify correct installation"
 	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
@@ -224,6 +224,9 @@ allclean:
 	else \
 	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} allclean-legacy; \
 	fi
+
+clean:: allclean
+
 #
 # Check if PETSC_DIR variable specified is valid
 #
@@ -250,13 +253,7 @@ chk_slepc_dir:
 # Install relevant files in the prefix directory
 #
 install:
-	-@if [ "${PETSC_ARCH}" = "" ]; then \
-	  echo "PETSC_ARCH is undefined";\
-	elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
-	  echo "SLEPc is built without prefix option, rerun configure with --prefix";\
-        else \
-	  ${PYTHON} ${SLEPC_DIR}/config/install.py ${SLEPC_DIR} ${PETSC_DIR} ${SLEPC_DESTDIR} ${PETSC_ARCH} ${AR_LIB_SUFFIX} ${RANLIB}; \
-        fi;
+	-@${PYTHON} ./config/install.py ${SLEPC_DIR} ${PETSC_DIR} ${SLEPC_DESTDIR} ${PETSC_ARCH} ${AR_LIB_SUFFIX} ${RANLIB};
 
 # ------------------------------------------------------------------
 #
@@ -303,8 +300,8 @@ docsetdate: chk_petscdir
         gitver=`git describe`; \
         export gitver; \
         find * -type d -wholename 'arch-*' -prune -o -type f -name \*.html \
-          -exec perl -pi -e 's^(<body.*>)^$$1\n   <div id=\"version\" align=right><b>$$ENV{slepcversion} $$ENV{datestr}</b></div>\n   <div id="bugreport" align=right><a href="mailto:slepc-maint\@grycap.upv.es?subject=Typo or Error in Documentation &body=Please describe the typo or error in the documentation: $$ENV{slepcversion} $$ENV{gitver} {} "><small>Report Typos and Errors</small></a></div>^i' {} \; \
-          -exec perl -pi -e 's^(<head>)^$$1 <link rel="canonical" href="http://www.grycap.upv.es/slepc/documentation/current/{}" />^i' {} \; ; \
+          -exec perl -pi -e 's^(<body.*>)^$$1\n   <div id=\"version\" align=right><b>$$ENV{slepcversion} $$ENV{datestr}</b></div>\n   <div id="bugreport" align=right><a href="mailto:slepc-maint\@upv.es?subject=Typo or Error in Documentation &body=Please describe the typo or error in the documentation: $$ENV{slepcversion} $$ENV{gitver} {} "><small>Report Typos and Errors</small></a></div>^i' {} \; \
+          -exec perl -pi -e 's^(<head>)^$$1 <link rel="canonical" href="http://slepc.upv.es/documentation/current/{}" />^i' {} \; ; \
         echo "Done fixing version number, date, canonical URL info"
 
 # Deletes documentation
@@ -319,10 +316,10 @@ allcleanhtml:
 
 # Builds Fortran stub files
 allfortranstubs:
-	-@${RM} -rf include/finclude/ftn-auto/*-tmpdir
-	-@${PYTHON} ${SLEPC_DIR}/config/generatefortranstubs.py ${BFORT}
-	-@${PYTHON} ${SLEPC_DIR}/config/generatefortranstubs.py -merge  ${VERBOSE}
-	-@${RM} -rf include/finclude/ftn-auto/*-tmpdir
+	-@${RM} -rf include/slepc/finclude/ftn-auto/*-tmpdir
+	-@${PYTHON} ${SLEPC_DIR}/bin/maint/generatefortranstubs.py ${BFORT}
+	-@${PYTHON} ${SLEPC_DIR}/bin/maint/generatefortranstubs.py -merge  ${VERBOSE}
+	-@${RM} -rf include/slepc/finclude/ftn-auto/*-tmpdir
 deletefortranstubs:
 	-@find . -type d -name ftn-auto | xargs rm -rf
 
@@ -378,8 +375,8 @@ checkbadfortranstubs:
 	cut -d'(' -f1 | cut -d' ' -f1,4; \
 	done; done
 
-# Generate tags with PETSc's script
+# Generate tags
 alletags:
-	-@${PYTHON} ${PETSC_DIR}/bin/maint/generateetags.py
+	-@${PYTHON} ${SLEPC_DIR}/bin/maint/generateetags.py
 	-@find config -type f -name "*.py" |grep -v SCCS | xargs etags -o TAGS_PYTHON
 

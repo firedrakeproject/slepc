@@ -22,10 +22,10 @@
 ALL: lib
 
 LIBBASE  = libslepcpep
-DIRS     = linear qarnoldi toar
+DIRS     = linear qarnoldi toar stoar jd
 LOCDIR   = src/pep/impls/
 MANSEC   = PEP
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

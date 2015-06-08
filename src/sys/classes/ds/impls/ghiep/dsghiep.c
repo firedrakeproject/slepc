@@ -18,7 +18,7 @@
    along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
-#include <slepc-private/dsimpl.h>
+#include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
@@ -127,8 +127,10 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
         }
       }
       for (i = ds->l;i<ds->k;i++) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",ds->k+1,i+1,*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
+        if (*(ds->rmat[DS_MAT_T]+2*ds->ld+i)) {
+          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",ds->k+1,i+1,*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
           ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,ds->k+1,*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
+        }
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_A]);CHKERRQ(ierr);
 
@@ -416,27 +418,19 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_TRUE);CHKERRQ(ierr);
   if (!ds->compact) { ierr = DSSwitchFormat_GHIEP(ds,PETSC_TRUE);CHKERRQ(ierr); }
   ierr = PetscMemcpy(ds->work,wr,n*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=ds->l;i<n;i++) {
-    wr[i] = *(ds->work + perm[i]);
-  }
+  for (i=ds->l;i<n;i++) wr[i] = *(ds->work+perm[i]);
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscMemcpy(ds->work,wi,n*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=ds->l;i<n;i++) {
-    wi[i] = *(ds->work + perm[i]);
-  }
+  for (i=ds->l;i<n;i++) wi[i] = *(ds->work+perm[i]);
 #endif
   ierr = PetscMemcpy(ds->rwork,s,n*sizeof(PetscReal));CHKERRQ(ierr);
-  for (i=ds->l;i<n;i++) {
-    s[i] = *(ds->rwork+perm[i]);
-  }
+  for (i=ds->l;i<n;i++) s[i] = *(ds->rwork+perm[i]);
   ierr = PetscMemcpy(ds->rwork,d,n*sizeof(PetscReal));CHKERRQ(ierr);
-  for (i=ds->l;i<n;i++) {
-    d[i] = *(ds->rwork  + perm[i]);
-  }
+  for (i=ds->l;i<n;i++) d[i] = *(ds->rwork+perm[i]);
   ierr = PetscMemcpy(ds->rwork,e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
   ierr = PetscMemzero(e+ds->l,(n-1-ds->l)*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=ds->l;i<n-1;i++) {
-    if (perm[i]<n-1) e[i] = *(ds->rwork + perm[i]);
+    if (perm[i]<n-1) e[i] = *(ds->rwork+perm[i]);
   }
   if (!ds->compact) { ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr); }
   ierr = DSPermuteColumns_Private(ds,ds->l,n,DS_MAT_Q,perm);CHKERRQ(ierr);
@@ -770,10 +764,10 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEHRD/ORGHR/HSEQR - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,off;
-  PetscBLASInt   n1,ld,one,info,lwork,mout;
+  PetscInt       i,off,nwu=0,n,lw;
+  PetscBLASInt   n_,ld,info,lwork;
   PetscScalar    *H,*A,*B,*Q,*X;
-  PetscReal      *d,*e,*s;
+  PetscReal      *d,*s;
 #if defined(PETSC_USE_COMPLEX)
   PetscInt       j,k;
 #endif
@@ -782,21 +776,20 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
   PetscValidPointer(wi,3);
 #endif
-  one = 1;
-  ierr = PetscBLASIntCast(ds->n-ds->l,&n1);CHKERRQ(ierr);
+  n = ds->n-ds->l;
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   off = ds->l + ds->l*ld;
   A = ds->mat[DS_MAT_A];
   B = ds->mat[DS_MAT_B];
   Q = ds->mat[DS_MAT_Q];
   d = ds->rmat[DS_MAT_T];
-  e = ds->rmat[DS_MAT_T] + ld;
   s = ds->rmat[DS_MAT_D];
-  ierr = DSAllocateWork_Private(ds,ld+ld*ld,2*ld,ld*2);CHKERRQ(ierr);
-  lwork = ld*ld;
+  lw = 14*ld+ld*ld;
+  ierr = DSAllocateWork_Private(ds,lw,2*ld,0);CHKERRQ(ierr);
 
   /* Quick return if possible */
-  if (n1 == 1) {
+  if (n_ == 1) {
     *(Q+off) = 1;
     if (!ds->compact) {
       d[ds->l] = PetscRealPart(A[off]);
@@ -806,90 +799,82 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
     if (wi) wi[ds->l] = 0.0;
     PetscFunctionReturn(0);
   }
-  /* Reduce to pseudotriadiagonal form */
-  ierr = DSIntermediate_GHIEP(ds);CHKERRQ(ierr);
 
-  /* form standard problem in H */
-  ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
-  H = ds->mat[DS_MAT_W];
+  /* Form pseudo-symmetric matrix */
+  H =  ds->work+nwu;
+  nwu += n*n;
+  ierr = PetscMemzero(H,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
   if (ds->compact) {
-    H[off] = d[ds->l]*s[ds->l];
-    H[off+ld] = e[ds->l]*s[ds->l];
-    for (i=ds->l+1;i<ds->n-1;i++) {
-      H[i+(i-1)*ld] = e[i-1]*s[i];
-      H[i+i*ld]     = d[i]*s[i];
-      H[i+(i+1)*ld] = e[i]*s[i];
+    for (i=0;i<n-1;i++) {
+      H[i+i*n]     = s[ds->l+i]*d[ds->l+i];
+      H[i+1+i*n]   = s[ds->l+i+1]*d[ld+ds->l+i];
+      H[i+(i+1)*n] = s[ds->l+i]*d[ld+ds->l+i];
     }
-    H[ds->n-1+(ds->n-2)*ld] = e[ds->n-2]*s[ds->n-1];
-    H[ds->n-1+(ds->n-1)*ld] = d[ds->n-1]*s[ds->n-1];
+    H[n-1+(n-1)*n] = s[ds->l+n-1]*d[ds->l+n-1];
+    for (i=0;i<ds->k-ds->l;i++) {
+      H[ds->k-ds->l+i*n] = s[ds->k]*d[2*ld+ds->l+i];
+      H[i+(ds->k-ds->l)*n] = s[i+ds->l]*d[2*ld+ds->l+i];
+    }
   } else {
-    s[ds->l] = PetscRealPart(B[off]);
-    H[off] = A[off]*s[ds->l];
-    H[off+ld] = A[off+ld]*s[ds->l];
-    for (i=ds->l+1;i<ds->n-1;i++) {
-      s[i] = PetscRealPart(B[i+i*ld]);
-      H[i+(i-1)*ld] = A[i+(i-1)*ld]*s[i];
-      H[i+i*ld]     = A[i+i*ld]*s[i];
-      H[i+(i+1)*ld] = A[i+(i+1)*ld]*s[i];
+    for (i=0;i<n-1;i++) {
+      H[i+i*n]     = B[off+i+i*ld]*A[off+i+i*ld];
+      H[i+1+i*n]   = B[off+i+1+(i+1)*ld]*A[off+i+1+i*ld];
+      H[i+(i+1)*n] = B[off+i+i*ld]*A[off+i+(i+1)*ld];
     }
-    s[ds->n-1] = PetscRealPart(B[ds->n-1+(ds->n-1)*ld]);
-    H[ds->n-1+(ds->n-2)*ld] = A[ds->n-1+(ds->n-2)*ld]*s[ds->n-1];
-    H[ds->n-1+(ds->n-1)*ld] = A[ds->n-1+(ds->n-1)*ld]*s[ds->n-1];
+    H[n-1+(n-1)*n] = B[off+n-1+(n-1)*ld]*A[off+n-1+(n-1)*n];
+    for (i=0;i<ds->k-ds->l;i++) {
+      H[ds->k-ds->l+i*n] = B[ds->k*(1+ld)]*A[off+ds->k-ds->l+i*ld];
+      H[i+(ds->k-ds->l)*n] = B[(i+ds->l)*(1+ld)]*A[off+i+(ds->k-ds->l)*ld];
+    }
   }
-  /* Compute the real Schur form */
+ 
+  /* Compute eigenpairs */
+  ierr = PetscBLASIntCast(lw-nwu,&lwork);CHKERRQ(ierr);  
   ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
   X = ds->mat[DS_MAT_X];
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n1,&one,&n1,H+off,&ld,wr+ds->l,wi+ds->l,X+off,&ld,ds->work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","V",&n_,H,&n_,wr+ds->l,wi+ds->l,NULL,&ld,X+off,&ld,ds->work+nwu,&lwork,&info));
 #else
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n1,&one,&n1,H+off,&ld,wr+ds->l,X+off,&ld,ds->work,&lwork,&info));
-#endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",&info);
-
-  /* Compute eigenvectors */
-#if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","B",NULL,&n1,H+off,&ld,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,&info));
-#else
-  PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","B",NULL,&n1,H+off,&ld,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,ds->rwork,&info));
+  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","V",&n_,H,&n_,wr+ds->l,NULL,&ld,X+off,&ld,ds->work+nwu,&lwork,ds->rwork,&info));
 
   /* Sort to have consecutive conjugate pairs 
      Separate real and imaginary part of complex eigenvectors*/
   for (i=ds->l;i<ds->n;i++) {
-      j=i+1;
-      while (j<ds->n && (PetscAbsScalar(wr[i]-PetscConj(wr[j]))>PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON)) j++;
-      if (j==ds->n) {
-        if (PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON) {
-          wr[i]=PetscRealPart(wr[i]); /* real eigenvalue */
-          for (k=ds->l;k<ds->n;k++) {
-            X[k+i*ds->ld] = PetscRealPart(X[k+i*ds->ld]);
-          }
-        } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"In QR_II complex without conjugate pair");
-      } else { /* complex eigenvalue */
-        if (j!=i+1) {
-          wr[j] = wr[i+1];
-          ierr = PetscMemcpy(X+j*ds->ld,X+(i+1)*ds->ld,ds->ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    j=i+1;
+    while (j<ds->n && (PetscAbsScalar(wr[i]-PetscConj(wr[j]))>PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON)) j++;
+    if (j==ds->n) {
+      if (PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON) {
+        wr[i]=PetscRealPart(wr[i]); /* real eigenvalue */
+        for (k=ds->l;k<ds->n;k++) {
+          X[k+i*ds->ld] = PetscRealPart(X[k+i*ds->ld]);
         }
-        if (PetscImaginaryPart(wr[i])<0) {
-          wr[i] = PetscConj(wr[i]);
-          for (k=ds->l;k<ds->n;k++) {
-            X[k+(i+1)*ds->ld] = -PetscImaginaryPart(X[k+i*ds->ld]);
-            X[k+i*ds->ld] = PetscRealPart(X[k+i*ds->ld]);
-          }
-        } else {
-          for (k=ds->l;k<ds->n;k++) {
-            X[k+(i+1)*ds->ld] = PetscImaginaryPart(X[k+i*ds->ld]);
-            X[k+i*ds->ld] = PetscRealPart(X[k+i*ds->ld]);
-          }
-        }
-        wr[i+1] = PetscConj(wr[i]);
-        i++;
+      } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"In QR_II complex without conjugate pair");
+    } else { /* complex eigenvalue */
+      if (j!=i+1) {
+        wr[j] = wr[i+1];
+        ierr = PetscMemcpy(X+j*ds->ld,X+(i+1)*ds->ld,ds->ld*sizeof(PetscScalar));CHKERRQ(ierr);
       }
+      if (PetscImaginaryPart(wr[i])<0) {
+        wr[i] = PetscConj(wr[i]);
+        for (k=ds->l;k<ds->n;k++) {
+          X[k+(i+1)*ds->ld] = -PetscImaginaryPart(X[k+i*ds->ld]);
+          X[k+i*ds->ld] = PetscRealPart(X[k+i*ds->ld]);
+        }
+      } else {
+        for (k=ds->l;k<ds->n;k++) {
+          X[k+(i+1)*ds->ld] = PetscImaginaryPart(X[k+i*ds->ld]);
+          X[k+i*ds->ld] = PetscRealPart(X[k+i*ds->ld]);
+        }
+      }
+      wr[i+1] = PetscConj(wr[i]);
+      i++;
+    }
   }
 #endif
-  if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTREVC %i",&info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",&info);
 
   /* Compute real s-orthonormal basis */
-  ierr = DSGHIEPOrthogEigenv(ds,DS_MAT_X,wr,wi,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = DSGHIEPOrthogEigenv(ds,DS_MAT_X,wr,wi,PETSC_FALSE);CHKERRQ(ierr);
 
   /* Recover eigenvalues from diagonal */
   ierr = DSGHIEPComplexEigs(ds,0,ds->l,wr,wi);CHKERRQ(ierr);

@@ -48,9 +48,8 @@ int main (int argc,char **argv)
   ST             st;              /* spectral transformation context */
   SampleShellST  *shell;          /* user-defined spectral transform context */
   EPSType        type;
-  PetscScalar    value[3];
-  PetscInt       n=30,i,col[3],Istart,Iend,FirstBlock=0,LastBlock=0,nev;
-  PetscBool      isShell;
+  PetscInt       n=30,i,Istart,Iend,nev;
+  PetscBool      isShell,terse;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -68,22 +67,11 @@ int main (int argc,char **argv)
   ierr = MatSetUp(A);CHKERRQ(ierr);
 
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
-  if (Istart==0) FirstBlock=PETSC_TRUE;
-  if (Iend==n) LastBlock=PETSC_TRUE;
-  value[0]=-1.0; value[1]=2.0; value[2]=-1.0;
-  for (i=(FirstBlock? Istart+1: Istart); i<(LastBlock? Iend-1: Iend); i++) {
-    col[0]=i-1; col[1]=i; col[2]=i+1;
-    ierr = MatSetValues(A,1,&i,3,col,value,INSERT_VALUES);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    if (i>0) { ierr = MatSetValue(A,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<n-1) { ierr = MatSetValue(A,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    ierr = MatSetValue(A,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
   }
-  if (LastBlock) {
-    i=n-1; col[0]=n-2; col[1]=n-1;
-    ierr = MatSetValues(A,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  if (FirstBlock) {
-    i=0; col[0]=0; col[1]=1; value[0]=2.0; value[1]=-1.0;
-    ierr = MatSetValues(A,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
-  }
-
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
@@ -153,7 +141,16 @@ int main (int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
+  /* show detailed info unless -terse option is given by user */
+  ierr = PetscOptionsHasName(NULL,"-terse",&terse);CHKERRQ(ierr);
+  if (terse) {
+    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+    ierr = EPSReasonView(eps,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  }
   if (isShell) {
     ierr = STDestroy_User(shell);CHKERRQ(ierr);
   }

@@ -19,14 +19,17 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/pepimpl.h>
+#include <slepc/private/pepimpl.h>
 
 static PetscBool PEPPackageInitialized = PETSC_FALSE;
 
 const char *PEPBasisTypes[] = {"MONOMIAL","CHEBYSHEV1","CHEBYSHEV2","LEGENDRE","LAGUERRE","HERMITE","PEPBasis","PEP_BASIS_",0};
 const char *PEPScaleTypes[] = {"NONE","SCALAR","DIAGONAL","BOTH","PEPScale","PEP_SCALE_",0};
 const char *PEPRefineTypes[] = {"NONE","SIMPLE","MULTIPLE","PEPRefine","PEP_REFINE_",0};
-const char *PEPExtractTypes[] = {"NORM","RESIDUAL","STRUCTURED","PEPExtract","PEP_EXTRACT_",0};
+const char *PEPExtractTypes[] = {"","NONE","NORM","RESIDUAL","STRUCTURED","PEPExtract","PEP_EXTRACT_",0};
+const char *PEPErrorTypes[] = {"ABSOLUTE","RELATIVE","BACKWARD","PEPErrorType","PEP_ERROR_",0};
+const char *const PEPConvergedReasons_Shifted[] = {"DIVERGED_SYMMETRY_LOST","DIVERGED_BREAKDOWN","DIVERGED_ITS","","","CONVERGED_ITERATING","","CONVERGED_TOL","PEPConvergedReason","PEP_",0};
+const char *const*PEPConvergedReasons = PEPConvergedReasons_Shifted + 5;
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPFinalizePackage"
@@ -71,7 +74,7 @@ PetscErrorCode PEPInitializePackage(void)
   if (PEPPackageInitialized) PetscFunctionReturn(0);
   PEPPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Polynomial Eigenvalue Problem solver",&PEP_CLASSID);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("PEP Solver",&PEP_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = PEPRegisterAll();CHKERRQ(ierr);
   /* Register Events */

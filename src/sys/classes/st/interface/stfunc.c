@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>            /*I "slepcst.h" I*/
+#include <slepc/private/stimpl.h>            /*I "slepcst.h" I*/
 
 PetscClassId     ST_CLASSID = 0;
 PetscLogEvent    ST_SetUp = 0,ST_Apply = 0,ST_ApplyTranspose = 0,ST_MatSetUp = 0,ST_MatMult = 0,ST_MatMultTranspose = 0,ST_MatSolve = 0,ST_MatSolveTranspose = 0;
@@ -134,7 +134,7 @@ PetscErrorCode STReset(ST st)
 
 #undef __FUNCT__
 #define __FUNCT__ "STDestroy"
-/*@C
+/*@
    STDestroy - Destroys ST context that was created with STCreate().
 
    Collective on ST
@@ -167,7 +167,7 @@ PetscErrorCode STDestroy(ST *st)
 
 #undef __FUNCT__
 #define __FUNCT__ "STCreate"
-/*@C
+/*@
    STCreate - Creates a spectral transformation context.
 
    Collective on MPI_Comm
@@ -191,7 +191,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   PetscValidPointer(newst,2);
   *newst = 0;
   ierr = STInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(st,_p_ST,struct _STOps,ST_CLASSID,"ST","Spectral Transformation","ST",comm,STDestroy,STView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(st,ST_CLASSID,"ST","Spectral Transformation","ST",comm,STDestroy,STView);CHKERRQ(ierr);
 
   st->A            = NULL;
   st->Astate       = NULL;
@@ -254,7 +254,7 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
   ierr = PetscMalloc(PetscMax(2,n)*sizeof(Mat),&st->A);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(Mat));CHKERRQ(ierr);
   ierr = PetscFree(st->Astate);CHKERRQ(ierr);
-  ierr = PetscMalloc(PetscMax(2,n)*sizeof(PetscInt),&st->Astate);CHKERRQ(ierr);
+  ierr = PetscMalloc(PetscMax(2,n)*sizeof(PetscObjectState),&st->Astate);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(PetscInt));CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
@@ -387,7 +387,6 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveScalar(st,shift,2);
-  PetscValidType(st,1);
   if (st->sigma != shift) {
     if (st->ops->setshift) {
       ierr = (*st->ops->setshift)(st,shift);CHKERRQ(ierr);
@@ -761,7 +760,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  all matrices have %s\n",pat);CHKERRQ(ierr);
     }
-    if (st->transform) {
+    if (st->transform && st->nmat>2) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing transformed matrices\n");CHKERRQ(ierr);
     }
   } else if (isstring) {

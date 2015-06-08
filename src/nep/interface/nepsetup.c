@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>       /*I "slepcnep.h" I*/
+#include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetUp"
@@ -249,7 +249,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
   newc = PetscMax(0,requested-oldsize);
 
   /* allocate space for eigenvalues and friends */
-  if (requested != oldsize) {
+  if (requested != oldsize || !nep->eigr) {
     if (oldsize) {
       ierr = PetscFree4(nep->eigr,nep->eigi,nep->errest,nep->perm);CHKERRQ(ierr);
     }

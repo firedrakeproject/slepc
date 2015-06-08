@@ -24,8 +24,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>                /*I "slepcsvd.h" I*/
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepc/private/svdimpl.h>                /*I "slepcsvd.h" I*/
+#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 
 typedef struct {
   EPS       eps;
@@ -91,8 +91,7 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
     ierr = MPI_Allreduce(work1,work2,N,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)svd));CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(cross->diag,&start,&end);CHKERRQ(ierr);
     ierr = VecGetArray(cross->diag,&diag);CHKERRQ(ierr);
-    for (i=start;i<end;i++)
-      diag[i-start] = work2[i];
+    for (i=start;i<end;i++) diag[i-start] = work2[i];
     ierr = VecRestoreArray(cross->diag,&diag);CHKERRQ(ierr);
     ierr = PetscFree2(work1,work2);CHKERRQ(ierr);
   }
@@ -190,14 +189,16 @@ static PetscErrorCode SVDMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,Petsc
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions_Cross"
-PetscErrorCode SVDSetFromOptions_Cross(SVD svd)
+PetscErrorCode SVDSetFromOptions_Cross(PetscOptions *PetscOptionsObject,SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
 
   PetscFunctionBegin;
+  ierr = PetscOptionsHead(PetscOptionsObject,"SVD Cross Options");CHKERRQ(ierr);
   if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
   ierr = EPSSetFromOptions(cross->eps);CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -213,7 +214,7 @@ static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
   ierr = EPSDestroy(&cross->eps);CHKERRQ(ierr);
   cross->eps = eps;
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->eps);CHKERRQ(ierr);
-  svd->setupcalled = 0;
+  svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

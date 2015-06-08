@@ -28,13 +28,12 @@ EXAMPLESC  = ex20.c ex21.c ex22.c
 EXAMPLESF  =
 MANSEC     = NEP
 
-TESTEXAMPLES_C           = ex20.PETSc runex20_1 ex20.rm \
-                           ex21.PETSc runex21_1 ex21.rm \
+TESTEXAMPLES_C           = ex21.PETSc runex21_1 ex21.rm \
                            ex22.PETSc runex22_1 ex22.rm
 TESTEXAMPLES_C_NOCOMPLEX =
 TESTEXAMPLES_F90         =
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 ex20: ex20.o chkopts
 	-${CLINKER} -o ex20 ex20.o ${SLEPC_NEP_LIB}
@@ -57,13 +56,13 @@ runex20_1:
 	   ${RM} -f ex20_1.tmp
 
 runex21_1:
-	-@${MPIEXEC} -np 1 ./ex21 > ex21_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex21 -terse > ex21_1.tmp 2>&1; \
 	   if (${DIFF} output/ex21_1.out ex21_1.tmp) then true; \
 	   else echo "Possible problem with ex21_1, diffs above"; fi; \
 	   ${RM} -f ex21_1.tmp
 
 runex22_1:
-	-@${MPIEXEC} -np 1 ./ex22 > ex22_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./ex22 -terse > ex22_1.tmp 2>&1; \
 	   if (${DIFF} output/ex22_1.out ex22_1.tmp) then true; \
 	   else echo "Possible problem with ex22_1, diffs above"; fi; \
 	   ${RM} -f ex22_1.tmp

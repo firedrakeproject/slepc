@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>
+#include <slepc/private/epsimpl.h>
 #include <../src/eps/impls/external/trlan/trlanp.h>
 
 PetscErrorCode EPSSolve_TRLAN(EPS);
@@ -125,7 +125,9 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   ipar[4]  = tr->maxlan;   /* maximum Lanczos basis size */
   ipar[5]  = tr->restart;  /* restarting scheme */
   ierr = PetscBLASIntCast(eps->max_it,&ipar[6]);CHKERRQ(ierr); /* maximum number of MATVECs */
+#if !defined(PETSC_HAVE_MPIUNI)
   ierr = PetscBLASIntCast(MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&ipar[7]);CHKERRQ(ierr);
+#endif
   ipar[8]  = 0;            /* verboseness */
   ipar[9]  = 99;           /* Fortran IO unit number used to write log messages */
   ipar[10] = 1;            /* use supplied starting vector */

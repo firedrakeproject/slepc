@@ -29,11 +29,9 @@ int main(int argc,char **argv)
 {
   Mat            A1,A2;       /* problem matrices */
   EPS            eps;         /* eigenproblem solver context */
-  PetscScalar    value[3];
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON,v;
   Vec            d;
-  PetscInt       n=30,i,Istart,Iend,col[3];
-  PetscBool      FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
+  PetscInt       n=30,i,Istart,Iend;
   PetscRandom    myrand;
   PetscErrorCode ierr;
 
@@ -51,22 +49,10 @@ int main(int argc,char **argv)
   ierr = MatSetUp(A1);CHKERRQ(ierr);
 
   ierr = MatGetOwnershipRange(A1,&Istart,&Iend);CHKERRQ(ierr);
-  if (Istart==0) FirstBlock=PETSC_TRUE;
-  if (Iend==n) LastBlock=PETSC_TRUE;
-  value[0]=-1.0; value[1]=0.0; value[2]=-1.0;
-  for (i=(FirstBlock? Istart+1: Istart); i<(LastBlock? Iend-1: Iend); i++) {
-    col[0]=i-1; col[1]=i; col[2]=i+1;
-    ierr = MatSetValues(A1,1,&i,3,col,value,INSERT_VALUES);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    if (i>0) { ierr = MatSetValue(A1,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<n-1) { ierr = MatSetValue(A1,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
   }
-  if (LastBlock) {
-    i=n-1; col[0]=n-2; col[1]=n-1;
-    ierr = MatSetValues(A1,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  if (FirstBlock) {
-    i=0; col[0]=0; col[1]=1; value[0]=0.0; value[1]=-1.0;
-    ierr = MatSetValues(A1,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
-  }
-
   ierr = MatAssemblyBegin(A1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
@@ -78,14 +64,14 @@ int main(int argc,char **argv)
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&myrand);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(myrand);CHKERRQ(ierr);
   ierr = PetscRandomSetInterval(myrand,0.0,1.0);CHKERRQ(ierr);
-  for (i=0; i<n; i++) {
+  for (i=Istart;i<Iend;i++) {
     ierr = PetscRandomGetValueReal(myrand,&v);CHKERRQ(ierr);
     ierr = VecSetValue(d,i,v,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = VecAssemblyBegin(d);CHKERRQ(ierr);
   ierr = VecAssemblyEnd(d);CHKERRQ(ierr);
   ierr = MatDiagonalSet(A1,d,INSERT_VALUES);CHKERRQ(ierr);
-  for (i=0; i<n; i++) {
+  for (i=Istart;i<Iend;i++) {
     ierr = PetscRandomGetValueReal(myrand,&v);CHKERRQ(ierr);
     ierr = VecSetValue(d,i,v,INSERT_VALUES);CHKERRQ(ierr);
   }
@@ -109,7 +95,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," - - - First matrix - - -\n");CHKERRQ(ierr);
-  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
+  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                         Solve second eigenproblem
@@ -117,7 +103,7 @@ int main(int argc,char **argv)
   ierr = EPSSetOperators(eps,A2,NULL);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Second matrix - - -\n");CHKERRQ(ierr);
-  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
+  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
 
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A1);CHKERRQ(ierr);

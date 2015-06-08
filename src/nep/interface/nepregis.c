@@ -19,11 +19,12 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>      /*I "slepcnep.h" I*/
+#include <slepc/private/nepimpl.h>      /*I "slepcnep.h" I*/
 
 PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP);
 PETSC_EXTERN PetscErrorCode NEPCreate_SLP(NEP);
 PETSC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP);
+PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP);
 PETSC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP);
 
 #undef __FUNCT__
@@ -42,10 +43,15 @@ PetscErrorCode NEPRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (NEPRegisterAllCalled) PetscFunctionReturn(0);
   NEPRegisterAllCalled = PETSC_TRUE;
   ierr = NEPRegister(NEPRII,NEPCreate_RII);CHKERRQ(ierr);
   ierr = NEPRegister(NEPSLP,NEPCreate_SLP);CHKERRQ(ierr);
   ierr = NEPRegister(NEPNARNOLDI,NEPCreate_NArnoldi);CHKERRQ(ierr);
   ierr = NEPRegister(NEPINTERPOL,NEPCreate_Interpol);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = NEPRegister(NEPCISS,NEPCreate_CISS);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
+

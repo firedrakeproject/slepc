@@ -19,17 +19,19 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <petsc-private/fortranimpl.h>
-#include <slepc-private/slepcimpl.h>
-#include <slepc-private/nepimpl.h>
+#include <petsc/private/fortranimpl.h>
+#include <slepc/private/slepcimpl.h>
+#include <slepc/private/nepimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define nepdestroy_                 NEPDESTROY
 #define nepview_                    NEPVIEW
+#define neperrorview_               NEPERRORVIEW
+#define nepreasonview_              NEPREASONVIEW
+#define nepvaluesview_              NEPVALUESVIEW
+#define nepvectorsview_             NEPVECTORSVIEW
 #define nepsetoptionsprefix_        NEPSETOPTIONSPREFIX
 #define nepappendoptionsprefix_     NEPAPPENDOPTIONSPREFIX
 #define nepgetoptionsprefix_        NEPGETOPTIONSPREFIX
-#define nepcreate_                  NEPCREATE
 #define nepsettype_                 NEPSETTYPE
 #define nepgettype_                 NEPGETTYPE
 #define nepmonitorall_              NEPMONITORALL
@@ -38,19 +40,16 @@
 #define nepmonitorset_              NEPMONITORSET
 #define nepmonitorconverged_        NEPMONITORCONVERGED
 #define nepmonitorfirst_            NEPMONITORFIRST
-#define nepgetbv_                   NEPGETBV
-#define nepgetds_                   NEPGETDS
-#define nepgetrg_                   NEPGETRG
-#define nepgetksp                   NEPGETKSP
 #define nepgetwhicheigenpairs_      NEPGETWHICHEIGENPAIRS
-#define nepgetconvergedreason_      NEPGETCONVERGEDREASON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define nepdestroy_                 nepdestroy
 #define nepview_                    nepview
+#define neperrorview_               neperrorview
+#define nepreasonview_              nepreasonview
+#define nepvaluesview_              nepvaluesview
+#define nepvectorsview_             nepvectorsview
 #define nepsetoptionsprefix_        nepsetoptionsprefix
 #define nepappendoptionsprefix_     nepappendoptionsprefix
 #define nepgetoptionsprefix_        nepgetoptionsprefix
-#define nepcreate_                  nepcreate
 #define nepsettype_                 nepsettype
 #define nepgettype_                 nepgettype
 #define nepmonitorall_              nepmonitorall
@@ -59,12 +58,7 @@
 #define nepmonitorset_              nepmonitorset
 #define nepmonitorconverged_        nepmonitorconverged
 #define nepmonitorfirst_            nepmonitorfirst
-#define nepgetbv_                   nepgetbv
-#define nepgetds_                   nepgetds
-#define nepgetrg_                   nepgetrg
-#define nepgetksp_                  nepgetksp
 #define nepgetwhicheigenpairs_      nepgetwhicheigenpairs
-#define nepgetconvergedreason_      nepgetconvergedreason
 #endif
 
 /*
@@ -117,16 +111,39 @@ static PetscErrorCode ourdestroy(void** ctx)
   PetscObjectUseFortranCallback(nep,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-PETSC_EXTERN void PETSC_STDCALL nepdestroy_(NEP *nep,PetscErrorCode *ierr)
-{
-  *ierr = NEPDestroy(nep);
-}
-
 PETSC_EXTERN void PETSC_STDCALL nepview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = NEPView(*nep,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepreasonview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = NEPReasonView(*nep,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL neperrorview_(NEP *nep,NEPErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = NEPErrorView(*nep,*etype,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepvaluesview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = NEPValuesView(*nep,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepvectorsview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = NEPVectorsView(*nep,v);
 }
 
 PETSC_EXTERN void PETSC_STDCALL nepsettype_(NEP *nep,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
@@ -163,11 +180,6 @@ PETSC_EXTERN void PETSC_STDCALL nepappendoptionsprefix_(NEP *nep,CHAR prefix PET
   FIXCHAR(prefix,len,t);
   *ierr = NEPAppendOptionsPrefix(*nep,t);
   FREECHAR(prefix,t);
-}
-
-PETSC_EXTERN void PETSC_STDCALL nepcreate_(MPI_Fint *comm,NEP *nep,PetscErrorCode *ierr)
-{
-  *ierr = NEPCreate(MPI_Comm_f2c(*(comm)),nep);
 }
 
 PETSC_EXTERN void PETSC_STDCALL nepgetoptionsprefix_(NEP *nep,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
@@ -213,33 +225,8 @@ PETSC_EXTERN void PETSC_STDCALL nepmonitorset_(NEP *nep,void (PETSC_STDCALL *mon
   }
 }
 
-PETSC_EXTERN void PETSC_STDCALL nepgetbv_(NEP *nep,BV *bv,PetscErrorCode *ierr)
-{
-  *ierr = NEPGetBV(*nep,bv);
-}
-
-PETSC_EXTERN void PETSC_STDCALL nepgetds_(NEP *nep,DS *ds,PetscErrorCode *ierr)
-{
-  *ierr = NEPGetDS(*nep,ds);
-}
-
-PETSC_EXTERN void PETSC_STDCALL nepgetrg_(NEP *nep,RG *rg,PetscErrorCode *ierr)
-{
-  *ierr = NEPGetRG(*nep,rg);
-}
-
-PETSC_EXTERN void PETSC_STDCALL nepgetksp_(NEP *nep,KSP *ksp,PetscErrorCode *ierr)
-{
-  *ierr = NEPGetKSP(*nep,ksp);
-}
-
 PETSC_EXTERN void PETSC_STDCALL nepgetwhicheigenpairs_(NEP *nep,NEPWhich *which,PetscErrorCode *ierr)
 {
   *ierr = NEPGetWhichEigenpairs(*nep,which);
-}
-
-PETSC_EXTERN void PETSC_STDCALL nepgetconvergedreason_(NEP *nep,NEPConvergedReason *reason,PetscErrorCode *ierr)
-{
-  *ierr = NEPGetConvergedReason(*nep,reason);
 }
 

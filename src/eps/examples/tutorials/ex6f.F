@@ -32,11 +32,12 @@
       program main
       implicit none
 
-#include <finclude/petscsys.h>
-#include <finclude/petscvec.h>
-#include <finclude/petscmat.h>
-#include <finclude/slepcsys.h>
-#include <finclude/slepceps.h>
+#include <petsc/finclude/petscsys.h>
+#include <petsc/finclude/petscvec.h>
+#include <petsc/finclude/petscmat.h>
+#include <petsc/finclude/petscviewer.h>
+#include <slepc/finclude/slepcsys.h>
+#include <slepc/finclude/slepceps.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Declarations
@@ -54,7 +55,7 @@
       PetscInt       nev, maxit, its
       PetscMPIInt    sz, rank
       PetscErrorCode ierr
-      PetscBool      flg
+      PetscBool      flg, terse
 
 !     This is the routine to use for matrix-free approach
 !
@@ -140,7 +141,18 @@
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-      call EPSPrintSolution(eps,PETSC_NULL_OBJECT,ierr)
+!     ** show detailed info unless -terse option is given by user
+      call PetscOptionsHasName(PETSC_NULL_CHARACTER,'-terse',terse,ierr)
+      if (terse) then
+        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
+      else
+        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,           &
+     &                   PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)
+        call EPSReasonView(eps,PETSC_VIEWER_STDOUT_WORLD,ierr)
+        call EPSErrorView(eps,EPS_ERROR_RELATIVE,                       &
+     &                   PETSC_VIEWER_STDOUT_WORLD,ierr)
+        call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr)
+      endif
       call EPSDestroy(eps,ierr)
       call MatDestroy(A,ierr)
 
@@ -164,9 +176,9 @@
       subroutine MatIsing_Mult(A,x,y,ierr)
       implicit none
 
-#include <finclude/petscsys.h>
-#include <finclude/petscvec.h>
-#include <finclude/petscmat.h>
+#include <petsc/finclude/petscsys.h>
+#include <petsc/finclude/petscvec.h>
+#include <petsc/finclude/petscmat.h>
 
       Mat            A
       Vec            x,y
@@ -179,14 +191,14 @@
       external mvmisg
 
       call MatGetSize(A,N,PETSC_NULL_INTEGER,ierr)
-      call VecGetArray(x,x_array,i_x,ierr)
+      call VecGetArrayRead(x,x_array,i_x,ierr)
       call VecGetArray(y,y_array,i_y,ierr)
 
       trans = 0
       one = 1
       call mvmisg(trans,N,one,x_array(i_x+1),N,y_array(i_y+1),N)
 
-      call VecRestoreArray(x,x_array,i_x,ierr)
+      call VecRestoreArrayRead(x,x_array,i_x,ierr)
       call VecRestoreArray(y,y_array,i_y,ierr)
 
       return
@@ -243,20 +255,19 @@
 !  ===================================================================
 !
 !
-!     .. PARAMETERS ..
-      PetscReal   PI 
-      PARAMETER   ( PI = 3.141592653589793D+00 )
-      PetscReal   ALPHA, BETA
-      PARAMETER   ( ALPHA = PI/4, BETA = PI/4 ) 
-!
+#include <petsc/finclude/petscsys.h>
+
 !     .. Local Variables .. 
       PetscInt    I, K 
+      PetscReal   ALPHA, BETA
       PetscReal   COSA, COSB, SINA
       PetscReal   SINB, TEMP, TEMP1 
 !
 !     .. Intrinsic functions ..
       INTRINSIC   COS, SIN 
 !
+      ALPHA = PETSC_PI/4
+      BETA = PETSC_PI/4
       COSA = COS( ALPHA ) 
       SINA = SIN( ALPHA ) 
       COSB = COS( BETA )

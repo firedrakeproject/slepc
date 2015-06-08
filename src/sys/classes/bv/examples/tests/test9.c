@@ -32,10 +32,10 @@ int main(int argc,char **argv)
   Mat            B,G,H0,H1;
   BV             X,Y,Z;
   PetscInt       i,j,n=20,kx=6,lx=3,ky=5,ly=2,Istart,Iend,col[5];
-  PetscScalar    value[] = { -1, 1, 1, 1, 1 };
+  PetscScalar    alpha,value[] = { -1, 1, 1, 1, 1 };
   PetscViewer    view;
   PetscReal      norm;
-  PetscBool      verbose,FirstBlock=PETSC_FALSE,LastBlock=PETSC_FALSE;
+  PetscBool      verbose;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -84,20 +84,10 @@ int main(int argc,char **argv)
   ierr = PetscObjectSetName((PetscObject)B,"B");CHKERRQ(ierr);
 
   ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
-  if (Istart==0) FirstBlock=PETSC_TRUE;
-  if (Iend==n) LastBlock=PETSC_TRUE;
-  value[0]=-1.0; value[1]=2.0; value[2]=-1.0;
-  for (i=(FirstBlock? Istart+1: Istart); i<(LastBlock? Iend-1: Iend); i++) {
-    col[0]=i-1; col[1]=i; col[2]=i+1;
-    ierr = MatSetValues(B,1,&i,3,col,value,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  if (LastBlock) {
-    i=n-1; col[0]=n-2; col[1]=n-1;
-    ierr = MatSetValues(B,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  if (FirstBlock) {
-    i=0; col[0]=0; col[1]=1; value[0]=2.0; value[1]=-1.0;
-    ierr = MatSetValues(B,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    if (i>0) { ierr = MatSetValue(B,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<n-1) { ierr = MatSetValue(B,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    ierr = MatSetValue(B,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
@@ -115,10 +105,15 @@ int main(int argc,char **argv)
   /* Fill X entries */
   for (j=0;j<kx+2;j++) {
     ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
-    ierr = VecZeroEntries(v);CHKERRQ(ierr);
+    ierr = VecSet(v,0.0);CHKERRQ(ierr);
     for (i=0;i<4;i++) {
       if (i+j<n) {
-        ierr = VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+        alpha = (PetscReal)(3*i+j-2)+(PetscReal)(2*i)*PETSC_i;
+#else
+        alpha = (PetscReal)(3*i+j-2);
+#endif
+        ierr = VecSetValue(v,i+j,alpha,INSERT_VALUES);CHKERRQ(ierr);
       }
     }
     ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
@@ -147,6 +142,11 @@ int main(int argc,char **argv)
   /* Fill Y entries */
   for (j=0;j<ky+1;j++) {
     ierr = BVGetColumn(Y,j,&v);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    alpha = (PetscReal)(j+1)/4.0-(PetscReal)j*PETSC_i;
+#else
+    alpha = (PetscReal)(j+1)/4.0;
+#endif
     ierr = VecSet(v,(PetscScalar)(j+1)/4.0);CHKERRQ(ierr);
     ierr = BVRestoreColumn(Y,j,&v);CHKERRQ(ierr);
   }

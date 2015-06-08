@@ -19,33 +19,47 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <petsc-private/fortranimpl.h>
+#include <petsc/private/fortranimpl.h>
 #include <slepcds.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define dscreate_                 DSCREATE
-#define dsdestroy_                DSDESTROY
+#define dssettype_                DSSETTYPE
+#define dsgettype_                DSGETTYPE
 #define dssetoptionsprefix_       DSSETOPTIONSPREFIX
 #define dsappendoptionsprefix_    DSAPPENDOPTIONSPREFIX
 #define dsgetoptionsprefix_       DSGETOPTIONSPREFIX
 #define dsview_                   DSVIEW
+#define dsviewmat_                DSVIEWMAT
+#define dsvectors_                DSVECTORS
+#define dssort_                   DSSORT
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define dscreate_                 dscreate
-#define dsdestroy_                dsdestroy
+#define dssettype_                dssettype
+#define dsgettype_                dsgettype
 #define dssetoptionsprefix_       dssetoptionsprefix
 #define dsappendoptionsprefix_    dsappendoptionsprefix
 #define dsgetoptionsprefix_       dsgetoptionsprefix
 #define dsview_                   dsview
+#define dsviewmat_                dsviewmat
+#define dsvectors_                dsvectors
+#define dssort_                   dssort
 #endif
 
-PETSC_EXTERN void PETSC_STDCALL dscreate_(MPI_Fint *comm,DS *newds,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL dssettype_(DS *ds,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
-  *ierr = DSCreate(MPI_Comm_f2c(*(comm)),newds);
+  char *t;
+
+  FIXCHAR(type,len,t);
+  *ierr = DSSetType(*ds,t);
+  FREECHAR(type,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL dsdestroy_(DS *ds,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL dsgettype_(DS *ds,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
-  *ierr = DSDestroy(ds);
+  DSType tname;
+
+  *ierr = DSGetType(*ds,&tname);if (*ierr) return;
+  *ierr = PetscStrncpy(name,tname,len);
+  FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
 PETSC_EXTERN void PETSC_STDCALL dssetoptionsprefix_(DS *ds,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
@@ -79,5 +93,29 @@ PETSC_EXTERN void PETSC_STDCALL dsview_(DS *ds,PetscViewer *viewer,PetscErrorCod
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = DSView(*ds,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL dsviewmat_(DS *ds,PetscViewer *viewer,DSMatType *m,PetscErrorCode *ierr)
+{
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(viewer,v);
+  *ierr = DSViewMat(*ds,v,*m);
+}
+
+PETSC_EXTERN void PETSC_STDCALL dsvectors_(DS *ds,DSMatType *mat,PetscInt *j,PetscReal *rnorm,PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLINTEGER(j);
+  CHKFORTRANNULLREAL(rnorm);
+  *ierr = DSVectors(*ds,*mat,j,rnorm);
+}
+
+PETSC_EXTERN void PETSC_STDCALL dssort_(DS *ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,PetscScalar *ri,PetscInt *k,PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLSCALAR(eigr);
+  CHKFORTRANNULLSCALAR(eigi);
+  CHKFORTRANNULLSCALAR(rr);
+  CHKFORTRANNULLSCALAR(ri);
+  CHKFORTRANNULLINTEGER(k);
+  *ierr = DSSort(*ds,eigr,eigi,rr,ri,k);
 }
 

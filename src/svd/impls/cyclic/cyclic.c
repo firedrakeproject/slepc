@@ -24,8 +24,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/svdimpl.h>                /*I "slepcsvd.h" I*/
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepc/private/svdimpl.h>                /*I "slepcsvd.h" I*/
+#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 
 typedef struct {
   PetscBool explicitmatrix;
@@ -268,7 +268,7 @@ static PetscErrorCode SVDMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,Pets
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions_Cyclic"
-PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
+PetscErrorCode SVDSetFromOptions_Cyclic(PetscOptions *PetscOptionsObject,SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
@@ -276,16 +276,15 @@ PetscErrorCode SVDSetFromOptions_Cyclic(SVD svd)
   ST             st;
 
   PetscFunctionBegin;
-  if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
-  ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
-  ierr = PetscOptionsHead("SVD Cyclic Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"SVD Cyclic Options");CHKERRQ(ierr);
   ierr = PetscOptionsBool("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",cyclic->explicitmatrix,&val,&set);CHKERRQ(ierr);
   if (set) {
     ierr = SVDCyclicSetExplicitMatrix(svd,val);CHKERRQ(ierr);
   }
+  if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
+  ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
   if (!cyclic->explicitmatrix) {
     /* use as default an ST with shell matrix and Jacobi */
-    if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
     ierr = EPSGetST(cyclic->eps,&st);CHKERRQ(ierr);
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
@@ -385,7 +384,7 @@ static PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
   ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);
   cyclic->eps = eps;
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->eps);CHKERRQ(ierr);
-  svd->setupcalled = 0;
+  svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

@@ -21,11 +21,11 @@
 
 ALL: lib
 
-SOURCEH  = ../../include/slepc-private/pepimpl.h ../../include/slepcpep.h
+SOURCEH  = ../../include/slepc/private/pepimpl.h ../../include/slepcpep.h
 DIRS     = interface impls examples f90-mod
 LOCDIR   = src/pep/
 MANSEC   = PEP
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

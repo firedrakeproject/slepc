@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/dsimpl.h>      /*I "slepcds.h" I*/
+#include <slepc/private/dsimpl.h>      /*I "slepcds.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "DSGetLeadingDimension"
@@ -550,7 +550,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar *eigr,PetscScalar *eigi)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSSort"
-/*@
+/*@C
    DSSort - Sorts the result of DSSolve() according to a given sorting
    criterion.
 
@@ -586,6 +586,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar *eigr,PetscScalar *eigi)
 PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscErrorCode ierr;
+  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
@@ -596,6 +597,8 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
   if (!ds->ops->sort) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   if (!ds->sc) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must provide a sorting criterion first");
   if (k && !rr) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Argument k can only be used together with rr");
+
+  for (i=0;i<ds->n;i++) ds->perm[i] = i;   /* initialize to trivial permutation */
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->sort)(ds,eigr,eigi,rr,ri,k);CHKERRQ(ierr);
@@ -607,7 +610,7 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors"
-/*@
+/*@C
    DSVectors - Compute vectors associated to the dense system such
    as eigenvectors.
 

@@ -79,6 +79,7 @@ typedef struct _n_SR  *EPS_SR;
 
 typedef struct {
   PetscReal     keep;               /* restart parameter */
+  PetscBool     lock;               /* locking/non-locking variant */
   /* the following are used only in spectrum slicing */
   EPS_SR        sr;                 /* spectrum slicing context */
   PetscInt      nev;                /* number of eigenvalues to compute */

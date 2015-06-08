@@ -33,8 +33,8 @@
   pdfkeywords={SLEPc, PETSc, eigenvalue problems}
 }
 
-\newcommand{\slepcversion}{3.5}
-\newcommand{\slepchome}{http://www.grycap.upv.es/slepc}
+\newcommand{\slepcversion}{3.6}
+\newcommand{\slepchome}{http://slepc.upv.es}
 \newcommand{\pack}[1]{{\sc #1}\index{\textsc{#1}}\xspace}
 \newcommand{\packnoi}[1]{{\sc #1}\xspace}
 \newcommand{\slepc}{\texorpdfstring{\packnoi{slep\rm c}}{{SLEPc}}}
@@ -112,7 +112,7 @@
 
 \date{
 	To be used with \slepc \slepcversion\\
-	July, 2014
+	June, 2015
 }
 
 {
@@ -139,7 +139,7 @@
 
 	The emphasis of the software is on methods and techniques appropriate for problems in which the associated matrices are large and sparse, for example, those arising after the discretization of partial differential equations. Thus, most of the methods offered by the library are projection methods, including different variants of Krylov and Davidson iterations. In addition to its own solvers, \slepc provides transparent access to some external software packages such as \packnoi{arpack}. These packages are optional and their installation is not required to use \slepc, see \S\ref{sec:wrap} for details. Apart from the solvers, \slepc also provides built-in support for some operations commonly used in the context of eigenvalue computations, such as preconditioning or the shift-and-invert spectral transformation.
 
-	\slepc is built on top of \packnoi{pets\rm c}, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:2014:PUM}. It can be considered an extension of \packnoi{pets\rm c} providing all the functionality necessary for the solution of eigenvalue problems. This means that \packnoi{pets\rm c} must be previously installed in order to use \slepc. \packnoi{pets\rm c} users will find \slepc very easy to use, since it enforces the same programming paradigm. Those readers that are not acquainted with \packnoi{pets\rm c} are highly recommended to familiarize with it before proceeding with \slepc.
+	\slepc is built on top of \packnoi{pets\rm c}, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:2015:PUM}. It can be considered an extension of \packnoi{pets\rm c} providing all the functionality necessary for the solution of eigenvalue problems. This means that \packnoi{pets\rm c} must be previously installed in order to use \slepc. \packnoi{pets\rm c} users will find \slepc very easy to use, since it enforces the same programming paradigm. Those readers that are not acquainted with \packnoi{pets\rm c} are highly recommended to familiarize with it before proceeding with \slepc.
 
 
 \subsubsection*{How to Get \slepc}
@@ -167,8 +167,9 @@
 The major changes in the Users Manual with respect to the previous version are:
 \begin{itemize}
 \setlength{\itemsep}{-2pt}
-\item Modified chapter \ref{cap:pep} to cover polynomial eigenvalue problems instead of just quadratic eigenvalue problems.
-\item New sections on region filtering, \ref{sec:region}, and auxiliary objects, \ref{sec:sys}.
+\item Command-line options to view the computed solution have been added, \S\ref{sec:epsviewers}.
+\item The description of spectrum slicing \S\ref{sec:slice} now includes usage with multi-communicators.
+\item The description of \texttt{FN} and \texttt{RG} has been extended, see \S\ref{sec:sys}.
 \end{itemize}
 
 \subsubsection*{\slepc Technical Reports}
@@ -178,16 +179,18 @@ The major changes in the Users Manual with respect to the previous version are:
 
 \subsubsection*{Acknowledgments}
 
-	We thank all the \packnoi{pets\rm c} team for their help and support. Without their continued effort invested in \packnoi{pets\rm c}, \slepc would not have been possible. We also thank Osni Marques and Tony Drummond for helping us raise awareness of \slepc in the context of the ACTS project.
+	We thank all the \packnoi{pets\rm c} team for their help and support. Without their continued effort invested in \packnoi{pets\rm c}, \slepc would not have been possible.
+% We also thank Osni Marques and Tony Drummond for helping us raise awareness of \slepc in the context of the ACTS project.
 
 	The current version contains code contributed by: Y.\ Maeda, T.\ Sakurai (CISS solver), M.\ Moldaschl, W.\ Gansterer (BDC subroutines).
 
 	Development of \slepc has been partially funded by the following grants:
 \begin{itemize}
 \setlength{\itemsep}{-2pt}
+\item Ministerio de Econom\'{\i}a y Comp.\ (Spain), grant no.\ TIN2013-41049-P, PI: Jos\'e E. Rom\'an.
 \item Ministerio de Ciencia e Innovaci\'on (Spain), grant no.\ TIN2009-07519, PI: Jos\'e E. Rom\'an.
-\item Directorate of Research and Technology Transfer, Valencian Regional Administration, grant number GV06/091, PI: Jos\'e E. Rom\'an.
-\item Science and Technology Office of the Valencian Regional Government, grant number CTIDB/2002/54, PI: Vicente Hern\'andez.
+\item Valencian Regional Government, grant no.\ GV06/091, PI: Jos\'e E. Rom\'an.
+\item Valencian Regional Government, grant no.\ CTIDB/2002/54, PI: Vicente Hern\'andez.
 \end{itemize}
 
 \subsubsection*{License and Copyright}
@@ -196,7 +199,7 @@ Starting from version 3.0.0, \slepc is released under the GNU LGPL license. Deta
 
 \begin{quote}
 \begin{sffamily}
-Copyright 2002--2014 Universitat Polit\`ecnica de Valencia, Spain
+Copyright 2002--2015 Universitat Polit\`ecnica de Valencia, Spain
 \end{sffamily}
 \end{quote}
 
@@ -269,7 +272,7 @@ Matrix function (action of)   & $y=f(A)v$   & \texttt{MFN} & \ref{cap:mfn} \\\hl
 {\bibfont
 \paragraph{SLEPc Technical Reports}
 \hypertarget{str}{}
-(Note: these reports are available through the \href{http://www.grycap.upv.es/slepc}{\slepc web site}.)
+(Note: these reports are available through the \href{http://slepc.upv.es}{\slepc web site}.)
 \begin{list}{}{\setlength{\labelwidth}{3cm}\setlength{\leftmargin}{12.5mm}}
 \item[\textrm{\sffamily[STR-1]}] V. Hern\'andez, J. E. Rom\'an, A. Tom\'as, V. Vidal. ``Orthogonalization Routines in \slepc.'' 
 \item[\textrm{\sffamily[STR-2]}] V. Hern\'andez, J. E. Rom\'an, A. Tom\'as, V. Vidal. ``Single Vector Iteration Methods in \slepc.'' 

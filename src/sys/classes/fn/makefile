@@ -21,14 +21,10 @@
 
 ALL: lib
 
-CFLAGS   =
-FFLAGS   =
-SOURCEC  = fnbasic.c fnrational.c fnexp.c
-SOURCEF  =
-SOURCEH  = ../../../../include/slepc-private/fnimpl.h ../../../../include/slepcfn.h
-LIBBASE  = libslepcsys
-DIRS     = examples
-MANSEC   = FN
+SOURCEH  = ../../../../include/slepc/private/fnimpl.h ../../../../include/slepcfn.h
+DIRS     = interface impls examples
 LOCDIR   = src/sys/classes/fn/
+MANSEC   = FN
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
+

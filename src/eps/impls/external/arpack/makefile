@@ -33,5 +33,5 @@ DIRS     =
 MANSEC   = EPS
 LOCDIR   = src/eps/impls/external/arpack/
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

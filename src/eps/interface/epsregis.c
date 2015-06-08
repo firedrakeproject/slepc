@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>  /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>  /*I "slepceps.h" I*/
 
 PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS);
 PETSC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS);
@@ -48,6 +48,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS);
 PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps);
+PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps);
 
 #undef __FUNCT__
@@ -66,6 +67,7 @@ PetscErrorCode EPSRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (EPSRegisterAllCalled) PetscFunctionReturn(0);
   EPSRegisterAllCalled = PETSC_TRUE;
   ierr = EPSRegister(EPSKRYLOVSCHUR,EPSCreate_KrylovSchur);CHKERRQ(ierr);
   ierr = EPSRegister(EPSPOWER,EPSCreate_Power);CHKERRQ(ierr);
@@ -75,9 +77,8 @@ PetscErrorCode EPSRegisterAll(void)
   ierr = EPSRegister(EPSGD,EPSCreate_GD);CHKERRQ(ierr);
   ierr = EPSRegister(EPSJD,EPSCreate_JD);CHKERRQ(ierr);
   ierr = EPSRegister(EPSRQCG,EPSCreate_RQCG);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
+  ierr = EPSRegister(EPSLOBPCG,EPSCreate_LOBPCG);CHKERRQ(ierr);
   ierr = EPSRegister(EPSCISS,EPSCreate_CISS);CHKERRQ(ierr);
-#endif
   ierr = EPSRegister(EPSLAPACK,EPSCreate_LAPACK);CHKERRQ(ierr);
 #if defined(SLEPC_HAVE_ARPACK)
   ierr = EPSRegister(EPSARPACK,EPSCreate_ARPACK);CHKERRQ(ierr);

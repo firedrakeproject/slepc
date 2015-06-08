@@ -8,7 +8,7 @@
 
 	Despite being a rather unrelated concept, \ident{ST} is also used to handle the preconditioners and correction-equation solvers used in preconditioned eigensolvers such as GD and JD.
 
-	The description in this chapter focuses on the use of \ident{ST} in the context of \ident{EPS}. For usage within other solver classes, we will provide further details, e.g., shift-and-invert for quadratic eigenproblems in \S\ref{sec:qst}.
+	The description in this chapter focuses on the use of \ident{ST} in the context of \ident{EPS}. For usage within other solver classes, we will provide further details, e.g., shift-and-invert for polynomial eigenproblems in \S\ref{sec:qst}.
 
 %---------------------------------------------------
 \section{General Description}
@@ -243,7 +243,7 @@ Using the \ident{ST} object is very straightforward. However, when using spectra
 \end{Verbatim}
 In this case, the \ident{ST} object associated with the \ident{EPS} solver creates a \ident{KSP} object whose coefficient matrix is $B$. By default, this \ident{KSP} object is set to use a direct solver\footnote{This is the default since \slepc 3.0.0.}, in particular an LU factorization. However, default settings can be changed, as illustrated below.
 
-	The following command-line is equivalent to the previous one\footnote{More precisely, the equivalent command would use the \texttt{redundant} \texttt{PC} in order to work in parallel.}:
+	The following command-line is equivalent to the previous one:
 \begin{Verbatim}[fontsize=\small]
 	$ ./program -st_ksp_type preonly -st_pc_type lu
 \end{Verbatim}
@@ -252,7 +252,7 @@ The two options specify the type of the linear solver and preconditioner to be u
 	$ ./program -st_ksp_type preonly -st_pc_type lu
                     -st_pc_factor_mat_solver_package mumps
 \end{Verbatim}
-In this case, an external linear solver package is used (MUMPS, see \petsc's documentation for other available packages). Note that an external package is required for a truly parallel direct linear solver.
+In this case, an external linear solver package is used (MUMPS, see \petsc's documentation for other available packages). Note that an external package is required for computing a matrix factorization in parallel, since \petsc itself only provides sequential direct linear solvers.
 
 	Instead of a direct linear solver, it is possible to use an iterative solver. This may be necessary in some cases, specially for very large problems. However, the user is warned that using an iterative linear solver makes the overall solution process less robust (see also the discussion of preconditioned eigensolvers below). As an example, the command-line
 \begin{Verbatim}[fontsize=\small]
@@ -272,7 +272,7 @@ selects the GMRES solver with block Jacobi preconditioning. In the case of itera
 \begin{Verbatim}[fontsize=\small]
 	$ ./program -st_type sinvert -eps_target 10 -st_ksp_type bcgs -st_pc_type jacobi
 \end{Verbatim}
-	The shift-and-invert and Cayley transformations deserve special consideration. In these cases, the coefficient matrix is not a simple matrix but an expression that can be explicitly constructed or not, depending on the user's choice. This issue is examined in detail in \S\ref{sec:explicit} below.
+	In shift-and-invert and Cayley, unless $\sigma=0$, the coefficient matrix is not a simple matrix but an expression that can be explicitly constructed or not, depending on the user's choice. This issue is examined in detail in \S\ref{sec:explicit} below.
 
 In many cases, especially if a shift-and-invert or Cayley transformation is being used, iterative methods may not be well suited for solving linear systems (because of the properties of the coefficient matrix that can be indefinite and ill-conditioned). When using an iterative linear solver, it may be helpful to run with the option \Verb!-st_ksp_converged_reason!, which will display the number of iterations required in each operator application.
 In extreme cases, the iterative solver fails, so \ident{EPSSolve} aborts with an error
@@ -361,7 +361,7 @@ If the user knows that the pattern is the same (or a subset), then this can be s
   \node[above right,rounded corners,fill=black!10,text width=2.5cm,inner ysep=2mm] (n2c) at (6,1.4)
        {The user can specify the problem type};
   \node[below right,fill=black!5,text width=2.2cm] (n2) at (6.15,1.43)
-       {\begin{minipage}{\textwidth}General\\Hermitian Definite\\Complex Symmetric
+       {\begin{minipage}{\textwidth}General\\Hermitian Definite\\Hermitian Indefinite
        \end{minipage}};
   \node[above right,rounded corners,fill=black!10,text width=2.5cm,inner ysep=2mm] (n3c) at (6,-1.0)
        {The user can specify the spectral transform};
@@ -397,7 +397,11 @@ In shift-and-invert with operator matrix $T=(A-\sigma B)^{-1}B$, when $B$ is sin
 
 The implication of all this is that, for singular $B$, if the $B$-inner product is used throughout the eigensolver then, assuming that the initial vector has been forced to lie in $\mathcal{R}(T)$, the computed eigenvectors should be correct, i.e., they should belong to $\mathcal{R}(T)$ as well. Nevertheless, finite precision arithmetic spoils this nice picture, and computed eigenvectors are easily corrupted by components of vectors in the null-space of $B$. Additional computation is required for achieving the desired property. This is usually referred to as \emph{eigenvector purification}.
 
-Although more elaborate purification strategies have been proposed (usually trying to reduce the computational effort, see \citep{Nour-Omid:1987:HIS} and \citep{Meerbergen:1997:IRA}), the approach in \slepc is simply to explicitly force the initial vector in the range of $T$, with $v_0\leftarrow Tv_0$, as well as the computed eigenvectors at the end, $x_i\leftarrow Tx_i$.
+Although more elaborate purification strategies have been proposed (usually trying to reduce the computational effort, see \citep{Nour-Omid:1987:HIS} and \citep{Meerbergen:1997:IRA}), the approach in \slepc is simply to explicitly force the initial vector in the range of $T$, with $v_0\leftarrow Tv_0$, as well as the computed eigenvectors at the end, $x_i\leftarrow Tx_i$. Since this computation can be costly, it can be deactivated if the user knows that $B$ is non-singular, with
+	\findex{EPSSetPurify}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetPurify(EPS eps,PetscBool purify);
+	\end{Verbatim}
 
 A final comment is that eigenvector corruption happens also in the non-symmetric case. If $A$ is non-symmetric but $B$ is symmetric positive semi-definite, then the scheme presented above ($B$-inner product together with purification) can still be applied and is generally more successful than the straightforward approach with the standard inner product. For using this scheme in \slepc, the user has to specify the special problem type \ident{EPS\_PGNHEP}, see Table \ref{tab:ptype}.
 

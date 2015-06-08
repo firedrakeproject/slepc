@@ -37,6 +37,7 @@ typedef const char* RGType;
 #define RGINTERVAL  "interval"
 #define RGPOLYGON   "polygon"
 #define RGELLIPSE   "ellipse"
+#define RGARC       "arc"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId RG_CLASSID;
@@ -58,8 +59,6 @@ PETSC_EXTERN PetscErrorCode RGCheckInside(RG,PetscInt,PetscScalar*,PetscScalar*,
 PETSC_EXTERN PetscErrorCode RGComputeContour(RG,PetscInt,PetscScalar*,PetscScalar*);
 
 PETSC_EXTERN PetscFunctionList RGList;
-PETSC_EXTERN PetscBool         RGRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode RGRegisterAll(void);
 PETSC_EXTERN PetscErrorCode RGRegister(const char[],PetscErrorCode(*)(RG));
 
 /* --------- options specific to particular regions -------- */
@@ -69,5 +68,8 @@ PETSC_EXTERN PetscErrorCode RGEllipseGetParameters(RG,PetscScalar*,PetscReal*,Pe
 
 PETSC_EXTERN PetscErrorCode RGIntervalSetEndpoints(RG,PetscReal,PetscReal,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode RGIntervalGetEndpoints(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+
+PETSC_EXTERN PetscErrorCode RGArcSetParameters(RG,PetscScalar,PetscReal,PetscReal,PetscReal,PetscReal,PetscReal);
+PETSC_EXTERN PetscErrorCode RGArcGetParameters(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 
 #endif

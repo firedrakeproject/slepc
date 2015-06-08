@@ -22,10 +22,10 @@
 ALL: lib
 
 LIBBASE  = libslepcnep
-DIRS     = rii slp narnoldi interpol
+DIRS     = rii slp narnoldi interpol ciss
 LOCDIR   = src/nep/impls/
 MANSEC   = NEP
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

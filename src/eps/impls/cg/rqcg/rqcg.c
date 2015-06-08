@@ -35,7 +35,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 
 PetscErrorCode EPSSolve_RQCG(EPS);
 
@@ -54,7 +54,7 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
 
   PetscFunctionBegin;
-  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"RQCG only works for Hermitian problems");
+  if (!eps->ishermitian || (eps->isgeneralized && !eps->ispositive)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"RQCG only works for Hermitian problems");
   ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
@@ -293,10 +293,6 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   }
 
   ierr = PetscFree(gamma);CHKERRQ(ierr);
-  /* truncate Schur decomposition and change the state to raw so that
-     PSVectors() computes eigenvectors from scratch */
-  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -398,14 +394,14 @@ PetscErrorCode EPSReset_RQCG(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_RQCG"
-PetscErrorCode EPSSetFromOptions_RQCG(EPS eps)
+PetscErrorCode EPSSetFromOptions_RQCG(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      flg;
   PetscInt       nrest;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS RQCG Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS RQCG Options");CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_rqcg_reset","RQCG reset parameter","EPSRQCGSetReset",20,&nrest,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = EPSRQCGSetReset(eps,nrest);CHKERRQ(ierr);

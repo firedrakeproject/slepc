@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/mfnimpl.h>   /*I "slepcmfn.h" I*/
+#include <slepc/private/mfnimpl.h>   /*I "slepcmfn.h" I*/
 #include <petscdraw.h>
 
 #undef __FUNCT__

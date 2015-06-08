@@ -25,10 +25,11 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/ds/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c \
-             test12.c test13.c
-EXAMPLESF  =
+             test12.c test13.c test15.c
+EXAMPLESF  = test14f.F
 MANSEC     = DS
-TESTS      = test1 test2 test3 test4 test5 test6 test7 test8 test9 test12 test13
+TESTS      = test1 test2 test3 test4 test5 test6 test7 test8 test9 test12 test13 \
+             test14f test15
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test2.PETSc runtest2_1 test2.rm \
@@ -39,10 +40,12 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test7.PETSc runtest7_1 test7.rm \
                            test8.PETSc runtest8_1 test8.rm \
                            test9.PETSc runtest9_1 test9.rm \
-                           test12.PETSc runtest12_1 test12.rm
+                           test12.PETSc runtest12_1 test12.rm \
+                           test15.PETSc runtest15_1 test15.rm
 TESTEXAMPLES_C_NOCOMPLEX = test13.PETSc runtest13_1 test13.rm
+TESTEXAMPLES_FORTRAN     = test14f.PETSc runtest14f_1 test14f.rm
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 test1: test1.o chkopts
 	-${CLINKER} -o test1 test1.o ${SLEPC_SYS_LIB}
@@ -87,6 +90,14 @@ test12: test12.o chkopts
 test13: test13.o chkopts
 	-${CLINKER} -o test13 test13.o ${SLEPC_SYS_LIB}
 	${RM} test13.o
+
+test14f: test14f.o chkopts
+	-${FLINKER} -o test14f test14f.o ${SLEPC_SYS_LIB}
+	${RM} test14f.o
+
+test15: test15.o chkopts
+	-${CLINKER} -o test15 test15.o ${SLEPC_SYS_LIB}
+	${RM} test15.o
 
 #------------------------------------------------------------------------------------
 
@@ -155,4 +166,16 @@ runtest13_1:
 	  if (${DIFF} output/test13_1.out test13_1.tmp) then true; \
 	  else echo "Possible problem with test13_1, diffs above"; fi; \
 	  ${RM} -f test13_1.tmp
+
+runtest14f_1:
+	-@${MPIEXEC} -np 1 ./test14f > test14f_1.tmp 2>&1; \
+	  if (${DIFF} output/test14f_1.out test14f_1.tmp) then true; \
+	  else echo "Possible problem with test14f_1, diffs above"; fi; \
+	  ${RM} -f test14f_1.tmp
+
+runtest15_1:
+	-@${MPIEXEC} -np 1 ./test15 > test15_1.tmp 2>&1; \
+	  if (${DIFF} output/test15_1.out test15_1.tmp) then true; \
+	  else echo "Possible problem with test15_1, diffs above"; fi; \
+	  ${RM} -f test15_1.tmp
 

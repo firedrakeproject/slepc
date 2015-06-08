@@ -72,10 +72,10 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Type set to %s\n",type);CHKERRQ(ierr);
 
   ierr = EPSGetProblemType(eps,&ptype);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Problem type before changing = %D",ptype);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Problem type before changing = %d",(int)ptype);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSGetProblemType(eps,&ptype);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %D.",ptype);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %d.",(int)ptype);CHKERRQ(ierr);
   ierr = EPSIsGeneralized(eps,&flg);CHKERRQ(ierr);
   if (flg) { ierr = PetscPrintf(PETSC_COMM_WORLD," generalized");CHKERRQ(ierr); }
   ierr = EPSIsHermitian(eps,&flg);CHKERRQ(ierr);
@@ -84,10 +84,10 @@ int main(int argc,char **argv)
   if (flg) { ierr = PetscPrintf(PETSC_COMM_WORLD," positive");CHKERRQ(ierr); }
 
   ierr = EPSGetExtraction(eps,&extr);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n Extraction before changing = %D",extr);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n Extraction before changing = %d",(int)extr);CHKERRQ(ierr);
   ierr = EPSSetExtraction(eps,EPS_HARMONIC);CHKERRQ(ierr);
   ierr = EPSGetExtraction(eps,&extr);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %D\n",extr);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)extr);CHKERRQ(ierr);
 
   ierr = EPSSetBalance(eps,EPS_BALANCE_ONESIDE,8,1e-6);CHKERRQ(ierr);
   ierr = EPSGetBalance(eps,&bal,&its,&cut);CHKERRQ(ierr);
@@ -97,7 +97,7 @@ int main(int argc,char **argv)
   ierr = EPSGetTarget(eps,&target);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSGetWhichEigenpairs(eps,&which);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Which = %D, target = %g\n",which,(double)PetscRealPart(target));CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Which = %d, target = %g\n",(int)which,(double)PetscRealPart(target));CHKERRQ(ierr);
 
   ierr = EPSSetDimensions(eps,4,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,&ncv,&mpd);CHKERRQ(ierr);
@@ -109,7 +109,7 @@ int main(int argc,char **argv)
 
   ierr = EPSSetConvergenceTest(eps,EPS_CONV_ABS);CHKERRQ(ierr);
   ierr = EPSGetConvergenceTest(eps,&conv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Convergence test = %D\n",conv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Convergence test = %d\n",(int)conv);CHKERRQ(ierr);
 
   ierr = EPSMonitorSet(eps,EPSMonitorFirst,NULL,NULL);CHKERRQ(ierr);
   ierr = EPSMonitorCancel(eps);CHKERRQ(ierr);
@@ -125,12 +125,12 @@ int main(int argc,char **argv)
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(eps,&reason);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %D, its=%D\n",reason,its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d, its=%D\n",(int)reason,its);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSPrintSolution(eps,NULL);CHKERRQ(ierr);
+  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();

@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/bvimpl.h>      /*I "slepcbv.h" I*/
+#include <slepc/private/bvimpl.h>      /*I "slepcbv.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "BVDot_Private"
@@ -183,6 +183,115 @@ PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar *m)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVDotVecBegin"
+/*@
+   BVDotVecBegin - Starts a split phase dot product computation.
+
+   Input Parameters:
++  X - basis vectors
+.  y - a vector
+-  m - an array where the result will go (can be NULL)
+
+   Note:
+   Each call to BVDotVecBegin() should be paired with a call to BVDotVecEnd().
+
+   Level: advanced
+
+.seealso: BVDotVecEnd(), BVDotVec()
+@*/
+PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
+{
+  PetscErrorCode      ierr;
+  PetscInt            i,n,nv;
+  PetscSplitReduction *sr;
+  MPI_Comm            comm;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,2);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+  PetscValidType(y,2);
+  PetscCheckSameTypeAndComm(X,1,y,2);
+
+  ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
+  if (X->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, y %D",X->n,n);
+
+  if (X->ops->dotvec_begin) {
+    ierr = (*X->ops->dotvec_begin)(X,y,m);CHKERRQ(ierr);
+  } else {
+    nv = X->k-X->l;
+    ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    if (sr->state != STATE_BEGIN) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
+    for (i=0;i<nv;i++) {
+      if (sr->numopsbegin+i >= sr->maxops) {
+        ierr = PetscSplitReductionExtend(sr);CHKERRQ(ierr);
+      }
+      sr->reducetype[sr->numopsbegin+i] = REDUCE_SUM;
+      sr->invecs[sr->numopsbegin+i]     = (void*)X;
+    }
+    ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+    ierr = (*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin);CHKERRQ(ierr);
+    sr->numopsbegin += nv;
+    ierr = PetscLogEventEnd(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVDotVecEnd"
+/*@
+   BVDotVecEnd - Ends a split phase dot product computation.
+
+   Input Parameters:
++  X - basis vectors
+.  y - a vector
+-  m - an array where the result will go
+
+   Note:
+   Each call to BVDotVecBegin() should be paired with a call to BVDotVecEnd().
+
+   Level: advanced
+
+.seealso: BVDotVecBegin(), BVDotVec()
+@*/
+PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
+{
+  PetscErrorCode      ierr;
+  PetscInt            i,nv;
+  PetscSplitReduction *sr;
+  MPI_Comm            comm;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+
+  if (X->ops->dotvec_end) {
+    ierr = (*X->ops->dotvec_end)(X,y,m);CHKERRQ(ierr);
+  } else {
+    nv = X->k-X->l;
+    ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    ierr = PetscSplitReductionEnd(sr);CHKERRQ(ierr);
+
+    if (sr->numopsend >= sr->numopsbegin) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times than VecxxxBegin()");
+    if ((void*)X != sr->invecs[sr->numopsend]) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called BVxxxEnd() in a different order or with a different BV than BVxxxBegin()");
+    if (sr->reducetype[sr->numopsend] != REDUCE_SUM) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Wrong type of reduction");
+    for (i=0;i<nv;i++) m[i] = sr->gvalues[sr->numopsend++];
+
+    /* Finished getting all the results so reset to no outstanding requests */
+    if (sr->numopsend == sr->numopsbegin) {
+      sr->state       = STATE_BEGIN;
+      sr->numopsend   = 0;
+      sr->numopsbegin = 0;
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDotColumn"
 /*@
    BVDotColumn - Computes multiple dot products of a column against all the
@@ -236,6 +345,129 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *m)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVDotColumnBegin"
+/*@
+   BVDotColumnBegin - Starts a split phase dot product computation.
+
+   Input Parameters:
++  X - basis vectors
+-  j - the column index
+-  m - an array where the result will go (can be NULL)
+
+   Note:
+   Each call to BVDotColumnBegin() should be paired with a call to BVDotColumnEnd().
+
+   Level: advanced
+
+.seealso: BVDotColumnEnd(), BVDotColumn()
+@*/
+PetscErrorCode BVDotColumnBegin(BV X,PetscInt j,PetscScalar *m)
+{
+  PetscErrorCode      ierr;
+  PetscInt            i,nv,ksave;
+  PetscSplitReduction *sr;
+  MPI_Comm            comm;
+  Vec                 y;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(X,j,2);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
+  ksave = X->k;
+  X->k = j;
+  ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
+
+  if (X->ops->dotvec_begin) {
+    ierr = (*X->ops->dotvec_begin)(X,y,m);CHKERRQ(ierr);
+  } else {
+    nv = X->k-X->l;
+    ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    if (sr->state != STATE_BEGIN) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
+    for (i=0;i<nv;i++) {
+      if (sr->numopsbegin+i >= sr->maxops) {
+        ierr = PetscSplitReductionExtend(sr);CHKERRQ(ierr);
+      }
+      sr->reducetype[sr->numopsbegin+i] = REDUCE_SUM;
+      sr->invecs[sr->numopsbegin+i]     = (void*)X;
+    }
+    ierr = PetscLogEventBegin(BV_Dot,X,0,0,0);CHKERRQ(ierr);
+    ierr = (*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin);CHKERRQ(ierr);
+    sr->numopsbegin += nv;
+    ierr = PetscLogEventEnd(BV_Dot,X,0,0,0);CHKERRQ(ierr);
+  }
+  ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
+  X->k = ksave;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVDotColumnEnd"
+/*@
+   BVDotColumnEnd - Ends a split phase dot product computation.
+
+   Input Parameters:
++  X - basis vectors
+-  j - the column index
+-  m - an array where the result will go
+
+   Note:
+   Each call to BVDotColumnBegin() should be paired with a call to BVDotColumnEnd().
+
+   Level: advanced
+
+.seealso: BVDotColumnBegin(), BVDotColumn()
+@*/
+PetscErrorCode BVDotColumnEnd(BV X,PetscInt j,PetscScalar *m)
+{
+  PetscErrorCode      ierr;
+  PetscInt            i,nv,ksave;
+  PetscSplitReduction *sr;
+  MPI_Comm            comm;
+  Vec                 y;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(X,j,2);
+  PetscValidType(X,1);
+  BVCheckSizes(X,1);
+
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
+  ksave = X->k;
+  X->k = j;
+
+  if (X->ops->dotvec_end) {
+    ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
+    ierr = (*X->ops->dotvec_end)(X,y,m);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
+  } else {
+    nv = X->k-X->l;
+    ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    ierr = PetscSplitReductionEnd(sr);CHKERRQ(ierr);
+
+    if (sr->numopsend >= sr->numopsbegin) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times than VecxxxBegin()");
+    if ((void*)X != sr->invecs[sr->numopsend]) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called BVxxxEnd() in a different order or with a different BV than BVxxxBegin()");
+    if (sr->reducetype[sr->numopsend] != REDUCE_SUM) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Wrong type of reduction");
+    for (i=0;i<nv;i++) m[i] = sr->gvalues[sr->numopsend++];
+
+    /* Finished getting all the results so reset to no outstanding requests */
+    if (sr->numopsend == sr->numopsbegin) {
+      sr->state       = STATE_BEGIN;
+      sr->numopsend   = 0;
+      sr->numopsbegin = 0;
+    }
+  }
+  X->k = ksave;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVNorm_Private"
 PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,PetscReal *val)
 {
@@ -243,9 +475,43 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,Pets
   PetscScalar    p;
 
   PetscFunctionBegin;
-  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
   ierr = BV_IPMatMult(bv,z);CHKERRQ(ierr);
   ierr = VecDot(bv->Bx,z,&p);CHKERRQ(ierr);
+  if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
+    ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
+  if (bv->indef) {
+    if (PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
+    if (PetscRealPart(p)<0.0) *val = -PetscSqrtScalar(-PetscRealPart(p));
+    else *val = PetscSqrtScalar(PetscRealPart(p));
+  } else { 
+    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
+    *val = PetscSqrtScalar(PetscRealPart(p));
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNorm_Begin_Private"
+PETSC_STATIC_INLINE PetscErrorCode BVNorm_Begin_Private(BV bv,Vec z,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  ierr = BV_IPMatMult(bv,z);CHKERRQ(ierr);
+  ierr = VecDotBegin(bv->Bx,z,&p);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNorm_End_Private"
+PETSC_STATIC_INLINE PetscErrorCode BVNorm_End_Private(BV bv,Vec z,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  PetscScalar    p;
+
+  PetscFunctionBegin;
+  ierr = VecDotEnd(bv->Bx,z,&p);CHKERRQ(ierr);
   if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
     ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
   if (bv->indef) {
@@ -295,7 +561,7 @@ PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  if (type==NORM_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+  if (type==NORM_2 || type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
   if (bv->matrix) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Matrix norm not available for non-standard inner product");
 
   ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
@@ -332,6 +598,7 @@ PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
 PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
+  PetscInt       n;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -340,15 +607,106 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
   PetscValidPointer(val,4);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
+  PetscValidType(v,2);
   PetscCheckSameComm(bv,1,v,2);
+
+  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
   ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
+    ierr = VecGetLocalSize(v,&n);CHKERRQ(ierr);
+    if (bv->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension bv %D, v %D",bv->n,n);
     ierr = BVNorm_Private(bv,v,type,val);CHKERRQ(ierr);
   } else {
     ierr = VecNorm(v,type,val);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNormVecBegin"
+/*@
+   BVNormVecBegin - Starts a split phase norm computation.
+
+   Input Parameters:
++  bv   - basis vectors
+.  v    - the vector
+.  type - the norm type
+-  val  - the norm
+
+   Note:
+   Each call to BVNormVecBegin() should be paired with a call to BVNormVecEnd().
+
+   Level: advanced
+
+.seealso: BVNormVecEnd(), BVNormVec()
+@*/
+PetscErrorCode BVNormVecBegin(BV bv,Vec v,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+  PetscInt       n;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidHeaderSpecific(v,VEC_CLASSID,2);
+  PetscValidLogicalCollectiveEnum(bv,type,3);
+  PetscValidPointer(val,4);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  PetscValidType(v,2);
+  PetscCheckSameTypeAndComm(bv,1,v,2);
+
+  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+
+  ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  if (bv->matrix) { /* non-standard inner product */
+    ierr = VecGetLocalSize(v,&n);CHKERRQ(ierr);
+    if (bv->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension bv %D, v %D",bv->n,n);
+    ierr = BVNorm_Begin_Private(bv,v,type,val);CHKERRQ(ierr);
+  } else {
+    ierr = VecNormBegin(v,type,val);CHKERRQ(ierr);
+  }
+  ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNormVecEnd"
+/*@
+   BVNormVecEnd - Ends a split phase norm computation.
+
+   Input Parameters:
++  bv   - basis vectors
+.  v    - the vector
+.  type - the norm type
+-  val  - the norm
+
+   Note:
+   Each call to BVNormVecBegin() should be paired with a call to BVNormVecEnd().
+
+   Level: advanced
+
+.seealso: BVNormVecBegin(), BVNormVec()
+@*/
+PetscErrorCode BVNormVecEnd(BV bv,Vec v,NormType type,PetscReal *val)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(bv,type,3);
+  PetscValidPointer(val,4);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+
+  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+
+  if (bv->matrix) { /* non-standard inner product */
+    ierr = BVNorm_End_Private(bv,v,type,val);CHKERRQ(ierr);
+  } else {
+    ierr = VecNormEnd(v,type,val);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -389,7 +747,9 @@ PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscValidPointer(val,4);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
+
   if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
+  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
   ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
@@ -400,6 +760,347 @@ PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
     ierr = (*bv->ops->norm)(bv,j,type,val);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNormColumnBegin"
+/*@
+   BVNormColumnBegin - Starts a split phase norm computation.
+
+   Input Parameters:
++  bv   - basis vectors
+.  j    - column number to be used
+.  type - the norm type
+-  val  - the norm
+
+   Note:
+   Each call to BVNormColumnBegin() should be paired with a call to BVNormColumnEnd().
+
+   Level: advanced
+
+.seealso: BVNormColumnEnd(), BVNormColumn()
+@*/
+PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  PetscErrorCode      ierr;
+  PetscSplitReduction *sr;
+  PetscReal           lresult;
+  MPI_Comm            comm;
+  Vec                 z;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(bv,j,2);
+  PetscValidLogicalCollectiveEnum(bv,type,3);
+  PetscValidPointer(val,4);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+
+  if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
+  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+
+  ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  ierr = BVGetColumn(bv,j,&z);CHKERRQ(ierr);
+  if (bv->matrix) { /* non-standard inner product */
+    ierr = BVNorm_Begin_Private(bv,z,type,val);CHKERRQ(ierr);
+  } else if (bv->ops->norm_begin) {
+    ierr = (*bv->ops->norm_begin)(bv,j,type,val);CHKERRQ(ierr);
+  } else {
+    ierr = PetscObjectGetComm((PetscObject)z,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    if (sr->state != STATE_BEGIN) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
+    if (sr->numopsbegin >= sr->maxops) {
+      ierr = PetscSplitReductionExtend(sr);CHKERRQ(ierr);
+    }
+    sr->invecs[sr->numopsbegin] = (void*)bv;
+    ierr = (*bv->ops->norm_local)(bv,j,type,&lresult);CHKERRQ(ierr);
+    if (type == NORM_2) lresult = lresult*lresult;
+    else if (type == NORM_MAX) sr->reducetype[sr->numopsbegin] = REDUCE_MAX;
+    else sr->reducetype[sr->numopsbegin] = REDUCE_SUM;
+    sr->lvalues[sr->numopsbegin++] = lresult;
+  }
+  ierr = BVRestoreColumn(bv,j,&z);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVNormColumnEnd"
+/*@
+   BVNormColumnEnd - Ends a split phase norm computation.
+
+   Input Parameters:
++  bv   - basis vectors
+.  j    - column number to be used
+.  type - the norm type
+-  val  - the norm
+
+   Note:
+   Each call to BVNormColumnBegin() should be paired with a call to BVNormColumnEnd().
+
+   Level: advanced
+
+.seealso: BVNormColumnBegin(), BVNormColumn()
+@*/
+PetscErrorCode BVNormColumnEnd(BV bv,PetscInt j,NormType type,PetscReal *val)
+{
+  PetscErrorCode      ierr;
+  PetscSplitReduction *sr;
+  MPI_Comm            comm;
+  Vec                 z;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(bv,j,2);
+  PetscValidLogicalCollectiveEnum(bv,type,3);
+  PetscValidPointer(val,4);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+
+  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+
+  ierr = BVGetColumn(bv,j,&z);CHKERRQ(ierr);
+  if (bv->matrix) { /* non-standard inner product */
+    ierr = BVNorm_End_Private(bv,z,type,val);CHKERRQ(ierr);
+  } else if (bv->ops->norm_end) {
+    ierr = (*bv->ops->norm_end)(bv,j,type,val);CHKERRQ(ierr);
+  } else {
+    ierr = PetscObjectGetComm((PetscObject)z,&comm);CHKERRQ(ierr);
+    ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
+    ierr = PetscSplitReductionEnd(sr);CHKERRQ(ierr);
+
+    if (sr->numopsend >= sr->numopsbegin) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times then VecxxxBegin()");
+    if ((void*)bv != sr->invecs[sr->numopsend]) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() in a different order or with a different vector than VecxxxBegin()");
+    if (sr->reducetype[sr->numopsend] != REDUCE_MAX && type == NORM_MAX) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Called BVNormEnd(,NORM_MAX,) on a reduction started with VecDotBegin() or NORM_1 or NORM_2");
+    *val = PetscRealPart(sr->gvalues[sr->numopsend++]);
+    if (type == NORM_2) *val = PetscSqrtReal(*val);
+    if (sr->numopsend == sr->numopsbegin) {
+      sr->state       = STATE_BEGIN;
+      sr->numopsend   = 0;
+      sr->numopsbegin = 0;
+    }
+  }
+  ierr = BVRestoreColumn(bv,j,&z);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatProject_Vec"
+/*
+  Compute Y^H*A*X: right part column by column (with MatMult) and bottom
+  part row by row (with MatMultHermitianTranspose); result placed in marray[*,ldm]
+*/
+PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Vec(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm,PetscBool symm)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,j,lx,ly,kx,ky,ulim;
+  Vec            z,f;
+
+  PetscFunctionBegin;
+  lx = X->l; kx = X->k;
+  ly = Y->l; ky = Y->k;
+  ierr = BVCreateVec(X,&f);CHKERRQ(ierr);
+  for (j=lx;j<kx;j++) {
+    ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
+    ierr = MatMult(A,z,f);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(X,j,&z);CHKERRQ(ierr);
+    ulim = PetscMin(ly+(j-lx)+1,ky);
+    Y->l = 0; Y->k = ulim;
+    ierr = (*Y->ops->dotvec)(Y,f,marray+j*ldm);CHKERRQ(ierr);
+    if (symm) {
+      for (i=0;i<j;i++) marray[j+i*ldm] = PetscConj(marray[i+j*ldm]);
+    }
+  }
+  if (!symm) {
+    ierr = BV_AllocateCoeffs(Y);CHKERRQ(ierr);
+    for (j=ly;j<ky;j++) {
+      ierr = BVGetColumn(Y,j,&z);CHKERRQ(ierr);
+      ierr = MatMultHermitianTranspose(A,z,f);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(Y,j,&z);CHKERRQ(ierr);
+      ulim = PetscMin(lx+(j-ly),kx);
+      X->l = 0; X->k = ulim;
+      ierr = (*X->ops->dotvec)(X,f,Y->h);CHKERRQ(ierr);
+      for (i=0;i<ulim;i++) marray[j+i*ldm] = PetscConj(Y->h[i]);
+    }
+  }
+  ierr = VecDestroy(&f);CHKERRQ(ierr);
+  X->l = lx; X->k = kx;
+  Y->l = ly; Y->k = ky;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatProject_MatMult"
+/*
+  Compute Y^H*A*X= [   --   | Y0'*W1 ]
+                   [ Y1'*W0 | Y1'*W1 ]
+  Allocates auxiliary BV to store the result of A*X, then one BVDot
+  call for top-right part and another one for bottom part;
+  result placed in marray[*,ldm]
+*/
+PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm)
+{
+  PetscErrorCode ierr;
+  PetscInt       j,lx,ly,kx,ky;
+  PetscScalar    *harray;
+  Mat            H;
+  BV             W;
+
+  PetscFunctionBegin;
+  lx = X->l; kx = X->k;
+  ly = Y->l; ky = Y->k;
+  ierr = BVDuplicate(X,&W);CHKERRQ(ierr);
+  X->l = 0; X->k = kx;
+  ierr = BVMatMult(X,A,W);CHKERRQ(ierr);
+
+  /* top-right part, Y0'*AX1 */
+  if (ly>0 && lx<kx) {
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,ly,kx,NULL,&H);CHKERRQ(ierr);
+    W->l = lx; W->k = kx;
+    Y->l = 0;  Y->k = ly;
+    ierr = BVDot(W,Y,H);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    for (j=lx;j<kx;j++) {
+      ierr = PetscMemcpy(marray+j*ldm,harray+j*ly,ly*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDestroy(&H);CHKERRQ(ierr);
+  }
+
+  /* bottom part, Y1'*AX */
+  if (kx>0 && ly<ky) {
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H);CHKERRQ(ierr);
+    W->l = 0;  W->k = kx;
+    Y->l = ly; Y->k = ky;
+    ierr = BVDot(W,Y,H);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    for (j=0;j<kx;j++) {
+      ierr = PetscMemcpy(marray+j*ldm+ly,harray+j*ky+ly,(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDestroy(&H);CHKERRQ(ierr);
+  }
+  ierr = BVDestroy(&W);CHKERRQ(ierr);
+  X->l = lx; X->k = kx;
+  Y->l = ly; Y->k = ky;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatProject_MatMult_2"
+/*
+  Compute Y^H*A*X= [   --   | Y0'*W1 ]
+                   [ Y1'*W0 | Y1'*W1 ]
+  First stage: allocate auxiliary BV to store A*X1, one BVDot for right part;
+  Second stage: resize BV to accomodate A'*Y1, then call BVDot for transpose of
+  bottom-left part; result placed in marray[*,ldm]
+*/
+PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm,PetscBool symm)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,j,lx,ly,kx,ky;
+  PetscScalar    *harray;
+  Mat            H;
+  BV             W;
+
+  PetscFunctionBegin;
+  lx = X->l; kx = X->k;
+  ly = Y->l; ky = Y->k;
+
+  /* right part, Y'*AX1 */
+  ierr = BVDuplicateResize(X,kx-lx,&W);CHKERRQ(ierr);
+  if (ky>0 && lx<kx) {
+    ierr = BVMatMult(X,A,W);CHKERRQ(ierr);
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,ky,kx-lx,NULL,&H);CHKERRQ(ierr);
+    Y->l = 0; Y->k = ky;
+    ierr = BVDot(W,Y,H);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    for (j=lx;j<kx;j++) {
+      ierr = PetscMemcpy(marray+j*ldm,harray+(j-lx)*ky,ky*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDestroy(&H);CHKERRQ(ierr);
+  }
+
+  /* bottom-left part, Y1'*AX0 */
+  if (lx>0 && ly<ky) {
+    if (symm) {
+      /* do not compute, just copy symmetric elements */
+      for (i=ly;i<ky;i++) {
+        for (j=0;j<lx;j++) marray[i+j*ldm] = PetscConj(marray[j+i*ldm]);
+      }
+    } else {
+      ierr = BVResize(W,ky-ly,PETSC_FALSE);CHKERRQ(ierr);
+      Y->l = ly; Y->k = ky;
+      ierr = BVMatMultHermitianTranspose(Y,A,W);CHKERRQ(ierr);
+      ierr = MatCreateSeqDense(PETSC_COMM_SELF,lx,ky-ly,NULL,&H);CHKERRQ(ierr);
+      X->l = 0; X->k = lx;
+      ierr = BVDot(W,X,H);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+      for (i=0;i<ky-ly;i++) {
+        for (j=0;j<lx;j++) {
+          marray[i+j*ldm+ly] = PetscConj(harray[j+i*(ky-ly)]);
+        }
+      }
+      ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+      ierr = MatDestroy(&H);CHKERRQ(ierr);
+    }
+  }
+  ierr = BVDestroy(&W);CHKERRQ(ierr);
+  X->l = lx; X->k = kx;
+  Y->l = ly; Y->k = ky;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVMatProject_Dot"
+/*
+  Compute Y^H*X = [   --   | Y0'*X1 ]     (X contains A*X):
+                  [ Y1'*X0 | Y1'*X1 ]
+  one BVDot call for top-right part and another one for bottom part;
+  result placed in marray[*,ldm]
+*/
+PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marray,PetscInt ldm)
+{
+  PetscErrorCode ierr;
+  PetscInt       j,lx,ly,kx,ky;
+  PetscScalar    *harray;
+  Mat            H;
+
+  PetscFunctionBegin;
+  lx = X->l; kx = X->k;
+  ly = Y->l; ky = Y->k;
+
+  /* top-right part, Y0'*X1 */
+  if (ly>0 && lx<kx) {
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,ly,kx,NULL,&H);CHKERRQ(ierr);
+    X->l = lx; X->k = kx;
+    Y->l = 0;  Y->k = ly;
+    ierr = BVDot(X,Y,H);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    for (j=lx;j<kx;j++) {
+      ierr = PetscMemcpy(marray+j*ldm,harray+j*ly,ly*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDestroy(&H);CHKERRQ(ierr);
+  }
+
+  /* bottom part, Y1'*X */
+  if (kx>0 && ly<ky) {
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H);CHKERRQ(ierr);
+    X->l = 0;  X->k = kx;
+    Y->l = ly; Y->k = ky;
+    ierr = BVDot(X,Y,H);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    for (j=0;j<kx;j++) {
+      ierr = PetscMemcpy(marray+j*ldm+ly,harray+j*ky+ly,(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDestroy(&H);CHKERRQ(ierr);
+  }
+  X->l = lx; X->k = kx;
+  Y->l = ly; Y->k = ky;
   PetscFunctionReturn(0);
 }
 
@@ -452,10 +1153,9 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
 {
   PetscErrorCode ierr;
   PetscBool      match,set,flg,symm=PETSC_FALSE;
-  PetscInt       i,j,m,n,lx,ly,kx,ky,ulim;
-  PetscScalar    *marray,*harray;
-  Vec            z,f;
-  Mat            Xmatrix,Ymatrix,H;
+  PetscInt       m,n;
+  PetscScalar    *marray;
+  Mat            Xmatrix,Ymatrix;
   PetscObjectId  idx,idy;
 
   PetscFunctionBegin;
@@ -492,79 +1192,30 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   if (!A && idx==idy) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Cannot set X=Y if A=NULL");
 
   ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
-  lx = X->l; kx = X->k;
-  ly = Y->l; ky = Y->k;
 
   if (A && idx==idy) { /* check symmetry of M=X'AX */
     ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
     symm = set? flg: PETSC_FALSE;
   }
 
-  if (A) {  /* perform computation column by column */
-
-    ierr = BVGetVec(X,&f);CHKERRQ(ierr);
-    for (j=lx;j<kx;j++) {
-      ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
-      ierr = MatMult(A,z,f);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(X,j,&z);CHKERRQ(ierr);
-      ulim = PetscMin(ly+(j-lx)+1,ky);
-      Y->l = 0; Y->k = ulim;
-      ierr = (*Y->ops->dotvec)(Y,f,marray+j*m);CHKERRQ(ierr);
-      if (symm) {
-        for (i=0;i<j;i++) marray[j+i*m] = PetscConj(marray[i+j*m]);
+  if (A) { 
+    if (X->vmm==BV_MATMULT_VECS) {
+      /* perform computation column by column */
+      ierr = BVMatProject_Vec(X,A,Y,marray,m,symm);CHKERRQ(ierr);
+    } else {
+      /* use BVMatMult, then BVDot */
+      ierr = MatHasOperation(A,MATOP_MULT_TRANSPOSE,&flg);CHKERRQ(ierr);
+      if (symm || (flg && X->l>=X->k/2 && Y->l>=Y->k/2)) {
+        ierr = BVMatProject_MatMult_2(X,A,Y,marray,m,symm);CHKERRQ(ierr);
+      } else {
+        ierr = BVMatProject_MatMult(X,A,Y,marray,m);CHKERRQ(ierr);
       }
     }
-    if (!symm) {
-      ierr = BV_AllocateCoeffs(Y);CHKERRQ(ierr);
-      for (j=ly;j<ky;j++) {
-        ierr = BVGetColumn(Y,j,&z);CHKERRQ(ierr);
-        ierr = MatMultHermitianTranspose(A,z,f);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(Y,j,&z);CHKERRQ(ierr);
-        ulim = PetscMin(lx+(j-ly),kx);
-        X->l = 0; X->k = ulim;
-        ierr = (*X->ops->dotvec)(X,f,Y->h);CHKERRQ(ierr);
-        for (i=0;i<ulim;i++) marray[j+i*m] = PetscConj(Y->h[i]);
-      }
-    }
-    ierr = VecDestroy(&f);CHKERRQ(ierr);
-
-  } else {  /* use BVDot on subblocks   AX = [ AX0 AX1 ], Y = [ Y0 Y1 ]
-
-                M = [    M0   | Y0'*AX1 ]
-                    [ Y1'*AX0 | Y1'*AX1 ]
-    */
-
-    /* upper part, Y0'*AX1 */
-    if (ly>0 && lx<kx) {
-      ierr = MatCreateSeqDense(PETSC_COMM_SELF,ly,kx,NULL,&H);CHKERRQ(ierr);
-      X->l = lx; X->k = kx;
-      Y->l = 0;  Y->k = ly;
-      ierr = BVDot(X,Y,H);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
-      for (j=lx;j<kx;j++) {
-        ierr = PetscMemcpy(marray+m*j,harray+j*ly,ly*sizeof(PetscScalar));CHKERRQ(ierr);
-      }
-      ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
-      ierr = MatDestroy(&H);CHKERRQ(ierr);
-    }
-
-    /* lower part, Y1'*AX */
-    if (kx>0 && ly<ky) {
-      ierr = MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H);CHKERRQ(ierr);
-      X->l = 0;  X->k = kx;
-      Y->l = ly; Y->k = ky;
-      ierr = BVDot(X,Y,H);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
-      for (j=0;j<kx;j++) {
-        ierr = PetscMemcpy(marray+m*j+ly,harray+j*ky+ly,(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
-      }
-      ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
-      ierr = MatDestroy(&H);CHKERRQ(ierr);
-    }
+  } else {
+    /* use BVDot on subblocks */
+    ierr = BVMatProject_Dot(X,Y,marray,m);CHKERRQ(ierr);
   }
 
-  X->l = lx; X->k = kx;
-  Y->l = ly; Y->k = ky;
   ierr = MatDenseRestoreArray(M,&marray);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_MatProject,X,A,Y,0);CHKERRQ(ierr);
   /* restore non-standard inner product */

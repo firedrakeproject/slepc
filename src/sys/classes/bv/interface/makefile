@@ -31,6 +31,6 @@ DIRS     =
 MANSEC   = BV
 LOCDIR   = src/sys/classes/bv/interface/
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 

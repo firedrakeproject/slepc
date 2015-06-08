@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/stimpl.h>          /*I   "slepcst.h"   I*/
+#include <slepc/private/stimpl.h>          /*I   "slepcst.h"   I*/
 
 PETSC_EXTERN PetscErrorCode STCreate_Shell(ST);
 PETSC_EXTERN PetscErrorCode STCreate_Shift(ST);
@@ -43,6 +43,7 @@ PetscErrorCode STRegisterAll(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (STRegisterAllCalled) PetscFunctionReturn(0);
   STRegisterAllCalled = PETSC_TRUE;
   ierr = STRegister(STSHELL,STCreate_Shell);CHKERRQ(ierr);
   ierr = STRegister(STSHIFT,STCreate_Shift);CHKERRQ(ierr);

@@ -21,7 +21,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/nepimpl.h>     /*I "slepcnep.h" I*/
+#include <slepc/private/nepimpl.h>     /*I "slepcnep.h" I*/
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetWorkVecs"
@@ -46,7 +46,7 @@ PetscErrorCode NEPSetWorkVecs(NEP nep,PetscInt nw)
   Vec            t;
 
   PetscFunctionBegin;
-  if (nep->nwork != nw) {
+  if (nep->nwork < nw) {
     ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
     nep->nwork = nw;
     ierr = BVGetColumn(nep->V,0,&t);CHKERRQ(ierr);

@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/dsimpl.h>
+#include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
@@ -517,7 +517,7 @@ PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
   ierr = DSAllocateWork_Private(ds,2*ld,0,0);CHKERRQ(ierr);
   x = ds->work;
   y = ds->work+ld;
-  for (i=0;i<n;i++) x[i] = A[n+i*ld];
+  for (i=0;i<n;i++) x[i] = PetscConj(A[n+i*ld]);
   PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
   for (i=0;i<n;i++) A[n+i*ld] = PetscConj(y[i]);
   ds->k = n;

@@ -22,8 +22,8 @@
 ALL: lib
 
 LIBBASE  = libslepcsys
-DIRS     = hep nhep ghep ghiep gnhep svd nep
+DIRS     = hep nhep ghep ghiep gnhep svd pep nep
 LOCDIR   = src/sys/classes/ds/impls/
 MANSEC   = DS
 
-include ${SLEPC_DIR}/conf/slepc_common
+include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

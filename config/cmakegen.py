@@ -5,7 +5,7 @@
 # sources, and encoding the rules through CMake conditionals. When CMake
 # runs, it will use the conditionals written to
 #
-#     $SLEPC_DIR/$PETSC_ARCH/conf/SLEPcConfig.cmake
+#     $SLEPC_DIR/$PETSC_ARCH/lib/slepc/conf/SLEPcConfig.cmake
 #
 # after a successful configure.
 #
@@ -140,7 +140,7 @@ class Mistakes(object):
         for m in self.mistakes:
             self.log.write(m + '\n')
         if self.mistakes:
-            raise RuntimeError('SLEPc makefiles contain mistakes or files are missing on filesystem.\n%s\nPossible reasons:\n\t1. Files were deleted locally, try "hg revert filename" or "git checkout filename".\n\t2. Files were deleted from repository, but were not removed from makefile. Send mail to slepc-maint@grycap.upv.es.\n\t3. Someone forgot to "add" new files to the repository. Send mail to slepc-maint@grycap.upv.es.' % ('\n'.join(self.mistakes)))
+            raise RuntimeError('SLEPc makefiles contain mistakes or files are missing on filesystem.\n%s\nPossible reasons:\n\t1. Files were deleted locally, try "hg revert filename" or "git checkout filename".\n\t2. Files were deleted from repository, but were not removed from makefile. Send mail to slepc-maint@upv.es.\n\t3. Someone forgot to "add" new files to the repository. Send mail to slepc-maint@upv.es.' % ('\n'.join(self.mistakes)))
 
 def stripsplit(line):
   return line[len('#requires'):].replace("'","").split()
@@ -184,8 +184,8 @@ project (SLEPc C)
 set (PETSc_SOURCE_DIR %s)
 set (PETSc_BINARY_DIR %s)
 
-include (${PETSc_BINARY_DIR}/conf/PETScConfig.cmake)
-include (${PETSC_CMAKE_ARCH}/conf/SLEPcConfig.cmake)
+include (${PETSc_BINARY_DIR}/lib/petsc/conf/PETScConfig.cmake)
+include (${PETSC_CMAKE_ARCH}/lib/slepc/conf/SLEPcConfig.cmake)
 
 if (PETSC_HAVE_FORTRAN)
   enable_language (Fortran)

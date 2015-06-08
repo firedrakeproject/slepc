@@ -19,8 +19,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/slepcimpl.h>           /*I "slepcsys.h" I*/
-#include <slepc-private/vecimplslepc.h>
+#include <slepc/private/slepcimpl.h>           /*I "slepcsys.h" I*/
+#include <slepc/private/vecimplslepc.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcGetVersion"
@@ -153,6 +153,19 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
     if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
 #endif
   }
+
+#if defined(PETSC_HAVE_THREADSAFETY)
+  ierr = STInitializePackage();CHKERRQ(ierr);
+  ierr = DSInitializePackage();CHKERRQ(ierr);
+  ierr = FNInitializePackage();CHKERRQ(ierr);
+  ierr = BVInitializePackage();CHKERRQ(ierr);
+  ierr = RGInitializePackage();CHKERRQ(ierr);
+  ierr = EPSInitializePackage();CHKERRQ(ierr);
+  ierr = SVDInitializePackage();CHKERRQ(ierr);
+  ierr = PEPInitializePackage();CHKERRQ(ierr);
+  ierr = NEPInitializePackage();CHKERRQ(ierr);
+  ierr = MFNInitializePackage();CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 #endif

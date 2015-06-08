@@ -39,12 +39,12 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc-private/epsimpl.h>                /*I "slepceps.h" I*/
-#include <../src/eps/impls/davidson/common/davidson.h>
+#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <../src/eps/impls/davidson/davidson.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_JD"
-PetscErrorCode EPSSetFromOptions_JD(EPS eps)
+PetscErrorCode EPSSetFromOptions_JD(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      flg,op;
@@ -55,7 +55,7 @@ PetscErrorCode EPSSetFromOptions_JD(EPS eps)
   const char     *orth_list[2] = {"I","B"};
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead("EPS Jacobi-Davidson (JD) Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"EPS Jacobi-Davidson (JD) Options");CHKERRQ(ierr);
 
   ierr = EPSJDGetKrylovStart(eps,&op);CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_jd_krylov_start","Start the searching subspace with a krylov basis","EPSJDSetKrylovStart",op,&op,&flg);CHKERRQ(ierr);
