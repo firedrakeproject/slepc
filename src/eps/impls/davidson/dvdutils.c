@@ -41,13 +41,10 @@ typedef struct {
   target, the fixed target to be used
 */
 typedef struct {
-  PetscScalar
-    Wa, Wb,       /* span{W} = span{Wa*AV - Wb*BV} */
-    Pa, Pb;       /* H=W'*(Pa*AV - Pb*BV), G=W'*(Wa*AV - Wb*BV) */
-  PetscBool
-    withTarget;
-  HarmType_t
-    mode;
+  PetscScalar Wa,Wb;       /* span{W} = span{Wa*AV - Wb*BV} */
+  PetscScalar Pa,Pb;       /* H=W'*(Pa*AV - Pb*BV), G=W'*(Wa*AV - Wb*BV) */
+  PetscBool   withTarget;
+  HarmType_t  mode;
 } dvdHarmonic;
 
 static PetscErrorCode dvd_static_precond_PC_0(dvdDashboard*,PetscInt,Vec,Vec);

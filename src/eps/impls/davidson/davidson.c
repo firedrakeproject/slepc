@@ -27,18 +27,18 @@ PetscErrorCode EPSView_XD(EPS eps,PetscViewer viewer);
 
 typedef struct {
   /**** Solver options ****/
-  PetscInt blocksize,     /* block size */
-    initialsize,          /* initial size of V */
-    minv,                 /* size of V after restarting */
-    plusk;                /* keep plusk eigenvectors from the last iteration */
-  PetscBool  ipB;        /* true if B-ortho is used */
-  PetscInt   method;      /* method for improving the approximate solution */
-  PetscReal  fix;         /* the fix parameter */
-  PetscBool  krylovstart; /* true if the starting subspace is a Krylov basis */
-  PetscBool  dynamic;     /* true if dynamic stopping criterion is used */
-  PetscInt   cX_in_proj,  /* converged vectors in the projected problem */
-    cX_in_impr;           /* converged vectors in the projector */
-  Method_t   scheme;      /* method employed: GD, JD or GD2 */
+  PetscInt  blocksize;     /* block size */
+  PetscInt  initialsize;   /* initial size of V */
+  PetscInt  minv;          /* size of V after restarting */
+  PetscInt  plusk;         /* keep plusk eigenvectors from the last iteration */
+  PetscBool ipB;           /* true if B-ortho is used */
+  PetscInt  method;        /* method for improving the approximate solution */
+  PetscReal fix;           /* the fix parameter */
+  PetscBool krylovstart;   /* true if the starting subspace is a Krylov basis */
+  PetscBool dynamic;       /* true if dynamic stopping criterion is used */
+  PetscInt  cX_in_proj;    /* converged vectors in the projected problem */
+  PetscInt  cX_in_impr;    /* converged vectors in the projector */
+  Method_t  scheme;        /* method employed: GD, JD or GD2 */
 
   /**** Solver data ****/
   dvdDashboard ddb;
@@ -52,12 +52,12 @@ PetscErrorCode EPSCreate_XD(EPS eps)
   EPS_DAVIDSON   *data;
 
   PetscFunctionBegin;
-  eps->ops->solve                = EPSSolve_XD;
-  eps->ops->setup                = EPSSetUp_XD;
-  eps->ops->reset                = EPSReset_XD;
-  eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_XD;
-  eps->ops->view                 = EPSView_XD;
+  eps->ops->solve          = EPSSolve_XD;
+  eps->ops->setup          = EPSSetUp_XD;
+  eps->ops->reset          = EPSReset_XD;
+  eps->ops->backtransform  = EPSBackTransform_Default;
+  eps->ops->computevectors = EPSComputeVectors_XD;
+  eps->ops->view           = EPSView_XD;
 
   ierr = PetscNewLog(eps,&data);CHKERRQ(ierr);
   eps->data = (void*)data;
@@ -123,16 +123,14 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   ierr = STPrecondSetKSPHasMat(eps->st,PETSC_FALSE);CHKERRQ(ierr);
 
   /* Change the default sigma to inf if necessary */
-  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL ||
-      eps->which == EPS_LARGEST_IMAGINARY) {
+  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) {
     ierr = STSetDefaultShift(eps->st,PETSC_MAX_REAL);CHKERRQ(ierr);
   }
 
   /* Davidson solvers only support STPRECOND */
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&t);CHKERRQ(ierr);
-  if (!t) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"%s only works with precond spectral transformation",
-    ((PetscObject)eps)->type_name);
+  if (!t) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"%s only works with precond spectral transformation",((PetscObject)eps)->type_name);
 
   /* Setup problem specification in dvd */
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
@@ -140,45 +138,46 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
   ierr = EPSReset_XD(eps);CHKERRQ(ierr);
   ierr = PetscMemzero(dvd,sizeof(dvdDashboard));CHKERRQ(ierr);
-  dvd->A = A; dvd->B = eps->isgeneralized? B : NULL;
+  dvd->A = A; dvd->B = eps->isgeneralized? B: NULL;
   ispositive = eps->ispositive;
-  dvd->sA = DVD_MAT_IMPLICIT |
-            (eps->ishermitian? DVD_MAT_HERMITIAN : 0) |
-            ((ispositive && !eps->isgeneralized) ? DVD_MAT_POS_DEF : 0);
+  dvd->sA = DVD_MAT_IMPLICIT | (eps->ishermitian? DVD_MAT_HERMITIAN: 0) | ((ispositive && !eps->isgeneralized) ? DVD_MAT_POS_DEF: 0);
   /* Asume -eps_hermitian means hermitian-definite in generalized problems */
   if (!ispositive && !eps->isgeneralized && eps->ishermitian) ispositive = PETSC_TRUE;
   if (!eps->isgeneralized) dvd->sB = DVD_MAT_IMPLICIT | DVD_MAT_HERMITIAN | DVD_MAT_IDENTITY | DVD_MAT_UNITARY | DVD_MAT_POS_DEF;
-  else dvd->sB = DVD_MAT_IMPLICIT | (eps->ishermitian? DVD_MAT_HERMITIAN : 0) | (ispositive? DVD_MAT_POS_DEF : 0);
+  else dvd->sB = DVD_MAT_IMPLICIT | (eps->ishermitian? DVD_MAT_HERMITIAN: 0) | (ispositive? DVD_MAT_POS_DEF: 0);
   ipB = (dvd->B && data->ipB && DVD_IS(dvd->sB,DVD_MAT_HERMITIAN))?PETSC_TRUE:PETSC_FALSE;
   if (data->ipB && !ipB) data->ipB = PETSC_FALSE;
   dvd->correctXnorm = ipB;
-  dvd->sEP = ((!eps->isgeneralized || (eps->isgeneralized && ipB))? DVD_EP_STD : 0) |
-             (ispositive? DVD_EP_HERMITIAN : 0) |
-             ((eps->problem_type == EPS_GHIEP && ipB) ? DVD_EP_INDEFINITE : 0);
-  dvd->nev = eps->nev;
-  dvd->which = eps->which;
+  dvd->sEP = ((!eps->isgeneralized || (eps->isgeneralized && ipB))? DVD_EP_STD: 0) | (ispositive? DVD_EP_HERMITIAN: 0) | ((eps->problem_type == EPS_GHIEP && ipB) ? DVD_EP_INDEFINITE : 0);
+  dvd->nev        = eps->nev;
+  dvd->which      = eps->which;
   dvd->withTarget = PETSC_TRUE;
   switch (eps->which) {
     case EPS_TARGET_MAGNITUDE:
     case EPS_TARGET_IMAGINARY:
-      dvd->target[0] = target = eps->target; dvd->target[1] = 1.0;
+      dvd->target[0] = target = eps->target;
+      dvd->target[1] = 1.0;
       break;
     case EPS_TARGET_REAL:
-      dvd->target[0] = PetscRealPart(target = eps->target); dvd->target[1] = 1.0;
+      dvd->target[0] = PetscRealPart(target = eps->target);
+      dvd->target[1] = 1.0;
       break;
     case EPS_LARGEST_REAL:
     case EPS_LARGEST_MAGNITUDE:
     case EPS_LARGEST_IMAGINARY: /* TODO: think about this case */
-      dvd->target[0] = 1.0; dvd->target[1] = target = 0.0;
+      dvd->target[0] = 1.0;
+      dvd->target[1] = target = 0.0;
       break;
     case EPS_SMALLEST_MAGNITUDE:
     case EPS_SMALLEST_REAL:
     case EPS_SMALLEST_IMAGINARY: /* TODO: think about this case */
-      dvd->target[0] = target = 0.0; dvd->target[1] = 1.0;
+      dvd->target[0] = target = 0.0;
+      dvd->target[1] = 1.0;
       break;
     case EPS_WHICH_USER:
       ierr = STGetShift(eps->st,&target);CHKERRQ(ierr);
-      dvd->target[0] = target; dvd->target[1] = 1.0;
+      dvd->target[0] = target;
+      dvd->target[1] = 1.0;
       break;
     case EPS_ALL:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported option: which == EPS_ALL");
@@ -186,7 +185,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported value of option 'which'");
   }
-  dvd->tol = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
+  dvd->tol = (eps->tol==PETSC_DEFAULT)? SLEPC_DEFAULT_TOL: eps->tol;
   dvd->eps = eps;
 
   /* Setup the extraction technique */
@@ -225,7 +224,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   ierr = EPSXDGetKrylovStart_XD(eps,&t);CHKERRQ(ierr);
   init = (!t)? DVD_INITV_CLASSIC : DVD_INITV_KRYLOV;
 
-  /* Setup the presence of converged vectors in the projected problem and in the projector */
+  /* Setup the presence of converged vectors in the projected problem and the projector */
   ierr = EPSXDGetWindowSizes_XD(eps,&cX_in_impr,&cX_in_proj);CHKERRQ(ierr);
   if (cX_in_impr>0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The option pwindow is temporally disable in this solver.");
   if (cX_in_proj>0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The option qwindow is temporally disable in this solver.");
@@ -240,13 +239,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   /* Preconfigure dvd */
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-  ierr = dvd_schm_basic_preconf(dvd,&b,eps->mpd,min_size_V,bs,
-                                initv,
-                                PetscAbs(eps->nini),
-                                plusk,harm,
-                                ksp,init,eps->trackall,
-                                data->ipB,cX_in_proj,cX_in_impr,
-                                data->scheme);CHKERRQ(ierr);
+  ierr = dvd_schm_basic_preconf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),plusk,harm,ksp,init,eps->trackall,data->ipB,cX_in_proj,cX_in_impr,data->scheme);CHKERRQ(ierr);
 
   /* Allocate memory */
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
@@ -260,14 +253,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   for (i=0;i<eps->ncv;i++) eps->perm[i] = i;
 
   /* Configure dvd for a basic GD */
-  ierr = dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,
-                             initv,
-                             PetscAbs(eps->nini),plusk,
-                             harm,dvd->withTarget,
-                             target,ksp,
-                             fix,init,eps->trackall,
-                             data->ipB,cX_in_proj,cX_in_impr,dynamic,
-                             data->scheme);CHKERRQ(ierr);
+  ierr = dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),plusk,harm,dvd->withTarget,target,ksp,fix,init,eps->trackall,data->ipB,cX_in_proj,cX_in_impr,dynamic,data->scheme);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -518,7 +504,7 @@ PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  data->dynamic = !constant?PETSC_TRUE:PETSC_FALSE;
+  data->dynamic = (!constant)? PETSC_TRUE: PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -529,7 +515,7 @@ PetscErrorCode EPSJDGetConstCorrectionTol_JD(EPS eps,PetscBool *constant)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  *constant = !data->dynamic?PETSC_TRUE:PETSC_FALSE;
+  *constant = (!data->dynamic)? PETSC_TRUE: PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

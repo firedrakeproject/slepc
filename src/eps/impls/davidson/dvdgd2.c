@@ -25,59 +25,9 @@
 
 #include "davidson.h"
 
-static PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d);
-static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
-
-/**** GD2 update step K*[A*X B*X]  ****/
-
 typedef struct {
   PetscInt size_X;
 } dvdImprovex_gd2;
-
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_gd2"
-PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs)
-{
-  PetscErrorCode  ierr;
-  dvdImprovex_gd2 *data;
-  PC              pc;
-
-  PetscFunctionBegin;
-
-  /* Setting configuration constrains */
-  /* If the arithmetic is real and the problem is not Hermitian, then
-     the block size is incremented in one */
-#if !defined(PETSC_USE_COMPLEX)
-  if (!DVD_IS(d->sEP, DVD_EP_HERMITIAN)) {
-    max_bs++;
-    b->max_size_P = PetscMax(b->max_size_P, 2);
-  } else
-#endif
-  {
-    b->max_size_P = PetscMax(b->max_size_P, 1);
-  }
-  b->max_size_X = PetscMax(b->max_size_X, max_bs);
-
-  /* Setup the preconditioner */
-  if (ksp) {
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = dvd_static_precond_PC(d,b,pc);CHKERRQ(ierr);
-  } else {
-    ierr = dvd_static_precond_PC(d,b,0);CHKERRQ(ierr);
-  }
-
-  /* Setup the step */
-  if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscMalloc(sizeof(dvdImprovex_gd2),&data);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdImprovex_gd2));CHKERRQ(ierr);
-    d->improveX_data = data;
-    data->size_X = b->max_size_X;
-    d->improveX = dvd_improvex_gd2_gen;
-
-    ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_improvex_gd2_d);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_gd2_d"
@@ -134,8 +84,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
     k = r_s+i;
     ierr = DSVectors(d->eps->ds,DS_MAT_X,&k,NULL);CHKERRQ(ierr);
     ierr = DSNormalize(d->eps->ds,DS_MAT_X,r_s+i);CHKERRQ(ierr);
-    /* Jump complex conjugate pairs */
-    i = k+1;
+    i = k+1; /* skip complex conjugate pairs */
   }
   ierr = DSGetArray(d->eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(d->eps->ds,&ld);CHKERRQ(ierr);
@@ -149,9 +98,9 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
     if (d->correctXnorm) {
       ierr = dvd_improvex_compute_X(d,r_s,r_s+n,Bx,pX,ld);CHKERRQ(ierr);
     } else {
-      for (i=0; i<n; i++) d->nX[r_s+i] = 1.0;
+      for (i=0;i<n;i++) d->nX[r_s+i] = 1.0;
     }
-    for (i=0; i<n; ++i) {
+    for (i=0;i<n;i++) {
       ierr = BVMultVec(d->BX,1.0,0.0,Bx[i],&pX[ld*(r_s+i)]);CHKERRQ(ierr);
     }
   } else if (d->B) {
@@ -169,7 +118,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
   }
 
   /* Ax <- A*X(i) */
-  for (i=0; i<n; ++i) {
+  for (i=0;i<n;i++) {
     ierr = BVMultVec(d->AX,1.0,0.0,Ax[i],&pX[ld*(i+r_s)]);CHKERRQ(ierr);
   }
 
@@ -216,7 +165,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
       ierr = BVCopyVec(X,1,Bx[i]);CHKERRQ(ierr);
       s = 1;
     }
-    for (j=0; j<s; j++) d->nX[r_s+i+j] = 1.0;
+    for (j=0;j<s;j++) d->nX[r_s+i+j] = 1.0;
 
     /* Ax = R <- P*(Ax - eig_i*Bx) */
     ierr = d->calcpairs_proj_res(d,r_s+i,r_s+i+s,&Ax[i]);CHKERRQ(ierr);
@@ -255,9 +204,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
         ierr = BVScaleColumn(d->eps->V,i+kv,1.0/d->eps->errest[d->nconv+r_s+i]);CHKERRQ(ierr);
       }
     }
-  } else {
-    *size_D = 0;
-  }
+  } else *size_D = 0;
 
   ierr = SlepcVecPoolRestoreVecs(d->auxV,n,&Bx);CHKERRQ(ierr);
   ierr = SlepcVecPoolRestoreVecs(d->auxV,n,&Ax);CHKERRQ(ierr);
@@ -265,3 +212,48 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__
+#define __FUNCT__ "dvd_improvex_gd2"
+PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs)
+{
+  PetscErrorCode  ierr;
+  dvdImprovex_gd2 *data;
+  PC              pc;
+
+  PetscFunctionBegin;
+  /* Setting configuration constrains */
+  /* If the arithmetic is real and the problem is not Hermitian, then
+     the block size is incremented in one */
+#if !defined(PETSC_USE_COMPLEX)
+  if (!DVD_IS(d->sEP, DVD_EP_HERMITIAN)) {
+    max_bs++;
+    b->max_size_P = PetscMax(b->max_size_P,2);
+  } else
+#endif
+  {
+    b->max_size_P = PetscMax(b->max_size_P,1);
+  }
+  b->max_size_X = PetscMax(b->max_size_X,max_bs);
+
+  /* Setup the preconditioner */
+  if (ksp) {
+    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+    ierr = dvd_static_precond_PC(d,b,pc);CHKERRQ(ierr);
+  } else {
+    ierr = dvd_static_precond_PC(d,b,0);CHKERRQ(ierr);
+  }
+
+  /* Setup the step */
+  if (b->state >= DVD_STATE_CONF) {
+    ierr = PetscMalloc(sizeof(dvdImprovex_gd2),&data);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdImprovex_gd2));CHKERRQ(ierr);
+    d->improveX_data = data;
+    data->size_X = b->max_size_X;
+    d->improveX = dvd_improvex_gd2_gen;
+
+    ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_improvex_gd2_d);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
