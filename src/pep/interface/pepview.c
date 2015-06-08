@@ -363,7 +363,7 @@ static PetscErrorCode PEPErrorView_DETAIL(PEP pep,PEPErrorType etype,PetscViewer
     im = ki;
 #endif
     if (im!=0.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  % 9f%+9f i     %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error);CHKERRQ(ierr);
     }

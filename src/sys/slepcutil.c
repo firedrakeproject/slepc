@@ -644,9 +644,9 @@ PetscErrorCode SlepcSNPrintfScalar(char *str,size_t len,PetscScalar val,PetscBoo
   im = PetscImaginaryPart(val);
   if (im!=0.0) {
     if (exp) {
-      ierr = PetscSNPrintf(str,len,"+(%g%+g i)",(double)re,(double)im);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(str,len,"+(%g%+gi)",(double)re,(double)im);CHKERRQ(ierr);
     } else {
-      ierr = PetscSNPrintf(str,len,"%g%+g i",(double)re,(double)im);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(str,len,"%g%+gi",(double)re,(double)im);CHKERRQ(ierr);
     }
   } else {
     if (exp) {

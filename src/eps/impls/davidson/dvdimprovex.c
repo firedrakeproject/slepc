@@ -856,7 +856,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,Pets
       PetscScalar eigr0=0.0,eigi0=0.0;
       ierr = dvd_complex_rayleigh_quotient(u[i],u[i+1],Ax[i],Ax[i+1],Bx[i],Bx[i+1],&eigr0,&eigi0);CHKERRQ(ierr);
       if (PetscAbsScalar(eigr[i_s+i]-eigr0)/PetscAbsScalar(eigr[i_s+i]) > 1e-10 || PetscAbsScalar(eigi[i_s+i]-eigi0)/PetscAbsScalar(eigi[i_s+i]) > 1e-10) {
-        ierr = PetscInfo4(u[0], "The eigenvalue %g+%g is far from its Rayleigh quotient value %g+%g\n",(double)eigr[i_s+i],(double)eigi[i_s+i],(double)eigr0,(double)eigi0);
+        ierr = PetscInfo4(u[0], "The eigenvalue %g%+gi is far from its Rayleigh quotient value %g%+gi\n",(double)eigr[i_s+i],(double)eigi[i_s+i],(double)eigr0,(double)eigi0);
       }
       i++;
     } else
