@@ -46,6 +46,26 @@ PetscErrorCode PEPComputeVectors(PEP pep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPExtractVectors"
+PetscErrorCode PEPExtractVectors(PEP pep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PEPCheckSolved(pep,1);
+  switch (pep->state) {
+  case PEP_STATE_SOLVED:
+    if (pep->ops->extractvectors) {
+      ierr = (*pep->ops->extractvectors)(pep);CHKERRQ(ierr);
+    }
+    break;
+  default:
+    break;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPSolve"
 /*@
    PEPSolve - Solves the polynomial eigensystem.

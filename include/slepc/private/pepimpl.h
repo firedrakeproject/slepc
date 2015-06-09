@@ -40,6 +40,7 @@ struct _PEPOps {
   PetscErrorCode (*reset)(PEP);
   PetscErrorCode (*view)(PEP,PetscViewer);
   PetscErrorCode (*computevectors)(PEP);
+  PetscErrorCode (*extractvectors)(PEP);
 };
 
 /*
@@ -141,6 +142,7 @@ struct _p_PEP {
 #endif
 
 PETSC_INTERN PetscErrorCode PEPSetDimensions_Default(PEP,PetscInt,PetscInt*,PetscInt*);
+PETSC_INTERN PetscErrorCode PEPExtractVectors(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Schur(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Indefinite(PEP);
@@ -153,6 +155,5 @@ PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscSc
 PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscScalar,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt,PetscInt*);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinementSimple(PEP,PetscInt*,PetscReal*,PetscInt);
 PETSC_INTERN PetscErrorCode PEPComputeLinearNorms(PEP);
-PETSC_INTERN PetscErrorCode PEPExtractEigenPairs(PEP,PetscInt,PetscInt,PetscScalar*,PetscInt);
 
 #endif

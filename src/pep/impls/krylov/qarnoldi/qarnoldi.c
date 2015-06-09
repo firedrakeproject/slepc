@@ -66,6 +66,12 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag set, see STSetTransform()");
 
+  /* set default extraction */
+  if (!pep->extract) {
+    pep->extract = PEP_EXTRACT_NONE;
+  }
+  if (pep->extract!=PEP_EXTRACT_NONE) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver does not support requested extraction");
+ 
   if (!ctx->keep) ctx->keep = 0.5;
 
   ierr = PEPAllocateSolution(pep,0);CHKERRQ(ierr);
@@ -74,6 +80,36 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   ierr = DSSetType(pep->ds,DSNHEP);CHKERRQ(ierr);
   ierr = DSSetExtraRow(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(pep->ds,pep->ncv+1);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPExtractVectors_QArnoldi"
+PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,k=pep->nconv,ldds;
+  PetscScalar    *X,*pX0;
+  Mat            X0;
+
+  PetscFunctionBegin;
+  if (pep->nconv==0) PetscFunctionReturn(0);
+  ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
+  ierr = DSVectors(pep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetArray(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+
+  /* update vectors V = V*X */ 
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&X0);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(X0,&pX0);CHKERRQ(ierr);
+  for (i=0;i<k;i++) {
+    ierr = PetscMemcpy(pX0+i*k,X+i*ldds,k*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(X0,&pX0);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(pep->V,0,k);CHKERRQ(ierr);
+  ierr = BVMultInPlace(pep->V,X0,0,k);CHKERRQ(ierr);
+  ierr = MatDestroy(&X0);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(pep->V,0,k);CHKERRQ(ierr);
+  ierr = DSRestoreArray(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -548,6 +584,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
   pep->ops->destroy        = PEPDestroy_QArnoldi;
   pep->ops->view           = PEPView_QArnoldi;
   pep->ops->computevectors = PEPComputeVectors_Schur;
+  pep->ops->computevectors = PEPExtractVectors_QArnoldi;
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetRestart_C",PEPQArnoldiSetRestart_QArnoldi);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetRestart_C",PEPQArnoldiGetRestart_QArnoldi);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetLocking_C",PEPQArnoldiSetLocking_QArnoldi);CHKERRQ(ierr);

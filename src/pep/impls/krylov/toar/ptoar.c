@@ -38,13 +38,8 @@
 
 #include <slepc/private/stimpl.h> 
 #include <slepc/private/pepimpl.h>    /*I "slepcpep.h" I*/
+#include "../src/pep/impls/krylov/pepkrylov.h"
 #include <slepcblaslapack.h>
-
-typedef struct {
-  PetscReal keep;         /* restart parameter */
-  PetscBool lock;         /* locking/non-locking variant */
-  PetscReal dtol;         /* tolerance for deflation */
-} PEP_TOAR;
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetUp_TOAR"
@@ -53,7 +48,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   PetscBool      sinv,flg;
-  PetscInt       i;
+  PetscInt       i,lds;
 
   PetscFunctionBegin;
   pep->lineariz = PETSC_TRUE;
@@ -86,6 +81,9 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
       pep->solvematcoeffs[pep->nmat-1] = 1.0;
     }
   }
+  ctx->ld = pep->ncv+(pep->nmat-1);   /* number of rows of each fragment of S */
+  lds = (pep->nmat-1)*ctx->ld;
+  ierr = PetscCalloc1(lds*ctx->ld,&ctx->S);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -778,22 +776,21 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=0,nl,nconv=0,locked=0,newc;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
-  PetscScalar    *S,*Q,*work,*H,*pS0,sigma;
+  PetscScalar    *S,*Q,*work,*H,sigma;
   PetscReal      beta,norm,*rwork;
   PetscBool      breakdown=PETSC_FALSE,flg,lindep,falselock=PETSC_FALSE,def=PETSC_FALSE;
-  Mat            S0;
 
   PetscFunctionBegin;
   if (ctx->lock) {
     ierr = PetscOptionsGetBool(NULL,"-pep_toar_falselocking",&falselock,NULL);CHKERRQ(ierr);
     ierr = PetscOptionsGetBool(NULL,"-pep_toar_lockdeflated",&def,NULL);CHKERRQ(ierr);
   }
-  ld = pep->ncv+deg;   /* number of rows of each fragment of S */
+  ld = ctx->ld;
+  S = ctx->S;
   lds = deg*ld;        /* leading dimension of S */
   lwa = (deg+6)*ld*lds;
   lrwa = 7*lds;
-  ierr = PetscMalloc3(lwa,&work,lrwa,&rwork,lds*ld,&S);CHKERRQ(ierr);
-  ierr = PetscMemzero(S,lds*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscMalloc2(lwa,&work,lrwa,&rwork);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr); 
   ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr);
 
@@ -936,19 +933,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     } else {
       ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
       ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-      ierr = PEPExtractEigenPairs(pep,k,nq,S,ld);CHKERRQ(ierr);
     }
-    /* update vectors V = V*S */ 
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,nq,pep->nconv,NULL,&S0);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(S0,&pS0);CHKERRQ(ierr);
-    for (j=0;j<pep->nconv;j++) {
-      ierr = PetscMemcpy(pS0+j*nq,S+j*lds,nq*sizeof(PetscScalar));CHKERRQ(ierr);
-    }
-    ierr = MatDenseRestoreArray(S0,&pS0);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pep->V,0,nq);CHKERRQ(ierr);
-    ierr = BVMultInPlace(pep->V,S0,0,pep->nconv);CHKERRQ(ierr);
-    ierr = MatDestroy(&S0);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
   }
   if (pep->refine!=PEP_REFINE_MULTIPLE || pep->rits==0) {
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
@@ -975,7 +960,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
-  ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
+  ierr = PetscFree2(work,rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1225,6 +1210,8 @@ PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
   pep->ops->destroy        = PEPDestroy_TOAR;
   pep->ops->view           = PEPView_TOAR;
   pep->ops->computevectors = PEPComputeVectors_Schur;
+  pep->ops->extractvectors = PEPExtractVectors_TOAR;
+  pep->ops->reset          = PEPReset_TOAR;
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPTOARSetRestart_C",PEPTOARSetRestart_TOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPTOARGetRestart_C",PEPTOARGetRestart_TOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPTOARSetLocking_C",PEPTOARSetLocking_TOAR);CHKERRQ(ierr);

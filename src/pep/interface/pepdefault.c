@@ -112,7 +112,6 @@ PetscErrorCode PEPComputeVectors_Schur(PEP pep)
 {
   PetscErrorCode ierr;
   PetscInt       n,i;
-  Mat            Z;
   Vec            v;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            v1;
@@ -121,14 +120,8 @@ PetscErrorCode PEPComputeVectors_Schur(PEP pep)
 #endif
 
   PetscFunctionBegin;
+  ierr = PEPExtractVectors(pep);CHKERRQ(ierr);
   ierr = DSGetDimensions(pep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  if (pep->refine==PEP_REFINE_MULTIPLE || pep->extract==PEP_EXTRACT_NONE) { 
-    ierr = DSVectors(pep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-    ierr = DSGetMat(pep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pep->V,0,n);CHKERRQ(ierr);
-    ierr = BVMultInPlace(pep->V,Z,0,n);CHKERRQ(ierr);
-    ierr = MatDestroy(&Z);CHKERRQ(ierr);
-  }
 
   /* Fix eigenvectors if balancing was used */
   if ((pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) && pep->Dr && (pep->refine!=PEP_REFINE_MULTIPLE)) {
@@ -137,55 +130,6 @@ PetscErrorCode PEPComputeVectors_Schur(PEP pep)
       ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
     }
-  }
-
-  /* normalization */
-  for (i=0;i<n;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-    if (pep->eigi[i] != 0.0) {
-      ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
-      ierr = BVGetColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
-      ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = VecNorm(v1,NORM_2,&normi);CHKERRQ(ierr);
-      tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
-      ierr = VecScale(v,tmp);CHKERRQ(ierr);
-      ierr = VecScale(v1,tmp);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
-      i++;
-    } else
-#endif
-    {
-      ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
-      ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPComputeVectors_Indefinite"
-PetscErrorCode PEPComputeVectors_Indefinite(PEP pep)
-{
-  PetscErrorCode ierr;
-  PetscInt       n,i;
-  Mat            Z;
-  Vec            v;
-#if !defined(PETSC_USE_COMPLEX)
-  Vec            v1;
-  PetscScalar    tmp;
-  PetscReal      norm,normi;
-#endif
-
-  PetscFunctionBegin;
-  ierr = DSGetDimensions(pep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  if (pep->extract==PEP_EXTRACT_NONE) {
-    ierr = DSVectors(pep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-    ierr = DSGetMat(pep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pep->V,0,n);CHKERRQ(ierr);
-    ierr = BVMultInPlace(pep->V,Z,0,n);CHKERRQ(ierr);
-    ierr = MatDestroy(&Z);CHKERRQ(ierr);
   }
 
   /* normalization */
