@@ -729,6 +729,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   pep->ops->setfromoptions = PEPSetFromOptions_STOAR;
   pep->ops->view           = PEPView_STOAR;
   pep->ops->destroy        = PEPDestroy_STOAR;
+  pep->ops->backtransform  = PEPBackTransform_Default;
   pep->ops->computevectors = PEPComputeVectors_Schur;
   pep->ops->extractvectors = PEPExtractVectors_TOAR;
   pep->ops->reset          = PEPReset_TOAR;

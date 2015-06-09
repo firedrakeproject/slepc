@@ -39,6 +39,7 @@ struct _PEPOps {
   PetscErrorCode (*destroy)(PEP);
   PetscErrorCode (*reset)(PEP);
   PetscErrorCode (*view)(PEP,PetscViewer);
+  PetscErrorCode (*backtransform)(PEP);
   PetscErrorCode (*computevectors)(PEP);
   PetscErrorCode (*extractvectors)(PEP);
 };
@@ -143,6 +144,7 @@ struct _p_PEP {
 
 PETSC_INTERN PetscErrorCode PEPSetDimensions_Default(PEP,PetscInt,PetscInt*,PetscInt*);
 PETSC_INTERN PetscErrorCode PEPExtractVectors(PEP);
+PETSC_INTERN PetscErrorCode PEPBackTransform_Default(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Schur(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Indefinite(PEP);

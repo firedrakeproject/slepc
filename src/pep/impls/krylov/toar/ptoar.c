@@ -937,7 +937,9 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   if (pep->refine!=PEP_REFINE_MULTIPLE || pep->rits==0) {
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
     if (!flg) {
-      ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+      if (pep->ops->backtransform) {
+        ierr = (*pep->ops->backtransform)(pep);CHKERRQ(ierr);
+      }
       /* restore original values */
       pep->target *= pep->sfactor;
       ierr = STScaleShift(pep->st,pep->sfactor);CHKERRQ(ierr);
@@ -1208,6 +1210,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
   pep->ops->setfromoptions = PEPSetFromOptions_TOAR;
   pep->ops->destroy        = PEPDestroy_TOAR;
   pep->ops->view           = PEPView_TOAR;
+  pep->ops->backtransform  = PEPBackTransform_Default;
   pep->ops->computevectors = PEPComputeVectors_Schur;
   pep->ops->extractvectors = PEPExtractVectors_TOAR;
   pep->ops->reset          = PEPReset_TOAR;

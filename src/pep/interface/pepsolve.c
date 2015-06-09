@@ -125,8 +125,8 @@ PetscErrorCode PEPSolve(PEP pep)
     ierr = STPostSolve(pep->st);CHKERRQ(ierr);
     /* Map eigenvalues back to the original problem */
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+    if (flg && pep->ops->backtransform) {
+      ierr = (*pep->ops->backtransform)(pep);CHKERRQ(ierr);
     }
   }
 

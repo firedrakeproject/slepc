@@ -22,7 +22,6 @@
 */
 
 #include <slepc/private/pepimpl.h>
-#include <slepc/private/stimpl.h>
 #include <slepcblaslapack.h>
 
 typedef struct {
@@ -1132,7 +1131,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
   ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
   ierr = PetscMalloc1(2*k*k,&dVS);CHKERRQ(ierr);
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-  if (!flg && pep->st && pep->st->ops->backtransform) { /* STBackTransform */
+  if (!flg && pep->st && pep->ops->backtransform) { /* BackTransform */
     ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(ldh,&ld_);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinvert);CHKERRQ(ierr);
@@ -1143,13 +1142,13 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
       PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&k_,&k_,H,&ld_,p,&info));
       PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&k_,H,&ld_,p,work,&lwork,&info));
       ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-      pep->st->ops->backtransform = NULL;
+      pep->ops->backtransform = NULL;
     }
     if (sigma!=0.0) {
       ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
       for (i=0;i<k;i++) H[i+ldh*i] += sigma; 
       ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-      pep->st->ops->backtransform = NULL;
+      pep->ops->backtransform = NULL;
     }
   }
   if ((pep->scale==PEP_SCALE_BOTH || pep->scale==PEP_SCALE_SCALAR) && pep->sfactor!=1.0) {

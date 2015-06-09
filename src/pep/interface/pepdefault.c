@@ -107,6 +107,17 @@ PetscErrorCode PEPConvergedAbsolute(PEP pep,PetscScalar eigr,PetscScalar eigi,Pe
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPBackTransform_Default"
+PetscErrorCode PEPBackTransform_Default(PEP pep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPComputeVectors_Schur"
 PetscErrorCode PEPComputeVectors_Schur(PEP pep)
 {

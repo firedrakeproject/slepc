@@ -694,8 +694,8 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
     SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Extraction not implemented in this solver");
   }
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+  if (flg && pep->ops->backtransform) {
+    ierr = (*pep->ops->backtransform)(pep);CHKERRQ(ierr);
   }
   if (pep->sfactor!=1.0) {
     /* Restore original values */
@@ -1088,12 +1088,13 @@ PETSC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
   ctx->explicitmatrix = PETSC_FALSE;
   pep->data = (void*)ctx;
 
-  pep->ops->solve                = PEPSolve_Linear;
-  pep->ops->setup                = PEPSetUp_Linear;
-  pep->ops->setfromoptions       = PEPSetFromOptions_Linear;
-  pep->ops->destroy              = PEPDestroy_Linear;
-  pep->ops->reset                = PEPReset_Linear;
-  pep->ops->view                 = PEPView_Linear;
+  pep->ops->solve          = PEPSolve_Linear;
+  pep->ops->setup          = PEPSetUp_Linear;
+  pep->ops->setfromoptions = PEPSetFromOptions_Linear;
+  pep->ops->destroy        = PEPDestroy_Linear;
+  pep->ops->reset          = PEPReset_Linear;
+  pep->ops->view           = PEPView_Linear;
+  pep->ops->backtransform  = PEPBackTransform_Default;
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetCompanionForm_C",PEPLinearSetCompanionForm_Linear);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetCompanionForm_C",PEPLinearGetCompanionForm_Linear);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetEPS_C",PEPLinearSetEPS_Linear);CHKERRQ(ierr);
