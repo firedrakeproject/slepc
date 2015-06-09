@@ -177,14 +177,14 @@ PETSC_EXTERN PetscErrorCode DSTranslateHarmonic(DS,PetscScalar,PetscReal,PetscBo
 PETSC_EXTERN PetscErrorCode DSTranslateRKS(DS,PetscScalar);
 PETSC_EXTERN PetscErrorCode DSNormalize(DS,DSMatType,PetscInt);
 
-PETSC_EXTERN PetscErrorCode DSSetFN(DS,PetscInt,FN*);
-PETSC_EXTERN PetscErrorCode DSGetFN(DS,PetscInt,FN*);
-PETSC_EXTERN PetscErrorCode DSGetNumFN(DS,PetscInt*);
-
 /* --------- options specific to particular solvers -------- */
 
 PETSC_EXTERN PetscErrorCode DSPEPSetDegree(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSPEPGetDegree(DS,PetscInt*);
+
+PETSC_EXTERN PetscErrorCode DSNEPSetFN(DS,PetscInt,FN*);
+PETSC_EXTERN PetscErrorCode DSNEPGetFN(DS,PetscInt,FN*);
+PETSC_EXTERN PetscErrorCode DSNEPGetNumFN(DS,PetscInt*);
 
 PETSC_EXTERN PetscFunctionList DSList;
 PETSC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));

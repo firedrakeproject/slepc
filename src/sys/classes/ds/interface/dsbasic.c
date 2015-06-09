@@ -146,8 +146,6 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   ds->k             = 0;
   ds->t             = 0;
   ds->bs            = 1;
-  ds->nf            = 0;
-  for (i=0;i<DS_NUM_EXTRA;i++) ds->f[i] = NULL;
   ds->sc            = NULL;
 
   for (i=0;i<DS_NUM_MAT;i++) {
@@ -667,110 +665,6 @@ PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSSetFN"
-/*@
-   DSSetFN - Sets a number of functions to be used internally by DS.
-
-   Collective on DS and FN
-
-   Input Parameters:
-+  ds - the direct solver context
-.  n  - number of functions
--  f  - array of functions
-
-   Notes:
-   This is normally used in the context of nonlinear eigensolvers, where
-   there are as many functions as terms in the split
-   nonlinear operator T(lambda) = sum_i A_i*f_i(lambda).
-
-   This function must be called before DSAllocate(). Then DSAllocate()
-   will allocate an extra matrix per each function.
-
-   Level: developer
-
-.seealso: DSGetFN(), DSAllocate()
- @*/
-PetscErrorCode DSSetFN(DS ds,PetscInt n,FN f[])
-{
-  PetscInt       i;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidLogicalCollectiveInt(ds,n,2);
-  if (n<=0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more functions, you have %D",n);
-  if (n>DS_NUM_EXTRA) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Too many functions, you specified %D but the limit is %D",n,DS_NUM_EXTRA);
-  if (ds->ld) { ierr = PetscInfo(ds,"DSSetFN() called after DSAllocate()\n");CHKERRQ(ierr); }
-  PetscValidPointer(f,3);
-  PetscCheckSameComm(ds,1,*f,3);
-  for (i=0;i<ds->nf;i++) {
-    ierr = FNDestroy(&ds->f[i]);CHKERRQ(ierr);
-  }
-  for (i=0;i<n;i++) {
-    PetscValidHeaderSpecific(f[i],FN_CLASSID,4);
-    ierr = PetscObjectReference((PetscObject)f[i]);CHKERRQ(ierr);
-    ds->f[i] = f[i];
-  }
-  ds->nf = n;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "DSGetFN"
-/*@
-   DSGetFN - Gets the functions associated with this DS.
-
-   Not collective, though parallel FNs are returned if the DS is parallel
-
-   Input Parameter:
-+  ds - the direct solver context
--  k  - the index of the requested function (starting in 0)
-
-   Output Parameter:
-.  f - the function
-
-   Level: developer
-
-.seealso: DSSetFN()
-@*/
-PetscErrorCode DSGetFN(DS ds,PetscInt k,FN *f)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (k<0 || k>=ds->nf) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",ds->nf-1);
-  PetscValidPointer(f,3);
-  *f = ds->f[k];
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "DSGetNumFN"
-/*@
-   DSGetNumFN - Returns the number of functions stored internally by
-   the DS.
-
-   Not collective
-
-   Input Parameter:
-.  ds - the direct solver context
-
-   Output Parameters:
-.  n - the number of functions passed in DSSetFN()
-
-   Level: developer
-
-.seealso: DSSetFN()
-@*/
-PetscErrorCode DSGetNumFN(DS ds,PetscInt *n)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(n,2);
-  *n = ds->nf;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "DSSetFromOptions"
 /*@
    DSSetFromOptions - Sets DS options from the options database.
@@ -945,10 +839,6 @@ PetscErrorCode DSReset(DS ds)
     ierr = PetscFree(ds->rmat[i]);CHKERRQ(ierr);
     ierr = MatDestroy(&ds->omat[i]);CHKERRQ(ierr);
   }
-  for (i=0;i<ds->nf;i++) {
-    ierr = FNDestroy(&ds->f[i]);CHKERRQ(ierr);
-  }
-  ds->nf            = 0;
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
   ierr = PetscFree(ds->work);CHKERRQ(ierr);
   ierr = PetscFree(ds->rwork);CHKERRQ(ierr);

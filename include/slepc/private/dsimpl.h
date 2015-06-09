@@ -62,8 +62,6 @@ struct _p_DS {
   PetscInt       k;                  /* intermediate dimension (e.g. position of arrow) */
   PetscInt       t;                  /* length of decomposition when it was truncated */
   PetscInt       bs;                 /* block size */
-  PetscInt       nf;                 /* number of functions in f[] */
-  FN             f[DS_NUM_EXTRA];    /* functions provided via DSSetFN() */
   SlepcSC        sc;                 /* sorting criterion */
 
   /*----------------- Status variables and working data ----------------*/
@@ -109,7 +107,6 @@ PETSC_INTERN PetscErrorCode DSPermuteColumns_Private(DS,PetscInt,PetscInt,DSMatT
 PETSC_INTERN PetscErrorCode DSPermuteRows_Private(DS,PetscInt,PetscInt,DSMatType,PetscInt*);
 PETSC_INTERN PetscErrorCode DSPermuteBoth_Private(DS,PetscInt,PetscInt,DSMatType,DSMatType,PetscInt*);
 PETSC_INTERN PetscErrorCode DSCopyMatrix_Private(DS,DSMatType,DSMatType);
-PETSC_INTERN PetscErrorCode DSComputeMatrix(DS,PetscScalar,PetscBool,DSMatType);
 PETSC_EXTERN PetscErrorCode DSOrthogonalize(DS,DSMatType,PetscInt,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSPseudoOrthogonalize(DS,DSMatType,PetscInt,PetscReal*,PetscInt*,PetscReal*);
 
