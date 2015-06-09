@@ -21,7 +21,6 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc/private/stimpl.h> 
 #include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
 #include "linearp.h"
 
@@ -363,7 +362,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
         for (i=0;i<pep->nmat-1;i++) pep->solvematcoeffs[i] = 0.0;
         pep->solvematcoeffs[pep->nmat-1] = 1.0;
       }
-      pep->st->sigma /= pep->sfactor;
+      ierr = STScaleShift(pep->st,1.0/pep->sfactor);CHKERRQ(ierr);
     }
     if (pep->sfactor!=1.0) {
       for (i=0;i<pep->nmat;i++) {
@@ -705,7 +704,9 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
       pep->pbc[2*pep->nmat+i] *= pep->sfactor*pep->sfactor;
     }
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-    if (!flg) pep->st->sigma *= pep->sfactor;
+    if (!flg) {
+      ierr = STScaleShift(pep->st,pep->sfactor);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }

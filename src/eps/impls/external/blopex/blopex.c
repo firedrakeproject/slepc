@@ -22,7 +22,6 @@
 */
 
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
-#include <slepc/private/stimpl.h>
 #include "slepc-interface.h"
 #include <blopex_lobpcg.h>
 #include <blopex_interpreter.h>
@@ -47,9 +46,11 @@ static void Precond_FnSingleVector(void *data,void *x,void *y)
   PetscErrorCode ierr;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)data;
   MPI_Comm       comm = PetscObjectComm((PetscObject)blopex->st);
+  KSP            ksp;
 
   PetscFunctionBegin;
-  ierr = KSPSolve(blopex->st->ksp,(Vec)x,(Vec)y);CHKERRABORT(comm,ierr);
+  ierr = STGetKSP(blopex->st,&ksp);CHKERRABORT(comm,ierr);
+  ierr = KSPSolve(ksp,(Vec)x,(Vec)y);CHKERRABORT(comm,ierr);
   PetscFunctionReturnVoid();
 }
 

@@ -411,7 +411,6 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
 .  shift - the value of the shift
 
    Level: beginner
-
 @*/
 PetscErrorCode STGetShift(ST st,PetscScalar* shift)
 {
@@ -435,7 +434,6 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
 -  defaultshift - the default value of the shift
 
    Level: developer
-
 @*/
 PetscErrorCode STSetDefaultShift(ST st,PetscScalar defaultshift)
 {
@@ -443,6 +441,34 @@ PetscErrorCode STSetDefaultShift(ST st,PetscScalar defaultshift)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveScalar(st,defaultshift,2);
   st->defsigma = defaultshift;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STScaleShift"
+/*@
+   STScaleShift - Multiply the shift with a given factor.
+
+   Logically Collective on ST
+
+   Input Parameters:
++  st     - the spectral transformation context
+-  factor - the scaling factor
+
+   Note:
+   This function does not update the transformation matrices, as opposed to
+   STSetShift().
+
+   Level: developer
+
+.seealso: STSetShift()
+@*/
+PetscErrorCode STScaleShift(ST st,PetscScalar factor)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveScalar(st,factor,2);
+  st->sigma *= factor;
   PetscFunctionReturn(0);
 }
 

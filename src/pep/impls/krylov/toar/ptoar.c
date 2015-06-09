@@ -36,7 +36,6 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc/private/stimpl.h> 
 #include <slepc/private/pepimpl.h>    /*I "slepcpep.h" I*/
 #include "../src/pep/impls/krylov/pepkrylov.h"
 #include <slepcblaslapack.h>
@@ -803,7 +802,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     }
     if (!flg) {
       pep->target /= pep->sfactor;
-      pep->st->sigma /= pep->sfactor;
+      ierr = STScaleShift(pep->st,1.0/pep->sfactor);CHKERRQ(ierr);
       sigma /= pep->sfactor;
     }
   }
@@ -941,7 +940,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
       /* restore original values */
       pep->target *= pep->sfactor;
-      pep->st->sigma *= pep->sfactor;
+      ierr = STScaleShift(pep->st,pep->sfactor);CHKERRQ(ierr);
     }
     if (pep->sfactor!=1.0) {
       for (j=0;j<pep->nconv;j++) {
