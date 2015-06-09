@@ -21,9 +21,14 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = pepkrylov.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepcpep
-DIRS     = linear krylov jd
-LOCDIR   = src/pep/impls/
+DIRS     = qarnoldi toar stoar
+LOCDIR   = src/pep/impls/krylov/
 MANSEC   = PEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
