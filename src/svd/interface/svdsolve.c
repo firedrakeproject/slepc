@@ -29,7 +29,7 @@ PetscErrorCode SVDComputeVectors(SVD svd)
 {
   PetscErrorCode ierr;
   Vec            tl,uj,vj;
-  PetscInt       j;
+  PetscInt       j,oldsize;
   PetscReal      norm;
 
   PetscFunctionBegin;
@@ -38,9 +38,12 @@ PetscErrorCode SVDComputeVectors(SVD svd)
   case SVD_STATE_SOLVED:
     /* generate left singular vectors on U */
     if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
-    ierr = SVDMatCreateVecs(svd,NULL,&tl);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
-    ierr = VecDestroy(&tl);CHKERRQ(ierr);
+    ierr = BVGetSizes(svd->U,NULL,NULL,&oldsize);CHKERRQ(ierr);
+    if (!oldsize) {
+      ierr = SVDMatCreateVecs(svd,NULL,&tl);CHKERRQ(ierr);
+      ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
+      ierr = VecDestroy(&tl);CHKERRQ(ierr);
+    }
     for (j=0;j<svd->nconv;j++) {
       ierr = BVGetColumn(svd->V,j,&vj);CHKERRQ(ierr);
       ierr = BVGetColumn(svd->U,j,&uj);CHKERRQ(ierr);
