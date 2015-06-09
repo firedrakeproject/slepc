@@ -22,7 +22,6 @@
 */
 
 #include <slepc/private/epsimpl.h>    /*I "slepceps.h" I*/
-#include <slepc/private/stimpl.h>
 
 PetscErrorCode EPSSolve_PRIMME(EPS);
 
@@ -200,10 +199,9 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   ierr = VecRestoreArray(v0,&a);CHKERRQ(ierr);
   ierr = BVRestoreColumn(eps->V,0,&v0);CHKERRQ(ierr);
 
-  eps->nconv      = ops->primme.initSize >= 0 ? ops->primme.initSize : 0;
-  eps->reason     = eps->ncv >= eps->nev ? EPS_CONVERGED_TOL: EPS_DIVERGED_ITS;
-  eps->its        = ops->primme.stats.numOuterIterations;
-  eps->st->applys = ops->primme.stats.numMatvecs;
+  eps->nconv  = ops->primme.initSize >= 0 ? ops->primme.initSize : 0;
+  eps->reason = eps->ncv >= eps->nev ? EPS_CONVERGED_TOL: EPS_DIVERGED_ITS;
+  eps->its    = ops->primme.stats.numOuterIterations;
   PetscFunctionReturn(0);
 }
 
@@ -236,7 +234,7 @@ static void multMatvec_PRIMME(void *in,void *out,int *blockSize,primme_params *p
 static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct primme_params *primme)
 {
   PetscErrorCode ierr;
-  PetscInt       i,N = primme->n,lits;
+  PetscInt       i,N = primme->n;
   EPS_PRIMME     *ops = (EPS_PRIMME*)primme->matrix;
   Vec            x = ops->x,y = ops->y;
 
@@ -245,11 +243,7 @@ static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct 
     /* build vectors using 'in' an 'out' workspace */
     ierr = VecPlaceArray(x,(PetscScalar*)in+N*i);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
     ierr = VecPlaceArray(y,(PetscScalar*)out+N*i);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
-
     ierr = KSPSolve(ops->ksp,x,y);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
-    ierr = KSPGetIterationNumber(ops->ksp,&lits);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
-    ops->eps->st->linearits += lits;
-
     ierr = VecResetArray(x);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
     ierr = VecResetArray(y);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
   }
