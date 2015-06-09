@@ -72,7 +72,6 @@ static PetscErrorCode dvd_calcpairs_qz_d(dvdDashboard *d)
 static PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
 {
   PetscErrorCode    ierr;
-  Mat               A;
   Vec               v;
   PetscScalar       *pA;
   const PetscScalar *pv;
@@ -82,13 +81,9 @@ static PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
   ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
   n = kV-lV;
   ierr = DSSetDimensions(d->eps->ds,n,0,0,0);CHKERRQ(ierr);
-  ierr = DSGetMat(d->eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = SlepcMatDenseCopy(d->H,lV,lV,A,0,0,n,n);CHKERRQ(ierr);
-  ierr = DSRestoreMat(d->eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = DSCopyMat(d->eps->ds,DS_MAT_A,0,0,d->H,lV,lV,n,n,PETSC_FALSE);CHKERRQ(ierr);
   if (d->G) {
-    ierr = DSGetMat(d->eps->ds,DS_MAT_B,&A);CHKERRQ(ierr);
-    ierr = SlepcMatDenseCopy(d->G,lV,lV,A,0,0,n,n);CHKERRQ(ierr);
-    ierr = DSRestoreMat(d->eps->ds,DS_MAT_B,&A);CHKERRQ(ierr);
+    ierr = DSCopyMat(d->eps->ds,DS_MAT_B,0,0,d->G,lV,lV,n,n,PETSC_FALSE);CHKERRQ(ierr);
   }
   /* Set the signature on projected matrix B */
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
@@ -226,17 +221,15 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,B
 {
   PetscErrorCode ierr;
   PetscInt       l,k,n;
-  Mat            MT,auxM;
+  Mat            auxM;
 
   PetscFunctionBegin;
   ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-  ierr = DSGetMat(d->eps->ds,mat,&MT);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&auxM);CHKERRQ(ierr);
   ierr = MatZeroEntries(auxM);CHKERRQ(ierr);
-  ierr = MatGetSize(MT,&n,0);CHKERRQ(ierr);
+  ierr = DSGetDimensions(d->eps->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   if (k-l!=n) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-  ierr = SlepcMatDenseCopy(MT,0,0,auxM,l,l,n,d->V_tra_e);CHKERRQ(ierr);
-  ierr = DSRestoreMat(d->eps->ds,mat,&MT);CHKERRQ(ierr);
+  ierr = DSCopyMat(d->eps->ds,mat,0,0,auxM,l,l,n,d->V_tra_e,PETSC_TRUE);CHKERRQ(ierr);
   ierr = BVMultInPlace(bv,auxM,l,l+d->V_tra_e);CHKERRQ(ierr);
   ierr = MatDestroy(&auxM);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -452,7 +445,6 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
 {
   PetscErrorCode    ierr;
   PetscInt          i,ld;
-  Mat               A;
   Vec               v;
   PetscScalar       *pA;
   const PetscScalar *pv;
@@ -463,13 +455,9 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
   ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSHEP,"");CHKERRQ(ierr);
   if (symm) PetscFunctionReturn(0);
   ierr = DSSetDimensions(d->eps->ds,d->eps->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSGetMat(d->eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = SlepcMatDenseCopy(d->H,0,0,A,0,0,d->eps->nconv,d->eps->nconv);CHKERRQ(ierr);
-  ierr = DSRestoreMat(d->eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = DSCopyMat(d->eps->ds,DS_MAT_A,0,0,d->H,0,0,d->eps->nconv,d->eps->nconv,PETSC_FALSE);CHKERRQ(ierr);
   if (d->G) {
-    ierr = DSGetMat(d->eps->ds,DS_MAT_B,&A);CHKERRQ(ierr);
-    ierr = SlepcMatDenseCopy(d->G,0,0,A,0,0,d->eps->nconv,d->eps->nconv);CHKERRQ(ierr);
-    ierr = DSRestoreMat(d->eps->ds,DS_MAT_B,&A);CHKERRQ(ierr);
+    ierr = DSCopyMat(d->eps->ds,DS_MAT_B,0,0,d->G,0,0,d->eps->nconv,d->eps->nconv,PETSC_FALSE);CHKERRQ(ierr);
   }
   /* Set the signature on projected matrix B */
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {

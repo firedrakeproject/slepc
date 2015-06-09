@@ -869,3 +869,76 @@ PetscErrorCode DSTranslateRKS(DS ds,PetscScalar alpha)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "DSCopyMat"
+/*@
+   DSCopyMat - Copies the contents of a sequential dense Mat object to
+   the indicated DS matrix, or vice versa. 
+
+   Not Collective
+
+   Input Parameters:
++  ds   - the direct solver context
+.  m    - the requested matrix
+.  mr   - first row of m to be considered
+.  mc   - first column of m to be considered
+.  A    - Mat object
+.  Ar   - first row of A to be considered
+.  Ac   - first column of A to be considered
+.  rows - number of rows to copy
+.  cols - number of columns to copy
+-  out  - whether the data is copied out of the DS
+
+   Note:
+   If out=true, the values of the DS matrix m are copied to A, otherwise
+   the entries of A are copied to the DS.
+
+   Level: developer
+
+.seealso: DSGetMat()
+@*/
+PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscInt Ar,PetscInt Ac,PetscInt rows,PetscInt cols,PetscBool out)
+{
+  PetscErrorCode ierr;
+  PetscInt       j,mrows,mcols,arows,acols;
+  PetscScalar    *pA,*M;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  DSCheckAlloc(ds,1);
+  PetscValidLogicalCollectiveEnum(ds,m,2);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,3);
+  PetscValidLogicalCollectiveBool(ds,out,4);
+  PetscValidLogicalCollectiveInt(ds,mr,5);
+  PetscValidLogicalCollectiveInt(ds,mc,6);
+  PetscValidLogicalCollectiveInt(ds,Ar,7);
+  PetscValidLogicalCollectiveInt(ds,Ac,8);
+  PetscValidLogicalCollectiveInt(ds,rows,9);
+  PetscValidLogicalCollectiveInt(ds,rows,10);
+  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (!ds->mat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
+  if (!rows || !cols) PetscFunctionReturn(0);
+
+  mrows = PetscMax(ds->n,ds->t);
+  mcols = ds->m? ds->m: ds->n;
+  ierr = MatGetSize(A,&arows,&acols);CHKERRQ(ierr);
+  if (mr<0 || mr>=mrows) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial row in m");
+  if (mc<0 || mc>=mcols) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial column in m");
+  if (Ar<0 || Ar>=arows) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial row in A");
+  if (Ac<0 || Ac>=acols) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial column in A");
+  if (mr+rows>mrows || Ar+rows>arows) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid number of rows");
+  if (mc+cols>mcols || Ac+cols>acols) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid number of columns");
+
+  M  = ds->mat[m];
+  ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
+  for (j=0;j<cols;j++) {
+    if (out) {
+      ierr = PetscMemcpy(pA+(Ac+j)*arows+Ar,M+(mc+j)*ds->ld+mr,rows*sizeof(PetscScalar));CHKERRQ(ierr);
+    } else {
+      ierr = PetscMemcpy(M+(mc+j)*ds->ld+mr,pA+(Ac+j)*arows+Ar,rows*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+  }
+  ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

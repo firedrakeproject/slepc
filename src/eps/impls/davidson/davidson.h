@@ -288,7 +288,6 @@ PETSC_INTERN PetscErrorCode dvd_profiler(dvdDashboard *d,dvdBlackboard *b);
 PETSC_INTERN PetscErrorCode dvd_prof_init();
 PETSC_INTERN PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmType_t mode,PetscBool fixedTarget,PetscScalar t);
 PETSC_INTERN PetscErrorCode BVMultS(BV X,BV Y,PetscScalar *H,PetscInt ldh);
-PETSC_INTERN PetscErrorCode SlepcMatDenseCopy(Mat,PetscInt,PetscInt,Mat,PetscInt,PetscInt,PetscInt,PetscInt);
 
 /* Methods */
 PETSC_INTERN PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,KSP ksp,InitType_t init,PetscBool allResiduals,PetscBool orth,PetscInt cX_proj,PetscInt cX_impr,Method_t method);

@@ -107,7 +107,7 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        npreconv,cMT,cMTX,lV,kV,nV;
   PetscErrorCode  ierr;
-  Mat             Q,Z;
+  Mat             Q;
 #if !defined(PETSC_USE_COMPLEX)
   PetscInt        i;
 #endif
@@ -133,10 +133,8 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
     /* ps.Q <- [ps.Q(0:npreconv-1) ps.Z(npreconv:size_H-1)] */
     ierr = DSGetMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = DSGetMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
-    ierr = SlepcMatDenseCopy(Z,0,npreconv,Q,0,npreconv,nV,cMT);CHKERRQ(ierr);
+    ierr = DSCopyMat(d->eps->ds,DS_MAT_Z,0,npreconv,Q,0,npreconv,nV,cMT,PETSC_TRUE);CHKERRQ(ierr);
     ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
   }
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
     ierr = DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,nV,d->nBds,&cMTX,d->nBds);CHKERRQ(ierr);
@@ -173,7 +171,7 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        lV,kV,nV,size_plusk,size_X,cMTX,cMTY;
-  Mat             Q,Z;
+  Mat             Q;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
@@ -189,17 +187,15 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   /* ps.Q <- orth([pX(0:size_X-1) [oldU(0:size_plusk-1); 0] ]) */
   /* Harmonics restarts wiht right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */
-  ierr = DSGetMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
-    ierr = DSGetMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
-    ierr = SlepcMatDenseCopy(Z,0,0,Q,0,0,nV,size_X);CHKERRQ(ierr);
-    ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
+    ierr = DSGetMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSCopyMat(d->eps->ds,DS_MAT_Z,0,0,Q,0,0,nV,size_X,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   }
   if (size_plusk > 0 && DVD_IS(d->sEP,DVD_EP_INDEFINITE)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported plusk>0 in indefinite eigenvalue problems");
   if (size_plusk > 0) {
-    ierr = SlepcMatDenseCopy(data->oldU,0,0,Q,0,size_X,nV,size_plusk);CHKERRQ(ierr);
+    ierr = DSCopyMat(d->eps->ds,DS_MAT_Q,0,size_X,data->oldU,0,0,nV,size_plusk,PETSC_FALSE);CHKERRQ(ierr);
   }
-  ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
     ierr = DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,size_X,d->nBds,&cMTX,d->nBds);CHKERRQ(ierr);
   } else {
@@ -208,9 +204,7 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 
   if (d->W && size_plusk > 0) {
     /* ps.Z <- orth([ps.Z(0:size_X-1) [oldV(0:size_plusk-1); 0] ]) */
-    ierr = DSGetMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
-    ierr = SlepcMatDenseCopy(data->oldV,0,0,Z,0,size_X,nV,size_plusk);CHKERRQ(ierr);
-    ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
+    ierr = DSCopyMat(d->eps->ds,DS_MAT_Z,0,size_X,data->oldV,0,0,nV,size_plusk,PETSC_FALSE);CHKERRQ(ierr);
     ierr = DSOrthogonalize(d->eps->ds,DS_MAT_Z,size_X+size_plusk,&cMTY);CHKERRQ(ierr);
     cMTX = PetscMin(cMTX, cMTY);
   }
@@ -275,7 +269,6 @@ static PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        size_D,s,lV,kV,nV;
-  Mat             Q,Z;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
@@ -313,14 +306,10 @@ static PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   if (data->plusk > 0) {
     ierr = MatZeroEntries(data->oldU);CHKERRQ(ierr);
     data->size_oldU = nV;
-    ierr = DSGetMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = SlepcMatDenseCopy(Q,0,0,data->oldU,0,0,nV,nV);CHKERRQ(ierr);
-    ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSCopyMat(d->eps->ds,DS_MAT_Q,0,0,data->oldU,0,0,nV,nV,PETSC_TRUE);CHKERRQ(ierr);
     if (d->W) {
       ierr = MatZeroEntries(data->oldV);CHKERRQ(ierr);
-      ierr = DSGetMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
-      ierr = SlepcMatDenseCopy(Z,0,0,data->oldV,0,0,nV,nV);CHKERRQ(ierr);
-      ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
+      ierr = DSCopyMat(d->eps->ds,DS_MAT_Z,0,0,data->oldV,0,0,nV,nV,PETSC_TRUE);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

@@ -168,6 +168,7 @@ PETSC_EXTERN PetscErrorCode DSRestoreArrayReal(DS,DSMatType,PetscReal*[]);
 PETSC_EXTERN PetscErrorCode DSVectors(DS,DSMatType,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSSolve(DS,PetscScalar*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode DSSort(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSCopyMat(DS,DSMatType,PetscInt,PetscInt,Mat,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
 PETSC_EXTERN PetscErrorCode DSSetSlepcSC(DS,SlepcSC);
 PETSC_EXTERN PetscErrorCode DSGetSlepcSC(DS,SlepcSC*);
 PETSC_EXTERN PetscErrorCode DSUpdateExtraRow(DS);
