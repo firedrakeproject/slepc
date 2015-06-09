@@ -246,8 +246,7 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscMalloc(sizeof(dvdImprovex_gd2),&data);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdImprovex_gd2));CHKERRQ(ierr);
+    ierr = PetscNewLog(d->eps,&data);CHKERRQ(ierr);
     d->improveX_data = data;
     data->size_X = b->max_size_X;
     d->improveX = dvd_improvex_gd2_gen;

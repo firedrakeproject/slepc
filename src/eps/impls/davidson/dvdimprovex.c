@@ -489,18 +489,18 @@ static PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out)
 static PetscErrorCode MatCreateVecs_dvd_jd(Mat A,Vec *right,Vec *left)
 {
   PetscErrorCode ierr;
-  Vec            *r, *l;
+  Vec            *r,*l;
   dvdImprovex_jd *data;
-  PetscInt       n, i;
+  PetscInt       n,i;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
   n = data->ksp_max_size;
   if (right) {
-    ierr = PetscMalloc(sizeof(Vec)*n,&r);CHKERRQ(ierr);
+    ierr = PetscMalloc1(n,&r);CHKERRQ(ierr);
   }
   if (left) {
-    ierr = PetscMalloc(sizeof(Vec)*n,&l);CHKERRQ(ierr);
+    ierr = PetscMalloc1(n,&l);CHKERRQ(ierr);
   }
   for (i=0;i<n;i++) {
     ierr = MatCreateVecs(data->d->A,right?&r[i]:NULL,left?&l[i]:NULL);CHKERRQ(ierr);
@@ -850,8 +850,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscMalloc(sizeof(dvdImprovex_jd),&data);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdImprovex_jd));CHKERRQ(ierr);
+    ierr = PetscNewLog(d->eps,&data);CHKERRQ(ierr);
     data->dynamic = dynamic;
     d->max_cX_in_impr = cX_impr;
     ierr = PetscMalloc1(size_P*size_P,&data->XKZ);CHKERRQ(ierr);

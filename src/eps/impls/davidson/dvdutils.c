@@ -130,8 +130,7 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d,dvdBlackboard *b,PC pc)
   if (b->state >= DVD_STATE_CONF) {
     /* If the preconditioner is valid */
     if (pc) {
-      ierr = PetscMalloc(sizeof(dvdPCWrapper),&dvdpc);CHKERRQ(ierr);
-      ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdPCWrapper));CHKERRQ(ierr);
+      ierr = PetscNewLog(d->eps,&dvdpc);CHKERRQ(ierr);
       dvdpc->pc = pc;
       ierr = PetscObjectReference((PetscObject)pc);CHKERRQ(ierr);
       d->improvex_precond_data = dvdpc;
@@ -220,8 +219,7 @@ PetscErrorCode dvd_jacobi_precond(dvdDashboard *d,dvdBlackboard *b)
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscMalloc(sizeof(dvdJacobiPrecond),&dvdjp);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdJacobiPrecond));CHKERRQ(ierr);
+    ierr = PetscNewLog(d->eps,&dvdjp);CHKERRQ(ierr);
     if (t) {
       ierr = MatCreateVecs(d->A,&dvdjp->diagA,NULL);CHKERRQ(ierr);
       ierr = MatGetDiagonal(d->A,dvdjp->diagA);CHKERRQ(ierr);
@@ -340,8 +338,7 @@ PetscErrorCode dvd_profiler(dvdDashboard *d,dvdBlackboard *b)
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
     ierr = PetscFree(d->prof_data);CHKERRQ(ierr);
-    ierr = PetscMalloc(sizeof(DvdProfiler),&p);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(DvdProfiler));CHKERRQ(ierr);
+    ierr = PetscNewLog(d->eps,&p);CHKERRQ(ierr);
     d->prof_data = p;
     p->old_initV = d->initV; d->initV = dvd_initV_prof;
     p->old_calcPairs = d->calcPairs; d->calcPairs = dvd_calcPairs_prof;
@@ -581,8 +578,7 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmType_t mode,Pe
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscMalloc(sizeof(dvdHarmonic),&dvdh);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdHarmonic));CHKERRQ(ierr);
+    ierr = PetscNewLog(d->eps,&dvdh);CHKERRQ(ierr);
     dvdh->withTarget = fixedTarget;
     dvdh->mode = mode;
     if (fixedTarget) dvd_harm_transf(dvdh, t);

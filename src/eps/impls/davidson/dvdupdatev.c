@@ -392,8 +392,7 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscMalloc(sizeof(dvdManagV_basic),&data);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdManagV_basic));CHKERRQ(ierr);
+    ierr = PetscNewLog(d->eps,&data);CHKERRQ(ierr);
     data->mpd = b->max_size_V;
     data->min_size_V = min_size_V;
     d->bs = bs;

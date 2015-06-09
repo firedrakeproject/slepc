@@ -181,7 +181,7 @@ PETSC_STATIC_INLINE PetscErrorCode EPSDavidsonFLAdd(dvdFunctionList **fl,dvdCall
   dvdFunctionList *l;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc(sizeof(dvdFunctionList),&l);CHKERRQ(ierr);
+  ierr = PetscNew(&l);CHKERRQ(ierr);
   l->f = f;
   l->next = *fl;
   *fl = l;
