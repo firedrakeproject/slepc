@@ -289,6 +289,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   PetscReal         norm,error;
   PetscBool         ini=PETSC_TRUE,sc_pend,solved=PETSC_FALSE;
   PEPSimpNRefctx    *ctx;
+  KSPConvergedReason reason;
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
@@ -368,6 +369,8 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
         ierr = VecPlaceArray(rr,array);CHKERRQ(ierr);
       }
       ierr = KSPSolve(ksp,rr,dvv);CHKERRQ(ierr);
+      ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
+      if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)ksp),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
       if (rank != size-1) {
         ierr = VecResetArray(rr);CHKERRQ(ierr);
       }

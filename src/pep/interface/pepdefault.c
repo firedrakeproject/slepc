@@ -126,8 +126,6 @@ PetscErrorCode PEPComputeVectors_Default(PEP pep)
   Vec            v;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            v1;
-  PetscScalar    tmp;
-  PetscReal      norm,normi;
 #endif
 
   PetscFunctionBegin;

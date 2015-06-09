@@ -195,6 +195,7 @@ static PetscErrorCode NRefSysSolve_shell(Mat *A,KSP ksp,PetscInt nmat,Vec Rv,Pet
   PetscBLASInt   k_,one=1,info,lda_;
   PetscInt       i,lda=nmat*k,nwu=0;
   Vec            w;
+  KSPConvergedReason reason;
 
   PetscFunctionBegin;
   t0 = work+nwu;
@@ -216,6 +217,8 @@ static PetscErrorCode NRefSysSolve_shell(Mat *A,KSP ksp,PetscInt nmat,Vec Rv,Pet
   ierr = BVSetActiveColumns(W,1,nmat);CHKERRQ(ierr);
   ierr = BVMultVec(W,1.0,1.0,Rv,t1);CHKERRQ(ierr);
   ierr = KSPSolve(ksp,Rv,dVi);CHKERRQ(ierr);
+  ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
+  if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)ksp),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = BVDotVec(V,dVi,t1);CHKERRQ(ierr);
   PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&k_,&k_,&none,T21,&k_,t1,&one,&zero,dHi,&one));
   for (i=0;i<k;i++) dHi[i] += Rh[i];
@@ -523,6 +526,7 @@ static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScala
   PetscInt          n0,m0,n1,m1,i;
   PetscScalar       *arrayV;
   const PetscScalar *array;
+  KSPConvergedReason reason;
 
   PetscFunctionBegin;
   ierr = MatGetOwnershipRange(matctx->E[1],&n1,&m1);CHKERRQ(ierr);
@@ -537,6 +541,8 @@ static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScala
 
   /* Solve */
   ierr = KSPSolve(ksp,matctx->tN,matctx->ttN);CHKERRQ(ierr);
+  ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
+  if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)ksp),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
  
  /* Retrieve solution */
   ierr = VecGetArray(dVi,&arrayV);CHKERRQ(ierr);
