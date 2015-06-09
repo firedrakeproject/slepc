@@ -263,7 +263,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PetscInt       i=0;
   EPSWhich       which;
   EPSProblemType ptype;
-  PetscBool      trackall,istrivial,flg,sinv,ks;
+  PetscBool      trackall,istrivial,transf,sinv,ks;
   PetscScalar    sigma;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,PEP_LINEAR*,Mat*) = {
@@ -278,7 +278,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PetscFunctionBegin;
   pep->lineariz = PETSC_TRUE;
   if (!ctx->cform) ctx->cform = 1;
-  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  ierr = STGetTransform(pep->st,&transf);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
   if (!pep->which) {
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
@@ -287,16 +287,17 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
   if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
-  if (!flg) { ierr = EPSSetTarget(ctx->eps,pep->target);CHKERRQ(ierr); }
-  if (sinv && !flg) { ierr = STSetDefaultShift(st,pep->target);CHKERRQ(ierr); }
+  if (!transf) { ierr = EPSSetTarget(ctx->eps,pep->target);CHKERRQ(ierr); }
+  if (sinv && !transf) { ierr = STSetDefaultShift(st,pep->target);CHKERRQ(ierr); }
   /* compute scale factor if not set by user */
   ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
    
   if (ctx->explicitmatrix) {
+    if (transf) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option is not implemented with st-tranform flag active");
     if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option only available for quadratic problems");
     if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option not implemented for non-monomial bases");
     if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEPLINEAR with explicit matrices");
-    if (sinv && !flg) { ierr = STSetType(st,STSINVERT);CHKERRQ(ierr); }
+    if (sinv && !transf) { ierr = STSetType(st,STSINVERT);CHKERRQ(ierr); }
 
     ierr = STGetTOperators(pep->st,0,&ctx->K);CHKERRQ(ierr);
     ierr = STGetTOperators(pep->st,1,&ctx->C);CHKERRQ(ierr);
@@ -334,7 +335,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     if (ctx->cform!=1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option not available for 2nd companion form");
     ierr = STSetType(st,STSHELL);CHKERRQ(ierr);
     ierr = STShellSetContext(st,(PetscObject)ctx);CHKERRQ(ierr);
-    if (!flg) { ierr = STShellSetBackTransform(st,BackTransform_Linear);CHKERRQ(ierr); }
+    if (!transf) { ierr = STShellSetBackTransform(st,BackTransform_Linear);CHKERRQ(ierr); }
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[0]);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[1]);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[2]);CHKERRQ(ierr);
@@ -344,7 +345,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = PetscLogObjectParents(pep,6,ctx->w);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),(pep->nmat-1)*pep->nloc,(pep->nmat-1)*pep->nloc,(pep->nmat-1)*pep->n,(pep->nmat-1)*pep->n,ctx,&ctx->A);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
-    if (sinv && !flg) {
+    if (sinv && !transf) {
       ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Sinvert);CHKERRQ(ierr);
     } else {
       ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Shift);CHKERRQ(ierr);
@@ -354,7 +355,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ctx->pep = pep;
 
     ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
-    if (!flg) {
+    if (!transf) {
       ierr = PetscMalloc1(pep->nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
       if (sinv) {
         ierr = PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);
@@ -385,7 +386,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
       ierr = EPSSetProblemType(ctx->eps,EPS_NHEP);CHKERRQ(ierr);
     }
   }
-  if (flg)  which = EPS_LARGEST_MAGNITUDE;
+  if (transf) which = EPS_LARGEST_MAGNITUDE;
   else {
     switch (pep->which) {
         case PEP_LARGEST_MAGNITUDE:  which = EPS_LARGEST_MAGNITUDE; break;
