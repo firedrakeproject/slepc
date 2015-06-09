@@ -491,7 +491,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
    The options '-svd_monitor_all' and '-svd_monitor_lg_all' automatically
    activate this option.
 
-   Level: intermediate
+   Level: developer
 
 .seealso: SVDGetTrackAll()
 @*/
@@ -518,7 +518,7 @@ PetscErrorCode SVDSetTrackAll(SVD svd,PetscBool trackall)
    Output Parameter:
 .  trackall - the returned flag
 
-   Level: intermediate
+   Level: developer
 
 .seealso: SVDSetTrackAll()
 @*/

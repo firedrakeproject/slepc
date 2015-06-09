@@ -696,7 +696,7 @@ PetscErrorCode PEPGetBasis(PEP pep,PEPBasis *basis)
    The options '-pep_monitor_all' and '-pep_monitor_lg_all' automatically
    activate this option.
 
-   Level: intermediate
+   Level: developer
 
 .seealso: PEPGetTrackAll()
 @*/
@@ -723,7 +723,7 @@ PetscErrorCode PEPSetTrackAll(PEP pep,PetscBool trackall)
    Output Parameter:
 .  trackall - the returned flag
 
-   Level: intermediate
+   Level: developer
 
 .seealso: PEPSetTrackAll()
 @*/

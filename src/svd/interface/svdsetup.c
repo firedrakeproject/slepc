@@ -90,12 +90,12 @@ PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
    Input Parameter:
 .  svd   - singular value solver context
 
-   Level: advanced
-
    Notes:
    This function need not be called explicitly in most cases, since SVDSolve()
    calls it. It can be useful when one wants to measure the set-up time
    separately from the solve time.
+
+   Level: developer
 
 .seealso: SVDCreate(), SVDSolve(), SVDDestroy()
 @*/

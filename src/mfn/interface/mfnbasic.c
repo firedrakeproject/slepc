@@ -107,7 +107,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
    Options Database Keys:
 .  -mfn_converged_reason - print reason for convergence, and number of iterations
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: MFNSetTolerances(), MFNGetIterationNumber()
 @*/
@@ -141,7 +141,7 @@ PetscErrorCode MFNReasonView(MFN mfn,PetscViewer viewer)
    Input Parameters:
 .  mfn - the matrix function context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode MFNReasonViewFromOptions(MFN mfn)
 {
@@ -484,7 +484,7 @@ PetscErrorCode MFNGetBV(MFN mfn,BV *bv)
    Use MFNGetFN() to retrieve the math function context (for example,
    to free it at the end of the computations).
 
-   Level: advanced
+   Level: beginner
 
 .seealso: MFNGetFN()
 @*/
@@ -516,7 +516,7 @@ PetscErrorCode MFNSetFN(MFN mfn,FN fn)
    Output Parameter:
 .  fn - math function context
 
-   Level: advanced
+   Level: intermediate
 
 .seealso: MFNSetFN()
 @*/

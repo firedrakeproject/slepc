@@ -252,7 +252,7 @@ PETSC_EXTERN PetscErrorCode PEPGetOptionsPrefix(PEP,const char*[]);
     PEPConvergedReason - Reason an eigensolver was said to
          have converged or diverged
 
-    Level: beginner
+    Level: intermediate
 
 .seealso: PEPSolve(), PEPGetConvergedReason(), PEPSetTolerances()
 E*/

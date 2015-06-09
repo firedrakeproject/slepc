@@ -82,7 +82,7 @@ PETSC_EXTERN const char *SVDErrorTypes[];
     SVDConvergedReason - Reason a singular value solver was said to
          have converged or diverged
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: SVDSolve(), SVDGetConvergedReason(), SVDSetTolerances()
 E*/

@@ -376,9 +376,9 @@ PetscErrorCode STGetNumMatrices(ST st,PetscInt *n)
    This function is normally not directly called by users, since the shift is
    indirectly set by EPSSetTarget().
 
-   Level: advanced
+   Level: intermediate
 
-.seealso: EPSSetTarget()
+.seealso: EPSSetTarget(), STGetShift(), STSetDefaultShift()
 @*/
 PetscErrorCode STSetShift(ST st,PetscScalar shift)
 {
@@ -410,8 +410,9 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
    Output Parameter:
 .  shift - the value of the shift
 
-   Level: beginner
+   Level: intermediate
 
+.seealso: STSetShift()
 @*/
 PetscErrorCode STGetShift(ST st,PetscScalar* shift)
 {
@@ -436,6 +437,7 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
 
    Level: developer
 
+.seealso: STSetShift()
 @*/
 PetscErrorCode STSetDefaultShift(ST st,PetscScalar defaultshift)
 {

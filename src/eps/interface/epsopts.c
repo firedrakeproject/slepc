@@ -791,7 +791,7 @@ PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
    B positive definite) then it is recommended to set the problem type so
    that eigensolver can exploit these properties.
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: EPSSetOperators(), EPSSetType(), EPSGetProblemType(), EPSProblemType
 @*/
@@ -895,7 +895,7 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
 
    Harmonic-type extractions are used in combination with a 'target'.
 
-   Level: beginner
+   Level: advanced
 
 .seealso: EPSSetTarget(), EPSGetExtraction(), EPSExtraction
 @*/
@@ -921,7 +921,7 @@ PetscErrorCode EPSSetExtraction(EPS eps,EPSExtraction extr)
    Output Parameter:
 .  extr - name of extraction type
 
-   Level: intermediate
+   Level: advanced
 
 .seealso: EPSSetExtraction(), EPSExtraction
 @*/
@@ -1066,7 +1066,7 @@ PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cu
    used). On the contrary, preconditioned eigensolvers (e.g., Davidson solvers)
    do rely on computing the true residual, so this option is irrelevant for them.
 
-   Level: intermediate
+   Level: advanced
 
 .seealso: EPSGetTrueResidual()
 @*/
@@ -1093,7 +1093,7 @@ PetscErrorCode EPSSetTrueResidual(EPS eps,PetscBool trueres)
    Output Parameter:
 .  trueres - the returned flag
 
-   Level: intermediate
+   Level: advanced
 
 .seealso: EPSSetTrueResidual()
 @*/
@@ -1127,7 +1127,7 @@ PetscErrorCode EPSGetTrueResidual(EPS eps,PetscBool *trueres)
    The options '-eps_monitor_all' and '-eps_monitor_lg_all' automatically
    activate this option.
 
-   Level: intermediate
+   Level: developer
 
 .seealso: EPSGetTrackAll()
 @*/
@@ -1154,7 +1154,7 @@ PetscErrorCode EPSSetTrackAll(EPS eps,PetscBool trackall)
    Output Parameter:
 .  trackall - the returned flag
 
-   Level: intermediate
+   Level: developer
 
 .seealso: EPSSetTrackAll()
 @*/

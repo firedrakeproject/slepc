@@ -87,7 +87,7 @@ typedef enum { EPS_HEP=1,
     EPSExtraction - Determines the type of extraction technique employed
     by the eigensolver
 
-    Level: beginner
+    Level: advanced
 
 .seealso: EPSSetExtraction(), EPSGetExtraction()
 E*/
@@ -255,7 +255,7 @@ PETSC_EXTERN PetscErrorCode EPSGetOptionsPrefix(EPS,const char*[]);
     EPSConvergedReason - Reason an eigensolver was said to
          have converged or diverged
 
-    Level: beginner
+    Level: intermediate
 
 .seealso: EPSSolve(), EPSGetConvergedReason(), EPSSetTolerances()
 E*/

@@ -50,7 +50,7 @@ PetscFunctionList STList = 0;
    this routine.  Using the options database provides the user with
    maximum flexibility in evaluating the many different transformations.
 
-   Level: intermediate
+   Level: beginner
 
 .seealso: EPSSetType()
 
