@@ -1211,7 +1211,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
   pep->ops->destroy        = PEPDestroy_TOAR;
   pep->ops->view           = PEPView_TOAR;
   pep->ops->backtransform  = PEPBackTransform_Default;
-  pep->ops->computevectors = PEPComputeVectors_Schur;
+  pep->ops->computevectors = PEPComputeVectors_Default;
   pep->ops->extractvectors = PEPExtractVectors_TOAR;
   pep->ops->reset          = PEPReset_TOAR;
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPTOARSetRestart_C",PEPTOARSetRestart_TOAR);CHKERRQ(ierr);

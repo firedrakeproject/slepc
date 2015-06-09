@@ -118,11 +118,11 @@ PetscErrorCode PEPBackTransform_Default(PEP pep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPComputeVectors_Schur"
-PetscErrorCode PEPComputeVectors_Schur(PEP pep)
+#define __FUNCT__ "PEPComputeVectors_Default"
+PetscErrorCode PEPComputeVectors_Default(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscInt       n,i;
+  PetscInt       i;
   Vec            v;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            v1;
@@ -132,11 +132,10 @@ PetscErrorCode PEPComputeVectors_Schur(PEP pep)
 
   PetscFunctionBegin;
   ierr = PEPExtractVectors(pep);CHKERRQ(ierr);
-  ierr = DSGetDimensions(pep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
 
   /* Fix eigenvectors if balancing was used */
   if ((pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) && pep->Dr && (pep->refine!=PEP_REFINE_MULTIPLE)) {
-    for (i=0;i<n;i++) {
+    for (i=0;i<pep->nconv;i++) {
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
       ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
@@ -144,24 +143,19 @@ PetscErrorCode PEPComputeVectors_Schur(PEP pep)
   }
 
   /* normalization */
-  for (i=0;i<n;i++) {
+  for (i=0;i<pep->nconv;i++) {
 #if !defined(PETSC_USE_COMPLEX)
-    if (pep->eigi[i] != 0.0) {
+    if (pep->eigi[i]>0.0) {   /* first eigenvalue of a complex conjugate pair */
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
       ierr = BVGetColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
-      ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = VecNorm(v1,NORM_2,&normi);CHKERRQ(ierr);
-      tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
-      ierr = VecScale(v,tmp);CHKERRQ(ierr);
-      ierr = VecScale(v1,tmp);CHKERRQ(ierr);
+      ierr = SlepcVecNormalize(v,v1,PETSC_TRUE,NULL);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
-      i++;
-    } else
+    } else if (pep->eigi[i]==0.0)   /* real eigenvalue */
 #endif
     {
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
-      ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
+      ierr = SlepcVecNormalize(v,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
     }
   }
