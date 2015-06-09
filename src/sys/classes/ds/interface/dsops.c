@@ -711,7 +711,7 @@ PetscErrorCode DSNormalize(DS ds,DSMatType mat,PetscInt col)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSUpdateExtraRow"
-/*@C
+/*@
    DSUpdateExtraRow - Performs all necessary operations so that the extra
    row gets up-to-date after a call to DSSolve().
 
@@ -743,7 +743,7 @@ PetscErrorCode DSUpdateExtraRow(DS ds)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSCond"
-/*@C
+/*@
    DSCond - Compute the inf-norm condition number of the first matrix
    as cond(A) = norm(A)*norm(inv(A)).
 
@@ -826,7 +826,7 @@ PetscErrorCode DSTranslateHarmonic(DS ds,PetscScalar tau,PetscReal beta,PetscBoo
 
 #undef __FUNCT__
 #define __FUNCT__ "DSTranslateRKS"
-/*@C
+/*@
    DSTranslateRKS - Computes a modification of the dense system corresponding
    to an update of the shift in a rational Krylov method.
 

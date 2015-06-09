@@ -34,20 +34,12 @@
 #define epsgetoptionsprefix_        EPSGETOPTIONSPREFIX
 #define epssettype_                 EPSSETTYPE
 #define epsgettype_                 EPSGETTYPE
-#define epsgetoperators_            EPSGETOPERATORS
 #define epsmonitorall_              EPSMONITORALL
 #define epsmonitorlg_               EPSMONITORLG
 #define epsmonitorlgall_            EPSMONITORLGALL
 #define epsmonitorset_              EPSMONITORSET
 #define epsmonitorconverged_        EPSMONITORCONVERGED
 #define epsmonitorfirst_            EPSMONITORFIRST
-#define epsgetbalance_              EPSGETBALANCE
-#define epsgetwhicheigenpairs_      EPSGETWHICHEIGENPAIRS
-#define epsgetconvergencetest_      EPSGETCONVERGENCETEST
-#define epsgetproblemtype_          EPSGETPROBLEMTYPE
-#define epsgetextraction_           EPSGETEXTRACTION
-#define epspowergetshifttype_       EPSPOWERGETSHIFTTYPE
-#define epslanczosgetreorthog_      EPSLANCZOSGETREORTHOG
 #define epsconvergedabsolute_       EPSCONVERGEDABSOLUTE
 #define epsconvergedeigrelative_    EPSCONVERGEDEIGRELATIVE
 #define epsconvergednormrelative_   EPSCONVERGEDNORMRELATIVE
@@ -65,20 +57,12 @@
 #define epsgetoptionsprefix_        epsgetoptionsprefix
 #define epssettype_                 epssettype
 #define epsgettype_                 epsgettype
-#define epsgetoperators_            epsgetoperators
 #define epsmonitorall_              epsmonitorall
 #define epsmonitorlg_               epsmonitorlg
 #define epsmonitorlgall_            epsmonitorlgall
 #define epsmonitorset_              epsmonitorset
 #define epsmonitorconverged_        epsmonitorconverged
 #define epsmonitorfirst_            epsmonitorfirst
-#define epsgetbalance_              epsgetbalance
-#define epsgetwhicheigenpairs_      epsgetwhicheigenpairs
-#define epsgetconvergencetest_      epsgetconvergencetest
-#define epsgetproblemtype_          epsgetproblemtype
-#define epsgetextraction_           epsgetextraction
-#define epspowergetshifttype_       epspowergetshifttype
-#define epslanczosgetreorthog_      epslanczosgetreorthog
 #define epsconvergedabsolute_       epsconvergedabsolute
 #define epsconvergedeigrelative_    epsconvergedeigrelative
 #define epsconvergednormrelative_   epsconvergednormrelative
@@ -225,13 +209,6 @@ PETSC_EXTERN void PETSC_STDCALL epsgettype_(EPS *eps,CHAR name PETSC_MIXED_LEN(l
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-PETSC_EXTERN void PETSC_STDCALL epsgetoperators_(EPS *eps,Mat *A,Mat *B,PetscErrorCode *ierr)
-{
-  CHKFORTRANNULLOBJECT(A);
-  CHKFORTRANNULLOBJECT(B);
-  *ierr = EPSGetOperators(*eps,A,B);
-}
-
 PETSC_EXTERN void PETSC_STDCALL epssetoptionsprefix_(EPS *eps,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
@@ -291,41 +268,6 @@ PETSC_EXTERN void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *mon
       *ierr = EPSMonitorSet(*eps,ourmonitor,*eps,ourdestroy);
     }
   }
-}
-
-PETSC_EXTERN void PETSC_STDCALL epsgetbalance_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,PetscErrorCode *ierr)
-{
-  *ierr = EPSGetBalance(*eps,bal,its,cutoff);
-}
-
-PETSC_EXTERN void PETSC_STDCALL epsgetwhicheigenpairs_(EPS *eps,EPSWhich *which,PetscErrorCode *ierr)
-{
-  *ierr = EPSGetWhichEigenpairs(*eps,which);
-}
-
-PETSC_EXTERN void PETSC_STDCALL epsgetconvergencetest_(EPS *eps,EPSConv *conv,PetscErrorCode *ierr)
-{
-  *ierr = EPSGetConvergenceTest(*eps,conv);
-}
-
-PETSC_EXTERN void PETSC_STDCALL epsgetproblemtype_(EPS *eps,EPSProblemType *type,PetscErrorCode *ierr)
-{
-  *ierr = EPSGetProblemType(*eps,type);
-}
-
-PETSC_EXTERN void PETSC_STDCALL epsgetextraction_(EPS *eps,EPSExtraction *proj,PetscErrorCode *ierr)
-{
-  *ierr = EPSGetExtraction(*eps,proj);
-}
-
-PETSC_EXTERN void PETSC_STDCALL epspowergetshifttype_(EPS *eps,EPSPowerShiftType *shift,PetscErrorCode *ierr)
-{
-  *ierr = EPSPowerGetShiftType(*eps,shift);
-}
-
-PETSC_EXTERN void PETSC_STDCALL epslanczosgetreorthog_(EPS *eps,EPSLanczosReorthogType *reorthog,PetscErrorCode *ierr)
-{
-  *ierr = EPSLanczosGetReorthog(*eps,reorthog);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epsconvergedabsolute_(EPS *eps,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)

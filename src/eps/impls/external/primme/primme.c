@@ -501,7 +501,7 @@ static PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps,EPSPRIMMEMethod *method)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSPRIMMEGetMethod"
-/*@C
+/*@
    EPSPRIMMEGetMethod - Gets the method for the PRIMME library.
 
    Not Collective

@@ -37,7 +37,6 @@
 #define svdsettype_                  SVDSETTYPE
 #define svdgettype_                  SVDGETTYPE
 #define svdmonitorset_               SVDMONITORSET
-#define svdgetwhichsingulartriplets_ SVDGETWHICHSINGULARTRIPLETS
 #define svdsetoptionsprefix_         SVDSETOPTIONSPREFIX
 #define svdappendoptionsprefix_      SVDAPPENDOPTIONSPREFIX
 #define svdgetoptionsprefix_         SVDGETOPTIONSPREFIX
@@ -55,7 +54,6 @@
 #define svdsettype_                  svdsettype
 #define svdgettype_                  svdgettype
 #define svdmonitorset_               svdmonitorset
-#define svdgetwhichsingulartriplets_ svdgetwhichsingulartriplets
 #define svdsetoptionsprefix_         svdsetoptionsprefix
 #define svdappendoptionsprefix_      svdappendoptionsprefix
 #define svdgetoptionsprefix_         svdgetoptionsprefix
@@ -197,11 +195,6 @@ PETSC_EXTERN void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *mon
       *ierr = SVDMonitorSet(*svd,ourmonitor,*svd,ourdestroy);
     }
   }
-}
-
-PETSC_EXTERN void PETSC_STDCALL svdgetwhichsingulartriplets_(SVD *svd,SVDWhich *which,PetscErrorCode *ierr)
-{
-  *ierr = SVDGetWhichSingularTriplets(*svd,which);
 }
 
 PETSC_EXTERN void PETSC_STDCALL svdsetoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))

@@ -601,7 +601,7 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPRefineGetKSP"
-/*@C
+/*@
    PEPRefineGetKSP - Obtain the ksp object used by the eigensolver
    object in the refinement phase.
 

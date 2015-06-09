@@ -486,7 +486,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetWhichEigenpairs"
-/*@C
+/*@
     NEPGetWhichEigenpairs - Returns which portion of the spectrum is to be
     sought.
 

@@ -293,7 +293,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetOperators"
-/*@C
+/*@
    EPSGetOperators - Gets the matrices associated with the eigensystem.
 
    Collective on EPS and Mat

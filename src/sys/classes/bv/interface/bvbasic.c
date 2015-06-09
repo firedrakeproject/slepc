@@ -524,7 +524,7 @@ PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
 
 #undef __FUNCT__
 #define __FUNCT__ "BVGetMatrix"
-/*@C
+/*@
    BVGetMatrix - Retrieves the matrix representation of the inner product.
 
    Not collective, though a parallel Mat may be returned
@@ -551,7 +551,7 @@ PetscErrorCode BVGetMatrix(BV bv,Mat *B,PetscBool *indef)
 
 #undef __FUNCT__
 #define __FUNCT__ "BVApplyMatrix"
-/*@C
+/*@
    BVApplyMatrix - Multiplies a vector by the matrix representation of the
    inner product.
 
@@ -803,7 +803,7 @@ PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType
 
 #undef __FUNCT__
 #define __FUNCT__ "BVGetOrthogonalization"
-/*@C
+/*@
    BVGetOrthogonalization - Gets the orthogonalization settings from the BV object.
 
    Not Collective
@@ -872,7 +872,7 @@ PetscErrorCode BVSetMatMultMethod(BV bv,BVMatMultType method)
 
 #undef __FUNCT__
 #define __FUNCT__ "BVGetMatMultMethod"
-/*@C
+/*@
    BVGetMatMultMethod - Gets the method used for the BVMatMult() operation.
 
    Not Collective

@@ -313,7 +313,7 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetWhichSingularTriplets"
-/*@C
+/*@
     SVDGetWhichSingularTriplets - Returns which singular triplets are
     to be sought.
 

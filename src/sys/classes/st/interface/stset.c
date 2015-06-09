@@ -301,7 +301,7 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
 
 #undef __FUNCT__
 #define __FUNCT__ "STGetMatMode"
-/*@C
+/*@
    STGetMatMode - Gets a flag that indicates how the transformed matrices
    are stored in spectral transformations.
 

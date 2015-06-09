@@ -504,7 +504,7 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetWhichEigenpairs"
-/*@C
+/*@
    EPSGetWhichEigenpairs - Returns which portion of the spectrum is to be
    sought.
 
@@ -734,7 +734,7 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetConvergenceTest"
-/*@C
+/*@
    EPSGetConvergenceTest - Gets the method used to compute the error estimate
    used in the convergence test.
 
@@ -840,7 +840,7 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetProblemType"
-/*@C
+/*@
    EPSGetProblemType - Gets the problem type from the EPS object.
 
    Not Collective
@@ -910,7 +910,7 @@ PetscErrorCode EPSSetExtraction(EPS eps,EPSExtraction extr)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetExtraction"
-/*@C
+/*@
    EPSGetExtraction - Gets the extraction type used by the EPS object.
 
    Not Collective
@@ -1010,7 +1010,7 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetBalance"
-/*@C
+/*@
    EPSGetBalance - Gets the balancing type used by the EPS object, and the
    associated parameters.
 
