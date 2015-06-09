@@ -55,7 +55,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp(FN fn,Mat A,Mat B)
 #else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,ld2,*ipiv,info,inc=1;
-  PetscInt       m,j,k;
+  PetscInt       m,j,k,sexp;
   PetscBool      odd;
   const PetscInt p=MAX_PADE;
   PetscReal      c[MAX_PADE+1],s,*rwork;
@@ -80,10 +80,10 @@ PetscErrorCode FNEvaluateFunctionMat_Exp(FN fn,Mat A,Mat B)
   /* Scaling */
   s = LAPACKlange_("I",&n,&n,As,&ld,rwork);
   if (s>0.5) {
-    s = PetscMax(0,(int)(PetscLogReal(s)/PetscLogReal(2.0))+2);
-    scale = PetscPowReal(2.0,-s);
+    sexp = PetscMax(0,(int)(PetscLogReal(s)/PetscLogReal(2.0))+2);
+    scale = PetscPowRealInt(2.0,-sexp);
     PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&scale,As,&inc));
-  }
+  } else sexp = 0;
 
   /* Horner evaluation */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,As,&ld,As,&ld,&zero,A2,&ld));
@@ -127,7 +127,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp(FN fn,Mat A,Mat B)
     for (j=0;j<n;j++) P[j+j*ld] += 1.0;
   }
 
-  for (k=1;k<=s;k++) {
+  for (k=1;k<=sexp;k++) {
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,P,&ld,&zero,W,&ld));
     ierr = PetscMemcpy(P,W,ld2*sizeof(PetscScalar));CHKERRQ(ierr);
   }
