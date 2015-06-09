@@ -26,130 +26,503 @@
 #include "davidson.h"
 #include <slepcblaslapack.h>
 
-static PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w);
-static PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out);
-static PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out);
-static PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out);
-static PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out);
-static PetscErrorCode MatCreateVecs_dvd_jd(Mat A,Vec *right,Vec *left);
-static PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d);
-static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d);
-static PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d);
-static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D);
-static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld);
-static PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld);
-static PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld);
-static PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d,PetscInt i,PetscScalar* theta,PetscScalar* thetai,PetscInt *maxits,PetscReal *tol);
-static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV);
-static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV);
-
-#define size_Z (64*4)
-
 /**** JD update step (I - Kfg'/(g'Kf)) K(A - sB) (I - Kfg'/(g'Kf)) t = (I - Kfg'/(g'Kf))r  ****/
 
 typedef struct {
-  PetscInt size_X;
-  KSP ksp;                /* correction equation solver */
-  Vec friends;            /* reference vector for composite vectors */
-  PetscScalar theta[4], thetai[2];
-                          /* the shifts used in the correction eq. */
-  PetscInt maxits,        /* maximum number of iterations */
-    r_s, r_e,             /* the selected eigenpairs to improve */
-    ksp_max_size;         /* the ksp maximum subvectors size */
-  PetscReal tol,          /* the maximum solution tolerance */
-    lastTol,              /* last tol for dynamic stopping criterion */
-    fix;                  /* tolerance for using the approx. eigenvalue */
-  PetscBool
-    dynamic;              /* if the dynamic stopping criterion is applied */
-  dvdDashboard
-    *d;                   /* the currect dvdDashboard reference */
-  PC old_pc;              /* old pc in ksp */
-  BV KZ;                  /* KZ vecs for the projector KZ*inv(X'*KZ)*X' */
-  BV U;                   /* new X vectors */
-  PetscScalar
-   *XKZ,                  /* X'*KZ */
-   *iXKZ;                 /* inverse of XKZ */
-  PetscInt
-    ldXKZ,                /* leading dimension of XKZ */
-    size_iXKZ,            /* size of iXKZ */
-    ldiXKZ,               /* leading dimension of iXKZ */
-    size_cX,              /* last value of d->size_cX */
-    old_size_X;           /* last number of improved vectors */
-  PetscBLASInt
-    *iXKZPivots;          /* array of pivots */
+  PetscInt     size_X;
+  KSP          ksp;                /* correction equation solver */
+  Vec          friends;            /* reference vector for composite vectors */
+  PetscScalar  theta[4],thetai[2]; /* the shifts used in the correction eq. */
+  PetscInt     maxits;             /* maximum number of iterations */
+  PetscInt     r_s,r_e;            /* the selected eigenpairs to improve */
+  PetscInt     ksp_max_size;       /* the ksp maximum subvectors size */
+  PetscReal    tol;                /* the maximum solution tolerance */
+  PetscReal    lastTol;            /* last tol for dynamic stopping criterion */
+  PetscReal    fix;                /* tolerance for using the approx. eigenvalue */
+  PetscBool    dynamic;            /* if the dynamic stopping criterion is applied */
+  dvdDashboard *d;                 /* the currect dvdDashboard reference */
+  PC           old_pc;             /* old pc in ksp */
+  BV           KZ;                 /* KZ vecs for the projector KZ*inv(X'*KZ)*X' */
+  BV           U;                  /* new X vectors */
+  PetscScalar  *XKZ;               /* X'*KZ */
+  PetscScalar  *iXKZ;              /* inverse of XKZ */
+  PetscInt     ldXKZ;              /* leading dimension of XKZ */
+  PetscInt     size_iXKZ;          /* size of iXKZ */
+  PetscInt     ldiXKZ;             /* leading dimension of iXKZ */
+  PetscInt     size_cX;            /* last value of d->size_cX */
+  PetscInt     old_size_X;         /* last number of improved vectors */
+  PetscBLASInt *iXKZPivots;        /* array of pivots */
 } dvdImprovex_jd;
 
-PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Vec *x,const Vec *y);
-PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,const Vec *x,const Vec *y);
-
 #undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd"
-PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs,PetscInt cX_impr,PetscBool dynamic)
+#define __FUNCT__ "dvd_improvex_apply_proj"
+/*
+   Compute (I - KZ*iXKZ*X')*V where,
+   V, the vectors to apply the projector,
+   cV, the number of vectors in V,
+*/
+static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV)
 {
-  PetscErrorCode  ierr;
-  dvdImprovex_jd  *data;
-  PetscBool       useGD;
-  PC              pc;
-  PetscInt        size_P;
+#if defined(PETSC_MISSING_LAPACK_GETRS)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable");
+#else
+  PetscErrorCode ierr;
+  dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
+  PetscInt       i,ldh,k,l;
+  PetscScalar    *h;
+  PetscBLASInt   cV_,n,info,ld;
+#if defined(PETSC_USE_COMPLEX)
+  PetscInt       j;
+#endif
 
   PetscFunctionBegin;
+  if (cV > 2) SETERRQ(PETSC_COMM_SELF,1,"Consistency broken");
 
-  /* Setting configuration constrains */
-  ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&useGD);CHKERRQ(ierr);
-
-  /* If the arithmetic is real and the problem is not Hermitian, then
-     the block size is incremented in one */
-#if !defined(PETSC_USE_COMPLEX)
-  if (!DVD_IS(d->sEP,DVD_EP_HERMITIAN)) {
-    max_bs++;
-    b->max_size_P = PetscMax(b->max_size_P,2);
-  } else
+  /* h <- X'*V */
+  ierr = PetscMalloc1(data->size_iXKZ*cV,&h);CHKERRQ(ierr);
+  ldh = data->size_iXKZ;
+  ierr = BVGetActiveColumns(data->U,&l,&k);CHKERRQ(ierr);
+  if (ldh!=k) SETERRQ(PETSC_COMM_SELF,1,"Consistency broken");
+  ierr = BVSetActiveColumns(data->U,0,k);CHKERRQ(ierr);
+  for (i=0;i<cV;i++) {
+    ierr = BVDotVec(data->U,V[i],&h[ldh*i]);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    for (j=0; j<k; j++) h[ldh*i+j] = PetscConj(h[ldh*i+j]);
 #endif
-  {
-    b->max_size_P = PetscMax(b->max_size_P,1);
   }
-  b->max_size_X = PetscMax(b->max_size_X,max_bs);
-  size_P = b->max_size_P+cX_impr;
+  ierr = BVSetActiveColumns(data->U,l,k);CHKERRQ(ierr);
 
-  /* Setup the preconditioner */
-  if (ksp) {
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = dvd_static_precond_PC(d,b,pc);CHKERRQ(ierr);
-  } else {
-    ierr = dvd_static_precond_PC(d,b,0);CHKERRQ(ierr);
+  /* h <- iXKZ\h */
+  ierr = PetscBLASIntCast(cV,&cV_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(data->size_iXKZ,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(data->ldiXKZ,&ld);CHKERRQ(ierr);
+  PetscValidScalarPointer(data->iXKZ,0);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n,&cV_,data->iXKZ,&ld,data->iXKZPivots,h,&n,&info));
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack XGETRS %d",info);
+
+  /* V <- V - KZ*h */
+  ierr = BVSetActiveColumns(data->KZ,0,k);CHKERRQ(ierr);
+  for (i=0;i<cV;i++) {
+    ierr = BVMultVec(data->KZ,-1.0,1.0,V[i],&h[ldh*i]);CHKERRQ(ierr);
+  }
+  ierr = BVSetActiveColumns(data->KZ,l,k);CHKERRQ(ierr);
+  ierr = PetscFree(h);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "dvd_improvex_applytrans_proj"
+/*
+   Compute (I - X*iXKZ*KZ')*V where,
+   V, the vectors to apply the projector,
+   cV, the number of vectors in V,
+*/
+static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV)
+{
+#if defined(PETSC_MISSING_LAPACK_GETRS)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable");
+  PetscFunctionReturn(0);
+#else
+  PetscErrorCode ierr;
+  dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
+  PetscInt       i,ldh,k,l;
+  PetscScalar    *h;
+  PetscBLASInt   cV_, n, info, ld;
+#if defined(PETSC_USE_COMPLEX)
+  PetscInt       j;
+#endif
+
+  PetscFunctionBegin;
+  if (cV > 2) SETERRQ(PETSC_COMM_SELF,1,"Consistency broken");
+
+  /* h <- KZ'*V */
+  ierr = PetscMalloc1(data->size_iXKZ*cV,&h);CHKERRQ(ierr);
+  ldh = data->size_iXKZ;
+  ierr = BVGetActiveColumns(data->U,&l,&k);CHKERRQ(ierr);
+  if (ldh!=k) SETERRQ(PETSC_COMM_SELF,1,"Consistency broken");
+  ierr = BVSetActiveColumns(data->KZ,0,k);CHKERRQ(ierr);
+  for (i=0;i<cV;i++) {
+    ierr = BVDotVec(data->KZ,V[i],&h[ldh*i]);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    for (j=0;j<k;j++) h[ldh*i+j] = PetscConj(h[ldh*i+j]);
+#endif
+  }
+  ierr = BVSetActiveColumns(data->KZ,l,k);CHKERRQ(ierr);
+
+  /* h <- iXKZ\h */
+  ierr = PetscBLASIntCast(cV,&cV_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(data->size_iXKZ,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(data->ldiXKZ,&ld);CHKERRQ(ierr);
+  PetscValidScalarPointer(data->iXKZ,0);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("C",&n,&cV_,data->iXKZ,&ld,data->iXKZPivots,h,&n,&info));
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack XGETRS %d",info);
+
+  /* V <- V - U*h */
+  ierr = BVSetActiveColumns(data->U,0,k);CHKERRQ(ierr);
+  for (i=0;i<cV;i++) {
+    ierr = BVMultVec(data->U,-1.0,1.0,V[i],&h[ldh*i]);CHKERRQ(ierr);
+  }
+  ierr = BVSetActiveColumns(data->U,l,k);CHKERRQ(ierr);
+  ierr = PetscFree(h);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "dvd_improvex_jd_end"
+static PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d)
+{
+  PetscErrorCode ierr;
+  dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
+
+  PetscFunctionBegin;
+  if (data->friends) { ierr = VecDestroy(&data->friends);CHKERRQ(ierr); }
+
+  /* Restore the pc of ksp */
+  if (data->old_pc) {
+    ierr = KSPSetPC(data->ksp, data->old_pc);CHKERRQ(ierr);
+    ierr = PCDestroy(&data->old_pc);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "dvd_improvex_jd_d"
+static PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
+{
+  PetscErrorCode ierr;
+  dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
+
+  PetscFunctionBegin;
+  /* Free local data and objects */
+  ierr = PetscFree(data->XKZ);CHKERRQ(ierr);
+  ierr = PetscFree(data->iXKZ);CHKERRQ(ierr);
+  ierr = PetscFree(data->iXKZPivots);CHKERRQ(ierr);
+  ierr = BVDestroy(&data->KZ);CHKERRQ(ierr);
+  ierr = BVDestroy(&data->U);CHKERRQ(ierr);
+  ierr = PetscFree(data);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "dvd_aux_matmult"
+/*
+   y <- theta[1]A*x - theta[0]*B*x
+   auxV, two auxiliary vectors
+ */
+PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Vec *x,const Vec *y)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,i;
+  const Vec      *Bx;
+  Vec            *auxV;
+
+  PetscFunctionBegin;
+  n = data->r_e - data->r_s;
+  for (i=0;i<n;i++) {
+    ierr = MatMult(data->d->A,x[i],y[i]);CHKERRQ(ierr);
   }
 
-  /* Setup the step */
-  if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscMalloc(sizeof(dvdImprovex_jd),&data);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdImprovex_jd));CHKERRQ(ierr);
-    data->dynamic = dynamic;
-    d->max_cX_in_impr = cX_impr;
-    ierr = PetscMalloc1(size_P*size_P,&data->XKZ);CHKERRQ(ierr);
-    ierr = PetscMalloc1(size_P*size_P,&data->iXKZ);CHKERRQ(ierr);
-    ierr = PetscMalloc1(size_P,&data->iXKZPivots);CHKERRQ(ierr);
-    data->ldXKZ = size_P;
-    data->size_X = b->max_size_X;
-    d->improveX_data = data;
-    data->ksp = useGD?NULL:ksp;
-    data->d = d;
-    d->improveX = dvd_improvex_jd_gen;
+  ierr = SlepcVecPoolGetVecs(data->d->auxV,2,&auxV);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
 #if !defined(PETSC_USE_COMPLEX)
-    if (!DVD_IS(d->sEP,DVD_EP_HERMITIAN)) {
-      data->ksp_max_size = 2;
+    if (data->d->eigi[data->r_s+i] != 0.0) {
+      if (data->d->B) {
+        ierr = MatMult(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
+        ierr = MatMult(data->d->B,x[i+1],auxV[1]);CHKERRQ(ierr);
+        Bx = auxV;
+      } else Bx = &x[i];
+
+      /* y_i   <- [ t_2i+1*A*x_i   - t_2i*Bx_i + ti_i*Bx_i+1;
+         y_i+1      t_2i+1*A*x_i+1 - ti_i*Bx_i - t_2i*Bx_i+1  ] */
+      ierr = VecAXPBYPCZ(y[i],-data->theta[2*i],data->thetai[i],data->theta[2*i+1],Bx[0],Bx[1]);CHKERRQ(ierr);
+      ierr = VecAXPBYPCZ(y[i+1],-data->thetai[i],-data->theta[2*i],data->theta[2*i+1],Bx[0],Bx[1]);CHKERRQ(ierr);
+      i++;
     } else
 #endif
     {
-      data->ksp_max_size = 1;
+      if (data->d->B) {
+        ierr = MatMult(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
+        Bx = auxV;
+      } else Bx = &x[i];
+      ierr = VecAXPBY(y[i],-data->theta[i*2],data->theta[i*2+1],Bx[0]);CHKERRQ(ierr);
     }
-    /* Create various vector basis */
-    ierr = BVDuplicateResize(d->eps->V,size_P,&data->KZ);CHKERRQ(ierr);
-    ierr = BVSetMatrix(data->KZ,NULL,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = BVDuplicate(data->KZ,&data->U);CHKERRQ(ierr);
+  }
+  ierr = SlepcVecPoolRestoreVecs(data->d->auxV,2,&auxV);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
-    ierr = EPSDavidsonFLAdd(&d->startList,dvd_improvex_jd_start);CHKERRQ(ierr);
-    ierr = EPSDavidsonFLAdd(&d->endList,dvd_improvex_jd_end);CHKERRQ(ierr);
-    ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_improvex_jd_d);CHKERRQ(ierr);
+#undef __FUNCT__
+#define __FUNCT__ "dvd_aux_matmulttrans"
+/*
+   y <- theta[1]'*A'*x - theta[0]'*B'*x
+ */
+PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,const Vec *x,const Vec *y)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,i;
+  const Vec      *Bx;
+  Vec            *auxV;
+
+  PetscFunctionBegin;
+  n = data->r_e - data->r_s;
+  for (i=0;i<n;i++) {
+    ierr = MatMultTranspose(data->d->A,x[i],y[i]);CHKERRQ(ierr);
+  }
+
+  ierr = SlepcVecPoolGetVecs(data->d->auxV,2,&auxV);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if (data->d->eigi[data->r_s+i] != 0.0) {
+      if (data->d->B) {
+        ierr = MatMultTranspose(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
+        ierr = MatMultTranspose(data->d->B,x[i+1],auxV[1]);CHKERRQ(ierr);
+        Bx = auxV;
+      } else Bx = &x[i];
+
+      /* y_i   <- [ t_2i+1*A*x_i   - t_2i*Bx_i - ti_i*Bx_i+1;
+         y_i+1      t_2i+1*A*x_i+1 + ti_i*Bx_i - t_2i*Bx_i+1  ] */
+      ierr = VecAXPBYPCZ(y[i],-data->theta[2*i],-data->thetai[i],data->theta[2*i+1],Bx[0],Bx[1]);CHKERRQ(ierr);
+      ierr = VecAXPBYPCZ(y[i+1],data->thetai[i],-data->theta[2*i],data->theta[2*i+1],Bx[0],Bx[1]);CHKERRQ(ierr);
+      i++;
+    } else
+#endif
+    {
+      if (data->d->B) {
+        ierr = MatMultTranspose(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
+        Bx = auxV;
+      } else Bx = &x[i];
+      ierr = VecAXPBY(y[i],PetscConj(-data->theta[i*2]),PetscConj(data->theta[i*2+1]),Bx[0]);CHKERRQ(ierr);
+    }
+  }
+  ierr = SlepcVecPoolRestoreVecs(data->d->auxV,2,&auxV);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PCApplyBA_dvd"
+static PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w)
+{
+  PetscErrorCode ierr;
+  dvdImprovex_jd *data;
+  PetscInt       n,i;
+  const Vec      *inx,*outx,*wx;
+  Vec            *auxV;
+  Mat            A;
+
+  PetscFunctionBegin;
+  ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(w,NULL,&wx);CHKERRQ(ierr);
+  n = data->r_e - data->r_s;
+  ierr = SlepcVecPoolGetVecs(data->d->auxV,n,&auxV);CHKERRQ(ierr);
+  switch (side) {
+  case PC_LEFT:
+    /* aux <- theta[1]A*in - theta[0]*B*in */
+    ierr = dvd_aux_matmult(data,inx,auxV);CHKERRQ(ierr);
+
+    /* out <- K * aux */
+    for (i=0;i<n;i++) {
+      ierr = data->d->improvex_precond(data->d,data->r_s+i,auxV[i],outx[i]);CHKERRQ(ierr);
+    }
+    break;
+  case PC_RIGHT:
+    /* aux <- K * in */
+    for (i=0;i<n;i++) {
+      ierr = data->d->improvex_precond(data->d,data->r_s+i,inx[i],auxV[i]);CHKERRQ(ierr);
+    }
+
+    /* out <- theta[1]A*auxV - theta[0]*B*auxV */
+    ierr = dvd_aux_matmult(data,auxV,outx);CHKERRQ(ierr);
+    break;
+  case PC_SYMMETRIC:
+    /* aux <- K^{1/2} * in */
+    for (i=0;i<n;i++) {
+      ierr = PCApplySymmetricRight(data->old_pc,inx[i],auxV[i]);CHKERRQ(ierr);
+    }
+
+    /* wx <- theta[1]A*auxV - theta[0]*B*auxV */
+    ierr = dvd_aux_matmult(data,auxV,wx);CHKERRQ(ierr);
+
+    /* aux <- K^{1/2} * in */
+    for (i=0;i<n;i++) {
+      ierr = PCApplySymmetricLeft(data->old_pc,wx[i],outx[i]);CHKERRQ(ierr);
+    }
+    break;
+  default:
+    SETERRQ(PETSC_COMM_SELF,1,"Unsupported KSP side");
+  }
+  /* out <- out - v*(u'*out) */
+  ierr = dvd_improvex_apply_proj(data->d,(Vec*)outx,n);CHKERRQ(ierr);
+  ierr = SlepcVecPoolRestoreVecs(data->d->auxV,n,&auxV);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PCApply_dvd"
+static PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out)
+{
+  PetscErrorCode ierr;
+  dvdImprovex_jd *data;
+  PetscInt       n,i;
+  const Vec      *inx, *outx;
+  Mat            A;
+
+  PetscFunctionBegin;
+  ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
+  n = data->r_e - data->r_s;
+  /* out <- K * in */
+  for (i=0;i<n;i++) {
+    ierr = data->d->improvex_precond(data->d,data->r_s+i,inx[i],outx[i]);CHKERRQ(ierr);
+  }
+  /* out <- out - v*(u'*out) */
+  ierr = dvd_improvex_apply_proj(data->d,(Vec*)outx,n);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PCApplyTranspose_dvd"
+static PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out)
+{
+  PetscErrorCode ierr;
+  dvdImprovex_jd *data;
+  PetscInt       n,i;
+  const Vec      *inx, *outx;
+  Vec            *auxV;
+  Mat            A;
+
+  PetscFunctionBegin;
+  ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
+  n = data->r_e - data->r_s;
+  ierr = SlepcVecPoolGetVecs(data->d->auxV,n,&auxV);CHKERRQ(ierr);
+  /* auxV <- in */
+  for (i=0;i<n;i++) {
+    ierr = VecCopy(inx[i],auxV[i]);CHKERRQ(ierr);
+  }
+  /* auxV <- auxV - u*(v'*auxV) */
+  ierr = dvd_improvex_applytrans_proj(data->d,auxV,n);CHKERRQ(ierr);
+  /* out <- K' * aux */
+  for (i=0;i<n;i++) {
+    ierr = PCApplyTranspose(data->old_pc,auxV[i],outx[i]);CHKERRQ(ierr);
+  }
+  ierr = SlepcVecPoolRestoreVecs(data->d->auxV,n,&auxV);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatMult_dvd_jd"
+static PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out)
+{
+  PetscErrorCode ierr;
+  dvdImprovex_jd *data;
+  PetscInt       n;
+  const Vec      *inx, *outx;
+  PCSide         side;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
+  n = data->r_e - data->r_s;
+  /* out <- theta[1]A*in - theta[0]*B*in */
+  ierr = dvd_aux_matmult(data,inx,outx);CHKERRQ(ierr);
+  ierr = KSPGetPCSide(data->ksp,&side);CHKERRQ(ierr);
+  if (side == PC_RIGHT) {
+    /* out <- out - v*(u'*out) */
+    ierr = dvd_improvex_apply_proj(data->d,(Vec*)outx,n);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatMultTranspose_dvd_jd"
+static PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out)
+{
+  PetscErrorCode ierr;
+  dvdImprovex_jd *data;
+  PetscInt       n,i;
+  const Vec      *inx,*outx,*r;
+  Vec            *auxV;
+  PCSide         side;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
+  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
+  n = data->r_e - data->r_s;
+  ierr = KSPGetPCSide(data->ksp,&side);CHKERRQ(ierr);
+  if (side == PC_RIGHT) {
+    /* auxV <- in */
+    ierr = SlepcVecPoolGetVecs(data->d->auxV,n,&auxV);CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
+      ierr = VecCopy(inx[i],auxV[i]);CHKERRQ(ierr);
+    }
+    /* auxV <- auxV - v*(u'*auxV) */
+    ierr = dvd_improvex_applytrans_proj(data->d,auxV,n);CHKERRQ(ierr);
+    r = auxV;
+  } else r = inx;
+  /* out <- theta[1]A*r - theta[0]*B*r */
+  ierr = dvd_aux_matmulttrans(data,r,outx);CHKERRQ(ierr);
+  if (side == PC_RIGHT) {
+    ierr = SlepcVecPoolRestoreVecs(data->d->auxV,n,&auxV);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatCreateVecs_dvd_jd"
+static PetscErrorCode MatCreateVecs_dvd_jd(Mat A,Vec *right,Vec *left)
+{
+  PetscErrorCode ierr;
+  Vec            *r, *l;
+  dvdImprovex_jd *data;
+  PetscInt       n, i;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
+  n = data->ksp_max_size;
+  if (right) {
+    ierr = PetscMalloc(sizeof(Vec)*n,&r);CHKERRQ(ierr);
+  }
+  if (left) {
+    ierr = PetscMalloc(sizeof(Vec)*n,&l);CHKERRQ(ierr);
+  }
+  for (i=0;i<n;i++) {
+    ierr = MatCreateVecs(data->d->A,right?&r[i]:NULL,left?&l[i]:NULL);CHKERRQ(ierr);
+  }
+  if (right) {
+    ierr = VecCreateCompWithVecs(r,n,data->friends,right);CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
+      ierr = VecDestroy(&r[i]);CHKERRQ(ierr);
+    }
+  }
+  if (left) {
+    ierr = VecCreateCompWithVecs(l,n,data->friends,left);CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
+      ierr = VecDestroy(&l[i]);CHKERRQ(ierr);
+    }
+  }
+
+  if (right) {
+    ierr = PetscFree(r);CHKERRQ(ierr);
+  }
+  if (left) {
+    ierr = PetscFree(l);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -158,13 +531,13 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
 #define __FUNCT__ "dvd_improvex_jd_start"
 static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
 {
-  PetscErrorCode  ierr;
-  dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
-  PetscInt        rA, cA, rlA, clA;
-  Mat             A;
-  PetscBool       t;
-  PC              pc;
-  Vec             v0[2];
+  PetscErrorCode ierr;
+  dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
+  PetscInt       rA, cA, rlA, clA;
+  Mat            A;
+  PetscBool      t;
+  PC             pc;
+  Vec            v0[2];
 
   PetscFunctionBegin;
   data->size_cX = data->old_size_X = 0;
@@ -183,9 +556,8 @@ static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
     ierr = KSPGetPC(data->ksp, &data->old_pc);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)data->old_pc,PCNONE,&t);CHKERRQ(ierr);
     data->lastTol = 0.5;
-    if (t) {
-      data->old_pc = 0;
-    } else {
+    if (t) data->old_pc = 0;
+    else {
       ierr = PetscObjectReference((PetscObject)data->old_pc);CHKERRQ(ierr);
       ierr = PCCreate(PetscObjectComm((PetscObject)d->eps),&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCSHELL);CHKERRQ(ierr);
@@ -199,19 +571,17 @@ static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
     }
 
     /* Create the (I-v*u')*K*(A-s*B) matrix */
-    ierr = MatGetSize(d->A, &rA, &cA);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(d->A, &rlA, &clA);CHKERRQ(ierr);
-    ierr = MatCreateShell(PetscObjectComm((PetscObject)d->A), rlA*data->ksp_max_size,
-                          clA*data->ksp_max_size, rA*data->ksp_max_size,
-                          cA*data->ksp_max_size, data, &A);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A, MATOP_MULT,(void(*)(void))MatMult_dvd_jd);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A, MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_dvd_jd);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A, MATOP_GET_VECS,(void(*)(void))MatCreateVecs_dvd_jd);CHKERRQ(ierr);
+    ierr = MatGetSize(d->A,&rA,&cA);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(d->A,&rlA,&clA);CHKERRQ(ierr);
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)d->A),rlA*data->ksp_max_size,clA*data->ksp_max_size,rA*data->ksp_max_size,cA*data->ksp_max_size,data,&A);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)(void))MatMult_dvd_jd);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_dvd_jd);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A,MATOP_GET_VECS,(void(*)(void))MatCreateVecs_dvd_jd);CHKERRQ(ierr);
 
     /* Try to avoid KSPReset */
     ierr = KSPGetOperatorsSet(data->ksp,&t,NULL);CHKERRQ(ierr);
     if (t) {
-      Mat M;
+      Mat      M;
       PetscInt rM;
       ierr = KSPGetOperators(data->ksp,&M,NULL);CHKERRQ(ierr);
       ierr = MatGetSize(M,&rM,NULL);CHKERRQ(ierr);
@@ -231,52 +601,95 @@ static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd_end"
-static PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d)
+#define __FUNCT__ "dvd_improvex_jd_proj_cuv"
+/*
+  Compute: u <- X, v <- K*(theta[0]*A+theta[1]*B)*X,
+  kr <- K^{-1}*(A-eig*B)*X, being X <- V*pX[i_s..i_e-1], Y <- W*pY[i_s..i_e-1]
+  where
+  pX,pY, the right and left eigenvectors of the projected system
+  ld, the leading dimension of pX and pY
+*/
+static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld)
 {
-  PetscErrorCode  ierr;
-  dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
+#if defined(PETSC_MISSING_LAPACK_GETRF)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF - Lapack routine is unavailable");
+#else
+  PetscErrorCode ierr;
+  PetscInt       n=i_e-i_s,size_KZ,V_new,rm,i,lv,kv,lKZ,kKZ;
+  dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
+  Vec            u[2],v[2];
+  PetscBLASInt   s,ldXKZ,info;
 
   PetscFunctionBegin;
-  if (data->friends) { ierr = VecDestroy(&data->friends);CHKERRQ(ierr); }
+  /* Check consistency */
+  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
+  V_new = lv - data->size_cX;
+  if (V_new > data->old_size_X) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
+  data->old_size_X = n;
+  data->size_cX = lv;
 
-  /* Restore the pc of ksp */
-  if (data->old_pc) {
-    ierr = KSPSetPC(data->ksp, data->old_pc);CHKERRQ(ierr);
-    ierr = PCDestroy(&data->old_pc);CHKERRQ(ierr);
+  /* KZ <- KZ(rm:rm+max_cX-1) */
+  ierr = BVGetActiveColumns(data->KZ,&lKZ,&kKZ);CHKERRQ(ierr);
+  rm = PetscMax(V_new+lKZ-d->max_cX_in_impr,0);
+  if (rm > 0) {
+    for (i=0;i<lKZ;i++) {
+      ierr = BVCopyColumn(data->KZ,i+rm,i);CHKERRQ(ierr);
+      ierr = BVCopyColumn(data->U,i+rm,i);CHKERRQ(ierr);
+    }
   }
-  PetscFunctionReturn(0);
-}
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd_d"
-static PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
-{
-  PetscErrorCode  ierr;
-  dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
+  /* XKZ <- XKZ(rm:rm+max_cX-1,rm:rm+max_cX-1) */
+  if (rm > 0) {
+    for (i=0; i<lKZ; i++) {
+      ierr = PetscMemcpy(&data->XKZ[i*data->ldXKZ+i],&data->XKZ[(i+rm)*data->ldXKZ+i+rm],sizeof(PetscScalar)*lKZ);CHKERRQ(ierr);
+    }
+  }
+  lKZ = PetscMin(d->max_cX_in_impr,lKZ+V_new);
+  ierr = BVSetActiveColumns(data->KZ,lKZ,lKZ+n);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(data->U,lKZ,lKZ+n);CHKERRQ(ierr);
 
-  PetscFunctionBegin;
-  /* Free local data and objects */
-  ierr = PetscFree(data->XKZ);CHKERRQ(ierr);
-  ierr = PetscFree(data->iXKZ);CHKERRQ(ierr);
-  ierr = PetscFree(data->iXKZPivots);CHKERRQ(ierr);
-  ierr = BVDestroy(&data->KZ);CHKERRQ(ierr);
-  ierr = BVDestroy(&data->U);CHKERRQ(ierr);
-  ierr = PetscFree(data);CHKERRQ(ierr);
+  /* Compute X, KZ and KR */
+  ierr = BVGetColumn(data->U,lKZ,u);CHKERRQ(ierr);
+  if (n>1) { ierr = BVGetColumn(data->U,lKZ+1,&u[1]);CHKERRQ(ierr); }
+  ierr = BVGetColumn(data->KZ,lKZ,v);CHKERRQ(ierr);
+  if (n>1) { ierr = BVGetColumn(data->KZ,lKZ+1,&v[1]);CHKERRQ(ierr); }
+  ierr = d->improvex_jd_proj_uv(d,i_s,i_e,u,v,kr,theta,thetai,pX,pY,ld);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(data->U,lKZ,u);CHKERRQ(ierr);
+  if (n>1) { ierr = BVRestoreColumn(data->U,lKZ+1,&u[1]);CHKERRQ(ierr); }
+  ierr = BVRestoreColumn(data->KZ,lKZ,v);CHKERRQ(ierr);
+  if (n>1) { ierr = BVRestoreColumn(data->KZ,lKZ+1,&v[1]);CHKERRQ(ierr); }
+
+  /* XKZ <- U'*KZ */
+  ierr = BVMultS(data->KZ,data->U,data->XKZ,data->ldXKZ);CHKERRQ(ierr);
+
+  /* iXKZ <- inv(XKZ) */
+  size_KZ = lKZ+n;
+  ierr = PetscBLASIntCast(lKZ+n,&s);CHKERRQ(ierr);
+  data->ldiXKZ = data->size_iXKZ = size_KZ;
+  for (i=0;i<size_KZ;i++) {
+    ierr = PetscMemcpy(&data->iXKZ[data->ldiXKZ*i],&data->XKZ[data->ldXKZ*i],sizeof(PetscScalar)*size_KZ);CHKERRQ(ierr);
+  }
+  ierr = PetscBLASIntCast(data->ldiXKZ,&ldXKZ);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&s,&s,data->iXKZ,&ldXKZ,data->iXKZPivots,&info));
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack XGETRF %d",info);
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_jd_gen"
 static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
 {
-  dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
-  PetscErrorCode  ierr;
-  PetscInt        i,j,n,maxits,maxits0,lits,s,ld,k,max_size_D,lV,kV;
-  PetscScalar     *pX,*pY;
-  PetscReal       tol,tol0;
-  Vec             *kr,kr_comp,D_comp,D[2],kr0[2];
-  PetscBool       odd_situation = PETSC_FALSE;
+  dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
+  PetscErrorCode ierr;
+  PetscInt       i,j,n,maxits,maxits0,lits,s,ld,k,max_size_D,lV,kV;
+  PetscScalar    *pX,*pY;
+  PetscReal      tol,tol0;
+  Vec            *kr,kr_comp,D_comp,D[2],kr0[2];
+  PetscBool      odd_situation = PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
@@ -288,8 +701,8 @@ static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt 
   }
 
   n = PetscMin(PetscMin(data->size_X, max_size_D), r_e-r_s);
-  if (n == 0) SETERRQ(PETSC_COMM_SELF,1, "n == 0");
-  if (data->size_X < r_e-r_s) SETERRQ(PETSC_COMM_SELF,1, "size_X < r_e-r_s");
+  if (n == 0) SETERRQ(PETSC_COMM_SELF,1,"n == 0");
+  if (data->size_X < r_e-r_s) SETERRQ(PETSC_COMM_SELF,1,"size_X < r_e-r_s");
 
   ierr = DSGetLeadingDimension(d->eps->ds,&ld);CHKERRQ(ierr);
 
@@ -307,16 +720,20 @@ static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt 
 #endif
       s=1;
 
-    data->r_s = r_s+i; data->r_e = r_s+i+s;
+    data->r_s = r_s+i;
+    data->r_e = r_s+i+s;
     ierr = SlepcVecPoolGetVecs(d->auxV,s,&kr);CHKERRQ(ierr);
 
     /* Compute theta, maximum iterations and tolerance */
-    maxits = 0; tol = 1;
+    maxits = 0;
+    tol = 1;
     for (j=0;j<s;j++) {
       ierr = d->improvex_jd_lit(d,r_s+i+j,&data->theta[2*j],&data->thetai[j],&maxits0,&tol0);CHKERRQ(ierr);
-      maxits+= maxits0; tol*= tol0;
+      maxits += maxits0;
+      tol *= tol0;
     }
-    maxits/= s; tol = data->dynamic?data->lastTol:PetscExpReal(PetscLogReal(tol)/s);
+    maxits/= s;
+    tol = data->dynamic?data->lastTol:PetscExpReal(PetscLogReal(tol)/s);
 
     /* Compute u, v and kr */
     k = r_s+i;
@@ -339,9 +756,9 @@ static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt 
 
     /* Test the odd situation of solving Ax=b with A=I */
 #if !defined(PETSC_USE_COMPLEX)
-    odd_situation = (data->ksp && data->theta[0] == 1. && data->theta[1] == 0. && data->thetai[0] == 0. && d->B == NULL)?PETSC_TRUE:PETSC_FALSE;
+    odd_situation = (data->ksp && data->theta[0] == 1. && data->theta[1] == 0. && data->thetai[0] == 0. && d->B == NULL)? PETSC_TRUE: PETSC_FALSE;
 #else
-    odd_situation = (data->ksp && data->theta[0] == 1. && data->theta[1] == 0. && d->B == NULL)?PETSC_TRUE:PETSC_FALSE;
+    odd_situation = (data->ksp && data->theta[0] == 1. && data->theta[1] == 0. && d->B == NULL)? PETSC_TRUE: PETSC_FALSE;
 #endif
     /* If JD */
     if (data->ksp && !odd_situation) {
@@ -392,414 +809,75 @@ static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt 
   }
   *size_D = i;
   if (data->dynamic) data->lastTol = PetscMax(data->lastTol/2.0,PETSC_MACHINE_EPSILON*10.0);
-
   PetscFunctionReturn(0);
 }
 
-/* y <- theta[1]A*x - theta[0]*B*x
-   auxV, two auxiliary vectors */
 #undef __FUNCT__
-#define __FUNCT__ "dvd_aux_matmult"
-PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Vec *x,const Vec *y)
+#define __FUNCT__ "dvd_improvex_jd"
+PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs,PetscInt cX_impr,PetscBool dynamic)
 {
-  PetscErrorCode  ierr;
-  PetscInt        n,i;
-  const Vec       *Bx;
-  Vec             *auxV;
+  PetscErrorCode ierr;
+  dvdImprovex_jd *data;
+  PetscBool      useGD;
+  PC             pc;
+  PetscInt       size_P;
 
   PetscFunctionBegin;
-  n = data->r_e - data->r_s;
-  for (i=0;i<n;i++) {
-    ierr = MatMult(data->d->A,x[i],y[i]);CHKERRQ(ierr);
-  }
+  /* Setting configuration constrains */
+  ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&useGD);CHKERRQ(ierr);
 
-  ierr = SlepcVecPoolGetVecs(data->d->auxV,2,&auxV);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
+  /* If the arithmetic is real and the problem is not Hermitian, then
+     the block size is incremented in one */
 #if !defined(PETSC_USE_COMPLEX)
-    if (data->d->eigi[data->r_s+i] != 0.0) {
-      if (data->d->B) {
-        ierr = MatMult(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
-        ierr = MatMult(data->d->B,x[i+1],auxV[1]);CHKERRQ(ierr);
-        Bx = auxV;
-      } else Bx = &x[i];
-
-      /* y_i   <- [ t_2i+1*A*x_i   - t_2i*Bx_i + ti_i*Bx_i+1;
-         y_i+1      t_2i+1*A*x_i+1 - ti_i*Bx_i - t_2i*Bx_i+1  ] */
-      ierr = VecAXPBYPCZ(y[i],-data->theta[2*i],data->thetai[i],data->theta[2*i+1],Bx[0],Bx[1]);CHKERRQ(ierr);
-      ierr = VecAXPBYPCZ(y[i+1],-data->thetai[i],-data->theta[2*i],data->theta[2*i+1],Bx[0],Bx[1]);CHKERRQ(ierr);
-      i++;
-    } else
+  if (!DVD_IS(d->sEP,DVD_EP_HERMITIAN)) {
+    max_bs++;
+    b->max_size_P = PetscMax(b->max_size_P,2);
+  } else
 #endif
-    {
-      if (data->d->B) {
-        ierr = MatMult(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
-        Bx = auxV;
-      } else Bx = &x[i];
-      ierr = VecAXPBY(y[i],-data->theta[i*2],data->theta[i*2+1],Bx[0]);CHKERRQ(ierr);
-    }
+  {
+    b->max_size_P = PetscMax(b->max_size_P,1);
   }
-  ierr = SlepcVecPoolRestoreVecs(data->d->auxV,2,&auxV);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
+  b->max_size_X = PetscMax(b->max_size_X,max_bs);
+  size_P = b->max_size_P+cX_impr;
 
-/* y <- theta[1]'*A'*x - theta[0]'*B'*x */
-#undef __FUNCT__
-#define __FUNCT__ "dvd_aux_matmulttrans"
-PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,const Vec *x,const Vec *y)
-{
-  PetscErrorCode  ierr;
-  PetscInt        n,i;
-  const Vec       *Bx;
-  Vec             *auxV;
-
-  PetscFunctionBegin;
-  n = data->r_e - data->r_s;
-  for (i=0;i<n;i++) {
-    ierr = MatMultTranspose(data->d->A,x[i],y[i]);CHKERRQ(ierr);
-  }
-
-  ierr = SlepcVecPoolGetVecs(data->d->auxV,2,&auxV);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-    if (data->d->eigi[data->r_s+i] != 0.0) {
-      if (data->d->B) {
-        ierr = MatMultTranspose(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
-        ierr = MatMultTranspose(data->d->B,x[i+1],auxV[1]);CHKERRQ(ierr);
-        Bx = auxV;
-      } else Bx = &x[i];
-
-      /* y_i   <- [ t_2i+1*A*x_i   - t_2i*Bx_i - ti_i*Bx_i+1;
-         y_i+1      t_2i+1*A*x_i+1 + ti_i*Bx_i - t_2i*Bx_i+1  ] */
-      ierr = VecAXPBYPCZ(y[i],-data->theta[2*i],-data->thetai[i],data->theta[2*i+1],Bx[0],Bx[1]);CHKERRQ(ierr);
-      ierr = VecAXPBYPCZ(y[i+1],data->thetai[i],-data->theta[2*i],data->theta[2*i+1],Bx[0],Bx[1]);CHKERRQ(ierr);
-      i++;
-    } else
-#endif
-    {
-      if (data->d->B) {
-        ierr = MatMultTranspose(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
-        Bx = auxV;
-      } else Bx = &x[i];
-      ierr = VecAXPBY(y[i],PetscConj(-data->theta[i*2]),PetscConj(data->theta[i*2+1]),Bx[0]);CHKERRQ(ierr);
-    }
-  }
-  ierr = SlepcVecPoolRestoreVecs(data->d->auxV,2,&auxV);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PCApplyBA_dvd"
-static PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w)
-{
-  PetscErrorCode  ierr;
-  dvdImprovex_jd  *data;
-  PetscInt        n,i;
-  const Vec       *inx,*outx,*wx;
-  Vec             *auxV;
-  Mat             A;
-
-  PetscFunctionBegin;
-  ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
-  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(w,NULL,&wx);CHKERRQ(ierr);
-  n = data->r_e - data->r_s;
-  ierr = SlepcVecPoolGetVecs(data->d->auxV,n,&auxV);CHKERRQ(ierr);
-  switch (side) {
-  case PC_LEFT:
-    /* aux <- theta[1]A*in - theta[0]*B*in */
-    ierr = dvd_aux_matmult(data,inx,auxV);CHKERRQ(ierr);
-
-    /* out <- K * aux */
-    for (i=0;i<n;i++) {
-      ierr = data->d->improvex_precond(data->d,data->r_s+i,auxV[i],outx[i]);CHKERRQ(ierr);
-    }
-    break;
-  case PC_RIGHT:
-    /* aux <- K * in */
-    for (i=0;i<n;i++) {
-      ierr = data->d->improvex_precond(data->d,data->r_s+i,inx[i],auxV[i]);CHKERRQ(ierr);
-    }
-
-    /* out <- theta[1]A*auxV - theta[0]*B*auxV */
-    ierr = dvd_aux_matmult(data,auxV,outx);CHKERRQ(ierr);
-    break;
-  case PC_SYMMETRIC:
-    /* aux <- K^{1/2} * in */
-    for (i=0;i<n;i++) {
-      ierr = PCApplySymmetricRight(data->old_pc,inx[i],auxV[i]);CHKERRQ(ierr);
-    }
-
-    /* wx <- theta[1]A*auxV - theta[0]*B*auxV */
-    ierr = dvd_aux_matmult(data,auxV,wx);CHKERRQ(ierr);
-
-    /* aux <- K^{1/2} * in */
-    for (i=0;i<n;i++) {
-      ierr = PCApplySymmetricLeft(data->old_pc,wx[i],outx[i]);CHKERRQ(ierr);
-    }
-    break;
-  default:
-    SETERRQ(PETSC_COMM_SELF,1, "Unsupported KSP side");
-  }
-  /* out <- out - v*(u'*out) */
-  ierr = dvd_improvex_apply_proj(data->d,(Vec*)outx,n);CHKERRQ(ierr);
-  ierr = SlepcVecPoolRestoreVecs(data->d->auxV,n,&auxV);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PCApply_dvd"
-static PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out)
-{
-  PetscErrorCode  ierr;
-  dvdImprovex_jd  *data;
-  PetscInt        n,i;
-  const Vec       *inx, *outx;
-  Mat             A;
-
-  PetscFunctionBegin;
-  ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
-  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
-  n = data->r_e - data->r_s;
-  /* out <- K * in */
-  for (i=0;i<n;i++) {
-    ierr = data->d->improvex_precond(data->d,data->r_s+i,inx[i],outx[i]);CHKERRQ(ierr);
-  }
-  /* out <- out - v*(u'*out) */
-  ierr = dvd_improvex_apply_proj(data->d,(Vec*)outx,n);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PCApplyTranspose_dvd"
-static PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out)
-{
-  PetscErrorCode  ierr;
-  dvdImprovex_jd  *data;
-  PetscInt        n,i;
-  const Vec       *inx, *outx;
-  Vec             *auxV;
-  Mat             A;
-
-  PetscFunctionBegin;
-  ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
-  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
-  n = data->r_e - data->r_s;
-  ierr = SlepcVecPoolGetVecs(data->d->auxV,n,&auxV);CHKERRQ(ierr);
-  /* auxV <- in */
-  for (i=0;i<n;i++) {
-    ierr = VecCopy(inx[i],auxV[i]);CHKERRQ(ierr);
-  }
-  /* auxV <- auxV - u*(v'*auxV) */
-  ierr = dvd_improvex_applytrans_proj(data->d,auxV,n);CHKERRQ(ierr);
-  /* out <- K' * aux */
-  for (i=0;i<n;i++) {
-    ierr = PCApplyTranspose(data->old_pc,auxV[i],outx[i]);CHKERRQ(ierr);
-  }
-  ierr = SlepcVecPoolRestoreVecs(data->d->auxV,n,&auxV);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_dvd_jd"
-static PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out)
-{
-  PetscErrorCode  ierr;
-  dvdImprovex_jd  *data;
-  PetscInt        n;
-  const Vec       *inx, *outx;
-  PCSide          side;
-
-  PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
-  n = data->r_e - data->r_s;
-  /* out <- theta[1]A*in - theta[0]*B*in */
-  ierr = dvd_aux_matmult(data,inx,outx);CHKERRQ(ierr);
-  ierr = KSPGetPCSide(data->ksp,&side);CHKERRQ(ierr);
-  if (side == PC_RIGHT) {
-    /* out <- out - v*(u'*out) */
-    ierr = dvd_improvex_apply_proj(data->d,(Vec*)outx,n);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "MatMultTranspose_dvd_jd"
-static PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out)
-{
-  PetscErrorCode  ierr;
-  dvdImprovex_jd  *data;
-  PetscInt        n,i;
-  const Vec       *inx,*outx,*r;
-  Vec             *auxV;
-  PCSide          side;
-
-  PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
-  n = data->r_e - data->r_s;
-  ierr = KSPGetPCSide(data->ksp,&side);CHKERRQ(ierr);
-  if (side == PC_RIGHT) {
-    /* auxV <- in */
-    ierr = SlepcVecPoolGetVecs(data->d->auxV,n,&auxV);CHKERRQ(ierr);
-    for (i=0;i<n;i++) {
-      ierr = VecCopy(inx[i],auxV[i]);CHKERRQ(ierr);
-    }
-    /* auxV <- auxV - v*(u'*auxV) */
-    ierr = dvd_improvex_applytrans_proj(data->d,auxV,n);CHKERRQ(ierr);
-    r = auxV;
+  /* Setup the preconditioner */
+  if (ksp) {
+    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+    ierr = dvd_static_precond_PC(d,b,pc);CHKERRQ(ierr);
   } else {
-    r = inx;
-  }
-  /* out <- theta[1]A*r - theta[0]*B*r */
-  ierr = dvd_aux_matmulttrans(data,r,outx);CHKERRQ(ierr);
-  if (side == PC_RIGHT) {
-    ierr = SlepcVecPoolRestoreVecs(data->d->auxV,n,&auxV);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateVecs_dvd_jd"
-static PetscErrorCode MatCreateVecs_dvd_jd(Mat A,Vec *right,Vec *left)
-{
-  PetscErrorCode  ierr;
-  Vec             *r, *l;
-  dvdImprovex_jd  *data;
-  PetscInt        n, i;
-
-  PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
-  n = data->ksp_max_size;
-  if (right) {
-    ierr = PetscMalloc(sizeof(Vec)*n,&r);CHKERRQ(ierr);
-  }
-  if (left) {
-    ierr = PetscMalloc(sizeof(Vec)*n,&l);CHKERRQ(ierr);
-  }
-  for (i=0; i<n; i++) {
-    ierr = MatCreateVecs(data->d->A,right?&r[i]:NULL,left?&l[i]:NULL);CHKERRQ(ierr);
-  }
-  if (right) {
-    ierr = VecCreateCompWithVecs(r,n,data->friends,right);CHKERRQ(ierr);
-    for (i=0; i<n; i++) {
-      ierr = VecDestroy(&r[i]);CHKERRQ(ierr);
-    }
-  }
-  if (left) {
-    ierr = VecCreateCompWithVecs(l,n,data->friends,left);CHKERRQ(ierr);
-    for (i=0; i<n; i++) {
-      ierr = VecDestroy(&l[i]);CHKERRQ(ierr);
-    }
+    ierr = dvd_static_precond_PC(d,b,0);CHKERRQ(ierr);
   }
 
-  if (right) {
-    ierr = PetscFree(r);CHKERRQ(ierr);
-  }
-  if (left) {
-    ierr = PetscFree(l);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd_proj_uv"
-PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d,dvdBlackboard *b,ProjType_t p)
-{
-  PetscFunctionBegin;
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    switch (p) {
-    case DVD_PROJ_KXX:
-      d->improvex_jd_proj_uv = dvd_improvex_jd_proj_uv_KXX; break;
-    case DVD_PROJ_KZX:
-      d->improvex_jd_proj_uv = dvd_improvex_jd_proj_uv_KZX; break;
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd_proj_cuv"
-/*
-  Compute: u <- X, v <- K*(theta[0]*A+theta[1]*B)*X,
-  kr <- K^{-1}*(A-eig*B)*X, being X <- V*pX[i_s..i_e-1], Y <- W*pY[i_s..i_e-1]
-  where
-  pX,pY, the right and left eigenvectors of the projected system
-  ld, the leading dimension of pX and pY
-*/
-static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld)
-{
-#if defined(PETSC_MISSING_LAPACK_GETRF)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF - Lapack routine is unavailable");
-#else
-  PetscErrorCode    ierr;
-  PetscInt          n=i_e-i_s,size_KZ,V_new,rm,i,lv,kv,lKZ,kKZ;
-  dvdImprovex_jd    *data = (dvdImprovex_jd*)d->improveX_data;
-  Vec               u[2],v[2];
-  PetscBLASInt      s, ldXKZ, info;
-
-  PetscFunctionBegin;
-  /* Check consistency */
-  ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
-  V_new = lv - data->size_cX;
-  if (V_new > data->old_size_X) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-  data->old_size_X = n;
-  data->size_cX = lv;
-
-  /* KZ <- KZ(rm:rm+max_cX-1) */
-  ierr = BVGetActiveColumns(data->KZ,&lKZ,&kKZ);CHKERRQ(ierr);
-  rm = PetscMax(V_new+lKZ-d->max_cX_in_impr,0);
-  if (rm > 0) for (i=0; i<lKZ; i++) {
-      ierr = BVCopyColumn(data->KZ,i+rm,i);CHKERRQ(ierr);
-      ierr = BVCopyColumn(data->U,i+rm,i);CHKERRQ(ierr);
-  }
-
-  /* XKZ <- XKZ(rm:rm+max_cX-1,rm:rm+max_cX-1) */
-  if (rm > 0) for (i=0; i<lKZ; i++) {
-    ierr = PetscMemcpy(&data->XKZ[i*data->ldXKZ+i],&data->XKZ[(i+rm)*data->ldXKZ+i+rm],sizeof(PetscScalar)*lKZ);CHKERRQ(ierr);
-  }
-  lKZ = PetscMin(d->max_cX_in_impr,lKZ+V_new);
-  ierr = BVSetActiveColumns(data->KZ,lKZ,lKZ+n);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(data->U,lKZ,lKZ+n);CHKERRQ(ierr);
-
-  /* Compute X, KZ and KR */
-  ierr = BVGetColumn(data->U,lKZ,u);CHKERRQ(ierr);
-  if (n>1) {ierr = BVGetColumn(data->U,lKZ+1,&u[1]);CHKERRQ(ierr);}
-  ierr = BVGetColumn(data->KZ,lKZ,v);CHKERRQ(ierr);
-  if (n>1) {ierr = BVGetColumn(data->KZ,lKZ+1,&v[1]);CHKERRQ(ierr);}
-  ierr = d->improvex_jd_proj_uv(d,i_s,i_e,u,v,kr,theta,thetai,pX,pY,ld);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(data->U,lKZ,u);CHKERRQ(ierr);
-  if (n>1) {ierr = BVRestoreColumn(data->U,lKZ+1,&u[1]);CHKERRQ(ierr);}
-  ierr = BVRestoreColumn(data->KZ,lKZ,v);CHKERRQ(ierr);
-  if (n>1) {ierr = BVRestoreColumn(data->KZ,lKZ+1,&v[1]);CHKERRQ(ierr);}
-
-  /* XKZ <- U'*KZ */
-  ierr = BVMultS(data->KZ,data->U,data->XKZ,data->ldXKZ);CHKERRQ(ierr);
-
-  /* iXKZ <- inv(XKZ) */
-  size_KZ = lKZ+n;
-  ierr = PetscBLASIntCast(lKZ+n,&s);CHKERRQ(ierr);
-  data->ldiXKZ = data->size_iXKZ = size_KZ;
-  for (i=0;i<size_KZ;i++) {
-    ierr = PetscMemcpy(&data->iXKZ[data->ldiXKZ*i],&data->XKZ[data->ldXKZ*i],sizeof(PetscScalar)*size_KZ);CHKERRQ(ierr);
-  }
-  ierr = PetscBLASIntCast(data->ldiXKZ,&ldXKZ);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&s, &s, data->iXKZ, &ldXKZ, data->iXKZPivots, &info));
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack XGETRF %d", info);
-  PetscFunctionReturn(0);
+    ierr = PetscMalloc(sizeof(dvdImprovex_jd),&data);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdImprovex_jd));CHKERRQ(ierr);
+    data->dynamic = dynamic;
+    d->max_cX_in_impr = cX_impr;
+    ierr = PetscMalloc1(size_P*size_P,&data->XKZ);CHKERRQ(ierr);
+    ierr = PetscMalloc1(size_P*size_P,&data->iXKZ);CHKERRQ(ierr);
+    ierr = PetscMalloc1(size_P,&data->iXKZPivots);CHKERRQ(ierr);
+    data->ldXKZ = size_P;
+    data->size_X = b->max_size_X;
+    d->improveX_data = data;
+    data->ksp = useGD? NULL: ksp;
+    data->d = d;
+    d->improveX = dvd_improvex_jd_gen;
+#if !defined(PETSC_USE_COMPLEX)
+    if (!DVD_IS(d->sEP,DVD_EP_HERMITIAN)) data->ksp_max_size = 2;
+    else
 #endif
+      data->ksp_max_size = 1;
+    /* Create various vector basis */
+    ierr = BVDuplicateResize(d->eps->V,size_P,&data->KZ);CHKERRQ(ierr);
+    ierr = BVSetMatrix(data->KZ,NULL,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVDuplicate(data->KZ,&data->U);CHKERRQ(ierr);
+
+    ierr = EPSDavidsonFLAdd(&d->startList,dvd_improvex_jd_start);CHKERRQ(ierr);
+    ierr = EPSDavidsonFLAdd(&d->endList,dvd_improvex_jd_end);CHKERRQ(ierr);
+    ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_improvex_jd_d);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
 }
 
 #if !defined(PETSC_USE_COMPLEX)
@@ -807,8 +885,8 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
 #define __FUNCT__ "dvd_complex_rayleigh_quotient"
 PETSC_STATIC_INLINE PetscErrorCode dvd_complex_rayleigh_quotient(Vec ur,Vec ui,Vec Axr,Vec Axi,Vec Bxr,Vec Bxi,PetscScalar *eigr,PetscScalar *eigi)
 { 
-  PetscErrorCode  ierr;
-  PetscScalar     rAr,iAr,rAi,iAi,rBr,iBr,rBi,iBi,b0,b2,b4,b6,b7;
+  PetscErrorCode ierr;
+  PetscScalar    rAr,iAr,rAi,iAi,rBr,iBr,rBi,iBi,b0,b2,b4,b6,b7;
 
   PetscFunctionBegin;
   /* eigr = [(rAr+iAi)*(rBr+iBi) + (rAi-iAr)*(rBi-iBr)]/k
@@ -845,9 +923,9 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_complex_rayleigh_quotient(Vec ur,Vec ui,V
 #define __FUNCT__ "dvd_compute_n_rr"
 PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,PetscScalar *eigr,PetscScalar *eigi,Vec *u,Vec *Ax,Vec *Bx)
 {
-  PetscErrorCode  ierr;
-  PetscInt        i;
-  PetscScalar     b0,b1;
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscScalar    b0,b1;
 
   PetscFunctionBegin;
   for (i=0; i<n; i++) {
@@ -856,7 +934,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,Pets
       PetscScalar eigr0=0.0,eigi0=0.0;
       ierr = dvd_complex_rayleigh_quotient(u[i],u[i+1],Ax[i],Ax[i+1],Bx[i],Bx[i+1],&eigr0,&eigi0);CHKERRQ(ierr);
       if (PetscAbsScalar(eigr[i_s+i]-eigr0)/PetscAbsScalar(eigr[i_s+i]) > 1e-10 || PetscAbsScalar(eigi[i_s+i]-eigi0)/PetscAbsScalar(eigi[i_s+i]) > 1e-10) {
-        ierr = PetscInfo4(u[0], "The eigenvalue %g+%g is far from its Rayleigh quotient value %g+%g\n",(double)eigr[i_s+i],(double)eigi[i_s+i],(double)eigr0,(double)eigi0);
+        ierr = PetscInfo4(u[0],"The eigenvalue %g%+gi is far from its Rayleigh quotient value %g%+gi\n",(double)eigr[i_s+i],(double)eigi[i_s+i],(double)eigr0,(double)eigi0);
       }
       i++;
     } else
@@ -868,7 +946,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,Pets
       ierr = VecDotEnd(Bx[i],u[i],&b1);CHKERRQ(ierr);
       b0 = b0/b1;
       if (PetscAbsScalar(eigr[i_s+i]-b0)/PetscAbsScalar(eigr[i_s+i]) > 1e-10) {
-        ierr = PetscInfo4(u[0], "The eigenvalue %g+%g is far from its Rayleigh quotient value %g+%g\n", (double)PetscRealPart(eigr[i_s+i]),(double)PetscImaginaryPart(eigr[i_s+i]),(double)PetscRealPart(b0),(double)PetscImaginaryPart(b0));
+        ierr = PetscInfo4(u[0],"The eigenvalue %g+%g is far from its Rayleigh quotient value %g+%g\n",(double)PetscRealPart(eigr[i_s+i]),(double)PetscImaginaryPart(eigr[i_s+i]),(double)PetscRealPart(b0),(double)PetscImaginaryPart(b0));
       }
     }
   }
@@ -886,12 +964,12 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,Pets
 */
 static PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld)
 {
-  PetscErrorCode  ierr;
-  PetscInt        n = i_e-i_s,i;
-  PetscScalar     *b;
-  Vec             *Ax,*Bx,*r;
-  Mat             M;
-  BV              X;
+  PetscErrorCode ierr;
+  PetscInt       n = i_e-i_s,i;
+  PetscScalar    *b;
+  Vec            *Ax,*Bx,*r;
+  Mat            M;
+  BV             X;
 
   PetscFunctionBegin;
   ierr = BVDuplicateResize(d->eps->V,4,&X);CHKERRQ(ierr);
@@ -1005,12 +1083,12 @@ static PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,P
 */
 static PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u,Vec *v,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld)
 {
-  PetscErrorCode  ierr;
-  PetscInt        n = i_e - i_s,i;
-  PetscScalar     *b;
-  Vec             *Ax,*Bx,*r;
-  Mat             M;
-  BV              X;
+  PetscErrorCode ierr;
+  PetscInt       n = i_e - i_s,i;
+  PetscScalar    *b;
+  Vec            *Ax,*Bx,*r;
+  Mat            M;
+  BV             X;
 
   PetscFunctionBegin;
   ierr = BVDuplicateResize(d->eps->V,4,&X);CHKERRQ(ierr);
@@ -1085,28 +1163,11 @@ static PetscErrorCode dvd_improvex_jd_proj_uv_KXX(dvdDashboard *d,PetscInt i_s,P
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd_lit_const"
-PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d,dvdBlackboard *b,PetscInt maxits,PetscReal tol,PetscReal fix)
-{
-  dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
-
-  PetscFunctionBegin;
-  /* Setup the step */
-  if (b->state >= DVD_STATE_CONF) {
-    data->maxits = maxits;
-    data->tol = tol;
-    data->fix = fix;
-    d->improvex_jd_lit = dvd_improvex_jd_lit_const_0;
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_jd_lit_const_0"
 static PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d,PetscInt i,PetscScalar* theta,PetscScalar* thetai,PetscInt *maxits,PetscReal *tol)
 {
-  dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
-  PetscReal       a;
+  dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
+  PetscReal      a;
 
   PetscFunctionBegin;
   a = SlepcAbsEigenvalue(d->eigr[i],d->eigi[i]);
@@ -1133,126 +1194,39 @@ static PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d,PetscInt i,Pet
   PetscFunctionReturn(0);
 }
 
-/**** Patterns implementation *************************************************/
-
-typedef PetscInt (*funcV0_t)(dvdDashboard*,PetscInt,PetscInt,Vec*);
-typedef PetscInt (*funcV1_t)(dvdDashboard*,PetscInt,PetscInt,Vec*,PetscScalar*,Vec);
-
 #undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_apply_proj"
-/* Compute (I - KZ*iXKZ*X')*V where,
-   V, the vectors to apply the projector,
-   cV, the number of vectors in V,
-*/
-static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV)
+#define __FUNCT__ "dvd_improvex_jd_lit_const"
+PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d,dvdBlackboard *b,PetscInt maxits,PetscReal tol,PetscReal fix)
 {
-#if defined(PETSC_MISSING_LAPACK_GETRS)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable");
-#else
-  PetscErrorCode    ierr;
-  dvdImprovex_jd    *data = (dvdImprovex_jd*)d->improveX_data;
-  PetscInt          i,ldh,k,l;
-  PetscScalar       *h;
-  PetscBLASInt      cV_,n,info,ld;
-#if defined(PETSC_USE_COMPLEX)
-  PetscInt          j;
-#endif
+  dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
 
   PetscFunctionBegin;
-  if (cV > 2) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-
-  /* h <- X'*V */
-  ierr = PetscMalloc1(data->size_iXKZ*cV,&h);CHKERRQ(ierr);
-  ldh = data->size_iXKZ;
-  ierr = BVGetActiveColumns(data->U,&l,&k);CHKERRQ(ierr);
-  if (ldh!=k) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-  ierr = BVSetActiveColumns(data->U,0,k);CHKERRQ(ierr);
-  for (i=0; i<cV; i++) {
-    ierr = BVDotVec(data->U,V[i],&h[ldh*i]);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-    for (j=0; j<k; j++) h[ldh*i+j] = PetscConj(h[ldh*i+j]);
-#endif
+  /* Setup the step */
+  if (b->state >= DVD_STATE_CONF) {
+    data->maxits = maxits;
+    data->tol = tol;
+    data->fix = fix;
+    d->improvex_jd_lit = dvd_improvex_jd_lit_const_0;
   }
-  ierr = BVSetActiveColumns(data->U,l,k);CHKERRQ(ierr);
-
-  /* h <- iXKZ\h */
-  ierr = PetscBLASIntCast(cV,&cV_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(data->size_iXKZ,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(data->ldiXKZ,&ld);CHKERRQ(ierr);
-  PetscValidScalarPointer(data->iXKZ,0);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N", &n, &cV_, data->iXKZ, &ld, data->iXKZPivots, h, &n, &info));
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack XGETRS %d", info);
-
-  /* V <- V - KZ*h */
-  ierr = BVSetActiveColumns(data->KZ,0,k);CHKERRQ(ierr);
-  for (i=0; i<cV; i++) {
-    ierr = BVMultVec(data->KZ,-1.0,1.0,V[i],&h[ldh*i]);CHKERRQ(ierr);
-  }
-  ierr = BVSetActiveColumns(data->KZ,l,k);CHKERRQ(ierr);
-  ierr = PetscFree(h);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_applytrans_proj"
-/* Compute (I - X*iXKZ*KZ')*V where,
-   V, the vectors to apply the projector,
-   cV, the number of vectors in V,
-*/
-static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV)
+#define __FUNCT__ "dvd_improvex_jd_proj_uv"
+PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d,dvdBlackboard *b,ProjType_t p)
 {
-#if defined(PETSC_MISSING_LAPACK_GETRS)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable");
-  PetscFunctionReturn(0);
-#else
-  PetscErrorCode    ierr;
-  dvdImprovex_jd    *data = (dvdImprovex_jd*)d->improveX_data;
-  PetscInt          i,ldh,k,l;
-  PetscScalar       *h;
-  PetscBLASInt      cV_, n, info, ld;
-#if defined(PETSC_USE_COMPLEX)
-  PetscInt          j;
-#endif
-
-  PetscFunctionBegin;
-  if (cV > 2) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-
-  /* h <- KZ'*V */
-  ierr = PetscMalloc1(data->size_iXKZ*cV,&h);CHKERRQ(ierr);
-  ldh = data->size_iXKZ;
-  ierr = BVGetActiveColumns(data->U,&l,&k);CHKERRQ(ierr);
-  if (ldh!=k) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
-  ierr = BVSetActiveColumns(data->KZ,0,k);CHKERRQ(ierr);
-  for (i=0; i<cV; i++) {
-    ierr = BVDotVec(data->KZ,V[i],&h[ldh*i]);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-    for (j=0; j<k; j++) h[ldh*i+j] = PetscConj(h[ldh*i+j]);
-#endif
+  /* Setup the step */
+  if (b->state >= DVD_STATE_CONF) {
+    switch (p) {
+    case DVD_PROJ_KXX:
+      d->improvex_jd_proj_uv = dvd_improvex_jd_proj_uv_KXX;
+      break;
+    case DVD_PROJ_KZX:
+      d->improvex_jd_proj_uv = dvd_improvex_jd_proj_uv_KZX;
+      break;
+    }
   }
-  ierr = BVSetActiveColumns(data->KZ,l,k);CHKERRQ(ierr);
-
-  /* h <- iXKZ\h */
-  ierr = PetscBLASIntCast(cV,&cV_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(data->size_iXKZ,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(data->ldiXKZ,&ld);CHKERRQ(ierr);
-  PetscValidScalarPointer(data->iXKZ,0);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("C", &n, &cV_, data->iXKZ, &ld, data->iXKZPivots, h, &n, &info));
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB, "Error in Lapack XGETRS %d", info);
-
-  /* V <- V - U*h */
-  ierr = BVSetActiveColumns(data->U,0,k);CHKERRQ(ierr);
-  for (i=0; i<cV; i++) {
-    ierr = BVMultVec(data->U,-1.0,1.0,V[i],&h[ldh*i]);CHKERRQ(ierr);
-  }
-  ierr = BVSetActiveColumns(data->U,l,k);CHKERRQ(ierr);
-  ierr = PetscFree(h);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
+

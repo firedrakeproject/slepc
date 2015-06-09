@@ -74,7 +74,7 @@ PETSC_STATIC_INLINE void AddNorm2(PetscReal *ssq,PetscReal *scale,PetscReal x)
 #define __FUNCT__ "SlepcSumNorm2_Local"
 static void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
 {
-  PetscInt       i,count = *cnt;
+  PetscInt i,count = *cnt;
 
   PetscFunctionBegin;
   if (*datatype == MPIU_NORM2) {
@@ -260,8 +260,8 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
   if (v->data) { ierr = PetscFree(v->data);CHKERRQ(ierr); }
   ierr = PetscNewLog(v,&s);CHKERRQ(ierr);
   ierr = PetscMemcpy(v->ops,&DvOps,sizeof(DvOps));CHKERRQ(ierr);
-  v->data  = (void*)s;
-  v->petscnative     = PETSC_FALSE;
+  v->data        = (void*)s;
+  v->petscnative = PETSC_FALSE;
 
   /* Allocate the array of Vec, if it is needed to be done */
   if (x_to_me != PETSC_TRUE) {
@@ -313,11 +313,12 @@ PETSC_EXTERN PetscErrorCode VecCreate_Comp(Vec V)
 #undef __FUNCT__
 #define __FUNCT__ "VecCreateComp"
 /*@C
-   VecCreateComp - Creates a new vector containing several subvectors, each stored separately
+   VecCreateComp - Creates a new vector containing several subvectors,
+   each stored separately.
 
    Collective on Vec
 
-   Input Parameter:
+   Input Parameters:
 +  comm - communicator for the new Vec
 .  Nx   - array of (initial) global sizes of child vectors
 .  n    - number of child vectors
@@ -350,8 +351,7 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec
     ierr = VecSetSizes(x[i],PETSC_DECIDE,Nx[i]);CHKERRQ(ierr);
     ierr = VecSetType(x[i],t);CHKERRQ(ierr);
   }
-  ierr = VecCreate_Comp_Private(*V,x,n,PETSC_TRUE,
-                           Vparent?((Vec_Comp*)Vparent->data)->n:NULL);CHKERRQ(ierr);
+  ierr = VecCreate_Comp_Private(*V,x,n,PETSC_TRUE,Vparent?((Vec_Comp*)Vparent->data)->n:NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -359,11 +359,11 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec
 #define __FUNCT__ "VecCreateCompWithVecs"
 /*@C
    VecCreateCompWithVecs - Creates a new vector containing several subvectors,
-   each stored separately, from an array of Vecs
+   each stored separately, from an array of Vecs.
 
    Collective on Vec
 
-   Input Parameter:
+   Input Parameters:
 +  x - array of Vecs
 .  n - number of child vectors
 -  Vparent - (optional) template vector
@@ -385,8 +385,7 @@ PetscErrorCode VecCreateCompWithVecs(Vec *x,PetscInt n,Vec Vparent,Vec *V)
   for (i=0;i<n;i++) {
     ierr = PetscObjectReference((PetscObject)x[i]);CHKERRQ(ierr);
   }
-  ierr = VecCreate_Comp_Private(*V,x,n,PETSC_FALSE,
-                           Vparent?((Vec_Comp*)Vparent->data)->n:NULL);CHKERRQ(ierr);
+  ierr = VecCreate_Comp_Private(*V,x,n,PETSC_FALSE,Vparent?((Vec_Comp*)Vparent->data)->n:NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -407,9 +406,7 @@ PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V)
   for (i=0;i<s->nx;i++) {
     if (s->x[i]) {
       ierr = VecDuplicate(s->x[i],&x[i]);CHKERRQ(ierr);
-    } else {
-      x[i] = NULL;
-    }
+    } else x[i] = NULL;
   }
   ierr = VecCreate_Comp_Private(*V,x,s->nx,PETSC_TRUE,s->n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -418,14 +415,15 @@ PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V)
 #undef __FUNCT__
 #define __FUNCT__ "VecCompGetSubVecs"
 /*@C
-   VecCompGetSubVecs - Returns the entire array of vectors defining a compound vector
+   VecCompGetSubVecs - Returns the entire array of vectors defining a
+   compound vector.
 
    Collective on Vec
 
    Input Parameter:
 .  win - compound vector
 
-   Output Parameter:
+   Output Parameters:
 +  n - number of child vectors
 -  x - array of child vectors
 
@@ -448,7 +446,7 @@ PetscErrorCode VecCompGetSubVecs(Vec win,PetscInt *n,const Vec **x)
 #define __FUNCT__ "VecCompSetSubVecs"
 /*@C
    VecCompSetSubVecs - Resets the number of subvectors defining a compound vector,
-   of replaces the subvectors
+   of replaces the subvectors.
 
    Collective on Vec
 

@@ -25,57 +25,23 @@
 
 #include "davidson.h"
 
-static PetscErrorCode dvd_initV_classic_0(dvdDashboard *d);
-static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d);
-static PetscErrorCode dvd_initV_d(dvdDashboard *d);
-
 typedef struct {
-  PetscInt k,           /* desired initial subspace size */
-  user;                 /* number of user initial vectors */
-  void *old_initV_data; /* old initV data */
+  PetscInt k;                 /* desired initial subspace size */
+  PetscInt user;              /* number of user initial vectors */
+  void     *old_initV_data;   /* old initV data */
 } dvdInitV;
-
-#undef __FUNCT__
-#define __FUNCT__ "dvd_initV"
-PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,PetscInt user, PetscBool krylov)
-{
-  PetscErrorCode  ierr;
-  dvdInitV        *data;
-
-  PetscFunctionBegin;
-  /* Setting configuration constrains */
-  b->max_size_V = PetscMax(b->max_size_V, k);
-
-  /* Setup the step */
-  if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscMalloc(sizeof(dvdInitV),&data);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdInitV));CHKERRQ(ierr);
-    data->k = k;
-    data->user = PetscMin(k, user);
-    data->old_initV_data = d->initV_data;
-    d->initV_data = data;
-    if (krylov) {
-      d->initV = dvd_initV_krylov_0;
-    } else {
-      d->initV = dvd_initV_classic_0;
-    }
-    ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_initV_d);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_initV_classic_0"
 static PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
 {
-  PetscErrorCode  ierr;
-  dvdInitV        *data = (dvdInitV*)d->initV_data;
-  PetscInt        i, user = PetscMin(data->user, d->eps->ncv),
-                  k = PetscMin(data->k, d->eps->ncv);
+  PetscErrorCode ierr;
+  dvdInitV       *data = (dvdInitV*)d->initV_data;
+  PetscInt       i,user = PetscMin(data->user,d->eps->ncv),k = PetscMin(data->k,d->eps->ncv);
 
   PetscFunctionBegin;
   /* Generate a set of random initial vectors and orthonormalize them */
-  for (i=user; i<k; i++) {
+  for (i=user;i<k;i++) {
     ierr = BVSetRandomColumn(d->eps->V,i,d->eps->rand);CHKERRQ(ierr);
   }
   d->V_tra_s = 0; d->V_tra_e = 0;
@@ -92,8 +58,7 @@ static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
 {
   PetscErrorCode ierr;
   dvdInitV       *data = (dvdInitV*)d->initV_data;
-  PetscInt       i, user = PetscMin(data->user, d->eps->ncv),
-                 k = PetscMin(data->k, d->eps->ncv);
+  PetscInt       i,user = PetscMin(data->user,d->eps->ncv),k = PetscMin(data->k,d->eps->ncv);
   Vec            av,v1,v2;
 
   PetscFunctionBegin;
@@ -105,7 +70,7 @@ static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
 
   /* Perform k steps of Arnoldi with the operator K^{-1}*(t[1]*A-t[2]*B) */
   ierr = dvd_orthV(d->eps->V,0,user,d->eps->rand);CHKERRQ(ierr);
-  for (i=user; i<k; i++) {
+  for (i=user;i<k;i++) {
     /* aux <- theta[1]A*in - theta[0]*B*in */
     ierr = BVGetColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
     ierr = BVGetColumn(d->eps->V,i-user,&v2);CHKERRQ(ierr);
@@ -137,8 +102,8 @@ static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
 #define __FUNCT__ "dvd_initV_d"
 static PetscErrorCode dvd_initV_d(dvdDashboard *d)
 {
-  PetscErrorCode  ierr;
-  dvdInitV        *data = (dvdInitV*)d->initV_data;
+  PetscErrorCode ierr;
+  dvdInitV       *data = (dvdInitV*)d->initV_data;
 
   PetscFunctionBegin;
   /* Restore changes in dvdDashboard */
@@ -148,3 +113,58 @@ static PetscErrorCode dvd_initV_d(dvdDashboard *d)
   ierr = PetscFree(data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+#undef __FUNCT__
+#define __FUNCT__ "dvd_initV"
+PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,PetscInt user, PetscBool krylov)
+{
+  PetscErrorCode ierr;
+  dvdInitV       *data;
+
+  PetscFunctionBegin;
+  /* Setting configuration constrains */
+  b->max_size_V = PetscMax(b->max_size_V, k);
+
+  /* Setup the step */
+  if (b->state >= DVD_STATE_CONF) {
+    ierr = PetscMalloc(sizeof(dvdInitV),&data);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)d->eps,sizeof(dvdInitV));CHKERRQ(ierr);
+    data->k = k;
+    data->user = PetscMin(k, user);
+    data->old_initV_data = d->initV_data;
+    d->initV_data = data;
+    if (krylov) d->initV = dvd_initV_krylov_0;
+    else d->initV = dvd_initV_classic_0;
+    ierr = EPSDavidsonFLAdd(&d->destroyList,dvd_initV_d);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "dvd_orthV"
+PetscErrorCode dvd_orthV(BV V,PetscInt V_new_s,PetscInt V_new_e,PetscRandom rand)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,j,l,k;
+  PetscBool      lindep;
+  PetscReal      norm;
+
+  PetscFunctionBegin;
+  ierr = BVGetActiveColumns(V,&l,&k);CHKERRQ(ierr);
+  for (i=V_new_s;i<V_new_e;i++) {
+    ierr = BVSetActiveColumns(V,0,i);CHKERRQ(ierr);
+    for (j=0;j<3;j++) {
+      if (j>0) {
+        ierr = BVSetRandomColumn(V,i,rand);CHKERRQ(ierr);
+        ierr = PetscInfo1(V,"Orthonormalization problems adding the vector %D to the searching subspace\n",i);CHKERRQ(ierr);
+      }
+      ierr = BVOrthogonalizeColumn(V,i,NULL,&norm,&lindep);CHKERRQ(ierr);
+      if (!lindep && (PetscAbsReal(norm) > PETSC_SQRT_MACHINE_EPSILON)) break;
+    }
+    if (lindep || (PetscAbsReal(norm) < PETSC_SQRT_MACHINE_EPSILON)) SETERRQ(PetscObjectComm((PetscObject)V),1, "Error during the orthonormalization of the vectors");
+    ierr = BVScaleColumn(V,i,1.0/norm);CHKERRQ(ierr);
+  }
+  ierr = BVSetActiveColumns(V,l,k);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

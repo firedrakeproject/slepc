@@ -25,8 +25,20 @@
 
 #include "davidson.h"
 
-static PetscBool dvd_testconv_basic_0(dvdDashboard*,PetscScalar,PetscScalar,PetscReal,PetscReal*);
-static PetscBool dvd_testconv_slepc_0(dvdDashboard*,PetscScalar,PetscScalar,PetscReal,PetscReal*);
+#undef __FUNCT__
+#define __FUNCT__ "dvd_testconv_basic_0"
+static PetscBool dvd_testconv_basic_0(dvdDashboard *d,PetscScalar eigvr,PetscScalar eigvi,PetscReal r,PetscReal *err)
+{
+  PetscBool conv;
+  PetscReal eig_norm,errest;
+
+  PetscFunctionBegin;
+  eig_norm = SlepcAbsEigenvalue(eigvr, eigvi);
+  errest = r/eig_norm;
+  conv = (errest <= d->tol)? PETSC_TRUE: PETSC_FALSE;
+  if (err) *err = errest;
+  PetscFunctionReturn(conv);
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_testconv_basic"
@@ -44,18 +56,14 @@ PetscErrorCode dvd_testconv_basic(dvdDashboard *d, dvdBlackboard *b)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "dvd_testconv_basic_0"
-static PetscBool dvd_testconv_basic_0(dvdDashboard *d,PetscScalar eigvr,PetscScalar eigvi,PetscReal r,PetscReal *err)
+#define __FUNCT__ "dvd_testconv_slepc_0"
+static PetscBool dvd_testconv_slepc_0(dvdDashboard *d,PetscScalar eigvr,PetscScalar eigvi,PetscReal r,PetscReal *err)
 {
-  PetscBool conv;
-  PetscReal eig_norm, errest;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  eig_norm = SlepcAbsEigenvalue(eigvr, eigvi);
-  errest = r/eig_norm;
-  conv = (errest <= d->tol) ? PETSC_TRUE : PETSC_FALSE;
-  if (err) *err = errest;
-  PetscFunctionReturn(conv);
+  ierr = (*d->eps->converged)(d->eps,eigvr,eigvi,r,err,d->eps->convergedctx);CHKERRABORT(PetscObjectComm((PetscObject)d->eps),ierr);
+  PetscFunctionReturn((*err<d->eps->tol)? PETSC_TRUE: PETSC_FALSE);
 }
 
 #undef __FUNCT__
@@ -71,17 +79,5 @@ PetscErrorCode dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b)
     d->testConv = dvd_testconv_slepc_0;
   }
   PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "dvd_testconv_slepc_0"
-static PetscBool dvd_testconv_slepc_0(dvdDashboard *d,PetscScalar eigvr,PetscScalar eigvi,PetscReal r,PetscReal *err)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = (*d->eps->converged)(d->eps, eigvr, eigvi, r, err, d->eps->convergedctx);
-  CHKERRABORT(PetscObjectComm((PetscObject)d->eps), ierr);
-  PetscFunctionReturn(*err<d->eps->tol ? PETSC_TRUE : PETSC_FALSE);
 }
 
