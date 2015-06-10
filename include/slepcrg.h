@@ -55,6 +55,8 @@ PETSC_EXTERN PetscErrorCode RGDestroy(RG*);
 PETSC_EXTERN PetscErrorCode RGIsTrivial(RG,PetscBool*);
 PETSC_EXTERN PetscErrorCode RGSetComplement(RG,PetscBool);
 PETSC_EXTERN PetscErrorCode RGGetComplement(RG,PetscBool*);
+PETSC_EXTERN PetscErrorCode RGSetScale(RG,PetscReal);
+PETSC_EXTERN PetscErrorCode RGGetScale(RG,PetscReal*);
 PETSC_EXTERN PetscErrorCode RGCheckInside(RG,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
 PETSC_EXTERN PetscErrorCode RGComputeContour(RG,PetscInt,PetscScalar*,PetscScalar*);
 
@@ -71,5 +73,8 @@ PETSC_EXTERN PetscErrorCode RGIntervalGetEndpoints(RG,PetscReal*,PetscReal*,Pets
 
 PETSC_EXTERN PetscErrorCode RGArcSetParameters(RG,PetscScalar,PetscReal,PetscReal,PetscReal,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode RGArcGetParameters(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+
+PETSC_EXTERN PetscErrorCode RGPolygonSetVertices(RG,PetscInt,PetscScalar*,PetscScalar*);
+PETSC_EXTERN PetscErrorCode RGPolygonGetVertices(RG,PetscInt*,PetscScalar**,PetscScalar**);
 
 #endif

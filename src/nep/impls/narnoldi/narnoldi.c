@@ -68,7 +68,7 @@ PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
 
   /* set-up DS and transfer split operator functions */
   ierr = DSSetType(nep->ds,DSNEP);CHKERRQ(ierr);
-  ierr = DSSetFN(nep->ds,nep->nt,nep->f);CHKERRQ(ierr);
+  ierr = DSNEPSetFN(nep->ds,nep->nt,nep->f);CHKERRQ(ierr);
   ierr = DSAllocate(nep->ds,nep->ncv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -33,7 +33,7 @@ typedef struct _RGOps *RGOps;
 struct _RGOps {
   PetscErrorCode (*istrivial)(RG,PetscBool*);
   PetscErrorCode (*computecontour)(RG,PetscInt,PetscScalar*,PetscScalar*);
-  PetscErrorCode (*checkinside)(RG,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
+  PetscErrorCode (*checkinside)(RG,PetscReal,PetscReal,PetscInt*);
   PetscErrorCode (*setfromoptions)(PetscOptions*,RG);
   PetscErrorCode (*view)(RG,PetscViewer);
   PetscErrorCode (*destroy)(RG);
@@ -42,6 +42,7 @@ struct _RGOps {
 struct _p_RG {
   PETSCHEADER(struct _RGOps);
   PetscBool   complement;    /* region is the complement of the specified one */
+  PetscReal   sfactor;       /* scaling factor */
   void        *data;
 };
 

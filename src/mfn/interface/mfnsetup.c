@@ -39,7 +39,7 @@
    calls it. It can be useful when one wants to measure the set-up time
    separately from the solve time.
 
-   Level: advanced
+   Level: developer
 
 .seealso: MFNCreate(), MFNSolve(), MFNDestroy()
 @*/

@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = krylov.c
+SOURCEC  = epskrylov.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepceps

@@ -9,10 +9,7 @@
 <h2>Eigenvalue Problem Solver - EPS: <a href="../../../src/eps/examples/tutorials/index.html">Examples</a></h2>
 
 <p>
-The Eigenvalue Problem Solver (EPS) is the object provided by SLEPc for specifying an eigenvalue problem, either in standard or generalized form. It provides uniform and efficient access to all of the eigensolvers included in the package. 
-</p>
-<p>
-Conceptually, the level of abstraction occupied by EPS is similar to other solvers in PETSc such as SNES for solving non-linear systems of equations.
+The Eigenvalue Problem Solver (EPS) is the object provided by SLEPc for specifying a linear eigenvalue problem, either in standard or generalized form. It provides uniform and efficient access to all of the linear eigensolvers included in the package. 
 </p>
 <p>
 EPS users can set various options at runtime via the options database (e.g., <code>-eps_nev 4 -eps_type arnoldi</code>).  

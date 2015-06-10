@@ -184,14 +184,17 @@ Changes in Version 3.6</font></b>
        been moved from DS to FN. MFNSetScaleFactor has been removed, now this
        scale factor must be specified in FN.
   <li> FN now allows the definition of functions by combining two other functions.
-  <li> Added a new RG region &quot;arc&quot; consisting on a stripe along an
-       ellipse with optional start and end angles.
+  <li> Added two new RG regions: &quot;arc&quot; a stripe along an
+       ellipse with optional start and end angles; &quot;polygon&quot; an
+       arbitrary polygon made up of a list of vertices.
   <li> User makefiles must now include 
        <code>${SLEPC_DIR}/lib/slepc/conf/slepc_common</code>.
   <li> Interface changes: EPSComputeRelativeError and EPSComputeResidualNorm have
        been deprecated (use EPSComputeError instead); the same for PEP, NEP and SVD;
        PEPSetScale now allows to pass two Vecs for diagonal scaling;
        XXXPrintSolution has been replaced with XXXErrorView;
+       STGetOperationCounters has been removed, its functionality is available
+       via the log summary and with KSPGetTotalIterations;
        BVGetVec has been renamed to BVCreateVec;
        the interface for defining FN functions of rational type has changed.
 </ul>

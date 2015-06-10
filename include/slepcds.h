@@ -168,6 +168,7 @@ PETSC_EXTERN PetscErrorCode DSRestoreArrayReal(DS,DSMatType,PetscReal*[]);
 PETSC_EXTERN PetscErrorCode DSVectors(DS,DSMatType,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSSolve(DS,PetscScalar*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode DSSort(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSCopyMat(DS,DSMatType,PetscInt,PetscInt,Mat,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
 PETSC_EXTERN PetscErrorCode DSSetSlepcSC(DS,SlepcSC);
 PETSC_EXTERN PetscErrorCode DSGetSlepcSC(DS,SlepcSC*);
 PETSC_EXTERN PetscErrorCode DSUpdateExtraRow(DS);
@@ -176,14 +177,14 @@ PETSC_EXTERN PetscErrorCode DSTranslateHarmonic(DS,PetscScalar,PetscReal,PetscBo
 PETSC_EXTERN PetscErrorCode DSTranslateRKS(DS,PetscScalar);
 PETSC_EXTERN PetscErrorCode DSNormalize(DS,DSMatType,PetscInt);
 
-PETSC_EXTERN PetscErrorCode DSSetFN(DS,PetscInt,FN*);
-PETSC_EXTERN PetscErrorCode DSGetFN(DS,PetscInt,FN*);
-PETSC_EXTERN PetscErrorCode DSGetNumFN(DS,PetscInt*);
-
 /* --------- options specific to particular solvers -------- */
 
 PETSC_EXTERN PetscErrorCode DSPEPSetDegree(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSPEPGetDegree(DS,PetscInt*);
+
+PETSC_EXTERN PetscErrorCode DSNEPSetFN(DS,PetscInt,FN*);
+PETSC_EXTERN PetscErrorCode DSNEPGetFN(DS,PetscInt,FN*);
+PETSC_EXTERN PetscErrorCode DSNEPGetNumFN(DS,PetscInt*);
 
 PETSC_EXTERN PetscFunctionList DSList;
 PETSC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));

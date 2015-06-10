@@ -237,7 +237,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
    Options Database Keys:
 .  -eps_converged_reason - print reason for convergence, and number of iterations
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: EPSSetConvergenceTest(), EPSSetTolerances(), EPSGetIterationNumber()
 @*/
@@ -271,7 +271,7 @@ PetscErrorCode EPSReasonView(EPS eps,PetscViewer viewer)
    Input Parameters:
 .  eps - the eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode EPSReasonViewFromOptions(EPS eps)
 {
@@ -381,7 +381,7 @@ static PetscErrorCode EPSErrorView_DETAIL(EPS eps,EPSErrorType etype,PetscViewer
     im = ki;
 #endif
     if (im!=0.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  % 9f%+9f i     %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error);CHKERRQ(ierr);
     }
@@ -482,7 +482,7 @@ PetscErrorCode EPSErrorView(EPS eps,EPSErrorType etype,PetscViewer viewer)
    Input Parameters:
 .  eps - the eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode EPSErrorViewFromOptions(EPS eps)
 {
@@ -677,7 +677,7 @@ PetscErrorCode EPSValuesView(EPS eps,PetscViewer viewer)
    Input Parameters:
 .  eps - the eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode EPSValuesViewFromOptions(EPS eps)
 {
@@ -760,7 +760,7 @@ PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
    Input Parameters:
 .  eps - the eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode EPSVectorsViewFromOptions(EPS eps)
 {

@@ -87,7 +87,7 @@ typedef enum { EPS_HEP=1,
     EPSExtraction - Determines the type of extraction technique employed
     by the eigensolver
 
-    Level: beginner
+    Level: advanced
 
 .seealso: EPSSetExtraction(), EPSGetExtraction()
 E*/
@@ -255,7 +255,7 @@ PETSC_EXTERN PetscErrorCode EPSGetOptionsPrefix(EPS,const char*[]);
     EPSConvergedReason - Reason an eigensolver was said to
          have converged or diverged
 
-    Level: beginner
+    Level: intermediate
 
 .seealso: EPSSolve(), EPSGetConvergedReason(), EPSSetTolerances()
 E*/
@@ -309,6 +309,8 @@ PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetDimensions(EPS,PetscInt*,PetscInt*,
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurSetSubintervals(EPS,PetscReal*);
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetSubintervals(EPS,PetscReal**);
 PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetInertias(EPS,PetscInt*,PetscReal**,PetscInt**);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetSubcommInfo(EPS,PetscInt*,PetscInt*,Vec*);
+PETSC_EXTERN PetscErrorCode EPSKrylovSchurGetSubcommPairs(EPS,PetscInt,PetscScalar*,Vec);
 
 /*E
     EPSLanczosReorthogType - determines the type of reorthogonalization

@@ -39,7 +39,7 @@
 */
 
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
-#include <../src/eps/impls/davidson/common/davidson.h>
+#include <../src/eps/impls/davidson/davidson.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_GD"

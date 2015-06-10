@@ -170,7 +170,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
    Options Database Keys:
 .  -nep_converged_reason - print reason for convergence, and number of iterations
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: NEPSetConvergenceTest(), NEPSetTolerances(), NEPGetIterationNumber()
 @*/
@@ -204,7 +204,7 @@ PetscErrorCode NEPReasonView(NEP nep,PetscViewer viewer)
    Input Parameters:
 .  nep - the nonlinear eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode NEPReasonViewFromOptions(NEP nep)
 {
@@ -311,7 +311,7 @@ static PetscErrorCode NEPErrorView_DETAIL(NEP nep,NEPErrorType etype,PetscViewer
     im = ki;
 #endif
     if (im!=0.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  % 9f%+9f i     %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error);CHKERRQ(ierr);
     }
@@ -411,7 +411,7 @@ PetscErrorCode NEPErrorView(NEP nep,NEPErrorType etype,PetscViewer viewer)
    Input Parameters:
 .  nep - the nonlinear eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode NEPErrorViewFromOptions(NEP nep)
 {
@@ -599,7 +599,7 @@ PetscErrorCode NEPValuesView(NEP nep,PetscViewer viewer)
    Input Parameters:
 .  nep - the nonlinear eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode NEPValuesViewFromOptions(NEP nep)
 {
@@ -682,7 +682,7 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
    Input Parameters:
 .  nep - the nonlinear eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode NEPVectorsViewFromOptions(NEP nep)
 {

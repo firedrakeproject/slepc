@@ -90,7 +90,7 @@ all-legacy-local: chk_makej chk_petsc_dir chk_slepc_dir chklib_dir info deleteli
 #
 info: chk_makej
 	-@echo "=========================================="
-	-@echo On `date` on `hostname`
+	-@echo Starting on `hostname` at `date`
 	-@echo Machine characteristics: `uname -a`
 	-@echo "-----------------------------------------"
 	-@echo "Using SLEPc directory: ${SLEPC_DIR}"
@@ -224,6 +224,9 @@ allclean:
 	else \
 	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} allclean-legacy; \
 	fi
+
+clean:: allclean
+
 #
 # Check if PETSC_DIR variable specified is valid
 #

@@ -127,7 +127,6 @@ PetscErrorCode STReset(ST st)
   ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
   ierr = VecDestroy(&st->w);CHKERRQ(ierr);
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
-  ierr = STResetOperationCounters(st);CHKERRQ(ierr);
   st->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -209,8 +208,6 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->w            = NULL;
   st->D            = NULL;
   st->wb           = NULL;
-  st->linearits    = 0;
-  st->applys       = 0;
   st->data         = NULL;
   st->setupcalled  = 0;
 
@@ -376,9 +373,9 @@ PetscErrorCode STGetNumMatrices(ST st,PetscInt *n)
    This function is normally not directly called by users, since the shift is
    indirectly set by EPSSetTarget().
 
-   Level: advanced
+   Level: intermediate
 
-.seealso: EPSSetTarget()
+.seealso: EPSSetTarget(), STGetShift(), STSetDefaultShift()
 @*/
 PetscErrorCode STSetShift(ST st,PetscScalar shift)
 {
@@ -410,7 +407,9 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
    Output Parameter:
 .  shift - the value of the shift
 
-   Level: beginner
+   Level: intermediate
+
+.seealso: STSetShift()
 @*/
 PetscErrorCode STGetShift(ST st,PetscScalar* shift)
 {
@@ -434,6 +433,8 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
 -  defaultshift - the default value of the shift
 
    Level: developer
+
+.seealso: STSetShift()
 @*/
 PetscErrorCode STSetDefaultShift(ST st,PetscScalar defaultshift)
 {
