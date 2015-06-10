@@ -143,13 +143,14 @@ PetscErrorCode PEPComputeVectors_Default(PEP pep)
   /* normalization */
   for (i=0;i<pep->nconv;i++) {
 #if !defined(PETSC_USE_COMPLEX)
-    if (pep->eigi[i]>0.0) {   /* first eigenvalue of a complex conjugate pair */
+    if (pep->eigi[i]!=0.0) {   /* first eigenvalue of a complex conjugate pair */
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
       ierr = BVGetColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
       ierr = SlepcVecNormalize(v,v1,PETSC_TRUE,NULL);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
-    } else if (pep->eigi[i]==0.0)   /* real eigenvalue */
+      i++;
+    } else   /* real eigenvalue */
 #endif
     {
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
