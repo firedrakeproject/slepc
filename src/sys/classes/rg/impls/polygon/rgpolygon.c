@@ -207,8 +207,8 @@ PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *cr,PetscSc
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "RGPointPolygon"
-static PetscErrorCode RGPointPolygon(RG rg,PetscReal px,PetscReal py,PetscInt *inout)
+#define __FUNCT__ "RGCheckInside_Polygon"
+PetscErrorCode RGCheckInside_Polygon(RG rg,PetscReal px,PetscReal py,PetscInt *inout)
 {
   RG_POLYGON *ctx = (RG_POLYGON*)rg->data;
   PetscReal  val,x[VERTMAX],y[VERTMAX];
@@ -242,28 +242,6 @@ static PetscErrorCode RGPointPolygon(RG rg,PetscReal px,PetscReal py,PetscInt *i
       *inout = 0;
       PetscFunctionReturn(0);
     } else if (val>0.0) *inout = -*inout;
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "RGCheckInside_Polygon"
-PetscErrorCode RGCheckInside_Polygon(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,PetscInt *inside)
-{
-  PetscErrorCode ierr;
-  PetscReal      px,py;
-  PetscInt       i;
-
-  PetscFunctionBegin;
-  for (i=0;i<n;i++) {
-#if defined(PETSC_USE_COMPLEX)
-    px = PetscRealPart(ar[i]);
-    py = PetscImaginaryPart(ar[i]);
-#else
-    px = ar[i];
-    py = ai[i];
-#endif
-    ierr = RGPointPolygon(rg,px,py,inside+i);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

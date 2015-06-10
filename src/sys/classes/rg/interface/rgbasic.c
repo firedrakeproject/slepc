@@ -122,6 +122,7 @@ PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
   ierr = RGInitializePackage();CHKERRQ(ierr);
   ierr = SlepcHeaderCreate(rg,RG_CLASSID,"RG","Region","RG",comm,RGDestroy,RGView);CHKERRQ(ierr);
   rg->complement = PETSC_FALSE;
+  rg->sfactor    = 1.0;
   rg->data       = NULL;
 
   *newrg = rg;
@@ -376,6 +377,9 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
     if (rg->complement) {
       ierr = PetscViewerASCIIPrintf(viewer,"  selected region is the complement of the specified one\n");CHKERRQ(ierr);
     }
+    if (rg->sfactor!=1.0) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor = %g\n",(double)rg->sfactor);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -432,11 +436,16 @@ PetscErrorCode RGIsTrivial(RG rg,PetscBool *trivial)
    If built with complex scalars, the point is supposed to be stored in ar,
    otherwise ar,ai contain the real and imaginary parts, respectively.
 
+   If a scaling factor was set, the points are scaled before checking.
+
    Level: intermediate
+
+.seealso: RGSetScale(), RGSetComplement()
 @*/
 PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,PetscInt *inside)
 {
   PetscErrorCode ierr;
+  PetscReal      px,py;
   PetscInt       i;
 
   PetscFunctionBegin;
@@ -447,9 +456,21 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
   PetscValidPointer(ai,4);
 #endif
   PetscValidPointer(inside,5);
-  ierr = (*rg->ops->checkinside)(rg,n,ar,ai,inside);CHKERRQ(ierr);
-  if (rg->complement) {
-    for (i=0;i<n;i++) inside[i] = -inside[i];
+
+  for (i=0;i<n;i++) {
+#if defined(PETSC_USE_COMPLEX)
+    px = PetscRealPart(ar[i]);
+    py = PetscImaginaryPart(ar[i]);
+#else
+    px = ar[i];
+    py = ai[i];
+#endif
+    if (rg->sfactor != 1.0) {
+      px *= rg->sfactor;
+      py *= rg->sfactor;
+    }
+    ierr = (*rg->ops->checkinside)(rg,px,py,inside+i);CHKERRQ(ierr);
+    if (rg->complement) inside[i] = -inside[i];
   }
   PetscFunctionReturn(0);
 }
@@ -539,6 +560,61 @@ PetscErrorCode RGGetComplement(RG rg,PetscBool *flg)
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidPointer(flg,2);
   *flg = rg->complement;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "RGSetScale"
+/*@
+   RGSetScale - Sets the scaling factor to be used when checking that a
+   point is inside the region.
+
+   Logically Collective on RG
+
+   Input Parameters:
++  rg      - the region context
+-  sfactor - the scaling factor
+
+   Level: developer
+
+.seealso: RGGetScale(), RGCheckInside()
+@*/
+PetscErrorCode RGSetScale(RG rg,PetscReal sfactor)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidLogicalCollectiveReal(rg,sfactor,2);
+  if (sfactor == PETSC_DEFAULT || sfactor == PETSC_DECIDE) rg->sfactor = 1.0;
+  else {
+    if (sfactor<=0.0) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of scaling factor. Must be > 0");
+    rg->sfactor = sfactor;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "RGGetScale"
+/*@
+   RGGetScale - Gets the scaling factor.
+
+   Not Collective
+
+   Input Parameter:
+.  rg - the region context
+
+   Output Parameter:
+.  flg - the flag
+
+   Level: developer
+
+.seealso: RGSetScale()
+@*/
+PetscErrorCode RGGetScale(RG rg,PetscReal *sfactor)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidPointer(sfactor,2);
+  *sfactor = rg->sfactor;
   PetscFunctionReturn(0);
 }
 

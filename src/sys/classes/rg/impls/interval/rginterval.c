@@ -173,29 +173,18 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
 
 #undef __FUNCT__
 #define __FUNCT__ "RGCheckInside_Interval"
-PetscErrorCode RGCheckInside_Interval(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,PetscInt *inside)
+PetscErrorCode RGCheckInside_Interval(RG rg,PetscReal dx,PetscReal dy,PetscInt *inside)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
-  PetscInt    i;
-  PetscReal   dx,dy;
 
   PetscFunctionBegin;
-  for (i=0;i<n;i++) {
-#if defined(PETSC_USE_COMPLEX)
-    dx = PetscRealPart(ar[i]);
-    dy = PetscImaginaryPart(ar[i]);
-#else
-    dx = ar[i];
-    dy = ai[i];
-#endif
-    if (dx>ctx->a && dx<ctx->b) inside[i] = 1;
-    else if (dx==ctx->a || dx==ctx->b) inside[i] = 0;
-    else inside[i] = -1;
-    if (inside[i]>=0) {
-      if (dy>ctx->c && dy<ctx->d) ;
-      else if (dy==ctx->c || dy==ctx->d) inside[i] = 0;
-      else inside[i] = -1;
-    }
+  if (dx>ctx->a && dx<ctx->b) *inside = 1;
+  else if (dx==ctx->a || dx==ctx->b) *inside = 0;
+  else *inside = -1;
+  if (*inside>=0) {
+    if (dy>ctx->c && dy<ctx->d) ;
+    else if (dy==ctx->c || dy==ctx->d) *inside = 0;
+    else *inside = -1;
   }
   PetscFunctionReturn(0);
 }

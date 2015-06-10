@@ -234,58 +234,51 @@ PetscErrorCode RGComputeContour_Arc(RG rg,PetscInt n,PetscScalar *cr,PetscScalar
 
 #undef __FUNCT__
 #define __FUNCT__ "RGCheckInside_Arc"
-PetscErrorCode RGCheckInside_Arc(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,PetscInt *inside)
+PetscErrorCode RGCheckInside_Arc(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
 {
-  RG_ARC      *ctx = (RG_ARC*)rg->data;
-  PetscInt    i;
-  PetscReal   dx,dy,r;
-#if defined(PETSC_USE_COMPLEX)
-  PetscScalar d;
-#endif
+  RG_ARC    *ctx = (RG_ARC*)rg->data;
+  PetscReal dx,dy,r;
 
   PetscFunctionBegin;
-  for (i=0;i<n;i++) {
-    /* outer ellipse */
+  /* outer ellipse */
 #if defined(PETSC_USE_COMPLEX)
-    d = ar[i]-ctx->center;
-    dx = PetscRealPart(d)/(ctx->radius+ctx->width/2.0);
-    dy = PetscImaginaryPart(d)/(ctx->radius+ctx->width/2.0);
+  dx = (px-PetscRealPart(ctx->center))/(ctx->radius+ctx->width/2.0);
+  dy = (py-PetscImaginaryPart(ctx->center))/(ctx->radius+ctx->width/2.0);
 #else
-    dx = (ar[i]-ctx->center)/(ctx->radius+ctx->width/2.0);
-    dy = ai[i]/(ctx->radius+ctx->width/2.0);
+  dx = (px-ctx->center)/(ctx->radius+ctx->width/2.0);
+  dy = py/(ctx->radius+ctx->width/2.0);
 #endif
-    r = 1.0-dx*dx-(dy*dy)/(ctx->vscale*ctx->vscale);
-    inside[i] = PetscSign(r);
-    /* inner ellipse */
+  r = 1.0-dx*dx-(dy*dy)/(ctx->vscale*ctx->vscale);
+  *inside = PetscSign(r);
+  /* inner ellipse */
 #if defined(PETSC_USE_COMPLEX)
-    dx = PetscRealPart(d)/(ctx->radius-ctx->width/2.0);
-    dy = PetscImaginaryPart(d)/(ctx->radius-ctx->width/2.0);
+  dx = (px-PetscRealPart(ctx->center))/(ctx->radius-ctx->width/2.0);
+  dy = (py-PetscImaginaryPart(ctx->center))/(ctx->radius-ctx->width/2.0);
 #else
-    dx = (ar[i]-ctx->center)/(ctx->radius-ctx->width/2.0);
-    dy = ai[i]/(ctx->radius-ctx->width/2.0);
+  dx = (px-ctx->center)/(ctx->radius-ctx->width/2.0);
+  dy = py/(ctx->radius-ctx->width/2.0);
 #endif
-    r = -1.0+dx*dx+(dy*dy)/(ctx->vscale*ctx->vscale);
-    inside[i] *= PetscSign(r);
-    /* check angles */
+  r = -1.0+dx*dx+(dy*dy)/(ctx->vscale*ctx->vscale);
+  *inside *= PetscSign(r);
+  /* check angles */
 #if defined(PETSC_USE_COMPLEX)
-    dx = PetscRealPart(d);
-    dy = PetscImaginaryPart(d);
+  dx = (px-PetscRealPart(ctx->center));
+  dy = (py-PetscImaginaryPart(ctx->center));
 #else
-    dx = (ar[i]-ctx->center);
-    dy = ai[i];
+  dx = px-ctx->center;
+  dy = py;
 #endif
-    if (dx == 0) {
-      if (dy == 0) r = -1;
-      else if (dy > 0) r = 0.25;
-      else r = 0.75;
-    } else if (dx > 0) {
-      r = PetscAtanReal((dy/ctx->vscale)/dx);
-      if (dy >= 0) r /= 2*PETSC_PI;
-      else r = r/(2*PETSC_PI)+1;
-    } else r = PetscAtanReal((dy/ctx->vscale)/dx)/(2*PETSC_PI)+0.5;
-    if (r>=ctx->start_ang && r<=ctx->end_ang && inside[i] == 1) inside[i] = 1;
-    else inside[i] = 0;
-  }
+  if (dx == 0) {
+    if (dy == 0) r = -1;
+    else if (dy > 0) r = 0.25;
+    else r = 0.75;
+  } else if (dx > 0) {
+    r = PetscAtanReal((dy/ctx->vscale)/dx);
+    if (dy >= 0) r /= 2*PETSC_PI;
+    else r = r/(2*PETSC_PI)+1;
+  } else r = PetscAtanReal((dy/ctx->vscale)/dx)/(2*PETSC_PI)+0.5;
+  if (r>=ctx->start_ang && r<=ctx->end_ang && *inside == 1) *inside = 1;
+  else *inside = 0;
   PetscFunctionReturn(0);
 }
 

@@ -185,28 +185,21 @@ PetscErrorCode RGComputeContour_Ellipse(RG rg,PetscInt n,PetscScalar *cr,PetscSc
 
 #undef __FUNCT__
 #define __FUNCT__ "RGCheckInside_Ellipse"
-PetscErrorCode RGCheckInside_Ellipse(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,PetscInt *inside)
+PetscErrorCode RGCheckInside_Ellipse(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
 {
   RG_ELLIPSE  *ctx = (RG_ELLIPSE*)rg->data;
-  PetscInt    i;
   PetscReal   dx,dy,r;
-#if defined(PETSC_USE_COMPLEX)
-  PetscScalar d;
-#endif
 
   PetscFunctionBegin;
-  for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
-    d = (ar[i]-ctx->center)/ctx->radius;
-    dx = PetscRealPart(d);
-    dy = PetscImaginaryPart(d);
+  dx = (px-PetscRealPart(ctx->center))/ctx->radius;
+  dy = (py-PetscImaginaryPart(ctx->center))/ctx->radius;
 #else
-    dx = (ar[i]-ctx->center)/ctx->radius;
-    dy = ai[i]/ctx->radius;
+  dx = (px-ctx->center)/ctx->radius;
+  dy = py/ctx->radius;
 #endif
-    r = 1.0-dx*dx-(dy*dy)/(ctx->vscale*ctx->vscale);
-    inside[i] = PetscSign(r);
-  }
+  r = 1.0-dx*dx-(dy*dy)/(ctx->vscale*ctx->vscale);
+  *inside = PetscSign(r);
   PetscFunctionReturn(0);
 }
 
