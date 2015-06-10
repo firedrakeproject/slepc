@@ -537,9 +537,11 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
   PetscErrorCode    ierr;
   PetscInt          i;
   const PetscScalar *px;
-  PetscScalar       *ei=pep->eigi;
   Mat               A;
   Vec               xr,xi,w;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar       *ei=pep->eigi;
+#endif
 
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
@@ -593,9 +595,12 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
   PetscErrorCode    ierr;
   PetscInt          i,offset;
   const PetscScalar *px;
-  PetscScalar       *er=pep->eigr,*ei=pep->eigi;
+  PetscScalar       *er=pep->eigr;
   Mat               A;
   Vec               xr,xi=NULL,w;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar       *ei=pep->eigi;
+#endif
 
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
