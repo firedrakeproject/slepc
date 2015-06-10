@@ -247,12 +247,15 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   Mat            Q;
   PetscScalar    *S,*work;
   PetscReal      beta=0.0,norm,x,y;
-  PetscBool      breakdown=PETSC_FALSE;
+  PetscBool      breakdown=PETSC_FALSE,sinv;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
   lwork = 7*pep->ncv;
   ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+  ierr = RGSetScale(pep->rg,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
+  ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
   if (pep->nini==0) {
@@ -327,6 +330,9 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
     pep->eigr[j] *= pep->sfactor;
     pep->eigi[j] *= pep->sfactor;
   }
+
+  ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
+  ierr = RGSetScale(pep->rg,1.0);CHKERRQ(ierr);
 
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */

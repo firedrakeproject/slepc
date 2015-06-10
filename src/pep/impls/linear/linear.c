@@ -297,7 +297,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option not implemented for non-monomial bases");
     if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEPLINEAR with explicit matrices");
     if (sinv && !transf) { ierr = STSetType(st,STSINVERT);CHKERRQ(ierr); }
-
+    ierr = RGSetScale(pep->rg,pep->sfactor);CHKERRQ(ierr);
     ierr = STGetTOperators(pep->st,0,&ctx->K);CHKERRQ(ierr);
     ierr = STGetTOperators(pep->st,1,&ctx->C);CHKERRQ(ierr);
     ierr = STGetTOperators(pep->st,2,&ctx->M);CHKERRQ(ierr);
@@ -363,6 +363,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
         pep->solvematcoeffs[pep->nmat-1] = 1.0;
       }
       ierr = STScaleShift(pep->st,1.0/pep->sfactor);CHKERRQ(ierr);
+      ierr = RGSetScale(pep->rg,pep->sfactor);CHKERRQ(ierr);
     }
     if (pep->sfactor!=1.0) {
       for (i=0;i<pep->nmat;i++) {
@@ -408,7 +409,10 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ierr = EPSSetDimensions(ctx->eps,pep->nev,pep->ncv?pep->ncv:PETSC_DEFAULT,pep->mpd?pep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:pep->tol,pep->max_it?pep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
-  if (!istrivial) { ierr = EPSSetRG(ctx->eps,pep->rg);CHKERRQ(ierr); }
+  if (!istrivial) {
+    if (transf) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"PEPLINEAR does not support a nontrivial region with st-transform");
+    ierr = EPSSetRG(ctx->eps,pep->rg);CHKERRQ(ierr);
+  }
   /* Transfer the trackall option from pep to eps */
   ierr = PEPGetTrackAll(pep,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(ctx->eps,trackall);CHKERRQ(ierr);
@@ -705,9 +709,10 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
       pep->pbc[pep->nmat+i] *= pep->sfactor;
       pep->pbc[2*pep->nmat+i] *= pep->sfactor*pep->sfactor;
     }
-    if (!flg) {
+    if (!flg && !ctx->explicitmatrix) {
       ierr = STScaleShift(pep->st,pep->sfactor);CHKERRQ(ierr);
-    }
+    } 
+    ierr = RGSetScale(pep->rg,1.0);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

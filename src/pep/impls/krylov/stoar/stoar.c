@@ -430,13 +430,16 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nconv=0;
   PetscScalar    *S=ctx->S,*Q,*work;
   PetscReal      beta,norm=1.0,*omega,*a,*b,*r,*rwork;
-  PetscBool      breakdown,symmlost=PETSC_FALSE;
+  PetscBool      breakdown,symmlost=PETSC_FALSE,sinv;
 
   PetscFunctionBegin;
   ierr = BVSetMatrix(pep->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
   lwa = 9*ld*ld+5*ld;
   lrwa = 8*ld;
   ierr = PetscMalloc2(lwa,&work,lrwa,&rwork);CHKERRQ(ierr); /* REVIEW */
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+  ierr = RGSetScale(pep->rg,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
+  ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
   if (pep->nini==0) {  
@@ -571,6 +574,8 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
       pep->eigi[j] *= pep->sfactor;
     }
   }
+  ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
+  ierr = RGSetScale(pep->rg,1.0);CHKERRQ(ierr);
 
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */

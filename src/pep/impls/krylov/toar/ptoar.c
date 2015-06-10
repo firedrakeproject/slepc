@@ -777,7 +777,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,sigma;
   PetscReal      beta,norm,*rwork;
-  PetscBool      breakdown=PETSC_FALSE,flg,lindep,falselock=PETSC_FALSE,def=PETSC_FALSE;
+  PetscBool      breakdown=PETSC_FALSE,flg,lindep,falselock=PETSC_FALSE,def=PETSC_FALSE,sinv;
 
   PetscFunctionBegin;
   if (ctx->lock) {
@@ -795,15 +795,20 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 
   /* update polynomial basis coefficients */
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-  if (pep->sfactor!=1) {
+  if (pep->sfactor!=1.0) {
     for (i=0;i<nmat;i++) {
       pep->pbc[nmat+i] /= pep->sfactor;
       pep->pbc[2*nmat+i] /= pep->sfactor*pep->sfactor; 
     }
     if (!flg) {
       pep->target /= pep->sfactor;
+      ierr = RGSetScale(pep->rg,pep->sfactor);CHKERRQ(ierr);
       ierr = STScaleShift(pep->st,1.0/pep->sfactor);CHKERRQ(ierr);
       sigma /= pep->sfactor;
+    } else {
+      ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+      ierr = RGSetScale(pep->rg,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
+      ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
     }
   }
 
@@ -943,7 +948,10 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       /* restore original values */
       pep->target *= pep->sfactor;
       ierr = STScaleShift(pep->st,pep->sfactor);CHKERRQ(ierr);
+    } else {
+      ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
     }
+    ierr = RGSetScale(pep->rg,1.0);CHKERRQ(ierr);
     if (pep->sfactor!=1.0) {
       for (j=0;j<pep->nconv;j++) {
         pep->eigr[j] *= pep->sfactor;
