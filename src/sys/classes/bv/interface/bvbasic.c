@@ -569,7 +569,7 @@ PetscErrorCode BVGetMatrix(BV bv,Mat *B,PetscBool *indef)
 
    Level: advanced
 
-.seealso: BVSetMatrix()
+.seealso: BVSetMatrix(), BVApplyMatrixBV()
 @*/
 PetscErrorCode BVApplyMatrix(BV bv,Vec x,Vec y)
 {
@@ -585,6 +585,80 @@ PetscErrorCode BVApplyMatrix(BV bv,Vec x,Vec y)
   } else {
     ierr = VecCopy(x,y);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVApplyMatrixBV"
+/*@
+   BVApplyMatrixBV - Multiplies the BV vectors by the matrix representation
+   of the inner product.
+
+   Neighbor-wise Collective on BV
+
+   Input Parameter:
++  X - the basis vectors context
+
+   Output Parameter:
+.  Y - the basis vectors to store the result (optional)
+
+   Note:
+   This function computes Y = B*X, where B is the matrix given with
+   BVSetMatrix(). This operation is computed as in BVMatMult().
+   If no matrix was specified, then it just copies Y = X.
+
+   If no Y is given, the result is stored internally in the cached BV.
+
+   Level: developer
+
+.seealso: BVSetMatrix(), BVApplyMatrix(), BVMatMult(), BVGetCachedBV()
+@*/
+PetscErrorCode BVApplyMatrixBV(BV X,BV Y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  if (Y) {
+    PetscValidHeaderSpecific(Y,BV_CLASSID,2);
+    if (X->matrix) {
+      ierr = BVMatMult(X,X->matrix,Y);CHKERRQ(ierr);
+    } else {
+      ierr = BVCopy(X,Y);CHKERRQ(ierr);
+    }
+  } else {
+    ierr = BV_IPMatMultBV(X);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetCachedBV"
+/*@
+   BVGetCachedBV - Returns a BV object stored internally that holds the
+   result of B*X after a call to BVApplyMatrixBV().
+
+   Not collective
+
+   Input Parameter:
+.  bv    - the basis vectors context
+
+   Output Parameter:
+.  cached - the cached BV
+
+   Note:
+   The function will return a NULL if BVApplyMatrixBV() was not called yet.
+
+   Level: developer
+
+.seealso: BVApplyMatrixBV()
+@*/
+PetscErrorCode BVGetCachedBV(BV bv,BV *cached)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidPointer(cached,2);
+  *cached = bv->cached;
   PetscFunctionReturn(0);
 }
 
