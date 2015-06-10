@@ -71,9 +71,10 @@ struct _p_BV {
   PetscInt           l;            /* number of leading columns */
   PetscInt           k;            /* number of active columns */
   PetscInt           nc;           /* number of constraints */
-  BVOrthogType       orthog_type;  /* which orthogonalization to use */
+  BVOrthogType       orthog_type;  /* the method of vector orthogonalization */
   BVOrthogRefineType orthog_ref;   /* refinement method */
   PetscReal          orthog_eta;   /* refinement threshold */
+  BVOrthogBlockType  orthog_block; /* the method of block orthogonalization */
   Mat                matrix;       /* inner product matrix */
   PetscBool          indef;        /* matrix is indefinite */
   BVMatMultType      vmm;          /* version of matmult operation */

@@ -213,7 +213,7 @@ Orthogonalize         & \texttt{BVOrthogonalize} & \texttt{BVOrthogonalizeColumn
 
 Table \ref{tab:bv} shows a summary of the operations offered by the \ident{BV} class, with variants that operate on the whole \ident{BV}, on a single column, or on an external \texttt{Vec} object. Missing variants can be achieved simply with \texttt{Vec} and \texttt{Mat} operations. Other available variants not shown in the table are \texttt{BVMultInPlace}, \texttt{BVMultInPlaceTranspose} and \texttt{BVOrthogonalizeSomeColumn}.
 
-Most \slepc solvers use a \ident{BV} object to represent the working subspace basis. In particular, orthogonalization operations are mostly confined within \ident{BV}. Hence, \ident{BV} provides options for specifying which kind of Gram-Schmidt orthogonalization must be done, see \ident{BVSetOrthogonalization}.
+Most \slepc solvers use a \ident{BV} object to represent the working subspace basis. In particular, orthogonalization operations are mostly confined within \ident{BV}. Hence, \ident{BV} provides options for specifying the method of orthogonalization of vectors (Gram-Schmidt) as well as the method of block orthogonalization, see \ident{BVSetOrthogonalization}.
 
 \paragraph{RG: Region}
 

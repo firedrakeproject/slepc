@@ -502,9 +502,13 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
 
    Can pass NULL if R is not required.
 
+   The method to be used for block orthogonalization can be set with
+   BVSetOrthogonalization(). If set to GS, the computation is done column by
+   column with successive calls to BVOrthogonalizeColumn().
+
    Level: intermediate
 
-.seealso: BVOrthogonalizeColumn(), BVOrthogonalizeVec(), BVSetActiveColumns()
+.seealso: BVOrthogonalizeColumn(), BVOrthogonalizeVec(), BVSetActiveColumns(), BVSetOrthogonalization(), BVOrthogBlockType
 @*/
 PetscErrorCode BVOrthogonalize(BV V,Mat R)
 {
@@ -528,10 +532,15 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
   if (V->nc) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Not implemented for BV with constraints, use BVOrthogonalizeColumn() instead");
 
   ierr = PetscLogEventBegin(BV_Orthogonalize,V,R,0,0);CHKERRQ(ierr);
-  if (V->ops->orthogonalize) {
-    ierr = (*V->ops->orthogonalize)(V,R);CHKERRQ(ierr);
-  } else { /* no specific QR function available, so proceed column by column with Gram-Schmidt */
+  switch (V->orthog_block) {
+  case BV_ORTHOG_BLOCK_GS: /* proceed column by column with Gram-Schmidt */
     ierr = BVOrthogonalize_GS(V,R);CHKERRQ(ierr);
+    break;
+  case BV_ORTHOG_BLOCK_CHOL:
+    if (V->ops->orthogonalize) {
+      ierr = (*V->ops->orthogonalize)(V,R);CHKERRQ(ierr);
+    } else SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Not implemented");
+    break;
   }
   ierr = PetscLogEventEnd(BV_Orthogonalize,V,R,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);

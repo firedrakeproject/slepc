@@ -122,7 +122,7 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   PetscReal      eta,onorm;
   
   PetscFunctionBegin;
-  ierr = BVGetOrthogonalization(pep->V,NULL,NULL,&eta);CHKERRQ(ierr);
+  ierr = BVGetOrthogonalization(pep->V,NULL,NULL,&eta,NULL);CHKERRQ(ierr);
   n = k+deg-1;
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(deg*ld,&lds_);CHKERRQ(ierr);

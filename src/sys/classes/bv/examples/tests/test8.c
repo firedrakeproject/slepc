@@ -51,7 +51,7 @@ int main(int argc,char **argv)
   ierr = BVCreate(PETSC_COMM_WORLD,&X);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)X,"X");CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(X,t,k);CHKERRQ(ierr);
-  ierr = BVSetOrthogonalization(X,BV_ORTHOG_MGS,BV_ORTHOG_REFINE_IFNEEDED,PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = BVSetOrthogonalization(X,BV_ORTHOG_MGS,BV_ORTHOG_REFINE_IFNEEDED,PETSC_DEFAULT,BV_ORTHOG_BLOCK_GS);CHKERRQ(ierr);
   ierr = BVSetFromOptions(X);CHKERRQ(ierr);
 
   /* Set up viewer */

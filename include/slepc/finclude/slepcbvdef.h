@@ -30,6 +30,7 @@
 #define BVType    character*(80)
 #define BVOrthogType       PetscEnum
 #define BVOrthogRefineType PetscEnum
+#define BVOrthogBlockType  PetscEnum
 #define BVMatMultType      PetscEnum
 
 #define BVMAT        'mat'

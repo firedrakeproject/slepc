@@ -178,6 +178,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->orthog_type  = BV_ORTHOG_CGS;
   bv->orthog_ref   = BV_ORTHOG_REFINE_IFNEEDED;
   bv->orthog_eta   = 0.7071;
+  bv->orthog_block = BV_ORTHOG_BLOCK_GS;
   bv->matrix       = NULL;
   bv->indef        = PETSC_FALSE;
   bv->vmm          = BV_MATMULT_MAT;
@@ -552,6 +553,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
   PetscViewerFormat format;
   const char        *orthname[2] = {"classical","modified"};
   const char        *refname[3] = {"if needed","never","always"};
+  const char        *borthname[2] = {"Gram-Schmidt","Cholesky"};
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -570,7 +572,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
       if (bv->nc>0) {
         ierr = PetscViewerASCIIPrintf(viewer,"number of constraints: %D\n",bv->nc);CHKERRQ(ierr);
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"orthogonalization method: %s Gram-Schmidt\n",orthname[bv->orthog_type]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"vector orthogonalization method: %s Gram-Schmidt\n",orthname[bv->orthog_type]);CHKERRQ(ierr);
       switch (bv->orthog_ref) {
         case BV_ORTHOG_REFINE_IFNEEDED:
           ierr = PetscViewerASCIIPrintf(viewer,"orthogonalization refinement: %s (eta: %g)\n",refname[bv->orthog_ref],(double)bv->orthog_eta);CHKERRQ(ierr);
@@ -580,6 +582,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
           ierr = PetscViewerASCIIPrintf(viewer,"orthogonalization refinement: %s\n",refname[bv->orthog_ref]);CHKERRQ(ierr);
           break;
       }
+      ierr = PetscViewerASCIIPrintf(viewer,"block orthogonalization method: %s\n",borthname[bv->orthog_block]);CHKERRQ(ierr);
       if (bv->matrix) {
         if (bv->indef) {
           ierr = PetscViewerASCIIPrintf(viewer,"indefinite inner product\n");CHKERRQ(ierr);

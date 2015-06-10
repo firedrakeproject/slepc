@@ -137,7 +137,7 @@ static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k
   PetscScalar        *c = work + m;
 
   PetscFunctionBegin;
-  ierr = BVGetOrthogonalization(pep->V,NULL,&refinement,&eta);CHKERRQ(ierr);
+  ierr = BVGetOrthogonalization(pep->V,NULL,&refinement,&eta,NULL);CHKERRQ(ierr);
   ierr = BVInsertVec(pep->V,k,v);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
     /* apply operator */

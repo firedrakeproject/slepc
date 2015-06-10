@@ -76,10 +76,11 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
 #define __FUNCT__ "EPSSetUp_KrylovSchur"
 PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
-  PetscErrorCode  ierr;
-  PetscReal       eta;
-  BVOrthogType    otype;
-  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  PetscErrorCode    ierr;
+  PetscReal         eta;
+  BVOrthogType      otype;
+  BVOrthogBlockType obtype;
+  EPS_KRYLOVSCHUR   *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   enum { EPS_KS_DEFAULT,EPS_KS_SYMM,EPS_KS_SLICE,EPS_KS_INDEF } variant;
 
   PetscFunctionBegin;
@@ -159,8 +160,8 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
       /* force reorthogonalization for pseudo-Lanczos */
-      ierr = BVGetOrthogonalization(eps->V,&otype,NULL,&eta);CHKERRQ(ierr);
-      ierr = BVSetOrthogonalization(eps->V,otype,BV_ORTHOG_REFINE_ALWAYS,eta);CHKERRQ(ierr);
+      ierr = BVGetOrthogonalization(eps->V,&otype,NULL,&eta,&obtype);CHKERRQ(ierr);
+      ierr = BVSetOrthogonalization(eps->V,otype,BV_ORTHOG_REFINE_ALWAYS,eta,obtype);CHKERRQ(ierr);
       break;
     default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error");
   }

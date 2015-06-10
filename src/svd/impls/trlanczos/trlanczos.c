@@ -187,7 +187,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
     for (i=0;i<l;i++) work[i]=beta[i+nconv];
     ierr = BVMultColumn(U,-1.0,1.0,k,work);CHKERRQ(ierr);
   }
-  ierr = BVGetOrthogonalization(V,NULL,&refine,&eta);CHKERRQ(ierr);
+  ierr = BVGetOrthogonalization(V,NULL,&refine,&eta,NULL);CHKERRQ(ierr);
 
   for (i=k+1;i<n;i++) {
     ierr = BVGetColumn(V,i,&vi);CHKERRQ(ierr);
@@ -281,7 +281,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   PetscFunctionBegin;
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
-  ierr = BVGetOrthogonalization(svd->V,&orthog,NULL,NULL);CHKERRQ(ierr);
+  ierr = BVGetOrthogonalization(svd->V,&orthog,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld,&w);CHKERRQ(ierr);
   if (lanczos->oneside) {
     ierr = PetscMalloc1(svd->ncv+1,&swork);CHKERRQ(ierr);

@@ -53,18 +53,19 @@ typedef const char* BVType;
 PETSC_EXTERN PetscClassId BV_CLASSID;
 
 /*E
-    BVOrthogType - Determines what type of orthogonalization to use
+    BVOrthogType - Determines the method used in the orthogonalization
+    of vectors
 
     Level: advanced
 
-.seealso: BVSetOrthogonalization(), BVGetOrthogonalization(), BVOrthogonalizeColumn()
+.seealso: BVSetOrthogonalization(), BVGetOrthogonalization(), BVOrthogonalizeColumn(), BVOrthogRefineType
 E*/
 typedef enum { BV_ORTHOG_CGS,
                BV_ORTHOG_MGS } BVOrthogType;
 
 /*E
-    BVOrthogRefineType - Determines what type of refinement
-    to use during orthogonalization
+    BVOrthogRefineType - Determines what type of refinement to use
+    during orthogonalization of vectors
 
     Level: advanced
 
@@ -73,6 +74,17 @@ E*/
 typedef enum { BV_ORTHOG_REFINE_IFNEEDED,
                BV_ORTHOG_REFINE_NEVER,
                BV_ORTHOG_REFINE_ALWAYS } BVOrthogRefineType;
+
+/*E
+    BVOrthogBlockType - Determines the method used in block
+    orthogonalization (simultaneous orthogonalization of a set of vectors)
+
+    Level: advanced
+
+.seealso: BVSetOrthogonalization(), BVGetOrthogonalization(), BVOrthogonalize()
+E*/
+typedef enum { BV_ORTHOG_BLOCK_GS,
+               BV_ORTHOG_BLOCK_CHOL } BVOrthogBlockType;
 
 /*E
     BVMatMultType - Determines how to perform the BVMatMult() operation:
@@ -152,8 +164,8 @@ PETSC_EXTERN PetscErrorCode BVNormColumnEnd(BV,PetscInt,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVSetRandom(BV,PetscRandom);
 PETSC_EXTERN PetscErrorCode BVSetRandomColumn(BV,PetscInt,PetscRandom);
 
-PETSC_EXTERN PetscErrorCode BVSetOrthogonalization(BV,BVOrthogType,BVOrthogRefineType,PetscReal);
-PETSC_EXTERN PetscErrorCode BVGetOrthogonalization(BV,BVOrthogType*,BVOrthogRefineType*,PetscReal*);
+PETSC_EXTERN PetscErrorCode BVSetOrthogonalization(BV,BVOrthogType,BVOrthogRefineType,PetscReal,BVOrthogBlockType);
+PETSC_EXTERN PetscErrorCode BVGetOrthogonalization(BV,BVOrthogType*,BVOrthogRefineType*,PetscReal*,BVOrthogBlockType*);
 PETSC_EXTERN PetscErrorCode BVOrthogonalize(BV,Mat);
 PETSC_EXTERN PetscErrorCode BVOrthogonalizeVec(BV,Vec,PetscScalar*,PetscReal*,PetscBool*);
 PETSC_EXTERN PetscErrorCode BVOrthogonalizeColumn(BV,PetscInt,PetscScalar*,PetscReal*,PetscBool*);
