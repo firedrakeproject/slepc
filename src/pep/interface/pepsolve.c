@@ -135,7 +135,6 @@ PetscErrorCode PEPSolve(PEP pep)
   if (pep->refine==PEP_REFINE_SIMPLE && pep->rits>0) {
     ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
     ierr = PEPNewtonRefinementSimple(pep,&pep->rits,&pep->rtol,pep->nconv);CHKERRQ(ierr);
-    pep->state = PEP_STATE_EIGENVECTORS;
   }
 
 #if !defined(PETSC_USE_COMPLEX)
