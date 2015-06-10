@@ -141,6 +141,8 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
 #endif
 
   PetscFunctionBegin;
+  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
+  if (!ds->mat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
@@ -375,7 +377,7 @@ PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat1,
 
 #undef __FUNCT__
 #define __FUNCT__ "DSSetIdentity"
-/*@C
+/*@
    DSSetIdentity - Copy the identity (a diagonal matrix with ones) on the
    active part of a matrix.
 
@@ -403,41 +405,6 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
     x[ld*i+i] = 1.0;
   }
   ierr = DSRestoreArray(ds,mat,&x);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "DSComputeMatrix"
-/*
-   DSComputeMatrix - Build the matrix associated to a nonlinear operator
-   T(lambda) or its derivative T'(lambda), given the parameter lambda, where
-   T(lambda) = sum_i E_i*f_i(lambda). The result is written in mat.
-*/
-PetscErrorCode DSComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat)
-{
-  PetscErrorCode ierr;
-  PetscScalar    *T,*E,alpha;
-  PetscInt       i,ld,n;
-  PetscBLASInt   k,inc=1;
-
-  PetscFunctionBegin;
-  ierr = DSGetDimensions(ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ld*n,&k);CHKERRQ(ierr);
-  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = DSGetArray(ds,mat,&T);CHKERRQ(ierr);
-  ierr = PetscMemzero(T,k*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=0;i<ds->nf;i++) {
-    if (deriv) {
-      ierr = FNEvaluateDerivative(ds->f[i],lambda,&alpha);CHKERRQ(ierr);
-    } else {
-      ierr = FNEvaluateFunction(ds->f[i],lambda,&alpha);CHKERRQ(ierr);
-    }
-    E = ds->mat[DSMatExtra[i]];
-    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k,&alpha,E,&inc,T,&inc));
-  }
-  ierr = DSRestoreArray(ds,mat,&T);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -503,7 +470,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SlepcDenseMatProd"
+#define __FUNCT__ "SlepcMatDenseMult"
 /*
   Compute C <- a*A*B + b*C, where
     ldC, the leading dimension of C,
@@ -514,7 +481,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
     rB, cB, rows and columns of B,
     Bt, if true use the transpose of B instead
 */
-static PetscErrorCode SlepcDenseMatProd(PetscScalar *C,PetscInt _ldC,PetscScalar b,PetscScalar a,const PetscScalar *A,PetscInt _ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,PetscInt _ldB,PetscInt rB,PetscInt cB,PetscBool Bt)
+static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar b,PetscScalar a,const PetscScalar *A,PetscInt _ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,PetscInt _ldB,PetscInt rB,PetscInt cB,PetscBool Bt)
 {
   PetscErrorCode ierr;
   PetscInt       tmp;
@@ -597,19 +564,19 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
     /* m <- diag(s)*A[i] */
     for (k=0; k<n; k++) m[k] = s[k]*A[k+i*ld];
     /* nr_o <- mynorm(A[i]'*m), mynorm(x) = sign(x)*sqrt(|x|) */
-    ierr = SlepcDenseMatProd(&nr0,1,0.0,1.0,&A[ld*i],ld,n,1,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcMatDenseMult(&nr0,1,0.0,1.0,&A[ld*i],ld,n,1,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
     nr = nr_o = PetscSign(PetscRealPart(nr0))*PetscSqrtReal(PetscAbsScalar(nr0));
     for (j=0; j<3 && i>0; j++) {
       /* h <- A[0:i-1]'*m */
-      ierr = SlepcDenseMatProd(h,i,0.0,1.0,A,ld,n,i,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = SlepcMatDenseMult(h,i,0.0,1.0,A,ld,n,i,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
       /* h <- diag(ns)*h */
       for (k=0; k<i; k++) h[k] *= ns_[k];
       /* A[i] <- A[i] - A[0:i-1]*h */
-      ierr = SlepcDenseMatProd(&A[ld*i],ld,1.0,-1.0,A,ld,n,i,PETSC_FALSE,h,i,i,1,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = SlepcMatDenseMult(&A[ld*i],ld,1.0,-1.0,A,ld,n,i,PETSC_FALSE,h,i,i,1,PETSC_FALSE);CHKERRQ(ierr);
       /* m <- diag(s)*A[i] */
       for (k=0; k<n; k++) m[k] = s[k]*A[k+i*ld];
       /* nr_o <- mynorm(A[i]'*m) */
-      ierr = SlepcDenseMatProd(&nr0,1,0.0,1.0,&A[ld*i],ld,n,1,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = SlepcMatDenseMult(&nr0,1,0.0,1.0,&A[ld*i],ld,n,1,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
       nr = PetscSign(PetscRealPart(nr0))*PetscSqrtReal(PetscAbsScalar(nr0));
       if (PetscAbs(nr) < PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1,"Linear dependency detected");
       if (PetscAbs(nr) > 0.7*PetscAbs(nr_o)) break;

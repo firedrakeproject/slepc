@@ -239,7 +239,7 @@ static PetscErrorCode EPSArnoldiGetDelayed_Arnoldi(EPS eps,PetscBool *delayed)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSArnoldiGetDelayed"
-/*@C
+/*@
    EPSArnoldiGetDelayed - Gets the type of reorthogonalization used during the Arnoldi
    iteration.
 

@@ -100,7 +100,7 @@ PETSC_EXTERN const char *NEPRefineTypes[];
     NEPConvergedReason - Reason a nonlinear eigensolver was said to
          have converged or diverged
 
-    Level: beginner
+    Level: intermediate
 
 .seealso: NEPSolve(), NEPGetConvergedReason(), NEPSetTolerances()
 E*/

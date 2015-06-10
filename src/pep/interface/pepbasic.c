@@ -547,7 +547,7 @@ PetscErrorCode PEPGetDS(PEP pep,DS *ds)
    Use PEPGetST() to retrieve the spectral transformation context (for example,
    to free it at the end of the computations).
 
-   Level: developer
+   Level: advanced
 
 .seealso: PEPGetST()
 @*/
@@ -580,7 +580,7 @@ PetscErrorCode PEPSetST(PEP pep,ST st)
    Output Parameter:
 .  st - spectral transformation context
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: PEPSetST()
 @*/
@@ -601,7 +601,7 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPRefineGetKSP"
-/*@C
+/*@
    PEPRefineGetKSP - Obtain the ksp object used by the eigensolver
    object in the refinement phase.
 
@@ -663,7 +663,7 @@ PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
    command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
    -pep_target 1.0+2.0i
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: PEPGetTarget(), PEPSetWhichEigenpairs()
 @*/
@@ -696,7 +696,7 @@ PetscErrorCode PEPSetTarget(PEP pep,PetscScalar target)
    Note:
    If the target was not set by the user, then zero is returned.
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: PEPSetTarget()
 @*/

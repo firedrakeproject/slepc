@@ -94,7 +94,7 @@ PETSC_EXTERN PetscErrorCode MFNGetOptionsPrefix(MFN,const char*[]);
     MFNConvergedReason - reason a matrix function iteration was said to
          have converged or diverged
 
-    Level: beginner
+    Level: intermediate
 
 .seealso: MFNSolve(), MFNGetConvergedReason(), MFNSetTolerances()
 E*/

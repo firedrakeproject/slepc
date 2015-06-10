@@ -828,9 +828,9 @@ static PetscErrorCode EPSLanczosGetReorthog_Lanczos(EPS eps,EPSLanczosReorthogTy
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSLanczosGetReorthog"
-/*@C
-   EPSLanczosGetReorthog - Gets the type of reorthogonalization used during the Lanczos
-   iteration.
+/*@
+   EPSLanczosGetReorthog - Gets the type of reorthogonalization used during
+   the Lanczos iteration.
 
    Not Collective
 

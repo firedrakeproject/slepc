@@ -542,7 +542,7 @@ PetscErrorCode NEPGetDS(NEP nep,DS *ds)
    Use NEPGetKSP() to retrieve the linear solver context (for example,
    to free it at the end of the computations).
 
-   Level: developer
+   Level: advanced
 
 .seealso: NEPGetKSP()
 @*/
@@ -575,7 +575,7 @@ PetscErrorCode NEPSetKSP(NEP nep,KSP ksp)
    Output Parameter:
 .  ksp - linear solver context
 
-   Level: beginner
+   Level: advanced
 
 .seealso: NEPSetKSP()
 @*/
@@ -619,7 +619,7 @@ PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
    command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
    -nep_target 1.0+2.0i
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: NEPGetTarget(), NEPSetWhichEigenpairs()
 @*/
@@ -648,7 +648,7 @@ PetscErrorCode NEPSetTarget(NEP nep,PetscScalar target)
    Note:
    If the target was not set by the user, then zero is returned.
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: NEPSetTarget()
 @*/
@@ -840,7 +840,7 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
    This function must be called before NEPSetUp(). If it is called again
    after NEPSetUp() then the NEP object is reset.
 
-   Level: intermediate
+   Level: beginner
 
 .seealso: NEPGetSplitOperatorTerm(), NEPGetSplitOperatorInfo()
  @*/

@@ -40,7 +40,7 @@
    calls it. It can be useful when one wants to measure the set-up time
    separately from the solve time.
 
-   Level: advanced
+   Level: developer
 
 .seealso: EPSCreate(), EPSSolve(), EPSDestroy(), STSetUp(), EPSSetInitialSpace()
 @*/
@@ -293,7 +293,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetOperators"
-/*@C
+/*@
    EPSGetOperators - Gets the matrices associated with the eigensystem.
 
    Collective on EPS and Mat

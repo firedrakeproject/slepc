@@ -219,7 +219,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
    Options Database Keys:
 .  -pep_converged_reason - print reason for convergence, and number of iterations
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: PEPSetConvergenceTest(), PEPSetTolerances(), PEPGetIterationNumber()
 @*/
@@ -253,7 +253,7 @@ PetscErrorCode PEPReasonView(PEP pep,PetscViewer viewer)
    Input Parameters:
 .  pep - the eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode PEPReasonViewFromOptions(PEP pep)
 {
@@ -464,7 +464,7 @@ PetscErrorCode PEPErrorView(PEP pep,PEPErrorType etype,PetscViewer viewer)
    Input Parameters:
 .  pep - the eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode PEPErrorViewFromOptions(PEP pep)
 {
@@ -659,7 +659,7 @@ PetscErrorCode PEPValuesView(PEP pep,PetscViewer viewer)
    Input Parameters:
 .  pep - the eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode PEPValuesViewFromOptions(PEP pep)
 {
@@ -742,7 +742,7 @@ PetscErrorCode PEPVectorsView(PEP pep,PetscViewer viewer)
    Input Parameters:
 .  pep - the eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode PEPVectorsViewFromOptions(PEP pep)
 {

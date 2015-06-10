@@ -40,7 +40,6 @@
 #define nepmonitorset_              NEPMONITORSET
 #define nepmonitorconverged_        NEPMONITORCONVERGED
 #define nepmonitorfirst_            NEPMONITORFIRST
-#define nepgetwhicheigenpairs_      NEPGETWHICHEIGENPAIRS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define nepview_                    nepview
 #define neperrorview_               neperrorview
@@ -58,7 +57,6 @@
 #define nepmonitorset_              nepmonitorset
 #define nepmonitorconverged_        nepmonitorconverged
 #define nepmonitorfirst_            nepmonitorfirst
-#define nepgetwhicheigenpairs_      nepgetwhicheigenpairs
 #endif
 
 /*
@@ -223,10 +221,5 @@ PETSC_EXTERN void PETSC_STDCALL nepmonitorset_(NEP *nep,void (PETSC_STDCALL *mon
       *ierr = NEPMonitorSet(*nep,ourmonitor,*nep,ourdestroy);
     }
   }
-}
-
-PETSC_EXTERN void PETSC_STDCALL nepgetwhicheigenpairs_(NEP *nep,NEPWhich *which,PetscErrorCode *ierr)
-{
-  *ierr = NEPGetWhichEigenpairs(*nep,which);
 }
 
