@@ -828,7 +828,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt        i,conv,k,l,ld,nv,*iwork,j,p,nconv;
+  PetscInt        i,conv,k,l,ld,nv,*iwork,j,p;
   Mat             U;
   PetscScalar     *Q,*A,rtmp;
   PetscReal       *a,*b,beta;
@@ -983,10 +983,9 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     }
     /* Update l */
     if (eps->reason == EPS_CONVERGED_ITERATING) l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
-    else l = nv-k;
+    else l = 0;
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
     if (breakdown) l=0;
-    nconv = k;
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
@@ -1019,9 +1018,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       ierr = BVCopyColumn(eps->V,nv,k+l);CHKERRQ(ierr);
     }
-    /* Monitor */
     eps->nconv = k;
-    ierr = EPSMonitor(eps,ctx->sr->itsKs,nconv,sr->eigr,sr->eigi,sr->errest,nv);CHKERRQ(ierr);
     if (eps->reason != EPS_CONVERGED_ITERATING) {
       /* Store approximated values for next shift */
       ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
@@ -1292,6 +1289,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
       ierr = EPSSliceGatherSolution(eps);CHKERRQ(ierr);
     } else {
       eps->nconv = sr->numEigs;
+      eps->its   = ctx->eps->its;
       ierr = PetscFree(ctx->inertias);CHKERRQ(ierr);
       ierr = PetscFree(ctx->shifts);CHKERRQ(ierr);
       ierr = EPSSliceGetInertias(ctx->eps,&ctx->nshifts,&ctx->shifts,&ctx->inertias);CHKERRQ(ierr);
