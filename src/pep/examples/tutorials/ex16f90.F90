@@ -183,6 +183,7 @@
       else
         call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,           &
      &                   PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)
+        call PEPReasonView(pep,PETSC_VIEWER_STDOUT_WORLD,ierr)
         call PEPErrorView(pep,PEP_ERROR_BACKWARD,                       &
      &                   PETSC_VIEWER_STDOUT_WORLD,ierr)
         call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr)

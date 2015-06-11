@@ -29,6 +29,8 @@
 #include <blopex_lobpcg.h>
 #include "petsc-interface.h"
 
+#define SLEPC_BLOPEX_USECONSTR 1121
+
 extern int
 SLEPCSetupInterpreter(mv_InterfaceInterpreter *ii);
 

@@ -19,18 +19,64 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc/private/dsimpl.h>
+#include <slepc/private/dsimpl.h>       /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
+
+typedef struct {
+  PetscInt nf;                 /* number of functions in f[] */
+  FN       f[DS_NUM_EXTRA];    /* functions defining the nonlinear operator */
+} DS_NEP;
+
+#undef __FUNCT__
+#define __FUNCT__ "DSNEPComputeMatrix"
+/*
+   DSNEPComputeMatrix - Build the matrix associated with a nonlinear operator
+   T(lambda) or its derivative T'(lambda), given the parameter lambda, where
+   T(lambda) = sum_i E_i*f_i(lambda). The result is written in mat.
+*/
+static PetscErrorCode DSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat)
+{
+  PetscErrorCode ierr;
+  DS_NEP         *ctx = (DS_NEP*)ds->data;
+  PetscScalar    *T,*E,alpha;
+  PetscInt       i,ld,n;
+  PetscBLASInt   k,inc=1;
+
+  PetscFunctionBegin;
+  ierr = DSGetDimensions(ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ld*n,&k);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  ierr = DSGetArray(ds,mat,&T);CHKERRQ(ierr);
+  ierr = PetscMemzero(T,k*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<ctx->nf;i++) {
+    if (deriv) {
+      ierr = FNEvaluateDerivative(ctx->f[i],lambda,&alpha);CHKERRQ(ierr);
+    } else {
+      ierr = FNEvaluateFunction(ctx->f[i],lambda,&alpha);CHKERRQ(ierr);
+    }
+    E = ds->mat[DSMatExtra[i]];
+    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k,&alpha,E,&inc,T,&inc));
+  }
+  ierr = DSRestoreArray(ds,mat,&T);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "DSAllocate_NEP"
 PetscErrorCode DSAllocate_NEP(DS ds,PetscInt ld)
 {
   PetscErrorCode ierr;
+  DS_NEP         *ctx = (DS_NEP*)ds->data;
+  PetscInt       i;
 
   PetscFunctionBegin;
-  if (!ds->nf) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"DSNEP requires passing some functions via DSSetFN()");
+  if (!ctx->nf) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"DSNEP requires passing some functions via DSSetFN()");
   ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
+  for (i=0;i<ctx->nf;i++) {
+    ierr = DSAllocateMat_Private(ds,DSMatExtra[i]);CHKERRQ(ierr);
+  }
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld,&ds->perm);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt));CHKERRQ(ierr);
@@ -42,14 +88,16 @@ PetscErrorCode DSAllocate_NEP(DS ds,PetscInt ld)
 PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
+  DS_NEP            *ctx = (DS_NEP*)ds->data;
   PetscViewerFormat format;
   PetscInt          i;
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"  number of functions: %D\n",ctx->nf);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
-  for (i=0;i<ds->nf;i++) {
-    ierr = FNView(ds->f[i],viewer);CHKERRQ(ierr);
+  for (i=0;i<ctx->nf;i++) {
+    ierr = FNView(ctx->f[i],viewer);CHKERRQ(ierr);
     ierr = DSViewMat(ds,viewer,DSMatExtra[i]);CHKERRQ(ierr);
   }
   if (ds->state>DS_STATE_INTERMEDIATE) {
@@ -198,8 +246,8 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
   for (it=0;it<maxit;it++) {
 
     /* evaluate T and T' */
-    ierr = DSComputeMatrix(ds,lambda,PETSC_FALSE,DS_MAT_A);CHKERRQ(ierr);
-    ierr = DSComputeMatrix(ds,lambda,PETSC_TRUE,DS_MAT_B);CHKERRQ(ierr);
+    ierr = DSNEPComputeMatrix(ds,lambda,PETSC_FALSE,DS_MAT_A);CHKERRQ(ierr);
+    ierr = DSNEPComputeMatrix(ds,lambda,PETSC_TRUE,DS_MAT_B);CHKERRQ(ierr);
 
     /* % compute eigenvalue correction mu and eigenvector u */
 #if defined(PETSC_USE_COMPLEX)
@@ -262,16 +310,191 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "DSNEPSetFN_NEP"
+static PetscErrorCode DSNEPSetFN_NEP(DS ds,PetscInt n,FN fn[])
+{
+  PetscErrorCode ierr;
+  DS_NEP         *ctx = (DS_NEP*)ds->data;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  if (n<=0) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more functions, you have %D",n);
+  if (n>DS_NUM_EXTRA) SETERRQ2(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Too many functions, you specified %D but the limit is %D",n,DS_NUM_EXTRA);
+  if (ds->ld) { ierr = PetscInfo(ds,"DSNEPSetFN() called after DSAllocate()\n");CHKERRQ(ierr); }
+  for (i=0;i<ctx->nf;i++) {
+    ierr = FNDestroy(&ctx->f[i]);CHKERRQ(ierr);
+  }
+  for (i=0;i<n;i++) {
+    ierr = PetscObjectReference((PetscObject)fn[i]);CHKERRQ(ierr);
+    ctx->f[i] = fn[i];
+  }
+  ctx->nf = n;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSNEPSetFN"
+/*@
+   DSNEPSetFN - Sets a number of functions that define the nonlinear
+   eigenproblem.
+
+   Collective on DS and FN
+
+   Input Parameters:
++  ds - the direct solver context
+.  n  - number of functions
+-  fn - array of functions
+
+   Notes:
+   The nonlinear eigenproblem is defined in terms of the split nonlinear
+   operator T(lambda) = sum_i A_i*f_i(lambda).
+
+   This function must be called before DSAllocate(). Then DSAllocate()
+   will allocate an extra matrix A_i per each function, that can be
+   filled in the usual way.
+
+   Level: advanced
+
+.seealso: DSNEPGetFN(), DSAllocate()
+ @*/
+PetscErrorCode DSNEPSetFN(DS ds,PetscInt n,FN fn[])
+{
+  PetscInt       i;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ds,n,2);
+  PetscValidPointer(fn,3);
+  for (i=0;i<n;i++) {
+    PetscValidHeaderSpecific(fn[i],FN_CLASSID,3);
+    PetscCheckSameComm(ds,1,fn[i],3);
+  }
+  ierr = PetscTryMethod(ds,"DSNEPSetFN_C",(DS,PetscInt,FN[]),(ds,n,fn));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSNEPGetFN_NEP"
+static PetscErrorCode DSNEPGetFN_NEP(DS ds,PetscInt k,FN *fn)
+{
+  DS_NEP *ctx = (DS_NEP*)ds->data;
+
+  PetscFunctionBegin;
+  if (k<0 || k>=ctx->nf) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",ctx->nf-1);
+  *fn = ctx->f[k];
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSNEPGetFN"
+/*@
+   DSNEPGetFN - Gets the functions associated with the nonlinear DS.
+
+   Not collective, though parallel FNs are returned if the DS is parallel
+
+   Input Parameter:
++  ds - the direct solver context
+-  k  - the index of the requested function (starting in 0)
+
+   Output Parameter:
+.  fn - the function
+
+   Level: advanced
+
+.seealso: DSNEPSetFN()
+@*/
+PetscErrorCode DSNEPGetFN(DS ds,PetscInt k,FN *fn)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidPointer(fn,3);
+  ierr = PetscTryMethod(ds,"DSNEPGetFN_C",(DS,PetscInt,FN*),(ds,k,fn));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSNEPGetNumFN_NEP"
+static PetscErrorCode DSNEPGetNumFN_NEP(DS ds,PetscInt *n)
+{
+  DS_NEP *ctx = (DS_NEP*)ds->data;
+
+  PetscFunctionBegin;
+  *n = ctx->nf;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSNEPGetNumFN"
+/*@
+   DSNEPGetNumFN - Returns the number of functions stored internally by
+   the DS.
+
+   Not collective
+
+   Input Parameter:
+.  ds - the direct solver context
+
+   Output Parameters:
+.  n - the number of functions passed in DSNEPSetFN()
+
+   Level: advanced
+
+.seealso: DSNEPSetFN()
+@*/
+PetscErrorCode DSNEPGetNumFN(DS ds,PetscInt *n)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidPointer(n,2);
+  ierr = PetscTryMethod(ds,"DSNEPGetNumFN_C",(DS,PetscInt*),(ds,n));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "DSDestroy_NEP"
+PetscErrorCode DSDestroy_NEP(DS ds)
+{
+  PetscErrorCode ierr;
+  DS_NEP         *ctx = (DS_NEP*)ds->data;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  for (i=0;i<ctx->nf;i++) {
+    ierr = FNDestroy(&ctx->f[i]);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(ds->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "DSCreate_NEP"
 PETSC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
 {
+  DS_NEP         *ctx;
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscNewLog(ds,&ctx);CHKERRQ(ierr);
+  ds->data = (void*)ctx;
+
   ds->ops->allocate      = DSAllocate_NEP;
   ds->ops->view          = DSView_NEP;
   ds->ops->vectors       = DSVectors_NEP;
   ds->ops->solve[0]      = DSSolve_NEP_SLP;
   ds->ops->sort          = DSSort_NEP;
   ds->ops->normalize     = DSNormalize_NEP;
+  ds->ops->destroy       = DSDestroy_NEP;
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",DSNEPSetFN_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",DSNEPGetFN_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",DSNEPGetNumFN_NEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

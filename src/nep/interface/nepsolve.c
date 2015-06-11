@@ -397,10 +397,14 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
 -  Vi   - imaginary part of eigenvector
 
    Notes:
+   It is allowed to pass NULL for Vr and Vi, if the eigenvector is not
+   required. Otherwise, the caller must provide valid Vec objects, i.e.,
+   they must be created by the calling program with e.g. MatCreateVecs().
+
    If the eigenvalue is real, then eigi and Vi are set to zero. If PETSc is
    configured with complex scalars the eigenvalue is stored
    directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is
-   set to zero).
+   set to zero). In both cases, the user can pass NULL in eigi and Vi.
 
    The index i should be a value between 0 and nconv-1 (see NEPGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established
@@ -572,7 +576,6 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
   ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
 
   /* compute error */
-  if (type==PETSC_DEFAULT) type = NEP_ERROR_RELATIVE;
   switch (type) {
     case NEP_ERROR_ABSOLUTE:
       break;

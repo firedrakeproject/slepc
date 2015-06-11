@@ -40,8 +40,6 @@
 #define pepmonitorset_              PEPMONITORSET
 #define pepmonitorconverged_        PEPMONITORCONVERGED
 #define pepmonitorfirst_            PEPMONITORFIRST
-#define pepgetwhicheigenpairs_      PEPGETWHICHEIGENPAIRS
-#define pepgetproblemtype_          PEPGETPROBLEMTYPE
 #define pepconvergedabsolute_       PEPCONVERGEDABSOLUTE
 #define pepconvergedeigrelative_    PEPCONVERGEDEIGRELATIVE
 #define pepconvergedlinear_         PEPCONVERGEDLINEAR
@@ -64,8 +62,6 @@
 #define pepmonitorset_              pepmonitorset
 #define pepmonitorconverged_        pepmonitorconverged
 #define pepmonitorfirst_            pepmonitorfirst
-#define pepgetwhicheigenpairs_      pepgetwhicheigenpairs
-#define pepgetproblemtype_          pepgetproblemtype
 #define pepconvergedabsolute_       pepconvergedabsolute
 #define pepconvergedeigrelative_    pepconvergedeigrelative
 #define pepconvergedlinear_	    pepconvergedlinear
@@ -261,16 +257,6 @@ PETSC_EXTERN void PETSC_STDCALL pepmonitorset_(PEP *pep,void (PETSC_STDCALL *mon
       *ierr = PEPMonitorSet(*pep,ourmonitor,*pep,ourdestroy);
     }
   }
-}
-
-PETSC_EXTERN void PETSC_STDCALL pepgetwhicheigenpairs_(PEP *pep,PEPWhich *which,PetscErrorCode *ierr)
-{
-  *ierr = PEPGetWhichEigenpairs(*pep,which);
-}
-
-PETSC_EXTERN void PETSC_STDCALL pepgetproblemtype_(PEP *pep,PEPProblemType *type,PetscErrorCode *ierr)
-{
-  *ierr = PEPGetProblemType(*pep,type);
 }
 
 PETSC_EXTERN void PETSC_STDCALL pepconvergedabsolute_(PEP *pep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)

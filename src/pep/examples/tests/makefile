@@ -68,7 +68,7 @@ runtest2_1:
 	-@test=test2_1; \
 	for pep in ${PEP}; do \
 	   echo "pep type $$pep"; \
-	   if [ $$pep = qarnoldi ]; then EXTRA="-pep_ncv 10 -st_transform"; else EXTRA=""; fi; \
+	   if [ $$pep = qarnoldi ]; then EXTRA="-st_transform"; else EXTRA=""; fi; \
 	   ${MPIEXEC} -np 1 ./test2 -pep_type $$pep -pep_nev 4 $$EXTRA 2>&1; \
 	done > $${test}.tmp; \
 	for eps in ${EPS}; do \

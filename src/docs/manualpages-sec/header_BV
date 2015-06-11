@@ -1,6 +1,6 @@
 <html>
 <head>
-  <link rel="stylesheet" href="/slepc/slepc.css" type="text/css">
+  <link rel="stylesheet" href="/slepc.css" type="text/css">
   <title>Basis Vectors - BV</title>
 </head>
 
@@ -11,4 +11,7 @@
 <p>
 The BV package provides the concept of a block of vectors that represent the basis of a subspace. It is a convenient way of handling a collection of vectors that often operate together, rather than working with an array of Vec.
 </p>
+<p>
+These routines are usually not needed by application programmers. 
+<p>
 

@@ -46,6 +46,26 @@ PetscErrorCode PEPComputeVectors(PEP pep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPExtractVectors"
+PetscErrorCode PEPExtractVectors(PEP pep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PEPCheckSolved(pep,1);
+  switch (pep->state) {
+  case PEP_STATE_SOLVED:
+    if (pep->ops->extractvectors) {
+      ierr = (*pep->ops->extractvectors)(pep);CHKERRQ(ierr);
+    }
+    break;
+  default:
+    break;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPSolve"
 /*@
    PEPSolve - Solves the polynomial eigensystem.
@@ -73,7 +93,7 @@ PetscErrorCode PEPComputeVectors(PEP pep)
 PetscErrorCode PEPSolve(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,k;
   PetscBool      flg,islinear;
 #define OPTLEN 16
   char           str[OPTLEN];
@@ -86,13 +106,14 @@ PetscErrorCode PEPSolve(PEP pep)
   ierr = PEPSetUp(pep);CHKERRQ(ierr);
   pep->nconv = 0;
   pep->its   = 0;
-  for (i=0;i<pep->ncv;i++) {
+  k = pep->lineariz? pep->ncv: pep->ncv*(pep->nmat-1);
+  for (i=0;i<k;i++) {
     pep->eigr[i]   = 0.0;
     pep->eigi[i]   = 0.0;
     pep->errest[i] = 0.0;
     pep->perm[i]   = i;
   }
-  ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,pep->ncv);CHKERRQ(ierr);
+  ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,k);CHKERRQ(ierr);
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view_pre");CHKERRQ(ierr);
 
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
@@ -104,8 +125,8 @@ PetscErrorCode PEPSolve(PEP pep)
     ierr = STPostSolve(pep->st);CHKERRQ(ierr);
     /* Map eigenvalues back to the original problem */
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+    if (flg && pep->ops->backtransform) {
+      ierr = (*pep->ops->backtransform)(pep);CHKERRQ(ierr);
     }
   }
 
@@ -114,7 +135,6 @@ PetscErrorCode PEPSolve(PEP pep)
   if (pep->refine==PEP_REFINE_SIMPLE && pep->rits>0) {
     ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
     ierr = PEPNewtonRefinementSimple(pep,&pep->rits,&pep->rtol,pep->nconv);CHKERRQ(ierr);
-    pep->state = PEP_STATE_EIGENVECTORS;
   }
 
 #if !defined(PETSC_USE_COMPLEX)
@@ -145,7 +165,7 @@ PetscErrorCode PEPSolve(PEP pep)
   ierr = PEPVectorsViewFromOptions(pep);CHKERRQ(ierr);
   for (i=0;i<pep->nmat;i++) {
     ierr = PetscSNPrintf(str,OPTLEN,"-pep_view_mat%d",(int)i);CHKERRQ(ierr);
-    ierr = MatViewFromOptions(pep->A[i],((PetscObject)pep)->prefix,str);CHKERRQ(ierr);
+    ierr = MatViewFromOptions(pep->A[i],(PetscObject)pep,str);CHKERRQ(ierr);
   }
 
   /* Remove the initial subspace */
@@ -235,7 +255,8 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
    Possible values for reason:
 +  PEP_CONVERGED_TOL - converged up to tolerance
 .  PEP_DIVERGED_ITS - required more than its to reach convergence
--  PEP_DIVERGED_BREAKDOWN - generic breakdown in method
+.  PEP_DIVERGED_BREAKDOWN - generic breakdown in method
+-  PEP_DIVERGED_SYMMETRY_LOST - pseudo-Lanczos was not able to keep symmetry
 
    Note:
    Can only be called after the call to PEPSolve() is complete.
@@ -273,10 +294,14 @@ PetscErrorCode PEPGetConvergedReason(PEP pep,PEPConvergedReason *reason)
 -  Vi   - imaginary part of eigenvector
 
    Notes:
+   It is allowed to pass NULL for Vr and Vi, if the eigenvector is not
+   required. Otherwise, the caller must provide valid Vec objects, i.e.,
+   they must be created by the calling program with e.g. MatCreateVecs().
+
    If the eigenvalue is real, then eigi and Vi are set to zero. If PETSc is
    configured with complex scalars the eigenvalue is stored
    directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is
-   set to zero).
+   set to zero). In both cases, the user can pass NULL in eigi and Vi.
 
    The index i should be a value between 0 and nconv-1 (see PEPGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established
@@ -516,7 +541,6 @@ PetscErrorCode PEPComputeError(PEP pep,PetscInt i,PEPErrorType type,PetscReal *e
   ierr = PEPComputeResidualNorm_Private(pep,kr,ki,xr,xi,w,error);CHKERRQ(ierr);
 
   /* compute error */
-  if (type==PETSC_DEFAULT) type = PEP_ERROR_BACKWARD;
   switch (type) {
     case PEP_ERROR_ABSOLUTE:
       break;

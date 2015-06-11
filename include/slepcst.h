@@ -85,6 +85,7 @@ PETSC_EXTERN PetscErrorCode STGetKSP(ST,KSP*);
 PETSC_EXTERN PetscErrorCode STSetShift(ST,PetscScalar);
 PETSC_EXTERN PetscErrorCode STGetShift(ST,PetscScalar*);
 PETSC_EXTERN PetscErrorCode STSetDefaultShift(ST,PetscScalar);
+PETSC_EXTERN PetscErrorCode STScaleShift(ST,PetscScalar);
 PETSC_EXTERN PetscErrorCode STSetBalanceMatrix(ST,Vec);
 PETSC_EXTERN PetscErrorCode STGetBalanceMatrix(ST,Vec*);
 PETSC_EXTERN PetscErrorCode STSetTransform(ST,PetscBool);
@@ -97,9 +98,6 @@ PETSC_EXTERN PetscErrorCode STGetOptionsPrefix(ST,const char*[]);
 PETSC_EXTERN PetscErrorCode STBackTransform(ST,PetscInt,PetscScalar*,PetscScalar*);
 
 PETSC_EXTERN PetscErrorCode STCheckNullSpace(ST,BV);
-
-PETSC_EXTERN PetscErrorCode STGetOperationCounters(ST,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode STResetOperationCounters(ST);
 
 PETSC_EXTERN PetscErrorCode STMatCreateVecs(ST,Vec*,Vec*);
 PETSC_EXTERN PetscErrorCode STMatGetSize(ST,PetscInt*,PetscInt*);

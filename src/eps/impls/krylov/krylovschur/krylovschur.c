@@ -77,6 +77,8 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
 PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
   PetscErrorCode  ierr;
+  PetscReal       eta;
+  BVOrthogType    otype;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   enum { EPS_KS_DEFAULT,EPS_KS_SYMM,EPS_KS_SLICE,EPS_KS_INDEF } variant;
 
@@ -148,7 +150,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       break;
     case EPS_KS_SLICE:
       eps->ops->solve = EPSSolve_KrylovSchur_Slice;
-      eps->ops->computevectors = NULL;
+      eps->ops->computevectors = EPSComputeVectors_Slice;
       break;
     case EPS_KS_INDEF:
       eps->ops->solve = EPSSolve_KrylovSchur_Indefinite;
@@ -156,6 +158,9 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       ierr = DSSetType(eps->ds,DSGHIEP);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
+      /* force reorthogonalization for pseudo-Lanczos */
+      ierr = BVGetOrthogonalization(eps->V,&otype,NULL,&eta);CHKERRQ(ierr);
+      ierr = BVSetOrthogonalization(eps->V,otype,BV_ORTHOG_REFINE_ALWAYS,eta);CHKERRQ(ierr);
       break;
     default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error");
   }
@@ -168,7 +173,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt        i,j,*pj,k,l,nv,ld;
+  PetscInt        i,j,*pj,k,l,nv,ld,nconv;
   Mat             U;
   PetscScalar     *S,*Q,*g;
   PetscReal       beta,gamma=1.0;
@@ -219,6 +224,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta,gamma,&k);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
+    nconv = k;
 
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
@@ -274,12 +280,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       ierr = BVCopyColumn(eps->V,nv,k+l);CHKERRQ(ierr);
     }
     eps->nconv = k;
-    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
+    ierr = EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
   }
 
   if (harmonic) { ierr = PetscFree(g);CHKERRQ(ierr); }
   /* truncate Schur decomposition and change the state to raw so that
-     PSVectors() computes eigenvectors from scratch */
+     DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -960,6 +966,118 @@ PetscErrorCode EPSKrylovSchurGetInertias(EPS eps,PetscInt *n,PetscReal **shifts,
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetSubcommInfo_KrylovSchur"
+static PetscErrorCode EPSKrylovSchurGetSubcommInfo_KrylovSchur(EPS eps,PetscInt *k,PetscInt *n,Vec *v)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  EPS_SR          sr = ((EPS_KRYLOVSCHUR*)ctx->eps->data)->sr;
+
+  PetscFunctionBegin;
+  if (!eps->state) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSetUp() first");
+  if (!ctx->sr) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see EPSSetInterval()");
+  if (k) *k = (ctx->npart==1)? 0: ctx->subc->color;
+  if (n) *n = sr->numEigs;
+  if (v) {
+    ierr = BVCreateVec(sr->V,v);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetSubcommInfo"
+/*@C
+   EPSKrylovSchurGetSubcommInfo - Gets information related to the case of
+   doing spectrum slicing for a computational interval with multiple
+   communicators.
+
+   Collective on the subcommunicator (if v is given)
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameters:
++  k - number of the subinterval for the calling process
+.  n - number of eigenvalues found in the k-th subinterval
+-  v - a vector owned by processes in the subcommunicator with dimensions
+       compatible for locally computed eigenvectors (or NULL)
+
+   Notes:
+   This function is only available for spectrum slicing runs.
+
+   The returned Vec should be destroyed by the user.
+
+   Level: advanced
+
+.seealso: EPSSetInterval(), EPSKrylovSchurSetPartitions(), EPSKrylovSchurGetSubcommPairs()
+@*/
+PetscErrorCode EPSKrylovSchurGetSubcommInfo(EPS eps,PetscInt *k,PetscInt *n,Vec *v)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetSubcommInfo_C",(EPS,PetscInt*,PetscInt*,Vec*),(eps,k,n,v));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetSubcommPairs_KrylovSchur"
+static PetscErrorCode EPSKrylovSchurGetSubcommPairs_KrylovSchur(EPS eps,PetscInt i,PetscScalar *eig,Vec v)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  EPS_SR          sr = ((EPS_KRYLOVSCHUR*)ctx->eps->data)->sr;
+
+  PetscFunctionBegin;
+  EPSCheckSolved(eps,1);
+  if (!ctx->sr) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see EPSSetInterval()");
+  if (i<0 || i>=sr->numEigs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
+  if (eig) *eig = sr->eigr[sr->perm[i]];
+  ierr = BVCopyVec(sr->V,sr->perm[i],v);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetSubcommPairs"
+/*@C
+   EPSKrylovSchurGetSubcommPairs - Gets the i-th eigenpair stored
+   internally in the multi-communicator to which the calling process belongs.
+
+   Collective on the subcommunicator (if v is given)
+
+   Input Parameter:
++  eps - the eigenproblem solver context
+-  i   - index of the solution
+
+   Output Parameters:
++  eig - the eigenvalue
+-  v   - the eigenvector
+
+   Notes:
+   It is allowed to pass NULL for v if the eigenvector is not required.
+   Otherwise, the caller must provide a valid Vec objects, i.e.,
+   it must be created by the calling program with EPSKrylovSchurGetSubcommInfo().
+
+   The index i should be a value between 0 and n-1, where n is the number of
+   vectors in the local subinterval, see EPSKrylovSchurGetSubcommInfo().
+
+   Level: advanced
+
+.seealso: EPSSetInterval(), EPSKrylovSchurSetPartitions(), EPSKrylovSchurGetSubcommInfo()
+@*/
+PetscErrorCode EPSKrylovSchurGetSubcommPairs(EPS eps,PetscInt i,PetscScalar *eig,Vec v)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  if (v) PetscValidLogicalCollectiveInt(v,i,2);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetSubcommPairs_C",(EPS,PetscInt,PetscScalar*,Vec),(eps,i,eig,v));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_KrylovSchur"
 PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptions *PetscOptionsObject,EPS eps)
 {
@@ -1044,6 +1162,8 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetSubintervals_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubintervals_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetInertias_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommInfo_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommPairs_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1094,6 +1214,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetSubintervals_C",EPSKrylovSchurSetSubintervals_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubintervals_C",EPSKrylovSchurGetSubintervals_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetInertias_C",EPSKrylovSchurGetInertias_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommInfo_C",EPSKrylovSchurGetSubcommInfo_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommPairs_C",EPSKrylovSchurGetSubcommPairs_KrylovSchur);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -65,7 +65,7 @@ int main(int argc,char **argv)
   funs[0] = f1;
   funs[1] = f2;
   funs[2] = f3;
-  ierr = DSSetFN(ds,3,funs);CHKERRQ(ierr);
+  ierr = DSNEPSetFN(ds,3,funs);CHKERRQ(ierr);
 
   /* Set dimensions */
   ld = n+2;  /* test leading dimension larger than n */
@@ -114,7 +114,7 @@ int main(int argc,char **argv)
   }
 
   /* Print first eigenvalue */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalue =\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalue =\n");CHKERRQ(ierr);
   nev = 1;
   for (i=0;i<nev;i++) {
 #if defined(PETSC_USE_COMPLEX)

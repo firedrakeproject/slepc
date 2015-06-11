@@ -8,12 +8,9 @@
 #include <petscblaslapack.h>
 #include "blopex_interpreter.h"
 #include "blopex_temp_multivector.h"
+#include "blopex_fortran_matrix.h"
 
 static PetscRandom LOBPCG_RandomContext = NULL;
-
-typedef struct {
-  double real,imag;
-} komplex;
 
 BlopexInt PETSC_dpotrf_interface (char *uplo,BlopexInt *n,double *a,BlopexInt * lda,BlopexInt *info)
 {

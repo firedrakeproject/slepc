@@ -24,6 +24,8 @@
 PETSC_EXTERN PetscErrorCode PEPCreate_Linear(PEP);
 PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP);
 PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP);
+PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP);
+PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP);
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPRegisterAll"
@@ -46,6 +48,8 @@ PetscErrorCode PEPRegisterAll(void)
   ierr = PEPRegister(PEPLINEAR,PEPCreate_Linear);CHKERRQ(ierr);
   ierr = PEPRegister(PEPQARNOLDI,PEPCreate_QArnoldi);CHKERRQ(ierr);
   ierr = PEPRegister(PEPTOAR,PEPCreate_TOAR);CHKERRQ(ierr);
+  ierr = PEPRegister(PEPSTOAR,PEPCreate_STOAR);CHKERRQ(ierr);
+  ierr = PEPRegister(PEPJD,PEPCreate_JD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

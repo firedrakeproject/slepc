@@ -82,7 +82,7 @@ PETSC_EXTERN const char *SVDErrorTypes[];
     SVDConvergedReason - Reason a singular value solver was said to
          have converged or diverged
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: SVDSolve(), SVDGetConvergedReason(), SVDSetTolerances()
 E*/
@@ -127,7 +127,7 @@ PETSC_EXTERN PetscErrorCode SVDComputeError(SVD,PetscInt,SVDErrorType,PetscReal*
 PETSC_DEPRECATED("Use SVDComputeError()") PETSC_STATIC_INLINE PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *r) {return SVDComputeError(svd,i,SVD_ERROR_RELATIVE,r);}
 PETSC_DEPRECATED("Use SVDComputeError() with SVD_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *r1,PetscReal *r2) {return SVDComputeError(svd,i,SVD_ERROR_ABSOLUTE,r1);}
 PETSC_EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
-PETSC_STATIC_INLINE PetscErrorCode SVDViewFromOptions(SVD svd,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)svd,prefix,name);}
+PETSC_STATIC_INLINE PetscErrorCode SVDViewFromOptions(SVD svd,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)svd,obj,name);}
 PETSC_EXTERN PetscErrorCode SVDErrorView(SVD,SVDErrorType,PetscViewer);
 PETSC_DEPRECATED("Use SVDErrorView()") PETSC_STATIC_INLINE PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer v) {return SVDErrorView(svd,SVD_ERROR_RELATIVE,v);}
 PETSC_EXTERN PetscErrorCode SVDErrorViewFromOptions(SVD);

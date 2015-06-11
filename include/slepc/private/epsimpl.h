@@ -165,6 +165,7 @@ PETSC_INTERN PetscErrorCode EPSComputeVectors(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Hermitian(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeVectors_Indefinite(EPS);
+PETSC_INTERN PetscErrorCode EPSComputeVectors_Slice(EPS);
 PETSC_INTERN PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscScalar,PetscScalar,Vec,Vec,Vec*,PetscReal*);
 PETSC_INTERN PetscErrorCode EPSComputeRitzVector(EPS,PetscScalar*,PetscScalar*,BV,Vec,Vec);
 PETSC_INTERN PetscErrorCode EPSGetStartVector(EPS,PetscInt,PetscBool*);
@@ -176,7 +177,7 @@ PETSC_INTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,PetscInt,PetscInt
 PETSC_INTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,PetscInt,PetscInt,PetscInt*,PetscReal*,PetscBool*);
 PETSC_INTERN PetscErrorCode EPSKrylovConvergence(EPS,PetscBool,PetscInt,PetscInt,PetscReal,PetscReal,PetscInt*);
 PETSC_INTERN PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,PetscInt,PetscInt*,PetscBool*);
-PETSC_INTERN PetscErrorCode EPSPseudoLanczos(EPS,PetscReal*,PetscReal*,PetscReal*,PetscInt,PetscInt*,PetscBool*,PetscReal*,Vec);
+PETSC_INTERN PetscErrorCode EPSPseudoLanczos(EPS,PetscReal*,PetscReal*,PetscReal*,PetscInt,PetscInt*,PetscBool*,PetscBool*,PetscReal*,Vec);
 PETSC_INTERN PetscErrorCode EPSBuildBalance_Krylov(EPS);
 
 #endif

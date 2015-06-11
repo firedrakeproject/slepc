@@ -29,7 +29,7 @@ PetscErrorCode SVDComputeVectors(SVD svd)
 {
   PetscErrorCode ierr;
   Vec            tl,uj,vj;
-  PetscInt       j;
+  PetscInt       j,oldsize;
   PetscReal      norm;
 
   PetscFunctionBegin;
@@ -38,9 +38,12 @@ PetscErrorCode SVDComputeVectors(SVD svd)
   case SVD_STATE_SOLVED:
     /* generate left singular vectors on U */
     if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
-    ierr = SVDMatCreateVecs(svd,NULL,&tl);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
-    ierr = VecDestroy(&tl);CHKERRQ(ierr);
+    ierr = BVGetSizes(svd->U,NULL,NULL,&oldsize);CHKERRQ(ierr);
+    if (!oldsize) {
+      ierr = SVDMatCreateVecs(svd,NULL,&tl);CHKERRQ(ierr);
+      ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
+      ierr = VecDestroy(&tl);CHKERRQ(ierr);
+    }
     for (j=0;j<svd->nconv;j++) {
       ierr = BVGetColumn(svd->V,j,&vj);CHKERRQ(ierr);
       ierr = BVGetColumn(svd->U,j,&uj);CHKERRQ(ierr);
@@ -123,7 +126,7 @@ PetscErrorCode SVDSolve(SVD svd)
   ierr = SVDErrorViewFromOptions(svd);CHKERRQ(ierr);
   ierr = SVDValuesViewFromOptions(svd);CHKERRQ(ierr);
   ierr = SVDVectorsViewFromOptions(svd);CHKERRQ(ierr);
-  ierr = MatViewFromOptions(svd->OP,((PetscObject)svd)->prefix,"-svd_view_mat");CHKERRQ(ierr);
+  ierr = MatViewFromOptions(svd->OP,(PetscObject)svd,"-svd_view_mat");CHKERRQ(ierr);
 
   /* Remove the initial subspaces */
   svd->nini = 0;
@@ -250,12 +253,17 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
 -  v     - right singular vector
 
    Note:
-   The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
    Both U or V can be NULL if singular vectors are not required.
+   Otherwise, the caller must provide valid Vec objects, i.e.,
+   they must be created by the calling program with e.g. MatCreateVecs().
+
+   The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
+   Singular triplets are indexed according to the ordering criterion established
+   with SVDSetWhichSingularTriplets().
 
    Level: beginner
 
-.seealso: SVDSolve(),  SVDGetConverged()
+.seealso: SVDSolve(), SVDGetConverged(), SVDSetWhichSingularTriplets()
 @*/
 PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,Vec v)
 {
@@ -374,7 +382,6 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,NULL);CHKERRQ(ierr);
   ierr = SVDComputeResidualNorms_Private(svd,i,&norm1,&norm2);CHKERRQ(ierr);
   *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
-  if (type==PETSC_DEFAULT) type = SVD_ERROR_RELATIVE;
   switch (type) {
     case SVD_ERROR_ABSOLUTE:
       break;

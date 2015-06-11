@@ -21,7 +21,6 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc/private/stimpl.h> 
 #include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
 #include "linearp.h"
 
@@ -262,7 +261,8 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ST             st;
   PetscInt       i=0;
   EPSWhich       which;
-  PetscBool      trackall,istrivial,flg,sinv,ks;
+  EPSProblemType ptype;
+  PetscBool      trackall,istrivial,transf,sinv,ks;
   PetscScalar    sigma;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,PEP_LINEAR*,Mat*) = {
@@ -275,8 +275,9 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   };
 
   PetscFunctionBegin;
+  pep->lineariz = PETSC_TRUE;
   if (!ctx->cform) ctx->cform = 1;
-  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  ierr = STGetTransform(pep->st,&transf);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
   if (!pep->which) {
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
@@ -285,17 +286,18 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
   if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
-  if (!flg) { ierr = EPSSetTarget(ctx->eps,pep->target);CHKERRQ(ierr); }
-  if (sinv && !flg) { ierr = STSetDefaultShift(st,pep->target);CHKERRQ(ierr); }
+  if (!transf) { ierr = EPSSetTarget(ctx->eps,pep->target);CHKERRQ(ierr); }
+  if (sinv && !transf) { ierr = STSetDefaultShift(st,pep->target);CHKERRQ(ierr); }
   /* compute scale factor if not set by user */
   ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
    
   if (ctx->explicitmatrix) {
+    if (transf) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option is not implemented with st-tranform flag active");
     if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option only available for quadratic problems");
     if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option not implemented for non-monomial bases");
     if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEPLINEAR with explicit matrices");
-    if (sinv && !flg) { ierr = STSetType(st,STSINVERT);CHKERRQ(ierr); }
-
+    if (sinv && !transf) { ierr = STSetType(st,STSINVERT);CHKERRQ(ierr); }
+    ierr = RGSetScale(pep->rg,pep->sfactor);CHKERRQ(ierr);
     ierr = STGetTOperators(pep->st,0,&ctx->K);CHKERRQ(ierr);
     ierr = STGetTOperators(pep->st,1,&ctx->C);CHKERRQ(ierr);
     ierr = STGetTOperators(pep->st,2,&ctx->M);CHKERRQ(ierr);
@@ -332,7 +334,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     if (ctx->cform!=1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option not available for 2nd companion form");
     ierr = STSetType(st,STSHELL);CHKERRQ(ierr);
     ierr = STShellSetContext(st,(PetscObject)ctx);CHKERRQ(ierr);
-    if (!flg) { ierr = STShellSetBackTransform(st,BackTransform_Linear);CHKERRQ(ierr); }
+    if (!transf) { ierr = STShellSetBackTransform(st,BackTransform_Linear);CHKERRQ(ierr); }
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[0]);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[1]);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[2]);CHKERRQ(ierr);
@@ -342,7 +344,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = PetscLogObjectParents(pep,6,ctx->w);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),(pep->nmat-1)*pep->nloc,(pep->nmat-1)*pep->nloc,(pep->nmat-1)*pep->n,(pep->nmat-1)*pep->n,ctx,&ctx->A);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
-    if (sinv && !flg) {
+    if (sinv && !transf) {
       ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Sinvert);CHKERRQ(ierr);
     } else {
       ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Shift);CHKERRQ(ierr);
@@ -352,7 +354,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ctx->pep = pep;
 
     ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
-    if (!flg) {
+    if (!transf) {
       ierr = PetscMalloc1(pep->nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
       if (sinv) {
         ierr = PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);
@@ -360,7 +362,8 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
         for (i=0;i<pep->nmat-1;i++) pep->solvematcoeffs[i] = 0.0;
         pep->solvematcoeffs[pep->nmat-1] = 1.0;
       }
-      pep->st->sigma /= pep->sfactor;
+      ierr = STScaleShift(pep->st,1.0/pep->sfactor);CHKERRQ(ierr);
+      ierr = RGSetScale(pep->rg,pep->sfactor);CHKERRQ(ierr);
     }
     if (pep->sfactor!=1.0) {
       for (i=0;i<pep->nmat;i++) {
@@ -371,16 +374,19 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   }
 
   ierr = EPSSetOperators(ctx->eps,ctx->A,ctx->B);CHKERRQ(ierr);
-  if (ctx->explicitmatrix) {
-    if (pep->problem_type==PEP_HERMITIAN) {
-      ierr = EPSSetProblemType(ctx->eps,EPS_GHIEP);CHKERRQ(ierr);
+  ierr = EPSGetProblemType(ctx->eps,&ptype);CHKERRQ(ierr);
+  if (!ptype) {
+    if (ctx->explicitmatrix) {
+      if (pep->problem_type==PEP_HERMITIAN) {
+        ierr = EPSSetProblemType(ctx->eps,EPS_GHIEP);CHKERRQ(ierr);
+      } else {
+        ierr = EPSSetProblemType(ctx->eps,EPS_GNHEP);CHKERRQ(ierr);
+      }
     } else {
-      ierr = EPSSetProblemType(ctx->eps,EPS_GNHEP);CHKERRQ(ierr);
+      ierr = EPSSetProblemType(ctx->eps,EPS_NHEP);CHKERRQ(ierr);
     }
-  } else {
-    ierr = EPSSetProblemType(ctx->eps,EPS_NHEP);CHKERRQ(ierr);
   }
-  if (flg)  which = EPS_LARGEST_MAGNITUDE;
+  if (transf) which = EPS_LARGEST_MAGNITUDE;
   else {
     switch (pep->which) {
         case PEP_LARGEST_MAGNITUDE:  which = EPS_LARGEST_MAGNITUDE; break;
@@ -403,7 +409,10 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ierr = EPSSetDimensions(ctx->eps,pep->nev,pep->ncv?pep->ncv:PETSC_DEFAULT,pep->mpd?pep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:pep->tol,pep->max_it?pep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
-  if (!istrivial) { ierr = EPSSetRG(ctx->eps,pep->rg);CHKERRQ(ierr); }
+  if (!istrivial) {
+    if (transf) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"PEPLINEAR does not support a nontrivial region with st-transform");
+    ierr = EPSSetRG(ctx->eps,pep->rg);CHKERRQ(ierr);
+  }
   /* Transfer the trackall option from pep to eps */
   ierr = PEPGetTrackAll(pep,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(ctx->eps,trackall);CHKERRQ(ierr);
@@ -438,6 +447,7 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
   PetscErrorCode    ierr;
   PetscInt          i,k;
   const PetscScalar *px;
+  PetscScalar       *er=pep->eigr,*ei=pep->eigi;
   PetscReal         rn1,rn2;
   Vec               xr,xi=NULL,wr;
   Mat               A;
@@ -460,17 +470,15 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&wi);CHKERRQ(ierr);
 #endif
   for (i=0;i<pep->nconv;i++) {
-    ierr = EPSGetEigenpair(eps,i,&pep->eigr[i],&pep->eigi[i],xr,xi);CHKERRQ(ierr);
-    pep->eigr[i] *= pep->sfactor;
-    pep->eigi[i] *= pep->sfactor;
+    ierr = EPSGetEigenpair(eps,i,NULL,NULL,xr,xi);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-    if (pep->eigi[i]>0.0) {   /* first eigenvalue of a complex conjugate pair */
+    if (ei[i]!=0.0) {   /* complex conjugate pair */
       ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
       ierr = VecGetArrayRead(xi,&py);CHKERRQ(ierr);
       ierr = VecPlaceArray(wr,px);CHKERRQ(ierr);
       ierr = VecPlaceArray(wi,py);CHKERRQ(ierr);
       ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,NULL);CHKERRQ(ierr);
-      ierr = PEPComputeResidualNorm_Private(pep,pep->eigr[i],pep->eigi[i],wr,wi,pep->work,&rn1);CHKERRQ(ierr);
+      ierr = PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,wi,pep->work,&rn1);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,i,wr);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,i+1,wi);CHKERRQ(ierr);
       for (k=1;k<pep->nmat-1;k++) {
@@ -479,7 +487,7 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
         ierr = VecPlaceArray(wr,px+k*pep->nloc);CHKERRQ(ierr);
         ierr = VecPlaceArray(wi,py+k*pep->nloc);CHKERRQ(ierr);
         ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,NULL);CHKERRQ(ierr);
-        ierr = PEPComputeResidualNorm_Private(pep,pep->eigr[i],pep->eigi[i],wr,wi,pep->work,&rn2);CHKERRQ(ierr);
+        ierr = PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,wi,pep->work,&rn2);CHKERRQ(ierr);
         if (rn1>rn2) {
           ierr = BVInsertVec(pep->V,i,wr);CHKERRQ(ierr);
           ierr = BVInsertVec(pep->V,i+1,wi);CHKERRQ(ierr);
@@ -490,19 +498,20 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
       ierr = VecResetArray(wi);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(xr,&px);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(xi,&py);CHKERRQ(ierr);
-    } else if (pep->eigi[i]==0.0)   /* real eigenvalue */
+      i++;
+    } else   /* real eigenvalue */
 #endif
     {
       ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(wr,px);CHKERRQ(ierr);
       ierr = SlepcVecNormalize(wr,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
-      ierr = PEPComputeResidualNorm_Private(pep,pep->eigr[i],pep->eigi[i],wr,NULL,pep->work,&rn1);CHKERRQ(ierr);
+      ierr = PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,NULL,pep->work,&rn1);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,i,wr);CHKERRQ(ierr);
       for (k=1;k<pep->nmat-1;k++) {
         ierr = VecResetArray(wr);CHKERRQ(ierr);
         ierr = VecPlaceArray(wr,px+k*pep->nloc);CHKERRQ(ierr);
         ierr = SlepcVecNormalize(wr,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
-        ierr = PEPComputeResidualNorm_Private(pep,pep->eigr[i],pep->eigi[i],wr,NULL,pep->work,&rn2);CHKERRQ(ierr);
+        ierr = PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,NULL,pep->work,&rn2);CHKERRQ(ierr);
         if (rn1>rn2) {
           ierr = BVInsertVec(pep->V,i,wr);CHKERRQ(ierr);
           rn1 = rn2;
@@ -533,9 +542,9 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
   PetscInt          i;
   const PetscScalar *px;
   Mat               A;
-  Vec               xr,xi,w,vi;
+  Vec               xr,xi,w;
 #if !defined(PETSC_USE_COMPLEX)
-  Vec               vi1;
+  PetscScalar       *ei=pep->eigi;
 #endif
 
   PetscFunctionBegin;
@@ -544,11 +553,9 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&w);CHKERRQ(ierr);
   for (i=0;i<pep->nconv;i++) {
-    ierr = EPSGetEigenpair(eps,i,&pep->eigr[i],&pep->eigi[i],xr,xi);CHKERRQ(ierr);
-    pep->eigr[i] *= pep->sfactor;
-    pep->eigi[i] *= pep->sfactor;
+    ierr = EPSGetEigenpair(eps,i,NULL,NULL,xr,xi);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-    if (pep->eigi[i]>0.0) {   /* first eigenvalue of a complex conjugate pair */
+    if (ei[i]!=0.0) {   /* complex conjugate pair */
       ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(w,px);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,i,w);CHKERRQ(ierr);
@@ -559,12 +566,8 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
       ierr = BVInsertVec(pep->V,i+1,w);CHKERRQ(ierr);
       ierr = VecResetArray(w);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(xi,&px);CHKERRQ(ierr);
-      ierr = BVGetColumn(pep->V,i,&vi);CHKERRQ(ierr);
-      ierr = BVGetColumn(pep->V,i+1,&vi1);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(vi,vi1,PETSC_TRUE,NULL);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i,&vi);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i+1,&vi1);CHKERRQ(ierr);
-    } else if (pep->eigi[i]==0.0)   /* real eigenvalue */
+      i++;
+    } else   /* real eigenvalue */
 #endif
     {
       ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
@@ -572,9 +575,6 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
       ierr = BVInsertVec(pep->V,i,w);CHKERRQ(ierr);
       ierr = VecResetArray(w);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(xr,&px);CHKERRQ(ierr);
-      ierr = BVGetColumn(pep->V,i,&vi);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(vi,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i,&vi);CHKERRQ(ierr);
     }
   }
   ierr = VecDestroy(&w);CHKERRQ(ierr);
@@ -599,10 +599,11 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
   PetscErrorCode    ierr;
   PetscInt          i,offset;
   const PetscScalar *px;
+  PetscScalar       *er=pep->eigr;
   Mat               A;
-  Vec               xr,xi=NULL,w,vi;
+  Vec               xr,xi=NULL,w;
 #if !defined(PETSC_USE_COMPLEX)
-  Vec               vi1;
+  PetscScalar       *ei=pep->eigi;
 #endif
 
   PetscFunctionBegin;
@@ -613,13 +614,11 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
 #endif
   ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&w);CHKERRQ(ierr);
   for (i=0;i<pep->nconv;i++) {
-    ierr = EPSGetEigenpair(eps,i,&pep->eigr[i],&pep->eigi[i],xr,xi);CHKERRQ(ierr);
-    pep->eigr[i] *= pep->sfactor;
-    pep->eigi[i] *= pep->sfactor;
-    if (SlepcAbsEigenvalue(pep->eigr[i],pep->eigi[i])>1.0) offset = (pep->nmat-2)*pep->nloc;
+    ierr = EPSGetEigenpair(eps,i,NULL,NULL,xr,xi);CHKERRQ(ierr);
+    if (SlepcAbsEigenvalue(er[i],ei[i])>1.0) offset = (pep->nmat-2)*pep->nloc;
     else offset = 0;
 #if !defined(PETSC_USE_COMPLEX)
-    if (pep->eigi[i]>0.0) {   /* first eigenvalue of a complex conjugate pair */
+    if (ei[i]!=0.0) {   /* complex conjugate pair */
       ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(w,px+offset);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,i,w);CHKERRQ(ierr);
@@ -630,12 +629,8 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
       ierr = BVInsertVec(pep->V,i+1,w);CHKERRQ(ierr);
       ierr = VecResetArray(w);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(xi,&px);CHKERRQ(ierr);
-      ierr = BVGetColumn(pep->V,i,&vi);CHKERRQ(ierr);
-      ierr = BVGetColumn(pep->V,i+1,&vi1);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(vi,vi1,PETSC_TRUE,NULL);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i,&vi);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i+1,&vi1);CHKERRQ(ierr);
-    } else if (pep->eigi[i]==0.0)   /* real eigenvalue */
+      i++;
+    } else /* real eigenvalue */
 #endif
     {
       ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
@@ -643,9 +638,6 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
       ierr = BVInsertVec(pep->V,i,w);CHKERRQ(ierr);
       ierr = VecResetArray(w);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(xr,&px);CHKERRQ(ierr);
-      ierr = BVGetColumn(pep->V,i,&vi);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(vi,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i,&vi);CHKERRQ(ierr);
     }
   }
   ierr = VecDestroy(&w);CHKERRQ(ierr);
@@ -653,6 +645,30 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
 #if !defined(PETSC_USE_COMPLEX)
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
 #endif
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPExtractVectors_Linear"
+PetscErrorCode PEPExtractVectors_Linear(PEP pep)
+{
+  PetscErrorCode ierr;
+  PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
+  
+  PetscFunctionBegin;
+  switch (pep->extract) {
+  case PEP_EXTRACT_NONE:
+    ierr = PEPLinearExtract_None(pep,ctx->eps);CHKERRQ(ierr);
+    break;
+  case PEP_EXTRACT_NORM:
+    ierr = PEPLinearExtract_Norm(pep,ctx->eps);CHKERRQ(ierr);
+    break;
+  case PEP_EXTRACT_RESIDUAL:
+    ierr = PEPLinearExtract_Residual(pep,ctx->eps);CHKERRQ(ierr);
+    break;
+  default:
+    SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Extraction not implemented in this solver");
+  }
   PetscFunctionReturn(0);
 }
 
@@ -671,26 +687,21 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
   ierr = EPSGetConverged(ctx->eps,&pep->nconv);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(ctx->eps,&pep->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(ctx->eps,(EPSConvergedReason*)&pep->reason);CHKERRQ(ierr);
+
+  /* recover eigenvalues */
+  for (i=0;i<pep->nconv;i++) {
+    ierr = EPSGetEigenpair(ctx->eps,i,&pep->eigr[i],&pep->eigi[i],NULL,NULL);CHKERRQ(ierr);
+    pep->eigr[i] *= pep->sfactor;
+    pep->eigi[i] *= pep->sfactor;
+  }
+
   /* restore target */
   ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
   ierr = EPSSetTarget(ctx->eps,sigma*pep->sfactor);CHKERRQ(ierr);
 
-  switch (pep->extract) {
-  case PEP_EXTRACT_NONE:
-    ierr = PEPLinearExtract_None(pep,ctx->eps);CHKERRQ(ierr);
-    break;
-  case PEP_EXTRACT_NORM:
-    ierr = PEPLinearExtract_Norm(pep,ctx->eps);CHKERRQ(ierr);
-    break;
-  case PEP_EXTRACT_RESIDUAL:
-    ierr = PEPLinearExtract_Residual(pep,ctx->eps);CHKERRQ(ierr);
-    break;
-  default:
-    SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Extraction not implemented in this solver");
-  }
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+  if (flg && pep->ops->backtransform) {
+    ierr = (*pep->ops->backtransform)(pep);CHKERRQ(ierr);
   }
   if (pep->sfactor!=1.0) {
     /* Restore original values */
@@ -698,8 +709,10 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
       pep->pbc[pep->nmat+i] *= pep->sfactor;
       pep->pbc[2*pep->nmat+i] *= pep->sfactor*pep->sfactor;
     }
-    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-    if (!flg) pep->st->sigma *= pep->sfactor;
+    if (!flg && !ctx->explicitmatrix) {
+      ierr = STScaleShift(pep->st,pep->sfactor);CHKERRQ(ierr);
+    } 
+    ierr = RGSetScale(pep->rg,1.0);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -1081,12 +1094,15 @@ PETSC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
   ctx->explicitmatrix = PETSC_FALSE;
   pep->data = (void*)ctx;
 
-  pep->ops->solve                = PEPSolve_Linear;
-  pep->ops->setup                = PEPSetUp_Linear;
-  pep->ops->setfromoptions       = PEPSetFromOptions_Linear;
-  pep->ops->destroy              = PEPDestroy_Linear;
-  pep->ops->reset                = PEPReset_Linear;
-  pep->ops->view                 = PEPView_Linear;
+  pep->ops->solve          = PEPSolve_Linear;
+  pep->ops->setup          = PEPSetUp_Linear;
+  pep->ops->setfromoptions = PEPSetFromOptions_Linear;
+  pep->ops->destroy        = PEPDestroy_Linear;
+  pep->ops->reset          = PEPReset_Linear;
+  pep->ops->view           = PEPView_Linear;
+  pep->ops->backtransform  = PEPBackTransform_Default;
+  pep->ops->computevectors = PEPComputeVectors_Default;
+  pep->ops->extractvectors = PEPExtractVectors_Linear;
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetCompanionForm_C",PEPLinearSetCompanionForm_Linear);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetCompanionForm_C",PEPLinearGetCompanionForm_Linear);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetEPS_C",PEPLinearSetEPS_Linear);CHKERRQ(ierr);

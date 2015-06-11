@@ -39,7 +39,9 @@ struct _PEPOps {
   PetscErrorCode (*destroy)(PEP);
   PetscErrorCode (*reset)(PEP);
   PetscErrorCode (*view)(PEP,PetscViewer);
+  PetscErrorCode (*backtransform)(PEP);
   PetscErrorCode (*computevectors)(PEP);
+  PetscErrorCode (*extractvectors)(PEP);
 };
 
 /*
@@ -120,6 +122,7 @@ struct _p_PEP {
   PetscReal      *nrma;            /* computed matrix norms */
   PetscReal      nrml[2];          /* computed matrix norms for the linearization */
   PetscBool      sfactor_set;      /* flag to indicate the user gave sfactor */
+  PetscBool      lineariz;         /* current solver is based on linearization */
   PEPConvergedReason reason;
 };
 
@@ -140,8 +143,10 @@ struct _p_PEP {
 #endif
 
 PETSC_INTERN PetscErrorCode PEPSetDimensions_Default(PEP,PetscInt,PetscInt*,PetscInt*);
+PETSC_INTERN PetscErrorCode PEPExtractVectors(PEP);
+PETSC_INTERN PetscErrorCode PEPBackTransform_Default(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors(PEP);
-PETSC_INTERN PetscErrorCode PEPComputeVectors_Schur(PEP);
+PETSC_INTERN PetscErrorCode PEPComputeVectors_Default(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeVectors_Indefinite(PEP);
 PETSC_INTERN PetscErrorCode PEPComputeResidualNorm_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,Vec*,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPKrylovConvergence(PEP,PetscBool,PetscInt,PetscInt,PetscReal,PetscInt*);

@@ -486,7 +486,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetWhichEigenpairs"
-/*@C
+/*@
     NEPGetWhichEigenpairs - Returns which portion of the spectrum is to be
     sought.
 
@@ -701,7 +701,7 @@ PetscErrorCode NEPSetConvergenceTest(NEP nep,PetscErrorCode (*func)(NEP,PetscInt
    The options '-nep_monitor_all' and '-nep_monitor_lg_all' automatically
    activate this option.
 
-   Level: intermediate
+   Level: developer
 
 .seealso: NEPGetTrackAll()
 @*/
@@ -728,7 +728,7 @@ PetscErrorCode NEPSetTrackAll(NEP nep,PetscBool trackall)
    Output Parameter:
 .  trackall - the returned flag
 
-   Level: intermediate
+   Level: developer
 
 .seealso: NEPSetTrackAll()
 @*/

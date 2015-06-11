@@ -120,7 +120,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
    Options Database Keys:
 .  -svd_converged_reason - print reason for convergence, and number of iterations
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: SVDSetTolerances(), SVDGetIterationNumber()
 @*/
@@ -154,7 +154,7 @@ PetscErrorCode SVDReasonView(SVD svd,PetscViewer viewer)
    Input Parameters:
 .  svd - the singular value solver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode SVDReasonViewFromOptions(SVD svd)
 {
@@ -335,7 +335,7 @@ PetscErrorCode SVDErrorView(SVD svd,SVDErrorType etype,PetscViewer viewer)
    Input Parameters:
 .  svd - the singular value solver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode SVDErrorViewFromOptions(SVD svd)
 {
@@ -488,7 +488,7 @@ PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
    Input Parameters:
 .  svd - the singular value solver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode SVDValuesViewFromOptions(SVD svd)
 {
@@ -576,7 +576,7 @@ PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
    Input Parameters:
 .  svd - the singular value solver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode SVDVectorsViewFromOptions(SVD svd)
 {

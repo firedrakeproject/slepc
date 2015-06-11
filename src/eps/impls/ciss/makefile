@@ -21,8 +21,6 @@
 
 ALL: lib
 
-#requiresscalar    complex
-
 CFLAGS   =
 FFLAGS   =
 SOURCEC  = ciss.c

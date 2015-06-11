@@ -22,7 +22,7 @@
 ALL: lib
 
 LIBBASE  = libslepceps
-DIRS     = rqcg
+DIRS     = rqcg lobpcg
 LOCDIR   = src/eps/impls/cg/
 MANSEC   = EPS
 

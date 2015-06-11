@@ -32,12 +32,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt        i,k,l,ld,nv,t;
+  PetscInt        i,k,l,ld,nv,t,nconv=0;
   Mat             U;
-  Vec             vomega,u,w=eps->work[0];
+  Vec             vomega,w=eps->work[0];
   PetscScalar     *Q,*aux;
-  PetscReal       *a,*b,*r,beta,beta1,beta2,*omega;
-  PetscBool       breakdown=PETSC_FALSE;
+  PetscReal       *a,*b,*r,beta,beta1=1.0,*omega;
+  PetscBool       breakdown=PETSC_FALSE,symmlost=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -66,7 +66,11 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     b = a + ld;
     ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-    ierr = EPSPseudoLanczos(eps,a,b,omega,eps->nconv+l,&nv,&breakdown,NULL,w);CHKERRQ(ierr);
+    ierr = EPSPseudoLanczos(eps,a,b,omega,eps->nconv+l,&nv,&breakdown,&symmlost,NULL,w);CHKERRQ(ierr);
+    if (symmlost) {
+      eps->reason = EPS_DIVERGED_SYMMETRY_LOST;
+      if (nv==eps->nconv+l+1) { eps->nconv = nconv; break; }
+    }
     beta = b[nv-1];
     ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
@@ -84,14 +88,18 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
 
     /* Check convergence */
     ierr = DSGetDimensions(eps->ds,NULL,NULL,NULL,NULL,&t);CHKERRQ(ierr);
+#if 0
+    /* take into account also left residual */
     ierr = BVGetColumn(eps->V,nv,&u);CHKERRQ(ierr);
     ierr = VecNorm(u,NORM_2,&beta1);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->V,nv,&u);CHKERRQ(ierr);
     ierr = VecNorm(w,NORM_2,&beta2);CHKERRQ(ierr);  /* w contains B*V[nv] */
     beta1 = PetscMax(beta1,beta2);
+#endif
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,t-eps->nconv,beta*beta1,1.0,&k);CHKERRQ(ierr);
     if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
     if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
+    nconv = k;
 
     /* Update l */
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
@@ -146,8 +154,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
       ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
     }
 
-    ierr = EPSMonitor(eps,eps->its,k,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
     eps->nconv = k;
+    ierr = EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
   }
   ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);

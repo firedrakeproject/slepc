@@ -36,7 +36,7 @@
     Fortran Note:
     This routine is not supported in Fortran.
 
-    Level: developer
+    Level: intermediate
 @*/
 PetscErrorCode SlepcGetVersion(char version[],size_t len)
 {

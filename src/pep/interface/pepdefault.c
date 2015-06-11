@@ -107,30 +107,33 @@ PetscErrorCode PEPConvergedAbsolute(PEP pep,PetscScalar eigr,PetscScalar eigi,Pe
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPComputeVectors_Schur"
-PetscErrorCode PEPComputeVectors_Schur(PEP pep)
+#define __FUNCT__ "PEPBackTransform_Default"
+PetscErrorCode PEPBackTransform_Default(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscInt       n,i;
-  Mat            Z;
+
+  PetscFunctionBegin;
+  ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPComputeVectors_Default"
+PetscErrorCode PEPComputeVectors_Default(PEP pep)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
   Vec            v;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            v1;
-  PetscScalar    tmp;
-  PetscReal      norm,normi;
 #endif
 
   PetscFunctionBegin;
-  ierr = DSGetDimensions(pep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSVectors(pep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetMat(pep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(pep->V,0,n);CHKERRQ(ierr);
-  ierr = BVMultInPlace(pep->V,Z,0,n);CHKERRQ(ierr);
-  ierr = MatDestroy(&Z);CHKERRQ(ierr);
+  ierr = PEPExtractVectors(pep);CHKERRQ(ierr);
 
   /* Fix eigenvectors if balancing was used */
   if ((pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) && pep->Dr && (pep->refine!=PEP_REFINE_MULTIPLE)) {
-    for (i=0;i<n;i++) {
+    for (i=0;i<pep->nconv;i++) {
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
       ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
@@ -138,71 +141,20 @@ PetscErrorCode PEPComputeVectors_Schur(PEP pep)
   }
 
   /* normalization */
-  for (i=0;i<n;i++) {
+  for (i=0;i<pep->nconv;i++) {
 #if !defined(PETSC_USE_COMPLEX)
-    if (pep->eigi[i] != 0.0) {
+    if (pep->eigi[i]!=0.0) {   /* first eigenvalue of a complex conjugate pair */
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
       ierr = BVGetColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
-      ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = VecNorm(v1,NORM_2,&normi);CHKERRQ(ierr);
-      tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
-      ierr = VecScale(v,tmp);CHKERRQ(ierr);
-      ierr = VecScale(v1,tmp);CHKERRQ(ierr);
+      ierr = SlepcVecNormalize(v,v1,PETSC_TRUE,NULL);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
       i++;
-    } else
+    } else   /* real eigenvalue */
 #endif
     {
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
-      ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPComputeVectors_Indefinite"
-PetscErrorCode PEPComputeVectors_Indefinite(PEP pep)
-{
-  PetscErrorCode ierr;
-  PetscInt       n,i;
-  Mat            Z;
-  Vec            v;
-#if !defined(PETSC_USE_COMPLEX)
-  Vec            v1;
-  PetscScalar    tmp;
-  PetscReal      norm,normi;
-#endif
-
-  PetscFunctionBegin;
-  ierr = DSGetDimensions(pep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSVectors(pep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetMat(pep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(pep->V,0,n);CHKERRQ(ierr);
-  ierr = BVMultInPlace(pep->V,Z,0,n);CHKERRQ(ierr);
-  ierr = MatDestroy(&Z);CHKERRQ(ierr);
-
-  /* normalization */
-  for (i=0;i<n;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-    if (pep->eigi[i] != 0.0) {
-      ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
-      ierr = BVGetColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
-      ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = VecNorm(v1,NORM_2,&normi);CHKERRQ(ierr);
-      tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
-      ierr = VecScale(v,tmp);CHKERRQ(ierr);
-      ierr = VecScale(v1,tmp);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
-      i++;
-    } else
-#endif
-    {
-      ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
-      ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
+      ierr = SlepcVecNormalize(v,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
     }
   }
@@ -364,7 +316,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     for (j=lst;j<lend;j++) {
       d = PetscLogReal(csum[j])/l2;
       e = -(PetscInt)((d < 0)?(d-0.5):(d+0.5));
-      d = PetscPowReal(2,e);
+      d = PetscPowReal(2.0,e);
       Dr[j-lst] *= d;
       aux[j] = d*d;
       emaxl = PetscMax(emaxl,e);
@@ -373,7 +325,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     for (j=0;j<nc;j++) {
       d = PetscLogReal(csum[cols[j]])/l2;
       e = -(PetscInt)((d < 0)?(d-0.5):(d+0.5));
-      d = PetscPowReal(2,e);
+      d = PetscPowReal(2.0,e);
       aux[cols[j]] = d*d;
       emaxl = PetscMax(emaxl,e);
       eminl = PetscMin(eminl,e);
@@ -392,7 +344,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
       /* Update Dl */
       d = PetscLogReal(rsum[i])/l2;
       e = -(PetscInt)((d < 0)?(d-0.5):(d+0.5));
-      d = PetscPowReal(2,e);
+      d = PetscPowReal(2.0,e);
       Dl[i] *= d;
       /* Scale M */
       for (j=ridx[i];j<ridx[i+1];j++) array[j] *= d*d;
@@ -516,7 +468,7 @@ PetscErrorCode PEPComputeLinearNorms(PEP pep)
     nrmd = PetscMax(nrmd,summd);
     max = PetscMax(max,summrow);
   }
-  max = PetscMax(max,out)*pep->dsfactor;
+  max = PetscMax(max*pep->dsfactor,out);
   ierr = MPI_Allreduce(&max,&pep->nrml[0],1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)pep));CHKERRQ(ierr);
   ierr = MPI_Allreduce(&nrmd,&pep->nrml[1],1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)pep));CHKERRQ(ierr);
   pep->nrml[1] = PetscMax(1.0,pep->nrml[1]*pep->dsfactor);

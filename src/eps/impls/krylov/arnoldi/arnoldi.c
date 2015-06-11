@@ -156,7 +156,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   }
 
   /* truncate Schur decomposition and change the state to raw so that
-     PSVectors() computes eigenvectors from scratch */
+     DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -239,7 +239,7 @@ static PetscErrorCode EPSArnoldiGetDelayed_Arnoldi(EPS eps,PetscBool *delayed)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSArnoldiGetDelayed"
-/*@C
+/*@
    EPSArnoldiGetDelayed - Gets the type of reorthogonalization used during the Arnoldi
    iteration.
 

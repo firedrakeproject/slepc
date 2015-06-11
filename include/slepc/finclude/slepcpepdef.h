@@ -47,5 +47,7 @@
 #define PEPLINEAR    'linear'
 #define PEPQARNOLDI  'qarnoldi'
 #define PEPTOAR      'toar'
+#define PEPSTOAR     'stoar'
+#define PEPJD        'jd'
 
 #endif

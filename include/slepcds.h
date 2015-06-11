@@ -53,6 +53,7 @@ typedef const char* DSType;
 #define DSGHIEP           "ghiep"
 #define DSGNHEP           "gnhep"
 #define DSSVD             "svd"
+#define DSPEP             "pep"
 #define DSNEP             "nep"
 
 /* Logging support */
@@ -92,6 +93,9 @@ typedef enum { DS_STATE_RAW,
     All matrices can have space to hold ld x ld elements, except for
     DS_MAT_T that has space for 3 x ld elements (ld = leading dimension)
     and DS_MAT_D that has space for just ld elements.
+
+    In DSPEP problems, matrices A, B, W can have space for d*ld x d*ld,
+    where d is the polynomial degree, and X can have ld x d*ld.
 
     Level: advanced
 
@@ -146,6 +150,7 @@ PETSC_EXTERN PetscErrorCode DSGetDimensions(DS,PetscInt*,PetscInt*,PetscInt*,Pet
 PETSC_EXTERN PetscErrorCode DSSetBlockSize(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSGetBlockSize(DS,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSTruncate(DS,PetscInt);
+PETSC_EXTERN PetscErrorCode DSSetIdentity(DS,DSMatType);
 PETSC_EXTERN PetscErrorCode DSSetMethod(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSGetMethod(DS,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSSetCompact(DS,PetscBool);
@@ -163,6 +168,7 @@ PETSC_EXTERN PetscErrorCode DSRestoreArrayReal(DS,DSMatType,PetscReal*[]);
 PETSC_EXTERN PetscErrorCode DSVectors(DS,DSMatType,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSSolve(DS,PetscScalar*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode DSSort(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSCopyMat(DS,DSMatType,PetscInt,PetscInt,Mat,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
 PETSC_EXTERN PetscErrorCode DSSetSlepcSC(DS,SlepcSC);
 PETSC_EXTERN PetscErrorCode DSGetSlepcSC(DS,SlepcSC*);
 PETSC_EXTERN PetscErrorCode DSUpdateExtraRow(DS);
@@ -171,9 +177,14 @@ PETSC_EXTERN PetscErrorCode DSTranslateHarmonic(DS,PetscScalar,PetscReal,PetscBo
 PETSC_EXTERN PetscErrorCode DSTranslateRKS(DS,PetscScalar);
 PETSC_EXTERN PetscErrorCode DSNormalize(DS,DSMatType,PetscInt);
 
-PETSC_EXTERN PetscErrorCode DSSetFN(DS,PetscInt,FN*);
-PETSC_EXTERN PetscErrorCode DSGetFN(DS,PetscInt,FN*);
-PETSC_EXTERN PetscErrorCode DSGetNumFN(DS,PetscInt*);
+/* --------- options specific to particular solvers -------- */
+
+PETSC_EXTERN PetscErrorCode DSPEPSetDegree(DS,PetscInt);
+PETSC_EXTERN PetscErrorCode DSPEPGetDegree(DS,PetscInt*);
+
+PETSC_EXTERN PetscErrorCode DSNEPSetFN(DS,PetscInt,FN*);
+PETSC_EXTERN PetscErrorCode DSNEPGetFN(DS,PetscInt,FN*);
+PETSC_EXTERN PetscErrorCode DSNEPGetNumFN(DS,PetscInt*);
 
 PETSC_EXTERN PetscFunctionList DSList;
 PETSC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));

@@ -477,7 +477,7 @@ PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetWhichEigenpairs"
-/*@C
+/*@
     PEPGetWhichEigenpairs - Returns which portion of the spectrum is to be
     sought.
 
@@ -591,7 +591,7 @@ PetscErrorCode PEPSetProblemType(PEP pep,PEPProblemType type)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetProblemType"
-/*@C
+/*@
    PEPGetProblemType - Gets the problem type from the PEP object.
 
    Not Collective
@@ -652,7 +652,7 @@ PetscErrorCode PEPSetBasis(PEP pep,PEPBasis basis)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetBasis"
-/*@C
+/*@
    PEPGetBasis - Gets the type of polynomial basis from the PEP object.
 
    Not Collective
@@ -696,7 +696,7 @@ PetscErrorCode PEPGetBasis(PEP pep,PEPBasis *basis)
    The options '-pep_monitor_all' and '-pep_monitor_lg_all' automatically
    activate this option.
 
-   Level: intermediate
+   Level: developer
 
 .seealso: PEPGetTrackAll()
 @*/
@@ -723,7 +723,7 @@ PetscErrorCode PEPSetTrackAll(PEP pep,PetscBool trackall)
    Output Parameter:
 .  trackall - the returned flag
 
-   Level: intermediate
+   Level: developer
 
 .seealso: PEPSetTrackAll()
 @*/

@@ -168,7 +168,6 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
   if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
-  st->linearits += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_MatSolve,st,b,x,0);CHKERRQ(ierr);
   ierr = VecLockPop(b);CHKERRQ(ierr);
@@ -223,7 +222,6 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
   if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
-  st->linearits += its;
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_MatSolveTranspose,st,b,x,0);CHKERRQ(ierr);
   ierr = VecLockPop(b);CHKERRQ(ierr);
@@ -356,62 +354,6 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STGetOperationCounters"
-/*@
-   STGetOperationCounters - Gets the total number of operator applications
-   and linear solver iterations used by the ST object.
-
-   Not Collective
-
-   Input Parameter:
-.  st - the spectral transformation context
-
-   Output Parameter:
-+  ops  - number of operator applications
--  lits - number of linear solver iterations
-
-   Notes:
-   Any output parameter may be NULL on input if not needed.
-
-   Level: intermediate
-
-.seealso: STResetOperationCounters()
-@*/
-PetscErrorCode STGetOperationCounters(ST st,PetscInt* ops,PetscInt* lits)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (ops)  *ops  = st->applys;
-  if (lits) *lits = st->linearits;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "STResetOperationCounters"
-/*@
-   STResetOperationCounters - Resets the counters for operator applications,
-   inner product operations and total number of linear iterations used by
-   the ST object.
-
-   Logically Collective on ST
-
-   Input Parameter:
-.  st - the spectral transformation context
-
-   Level: intermediate
-
-.seealso: STGetOperationCounters()
-@*/
-PetscErrorCode STResetOperationCounters(ST st)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  st->linearits = 0;
-  st->applys    = 0;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "STCheckNullSpace_Default"
 PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
 {
@@ -446,7 +388,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
   ierr = VecDestroy(&w);CHKERRQ(ierr);
   if (c>0) {
     ierr = MatNullSpaceCreate(PetscObjectComm((PetscObject)st),PETSC_FALSE,c,T,&nullsp);CHKERRQ(ierr);
-    ierr = KSPSetNullSpace(st->ksp,nullsp);CHKERRQ(ierr);
+    ierr = MatSetNullSpace(A,nullsp);CHKERRQ(ierr);
     ierr = MatNullSpaceDestroy(&nullsp);CHKERRQ(ierr);
     ierr = VecDestroyVecs(c,&T);CHKERRQ(ierr);
   } else {
