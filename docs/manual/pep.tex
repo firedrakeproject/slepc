@@ -474,6 +474,7 @@ Convergence criterion    & \texttt{PEPConv}         & Command line key          
 Absolute                 & \texttt{PEP\_CONV\_ABS}  & \texttt{-pep\_conv\_abs}  & $\|r\|$ \\
 Relative to eigenvalue   & \texttt{PEP\_CONV\_EIG}  & \texttt{-pep\_conv\_eig}  & $\|r\|/|\lambda|$ \\
 Relative to matrix norms & \texttt{PEP\_CONV\_NORM} & \texttt{-pep\_conv\_norm} & $\|r\|/(\sum_j\|A_j\||\lambda_i|^j)$ \\
+Relative to norms of linearization & \texttt{PEP\_CONV\_LINEAR} & \texttt{-pep\_conv\_linear} & $\|r\|/(\|L_0\|+|\lambda_i|\|L_1\|)$ \\
 \hline
 \end{tabular} }
 \caption{\label{tab:pepconv}Available possibilities for the convergence criterion.}

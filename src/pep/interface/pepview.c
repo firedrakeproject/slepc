@@ -179,7 +179,8 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
         }
         ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       }
-      break;    case PEP_CONV_USER:
+      break;
+    case PEP_CONV_USER:
       ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
     }
     if (pep->nini) {
