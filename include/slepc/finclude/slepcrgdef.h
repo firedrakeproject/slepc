@@ -33,6 +33,7 @@
 #define RGINTERVAL  'interval'
 #define RGPOLYGON   'polygon'
 #define RGELLIPSE   'ellipse'
+#define RGRING      'ring'
 #define RGARC       'arc'
 
 #endif

@@ -221,7 +221,7 @@ The \ident{RG} object defines a region of the complex plane, that can be used to
 \begin{itemize}
 \item A (generalized) interval, defined as $[a,b]\times[c,d]$, where the four parameters can be set with \ident{RGIntervalSetEndpoints}. This covers the particular cases of an interval on the real axis (setting $c=d=0$), the left halfplane $[-\infty,0]\times[-\infty,+\infty]$, a quadrant, etc.
 \item An ellipse defined by its center, radius and vertical scale (1 by default), see \ident{RGEllipseSetParameters}.
-\item An arc region similar to an ellipse but consisting of a thin stripe along the ellipse with optional start and end angles, see \ident{RGArcSetParameters}.
+\item A ring region similar to an ellipse but consisting of a thin stripe along the ellipse with optional start and end angles, see \ident{RGRingSetParameters}.
 \end{itemize}
 
 Sometimes it is useful to specify the complement of a certain region, e.g., the part of the complex plane outside an ellipse. This can be achieved with
@@ -251,6 +251,7 @@ Note that the point is represented as two \texttt{PetscScalar}'s, similarly to e
 Region Type            & \ident{RGType}      & {\footnotesize Database Name}\\\hline
 (Generalized) Interval & \texttt{RGINTERVAL} & \texttt{interval} \\
 Ellipse                & \texttt{RGELLIPSE}  & \texttt{ellipse} \\
+Ring                   & \texttt{RGRING}     & \texttt{ring} \\
 Arc                    & \texttt{RGARC}      & \texttt{arc} \\\hline
 \end{tabular} }
 \caption{\label{tab:rg}Regions available as \ident{RG} objects.}

@@ -21,10 +21,16 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = rgring.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     = arc ellipse interval polygon ring
-LOCDIR   = src/sys/classes/rg/impls/
+DIRS     =
 MANSEC   = RG
+LOCDIR   = src/sys/classes/rg/impls/ring/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
+
 

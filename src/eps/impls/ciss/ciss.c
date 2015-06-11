@@ -177,20 +177,20 @@ static PetscErrorCode SetPathParameter(EPS eps)
   PetscInt       i;
   PetscScalar    center;
   PetscReal      theta,radius,vscale,start_ang,end_ang,width;
-  PetscBool      isarc=PETSC_FALSE,isellipse=PETSC_FALSE;
+  PetscBool      isring=PETSC_FALSE,isellipse=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (isellipse) {
     ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
   } else {
-    ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGARC,&isarc);CHKERRQ(ierr);
-    if (!isarc) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Region must be Ellipse or Arc");
-    ierr = RGArcGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,&width);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
+    if (!isring) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Region must be Ellipse or Ring");
+    ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,&width);CHKERRQ(ierr);
   }
   for (i=0;i<ctx->N;i++) {
-    if (isarc) {
-      /* Arc region only supported for complex scalars */
+    if (isring) {
+      /* Ring region only supported for complex scalars */
 #if defined(PETSC_USE_COMPLEX)
       theta = (PETSC_PI/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta);
@@ -722,7 +722,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   const char     *prefix;
   PetscInt       i;
-  PetscBool      issinvert,istrivial,isarc,isellipse,flg;
+  PetscBool      issinvert,istrivial,isring,isellipse,flg;
   PetscScalar    center;
   Mat            A;
 
@@ -738,9 +738,9 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSCISS requires a nontrivial region, e.g. -rg_type ellipse ...");
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGARC,&isarc);CHKERRQ(ierr);
-  if (!isellipse && !isarc) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic or arc regions");
-  if (isarc) {
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
+  if (!isellipse && !isring) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic or ring regions");
+  if (isring) {
 #if !defined(PETSC_USE_COMPLEX)
     SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
 #endif
