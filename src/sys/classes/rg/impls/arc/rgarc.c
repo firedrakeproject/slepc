@@ -214,21 +214,8 @@ PetscErrorCode RGIsTrivial_Arc(RG rg,PetscBool *trivial)
 #define __FUNCT__ "RGComputeContour_Arc"
 PetscErrorCode RGComputeContour_Arc(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
-  RG_ARC      *ctx = (RG_ARC*)rg->data;
-  PetscReal   theta,theta2;
-  PetscInt    i;
-
   PetscFunctionBegin;
-  for (i=0;i<n;i++) {
-    theta = PETSC_PI*(i+0.5)/n;
-    theta2 = (ctx->start_ang*2.0+(ctx->end_ang-ctx->start_ang)*(PetscCosReal(theta)+1.0))*PETSC_PI;
-#if defined(PETSC_USE_COMPLEX)
-    cr[i] = ctx->center + ctx->radius*(PetscCosReal(theta2)+ctx->vscale*PetscSinReal(theta2)*PETSC_i);
-#else
-    cr[i] = ctx->center + ctx->radius*PetscCosReal(theta2);
-    ci[i] = ctx->radius*ctx->vscale*PetscSinReal(theta2);
-#endif
-  }
+  SETERRQ(PetscObjectComm((PetscObject)rg),1,"Not implemented yet");
   PetscFunctionReturn(0);
 }
 
