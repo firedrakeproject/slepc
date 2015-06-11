@@ -28,10 +28,10 @@ static char help[] = "Test BV block orthogonalization.\n\n";
 int main(int argc,char **argv)
 {
   PetscErrorCode    ierr;
-  BV                X,Y,Z;
-  Mat               M;
+  BV                X,Y,Z,cached;
+  Mat               B,M;
   Vec               v,t;
-  PetscInt          i,j,n=20,l=2,k=8;
+  PetscInt          i,j,n=20,l=2,k=8,Istart,Iend;
   PetscViewer       view;
   PetscBool         verbose;
   PetscReal         norm;
@@ -88,15 +88,11 @@ int main(int argc,char **argv)
     ierr = BVView(X,view);CHKERRQ(ierr);
   }
 
-  /* Create copies on Y and Z */
+  /* Create copy on Y */
   ierr = BVDuplicate(X,&Y);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)Y,"Y");CHKERRQ(ierr);
   ierr = BVCopy(X,Y);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(Y,l,k);CHKERRQ(ierr);
-  ierr = BVDuplicate(X,&Z);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)Z,"Z");CHKERRQ(ierr);
-  ierr = BVCopy(X,Z);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(Z,l,k);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(X,l,k);CHKERRQ(ierr);
 
   /* Test BVOrthogonalize */
@@ -117,7 +113,71 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
   }
 
+  /* Create inner product matrix */
+  ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
+  ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
+  ierr = MatSetFromOptions(B);CHKERRQ(ierr);
+  ierr = MatSetUp(B);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)B,"B");CHKERRQ(ierr);
+
+  ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    if (i>0) { ierr = MatSetValue(B,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<n-1) { ierr = MatSetValue(B,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    ierr = MatSetValue(B,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
+  }
+  ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+
+  /* Prepare to repeat test, now with a non-standard inner product */
+  ierr = BVCopy(X,Y);CHKERRQ(ierr);
+  ierr = BVDuplicate(X,&Z);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)Z,"Z");CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(Z,l,k);CHKERRQ(ierr);
+  ierr = BVSetMatrix(X,B,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVSetMatrix(Y,B,PETSC_FALSE);CHKERRQ(ierr);
+  if (btype==BV_ORTHOG_BLOCK_GS) {  /* GS requires the leading columns to be orthogonal */
+    for (j=0;j<l;j++) {
+      ierr = BVOrthogonalizeColumn(Y,j,NULL,&norm,NULL);CHKERRQ(ierr);
+      alpha = 1.0/norm;
+      ierr = BVScaleColumn(Y,j,alpha);CHKERRQ(ierr);
+    }
+  }
+  if (verbose) {
+    ierr = BVView(X,view);CHKERRQ(ierr);
+  }
+
+  /* Test BVOrthogonalize */
+  ierr = BVOrthogonalize(Y,NULL);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = BVView(Y,view);CHKERRQ(ierr);
+  }
+
+  /* Extract cached BV and check it is equal to B*X */
+  ierr = BVGetCachedBV(Y,&cached);CHKERRQ(ierr);
+  ierr = BVMatMult(X,B,Z);CHKERRQ(ierr);
+  ierr = BVAXPY(Z,-1.0,cached);CHKERRQ(ierr);
+  ierr = BVNorm(Z,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
+  if (norm<100*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||cached-BX|| < 100*eps\n");CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||cached-BX||: %g\n",(double)norm);CHKERRQ(ierr);
+  }
+
+  /* Check orthogonality */
+  ierr = MatZeroEntries(M);CHKERRQ(ierr);
+  ierr = MatShift(M,1.0);CHKERRQ(ierr);   /* set leading part to identity */
+  ierr = BVDot(Y,Y,M);CHKERRQ(ierr);
+  ierr = MatShift(M,-1.0);CHKERRQ(ierr);
+  ierr = MatNorm(M,NORM_1,&norm);CHKERRQ(ierr);
+  if (norm<100*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n");CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
+  }
+
   ierr = MatDestroy(&M);CHKERRQ(ierr);
+  ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);
   ierr = BVDestroy(&Z);CHKERRQ(ierr);

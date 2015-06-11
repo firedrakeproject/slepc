@@ -461,11 +461,16 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
   PetscScalar    *r=NULL;
   PetscReal      norm;
   PetscInt       j,ldr;
+  Vec            v;
 
   PetscFunctionBegin;
   if (R) {
     ierr = MatGetSize(R,&ldr,NULL);CHKERRQ(ierr);
     ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr);
+  }
+  if (V->matrix) {
+    ierr = BV_AllocateCachedBV(V);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(V->cached,V->l,V->k);CHKERRQ(ierr);
   }
   for (j=V->l;j<V->k;j++) {
     if (R) {
@@ -473,6 +478,11 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
       r[j+j*ldr] = norm;
     } else {
       ierr = BVOrthogonalizeColumn(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
+    }
+    if (V->matrix) { /* fill cached BV */
+      ierr = BVGetColumn(V->cached,j,&v);CHKERRQ(ierr);
+      ierr = VecCopy(V->Bx,v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(V->cached,j,&v);CHKERRQ(ierr);
     }
     ierr = BVScaleColumn(V,j,1.0/norm);CHKERRQ(ierr);
   }
@@ -532,7 +542,7 @@ static PetscErrorCode MatCholeskyFactorInvert(Mat R,PetscInt l,Mat *S)
 static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
 {
   PetscErrorCode ierr;
-  Mat            S,R=Rin;
+  Mat            S,R=Rin,B;
 
   PetscFunctionBegin;
   if (!Rin) {
@@ -540,7 +550,10 @@ static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
   }
   if (V->matrix) {
     ierr = BV_IPMatMultBV(V);CHKERRQ(ierr);
+    B = V->matrix;
+    V->matrix = NULL;
     ierr = BVDot(V->cached,V,R);CHKERRQ(ierr);
+    V->matrix = B;
   } else {
     ierr = BVDot(V,V,R);CHKERRQ(ierr);
   }
