@@ -22,7 +22,7 @@
 ALL: lib
 
 LIBBASE  = libslepcsys
-DIRS     = arc ellipse interval polygon ring
+DIRS     = ellipse interval polygon ring
 LOCDIR   = src/sys/classes/rg/impls/
 MANSEC   = RG
 

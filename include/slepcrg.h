@@ -38,7 +38,6 @@ typedef const char* RGType;
 #define RGPOLYGON   "polygon"
 #define RGELLIPSE   "ellipse"
 #define RGRING      "ring"
-#define RGARC       "arc"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId RG_CLASSID;
@@ -71,9 +70,6 @@ PETSC_EXTERN PetscErrorCode RGEllipseGetParameters(RG,PetscScalar*,PetscReal*,Pe
 
 PETSC_EXTERN PetscErrorCode RGIntervalSetEndpoints(RG,PetscReal,PetscReal,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode RGIntervalGetEndpoints(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
-
-PETSC_EXTERN PetscErrorCode RGArcSetParameters(RG,PetscScalar,PetscReal,PetscReal,PetscReal,PetscReal,PetscReal);
-PETSC_EXTERN PetscErrorCode RGArcGetParameters(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 
 PETSC_EXTERN PetscErrorCode RGPolygonSetVertices(RG,PetscInt,PetscScalar*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode RGPolygonGetVertices(RG,PetscInt*,PetscScalar**,PetscScalar**);

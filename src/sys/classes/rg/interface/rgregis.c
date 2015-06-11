@@ -24,7 +24,6 @@
 PETSC_EXTERN PetscErrorCode RGCreate_Interval(RG);
 PETSC_EXTERN PetscErrorCode RGCreate_Ellipse(RG);
 PETSC_EXTERN PetscErrorCode RGCreate_Ring(RG);
-PETSC_EXTERN PetscErrorCode RGCreate_Arc(RG);
 PETSC_EXTERN PetscErrorCode RGCreate_Polygon(RG);
 
 #undef __FUNCT__
@@ -46,7 +45,6 @@ PetscErrorCode RGRegisterAll(void)
   ierr = RGRegister(RGINTERVAL,RGCreate_Interval);CHKERRQ(ierr);
   ierr = RGRegister(RGELLIPSE,RGCreate_Ellipse);CHKERRQ(ierr);
   ierr = RGRegister(RGRING,RGCreate_Ring);CHKERRQ(ierr);
-  ierr = RGRegister(RGARC,RGCreate_Arc);CHKERRQ(ierr);
   ierr = RGRegister(RGPOLYGON,RGCreate_Polygon);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
