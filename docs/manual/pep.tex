@@ -15,7 +15,7 @@
 
 \noindent The Polynomial Eigenvalue Problem (\ident{PEP}) solver object is intended for addressing polynomial eigenproblems of arbitrary degree, $P(\lambda)x=0$. A particular instance is the quadratic eigenvalue problem (degree 2), which is the case more often encountered in practice. For this reason, part of the description of this chapter focuses specifically on quadratic eigenproblems.
 
-Currently, all \ident{PEP} solvers are based on linearization, either implicit or explicit. The case of explicit linearization allows the use of eigensolvers from \ident{EPS} to solve the linearized problem.
+Currently, most \ident{PEP} solvers are based on linearization, either implicit or explicit. The case of explicit linearization allows the use of eigensolvers from \ident{EPS} to solve the linearized problem.
 
 \section{\label{sec:pep}Overview of Polynomial Eigenproblems}
 
@@ -300,7 +300,7 @@ The solution method can be specified procedurally with
 	\end{Verbatim}
 or via the options database command \Verb!-pep_type! followed by the name of the method. The methods currently available in \ident{PEP} are listed in Table~\ref{tab:solversp}. The solvers in the first group are based on the linearization explained above, whereas solvers in the second group perform a projection on the polynomial problem (without linearizing).
 
-The default solver is \ident{PEPTOAR}, currently the only solver supporting different polynomial bases. TOAR is a stable algorithm for building an Arnoldi factorization of the linearization (\ref{eq:firstcomp}) without explicitly creating matrices $L_0,L_1$, and represents the Krylov basis in a compact way. STOAR is a variant of TOAR that exploits symmetry (requires \texttt{PEP\_HERMITIAN} problem type). Q-Arnoldi is related to TOAR and follows a similar approach.
+The default solver is \ident{PEPTOAR}. TOAR is a stable algorithm for building an Arnoldi factorization of the linearization (\ref{eq:firstcomp}) without explicitly creating matrices $L_0,L_1$, and represents the Krylov basis in a compact way. STOAR is a variant of TOAR that exploits symmetry (requires \texttt{PEP\_HERMITIAN} problem type). Q-Arnoldi is related to TOAR and follows a similar approach.
 
 \begin{table}
 \centering
@@ -310,13 +310,14 @@ Method             & \ident{PEPType}   & {\footnotesize Database Name} & {\footn
 Two-level Orthogonal Arnoldi (TOAR) & \texttt{PEPTOAR}     & \texttt{toar}     & Arbitrary & Any \\
 Symmetric TOAR                      & \texttt{PEPSTOAR}    & \texttt{stoar}    & Quadratic & Monomial \\
 Quadratic Arnoldi (Q-Arnoldi)       & \texttt{PEPQARNOLDI} & \texttt{qarnoldi} & Quadratic & Monomial \\
-Explicit Linearization              & \texttt{PEPLINEAR}   & \texttt{linear}   & Arbitrary & Monomial \\
+Linearization via \ident{EPS}       & \texttt{PEPLINEAR}   & \texttt{linear}   & Arbitrary & Any\footnotemark \\
 \hline
 Jacobi-Davidson                     & \texttt{PEPJD}       & \texttt{jd}       & Arbitrary & Monomial \\
 \hline
 \end{tabular} }
 \caption{\label{tab:solversp}Polynomial eigenvalue solvers available in the \ident{PEP} module.}
 \end{table}
+\footnotetext{Except if the explicit matrix option is set.}
 
 The \ident{PEPLINEAR} method carries out an explicit linearization of the quadratic eigenproblem, as described in \S\ref{sec:qep}, resulting in a generalized eigenvalue problem that is handled by an \ident{EPS} object created internally. If required, this \ident{EPS} object can be extracted with the operation
 	\findex{PEPLinearGetEPS}
@@ -392,7 +393,7 @@ Let $S_\sigma:=(L_0-\sigma L_1)^{-1}L_1$, then when the solver needs to extend t
 with $\tilde{A}_{d-2}=A_{d-2}+\sigma I$ and $\tilde{A}_{d-1}=A_{d-1}+\sigma A_d$.
 From the block LU factorization, it is possible to derive a simple recurrence to compute $z^i$, with one of the steps involving a linear solve with $P(\sigma)$.
 
-Implementing the latter approach is more difficult (especially if different polynomial bases must be supported), and requires an intimate relation with the \ident{PEP} solver. That is why it is only available currently in the default solver (TOAR). In order to choose between the two approaches, the user can set a flag with
+Implementing the latter approach is more difficult (especially if different polynomial bases must be supported), and requires an intimate relation with the \ident{PEP} solver. That is why it is only available currently in the default solver (TOAR) and in \texttt{PEPLINEAR} without explicit matrix. In order to choose between the two approaches, the user can set a flag with
 	\findex{STSetTransform}
 	\begin{Verbatim}[fontsize=\small]
 	STSetTransform(ST st,PetscBool flg);
