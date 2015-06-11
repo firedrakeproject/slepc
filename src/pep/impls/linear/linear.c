@@ -259,11 +259,12 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PetscErrorCode ierr;
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
   ST             st;
-  PetscInt       i=0;
+  PetscInt       i=0,deg=pep->nmat-1;
   EPSWhich       which;
   EPSProblemType ptype;
   PetscBool      trackall,istrivial,transf,sinv,ks;
-  PetscScalar    sigma;
+  PetscScalar    sigma,*epsarray,*peparray;
+  Vec            veps;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,PEP_LINEAR*,Mat*) = {
     { MatCreateExplicit_Linear_N1A, MatCreateExplicit_Linear_N1B },   /* N1 */
@@ -290,7 +291,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   if (sinv && !transf) { ierr = STSetDefaultShift(st,pep->target);CHKERRQ(ierr); }
   /* compute scale factor if not set by user */
   ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
-   
+
   if (ctx->explicitmatrix) {
     if (transf) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option is not implemented with st-tranform flag active");
     if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option only available for quadratic problems");
@@ -342,7 +343,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = MatCreateVecs(pep->A[0],&ctx->w[4],NULL);CHKERRQ(ierr);
     ierr = MatCreateVecs(pep->A[0],&ctx->w[5],NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(pep,6,ctx->w);CHKERRQ(ierr);
-    ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),(pep->nmat-1)*pep->nloc,(pep->nmat-1)*pep->nloc,(pep->nmat-1)*pep->n,(pep->nmat-1)*pep->n,ctx,&ctx->A);CHKERRQ(ierr);
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),deg*pep->nloc,deg*pep->nloc,deg*pep->n,deg*pep->n,ctx,&ctx->A);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv && !transf) {
       ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Sinvert);CHKERRQ(ierr);
@@ -359,8 +360,8 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
       if (sinv) {
         ierr = PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);
       } else {
-        for (i=0;i<pep->nmat-1;i++) pep->solvematcoeffs[i] = 0.0;
-        pep->solvematcoeffs[pep->nmat-1] = 1.0;
+        for (i=0;i<deg;i++) pep->solvematcoeffs[i] = 0.0;
+        pep->solvematcoeffs[deg] = 1.0;
       }
       ierr = STScaleShift(pep->st,1.0/pep->sfactor);CHKERRQ(ierr);
       ierr = RGSetScale(pep->rg,pep->sfactor);CHKERRQ(ierr);
@@ -422,6 +423,24 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
     ierr = EPSSetTarget(ctx->eps,sigma/pep->sfactor);CHKERRQ(ierr);
   }
+
+  /* process initial vector */
+  if (pep->nini<=-deg) {
+    ierr = VecCreateMPI(PetscObjectComm((PetscObject)ctx->eps),deg*pep->nloc,deg*pep->n,&veps);CHKERRQ(ierr);
+    ierr = VecGetArray(veps,&epsarray);CHKERRQ(ierr);
+    for (i=0;i<deg;i++) {
+      ierr = VecGetArray(pep->IS[i],&peparray);CHKERRQ(ierr);
+      ierr = PetscMemcpy(epsarray+i*pep->nloc,peparray,pep->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = VecRestoreArray(pep->IS[i],&peparray);CHKERRQ(ierr);
+    }
+    ierr = VecRestoreArray(veps,&epsarray);CHKERRQ(ierr);
+    ierr = EPSSetInitialSpace(ctx->eps,1,&veps);CHKERRQ(ierr);
+    ierr = VecDestroy(&veps);CHKERRQ(ierr);
+  }
+  if (pep->nini<0) {
+    ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);
+  }
+
   ierr = EPSSetUp(ctx->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(ctx->eps,NULL,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(ctx->eps,NULL,&pep->max_it);CHKERRQ(ierr);

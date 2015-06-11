@@ -30,6 +30,7 @@ typedef struct {
   PetscReal   dtol;         /* tolerance for deflation */
   PetscInt    d;            /* polynomial degree */
   PetscInt    ld;           /* leading dimension of auxiliary matrices */
+  PetscInt    nq;           /* number of TOAR Vectors  */
   PetscScalar *S,*qB;       /* auxiliary matrices */
 } PEP_TOAR;
 
