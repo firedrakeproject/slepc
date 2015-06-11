@@ -22,6 +22,7 @@
 */
 
 #include <slepc/private/bvimpl.h>          /*I   "slepcbv.h"   I*/
+#include <slepcblaslapack.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "BVOrthogonalizeMGS1"
@@ -451,6 +452,9 @@ PetscErrorCode BVOrthogonalizeSomeColumn(BV bv,PetscInt j,PetscBool *which,Petsc
 
 #undef __FUNCT__
 #define __FUNCT__ "BVOrthogonalize_GS"
+/*
+   Orthogonalize a set of vectors with Gram-Schmidt, column by column.
+ */
 static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
 {
   PetscErrorCode ierr;
@@ -459,14 +463,13 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
   PetscInt       j,ldr;
 
   PetscFunctionBegin;
-  ldr = V->k;
   if (R) {
+    ierr = MatGetSize(R,&ldr,NULL);CHKERRQ(ierr);
     ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr);
-    ierr = PetscMemzero(r+V->l*ldr,ldr*(ldr-V->l)*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   for (j=V->l;j<V->k;j++) {
     if (R) {
-      ierr = BVOrthogonalizeColumn(V,j,r+j*ldr,&norm,NULL);CHKERRQ(ierr);
+      ierr = BVOrthogonalizeColumn(V,j,r+j*ldr+V->l,&norm,NULL);CHKERRQ(ierr);
       r[j+j*ldr] = norm;
     } else {
       ierr = BVOrthogonalizeColumn(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
@@ -474,6 +477,79 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
     ierr = BVScaleColumn(V,j,1.0/norm);CHKERRQ(ierr);
   }
   if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatCholeskyFactorInvert"
+/*
+   Compute the upper Cholesky factor in R and its inverse in S.
+ */
+static PetscErrorCode MatCholeskyFactorInvert(Mat R,PetscInt l,Mat *S)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,n,m,ld;
+  PetscScalar    *pR,*pS,done=1.0;
+  PetscBLASInt   info,n_,l_,m_,ld_;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(R,&m,NULL);CHKERRQ(ierr);
+  n = m-l;
+  ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(l,&l_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  ld  = m;
+  ld_ = m_;
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,ld,ld,NULL,S);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(R,&pR);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(*S,&pS);CHKERRQ(ierr);
+
+  /* compute upper Cholesky factor in R */
+  PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n_,pR+l*ld+l,&ld_,&info));
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_MAT_CH_ZRPVT,"Error in Cholesky factorization, info=%D",(PetscInt)info);
+  ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
+
+  /* build identity and compute S = R\I */
+  ierr = PetscMemzero(pS,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<m;i++) pS[i+i*ld] = 1.0;
+  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("L","U","N","N",&n_,&n_,&done,pR+l*ld+l,&ld_,pS+l*ld+l,&ld_));
+
+  /* Zero out entries below the diagonal */
+  for (i=l;i<m-1;i++) {
+    ierr = PetscMemzero(pR+i*ld+i+1,(m-i-1)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemzero(pS+i*ld+i+1,(m-i-1)*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(R,&pR);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(*S,&pS);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVOrthogonalize_Chol"
+/*
+   Orthogonalize a set of vectors with Cholesky: R=chol(V'*V), Q=V*inv(R)
+ */
+static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
+{
+  PetscErrorCode ierr;
+  Mat            S,R=Rin;
+
+  PetscFunctionBegin;
+  if (!Rin) {
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,V->k,V->k,NULL,&R);CHKERRQ(ierr);
+  }
+  if (V->matrix) {
+    ierr = BV_IPMatMultBV(V);CHKERRQ(ierr);
+    ierr = BVDot(V->cached,V,R);CHKERRQ(ierr);
+  } else {
+    ierr = BVDot(V,V,R);CHKERRQ(ierr);
+  }
+  ierr = MatCholeskyFactorInvert(R,V->l,&S);CHKERRQ(ierr);
+  ierr = BVMultInPlace(V,S,V->l,V->k);CHKERRQ(ierr);
+  ierr = MatDestroy(&S);CHKERRQ(ierr);
+  if (!Rin) {
+    ierr = MatDestroy(&R);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -523,6 +599,7 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
   if (R) {
     PetscValidHeaderSpecific(R,MAT_CLASSID,2);
     PetscValidType(R,2);
+    if (V->l>=0 && V->orthog_block==BV_ORTHOG_BLOCK_GS) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot request matrix R in Gram-Schmidt orthogonalization if l>0");
     ierr = PetscObjectTypeCompare((PetscObject)R,MATSEQDENSE,&match);CHKERRQ(ierr);
     if (!match) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
     ierr = MatGetSize(R,&m,&n);CHKERRQ(ierr);
@@ -537,9 +614,10 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
     ierr = BVOrthogonalize_GS(V,R);CHKERRQ(ierr);
     break;
   case BV_ORTHOG_BLOCK_CHOL:
-    if (V->ops->orthogonalize) {
+    ierr = BVOrthogonalize_Chol(V,R);CHKERRQ(ierr);
+    /*if (V->ops->orthogonalize) {
       ierr = (*V->ops->orthogonalize)(V,R);CHKERRQ(ierr);
-    } else SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Not implemented");
+    }*/
     break;
   }
   ierr = PetscLogEventEnd(BV_Orthogonalize,V,R,0,0);CHKERRQ(ierr);
