@@ -492,6 +492,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
       ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"nep_ciss_");CHKERRQ(ierr);
       ierr = NEPGetOptionsPrefix(nep,&prefix);CHKERRQ(ierr);
       ierr = KSPAppendOptionsPrefix(ctx->ksp[i],prefix);CHKERRQ(ierr);
+      ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
     }
   }
 
