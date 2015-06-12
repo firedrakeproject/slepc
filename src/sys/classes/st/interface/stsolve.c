@@ -507,6 +507,7 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
 PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
 {
   PetscErrorCode ierr;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -518,6 +519,10 @@ PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
   ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)st,STPRECOND,&flg);CHKERRQ(ierr);
+  if (!flg) {
+    ierr = KSPSetErrorIfNotConverged(st->ksp,PETSC_TRUE);CHKERRQ(ierr);
+  }
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_MatSetUp,st,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
