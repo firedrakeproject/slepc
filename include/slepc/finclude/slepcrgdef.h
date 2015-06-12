@@ -3,7 +3,7 @@
 !
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
-!  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+!  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
 !
@@ -33,6 +33,6 @@
 #define RGINTERVAL  'interval'
 #define RGPOLYGON   'polygon'
 #define RGELLIPSE   'ellipse'
-#define RGARC       'arc'
+#define RGRING      'ring'
 
 #endif

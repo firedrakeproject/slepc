@@ -18,7 +18,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -41,13 +41,30 @@
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPTOARSNorm2"
+/*
+  Norm of [sp;sq] 
+*/
+static PetscErrorCode PEPTOARSNorm2(PetscInt n,PetscScalar *S,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   n_,one=1;
+
+  PetscFunctionBegin;
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  *norm = BLASnrm2_(&n_,S,&one);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPSetUp_TOAR"
 PetscErrorCode PEPSetUp_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscBool      sinv,flg;
-  PetscInt       i,lds;
+  PetscBool      sinv,flg,lindep;
+  PetscInt       i,lds,deg=pep->nmat-1,j;
+  PetscReal      norm;
 
   PetscFunctionBegin;
   pep->lineariz = PETSC_TRUE;
@@ -58,6 +75,9 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
     else pep->which = PEP_LARGEST_MAGNITUDE;
+  }
+  if (pep->problem_type!=PEP_GENERAL) {
+    ierr = PetscInfo(pep,"Problem type ignored, performing a non-symmetric linearization\n");CHKERRQ(ierr);
   }
 
   if (!ctx->keep) ctx->keep = 0.5;
@@ -83,22 +103,30 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ctx->ld = pep->ncv+(pep->nmat-1);   /* number of rows of each fragment of S */
   lds = (pep->nmat-1)*ctx->ld;
   ierr = PetscCalloc1(lds*ctx->ld,&ctx->S);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARSNorm2"
-/*
-  Norm of [sp;sq] 
-*/
-static PetscErrorCode PEPTOARSNorm2(PetscInt n,PetscScalar *S,PetscReal *norm)
-{
-  PetscErrorCode ierr;
-  PetscBLASInt   n_,one=1;
-
-  PetscFunctionBegin;
-  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
-  *norm = BLASnrm2_(&n_,S,&one);
+  /* process starting vector */
+  ctx->nq = 0;
+  for (i=0;i<deg;i++) {
+    if (pep->nini>-deg) {  
+      ierr = BVSetRandomColumn(pep->V,ctx->nq,pep->rand);CHKERRQ(ierr);
+    } else {
+      ierr = BVInsertVec(pep->V,ctx->nq,pep->IS[i]);CHKERRQ(ierr);
+    }
+    ierr = BVOrthogonalizeColumn(pep->V,ctx->nq,ctx->S+i*ctx->ld,&norm,&lindep);CHKERRQ(ierr);
+    if (!lindep) {
+      ierr = BVScaleColumn(pep->V,ctx->nq,1.0/norm);CHKERRQ(ierr);
+      ctx->S[ctx->nq+i*ctx->ld] = norm;
+      ctx->nq++;
+    }
+  }
+  if (ctx->nq==0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"PEP: Problem with initial vector");
+  ierr = PEPTOARSNorm2(lds,ctx->S,&norm);CHKERRQ(ierr);
+  for (j=0;j<deg;j++) {
+    for (i=0;i<=j;i++) ctx->S[i+j*ctx->ld] /= norm;
+  }
+  if (pep->nini<0) {
+    ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -119,7 +147,7 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   PetscReal      eta,onorm;
   
   PetscFunctionBegin;
-  ierr = BVGetOrthogonalization(pep->V,NULL,NULL,&eta);CHKERRQ(ierr);
+  ierr = BVGetOrthogonalization(pep->V,NULL,NULL,&eta,NULL);CHKERRQ(ierr);
   n = k+deg-1;
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(deg*ld,&lds_);CHKERRQ(ierr);
@@ -773,11 +801,11 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=0,nl,nconv=0,locked=0,newc;
+  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=ctx->nq,nl,nconv=0,locked=0,newc;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,sigma;
-  PetscReal      beta,norm,*rwork;
-  PetscBool      breakdown=PETSC_FALSE,flg,lindep,falselock=PETSC_FALSE,def=PETSC_FALSE,sinv;
+  PetscReal      beta,*rwork;
+  PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,def=PETSC_FALSE,sinv;
 
   PetscFunctionBegin;
   if (ctx->lock) {
@@ -813,29 +841,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   }
 
   if (flg) sigma = 0.0;
-  /* get the starting Lanczos vector */
-  if (pep->nini==0) {  
-    ierr = BVSetRandomColumn(pep->V,0,pep->rand);CHKERRQ(ierr);
-  }
-  ierr = BVOrthogonalizeColumn(pep->V,0,NULL,&norm,&lindep);CHKERRQ(ierr);
-  if (!lindep) {
-    ierr = BVScaleColumn(pep->V,nq,1.0/norm);CHKERRQ(ierr);
-    S[nq++] = norm;
-  }
-  for (i=1;i<deg;i++) {
-    ierr = BVSetRandomColumn(pep->V,nq,pep->rand);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(pep->V,nq,S+nq*ld,&norm,&lindep);CHKERRQ(ierr);
-    if (!lindep) {
-      ierr = BVScaleColumn(pep->V,nq,1.0/norm);CHKERRQ(ierr);
-      S[nq+nq*ld] = norm;
-      nq++;
-    }
-  }
-  if (nq==0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"PEP: Problem with initial vector");
-  ierr = PEPTOARSNorm2(lds,S,&norm);CHKERRQ(ierr);
-  for (j=0;j<nq;j++) {
-    for (i=0;i<=j;i++) S[i+j*ld] /= norm;
-  }
+
   /* restart loop */
   l = 0;
   while (pep->reason == PEP_CONVERGED_ITERATING) {

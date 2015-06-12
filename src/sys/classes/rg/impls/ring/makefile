@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -23,13 +23,13 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = rgarc.c
+SOURCEC  = rgring.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
 DIRS     =
 MANSEC   = RG
-LOCDIR   = src/sys/classes/rg/impls/arc/
+LOCDIR   = src/sys/classes/rg/impls/ring/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

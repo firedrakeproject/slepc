@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -30,6 +30,7 @@ typedef struct {
   PetscReal   dtol;         /* tolerance for deflation */
   PetscInt    d;            /* polynomial degree */
   PetscInt    ld;           /* leading dimension of auxiliary matrices */
+  PetscInt    nq;           /* number of TOAR Vectors  */
   PetscScalar *S,*qB;       /* auxiliary matrices */
 } PEP_TOAR;
 

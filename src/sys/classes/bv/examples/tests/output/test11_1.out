@@ -1,0 +1,4 @@
+Test BV block orthogonalization (length 20, l=2, k=8).
+Level of orthogonality < 100*eps
+Residual ||cached-BX|| < 100*eps
+Level of orthogonality < 100*eps

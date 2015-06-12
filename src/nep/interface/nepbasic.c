@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -592,6 +592,7 @@ PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
     ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)nep->ksp,(PetscObject)nep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ksp);CHKERRQ(ierr);
+    ierr = KSPSetErrorIfNotConverged(nep->ksp,PETSC_TRUE);CHKERRQ(ierr);
   }
   *ksp = nep->ksp;
   PetscFunctionReturn(0);

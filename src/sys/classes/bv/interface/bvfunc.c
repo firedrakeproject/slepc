@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -131,6 +131,7 @@ PetscErrorCode BVDestroy(BV *bv)
   ierr = VecDestroy(&(*bv)->t);CHKERRQ(ierr);
   ierr = MatDestroy(&(*bv)->matrix);CHKERRQ(ierr);
   ierr = VecDestroy(&(*bv)->Bx);CHKERRQ(ierr);
+  ierr = BVDestroy(&(*bv)->cached);CHKERRQ(ierr);
   ierr = PetscFree((*bv)->work);CHKERRQ(ierr);
   ierr = PetscFree2((*bv)->h,(*bv)->c);CHKERRQ(ierr);
   ierr = PetscFree((*bv)->omega);CHKERRQ(ierr);
@@ -178,6 +179,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->orthog_type  = BV_ORTHOG_CGS;
   bv->orthog_ref   = BV_ORTHOG_REFINE_IFNEEDED;
   bv->orthog_eta   = 0.7071;
+  bv->orthog_block = BV_ORTHOG_BLOCK_GS;
   bv->matrix       = NULL;
   bv->indef        = PETSC_FALSE;
   bv->vmm          = BV_MATMULT_MAT;
@@ -200,6 +202,8 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->C            = NULL;
   bv->Aid          = 0;
   bv->defersfo     = PETSC_FALSE;
+  bv->cached       = NULL;
+  bv->bvstate      = 0;
   bv->work         = NULL;
   bv->lwork        = 0;
   bv->data         = NULL;
@@ -552,6 +556,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
   PetscViewerFormat format;
   const char        *orthname[2] = {"classical","modified"};
   const char        *refname[3] = {"if needed","never","always"};
+  const char        *borthname[2] = {"Gram-Schmidt","Cholesky"};
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -570,7 +575,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
       if (bv->nc>0) {
         ierr = PetscViewerASCIIPrintf(viewer,"number of constraints: %D\n",bv->nc);CHKERRQ(ierr);
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"orthogonalization method: %s Gram-Schmidt\n",orthname[bv->orthog_type]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"vector orthogonalization method: %s Gram-Schmidt\n",orthname[bv->orthog_type]);CHKERRQ(ierr);
       switch (bv->orthog_ref) {
         case BV_ORTHOG_REFINE_IFNEEDED:
           ierr = PetscViewerASCIIPrintf(viewer,"orthogonalization refinement: %s (eta: %g)\n",refname[bv->orthog_ref],(double)bv->orthog_eta);CHKERRQ(ierr);
@@ -580,6 +585,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
           ierr = PetscViewerASCIIPrintf(viewer,"orthogonalization refinement: %s\n",refname[bv->orthog_ref]);CHKERRQ(ierr);
           break;
       }
+      ierr = PetscViewerASCIIPrintf(viewer,"block orthogonalization method: %s\n",borthname[bv->orthog_block]);CHKERRQ(ierr);
       if (bv->matrix) {
         if (bv->indef) {
           ierr = PetscViewerASCIIPrintf(viewer,"indefinite inner product\n");CHKERRQ(ierr);

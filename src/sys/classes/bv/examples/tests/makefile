@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -24,10 +24,10 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/bv/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c test11.c
 EXAMPLESF  =
 MANSEC     = BV
-TESTS      = test1 test2 test3 test4 test5 test6 test7 test8 test9 test10
+TESTS      = test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 runtest1_3 runtest1_4 test1.rm \
                        test2.PETSc runtest2_1 runtest2_2 runtest2_3 runtest2_4 \
@@ -39,7 +39,9 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 runtest1_3 runtest1_4 t
                        test7.PETSc runtest7_1 runtest7_2 runtest7_3 runtest7_4 test7.rm \
                        test8.PETSc runtest8_1 runtest8_2 runtest8_3 runtest8_4 test8.rm \
                        test9.PETSc runtest9_1 runtest9_2 runtest9_3 runtest9_4 test9.rm \
-                       test10.PETSc runtest10_1 runtest10_2 runtest10_3 runtest10_4 test10.rm
+                       test10.PETSc runtest10_1 runtest10_2 runtest10_3 runtest10_4 test10.rm \
+                       test11.PETSc runtest11_1 runtest11_2 runtest11_3 runtest11_4 \
+                       runtest11_5 runtest11_6 runtest11_7 runtest11_8 test11.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -82,6 +84,10 @@ test9: test9.o chkopts
 test10: test10.o chkopts
 	-${CLINKER} -o test10 test10.o ${SLEPC_SYS_LIB}
 	${RM} test10.o
+
+test11: test11.o chkopts
+	-${CLINKER} -o test11 test11.o ${SLEPC_SYS_LIB}
+	${RM} test11.o
 
 #------------------------------------------------------------------------------------
 
@@ -309,5 +315,45 @@ runtest10_3:
 runtest10_4:
 	-@test=test10_1; \
 	${MPIEXEC} -np 2 ./test10 -bv_type mat 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest11_1:
+	-@test=test11_1; \
+	${MPIEXEC} -np 2 ./test11 -bv_orthog_block gs -bv_type vecs 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest11_2:
+	-@test=test11_1; \
+	${MPIEXEC} -np 2 ./test11 -bv_orthog_block gs -bv_type contiguous 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest11_3:
+	-@test=test11_1; \
+	${MPIEXEC} -np 2 ./test11 -bv_orthog_block gs -bv_type svec 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest11_4:
+	-@test=test11_1; \
+	${MPIEXEC} -np 2 ./test11 -bv_orthog_block gs -bv_type mat 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest11_5:
+	-@test=test11_1; \
+	${MPIEXEC} -np 2 ./test11 -bv_orthog_block chol -bv_type vecs 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest11_6:
+	-@test=test11_1; \
+	${MPIEXEC} -np 2 ./test11 -bv_orthog_block chol -bv_type contiguous 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest11_7:
+	-@test=test11_1; \
+	${MPIEXEC} -np 2 ./test11 -bv_orthog_block chol -bv_type svec 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest11_8:
+	-@test=test11_1; \
+	${MPIEXEC} -np 2 ./test11 -bv_orthog_block chol -bv_type mat 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 

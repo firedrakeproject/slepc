@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -22,7 +22,7 @@
 ALL: lib
 
 LIBBASE  = libslepcsys
-DIRS     = arc ellipse interval polygon
+DIRS     = ellipse interval polygon ring
 LOCDIR   = src/sys/classes/rg/impls/
 MANSEC   = RG
 

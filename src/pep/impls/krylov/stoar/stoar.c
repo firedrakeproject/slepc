@@ -16,7 +16,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -37,45 +37,6 @@
 #include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
 #include "../src/pep/impls/krylov/pepkrylov.h"
 #include <slepcblaslapack.h>
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetUp_STOAR"
-PetscErrorCode PEPSetUp_STOAR(PEP pep)
-{
-  PetscErrorCode ierr;
-  PetscBool      sinv,flg;
-  PEP_TOAR      *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       ld;
-
-  PetscFunctionBegin;
-  ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
-  if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
-  if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
-  if (!pep->which) {
-    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
-    if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
-    else pep->which = PEP_LARGEST_MAGNITUDE;
-  }
-  if (pep->problem_type!=PEP_HERMITIAN) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
-
-  if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver only available for quadratic problems");
-  if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
-  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-  if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag set, see STSetTransform()");
-
-  ierr = PEPAllocateSolution(pep,2);CHKERRQ(ierr);
-  ierr = PEPSetWorkVecs(pep,4);CHKERRQ(ierr);
-  ld = pep->ncv+2;
-  ierr = DSSetType(pep->ds,DSGHIEP);CHKERRQ(ierr);
-  ierr = DSSetCompact(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = DSAllocate(pep->ds,ld);CHKERRQ(ierr);
-  ierr = STGetNumMatrices(pep->st,&ctx->d);CHKERRQ(ierr);
-  ctx->d--;
-  ctx->ld = ld;
-  ierr = PetscCalloc1(ctx->d*ld*ld,&ctx->S);CHKERRQ(ierr);
-  ierr = PetscCalloc1(2*ld*ld,&ctx->qB);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSTOARNorm"
@@ -105,6 +66,117 @@ static PetscErrorCode PEPSTOARNorm(PEP pep,PetscInt j,PetscReal *norm)
   for (i=0;i<n;i++) *norm += PetscRealPart(w1[i]*PetscConj(sp[i])+w2[i]*PetscConj(sq[i]));
   *norm = (*norm>0.0)?PetscSqrtReal(*norm):-PetscSqrtReal(-*norm);
   ierr = PetscFree2(w1,w2);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSTOARqKqMupdates"
+static PetscErrorCode PEPSTOARqKqMupdates(PEP pep,PetscInt j,Vec *wv,PetscInt nwv)
+{
+  PetscErrorCode ierr;
+  PEP_TOAR      *ctx = (PEP_TOAR*)pep->data;
+  PetscInt       i,ld=ctx->ld;
+  PetscScalar    *qK,*qM;
+  Vec            vj,v1,v2;
+
+  PetscFunctionBegin;
+  qK = ctx->qB;
+  qM = ctx->qB+ctx->ld*ctx->ld;
+  if (!wv||nwv<2) {
+    if (!wv) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",3);
+    else SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",4);
+  }
+  v1 = wv[0];
+  v2 = wv[1];
+  ierr = BVGetColumn(pep->V,j,&vj);CHKERRQ(ierr);
+  ierr = STMatMult(pep->st,0,vj,v1);CHKERRQ(ierr);
+  ierr = STMatMult(pep->st,2,vj,v2);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(pep->V,j,&vj);CHKERRQ(ierr);
+  for (i=0;i<=j;i++) {
+    ierr = BVGetColumn(pep->V,i,&vj);CHKERRQ(ierr);
+    ierr = VecDot(v1,vj,qK+j*ld+i);CHKERRQ(ierr);
+    ierr = VecDot(v2,vj,qM+j*ld+i);CHKERRQ(ierr);
+    *(qM+j*ld+i) *= pep->sfactor*pep->sfactor;
+    ierr = BVRestoreColumn(pep->V,i,&vj);CHKERRQ(ierr);
+  }
+  for (i=0;i<j;i++) {
+    qK[i+j*ld] = -qK[i+ld*j];
+    qK[j+i*ld] = PetscConj(qK[i+j*ld]);
+    qM[j+i*ld] = PetscConj(qM[i+j*ld]);
+  }
+  qK[j+j*ld] = -PetscRealPart(qK[j+ld*j]);
+  qM[j+j*ld] = PetscRealPart(qM[j+ld*j]);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetUp_STOAR"
+PetscErrorCode PEPSetUp_STOAR(PEP pep)
+{
+  PetscErrorCode ierr;
+  PetscBool      sinv,flg,lindep;
+  PEP_TOAR      *ctx = (PEP_TOAR*)pep->data;
+  PetscInt       ld,i;
+  PetscReal      norm;
+
+  PetscFunctionBegin;
+  ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
+  if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
+  if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
+  if (!pep->which) {
+    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+    if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
+    else pep->which = PEP_LARGEST_MAGNITUDE;
+  }
+  if (pep->problem_type!=PEP_HERMITIAN) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
+
+  if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver only available for quadratic problems");
+  if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag set, see STSetTransform()");
+
+  ierr = PEPAllocateSolution(pep,2);CHKERRQ(ierr);
+  ierr = PEPSetWorkVecs(pep,4);CHKERRQ(ierr);
+  ld = pep->ncv+2;
+  ierr = DSSetType(pep->ds,DSGHIEP);CHKERRQ(ierr);
+  ierr = DSSetCompact(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = DSAllocate(pep->ds,ld);CHKERRQ(ierr);
+  ierr = STGetNumMatrices(pep->st,&ctx->d);CHKERRQ(ierr);
+  ctx->d--;
+  ctx->ld = ld;
+  ierr = PetscCalloc1(ctx->d*ld*ld,&ctx->S);CHKERRQ(ierr);
+  ierr = PetscCalloc1(2*ld*ld,&ctx->qB);CHKERRQ(ierr);
+
+  /* process starting vector */
+  if (pep->nini>-2) {  
+    ierr = BVSetRandomColumn(pep->V,0,pep->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(pep->V,1,pep->rand);CHKERRQ(ierr);
+  } else {
+    ierr = BVInsertVec(pep->V,0,pep->IS[0]);CHKERRQ(ierr);
+    ierr = BVInsertVec(pep->V,1,pep->IS[1]);CHKERRQ(ierr);
+  }
+  ierr = BVOrthogonalizeColumn(pep->V,0,NULL,&norm,&lindep);CHKERRQ(ierr);
+  if (!lindep) {
+    ierr = BVScaleColumn(pep->V,0,1.0/norm);CHKERRQ(ierr);
+    ctx->S[0] = norm;
+    ierr = PEPSTOARqKqMupdates(pep,0,pep->work,2);CHKERRQ(ierr);
+  } else {
+    SETERRQ(PetscObjectComm((PetscObject)pep),1,"Problem with initial vector");
+  }
+  ierr = BVOrthogonalizeColumn(pep->V,1,ctx->S+ld,&norm,&lindep);CHKERRQ(ierr);
+  if (!lindep) {
+    ierr = BVScaleColumn(pep->V,1,1.0/norm);CHKERRQ(ierr);
+    ctx->S[1] = norm;
+    ierr = PEPSTOARqKqMupdates(pep,1,pep->work,2);CHKERRQ(ierr);
+  } else {
+    SETERRQ(PetscObjectComm((PetscObject)pep),1,"Problem with initial vector");
+  }
+
+  ierr = PEPSTOARNorm(pep,0,&norm);CHKERRQ(ierr);
+  for (i=0;i<2;i++) { ctx->S[i+ld] /= norm; ctx->S[i] /= norm; }
+  if (pep->nini<0) {
+    ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -157,46 +229,6 @@ static PetscErrorCode PEPSTOAROrth2(PEP pep,PetscInt k,PetscReal *Omega,PetscSca
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPSTOARqKqMupdates"
-static PetscErrorCode PEPSTOARqKqMupdates(PEP pep,PetscInt j,Vec *wv,PetscInt nwv)
-{
-  PetscErrorCode ierr;
-  PEP_TOAR      *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,ld=ctx->ld;
-  PetscScalar    *qK,*qM;
-  Vec            vj,v1,v2;
-
-  PetscFunctionBegin;
-  qK = ctx->qB;
-  qM = ctx->qB+ctx->ld*ctx->ld;
-  if (!wv||nwv<2) {
-    if (!wv) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",3);
-    else SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",4);
-  }
-  v1 = wv[0];
-  v2 = wv[1];
-  ierr = BVGetColumn(pep->V,j,&vj);CHKERRQ(ierr);
-  ierr = STMatMult(pep->st,0,vj,v1);CHKERRQ(ierr);
-  ierr = STMatMult(pep->st,2,vj,v2);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(pep->V,j,&vj);CHKERRQ(ierr);
-  for (i=0;i<=j;i++) {
-    ierr = BVGetColumn(pep->V,i,&vj);CHKERRQ(ierr);
-    ierr = VecDot(v1,vj,qK+j*ld+i);CHKERRQ(ierr);
-    ierr = VecDot(v2,vj,qM+j*ld+i);CHKERRQ(ierr);
-    *(qM+j*ld+i) *= pep->sfactor*pep->sfactor;
-    ierr = BVRestoreColumn(pep->V,i,&vj);CHKERRQ(ierr);
-  }
-  for (i=0;i<j;i++) {
-    qK[i+j*ld] = -qK[i+ld*j];
-    qK[j+i*ld] = PetscConj(qK[i+j*ld]);
-    qM[j+i*ld] = PetscConj(qM[i+j*ld]);
-  }
-  qK[j+j*ld] = -PetscRealPart(qK[j+ld*j]);
-  qM[j+j*ld] = PetscRealPart(qM[j+ld*j]);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "PEPSTOARrun"
 /*
   Compute a run of Lanczos iterations
@@ -211,6 +243,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
   PetscReal      norm,sym=0.0,fro=0.0,*f;
   PetscScalar    *y,*S=ctx->S;
   PetscBLASInt   j_,one=1;
+  PetscBool      lindep;
 
   PetscFunctionBegin;
   *breakdown = PETSC_FALSE; /* ----- */
@@ -232,7 +265,8 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
     ierr = VecScale(q,-1.0/(pep->sfactor*pep->sfactor));CHKERRQ(ierr);
 
     /* orthogonalize */
-    ierr = BVOrthogonalizeVec(pep->V,q,S+offq+(j+1)*lds,&norm,NULL);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeVec(pep->V,q,S+offq+(j+1)*lds,&norm,&lindep);CHKERRQ(ierr);
+    if (lindep) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"STOAR does not support detection of linearly dependent TOAR vectors");
     *(S+offq+(j+1)*lds+j+2) = norm;
     ierr = VecScale(q,1.0/norm);CHKERRQ(ierr);
     ierr = BVInsertVec(pep->V,j+2,q);CHKERRQ(ierr);
@@ -440,29 +474,6 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
   ierr = RGSetScale(pep->rg,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
   ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
-
-  /* Get the starting Lanczos vector */
-  if (pep->nini==0) {  
-    ierr = BVSetRandomColumn(pep->V,0,pep->rand);CHKERRQ(ierr);
-  }
-  ierr = BVSetRandomColumn(pep->V,1,pep->rand);CHKERRQ(ierr);
-  ierr = BVOrthogonalizeColumn(pep->V,0,NULL,&norm,NULL);CHKERRQ(ierr);
-  ierr = BVScaleColumn(pep->V,0,1.0/norm);CHKERRQ(ierr);
-  ierr = PEPSTOARqKqMupdates(pep,0,pep->work,2);CHKERRQ(ierr);
-  S[0] = norm;
-  ierr = BVOrthogonalizeColumn(pep->V,1,S+ld,&norm,NULL);CHKERRQ(ierr);
-  ierr = BVScaleColumn(pep->V,1,1.0/norm);CHKERRQ(ierr);
-  ierr = PEPSTOARqKqMupdates(pep,1,pep->work,2);CHKERRQ(ierr);
-  S[1+ld] = norm;
-  if (PetscAbsReal(norm)<PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Problem with initial vector");
-  ierr = PEPSTOARNorm(pep,0,&norm);CHKERRQ(ierr);
-  ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-  omega[0] = (norm > 0)?1.0:-1.0;
-  ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-  for (j=0;j<2;j++) {
-    S[j] /= norm;
-    S[j+ld] /= norm;
-  }
 
   /* Restart loop */
   l = 0;

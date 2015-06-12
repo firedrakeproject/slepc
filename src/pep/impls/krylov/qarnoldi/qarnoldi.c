@@ -16,7 +16,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -80,6 +80,18 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   ierr = DSSetType(pep->ds,DSNHEP);CHKERRQ(ierr);
   ierr = DSSetExtraRow(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(pep->ds,pep->ncv+1);CHKERRQ(ierr);
+
+  /* process starting vector */
+  if (pep->nini>-2) {
+    ierr = BVSetRandomColumn(pep->V,0,pep->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(pep->V,1,pep->rand);CHKERRQ(ierr);
+  } else {
+    ierr = BVInsertVec(pep->V,0,pep->IS[0]);CHKERRQ(ierr);
+    ierr = BVInsertVec(pep->V,1,pep->IS[1]);CHKERRQ(ierr);
+  }
+  if (pep->nini<0) {
+    ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -173,7 +185,7 @@ static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k
   PetscScalar        *c = work + m;
 
   PetscFunctionBegin;
-  ierr = BVGetOrthogonalization(pep->V,NULL,&refinement,&eta);CHKERRQ(ierr);
+  ierr = BVGetOrthogonalization(pep->V,NULL,&refinement,&eta,NULL);CHKERRQ(ierr);
   ierr = BVInsertVec(pep->V,k,v);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
     /* apply operator */
@@ -258,11 +270,6 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
-  if (pep->nini==0) {
-    ierr = BVSetRandomColumn(pep->V,0,pep->rand);CHKERRQ(ierr);
-  }
-  /* w is always a random vector */
-  ierr = BVSetRandomColumn(pep->V,1,pep->rand);CHKERRQ(ierr);
   ierr = BVCopyVec(pep->V,0,v);CHKERRQ(ierr);
   ierr = BVCopyVec(pep->V,1,w);CHKERRQ(ierr);
   ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);

@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -569,7 +569,7 @@ PetscErrorCode BVGetMatrix(BV bv,Mat *B,PetscBool *indef)
 
    Level: advanced
 
-.seealso: BVSetMatrix()
+.seealso: BVSetMatrix(), BVApplyMatrixBV()
 @*/
 PetscErrorCode BVApplyMatrix(BV bv,Vec x,Vec y)
 {
@@ -585,6 +585,80 @@ PetscErrorCode BVApplyMatrix(BV bv,Vec x,Vec y)
   } else {
     ierr = VecCopy(x,y);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVApplyMatrixBV"
+/*@
+   BVApplyMatrixBV - Multiplies the BV vectors by the matrix representation
+   of the inner product.
+
+   Neighbor-wise Collective on BV
+
+   Input Parameter:
++  X - the basis vectors context
+
+   Output Parameter:
+.  Y - the basis vectors to store the result (optional)
+
+   Note:
+   This function computes Y = B*X, where B is the matrix given with
+   BVSetMatrix(). This operation is computed as in BVMatMult().
+   If no matrix was specified, then it just copies Y = X.
+
+   If no Y is given, the result is stored internally in the cached BV.
+
+   Level: developer
+
+.seealso: BVSetMatrix(), BVApplyMatrix(), BVMatMult(), BVGetCachedBV()
+@*/
+PetscErrorCode BVApplyMatrixBV(BV X,BV Y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(X,BV_CLASSID,1);
+  if (Y) {
+    PetscValidHeaderSpecific(Y,BV_CLASSID,2);
+    if (X->matrix) {
+      ierr = BVMatMult(X,X->matrix,Y);CHKERRQ(ierr);
+    } else {
+      ierr = BVCopy(X,Y);CHKERRQ(ierr);
+    }
+  } else {
+    ierr = BV_IPMatMultBV(X);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetCachedBV"
+/*@
+   BVGetCachedBV - Returns a BV object stored internally that holds the
+   result of B*X after a call to BVApplyMatrixBV().
+
+   Not collective
+
+   Input Parameter:
+.  bv    - the basis vectors context
+
+   Output Parameter:
+.  cached - the cached BV
+
+   Note:
+   The function will return a NULL if BVApplyMatrixBV() was not called yet.
+
+   Level: developer
+
+.seealso: BVApplyMatrixBV()
+@*/
+PetscErrorCode BVGetCachedBV(BV bv,BV *cached)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidPointer(cached,2);
+  *cached = bv->cached;
   PetscFunctionReturn(0);
 }
 
@@ -693,9 +767,10 @@ PetscErrorCode BVSetFromOptions(BV bv)
   char           type[256];
   PetscBool      flg;
   PetscReal      r;
-  PetscInt       i,j;
+  PetscInt       i,j,k;
   const char     *orth_list[2] = {"cgs","mgs"};
   const char     *ref_list[3] = {"ifneeded","never","always"};
+  const char     *borth_list[2] = {"gs","chol"};
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -718,7 +793,9 @@ PetscErrorCode BVSetFromOptions(BV bv)
     ierr = PetscOptionsEList("-bv_orthog_refine","Iterative refinement mode during orthogonalization","BVSetOrthogonalization",ref_list,3,ref_list[j],&j,NULL);CHKERRQ(ierr);
     r = bv->orthog_eta;
     ierr = PetscOptionsReal("-bv_orthog_eta","Parameter of iterative refinement during orthogonalization","BVSetOrthogonalization",r,&r,NULL);CHKERRQ(ierr);
-    ierr = BVSetOrthogonalization(bv,(BVOrthogType)i,(BVOrthogRefineType)j,r);CHKERRQ(ierr);
+    k = bv->orthog_block;
+    ierr = PetscOptionsEList("-bv_orthog_block","Block orthogonalization method","BVSetOrthogonalization",borth_list,2,borth_list[k],&k,NULL);CHKERRQ(ierr);
+    ierr = BVSetOrthogonalization(bv,(BVOrthogType)i,(BVOrthogRefineType)j,r,(BVOrthogBlockType)k);CHKERRQ(ierr);
 
     ierr = PetscOptionsBoolGroupBegin("-bv_matmult_vecs","Do matmult as matrix-vector products","BVSetMatMultMethod",&flg);CHKERRQ(ierr);
     if (flg) { ierr = BVSetMatMultMethod(bv,BV_MATMULT_VECS);CHKERRQ(ierr); }
@@ -739,22 +816,26 @@ PetscErrorCode BVSetFromOptions(BV bv)
 #undef __FUNCT__
 #define __FUNCT__ "BVSetOrthogonalization"
 /*@
-   BVSetOrthogonalization - Specifies the type of orthogonalization technique
-   to be used (classical or modified Gram-Schmidt with or without refinement).
+   BVSetOrthogonalization - Specifies the method used for the orthogonalization of
+   vectors (classical or modified Gram-Schmidt with or without refinement), and
+   for the block-orthogonalization (simultaneous orthogonalization of a set of
+   vectors).
 
    Logically Collective on BV
 
    Input Parameters:
 +  bv     - the basis vectors context
-.  type   - the type of orthogonalization technique
+.  type   - the method of vector orthogonalization
 .  refine - type of refinement
--  eta    - parameter for selective refinement
+.  eta    - parameter for selective refinement
+-  block  - the method of block orthogonalization
 
    Options Database Keys:
 +  -bv_orthog_type <type> - Where <type> is cgs for Classical Gram-Schmidt orthogonalization
                          (default) or mgs for Modified Gram-Schmidt orthogonalization
 .  -bv_orthog_refine <ref> - Where <ref> is one of never, ifneeded (default) or always
--  -bv_orthog_eta <eta> -  For setting the value of eta
+.  -bv_orthog_eta <eta> -  For setting the value of eta
+-  -bv_orthog_block <block> - Where <block> is the block-orthogonalization method
 
    Notes:
    The default settings work well for most problems.
@@ -764,17 +845,21 @@ PetscErrorCode BVSetFromOptions(BV bv)
 
    When using several processors, MGS is likely to result in bad scalability.
 
+   If the method set for block orthogonalization is GS, then the computation
+   is done column by column with the vector orthogonalization.
+
    Level: advanced
 
-.seealso: BVOrthogonalizeColumn(), BVGetOrthogonalization(), BVOrthogType, BVOrthogRefineType
+.seealso: BVOrthogonalizeColumn(), BVGetOrthogonalization(), BVOrthogType, BVOrthogRefineType, BVOrthogBlockType
 @*/
-PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType refine,PetscReal eta)
+PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType refine,PetscReal eta,BVOrthogBlockType block)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveEnum(bv,type,2);
   PetscValidLogicalCollectiveEnum(bv,refine,3);
   PetscValidLogicalCollectiveReal(bv,eta,4);
+  PetscValidLogicalCollectiveEnum(bv,block,5);
   switch (type) {
     case BV_ORTHOG_CGS:
     case BV_ORTHOG_MGS:
@@ -798,6 +883,14 @@ PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType
     if (eta <= 0.0 || eta > 1.0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Invalid eta value");
     bv->orthog_eta = eta;
   }
+  switch (block) {
+    case BV_ORTHOG_BLOCK_GS:
+    case BV_ORTHOG_BLOCK_CHOL:
+      bv->orthog_block = block;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Unknown block orthogonalization type");
+  }
   PetscFunctionReturn(0);
 }
 
@@ -812,21 +905,23 @@ PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType
 .  bv - basis vectors context
 
    Output Parameter:
-+  type   - type of orthogonalization technique
++  type   - the method of vector orthogonalization
 .  refine - type of refinement
--  eta    - parameter for selective refinement
+.  eta    - parameter for selective refinement
+-  block  - the method of block orthogonalization
 
    Level: advanced
 
-.seealso: BVOrthogonalizeColumn(), BVSetOrthogonalization(), BVOrthogType, BVOrthogRefineType
+.seealso: BVOrthogonalizeColumn(), BVSetOrthogonalization(), BVOrthogType, BVOrthogRefineType, BVOrthogBlockType
 @*/
-PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineType *refine,PetscReal *eta)
+PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineType *refine,PetscReal *eta,BVOrthogBlockType *block)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   if (type)   *type   = bv->orthog_type;
   if (refine) *refine = bv->orthog_ref;
   if (eta)    *eta    = bv->orthog_eta;
+  if (block)  *block  = bv->orthog_block;
   PetscFunctionReturn(0);
 }
 
@@ -1146,7 +1241,7 @@ PetscErrorCode BVDuplicate(BV V,BV *W)
   ierr = BVSetSizesFromVec(*W,V->t,V->m);CHKERRQ(ierr);
   ierr = BVSetType(*W,((PetscObject)V)->type_name);CHKERRQ(ierr);
   ierr = BVSetMatrix(*W,V->matrix,V->indef);CHKERRQ(ierr);
-  ierr = BVSetOrthogonalization(*W,V->orthog_type,V->orthog_ref,V->orthog_eta);CHKERRQ(ierr);
+  ierr = BVSetOrthogonalization(*W,V->orthog_type,V->orthog_ref,V->orthog_eta,V->orthog_block);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)*W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1188,7 +1283,7 @@ PetscErrorCode BVDuplicateResize(BV V,PetscInt m,BV *W)
   ierr = BVSetSizesFromVec(*W,V->t,m);CHKERRQ(ierr);
   ierr = BVSetType(*W,((PetscObject)V)->type_name);CHKERRQ(ierr);
   ierr = BVSetMatrix(*W,V->matrix,V->indef);CHKERRQ(ierr);
-  ierr = BVSetOrthogonalization(*W,V->orthog_type,V->orthog_ref,V->orthog_eta);CHKERRQ(ierr);
+  ierr = BVSetOrthogonalization(*W,V->orthog_type,V->orthog_ref,V->orthog_eta,V->orthog_block);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)*W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -21,7 +21,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -85,10 +85,7 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
-  /* Set STPrecond as the default ST */
-  if (!((PetscObject)eps->st)->type_name) {
-    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
-  }
+  ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond);CHKERRQ(ierr);
   if (!precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"LOBPCG only works with precond ST");
 
@@ -111,7 +108,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   PetscBool      breakdown,countc;
   Mat            A,B,M;
   Vec            v,w=eps->work[0];
-  BV             X,Y,Z,R,P,AX,AR,AP,BX,BR,BP;
+  BV             X,Y,Z,R,P,AX,BX;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -126,12 +123,8 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   ierr = BVDuplicateResize(eps->V,ctx->bs,&R);CHKERRQ(ierr);
   ierr = BVDuplicateResize(eps->V,ctx->bs,&P);CHKERRQ(ierr);
   ierr = BVDuplicateResize(eps->V,ctx->bs,&AX);CHKERRQ(ierr);
-  ierr = BVDuplicateResize(eps->V,ctx->bs,&AR);CHKERRQ(ierr);
-  ierr = BVDuplicateResize(eps->V,ctx->bs,&AP);CHKERRQ(ierr);
   if (B) {
     ierr = BVDuplicateResize(eps->V,ctx->bs,&BX);CHKERRQ(ierr);
-    ierr = BVDuplicateResize(eps->V,ctx->bs,&BR);CHKERRQ(ierr);
-    ierr = BVDuplicateResize(eps->V,ctx->bs,&BP);CHKERRQ(ierr);
   }
   nc = eps->nds;
   if (nc>0 || eps->nev>ctx->bs) {
@@ -163,7 +156,6 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   ierr = BVCopy(Z,X);CHKERRQ(ierr);
 
   /* 3. B-orthogonalize initial vectors */
-  /* TODO: X already B-orthogonal but need to store B*X in BX */
   if (B) {
     ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);
   }
@@ -185,9 +177,9 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   ierr = DSRestoreMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
 
   /* 5. Initialize range of active iterates */
-  bdone = 0;    /* completed blocks, the leading bdone*ctx->bs columns of V are eigenvectors */
-  nconv = 0;    /* number of converged eigenvalues in the current block */
-  its   = 0;    /* iterations for the current block */
+  bdone = 0;  /* finished blocks, the leading bdone*bs columns of V are eigenvectors */
+  nconv = 0;  /* number of converged eigenvalues in the current block */
+  its   = 0;  /* iterations for the current block */
 
   /* 6. Main loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
@@ -232,7 +224,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = EPSMonitor(eps,eps->its+its,eps->nconv,eps->eigr,eps->eigi,eps->errest,(bdone+1)*ctx->bs);CHKERRQ(ierr);
     }
     if (eps->nconv >= eps->nev || nconv == ctx->bs) {
-      ierr = BVSetActiveColumns(eps->V,bdone*ctx->bs,bdone*ctx->bs+nconv);CHKERRQ(ierr);  /* TODO: avoid copies */
+      ierr = BVSetActiveColumns(eps->V,bdone*ctx->bs,bdone*ctx->bs+nconv);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(Z,0,nconv);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(X,0,nconv);CHKERRQ(ierr);
       ierr = BVCopy(X,eps->V);CHKERRQ(ierr);
@@ -278,7 +270,6 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = BVCopy(Z,X);CHKERRQ(ierr);
 
       /* B-orthogonalize initial vectors */
-      /* TODO: X already B-orthogonal but need to store B*X in BX */
       if (B) {
         ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);
       }
@@ -333,12 +324,8 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = BVSetActiveColumns(R,nconv,ctx->bs);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(P,nconv,ctx->bs);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(AX,nconv,ctx->bs);CHKERRQ(ierr);
-      ierr = BVSetActiveColumns(AR,nconv,ctx->bs);CHKERRQ(ierr);
-      ierr = BVSetActiveColumns(AP,nconv,ctx->bs);CHKERRQ(ierr);
       if (B) {
         ierr = BVSetActiveColumns(BX,nconv,ctx->bs);CHKERRQ(ierr);
-        ierr = BVSetActiveColumns(BR,nconv,ctx->bs);CHKERRQ(ierr);
-        ierr = BVSetActiveColumns(BP,nconv,ctx->bs);CHKERRQ(ierr);
       }
     }
 
@@ -354,29 +341,16 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = BVRestoreColumn(R,j,&v);CHKERRQ(ierr);
     }
 
-    /* 10. Enforce the constraints on the preconditioned residuals */
-    /* TODO */
-
     /* 11. B-orthonormalize preconditioned residuals */
-    if (B) {
-      ierr = BVMatMult(R,B,BR);CHKERRQ(ierr);  /* TODO: reuse BR in orthogonalization */
-    }
     ierr = BVOrthogonalize(R,NULL);CHKERRQ(ierr);
-
-    /* 12. Compute AR */
-    ierr = BVMatMult(R,A,AR);CHKERRQ(ierr);
 
     /* 13-16. B-orthonormalize conjugate directions */
     if (its>1) {
       ierr = BVOrthogonalize(P,NULL);CHKERRQ(ierr);
-      ierr = BVMatMult(P,A,AP);CHKERRQ(ierr);  /* TODO: avoid this, instead AP=AP\cholR */
-      if (B) {
-        ierr = BVMatMult(P,B,BP);CHKERRQ(ierr);  /* TODO: avoid this, instead BP=BP\cholR */
-      }
     }
 
     /* 17-23. Compute symmetric Gram matrices */
-    ierr = BVSetActiveColumns(Z,0,ctx->bs);CHKERRQ(ierr);  /* TODO: avoid copies */
+    ierr = BVSetActiveColumns(Z,0,ctx->bs);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(X,0,ctx->bs);CHKERRQ(ierr);
     ierr = BVCopy(X,Z);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(Z,ctx->bs,2*ctx->bs-ini);CHKERRQ(ierr);
@@ -391,7 +365,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 
     ierr = BVSetActiveColumns(Z,0,nv);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
-    ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);  /* TODO: optimize following lines */
+    ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
     ierr = BVMatProject(Z,A,Z,M);CHKERRQ(ierr);
     ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
     ierr = DSGetMat(eps->ds,DS_MAT_B,&M);CHKERRQ(ierr);
@@ -410,52 +384,23 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     
     /* 25-33. Compute Ritz vectors */
     ierr = DSGetMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
-    if (its>1) {
-      ierr = BVSetActiveColumns(Z,ctx->bs,nv);CHKERRQ(ierr);
-      if (ctx->lock) {
-        ierr = BVSetActiveColumns(P,0,ctx->bs);CHKERRQ(ierr);
-      }
-      ierr = BVMult(P,1.0,0.0,Z,M);CHKERRQ(ierr);
-      ierr = BVCopy(P,X);CHKERRQ(ierr);
-      if (ctx->lock) {
-        ierr = BVSetActiveColumns(P,nconv,ctx->bs);CHKERRQ(ierr);
-      }
-      ierr = BVMatMult(P,A,AP);CHKERRQ(ierr);  /* TODO: avoid this, instead use AR,AP */
-      if (B) {
-        ierr = BVMatMult(P,B,BP);CHKERRQ(ierr);  /* TODO: avoid this, instead use BR,BP */
-      }
-      ierr = BVSetActiveColumns(Z,0,ctx->bs);CHKERRQ(ierr);
-      ierr = BVMult(X,1.0,1.0,Z,M);CHKERRQ(ierr);
-      if (ctx->lock) {
-        ierr = BVSetActiveColumns(X,nconv,ctx->bs);CHKERRQ(ierr);
-      }
-      ierr = BVMatMult(X,A,AX);CHKERRQ(ierr);  /* TODO: avoid this, instead use AX,AP */
-      if (B) {
-        ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);  /* TODO: avoid this, instead use BX,BP */
-      }
-    } else {  /* TODO: move redundant code out of if */
-      ierr = BVSetActiveColumns(Z,ctx->bs,nv);CHKERRQ(ierr);
-      if (ctx->lock) {
-        ierr = BVSetActiveColumns(P,0,ctx->bs);CHKERRQ(ierr);
-      }
-      ierr = BVMult(P,1.0,0.0,Z,M);CHKERRQ(ierr);
-      ierr = BVCopy(P,X);CHKERRQ(ierr);
-      if (ctx->lock) {
-        ierr = BVSetActiveColumns(P,nconv,ctx->bs);CHKERRQ(ierr);
-      }
-      ierr = BVMatMult(P,A,AP);CHKERRQ(ierr);  /* TODO: avoid this, instead use AR */
-      if (B) {
-        ierr = BVMatMult(P,B,BP);CHKERRQ(ierr);  /* TODO: avoid this, instead use BR */
-      }
-      ierr = BVSetActiveColumns(Z,0,ctx->bs);CHKERRQ(ierr);
-      ierr = BVMult(X,1.0,1.0,Z,M);CHKERRQ(ierr);
-      if (ctx->lock) {
-        ierr = BVSetActiveColumns(X,nconv,ctx->bs);CHKERRQ(ierr);
-      }
-      ierr = BVMatMult(X,A,AX);CHKERRQ(ierr);  /* TODO: avoid this, instead use AX */
-      if (B) {
-        ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);  /* TODO: avoid this, instead use BX */
-      }
+    ierr = BVSetActiveColumns(Z,ctx->bs,nv);CHKERRQ(ierr);
+    if (ctx->lock) {
+      ierr = BVSetActiveColumns(P,0,ctx->bs);CHKERRQ(ierr);
+    }
+    ierr = BVMult(P,1.0,0.0,Z,M);CHKERRQ(ierr);
+    ierr = BVCopy(P,X);CHKERRQ(ierr);
+    if (ctx->lock) {
+      ierr = BVSetActiveColumns(P,nconv,ctx->bs);CHKERRQ(ierr);
+    }
+    ierr = BVSetActiveColumns(Z,0,ctx->bs);CHKERRQ(ierr);
+    ierr = BVMult(X,1.0,1.0,Z,M);CHKERRQ(ierr);
+    if (ctx->lock) {
+      ierr = BVSetActiveColumns(X,nconv,ctx->bs);CHKERRQ(ierr);
+    }
+    ierr = BVMatMult(X,A,AX);CHKERRQ(ierr);
+    if (B) {
+      ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);
     }
     ierr = DSRestoreMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
   }
@@ -465,12 +410,8 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   ierr = BVDestroy(&R);CHKERRQ(ierr);
   ierr = BVDestroy(&P);CHKERRQ(ierr);
   ierr = BVDestroy(&AX);CHKERRQ(ierr);
-  ierr = BVDestroy(&AR);CHKERRQ(ierr);
-  ierr = BVDestroy(&AP);CHKERRQ(ierr);
   if (B) {
     ierr = BVDestroy(&BX);CHKERRQ(ierr);
-    ierr = BVDestroy(&BR);CHKERRQ(ierr);
-    ierr = BVDestroy(&BP);CHKERRQ(ierr);
   }
   if (nc>0 || eps->nev>ctx->bs) {
     ierr = BVDestroy(&Y);CHKERRQ(ierr);
@@ -666,6 +607,7 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptions *PetscOptionsObject,EPS eps
   PetscErrorCode ierr;
   PetscBool      lock,flg;
   PetscInt       bs;
+  KSP            ksp;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS LOBPCG Options");CHKERRQ(ierr);
@@ -676,6 +618,17 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptions *PetscOptionsObject,EPS eps
   ierr = PetscOptionsBool("-eps_lobpcg_locking","Choose between locking and non-locking variants","EPSLOBPCGSetLocking",PETSC_TRUE,&lock,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = EPSLOBPCGSetLocking(eps,lock);CHKERRQ(ierr);
+  }
+
+  /* Set STPrecond as the default ST */
+  if (!((PetscObject)eps->st)->type_name) {
+    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
+  }
+
+  /* Set the default options of the KSP */
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+  if (!((PetscObject)ksp)->type_name) {
+    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);

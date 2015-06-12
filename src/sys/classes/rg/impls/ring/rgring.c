@@ -1,10 +1,10 @@
 /*
-   Arc region, similar to the ellipse but with a start and end angle for
-   the arc, together with the width.
+   Ring region, similar to the ellipse but with a start and end angle,
+   together with the width.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -28,16 +28,16 @@ typedef struct {
   PetscScalar center;     /* center of the ellipse */
   PetscReal   radius;     /* radius of the ellipse */
   PetscReal   vscale;     /* vertical scale of the ellipse */
-  PetscReal   start_ang;  /* start angle of the arc */
-  PetscReal   end_ang;    /* end angle of the arc */
-  PetscReal   width;      /* arc width */
-} RG_ARC;
+  PetscReal   start_ang;  /* start angle */
+  PetscReal   end_ang;    /* end angle */
+  PetscReal   width;      /* ring width */
+} RG_RING;
 
 #undef __FUNCT__
-#define __FUNCT__ "RGArcSetParameters_Arc"
-static PetscErrorCode RGArcSetParameters_Arc(RG rg,PetscScalar center,PetscReal radius,PetscReal vscale,PetscReal start_ang,PetscReal end_ang,PetscReal width)
+#define __FUNCT__ "RGRingSetParameters_Ring"
+static PetscErrorCode RGRingSetParameters_Ring(RG rg,PetscScalar center,PetscReal radius,PetscReal vscale,PetscReal start_ang,PetscReal end_ang,PetscReal width)
 {
-  RG_ARC *ctx = (RG_ARC*)rg->data;
+  RG_RING *ctx = (RG_RING*)rg->data;
 
   PetscFunctionBegin;
   ctx->center = center;
@@ -74,9 +74,9 @@ static PetscErrorCode RGArcSetParameters_Arc(RG rg,PetscScalar center,PetscReal 
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "RGArcSetParameters"
+#define __FUNCT__ "RGRingSetParameters"
 /*@
-   RGArcSetParameters - Sets the parameters defining the arc region.
+   RGRingSetParameters - Sets the parameters defining the ring region.
 
    Logically Collective on RG
 
@@ -85,21 +85,21 @@ static PetscErrorCode RGArcSetParameters_Arc(RG rg,PetscScalar center,PetscReal 
 .  center    - center of the ellipse
 .  radius    - radius of the ellipse
 .  vscale    - vertical scale of the ellipse
-.  start_ang - the right-hand side angle of the arc
-.  end_ang   - the left-hand side angle of the arc
--  width     - width of the arc
+.  start_ang - the right-hand side angle
+.  end_ang   - the left-hand side angle
+-  width     - width of the ring
 
    Options Database Keys:
-+  -rg_arc_center     - Sets the center
-.  -rg_arc_radius     - Sets the radius
-.  -rg_arc_vscale     - Sets the vertical scale
-.  -rg_arc_startangle - Sets the right-hand side angle of the arc 
-.  -rg_arc_endangle   - Sets the left-hand side angle of the arc 
--  -rg_arc_width      - Sets the width of the arc
++  -rg_ring_center     - Sets the center
+.  -rg_ring_radius     - Sets the radius
+.  -rg_ring_vscale     - Sets the vertical scale
+.  -rg_ring_startangle - Sets the right-hand side angle
+.  -rg_ring_endangle   - Sets the left-hand side angle
+-  -rg_ring_width      - Sets the width of the ring
 
    Notes:
    The values of center, radius and vscale have the same meaning as in the
-   ellipse region. The startangle and endangle define the span of the arc
+   ellipse region. The startangle and endangle define the span of the ring
    (by default it is the whole ring), while the width is the separation
    between the two concentric ellipses (above and below the radius by
    width/2). The start and end angles are expressed as a fraction of the
@@ -108,15 +108,15 @@ static PetscErrorCode RGArcSetParameters_Arc(RG rg,PetscScalar center,PetscReal 
 
    In the case of complex scalars, a complex center can be provided in the
    command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
-   -rg_arc_center 1.0+2.0i
+   -rg_ring_center 1.0+2.0i
 
    When PETSc is built with real scalars, the center is restricted to a real value.
 
    Level: advanced
 
-.seealso: RGArcGetParameters()
+.seealso: RGRingGetParameters()
 @*/
-PetscErrorCode RGArcSetParameters(RG rg,PetscScalar center,PetscReal radius,PetscReal vscale,PetscReal start_ang,PetscReal end_ang,PetscReal width)
+PetscErrorCode RGRingSetParameters(RG rg,PetscScalar center,PetscReal radius,PetscReal vscale,PetscReal start_ang,PetscReal end_ang,PetscReal width)
 {
   PetscErrorCode ierr;
 
@@ -128,15 +128,15 @@ PetscErrorCode RGArcSetParameters(RG rg,PetscScalar center,PetscReal radius,Pets
   PetscValidLogicalCollectiveReal(rg,start_ang,5);
   PetscValidLogicalCollectiveReal(rg,end_ang,6);
   PetscValidLogicalCollectiveReal(rg,width,7);
-  ierr = PetscTryMethod(rg,"RGArcSetParameters_C",(RG,PetscScalar,PetscReal,PetscReal,PetscReal,PetscReal,PetscReal),(rg,center,radius,vscale,start_ang,end_ang,width));CHKERRQ(ierr);
+  ierr = PetscTryMethod(rg,"RGRingSetParameters_C",(RG,PetscScalar,PetscReal,PetscReal,PetscReal,PetscReal,PetscReal),(rg,center,radius,vscale,start_ang,end_ang,width));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "RGArcGetParameters_Arc"
-static PetscErrorCode RGArcGetParameters_Arc(RG rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscReal *start_ang,PetscReal *end_ang,PetscReal *width)
+#define __FUNCT__ "RGRingGetParameters_Ring"
+static PetscErrorCode RGRingGetParameters_Ring(RG rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscReal *start_ang,PetscReal *end_ang,PetscReal *width)
 {
-  RG_ARC *ctx = (RG_ARC*)rg->data;
+  RG_RING *ctx = (RG_RING*)rg->data;
 
   PetscFunctionBegin;
   if (center)    *center    = ctx->center;
@@ -149,9 +149,9 @@ static PetscErrorCode RGArcGetParameters_Arc(RG rg,PetscScalar *center,PetscReal
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "RGArcGetParameters"
+#define __FUNCT__ "RGRingGetParameters"
 /*@
-   RGArcGetParameters - Gets the parameters that define the arc region.
+   RGRingGetParameters - Gets the parameters that define the ring region.
 
    Not Collective
 
@@ -162,30 +162,30 @@ static PetscErrorCode RGArcGetParameters_Arc(RG rg,PetscScalar *center,PetscReal
 +  center    - center of the region
 .  radius    - radius of the region
 .  vscale    - vertical scale of the region
-.  start_ang - the right-hand side angle of the arc
-.  end_ang   - the left-hand side angle of the arc
--  width     - width of the arc
+.  start_ang - the right-hand side angle
+.  end_ang   - the left-hand side angle
+-  width     - width of the ring
 
    Level: advanced
 
-.seealso: RGArcSetParameters()
+.seealso: RGRingSetParameters()
 @*/
-PetscErrorCode RGArcGetParameters(RG rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscReal *start_ang,PetscReal *end_ang,PetscReal *width)
+PetscErrorCode RGRingGetParameters(RG rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscReal *start_ang,PetscReal *end_ang,PetscReal *width)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  ierr = PetscTryMethod(rg,"RGArcGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*),(rg,center,radius,vscale,start_ang,end_ang,width));CHKERRQ(ierr);
+  ierr = PetscTryMethod(rg,"RGRingGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*),(rg,center,radius,vscale,start_ang,end_ang,width));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "RGView_Arc"
-PetscErrorCode RGView_Arc(RG rg,PetscViewer viewer)
+#define __FUNCT__ "RGView_Ring"
+PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  RG_ARC         *ctx = (RG_ARC*)rg->data;
+  RG_RING        *ctx = (RG_RING*)rg->data;
   PetscBool      isascii;
   char           str[50];
 
@@ -193,16 +193,16 @@ PetscErrorCode RGView_Arc(RG rg,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = SlepcSNPrintfScalar(str,50,ctx->center,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"center: %s, radius: %g, vscale: %g, start angle: %g, end angle: %g, arc width: %g\n",str,RGShowReal(ctx->radius),RGShowReal(ctx->vscale),ctx->start_ang,ctx->end_ang,ctx->width);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"center: %s, radius: %g, vscale: %g, start angle: %g, end angle: %g, ring width: %g\n",str,RGShowReal(ctx->radius),RGShowReal(ctx->vscale),ctx->start_ang,ctx->end_ang,ctx->width);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "RGIsTrivial_Arc"
-PetscErrorCode RGIsTrivial_Arc(RG rg,PetscBool *trivial)
+#define __FUNCT__ "RGIsTrivial_Ring"
+PetscErrorCode RGIsTrivial_Ring(RG rg,PetscBool *trivial)
 {
-  RG_ARC *ctx = (RG_ARC*)rg->data;
+  RG_RING *ctx = (RG_RING*)rg->data;
 
   PetscFunctionBegin;
   if (rg->complement) *trivial = (ctx->radius==0.0)? PETSC_TRUE: PETSC_FALSE;
@@ -211,32 +211,19 @@ PetscErrorCode RGIsTrivial_Arc(RG rg,PetscBool *trivial)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "RGComputeContour_Arc"
-PetscErrorCode RGComputeContour_Arc(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
+#define __FUNCT__ "RGComputeContour_Ring"
+PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
-  RG_ARC      *ctx = (RG_ARC*)rg->data;
-  PetscReal   theta,theta2;
-  PetscInt    i;
-
   PetscFunctionBegin;
-  for (i=0;i<n;i++) {
-    theta = PETSC_PI*(i+0.5)/n;
-    theta2 = (ctx->start_ang*2.0+(ctx->end_ang-ctx->start_ang)*(PetscCosReal(theta)+1.0))*PETSC_PI;
-#if defined(PETSC_USE_COMPLEX)
-    cr[i] = ctx->center + ctx->radius*(PetscCosReal(theta2)+ctx->vscale*PetscSinReal(theta2)*PETSC_i);
-#else
-    cr[i] = ctx->center + ctx->radius*PetscCosReal(theta2);
-    ci[i] = ctx->radius*ctx->vscale*PetscSinReal(theta2);
-#endif
-  }
+  SETERRQ(PetscObjectComm((PetscObject)rg),1,"Not implemented yet");
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "RGCheckInside_Arc"
-PetscErrorCode RGCheckInside_Arc(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
+#define __FUNCT__ "RGCheckInside_Ring"
+PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
 {
-  RG_ARC    *ctx = (RG_ARC*)rg->data;
+  RG_RING   *ctx = (RG_RING*)rg->data;
   PetscReal dx,dy,r;
 
   PetscFunctionBegin;
@@ -283,8 +270,8 @@ PetscErrorCode RGCheckInside_Arc(RG rg,PetscReal px,PetscReal py,PetscInt *insid
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "RGSetFromOptions_Arc"
-PetscErrorCode RGSetFromOptions_Arc(PetscOptions *PetscOptionsObject,RG rg)
+#define __FUNCT__ "RGSetFromOptions_Ring"
+PetscErrorCode RGSetFromOptions_Ring(PetscOptions *PetscOptionsObject,RG rg)
 {
   PetscErrorCode ierr;
   PetscScalar    s;
@@ -292,17 +279,17 @@ PetscErrorCode RGSetFromOptions_Arc(PetscOptions *PetscOptionsObject,RG rg)
   PetscBool      flg1,flg2,flg3,flg4,flg5,flg6;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead(PetscOptionsObject,"RG Arc Options");CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"RG Ring Options");CHKERRQ(ierr);
 
-  ierr = RGArcGetParameters(rg,&s,&r1,&r2,&r3,&r4,&r5);CHKERRQ(ierr);
-  ierr = PetscOptionsScalar("-rg_arc_center","Center of ellipse","RGArcSetParameters",s,&s,&flg1);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-rg_arc_radius","Radius of ellipse","RGArcSetParameters",r1,&r1,&flg2);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-rg_arc_vscale","Vertical scale of ellipse","RGArcSetParameters",r2,&r2,&flg3);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-rg_arc_startangle","Right-hand side angle of the arc","RGArcSetParameters",r3,&r3,&flg4);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-rg_arc_endangle","Left-hand side angle of the arc","RGArcSetParameters",r4,&r4,&flg5);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-rg_arc_width","Width of arc","RGArcSetParameters",r5,&r5,&flg6);CHKERRQ(ierr);
+  ierr = RGRingGetParameters(rg,&s,&r1,&r2,&r3,&r4,&r5);CHKERRQ(ierr);
+  ierr = PetscOptionsScalar("-rg_ring_center","Center of ellipse","RGRingSetParameters",s,&s,&flg1);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-rg_ring_radius","Radius of ellipse","RGRingSetParameters",r1,&r1,&flg2);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-rg_ring_vscale","Vertical scale of ellipse","RGRingSetParameters",r2,&r2,&flg3);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-rg_ring_startangle","Right-hand side angle","RGRingSetParameters",r3,&r3,&flg4);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-rg_ring_endangle","Left-hand side angle","RGRingSetParameters",r4,&r4,&flg5);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-rg_ring_width","Width of ring","RGRingSetParameters",r5,&r5,&flg6);CHKERRQ(ierr);
   if (flg1 || flg2 || flg3 || flg4 || flg5 || flg6) {
-    ierr = RGArcSetParameters(rg,s,r1,r2,r3,r4,r5);CHKERRQ(ierr);
+    ierr = RGRingSetParameters(rg,s,r1,r2,r3,r4,r5);CHKERRQ(ierr);
   }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
@@ -310,43 +297,43 @@ PetscErrorCode RGSetFromOptions_Arc(PetscOptions *PetscOptionsObject,RG rg)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "RGDestroy_Arc"
-PetscErrorCode RGDestroy_Arc(RG rg)
+#define __FUNCT__ "RGDestroy_Ring"
+PetscErrorCode RGDestroy_Ring(RG rg)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = PetscFree(rg->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)rg,"RGArcSetParameters_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)rg,"RGArcGetParameters_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)rg,"RGRingSetParameters_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)rg,"RGRingGetParameters_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "RGCreate_Arc"
-PETSC_EXTERN PetscErrorCode RGCreate_Arc(RG rg)
+#define __FUNCT__ "RGCreate_Ring"
+PETSC_EXTERN PetscErrorCode RGCreate_Ring(RG rg)
 {
-  RG_ARC         *arc;
+  RG_RING        *ring;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(rg,&arc);CHKERRQ(ierr);
-  arc->center    = 0.0;
-  arc->radius    = 1.0;
-  arc->vscale    = 1.0;
-  arc->start_ang = 0.0;
-  arc->end_ang   = 1.0;
-  arc->width     = 0.1;
-  rg->data = (void*)arc;
+  ierr = PetscNewLog(rg,&ring);CHKERRQ(ierr);
+  ring->center    = 0.0;
+  ring->radius    = 1.0;
+  ring->vscale    = 1.0;
+  ring->start_ang = 0.0;
+  ring->end_ang   = 1.0;
+  ring->width     = 0.1;
+  rg->data = (void*)ring;
 
-  rg->ops->istrivial      = RGIsTrivial_Arc;
-  rg->ops->computecontour = RGComputeContour_Arc;
-  rg->ops->checkinside    = RGCheckInside_Arc;
-  rg->ops->setfromoptions = RGSetFromOptions_Arc;
-  rg->ops->view           = RGView_Arc;
-  rg->ops->destroy        = RGDestroy_Arc;
-  ierr = PetscObjectComposeFunction((PetscObject)rg,"RGArcSetParameters_C",RGArcSetParameters_Arc);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)rg,"RGArcGetParameters_C",RGArcGetParameters_Arc);CHKERRQ(ierr);
+  rg->ops->istrivial      = RGIsTrivial_Ring;
+  rg->ops->computecontour = RGComputeContour_Ring;
+  rg->ops->checkinside    = RGCheckInside_Ring;
+  rg->ops->setfromoptions = RGSetFromOptions_Ring;
+  rg->ops->view           = RGView_Ring;
+  rg->ops->destroy        = RGDestroy_Ring;
+  ierr = PetscObjectComposeFunction((PetscObject)rg,"RGRingSetParameters_C",RGRingSetParameters_Ring);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)rg,"RGRingGetParameters_C",RGRingGetParameters_Ring);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
