@@ -85,10 +85,7 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
-  /* Set STPrecond as the default ST */
-  if (!((PetscObject)eps->st)->type_name) {
-    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
-  }
+  ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond);CHKERRQ(ierr);
   if (!precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"LOBPCG only works with precond ST");
 
@@ -666,6 +663,7 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptions *PetscOptionsObject,EPS eps
   PetscErrorCode ierr;
   PetscBool      lock,flg;
   PetscInt       bs;
+  KSP            ksp;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS LOBPCG Options");CHKERRQ(ierr);
@@ -676,6 +674,17 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptions *PetscOptionsObject,EPS eps
   ierr = PetscOptionsBool("-eps_lobpcg_locking","Choose between locking and non-locking variants","EPSLOBPCGSetLocking",PETSC_TRUE,&lock,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = EPSLOBPCGSetLocking(eps,lock);CHKERRQ(ierr);
+  }
+
+  /* Set STPrecond as the default ST */
+  if (!((PetscObject)eps->st)->type_name) {
+    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
+  }
+
+  /* Set the default options of the KSP */
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+  if (!((PetscObject)ksp)->type_name) {
+    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
