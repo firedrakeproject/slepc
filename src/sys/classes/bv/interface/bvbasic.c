@@ -816,7 +816,7 @@ PetscErrorCode BVSetFromOptions(BV bv)
 #undef __FUNCT__
 #define __FUNCT__ "BVSetOrthogonalization"
 /*@
-   BVSetOrthogonalization - Specifies the method used for the orthogonalization
+   BVSetOrthogonalization - Specifies the method used for the orthogonalization of
    vectors (classical or modified Gram-Schmidt with or without refinement), and
    for the block-orthogonalization (simultaneous orthogonalization of a set of
    vectors).
