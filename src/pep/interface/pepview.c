@@ -170,6 +170,16 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       }
       break;
+    case PEP_CONV_NORM:
+      ierr = PetscViewerASCIIPrintf(viewer,"related to the matrix norms\n");CHKERRQ(ierr);
+      if (pep->nrma) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)pep->nrma[0]);CHKERRQ(ierr);
+        for (i=1;i<pep->nmat;i++) {
+          ierr = PetscViewerASCIIPrintf(viewer,", %g",(double)pep->nrma[i]);CHKERRQ(ierr);
+        }
+        ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+      }
+      break;
     case PEP_CONV_USER:
       ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
     }

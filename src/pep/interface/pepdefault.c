@@ -95,6 +95,35 @@ PetscErrorCode PEPConvergedLinear(PEP pep,PetscScalar eigr,PetscScalar eigi,Pets
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPConvergedNorm"
+/*
+  PEPConvergedNorm - Checks convergence relative to the matrix norms.
+*/
+PetscErrorCode PEPConvergedNorm(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+{
+  PetscReal      w=0.0,t;
+  PetscInt       j;
+  PetscBool      flg;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  /* initialization of matrix norms */
+  if (!pep->nrma[pep->nmat-1]) {
+    for (j=0;j<pep->nmat;j++) {
+      ierr = MatHasOperation(pep->A[j],MATOP_NORM,&flg);CHKERRQ(ierr);
+      if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"The convergence test related to the matrix norms requires a matrix norm operation");
+      ierr = MatNorm(pep->A[j],NORM_INFINITY,&pep->nrma[j]);CHKERRQ(ierr);
+    }
+  }
+  t = SlepcAbsEigenvalue(eigr,eigi);
+  for (j=pep->nmat-1;j>=0;j--) {
+    w = w*t+pep->nrma[j];
+  }
+  *errest = res/w;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPConvergedAbsolute"
 /*
   PEPConvergedAbsolute - Checks convergence absolutely.

@@ -121,12 +121,14 @@
       PetscEnum PEP_CONV_ABS
       PetscEnum PEP_CONV_EIG
       PetscEnum PEP_CONV_LINEAR
+      PetscEnum PEP_CONV_NORM
       PetscEnum PEP_CONV_USER
 
       parameter (PEP_CONV_ABS               =  0)
       parameter (PEP_CONV_EIG               =  1)
       parameter (PEP_CONV_LINEAR            =  2)
-      parameter (PEP_CONV_USER              =  3)
+      parameter (PEP_CONV_NORM              =  3)
+      parameter (PEP_CONV_USER              =  4)
 
 !
 !   Possible arguments to PEPMonitorSet()

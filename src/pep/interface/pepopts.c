@@ -110,6 +110,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_EIG);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-pep_conv_linear","Convergence test related to the linearized eigenproblem","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_LINEAR);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupBegin("-pep_conv_norm","Convergence test related to the matrix norms","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_NORM);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-pep_conv_abs","Absolute error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_ABS);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-pep_conv_user","User-defined convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
@@ -783,6 +785,7 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
   pep->convergedctx     = ctx;
   if (func == PEPConvergedEigRelative) pep->conv = PEP_CONV_EIG;
   else if (func == PEPConvergedLinear) pep->conv = PEP_CONV_LINEAR;
+  else if (func == PEPConvergedNorm) pep->conv = PEP_CONV_NORM;
   else if (func == PEPConvergedAbsolute) pep->conv = PEP_CONV_ABS;
   else pep->conv = PEP_CONV_USER;
   PetscFunctionReturn(0);
@@ -811,6 +814,7 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
 +     PEP_CONV_ABS    - absolute error ||r||
 .     PEP_CONV_EIG    - error relative to the eigenvalue l, ||r||/|l|
 .     PEP_CONV_LINEAR - error related to the linearized eigenproblem
+.     PEP_CONV_NORM   - error relative matrix norms, ||r||/sum_i(l^i*||A_i||)
 -     PEP_CONV_USER   - function set by PEPSetConvergenceTestFunction()
 
    Level: intermediate
@@ -826,6 +830,7 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
     case PEP_CONV_ABS:    pep->converged = PEPConvergedAbsolute; break;
     case PEP_CONV_EIG:    pep->converged = PEPConvergedEigRelative; break;
     case PEP_CONV_LINEAR: pep->converged = PEPConvergedLinear; break;
+    case PEP_CONV_NORM:   pep->converged = PEPConvergedNorm; break;
     case PEP_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
