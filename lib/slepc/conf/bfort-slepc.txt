@@ -1,6 +1,7 @@
 # enums
 native BVOrthogType
 native BVOrthogRefineType
+native BVOrthogBlockType
 native BVMatMultType
 native DSStateType
 native DSMatType

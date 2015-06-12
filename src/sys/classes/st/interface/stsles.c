@@ -141,10 +141,9 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
 @*/
 PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
 {
-  PetscErrorCode     ierr;
-  PetscInt           its;
-  PetscBool          flg;
-  KSPConvergedReason reason;
+  PetscErrorCode ierr;
+  PetscInt       its;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -165,8 +164,6 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   }
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
-  ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
-  if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_MatSolve,st,b,x,0);CHKERRQ(ierr);
@@ -195,10 +192,9 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
 @*/
 PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
 {
-  PetscErrorCode     ierr;
-  PetscInt           its;
-  PetscBool          flg;
-  KSPConvergedReason reason;
+  PetscErrorCode ierr;
+  PetscInt       its;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -219,8 +215,6 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   }
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
-  ierr = KSPGetConvergedReason(st->ksp,&reason);CHKERRQ(ierr);
-  if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
   ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_MatSolveTranspose,st,b,x,0);CHKERRQ(ierr);

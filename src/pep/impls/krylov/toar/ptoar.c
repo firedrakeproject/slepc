@@ -76,6 +76,9 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
     else pep->which = PEP_LARGEST_MAGNITUDE;
   }
+  if (pep->problem_type!=PEP_GENERAL) {
+    ierr = PetscInfo(pep,"Problem type ignored, performing a non-symmetric linearization\n");CHKERRQ(ierr);
+  }
 
   if (!ctx->keep) ctx->keep = 0.5;
 
@@ -144,7 +147,7 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   PetscReal      eta,onorm;
   
   PetscFunctionBegin;
-  ierr = BVGetOrthogonalization(pep->V,NULL,NULL,&eta);CHKERRQ(ierr);
+  ierr = BVGetOrthogonalization(pep->V,NULL,NULL,&eta,NULL);CHKERRQ(ierr);
   n = k+deg-1;
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(deg*ld,&lds_);CHKERRQ(ierr);

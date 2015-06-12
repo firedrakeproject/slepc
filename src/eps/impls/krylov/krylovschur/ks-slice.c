@@ -112,6 +112,7 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
   BVType             type;
   BVOrthogType       orthog_type;
   BVOrthogRefineType orthog_ref;
+  BVOrthogBlockType  ob_type;
   Mat                matrix;
   Vec                t;
   EPS_SR             sr = ctx->sr;
@@ -141,8 +142,8 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = BVGetMatrix(eps->V,&matrix,NULL);CHKERRQ(ierr);
   ierr = BVSetMatrix(sr->V,matrix,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = BVGetOrthogonalization(eps->V,&orthog_type,&orthog_ref,&eta);CHKERRQ(ierr);
-  ierr = BVSetOrthogonalization(sr->V,orthog_type,orthog_ref,eta);CHKERRQ(ierr);
+  ierr = BVGetOrthogonalization(eps->V,&orthog_type,&orthog_ref,&eta,&ob_type);CHKERRQ(ierr);
+  ierr = BVSetOrthogonalization(sr->V,orthog_type,orthog_ref,eta,ob_type);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -157,6 +158,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   PetscReal          eta;
   BVOrthogType       orthog_type;
   BVOrthogRefineType orthog_ref;
+  BVOrthogBlockType  ob_type;
   Mat                A,B=NULL,Ar,Br=NULL;
   PetscInt           i;
   PetscReal          h,a,b;
@@ -255,8 +257,8 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
     ierr = BVGetType(eps->V,&type);CHKERRQ(ierr);
     ierr = BVSetType(V,type);CHKERRQ(ierr);
   }
-  ierr = BVGetOrthogonalization(eps->V,&orthog_type,&orthog_ref,&eta);CHKERRQ(ierr);
-  ierr = BVSetOrthogonalization(V,orthog_type,orthog_ref,eta);CHKERRQ(ierr);
+  ierr = BVGetOrthogonalization(eps->V,&orthog_type,&orthog_ref,&eta,&ob_type);CHKERRQ(ierr);
+  ierr = BVSetOrthogonalization(V,orthog_type,orthog_ref,eta,ob_type);CHKERRQ(ierr);
   ctx->eps->which = eps->which;
   ctx->eps->max_it = eps->max_it;
   ctx->eps->tol = eps->tol;

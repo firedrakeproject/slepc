@@ -326,6 +326,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->B);CHKERRQ(ierr);
 
   } else {   /* implicit matrix */
+    if (pep->problem_type!=PEP_GENERAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Must use the explicit matrix option");
     if (!((PetscObject)(ctx->eps))->type_name) {
       ierr = EPSSetType(ctx->eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
     } else {
@@ -378,11 +379,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ierr = EPSGetProblemType(ctx->eps,&ptype);CHKERRQ(ierr);
   if (!ptype) {
     if (ctx->explicitmatrix) {
-      if (pep->problem_type==PEP_HERMITIAN) {
-        ierr = EPSSetProblemType(ctx->eps,EPS_GHIEP);CHKERRQ(ierr);
-      } else {
-        ierr = EPSSetProblemType(ctx->eps,EPS_GNHEP);CHKERRQ(ierr);
-      }
+      ierr = EPSSetProblemType(ctx->eps,EPS_GNHEP);CHKERRQ(ierr);
     } else {
       ierr = EPSSetProblemType(ctx->eps,EPS_NHEP);CHKERRQ(ierr);
     }

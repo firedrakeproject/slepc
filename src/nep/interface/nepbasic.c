@@ -592,6 +592,7 @@ PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
     ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)nep->ksp,(PetscObject)nep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ksp);CHKERRQ(ierr);
+    ierr = KSPSetErrorIfNotConverged(nep->ksp,PETSC_TRUE);CHKERRQ(ierr);
   }
   *ksp = nep->ksp;
   PetscFunctionReturn(0);

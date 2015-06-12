@@ -36,6 +36,12 @@
       parameter (BV_ORTHOG_REFINE_NEVER    =  1)
       parameter (BV_ORTHOG_REFINE_ALWAYS   =  2)
 
+      PetscEnum BV_ORTHOG_BLOCK_GS
+      PetscEnum BV_ORTHOG_BLOCK_CHOL
+
+      parameter (BV_ORTHOG_BLOCK_GS        =  0)
+      parameter (BV_ORTHOG_BLOCK_CHOL      =  1)
+
       PetscEnum BV_MATMULT_VECS
       PetscEnum BV_MATMULT_MAT
       PetscEnum BV_MATMULT_MAT_SAVE

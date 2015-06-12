@@ -91,7 +91,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = DSGetRefined(eps->ds,&refined);CHKERRQ(ierr);
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
-  ierr = BVGetOrthogonalization(eps->V,NULL,&orthog_ref,NULL);CHKERRQ(ierr);
+  ierr = BVGetOrthogonalization(eps->V,NULL,&orthog_ref,NULL,NULL);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);

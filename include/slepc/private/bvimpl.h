@@ -71,9 +71,10 @@ struct _p_BV {
   PetscInt           l;            /* number of leading columns */
   PetscInt           k;            /* number of active columns */
   PetscInt           nc;           /* number of constraints */
-  BVOrthogType       orthog_type;  /* which orthogonalization to use */
+  BVOrthogType       orthog_type;  /* the method of vector orthogonalization */
   BVOrthogRefineType orthog_ref;   /* refinement method */
   PetscReal          orthog_eta;   /* refinement threshold */
+  BVOrthogBlockType  orthog_block; /* the method of block orthogonalization */
   Mat                matrix;       /* inner product matrix */
   PetscBool          indef;        /* matrix is indefinite */
   BVMatMultType      vmm;          /* version of matmult operation */
@@ -91,6 +92,8 @@ struct _p_BV {
   Mat                B,C;          /* auxiliary dense matrices for matmult operation */
   PetscObjectId      Aid;          /* object id of matrix A of matmult operation */
   PetscBool          defersfo;     /* deferred call to setfromoptions */
+  BV                 cached;       /* cached BV to store result of matrix times BV */
+  PetscObjectState   bvstate;      /* state of BV when BVApplyMatrixBV() was called */
   PetscScalar        *work;
   PetscInt           lwork;
   void               *data;
@@ -111,6 +114,49 @@ PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMult(BV bv,Vec x)
     ierr = MatMult(bv->matrix,x,bv->Bx);CHKERRQ(ierr);
     bv->xid = ((PetscObject)x)->id;
     bv->xstate = ((PetscObject)x)->state;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BV_AllocateCachedBV"
+/*
+  BV_AllocateCachedBV - Allocate auxiliary BV required for BVApplyMatrixBV if not available.
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_AllocateCachedBV(BV V)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (!V->cached) {
+    ierr = BVCreate(PetscObjectComm((PetscObject)V),&V->cached);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(V->cached,V->t,V->m);CHKERRQ(ierr);
+    ierr = BVSetType(V->cached,((PetscObject)V)->type_name);CHKERRQ(ierr);
+    ierr = BVSetOrthogonalization(V->cached,V->orthog_type,V->orthog_ref,V->orthog_eta,V->orthog_block);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BV_IPMatMultBV"
+/*
+  BV_IPMatMultBV - Multiply BV by the inner-product matrix, cache the
+  result internally in bv->cached.
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMultBV(BV bv)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = BV_AllocateCachedBV(bv);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(bv->cached,bv->l,bv->k);CHKERRQ(ierr);
+  if (((PetscObject)bv)->state != bv->bvstate) {
+    if (bv->matrix) {
+      ierr = BVMatMult(bv,bv->matrix,bv->cached);CHKERRQ(ierr);
+    } else {
+      ierr = BVCopy(bv,bv->cached);CHKERRQ(ierr);
+    }
+    bv->bvstate = ((PetscObject)bv)->state;
   }
   PetscFunctionReturn(0);
 }
