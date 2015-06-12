@@ -219,7 +219,9 @@ Most \slepc solvers use a \ident{BV} object to represent the working subspace ba
 
 The \ident{RG} object defines a region of the complex plane, that can be used to specify where eigenvalues must be sought. Currently, the following types of regions are available:
 \begin{itemize}
+\setlength{\itemsep}{0mm}
 \item A (generalized) interval, defined as $[a,b]\times[c,d]$, where the four parameters can be set with \ident{RGIntervalSetEndpoints}. This covers the particular cases of an interval on the real axis (setting $c=d=0$), the left halfplane $[-\infty,0]\times[-\infty,+\infty]$, a quadrant, etc.
+\item A polygon defined by its vertices, see \ident{RGPolygonSetVertices}.
 \item An ellipse defined by its center, radius and vertical scale (1 by default), see \ident{RGEllipseSetParameters}.
 \item A ring region similar to an ellipse but consisting of a thin stripe along the ellipse with optional start and end angles, see \ident{RGRingSetParameters}.
 \end{itemize}
@@ -250,6 +252,7 @@ Note that the point is represented as two \texttt{PetscScalar}'s, similarly to e
                        &                     & {\footnotesize Options} \\
 Region Type            & \ident{RGType}      & {\footnotesize Database Name}\\\hline
 (Generalized) Interval & \texttt{RGINTERVAL} & \texttt{interval} \\
+Polygon                & \texttt{RGPOLYGON}  & \texttt{polygon} \\
 Ellipse                & \texttt{RGELLIPSE}  & \texttt{ellipse} \\
 Ring                   & \texttt{RGRING}     & \texttt{ring} \\\hline
 \end{tabular} }
