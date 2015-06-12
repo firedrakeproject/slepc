@@ -612,7 +612,7 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
   if (R) {
     PetscValidHeaderSpecific(R,MAT_CLASSID,2);
     PetscValidType(R,2);
-    if (V->l>=0 && V->orthog_block==BV_ORTHOG_BLOCK_GS) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot request matrix R in Gram-Schmidt orthogonalization if l>0");
+    if (V->l>0 && V->orthog_block==BV_ORTHOG_BLOCK_GS) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot request matrix R in Gram-Schmidt orthogonalization if l>0");
     ierr = PetscObjectTypeCompare((PetscObject)R,MATSEQDENSE,&match);CHKERRQ(ierr);
     if (!match) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
     ierr = MatGetSize(R,&m,&n);CHKERRQ(ierr);
