@@ -262,6 +262,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   ctx->eps->which = eps->which;
   ctx->eps->max_it = eps->max_it;
   ctx->eps->tol = eps->tol;
+  ctx->eps->purify = eps->purify;
   if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
   ierr = EPSSetProblemType(ctx->eps,eps->problem_type);CHKERRQ(ierr);
   ierr = EPSSetUp(ctx->eps);CHKERRQ(ierr);
@@ -1185,6 +1186,12 @@ static PetscErrorCode EPSStoreEigenpairs(EPS eps)
         ierr = BVGetColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
         ierr = STApply(eps->st,w,v);CHKERRQ(ierr);
         ierr = BVRestoreColumn(sr->V,count,&v);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
+        ierr = BVNormColumn(sr->V,count,NORM_2,&norm);CHKERRQ(ierr);
+        ierr = BVScaleColumn(sr->V,count,1.0/norm);CHKERRQ(ierr);
+      } else {
+        ierr = BVGetColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
+        ierr = BVInsertVec(sr->V,count,w);CHKERRQ(ierr);
         ierr = BVRestoreColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
         ierr = BVNormColumn(sr->V,count,NORM_2,&norm);CHKERRQ(ierr);
         ierr = BVScaleColumn(sr->V,count,1.0/norm);CHKERRQ(ierr);
