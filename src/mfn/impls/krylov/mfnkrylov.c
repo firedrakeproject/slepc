@@ -42,8 +42,11 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
 {
   PetscErrorCode  ierr;
   PetscInt        N;
+  PetscBool       isexp;
 
   PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)mfn->fn,FNEXP,&isexp);CHKERRQ(ierr);
+  if (!isexp) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_SUP,"Only the exponential function is supported in this version, use the development version or a later release");
   ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
   if (!mfn->ncv) mfn->ncv = PetscMin(30,N);
   if (!mfn->max_it) mfn->max_it = PetscMax(100,2*N/mfn->ncv);
