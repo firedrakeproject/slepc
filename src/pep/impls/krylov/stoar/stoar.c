@@ -117,7 +117,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   PetscBool      sinv,flg,lindep;
   PEP_TOAR      *ctx = (PEP_TOAR*)pep->data;
   PetscInt       ld,i;
-  PetscReal      norm;
+  PetscReal      norm,*omega;
 
   PetscFunctionBegin;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
@@ -174,6 +174,9 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
 
   ierr = PEPSTOARNorm(pep,0,&norm);CHKERRQ(ierr);
   for (i=0;i<2;i++) { ctx->S[i+ld] /= norm; ctx->S[i] /= norm; }
+  ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+  omega[0] = (norm>0)?1.0:-1.0;
+  ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
   if (pep->nini<0) {
     ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);
   }
